@@ -39,8 +39,11 @@ import type { ComponentProps, MouseEvent, ReactNode } from "react";
  * `useTenantRouter` for `useRouter`, `useTenantHref` for anything else that
  * needs an href, and `useRoutePathname` for `usePathname` in active-state
  * tests. Server code uses `redirectInTenant` from `./tenant-server`. Outside
- * a tenant document (sign-in, the chooser, the donor portal) they leave every
- * address as it is.
+ * a tenant document (sign-in, the chooser, the donor portal) they add no
+ * prefix. In every app with a segment boundary, a tenant's
+ * (`TenantSegmentBoundary`) or a path's (`PathSegmentBoundary`, the donor
+ * portal's), `TenantLink` and `useTenantRouter` load a document for a
+ * navigation that crosses it.
  */
 
 /**
@@ -51,20 +54,45 @@ import type { ComponentProps, MouseEvent, ReactNode } from "react";
  * client router did since. Browser only.
  */
 function loadedSegment(): string | null | undefined {
+  const pathname = loadedPathname();
+  if (pathname === undefined) return undefined;
+  return parseTenantAddress(pathname)?.prefix ?? null;
+}
+
+/**
+ * The path of the address the document was loaded at, from the navigation
+ * timing entry; `undefined` on the server and where the browser cannot say.
+ */
+function loadedPathname(): string | undefined {
   if (typeof window === "undefined") return undefined;
   try {
     const [entry] = performance.getEntriesByType("navigation");
     if (!entry) return undefined;
-    return parseTenantAddress(new URL(entry.name).pathname)?.prefix ?? null;
+    return new URL(entry.name).pathname;
   } catch {
     return undefined;
   }
 }
 
-/** Present only in an app whose signed-in pages live under the tenant address. */
+/**
+ * Present only in an app with a segment boundary: a tenant's segment
+ * (`TenantSegmentBoundary`) or a path segment (`PathSegmentBoundary`).
+ * `documentSegment` is the segment the document was loaded in; `segmentOf`
+ * places a page path in a segment, or `null` outside every segment.
+ */
 const SegmentContext = createContext<{
   documentSegment: string | null | undefined;
+  segmentOf: (pathname: string) => string | null;
 } | null>(null);
+
+/** A page path's tenant segment: its prefix, "unprefixed", or null outside. */
+function tenantSegmentOf(pathname: string): string | null {
+  const address = parseTenantAddress(pathname);
+  if (address) return address.prefix;
+  // An unprefixed page address inside the segment: the proxy puts it under
+  // the person's prefix, so it is in a segment other than "outside".
+  return isOutsideTenantSegment(pathname) ? null : "unprefixed";
+}
 
 /**
  * Makes every navigation that crosses the boundary of the tenant segment a
@@ -91,7 +119,10 @@ const SegmentContext = createContext<{
  * keeps its prerendered shell.
  */
 export function TenantSegmentBoundary({ children }: { children: ReactNode }) {
-  const value = useMemo(() => ({ documentSegment: loadedSegment() }), []);
+  const value = useMemo(
+    () => ({ documentSegment: loadedSegment(), segmentOf: tenantSegmentOf }),
+    [],
+  );
   return (
     <SegmentContext.Provider value={value}>
       <Suspense fallback={null}>
@@ -118,6 +149,48 @@ function SegmentCrossingWatcher({
 }
 
 /**
+ * The same rule for a segment whose address names no tenant, such as the
+ * donor portal's `/donor-dashboard` (council round 2 on slice B, BR2):
+ * `TenantLink` and `useTenantRouter` load a document for a navigation into
+ * or out of `segment`, so the usual way across never renders on the old
+ * document; inside the segment, and between two pages outside it, navigation
+ * stays soft. It reads no request data and renders no Suspense boundary.
+ *
+ * It has no watcher of its own: the scope provider given the same segment
+ * (`DocumentScopeProvider`, BR1) reloads a document that crosses it softly,
+ * which is the fallback for a crossing that bypassed these helpers. The
+ * donor app renders it at its root through `PortalSegmentBoundary`
+ * (`./portal-document`).
+ */
+export function PathSegmentBoundary({
+  segment,
+  children,
+}: {
+  segment: string;
+  children: ReactNode;
+}) {
+  if (!segment.startsWith("/") || segment.length < 2) {
+    throw new TypeError(
+      `A path segment is a page path such as /donor-dashboard, not "${segment}".`,
+    );
+  }
+  const value = useMemo(() => {
+    const segmentOf = (pathname: string) =>
+      pathname === segment || pathname.startsWith(`${segment}/`)
+        ? segment
+        : null;
+    const loaded = loadedPathname();
+    return {
+      documentSegment: loaded === undefined ? undefined : segmentOf(loaded),
+      segmentOf,
+    };
+  }, [segment]);
+  return (
+    <SegmentContext.Provider value={value}>{children}</SegmentContext.Provider>
+  );
+}
+
+/**
  * Rendered where a document loaded outside the workspace finds itself
  * showing a workspace page: nothing, and a new document for the address.
  */
@@ -129,26 +202,25 @@ export function ReloadAcrossSegment() {
 }
 
 /** The segment of a navigation target, or `undefined` for one the browser handles as it is. */
-function targetSegment(href: string): string | null | undefined {
+function targetSegment(
+  href: string,
+  segmentOf: (pathname: string) => string | null,
+): string | null | undefined {
   if (!href.startsWith("/") || href.startsWith("//")) return undefined;
-  const pathname = href.split(/[?#]/)[0] || "/";
-  const address = parseTenantAddress(pathname);
-  if (address) return address.prefix;
-  // An unprefixed page address inside the segment: the proxy puts it under
-  // the person's prefix, so it is in a segment other than "outside".
-  return isOutsideTenantSegment(pathname) ? null : "unprefixed";
+  return segmentOf(href.split(/[?#]/)[0] || "/");
 }
 
 /**
  * Whether going to `href` (already prefixed for this document) crosses the
- * tenant segment's boundary. Never in an app with no tenant segment.
+ * app's segment boundary: a tenant's, or a path segment's. Never in an app
+ * with no segment boundary.
  */
 function useCrossesSegment(): (href: string) => boolean {
   const segment = useContext(SegmentContext);
   return useCallback(
     (href: string) => {
       if (!segment || segment.documentSegment === undefined) return false;
-      const target = targetSegment(href);
+      const target = targetSegment(href, segment.segmentOf);
       return target !== undefined && target !== segment.documentSegment;
     },
     [segment],
@@ -415,8 +487,10 @@ function loadCrossing(address: string, replace: boolean): void {
 
 /**
  * `next/link` with the document's tenant prefix on internal page addresses.
- * A link that crosses the tenant segment's boundary loads its address as a
- * new document instead of a client-side transition, and is not prefetched.
+ * A link that crosses the app's segment boundary (a tenant's, or the donor
+ * portal's path) loads its address as a new document instead of a
+ * client-side transition, and is not prefetched. A modifier key, another
+ * button and a `target` are left to the browser.
  */
 export function TenantLink({
   href,
@@ -457,8 +531,8 @@ type AppRouter = ReturnType<typeof useRouter>;
 
 /**
  * `useRouter` whose `push`, `replace` and `prefetch` carry the prefix. A
- * target across the tenant segment's boundary is loaded as a new document,
- * and not prefetched; once such a load has begun, `refresh` does nothing.
+ * target across the app's segment boundary is loaded as a new document, and
+ * not prefetched; once such a load has begun, `refresh` does nothing.
  */
 export function useTenantRouter(): AppRouter {
   const router = useRouter();

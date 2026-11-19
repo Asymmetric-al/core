@@ -5,10 +5,31 @@ import {
   type DocumentScope,
 } from "@asym/database/document-scope";
 
+import { PathSegmentBoundary } from "./tenant-navigation";
+
 import type { ReactNode } from "react";
 
 /** The donor portal's path: its scope applies under it and nowhere else. */
-export const DONOR_PORTAL_PATH = "/donor-dashboard";
+const DONOR_PORTAL_PATH = "/donor-dashboard";
+
+/**
+ * The donor portal's boundary for the donor app's links and router (council
+ * round 2 on slice B, BR2): the donor app renders it at its root, so every
+ * crossing into or out of the portal through `TenantLink` or
+ * `useTenantRouter` is one document load at its source. That covers the
+ * portal's own links out (Give, Give again, the footer, the account menu's
+ * link to the site), the public site's links in, and the landing after
+ * sign-in, sign-up, password reset and the demo sign-in, which the shared
+ * auth screens make through the tenant router. The portal's document scope
+ * reloads a crossing that bypassed them (BR1).
+ */
+export function PortalSegmentBoundary({ children }: { children: ReactNode }) {
+  return (
+    <PathSegmentBoundary segment={DONOR_PORTAL_PATH}>
+      {children}
+    </PathSegmentBoundary>
+  );
+}
 
 /**
  * The donor portal's document (plan 12, WP2, "Interim rules until WP3"; WP2b,
@@ -27,7 +48,9 @@ export const DONOR_PORTAL_PATH = "/donor-dashboard";
  * both scope functions return nothing, so a public page's calls, such as the
  * checkout's `/api/donate`, carry neither header; a document that entered
  * the portal without a load reloads; and when the portal unmounts at an
- * address outside it, the address loads as a new document.
+ * address outside it, the address loads as a new document. Those reloads
+ * are the fallback: the donor app's links and router load a document at the
+ * source (`PortalSegmentBoundary`, BR2).
  */
 export function PortalDocument({
   scope,

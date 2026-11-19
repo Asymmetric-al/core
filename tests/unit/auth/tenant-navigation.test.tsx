@@ -766,7 +766,10 @@ describe("TenantSegmentBoundary: a crossing is a document load", () => {
     expect(loadDocument).toHaveBeenLastCalledWith("/tasks", { replace: true });
   });
 
-  it("keeps every navigation soft in an app with no tenant segment, such as the donor portal", async () => {
+  // An app with no segment boundary at all. The donor app declares the
+  // portal's path since council round 2 (BR2): tests/unit/apps/donor/
+  // portal-crossing.test.tsx.
+  it("keeps every navigation soft in an app with no segment boundary", async () => {
     const mod = await load();
     nav.pathname = "/donor-dashboard";
     let router: ReturnType<typeof mod.useTenantRouter> | null = null;

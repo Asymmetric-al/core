@@ -1,11 +1,11 @@
 import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
 import { PortalDocument } from "@asym/auth/portal-document";
 import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { readPortalDocumentScope } from "@asym/auth/tenant-server";
 import { siteConfig } from "@asym/config/site-client";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
 import { RetainedDraftPageTenant } from "@asym/ui/hooks";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 

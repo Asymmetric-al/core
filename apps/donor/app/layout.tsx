@@ -1,4 +1,5 @@
 import "@asym/env";
+import { PortalSegmentBoundary } from "@asym/auth/portal-document";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
@@ -144,7 +145,13 @@ export default function RootLayout({
                   <NuqsAdapter>
                     <BoneyardRegistry />
                     <SessionRetainedDraftProvider>
-                      <OpenPolicyProvider>{children}</OpenPolicyProvider>
+                      <OpenPolicyProvider>
+                        {/* Crossing into or out of the donor portal is one
+                            document load at its source (AL-2675, BR2). */}
+                        <PortalSegmentBoundary>
+                          {children}
+                        </PortalSegmentBoundary>
+                      </OpenPolicyProvider>
                     </SessionRetainedDraftProvider>
                   </NuqsAdapter>
                 </MotionProvider>

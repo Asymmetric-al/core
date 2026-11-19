@@ -624,11 +624,11 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "da1b2f57078966f3875e38ad551e2cadcd692650f2fb86f218351a0b3d580bf5"
+          "sha256": "175e03b151d091b7cdfaa2032299edf3312a5e2b6ef04a5a9703a133aa277964"
         },
         {
           "path": "apps/donor/features/donor/components/donor-portal-header.tsx",
-          "sha256": "4ca6160c8d493ee69fa1b309649a40e2f1c67b07f41acb4239ca51c78cdb7f55"
+          "sha256": "9c6de1b1d3c77240119aa3ae7ad3e3d052091c2875bb88ae4ee15845284f60b3"
         },
         {
           "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
@@ -665,11 +665,11 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "da1b2f57078966f3875e38ad551e2cadcd692650f2fb86f218351a0b3d580bf5"
+          "sha256": "175e03b151d091b7cdfaa2032299edf3312a5e2b6ef04a5a9703a133aa277964"
         },
         {
           "path": "apps/donor/features/donor/components/donor-portal-header.tsx",
-          "sha256": "4ca6160c8d493ee69fa1b309649a40e2f1c67b07f41acb4239ca51c78cdb7f55"
+          "sha256": "9c6de1b1d3c77240119aa3ae7ad3e3d052091c2875bb88ae4ee15845284f60b3"
         },
         {
           "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
@@ -728,7 +728,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
-          "sha256": "3f6af7242215a661e6715707d0af8c4298343461cfb91fcae0ed9199b568de22"
+          "sha256": "57cf643d58b544c7af44355ec4de2952dfbebc7567cd46696a4534bd1d7928b0"
         },
         {
           "path": "packages/ui/components/public/navbar-client.tsx",
@@ -826,7 +826,7 @@
       "proof": [
         {
           "path": "apps/donor/app/layout.tsx",
-          "sha256": "cefbf126d7d74dc8a476a918f22781e590a2ff94d97fbe6e009129716bf08fef"
+          "sha256": "7a788743c0fa50e2813982ad1bb26a9753fdc1b1afc6d0759acf6b1f67fdc3a6"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -846,7 +846,7 @@
       "proof": [
         {
           "path": "apps/donor/app/layout.tsx",
-          "sha256": "cefbf126d7d74dc8a476a918f22781e590a2ff94d97fbe6e009129716bf08fef"
+          "sha256": "7a788743c0fa50e2813982ad1bb26a9753fdc1b1afc6d0759acf6b1f67fdc3a6"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -874,7 +874,7 @@
       "proof": [
         {
           "path": "apps/donor/app/layout.tsx",
-          "sha256": "cefbf126d7d74dc8a476a918f22781e590a2ff94d97fbe6e009129716bf08fef"
+          "sha256": "7a788743c0fa50e2813982ad1bb26a9753fdc1b1afc6d0759acf6b1f67fdc3a6"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -1789,11 +1789,11 @@
       "proof": [
         {
           "path": "packages/auth/tenant-navigation.tsx",
-          "sha256": "af7149b18fc46f674d990185b8bd5d1ca70af786af50d28891823d0044829232"
+          "sha256": "2d157563d3e7da0c3e65ec7c7f1c5bed42c40a2ce2ae3ae63be8b9fe3623ccc8"
         },
         {
           "path": "tests/unit/auth/tenant-navigation.test.tsx",
-          "sha256": "d3caa02b036e2539e669818d44ae489ba87ab1e675f716a9fecfbe7a43c1ed72"
+          "sha256": "b3b948d4bb5251c73a032b6ad81adf2e23074e48ce46b47736664a9556939ffe"
         }
       ]
     },

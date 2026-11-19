@@ -123,7 +123,12 @@ address names no tenant gives its scope an empty prefix and passes its
 renders nothing and loads a new document when the document was loaded outside
 the segment, and loads a new document when it unmounts at an address outside
 it. The provider refuses an empty prefix without a segment, and an empty
-segment. The donor portal passes `/donor-dashboard`. Web Studio (slice C)
+segment. Those reloads are the fallback: at the source, `TenantLink` and
+`useTenantRouter` (`@asym/auth/tenant-navigation`) load a document for a
+navigation that crosses a segment, and the donor app declares the portal's
+path at its root (`PortalSegmentBoundary`), so its links, the public site's
+links into the portal and the landing after every sign-in are one document
+load each. The donor portal passes `/donor-dashboard`. Web Studio (slice C)
 passes `segment="/web-studio"` with an empty prefix, and so inherits the same:
 no scope outside `/web-studio`, a new document when it is left or entered
 without one, and shared links that keep their plain addresses.

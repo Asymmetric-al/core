@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { knownDonorRecipient } from "@asym/database/hooks";
 import { ownApiFetch } from "@asym/database/own-api";
 
@@ -74,7 +75,6 @@ import {
   Shield,
   AlertTriangle,
 } from "lucide-react";
-import Link from "next/link";
 import React, {
   useCallback,
   useEffect,

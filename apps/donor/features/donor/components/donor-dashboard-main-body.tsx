@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   mapToRecentUpdate,
   useDonorFeedPosts,
@@ -32,7 +33,6 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { useLoadRetry, useOwnApiDownload } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import { CircleAlert, Download } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
 
 import { FeaturedUpdateHero } from "./featured-update-hero";
