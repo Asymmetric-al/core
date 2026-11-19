@@ -14,6 +14,25 @@
 // entries for a matching file (see restricted-imports.mjs), so an entry for
 // these files would drop the cross-app, Supabase and table-engine bans in
 // one config or another; and it does not see `require` or `import()`.
+//
+// Council round 2, AR1, and round 3, AR15: a write through the history API
+// (on `history`, `window.history`, or a local alias of either) keeps the
+// address only when its PATH is taken from the live location, is a
+// fragment or a query on the current address, or is built by the tenant
+// helper (`useTenantHref()`'s function); any other address is reported. The
+// path is the first part of a template or a `+` chain, or the first argument
+// of `new URL`, and it is from the live location when it is the location
+// itself, its `href` or `pathname`, a URL made from one of those, or a local
+// variable bound to one; a query or an origin read from the location does
+// not count. Both branches of a conditional address are judged. `next/form`
+// and a literal internal `<form action>` are reported too.
+//
+// Not covered, for the helpers and review: a history method called by a
+// computed name or through `.call`/`.apply`, an alias made by destructuring
+// (`const { history } = window`), a URL whose `pathname` is assigned after it
+// is made from the location, `window.open`, `<button formAction>`, and a
+// `<form action>` or a `router`-like call whose address is computed at run
+// time from something else.
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,6 +40,7 @@ import { fileURLToPath } from "node:url";
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
 
 const NEXT_LINK = "next/link";
+const NEXT_FORM = "next/form";
 const NEXT_NAVIGATION = "next/navigation";
 const NAVIGATION_MODULE = "@asym/auth/tenant-navigation";
 const SERVER_MODULE = "@asym/auth/tenant-server";
@@ -130,6 +150,9 @@ const noPrefixlessNavigation = {
       href: "A literal internal href on <{{element}}> drops the tenant prefix: render it through TenantLink, as the element or as its `render`.",
       location:
         "Writing window.location bypasses the tenant helpers: use loadDocument from @asym/database/document-reload, or the tenant router.",
+      history:
+        "A history write whose address is not the live location's drops the tenant prefix: build it from window.location (or a URL made from it), or with useTenantHref().",
+      form: "{{what}} submits to an address without the tenant prefix: navigate through the tenant router.",
     },
   },
   create(context) {
@@ -164,6 +187,130 @@ const noPrefixlessNavigation = {
         memberName(node) === "location" &&
         node.object.type === "Identifier" &&
         ["window", "document", "globalThis", "self"].includes(node.object.name)
+      );
+    }
+
+    // Local names of the function useTenantHref() returns.
+    const tenantHrefNames = new Set();
+
+    /** The initializers of the local variable an identifier names. */
+    function initializersOf(node) {
+      let scope = sourceCode.getScope(node);
+      while (scope) {
+        const variable = scope.set.get(node.name);
+        if (variable) {
+          return variable.defs
+            .filter((def) => def.node.type === "VariableDeclarator")
+            .map((def) => def.node.init);
+        }
+        scope = scope.upper;
+      }
+      return [];
+    }
+
+    /**
+     * Whether an address's PATH comes from the live location (council round
+     * 3, AR15): the location itself, its `href` or `pathname`, a URL made from
+     * one of those (`new URL(location.href)`, its `href` or `toString()`), or
+     * a local variable bound to one. Of a template or a `+` chain only the
+     * first part counts, and of `new URL` only the first argument: a query or
+     * an origin read from the location does not carry the path.
+     */
+    function pathFromLocation(node, depth = 0) {
+      if (!node || depth > 3) return false;
+      switch (node.type) {
+        case "TSAsExpression":
+        case "TSSatisfiesExpression":
+        case "TSNonNullExpression":
+          return pathFromLocation(node.expression, depth);
+        case "TemplateLiteral":
+          return (
+            node.quasis[0]?.value.cooked === "" &&
+            pathFromLocation(node.expressions[0], depth)
+          );
+        case "BinaryExpression":
+          return node.operator === "+" && pathFromLocation(node.left, depth);
+        case "NewExpression":
+          return (
+            node.callee.type === "Identifier" &&
+            node.callee.name === "URL" &&
+            pathFromLocation(node.arguments[0], depth)
+          );
+        case "CallExpression":
+          // `url.toString()`, `String(url)`
+          if (memberName(node.callee) === "toString") {
+            return pathFromLocation(node.callee.object, depth);
+          }
+          return (
+            node.callee.type === "Identifier" &&
+            node.callee.name === "String" &&
+            pathFromLocation(node.arguments[0], depth)
+          );
+        case "MemberExpression":
+          if (isGlobalLocation(node)) return true;
+          return (
+            ["href", "pathname"].includes(memberName(node)) &&
+            pathFromLocation(node.object, depth)
+          );
+        case "Identifier":
+          if (isGlobalLocation(node)) return true;
+          // One step through a local variable: const url = new URL(location.href)
+          return initializersOf(node).some((init) =>
+            pathFromLocation(init, depth + 1),
+          );
+        default:
+          return false;
+      }
+    }
+
+    /** Whether a history write's address keeps the document's prefix. */
+    function keepsAddress(url) {
+      if (!url) return true;
+      if (url.type === "Literal" && url.value == null) return true;
+      if (url.type === "Identifier" && url.name === "undefined") return true;
+      // Either address may be written: each must keep the prefix.
+      if (url.type === "ConditionalExpression") {
+        return keepsAddress(url.consequent) && keepsAddress(url.alternate);
+      }
+      if (url.type === "LogicalExpression") {
+        return keepsAddress(url.left) && keepsAddress(url.right);
+      }
+      const prefix = staticPrefix(url);
+      if (typeof prefix === "string" && /^[?#]/.test(prefix)) return true;
+      if (
+        url.type === "CallExpression" &&
+        url.callee.type === "Identifier" &&
+        tenantHrefNames.has(url.callee.name)
+      ) {
+        return true;
+      }
+      return pathFromLocation(url);
+    }
+
+    function isGlobalHistory(node, depth = 0) {
+      if (node.type === "Identifier") {
+        // An alias: const h = window.history
+        const inits = initializersOf(node);
+        if (inits.length > 0) {
+          return (
+            depth < 2 &&
+            inits.some((init) => init && isGlobalHistory(init, depth + 1))
+          );
+        }
+        if (node.name !== "history") return false;
+        let scope = sourceCode.getScope(node);
+        while (scope) {
+          const variable = scope.set.get("history");
+          if (variable && variable.defs.length > 0) return false;
+          scope = scope.upper;
+        }
+        return true;
+      }
+      return (
+        node.type === "MemberExpression" &&
+        memberName(node) === "history" &&
+        node.object.type === "Identifier" &&
+        ["window", "globalThis", "self"].includes(node.object.name)
       );
     }
 
@@ -205,6 +352,14 @@ const noPrefixlessNavigation = {
         if (node.importKind === "type") return;
         if (source === NEXT_LINK) {
           context.report({ node, messageId: "link" });
+          return;
+        }
+        if (source === NEXT_FORM) {
+          context.report({
+            node,
+            messageId: "form",
+            data: { what: "next/form" },
+          });
           return;
         }
         if (source !== NEXT_NAVIGATION) return;
@@ -273,6 +428,17 @@ const noPrefixlessNavigation = {
           }
           return;
         }
+        // history.pushState(state, "", url), window.history.replaceState(...)
+        if (
+          node.callee.type === "MemberExpression" &&
+          ["pushState", "replaceState"].includes(memberName(node.callee)) &&
+          isGlobalHistory(node.callee.object)
+        ) {
+          if (!keepsAddress(node.arguments[2])) {
+            context.report({ node, messageId: "history" });
+          }
+          return;
+        }
         // location.assign("/x"), window.location.replace("/x")
         if (
           node.callee.type === "MemberExpression" &&
@@ -298,7 +464,35 @@ const noPrefixlessNavigation = {
           context.report({ node, messageId: "location" });
         }
       },
+      VariableDeclarator(node) {
+        // const toHref = useTenantHref();
+        if (
+          node.id.type === "Identifier" &&
+          node.init?.type === "CallExpression" &&
+          node.init.callee.type === "Identifier" &&
+          node.init.callee.name === "useTenantHref"
+        ) {
+          tenantHrefNames.add(node.id.name);
+        }
+      },
       JSXOpeningElement(node) {
+        // <form action="/search">: a literal internal action.
+        if (node.name.type === "JSXIdentifier" && node.name.name === "form") {
+          const action = node.attributes.find(
+            (attribute) =>
+              attribute.type === "JSXAttribute" &&
+              attribute.name.type === "JSXIdentifier" &&
+              attribute.name.name === "action",
+          );
+          if (action && isInternalAbsolute(staticPrefix(action.value))) {
+            context.report({
+              node: action,
+              messageId: "form",
+              data: { what: "<form action>" },
+            });
+          }
+          return;
+        }
         const href = node.attributes.find(
           (attribute) =>
             attribute.type === "JSXAttribute" &&

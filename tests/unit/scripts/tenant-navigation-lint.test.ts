@@ -85,6 +85,39 @@ const OFFENDING: ReadonlyArray<[string, string]> = [
     'export function go() { window.location.assign("/crm"); }',
   ],
   ["location.replace", 'export function go() { location.replace("/crm"); }'],
+  // Council round 2, AR1: a history write whose address is not the live
+  // location's or the tenant helper's (the CRM list wrote the route path).
+  [
+    "history.replaceState with a path",
+    'export function go(q: string) { window.history.replaceState(null, "", "/crm?" + q); }',
+  ],
+  [
+    "history.pushState with the route path",
+    'export function go(pathname: string, q: string) { history.pushState(null, "", `${pathname}?${q}`); }',
+  ],
+  // Council round 3, AR15: only the path part counts. The location may
+  // supply the query or the origin, and the path still drops the prefix.
+  [
+    "history.replaceState with the route path and the live query",
+    'import { useRoutePathname } from "@asym/auth/tenant-navigation";\nexport function useGo() { const pathname = useRoutePathname(); return () => { const query = new URLSearchParams(window.location.search); window.history.replaceState(null, "", `${pathname}?${query}`); }; }',
+  ],
+  [
+    "history.replaceState with a path followed by the live query",
+    'export function go(pathname: string) { window.history.replaceState(null, "", pathname + location.search); }',
+  ],
+  [
+    "history.pushState with a path resolved against the live origin",
+    'export function go() { window.history.pushState(null, "", new URL("/crm", window.location.origin)); }',
+  ],
+  [
+    "a write through an alias of history",
+    'export function go() { const h = window.history; h.replaceState(null, "", "/crm"); }',
+  ],
+  [
+    "next/form",
+    'import Form from "next/form";\nexport const A = () => <Form action="/search">x</Form>;',
+  ],
+  ["<form action>", 'export const A = () => <form action="/search">x</form>;'],
 ];
 
 const ALLOWED: ReadonlyArray<[string, string]> = [
@@ -124,6 +157,30 @@ const ALLOWED: ReadonlyArray<[string, string]> = [
   [
     "a type-only import",
     'import type { LinkProps } from "next/link";\nexport type P = LinkProps<string>;',
+  ],
+  [
+    "a history write from the live location",
+    'export function go(q: string) { window.history.replaceState(null, "", `${window.location.pathname}?${q}`); }',
+  ],
+  [
+    "the CRM list's write: the live path, with or without a query",
+    'export function go(q: string) { const address = window.location.pathname; window.history.replaceState(null, "", q ? `${address}?${q}` : address); }',
+  ],
+  [
+    "a history write of a URL from the live location, as text",
+    'export function go() { const url = new URL(window.location.href); url.searchParams.set("tab", "x"); window.history.replaceState(null, "", url.toString()); window.history.replaceState(null, "", url.href); }',
+  ],
+  [
+    "a history write of a URL built from the live location",
+    'export function go() { const url = new URL(window.location.href); url.searchParams.set("tab", "x"); window.history.pushState(window.history.state, "", url); }',
+  ],
+  [
+    "a history write of state only, a fragment or a query",
+    'export function go(q: string) { history.replaceState({ a: 1 }, ""); window.history.replaceState(null, "", "#top"); window.history.replaceState(null, "", "?" + q); }',
+  ],
+  [
+    "a history write through the tenant helper",
+    'import { useTenantHref } from "@asym/auth/tenant-navigation";\nexport function useGo() { const toHref = useTenantHref(); return () => window.history.pushState(null, "", toHref("/crm")); }',
   ],
 ];
 

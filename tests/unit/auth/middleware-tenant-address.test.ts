@@ -266,6 +266,49 @@ describe("a tenant address: the membership decision before the page shell", () =
     }
   });
 
+  // Council round 2, AR6: in production and in development too, one server
+  // line with literal fields only; the preview diagnostic stays silent there.
+  it.each([
+    ["production", "production", "production"],
+    ["development", "development", ""],
+  ])(
+    "logs a failed membership read in %s, with no personal data, and still refuses",
+    async (_label, nodeEnv, vercelEnv) => {
+      vi.stubEnv("NODE_ENV", nodeEnv);
+      vi.stubEnv("VERCEL_ENV", vercelEnv);
+      vi.stubEnv("VERCEL_TARGET_ENV", vercelEnv);
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      try {
+        state.rpcError = {
+          code: "PGRST002",
+          message: `Could not query the database for the schema cache (${USER})`,
+          details: `tenant ${TA}`,
+          hint: "sb-access-token=secret-token",
+        };
+
+        const response = await adminProxy()(request(`/${TA}/care`));
+
+        expect(location(response)).toBe("/no-access");
+        expect(error).toHaveBeenCalledExactlyOnceWith({
+          event: "auth_membership_read_failed",
+          reason: "membership_query_failed",
+          code: "PGRST002",
+          class: "schema_cache",
+        });
+        expect(warn).not.toHaveBeenCalled();
+        const logged = JSON.stringify(error.mock.calls);
+        for (const secret of [USER, TA, "secret-token", "schema cache ("]) {
+          expect(logged).not.toContain(secret);
+        }
+      } finally {
+        error.mockRestore();
+        warn.mockRestore();
+        vi.unstubAllEnvs();
+      }
+    },
+  );
+
   it("drops a suffix for a person with one row, keeping the page and query", async () => {
     state.rows = [row(TA, "staff", "development")];
 

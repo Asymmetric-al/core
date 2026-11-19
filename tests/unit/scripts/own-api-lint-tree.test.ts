@@ -121,11 +121,16 @@ describe("the own-API lint rule in the repository's lint configuration", () => {
   );
 
   it("passes on the tree: no product source calls an own-API path directly", async () => {
-    // The rule follows an address within one module only, so a file that
-    // never spells an own-API path cannot fail it; the rest are linted.
-    const candidates = trackedSourceFiles().filter((file) =>
-      readFileSync(path.join(root, file), "utf8").includes("/api"),
-    );
+    // A file can fail the rule in two ways: by reaching an address that
+    // spells an own-API path, which the rule follows within one module, so
+    // the file contains "/api"; or by using the global fetch as a value
+    // (aliased, bound, handed over, or taken out of a global object: council
+    // round 1, SB7, and round 2, BR5), so the file contains "fetch". Every
+    // file with either is linted; a file with neither cannot fail it.
+    const candidates = trackedSourceFiles().filter((file) => {
+      const source = readFileSync(path.join(root, file), "utf8");
+      return source.includes("/api") || source.includes("fetch");
+    });
     expect(candidates.length).toBeGreaterThan(50);
 
     const eslint = new ESLint({

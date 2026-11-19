@@ -1,3 +1,6 @@
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -83,8 +86,8 @@ const ROUTE_PATHS_WITH_EXTENSIONS: Record<keyof typeof PROXIES, string[]> = {
   donor: ["/donor-dashboard/history/x.json", "/donor-dashboard/x.xml"],
 };
 
-/** Next.js assets and real static files: the public folders and root files. */
-const STATIC_PATHS = [
+/** Next.js assets and one file name at the root with a static extension. */
+const NEXT_AND_ROOT_FILES = [
   "/_next/static/chunks/main.js",
   "/_next/image",
   "/_next/data/build/page.json",
@@ -93,9 +96,73 @@ const STATIC_PATHS = [
   "/robots.txt",
   "/sitemap.xml",
   "/manifest.webmanifest",
+];
+
+/** The files of `public/maplibre`, the one public folder (Mission Control and the donor portal). */
+const MAPLIBRE_FILES = [
+  "/maplibre/maplibre-gl-worker.mjs",
+  "/maplibre/maplibre-gl-shared.mjs",
   "/maplibre/style.json",
   "/maplibre/sprites/sprite.png",
 ];
+
+/** What each app's matcher skips. */
+const STATIC_PATHS: Record<keyof typeof PROXIES, string[]> = {
+  admin: [...NEXT_AND_ROOT_FILES, ...MAPLIBRE_FILES],
+  donor: [...NEXT_AND_ROOT_FILES, ...MAPLIBRE_FILES],
+  missionary: NEXT_AND_ROOT_FILES,
+};
+
+/**
+ * Council round 2, AR7: paths under a public folder the app does not have.
+ * Nothing static is there, so a route answers them (in the donor portal,
+ * the public CMS pages' catch-all); they run the proxy.
+ */
+const NO_SUCH_FOLDER: Record<keyof typeof PROXIES, string[]> = {
+  admin: ["/images/hero.webp", "/images/x"],
+  donor: ["/images/hero.webp", "/images/x"],
+  missionary: [
+    "/images/hero.webp",
+    "/maplibre/maplibre-gl-worker.mjs",
+    "/maplibre/x",
+  ],
+};
+
+/**
+ * The public folders an app declares: the folders git tracks under its
+ * `public`, and the one its own `next.config.ts` creates when it loads
+ * (`copyMaplibreWorkerAssetsForApp`, which writes the folder the copy
+ * script names). Read from git and the sources, never from the disk: the
+ * created folder is gitignored and exists only once a config has loaded,
+ * which CI's unit job never does (council round 3, AR13).
+ */
+function declaredPublicFolders(app: keyof typeof PROXIES): Set<string> {
+  const publicDir = `apps/${app}/public/`;
+  const tracked = execFileSync("git", ["ls-files", "--", publicDir], {
+    encoding: "utf8",
+  })
+    .split("\n")
+    .filter((file) => file.startsWith(publicDir))
+    .map((file) => file.slice(publicDir.length))
+    .filter((rest) => rest.includes("/"))
+    .map((rest) => rest.split("/")[0]!);
+  const config = readFileSync(`apps/${app}/next.config.ts`, "utf8");
+  const copied = readFileSync(
+    "scripts/copy-maplibre-worker-assets.mjs",
+    "utf8",
+  ).match(/path\.join\(publicDir, "([\w-]+)"\)/)?.[1];
+  expect(copied, "the folder the copy script writes").toBeDefined();
+  const created = /\bcopyMaplibreWorkerAssetsForApp\s*\(/.test(config)
+    ? [copied!]
+    : [];
+  return new Set([...tracked, ...created]);
+}
+
+it("reads each app's declared public folders from git and its own config", () => {
+  expect(declaredPublicFolders("admin")).toEqual(new Set(["maplibre"]));
+  expect(declaredPublicFolders("donor")).toEqual(new Set(["maplibre"]));
+  expect(declaredPublicFolders("missionary")).toEqual(new Set());
+});
 
 describe.each(Object.keys(PROXIES) as Array<keyof typeof PROXIES>)(
   "the %s proxy's matcher",
@@ -108,9 +175,30 @@ describe.each(Object.keys(PROXIES) as Array<keyof typeof PROXIES>)(
       },
     );
 
-    it.each(STATIC_PATHS)("skips the static path %s", async (url) => {
+    it.each(STATIC_PATHS[app])("skips the static path %s", async (url) => {
       const { config } = await PROXIES[app]();
       expect(unstable_doesMiddlewareMatch({ config, url })).toBe(false);
+    });
+
+    it.each(NO_SUCH_FOLDER[app])(
+      "runs on %s, under a public folder the app does not have",
+      async (url) => {
+        const { config } = await PROXIES[app]();
+        expect(unstable_doesMiddlewareMatch({ config, url })).toBe(true);
+      },
+    );
+
+    it("skips no folder the app does not declare in its public directory", async () => {
+      const { config } = await PROXIES[app]();
+      const folders = [
+        ...config.matcher.join("\n").matchAll(/(?:\(\?!|\|)([\w-]+)\//g),
+      ]
+        .map((match) => match[1]!)
+        .filter((folder) => folder !== "_next");
+      const declared = declaredPublicFolders(app);
+      for (const folder of folders) {
+        expect(declared.has(folder), folder).toBe(true);
+      }
     });
   },
 );

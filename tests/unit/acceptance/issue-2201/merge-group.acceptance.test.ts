@@ -231,33 +231,23 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     // removed the two intermediate states of stage 1's integration, which
     // develop never held.
     { ref: "AL-2674 seed counts and program steps", hash: "bf3afd9e9950a9f5" },
-    // Amended by AL-2675 (WP2b slice A, council round 1, A14; record D-18):
-    // the test-e2e job runs the two tenant-address specs, one step after each
-    // app's boneyard smoke (bun run test:e2e:tenant-address:admin and
-    // :missionary), pinned in
-    // tests/unit/scripts/ci-integration-workflow.contract.test.ts. The
-    // workflow change was allowed for that item only.
+    // Amended by AL-2675 (WP2b release 1, slices A and B joined; record
+    // D-18). The test-e2e job runs the program's five specs on the servers it
+    // already started: "Tenant address (admin app)" and "Request scope (admin
+    // app)" after the admin boneyard smoke, the same two for the missionary
+    // app after its boneyard smoke, and "Request scope (donor app)" after the
+    // donor boneyard smoke (bun run test:e2e:tenant-address:* and
+    // test:e2e:request-scope:*). Each step has a limit set from measured times
+    // (10 minutes for the admin tenant-address step, 5 for the others; the
+    // job's 30 unchanged), runs after an earlier failure (if: !cancelled()),
+    // and writes its evidence to folders of its own: the donor step has its
+    // own report folder and no admin server. All pinned in
+    // tests/unit/scripts/ci-integration-workflow.contract.test.ts. Slice A's
+    // and slice B's earlier entries were intermediate states of the joined
+    // branch, which develop never held, and are replaced by this one.
     {
-      ref: "AL-2675 tenant-address specs in test-e2e",
-      hash: "9375602b94258e4b",
-    },
-    // Amended by AL-2675 (WP2b slice B, council round 1, SB1; record D-18):
-    // from the entry above, the test-e2e job also runs the three
-    // request-scope specs on the servers it already started, admin and
-    // missionary each right after its tenant-address step and donor right
-    // after its boneyard smoke (bun run test:e2e:request-scope:admin,
-    // :missionary and :donor), pinned in
-    // tests/unit/scripts/ci-integration-workflow.contract.test.ts. The
-    // workflow change was allowed for that item only. Council round 2 (the
-    // coordinator's note on the joined tree, point 2) then bounded the five
-    // AL-2675 steps by their measured times (10 minutes for the admin
-    // tenant-address step, 5 for the other four, the job's 30 unchanged),
-    // pinned in the same contract test; the state before those limits was an
-    // intermediate one of this branch, which develop never held, so it is
-    // replaced.
-    {
-      ref: "AL-2675 request-scope specs in test-e2e",
-      hash: "2cc963afd9cea670",
+      ref: "AL-2675 tenant address and request scope in test-e2e",
+      hash: "11d16a741e0b84a5",
     },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {

@@ -14,7 +14,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "768402fbd060c30cade279749a22c31130b22ee984919e5de8417326ad79c856"
+          "sha256": "ba46a37eca120b604fb8090d123c3f41d52ea2d70b87970eaae51b3e778f4f69"
         }
       ]
     },
@@ -31,7 +31,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "768402fbd060c30cade279749a22c31130b22ee984919e5de8417326ad79c856"
+          "sha256": "ba46a37eca120b604fb8090d123c3f41d52ea2d70b87970eaae51b3e778f4f69"
         }
       ]
     },
@@ -48,7 +48,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "768402fbd060c30cade279749a22c31130b22ee984919e5de8417326ad79c856"
+          "sha256": "ba46a37eca120b604fb8090d123c3f41d52ea2d70b87970eaae51b3e778f4f69"
         }
       ]
     },
@@ -65,7 +65,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "768402fbd060c30cade279749a22c31130b22ee984919e5de8417326ad79c856"
+          "sha256": "ba46a37eca120b604fb8090d123c3f41d52ea2d70b87970eaae51b3e778f4f69"
         }
       ]
     },
@@ -82,7 +82,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "768402fbd060c30cade279749a22c31130b22ee984919e5de8417326ad79c856"
+          "sha256": "ba46a37eca120b604fb8090d123c3f41d52ea2d70b87970eaae51b3e778f4f69"
         }
       ]
     },
@@ -99,7 +99,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "768402fbd060c30cade279749a22c31130b22ee984919e5de8417326ad79c856"
+          "sha256": "ba46a37eca120b604fb8090d123c3f41d52ea2d70b87970eaae51b3e778f4f69"
         }
       ]
     },
@@ -116,7 +116,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "768402fbd060c30cade279749a22c31130b22ee984919e5de8417326ad79c856"
+          "sha256": "ba46a37eca120b604fb8090d123c3f41d52ea2d70b87970eaae51b3e778f4f69"
         }
       ]
     },
@@ -133,7 +133,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "768402fbd060c30cade279749a22c31130b22ee984919e5de8417326ad79c856"
+          "sha256": "ba46a37eca120b604fb8090d123c3f41d52ea2d70b87970eaae51b3e778f4f69"
         }
       ]
     },
@@ -624,11 +624,11 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "da1b2f57078966f3875e38ad551e2cadcd692650f2fb86f218351a0b3d580bf5"
+          "sha256": "175e03b151d091b7cdfaa2032299edf3312a5e2b6ef04a5a9703a133aa277964"
         },
         {
           "path": "apps/donor/features/donor/components/donor-portal-header.tsx",
-          "sha256": "4ca6160c8d493ee69fa1b309649a40e2f1c67b07f41acb4239ca51c78cdb7f55"
+          "sha256": "9c6de1b1d3c77240119aa3ae7ad3e3d052091c2875bb88ae4ee15845284f60b3"
         },
         {
           "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
@@ -665,11 +665,11 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "da1b2f57078966f3875e38ad551e2cadcd692650f2fb86f218351a0b3d580bf5"
+          "sha256": "175e03b151d091b7cdfaa2032299edf3312a5e2b6ef04a5a9703a133aa277964"
         },
         {
           "path": "apps/donor/features/donor/components/donor-portal-header.tsx",
-          "sha256": "4ca6160c8d493ee69fa1b309649a40e2f1c67b07f41acb4239ca51c78cdb7f55"
+          "sha256": "9c6de1b1d3c77240119aa3ae7ad3e3d052091c2875bb88ae4ee15845284f60b3"
         },
         {
           "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
@@ -728,7 +728,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
-          "sha256": "3f6af7242215a661e6715707d0af8c4298343461cfb91fcae0ed9199b568de22"
+          "sha256": "57cf643d58b544c7af44355ec4de2952dfbebc7567cd46696a4534bd1d7928b0"
         },
         {
           "path": "packages/ui/components/public/navbar-client.tsx",
@@ -826,7 +826,7 @@
       "proof": [
         {
           "path": "apps/donor/app/layout.tsx",
-          "sha256": "cefbf126d7d74dc8a476a918f22781e590a2ff94d97fbe6e009129716bf08fef"
+          "sha256": "7a788743c0fa50e2813982ad1bb26a9753fdc1b1afc6d0759acf6b1f67fdc3a6"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -846,7 +846,7 @@
       "proof": [
         {
           "path": "apps/donor/app/layout.tsx",
-          "sha256": "cefbf126d7d74dc8a476a918f22781e590a2ff94d97fbe6e009129716bf08fef"
+          "sha256": "7a788743c0fa50e2813982ad1bb26a9753fdc1b1afc6d0759acf6b1f67fdc3a6"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -874,7 +874,7 @@
       "proof": [
         {
           "path": "apps/donor/app/layout.tsx",
-          "sha256": "cefbf126d7d74dc8a476a918f22781e590a2ff94d97fbe6e009129716bf08fef"
+          "sha256": "7a788743c0fa50e2813982ad1bb26a9753fdc1b1afc6d0759acf6b1f67fdc3a6"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -1193,7 +1193,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "0a383d0fa143bc891e476612cd9570aece996b07859b7c06dcbf7f92dbfbbda9"
+          "sha256": "3859f2cd5e24cc00485c11b1593a7c6bf66380a89581f315bdc799ab23f7f85f"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1233,7 +1233,7 @@
         },
         {
           "path": "apps/missionary/proxy.ts",
-          "sha256": "428253290805898dbf0ac6dfe471ef3dcbb7ed4eca356a246e2010847d053a3b"
+          "sha256": "af486232236b63f04864fc3d977b9340bb58924ac2aa4e25cbd2733cd5d5ab44"
         },
         {
           "path": "tests/unit/apps/missionary/route-gate-contract.test.ts",
@@ -1259,7 +1259,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "0a383d0fa143bc891e476612cd9570aece996b07859b7c06dcbf7f92dbfbbda9"
+          "sha256": "3859f2cd5e24cc00485c11b1593a7c6bf66380a89581f315bdc799ab23f7f85f"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1299,7 +1299,7 @@
         },
         {
           "path": "apps/missionary/proxy.ts",
-          "sha256": "428253290805898dbf0ac6dfe471ef3dcbb7ed4eca356a246e2010847d053a3b"
+          "sha256": "af486232236b63f04864fc3d977b9340bb58924ac2aa4e25cbd2733cd5d5ab44"
         },
         {
           "path": "tests/unit/apps/missionary/route-gate-contract.test.ts",
@@ -1545,7 +1545,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "0a383d0fa143bc891e476612cd9570aece996b07859b7c06dcbf7f92dbfbbda9"
+          "sha256": "3859f2cd5e24cc00485c11b1593a7c6bf66380a89581f315bdc799ab23f7f85f"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1562,7 +1562,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "0a383d0fa143bc891e476612cd9570aece996b07859b7c06dcbf7f92dbfbbda9"
+          "sha256": "3859f2cd5e24cc00485c11b1593a7c6bf66380a89581f315bdc799ab23f7f85f"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1582,7 +1582,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "0a383d0fa143bc891e476612cd9570aece996b07859b7c06dcbf7f92dbfbbda9"
+          "sha256": "3859f2cd5e24cc00485c11b1593a7c6bf66380a89581f315bdc799ab23f7f85f"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -1610,7 +1610,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "0a383d0fa143bc891e476612cd9570aece996b07859b7c06dcbf7f92dbfbbda9"
+          "sha256": "3859f2cd5e24cc00485c11b1593a7c6bf66380a89581f315bdc799ab23f7f85f"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -1789,11 +1789,11 @@
       "proof": [
         {
           "path": "packages/auth/tenant-navigation.tsx",
-          "sha256": "0906d18cb22942a2a47c630e168fe353c8a8c6bc39c6ec8b38fef0c0c74b1ed1"
+          "sha256": "7bb87c98f49c865161672575850134af9f9c8e25be8c37c879b181e81654c9f8"
         },
         {
           "path": "tests/unit/auth/tenant-navigation.test.tsx",
-          "sha256": "f62d236f84a82ec38e88b810d9d1cac945b739f0456db44d30408d19473977fe"
+          "sha256": "f2ef691f13fbe61c51abe0c5bbdfc6d781c7bc47cf039340e8a9bd906ffc4fd5"
         }
       ]
     },

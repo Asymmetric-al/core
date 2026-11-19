@@ -1493,6 +1493,112 @@ fallback or fabricated check was used, and the factory merged nothing.
 | #2419                  | Published, PR #2665, held | **Unattended until the usage limit** (three rounds); then moved to the new release by hand; held again with candidate `4b6f4640` |
 | #2418, #2421 and #2422 | Not admitted              | Eligible since 05:09; both lanes have been held since 07:26                                                                      |
 
+## Node 24.22.3 check image - 18 November 2026
+
+All times UTC. Stage 1 of the CRM, CMS and database foundation program
+(pull request #2714, merged at 15:37) raised the repository's Node floor to
+24.22.3 (`.node-version`). Every candidate check runs in the check image,
+whose Node was 24.22.1, and the factory's pre-push gate (`ci:preflight`)
+starts with `verify:node-version`, so from that merge on every publication
+from a branch carrying `develop` would fail. Pull request #2721 moves the
+factory's pins. Nothing below changed the installed release `d4ef3329`, a
+service, a work item or the factory configuration; the install follows that
+pull request's merge.
+
+### Node 24.22.3
+
+- Archive `node-v24.22.3-linux-x64.tar.xz`, SHA-256
+  `4f2b175a6d53a5c617a80dba2676238a0688cef28c6da4eba35c7d844e66fcfb`, as
+  nodejs.org lists it in `SHASUMS256.txt` (that file's SHA-256:
+  `06d17307d84ec057dd2783863f12cb228c9273f9424b330532e4e3699f5d47c9`).
+- The list is signed by release key
+  `5BE8A3F6C8A5C01D106C0AD820B1A390B168D356` (Antoine du Hamel), which
+  `nodejs/release-keys` lists; signed at 16:40:02 on 11 November. Both forms
+  verify: the detached `SHASUMS256.txt.sig` over the list as published, and
+  the clearsigned `SHASUMS256.txt.asc`, whose body is the same 34 lines.
+- `bin/node` SHA-256
+  `a7ec1b37e6ff9d187e4198c5b6df9a4eb1c74dd31804fb3bac55cc4ceca1ac01`
+  (`PIN.node`). The same steps on 24.22.1 reproduce the earlier pin (archive
+  `6c172a9a…95e6`, `bin/node` `e32e2d16…cfafb`).
+- 15:55:44-15:55:49: on VM 100, as root, the list and the archive downloaded
+  and checked against those hashes, the archive unpacked to
+  `/opt/node-v24.22.3-linux-x64` (root-owned) beside
+  `/opt/node-v24.22.1-linux-x64`, and `bin/node`'s hash and `--version` read
+  back. `/usr/local/bin/node` still points to 24.22.1. The download is kept in
+  `/root/node-v24.22.3-DDtGRM`.
+
+### Check image
+
+The image of 10 November (`core-archon-checks:node24.22.1-bun1.4.3-jq`,
+`sha256:2d4fe5a6…2597`) left no Dockerfile. Its recipe, read back from
+`docker history`: the official `node:24.22.1-bookworm` image, Bun copied to
+`/usr/local/bin/bun`, `jq` from Debian, and a `bunx` link with version tests.
+The same recipe on Node 24.22.3 was built as admin at 15:56:16-15:57:04 from
+`/home/admin/factory-stage/check-image-node24.22.3/Dockerfile` (SHA-256
+`f0ff2751…feba`; its four comment lines are left out here):
+
+```dockerfile
+FROM core-archon-checks:node24.22.1-bun1.4.3-jq AS qualified
+FROM node:24.22.3-bookworm@sha256:9d266751ca3d7fdbe651c878ffd5ad0a42fed49a18c283509267c97f025b7496
+COPY --from=qualified /usr/local/bin/bun /usr/local/bin/bun
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends jq \
+    && rm -rf /var/lib/apt/lists/*
+RUN ln -s bun /usr/local/bin/bunx \
+    && test "$(node --version)" = v24.22.3 \
+    && test "$(bun --version)" = 1.4.3 \
+    && test "$(bunx --version)" = 1.4.3 \
+    && jq --version
+```
+
+- Image `core-archon-checks:node24.22.3-bun1.4.3-jq`, ID
+  `sha256:59adfc724df4dbb7739813fa76a055361969ed878805f4e4f1986d7e63353859`
+  (`PIN.checkImage`). Docker 29.9.3's image store reports the image index as
+  the ID; its configuration is
+  `sha256:44a44ff329262aca6bf3799da8b922577d65cc2eab4c74f76b6b8d3dfafde7dc`.
+- Base `node:24.22.3-bookworm`, index
+  `sha256:9d266751ca3d7fdbe651c878ffd5ad0a42fed49a18c283509267c97f025b7496`
+  (Docker Hub, updated 12 November at 00:57; amd64 manifest
+  `sha256:aca79828…b5c6`).
+- Bun 1.4.3, copied byte for byte from the image of 10 November:
+  `/usr/local/bin/bun` hashes to
+  `7ce7d6b654eddeec20afddf2396317fba6dc19ab52788a27e894e1806bf8f24b` in the
+  old image, in the new image and as `/opt/bun-1.4.3/bun` on the host.
+- jq `1.6-2.1+deb12u3` from Debian bookworm (`jq --version`: `jq-1.6`).
+- The image's `/usr/local/bin/node` hashes to the pinned `bin/node`
+  (`a7ec1b37…ac01`).
+- Configuration: `NODE_VERSION=24.22.3`, `YARN_VERSION=1.22.22`, entrypoint
+  `docker-entrypoint.sh`, command `node`; no user, working directory or volume
+  declared (the executor overrides the entrypoint and runs as 1000:1000).
+  1.77 GB. The image of 10 November and its tags are unchanged.
+
+### Qualification on VM 100
+
+16:01:43-16:01:50, as admin, from archives of commit `e0e2d2789` (this
+change) and `e6a5ce81a` (`develop`) staged in
+`/home/admin/factory-stage/qual-node24.22.3-20261118T160143Z`, with
+disposable roots under
+`/home/admin/.local/share/core-archon-commissioning/disposable-checks/`:
+
+| What ran                                                                                                | Image                   | Result                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `qualification/check-executor.mjs` of `develop` (asserts `v24.22.1`)                                    | new                     | Exit 1: its passing check failed (`AssertionError`, `'failed'` for `'passed'`)                                                                              |
+| `qualification/check-executor.mjs` of this change (asserts `v24.22.3`)                                  | new                     | Exit 0: passed (exit 0; Node `v24.22.3`, UID 1000, only `lo`), failed (7), timed out (137) and cancelled (137), each with `cleanupConfirmed` and `reusable` |
+| `bun run verify:node-version` of `develop` through the executor (`executeCandidateCheck`, network none) | new                     | Passed: "Node.js 24.22.3 satisfies the approved runtime"                                                                                                    |
+| The same                                                                                                | installed (`2d4fe5a6…`) | Failed: "Core requires Node.js 24.x >= 24.22.3; found 24.22.1."                                                                                             |
+
+No container with the executor's label was left after either run.
+
+Not yet run on this image: `qualification/publication.mjs`, the real pre-push
+`ci:preflight` inside the executor, which passed all 19 stages on the image of
+10 November on 11 November (qualification 900204, in Storage root cause and
+recovery, above). Until it passes, the new
+image is proven for the executor's contract and for the Node gate, not for
+the whole gate: every tool and the dependency install that the gate needs. It
+runs after the install and before any issue is retried, reopened or admitted
+(runbook, Updates, step 7); if it fails, intake stays paused and no issue is
+moved.
+
 ## Still open
 
 State on 13 November 2026 at 19:05 UTC.

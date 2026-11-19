@@ -171,6 +171,13 @@ describe("ci-integration workflow contract", () => {
     expect(scripts["test:e2e:tenant-address:missionary"]).toContain(
       "-c playwright.missionary.config.ts tests/e2e/missionary-tenant-address.spec.ts --project=missionary-boneyard",
     );
+    // Council round 2, AR9: no retries. Under CI the boneyard config retries
+    // twice, and a race these specs exist to catch would pass as flaky.
+    for (const app of ["admin", "missionary"]) {
+      expect(scripts[`test:e2e:tenant-address:${app}`]).toMatch(
+        /\s--retries=0(\s|$)/,
+      );
+    }
   });
 
   // Council round 1 on slice B, SB1 (record D-18): the request-scope specs
@@ -232,9 +239,11 @@ describe("ci-integration workflow contract", () => {
   // 65 s, request scope (missionary) 10 s, request scope (donor) 60 s. The
   // same replay took 1.35 to 2.1 times as long as recent hosted runs for
   // the job's existing steps (production gate 426 s here against 248 to
-  // 316 s hosted). So each limit is at least twice the slowest local run,
-  // and the five should add 5.5 to 7 minutes to a hosted job that took 8.5
-  // to 11. The whole job took 21.3 minutes here, inside its 30.
+  // 316 s hosted). So each limit is about twice the slowest local run or
+  // more: 600 s against 305 s for the admin tenant-address step (1.97 times),
+  // and 2.7 times or more for the other four. The five should add 5.5 to 7
+  // minutes to a hosted job that took 8.5 to 11. The whole job took 21.3
+  // minutes here, inside its 30.
   it("bounds the AL-2675 steps by their measured times, inside the job's limit", () => {
     const testE2e = jobBlock(workflow, "test-e2e");
     expect(testE2e).toMatch(/^ {4}timeout-minutes: 30$/m);
@@ -254,6 +263,78 @@ describe("ci-integration workflow contract", () => {
       expect(stepBlock(step), step).toMatch(
         new RegExp(`^ {8}timeout-minutes: ${minutes}$`, "m"),
       );
+    }
+  });
+
+  // Council round 2 on slice B, BR3 and BR4. Each of this program's five
+  // steps runs whatever an earlier step did (only a cancelled run skips it),
+  // so the job always reports on them; a spec whose server never started
+  // still fails. And each writes its evidence to folders of its own: the
+  // admin and missionary specs pass `--output` (their surface configs write
+  // a list report only, to one folder per project, which each run empties),
+  // and the donor step runs the default config with its own report folder
+  // (whose HTML report and output folder would otherwise be all of
+  // `playwright-report/` and `test-results/`) and without the admin server.
+  it("runs the AL-2675 steps after an earlier failure, each writing to folders of its own", () => {
+    const testE2e = jobBlock(workflow, "test-e2e");
+    const stepBlock = (name: string) => {
+      const start = testE2e.indexOf(`      - name: ${name}\n`);
+      expect(start, name).toBeGreaterThanOrEqual(0);
+      const next = testE2e.indexOf("      - name: ", start + 1);
+      return testE2e.slice(start, next === -1 ? undefined : next);
+    };
+    const folders = new Map<string, string>();
+    for (const [step, script, output] of [
+      [
+        "Tenant address (admin app)",
+        "test:e2e:tenant-address:admin",
+        "test-results/tenant-address-admin",
+      ],
+      [
+        "Request scope (admin app)",
+        "test:e2e:request-scope:admin",
+        "test-results/request-scope-admin",
+      ],
+      [
+        "Tenant address (missionary app)",
+        "test:e2e:tenant-address:missionary",
+        "test-results/tenant-address-missionary",
+      ],
+      [
+        "Request scope (missionary app)",
+        "test:e2e:request-scope:missionary",
+        "test-results/request-scope-missionary",
+      ],
+    ] as const) {
+      expect(stepBlock(step), step).toContain("if: ${{ !cancelled() }}");
+      expect(scripts[script], script).toContain(` --output=${output}`);
+      folders.set(output, step);
+    }
+
+    const donor = stepBlock("Request scope (donor app)");
+    expect(donor).toContain("if: ${{ !cancelled() }}");
+    expect(donor).toContain(
+      'PLAYWRIGHT_REPORT_DIR: "playwright-report/request-scope-donor"',
+    );
+    expect(donor).toContain('PLAYWRIGHT_INCLUDE_ADMIN: "0"');
+    // The default config's output folder follows the report folder's name.
+    folders.set(
+      "test-results/request-scope-donor",
+      "Request scope (donor app)",
+    );
+
+    // No two steps of the job share an output or report folder.
+    const reportDirs = [
+      ...testE2e.matchAll(/PLAYWRIGHT_REPORT_DIR: "([^"]+)"/g),
+    ].map((match) => match[1]!);
+    expect(new Set(reportDirs).size).toBe(reportDirs.length);
+    for (const reportDir of reportDirs) {
+      const output = `test-results/${reportDir.split("/").pop()}`;
+      if (output === "test-results/request-scope-donor") continue;
+      expect(folders.has(output), output).toBe(false);
+    }
+    for (const project of ["admin-boneyard", "missionary-boneyard"]) {
+      expect(folders.has(`test-results/${project}`)).toBe(false);
     }
   });
 
