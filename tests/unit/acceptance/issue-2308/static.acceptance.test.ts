@@ -91,7 +91,9 @@ describe("#2308 static contracts (A)", () => {
   // longer uses the service-key client, so the packages/api/src/admin/users.ts
   // entry (operation_admin_context, 1 site) is deleted, as the shrink-only
   // rule asks. Nothing else changed; no site, count or entry was added.
-  it("C12: the allowlist is byte-unchanged since AL-2675 corrected the missionary workspace classification", () => {
+  // D-18: WP2H reclassified the missionary workspace routes and removed two sites in follower-requests/request.ts.
+  // The digest still checks every byte of the reviewed inventory; the ceiling did not increase.
+  it("C12: pins the missionary workspace reclassification and follower-request shrink", () => {
     expect(
       createHash("sha256")
         .update(read("docs/security/service-role-client-allowlist.json"))

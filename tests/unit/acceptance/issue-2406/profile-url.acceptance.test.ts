@@ -84,6 +84,8 @@ function fakeAdmin() {
       });
       return q;
     },
+    // D-18: the profile fixture now models the selected-assignment RPCs instead of a table update.
+    // The same URL and write assertions run, and the fixture additionally checks assignment, profile and tenant.
     rpc(name: string, args: Row) {
       if (
         name !== "missionary_own_record" &&
