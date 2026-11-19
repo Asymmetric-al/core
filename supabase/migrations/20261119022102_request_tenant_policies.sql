@@ -382,6 +382,13 @@ GRANT EXECUTE ON FUNCTION authz.assignment_holds(TEXT) TO authenticated, service
 GRANT EXECUTE ON FUNCTION authz.caller_profile_ids() TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION authz.caller_tenant_ids() TO authenticated, service_role;
 
+-- The super-admin branch that every rewritten policy keeps until WP2c calls
+-- authz.is_super_admin(). Its meaning is unchanged (review Q6); it is marked
+-- PARALLEL SAFE, as the other helpers are, because a policy that names a
+-- parallel-unsafe function denies every caller-token read a parallel plan
+-- (caller-token proof, section 6.2). It reads one table and writes nothing.
+ALTER FUNCTION authz.is_super_admin() PARALLEL SAFE;
+
 -- assignment_holds reads authz.assignment_capabilities as its owner.
 -- The guard role keeps EXECUTE on the two membership helpers (AL-2674).
 

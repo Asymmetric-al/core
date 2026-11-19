@@ -464,6 +464,12 @@ describe.skipIf(!ADMIN_URL)(
             if (f.fn !== "authz.current_tenant_id()")
               expect(f.anon, f.fn as string).toBe(false);
           }
+          // The super-admin branch every rewritten policy keeps until WP2c
+          // must not deny caller-token reads a parallel plan.
+          const superAdmin = await rows(
+            "select provolatile v, proparallel par from pg_proc where oid = 'authz.is_super_admin()'::regprocedure",
+          );
+          expect(superAdmin).toEqual([{ v: "s", par: "s" }]);
           const anon = await as(
             "anon",
             {},
