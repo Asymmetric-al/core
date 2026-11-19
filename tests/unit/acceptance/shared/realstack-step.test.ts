@@ -290,10 +290,10 @@ const withLocalImports = (file: string, seen = new Set<string>()): string[] => {
 };
 
 /**
- * The `process.env.*DATABASE_URL` a real-database file needs to run at all,
- * read in the suite or its test helpers.
+ * The `process.env.*DATABASE_URL` inputs a real-database file reads in the
+ * suite or its test helpers.
  */
-const databaseUrlVariable = (file: string): string[] => [
+const databaseUrlVariables = (file: string): string[] => [
   ...new Set(
     withLocalImports(file).flatMap((text) =>
       [...text.matchAll(/process\.env\.([A-Z_]*DATABASE_URL)\b/g)].map(
@@ -315,15 +315,17 @@ describe("every real-database test file runs in a blocking migrate step (#2706)"
       running.map((s) => s.name),
       "migrate steps that run it",
     ).toHaveLength(1);
-    const variables = databaseUrlVariable(file);
-    expect(variables, "the database URL variable it reads").toHaveLength(1);
-    const [variable] = variables;
-    // DATABASE_URL comes from the job; any other variable from the step,
-    // pointing at the migrated database.
-    const env =
-      variable === "DATABASE_URL"
-        ? undefined
-        : { [variable!]: "${{ env.DATABASE_URL }}" };
+    const variables = databaseUrlVariables(file);
+    expect(variables, "the database URL variables it reads").not.toHaveLength(
+      0,
+    );
+    // DATABASE_URL comes from the job. Each other input comes from the step
+    // and must point at the same migrated database.
+    const env = Object.fromEntries(
+      variables
+        .filter((variable) => variable !== "DATABASE_URL")
+        .map((variable) => [variable, "${{ env.DATABASE_URL }}"]),
+    );
     expect(
       realstackStepProblems(steps, running[0]!.name!, [file], env),
     ).toEqual([]);

@@ -58,6 +58,27 @@ describe("the auth email suite's environment", () => {
     ).toThrow(/DB_URL is not on this machine/);
   });
 
+  // AL-2674, phase 15: node-postgres, which the journeys write memberships
+  // through, follows a host in the query over the one the URL shows. So the
+  // database is judged by isLoopbackDatabaseUrl, never by its host name.
+  it.each([
+    ["a query host", "/postgres?host=db.abc.supabase.co"],
+    ["a query host address", "/postgres?hostaddr=203.0.113.9"],
+    ["a socket directory as the query host", "/postgres?host=%2Fvar%2Frun"],
+  ])(
+    "refuses a database on this machine's host name with %s",
+    (_case, rest) => {
+      expect(() =>
+        authMailEnvFromStatus(
+          STATUS.replace(
+            "@127.0.0.1:25322/postgres",
+            `@127.0.0.1:25322${rest}`,
+          ),
+        ),
+      ).toThrow(/DB_URL is not on this machine/);
+    },
+  );
+
   it("reads the default stack, or the one AUTH_MAIL_SUPABASE_WORKDIR names", () => {
     expect(statusArguments({})).toEqual(["status", "-o", "env"]);
     expect(

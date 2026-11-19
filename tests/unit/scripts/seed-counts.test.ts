@@ -263,14 +263,16 @@ describe.runIf(process.platform !== "win32")(
           `Verified ${table} seeded row count: ${count}`,
         );
       // Council round 2, A8b: through the shared runner (scripts/lib/psql.mjs).
-      // psql gets the URL without its password; the password travels in
-      // PGPASSWORD, and an ambient PGHOSTADDR cannot redirect the connection.
+      // psql gets the URL's parsed parts as libpq keywords (H11), never its
+      // password; the password travels in PGPASSWORD, and an ambient
+      // PGHOSTADDR cannot redirect the connection.
       const tables = Object.keys(expectations).length;
       const args = psql.args().split("\n");
       expect(
         args.filter(
           (arg) =>
-            arg === "postgresql://postgres@127.0.0.1:5432/seed_counts_fixture",
+            arg ===
+            "host='127.0.0.1' port='5432' dbname='seed_counts_fixture' user='postgres'",
         ),
       ).toHaveLength(tables);
       expect(args.join("\n")).not.toContain("postgres:postgres@");
