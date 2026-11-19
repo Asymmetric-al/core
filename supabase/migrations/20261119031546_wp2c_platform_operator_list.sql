@@ -11,10 +11,13 @@
 --    deleted while it is there (ON DELETE RESTRICT), so the list loses a row
 --    only through the script, which writes the audit row and refuses to
 --    remove the last operator.
--- 2. `authz.is_platform_operator(uuid)`: whether a login is on the list. A
+-- 2. `private.is_platform_operator(uuid)`: whether a login is on the list. A
 --    definer owned by `postgres` that nobody else may execute here; the
 --    role-change commands' migration grants it to `tenant_guard`, which must
 --    refuse an operator's row as a target without a privilege on the list.
+--    It lives in `private`, which signed-in users cannot use, and not in
+--    `authz`, whose SECURITY DEFINER functions are a reviewed inventory of
+--    three that issue #2270's frozen suites pin.
 -- 3. `platform.caller_on_operator_list()`, which stage 1 left failing closed,
 --    now reads the list for the session caller, through the guard's helper
 --    (`tenant_guard.caller_id()`, never `auth`: D-27). Its signature, owner
@@ -33,7 +36,7 @@
 --    wrapper into `platform`: a `public` function that calls a `platform`
 --    function other than a command may not be executed by signed-in users
 --    (WRAPPER_GRANTS_WORKER). So it is a definer owned by `postgres` that
---    reads the list through `authz.is_platform_operator`, the same test the
+--    reads the list through `private.is_platform_operator`, the same test the
 --    shared check makes, for `auth.uid()`.
 -- 5. `platform.operator_session()`, a platform command whose whole body is the
 --    shared check: it returns the operator's login id when the caller is on
@@ -49,7 +52,7 @@
 -- DROP FUNCTION public.caller_is_platform_operator(); restore
 -- platform.caller_on_operator_list() from
 -- 20261117034650_platform_schema_marker_and_health.sql (CREATE OR REPLACE, body
--- `SELECT false;`); DROP FUNCTION authz.is_platform_operator(UUID); DROP TABLE
+-- `SELECT false;`); DROP FUNCTION private.is_platform_operator(UUID); DROP TABLE
 -- authz.platform_operators. The audit rows the script wrote stay.
 
 BEGIN;
@@ -80,7 +83,7 @@ COMMENT ON COLUMN authz.platform_operators.reason IS
   'Why the operator was added, as given to the operator script.';
 
 -- 2. Whether a login is on the list.
-CREATE OR REPLACE FUNCTION authz.is_platform_operator(p_user_id UUID)
+CREATE OR REPLACE FUNCTION private.is_platform_operator(p_user_id UUID)
 RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
@@ -95,13 +98,13 @@ AS $$
      );
 $$;
 
-COMMENT ON FUNCTION authz.is_platform_operator(UUID) IS
+COMMENT ON FUNCTION private.is_platform_operator(UUID) IS
   'Whether a login is on the platform operator list (AL-2675 WP2c). The one '
   'test of the list: the shared operator check, the read function and the '
   'commands that refuse an operator as a target all call it.';
 
-ALTER FUNCTION authz.is_platform_operator(UUID) OWNER TO postgres;
-REVOKE ALL ON FUNCTION authz.is_platform_operator(UUID) FROM PUBLIC, anon, authenticated, service_role;
+ALTER FUNCTION private.is_platform_operator(UUID) OWNER TO postgres;
+REVOKE ALL ON FUNCTION private.is_platform_operator(UUID) FROM PUBLIC, anon, authenticated, service_role;
 
 -- 3. The shared check's list test. Signature, owner, rights, search path and
 -- grants as stage 1 left them.
@@ -112,7 +115,7 @@ STABLE
 SECURITY INVOKER
 SET search_path = ''
 AS $$
-  SELECT authz.is_platform_operator(tenant_guard.caller_id());
+  SELECT private.is_platform_operator(tenant_guard.caller_id());
 $$;
 
 ALTER FUNCTION platform.caller_on_operator_list() OWNER TO postgres;
@@ -126,7 +129,7 @@ STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-  SELECT authz.is_platform_operator(auth.uid());
+  SELECT private.is_platform_operator(auth.uid());
 $$;
 
 COMMENT ON FUNCTION public.caller_is_platform_operator() IS

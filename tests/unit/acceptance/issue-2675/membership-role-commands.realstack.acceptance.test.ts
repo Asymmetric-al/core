@@ -739,8 +739,8 @@ describe.skipIf(!ADMIN_URL)(
                             to_regprocedure('tenant_guard.revoke_membership(uuid,uuid,text)'),
                             to_regprocedure('public.change_membership_role(uuid,uuid,text,text,boolean,text)'),
                             to_regprocedure('public.revoke_membership(uuid,uuid,text)'),
-                            to_regprocedure('authz.is_platform_operator(uuid)'),
-                            to_regprocedure('authz.is_member_elsewhere(uuid,uuid)'))
+                            to_regprocedure('private.is_platform_operator(uuid)'),
+                            to_regprocedure('private.is_member_elsewhere(uuid,uuid)'))
             `,
         );
         const byText = (x: string, y: string) => (x < y ? -1 : x > y ? 1 : 0);
@@ -748,25 +748,25 @@ describe.skipIf(!ADMIN_URL)(
           [...fns.rows].sort((x, y) => byText(String(x.fn), String(y.fn))),
         ).toEqual([
           {
-            fn: "authz.is_member_elsewhere(uuid,uuid)",
-            owner: "postgres",
-            definer: true,
-            config: ['search_path=""'],
-            grantees: ["tenant_guard"],
-          },
-          {
-            fn: "authz.is_platform_operator(uuid)",
-            owner: "postgres",
-            definer: true,
-            config: ['search_path=""'],
-            grantees: ["tenant_guard"],
-          },
-          {
             fn: "change_membership_role(uuid,uuid,text,text,boolean,text)",
             owner: "postgres",
             definer: false,
             config: ['search_path=""'],
             grantees: ["authenticated"],
+          },
+          {
+            fn: "private.is_member_elsewhere(uuid,uuid)",
+            owner: "postgres",
+            definer: true,
+            config: ['search_path=""'],
+            grantees: ["tenant_guard"],
+          },
+          {
+            fn: "private.is_platform_operator(uuid)",
+            owner: "postgres",
+            definer: true,
+            config: ['search_path=""'],
+            grantees: ["tenant_guard"],
           },
           {
             fn: "revoke_membership(uuid,uuid,text)",

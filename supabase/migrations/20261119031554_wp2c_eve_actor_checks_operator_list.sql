@@ -11,7 +11,7 @@
 --    when the application sends it) and of `public.assert_eve_retention_actor`
 --    (retention holds and replay artifacts). It was the profile's role and
 --    tenant. It is now a platform operator: the profile's login is on the
---    operator list (`authz.is_platform_operator`) and holds a live row in the
+--    operator list (`private.is_platform_operator`) and holds a live row in the
 --    tenant, since an operator acts in a tenant only through a membership
 --    there until WP10's support grant (plan 12 WP2c). The profile no longer
 --    decides. The application sends that actor role only after the shared
@@ -75,7 +75,7 @@ BEGIN
          AND m.tenant_id = p_tenant_id
          AND m.is_active
          AND m.revoked_at IS NULL
-         AND authz.is_platform_operator(p.user_id)
+         AND private.is_platform_operator(p.user_id)
     ) THEN
       RAISE EXCEPTION 'eve_launch_profile_tenant_mismatch';
     END IF;
@@ -126,7 +126,7 @@ BEGIN
          AND m.tenant_id = p_tenant_id
          AND m.is_active
          AND m.revoked_at IS NULL
-         AND authz.is_platform_operator(p.user_id)
+         AND private.is_platform_operator(p.user_id)
     ) THEN
       RAISE EXCEPTION 'eve_retention_actor_tenant_mismatch';
     END IF;

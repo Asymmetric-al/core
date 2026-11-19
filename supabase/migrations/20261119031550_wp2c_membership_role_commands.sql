@@ -66,10 +66,13 @@
 --    lifecycle columns (`is_active`, `revoked_at`, `is_tenant_admin`,
 --    `granted_by`, `updated_at`) by column grants, so no guard command can
 --    move a row to another person, tenant, class or sub-role; and insert an
---    audit row. It may also execute `authz.is_platform_operator(uuid)` and
---    `authz.is_member_elsewhere(uuid, uuid)`, two postgres-owned definers
+--    audit row. It may also use the `private` schema and execute
+--    `private.is_platform_operator(uuid)` and
+--    `private.is_member_elsewhere(uuid, uuid)`, two postgres-owned definers
 --    that answer for a login without showing the guard the operator list or
---    another tenant's rows.
+--    another tenant's rows. They live in `private`, which signed-in users
+--    cannot use, and not in `authz`, whose SECURITY DEFINER functions are a
+--    reviewed inventory of three (issue #2270, frozen).
 --
 -- 3. `public.atomic_update_user_role_with_audit` is dropped. It wrote only
 --    `profiles.role`, which grants no access since WP2a, and no person could
@@ -81,8 +84,9 @@
 -- public.revoke_membership(UUID, UUID, TEXT),
 -- tenant_guard.change_membership_role(UUID, UUID, TEXT, TEXT, BOOLEAN, TEXT),
 -- tenant_guard.revoke_membership(UUID, UUID, TEXT),
--- authz.is_member_elsewhere(UUID, UUID); REVOKE EXECUTE ON FUNCTION
--- authz.is_platform_operator(UUID) FROM tenant_guard; DROP POLICY
+-- private.is_member_elsewhere(UUID, UUID); REVOKE EXECUTE ON FUNCTION
+-- private.is_platform_operator(UUID) FROM tenant_guard; REVOKE USAGE ON
+-- SCHEMA private FROM tenant_guard; DROP POLICY
 -- tenant_guard_isolation ON authz.memberships; DROP POLICY
 -- tenant_guard_isolation ON public.audit_logs; REVOKE INSERT, UPDATE ON
 -- authz.memberships FROM tenant_guard (and the column grants); REVOKE INSERT
@@ -117,7 +121,7 @@ CREATE POLICY tenant_guard_isolation
   WITH CHECK (tenant_id = tenant_guard.current_tenant_id());
 
 -- Whether a login holds a live membership in a tenant other than the one given.
-CREATE OR REPLACE FUNCTION authz.is_member_elsewhere(p_user_id UUID, p_tenant_id UUID)
+CREATE OR REPLACE FUNCTION private.is_member_elsewhere(p_user_id UUID, p_tenant_id UUID)
 RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
@@ -134,17 +138,18 @@ AS $$
   );
 $$;
 
-COMMENT ON FUNCTION authz.is_member_elsewhere(UUID, UUID) IS
+COMMENT ON FUNCTION private.is_member_elsewhere(UUID, UUID) IS
   'Whether a login holds a live membership in any tenant but the one given '
   '(AL-2675 WP2c): the role-change command''s cross-organization refusal '
   '(record D-40), until WP2b''s second release moves the restricted-note '
   'policies off profiles.role. EXECUTE for tenant_guard only.';
 
-ALTER FUNCTION authz.is_member_elsewhere(UUID, UUID) OWNER TO postgres;
-REVOKE ALL ON FUNCTION authz.is_member_elsewhere(UUID, UUID) FROM PUBLIC, anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION authz.is_member_elsewhere(UUID, UUID) TO tenant_guard;
+ALTER FUNCTION private.is_member_elsewhere(UUID, UUID) OWNER TO postgres;
+REVOKE ALL ON FUNCTION private.is_member_elsewhere(UUID, UUID) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION private.is_member_elsewhere(UUID, UUID) TO tenant_guard;
 
-GRANT EXECUTE ON FUNCTION authz.is_platform_operator(UUID) TO tenant_guard;
+GRANT USAGE ON SCHEMA private TO tenant_guard;
+GRANT EXECUTE ON FUNCTION private.is_platform_operator(UUID) TO tenant_guard;
 
 -- 2. The role-change command.
 CREATE OR REPLACE FUNCTION tenant_guard.change_membership_role(
@@ -226,14 +231,14 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
-  IF authz.is_platform_operator(v_target.user_id) THEN
+  IF private.is_platform_operator(v_target.user_id) THEN
     RAISE EXCEPTION 'A platform operator''s membership cannot be changed by an organization administrator'
       USING ERRCODE = '42501';
   END IF;
 
   -- Record D-40, until WP2b's second release moves the restricted-note
   -- policies off profiles.role (see the header).
-  IF authz.is_member_elsewhere(v_target.user_id, v_ctx.tenant_id) THEN
+  IF private.is_member_elsewhere(v_target.user_id, v_ctx.tenant_id) THEN
     RAISE EXCEPTION 'This person also belongs to another organization; their role cannot be changed here'
       USING ERRCODE = '42501';
   END IF;
@@ -426,7 +431,7 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
-  IF authz.is_platform_operator(v_target.user_id) THEN
+  IF private.is_platform_operator(v_target.user_id) THEN
     RAISE EXCEPTION 'A platform operator''s membership cannot be changed by an organization administrator'
       USING ERRCODE = '42501';
   END IF;
