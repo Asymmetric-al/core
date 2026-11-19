@@ -770,12 +770,10 @@ test.describe("production build", () => {
       if (!new URL(request.url()).pathname.startsWith(home)) return;
       answers.push(response.text().catch(() => ""));
     });
-    await page
-      .getByRole("link", { name: new RegExp(organizationLabel(DEMO)) })
-      .first()
-      .click();
+    await page.getByRole("link", { name: "Home", exact: true }).click();
+    // Home's view is the page's <main>, named for the workspace.
     await expect(
-      page.getByRole("region", { name: "Mission Control workspace" }),
+      page.getByRole("main", { name: "Mission Control workspace" }),
     ).toBeVisible();
     const delivered = (await Promise.all(answers)).join("");
     expect(delivered).toContain("MissionControlHome");
