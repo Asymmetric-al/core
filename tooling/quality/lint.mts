@@ -66,14 +66,17 @@ function gitFixEntries(scope: string[]) {
 
 function directoryLinkTarget(name: string) {
   const absolute = path.join(root, name);
-  if (
-    !lstatSync(absolute, { throwIfNoEntry: false })?.isSymbolicLink() ||
-    !statSync(absolute, { throwIfNoEntry: false })?.isDirectory()
-  )
-    return;
+  if (!lstatSync(absolute, { throwIfNoEntry: false })?.isSymbolicLink()) return;
+  const isDirectory = statSync(absolute, {
+    throwIfNoEntry: false,
+  })?.isDirectory();
+  if (isDirectory === undefined) return; // A dangling link has nothing for a fix to write through.
   const target = realpathSync(absolute);
   if (isOutside(target))
-    throw new Error(`Directory link outside repository: ${name}`);
+    throw new Error(
+      `${isDirectory ? "Directory" : "File"} link outside repository: ${name}`,
+    );
+  if (!isDirectory) return;
   return path.relative(root, target).split(path.sep).join("/") || ".";
 }
 
@@ -125,7 +128,7 @@ function checkFixScope(paths: string[]) {
 }
 
 const toolFailure =
-  /^[ \t]*(?:[x×!⚠][ \t]+)?(?:Error running JS plugin|Failed to (?:parse oxlint configuration file|load config|find tsgolint executable|write file)|Error running tsgolint|typescript\(tsconfig-error\))/im;
+  /^[ \t]*(?:[x×!⚠][ \t]+)?(?:Error running JS plugin|Failed to (?:parse oxlint configuration file|load config|find tsgolint executable|write file|open file)|Error running tsgolint|typescript\(tsconfig-error\))/im;
 
 function classifyOutput(stdout: string, json: boolean) {
   const plain = stripVTControlCharacters(stdout);
