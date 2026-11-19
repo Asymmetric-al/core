@@ -1959,30 +1959,53 @@ describe.skipIf(!ADMIN_URL)(
           expect(refused).toMatch(/nothing was changed/);
         }));
 
-      it("by default leaves an empty publication empty; its marked block restores the seven members; it restores the helper's comment and ends with the schema reload", () =>
+      // The whole file runs on a replayed database in the fingerprint proof
+      // its header describes. Here, where the suites of the program share one
+      // database, a run of the whole file would hold locks on fifty tables
+      // while their transactions run, and could deadlock one; so this case
+      // runs the guard and sections 6 and 7, which touch the publication
+      // alone.
+      it("by default leaves an empty publication empty, and its marked block restores the seven members", () =>
         inTx(async () => {
+          const guard = body.slice(0, body.indexOf("\n-- 1. Policies"));
+          const tail = body.slice(
+            body.indexOf("\n-- 6. The Realtime publication"),
+          );
+          expect(guard).toMatch(/RAISE EXCEPTION 'rollback_20261119022102: /);
+          expect(tail).toMatch(/^\n-- 6\. /);
           await ledger(["20261119022102"]);
           await db.query("drop publication if exists supabase_realtime");
           await db.query("create publication supabase_realtime");
-          expect(await run(body)).toBeNull();
+          expect(await run(`${guard}\n${tail}`)).toBeNull();
           expect(await members()).toEqual([]);
-          // The claim-reading body is back, and with it not the comment of
-          // the lookup that reads no claim.
-          const helper = await rows(
-            `select pg_get_functiondef('authz.current_tenant_id()'::regprocedure) def,
-                    obj_description('authz.current_tenant_id()'::regprocedure, 'pg_proc') note`,
-          );
-          expect(helper[0]!.def).toMatch(/app_metadata|jwt/);
-          expect(String(helper[0]!.note ?? "")).not.toMatch(
-            /reads no token claim/i,
-          );
-          expect(body.trimEnd()).toMatch(
-            /SELECT pg_notify\('pgrst', 'reload schema'\);$/,
-          );
+          // Nothing else in the file adds to a publication.
+          expect(body).not.toMatch(/^ALTER PUBLICATION .* ADD /m);
           expect(block).toHaveLength(SEVEN_REALTIME.length);
           expect(await run(block.join("\n"))).toBeNull();
           expect(await members()).toEqual([...SEVEN_REALTIME].sort());
         }));
+
+      it("restores the claim-reading helper with its comment, and ends with the schema reload", () => {
+        const helper = body.slice(
+          body.indexOf("CREATE OR REPLACE FUNCTION authz.current_tenant_id()"),
+        );
+        const definition = helper.slice(0, helper.indexOf("$function$;"));
+        expect(definition).toMatch(/app_metadata|jwt/);
+        // The statement right after the definition restores the comment of the
+        // claim-reading helper, not that of the lookup that reads no claim.
+        const next = helper
+          .slice(helper.indexOf("$function$;") + "$function$;".length)
+          .trimStart();
+        expect(next).toMatch(
+          /^COMMENT ON FUNCTION authz\.current_tenant_id\(\) IS /,
+        );
+        expect(next.slice(0, next.indexOf(";\n"))).not.toMatch(
+          /reads no token claim/i,
+        );
+        expect(body.trimEnd()).toMatch(
+          /SELECT pg_notify\('pgrst', 'reload schema'\);$/,
+        );
+      });
     });
 
     // Fixcheck F4: the catalog gate reads every policy a Data API caller can
