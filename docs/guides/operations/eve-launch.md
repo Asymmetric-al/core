@@ -15,7 +15,7 @@ The API is server-only and stores redacted evidence metadata in Supabase.
   `release` review and one records the `security` review. The manifest creator
   cannot review their own manifest.
 - A tenant administrator who is a confirmed operator with `release.activate` performs activation. A
-  platform owner must grant `release.review` or `release.activate` explicitly;
+  tenant administrator who is a confirmed operator must grant `release.review` or `release.activate` explicitly;
   migration and deployment grant neither permission.
 - Review and activation permissions should be revoked after the launch window.
 

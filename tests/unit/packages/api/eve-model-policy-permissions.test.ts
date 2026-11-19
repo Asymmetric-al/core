@@ -107,6 +107,9 @@ describe("Eve model-policy permission", () => {
         identity_mode: "admin",
         change_summary: '{"stateChanged":false}',
         evidence_summary: expect.stringContaining("ai.settings.manage"),
+        decision_summary: expect.stringContaining(
+          "a confirmed platform operator",
+        ),
       }),
     );
   });

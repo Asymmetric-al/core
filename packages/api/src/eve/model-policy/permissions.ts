@@ -48,7 +48,7 @@ export async function assertEveModelPolicyPermission(input: {
         "General admin access does not imply the dedicated AI-settings permission.",
       risk: "Unauthorized model policy changes could silently weaken Eve.",
       reversalOrFollowUp:
-        "A super admin must grant ai.settings.manage through the app-owned permission store.",
+        "Ask a confirmed platform operator to perform the change, or obtain an active ai.settings.manage grant in this tenant.",
     },
     debug: { source: "eve_model_policy_permission" },
   });

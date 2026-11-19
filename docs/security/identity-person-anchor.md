@@ -102,7 +102,7 @@ slice changes no behavior.
 four Storage policies below test a live membership in the path's tenant
 (`authz.caller_tenant_ids()`). The #2256 real-stack suite now expects an empty
 policy reader set; the function readers below are unchanged. The policy rows
-below record the set as #2256 froze it:
+below record the set as #2256 froze it, not current authorization:
 
 - RLS policies:
   - `public.profiles` `profiles staff tenant select`. Staff of the profile's
@@ -126,9 +126,9 @@ below record the set as #2256 froze it:
   referenced profile to a tenant by requiring `profiles.tenant_id` to match.
   Since council round 2 on WP2a (R1), the five that check an actor the
   application hands them test a live membership in the tenant instead, as the
-  application does; their `super_admin` branch keeps the profile check until
-  WP2c (`20261118093000_eve_actor_checks_read_membership.sql`; the decision
-  table's section 7 lists every one). They still name profiles beside
+  application does. WP2c replaced the remaining profile-role branches with
+  the operator-list and tenant-membership checks listed below
+  (`20261119135600_wp2c_eve_actor_checks_operator_list.sql`). They still name profiles beside
   `authz.memberships.tenant_id`, so the lexical scan keeps them.
   Since AL-2675 (WP2a, NR-49) `enforce_contribution_operation_tenant_refs` and
   `enforce_contribution_notification_tenant_refs` test a live membership in the
