@@ -410,9 +410,13 @@ jobs:
         env:
           CI: "1"
         run: bun run test:e2e:request-scope:admin
+      # Started after an earlier failure too, so the missionary steps below
+      # never meet a cold or missing server (JB5).
       - name: Start missionary app
+        if: ${{ !cancelled() }}
         run: bash scripts/github/e2e-dev-server.sh missionary start 4000
       - name: Wait for missionary health endpoint
+        if: ${{ !cancelled() }}
         run: bash scripts/github/e2e-dev-server.sh missionary wait 4000
       - name: Boneyard smoke (missionary app)
         timeout-minutes: 5
@@ -458,8 +462,24 @@ jobs:
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
           PLAYWRIGHT_INCLUDE_ADMIN: "1"
         run: bun run test:e2e:cms --project=chromium
+      # Web Studio under the person's organization (AL-2675; council on the
+      # joined release, JB4): its own step, as the program's other specs run,
+      # after the CMS step has compiled Web Studio's views. Its cases are race
+      # cases, so no retries; it runs after an earlier failure, and writes to
+      # folders of its own.
+      - name: Web Studio tenant (admin app)
+        if: ${{ !cancelled() }}
+        timeout-minutes: 18
+        env:
+          PLAYWRIGHT_REPORT_DIR: "playwright-report/web-studio-tenant"
+          CI: "1"
+          PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
+          PLAYWRIGHT_INCLUDE_ADMIN: "1"
+        run: bun run test:e2e:web-studio-tenant
+      # Also when the job is cancelled, as GitHub cancels a job that reaches
+      # its timeout-minutes; failure() alone is false then (JB5).
       - name: Upload artifact on failure
-        if: failure()
+        if: ${{ failure() || cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report

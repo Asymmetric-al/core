@@ -244,6 +244,26 @@ describe("ci-integration workflow contract", () => {
   // and 2.7 times or more for the other four. The five should add 5.5 to 7
   // minutes to a hosted job that took 8.5 to 11. The whole job took 21.3
   // minutes here, inside its 30.
+  //
+  // Council on the joined release, JB4 and JB5: measured again, on
+  // 2026-11-19, by a replay of the whole job from a clean start on the joined
+  // tree with this list's changes (a fresh database migrated and seeded, no
+  // build caches, dev servers, `CI=1`, the placeholder Supabase), at load 18
+  // to 26: database 61 s; production gate 919 s; tenant address (admin)
+  // 211 s, request scope (admin, with two new cases) 151 s, tenant address
+  // (missionary) 51 s, request scope (missionary) 9 s, request scope (donor)
+  // 37 s; the CMS step 192 s without the Web Studio spec; the Web Studio
+  // spec's own step 536 s (one case failing at 126 s; alone, on freshly
+  // started servers, at load 13 to 21, it passed in 382 s). The test steps
+  // took 2,367 s, 39.5 minutes, at that load. Limits: the Web Studio step
+  // 18 minutes (twice its slowest run, which leaves room for a first case
+  // hung to its own 360 s limit), the others as before (request scope
+  // (admin) now 1.99 times its slowest run). The job keeps its 30, which
+  // issue #2158's acceptance (spec rev 3) and the deployment-discipline test
+  // pin: by the production gate's ratio here (919 s against 248 to 316 s
+  // hosted), the test steps take about 14 minutes hosted, about 19 with the
+  // setup steps, inside 30; a job that reaches its limit now still uploads
+  // its evidence (the upload runs on cancellation).
   it("bounds the AL-2675 steps by their measured times, inside the job's limit", () => {
     const testE2e = jobBlock(workflow, "test-e2e");
     expect(testE2e).toMatch(/^ {4}timeout-minutes: 30$/m);
@@ -259,6 +279,7 @@ describe("ci-integration workflow contract", () => {
       ["Tenant address (missionary app)", 5],
       ["Request scope (missionary app)", 5],
       ["Request scope (donor app)", 5],
+      ["Web Studio tenant (admin app)", 18],
     ] as const) {
       expect(stepBlock(step), step).toMatch(
         new RegExp(`^ {8}timeout-minutes: ${minutes}$`, "m"),
@@ -311,6 +332,22 @@ describe("ci-integration workflow contract", () => {
       folders.set(output, step);
     }
 
+    // Council on the joined release, JB4: Web Studio's spec is a step of its
+    // own with the same rules; it runs the default config, so its report
+    // folder names its output folder too, and its script says so.
+    const webStudio = stepBlock("Web Studio tenant (admin app)");
+    expect(webStudio).toContain("if: ${{ !cancelled() }}");
+    expect(webStudio).toContain(
+      'PLAYWRIGHT_REPORT_DIR: "playwright-report/web-studio-tenant"',
+    );
+    expect(scripts["test:e2e:web-studio-tenant"]).toContain(
+      " --output=test-results/web-studio-tenant",
+    );
+    folders.set(
+      "test-results/web-studio-tenant",
+      "Web Studio tenant (admin app)",
+    );
+
     const donor = stepBlock("Request scope (donor app)");
     expect(donor).toContain("if: ${{ !cancelled() }}");
     expect(donor).toContain(
@@ -330,7 +367,14 @@ describe("ci-integration workflow contract", () => {
     expect(new Set(reportDirs).size).toBe(reportDirs.length);
     for (const reportDir of reportDirs) {
       const output = `test-results/${reportDir.split("/").pop()}`;
-      if (output === "test-results/request-scope-donor") continue;
+      // The two default-config steps own the output folder their report
+      // folder names.
+      if (
+        output === "test-results/request-scope-donor" ||
+        output === "test-results/web-studio-tenant"
+      ) {
+        continue;
+      }
       expect(folders.has(output), output).toBe(false);
     }
     for (const project of ["admin-boneyard", "missionary-boneyard"]) {
@@ -352,8 +396,55 @@ describe("ci-integration workflow contract", () => {
     );
     expect(upload).toContain("playwright-report/");
     expect(upload).toContain("test-results/");
-    expect(upload).toContain("if: failure()");
+    // Council on the joined release, JB5: also on cancellation. GitHub
+    // cancels a job that reaches its timeout-minutes ("The maximum number of
+    // minutes to let a job run before GitHub automatically cancels it",
+    // workflow syntax), and failure() is true only "when any previous step of
+    // a job fails" (expressions, status check functions), so a job cut off
+    // at its limit would otherwise lose its evidence.
+    expect(upload).toContain("if: ${{ failure() || cancelled() }}");
     expect(testE2e).toContain("timeout-minutes: 10");
+  });
+
+  // Council on the joined release, JB4: Web Studio's browser spec holds four
+  // acceptance lines and race cases, so it runs as the program's other specs
+  // do: a step of its own, after the CMS step (which has compiled Web
+  // Studio's views), with no retries, and the CMS step no longer runs it.
+  it("runs the Web Studio tenant spec as a step of its own, with no retries", () => {
+    const testE2e = jobBlock(workflow, "test-e2e");
+    const steps = stepNames(testE2e);
+    const step = "Web Studio tenant (admin app)";
+    expect(steps.indexOf(step)).toBe(
+      steps.indexOf("Run Playwright CMS E2E") + 1,
+    );
+    expect(testE2e).toContain("run: bun run test:e2e:web-studio-tenant");
+    const own = scripts["test:e2e:web-studio-tenant"]!;
+    expect(own).toContain(" tests/e2e/cms-web-studio-tenant.spec.ts ");
+    expect(own).toMatch(/ --retries=0(?: |$)/);
+    expect(own).toContain(' --grep "@cms" --grep-invert "@manual|@cms-local"');
+    // Playwright matches --grep against the file name too, so the CMS step's
+    // own selection leaves this file out.
+    expect(scripts["test:e2e:cms"]).toContain(
+      '--grep-invert "@manual|@cms-local|cms-web-studio-tenant\\.spec"',
+    );
+  });
+
+  // Council on the joined release, JB5: the missionary steps run after an
+  // earlier failure, so the server they use must be started then too, or
+  // they would fail for its absence and not for their behaviour.
+  it("starts the missionary app after an earlier failure, for the steps that use it", () => {
+    const testE2e = jobBlock(workflow, "test-e2e");
+    for (const name of [
+      "Start missionary app",
+      "Wait for missionary health endpoint",
+    ]) {
+      const start = testE2e.indexOf(`      - name: ${name}\n`);
+      expect(start, name).toBeGreaterThanOrEqual(0);
+      const next = testE2e.indexOf("      - name: ", start + 1);
+      expect(testE2e.slice(start, next), name).toContain(
+        "if: ${{ !cancelled() }}",
+      );
+    }
   });
 
   it("keeps instant navigation deterministic and production-gated", () => {

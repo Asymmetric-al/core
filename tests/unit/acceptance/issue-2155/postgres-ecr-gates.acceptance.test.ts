@@ -363,9 +363,17 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     // tests/unit/scripts/ci-integration-workflow.contract.test.ts. Slice A's
     // and slice B's earlier entries were intermediate states of the joined
     // branch, which develop never held, and are replaced by this one.
+    // Council on the joined release, JB4 and JB5 (the coordinator's list B):
+    // Web Studio's spec leaves the CMS step for a step of its own, "Web
+    // Studio tenant (admin app)" (bun run test:e2e:web-studio-tenant, no
+    // retries, if: !cancelled(), its own folders, 18 minutes from a measured
+    // replay of the whole job); "Start missionary app" and its wait run after
+    // an earlier failure; the upload runs on failure or cancellation. The
+    // job keeps its 30 minutes. Pinned in the same contract test; the entry
+    // before this one was the joined branch's, which develop never held.
     {
       ref: "AL-2675 tenant address and request scope in test-e2e",
-      hash: "618800eb51d0cdb2",
+      hash: "82f987c9557f1bbe",
     },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
