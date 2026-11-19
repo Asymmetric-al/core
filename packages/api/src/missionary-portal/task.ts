@@ -31,7 +31,7 @@ const updateTaskSchema = z
     status: taskStatusSchema.optional(),
     priority: taskPrioritySchema.optional(),
     due_date: z.string().datetime().nullable().optional(),
-    donor_id: z.string().uuid().optional(),
+    donor_id: z.string().uuid().nullable().optional(),
     sort_key: z.number().finite().optional(),
   })
   .strict();

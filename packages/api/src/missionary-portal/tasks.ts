@@ -32,9 +32,7 @@ const createTaskSchema = z
     status: taskStatusSchema.default("not_started"),
     priority: taskPrioritySchema.default("none"),
     due_date: z.string().datetime().nullable().optional(),
-    donor_id: z.string().uuid({
-      message: "A donor is required to place a task in this organization",
-    }),
+    donor_id: z.string().uuid().nullable().optional(),
     sort_key: z.number().finite().optional(),
   })
   .strict();

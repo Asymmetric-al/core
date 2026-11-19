@@ -11,14 +11,30 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY INVOKER SET search_path = '' AS $$
   );
 $$;
 
+CREATE FUNCTION authz.missionary_task_single_tenant(p_assignment_id uuid, p_tenant_id uuid)
+RETURNS boolean LANGUAGE sql STABLE SECURITY INVOKER SET search_path = '' AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM authz.memberships AS selected
+    WHERE selected.id = p_assignment_id AND selected.tenant_id = p_tenant_id
+      AND NOT EXISTS (
+        SELECT 1 FROM authz.memberships AS other
+        WHERE other.user_id = selected.user_id AND other.tenant_id <> selected.tenant_id
+      )
+  );
+$$;
+
+REVOKE ALL ON FUNCTION authz.missionary_task_single_tenant FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION authz.missionary_task_single_tenant TO service_role;
+
 CREATE FUNCTION public.missionary_owned_tasks(p_profile_id uuid, p_tenant_id uuid, p_assignment_id uuid)
 RETURNS SETOF public.missionary_tasks LANGUAGE sql STABLE SECURITY INVOKER SET search_path = '' AS $$
   SELECT task.* FROM public.missionary_tasks AS task
-  JOIN public.donors AS donor ON donor.id = task.donor_id AND donor.tenant_id = p_tenant_id
-  WHERE task.missionary_id = p_profile_id AND authz.selected_missionary(p_profile_id,p_tenant_id,p_assignment_id);
+  LEFT JOIN public.donors AS donor ON donor.id = task.donor_id AND donor.tenant_id = p_tenant_id
+  WHERE task.missionary_id = p_profile_id AND authz.selected_missionary(p_profile_id,p_tenant_id,p_assignment_id)
+    AND (donor.id IS NOT NULL OR (task.donor_id IS NULL AND authz.missionary_task_single_tenant(p_assignment_id,p_tenant_id)));
 $$;
 
-COMMENT ON FUNCTION public.missionary_owned_tasks IS 'Until WP5 records the owning tenant, a donorless task has no provable organization: do not list, create, reassign or mutate it.';
+COMMENT ON FUNCTION public.missionary_owned_tasks IS 'A live selected missionary may read, create, reassign, update or delete a donorless task only if every membership of every class, including revoked rows, is in the selected tenant. WP5 must place the remaining donorless rows by evidence before lifting this condition.';
 
 CREATE FUNCTION public.missionary_task_write(p_profile_id uuid, p_tenant_id uuid, p_assignment_id uuid, p_operation text, p_id uuid, p_patch jsonb)
 RETURNS SETOF public.missionary_tasks LANGUAGE plpgsql VOLATILE SECURITY INVOKER SET search_path = '' AS $$
@@ -26,24 +42,25 @@ BEGIN
   IF p_operation = 'create' THEN
     RETURN QUERY INSERT INTO public.missionary_tasks AS task
       (missionary_id, donor_id, title, description, task_type, status, priority, sort_key, due_date, completed_at)
-      SELECT p_profile_id, donor.id, patch.title, patch.description, patch.task_type, patch.status, patch.priority,
+      SELECT p_profile_id, patch.donor_id, patch.title, patch.description, patch.task_type, patch.status, patch.priority,
         patch.sort_key, patch.due_date, patch.completed_at
       FROM jsonb_populate_record(NULL::public.missionary_tasks, p_patch) AS patch
-      JOIN public.donors AS donor ON donor.id = patch.donor_id AND donor.tenant_id = p_tenant_id AND donor.missionary_id = p_profile_id
-      WHERE authz.selected_missionary(p_profile_id,p_tenant_id,p_assignment_id) RETURNING task.*;
+      LEFT JOIN public.donors AS donor ON donor.id = patch.donor_id AND donor.tenant_id = p_tenant_id AND donor.missionary_id = p_profile_id
+      WHERE authz.selected_missionary(p_profile_id,p_tenant_id,p_assignment_id)
+        AND (donor.id IS NOT NULL OR (patch.donor_id IS NULL AND authz.missionary_task_single_tenant(p_assignment_id,p_tenant_id))) RETURNING task.*;
   ELSIF p_operation = 'update' THEN
     RETURN QUERY UPDATE public.missionary_tasks AS task SET
       (donor_id, title, description, task_type, status, priority, sort_key, due_date, completed_at) = (
         SELECT patch.donor_id, patch.title, patch.description, patch.task_type, patch.status, patch.priority, patch.sort_key, patch.due_date, patch.completed_at
         FROM jsonb_populate_record(task, p_patch) AS patch), updated_at = now()
       WHERE task.id = p_id AND task.missionary_id = p_profile_id AND authz.selected_missionary(p_profile_id,p_tenant_id,p_assignment_id)
-        AND EXISTS (SELECT 1 FROM public.donors AS donor WHERE donor.id = task.donor_id AND donor.tenant_id = p_tenant_id)
-        AND (NOT (p_patch ? 'donor_id') OR EXISTS (SELECT 1 FROM public.donors AS donor WHERE donor.id = (p_patch->>'donor_id')::uuid AND donor.tenant_id = p_tenant_id AND donor.missionary_id = p_profile_id))
+        AND ((task.donor_id IS NULL AND authz.missionary_task_single_tenant(p_assignment_id,p_tenant_id)) OR EXISTS (SELECT 1 FROM public.donors AS donor WHERE donor.id = task.donor_id AND donor.tenant_id = p_tenant_id))
+        AND (NOT (p_patch ? 'donor_id') OR ((p_patch->>'donor_id') IS NULL AND authz.missionary_task_single_tenant(p_assignment_id,p_tenant_id)) OR EXISTS (SELECT 1 FROM public.donors AS donor WHERE donor.id = (p_patch->>'donor_id')::uuid AND donor.tenant_id = p_tenant_id AND donor.missionary_id = p_profile_id))
       RETURNING task.*;
   ELSIF p_operation = 'delete' THEN
     RETURN QUERY DELETE FROM public.missionary_tasks AS task
       WHERE task.id = p_id AND task.missionary_id = p_profile_id AND authz.selected_missionary(p_profile_id,p_tenant_id,p_assignment_id)
-        AND EXISTS (SELECT 1 FROM public.donors AS donor WHERE donor.id = task.donor_id AND donor.tenant_id = p_tenant_id) RETURNING task.*;
+        AND ((task.donor_id IS NULL AND authz.missionary_task_single_tenant(p_assignment_id,p_tenant_id)) OR EXISTS (SELECT 1 FROM public.donors AS donor WHERE donor.id = task.donor_id AND donor.tenant_id = p_tenant_id)) RETURNING task.*;
   ELSE RAISE EXCEPTION 'invalid task operation' USING ERRCODE = '22023';
   END IF;
 END;
