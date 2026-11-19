@@ -29,13 +29,19 @@ under the tenant in the page address, `/<tenant>[~<sub-role>]` (plan 5.2;
 AL-2675): each app's proxy decides the person's membership in that tenant
 before the page shell and rewrites the address onto the page files above. A
 bare address such as `/crm` is sent to the person's one organization or to
-the organization chooser (`/choose-organization`). Sign-in, the chooser, Web
-Studio and the API routes stay outside the tenant segment; crossing its
-boundary loads a new document. A link the client router prefetched before
+the organization chooser (`/choose-organization`). Sign-in, the chooser and the
+API routes stay outside every segment. Web Studio's pages are outside the
+tenant segment but a segment of their own: their organization comes from a
+signed cookie, and Web Studio's own chooser is not one of them. Crossing the
+boundary of either segment loads a new document. A link the client router prefetched before
 the person's membership was revoked can show at most its route's App Shell,
 which holds no tenant data, before the navigation's own request is refused
 and ends on `/no-access` (established on a production build in
-`tests/e2e/admin-tenant-address.spec.ts`). The rules for page code are in
+`tests/e2e/admin-tenant-address.spec.ts`). It holds none because the pages'
+session read, `getAuthContext()` with no request, waits for `connection()`
+after reading the cookies: an App Shell may read session data and carries
+cached content such as Home's figures, but what follows `connection()` is
+request-dependent, and a prefetch leaves it out. The rules for page code are in
 [`docs/ai/rules/frontend.md`](../../ai/rules/frontend.md) § The tenant in the
 page address.
 

@@ -707,6 +707,74 @@ test.describe("production build", () => {
     }
   });
 
+  // Check of the fix lists, JR4. JB7's case holds because the request-less
+  // session read (getAuthContext with no request, which the pages use) waits
+  // for connection() after reading the cookies: the App Shell may read
+  // session data and carries cached content whose stale time is five minutes
+  // or more (next/dist/docs: 02-guides/optimizing-prefetching.md, "Include
+  // session data in the shell"; adopting-partial-prefetching.md, "Static or
+  // cached content"), but connection() makes what follows request-dependent,
+  // and request-dependent work is left out of prefetches. Mission Control's
+  // Home reads its figures under cacheLife("minutes"), the kind of read the
+  // shell would carry without that wait. Its view is a client component, so
+  // what the page sends is its reference and its props, never its text.
+  test("a link to Home prefetched from another page holds nothing of the dashboard: the session read waits for the request", async ({
+    page,
+  }) => {
+    await serveMemberCareFixtures(page);
+    const home = `/${DEMO}`;
+    const prefetches: Array<{ path: string; body: Promise<string> }> = [];
+    page.on("response", (response) => {
+      const request = response.request();
+      if (!request.headers()["next-router-prefetch"]) return;
+      prefetches.push({
+        path: new URL(request.url()).pathname,
+        body: response.text().catch(() => ""),
+      });
+    });
+    await signInAs(page, "admin", "demoAdmin", baseURL());
+    await page.goto(tenantPath(DEMO, "/care/directory"));
+    await expect(personLink(page, "Person 01")).toBeVisible();
+    await expect
+      .poll(() => prefetches.some(({ path }) => path === home))
+      .toBe(true);
+
+    const marks = [
+      "MissionControlHome",
+      "revenueThisMonthCents",
+      "totalDonationsThisMonth",
+      "crmRecordCount",
+    ];
+    for (const { path: prefetched, body } of prefetches) {
+      if (prefetched !== home) continue;
+      const text = await body;
+      expect
+        .soft(
+          marks.filter((mark) => text.includes(mark)),
+          `prefetch of ${prefetched}`,
+        )
+        .toEqual([]);
+    }
+
+    // The marks are the page's own: the navigation's answer carries them.
+    const answers: Promise<string>[] = [];
+    page.on("response", (response) => {
+      const request = response.request();
+      if (request.headers()["next-router-prefetch"]) return;
+      if (!new URL(request.url()).pathname.startsWith(home)) return;
+      answers.push(response.text().catch(() => ""));
+    });
+    await page
+      .getByRole("link", { name: new RegExp(organizationLabel(DEMO)) })
+      .first()
+      .click();
+    await expect(
+      page.getByRole("region", { name: "Mission Control workspace" }),
+    ).toBeVisible();
+    const delivered = (await Promise.all(answers)).join("");
+    expect(delivered).toContain("MissionControlHome");
+  });
+
   test("a link to the detail page commits under instant()", async ({
     page,
   }) => {
