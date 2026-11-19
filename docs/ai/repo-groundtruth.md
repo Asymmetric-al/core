@@ -160,7 +160,9 @@ Root `package.json` scripts (the four separate claims kept distinct):
   (`lint && typecheck && test:unit`) all present.
 - **Workflow invokes it:** `docs/ci.md` maps `ci.yml` job order
   `format → lint → typecheck → build → test-unit` and `ci-integration.yml`
-  `migrate → smoke → test-e2e-smoke → test-e2e`. (Job-level invocation asserted
+  `migrate → smoke` beside `test-e2e-smoke`, then `test-e2e` (updated 2026-11-18
+  by the `rebalance-ci-test-scope` change; the run recorded a serial
+  `migrate → smoke → test-e2e-smoke → test-e2e` chain). (Job-level invocation asserted
   by the CI doc; the workflow YAML is the source of truth — see Unknowns §8.)
 - **Branch protection requires it:** declared required checks are `ci-gate` +
   `integration-gate` (+ `e2e-smoke-gate`) on `develop`, and `release-source-gate`
