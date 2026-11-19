@@ -169,6 +169,17 @@ describe("Eve governance global mutation authorization contract", () => {
     expect(setEveKillSwitch).not.toHaveBeenCalled();
   });
 
+  it("refuses the notification PATCH to a confirmed operator without tenant administration", async () => {
+    getAuthContextMock.mockResolvedValue(activeTenantStaff);
+    operatorRpcMock.mockResolvedValue({
+      data: { operator_id: activeTenantStaff.userId },
+      error: null,
+    });
+    const { PATCH } =
+      await import("../../../../packages/api/src/eve/notifications/route");
+    expect((await PATCH(createRequest("PATCH"))).status).toBe(403);
+  });
+
   // AL-2675: the kill switch named only super_admin, which is no membership
   // role, so it failed closed for a tenant administrator too. Since WP2c it
   // is a platform operator's, confirmed in the database: a tenant

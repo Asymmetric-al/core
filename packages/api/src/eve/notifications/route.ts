@@ -154,5 +154,5 @@ export const PATCH = withOperation(
       );
     }
   },
-  { platformOperator: true },
+  { tenantAdministrator: true, platformOperator: true },
 );
