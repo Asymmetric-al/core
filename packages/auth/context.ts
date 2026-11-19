@@ -3,6 +3,7 @@ import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies, headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
+import { connection } from "next/server";
 
 import { resolveAssignmentCapabilities } from "./capabilities/effective-capabilities";
 import { CapabilityResolutionError } from "./capabilities/errors";
@@ -158,6 +159,7 @@ async function createAuthContextClient(
   // ambient store is unavailable (forwarded/sidecar contexts).
   try {
     const cookieStore = await cookies();
+    if (!request) await connection();
 
     return createServerClient(url, key, {
       cookies: {
