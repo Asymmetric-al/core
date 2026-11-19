@@ -20,7 +20,7 @@ const auth = {
   userId: "user_1",
   email: "admin@example.com",
   tenantId: "00000000-0000-4000-8000-000000000003",
-  role: "super_admin",
+  role: "admin",
   memberships: [],
   profileId: "00000000-0000-4000-8000-000000000002",
   isAuthenticated: true,
@@ -41,6 +41,7 @@ describe("Eve model-policy control", () => {
     await expect(
       createEveModelPolicyDraft({
         auth,
+        platformOperator: true,
         policy: createDefaultEveModelPolicy(),
         supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
       }),
@@ -54,6 +55,8 @@ describe("Eve model-policy control", () => {
       expect.objectContaining({
         p_actor_id: "user_1",
         p_actor_profile_id: auth.profileId,
+        p_actor_role: "super_admin",
+        p_tenant_id: null,
         p_policy_hash: expect.stringMatching(/^[a-f0-9]{64}$/),
         p_audit_id: expect.any(String),
       }),

@@ -12,8 +12,15 @@ import type { EveModelPolicyDocument } from "./types";
 import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
-function identityParams(auth: AuthenticatedContext) {
-  return toEveAuditIdentityRpcParams(createAdminEveAuditIdentity(auth));
+function identityParams(input: {
+  auth: AuthenticatedContext;
+  platformOperator?: boolean;
+}) {
+  return toEveAuditIdentityRpcParams(
+    createAdminEveAuditIdentity(input.auth, {
+      platformOperator: input.platformOperator,
+    }),
+  );
 }
 
 function mapMutationError(error: { message: string } | null): never {
@@ -105,7 +112,7 @@ export async function createEveModelPolicyDraft(input: {
       p_policy: input.policy,
       p_policy_hash: policyHash,
       p_audit_id: auditId,
-      ...identityParams(input.auth),
+      ...identityParams(input),
     },
   );
   return readUuidMutationResult(data, error);
@@ -144,7 +151,7 @@ export async function evaluateEveModelPolicyDraft(input: {
       p_eval_status: evaluation.status,
       p_eval_summary: evaluation,
       p_audit_id: crypto.randomUUID(),
-      ...identityParams(input.auth),
+      ...identityParams(input),
     },
   );
   assertBooleanMutationResult(data, error);
@@ -171,7 +178,7 @@ export async function activateEveModelPolicy(input: {
       p_policy_id: input.policyId,
       p_expected_active_policy_id: input.expectedActivePolicyId,
       p_audit_id: crypto.randomUUID(),
-      ...identityParams(input.auth),
+      ...identityParams(input),
     },
   );
   assertBooleanMutationResult(data, error);
@@ -196,7 +203,7 @@ export async function rollbackEveModelPolicy(input: {
     {
       p_expected_active_policy_id: input.expectedActivePolicyId,
       p_audit_id: crypto.randomUUID(),
-      ...identityParams(input.auth),
+      ...identityParams(input),
     },
   );
   assertBooleanMutationResult(data, error);
@@ -237,7 +244,7 @@ export async function createEveModelBudgetOverride(input: {
       p_expires_at: input.expiresAt,
       p_reason: summarizeEveAuditValue(input.reason),
       p_audit_id: crypto.randomUUID(),
-      ...identityParams(input.auth),
+      ...identityParams(input),
     },
   );
   readUuidMutationResult(data, error);
