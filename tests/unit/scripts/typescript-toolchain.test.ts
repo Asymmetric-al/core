@@ -93,6 +93,12 @@ describe("product compiler and JavaScript API boundary", () => {
 
   it.each([
     "old product compiler",
+    "stale workspace pin",
+    "missing workspace pin",
+    "nightly",
+    "range",
+    "wrong alias",
+    "replaced classic root",
     "parser on native compiler",
     "missing editor SDK",
     "root binary shadowed",
@@ -100,13 +106,68 @@ describe("product compiler and JavaScript API boundary", () => {
     const snapshot = structuredClone(verifyCompilerToolchain());
     if (failure === "old product compiler")
       snapshot.workspaces[0].installed = "6.0.3";
+    if (failure === "stale workspace pin")
+      snapshot.workspaces[0].declared = "7.0.1";
+    if (failure === "missing workspace pin")
+      delete snapshot.workspaces[0].declared;
+    if (failure === "nightly" || failure === "range") {
+      const version =
+        failure === "nightly" ? "7.1.0-dev.20261119" : "^7.1.0-beta";
+      snapshot.native.alias = `npm:typescript@${version}`;
+      snapshot.native.installed = version;
+      for (const workspace of snapshot.workspaces) {
+        workspace.declared = version;
+        workspace.installed = version;
+      }
+    }
+    if (failure === "wrong alias")
+      snapshot.native.alias = snapshot.native.installed;
+    if (failure === "replaced classic root") {
+      snapshot.api.declared =
+        snapshot.api.installed =
+        snapshot.parser.version =
+          "6.0.2";
+    }
     if (failure === "parser on native compiler")
-      snapshot.parser.version = "7.0.2";
+      snapshot.parser.version = snapshot.native.installed;
     if (failure === "missing editor SDK") snapshot.api.hasEditorSdk = false;
     if (failure === "root binary shadowed")
       snapshot.native.rootCommandMatches = false;
     expect(() => validateCompilerToolchain(snapshot)).toThrow();
   });
+
+  it.each(["api", "eve-runtime"])(
+    "exposes Intl.StringNumericLiteral in packages/%s",
+    (workspace) => {
+      const root = path.resolve("packages", workspace);
+      const temporary = mkdtempSync(path.join(root, "node_modules", ".intl-"));
+      try {
+        writeFileSync(
+          path.join(temporary, "intl.ts"),
+          'export const value: Intl.StringNumericLiteral = "42";',
+        );
+        const config = path.join(temporary, "tsconfig.json");
+        writeFileSync(
+          config,
+          JSON.stringify({
+            extends: path.join(root, "tsconfig.json"),
+            compilerOptions: { rootDir: ".", incremental: false },
+            files: ["intl.ts"],
+            include: [],
+          }),
+        );
+        const compiler = path.join(root, "node_modules/typescript/lib/tsc.js");
+        const result = spawnSync(
+          process.execPath,
+          [compiler, "--noEmit", "-p", config],
+          { encoding: "utf8" },
+        );
+        expect(result.status, `${result.stdout}${result.stderr}`).toBe(0);
+      } finally {
+        rmSync(temporary, { recursive: true, force: true });
+      }
+    },
+  );
 
   it("parses JSONC aliases and modern TSX with both the JavaScript API and ESLint parser", () => {
     const parsed = ts.parseConfigFileTextToJson(

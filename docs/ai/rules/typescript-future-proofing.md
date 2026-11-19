@@ -36,7 +36,8 @@ TypeScript 7 is already in use.
 - Use ECMAScript import attributes (`with`), not legacy import assertions.
 - Keep `stableTypeOrdering` out of normal/default configurations; it is a
   comparison diagnostic for the JavaScript compiler.
-- Do not introduce preview compiler packages or `tsgo` as the stable product CLI.
+- The only approved product prerelease is the exact `typescript@7.1.0-beta` package, pinned in each compiled workspace and through the root `@typescript/native` alias. Do not substitute a tag, range, nightly, preview package or `tsgo`. Keep the root classic API at `6.0.3`.
+- Include `ES2023.Intl` wherever a preset or workspace sets `lib`. An override replaces the inherited list; keep Node-only workspaces free of DOM globals.
 - Do not use blanket `ignoreDeprecations` to conceal configuration problems.
 - Change compiler versions only within an explicitly authorized upgrade.
 

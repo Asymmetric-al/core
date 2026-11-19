@@ -123,7 +123,7 @@
     "eslint": "10.13.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "typescript": "7.0.2"
+    "typescript": "7.1.0-beta"
   },
   "peerDependencies": {
     "boneyard-js": "1.10.0",

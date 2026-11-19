@@ -1,7 +1,7 @@
 # TypeScript compiler, API and configuration guide
 
-Every compiled application and shared-package workspace uses stable native
-TypeScript 7 (`bun run verify:typescript-toolchain` reports the current count
+Every compiled application and shared-package workspace uses the qualified native
+TypeScript `7.1.0-beta` (`bun run verify:typescript-toolchain` reports the current count
 and versions). The root retains the supported full TypeScript 6 JavaScript API
 for AST scripts, typescript-eslint and the legacy editor SDK. The file name is
 historical; this is the current compiler and tsconfig policy.
@@ -11,7 +11,7 @@ historical; this is the current compiler and tsconfig policy.
 | Context                                     | Dependency owner                                                   | Required behavior                                                   |
 | ------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------- |
 | Application and shared-package typechecks   | Each workspace's pinned `typescript`                               | Native TypeScript 7; all product versions agree                     |
-| Root compiler fixtures                      | Root `@typescript/native` alias to the stable `typescript` package | Root `tsc` and explicit Base UI fixture use the same native release |
+| Root compiler fixtures                      | Root `@typescript/native` alias to the pinned `typescript` package | Root `tsc` and explicit Base UI fixture use the same native release |
 | AST/JSONC scripts and ESLint parser         | Root pinned full `typescript` package                              | Supported TypeScript 6 JavaScript API                               |
 | Legacy Next/editor language-service plugins | Root full `node_modules/typescript/lib` SDK                        | Existing `tsserver.js` remains available                            |
 
@@ -51,6 +51,9 @@ upstream parser or editor APIs change.
 
 The live presets under `tooling/typescript-config/` are authoritative.
 
+- All presets and workspace `lib` overrides include `ES2023.Intl` for `Intl.StringNumericLiteral`. This opts into library declarations without changing the emit target or bringing DOM types into Node-only packages.
+- Each Next app runs `next typegen` before `tsc --noEmit`. Include `.next/types/**/*.ts`: a declarations-only glob misses the generated route validator.
+
 - Next and bundled workspaces use `moduleResolution: "bundler"`. Node-first
   emitted packages may use NodeNext when that matches their runtime and exports.
   Do not introduce removed `node10`/`node` resolution or `baseUrl`.
@@ -81,9 +84,11 @@ warnings. Its include list and test scope are unchanged.
 
 Playwright remains configured separately. Scope test globals to their projects;
 Vitest's runtime transformation does not replace product compiler checking.
-The Base UI browser fixture explicitly dispatches the stable native alias.
+The Base UI browser fixture explicitly dispatches the pinned native alias.
 
 ## Change verification
+
+To roll back the beta, return the workspace pins, root native alias, lockfile and verifier's expected native version to `7.0.2` together. Retain the Admin type annotations, explicit `lib` entries, route generation and compiler-family tests. Reinstall with `bun install --frozen-lockfile`, then run the verifier and full typecheck. Do not roll back the classic API or change the lint backend.
 
 For a new app, extend the existing Next preset, retain `@/*` paths and generated
 Next type includes, declare the same native compiler, and run the app typecheck

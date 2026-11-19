@@ -9,7 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "node ../../tooling/eslint-config/lint.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "cms:migrate": "node ../../scripts/cms/run-payload-command.mjs migrate",
     "cms:migrate:create": "node ../../scripts/cms/run-payload-command.mjs migrate:create",
     "cms:migrate:status": "node ../../scripts/cms/run-payload-command.mjs migrate:status",
@@ -73,6 +73,6 @@
     "eslint": "10.13.0",
     "postcss": "8.5.31",
     "tailwindcss": "4.3.3",
-    "typescript": "7.0.2"
+    "typescript": "7.1.0-beta"
   }
 }
