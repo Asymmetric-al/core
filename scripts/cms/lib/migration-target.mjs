@@ -1,9 +1,12 @@
+import { X509Certificate } from "node:crypto";
+
 import {
   SUPABASE_POOLER_HOST,
   databaseUrlProblem,
   isLoopbackDatabaseUrl,
   libpqQueryEntries,
 } from "../../../packages/env/src/database-url.mjs";
+import { readDatabaseCa } from "../../release/release-database.mjs";
 import { CMS_MIGRATION_ROLE } from "./migration-connection.mjs";
 import { assertProjectCaFile } from "./postgres.mjs";
 
@@ -119,5 +122,21 @@ export function assertCmsMigrationTarget({
   // The last check's P3 (phase 15): set is not enough. PGSSLROOTCERT=system
   // would trust the machine's whole store, so the file must hold the
   // project's CA, read by the release job's own check.
-  assertProjectCaFile(environment.PGSSLROOTCERT);
+  const fileCa = new X509Certificate(
+    assertProjectCaFile(environment.PGSSLROOTCERT),
+  );
+  // Phase 16, Q1: Payload makes the migration's writes, and node-postgres
+  // trusts every certificate in PAYLOAD_DATABASE_SSL_CA, so a bundle of
+  // authorities would pass a non-empty check. It is read by the same check,
+  // and must be the very certificate the file holds.
+  const payloadCa = new X509Certificate(
+    readDatabaseCa(environment.PAYLOAD_DATABASE_SSL_CA, {
+      name: "PAYLOAD_DATABASE_SSL_CA",
+    }),
+  );
+  if (!payloadCa.raw.equals(fileCa.raw)) {
+    throw new Error(
+      `PAYLOAD_DATABASE_SSL_CA and the file PGSSLROOTCERT names hold different certificates (SHA-256 ${payloadCa.fingerprint256} and ${fileCa.fingerprint256}). Both must hold the project's CA, the same PEM from its Database settings.`,
+    );
+  }
 }

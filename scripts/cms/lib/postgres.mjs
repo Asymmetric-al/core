@@ -21,6 +21,7 @@ import { LOCAL_DATABASE_URL } from "./local-data.mjs";
  * check of its CA (readDatabaseCa): exactly one certificate and nothing else,
  * a CA, valid now. The release job hands the runner such a file; a hand-run
  * hosted command must too. Messages name what was found, never the content.
+ * Returns the one certificate as a PEM block.
  */
 export function assertProjectCaFile(file) {
   if (file === "system")
@@ -35,7 +36,7 @@ export function assertProjectCaFile(file) {
       `PGSSLROOTCERT names a file that cannot be read (${error?.code ?? "error"}). Set it to a file holding the project's CA certificate, the PEM from its Database settings.`,
     );
   }
-  readDatabaseCa(pem, { name: "PGSSLROOTCERT's file" });
+  return readDatabaseCa(pem, { name: "PGSSLROOTCERT's file" });
 }
 
 function getPsqlConnection(databaseUrl) {
