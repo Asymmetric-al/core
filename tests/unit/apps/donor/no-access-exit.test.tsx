@@ -14,6 +14,11 @@ afterEach(() => cleanup());
  * tenants, whom the portal refuses until WP3 resolves its host. A link back to
  * `/donor-dashboard` would send them straight back here, so the page's way out
  * is the public home page, as in the missionary workspace.
+ *
+ * Council round 2, BR8: the other way out, "Switch account", was a link to
+ * `/login`, which sends a signed-in person straight on and so led back here.
+ * It is now a button that signs out first, as in the other two apps
+ * (tests/unit/apps/no-access-switch-account.test.tsx proves it signs out).
  */
 it("offers a way out that does not lead back to the portal that refused the person", () => {
   render(<NoAccessPage />);
@@ -23,10 +28,11 @@ it("offers a way out that does not lead back to the portal that refused the pers
     .getAllByRole("link")
     .map((link) => link.getAttribute("href"));
   expect(hrefs).not.toContain("/donor-dashboard");
+  expect(hrefs).not.toContain("/login");
   expect(
     screen.getByRole("link", { name: "Go to home" }).getAttribute("href"),
   ).toBe("/");
   expect(
-    screen.getByRole("link", { name: "Switch account" }).getAttribute("href"),
-  ).toBe("/login");
+    screen.getByRole("button", { name: "Switch account" }).getAttribute("type"),
+  ).toBe("button");
 });
