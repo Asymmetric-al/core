@@ -2,6 +2,7 @@
 
 > The provider-Secret preview delivery clause is explicitly superseded by
 > [complete repository modernization](../complete-repository-modernization/design.md#explicit-preview-delivery-supersession).
+> The instant-navigation clause is superseded for same-repository develop pull requests only by [rebalance CI test scope](../rebalance-ci-test-scope/design.md#7-instant-nav-on-develop-pull-requests).
 > The compilation selector and automatic-deployment policy remain binding.
 
 ## Decisions

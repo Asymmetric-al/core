@@ -1,0 +1,18 @@
+{
+  "description": "Core edit hook: Prettier --write on each file apply_patch writes, then an ESLint report on the source files; it applies no ESLint fix (scripts/agent-hooks/after-edit.mjs). Codex runs it after you trust it with /hooks.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "^apply_patch$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/scripts/agent-hooks/after-edit.mjs\" codex",
+            "timeout": 120,
+            "statusMessage": "Formatting and linting the edited file"
+          }
+        ]
+      }
+    ]
+  }
+}

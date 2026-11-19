@@ -470,6 +470,152 @@ describe("shadcn upstream review gate", () => {
       },
     );
 
+    // What the pinned CLI prints on stdout when a request fails below HTTP
+    // (@shadcn/registry: `Request to <url> failed, reason: <cause>`).
+    const requestFailure = (
+      reason: string,
+      url = "https://ui.shadcn.com/r/styles/base-maia/button.json",
+    ) =>
+      [
+        "",
+        "Something went wrong. Please check the error below for more details.",
+        "If the problem persists, please open an issue on GitHub.",
+        "",
+        `Request to ${url} failed, reason: ${reason}`,
+        "",
+        "You can also try a previous version to see if that works:",
+        "npx shadcn@4.21.0 add button --dry-run",
+        "",
+      ].join("\n");
+    const connectTimeout =
+      "Connect Timeout Error (attempted address: ui.shadcn.com:443, timeout: 10000ms)";
+
+    it.each([
+      [connectTimeout, "connect timeout"],
+      ["read ECONNRESET", "ECONNRESET"],
+      ["connect ETIMEDOUT 104.18.0.1:443", "ETIMEDOUT"],
+      ["getaddrinfo EAI_AGAIN ui.shadcn.com", "EAI_AGAIN"],
+    ])(
+      "retries a public connect failure (%s) within the same deadline",
+      async (reason, kind) => {
+        const input = failingCli({ message: requestFailure(reason) });
+        const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const output = await createCliRunner(input)(readOnlyArgs);
+        expect(parseDryRun(output, "button", input.root)).toEqual(
+          parseDryRun(preview("button"), "button", input.root),
+        );
+        expect(input.attempts()).toEqual([readOnlyArgs, readOnlyArgs]);
+        expect(warning).toHaveBeenCalledTimes(1);
+        expect(String(warning.mock.calls)).toContain(
+          `public registry connect failure (${kind})`,
+        );
+      },
+    );
+
+    it("fails a persistent connect failure after three attempts, naming the component and the CLI's reason", async () => {
+      const input = failingCli({
+        failures: 10,
+        message: requestFailure(connectTimeout),
+      });
+      vi.spyOn(console, "warn").mockImplementation(() => {});
+      const error = await createCliRunner(input)(readOnlyArgs).catch(
+        (caught: Error) => caught,
+      );
+      expect(input.attempts()).toHaveLength(3);
+      expect(error).toBeInstanceOf(Error);
+      const message = (error as Error).message;
+      expect(message).toBe(
+        "shadcn CLI coverage failed (exit 1; public registry connect failure after 3 attempts) for button: " +
+          `Request to https://ui.shadcn.com/r/styles/base-maia/button.json failed, reason: ${connectTimeout}`,
+      );
+      expect(message).not.toContain("\n");
+      expect(message).not.toContain("Something went wrong");
+    });
+
+    it.each([
+      [
+        "a refused connection",
+        requestFailure("connect ECONNREFUSED 127.0.0.1:9"),
+      ],
+      [
+        "a host other than the public registry",
+        requestFailure(
+          "read ECONNRESET",
+          "https://registry.example.com/r/button.json",
+        ),
+      ],
+      [
+        "a TLS failure",
+        requestFailure("read ECONNRESET") +
+          "unable to verify the first certificate\n",
+      ],
+      [
+        "two request failures",
+        requestFailure("read ECONNRESET") + requestFailure("read ECONNRESET"),
+      ],
+    ])("does not retry %s", async (_case, message) => {
+      const input = failingCli({ message, failures: 10 });
+      const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+      await expect(createCliRunner(input)(readOnlyArgs)).rejects.toThrow(
+        /^shadcn CLI coverage failed \(exit 1\) for button: Request to /,
+      );
+      expect(input.attempts()).toEqual([readOnlyArgs]);
+      expect(warning).not.toHaveBeenCalled();
+    });
+
+    it("does not retry a connect failure for a command that is not a known read", async () => {
+      const input = failingCli({
+        message: requestFailure("read ECONNRESET"),
+        failures: 10,
+      });
+      await expect(createCliRunner(input)(["add", "button"])).rejects.toThrow(
+        "shadcn CLI coverage failed (exit 1) for button: Request to",
+      );
+      expect(input.attempts()).toEqual([["add", "button"]]);
+    });
+
+    it("names the CLI's own reason with URL credentials and proxy userinfo redacted", async () => {
+      const cases: Array<[string, string, string[]]> = [
+        [
+          publicFailure(401).replace(
+            ".json",
+            ".json?token=opaque-test-token#frag",
+          ),
+          "Failed to fetch from registry (401): https://ui.shadcn.com/r/styles/base-maia/button.json?<redacted>",
+          ["opaque-test-token", "frag"],
+        ],
+        [
+          requestFailure(
+            "Proxy response (407) from http://proxy-user:proxy-secret@proxy.example:3128 !== 200 when HTTP Tunneling",
+          ),
+          "reason: Proxy response (407) from http://<redacted>@proxy.example:3128 !== 200 when HTTP Tunneling",
+          ["proxy-user", "proxy-secret"],
+        ],
+      ];
+      for (const [message, shown, hidden] of cases) {
+        const input = failingCli({ message, failures: 10 });
+        vi.spyOn(console, "warn").mockImplementation(() => {});
+        const error = (await createCliRunner(input)(readOnlyArgs).catch(
+          (caught: Error) => caught,
+        )) as Error;
+        expect(error.message).toContain(" for button: ");
+        expect(error.message).toContain(shown);
+        for (const secret of hidden)
+          expect(error.message).not.toContain(secret);
+      }
+    });
+
+    it("names the diff path when a per-file diff fails", async () => {
+      const args = ["add", "button", "--diff", "components/shadcn/button.tsx"];
+      const input = failingCli({
+        message: requestFailure("connect ECONNREFUSED 127.0.0.1:9"),
+        failures: 10,
+      });
+      await expect(createCliRunner(input)(args)).rejects.toThrow(
+        "for button (diff components/shadcn/button.tsx): Request to",
+      );
+    });
+
     it("keeps the 4MB output cap cumulative across failed and successful attempts", async () => {
       const input = failingCli({ paddingBytes: 2_100_000 });
       vi.spyOn(console, "warn").mockImplementation(() => {});
