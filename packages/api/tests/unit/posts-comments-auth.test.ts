@@ -89,7 +89,9 @@ function mockClient() {
   const eq = vi.fn(() => ({ order }));
   const select = vi.fn(() => ({ eq }));
   const from = vi.fn(() => ({ select }));
-  createClientMock.mockResolvedValue({ from });
+  // The commenters' names and avatars (`post_comment_authors`; AL-2675, JB11).
+  const rpc = vi.fn().mockResolvedValue({ data: [], error: null });
+  createClientMock.mockResolvedValue({ from, rpc });
   return { from };
 }
 
