@@ -18,7 +18,9 @@
  * in the organization they selected, and the lock collection admits no
  * create and shows, takes over or releases only that organization's locks
  * (`apps/admin/src/cms/document-locks.ts`). The first two cases are C3's
- * and stay as they were.
+ * and stay as they were. Round 3 (CR6) adds a super administrator, whom read
+ * access lets see every organization: the lock still stays in the one they
+ * selected.
  *
  * Runs Payload on TENANT_GUARD_IT_ADMIN_DATABASE_URL, which in CI's `migrate`
  * job carries Payload's migrations: skips without it, except in that job,
@@ -81,6 +83,8 @@ describe.skipIf(!ADMIN_URL)(
     let editorA1: Record<string, unknown>;
     let editorA2: Record<string, unknown>;
     let editorB: Record<string, unknown>;
+    // Round 3 (CR6): a super administrator whose selected organization is A.
+    let superAdminOfA: Record<string, unknown>;
     let documentOfA: Doc;
     let rest: Record<string, RouteHandler>;
     let graphql: Record<string, RouteHandler>;
@@ -169,20 +173,21 @@ describe.skipIf(!ADMIN_URL)(
         label: `Locks A ${stamp}`,
         items: [{ label: "Home", href: "/" }],
       });
-      const signedIn = async (key: string, tenant: Doc) => ({
+      const signedIn = async (key: string, tenant: Doc, role = "staff") => ({
         ...(await make("cms-users", {
           email: `locks-${key}-${stamp}@example.org`,
-          role: "staff",
+          role,
           supabaseUserId: randomUUID(),
           tenantId: String(tenant.id),
         })),
         collection: "cms-users",
-        role: "staff",
+        role,
         tenantId: String(tenant.id),
       });
       editorA1 = await signedIn("a1", tenantA);
       editorA2 = await signedIn("a2", tenantA);
       editorB = await signedIn("b", tenantB);
+      superAdminOfA = await signedIn("super", tenantA, "super_admin");
 
       rest =
         (await import("../../../../apps/admin/app/(payload)/web-studio/api/[...slug]/route")) as never;
@@ -410,6 +415,65 @@ describe.skipIf(!ADMIN_URL)(
         user: editorA2,
       });
       expect(await locksOn(documentOfA)).toEqual([]);
+    });
+
+    // Round 3 (CR6): read access lets a super administrator see every
+    // organization; the lock stays in the one they selected, by the explicit
+    // tenant clause in `documentsInOrganization`.
+
+    it("a super administrator who selected A writes no lock on a document of B", async () => {
+      try {
+        await formStateAs(superAdminOfA, documentOfB);
+        expect(await locksOnDocumentOfB()).toBe(0);
+      } finally {
+        // The next case starts from no lock, whatever happened here.
+        await db.query(
+          "delete from cms.payload_locked_documents where id in (select parent_id from cms.payload_locked_documents_rels where navigation_id = $1)",
+          [documentOfB.id],
+        );
+      }
+    });
+
+    it("a super administrator who selected A neither sees, takes over nor releases the lock B's editor holds", async () => {
+      await formStateAs(editorB, documentOfB);
+      const held = await locksOn(documentOfB);
+      expect(held).toHaveLength(1);
+      expect(String(held[0]!.user_id)).toBe(idOf(editorB.id));
+
+      const seen = await locksSeenBy(superAdminOfA, documentOfB);
+      const takeOver = await settled(
+        payload.update({
+          collection: LOCKS,
+          id: held[0]!.id,
+          data: { user: { relationTo: "cms-users", value: superAdminOfA.id } },
+          overrideAccess: false,
+          user: superAdminOfA,
+        }),
+      );
+      const release = await settled(
+        payload.delete({
+          collection: LOCKS,
+          id: held[0]!.id,
+          overrideAccess: false,
+          user: superAdminOfA,
+        }),
+      );
+      const refused = expect.not.stringMatching(/^done$/);
+      expect({ seen, takeOver, release }).toEqual({
+        seen: [],
+        takeOver: refused,
+        release: refused,
+      });
+      expect(await locksOn(documentOfB)).toEqual(held);
+
+      // B's editor still releases their own lock.
+      await payload.delete({
+        collection: LOCKS,
+        id: held[0]!.id,
+        overrideAccess: false,
+        user: editorB,
+      });
+      expect(await locksOnDocumentOfB()).toBe(0);
     });
 
     describe("through the real routes, as a person of another organization", () => {
