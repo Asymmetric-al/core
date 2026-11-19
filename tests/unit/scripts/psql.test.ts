@@ -351,6 +351,9 @@ describe("every local-database decision calls the one helper", () => {
       expect(text).toContain("packages/env/src/database-url.mjs");
       expect(text).toContain("spawnPsql");
       expect(text).toMatch(/routing override/);
+      // The last check's P4: psqlConnection is never offered for a script's
+      // own spawn, which would skip the version floor.
+      expect(text).not.toMatch(/own spawn/);
     }
   });
 

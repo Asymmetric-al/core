@@ -9,9 +9,11 @@
 // address, refuse what the check refuses, and keep no ambient PG* setting but
 // the shared list KEPT_AMBIENT_LIBPQ_ENV (PGPASSWORD, PGSSLROOTCERT), of
 // which this file keeps PGPASSWORD alone (review N5):
-// - scripts/lib/psql.mjs, this file (runPsqlQuery, spawnPsql, or
-//   psqlConnection for a caller's own spawn: the parsed parts as libpq
-//   keywords, never the raw string, -X, the password in PGPASSWORD). The
+// - scripts/lib/psql.mjs, this file (runPsqlQuery or spawnPsql: the parsed
+//   parts as libpq keywords, never the raw string, -X, the password in
+//   PGPASSWORD). psqlConnection builds their argument and environment and
+//   starts nothing; it is exported for its tests, not for a script to spawn
+//   psql with, since such a spawn would skip the version floor below. The
 //   catalog gate, the field-policy gate, the environment marker, the
 //   local-database helper, the migration verifier and seed verify run
 //   through it;
@@ -70,7 +72,9 @@ const conninfoValue = (value) =>
  * KEPT_AMBIENT_LIBPQ_ENV only an ambient PGPASSWORD survives (reviews M3 and
  * N5), for a URL that carries none, so a caller can keep the password out of
  * the URL as well; a password in the URL, in its login or its query, wins and
- * never reaches the argument.
+ * never reaches the argument. It starts nothing and checks no psql version:
+ * start psql through runPsqlQuery or spawnPsql, which run
+ * requirePsqlHonoursRequireAuth first for a hosted address.
  */
 export function psqlConnection(databaseUrl, baseEnv = process.env) {
   let url;
@@ -126,9 +130,11 @@ export const MIN_PSQL_MAJOR = 16;
  * (HOSTED_LIBPQ_ENV), arrived in libpq 16, and an older libpq ignores it
  * without a word. Each of the three builders calls this before it starts
  * psql on an environment that carries PGREQUIREAUTH, so the floor holds
- * wherever a hosted address is used: the release job's steps, the CMS runner
- * and the reset guard alike. `env` should carry no PG* setting: the check
- * connects to nothing.
+ * wherever one of them starts psql on a hosted address: the release job's
+ * steps, the CMS runner and the reset guard alike. It does not hold for
+ * scripts/verify/stripe-data-pipeline.mjs, which starts psql on a hosted
+ * address with a builder of its own. `env` should carry no PG* setting: the
+ * check connects to nothing.
  */
 export function requirePsqlHonoursRequireAuth({
   psqlBin = process.env.PSQL_BIN?.trim() || "psql",
