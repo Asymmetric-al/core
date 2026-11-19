@@ -271,6 +271,68 @@ it.each([
   },
 );
 it(
+  "refuses an external file link before starting a fix",
+  { timeout },
+  (context) => {
+    const outside = mkdtempSync(join(tmpdir(), "quality-link-target-"));
+    try {
+      writeFileSync(
+        join(outside, "external.js"),
+        "export const value = { value: value };\n",
+      );
+      mkdirSync(join(repo, "selected"));
+      try {
+        symlinkSync(
+          join(outside, "external.js"),
+          join(repo, "selected/external.js"),
+          "file",
+        );
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          "code" in error &&
+          String(error.code) === "EPERM"
+        )
+          context.skip("This user cannot create file symlinks");
+        throw error;
+      }
+      unlinkSync(join(repo, "node_modules/.bin", bin("oxlint")));
+      const result = run("--fix", "selected");
+      expect(result.status, result.output).toBe(2);
+      expect(result.stderr).toMatch(/outside.*selected[/\\]external\.js/i);
+    } finally {
+      removeFixture(tmpdir(), outside);
+    }
+  },
+);
+it("returns 2 when Oxlint cannot read a file", { timeout }, (context) => {
+  const file = join(repo, "sample.js");
+  config('export default { rules: { "no-debugger": "error" } };');
+  sample("debugger;\n");
+  chmodSync(file, 0o000);
+  try {
+    let readable = true;
+    try {
+      closeSync(openSync(file, "r"));
+    } catch (error) {
+      if (!(
+        error instanceof Error &&
+        "code" in error &&
+        ["EACCES", "EPERM"].includes(String(error.code))
+      ))
+        throw error;
+      readable = false;
+    }
+    if (readable)
+      context.skip("This user can still read a file without permissions");
+    const result = run("sample.js");
+    expect(result.output).toContain("Failed to open file");
+    expect(result.status, result.output).toBe(2);
+  } finally {
+    chmodSync(file, 0o644);
+  }
+});
+it(
   "fixes a selected directory without rejecting ignored or out-of-scope links",
   { timeout },
   () => {
