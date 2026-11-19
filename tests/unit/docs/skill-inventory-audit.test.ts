@@ -622,6 +622,10 @@ const expectedNames = [
   ...p3StackSkillNames,
   // Anthropic pr-review-toolkit plugin command, adapted as a skill.
   "review-pr",
+  // vercel/next.js skills at the tag matching the installed Next.js release.
+  "next-bundle-optimizer",
+  "next-partial-prefetching-adoption",
+  "next-partial-prefetching-optimizer",
 ].sort();
 
 describe("reviewed installed skill inventory", () => {
