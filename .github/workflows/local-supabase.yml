@@ -13,6 +13,10 @@ name: Local Supabase Stack
 # - The email round trips of WP0b and WP1.4: password recovery in all three
 #   apps and sign-up confirmation on two hosts of the donor portal, through
 #   the stack's Auth server and mail catcher (council round 2, B4).
+# - The platform operators' second factor (AL-2675, WP2c): TOTP enrolment and
+#   the challenge through the stack's Auth server, the shared operator check
+#   through its Data API, and the operator script against its database. CI's
+#   `migrate` job has no Auth server, so this is where it runs.
 #
 # Its own workflow, so that no frozen suite of ci.yml or ci-integration.yml
 # changes. Not a required check.
@@ -43,6 +47,10 @@ on:
       - tests/e2e/auth-signup-confirmation.spec.ts
       - tests/e2e/helpers/auth-mail.ts
       - scripts/e2e/run-auth-mail.mjs
+      # The operators' second factor (AL-2675, WP2c).
+      - scripts/e2e/run-operator-mfa.mjs
+      - scripts/platform/**
+      - tests/unit/acceptance/issue-2675/operator-mfa.localstack.test.ts
 
 permissions:
   contents: read
@@ -97,6 +105,10 @@ jobs:
         run: >-
           bun run supabase -- start
           -x studio,edge-runtime,logflare,vector,imgproxy,postgres-meta,supavisor
+      # Fails, never skips, when the stack's values are missing.
+      - name: Prove the platform operators' second factor (WP2c)
+        timeout-minutes: 10
+        run: node scripts/e2e/run-operator-mfa.mjs
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
       - name: Run the auth email round trips

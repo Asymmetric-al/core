@@ -39,6 +39,11 @@ What it does, in one transaction that locks the list against any other run:
 
 It prints one JSON line: the action, the login id, whether the list changed and how many operators it now holds. `list` prints the list as JSON.
 
+## Proofs
+
+- `tests/unit/acceptance/issue-2675/platform-operators.realstack.acceptance.test.ts` and `platform-operator-script.realstack.acceptance.test.ts` run in CI's `migrate` job, on a plain Postgres: the list's privileges, the read function, the shared check by the request's assurance claim, and the script.
+- `node scripts/e2e/run-operator-mfa.mjs` proves the second factor on a running local Supabase stack, which CI's `migrate` job does not have: a password session at `aal1` is refused by the shared check, and passes after the operator enrols a TOTP factor and passes the challenge through the Auth API. It reads the stack from `supabase status` (set `OPERATOR_MFA_SUPABASE_WORKDIR` for a stack started with `--workdir`) and fails, never skips, when it cannot. The Local Supabase Stack workflow (`.github/workflows/local-supabase.yml`) runs it.
+
 ## Owner steps for a hosted project
 
 Each is the owner's, by hand, once per hosted project, and none runs in CI:
