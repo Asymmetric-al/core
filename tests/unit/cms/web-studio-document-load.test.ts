@@ -71,7 +71,11 @@ it("adds the leave guard as the Web Studio document renders, before any form's p
           assignmentId: "00000000-0000-4000-8000-0000000000a1",
           addressPrefix: "",
         },
-        organization: { name: "Alpha Mission", canSwitch: true },
+        organization: {
+          name: "Alpha Mission",
+          canSwitch: true,
+          missionControlHref: "/00000000-0000-0000-0000-000000000001",
+        },
       },
       createElement(FormWithUnsavedChange),
     ),

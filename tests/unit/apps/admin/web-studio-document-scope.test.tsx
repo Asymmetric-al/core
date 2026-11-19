@@ -74,7 +74,11 @@ describe("a Web Studio document", () => {
     render(
       <WebStudioDocument
         scope={SCOPE}
-        organization={{ name: "Bravo Mission", canSwitch: true }}
+        organization={{
+          name: "Bravo Mission",
+          canSwitch: true,
+          missionControlHref: "/00000000-0000-0000-0000-000000000002",
+        }}
       >
         <Probe />
       </WebStudioDocument>,
@@ -195,7 +199,11 @@ describe("a Web Studio document", () => {
     render(
       <WebStudioDocument
         scope={SCOPE}
-        organization={{ name: "Bravo Mission", canSwitch: true }}
+        organization={{
+          name: "Bravo Mission",
+          canSwitch: true,
+          missionControlHref: "/00000000-0000-0000-0000-000000000002",
+        }}
       >
         <Probe />
       </WebStudioDocument>,
@@ -223,7 +231,11 @@ describe("a Web Studio document", () => {
     render(
       <WebStudioDocument
         scope={SCOPE}
-        organization={{ name: "Bravo Mission", canSwitch: true }}
+        organization={{
+          name: "Bravo Mission",
+          canSwitch: true,
+          missionControlHref: "/00000000-0000-0000-0000-000000000002",
+        }}
       >
         <Probe />
       </WebStudioDocument>,

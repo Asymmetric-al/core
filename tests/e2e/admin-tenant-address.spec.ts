@@ -149,6 +149,10 @@ test("a deep link to a tenant the person does not belong to is refused before th
 // membership decision refuses (/no-access); under the development bypass a
 // role the app does not allow is never admitted (packages/auth/middleware.ts),
 // so the request reads as signed out (/login). Each mode asserts its answer.
+// In CI's run, under the bypass, /login is also what a signed-out request
+// gets, so there the case shows only that the role is not admitted; the
+// /no-access half runs on the production build, against the Supabase stub
+// (check of the fix lists, JR13).
 test("a signed-in person with only a missionary row is refused by the proxy, or under the bypass never admitted", async ({
   page,
 }) => {
@@ -651,7 +655,9 @@ test.describe("production build", () => {
       await expect
         .poll(() => prefetches.some(({ path }) => path === `/${DEMO}/care`))
         .toBe(true);
-      await page.waitForLoadState("networkidle");
+      // Every prefetch the page made has answered (JR13: the condition, not
+      // a quiet network).
+      await Promise.all(prefetches.map(({ body }) => body));
 
       // Every care row that appears from here on, in this document or any
       // document the click leads to, is reported to the test.

@@ -80,6 +80,10 @@ test("a deep link to an organization the missionary does not belong to is refuse
 // membership decision refuses (/no-access); under the development bypass a
 // role the app does not allow is never admitted (packages/auth/middleware.ts),
 // so the request reads as signed out (/login). Each mode asserts its answer.
+// In CI's run, under the bypass, /login is also what a signed-out request
+// gets, so there the case shows only that the role is not admitted; the
+// /no-access half runs on the production build, against the Supabase stub
+// (check of the fix lists, JR13).
 test("a signed-in person with no missionary row is refused by the proxy, or under the bypass never admitted", async ({
   page,
 }) => {

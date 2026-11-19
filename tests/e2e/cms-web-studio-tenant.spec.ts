@@ -225,10 +225,14 @@ async function openStarted(page: Page, url: string) {
   page.on("requestfinished", ended);
   page.on("requestfailed", ended);
   try {
-    const session = page.waitForResponse(
-      (response) =>
-        new URL(response.url()).pathname === "/web-studio/api/cms-users/me",
-    );
+    // The opened page's own session read, not the previous page's (JR13).
+    const session = page.waitForResponse((response) => {
+      if (new URL(response.url()).pathname !== "/web-studio/api/cms-users/me") {
+        return false;
+      }
+      const from = response.request().headers()["referer"];
+      return Boolean(from) && new URL(from!).pathname === opened;
+    });
     await page.goto(url);
     await session;
     await expect
@@ -648,18 +652,42 @@ test("@cms bulk delete in a list opened for one organization, after another tab 
         ["DELETE", "PATCH"].includes(r.request().method()),
     );
     await expect(staleNotice(page)).toHaveCount(0);
+    // Each text the notice shows is reported the moment it renders, so the
+    // check below does not race the reload that follows (JR13).
+    const noticed: string[] = [];
+    await page.exposeBinding("__reportNotice", (_source, text: string) => {
+      noticed.push(text);
+    });
+    await page.evaluate(() => {
+      const report = (
+        window as unknown as { __reportNotice(text: string): void }
+      ).__reportNotice;
+      new MutationObserver(() => {
+        for (const dialog of document.querySelectorAll(
+          '[role="alertdialog"]',
+        )) {
+          report(dialog.textContent ?? "");
+        }
+      }).observe(document.documentElement, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+      });
+    });
     await page.getByRole("button", { name: "Confirm", exact: true }).click();
     const response = await deleted;
     expect(response.status()).toBe(409);
     expect(response.headers()["x-asym-web-studio-refusal"]).toBe(
       "scope_mismatch",
     );
-    // The bulk delete itself opens the notice (council r2 CR5). One check:
-    // Payload's list replaces its address after the action, the page then
-    // renders for the organization now chosen and the document reloads into
-    // it, about a second later, and the notice goes with it (council on the
-    // joined release, reported in its handoff).
-    await expect(staleNotice(page)).toContainText(STALE_MESSAGE);
+    // The bulk delete itself opens the notice (council r2 CR5). Payload's
+    // list replaces its address after the action, the page then renders for
+    // the organization now chosen and the document reloads into it, about a
+    // second later, and the notice goes with it (council on the joined
+    // release, reported in its handoff); what it showed was recorded.
+    await expect
+      .poll(() => noticed.some((text) => text.includes(STALE_MESSAGE)))
+      .toBe(true);
     await page.unrouteAll({ behavior: "ignoreErrors" });
 
     await switchOrganization(other, base, DEMO);
@@ -1199,7 +1227,12 @@ test("@cms a link from Mission Control into Web Studio asks before working in an
   // The person chooses the demo organization; its name shows in the bar,
   // and the way back is that organization's Mission Control.
   await chooseOrganization(page, DEMO);
-  await page.waitForURL((url) => url.pathname.startsWith("/web-studio"));
+  // A Web Studio page, which the chooser's own address is not (JR13).
+  await page.waitForURL(
+    (url) =>
+      url.pathname.startsWith("/web-studio") &&
+      !url.pathname.startsWith("/web-studio/organization"),
+  );
   await expect.poll(async () => (await webStudioScope(page)).tenant).toBe(DEMO);
   const bar = page.getByRole("banner");
   await expect(bar.getByText(organizationLabel(DEMO))).toBeVisible();
@@ -1217,15 +1250,19 @@ test("@cms a link from Mission Control into Web Studio asks before working in an
 test("@cms Web Studio's missionary and fund pickers list only the selected organization's", async ({
   page,
 }) => {
-  const seen: Array<[string, string | undefined]> = [];
+  const seen: Array<[string, string | undefined, string | undefined]> = [];
   const rows: Record<string, { missionary: string; fund: string }> = {
     [DEMO]: { missionary: "Demo Missionary", fund: "Demo Fund" },
     [SECOND]: { missionary: "Second Missionary", fund: "Second Fund" },
   };
   const answer = (kind: "missionaries" | "funds") => async (route: Route) => {
     const tenant = route.request().headers()["x-asym-tenant"];
-    seen.push([kind, tenant]);
-    const own = tenant ? rows[tenant] : undefined;
+    const assignment = route.request().headers()["x-asym-assignment"];
+    seen.push([kind, tenant, assignment]);
+    // The tenant and the person's row in it, as the resolver checks both
+    // (JR13).
+    const own =
+      tenant && assignment === rowIn(tenant) ? rows[tenant] : undefined;
     if (!own) {
       await route.fulfill({ status: 403, json: { error: "No scope" } });
       return;
@@ -1274,7 +1311,9 @@ test("@cms Web Studio's missionary and fund pickers list only the selected organ
     await page.keyboard.press("Escape");
 
     expect(seen.length).toBeGreaterThan(0);
-    expect(seen.every(([, named]) => named === tenant)).toBe(true);
+    expect(
+      seen.every(([, named, row]) => named === tenant && row === rowIn(tenant)),
+    ).toBe(true);
   }
 });
 

@@ -176,6 +176,17 @@ export async function revokeMembership(
   const memberships = person.memberships.filter(
     (membership) => membership.id !== membershipId,
   );
+  // The bypass identity names its first row as its tenant, so one must be
+  // left, and the one named must go (JR13); revoking a person's only row is
+  // the stub's case alone.
+  if (
+    memberships.length === 0 ||
+    memberships.length === person.memberships.length
+  ) {
+    throw new Error(
+      `revokeMembership: ${name} must keep a row and lose ${membershipId}; on the development bypass a person's only row cannot be revoked`,
+    );
+  }
   await page.context().addCookies([
     {
       name: E2E_AUTH_COOKIE_NAMES[surface],
