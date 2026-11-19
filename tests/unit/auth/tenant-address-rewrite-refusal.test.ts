@@ -82,6 +82,12 @@ describe.each([
     "/\\evil.example/x",
     "/\t/evil.example/x",
     "//127.0.0.1:9/latest/meta-data/",
+    // Council round 2, AR5: a dot segment that resolves to a path starting
+    // with `//` keeps the origin, so an origin check alone lets it through;
+    // Next.js would then relativize the same-origin Location to
+    // `//evil.example`, which the browser reads as another host.
+    "/login/..//evil.example",
+    "/.//evil.example/x",
   ])(
     "is refused as no page, with nothing sent elsewhere, for the inner path %j",
     async (inner) => {

@@ -295,6 +295,11 @@ function withSearch(request: NextRequest, pathname: string) {
  * starts another authority (A1); this refusal stands if a parse ever lets
  * one through.
  *
+ * The origin alone is not enough: a dot segment can resolve to a path that
+ * starts with `//` on the same origin (`/login/..//evil.example`), and
+ * Next.js relativizes a same-origin Location to that path, which a browser
+ * reads as another host. Such a path is refused too (council round 2, AR5).
+ *
  * On a Node server the raw tab is refused and the double slash is redirected
  * before the proxy sees it, so the proxy's own refusal is the defence on a
  * platform whose front differs, and it is proved by the tests
@@ -303,7 +308,9 @@ function withSearch(request: NextRequest, pathname: string) {
 function ownOriginUrl(request: NextRequest, path: string): URL | null {
   if (!path.startsWith("/")) return null;
   const url = new URL(path, request.nextUrl.origin);
-  return url.origin === request.nextUrl.origin ? url : null;
+  return url.origin === request.nextUrl.origin && !url.pathname.startsWith("//")
+    ? url
+    : null;
 }
 
 /**

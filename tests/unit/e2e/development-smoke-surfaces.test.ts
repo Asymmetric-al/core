@@ -62,6 +62,12 @@ vi.mock("@playwright/test", () => {
       toBeGreaterThan: (expected: number) => {
         expect(actual).toBeGreaterThan(expected);
       },
+      toBeGreaterThanOrEqual: (expected: number) => {
+        expect(actual).toBeGreaterThanOrEqual(expected);
+      },
+      toBeLessThan: (expected: number) => {
+        expect(actual).toBeLessThan(expected);
+      },
     }),
   };
 });
@@ -86,22 +92,41 @@ import "../../e2e/development-smoke/donor.smoke.spec";
 import "../../e2e/development-smoke/missionary.smoke.spec";
 import "../../e2e/development-smoke/admin.profile-dropdown.spec";
 
-/** The demo organization's address, where the missionary workspace lands (AL-2675). */
+/**
+ * The demo organization's address, where the missionary workspace and Mission
+ * Control land (AL-2675).
+ */
 const TENANT_PREFIX = "/00000000-0000-0000-0000-000000000001";
 const SCOPE_MARKER = `<span hidden data-tenant-scope="${TENANT_PREFIX}"></span>`;
+
+/** What the hosted deployment answers, where a case changes it. */
+interface Hosted {
+  /** Whether the page renders its document scope. */
+  scope?: boolean;
+  /** Headers on every response the page sees. */
+  responseHeaders?: Record<string, string>;
+  /** The answer to a tenant address whose inner path names another host. */
+  crossing?: { status: number; location?: string };
+}
 
 function fixturePage(
   surface: "donor" | "missionary" | "admin",
   content: string,
+  hosted: Hosted = {},
 ) {
-  document.body.innerHTML =
-    surface === "missionary" ? `${SCOPE_MARKER}${content}` : content;
-  let pathname =
-    surface === "donor"
-      ? "/donor-dashboard"
-      : surface === "missionary"
-        ? TENANT_PREFIX
-        : "/";
+  const tenantSurface = surface !== "donor";
+  const marker = tenantSurface && hosted.scope !== false ? SCOPE_MARKER : "";
+  const responses: Array<(response: unknown) => void> = [];
+  const respond = () => {
+    for (const listener of responses) {
+      listener({
+        url: () => "https://preview.example" + pathname,
+        headers: () => hosted.responseHeaders ?? {},
+      });
+    }
+  };
+  document.body.innerHTML = `${marker}${content}`;
+  let pathname = surface === "donor" ? "/donor-dashboard" : TENANT_PREFIX;
   let title = surface === "admin" ? "Mission Control" : "Dashboard";
   const locator = (elements: Element[]) => ({
     count: () => elements.length,
@@ -125,31 +150,53 @@ function fixturePage(
     getByText: (text: RegExp) => locator(queryAllByText(document.body, text)),
     locator: (selector: string) =>
       locator([...document.querySelectorAll(selector)]),
-    on: () => {},
-    // A tenant address that names another host is refused.
+    on: (event: string, listener: (response: unknown) => void) => {
+      if (event === "response") responses.push(listener);
+    },
+    // A tenant address that names another host is refused, unless a case
+    // says otherwise.
     request: {
-      get: async () => ({ status: () => 404, headers: () => ({}) }),
+      get: async (url: string) => {
+        probes.push(new URL(url).pathname);
+        const crossing = hosted.crossing ?? { status: 404 };
+        return {
+          status: () => crossing.status,
+          headers: () =>
+            crossing.location ? { location: crossing.location } : {},
+        };
+      },
     },
     goto: async (target: string) => {
-      // The proxy lands a bare address on the person's organization.
+      // The proxy lands a bare address on the person's organization; a
+      // prefixed one is already there.
       pathname =
-        surface === "missionary" ? `${TENANT_PREFIX}${target}` : target;
+        tenantSurface && !target.startsWith(TENANT_PREFIX)
+          ? `${TENANT_PREFIX}${target}`
+          : target;
       title =
         surface === "admin" ? "Administration | Mission Control" : "Partners";
       document.body.innerHTML =
         surface === "admin"
-          ? "<h1>Administration</h1><h2>People and access</h2>"
-          : surface === "missionary"
-            ? `${SCOPE_MARKER}<h1>Partners</h1>`
-            : "<h1>Partners</h1>";
+          ? `${marker}<h1>Administration</h1><h2>People and access</h2>`
+          : `${marker}<h1>Partners</h1>`;
+      respond();
     },
-    waitForURL: async (expected: RegExp) => {
-      expect(pathname).toMatch(expected);
+    waitForURL: async (expected: RegExp | ((url: URL) => boolean)) => {
+      if (typeof expected === "function") {
+        expect(expected(new URL("https://preview.example" + pathname))).toBe(
+          true,
+        );
+      } else {
+        expect(pathname).toMatch(expected);
+      }
     },
     waitForLoadState: async () => {},
   } as unknown as Page;
   return page;
 }
+
+/** The paths the flows probed with a direct request. */
+const probes: string[] = [];
 
 function flowFor(surface: "donor" | "missionary" | "admin") {
   const prefix = surface === "admin" ? "profile dropdown" : surface;
@@ -160,29 +207,92 @@ function flowFor(surface: "donor" | "missionary" | "admin") {
 
 afterEach(() => {
   document.body.innerHTML = "";
+  probes.length = 0;
 });
 
 describe("hosted smoke dashboard surface contracts", () => {
-  function adminPage(staffHref = "/admin/teams") {
+  function adminPage(
+    {
+      adminHref = `${TENANT_PREFIX}/admin`,
+      staffHref = `${TENANT_PREFIX}/admin/teams`,
+    }: { adminHref?: string; staffHref?: string } = {},
+    hosted: Hosted = {},
+  ) {
     const staffDirectory = getNavItemsByRole("admin")
       .find((item) => item.id === "admin")
       ?.items?.find((item) => item.id === "admin-teams");
     expect(staffDirectory?.title).toBe("Staff directory");
     return fixturePage(
       "admin",
-      `<button>Open profile menu</button><div role="menu" hidden><a role="menuitem" href="/admin">Administration</a><a role="menuitem" href="${staffHref}">${staffDirectory?.title}</a><a role="menuitem" href="/help/about">About</a><button role="menuitem">Sign out</button></div>`,
+      `<button>Open profile menu</button><div role="menu" hidden><a role="menuitem" href="${adminHref}">Administration</a><a role="menuitem" href="${staffHref}">${staffDirectory?.title}</a><a role="menuitem" href="/help/about">About</a><button role="menuitem">Sign out</button></div>`,
+      hosted,
     );
   }
 
   it("accepts the Staff directory profile shortcut from current admin navigation", async () => {
     const page = adminPage();
     await flowFor("admin")({ page });
-    expect(page.url()).toBe("https://preview.example/admin");
+    expect(page.url()).toBe(`https://preview.example${TENANT_PREFIX}/admin`);
   });
 
   it("rejects a Staff directory shortcut with the wrong destination", async () => {
     await expect(
-      flowFor("admin")({ page: adminPage("/admin/wrong") }),
+      flowFor("admin")({
+        page: adminPage({ staffHref: `${TENANT_PREFIX}/admin/wrong` }),
+      }),
+    ).rejects.toThrow();
+  });
+
+  // Council round 2, AR8: Mission Control's hosted flow carries the three
+  // checks of the missionary workspace's (one scope, no internal header in a
+  // response, the `//` form refused).
+  it("rejects Administration and Staff directory links without the tenant prefix", async () => {
+    await expect(
+      flowFor("admin")({ page: adminPage({ adminHref: "/admin" }) }),
+    ).rejects.toThrow();
+    await expect(
+      flowFor("admin")({ page: adminPage({ staffHref: "/admin/teams" }) }),
+    ).rejects.toThrow();
+  });
+
+  it("rejects a Mission Control page rendered without its document scope", async () => {
+    await expect(
+      flowFor("admin")({ page: adminPage({}, { scope: false }) }),
+    ).rejects.toThrow();
+  });
+
+  it("rejects a response that carries the proxy's internal headers", async () => {
+    for (const name of [
+      "x-asym-tenant-rewrite",
+      "x-middleware-request-x-asym-tenant",
+      "x-middleware-override-headers",
+    ]) {
+      await expect(
+        flowFor("admin")({
+          page: adminPage({}, { responseHeaders: { [name]: "1" } }),
+        }),
+      ).rejects.toThrow();
+    }
+  });
+
+  it("probes the `//` form under the tenant prefix, and rejects a redirect off the origin", async () => {
+    await flowFor("admin")({ page: adminPage() });
+    expect(probes).toEqual([
+      `${TENANT_PREFIX}//example.invalid/latest/meta-data`,
+    ]);
+
+    await expect(
+      flowFor("admin")({
+        page: adminPage(
+          {},
+          {
+            crossing: {
+              status: 307,
+              location: "https://example.invalid/latest/meta-data",
+            },
+          },
+        ),
+      }),
     ).rejects.toThrow();
   });
 

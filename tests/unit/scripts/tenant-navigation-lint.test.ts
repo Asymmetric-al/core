@@ -85,6 +85,21 @@ const OFFENDING: ReadonlyArray<[string, string]> = [
     'export function go() { window.location.assign("/crm"); }',
   ],
   ["location.replace", 'export function go() { location.replace("/crm"); }'],
+  // Council round 2, AR1: a history write whose address is not the live
+  // location's or the tenant helper's (the CRM list wrote the route path).
+  [
+    "history.replaceState with a path",
+    'export function go(q: string) { window.history.replaceState(null, "", "/crm?" + q); }',
+  ],
+  [
+    "history.pushState with the route path",
+    'export function go(pathname: string, q: string) { history.pushState(null, "", `${pathname}?${q}`); }',
+  ],
+  [
+    "next/form",
+    'import Form from "next/form";\nexport const A = () => <Form action="/search">x</Form>;',
+  ],
+  ["<form action>", 'export const A = () => <form action="/search">x</form>;'],
 ];
 
 const ALLOWED: ReadonlyArray<[string, string]> = [
@@ -124,6 +139,22 @@ const ALLOWED: ReadonlyArray<[string, string]> = [
   [
     "a type-only import",
     'import type { LinkProps } from "next/link";\nexport type P = LinkProps<string>;',
+  ],
+  [
+    "a history write from the live location",
+    'export function go(q: string) { window.history.replaceState(null, "", `${window.location.pathname}?${q}`); }',
+  ],
+  [
+    "a history write of a URL built from the live location",
+    'export function go() { const url = new URL(window.location.href); url.searchParams.set("tab", "x"); window.history.pushState(window.history.state, "", url); }',
+  ],
+  [
+    "a history write of state only, a fragment or a query",
+    'export function go(q: string) { history.replaceState({ a: 1 }, ""); window.history.replaceState(null, "", "#top"); window.history.replaceState(null, "", "?" + q); }',
+  ],
+  [
+    "a history write through the tenant helper",
+    'import { useTenantHref } from "@asym/auth/tenant-navigation";\nexport function useGo() { const toHref = useTenantHref(); return () => window.history.pushState(null, "", toHref("/crm")); }',
   ],
 ];
 

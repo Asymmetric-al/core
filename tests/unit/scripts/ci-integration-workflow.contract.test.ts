@@ -171,6 +171,13 @@ describe("ci-integration workflow contract", () => {
     expect(scripts["test:e2e:tenant-address:missionary"]).toContain(
       "-c playwright.missionary.config.ts tests/e2e/missionary-tenant-address.spec.ts --project=missionary-boneyard",
     );
+    // Council round 2, AR9: no retries. Under CI the boneyard config retries
+    // twice, and a race these specs exist to catch would pass as flaky.
+    for (const app of ["admin", "missionary"]) {
+      expect(scripts[`test:e2e:tenant-address:${app}`]).toMatch(
+        /\s--retries=0(\s|$)/,
+      );
+    }
   });
 
   // Council round 1 on slice B, SB1 (record D-18): the request-scope specs

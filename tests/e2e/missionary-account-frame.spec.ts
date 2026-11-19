@@ -61,10 +61,30 @@ async function expectWorkspaceReady(page: Page) {
   await expect(page.locator("[data-tenant-scope]")).toHaveCount(1, {
     timeout: WORKSPACE_READY_MS,
   });
-  // The streamed chrome is visible before it is interactive: a click on it
-  // before hydration is lost. Wait until the page's code has arrived, as the
-  // email journeys wait for their forms (waitForHydratedForm).
-  await page.waitForLoadState("networkidle", { timeout: WORKSPACE_READY_MS });
+  // The server renders the scope marker and the chrome, so neither says the
+  // page can be used, and `networkidle` can come before the page's code has
+  // run: since a demo sign-in loads a new document (A17), a click or a key
+  // right after it landed before hydration and was lost (council round 2,
+  // AR12). React marks a node it has hydrated: wait for the chrome's own
+  // control to carry that mark, then for two frames, after which its effects
+  // (the keyboard shortcuts) have run.
+  const chrome = page.getByRole("button", { name: "Search missionary pages" });
+  await expect(chrome).toBeVisible({ timeout: WORKSPACE_READY_MS });
+  await expect
+    .poll(
+      () =>
+        chrome.evaluate((element) =>
+          Object.keys(element).some((key) => key.startsWith("__reactFiber$")),
+        ),
+      { timeout: WORKSPACE_READY_MS },
+    )
+    .toBe(true);
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
 }
 
 async function enterDemoWorkspace(page: Page, next = "/") {
@@ -285,9 +305,8 @@ test("mobile workspace sign-out removes sidebar portals and shortcuts and demo s
   await expect(page.locator('[data-slot="sidebar"]')).toHaveCount(0);
   await page.getByRole("button", { name: "Demo Access" }).click();
   await expect(page).toHaveURL(new RegExp(`${DEMO_TENANT_PREFIX}$`));
-  await expect(
-    page.getByRole("button", { name: "Search missionary pages" }),
-  ).toBeVisible();
+  // A new document: wait until it can take the shortcut (AR12).
+  await expectWorkspaceReady(page);
   await page.keyboard.press("Control+k");
   await expect(
     page.getByRole("dialog", { name: "Missionary navigation" }),

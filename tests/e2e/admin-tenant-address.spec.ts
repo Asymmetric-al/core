@@ -424,6 +424,50 @@ test("sign-in, the callback's landing and the recovery steps keep the browser's 
   }
 });
 
+// Council round 2, AR1: the CRM list wrote its address from the route path,
+// with no tenant prefix, on every change of search, filter, sort or view; the
+// document then reloaded at the bare address, and the proxy sent a person in
+// two organizations to the chooser. The list's address keeps its prefix and
+// the document stays the same.
+for (const [person, tenant] of [
+  ["demoAdmin", DEMO],
+  ["twoTenants", SECOND],
+] as const) {
+  test(`changing the CRM search keeps the document and its tenant address (${person})`, async ({
+    page,
+  }) => {
+    await signInAs(page, "admin", person, baseURL());
+    const crm = tenantPath(tenant, "/crm");
+    await page.goto(crm);
+    await expect(page.locator("[data-tenant-scope]")).toHaveAttribute(
+      "data-tenant-scope",
+      `/${tenant}`,
+      { timeout: 90_000 },
+    );
+    const search = page.getByRole("searchbox", { name: "Search CRM records" });
+    await expect(search).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    const documents = trackDocumentLoads(page);
+    await markDocument(page);
+
+    await search.fill("__no_such_contact__");
+    await expect(page).toHaveURL(
+      (url) =>
+        url.pathname === crm &&
+        url.searchParams.get("q") === "__no_such_contact__",
+    );
+    await page.waitForLoadState("networkidle");
+
+    expect(documents).toEqual([]);
+    expect(await documentMarked(page)).toBe(true);
+    await expect(search).toHaveValue("__no_such_contact__");
+    await expect(page.locator("[data-tenant-scope]")).toHaveAttribute(
+      "data-tenant-scope",
+      `/${tenant}`,
+    );
+  });
+}
+
 test.describe("production build", () => {
   test.skip(!production, "Measured on a production build only");
 
@@ -481,10 +525,31 @@ test.describe("production build", () => {
       .click();
     await page.waitForURL(/\/web-studio(\/|$)/);
     await page.waitForLoadState("networkidle");
+    const toWebStudio = documents.slice(signedIn.length);
     test.info().annotations.push({
       type: "documents",
-      description: `after sign-in: ${signedIn.join(" ")}; after Web Studio: ${documents.slice(signedIn.length).join(" ") || "(none: a soft navigation)"}`,
+      description: `after sign-in: ${signedIn.join(" ")}; after Web Studio: ${toWebStudio.join(" ") || "(none: a soft navigation)"}`,
     });
+    // Council round 2, AR2: each crossing of the tenant segment's boundary is
+    // a document load. The sign-in loads the tenant's address (A10), so the
+    // document that renders Mission Control is not the one loaded at /login;
+    // the link loads /web-studio, outside the segment.
+    expect.soft(signedIn).toContain(`/${DEMO}`);
+    expect.soft(toWebStudio[0]).toBe("/web-studio");
+    // Web Studio's own page, not Mission Control's and not an error page. The
+    // stub's person has no Web Studio (Payload) account, so Web Studio shows
+    // its sign-in view, whose one mark is the Web Studio brand (it has no
+    // heading or landmark); a person with an account sees the native shell.
+    // Mission Control's chrome, which also names Web Studio, is gone.
+    await expect(
+      page
+        .getByTestId("web-studio-native-shell")
+        .or(page.getByText("Web Studio", { exact: true }))
+        .first(),
+    ).toBeVisible({ timeout: 60_000 });
+    await expect(
+      page.getByRole("button", { name: /open profile menu/i }),
+    ).toHaveCount(0);
     await expect(
       page.getByRole("heading", { name: "Something went wrong" }),
     ).toHaveCount(0);
