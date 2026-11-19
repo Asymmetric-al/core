@@ -137,14 +137,16 @@ beforeEach(() => {
   fake.role = "missionary";
   fake.assigned = true;
   fake.from.mockImplementation((table: string) => {
-    if (table === "donors") return query([{ id }]);
+    if (table === "donors") return query([{ id, missionary_id: id }]);
     if (table === "donor_pledges") return query([]);
     if (table !== "profiles") throw Error("unscoped access");
     return query({ id });
   });
   fake.rpc.mockImplementation((fn: string) =>
     query(
-      fn === "missionary_owned_tasks" || fn === "missionary_follower_requests"
+      fn === "missionary_owned_tasks" ||
+        fn === "missionary_follower_requests" ||
+        fn === "missionary_directory"
         ? []
         : null,
     ),
@@ -187,6 +189,16 @@ describe("missionary handler delegation", () => {
           p_assignment_id: assignment,
         }),
       );
+      const bodies: Record<string, unknown> = {
+        directory: { missionaries: [] },
+        donors: { donors: [{ id }], hasMore: false },
+        "task list": { tasks: [] },
+        "follower list": { requests: [] },
+        "missionary profile": { profile: { id } },
+      };
+      expect(await response.json()).toMatchObject(
+        bodies[_name] ?? { error: expect.any(String) },
+      );
       expect(response.status).toBe(
         [
           "directory",
@@ -207,6 +219,11 @@ describe("missionary handler delegation", () => {
         fake.role = role;
         const response = await invoke();
         expect(response.status).toBe(name === "missionary profile" ? 200 : 403);
+        expect(await response.json()).toMatchObject(
+          name === "missionary profile"
+            ? { profile: { id } }
+            : { error: expect.any(String) },
+        );
         expect(fake.rpc).not.toHaveBeenCalled();
       },
     );
@@ -324,6 +341,22 @@ describe("missionary handler delegation", () => {
       expect(fake.from).not.toHaveBeenCalled();
     },
   );
+  it("returns the selected missionary portal snapshot", async () => {
+    fake.from.mockImplementation((name: string) =>
+      query(name === "profiles" ? { id, email: "person@example.test" } : []),
+    );
+    fake.rpc.mockImplementation((fn: string) =>
+      query(fn === "missionary_own_record" ? { id } : []),
+    );
+    const response = await portal.GET(request("GET"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      portal: {
+        profile: { id, email: "person@example.test" },
+        publicPage: { missionaryId: id },
+      },
+    });
+  });
   it("preserves a database permission refusal", async () => {
     fake.rpc.mockReturnValue(
       query(null, { code: "42501", message: "permission denied" }),
@@ -334,7 +367,18 @@ describe("missionary handler delegation", () => {
     routes.filter(([, fn]) => fn.endsWith("_write") || fn.endsWith("_create")),
   )("%s returns its success status", async (name, _fn, invoke) => {
     fake.rpc.mockReturnValue(query({ id }));
-    expect((await invoke()).status).toBe(name.endsWith("create") ? 201 : 200);
+    const response = await invoke();
+    expect(response.status).toBe(name.endsWith("create") ? 201 : 200);
+    const bodies: Record<string, unknown> = {
+      "task create": { task: { id } },
+      "task update": { task: { id } },
+      "task delete": { success: true },
+      "follower update": { request: { id } },
+      "follower delete": { success: true },
+      "activity create": { ok: true },
+      "missionary profile update": { profile: { id } },
+    };
+    expect(await response.json()).toMatchObject(bodies[name]!);
   });
   it.each([false, true])(
     "missing missionary record, missionary-only field %s",

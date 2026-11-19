@@ -765,7 +765,7 @@ describe("POST /api/donate Gift processing-fee policy", () => {
       );
       if (label.startsWith("foreign donor")) {
         const response = await POST(createDonateRequest(requestBody));
-        expect(response.ok).toBe(false);
+        expect(response.status).toBe(500);
         expect(await response.json()).toMatchObject({
           error: expect.stringContaining("Donor not found"),
         });
