@@ -109,6 +109,16 @@ function createDonateRequest(body: Record<string, unknown>): NextRequest {
   });
 }
 
+function storedGift(amount: number) {
+  return {
+    amount,
+    currency: "usd",
+    missionary_id: null,
+    fund_id: null,
+    donor: { profile: { id: authenticatedDonor.profileId } },
+  };
+}
+
 function createDonationsFromMock(storedAmount: number | null) {
   return vi.fn((table: string) => {
     expect(table).toBe("donations");
@@ -119,7 +129,7 @@ function createDonationsFromMock(storedAmount: number | null) {
             single: async () =>
               storedAmount == null
                 ? { data: null, error: { message: "Donation not found" } }
-                : { data: { amount: storedAmount }, error: null },
+                : { data: storedGift(storedAmount), error: null },
           }),
         }),
       }),
@@ -141,7 +151,7 @@ function createReplayFromMock(options: {
               single: async () =>
                 options.storedAmount == null
                   ? { data: null, error: { message: "Donation not found" } }
-                  : { data: { amount: options.storedAmount }, error: null },
+                  : { data: storedGift(options.storedAmount), error: null },
             }),
           }),
         }),
@@ -357,6 +367,45 @@ describe("POST /api/donate Gift processing-fee policy", () => {
     expect(response.status).toBe(400);
     expect(mockedProcessDonationSagaOutboxEvent).not.toHaveBeenCalled();
     expect(rpcMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses a replay belonging to a different profile of the same tenant before provider effects", async () => {
+    mockedGetAuthContext.mockResolvedValue({
+      ...authenticatedDonor,
+      userId: "user-2",
+      profileId: "profile-2",
+    });
+    const createIntent = vi.fn();
+    mockedResolveTenantStripe.mockResolvedValue({
+      ok: true,
+      stripe: { paymentIntents: { create: createIntent } } as never,
+      secretKey: "test",
+      publishableKey: "test",
+    });
+    mockedGetAdminClient.mockReturnValue({
+      client: {
+        rpc: rpcMock,
+        from: createReplayFromMock({
+          storedAmount: 10000,
+          storedFeeExtras: {},
+        }),
+      } as never,
+      error: null,
+    });
+    rpcMock.mockResolvedValue({
+      data: { ...beginRpcResult, replayed: true },
+      error: null,
+    });
+    const response = await POST(
+      createDonateRequest({ amount: 100, currency: "usd" }),
+    );
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      error: "Idempotency key already used",
+      requestId: expect.any(String),
+    });
+    expect(mockedProcessDonationSagaOutboxEvent).not.toHaveBeenCalled();
+    expect(createIntent).not.toHaveBeenCalled();
   });
 
   it("returns 409 when a replayed saga charged a different amount", async () => {
