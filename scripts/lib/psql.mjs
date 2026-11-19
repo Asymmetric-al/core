@@ -144,8 +144,10 @@ export function requirePsqlHonoursRequireAuth({
   psqlBin = process.env.PSQL_BIN?.trim() || "psql",
   run = spawnSync,
   env = keptAmbientLibpqEnv(process.env, []),
+  cwd,
 } = {}) {
   const result = run(psqlBin, ["--version"], {
+    cwd,
     encoding: "utf8",
     shell: false,
     env,
@@ -184,6 +186,7 @@ export function spawnPsql({
   if (env.PGREQUIREAUTH)
     requirePsqlHonoursRequireAuth({
       psqlBin,
+      cwd,
       env: keptAmbientLibpqEnv(env, []),
     });
   // -X: a ~/.psqlrc or a PSQLRC file could otherwise \connect elsewhere (H11).
@@ -205,6 +208,7 @@ export function runPsqlQuery({ databaseUrl, sql, psqlBin = "psql", cwd }) {
   if (env.PGREQUIREAUTH)
     requirePsqlHonoursRequireAuth({
       psqlBin,
+      cwd,
       env: keptAmbientLibpqEnv(env, []),
     });
   const result = spawnSync(

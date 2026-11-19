@@ -120,11 +120,12 @@ export function getLocalDatabaseUrl() {
  * Review N6: before psql starts on a hosted address, which takes
  * PGREQUIREAUTH, the psql it would run must be 16 or later.
  */
-function requireFloor(connection) {
+function requireFloor(connection, cwd) {
   if (connection.env.PGREQUIREAUTH)
     requirePsqlHonoursRequireAuth({
       psqlBin: process.env.PSQL_BIN || "psql",
       run: spawnSync,
+      cwd,
       env: keptAmbientLibpqEnv(connection.env, []),
     });
 }
@@ -132,7 +133,7 @@ function requireFloor(connection) {
 export function runPsql(sql, options = {}) {
   const databaseUrl = options.databaseUrl ?? getLocalDatabaseUrl();
   const connection = getPsqlConnection(databaseUrl);
-  requireFloor(connection);
+  requireFloor(connection, options.cwd);
   const args = [
     "--no-psqlrc",
     ...connection.args,
@@ -187,7 +188,7 @@ export function executeSql(sql, options = {}) {
 export function runPsqlFile(filePath, options = {}) {
   const databaseUrl = options.databaseUrl ?? getLocalDatabaseUrl();
   const connection = getPsqlConnection(databaseUrl);
-  requireFloor(connection);
+  requireFloor(connection, options.cwd);
   const args = [
     "--no-psqlrc",
     ...connection.args,

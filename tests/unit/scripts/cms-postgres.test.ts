@@ -42,6 +42,15 @@ afterEach(() => {
 });
 
 describe("CMS PostgreSQL command connection", () => {
+  it("uses the launch cwd for both hosted version probes", () => {
+    answer({ status: 0, stdout: "1", stderr: "" });
+    spawnSync.mockClear();
+    runPsql("SELECT 1", { databaseUrl, cwd: "fixture-dir" });
+    runPsqlFile("fixture.sql", { databaseUrl, cwd: "fixture-dir" });
+    expect(spawnSync.mock.calls.map((call) => call[2].cwd)).toEqual(
+      Array(4).fill("fixture-dir"),
+    );
+  });
   it("honours the query password over the login part without passing either in argv", () => {
     answer({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1", {

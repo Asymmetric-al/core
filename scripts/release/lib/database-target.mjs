@@ -76,8 +76,8 @@ export function assertDatabaseTarget({
     throw new Error("A hosted release refuses a loopback database.");
   }
   // Review M1: one place for a secret. The Supabase CLI gets the address as
-  // --db-url with only the login part's password cleared (release-database.mjs,
-  // splitPassword), so a password in the query would reach its arguments.
+  // --db-url without passwords (splitPassword); hosted inputs keep their
+  // password in one place regardless of how they will be consumed.
   if (libpqQueryEntries(databaseUrl).some(([key]) => key === "password")) {
     throw new Error(
       "A hosted release database connection carries a password in its query (password=...). Put the password in the login part of RELEASE_DATABASE_URL instead (postgres.<ref>:<password>@<host>), percent-encoded.",

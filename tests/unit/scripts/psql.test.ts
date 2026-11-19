@@ -1418,24 +1418,30 @@ describe.skipIf(process.platform === "win32")(
     it.each([
       [
         "runPsqlQuery",
-        (bin: string) =>
-          runPsqlQuery({ databaseUrl: hosted, sql: "select 1", psqlBin: bin }),
+        (cwd: string) =>
+          runPsqlQuery({
+            databaseUrl: hosted,
+            sql: "select 1",
+            psqlBin: "./psql",
+            cwd,
+          }),
       ],
       [
         "spawnPsql",
-        (bin: string) =>
+        (cwd: string) =>
           spawnPsql({
             databaseUrl: hosted,
             args: ["-c", "select 1"],
-            psqlBin: bin,
+            psqlBin: "./psql",
+            cwd,
           }),
       ],
     ])(
       "%s stops on psql 15 for a hosted address, before psql connects",
       (_name, call) => {
-        const { root, bin, ran } = oldPsql();
+        const { root, ran } = oldPsql();
         try {
-          expect(() => call(bin)).toThrow(
+          expect(() => call(root)).toThrow(
             /psql 15\.8.*16 or later.*PGREQUIREAUTH/,
           );
           expect(existsSync(ran)).toBe(false);

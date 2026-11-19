@@ -32,6 +32,7 @@ import {
   runStep,
   repairSeededLoginPasswords,
   roleDatabaseUrl,
+  splitPassword,
   setCmsRolePasswords,
   setEnvironmentMarker,
   withDatabaseCaFile,
@@ -59,6 +60,27 @@ function settings(environment: "production" | "preview" = "production") {
 }
 
 describe("release settings", () => {
+  it("keeps both login and query passwords off the CLI argument and out of a derived role's query", () => {
+    const address =
+      "postgres://unit:login-fixture@localhost/db?application_name=a%20b+c&password=query+fixture";
+    expect(splitPassword(address)).toEqual({
+      url: "postgres://unit@localhost/db?application_name=a%20b+c",
+      password: "query+fixture",
+    });
+    expect(roleDatabaseUrl(address, "cms_owner", "role-fixture")).not.toMatch(
+      /login-fixture|query\+fixture/,
+    );
+  });
+  it("reports a refused local query before staging the hosted CA", async () => {
+    await expect(
+      runStep("preflight", {
+        RELEASE_ENVIRONMENT: "preview",
+        RELEASE_SUPABASE_PROJECT_REF: ref,
+        RELEASE_ALLOW_LOOPBACK_DATABASE: "1",
+        RELEASE_DATABASE_URL: "postgres://localhost/unit?unknown=1",
+      }),
+    ).rejects.toThrow(/query or shape is refused/);
+  });
   it("derives the cms_owner login on the same pooler host from the job's connection", () => {
     const url = new URL(settings().cmsOwnerDatabaseUrl!);
     expect(url.username).toBe(`cms_owner.${ref}`);
@@ -85,6 +107,7 @@ function fakeDatabase(state: {
   cmsNeverAccept?: boolean;
   defaultsOpen?: boolean;
   cmsRefusal?: string;
+  refusedRole?: string;
   defaultsFail?: string;
   healthFunction?: boolean;
   environment?: string | null;
@@ -162,7 +185,11 @@ function fakeDatabase(state: {
         const user = decodeURIComponent(new URL(databaseUrl).username).split(
           ".",
         )[0]!;
-        if (user.startsWith("cms_") && db.cmsRefusal)
+        if (
+          user.startsWith("cms_") &&
+          db.cmsRefusal &&
+          (!db.refusedRole || db.refusedRole === user)
+        )
           throw new Error(`log in as ${user}: psql exited 2. ${db.cmsRefusal}`);
         if (user.startsWith("cms_") && !db.cmsLogins.includes(user)) {
           throw new Error(
@@ -731,7 +758,7 @@ describe("release database steps", () => {
       "first",
       /Nothing was changed.*first-rebuild cannot run again.*dispatch set-cms-role-passwords, then the release/s,
     ],
-    ["disposable", /Nothing was changed.*rebuild again/s],
+    ["disposable", /its password was not changed.*rebuild again/s],
   ] as const)(
     "%s rebuild: an unrecognised refusal says what to run next",
     async (mode, expected) => {
@@ -776,7 +803,9 @@ describe("release database steps", () => {
         runCommand: vi.fn(() => ({ status: 0 })),
         log: silent,
       }),
-    ).toThrow(/Nothing was changed.*nothing was deployed.*re-run the release/s);
+    ).toThrow(
+      /Supabase migrations may already be applied.*before Payload.*nothing was deployed.*re-run the release/s,
+    );
     expect(() =>
       setCmsRolePasswords({
         settings: settings(),
@@ -785,7 +814,27 @@ describe("release database steps", () => {
         run: fake.run,
         log: silent,
       }),
-    ).toThrow(/Nothing was changed.*dispatch set-cms-role-passwords again/s);
+    ).toThrow(
+      /its password was not changed.*dispatch set-cms-role-passwords again/s,
+    );
+  });
+
+  it("names a changed earlier role when a later login is refused", () => {
+    const fake = fakeDatabase({
+      cmsRefusal: "FATAL: too many connections",
+      refusedRole: "cms_runtime",
+    });
+    expect(() =>
+      setCmsRolePasswords({
+        settings: settings(),
+        env: passwords,
+        query: fake.query,
+        run: fake.run,
+        log: silent,
+      }),
+    ).toThrow(
+      /cms_runtime.*was not changed.*cms_owner.*already changed.*dispatch set-cms-role-passwords again/s,
+    );
   });
 
   it("migrate: when a new CMS role password never logs in, says nothing was deployed and to re-run the release", () => {

@@ -122,6 +122,7 @@ function stop(message) {
  */
 export function roleDatabaseUrl(databaseUrl, role, password) {
   const url = new URL(databaseUrl);
+  stripQueryPassword(url);
   const user = decodeURIComponent(url.username);
   const suffix = user.includes(".") ? user.slice(user.indexOf(".")) : "";
   url.username = encodeURIComponent(`${role}${suffix}`);
@@ -288,10 +289,27 @@ export function childEnvironment(extra = {}, base = process.env) {
   };
 }
 
+function stripQueryPassword(url) {
+  if (!url.searchParams.has("password")) return undefined;
+  let password;
+  url.search = url.search
+    .slice(1)
+    .split("&")
+    .filter((pair) => {
+      const separator = pair.indexOf("=");
+      if (decodeURIComponent(pair.slice(0, separator)) !== "password")
+        return true;
+      password = decodeURIComponent(pair.slice(separator + 1));
+      return false;
+    })
+    .join("&");
+  return password;
+}
+
 /** A connection string without its password, and the password. */
 export function splitPassword(databaseUrl) {
   const url = new URL(databaseUrl);
-  const password = decodeURIComponent(url.password);
+  const password = stripQueryPassword(url) ?? decodeURIComponent(url.password);
   url.password = "";
   return { url: url.toString(), password };
 }
@@ -460,7 +478,7 @@ function runChecked(runCommand, label, command, args, env) {
 /**
  * The pinned Supabase CLI reads the password of a `--db-url` that carries
  * none from PGPASSWORD (checked on 2.121.0), so it stays off the command line.
- * splitPassword clears the login part's password only; the target check
+ * splitPassword clears both password locations; the target check
  * refuses a hosted address with a password in its query (review M1).
  * It reads the CA file the address names (withDatabaseCaFile) and, under
  * sslmode=verify-full, verifies the chain to it and the host name (its
@@ -726,7 +744,7 @@ export function migrate({
     now,
     next: "This release stopped before Payload's migrations, the gates, the heads and the deployment, so nothing was deployed. Wait two minutes, then re-run the release; a password that then logs in is left alone.",
     nextUnchanged:
-      "Nothing was changed, and this release stopped before Payload's migrations, the gates, the heads and the deployment, so nothing was deployed. Fix what the refusal names, then re-run the release.",
+      "Supabase migrations may already be applied. This release stopped before Payload's migrations, the gates, the heads and the deployment, so nothing was deployed. Fix what the refusal names, then re-run the release.",
   });
   payloadMigrate({ settings, runCommand });
   const { checks } = checkLedgers({
@@ -1195,7 +1213,7 @@ export async function rebuild({
     nextUnchanged:
       mode === "first"
         ? 'Nothing was changed. This first rebuild stopped after the reset and the seed, before Payload\'s migrations, the gates and the heads, and the migrations have already marked the database disposable, so first-rebuild cannot run again. Fix what the refusal names, then dispatch set-cms-role-passwords, then the release (docs/ops/release-job.md, "If the CMS role passwords stop a run").'
-        : "Nothing was changed. This rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads. Fix what the refusal names, then rebuild again.",
+        : "This rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads. Fix what the refusal names, then rebuild again.",
   });
   payloadMigrate({ settings, runCommand });
   checkLedgers({ databaseUrl: settings.databaseUrl, query });
@@ -1306,7 +1324,7 @@ export function setCmsRolePasswords({
   next = "Wait two minutes, then dispatch set-cms-role-passwords again; a password that then logs in is left alone.",
   // The same for a refusal the step does not recognise, before it changed
   // anything (review K3).
-  nextUnchanged = "Nothing was changed. Fix what the refusal names, then dispatch set-cms-role-passwords again; for the pooler's circuit breaker, wait two minutes first.",
+  nextUnchanged = "Fix what the refusal names, then dispatch set-cms-role-passwords again; for the pooler's circuit breaker, wait two minutes first.",
 }) {
   assertTarget(settings);
   const names = Object.keys(roleVariables);
@@ -1350,8 +1368,14 @@ export function setCmsRolePasswords({
       continue;
     }
     if (first.kind !== "password") {
+      const changed = outcomes
+        .filter((outcome) => outcome.changed)
+        .map((outcome) => outcome.role);
+      const earlier = changed.length
+        ? ` The password for ${changed.join(", ")} was already changed and verified.`
+        : "";
       stop(
-        `Logging in as ${role} was refused for a reason other than its password, so its password was not changed: ${first.message} ${nextUnchanged}`,
+        `Logging in as ${role} was refused for a reason other than its password, so its password was not changed: ${first.message}${earlier} ${nextUnchanged}`,
       );
     }
     run({
@@ -1449,6 +1473,7 @@ export async function runStep(step, env = process.env) {
   if (!handler)
     stop(`Unknown step ${step}. Steps: ${Object.keys(STEPS).join(", ")}.`);
   const settings = readReleaseSettings(env);
+  assertTarget(settings);
   const ca = withDatabaseCaFile(settings);
   try {
     if (!isLoopbackDatabaseUrl(settings.databaseUrl))
