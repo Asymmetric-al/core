@@ -163,6 +163,8 @@ function runVerifier(
     ].map((name) => ({
       function: `authz.${name}()`,
       body: "SELECT a.tenant_id FROM authz.request_assignment() AS a",
+      // Council R12 (a): the helpers themselves, not functions they call.
+      root: true,
     })),
     published: [],
   };

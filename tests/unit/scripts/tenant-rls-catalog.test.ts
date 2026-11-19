@@ -1168,7 +1168,14 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   ].map((fn) => ({
     function: fn,
     body: "SELECT a.tenant_id FROM authz.request_assignment() AS a",
+    root: true,
   }));
+  /** What the helpers call: auth.uid(), which reads the token's subject only. */
+  const UID = {
+    function: "auth.uid()",
+    body: "SELECT COALESCE( NULLIF(current_setting('request.jwt.claim.sub', true), ''), (NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub') )::uuid",
+    root: false,
+  };
   const TABLES = [
     table("donors"),
     table("posts"),
@@ -1342,6 +1349,65 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     expect(codes(run([], { tenant_helpers: HELPERS.slice(1) }))).toContain(
       "TENANT_HELPER_MISSING authz.current_tenant_id",
     );
+  });
+
+  // Council R12 (a): the helpers' bodies are not all they run. The gate
+  // reads every overload of each helper, keyed by signature so that one
+  // cannot hide another, and every function they call: none may read the
+  // tenant from the token, and a function they call may read its subject only.
+  it("fails an overload of a helper and a function a helper calls that reads the token claim, and passes auth.uid()'s read of the subject", () => {
+    expect(run([], { tenant_helpers: [...HELPERS, UID] }).failures).toEqual([]);
+    const overload = {
+      function: "authz.current_tenant_id(uuid)",
+      body: "SELECT ((auth.jwt() -> 'app_metadata') ->> 'tenant_id')::uuid",
+      root: true,
+    };
+    for (const order of [
+      [...HELPERS, overload],
+      [overload, ...HELPERS],
+    ])
+      expect(codes(run([], { tenant_helpers: order }))).toEqual([
+        "TENANT_HELPER_READS_CLAIM authz.current_tenant_id(uuid)",
+      ]);
+    for (const body of [
+      "SELECT ((auth.jwt() -> 'app_metadata') ->> 'tenant_id')::uuid",
+      "SELECT (current_setting('request.jwt.claims', true)::jsonb ->> 'tenant_id')::uuid",
+      "SELECT current_setting('request.jwt.claim.app_metadata', true)",
+    ]) {
+      const called = {
+        function: "private.tenant_of_token()",
+        body,
+        root: false,
+      };
+      expect(
+        codes(run([], { tenant_helpers: [...HELPERS, UID, called] })),
+        body,
+      ).toEqual(["TENANT_HELPER_READS_CLAIM private.tenant_of_token()"]);
+    }
+    // The helpers themselves may not read the subject from the claims either.
+    expect(
+      codes(
+        run([], {
+          tenant_helpers: [
+            ...HELPERS.slice(1),
+            { ...HELPERS[0], body: UID.body },
+          ],
+        }),
+      ),
+    ).toEqual(["TENANT_HELPER_READS_CLAIM authz.current_tenant_id()"]);
+  });
+
+  // Council R12 (b): a row compared with a bare auth.uid() runs it once for
+  // every row; the rule saw only authz calls.
+  it("fails a bare auth.uid() in a policy as a per-row lookup, and passes it as a whole sub-select", () => {
+    const bare = `(${T} AND (author_id = auth.uid()))`;
+    expect(perRowLookups(bare)).toEqual(["auth.uid()"]);
+    expect(codes(run([policy("donors", bare)]))).toEqual([
+      "POLICY_LOOKUP_PER_ROW donors",
+    ]);
+    const wrapped = `(${T} AND (author_id = ( SELECT auth.uid() AS uid)))`;
+    expect(perRowLookups(wrapped)).toEqual([]);
+    expect(run([policy("donors", wrapped)]).failures).toEqual([]);
   });
 
   it("Q3, Q4: pins a reviewed exception to its text, on a tenant table or not, and fails it when the text changes or the policy is gone", () => {
@@ -1537,5 +1603,8 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     // role holds any write privilege (for FOR ALL policies).
     expect(TENANT_RLS_CATALOG_SQL).toContain("'permissive', p.polpermissive");
     expect(TENANT_RLS_CATALOG_SQL).toContain("'writable'");
+    // Council R12 (a): every function the helpers reach, marked root or not.
+    expect(TENANT_RLS_CATALOG_SQL).toContain("with recursive reach");
+    expect(TENANT_RLS_CATALOG_SQL).toContain("'root'");
   });
 });

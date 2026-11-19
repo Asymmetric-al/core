@@ -287,14 +287,33 @@ select jsonb_build_object(
     join pg_namespace n on n.oid = c.relnamespace
     where n.nspname = 'public'
       and p.polroles && array[0::oid, 'authenticated'::regrole::oid]), '[]'::jsonb),
+  -- Council R12 (a): every overload of each request-tenant helper ('root'),
+  -- and every function they reach through a qualified call in their text.
   'tenant_helpers', coalesce((
+    with recursive reach(oid, root) as (
+      select p.oid, true
+      from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'authz'
+        and p.proname in (${quoted(TENANT_HELPERS)})
+      union
+      select q.oid, false
+      from reach r
+      join pg_proc rp on rp.oid = r.oid
+      join pg_proc q on q.oid <> rp.oid
+      join pg_namespace qn on qn.oid = q.pronamespace
+      where qn.nspname not in ('pg_catalog', 'information_schema')
+        and qn.nspname not like 'pg\\_%'
+        and (rp.prosrc || coalesce(pg_get_function_sqlbody(rp.oid), ''))
+            ~* ('(^|[^a-z0-9_$."])"?' || qn.nspname || '"?\\s*\\.\\s*"?' || q.proname || '"?\\s*\\(')
+    )
     select jsonb_agg(jsonb_build_object(
       'function', ${SIGNATURE},
-      'body', ${BODY}) order by p.proname)
-    from pg_proc p
-    join pg_namespace n on n.oid = p.pronamespace
-    where n.nspname = 'authz'
-      and p.proname in (${quoted(TENANT_HELPERS)})), '[]'::jsonb),
+      'body', ${BODY},
+      'root', r.root) order by ${SIGNATURE})
+    from (select oid, bool_or(root) as root from reach group by oid) r
+    join pg_proc p on p.oid = r.oid
+    join pg_namespace n on n.oid = p.pronamespace), '[]'::jsonb),
   'published', coalesce((
     select jsonb_agg(t.tablename::text order by t.tablename)
     from pg_publication_tables t
@@ -595,7 +614,9 @@ export function tenantBound(expr) {
 export function perRowLookups(expr) {
   const found = [];
   const s = expr;
-  const CALL = /authz\.([A-Za-z_][A-Za-z0-9_$]*)\s*\(/y;
+  // Council R12 (b): `auth.` calls too, such as a bare auth.uid() compared
+  // with a column, which runs once for every row.
+  const CALL = /(?:authz|auth)\.([A-Za-z_][A-Za-z0-9_$]*)\s*\(/y;
   walkExpression(s, (i) => {
     // A call, not a type in a cast ('staff'::authz.membership_role).
     if (/[A-Za-z0-9_$.":]/.test(s[i - 1] ?? "")) return;
@@ -629,6 +650,22 @@ export function perRowLookups(expr) {
 /** Whether a deparsed expression or a function body reads the token's claims for authority. */
 const readsTokenClaim = (text) =>
   /auth\.jwt\s*\(|app_metadata|request\.jwt\.claims?\b/i.test(text ?? "");
+
+/**
+ * Whether a function a request-tenant helper calls reads anything of the
+ * token but its subject (council R12 (a)): `auth.uid()` reads the subject,
+ * the caller's identity, and nothing else may be read.
+ */
+function readsClaimBeyondSubject(text) {
+  const t = text ?? "";
+  if (/auth\.jwt\s*\(|app_metadata|user_metadata/i.test(t)) return true;
+  if (/request\.jwt\.claim\.(?!sub\b)[a-z_]/i.test(t)) return true;
+  if (/request\.jwt\.claims\b/i.test(t)) {
+    const keys = [...t.matchAll(/->>?\s*'([^']*)'/g)].map((m) => m[1]);
+    return keys.length === 0 || keys.some((key) => key !== "sub");
+  }
+  return false;
+}
 
 /**
  * What a policy effectively admits for its command, as Postgres reads it
@@ -1093,25 +1130,28 @@ export function evaluateTenantRlsCatalog(
       );
     }
   if (snapshot.tenant_helpers) {
-    const helpers = new Map(
-      snapshot.tenant_helpers.map((h) => [
-        h.function.slice(0, h.function.indexOf("(")),
-        h,
-      ]),
-    );
-    for (const name of TENANT_HELPERS) {
-      const h = helpers.get(`authz.${name}`);
-      if (!h)
+    // Council R12 (a): every entry by its signature, so an overload cannot
+    // hide another; each helper reads no claim, and each function they call
+    // reads the token's subject at most.
+    const roots = snapshot.tenant_helpers.filter((h) => h.root !== false);
+    for (const name of TENANT_HELPERS)
+      if (!roots.some((h) => h.function.startsWith(`authz.${name}(`)))
         failFn(
           "TENANT_HELPER_MISSING",
           `authz.${name}`,
           "the request-tenant helper is missing",
         );
-      else if (readsTokenClaim(stripComments(h.body)))
+    for (const h of snapshot.tenant_helpers) {
+      const body = stripComments(h.body);
+      if (
+        h.root !== false ? readsTokenClaim(body) : readsClaimBeyondSubject(body)
+      )
         failFn(
           "TENANT_HELPER_READS_CLAIM",
           h.function,
-          "the request's tenant comes from the x-asym-tenant header and a live membership, never the token's claims",
+          h.root !== false
+            ? "the request's tenant comes from the x-asym-tenant header and a live membership, never the token's claims"
+            : "a request-tenant helper calls this function, which reads the token beyond its subject",
         );
     }
   }
@@ -1220,7 +1260,7 @@ function assertSnapshotShape(snapshot) {
     )
       throw incomplete("policy", { relation: `${p?.table} ${p?.policy}` });
   for (const h of snapshot.tenant_helpers)
-    if (![h?.function, h?.body].every(isText))
+    if (![h?.function, h?.body].every(isText) || !isBool(h.root))
       throw incomplete("tenant helper", h);
   if (!snapshot.published.every(isText))
     throw incomplete("publication", { relation: "published" });
