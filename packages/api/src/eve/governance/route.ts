@@ -9,12 +9,15 @@ import { createAdminEveAuditIdentity } from "../audit/identity";
 import { loadRecentEveAuditEvents } from "../audit/store";
 
 export const GET = withOperation(
-  async ({ auth, supabaseAdmin, requestId }) => {
+  async ({ auth, supabaseAdmin, requestId, isPlatformOperator }) => {
     try {
+      // A platform operator sees every tenant's audit history (AL-2675 WP2c:
+      // the shared operator check, not the super_admin role name).
+      const operator = await isPlatformOperator();
       const [governance, auditHistory] = await Promise.all([
         loadEveGovernanceAdminView({ supabaseAdmin }),
         loadRecentEveAuditEvents(
-          auth.role === "super_admin"
+          operator
             ? { supabaseAdmin, tenantId: null }
             : { auth, supabaseAdmin, tenantId: auth.tenantId },
         ),
@@ -78,18 +81,16 @@ export const POST = withOperation(
 export const PATCH = withOperation(
   async ({ auth, request, supabaseAdmin, requestId }) => {
     try {
+      // Only a confirmed platform operator reaches this handler (the gate
+      // below), and the kill switch is global.
       const mutation = await setEveKillSwitch({
         supabaseAdmin,
-        identity: createAdminEveAuditIdentity(auth),
+        identity: createAdminEveAuditIdentity(auth, { platformOperator: true }),
         ...eveKillSwitchMutationSchema.parse(await ensureJsonBody(request)),
       });
       const [governance, auditHistory] = await Promise.all([
         loadEveGovernanceAdminView({ supabaseAdmin }),
-        loadRecentEveAuditEvents(
-          auth.role === "super_admin"
-            ? { supabaseAdmin, tenantId: null }
-            : { auth, supabaseAdmin, tenantId: auth.tenantId },
-        ),
+        loadRecentEveAuditEvents({ supabaseAdmin, tenantId: null }),
       ]);
 
       return NextResponse.json({
@@ -106,5 +107,5 @@ export const PATCH = withOperation(
       );
     }
   },
-  { roles: ["super_admin"] },
+  { platformOperator: true },
 );

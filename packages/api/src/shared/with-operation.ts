@@ -2,7 +2,6 @@ import {
   getAuthContext,
   requireAuth,
   requireCapability,
-  requireRole,
   requireRoleClass,
   requireTenantAdministrator,
   type AuthenticatedContext,
@@ -14,8 +13,8 @@ import { createAuditLogger } from "@asym/lib/audit/logger";
 import { NextResponse } from "next/server";
 
 import { toApiHttpError, toErrorResponse } from "./http-errors";
+import { confirmPlatformOperator } from "./platform-operator";
 
-import type { UserRole } from "@asym/database/types";
 import type { NextRequest } from "next/server";
 
 type AdminSupabaseClient = Exclude<
@@ -34,24 +33,34 @@ export interface OperationContext {
   request: NextRequest;
   requestId: string;
   routeContext?: OperationRouteContext;
+  /**
+   * Whether the caller is a platform operator whose session passed a second
+   * factor: the shared operator check (plan 5.4), run in the database on the
+   * caller's own token, at most once per request (AL-2675 WP2c).
+   */
+  isPlatformOperator: () => Promise<boolean>;
 }
 
 /**
  * Who may run the operation (AL-2675). Each option given must pass. A handler
  * names the registry capability its action needs (plan 5.4), the tenant
- * administrator where the plan makes the action theirs, or the membership
- * classes it serves.
+ * administrator where the plan makes the action theirs, the membership
+ * classes it serves, or, for a platform gate, the platform operator.
  */
 export interface OperationOptions {
   capability?: Capability;
   tenantAdministrator?: true;
   roleClasses?: readonly RoleClass[];
   /**
-   * Role names. Since AL-2675 only the platform gates that WP2c moves to the
-   * operator list pass one (`super_admin`); nothing else may.
+   * A platform gate (WP2c): the caller must pass the shared operator and
+   * second-factor check in the database. It replaces the `super_admin` role
+   * name, which no membership holds; a handler names no role name.
    */
-  roles?: UserRole[];
+  platformOperator?: true;
 }
+
+const NOT_AN_OPERATOR =
+  "Forbidden: requires a platform operator whose session passed a second factor";
 
 /**
  * Next.js Cache Components may prerender GET Route Handlers. Control-flow errors
@@ -162,7 +171,6 @@ export function withOperation<
 
       const authContext = await getAuthContext(request);
       requireAuth(authContext);
-      if (options?.roles) requireRole(authContext, options.roles);
       if (options?.roleClasses) {
         requireRoleClass(authContext, options.roleClasses);
       }
@@ -171,6 +179,16 @@ export function withOperation<
       }
       if (options?.tenantAdministrator) {
         requireTenantAdministrator(authContext);
+      }
+
+      let operatorCheck: Promise<boolean> | null = null;
+      const isPlatformOperator = () =>
+        (operatorCheck ??= confirmPlatformOperator({
+          request,
+          userId: authContext.userId,
+        }));
+      if (options?.platformOperator && !(await isPlatformOperator())) {
+        throw new Error(NOT_AN_OPERATOR);
       }
 
       const auth = authContext;
@@ -184,6 +202,7 @@ export function withOperation<
           request,
           requestId,
           routeContext,
+          isPlatformOperator,
         },
         routeContext,
       );

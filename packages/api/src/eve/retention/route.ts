@@ -31,7 +31,7 @@ export const GET = withOperation(
 );
 
 export const POST = withOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
+  async ({ auth, request, requestId, supabaseAdmin, isPlatformOperator }) => {
     try {
       const mutation = mutateEveRetentionSchema.parse(await request.json());
       let result: unknown;
@@ -66,6 +66,7 @@ export const POST = withOperation(
         case "run_expiry":
           result = await runEveRetentionExpiry({
             auth,
+            platformOperator: await isPlatformOperator(),
             supabaseAdmin,
             ...mutation,
           });

@@ -12,6 +12,20 @@ const createEveAuditStoreMock = vi.fn();
 const loadRecentEveAuditEventsMock = vi.fn();
 const traceEveAuditEventMock = vi.fn();
 const setEveKillSwitchMock = vi.fn();
+/** AL-2675 (WP2c): the shared operator check, on the caller's own session client. */
+const operatorRpcMock = vi.fn();
+const NOT_AN_OPERATOR = {
+  data: null,
+  error: {
+    code: "42501",
+    message: "platform: the caller is not a platform operator",
+  },
+};
+const AN_OPERATOR = { data: { operator_id: "user_1" }, error: null };
+
+vi.mock("@asym/database/supabase/server", () => ({
+  createClient: async () => ({ rpc: operatorRpcMock }),
+}));
 
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
@@ -86,6 +100,7 @@ describe("Eve governance admin route", () => {
       isAuthenticated: true,
     });
     createAuditLoggerMock.mockReturnValue({});
+    operatorRpcMock.mockResolvedValue(NOT_AN_OPERATOR);
     createAdminEveAuditIdentityMock.mockReturnValue({ verified: true });
     createEveAuditStoreMock.mockReturnValue({ append: vi.fn() });
     traceEveAuditEventMock.mockResolvedValue({});
@@ -164,11 +179,29 @@ describe("Eve governance admin route", () => {
     );
   });
 
-  it("loads global audit history for authorized super admins", async () => {
+  // Rewritten by AL-2675 (WP2c, part 1): the global audit history was the
+  // `super_admin` role name's, which no membership holds since WP2a. It is a
+  // platform operator's now, confirmed by the shared check in the database.
+  it("loads global audit history for a confirmed platform operator (WP2c)", async () => {
+    operatorRpcMock.mockResolvedValue(AN_OPERATOR);
+    const { GET } =
+      await import("../../../../packages/api/src/eve/governance/route");
+
+    const response = await GET(createRequest());
+
+    expect(response.status).toBe(200);
+    expect(operatorRpcMock).toHaveBeenCalledWith("platform_operator_session");
+    expect(loadRecentEveAuditEventsMock).toHaveBeenCalledWith({
+      supabaseAdmin: { from: expect.any(Function) },
+      tenantId: null,
+    });
+  });
+
+  it("keeps a super_admin role name that the operator check refuses to its own tenant (WP2c)", async () => {
     getAuthContextMock.mockResolvedValue({
       userId: "user_1",
       email: "super-admin@example.com",
-      tenantId: null,
+      tenantId: "tenant_1",
       role: "super_admin",
       memberships: [],
       profileId: "profile_1",
@@ -180,10 +213,9 @@ describe("Eve governance admin route", () => {
     const response = await GET(createRequest());
 
     expect(response.status).toBe(200);
-    expect(loadRecentEveAuditEventsMock).toHaveBeenCalledWith({
-      supabaseAdmin: { from: expect.any(Function) },
-      tenantId: null,
-    });
+    expect(loadRecentEveAuditEventsMock).toHaveBeenCalledWith(
+      expect.objectContaining({ tenantId: "tenant_1" }),
+    );
   });
 
   it("records an explicit safe tracer verification under verified admin identity", async () => {
@@ -212,6 +244,7 @@ describe("Eve governance admin route", () => {
   });
 
   it("deliberately changes a kill switch under verified admin identity", async () => {
+    operatorRpcMock.mockResolvedValue(AN_OPERATOR);
     const { PATCH } =
       await import("../../../../packages/api/src/eve/governance/route");
 
@@ -227,6 +260,7 @@ describe("Eve governance admin route", () => {
     expect(response.status).toBe(200);
     expect(createAdminEveAuditIdentityMock).toHaveBeenCalledWith(
       expect.objectContaining({ profileId: "profile_1" }),
+      { platformOperator: true },
     );
     expect(setEveKillSwitchMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -247,7 +281,25 @@ describe("Eve governance admin route", () => {
     );
   });
 
+  it("refuses the kill switch to a tenant administrator who is not a confirmed operator (WP2c)", async () => {
+    const { PATCH } =
+      await import("../../../../packages/api/src/eve/governance/route");
+
+    const response = await PATCH(
+      createRequest("PATCH", {
+        switchKey: "github_actions",
+        enabled: true,
+        expectedStateVersion: 1,
+        reason: "Pause GitHub effects during incident review.",
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(setEveKillSwitchMock).not.toHaveBeenCalled();
+  });
+
   it("rejects an unknown kill-switch key before any mutation", async () => {
+    operatorRpcMock.mockResolvedValue(AN_OPERATOR);
     const { PATCH } =
       await import("../../../../packages/api/src/eve/governance/route");
 

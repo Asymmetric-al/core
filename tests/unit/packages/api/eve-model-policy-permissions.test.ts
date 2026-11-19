@@ -36,7 +36,24 @@ describe("Eve model-policy permission", () => {
     vi.clearAllMocks();
   });
 
-  it("lets a super admin manage settings without a redundant grant lookup", async () => {
+  // Rewritten by AL-2675 (WP2c, part 1): the platform gate was the
+  // `super_admin` role name; it is the shared operator check's result now.
+  it("lets a confirmed platform operator manage settings without a redundant grant lookup", async () => {
+    const { canManageEveModelPolicy } =
+      await import("../../../../packages/api/src/eve/model-policy/permissions");
+
+    await expect(
+      canManageEveModelPolicy({
+        auth: auth("admin"),
+        platformOperator: true,
+        supabaseAdmin: {} as AdminSupabaseClient,
+      }),
+    ).resolves.toBe(true);
+    expect(hasGrantMock).not.toHaveBeenCalled();
+  });
+
+  it("gives a super_admin role name nothing without the operator check or a grant", async () => {
+    hasGrantMock.mockResolvedValue(false);
     const { canManageEveModelPolicy } =
       await import("../../../../packages/api/src/eve/model-policy/permissions");
 
@@ -45,8 +62,8 @@ describe("Eve model-policy permission", () => {
         auth: auth("super_admin"),
         supabaseAdmin: {} as AdminSupabaseClient,
       }),
-    ).resolves.toBe(true);
-    expect(hasGrantMock).not.toHaveBeenCalled();
+    ).resolves.toBe(false);
+    expect(hasGrantMock).toHaveBeenCalledTimes(1);
   });
 
   it("recognizes an app-owned dedicated grant for a general admin", async () => {

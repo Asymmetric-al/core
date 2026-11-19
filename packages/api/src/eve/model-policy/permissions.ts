@@ -8,10 +8,12 @@ import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 export async function canManageEveModelPolicy(input: {
   auth: AuthenticatedContext;
+  /** The shared operator check's result (`withOperation`'s `isPlatformOperator()`). */
+  platformOperator?: boolean;
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<boolean> {
-  // WP2c moves this platform gate to the operator list.
-  if (input.auth.role === "super_admin") {
+  // A platform gate (AL-2675 WP2c): the shared operator check, not a role name.
+  if (input.platformOperator === true) {
     return true;
   }
 
@@ -25,6 +27,7 @@ export async function canManageEveModelPolicy(input: {
 export async function assertEveModelPolicyPermission(input: {
   action: string;
   auth: AuthenticatedContext;
+  platformOperator?: boolean;
   supabaseAdmin: AdminSupabaseClient;
   target?: string;
 }): Promise<void> {

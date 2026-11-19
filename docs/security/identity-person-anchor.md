@@ -139,18 +139,25 @@ tests, is:
   - `profile_in_tenant` (`private`, INVOKER): whether a profile's login holds
     a live membership in a tenant.
   - `assert_eve_retention_actor`: a live flagged staff row for `admin`
-    since R1; the `super_admin` branch reads the profile's tenant.
+    since R1; since WP2c the `super_admin` actor is a platform operator
+    (the operator list) with a live row in the tenant.
   - `assert_eve_admin_memory_owner`: a live row in the tenant since R1.
-  - `validate_eve_notification_recipient`: a `super_admin` profile of the
-    tenant; unchanged until WP2c, behind the closed recipient PATCH.
-  - `assert_eve_launch_profile`: a live row of the role's kind since R1; the
-    `super_admin` branch reads the profile's role and tenant.
-  - `assert_eve_policy_actor_tenant`: a live row in the tenant since R1; a
-    `super_admin` profile with no tenant still passes until WP2c.
-  - `enforce_eve_policy_permission_tenant` (INVOKER): the profiles' tenant;
-    no application code writes its table.
-  - `enforce_eve_ai_settings_grant_tenant` (INVOKER): the profile's tenant;
-    no application code writes its table.
+  - `validate_eve_notification_recipient`: since WP2c, a live
+    administrator of the tenant (a staff row with the flag) whose profile
+    has an email, in the release that opens the recipient PATCH to
+    platform operators.
+  - `assert_eve_launch_profile`: a live row of the role's kind since R1;
+    since WP2c the `super_admin` actor is a platform operator (the operator
+    list) with a live row in the tenant.
+  - `assert_eve_policy_actor_tenant`: a live row in the tenant since R1;
+    WP2c removed the branch that passed a `super_admin` profile with no
+    tenant.
+  - `enforce_eve_policy_permission_tenant` (INVOKER): since WP2c, live
+    rows of the grantee and the granter in the tenant, judged again only
+    when an update changes them; no application code writes its table.
+  - `enforce_eve_ai_settings_grant_tenant` (INVOKER): since WP2c, a live row
+    of the grantee in the tenant, judged again only when an update changes
+    it; no application code writes its table.
   - `atomic_update_profile_with_audit` (INVOKER): the profile's login holds a
     live row in the tenant since R1.
   - `atomic_update_user_role_with_audit`: dropped by WP2c (AL-2675) with

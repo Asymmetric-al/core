@@ -1,5 +1,6 @@
 import { getAuthContext, type AuthContext } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { createClient } from "@asym/database/supabase/server";
 import { createAuditLogger } from "@asym/lib/audit/logger";
 import { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -8,6 +9,12 @@ import { withOperation } from "../../src/shared/with-operation";
 
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: vi.fn(),
+}));
+
+// AL-2675 (WP2c): the shared operator check runs on the caller's own session
+// client (`public.platform_operator_session()`); its answer is stubbed.
+vi.mock("@asym/database/supabase/server", () => ({
+  createClient: vi.fn(),
 }));
 
 vi.mock("@asym/lib/audit/logger", () => ({
@@ -40,31 +47,6 @@ vi.mock("@asym/auth/context", () => ({
       }
     },
   ),
-  requireRole: vi.fn(
-    (
-      context: {
-        isAuthenticated?: boolean;
-        userId?: string | null;
-        tenantId?: string | null;
-        role?: string | null;
-        profileId?: string | null;
-      },
-      roles: string[],
-    ) => {
-      if (
-        !context?.isAuthenticated ||
-        !context.userId ||
-        !context.tenantId ||
-        !context.role ||
-        !context.profileId
-      ) {
-        throw new Error("Unauthorized");
-      }
-      if (!roles.includes(context.role)) {
-        throw new Error(`Forbidden: requires one of ${roles.join(", ")} role`);
-      }
-    },
-  ),
 }));
 
 type TestAuthContext = AuthContext;
@@ -72,6 +54,15 @@ type TestAuthContext = AuthContext;
 const mockedGetAdminClient = vi.mocked(getAdminClient);
 const mockedGetAuthContext = vi.mocked(getAuthContext);
 const mockedCreateAuditLogger = vi.mocked(createAuditLogger);
+const operatorRpc = vi.fn();
+const AN_OPERATOR = { data: { operator_id: "user-1" }, error: null };
+const NOT_AN_OPERATOR = {
+  data: null,
+  error: {
+    code: "42501",
+    message: "platform: the caller is not a platform operator",
+  },
+};
 
 const authenticatedAdmin: TestAuthContext = {
   userId: "user-1",
@@ -100,6 +91,8 @@ function expectBodyHasRequestId(body: unknown) {
 describe("withOperation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(createClient).mockResolvedValue({ rpc: operatorRpc } as never);
+    operatorRpc.mockResolvedValue(AN_OPERATOR);
   });
 
   it("returns 503 with requestId when admin client is unavailable", async () => {
@@ -144,27 +137,87 @@ describe("withOperation", () => {
     expect(mockedGetAuthContext).toHaveBeenCalledWith(request);
   });
 
-  it("returns 403 with requestId when role check fails", async () => {
+  // Rewritten by AL-2675 (WP2c, part 1): the `roles` option (role names) is
+  // gone; the one platform gate is the shared operator check in the database.
+  it("returns 403 with requestId when the platform operator check refuses", async () => {
     mockedGetAdminClient.mockReturnValue({
       client: {} as never,
       error: null,
     });
-    mockedGetAuthContext.mockResolvedValue({
-      ...authenticatedAdmin,
-      role: "donor",
-    });
+    mockedGetAuthContext.mockResolvedValue(authenticatedAdmin);
+    operatorRpc.mockResolvedValue(NOT_AN_OPERATOR);
+    const run = vi.fn();
 
-    const handler = withOperation(async () => NextResponse.json({ ok: true }), {
-      roles: ["admin"],
-    });
+    const handler = withOperation(
+      async () => {
+        run();
+        return NextResponse.json({ ok: true });
+      },
+      { platformOperator: true },
+    );
     const response = await handler(createRequest());
 
     expect(response.status).toBe(403);
     const body = await response.json();
     expect(body).toMatchObject({
-      error: "Forbidden: requires one of admin role",
+      error:
+        "Forbidden: requires a platform operator whose session passed a second factor",
     });
     expectBodyHasRequestId(body);
+    expect(run).not.toHaveBeenCalled();
+    expect(operatorRpc).toHaveBeenCalledWith("platform_operator_session");
+  });
+
+  it("refuses when the check confirms someone else, and fails closed when the check itself fails", async () => {
+    mockedGetAdminClient.mockReturnValue({
+      client: {} as never,
+      error: null,
+    });
+    mockedGetAuthContext.mockResolvedValue(authenticatedAdmin);
+    const run = vi.fn();
+    const handler = withOperation(
+      async () => {
+        run();
+        return NextResponse.json({ ok: true });
+      },
+      { platformOperator: true },
+    );
+
+    operatorRpc.mockResolvedValue({
+      data: { operator_id: "someone-else" },
+      error: null,
+    });
+    expect((await handler(createRequest())).status).toBe(403);
+
+    operatorRpc.mockResolvedValue({
+      data: null,
+      error: { code: "PGRST202", message: "function not found" },
+    });
+    expect((await handler(createRequest())).status).toBe(500);
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it("runs the operator check at most once per request, and only when asked", async () => {
+    mockedGetAdminClient.mockReturnValue({
+      client: {} as never,
+      error: null,
+    });
+    mockedGetAuthContext.mockResolvedValue(authenticatedAdmin);
+
+    const unasked = withOperation(async () => NextResponse.json({ ok: true }));
+    expect((await unasked(createRequest())).status).toBe(200);
+    expect(operatorRpc).not.toHaveBeenCalled();
+
+    const asked = withOperation(
+      async ({ isPlatformOperator }) => {
+        expect(await isPlatformOperator()).toBe(true);
+        expect(await isPlatformOperator()).toBe(true);
+        return NextResponse.json({ ok: true });
+      },
+      { platformOperator: true },
+    );
+    expect((await asked(createRequest())).status).toBe(200);
+    expect(operatorRpc).toHaveBeenCalledTimes(1);
   });
 
   it("adds requestId to handler-returned JSON error responses", async () => {
@@ -183,7 +236,7 @@ describe("withOperation", () => {
     const handler = withOperation(
       async () =>
         NextResponse.json({ error: "Domain failure" }, { status: 422 }),
-      { roles: ["admin"] },
+      { platformOperator: true },
     );
 
     const response = await handler(createRequest());
@@ -214,7 +267,7 @@ describe("withOperation", () => {
         expect(typeof requestId).toBe("string");
         return NextResponse.json({ ok: true }, { status: 200 });
       },
-      { roles: ["admin"] },
+      { platformOperator: true },
     );
 
     const response = await handler(createRequest());

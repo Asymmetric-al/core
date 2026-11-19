@@ -151,6 +151,32 @@ export async function loadEveNotificationChannels(input: {
   return (data ?? []).map(toChannel);
 }
 
+/** Rows per page of recipient preferences, below the Data API's `max_rows`. */
+const RECIPIENT_PREFERENCE_PAGE_SIZE = 500;
+
+/**
+ * Every recipient preference row of a tenant, page by page in profile order.
+ * It reads until a page comes back empty, so a server cap below the page size
+ * (`max_rows` is a dashboard setting on hosted Supabase) cannot cut it.
+ */
+async function readRecipientPreferences(
+  supabaseAdmin: AdminSupabaseClient,
+  tenantId: string,
+): Promise<{ data: unknown[] | null; error: { message: string } | null }> {
+  const rows: unknown[] = [];
+  for (;;) {
+    const { data, error } = await supabaseAdmin
+      .from("eve_notification_recipient_configs")
+      .select("profile_id, enabled, opted_out")
+      .eq("tenant_id", tenantId)
+      .order("profile_id")
+      .range(rows.length, rows.length + RECIPIENT_PREFERENCE_PAGE_SIZE - 1);
+    if (error) return { data: null, error };
+    if (!data || data.length === 0) return { data: rows, error: null };
+    rows.push(...data);
+  }
+}
+
 export async function listEveNotificationRecipients(input: {
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string;
@@ -176,17 +202,11 @@ export async function listEveNotificationRecipients(input: {
           .in("id", adminIds)
           .not("email", "is", null)
       : Promise.resolve({ data: [], error: null }),
-    // Bounded, not paged (council round 2 on WP2a, R2): the table's key is
-    // (tenant_id, profile_id), and its trigger
-    // (validate_eve_notification_recipient) admits only a super_admin profile
-    // of the tenant with an email, so it holds one row at most per platform
-    // operator of the tenant, a handful. Its only writer, the recipient
-    // PATCH, is closed until WP2c; page this read when WP2c opens recipients
-    // to every tenant administrator.
-    input.supabaseAdmin
-      .from("eve_notification_recipient_configs")
-      .select("profile_id, enabled, opted_out")
-      .eq("tenant_id", input.tenantId),
+    // Read to the end (AL-2675 WP2c): the recipient PATCH is open to platform
+    // operators, and its trigger admits every live administrator of the
+    // tenant, so the rows are no longer a handful (council round 2 on WP2a,
+    // R2, asked for this when WP2c opened them).
+    readRecipientPreferences(input.supabaseAdmin, input.tenantId),
   ]);
   const error = profiles.error ?? preferences.error;
   if (error) throw new Error(error.message);

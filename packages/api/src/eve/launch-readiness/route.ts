@@ -125,7 +125,7 @@ export const GET = withOperation(
 );
 
 export const POST = withOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
+  async ({ auth, request, requestId, supabaseAdmin, isPlatformOperator }) => {
     const parsed = mutationSchema.safeParse(
       await request.json().catch(() => null),
     );
@@ -136,15 +136,25 @@ export const POST = withOperation(
       );
     }
     try {
+      // Review, activation, canary close and launch permissions are the steps
+      // Eve's SQL keeps for a platform operator; they act as one only after
+      // the shared operator check (AL-2675 WP2c). A manifest and the safety
+      // controls are the tenant administrator's.
+      const platformOperator =
+        parsed.data.kind === "manifest" || parsed.data.kind === "safety_control"
+          ? false
+          : await isPlatformOperator();
       if (parsed.data.kind === "manifest") {
         await createEveLaunchManifest({
           auth,
+          platformOperator,
           document: parsed.data.document,
           supabaseAdmin,
         });
       } else if (parsed.data.kind === "review") {
         await reviewEveLaunchManifest({
           auth,
+          platformOperator,
           decision: parsed.data.decision,
           manifestId: parsed.data.manifestId,
           reviewerRole: parsed.data.reviewerRole,
@@ -154,6 +164,7 @@ export const POST = withOperation(
       } else if (parsed.data.kind === "permission") {
         await grantEveLaunchPermission({
           auth,
+          platformOperator,
           enabled: parsed.data.enabled,
           permission: parsed.data.permission,
           profileId: parsed.data.profileId,
@@ -163,6 +174,7 @@ export const POST = withOperation(
       } else if (parsed.data.kind === "activate") {
         await activateEveLaunchManifest({
           auth,
+          platformOperator,
           expectedStateVersion: parsed.data.expectedStateVersion,
           justification: parsed.data.justification,
           manifestId: parsed.data.manifestId,
@@ -171,6 +183,7 @@ export const POST = withOperation(
       } else if (parsed.data.kind === "safety_control") {
         await setEveReleaseSafetyControl({
           auth,
+          platformOperator,
           expectedStateVersion: parsed.data.expectedStateVersion,
           mode: parsed.data.mode,
           reason: parsed.data.reason,
@@ -179,6 +192,7 @@ export const POST = withOperation(
       } else {
         await closeEveLaunchCanary({
           auth,
+          platformOperator,
           launchId: parsed.data.launchId,
           reason: parsed.data.reason,
           results: parsed.data.results,
