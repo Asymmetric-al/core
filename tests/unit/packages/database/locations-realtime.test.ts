@@ -2,16 +2,31 @@ import { describe, expect, it } from "vitest";
 
 import { supabaseTableCollectionRegistry } from "../../../../packages/database/collections";
 
-// AL-2675 (WP2b, second release; activation review, defect 12): the migration
-// takes locations out of the supabase_realtime publication, and the installed
-// adapter keeps an errored catch-all channel so that Realtime rejoins it, so
-// the public map's collection must not subscribe.
-describe("locations collection", () => {
-  it("does not realtime-sync locations, which the second release of WP2b takes out of the publication", () => {
-    const locations = supabaseTableCollectionRegistry.find(
-      (entry) => entry.tableName === "locations",
-    );
+// AL-2675 (WP2b, second release; activation review, defect 12, and council
+// R14): the migration takes these seven tables out of the supabase_realtime
+// publication, and the installed adapter keeps an errored catch-all channel
+// so that Realtime rejoins it, so no collection of theirs may subscribe:
+// whoever first instantiates one would get a reconnect loop.
+const OUT_OF_THE_PUBLICATION = [
+  "funds",
+  "locations",
+  "posts",
+  "post_comments",
+  "post_fires",
+  "post_likes",
+  "post_prayers",
+] as const;
 
-    expect(locations?.realtime).toBe("disabled");
-  });
+describe("collections of the tables out of the Realtime publication", () => {
+  it.each(OUT_OF_THE_PUBLICATION)(
+    "does not realtime-sync %s, which the second release of WP2b takes out of the publication",
+    (table) => {
+      const collection = supabaseTableCollectionRegistry.find(
+        (entry) => "tableName" in entry && entry.tableName === table,
+      );
+
+      expect(collection, `${table} has a collection`).toBeDefined();
+      expect(collection?.realtime).toBe("disabled");
+    },
+  );
 });
