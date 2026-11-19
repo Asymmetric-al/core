@@ -17,7 +17,7 @@ const signedInAdmin = {
   email: "jordan@hope.test",
   firstName: "Jordan",
   lastName: "Hale",
-  profileRole: "admin",
+  role: "admin",
 } as const;
 
 // The shell and Eve show the signed-in tenant. When the tenant row could not

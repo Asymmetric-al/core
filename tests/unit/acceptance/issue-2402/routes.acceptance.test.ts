@@ -1,6 +1,8 @@
 /** #2402 c13: five real handlers use session RPCs without actor arguments;
  * real validation/service/error mapping retains 200/400/403/404/409/500.
  * Only auth, database clients and audit/network boundaries are mocked.
+ * Amended by AL-2675 (WP2a): the context is a tenant administrator's flagged
+ * staff membership; a super_admin profile role grants nothing.
  */
 import { NextRequest } from "next/server";
 import { beforeEach, expect, it, vi } from "vitest";
@@ -13,9 +15,16 @@ const m = vi.hoisted(() => ({
     userId: "user",
     tenantId: "11111111-1111-4111-8111-111111111111",
     profileId: "22222222-2222-4222-8222-222222222222" as string | null,
-    role: "super_admin",
-    profileRole: "super_admin",
-    memberships: [],
+    role: "admin",
+    memberships: [
+      {
+        tenantId: "11111111-1111-4111-8111-111111111111",
+        role: "staff",
+        staffRole: "development",
+        isActive: true,
+        isTenantAdmin: true,
+      },
+    ],
   },
 }));
 vi.mock("@asym/database/supabase/admin", () => ({
@@ -29,10 +38,15 @@ vi.mock("@supabase/ssr", () => ({ createServerClient: () => m.session }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ getAll: () => [] }),
 }));
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: async () => m.auth,
   requireAuth: () => {},
   requireRole: () => {},
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: () => {},
+  requireTenantAdministrator: () => {},
+  requireRoleClass: () => {},
 }));
 vi.mock("@asym/lib/audit/logger", () => ({ createAuditLogger: () => ({}) }));
 

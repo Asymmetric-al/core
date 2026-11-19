@@ -39,7 +39,6 @@ const authContext: AuthContext = {
   role: "donor",
   email: "donor@example.test",
   isAuthenticated: true,
-  profileRole: "donor",
   memberships: [],
 };
 

@@ -13,12 +13,8 @@ const getAuthContextMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@asym/auth/context", () => ({
   getAuthContext: getAuthContextMock,
-  hasAnyContextRole: (
-    context: { role?: string | null; profileRole?: string | null },
-    roles: string[],
-  ) =>
-    roles.includes(context?.role ?? "") ||
-    roles.includes(context?.profileRole ?? ""),
+  hasAnyContextRole: (context: { role?: string | null }, roles: string[]) =>
+    roles.includes(context?.role ?? ""),
 }));
 
 class RedirectError extends Error {
@@ -84,7 +80,6 @@ describe("requireAdminAccess", () => {
       userId: "user_donor",
       tenantId: "tenant_1",
       role: "donor",
-      profileRole: "donor",
     });
 
     expect(await expectRedirect("/web-studio")).toBe("/no-access");
@@ -96,7 +91,6 @@ describe("requireAdminAccess", () => {
       userId: "user_missionary",
       tenantId: "tenant_1",
       role: "missionary",
-      profileRole: "missionary",
     });
 
     expect(await expectRedirect("/crm")).toBe("/no-access");
@@ -108,27 +102,40 @@ describe("requireAdminAccess", () => {
       userId: "user_staff",
       tenantId: null,
       role: "staff",
-      profileRole: "staff",
     });
 
     expect(await expectRedirect("/")).toBe("/no-access");
   });
 
-  it.each(["staff", "admin", "super_admin"])(
-    "admits a %s user with a tenant",
+  it.each(["staff", "admin"])(
+    "admits a %s user with a tenant, resolving the staff class",
     async (role) => {
       getAuthContextMock.mockResolvedValue({
         isAuthenticated: true,
         userId: "user_1",
         tenantId: "tenant_1",
         role,
-        profileRole: role,
       });
 
       await expect(requireAdminAccess("/crm")).resolves.toMatchObject({
         tenantId: "tenant_1",
         userId: "user_1",
       });
+      // AL-2675: Mission Control acts on the caller's one staff row.
+      expect(getAuthContextMock).toHaveBeenCalledWith(undefined, {
+        roleClass: "staff",
+      });
     },
   );
+
+  it("refuses a super_admin role name: platform operators are not a membership role (AL-2675)", async () => {
+    getAuthContextMock.mockResolvedValue({
+      isAuthenticated: true,
+      userId: "user_1",
+      tenantId: "tenant_1",
+      role: "super_admin",
+    });
+
+    expect(await expectRedirect("/crm")).toBe("/no-access");
+  });
 });

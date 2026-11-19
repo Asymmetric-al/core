@@ -67,7 +67,7 @@ const [off, gone, fin] = [{ isActive: false }, { active: false }, financeHat];
 const BAD: Record<string, Record<string, unknown>> = {
   foreign_tenant: {
     "foreign assignment": H.ctx(A("staff", "finance", F)),
-    "foreign named grant": H.ctx(N("platform_admin", F)),
+    "foreign named grant": H.ctx(N("tenant_admin", F)),
     "valid named + foreign": H.ctx(N("tenant_admin"), A("donor", null, F)),
     // Pin (Samson, 6388725367): foreign wins over revoked.
     "foreign + revoked assignment": H.ctx(A("staff", "hr", { ...F, ...off })),
@@ -78,12 +78,13 @@ const BAD: Record<string, Record<string, unknown>> = {
   inactive_source: {
     "revoked assignment": H.ctx(A("staff", "hr", off)),
     "revoked named grant": H.ctx(N("tenant_admin", gone)),
-    "valid + revoked named": H.ctx(fin, N("platform_admin", gone)),
+    "valid + revoked named": H.ctx(fin, N("tenant_admin", gone)),
   },
   unknown_subject: {
     "unknown role": H.ctx(A("admin", null)),
     "unknown subrole": H.ctx(A("staff", "ceo-x9")),
     "unknown named subject": H.ctx(N("super_admin")),
+    "retired named subject": H.ctx(N("platform_admin")),
     // Pin (review F1, 6389255491): a non-string staffRole fails closed.
     "array staffRole": H.ctx(A("staff", null, { staffRole: ["finance"] })),
     "boxed staffRole": H.ctx(
@@ -131,7 +132,7 @@ describe("#492 criterion 8: errors disclose only the code", () => {
 describe("#492 criterion 11: determinism", () => {
   it("criterion 11: sorted, de-duplicated, frozen, order-independent and repeatable", async () => {
     const { resolveEffectiveCapabilities: resolve } = await H.load(EFF);
-    const subjects = ["staff:finance", "tenant_admin", "platform_admin"];
+    const subjects = ["staff:finance", "tenant_admin"];
     const sources = subjects.map(H.sourceFor);
     const out = resolve(H.ctx(...sources));
     const want = H.sorted(new Set(subjects.flatMap(H.expected)));

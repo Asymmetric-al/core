@@ -1,11 +1,13 @@
+import {
+  hasContextCapability,
+  isTenantAdministrator,
+} from "@asym/auth/context";
 import { hasAnyRole } from "@asym/auth/permissions";
 
 import { ApiHttpError } from "../../shared/api-http-error";
 
 import type { ActorContext, CrmAction, CrmResourceType } from "../types";
 import type { AuthContext, AuthenticatedContext } from "@asym/auth/context";
-
-const CRM_ACCESS_ROLES = ["staff", "admin", "super_admin"] as const;
 
 export interface RequireCrmAccessOptions {
   action: CrmAction;
@@ -33,16 +35,17 @@ export function requireCrmAccess(
   }
 
   const authenticated = context as AuthenticatedContext;
-  const roleSnapshot = {
-    profileRole: authenticated.profileRole,
-    memberships: authenticated.memberships,
-  };
 
-  if (!hasAnyRole(roleSnapshot, CRM_ACCESS_ROLES)) {
-    throw new Error("Forbidden: CRM access requires a staff role");
+  // AL-2675: CRM work needs the registry's CRM capability, which every staff
+  // bundle holds.
+  if (!hasContextCapability(authenticated, "admin.crm.manage")) {
+    throw new Error("Forbidden: requires admin.crm.manage");
   }
 
-  const isSuperAdmin = hasAnyRole(roleSnapshot, ["super_admin"]);
+  // WP2c moves this to the operator list; no membership yields it.
+  const isSuperAdmin = hasAnyRole({ memberships: authenticated.memberships }, [
+    "super_admin",
+  ]);
   const resourceTenantId = options.resourceTenantId ?? authenticated.tenantId;
 
   if (!isSuperAdmin && resourceTenantId !== authenticated.tenantId) {
@@ -55,6 +58,7 @@ export function requireCrmAccess(
     action: options.action,
     authTenantId: authenticated.tenantId,
     isSuperAdmin,
+    isTenantAdministrator: isTenantAdministrator(authenticated),
     profileId: authenticated.profileId,
     role: authenticated.role,
     tenantId: resourceTenantId,

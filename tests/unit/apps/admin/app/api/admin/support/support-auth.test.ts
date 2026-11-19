@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { membershipsForRole } from "../../../../../../../fixtures/auth-memberships";
 
 const { getAdminClientMock, getAuthContextMock } = vi.hoisted(() => ({
   getAdminClientMock: vi.fn(),
@@ -19,7 +20,8 @@ vi.mock("@asym/lib/audit/logger", () => ({
   })),
 }));
 
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: getAuthContextMock,
   requireAuth: vi.fn((context) => {
     if (
@@ -59,8 +61,8 @@ const baseAuth = {
   role: "staff",
   profileId: "profile-1",
   isAuthenticated: true,
-  profileRole: "staff",
-  memberships: [],
+  // AL-2675: authority is the membership the request acts under.
+  memberships: membershipsForRole("staff", "tenant-1"),
 };
 
 function request(path: string) {
@@ -140,7 +142,6 @@ describe("admin support API auth", () => {
       role: null,
       profileId: null,
       isAuthenticated: false,
-      profileRole: null,
       memberships: [],
     });
 
@@ -159,7 +160,6 @@ describe("admin support API auth", () => {
       role: null,
       profileId: null,
       isAuthenticated: false,
-      profileRole: null,
       memberships: [],
     });
 
@@ -187,14 +187,16 @@ describe("admin support API auth", () => {
     getAuthContextMock.mockResolvedValue({
       ...baseAuth,
       role: "donor",
-      profileRole: "donor",
+      memberships: membershipsForRole("donor", "tenant-1"),
     });
 
     const response = await call();
 
     expect(response.status).toBe(403);
+    // AL-2675: the support routes ask for the registry capability every
+    // staff bundle holds.
     await expect(response.json()).resolves.toMatchObject({
-      error: "Forbidden: requires one of staff, admin, super_admin role",
+      error: "Forbidden: requires admin.dashboard.access",
     });
   });
 
@@ -204,7 +206,7 @@ describe("admin support API auth", () => {
       getAuthContextMock.mockResolvedValue({
         ...baseAuth,
         role,
-        profileRole: role,
+        memberships: membershipsForRole(role, "tenant-1"),
       });
 
       const response = await getSupportSummary(request("/api/admin/support"));

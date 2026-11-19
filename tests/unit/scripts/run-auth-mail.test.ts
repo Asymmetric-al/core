@@ -27,6 +27,10 @@ describe("the auth email suite's environment", () => {
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon.jwt.value",
       SUPABASE_SERVICE_ROLE_KEY: "service.jwt.value",
       E2E_AUTH_MAIL_URL: "http://127.0.0.1:25324",
+      // AL-2675: the journeys give a person the membership an app needs,
+      // which only the database holds (authz is not on the Data API).
+      E2E_AUTH_MAIL_DB_URL:
+        "postgresql://postgres:postgres@127.0.0.1:25322/postgres",
     });
   });
 
@@ -47,6 +51,11 @@ describe("the auth email suite's environment", () => {
         STATUS.replace("http://127.0.0.1:25321", "https://abc.supabase.co"),
       ),
     ).toThrow(/local Supabase stack/);
+    expect(() =>
+      authMailEnvFromStatus(
+        STATUS.replace("@127.0.0.1:25322", "@db.abc.supabase.co:5432"),
+      ),
+    ).toThrow(/DB_URL is not on this machine/);
   });
 
   it("reads the default stack, or the one AUTH_MAIL_SUPABASE_WORKDIR names", () => {

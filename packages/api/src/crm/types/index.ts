@@ -37,5 +37,7 @@ export interface ActorContext {
   authTenantId: string;
   role: UserRole;
   isSuperAdmin: boolean;
+  /** The staff row the request acts under carries the flag (AL-2675). */
+  isTenantAdministrator: boolean;
   action: CrmAction;
 }

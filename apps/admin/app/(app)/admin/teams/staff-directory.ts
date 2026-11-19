@@ -1,12 +1,25 @@
 export interface StaffAccount {
   id: string;
+  /** The member directory's display name (council round 1 on WP2a, F8). */
+  display_name?: string | null;
   full_name?: string | null;
   first_name?: string | null;
   last_name?: string | null;
   email?: string | null;
+  /**
+   * The membership class, or `admin` for a staff row with the
+   * tenant-administrator flag (`packages/api/src/admin/users.ts`).
+   */
   role: string;
+  /** The staff row's sub-role (`StaffSubrole`), which the member directory returns beside the class. */
+  staff_role?: string | null;
 }
 
+/**
+ * The labels the users list is asked for, one request each. They are the
+ * list's filter vocabulary, not what a row's `role` holds: a row answers
+ * `staff` or `admin`, with its sub-role in `staff_role`.
+ */
 export const STAFF_ROLE_LABELS: Record<string, string> = {
   super_admin: "Platform administrator",
   admin: "Administrator",
@@ -18,8 +31,33 @@ export const STAFF_ROLE_LABELS: Record<string, string> = {
   events: "Events",
 };
 
+/** What the Role column shows for each staff sub-role the directory can return. */
+const STAFF_SUBROLE_DISPLAY: Record<string, string> = {
+  finance: "Finance",
+  development: "Fundraising",
+  member_care: "Member care",
+  mobilizer: "Mobilizers",
+  hr: "HR",
+};
+
+/**
+ * The role a person is shown with. An administrator is named as one whatever
+ * their sub-role; any other staff member by their sub-role; a staff member
+ * with none as Staff.
+ */
+export function staffRoleLabel(account: StaffAccount) {
+  if (account.role !== "staff") {
+    return STAFF_ROLE_LABELS[account.role] ?? account.role;
+  }
+  return (
+    (account.staff_role && STAFF_SUBROLE_DISPLAY[account.staff_role]) ||
+    STAFF_ROLE_LABELS.staff
+  );
+}
+
 export function staffName(account: StaffAccount) {
   return (
+    account.display_name?.trim() ||
     account.full_name?.trim() ||
     [account.first_name, account.last_name].filter(Boolean).join(" ").trim() ||
     account.email ||

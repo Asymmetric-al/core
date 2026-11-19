@@ -27,6 +27,7 @@ import {
   V2_MIGRATION,
   V3,
   code,
+  profileQueryFilterHits,
   sqlFile,
   statements,
 } from "./harness";
@@ -202,6 +203,48 @@ describe("#2256 seams, readers and writers", () => {
       .filter((f) => SRC.test(f) && !TEST.test(f))
       .filter((f) => re.test(readFileSync(f, "utf8")));
     expect(hits.sort()).toEqual(READER_APPS);
+  });
+
+  /**
+   * AL-2675 (the WP2a sweep; plan WP2a paragraph, NR-68): no code filters
+   * `profiles` by tenant or role, the generic tenant-row helper included.
+   * The sweep moved every such query to membership or the member directory.
+   */
+  it("6b (S): no app code filters profiles by tenant or role (the reader manifest's filter half)", () => {
+    const hits = lsFiles("packages", "apps", "supabase/functions")
+      .filter((f) => SRC.test(f) && !TEST.test(f))
+      .flatMap((f) => profileQueryFilterHits(f, readFileSync(f, "utf8")));
+    expect(hits).toEqual([]);
+  });
+
+  it("6b (S): the filter half fails on each planted profile filter and passes clean queries", () => {
+    const planted = [
+      'await admin.from("profiles").select("id").eq("tenant_id", tenantId);',
+      'await admin.from("profiles").select("id").in("role", ["admin", "super_admin"]);',
+      "await admin.from('profiles').select('*').or(`tenant_id.eq.${t},role.eq.staff`);",
+      'let query = admin.from("profiles").select("*");\nif (role) query = query.eq("role", role);',
+      'const rows = await selectTenantRows(supabase, "profiles", tenantId);',
+      'await admin.from("profiles").select("id").match({ tenant_id: t });',
+      // Council round 1 on WP2a, F14: a filter on profiles joined from
+      // another table, by dotted column or by the referenced-table option.
+      'await admin.from("donors").select("id, profiles!inner(id)").eq("profiles.tenant_id", tenantId);',
+      'await admin.from("donors").select("id, profiles(role)").in("profiles.role", ["admin"]);',
+      'await admin.from("donors").select("id, profiles(id)").or(`tenant_id.eq.${t}`, { referencedTable: "profiles" });',
+      'await admin.from("donors").select("id, profiles(id)").or("role.eq.admin", { foreignTable: "profiles" });',
+    ];
+    for (const text of planted)
+      expect(profileQueryFilterHits("planted.ts", text), text).not.toEqual([]);
+    const clean = [
+      'await admin.from("profiles").select("id").eq("id", profileId);',
+      'await admin.from("profiles").select("id").in("id", memberIds);',
+      'await admin.from("donors").select("id").eq("tenant_id", tenantId);',
+      'await selectTenantRows(supabase, "donors", tenantId);',
+      'await Promise.all([admin.from("profiles").select("id").in("id", ids), admin.from("prefs").select("*").eq("tenant_id", t)]);',
+      'await admin.from("donors").select("id, profiles(id)").eq("profiles.id", profileId);',
+      'await admin.from("donors").select("id, profiles(id)").order("created_at", { referencedTable: "profiles" });',
+    ];
+    for (const text of clean)
+      expect(profileQueryFilterHits("clean.ts", text), text).toEqual([]);
   });
 
   it("7: no app/script/tooling code names person_id or persons; database.ts byte-unchanged", () => {

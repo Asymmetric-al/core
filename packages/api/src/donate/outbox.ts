@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireCapability,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const auth = await getAuthContext(request);
-    requireRole(auth, ["admin", "staff", "super_admin"]);
+    requireCapability(auth, "admin.gifts.manage");
     const ctx = auth as AuthenticatedContext;
 
     const tenantStripe = await resolveTenantStripe({

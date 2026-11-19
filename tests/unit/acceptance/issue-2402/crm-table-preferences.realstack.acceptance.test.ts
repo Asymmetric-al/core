@@ -5,6 +5,14 @@
  * (M4 delegate changes delegates); c11: original-body differential parity;
  * c12: unchanged memberships; c15: migration/rollback/migration round trip.
  * Private throwaway DB per file; no URL means clean skip. Never use shared DDL.
+ *
+ * Amended by AL-2675 (WP2a, plan WP2a paragraph; NR-55): the helper tests the
+ * caller's selected live staff membership in the tenant it is given (the row
+ * the assignment header names, or the one live staff row) and, for tenant
+ * defaults, the view-defaults capability on that row. A profile role, admin
+ * or super_admin, grants nothing (c8 OQ2 restated); the tenant administrator
+ * manages defaults (c10 restated); a caller with two staff rows is refused
+ * until it names one.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -114,13 +122,17 @@ describe.skipIf(!URL)("#2402 real-stack", () => {
       ["authenticated", "inactive", "A"],
       ["authenticated", "staff", "B"],
       ["authenticated", "member", "B"],
+      ["authenticated", "admin", "B"],
+      ["authenticated", "super", "A"],
+      ["authenticated", "super", "B"],
+      ["authenticated", "multi", "A"],
     ] as const)(
       `6/7/8 (M2): ${H.FNS[i]} denies %s / %s / tenant %s without writes`,
       (role, actor, tenant) => tx(() => denied(role, actor, i, s.ids[tenant]!)),
     );
   }
   it.each(["staff", "admin", "member"])(
-    "8/9 OQ2: %s writes in its profile tenant",
+    "8/9 OQ2: %s writes in the tenant where it holds its one live staff row",
     (actor) =>
       tx(async () => {
         const created = await ok(0, actor);
@@ -130,19 +142,66 @@ describe.skipIf(!URL)("#2402 real-stack", () => {
         expect((await ok(3, actor)).profile_id).toBe(s.profiles[actor]);
       }),
   );
-  check("8 OQ2: super admin tenant authority", async () => {
-    for (const tenant of [s.ids.A!, s.ids.B!])
-      expect((await ok(0, "super", H.args(0, tenant))).tenant_id).toBe(tenant);
-    const view = (
-      await s.rows(
-        "select id from public.crm_table_named_views where tenant_id=$1",
-        [s.ids.B],
-      )
-    )[0]!.id;
-    for (const i of [1, 3, 4, 2])
-      await ok(i, "super", H.args(i, s.ids.B!, String(view)));
-    await denied("authenticated", "super", 0, s.ids.missing!);
-  });
+  check(
+    "8 OQ2 (AL-2675): a super_admin profile with no membership has no authority in any tenant",
+    async () => {
+      for (const tenant of [s.ids.A!, s.ids.B!, s.ids.missing!])
+        for (let i = 0; i < 5; i++)
+          await denied("authenticated", "super", i, tenant);
+    },
+  );
+  check(
+    "AL-2675: the assignment header selects one of two staff rows; a foreign or revoked row is refused",
+    async () => {
+      const created = await s.as(
+        "authenticated",
+        "multi",
+        H.call(0, input(0)),
+        s.assignments.multiHr,
+      );
+      expect(created.code).toBeNull();
+      expect((created.value as { profile_id: string }).profile_id).toBe(
+        s.profiles.multi,
+      );
+      const before = await s.snapshot();
+      expect(
+        (
+          await s.as(
+            "authenticated",
+            "multi",
+            H.call(0, input(0)),
+            s.assignments.admin,
+          )
+        ).code,
+      ).toBe("42501");
+      await s.db.query(
+        "update authz.memberships set is_active = false where id = $1",
+        [s.assignments.multiHr],
+      );
+      expect(
+        (
+          await s.as(
+            "authenticated",
+            "multi",
+            H.call(0, input(0)),
+            s.assignments.multiHr,
+          )
+        ).code,
+      ).toBe("42501");
+      expect(await s.snapshot()).toEqual(before);
+    },
+  );
+  check(
+    "AL-2675: revoking the tenant administrator's row denies tenant defaults at the next call",
+    async () => {
+      expect((await ok(4, "admin")).updated_by).toBe(s.profiles.admin);
+      await s.db.query(
+        "update authz.memberships set is_active = false where id = $1",
+        [s.assignments.admin],
+      );
+      await denied("authenticated", "admin", 4, s.ids.A!);
+    },
+  );
   check("9: other users' views are unchanged/not found", async () => {
     const foreign = await ok(0, "admin");
     const before = await s.snapshot();
@@ -165,12 +224,14 @@ describe.skipIf(!URL)("#2402 real-stack", () => {
     expect(await s.snapshot()).toEqual(before);
   });
   check("10 M4: delegate authority and audit identity", async () => {
+    // The tenant administrator holds crm.gift_history.manage_view_defaults and
+    // manages defaults outright; finance staff do not and need a delegation.
     const delegates = {
       delegatedManagerProfileIds: [s.profiles.staff, s.profiles.donor],
     };
     expect(
-      (await ok(4, "super", input(4, undefined, delegates))).updated_by,
-    ).toBe(s.profiles.super);
+      (await ok(4, "admin", input(4, undefined, delegates))).updated_by,
+    ).toBe(s.profiles.admin);
     await denied("authenticated", "donor", 4, s.ids.A!);
     expect((await ok(4)).updated_by).toBe(s.profiles.staff);
     for (const patch of [
@@ -184,23 +245,23 @@ describe.skipIf(!URL)("#2402 real-stack", () => {
       );
       expect(await s.snapshot()).toEqual(before);
     }
-    await denied("authenticated", "admin", 4, s.ids.A!);
+    await denied("authenticated", "member", 4, s.ids.A!);
     const audit = await s.db.query(
       "select actor_profile_id from public.crm_table_preference_audit_events where tenant_id=$1 order by created_at,id",
       [s.ids.A],
     );
     expect(audit.rows.map((r) => r.actor_profile_id).sort()).toEqual(
-      [s.profiles.staff, s.profiles.super].sort(),
+      [s.profiles.staff, s.profiles.admin].sort(),
     );
     await ok(
       4,
-      "super",
+      "admin",
       input(4, undefined, {
-        delegatedManagerProfileIds: [s.profiles.admin],
+        delegatedManagerProfileIds: [s.profiles.member],
       }),
     );
     await denied("authenticated", "staff", 4, s.ids.A!);
-    expect((await ok(4, "admin")).updated_by).toBe(s.profiles.admin);
+    expect((await ok(4, "member")).updated_by).toBe(s.profiles.member);
   });
   check("OQ8: direct RPC validates tables and view names", async () => {
     for (let i = 0; i < 5; i++) {

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { membershipsForRole } from "../../../../../fixtures/auth-memberships";
 
 import {
   readJsonBody,
@@ -11,16 +12,14 @@ import {
 } from "../../../../../../packages/api/src/admin/support-hub/schemas";
 
 const getAuthContextMock = vi.hoisted(() => vi.fn());
-const hasAnyContextRoleMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: getAuthContextMock,
-  hasAnyContextRole: hasAnyContextRoleMock,
 }));
 
 afterEach(() => {
   getAuthContextMock.mockReset();
-  hasAnyContextRoleMock.mockReset();
 });
 
 describe("requireSupportHubAccess", () => {
@@ -39,15 +38,15 @@ describe("requireSupportHubAccess", () => {
     expect(getAuthContextMock).toHaveBeenCalledWith(authRequest);
   });
 
-  it("returns 403 when the caller lacks the support roles", async () => {
+  it("returns 403 when the caller lacks admin.dashboard.access (a donor)", async () => {
     getAuthContextMock.mockResolvedValue({
       isAuthenticated: true,
       userId: "user-1",
       tenantId: "tenant-1",
       role: "donor",
-      profileRole: "donor",
+      // AL-2675: authority is the membership the request acts under.
+      memberships: membershipsForRole("donor", "tenant-1"),
     });
-    hasAnyContextRoleMock.mockReturnValue(false);
     const result = await requireSupportHubAccess(authRequest);
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -61,11 +60,9 @@ describe("requireSupportHubAccess", () => {
       email: "user-1@example.com",
       tenantId: "tenant-1",
       role: "staff",
-      profileRole: "staff",
+      // AL-2675: authority is the membership the request acts under.
+      memberships: membershipsForRole("staff", "tenant-1"),
     });
-    hasAnyContextRoleMock.mockImplementation(
-      (auth: { role: string }, roles: string[]) => roles.includes(auth.role),
-    );
     const result = await requireSupportHubAccess(authRequest);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -78,18 +75,16 @@ describe("requireSupportHubAccess", () => {
     });
   });
 
-  it("lets support admins manage every agent's per-agent settings", async () => {
+  it("lets the tenant administrator manage every agent's per-agent settings", async () => {
     getAuthContextMock.mockResolvedValue({
       isAuthenticated: true,
       userId: "user-2",
       email: "user-2@example.com",
       tenantId: "tenant-1",
       role: "admin",
-      profileRole: "admin",
+      // AL-2675: authority is the membership the request acts under.
+      memberships: membershipsForRole("admin", "tenant-1"),
     });
-    hasAnyContextRoleMock.mockImplementation(
-      (auth: { role: string }, roles: string[]) => roles.includes(auth.role),
-    );
     const result = await requireSupportHubAccess(authRequest);
     expect(result.ok).toBe(true);
     if (!result.ok) return;

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { membershipsForRole } from "../../../fixtures/auth-memberships";
 
 import { starterPdfTemplateFixtureByCategory } from "@asym/pdf-template-schema";
 
@@ -11,9 +12,15 @@ const { getAuthContextMock, readPdfTemplateMock, requireRoleMock } = vi.hoisted(
   }),
 );
 
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: getAuthContextMock,
   requireRole: requireRoleMock,
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: requireRoleMock,
+  requireTenantAdministrator: requireRoleMock,
+  requireRoleClass: requireRoleMock,
+  requireAuth: () => undefined,
 }));
 
 vi.mock("../../../../packages/api/src/pdf-templates/store", () => ({
@@ -53,6 +60,8 @@ describe("native PDF Studio routes", () => {
       role: "admin",
       tenantId: "tenant_1",
       userId: "user_1",
+      // AL-2675: the PDF studio is the tenant administrator's.
+      memberships: membershipsForRole("admin", "tenant_1"),
     });
     requireRoleMock.mockReturnValue(undefined);
   });

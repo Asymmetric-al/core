@@ -1,6 +1,12 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createE2EAuthCookieValue } from "@asym/auth/e2e-auth";
 
+/**
+ * AL-2675 (WP2a; plan 5.1; A08): Web Studio acts on the caller's one live
+ * staff membership, resolved on the caller's own session through
+ * `public.current_user_assignments()`. The profile is not read, the `authz`
+ * schema is never queried, and the trusted data client reads tenants only.
+ */
 type SupabaseAuthStrategyFactory = (dependencies?: {
   createSupabaseDataClient?: unknown;
   createSupabaseClient?: unknown;
@@ -8,10 +14,32 @@ type SupabaseAuthStrategyFactory = (dependencies?: {
   authenticate: (...args: unknown[]) => Promise<{ user: unknown }>;
 };
 
+const USER = "00000000-0000-4000-8000-0000000000a1";
+const TENANT_1 = "00000000-0000-4000-8000-000000000101";
+const TENANT_2 = "00000000-0000-4000-8000-000000000102";
+const DEFAULT_SUPER_ADMIN_TENANT = "00000000-0000-0000-0000-000000000001";
+
+let next = 0x200;
+function assignment(
+  tenant: string,
+  role: "donor" | "missionary" | "staff",
+  staffRole: string | null = null,
+  isTenantAdmin = false,
+) {
+  next += 1;
+  return {
+    id: `00000000-0000-4000-8000-${next.toString(16).padStart(12, "0")}`,
+    user_id: USER,
+    tenant_id: tenant,
+    role,
+    staff_role: staffRole,
+    is_tenant_admin: isTenantAdmin,
+    updated_at: "2026-11-17T09:00:00.000000+00:00",
+  };
+}
+
 type SupabaseClientMockOptions = {
-  role?: string | null;
-  tenantId?: string | null;
-  staffMembershipRole?: string | null;
+  assignments?: ReturnType<typeof assignment>[];
   userId?: string;
   email?: string;
   publicTenant?: {
@@ -21,8 +49,6 @@ type SupabaseClientMockOptions = {
   } | null;
 };
 
-const DEFAULT_SUPER_ADMIN_TENANT = "00000000-0000-0000-0000-000000000001";
-
 let createSupabaseAuthStrategy: SupabaseAuthStrategyFactory;
 
 beforeAll(async () => {
@@ -31,7 +57,7 @@ beforeAll(async () => {
   createSupabaseAuthStrategy = module.createSupabaseAuthStrategy;
 });
 
-function createQueryChain(result: unknown, terminal: "single" | "maybeSingle") {
+function createQueryChain(result: unknown) {
   const chain = {
     eq: vi.fn(() => chain),
     limit: vi.fn(() => chain),
@@ -39,89 +65,40 @@ function createQueryChain(result: unknown, terminal: "single" | "maybeSingle") {
     single: vi.fn().mockResolvedValue(result),
   };
 
-  return {
-    select: vi.fn(() => chain),
-    chain,
-    terminal: chain[terminal],
-  };
+  return { select: vi.fn(() => chain), chain };
 }
 
 function createSupabaseClientMock({
-  role = "staff",
-  tenantId = "tenant_1",
-  staffMembershipRole = null,
-  userId = "supabase-user-1",
+  assignments = [assignment(TENANT_1, "staff", "member_care")],
+  userId = USER,
   email = "staff@example.org",
   publicTenant,
 }: SupabaseClientMockOptions = {}) {
   const getUser = vi.fn().mockResolvedValue({
-    data: {
-      user: userId
-        ? {
-            id: userId,
-            email,
-          }
-        : null,
-    },
+    data: { user: userId ? { id: userId, email } : null },
   });
-  const profileQuery = createQueryChain(
-    {
-      data:
-        role || tenantId
-          ? {
-              role,
-              tenant_id: tenantId,
-            }
-          : null,
-    },
-    "single",
-  );
   const resolvedPublicTenant =
     publicTenant === undefined
       ? {
-          id: tenantId ?? DEFAULT_SUPER_ADMIN_TENANT,
+          id: assignments[0]?.tenant_id ?? TENANT_1,
           name: "Tenant One",
           slug: "tenant-one",
         }
       : publicTenant;
-  const publicTenantQuery = createQueryChain(
-    {
-      data: resolvedPublicTenant,
-    },
-    "maybeSingle",
-  );
+  const publicTenantQuery = createQueryChain({ data: resolvedPublicTenant });
   const from = vi.fn((table: string) => {
-    if (table === "profiles") {
-      return { select: profileQuery.select };
-    }
-
-    if (table === "tenants") {
-      return { select: publicTenantQuery.select };
-    }
-
-    return {
-      select: vi.fn(() => ({ eq: vi.fn(() => ({ single: vi.fn() })) })),
-    };
+    if (table === "tenants") return { select: publicTenantQuery.select };
+    throw new Error(`unexpected table read: ${table}`);
   });
-
-  const membershipQuery = createQueryChain(
-    {
-      data:
-        typeof staffMembershipRole === "string"
-          ? { staff_role: staffMembershipRole }
-          : null,
-    },
-    "maybeSingle",
-  );
-  const schema = vi.fn().mockReturnValue({
-    from: vi.fn().mockReturnValue({
-      select: membershipQuery.select,
-    }),
+  const rpc = vi.fn(async () => ({ data: assignments, error: null }));
+  const schema = vi.fn(() => {
+    throw new Error("authz is not exposed by the Data API");
   });
 
   const createServerClientMock = vi.fn().mockReturnValue({
     auth: { getUser },
     from,
+    rpc,
     schema,
   });
 
@@ -129,10 +106,9 @@ function createSupabaseClientMock({
     createServerClientMock,
     getUser,
     from,
+    rpc,
     schema,
-    profileQuery,
     publicTenantQuery,
-    membershipQuery,
   };
 }
 
@@ -185,10 +161,7 @@ function createStrategyWithMocks(
     "createSupabaseClient"
   >,
 ) {
-  const dataClient = {
-    from: mock.from,
-    schema: mock.schema,
-  };
+  const dataClient = { from: mock.from };
 
   return createSupabaseAuthStrategy({
     createSupabaseClient: mock.createServerClientMock as never,
@@ -196,6 +169,15 @@ function createStrategyWithMocks(
     ...extra,
   });
 }
+
+const authenticate = (
+  strategy: ReturnType<SupabaseAuthStrategyFactory>,
+  payload: ReturnType<typeof createPayloadMock>,
+) =>
+  strategy.authenticate({
+    headers: new Headers({ cookie: "sb-access-token=test" }),
+    payload,
+  } as never);
 
 describe("createSupabaseAuthStrategy", () => {
   beforeEach(() => {
@@ -226,9 +208,7 @@ describe("createSupabaseAuthStrategy", () => {
 
   it("authenticates admin E2E bypass cookies through normal Payload users", async () => {
     process.env.E2E_AUTH_BYPASS = "true";
-    const supabaseMock = createSupabaseClientMock({
-      userId: "",
-    });
+    const supabaseMock = createSupabaseClientMock({ userId: "" });
     const e2eCookie = await createE2EAuthCookieValue({
       role: "admin",
       tenantId: null,
@@ -268,9 +248,7 @@ describe("createSupabaseAuthStrategy", () => {
 
   it("rejects donor E2E bypass cookies for the Payload admin surface", async () => {
     process.env.E2E_AUTH_BYPASS = "true";
-    const supabaseMock = createSupabaseClientMock({
-      userId: "",
-    });
+    const supabaseMock = createSupabaseClientMock({ userId: "" });
     const e2eCookie = await createE2EAuthCookieValue({
       role: "donor",
       tenantId: null,
@@ -294,21 +272,19 @@ describe("createSupabaseAuthStrategy", () => {
     expect(payload.update).not.toHaveBeenCalled();
   });
 
-  it("creates a CMS user against the mirrored Payload tenant", async () => {
-    const supabaseMock = createSupabaseClientMock({
-      role: "donor",
-      staffMembershipRole: "member_care",
-    });
+  it("creates a CMS user against the mirrored Payload tenant of the caller's staff membership", async () => {
+    const supabaseMock = createSupabaseClientMock();
 
     const strategy = createStrategyWithMocks(supabaseMock);
     const payload = createPayloadMock();
 
-    const result = await strategy.authenticate({
-      headers: new Headers({ cookie: "sb-access-token=test" }),
-      payload,
-    } as never);
+    const result = await authenticate(strategy, payload);
 
     expect(supabaseMock.createServerClientMock).toHaveBeenCalledTimes(1);
+    expect(supabaseMock.rpc).toHaveBeenCalledExactlyOnceWith(
+      "current_user_assignments",
+    );
+    expect(supabaseMock.schema).not.toHaveBeenCalled();
     expect(payload.create).toHaveBeenCalledWith(
       expect.objectContaining({
         collection: "cms-users",
@@ -322,17 +298,14 @@ describe("createSupabaseAuthStrategy", () => {
     expect(result.user).toMatchObject({
       collection: "cms-users",
       id: "cms_user_1",
-      publicTenantId: "tenant_1",
+      publicTenantId: TENANT_1,
       role: "staff",
       tenantId: "17",
     });
   });
 
   it("skips write operations when the existing user is already in sync", async () => {
-    const supabaseMock = createSupabaseClientMock({
-      role: "donor",
-      staffMembershipRole: "member_care",
-    });
+    const supabaseMock = createSupabaseClientMock();
 
     const strategy = createStrategyWithMocks(supabaseMock);
     const payload = createPayloadMock({
@@ -340,36 +313,27 @@ describe("createSupabaseAuthStrategy", () => {
         email: "staff@example.org",
         id: "cms_user_1",
         role: "staff",
-        supabaseUserId: "supabase-user-1",
+        supabaseUserId: USER,
         tenantId: "17",
       },
     });
 
-    const result = await strategy.authenticate({
-      headers: new Headers({ cookie: "sb-access-token=test" }),
-      payload,
-    } as never);
+    const result = await authenticate(strategy, payload);
 
     expect(payload.create).not.toHaveBeenCalled();
     expect(payload.update).not.toHaveBeenCalled();
     expect(result.user).toMatchObject({
       collection: "cms-users",
       id: "cms_user_1",
-      publicTenantId: "tenant_1",
+      publicTenantId: TENANT_1,
       tenantId: "17",
     });
   });
 
-  it("updates the CMS user when Supabase profile data changes tenant", async () => {
+  it("updates the CMS user when the caller's staff membership is in another tenant", async () => {
     const supabaseMock = createSupabaseClientMock({
-      role: "donor",
-      tenantId: "tenant_2",
-      staffMembershipRole: "finance",
-      publicTenant: {
-        id: "tenant_2",
-        name: "Tenant Two",
-        slug: "tenant-two",
-      },
+      assignments: [assignment(TENANT_2, "staff", "finance")],
+      publicTenant: { id: TENANT_2, name: "Tenant Two", slug: "tenant-two" },
     });
 
     const strategy = createStrategyWithMocks(supabaseMock);
@@ -379,15 +343,12 @@ describe("createSupabaseAuthStrategy", () => {
         email: "staff@example.org",
         id: "cms_user_1",
         role: "staff",
-        supabaseUserId: "supabase-user-1",
+        supabaseUserId: USER,
         tenantId: "17",
       },
     });
 
-    await strategy.authenticate({
-      headers: new Headers({ cookie: "sb-access-token=test" }),
-      payload,
-    } as never);
+    await authenticate(strategy, payload);
 
     expect(payload.update).toHaveBeenCalledTimes(1);
     expect(payload.update).toHaveBeenCalledWith(
@@ -402,120 +363,105 @@ describe("createSupabaseAuthStrategy", () => {
     );
   });
 
-  it("rejects non-staff profile roles", async () => {
-    const supabaseMock = createSupabaseClientMock({
-      role: "donor",
-    });
+  it.each([
+    ["no membership", []],
+    ["only a donor membership", [assignment(TENANT_1, "donor")]],
+    [
+      "two staff rows in one tenant (until WP2b's chooser)",
+      [
+        assignment(TENANT_1, "staff", "finance"),
+        assignment(TENANT_1, "staff", "hr"),
+      ],
+    ],
+    [
+      "staff rows in two tenants (until WP2b's tenant cookie)",
+      [
+        assignment(TENANT_1, "staff", "finance"),
+        assignment(TENANT_2, "staff", "hr"),
+      ],
+    ],
+  ])("rejects a caller with %s", async (_name, assignments) => {
+    const supabaseMock = createSupabaseClientMock({ assignments });
 
     const strategy = createStrategyWithMocks(supabaseMock);
     const payload = createPayloadMock();
 
-    const result = await strategy.authenticate({
-      headers: new Headers({ cookie: "sb-access-token=test" }),
-      payload,
-    } as never);
+    const result = await authenticate(strategy, payload);
 
     expect(result.user).toBeNull();
     expect(payload.find).not.toHaveBeenCalled();
   });
 
-  it("accepts active staff membership even when profile role is donor", async () => {
+  it("makes a staff member with the tenant-administrator flag a CMS admin", async () => {
     const supabaseMock = createSupabaseClientMock({
-      role: "donor",
-      staffMembershipRole: "finance",
+      assignments: [assignment(TENANT_1, "staff", "development", true)],
     });
 
     const strategy = createStrategyWithMocks(supabaseMock);
     const payload = createPayloadMock();
 
-    const result = await strategy.authenticate({
-      headers: new Headers({ cookie: "sb-access-token=test" }),
-      payload,
-    } as never);
+    const result = await authenticate(strategy, payload);
 
     expect(result.user).toMatchObject({
       collection: "cms-users",
-      publicTenantId: "tenant_1",
-      role: "staff",
+      publicTenantId: TENANT_1,
+      role: "admin",
       tenantId: "17",
     });
   });
 
-  it("accepts admin profile roles without giving them CRM ownership", async () => {
+  it("acts on the staff row of a person who is also a donor there", async () => {
     const supabaseMock = createSupabaseClientMock({
-      role: "admin",
-      staffMembershipRole: null,
+      assignments: [
+        assignment(TENANT_1, "donor"),
+        assignment(TENANT_1, "staff", "finance"),
+      ],
     });
 
     const strategy = createStrategyWithMocks(supabaseMock);
-    const payload = createPayloadMock();
+    const result = await authenticate(strategy, createPayloadMock());
 
-    const result = await strategy.authenticate({
-      headers: new Headers({ cookie: "sb-access-token=test" }),
-      payload,
-    } as never);
-
-    expect(result.user).toMatchObject({
-      collection: "cms-users",
-      publicTenantId: "tenant_1",
-      role: "admin",
-      tenantId: "17",
-    });
+    expect(result.user).toMatchObject({ role: "staff" });
   });
 
-  it("uses a trusted data client for tenant lookup after cookie auth", async () => {
-    const sessionClient = createSupabaseClientMock({
-      role: "admin",
-      publicTenant: null,
-    });
+  it("uses a trusted data client for the tenant lookup only", async () => {
+    const sessionClient = createSupabaseClientMock({ publicTenant: null });
     const trustedDataClient = createSupabaseClientMock({
-      role: "admin",
-      publicTenant: {
-        id: "tenant_1",
-        name: "Tenant One",
-        slug: "tenant-one",
-      },
+      publicTenant: { id: TENANT_1, name: "Tenant One", slug: "tenant-one" },
     });
 
     const strategy = createSupabaseAuthStrategy({
       createSupabaseClient: sessionClient.createServerClientMock as never,
       createSupabaseDataClient: vi.fn(() => ({
         from: trustedDataClient.from,
-        schema: trustedDataClient.schema,
       })) as never,
     });
     const payload = createPayloadMock();
 
-    const result = await strategy.authenticate({
-      headers: new Headers({ cookie: "sb-access-token=test" }),
-      payload,
-    } as never);
+    const result = await authenticate(strategy, payload);
 
     expect(sessionClient.getUser).toHaveBeenCalledTimes(1);
-    expect(trustedDataClient.from).toHaveBeenCalledWith("profiles");
-    expect(trustedDataClient.from).toHaveBeenCalledWith("tenants");
+    expect(sessionClient.rpc).toHaveBeenCalledOnce();
+    expect(trustedDataClient.rpc).not.toHaveBeenCalled();
+    expect(trustedDataClient.from).toHaveBeenCalledExactlyOnceWith("tenants");
     expect(result.user).toMatchObject({
       collection: "cms-users",
-      publicTenantId: "tenant_1",
-      role: "admin",
+      publicTenantId: TENANT_1,
+      role: "staff",
       tenantId: "17",
     });
   });
 
   it("completes cookie auth when service role env is set if data client is injected", async () => {
     process.env.SUPABASE_SERVICE_ROLE_KEY = "unit-test-service-role-key";
-    const sessionClient = createSupabaseClientMock({ role: "admin" });
+    const sessionClient = createSupabaseClientMock({
+      assignments: [assignment(TENANT_1, "staff", "development", true)],
+    });
     const trustedDataClient = createSupabaseClientMock({
-      role: "admin",
-      publicTenant: {
-        id: "tenant_1",
-        name: "Tenant One",
-        slug: "tenant-one",
-      },
+      publicTenant: { id: TENANT_1, name: "Tenant One", slug: "tenant-one" },
     });
     const createSupabaseDataClient = vi.fn(() => ({
       from: trustedDataClient.from,
-      schema: trustedDataClient.schema,
     }));
 
     const strategy = createSupabaseAuthStrategy({
@@ -524,45 +470,13 @@ describe("createSupabaseAuthStrategy", () => {
     });
     const payload = createPayloadMock();
 
-    const result = await strategy.authenticate({
-      headers: new Headers({ cookie: "sb-access-token=test" }),
-      payload,
-    } as never);
+    const result = await authenticate(strategy, payload);
 
     expect(createSupabaseDataClient).toHaveBeenCalledTimes(1);
     expect(result.user).toMatchObject({
       collection: "cms-users",
       role: "admin",
-      publicTenantId: "tenant_1",
-    });
-  });
-
-  it("accepts tenantless super admins using the default tenant context", async () => {
-    const supabaseMock = createSupabaseClientMock({
-      role: "super_admin",
-      tenantId: null,
-      publicTenant: {
-        id: DEFAULT_SUPER_ADMIN_TENANT,
-        name: "Default Tenant",
-        slug: "default",
-      },
-    });
-
-    const strategy = createStrategyWithMocks(supabaseMock);
-    const payload = createPayloadMock({
-      cmsTenant: { id: 17, name: "Default Tenant", slug: "default" },
-    });
-
-    const result = await strategy.authenticate({
-      headers: new Headers({ cookie: "sb-access-token=test" }),
-      payload,
-    } as never);
-
-    expect(result.user).toMatchObject({
-      collection: "cms-users",
-      publicTenantId: DEFAULT_SUPER_ADMIN_TENANT,
-      role: "super_admin",
-      tenantId: "17",
+      publicTenantId: TENANT_1,
     });
   });
 });
