@@ -180,7 +180,8 @@ export async function listEveNotificationRecipients(input: {
     // Read to the end (AL-2675 WP2c): the recipient PATCH is open to platform
     // operators, and its trigger admits every live administrator of the
     // tenant, so the rows are no longer a handful (council round 2 on WP2a,
-    // R2, asked for this when WP2c opened them).
+    // R2, asked for this when WP2c opened them). After 10,000 non-empty pages
+    // the shared reader fails rather than returning a partial recipient list.
     readAllPages((from, to) =>
       input.supabaseAdmin
         .from("eve_notification_recipient_configs")

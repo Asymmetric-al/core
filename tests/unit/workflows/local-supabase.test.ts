@@ -63,6 +63,24 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     expect(compare).toBeLessThan(roundTrips);
   });
 
+  it("runs both proofs independently once their own prerequisites pass", () => {
+    expect(step("name: Start the local Supabase stack")).toContain("id: stack");
+    expect(step("name: Install Playwright Chromium")).toContain("id: chromium");
+    expect(step("name: Run the auth email round trips")).toContain(
+      "!cancelled() && steps.stack.outcome == 'success' && steps.chromium.outcome == 'success'",
+    );
+    expect(step("name: Prove the platform operators")).toContain(
+      "!cancelled() && steps.stack.outcome == 'success'",
+    );
+    for (const path of [
+      "scripts/lib/psql.mjs",
+      "scripts/release/lib/database-target.mjs",
+      "packages/env/src/database-url.mjs",
+    ]) {
+      expect(workflow).toContain(`      - ${path}\n`);
+    }
+  });
+
   it("runs when the defaults, the replay or the fingerprint change", () => {
     for (const path of [
       "scripts/sql/hosted-default-privileges.sql",
