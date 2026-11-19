@@ -1116,6 +1116,38 @@ describe.skipIf(!ADMIN_URL)(
           }
         }));
 
+      // The coordinator's follow-up on Q7: no signed-in write policy on a
+      // table where signed-in users hold no write grant, so a grant that came
+      // back by accident fails the catalog gate instead of admitting every
+      // staff sub-role. The catalog half fails before the drop; the refusal
+      // half is a regression guard, because signed-in users already held no
+      // write grant on either table.
+      it("Q7: pdf_templates and crm_record_links carry no signed-in write policy, and a staff member's direct insert and update on each are refused", () =>
+        tx(async () => {
+          const left = await rows(
+            `select c.relname::text t, p.polname::text p from pg_policy p join pg_class c on c.oid = p.polrelid
+              where c.relnamespace = 'public'::regnamespace and p.polcmd in ('a', 'w', 'd')
+                and p.polroles && array[0::oid, 'authenticated'::regrole::oid]
+                and c.relname in ('pdf_templates', 'crm_record_links') order by 1, 2`,
+          );
+          expect(left).toEqual([]);
+          for (const t of ["pdf_templates", "crm_record_links"])
+            for (const sql of [
+              `insert into public.${t} (tenant_id) values (${q("TA")})`,
+              `update public.${t} set tenant_id = tenant_id where tenant_id = ${q("TA")}`,
+            ]) {
+              const r = await as(
+                "authenticated",
+                { sub: "UADM", headers: under("mAdm") },
+                sql,
+              );
+              expect(r.code, sql).toBe("42501");
+              expect(r.message, sql).toMatch(
+                new RegExp(`permission denied for table ${t}`),
+              );
+            }
+        }));
+
       it("Q9: a donor reads another commenter's display name and avatar through the narrow read, and still cannot read that member's profile row", () =>
         tx(async () => {
           const post = randomUUID();

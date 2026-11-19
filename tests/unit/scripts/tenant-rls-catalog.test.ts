@@ -1156,7 +1156,8 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     over: Record<string, unknown> = {},
   ) => ({
     ...{ table: tableName, policy: `${tableName} read`, cmd: "SELECT" },
-    ...{ roles: ["authenticated"], using, check: null, ...over },
+    ...{ roles: ["authenticated"], using, check: null, granted: true },
+    ...over,
   });
   const HELPERS = [
     "authz.current_tenant_id()",
@@ -1328,6 +1329,37 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     ]);
   });
 
+  // The coordinator's follow-up on activation review Q7: no signed-in write
+  // policy on a table where signed-in users hold no write grant, so a grant
+  // that comes back by accident fails CI instead of being admitted.
+  it("fails an INSERT, UPDATE or DELETE policy whose command no signed-in role holds a privilege for", () => {
+    const T_STAFF = `(${T} AND ${STAFF})`;
+    for (const cmd of ["INSERT", "UPDATE", "DELETE"]) {
+      const write = policy("donors", cmd === "INSERT" ? null : T_STAFF, {
+        policy: `donors ${cmd.toLowerCase()}`,
+        cmd,
+        check: cmd === "DELETE" ? null : T_STAFF,
+        granted: false,
+      });
+      expect(codes(run([write])), cmd).toEqual([
+        "WRITE_POLICY_WITHOUT_GRANT donors",
+      ]);
+      expect(run([{ ...write, granted: true }]).failures, cmd).toEqual([]);
+    }
+    // A FOR ALL policy also governs reads, as the finance tables' deny-all
+    // policies do beside their SELECT grant; a read policy is not a write.
+    expect(
+      run([
+        policy("donors", "false", {
+          cmd: "ALL",
+          check: "false",
+          granted: false,
+        }),
+        policy("donors", T_STAFF, { policy: "read", granted: false }),
+      ]).failures,
+    ).toEqual([]);
+  });
+
   it("fails a tenant table in a publication, and passes a published table with no tenant column", () => {
     expect(codes(run([], { published: ["donors"] }))).toEqual([
       "TENANT_TABLE_PUBLISHED donors",
@@ -1344,5 +1376,14 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
       /p\.proname in \('current_tenant_id', 'request_tenant_id', 'request_assignment_id', 'request_assignment'\)/,
     );
     expect(TENANT_RLS_CATALOG_SQL).toContain("from pg_publication_tables t");
+    // The privilege each write policy's command needs, for authenticated,
+    // and for anon as well when the policy is TO public.
+    expect(TENANT_RLS_CATALOG_SQL).toContain("'granted'");
+    expect(TENANT_RLS_CATALOG_SQL).toContain(
+      "has_any_column_privilege(g.r, c.oid, 'INSERT')",
+    );
+    expect(TENANT_RLS_CATALOG_SQL).toContain(
+      "has_table_privilege(g.r, c.oid, 'DELETE')",
+    );
   });
 });
