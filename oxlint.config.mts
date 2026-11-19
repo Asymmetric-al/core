@@ -51,7 +51,6 @@ export default defineConfig({
     ".cursor/**", // Managed Cursor assets.
     ".next-docs/**", // Mirrored framework documentation.
     "docs/**", // Documentation, evidence and vendored skill sources.
-    "tests/fixtures/**", // Deliberate failures and preserved upstream inputs.
     "vendor/react-pdf-packages/**", // Unpacked third-party PDF distributions.
     "apps/*/bones/registry.ts", // Generated Boneyard component registries.
     // Only these nine ReUI registry files are vendored; new grid components stay linted.
