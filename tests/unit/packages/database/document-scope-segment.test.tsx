@@ -161,6 +161,95 @@ describe("DocumentScopeProvider's segment", () => {
     expect(reloadDocument).not.toHaveBeenCalled();
   });
 
+  // Council on the joined release, JC1: Web Studio's chooser and its REST
+  // routes are under /web-studio but are not its pages, so its segment
+  // carries its own test of an address, the one the boundary and the router
+  // adapter use. The chooser then answers no scope, and a soft landing on it
+  // loads a new document.
+  describe("a segment that carries its own test of an address", () => {
+    const STUDIO = {
+      name: "/web-studio",
+      contains: (pathname: string) =>
+        (pathname === "/web-studio" || pathname.startsWith("/web-studio/")) &&
+        !pathname.startsWith("/web-studio/api/") &&
+        pathname !== "/web-studio/organization" &&
+        !pathname.startsWith("/web-studio/organization/"),
+    };
+    const studioScope = {
+      ...PORTAL,
+      tenantId: "00000000-0000-0000-0000-000000000002",
+    };
+
+    it("answers no scope at an address the segment leaves out, under the same path", async () => {
+      const { DocumentScopeProvider, getDocumentScope } = await load();
+      documentLoadedAt("/web-studio/collections/pages");
+      at("/web-studio/collections/pages");
+      render(
+        <DocumentScopeProvider scope={studioScope} segment={STUDIO}>
+          <p>studio page</p>
+        </DocumentScopeProvider>,
+      );
+      expect(getDocumentScope()).toEqual(studioScope);
+
+      at("/web-studio/organization");
+      expect(getDocumentScope()).toBeNull();
+    });
+
+    it("loads a new document when it unmounts at the chooser", async () => {
+      const { DocumentScopeProvider } = await load();
+      documentLoadedAt("/web-studio/collections/pages");
+      at("/web-studio/collections/pages");
+      const view = render(
+        <DocumentScopeProvider scope={studioScope} segment={STUDIO}>
+          <p>studio page</p>
+        </DocumentScopeProvider>,
+      );
+
+      // The gate's redirect, carried out by the client router.
+      window.history.pushState(
+        null,
+        "",
+        "/web-studio/organization?next=%2Fweb-studio",
+      );
+      view.unmount();
+
+      expect(reloadDocument).toHaveBeenCalledTimes(1);
+    });
+
+    it("renders nothing and reloads in a document loaded at the chooser", async () => {
+      const { DocumentScopeProvider, isDocumentScopeFixed } = await load();
+      documentLoadedAt("/web-studio/organization");
+      at("/web-studio");
+      render(
+        <DocumentScopeProvider scope={studioScope} segment={STUDIO}>
+          <p>studio page</p>
+        </DocumentScopeProvider>,
+      );
+      expect(screen.queryByText("studio page")).toBeNull();
+      expect(reloadDocument).toHaveBeenCalledTimes(1);
+      expect(isDocumentScopeFixed()).toBe(false);
+    });
+
+    it("is the same segment as another provider with its name, whatever object carries it", async () => {
+      const { DocumentScopeProvider } = await load();
+      documentLoadedAt("/web-studio");
+      at("/web-studio");
+      render(
+        <>
+          <DocumentScopeProvider scope={studioScope} segment={STUDIO}>
+            <p>document</p>
+          </DocumentScopeProvider>
+          <DocumentScopeProvider scope={studioScope} segment={{ ...STUDIO }}>
+            <p>page</p>
+          </DocumentScopeProvider>
+        </>,
+      );
+      expect(screen.getByText("document")).toBeTruthy();
+      expect(screen.getByText("page")).toBeTruthy();
+      expect(reloadDocument).not.toHaveBeenCalled();
+    });
+  });
+
   it("keeps a tenant's scope, which is bounded by its own address prefix, free of these rules", async () => {
     const { DocumentScopeProvider, getDocumentScope } = await load();
     const tenant = { ...PORTAL, addressPrefix: `/${PORTAL.tenantId}` };

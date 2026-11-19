@@ -254,6 +254,32 @@ describe("the chooser page (council C11)", () => {
     render(chooser as React.ReactElement);
     expect(screen.queryByRole("alert")).toBeNull();
   });
+
+  // Council on the joined release, JC3: a link from Mission Control names
+  // the organization it was opened in; when Web Studio works in another, or
+  // in none yet, the proxy sends the person here instead of switching.
+  it("offers first the organization the person came from in Mission Control, and says in one sentence why it asks", async () => {
+    const chooser = await openChooserPage({ next: "/web-studio", from: TB });
+    render(chooser as React.ReactElement);
+    expect(
+      screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
+    ).toEqual(["Bravo Mission", "Alpha Mission"]);
+    expect(screen.getByRole("alert").textContent).toBe(
+      "You came from Bravo Mission in Mission Control, and Web Studio asks before it works in another organization.",
+    );
+  });
+
+  it("says nothing of an organization the person holds no staff row in", async () => {
+    const chooser = await openChooserPage({
+      next: "/web-studio",
+      from: "00000000-0000-0000-0000-000000000009",
+    });
+    render(chooser as React.ReactElement);
+    expect(
+      screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
+    ).toEqual(["Alpha Mission", "Bravo Mission"]);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
 });
 
 describe("the chooser's Web Studio form", () => {

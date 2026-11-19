@@ -4,6 +4,8 @@ import { isValidElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { WebStudioPageScope } from "../../../../apps/admin/src/cms-ui/web-studio/shell/web-studio-document";
+import { WEB_STUDIO_SEGMENT } from "../../../../packages/auth/web-studio";
 import { DocumentScopeProvider } from "../../../../packages/database/document-scope";
 
 import type { ReactElement, ReactNode } from "react";
@@ -146,10 +148,18 @@ describe.each([
       scope: unknown;
       children: ReactNode;
     }>;
-    expect(element.type).toBe(DocumentScopeProvider);
+    // Web Studio's own client wrapper of DocumentScopeProvider: the segment
+    // carries a function, which cannot pass from this server component
+    // (council on the joined release, JC1).
+    expect(element.type).toBe(WebStudioPageScope);
     expect(element.props.scope).toEqual(SCOPE_B);
-    // Valid inside Web Studio's own segment, as its document's scope is.
-    expect((element.props as { segment?: string }).segment).toBe("/web-studio");
+    // Valid on Web Studio's pages only, as its document's scope is.
+    const provider = WebStudioPageScope(
+      element.props as Parameters<typeof WebStudioPageScope>[0],
+    ) as ReactElement<{ scope: unknown; segment?: unknown }>;
+    expect(provider.type).toBe(DocumentScopeProvider);
+    expect(provider.props.scope).toEqual(SCOPE_B);
+    expect(provider.props.segment).toBe(WEB_STUDIO_SEGMENT);
     expect(renderToStaticMarkup(<>{element.props.children}</>)).toContain(
       content,
     );

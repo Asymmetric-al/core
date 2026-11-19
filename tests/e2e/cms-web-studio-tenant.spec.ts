@@ -3,6 +3,7 @@ import {
   test,
   type Page,
   type Request,
+  type Route,
 } from "@playwright/test";
 
 import { adminBaseURL } from "./base-urls";
@@ -200,12 +201,20 @@ async function acknowledgeStaleNotice(page: Page) {
  * be on screen from the server's HTML before then, and start-up calls that
  * are held leave Payload's form half started, while those made after the
  * switch are refused and open the notice before the action under test.
+ *
+ * Only the opened page's own calls count, by the page they come from: the
+ * page before it may still be starting when the navigation begins, and a
+ * call it makes then ends with that document without ever being reported
+ * finished or failed, which would keep this waiting for good.
  */
 async function openStarted(page: Page, url: string) {
   const inFlight = new Set<Request>();
   let lastChange = Date.now();
+  const opened = new URL(url).pathname;
   const started = (request: Request) => {
     if (!new URL(request.url()).pathname.startsWith("/web-studio/api/")) return;
+    const from = request.headers()["referer"];
+    if (!from || new URL(from).pathname !== opened) return;
     inFlight.add(request);
     lastChange = Date.now();
   };
@@ -645,8 +654,11 @@ test("@cms bulk delete in a list opened for one organization, after another tab 
     expect(response.headers()["x-asym-web-studio-refusal"]).toBe(
       "scope_mismatch",
     );
-    // The bulk delete itself opens the notice (council r2 CR5).
-    await expect(staleNotice(page)).toBeVisible();
+    // The bulk delete itself opens the notice (council r2 CR5). One check:
+    // Payload's list replaces its address after the action, the page then
+    // renders for the organization now chosen and the document reloads into
+    // it, about a second later, and the notice goes with it (council on the
+    // joined release, reported in its handoff).
     await expect(staleNotice(page)).toContainText(STALE_MESSAGE);
     await page.unrouteAll({ behavior: "ignoreErrors" });
 
@@ -995,4 +1007,273 @@ test("@cms nothing of Payload's answers under /api, old media links are sent to 
     (await page.request.get(`${base}/web-studio/api/cms-users/me`)).status(),
   ).toBe(200);
   expect((await page.request.get(`${base}/api/health`)).status()).toBe(200);
+});
+
+// Council on the joined release, JC1: Web Studio's pages are a segment of
+// their own. Sign-in with Web Studio as its next page used to replace softly
+// into it; the scope provider then rendered nothing and reloaded, so every
+// signed-out visit paid two renders of Payload's layout and a blank page.
+test("@cms signing in with a Web Studio page next renders that page once, as one document load", async ({
+  page,
+}) => {
+  const target = "/web-studio/collections/pages";
+  const documents: string[] = [];
+  const flightsBeforeDocument: string[] = [];
+  page.on("request", (request) => {
+    if (request.frame() !== page.mainFrame()) return;
+    const url = new URL(request.url());
+    if (url.pathname !== target) return;
+    if (request.resourceType() === "document") {
+      documents.push(url.pathname);
+    } else if (
+      documents.length === 0 &&
+      (request.headers()["rsc"] === "1" || url.searchParams.has("_rsc"))
+    ) {
+      flightsBeforeDocument.push(url.href);
+    }
+  });
+
+  await page.goto(`${base}/login?next=${encodeURIComponent(target)}`);
+  if (signsInThroughStub) {
+    // A production build, where the E2E bypass is off: the form, through
+    // the Supabase stub.
+    const person = fixturePerson("demoAdmin");
+    await page.getByLabel("Email").fill(`${person.userId}@example.test`);
+    await page.getByLabel("Password", { exact: true }).fill("stub-password");
+    await page.getByRole("button", { name: "Sign in" }).click();
+  } else {
+    await page.getByRole("button", { name: "Demo Access" }).click();
+  }
+  await page.waitForURL((url) => url.pathname === target);
+  // The native shell, or Web Studio's own sign-in view for a stub person
+  // with no Payload account (as admin-tenant-address.spec.ts notes).
+  await expect(
+    page
+      .getByTestId("web-studio-native-shell")
+      .or(page.getByText("Web Studio", { exact: true }))
+      .first(),
+  ).toBeVisible();
+
+  expect(flightsBeforeDocument).toEqual([]);
+  expect(documents).toEqual([target]);
+});
+
+// Council on the joined release, JC1: the chooser is under /web-studio but
+// is not a Web Studio page. When the gate sends a Web Studio page there
+// during a client navigation, it lands on a new document, and nothing of
+// the old organization's scope is left in it.
+test("@cms a Web Studio page whose choice is gone sends the person to the chooser as a new document, with no organization's scope", async ({
+  page,
+}) => {
+  await signIn(page);
+  await enter(page, DEMO);
+  await page.goto(`${base}/web-studio/collections/pages`);
+  await expect(
+    page.locator(`[data-web-studio-scope="${DEMO}"]`).first(),
+  ).toBeAttached();
+  await markDocument(page);
+
+  // The choice is gone (the cookie expired or was cleared); the person holds
+  // two staff rows, so the next Web Studio page asks again. The page's own
+  // calls are refused meanwhile, and the notice that says so may open first;
+  // the person carries on with "Not now".
+  const notice = page.getByRole("alertdialog", {
+    name: "Choose an organization first",
+  });
+  await page.addLocatorHandler(notice, async () => {
+    await notice.getByRole("button", { name: "Not now" }).click();
+  });
+  await page.context().clearCookies({ name: WEB_STUDIO_COOKIE });
+  await page
+    .getByRole("link", { name: "Web Studio", exact: true })
+    .first()
+    .click();
+  await page.waitForURL((url) => url.pathname === "/web-studio/organization");
+  await expect(
+    page.getByRole("heading", { name: "Choose an organization" }),
+  ).toBeVisible();
+  await expect.poll(() => sameDocument(page)).toBe(false);
+  await expect(page.locator("[data-web-studio-scope]")).toHaveCount(0);
+});
+
+// Council on the joined release, JC2: Payload's server functions are server
+// actions posted to the page's own address; they used to run in whatever
+// organization the cookie selected, so a page opened for one organization,
+// after another tab switched, listed the other's documents in its own.
+test("@cms a server function from a page opened for one organization, after another tab switched to the other, is refused and asks the person to reload", async ({
+  page,
+}) => {
+  await signIn(page);
+  await enter(page, DEMO);
+  const stamp = `wsfn-${Date.now()}`;
+  const created: Array<[string, string]> = [];
+  const title = page.getByRole("textbox", { name: /^Title/ }).first();
+
+  try {
+    // One page viewed in each organization, so each has a recently viewed list.
+    const alpha = await createDraftPage(page, base, `Alpha ${stamp}`);
+    created.push([DEMO, alpha]);
+    await page.goto(`${base}/web-studio/collections/pages/${alpha}`);
+    await expect(title).toHaveValue(`Alpha ${stamp}`);
+    await switchOrganization(page, base, SECOND);
+    const bravo = await createDraftPage(page, base, `Bravo ${stamp}`);
+    created.push([SECOND, bravo]);
+    await page.goto(`${base}/web-studio/collections/pages/${bravo}`);
+    await expect(title).toHaveValue(`Bravo ${stamp}`);
+
+    // Tab one: the overview, opened for the demo organization.
+    await switchOrganization(page, base, DEMO);
+    const card = page.getByRole("region", { name: "Your documents" });
+    await expect(card.getByRole("tabpanel")).toBeVisible();
+    // Tab two switches Web Studio to the second organization.
+    const other = await page.context().newPage();
+    await switchOrganization(other, base, SECOND);
+
+    const call = page.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" &&
+        new URL(response.url()).pathname === "/web-studio" &&
+        Boolean(response.request().headers()["next-action"]),
+    );
+    await card.getByRole("tab", { name: "Recently viewed" }).click();
+    const response = await call;
+
+    await expect(staleNotice(page)).toBeVisible();
+    await expect(staleNotice(page)).toContainText(STALE_MESSAGE);
+    expect(response.request().headers()["x-asym-web-studio-tenant"]).toBe(DEMO);
+    expect(response.status()).toBe(500);
+    await expect(
+      card.getByRole("link", { name: new RegExp(`^Bravo ${stamp}`) }),
+    ).toHaveCount(0);
+    await other.close();
+  } finally {
+    const tab = await page.context().newPage();
+    for (const [tenant, id] of created) {
+      try {
+        await switchOrganization(tab, base, tenant);
+        await deleteDocument(tab, base, "pages", id);
+      } catch (error) {
+        console.warn(`cleanup of pages ${id} failed:`, error);
+      }
+    }
+    await tab.close();
+  }
+});
+
+// Council on the joined release, JC3: Web Studio's cookie lasts thirty days,
+// so a link from one organization's Mission Control used to open Web Studio
+// in whichever organization the person last chose there.
+test("@cms a link from Mission Control into Web Studio asks before working in another organization, never switches by itself, and leads back to that organization", async ({
+  page,
+}) => {
+  await signIn(page);
+  await enter(page, SECOND);
+
+  // Mission Control, in the demo organization, at its own address.
+  await page.goto(`${base}/${DEMO}`);
+  const link = page.locator('a[href^="/web-studio"]').first();
+  await expect(link).toHaveAttribute(
+    "href",
+    new RegExp(`[?&]organization=${DEMO}&assignment=${rowIn(DEMO)}(&|#|$)`),
+  );
+  await link.click();
+  await page.waitForURL((url) => url.pathname === "/web-studio/organization");
+  // The chooser's own notice; Next's route announcer is an alert too.
+  await expect(
+    page.getByRole("alert").filter({ hasText: "You came from" }),
+  ).toHaveText(
+    `You came from ${organizationLabel(DEMO)} in Mission Control, and Web Studio asks before it works in another organization.`,
+  );
+  await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText(
+    organizationLabel(DEMO),
+  );
+
+  // The link switched nothing: Web Studio still works in the second.
+  const check = await page.context().newPage();
+  await check.goto(`${base}/web-studio`);
+  await expect
+    .poll(async () => (await webStudioScope(check)).tenant)
+    .toBe(SECOND);
+  await check.close();
+
+  // The person chooses the demo organization; its name shows in the bar,
+  // and the way back is that organization's Mission Control.
+  await chooseOrganization(page, DEMO);
+  await page.waitForURL((url) => url.pathname.startsWith("/web-studio"));
+  await expect.poll(async () => (await webStudioScope(page)).tenant).toBe(DEMO);
+  const bar = page.getByRole("banner");
+  await expect(bar.getByText(organizationLabel(DEMO))).toBeVisible();
+  await bar.getByRole("link", { name: "Mission Control" }).click();
+  await page.waitForURL((url) => url.pathname.startsWith(`/${DEMO}`));
+});
+
+// Council on the joined release, JC6: "Inside Web Studio a person in two
+// organizations sees only the selected organization's missionaries and funds
+// in pickers and labels." The pickers read Mission Control's own API through
+// slice B's wrapper, which names the document's organization. CI's Supabase
+// is a placeholder, so this case answers that API itself, by the organization
+// each request names; the server's own filter is slice B's, proven by its
+// request-scope specs.
+test("@cms Web Studio's missionary and fund pickers list only the selected organization's", async ({
+  page,
+}) => {
+  const seen: Array<[string, string | undefined]> = [];
+  const rows: Record<string, { missionary: string; fund: string }> = {
+    [DEMO]: { missionary: "Demo Missionary", fund: "Demo Fund" },
+    [SECOND]: { missionary: "Second Missionary", fund: "Second Fund" },
+  };
+  const answer = (kind: "missionaries" | "funds") => async (route: Route) => {
+    const tenant = route.request().headers()["x-asym-tenant"];
+    seen.push([kind, tenant]);
+    const own = tenant ? rows[tenant] : undefined;
+    if (!own) {
+      await route.fulfill({ status: 403, json: { error: "No scope" } });
+      return;
+    }
+    await route.fulfill({
+      json:
+        kind === "missionaries"
+          ? {
+              missionaries: [
+                { id: `m-${tenant}`, profile: { full_name: own.missionary } },
+              ],
+            }
+          : { funds: [{ id: `f-${tenant}`, name: own.fund }] },
+    });
+  };
+  await page.route("**/api/admin/missionaries?**", answer("missionaries"));
+  await page.route("**/api/admin/funds?**", answer("funds"));
+  await signIn(page);
+
+  for (const [tenant, other] of [
+    [DEMO, SECOND],
+    [SECOND, DEMO],
+  ] as const) {
+    seen.length = 0;
+    if (tenant === DEMO) await enter(page, DEMO);
+    else await switchOrganization(page, base, SECOND);
+
+    await page.goto(`${base}/web-studio/pages/give`);
+    await page.getByRole("combobox", { name: /^Missionary/ }).click();
+    await expect(
+      page.getByRole("option", { name: rows[tenant]!.missionary }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("option", { name: rows[other]!.missionary }),
+    ).toHaveCount(0);
+    await page.keyboard.press("Escape");
+
+    await page.goto(`${base}/web-studio/projects/new`);
+    await page.getByRole("combobox", { name: /^Fund/ }).click();
+    await expect(
+      page.getByRole("option", { name: rows[tenant]!.fund }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("option", { name: rows[other]!.fund }),
+    ).toHaveCount(0);
+    await page.keyboard.press("Escape");
+
+    expect(seen.length).toBeGreaterThan(0);
+    expect(seen.every(([, named]) => named === tenant)).toBe(true);
+  }
 });

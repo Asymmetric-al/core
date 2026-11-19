@@ -108,7 +108,45 @@ describe("requireWebStudioAccess", () => {
         assignmentId: B.assignmentId,
         addressPrefix: "",
       },
-      organization: { name: "Bravo Mission", canSwitch: true },
+      organization: {
+        name: "Bravo Mission",
+        canSwitch: true,
+        // Council on the joined release, JC3: the way back goes to this
+        // organization's home in Mission Control.
+        missionControlHref: `/${TB}`,
+      },
+    });
+  });
+
+  it("sends the way back to the selected row's own address when the person holds several rows there (JC3)", async () => {
+    const finance = {
+      ...staff("00000000-0000-4000-8000-0000000000b2", TB),
+      staffRole: "finance",
+    };
+    state.signedIn = signedIn([A, B, finance]);
+    state.cookie = await signWebStudioSelection(
+      { tenantId: TB, assignmentId: finance.assignmentId },
+      "unit-test-payload-secret",
+    );
+
+    await expect(requireWebStudioAccess("/web-studio")).resolves.toMatchObject({
+      organization: { missionControlHref: `/${TB}~finance` },
+    });
+  });
+
+  // Council on the joined release, JC2: the organization a server function
+  // must have been rendered for, read as the gate reads it.
+  it("reads the row the cookie selects for a server function, or why there is none", async () => {
+    const { readWebStudioSelection } =
+      await import("../../../../apps/admin/src/cms/web-studio-access");
+    state.cookie = await signWebStudioSelection(
+      { tenantId: TB, assignmentId: B.assignmentId },
+      "unit-test-payload-secret",
+    );
+    await expect(readWebStudioSelection()).resolves.toEqual({
+      kind: "selected",
+      tenantId: TB,
+      assignmentId: B.assignmentId,
     });
   });
 
@@ -157,5 +195,19 @@ describe("requireWebStudioAccess", () => {
   it("refuses when the person's rows cannot be read", async () => {
     state.signedIn = { kind: "unavailable" };
     expect(await redirectOf()).toBe("/no-access");
+  });
+
+  it("reads no row for a server function without a usable choice, or without a session (JC2)", async () => {
+    const { readWebStudioSelection } =
+      await import("../../../../apps/admin/src/cms/web-studio-access");
+    await expect(readWebStudioSelection()).resolves.toEqual({ kind: "none" });
+
+    state.signedIn = { kind: "unavailable" };
+    await expect(readWebStudioSelection()).resolves.toEqual({ kind: "none" });
+
+    state.signedIn = { kind: "signed_out" };
+    await expect(readWebStudioSelection()).resolves.toEqual({
+      kind: "signed_out",
+    });
   });
 });

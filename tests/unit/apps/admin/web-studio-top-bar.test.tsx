@@ -1,9 +1,21 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
 import { StudioTopBar } from "../../../../apps/admin/src/cms-ui/web-studio/shell/studio-top-bar";
+
+const organization = vi.hoisted(() => ({
+  current: null as null | {
+    name: string;
+    canSwitch: boolean;
+    missionControlHref: string;
+  },
+}));
+vi.mock(
+  "../../../../apps/admin/src/cms-ui/web-studio/shell/web-studio-document",
+  () => ({ useWebStudioOrganization: () => organization.current }),
+);
 
 vi.mock(
   "../../../../apps/admin/node_modules/@payloadcms/ui/dist/exports/client/index.js",
@@ -68,4 +80,25 @@ it("keeps a section's own page name alone on phones", () => {
   expect(phone.textContent).toBe("Pages");
   expect(container.querySelector("header a.sm\\:hidden")).toBeNull();
   expect(screen.getByText("Staff only")).toBeTruthy();
+});
+
+// Council on the joined release, JC3: a person in two organizations must
+// see which one Web Studio works in without opening the account menu, and
+// the way back leads to that organization's home in Mission Control.
+it("names the organization Web Studio works in in the bar itself, and leads back to its home in Mission Control", () => {
+  organization.current = {
+    name: "Bravo Mission",
+    canSwitch: true,
+    missionControlHref: "/00000000-0000-0000-0000-000000000002",
+  };
+  render(<StudioTopBar sectionLabel="Pages" />);
+  const bar = screen.getByRole("banner");
+  // The account menu is closed: its content is not in the page.
+  expect(screen.queryByRole("menu")).toBeNull();
+  expect(within(bar).getByText("Bravo Mission")).toBeTruthy();
+  expect(
+    within(bar)
+      .getByRole("link", { name: "Mission Control" })
+      .getAttribute("href"),
+  ).toBe("/00000000-0000-0000-0000-000000000002");
 });

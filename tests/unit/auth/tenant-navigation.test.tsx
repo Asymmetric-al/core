@@ -409,8 +409,10 @@ describe("one way to build an address", () => {
     expect(screen.getByText("Gift").getAttribute("href")).toBe(
       `${prefix}/contributions?gift=1`,
     );
+    // Outside the tenant segment, so never prefixed; it names the document's
+    // tenant and row instead (JC3).
     expect(screen.getByText("Web Studio").getAttribute("href")).toBe(
-      "/web-studio",
+      `/web-studio?organization=${TA}&assignment=${scopeA.assignmentId}`,
     );
     expect(screen.getByText("Export").getAttribute("href")).toBe(
       "/api/admin/export",
@@ -535,9 +537,45 @@ describe("TenantSegmentBoundary: a crossing is a document load", () => {
     },
   );
 
+  // Council on the joined release, JC1: Web Studio's pages are a segment of
+  // their own. Its chooser and sign-in are outside it, so a soft landing on
+  // either from a Web Studio page, or on a Web Studio page from either, is a
+  // crossing.
+  it.each([
+    [
+      "from a Web Studio page to its chooser",
+      "/web-studio/collections/pages/7",
+      "/web-studio/organization",
+    ],
+    ["from sign-in into Web Studio", "/login", "/web-studio/collections/pages"],
+    [
+      "from Web Studio's chooser into Web Studio",
+      "/web-studio/organization",
+      "/web-studio",
+    ],
+    ["from Web Studio to a tenant's page", "/web-studio", `/${TA}/tasks`],
+  ])(
+    "loads the new address as a document when a soft navigation goes %s",
+    async (_label, from, to) => {
+      const boundary = await boundaryLoadedAt(from);
+      boundary.moveTo(to);
+      expect(reloadDocument).toHaveBeenCalledTimes(1);
+    },
+  );
+
   it.each([
     ["within one tenant's segment", `/${TA}/tasks`, `/${TA}/tasks/t-1`],
     ["between two outside pages", "/login", "/register"],
+    [
+      "between two Web Studio pages",
+      "/web-studio",
+      "/web-studio/collections/pages/7",
+    ],
+    [
+      "from sign-in to Web Studio's chooser",
+      "/login",
+      "/web-studio/organization",
+    ],
   ])("stays soft %s", async (_label, from, to) => {
     const boundary = await boundaryLoadedAt(from);
     boundary.moveTo(to);
@@ -567,8 +605,10 @@ describe("TenantSegmentBoundary: a crossing is a document load", () => {
       </mod.TenantSegmentBoundary>,
     );
 
+    // Into Web Studio, naming this document's tenant and row (JC3).
+    const studio = `/web-studio?organization=${TA}&assignment=${scopeA.assignmentId}`;
     act(() => screen.getByText("Web Studio").click());
-    expect(loadDocument).toHaveBeenLastCalledWith("/web-studio", {
+    expect(loadDocument).toHaveBeenLastCalledWith(studio, {
       replace: false,
     });
     act(() => screen.getByText("Other tenant").click());
@@ -580,7 +620,7 @@ describe("TenantSegmentBoundary: a crossing is a document load", () => {
     expect(loadDocument).not.toHaveBeenCalled();
 
     act(() => router!.push("/web-studio"));
-    expect(loadDocument).toHaveBeenLastCalledWith("/web-studio", {
+    expect(loadDocument).toHaveBeenLastCalledWith(studio, {
       replace: false,
     });
     act(() => router!.replace(`/${TB}`));
@@ -592,27 +632,30 @@ describe("TenantSegmentBoundary: a crossing is a document load", () => {
 
   // Council round 2, AR4: a crossing loads the address the link itself
   // shows, as next/link formats an object href and the browser resolves it,
-  // not a second formatting of the object.
+  // not a second formatting of the object. Into Web Studio from a tenant's
+  // document, that address names the document's tenant and row, however the
+  // object gives its query (JC3).
+  const entry = `organization=${TA}&assignment=${scopeA.assignmentId}`;
   it.each([
     [
       "a fragment written without its #",
       { pathname: "/web-studio", hash: "pages" },
-      "/web-studio#pages",
+      `/web-studio?${entry}#pages`,
     ],
     [
       "a query given as a string",
       { pathname: "/web-studio", query: "site=1" },
-      "/web-studio?site=1",
+      `/web-studio?site=1&${entry}`,
     ],
     [
       "a search",
       { pathname: "/web-studio", search: "?site=1" },
-      "/web-studio?site=1",
+      `/web-studio?site=1&${entry}`,
     ],
     [
       "a query object and a fragment",
       { pathname: "/web-studio", query: { site: ["1", "2"] }, hash: "#pages" },
-      "/web-studio?site=1&site=2#pages",
+      `/web-studio?site=1&site=2&${entry}#pages`,
     ],
   ])(
     "loads the address the link shows for a crossing with %s",
@@ -790,6 +833,117 @@ describe("TenantSegmentBoundary: a crossing is a document load", () => {
     expect(loadDocument).not.toHaveBeenCalled();
     act(() => router!.replace("/tasks"));
     expect(loadDocument).toHaveBeenLastCalledWith("/tasks", { replace: true });
+  });
+
+  // Council on the joined release, JC3: Web Studio keeps its organization in
+  // a cookie, so a link into it from a tenant's document names that
+  // document's tenant and row; the proxy compares them with the cookie and
+  // asks before Web Studio works anywhere else. Nothing else changes: other
+  // addresses, the chooser, and every link of a document whose address names
+  // no tenant (Web Studio's own, the donor portal's).
+  it("names the tenant's document on a link into Web Studio, and nothing else", async () => {
+    const mod = await boundaryLoadedAt(`${scopeA.addressPrefix}/contributions`);
+    cleanup();
+    const entry = `organization=${TA}&assignment=${scopeA.assignmentId}`;
+    let href: ((target: string) => string) | null = null;
+    function Page() {
+      href = mod.useTenantHref();
+      return (
+        <>
+          <mod.TenantLink href="/web-studio/collections/ministry-updates">
+            Updates
+          </mod.TenantLink>
+          <mod.TenantLink href="/web-studio?view=grid#top">
+            Studio
+          </mod.TenantLink>
+          <mod.TenantLink href="/web-studio/organization">
+            Chooser
+          </mod.TenantLink>
+          <mod.TenantLink href="/care">Care</mod.TenantLink>
+        </>
+      );
+    }
+    render(
+      <mod.TenantSegmentBoundary>
+        <mod.TenantDocument scope={scopeA}>
+          <Page />
+        </mod.TenantDocument>
+      </mod.TenantSegmentBoundary>,
+    );
+
+    expect(screen.getByText("Updates").getAttribute("href")).toBe(
+      `/web-studio/collections/ministry-updates?${entry}`,
+    );
+    expect(screen.getByText("Studio").getAttribute("href")).toBe(
+      `/web-studio?view=grid&${entry}#top`,
+    );
+    expect(screen.getByText("Chooser").getAttribute("href")).toBe(
+      "/web-studio/organization",
+    );
+    expect(screen.getByText("Care").getAttribute("href")).toBe(
+      `${scopeA.addressPrefix}/care`,
+    );
+    expect(href!("/web-studio")).toBe(`/web-studio?${entry}`);
+  });
+
+  // Council on the joined release, JC1: sign-in with `next=/web-studio/…`
+  // crosses into Web Studio's segment, so the screen's `replace(target);
+  // refresh()` is one document load, not a soft render the scope provider
+  // then blanks and reloads.
+  it("makes sign-in's way into Web Studio one document load, and its way to Web Studio's chooser soft", async () => {
+    const mod = await boundaryLoadedAt("/login");
+    cleanup();
+    let router: ReturnType<typeof mod.useTenantRouter> | null = null;
+    function Page() {
+      router = mod.useTenantRouter();
+      return null;
+    }
+    render(
+      <mod.TenantSegmentBoundary>
+        <Page />
+      </mod.TenantSegmentBoundary>,
+    );
+
+    act(() => router!.replace("/web-studio/organization?next=%2Fweb-studio"));
+    expect(nav.replace).toHaveBeenCalledWith(
+      "/web-studio/organization?next=%2Fweb-studio",
+    );
+    expect(loadDocument).not.toHaveBeenCalled();
+
+    act(() => router!.replace("/web-studio/collections/pages"));
+    expect(loadDocument).toHaveBeenLastCalledWith(
+      "/web-studio/collections/pages",
+      { replace: true },
+    );
+    act(() => router!.refresh());
+    expect(nav.refresh).not.toHaveBeenCalled();
+  });
+
+  it("makes a Web Studio page's links to its chooser and out of Web Studio load a document, and keeps its own pages soft", async () => {
+    const mod = await boundaryLoadedAt("/web-studio/collections/pages/7");
+    cleanup();
+    render(
+      <mod.TenantSegmentBoundary>
+        <mod.TenantLink href="/web-studio/organization?next=%2Fweb-studio">
+          Switch organization
+        </mod.TenantLink>
+        <mod.TenantLink href="/web-studio/collections/pages/8">
+          Next page
+        </mod.TenantLink>
+        <mod.TenantLink href="/">Mission Control</mod.TenantLink>
+      </mod.TenantSegmentBoundary>,
+    );
+
+    act(() => screen.getByText("Switch organization").click());
+    expect(loadDocument).toHaveBeenLastCalledWith(
+      "/web-studio/organization?next=%2Fweb-studio",
+      { replace: false },
+    );
+    loadDocument.mockReset();
+    act(() => screen.getByText("Next page").click());
+    expect(loadDocument).not.toHaveBeenCalled();
+    act(() => screen.getByText("Mission Control").click());
+    expect(loadDocument).toHaveBeenLastCalledWith("/", { replace: false });
   });
 
   // An app with no segment boundary at all. The donor app declares the

@@ -3,6 +3,8 @@ import { cleanup, render } from "@testing-library/react";
 import { createElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { WEB_STUDIO_SEGMENT } from "../../../../packages/auth/web-studio";
+
 /**
  * WP2b acceptance (plan 12, WP2; AL-2675): "Inside Web Studio a person in two
  * organizations sees only the selected one's missionaries and funds in
@@ -60,9 +62,11 @@ function missionControlApi(path: string, init: RequestInit = {}) {
 }
 
 /**
- * A new Web Studio document showing `tenant`, as slice C will render it: its
- * address names no tenant, so the scope has an empty prefix and is bounded by
- * Web Studio's path (council round 2, BR1).
+ * A new Web Studio document showing `tenant`, with the scope Web Studio's
+ * document renders (`web-studio-document.tsx`): its address names no tenant,
+ * so the scope has an empty prefix and is bounded by Web Studio's pages
+ * (`WEB_STUDIO_SEGMENT`; council round 2, BR1; council on the joined
+ * release, JC1 and JC10).
  */
 async function loadStudioDocument(tenant: TenantId) {
   cleanup();
@@ -81,7 +85,7 @@ async function loadStudioDocument(tenant: TenantId) {
           assignmentId: ORGANIZATIONS[tenant].assignmentId,
           addressPrefix: "",
         },
-        segment: "/web-studio",
+        segment: WEB_STUDIO_SEGMENT,
       },
       null,
     ),

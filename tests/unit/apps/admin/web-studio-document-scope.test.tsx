@@ -3,7 +3,7 @@ import {
   getDocumentScope,
   useDocumentScope,
 } from "@asym/database/document-scope";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 /**
@@ -142,6 +142,80 @@ describe("a Web Studio document", () => {
       window.history.replaceState(null, "", "/web-studio/collections/pages");
     }
     expect(getDocumentScope()).toEqual(SCOPE);
+  });
+
+  // Council on the joined release, JC2: Payload's server functions are
+  // server actions posted to the page's own address. The proxy deletes the
+  // REST pair from every page request (only its own decision sets one
+  // there), so the document names its organization in Web Studio's own
+  // claim headers, which the Payload layout compares with the cookie.
+  it("names its tenant and row, as claims, on a server function Payload posts from a Web Studio page", async () => {
+    sent.length = 0;
+    await window.fetch("/web-studio/collections/pages/7", {
+      method: "POST",
+      headers: { Accept: "text/x-component", "next-action": "0123abcd" },
+      body: "[]",
+    });
+
+    expect(sent).toHaveLength(1);
+    expect(sent[0]!.headers.get("x-asym-web-studio-tenant")).toBe(TB);
+    expect(sent[0]!.headers.get("x-asym-web-studio-assignment")).toBe(
+      SCOPE.assignmentId,
+    );
+    expect(sent[0]!.headers.get("next-action")).toBe("0123abcd");
+  });
+
+  it("sends no claim on the chooser's own action, a plain post or a read of a page", async () => {
+    sent.length = 0;
+    await window.fetch("/web-studio/organization", {
+      method: "POST",
+      headers: { "next-action": "0123abcd" },
+    });
+    await window.fetch("/web-studio/collections/pages", { method: "POST" });
+    await window.fetch("/web-studio/collections/pages", {
+      headers: { "next-action": "0123abcd" },
+    });
+
+    expect(sent).toHaveLength(3);
+    for (const call of sent) {
+      expect(call.headers.get("x-asym-web-studio-tenant"), call.url).toBeNull();
+    }
+  });
+
+  it("asks the person to reload when a server function is refused for another organization", async () => {
+    underlyingFetch.mockImplementationOnce(
+      async () =>
+        new Response(
+          '0:{"a":"$@1"}\n1:E{"digest":"ASYM_WEB_STUDIO_REFUSAL;scope_mismatch"}\n',
+          { status: 500, headers: { "content-type": "text/x-component" } },
+        ),
+    );
+    // One document on the page, with its one notice.
+    cleanup();
+    render(
+      <WebStudioDocument
+        scope={SCOPE}
+        organization={{ name: "Bravo Mission", canSwitch: true }}
+      >
+        <Probe />
+      </WebStudioDocument>,
+    );
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+
+    const response = await window.fetch("/web-studio", {
+      method: "POST",
+      headers: { "next-action": "0123abcd" },
+      body: "[]",
+    });
+
+    // Next reads the answer itself; the document only watches it.
+    expect(response.status).toBe(500);
+    expect(await response.text()).toContain("ASYM_WEB_STUDIO_REFUSAL");
+    expect(
+      await screen.findByRole("alertdialog", {
+        name: "This page belongs to another organization",
+      }),
+    ).toBeTruthy();
   });
 
   it("wraps fetch once however often it renders", () => {

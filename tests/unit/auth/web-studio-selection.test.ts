@@ -5,8 +5,11 @@ import {
   clearedWebStudioCookie,
   decideWebStudioAccess,
   isWebStudioApiPath,
+  isWebStudioPagePath,
   isWebStudioPath,
   readWebStudioCookie,
+  safeWebStudioNext,
+  WEB_STUDIO_SEGMENT,
   signWebStudioSelection,
   webStudioCookie,
   webStudioResolveInput,
@@ -144,6 +147,44 @@ describe("Web Studio paths", () => {
     expect(isWebStudioApiPath("/web-studio/apis")).toBe(false);
     expect(isWebStudioApiPath("/web-studio")).toBe(false);
     expect(isWebStudioApiPath("/api/pages")).toBe(false);
+  });
+
+  // Council on the joined release, JC1: one definition of a Web Studio page,
+  // which the tenant boundary, the document's scope and Payload's router
+  // adapter all use. The chooser and the REST routes are under /web-studio
+  // but are not pages of it.
+  it("knows a Web Studio page from the chooser and the REST routes under the same path", () => {
+    for (const page of [
+      "/web-studio",
+      "/web-studio/collections/pages/7",
+      "/web-studio/pages/give",
+      // No API route serves the bare path; it renders as a page (C5).
+      "/web-studio/api",
+      "/web-studio/organizations",
+    ]) {
+      expect(isWebStudioPagePath(page), page).toBe(true);
+    }
+    for (const other of [
+      "/web-studio/organization",
+      "/web-studio/organization/anything",
+      "/web-studio/api/pages",
+      "/web-studio-old",
+      "/",
+      "/login",
+      "/00000000-0000-0000-0000-000000000001/web-studio",
+    ]) {
+      expect(isWebStudioPagePath(other), other).toBe(false);
+    }
+    expect(WEB_STUDIO_SEGMENT.name).toBe("/web-studio");
+    expect(WEB_STUDIO_SEGMENT.contains).toBe(isWebStudioPagePath);
+  });
+
+  it("returns a choice only to a Web Studio page", () => {
+    expect(safeWebStudioNext("/web-studio/collections/pages?page=2")).toBe(
+      "/web-studio/collections/pages?page=2",
+    );
+    expect(safeWebStudioNext("/web-studio/organization/x")).toBe("/web-studio");
+    expect(safeWebStudioNext("/web-studio/api/pages")).toBe("/web-studio");
   });
 });
 

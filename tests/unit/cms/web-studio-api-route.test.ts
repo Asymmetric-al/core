@@ -97,6 +97,20 @@ describe("writes to /web-studio/api", () => {
     expect(other.status).toBe(403);
   });
 
+  // Council on the joined release, JC7: an opaque origin (a `data:` or
+  // sandboxed document) serializes as the string "null"; read as an origin
+  // it made the check throw, so the write answered 500 instead of 403.
+  it.each([
+    ["a data: referrer", { referer: "data:text/html,<form>" }],
+    ["an opaque Origin", { origin: "null" }],
+    ["a referrer that is no URL", { referer: "not a url" }],
+  ])("refuses a write from %s with 403, never 500", async (_label, headers) => {
+    const payload = handler();
+    const response = await call(sameOriginWrites(payload), "POST", headers);
+    expect(response.status).toBe(403);
+    expect(payload).not.toHaveBeenCalled();
+  });
+
   it("leaves reads and preflights to Payload", async () => {
     for (const method of ["GET", "HEAD", "OPTIONS"]) {
       const inner = handler();

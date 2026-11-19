@@ -116,3 +116,41 @@ it("asks again in a page the browser restores from its back/forward cache", () =
   expect(payloadPrompt).toHaveBeenCalledTimes(1);
   expect(event.defaultPrevented).toBe(true);
 });
+
+// Council on the joined release, JC4: the person chose to leave, but the
+// document is still here once the task that began the load is over: they
+// pressed Stop or Escape, or the answer was a 204 or a download. Payload's
+// prompt guards the rest of the document's life again, as slice A's mark
+// does for refresh (AR14).
+it("asks again once the task that began the load is over and the document is still here", async () => {
+  const jsdomNavigation = vi
+    .spyOn(console, "error")
+    .mockImplementation(() => {});
+  loadDocument("/web-studio/organization?next=%2Fweb-studio", {
+    replace: false,
+  });
+  jsdomNavigation.mockRestore();
+  payloadPrompt.mockClear();
+
+  await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  const event = unload();
+  expect(payloadPrompt).toHaveBeenCalledTimes(1);
+  expect(event.defaultPrevented).toBe(true);
+});
+
+it("stops only the one prompt of the load it began, even within its task", () => {
+  const jsdomNavigation = vi
+    .spyOn(console, "error")
+    .mockImplementation(() => {});
+  loadDocument("/web-studio/organization?next=%2Fweb-studio", {
+    replace: false,
+  });
+  jsdomNavigation.mockRestore();
+  payloadPrompt.mockClear();
+
+  expect(unload().defaultPrevented).toBe(false);
+  expect(payloadPrompt).not.toHaveBeenCalled();
+  // A second unload in the same task is not the load the person chose.
+  expect(unload().defaultPrevented).toBe(true);
+  expect(payloadPrompt).toHaveBeenCalledTimes(1);
+});

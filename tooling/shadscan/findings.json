@@ -1793,7 +1793,7 @@
         },
         {
           "path": "tests/unit/auth/tenant-navigation.test.tsx",
-          "sha256": "f2ef691f13fbe61c51abe0c5bbdfc6d781c7bc47cf039340e8a9bd906ffc4fd5"
+          "sha256": "dede62ff34111388ccf5ca4d3311c1c65c5b777759394d325239cee91c71647f"
         }
       ]
     },

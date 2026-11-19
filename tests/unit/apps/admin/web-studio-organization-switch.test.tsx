@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
 import { StudioTopBar } from "../../../../apps/admin/src/cms-ui/web-studio/shell/studio-top-bar";
@@ -55,14 +61,21 @@ it("names the organization and offers a switch to a person in more than one", as
   render(
     <WebStudioDocument
       scope={SCOPE}
-      organization={{ name: "Bravo Mission", canSwitch: true }}
+      organization={{
+        name: "Bravo Mission",
+        canSwitch: true,
+        missionControlHref: "/00000000-0000-0000-0000-000000000002",
+      }}
     >
       <StudioTopBar sectionLabel="Pages" />
     </WebStudioDocument>,
   );
   openAccountMenu();
 
-  expect(await screen.findByText("Bravo Mission")).toBeTruthy();
+  // The account menu names it too; the bar always does (JC3).
+  expect(
+    within(await screen.findByRole("menu")).getByText("Bravo Mission"),
+  ).toBeTruthy();
   const item = await screen.findByRole("menuitem", {
     name: /Switch organization/,
   });
@@ -75,14 +88,21 @@ it("offers no switch to a person with one place to work", async () => {
   render(
     <WebStudioDocument
       scope={SCOPE}
-      organization={{ name: "Bravo Mission", canSwitch: false }}
+      organization={{
+        name: "Bravo Mission",
+        canSwitch: false,
+        missionControlHref: "/00000000-0000-0000-0000-000000000002",
+      }}
     >
       <StudioTopBar sectionLabel="Pages" />
     </WebStudioDocument>,
   );
   openAccountMenu();
 
-  expect(await screen.findByText("Bravo Mission")).toBeTruthy();
+  // The account menu names it too; the bar always does (JC3).
+  expect(
+    within(await screen.findByRole("menu")).getByText("Bravo Mission"),
+  ).toBeTruthy();
   expect(
     screen.queryByRole("menuitem", { name: /Switch organization/ }),
   ).toBeNull();
