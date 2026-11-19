@@ -44,6 +44,11 @@ import {
 import { isLoopbackDatabaseUrl } from "../../packages/env/src/database-url.mjs";
 import { requirePsqlHonoursRequireAuth } from "../lib/psql.mjs";
 import { publishedLoginPasswords } from "../lib/published-passwords.mjs";
+import {
+  checkSeedCounts,
+  countSql,
+  readSeedExpectations,
+} from "../verify/seed-counts.mjs";
 import { runCatalogGates } from "./catalog-gates.mjs";
 import {
   KNOWN_PROJECT_REFS,
@@ -122,6 +127,7 @@ function stop(message) {
  */
 export function roleDatabaseUrl(databaseUrl, role, password) {
   const url = new URL(databaseUrl);
+  stripQueryPassword(url);
   const user = decodeURIComponent(url.username);
   const suffix = user.includes(".") ? user.slice(user.indexOf(".")) : "";
   url.username = encodeURIComponent(`${role}${suffix}`);
@@ -288,10 +294,27 @@ export function childEnvironment(extra = {}, base = process.env) {
   };
 }
 
+function stripQueryPassword(url) {
+  if (!url.searchParams.has("password")) return undefined;
+  let password;
+  url.search = url.search
+    .slice(1)
+    .split("&")
+    .filter((pair) => {
+      const separator = pair.indexOf("=");
+      if (decodeURIComponent(pair.slice(0, separator)) !== "password")
+        return true;
+      password = decodeURIComponent(pair.slice(separator + 1));
+      return false;
+    })
+    .join("&");
+  return password;
+}
+
 /** A connection string without its password, and the password. */
 export function splitPassword(databaseUrl) {
   const url = new URL(databaseUrl);
-  const password = decodeURIComponent(url.password);
+  const password = stripQueryPassword(url) ?? decodeURIComponent(url.password);
   url.password = "";
   return { url: url.toString(), password };
 }
@@ -319,16 +342,14 @@ const HEALTH_EXISTS_SQL = `SELECT json_build_object('exists',
 const HEALTH_SQL = `SELECT ${RELEASE_DATABASE_CONTRACT.healthFunction}()::text;`;
 
 /**
- * Whether the default privileges of postgres in public grant anon or
- * authenticated anything (review K3). A rebuild reopens them before its reset
- * and the chain closes them again; while they are open, anything a migration
- * creates in public is open to both, so preflight refuses migrate.
+ * Explicit global and public-schema defaults that grant client roles access
+ * to new objects, either directly or through PUBLIC (grantee OID zero).
  */
 const PUBLIC_DEFAULTS_OPEN = `EXISTS (
   SELECT 1 FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) AS a
   WHERE d.defaclrole = 'postgres'::regrole
-    AND d.defaclnamespace = 'public'::regnamespace
-    AND a.grantee IN (SELECT oid FROM pg_roles WHERE rolname IN ('anon', 'authenticated')))`;
+    AND d.defaclnamespace IN (0, 'public'::regnamespace)
+    AND (a.grantee = 0 OR a.grantee IN (SELECT oid FROM pg_roles WHERE rolname IN ('anon', 'authenticated'))))`;
 const DEFAULTS_OPEN_SQL = `SELECT json_build_object('open', ${PUBLIC_DEFAULTS_OPEN})::text;`;
 /**
  * After a failed reset: the marker and those defaults in one query. The
@@ -396,17 +417,33 @@ export function preflight({
   });
   if (!health) {
     stop(
-      "The database has no release health function: it predates WP1. Its first rebuild is the dispatched first-rebuild step.",
+      "The database has no release health function: it predates WP1 or its setup is incomplete. Dispatch first-rebuild with the census link only if no head exists and the marker is absent or disposable.",
     );
   }
   if (health.environment === null) {
+    if (Object.values(health.heads).some(Boolean))
+      stop(
+        "The database has no environment marker but has a recorded head. First-rebuild is forbidden; stop and consult the owner.",
+      );
     stop(
-      "The database has no environment marker, which counts as not disposable. Its first rebuild is the dispatched first-rebuild step.",
+      "The database has no environment marker or recorded head. Dispatch first-rebuild with the census link and fresh owner approval.",
     );
   }
   if (!settings.policy.markers.includes(health.environment)) {
     stop(
       `The ${settings.environment} release refuses a database marked ${health.environment}.`,
+    );
+  }
+  if (
+    settings.policy.rebuild === "first-only" &&
+    !Object.values(health.heads).some(Boolean)
+  ) {
+    if (health.environment !== "disposable")
+      stop(
+        `This database has no recorded head and is marked ${health.environment}. The marker forbids first-rebuild; stop and consult the owner.`,
+      );
+    stop(
+      "This database has no recorded head. Dispatch first-rebuild again with the census link, typed confirmation and fresh owner approval.",
     );
   }
   // A rebuild that stopped between its seed and the replacement of the seed's
@@ -420,7 +457,13 @@ export function preflight({
   });
   if (defaults?.open) {
     stop(
-      `The default privileges of postgres in public are open to anon and authenticated: a rebuild stopped after it put the platform's back and before the chain closed them again. migrate would create everything new there open to both, so nothing was migrated or deployed. Rebuild the database (docs/ops/release-job.md, "If the reset fails after this step").`,
+      [
+        "The default privileges of postgres grant access to anon, authenticated, or PUBLIC, globally or in schema public; nothing was migrated or deployed.",
+        "Inspect the grants with psql's \\ddp.",
+        "Revoke each offending grant with ALTER DEFAULT PRIVILEGES FOR ROLE postgres [IN SCHEMA public] REVOKE <privileges> ON <object type> FROM <grantee>, then rerun the release.",
+        "Omit IN SCHEMA public for a global grant.",
+        "First-rebuild is an option only when no head is recorded and the marker is absent or disposable.",
+      ].join(" "),
     );
   }
   const published = countPublishedLogins({ settings, root, query });
@@ -460,7 +503,7 @@ function runChecked(runCommand, label, command, args, env) {
 /**
  * The pinned Supabase CLI reads the password of a `--db-url` that carries
  * none from PGPASSWORD (checked on 2.121.0), so it stays off the command line.
- * splitPassword clears the login part's password only; the target check
+ * splitPassword clears both password locations; the target check
  * refuses a hosted address with a password in its query (review M1).
  * It reads the CA file the address names (withDatabaseCaFile) and, under
  * sslmode=verify-full, verifies the chain to it and the host name (its
@@ -516,10 +559,10 @@ function requirePinnedSupabaseCli(runCommand) {
 /**
  * The one reset that does not go through `bun run supabase`. That wrapper
  * refuses to reset a database not marked disposable (WP1.1), and the first
- * rebuild of a hosted database has no marker by definition: it is the named
+ * rebuild may start without a marker: it is the named
  * exception of plan 7.5. It runs only here, in the release job's dispatched
  * first-rebuild step, after the checks in rebuild(): the target project, a
- * database with no marker, the owner's census sign-off (or a provably empty
+ * database with no recorded head and no protected marker, the owner's census sign-off (or a provably empty
  * new project) and the typed confirmation. It uses the same pinned CLI: the
  * one the release workflow installs with supabase/setup-cli, never one fetched
  * at run time (npx inside the repository stops on the root package.json's
@@ -726,7 +769,7 @@ export function migrate({
     now,
     next: "This release stopped before Payload's migrations, the gates, the heads and the deployment, so nothing was deployed. Wait two minutes, then re-run the release; a password that then logs in is left alone.",
     nextUnchanged:
-      "Nothing was changed, and this release stopped before Payload's migrations, the gates, the heads and the deployment, so nothing was deployed. Fix what the refusal names, then re-run the release.",
+      "Supabase migrations may already be applied. This release stopped before Payload's migrations, the gates, the heads and the deployment, so nothing was deployed. Fix what the refusal names, then re-run the release.",
   });
   payloadMigrate({ settings, runCommand });
   const { checks } = checkLedgers({
@@ -899,8 +942,8 @@ const POSTGRES_DEFAULT_ENTRIES = (
 ) => `(SELECT coalesce(string_agg(entry, ' ' ORDER BY entry), '') FROM (
   SELECT CASE d.defaclobjtype WHEN 'r' THEN 'tables' WHEN 'S' THEN 'sequences'
               WHEN 'f' THEN 'functions' WHEN 'T' THEN 'types' WHEN 'n' THEN 'schemas'
-              ELSE d.defaclobjtype::text END || ':' || item::text AS entry
-  FROM pg_default_acl d CROSS JOIN LATERAL unnest(d.defaclacl) AS item
+              ELSE d.defaclobjtype::text END || ':' || coalesce(item::text, '<empty>') AS entry
+  FROM pg_default_acl d LEFT JOIN LATERAL unnest(d.defaclacl) AS item ON true
   WHERE d.defaclrole = 'postgres'::regrole AND ${where}) AS entries)`;
 
 const CLEAR_PUBLIC_DEFAULTS_SQL = `DO $clear$
@@ -1009,7 +1052,7 @@ function failedResetMessage({ resetFailure, state, mode }) {
   const head = `The reset failed (${resetFailure.message}) after the platform's default privileges were put back.`;
   const guide = `docs/ops/release-job.md, "If the reset fails after this step"`;
   if (!state || typeof state.open !== "boolean") {
-    return `${head} The database could not be read afterwards, so treat the default privileges of postgres in public as open to anon and authenticated; preflight refuses migrate while they are. Fix the cause, then rebuild it (${guide}).`;
+    return `${head} The database could not be read afterwards, so treat the default privileges of postgres in public as open to anon and authenticated; preflight refuses migrate while they are. Restore connectivity and inspect the marker, heads and defaults before selecting a recovery (${guide}).`;
   }
   const marker = state.marker
     ? `Its marker reads ${state.marker}`
@@ -1017,19 +1060,12 @@ function failedResetMessage({ resetFailure, state, mode }) {
   const defaults = state.open
     ? "the default privileges of postgres in public are open to anon and authenticated, as the restore left them: the chain did not get as far as closing them"
     : "the default privileges of postgres in public are closed again: the chain ran past the migration that closes them";
-  let next;
-  if (!state.marker) {
-    next =
-      "Fix the cause, then dispatch first-rebuild again for this environment: it runs on a database with no marker.";
-  } else if (mode === "disposable") {
-    next = "Fix the cause. Rebuild it again.";
-  } else if (!state.open) {
-    next =
-      "first-rebuild refuses a marked database, and the seed may be partial (fixtures only). Fix the cause, then dispatch set-cms-role-passwords, then the release: its migrate step applies what the chain did not and runs Payload's migrations, and the gates and the heads follow.";
-  } else {
-    next =
-      "This needs the owner: first-rebuild refuses a marked database, a production environment never resets, and preflight refuses migrate while the defaults are open. Removing the marker by hand lets first-rebuild run again.";
-  }
+  const next =
+    state.marker && state.marker !== "disposable"
+      ? "This marker forbids a reset; stop and investigate with the owner."
+      : mode === "first" || !state.marker
+        ? "Fix the cause, then dispatch first-rebuild again with the census link, typed confirmation and fresh approval, provided no head has been recorded."
+        : "Fix the cause. Rebuild it again.";
   const guard = state.open
     ? " Until then preflight refuses migrate on it."
     : "";
@@ -1050,7 +1086,7 @@ const EMPTY_SQL = `SELECT json_build_object(
  * seeded logins the release environment's password, then Payload migrations. The gates and the heads follow as the release's
  * next steps.
  *
- * - mode "first": the one-off first rebuild of a database with no marker
+ * - mode "first": first rebuild before either head is recorded, on a database with no marker or a disposable marker
  *   (plan 7.5). It takes the owner's census sign-off as its input, or, for a
  *   newly created project, proof that the database is empty.
  * - mode "disposable": the preview rebuild, only where the marker says
@@ -1081,21 +1117,35 @@ export async function rebuild({
       databaseUrl: settings.databaseUrl,
       query,
     });
-    const marker = health?.environment ?? null;
-    if (marker !== null) {
+    const { marker, recorded } = health
+      ? {
+          marker: health.environment,
+          recorded: Object.values(health.heads).some(Boolean),
+        }
+      : query({
+          databaseUrl: settings.databaseUrl,
+          label: "inspect partial release state",
+          sql: `SELECT json_build_object(
+          'marker', CASE WHEN to_regclass('platform.environment') IS NOT NULL THEN
+            (xpath('//kind/text()',query_to_xml('SELECT kind FROM platform.environment',false,false,'')))[1]::text END,
+          'recorded', CASE WHEN to_regclass('platform.migration_heads') IS NULL THEN false ELSE
+            cardinality(xpath('//ledger/text()',query_to_xml('SELECT ledger FROM platform.migration_heads',false,false,''))) > 0 END)::text;`,
+        });
+    if (recorded !== false)
       stop(
-        `The database is already marked ${marker}; the first rebuild runs once, on a database with no marker.`,
+        "A recorded head permanently closes first-rebuild; do not reset this database.",
       );
-    }
+    if (marker !== null && marker !== "disposable")
+      stop(`The database is marked ${marker}; first-rebuild refuses it.`);
     if (signoff === "empty-project") {
       const state = query({
         databaseUrl: settings.databaseUrl,
         sql: EMPTY_SQL,
         label: "check the project is empty",
       });
-      if (state.relations !== 0 || state.ledger !== 0) {
+      if (marker !== null || state.relations !== 0 || state.ledger !== 0) {
         stop(
-          "The project is not empty; its first rebuild needs the owner's census sign-off.",
+          "The project is not empty. Dispatch first-rebuild again with the owner's census sign-off link, typed confirmation and fresh approval.",
         );
       }
     } else if (!CENSUS_SIGNOFF.test(signoff ?? "")) {
@@ -1171,6 +1221,21 @@ export async function rebuild({
     const state = readStateAfterFailedReset({ settings, query });
     stop(failedResetMessage({ resetFailure, state, mode }));
   }
+  const fixtures = checkSeedCounts({
+    expectations: readSeedExpectations(),
+    count: (table) =>
+      String(
+        query({
+          databaseUrl: settings.databaseUrl,
+          sql: countSql(table),
+          label: `count seeded rows in ${table}`,
+        }),
+      ),
+  });
+  if (!fixtures.ok)
+    stop(
+      `The seed did not match its expectations; stopped before Payload. ${fixtures.lines.join("; ")}. Fix the seed configuration, then ${mode === "first" ? "dispatch first-rebuild again with the census link and fresh approval" : "rebuild preview again"}.`,
+    );
   // The marker migration writes `disposable` when public.profiles,
   // public.donors and public.donations are empty, as they are right after the
   // reset drops and recreates them. Anything else is a failed rebuild.
@@ -1190,12 +1255,12 @@ export async function rebuild({
     now,
     next:
       mode === "first"
-        ? "This first rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads, and the migrations have already marked the database disposable, so first-rebuild cannot run again. Wait two minutes, dispatch set-cms-role-passwords, then the release: its migrate step runs Payload's migrations, and the gates and the heads follow (docs/ops/release-job.md, \"If the CMS role passwords stop a run\")."
+        ? "This first rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads. Wait two minutes, then dispatch first-rebuild again with the census link, typed confirmation and fresh approval."
         : "This rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads. Wait two minutes, then rebuild again; a password that then logs in is left alone.",
     nextUnchanged:
       mode === "first"
-        ? 'Nothing was changed. This first rebuild stopped after the reset and the seed, before Payload\'s migrations, the gates and the heads, and the migrations have already marked the database disposable, so first-rebuild cannot run again. Fix what the refusal names, then dispatch set-cms-role-passwords, then the release (docs/ops/release-job.md, "If the CMS role passwords stop a run").'
-        : "Nothing was changed. This rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads. Fix what the refusal names, then rebuild again.",
+        ? "This first rebuild stopped after reset and seed, before Payload, the gates and the heads. Fix what the refusal names, then dispatch first-rebuild again with the census link, typed confirmation and fresh approval."
+        : "This rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads. Fix what the refusal names, then rebuild again.",
   });
   payloadMigrate({ settings, runCommand });
   checkLedgers({ databaseUrl: settings.databaseUrl, query });
@@ -1288,8 +1353,9 @@ function tryRoleLogin({ settings, role, password, query }) {
  * stale to hold. Only a login refused for the password (a rotation, a restore
  * from backup, a role just made) sets it, from a SCRAM verifier computed here,
  * and then the step logs in again within ROLE_LOGIN_VERIFICATION's bound. A
- * login refused for any other reason stops the step and changes nothing. No
- * password or verifier reaches an argument list, a log line or an error.
+ * login refused for any other reason leaves that role's password unchanged
+ * and stops the step. An earlier role may already have its new password.
+ * No password or verifier reaches an argument list, a log line or an error.
  */
 export function setCmsRolePasswords({
   settings,
@@ -1306,7 +1372,7 @@ export function setCmsRolePasswords({
   next = "Wait two minutes, then dispatch set-cms-role-passwords again; a password that then logs in is left alone.",
   // The same for a refusal the step does not recognise, before it changed
   // anything (review K3).
-  nextUnchanged = "Nothing was changed. Fix what the refusal names, then dispatch set-cms-role-passwords again; for the pooler's circuit breaker, wait two minutes first.",
+  nextUnchanged = "Fix what the refusal names, then dispatch set-cms-role-passwords again; for the pooler's circuit breaker, wait two minutes first.",
 }) {
   assertTarget(settings);
   const names = Object.keys(roleVariables);
@@ -1350,8 +1416,14 @@ export function setCmsRolePasswords({
       continue;
     }
     if (first.kind !== "password") {
+      const changed = outcomes
+        .filter((outcome) => outcome.changed)
+        .map((outcome) => outcome.role);
+      const earlier = changed.length
+        ? ` The password for ${changed.join(", ")} was already changed and verified.`
+        : "";
       stop(
-        `Logging in as ${role} was refused for a reason other than its password, so its password was not changed: ${first.message} ${nextUnchanged}`,
+        `Logging in as ${role} was refused for a reason other than its password, so its password was not changed: ${first.message}${earlier} ${nextUnchanged}`,
       );
     }
     run({
@@ -1449,6 +1521,7 @@ export async function runStep(step, env = process.env) {
   if (!handler)
     stop(`Unknown step ${step}. Steps: ${Object.keys(STEPS).join(", ")}.`);
   const settings = readReleaseSettings(env);
+  assertTarget(settings);
   const ca = withDatabaseCaFile(settings);
   try {
     if (!isLoopbackDatabaseUrl(settings.databaseUrl))

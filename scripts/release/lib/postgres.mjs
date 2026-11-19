@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 import {
   DATABASE_URL_QUERY_ENV,
   HOSTED_LIBPQ_ENV,
+  assertHostedDatabaseTls,
   databaseUrlProblem,
   isLoopbackDatabaseUrl,
   keptAmbientLibpqEnv,
@@ -57,12 +58,14 @@ export function connectionEnvironment(databaseUrl, base = process.env) {
     if (value) env[key] = value;
   }
   for (const [key, value] of libpqQueryEntries(databaseUrl)) {
-    if (key === "password" && env.PGPASSWORD) continue;
     env[DATABASE_URL_QUERY_ENV[key]] = value;
   }
   // Review L1: a hosted server may never ask for the password in clear text.
   delete env.PGREQUIREAUTH;
-  if (!isLoopbackDatabaseUrl(url)) Object.assign(env, HOSTED_LIBPQ_ENV);
+  if (!isLoopbackDatabaseUrl(url)) {
+    assertHostedDatabaseTls(url);
+    Object.assign(env, HOSTED_LIBPQ_ENV);
+  }
   return env;
 }
 
@@ -80,6 +83,11 @@ export function runPsql({
   label = "psql",
 }) {
   const env = connectionEnvironment(databaseUrl);
+  if (Object.keys(variables).some((key) => /^(PG|DATABASE_URL$)/i.test(key))) {
+    throw new Error(
+      `${label}: reserved database connection variables are not allowed.`,
+    );
+  }
   // Review N6: a hosted address takes PGREQUIREAUTH, which a psql older than
   // 16 ignores; the floor holds wherever this builder runs.
   if (env.PGREQUIREAUTH) {

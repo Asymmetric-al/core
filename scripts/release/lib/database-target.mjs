@@ -4,6 +4,7 @@
 import {
   SUPABASE_POOLER_HOST,
   databaseUrlProblem,
+  assertHostedDatabaseTls,
   databaseUrlRoutingOverrides,
   isLoopbackDatabaseUrl,
   libpqQueryEntries,
@@ -75,8 +76,8 @@ export function assertDatabaseTarget({
     throw new Error("A hosted release refuses a loopback database.");
   }
   // Review M1: one place for a secret. The Supabase CLI gets the address as
-  // --db-url with only the login part's password cleared (release-database.mjs,
-  // splitPassword), so a password in the query would reach its arguments.
+  // --db-url without passwords (splitPassword); hosted inputs keep their
+  // password in one place regardless of how they will be consumed.
   if (libpqQueryEntries(databaseUrl).some(([key]) => key === "password")) {
     throw new Error(
       "A hosted release database connection carries a password in its query (password=...). Put the password in the login part of RELEASE_DATABASE_URL instead (postgres.<ref>:<password>@<host>), percent-encoded.",
@@ -96,10 +97,5 @@ export function assertDatabaseTarget({
   // against the project's CA, which it writes from RELEASE_DATABASE_SSL_CA
   // (release-database.mjs, withDatabaseCaFile). sslmode=require verifies
   // nothing without a CA file, and verify-ca never checks the name.
-  const sslmodes = url.searchParams.getAll("sslmode");
-  if (sslmodes.length !== 1 || sslmodes[0] !== "verify-full") {
-    throw new Error(
-      "A hosted release database connection must set sslmode=verify-full in RELEASE_DATABASE_URL; the job verifies it against the project's CA in RELEASE_DATABASE_SSL_CA. sslmode=require and verify-ca do not check the server's host name.",
-    );
-  }
+  assertHostedDatabaseTls(url);
 }

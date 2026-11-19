@@ -75,7 +75,8 @@ describe("requireDisposableDatabase", () => {
     let message = "";
     try {
       requireDisposableDatabase({
-        databaseUrl: "postgresql://u:s3cret@db.example:6543/postgres",
+        databaseUrl:
+          "postgresql://u:s3cret@db.example:6543/postgres?sslmode=verify-full",
         psqlBin: "definitely-not-a-psql-binary",
       });
     } catch (error) {
@@ -121,7 +122,8 @@ console.log(state === "unset" ? "" : state);
 }
 
 describe("requireDisposableDatabase reads the marker from the target (fake psql)", () => {
-  const URL_ = "postgresql://postgres:s3cret@db.example:6543/postgres";
+  const URL_ =
+    "postgresql://postgres:s3cret@db.example:6543/postgres?sslmode=verify-full";
   const refusal = (state: string) => {
     const psql = fakeMarkerPsql(state);
     let message = "";

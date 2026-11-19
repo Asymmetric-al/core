@@ -8,9 +8,28 @@ import {
 } from "../../../../scripts/release/lib/postgres.mjs";
 
 const hosted =
-  "postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require";
+  "postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full";
 
 describe("the release job's psql connection", () => {
+  it.each([null, "require", "disable", "verify-ca"])(
+    "refuses a hosted address with sslmode=%j even when the environment verifies TLS",
+    (mode) => {
+      const address = new URL(hosted);
+      if (mode === null) address.searchParams.delete("sslmode");
+      else address.searchParams.set("sslmode", mode);
+      expect(() =>
+        connectionEnvironment(address.href, { PGSSLMODE: "verify-full" }),
+      ).toThrow(/must set sslmode=verify-full/);
+    },
+  );
+  it("honours the query password over the login part", () => {
+    expect(
+      connectionEnvironment(
+        "postgres://unit:login-fixture@localhost/unit?password=query-fixture",
+        {},
+      ).PGPASSWORD,
+    ).toBe("query-fixture");
+  });
   // Review L1: the builder never decodes the host, so an escaped comma or
   // slash can never become a host list or a socket directory.
   it("never decodes the host: an escaped comma is refused, not turned into a list", () => {
@@ -22,7 +41,7 @@ describe("the release job's psql connection", () => {
     ).toThrow(/host/);
     expect(
       connectionEnvironment(
-        "postgresql://postgres.abcdefghijklmnopqrst@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require",
+        "postgresql://postgres.abcdefghijklmnopqrst@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full",
         {},
       ).PGHOST,
     ).toBe("aws-0-us-east-1.pooler.supabase.com");
@@ -164,6 +183,25 @@ describe("the release builder on an older psql (review N6)", () => {
       }),
     ).toThrow(/probe: .*psql 15\.8.*16 or later/);
     expect(run.mock.calls.map((c) => c[1][0])).toEqual(["--version"]);
+  });
+
+  it.each([
+    "PGAPPNAME",
+    "PGREQUIREAUTH",
+    "pgHost",
+    "DATABASE_URL",
+    "database_url",
+  ])("refuses reserved variable %s before any launch", (name) => {
+    const run = fake("psql (PostgreSQL) 17.0");
+    expect(() =>
+      runPsql({
+        databaseUrl: "postgres://localhost/unit",
+        sql: "select 1",
+        variables: { [name]: "fixture" },
+        run,
+      }),
+    ).toThrow(/reserved/i);
+    expect(run).not.toHaveBeenCalled();
   });
 
   it("runs on psql 16, and asks nothing for a loopback address", () => {

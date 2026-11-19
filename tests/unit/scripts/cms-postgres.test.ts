@@ -30,7 +30,7 @@ const answer = (
   );
 
 const databaseUrl =
-  "postgresql://postgres.example:fake%3Apassword@pooler.example.com:5432/postgres?sslmode=no-verify&connect_timeout=15";
+  "postgresql://postgres.example:fake%3Apassword@pooler.example.com:5432/postgres?sslmode=verify-full&connect_timeout=15";
 
 // Phase 16, Q4: a hosted address needs the project's CA file, so every case
 // starts with one; a case about the CA file sets or removes it.
@@ -42,6 +42,37 @@ afterEach(() => {
 });
 
 describe("CMS PostgreSQL command connection", () => {
+  it("uses the launch cwd for both hosted version probes", () => {
+    answer({ status: 0, stdout: "1", stderr: "" });
+    spawnSync.mockClear();
+    runPsql("SELECT 1", { databaseUrl, cwd: "fixture-dir" });
+    runPsqlFile("fixture.sql", { databaseUrl, cwd: "fixture-dir" });
+    expect(spawnSync.mock.calls.map((call) => call[2].cwd)).toEqual(
+      Array(4).fill("fixture-dir"),
+    );
+  });
+  it("honours the query password over the login part without passing either in argv", () => {
+    answer({ status: 0, stdout: "1", stderr: "" });
+    runPsql("SELECT 1", {
+      databaseUrl:
+        "postgres://unit:login-fixture@localhost/unit?password=query-fixture",
+    });
+    const [, args, options] = spawnSync.mock.calls.at(-1)!;
+    expect(options.env.PGPASSWORD).toBe("query-fixture");
+    expect(args.join(" ")).not.toMatch(/login-fixture|query-fixture/);
+  });
+  it.each(["", "?sslmode=require", "?sslmode=disable"])(
+    "requires verified hosted TLS for query %j before starting psql",
+    (query) => {
+      answer({ status: 0, stdout: "1", stderr: "" });
+      expect(() =>
+        runPsql("SELECT 1", {
+          databaseUrl: `postgres://unit:fixture@db.invalid/private${query}`,
+        }),
+      ).toThrow(/db\.invalid.*sslmode=verify-full/);
+      expect(spawnSync).not.toHaveBeenCalled();
+    },
+  );
   it("uses encrypted libpq-compatible settings without putting credentials in argv", () => {
     answer({ status: 0, stdout: "1\n", stderr: "" });
 
@@ -56,7 +87,7 @@ describe("CMS PostgreSQL command connection", () => {
       PGDATABASE: "postgres",
       PGUSER: "postgres.example",
       PGPASSWORD: "fake:password",
-      PGSSLMODE: "require",
+      PGSSLMODE: "verify-full",
       PGCONNECT_TIMEOUT: "15",
     });
     expect(options.shell).toBe(false);
@@ -71,17 +102,17 @@ describe("CMS PostgreSQL command connection", () => {
 
     expect(args).toContain("--single-transaction");
     expect(args).not.toContain(databaseUrl);
-    expect(options.env.PGSSLMODE).toBe("require");
+    expect(options.env.PGSSLMODE).toBe("verify-full");
     expect(options.env.PGPASSWORD).toBe("fake:password");
   });
 
-  it("preserves certificate verification when the URL requests it", () => {
+  it("retains the local no-verify compatibility mapping", () => {
     answer({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1;", {
-      databaseUrl: databaseUrl.replace("no-verify", "verify-full"),
+      databaseUrl: "postgres://localhost/unit?sslmode=no-verify",
     });
 
-    expect(spawnSync.mock.calls.at(-1)![2].env.PGSSLMODE).toBe("verify-full");
+    expect(spawnSync.mock.calls.at(-1)![2].env.PGSSLMODE).toBe("require");
   });
 
   // Review L2: the address is the whole target. Of the ambient PG*
@@ -103,16 +134,18 @@ describe("CMS PostgreSQL command connection", () => {
     }))
       vi.stubEnv(key, value);
     answer({ status: 0, stdout: "1", stderr: "" });
-    runPsql("SELECT 1;", { databaseUrl: "postgresql://db.example/postgres" });
+    runPsql("SELECT 1;", {
+      databaseUrl: "postgresql://db.example/postgres?sslmode=verify-full",
+    });
     const env = spawnSync.mock.calls.at(-1)![2].env;
     expect(env.PGHOST).toBe("db.example");
     expect(env.PGDATABASE).toBe("postgres");
+    expect(env.PGSSLMODE).toBe("verify-full");
     for (const key of [
       "PGHOSTADDR",
       "PGPORT",
       "PGUSER",
       "PGOPTIONS",
-      "PGSSLMODE",
       "PGTARGETSESSIONATTRS",
     ])
       expect(env[key], key).toBeUndefined();
@@ -201,7 +234,7 @@ describe("CMS PostgreSQL command connection", () => {
     answer({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1;", {
       databaseUrl:
-        "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require",
+        "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full",
     });
     const env = spawnSync.mock.calls.at(-1)![2].env;
     expect(env.PGHOST).toBe("aws-0-us-east-1.pooler.supabase.com");
@@ -381,7 +414,9 @@ describe("the CA file the CMS builder hands psql (phase 15, P3)", () => {
         () => runPsqlFile("x.sql", { databaseUrl }),
       ])
         expect(call).toThrow(
-          /CMS database connection is refused: .*Set PGSSLROOTCERT to a file holding the project's CA certificate/,
+          databaseUrl !== hosted
+            ? /must set sslmode=verify-full/
+            : /CMS database connection is refused: .*Set PGSSLROOTCERT to a file holding the project's CA certificate/,
         );
       expect(spawnSync).not.toHaveBeenCalled();
     },

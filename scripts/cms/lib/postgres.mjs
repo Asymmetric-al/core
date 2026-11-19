@@ -5,6 +5,7 @@ import path from "node:path";
 import {
   DATABASE_URL_QUERY_ENV,
   HOSTED_LIBPQ_ENV,
+  assertHostedDatabaseTls,
   databaseUrlProblem,
   isLoopbackDatabaseUrl,
   keptAmbientLibpqEnv,
@@ -83,12 +84,12 @@ function getPsqlConnection(databaseUrl) {
     if (value) env[key] = value;
   }
   for (const [key, value] of libpqQueryEntries(databaseUrl)) {
-    if (key === "password" && fields.PGPASSWORD) continue;
     // Node pg's encrypted, non-verifying mode is named `require` in libpq.
     env[DATABASE_URL_QUERY_ENV[key]] =
       key === "sslmode" && value === "no-verify" ? "require" : value;
   }
   if (!isLoopbackDatabaseUrl(connection)) {
+    assertHostedDatabaseTls(connection);
     // Review L1: a hosted server may never ask for the password in clear text.
     Object.assign(env, HOSTED_LIBPQ_ENV);
     // The last check's P3: a CA file psql is handed for a hosted address,
@@ -119,11 +120,12 @@ export function getLocalDatabaseUrl() {
  * Review N6: before psql starts on a hosted address, which takes
  * PGREQUIREAUTH, the psql it would run must be 16 or later.
  */
-function requireFloor(connection) {
+function requireFloor(connection, cwd) {
   if (connection.env.PGREQUIREAUTH)
     requirePsqlHonoursRequireAuth({
       psqlBin: process.env.PSQL_BIN || "psql",
       run: spawnSync,
+      cwd,
       env: keptAmbientLibpqEnv(connection.env, []),
     });
 }
@@ -131,7 +133,7 @@ function requireFloor(connection) {
 export function runPsql(sql, options = {}) {
   const databaseUrl = options.databaseUrl ?? getLocalDatabaseUrl();
   const connection = getPsqlConnection(databaseUrl);
-  requireFloor(connection);
+  requireFloor(connection, options.cwd);
   const args = [
     "--no-psqlrc",
     ...connection.args,
@@ -186,7 +188,7 @@ export function executeSql(sql, options = {}) {
 export function runPsqlFile(filePath, options = {}) {
   const databaseUrl = options.databaseUrl ?? getLocalDatabaseUrl();
   const connection = getPsqlConnection(databaseUrl);
-  requireFloor(connection);
+  requireFloor(connection, options.cwd);
   const args = [
     "--no-psqlrc",
     ...connection.args,

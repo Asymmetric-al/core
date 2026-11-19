@@ -38,6 +38,7 @@ import { spawnSync } from "node:child_process";
 import {
   LOOPBACK_DATABASE_HOSTS,
   HOSTED_LIBPQ_ENV,
+  assertHostedDatabaseTls,
   databaseUrlProblem,
   isLoopbackDatabaseUrl,
   keptAmbientLibpqEnv,
@@ -103,9 +104,12 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
   const query = libpqQueryEntries(databaseUrl);
   const settings = query.filter(([key]) => key !== "password");
   const queryPassword = query.find(([key]) => key === "password");
-  if (queryPassword) env.PGPASSWORD = queryPassword[1];
   if (url.password) env.PGPASSWORD = decodeURIComponent(url.password);
-  if (!isLoopbackDatabaseUrl(url)) Object.assign(env, HOSTED_LIBPQ_ENV);
+  if (queryPassword) env.PGPASSWORD = queryPassword[1];
+  if (!isLoopbackDatabaseUrl(url)) {
+    assertHostedDatabaseTls(url);
+    Object.assign(env, HOSTED_LIBPQ_ENV);
+  }
   const keywords = [
     ["host", url.hostname.replace(/^\[(.*)\]$/, "$1")],
     ["port", url.port],
@@ -140,8 +144,10 @@ export function requirePsqlHonoursRequireAuth({
   psqlBin = process.env.PSQL_BIN?.trim() || "psql",
   run = spawnSync,
   env = keptAmbientLibpqEnv(process.env, []),
+  cwd,
 } = {}) {
   const result = run(psqlBin, ["--version"], {
+    cwd,
     encoding: "utf8",
     shell: false,
     env,
@@ -180,6 +186,7 @@ export function spawnPsql({
   if (env.PGREQUIREAUTH)
     requirePsqlHonoursRequireAuth({
       psqlBin,
+      cwd,
       env: keptAmbientLibpqEnv(env, []),
     });
   // -X: a ~/.psqlrc or a PSQLRC file could otherwise \connect elsewhere (H11).
@@ -201,6 +208,7 @@ export function runPsqlQuery({ databaseUrl, sql, psqlBin = "psql", cwd }) {
   if (env.PGREQUIREAUTH)
     requirePsqlHonoursRequireAuth({
       psqlBin,
+      cwd,
       env: keptAmbientLibpqEnv(env, []),
     });
   const result = spawnSync(

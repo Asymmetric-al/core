@@ -127,7 +127,14 @@ function assertNoPayloadDevMigrationMarker() {
 // the CA), not only a migration write. A status read with
 // PAYLOAD_MIGRATION_DATABASE_URI set would otherwise use the cms_owner login
 // unchecked.
-if (isMigrationWrite || !isLoopbackDatabaseUrl(databaseUrl)) {
+const localDatabase = isLoopbackDatabaseUrl(databaseUrl);
+if (!localDatabase && !runsOnHostedDatabase) {
+  console.error(
+    `payload ${command} works on a database on this machine, and PAYLOAD_DATABASE_URI names one that is not. Point PAYLOAD_DATABASE_URI at the local database (bun run cms:local:reset -- --force-env writes the local values).`,
+  );
+  process.exit(1);
+}
+if (isMigrationWrite || !localDatabase) {
   try {
     assertCmsMigrationTarget({
       databaseUrl,
@@ -146,11 +153,9 @@ if (isMigrationWrite || !isLoopbackDatabaseUrl(databaseUrl)) {
       });
   } catch (cause) {
     console.error(
-      !runsOnHostedDatabase && !isLoopbackDatabaseUrl(databaseUrl)
-        ? `payload ${command} works on a database on this machine, and PAYLOAD_DATABASE_URI names one that is not. Point PAYLOAD_DATABASE_URI at the local database (bun run cms:local:reset -- --force-env writes the local values).`
-        : cause instanceof Error
-          ? cause.message
-          : "CMS migration preflight failed.",
+      cause instanceof Error
+        ? cause.message
+        : "CMS migration preflight failed.",
     );
     process.exit(1);
   }

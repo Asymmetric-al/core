@@ -174,9 +174,7 @@ describe("release database target", () => {
             projectRef: ref,
             role: "postgres",
           }),
-        ).toThrow(
-          /must set sslmode=verify-full.*RELEASE_DATABASE_SSL_CA.*require and verify-ca do not check the server's host name/,
-        );
+        ).toThrow(/must set sslmode=verify-full, once, in the address itself/);
       }
     },
   );

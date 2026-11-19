@@ -159,6 +159,8 @@ export const DATABASE_URL_QUERY_ENV = Object.freeze({
  * sets its role.
  */
 export function databaseUrlProblem(databaseUrl, { forPsql = false } = {}) {
+  if (/\0|%00/.test(String(databaseUrl)))
+    return "a database address cannot contain a decoded NUL";
   let url;
   try {
     url = databaseUrl instanceof URL ? databaseUrl : new URL(databaseUrl);
@@ -236,6 +238,15 @@ export const SUPABASE_POOLER_HOST =
 export const HOSTED_LIBPQ_ENV = Object.freeze({
   PGREQUIREAUTH: "scram-sha-256",
 });
+
+export function assertHostedDatabaseTls(url) {
+  const modes = url.searchParams.getAll("sslmode");
+  if (modes.length !== 1 || modes[0] !== "verify-full") {
+    throw new Error(
+      `The hosted database connection to ${url.hostname} must set sslmode=verify-full, once, in the address itself; PGSSLMODE does not count.`,
+    );
+  }
+}
 
 /**
  * The ambient libpq settings a builder may keep (review M3), with the reason
