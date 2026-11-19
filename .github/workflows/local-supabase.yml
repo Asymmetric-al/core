@@ -1,7 +1,7 @@
 name: Local Supabase Stack
 
 # Starts a local Supabase stack from source, then runs the Supabase Auth email
-# round trips against it. Two guards in one job (docs/ci.md, "Local Supabase
+# round trips and the operator MFA proof against it. Three guards in one job (docs/ci.md, "Local Supabase
 # stack workflow"):
 #
 # - The migration chain and the seed on the real Supabase image. This is the
@@ -50,6 +50,7 @@ on:
       # The operators' second factor (AL-2675, WP2c).
       - scripts/e2e/run-operator-mfa.mjs
       - scripts/platform/**
+      - packages/api/src/shared/platform-operator.ts
       - tests/unit/acceptance/issue-2675/operator-mfa.localstack.test.ts
 
 permissions:
@@ -105,10 +106,6 @@ jobs:
         run: >-
           bun run supabase -- start
           -x studio,edge-runtime,logflare,vector,imgproxy,postgres-meta,supavisor
-      # Fails, never skips, when the stack's values are missing.
-      - name: Prove the platform operators' second factor (WP2c)
-        timeout-minutes: 10
-        run: node scripts/e2e/run-operator-mfa.mjs
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
       - name: Run the auth email round trips
@@ -117,6 +114,10 @@ jobs:
           CI: "1"
           PLAYWRIGHT_REUSE_EXISTING_SERVER: "0"
         run: bun run test:e2e:auth-mail
+      # Fails, never skips, when the stack's values are missing.
+      - name: Prove the platform operators' second factor (WP2c)
+        timeout-minutes: 10
+        run: node scripts/e2e/run-operator-mfa.mjs
       - name: Show Auth logs on failure
         if: failure()
         run: docker logs --tail 200 "$(docker ps --filter name=supabase_auth_ --format '{{.Names}}' | head -n 1)" || true

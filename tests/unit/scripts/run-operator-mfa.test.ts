@@ -86,10 +86,13 @@ describe("run-operator-mfa", () => {
       "run: node scripts/e2e/run-operator-mfa.mjs",
     );
     expect(start).toBeGreaterThan(0);
-    expect(proof).toBeGreaterThan(start);
+    const mail = workflow.indexOf("run: bun run test:e2e:auth-mail");
+    expect(mail).toBeGreaterThan(start);
+    expect(proof).toBeGreaterThan(mail);
     for (const path of [
       "scripts/e2e/run-operator-mfa.mjs",
       "scripts/platform/**",
+      "packages/api/src/shared/platform-operator.ts",
       "tests/unit/acceptance/issue-2675/operator-mfa.localstack.test.ts",
     ])
       expect(workflow).toContain(`- ${path}`);
