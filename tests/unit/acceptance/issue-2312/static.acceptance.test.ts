@@ -101,11 +101,11 @@ const CI_BASES = [
     bytes: 47190,
     sha256: "74852f931758754843fbd50e41d432fbd40375f06f002c99f3524417f2b8782e",
   },
-  // D-18: WP2H narrows the documented stack triggers to the proof dependencies.
+  // D-18: WP2H documents the proof dependencies, including its Vitest config and resolver plugins.
   // This pin accepts only the reviewed file bytes, as before.
   {
-    bytes: 47723,
-    sha256: "741eab1b5772462657c943a2ec97060538c3a1035250718822a478fcf4132220",
+    bytes: 47791,
+    sha256: "bac3dc897167173b05ea29aca95ac25f4bd64f675f22780c71aeba1821b6a5b6",
   },
 ];
 const STEP = "Verify tenant isolation (real stack)";

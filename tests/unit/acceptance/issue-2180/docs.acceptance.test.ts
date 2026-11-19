@@ -239,11 +239,11 @@ const CI_BASES = [
     sha256: "4a105c232e70ff91c6383159061222e3129f78e7b9c6fadad3a7321fe786b1c0",
   },
   {
-    // D-18: WP2H narrows the documented stack triggers to the proof dependencies.
+    // D-18: WP2H documents the proof dependencies, including its Vitest config and resolver plugins.
     // The digest pins the amended prefix; the unchanged EOF section still faces every original assertion.
     ref: "AL-2675 WP2H PostgREST proof paths",
-    bytes: 47103,
-    sha256: "4c196a624e3b1d4dec9a419a546aba3aaa723d07ad3baa1406a691c6eb2bab71",
+    bytes: 47171,
+    sha256: "d28ee0bd761514bc955e336c9f7350515cea27b7e54d44d958da6964177e3be2",
   },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;

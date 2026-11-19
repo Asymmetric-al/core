@@ -94,6 +94,9 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
       "packages/database/supabase/config.ts",
       "tests/fixtures/auth-memberships.ts",
       "tests/fixtures/missionary-task-patch.ts",
+      "vitest.config.mts",
+      "vitest.per-importer-alias.mts",
+      "vitest.pin-workspace-packages.mts",
       "tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts",
       "tests/unit/workflows/local-supabase.test.ts",
     ])

@@ -465,7 +465,8 @@ things:
   It checks the selected organization and denied assignments using the local
   stack's service role, not a mocked RPC. The workflow runs for changes to
   those handler directories, their listed shared API helpers, the database's
-  Supabase admin and config modules, or the proof and its fixtures.
+  Supabase admin and config modules, the proof and its fixtures, or the root
+  Vitest configuration and its two local resolver plugins.
 - _Job:_ installs the Supabase CLI at the version `scripts/supabase-cli.mjs`
   pins, starts the stack with `bun run supabase -- start` (every migration and
   the seed, then Auth, PostgREST and Mailpit), then runs
