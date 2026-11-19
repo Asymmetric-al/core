@@ -4,6 +4,7 @@ import {
   requestScopeOf,
   type AuthContext,
 } from "@asym/auth/context";
+import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
 import { CHOOSER_PATH } from "@asym/auth/tenant-address";
 import { readDocumentScope, redirectInTenant } from "@asym/auth/tenant-server";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -54,16 +55,25 @@ const ADMIN_ALLOWED_ROLES = ["staff", "admin"] as const;
  * Mission Control acts on staff rows (plan 5.1), so the context resolves with
  * the staff class, and its tenant is that membership's. The profile's tenant
  * and role are not read. `apps/admin/proxy.ts` rejects wrong-app sessions at
- * the edge. The (app) and (payload) layouts still call this defense-in-depth
- * gate to establish the tenant-scoped auth context used by admin data reads.
+ * the edge. The (app) layout still calls this defense-in-depth gate, through
+ * `getTenantShell`, to establish the tenant-scoped auth context used by admin
+ * data reads.
  * API routes and narrower areas (for example the admin-only Eve workspace)
  * check access themselves.
  */
 export async function requireAdminAccess(pathname: string) {
   const auth = await getAuthContext(undefined, { roleClass: "staff" });
 
-  if (!auth.isAuthenticated || !auth.userId) {
-    return redirectInTenant(`/login?next=${encodeURIComponent(pathname)}`);
+  // No user: sign-in. A signed-in person the resolver refused: /no-access,
+  // never /login, which the proxy answers for a signed-in person by sending
+  // them back to `next`, here, in a loop (council on the joined release,
+  // JB3). The same decision as the missionary and donor layouts.
+  const refused = getProtectedAppRedirectPath(
+    auth,
+    `/login?next=${encodeURIComponent(pathname)}`,
+  );
+  if (refused || !auth.userId) {
+    return redirectInTenant(refused ?? "/no-access");
   }
 
   if (!auth.tenantId || !hasAnyContextRole(auth, [...ADMIN_ALLOWED_ROLES])) {

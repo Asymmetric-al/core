@@ -76,7 +76,11 @@ test("a deep link to an organization the missionary does not belong to is refuse
   expect((await documentScope(page)).prefix).toBe(`/${DEMO}`);
 });
 
-test("a signed-in person with no missionary row in the address's organization is stopped by the proxy", async ({
+// Council on the joined release, JB8: on a real session the proxy's own
+// membership decision refuses (/no-access); under the development bypass a
+// role the app does not allow is never admitted (packages/auth/middleware.ts),
+// so the request reads as signed out (/login). Each mode asserts its answer.
+test("a signed-in person with no missionary row is refused by the proxy, or under the bypass never admitted", async ({
   page,
 }) => {
   await signInAs(page, "missionary", "twoRows", baseURL());
@@ -86,7 +90,9 @@ test("a signed-in person with no missionary row in the address's organization is
   });
 
   expect(raw.status()).toBe(307);
-  expect(raw.headers()["location"]).toMatch(/\/(no-access|login)/);
+  expect(new URL(raw.headers()["location"]!, baseURL()).pathname).toBe(
+    signsInThroughStub ? "/no-access" : "/login",
+  );
 });
 
 test("a sub-role suffix is never kept in the missionary workspace", async ({

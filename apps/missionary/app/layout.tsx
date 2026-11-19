@@ -12,6 +12,7 @@ import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { MotionProvider } from "@asym/lib/motion-provider";
+import { ScopeReloadNotices } from "@asym/ui/components/scope-reload-notices";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { fontVariables } from "@asym/ui/fonts";
@@ -170,29 +171,31 @@ export default function RootLayout({
                 when the document loaded, never serves another segment: a
                 document loaded at an account screen took the public branch,
                 and entering the workspace from it renders on the server. */}
-            <TenantSegmentBoundary>
-              <QueryProvider>
-                <MotionProvider>
-                  <TooltipProvider delay={0}>
-                    <NuqsAdapter>
-                      <SessionRetainedDraftProvider>
-                        <MissionaryLayoutShell
-                          workspace={
-                            <Suspense fallback={<RouteSkeleton />}>
-                              <MissionaryWorkspace>
-                                {children}
-                              </MissionaryWorkspace>
-                            </Suspense>
-                          }
-                        >
-                          {children}
-                        </MissionaryLayoutShell>
-                      </SessionRetainedDraftProvider>
-                    </NuqsAdapter>
-                  </TooltipProvider>
-                </MotionProvider>
-              </QueryProvider>
-            </TenantSegmentBoundary>
+            <ScopeReloadNotices>
+              <TenantSegmentBoundary>
+                <QueryProvider>
+                  <MotionProvider>
+                    <TooltipProvider delay={0}>
+                      <NuqsAdapter>
+                        <SessionRetainedDraftProvider>
+                          <MissionaryLayoutShell
+                            workspace={
+                              <Suspense fallback={<RouteSkeleton />}>
+                                <MissionaryWorkspace>
+                                  {children}
+                                </MissionaryWorkspace>
+                              </Suspense>
+                            }
+                          >
+                            {children}
+                          </MissionaryLayoutShell>
+                        </SessionRetainedDraftProvider>
+                      </NuqsAdapter>
+                    </TooltipProvider>
+                  </MotionProvider>
+                </QueryProvider>
+              </TenantSegmentBoundary>
+            </ScopeReloadNotices>
             <Toaster />
           </ThemeProvider>
         </div>

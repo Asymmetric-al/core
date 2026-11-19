@@ -14,6 +14,14 @@
 export const TENANT_HEADER = "x-asym-tenant";
 export const ASSIGNMENT_HEADER = "x-asym-assignment";
 
+/**
+ * The response header by which the server says it refused the tenant or
+ * assignment a request proposed: the resolver's own refusal, not any other
+ * 401 or 403. The own-API wrapper and the browser client retire the document
+ * on it (plan 5.2; AL-2675, JB1). Its value is the resolver's reason.
+ */
+export const SCOPE_REFUSED_HEADER = "x-asym-scope-refused";
+
 /** What a request acts under: a tenant and one membership row in it. */
 export interface RequestScope {
   readonly tenantId: string;

@@ -3,9 +3,13 @@ import {
   requestScopeOf,
   type AuthContext,
 } from "@asym/auth/context";
-import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+
+import {
+  createRequestSessionClient,
+  type RequestSessionClient,
+} from "../shared/request-session-client";
 
 import type { DonorFeedPreferences } from "@asym/database/types";
 
@@ -25,7 +29,7 @@ const defaultFeedPreferencesResponse = {
   emailMissionaryPosts: false,
 };
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+type SupabaseServerClient = RequestSessionClient;
 type FeedPreferencesUpdate = z.infer<typeof feedPreferencesUpdateSchema>;
 type FeedPreferencesUpsert = {
   donor_id: string;
@@ -56,7 +60,12 @@ type AuthenticatedDonorLookup =
  */
 async function openDonorSession(request: Request) {
   const auth = await getAuthContext(request);
-  const supabase = await createClient(requestScopeOf(auth));
+  // The credential the request was authenticated with: its bearer token
+  // first, otherwise its cookies (council on the joined release, JB13).
+  const supabase = await createRequestSessionClient(
+    request,
+    requestScopeOf(auth),
+  );
   return { auth, supabase };
 }
 

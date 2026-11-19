@@ -245,9 +245,17 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     // tests/unit/scripts/ci-integration-workflow.contract.test.ts. Slice A's
     // and slice B's earlier entries were intermediate states of the joined
     // branch, which develop never held, and are replaced by this one.
+    // Council on the joined release, JB4 and JB5 (the coordinator's list B):
+    // Web Studio's spec leaves the CMS step for a step of its own, "Web
+    // Studio tenant (admin app)" (bun run test:e2e:web-studio-tenant, no
+    // retries, if: !cancelled(), its own folders, 18 minutes from a measured
+    // replay of the whole job); "Start missionary app" and its wait run after
+    // an earlier failure; the upload runs on failure or cancellation. The
+    // job keeps its 30 minutes. Pinned in the same contract test; the entry
+    // before this one was the joined branch's, which develop never held.
     {
       ref: "AL-2675 tenant address and request scope in test-e2e",
-      hash: "11d16a741e0b84a5",
+      hash: "3a0266cc84924a99",
     },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {

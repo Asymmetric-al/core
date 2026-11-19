@@ -68,6 +68,18 @@
       "types": "./document-reload.ts",
       "default": "./document-reload.ts"
     },
+    "./document-reload-claim": {
+      "types": "./document-reload-claim.ts",
+      "default": "./document-reload-claim.ts"
+    },
+    "./document-session": {
+      "types": "./document-session.ts",
+      "default": "./document-session.ts"
+    },
+    "./scope-reload-notice": {
+      "types": "./scope-reload-notice.tsx",
+      "default": "./scope-reload-notice.tsx"
+    },
     "./document-storage": {
       "types": "./document-storage.ts",
       "default": "./document-storage.ts"

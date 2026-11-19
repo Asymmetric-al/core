@@ -13,6 +13,7 @@ const originalAllowlist = process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS;
 const mockedCreateServerClient = vi.hoisted(() => vi.fn());
 const mockedGetSupabasePublicConfig = vi.hoisted(() => vi.fn());
 
+vi.mock("next/server", () => ({ connection: () => Promise.resolve() }));
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
   headers: vi.fn(() =>

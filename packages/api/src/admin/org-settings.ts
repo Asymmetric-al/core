@@ -4,10 +4,10 @@ import {
   requireAuth,
   requireTenantAdministrator,
 } from "@asym/auth/context";
-import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
 
 import { toErrorResponse } from "../shared/http-errors";
+import { createRequestSessionClient } from "../shared/request-session-client";
 
 import type { OrgPostVisibility } from "@asym/database/types";
 
@@ -26,7 +26,10 @@ export async function GET(request: Request) {
     const auth = await getAuthContext(request);
     requireAuth(auth);
 
-    const supabase = await createClient(requestScopeOf(auth));
+    const supabase = await createRequestSessionClient(
+      request,
+      requestScopeOf(auth),
+    );
     const { data, error } = await supabase
       .from("tenants")
       .select("org_post_visibility")
@@ -58,7 +61,10 @@ export async function PATCH(request: Request) {
     const auth = await getAuthContext(request);
     requireTenantAdministrator(auth);
 
-    const supabase = await createClient(requestScopeOf(auth));
+    const supabase = await createRequestSessionClient(
+      request,
+      requestScopeOf(auth),
+    );
     const body = await request.json();
     const visibility = body.orgPostVisibility as OrgPostVisibility;
 

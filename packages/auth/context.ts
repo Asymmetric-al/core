@@ -3,6 +3,7 @@ import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies, headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
+import { connection } from "next/server";
 
 import { resolveAssignmentCapabilities } from "./capabilities/effective-capabilities";
 import { CapabilityResolutionError } from "./capabilities/errors";
@@ -39,6 +40,7 @@ import {
   ASSIGNMENT_HEADER,
   parseRoleClass,
   ROLE_CLASS_HEADER,
+  SCOPE_REFUSED_HEADER,
   TENANT_HEADER,
 } from "./request-headers";
 
@@ -68,6 +70,15 @@ export interface AuthContext {
   assignment?: ActiveAssignment | null;
   /** Why no assignment resolved for a signed-in person; `null` otherwise. */
   assignmentDenial?: AssignmentDenyReason | "no_role_class" | null;
+  /**
+   * True when the request proposed a tenant or assignment (the page's
+   * `x-asym-tenant` / `x-asym-assignment`) and the resolver refused it: the
+   * document's scope is no longer the caller's (a revoked row, another
+   * signed-in person). Routes answer it with the `x-asym-scope-refused`
+   * header, which the own-API wrapper tells from any other 401 or 403 and
+   * retires the document on (plan 5.2; AL-2675, JB1).
+   */
+  scopeRefused?: boolean;
   profileId: string | null;
   isAuthenticated: boolean;
 }
@@ -158,6 +169,7 @@ async function createAuthContextClient(
   // ambient store is unavailable (forwarded/sidecar contexts).
   try {
     const cookieStore = await cookies();
+    if (!request) await connection();
 
     return createServerClient(url, key, {
       cookies: {
@@ -278,16 +290,27 @@ async function getE2EAuthBypassContext(
   const assignments = listE2EAuthAssignments(e2eSession);
   const { roleClass } = narrowing;
   let selected: ActiveAssignment | null;
+  let denial: AssignmentDenyReason = "no_assignment";
   if (roleClass) {
     const result = selectAssignment(assignments, { ...narrowing, roleClass });
     selected = result.ok ? result.assignment : null;
+    if (!result.ok) denial = result.reason;
   } else {
     // No surface class (a context built outside a proxied request): only an
     // identity with exactly one membership resolves.
     selected = assignments.length === 1 ? assignments[0]! : null;
   }
   if (!selected) {
-    return null;
+    // A refused proposal is marked so the route can say so (JB1), still with
+    // no user id; without one, the identity is simply not authenticated for
+    // this surface.
+    return proposesScope(narrowing)
+      ? {
+          ...createUnauthenticatedContext(),
+          assignmentDenial: denial,
+          scopeRefused: true,
+        }
+      : null;
   }
   const memberships = [toAuthMembership(selected)];
   return {
@@ -340,6 +363,14 @@ interface AssignmentNarrowing {
   roleClass: RoleClass | null;
   proposedAssignmentId?: string;
   expectedTenantId?: string;
+}
+
+/** Whether the request proposed a tenant or an assignment (JB1). */
+function proposesScope(narrowing: AssignmentNarrowing): boolean {
+  return (
+    narrowing.proposedAssignmentId !== undefined ||
+    narrowing.expectedTenantId !== undefined
+  );
 }
 
 /** The options, each falling back to its request header; blank values are absent. */
@@ -442,7 +473,10 @@ export async function getAuthContext(
   );
 
   if (!result.ok) {
-    return denied(profile.id, result.reason);
+    return {
+      ...denied(profile.id, result.reason),
+      scopeRefused: proposesScope(narrowing),
+    };
   }
 
   const memberships = [toAuthMembership(result.assignment)];
@@ -686,6 +720,32 @@ export function hasAnyContextRole(context: AuthContext, roles: UserRole[]) {
   return hasAnyRole({ memberships: context.memberships }, roles);
 }
 
+/**
+ * The resolver refused the tenant or assignment the request proposed. Still
+ * the same "Unauthorized" error, message and status as before (every route
+ * that maps the message keeps its answer), and it carries the
+ * `x-asym-scope-refused` header (`scopeRefusedHeaders`), so the browser can
+ * retire the document instead of treating it as any other 401 (JB1).
+ */
+export class ScopeRefusedError extends Error {
+  readonly reason: string;
+
+  constructor(reason: string | null | undefined) {
+    super("Unauthorized");
+    this.name = "ScopeRefusedError";
+    this.reason = reason ?? "refused";
+  }
+}
+
+/** The response headers that mark a refused scope, or none. */
+export function scopeRefusedHeaders(
+  context: Pick<AuthContext, "scopeRefused" | "assignmentDenial">,
+): Record<string, string> | undefined {
+  return context.scopeRefused
+    ? { [SCOPE_REFUSED_HEADER]: context.assignmentDenial ?? "refused" }
+    : undefined;
+}
+
 export function requireAuth(
   context: AuthContext,
 ): asserts context is AuthenticatedContext {
@@ -695,6 +755,9 @@ export function requireAuth(
     !context.tenantId ||
     !context.role
   ) {
+    if (context.scopeRefused) {
+      throw new ScopeRefusedError(context.assignmentDenial);
+    }
     throw new Error("Unauthorized");
   }
 }

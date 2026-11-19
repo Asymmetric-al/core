@@ -140,6 +140,17 @@ export function selectAssignment(
 ): ResolveAssignmentResult {
   const { roleClass, proposedAssignmentId, expectedTenantId } = input;
   if (!isMembershipRole(roleClass)) return deny("no_assignment");
+  // Plan 12, WP2, "Interim rules until WP3": on the donor portal a person
+  // with donor memberships in two organizations is refused, for the proxy
+  // check, server reads and the browser header alike, until WP3 resolves the
+  // portal's host. So there must be exactly one live donor row before either
+  // header is matched: a proposal never picks one of several (AL-2675, JB12).
+  if (
+    roleClass === "donor" &&
+    assignments.filter((a) => a.membershipRole === "donor").length > 1
+  ) {
+    return deny("ambiguous");
+  }
   if (proposedAssignmentId !== undefined) {
     if (!isCanonicalUuid(proposedAssignmentId)) {
       return deny("not_owned_or_inactive");

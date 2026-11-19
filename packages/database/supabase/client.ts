@@ -1,7 +1,10 @@
 import { createBrowserClient } from "@supabase/ssr";
 
-import { getDocumentScope } from "../document-scope";
-import { applyRequestScopeHeaders } from "../request-scope-headers";
+import { getDocumentScope, retireDocumentScope } from "../document-scope";
+import {
+  applyRequestScopeHeaders,
+  SCOPE_REFUSED_HEADER,
+} from "../request-scope-headers";
 import { getSupabasePublicConfig } from "./config";
 
 function requestUrl(input: RequestInfo | URL): string {
@@ -16,19 +19,31 @@ function requestUrl(input: RequestInfo | URL): string {
  * person, the tenant and the selected assignment"; AL-2675). They are read
  * when each request is sent, so a client created before the page fixed its
  * scope still sends them. Auth and Storage requests go out unchanged.
+ *
+ * A response marked `x-asym-scope-refused` retires the document's scope, as
+ * the own-API wrapper does (JB1). In the first release of WP2b the database
+ * reads the headers only in the command lane and the member directory, and
+ * answers a row it refuses with its own error, so no Data API response
+ * carries the mark yet; the second release's policies can set it through
+ * PostgREST's `response.headers`, and the browser already obeys it.
  */
 function scopedDataApiFetch(dataApiPrefix: string): typeof fetch {
-  return (input, init) => {
+  return async (input, init) => {
     if (!requestUrl(input).startsWith(dataApiPrefix)) {
       return fetch(input, init);
     }
+    const scope = getDocumentScope();
     const headers = applyRequestScopeHeaders(
       new Headers(
         init?.headers ?? (input instanceof Request ? input.headers : undefined),
       ),
-      getDocumentScope(),
+      scope,
     );
-    return fetch(input, { ...init, headers });
+    const response = await fetch(input, { ...init, headers });
+    if (scope && response.headers.has(SCOPE_REFUSED_HEADER)) {
+      retireDocumentScope();
+    }
+    return response;
   };
 }
 

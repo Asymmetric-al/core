@@ -44,7 +44,10 @@ vi.mock("@supabase/ssr", () => ({
       from: () => ({
         select: () => ({
           or: () => ({
-            maybeSingle: async () => ({ data: null, error: null }),
+            // The lookup is filtered by the resolved tenant (JB14).
+            eq: () => ({
+              maybeSingle: async () => ({ data: null, error: null }),
+            }),
           }),
         }),
       }),

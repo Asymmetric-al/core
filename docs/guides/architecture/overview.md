@@ -31,7 +31,11 @@ before the page shell and rewrites the address onto the page files above. A
 bare address such as `/crm` is sent to the person's one organization or to
 the organization chooser (`/choose-organization`). Sign-in, the chooser, Web
 Studio and the API routes stay outside the tenant segment; crossing its
-boundary loads a new document. The rules for page code are in
+boundary loads a new document. A link the client router prefetched before
+the person's membership was revoked can show at most its route's App Shell,
+which holds no tenant data, before the navigation's own request is refused
+and ends on `/no-access` (established on a production build in
+`tests/e2e/admin-tenant-address.spec.ts`). The rules for page code are in
 [`docs/ai/rules/frontend.md`](../../ai/rules/frontend.md) § The tenant in the
 page address.
 

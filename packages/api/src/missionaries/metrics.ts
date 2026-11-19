@@ -1,4 +1,5 @@
 import {
+  scopeRefusedHeaders,
   getAuthContext,
   hasContextRoleClass,
   requestScopeOf,
@@ -18,6 +19,7 @@ import {
 } from "../missionary-portal/currency";
 import { isAnonymousToRecipient } from "../missionary-portal/redaction";
 import { SETTLED_DONATION_STATUS_SET } from "../reads/settled-donation-statuses";
+import { createBearerSessionClient } from "../shared/request-session-client";
 
 export function projectMetricsMoney<
   T extends {
@@ -299,6 +301,12 @@ export async function GET(
     const auth = await getAuthContext(request);
 
     if (!auth.isAuthenticated || !auth.userId) {
+      // A refused tenant or assignment is marked for the browser (JB1).
+      for (const [name, value] of Object.entries(
+        scopeRefusedHeaders(auth) ?? {},
+      )) {
+        pendingHeaders.set(name, value);
+      }
       return jsonWithCookies(
         { error: "Unauthorized" },
         { status: 401 },
@@ -324,9 +332,12 @@ export async function GET(
     }
 
     // The service-key client when the environment has one; otherwise the
-    // caller's own session, under the row the resolver selected.
+    // caller's own session, under the row the resolver selected: the bearer
+    // token first, as `getAuthContext` authenticated it, otherwise the
+    // cookies, which this route refreshes itself (JB13).
     const dataReader =
       getAdminClient().client ??
+      createBearerSessionClient(request, requestScopeOf(auth)) ??
       createSessionReader(
         request,
         { url: supabaseUrl, anonKey: supabaseAnonKey },
@@ -339,6 +350,9 @@ export async function GET(
       .from("missionaries")
       .select("id, tenant_id, profile_id")
       .or(`id.eq.${missionaryId},profile_id.eq.${missionaryId}`)
+      // The resolved tenant's record only, before one row is taken: a person
+      // with a missionary record in two organizations has two (JB14).
+      .eq("tenant_id", auth.tenantId)
       .maybeSingle();
 
     if (missionaryError) {

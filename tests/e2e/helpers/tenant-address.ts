@@ -155,6 +155,57 @@ export async function signInAs(
   ]);
 }
 
+/**
+ * Revokes one of a signed-in fixture person's memberships, as revoking it
+ * changes the live rows: on a production build, in the Supabase stub (undo
+ * with `restoreRevokedMemberships`); in development, by re-signing the
+ * person's bypass identity without the row.
+ */
+export async function revokeMembership(
+  page: Page,
+  surface: E2EAuthAppSurface,
+  name: FixturePerson,
+  membershipId: string,
+  baseURL: string,
+) {
+  if (signsInThroughStub) {
+    await stubControl("revoke", { membershipId });
+    return;
+  }
+  const person = fixturePerson(name);
+  const memberships = person.memberships.filter(
+    (membership) => membership.id !== membershipId,
+  );
+  await page.context().addCookies([
+    {
+      name: E2E_AUTH_COOKIE_NAMES[surface],
+      value: await createE2EAuthCookieValue({
+        userId: person.userId,
+        role: person.role,
+        tenantId: memberships[0]!.tenantId,
+        memberships,
+      }),
+      url: baseURL,
+      httpOnly: true,
+      sameSite: "Lax",
+    },
+  ]);
+}
+
+/** Gives the Supabase stub its fixture rows back (production builds only). */
+export async function restoreRevokedMemberships() {
+  if (signsInThroughStub) await stubControl("reset");
+}
+
+async function stubControl(route: "reset" | "revoke", body: object = {}) {
+  const response = await fetch(new URL(`/__stub/${route}`, STUB_URL!), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error(`stub ${route}: ${response.status}`);
+}
+
 /** The scope the page's `TenantDocument` was rendered with. */
 export async function documentScope(page: Page) {
   const marker = page.locator("[data-tenant-scope]");
