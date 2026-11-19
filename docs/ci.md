@@ -463,8 +463,9 @@ things:
   exercises task and follower writes, embedded donors, the activity UUID array,
   the missionary directory, portal and profile against the stack's PostgREST.
   It checks the selected organization and denied assignments using the local
-  stack's service role, not a mocked RPC. Changes to those handlers, the
-  database package or the proof itself run this workflow.
+  stack's service role, not a mocked RPC. The workflow runs for changes to
+  those handler directories, their listed shared API helpers, the database's
+  Supabase admin and config modules, or the proof and its fixtures.
 - _Job:_ installs the Supabase CLI at the version `scripts/supabase-cli.mjs`
   pins, starts the stack with `bun run supabase -- start` (every migration and
   the seed, then Auth, PostgREST and Mailpit), then runs

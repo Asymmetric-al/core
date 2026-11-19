@@ -55,9 +55,17 @@ on:
       - packages/api/src/follower-requests/**
       - packages/api/src/missionaries/**
       - packages/api/src/profile/**
-      - packages/api/src/shared/**
-      - packages/database/**
+      - packages/api/src/shared/api-http-error.ts
+      - packages/api/src/shared/http-errors.ts
+      - packages/api/src/shared/missionary-authority.ts
+      - packages/api/src/shared/queries.ts
+      - packages/api/src/shared/route-uuid.ts
+      - packages/api/src/shared/tenant-members.ts
+      - packages/api/src/shared/with-operation.ts
+      - packages/database/supabase/admin.ts
+      - packages/database/supabase/config.ts
       - tests/fixtures/auth-memberships.ts
+      - tests/fixtures/missionary-task-patch.ts
       - tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
       - tests/unit/workflows/local-supabase.test.ts
       # The round trips themselves.

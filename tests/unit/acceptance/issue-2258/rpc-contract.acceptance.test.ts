@@ -686,11 +686,11 @@ describe("#2258 pins (criteria 12, 13)", () => {
         47190,
         "74852f931758754843fbd50e41d432fbd40375f06f002c99f3524417f2b8782e",
       ],
-      // D-18: WP2H documents the missionary PostgREST check in the local-stack workflow.
+      // D-18: WP2H narrows the documented stack triggers to the proof dependencies.
       // This pin accepts only the reviewed file bytes, as before.
       [
-        47634,
-        "5185ed293e0b6f0c0273b5cc5fa9c064672a56162a8084014837ec88d9d0fff4",
+        47723,
+        "741eab1b5772462657c943a2ec97060538c3a1035250718822a478fcf4132220",
       ],
     ];
     expect(REVIEWED).toContainEqual([
