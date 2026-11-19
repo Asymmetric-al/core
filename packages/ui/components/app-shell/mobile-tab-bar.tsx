@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 
 import { cn } from "../../lib/utils";
 

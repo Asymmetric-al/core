@@ -55,6 +55,9 @@ const originalFetch = window.fetch;
 let WebStudioDocument: typeof import("../../../../apps/admin/src/cms-ui/web-studio/shell/web-studio-document").WebStudioDocument;
 
 beforeAll(async () => {
+  // A Web Studio page: the document's scope, which the fetch wrapper reads,
+  // is valid inside `/web-studio` only (slice B's segment, at the join).
+  window.history.replaceState(null, "", "/web-studio/collections/pages/7");
   window.fetch = underlyingFetch as typeof fetch;
   ({ WebStudioDocument } =
     await import("../../../../apps/admin/src/cms-ui/web-studio/shell/web-studio-document"));

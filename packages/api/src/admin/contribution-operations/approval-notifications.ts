@@ -6,6 +6,7 @@ import {
   loadCorrectionApprovalPolicy,
 } from "./correction-requests";
 import { asString, isRecord } from "../../shared/json-coerce";
+import { readAllPages } from "../../shared/read-all-pages";
 import { listTenantMembers } from "../../shared/tenant-members";
 import { createMissionControlTaskInSupabase } from "../mission-control-tasks";
 
@@ -223,12 +224,20 @@ export async function listEligibleApprovers(
   // (today the tenant administrator); never a profile role filter. Only
   // staff rows hold capabilities, so the read asks for the staff rows and
   // reads them to the end (council round 1 on WP2a, F7).
-  const [members, preferencesResult] = await Promise.all([
+  const [members, preferences] = await Promise.all([
     listTenantMembers(supabaseAdmin, tenantId, { role: "staff" }),
-    supabaseAdmin
-      .from("contribution_approval_notification_preferences")
-      .select("profile_id, in_app_enabled, email_enabled")
-      .eq("tenant_id", tenantId),
+    // Paged to the end (council round 2 on WP2a, R2): nothing bounds this
+    // table's rows per tenant (one per profile, UNIQUE (tenant_id,
+    // profile_id), written by SQL and the seed only), so no Data API cap may
+    // cut it.
+    readAllPages((from, to) =>
+      supabaseAdmin
+        .from("contribution_approval_notification_preferences")
+        .select("profile_id, in_app_enabled, email_enabled")
+        .eq("tenant_id", tenantId)
+        .order("profile_id", { ascending: true })
+        .range(from, to),
+    ),
   ]);
   const approverProfileIds = [
     ...new Set(
@@ -249,12 +258,8 @@ export async function listEligibleApprovers(
     ),
   ];
 
-  if (preferencesResult.error) {
-    throw new Error(preferencesResult.error.message);
-  }
-
   const preferencesByProfile = new Map<string, ApproverNotificationPreference>(
-    ((preferencesResult.data ?? []) as JsonRecord[]).map((row) => [
+    (preferences as JsonRecord[]).map((row) => [
       asString(row.profile_id) ?? "",
       resolveApproverNotificationPreference(
         row as { in_app_enabled?: boolean; email_enabled?: boolean },

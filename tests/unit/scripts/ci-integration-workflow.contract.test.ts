@@ -143,6 +143,120 @@ describe("ci-integration workflow contract", () => {
     expect(e2eGate).not.toContain("develop");
   });
 
+  // Council round 1, A14 (record D-18): the tenant-address specs carry every
+  // acceptance line's end-to-end proof of the tenant in the page address, and
+  // D-19's first condition; no workflow ran them. They run in the end-to-end
+  // job, each after its app's dev server is ready. This workflow change was
+  // allowed for this item only.
+  it("runs both tenant-address specs in the end-to-end job, after their apps start", () => {
+    const testE2e = jobBlock(workflow, "test-e2e");
+    const steps = stepNames(testE2e);
+    for (const [app, wait] of [
+      ["admin", "Wait for admin health endpoint"],
+      ["missionary", "Wait for missionary health endpoint"],
+    ] as const) {
+      const step = `Tenant address (${app} app)`;
+      expect(steps).toContain(step);
+      expect(steps.indexOf(step)).toBeGreaterThan(steps.indexOf(wait));
+      expect(testE2e).toContain(`run: bun run test:e2e:tenant-address:${app}`);
+    }
+    const scripts = (
+      JSON.parse(readFileSync("package.json", "utf8")) as {
+        scripts: Record<string, string>;
+      }
+    ).scripts;
+    expect(scripts["test:e2e:tenant-address:admin"]).toContain(
+      "-c playwright.admin.config.ts tests/e2e/admin-tenant-address.spec.ts --project=admin-boneyard",
+    );
+    expect(scripts["test:e2e:tenant-address:missionary"]).toContain(
+      "-c playwright.missionary.config.ts tests/e2e/missionary-tenant-address.spec.ts --project=missionary-boneyard",
+    );
+  });
+
+  // Council round 1 on slice B, SB1 (record D-18): the request-scope specs
+  // carry the end-to-end proof that every request a page makes names its
+  // tenant and assignment. They run in the end-to-end job, as the
+  // tenant-address specs do, on the servers the job already started: admin
+  // and missionary right after their tenant-address step, donor right after
+  // its boneyard smoke. This workflow change was allowed for that item only.
+  it("runs the three request-scope specs in the end-to-end job, after their apps' own steps", () => {
+    const testE2e = jobBlock(workflow, "test-e2e");
+    const steps = stepNames(testE2e);
+    for (const [app, before] of [
+      ["admin", "Tenant address (admin app)"],
+      ["missionary", "Tenant address (missionary app)"],
+      ["donor", "Boneyard smoke (donor app)"],
+    ] as const) {
+      const step = `Request scope (${app} app)`;
+      expect(steps).toContain(step);
+      expect(steps.indexOf(step)).toBe(steps.indexOf(before) + 1);
+      expect(testE2e).toContain(`run: bun run test:e2e:request-scope:${app}`);
+    }
+    // One server start for each app: the specs use the job's servers.
+    for (const app of ["donor", "admin", "missionary"]) {
+      expect(steps.filter((name) => name === `Start ${app} app`)).toHaveLength(
+        1,
+      );
+    }
+    const scripts = (
+      JSON.parse(readFileSync("package.json", "utf8")) as {
+        scripts: Record<string, string>;
+      }
+    ).scripts;
+    expect(scripts["test:e2e:request-scope:admin"]).toContain(
+      "-c playwright.admin.config.ts tests/e2e/admin-request-scope.spec.ts --project=admin-boneyard",
+    );
+    expect(scripts["test:e2e:request-scope:missionary"]).toContain(
+      "-c playwright.missionary.config.ts tests/e2e/missionary-request-scope.spec.ts --project=missionary-boneyard",
+    );
+    expect(scripts["test:e2e:request-scope:donor"]).toContain(
+      "tests/e2e/donor-request-scope.spec.ts --project=chromium",
+    );
+    // No retries (council round 2, the coordinator's note on slice B): under
+    // `CI` Playwright retries twice, so a race that fails once and then
+    // passes would be reported as flaky and the step would pass, hiding the
+    // races these specs exist to catch.
+    for (const app of ["admin", "missionary", "donor"]) {
+      expect(scripts[`test:e2e:request-scope:${app}`]).toMatch(
+        / --retries=0(?: |$)/,
+      );
+    }
+  });
+
+  // Council round 2 (the coordinator's note on the joined tree, point 2): the
+  // five steps AL-2675 adds are bounded by what they were measured to take,
+  // and the job keeps its limit. Measured on 2026-11-19 by replaying the job
+  // locally as CI runs it (dev servers, `CI=1`, the placeholder Supabase),
+  // at load 4 to 15. The slowest of two runs for each step: tenant address
+  // (admin) 305 s, request scope (admin) 112 s, tenant address (missionary)
+  // 65 s, request scope (missionary) 10 s, request scope (donor) 60 s. The
+  // same replay took 1.35 to 2.1 times as long as recent hosted runs for
+  // the job's existing steps (production gate 426 s here against 248 to
+  // 316 s hosted). So each limit is at least twice the slowest local run,
+  // and the five should add 5.5 to 7 minutes to a hosted job that took 8.5
+  // to 11. The whole job took 21.3 minutes here, inside its 30.
+  it("bounds the AL-2675 steps by their measured times, inside the job's limit", () => {
+    const testE2e = jobBlock(workflow, "test-e2e");
+    expect(testE2e).toMatch(/^ {4}timeout-minutes: 30$/m);
+    const stepBlock = (name: string) => {
+      const start = testE2e.indexOf(`      - name: ${name}\n`);
+      expect(start).toBeGreaterThanOrEqual(0);
+      const next = testE2e.indexOf("      - name: ", start + 1);
+      return testE2e.slice(start, next === -1 ? undefined : next);
+    };
+    for (const [step, minutes] of [
+      ["Tenant address (admin app)", 10],
+      ["Request scope (admin app)", 5],
+      ["Tenant address (missionary app)", 5],
+      ["Request scope (missionary app)", 5],
+      ["Request scope (donor app)", 5],
+    ] as const) {
+      expect(stepBlock(step), step).toMatch(
+        new RegExp(`^ {8}timeout-minutes: ${minutes}$`, "m"),
+      );
+    }
+  });
+
   it("keeps auth, production, and CMS run artifacts distinct with retry diagnostics", () => {
     const testE2e = jobBlock(workflow, "test-e2e");
     expect(testE2e).toContain(

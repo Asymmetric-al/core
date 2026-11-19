@@ -68,6 +68,18 @@
       "types": "./document-reload.ts",
       "default": "./document-reload.ts"
     },
+    "./document-storage": {
+      "types": "./document-storage.ts",
+      "default": "./document-storage.ts"
+    },
+    "./own-api": {
+      "types": "./own-api.ts",
+      "default": "./own-api.ts"
+    },
+    "./request-scope-headers": {
+      "types": "./request-scope-headers.ts",
+      "default": "./request-scope-headers.ts"
+    },
     "./types": {
       "types": "./types/index.ts",
       "default": "./types/index.ts"

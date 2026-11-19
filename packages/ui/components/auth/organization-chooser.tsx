@@ -1,3 +1,5 @@
+import { CircleAlert } from "lucide-react";
+
 import { OrganizationChoiceSubmit } from "./organization-choice-submit";
 import { Alert, AlertDescription, AlertTitle } from "../shadcn/alert";
 import { ButtonLink } from "../shadcn/button";
@@ -10,6 +12,7 @@ import {
 } from "../shadcn/card";
 
 import type { StaffSubrole } from "@asym/database/types";
+import type { ReactNode } from "react";
 
 const SUB_ROLE_LABELS: Record<StaffSubrole, string> = {
   finance: "Finance",
@@ -57,8 +60,25 @@ type OrganizationChooserProps =
       };
     };
 
-function optionLabel(name: string, subRole: StaffSubrole | null) {
-  return subRole ? SUB_ROLE_LABELS[subRole] : `Open ${name}`;
+/**
+ * An option's name, said once: "Open Acme", or "Acme: Finance", where the
+ * role alone would not say which organization (council round 1, A13).
+ */
+function OptionName({
+  organization,
+  subRole,
+}: {
+  organization: string;
+  subRole: StaffSubrole | null;
+}) {
+  return subRole ? (
+    <>
+      <span className="sr-only">{organization}: </span>
+      {SUB_ROLE_LABELS[subRole]}
+    </>
+  ) : (
+    <>{`Open ${organization}`}</>
+  );
 }
 
 /**
@@ -83,82 +103,131 @@ export function OrganizationChooser(props: OrganizationChooserProps) {
       : "You belong to more than one organization. Each one opens at its own address, so you can keep them in separate tabs.";
 
   return (
+    <ChooserFrame title={title} description={description}>
+      <div className="flex flex-col gap-5">
+        {props.choose?.refused ? (
+          <Alert variant="destructive">
+            <AlertTitle>That choice didn’t go through</AlertTitle>
+            <AlertDescription>
+              You may no longer hold that role, or it changed after this page
+              opened. Choose again from the list below.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+        <ul className="flex flex-col gap-5">
+          {organizations.map((organization) => (
+            <li key={organization.tenantId} className="flex flex-col gap-2">
+              {only ? null : (
+                <h2 className="text-sm font-medium">{organization.name}</h2>
+              )}
+              <ul className="flex flex-col gap-2">
+                {props.choose
+                  ? (
+                      organization as OrganizationChooserOrganization<FormOption>
+                    ).options.map((option) => (
+                      <li key={option.assignmentId}>
+                        <form action={props.choose.action}>
+                          <input
+                            type="hidden"
+                            name="tenant"
+                            value={organization.tenantId}
+                          />
+                          <input
+                            type="hidden"
+                            name="assignment"
+                            value={option.assignmentId}
+                          />
+                          <input
+                            type="hidden"
+                            name="next"
+                            value={props.choose.next}
+                          />
+                          <OrganizationChoiceSubmit>
+                            <OptionName
+                              organization={organization.name}
+                              subRole={option.subRole}
+                            />
+                          </OrganizationChoiceSubmit>
+                        </form>
+                      </li>
+                    ))
+                  : (
+                      organization as OrganizationChooserOrganization
+                    ).options.map((option) => (
+                      <li key={option.href}>
+                        <ButtonLink
+                          href={option.href}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <OptionName
+                            organization={organization.name}
+                            subRole={option.subRole}
+                          />
+                        </ButtonLink>
+                      </li>
+                    ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </ChooserFrame>
+  );
+}
+
+/**
+ * The chooser when the person's organizations could not be read (council
+ * round 1, A9): an alert in the page, with a link that loads the chooser
+ * again for the same choice, instead of the app's error page.
+ */
+export function OrganizationChooserUnavailable({
+  retryHref,
+}: {
+  retryHref: string;
+}) {
+  return (
+    <ChooserFrame title="Choose an organization">
+      <Alert variant="destructive">
+        <CircleAlert aria-hidden />
+        <AlertTitle>Your organizations could not be loaded</AlertTitle>
+        <AlertDescription>
+          <p>This is usually brief. Try again in a moment.</p>
+          <ButtonLink
+            href={retryHref}
+            variant="outline"
+            size="sm"
+            className="mt-2"
+          >
+            Try again
+          </ButtonLink>
+        </AlertDescription>
+      </Alert>
+    </ChooserFrame>
+  );
+}
+
+function ChooserFrame({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
     <main className="flex min-h-dvh items-center justify-center bg-muted px-4 py-8">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>
             <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
           </CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-5">
-          {props.choose?.refused ? (
-            <Alert variant="destructive">
-              <AlertTitle>That choice didn’t go through</AlertTitle>
-              <AlertDescription>
-                You may no longer hold that role, or it changed after this page
-                opened. Choose again from the list below.
-              </AlertDescription>
-            </Alert>
+          {description ? (
+            <CardDescription>{description}</CardDescription>
           ) : null}
-          <ul className="flex flex-col gap-5">
-            {organizations.map((organization) => (
-              <li key={organization.tenantId} className="flex flex-col gap-2">
-                {only ? null : (
-                  <h2 className="text-sm font-medium">{organization.name}</h2>
-                )}
-                <ul className="flex flex-col gap-2">
-                  {props.choose
-                    ? (
-                        organization as OrganizationChooserOrganization<FormOption>
-                      ).options.map((option) => (
-                        <li key={option.assignmentId}>
-                          <form action={props.choose.action}>
-                            <input
-                              type="hidden"
-                              name="tenant"
-                              value={organization.tenantId}
-                            />
-                            <input
-                              type="hidden"
-                              name="assignment"
-                              value={option.assignmentId}
-                            />
-                            <input
-                              type="hidden"
-                              name="next"
-                              value={props.choose.next}
-                            />
-                            <OrganizationChoiceSubmit>
-                              <span className="sr-only">
-                                {organization.name}:
-                              </span>{" "}
-                              {optionLabel(organization.name, option.subRole)}
-                            </OrganizationChoiceSubmit>
-                          </form>
-                        </li>
-                      ))
-                    : (
-                        organization as OrganizationChooserOrganization
-                      ).options.map((option) => (
-                        <li key={option.href}>
-                          <ButtonLink
-                            href={option.href}
-                            variant="outline"
-                            className="w-full"
-                          >
-                            <span className="sr-only">
-                              {organization.name}:{" "}
-                            </span>
-                            {optionLabel(organization.name, option.subRole)}
-                          </ButtonLink>
-                        </li>
-                      ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
+        </CardHeader>
+        <CardContent>{children}</CardContent>
       </Card>
     </main>
   );

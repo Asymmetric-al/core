@@ -1,5 +1,6 @@
 "use client";
 
+import { documentStorageKey } from "@asym/database/document-storage";
 import { useCallback, useState, useEffect } from "react";
 
 import type { ColumnSizingState, RowData, Header } from "../tanstack";
@@ -17,27 +18,42 @@ export interface UseColumnResizingReturn {
 
 const STORAGE_PREFIX = "data-table-column-sizing-";
 
-function loadFromStorage(key: string): ColumnSizingState | null {
+/**
+ * The browser storage key for a table's column sizes: it carries the
+ * document's person and tenant (`documentStorageKey`; plan 5.2, WP2b,
+ * AL-2675), because storage outlives the document load that switching
+ * organization performs. `null` for a document with no scope, which keeps
+ * its sizes in memory and stores nothing.
+ */
+function storageKeyFor(persistKey: string): string | null {
   if (typeof window === "undefined") return null;
+  return documentStorageKey(STORAGE_PREFIX + persistKey);
+}
+
+function loadFromStorage(persistKey: string): ColumnSizingState | null {
+  const key = storageKeyFor(persistKey);
+  if (!key) return null;
   try {
-    const stored = localStorage.getItem(STORAGE_PREFIX + key);
+    const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : null;
   } catch {
     return null;
   }
 }
 
-function saveToStorage(key: string, sizing: ColumnSizingState) {
-  if (typeof window === "undefined") return;
+function saveToStorage(persistKey: string, sizing: ColumnSizingState) {
+  const key = storageKeyFor(persistKey);
+  if (!key) return;
   try {
-    localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(sizing));
+    localStorage.setItem(key, JSON.stringify(sizing));
   } catch {}
 }
 
-function removeFromStorage(key: string) {
-  if (typeof window === "undefined") return;
+function removeFromStorage(persistKey: string) {
+  const key = storageKeyFor(persistKey);
+  if (!key) return;
   try {
-    localStorage.removeItem(STORAGE_PREFIX + key);
+    localStorage.removeItem(key);
   } catch {}
 }
 

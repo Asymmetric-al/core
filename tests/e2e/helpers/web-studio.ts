@@ -118,7 +118,8 @@ export async function chooseOrganization(page: Page, tenantId: string) {
   const name = organizationLabel(tenantId);
   await page
     .getByRole("button", {
-      name: new RegExp(`^${escape(name)}:\\s+Open ${escape(name)}$`),
+      // Named once, as every chooser option is (slice A, council A13).
+      name: new RegExp(`^Open ${escape(name)}$`),
     })
     .click();
 }

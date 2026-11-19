@@ -7,7 +7,10 @@ import {
   findProfileByUserId,
 } from "../../../../../packages/api/src/shared/queries";
 import { TENANT_MEMBER_PAGE_SIZE } from "../../../../../packages/api/src/shared/tenant-members";
-import { memberRow } from "../../../../fixtures/fake-service-client";
+import {
+  memberPages,
+  memberRow,
+} from "../../../../fixtures/fake-service-client";
 
 function createSingleChainMock<T>(result: {
   data: T | null;
@@ -68,10 +71,9 @@ describe("api/shared/queries", () => {
   it("returns null data when profile is not found", async () => {
     const result = { data: null, error: { message: "No rows found" } };
     const mock = createSingleChainMock(result);
-    mock.rpc.mockResolvedValue({
-      data: [memberRow({ profileId: "profile-404" })],
-      error: null,
-    });
+    mock.rpc.mockImplementation(
+      memberPages([memberRow({ profileId: "profile-404" })]),
+    );
 
     const response = await findProfileById(
       mock.supabase as never,

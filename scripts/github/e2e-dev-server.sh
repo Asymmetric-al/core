@@ -106,6 +106,27 @@ stop_app() {
   fi
 }
 
+# Returns 0 when the bind host is an IP literal that Next.js treats as
+# localhost when it normalizes a URL: the pattern is Next's own
+# (REGEX_LOCALHOST_HOSTNAME in next/dist/server/web/next-url.js), applied to
+# the host as Next formats it for its server URL (an IPv6 literal in brackets).
+is_loopback_ip_literal() {
+  local raw="${1:-}"
+  [[ -n "$raw" && "$raw" != "localhost" ]] || return 1
+  ASYM_E2E_BIND_HOST_TO_CHECK="$raw" node -e "
+    const raw = process.env.ASYM_E2E_BIND_HOST_TO_CHECK ?? '';
+    const host = raw.includes(':') && !raw.startsWith('[') ? '[' + raw + ']' : raw;
+    let hostname;
+    try {
+      hostname = new URL('http://' + host).hostname;
+    } catch {
+      process.exit(1);
+    }
+    const loopback = /^(?:127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}|\[::1\])$/;
+    process.exit(loopback.test(hostname) ? 0 : 1);
+  "
+}
+
 start_app() {
   local port="${1:?port required for start}"
   local host="${2:-127.0.0.1}"
@@ -127,13 +148,20 @@ start_app() {
   # rewrite, which it has normalized to localhost, with the literal and sends
   # it out of the server, and the proxy answers 500. Those apps bind the
   # loopback name instead, resolved IPv4 first so the server still answers on
-  # 127.0.0.1, where the workflow's probes and Playwright reach it.
+  # 127.0.0.1, where the workflow's probes and Playwright reach it. Any other
+  # loopback literal (::1, 127.0.0.2) is refused: `localhost` cannot be made
+  # to answer there on every runner (Ubuntu's /etc/hosts gives it no IPv6
+  # address), and bound by the literal the proxy would answer 500.
   local listen_host="$host"
   local node_options="${NODE_OPTIONS:-}"
-  if [[ "$APP" == "admin" || "$APP" == "missionary" ]] &&
-    [[ "$host" == "127.0.0.1" || "$host" == "localhost" ]]; then
-    listen_host="localhost"
-    node_options="${node_options:+${node_options} }--dns-result-order=ipv4first"
+  if [[ "$APP" == "admin" || "$APP" == "missionary" ]]; then
+    if [[ "$host" == "127.0.0.1" || "$host" == "localhost" ]]; then
+      listen_host="localhost"
+      node_options="${node_options:+${node_options} }--dns-result-order=ipv4first"
+    elif is_loopback_ip_literal "$host"; then
+      echo "Refusing to start ${APP} on ${host}: Next.js sends the proxy's tenant-address rewrite out of a server bound to a loopback IP literal, and the proxy answers 500 (record D-19); use 127.0.0.1 or localhost." >&2
+      exit 1
+    fi
   fi
 
   echo "==> E2E dev server: ${APP} on ${listen_host}:${port}"

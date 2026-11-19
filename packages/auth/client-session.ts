@@ -1,5 +1,6 @@
 "use client";
 
+import { loadDocument } from "@asym/database/document-reload";
 import { getQueryClient } from "@asym/database/providers";
 import { createBrowserClient } from "@asym/database/supabase";
 
@@ -211,7 +212,7 @@ function defaultNotify(message: string) {
 
 function defaultRedirect(href: string) {
   if (typeof window !== "undefined") {
-    window.location.href = href;
+    loadDocument(href);
   }
 }
 

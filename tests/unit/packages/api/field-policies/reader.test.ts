@@ -16,12 +16,25 @@ type DatabaseRow = {
 const database = vi.hoisted(() => ({
   rows: [] as DatabaseRow[],
   error: null as { message: string; code: string } | null,
+  /** The request scope each session client was opened with. */
+  scopes: [] as unknown[],
 }));
+
+/** What the request acts under (WP2b, AL-2675; NR-56). */
+const SCOPE = {
+  tenantId: "00000000-0000-0000-0000-000000000002",
+  assignmentId: "00000000-0000-4000-8000-000000000102",
+};
 
 // The database boundary is the only fake. It honors Supabase query filters
 // and deliberately retains malformed policy rows for the reader to reject.
 vi.mock("@asym/database/supabase/server", () => ({
-  createClient: async () => ({
+  createClient: async (scope: unknown) => fakeClient(scope),
+}));
+
+function fakeClient(scope: unknown) {
+  database.scopes.push(scope);
+  return {
     from: () => {
       const predicates: Array<(row: DatabaseRow) => boolean> = [];
       const query = {
@@ -54,8 +67,8 @@ vi.mock("@asym/database/supabase/server", () => ({
       };
       return query;
     },
-  }),
-}));
+  };
+}
 
 function row(overrides: Partial<DatabaseRow> = {}): DatabaseRow {
   return {
@@ -86,12 +99,28 @@ const denied = { visible: false, editable: false, exportable: false };
 beforeEach(() => {
   database.rows = [];
   database.error = null;
+  database.scopes = [];
+});
+
+describe("loadFieldPolicies request scope (WP2b, AL-2675; NR-56)", () => {
+  it("reads field_policies on a session client that sends the request's tenant and assignment", async () => {
+    database.rows = [row()];
+    await loadFieldPolicies({
+      requestScope: SCOPE,
+      surface: "donor",
+      recordType: "donors",
+    });
+    // Once the second release repoints the database helper to these headers,
+    // a read that names no tenant finds no row, and every field is denied.
+    expect(database.scopes).toEqual([SCOPE]);
+  });
 });
 
 describe("loadFieldPolicies static ceiling", () => {
   it("returns a typed policy for a classified whole column", async () => {
     database.rows = [row()];
     const policies = await loadFieldPolicies({
+      requestScope: SCOPE,
       surface: "donor",
       recordType: "donors",
     });
@@ -109,6 +138,7 @@ describe("loadFieldPolicies static ceiling", () => {
 
   it("retains the requested surface and record type", async () => {
     const policies = await loadFieldPolicies({
+      requestScope: SCOPE,
       surface: "donor",
       recordType: "donors",
     });
@@ -125,6 +155,8 @@ describe("loadFieldPolicies static ceiling", () => {
     "does not synthesize permission for an unclassified key on %s",
     async (surface) => {
       const policies = await loadFieldPolicies({
+        requestScope: SCOPE,
+        requestScope: SCOPE,
         surface,
         recordType: "donors",
       });
@@ -135,6 +167,7 @@ describe("loadFieldPolicies static ceiling", () => {
   it("leaves dotted keys inert even when an explicit positive row exists", async () => {
     database.rows = [row({ field_key: "address.street" })];
     const policies = await loadFieldPolicies({
+      requestScope: SCOPE,
       surface: "donor",
       recordType: "donors",
     });
@@ -144,6 +177,7 @@ describe("loadFieldPolicies static ceiling", () => {
   it("reads a whole JSONB column without evaluating child keys", async () => {
     database.rows = [row({ field_key: "address" })];
     const policies = await loadFieldPolicies({
+      requestScope: SCOPE,
       surface: "donor",
       recordType: "donors",
     });
@@ -153,6 +187,7 @@ describe("loadFieldPolicies static ceiling", () => {
   it("does not infer child access from a positive whole-column policy", async () => {
     database.rows = [row({ field_key: "address" })];
     const policies = await loadFieldPolicies({
+      requestScope: SCOPE,
       surface: "donor",
       recordType: "donors",
     });
@@ -162,6 +197,7 @@ describe("loadFieldPolicies static ceiling", () => {
   it("does not reuse policies from another record type", async () => {
     database.rows = [row()];
     const policies = await loadFieldPolicies({
+      requestScope: SCOPE,
       surface: "donor",
       recordType: "profiles",
     });
@@ -171,6 +207,7 @@ describe("loadFieldPolicies static ceiling", () => {
   it("does not reuse policies from another surface", async () => {
     database.rows = [row()];
     const policies = await loadFieldPolicies({
+      requestScope: SCOPE,
       surface: "missionary",
       recordType: "donors",
     });
@@ -188,6 +225,7 @@ describe("loadFieldPolicies static ceiling", () => {
       }),
     ];
     const policies = await loadFieldPolicies({
+      requestScope: SCOPE,
       surface: "future_surface_491",
       recordType: "donors",
     });
@@ -208,6 +246,7 @@ describe("loadFieldPolicies static ceiling", () => {
       row({ field_key: "display_name", sensitivity_category: "public" }),
     ];
     const policies = await loadFieldPolicies({
+      requestScope: SCOPE,
       surface: "future_surface_491",
       recordType: "donors",
     });
@@ -220,6 +259,7 @@ describe("loadFieldPolicies static ceiling", () => {
       row({ tenant_id: "tenant-491", exportable: true }),
     ];
     const policies = await loadFieldPolicies({
+      requestScope: SCOPE,
       surface: "donor",
       recordType: "donors",
       tenantId: "tenant-491",
@@ -232,6 +272,7 @@ describe("loadFieldPolicies static ceiling", () => {
       row({ sensitivity_category: "future_sensitive_category" }),
     ];
     const policies = await loadFieldPolicies({
+      requestScope: SCOPE,
       surface: "donor",
       recordType: "donors",
     });
@@ -258,6 +299,8 @@ describe("loadFieldPolicies static ceiling", () => {
           }),
         ];
         const policies = await loadFieldPolicies({
+          requestScope: SCOPE,
+          requestScope: SCOPE,
           surface,
           recordType: "donors",
         });
@@ -286,6 +329,8 @@ describe("loadFieldPolicies static ceiling", () => {
         }),
       ];
       const policies = await loadFieldPolicies({
+        requestScope: SCOPE,
+        requestScope: SCOPE,
         surface: "mission_control",
         recordType: "donations",
       });
@@ -304,6 +349,7 @@ describe("loadFieldPolicies static ceiling", () => {
       }),
     ];
     const policies = await loadFieldPolicies({
+      requestScope: SCOPE,
       surface: "mission_control",
       recordType: "donations",
     });

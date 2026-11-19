@@ -1,4 +1,12 @@
-import { getAuthContext, hasContextRoleClass } from "@asym/auth/context";
+import {
+  getAuthContext,
+  hasContextRoleClass,
+  requestScopeOf,
+} from "@asym/auth/context";
+import {
+  type RequestScope,
+  requestScopeHeaders,
+} from "@asym/database/request-scope-headers";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
@@ -157,19 +165,24 @@ function isPermissionError(error: PermissionErrorLike | null) {
   );
 }
 
-function createAuthClient(request: NextRequest) {
-  const pendingCookies: PendingCookie[] = [];
-  const pendingHeaders = new Headers();
-  const supabaseUrl = serverEnv.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return { supabase: null, pendingCookies, pendingHeaders };
-  }
-
+/**
+ * The caller's own session, for an environment with no service-key client.
+ * Like every other session client, its Data API requests carry `scope`, the
+ * tenant and assignment the resolver selected (`requestScopeOf`), and never
+ * the tenant headers the caller sent (WP2b, AL-2675). A session rotated while
+ * it reads is handed back through `pendingCookies` and `pendingHeaders`.
+ */
+function createSessionReader(
+  request: NextRequest,
+  connection: { url: string; anonKey: string },
+  scope: RequestScope | null,
+  pendingCookies: PendingCookie[],
+  pendingHeaders: Headers,
+) {
   const requestCookies = parseCookieHeader(request.headers.get("cookie"));
 
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(connection.url, connection.anonKey, {
+    global: { headers: requestScopeHeaders(scope) },
     cookies: {
       getAll() {
         return requestCookies;
@@ -193,8 +206,6 @@ function createAuthClient(request: NextRequest) {
       },
     },
   });
-
-  return { supabase, pendingCookies, pendingHeaders };
 }
 
 function jsonWithCookies(
@@ -219,7 +230,7 @@ function jsonWithCookies(
 
 type MetricsReader =
   | NonNullable<ReturnType<typeof getAdminClient>["client"]>
-  | NonNullable<ReturnType<typeof createAuthClient>["supabase"]>;
+  | ReturnType<typeof createSessionReader>;
 
 /**
  * PostgREST answers at most `max_rows` (1,000, supabase/config.toml) rows per
@@ -262,9 +273,11 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { supabase, pendingCookies, pendingHeaders } =
-    createAuthClient(request);
-  if (!supabase) {
+  const pendingCookies: PendingCookie[] = [];
+  const pendingHeaders = new Headers();
+  const supabaseUrl = serverEnv.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
     return NextResponse.json(
       { error: "Supabase client unavailable." },
       { status: 503 },
@@ -310,7 +323,17 @@ export async function GET(
       );
     }
 
-    const dataReader = getAdminClient().client ?? supabase;
+    // The service-key client when the environment has one; otherwise the
+    // caller's own session, under the row the resolver selected.
+    const dataReader =
+      getAdminClient().client ??
+      createSessionReader(
+        request,
+        { url: supabaseUrl, anonKey: supabaseAnonKey },
+        requestScopeOf(auth),
+        pendingCookies,
+        pendingHeaders,
+      );
 
     const { data: missionary, error: missionaryError } = await dataReader
       .from("missionaries")

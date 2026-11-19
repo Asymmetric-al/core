@@ -1,3 +1,6 @@
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import { redirectInTenant } from "@asym/auth/tenant-server";
+import { WEB_STUDIO_PATH } from "@asym/auth/web-studio";
 import { DocumentScopeProvider } from "@asym/database/document-scope";
 import { renderPublicCmsPageContent } from "@asym/lib/cms/public-page-renderer";
 import {
@@ -13,8 +16,7 @@ import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import { headers } from "next/headers";
 import Image from "next/image";
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { createPayloadRequest } from "payload";
 
@@ -69,7 +71,7 @@ export default async function WebStudioAuthenticatedPreviewPage({
   const auth = await payload.auth({ headers: headerStore, req });
 
   if (!auth.user) {
-    redirect(
+    return redirectInTenant(
       `/login?next=${encodeURIComponent(
         `/web-studio/preview/${collection}/${id}`,
       )}`,
@@ -117,7 +119,7 @@ export default async function WebStudioAuthenticatedPreviewPage({
         : null;
 
   return (
-    <DocumentScopeProvider scope={access.scope}>
+    <DocumentScopeProvider scope={access.scope} segment={WEB_STUDIO_PATH}>
       <main className="min-h-dvh bg-background text-foreground">
         <header className="border-border border-b bg-card px-4 py-4 sm:px-6">
           <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

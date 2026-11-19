@@ -4,7 +4,9 @@ import {
   getDemoRoleMap,
   type DemoAvailabilityPayload,
 } from "./helpers/demo-auth";
-import { demoTenantPath, routePathname } from "./helpers/tenant-address";
+import { demoTenantPath } from "./helpers/tenant-address";
+import { DEMO_TENANT_ID } from "../../packages/auth/constants";
+import { buildTenantPrefix } from "../../packages/auth/tenant-address";
 
 test.describe.configure({ timeout: 120_000 });
 
@@ -46,9 +48,22 @@ async function loginAsAdminDemo(page: Page, protectedPath: string) {
   await page.getByLabel("Email", { exact: true }).fill(adminEmail);
   await page.getByLabel("Password", { exact: true }).fill(adminPassword);
   await page.getByRole("button", { name: "Sign In" }).click();
-  await page.waitForURL((url) => routePathname(url) === protectedPath, {
+  // The named organization's address for the page, exactly, and the page
+  // rendered in that organization: not any tenant prefix (council round 1,
+  // A24). The demo admin's organization unless E2E_ADMIN_TENANT_ID names
+  // the configured admin's.
+  const prefix = buildTenantPrefix(
+    process.env.E2E_ADMIN_TENANT_ID ?? DEMO_TENANT_ID,
+    null,
+  );
+  await page.waitForURL((url) => url.pathname === `${prefix}${protectedPath}`, {
     timeout: 120_000,
   });
+  await expect(page.locator("[data-tenant-scope]")).toHaveAttribute(
+    "data-tenant-scope",
+    prefix,
+    { timeout: 90_000 },
+  );
 }
 
 test.describe("Mission Control contributions live query", () => {

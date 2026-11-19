@@ -44,6 +44,8 @@ vi.mock("next/headers", () => ({
   cookies: async () => ({
     set: (cookie: Record<string, unknown>) => state.set.push(cookie),
   }),
+  // Slice A's redirect reads the proxy's address prefix; Web Studio has none.
+  headers: async () => new Headers(),
 }));
 class RedirectError extends Error {
   constructor(public readonly target: string) {
@@ -282,7 +284,8 @@ describe("the chooser's Web Studio form", () => {
       screen.getByText(/Web Studio works in one organization at a time/),
     ).toBeTruthy();
     const button = screen.getByRole("button", {
-      name: /^Bravo Mission:\s+Open Bravo Mission$/,
+      // Named once, as every chooser option is (slice A, council A13).
+      name: /^Open Bravo Mission$/,
     });
     const formElement = button.closest("form")!;
     const fields = Object.fromEntries(new FormData(formElement).entries());

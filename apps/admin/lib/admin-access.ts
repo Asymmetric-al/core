@@ -1,17 +1,17 @@
 import {
   getAuthContext,
   hasAnyContextRole,
+  requestScopeOf,
   type AuthContext,
 } from "@asym/auth/context";
 import { CHOOSER_PATH } from "@asym/auth/tenant-address";
-import { readDocumentScope } from "@asym/auth/tenant-server";
+import { readDocumentScope, redirectInTenant } from "@asym/auth/tenant-server";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { createClient } from "@asym/database/supabase/server";
 import {
   createMCBootstrapState,
   type MCBootstrapState,
 } from "@asym/lib/mission-control/bootstrap";
-import { redirect } from "next/navigation";
 
 import type { DocumentScope } from "@asym/database/document-scope";
 
@@ -63,21 +63,14 @@ export async function requireAdminAccess(pathname: string) {
   const auth = await getAuthContext(undefined, { roleClass: "staff" });
 
   if (!auth.isAuthenticated || !auth.userId) {
-    redirect(`/login?next=${encodeURIComponent(pathname)}`);
+    return redirectInTenant(`/login?next=${encodeURIComponent(pathname)}`);
   }
 
   if (!auth.tenantId || !hasAnyContextRole(auth, [...ADMIN_ALLOWED_ROLES])) {
-    redirect("/no-access");
+    return redirectInTenant("/no-access");
   }
 
   return { auth, tenantId: auth.tenantId, userId: auth.userId };
-}
-
-export async function getProtectedShellState(
-  pathname: string,
-): Promise<MCBootstrapState> {
-  const { auth, tenantId, userId } = await requireAdminAccess(pathname);
-  return loadShellState(auth, tenantId, userId);
 }
 
 /**
@@ -95,7 +88,9 @@ export async function getTenantShell(pathname: string): Promise<{
   const { auth, tenantId, userId } = await requireAdminAccess(pathname);
   const scope = await readDocumentScope(auth);
   if (!scope) {
-    redirect(`${CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`);
+    return redirectInTenant(
+      `${CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`,
+    );
   }
   return { scope, shellState: await loadShellState(auth, tenantId, userId) };
 }
@@ -105,7 +100,7 @@ async function loadShellState(
   tenantId: string,
   userId: string,
 ): Promise<MCBootstrapState> {
-  const serverClient = await createClient();
+  const serverClient = await createClient(requestScopeOf(auth));
   const shellReader = getAdminClient().client ?? serverClient;
   const [{ data: profile }, { data: tenant }] = await Promise.all([
     shellReader

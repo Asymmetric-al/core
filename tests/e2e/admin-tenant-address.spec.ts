@@ -14,6 +14,8 @@ import {
   TENANTS,
   tenantPath,
   trackDocumentLoads,
+  tenantFreeShellProblems,
+  withServerBoundToLoopbackLiteral,
 } from "./helpers/tenant-address";
 
 /**
@@ -425,6 +427,76 @@ test("sign-in, the callback's landing and the recovery steps keep the browser's 
 test.describe("production build", () => {
   test.skip(!production, "Measured on a production build only");
 
+  // Record D-19, council round 1, A19: bound to the loopback IP literal, the
+  // same build answers a tenant page with the guard's 500, never with the
+  // page rendered without its tenant; bound by the loopback name, as every
+  // harness now binds it, it renders the page.
+  test("a server bound to 127.0.0.1 answers a tenant page with the guard's 500, the one bound by name renders it", async ({
+    page,
+  }) => {
+    const home = tenantPath(DEMO, "/");
+    const literalPort = Number(new URL(baseURL()).port) + 1;
+    await withServerBoundToLoopbackLiteral(
+      "admin",
+      literalPort,
+      async (literal) => {
+        await signInAs(page, "admin", "demoAdmin", literal);
+        const refused = await page.request.get(`${literal}${home}`, {
+          maxRedirects: 0,
+        });
+        expect(refused.status()).toBe(500);
+        expect(await refused.text()).toMatch(/rewrite left the server/);
+      },
+    );
+
+    await signInAs(page, "admin", "demoAdmin", baseURL());
+    const rendered = await page.request.get(home, { maxRedirects: 0 });
+    expect(rendered.status()).toBe(200);
+    expect(await rendered.text()).toContain(`data-tenant-scope="/${DEMO}"`);
+  });
+
+  test("a person who signs in through the form reaches Web Studio from Mission Control without an error page", async ({
+    page,
+  }) => {
+    // Council round 1, A6. The form signs in with a soft navigation, so the
+    // document stays the one loaded at /login; Mission Control then fixes the
+    // document's scope, and Web Studio lies outside the tenant segment.
+    const person = fixturePerson("demoAdmin");
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+    await page.context().clearCookies();
+    const documents = trackDocumentLoads(page);
+    await page.goto("/login");
+    await page.waitForLoadState("networkidle");
+    await page.getByLabel("Email").fill(`${person.userId}@example.test`);
+    await page.getByLabel("Password", { exact: true }).fill("stub-password");
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.waitForURL(new RegExp(`/${DEMO}$`));
+    await expect(page.locator("[data-tenant-scope]")).toHaveCount(1);
+    const signedIn = [...documents];
+
+    await page
+      .getByRole("link", { name: "Web Studio", exact: true })
+      .first()
+      .click();
+    await page.waitForURL(/\/web-studio(\/|$)/);
+    await page.waitForLoadState("networkidle");
+    test.info().annotations.push({
+      type: "documents",
+      description: `after sign-in: ${signedIn.join(" ")}; after Web Studio: ${documents.slice(signedIn.length).join(" ") || "(none: a soft navigation)"}`,
+    });
+    await expect(
+      page.getByRole("heading", { name: "Something went wrong" }),
+    ).toHaveCount(0);
+    expect(await page.title()).not.toBe("Admin error");
+    expect(
+      pageErrors.filter((message) =>
+        message.includes("does not match the document's scope"),
+      ),
+    ).toEqual([]);
+    await expect(page.locator("body")).not.toBeEmpty();
+  });
+
   test("every tenant receives the route's one prerendered shell", async ({
     page,
   }) => {
@@ -433,6 +505,8 @@ test.describe("production build", () => {
       "apps/admin/.next/server/app/care/directory.html",
     );
     const shell = readFileSync(shellFile, "utf8");
+    // The one shell holds no tenant at all (A15).
+    expect(tenantFreeShellProblems(shell)).toEqual([]);
     const served: string[] = [];
     for (const [person, tenant] of [
       ["demoAdmin", DEMO],

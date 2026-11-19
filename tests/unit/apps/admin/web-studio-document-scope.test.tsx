@@ -49,6 +49,8 @@ let WebStudioDocument: typeof import("../../../../apps/admin/src/cms-ui/web-stud
 let useWebStudioOrganization: typeof import("../../../../apps/admin/src/cms-ui/web-studio/shell/web-studio-document").useWebStudioOrganization;
 
 beforeAll(async () => {
+  // A Web Studio page: its scope is valid inside `/web-studio` only.
+  window.history.replaceState(null, "", "/web-studio/collections/pages");
   window.fetch = underlyingFetch as typeof fetch;
   ({ WebStudioDocument, useWebStudioOrganization } =
     await import("../../../../apps/admin/src/cms-ui/web-studio/shell/web-studio-document"));
@@ -127,6 +129,19 @@ describe("a Web Studio document", () => {
       expect(call.headers.get("x-asym-tenant"), call.url).toBeNull();
       expect(call.headers.get("x-asym-assignment"), call.url).toBeNull();
     }
+  });
+
+  it("is valid inside /web-studio only: outside it the scope is withheld and no call names it (slice B's segment)", async () => {
+    window.history.replaceState(null, "", "/");
+    try {
+      expect(getDocumentScope()).toBeNull();
+      sent.length = 0;
+      await window.fetch("/web-studio/api/pages/7", { method: "PATCH" });
+      expect(sent[0]!.headers.get("x-asym-tenant")).toBeNull();
+    } finally {
+      window.history.replaceState(null, "", "/web-studio/collections/pages");
+    }
+    expect(getDocumentScope()).toEqual(SCOPE);
   });
 
   it("wraps fetch once however often it renders", () => {

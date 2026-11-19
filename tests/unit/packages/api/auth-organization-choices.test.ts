@@ -169,8 +169,24 @@ describe("loadOrganizationChoices", () => {
       loadOrganizationChoices({ roleClass: "staff" }),
     ).resolves.toEqual({ kind: "signed_out" });
     state.signedIn = { kind: "unavailable" };
+    // The unavailable state carries the chooser again, for the same choice
+    // (council round 1, A9).
     await expect(
       loadOrganizationChoices({ roleClass: "missionary" }),
-    ).resolves.toEqual({ kind: "unavailable" });
+    ).resolves.toEqual({
+      kind: "unavailable",
+      retryHref: "/choose-organization",
+    });
+    await expect(
+      loadOrganizationChoices({
+        roleClass: "staff",
+        tenantId: "00000000-0000-0000-0000-000000000001",
+        next: "/care?tab=open",
+      }),
+    ).resolves.toEqual({
+      kind: "unavailable",
+      retryHref:
+        "/choose-organization?tenant=00000000-0000-0000-0000-000000000001&next=%2Fcare%3Ftab%3Dopen",
+    });
   });
 });

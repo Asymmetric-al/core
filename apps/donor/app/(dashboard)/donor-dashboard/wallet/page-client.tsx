@@ -22,6 +22,7 @@ import {
   EmptyTitle,
 } from "@asym/ui/components/shadcn/empty";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { useLoadRetry } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import {
   CreditCard,
@@ -32,12 +33,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
-
-import {
-  focusHeadingIfLost,
-  useFocusHandoff,
-  useLoadRetry,
-} from "@/features/donor/focus-recovery";
 
 const FREQUENCY_WORDS: Record<string, string> = {
   weekly: "a week",
@@ -173,16 +168,17 @@ export default function WalletPage() {
   const linked = data?.status === "linked";
 
   const pageRef = useRef<HTMLDivElement>(null);
-  const walletRetry = useLoadRetry(
-    pageRef,
-    Boolean(wallet.error) || !data,
-    wallet.refetch,
-  );
-  // However the methods recover, focus on the error view moves to the heading.
-  const errorView = useFocusHandoff(() => focusHeadingIfLost(pageRef.current));
   // Offline, a first load waits for the connection without fetching; it is
   // still loading, not failed.
   const loading = wallet.isLoading || (wallet.isPending && wallet.isPaused);
+  // Methods that never arrived count as a failure too. However the methods
+  // recover, focus on the error view moves to the heading.
+  const { failureView, ...walletRetry } = useLoadRetry({
+    error: Boolean(wallet.error) || !data,
+    loading,
+    onRetry: wallet.refetch,
+    landing: () => pageRef.current?.querySelector("h1"),
+  });
 
   const openPortal = async () => {
     setPortalError(false);
@@ -246,7 +242,7 @@ export default function WalletPage() {
           ))}
         </div>
       ) : wallet.error || !data || walletRetry.retrying ? (
-        <Card ref={errorView}>
+        <Card ref={failureView}>
           <CardContent className="space-y-3 p-6">
             <p
               key={walletRetry.failedRetries}

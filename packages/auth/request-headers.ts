@@ -1,3 +1,8 @@
+import {
+  ASSIGNMENT_HEADER,
+  TENANT_HEADER,
+} from "@asym/database/request-scope-headers";
+
 import type { RoleClass } from "./principal/types";
 
 /**
@@ -6,9 +11,11 @@ import type { RoleClass } from "./principal/types";
  * - `x-asym-role-class`: the surface's role class. Each app's proxy sets it on
  *   every request it passes on, overwriting any value the client sent, from
  *   its own configuration: staff for Mission Control and Web Studio,
- *   missionary for the missionary workspace, donor for the donor portal. The
- *   proxies run on every `/api` path whatever its extension, so no API route
- *   reads a class the client chose.
+ *   missionary for the missionary workspace, donor for the donor portal.
+ *   Each proxy runs on every path its app can answer, pages and API routes,
+ *   whatever the path ends in; it skips only Next.js's own assets and real
+ *   static files (the `matcher` in each app's `proxy.ts`). So no page and no
+ *   API route reads a class the client chose.
  * - `x-asym-tenant`: the tenant the request acts in. On a page request the
  *   proxy sets it from the page address after its membership decision; on an
  *   API request the shared own-API fetch wrapper sends the page's tenant.
@@ -22,13 +29,17 @@ import type { RoleClass } from "./principal/types";
  *   rows; the database reads the same header
  *   (`tenant_guard.request_assignment_id()`).
  *
- * On a page request the proxy deletes every copy of the tenant, assignment
- * and address headers the client sent before it decides, so a forged header
- * never selects anything.
+ * Every page request runs the proxy, which deletes every copy of the tenant,
+ * assignment and address headers the client sent before it decides, so a
+ * forged header never selects anything. Behind it, the server reads only
+ * what holds together: `readAddressPrefix` takes a value that is exactly a
+ * prefix, and `readDocumentScope` requires the resolved row to be in the
+ * address's tenant and, under a suffix, to be that staff row.
  */
 export const ROLE_CLASS_HEADER = "x-asym-role-class";
-export const TENANT_HEADER = "x-asym-tenant";
-export const ASSIGNMENT_HEADER = "x-asym-assignment";
+// Owned by `@asym/database`, whose fetch wrapper, browser client and session
+// clients send them; re-exported here with the rules above.
+export { ASSIGNMENT_HEADER, TENANT_HEADER };
 
 /**
  * Page requests only, set by the proxy on a tenant address: the address

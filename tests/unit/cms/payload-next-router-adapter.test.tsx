@@ -96,6 +96,22 @@ it.each([
   expect(loads.loadDocument).not.toHaveBeenCalled();
 });
 
+// The join (slice A's helpers under Web Studio's adapter): a navigation that
+// stays inside Web Studio loads no document, so Payload's refresh, which its
+// forms and lists call after a save, still reaches the router (slice A turns
+// refresh off only while a document load is in flight).
+it("still refreshes after a navigation that stayed inside Web Studio", () => {
+  const router = payloadRouter();
+  router.push("/web-studio/collections/pages/8");
+  router.replace("?page=2");
+  router.refresh();
+
+  expect(next.push).toHaveBeenCalledTimes(1);
+  expect(next.replace).toHaveBeenCalledTimes(1);
+  expect(next.refresh).toHaveBeenCalledTimes(1);
+  expect(loads.loadDocument).not.toHaveBeenCalled();
+});
+
 it("loads a relative path that climbs out of Web Studio as a document", () => {
   const router = payloadRouter();
   router.push("../../../people");

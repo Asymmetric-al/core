@@ -1,16 +1,18 @@
 "use client";
 
 import {
+  TenantLink,
+  useRoutePathname,
+  useTenantRouter,
+} from "@asym/auth/tenant-navigation";
+import {
   isWebStudioApiPath,
   isWebStudioPath,
   WEB_STUDIO_CHOOSER_PATH,
 } from "@asym/auth/web-studio";
 import { RouterAdapterContext } from "@payloadcms/ui";
-import Link from "next/link";
 import {
   useParams as useNextParams,
-  usePathname as useNextPathname,
-  useRouter as useNextRouter,
   useSearchParams as useNextSearchParams,
 } from "next/navigation";
 import React from "react";
@@ -61,7 +63,7 @@ const NextLinkAdapter: React.FC<LinkAdapterProps> = ({
   ...rest
 }) => {
   return (
-    <Link
+    <TenantLink
       href={href}
       prefetch={prefetch}
       ref={ref}
@@ -70,7 +72,7 @@ const NextLinkAdapter: React.FC<LinkAdapterProps> = ({
       {...rest}
     >
       {children}
-    </Link>
+    </TenantLink>
   );
 };
 
@@ -89,8 +91,11 @@ function NextRouterAdapterProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const nextRouter = useNextRouter();
-  const pathname = useNextPathname();
+  // Web Studio is outside the tenant segment: the helpers act as the Next.js
+  // originals here, and a link or push to Mission Control loads a new
+  // document (AL-2675; council round 1, A10).
+  const nextRouter = useTenantRouter();
+  const pathname = useRoutePathname();
   const searchParams = useNextSearchParams();
   const nextParams = useNextParams();
 

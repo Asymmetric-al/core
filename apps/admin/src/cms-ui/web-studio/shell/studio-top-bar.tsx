@@ -1,5 +1,6 @@
 "use client";
 
+import { useRoutePathname } from "@asym/auth/tenant-navigation";
 import { WEB_STUDIO_CHOOSER_PATH } from "@asym/auth/web-studio";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
@@ -30,7 +31,6 @@ import {
   UserRound,
   UserRoundCog,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
 import { formatAdminURL } from "payload/shared";
 
 import { getEnabledWebStudioCollections } from "../collections/config";
@@ -67,7 +67,7 @@ function StudioUserMenu() {
   // The organization this document works in (plan 5.2): one for the whole of
   // Web Studio, switched through the Web Studio chooser.
   const organization = useWebStudioOrganization();
-  const pathname = usePathname() ?? "/web-studio";
+  const pathname = useRoutePathname();
   const switchHref = `${WEB_STUDIO_CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`;
   const accountHref = formatAdminURL({ adminRoute, path: routes.account });
   const logoutHref = formatAdminURL({ adminRoute, path: routes.logout });

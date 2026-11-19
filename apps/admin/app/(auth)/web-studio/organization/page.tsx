@@ -1,4 +1,5 @@
 import { loadWebStudioOrganizationChoices } from "@asym/api/auth/organization-choices";
+import { redirectInTenant } from "@asym/auth/tenant-server";
 import {
   safeWebStudioNext,
   WEB_STUDIO_REFUSED_PARAM,
@@ -11,7 +12,6 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@asym/ui/components/shadcn/alert";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
@@ -59,7 +59,7 @@ async function Choices({ searchParams }: WebStudioOrganizationPageProps) {
   const choices = await loadWebStudioOrganizationChoices();
   if (choices.kind === "signed_out") {
     // Back to this choice, and then to the page, once signed in.
-    redirect(
+    return redirectInTenant(
       `/login?next=${encodeURIComponent(webStudioChooserAddress(next))}`,
     );
   }
@@ -78,7 +78,7 @@ async function Choices({ searchParams }: WebStudioOrganizationPageProps) {
       </main>
     );
   }
-  if (choices.organizations.length === 0) redirect("/no-access");
+  if (choices.organizations.length === 0) return redirectInTenant("/no-access");
   // Shown even with one option: a person whose earlier choice no longer
   // holds confirms the one that is left, so nothing is ever picked for them.
   return (

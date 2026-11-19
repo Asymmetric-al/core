@@ -1,4 +1,8 @@
-import { getAuthContext } from "@asym/auth/context";
+import {
+  getAuthContext,
+  requestScopeOf,
+  type AuthContext,
+} from "@asym/auth/context";
 import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -46,6 +50,17 @@ type AuthenticatedDonorLookup =
   | { status: "found"; donor: DonorIdentity; tenantId: string };
 
 /**
+ * The resolved request and a user-JWT client that sends its tenant and
+ * assignment (plan 5.4; WP2b, AL-2675). The route is on the resolver: its
+ * tenant is the resolved donor assignment's, never the token's claim.
+ */
+async function openDonorSession(request: Request) {
+  const auth = await getAuthContext(request);
+  const supabase = await createClient(requestScopeOf(auth));
+  return { auth, supabase };
+}
+
+/**
  * Resolves the caller's donor in the tenant of the request's resolved donor
  * assignment, by profile ownership, with the user-JWT client, mirroring the
  * donor_feed_preferences own-row policies
@@ -54,10 +69,8 @@ type AuthenticatedDonorLookup =
  */
 async function findDonorByAuthenticatedUser(
   supabase: SupabaseServerClient,
-  request: Request,
+  auth: AuthContext,
 ): Promise<AuthenticatedDonorLookup> {
-  const auth = await getAuthContext(request);
-
   if (!auth.userId) {
     return { status: "unauthenticated" };
   }
@@ -196,8 +209,8 @@ function toFeedPreferencesUpsert(
 
 export async function GET(request: Request) {
   try {
-    const supabase = await createClient();
-    const donorLookup = await findDonorByAuthenticatedUser(supabase, request);
+    const { auth, supabase } = await openDonorSession(request);
+    const donorLookup = await findDonorByAuthenticatedUser(supabase, auth);
     const failure = donorLookupFailure(donorLookup);
 
     if (failure) {
@@ -235,8 +248,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const donorLookup = await findDonorByAuthenticatedUser(supabase, request);
+    const { auth, supabase } = await openDonorSession(request);
+    const donorLookup = await findDonorByAuthenticatedUser(supabase, auth);
     const failure = donorLookupFailure(donorLookup);
 
     if (failure) {

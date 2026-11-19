@@ -29,6 +29,7 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { useLoadRetry, useOwnApiDownload } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import { CircleAlert, Download } from "lucide-react";
 import Link from "next/link";
@@ -46,11 +47,6 @@ import {
   supportedMissionaries,
 } from "./overview/overview-model";
 import { UpdateRailThumbnail } from "./update-rail-thumbnail";
-import {
-  focusHeadingIfLost,
-  useFocusHandoff,
-  useLoadRetry,
-} from "../focus-recovery";
 
 const LONG_DAY = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -197,7 +193,7 @@ function RecentUpdatesCard({
 }: {
   feedQuery: ReturnType<typeof useDonorFeedPosts>;
   loading: boolean;
-  retry: ReturnType<typeof useLoadRetry>;
+  retry: Omit<ReturnType<typeof useLoadRetry>, "failureView">;
   errorView: React.Ref<HTMLDivElement>;
 }) {
   const titleId = React.useId();
@@ -295,27 +291,31 @@ export function DonorDashboardMainBody() {
   const year = givenThisYear(portal);
   const next = nextScheduledGift(portal);
   const statementYear = statementPromptYear(portal);
+  const { download, buttonProps: statementButtonProps } = useOwnApiDownload();
   const giveAgain = lastSupported(portal);
-  // Both retries, and any recovery, land on the same page heading.
-  const pageRef = React.useRef<HTMLDivElement>(null);
-  const summaryRetry = useLoadRetry(
-    pageRef,
-    Boolean(portalQuery.error) || !portal,
-    portalQuery.refetch,
-  );
-  const feedRetry = useLoadRetry(
-    pageRef,
-    Boolean(feedQuery.error),
-    feedQuery.refetch,
-  );
-  // However a load recovers, focus on its error view moves to the heading.
-  const errorView = useFocusHandoff(() => focusHeadingIfLost(pageRef.current));
   // Offline, a first load waits for the connection without fetching; it is
   // still loading, not failed or empty.
   const portalLoading =
     portalQuery.isLoading || (portalQuery.isPending && portalQuery.isPaused);
   const feedLoading =
     feedQuery.isLoading || (feedQuery.isPending && feedQuery.isPaused);
+  // Both retries, and any recovery, land on the same page heading: however a
+  // load recovers, focus on its error view moves there.
+  const pageRef = React.useRef<HTMLDivElement>(null);
+  const heading = () => pageRef.current?.querySelector("h1");
+  const { failureView: summaryView, ...summaryRetry } = useLoadRetry({
+    // A summary that never arrived counts as a failure too.
+    error: Boolean(portalQuery.error) || !portal,
+    loading: portalLoading,
+    onRetry: portalQuery.refetch,
+    landing: heading,
+  });
+  const { failureView: feedView, ...feedRetry } = useLoadRetry({
+    error: feedQuery.error,
+    loading: feedLoading,
+    onRetry: feedQuery.refetch,
+    landing: heading,
+  });
 
   return (
     <div
@@ -332,13 +332,17 @@ export function DonorDashboardMainBody() {
         description="Your giving, what’s coming up, and news from the field."
       >
         {statementYear ? (
-          <a
-            href={`/api/donor/statements/${statementYear}`}
-            className={buttonVariants({ variant: "outline" })}
+          // An own-API download with the document's scope (WP2b, AL-2675).
+          <Button
+            variant="outline"
+            {...statementButtonProps}
+            onClick={() =>
+              void download(`/api/donor/statements/${statementYear}`)
+            }
           >
             <Download data-icon="inline-start" aria-hidden />
             {`${statementYear} giving statement`}
-          </a>
+          </Button>
         ) : null}
         <Link
           href={giveAgain ? giveHref(giveAgain.id) : "/workers"}
@@ -381,7 +385,7 @@ export function DonorDashboardMainBody() {
           ))}
         </div>
       ) : portalQuery.error || !portal ? (
-        <Card ref={errorView}>
+        <Card ref={summaryView}>
           <CardContent className="flex flex-col items-start gap-3">
             <p
               key={summaryRetry.failedRetries}
@@ -450,7 +454,7 @@ export function DonorDashboardMainBody() {
             isLoading={feedLoading}
             error={feedQuery.error}
             retry={feedRetry}
-            retryRef={errorView}
+            retryRef={feedView}
           />
         </section>
         <div className="min-w-0 lg:col-span-4">
@@ -458,7 +462,7 @@ export function DonorDashboardMainBody() {
             feedQuery={feedQuery}
             loading={feedLoading}
             retry={feedRetry}
-            errorView={errorView}
+            errorView={feedView}
           />
         </div>
       </div>

@@ -116,7 +116,9 @@ describe("Shadscan CMS boundary evidence", () => {
     expect(authenticate.parent.kind).toBe(ts.SyntaxKind.AwaitExpression);
     expect(read.parent.kind).toBe(ts.SyntaxKind.AwaitExpression);
     const unauthenticated = guardFor(source, "!auth.user");
-    const redirect = callsTo(source, "redirect", unauthenticated)[0];
+    // Through the tenant helper, the plain redirect outside the segment
+    // (council round 1, A10).
+    const redirect = callsTo(source, "redirectInTenant", unauthenticated)[0];
     expect(redirect).toBeDefined();
     expect(authenticate.getStart()).toBeLessThan(unauthenticated.getStart());
     expect(unauthenticated.end).toBeLessThan(read.getStart());

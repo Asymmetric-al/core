@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import {
   Avatar,
   AvatarFallback,
@@ -234,14 +235,17 @@ function InboundAttachmentState({
     const button = event.currentTarget;
     setRetryState("requesting");
     try {
-      const response = await fetch("/api/admin/support-hub/inbound/retry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          inboundEmailRowId: message.inboundEmailId,
-          kind: "attachments",
-        }),
-      });
+      const response = await ownApiFetch(
+        "/api/admin/support-hub/inbound/retry",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            inboundEmailRowId: message.inboundEmailId,
+            kind: "attachments",
+          }),
+        },
+      );
       // A successful request removes Retry, so focus moves off it first.
       if (response.ok && document.activeElement === button) onRetryRequested();
       setRetryState(response.ok ? "requested" : "error");

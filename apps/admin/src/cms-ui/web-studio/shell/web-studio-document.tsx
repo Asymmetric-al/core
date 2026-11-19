@@ -1,5 +1,6 @@
 "use client";
 
+import { WEB_STUDIO_PATH } from "@asym/auth/web-studio";
 import {
   DocumentScopeProvider,
   type DocumentScope,
@@ -50,7 +51,9 @@ export function WebStudioDocument({
   }
 
   return (
-    <DocumentScopeProvider scope={scope}>
+    // Valid inside Web Studio only: its address names no tenant, so the
+    // prefix is empty and the segment bounds the scope (slice B, D-41).
+    <DocumentScopeProvider scope={scope} segment={WEB_STUDIO_PATH}>
       <WebStudioOrganizationContext.Provider value={organization}>
         {/* What the end-to-end suites read; it renders nothing visible. */}
         <span

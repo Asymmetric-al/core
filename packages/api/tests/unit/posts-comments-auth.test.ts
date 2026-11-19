@@ -4,19 +4,34 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * TDD — finding 06 Gap 3: posts/comments GET reads post_comments (+ joined
  * profiles) via the user-scoped client with no explicit auth call. Add an
  * explicit auth check rather than relying on RLS alone.
+ *
+ * WP2b, first release (AL-2675; plan 5.4): the caller is now resolved through
+ * `getAuthContext`, so that the session client sends the tenant and
+ * assignment the resolver selected. The two original assertions are kept as
+ * they were, on that seam.
  */
 
-const { createClientMock } = vi.hoisted(() => ({
+const { createClientMock, getAuthContextMock } = vi.hoisted(() => ({
   createClientMock: vi.fn(),
+  getAuthContextMock: vi.fn(),
 }));
 
 vi.mock("@asym/database/supabase/server", () => ({
   createClient: createClientMock,
 }));
+vi.mock("@asym/auth/context", async () => {
+  const actual =
+    await vi.importActual<typeof AuthContext>("@asym/auth/context");
+  return { ...actual, getAuthContext: getAuthContextMock };
+});
 
 import { GET, POST } from "../../src/posts/comments";
 
+import type * as AuthContext from "@asym/auth/context";
 import type { NextRequest } from "next/server";
+
+const TENANT = "00000000-0000-0000-0000-000000000002";
+const ASSIGNMENT = "00000000-0000-4000-8000-000000000152";
 
 function ctx(postId = "post-1") {
   return { params: Promise.resolve({ postId }) };
@@ -25,17 +40,56 @@ const request = new Request(
   "https://example.com/api/posts/post-1/comments",
 ) as unknown as NextRequest;
 
-function mockClient(user: { id: string } | null) {
+function signedIn(userId: string | null) {
+  getAuthContextMock.mockResolvedValue(
+    userId
+      ? {
+          isAuthenticated: true,
+          userId,
+          email: null,
+          tenantId: TENANT,
+          role: "missionary",
+          memberships: [
+            {
+              tenantId: TENANT,
+              role: "missionary",
+              staffRole: null,
+              isActive: true,
+              isTenantAdmin: false,
+            },
+          ],
+          assignment: {
+            assignmentId: ASSIGNMENT,
+            userId,
+            tenantId: TENANT,
+            revision: "1",
+            membershipRole: "missionary",
+            staffRole: null,
+            isTenantAdmin: false,
+          },
+          assignmentDenial: null,
+          profileId: "profile-1",
+        }
+      : {
+          isAuthenticated: false,
+          userId: null,
+          email: null,
+          tenantId: null,
+          role: null,
+          memberships: [],
+          assignment: null,
+          assignmentDenial: null,
+          profileId: null,
+        },
+  );
+}
+
+function mockClient() {
   const order = vi.fn().mockResolvedValue({ data: [], error: null });
   const eq = vi.fn(() => ({ order }));
   const select = vi.fn(() => ({ eq }));
   const from = vi.fn(() => ({ select }));
-  createClientMock.mockResolvedValue({
-    auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user }, error: null }),
-    },
-    from,
-  });
+  createClientMock.mockResolvedValue({ from });
   return { from };
 }
 
@@ -43,17 +97,30 @@ describe("posts/comments GET — explicit auth check (finding 06 Gap 3)", () => 
   beforeEach(() => vi.clearAllMocks());
 
   it("returns 401 for an unauthenticated caller and never queries comments", async () => {
-    const { from } = mockClient(null);
+    signedIn(null);
+    const { from } = mockClient();
     const res = await GET(request, ctx());
     expect(res.status).toBe(401);
     expect(from).not.toHaveBeenCalled();
   });
 
   it("returns comments for an authenticated caller (feature still works)", async () => {
-    const { from } = mockClient({ id: "user-1" });
+    signedIn("user-1");
+    const { from } = mockClient();
     const res = await GET(request, ctx());
     expect(res.status).toBe(200);
     expect(from).toHaveBeenCalledWith("post_comments");
+  });
+
+  it("reads with a session client that sends the resolved tenant and assignment", async () => {
+    signedIn("user-1");
+    mockClient();
+    await GET(request, ctx());
+    expect(getAuthContextMock).toHaveBeenCalledWith(request);
+    expect(createClientMock).toHaveBeenCalledWith({
+      tenantId: TENANT,
+      assignmentId: ASSIGNMENT,
+    });
   });
 });
 

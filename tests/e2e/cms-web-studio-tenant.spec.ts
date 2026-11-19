@@ -304,9 +304,7 @@ test("@cms once the person no longer holds the selected membership, the next pag
   await page.goto(`${base}/web-studio/collections/pages`);
   await expect(page).toHaveURL(/\/web-studio\/organization\?next=/);
   // Only the organizations' options, not the development tools' buttons.
-  await expect(
-    page.getByRole("button", { name: /^[^:]+:\s+Open / }),
-  ).toHaveCount(1);
+  await expect(page.getByRole("button", { name: /^Open / })).toHaveCount(1);
 });
 
 test("@cms stub only: the admin proxy refreshes an expired session on a Web Studio REST call", async ({

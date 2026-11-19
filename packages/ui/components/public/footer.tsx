@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 
 interface FooterLink {
   label: string;

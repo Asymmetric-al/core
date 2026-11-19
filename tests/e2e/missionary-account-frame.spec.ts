@@ -49,6 +49,24 @@ async function capture(page: Page, testInfo: TestInfo, name: string) {
   await testInfo.attach(name, { path, contentType: "image/png" });
 }
 
+/**
+ * A workspace page under the tenant address: the proxy's landing, the role
+ * gate and the document scope come before the chrome, which streams after
+ * them, and `next dev` compiles the route on its first visit. So wait for
+ * the document scope with a timeout long enough to compile, then assert the
+ * chrome at the ordinary timeout (council round 1, A17).
+ */
+const WORKSPACE_READY_MS = 90_000;
+async function expectWorkspaceReady(page: Page) {
+  await expect(page.locator("[data-tenant-scope]")).toHaveCount(1, {
+    timeout: WORKSPACE_READY_MS,
+  });
+  // The streamed chrome is visible before it is interactive: a click on it
+  // before hydration is lost. Wait until the page's code has arrived, as the
+  // email journeys wait for their forms (waitForHydratedForm).
+  await page.waitForLoadState("networkidle", { timeout: WORKSPACE_READY_MS });
+}
+
 async function enterDemoWorkspace(page: Page, next = "/") {
   await page.goto(`/login?next=${encodeURIComponent(next)}`);
   await expect(page.getByRole("heading", { name: "Sign In" })).toBeVisible();
@@ -58,7 +76,9 @@ async function enterDemoWorkspace(page: Page, next = "/") {
     (url) =>
       url.pathname.startsWith(DEMO_TENANT_PREFIX) &&
       `${routePathname(url)}${url.search}` === next,
+    { timeout: WORKSPACE_READY_MS },
   );
+  await expectWorkspaceReady(page);
   await expect(
     page.getByRole("button", { name: "Search missionary pages" }),
   ).toBeVisible();
@@ -217,7 +237,10 @@ test("protected deep links retain their validated destination through the author
   expect(new URL(page.url()).searchParams.get("next")).toBe(destination);
   await expectStandaloneAccountFrame(page);
   await page.getByRole("button", { name: "Demo Access" }).click();
-  await expect(page).toHaveURL(/\/settings\?tab=account$/);
+  await expect(page).toHaveURL(/\/settings\?tab=account$/, {
+    timeout: WORKSPACE_READY_MS,
+  });
+  await expectWorkspaceReady(page);
   await expect(page.getByTestId("account-menu")).toBeVisible();
   await expect(page.locator('[data-slot="sidebar"]')).toBeVisible();
   await expect(
@@ -225,6 +248,7 @@ test("protected deep links retain their validated destination through the author
   ).toBeVisible();
   await page.reload();
   await expect(page).toHaveURL(/\/settings\?tab=account$/);
+  await expectWorkspaceReady(page);
   await expect(page.getByTestId("account-menu")).toBeVisible();
   await capture(page, testInfo, "fixture-protected-return");
 });

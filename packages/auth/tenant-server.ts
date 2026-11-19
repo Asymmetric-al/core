@@ -13,10 +13,16 @@ import type { DocumentScope } from "@asym/database/document-scope";
  * membership decision, and deletes any copy a client sent.
  */
 
-/** The prefix the proxy admitted this page request under, or `null`. */
+/**
+ * The prefix the proxy admitted this page request under, or `null`. Only a
+ * value that is exactly a prefix (`/<tenant>` or `/<tenant>~<sub-role>`, with
+ * nothing after it) is one (council round 1, A3).
+ */
 export async function readAddressPrefix(): Promise<string | null> {
   const prefix = (await headers()).get(ADDRESS_PREFIX_HEADER);
-  return prefix && parseTenantAddress(prefix) ? prefix : null;
+  return prefix && parseTenantAddress(prefix)?.prefix === prefix
+    ? prefix
+    : null;
 }
 
 /**
@@ -32,14 +38,17 @@ export async function readDocumentScope(
 ): Promise<DocumentScope | null> {
   const addressPrefix = await readAddressPrefix();
   if (!addressPrefix) return null;
-  const tenantId = parseTenantAddress(addressPrefix)!.tenantId;
+  const { tenantId, subRole } = parseTenantAddress(addressPrefix)!;
   const { assignment } = auth;
   if (
     !auth.isAuthenticated ||
     !auth.userId ||
     !assignment ||
     assignment.tenantId !== tenantId ||
-    auth.tenantId !== tenantId
+    auth.tenantId !== tenantId ||
+    // A suffix names the staff row the page acts under; the resolved row
+    // must be that one (council round 1, A3).
+    (subRole !== null && assignment.staffRole !== subRole)
   ) {
     throw new Error(
       `The resolved assignment does not match the page address "${addressPrefix}".`,
@@ -50,6 +59,35 @@ export async function readDocumentScope(
     tenantId,
     assignmentId: assignment.assignmentId,
     addressPrefix,
+  };
+}
+
+/**
+ * The donor portal's document scope (plan 12, WP2, "Interim rules until
+ * WP3"; WP2b, AL-2675): the person's one live donor membership, which the
+ * resolver selected for the request. The portal's address carries no tenant
+ * until WP3 resolves its host, so the address prefix is empty. `null` when no
+ * donor assignment resolved, which includes a person with donor memberships
+ * in two tenants: the resolver refuses them until WP3.
+ */
+export function readPortalDocumentScope(
+  auth: AuthContext,
+): DocumentScope | null {
+  const { assignment } = auth;
+  if (
+    !auth.isAuthenticated ||
+    !auth.userId ||
+    !assignment ||
+    assignment.membershipRole !== "donor" ||
+    assignment.tenantId !== auth.tenantId
+  ) {
+    return null;
+  }
+  return {
+    userId: auth.userId,
+    tenantId: assignment.tenantId,
+    assignmentId: assignment.assignmentId,
+    addressPrefix: "",
   };
 }
 

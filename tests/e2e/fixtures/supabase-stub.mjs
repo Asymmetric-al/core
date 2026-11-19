@@ -125,6 +125,40 @@ function send(res, status, body) {
   res.end(body === undefined ? "" : JSON.stringify(body));
 }
 
+/** A session for a fixture person; the token is not signed, as `callerOf` reads it. */
+function sessionFor(person) {
+  const expiresAt = Math.floor(Date.now() / 1000) + 6 * 3600;
+  const accessToken = [
+    { alg: "HS256", typ: "JWT" },
+    {
+      sub: person.userId,
+      exp: expiresAt,
+      aud: "authenticated",
+      role: "authenticated",
+      email: `${person.userId}@example.test`,
+    },
+  ]
+    .map((part) => Buffer.from(JSON.stringify(part)).toString("base64url"))
+    .concat("stub-not-a-real-signature")
+    .join(".");
+  return {
+    access_token: accessToken,
+    token_type: "bearer",
+    expires_in: 6 * 3600,
+    expires_at: expiresAt,
+    refresh_token: `stub-refresh-${person.userId}`,
+    user: {
+      id: person.userId,
+      aud: "authenticated",
+      role: "authenticated",
+      email: `${person.userId}@example.test`,
+      app_metadata: { provider: "email", providers: ["email"] },
+      user_metadata: {},
+      created_at: "2026-11-17T00:00:00.000Z",
+    },
+  };
+}
+
 function assignmentRows(person) {
   return person.memberships.map((membership) => ({
     id: membership.id,
@@ -178,6 +212,27 @@ const server = http.createServer((req, res) => {
             error: "invalid_grant",
             error_description: "Invalid Refresh Token: Refresh Token Not Found",
           });
+    }
+    if (url.pathname === "/auth/v1/token" && req.method === "POST") {
+      // The sign-in form (grant_type=password) and the session refresh: a
+      // fixture person signs in as `<userId>@example.test` with any password.
+      const body = raw ? JSON.parse(raw) : {};
+      const grant = url.searchParams.get("grant_type");
+      const signingIn =
+        grant === "password"
+          ? USERS.get(String(body.email ?? "").replace(/@example\.test$/, ""))
+          : grant === "refresh_token"
+            ? USERS.get(
+                String(body.refresh_token ?? "").replace(/^stub-refresh-/, ""),
+              )
+            : null;
+      if (!signingIn) {
+        return send(res, 400, {
+          error: "invalid_grant",
+          error_description: "Invalid login credentials",
+        });
+      }
+      return send(res, 200, sessionFor(signingIn));
     }
     if (url.pathname.startsWith("/auth/v1/")) return send(res, 200, {});
     if (url.pathname === "/rest/v1/tenants") {

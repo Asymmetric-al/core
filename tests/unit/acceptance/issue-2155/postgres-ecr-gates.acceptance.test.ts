@@ -349,6 +349,34 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     // two intermediate states of stage 1's integration, which develop never
     // held.
     { ref: "AL-2674 seed counts and program steps", hash: "c0e17f294078fd87" },
+    // Amended by AL-2675 (WP2b slice A, council round 1, A14; record D-18):
+    // the test-e2e job runs the two tenant-address specs, one step after each
+    // app's boneyard smoke (bun run test:e2e:tenant-address:admin and
+    // :missionary), pinned in
+    // tests/unit/scripts/ci-integration-workflow.contract.test.ts. The
+    // workflow change was allowed for that item only.
+    {
+      ref: "AL-2675 tenant-address specs in test-e2e",
+      hash: "d14393547b0e5925",
+    },
+    // Amended by AL-2675 (WP2b slice B, council round 1, SB1; record D-18):
+    // from the entry above, the test-e2e job also runs the three
+    // request-scope specs on the servers it already started, admin and
+    // missionary each right after its tenant-address step and donor right
+    // after its boneyard smoke (bun run test:e2e:request-scope:admin,
+    // :missionary and :donor), pinned in
+    // tests/unit/scripts/ci-integration-workflow.contract.test.ts. The
+    // workflow change was allowed for that item only. Council round 2 (the
+    // coordinator's note on the joined tree, point 2) then bounded the five
+    // AL-2675 steps by their measured times (10 minutes for the admin
+    // tenant-address step, 5 for the other four, the job's 30 unchanged),
+    // pinned in the same contract test; the state before those limits was an
+    // intermediate one of this branch, which develop never held, so it is
+    // replaced.
+    {
+      ref: "AL-2675 request-scope specs in test-e2e",
+      hash: "28ed0e7f3883b3de",
+    },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(

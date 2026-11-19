@@ -90,6 +90,7 @@ export default defineConfig({
   testMatch: [
     "**/auth-password-recovery.spec.ts",
     "**/auth-signup-confirmation.spec.ts",
+    "**/auth-two-organizations.spec.ts",
   ],
   outputDir: "test-results/auth-mail",
   fullyParallel: false,

@@ -27,8 +27,13 @@ vi.mock("@playwright/test", () => {
       toBeVisible: async () => {
         expect((actual as { count(): number }).count()).toBeGreaterThan(0);
       },
-      toHaveURL: async (expected: RegExp) => {
-        expect((actual as { url(): string }).url()).toMatch(expected);
+      toHaveURL: async (expected: RegExp | ((url: URL) => boolean)) => {
+        const url = (actual as { url(): string }).url();
+        if (typeof expected === "function") {
+          expect(expected(new URL(url))).toBe(true);
+        } else {
+          expect(url).toMatch(expected);
+        }
       },
       toHaveTitle: async (expected: RegExp) => {
         expect((actual as { title(): string }).title()).toMatch(expected);
@@ -36,12 +41,23 @@ vi.mock("@playwright/test", () => {
       toHaveCount: async (expected: number) => {
         expect((actual as { count(): number }).count()).toBe(expected);
       },
-      toHaveAttribute: async (name: string, expected: RegExp) => {
-        expect(
-          (
-            actual as { getAttribute(name: string): string | null }
-          ).getAttribute(name),
-        ).toMatch(expected);
+      toHaveAttribute: async (name: string, expected: RegExp | string) => {
+        const value = (
+          actual as { getAttribute(name: string): string | null }
+        ).getAttribute(name);
+        if (typeof expected === "string") expect(value).toBe(expected);
+        else expect(value).toMatch(expected);
+      },
+      toEqual: (expected: unknown) => {
+        expect(actual).toEqual(expected);
+      },
+      not: {
+        toBeNull: () => {
+          expect(actual).not.toBeNull();
+        },
+      },
+      toBe: (expected: unknown) => {
+        expect(actual).toBe(expected);
       },
       toBeGreaterThan: (expected: number) => {
         expect(actual).toBeGreaterThan(expected);
@@ -70,12 +86,22 @@ import "../../e2e/development-smoke/donor.smoke.spec";
 import "../../e2e/development-smoke/missionary.smoke.spec";
 import "../../e2e/development-smoke/admin.profile-dropdown.spec";
 
+/** The demo organization's address, where the missionary workspace lands (AL-2675). */
+const TENANT_PREFIX = "/00000000-0000-0000-0000-000000000001";
+const SCOPE_MARKER = `<span hidden data-tenant-scope="${TENANT_PREFIX}"></span>`;
+
 function fixturePage(
   surface: "donor" | "missionary" | "admin",
   content: string,
 ) {
-  document.body.innerHTML = content;
-  let pathname = surface === "donor" ? "/donor-dashboard" : "/";
+  document.body.innerHTML =
+    surface === "missionary" ? `${SCOPE_MARKER}${content}` : content;
+  let pathname =
+    surface === "donor"
+      ? "/donor-dashboard"
+      : surface === "missionary"
+        ? TENANT_PREFIX
+        : "/";
   let title = surface === "admin" ? "Mission Control" : "Dashboard";
   const locator = (elements: Element[]) => ({
     count: () => elements.length,
@@ -97,14 +123,25 @@ function fixturePage(
     getByRole: (role: Parameters<typeof queryAllByRole>[1], options: object) =>
       locator(queryAllByRole(document.body, role, options)),
     getByText: (text: RegExp) => locator(queryAllByText(document.body, text)),
+    locator: (selector: string) =>
+      locator([...document.querySelectorAll(selector)]),
+    on: () => {},
+    // A tenant address that names another host is refused.
+    request: {
+      get: async () => ({ status: () => 404, headers: () => ({}) }),
+    },
     goto: async (target: string) => {
-      pathname = target;
+      // The proxy lands a bare address on the person's organization.
+      pathname =
+        surface === "missionary" ? `${TENANT_PREFIX}${target}` : target;
       title =
         surface === "admin" ? "Administration | Mission Control" : "Partners";
       document.body.innerHTML =
         surface === "admin"
           ? "<h1>Administration</h1><h2>People and access</h2>"
-          : "<h1>Partners</h1>";
+          : surface === "missionary"
+            ? `${SCOPE_MARKER}<h1>Partners</h1>`
+            : "<h1>Partners</h1>";
     },
     waitForURL: async (expected: RegExp) => {
       expect(pathname).toMatch(expected);
@@ -171,7 +208,7 @@ describe("hosted smoke dashboard surface contracts", () => {
       "<h1>Welcome back</h1><h2>Monthly support</h2><h2>Giving by month</h2>",
     );
     await flowFor("missionary")({ page });
-    expect(page.url()).toBe("https://preview.example/donors");
+    expect(page.url()).toBe(`https://preview.example${TENANT_PREFIX}/donors`);
   });
 
   it("rejects the missionary portal error even when the greeting remains", async () => {

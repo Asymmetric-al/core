@@ -26,6 +26,7 @@
     "./request-headers": "./request-headers.ts",
     "./tenant-address": "./tenant-address.ts",
     "./tenant-navigation": "./tenant-navigation.tsx",
+    "./portal-document": "./portal-document.tsx",
     "./tenant-server": "./tenant-server.ts",
     "./tenant-address-decisions": "./tenant-address-decisions.ts",
     "./web-studio": "./web-studio.ts"

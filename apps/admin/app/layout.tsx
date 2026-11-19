@@ -1,4 +1,5 @@
 import "@asym/env";
+import { TenantSegmentBoundary } from "@asym/auth/tenant-navigation";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
@@ -83,13 +84,17 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <BoneyardRegistry />
-            <QueryProvider>
-              <TooltipProvider delay={0}>
-                <MotionProvider>
-                  <NuqsAdapter>{children}</NuqsAdapter>
-                </MotionProvider>
-              </TooltipProvider>
-            </QueryProvider>
+            {/* A navigation across the tenant segment's boundary loads a
+                new document, so no client state crosses it (AL-2675). */}
+            <TenantSegmentBoundary>
+              <QueryProvider>
+                <TooltipProvider delay={0}>
+                  <MotionProvider>
+                    <NuqsAdapter>{children}</NuqsAdapter>
+                  </MotionProvider>
+                </TooltipProvider>
+              </QueryProvider>
+            </TenantSegmentBoundary>
             <AdminTanStackDevtools />
             <Toaster />
           </ThemeProvider>

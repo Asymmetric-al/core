@@ -18,7 +18,10 @@ import {
 import { hasAnyRole, type RoleSnapshot } from "./permissions";
 import { readActiveAssignments } from "./principal/assignment";
 import { listE2EAuthAssignments } from "./principal/e2e-assignments";
-import { createRpcAssignmentReader } from "./principal/reader";
+import {
+  createRpcAssignmentReader,
+  withReadErrorCause,
+} from "./principal/reader";
 import {
   ADDRESS_PREFIX_HEADER,
   ASSIGNMENT_HEADER,
@@ -138,10 +141,25 @@ const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
  * A value only this server process knows, set on every rewritten tenant
  * address. Next fetches an external rewrite over HTTP with the forwarded
  * request headers, so the proxy then sees its own marker come back: on a
- * server bound to `127.0.0.1` it treats the rewrite as external and would
- * otherwise render the page with no tenant and no error (record D-19). A
- * client that forges the header cannot know the value, so its copy is simply
- * deleted.
+ * server bound to a loopback IP literal (`127.0.0.1`, `::1`) Next treats the
+ * rewrite as external and would otherwise render the page with no tenant and
+ * no error (record D-19). A client that forges the header cannot know the
+ * value, so its copy is simply deleted.
+ *
+ * What it detects, and what it cannot (council round 1, A4): it fires only
+ * when the rewritten request comes back to the same process, which is the
+ * case for `next dev`, `next start` and a standalone server. With several
+ * instances, or with the proxy in a function of its own as on a hosted
+ * platform, the request can reach a process that does not know this value:
+ * there the marker is deleted as a forgery, the inner path has no tenant
+ * prefix, and the proxy lands it with a 307 on the tenant address (or the
+ * chooser), so the browser sees a redirect loop instead of this 500. A page
+ * still never renders without its tenant, but the failure is not named. A
+ * rewrite to another origin never gets this far: the own-origin check
+ * refuses it first.
+ * The hosted proof is a preview deployment where a tenant page answers 200
+ * with its scope, no response carries this header, and the `//` form is
+ * refused (the hosted smoke suite, `tests/e2e/development-smoke`).
  */
 const TENANT_REWRITE_MARKER = crypto.randomUUID();
 
@@ -277,7 +295,8 @@ function rewriteLeftServerResponse(pathname: string) {
   const message =
     "Tenant address rewrite left the server: the proxy received its own " +
     `rewritten request for "${pathname}". Next treats a rewrite as external ` +
-    "when the server is bound to a loopback IP address such as 127.0.0.1; " +
+    "when the server is bound to a loopback IP address such as 127.0.0.1 " +
+    "or ::1; " +
     "bind it to localhost (record D-19).";
   console.error(`[auth] ${message}`);
   return new NextResponse(message, {
@@ -300,6 +319,11 @@ function withSearch(request: NextRequest, pathname: string) {
  * round 1, A2). `parseTenantAddress` already refuses an inner path that
  * starts another authority (A1); this refusal stands if a parse ever lets
  * one through.
+ *
+ * On a Node server the raw tab is refused and the double slash is redirected
+ * before the proxy sees it, so the proxy's own refusal is the defence on a
+ * platform whose front differs, and it is proved by the tests
+ * (`tests/unit/auth/tenant-address-rewrite-*.test.ts`).
  */
 function ownOriginUrl(request: NextRequest, path: string): URL | null {
   if (!path.startsWith("/")) return null;
@@ -370,6 +394,20 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       "createAuthMiddleware: `allowedRoles` was provided without `resolveUserRole`. " +
         "Role enforcement fails closed, so every signed-in user would be redirected " +
         "from every protected route. Pass a `resolveUserRole` implementation.",
+    );
+  }
+  // One list of the addresses outside the tenant segment (council round 1,
+  // A13): a public route it does not cover would get a prefix from the
+  // helpers and a redirect back from the proxy.
+  const publicInside = tenantAddress
+    ? publicRoutes.filter((route) => !isOutsideTenantSegment(route))
+    : [];
+  if (publicInside.length > 0) {
+    throw new Error(
+      `createAuthMiddleware: public route(s) ${publicInside.join(", ")} lie ` +
+        "inside the tenant segment. Add each page outside it to " +
+        "OUTSIDE_TENANT_SEGMENT_ROOTS (packages/auth/tenant-address.ts), the " +
+        "one list of addresses outside the segment, or drop the route.",
     );
   }
   if (tenantAddress && !roleClass) {
@@ -801,12 +839,14 @@ async function readSurfaceAssignments(
   if (!userId) {
     return bypassSession ? listE2EAuthAssignments(bypassSession) : null;
   }
-  const read = await readActiveAssignments(
-    userId,
+  const { reader, readError } = withReadErrorCause(
     createRpcAssignmentReader(supabase as unknown as AssignmentRpcClient),
   );
+  const read = await readActiveAssignments(userId, reader);
   if (!read.ok) {
-    reportAccessDiagnostic("membership_query_failed");
+    // The cause goes to the server log as a safe error code; the person's
+    // answer is the same refusal (council round 1, A5).
+    reportAccessDiagnostic("membership_query_failed", readError());
     return null;
   }
   return read.assignments;

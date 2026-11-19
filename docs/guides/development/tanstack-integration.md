@@ -2,6 +2,8 @@
 
 This guide documents the project-standard integration for TanStack Query v5, Table v9, DB, and Virtual v3 in this Next.js 16 monorepo.
 
+Trust order for an API detail: the installed package's types and source, then the skills a package ships in the consuming workspace's `node_modules/@tanstack/<package>/skills` (for example `packages/ui/node_modules/@tanstack/react-table/skills` or `packages/database/node_modules/@tanstack/db/skills`; the repository root holds only the CLI), then `tanstack doc` and `tanstack search-docs`, which fetch upstream's latest docs and not Core's pins (in November 2026 upstream's latest DB release was a 1.0 release candidate). Take the version from `package.json`: the DB packages' bundled skills declare a `library_version` that does not match the installed release.
+
 AI agents should pair official TanStack CLI docs/search output with this repo-specific guide. TanStack Intent skills apply only when the current `npx --yes @tanstack/intent@latest list` output returns a matching package; for Query/Table/Router surfaces not returned by Intent, keep using `tanstack doc`, `tanstack search-docs`, this guide, and the virtual foundation guide below. For Table specifically, see [v9 doc sources](#v9-doc-sources) first and verify their version against the installed package.
 
 ## Version Matrix
@@ -9,7 +11,7 @@ AI agents should pair official TanStack CLI docs/search output with this repo-sp
 | Package                          | Version                  | Primary workspace(s)                                           | Role                                    |
 | -------------------------------- | ------------------------ | -------------------------------------------------------------- | --------------------------------------- |
 | `@tanstack/react-form`           | `1.33.5` (exact)         | `packages/ui`, `apps/admin`                                    | Form state and validation               |
-| `@tanstack/react-store`          | `0.11.2` (exact)         | `packages/ui`                                                  | Shared Table and Form subscriptions     |
+| `@tanstack/react-store`          | `0.11.2` (exact)         | `packages/ui`                                                  | Table state-slice subscriptions         |
 | `@tanstack/react-query`          | `5.104.5`                | `packages/database`, apps                                      | Query state and caching                 |
 | `@tanstack/react-table`          | `9.3.1` (exact)          | `packages/ui`, `packages/database`, `apps/admin`, `apps/donor` | Headless table engine (v9 stable)       |
 | `@tanstack/react-table-devtools` | `9.3.1` (exact)          | `packages/ui`, `apps/admin`                                    | Table devtools adapter/plugin           |
@@ -45,7 +47,10 @@ The DB, React and Query bindings resolve one physical 0.15.2 runtime without an 
 5. **TanStack Store — per-slice table reactivity.**
    Store is the reactivity engine inside Table v9 (each state slice is an atom). It powers focused subscriptions for table chrome (see below). It is not a general-purpose app store.
 
-6. **TanStack Virtual — rendering only.**
+6. **TanStack Form — complex client form state.**
+   Multi-field client forms use `useAsymForm` from `@asym/ui/components/primitives/tanstack-form`, which binds Core's field components and validation. Simple search bars, one-field filters and server-only forms stay on native forms or server actions, as `docs/ai/rules/frontend.md` says.
+
+7. **TanStack Virtual — rendering only.**
    Virtualization is a client-side rendering optimization. It owns neither view state nor fetch policy. See `docs/guides/development/tanstack-virtual-foundation.md`.
 
 ## TanStack Table v9

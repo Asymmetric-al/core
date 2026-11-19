@@ -1,3 +1,4 @@
+import { WEB_STUDIO_PATH } from "@asym/auth/web-studio";
 import { DocumentScopeProvider } from "@asym/database/document-scope";
 import config from "@payload-config";
 import { RootPage, generatePageMetadata } from "@payloadcms/next/views";
@@ -41,7 +42,7 @@ const Page = async ({ params, searchParams }: Args) => {
     ["/web-studio", ...path.map(encodeURIComponent)].join("/"),
   );
   return (
-    <DocumentScopeProvider scope={access.scope}>
+    <DocumentScopeProvider scope={access.scope} segment={WEB_STUDIO_PATH}>
       {await RootPage({ config, importMap, params, searchParams })}
     </DocumentScopeProvider>
   );

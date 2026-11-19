@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import {
   Avatar,
   AvatarFallback,
@@ -55,7 +56,7 @@ export function CommentsDialog({
   const { data, isLoading } = useQuery({
     queryKey: ["comments", postId],
     queryFn: async () => {
-      const res = await fetch(`/api/posts/${postId}/comments`);
+      const res = await ownApiFetch(`/api/posts/${postId}/comments`);
       if (!res.ok) throw new Error("Failed to fetch comments");
       return res.json();
     },
@@ -65,7 +66,7 @@ export function CommentsDialog({
 
   const addComment = useMutation({
     mutationFn: async (content: string) => {
-      const res = await fetch(`/api/posts/${postId}/comments`, {
+      const res = await ownApiFetch(`/api/posts/${postId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),

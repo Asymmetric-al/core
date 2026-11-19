@@ -49,7 +49,7 @@ After the migration, on any database whatever its default privileges:
   tenant-administrator flag. AL-2675 drops and recreates both (their result
   types changed) with the same grants.
 - `public.current_user_organizations()` (AL-2675,
-  `20261117155009_current_user_organizations.sql`) names the organization
+  `20261118130052_current_user_organizations.sql`) names the organization
   chooser's organizations: the id and name of each tenant in which the session
   caller holds a live membership row, and nothing else. Signed-in users have
   no privilege on `public.tenants`, so it runs as its owner. Its migration

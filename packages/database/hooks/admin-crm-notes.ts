@@ -7,6 +7,8 @@ import {
 } from "@tanstack/react-query";
 import * as React from "react";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import type {
   AdminCrmNoteCreateResponse,
   AdminCrmNotesListResponse,
@@ -97,7 +99,7 @@ async function fetchCrmNotes({
   sorting: SortingState;
 }) {
   const searchParams = buildNotesSearchParams({ after, search, sorting });
-  const response = await fetch(`/api/admin/crm/notes?${searchParams}`, {
+  const response = await ownApiFetch(`/api/admin/crm/notes?${searchParams}`, {
     credentials: "same-origin",
     headers: {
       Accept: "application/json",
@@ -121,7 +123,7 @@ async function createCrmNote(input: {
   body: string;
   title: string;
 }): Promise<AdminCrmNoteCreateResponse> {
-  const response = await fetch("/api/admin/crm/notes", {
+  const response = await ownApiFetch("/api/admin/crm/notes", {
     body: JSON.stringify(input),
     credentials: "same-origin",
     headers: {

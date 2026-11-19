@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { beforeEach, expect, it, vi } from "vitest";
 
-import { memberRow } from "../../../fixtures/fake-service-client";
+import { memberPages, memberRow } from "../../../fixtures/fake-service-client";
 const mocks = vi.hoisted(() => ({
   admin: vi.fn(),
   auth: vi.fn(),
@@ -44,10 +44,7 @@ beforeEach(() => {
  * then read by id alone, never filtered on the profile's tenant column.
  */
 const membersOf = (...people: string[]) =>
-  vi.fn(async () => ({
-    data: people.map((p) => memberRow({ profileId: p, userId: p })),
-    error: null,
-  }));
+  vi.fn(memberPages(people.map((p) => memberRow({ profileId: p, userId: p }))));
 it("looks up comment authors by profile id within the authenticated tenant", async () => {
   const rows = query({
     data: [

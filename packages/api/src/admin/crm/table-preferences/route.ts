@@ -1,3 +1,4 @@
+import { requestScopeOf } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -220,7 +221,10 @@ export const PUT = withOperation(
       const body = savePreferenceSchema.parse(await ensureJsonBody(request));
       requireProfileId(actor.profileId);
       const user = await saveCrmUserTablePreference({
-        sessionClient: await createRequestSessionClient(request),
+        sessionClient: await createRequestSessionClient(
+          request,
+          requestScopeOf(auth),
+        ),
         tenantId: actor.tenantId,
         tableId: body.tableId,
         pinnedActionId: body.pinnedActionId,
@@ -293,7 +297,10 @@ export const PUT_TENANT_DEFAULT = withOperation(
       // These pre-checks shape the HTTP error; the RPC re-derives the actor
       // and its authority from the session and has the final say.
       const tenantDefault = await saveCrmTenantTableDefault({
-        sessionClient: await createRequestSessionClient(request),
+        sessionClient: await createRequestSessionClient(
+          request,
+          requestScopeOf(auth),
+        ),
         tenantId: actor.tenantId,
         tableId: body.tableId,
         pinnedActionId: body.pinnedActionId,
@@ -351,7 +358,10 @@ export const POST_NAMED_VIEW = withOperation(
       const body = namedViewCreateSchema.parse(await ensureJsonBody(request));
       requireProfileId(actor.profileId);
       const view = await createCrmNamedView({
-        sessionClient: await createRequestSessionClient(request),
+        sessionClient: await createRequestSessionClient(
+          request,
+          requestScopeOf(auth),
+        ),
         tenantId: actor.tenantId,
         tableId: body.tableId,
         name: body.name,
@@ -386,7 +396,10 @@ export const PUT_NAMED_VIEW = withOperation(
       const body = namedViewUpdateSchema.parse(await ensureJsonBody(request));
       requireProfileId(actor.profileId);
       const view = await updateCrmNamedView({
-        sessionClient: await createRequestSessionClient(request),
+        sessionClient: await createRequestSessionClient(
+          request,
+          requestScopeOf(auth),
+        ),
         tenantId: actor.tenantId,
         tableId: body.tableId,
         viewId,
@@ -429,7 +442,10 @@ export const DELETE_NAMED_VIEW = withOperation(
       requireProfileId(actor.profileId);
       const tableId = resolveTableId(request);
       await deleteCrmNamedView({
-        sessionClient: await createRequestSessionClient(request),
+        sessionClient: await createRequestSessionClient(
+          request,
+          requestScopeOf(auth),
+        ),
         tenantId: actor.tenantId,
         tableId,
         viewId,

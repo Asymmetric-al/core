@@ -1,4 +1,9 @@
-import { getAuthContext, requireTenantAdministrator } from "@asym/auth/context";
+import {
+  getAuthContext,
+  requestScopeOf,
+  requireAuth,
+  requireTenantAdministrator,
+} from "@asym/auth/context";
 import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
 
@@ -6,23 +11,26 @@ import { toErrorResponse } from "../shared/http-errors";
 
 import type { OrgPostVisibility } from "@asym/database/types";
 
-const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
-
-export async function GET() {
+/**
+ * The organization's post-visibility setting, on the caller's own token. Each
+ * call names the resolved tenant (`auth.tenantId`), and the session client
+ * sends that tenant and assignment (plan 5.4; WP2b, AL-2675).
+ *
+ * The database still refuses both calls. `authenticated` holds no privilege on
+ * `public.tenants`, so the read and the write answer 42501, and have done
+ * since 25 June 2026, before WP2b and after it. No page calls this route. It
+ * is owed by WP3 (tenants), which makes it a server command or removes it.
+ */
+export async function GET(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const auth = await getAuthContext(request);
+    requireAuth(auth);
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const supabase = await createClient(requestScopeOf(auth));
     const { data, error } = await supabase
       .from("tenants")
       .select("org_post_visibility")
-      .eq("id", DEFAULT_TENANT_ID)
+      .eq("id", auth.tenantId)
       .single();
 
     if (error) {
@@ -38,10 +46,8 @@ export async function GET() {
     return NextResponse.json({ orgPostVisibility: visibility });
   } catch (error) {
     console.error("Error fetching org settings:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch settings" },
-      { status: 500 },
-    );
+    // Unauthorized→401; anything else is a 500.
+    return toErrorResponse(error, "Failed to fetch settings");
   }
 }
 
@@ -52,7 +58,7 @@ export async function PATCH(request: Request) {
     const auth = await getAuthContext(request);
     requireTenantAdministrator(auth);
 
-    const supabase = await createClient();
+    const supabase = await createClient(requestScopeOf(auth));
     const body = await request.json();
     const visibility = body.orgPostVisibility as OrgPostVisibility;
 
@@ -66,7 +72,7 @@ export async function PATCH(request: Request) {
     const { error } = await supabase
       .from("tenants")
       .update({ org_post_visibility: visibility })
-      .eq("id", DEFAULT_TENANT_ID);
+      .eq("id", auth.tenantId);
 
     if (error) {
       console.error("Error updating org post visibility:", error);

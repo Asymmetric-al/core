@@ -2,6 +2,7 @@
 set -euo pipefail
 
 MODE="${1:-local}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -35,39 +36,36 @@ run_hosted() {
   exit 1
 }
 
-# Succeeds only for a postgres URL whose host is loopback: localhost,
-# 127.0.0.0/8 or [::1]. Anything else, including an unparseable URL, fails.
+# Succeeds only when the repository's one local-database decision
+# (isLoopbackDatabaseUrl, packages/env/src/database-url.mjs) admits the URL in
+# the environment variable named by $1: a Postgres URL on 127.0.0.1,
+# localhost or [::1] with no routing override in its query.
 is_loopback_database_url() {
-  local url="$1"
-  local authority host
-  [[ "$url" =~ ^postgres(ql)?://([^/?#]*) ]] || return 1
-  authority="${BASH_REMATCH[2]}"
-  authority="${authority##*@}"
-  if [[ "$authority" =~ ^\[([^]]*)\] ]]; then
-    host="${BASH_REMATCH[1]}"
-  else
-    host="${authority%%:*}"
-  fi
-  host="$(printf '%s' "$host" | tr '[:upper:]' '[:lower:]')"
-  [[ "$host" == "localhost" || "$host" == "::1" ]] && return 0
-  [[ "$host" =~ ^127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]] && return 0
-  return 1
+  node "$SCRIPT_DIR/lib/local-database.mjs" admit "$1"
 }
 
 require_loopback_database_url() {
-  if ! is_loopback_database_url "$SUPABASE_DB_URL"; then
-    echo "Refusing to run against a non-loopback database. SUPABASE_DB_URL must name localhost, 127.0.0.1 or [::1]." >&2
+  if ! is_loopback_database_url SUPABASE_DB_URL; then
+    echo "Refusing to run against a non-loopback database. SUPABASE_DB_URL must name localhost, 127.0.0.1 or [::1], with no routing override (host, hostaddr, port, dbname, user or service) in its query." >&2
     exit 1
   fi
 }
 
+# Runs psql on SUPABASE_DB_URL through the repository's one psql runner
+# (spawnPsql, scripts/lib/psql.mjs): the URL is the whole target, every
+# ambient PG* setting is dropped, and the password travels in PGPASSWORD.
+local_psql() {
+  node "$SCRIPT_DIR/lib/local-database.mjs" psql SUPABASE_DB_URL "$@"
+}
+
 run_verify() {
+  require_cmd node
   require_cmd psql
   require_env SUPABASE_DB_URL
   require_loopback_database_url
 
   echo "Row counts:"
-  psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -P pager=off -c "
+  local_psql -v ON_ERROR_STOP=1 -P pager=off -c "
     SELECT *
     FROM (
       VALUES
@@ -102,7 +100,7 @@ run_verify() {
 
   echo
   echo "Fixture identity check (expected: 3 profiles, 2 tenants, 6 live memberships):"
-  psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -P pager=off -c "
+  local_psql -v ON_ERROR_STOP=1 -P pager=off -c "
     SELECT (SELECT COUNT(*)::bigint FROM public.profiles) AS profile_rows,
            (SELECT COUNT(*)::bigint FROM public.profiles
              WHERE id IN ('11111111-1111-1111-1111-111111111111',

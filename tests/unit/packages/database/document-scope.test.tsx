@@ -43,6 +43,8 @@ function ScopeProbe({
 
 beforeEach(() => {
   reloadDocument.mockReset();
+  // A signed-in page is served at its tenant address.
+  window.history.replaceState(null, "", `${A.addressPrefix}/care`);
 });
 
 afterEach(() => {
@@ -114,6 +116,57 @@ describe("DocumentScopeProvider", () => {
 
     expect(screen.queryByText(/tenant/)).toBeNull();
     expect(reloadDocument).toHaveBeenCalledTimes(1);
+  });
+});
+
+// Council round 1, A8: the contract slices B and C build on. Outside the
+// scope's tenant segment both functions return null; a crossing is a
+// document load, and this holds even before that load happens.
+describe("the scope belongs to its tenant segment", () => {
+  it("getDocumentScope returns null once the address leaves the segment, as useDocumentScope does there", async () => {
+    const { DocumentScopeProvider, getDocumentScope, isDocumentScopeFixed } =
+      await load();
+    render(
+      <DocumentScopeProvider scope={A}>
+        <p>page</p>
+      </DocumentScopeProvider>,
+    );
+    expect(getDocumentScope()).toEqual(A);
+
+    for (const outside of [
+      "/web-studio",
+      "/choose-organization",
+      "/login",
+      "/",
+      `${B.addressPrefix}/care`,
+      // Another segment of the same tenant: a sub-role is its own segment.
+      `${A.addressPrefix}~finance/care`,
+      // A prefix glued to more characters is not the segment.
+      `${A.addressPrefix}0/care`,
+    ]) {
+      window.history.pushState(null, "", outside);
+      expect(getDocumentScope(), outside).toBeNull();
+      // The document still fixed A: it never takes another scope.
+      expect(isDocumentScopeFixed()).toBe(true);
+    }
+
+    for (const inside of [A.addressPrefix, `${A.addressPrefix}/support/x`]) {
+      window.history.pushState(null, "", inside);
+      expect(getDocumentScope(), inside).toEqual(A);
+    }
+    expect(reloadDocument).not.toHaveBeenCalled();
+  });
+
+  it("reports whether a scope was fixed, wherever the address is", async () => {
+    const { DocumentScopeProvider, isDocumentScopeFixed } = await load();
+    expect(isDocumentScopeFixed()).toBe(false);
+    render(
+      <DocumentScopeProvider scope={A}>
+        <p>page</p>
+      </DocumentScopeProvider>,
+    );
+    window.history.pushState(null, "", "/web-studio");
+    expect(isDocumentScopeFixed()).toBe(true);
   });
 });
 

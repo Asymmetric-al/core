@@ -148,6 +148,8 @@ describe.each([
     }>;
     expect(element.type).toBe(DocumentScopeProvider);
     expect(element.props.scope).toEqual(SCOPE_B);
+    // Valid inside Web Studio's own segment, as its document's scope is.
+    expect((element.props as { segment?: string }).segment).toBe("/web-studio");
     expect(renderToStaticMarkup(<>{element.props.children}</>)).toContain(
       content,
     );

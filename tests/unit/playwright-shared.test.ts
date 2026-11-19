@@ -135,6 +135,15 @@ describe("defineBoneyardConfig", () => {
     }
   });
 
+  // Council round 1, A17: every surface states its assertion timeout, so no
+  // wait silently inherits Playwright's default; a wait that must cover a
+  // route's first compile says so with its own timeout in the spec.
+  it("sets an explicit assertion timeout for every surface", () => {
+    for (const surface of [ADMIN_SURFACE, DONOR_SURFACE, MISSIONARY_SURFACE]) {
+      expect(defineBoneyardConfig(surface, {}).expect?.timeout).toBe(5_000);
+    }
+  });
+
   it("starts the surface dev server against a local base URL", () => {
     const config = defineBoneyardConfig(ADMIN_SURFACE, {});
     const webServer = singleWebServer(config);
