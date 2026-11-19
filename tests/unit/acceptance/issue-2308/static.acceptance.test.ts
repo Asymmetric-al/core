@@ -94,7 +94,8 @@ describe("#2308 static contracts (A)", () => {
   // D-18: WP2H reclassified the missionary workspace routes and removed two sites in follower-requests/request.ts.
   // The digest still checks every byte of the reviewed inventory; the ceiling did not increase.
   // D-18: five advisory line lists now point to the actual call sites.
-  // The whole-file digest still covers all entries and counts; none of the ceilings changed.
+  // D-18: the allowlist bytes stay pinned; its two removed sites also leave the ceiling, as required.
+  // Only raising the ceiling needs a new ruling.
   it("C12: pins the missionary workspace reclassification and follower-request shrink", () => {
     expect(
       createHash("sha256")

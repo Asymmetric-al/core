@@ -138,7 +138,6 @@ packages/api/src/eve/sandbox/control.ts admin_client 3
 packages/api/src/eve/sandbox/guardrails.ts service_role_key 1
 packages/api/src/eve/session-ownership/route-auth.ts admin_client 2
 packages/api/src/follower-requests/index.ts admin_client 1
-packages/api/src/follower-requests/request.ts admin_client 2
 packages/api/src/health/db.ts admin_client 1
 packages/api/src/missionaries/index.ts admin_client 1
 packages/api/src/missionaries/metrics.ts admin_client 1
