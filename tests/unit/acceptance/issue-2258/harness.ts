@@ -47,8 +47,11 @@ export const UNEDITED: Record<string, string> = {
   "tests/unit/packages/api/auth/get-auth-context-request-propagation.test.ts":
     "83cc87dcfb0af9840e8bde281a62fc04a357262e",
   // #2402 27cd6961 adds the REVOKE ALL ON SCHEMA private expectation.
+  // AL-2675 (WP2b, second release; record D-18) adds the three authz
+  // definers of the request-tenant migration, with their exact grants, and
+  // leaves the #2270 lockdown expectations as they were.
   "tests/unit/security/authz-definer-execute-grants.test.ts":
-    "596a3626eb8f864bd56cb8baf367b8f8f110e73b",
+    "6ad236c1203f73bb2e0de2497580e99ba8a8ab09",
   // AL-2674 (plan 5.4, NR-13) adds tenant_guard to the expected EXECUTE
   // grantees of the two authz membership helpers, and nothing else.
   // AL-2675 (WP2b, second release; record D-18) re-pins two files: the real
