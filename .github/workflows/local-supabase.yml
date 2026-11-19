@@ -81,6 +81,16 @@ on:
       - tests/e2e/auth-two-organizations.spec.ts
       - tests/e2e/helpers/auth-mail.ts
       - scripts/e2e/run-auth-mail.mjs
+      # The first release's reads against the second release's policies
+      # (AL-2675): the journeys, and the request scope they prove.
+      - tests/e2e/auth-request-scope-reads.spec.ts
+      - tests/e2e/helpers/request-scope-reads.ts
+      - packages/database/document-scope.tsx
+      - packages/database/own-api.ts
+      - packages/database/request-scope-headers.ts
+      - packages/database/supabase/client.ts
+      - packages/database/supabase/server.ts
+      - packages/api/src/shared/request-session-client.ts
 
 permissions:
   contents: read

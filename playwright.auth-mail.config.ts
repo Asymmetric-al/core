@@ -7,7 +7,9 @@ import {
 
 /**
  * Supabase Auth email journeys against a local Supabase stack and its mail
- * catcher: each spec runs once per app, on servers this config starts.
+ * catcher: each spec runs once per app, on servers this config starts. The
+ * same stack carries the request-scope journeys (AL-2675): real sessions
+ * reading real rows through each app's tenant-scoped reads.
  *
  * Needs, all pointing at the local stack (`supabase status -o env`):
  * NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY (or
@@ -63,6 +65,11 @@ const serverEnv = {
   // These journeys never reach the assistant runtime. A set base URL stops
   // Mission Control's dev server from building and starting it (`eve/next`).
   EVE_BASE_URL: process.env.EVE_BASE_URL || "http://127.0.0.1:9",
+  // Web Studio's Payload reads the stack's database. Without this it assumes
+  // the default local port, which a stack started on other ports does not use.
+  ...(!process.env.PAYLOAD_DATABASE_URI && process.env.E2E_AUTH_MAIL_DB_URL
+    ? { PAYLOAD_DATABASE_URI: process.env.E2E_AUTH_MAIL_DB_URL }
+    : {}),
 } as Record<string, string>;
 
 /** The hostname an app's dev server binds, and the environment it starts with. */
@@ -91,6 +98,7 @@ export default defineConfig({
     "**/auth-password-recovery.spec.ts",
     "**/auth-signup-confirmation.spec.ts",
     "**/auth-two-organizations.spec.ts",
+    "**/auth-request-scope-reads.spec.ts",
   ],
   outputDir: "test-results/auth-mail",
   fullyParallel: false,

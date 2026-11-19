@@ -1,0 +1,661 @@
+import { expect, test, type Page } from "@playwright/test";
+
+import { readAuthMailEnv, warmUpRoutes } from "./helpers/auth-mail";
+import {
+  addFixtures,
+  collectReads,
+  countDocumentLoads,
+  createPerson,
+  deletePerson,
+  DEMO,
+  documentScopeHeaders,
+  nextRead,
+  ORGANIZATION_NAME,
+  ownerIds,
+  removeFixtures,
+  SECOND,
+  SEEDED,
+  SEEDED_PASSWORD,
+  seededRows,
+  signIn,
+  sorted,
+  stripScopeHeaders,
+  type Fixtures,
+  type Person,
+  type PageRead,
+} from "./helpers/request-scope-reads";
+
+/**
+ * The first release's reads against the second release's policies (WP2b,
+ * AL-2675). Real people sign in through each app's own form, with real
+ * Supabase Auth sessions on a local stack built from both releases; no
+ * bypass cookie and no stub. Every read path the first release scoped is
+ * proved against the migrated database: the rows of the selected
+ * organization and row appear, a switch shows the other set and none of the
+ * first, and each count is pinned against what the database owner computes
+ * with the read's own rule.
+ *
+ * Read through a page, as a person on that screen makes it:
+ * - Mission Control: the member directory (Teams), on the caller's token
+ *   through `public.tenant_member_directory`; the CRM list, through the
+ *   own-API wrapper to a service-key route held to the resolved tenant; the
+ *   shell, rendered on the server for the resolved row (with the service key
+ *   when the server has one, as it does here).
+ * - Web Studio, under its tenant cookie: the missionaries and funds an
+ *   editor picks from (service-key routes held to the resolved tenant).
+ * - The missionary workspace: its partners list, through the own-API wrapper
+ *   (a service-key route held to the resolved tenant).
+ * - The donor portal: its history, read by the route-backed browser
+ *   collection (a service-key route held to the resolved tenant).
+ *
+ * Read only by a direct call from a signed-in page, with the headers the
+ * page's own-API wrapper would send, because no screen calls it: these cases
+ * prove the route, not a screen.
+ * - The feed-preferences route (`/api/donor/feed-preferences`), on the
+ *   caller's token.
+ * - The comments route, on the caller's token, as it stands before the
+ *   commenter read replaces its embed of other people's profiles. The
+ *   workspace's comments dialog calls it, but this case calls it directly.
+ *
+ * Not exercised here, because nothing calls them: the field-policy reader
+ * (`loadFieldPolicies`) and the org-settings route.
+ *
+ * And a stale tab: a document whose requests carry neither header.
+ *
+ * Runs under `playwright.auth-mail.config.ts` (`bun run test:e2e:auth-mail`).
+ * The seed's second organization holds no business data, so the database
+ * owner adds the rows these journeys read before them and removes them after.
+ */
+
+const env = readAuthMailEnv();
+const ADMIN_ORIGIN = `http://localhost:${process.env.AUTH_MAIL_ADMIN_PORT || 3130}`;
+
+let staffInBoth: Person | null = null;
+let missionaryInBoth: Person | null = null;
+let secondDonor: Person | null = null;
+let fixtures: Fixtures | null = null;
+
+function surface(): "admin" | "missionary" | "donor" | null {
+  const name = test.info().project.name;
+  if (name === "auth-mail-admin") return "admin";
+  if (name === "auth-mail-missionary") return "missionary";
+  if (name === "auth-mail-donor") return "donor";
+  return null;
+}
+
+test.beforeAll(async () => {
+  const { project } = test.info();
+  if (!env?.dbUrl || !surface() || !project.use.baseURL) return;
+  staffInBoth = await createPerson(env, "staff", [
+    { role: "staff", tenantId: DEMO, staffRole: "development", admin: true },
+    { role: "staff", tenantId: SECOND, staffRole: "development", admin: true },
+  ]);
+  missionaryInBoth = await createPerson(env, "missionary", [
+    { role: "missionary", tenantId: DEMO },
+    { role: "missionary", tenantId: SECOND },
+  ]);
+  secondDonor = await createPerson(env, "donor", [
+    { role: "donor", tenantId: SECOND },
+  ]);
+  fixtures = await addFixtures(env, {
+    missionary: missionaryInBoth,
+    donor: secondDonor,
+  });
+  // Every route a journey opens, compiled before a browser opens it: a cold
+  // development server reloads open pages while it compiles. The own-API
+  // routes compile without a session (they answer 401).
+  const WARM: Record<string, string[]> = {
+    admin: [
+      "/login",
+      "/choose-organization",
+      `/${DEMO}`,
+      `/${DEMO}/admin/teams`,
+      `/${DEMO}/crm`,
+      "/web-studio/organization",
+      "/web-studio",
+      "/web-studio/missionaries",
+      "/web-studio/projects/new",
+      "/api/admin/users",
+      "/api/admin/crm/records",
+      "/api/admin/missionaries",
+      "/api/admin/funds",
+    ],
+    missionary: [
+      "/login",
+      "/choose-organization",
+      `/${DEMO}`,
+      `/${DEMO}/donors`,
+      "/api/missionary/donors",
+      `/api/posts/${DEMO}/comments`,
+    ],
+    donor: [
+      "/login",
+      "/donor-dashboard",
+      "/donor-dashboard/history",
+      "/api/donor/portal",
+      "/api/donor/feed-preferences",
+    ],
+  };
+  await warmUpRoutes(project.use.baseURL, WARM[surface()!]!);
+  // The workspace's demo-owner journey also reads Mission Control's CRM.
+  if (surface() === "missionary")
+    await warmUpRoutes(ADMIN_ORIGIN, [
+      "/login",
+      `/${DEMO}/crm`,
+      "/api/admin/crm/records",
+    ]);
+});
+
+test.afterAll(async () => {
+  if (!env?.dbUrl) return;
+  await removeFixtures(env, fixtures);
+  for (const person of [staffInBoth, missionaryInBoth, secondDonor])
+    await deletePerson(env, person);
+});
+
+function requireStack() {
+  test.skip(!env?.dbUrl, "Needs a local Supabase stack.");
+  return env!;
+}
+
+/** Every read carried the organization and the row the page was opened for. */
+function expectScoped(reads: readonly PageRead[], tenant: string, row: string) {
+  expect(reads.length).toBeGreaterThan(0);
+  for (const read of reads) {
+    expect(read.status, read.path).toBe(200);
+    expect(read.tenant, read.path).toBe(tenant);
+    expect(read.assignment, read.path).toBe(row);
+  }
+}
+
+/** Opens the app's chooser and picks one of the person's organizations. */
+async function choose(page: Page, linkName: string, tenant: string) {
+  await page.goto("/choose-organization");
+  await page.getByRole("link", { name: linkName }).click();
+  await expect(page).toHaveURL((url) => url.pathname === `/${tenant}`, {
+    timeout: 120_000,
+  });
+}
+
+const STAFF_ROLES = new Set([
+  "super_admin",
+  "admin",
+  "staff",
+  "finance",
+  "fundraising",
+  "member_care",
+  "mobilizers",
+  "events",
+]);
+
+test.describe("Mission Control", () => {
+  test.beforeEach(() => {
+    test.skip(surface() !== "admin", "Mission Control only.");
+  });
+
+  test("the member directory and the CRM read the chosen organization's rows, and the other's after a switch", async ({
+    page,
+  }) => {
+    const stack = requireStack();
+    const person = staffInBoth!;
+    await signIn(page, person.email, person.password);
+    await expect(page).toHaveURL(/\/choose-organization/, { timeout: 120_000 });
+
+    for (const [tenant, other] of [
+      [DEMO, SECOND],
+      [SECOND, DEMO],
+    ] as const) {
+      const row = person.rows[`${tenant}:staff`]!;
+      await choose(page, `${ORGANIZATION_NAME[tenant]}: Development`, tenant);
+      // The shell, rendered on the server for the resolved row, names it.
+      await expect(
+        page.getByText(ORGANIZATION_NAME[tenant]!).first(),
+      ).toBeVisible();
+
+      // The member directory, on the caller's own token.
+      const directory = collectReads(page, /^\/api\/admin\/users$/);
+      await page.goto(`/${tenant}/admin/teams`);
+      await expect(
+        page.getByRole("heading", { name: "Staff directory" }),
+      ).toBeVisible();
+      await expect(page.getByText(person.name).first()).toBeVisible({
+        timeout: 120_000,
+      });
+      await expect
+        .poll(() => directory.length)
+        .toBeGreaterThanOrEqual(STAFF_ROLES.size);
+      expectScoped(directory, tenant, row);
+      const listed = new Set(
+        directory.flatMap((read) =>
+          (read.json as { users: { id: string; role: string }[] }).users
+            .filter((user) => STAFF_ROLES.has(user.role))
+            .map((user) => user.id),
+        ),
+      );
+      const staff = await ownerIds(
+        stack,
+        `select distinct coalesce(p.id, m.user_id)::text
+           from authz.memberships m left join public.profiles p on p.user_id = m.user_id
+          where m.tenant_id = $1 and m.role = 'staff' and m.is_active and m.revoked_at is null`,
+        [tenant],
+      );
+      expect(sorted([...listed])).toEqual(staff);
+      const otherAdmin =
+        tenant === DEMO ? SEEDED.morgan.name : SEEDED.owner.name;
+      await expect(page.getByText(otherAdmin)).toHaveCount(0);
+
+      // The CRM list, through the own-API wrapper.
+      const crm = await nextRead(page, /^\/api\/admin\/crm\/records$/, () =>
+        page.goto(`/${tenant}/crm`),
+      );
+      expectScoped([crm], tenant, row);
+      const donors = await ownerIds(
+        stack,
+        "select id::text from public.donors where tenant_id = $1",
+        [tenant],
+      );
+      expect(donors.length).toBeGreaterThan(0);
+      expect(
+        sorted((crm.json as { rows: { id: string }[] }).rows.map((r) => r.id)),
+      ).toEqual(donors);
+      const elsewhere = await ownerIds(
+        stack,
+        "select id::text from public.donors where tenant_id = $1",
+        [other],
+      );
+      for (const id of (crm.json as { rows: { id: string }[] }).rows)
+        expect(elsewhere).not.toContain(id.id);
+    }
+  });
+
+  test("Web Studio: an editor of one organization sees its missionaries and funds only, and a person in two sees each after a switch", async ({
+    page,
+    browser,
+  }) => {
+    const stack = requireStack();
+    const studioLists = async (studio: Page, tenant: string) => {
+      const missionaries = await nextRead(
+        studio,
+        /^\/api\/admin\/missionaries$/,
+        () => studio.goto("/web-studio/missionaries"),
+      );
+      expect(missionaries.status).toBe(200);
+      expect(missionaries.tenant).toBe(tenant);
+      expect(
+        sorted(
+          (
+            missionaries.json as { missionaries: { id: string }[] }
+          ).missionaries.map((m) => m.id),
+        ),
+      ).toEqual(
+        await ownerIds(
+          stack,
+          "select id::text from public.missionaries where tenant_id = $1",
+          [tenant],
+        ),
+      );
+      const funds = await nextRead(studio, /^\/api\/admin\/funds$/, () =>
+        studio.goto("/web-studio/projects/new"),
+      );
+      expect(funds.status).toBe(200);
+      expect(funds.tenant).toBe(tenant);
+      expect(
+        sorted(
+          (funds.json as { funds: { id: string }[] }).funds.map((f) => f.id),
+        ),
+      ).toEqual(
+        await ownerIds(
+          stack,
+          "select id::text from public.funds where tenant_id = $1",
+          [tenant],
+        ),
+      );
+      return { missionaries, funds };
+    };
+
+    // The second organization's administrator: one staff row, no choice.
+    await signIn(page, SEEDED.morgan.email, SEEDED_PASSWORD);
+    await expect(page).toHaveURL((url) => url.pathname === `/${SECOND}`, {
+      timeout: 120_000,
+    });
+    await studioLists(page, SECOND);
+    await page.goto("/web-studio/missionaries");
+    await expect(
+      page.getByText(`Harbor field ${fixtures!.tag}`).first(),
+    ).toBeVisible({ timeout: 120_000 });
+    await expect(page.getByText(`Demo field ${fixtures!.tag}`)).toHaveCount(0);
+
+    // A staff member of both organizations, through Web Studio's chooser.
+    const context = await browser.newContext({ baseURL: ADMIN_ORIGIN });
+    const studio = await context.newPage();
+    try {
+      await signIn(studio, staffInBoth!.email, staffInBoth!.password);
+      await expect(studio).toHaveURL(/\/choose-organization/, {
+        timeout: 120_000,
+      });
+      for (const tenant of [DEMO, SECOND]) {
+        await studio.goto("/web-studio/organization?next=%2Fweb-studio");
+        await studio
+          .getByRole("button", {
+            name: new RegExp(`^Open ${ORGANIZATION_NAME[tenant]}$`),
+          })
+          .click();
+        await studio.waitForURL((url) => url.pathname === "/web-studio");
+        const { missionaries } = await studioLists(studio, tenant);
+        const ids = (
+          missionaries.json as { missionaries: { id: string }[] }
+        ).missionaries.map((m) => m.id);
+        const [mine, notMine] =
+          tenant === DEMO
+            ? [fixtures!.missionaryInDemo, fixtures!.missionaryInSecond]
+            : [fixtures!.missionaryInSecond, fixtures!.missionaryInDemo];
+        expect(ids).toContain(mine);
+        expect(ids).not.toContain(notMine);
+      }
+    } finally {
+      await context.close();
+    }
+  });
+});
+
+test.describe("the missionary workspace", () => {
+  test.beforeEach(() => {
+    test.skip(surface() !== "missionary", "The missionary workspace only.");
+  });
+
+  test("its partners list reads the chosen organization's partners, and the other's after a switch", async ({
+    page,
+  }) => {
+    const stack = requireStack();
+    const person = missionaryInBoth!;
+    await signIn(page, person.email, person.password);
+    await expect(page).toHaveURL(/\/choose-organization/, { timeout: 120_000 });
+    for (const tenant of [DEMO, SECOND]) {
+      await choose(page, `Open ${ORGANIZATION_NAME[tenant]}`, tenant);
+      const partners = await nextRead(page, /^\/api\/missionary\/donors$/, () =>
+        page.goto(`/${tenant}/donors`),
+      );
+      expectScoped([partners], tenant, person.rows[`${tenant}:missionary`]!);
+      const expected = await ownerIds(
+        stack,
+        "select id::text from public.donors where tenant_id = $1 and missionary_id = $2",
+        [tenant, person.userId],
+      );
+      expect(expected.length).toBeGreaterThan(0);
+      expect(
+        sorted(
+          (partners.json as { donors: { id: string }[] }).donors.map(
+            (d) => d.id,
+          ),
+        ),
+      ).toEqual(expected);
+      const name =
+        tenant === DEMO
+          ? `Demo partner ${fixtures!.tag}`
+          : `Harbor partner A ${fixtures!.tag}`;
+      const absent =
+        tenant === DEMO
+          ? `Harbor partner A ${fixtures!.tag}`
+          : `Demo partner ${fixtures!.tag}`;
+      await expect(page.getByText(name).first()).toBeVisible({
+        timeout: 120_000,
+      });
+      await expect(page.getByText(absent)).toHaveCount(0);
+    }
+  });
+
+  test("the demo owner: the missionary row reads only their own partners, the staff row in Mission Control all of the organization's", async ({
+    page,
+  }) => {
+    const stack = requireStack();
+    const rows = await seededRows(stack, SEEDED.owner.userId);
+    await signIn(page, SEEDED.owner.email, SEEDED_PASSWORD);
+    await expect(page).toHaveURL((url) => url.pathname === `/${DEMO}`, {
+      timeout: 120_000,
+    });
+    const partners = await nextRead(page, /^\/api\/missionary\/donors$/, () =>
+      page.goto(`/${DEMO}/donors`),
+    );
+    expectScoped([partners], DEMO, rows[`${DEMO}:missionary`]!);
+    const own = await ownerIds(
+      stack,
+      "select id::text from public.donors where tenant_id = $1 and missionary_id = $2",
+      [DEMO, SEEDED.owner.userId],
+    );
+    const ownIds = (partners.json as { donors: { id: string }[] }).donors.map(
+      (d) => d.id,
+    );
+    expect(sorted(ownIds)).toEqual(own);
+    expect(ownIds).not.toContain(fixtures!.partnerInDemo);
+
+    // The same session in Mission Control acts under the staff row.
+    const crm = await nextRead(page, /^\/api\/admin\/crm\/records$/, () =>
+      page.goto(`${ADMIN_ORIGIN}/${DEMO}/crm`),
+    );
+    expectScoped([crm], DEMO, rows[`${DEMO}:staff`]!);
+    const all = await ownerIds(
+      stack,
+      "select id::text from public.donors where tenant_id = $1",
+      [DEMO],
+    );
+    const crmIds = (crm.json as { rows: { id: string }[] }).rows.map(
+      (r) => r.id,
+    );
+    expect(sorted(crmIds)).toEqual(all);
+    expect(crmIds).toContain(fixtures!.partnerInDemo);
+  });
+
+  test("the comments route returns a published post's comments, and, until the comments.ts step, no other commenter's name", async ({
+    page,
+  }) => {
+    // Finding, expected to fail until the first release's comments.ts change
+    // (its JB11) lands: the route embeds `user:profiles!user_id`, but
+    // post_comments.user_id references auth.users, not profiles, so the Data
+    // API finds no relationship (PGRST200) and the route answers 500 on
+    // either release, for every caller, whatever the policies. When it
+    // passes, rewrite this case to the route's new answer.
+    test.fail(true, "comments route embed has no relationship (PGRST200)");
+    const stack = requireStack();
+    const person = missionaryInBoth!;
+    await signIn(page, person.email, person.password);
+    await choose(page, `Open ${ORGANIZATION_NAME[DEMO]}`, DEMO);
+    const [post] = await ownerIds(
+      stack,
+      `select p.id::text from public.posts p
+        where p.tenant_id = $1 and p.status = 'published' and p.visibility = 'public'
+          and exists (select 1 from public.post_comments c where c.post_id = p.id and c.user_id <> $2)
+        order by p.id limit 1`,
+      [DEMO, person.userId],
+    );
+    expect(post, "a published public post with others' comments").toBeTruthy();
+    // As the page's own wrapper sends it: the document's tenant and row.
+    const headers = await documentScopeHeaders(page);
+    expect(headers["x-asym-tenant"]).toBe(DEMO);
+    const response = await page.request.get(`/api/posts/${post}/comments`, {
+      headers,
+    });
+    expect(response.status()).toBe(200);
+    const { comments } = (await response.json()) as {
+      comments: { id: string; user_id: string; user: unknown }[];
+    };
+    expect(sorted(comments.map((c) => c.id))).toEqual(
+      await ownerIds(
+        stack,
+        "select id::text from public.post_comments where post_id = $1",
+        [post],
+      ),
+    );
+    // Finding for the comments.ts step (activation review Q9): another
+    // person's profile is no longer readable, so the embedded author is empty.
+    for (const comment of comments.filter((c) => c.user_id !== person.userId))
+      expect(comment.user, comment.id).toBeNull();
+  });
+});
+
+test.describe("the donor portal", () => {
+  test.beforeEach(() => {
+    test.skip(surface() !== "donor", "The donor portal only.");
+  });
+
+  test("its history reads the donor row's own gifts, and another organization's donor reads theirs", async ({
+    page,
+    browser,
+    baseURL,
+  }) => {
+    const stack = requireStack();
+    const giftsOf = (tenant: string, userId: string) =>
+      ownerIds(
+        stack,
+        `select g.id::text from public.donations g
+          where g.tenant_id = $1
+            and g.donor_id in (select d.id from public.donors d where d.tenant_id = $1 and d.profile_id = $2)
+          order by 1 limit 250`,
+        [tenant, userId],
+      );
+    const history = async (p: Page, tenant: string, userId: string) => {
+      const portal = await nextRead(p, /^\/api\/donor\/portal$/, () =>
+        p.goto("/donor-dashboard/history"),
+      );
+      expect(portal.status).toBe(200);
+      expect(portal.tenant).toBe(tenant);
+      const ids = (
+        portal.json as { portal: { donations: { id: string }[] } }
+      ).portal.donations.map((d) => d.id);
+      const expected = await giftsOf(tenant, userId);
+      expect(expected.length).toBeGreaterThan(0);
+      expect(sorted(ids)).toEqual(expected);
+      return ids;
+    };
+
+    await signIn(page, SEEDED.owner.email, SEEDED_PASSWORD);
+    await expect(page).toHaveURL(/\/donor-dashboard/, { timeout: 120_000 });
+    const ownerGifts = await history(page, DEMO, SEEDED.owner.userId);
+
+    const context = await browser.newContext({ baseURL });
+    const other = await context.newPage();
+    try {
+      await signIn(other, secondDonor!.email, secondDonor!.password);
+      await expect(other).toHaveURL(/\/donor-dashboard/, { timeout: 120_000 });
+      const theirs = await history(other, SECOND, secondDonor!.userId);
+      expect(sorted(theirs)).toEqual(sorted(fixtures!.secondGifts));
+      for (const id of theirs) expect(ownerGifts).not.toContain(id);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("the feed-preferences route reads the donor's own preferences on their token", async ({
+    page,
+  }) => {
+    const stack = requireStack();
+    await signIn(page, secondDonor!.email, secondDonor!.password);
+    await expect(page).toHaveURL(/\/donor-dashboard/, { timeout: 120_000 });
+    const rows = await seededRows(stack, secondDonor!.userId);
+    const response = await page.request.get("/api/donor/feed-preferences", {
+      headers: {
+        "x-asym-tenant": SECOND,
+        "x-asym-assignment": rows[`${SECOND}:donor`]!,
+      },
+    });
+    expect(response.status()).toBe(200);
+    // The fixture's values, none of them the route's defaults.
+    expect(await response.json()).toEqual({
+      showOrgPosts: false,
+      showMissionaryPosts: true,
+      followOrg: true,
+      emailOrgPosts: true,
+      emailMissionaryPosts: false,
+    });
+  });
+
+  test("a donor in both organizations is refused the portal until WP3", async ({
+    page,
+  }) => {
+    requireStack();
+    await signIn(page, SEEDED.riley.email, SEEDED_PASSWORD);
+    // Sign-in lands on the public site, and so does the portal: the donor
+    // app's proxy sends a person whose donor row does not resolve to its
+    // unauthorized address, "/" (apps/donor/proxy.ts), before the portal's
+    // layout would send them to /no-access.
+    await page.goto("/donor-dashboard");
+    await expect(page).toHaveURL(
+      (url) => url.pathname === "/" || url.pathname.startsWith("/no-access"),
+      { timeout: 120_000 },
+    );
+    await expect(page.getByRole("link", { name: /history/i })).toHaveCount(0);
+  });
+});
+
+/*
+ * A stale tab: a document whose requests carry neither scope header, as a
+ * page loaded before the first release would send them. Acceptable: an empty
+ * list or a clear refusal. A reload loop or an error boundary is a finding.
+ */
+test.describe("a stale tab sends neither header", () => {
+  test("each surface shows an empty list or a refusal, not a loop or a crash", async ({
+    page,
+  }) => {
+    const stack = requireStack();
+    const app = surface();
+    test.skip(!app, "Each app's project.");
+    let opened: string;
+    let watched: RegExp;
+    if (app === "admin") {
+      await signIn(page, staffInBoth!.email, staffInBoth!.password);
+      await choose(page, `${ORGANIZATION_NAME[DEMO]}: Development`, DEMO);
+      opened = `/${DEMO}/admin/teams`;
+      watched = /^\/api\/admin\/users$/;
+    } else if (app === "missionary") {
+      await signIn(page, missionaryInBoth!.email, missionaryInBoth!.password);
+      await choose(page, `Open ${ORGANIZATION_NAME[DEMO]}`, DEMO);
+      opened = `/${DEMO}/donors`;
+      watched = /^\/api\/missionary\/donors$/;
+    } else {
+      await signIn(page, SEEDED.owner.email, SEEDED_PASSWORD);
+      await expect(page).toHaveURL(/\/donor-dashboard/, { timeout: 120_000 });
+      opened = "/donor-dashboard/history";
+      watched = /^\/api\/donor\/portal$/;
+    }
+    const stripped = await stripScopeHeaders(page);
+    const reads = collectReads(page, watched);
+    const loads = countDocumentLoads(page);
+    await page.goto(opened);
+    await expect
+      .poll(() => reads.length, { timeout: 120_000 })
+      .toBeGreaterThan(0);
+    // Long enough for a reload loop to show itself.
+    await page.waitForTimeout(15_000);
+    // A crash is the page itself gone: its heading replaced by a route's
+    // error page. A message inside an intact page ("Unauthorized", "Could
+    // not load staff") is the refusal this case accepts, and is recorded.
+    const outcome = {
+      surface: app,
+      documentLoads: loads.count,
+      statuses: reads.map((read) => read.status),
+      headersStripped: stripped.count,
+      pageHeading: await page.getByRole("heading", { level: 1 }).count(),
+      routeError: await page
+        .getByText(/application error|unhandled runtime error/i)
+        .count(),
+      refusal: (
+        (await page
+          .getByText(/unauthori[sz]ed|could not load|didn.t load|no access/i)
+          .allInnerTexts()) ?? []
+      ).slice(0, 2),
+      url: new URL(page.url()).pathname,
+    };
+    test.info().annotations.push({
+      type: "stale tab",
+      description: JSON.stringify(outcome),
+    });
+    console.log(`stale tab: ${JSON.stringify(outcome)}`);
+    // The page did try to send its scope, and the network removed it.
+    expect(outcome.headersStripped, JSON.stringify(outcome)).toBeGreaterThan(0);
+    expect(outcome.documentLoads, JSON.stringify(outcome)).toBeLessThanOrEqual(
+      2,
+    );
+    expect(outcome.pageHeading, JSON.stringify(outcome)).toBeGreaterThan(0);
+    expect(outcome.routeError, JSON.stringify(outcome)).toBe(0);
+    void stack;
+  });
+});
