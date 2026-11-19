@@ -43,6 +43,9 @@ function ScopeProbe({
 
 beforeEach(() => {
   reloadDocument.mockReset();
+  // The bounded reload's claim lives in session storage: no case inherits
+  // another's (check of the fix lists, JR11).
+  window.sessionStorage.clear();
   // A signed-in page is served at its tenant address.
   window.history.replaceState(null, "", `${A.addressPrefix}/care`);
 });

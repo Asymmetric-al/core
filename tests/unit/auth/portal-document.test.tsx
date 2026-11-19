@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AuthContext } from "../../../packages/auth/context";
 
@@ -56,6 +56,9 @@ function donorContext(overrides: Partial<AuthContext> = {}): AuthContext {
 }
 
 afterEach(cleanup);
+// The bounded reload's claim lives in session storage: no case inherits
+// another's (check of the fix lists, JR11).
+beforeEach(() => window.sessionStorage.clear());
 
 describe("readPortalDocumentScope", () => {
   it("scopes a donor portal document to the person's resolved donor membership", async () => {

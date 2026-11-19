@@ -8,10 +8,7 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import {
-  forgetDocumentReload,
-  requestDocumentReload,
-} from "./document-reload-claim";
+import { requestDocumentReload } from "./document-reload-claim";
 import { readBrowserSessionUserId } from "./document-session";
 import { ScopeReloadNotice } from "./scope-reload-notice";
 
@@ -353,10 +350,6 @@ export function DocumentScopeProvider({
   );
   const shown = fixed && !isRetired;
 
-  // A document rendered in its scope: a later reload is a new one (JB2).
-  useEffect(() => {
-    if (shown) forgetDocumentReload();
-  }, [shown]);
   // Tell readers above this provider (retained drafts) the scope is fixed.
   useLayoutEffect(() => {
     if (fixed) fixedScopeListeners.forEach((listener) => listener());

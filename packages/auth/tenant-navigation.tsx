@@ -3,7 +3,6 @@
 import { loadDocument, reloadDocument } from "@asym/database/document-reload";
 import {
   claimDocumentReload,
-  forgetDocumentReload,
   requestDocumentReload,
 } from "@asym/database/document-reload-claim";
 import {
@@ -342,13 +341,9 @@ export function TenantDocument({
   const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
-    if (!reload) {
-      forgetDocumentReload();
-    } else if (claimDocumentReload()) {
-      reloadDocument();
-    } else {
-      setStuck(true);
-    }
+    if (!reload) return;
+    if (claimDocumentReload()) reloadDocument();
+    else setStuck(true);
   }, [reload]);
 
   if (stuck) {

@@ -46,6 +46,9 @@ function at(pathname: string) {
 beforeEach(() => {
   vi.restoreAllMocks();
   reloadDocument.mockReset();
+  // The bounded reload's claim lives in session storage: no case inherits
+  // another's (check of the fix lists, JR11).
+  window.sessionStorage.clear();
 });
 
 afterEach(() => {

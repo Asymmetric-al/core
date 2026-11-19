@@ -327,6 +327,45 @@ describe("the bounded reload", () => {
     ).toBeNull();
   });
 
+  // Check of the fix lists, JR3: a render no longer forgets the reload, so
+  // a page whose first scoped call is refused every time does not reload
+  // for ever (claim, reload, render, forget, refuse).
+  it("render, refuse, reload, render, refuse: the second refusal does not reload", async () => {
+    signInBrowserAs(PERSON_A);
+    const refuse = async () =>
+      Response.json(
+        { error: "Unauthorized" },
+        {
+          status: 401,
+          headers: { "x-asym-scope-refused": "not_owned_or_inactive" },
+        },
+      );
+
+    const first = await load();
+    await renderCarePage(first);
+    fetchMock.mockImplementationOnce(refuse);
+    await act(async () => {
+      await first.ownApiFetch("/api/admin/member-care/dashboard");
+    });
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+
+    // The reload: a new document at the same address renders in its scope,
+    // and its first scoped call is refused again.
+    cleanup();
+    const second = await load();
+    await renderCarePage(second);
+    fetchMock.mockImplementationOnce(refuse);
+    await act(async () => {
+      await second.ownApiFetch("/api/admin/member-care/dashboard");
+    });
+
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("status").textContent).toBe(
+      "This page could not load again.",
+    );
+    expect(screen.getByRole("button", { name: "Reload" })).toBeTruthy();
+  });
+
   it("offers the way out when the reload has not happened after a while (Stop, offline)", async () => {
     vi.useFakeTimers();
     try {
