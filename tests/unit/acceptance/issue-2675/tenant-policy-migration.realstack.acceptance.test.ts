@@ -1621,13 +1621,16 @@ describe.skipIf(!ADMIN_URL)(
           );
           expect(own.code, own.message).toBeNull();
           expect(own.rows).toHaveLength(1);
-          // Every own-row sub-select the migration writes carries the tenant.
+          // Every own-row sub-select over donors or support_agents carries the
+          // tenant. The one over missionaries cannot (signed-in users may
+          // select only its id and profile_id; defect 10), and the
+          // missionaries policy, with no super-admin branch, bounds it.
           const leaning = await rows(
             `select c.relname || ': ' || p.polname n
                from pg_policy p join pg_class c on c.oid = p.polrelid
               where c.relnamespace = 'public'::regnamespace
                 and coalesce(pg_get_expr(p.polqual, p.polrelid), '') || ' ' || coalesce(pg_get_expr(p.polwithcheck, p.polrelid), '')
-                    ~ 'FROM (donors d|missionaries m|support_agents a)\\s+WHERE \\(+(d|m|a)\\.(profile_id|user_id)'
+                    ~ 'FROM (donors d|support_agents a)\\s+WHERE \\(+(d|a)\\.(profile_id|user_id)'
               order by 1`,
           );
           expect(leaning).toEqual([]);

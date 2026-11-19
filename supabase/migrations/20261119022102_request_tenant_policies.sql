@@ -40,12 +40,22 @@
 --      the CRM table-preference functions, follows plan 5.1 with no header:
 --      it counts every live row of the caller in the tenant, so a person with
 --      a staff and a donor row there passes its staff check only when the
---      request names the staff row (review defect 9).
+--      request names the staff row (review defect 9). A tenant header that
+--      names another tenant than the one asked about selects nothing, so the
+--      directory answers only for the tenant the request selected (council
+--      R8); with no header, the one live row there still serves.
 -- 2. Every signed-in policy on a tenant table requires the row's tenant to
 --    equal authz.current_tenant_id(), plus its role-class or own-row condition,
 --    each a whole sub-select so that it runs once for a statement. An own-row
 --    branch is bound to its class: the donor branch admits only under a donor
 --    assignment, the missionary branch only under a missionary assignment.
+--    Each own-row sub-select over donors or support_agents carries the
+--    request's tenant itself, so it never leans on that table's policy for
+--    it (council R11). The one over missionaries cannot name m.tenant_id,
+--    which signed-in users may not select (defect 10); the missionaries
+--    policy carries the tenant and has no super-admin branch. A
+--    policy compares the caller through authz.current_user_id(), marked
+--    PARALLEL SAFE below, not auth.uid() (council R12).
 --    Each `is_super_admin()` branch is kept with the same meaning until WP2c,
 --    written as a sub-select (review Q6). The listed exceptions keep no tenant
 --    condition (review section 3). The staff tenant-select policy on profiles
@@ -69,39 +79,45 @@
 --    notification preferences and personal saved views are read only under
 --    the tenant-administrator flag (review Q1). The crm_notes insert binds its
 --    author to the caller, and a signed-in insert has its author name and
---    timestamps stamped (review defect 2). public.post_comment_authors(post)
---    gives the display name and avatar of the people who commented on a
---    published public post, and nothing else of their profiles, now that a
---    profile is readable by its owner only (review Q9).
+--    timestamps stamped (review defect 2). Commenters' names come from the
+--    first release's narrow read, public.post_comment_authors, which ships
+--    with that release's apps (council R1), so that a profile readable by its
+--    owner only takes no author away from the running release.
 -- 4. Storage: every policy of the profiles bucket and of the editor images in
 --    document-uploads that signed-in users reach (upload, replace, read and
 --    delete) tests a live membership of the caller in the tenant the object
 --    path names, in place of profiles.tenant_id or the owner alone (plan 5.2;
---    review Q10).
+--    review Q10). The replace (update) policies test it on the object as it
+--    stands (USING) and as it will be (WITH CHECK), whatever statement the
+--    Storage server sends (council R5).
 -- 5. Realtime: funds, locations, posts and the four post-reaction and comment
 --    tables leave the supabase_realtime publication where they are in it.
 --
--- Safe for the release already running (plan 7.4): the first release of
--- WP2b sends both headers on every Data API request, so its reads keep
--- working. An application that sends no headers gets nothing from a tenant
--- table: every signed-in policy there fails closed.
+-- Release order (council R6; docs/ops/release-job.md): this migration is
+-- released to an environment only after a release that carries the first
+-- release of WP2b's apps has completed there, because only those apps send
+-- the two headers; an application that sends none gets nothing from a
+-- tenant table, since every signed-in policy there fails closed. Once it has
+-- shipped, no application rollback goes below the first release. Nothing in
+-- the database enforces the order: a rebuild from source applies the whole
+-- chain to a database with no recorded heads, and a guard would stop it.
 --
--- Down (run by hand, in one transaction): restore authz.current_tenant_id,
--- authz.has_membership and authz.has_staff_membership from
--- 20260226113000_authz_memberships_foundation.sql; ALTER each policy back to
--- the expression the activation review's appendix query prints on the
--- previous chain; CREATE POLICY "profiles staff tenant select" as in
--- 20260625002117_canonical_tanstack_db_realtime_rls.sql; GRANT the revoked
--- privileges back and CREATE the dropped write policies from the migrations
--- that first created them; restore the eight Storage policies from
--- 20250101000000_init_schema.sql, 20261027100000_profiles_bucket_owner_folders.sql
--- and 20261028100000_editor_image_storage.sql; restore
--- authz.caller_assignment from
--- 20261117160200_membership_readers_and_member_directory.sql; DROP TRIGGER
--- crm_notes_stamp_signed_in_author and its function; DROP FUNCTION
--- public.post_comment_authors(UUID); DROP the new authz functions.
+-- Down: supabase/migrations/rollback_20261119022102_request_tenant_policies.sql,
+-- run by hand in one transaction. It restores the chain before this
+-- migration exactly: every policy, grant, function, parallel mark and
+-- publication member this migration changed, and only the privileges each
+-- table held before (council R10). Proven on a disposable database: the
+-- chain, then the rollback, has the schema fingerprint of the chain without
+-- this migration (scripts/release/schema-fingerprint.mjs).
 
 BEGIN;
+
+-- The ALTER and DROP POLICY statements below take an ACCESS EXCLUSIVE lock on
+-- some fifty tables until COMMIT. lock_timeout bounds the wait for each lock,
+-- as 20261025070000 and 20261025100000 do, so a table held by a long reader
+-- fails the migration fast (55P03, nothing applied) instead of queueing every
+-- later query behind it; re-run it when the database is quiet (council R9).
+SET LOCAL lock_timeout = '5s';
 
 -- 1. The request's tenant and assignment.
 
@@ -407,6 +423,15 @@ GRANT EXECUTE ON FUNCTION authz.caller_tenant_ids() TO authenticated, service_ro
 -- the call, which Postgres allows in a worker because it ends with the call.
 ALTER FUNCTION authz.is_super_admin() PARALLEL SAFE;
 
+-- The caller-id helper the policies compare the caller with (council R12):
+-- authz.current_user_id() is `SELECT auth.uid()`, an INVOKER SQL function
+-- (20260226113000) that reads the token's subject from the two settings a
+-- parallel worker shares with the leader, as authz.is_super_admin() does
+-- above, and writes nothing. Marked PARALLEL SAFE for the same reason: a
+-- policy that names a parallel-unsafe function denies every caller-token
+-- read a parallel plan. auth.uid() itself is Supabase's and keeps its mark.
+ALTER FUNCTION authz.current_user_id() PARALLEL SAFE;
+
 -- assignment_holds reads authz.assignment_capabilities as its owner.
 -- The guard role keeps EXECUTE on the two membership helpers (AL-2674).
 
@@ -414,7 +439,10 @@ ALTER FUNCTION authz.is_super_admin() PARALLEL SAFE;
 -- the assignment header names, when it is the caller's, live, in that tenant
 -- and of that class; or, with no header, the caller's one live row there,
 -- when it is of that class. A caller with several live rows there, of any
--- classes, and none named has no assignment (review defect 9). Signature,
+-- classes, and none named has no assignment (review defect 9). A tenant
+-- header that names another tenant than p_tenant_id selects nothing, so a
+-- caller of the member directory or a table-preference function cannot be
+-- answered for a tenant the request did not select (council R8). Signature,
 -- owner and grants as WP2a created them.
 CREATE OR REPLACE FUNCTION authz.caller_assignment(
   p_tenant_id UUID,
@@ -428,12 +456,16 @@ SET search_path = ''
 AS $$
 DECLARE
   v_user UUID := auth.uid();
+  v_tenant UUID := authz.request_tenant_id();
   v_named UUID := tenant_guard.request_assignment_id();
   v_id UUID;
   v_role authz.membership_role;
   v_rows BIGINT;
 BEGIN
   IF v_user IS NULL OR p_tenant_id IS NULL OR p_role IS NULL THEN
+    RETURN NULL;
+  END IF;
+  IF v_tenant IS NOT NULL AND v_tenant <> p_tenant_id THEN
     RETURN NULL;
   END IF;
 
@@ -453,45 +485,6 @@ BEGIN
   RETURN v_id;
 END;
 $$;
-
--- Commenters' names (review Q9). A profile is readable by its owner only
--- after this migration, so the comments of a published public post name
--- their authors through this read: display name and avatar, nothing else.
-CREATE OR REPLACE FUNCTION public.post_comment_authors(p_post_id UUID)
-RETURNS TABLE (
-  user_id UUID,
-  display_name TEXT,
-  avatar_url TEXT
-)
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-  SELECT DISTINCT
-    c.user_id,
-    COALESCE(
-      NULLIF(pg_catalog.btrim(p.display_name), ''),
-      NULLIF(pg_catalog.btrim(p.full_name), ''),
-      NULLIF(pg_catalog.btrim(pg_catalog.concat_ws(' ', p.first_name, p.last_name)), '')
-    ),
-    p.avatar_url
-  FROM public.posts AS post
-  JOIN public.post_comments AS c ON c.post_id = post.id
-  JOIN public.profiles AS p ON p.id = c.user_id
-  WHERE post.id = p_post_id
-    AND post.status = 'published'
-    AND post.visibility = 'public'
-  ORDER BY 1;
-$$;
-
-COMMENT ON FUNCTION public.post_comment_authors(UUID) IS
-  'The display name and avatar of each person who commented on a published '
-  'public post, and nothing else of their profiles (AL-2675, review Q9).';
-
-ALTER FUNCTION public.post_comment_authors(UUID) OWNER TO postgres;
-REVOKE ALL ON FUNCTION public.post_comment_authors(UUID) FROM PUBLIC, anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.post_comment_authors(UUID) TO authenticated;
 
 -- A signed-in insert into crm_notes is stamped with its author's name and the
 -- time; the insert policy binds the author to the caller (review defect 2).
@@ -681,7 +674,7 @@ ALTER POLICY "support hub staff select" ON public.support_notification_preferenc
     OR (
       tenant_id = (SELECT authz.current_tenant_id())
       AND (SELECT authz.assignment_is('staff'))
-      AND ((SELECT authz.assignment_is_tenant_admin()) OR agent_id IN (SELECT a.id FROM public.support_agents AS a WHERE a.user_id = (SELECT auth.uid())))
+      AND ((SELECT authz.assignment_is_tenant_admin()) OR agent_id IN (SELECT a.id FROM public.support_agents AS a WHERE a.tenant_id = (SELECT authz.current_tenant_id()) AND a.user_id = (SELECT authz.current_user_id())))
     )
   );
 DROP POLICY "support hub staff insert" ON public.support_notification_preferences;
@@ -699,7 +692,7 @@ ALTER POLICY "support hub staff select" ON public.support_saved_views
         scope <> 'personal'
         OR owner_agent_id IS NULL
         OR (SELECT authz.assignment_is_tenant_admin())
-        OR owner_agent_id IN (SELECT a.id FROM public.support_agents AS a WHERE a.user_id = (SELECT auth.uid()))
+        OR owner_agent_id IN (SELECT a.id FROM public.support_agents AS a WHERE a.tenant_id = (SELECT authz.current_tenant_id()) AND a.user_id = (SELECT authz.current_user_id()))
       )
     )
   );
@@ -930,7 +923,7 @@ DROP POLICY "member care requirements delete" ON public.member_care_requirements
 ALTER POLICY "member care private notes select" ON public.member_care_private_notes
   USING (
     (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND author_user_id = (SELECT auth.uid()))
+    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND author_user_id = (SELECT authz.current_user_id()))
   );
 DROP POLICY "member care private notes insert" ON public.member_care_private_notes;
 DROP POLICY "member care private notes update" ON public.member_care_private_notes;
@@ -957,7 +950,7 @@ ALTER POLICY "donations owner or staff select" ON public.donations
       tenant_id = (SELECT authz.current_tenant_id())
       AND (
         (SELECT authz.assignment_is('staff'))
-        OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.profile_id IN (SELECT authz.caller_profile_ids())))
+        OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids())))
         OR ((SELECT authz.assignment_is('missionary')) AND missionary_id IN (SELECT m.id FROM public.missionaries AS m WHERE m.profile_id IN (SELECT authz.caller_profile_ids())))
       )
     )
@@ -971,7 +964,7 @@ ALTER POLICY "donor pledges owner or staff select" ON public.donor_pledges
       tenant_id = (SELECT authz.current_tenant_id())
       AND (
         (SELECT authz.assignment_is('staff'))
-        OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.profile_id IN (SELECT authz.caller_profile_ids())))
+        OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids())))
         OR ((SELECT authz.assignment_is('missionary')) AND missionary_id IN (SELECT m.id FROM public.missionaries AS m WHERE m.profile_id IN (SELECT authz.caller_profile_ids())))
       )
     )
@@ -1030,7 +1023,7 @@ ALTER POLICY "tenant scoped own or staff read" ON public.follows
     tenant_id = (SELECT authz.current_tenant_id())
     AND (
       (SELECT authz.assignment_is('staff'))
-      OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.profile_id IN (SELECT authz.caller_profile_ids())))
+      OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids())))
     )
   );
 
@@ -1039,24 +1032,24 @@ ALTER POLICY "donor_feed_preferences_own_select" ON public.donor_feed_preference
   USING (
     tenant_id = (SELECT authz.current_tenant_id())
     AND (SELECT authz.assignment_is('donor'))
-    AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.profile_id IN (SELECT authz.caller_profile_ids()))
+    AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids()))
   );
 ALTER POLICY "donor_feed_preferences_own_insert" ON public.donor_feed_preferences
   WITH CHECK (
     tenant_id = (SELECT authz.current_tenant_id())
     AND (SELECT authz.assignment_is('donor'))
-    AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.profile_id IN (SELECT authz.caller_profile_ids()))
+    AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids()))
   );
 ALTER POLICY "donor_feed_preferences_own_update" ON public.donor_feed_preferences
   USING (
     tenant_id = (SELECT authz.current_tenant_id())
     AND (SELECT authz.assignment_is('donor'))
-    AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.profile_id IN (SELECT authz.caller_profile_ids()))
+    AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids()))
   )
   WITH CHECK (
     tenant_id = (SELECT authz.current_tenant_id())
     AND (SELECT authz.assignment_is('donor'))
-    AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.profile_id IN (SELECT authz.caller_profile_ids()))
+    AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids()))
   );
 
 -- field_policies
@@ -1132,10 +1125,20 @@ ALTER POLICY "profiles owner folder insert" ON storage.objects
     AND (pg_catalog.string_to_array(name, '/'))[3] = ((SELECT auth.uid()))::TEXT
     AND (pg_catalog.string_to_array(name, '/'))[4] <> ''
   );
+-- A replace tests the membership on the object as it stands (USING) as well
+-- as on the object as it will be (WITH CHECK), so a person whose membership
+-- in the source folder's tenant has ended cannot update an object there,
+-- however the Storage server phrases its statement (council R5).
 ALTER POLICY "profiles owner folder update" ON storage.objects
   USING (
     bucket_id = 'profiles'
     AND owner = (SELECT auth.uid())
+    AND (pg_catalog.string_to_array(name, '/'))[1] = ANY (ARRAY['avatars', 'covers'])
+    AND (pg_catalog.string_to_array(name, '/'))[2] IN (
+      SELECT t::TEXT FROM authz.caller_tenant_ids() AS t
+    )
+    AND (pg_catalog.string_to_array(name, '/'))[3] = ((SELECT auth.uid()))::TEXT
+    AND (pg_catalog.string_to_array(name, '/'))[4] <> ''
   )
   WITH CHECK (
     bucket_id = 'profiles'
@@ -1161,6 +1164,12 @@ ALTER POLICY "editor images owner folder update" ON storage.objects
   USING (
     bucket_id = 'document-uploads'
     AND owner = (SELECT auth.uid())
+    AND (pg_catalog.string_to_array(name, '/'))[1] = 'editor'
+    AND (pg_catalog.string_to_array(name, '/'))[2] IN (
+      SELECT t::TEXT FROM authz.caller_tenant_ids() AS t
+    )
+    AND (pg_catalog.string_to_array(name, '/'))[3] = ((SELECT auth.uid()))::TEXT
+    AND (pg_catalog.string_to_array(name, '/'))[4] <> ''
   )
   WITH CHECK (
     bucket_id = 'document-uploads'
@@ -1310,9 +1319,7 @@ BEGIN
      AND NOT (
        COALESCE(pg_catalog.pg_get_expr(p.polqual, p.polrelid), 'authz.caller_tenant_ids()') ~ 'authz\.caller_tenant_ids\(\)'
        AND COALESCE(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid), 'authz.caller_tenant_ids()') ~ 'authz\.caller_tenant_ids\(\)'
-     )
-     AND p.polname <> 'profiles owner folder update'
-     AND p.polname <> 'editor images owner folder update';
+     );
   IF v_problem IS NOT NULL THEN
     RAISE EXCEPTION 'AL-2675: Storage policies without the membership test: %', v_problem;
   END IF;

@@ -103,10 +103,14 @@ const TENANT = (t: string, extra = "") =>
  * fails a signed-in policy of a tenant table that admits a row without the
  * request's tenant (TENANT_CONDITION_MISSING), so the planted policy is the
  * tenant condition itself. Each case still plants exactly the one violation
- * it names, and the gate must name exactly that one.
+ * it names, and the gate must name exactly that one. Amended again by the
+ * council's R3 on that release (record D-18): a FOR ALL policy also writes,
+ * and on a planted table signed-in users hold no write grant, where only a
+ * plain deny may stand; so the planted policy reads only (FOR SELECT), and
+ * is still the one policy that makes the table "with policy".
  */
 const POLICY = (t: string) =>
-  `create policy acc2253 on public.${t} using (tenant_id = (select authz.current_tenant_id()));`;
+  `create policy acc2253 on public.${t} for select using (tenant_id = (select authz.current_tenant_id()));`;
 const CASES: [string, string, string[][]][] = [
   [
     "RLS_DISABLED (forced, with policy, not enabled)",

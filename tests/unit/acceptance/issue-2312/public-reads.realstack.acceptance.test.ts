@@ -200,13 +200,15 @@ describe.skipIf(!ADMIN_URL)(
      * campaigns are staff-only (activation review Q2); follows binds its own
      * row to a donor assignment; the missionary's own key read gains the
      * tenant condition and a missionary assignment. The comparison is as exact
-     * as before.
+     * as before. The council's R11 (record D-18) puts the request's tenant
+     * inside follows' own-row sub-select over donors too, so that it does not
+     * lean on the donors policy, whose super-admin branch crosses tenants.
      */
     const currentQual = (t: string) =>
       t === "missionaries"
         ? "tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('missionary')) AND profile_id IN (SELECT authz.caller_profile_ids())"
         : t === "follows"
-          ? "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.profile_id IN (SELECT authz.caller_profile_ids()))))"
+          ? "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids()))))"
           : "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')))";
     const keyOf = (v: unknown) =>
       Object.keys(id).find((k) => id[k] === v) ?? String(v);

@@ -339,7 +339,13 @@ describe.skipIf(!ADMIN_URL)(
               `(${[bucketIs, ...inCallersFolder].join(" AND ")})`,
             );
             expect(insert.qual).toBe("");
-            expect(update.qual).toBe(`(${bucketIs} AND ${ownerIs})`);
+            // Amended by the council's R5 on WP2b's second release (record
+            // D-18): a replace tests the caller's folder and its tenant on the
+            // object as it stands (USING) too, not the bucket and owner alone,
+            // so it holds however the Storage server phrases its statement.
+            expect(collapse(update.qual), `${bucket} update using`).toBe(
+              `(${[bucketIs, ownerIs, ...inCallersFolder].join(" AND ")})`,
+            );
             expect(collapse(update.checks), `${bucket} update`).toBe(
               `(${[bucketIs, ownerIs, ...inCallersFolder].join(" AND ")})`,
             );
