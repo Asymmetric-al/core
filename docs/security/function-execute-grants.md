@@ -65,7 +65,12 @@ After the migration, on any database whatever its default privileges:
   helpers. They are now `TO authenticated`, with USING and WITH CHECK
   unchanged. Hosted defaults give `anon` table privileges, so without this
   `anon` would get `permission denied for function is_super_admin` instead of
-  0 rows.
+  0 rows. Since the second release of WP2b (AL-2675) five of them are
+  dropped: the insert of `crm_command_logs` and the insert and update of
+  `crm_merge_candidates` with their write grants, and the insert and update of
+  `crm_record_links`, where signed-in users never held a write grant. The
+  three read policies that stand carry the request's tenant
+  (`tenant-policy-activation-review.md`, Q7 and Q8).
 
 `tests/unit/security/authz-definer-execute-grants.test.ts` fails the build if
 a forward migration defines an `authz` SECURITY DEFINER function that is not in
@@ -130,7 +135,9 @@ There is no rollback migration: reverting restores `PUBLIC` EXECUTE on the
 `authz` helpers and re-opens the gaps described above. If a revert is needed
 anyway, this restores the state the earlier migrations defined. It does not
 re-grant `anon` or `service_role` on `current_user_memberships`, which no
-migration intended.
+migration intended. On a chain that has
+`20261119022102_request_tenant_policies.sql`, the five write policies it
+dropped do not exist: leave out their `ALTER POLICY` lines.
 
 ```sql
 BEGIN;
