@@ -13,6 +13,14 @@ name: Local Supabase Stack
 # - The email round trips of WP0b and WP1.4: password recovery in all three
 #   apps and sign-up confirmation on two hosts of the donor portal, through
 #   the stack's Auth server and mail catcher (council round 2, B4).
+# - The release job's replay against the platform's image (WP1.6). The release
+#   job fingerprints a replay of the chain on plain Postgres, made with hosted
+#   Supabase's default privileges (scripts/sql/hosted-default-privileges.sql),
+#   and stops when a hosted database differs from it. The stack runs
+#   Supabase's own image, so the same replay must fingerprint exactly as the
+#   stack does. This job runs only when a listed path changes, and it compares
+#   with the image the pinned CLI starts, not with hosted: a change of the
+#   defaults on hosted is caught by the release's gates.
 #
 # Its own workflow, so that no frozen suite of ci.yml or ci-integration.yml
 # changes. Not a required check.
@@ -27,6 +35,11 @@ on:
       - supabase/seed.sql
       - supabase/config.toml
       - scripts/supabase-cli.mjs
+      # The release job's replay and its fingerprint (WP1.6).
+      - scripts/sql/hosted-default-privileges.sql
+      - scripts/sql/supabase-compat-bootstrap.sql
+      - scripts/verify/supabase-migrations.mjs
+      - scripts/release/schema-fingerprint.mjs
       # The auth screens, packages, routes and proxies the round trips cover.
       - packages/ui/components/auth/**
       - packages/auth/**
@@ -63,6 +76,24 @@ jobs:
   local-supabase:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      REPLAY_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/release_replay
+    # The plain Postgres the release job replays on (release.yml); the stack's
+    # own database listens on 54322.
+    services:
+      postgres:
+        image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres # pragma: allowlist secret
+          POSTGRES_DB: release_replay
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Reject fork pull requests
         if: >-
@@ -101,6 +132,21 @@ jobs:
         run: >-
           bun run supabase -- start
           -x studio,edge-runtime,logflare,vector,imgproxy,postgres-meta,supavisor
+      # The release job's replay, made as it makes it, must fingerprint exactly
+      # as the stack does, before the round trips write to the stack.
+      - name: Install PostgreSQL client
+        run: bash scripts/github/install-postgresql-client.sh
+      - name: Replay every migration on plain Postgres, as the release job does
+        env:
+          DATABASE_URL: ${{ env.REPLAY_DATABASE_URL }}
+        run: node scripts/verify/supabase-migrations.mjs --hosted-defaults
+      - name: The replay fingerprints exactly as the stack does
+        env:
+          STACK_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          node scripts/release/schema-fingerprint.mjs capture --database-url-env REPLAY_DATABASE_URL --out "$RUNNER_TEMP/replay-fingerprint.json"
+          node scripts/release/schema-fingerprint.mjs capture --database-url-env STACK_DATABASE_URL --out "$RUNNER_TEMP/stack-fingerprint.json"
+          node scripts/release/schema-fingerprint.mjs compare "$RUNNER_TEMP/replay-fingerprint.json" "$RUNNER_TEMP/stack-fingerprint.json"
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
       - name: Run the auth email round trips

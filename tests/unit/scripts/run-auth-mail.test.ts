@@ -58,10 +58,9 @@ describe("the auth email suite's environment", () => {
     ).toThrow(/DB_URL is not on this machine/);
   });
 
-  // Council round 1, A18: libpq and node-postgres let the query replace the
-  // host, so `127.0.0.1/postgres?host=db.example.com` connects elsewhere while
-  // its hostname reads local. The journeys insert memberships through this
-  // URL, so a routing override is refused, by the runner and by the journeys.
+  // Council round 1 on slice A, A18, kept through the merge of develop
+  // (d2402280c): each routing key the query may carry is refused, by the
+  // runner and by the journeys, now through isLoopbackDatabaseUrl.
   it.each(["host", "hostaddr", "port", "dbname", "user", "service"])(
     "refuses a database URL whose query routes it elsewhere (%s)",
     async (key) => {
@@ -73,7 +72,7 @@ describe("the auth email suite's environment", () => {
             routed,
           ),
         ),
-      ).toThrow(new RegExp(`DB_URL.*${key}`));
+      ).toThrow(/DB_URL is not on this machine/);
 
       const { readAuthMailEnv } = await import("../../e2e/helpers/auth-mail");
       expect(() =>
@@ -84,7 +83,28 @@ describe("the auth email suite's environment", () => {
           E2E_AUTH_MAIL_URL: "http://127.0.0.1:25324",
           E2E_AUTH_MAIL_DB_URL: routed,
         }),
-      ).toThrow(new RegExp(key));
+      ).toThrow(/does not name a database on this machine/);
+    },
+  );
+
+  // AL-2674, phase 15: node-postgres, which the journeys write memberships
+  // through, follows a host in the query over the one the URL shows. So the
+  // database is judged by isLoopbackDatabaseUrl, never by its host name.
+  it.each([
+    ["a query host", "/postgres?host=db.abc.supabase.co"],
+    ["a query host address", "/postgres?hostaddr=203.0.113.9"],
+    ["a socket directory as the query host", "/postgres?host=%2Fvar%2Frun"],
+  ])(
+    "refuses a database on this machine's host name with %s",
+    (_case, rest) => {
+      expect(() =>
+        authMailEnvFromStatus(
+          STATUS.replace(
+            "@127.0.0.1:25322/postgres",
+            `@127.0.0.1:25322${rest}`,
+          ),
+        ),
+      ).toThrow(/DB_URL is not on this machine/);
     },
   );
 

@@ -202,8 +202,12 @@ describe("qa smoke preview deployment workflow", () => {
       /concurrency:\n\s+group: preview-database\n\s+cancel-in-progress: false\n\s+queue: max/,
     );
     expect(job).toContain("environment: release-preview");
+    // Amended for WP1.6 (record D-18): the first hosted run stopped at the
+    // fingerprint, because hosted Supabase gives `postgres` default privileges
+    // in `public` that a plain replay lacks. The preview replay applies them
+    // first, as the release job's does; the old marker named the script alone.
     const order = [
-      "node scripts/verify/supabase-migrations.mjs",
+      "node scripts/verify/supabase-migrations.mjs --hosted-defaults",
       "schema-fingerprint.mjs capture",
       "release-database.mjs preview-rebuild",
       "release-database.mjs gates",
@@ -261,5 +265,24 @@ describe("qa smoke preview deployment workflow", () => {
   it("does not use bypass query parameters", () => {
     expect(workflow).not.toContain("x-vercel-set-bypass-cookie");
     expect(workflow).not.toContain("?x-vercel-protection-bypass");
+  });
+});
+
+// Review L6: a hosted release verifies every connection against the
+// project's CA, so every step that runs the release script holds it.
+describe("the project's CA in qa-smoke-preview-deploy.yml", () => {
+  it("goes to every step that runs the release script", () => {
+    const text = readFileSync(
+      ".github/workflows/qa-smoke-preview-deploy.yml",
+      "utf8",
+    );
+    const steps = text
+      .split("\n      - ")
+      .filter((step) => step.includes("scripts/release/release-database.mjs"));
+    expect(steps.length).toBeGreaterThan(0);
+    for (const step of steps)
+      expect(step, step.split("\n")[0]).toContain(
+        "RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}",
+      );
   });
 });

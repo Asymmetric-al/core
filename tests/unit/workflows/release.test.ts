@@ -131,7 +131,10 @@ describe("release workflow (plan 7.4)", () => {
     expect(repair).toContain(
       "run: node scripts/release/release-database.mjs replace-seeded-login-passwords",
     );
+    // Review L6: the repair connects to the database too, so it verifies the
+    // project's CA like every other step.
     expect(repair.match(/secrets\.[A-Z_]+/g)?.sort()).toEqual([
+      "secrets.RELEASE_DATABASE_SSL_CA",
       "secrets.RELEASE_DATABASE_URL",
       "secrets.RELEASE_SEED_LOGIN_PASSWORD",
     ]);
@@ -175,6 +178,28 @@ describe("release workflow (plan 7.4)", () => {
       ),
     ).toBe(true);
     expect(deploy).toContain("environment: release-production");
+  });
+
+  // WP1.6 (record D-18): the first hosted run stopped at the fingerprint,
+  // because hosted Supabase gives `postgres` default privileges in `public`
+  // that a plain replay lacks. The replay applies them first, from the one
+  // file the privileges harness reads too.
+  it("replays the chain with hosted Supabase's default privileges before it fingerprints the replay", () => {
+    const database = job("database");
+    const replay = database
+      .split("\n      - ")
+      .find((step) => step.includes("Replay every migration"))!;
+    expect(replay).toContain(
+      "run: node scripts/verify/supabase-migrations.mjs --hosted-defaults",
+    );
+    expect(
+      before(
+        database,
+        "supabase-migrations.mjs --hosted-defaults",
+        "schema-fingerprint.mjs capture",
+      ),
+    ).toBe(true);
+    expect(workflow.match(/supabase-migrations\.mjs/g)).toHaveLength(1);
   });
 
   it("deploys only through the API stage-check-promote step, never a CLI production deploy", () => {
@@ -269,3 +294,19 @@ function supabaseCliInstall(jobText: string) {
     !/npx[^\n]*supabase@/.test(jobText)
   );
 }
+
+// Review L6: a hosted release verifies every connection against the
+// project's CA, so every step that runs the release script holds it.
+describe("the project's CA in release.yml", () => {
+  it("goes to every step that runs the release script", () => {
+    const text = readFileSync(".github/workflows/release.yml", "utf8");
+    const steps = text
+      .split("\n      - ")
+      .filter((step) => step.includes("scripts/release/release-database.mjs"));
+    expect(steps.length).toBeGreaterThan(0);
+    for (const step of steps)
+      expect(step, step.split("\n")[0]).toContain(
+        "RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}",
+      );
+  });
+});
