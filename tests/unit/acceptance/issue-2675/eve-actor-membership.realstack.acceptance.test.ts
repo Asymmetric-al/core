@@ -301,6 +301,27 @@ describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
   });
 
   describe("the policy actor and the assistant-memory owner", () => {
+    it("requires a listed login for platform budget authority", () =>
+      tx(async () => {
+        const allowed = async (role: string | null) =>
+          (
+            await db.query(
+              "select public.has_eve_policy_permission($1, $2, $3, 'budget.emergency_override') as allowed",
+              [TA, people.platformOwner, role],
+            )
+          ).rows[0].allowed;
+        expect(await allowed("super_admin")).toBe(false);
+        expect(await allowed(null)).toBe(false);
+        await onList("platformOwner");
+        expect(await allowed("admin")).toBe(false);
+        expect(await allowed("super_admin")).toBe(true);
+        await db.query(
+          "insert into public.eve_policy_permission_grants (tenant_id, profile_id, granted_by_profile_id, permission) values ($1, $2, $3, 'budget.emergency_override')",
+          [TA, people.platformOwner, people.staffProfileFlagged],
+        );
+        expect(await allowed("admin")).toBe(true);
+      }));
+
     // Both are executable by their owner only: the commands that reach them
     // (policy approvals, the budget override, the assistant-memory commands)
     // are definers owned by postgres. Call them as the owner.

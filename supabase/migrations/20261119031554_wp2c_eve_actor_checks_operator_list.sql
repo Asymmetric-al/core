@@ -275,6 +275,30 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.has_eve_policy_permission(
+    p_tenant_id UUID,
+    p_profile_id UUID,
+    p_actor_role TEXT,
+    p_permission TEXT
+)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+    SELECT EXISTS (
+        SELECT 1 FROM public.profiles AS p
+        WHERE p_actor_role = 'super_admin'
+          AND p.id = p_profile_id
+          AND private.is_platform_operator(p.user_id)
+    ) OR EXISTS (
+        SELECT 1 FROM public.eve_policy_permission_grants
+        WHERE tenant_id = p_tenant_id AND profile_id = p_profile_id
+          AND permission = p_permission AND is_active
+    );
+$$;
+
 COMMIT;
 
 SELECT pg_notify('pgrst', 'reload schema');
