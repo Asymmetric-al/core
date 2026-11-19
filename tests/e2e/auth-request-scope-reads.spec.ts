@@ -623,8 +623,13 @@ test.describe("a stale tab sends neither header", () => {
     await expect
       .poll(() => reads.length, { timeout: 120_000 })
       .toBeGreaterThan(0);
-    // Long enough for a reload loop to show itself.
-    await page.waitForTimeout(15_000);
+    // Long enough for a reload loop to show itself: wait for the document to
+    // load again, which a loop would do within this window; the wait timing
+    // out is the outcome this case wants.
+    await expect
+      .poll(() => loads.count, { timeout: 15_000 })
+      .toBeGreaterThan(2)
+      .catch(() => undefined);
     // A crash is the page itself gone: its heading replaced by a route's
     // error page. A message inside an intact page ("Unauthorized", "Could
     // not load staff") is the refusal this case accepts, and is recorded.
