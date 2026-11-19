@@ -2110,8 +2110,8 @@
       "sourcePath": "skills/create-agent/SKILL.md",
       "rawSkillHash": null,
       "lockHash": "c8575147679edca4064025fe922032a00732b6bb208ae2a8f51a7b2d783df6da",
-      "entrypointHash": "7ae1c95d0c218cec71ccec945c40f1c977e2a7a95c69aaaac57b73a43dd97652",
-      "treeHash": "4ac1c9c899cec35c8f557a8cfc71f453053d4d8bc499dcfd435ab5e3a1a945eb",
+      "entrypointHash": "b0a0827b244dad975aa54d162ae3ea0be3e438a05fdb1b96697a78f9e88671b1",
+      "treeHash": "c59aa6f0154adedf14c537869bb84bd986f7c7d5154557eaebc03b41cfb0f683",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",

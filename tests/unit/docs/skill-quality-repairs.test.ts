@@ -163,8 +163,11 @@ describe("skill-quality repairs", () => {
   it("scaffolds and verifies the selected Eve project", () => {
     const skill = read("docs/ai/skills/create-agent/SKILL.md");
 
-    expect(skill).toContain('bunx eve init "$project_dir"');
-    expect(skill).not.toMatch(/bunx eve init \.(?:\s|$)/);
+    expect(skill).toContain("packages/eve-runtime/node_modules/.bin/eve");
+    expect(skill).toContain('cd "$(dirname -- "$project_dir")"');
+    expect(skill).toContain('init "$(basename -- "$project_dir")"');
+    expect(skill).toContain('cd "$project_dir" && "$eve_cli" init .');
+    expect(skill).not.toContain('init "$project_dir"');
     expect(skill).toContain('bun run --cwd "$project_dir" typecheck');
     expect(skill).toContain('bun run --cwd "$project_dir" build');
   });

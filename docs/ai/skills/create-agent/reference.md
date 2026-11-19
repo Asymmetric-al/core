@@ -105,12 +105,7 @@ my-agent/
     └── channels/
 ```
 
-Scaffold:
-
-```bash
-# In Core: run the installed, pinned CLI from packages/eve-runtime
-bunx eve init my-agent
-```
+Use the [scaffold steps](SKILL.md#2-install--scaffold) to run Core's pinned Eve CLI from the selected project's parent directory.
 
 ### Existing monorepo
 

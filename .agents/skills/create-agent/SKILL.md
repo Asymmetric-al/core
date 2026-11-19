@@ -93,10 +93,22 @@ Do not assume a specific monorepo shape. Discover conventions from the codebase.
 
 ### 2. Install / scaffold
 
-Set `project_dir` to the absolute path agreed in Phase 1. From the Core repository root, run its pinned CLI against that path for a new project or an existing project with no `agent/` directory.
+Set `project_dir` to the absolute path agreed in Phase 1. From the Core repository root, locate the installed CLI:
 
 ```bash
-(cd packages/eve-runtime && bunx eve init "$project_dir")
+eve_cli="$(pwd -P)/packages/eve-runtime/node_modules/.bin/eve"
+```
+
+For a new project, run from its existing parent directory. `init` accepts the directory name as its argument.
+
+```bash
+(cd "$(dirname -- "$project_dir")" && "$eve_cli" init "$(basename -- "$project_dir")")
+```
+
+For an existing project with a `package.json` and no `agent/` directory, run from that project. Eve uses the selected project's package manager.
+
+```bash
+(cd "$project_dir" && "$eve_cli" init .)
 ```
 
 `init` installs deps and may start the dev server. Run it in a controllable process and stop the server before editing files.
@@ -156,11 +168,14 @@ Skip this step for standalone projects.
 
 ### 6. Verify
 
+For a new Bun scaffold, run the generated checks from the selected project:
+
 ```bash
-bun install --cwd "$project_dir" --frozen-lockfile   # bun install when you changed a manifest
 bun run --cwd "$project_dir" typecheck
 bun run --cwd "$project_dir" build
 ```
+
+For an existing project, use its declared typecheck and build commands. If implementation changed dependencies, update the lockfile with the project's package manager before verifying.
 
 Tell the user how to run the agent with `bunx eve` from the selected project directory, what to ask in the TUI, and how to exercise the agent over HTTP per the eve docs. Point them to the most-commented files as the learning path. Do not commit unless asked.
 
