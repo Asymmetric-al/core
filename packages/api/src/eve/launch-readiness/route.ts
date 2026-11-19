@@ -138,10 +138,12 @@ export const POST = withOperation(
     try {
       // Review, activation, canary close and launch permissions are the steps
       // Eve's SQL keeps for a platform operator; they act as one only after
-      // the shared operator check (AL-2675 WP2c). A manifest and the safety
-      // controls are the tenant administrator's.
+      // the shared operator check. A tenant administrator may submit a
+      // manifest or engage emergency off, but not disable or clear it.
       const platformOperator =
-        parsed.data.kind === "manifest" || parsed.data.kind === "safety_control"
+        parsed.data.kind === "manifest" ||
+        (parsed.data.kind === "safety_control" &&
+          parsed.data.mode === "emergency_off")
           ? false
           : await isPlatformOperator();
       if (parsed.data.kind === "manifest") {
@@ -181,6 +183,12 @@ export const POST = withOperation(
           supabaseAdmin,
         });
       } else if (parsed.data.kind === "safety_control") {
+        if (parsed.data.mode !== "emergency_off" && !platformOperator) {
+          return NextResponse.json(
+            { error: "A confirmed platform operator is required.", requestId },
+            { status: 403 },
+          );
+        }
         await setEveReleaseSafetyControl({
           auth,
           platformOperator,
