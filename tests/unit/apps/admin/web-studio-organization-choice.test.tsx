@@ -256,8 +256,10 @@ describe("the chooser page (council C11)", () => {
   });
 
   // Council on the joined release, JC3: a link from Mission Control names
-  // the organization it was opened in; when Web Studio works in another, or
-  // in none yet, the proxy sends the person here instead of switching.
+  // the organization and row it was opened in; when Web Studio works in
+  // another, or under another role of the same organization, or in none yet,
+  // the proxy sends the person here instead of switching. The sentence is
+  // true in each (check of the fix lists, JR7).
   it("offers first the organization the person came from in Mission Control, and says in one sentence why it asks", async () => {
     const chooser = await openChooserPage({ next: "/web-studio", from: TB });
     render(chooser as React.ReactElement);
@@ -265,7 +267,7 @@ describe("the chooser page (council C11)", () => {
       screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
     ).toEqual(["Bravo Mission", "Alpha Mission"]);
     expect(screen.getByRole("alert").textContent).toBe(
-      "You came from Bravo Mission in Mission Control, and Web Studio asks before it works in another organization.",
+      "You came from Bravo Mission in Mission Control. Web Studio asks before it changes the organization or the role it works in.",
     );
   });
 

@@ -1182,7 +1182,7 @@ test("@cms a link from Mission Control into Web Studio asks before working in an
   await expect(
     page.getByRole("alert").filter({ hasText: "You came from" }),
   ).toHaveText(
-    `You came from ${organizationLabel(DEMO)} in Mission Control, and Web Studio asks before it works in another organization.`,
+    `You came from ${organizationLabel(DEMO)} in Mission Control. Web Studio asks before it changes the organization or the role it works in.`,
   );
   await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText(
     organizationLabel(DEMO),
