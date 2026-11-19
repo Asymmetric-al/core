@@ -1,7 +1,10 @@
 "use client";
 
 import { loadDocument } from "@asym/database/document-reload";
-import { requestDocumentReload } from "@asym/database/document-reload-claim";
+import {
+  forgetDocumentReload,
+  requestDocumentReload,
+} from "@asym/database/document-reload-claim";
 import {
   DocumentScopeProvider,
   isDocumentScopeFixed,
@@ -348,9 +351,14 @@ export function TenantDocument({
   const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
+    // Rendered in its scope: a later crossing is a new one (JB2, JR3).
+    if (!reload) {
+      forgetDocumentReload();
+      return;
+    }
     // The document's one reload (JR10): under way already if another guard,
     // such as the segment's watcher, asked first on the same crossing.
-    if (reload && !requestDocumentReload()) setStuck(true);
+    if (!requestDocumentReload()) setStuck(true);
   }, [reload]);
 
   if (stuck) {

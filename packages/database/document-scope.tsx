@@ -8,7 +8,10 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import { requestDocumentReload } from "./document-reload-claim";
+import {
+  forgetDocumentReload,
+  requestDocumentReload,
+} from "./document-reload-claim";
 import { readBrowserSessionUserId } from "./document-session";
 import { ScopeReloadNotice } from "./scope-reload-notice";
 
@@ -195,7 +198,7 @@ export function retireDocumentScope(): void {
   if (typeof window === "undefined" || fixedScope === null || retired) return;
   retired = true;
   if (retiredListeners.size === 0) {
-    requestDocumentReload();
+    requestDocumentReload("refused");
     return;
   }
   retiredListeners.forEach((listener) => listener());
@@ -350,6 +353,12 @@ export function DocumentScopeProvider({
   );
   const shown = fixed && !isRetired;
 
+  // A document rendered in its scope: a later crossing is a new one (JB2).
+  // A refused scope's claim stays for its window (JR3).
+  useEffect(() => {
+    if (shown) forgetDocumentReload();
+  }, [shown]);
+
   // Tell readers above this provider (retained drafts) the scope is fixed.
   useLayoutEffect(() => {
     if (fixed) fixedScopeListeners.forEach((listener) => listener());
@@ -371,7 +380,9 @@ export function DocumentScopeProvider({
   // Another scope, a soft entry or a retired scope: no page content of the
   // wrong scope, but an announced status and, if the reload does not happen,
   // a way out (the acceptance line's "renders nothing and reloads"; JB2).
-  if (!shown) return <ScopeReloadNotice />;
+  if (!shown) {
+    return <ScopeReloadNotice cause={isRetired ? "refused" : "crossing"} />;
+  }
   return (
     <DocumentScopeContext.Provider value={scope}>
       {children}

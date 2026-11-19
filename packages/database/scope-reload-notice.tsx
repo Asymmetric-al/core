@@ -9,7 +9,10 @@ import {
   type ComponentType,
 } from "react";
 
-import { requestDocumentReload } from "./document-reload-claim";
+import {
+  requestDocumentReload,
+  type DocumentReloadCause,
+} from "./document-reload-claim";
 
 /**
  * What a scope guard renders in place of a page it must not show (council on
@@ -50,6 +53,7 @@ export const SCOPE_RELOAD_MESSAGES = {
 
 export function ScopeReloadNotice({
   requestReload = true,
+  cause = "crossing",
   homeHref = "/",
 }: {
   /**
@@ -57,18 +61,20 @@ export function ScopeReloadNotice({
    * its own (it shows its error when the bound is reached).
    */
   requestReload?: boolean;
+  /** Why the reload is asked for, which sets its bound (JR3). */
+  cause?: DocumentReloadCause;
   homeHref?: string;
 }) {
   const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
-    if (requestReload && !requestDocumentReload()) {
+    if (requestReload && !requestDocumentReload(cause)) {
       setStuck(true);
       return;
     }
     const timer = window.setTimeout(() => setStuck(true), STUCK_AFTER_MS);
     return () => window.clearTimeout(timer);
-  }, [requestReload]);
+  }, [requestReload, cause]);
 
   const View = useContext(ScopeReloadViewContext) ?? PlainScopeReloadView;
   return (

@@ -165,10 +165,7 @@ describe("TenantDocument: one reload, then the error", () => {
     errors.mockRestore();
   });
 
-  // Check of the fix lists, JR3: the bound counts reloads per address over
-  // a short window, whatever renders in between; the window's end, not a
-  // render, frees the address again.
-  it("does not forget the reload when a document renders; once the window has passed, the same address reloads again", async () => {
+  it("forgets the reload once a document renders, so a later crossing reloads again", async () => {
     noNavigationEntry();
     nav.pathname = `/${TB}/contributions`;
     const first = await load();
@@ -191,43 +188,15 @@ describe("TenantDocument: one reload, then the error", () => {
     expect(screen.getByText("page")).toBeTruthy();
     cleanup();
 
-    // The same address needs a reload again at once: the bound holds, and
-    // the guard shows its error instead of a second reload.
-    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    // Later the same address needs a reload again: it gets one.
     nav.pathname = `/${TB}/contributions`;
     const third = await load();
     render(
-      <Boundary>
-        <third.TenantDocument scope={scopeA}>
-          <p>page</p>
-        </third.TenantDocument>
-      </Boundary>,
+      <third.TenantDocument scope={scopeA}>
+        <p>page</p>
+      </third.TenantDocument>,
     );
-    expect(reloadDocument).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("alert").textContent).toBe(
-      "TenantScopeMismatchError",
-    );
-    errors.mockRestore();
-    cleanup();
-
-    // Once the window has passed, the same address gets a reload again.
-    const { RELOAD_CLAIM_MS } =
-      await import("../../../packages/database/document-reload-claim");
-    const now = Date.now();
-    const clock = vi
-      .spyOn(Date, "now")
-      .mockReturnValue(now + RELOAD_CLAIM_MS + 1);
-    try {
-      const fourth = await load();
-      render(
-        <fourth.TenantDocument scope={scopeA}>
-          <p>page</p>
-        </fourth.TenantDocument>,
-      );
-      expect(reloadDocument).toHaveBeenCalledTimes(2);
-    } finally {
-      clock.mockRestore();
-    }
+    expect(reloadDocument).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -1042,6 +1011,42 @@ describe("one bounded reload for every guard, with a status in place of the page
     }
 
     expect(reloadDocument).toHaveBeenCalledTimes(1);
+  });
+
+  // Check of the fix lists, JR3, as narrowed: a crossing is a navigation
+  // that a new document cures, so the document that renders in its scope
+  // frees the address again; only a refused or changed scope's reload is
+  // kept for the window whatever renders. Switching organization twice in
+  // a few seconds crosses into the same address twice.
+  it("reloads the same crossing again once a document rendered in its scope between them", async () => {
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      // A document loaded outside the tenant's segment, then a soft
+      // navigation into it: the watcher's crossing.
+      cleanup();
+      const outside = await load();
+      nav.pathname = "/choose-organization";
+      loadDocumentAt(nav.pathname);
+      const page = () => (
+        <outside.TenantSegmentBoundary>
+          <p>app</p>
+        </outside.TenantSegmentBoundary>
+      );
+      const view = render(page());
+      nav.pathname = `/${TA}~finance/contributions`;
+      view.rerender(page());
+      expect(reloadDocument).toHaveBeenCalledTimes(attempt + 1);
+
+      // The reload: a document at that address renders in its scope.
+      cleanup();
+      const inside = await load();
+      loadDocumentAt(nav.pathname);
+      render(
+        <inside.TenantDocument scope={scopeA}>
+          <p>page</p>
+        </inside.TenantDocument>,
+      );
+      expect(screen.getByText("page")).toBeTruthy();
+    }
   });
 
   it("ReloadAcrossSegment announces the reload, and offers a way out when the bound is reached", async () => {

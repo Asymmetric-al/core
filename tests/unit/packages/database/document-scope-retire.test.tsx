@@ -305,8 +305,9 @@ describe("the bounded reload", () => {
     signInBrowserAs(PERSON_A);
     const mod = await load();
     await renderCarePage(mod);
-    // This address was already reloaded a moment ago.
-    expect(mod.claimDocumentReload()).toBe(true);
+    // This address was already reloaded a moment ago, for a retired scope
+    // (a crossing's claim would not bound it; JR3).
+    expect(mod.claimDocumentReload("refused")).toBe(true);
 
     signInBrowserAs(PERSON_B);
     act(() => {
