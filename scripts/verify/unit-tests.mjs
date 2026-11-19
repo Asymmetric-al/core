@@ -1,12 +1,35 @@
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { parseCLI } from "vitest/node";
+
 const vitestCli = fileURLToPath(
   new URL("../../node_modules/vitest/vitest.mjs", import.meta.url),
 );
 const bunVersionScript = fileURLToPath(
   new URL("./bun-version.mjs", import.meta.url),
 );
+
+// The acceptance directory runs once, in the dedicated acceptance-tests CI job
+// (scripts/verify/acceptance-tests.mjs), not again inside test:unit.
+export const ACCEPTANCE_EXCLUDE = "tests/unit/acceptance/**";
+
+/**
+ * Excludes the acceptance directory from a run without test filters. With
+ * filters (positional arguments, as Vitest's own CLI parser reads them) the
+ * caller picked the files, so Vitest's filter matching decides: every form
+ * it accepts for a path inside the directory runs those files (root-relative
+ * or absolute, either slash, `file:line`, a fragment such as `issue-2153`, a
+ * bare file name), including `bun run test:unit -- tests/unit/acceptance/<file>`,
+ * the factory check tool's documented form. Because the exclusion only ever
+ * removes acceptance files, dropping it for a filter that matches none of
+ * them selects the same files. Options such as `-t` or `--shard`, and
+ * anything after `--`, are not filters, so they keep the exclusion.
+ */
+export function acceptanceExclusion(args) {
+  const { filter } = parseCLI(["vitest", "run", ...args]);
+  return filter.length > 0 ? [] : ["--exclude", ACCEPTANCE_EXCLUDE];
+}
 
 export function buildVitestInvocation(args, _platform = process.platform) {
   return {
@@ -90,7 +113,11 @@ export function runUnitTests(
   const retained = defaults.filter(
     (argument) => !explicit.has(defaultOptionName(argument)),
   );
-  return runVitest([...retained, ...args], spawn, platform);
+  return runVitest(
+    [...retained, ...acceptanceExclusion(args), ...args],
+    spawn,
+    platform,
+  );
 }
 
 const isMain =

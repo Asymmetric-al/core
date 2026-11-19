@@ -4,9 +4,15 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
+  filesVitestRuns,
+  unitRunnerVitestArgs,
+} from "./support/vitest-selection";
+import { ACCEPTANCE_DIR } from "../../../scripts/verify/acceptance-tests.mjs";
+import {
+  ACCEPTANCE_EXCLUDE,
   buildVitestInvocation,
   runBunVersionGuard,
   runUnitTests,
@@ -45,7 +51,7 @@ describe("unit test runner", () => {
   it("stops on Windows when the Bun version guard fails", () => {
     const spawn = vi.fn(() => ({ status: 7 }));
 
-    expect(runUnitTests("win32", spawn)).toBe(7);
+    expect(runUnitTests("win32", spawn, [])).toBe(7);
     expect(spawn).toHaveBeenCalledOnce();
     expect(spawn).toHaveBeenCalledWith(
       process.execPath,
@@ -60,11 +66,17 @@ describe("unit test runner", () => {
   it("skips the Bun version guard on non-Windows platforms", () => {
     const spawn = vi.fn(() => ({ status: 0 }));
 
-    expect(runUnitTests("linux", spawn)).toBe(0);
+    expect(runUnitTests("linux", spawn, [])).toBe(0);
     expect(spawn).toHaveBeenCalledOnce();
     expect(spawn).toHaveBeenCalledWith(
       process.execPath,
-      [path.resolve("node_modules/vitest/vitest.mjs"), "run", "--coverage"],
+      [
+        path.resolve("node_modules/vitest/vitest.mjs"),
+        "run",
+        "--coverage",
+        "--exclude",
+        "tests/unit/acceptance/**",
+      ],
       {
         shell: false,
         stdio: "inherit",
@@ -78,7 +90,7 @@ describe("unit test runner", () => {
       .mockReturnValueOnce({ status: 0 })
       .mockReturnValueOnce({ status: 0 });
 
-    expect(runUnitTests("win32", spawn)).toBe(0);
+    expect(runUnitTests("win32", spawn, [])).toBe(0);
     expect(spawn).toHaveBeenCalledTimes(2);
     expect(spawn).toHaveBeenNthCalledWith(
       2,
@@ -93,6 +105,8 @@ describe("unit test runner", () => {
         "--no-file-parallelism",
         "--exclude",
         "tests/unit/scripts/bun-version.test.ts",
+        "--exclude",
+        "tests/unit/acceptance/**",
       ],
       {
         shell: false,
@@ -138,8 +152,9 @@ describe("unit runner argument forwarding", () => {
     expect(args).not.toContain("--maxWorkers=50%");
     expect(args).toContain("--coverage");
     expect(args).toContain("--testTimeout=120000");
-    expect(args?.filter((arg: string) => arg === "--exclude")).toHaveLength(2);
+    expect(args?.filter((arg: string) => arg === "--exclude")).toHaveLength(3);
     expect(args).toContain("tests/unit/scripts/bun-version.test.ts");
+    expect(args).toContain("tests/unit/acceptance/**");
     expect(args).toContain("custom/**");
   });
 
@@ -156,10 +171,164 @@ describe("unit runner argument forwarding", () => {
       path.resolve("node_modules/vitest/vitest.mjs"),
       "run",
       "--coverage",
+      "--exclude",
+      "tests/unit/acceptance/**",
       "--",
       "--coverage=false",
     ]);
   });
+});
+
+describe("acceptance tests run once", () => {
+  it("excludes exactly the directory the acceptance job runs", () => {
+    expect(ACCEPTANCE_EXCLUDE).toBe(`${ACCEPTANCE_DIR}/**`);
+  });
+
+  it.each(["linux", "win32"])(
+    "leaves the acceptance directory to its own job by default on %s",
+    (platform) => {
+      const spawn = vi.fn((_command: string, _args: string[]) => ({
+        status: 0,
+      }));
+      runUnitTests(platform, spawn, []);
+      const args = spawn.mock.calls.at(-1)?.[1] ?? [];
+      const index = args.indexOf(ACCEPTANCE_EXCLUDE);
+      expect(index).toBeGreaterThan(0);
+      expect(args[index - 1]).toBe("--exclude");
+    },
+  );
+
+  // What Vitest itself selects, not which arguments the runner passes: a
+  // filter Vitest reads as a path inside the acceptance directory must run
+  // those files in every form Vitest accepts (review round 8, c2a.10: a
+  // fragment such as `issue-2153` selected nothing), and options must not
+  // bring the directory back (review round 6, c1.5: `-t acceptance` did).
+  describe("as Vitest selects files", () => {
+    const FILE = `${ACCEPTANCE_DIR}/issue-2153/ci-workflow.acceptance.test.ts`;
+    const NAMES_ACCEPTANCE: [string, string[]][] = [
+      ["a root-relative file", [FILE]],
+      ["a file and line", [`${FILE}:20`]],
+      [
+        "the directory with ./ and a trailing slash",
+        ["./tests/unit/acceptance/"],
+      ],
+      ["Windows separators", ["tests\\unit\\acceptance\\issue-2153"]],
+      ["an absolute path", [path.resolve(`${ACCEPTANCE_DIR}/issue-2153`)]],
+      ["a path fragment", ["acceptance/issue-2153"]],
+      ["a directory name", ["issue-2153"]],
+      ["a bare file name", ["ci-workflow.acceptance.test.ts"]],
+    ];
+    const KEEPS_IT_OUT: [string, string[]][] = [
+      ["no arguments", []],
+      ["a test-name pattern", ["-t", "acceptance"]],
+      ["a long test-name pattern", ["--testNamePattern=acceptance criteria"]],
+      ["a shard", ["--shard=1/3"]],
+      [
+        "a filter after the option terminator, which Vitest ignores",
+        ["--", `${ACCEPTANCE_DIR}/issue-2153`],
+      ],
+      [
+        "a filter outside the directory",
+        ["tests/unit/scripts/acceptance-tests.test.ts"],
+      ],
+    ];
+    const inAcceptance = (file: string) =>
+      file.startsWith(`${ACCEPTANCE_DIR}/`);
+    let selected = new Map<string, { runner: string[]; vitest?: string[] }>();
+
+    beforeAll(async () => {
+      const lists = [
+        ...NAMES_ACCEPTANCE.flatMap(([, args]) => [
+          unitRunnerVitestArgs(args),
+          ["run", ...args],
+        ]),
+        ...KEEPS_IT_OUT.map(([, args]) => unitRunnerVitestArgs(args)),
+      ];
+      const files = await filesVitestRuns(lists);
+      selected = new Map([
+        ...NAMES_ACCEPTANCE.map(([label], index) => [
+          label,
+          { runner: files[2 * index]!, vitest: files[2 * index + 1]! },
+        ]),
+        ...KEEPS_IT_OUT.map(([label], index) => [
+          label,
+          { runner: files[2 * NAMES_ACCEPTANCE.length + index]! },
+        ]),
+      ] as [string, { runner: string[]; vitest?: string[] }][]);
+    }, 300_000);
+
+    it.each(NAMES_ACCEPTANCE)(
+      "runs the acceptance files plain Vitest runs for %s",
+      (label) => {
+        const { runner, vitest } = selected.get(label)!;
+        expect(runner.length).toBeGreaterThan(0);
+        expect(runner.every(inAcceptance)).toBe(true);
+        expect(runner).toEqual(vitest);
+      },
+    );
+
+    it.each(KEEPS_IT_OUT)("runs no acceptance file for %s", (label) => {
+      const { runner } = selected.get(label)!;
+      expect(runner.length).toBeGreaterThan(0);
+      expect(runner.filter(inAcceptance)).toEqual([]);
+    });
+
+    it("runs exactly the named file for a filter outside the directory", () => {
+      expect(selected.get("a filter outside the directory")?.runner).toEqual([
+        "tests/unit/scripts/acceptance-tests.test.ts",
+      ]);
+    });
+  });
+});
+
+describe("every unit test runs on every event", () => {
+  // A same-repository pull request into develop whose real diff touches only
+  // documents (31cceeacd, from this change's own history). The factory-test
+  // selection this replaced skipped 70 factory files for it.
+  const DOCS_ONLY = {
+    CI_BASE_SHA: "06a7c85e69eabe8dce624c71aa8c670c69de686d",
+    CI_HEAD_SHA: "31cceeacd9cbd2354822ec8a1afe5e0a47e2ec21",
+  };
+  const exclusionsOf = (args: string[]) =>
+    args.flatMap((argument, index) =>
+      argument === "--exclude" ? [args[index + 1]] : [],
+    );
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it.each([
+    [
+      "a develop pull request with a documentation-only diff",
+      "pull_request",
+      "develop",
+    ],
+    ["a production pull request", "pull_request", "production"],
+    ["a push", "push", ""],
+    ["a merge-queue run", "merge_group", ""],
+    ["a manual dispatch", "workflow_dispatch", ""],
+  ])(
+    "passes Vitest no exclusion but the acceptance directory for %s",
+    (_label, event, baseRef) => {
+      vi.stubEnv("GITHUB_EVENT_NAME", event);
+      vi.stubEnv("GITHUB_BASE_REF", baseRef);
+      vi.stubEnv("CI_BASE_SHA", DOCS_ONLY.CI_BASE_SHA);
+      vi.stubEnv("CI_HEAD_SHA", DOCS_ONLY.CI_HEAD_SHA);
+      const spawn = vi.fn((_command: string, _args: string[]) => ({
+        status: 0,
+      }));
+      const log = vi.spyOn(console, "log").mockImplementation(() => {});
+      try {
+        runUnitTests("linux", spawn, []);
+      } finally {
+        log.mockRestore();
+      }
+      expect(exclusionsOf(spawn.mock.calls.at(-1)?.[1] ?? [])).toEqual([
+        ACCEPTANCE_EXCLUDE,
+      ]);
+    },
+  );
 });
 
 describe("installed Vitest dispatch", () => {
