@@ -274,11 +274,13 @@ const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
  * write must name its document. A read need not, as an image or a link does
  * not, but one that names a document must name this one.
  *
- * Only a REST or GraphQL call has a request here; Payload's page renders and
- * server functions authenticate without one and act in the cookie's
- * organization. Nothing in Core calls Payload's GraphQL route, which WP6
- * removes; until then every GraphQL call counts as a write, so a mutation
- * that names no document is refused.
+ * Only a REST or GraphQL call has a request here; Payload's page renders
+ * authenticate without one and act in the cookie's organization. Its server
+ * functions do too, but the Payload layout checks their claims the same way
+ * before Payload runs them (`web-studio-server-function.ts`; council on the
+ * joined release, JC2). Nothing in Core calls Payload's GraphQL route, which
+ * WP6 removes; until then every GraphQL call counts as a write, so a
+ * mutation that names no document is refused.
  */
 function isFromCurrentDocument(
   {

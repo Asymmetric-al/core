@@ -1,4 +1,5 @@
 import { AgentBridge } from "@asym/ui/components/primitives/agent-bridge";
+import { ScopeReloadNotices } from "@asym/ui/components/scope-reload-notices";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -178,16 +179,21 @@ async function PayloadEmbeddedLayout({ children }: Props) {
     >
       {/* eslint-disable-next-line shadcn/no-inline-styles -- TODO(integrate-design-system-lint): Payload requires this CSS layer order before its providers render. */}
       <style>@layer payload-default, payload;</style>
-      <WebStudioDocument
-        scope={access.scope}
-        organization={access.organization}
-      >
-        {renderPayloadProviders({
-          children,
-          permissions,
-          req,
-        })}
-      </WebStudioDocument>
+      {/* The app's view of the reload notice, as in Mission Control's root
+          layout, for a Web Studio scope that is refused or retired (check of
+          the fix lists, JR14). */}
+      <ScopeReloadNotices>
+        <WebStudioDocument
+          scope={access.scope}
+          organization={access.organization}
+        >
+          {renderPayloadProviders({
+            children,
+            permissions,
+            req,
+          })}
+        </WebStudioDocument>
+      </ScopeReloadNotices>
     </RootProviders>
   );
 }

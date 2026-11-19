@@ -167,8 +167,14 @@ REST call's with the organization the Web Studio cookie selects and refuses a
 write that names no document
 (`apps/admin/src/cms/auth/supabase-strategy.ts`); the Payload layout compares a
 server function's the same way before Payload runs it and refuses one that
-names no document (`apps/admin/src/cms/web-studio-server-function.ts`). Either
-refusal asks the person to reload.
+names no document (`apps/admin/src/cms/web-studio-server-function.ts`). Each
+refusal names itself (the `x-asym-web-studio-refusal` header on a REST call,
+the digest of a server function's error) and opens one notice that asks the
+person to reload. Two cases do not: a stale tab's write to Payload's
+preferences, which are the person's own, answers a plain 401 with no refusal
+header and opens no notice; and a refused bulk delete opens the notice, but
+Payload's list then reloads the document into the organization now chosen,
+about a second later, and the notice goes with it.
 
 The rule reads one module at a time. It follows an address through that
 module's literals, constants, object literals held in a constant, choices,

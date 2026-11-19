@@ -33,6 +33,7 @@ After the migration, on any database whatever its default privileges:
 | ------------------------------------------------------ | -------- | ------------------------------------------------------------------- |
 | `public.current_user_memberships(uuid)`                | DEFINER  | `postgres` (owner), `authenticated`                                 |
 | `public.current_user_organizations()`                  | DEFINER  | `postgres` (owner), `authenticated`                                 |
+| `public.post_comment_authors(uuid)`                    | DEFINER  | `postgres` (owner), `authenticated`                                 |
 | `authz.is_super_admin()`                               | DEFINER  | `postgres` (owner), `authenticated`, `service_role`                 |
 | `authz.has_membership(uuid, authz.membership_role[])`  | DEFINER  | `postgres` (owner), `authenticated`, `service_role`, `tenant_guard` |
 | `authz.has_staff_membership(uuid, authz.staff_role[])` | DEFINER  | `postgres` (owner), `authenticated`, `service_role`, `tenant_guard` |
