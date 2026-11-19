@@ -1867,8 +1867,13 @@ describe.skipIf(!ADMIN_URL)(
 
     // R19: "own profile" matches p.user_id or p.id; the schema allows a row
     // whose id is one login and whose user_id another, which WP5 resolves.
-    // The seeded chain holds none.
+    // The seeded chain holds none. The migrate job seeds before this suite
+    // runs, so an empty profiles table means the check proves nothing
+    // (fixcheck F6).
     it("R19: no profile row has an id that is one login and a user_id that is another", async () => {
+      expect(
+        (await rows("select count(*)::int n from public.profiles"))[0]!.n,
+      ).toBeGreaterThan(0);
       expect(
         await rows(
           `select count(*)::int n from public.profiles p
