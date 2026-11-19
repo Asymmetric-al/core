@@ -14,11 +14,25 @@ A platform operator is a person who may run platform commands: the commands that
 
 The list has one writer: `scripts/platform/operators.mjs`, which the release job's owner runs. There is no platform command, wrapper or screen for managing operators.
 
+In the target project's dashboard, open **Authentication → Users**, search for the person's exact email, and copy the existing user's ID. The script does not create a login. From a Bash shell in the repository, run this sequence. At the hidden prompt paste the complete connection URL described below; do not put it in shell history, a file, or the audit reason.
+
 ```bash
-node scripts/platform/operators.mjs add    --user <login id or email> --actor "<your name>" --reason "<why>"
-node scripts/platform/operators.mjs remove --user <login id or email> --actor "<your name>" --reason "<why>"
-node scripts/platform/operators.mjs list
+(
+  set -e
+  set +x
+  cd "$(git rev-parse --show-toplevel)"
+  read -rsp 'Database connection URL: ' OPERATORS_DATABASE_URL; printf '\n'
+  read -rp 'Expected project ref (empty for local): ' OPERATORS_SUPABASE_PROJECT_REF
+  export OPERATORS_DATABASE_URL OPERATORS_SUPABASE_PROJECT_REF
+  read -rp 'Existing Auth user ID: ' login
+  read -rp 'Your name: ' actor
+  read -rp 'Reason for adding this operator: ' reason
+  node scripts/platform/operators.mjs add --user "$login" --actor "$actor" --reason "$reason"
+  node scripts/platform/operators.mjs list
+)
 ```
+
+For removal, use `remove` instead of `add`, with the reason for removal. The subshell discards the variables when it exits.
 
 Install `psql` 16 or later on the machine running the script. It reads two environment variables. Their values never print.
 
@@ -31,7 +45,7 @@ It connects as the release job does ([release job](release-job.md)): a hosted ad
 
 For a hosted project, copy its **session pooler** address from Connect and use the CA certificate downloaded from Database Settings. The URL has this shape: `postgresql://postgres.PROJECT_REF:PASSWORD@POOLER_HOST:5432/postgres?sslmode=verify-full&sslrootcert=/absolute/path/to/project-ca.crt`. Use placeholders only in documentation. The default direct host is IPv6-only; the pooler works over IPv4 without buying the IPv4 add-on. Do not enable paid add-ons for this procedure. TOTP is included; leave phone factors off.
 
-What it does, in one transaction that locks the list against any other run:
+Each writer locks the list against other writers in its transaction; `list` reads without taking that lock:
 
 - `add` puts the login on the list. `remove` takes it off.
 - Each change writes one row in `audit_logs` with no tenant: `action` is `platform_operator_added` or `platform_operator_removed`, `resource_id` is the login id, and `details` names the actor and the reason.
