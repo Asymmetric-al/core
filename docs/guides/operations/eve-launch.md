@@ -10,11 +10,11 @@ The API is server-only and stores redacted evidence metadata in Supabase.
 
 ## Roles and separation
 
-- A current `super_admin` creates the target-bound evidence manifest.
-- Two different permissioned `super_admin` profiles review it. One records the
+- A tenant administrator creates the target-bound evidence manifest.
+- Two different tenant administrators who are confirmed platform operators with `release.review` review it. One records the
   `release` review and one records the `security` review. The manifest creator
   cannot review their own manifest.
-- A current `super_admin` with `release.activate` performs activation. A
+- A tenant administrator who is a confirmed operator with `release.activate` performs activation. A
   platform owner must grant `release.review` or `release.activate` explicitly;
   migration and deployment grant neither permission.
 - Review and activation permissions should be revoked after the launch window.
@@ -72,7 +72,7 @@ the manifest itself may live for at most 24 hours.
 1. Paste the complete JSON into **Signed-off launch evidence manifest** and
    select **Validate and import**. Any missing, duplicate, stale, mismatched,
    draft-only, or failed entry leaves it `not_ready`.
-2. A platform owner grants `release.review` to each intended reviewer using
+2. A tenant administrator who is a confirmed operator grants `release.review` to each intended reviewer using
    their exact profile UUID and a non-sensitive reason.
 3. The two independent reviewers inspect the target, content hash, evidence,
    runbooks, and current controls, then record release and security approvals.
@@ -108,7 +108,7 @@ Verify the launch record is `completed`, the expected audit entries are visible,
 and no unexpected notification or budget event occurred. Revoke temporary
 launch permissions.
 
-To close the release gate again without declaring an incident, a `super_admin`
+To close the release gate again without declaring an incident, a tenant administrator who is a confirmed operator
 enters a reason and selects **Disable release (no emergency)**. It turns
 `release_enabled` off and rolls back any still-active launch record, but leaves
 emergency state and the master/active-run kill switches untouched. Reserve
