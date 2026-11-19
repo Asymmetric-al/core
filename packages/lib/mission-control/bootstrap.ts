@@ -11,15 +11,14 @@ interface CreateMCBootstrapStateInput {
   email?: string | null;
   firstName?: string | null;
   lastName?: string | null;
-  profileRole?: string | null;
+  role?: string | null;
   tenant?: Tenant | null;
   tenantId?: string | null;
   userId?: string | null;
 }
 
-export function mapProfileRoleToMCRole(
-  profileRole: string | null | undefined,
-): Role {
+/** Maps a primary role name (`AuthContext.role`) to the Mission Control role. */
+export function mapRoleToMCRole(role: string | null | undefined): Role {
   const roleMap: Record<string, Role> = {
     admin: "admin",
     staff: "staff",
@@ -32,7 +31,7 @@ export function mapProfileRoleToMCRole(
     member_care: "member_care",
     events: "events",
   };
-  return roleMap[profileRole ?? ""] || "staff";
+  return roleMap[role ?? ""] || "staff";
 }
 
 export function toDisplayName(
@@ -45,7 +44,7 @@ export function toDisplayName(
 export function createMCBootstrapState(
   input: CreateMCBootstrapStateInput,
 ): MCBootstrapState {
-  const role = mapProfileRoleToMCRole(input.profileRole);
+  const role = mapRoleToMCRole(input.role);
   const tenant =
     input.tenant ??
     (input.tenantId

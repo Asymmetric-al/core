@@ -62,6 +62,8 @@ describe("renderPublicCmsPageContent", () => {
     ["relative-page", "#"],
     ["../admin", "#"],
     ["//example.org/path", "#"],
+    // Browsers read a backslash after the first slash as a second slash.
+    ["/\\example.org/path", "#"],
     ["/about", "/about"],
     ["#section", "#section"],
     ["https://example.org/path", "https://example.org/path"],

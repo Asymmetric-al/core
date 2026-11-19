@@ -2,6 +2,7 @@ import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
 import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
 import { siteConfig } from "@asym/config/site-client";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
+import { RetainedDraftPageTenant } from "@asym/ui/hooks";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
   },
 };
 
-const DONOR_ALLOWED_ROLES = ["donor", "super_admin"] as const;
+const DONOR_ALLOWED_ROLES = ["donor"] as const;
 
 export default function DonorDashboardLayout({
   children,
@@ -81,13 +82,13 @@ function DonorPortalFooter() {
  * Role-only defence in depth; renders nothing, it only redirects.
  *
  * Safe as a sibling because the edge now enforces role, not just authentication:
- * `apps/donor/proxy.ts` passes `allowedRoles: ["donor", "super_admin"]` and
+ * `apps/donor/proxy.ts` passes `allowedRoles: ["donor"]` and
  * `packages/auth/middleware.ts` rejects any other role for `/donor-dashboard`
  * before the app renders. A wrong-role visitor is redirected at the proxy, so
  * `{children}` rendering beside this gate does not leak dashboard content.
  */
 async function DonorRoleGate() {
-  const authContext = await getAuthContext();
+  const authContext = await getAuthContext(undefined, { roleClass: "donor" });
   const authRedirectPath = getProtectedAppRedirectPath(
     authContext,
     "/login?next=/donor-dashboard",
@@ -101,5 +102,12 @@ async function DonorRoleGate() {
     redirect("/no-access");
   }
 
-  return null;
+  // Retained drafts are scoped by the page's tenant: the resolved donor
+  // assignment's (AL-2675). Renders nothing.
+  return authContext.userId && authContext.tenantId ? (
+    <RetainedDraftPageTenant
+      userId={authContext.userId}
+      tenantId={authContext.tenantId}
+    />
+  ) : null;
 }

@@ -186,6 +186,13 @@ export class Stack {
         .map((f) => `${MIG}/${f}`);
       for (const file of [BOOTSTRAP, ...files, "supabase/seed.sql"]) {
         if (file === FORWARD) await this.beforeForward();
+        // Criteria 2 and 10 compare the other buckets and their policies with
+        // the pre-#2407 snapshot, and criterion 11 rolls back only this
+        // migration, so no later migration may run inside that window. Added
+        // by AL-2674, whose later migration limits the email-assets bucket and
+        // drops its public-read policy; #2406's harness keeps the same window.
+        if (file.startsWith(`${MIG}/`) && file.slice(MIG.length + 1) > NAME)
+          continue;
         const r = this.psql(file);
         expect(
           r.status,

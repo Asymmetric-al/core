@@ -102,11 +102,10 @@ describe("application shell conventions", () => {
 });
 
 /**
- * Deliberate omissions (README "Deliberate omissions"; recorded as product
- * decisions in tooling/shadscan/findings.json, which binds this file's hash).
+ * Deliberate omissions (README "Deliberate omissions").
  * These tests pin what is built, not who approved it: the README states
  * whether the owner has ratified each decision. Changing any of these is a
- * product decision: update the README and the Shadscan ledger with it.
+ * product decision: update the README with it.
  */
 describe("deliberate omissions of the private operator Console", () => {
   const files = sources("src");

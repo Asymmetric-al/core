@@ -207,18 +207,18 @@ authentication; it reads nothing, runs no control and links back to the Console.
 
 The Console is one owner's control surface, reached only through that owner's
 SSH tunnel. As built it has none of the four things below, which the
-repository's Shadscan audit expects of an application. The Shadscan ledger
-(`tooling/shadscan/findings.json`) records each as a product decision bound to
-this section, and `tests/shell.test.ts` fails if one of them appears without
-that review.
+repository's advisory Shadscan audit reports as failing rules for an
+application. `tests/shell.test.ts` fails if one of them appears without that
+review.
 
 **Status: proposed, not yet ratified.** The reasons below were written on
-2026-11-12, when the Console first came under the Shadscan gate, from how the
-Console is built. No earlier owner decision about them is on record. The
-repository owner accepts or rejects each one: an accepted decision is noted
-under "Core's intentional contracts" in `docs/guides/development/shadscan.md`,
-where the product applications' decisions are recorded; a rejected one is built
-and its ledger entry removed. Update this paragraph with the outcome.
+2026-11-12, when the Console first came under the Shadscan gate (advisory
+since 2026-11-18), from how the Console is built. No earlier owner decision
+about them is on record. The repository owner accepts or rejects each one: an
+accepted decision is noted under "Core's intentional contracts" in
+`docs/guides/development/shadscan.md`, where the product applications'
+decisions are recorded; a rejected one is built. Update this paragraph with the
+outcome.
 
 - **No toast channel.** A control's outcome is the receipt rendered beside the
   control that requested it (requested → observed, above): a polite live region

@@ -19,6 +19,7 @@ type JsonRecord = Record<string, unknown>;
 
 type RelationshipsFilter = {
   eq: (field: string, value: unknown) => RelationshipsFilter;
+  in: (field: string, values: readonly unknown[]) => RelationshipsFilter;
   then: (
     resolve: (value: {
       data: JsonRecord[] | null;
@@ -52,14 +53,19 @@ export async function listMissionControlCrmRelationships(options: {
   const now = options.now ?? new Date().toISOString();
   const tenantId = actor.tenantId;
 
-  const [donors, missionaries, profiles, pledges, activities] =
-    await Promise.all([
-      selectTenantRows(supabase, "donors", tenantId),
-      selectTenantRows(supabase, "missionaries", tenantId),
-      selectTenantRows(supabase, "profiles", tenantId),
-      selectTenantRows(supabase, "donor_pledges", tenantId, PLEDGE_SELECT),
-      selectTenantRows(supabase, "member_care_activities", tenantId),
-    ]);
+  const [donors, missionaries, pledges, activities] = await Promise.all([
+    selectTenantRows(supabase, "donors", tenantId),
+    selectTenantRows(supabase, "missionaries", tenantId),
+    selectTenantRows(supabase, "donor_pledges", tenantId, PLEDGE_SELECT),
+    selectTenantRows(supabase, "member_care_activities", tenantId),
+  ]);
+  // AL-2675 (NR-68): the profiles shown are those this tenant's own rows
+  // reference, read by id; never a filter on the profile's tenant column, which would
+  // miss a person whose profile names another organization.
+  const profiles = await selectProfilesById(
+    supabase,
+    [...donors, ...missionaries].map((row) => row.profile_id),
+  );
 
   const mapped = mapLocalCrmRelationshipRows({
     activities,
@@ -106,6 +112,24 @@ export async function listMissionControlCrmRelationships(options: {
     rows: pageRows,
     sort: params.sort,
   };
+}
+
+async function selectProfilesById(
+  supabase: RelationshipsClient,
+  ids: unknown[],
+): Promise<JsonRecord[]> {
+  const profileIds = [
+    ...new Set(ids.filter((id): id is string => typeof id === "string")),
+  ];
+  if (profileIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .in("id", profileIds);
+  if (error) {
+    throw new ApiHttpError(500, `Failed to load profiles: ${error.message}`);
+  }
+  return Array.isArray(data) ? data : [];
 }
 
 async function selectTenantRows(

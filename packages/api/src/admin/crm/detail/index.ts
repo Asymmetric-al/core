@@ -30,7 +30,7 @@ export const GET = withOperation(
       const response = await getAdminCrmDonorDetail({
         crmWritesEnabled: true,
         donorId: getRecordIdFromPath(request),
-        role: actor.role,
+        isTenantAdministrator: actor.isTenantAdministrator,
         supabaseAdmin,
         tenantId: actor.tenantId,
         viewerCapabilities: resolveContributionCapabilities(auth),
@@ -46,6 +46,6 @@ export const GET = withOperation(
     }
   },
   {
-    roles: ["staff", "admin", "super_admin"],
+    capability: "admin.crm.manage",
   },
 );

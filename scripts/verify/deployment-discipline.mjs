@@ -63,8 +63,6 @@ export function validateLocalVercelConfig({ project, config }) {
   const checks = [];
   const expectedIgnoreCommand = EXPECTED_IGNORE_COMMANDS[project.key];
   const enabledBranches = listEnabledBranches(config);
-  const onlyExpectedBranches =
-    enabledBranches.length === 1 && enabledBranches.includes(PRODUCTION_BRANCH);
 
   requireCheck(
     checks,
@@ -72,10 +70,12 @@ export function validateLocalVercelConfig({ project, config }) {
     `${project.project} ignored-build command`,
     config?.ignoreCommand ?? "<missing>",
   );
+  // Plan 7.4: production deploys only through the release job, which stages,
+  // health-checks and promotes; a Git push to production deploys nothing.
   requireCheck(
     checks,
-    isBranchDeploymentEnabled(config, PRODUCTION_BRANCH),
-    `${project.project} allows ${PRODUCTION_BRANCH} deployments`,
+    !isBranchDeploymentEnabled(config, PRODUCTION_BRANCH),
+    `${project.project} disables ${PRODUCTION_BRANCH} Git deployments (the release job deploys)`,
     JSON.stringify(config?.git?.deploymentEnabled ?? null),
   );
   requireCheck(
@@ -93,8 +93,8 @@ export function validateLocalVercelConfig({ project, config }) {
   );
   requireCheck(
     checks,
-    onlyExpectedBranches,
-    `${project.project} enabled deployment branch list`,
+    enabledBranches.length === 0,
+    `${project.project} enabled Git deployment branch list is empty`,
     enabledBranches.join(", ") || "<none>",
   );
 
@@ -224,6 +224,14 @@ export function validateVercelProjectSettings({ project, settings }) {
     settings?.previewDeploymentsDisabled === true,
     `${project.project} preview deployments disabled`,
     `previewDeploymentsDisabled=${settings?.previewDeploymentsDisabled ?? "unknown"}`,
+  );
+  // With auto-assignment off, a production-target deployment is staged: it
+  // gets no production domain until the release job promotes it.
+  requireCheck(
+    checks,
+    settings?.autoAssignCustomDomains === false,
+    `${project.project} production deployments are staged (custom domains not auto-assigned)`,
+    `autoAssignCustomDomains=${settings?.autoAssignCustomDomains ?? "unknown"}`,
   );
   requireCheck(
     checks,

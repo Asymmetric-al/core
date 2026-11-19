@@ -10,7 +10,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 // configuration and transformer. This internal planner is not a package export;
 // the public transformFile primitive alone does not generate stored variants.
 const { generateFileData } =
-  await import("../../../apps/admin/node_modules/payload/dist/uploads/generateFileData.js");
+  await import("../../../apps/admin/node_modules/payload/dist/uploads/generateFileData/index.js");
 
 type UploadArgs = Parameters<typeof generateFileData>[0];
 type PayloadConfig = Awaited<

@@ -1,10 +1,8 @@
 /**
  * #2256 static acceptance (spec r2 §4, the (S) parts of criteria 6-9, 14 and
  * 16, plus the §1/§2 migration discipline and In 8). Reads files only. The
- * criterion 8 PR-diff check is opt-in (issue-2183 pattern): set
- * ACCEPTANCE_2256_SCOPE=1 (diff against `git merge-base origin/develop HEAD`)
- * or ACCEPTANCE_2256_BASE=<ref|sha>. Owned by Acceptance; implementers must not
- * edit.
+ * opt-in criterion 8 PR-diff check was retired by #2706. Owned by Acceptance;
+ * implementers must not edit.
  */
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -27,6 +25,7 @@ import {
   V2_MIGRATION,
   V3,
   code,
+  profileQueryFilterHits,
   sqlFile,
   statements,
 } from "./harness";
@@ -204,6 +203,48 @@ describe("#2256 seams, readers and writers", () => {
     expect(hits.sort()).toEqual(READER_APPS);
   });
 
+  /**
+   * AL-2675 (the WP2a sweep; plan WP2a paragraph, NR-68): no code filters
+   * `profiles` by tenant or role, the generic tenant-row helper included.
+   * The sweep moved every such query to membership or the member directory.
+   */
+  it("6b (S): no app code filters profiles by tenant or role (the reader manifest's filter half)", () => {
+    const hits = lsFiles("packages", "apps", "supabase/functions")
+      .filter((f) => SRC.test(f) && !TEST.test(f))
+      .flatMap((f) => profileQueryFilterHits(f, readFileSync(f, "utf8")));
+    expect(hits).toEqual([]);
+  });
+
+  it("6b (S): the filter half fails on each planted profile filter and passes clean queries", () => {
+    const planted = [
+      'await admin.from("profiles").select("id").eq("tenant_id", tenantId);',
+      'await admin.from("profiles").select("id").in("role", ["admin", "super_admin"]);',
+      "await admin.from('profiles').select('*').or(`tenant_id.eq.${t},role.eq.staff`);",
+      'let query = admin.from("profiles").select("*");\nif (role) query = query.eq("role", role);',
+      'const rows = await selectTenantRows(supabase, "profiles", tenantId);',
+      'await admin.from("profiles").select("id").match({ tenant_id: t });',
+      // Council round 1 on WP2a, F14: a filter on profiles joined from
+      // another table, by dotted column or by the referenced-table option.
+      'await admin.from("donors").select("id, profiles!inner(id)").eq("profiles.tenant_id", tenantId);',
+      'await admin.from("donors").select("id, profiles(role)").in("profiles.role", ["admin"]);',
+      'await admin.from("donors").select("id, profiles(id)").or(`tenant_id.eq.${t}`, { referencedTable: "profiles" });',
+      'await admin.from("donors").select("id, profiles(id)").or("role.eq.admin", { foreignTable: "profiles" });',
+    ];
+    for (const text of planted)
+      expect(profileQueryFilterHits("planted.ts", text), text).not.toEqual([]);
+    const clean = [
+      'await admin.from("profiles").select("id").eq("id", profileId);',
+      'await admin.from("profiles").select("id").in("id", memberIds);',
+      'await admin.from("donors").select("id").eq("tenant_id", tenantId);',
+      'await selectTenantRows(supabase, "donors", tenantId);',
+      'await Promise.all([admin.from("profiles").select("id").in("id", ids), admin.from("prefs").select("*").eq("tenant_id", t)]);',
+      'await admin.from("donors").select("id, profiles(id)").eq("profiles.id", profileId);',
+      'await admin.from("donors").select("id, profiles(id)").order("created_at", { referencedTable: "profiles" });',
+    ];
+    for (const text of clean)
+      expect(profileQueryFilterHits("clean.ts", text), text).toEqual([]);
+  });
+
   it("7: no app/script/tooling code names person_id or persons; database.ts byte-unchanged", () => {
     // Pre-existing prose on develop (#2257, Phase 9 concept docs): two string lines naming `persons`, no reads.
     const PROSE = new Map([["packages/api/src/crm/identity/concepts.ts", 2]]);
@@ -355,41 +396,5 @@ describe("#2256 census artifacts and docs", () => {
       new RegExp(V3.replace(/\./g, "\\.")),
     ])
       expect(readme).toMatch(re);
-  });
-});
-
-const BASE_OVERRIDE = process.env.ACCEPTANCE_2256_BASE?.trim() ?? "";
-const SCOPE =
-  process.env.ACCEPTANCE_2256_SCOPE?.trim() === "1" || BASE_OVERRIDE !== "";
-
-describe.skipIf(!SCOPE)("#2256 criterion 8 (S): PR diff scope (opt-in)", () => {
-  it("the PR diff touches neither crm_merge_candidates' nor donor_merge_candidates' migration or test", () => {
-    const base =
-      BASE_OVERRIDE ||
-      execFileSync("git", ["merge-base", "origin/develop", "HEAD"], {
-        encoding: "utf8",
-      }).trim();
-    expect(base, "ACCEPTANCE_2256_BASE or merge-base").not.toBe("");
-    const changed = execFileSync(
-      "git",
-      ["diff", "--name-only", "--no-renames", base],
-      { encoding: "utf8" },
-    )
-      .split("\n")
-      .filter(Boolean);
-    expect(
-      changed.filter((f) =>
-        /20260704140000_donor_matching_merge_candidates\.sql$|donor-matching-merge-candidates-migration\.test\.ts$|crm_merge_candidates/.test(
-          f,
-        ),
-      ),
-    ).toEqual([]);
-    for (const f of changed.filter(
-      (x) =>
-        x.startsWith(`${DIR}/`) && readdirSync(DIR).includes(path.basename(x)),
-    ))
-      expect(code(readFileSync(f, "utf8")), f).not.toMatch(
-        /\bcrm_merge_candidates\b/,
-      );
   });
 });

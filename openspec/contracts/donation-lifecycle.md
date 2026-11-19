@@ -740,3 +740,104 @@ remain in force.
 <!-- END CONTRACT -->
 
 <!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-02282d9af70f7f0379a8"></a>
+
+## Gift Begin Goes Through The Gift Intake Begin Command From Its HTTP Adapters
+
+<!-- BEGIN CONTRACT {"id":"02282d9af70f7f0379a8","name":"Gift Begin Goes Through The Gift Intake Begin Command From Its HTTP Adapters"} -->
+
+Every Gift begin MUST go through the Gift Intake Begin Command in `@asym/api`, and HTTP donate and HTTP donations MUST be its only adapters.
+
+HTTP donate and HTTP donations MUST call that command. They MUST NOT call
+`begin_donation_saga` directly. No GraphQL adapter begins a Gift: the donor
+GraphQL endpoint and its `createDonation` adapter are retired.
+
+The command MUST start the Donation Saga transaction and return donation id,
+outbox id, and whether the begin was replayed. It MUST NOT process the outbox
+and MUST NOT create a Stripe PaymentIntent.
+
+Amount units MUST stay adapter-owned. HTTP donate MAY convert dollars to cents
+before the command. HTTP donations MUST pass the stored integer amount as cents
+without a second conversion. HTTP donate and HTTP donations MUST still attempt
+immediate outbox processing after a successful begin.
+
+This requirement replaces "Gift Begin Goes Through The Gift Intake Begin
+Command", which this change removes, and keeps every one of its clauses except
+those about the GraphQL adapter. The retirement rests on the plan section 15.1
+default to retire the donor GraphQL endpoint, taken under the implementation
+record (D-07), not on a fresh owner ruling; if the owner keeps the endpoint, this
+change restores the earlier requirement and the endpoint's mutations go through
+the same commands. The money kernel (WP8a) further amends gift intake.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-26ae241de566fc7aabd3"></a>
+
+## Legacy Recurring Reflection Does Not Define The Target Topology
+
+<!-- BEGIN CONTRACT {"id":"26ae241de566fc7aabd3","name":"Legacy Recurring Reflection Does Not Define The Target Topology"} -->
+
+The legacy one-subscription-to-one-pledge reflection into `donor_pledges` is implementation evidence only and MUST NOT be extended as the target recurring creation, occurrence, agreement, or fulfillment model.
+
+The platform MUST NOT extend that legacy shape and MUST NOT rebuild recurring
+billing as manual loops of one-time donation attempts. The active
+`add-recurring-giving` change supersedes the legacy topology for forward
+implementation.
+
+Amended on 2026-11-17 by the owner's instruction to implement the CRM, CMS and
+database plan: the money kernel MUST store and park provider invoice and
+subscription events without applying them, and MUST remove the legacy counter
+increment, until the first recurring slice applies them. From that slice, each
+paid invoice of a series MUST become exactly one gift under the term revision in
+force for its occurrence, recurring counters MUST be derived from occurrences
+and never incremented, and no new `donor_pledges` row MUST be created. Existing
+`donor_pledges` rows MAY remain as evidence. A commitment its donor cancelled, or
+the provider ended, MUST NOT be revived by a later out-of-order provider update.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-7839e3bf25aadc3dd152"></a>
+
+## Financial Execution Is Pinned To One Exact Legal Entity
+
+<!-- BEGIN CONTRACT {"id":"7839e3bf25aadc3dd152","name":"Financial Execution Is Pinned To One Exact Legal Entity"} -->
+
+A Legal Entity is the organization-owned legal issuer and financial reporting boundary for a gift. A Settlement Account Binding is the effective-dated, capability-qualified link from one Legal Entity to one exact processor account, mode, currency, and collection context.
+
+Every accepted payment group and independently authoritative financial root
+MUST store its exact `legal_entity_id`. Each processor-bound payment group MUST
+also store the exact Settlement Account Binding selected before provider
+creation. Processing, webhook routing, reconciliation, refunds, documents, and
+accounting handoffs MUST use those frozen identifiers rather than a mutable
+tenant, site, or current-default lookup. The Legal Entity boundary MAY only
+narrow the containing tenant's scope; it MUST NOT widen access across tenants.
+
+A one-entity tenant MAY receive a quiet preselected default in the UI, but the
+stored financial records MUST remain explicit. A checkout containing work for
+different Legal Entities, currencies, or incompatible Settlement Account
+Bindings MUST NOT become one ambiguous charge. The target forms separate, fully
+disclosed payment groups.
+
+First-release narrowing (ratified on 2026-11-17 by the owner's instruction to
+implement the CRM, CMS and database plan; recorded in ADR-0237): until separate
+payment groups are built, every giving target MUST belong to exactly one Legal
+Entity, a gift MUST take its Legal Entity from the giving targets its lines name
+and its binding from that entity's active binding, and a checkout whose lines
+name targets of more than one Legal Entity MUST be refused before any provider
+object is created. Checkout MUST say that one gift covers one Legal Entity.
+Intake MUST also be refused when the entity has no active binding.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->

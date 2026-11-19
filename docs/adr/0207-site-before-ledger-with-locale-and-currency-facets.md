@@ -1,6 +1,6 @@
 # ADR-0207: Site before ledger with locale and currency facets
 
-**Status:** Accepted (Phase 2 A1–A4, with explicit later owner amendments).
+**Status:** Accepted (Phase 2 A1–A4, with explicit later owner amendments; amended 2026-11-17 for AL-2688).
 
 This records the settled target contract requested by [AL-481](https://github.com/Asymmetric-al/core/issues/481), not implementation, provider qualification, or activation evidence.
 
@@ -37,10 +37,14 @@ settings, arbitrary `site_*_settings` tables, or a second Site level. Later owne
 retain their exact lifecycle and public-release rules.
 
 Use one Postgres database with disjoint ownership: `public.sites` owns operational
-identity, Tenant scope, default designation, and currency facets; Payload
-`cms.sites` owns authored presentation and content scoping. Both representations
-share the **same UUID**, with disjoint fields. CMS does not become operational or
-money authority, and no cross-database sync engine is introduced.
+identity, Tenant scope, default designation, and currency facets; Payload's
+`site-presentations` collection owns authored presentation and content scoping
+(_amended 2026-11-17, see Amendments; the 2026-09 wording named it
+`cms.sites`_). Both representations share the **same UUID**, with disjoint
+fields. The shared UUID is a soft reference with no cross-schema key, as
+[ADR-0029](0029-reference-not-copy-cms-operational.md) decides. CMS does not
+become operational or money authority, and no cross-database sync engine is
+introduced.
 
 Retrofit public content around trusted **host → Site → Tenant** resolution in
 `packages/api`, without importing Payload into giving. Add Site to CMS request
@@ -103,3 +107,32 @@ alone does not prove runtime activation.
 - [Platform surfaces](../../openspec/specs/platform-surfaces/spec.md#requirement-public-tenant-website-as-the-public-ministry-surface)
 - [Multi-Site foundation documentation change](../../openspec/changes/archive/2026-10-21-document-multi-site-foundation/design.md)
 - [Reference-not-copy CMS/operational ownership](0029-reference-not-copy-cms-operational.md)
+
+## Amendments
+
+### 2026-11-17: The CMS side is named `site-presentations` (AL-2688)
+
+- **Authority.** The owner's instruction of 17 November 2026 to implement the
+  CRM, CMS and database plan ratifies the disposition its
+  [section 14](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+  lists for this record. It records intent, not implementation.
+- **Name.** The CMS representation of a Site is the Payload collection
+  `site-presentations`, not `cms.sites`. Payload's `schemaName` option does not
+  support repeating a table name across schemas, so the CMS name may not repeat
+  `public.sites` (plan section 6.2).
+- **Soft reference.** The presentation shares the operational Site's UUID and
+  has no cross-schema key, so Payload's migrations do not depend on
+  `public.sites` and the CMS owner role holds no right outside `cms`. The
+  request-publish command, the fulfil-publish command and the public admission
+  read check the Site and its tenant against Core, so a presentation with no Site,
+  or with the wrong tenant, publishes nothing and serves nothing (plan section
+  6.4; [ADR-0229](0229-per-page-releases-and-two-publish-commands.md)).
+- **Provisioning.** Provisioning creates one presentation for each operational
+  Site, through Payload's service port, under the Site's UUID, with the tenant
+  read from `public.sites`. Authentication never creates or repairs a mapping.
+- **Collections.** The Pages, Navigation, MissionaryGivingPages and ProjectPages
+  named in the 2026-09 decision text become one `pages` collection with a
+  `family` field and a navigation collection, each scoped to a Site (plan section
+  6.2). The intent of that sentence, that content carries its Site, is unchanged.
+- **Unchanged.** Site before ledger, one Default Site, Site as presentation and
+  attribution only, and the rule that a Site never selects a payment account.

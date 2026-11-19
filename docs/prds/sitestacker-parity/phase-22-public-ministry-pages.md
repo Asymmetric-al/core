@@ -853,12 +853,14 @@ The five mandatory end-to-end journeys are:
   bounded queues, worker crash recovery, ambiguous-outcome inspection, targeted
   adverse convergence, renderer compatibility, cohort completeness, rollback by
   forward disposition, and diagnostic usefulness without sensitive logging.
-- UI-changing implementation slices run
-  `bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive` before and
-  after the slice and record both scores plus the configured floor in the
-  release evidence manifest. Unassessed or below-floor output fails the slice;
-  this supplementary signal never replaces accessibility, browser,
-  performance, or public-safety proof.
+- UI-changing implementation slices have the advisory Shadscan report on
+  their pull request reviewed, and each new failing rule triaged as
+  `docs/guides/development/shadscan.md` describes. This supplementary signal
+  never replaces accessibility, browser, performance, or public-safety proof.
+  (Amended 2026-11-18 by the OpenSpec change `make-shadscan-advisory`: the
+  former before-and-after `bunx @shadscan/cli@0.1.1 ./packages/ui` runs, the
+  recorded floor and the rejection of unassessed or below-floor output are
+  withdrawn with the retired score gate.)
 
 ### Decision traceability
 

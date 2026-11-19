@@ -11,6 +11,11 @@ const { insert, client } = vi.hoisted(() => {
 vi.mock("@asym/auth/context", () => ({
   getAuthContext: vi.fn(async () => ({ tenantId: "tenant", role: "staff" })),
   requireRole: vi.fn(),
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: vi.fn(),
+  requireTenantAdministrator: vi.fn(),
+  requireRoleClass: vi.fn(),
+  requireAuth: () => undefined,
 }));
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: () => ({ client }),

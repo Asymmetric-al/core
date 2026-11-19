@@ -1,9 +1,13 @@
+import { membershipHasCapability } from "@asym/auth/context";
+
 import { deliverApprovalEmailNotifications } from "./approval-notification-email";
 import {
   loadContributionCorrectionRequest,
   loadCorrectionApprovalPolicy,
 } from "./correction-requests";
 import { asString, isRecord } from "../../shared/json-coerce";
+import { readAllPages } from "../../shared/read-all-pages";
+import { listTenantMembers } from "../../shared/tenant-members";
 import { createMissionControlTaskInSupabase } from "../mission-control-tasks";
 
 import type { ApprovalEmailDependencies } from "./approval-notification-email";
@@ -210,31 +214,52 @@ async function loadApprovalNotificationSettings(
   );
 }
 
-async function listEligibleApprovers(
+/** The tenant's eligible approvers and their notification preferences. */
+export async function listEligibleApprovers(
   supabaseAdmin: SupabaseAdmin,
   tenantId: string,
 ): Promise<EligibleApprover[]> {
-  const [approversResult, preferencesResult] = await Promise.all([
-    supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("tenant_id", tenantId)
-      .in("role", ["admin", "super_admin"]),
-    supabaseAdmin
-      .from("contribution_approval_notification_preferences")
-      .select("profile_id, in_app_enabled, email_enabled")
-      .eq("tenant_id", tenantId),
+  // AL-2675 (NR-68): the eligible approvers are the members of this tenant
+  // whose live row holds contributions.approve_corrections in the registry
+  // (today the tenant administrator); never a profile role filter. Only
+  // staff rows hold capabilities, so the read asks for the staff rows and
+  // reads them to the end (council round 1 on WP2a, F7).
+  const [members, preferences] = await Promise.all([
+    listTenantMembers(supabaseAdmin, tenantId, { role: "staff" }),
+    // Paged to the end (council round 2 on WP2a, R2): nothing bounds this
+    // table's rows per tenant (one per profile, UNIQUE (tenant_id,
+    // profile_id), written by SQL and the seed only), so no Data API cap may
+    // cut it.
+    readAllPages((from, to) =>
+      supabaseAdmin
+        .from("contribution_approval_notification_preferences")
+        .select("profile_id, in_app_enabled, email_enabled")
+        .eq("tenant_id", tenantId)
+        .order("profile_id", { ascending: true })
+        .range(from, to),
+    ),
   ]);
-
-  if (approversResult.error) {
-    throw new Error(approversResult.error.message);
-  }
-  if (preferencesResult.error) {
-    throw new Error(preferencesResult.error.message);
-  }
+  const approverProfileIds = [
+    ...new Set(
+      members
+        .filter((member) =>
+          membershipHasCapability(
+            {
+              tenantId,
+              role: member.role,
+              staffRole: member.staffRole,
+              isActive: member.isLive,
+              isTenantAdmin: member.isTenantAdmin,
+            },
+            "contributions.approve_corrections",
+          ),
+        )
+        .map((member) => member.profileId),
+    ),
+  ];
 
   const preferencesByProfile = new Map<string, ApproverNotificationPreference>(
-    ((preferencesResult.data ?? []) as JsonRecord[]).map((row) => [
+    (preferences as JsonRecord[]).map((row) => [
       asString(row.profile_id) ?? "",
       resolveApproverNotificationPreference(
         row as { in_app_enabled?: boolean; email_enabled?: boolean },
@@ -242,15 +267,12 @@ async function listEligibleApprovers(
     ]),
   );
 
-  return ((approversResult.data ?? []) as JsonRecord[])
-    .map((row) => asString(row.id))
-    .filter((id): id is string => Boolean(id))
-    .map((profileId) => ({
-      profileId,
-      preference:
-        preferencesByProfile.get(profileId) ??
-        resolveApproverNotificationPreference(null),
-    }));
+  return approverProfileIds.map((profileId) => ({
+    profileId,
+    preference:
+      preferencesByProfile.get(profileId) ??
+      resolveApproverNotificationPreference(null),
+  }));
 }
 
 function filterEligibleApproversForRequest(input: {

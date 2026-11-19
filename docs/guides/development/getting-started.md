@@ -12,6 +12,19 @@ Most contributor development uses a hosted Supabase project (no local DB require
 - **Required env vars**: Only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 - **Access**: Ask a maintainer for the shared dev project URL + anon key.
 
+### Auth email on a local stack
+
+Registering needs the mail catcher. Sign-up confirmation is on locally, as in
+the hosted projects (`enable_confirmations` in `supabase/config.toml`), so a
+new account has no session until its address is confirmed. A local stack
+delivers every Auth email, sign-up confirmations and password reset links
+alike, only to its mail catcher, Mailpit: open `http://127.0.0.1:54324`
+(`bun run supabase -- status` prints it as `MAILPIT_URL`), open the message and
+follow its link in the same browser that asked for it. The seeded login
+(`demo-owner@givehope.test` after `bun run seed:demo:local`) is already
+confirmed. To run the email journeys as tests, see
+[Auth email round trips](../../../tests/e2e/README.md#auth-email-round-trips).
+
 ## Environment Variable Matrix
 
 Use this matrix to decide what you need for cloud development vs production. "Required" means the related feature will not work without it.

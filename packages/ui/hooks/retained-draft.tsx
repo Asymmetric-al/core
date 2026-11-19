@@ -270,17 +270,67 @@ export function RetainedDraftProvider({
   );
 }
 
+/**
+ * The page's tenant: the tenant of the membership the request acts under,
+ * which the app's server-side role gate resolves and publishes with
+ * `RetainedDraftPageTenant` (AL-2675, the WP2a sweep). Until WP2b puts the
+ * tenant in the page address, this is how a client page learns it. The
+ * profile's tenant column is no authority and does not scope drafts.
+ */
+type PageTenant = { userId: string; tenantId: string };
+let pageTenant: PageTenant | null = null;
+const pageTenantListeners = new Set<() => void>();
+function setPageTenant(next: PageTenant | null) {
+  pageTenant = next;
+  pageTenantListeners.forEach((listener) => listener());
+}
+function subscribePageTenant(listener: () => void) {
+  pageTenantListeners.add(listener);
+  return () => {
+    pageTenantListeners.delete(listener);
+  };
+}
+const readPageTenant = () => pageTenant;
+const readNoPageTenant = () => null;
+
+/**
+ * Publishes the page's tenant for retained drafts. Rendered by the app's
+ * server role gate once it has resolved the request's assignment; renders
+ * nothing.
+ */
+export function RetainedDraftPageTenant({
+  userId,
+  tenantId,
+}: {
+  userId: string;
+  tenantId: string;
+}) {
+  useLayoutEffect(() => {
+    const published = { userId, tenantId };
+    setPageTenant(published);
+    return () => {
+      if (pageTenant === published) setPageTenant(null);
+    };
+  }, [userId, tenantId]);
+  return null;
+}
+
 export function SessionRetainedDraftProvider({
   children,
 }: {
   children: ReactNode;
 }) {
   const { user, profile, loading } = useAuth();
-  // Identity scopes memory; route/API policies own access. A base profile role
-  // cannot establish portal permissions, which also come from memberships.
+  const page = useSyncExternalStore(
+    subscribePageTenant,
+    readPageTenant,
+    readNoPageTenant,
+  );
+  // Identity scopes memory; route/API policies own access. The page's tenant,
+  // published for this same user, scopes it to one organization (AL-2675).
   const owner =
-    !loading && user && profile?.tenant_id
-      ? { userId: user.id, tenantId: profile.tenant_id, contextId: profile.id }
+    !loading && user && profile && page?.userId === user.id
+      ? { userId: user.id, tenantId: page.tenantId, contextId: profile.id }
       : null;
   return (
     <RetainedDraftProvider owner={owner}>{children}</RetainedDraftProvider>

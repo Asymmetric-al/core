@@ -36,6 +36,6 @@ export const GET = withOperation(
     }
   },
   {
-    roles: ["staff", "admin", "super_admin"],
+    capability: "admin.crm.manage",
   },
 );

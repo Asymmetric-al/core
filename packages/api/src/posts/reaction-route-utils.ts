@@ -1,6 +1,7 @@
 import { postIdParamSchema } from "../schemas/posts";
 import { ApiHttpError } from "../shared/http-errors";
 
+import type { AuthContext } from "@asym/auth/context";
 import type { createClient } from "@asym/database/supabase/server";
 
 type PostsRouteSupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -11,44 +12,36 @@ export interface ReactionRouteContext {
   tenantId: string;
 }
 
+/**
+ * The post, actor and tenant of a reaction. The tenant is the one the
+ * request's resolved assignment acts in (AL-2675, NR-68), never
+ * the profile's tenant column, which a person in two organizations has for one at
+ * most. The post must be in that tenant.
+ */
 export async function resolveReactionRouteContext(
+  auth: AuthContext,
   supabase: PostsRouteSupabaseClient,
   params: Promise<{ postId: string }>,
 ): Promise<ReactionRouteContext> {
-  const { postId } = postIdParamSchema.parse(await params);
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) {
+  if (!auth.isAuthenticated || !auth.userId || !auth.tenantId) {
     throw new ApiHttpError(401, "Unauthorized");
   }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("tenant_id")
-    .eq("user_id", user.id)
-    .single();
-
-  if (profileError || !profile?.tenant_id) {
-    throw new ApiHttpError(404, "Profile not found");
-  }
+  const { postId } = postIdParamSchema.parse(await params);
 
   const { data: post, error: postError } = await supabase
     .from("posts")
     .select("tenant_id")
     .eq("id", postId)
-    .eq("tenant_id", profile.tenant_id)
+    .eq("tenant_id", auth.tenantId)
     .single();
 
-  if (postError || post?.tenant_id !== profile.tenant_id) {
+  if (postError || post?.tenant_id !== auth.tenantId) {
     throw new ApiHttpError(404, "Post not found");
   }
 
   return {
     postId,
-    userId: user.id,
-    tenantId: profile.tenant_id,
+    userId: auth.userId,
+    tenantId: auth.tenantId,
   };
 }

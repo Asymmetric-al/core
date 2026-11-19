@@ -1,6 +1,35 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import {
+  createMigrationHealthHandler,
+  type MigrationHealthDeps,
+  type RpcClientResult,
+} from "./migrations";
+
+/**
+ * The health probes' one service-key client: the database probe below and
+ * each app's migration-head check (/api/health/migrations, plan 7.4) share
+ * this single allowlisted site. Neither reads tenant data.
+ */
+function healthAdminClient() {
+  return getAdminClient();
+}
+
+/**
+ * GET handler of an app's /api/health/migrations route. Tests may replace
+ * anything but the client.
+ */
+export function createMigrationHealthRoute(
+  surface: "admin" | "donor" | "missionary",
+  overrides: Partial<Omit<MigrationHealthDeps, "getClient">> = {},
+) {
+  return createMigrationHealthHandler(surface, {
+    ...overrides,
+    getClient: () => healthAdminClient() as RpcClientResult,
+  });
+}
+
 interface HealthStatus {
   status: "healthy" | "degraded" | "unhealthy";
   timestamp: string;
@@ -48,7 +77,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const { client, error } = getAdminClient();
+  const { client, error } = healthAdminClient();
   if (!client) {
     const payload: HealthStatus = {
       status: "unhealthy",

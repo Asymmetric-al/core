@@ -10,8 +10,9 @@
 
 - Bun (see root `packageManager` in `package.json`)
 - Docker (for local Supabase) — see root `AGENTS.md` Supabase section
-- Approved Node 24 release enforced by the root setup checks (currently `24.22.1`);
-  Payload public v4 itself requires at least `24.15.0` for CMS CLI commands
+- Approved Node 24 release enforced by the root setup checks (currently `24.22.3`);
+  the pinned Payload release declares `^24.22.3 || >=26.13.1`, which the CMS
+  CLI runner enforces
 - Node-compatible environment for Playwright when running E2E
 
 ---
@@ -20,18 +21,19 @@
 
 Minimum for Payload + admin (from `.env.local` symlinked per app if needed):
 
-| Variable                                    | Purpose                                                                                     |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`                  | Supabase project URL                                                                        |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`             | Anon key                                                                                    |
-| `PAYLOAD_SECRET`                            | Payload signing (**required** in prod; dev/test may use defaults — see `payload.config.ts`) |
-| `PAYLOAD_DATABASE_URI` or `SUPABASE_DB_URL` | Postgres for Payload `cms` schema                                                           |
-| `PAYLOAD_DATABASE_POOL_MAX`                 | Optional hosted Payload Postgres pool cap; defaults to `2` on Vercel/protected deployments  |
-| `PAYLOAD_DISABLE_SCHEMA_PUSH`               | Set to `1` for deterministic local CMS migrations                                           |
-| `NEXT_PUBLIC_DONOR_URL`                     | Origin for published public links from admin (optional; defaults in preview helper)         |
-| `CMS_BASE_URL`                              | On **donor**: admin origin for public CMS fetches                                           |
-| `RESEND_API_KEY`                            | Payload auth email adapter in production                                                    |
-| `BLOB_READ_WRITE_TOKEN`                     | Payload media storage adapter in production; set by connected Vercel Blob store             |
+| Variable                         | Purpose                                                                                            |
+| -------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`       | Supabase project URL                                                                               |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`  | Anon key                                                                                           |
+| `PAYLOAD_SECRET`                 | Payload signing (**required** in prod; dev/test may use defaults — see `payload.config.ts`)        |
+| `PAYLOAD_DATABASE_URI`           | Payload's run-time Postgres; hosted: the `cms_runtime` pooler login. No `SUPABASE_DB_URL` fallback |
+| `PAYLOAD_MIGRATION_DATABASE_URI` | Release job only: the `cms_owner` login that runs Payload migrations. Never in an app environment  |
+| `PAYLOAD_DATABASE_POOL_MAX`      | Optional hosted Payload Postgres pool cap; defaults to `2` on Vercel/protected deployments         |
+| `PAYLOAD_DISABLE_SCHEMA_PUSH`    | Set to `1` for deterministic local CMS migrations                                                  |
+| `NEXT_PUBLIC_DONOR_URL`          | Origin for published public links from admin (optional; defaults in preview helper)                |
+| `CMS_BASE_URL`                   | On **donor**: admin origin for public CMS fetches                                                  |
+| `RESEND_API_KEY`                 | Payload auth email adapter in production                                                           |
+| `BLOB_READ_WRITE_TOKEN`          | Payload media storage adapter in production; set by connected Vercel Blob store                    |
 
 **Per-collection rollback** (optional, default = native on):
 
@@ -50,13 +52,42 @@ CMS_WEB_STUDIO_NATIVE_NAVIGATION=false
 
 Order for a clean local machine: SQL migrations (or `supabase db reset`) → Payload migrate → seed if needed.
 
-For an existing hosted database, explicitly select the intended Supabase project
-with `CMS_HOSTED_MIGRATION_REF=<project-ref> bun run cms:migrate`. The CLI checks
+Payload has two database roles (plan 7.2 of
+`docs/audits/core-crm-cms-database-target-architecture.md`), created by the
+Supabase migration `*_cms_database_roles.sql` without passwords:
+
+- `cms_owner` owns schema `cms` and every object in it and runs Payload
+  migrations. It holds no right outside `cms`.
+- `cms_runtime` is Payload's run-time login: rows in `cms` only, no schema
+  change, at most ten connections. Protected deployments refuse to start Web
+  Studio on any other role, or when `PAYLOAD_MIGRATION_DATABASE_URI` is present.
+  It reads Payload's migration ledger (`cms.payload_migrations`) but cannot
+  write it; the Payload migration `20261117_082928_cms_runtime_ledger_read_only`
+  takes that access away once Payload has created the table.
+
+The same Supabase migration closes `cms` to `anon`, `authenticated` and
+`service_role`: no schema usage, no grant on any object and no default
+privilege. Core never reads `cms` through the Data API. Payload is configured
+with `disableCreateDatabase`, so a missing database is a start-up error, never
+a `CREATE DATABASE`.
+
+`cms:migrate` runs on `PAYLOAD_MIGRATION_DATABASE_URI`. On a loopback database
+without it, the runner reuses `PAYLOAD_DATABASE_URI` with the session role set
+to `cms_owner`, so local and CI migrations create objects owned by `cms_owner`
+with no stored password; the login must be a member of `cms_owner`, which the
+role migration grants to the Supabase migration runner. A hosted migration
+without it is refused. `migrate:status` may read through the run-time
+connection.
+
+For an existing hosted database, set `PAYLOAD_MIGRATION_DATABASE_URI` to the
+`cms_owner` connection and explicitly select the intended Supabase project with
+`CMS_HOSTED_MIGRATION_REF=<project-ref> bun run cms:migrate`. The CLI checks
 that the database host and user match `NEXT_PUBLIC_SUPABASE_URL`, requires an
 encrypted connection, and rejects routing overrides before any migration. Status
-checks do not require this opt-in. The default migration role is `postgres`.
-For an approved scoped role, also set `CMS_HOSTED_MIGRATION_ROLE=<role>`; the
-exact direct username or `<role>.<project-ref>` pooler username must match.
+checks do not require this opt-in. The migration role is `cms_owner`; `postgres`
+is refused. For an approved scoped role, also set
+`CMS_HOSTED_MIGRATION_ROLE=<role>`; the exact direct username or
+`<role>.<project-ref>` pooler username must match.
 Use `sslmode=verify-full` with the project's trusted root certificate. The CLI
 accepts a local certificate file via URI `sslrootcert`, which the psql helper
 passes through `PGSSLROOTCERT`; credentials also use the child environment,
@@ -67,9 +98,22 @@ migration only and must be retired before final security qualification.
 
 ### Public-v4 migration and rollback boundary
 
-The selected cohort is public `4.0.0-beta.3`. Check `apps/admin/package.json`,
+The selected cohort is public `4.0.0-beta.9`. Check `apps/admin/package.json`,
 `bun.lock` and [the checkpoint](../../maintenance/modernization/payload.md)
-before a release; do not mix internal/public package versions.
+before a release; do not mix internal/public package versions. Every version
+change runs the scripted qualification on a disposable loopback database:
+
+```bash
+PAYLOAD_QUALIFICATION_ADMIN_URL=postgresql://postgres:<password>@127.0.0.1:<port>/postgres   bun run cms:qualify -- --database=<new_disposable_name>
+```
+
+It applies every Supabase migration and every Payload migration from empty
+(Payload's as the `cms_owner` login), checks ownership, grants, the closed
+Data API roles, the read-only migration ledger and confinement, starts the
+pinned release as `cms_runtime` with schema push off while recording every
+statement it sends, checks Local API access defaults and version-read access,
+and confirms that a start with push on, or against a missing database, fails
+and changes nothing. It drops the database unless `--keep` is given.
 
 1. Verify the actual database/project and migration status using the committed
    runner. Preserve a pre-cutover database backup and media assets; restore the
@@ -84,7 +128,11 @@ before a release; do not mix internal/public package versions.
    Then apply `20261022_002409_payload_v4_sizes_to_variants` (the official
    predefined rename) followed by
    `20261022_002412_payload_v4_public_beta_metadata` (nullable media metadata and
-   in-place shortening of the one versioned impact-stat items table). Do not use
+   in-place shortening of the one versioned impact-stat items table), then
+   `20261117_040437_payload_v4_beta_9_upload_state` (five nullable upload-state
+   columns on `media` that beta.8 and beta.9 add) and
+   `20261117_082928_cms_runtime_ledger_read_only` (no schema change; it makes
+   the migration ledger read-only for `cms_runtime`). Do not use
    schema push, a fresh/reset command, or regenerate the baseline migration.
 4. Confirm the migration ledger, records, relationships, original/variant asset
    hashes, both public serializers, tenant denials and authenticated editor,
@@ -437,9 +485,9 @@ proof before certification.
 
 ### Phase 22 UI-quality evidence
 
-For any Phase 22 implementation slice that changes `packages/ui`, run
-`bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive` before and
-after the slice. Record both scores, the configured floor, and the exact changed
-paths in the release evidence manifest. Treat an unassessed or below-floor
-result as a failed gate; never treat the score as accessibility, browser,
-performance, or public-safety certification.
+For any Phase 22 implementation slice that changes `packages/ui`, review the
+advisory Shadscan report on the slice's pull request and triage each new
+failing rule as the [Shadscan guide](shadscan.md) describes: repair a confirmed
+defect with a behavior test or track it as an issue. Record the exact changed
+paths in the release evidence manifest. The score is advisory and never
+accessibility, browser, performance, or public-safety certification.

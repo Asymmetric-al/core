@@ -459,3 +459,111 @@ before another write.
 <!-- END CONTRACT -->
 
 <!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-055842524c3df2ad80c0"></a>
+
+## Phase 3 Sensitive Fields Fail Closed On Every Surface
+
+<!-- BEGIN CONTRACT {"id":"055842524c3df2ad80c0","name":"Phase 3 Sensitive Fields Fail Closed On Every Surface"} -->
+
+Unclassified fields, unknown or dotted field keys and unregistered surfaces MUST
+be omitted from donor, missionary, public and export projections. Unclassified
+fields MUST receive the strictest internal/non-exportable posture. Authorized
+Mission Control inspection MAY retain operational visibility under its own
+capability and row floors; it MUST NOT make those fields externally available.
+Processor identifiers MUST remain hard-locked off donor, missionary, public and
+future narrow surfaces, and off bulk export; Mission Control finance visibility
+MUST require the exact capability. Amended on 2026-11-17 by the owner's instruction
+to implement the CRM, CMS and database plan: the one exception is the connected
+processor account identifier of the gift's Legal Entity binding, which MAY be
+given to the browser's payment library at checkout and in the donor portal's
+payment-method change, because direct charges require it. It MUST stay off every
+other donor, missionary, public and narrow surface, out of rendered markup other
+than that library's initialization, and off bulk export. Internal notes, scores, care and security data
+MUST NOT escape through templates, derived fields, search, caches or diagnostics.
+Anonymous donor identity MUST be masked for missionary/public consumers while
+remaining available to authorized finance, official-facts and audit consumers.
+Accepted online guest gifts MUST retain a known Party/legal donor; only explicit
+`unknown_offline` source intent may represent unknown identity.
+
+New record families MUST remain blind until their owning phase supplies field
+classification and exact row/purpose scope. The retired CRM→surface shadow-sync
+stack MUST NOT be revived as an enforcement or synchronization dependency.
+
+The AL-491 receipt-census clarification approved on 2026-10-05 at 04:44:28
+UTC permits `receipts` to remain explicitly absent/reserved, bound to the exact
+live inventory and repository/schema revision. Amended on 2026-11-17 by the owner's instruction
+to implement the CRM, CMS and database plan: that binding is to the repository
+field-policy classification manifest checked against the migrated schema, which
+replaces the dated live capture; the receipt-fact tables that the money kernel
+adds MUST be classified in that manifest when they are added, and stay blind
+until then. It MUST have zero fabricated
+columns and zero positive seed rows. `receipts` and prototype receipt aliases
+MUST remain denied on every surface, including Mission Control, despite
+permissive policy rows, category defaults or donation fallbacks. This disposition
+qualifies only receipt census availability; all existing required columns still
+require a reviewed census and seed. Phase 7 owns canonical source qualification;
+Phase 18 owns artifacts and Phase 17 delivery.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-d184265e6097d92d003d"></a>
+
+## The Database Enforces The Tenant Boundary For Every Caller With A User Identity
+
+<!-- BEGIN CONTRACT {"id":"d184265e6097d92d003d","name":"The Database Enforces The Tenant Boundary For Every Caller With A User Identity"} -->
+
+The database MUST enforce the tenant boundary, independently of application checks, for every caller that carries a user identity.
+
+A browser on its own token, a server handler acting for a signed-in person and an
+AI assistant acting for a person MUST reach tenant tables on that person's own
+token, under row-level security that requires the row's tenant to equal the
+request's active tenant and requires the request's one selected assignment to be
+a live membership of the role class the policy asks for. A request that names no
+tenant MUST read nothing, and a person's other memberships MUST add nothing to
+the request.
+
+A command function called by a person MUST take its actor from the session,
+re-check in the database that person's membership, role class and the capability
+the action requires for the tenant it is given, require a reason where the
+contract says so, write every row under that tenant and commit atomically.
+Governed tables, meaning money, memberships, audit, care, consent and Support Hub
+audit, MUST grant no insert, update or delete to signed-in users.
+
+A worker command MUST be executable only by the service key, MUST take no tenant
+from its caller, and MUST derive the tenant from a stored anchor that the
+guard-owned function reads again and confirms. Publish fulfilment MUST act only on
+an unexpired, unused intent that the publisher's own token recorded, and MUST
+check again that the publisher still holds the membership and capability. Gift
+intake from the public site MUST derive the tenant from the Site row or the
+donor-portal host record and MUST accept no tenant argument. A platform command
+MUST check the operator list and the session's MFA assurance level inside the
+function. An operator reading under a support grant MUST be admitted only by
+staff-wide read policies, only while the grant is the caller's, unexpired and
+unended and the caller is on the operator list, and MUST NOT be admitted by any
+write policy or governed command. The direct service-key lane MUST be a frozen
+allowlist that only shrinks.
+
+The following are the stated application-enforced exceptions, and no other
+caller with a user identity relies on application checks alone: row isolation
+inside the `cms` schema, which Payload's access functions enforce through one
+tenant-scoped collection factory, an actor port and a service port, while the
+database confines Payload's runtime role to `cms` and gives signed-in and
+anonymous roles no grant there; which Site a public gift arrived on or that it
+started on the donor-portal host, the signed-in giver's verified user ID and the
+fee-cover amount within a bound, which the intake command takes from the donor
+server; that publish-fulfilment content is the serialized form of the versions
+its intent names; and that an AI assistant's prepared effect waited for the
+person's approval. Application-layer checks at the data-access boundary remain
+required alongside the database checks, so that neither layer is the only line
+of defense.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->

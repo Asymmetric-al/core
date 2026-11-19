@@ -10,6 +10,12 @@
  * as it would apply on a hosted database whose default privileges widened them.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
+ *
+ * Amended by AL-2674 (WP1 slice 1.1a, plan 5.4; NR-13): the command role
+ * tenant_guard is granted EXECUTE on the two authz membership helpers, which a
+ * human command uses to judge membership. EXPECTED adds that one grantee to
+ * those two rows; PUBLIC and anon stay excluded and every other set is the
+ * spec's §1.2 set unchanged.
  */
 import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
@@ -23,6 +29,15 @@ const ADMIN_URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
 const IN_MIGRATE_JOB =
   process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_JOB === "migrate";
 const FN = Object.keys(GRANTS);
+/** §1.2 grantees plus tenant_guard on the two membership helpers (AL-2674). */
+const EXPECTED: Record<string, string[]> = Object.fromEntries(
+  Object.entries(GRANTS).map(([f, roles]) => [
+    f,
+    /^authz\.has_(staff_)?membership\(/.test(f)
+      ? [...roles, "tenant_guard"].sort()
+      : roles,
+  ]),
+);
 const CUM = "public.current_user_memberships($1::uuid)";
 const HELPERS = [
   "authz.is_super_admin()",
@@ -127,7 +142,7 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
     const got = await acl();
     expect(Object.keys(got).sort()).toEqual([...FN].sort());
     for (const f of FN) {
-      expect(got[f]!.grantees, `${f} EXECUTE grantees`).toEqual(GRANTS[f]);
+      expect(got[f]!.grantees, `${f} EXECUTE grantees`).toEqual(EXPECTED[f]);
       expect(got[f]!.prosecdef, `${f} stays SECURITY DEFINER`).toBe(true);
       expect(got[f]!.owner).toBe("postgres");
     }

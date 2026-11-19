@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
+import { membershipsForRole } from "../../../../fixtures/auth-memberships";
 
 import {
   createOfflineEntryDependencies,
@@ -21,11 +22,13 @@ function auth(
   overrides: Partial<AuthenticatedContext> = {},
 ): AuthenticatedContext {
   return {
+    isAuthenticated: true,
+    userId: "user-9",
     tenantId: "tenant-1",
     profileId: "profile-9",
     role: "admin",
-    profileRole: null,
-    memberships: [],
+    // AL-2675: an administrator is the flagged staff row.
+    memberships: membershipsForRole("admin", "tenant-1"),
     ...overrides,
   } as unknown as AuthenticatedContext;
 }
@@ -70,7 +73,7 @@ describe("handleOfflineContribution — gate", () => {
     const res = await handleOfflineContribution({
       ...ctxBase(),
       request: jsonRequest(knownGift),
-      auth: auth({ role: "staff", profileRole: null, memberships: [] }),
+      auth: auth({ role: "staff", memberships: [] }),
     });
     expect(res.status).toBe(403);
   });

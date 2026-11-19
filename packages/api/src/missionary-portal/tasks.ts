@@ -61,7 +61,7 @@ export const GET = withOperation(
 
     return NextResponse.json({ tasks });
   },
-  { roles: ["missionary"] },
+  { roleClasses: ["missionary"] },
 );
 
 export const POST = withOperation(
@@ -111,5 +111,5 @@ export const POST = withOperation(
 
     return NextResponse.json({ task }, { status: 201 });
   },
-  { roles: ["missionary"] },
+  { roleClasses: ["missionary"] },
 );

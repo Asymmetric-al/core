@@ -934,3 +934,67 @@ without a new decision SHALL be prohibited.
 <!-- END CONTRACT -->
 
 <!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-1bd49ad17d8f27c783dc"></a>
+
+## CMS Row Isolation Is A Stated Application-Enforced Exception
+
+<!-- BEGIN CONTRACT {"id":"1bd49ad17d8f27c783dc","name":"CMS Row Isolation Is A Stated Application-Enforced Exception"} -->
+
+Row isolation between tenants inside the `cms` schema MUST be enforced by Payload's access functions through one tenant-scoped collection factory, an actor port with access checks on and a narrower service port, as a stated exception to the rule that the database enforces the tenant boundary for every caller with a user identity.
+
+The database MUST confine Payload's runtime to `cms` through a role that cannot
+change schema and reaches nothing outside `cms`, and signed-in and anonymous
+roles MUST hold no grant on `cms`. The tenant-scoped factory MUST read the
+tenant of the document being saved, never the actor's home tenant. Every call
+that overrides Payload access MUST appear in a CI inventory. Cross-tenant tests
+with two tenants MUST cover the factory and both ports.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-9d7d16b2c9c7f88c67e9"></a>
+
+## The CMS Domain Owns Publishing State And Core Release Tables Store It
+
+<!-- BEGIN CONTRACT {"id":"9d7d16b2c9c7f88c67e9","name":"The CMS Domain Owns Publishing State And Core Release Tables Store It"} -->
+
+The CMS domain MUST own publishing state, and the public form of that state MUST be stored in Core's release and head tables, which only Core's publish and withdraw commands write.
+
+Payload holds drafts and versions in `cms`. Its own status field MUST NOT be a
+public signal, and its native publish control MUST be hidden or mapped to the
+Web Studio publish action. A publish MUST be recorded first by a request-publish
+command on the publisher's own token, which checks the publisher's membership and
+publishing capability and that the Site is an active Site of that tenant in Core,
+and then completed by a fulfil-publish system entry that only the service key can
+call. In one transaction, fulfilment MUST check that the intent is unexpired,
+unused and names the same document versions, check again that the publisher still
+holds the membership and capability and that the tenant and Site are active,
+check every operational and media reference against Core's own tables, insert one
+immutable release row for each document, record the media each release uses,
+mark the intent fulfilled and move the heads of every document in that publish
+together by compare-and-swap. A failed or retried fulfilment MUST leave nothing
+public that the intent did not complete. Withdrawal MUST be a command that flips
+the head and writes an audit row, and it MUST take effect at the next request.
+
+The public website MUST read only published releases and approved operational
+revisions, and only after an admission read on every request that returns the
+live head, its reach and whether the tenant, the Site and the subject may be
+served now. A release body MAY be cached under its release ID because it is
+immutable, and MUST NOT be served without a current admission. The public website
+MUST NOT read `cms` or depend on the admin application being available.
+
+Until whole-Site Public Site Generations are built, each publish MUST activate
+per-page releases as described above, a page and a navigation set published
+separately MAY disagree until both are published, and whole-Site generations
+remain the later target with their stated triggers: atomic multi-page launches,
+scheduled releases or whole-Site rollback.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->

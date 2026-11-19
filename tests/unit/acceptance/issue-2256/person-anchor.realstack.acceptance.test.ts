@@ -395,9 +395,10 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
           .sort(),
         `policy readers of profiles.tenant_id changed; ${POINTER}`,
       ).toEqual(READER_POLICIES);
+      // The WP2a sweep (AL-2675) adds `private` to the scanned schemas.
       const fns = await rows(
         `SELECT p.proname, p.prosecdef FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-       WHERE n.nspname IN ('public', 'authz') AND p.prosrc ~* '\\mprofiles\\M' AND p.prosrc ~ '\\mtenant_id\\M'`,
+       WHERE n.nspname IN ('public', 'authz', 'private') AND p.prosrc ~* '\\mprofiles\\M' AND p.prosrc ~ '\\mtenant_id\\M'`,
       );
       expect(
         fns.map((f) => `${f.proname} ${f.prosecdef}`).sort(),

@@ -48,10 +48,10 @@ describe("commit metadata is not a development gate", () => {
     ]) {
       expect(read(workflow)).toMatch(/  pull_request:\n  push:/u);
     }
-    // The reusable reporter inherits the always-on CI event; integrity owns its scan.
+    // The reusable reporter inherits the always-on CI event and runs its own scan.
     expect(read(".github/workflows/shadscan.yml")).toContain("workflow_call:");
-    expect(read(".github/workflows/ci.yml")).toContain(
-      "bun run verify:shadscan",
+    expect(read(".github/workflows/shadscan.yml")).toContain(
+      "bun run shadscan:audit",
     );
     expect(read(".github/workflows/ci.yml")).toContain(
       "uses: ./.github/workflows/shadscan.yml",

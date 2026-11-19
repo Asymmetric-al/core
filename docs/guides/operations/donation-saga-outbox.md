@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This runbook documents the Stripe donation saga/outbox flow used by `POST /api/donate`, `POST /api/donations`, GraphQL `createDonation`, and the admin outbox processor endpoint `POST /api/donate/outbox`.
+This runbook documents the Stripe donation saga/outbox flow used by `POST /api/donate`, `POST /api/donations`, GraphQL `createDonation`, and the outbox processor endpoint `POST /api/donate/outbox`, which Mission Control (the admin app) serves.
 
 The goal is to keep all database mutations transactional while coordinating cross-system side effects (Stripe customer + PaymentIntent creation) with retries and dead-letter handling.
 
@@ -16,7 +16,7 @@ The goal is to keep all database mutations transactional while coordinating cros
    - enqueues one row in `donation_saga_outbox`
 3. `POST /api/donate` and `POST /api/donations` attempt immediate processing via `processDonationSagaOutboxEvent`.
 4. GraphQL `createDonation` uses the same Gift Intake Begin Command and stays enqueue-only: it returns the donation without processing the outbox. Stripe side effects run through the outbox worker.
-5. If immediate processing does not finish, outbox processing continues through `POST /api/donate/outbox`.
+5. If immediate processing does not finish, outbox processing continues through Mission Control's `POST /api/donate/outbox`.
 
 ## Guest Giving charged amount
 
@@ -195,8 +195,8 @@ match the repo pin.
 
 ### Admin/staff backfill path
 
-- `POST /api/donate/outbox?limit=<n>`
-- Requires role: `admin | staff | super_admin`
+- `POST /api/donate/outbox?limit=<n>`, on Mission Control (the admin app). The donor app does not serve it: its proxy fixes the donor class, and a donor row holds no capability.
+- Requires the `admin.gifts.manage` capability. Every live staff row holds it (the `staff_base` bundle), and the request acts in the tenant of the caller's staff row (AL-2675).
 - Claims due outbox rows in one DB call using `claim_due_donation_saga_events(p_limit, p_lock_id)`, then processes each claimed row.
 - Use for scheduled retries and operational catch-up.
 
@@ -216,7 +216,7 @@ Use a secure internal scheduler to call:
 - `POST /api/donate/outbox?limit=25`
 - interval: every 1-2 minutes
 
-Run with an account that has `admin`/`staff` role in each tenant context used for processing.
+Call Mission Control's host, with a login that holds a live staff row in each tenant to process.
 
 ## Monitoring Queries
 

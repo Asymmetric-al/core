@@ -15,14 +15,23 @@ import { fileURLToPath } from "node:url";
 
 import { afterEach, expect, it } from "vitest";
 
-import { NEW_ROWS } from "../acceptance/issue-2254/harness";
-import {
-  MIGRATION,
-  SEAMS,
-  NEW_ROWS as V3_ROWS,
-} from "../acceptance/issue-2256/harness";
+import { MIGRATION } from "../acceptance/issue-2256/harness";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
+// AL-2674 council round 1 (F1): the totals the gate prints come from the
+// manifest, so a package that adds or drops a classified column touches no test.
+const MANIFEST = JSON.parse(
+  readFileSync(
+    path.join(root, "docs/security/field-policies/manifest.json"),
+    "utf8",
+  ),
+) as { surfaces: string[]; record_types: Record<string, object> };
+const RECORD_TYPES = Object.keys(MANIFEST.record_types).length;
+const COLUMNS = Object.values(MANIFEST.record_types).reduce(
+  (n, columns) => n + Object.keys(columns).length,
+  0,
+);
+const ROWS = COLUMNS * MANIFEST.surfaces.length;
 const roots: string[] = [];
 const itPosix = process.platform === "win32" ? it.skip : it;
 afterEach(() => {
@@ -34,82 +43,60 @@ function runVerifier(
   mode: string,
   databaseUrl = "postgresql://postgres@127.0.0.1:5432/disposable_test",
   allowNonlocal = false,
+  ambient: Record<string, string> = {},
 ) {
   const temporary = mkdtempSync(path.join(os.tmpdir(), "migration-census-"));
   roots.push(temporary);
-  const census = JSON.parse(
+  // AL-2674 (plan 7.1): the census became the field-policy manifest gate,
+  // which reads one marked catalog snapshot. The fake database answers it from
+  // the committed manifest (the gate's own suites prove the manifest against
+  // the census oracles and a real replay); the modes below mutate that answer.
+  const manifest = JSON.parse(
     readFileSync(
-      path.join(root, "docs/security/field-policies/census-v1.json"),
+      path.join(root, "docs/security/field-policies/manifest.json"),
       "utf8",
     ),
   );
-  const supplement = JSON.parse(
-    readFileSync(
-      path.join(
-        root,
-        "docs/security/field-policies/repository-supplement-v1.json",
-      ),
-      "utf8",
-    ),
+  const surfaces: string[] = manifest.surfaces;
+  const entries = Object.entries(
+    manifest.record_types as Record<
+      string,
+      Record<string, Record<string, unknown>>
+    >,
+  ).flatMap(([recordType, columns]) =>
+    Object.entries(columns).map(([name, entry]) => ({
+      recordType,
+      name,
+      ...entry,
+    })),
   );
-  const columns = [
-    ...census.relations
-      .filter(
-        (relation: { disposition: string }) =>
-          relation.disposition === "present",
-      )
-      .flatMap((relation: { record_type: string; columns: object[] }) =>
-        relation.columns.map((column) => ({
-          recordType: relation.record_type,
-          ...column,
-        })),
-      ),
-    supplement.column,
-  ];
-  const rows = [
-    ...columns.flatMap((column) =>
-      census.surfaces.map((surface: string) => ({
-        record_type: column.recordType,
-        field_key: column.name,
-        surface,
-        tenant_id: null,
-        ...column.policies[surface],
-        sensitivity_category: column.category,
-      })),
-    ),
-    ...NEW_ROWS,
-    ...V3_ROWS,
-  ];
-  const schema = [
-    ...columns.map((column) => ({
+  const catalog = {
+    relations: Object.keys(manifest.record_types).sort(),
+    columns: entries.map((column) => ({
       record_type: column.recordType,
       field_key: column.name,
+      type: column.type,
+      nullable: column.nullable,
+      generated: column.generated ?? null,
+      default: "default" in column ? column.default : null,
     })),
-    { record_type: "donors", field_key: "email_normalized" },
-    { record_type: "donors", field_key: "email_verified_at" },
-    ...SEAMS.map(([record_type]) => ({ record_type, field_key: "person_id" })),
-  ];
-  const catalogs = Object.fromEntries(
-    census.repository_supplements.flatMap((ref: { artifact: string }) => {
-      const found: [string, unknown][] = [];
-      const walk = (value: unknown): void => {
-        if (!value || typeof value !== "object") return;
-        const item = value as { query?: unknown; result?: unknown };
-        if (typeof item.query === "string" && "result" in item)
-          found.push([item.query, item.result]);
-        Object.values(value).forEach(walk);
-      };
-      walk(
-        JSON.parse(
-          readFileSync(
-            path.join(root, "docs/security/field-policies", ref.artifact),
-            "utf8",
-          ),
-        ),
-      );
-      return found;
-    }),
-  );
+    reserved_present: [],
+    rows: entries.flatMap((column) =>
+      surfaces.map((surface) => {
+        const flags = String(column[surface]);
+        return {
+          record_type: column.recordType,
+          field_key: column.name,
+          surface,
+          tenant_id: null,
+          visible: flags[0] === "v",
+          editable: flags[1] === "e",
+          exportable: flags[2] === "x",
+          sensitivity_category: column.category,
+        };
+      }),
+    ),
+  };
   const listed = JSON.parse(
     readFileSync(
       path.join(root, "docs/security/rls-deny-by-default-exceptions.json"),
@@ -131,6 +118,11 @@ function runVerifier(
       tenantTable("donors", 2),
     ],
     definers: [],
+    // AL-2674: the gate also reads the command-schema functions, the
+    // wrappers that call into them and the unadmitted table grants.
+    commands: [],
+    wrappers: [],
+    grants: [],
   };
   const psql = path.join(temporary, "psql.cjs");
   const calls = path.join(temporary, "calls.jsonl");
@@ -140,8 +132,9 @@ function runVerifier(
 const fs = require("node:fs");
 const args = process.argv.slice(2);
 const stdinSql = args.includes("-f") || args.includes("-c") ? null : fs.readFileSync(0, "utf8");
-fs.appendFileSync(${JSON.stringify(calls)}, JSON.stringify({ args, stdinSql }) + "\\n");
-const data = ${JSON.stringify({ rows, schema, catalogs, gate })};
+const pg = Object.fromEntries(Object.entries(process.env).filter(([key]) => key.startsWith("PG")));
+fs.appendFileSync(${JSON.stringify(calls)}, JSON.stringify({ args, stdinSql, pg }) + "\\n");
+const data = ${JSON.stringify({ catalog, gate })};
 const mode = ${JSON.stringify(mode)};
 if (!args.includes("-c")) process.exit(0);
 const sql = args[args.indexOf("-c") + 1];
@@ -150,18 +143,17 @@ if (mode === "query-failure") {
 }
 if (sql.startsWith("-- tenant-rls-catalog-gate:v1"))
   console.log(mode === "rls-gate-malformed" ? "{" : JSON.stringify(data.gate));
-else if (sql in data.catalogs) console.log(JSON.stringify(data.catalogs[sql]));
-else if (sql.includes("public.field_policies")) {
-  if (mode === "policy-drift") data.rows.find(row => row.record_type === "donations" && row.field_key === "stripe_refund_ids" && row.surface !== "mission_control").exportable = true;
+else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
+  const c = data.catalog;
   const v3 = (row, table, surface) => row.record_type === table && row.field_key === "person_id" && row.surface === surface;
-  if (mode === "v3-row-missing") data.rows = data.rows.filter(row => !v3(row, "profiles", "export"));
-  if (mode === "v3-row-drift") data.rows.find(row => v3(row, "missionaries", "public")).visible = true;
-  console.log(JSON.stringify(data.rows));
-} else if (sql.includes("jsonb_agg(jsonb_build_object")) {
-  if (mode === "column-drift") data.schema.push({ record_type: "donors", field_key: "uncensused_test_column" });
-  if (mode === "v3-third-column") data.schema.push({ record_type: "donors", field_key: "person_id" });
-  if (mode === "v3-column-missing") data.schema = data.schema.filter(column => !(column.record_type === "profiles" && column.field_key === "person_id"));
-  console.log(JSON.stringify(data.schema));
+  const column = (record_type, field_key, type) => ({ record_type, field_key, type, nullable: true, generated: null, default: null });
+  if (mode === "policy-drift") c.rows.find(row => row.record_type === "donations" && row.field_key === "stripe_refund_ids" && row.surface !== "mission_control").exportable = true;
+  if (mode === "v3-row-missing") c.rows = c.rows.filter(row => !v3(row, "profiles", "export"));
+  if (mode === "v3-row-drift") c.rows.find(row => v3(row, "missionaries", "public")).visible = true;
+  if (mode === "column-drift") c.columns.push(column("donors", "uncensused_test_column", "text"));
+  if (mode === "v3-third-column") c.columns.push(column("donors", "person_id", "uuid"));
+  if (mode === "v3-column-missing") c.columns = c.columns.filter(col => !(col.record_type === "profiles" && col.field_key === "person_id"));
+  console.log(JSON.stringify(c));
 }
 `,
   );
@@ -176,6 +168,10 @@ else if (sql.includes("public.field_policies")) {
       "supabase/migrations",
       // #2400: the PG17 readiness probe runs before the census.
       "tests/integration/supabase/postgres17-upgrade-readiness-verification.sql",
+      // PR #2714 review (record D-18): the verifier's locality decision now
+      // lives in the routing rule it shares with the admin app, so the copy
+      // carries that file too. The case still fails only on the edited source.
+      "packages/env/src/database-url.mjs",
     ])
       cpSync(path.join(root, rel), path.join(repo, rel), { recursive: true });
     appendFileSync(path.join(repo, MIGRATION), "-");
@@ -196,23 +192,28 @@ else if (sql.includes("public.field_policies")) {
                 encoding: "utf8",
               }).stdout.trim(),
             }),
+        ...ambient,
         DATABASE_URL: databaseUrl,
         ALLOW_NONLOCAL_MIGRATION_VERIFY: allowNonlocal ? "1" : "",
         PSQL_BIN: psql,
       },
     },
   );
-  const capturedCalls: Array<{ args: string[]; stdinSql: string | null }> =
-    existsSync(calls)
-      ? readFileSync(calls, "utf8")
-          .trim()
-          .split("\n")
-          .map((line) => JSON.parse(line))
-      : [];
+  const capturedCalls: Array<{
+    args: string[];
+    stdinSql: string | null;
+    pg: Record<string, string>;
+  }> = existsSync(calls)
+    ? readFileSync(calls, "utf8")
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line))
+    : [];
   return {
     ...result,
     calls: capturedCalls.map(({ args }) => args),
     inputs: capturedCalls.map(({ stdinSql }) => stdinSql),
+    environments: capturedCalls.map(({ pg }) => pg),
   };
 }
 
@@ -221,15 +222,20 @@ itPosix(
   () => {
     const result = runVerifier("clean");
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain("171 exact whole columns");
-    expect(result.stdout).toContain("all 880 database seed rows exactly equal");
-    expect(result.stdout).toContain("exactly 176 candidate columns");
+    expect(result.stdout).toContain(
+      `PASS: field-policy manifest: ${RECORD_TYPES} record types, ${COLUMNS} columns`,
+    );
+    expect(result.stdout).toContain(
+      `PASS: all ${ROWS} public.field_policies rows equal the manifest`,
+    );
+    expect(result.stdout).toContain(`equal the manifest's ${COLUMNS} entries`);
+    // AL-2674 (D09) removed one exception entry with its dropped table.
     const gateLine = result.stdout.indexOf(
-      "PASS: tenant RLS catalog gate: 86 tenant tables enabled and forced (1 with policies, 85 listed deny-by-default, 0 stale)",
+      "PASS: tenant RLS catalog gate: 85 tenant tables enabled and forced (1 with policies, 84 listed deny-by-default, 0 stale)",
     );
-    expect(result.stdout.indexOf("exactly 176 candidate columns")).toBeLessThan(
-      gateLine,
-    );
+    expect(
+      result.stdout.indexOf(`equal the manifest's ${COLUMNS} entries`),
+    ).toBeLessThan(gateLine);
     expect(gateLine).toBeLessThan(
       result.stdout.indexOf("forward Supabase migrations"),
     );
@@ -304,9 +310,10 @@ itPosix.each([
   const result = runVerifier(mode);
   expect(result.status).not.toBe(0);
   expect(result.stdout).not.toContain("forward Supabase migrations");
-  // #2400 criterion 7: the failure is the census source-hash check itself.
+  // #2400 criterion 7: the failure is the source-hash check itself, now the
+  // manifest gate's pinned-source check (AL-2674).
   if (mode === "v3-source-edited") {
-    const mismatch = `field-policy census: v3 source_sha256 mismatch for ${MIGRATION}`;
+    const mismatch = `PINNED ${MIGRATION} changed`;
     expect(clean.stderr).not.toContain(mismatch);
     expect(result.stderr).toContain(mismatch);
   }
@@ -326,11 +333,61 @@ itPosix(
   },
 );
 
+// PR #2714 review: a query key such as `host` wins over the authority, so this
+// URL names the hosted server however local its authority looks.
+itPosix(
+  "refuses a loopback-looking URL with a routing override before any SQL",
+  () => {
+    const result = runVerifier(
+      "clean",
+      "postgresql://postgres@127.0.0.1:5432/disposable_test?host=db.example.supabase.co",
+    );
+    expect(result.status).not.toBe(0);
+    expect(result.calls).toEqual([]);
+    expect(result.stdout).not.toContain("bootstrap Supabase");
+  },
+);
+
+// PR #2714 review: every psql the verifier starts goes through psqlConnection.
+// An ambient PGHOSTADDR overrides the URL's host, PGSERVICE and PGHOST fill in
+// a target and PGOPTIONS can choose a role, so none may reach psql; and the
+// password travels in PGPASSWORD, never in the argument list.
+itPosix(
+  "starts every psql with the URL alone: no ambient PG* setting and no password in its arguments",
+  () => {
+    const result = runVerifier(
+      "clean",
+      "postgresql://postgres:s3cret-verify@127.0.0.1:5432/disposable_test",
+      false,
+      {
+        PGHOSTADDR: "203.0.113.9",
+        PGHOST: "db.example.supabase.co",
+        PGPORT: "6543",
+        PGSERVICE: "hosted",
+        PGOPTIONS: "-c role=postgres",
+      },
+    );
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.calls.length).toBeGreaterThan(3);
+    for (const [index, args] of result.calls.entries()) {
+      expect(result.environments[index]).toEqual({
+        PGPASSWORD: "s3cret-verify",
+      });
+      expect(args[0]).toBe(
+        "postgresql://postgres@127.0.0.1:5432/disposable_test",
+      );
+      expect(JSON.stringify(args)).not.toContain("s3cret-verify");
+    }
+  },
+);
+
 itPosix("accepts IPv6 loopback under the same census locality contract", () => {
   const result = runVerifier(
     "clean",
     "postgresql://postgres@[::1]:5432/disposable_test",
   );
   expect(result.status).toBe(0);
-  expect(result.stdout).toContain("all 880 database seed rows exactly equal");
+  expect(result.stdout).toContain(
+    `PASS: all ${ROWS} public.field_policies rows equal the manifest`,
+  );
 });
