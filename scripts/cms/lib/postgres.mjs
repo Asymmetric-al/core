@@ -85,14 +85,18 @@ function getPsqlConnection(databaseUrl) {
     // Review L1: a hosted server may never ask for the password in clear text.
     Object.assign(env, HOSTED_LIBPQ_ENV);
     // The last check's P3: a CA file psql is handed for a hosted address,
-    // ambient or from the address, is the project's CA. The local CMS
-    // scripts reach this builder without the hosted target check.
-    if (env.PGSSLROOTCERT) {
-      try {
-        assertProjectCaFile(env.PGSSLROOTCERT);
-      } catch (error) {
-        throw new Error(`CMS database connection is refused: ${error.message}`);
-      }
+    // ambient or from the address, is the project's CA. Phase 16, Q4: and
+    // there is one. With none named, libpq reads ~/.postgresql/root.crt
+    // unchecked, or under sslmode=require checks nothing at all. The local
+    // CMS scripts reach this builder without the hosted target check.
+    if (!env.PGSSLROOTCERT)
+      throw new Error(
+        "CMS database connection is refused: a hosted address needs the project's CA, and none is named. Set PGSSLROOTCERT to a file holding the project's CA certificate, the PEM from its Database settings.",
+      );
+    try {
+      assertProjectCaFile(env.PGSSLROOTCERT);
+    } catch (error) {
+      throw new Error(`CMS database connection is refused: ${error.message}`);
     }
   }
   return { env, args: [] };

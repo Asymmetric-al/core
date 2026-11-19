@@ -522,7 +522,8 @@ migration without both, or whose address does not say `sslmode=verify-full`
 (review L7). It reads that file with the job's own check of the CA (one
 certificate, a CA, valid now), and refuses `PGSSLROOTCERT=system`, which
 libpq reads as the machine's whole certificate store; its `psql` builder does
-the same for any hosted address (phase 15). It reads
+the same for any hosted address (phase 15), and refuses one for which no CA
+file is named at all (phase 16). It reads
 `PAYLOAD_DATABASE_SSL_CA` with the same check, and refuses it unless it is the
 very certificate that file holds: node-postgres trusts every certificate in
 it, so a bundle of authorities would otherwise pass (phase 16).

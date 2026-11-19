@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const spawnSync = vi.hoisted(() => vi.fn());
 vi.mock("node:child_process", () => ({ spawnSync }));
@@ -32,6 +32,11 @@ const answer = (
 const databaseUrl =
   "postgresql://postgres.example:fake%3Apassword@pooler.example.com:5432/postgres?sslmode=no-verify&connect_timeout=15";
 
+// Phase 16, Q4: a hosted address needs the project's CA file, so every case
+// starts with one; a case about the CA file sets or removes it.
+beforeEach(() => {
+  vi.stubEnv("PGSSLROOTCERT", CA_FILE);
+});
 afterEach(() => {
   vi.unstubAllEnvs();
 });
@@ -339,6 +344,44 @@ describe("the CA file the CMS builder hands psql (phase 15, P3)", () => {
       expect(spawnSync).not.toHaveBeenCalled();
     },
   );
+
+  // Phase 16, Q4: with no CA file named, libpq reads ~/.postgresql/root.crt
+  // unchecked, or under sslmode=require checks nothing at all.
+  it.each([
+    ["no PGSSLROOTCERT", undefined, hosted],
+    ["an empty PGSSLROOTCERT", "", hosted],
+    [
+      "sslmode=require and no PGSSLROOTCERT",
+      undefined,
+      hosted.replace("verify-full", "require"),
+    ],
+  ])(
+    "refuses a hosted address with %s, before psql starts, and names what to set",
+    (_case, ambient, databaseUrl) => {
+      vi.stubEnv("PGSSLROOTCERT", ambient);
+      expect(process.env.PGSSLROOTCERT).toBe(ambient);
+      spawnSync.mockReset();
+      answer({ status: 0, stdout: "1\n", stderr: "" });
+      for (const call of [
+        () => runPsql("SELECT 1;", { databaseUrl }),
+        () => runPsqlFile("x.sql", { databaseUrl }),
+      ])
+        expect(call).toThrow(
+          /CMS database connection is refused: .*Set PGSSLROOTCERT to a file holding the project's CA certificate/,
+        );
+      expect(spawnSync).not.toHaveBeenCalled();
+    },
+  );
+
+  it("still needs no CA file for a loopback address", () => {
+    vi.stubEnv("PGSSLROOTCERT", undefined);
+    answer({ status: 0, stdout: "1\n", stderr: "" });
+    expect(
+      runPsql("SELECT 1;", {
+        databaseUrl: "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+      }),
+    ).toBe("1");
+  });
 
   it("hands psql the project's CA file for a hosted address", () => {
     vi.stubEnv("PGSSLROOTCERT", CA_FILE);
