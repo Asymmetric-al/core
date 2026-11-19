@@ -2,7 +2,7 @@
 
 ## 1. Authority
 
-- [x] 1.1 Record the owner's ratification of this proposal, with its date and scope, in `proposal.md` under Authority. Verify that the ruling names this change ID and the AL-1958 strict acceptance it supersedes
+- [ ] 1.1 Record the owner's ratification of this proposal, with its date and scope, in `proposal.md` under Authority. Verify that the ruling names this change ID and the AL-1958 strict acceptance it supersedes
 
 ## 2. Advisory audit runner
 
