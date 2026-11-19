@@ -151,12 +151,24 @@ it. Every other workspace is excluded by name, with its reason, in
 `ownApiWorkspaces.excluded`. It has no exemption: a call that cannot move onto
 the wrapper is a finding to raise, not a rule to switch off.
 
-Payload's REST routes are mounted at `/api` in this tree too: `routes.api` is
-not set in `apps/admin/payload.config.ts`, so Payload's default applies. Web
-Studio builds their addresses from Payload's runtime config (`serverURL` and
-`routes.api`), which the rule cannot read, so it does not see those calls.
-Scoping them is owed by slice C of WP2b release 1, and checked by the
-coordinator when the slices join; this tree has no Web Studio fetch hook.
+Payload's REST routes are mounted at `/web-studio/api` (`routes.api` in
+`apps/admin/payload.config.ts`), outside Mission Control's `/api`, and
+Payload's own code calls them, and its server functions, from Web Studio's
+pages. The rule sees none of those calls: Payload builds their addresses from
+its runtime config, and the headers are added at run time. The Web Studio
+document's fetch hook
+(`apps/admin/src/cms-ui/web-studio/shell/web-studio-document-fetch.ts`) adds
+the document's tenant and assignment to every same-origin call under
+`/web-studio/api`, and to every server function Payload posts from a Web Studio
+page, there as Web Studio's own claim headers (`x-asym-web-studio-tenant`,
+`x-asym-web-studio-assignment`), because the proxy deletes the pair from a page
+request. The headers are claims, never a choice. Payload's strategy compares a
+REST call's with the organization the Web Studio cookie selects and refuses a
+write that names no document
+(`apps/admin/src/cms/auth/supabase-strategy.ts`); the Payload layout compares a
+server function's the same way before Payload runs it and refuses one that
+names no document (`apps/admin/src/cms/web-studio-server-function.ts`). Either
+refusal asks the person to reload.
 
 The rule reads one module at a time. It follows an address through that
 module's literals, constants, object literals held in a constant, choices,

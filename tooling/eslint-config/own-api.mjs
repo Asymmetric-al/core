@@ -14,12 +14,22 @@
 // ever called where its address is written, so the rule can read that
 // address; `ownApiFetch` is what a caller hands over for the app's own API.
 //
-// Payload's REST routes are mounted at `/api` in this tree too: `routes.api`
-// is not set in `apps/admin/payload.config.ts`, so Payload's default
-// applies. Web Studio builds their addresses from Payload's runtime config
-// (`serverURL` and `routes.api`), which the rule cannot read, so it does not
-// see those calls. Scoping them is owed by slice C, and the coordinator
-// checks it at the join; no Web Studio fetch hook is in this tree.
+// Payload's REST routes are mounted at `/web-studio/api` (`routes.api` in
+// `apps/admin/payload.config.ts`), outside Mission Control's `/api`, and
+// Payload's own code calls them, and its server functions, from Web
+// Studio's pages. The rule sees none of those calls: Payload builds their
+// addresses from its runtime config, and the headers are added at run time.
+// The Web Studio document's fetch hook
+// (`apps/admin/src/cms-ui/web-studio/shell/web-studio-document-fetch.ts`)
+// adds the document's tenant and assignment to every same-origin call under
+// `/web-studio/api`, and to every server function Payload posts from a Web
+// Studio page, there as Web Studio's own claim headers, because the proxy
+// deletes the pair from a page request. They are claims, never a choice:
+// Payload's strategy compares a REST call's with the Web Studio cookie's
+// choice and refuses a write that names no document
+// (`apps/admin/src/cms/auth/supabase-strategy.ts`), and the Payload layout
+// compares a server function's the same way before Payload runs it, refusing
+// one that names no document (`apps/admin/src/cms/web-studio-server-function.ts`).
 //
 // The rule has no exemption mechanism of its own, and none is configured: a
 // call that cannot move onto the wrapper is a finding, not an exception.
