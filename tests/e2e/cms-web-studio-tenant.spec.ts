@@ -63,15 +63,30 @@ const rowIn = (tenant: string) =>
 const STALE_MESSAGE =
   "This page was opened for a different organization. Reload the page to continue; nothing was saved.";
 
-// Each case's own limit (council r2 CR4). CI retries a failed case twice and
-// the whole CMS step has a fixed limit, so a case that hangs must stop well
-// before it can use the step up. Measured on a development server under the
-// bypass at load 15 to 25: the slowest case after the first took 30 s warm
-// and 49 s cold. The step's own limit and the retry count are set elsewhere.
-const CASE_LIMIT = 120_000;
+// Each case's own limits (council r2 CR4, r3 CR8). CI retries a failed case
+// twice and the whole CMS step has a fixed limit, so a case that hangs must
+// stop before it uses the step up; and a first attempt on a development
+// server that has not compiled Web Studio's views yet must be able to finish.
+// Measured, the whole file on one worker:
+// - in CI's order (a replay of CI's own steps, load 23 to 29), after the
+//   other CMS specs have compiled the views: the first case 44 s, the slowest
+//   of the rest 44 s;
+// - alone on a freshly started development server, four runs at load 8 to
+//   30: the first case 120 s, 132 s, 168 s, and past 240 s (cut off there);
+//   the slowest of the rest 21 s, 72 s, 48.5 s and 114 s;
+// - again on the same server, now warm: the first case 39 s, the rest at
+//   most 35.5 s.
+// So a first attempt allows 180 s, and 360 s for the first case (half again
+// over the 240 s at which the slowest run was cut off); a retry runs on a
+// server the first attempt has compiled for, and allows 120 s (180 s for the
+// first case). The step's own limit and the retry count are set elsewhere.
+const FIRST_ATTEMPT_LIMIT = 180_000;
+const RETRY_LIMIT = 120_000;
+const FIRST_CASE_FIRST_ATTEMPT_LIMIT = 360_000;
+const FIRST_CASE_RETRY_LIMIT = 180_000;
 
 test.beforeEach(async () => {
-  test.setTimeout(CASE_LIMIT);
+  test.setTimeout(test.info().retry === 0 ? FIRST_ATTEMPT_LIMIT : RETRY_LIMIT);
   if (signsInThroughStub) await stubControl("reset");
 });
 
@@ -237,10 +252,14 @@ async function holdOwnCalls(page: Page) {
 test("@cms a person in two organizations sees each one's pages, documents and media only while it is selected", async ({
   page,
 }) => {
-  // Creates and uploads in two organizations and switches four times: 66 s
-  // warm. As the first Web Studio case it also pays for compiling the list,
-  // document and upload views on a server that has not shown them yet.
-  test.setTimeout(180_000);
+  // Creates and uploads in two organizations and switches four times. As the
+  // first Web Studio case it also pays for compiling the list, document and
+  // upload views on a server that has not shown them yet (limits above).
+  test.setTimeout(
+    test.info().retry === 0
+      ? FIRST_CASE_FIRST_ATTEMPT_LIMIT
+      : FIRST_CASE_RETRY_LIMIT,
+  );
   await signIn(page);
   const stamp = `wsten-${Date.now()}`;
   const created: Array<[string, "pages" | "media", string]> = [];
