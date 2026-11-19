@@ -91,11 +91,11 @@ describe("#2308 static contracts (A)", () => {
   // longer uses the service-key client, so the packages/api/src/admin/users.ts
   // entry (operation_admin_context, 1 site) is deleted, as the shrink-only
   // rule asks. Nothing else changed; no site, count or entry was added.
-  it("C12: frozen service-role allowlist is byte-unchanged since the AL-2675 users-list shrink", () => {
+  it("C12: the allowlist is byte-unchanged since AL-2675 corrected the missionary workspace classification", () => {
     expect(
       createHash("sha256")
         .update(read("docs/security/service-role-client-allowlist.json"))
         .digest("hex"),
-    ).toBe("4b2faf9f7bf2871e65c2cde725b8935b1ad149b63be51b0fd311805ed66704f0");
+    ).toBe("e543fe806b8743cc9437801cede6abd0bc7a1a7320d7447999692e9cb35cd865");
   });
 });

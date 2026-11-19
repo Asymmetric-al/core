@@ -247,11 +247,21 @@ function member(
   staffRole: Membership["staffRole"] = null,
   isTenantAdmin = false,
 ): AuthContext {
+  const userId = "00000000-0000-4000-8000-0000000000b2";
   return {
-    userId: "00000000-0000-4000-8000-0000000000b2",
+    userId,
     email: "member@example.test",
     tenantId: TENANT,
     role: isTenantAdmin ? "admin" : role,
+    assignment: {
+      assignmentId: "00000000-0000-4000-8000-0000000000d2",
+      userId,
+      tenantId: TENANT,
+      membershipRole: role,
+      staffRole,
+      isTenantAdmin,
+      revision: "2026-11-19T00:00:00Z",
+    },
     memberships: [
       { tenantId: TENANT, role, staffRole, isActive: true, isTenantAdmin },
     ],

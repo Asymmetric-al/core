@@ -84,7 +84,34 @@ function fakeAdmin() {
       });
       return q;
     },
-    rpc: async () => ({ data: null, error: { message: "rpc not faked" } }),
+    rpc(name: string, args: Row) {
+      if (
+        name !== "missionary_own_record" &&
+        name !== "missionary_own_record_write"
+      )
+        throw new Error("Unexpected profile RPC: " + name);
+      return {
+        select: () => ({
+          maybeSingle: async () => {
+            const record = m.tables.missionaries!.find(
+              (candidate) =>
+                args.p_assignment_id === A.M.assignmentId &&
+                candidate.profile_id === args.p_profile_id &&
+                candidate.tenant_id === args.p_tenant_id,
+            );
+            if (record && name === "missionary_own_record_write") {
+              m.writes.push({
+                table: "missionaries",
+                op: "update",
+                values: args.p_patch,
+              });
+              Object.assign(record, args.p_patch);
+            }
+            return { data: record ? { ...record } : null, error: null };
+          },
+        }),
+      };
+    },
   };
 }
 
@@ -107,21 +134,25 @@ const T2 = "bbbbbbbb-0000-4000-8000-00000000000b";
 const X = "eeeeeeee-0000-4000-8000-00000000000e";
 const A = {
   M: {
+    assignmentId: "40000000-0000-4000-8000-000000000001",
     userId: "cccccccc-0000-4000-8000-00000000000c",
     tenantId: T,
     role: "missionary",
   },
   D: {
+    assignmentId: "40000000-0000-4000-8000-000000000002",
     userId: "dddddddd-0000-4000-8000-00000000000d",
     tenantId: T,
     role: "donor",
   },
   SA: {
+    assignmentId: "40000000-0000-4000-8000-000000000003",
     userId: "fafafafa-0000-4000-8000-0000000000fa",
     tenantId: DEMO,
     role: "super_admin",
   },
   SAT: {
+    assignmentId: "40000000-0000-4000-8000-000000000004",
     userId: "fbfbfbfb-0000-4000-8000-0000000000fb",
     tenantId: T,
     role: "super_admin",
@@ -190,11 +221,22 @@ const wrote = (column: string) =>
   );
 
 async function send(route: "profile" | "donor", actor: Actor, body: Row) {
+  const memberships = membershipsForRole(A[actor].role, A[actor].tenantId);
+  const membership = memberships[0]!;
   m.auth = {
     isAuthenticated: true,
     email: null,
     // AL-2675: the role is read from the membership the request acts under.
-    memberships: membershipsForRole(A[actor].role, A[actor].tenantId),
+    memberships,
+    assignment: {
+      assignmentId: A[actor].assignmentId,
+      userId: A[actor].userId,
+      tenantId: membership.tenantId,
+      membershipRole: membership.role,
+      staffRole: membership.staffRole,
+      isTenantAdmin: membership.isTenantAdmin,
+      revision: "2026-11-19T00:00:00Z",
+    },
     userId: A[actor].userId,
     tenantId: A[actor].tenantId,
     profileId: PROFILE[actor],
