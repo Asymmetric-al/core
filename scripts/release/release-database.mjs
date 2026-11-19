@@ -189,45 +189,50 @@ const PEM_CERTIFICATE =
  * subject, the dates, the SHA-256 fingerprint), never the content. No
  * fingerprint is pinned here: the runbook gives it for the owner to compare,
  * and a rotation by Supabase must not need a release of ours. Returns the one
- * certificate as a PEM block.
+ * certificate as a PEM block. `name` is what the messages call the PEM's
+ * holder: the CMS runner reads the file PGSSLROOTCERT names with this same
+ * check (scripts/cms/lib/postgres.mjs, assertProjectCaFile).
  */
-export function readDatabaseCa(pem, { now = new Date() } = {}) {
+export function readDatabaseCa(
+  pem,
+  { now = new Date(), name = "RELEASE_DATABASE_SSL_CA" } = {},
+) {
   const text = String(pem ?? "")
     .replace(/\r\n/g, "\n")
     .trim();
   const blocks = text.match(PEM_CERTIFICATE) ?? [];
   if (blocks.length === 0)
     stop(
-      "RELEASE_DATABASE_SSL_CA holds no PEM certificate. Set it to the project's CA certificate, the PEM from its Database settings.",
+      `${name} holds no PEM certificate. Set it to the project's CA certificate, the PEM from its Database settings.`,
     );
   if (blocks.length > 1)
     stop(
-      `RELEASE_DATABASE_SSL_CA holds ${blocks.length} certificates; it must hold exactly one, the project's CA.`,
+      `${name} holds ${blocks.length} certificates; it must hold exactly one, the project's CA.`,
     );
   if (text !== blocks[0])
     stop(
-      "RELEASE_DATABASE_SSL_CA holds something besides one certificate. It must hold the project's CA certificate and nothing else.",
+      `${name} holds something besides one certificate. It must hold the project's CA certificate and nothing else.`,
     );
   let certificate;
   try {
     certificate = new X509Certificate(blocks[0]);
   } catch (error) {
     stop(
-      `RELEASE_DATABASE_SSL_CA's certificate cannot be read (${error?.code ?? "not a certificate"}).`,
+      `${name}'s certificate cannot be read (${error?.code ?? "not a certificate"}).`,
     );
   }
   const found = `subject ${certificate.subject.replace(/\n/g, ", ")}, SHA-256 ${certificate.fingerprint256}`;
   if (!certificate.ca)
     stop(
-      `RELEASE_DATABASE_SSL_CA holds a certificate that is not a CA (${found}). Set it to the project's CA certificate from its Database settings.`,
+      `${name} holds a certificate that is not a CA (${found}). Set it to the project's CA certificate from its Database settings.`,
     );
   if (now < new Date(certificate.validFrom))
     stop(
-      `RELEASE_DATABASE_SSL_CA's CA is not valid until ${certificate.validFrom} (${found}).`,
+      `${name}'s CA is not valid until ${certificate.validFrom} (${found}).`,
     );
   if (now > new Date(certificate.validTo))
     stop(
-      `RELEASE_DATABASE_SSL_CA's CA expired on ${certificate.validTo} (${found}). Take the current CA from the project's Database settings and follow "If the CA is rotated or expires" in docs/ops/release-job.md.`,
+      `${name}'s CA expired on ${certificate.validTo} (${found}). Take the current CA from the project's Database settings and follow "If the CA is rotated or expires" in docs/ops/release-job.md.`,
     );
   return `${blocks[0]}\n`;
 }

@@ -29,11 +29,16 @@ const HOSTED_RUNTIME_URL =
   "postgresql://cms_runtime.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require";
 const HOSTED_MIGRATION_URL =
   "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full";
-/** The project's CA, as the release job hands it to the runner (L6, L7). */
+/**
+ * The project's CA, as the release job hands it to the runner (L6, L7): the
+ * release job's certificate fixture. The runner's psql reads it from the file
+ * PGSSLROOTCERT names (phase 15, P3), and Payload from
+ * PAYLOAD_DATABASE_SSL_CA, the same certificate (phase 16, Q1).
+ */
+const CA_FILE = path.resolve("tests/unit/scripts/release/fixtures/ca/ca.crt");
 const CA_ENV = {
-  PAYLOAD_DATABASE_SSL_CA:
-    "-----BEGIN CERTIFICATE-----\nfixture\n-----END CERTIFICATE-----",
-  PGSSLROOTCERT: "/tmp/fixture-root.crt",
+  PAYLOAD_DATABASE_SSL_CA: readFileSync(CA_FILE, "utf8"),
+  PGSSLROOTCERT: CA_FILE,
 };
 
 type SpawnRecord = {

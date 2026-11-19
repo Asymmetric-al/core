@@ -1126,6 +1126,10 @@ describe("release database steps", () => {
 
   it("migrates Supabase, sets the CMS role passwords, then runs Payload as cms_owner, and checks nothing is left pending", () => {
     const { query, run, events } = fakeDatabase({});
+    // The runner's check below reads the CA file the job writes, and the job
+    // writes only a CA its own check passed (runStep, withDatabaseCaFile), so
+    // these settings carry a real one (phase 15, P3).
+    const withRealCa = { ...settings(), databaseCa: REAL_CA };
     const calls: string[][] = [];
     const runCommand = vi.fn(
       (
@@ -1166,7 +1170,7 @@ describe("release database steps", () => {
       },
     );
     migrate({
-      settings: settings(),
+      settings: withRealCa,
       env: passwords,
       query,
       run,
@@ -1900,6 +1904,29 @@ describe("an expired or rotated CA", () => {
     expect(step).toMatch(/-subject -issuer -startdate -enddate/);
     expect(step).toMatch(/26 April 2031/);
     expect(step).toMatch(/same pull request/);
+  });
+
+  // The last check's P5 (phase 15): a rotation before the expiry date passes
+  // the job's read of its CA and shows only as a certificate verification
+  // error, which names no step. The step says so, and so do the places that
+  // list what a failed step looks like.
+  it("sends a certificate verification error to that step", () => {
+    const start = RUNBOOK.indexOf(`### ${STEP}`);
+    const step = RUNBOOK.slice(start, RUNBOOK.indexOf("\n## ", start));
+    expect(step).toMatch(/certificate\s+verify\s+failed/);
+    expect(step).toMatch(
+      /any\s+certificate\s+verification\s+error\s+in\s+a\s+hosted\s+step\s+leads\s+here/,
+    );
+    for (const section of [
+      "### The database's certificate",
+      "### If the CMS role passwords stop a run",
+    ]) {
+      const from = RUNBOOK.indexOf(section);
+      expect(from, section).toBeGreaterThan(0);
+      const text = RUNBOOK.slice(from, RUNBOOK.indexOf("\n### ", from + 1));
+      expect(text, section).toMatch(/certificate\s+verification\s+error/);
+      expect(text, section).toContain("#if-the-ca-is-rotated-or-expires");
+    }
   });
 
   it("sends an owner whose CA does not print the recorded fingerprint to that step", () => {

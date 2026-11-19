@@ -1,13 +1,30 @@
-import { describe, expect, it } from "vitest";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { assertCmsMigrationTarget } from "../../../scripts/cms/lib/migration-target.mjs";
 
-/** The project's CA, as the release job hands it to the runner (L6, L7). */
+/** The release job's certificate fixtures (review M3). */
+const caFixture = (name: string) =>
+  path.resolve("tests/unit/scripts/release/fixtures/ca", name);
+
+/**
+ * The project's CA, as the release job hands it to the runner (L6, L7): the
+ * runner's psql reads it from the file PGSSLROOTCERT names, which must hold
+ * the project's CA (phase 15, P3), and Payload from PAYLOAD_DATABASE_SSL_CA,
+ * which must hold the same certificate (phase 16, Q1).
+ */
+const CA_PEM = readFileSync(caFixture("ca.crt"), "utf8");
 const CA_ENV = {
-  PAYLOAD_DATABASE_SSL_CA:
-    "-----BEGIN CERTIFICATE-----\nfixture\n-----END CERTIFICATE-----",
-  PGSSLROOTCERT: "/tmp/fixture-root.crt",
+  PAYLOAD_DATABASE_SSL_CA: CA_PEM,
+  PGSSLROOTCERT: caFixture("ca.crt"),
 };
+/** The second certificate of the two-CA fixture: another CA, valid now. */
+const OTHER_CA_PEM = readFileSync(caFixture("two-cas.crt"), "utf8").match(
+  /-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g,
+)![1]!;
 const pooled =
   "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres";
 const direct =
@@ -333,6 +350,13 @@ describe("CMS migration target", () => {
       assertCmsMigrationTarget({
         databaseUrl:
           "postgresql://postgres@127.0.0.1:54322/postgres?sslmode=verify-full&sslrootcert=system",
+        environment: { PGSSLROOTCERT: "system" },
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertCmsMigrationTarget({
+        databaseUrl:
+          "postgresql://postgres@127.0.0.1:54322/postgres?sslmode=verify-full&sslrootcert=system",
         environment: {},
       }),
     ).not.toThrow();
@@ -379,5 +403,114 @@ describe("CMS migration target", () => {
         // TLS check sees it.
       ).toThrow(/"sslmode" appears twice/);
     }
+  });
+});
+
+// The last check's P3 (phase 15): a non-empty PGSSLROOTCERT was enough, so a
+// hand-run hosted migration with PGSSLROOTCERT=system trusted the machine's
+// whole certificate store. The file must hold the project's CA, read by the
+// release job's own check (readDatabaseCa): one certificate, a CA, valid now.
+describe("the CA file the CMS runner's psql reads (phase 15, P3)", () => {
+  const roots: string[] = [];
+  afterEach(() => {
+    vi.useRealTimers();
+    for (const root of roots.splice(0))
+      rmSync(root, { recursive: true, force: true });
+  });
+  const withCaFile = (PGSSLROOTCERT: string) => () =>
+    assertCmsMigrationTarget({
+      ...hosted,
+      environment: { ...CA_ENV, PGSSLROOTCERT },
+    });
+
+  it("refuses system, which libpq reads as the machine's whole store", () => {
+    expect(withCaFile("system")).toThrow(
+      /PGSSLROOTCERT=system.*every certificate authority/,
+    );
+  });
+
+  // Phase 16, Q5: this check reads a relative path against Node's working
+  // directory, psql against its own; only an absolute path is one file.
+  it("refuses a relative path, even to the project's CA", () => {
+    expect(withCaFile("tests/unit/scripts/release/fixtures/ca/ca.crt")).toThrow(
+      /PGSSLROOTCERT names a relative path.*absolute path/,
+    );
+  });
+
+  it("refuses a file that cannot be read", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "p3-ca-"));
+    roots.push(root);
+    expect(withCaFile(path.join(root, "missing.crt"))).toThrow(
+      /PGSSLROOTCERT names a file that cannot be read \(ENOENT\)/,
+    );
+    expect(withCaFile(root)).toThrow(/cannot be read \(EISDIR\)/);
+  });
+
+  it.each([
+    ["a certificate that is not a CA", "leaf.crt", /not a CA/],
+    ["two certificates", "two-cas.crt", /holds 2 certificates/],
+  ])("refuses a file that holds %s", (_case, fixture, words) => {
+    expect(withCaFile(caFixture(fixture))).toThrow(words);
+    expect(withCaFile(caFixture(fixture))).toThrow(/PGSSLROOTCERT's file/);
+  });
+
+  it("refuses a file that holds something besides one certificate", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "p3-ca-"));
+    roots.push(root);
+    const file = path.join(root, "root.crt");
+    writeFileSync(file, "not a certificate\n");
+    expect(withCaFile(file)).toThrow(/holds no PEM certificate/);
+  });
+
+  it("refuses a CA that has expired", () => {
+    vi.useFakeTimers({ toFake: ["Date"], now: new Date("2200-01-01") });
+    expect(withCaFile(caFixture("ca.crt"))).toThrow(/expired on/);
+  });
+
+  it("accepts the project's CA", () => {
+    expect(withCaFile(caFixture("ca.crt"))).not.toThrow();
+  });
+});
+
+// Phase 16, Q1: Payload makes the migration's writes, and node-postgres
+// trusts every certificate in PAYLOAD_DATABASE_SSL_CA. A non-empty value was
+// enough, so a bundle of authorities passed. It is read by the same check as
+// the file, and must be the same certificate as the file's.
+describe("the CA Payload reads (phase 16, Q1)", () => {
+  const withPayloadCa = (PAYLOAD_DATABASE_SSL_CA: string) => () =>
+    assertCmsMigrationTarget({
+      ...hosted,
+      environment: { ...CA_ENV, PAYLOAD_DATABASE_SSL_CA },
+    });
+
+  it("refuses a bundle of several authorities", () => {
+    expect(
+      withPayloadCa(readFileSync(caFixture("two-cas.crt"), "utf8")),
+    ).toThrow(/PAYLOAD_DATABASE_SSL_CA holds 2 certificates/);
+  });
+
+  it("refuses an authority other than the file's", () => {
+    expect(withPayloadCa(OTHER_CA_PEM)).toThrow(
+      /PAYLOAD_DATABASE_SSL_CA and the file PGSSLROOTCERT names hold different certificates/,
+    );
+  });
+
+  it.each([
+    [
+      "something that is not a certificate",
+      "-----BEGIN CERTIFICATE-----\nfixture\n-----END CERTIFICATE-----",
+      /PAYLOAD_DATABASE_SSL_CA's certificate cannot be read/,
+    ],
+    [
+      "a certificate that is not a CA",
+      readFileSync(caFixture("leaf.crt"), "utf8"),
+      /PAYLOAD_DATABASE_SSL_CA holds a certificate that is not a CA/,
+    ],
+  ])("refuses %s", (_case, pem, words) => {
+    expect(withPayloadCa(pem)).toThrow(words);
+  });
+
+  it("accepts the file's own CA, with Windows line ends", () => {
+    expect(withPayloadCa(CA_PEM.replace(/\n/g, "\r\n"))).not.toThrow();
   });
 });
