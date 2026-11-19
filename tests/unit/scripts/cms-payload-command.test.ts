@@ -265,6 +265,16 @@ describe("Payload CLI migration preflight", () => {
       ["generate:importmap"],
       { PAYLOAD_MIGRATION_DATABASE_URI: "" },
     ],
+    [
+      "the local-only import map even with matching migration approval and CA",
+      ["generate:importmap"],
+      {
+        ...CA_ENV,
+        PAYLOAD_DATABASE_URI: HOSTED_MIGRATION_URL,
+        CMS_HOSTED_MIGRATION_REF: "fixture",
+        CMS_HOSTED_MIGRATION_ROLE: "cms_owner",
+      },
+    ],
   ])(
     "refuses %s on a hosted address, and never starts Payload",
     (_case, args, env) => {
