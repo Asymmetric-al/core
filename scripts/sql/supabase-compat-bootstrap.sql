@@ -35,9 +35,16 @@ END $$;
 
 GRANT anon, authenticated, service_role TO authenticator;
 
--- Hosted Supabase's default privileges give service_role access to tables that
--- later migrations create in public; mirror the SELECT, without anon or
--- authenticated table access.
+-- The plain replay's own minimal grant. It is
+-- not a statement of hosted Supabase's defaults: those live in
+-- scripts/sql/hosted-default-privileges.sql, which a flagged replay applies
+-- after this file and which grants more. Every
+-- replay without that file, CI's migrate job included, needs this one: the
+-- chain does not apply on plain Postgres without it, because
+-- 20261026105000_missionaries_server_only_reads.sql asserts that service_role
+-- can read public.missionaries (issue #2364). Checked in review H2 on 18
+-- November 2026: with this line removed, CI's migrate job stopped at that
+-- migration ("service_role lost SELECT on public.missionaries").
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO service_role;
 
 -- Supabase's migration history (applied versions), read by the

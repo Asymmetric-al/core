@@ -4,14 +4,14 @@
   "baselineCommit": "c4d36cb029121641b8882237632d0d6da434049e",
   "counts": {
     "canonical": 182,
-    "runtimePerClient": 237,
-    "lockEntries": 197,
+    "runtimePerClient": 240,
+    "lockEntries": 200,
     "outcomes": {
       "current": 89,
       "excluded": 1,
       "retained-snapshot": 5,
       "unresolved": 8,
-      "updated": 134
+      "updated": 137
     }
   },
   "treeHashAlgorithm": "SHA-256 of sorted POSIX relative path, NUL, file bytes, NUL; symlinks rejected.",
@@ -5382,6 +5382,57 @@
       ]
     },
     {
+      "name": "next-bundle-optimizer",
+      "status": "updated",
+      "ownership": "ecosystem",
+      "authorship": "upstream with Core adaptations",
+      "source": "vercel/next.js",
+      "importedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+      "examinedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+      "sourcePath": "skills/next-bundle-optimizer",
+      "rawSkillHash": "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
+      "lockHash": "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
+      "entrypointHash": "baf65ec7211b04873d555da55e2a42aca5669fcf68e978e9e3152c073f2f8d79",
+      "treeHash": "6e9e68967211c913f10ade996faaeab692bd78bd5e64cd2c52752c1e8408a1ce",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "references/UPSTREAM-license.md",
+            "sha256": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224"
+          }
+        ]
+      },
+      "adaptations": [
+        "Marked Core overlay after the frontmatter: Turbopack apps only (not apps/factory-console, which builds with webpack), Bun commands for next analyze and bun why, analyzer output kept outside the repository, sandbox escapes only through the client's permission request, and fix-mode dependency and UI changes routed through Core skills and rulebooks. Upstream text unchanged."
+      ],
+      "evidence": ".agents/skills/next-bundle-optimizer/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "reviewed-source-import-record",
+          "source": "vercel/next.js",
+          "examinedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+          "releaseTag": "v16.4.5",
+          "upstreamTree": "cbd1253f81a7a2c4ecbd56fb4d39cd1f27cf13b1",
+          "rawSkillHash": "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
+          "sourceFileHashes": {
+            "SKILL.md": "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
+            "references/fix-patterns.md": "c805ff1f56678dcc906bd66990c553c9087f13215d1c426d387ca1d96ff4d0aa",
+            "references/graph-methods.md": "e636d046190ebff651dbd74d6fa9999a9bc3c1882ec315ac8303ff8be1bdc242"
+          },
+          "adaptedFileHashes": {
+            "SKILL.md": "baf65ec7211b04873d555da55e2a42aca5669fcf68e978e9e3152c073f2f8d79",
+            "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+            "references/fix-patterns.md": "c805ff1f56678dcc906bd66990c553c9087f13215d1c426d387ca1d96ff4d0aa",
+            "references/graph-methods.md": "e636d046190ebff651dbd74d6fa9999a9bc3c1882ec315ac8303ff8be1bdc242",
+            "references/upstream.md": "8cb6fb0b272be821f58edb7b9a2c6dbc30ad7e1026605fafff8e9adba372e6aa"
+          },
+          "claim": "Imported with skills@1.5.7 from a reviewed local checkout of the release tag matching the installed Next.js; imported code was not executed."
+        }
+      ]
+    },
+    {
       "name": "next-cache-components-adoption",
       "status": "updated",
       "ownership": "ecosystem",
@@ -5512,6 +5563,106 @@
             "references/upstream.md": "4c2fff3fe42eeab7f40680cd81792cc7504e2eaff3589963568b5b8c328a2b44"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
+        }
+      ]
+    },
+    {
+      "name": "next-partial-prefetching-adoption",
+      "status": "updated",
+      "ownership": "ecosystem",
+      "authorship": "upstream with Core adaptations",
+      "source": "vercel/next.js",
+      "importedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+      "examinedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+      "sourcePath": "skills/next-partial-prefetching-adoption",
+      "rawSkillHash": "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
+      "lockHash": "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
+      "entrypointHash": "88b1bbf5a283a7eb3f36fbe8b79f0a668f01bc621ac23362b14d6f3b7d27a338",
+      "treeHash": "78dec92c19c2184204a07420cb13b77c197619b985a5cf4278a6461520f3b700",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "references/UPSTREAM-license.md",
+            "sha256": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224"
+          }
+        ]
+      },
+      "adaptations": [
+        "Marked Core overlay after the frontmatter: Partial Prefetching already adopted in every app, installed skills instead of canary links and npx skills add, no unpinned @next/codemod commands, --force or git stash, reuse of the root instant-nav.rig.md, and commit and pull-request authority under docs/ai/rules/general.md. Upstream text unchanged."
+      ],
+      "evidence": ".agents/skills/next-partial-prefetching-adoption/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "reviewed-source-import-record",
+          "source": "vercel/next.js",
+          "examinedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+          "releaseTag": "v16.4.5",
+          "upstreamTree": "ae20d672e38bcd4ab6c5e9b348e98e6872a9231d",
+          "rawSkillHash": "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
+          "sourceFileHashes": {
+            "SKILL.md": "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
+            "rig-template.md": "d3f296e1e29d93086f89fbfd0997b688c494513ccfc731cb06f2c67aef2ec3e6"
+          },
+          "adaptedFileHashes": {
+            "SKILL.md": "88b1bbf5a283a7eb3f36fbe8b79f0a668f01bc621ac23362b14d6f3b7d27a338",
+            "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+            "references/upstream.md": "6435ff6f84fc699a99018ea8ae648d7765bd982b78b1b77857b46e91d4f36ad1",
+            "rig-template.md": "d3f296e1e29d93086f89fbfd0997b688c494513ccfc731cb06f2c67aef2ec3e6"
+          },
+          "claim": "Imported with skills@1.5.7 from a reviewed local checkout of the release tag matching the installed Next.js; imported code was not executed."
+        }
+      ]
+    },
+    {
+      "name": "next-partial-prefetching-optimizer",
+      "status": "updated",
+      "ownership": "ecosystem",
+      "authorship": "upstream with Core adaptations",
+      "source": "vercel/next.js",
+      "importedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+      "examinedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+      "sourcePath": "skills/next-partial-prefetching-optimizer",
+      "rawSkillHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+      "lockHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+      "entrypointHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+      "treeHash": "2daef65e50d36e2e872a9aa0d9185db39c9afcf4e28fa9977ce796197681e054",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "references/UPSTREAM-license.md",
+            "sha256": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224"
+          }
+        ]
+      },
+      "adaptations": [
+        "None. Complete upstream subtree imported unchanged; provenance and the licence notice added under references/."
+      ],
+      "evidence": ".agents/skills/next-partial-prefetching-optimizer/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "reviewed-source-import-record",
+          "source": "vercel/next.js",
+          "examinedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+          "releaseTag": "v16.4.5",
+          "upstreamTree": "a3818456a2fa20adf76d7c08ab088a2e8efcb8dd",
+          "rawSkillHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+          "sourceFileHashes": {
+            "SKILL.md": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+            "reference/red-test-robustness.md": "dd70265f32a5ecf1b798d98fa047420ca71f1897ae1399fb2e4a4805f49a9f1d",
+            "rig-template.md": "031c73bb10e9fe1966b2eaaa546f421de9b0633dc29979cf43c2d2313b2ea775"
+          },
+          "adaptedFileHashes": {
+            "SKILL.md": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+            "reference/red-test-robustness.md": "dd70265f32a5ecf1b798d98fa047420ca71f1897ae1399fb2e4a4805f49a9f1d",
+            "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+            "references/upstream.md": "bb89e001fbf01171324b23bcf7e7be2ad3a7d7e332d1465fe1a66d4ee90994a6",
+            "rig-template.md": "031c73bb10e9fe1966b2eaaa546f421de9b0633dc29979cf43c2d2313b2ea775"
+          },
+          "claim": "Imported with skills@1.5.7 from a reviewed local checkout of the release tag matching the installed Next.js; imported code was not executed."
         }
       ]
     },
