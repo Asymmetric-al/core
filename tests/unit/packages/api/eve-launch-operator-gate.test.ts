@@ -15,7 +15,7 @@ import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
  * act as the platform operator only when the shared operator check passed
  * (`withOperation`'s `isPlatformOperator()`), and then send Eve's SQL the
  * platform actor role, which it judges by the operator list and a live row in
- * the tenant (20261119031554_wp2c_eve_actor_checks_operator_list.sql).
+ * the tenant (20261119135600_wp2c_eve_actor_checks_operator_list.sql).
  */
 const TENANT = "43700000-0000-4000-8000-000000000001";
 const PROFILE = "43700000-0000-4000-8000-000000000002";

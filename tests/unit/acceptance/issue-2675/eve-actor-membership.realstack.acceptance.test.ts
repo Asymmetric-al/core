@@ -11,7 +11,7 @@
  * (tests/unit/acceptance/issue-26[78][0-9]/*.realstack.acceptance.test.ts).
  *
  * Amended by AL-2675 (WP2c, part 1; record section 9 and D-18;
- * 20261119031554_wp2c_eve_actor_checks_operator_list.sql): the three cases
+ * 20261119135600_wp2c_eve_actor_checks_operator_list.sql): the three cases
  * that kept the `super_admin` actor on the profile "until WP2c" now prove the
  * operator list and a live row in the tenant, and the triggers on the
  * notification recipients and the two grant tables read membership.
