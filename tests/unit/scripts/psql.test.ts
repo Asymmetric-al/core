@@ -8,6 +8,7 @@
 import {
   chmodSync,
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -763,8 +764,29 @@ describe("the ambient libpq settings a builder may keep (review M3)", () => {
   });
 });
 
-// Review M4: the texts name every file under scripts/ that starts psql and say
-// which of them use the shared check; the code decides what is true.
+/*
+ * Reviews M4 and N4, and the last check's P2 (phase 15): which files under
+ * scripts/ may start psql. The rule is blunt, so that no reading of the code
+ * can be fooled. In every file under scripts/ but Markdown, the letters
+ * "psql", in any case, are counted wherever they stand: in code, in a string,
+ * in a comment, in a name (PSQL_BIN, runPsqlQuery, "$PSQL_BIN",
+ * /usr/bin/psql, an import of scripts/lib/psql.mjs). Nothing is stripped, so
+ * no comment or string can hide them. A file that holds them is a listed
+ * starter (PSQL_STARTERS), or is listed by name in PSQL_NAMERS with the
+ * reason it needs the word and how many times it holds it. Any other file
+ * that holds them fails, and so does a listed file whose count changes: a
+ * new mention in a listed file is reviewed, then counted.
+ *
+ * What this cannot see:
+ * - a program name built at run time from parts ("ps" + "ql", a character
+ *   code, a decoded string) in a file that otherwise never names psql;
+ * - a helper outside scripts/ (packages/, tests/) that starts psql for a
+ *   script, or anything under a node_modules directory, which the walk skips;
+ * - in a listed file, a new mention that replaces an old one one for one, so
+ *   the count stays the same;
+ * - what a listed starter does: the tests of the three shared builders and
+ *   the starters' own tests judge that.
+ */
 const PSQL_STARTERS = [
   // The three builders of a psql connection from an address: the shared
   // check (databaseUrlProblem) and the shared list (keptAmbientLibpqEnv).
@@ -778,57 +800,223 @@ const PSQL_STARTERS = [
 ];
 const SHARED_BUILDERS = PSQL_STARTERS.slice(0, 3);
 
+/**
+ * The files that name psql and start none, each with how many times it holds
+ * the letters (in any case, comments included) and why.
+ */
+const PSQL_NAMERS: Record<string, { count: number; reason: string }> = {
+  "scripts/cms/lib/migration-target.mjs": {
+    count: 5,
+    reason:
+      "comments and two messages that name the CMS runner's psql and the CA file it reads",
+  },
+  "scripts/cms/lib/supabase.mjs": {
+    count: 3,
+    reason: "imports and calls runPsqlFile from the CMS builder",
+  },
+  "scripts/cms/qualify-payload-pin.mjs": {
+    count: 1,
+    reason: "imports isLoopbackDatabaseUrl from scripts/lib/psql.mjs",
+  },
+  "scripts/cms/verify-local.mjs": {
+    count: 2,
+    reason: "imports and calls runPsql from the CMS builder",
+  },
+  "scripts/lib/environment-marker.mjs": {
+    count: 12,
+    reason:
+      "reads the marker through runPsqlQuery, handing on psqlBin from PSQL_BIN",
+  },
+  "scripts/lib/local-database.mjs": {
+    count: 16,
+    reason:
+      "the `local-database.mjs psql` entry: shell scripts run psql through spawnPsql here, and its usage and messages name it",
+  },
+  "scripts/release/lib/database-target.mjs": {
+    count: 4,
+    reason:
+      "a comment, and the shared check's forPsql option for an address the reset guard hands psql",
+  },
+  "scripts/release/lib/scram.mjs": {
+    count: 1,
+    reason: "a comment comparing the verifier with psql's \\password",
+  },
+  "scripts/release/release-database.mjs": {
+    count: 24,
+    reason:
+      "calls runPsql from the release builder and requirePsqlHonoursRequireAuth from scripts/lib/psql.mjs, hands on a psqlBin, and comments",
+  },
+  "scripts/seed-demo.sh": {
+    count: 9,
+    reason:
+      "`require_cmd psql`, and local_psql, which runs the `local-database.mjs psql` entry",
+  },
+  "scripts/supabase-cli.mjs": {
+    count: 1,
+    reason: "a comment on how the reset guard reads the marker",
+  },
+  "scripts/verify/field-policy-census.mjs": {
+    count: 9,
+    reason: "runs its catalog query through runPsqlQuery, handing on PSQL_BIN",
+  },
+  "scripts/verify/seed-counts.mjs": {
+    count: 12,
+    reason:
+      "counts rows through runPsqlQuery, handing on PSQL_BIN, and a message",
+  },
+  "scripts/verify/supabase-migrations.mjs": {
+    count: 16,
+    reason:
+      "runs each file through spawnPsql, handing on PSQL_BIN, and its messages",
+  },
+  "scripts/verify/tenant-rls-catalog.mjs": {
+    count: 8,
+    reason: "runs its catalog query through runPsqlQuery, handing on psqlBin",
+  },
+};
+
+/** Every file under `dir`, whatever its extension, but under node_modules. */
 function scriptsFiles(dir = "scripts"): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const file = `${dir}/${entry.name}`;
     if (entry.isDirectory())
       return entry.name === "node_modules" ? [] : scriptsFiles(file);
-    return /\.(?:mjs|cjs|js|ts|sh)$/.test(entry.name) ? [file] : [];
+    return [file];
   });
 }
 
-/** Source without its comments, so a comment can neither pass nor fail it. */
-function withoutComments(source: string, shell: boolean): string {
-  return shell
-    ? source.replace(/(^|\s)#(?!!).*$/gm, "$1")
-    : source
-        .replace(/\/\*[\s\S]*?\*\//g, "")
-        .replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1");
-}
-/** psql in a shell command's place: line start, after ; & | ( ` { or $(, after then/do/else/exec/sudo/time/command/xargs/env, and after VAR=value prefixes. */
-const SHELL_PSQL =
-  /(?:^|[;&|(`{]|\$\(|\b(?:then|do|else|exec|sudo|time|command|xargs|env))[ \t]*(?:[A-Za-z_]\w*=\S*[ \t]+)*psql(?=[ \t]|$|[;)|&])/m;
-/** A child-process call whose program is psql. */
-const DIRECT_PSQL =
-  /\b(?:spawn|spawnSync|execFile|execFileSync|exec|execSync)\s*\(\s*(?:["'`]psql["'`]|psqlBin\b|process\.env\.PSQL_BIN)/;
-/** A real import of scripts/lib/psql.mjs, static or dynamic. */
-const IMPORTS_PSQL =
-  /\bfrom\s+["'][^"']*\/psql\.mjs["']|\bimport\(\s*["'][^"']*\/psql\.mjs["']\s*\)/;
+/** How many times `source` holds the letters psql, in any case. */
+const psqlCount = (source: string) => source.match(/psql/gi)?.length ?? 0;
 
-/**
- * Why a file under scripts/ breaks the rule of reviews M4 and N4, or null. A
- * file that is not a listed starter never starts psql itself: a shell file
- * goes through scripts/lib/local-database.mjs, and a JavaScript file names
- * psql only to hand it to scripts/lib/psql.mjs, which it really imports.
- */
+/** Why a file under scripts/ breaks the rule above, or null. */
 function psqlProblem(file: string, source: string): string | null {
-  if (PSQL_STARTERS.includes(file)) return null;
-  const shell = file.endsWith(".sh");
-  const code = withoutComments(source, shell);
-  if (shell)
-    return SHELL_PSQL.test(code)
-      ? `${file} starts psql itself; go through scripts/lib/local-database.mjs`
-      : null;
-  if (DIRECT_PSQL.test(code)) return `${file} starts psql itself`;
-  if (/["'`]psql["'`]|PSQL_BIN/.test(code) && !IMPORTS_PSQL.test(code))
-    return `${file} names psql but does not import scripts/lib/psql.mjs`;
+  if (file.endsWith(".md")) return null;
+  const count = psqlCount(source);
+  if (count === 0 || PSQL_STARTERS.includes(file)) return null;
+  const listed = PSQL_NAMERS[file];
+  if (!listed)
+    return `${file} names psql ${count} time(s) and is neither a listed starter nor listed in PSQL_NAMERS. A script runs psql through scripts/lib/psql.mjs, or a shell script through scripts/lib/local-database.mjs; list a file that only names it, with the reason and the count.`;
+  if (listed.count !== count)
+    return `${file} names psql ${count} time(s), and PSQL_NAMERS says ${listed.count}. Check that the change starts no psql, then update the count and the reason.`;
   return null;
 }
 
+/** The forms the last check (phase 15, P2) found passing the patterns. */
+const REVIEWER_FORMS: Array<[string, string, string]> = [
+  [
+    "execSync with a command string and no import",
+    "scripts/x/exec-sync.mjs",
+    'import { execSync } from "node:child_process";\nexecSync("psql -c \'select 1\'");\n',
+  ],
+  [
+    "exec with a command string and no import",
+    "scripts/x/exec.mjs",
+    'import { exec } from "node:child_process";\nexec("psql -c \'select 1\'");\n',
+  ],
+  [
+    "a full path",
+    "scripts/x/full-path.mjs",
+    'import { spawnSync } from "node:child_process";\nspawnSync("/usr/bin/psql", ["-c", "select 1"]);\n',
+  ],
+  [
+    "a shell",
+    "scripts/x/shell.mjs",
+    'import { spawnSync } from "node:child_process";\nspawnSync("sh", ["-c", "psql -c \'select 1\'"]);\n',
+  ],
+  [
+    "a computed program name beside an import of psql.mjs",
+    "scripts/x/computed.mjs",
+    'import { runPsqlQuery } from "../lib/psql.mjs";\nimport { spawnSync } from "node:child_process";\nconst bin = ["ps", "ql"].join("");\nspawnSync(bin, ["-c", "select 1"]);\n',
+  ],
+  [
+    "Bun.spawn beside an import of psql.mjs",
+    "scripts/x/bun-spawn.mjs",
+    'import { isLoopbackDatabaseUrl } from "../lib/psql.mjs";\nBun.spawn(["psql", "-c", "select 1"]);\n',
+  ],
+  [
+    'a local helper called as run("psql") beside an import of psql.mjs',
+    "scripts/x/helper.mjs",
+    'import { isLoopbackDatabaseUrl } from "../lib/psql.mjs";\nimport { spawnSync } from "node:child_process";\nconst run = (bin) => spawnSync(bin, ["-c", "select 1"]);\nrun("psql");\n',
+  ],
+  [
+    "a .mts file",
+    "scripts/x/start.mts",
+    'import { spawnSync } from "node:child_process";\nspawnSync("psql", ["-c", "select 1"]);\n',
+  ],
+  [
+    "a .cts file",
+    "scripts/x/start.cts",
+    'const { spawnSync } = require("node:child_process");\nspawnSync("psql", ["-c", "select 1"]);\n',
+  ],
+  [
+    "a .bash file",
+    "scripts/x/start.bash",
+    '#!/usr/bin/env bash\npsql -c "select 1"\n',
+  ],
+  [
+    "a .py file",
+    "scripts/x/start.py",
+    'import subprocess\nsubprocess.run(["psql", "-c", "select 1"])\n',
+  ],
+  [
+    "a file with no extension",
+    "scripts/x/start",
+    '#!/bin/sh\npsql -c "select 1"\n',
+  ],
+  ["if before psql", "scripts/x/if.sh", 'if psql -c "select 1"; then :; fi\n'],
+  [
+    "while before psql",
+    "scripts/x/while.sh",
+    'while psql -c "select 1"; do break; done\n',
+  ],
+  [
+    "until before psql",
+    "scripts/x/until.sh",
+    'until psql -c "select 1"; do sleep 1; done\n',
+  ],
+  [
+    "elif before psql",
+    "scripts/x/elif.sh",
+    'if false; then :\nelif psql -c "select 1"; then :; fi\n',
+  ],
+  ["! before psql", "scripts/x/not.sh", '! psql -c "select 1"\n'],
+  ["sudo -u x psql", "scripts/x/sudo.sh", 'sudo -u x psql -c "select 1"\n'],
+  ["timeout 5 psql", "scripts/x/timeout.sh", 'timeout 5 psql -c "select 1"\n'],
+  ["nohup psql", "scripts/x/nohup.sh", 'nohup psql -c "select 1"\n'],
+  [
+    "xargs -r psql",
+    "scripts/x/xargs.sh",
+    'echo "select 1" | xargs -r psql -c\n',
+  ],
+  ["env -i psql", "scripts/x/env-i.sh", 'env -i psql -c "select 1"\n'],
+  ['"$PSQL_BIN"', "scripts/x/bin.sh", '"$PSQL_BIN" -c "select 1"\n'],
+  [
+    "code after a string that holds //",
+    "scripts/x/slashes.mjs",
+    'import { execSync } from "node:child_process";\nconst note = "see a // b"; execSync("psql -c \'select 1\'");\n',
+  ],
+  [
+    "code between strings that hold /* and */",
+    "scripts/x/stars.mjs",
+    'import { execSync } from "node:child_process";\nconst open = "/*"; execSync("psql -c \'select 1\'"); const close = "*/";\n',
+  ],
+];
+
 describe("the files under scripts/ that start psql (review M4)", () => {
-  it("every file that names psql is a listed starter or goes through a shared builder", () => {
-    for (const file of scriptsFiles())
-      expect(psqlProblem(file, readFileSync(file, "utf8"))).toBeNull();
+  it("every file that names psql is a listed starter, or is listed by name at its count", () => {
+    const counts = new Map<string, number>();
+    for (const file of scriptsFiles()) {
+      const source = readFileSync(file, "utf8");
+      expect(psqlProblem(file, source)).toBeNull();
+      counts.set(file, psqlCount(source));
+    }
+    // No entry outlives its file, or the need for the word.
+    for (const [file, { count, reason }] of Object.entries(PSQL_NAMERS)) {
+      expect(counts.get(file), file).toBe(count);
+      expect(reason.length, file).toBeGreaterThan(20);
+    }
+    for (const file of PSQL_STARTERS)
+      expect(counts.get(file), file).toBeGreaterThan(0);
   });
 
   // Review N4: the rule holds on code, not on what a comment says.
@@ -862,16 +1050,71 @@ describe("the files under scripts/ that start psql (review M4)", () => {
     expect(psqlProblem(file, source)).not.toBeNull();
   });
 
+  // The last check's P2 (phase 15): every form the reviewer found that
+  // passed the earlier patterns, planted as a file that is not listed.
+  it.each(REVIEWER_FORMS)("refuses %s", (_case, file, source) => {
+    expect(psqlProblem(file, source)).not.toBeNull();
+  });
+
+  it("walks every file under scripts/ but those under node_modules, whatever its extension", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "p2-walk-"));
+    roots.push(root);
+    const names = ["a.mts", "b.cts", "c.bash", "d.py", "run", "e.md"];
+    for (const name of names) writeFileSync(path.join(root, name), "psql\n");
+    mkdirSync(path.join(root, "node_modules"));
+    writeFileSync(path.join(root, "node_modules", "dep.js"), "psql\n");
+    expect(
+      scriptsFiles(root)
+        .map((file) => path.basename(file))
+        .sort(),
+    ).toEqual([...names].sort());
+  });
+
+  // A new file that names psql is listed by name, even when it only hands
+  // psql to the runner: the list is what a reviewer reads.
   it.each([
     [
-      "a real import that hands psql to the runner",
+      "an unlisted import that hands psql to the runner",
       "scripts/x/ok.mjs",
       'import { runPsqlQuery } from "../lib/psql.mjs";\nconst psqlBin = process.env.PSQL_BIN?.trim() || "psql";\nrunPsqlQuery({ databaseUrl, sql: "select 1", psqlBin });\n',
     ],
     [
-      "a shell script that goes through the local-database helper",
+      "an unlisted shell script that goes through the local-database helper",
       "scripts/x/ok.sh",
-      '#!/usr/bin/env bash\n# Runs psql through the shared runner.\nrequire_cmd psql\nlocal_psql() {\n  node "$SCRIPT_DIR/lib/local-database.mjs" psql SUPABASE_DB_URL "$@"\n}\nlocal_psql -c "select 1"\n',
+      '#!/usr/bin/env bash\nrequire_cmd psql\nlocal_psql() {\n  node "$SCRIPT_DIR/lib/local-database.mjs" psql SUPABASE_DB_URL "$@"\n}\nlocal_psql -c "select 1"\n',
+    ],
+    [
+      "an unlisted file that names psql in a comment only",
+      "scripts/x/comment-only.mjs",
+      "// psql is never started here.\nexport const answer = 42;\n",
+    ],
+  ])("refuses %s, until it is listed", (_case, file, source) => {
+    expect(psqlProblem(file, source)).toMatch(/not.*listed|neither/);
+  });
+
+  it("refuses a listed file that names psql once more than its count", () => {
+    const file = "scripts/lib/environment-marker.mjs";
+    const source = `${readFileSync(file, "utf8")}\nspawnSync(psqlBin, ["-c", "select 1"]);\n`;
+    expect(psqlProblem(file, source)).toMatch(
+      /names psql 13 time\(s\), and PSQL_NAMERS says 12/,
+    );
+  });
+
+  it.each([
+    [
+      "a file that never names psql",
+      "scripts/x/plain.mjs",
+      'import { spawnSync } from "node:child_process";\nspawnSync("ls", ["-l"]);\n',
+    ],
+    [
+      "Markdown",
+      "scripts/x/README.md",
+      "Run `psql` through `scripts/lib/psql.mjs`.\n",
+    ],
+    [
+      "a listed starter",
+      "scripts/verify/backup-restore-proof.mjs",
+      'spawnSync("docker", ["exec", "db", "psql", "-c", "select 1"]);\n',
     ],
   ])("accepts %s", (_case, file, source) => {
     expect(psqlProblem(file, source)).toBeNull();
