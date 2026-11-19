@@ -710,9 +710,19 @@ describe("TenantSegmentBoundary: a crossing is a document load", () => {
     expect(loadDocument).toHaveBeenCalledTimes(1);
     act(() => router!.refresh());
     expect(nav.refresh).not.toHaveBeenCalled();
+
+    // After the task, the document that is still here refreshes (AR14).
+    await act(() => new Promise<void>((resolve) => setTimeout(resolve, 0)));
+    act(() => router!.refresh());
+    expect(nav.refresh).toHaveBeenCalledTimes(1);
   });
 
-  it("refreshes again when the browser shows the document from its back-forward cache", async () => {
+  // Council round 3, AR14: the mark lasts only the task that began the
+  // crossing, in which every caller refreshes. A document that is still here
+  // afterwards (the person cancelled a beforeunload prompt or pressed Stop,
+  // the answer was a 204 or a download, or the browser restored the page
+  // from its back-forward cache) has a working refresh.
+  it("refreshes again after the task that began the crossing, with no back-forward cache restore", async () => {
     const mod = await boundaryLoadedAt("/login");
     cleanup();
     let router: ReturnType<typeof mod.useTenantRouter> | null = null;
@@ -730,12 +740,28 @@ describe("TenantSegmentBoundary: a crossing is a document load", () => {
     act(() => router!.refresh());
     expect(nav.refresh).not.toHaveBeenCalled();
 
-    // The person came back to this document, so the load it began is over.
-    const restored = new Event("pageshow") as PageTransitionEvent;
-    Object.defineProperty(restored, "persisted", { value: true });
-    act(() => window.dispatchEvent(restored));
+    await act(() => new Promise<void>((resolve) => setTimeout(resolve, 0)));
     act(() => router!.refresh());
     expect(nav.refresh).toHaveBeenCalledTimes(1);
+  });
+
+  // Council round 3, AR14: a link the browser downloads is not a navigation,
+  // as next/link itself treats it.
+  it("leaves a crossing link with a download attribute to the browser", async () => {
+    const mod = await boundaryLoadedAt(`${scopeA.addressPrefix}/contributions`);
+    cleanup();
+    render(
+      <mod.TenantSegmentBoundary>
+        <mod.TenantDocument scope={scopeA}>
+          <mod.TenantLink href="/web-studio/export.csv" download>
+            Export
+          </mod.TenantLink>
+        </mod.TenantDocument>
+      </mod.TenantSegmentBoundary>,
+    );
+
+    act(() => screen.getByText("Export").click());
+    expect(loadDocument).not.toHaveBeenCalled();
   });
 
   it("makes a link from an outside page into the segment load a document", async () => {

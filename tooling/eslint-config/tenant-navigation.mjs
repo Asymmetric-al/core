@@ -15,14 +15,24 @@
 // these files would drop the cross-app, Supabase and table-engine bans in
 // one config or another; and it does not see `require` or `import()`.
 //
-// Council round 2, AR1: a write through the history API keeps the address
-// only when it is taken from the live location (`window.location`, or a
-// variable built from it), is a fragment or a query on it, or is built by the
-// tenant helper (`useTenantHref()`'s function); any other address is
-// reported. `next/form` and a literal internal `<form action>` are reported
-// too. Not covered: a `<form action>` or a `router`-like call whose address
-// is computed at run time from something else; the helpers and review cover
-// those.
+// Council round 2, AR1, and round 3, AR15: a write through the history API
+// (on `history`, `window.history`, or a local alias of either) keeps the
+// address only when its PATH is taken from the live location, is a
+// fragment or a query on the current address, or is built by the tenant
+// helper (`useTenantHref()`'s function); any other address is reported. The
+// path is the first part of a template or a `+` chain, or the first argument
+// of `new URL`, and it is from the live location when it is the location
+// itself, its `href` or `pathname`, a URL made from one of those, or a local
+// variable bound to one; a query or an origin read from the location does
+// not count. Both branches of a conditional address are judged. `next/form`
+// and a literal internal `<form action>` are reported too.
+//
+// Not covered, for the helpers and review: a history method called by a
+// computed name or through `.call`/`.apply`, an alias made by destructuring
+// (`const { history } = window`), a URL whose `pathname` is assigned after it
+// is made from the location, `window.open`, `<button formAction>`, and a
+// `<form action>` or a `router`-like call whose address is computed at run
+// time from something else.
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -183,35 +193,74 @@ const noPrefixlessNavigation = {
     // Local names of the function useTenantHref() returns.
     const tenantHrefNames = new Set();
 
-    /** Whether an expression reads the live location anywhere inside it. */
-    function readsLocation(node, depth = 0) {
-      if (!node || typeof node !== "object" || depth > 2) return false;
-      if (isGlobalLocation(node)) return true;
-      if (node.type === "Identifier") {
-        // One step through a local variable: const url = new URL(location.href)
-        let scope = sourceCode.getScope(node);
-        while (scope) {
-          const variable = scope.set.get(node.name);
-          if (variable) {
-            return variable.defs.some(
-              (def) =>
-                def.node.type === "VariableDeclarator" &&
-                readsLocation(def.node.init, depth + 1),
-            );
+    /** The initializers of the local variable an identifier names. */
+    function initializersOf(node) {
+      let scope = sourceCode.getScope(node);
+      while (scope) {
+        const variable = scope.set.get(node.name);
+        if (variable) {
+          return variable.defs
+            .filter((def) => def.node.type === "VariableDeclarator")
+            .map((def) => def.node.init);
+        }
+        scope = scope.upper;
+      }
+      return [];
+    }
+
+    /**
+     * Whether an address's PATH comes from the live location (council round
+     * 3, AR15): the location itself, its `href` or `pathname`, a URL made from
+     * one of those (`new URL(location.href)`, its `href` or `toString()`), or
+     * a local variable bound to one. Of a template or a `+` chain only the
+     * first part counts, and of `new URL` only the first argument: a query or
+     * an origin read from the location does not carry the path.
+     */
+    function pathFromLocation(node, depth = 0) {
+      if (!node || depth > 3) return false;
+      switch (node.type) {
+        case "TSAsExpression":
+        case "TSSatisfiesExpression":
+        case "TSNonNullExpression":
+          return pathFromLocation(node.expression, depth);
+        case "TemplateLiteral":
+          return (
+            node.quasis[0]?.value.cooked === "" &&
+            pathFromLocation(node.expressions[0], depth)
+          );
+        case "BinaryExpression":
+          return node.operator === "+" && pathFromLocation(node.left, depth);
+        case "NewExpression":
+          return (
+            node.callee.type === "Identifier" &&
+            node.callee.name === "URL" &&
+            pathFromLocation(node.arguments[0], depth)
+          );
+        case "CallExpression":
+          // `url.toString()`, `String(url)`
+          if (memberName(node.callee) === "toString") {
+            return pathFromLocation(node.callee.object, depth);
           }
-          scope = scope.upper;
-        }
-        return false;
+          return (
+            node.callee.type === "Identifier" &&
+            node.callee.name === "String" &&
+            pathFromLocation(node.arguments[0], depth)
+          );
+        case "MemberExpression":
+          if (isGlobalLocation(node)) return true;
+          return (
+            ["href", "pathname"].includes(memberName(node)) &&
+            pathFromLocation(node.object, depth)
+          );
+        case "Identifier":
+          if (isGlobalLocation(node)) return true;
+          // One step through a local variable: const url = new URL(location.href)
+          return initializersOf(node).some((init) =>
+            pathFromLocation(init, depth + 1),
+          );
+        default:
+          return false;
       }
-      for (const [key, value] of Object.entries(node)) {
-        if (key === "parent" || key === "loc" || key === "range") continue;
-        if (Array.isArray(value)) {
-          if (value.some((child) => readsLocation(child, depth))) return true;
-        } else if (value && typeof value.type === "string") {
-          if (readsLocation(value, depth)) return true;
-        }
-      }
-      return false;
     }
 
     /** Whether a history write's address keeps the document's prefix. */
@@ -219,6 +268,13 @@ const noPrefixlessNavigation = {
       if (!url) return true;
       if (url.type === "Literal" && url.value == null) return true;
       if (url.type === "Identifier" && url.name === "undefined") return true;
+      // Either address may be written: each must keep the prefix.
+      if (url.type === "ConditionalExpression") {
+        return keepsAddress(url.consequent) && keepsAddress(url.alternate);
+      }
+      if (url.type === "LogicalExpression") {
+        return keepsAddress(url.left) && keepsAddress(url.right);
+      }
       const prefix = staticPrefix(url);
       if (typeof prefix === "string" && /^[?#]/.test(prefix)) return true;
       if (
@@ -228,11 +284,20 @@ const noPrefixlessNavigation = {
       ) {
         return true;
       }
-      return readsLocation(url);
+      return pathFromLocation(url);
     }
 
-    function isGlobalHistory(node) {
-      if (node.type === "Identifier" && node.name === "history") {
+    function isGlobalHistory(node, depth = 0) {
+      if (node.type === "Identifier") {
+        // An alias: const h = window.history
+        const inits = initializersOf(node);
+        if (inits.length > 0) {
+          return (
+            depth < 2 &&
+            inits.some((init) => init && isGlobalHistory(init, depth + 1))
+          );
+        }
+        if (node.name !== "history") return false;
         let scope = sourceCode.getScope(node);
         while (scope) {
           const variable = scope.set.get("history");

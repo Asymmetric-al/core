@@ -95,6 +95,24 @@ const OFFENDING: ReadonlyArray<[string, string]> = [
     "history.pushState with the route path",
     'export function go(pathname: string, q: string) { history.pushState(null, "", `${pathname}?${q}`); }',
   ],
+  // Council round 3, AR15: only the path part counts. The location may
+  // supply the query or the origin, and the path still drops the prefix.
+  [
+    "history.replaceState with the route path and the live query",
+    'import { useRoutePathname } from "@asym/auth/tenant-navigation";\nexport function useGo() { const pathname = useRoutePathname(); return () => { const query = new URLSearchParams(window.location.search); window.history.replaceState(null, "", `${pathname}?${query}`); }; }',
+  ],
+  [
+    "history.replaceState with a path followed by the live query",
+    'export function go(pathname: string) { window.history.replaceState(null, "", pathname + location.search); }',
+  ],
+  [
+    "history.pushState with a path resolved against the live origin",
+    'export function go() { window.history.pushState(null, "", new URL("/crm", window.location.origin)); }',
+  ],
+  [
+    "a write through an alias of history",
+    'export function go() { const h = window.history; h.replaceState(null, "", "/crm"); }',
+  ],
   [
     "next/form",
     'import Form from "next/form";\nexport const A = () => <Form action="/search">x</Form>;',
@@ -143,6 +161,14 @@ const ALLOWED: ReadonlyArray<[string, string]> = [
   [
     "a history write from the live location",
     'export function go(q: string) { window.history.replaceState(null, "", `${window.location.pathname}?${q}`); }',
+  ],
+  [
+    "the CRM list's write: the live path, with or without a query",
+    'export function go(q: string) { const address = window.location.pathname; window.history.replaceState(null, "", q ? `${address}?${q}` : address); }',
+  ],
+  [
+    "a history write of a URL from the live location, as text",
+    'export function go() { const url = new URL(window.location.href); url.searchParams.set("tab", "x"); window.history.replaceState(null, "", url.toString()); window.history.replaceState(null, "", url.href); }',
   ],
   [
     "a history write of a URL built from the live location",

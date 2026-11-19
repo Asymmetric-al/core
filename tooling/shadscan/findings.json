@@ -1789,11 +1789,11 @@
       "proof": [
         {
           "path": "packages/auth/tenant-navigation.tsx",
-          "sha256": "2d157563d3e7da0c3e65ec7c7f1c5bed42c40a2ce2ae3ae63be8b9fe3623ccc8"
+          "sha256": "7bb87c98f49c865161672575850134af9f9c8e25be8c37c879b181e81654c9f8"
         },
         {
           "path": "tests/unit/auth/tenant-navigation.test.tsx",
-          "sha256": "b3b948d4bb5251c73a032b6ad81adf2e23074e48ce46b47736664a9556939ffe"
+          "sha256": "f2ef691f13fbe61c51abe0c5bbdfc6d781c7bc47cf039340e8a9bd906ffc4fd5"
         }
       ]
     },
