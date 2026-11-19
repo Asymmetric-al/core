@@ -1,9 +1,12 @@
 {
-  "description": "Signed-in policies in public that carry no request-tenant condition, each reviewed, pinned to its deparsed text and named with the package that ends it. The catalog gate (scripts/verify/tenant-rls-catalog.mjs) fails any other signed-in policy of a tenant table without the condition, a listed policy whose text changes (POLICY_EXCEPTION_CHANGED) and a listed policy that is gone (POLICY_EXCEPTION_STALE). See docs/security/tenant-policy-activation-review.md, section 3, and the coordinator's rulings of 19 November 2026 on its questions 3 and 4.",
+  "description": "Signed-in policies in public that carry no request-tenant condition, or that reach their tenant through a parent row, each reviewed, pinned to its deparsed text, its command, its sorted roles and whether it is permissive, and named with the package that ends it. The catalog gate (scripts/verify/tenant-rls-catalog.mjs) fails any other signed-in policy of a tenant table without the condition, any signed-in policy that is not listed here on a table that reaches its tenant through a parent (PARENT_SCOPED_POLICY_NOT_PINNED), a listed policy whose text, command, roles or kind changes (POLICY_EXCEPTION_CHANGED) and a listed policy that is gone (POLICY_EXCEPTION_STALE). See docs/security/tenant-policy-activation-review.md, section 3, the coordinator's rulings of 19 November 2026 on its questions 3 and 4, and the council's R3.",
   "entries": [
     {
       "table": "account_claim_requests",
       "policy": "account_claim_requests_requester_select",
+      "cmd": "SELECT",
+      "roles": ["authenticated"],
+      "permissive": true,
       "using": "(requested_by = ( SELECT auth.uid() AS uid))",
       "check": null,
       "reason": "The requester's own claim rows. A claimant may hold no membership in the tenant yet, so a tenant condition would hide their own claim from them. An accepted earlier decision gave the requester this read and the frozen suite of issue 2255 pins it. The row shows the claimant donor_id, match_type, match_confidence and resolved_by. Nothing reads it on a signed-in token today.",
@@ -11,8 +14,23 @@
       "ruling": "activation review Q4"
     },
     {
+      "table": "donor_activities",
+      "policy": "donor activities owner or staff select",
+      "cmd": "SELECT",
+      "roles": ["authenticated"],
+      "permissive": true,
+      "using": "(( SELECT authz.is_super_admin() AS is_super_admin) OR (EXISTS ( SELECT 1\n   FROM donors d\n  WHERE ((d.id = donor_activities.donor_id) AND (d.tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)) AND (( SELECT authz.assignment_is('staff'::authz.membership_role) AS assignment_is) OR (( SELECT authz.assignment_is('donor'::authz.membership_role) AS assignment_is) AND (d.profile_id IN ( SELECT authz.caller_profile_ids() AS caller_profile_ids))))))))",
+      "check": null,
+      "reason": "No tenant column: an activity reaches its tenant through its donor. The policy carries the request's tenant on the donor row (d.tenant_id = the current tenant), and the staff class or the caller's own donor record under a donor assignment, beside the super-admin branch. Pinned so that a second permissive policy on the table, which Postgres would OR with it, fails the gate (council R3).",
+      "ends": "WP2c removes its super-admin branch; the parent-scoped form is permanent",
+      "ruling": "council R3"
+    },
+    {
       "table": "field_policies",
       "policy": "field_policies_read",
+      "cmd": "SELECT",
+      "roles": ["authenticated"],
+      "permissive": true,
       "using": "(( SELECT authz.is_super_admin() AS is_super_admin) OR (((tenant_id IS NULL) OR (tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id))) AND (( SELECT authz.current_tenant_id() AS current_tenant_id) IS NOT NULL)))",
       "check": null,
       "reason": "It carries the tenant condition and also admits the global rows (tenant_id IS NULL), which belong to no tenant, to a member of the active tenant: a donor row and a missionary row still read field_policies.",
@@ -22,6 +40,9 @@
     {
       "table": "locations",
       "policy": "tanstack browser read",
+      "cmd": "SELECT",
+      "roles": ["anon", "authenticated"],
+      "permissive": true,
       "using": "(status = 'published'::text)",
       "check": null,
       "reason": "Published rows, TO anon and authenticated, read with no header by the public map and by a signed-in visitor (record D-05 took NA-06 at its default).",
@@ -31,6 +52,9 @@
     {
       "table": "post_comments",
       "policy": "tanstack browser read",
+      "cmd": "SELECT",
+      "roles": ["anon", "authenticated"],
+      "permissive": true,
       "using": "(EXISTS ( SELECT 1\n   FROM posts parent_post\n  WHERE ((parent_post.id = post_comments.post_id) AND (parent_post.status = 'published'::text) AND (parent_post.visibility = 'public'::text))))",
       "check": null,
       "reason": "The comments of a published public post, TO anon and authenticated, read by a caller with no resolved row. No tenant column; it reads posts under the caller's own row security.",
@@ -40,6 +64,9 @@
     {
       "table": "post_fires",
       "policy": "tanstack browser read",
+      "cmd": "SELECT",
+      "roles": ["anon", "authenticated"],
+      "permissive": true,
       "using": "(EXISTS ( SELECT 1\n   FROM posts parent_post\n  WHERE ((parent_post.id = post_fires.post_id) AND (parent_post.status = 'published'::text) AND (parent_post.visibility = 'public'::text))))",
       "check": null,
       "reason": "The reactions of a published public post, TO anon and authenticated. No tenant column; it reads posts under the caller's own row security.",
@@ -49,6 +76,9 @@
     {
       "table": "post_likes",
       "policy": "tanstack browser read",
+      "cmd": "SELECT",
+      "roles": ["anon", "authenticated"],
+      "permissive": true,
       "using": "(EXISTS ( SELECT 1\n   FROM posts parent_post\n  WHERE ((parent_post.id = post_likes.post_id) AND (parent_post.status = 'published'::text) AND (parent_post.visibility = 'public'::text))))",
       "check": null,
       "reason": "The reactions of a published public post, TO anon and authenticated. No tenant column; it reads posts under the caller's own row security.",
@@ -58,6 +88,9 @@
     {
       "table": "post_prayers",
       "policy": "tanstack browser read",
+      "cmd": "SELECT",
+      "roles": ["anon", "authenticated"],
+      "permissive": true,
       "using": "(EXISTS ( SELECT 1\n   FROM posts parent_post\n  WHERE ((parent_post.id = post_prayers.post_id) AND (parent_post.status = 'published'::text) AND (parent_post.visibility = 'public'::text))))",
       "check": null,
       "reason": "The reactions of a published public post, TO anon and authenticated. No tenant column; it reads posts under the caller's own row security.",
@@ -67,6 +100,9 @@
     {
       "table": "posts",
       "policy": "tanstack browser read",
+      "cmd": "SELECT",
+      "roles": ["anon", "authenticated"],
+      "permissive": true,
       "using": "((status = 'published'::text) AND (visibility = 'public'::text))",
       "check": null,
       "reason": "Published public posts, TO anon and authenticated. The four post tables check posts in a subquery under the caller's own row security, so posts keeps a branch that admits a caller with no header, or the comments of a public post go empty.",
@@ -76,6 +112,9 @@
     {
       "table": "profiles",
       "policy": "profiles select own authenticated",
+      "cmd": "SELECT",
+      "roles": ["authenticated"],
+      "permissive": true,
       "using": "((user_id = ( SELECT auth.uid() AS uid)) OR (id = ( SELECT auth.uid() AS uid)))",
       "check": null,
       "reason": "The caller's own profile, read with no tenant header by sign-in, the session helpers and the health probe. The row is the person's, not a tenant's (plan 5.1: a profile is readable by its owner only).",

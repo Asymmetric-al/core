@@ -92,6 +92,18 @@ const UNSAFE_TABLE_PRIVILEGES = [
 ];
 /** Policy commands that only write; a signed-in one needs the grant for it. */
 const WRITE_COMMANDS = ["INSERT", "UPDATE", "DELETE"];
+/**
+ * Tables in `public` with no tenant column whose rows reach their tenant
+ * through a parent row (council R3): every signed-in policy on them is a
+ * reviewed pin, and none of them may be published.
+ */
+export const PARENT_SCOPED_TABLES = [
+  "donor_activities",
+  "post_comments",
+  "post_fires",
+  "post_likes",
+  "post_prayers",
+];
 
 const quoted = (names) => names.map((s) => `'${s}'`).join(", ");
 const PUBLIC_EXECUTE = `exists (select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
@@ -259,7 +271,17 @@ select jsonb_build_object(
                 when 'w' then has_any_column_privilege(g.r, c.oid, 'UPDATE')
                 when 'd' then has_table_privilege(g.r, c.oid, 'DELETE')
                 else has_any_column_privilege(g.r, c.oid, 'SELECT, INSERT, UPDATE')
-                  or has_table_privilege(g.r, c.oid, 'DELETE') end)) order by c.relname, p.polname)
+                  or has_table_privilege(g.r, c.oid, 'DELETE') end),
+      -- Council R3: whether the policy is permissive, and whether a signed-in
+      -- role it names holds any write privilege, which a FOR ALL policy needs
+      -- for its write half.
+      'permissive', p.polpermissive,
+      'writable', exists (
+        select 1
+        from unnest(array['authenticated'] || case when p.polroles @> array[0::oid]
+                                                   then array['anon'] else array[]::text[] end) g(r)
+        where has_any_column_privilege(g.r, c.oid, 'INSERT, UPDATE')
+           or has_table_privilege(g.r, c.oid, 'DELETE'))) order by c.relname, p.polname)
     from pg_policy p
     join pg_class c on c.oid = p.polrelid
     join pg_namespace n on n.oid = c.relnamespace
@@ -609,10 +631,42 @@ const readsTokenClaim = (text) =>
   /auth\.jwt\s*\(|app_metadata|request\.jwt\.claims?\b/i.test(text ?? "");
 
 /**
+ * What a policy effectively admits for its command, as Postgres reads it
+ * (council R2): a missing USING is true for every row, a missing WITH CHECK
+ * is the USING. SELECT and DELETE are judged by their USING, INSERT by its
+ * WITH CHECK, UPDATE and FOR ALL by both.
+ */
+export function effectivePredicates(p) {
+  const using = p.using ?? "true";
+  const check = p.check ?? using;
+  if (p.cmd === "SELECT" || p.cmd === "DELETE") return [using];
+  if (p.cmd === "INSERT") return [check];
+  return using === check ? [using] : [using, check];
+}
+
+/** A policy that admits nothing: `false` for every command it governs. */
+const isPlainDeny = (p) =>
+  effectivePredicates(p).every((e) => stripParens(e) === "false");
+
+const sortedRoles = (roles) => [...(roles ?? [])].map(String).sort();
+
+/** Whether a pinned entry still describes the policy: text, command, roles and kind. */
+function pinMatches(entry, p) {
+  return (
+    (entry.using ?? null) === (p.using ?? null) &&
+    (entry.check ?? null) === (p.check ?? null) &&
+    entry.cmd === p.cmd &&
+    entry.permissive === p.permissive &&
+    JSON.stringify(sortedRoles(entry.roles)) ===
+      JSON.stringify(sortedRoles(p.roles))
+  );
+}
+
+/**
  * Parses the reviewed policy exceptions: { listed: Map<"table|policy", entry>,
  * failures }. Each entry names a table and policy, the exact deparsed `using`
- * and `check` text it is reviewed with (null when the policy has none), and a
- * reason.
+ * and `check` text it is reviewed with (null when the policy has none), its
+ * command, its roles and whether it is permissive (council R3), and a reason.
  */
 function readPolicyExceptions(exceptions) {
   const failures = [];
@@ -632,6 +686,16 @@ function readPolicyExceptions(exceptions) {
         malformed(`entry ${i} has no reason`, entry.table);
       else if (!("using" in entry) || !("check" in entry))
         malformed(`entry ${i} has no using or check text`, entry.table);
+      else if (
+        typeof entry.cmd !== "string" ||
+        !Array.isArray(entry.roles) ||
+        !entry.roles.every((r) => typeof r === "string") ||
+        typeof entry.permissive !== "boolean"
+      )
+        malformed(
+          `entry ${i} does not pin its command, roles and permissive flag`,
+          entry.table,
+        );
       else listed.set(key, entry);
     }
   return { listed, failures };
@@ -962,38 +1026,61 @@ export function evaluateTenantRlsCatalog(
         p.table,
         `policy "${p.policy}" (${p.cmd}) stands where no signed-in role it names holds ${p.cmd}: drop the policy, or grant the privilege and review the policy with it`,
       );
-    // A listed exception is pinned to its text on any table in public, a
-    // tenant table or not (the post tables have no tenant column).
+    // Council R3: a FOR ALL policy also writes; where no signed-in role holds
+    // a write privilege only a plain deny may stand.
+    if (p.cmd === "ALL" && p.writable === false && !isPlainDeny(p))
+      fail(
+        "WRITE_POLICY_WITHOUT_GRANT",
+        p.table,
+        `policy "${p.policy}" (ALL) is not a plain deny and no signed-in role it names holds INSERT, UPDATE or DELETE: make it a SELECT policy, or a deny`,
+      );
+    // A listed exception is pinned to its text, command, roles and kind on
+    // any table in public, a tenant table or not (the post tables have no
+    // tenant column). On a table that reaches its tenant through a parent,
+    // every signed-in policy is a pin (council R3).
     const listedEntry = policyExceptions.listed.get(key);
-    if (!tables.get(p.table)?.tenant && !listedEntry) continue;
+    const parentScoped = PARENT_SCOPED_TABLES.includes(p.table);
+    if (!tables.get(p.table)?.tenant && !listedEntry && !parentScoped) continue;
     if (tables.get(p.table)?.tenant) tenantPolicies += 1;
-    if (listedEntry) {
-      seen.add(key);
-      if (
-        (listedEntry.using ?? null) !== (p.using ?? null) ||
-        (listedEntry.check ?? null) !== (p.check ?? null)
-      )
-        fail(
-          "POLICY_EXCEPTION_CHANGED",
-          p.table,
-          `policy "${p.policy}" differs from its reviewed text in ${TENANT_POLICY_EXCEPTIONS_PATH}: review it again`,
-        );
-      continue;
-    }
-    for (const e of exprs) {
-      if (stripParens(e) === "false") continue;
-      if (!tenantBound(e) && !isSuperAdminBranch(e))
-        fail(
-          "TENANT_CONDITION_MISSING",
-          p.table,
-          `policy "${p.policy}" (${p.cmd}) admits a row without ${TENANT_CONDITION}`,
-        );
+    const lookups = (e) => {
       for (const call of perRowLookups(e))
         fail(
           "POLICY_LOOKUP_PER_ROW",
           p.table,
           `policy "${p.policy}" calls ${call} once for every row: write it as a whole sub-select, (SELECT authz.f(...)), with no column of the row`,
         );
+    };
+    if (listedEntry) {
+      seen.add(key);
+      if (!pinMatches(listedEntry, p))
+        fail(
+          "POLICY_EXCEPTION_CHANGED",
+          p.table,
+          `policy "${p.policy}" differs from its reviewed text, command, roles or kind in ${TENANT_POLICY_EXCEPTIONS_PATH}: review it again`,
+        );
+      else for (const e of exprs) lookups(e);
+      continue;
+    }
+    if (parentScoped) {
+      fail(
+        "PARENT_SCOPED_POLICY_NOT_PINNED",
+        p.table,
+        `policy "${p.policy}" (${p.cmd}) on a table that reaches its tenant through a parent is not a reviewed pin in ${TENANT_POLICY_EXCEPTIONS_PATH}; Postgres ORs it with the pinned one`,
+      );
+      continue;
+    }
+    // Council R2: the effective predicate of each command, with a missing
+    // USING as true and a missing WITH CHECK as the USING. The super-admin
+    // branch passes only beside the tenant condition (tenantBound).
+    for (const e of effectivePredicates(p)) {
+      if (stripParens(e) === "false") continue;
+      if (!tenantBound(e))
+        fail(
+          "TENANT_CONDITION_MISSING",
+          p.table,
+          `policy "${p.policy}" (${p.cmd}) admits a row without ${TENANT_CONDITION}`,
+        );
+      lookups(e);
     }
   }
   for (const key of policyExceptions.listed.keys())
@@ -1029,11 +1116,13 @@ export function evaluateTenantRlsCatalog(
     }
   }
   for (const t of snapshot.published ?? [])
-    if (tables.get(t)?.tenant)
+    if (tables.get(t)?.tenant || PARENT_SCOPED_TABLES.includes(t))
       fail(
         "TENANT_TABLE_PUBLISHED",
         t,
-        "a tenant table is in a publication: a subscription would need a read policy that ignores the active tenant (plan 5.2)",
+        tables.get(t)?.tenant
+          ? "a tenant table is in a publication: a subscription would need a read policy that ignores the active tenant (plan 5.2)"
+          : "a table that reaches its tenant through a parent is in a publication: a subscription would need a read policy that ignores the active tenant (plan 5.2; council R3)",
       );
 
   const counts = {
@@ -1125,7 +1214,9 @@ function assertSnapshotShape(snapshot) {
       !Array.isArray(p.roles) ||
       !textOrNull(p.using) ||
       !textOrNull(p.check) ||
-      !isBool(p.granted)
+      !isBool(p.granted) ||
+      !isBool(p.permissive) ||
+      !isBool(p.writable)
     )
       throw incomplete("policy", { relation: `${p?.table} ${p?.policy}` });
   for (const h of snapshot.tenant_helpers)

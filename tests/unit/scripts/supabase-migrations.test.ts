@@ -136,17 +136,23 @@ function runVerifier(
       (entry: {
         table: string;
         policy: string;
+        cmd: string;
+        roles: string[];
+        permissive: boolean;
         using: string;
         check: string;
       }) => ({
         table: entry.table,
         policy: entry.policy,
-        cmd: "SELECT",
-        roles: ["authenticated"],
+        // Council R3: each pin names its command, roles and kind.
+        cmd: entry.cmd,
+        roles: entry.roles,
+        permissive: entry.permissive,
         using: entry.using,
         check: entry.check,
         // Signed-in users hold SELECT on each excepted table.
         granted: true,
+        writable: true,
       }),
     ),
     tenant_helpers: [

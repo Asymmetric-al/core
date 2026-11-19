@@ -1157,6 +1157,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   ) => ({
     ...{ table: tableName, policy: `${tableName} read`, cmd: "SELECT" },
     ...{ roles: ["authenticated"], using, check: null, granted: true },
+    ...{ permissive: true, writable: true },
     ...over,
   });
   const HELPERS = [
@@ -1172,6 +1173,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     table("donors"),
     table("posts"),
     table("post_comments", { tenant: false }),
+    table("currency_metadata", { tenant: false }),
   ];
   const run = (
     policies: object[],
@@ -1187,11 +1189,20 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
       published: more.published,
       policyExceptions: more.policyExceptions,
     });
-  const pin = (p: { table: string; policy: string; using: string | null }) => ({
+  // Council R3: a pin freezes the command, the sorted roles and whether the
+  // policy is permissive, beside its text.
+  const pin = (p: {
+    table: string;
+    policy: string;
+    using: string | null;
+    cmd?: string;
+    roles?: string[];
+  }) => ({
     entries: [
       {
         ...{ table: p.table, policy: p.policy, using: p.using, check: null },
-        ...{ reason: "fixture", ends: "WP7" },
+        ...{ cmd: p.cmd ?? "SELECT", roles: p.roles ?? ["authenticated"] },
+        ...{ permissive: true, reason: "fixture", ends: "WP7" },
       },
     ],
   });
@@ -1203,17 +1214,56 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     expect(splitTopLevel(`((name = ' OR x') AND ${T})`, "OR")).toHaveLength(1);
   });
 
-  it("passes the tenant condition with a class term, a super-admin branch beside it, a deny-all policy and a policy that is the branch alone", () => {
+  // Amended by council R2 (record D-18): a policy that is the super-admin
+  // branch alone no longer passes. Ruling 6 allows the branch only beside the
+  // tenant condition, and no such policy remains after the migration; the
+  // case now asserts that it fails.
+  it("passes the tenant condition with a class term, a super-admin branch beside it and a deny-all policy, and fails a policy that is the branch alone", () => {
     const result = run([
       policy("donors", `(${T} AND ${STAFF})`),
       policy("donors", `(${SUPER} OR (${T} AND (${STAFF} OR ${DONOR_OWN})))`, {
         policy: "own",
       }),
       policy("donors", "false", { policy: "deny", cmd: "ALL", check: "false" }),
-      policy("donors", SUPER, { policy: "super" }),
     ]);
     expect(result.failures).toEqual([]);
-    expect(result.counts.tenantPolicies).toBe(4);
+    expect(result.counts.tenantPolicies).toBe(3);
+    for (const alone of [SUPER, `(${SUPER})`])
+      expect(
+        codes(run([policy("donors", alone, { policy: "super" })])),
+        alone,
+      ).toEqual(["TENANT_CONDITION_MISSING donors"]);
+  });
+
+  // Council R2: Postgres reads a missing USING as true for every row, and a
+  // missing WITH CHECK as the USING; the gate judges what each command
+  // effectively admits, not only the text that is there.
+  it("judges each command's effective predicate: a missing USING admits every row, a missing WITH CHECK is the USING", () => {
+    const T_STAFF = `(${T} AND ${STAFF})`;
+    for (const [cmd, using, check] of [
+      ["SELECT", null, null],
+      ["DELETE", null, null],
+      ["UPDATE", null, T_STAFF],
+      ["ALL", null, T_STAFF],
+      ["ALL", null, null],
+      ["INSERT", null, null],
+    ] as const) {
+      const open = policy("donors", using, { policy: "open", cmd, check });
+      expect(codes(run([open])), `${cmd} ${using} ${check}`).toContain(
+        "TENANT_CONDITION_MISSING donors",
+      );
+    }
+    for (const [cmd, using, check] of [
+      ["UPDATE", T_STAFF, null],
+      ["ALL", T_STAFF, null],
+      ["INSERT", null, T_STAFF],
+      ["SELECT", T_STAFF, null],
+    ] as const)
+      expect(
+        run([policy("donors", using, { policy: "bound", cmd, check })])
+          .failures,
+        `${cmd} ${using} ${check}`,
+      ).toEqual([]);
   });
 
   it("fails a policy that admits a row without the tenant condition, naming it", () => {
@@ -1329,6 +1379,98 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     ]);
   });
 
+  // Council R3: a pin freezes what was reviewed, not only the text. The same
+  // text recreated FOR ALL, for other roles, or restrictive, is another policy.
+  it("fails a pinned exception recreated for another command, other roles or as restrictive, and an entry that does not pin them", () => {
+    const roles = ["anon", "authenticated"];
+    const posts = policy(
+      "posts",
+      "((status = 'published'::text) AND (visibility = 'public'::text))",
+      { policy: "tanstack browser read", roles },
+    );
+    const pinned = pin({ ...posts, roles });
+    expect(run([posts], { policyExceptions: pinned }).failures).toEqual([]);
+    // Roles are compared sorted.
+    expect(
+      run([{ ...posts, roles: ["authenticated", "anon"] }], {
+        policyExceptions: pinned,
+      }).failures,
+    ).toEqual([]);
+    for (const changed of [
+      { ...posts, cmd: "ALL" },
+      { ...posts, roles: ["public"] },
+      { ...posts, roles: ["authenticated"] },
+      { ...posts, permissive: false },
+    ])
+      expect(
+        codes(run([changed], { policyExceptions: pinned })),
+        JSON.stringify(changed),
+      ).toEqual(["POLICY_EXCEPTION_CHANGED posts"]);
+    for (const field of ["cmd", "roles", "permissive"]) {
+      const entry: Record<string, unknown> = { ...pinned.entries[0] };
+      delete entry[field];
+      expect(
+        codes(run([posts], { policyExceptions: { entries: [entry] } })),
+        field,
+      ).toContain("POLICY_EXCEPTIONS_MALFORMED posts");
+    }
+  });
+
+  // Council R3: the tables with no tenant column whose rows reach their
+  // tenant through a parent row. Postgres ORs every permissive policy, so a
+  // second one beside the pin would widen it unseen.
+  it("on a table that reaches its tenant through a parent, fails every signed-in policy that is not pinned and a pin with a per-row lookup", () => {
+    const comments = policy(
+      "post_comments",
+      "(EXISTS ( SELECT 1 FROM posts p WHERE (p.id = post_comments.post_id)))",
+      { policy: "tanstack browser read" },
+    );
+    expect(
+      run([comments], { policyExceptions: pin(comments) }).failures,
+    ).toEqual([]);
+    const second = policy("post_comments", "true", { policy: "another read" });
+    expect(
+      codes(run([comments, second], { policyExceptions: pin(comments) })),
+    ).toEqual(["PARENT_SCOPED_POLICY_NOT_PINNED post_comments"]);
+    for (const parentScoped of [
+      "post_fires",
+      "post_likes",
+      "post_prayers",
+      "donor_activities",
+    ])
+      expect(codes(run([policy(parentScoped, "true")])), parentScoped).toEqual([
+        `PARENT_SCOPED_POLICY_NOT_PINNED ${parentScoped}`,
+      ]);
+    // Once a statement holds for a pinned text too.
+    const perRow = policy(
+      "post_comments",
+      "(EXISTS ( SELECT 1 FROM posts p WHERE ((p.id = post_comments.post_id) AND authz.has_membership(p.tenant_id))))",
+      { policy: "tanstack browser read" },
+    );
+    expect(codes(run([perRow], { policyExceptions: pin(perRow) }))).toEqual([
+      "POLICY_LOOKUP_PER_ROW post_comments",
+    ]);
+    // A table with no tenant column and no parent is outside the rule.
+    expect(run([policy("currency_metadata", "true")]).failures).toEqual([]);
+  });
+
+  // Council R3: a FOR ALL policy also writes. Where signed-in users hold no
+  // write grant, only a plain deny may stand.
+  it("fails a FOR ALL policy that is not a plain deny where no signed-in role holds a write privilege", () => {
+    const T_STAFF = `(${T} AND ${STAFF})`;
+    const all = (over: Record<string, unknown>) =>
+      policy("donors", T_STAFF, { policy: "all", cmd: "ALL", ...over });
+    expect(codes(run([all({ check: T_STAFF, writable: false })]))).toEqual([
+      "WRITE_POLICY_WITHOUT_GRANT donors",
+    ]);
+    expect(run([all({ check: T_STAFF, writable: true })]).failures).toEqual([]);
+    for (const check of ["false", null])
+      expect(
+        run([all({ using: "false", check, writable: false })]).failures,
+        String(check),
+      ).toEqual([]);
+  });
+
   // The coordinator's follow-up on activation review Q7: no signed-in write
   // policy on a table where signed-in users hold no write grant, so a grant
   // that comes back by accident fails CI instead of being admitted.
@@ -1360,11 +1502,17 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     ).toEqual([]);
   });
 
-  it("fails a tenant table in a publication, and passes a published table with no tenant column", () => {
+  // Amended by council R3 (record D-18): a table that reaches its tenant
+  // through a parent may not be published either, so the passing example of
+  // a published table with no tenant column is one with no parent.
+  it("fails a tenant table, or one that reaches its tenant through a parent, in a publication, and passes a published table with neither", () => {
     expect(codes(run([], { published: ["donors"] }))).toEqual([
       "TENANT_TABLE_PUBLISHED donors",
     ]);
-    expect(run([], { published: ["post_comments"] }).failures).toEqual([]);
+    expect(codes(run([], { published: ["post_comments"] }))).toEqual([
+      "TENANT_TABLE_PUBLISHED post_comments",
+    ]);
+    expect(run([], { published: ["currency_metadata"] }).failures).toEqual([]);
   });
 
   it("selects every signed-in policy of public, the request-tenant helpers and the published tables", () => {
@@ -1385,5 +1533,9 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     expect(TENANT_RLS_CATALOG_SQL).toContain(
       "has_table_privilege(g.r, c.oid, 'DELETE')",
     );
+    // Council R3: whether the policy is permissive, and whether a signed-in
+    // role holds any write privilege (for FOR ALL policies).
+    expect(TENANT_RLS_CATALOG_SQL).toContain("'permissive', p.polpermissive");
+    expect(TENANT_RLS_CATALOG_SQL).toContain("'writable'");
   });
 });
