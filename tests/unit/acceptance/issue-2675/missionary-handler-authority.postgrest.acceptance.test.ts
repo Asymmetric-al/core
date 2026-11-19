@@ -151,6 +151,55 @@ describe.skipIf(!configured)(
         await db.end();
       }
     });
+    it("keeps the task but not its former donor after reassignment within the tenant", async () => {
+      const org = orgs[0]!;
+      selected = org;
+      role = "missionary";
+      const newOwner = randomUUID();
+      await db.query("insert into auth.users(id) values ($1)", [newOwner]);
+      try {
+        await db.query(
+          "insert into public.missionaries(tenant_id,profile_id) values ($1,$2)",
+          [org.tenant, newOwner],
+        );
+        await db.query(
+          "update public.donors set missionary_id=$2 where id=$1",
+          [org.donor, newOwner],
+        );
+        const path = "/api/missionary/tasks";
+        expect(
+          (await json(await tasks.GET(request("GET", path)), 200)).tasks,
+        ).toMatchObject([{ id: org.task, donor: null }]);
+        expect(
+          (
+            await json(
+              await tasks.GET(request("GET", path + "?donorId=" + org.donor)),
+              200,
+            )
+          ).tasks,
+        ).toEqual([]);
+        expect(
+          (
+            await json(
+              await task.PATCH(
+                request("PATCH", path + "/" + org.task, { title: "retained" }),
+                { params: Promise.resolve({ taskId: org.task }) },
+              ),
+              200,
+            )
+          ).task,
+        ).toMatchObject({ id: org.task, title: "retained", donor: null });
+      } finally {
+        await db.query(
+          "update public.donors set missionary_id=$2 where id=$1",
+          [org.donor, person],
+        );
+        await db.query("delete from public.missionaries where profile_id=$1", [
+          newOwner,
+        ]);
+        await db.query("delete from auth.users where id=$1", [newOwner]);
+      }
+    });
     it.each(orgs)(
       "returns only the selected organization's rows ($tenant)",
       async (org) => {

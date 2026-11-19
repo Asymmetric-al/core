@@ -263,6 +263,45 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
           "called",
           new Date().toISOString(),
         );
+      await db.query("savepoint move_donor");
+      await db.query("reset role");
+      const newOwner = randomUUID();
+      await db.query("insert into auth.users(id) values ($1)", [newOwner]);
+      await db.query(
+        "insert into public.missionaries(tenant_id,profile_id) values ($1,$2)",
+        [first.tenant, newOwner],
+      );
+      await db.query("update public.donors set missionary_id=$2 where id=$1", [
+        first.donor,
+        newOwner,
+      ]);
+      await db.query("set local role service_role");
+      const scope = [profile, first.tenant, first.assignment];
+      expect(
+        (
+          await db.query(
+            "select id, donor_id from public.missionary_owned_tasks($1,$2,$3)",
+            scope,
+          )
+        ).rows,
+      ).toEqual([{ id: first.task, donor_id: null }]);
+      expect(
+        (
+          await db.query(
+            "select id from public.missionary_owned_tasks($1,$2,$3) where donor_id=$4",
+            [...scope, first.donor],
+          )
+        ).rows,
+      ).toEqual([]);
+      expect(
+        (
+          await db.query(
+            "select id,donor_id from public.missionary_task_write($1,$2,$3,'update',$4,$5)",
+            [...scope, first.task, { title: "edited" }],
+          )
+        ).rows,
+      ).toEqual([{ id: first.task, donor_id: null }]);
+      await db.query("rollback to savepoint move_donor");
       expect(await activity(first, second.donor)).toEqual([]);
       const activities = await activity(first, first.donor);
       expect(activities).toHaveLength(1);

@@ -68,7 +68,10 @@ STABLE
 SECURITY INVOKER
 SET search_path = ''
 AS $$
-  SELECT task.*
+  SELECT task.id, task.missionary_id,
+    CASE WHEN donor.missionary_id = p_profile_id THEN donor.id END AS donor_id,
+    task.title, task.description, task.task_type, task.status, task.priority,
+    task.sort_key, task.due_date, task.completed_at, task.created_at, task.updated_at
   FROM public.missionary_tasks AS task
   LEFT JOIN public.donors AS donor
     ON donor.id = task.donor_id
@@ -84,6 +87,7 @@ $$;
 COMMENT ON FUNCTION public.missionary_owned_tasks IS
   'A live selected missionary may read, create, reassign, update or delete a donorless task only '
   'if every membership of every class, including revoked rows, is in the selected tenant. '
+  'A reassigned donor places the task in its tenant, but its donor link is hidden from the former missionary. '
   'WP5 must place the remaining donorless rows by evidence before lifting this condition.';
 
 -- Service role only: create, update, reassign or delete a task without crossing its organization.
@@ -163,7 +167,16 @@ BEGIN
             AND donor.missionary_id = p_profile_id
         )
       )
-    RETURNING task.*;
+    RETURNING task.id, task.missionary_id,
+      (
+        SELECT donor.id
+        FROM public.donors AS donor
+        WHERE donor.id = task.donor_id
+          AND donor.tenant_id = p_tenant_id
+          AND donor.missionary_id = p_profile_id
+      ) AS donor_id,
+      task.title, task.description, task.task_type, task.status, task.priority,
+      task.sort_key, task.due_date, task.completed_at, task.created_at, task.updated_at;
 
   ELSIF p_operation = 'delete' THEN
     RETURN QUERY
