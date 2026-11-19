@@ -13,8 +13,8 @@
  *
  * Council round 1 on WP2a (F2) and the review of PR #2714 reached the same
  * rule: the role written was the person's global `profiles.role`, which every
- * tenant's restricted-note policies still read, so a target who is a live
- * member of another tenant is refused (record D-40).
+ * tenant's restricted-note policies then read, so a target who was a live
+ * member of another tenant was refused (historical record D-40).
  *
  * Rewritten again by AL-2675 (WP2c, part 1; plan 5.4 and 12 WP2c; record
  * section 9 and D-18). WP2c deletes GraphQL `updateUserRole` and drops
@@ -38,11 +38,8 @@
  *   - the cross-organization cases ran on two versions of the retired
  *     function, the chain's final one and stage 1's, re-created inside the
  *     transaction. Both versions are dropped, so the cases run once, on the
- *     command, which keeps D-40's refusal for a change of role until WP2b's
- *     second release moves the restricted-note policies off `profiles.role`.
- *     Since the same review (WC9) that refusal and the operator's share one
- *     message that names neither fact; the code and "changes nothing" are as
- *     strong as before;
+ *     command. On the joined WP2b chain, only this tenant's row changes;
+ *     another tenant's membership neither grants authority nor bars a change;
  *   - the last case pinned that only `service_role` could execute the
  *     function; it now pins that the function is gone and that the commands
  *     are executed by signed-in users only, never by `service_role`.
@@ -240,7 +237,7 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
     );
   }
 
-  /** WC9: the operator's refusal and D-40's share this message. */
+  /** A platform operator is not a target. */
   const PROTECTED = "This person's role cannot be changed here";
   const CLASS_CHANGE =
     "A role change keeps the row's class: change the sub-role or the administrator flag of a staff row. Give a row of another class by invitation, and end one with revoke_membership";
@@ -266,6 +263,15 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
       [people[person], tenant],
     );
     return r.rows.map((x) => x.r as string);
+  }
+
+  async function membershipsIn(person: Person, tenant: string) {
+    return (
+      await db.query(
+        "select * from authz.memberships where user_id = $1 and tenant_id = $2 order by id",
+        [people[person], tenant],
+      )
+    ).rows;
   }
 
   async function profileRoleOf(person: Person) {
@@ -455,51 +461,37 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
       }),
   );
 
-  // PR #2714 review (role change across organizations), record D-40: kept by
-  // the command for a change of role until WP2b's second release moves the
-  // restricted-note policies off profiles.role.
   describe("across organizations", () => {
-    it("(a) refuses to make admin someone who is also staff in another organization", () =>
-      tx(async () => {
-        await addMembership("staffA", tenantB, "staff");
-        const outcome = await changeRole({
-          actor: "adminA",
-          target: "staffA",
-          tenant: tenantA,
-          role: "admin",
-        });
-        expect([outcome.code, outcome.message]).toEqual(["42501", PROTECTED]);
-        expect(await rolesOf("staffA")).toEqual(["donor", "staff"]);
-        expect(await roleChangeAudits("staffA")).toEqual([]);
-      }));
-
-    it("(b) refuses to take admin away from an admin of this organization who is staff in another", () =>
-      tx(async () => {
-        await addMembership("secondAdminA", tenantB, "staff");
-        const outcome = await changeRole({
-          actor: "adminA",
-          target: "secondAdminA",
-          tenant: tenantA,
-          role: "staff",
-        });
-        expect([outcome.code, outcome.message]).toEqual(["42501", PROTECTED]);
-        expect(await rolesOf("secondAdminA")).toEqual(["admin", "donor"]);
-        expect(await roleChangeAudits("secondAdminA")).toEqual([]);
-      }));
-
-    it("refuses for an active membership of any kind in another organization", () =>
-      tx(async () => {
-        await addMembership("staffA", tenantB, "donor");
-        const outcome = await changeRole({
-          actor: "adminA",
-          target: "staffA",
-          tenant: tenantA,
-          role: "admin",
-        });
-        expect([outcome.code, outcome.message]).toEqual(["42501", PROTECTED]);
-        expect(await rolesOf("staffA")).toEqual(["donor", "staff"]);
-        expect(await roleChangeAudits("staffA")).toEqual([]);
-      }));
+    it.each([
+      ["(a) promote a member", "staffA", "staff", "admin"],
+      ["(b) demote an administrator", "secondAdminA", "staff", "staff"],
+      ["promote a member who is a donor elsewhere", "staffA", "donor", "admin"],
+    ] as const)(
+      "can %s without changing the other tenant",
+      (_case, target, otherClass, role) =>
+        tx(async () => {
+          await addMembership(target, tenantB, otherClass);
+          const before = await membershipsIn(target, tenantB);
+          const outcome = await changeRole({
+            actor: "adminA",
+            target,
+            tenant: tenantA,
+            role,
+          });
+          expect(outcome.code, outcome.message ?? "").toBeNull();
+          expect(await rolesOf(target)).toEqual(["donor", role].sort());
+          expect(await membershipsIn(target, tenantB)).toEqual(before);
+          expect(await roleChangeAudits(target)).toEqual([
+            {
+              tenant_id: tenantA,
+              user_id: people.adminA,
+              from_role: "staff",
+              to_role: "staff",
+              to_admin: role === "admin",
+            },
+          ]);
+        }),
+    );
 
     it.each(["staff", "admin"])(
       "(c) still grants %s to someone whose memberships are all in this organization",
@@ -564,7 +556,7 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
 
   // WP2a's own case (council round 2 on WP2a, R8b): the target is another
   // tenant's administrator who also holds a row here.
-  it("refuses to strip another tenant's administrator who is also a member of the tenant, and changes nothing", () =>
+  it("changes the local row without altering the other tenant's administrator", () =>
     tx(async () => {
       await addMembership("adminB", tenantA, "staff");
       const outcome = await changeRole({
@@ -573,10 +565,18 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
         tenant: tenantA,
         role: "admin",
       });
-      expect([outcome.code, outcome.message]).toEqual(["42501", PROTECTED]);
+      expect(outcome.code, outcome.message ?? "").toBeNull();
       expect(await rolesOf("adminB", tenantB)).toEqual(["admin", "donor"]);
-      expect(await rolesOf("adminB")).toEqual(["staff"]);
-      expect(await roleChangeAudits("adminB")).toEqual([]);
+      expect(await rolesOf("adminB")).toEqual(["admin"]);
+      expect(await roleChangeAudits("adminB")).toEqual([
+        {
+          tenant_id: tenantA,
+          user_id: people.adminA,
+          from_role: "staff",
+          to_role: "staff",
+          to_admin: true,
+        },
+      ]);
     }));
 
   it("lets an admin demote another admin of the same tenant", () =>

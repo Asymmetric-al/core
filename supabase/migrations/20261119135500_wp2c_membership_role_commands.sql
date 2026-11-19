@@ -1,5 +1,5 @@
 -- AL-2675 (WP2c, part 1; plan 5.1, 5.4, 5.5 and 12 WP2c; record section 9,
--- D-40, D-46): the role-change and revoke commands, and the retirement of
+-- D-46): the role-change and revoke commands, and the retirement of
 -- `public.atomic_update_user_role_with_audit`, the SQL function behind GraphQL
 -- `updateUserRole`, which the same change deletes.
 --
@@ -47,25 +47,8 @@
 --    - for a change of role, a target row that is not a staff row, or a
 --      request for another class, even one that would change nothing: the
 --      message says what to do instead;
---    - a protected person, with one message that does not say which fact
---      protects them ("This person's role cannot be changed here"), judged
---      only after a request that changes nothing has returned, so the
---      refusal shows nothing an unchanged request would not:
---      - a login on the platform operator list. Stage 1 and WP2a refused
---        `profiles.role = 'super_admin'`; the list replaces it (record
---        section 9). The revoke command refuses this too, with the same
---        message;
---      - for a change of role, a target who holds a live membership in
---        another tenant (record D-40). The retired function wrote the
---        person's global `profiles.role`, which every tenant's restricted-note
---        policies read; these commands write only this tenant's rows, but
---        those policies still read `profiles.role`, with no tenant condition,
---        until WP2b's second release moves them to the flag. Until then a
---        staff row granted here to someone whose profile role is `admin` from
---        another tenant would open this tenant's restricted notes to them;
---        this refusal keeps the exposure where it is today. It goes when
---        those policies move. A revocation only takes access away in this
---        tenant, so it is not refused for this: revoking must stay possible;
+--    - a login on the platform operator list, for both commands, after
+--      a role-change request that changes nothing has returned;
 --    - changing a row into a sub-role the person already holds in another
 --      live staff row (23505), which would rewrite that row's flag behind
 --      this row's audit entry; that row is changed or revoked itself;
@@ -87,11 +70,9 @@
 --    `granted_by`, `updated_at`) by column grants, so no guard command can
 --    move a row to another person, tenant, class or sub-role; and insert an
 --    audit row. It may also use the `private` schema and execute
---    `private.is_platform_operator(uuid)` and
---    `private.is_member_elsewhere(uuid, uuid)`, two postgres-owned definers
---    that answer for a login without showing the guard the operator list or
---    another tenant's rows. They live in `private`, which signed-in users
---    cannot use, and not in `authz`, whose SECURITY DEFINER functions are a
+--    `private.is_platform_operator(uuid)`, a postgres-owned definer that
+--    answers for one login without showing the guard the operator list.
+--    It lives in `private`, not `authz`, whose SECURITY DEFINER functions are a
 --    reviewed inventory of three (issue #2270, frozen).
 --
 -- 3. `public.atomic_update_user_role_with_audit` is dropped. It wrote only
@@ -103,8 +84,7 @@
 -- public.change_membership_role(UUID, UUID, TEXT, TEXT, BOOLEAN, TEXT),
 -- public.revoke_membership(UUID, UUID, TEXT),
 -- tenant_guard.change_membership_role(UUID, UUID, TEXT, TEXT, BOOLEAN, TEXT),
--- tenant_guard.revoke_membership(UUID, UUID, TEXT),
--- private.is_member_elsewhere(UUID, UUID); REVOKE EXECUTE ON FUNCTION
+-- tenant_guard.revoke_membership(UUID, UUID, TEXT); REVOKE EXECUTE ON FUNCTION
 -- private.is_platform_operator(UUID) FROM tenant_guard; REVOKE USAGE ON
 -- SCHEMA private FROM tenant_guard; DROP POLICY
 -- tenant_guard_isolation ON authz.memberships; DROP POLICY
@@ -144,34 +124,6 @@ CREATE POLICY tenant_guard_isolation
   FOR INSERT
   TO tenant_guard
   WITH CHECK (tenant_id = tenant_guard.current_tenant_id());
-
--- Whether a login holds a live membership in a tenant other than the one given.
-CREATE OR REPLACE FUNCTION private.is_member_elsewhere(p_user_id UUID, p_tenant_id UUID)
-RETURNS BOOLEAN
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-  SELECT EXISTS (
-    SELECT 1
-      FROM authz.memberships AS m
-     WHERE m.user_id = p_user_id
-       AND m.tenant_id <> p_tenant_id
-       AND m.is_active
-       AND m.revoked_at IS NULL
-  );
-$$;
-
-COMMENT ON FUNCTION private.is_member_elsewhere(UUID, UUID) IS
-  'Whether a login holds a live membership in any tenant but the one given '
-  '(AL-2675 WP2c): the role-change command''s cross-organization refusal '
-  '(record D-40), until WP2b''s second release moves the restricted-note '
-  'policies off profiles.role. EXECUTE for tenant_guard only.';
-
-ALTER FUNCTION private.is_member_elsewhere(UUID, UUID) OWNER TO postgres;
-REVOKE ALL ON FUNCTION private.is_member_elsewhere(UUID, UUID) FROM PUBLIC, anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION private.is_member_elsewhere(UUID, UUID) TO tenant_guard;
 
 GRANT USAGE ON SCHEMA private TO tenant_guard;
 GRANT EXECUTE ON FUNCTION private.is_platform_operator(UUID) TO tenant_guard;
@@ -278,12 +230,7 @@ BEGIN
     );
   END IF;
 
-  -- A protected person: a platform operator, or, until WP2b's second release
-  -- moves the restricted-note policies off profiles.role, someone with a live
-  -- membership in another tenant (record D-40). One message for both, which
-  -- names neither fact (see the header).
-  IF private.is_platform_operator(v_target.user_id)
-     OR private.is_member_elsewhere(v_target.user_id, v_ctx.tenant_id) THEN
+  IF private.is_platform_operator(v_target.user_id) THEN
     RAISE EXCEPTION 'This person''s role cannot be changed here'
       USING ERRCODE = '42501';
   END IF;

@@ -17,9 +17,8 @@
  * given by invitation and left by revocation). They keep every refusal the
  * retired function proved (tests/unit/acceptance/issue-2672/role-change-command.realstack.acceptance.test.ts):
  * no change of one's own row, no platform operator as a target (now the
- * operator list, not `profiles.role = 'super_admin'`), and the
- * cross-organization rule of record D-40 for a change of role; since WC9 the
- * last two share one message, judged after a request that changes nothing.
+ * operator list, not `profiles.role = 'super_admin'`). Another tenant's row
+ * is never changed; it does not bar a local change.
  * Plan 5.4: a reason is required (WC10: one character that is not
  * whitespace), and the commands refuse to remove a tenant's last
  * administrator.
@@ -44,11 +43,6 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 
 const OWN_ROLE = "Administrators cannot change their own role";
 const OWN_REVOKE = "Administrators cannot revoke their own membership";
-/**
- * Review of WP2c part 1, WC9: an operator's row and a person who belongs to
- * another organization are refused with one message and one SQLSTATE, so the
- * refusal names neither protected fact.
- */
 const PROTECTED = "This person's role cannot be changed here";
 const CLASS_CHANGE =
   "A role change keeps the row's class: change the sub-role or the administrator flag of a staff row. Give a row of another class by invitation, and end one with revoke_membership";
@@ -487,7 +481,7 @@ describe.skipIf(!ADMIN_URL)(
           expect(asCaller.code).toBe("42501");
         }));
 
-      it("revokes a member who also belongs to another organization (the cross-organization rule is for a change of role only)", () =>
+      it("revokes a member who also belongs to another organization", () =>
         tx(async () => {
           const out = await revoke("UADM", "mDonA");
           expect(out.code, out.message).toBeNull();
@@ -606,27 +600,28 @@ describe.skipIf(!ADMIN_URL)(
           await unchanged();
         }));
 
-      it("refuses to change the role of a staff member who also belongs to another organization (record D-40), without saying why", () =>
+      it("changes only the local role of a staff member with a donor row elsewhere", () =>
         tx(async () => {
-          // UDEV, staff of TA, is also a donor of TB.
-          await db.query(
-            "insert into authz.memberships (user_id, tenant_id, role) values ($1, $2, 'donor')",
+          const other = await db.query(
+            "insert into authz.memberships (user_id, tenant_id, role) values ($1, $2, 'donor') returning id",
             [id.UDEV, id.TB],
           );
-          for (const to of [
-            { role: "staff", staff: "finance" },
-            { role: "staff", staff: "development", admin: true },
-          ]) {
-            const out = await change("UADM", "mDev", to);
-            expect([out.code, out.message]).toEqual(["42501", PROTECTED]);
-          }
-          const same = await change("UADM", "mDev", {
+          const out = await change("UADM", "mDev", {
             role: "staff",
-            staff: "development",
+            staff: "finance",
           });
-          expect(same.code, same.message).toBeNull();
-          expect(same.rows[0]!.r).toMatchObject({ changed: false });
-          await unchanged();
+          expect(out.code, out.message).toBeNull();
+          expect(await membership(id.mDevFin)).toMatchObject({
+            is_active: true,
+            staff_role: "finance",
+          });
+          expect(await membership(other.rows[0].id)).toMatchObject({
+            is_active: true,
+            role: "donor",
+            tenant_id: id.TB,
+          });
+          expect(await audits()).toHaveLength(1);
+          expect(await audits("TB")).toEqual([]);
         }));
 
       // Review of WP2c part 1, WC5 (the coordinator's ruling): the command
@@ -868,13 +863,6 @@ describe.skipIf(!ADMIN_URL)(
             definer: false,
             config: ['search_path=""'],
             grantees: ["authenticated"],
-          },
-          {
-            fn: "private.is_member_elsewhere(uuid,uuid)",
-            owner: "postgres",
-            definer: true,
-            config: ['search_path=""'],
-            grantees: ["tenant_guard"],
           },
           {
             fn: "private.is_platform_operator(uuid)",

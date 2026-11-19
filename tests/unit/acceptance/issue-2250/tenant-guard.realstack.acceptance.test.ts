@@ -44,13 +44,9 @@
  *
  * Amended by AL-2675 (WP2c, part 1; plan 5.4; record D-18), joined to the
  * list above: the role-change and revoke commands refuse a platform
- * operator's row and, for a change of role, a person who belongs to another
- * tenant (record D-40). The guard sees neither the operator list nor another
- * tenant's rows, so it may use the `private` schema and execute two
- * postgres-owned definers that answer for one login,
- * private.is_platform_operator(uuid) and private.is_member_elsewhere(uuid,
- * uuid); they are not in `authz`, whose definers #2270 inventories.
- * Criterion 17 lists the three. The
+ * operator's row. After WP2b release 2, only private.is_platform_operator
+ * needs an EXECUTE grant; the guard need not inspect any other tenant.
+ * Criterion 17 lists the schema usage and that function. The
  * commands' table privileges (memberships and audit_logs, each behind a
  * tenant_guard_isolation policy) are covered by the policy rule above it.
  */
@@ -147,7 +143,7 @@ select string_agg(e, ', ' order by e) v from (
   select 'schema ' || nspname || ' ' || a.privilege_type e from pg_namespace, aclexplode(nspacl) a where a.grantee = ${TG}
   union all select p.oid::regprocedure || ' ' || a.privilege_type from pg_proc p, aclexplode(p.proacl) a where a.grantee = ${TG} and p.proowner <> a.grantee
   union all select 'database ' || datname from pg_database, aclexplode(datacl) a where a.grantee = ${TG}) s
-=> authz.assignment_capabilities(uuid) EXECUTE, authz.has_membership(uuid,authz.membership_role[]) EXECUTE, authz.has_staff_membership(uuid,authz.staff_role[]) EXECUTE, private.is_member_elsewhere(uuid,uuid) EXECUTE, private.is_platform_operator(uuid) EXECUTE, schema authz USAGE, schema private USAGE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.begin_human_command(uuid,text) EXECUTE, tenant_guard.caller_id() EXECUTE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE, tenant_guard.request_assignment_id() EXECUTE, tenant_guard.request_claims() EXECUTE
+=> authz.assignment_capabilities(uuid) EXECUTE, authz.has_membership(uuid,authz.membership_role[]) EXECUTE, authz.has_staff_membership(uuid,authz.staff_role[]) EXECUTE, private.is_platform_operator(uuid) EXECUTE, schema authz USAGE, schema private USAGE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.begin_human_command(uuid,text) EXECUTE, tenant_guard.caller_id() EXECUTE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE, tenant_guard.request_assignment_id() EXECUTE, tenant_guard.request_claims() EXECUTE
 
 17: no DELETE/TRUNCATE on claims; no SELECT on tenants, profiles, donation_saga_outbox
 select concat_ws(',', has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'DELETE'), has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'TRUNCATE'),
