@@ -7,6 +7,8 @@
  *   node scripts/api-contract/stack.mjs up       Local: start Postgres 17, apply
  *                                                 the migrate job's chain and the
  *                                                 seed, then `prepare`.
+ *   node scripts/api-contract/stack.mjs seed     Apply the demo seed to a migrated
+ *                                                 disposable DATABASE_URL (CI).
  *   node scripts/api-contract/stack.mjs prepare  DATABASE_URL is already migrated
  *                                                 and seeded (CI): prepare it and
  *                                                 start PostgREST on the host
@@ -16,7 +18,7 @@
  *                                                 against the running stack.
  *   node scripts/api-contract/stack.mjs down     Remove what this script started.
  *
- * Environment (all optional except DATABASE_URL for `prepare`):
+ * Environment (all optional except DATABASE_URL for `seed` and `prepare`):
  *   API_CONTRACT_NAME            container prefix (default core-api-contract)
  *   API_CONTRACT_PG_PORT         `up` Postgres port on 127.0.0.1 (default 54400)
  *   API_CONTRACT_REST_PORT       PostgREST port on 127.0.0.1 (default 54401)
@@ -44,6 +46,10 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { DATABASE_URL_ROUTING_KEYS } from "../../packages/env/src/database-url.mjs";
+import { requireDisposableDatabase } from "../lib/environment-marker.mjs";
+import { isLoopbackDatabaseUrl, spawnPsql } from "../lib/psql.mjs";
+
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
@@ -57,14 +63,6 @@ export const POSTGREST_IMAGE =
 export const POSTGRES_IMAGE =
   "public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24";
 
-const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
-/**
- * Connection-string parameters that node-postgres (pg-connection-string) or
- * libpq (psql) honour over the URL's host, so a loopback hostname would prove
- * nothing while one of them is present.
- */
-const HOST_OVERRIDE_PARAMETERS = new Set(["host", "hostaddr", "service"]);
-
 export function assertLoopbackDatabaseUrl(value) {
   let url;
   try {
@@ -74,18 +72,53 @@ export function assertLoopbackDatabaseUrl(value) {
   }
   if (url.protocol !== "postgres:" && url.protocol !== "postgresql:")
     throw new Error("DATABASE_URL is not a Postgres URL");
-  if (!LOOPBACK_HOSTS.has(url.hostname))
-    throw new Error(
-      "Refusing a non-loopback DATABASE_URL: the API contract stack only prepares a disposable local database",
+
+  // Preserve the harness's case-insensitive refusal. Query passwords would
+  // remain in the connection argument after the shared runner strips the URL password.
+  const rejectedKeys = [...url.searchParams.keys()]
+    .map((key) => key.toLowerCase())
+    .filter(
+      (key) =>
+        DATABASE_URL_ROUTING_KEYS.includes(key) ||
+        key === "password" ||
+        key === "sslpassword",
     );
-  const overrides = [...url.searchParams.keys()].filter((key) =>
-    HOST_OVERRIDE_PARAMETERS.has(key.toLowerCase()),
-  );
-  if (overrides.length > 0)
+  if (rejectedKeys.length > 0)
     throw new Error(
-      `Refusing DATABASE_URL: its ${overrides.join(", ")} parameter can move the connection off the loopback host the URL names`,
+      `Refusing DATABASE_URL: remove the ${rejectedKeys.join(", ")} query parameters and specify the target and credentials in the URL itself`,
+    );
+  if (!isLoopbackDatabaseUrl(url) || !url.username || url.pathname.length < 2)
+    throw new Error(
+      "Refusing DATABASE_URL: the API contract stack requires a loopback host, login, and database name",
     );
   return url;
+}
+
+function runDisposablePsql(url, { action, args, input }) {
+  const databaseUrl = url.href;
+  const psqlBin = process.env.PSQL_BIN?.trim() || "psql";
+  requireDisposableDatabase({ databaseUrl, action, psqlBin });
+  const result = spawnPsql({
+    databaseUrl,
+    psqlBin,
+    cwd: repoRoot,
+    args: ["-X", "-w", "-q", "-v", "ON_ERROR_STOP=1", ...args],
+    input,
+  });
+  if (result.error) throw result.error;
+  if (result.status !== 0)
+    throw new Error(
+      `could not ${action} the API contract database: psql exited ${result.status ?? result.signal}`,
+    );
+}
+
+function seedDatabase(databaseUrl) {
+  const url = assertLoopbackDatabaseUrl(databaseUrl);
+  runDisposablePsql(url, {
+    action: "apply the API contract demo seed to",
+    args: ["-f", "supabase/seed.sql"],
+  });
+  console.log("==> applied supabase/seed.sql");
 }
 
 /**
@@ -475,18 +508,18 @@ async function prepare({ databaseUrl, restDbHost, restDbPort, network }) {
   const authenticatorPassword = secret();
   const jwtSecret = secret();
 
-  await withClient(databaseUrl, async (client) => {
-    await client.query(PREPARE_SQL);
-    const { rows } = await client.query(
-      "select format('ALTER ROLE authenticator WITH LOGIN PASSWORD %L', $1::text) as sql",
-      [authenticatorPassword],
-    );
-    await client.query(rows[0].sql);
+  // The generated password contains only hexadecimal digits. Pass it over
+  // stdin and commit the setup together with the role change.
+  runDisposablePsql(url, {
+    action: "prepare PostgREST on",
+    args: ["-1", "-f", "-"],
+    input: `${PREPARE_SQL}\nALTER ROLE authenticator WITH LOGIN PASSWORD '${authenticatorPassword}';\n`,
   });
   console.log("==> prepared the database for PostgREST (local setup only)");
 
-  const database = url.pathname.replace(/^\//, "");
-  const dbUri = `postgres://authenticator:${authenticatorPassword}@${restDbHost}:${restDbPort}/${database}`;
+  const dbHost = restDbHost ?? url.hostname;
+  const dbPort = restDbPort ?? (url.port || 5432);
+  const dbUri = `postgres://authenticator:${authenticatorPassword}@${dbHost}:${dbPort}${url.pathname}`;
   const restName = `${opts.name}-rest`;
   const binding = postgrestBinding({ hostNetwork, restPort: opts.restPort });
   const environment = postgrestEnvironment({
@@ -576,15 +609,7 @@ async function up() {
       `migrations failed:\n${migrate.stdout.slice(-3000)}\n${migrate.stderr.slice(-3000)}`,
     );
   console.log("==> applied the compat bootstrap and every forward migration");
-  const psql = process.env.PSQL_BIN?.trim() || "psql";
-  const seed = run(
-    psql,
-    [databaseUrl, "-v", "ON_ERROR_STOP=1", "-q", "-f", "supabase/seed.sql"],
-    { env, quiet: true },
-  );
-  if (seed.status !== 0)
-    throw new Error(`seed failed: ${seed.stderr.slice(-2000)}`);
-  console.log("==> applied supabase/seed.sql");
+  seedDatabase(databaseUrl);
 
   await prepare({ databaseUrl, restDbHost: pgName, restDbPort: 5432, network });
 }
@@ -668,16 +693,12 @@ async function main(argv) {
     case "up":
       await up();
       return 0;
+    case "seed":
     case "prepare": {
       const databaseUrl = process.env.DATABASE_URL?.trim();
       if (!databaseUrl) throw new Error("Missing DATABASE_URL");
-      const url = assertLoopbackDatabaseUrl(databaseUrl);
-      await prepare({
-        databaseUrl,
-        restDbHost: "127.0.0.1",
-        restDbPort: Number(url.port || 5432),
-        network: "host",
-      });
+      if (command === "seed") seedDatabase(databaseUrl);
+      else await prepare({ databaseUrl, network: "host" });
       return 0;
     }
     case "test":
@@ -687,7 +708,7 @@ async function main(argv) {
       return 0;
     default:
       console.error(
-        "usage: node scripts/api-contract/stack.mjs <up|prepare|test|down>",
+        "usage: node scripts/api-contract/stack.mjs <up|seed|prepare|test|down>",
       );
       return 2;
   }

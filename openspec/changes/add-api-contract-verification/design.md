@@ -170,11 +170,16 @@ authz.current_tenant_id()`, which proves its `app_metadata.tenant_id`
      required unit run enforces them; the API contract project includes that
      directory too. `select-inventory` and `tokens` tests stay in
      `tests/integration/api-contract/` and run only in this job.
-10. **The harness touches only what it started.** `DATABASE_URL` must be a
-    Postgres URL on a loopback host with no `host`, `hostaddr` or `service`
-    parameter (node-postgres and libpq honour those over the hostname). On
-    the host network PostgREST binds to `127.0.0.1`; in a container network
-    only the loopback port is published.
+10. **The harness touches only disposable databases and Docker resources it created.**
+    The shared loopback check admits the explicit database and login named in
+    `DATABASE_URL`. The harness also refuses case variants of routing keys and
+    password query parameters. Local `up` and hosted CI use the same guarded
+    `seed` command path. Both seeding and PostgREST setup read the disposable
+    marker first and use the shared psql connection for the write, with ambient
+    PostgreSQL routing settings removed and the database password passed in
+    `PGPASSWORD`. PostgREST setup sends SQL over stdin in one transaction. On
+    the host network PostgREST binds to `127.0.0.1`; in a container network only
+    the loopback port is published.
     - The state file records each container and network as `{ name, id }`,
       the id `docker run` or `docker network create` returned. `up` and
       `prepare` replace (or reuse, for the network) only a resource whose name

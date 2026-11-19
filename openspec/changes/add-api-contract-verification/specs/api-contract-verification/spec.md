@@ -37,15 +37,24 @@ policy or grant that the product ships.
 
 ### Requirement: The harness touches only the disposable stack it started
 
-The harness MUST refuse a database connection string that is not a Postgres
-URL on the loopback interface or that carries a parameter able to override its
-host, and SHALL serve PostgREST on the loopback interface only.
+The harness MUST use the shared loopback URL check, require an explicit login
+and database name, refuse routing and password query parameters, and bind the
+served API to loopback. It MUST verify a `disposable` marker before seeding or
+writing PostgREST setup SQL. The marker read and both writes MUST use the
+same target, discard ambient PostgreSQL routing settings, and keep passwords
+out of process arguments.
 
-#### Scenario: A connection string points away from loopback
+#### Scenario: A query parameter overrides the database target
 
-- **GIVEN** a database URL whose hostname is loopback but whose `host`, `hostaddr` or `service` parameter names another server
-- **WHEN** the harness prepares the database
+- **GIVEN** a PostgreSQL URL whose hostname is loopback and whose query overrides the host, port, database, or login
+- **WHEN** the harness seeds or prepares the database
 - **THEN** it refuses before connecting
+
+#### Scenario: A database is shared or its marker cannot be read
+
+- **GIVEN** a loopback database with no readable `disposable` marker
+- **WHEN** the harness seeds or prepares it
+- **THEN** it refuses before running any write SQL
 
 ### Requirement: The harness removes only the Docker resources it created
 

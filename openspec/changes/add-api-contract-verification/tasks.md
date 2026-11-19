@@ -51,6 +51,11 @@
 - [x] 7.9 The pure tests move to `tests/unit/api-contract/`; verify a targeted root-config run executes them and no live test, and the project still includes them.
 - [x] 7.10 Reword the spec, design, proposal and workflow header to what the check now proves; verify with `bun run openspec -- validate add-api-contract-verification --strict` and `bun run verify:openspec-deltas`.
 
+## 8. Published pull request review (#2727)
+
+- [x] 8.1 Route local and hosted seeding and PostgREST setup through the shared loopback, marker and psql helpers. Focused tests cover routing-key refusal, marker refusal, consistent targeting, mixed-case ambient settings and password handling. The disposable replay reached PostgREST and reproduced the existing `donors` embed failure (`PGRST201`).
+- [x] 8.2 Include the hosted API Contract service and local harness in the Postgres image bump instructions.
+
 ## Workflow follow-up
 
 - Add a `test:api-contract` package script and a `docs/ci.md` entry after workstreams A and B merge (outside this pass's fence).

@@ -384,17 +384,19 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 
 ### Service container images
 
-- `migrate`, `smoke`, `test-e2e-smoke`, and `test-e2e` each run one `postgres`
-  service from
+- `migrate`, `smoke`, `test-e2e-smoke`, `test-e2e`, and `api-contract` each run
+  one `postgres` service from
   `public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24`.
   ECR Public mirrors the Docker official image, which avoids anonymous Docker
   Hub pull limits on the shared runner egress IP.
 - The pull is anonymous: no secret or `credentials:` key is required. The
   fork-reachable `migrate` and `smoke` jobs must not reference secrets anyway.
 - The digest pins the reviewed bytes even when the `17.11-alpine` tag moves.
-- _Bump:_ change the tag and digest in all four `image:` lines together, and
-  first confirm the digest exists on the mirror (for example,
-  `docker manifest inspect public.ecr.aws/docker/library/postgres@sha256:<digest>`).
+- _Bump:_ confirm the digest exists on the mirror with
+  `docker manifest inspect public.ecr.aws/docker/library/postgres@sha256:<digest>`.
+  Update the five workflow `image:` references, including
+  `.github/workflows/api-contract.yml`, and `POSTGRES_IMAGE` in
+  `scripts/api-contract/stack.mjs` together.
 
 ---
 

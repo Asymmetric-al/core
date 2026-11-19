@@ -1,13 +1,14 @@
 /**
  * #2708: the harness reads the Data API surface from supabase/config.toml and
  * hands it to PostgREST unchanged, stays on loopback, and removes only the
- * Docker resources it started. Pure: no Docker, no database.
+ * Docker resources it started. Pure: no real Docker or database.
  */
-import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   assertLoopbackDatabaseUrl,
@@ -136,12 +137,166 @@ describe("assertLoopbackDatabaseUrl", () => {
     ).not.toThrow();
   });
 
+  it.each([
+    "port=54322",
+    "user=supabase_admin",
+    "dbname=other",
+    "PORT=54322",
+    "password=secret",
+    "sslpassword=secret",
+  ])(
+    "refuses a query override of the admitted database target (%s)",
+    (override) => {
+      expect(() =>
+        assertLoopbackDatabaseUrl(
+          `postgresql://postgres@127.0.0.1:5432/db?${override}`,
+        ),
+      ).toThrow(/Refusing DATABASE_URL/);
+    },
+  );
+
+  it.each(["postgresql://localhost/db", "postgresql://postgres@localhost/"])(
+    "requires an explicit login and database name (%s)",
+    (url) =>
+      expect(() => assertLoopbackDatabaseUrl(url)).toThrow(
+        /login, and database name/,
+      ),
+  );
+
   it("refuses a URL that is not a Postgres URL", () => {
     expect(() => assertLoopbackDatabaseUrl("http://127.0.0.1:5432/db")).toThrow(
       /Postgres/,
     );
   });
 });
+
+describe.skipIf(process.platform === "win32")(
+  "guarded API contract database writes",
+  () => {
+    const roots: string[] = [];
+    afterEach(() => {
+      for (const dir of roots.splice(0))
+        rmSync(dir, { recursive: true, force: true });
+    });
+
+    function runWithMarker(command: string, marker: string) {
+      const dir = mkdtempSync(
+        path.join(os.tmpdir(), "core-api-contract-psql-"),
+      );
+      roots.push(dir);
+      const psql = path.join(dir, "psql");
+      const log = path.join(dir, "calls.jsonl");
+      writeFileSync(log, "");
+      writeFileSync(
+        psql,
+        `#!${process.execPath}
+const fs = require("node:fs");
+const args = process.argv.slice(2);
+const sql = args[args.indexOf("-c") + 1] ?? "";
+const input = args.includes("-") ? fs.readFileSync(0, "utf8") : "";
+const pg = Object.fromEntries(Object.entries(process.env).filter(([key]) => key.startsWith("PG")));
+fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify({ args, pg, input }) + "\\n");
+const marker = ${JSON.stringify(marker)};
+if (marker === "unreadable") process.exit(2);
+if (sql.includes("to_regprocedure")) console.log(marker === "missing" ? "f" : "t");
+else if (args.includes("-c")) console.log(marker);
+`,
+        { mode: 0o755 },
+      );
+      writeFileSync(
+        path.join(dir, "docker"),
+        "#!/bin/sh\necho fake docker invoked >&2\nexit 1\n",
+        { mode: 0o755 },
+      );
+      const result = spawnSync(
+        process.execPath,
+        ["scripts/api-contract/stack.mjs", command],
+        {
+          encoding: "utf8",
+          timeout: 5000,
+          env: {
+            ...process.env,
+            PATH: `${dir}${path.delimiter}${process.env.PATH ?? ""}`,
+            PSQL_BIN: psql,
+            API_CONTRACT_NAME: "contract-psql-test",
+            API_CONTRACT_STATE_FILE: path.join(dir, "state.json"),
+            DATABASE_URL:
+              "postgresql://postgres:fixture-password@127.0.0.1:1/contract",
+            PGHOST: "localhost",
+            PGHOSTADDR: "127.0.0.1",
+            PGPORT: "2",
+            PGDATABASE: "other",
+            PGUSER: "other",
+            PGSERVICE: "other",
+            PGOPTIONS: "-c search_path=other",
+            PGPASSWORD: "ambient-password",
+          },
+        },
+      );
+      const calls = readFileSync(log, "utf8")
+        .trim()
+        .split("\n")
+        .filter(Boolean)
+        .map(
+          (line) =>
+            JSON.parse(line) as {
+              args: string[];
+              pg: Record<string, string>;
+              input: string;
+            },
+        );
+      return { result, calls };
+    }
+
+    it.each([
+      ["seed", "shared", /is marked shared/],
+      ["prepare", "production", /is marked production/],
+      ["seed", "missing", /has no environment marker/],
+      ["prepare", "unreadable", /could not read the environment marker/],
+    ] as const)(
+      "%s refuses a %s marker before any write",
+      (command, marker, reason) => {
+        const { result, calls } = runWithMarker(command, marker);
+        expect(result.status).toBe(1);
+        expect(result.stderr).toMatch(reason);
+        expect(result.stderr).not.toContain("fake docker invoked");
+        expect(calls).toHaveLength(
+          ["missing", "unreadable"].includes(marker) ? 1 : 2,
+        );
+        expect(calls.every(({ args }) => args.includes("-c"))).toBe(true);
+      },
+    );
+
+    it.each(["seed", "prepare"])(
+      "%s uses the marker target and keeps passwords out of arguments",
+      (command) => {
+        const { result, calls } = runWithMarker(command, "disposable");
+        if (command === "seed") expect(result.status).toBe(0);
+        else expect(result.stderr).toContain("fake docker invoked");
+        expect(calls).toHaveLength(3);
+        for (const { args, pg } of calls) {
+          expect(args[0]).toBe("postgresql://postgres@127.0.0.1:1/contract");
+          expect(args.join(" ")).not.toContain("fixture-password");
+          expect(pg).toEqual({ PGPASSWORD: "fixture-password" });
+        }
+        const write = calls[2]!;
+        if (command === "seed")
+          expect(write.args).toContain("supabase/seed.sql");
+        else {
+          expect(write.input).toContain(
+            "CREATE OR REPLACE FUNCTION auth.uid()",
+          );
+          const password =
+            /ALTER ROLE authenticator WITH LOGIN PASSWORD '([0-9a-f]{64})'/.exec(
+              write.input,
+            )?.[1];
+          expect(password).toBeDefined();
+          expect(write.args.join(" ")).not.toContain(password!);
+        }
+      },
+    );
+  },
+);
 
 const OURS = "a".repeat(64);
 const THEIRS = "b".repeat(64);

@@ -60,6 +60,7 @@ on:
       - scripts/verify/field-policy-census.mjs
       - scripts/lib/postgres-upgrade-preflight.mjs
       - scripts/lib/psql.mjs
+      - scripts/lib/environment-marker.mjs
       - tests/integration/supabase/postgres17-upgrade-readiness-verification.sql
       - docs/security/anon-definer-allowlist.json
       - docs/security/rls-deny-by-default-exceptions.json
@@ -132,7 +133,7 @@ jobs:
       - name: Apply migrations
         run: node scripts/verify/supabase-migrations.mjs
       - name: Apply demo seed
-        run: psql "$DATABASE_URL" -f supabase/seed.sql -v ON_ERROR_STOP=1
+        run: node scripts/api-contract/stack.mjs seed
       - name: Start PostgREST on the migrated database
         run: node scripts/api-contract/stack.mjs prepare
       - name: Run the API contract tests
