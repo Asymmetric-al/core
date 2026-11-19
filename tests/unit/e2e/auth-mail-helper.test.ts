@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   createConfirmedUser,
+  deleteUser,
+  findUserIdByEmail,
   readAuthMailEnv,
   type AuthMailEnv,
 } from "../../../tests/e2e/helpers/auth-mail";
@@ -79,4 +81,47 @@ describe("the auth email helpers' database", () => {
       }),
     ).rejects.toThrow(/only against a local Supabase stack/);
   });
+});
+
+// Phase 16, Q6: the Auth admin writes carry the service-role key over HTTP,
+// so they check the hand-built environment's Supabase address as the
+// database write checks its database. fetch is stubbed, so even without the
+// check nothing leaves this machine.
+describe("the auth email helpers' service-role requests", () => {
+  const hosted: AuthMailEnv = {
+    supabaseUrl: "https://abc.supabase.co",
+    anonKey: LOCAL.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    serviceRoleKey: LOCAL.SUPABASE_SERVICE_ROLE_KEY,
+    mailUrl: LOCAL.E2E_AUTH_MAIL_URL,
+    dbUrl: null,
+  };
+
+  it.each([
+    [
+      "createConfirmedUser",
+      () =>
+        createConfirmedUser(hosted, {
+          email: "auth-mail@example.test",
+          password: "a phrase",
+          membership: { role: "donor" },
+        }),
+    ],
+    ["deleteUser", () => deleteUser(hosted, "user-1")],
+    [
+      "findUserIdByEmail",
+      () => findUserIdByEmail(hosted, "auth-mail@example.test"),
+    ],
+  ])(
+    "%s sends nothing to a Supabase address not on this machine",
+    async (_name, call) => {
+      const fetch = vi.fn(
+        async () => new Response(JSON.stringify({ id: "user-1" })),
+      );
+      vi.stubGlobal("fetch", fetch);
+      await expect(call()).rejects.toThrow(
+        /only against a local Supabase stack, not abc\.supabase\.co/,
+      );
+      expect(fetch).not.toHaveBeenCalled();
+    },
+  );
 });

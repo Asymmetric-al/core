@@ -43,16 +43,19 @@ export function readAuthMailEnv(
     return null;
   }
 
-  for (const url of [supabaseUrl, mailUrl]) {
-    if (!isLocalHostname(new URL(url).hostname)) {
-      throw new Error(
-        `Auth mail e2e runs only against a local Supabase stack, not ${new URL(url).host}.`,
-      );
-    }
-  }
+  for (const url of [supabaseUrl, mailUrl]) assertLocalHttp(url);
   if (dbUrl) assertLocalDatabase(dbUrl);
 
   return { supabaseUrl, anonKey, serviceRoleKey, mailUrl, dbUrl };
+}
+
+/** Throws, naming its host, unless an HTTP address is on this machine. */
+function assertLocalHttp(url: string) {
+  if (!isLocalHostname(new URL(url).hostname)) {
+    throw new Error(
+      `Auth mail e2e runs only against a local Supabase stack, not ${new URL(url).host}.`,
+    );
+  }
 }
 
 /** Throws, naming no part of the URL, unless it names a database on this machine. */
@@ -70,7 +73,14 @@ export function uniqueTestEmail(label: string): string {
   return `${label}-${nonce}@example.test`;
 }
 
+/**
+ * The headers of every request that carries the service-role key: the Auth
+ * admin writes (createConfirmedUser, deleteUser) and the profile read. An
+ * AuthMailEnv can be built by hand, so the Supabase address is checked here
+ * again, as the membership write checks its database (phase 16, Q6).
+ */
 function serviceHeaders(env: AuthMailEnv) {
+  assertLocalHttp(env.supabaseUrl);
   return {
     apikey: env.serviceRoleKey,
     Authorization: `Bearer ${env.serviceRoleKey}`,
