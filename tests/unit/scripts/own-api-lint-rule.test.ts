@@ -58,6 +58,11 @@ ruleTester.run("own-api/no-direct-call", noDirectOwnApiCall, {
     'export const hasFetch = typeof fetch === "function";',
     "window.fetch = wrapped;",
     "const options = { fetch: 1 }; options.fetch;",
+    // Council round 2, BR5: the same forms to page addresses stay valid.
+    'import { useTenantRouter } from "@asym/auth/tenant-navigation"; const router = useTenantRouter(); router.push("/donor-dashboard/history");',
+    'function historyHref() { return "/donor-dashboard/history"; } const link = <a href={historyHref()}>History</a>;',
+    'const link = <Link href={{ pathname: "/donor-dashboard/history", query: { page: 2 } }}>History</Link>;',
+    "const { open } = window; open;",
     // An origin before another path, an array push and a key are not calls.
     "fetch(`${window.location.origin}/web-studio/api/pages`);",
     'const paths: string[] = []; paths.push("/api/admin/funds");',
@@ -276,6 +281,42 @@ ruleTester.run("own-api/no-direct-call", noDirectOwnApiCall, {
     {
       code: 'import { ofetch } from "ofetch"; ofetch("/api/admin/funds");',
       errors: call,
+    },
+    // Council round 2 on slice B, BR5: four forms the rule neither refused
+    // nor named.
+    // The tenant router, which Mission Control and the missionary workspace
+    // must use instead of Next.js's.
+    {
+      code: 'import { useTenantRouter } from "@asym/auth/tenant-navigation"; const router = useTenantRouter(); router.push("/api/donor/statements/2026");',
+      errors: navigation,
+    },
+    {
+      code: 'import { useTenantRouter as useRouter } from "@asym/auth/tenant-navigation"; const router = useRouter(); router.replace("/api/donor/statements/2026");',
+      errors: navigation,
+    },
+    // An address returned by a function of the same module.
+    {
+      code: 'function statementHref() { return "/api/donor/statements/2026"; } fetch(statementHref());',
+      errors: call,
+    },
+    {
+      code: "const statementHref = (year: number) => `/api/donor/statements/${year}`; window.open(statementHref(2026));",
+      errors: navigation,
+    },
+    // An object href, as next/link takes one.
+    {
+      code: 'const link = <Link href={{ pathname: "/api/donor/statements/2026" }}>Statement</Link>;',
+      errors: navigation,
+    },
+    // The global fetch taken out of a global object, after which `fetch` is
+    // a local name.
+    {
+      code: 'const { fetch } = window; fetch("/api/admin/funds");',
+      errors: fetchValue,
+    },
+    {
+      code: 'const { fetch: send } = globalThis; send("/api/admin/funds");',
+      errors: fetchValue,
     },
   ],
 });

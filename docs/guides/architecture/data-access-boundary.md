@@ -138,9 +138,11 @@ ESLint enforces the first rule: `own-api/no-direct-call`
 source, socket, request object, XMLHttpRequest, axios, ky or ofetch call, or
 navigation to an own-API path. A navigation is a link, a form, media or object
 address, a DOM write of one, `window.open`, a location change, a router push or
-a server redirect. The rule also refuses the global `fetch` used as a value
-(aliased, bound, called through `call`, or handed over as a `fetcher`): the
-global `fetch` is only ever called where its address is written, and
+a server redirect. A router is Next.js's `useRouter()` or the tenant router,
+`useTenantRouter()`, under any local name. The rule also refuses the global
+`fetch` used as a value (aliased, bound, called through `call`, handed over as
+a `fetcher`, or taken out of a global object, as in `const { fetch } = window`):
+the global `fetch` is only ever called where its address is written, and
 `ownApiFetch` is what code hands over for the app's own API. It runs in the
 workspaces listed in `ownApiWorkspaces.linted` (the three product apps and
 `@asym/auth`, `@asym/database`, `@asym/lib`, `@asym/missionary` and
@@ -149,25 +151,31 @@ it. Every other workspace is excluded by name, with its reason, in
 `ownApiWorkspaces.excluded`. It has no exemption: a call that cannot move onto
 the wrapper is a finding to raise, not a rule to switch off.
 
-Payload's REST routes under Web Studio's `routes.api` are not the app's own
-API, and this rule does not cover them; Web Studio's document fetch hook
-scopes those calls.
+Payload's REST routes are mounted at `/api` in this tree too: `routes.api` is
+not set in `apps/admin/payload.config.ts`, so Payload's default applies. Web
+Studio builds their addresses from Payload's runtime config (`serverURL` and
+`routes.api`), which the rule cannot read, so it does not see those calls.
+Scoping them is owed by slice C of WP2b release 1, and checked by the
+coordinator when the slices join; this tree has no Web Studio fetch hook.
 
 The rule reads one module at a time. It follows an address through that
 module's literals, constants, object literals held in a constant, choices,
-concatenation, an origin before the path, `new URL` and the parameters of its
-own functions. It does not see:
+concatenation, an origin before the path, `new URL`, the parameters of its
+own functions, the value a function declared in the module returns, and the
+`pathname` of an object `href`. It does not see:
 
 - an address built in another module and passed in, or returned by a function
   of another module;
+- the value returned by a method, a function held in an object, or a
+  callback, rather than a function declared in the module;
 - an address read from data at run time, such as a contribution batch's
   `nextAction.href` from the server's JSON;
-- a `fetch` captured through a local alias of `window` or a parameter, as Web
-  Studio's document fetch hook does;
+- a `fetch` reached through a local alias of `window` or a parameter
+  (`const w = window; w.fetch(…)`, `target.fetch`);
 - an SWR or TanStack Query key that names a path: a key is not a request, and
   the fetcher it is given decides how the call is made;
-- HTTP clients other than axios, ky and ofetch, and a router other than
-  Next.js's `useRouter()`.
+- HTTP clients other than axios, ky and ofetch, and routers other than
+  Next.js's and the tenant router.
 
 End to end, the request-scope specs (`bun run test:e2e:request-scope:admin`,
 `:missionary` and `:donor`) prove that each app's own-API calls carry the

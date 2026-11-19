@@ -9,15 +9,17 @@
 // push or a server redirect), which can carry no header at all.
 //
 // It also refuses the global `fetch` used as a value: aliased, bound, called
-// through `call` or `apply`, or handed over as a `fetcher`. The global
-// `fetch` is only ever called where its address is written, so the rule can
-// read that address; `ownApiFetch` is what a caller hands over for the app's
-// own API.
+// through `call` or `apply`, handed over as a `fetcher`, or taken out of a
+// global object (`const { fetch } = window`). The global `fetch` is only
+// ever called where its address is written, so the rule can read that
+// address; `ownApiFetch` is what a caller hands over for the app's own API.
 //
-// Payload's REST routes, under Web Studio's `routes.api`, are outside this
-// rule: they are not the app's own API, Web Studio's document fetch hook
-// scopes them, and their address comes from Payload's runtime config, which
-// the rule cannot read.
+// Payload's REST routes are mounted at `/api` in this tree too: `routes.api`
+// is not set in `apps/admin/payload.config.ts`, so Payload's default
+// applies. Web Studio builds their addresses from Payload's runtime config
+// (`serverURL` and `routes.api`), which the rule cannot read, so it does not
+// see those calls. Scoping them is owed by slice C, and the coordinator
+// checks it at the join; no Web Studio fetch hook is in this tree.
 //
 // The rule has no exemption mechanism of its own, and none is configured: a
 // call that cannot move onto the wrapper is a finding, not an exception.
@@ -28,19 +30,27 @@
 // literal held in a `const`, a conditional or `??`/`||` choice, a `+`
 // concatenation, an origin (`location.origin`, `self.origin`, a `const` that
 // holds one) before the path, `new URL(…)`, `String(…)` and `.toString()`,
-// and a parameter of a function in the same module whose call sites pass one.
+// a parameter of a function in the same module whose call sites pass one,
+// the value returned by a function declared in the same module (a function
+// declaration, or a `const` holding an arrow or function expression), and
+// the `pathname` of an object `href` (`href={{ pathname: "/api/…" }}`).
+// Routers are Next.js's `useRouter()` and the tenant router,
+// `useTenantRouter()` from `@asym/auth/tenant-navigation`, under any local
+// name.
 //
 // What it cannot see, by name:
 // - an address built in another module and passed in, or returned by a
 //   function of another module;
+// - the value returned by a method, a function held in an object or a
+//   callback, rather than a function declared in the module;
 // - an address read from data at run time (a server's JSON, a link in a
 //   record), such as a contribution batch's `nextAction.href`;
-// - a `fetch` captured through a local alias of `window` or a parameter
-//   (`target.fetch`), as Web Studio's document fetch hook does;
+// - a `fetch` reached through a local alias of `window` or a parameter
+//   (`const w = window; w.fetch(…)`, `target.fetch`);
 // - an SWR or TanStack Query key that names a path (a key is not a request;
 //   the fetcher it is given decides how the call is made);
-// - HTTP clients other than axios, ky and ofetch, and a router other than
-//   `useRouter()` from Next.js.
+// - HTTP clients other than axios, ky and ofetch, and routers other than
+//   Next.js's and the tenant router.
 
 const OWN_API_PATH = /^\/api(?:[/?#]|$)/;
 const GLOBAL_OBJECTS = new Set(["window", "globalThis", "self"]);
@@ -181,6 +191,24 @@ function importSourceOf(sourceCode, node) {
   return def.parent?.source?.value ?? null;
 }
 
+/** The name an identifier is imported under in its module, or `null`. */
+function importedNameOf(sourceCode, node) {
+  const variable = findVariable(sourceCode.getScope(node), node.name);
+  const def = variable?.defs[0];
+  if (def?.type !== "ImportBinding") return null;
+  if (def.node.type === "ImportDefaultSpecifier") return "default";
+  if (def.node.type !== "ImportSpecifier") return null;
+  const imported = def.node.imported;
+  return imported.type === "Identifier" ? imported.name : imported.value;
+}
+
+/** Router hooks, by module and exported name. */
+const ROUTER_HOOKS = [
+  ["next/navigation", "useRouter"],
+  ["next/router", "useRouter"],
+  ["@asym/auth/tenant-navigation", "useTenantRouter"],
+];
+
 /** A `const` declaration's initial value, or `null`. */
 function constInit(sourceCode, node) {
   const variable = findVariable(sourceCode.getScope(node), node.name);
@@ -193,18 +221,67 @@ function constInit(sourceCode, node) {
   return def ? def.node.init : null;
 }
 
-/** `useRouter()` from Next.js, or a `const` that holds its result. */
+/**
+ * `useRouter()` from Next.js or `useTenantRouter()` from the tenant
+ * navigation helpers, under any local name, or a `const` that holds its
+ * result.
+ */
 function isRouter(sourceCode, rawNode) {
   let node = unwrap(rawNode);
   if (node?.type === "Identifier") node = unwrap(constInit(sourceCode, node));
   const callee = node?.type === "CallExpression" ? unwrap(node.callee) : null;
-  return (
-    callee?.type === "Identifier" &&
-    callee.name === "useRouter" &&
-    ["next/navigation", "next/router"].includes(
-      importSourceOf(sourceCode, callee),
-    )
+  if (callee?.type !== "Identifier") return false;
+  const source = importSourceOf(sourceCode, callee);
+  const imported = importedNameOf(sourceCode, callee);
+  return ROUTER_HOOKS.some(
+    ([hookSource, hookName]) => source === hookSource && imported === hookName,
   );
+}
+
+/**
+ * The function an identifier is declared as in this module: a function
+ * declaration, or a `const` holding an arrow or function expression.
+ */
+function declaredFunctionOf(sourceCode, node) {
+  const variable = findVariable(sourceCode.getScope(node), node.name);
+  for (const def of variable?.defs ?? []) {
+    if (def.type === "FunctionName") return def.node;
+    if (
+      def.type === "Variable" &&
+      def.parent?.kind === "const" &&
+      ["ArrowFunctionExpression", "FunctionExpression"].includes(
+        unwrap(def.node.init)?.type,
+      )
+    )
+      return unwrap(def.node.init);
+  }
+  return null;
+}
+
+/** The expressions a function returns, not counting nested functions. */
+function returnedExpressions(fn) {
+  if (fn.type === "ArrowFunctionExpression" && fn.expression) return [fn.body];
+  const found = [];
+  const visit = (node) => {
+    if (!node || typeof node.type !== "string") return;
+    if (node.type === "ReturnStatement") {
+      if (node.argument) found.push(node.argument);
+      return;
+    }
+    if (
+      node.type === "FunctionDeclaration" ||
+      node.type === "FunctionExpression" ||
+      node.type === "ArrowFunctionExpression"
+    )
+      return;
+    for (const [key, value] of Object.entries(node)) {
+      if (key === "parent") continue;
+      if (Array.isArray(value)) value.forEach(visit);
+      else if (value && typeof value.type === "string") visit(value);
+    }
+  };
+  visit(fn.body);
+  return found;
 }
 
 /** The page's own origin: `location.origin`, `self.origin`, or a `const` holding one. */
@@ -318,6 +395,11 @@ function createResolver(sourceCode) {
           ["toString", "concat", "trim"].includes(propertyName(callee))
         )
           return next(callee.object);
+        // The value a function declared in this module returns (BR5).
+        if (callee.type === "Identifier") {
+          const fn = declaredFunctionOf(sourceCode, callee);
+          return Boolean(fn) && returnedExpressions(fn).some(next);
+        }
         return false;
       }
       case "MemberExpression": {
@@ -501,6 +583,13 @@ export const noDirectOwnApiCall = {
   create(context) {
     const { sourceCode } = context;
     const isOwnApi = createResolver(sourceCode);
+    const reportFetchOutOf = (pattern, source) => {
+      if (!isGlobalObject(sourceCode, source)) return;
+      for (const property of pattern.properties) {
+        if (keyName(property) === "fetch")
+          context.report({ node: property, messageId: "fetchValue" });
+      }
+    };
     return {
       CallExpression(node) {
         const found = callTarget(sourceCode, node);
@@ -539,6 +628,12 @@ export const noDirectOwnApiCall = {
           context.report({ node: identifier, messageId: "fetchValue" });
         }
       },
+      // The global `fetch` taken out of a global object
+      // (`const { fetch } = window`), after which it is a local name (BR5).
+      VariableDeclarator(node) {
+        if (node.id.type === "ObjectPattern" && node.init)
+          reportFetchOutOf(node.id, node.init);
+      },
       NewExpression(node) {
         const callee = unwrap(node.callee);
         if (
@@ -552,6 +647,8 @@ export const noDirectOwnApiCall = {
           context.report({ node: target, messageId: "call" });
       },
       AssignmentExpression(node) {
+        if (node.left.type === "ObjectPattern")
+          reportFetchOutOf(node.left, node.right);
         const left = unwrap(node.left);
         // A location change, or a DOM write of an address the browser loads
         // (`a.href =`, `form.action =`, `img.src =`, …). `data` is left out
@@ -575,8 +672,17 @@ export const noDirectOwnApiCall = {
           node.value.type === "JSXExpressionContainer"
             ? node.value.expression
             : node.value;
-        if (value.type !== "JSXEmptyExpression" && isOwnApi(value))
-          context.report({ node: value, messageId: "navigation" });
+        if (value.type === "JSXEmptyExpression") return;
+        // An object href (`{ pathname, query }`), as next/link takes one:
+        // its `pathname` is the address (BR5).
+        const object = objectLiteralOf(sourceCode, value);
+        const target = object
+          ? object.properties.find(
+              (property) => keyName(property) === "pathname",
+            )?.value
+          : value;
+        if (target && isOwnApi(target))
+          context.report({ node: target, messageId: "navigation" });
       },
     };
   },
