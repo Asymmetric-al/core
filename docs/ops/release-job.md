@@ -254,7 +254,11 @@ two forms above: the pooler, TLS, the role's connection limit, the circuit
 breaker) stops the step before it changes anything. The stop names the
 refusal and says what to run next for the operation it stopped: fix what
 the refusal names (for the circuit breaker, wait two minutes), then the same
-next step as in the list above. In a first rebuild this comes after the
+next step as in the list above. A TLS refusal that is a certificate
+verification error (`certificate verify failed`) leads to
+[If the CA is rotated or expires](#if-the-ca-is-rotated-or-expires): Supabase
+may have rotated the project's CA, and step 2 there checks that the pooler
+chains to the new one. In a first rebuild this comes after the
 migrations have marked the database `disposable`, so it too continues with
 `set-cms-role-passwords` and the release (review K3).
 
@@ -483,11 +487,16 @@ SHA-256 fingerprint), never the content. The job pins no fingerprint: the
 owner compares it with the one in the step that sets the secrets, and a CA
 that Supabase rotates, or that expires, is set again without a release of ours
 (see [If the CA is rotated or expires](#if-the-ca-is-rotated-or-expires)). A
-hosted step
+CA that Supabase replaces before its expiry date still passes that read: the
+step starts, and its first connection fails with a certificate verification
+error, which leads to the same section. A hosted step
 also stops unless its `psql` is version 16 or later, because an older libpq
-ignores `PGREQUIREAUTH` without a word. The same floor holds wherever a hosted
-address is used, the CMS runner and the reset guard included (review N6). The
-workflow installs Ubuntu's
+ignores `PGREQUIREAUTH` without a word. The same floor holds wherever one of
+the three builders that start `psql` from an address connects to a hosted
+one: the job's own SQL, the CMS runner, and `scripts/lib/psql.mjs`, which the
+reset guard uses (review N6). It does not hold for
+`scripts/verify/stripe-data-pipeline.mjs`, which starts `psql` on a hosted
+address with a builder of its own. The workflow installs Ubuntu's
 `postgresql-client` on `ubuntu-latest`, whose image carries PostgreSQL 16.
 Each client checks the chain to that CA and the host name:
 
@@ -530,10 +539,14 @@ IPv6 address only.
 The project's CA today is Supabase Root 2021 CA, self-signed, valid from
 28 April 2021 to 26 April 2031 (10:56:53 UTC), SHA-256 fingerprint
 `80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA`.
-On that date, or when Supabase rotates it sooner, every step stops at its
-start with "RELEASE_DATABASE_SSL_CA's CA expired on ..." or fails to verify
-the pooler, and nothing connects. The new CA has a new fingerprint, so the
-recorded one cannot confirm it. Then:
+On that date every step stops at its start with "RELEASE_DATABASE_SSL_CA's CA
+expired on ...", and nothing connects. If Supabase rotates it sooner, the CA
+the job holds still reads as valid, so no step stops at its start. The step's
+first connection fails instead, with a certificate verification error: `psql`
+says `SSL error: certificate verify failed`, and the Supabase CLI and Payload
+report a certificate error of their own. That error does not name this
+section: any certificate verification error in a hosted step leads here. The
+new CA has a new fingerprint, so the recorded one cannot confirm it. Then:
 
 1. Take the new CA from the project's Database settings (SSL configuration),
    signed in to Supabase with your own account. Never take it from a message,
@@ -546,7 +559,8 @@ recorded one cannot confirm it. Then:
    two dates. Then check that the project's pooler chains to it, with a TLS
    handshake and no login:
    `openssl s_client -starttls postgres -connect <pooler host>:5432 -servername <pooler host> -CAfile <file> -verify_hostname <pooler host> -verify_return_error </dev/null`
-   must end with `Verification: OK`.
+   must print `Verification: OK` in the middle of its output, after the
+   certificate chain, and `Verify return code: 0 (ok)` near its end.
 3. Set it as `RELEASE_DATABASE_SSL_CA` in both `release-production` and
    `release-preview`, and as `PAYLOAD_DATABASE_SSL_CA` on the admin app; then
    redeploy the admin app.
