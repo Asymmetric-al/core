@@ -11,6 +11,7 @@ import { ZodError } from "zod";
 import { normalizeStoredPostContent } from "./content";
 import { postIdParamSchema, postUpdateSchema } from "../schemas/posts";
 import { CACHE_TAGS } from "../shared/cache-tags";
+import { toErrorResponse } from "../shared/http-errors";
 import { findProfileByUserId } from "../shared/queries";
 
 function revalidatePostTags(postId: string, tenantId: string) {
@@ -29,7 +30,9 @@ function toAuthAwareErrorResponse(error: unknown) {
 
   const message = error instanceof Error ? error.message : "Internal error";
   if (message === "Unauthorized") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // The shared answer: the same 401, marked when the resolver refused the
+    // page's tenant or assignment (AL-2675, JB1).
+    return toErrorResponse(error);
   }
   if (message.startsWith("Forbidden")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

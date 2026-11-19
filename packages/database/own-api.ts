@@ -1,5 +1,8 @@
-import { getDocumentScope } from "./document-scope";
-import { applyRequestScopeHeaders } from "./request-scope-headers";
+import { getDocumentScope, retireDocumentScope } from "./document-scope";
+import {
+  applyRequestScopeHeaders,
+  SCOPE_REFUSED_HEADER,
+} from "./request-scope-headers";
 
 /**
  * The one way page code calls the app's own API routes (plan 5.2, "Calls from
@@ -54,21 +57,32 @@ function assertOwnApiPath(path: string): void {
  * Responses are never taken from the HTTP cache. The browser keys that cache
  * by address alone, while the same address answers for whichever tenant the
  * headers name.
+ *
+ * When the server refuses the tenant or assignment the request carried (the
+ * `x-asym-scope-refused` header: the resolver's own refusal, never any other
+ * 401 or 403), the document's scope is retired and the document reloads
+ * once, where the proxy then decides (plan 5.2; AL-2675, JB1). The response
+ * is still returned to the caller.
  */
 export function ownApiFetch(
   path: string,
   init: RequestInit = {},
 ): Promise<Response> {
+  // Refused before any request, synchronously, so the headers never leave.
   assertOwnApiPath(path);
-  const headers = applyRequestScopeHeaders(
-    new Headers(init.headers),
-    getDocumentScope(),
-  );
-  return fetch(path, {
+  const scope = getDocumentScope();
+  const headers = applyRequestScopeHeaders(new Headers(init.headers), scope);
+  const sent = fetch(path, {
     credentials: "same-origin",
     ...init,
     headers,
     cache: "no-store",
+  });
+  return Promise.resolve(sent).then((response) => {
+    if (scope && response.headers.has(SCOPE_REFUSED_HEADER)) {
+      retireDocumentScope();
+    }
+    return response;
   });
 }
 

@@ -2,11 +2,17 @@
 
 import { loadDocument, reloadDocument } from "@asym/database/document-reload";
 import {
+  claimDocumentReload,
+  forgetDocumentReload,
+  requestDocumentReload,
+} from "@asym/database/document-reload-claim";
+import {
   DocumentScopeProvider,
   isDocumentScopeFixed,
   useDocumentScope,
   type DocumentScope,
 } from "@asym/database/document-scope";
+import { ScopeReloadNotice } from "@asym/database/scope-reload-notice";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -143,7 +149,7 @@ function SegmentCrossingWatcher({
   const crossed =
     documentSegment !== undefined && addressSegment !== documentSegment;
   useEffect(() => {
-    if (crossed) reloadDocument();
+    if (crossed) requestDocumentReload();
   }, [crossed]);
   return null;
 }
@@ -195,10 +201,7 @@ export function PathSegmentBoundary({
  * showing a workspace page: nothing, and a new document for the address.
  */
 export function ReloadAcrossSegment() {
-  useEffect(() => {
-    reloadDocument();
-  }, []);
-  return null;
+  return <ScopeReloadNotice />;
 }
 
 /** The segment of a navigation target, or `undefined` for one the browser handles as it is. */
@@ -303,8 +306,8 @@ export function TenantDocument({
 
   useEffect(() => {
     if (!reload) {
-      forgetReload();
-    } else if (claimReload()) {
+      forgetDocumentReload();
+    } else if (claimDocumentReload()) {
       reloadDocument();
     } else {
       setStuck(true);
@@ -314,7 +317,9 @@ export function TenantDocument({
   if (stuck) {
     throw new TenantScopeMismatchError(addressPrefix, scope.addressPrefix);
   }
-  if (reload) return null;
+  // No page of the wrong scope, but an announced status and, if the reload
+  // does not happen, a way out (JB2). The reload is this guard's own.
+  if (reload) return <ScopeReloadNotice requestReload={false} />;
   return (
     <DocumentScopeProvider scope={scope}>
       {/* What the end-to-end suites read; it renders nothing visible. It
@@ -330,53 +335,6 @@ export function TenantDocument({
       {children}
     </DocumentScopeProvider>
   );
-}
-
-/** This tab's memory of the reload `TenantDocument` already tried. */
-const RELOAD_CLAIM = "asym:tenant-document-reload";
-/** How long a reload of the same address counts as the one already tried. */
-const RELOAD_CLAIM_MS = 30_000;
-
-/**
- * Claims this tab's one reload of the current address: `false` when a
- * reload of it was already tried within the last half minute and no document
- * has rendered since, which would make another one a loop. Without session
- * storage a tab cannot remember the reload, so it does not reload (a person
- * whose browser refuses storage cannot sign in either).
- */
-function claimReload(): boolean {
-  const href = window.location.href;
-  const now = Date.now();
-  try {
-    const raw = window.sessionStorage.getItem(RELOAD_CLAIM);
-    const last = raw
-      ? (JSON.parse(raw) as { href?: unknown; at?: unknown })
-      : null;
-    if (
-      last &&
-      last.href === href &&
-      typeof last.at === "number" &&
-      now - last.at < RELOAD_CLAIM_MS
-    ) {
-      return false;
-    }
-    window.sessionStorage.setItem(
-      RELOAD_CLAIM,
-      JSON.stringify({ href, at: now }),
-    );
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/** A document rendered: a later reload of any address is a new one. */
-function forgetReload(): void {
-  try {
-    window.sessionStorage.removeItem(RELOAD_CLAIM);
-  } catch {
-    // Nothing was remembered.
-  }
 }
 
 /**

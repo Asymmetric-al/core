@@ -1,4 +1,5 @@
 import {
+  scopeRefusedHeaders,
   getAuthContext,
   hasContextRoleClass,
   requestScopeOf,
@@ -299,6 +300,12 @@ export async function GET(
     const auth = await getAuthContext(request);
 
     if (!auth.isAuthenticated || !auth.userId) {
+      // A refused tenant or assignment is marked for the browser (JB1).
+      for (const [name, value] of Object.entries(
+        scopeRefusedHeaders(auth) ?? {},
+      )) {
+        pendingHeaders.set(name, value);
+      }
       return jsonWithCookies(
         { error: "Unauthorized" },
         { status: 401 },

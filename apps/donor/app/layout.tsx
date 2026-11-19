@@ -4,6 +4,7 @@ import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { MotionProvider } from "@asym/lib/motion-provider";
+import { ScopeReloadNotices } from "@asym/ui/components/scope-reload-notices";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { fontVariables } from "@asym/ui/fonts";
@@ -148,9 +149,11 @@ export default function RootLayout({
                       <OpenPolicyProvider>
                         {/* Crossing into or out of the donor portal is one
                             document load at its source (AL-2675, BR2). */}
-                        <PortalSegmentBoundary>
-                          {children}
-                        </PortalSegmentBoundary>
+                        <ScopeReloadNotices>
+                          <PortalSegmentBoundary>
+                            {children}
+                          </PortalSegmentBoundary>
+                        </ScopeReloadNotices>
                       </OpenPolicyProvider>
                     </SessionRetainedDraftProvider>
                   </NuqsAdapter>

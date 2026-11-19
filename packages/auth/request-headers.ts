@@ -1,5 +1,6 @@
 import {
   ASSIGNMENT_HEADER,
+  SCOPE_REFUSED_HEADER,
   TENANT_HEADER,
 } from "@asym/database/request-scope-headers";
 
@@ -46,7 +47,7 @@ import type { RoleClass } from "./principal/types";
 export const ROLE_CLASS_HEADER = "x-asym-role-class";
 // Owned by `@asym/database`, whose fetch wrapper, browser client and session
 // clients send them; re-exported here with the rules above.
-export { ASSIGNMENT_HEADER, TENANT_HEADER };
+export { ASSIGNMENT_HEADER, SCOPE_REFUSED_HEADER, TENANT_HEADER };
 
 /**
  * Page requests only, set by the proxy on a tenant address: the address

@@ -195,3 +195,54 @@ describe("a forged header, through the resolver, to the session client's request
     },
   );
 });
+
+/**
+ * Council on the joined release, JB1: the browser must tell a refused scope
+ * from any other 401 or 403, so the resolver's refusal of the scope a page
+ * proposed is marked with one response header, and nothing else is.
+ */
+describe("the refusal the browser retires its document on", () => {
+  it.each([
+    [
+      "a tenant where the caller holds no row (a revoked membership)",
+      [IN_DEMO],
+      { "x-asym-tenant": SECOND, "x-asym-assignment": IN_SECOND.id },
+      "not_owned_or_inactive",
+    ],
+    [
+      "another person's row (a different person signed in elsewhere)",
+      [IN_DEMO],
+      {
+        "x-asym-tenant": DEMO,
+        "x-asym-assignment": "00000000-0000-4000-8000-0000000e2e99",
+      },
+      "not_owned_or_inactive",
+    ],
+  ])(
+    "marks %s with x-asym-scope-refused, at the same status as before",
+    async (_case, memberships, scopeHeaders, reason) => {
+      const response = await listUsers(memberships, scopeHeaders);
+
+      expect(response.status).toBe(401);
+      expect(response.headers.get("x-asym-scope-refused")).toBe(reason);
+      expect(dataApi).toEqual([]);
+    },
+  );
+
+  it("does not mark a refusal of a request that proposed no scope", async () => {
+    const response = await listUsers([IN_DEMO, IN_SECOND], {});
+
+    expect(response.status).toBe(401);
+    expect(response.headers.has("x-asym-scope-refused")).toBe(false);
+  });
+
+  it("does not mark a request the scope still holds for", async () => {
+    const response = await listUsers([IN_DEMO, IN_SECOND], {
+      "x-asym-tenant": SECOND,
+      "x-asym-assignment": IN_SECOND.id,
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.has("x-asym-scope-refused")).toBe(false);
+  });
+});

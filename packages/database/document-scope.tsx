@@ -8,7 +8,12 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import { reloadDocument } from "./document-reload";
+import {
+  forgetDocumentReload,
+  requestDocumentReload,
+} from "./document-reload-claim";
+import { readBrowserSessionUserId } from "./document-session";
+import { ScopeReloadNotice } from "./scope-reload-notice";
 
 import type { ReactNode } from "react";
 
@@ -114,6 +119,76 @@ let fixedScope: DocumentScope | null = null;
 /** Browser only: the address segment the fixed scope is valid in. */
 let fixedSegment = "";
 
+/**
+ * Browser only: who the browser was signed in as when the scope was fixed
+ * (`readBrowserSessionUserId`), the baseline a change of person is judged
+ * against (JB1).
+ */
+let fixedSessionUser: string | null | undefined;
+
+/**
+ * Browser only: whether the document's scope has been retired, because
+ * another person signed in or the person signed out in another tab, or the
+ * server refused the scope's assignment (plan 5.2; AL-2675, JB1). A retired
+ * scope is never sent again, and the providers render the reload notice in
+ * place of their pages.
+ */
+let retired = false;
+const retiredListeners = new Set<() => void>();
+
+/** Whether the browser's signed-in person differs from the scope's baseline. */
+function sessionChanged(): boolean {
+  if (fixedSessionUser === undefined) return false;
+  const now = readBrowserSessionUserId();
+  return now !== undefined && now !== fixedSessionUser;
+}
+
+/**
+ * Retires the document's scope (JB1): no request carries it again, and the
+ * document reloads once, through the bounded reload every guard shares,
+ * where the proxy then decides (sign-in, the chooser, the page or the
+ * refusal page). The scope providers render the reload notice in place of
+ * their pages, so no data of the old scope stays on screen; with none
+ * mounted, the reload is asked for here.
+ */
+export function retireDocumentScope(): void {
+  if (typeof window === "undefined" || fixedScope === null || retired) return;
+  retired = true;
+  if (retiredListeners.size === 0) {
+    requestDocumentReload();
+    return;
+  }
+  retiredListeners.forEach((listener) => listener());
+}
+
+/** Retires the scope if the browser's signed-in person changed (JB1). */
+function checkSessionPerson(): void {
+  if (fixedScope !== null && !retired && sessionChanged()) {
+    retireDocumentScope();
+  }
+}
+
+let sessionWatchInstalled = false;
+
+/** Checks again when the person returns to this tab (JB1). */
+function watchSessionPerson(): void {
+  if (sessionWatchInstalled) return;
+  sessionWatchInstalled = true;
+  window.addEventListener("focus", checkSessionPerson);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") checkSessionPerson();
+  });
+}
+
+function subscribeRetired(listener: () => void) {
+  retiredListeners.add(listener);
+  return () => {
+    retiredListeners.delete(listener);
+  };
+}
+const readRetired = () => retired;
+const readNotRetired = () => false;
+
 function sameScope(a: DocumentScope, b: DocumentScope): boolean {
   return (
     a.userId === b.userId &&
@@ -134,6 +209,8 @@ function fixDocumentScope(scope: DocumentScope, segment: string): boolean {
   if (fixedScope === null) {
     fixedScope = Object.freeze({ ...scope });
     fixedSegment = segment;
+    fixedSessionUser = readBrowserSessionUserId();
+    watchSessionPerson();
     return true;
   }
   return sameScope(fixedScope, scope) && fixedSegment === segment;
@@ -217,24 +294,37 @@ export function DocumentScopeProvider({
   const enteredSoftly =
     guarded && !isDocumentScopeFixed() && loadedOutside(validIn);
   const fixed = !enteredSoftly && fixDocumentScope(scope, validIn);
+  // A scope retired after it was fixed (JB1): another person, or refused.
+  const isRetired = useSyncExternalStore(
+    subscribeRetired,
+    readRetired,
+    readNotRetired,
+  );
+  const shown = fixed && !isRetired;
 
+  // A document rendered in its scope: a later reload is a new one (JB2).
   useEffect(() => {
-    if (!fixed) reloadDocument();
-  }, [fixed]);
+    if (shown) forgetDocumentReload();
+  }, [shown]);
   // Tell readers above this provider (retained drafts) the scope is fixed.
   useLayoutEffect(() => {
     if (fixed) fixedScopeListeners.forEach((listener) => listener());
   }, [fixed]);
-  // Leaving the segment softly loads the new address as a document (BR1).
-  // (A provider that did not fix its scope has already asked for a reload.)
+  // Leaving the segment softly loads the new address as a document (BR1),
+  // through the bounded reload (JB2).
   useEffect(() => {
     if (!guarded || !fixed) return;
     return () => {
-      if (!inSegment(window.location.pathname, validIn)) reloadDocument();
+      if (!inSegment(window.location.pathname, validIn)) {
+        requestDocumentReload();
+      }
     };
   }, [guarded, fixed, validIn]);
 
-  if (!fixed) return null;
+  // Another scope, a soft entry or a retired scope: no page content of the
+  // wrong scope, but an announced status and, if the reload does not happen,
+  // a way out (the acceptance line's "renders nothing and reloads"; JB2).
+  if (!shown) return <ScopeReloadNotice />;
   return (
     <DocumentScopeContext.Provider value={scope}>
       {children}
@@ -262,6 +352,14 @@ function inSegment(pathname: string, segment: string): boolean {
  */
 export function getDocumentScope(): DocumentScope | null {
   if (typeof window === "undefined" || fixedScope === null) return null;
+  if (retired) return null;
+  // Another person signed in, or the person signed out, in another tab:
+  // never send the first person's scope with the second person's cookies
+  // (JB1).
+  if (sessionChanged()) {
+    retireDocumentScope();
+    return null;
+  }
   return inSegment(window.location.pathname, fixedSegment) ? fixedScope : null;
 }
 

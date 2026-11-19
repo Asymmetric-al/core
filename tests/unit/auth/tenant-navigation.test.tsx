@@ -812,3 +812,97 @@ describe("TenantSegmentBoundary: a crossing is a document load", () => {
     expect(nav.push).toHaveBeenCalledWith("/donor-dashboard/pledges");
   });
 });
+
+// Council on the joined release, JB2: every guard reloads through one bounded
+// claim, and in place of the page it must not show it renders a status that
+// assistive technology announces, with a way out once the reload is refused
+// or has not happened. Still no page content of the wrong scope.
+describe("one bounded reload for every guard, with a status in place of the page", () => {
+  it("TenantDocument announces the reload where the page of the wrong scope would be", async () => {
+    const { TenantDocument } = await load();
+    render(
+      <TenantDocument scope={scopeA}>
+        <p>page</p>
+      </TenantDocument>,
+    );
+    nav.pathname = `/${TB}/contributions`;
+    cleanup();
+    render(
+      <TenantDocument scope={scopeA}>
+        <p>page</p>
+      </TenantDocument>,
+    );
+
+    expect(screen.queryByText("page")).toBeNull();
+    expect(screen.getByRole("status").textContent).toBe(
+      "Loading this page again…",
+    );
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+  });
+
+  it("the segment's watcher reloads a crossing once, not again while that reload is the one already tried", async () => {
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      cleanup();
+      const mod = await load();
+      nav.pathname = `/${TA}/tasks`;
+      loadDocumentAt(nav.pathname);
+      const page = () => (
+        <mod.TenantSegmentBoundary>
+          <p>app</p>
+        </mod.TenantSegmentBoundary>
+      );
+      const view = render(page());
+      nav.pathname = `/${TB}/tasks`;
+      view.rerender(page());
+    }
+
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+  });
+
+  it("ReloadAcrossSegment announces the reload, and offers a way out when the bound is reached", async () => {
+    const { ReloadAcrossSegment } = await load();
+    render(<ReloadAcrossSegment />);
+    expect(screen.getByRole("status").textContent).toBe(
+      "Loading this page again…",
+    );
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+
+    // The new document lands on the same page again.
+    cleanup();
+    render(<ReloadAcrossSegment />);
+
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("status").textContent).toBe(
+      "This page could not load again.",
+    );
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Reload" }),
+    );
+    expect(
+      screen.getByRole("link", { name: "Go to home" }).getAttribute("href"),
+    ).toBe("/");
+  });
+
+  it("shares the one claim between guards: a reload the watcher tried bounds TenantDocument's", async () => {
+    const mod = await load();
+    nav.pathname = `/${TA}~finance/contributions`;
+    loadDocumentAt(nav.pathname);
+    const page = () => (
+      <Boundary>
+        <mod.TenantSegmentBoundary>
+          <mod.TenantDocument scope={scopeA}>
+            <p>page</p>
+          </mod.TenantDocument>
+        </mod.TenantSegmentBoundary>
+      </Boundary>
+    );
+    const view = render(page());
+    expect(screen.getByText("page")).toBeTruthy();
+
+    nav.pathname = `/${TB}/contributions`;
+    view.rerender(page());
+
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("page")).toBeNull();
+  });
+});
