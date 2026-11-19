@@ -131,6 +131,22 @@ describe.skipIf(!adminDatabaseUrl)(
       expect(result.status).toBe(0);
     });
 
+    it("admits pending Payload migrations after a first rebuild stopped before creating their ledger", () => {
+      const db = database("before_payload");
+      applyLedgers(db.url, source.supabase, []);
+      psql(db.url, "DROP TABLE cms.payload_migrations;");
+      expect(
+        readStateAfterFailedReset({ settings: settingsFor(db.url) }),
+      ).toEqual({ marker: "disposable", open: false });
+      const result = step("preflight", db.url, {
+        RELEASE_ENVIRONMENT: "production",
+      });
+      expect(result.status).toBe(0);
+      expect(result.output).toContain(
+        `payload: ${source.payload.length} pending, database head none`,
+      );
+    });
+
     it("stops a release that carries an out-of-order migration, naming it", () => {
       const db = database("out_of_order");
       const skipped = source.supabase[10]!;
