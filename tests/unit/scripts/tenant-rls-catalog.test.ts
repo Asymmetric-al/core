@@ -4,6 +4,10 @@ import {
   TENANT_RLS_CATALOG_SQL,
   evaluateTenantRlsCatalog,
   formatTenantRlsCatalogSummary,
+  perRowLookups,
+  splitTopLevel,
+  stripParens,
+  tenantBound,
 } from "../../../scripts/verify/tenant-rls-catalog.mjs";
 
 const table = (name: string, over: Record<string, unknown> = {}) => ({
@@ -95,7 +99,14 @@ const evaluate = (
   definers: object[] = [],
   commands: object[] = [],
   anonAllowlist: unknown = allow(),
-  more: { wrappers?: object[]; grants?: object[] } = {},
+  more: {
+    wrappers?: object[];
+    grants?: object[];
+    policies?: object[];
+    tenant_helpers?: object[];
+    published?: string[];
+    policyExceptions?: unknown;
+  } = {},
 ) =>
   evaluateTenantRlsCatalog(
     {
@@ -104,9 +115,13 @@ const evaluate = (
       commands,
       wrappers: more.wrappers ?? [],
       grants: more.grants ?? [],
+      policies: more.policies ?? [],
+      tenant_helpers: more.tenant_helpers,
+      published: more.published ?? [],
     },
     exceptions,
     anonAllowlist,
+    more.policyExceptions ?? { entries: [] },
   );
 const codes = (result: ReturnType<typeof evaluate>) =>
   result.failures.map(
@@ -145,13 +160,17 @@ describe("evaluateTenantRlsCatalog", () => {
       },
     );
     expect(result.failures).toEqual([]);
+    // AL-2675 (WP2b, second release; record D-18): the counts gain the
+    // signed-in policies of tenant tables and their reviewed exceptions, and
+    // the summary line says what the new rules hold. Every count asserted
+    // before is still asserted, with the same value.
     expect(result.counts).toEqual({
       ...{ tenant: 2, withPolicy: 1, listed: 1, stale: 0, definers: 1 },
       ...{ anonAllowed: 0, humanEntryPoints: 1, platformCommands: 0 },
-      ...{ wrappers: 2 },
+      ...{ wrappers: 2, tenantPolicies: 0, policyExceptions: 0 },
     });
     expect(formatTenantRlsCatalogSummary(result)).toBe(
-      "PASS: tenant RLS catalog gate: 2 tenant tables enabled and forced (1 with policies, 1 listed deny-by-default, 0 stale), 1 SECURITY DEFINER functions with RLS-bypassing owners, a fixed search path and no PUBLIC EXECUTE (0 anon-allowlisted); command lanes: 1 human entry points, 0 platform commands, 2 wrappers; no table grant in public outside a policy.",
+      "PASS: tenant RLS catalog gate: 2 tenant tables enabled and forced (1 with policies, 1 listed deny-by-default, 0 stale), 1 SECURITY DEFINER functions with RLS-bypassing owners, a fixed search path and no PUBLIC EXECUTE (0 anon-allowlisted); command lanes: 1 human entry points, 0 platform commands, 2 wrappers; no table grant in public outside a policy; 0 signed-in policies of tenant tables carry the request's tenant with each lookup once a statement (0 reviewed exceptions), none reads the token claim, and no tenant table is published.",
     );
   });
 
@@ -1091,10 +1110,12 @@ describe("evaluateTenantRlsCatalog: command schemas never use auth (A9)", () => 
 
 describe("TENANT_RLS_CATALOG_SQL", () => {
   it("reads SQL-standard bodies and search paths that name a command schema, and checks column grants", () => {
-    // Commands and wrappers both read the deparsed SQL-standard body.
+    // Commands and wrappers both read the deparsed SQL-standard body, and
+    // since AL-2675 so do the request-tenant helpers (record D-18: one more
+    // reader of the same body, none fewer).
     expect(
       TENANT_RLS_CATALOG_SQL.match(/pg_get_function_sqlbody\(p\.oid\)/g),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
     expect(TENANT_RLS_CATALOG_SQL).toMatch(
       /search_path=%' limit 1\) ~\* '\(tenant_guard\|platform\)'/,
     );
@@ -1111,5 +1132,217 @@ describe("TENANT_RLS_CATALOG_SQL", () => {
     expect(TENANT_RLS_CATALOG_SQL).toContain(
       "a.privilege_type in ('TRUNCATE', 'REFERENCES', 'TRIGGER', 'MAINTAIN')",
     );
+  });
+});
+
+/**
+ * AL-2675 (WP2b, second release; plan 12, WP2 exit; record D-25): the tenant
+ * condition on every signed-in policy of a tenant table, each lookup once for
+ * a statement, no token claim, no published tenant table, and the reviewed
+ * exceptions pinned to their text (docs/security/tenant-policy-exceptions.json).
+ * Policy text below is as Postgres deparses it.
+ */
+describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in policy (AL-2675)", () => {
+  const T =
+    "(tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id))";
+  const STAFF =
+    "( SELECT authz.assignment_is('staff'::authz.membership_role) AS assignment_is)";
+  const DONOR_OWN =
+    "(( SELECT authz.assignment_is('donor'::authz.membership_role) AS assignment_is) AND (profile_id IN ( SELECT authz.caller_profile_ids() AS caller_profile_ids)))";
+  const SUPER = "( SELECT authz.is_super_admin() AS is_super_admin)";
+  const policy = (
+    tableName: string,
+    using: string | null,
+    over: Record<string, unknown> = {},
+  ) => ({
+    ...{ table: tableName, policy: `${tableName} read`, cmd: "SELECT" },
+    ...{ roles: ["authenticated"], using, check: null, ...over },
+  });
+  const HELPERS = [
+    "authz.current_tenant_id()",
+    "authz.request_tenant_id()",
+    "authz.request_assignment_id()",
+    "authz.request_assignment()",
+  ].map((fn) => ({
+    function: fn,
+    body: "SELECT a.tenant_id FROM authz.request_assignment() AS a",
+  }));
+  const TABLES = [
+    table("donors"),
+    table("posts"),
+    table("post_comments", { tenant: false }),
+  ];
+  const run = (
+    policies: object[],
+    more: {
+      tenant_helpers?: object[];
+      published?: string[];
+      policyExceptions?: unknown;
+    } = {},
+  ) =>
+    evaluate(TABLES, listed(), [], [], allow(), {
+      policies,
+      tenant_helpers: more.tenant_helpers ?? HELPERS,
+      published: more.published,
+      policyExceptions: more.policyExceptions,
+    });
+  const pin = (p: { table: string; policy: string; using: string | null }) => ({
+    entries: [
+      {
+        ...{ table: p.table, policy: p.policy, using: p.using, check: null },
+        ...{ reason: "fixture", ends: "WP7" },
+      },
+    ],
+  });
+
+  it("reads deparsed text: strips enclosing parentheses and splits at the top level, outside quotes", () => {
+    expect(stripParens("((a = 1))")).toBe("a = 1");
+    expect(stripParens("(a = 1) AND (b = 2)")).toBe("(a = 1) AND (b = 2)");
+    expect(splitTopLevel(`(${T} AND ${STAFF})`, "AND")).toEqual([T, STAFF]);
+    expect(splitTopLevel(`((name = ' OR x') AND ${T})`, "OR")).toHaveLength(1);
+  });
+
+  it("passes the tenant condition with a class term, a super-admin branch beside it, a deny-all policy and a policy that is the branch alone", () => {
+    const result = run([
+      policy("donors", `(${T} AND ${STAFF})`),
+      policy("donors", `(${SUPER} OR (${T} AND (${STAFF} OR ${DONOR_OWN})))`, {
+        policy: "own",
+      }),
+      policy("donors", "false", { policy: "deny", cmd: "ALL", check: "false" }),
+      policy("donors", SUPER, { policy: "super" }),
+    ]);
+    expect(result.failures).toEqual([]);
+    expect(result.counts.tenantPolicies).toBe(4);
+  });
+
+  it("fails a policy that admits a row without the tenant condition, naming it", () => {
+    for (const using of [
+      // Membership alone, today's form (NR-01).
+      "authz.has_staff_membership(tenant_id, NULL::authz.staff_role[])",
+      // An own-row branch beside the tenant-bound one.
+      `((${T} AND ${STAFF}) OR (profile_id IN ( SELECT authz.caller_profile_ids() AS caller_profile_ids)))`,
+      // The global rows of a table are not the tenant condition.
+      `((tenant_id IS NULL) OR ${T})`,
+    ]) {
+      const result = run([policy("donors", using)]);
+      expect(codes(result), using).toContain("TENANT_CONDITION_MISSING donors");
+    }
+  });
+
+  it("Q6: accepts exactly one super-admin disjunct beside the tenant condition and fails any other", () => {
+    expect(tenantBound(`(${SUPER} OR (${T} AND ${STAFF}))`)).toBe(true);
+    expect(tenantBound(`(${SUPER} OR ${SUPER} OR (${T} AND ${STAFF}))`)).toBe(
+      false,
+    );
+    for (const other of [
+      "( SELECT authz.has_membership(( SELECT authz.current_tenant_id() AS current_tenant_id)) AS has_membership)",
+      "(( SELECT auth.uid() AS uid) IS NOT NULL)",
+      "authz.is_super_admin()",
+    ]) {
+      const result = run([
+        policy("donors", `(${other} OR (${T} AND ${STAFF}))`),
+      ]);
+      expect(codes(result), other).toContain("TENANT_CONDITION_MISSING donors");
+    }
+  });
+
+  it("fails a lookup that runs once for every row: a bare call, a call that takes a column, and the constant-argument form TP1 measured", () => {
+    expect(perRowLookups(`(${T} AND ${STAFF})`)).toEqual([]);
+    // A cast to an authz type is not a call.
+    expect(perRowLookups("(role = 'staff'::authz.membership_role)")).toEqual(
+      [],
+    );
+    for (const using of [
+      `(${T} AND authz.assignment_is('staff'::authz.membership_role))`,
+      `(${T} AND ( SELECT authz.has_staff_membership(donors.tenant_id, NULL::authz.staff_role[]) AS has_staff_membership))`,
+      `(${T} AND authz.has_staff_membership(( SELECT authz.current_tenant_id() AS current_tenant_id), NULL::authz.staff_role[]))`,
+    ]) {
+      const result = run([policy("donors", using)]);
+      expect(codes(result), using).toContain("POLICY_LOOKUP_PER_ROW donors");
+    }
+  });
+
+  it("fails a policy anywhere in public, and a tenant helper, that reads the token claim", () => {
+    const claim =
+      "(tenant_id = (((auth.jwt() -> 'app_metadata'::text) ->> 'tenant_id'::text))::uuid)";
+    expect(codes(run([policy("post_comments", claim)]))).toContain(
+      "POLICY_READS_TOKEN_CLAIM post_comments",
+    );
+    const helper = run([], {
+      tenant_helpers: [
+        ...HELPERS.slice(1),
+        {
+          function: "authz.current_tenant_id()",
+          body: "SELECT ((auth.jwt() -> 'app_metadata') ->> 'tenant_id')::uuid",
+        },
+      ],
+    });
+    expect(codes(helper)).toContain(
+      "TENANT_HELPER_READS_CLAIM authz.current_tenant_id()",
+    );
+    // A comment that mentions the claim is not a read of it.
+    const commented = run([], {
+      tenant_helpers: HELPERS.map((h) => ({
+        ...h,
+        body: `-- no longer reads app_metadata\n${h.body}`,
+      })),
+    });
+    expect(commented.failures).toEqual([]);
+    expect(codes(run([], { tenant_helpers: HELPERS.slice(1) }))).toContain(
+      "TENANT_HELPER_MISSING authz.current_tenant_id",
+    );
+  });
+
+  it("Q3, Q4: pins a reviewed exception to its text, on a tenant table or not, and fails it when the text changes or the policy is gone", () => {
+    const posts = policy(
+      "posts",
+      "((status = 'published'::text) AND (visibility = 'public'::text))",
+      { policy: "tanstack browser read" },
+    );
+    const comments = policy(
+      "post_comments",
+      "(EXISTS ( SELECT 1 FROM posts p WHERE (p.id = post_comments.post_id)))",
+      { policy: "tanstack browser read" },
+    );
+    expect(run([posts], { policyExceptions: pin(posts) }).failures).toEqual([]);
+    expect(
+      run([comments], { policyExceptions: pin(comments) }).failures,
+    ).toEqual([]);
+    expect(codes(run([posts]))).toContain("TENANT_CONDITION_MISSING posts");
+    const widened = { ...posts, using: "(status = 'published'::text)" };
+    expect(codes(run([widened], { policyExceptions: pin(posts) }))).toEqual([
+      "POLICY_EXCEPTION_CHANGED posts",
+    ]);
+    const opened = { ...comments, using: "true" };
+    expect(codes(run([opened], { policyExceptions: pin(comments) }))).toEqual([
+      "POLICY_EXCEPTION_CHANGED post_comments",
+    ]);
+    expect(codes(run([], { policyExceptions: pin(posts) }))).toEqual([
+      "POLICY_EXCEPTION_STALE posts",
+    ]);
+    const malformed = {
+      entries: [{ table: "posts", policy: "x", using: null, check: null }],
+    };
+    expect(codes(run([], { policyExceptions: malformed }))).toEqual([
+      "POLICY_EXCEPTIONS_MALFORMED posts",
+    ]);
+  });
+
+  it("fails a tenant table in a publication, and passes a published table with no tenant column", () => {
+    expect(codes(run([], { published: ["donors"] }))).toEqual([
+      "TENANT_TABLE_PUBLISHED donors",
+    ]);
+    expect(run([], { published: ["post_comments"] }).failures).toEqual([]);
+  });
+
+  it("selects every signed-in policy of public, the request-tenant helpers and the published tables", () => {
+    expect(TENANT_RLS_CATALOG_SQL).toContain("'policies'");
+    expect(TENANT_RLS_CATALOG_SQL).toContain(
+      "p.polroles && array[0::oid, 'authenticated'::regrole::oid]",
+    );
+    expect(TENANT_RLS_CATALOG_SQL).toMatch(
+      /p\.proname in \('current_tenant_id', 'request_tenant_id', 'request_assignment_id', 'request_assignment'\)/,
+    );
+    expect(TENANT_RLS_CATALOG_SQL).toContain("from pg_publication_tables t");
   });
 });

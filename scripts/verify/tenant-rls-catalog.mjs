@@ -38,6 +38,26 @@ const repoRoot = path.resolve(
 );
 export const TENANT_RLS_EXCEPTIONS_PATH =
   "docs/security/rls-deny-by-default-exceptions.json";
+/**
+ * Reviewed signed-in policies of tenant tables that carry no request-tenant
+ * condition, each pinned to its deparsed text (AL-2675, WP2b second release;
+ * docs/security/tenant-policy-activation-review.md, section 3).
+ */
+export const TENANT_POLICY_EXCEPTIONS_PATH =
+  "docs/security/tenant-policy-exceptions.json";
+/** The helpers behind the request's tenant; none may read the token claim. */
+export const TENANT_HELPERS = [
+  "current_tenant_id",
+  "request_tenant_id",
+  "request_assignment_id",
+  "request_assignment",
+];
+/** The tenant condition every signed-in policy of a tenant table carries, as deparsed. */
+export const TENANT_CONDITION =
+  "tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)";
+/** The super-admin branch WP2c removes; until then it may stand beside the tenant condition. */
+export const SUPER_ADMIN_BRANCH =
+  "SELECT authz.is_super_admin() AS is_super_admin";
 /** Reviewed SECURITY DEFINER functions that anon may execute (plan 5.4). */
 export const ANON_DEFINER_ALLOWLIST_PATH =
   "docs/security/anon-definer-allowlist.json";
@@ -210,7 +230,37 @@ select jsonb_build_object(
         or ${SEARCH_PATH} ~* '(${COMMAND_SCHEMA_PATTERN})')), '[]'::jsonb),
   'grants', coalesce((
     select jsonb_agg(to_jsonb(g) order by g.relation, g.grantee, g.privilege)
-    from (${UNADMITTED_TABLE_GRANTS_SQL}) g), '[]'::jsonb)
+    from (${UNADMITTED_TABLE_GRANTS_SQL}) g), '[]'::jsonb),
+  -- AL-2675 (WP2b, second release): every policy signed-in users reach in
+  -- public, as Postgres deparses it, the bodies of the request-tenant
+  -- helpers, and the public tables in the Realtime publication.
+  'policies', coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'table', c.relname,
+      'policy', p.polname,
+      'cmd', case p.polcmd when 'r' then 'SELECT' when 'a' then 'INSERT'
+                           when 'w' then 'UPDATE' when 'd' then 'DELETE' else 'ALL' end,
+      'roles', (select jsonb_agg(case r when 0 then 'public' else r::regrole::text end order by 1)
+                  from unnest(p.polroles) r),
+      'using', pg_get_expr(p.polqual, p.polrelid),
+      'check', pg_get_expr(p.polwithcheck, p.polrelid)) order by c.relname, p.polname)
+    from pg_policy p
+    join pg_class c on c.oid = p.polrelid
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public'
+      and p.polroles && array[0::oid, 'authenticated'::regrole::oid]), '[]'::jsonb),
+  'tenant_helpers', coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'function', ${SIGNATURE},
+      'body', ${BODY}) order by p.proname)
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'authz'
+      and p.proname in (${quoted(TENANT_HELPERS)})), '[]'::jsonb),
+  'published', coalesce((
+    select jsonb_agg(t.tablename::text order by t.tablename)
+    from pg_publication_tables t
+    where t.schemaname = 'public'), '[]'::jsonb)
 )::text;`;
 
 /**
@@ -415,6 +465,162 @@ function searchPathProblem(schema, searchPath) {
 }
 
 /** Parses the exception list: { listed: Set<table>, failures }. */
+/**
+ * Walks deparsed policy text and calls `visit(index, depth)` for every
+ * character outside single-quoted literals and double-quoted identifiers,
+ * with the parenthesis depth before it.
+ */
+function walkExpression(text, visit) {
+  let depth = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"') {
+      const close = text.indexOf(ch, i + 1);
+      i = close < 0 ? text.length : close;
+      // A doubled quote inside a literal continues it.
+      while (text[i + 1] === ch) {
+        const next = text.indexOf(ch, i + 2);
+        i = next < 0 ? text.length : next;
+      }
+      continue;
+    }
+    if (visit(i, depth) === false) return;
+    if (ch === "(") depth += 1;
+    else if (ch === ")") depth -= 1;
+  }
+}
+
+/** The text without the parentheses that enclose all of it. */
+export function stripParens(text) {
+  let s = text.trim();
+  for (;;) {
+    if (!s.startsWith("(") || !s.endsWith(")")) return s;
+    let closesAtEnd = true;
+    walkExpression(s, (i, depth) => {
+      if (s[i] === ")" && depth === 1 && i < s.length - 1) {
+        closesAtEnd = false;
+        return false;
+      }
+    });
+    if (!closesAtEnd) return s;
+    s = s.slice(1, -1).trim();
+  }
+}
+
+/** The operands of `text` joined at the top level by `op` ("AND" or "OR"). */
+export function splitTopLevel(text, op) {
+  const s = stripParens(text);
+  const token = ` ${op} `;
+  const parts = [];
+  let start = 0;
+  walkExpression(s, (i, depth) => {
+    if (depth === 0 && s.startsWith(token, i)) {
+      parts.push(s.slice(start, i));
+      start = i + token.length;
+    }
+  });
+  parts.push(s.slice(start));
+  return parts.map((p) => p.trim());
+}
+
+const isSuperAdminBranch = (expr) => stripParens(expr) === SUPER_ADMIN_BRANCH;
+
+/**
+ * Whether a deparsed policy expression admits a row only under the request's
+ * tenant: the tenant condition itself, a conjunction with a tenant-bound
+ * operand, or a disjunction whose every operand is tenant-bound, beside at
+ * most one super-admin branch, `(SELECT authz.is_super_admin())`, until WP2c
+ * removes it (activation review Q6). Any other disjunct fails.
+ */
+export function tenantBound(expr) {
+  const s = stripParens(expr);
+  if (s === TENANT_CONDITION) return true;
+  const ors = splitTopLevel(s, "OR");
+  if (ors.length > 1) {
+    const branches = ors.filter(isSuperAdminBranch).length;
+    return (
+      branches <= 1 &&
+      ors.every((d) => isSuperAdminBranch(d) || tenantBound(d)) &&
+      ors.some((d) => !isSuperAdminBranch(d))
+    );
+  }
+  const ands = splitTopLevel(s, "AND");
+  return ands.length > 1 && ands.some(tenantBound);
+}
+
+/**
+ * The calls of `authz` helpers in a deparsed policy expression that run once
+ * for every row: a call that is not the whole of its own sub-select, or whose
+ * arguments name anything but constants, casts and other whole sub-selects
+ * of helpers (record D-25; TP1 section 8, item 1).
+ */
+export function perRowLookups(expr) {
+  const found = [];
+  const s = expr;
+  const CALL = /authz\.([A-Za-z_][A-Za-z0-9_$]*)\s*\(/y;
+  walkExpression(s, (i) => {
+    // A call, not a type in a cast ('staff'::authz.membership_role).
+    if (/[A-Za-z0-9_$.":]/.test(s[i - 1] ?? "")) return;
+    CALL.lastIndex = i;
+    const m = CALL.exec(s);
+    if (!m) return;
+    const open = i + m[0].length - 1;
+    const name = m[1];
+    let close = -1;
+    walkExpression(s.slice(open), (j, depth) => {
+      if (s[open + j] === ")" && depth === 1) {
+        close = open + j;
+        return false;
+      }
+    });
+    const call = s.slice(i, close + 1);
+    const wrapped =
+      /\(\s*SELECT\s+$/.test(s.slice(0, i)) &&
+      s.startsWith(` AS ${name})`, close + 1);
+    const args = s
+      .slice(open + 1, close)
+      .replace(/\(\s*SELECT\s+authz\.[a-z_]+\([^()]*\)\s+AS\s+[a-z_]+\)/g, "")
+      .replace(/'(?:[^']|'')*'/g, "")
+      .replace(/::[A-Za-z_][\w.]*(\[\])?/g, "")
+      .replace(/\b(ARRAY|NULL|true|false)\b/g, "");
+    if (!wrapped || /[A-Za-z_]/.test(args)) found.push(call);
+  });
+  return found;
+}
+
+/** Whether a deparsed expression or a function body reads the token's claims for authority. */
+const readsTokenClaim = (text) =>
+  /auth\.jwt\s*\(|app_metadata|request\.jwt\.claims?\b/i.test(text ?? "");
+
+/**
+ * Parses the reviewed policy exceptions: { listed: Map<"table|policy", entry>,
+ * failures }. Each entry names a table and policy, the exact deparsed `using`
+ * and `check` text it is reviewed with (null when the policy has none), and a
+ * reason.
+ */
+function readPolicyExceptions(exceptions) {
+  const failures = [];
+  const listed = new Map();
+  const malformed = (detail, table) =>
+    failures.push({ code: "POLICY_EXCEPTIONS_MALFORMED", table, detail });
+  if (exceptions instanceof Error) malformed(exceptions.message);
+  else if (!Array.isArray(exceptions?.entries))
+    malformed("expected an object with an entries array");
+  else
+    for (const [i, entry] of exceptions.entries.entries()) {
+      const key = `${entry?.table}|${entry?.policy}`;
+      if (typeof entry?.table !== "string" || typeof entry?.policy !== "string")
+        malformed(`entry ${i} has no table or policy`);
+      else if (listed.has(key)) malformed(`duplicate entry ${i}`, entry.table);
+      else if (typeof entry.reason !== "string" || !entry.reason.trim())
+        malformed(`entry ${i} has no reason`, entry.table);
+      else if (!("using" in entry) || !("check" in entry))
+        malformed(`entry ${i} has no using or check text`, entry.table);
+      else listed.set(key, entry);
+    }
+  return { listed, failures };
+}
+
 function readExceptions(exceptions) {
   const failures = [];
   const listed = new Set();
@@ -470,6 +676,7 @@ export function evaluateTenantRlsCatalog(
   snapshot,
   exceptions,
   anonAllowlist = { entries: [] },
+  policyExceptionList = { entries: [] },
 ) {
   const { listed, failures, usable } = readExceptions(exceptions);
   const fail = (code, table, detail) => failures.push({ code, table, detail });
@@ -708,7 +915,102 @@ export function evaluateTenantRlsCatalog(
     fail(code, g.relation, `${g.grantee} holds ${g.privilege}${on}: ${why}`);
   }
 
+  // AL-2675 (WP2b, second release; plan 12, WP2 exit): the tenant condition
+  // on every signed-in policy of a tenant table, each lookup once for a
+  // statement, no policy and no tenant helper that reads the token claim, and
+  // no tenant table in the Realtime publication (plan 5.2).
+  const policyExceptions = readPolicyExceptions(policyExceptionList);
+  failures.push(...policyExceptions.failures);
+  const seen = new Set();
+  let tenantPolicies = 0;
+  for (const p of snapshot.policies ?? []) {
+    const key = `${p.table}|${p.policy}`;
+    const exprs = [p.using, p.check].filter(
+      (e) => e !== null && e !== undefined,
+    );
+    if (exprs.some(readsTokenClaim))
+      fail(
+        "POLICY_READS_TOKEN_CLAIM",
+        p.table,
+        `policy "${p.policy}" reads the token's claims; the request's tenant comes from authz.current_tenant_id()`,
+      );
+    // A listed exception is pinned to its text on any table in public, a
+    // tenant table or not (the post tables have no tenant column).
+    const listedEntry = policyExceptions.listed.get(key);
+    if (!tables.get(p.table)?.tenant && !listedEntry) continue;
+    if (tables.get(p.table)?.tenant) tenantPolicies += 1;
+    if (listedEntry) {
+      seen.add(key);
+      if (
+        (listedEntry.using ?? null) !== (p.using ?? null) ||
+        (listedEntry.check ?? null) !== (p.check ?? null)
+      )
+        fail(
+          "POLICY_EXCEPTION_CHANGED",
+          p.table,
+          `policy "${p.policy}" differs from its reviewed text in ${TENANT_POLICY_EXCEPTIONS_PATH}: review it again`,
+        );
+      continue;
+    }
+    for (const e of exprs) {
+      if (stripParens(e) === "false") continue;
+      if (!tenantBound(e) && !isSuperAdminBranch(e))
+        fail(
+          "TENANT_CONDITION_MISSING",
+          p.table,
+          `policy "${p.policy}" (${p.cmd}) admits a row without ${TENANT_CONDITION}`,
+        );
+      for (const call of perRowLookups(e))
+        fail(
+          "POLICY_LOOKUP_PER_ROW",
+          p.table,
+          `policy "${p.policy}" calls ${call} once for every row: write it as a whole sub-select, (SELECT authz.f(...)), with no column of the row`,
+        );
+    }
+  }
+  for (const key of policyExceptions.listed.keys())
+    if (!seen.has(key)) {
+      const [table, policy] = key.split("|");
+      fail(
+        "POLICY_EXCEPTION_STALE",
+        table,
+        `no signed-in policy "${policy}" on this table: remove it from ${TENANT_POLICY_EXCEPTIONS_PATH}`,
+      );
+    }
+  if (snapshot.tenant_helpers) {
+    const helpers = new Map(
+      snapshot.tenant_helpers.map((h) => [
+        h.function.slice(0, h.function.indexOf("(")),
+        h,
+      ]),
+    );
+    for (const name of TENANT_HELPERS) {
+      const h = helpers.get(`authz.${name}`);
+      if (!h)
+        failFn(
+          "TENANT_HELPER_MISSING",
+          `authz.${name}`,
+          "the request-tenant helper is missing",
+        );
+      else if (readsTokenClaim(stripComments(h.body)))
+        failFn(
+          "TENANT_HELPER_READS_CLAIM",
+          h.function,
+          "the request's tenant comes from the x-asym-tenant header and a live membership, never the token's claims",
+        );
+    }
+  }
+  for (const t of snapshot.published ?? [])
+    if (tables.get(t)?.tenant)
+      fail(
+        "TENANT_TABLE_PUBLISHED",
+        t,
+        "a tenant table is in a publication: a subscription would need a read policy that ignores the active tenant (plan 5.2)",
+      );
+
   const counts = {
+    tenantPolicies,
+    policyExceptions: policyExceptions.listed.size,
     tenant: tenant.length,
     withPolicy: tenant.filter((t) => Number(t.policies) > 0).length,
     listed: listed.size,
@@ -728,7 +1030,7 @@ export function evaluateTenantRlsCatalog(
 
 /** One-line summary printed by the verifier. */
 export const formatTenantRlsCatalogSummary = ({ counts: c }) =>
-  `PASS: tenant RLS catalog gate: ${c.tenant} tenant tables enabled and forced (${c.withPolicy} with policies, ${c.listed} listed deny-by-default, ${c.stale} stale), ${c.definers} SECURITY DEFINER functions with RLS-bypassing owners, a fixed search path and no PUBLIC EXECUTE (${c.anonAllowed ?? 0} anon-allowlisted); command lanes: ${c.humanEntryPoints ?? 0} human entry points, ${c.platformCommands ?? 0} platform commands, ${c.wrappers ?? 0} wrappers; no table grant in public outside a policy.`;
+  `PASS: tenant RLS catalog gate: ${c.tenant} tenant tables enabled and forced (${c.withPolicy} with policies, ${c.listed} listed deny-by-default, ${c.stale} stale), ${c.definers} SECURITY DEFINER functions with RLS-bypassing owners, a fixed search path and no PUBLIC EXECUTE (${c.anonAllowed ?? 0} anon-allowlisted); command lanes: ${c.humanEntryPoints ?? 0} human entry points, ${c.platformCommands ?? 0} platform commands, ${c.wrappers ?? 0} wrappers; no table grant in public outside a policy; ${c.tenantPolicies ?? 0} signed-in policies of tenant tables carry the request's tenant with each lookup once a statement (${c.policyExceptions ?? 0} reviewed exceptions), none reads the token claim, and no tenant table is published.`;
 
 function readJson(root, relativePath) {
   try {
@@ -742,7 +1044,16 @@ const isBool = (value) => typeof value === "boolean";
 const isText = (value) => typeof value === "string";
 /** Throws unless every row carries the fields the evaluator reads. */
 function assertSnapshotShape(snapshot) {
-  const lists = ["tables", "definers", "commands", "wrappers", "grants"];
+  const lists = [
+    "tables",
+    "definers",
+    "commands",
+    "wrappers",
+    "grants",
+    "policies",
+    "tenant_helpers",
+    "published",
+  ];
   if (!lists.every((k) => Array.isArray(snapshot?.[k])))
     throw new Error(
       `tenant RLS catalog snapshot has no ${lists.join(", ")} lists`,
@@ -779,6 +1090,20 @@ function assertSnapshotShape(snapshot) {
       !(g.column === null || isText(g.column))
     )
       throw incomplete("grant", g);
+  const textOrNull = (v) => v === null || isText(v);
+  for (const p of snapshot.policies)
+    if (
+      ![p?.table, p?.policy, p?.cmd].every(isText) ||
+      !Array.isArray(p.roles) ||
+      !textOrNull(p.using) ||
+      !textOrNull(p.check)
+    )
+      throw incomplete("policy", { relation: `${p?.table} ${p?.policy}` });
+  for (const h of snapshot.tenant_helpers)
+    if (![h?.function, h?.body].every(isText))
+      throw incomplete("tenant helper", h);
+  if (!snapshot.published.every(isText))
+    throw incomplete("publication", { relation: "published" });
 }
 
 /**
@@ -793,6 +1118,7 @@ export function runTenantRlsCatalogGate({
 }) {
   const exceptions = readJson(root, TENANT_RLS_EXCEPTIONS_PATH);
   const anonAllowlist = readJson(root, ANON_DEFINER_ALLOWLIST_PATH);
+  const policyExceptions = readJson(root, TENANT_POLICY_EXCEPTIONS_PATH);
   const stdout = runPsqlQuery({
     databaseUrl,
     sql: TENANT_RLS_CATALOG_SQL,
@@ -809,5 +1135,10 @@ export function runTenantRlsCatalogGate({
     );
   }
   assertSnapshotShape(snapshot);
-  return evaluateTenantRlsCatalog(snapshot, exceptions, anonAllowlist);
+  return evaluateTenantRlsCatalog(
+    snapshot,
+    exceptions,
+    anonAllowlist,
+    policyExceptions,
+  );
 }

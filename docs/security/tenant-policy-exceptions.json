@@ -1,0 +1,86 @@
+{
+  "description": "Signed-in policies in public that carry no request-tenant condition, each reviewed, pinned to its deparsed text and named with the package that ends it. The catalog gate (scripts/verify/tenant-rls-catalog.mjs) fails any other signed-in policy of a tenant table without the condition, a listed policy whose text changes (POLICY_EXCEPTION_CHANGED) and a listed policy that is gone (POLICY_EXCEPTION_STALE). See docs/security/tenant-policy-activation-review.md, section 3, and the coordinator's rulings of 19 November 2026 on its questions 3 and 4.",
+  "entries": [
+    {
+      "table": "account_claim_requests",
+      "policy": "account_claim_requests_requester_select",
+      "using": "(requested_by = ( SELECT auth.uid() AS uid))",
+      "check": null,
+      "reason": "The requester's own claim rows. A claimant may hold no membership in the tenant yet, so a tenant condition would hide their own claim from them. An accepted earlier decision gave the requester this read and the frozen suite of issue 2255 pins it. The row shows the claimant donor_id, match_type, match_confidence and resolved_by. Nothing reads it on a signed-in token today.",
+      "ends": "WP5, which builds account claims and decides what a claimant sees",
+      "ruling": "activation review Q4"
+    },
+    {
+      "table": "field_policies",
+      "policy": "field_policies_read",
+      "using": "(( SELECT authz.is_super_admin() AS is_super_admin) OR (((tenant_id IS NULL) OR (tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id))) AND (( SELECT authz.current_tenant_id() AS current_tenant_id) IS NOT NULL)))",
+      "check": null,
+      "reason": "It carries the tenant condition and also admits the global rows (tenant_id IS NULL), which belong to no tenant, to a member of the active tenant: a donor row and a missionary row still read field_policies.",
+      "ends": "WP2c removes its super-admin branch; the global rows are permanent",
+      "ruling": "plan 5.4 and WP2's acceptance list"
+    },
+    {
+      "table": "locations",
+      "policy": "tanstack browser read",
+      "using": "(status = 'published'::text)",
+      "check": null,
+      "reason": "Published rows, TO anon and authenticated, read with no header by the public map and by a signed-in visitor (record D-05 took NA-06 at its default).",
+      "ends": "WP7, which closes these reads and replaces them with host-keyed read functions",
+      "ruling": "activation review Q3"
+    },
+    {
+      "table": "post_comments",
+      "policy": "tanstack browser read",
+      "using": "(EXISTS ( SELECT 1\n   FROM posts parent_post\n  WHERE ((parent_post.id = post_comments.post_id) AND (parent_post.status = 'published'::text) AND (parent_post.visibility = 'public'::text))))",
+      "check": null,
+      "reason": "The comments of a published public post, TO anon and authenticated, read by a caller with no resolved row. No tenant column; it reads posts under the caller's own row security.",
+      "ends": "WP7",
+      "ruling": "activation review Q3"
+    },
+    {
+      "table": "post_fires",
+      "policy": "tanstack browser read",
+      "using": "(EXISTS ( SELECT 1\n   FROM posts parent_post\n  WHERE ((parent_post.id = post_fires.post_id) AND (parent_post.status = 'published'::text) AND (parent_post.visibility = 'public'::text))))",
+      "check": null,
+      "reason": "The reactions of a published public post, TO anon and authenticated. No tenant column; it reads posts under the caller's own row security.",
+      "ends": "WP7",
+      "ruling": "activation review Q3"
+    },
+    {
+      "table": "post_likes",
+      "policy": "tanstack browser read",
+      "using": "(EXISTS ( SELECT 1\n   FROM posts parent_post\n  WHERE ((parent_post.id = post_likes.post_id) AND (parent_post.status = 'published'::text) AND (parent_post.visibility = 'public'::text))))",
+      "check": null,
+      "reason": "The reactions of a published public post, TO anon and authenticated. No tenant column; it reads posts under the caller's own row security.",
+      "ends": "WP7",
+      "ruling": "activation review Q3"
+    },
+    {
+      "table": "post_prayers",
+      "policy": "tanstack browser read",
+      "using": "(EXISTS ( SELECT 1\n   FROM posts parent_post\n  WHERE ((parent_post.id = post_prayers.post_id) AND (parent_post.status = 'published'::text) AND (parent_post.visibility = 'public'::text))))",
+      "check": null,
+      "reason": "The reactions of a published public post, TO anon and authenticated. No tenant column; it reads posts under the caller's own row security.",
+      "ends": "WP7",
+      "ruling": "activation review Q3"
+    },
+    {
+      "table": "posts",
+      "policy": "tanstack browser read",
+      "using": "((status = 'published'::text) AND (visibility = 'public'::text))",
+      "check": null,
+      "reason": "Published public posts, TO anon and authenticated. The four post tables check posts in a subquery under the caller's own row security, so posts keeps a branch that admits a caller with no header, or the comments of a public post go empty.",
+      "ends": "WP7",
+      "ruling": "activation review Q3"
+    },
+    {
+      "table": "profiles",
+      "policy": "profiles select own authenticated",
+      "using": "((user_id = ( SELECT auth.uid() AS uid)) OR (id = ( SELECT auth.uid() AS uid)))",
+      "check": null,
+      "reason": "The caller's own profile, read with no tenant header by sign-in, the session helpers and the health probe. The row is the person's, not a tenant's (plan 5.1: a profile is readable by its owner only).",
+      "ends": "WP5, which drops profiles.tenant_id, after which profiles is no longer a tenant table",
+      "ruling": "plan 5.1"
+    }
+  ]
+}
