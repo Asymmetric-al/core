@@ -1,4 +1,5 @@
 import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import { SwitchAccountButton } from "@asym/ui/components/auth/SwitchAccountButton";
 import { ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -7,8 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-
-import { SwitchAccountButton } from "./switch-account-button";
 
 import type { Metadata } from "next";
 
