@@ -186,10 +186,10 @@ tests, is:
 
 In `packages/ui/hooks/retained-draft.tsx`, `SessionRetainedDraftProvider`
 scopes in-memory drafts by the user ID, the profile ID and the page's tenant,
-which the app's server-side role gate publishes with `RetainedDraftPageTenant`
-from the request's resolved assignment (until WP2b carries the tenant in the
-page address). Without a page tenant for this user the store is unowned, and
-an owner change remounts and clears it. This client-side memory boundary grants
+which is the document scope every signed-in surface fixes from the request's
+resolved assignment: the tenant in the page address, or the donor portal's
+one donor row (AL-2675). Without a fixed scope for this user the store is
+unowned, and an owner change remounts and clears it. This client-side memory boundary grants
 no permissions; route/API policies retain access authority. Future readers of
 the profile's tenant must be added to the pinned list and to this doc.
 

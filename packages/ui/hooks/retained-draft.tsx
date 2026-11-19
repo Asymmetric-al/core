@@ -272,52 +272,13 @@ export function RetainedDraftProvider({
 }
 
 /**
- * The page's tenant for drafts: in Mission Control and the missionary
- * workspace, the document scope (`useFixedDocumentScope`), which the tenant
- * in the page address fixed (AL-2675). The donor portal has no document
- * scope; its server-side role gate publishes the tenant of the request's
- * resolved membership with `RetainedDraftPageTenant` until WP3 resolves its
- * host. The profile's tenant column is no authority and does not scope
- * drafts.
+ * The page's tenant for drafts is the document scope
+ * (`useFixedDocumentScope`), which every signed-in surface fixes: the tenant
+ * in the page address in Mission Control and the missionary workspace, and
+ * the portal's one donor row in the donor portal (`PortalDocument`; AL-2675).
+ * The profile's tenant column is no authority and does not scope drafts.
+ * Without a fixed scope, drafts are not owned.
  */
-type PageTenant = { userId: string; tenantId: string };
-let pageTenant: PageTenant | null = null;
-const pageTenantListeners = new Set<() => void>();
-function setPageTenant(next: PageTenant | null) {
-  pageTenant = next;
-  pageTenantListeners.forEach((listener) => listener());
-}
-function subscribePageTenant(listener: () => void) {
-  pageTenantListeners.add(listener);
-  return () => {
-    pageTenantListeners.delete(listener);
-  };
-}
-const readPageTenant = () => pageTenant;
-const readNoPageTenant = () => null;
-
-/**
- * Publishes the page's tenant for retained drafts. Rendered by the app's
- * server role gate once it has resolved the request's assignment; renders
- * nothing.
- */
-export function RetainedDraftPageTenant({
-  userId,
-  tenantId,
-}: {
-  userId: string;
-  tenantId: string;
-}) {
-  useLayoutEffect(() => {
-    const published = { userId, tenantId };
-    setPageTenant(published);
-    return () => {
-      if (pageTenant === published) setPageTenant(null);
-    };
-  }, [userId, tenantId]);
-  return null;
-}
-
 export function SessionRetainedDraftProvider({
   children,
 }: {
@@ -325,14 +286,9 @@ export function SessionRetainedDraftProvider({
 }) {
   const { user, profile, loading } = useAuth();
   const documentScope = useFixedDocumentScope();
-  const published = useSyncExternalStore(
-    subscribePageTenant,
-    readPageTenant,
-    readNoPageTenant,
-  );
   const page = documentScope
     ? { userId: documentScope.userId, tenantId: documentScope.tenantId }
-    : published;
+    : null;
   // Identity scopes memory; route/API policies own access. The page's tenant,
   // published for this same user, scopes it to one organization (AL-2675).
   const owner =

@@ -5,7 +5,6 @@ import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { readPortalDocumentScope } from "@asym/auth/tenant-server";
 import { siteConfig } from "@asym/config/site-client";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
-import { RetainedDraftPageTenant } from "@asym/ui/hooks";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -122,14 +121,5 @@ async function DonorPortalDocument({
     redirect("/no-access");
   }
 
-  // Retained drafts are scoped by the document's person and tenant.
-  return (
-    <PortalDocument scope={scope}>
-      <RetainedDraftPageTenant
-        userId={scope.userId}
-        tenantId={scope.tenantId}
-      />
-      {children}
-    </PortalDocument>
-  );
+  return <PortalDocument scope={scope}>{children}</PortalDocument>;
 }

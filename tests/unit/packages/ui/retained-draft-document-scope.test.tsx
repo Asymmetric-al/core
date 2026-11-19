@@ -6,8 +6,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 /**
  * Council round 1, A13: in Mission Control and the missionary workspace the
  * document scope is the page's tenant for retained drafts; the layout no
- * longer publishes a second copy of it. The donor portal, which has no
- * document scope, still publishes its tenant (`RetainedDraftPageTenant`).
+ * longer publishes a second copy of it. The donor portal fixes a document
+ * scope too (`PortalDocument`), so nothing publishes a copy (JB10).
  */
 
 vi.mock("@asym/auth/use-auth", () => ({

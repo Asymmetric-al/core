@@ -45,7 +45,6 @@ vi.mock(
 );
 
 import { PortalDocument } from "@asym/auth/portal-document";
-import { RetainedDraftPageTenant } from "@asym/ui/hooks";
 
 import DonorDashboardLayout from "../../../../apps/donor/app/(dashboard)/donor-dashboard/layout";
 import { DonorPortalFrameSkeleton } from "../../../../apps/donor/app/(dashboard)/donor-dashboard/donor-portal-frame-skeleton";
@@ -155,8 +154,8 @@ describe("the donor portal layout", () => {
       addressPrefix: "",
     });
     const scoped = elementsIn(children);
-    const drafts = scoped.find((el) => el.type === RetainedDraftPageTenant);
-    expect(drafts?.props).toEqual({ userId: USER, tenantId: TENANT });
+    // Retained drafts read this scope once fixed; nothing publishes a copy
+    // (JB10).
     expect(scoped.some((el) => el.type === DonorPortalHeader)).toBe(true);
     expect(scoped).toContain(page);
   });
