@@ -5,6 +5,7 @@
  * are loopback. The runner is driven here with a fake psql that records what
  * it received.
  */
+import { execFileSync } from "node:child_process";
 import {
   chmodSync,
   existsSync,
@@ -13,7 +14,6 @@ import {
   readFileSync,
   rmSync,
   writeFileSync,
-  readdirSync,
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -989,14 +989,19 @@ const PSQL_NAMERS: Record<string, { reason: string; lines: string[] }> = {
   },
 };
 
-/** Every file under `dir`, whatever its extension, but under node_modules. */
+/**
+ * Every file git tracks under `dir`, whatever its extension, as `dir/...`
+ * (phase 16, Q3). An untracked or ignored file, a local log say, is not read,
+ * so it cannot fail this test on one machine only.
+ */
 function scriptsFiles(dir = "scripts"): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const file = `${dir}/${entry.name}`;
-    if (entry.isDirectory())
-      return entry.name === "node_modules" ? [] : scriptsFiles(file);
-    return [file];
-  });
+  return execFileSync("git", ["ls-files", "-z"], {
+    cwd: dir,
+    encoding: "utf8",
+  })
+    .split("\0")
+    .filter(Boolean)
+    .map((file) => `${dir}/${file}`);
 }
 
 /** How many times `source` holds the letters psql, in any case. */
@@ -1182,18 +1187,30 @@ describe("the files under scripts/ that start psql (review M4)", () => {
     expect(psqlProblem(file, source)).not.toBeNull();
   });
 
-  it("walks every file under scripts/ but those under node_modules, whatever its extension", () => {
-    const root = mkdtempSync(path.join(os.tmpdir(), "p2-walk-"));
+  // Phase 16, Q3: the walk reads what git tracks, whatever its extension, so
+  // a local log or an ignored file under scripts/ fails no one's run.
+  it("walks every file git tracks under scripts/, whatever its extension, and nothing else", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "q3-walk-"));
     roots.push(root);
-    const names = ["a.mts", "b.cts", "c.bash", "d.py", "run", "e.md"];
-    for (const name of names) writeFileSync(path.join(root, name), "psql\n");
-    mkdirSync(path.join(root, "node_modules"));
-    writeFileSync(path.join(root, "node_modules", "dep.js"), "psql\n");
+    const git = (...args: string[]) =>
+      execFileSync("git", args, { cwd: root, stdio: "pipe" });
+    git("init", "-q");
+    const scripts = path.join(root, "scripts");
+    mkdirSync(path.join(scripts, "cache"), { recursive: true });
+    mkdirSync(path.join(scripts, "node_modules"));
+    const tracked = ["a.mts", "b.cts", "c.bash", "d.py", "run", "e.md"];
+    for (const name of tracked)
+      writeFileSync(path.join(scripts, name), "psql\n");
+    writeFileSync(path.join(root, ".gitignore"), "scripts/cache/\n");
+    writeFileSync(path.join(scripts, "cache", "ignored.log"), "psql\n");
+    writeFileSync(path.join(scripts, "untracked.log"), "psql\n");
+    writeFileSync(path.join(scripts, "node_modules", "dep.js"), "psql\n");
+    git("add", "--", ...tracked.map((name) => `scripts/${name}`));
     expect(
-      scriptsFiles(root)
+      scriptsFiles(scripts)
         .map((file) => path.basename(file))
         .sort(),
-    ).toEqual([...names].sort());
+    ).toEqual([...tracked].sort());
   });
 
   // A new file that names psql is listed by name, even when it only hands
