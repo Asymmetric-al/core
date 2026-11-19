@@ -10,7 +10,7 @@
 # Manually dispatched operations, from the production branch only:
 #   release                 re-run a release of the production branch head
 #   set-environment-marker  move the marker forward (owner's approval)
-#   first-rebuild           the one-off rebuild of a database with no marker
+#   first-rebuild           first rebuild before any recorded head, on an unmarked or disposable database
 #   set-cms-role-passwords  set cms_owner and cms_runtime from the secrets
 #   replace-seeded-login-passwords
 #                           give seeded logins that still carry a password the

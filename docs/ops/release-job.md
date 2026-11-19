@@ -152,13 +152,13 @@ has no rollback of its own.
 
 Run from the Actions tab, workflow **Release**, branch `production`:
 
-| Operation                        | Inputs                                                         | What it does                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| -------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `release`                        | `environment: production`                                      | Re-runs the release of the `production` head                                                                                                                                                                                                                                                                                                                                                                                     |
-| `set-environment-marker`         | `environment`, `marker`, `confirmation: <ref>:<marker>`        | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                                                                         |
-| `first-rebuild`                  | `environment`, `census_signoff`, `confirmation: rebuild <ref>` | The one-off rebuild of a database with no marker: put the platform's default privileges back, drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
-| `set-cms-role-passwords`         | `environment`                                                  | Makes `cms_owner` and `cms_runtime` log in with the secrets: a role whose secret already logs in is left alone, and one refused for its password is set and verified within the bound. For rotation and after a restore (plan 8.5)                                                                                                                                                                                               |
-| `replace-seeded-login-passwords` | `environment`                                                  | Gives every login that still carries a password the repository publishes `RELEASE_SEED_LOGIN_PASSWORD` instead. Resets nothing and changes no other login. The repair after a rebuild that stopped between its seed and that replacement ([below](#if-seeded-logins-keep-a-published-password))                                                                                                                                  |
+| Operation                        | Inputs                                                         | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `release`                        | `environment: production`                                      | Re-runs the release of the `production` head                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `set-environment-marker`         | `environment`, `marker`, `confirmation: <ref>:<marker>`        | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                                                                                                                          |
+| `first-rebuild`                  | `environment`, `census_signoff`, `confirmation: rebuild <ref>` | The first rebuild, retryable before either head is recorded on an unmarked or disposable database: put the platform's default privileges back, drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
+| `set-cms-role-passwords`         | `environment`                                                  | Makes `cms_owner` and `cms_runtime` log in with the secrets: a role whose secret already logs in is left alone, and one refused for its password is set and verified within the bound. For rotation and after a restore (plan 8.5)                                                                                                                                                                                                                                                |
+| `replace-seeded-login-passwords` | `environment`                                                  | Gives every login that still carries a password the repository publishes `RELEASE_SEED_LOGIN_PASSWORD` instead. Resets nothing and changes no other login. The repair after a rebuild that stopped between its seed and that replacement ([below](#if-seeded-logins-keep-a-published-password))                                                                                                                                                                                   |
 
 The marker change and the first rebuild run only after a required reviewer of
 the GitHub environment `release-owner-approval` approves the run's
@@ -236,23 +236,18 @@ the database either way. The stop says what the run skipped and what to run
 next. In every case, wait two minutes first, and never retry in a loop.
 
 - **`set-cms-role-passwords`:** dispatch it again.
-- **A release (`migrate`):** it stopped before Payload's migrations, the
+- **A release (`migrate`):** Supabase migrations may already be applied. It stopped before Payload's migrations, the
   gates, the heads and the deployment, so nothing was deployed. Re-run the
   release.
 - **The preview rebuild:** it stopped after the reset and the seed, before
   Payload's migrations, the gates and the heads. Rebuild again.
-- **`first-rebuild`:** it stopped at the same point, and the migrations have
-  already marked the database `disposable`, so `first-rebuild` refuses to run
-  again. Dispatch `set-cms-role-passwords`, then continue with
-  [Switching it on](#switching-it-on): step 6, then step 7's release. Its
-  migrate step runs the skipped Payload migrations, and the gates and the
-  heads follow, before anything is promoted.
+- **`first-rebuild`:** fix the refusal, then dispatch `first-rebuild` again with the census link, typed confirmation and fresh owner approval. It is allowed only before either head is recorded, on an unmarked or `disposable` database.
 
 A password that logs in by then is left alone, so none of these sets it again.
 
 A login refused for a reason the step does not recognise (anything but the
 two forms above: the pooler, TLS, the role's connection limit, the circuit
-breaker) stops the step before it changes anything. The stop names the
+breaker) leaves the password of that role unchanged. A password verified earlier in the same step stays changed; completed Supabase migrations also remain applied. The stop names the
 refusal and says what to run next for the operation it stopped: fix what
 the refusal names (for the circuit breaker, wait two minutes), then the same
 next step as in the list above. A TLS refusal that is a certificate
@@ -332,17 +327,16 @@ branch, and runs only after all of these hold:
 
 - the connection addresses the environment's configured project, never one
   its environment refuses, as `postgres`, over TLS;
-- the database has no marker (a marked database is refused: it is reset, if at
-  all, under the ordinary rule);
+- neither ledger has a recorded head and the marker is absent or `disposable`. A `shared` or `production` marker always refuses this operation;
 - the input is the owner's census sign-off, a link to the issue or comment in
   `Asymmetric-al/core`, or `empty-project` for a new project, which the job
-  checks holds no table and no migration ledger;
+  checks has no marker, public relations or Supabase migration ledger. A retry on a nonempty project needs the census link;
 - the operator typed `rebuild <ref>`;
 - the owner approved the run in the environment `release-owner-approval`;
 - `RELEASE_SEED_LOGIN_PASSWORD` is set, so the seeded logins never keep the
   password published in the repository.
 
-Right after the migrations the job reads the marker. The marker migration
+Both rebuild modes compare fixture counts with `supabase/seed-expectations.json` after reset and password replacement. A mismatch stops the rebuild before Payload. First-only release preflight does not count fixtures; it refuses a database with no recorded head and directs the operator to `first-rebuild`. The workflow records heads only after passing the gates. Direct `record-heads` must never stand in for completing those steps. ALWAYS triggers refuse DELETE and TRUNCATE of the heads table. The marker migration
 writes `disposable` when `public.profiles`, `public.donors` and
 `public.donations` are empty, as they are after the reset; Auth rows do not
 count. If the marker does not read `disposable`, the step stops there, before
@@ -435,14 +429,13 @@ defaults of `postgres` in `public` to `anon` and `authenticated`, and the
 chain closes them again. So the rebuild reads, in one query, the marker and
 whether those defaults are still open, and its stop names the case:
 
-| What the stop reads                                | How far the chain got                          | What to run next                                                                                                                                                                                                                                               |
-| -------------------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| No marker                                          | Not as far as the marker migration             | Fix the cause, then dispatch `first-rebuild` again for this environment: it runs on a database with no marker                                                                                                                                                  |
-| A marker, defaults open, preview rebuild           | Not as far as closing the defaults             | Fix the cause, then rebuild again                                                                                                                                                                                                                              |
-| A marker, defaults closed, preview rebuild         | Past both (it failed later, in the seed, say)  | Fix the cause, then rebuild again                                                                                                                                                                                                                              |
-| A marker, defaults closed, first rebuild           | Past both (it failed later, in the seed, say)  | `first-rebuild` refuses a marked database, and the seed may be partial (fixtures only). Dispatch `set-cms-role-passwords`, then the release: its migrate step applies what the chain did not and runs Payload's migrations, and the gates and the heads follow |
-| A marker, defaults open, first rebuild             | Past the marker, not past closing the defaults | This needs the owner: `first-rebuild` refuses a marked database and a production environment never resets. Removing the marker by hand lets `first-rebuild` run again                                                                                          |
-| Nothing: the database could not be read afterwards | Unknown                                        | Treat the defaults as open: preflight refuses migrate while they are. Fix the cause, then rebuild                                                                                                                                                              |
+| What the stop reads                                  | How far the chain got                               | What to run next                                                                                                |
+| ---------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| No marker                                            | Reset did not complete                              | Fix the cause; dispatch `first-rebuild` again with the census link and fresh approval, provided no head exists. |
+| `disposable`, ordinary preview rebuild               | The chain may or may not have closed the defaults   | Fix the cause and rebuild preview again.                                                                        |
+| `disposable`, first rebuild, defaults open or closed | The reset may have stopped before or during seeding | Fix the cause; dispatch `first-rebuild` again with the census link and fresh approval. Neither head may exist.  |
+| `shared`, `production`, or any recorded head         | Not eligible for first rebuild                      | Stop. Do not remove the marker or heads; investigate with the owner.                                            |
+| Database unreadable                                  | Unknown                                             | Restore connectivity and inspect its marker, heads and defaults before choosing a guarded operation.            |
 
 While the defaults are open, anything created in `public` would be open to
 both roles, so `preflight`, the first step of `migrate`, refuses such a
@@ -726,10 +719,7 @@ below follow those decisions.
    `net`, `pgmq` or cron rows (report, section 17). If a leftover the gates
    read remains anyway, the gates fail after the reset, which cannot be
    undone. The database is then rebuilt, seeded and marked `disposable`, with
-   no heads recorded, and `first-rebuild` refuses to run again. Recover in
-   this order: remove the leftovers as that section lists them; then continue
-   with step 6 and step 7's release, whose gates run again and record the
-   heads before anything is promoted.
+   no heads recorded. Remove the leftovers as that section lists them, then dispatch `first-rebuild` again with the census link, typed confirmation and fresh owner approval. Its gates must pass before the first heads are recorded.
    Check: the run is green, and its log says the rebuild is complete, the
    seeded logins' password was replaced, the database is marked disposable
    and each role password was either already right or set and verified.

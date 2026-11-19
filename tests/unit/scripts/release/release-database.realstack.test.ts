@@ -145,6 +145,34 @@ describe.skipIf(!adminDatabaseUrl)(
       ).toEqual({ marker: null, open: true });
     });
 
+    it("missing health does not erase a recorded head or a protected marker", () => {
+      for (const marker of ["shared", null]) {
+        const db = database("partial_contract", { marker: false });
+        psql(db.url, "DROP FUNCTION public.platform_health()");
+        if (marker)
+          psql(
+            db.url,
+            "INSERT INTO platform.environment(kind) VALUES ('shared')",
+          );
+        else
+          psql(
+            db.url,
+            `SELECT platform.record_migration_head('supabase','${source.supabase.at(-1)}')`,
+          );
+        const result = step("first-rebuild", db.url, {
+          RELEASE_ENVIRONMENT: "production",
+          RELEASE_CENSUS_SIGNOFF:
+            "https://github.com/Asymmetric-al/core/issues/2671",
+          RELEASE_CONFIRMATION: `rebuild ${ref}`,
+          RELEASE_SEED_LOGIN_PASSWORD: "",
+        });
+        expect(result.status).toBe(1);
+        expect(result.output).toMatch(
+          marker ? /marked shared/ : /recorded head/i,
+        );
+      }
+    });
+
     it("passes preflight on an up-to-date disposable database", () => {
       const db = database("preflight_ok");
       applyLedgers(db.url, source.supabase, source.payload);
@@ -153,13 +181,61 @@ describe.skipIf(!adminDatabaseUrl)(
       expect(result.status).toBe(0);
     });
 
-    it("admits pending Payload migrations after a first rebuild stopped before creating their ledger", () => {
+    it.each([
+      ["disposable", ["supabase", "payload"], "census", /recorded head/i],
+      ["disposable", ["supabase"], "census", /recorded head/i],
+      ["disposable", ["payload"], "census", /recorded head/i],
+      [null, ["payload"], "census", /recorded head/i],
+      ["shared", [], "census", /marked shared/],
+      ["production", [], "census", /marked production/],
+      ["disposable", [], "empty-project", /census.*link/i],
+      [null, [], "empty-project", /census.*link/i],
+      [null, [], "census", /RELEASE_SEED_LOGIN_PASSWORD/],
+      ["disposable", [], "census", /RELEASE_SEED_LOGIN_PASSWORD/],
+    ] as const)(
+      "first-rebuild guard: marker=%s heads=%j signoff=%s",
+      (marker, ledgers, signoff, expected) => {
+        const db = database("first_guard", { marker: false });
+        if (marker)
+          psql(
+            db.url,
+            `INSERT INTO platform.environment (kind) VALUES ('${marker}')`,
+          );
+        for (const ledger of ledgers)
+          psql(
+            db.url,
+            `SELECT platform.record_migration_head('${ledger}', '${source[ledger].at(-1)}')`,
+          );
+        const result = step("first-rebuild", db.url, {
+          RELEASE_ENVIRONMENT: "production",
+          RELEASE_SEED_LOGIN_PASSWORD: "",
+          RELEASE_CONFIRMATION: `rebuild ${ref}`,
+          RELEASE_CENSUS_SIGNOFF:
+            signoff === "census"
+              ? "https://github.com/Asymmetric-al/core/issues/2671"
+              : signoff,
+        });
+        expect(result.status).toBe(1);
+        expect(result.output).toMatch(expected);
+      },
+    );
+
+    it("the missing Payload ledger is pending; first-only preflight refuses until the first head is recorded", () => {
       const db = database("before_payload");
       applyLedgers(db.url, source.supabase, []);
       psql(db.url, "DROP TABLE cms.payload_migrations;");
       expect(
         readStateAfterFailedReset({ settings: settingsFor(db.url) }),
       ).toEqual({ marker: "disposable", open: false });
+      const refused = step("preflight", db.url, {
+        RELEASE_ENVIRONMENT: "production",
+      });
+      expect(refused.status).toBe(1);
+      expect(refused.output).toMatch(/no recorded head.*first-rebuild/s);
+      psql(
+        db.url,
+        `SELECT platform.record_migration_head('supabase', '${source.supabase.at(-1)}')`,
+      );
       const result = step("preflight", db.url, {
         RELEASE_ENVIRONMENT: "production",
       });

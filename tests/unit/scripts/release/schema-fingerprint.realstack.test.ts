@@ -3,6 +3,7 @@
 // fingerprint equality between CI's replay and development"). Needs
 // RELEASE_IT_ADMIN_DATABASE_URL; see support/test-database.ts.
 import { spawnSync } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import {
   mkdirSync,
   mkdtempSync,
@@ -26,6 +27,11 @@ import { runCatalogGates } from "../../../../scripts/release/catalog-gates.mjs";
 import {
   HOSTED_DEFAULT_PRIVILEGES,
   pinnedSupabaseCliVersion,
+  gates,
+  preflight,
+  rebuild,
+  recordHeads,
+  readReleaseHealth,
   readReleaseSettings,
   restoreHostedDefaultPrivileges,
 } from "../../../../scripts/release/release-database.mjs";
@@ -35,6 +41,8 @@ import {
   formatFingerprintDiff,
 } from "../../../../scripts/release/schema-fingerprint.mjs";
 import { Replay } from "../../acceptance/issue-2674/privileges-harness";
+import { queryJson } from "../../../../scripts/release/lib/postgres.mjs";
+import { listSourceMigrations } from "../../../../scripts/release/migration-heads.mjs";
 
 const created: string[] = [];
 /** A throwaway role of review L4's cases; dropped once its databases are. */
@@ -104,6 +112,25 @@ describe.skipIf(!adminDatabaseUrl)(
       expect(a.count).toBeGreaterThan(1000);
       expect(diffFingerprints(a, b)).toMatchObject({ equal: true });
       expect(a.digest).toBe(b.digest);
+    });
+
+    it("refuses DELETE and TRUNCATE of recorded heads even in replica mode", () => {
+      const db = replay("protected_heads");
+      psql(
+        db,
+        "SELECT platform.record_migration_head('supabase', '20260101000000')",
+      );
+      for (const statement of [
+        "DELETE FROM platform.migration_heads",
+        "TRUNCATE platform.migration_heads",
+      ]) {
+        expect(() =>
+          psql(db, `SET session_replication_role=replica; ${statement}`),
+        ).toThrow(/migration heads cannot be removed/i);
+      }
+      expect(psql(db, "SELECT count(*) FROM platform.migration_heads")).toBe(
+        "1",
+      );
     });
 
     it("reports a planted difference by object, and the compare command exits non-zero", () => {
@@ -550,6 +577,165 @@ describe.skipIf(!adminDatabaseUrl)(
         /^public\/S=\{.*\};public\/f=\{.*\};public\/r=\{.*\}$/,
       );
     });
+  },
+);
+
+describe.skipIf(!adminDatabaseUrl)(
+  "first rebuild recovery (real stack)",
+  { timeout: 600_000 },
+  () => {
+    const source = listSourceMigrations({ root: process.cwd() });
+    const silent = () => {};
+    const fixtures = (url: string) =>
+      psql(
+        url,
+        "SELECT (SELECT count(*) FROM public.profiles), (SELECT count(*) FROM public.tenants), (SELECT count(*) FROM authz.memberships)",
+      );
+    const installLedger = (url: string) =>
+      psql(
+        url,
+        `INSERT INTO supabase_migrations.schema_migrations(version) VALUES ${source.supabase.map((version) => `('${version}')`).join(",")} ON CONFLICT DO NOTHING`,
+      );
+    const migratePayload = (url: string) => {
+      const result = spawnSync("bun", ["run", "cms:migrate"], {
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          PAYLOAD_MIGRATION_DATABASE_URI: "",
+          PAYLOAD_DATABASE_URI: url,
+          PAYLOAD_SECRET: "local-recovery-test",
+          SKIP_ENV_VALIDATION: "1",
+          NEXT_PUBLIC_SUPABASE_URL: "http://localhost",
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture",
+        },
+      });
+      expect(result.status, "local Payload replay").toBe(0);
+    };
+    let expected = "";
+    beforeAll(() => {
+      const url = replay("recovery_reference", ["--hosted-defaults"]);
+      installLedger(url);
+      migratePayload(url);
+      expected = path.join(scratch, "recovery-reference.json");
+      writeFileSync(
+        expected,
+        JSON.stringify(captureFingerprint({ databaseUrl: url })),
+      );
+    }, 300_000);
+
+    it.each([false, true])(
+      "recovers 0/1/0 fixtures with open defaults=%s and records both heads",
+      async (open) => {
+        const url = replay("first_recovery", ["--hosted-defaults"]);
+        installLedger(url);
+        const password = () => randomBytes(32).toString("base64url");
+        const env = {
+          RELEASE_ENVIRONMENT: "production",
+          RELEASE_ALLOW_LOOPBACK_DATABASE: "1",
+          RELEASE_SUPABASE_PROJECT_REF: "wp16rebuildtestrefxx",
+          RELEASE_DATABASE_URL: url,
+          RELEASE_CMS_OWNER_PASSWORD: password(),
+          RELEASE_CMS_RUNTIME_PASSWORD: password(),
+          RELEASE_SEED_LOGIN_PASSWORD: password(),
+        };
+        const settings = readReleaseSettings(env);
+        if (open) restoreHostedDefaultPrivileges({ settings, log: silent });
+        expect(fixtures(url)).toBe("0|1|0");
+        expect(readReleaseHealth({ databaseUrl: url })).toEqual({
+          environment: "disposable",
+          heads: { supabase: null, payload: null },
+        });
+        const queryWithLocalRole = (request: {
+          databaseUrl: string;
+          sql: string;
+          label?: string;
+        }) => {
+          const target = new URL(request.databaseUrl);
+          if (
+            target.username !== "cms_owner" &&
+            target.username !== "cms_runtime"
+          )
+            return queryJson(request);
+          const local = new URL(url);
+          local.searchParams.set("options", `-c role=${target.username}`);
+          return queryJson({
+            ...request,
+            databaseUrl: local.toString().replaceAll("+", "%20"),
+          });
+        };
+        let seedEnabled = open;
+        let ranPayload = false;
+        const runCommand = (
+          command: string,
+          args: string[],
+          options: Parameters<typeof spawnSync>[2],
+        ) => {
+          if (command === "supabase" && args[0] === "--version")
+            return { status: 0, stdout: pinnedSupabaseCliVersion() };
+          if (
+            command === "supabase" &&
+            args[0] === "db" &&
+            args[1] === "reset"
+          ) {
+            psql(url, HOSTED_RESET_SQL);
+            applyChain(url);
+            installLedger(url);
+            if (seedEnabled)
+              psql(url, readFileSync("supabase/seed.sql", "utf8"));
+            return { status: 0 };
+          }
+          expect(command).toBe("bun");
+          ranPayload = true;
+          return spawnSync(command, args, {
+            ...options,
+            env: {
+              ...options?.env,
+              PAYLOAD_MIGRATION_DATABASE_URI: "",
+              PAYLOAD_DATABASE_URI: url,
+              PAYLOAD_SECRET: "local-recovery-test",
+              NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture",
+            },
+          });
+        };
+        const retry = () =>
+          rebuild({
+            settings,
+            env,
+            mode: "first",
+            signoff: "https://github.com/Asymmetric-al/core/issues/2671",
+            confirmation: `rebuild ${settings.projectRef}`,
+            query: queryWithLocalRole,
+            runCommand,
+            log: silent,
+          });
+        if (!seedEnabled) {
+          await expect(retry()).rejects.toThrow(/seed.*before Payload/i);
+          expect(ranPayload).toBe(false);
+          seedEnabled = true;
+        }
+        await retry();
+        expect(fixtures(url)).toBe("3|2|6");
+        expect(() => preflight({ settings, log: silent })).toThrow(
+          /no recorded head.*first-rebuild/s,
+        );
+        if (open) {
+          psql(url, "CREATE TABLE public.leftover_for_gate(id integer)");
+          expect(() =>
+            gates({ settings, replayFingerprintFile: expected, log: silent }),
+          ).toThrow(/Catalog gates failed/);
+          psql(url, "DROP TABLE public.leftover_for_gate");
+          await retry();
+        }
+        gates({ settings, replayFingerprintFile: expected, log: console.log });
+        recordHeads({ settings, log: silent });
+        expect(readReleaseHealth({ databaseUrl: url })?.heads).toEqual({
+          supabase: source.supabase.at(-1),
+          payload: source.payload.at(-1),
+        });
+        expect(() => preflight({ settings, log: silent })).not.toThrow();
+        await expect(retry()).rejects.toThrow(/recorded head/i);
+      },
+    );
   },
 );
 

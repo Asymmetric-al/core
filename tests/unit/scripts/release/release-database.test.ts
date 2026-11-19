@@ -142,7 +142,10 @@ function fakeDatabase(state: {
     cmsNeverAccept: false,
     defaultsOpen: false,
     cmsRefusal: undefined as string | undefined,
-    heads: { supabase: null, payload: null } as {
+    heads: {
+      supabase: state.environment === null ? null : source.supabase.at(-1)!,
+      payload: state.environment === null ? null : source.payload.at(-1)!,
+    } as {
       supabase: string | null;
       payload: string | null;
     },
@@ -151,6 +154,13 @@ function fakeDatabase(state: {
   const events: string[] = [];
   const query = vi.fn(
     ({ sql, databaseUrl }: { sql: string; databaseUrl: string }) => {
+      const counts: Record<string, number> = {
+        '"public"."profiles"': 3,
+        '"public"."tenants"': 2,
+        '"authz"."memberships"': 6,
+      };
+      if (sql.startsWith("SELECT count(*) FROM"))
+        return counts[sql.slice("SELECT count(*) FROM ".length, -1)]!;
       if (sql.includes("to_regprocedure")) return { exists: db.healthFunction };
       // Review K3: the read after a failed reset, and preflight's check.
       if (sql.includes("query_to_xml"))
@@ -507,6 +517,7 @@ describe("release database steps", () => {
       expect(applied).toHaveLength(1);
       expect(applied[0]![0]).toMatchObject({ databaseUrl });
       const sql = applied[0]![0].sql ?? "";
+      expect(sql.match(/\bCOMMIT\s*;/gi)).toHaveLength(1);
       expect(sql.match(/^(?:BEGIN|ROLLBACK|COMMIT);$/gm)).toEqual([
         "BEGIN;",
         "ROLLBACK;",
@@ -653,7 +664,7 @@ describe("release database steps", () => {
   it.each([
     [
       "first",
-      /password was set.*first rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads.*marked the database disposable, so first-rebuild cannot run again.*dispatch set-cms-role-passwords, then the release/s,
+      /password was set.*first rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads.*dispatch first-rebuild again with the census link/s,
     ],
     [
       "disposable",
@@ -709,12 +720,12 @@ describe("release database steps", () => {
     [
       "first",
       { environment: "disposable", open: false },
-      /marker reads disposable.*closed again.*dispatch set-cms-role-passwords, then the release/s,
+      /marker reads disposable.*closed again.*dispatch first-rebuild again with the census link/s,
     ],
     [
       "first",
       { environment: "disposable", open: true },
-      /marker reads disposable.*are open to anon and authenticated.*needs the owner/s,
+      /marker reads disposable.*are open to anon and authenticated.*dispatch first-rebuild again with the census link/s,
     ],
   ] as const)(
     "%s rebuild: a failed reset names the state it left (%o) and what to run next",
@@ -765,7 +776,7 @@ describe("release database steps", () => {
   it.each([
     [
       "first",
-      /Nothing was changed.*first-rebuild cannot run again.*dispatch set-cms-role-passwords, then the release/s,
+      /its password was not changed.*dispatch first-rebuild again with the census link/s,
     ],
     ["disposable", /its password was not changed.*rebuild again/s],
   ] as const)(
@@ -1142,7 +1153,38 @@ describe("release database steps", () => {
     }
   });
 
-  it("runs the one-off first rebuild only on an unmarked database with the census sign-off", async () => {
+  it.each(["first", "disposable"] as const)(
+    "%s rebuild stops before Payload if reset succeeded but did not seed",
+    async (mode) => {
+      const fake = fakeDatabase({
+        environment: mode === "first" ? null : "disposable",
+      });
+      const runCommand = withPinnedCli((command) => {
+        fake.db.environment = "disposable";
+        expect(command).not.toBe("bun");
+        return { status: 0 };
+      });
+      await expect(
+        rebuild({
+          settings: settings("preview"),
+          mode,
+          signoff: "https://github.com/Asymmetric-al/core/issues/1",
+          confirmation: `rebuild ${ref}`,
+          env: passwords,
+          run: fake.run,
+          query: (input: Parameters<typeof fake.query>[0]) =>
+            input.sql.startsWith("SELECT count(*) FROM")
+              ? 0
+              : fake.query(input),
+          runCommand,
+          requireDisposable: () => ({ ok: true }),
+          log: silent,
+        }),
+      ).rejects.toThrow(/seed.*before Payload/i);
+    },
+  );
+
+  it("refuses a first rebuild after recording heads, without the census sign-off, or without typed confirmation", async () => {
     const runCommand = vi.fn(() => ({ status: 0 }));
     const marked = fakeDatabase({});
     await expect(
@@ -1155,7 +1197,7 @@ describe("release database steps", () => {
         runCommand,
         log: silent,
       }),
-    ).rejects.toThrow(/already marked/);
+    ).rejects.toThrow(/recorded head/);
     const unmarked = fakeDatabase({ environment: null });
     await expect(
       rebuild({
