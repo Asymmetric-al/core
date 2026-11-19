@@ -13,7 +13,8 @@
  * second factor. They enrol a TOTP factor through the Auth API, pass the
  * challenge with a code computed here, and the new session, at `aal2`, passes
  * the shared check. A person who is not on the list is refused at `aal2` too,
- * and the operator is refused at the next call once taken off the list.
+ * and the operator is refused at the next call once taken off the list. A
+ * call with no session at all, as `anon`, is recorded too (review WC3).
  *
  * Not a `*.realstack.acceptance.test.ts`: CI's `migrate` job has a plain
  * Postgres and no Auth server. `node scripts/e2e/run-operator-mfa.mjs` runs it
@@ -212,22 +213,54 @@ describe.skipIf(!READY)(
       operatorAal1 = await signIn(operator.email);
     });
 
+    // Review of WP2c part 1, WC14: the database client always closes, every
+    // step runs, and a step that fails fails the suite instead of passing
+    // unseen. The logins go last: a listed login cannot be deleted from Auth.
     afterAll(async () => {
       const ids = [operator.id, person.id].filter(Boolean);
-      await db.query(
-        "delete from authz.platform_operators where user_id = any($1::uuid[])",
-        [ids],
-      );
-      await db.query(
-        "delete from public.audit_logs where resource_type = 'platform_operator' and resource_id = any($1::text[])",
-        [ids],
-      );
-      await db.end();
-      for (const id of ids)
-        await call(`${API}/auth/v1/admin/users/${id}`, {
-          method: "DELETE",
-          headers: { apikey: SERVICE, authorization: `Bearer ${SERVICE}` },
-        });
+      const failures: unknown[] = [];
+      try {
+        await db.query(
+          "delete from authz.platform_operators where user_id = any($1::uuid[])",
+          [ids],
+        );
+        await db.query(
+          "delete from public.audit_logs where resource_type = 'platform_operator' and resource_id = any($1::text[])",
+          [ids],
+        );
+      } catch (error) {
+        failures.push(error);
+      } finally {
+        await db.end().catch((error: unknown) => failures.push(error));
+      }
+      for (const id of ids) {
+        try {
+          const removed = await call(`${API}/auth/v1/admin/users/${id}`, {
+            method: "DELETE",
+            headers: { apikey: SERVICE, authorization: `Bearer ${SERVICE}` },
+          });
+          if (removed.status !== 200)
+            failures.push(
+              new Error(
+                `deleting login ${id} answered ${removed.status}: ${JSON.stringify(removed.json)}`,
+              ),
+            );
+        } catch (error) {
+          failures.push(error);
+        }
+      }
+      if (failures.length > 0)
+        throw new AggregateError(failures, "the stack proof's cleanup failed");
+    });
+
+    // Review of WP2c part 1, WC3: what a real PostgREST answers when the
+    // shared check is called with no session, as `anon`, to whom the function
+    // is not granted. The application no longer asks in that case
+    // (`confirmPlatformOperator` answers "not an operator" first); this
+    // records the answer it would have had.
+    it("answers a call with no session, as anon, with a permission refusal", async () => {
+      const refused = await rpc("platform_operator_session", ANON);
+      expect([refused.status, refused.json?.code]).toEqual([401, "42501"]);
     });
 
     it("issues a password session at aal1, which the read function admits and the shared check refuses for want of the second factor", async () => {
