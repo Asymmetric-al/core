@@ -18,6 +18,13 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { ADMIN_URL, IN_MIGRATE_JOB, asRole } from "./harness";
+import {
+  ANON_DEFINER_ALLOWLIST_PATH,
+  TENANT_POLICY_EXCEPTIONS_PATH,
+  TENANT_RLS_CATALOG_SQL,
+  TENANT_RLS_EXCEPTIONS_PATH,
+  evaluateTenantRlsCatalog,
+} from "../../../../scripts/verify/tenant-rls-catalog.mjs";
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   "the migrate job sets TENANT_GUARD_IT_ADMIN_DATABASE_URL (fails, never skips)",
@@ -1971,6 +1978,68 @@ describe.skipIf(!ADMIN_URL)(
           expect(await run(block.join("\n"))).toBeNull();
           expect(await members()).toEqual([...SEVEN_REALTIME].sort());
         }));
+    });
+
+    // Fixcheck F4: the catalog gate reads every policy a Data API caller can
+    // reach, TO PUBLIC or to any role that authenticated or anon holds by
+    // membership; and each request-tenant helper fixes an empty search path,
+    // so a call it makes without a schema resolves in pg_catalog only, where
+    // the gate's reading of its text already looks. Each plant runs in a
+    // transaction that is rolled back.
+    describe("the catalog gate", () => {
+      const json = (file: string) =>
+        JSON.parse(readFileSync(file, "utf8")) as unknown;
+      async function judge(sql: string) {
+        await db.query("begin");
+        try {
+          await db.query(sql);
+          const r = await db.query(TENANT_RLS_CATALOG_SQL);
+          const snapshot = JSON.parse(
+            Object.values(r.rows[0] as object)[0] as string,
+          );
+          const { failures } = evaluateTenantRlsCatalog(
+            snapshot,
+            json(TENANT_RLS_EXCEPTIONS_PATH),
+            json(ANON_DEFINER_ALLOWLIST_PATH),
+            json(TENANT_POLICY_EXCEPTIONS_PATH),
+          ) as {
+            failures: { code: string; table?: string; function?: string }[];
+          };
+          return failures.map((f) => `${f.code} ${f.function ?? f.table}`);
+        } finally {
+          await db.query("rollback");
+        }
+      }
+
+      it("passes the migrated catalog", async () => {
+        expect(await judge("select 1")).toEqual([]);
+      });
+
+      it("fails a policy on a tenant table addressed to anon alone", async () => {
+        expect(
+          await judge(
+            "create policy acc2675_anon_read on public.donors for select to anon using (true)",
+          ),
+        ).toEqual(["TENANT_CONDITION_MISSING donors"]);
+      });
+
+      it("fails a policy on a tenant table addressed to a role that authenticated is a member of", async () => {
+        expect(
+          await judge(
+            `create role acc2675_reader nologin;
+             grant acc2675_reader to authenticated;
+             create policy acc2675_member_read on public.donors for select to acc2675_reader using (true)`,
+          ),
+        ).toEqual(["TENANT_CONDITION_MISSING donors"]);
+      });
+
+      it("fails a request-tenant helper without its empty search path", async () => {
+        expect(
+          await judge(
+            "alter function authz.request_tenant_id() reset search_path",
+          ),
+        ).toEqual(["TENANT_HELPER_SEARCH_PATH authz.request_tenant_id()"]);
+      });
     });
 
     describe("reads that carry no tenant header still work", () => {

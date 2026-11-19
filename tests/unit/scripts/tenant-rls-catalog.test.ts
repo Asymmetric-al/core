@@ -1168,6 +1168,9 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   ].map((fn) => ({
     function: fn,
     body: "SELECT a.tenant_id FROM authz.request_assignment() AS a",
+    // Amended by fixcheck F4 (record D-18): the gate now reads each helper's
+    // search path, which the migrated helpers fix empty.
+    search_path: '""',
     root: true,
   }));
   /** What the helpers call: auth.uid(), which reads the token's subject only. */
@@ -1360,6 +1363,9 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     const overload = {
       function: "authz.current_tenant_id(uuid)",
       body: "SELECT ((auth.jwt() -> 'app_metadata') ->> 'tenant_id')::uuid",
+      // Amended by fixcheck F4 (record D-18): an empty search path, so the
+      // case judges the claim read alone.
+      search_path: '""',
       root: true,
     };
     for (const order of [
@@ -1581,11 +1587,44 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     expect(run([], { published: ["currency_metadata"] }).failures).toEqual([]);
   });
 
+  // Fixcheck F4: a request-tenant helper sets an empty search path, so a call
+  // it makes without a schema resolves in pg_catalog only; a function it calls
+  // is read for what it reads, as before.
+  it("fails a request-tenant helper without an empty search path, and passes a function it calls without one", () => {
+    for (const search_path of [null, "public", '"$user", public'])
+      expect(
+        codes(
+          run([], {
+            tenant_helpers: [
+              { ...HELPERS[0], search_path },
+              ...HELPERS.slice(1),
+            ],
+          }),
+        ),
+        String(search_path),
+      ).toEqual(["TENANT_HELPER_SEARCH_PATH authz.current_tenant_id()"]);
+    expect(
+      run([], { tenant_helpers: [...HELPERS, { ...UID, search_path: null }] })
+        .failures,
+    ).toEqual([]);
+  });
+
   it("selects every signed-in policy of public, the request-tenant helpers and the published tables", () => {
     expect(TENANT_RLS_CATALOG_SQL).toContain("'policies'");
-    expect(TENANT_RLS_CATALOG_SQL).toContain(
+    // Amended by fixcheck F4 (record D-18): the selection named PUBLIC and
+    // authenticated only; it is now every policy that names PUBLIC or a role
+    // that authenticated or anon holds by membership, which the real-stack
+    // cases of issue 2675 plant ("the catalog gate").
+    expect(TENANT_RLS_CATALOG_SQL).not.toContain(
       "p.polroles && array[0::oid, 'authenticated'::regrole::oid]",
     );
+    expect(TENANT_RLS_CATALOG_SQL).toContain(
+      "unnest(array['authenticated', 'anon']) g(r)",
+    );
+    expect(TENANT_RLS_CATALOG_SQL).toContain(
+      "pg_has_role(g.r, x.rid, 'MEMBER')",
+    );
+    expect(TENANT_RLS_CATALOG_SQL).toContain("'search_path', (select substr");
     expect(TENANT_RLS_CATALOG_SQL).toMatch(
       /p\.proname in \('current_tenant_id', 'request_tenant_id', 'request_assignment_id', 'request_assignment'\)/,
     );

@@ -117,6 +117,15 @@ const SEARCH_PATH = `(select substr(c, 13) from unnest(p.proconfig) c where c li
  * `tenant_guard` and `platform` are never on that session's search path.
  */
 const BODY = `(p.prosrc || coalesce(E'\\n' || pg_get_function_sqlbody(p.oid), ''))`;
+/**
+ * The Data API roles, as rows g(r), and whether policy `p` reaches g.r: it
+ * names PUBLIC, or a role g.r holds by membership, itself included
+ * (fixcheck F4).
+ */
+const API_ROLES = `unnest(array['authenticated', 'anon']) g(r)`;
+const POLICY_REACHES = `(p.polroles @> array[0::oid]
+             or exists (select 1 from unnest(p.polroles) x(rid)
+                        where pg_has_role(g.r, x.rid, 'MEMBER')))`;
 const COMMAND_SCHEMA_PATTERN = COMMAND_SCHEMAS.join("|");
 
 /** A row-security policy admits role `a.grantee` for the command of `a.privilege_type` on relation `c`. */
@@ -263,9 +272,8 @@ select jsonb_build_object(
       'check', pg_get_expr(p.polwithcheck, p.polrelid),
       'granted', exists (
         select 1
-        from unnest(array['authenticated'] || case when p.polroles @> array[0::oid]
-                                                   then array['anon'] else array[]::text[] end) g(r)
-        where case p.polcmd
+        from ${API_ROLES}
+        where ${POLICY_REACHES} and case p.polcmd
                 when 'r' then has_any_column_privilege(g.r, c.oid, 'SELECT')
                 when 'a' then has_any_column_privilege(g.r, c.oid, 'INSERT')
                 when 'w' then has_any_column_privilege(g.r, c.oid, 'UPDATE')
@@ -278,15 +286,17 @@ select jsonb_build_object(
       'permissive', p.polpermissive,
       'writable', exists (
         select 1
-        from unnest(array['authenticated'] || case when p.polroles @> array[0::oid]
-                                                   then array['anon'] else array[]::text[] end) g(r)
-        where has_any_column_privilege(g.r, c.oid, 'INSERT, UPDATE')
-           or has_table_privilege(g.r, c.oid, 'DELETE'))) order by c.relname, p.polname)
+        from ${API_ROLES}
+        where ${POLICY_REACHES}
+          and (has_any_column_privilege(g.r, c.oid, 'INSERT, UPDATE')
+               or has_table_privilege(g.r, c.oid, 'DELETE')))) order by c.relname, p.polname)
     from pg_policy p
     join pg_class c on c.oid = p.polrelid
     join pg_namespace n on n.oid = c.relnamespace
     where n.nspname = 'public'
-      and p.polroles && array[0::oid, 'authenticated'::regrole::oid]), '[]'::jsonb),
+      -- Fixcheck F4: every policy a Data API role reaches, TO PUBLIC or to a
+      -- role that authenticated or anon holds by membership.
+      and exists (select 1 from ${API_ROLES} where ${POLICY_REACHES})), '[]'::jsonb),
   -- Council R12 (a): every overload of each request-tenant helper ('root'),
   -- and every function they reach through a qualified call in their text.
   'tenant_helpers', coalesce((
@@ -310,6 +320,7 @@ select jsonb_build_object(
     select jsonb_agg(jsonb_build_object(
       'function', ${SIGNATURE},
       'body', ${BODY},
+      'search_path', ${SEARCH_PATH},
       'root', r.root) order by ${SIGNATURE})
     from (select oid, bool_or(root) as root from reach group by oid) r
     join pg_proc p on p.oid = r.oid
@@ -1152,6 +1163,15 @@ export function evaluateTenantRlsCatalog(
           h.root !== false
             ? "the request's tenant comes from the x-asym-tenant header and a live membership, never the token's claims"
             : "a request-tenant helper calls this function, which reads the token beyond its subject",
+        );
+      // Fixcheck F4: the gate follows schema-qualified calls only. With an
+      // empty search path, a call a helper makes without a schema resolves in
+      // pg_catalog alone, so nothing it reaches goes unread.
+      if (h.root !== false && h.search_path !== '""')
+        failFn(
+          "TENANT_HELPER_SEARCH_PATH",
+          h.function,
+          "a request-tenant helper sets an empty search path (SET search_path = ''), so a call without a schema cannot reach a function the gate does not read",
         );
     }
   }

@@ -163,6 +163,9 @@ function runVerifier(
     ].map((name) => ({
       function: `authz.${name}()`,
       body: "SELECT a.tenant_id FROM authz.request_assignment() AS a",
+      // Amended by fixcheck F4 (record D-18): the gate reads each helper's
+      // search path, which the migrated helpers fix empty.
+      search_path: '""',
       // Council R12 (a): the helpers themselves, not functions they call.
       root: true,
     })),
