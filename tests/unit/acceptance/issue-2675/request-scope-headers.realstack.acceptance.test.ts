@@ -30,6 +30,9 @@
  * owner computes with the rule the policy applies (`rule` below), with the
  * headers and in each case without a selected row. That is stricter than the
  * comparison it replaces, which two empty sets or two equal refusals passed.
+ * The first release's half was dropped rather than kept beside it: CI builds
+ * the whole migration chain, this migration included, so no database it
+ * builds still reads the claim, and that half could no longer run.
  * The second organization holds no business data in the seed, so the suite
  * adds one fund, one donor and one gift there, inside its transaction, for
  * its administrator's reads to be more than empty sets and for the demo
@@ -132,12 +135,25 @@ const wholeTenant = (table: string): Read => ({
   rule: `select id from public.${table} where tenant_id = $1`,
   tenant: true,
 });
-/** A tenant table whose rows the class reads where they name `column`'s own record. */
-const ownRows = (table: string, column: string, records: string): Read => ({
+/**
+ * A tenant table whose rows the class reads where they name `column`'s own
+ * record, by the rule the policy applies: the row in the request's tenant and
+ * its record one of the caller's. The policies' sub-select over `donors`
+ * names the request's tenant too (council R11), so the rule does. The one
+ * over `missionaries` cannot, because signed-in users may not read that
+ * table's `tenant_id`, so the rule does not either, and the row's own tenant
+ * term is what holds the read in the tenant (fixcheck F6).
+ */
+const ownRows = (
+  table: string,
+  column: string,
+  records: "donors" | "missionaries",
+): Read => ({
   sql: `select id from public.${table} order by id`,
   rule: `select id from public.${table}
           where tenant_id = $1
-            and ${column} in (select r.id from public.${records} r where r.profile_id in (${OWN_PROFILES}))`,
+            and ${column} in (select r.id from public.${records} r
+                               where ${records === "donors" ? "r.tenant_id = $1 and " : ""}r.profile_id in (${OWN_PROFILES}))`,
   tenant: true,
 });
 
