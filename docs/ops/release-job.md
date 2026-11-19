@@ -280,13 +280,50 @@ fifty tables it alters, it fails fast with `55P03` and nothing is applied;
 dispatch the release again when the database is quiet. If its SQL committed
 but the job stopped before the migration ledger recorded it, a second push
 runs the file again and fails at its first `DROP POLICY` (the policy is
-already gone). Do not edit the file. Confirm that it is applied: the catalog
-gate passes (`scripts/release/catalog-gates.mjs`),
-`to_regprocedure('authz.request_assignment()')` is not null and the policy
-"profiles staff tenant select" on `public.profiles` is gone. Then record the
-version with the pinned CLI, `bun run supabase -- migration repair --status
-applied 20261119022102`, against the same project, and dispatch the release
-again (council R9).
+already gone). Do not edit the file. No dispatched operation repairs the
+ledger, so the operator runs two commands by hand, in bash, from a checkout of
+the released commit, and then dispatches the release again (council R9):
+
+1. Connect as the job does. The address is the one the environment's
+   `RELEASE_DATABASE_URL` holds, without its password: `postgres.<ref>` on
+   the project's session pooler, `sslmode=require`. The password is the
+   project's database password, which the owner holds (GitHub never shows a
+   secret's value). As in the job, it goes in `PGPASSWORD`, never on a
+   command line; type it at a prompt that does not echo it:
+
+   ```sh
+   DB='postgresql://postgres.<ref>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require'
+   read -rs PGPASSWORD && export PGPASSWORD
+   ```
+
+2. Confirm that the SQL committed. Both columns must read `t`; if either
+   reads `f`, nothing was applied: stop here and dispatch the release again,
+   which applies the file.
+
+   ```sh
+   psql "$DB" -c "select to_regprocedure('authz.request_assignment()') is not null as helper_present, not exists (select 1 from pg_policy where polrelid = 'public.profiles'::regclass and polname = 'profiles staff tenant select') as old_policy_gone"
+   ```
+
+3. Record the version with the pinned CLI, which reads the password from
+   `PGPASSWORD` for a `--db-url` that carries none, then drop the password:
+
+   ```sh
+   bun run supabase -- migration repair --status applied 20261119022102 --db-url "$DB" --yes
+   unset PGPASSWORD
+   ```
+
+4. Dispatch **Release**, branch `production`, operation `release`. Its
+   `gates` step (`node scripts/release/release-database.mjs gates`) runs the
+   catalog gates and compares the database's schema fingerprint with the
+   replay the job builds, before it records the heads or deploys anything.
+   Nothing is run by hand for this: `scripts/release/catalog-gates.mjs` is a
+   module the step calls, with no command of its own, and the step needs the
+   fingerprint of the replay the job builds in the same run. If the gates
+   fail, nothing is recorded or deployed.
+
+Steps 2 and 3 were run in this form with the pinned CLI (2.121.0) against a
+local Postgres holding the migration but not its ledger row: the query read
+`t` twice and the repair recorded the version.
 
 ## Secrets and variables
 
