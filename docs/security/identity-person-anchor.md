@@ -153,9 +153,11 @@ tests, is:
     no application code writes its table.
   - `atomic_update_profile_with_audit` (INVOKER): the profile's login holds a
     live row in the tenant since R1.
-  - `atomic_update_user_role_with_audit`: since WP2a joined stage 1, DEFINER;
-    it judges the caller's tenant-administrator membership and finds the
-    target by membership, and reads no profile's tenant.
+  - `atomic_update_user_role_with_audit`: dropped by WP2c (AL-2675) with
+    GraphQL `updateUserRole`. The role-change and revoke commands that
+    replace it (`tenant_guard.change_membership_role`,
+    `tenant_guard.revoke_membership`) write the membership and read no
+    profile.
   - `set_eve_retention_hold`
   - `expire_eve_retention_records`
   - `handle_new_user`: the writer. Since AL-2675 it gives the new login a

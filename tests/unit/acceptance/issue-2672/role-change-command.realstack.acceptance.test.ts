@@ -1,51 +1,59 @@
 /**
- * WP0 (#2672) real-stack test for the role-change command,
- * `public.atomic_update_user_role_with_audit` (audit finding A01).
+ * WP0 (#2672) real-stack test for the role-change command (audit finding A01).
  *
  * Plan, section 12, WP0: the role mutation cannot grant a platform role or
  * target the caller, and its SQL function requires the caller to be an admin
  * of the target tenant. Until WP2 that check reads `profiles.role`.
  *
  * Rewritten when WP2a joined stage 1 (AL-2675; plan WP0 and WP2a,
- * 20261117160400_role_change_reads_tenant_admin_membership.sql): the check now
- * reads the caller's live staff membership in the tenant and its
+ * 20261117160400_role_change_reads_tenant_admin_membership.sql): the check
+ * read the caller's live staff membership in the tenant and its
  * `people.manage_members` capability (the tenant-administrator flag), and the
- * target is found by membership in the tenant, not by `profiles.tenant_id`.
- * So each fixture person holds the membership its role means: an `admin` a
- * flagged staff row, `staff` an unflagged one, the others the donor row the
- * sign-up trigger gives them. Every refusal WP0 proved is kept with the same
- * assertions, and four cases prove the move: an `admin` profile role on an
- * unflagged row is refused, a flagged row behind a `donor` profile role is
- * admitted, a revoked flagged row is refused, and a target whose profile's
- * tenant column names the other tenant is found by its membership.
+ * target was found by membership in the tenant, not by `profiles.tenant_id`.
  *
  * Council round 1 on WP2a (F2) and the review of PR #2714 reached the same
- * rule: the role written is the person's global `profiles.role`, which every
+ * rule: the role written was the person's global `profiles.role`, which every
  * tenant's restricted-note policies still read, so a target who is a live
- * member of another tenant is refused. Stage 1's cases (a) to (d) prove it;
- * WP2a's three cases of the same rule were folded into them when WP2a joined
- * stage 1 at 7a9fc5b39. They run on both versions of the function: the
- * chain's final one (WP2a's 20261117160400) and stage 1's 20261117040237,
- * re-created inside the rolled-back transaction.
+ * member of another tenant is refused (record D-40).
+ *
+ * Rewritten again by AL-2675 (WP2c, part 1; plan 5.4 and 12 WP2c; record
+ * section 9 and D-18). WP2c deletes GraphQL `updateUserRole` and drops
+ * `public.atomic_update_user_role_with_audit`; a member's class, sub-role and
+ * tenant-administrator flag change only through the human commands
+ * `public.change_membership_role` and `public.revoke_membership`, on the
+ * caller's own token, which write the membership and never `profiles.role`.
+ * Every case below is the case WP0 and WP2a proved, run on the command that
+ * replaces the function, with the same refusal code (and, for the
+ * cross-organization rule, the same words), the same "changes nothing" and
+ * "writes no audit row" assertions, and the admitted changes asserted on the
+ * membership and its audit row in place of the profile role. Three changes of
+ * form, each kept as strong:
+ *   - a role is a class with a sub-role and a flag: `admin` is a staff row
+ *     with the flag, `staff` one without it;
+ *   - the platform role a target could hold is now the operator list (record
+ *     section 9), so the operator fixture is on the list;
+ *   - the cross-organization cases ran on two versions of the retired
+ *     function, the chain's final one and stage 1's, re-created inside the
+ *     transaction. Both versions are dropped, so the cases run once, on the
+ *     command, which keeps D-40's refusal for a change of role until WP2b's
+ *     second release moves the restricted-note policies off `profiles.role`.
+ *   The last case pinned that only `service_role` could execute the function;
+ *   it now pins that the function is gone and that the commands are executed
+ *   by signed-in users only, never by `service_role`.
  *
  * Runs against the migrated database named by
  * TENANT_GUARD_IT_ADMIN_DATABASE_URL; without it the block skips, except in
- * the CI `migrate` job, where it fails. The function is called as
- * `service_role`, the only role granted EXECUTE, exactly as the GraphQL
- * resolver calls it. Every check runs in its own transaction, rolled back.
+ * the CI `migrate` job, where it fails. Every check runs in its own
+ * transaction, rolled back.
  */
 import { randomUUID } from "node:crypto";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { body } from "../issue-2256/harness";
-
 const ADMIN_URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
 const IN_MIGRATE_JOB =
   process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_JOB === "migrate";
-const FN = "public.atomic_update_user_role_with_audit";
-const SIGNATURE = `${FN}(uuid,uuid,uuid,text,text,text)`;
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   "the migrate job sets TENANT_GUARD_IT_ADMIN_DATABASE_URL (fails, never skips)",
@@ -67,9 +75,10 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
     adminProfileOnlyA: randomUUID(),
     flaggedDonorProfileA: randomUUID(),
   };
+  type Person = keyof typeof people;
   /** [tenant, profile role, staff row in that tenant: flagged, unflagged or none] */
   const roles: Record<
-    keyof typeof people,
+    Person,
     [string, string, "flagged" | "unflagged" | null]
   > = {
     adminA: [tenantA, "admin", "flagged"],
@@ -89,100 +98,180 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
   async function tx(fn: () => Promise<void>) {
     await db.query("begin");
     try {
-      // Hosted simulation: hosted Supabase's default privileges give
-      // service_role write access to public tables; the compat bootstrap
-      // mirrors only SELECT. Grant the two writes the command makes, inside
-      // the rolled-back transaction, so a refusal can only come from the
-      // command's own checks.
-      await db.query(
-        "grant update on public.profiles to service_role; grant insert on public.audit_logs to service_role",
-      );
       await db.query(
         "insert into public.tenants (id, name, slug) values ($1::uuid, 'wp0 A', 'wp0-' || $1::text), ($2::uuid, 'wp0 B', 'wp0-' || $2::text)",
         [tenantA, tenantB],
       );
       for (const [key, [tenant, role, staffRow]] of Object.entries(roles)) {
-        const id = people[key as keyof typeof people];
-        // The sign-up trigger gives the login a donor membership in `tenant`.
-        await db.query(
-          "insert into auth.users (id, email, raw_app_meta_data) values ($1, $2, jsonb_build_object('tenant_id', $3::text))",
-          [id, `${key}-${id}@example.invalid`, tenant],
-        );
+        const id = people[key as Person];
+        // The sign-up trigger gives the login a donor membership in the demo
+        // tenant; each person here holds a donor row in `tenant` instead.
+        await db.query("insert into auth.users (id, email) values ($1, $2)", [
+          id,
+          `${key}-${id}@example.invalid`,
+        ]);
+        await db.query("delete from authz.memberships where user_id = $1", [
+          id,
+        ]);
         await db.query("update public.profiles set role = $2 where id = $1", [
           id,
           role,
         ]);
+        await db.query(
+          "insert into authz.memberships (user_id, tenant_id, role, is_active) values ($1, $2, 'donor', true)",
+          [id, tenant],
+        );
         if (staffRow)
           await db.query(
             "insert into authz.memberships (user_id, tenant_id, role, staff_role, is_tenant_admin, is_active) values ($1, $2, 'staff', 'development', $3, true)",
             [id, tenant, staffRow === "flagged"],
           );
       }
+      // The platform role a target can hold is the operator list (WP2c).
+      await db.query(
+        "insert into authz.platform_operators (user_id, added_by, reason) values ($1, 'acceptance', 'WP0 fixture')",
+        [people.operatorA],
+      );
       await fn();
     } finally {
       await db.query("rollback");
     }
   }
 
-  /** Calls the command as service_role; returns the result or the SQLSTATE. */
-  async function changeRole(input: {
-    actor: string | null;
-    target: string;
-    tenant: string;
-    role: string;
-  }) {
+  /** The id of a person's row of a class in a tenant, live or not. */
+  async function rowOf(
+    person: Person,
+    role: "donor" | "staff",
+    tenant = tenantA,
+  ) {
+    const r = await db.query(
+      "select id from authz.memberships where user_id = $1 and tenant_id = $2 and role = $3",
+      [people[person], tenant, role],
+    );
+    return r.rows[0]?.id as string | undefined;
+  }
+
+  /**
+   * Runs one command on the caller's own token, as PostgREST does, under the
+   * caller's staff row in the tenant (or donor row when it has none), and keeps
+   * what it wrote until the transaction is rolled back.
+   */
+  async function asCaller(caller: Person | null, tenant: string, sql: string) {
+    const assignment = caller
+      ? ((await rowOf(caller, "staff", tenant)) ??
+        (await rowOf(caller, "donor", tenant)))
+      : undefined;
     await db.query("savepoint call");
     try {
-      await db.query("set local role service_role");
-      const result = await db.query(
-        `select ${FN}($1::uuid, $2::uuid, $3::uuid, $4::text) as result`,
-        [input.target, input.tenant, input.actor, input.role],
+      await db.query("set local role authenticated");
+      await db.query(
+        `select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', '', true),
+                set_config('request.headers', $2, true)`,
+        [
+          caller
+            ? JSON.stringify({ sub: people[caller], role: "authenticated" })
+            : "",
+          assignment ? JSON.stringify({ "x-asym-assignment": assignment }) : "",
+        ],
       );
+      const result = await db.query(sql);
       await db.query("reset role");
+      await db.query(
+        "select set_config('request.jwt.claims', '', true), set_config('request.headers', '', true), set_config('app.current_tenant_id', '', true)",
+      );
       await db.query("release savepoint call");
       return {
         code: null,
         message: null,
-        result: result.rows[0]?.result as unknown,
+        result: result.rows[0]?.result as Record<string, unknown> | undefined,
       };
     } catch (error) {
       await db.query("rollback to savepoint call");
-      await db.query("reset role");
       return {
         code: (error as { code?: string }).code ?? String(error),
         message: (error as { message?: string }).message ?? null,
-        result: null,
+        result: undefined,
       };
     }
   }
 
-  /** Gives `person` another membership, beside the one the new-user trigger made. */
-  async function addMembership(
-    person: string,
-    tenant: string,
-    kind: "staff" | "donor",
-    isActive = true,
-  ) {
-    await db.query(
-      "insert into authz.memberships (user_id, tenant_id, role, staff_role, is_active) values ($1, $2, $3::authz.membership_role, $4::authz.staff_role, $5)",
-      [person, tenant, kind, kind === "staff" ? "member_care" : null, isActive],
+  /**
+   * A role as WP0 named it, as the command takes it: `admin` is a development
+   * staff row with the flag, `staff` a finance staff row without it. (The
+   * fixture's staff rows are development rows, so granting `staff` to one is
+   * a real change, as it was when the role was a profile column.)
+   */
+  function asMembership(role: string) {
+    if (role === "admin")
+      return { role: "staff", staff: "development", admin: true };
+    if (role === "staff")
+      return { role: "staff", staff: "finance", admin: false };
+    return { role, staff: null as string | null, admin: false };
+  }
+
+  const lit = (v: string | null) =>
+    v === null ? "null" : `'${v.replace(/'/g, "''")}'`;
+
+  /** Changes `target`'s row of `fromClass` in `tenant` to `role`, as `actor`. */
+  async function changeRole(input: {
+    actor: Person | null;
+    target: Person;
+    fromClass?: "donor" | "staff";
+    tenant: string;
+    role: string;
+  }) {
+    const row =
+      (await rowOf(input.target, input.fromClass ?? "donor", input.tenant)) ??
+      (await rowOf(input.target, input.fromClass ?? "donor", tenantA)) ??
+      (await rowOf(input.target, input.fromClass ?? "donor", tenantB));
+    const m = asMembership(input.role);
+    return asCaller(
+      input.actor,
+      input.tenant,
+      `select public.change_membership_role('${input.tenant}', '${row}', ${lit(m.role)}, ${lit(m.staff)}, ${m.admin}, 'WP0 case') as result`,
     );
   }
 
   const OTHER_ORGANIZATION =
     "This person also belongs to another organization; their role cannot be changed here";
 
-  async function roleOf(profileId: string) {
+  /** Gives `person` another membership, beside the ones the fixture made. */
+  async function addMembership(
+    person: Person,
+    tenant: string,
+    kind: "staff" | "donor",
+    isActive = true,
+  ) {
+    await db.query(
+      "insert into authz.memberships (user_id, tenant_id, role, staff_role, is_active) values ($1, $2, $3::authz.membership_role, $4::authz.staff_role, $5) on conflict do nothing",
+      [people[person], tenant, kind, kind === "staff" ? "hr" : null, isActive],
+    );
+  }
+
+  /** The person's live rows in a tenant, as `role` names: admin, staff, donor or missionary. */
+  async function rolesOf(person: Person, tenant = tenantA) {
+    const r = await db.query(
+      `select case when role = 'staff' and is_tenant_admin then 'admin' else role::text end as r
+         from authz.memberships where user_id = $1 and tenant_id = $2 and is_active order by 1`,
+      [people[person], tenant],
+    );
+    return r.rows.map((x) => x.r as string);
+  }
+
+  async function profileRoleOf(person: Person) {
     const r = await db.query("select role from public.profiles where id = $1", [
-      profileId,
+      people[person],
     ]);
     return r.rows[0]?.role as string | undefined;
   }
 
-  async function roleChangeAudits(profileId: string) {
+  async function roleChangeAudits(person: Person) {
     const r = await db.query(
-      "select tenant_id, user_id, details from public.audit_logs where action = 'role_change' and resource_id = $1",
-      [profileId],
+      `select tenant_id, user_id, details -> 'from' ->> 'role' as from_role,
+              details -> 'to' ->> 'role' as to_role, (details -> 'to' ->> 'is_tenant_admin')::boolean as to_admin
+         from public.audit_logs
+        where action = 'membership_role_changed' and details ->> 'target_user_id' = $1`,
+      [people[person]],
     );
     return r.rows as Array<Record<string, unknown>>;
   }
@@ -190,102 +279,102 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
   it("refuses a staff caller and changes no role", () =>
     tx(async () => {
       const outcome = await changeRole({
-        actor: people.staffA,
-        target: people.donorA,
+        actor: "staffA",
+        target: "donorA",
         tenant: tenantA,
         role: "admin",
       });
       expect(outcome.code).toBe("42501");
-      expect(await roleOf(people.donorA)).toBe("donor");
-      expect(await roleChangeAudits(people.donorA)).toEqual([]);
+      expect(await rolesOf("donorA")).toEqual(["donor"]);
+      expect(await roleChangeAudits("donorA")).toEqual([]);
     }));
 
   it("refuses a staff caller promoting themselves to a platform role", () =>
     tx(async () => {
-      const outcome = await changeRole({
-        actor: people.staffA,
-        target: people.staffA,
-        tenant: tenantA,
-        role: "super_admin",
-      });
+      const outcome = await asCaller(
+        "staffA",
+        tenantA,
+        `select public.change_membership_role('${tenantA}', '${await rowOf("staffA", "staff")}', 'super_admin', null, false, 'x') as result`,
+      );
       expect(outcome.code).toBe("42501");
-      expect(await roleOf(people.staffA)).toBe("staff");
+      expect(await rolesOf("staffA")).toEqual(["donor", "staff"]);
     }));
 
   it("refuses an admin of another tenant", () =>
     tx(async () => {
-      const outcome = await changeRole({
-        actor: people.adminB,
-        target: people.donorA,
-        tenant: tenantA,
-        role: "staff",
-      });
+      const outcome = await asCaller(
+        "adminB",
+        tenantA,
+        `select public.change_membership_role('${tenantA}', '${await rowOf("donorA", "donor")}', 'staff', 'development', false, 'x') as result`,
+      );
       expect(outcome.code).toBe("42501");
-      expect(await roleOf(people.donorA)).toBe("donor");
+      expect(await rolesOf("donorA")).toEqual(["donor"]);
     }));
 
   it("refuses a caller with no identity", () =>
     tx(async () => {
       const outcome = await changeRole({
         actor: null,
-        target: people.donorA,
+        target: "donorA",
         tenant: tenantA,
         role: "staff",
       });
       expect(outcome.code).toBe("42501");
-      expect(await roleOf(people.donorA)).toBe("donor");
+      expect(await rolesOf("donorA")).toEqual(["donor"]);
     }));
 
   it("refuses an admin changing their own role", () =>
     tx(async () => {
-      const outcome = await changeRole({
-        actor: people.adminA,
-        target: people.adminA,
-        tenant: tenantA,
-        role: "donor",
-      });
-      expect(outcome.code).toBe("42501");
-      expect(await roleOf(people.adminA)).toBe("admin");
+      for (const fromClass of ["staff", "donor"] as const) {
+        const outcome = await changeRole({
+          actor: "adminA",
+          target: "adminA",
+          fromClass,
+          tenant: tenantA,
+          role: "donor",
+        });
+        expect(outcome.code).toBe("42501");
+      }
+      expect(await rolesOf("adminA")).toEqual(["admin", "donor"]);
     }));
 
   it.each(["super_admin", "finance", "delivery", ""])(
     "refuses an admin granting the role %j, which is not a tenant role",
     (role) =>
       tx(async () => {
-        const outcome = await changeRole({
-          actor: people.adminA,
-          target: people.donorA,
-          tenant: tenantA,
-          role,
-        });
+        const outcome = await asCaller(
+          "adminA",
+          tenantA,
+          `select public.change_membership_role('${tenantA}', '${await rowOf("donorA", "donor")}', ${lit(role)}, null, false, 'x') as result`,
+        );
         expect(outcome.code).toBe("42501");
-        expect(await roleOf(people.donorA)).toBe("donor");
-        expect(await roleChangeAudits(people.donorA)).toEqual([]);
+        expect(await rolesOf("donorA")).toEqual(["donor"]);
+        expect(await roleChangeAudits("donorA")).toEqual([]);
       }),
   );
 
   it("refuses an admin changing the role of a platform operator", () =>
     tx(async () => {
       const outcome = await changeRole({
-        actor: people.adminA,
-        target: people.operatorA,
+        actor: "adminA",
+        target: "operatorA",
         tenant: tenantA,
-        role: "donor",
+        role: "staff",
       });
       expect(outcome.code).toBe("42501");
-      expect(await roleOf(people.operatorA)).toBe("super_admin");
+      expect(await rolesOf("operatorA")).toEqual(["donor"]);
+      expect(await profileRoleOf("operatorA")).toBe("super_admin");
     }));
 
-  it("reports a profile outside the tenant as not found", () =>
+  it("reports a member of another tenant as not found", () =>
     tx(async () => {
-      const outcome = await changeRole({
-        actor: people.adminA,
-        target: people.adminB,
-        tenant: tenantA,
-        role: "donor",
-      });
+      const outcome = await asCaller(
+        "adminA",
+        tenantA,
+        `select public.change_membership_role('${tenantA}', '${await rowOf("adminB", "staff", tenantB)}', 'donor', null, false, 'x') as result`,
+      );
       expect(outcome.code).toBe("P0002");
-      expect(await roleOf(people.adminB)).toBe("admin");
+      expect(await rolesOf("adminB", tenantB)).toEqual(["admin", "donor"]);
     }));
 
   it.each(["donor", "missionary", "staff", "admin"])(
@@ -293,213 +382,203 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
     (role) =>
       tx(async () => {
         const outcome = await changeRole({
-          actor: people.adminA,
-          target: people.staffA,
+          actor: "adminA",
+          target: "staffA",
+          fromClass: "staff",
           tenant: tenantA,
           role,
         });
-        expect(outcome.code).toBeNull();
-        expect(outcome.result).toEqual({ profile_id: people.staffA, role });
-        expect(await roleOf(people.staffA)).toBe(role);
-        expect(await roleChangeAudits(people.staffA)).toEqual([
+        expect(outcome.code, outcome.message ?? "").toBeNull();
+        const m = asMembership(role);
+        expect(outcome.result).toMatchObject({
+          changed: true,
+          user_id: people.staffA,
+          role: m.role,
+          staff_role: m.staff,
+          is_tenant_admin: m.admin,
+        });
+        // The staff row became the role; the donor row stays.
+        expect(await rolesOf("staffA")).toEqual(
+          role === "donor" ? ["donor"] : [role, "donor"].sort(),
+        );
+        expect(await roleChangeAudits("staffA")).toEqual([
           {
             tenant_id: tenantA,
             user_id: people.adminA,
-            details: { oldRole: "staff", newRole: role },
+            from_role: "staff",
+            to_role: m.role,
+            to_admin: m.admin,
           },
         ]);
+        // The profile role is display data now; the command never writes it.
+        expect(await profileRoleOf("staffA")).toBe("staff");
       }),
   );
 
-  // PR #2714 review (role change across organizations): profiles.role is the
-  // person's one role in every organization (profiles.user_id is unique), and
-  // the restricted-note policies on crm_notes admit profiles.role 'admin' with
-  // no tenant condition beside a staff membership in the note's tenant. So an
-  // administrator of one organization never changes the role of someone with
-  // an active membership in another: that would grant, or take away, access
-  // there.
-  /**
-   * Stage 1's version of the command (20261117040237), re-created inside the
-   * check's rolled-back transaction. WP2a's 20261117160400 replaces it in the
-   * chain, so the cases below run once on each version: both refuse the same
-   * targets with the same error and the same words.
-   */
-  const VERSIONS = [
-    ["WP2a's function (20261117160400, the chain's final state)", null],
-    [
-      "stage 1's function (20261117040237)",
-      body(
-        "supabase/migrations/20261117040237_role_change_requires_tenant_admin.sql",
-      ),
-    ],
-  ] as const;
-
-  describe.each(VERSIONS)("across organizations, on %s", (_name, install) => {
-    const txOn = (fn: () => Promise<void>) =>
-      tx(async () => {
-        if (install) await db.query(install);
-        await fn();
-      });
-
+  // PR #2714 review (role change across organizations), record D-40: kept by
+  // the command for a change of role until WP2b's second release moves the
+  // restricted-note policies off profiles.role.
+  describe("across organizations", () => {
     it("(a) refuses to make admin someone who is also staff in another organization", () =>
-      txOn(async () => {
-        await addMembership(people.donorA, tenantB, "staff");
+      tx(async () => {
+        await addMembership("donorA", tenantB, "staff");
         const outcome = await changeRole({
-          actor: people.adminA,
-          target: people.donorA,
+          actor: "adminA",
+          target: "donorA",
           tenant: tenantA,
           role: "admin",
         });
         expect(outcome.code).toBe("42501");
         expect(outcome.message).toBe(OTHER_ORGANIZATION);
-        expect(await roleOf(people.donorA)).toBe("donor");
-        expect(await roleChangeAudits(people.donorA)).toEqual([]);
+        expect(await rolesOf("donorA")).toEqual(["donor"]);
+        expect(await roleChangeAudits("donorA")).toEqual([]);
       }));
 
     it("(b) refuses to take admin away from an admin of this organization who is staff in another", () =>
-      txOn(async () => {
-        await addMembership(people.secondAdminA, tenantB, "staff");
+      tx(async () => {
+        await addMembership("secondAdminA", tenantB, "staff");
         const outcome = await changeRole({
-          actor: people.adminA,
-          target: people.secondAdminA,
+          actor: "adminA",
+          target: "secondAdminA",
+          fromClass: "staff",
           tenant: tenantA,
           role: "donor",
         });
         expect(outcome.code).toBe("42501");
         expect(outcome.message).toBe(OTHER_ORGANIZATION);
-        expect(await roleOf(people.secondAdminA)).toBe("admin");
-        expect(await roleChangeAudits(people.secondAdminA)).toEqual([]);
+        expect(await rolesOf("secondAdminA")).toEqual(["admin", "donor"]);
+        expect(await roleChangeAudits("secondAdminA")).toEqual([]);
       }));
 
     it("refuses for an active membership of any kind in another organization", () =>
-      txOn(async () => {
-        await addMembership(people.donorA, tenantB, "donor");
+      tx(async () => {
+        await addMembership("donorA", tenantB, "donor");
         const outcome = await changeRole({
-          actor: people.adminA,
-          target: people.donorA,
+          actor: "adminA",
+          target: "donorA",
           tenant: tenantA,
           role: "staff",
         });
         expect(outcome.code).toBe("42501");
         expect(outcome.message).toBe(OTHER_ORGANIZATION);
-        expect(await roleOf(people.donorA)).toBe("donor");
-        expect(await roleChangeAudits(people.donorA)).toEqual([]);
+        expect(await rolesOf("donorA")).toEqual(["donor"]);
+        expect(await roleChangeAudits("donorA")).toEqual([]);
       }));
 
     it.each(["donor", "missionary", "staff", "admin"])(
       "(c) still grants %s to someone whose memberships are all in this organization",
       (role) =>
-        txOn(async () => {
-          await addMembership(people.staffA, tenantA, "staff");
+        tx(async () => {
           const tenants = await db.query(
             "select distinct tenant_id from authz.memberships where user_id = $1",
             [people.staffA],
           );
           expect(tenants.rows).toEqual([{ tenant_id: tenantA }]);
           const outcome = await changeRole({
-            actor: people.adminA,
-            target: people.staffA,
+            actor: "adminA",
+            target: "staffA",
+            fromClass: "staff",
             tenant: tenantA,
             role,
           });
-          expect(outcome.code).toBeNull();
-          expect(await roleOf(people.staffA)).toBe(role);
-          expect(await roleChangeAudits(people.staffA)).toEqual([
+          expect(outcome.code, outcome.message ?? "").toBeNull();
+          const m = asMembership(role);
+          expect(await roleChangeAudits("staffA")).toEqual([
             {
               tenant_id: tenantA,
               user_id: people.adminA,
-              details: { oldRole: "staff", newRole: role },
+              from_role: "staff",
+              to_role: m.role,
+              to_admin: m.admin,
             },
           ]);
         }),
     );
 
     it("(d) does not refuse for an inactive membership in another organization", () =>
-      txOn(async () => {
-        await addMembership(people.donorA, tenantB, "staff", false);
+      tx(async () => {
+        await addMembership("donorA", tenantB, "staff", false);
         const outcome = await changeRole({
-          actor: people.adminA,
-          target: people.donorA,
+          actor: "adminA",
+          target: "donorA",
           tenant: tenantA,
           role: "admin",
         });
-        expect(outcome.code).toBeNull();
-        expect(await roleOf(people.donorA)).toBe("admin");
-        expect(await roleChangeAudits(people.donorA)).toEqual([
+        expect(outcome.code, outcome.message ?? "").toBeNull();
+        expect(await rolesOf("donorA")).toEqual(["admin"]);
+        expect(await roleChangeAudits("donorA")).toEqual([
           {
             tenant_id: tenantA,
             user_id: people.adminA,
-            details: { oldRole: "donor", newRole: "admin" },
+            from_role: "donor",
+            to_role: "staff",
+            to_admin: true,
           },
         ]);
       }));
   });
 
-  // WP2a's own case, restored (council round 2 on WP2a, R8b; it was folded
-  // away when WP2a joined stage 1 at 7a9fc5b39). The target is another
-  // tenant's administrator whose profile names that tenant, with a donor row
-  // here. It runs on the chain's final function only: stage 1's
-  // 20261117040237 finds the target by `profiles.tenant_id`, so for this
-  // target it answers "not found" (P0002) before the cross-organization
-  // rule, and the case cannot join the two-version block above.
+  // WP2a's own case (council round 2 on WP2a, R8b): the target is another
+  // tenant's administrator with a donor row here.
   it("refuses to strip another tenant's administrator who is also a member of the tenant, and changes nothing", () =>
     tx(async () => {
-      await db.query(
-        "insert into authz.memberships (user_id, tenant_id, role, is_active) values ($1, $2, 'donor', true)",
-        [people.adminB, tenantA],
-      );
+      await addMembership("adminB", tenantA, "donor");
       const outcome = await changeRole({
-        actor: people.adminA,
-        target: people.adminB,
+        actor: "adminA",
+        target: "adminB",
         tenant: tenantA,
-        role: "donor",
+        role: "missionary",
       });
       expect(outcome.code).toBe("42501");
       expect(outcome.message).toBe(OTHER_ORGANIZATION);
-      expect(await roleOf(people.adminB)).toBe("admin");
-      expect(await roleChangeAudits(people.adminB)).toEqual([]);
+      expect(await rolesOf("adminB", tenantB)).toEqual(["admin", "donor"]);
+      expect(await rolesOf("adminB")).toEqual(["donor"]);
+      expect(await roleChangeAudits("adminB")).toEqual([]);
     }));
 
   it("lets an admin demote another admin of the same tenant", () =>
     tx(async () => {
       const outcome = await changeRole({
-        actor: people.adminA,
-        target: people.secondAdminA,
+        actor: "adminA",
+        target: "secondAdminA",
+        fromClass: "staff",
         tenant: tenantA,
         role: "staff",
       });
-      expect(outcome.code).toBeNull();
-      expect(await roleOf(people.secondAdminA)).toBe("staff");
+      expect(outcome.code, outcome.message ?? "").toBeNull();
+      expect(await rolesOf("secondAdminA")).toEqual(["donor", "staff"]);
     }));
 
   it("refuses a caller whose profile role is admin but whose staff row has no flag (WP2a)", () =>
     tx(async () => {
       const outcome = await changeRole({
-        actor: people.adminProfileOnlyA,
-        target: people.donorA,
+        actor: "adminProfileOnlyA",
+        target: "donorA",
         tenant: tenantA,
         role: "staff",
       });
       expect(outcome.code).toBe("42501");
-      expect(await roleOf(people.donorA)).toBe("donor");
-      expect(await roleChangeAudits(people.donorA)).toEqual([]);
+      expect(await rolesOf("donorA")).toEqual(["donor"]);
+      expect(await roleChangeAudits("donorA")).toEqual([]);
     }));
 
   it("admits a flagged staff row whatever the caller's profile role says (WP2a)", () =>
     tx(async () => {
       const outcome = await changeRole({
-        actor: people.flaggedDonorProfileA,
-        target: people.donorA,
+        actor: "flaggedDonorProfileA",
+        target: "donorA",
         tenant: tenantA,
         role: "staff",
       });
-      expect(outcome.code).toBeNull();
-      expect(await roleOf(people.donorA)).toBe("staff");
-      expect(await roleChangeAudits(people.donorA)).toEqual([
+      expect(outcome.code, outcome.message ?? "").toBeNull();
+      expect(await rolesOf("donorA")).toEqual(["staff"]);
+      expect(await roleChangeAudits("donorA")).toEqual([
         {
           tenant_id: tenantA,
           user_id: people.flaggedDonorProfileA,
-          details: { oldRole: "donor", newRole: "staff" },
+          from_role: "donor",
+          to_role: "staff",
+          to_admin: false,
         },
       ]);
     }));
@@ -511,13 +590,13 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
         [people.adminA],
       );
       const outcome = await changeRole({
-        actor: people.adminA,
-        target: people.donorA,
+        actor: "adminA",
+        target: "donorA",
         tenant: tenantA,
         role: "staff",
       });
       expect(outcome.code).toBe("42501");
-      expect(await roleOf(people.donorA)).toBe("donor");
+      expect(await rolesOf("donorA")).toEqual(["donor"]);
     }));
 
   it("finds the target by membership when its profile's tenant column names another organization (WP2a)", () =>
@@ -527,28 +606,40 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
         [people.donorA, tenantB],
       );
       const outcome = await changeRole({
-        actor: people.adminA,
-        target: people.donorA,
+        actor: "adminA",
+        target: "donorA",
         tenant: tenantA,
         role: "missionary",
       });
-      expect(outcome.code).toBeNull();
-      expect(await roleOf(people.donorA)).toBe("missionary");
+      expect(outcome.code, outcome.message ?? "").toBeNull();
+      expect(await rolesOf("donorA")).toEqual(["missionary"]);
     }));
 
-  it("stays callable only by service_role, with a fixed search path", async () => {
-    const r = await db.query(
-      `select p.proconfig,
-         array(select case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end
-               from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
-               where a.privilege_type = 'EXECUTE' order by 1) as grantees
-       from pg_proc p where p.oid = $1::regprocedure`,
-      [SIGNATURE],
+  it("is gone, and its commands are executed by signed-in users only, with a fixed search path", async () => {
+    const gone = await db.query(
+      "select to_regprocedure('public.atomic_update_user_role_with_audit(uuid,uuid,uuid,text,text,text)') as fn",
     );
-    const row = r.rows[0] as { proconfig: string[] | null; grantees: string[] };
-    expect(row.grantees.filter((g) => g !== "postgres")).toEqual([
-      "service_role",
-    ]);
-    expect(row.proconfig).toContain('search_path=""');
+    expect(gone.rows).toEqual([{ fn: null }]);
+    for (const signature of [
+      "public.change_membership_role(uuid,uuid,text,text,boolean,text)",
+      "public.revoke_membership(uuid,uuid,text)",
+      "tenant_guard.change_membership_role(uuid,uuid,text,text,boolean,text)",
+      "tenant_guard.revoke_membership(uuid,uuid,text)",
+    ]) {
+      const r = await db.query(
+        `select p.proconfig,
+           array(select case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end
+                 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+                 where a.privilege_type = 'EXECUTE' and a.grantee <> p.proowner order by 1) as grantees
+         from pg_proc p where p.oid = $1::regprocedure`,
+        [signature],
+      );
+      const row = r.rows[0] as {
+        proconfig: string[] | null;
+        grantees: string[];
+      };
+      expect([signature, row.grantees]).toEqual([signature, ["authenticated"]]);
+      expect(row.proconfig).toContain('search_path=""');
+    }
   });
 });
