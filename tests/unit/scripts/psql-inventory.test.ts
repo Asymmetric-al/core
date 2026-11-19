@@ -143,7 +143,7 @@ const PSQL_NAMERS: Record<string, { reason: string; lines: string[] }> = {
     reason:
       "calls runPsql and requirePsqlHonoursRequireAuth, passes psqlBin, names the default-privilege inspection command in recovery advice, and comments",
     lines: [
-      '"The default privileges of postgres grant access to anon, authenticated, or PUBLIC, globally or in schema public; nothing was migrated or deployed. Inspect the grants with psql\'s \\\\ddp. Revoke each offending grant with ALTER DEFAULT PRIVILEGES FOR ROLE postgres [IN SCHEMA public] REVOKE <privileges> ON <object type> FROM <grantee>, then rerun the release. Omit IN SCHEMA public for a global grant. First-rebuild is an option only when no head is recorded and the marker is absent or disposable.",',
+      '"Inspect the grants with psql\'s \\\\ddp.",',
       "* (lib/postgres.mjs), the reset guard (scripts/lib/psql.mjs) and the Supabase",
       "* (scripts/lib/psql.mjs keeps an ambient PGPASSWORD). SUPABASE_CLI_FORCE_PINNED",
       "* Reviews M3 and N6: a hosted step stops, before it connects, unless the psql",

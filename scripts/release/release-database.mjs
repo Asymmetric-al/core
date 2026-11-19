@@ -457,7 +457,13 @@ export function preflight({
   });
   if (defaults?.open) {
     stop(
-      "The default privileges of postgres grant access to anon, authenticated, or PUBLIC, globally or in schema public; nothing was migrated or deployed. Inspect the grants with psql's \\ddp. Revoke each offending grant with ALTER DEFAULT PRIVILEGES FOR ROLE postgres [IN SCHEMA public] REVOKE <privileges> ON <object type> FROM <grantee>, then rerun the release. Omit IN SCHEMA public for a global grant. First-rebuild is an option only when no head is recorded and the marker is absent or disposable.",
+      [
+        "The default privileges of postgres grant access to anon, authenticated, or PUBLIC, globally or in schema public; nothing was migrated or deployed.",
+        "Inspect the grants with psql's \\ddp.",
+        "Revoke each offending grant with ALTER DEFAULT PRIVILEGES FOR ROLE postgres [IN SCHEMA public] REVOKE <privileges> ON <object type> FROM <grantee>, then rerun the release.",
+        "Omit IN SCHEMA public for a global grant.",
+        "First-rebuild is an option only when no head is recorded and the marker is absent or disposable.",
+      ].join(" "),
     );
   }
   const published = countPublishedLogins({ settings, root, query });
