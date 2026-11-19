@@ -546,6 +546,10 @@ describe("the factory runs the repository's Node", () => {
   const version = PIN.nodeVersion.replace(/^v/, "");
   const read = (file: string) =>
     readFileSync(path.resolve("scripts/archon-factory", file), "utf8");
+  const runbook = readFileSync(
+    path.resolve("docs/ops/archon-vm100-factory-runbook.md"),
+    "utf8",
+  );
 
   it("pins a Node that passes the repository's own Node gate", () => {
     const approved = readFileSync(".node-version", "utf8").trim();
@@ -570,7 +574,8 @@ describe("the factory runs the repository's Node", () => {
     // with the previous image's Bun 1.4.3 copied byte for byte. On VM 100 so
     // far: qualification/check-executor.mjs and verify:node-version passed;
     // qualification/publication.mjs (the full pre-push gate in the executor)
-    // has not run on it yet and runs after the install, before intake resumes.
+    // has not run on it yet; it runs after the install, before any issue is
+    // retried, reopened or admitted (runbook, Updates).
     expect(PIN.checkImage).toBe(
       "sha256:59adfc724df4dbb7739813fa76a055361969ed878805f4e4f1986d7e63353859",
     );
@@ -608,14 +613,10 @@ describe("the factory runs the repository's Node", () => {
     // history keep the versions they recorded.
     const node = /const NODE = "([^"]+)";/.exec(installer)?.[1];
     const image = /const IMAGE_TAG = "([^"]+)";/.exec(installer)?.[1];
-    const runbook = readFileSync(
-      path.resolve("docs/ops/archon-vm100-factory-runbook.md"),
-      "utf8",
-    );
     const all = (pattern: RegExp) =>
       [...runbook.matchAll(pattern)].map((match) => match[1]);
     // Controls: the Node every control command runs with.
-    expect(all(/^N=(\S+)$/gm), "runbook: N=").toEqual([node]);
+    expect(all(/^[ \t]*N=(\S+)$/gm), "runbook: N=").toEqual([node]);
     // Updates, step 2: the Node that runs the installer and the image it needs.
     expect(
       all(/^\s*sudo (\S+) installation\/install\.mjs\b/gm),
@@ -625,6 +626,25 @@ describe("the factory runs the repository's Node", () => {
       all(/the check image\s+`([^`]+)`\s+with\s+the exact pinned image ID/g),
       "runbook: check image",
     ).toEqual([image]);
+  });
+
+  it("qualifies a changed check image before any issue moves after an install", () => {
+    // Paused intake stops admission only: retry and reopen start rounds, and
+    // an issue with a candidate goes straight to the hooked publish, whose
+    // pre-push gate runs in the new image. The Updates section must run the
+    // full publication qualification before its first command that retries,
+    // reopens or resumes intake.
+    const updates =
+      /^### Updates\n([\s\S]*?)(?=^## )/m.exec(runbook)?.[1] ?? "";
+    const qualification = updates.search(
+      /^[ \t]*\$N "\$S\/scripts\/archon-factory\/qualification\/publication\.mjs" <q>$/m,
+    );
+    const moves = updates.search(
+      /\bissue <n> (?:retry|reopen)\b|\bfactory resume-intake\b/,
+    );
+    expect(qualification, "runbook: the qualification command").not.toBe(-1);
+    expect(moves, "runbook: the first retry, reopen or resume").not.toBe(-1);
+    expect(qualification).toBeLessThan(moves);
   });
 });
 

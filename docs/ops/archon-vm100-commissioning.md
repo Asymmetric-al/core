@@ -1595,8 +1595,9 @@ Not yet run on this image: `qualification/publication.mjs`, the real pre-push
 recovery, above). Until it passes, the new
 image is proven for the executor's contract and for the Node gate, not for
 the whole gate: every tool and the dependency install that the gate needs. It
-runs after the install and before intake resumes; if it fails, intake stays
-paused.
+runs after the install and before any issue is retried, reopened or admitted
+(runbook, Updates, step 7); if it fails, intake stays paused and no issue is
+moved.
 
 ## Still open
 

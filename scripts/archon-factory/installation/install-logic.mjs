@@ -42,8 +42,9 @@ export const PIN = {
   // Rebuilt on VM 100 for Node 24.22.3 on 18 November 2026. On it so far:
   // qualification/check-executor.mjs and the repository's verify:node-version,
   // both passed. qualification/publication.mjs (the real pre-push ci:preflight
-  // in the executor) runs after the install, before intake resumes
-  // (docs/ops/archon-vm100-commissioning.md).
+  // in the executor) runs after the install, before any issue is retried,
+  // reopened or admitted (docs/ops/archon-vm100-factory-runbook.md, Updates;
+  // docs/ops/archon-vm100-commissioning.md).
   checkImage:
     "sha256:59adfc724df4dbb7739813fa76a055361969ed878805f4e4f1986d7e63353859",
   // The Node binary that runs the guard hook, check MCP server and timers:

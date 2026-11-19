@@ -170,7 +170,7 @@ On release `34ce64a7` and earlier, do not `reopen` an issue after "Update
 branch": its feedback stage blocks on the updated head.
 After a release change `reopen` is refused until the issue is moved to the new
 release: `issue <n> stop`, `issue <n> adopt-policy`, then `issue <n> reopen`
-(Updates, step 7), which also re-runs the reviews.
+(Updates, step 8), which also re-runs the reviews.
 
 Hold, stop and drain never abandon a run or delete work: they take effect at
 the next round boundary, and unfinished code stays in
@@ -598,13 +598,23 @@ a binary that the release binds (the role settings, `/etc/claude-code`,
 `ARCHON_HOME/config.yaml`, Node, native Claude and its launcher, the engine or
 the provider plugin), every retained item is then refused `identity-drift`,
 and `adopt-policy` refuses it as `policy-current`, so nothing can move it. Do
-not run such an install until this is fixed. Compare the staged pack's
-digest (`stageIdentity(<stage>).packDigest` from
-`installation/install-logic.mjs`) with `policyRevision` in
-`/srv/core-factory/control/.archon/core-factory-release.json` first. The
-Node 24.22.3 install planned for 19 November 2026 is not such an install:
-`pack/` at that change digests to `19218b95…`, and the installed release is
-`d4ef3329…`.
+not run such an install until this is fixed. An install whose `pack/` equals
+an older release's (a rollback) takes that release's name in the same way and
+overwrites its `release.json`. So before any install, with the stage of step
+2 in place, print the staged pack's digest and the installed release's:
+
+```sh
+# On the VM, as admin; $N as in Controls, $S as in step 2.
+$N --input-type=module -e 'const { stageIdentity } = await import(process.argv[1] + "/installation/install-logic.mjs"); console.log(stageIdentity(process.argv[1]).packDigest)' "$S/scripts/archon-factory"
+$N -p 'JSON.parse(require("fs").readFileSync("/srv/core-factory/control/.archon/core-factory-release.json", "utf8")).policyRevision'
+ls /opt/core-archon-factory/releases/
+```
+
+The first line must differ from the second, and its first 16 characters must
+not name a directory of that listing (re-running the same stage after a
+failed install, step 5, is the one exception). The Node 24.22.3 install
+planned for 19 November 2026 is not such an install: `pack/` at that change
+digests to `19218b95…`, and the installed release is `d4ef3329…`.
 
 1. Pause intake (`factory pause-intake`, or `factory drain` to let admitted work
    continue) and inspect every retained assignment (`$N $C status`). A policy
@@ -618,7 +628,7 @@ Node 24.22.3 install planned for 19 November 2026 is not such an install:
    An issue held on a provider fault has to be cleared first:
    `issue <n> stop`, then `issue <n> recover-native`. During a usage limit do
    this only when the new release cannot wait for the reset. After
-   `adopt-policy` and `reopen` (step 7) the issue's next round meets the limit
+   `adopt-policy` and `reopen` (step 8) the issue's next round meets the limit
    again and the issue is held again, which is what happened on 13 November.
 
 2. Stage exactly one reviewed, pushed commit and run the installer from that
@@ -662,6 +672,12 @@ Node 24.22.3 install planned for 19 November 2026 is not such an install:
    24.22.1, and every check runs in `core-archon-checks:node24.22.1-bun1.4.3-jq`;
    after it, with `daemon-reload` and the engine restart, they use 24.22.3 and
    the image above. Do not remove 24.22.1: earlier releases' records name it.
+   The installer does not write the Console's unit
+   (`installation/core-factory-console.service`, copied by hand) or its
+   `FACTORY_NODE` in `owner.env`, so the Console stays on 24.22.1 until that
+   unit is copied again and `FACTORY_NODE` changed. That is harmless while
+   24.22.1 stays installed: the Console runs the controls, which do not depend
+   on their Node.
 
    Without `SOURCE_COMMIT` the release is recorded with no source. The
    installer records the commit you declare and does not check it against Git.
@@ -699,9 +715,49 @@ Node 24.22.3 install planned for 19 November 2026 is not such an install:
    It enables the services for boot but starts nothing, so an engine you stopped
    for the update stays stopped until you start it. Previous releases stay
    under `/opt/core-archon-factory/releases/`.
-7. An issue left on the previous release refuses `retry`, `reopen` and
-   `release` (`policy-transition-required`), and a round started for it blocks
-   it `policy-changed`. Move it explicitly, one issue at a time:
+7. When the install changes the check image, or the Node or Bun that the
+   checks run on, qualify the installed image with the full publication
+   qualification before any issue is retried, reopened or admitted. Paused
+   intake stops admission only: `retry` and `reopen` (step 8) start rounds,
+   and an issue with a candidate goes straight to review and the hooked
+   publish, whose pre-push gate runs in the new image. The qualification is
+   that gate on a synthetic workspace: it fetches the mirror, clones and
+   installs `develop`, commits one file through Core's pre-commit hook and
+   pushes it through the pre-push gate (`ci:preflight`) into the workspace's
+   private outbox, all in the executor. It writes nothing to GitHub.
+
+   ```sh
+   # On the VM, as admin, with intake still paused; $N as in Controls.
+   # <q>: a workspace number of 900000 or more that has no directory under
+   # /srv/core-factory/issues yet (900204 was used on 11 November 2026).
+   S=/home/admin/factory-stage/<commit>          # the stage of step 2
+   CORE_FACTORY_CONFIG=/srv/core-factory/control/core-factory.json \
+     $N "$S/scripts/archon-factory/qualification/publication.mjs" <q>
+   ```
+
+   It prints one line per step and keeps them, with each container's
+   receipt, in `/srv/core-factory/runs/qualification-publication-<q>/`
+   (`steps.jsonl`, `commit.json`, `pre-push.json`). A step that breaks ends it
+   with a non-zero exit, but the gate's own result is recorded, not thrown, so
+   read it. The qualification passed only when the `post-commit` line shows
+   `"commitStatus":"passed"`, `"commitHooksRan":true` and `"clean":true`, and
+   the last line (`outbox`) shows `"prePush":"passed"`,
+   `"prePushHooksRan":true` and `"matchesCandidate":true`; the gate's output
+   in `pre-push.json` holds `==> PASS ci:preflight` and
+   `core-factory: pre-push hook passed`.
+
+   If anything else shows, keep intake paused and retry, reopen and admit
+   nothing. Read `steps.jsonl` and the receipts. A failure that comes from the
+   image (a missing or wrong tool or version) needs a new image and a reviewed
+   pin change, which is a new release and a new install; a failure in
+   `develop`'s own code or tests is a fix in the repository. Only when the gate
+   failed on unit tests alone, run the qualification once more with a new
+   number; hand a second failure to a person.
+
+8. After step 7 has passed, where it applies: an issue left on the previous
+   release refuses `retry`, `reopen` and `release`
+   (`policy-transition-required`), and a round started for it blocks it
+   `policy-changed`. Move it explicitly, one issue at a time:
 
    ```sh
    $N $C issue <n> adopt-policy --request <id> --by <me> --reason "why"
@@ -730,8 +786,8 @@ Node 24.22.3 install planned for 19 November 2026 is not such an install:
    previous release's directory until every issue bound to it has been moved
    or has finished.
 
-8. Then use `factory resume` if the factory was stopped, and
-   `factory resume-intake` for the authorized scope.
+9. Then, with step 7 passed where it applies, use `factory resume` if the
+   factory was stopped, and `factory resume-intake` for the authorized scope.
 
 The settings digest covers the control folder's role files
 (`.archon/config.yaml`, `.claude/settings.json`, `CLAUDE.md`,
@@ -796,7 +852,7 @@ minAvailableInodes}`) adds reserves for other mounts.
 
 ## Resetting an item during commissioning
 
-Prefer `adopt-policy` (Updates, step 7): it keeps the issue's work. A reset
+Prefer `adopt-policy` (Updates, step 8): it keeps the issue's work. A reset
 discards the work item so the selector admits the issue again from the start.
 While commissioning it was used for items a defect had stranded before
 `adopt-policy` existed. Do this only when the item has no run, no live lease,
@@ -811,8 +867,11 @@ $A state get core/issues/<n> --project _folder/control > /srv/core-factory/retir
 $A state delete core/issues/<n> --if-revision <revision> --project _folder/control
 ```
 
-Then install, restart `core-archon` and `factory resume-intake`. An item that
-has a published branch or an open PR is never reset: use `adopt-policy`.
+Then follow [Updates](#updates) from step 2: the release-name check before
+it, the install and the engine restart, the qualification of step 7 when the
+install changes the check image or the Node or Bun the checks run on, and
+`factory resume-intake` only at step 9. An item that has a published branch
+or an open PR is never reset: use `adopt-policy`.
 
 ## Storage failure
 
