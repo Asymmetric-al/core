@@ -289,7 +289,12 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository)
     continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Measured on the joined first release (check of the fix lists, JR12):
+    # the steps that ran took about 44 minutes at a load of 7 to 25 (the
+    # production gate 10.4, the Web Studio step 14.4 at load 10, the CMS
+    # step 4.6, the admin tenant-address step 5.5), with the three boneyard
+    # smokes not measured; 30 minutes cannot hold them.
+    timeout-minutes: 55
     services:
       postgres:
         image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
@@ -478,7 +483,9 @@ jobs:
       # step's own condition (JR12), and writes to folders of its own.
       - name: Web Studio tenant (admin app)
         if: ${{ !cancelled() && steps.donor-ready.outcome == 'success' && steps.admin-ready.outcome == 'success' }}
-        timeout-minutes: 18
+        # 21 cases took 14.4 minutes alone at a load of 10 (JR12); 18 minutes
+        # was measured on 13.
+        timeout-minutes: 20
         env:
           PLAYWRIGHT_REPORT_DIR: "playwright-report/web-studio-tenant"
           CI: "1"

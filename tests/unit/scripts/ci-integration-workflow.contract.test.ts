@@ -277,7 +277,8 @@ describe("ci-integration workflow contract", () => {
   // its evidence (the upload runs on cancellation).
   it("bounds the AL-2675 steps by their measured times, inside the job's limit", () => {
     const testE2e = jobBlock(workflow, "test-e2e");
-    expect(testE2e).toMatch(/^ {4}timeout-minutes: 30$/m);
+    // The job's limit from the joined release's measured replay (JR12).
+    expect(testE2e).toMatch(/^ {4}timeout-minutes: 55$/m);
     const stepBlock = (name: string) => {
       const start = testE2e.indexOf(`      - name: ${name}\n`);
       expect(start).toBeGreaterThanOrEqual(0);
@@ -290,7 +291,7 @@ describe("ci-integration workflow contract", () => {
       ["Tenant address (missionary app)", 5],
       ["Request scope (missionary app)", 5],
       ["Request scope (donor app)", 5],
-      ["Web Studio tenant (admin app)", 18],
+      ["Web Studio tenant (admin app)", 20],
     ] as const) {
       expect(stepBlock(step), step).toMatch(
         new RegExp(`^ {8}timeout-minutes: ${minutes}$`, "m"),

@@ -258,10 +258,12 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     // donor-ready, admin-ready and missionary-ready), and the CMS step runs on
     // the Web Studio step's condition, so the Web Studio step never runs
     // cold. Pinned in the same contract test, which now also lists the CMS
-    // step's selection to show it leaves the Web Studio spec out.
+    // step's selection to show it leaves the Web Studio spec out. Then, from
+    // the measured replay of the whole job on the joined tree: the Web Studio
+    // step's limit 20 minutes and the job's 55.
     {
       ref: "AL-2675 tenant address and request scope in test-e2e",
-      hash: "e324361ee00091db",
+      hash: "c7ea497087351e4b",
     },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {

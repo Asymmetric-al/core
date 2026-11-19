@@ -376,10 +376,12 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     // donor-ready, admin-ready and missionary-ready), and the CMS step runs on
     // the Web Studio step's condition, so the Web Studio step never runs
     // cold. Pinned in the same contract test, which now also lists the CMS
-    // step's selection to show it leaves the Web Studio spec out.
+    // step's selection to show it leaves the Web Studio spec out. Then, from
+    // the measured replay of the whole job on the joined tree: the Web Studio
+    // step's limit 20 minutes and the job's 55.
     {
       ref: "AL-2675 tenant address and request scope in test-e2e",
-      hash: "ff10faadba7ea045",
+      hash: "32c9d975e89d0eb6",
     },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
