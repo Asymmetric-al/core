@@ -14,7 +14,7 @@ A platform operator is a person who may run platform commands: the commands that
 
 The list has one writer: `scripts/platform/operators.mjs`, which the release job's owner runs. There is no platform command, wrapper or screen for managing operators.
 
-In the target project's dashboard, open **Authentication → Users**, search for the person's exact email, and copy the existing user's ID. The script does not create a login. From a Bash shell in the repository, run this sequence. At the hidden prompt paste the complete connection URL described below; do not put it in shell history, a file, or the audit reason.
+In the target project's dashboard, open **Authentication → Users**, search for the person's exact email, and copy the existing user's ID. The login must already exist in Auth; the script returns `P0002` if it cannot find it. From a Bash shell in the repository, run this sequence. At the hidden prompt paste the complete connection URL described below; do not put it in shell history, a file, or the audit reason.
 
 ```bash
 (
@@ -31,6 +31,14 @@ In the target project's dashboard, open **Authentication → Users**, search for
   node scripts/platform/operators.mjs list
 )
 ```
+
+For reference only, this is the shell form of a hosted URL with **dummy values**:
+
+```bash
+OPERATORS_DATABASE_URL='postgresql://postgres.PROJECT_REF:pa%40ss%23word@POOLER_HOST:5432/postgres?sslmode=verify-full&sslrootcert=/absolute/path/project-ca.crt'
+```
+
+Single quotes protect `&` from the shell. Percent-encode password characters inside the URL (`@` → `%40`, `#` → `%23`). At the hidden prompt paste the actual URL **without surrounding quotes**. Use the absolute path of a readable PEM file containing the project's one valid CA certificate from Database settings; `sslrootcert=system` is refused.
 
 For removal, use `remove` instead of `add`, with the reason for removal. The subshell discards the variables when it exits.
 
