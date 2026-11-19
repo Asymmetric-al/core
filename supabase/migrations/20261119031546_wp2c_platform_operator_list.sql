@@ -57,6 +57,11 @@
 
 BEGIN;
 
+-- The list's foreign key locks auth.users against writes while it is made,
+-- and every sign-in writes that table: a release that waits five seconds for
+-- the lock and stops is better than sign-ins piling up behind it.
+SET LOCAL lock_timeout = '5s';
+
 -- 1. The operator list.
 CREATE TABLE IF NOT EXISTS authz.platform_operators (
   user_id UUID PRIMARY KEY REFERENCES auth.users (id) ON DELETE RESTRICT,

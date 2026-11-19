@@ -10,13 +10,18 @@
  *    the administrator flag (WP2a's rule) and its access at the next request.
  *    Each write leaves an audit row." (brief, from plan 12 WP2c)
  *
- * The commands write the membership (class, sub-role, the tenant-administrator
- * flag, the revocation) and never `profiles.role`. They keep every refusal the
+ * The commands write the membership (a staff row's sub-role and
+ * tenant-administrator flag, the revocation) and never `profiles.role`. The
+ * role change never changes a row's class: since the review of WP2c part 1
+ * (WC5) it refuses one, either way, and says what to do instead (a class is
+ * given by invitation and left by revocation). They keep every refusal the
  * retired function proved (tests/unit/acceptance/issue-2672/role-change-command.realstack.acceptance.test.ts):
  * no change of one's own row, no platform operator as a target (now the
  * operator list, not `profiles.role = 'super_admin'`), and the
- * cross-organization rule of record D-40 for a change of role. Plan 5.4: a
- * reason is required, and the commands refuse to remove a tenant's last
+ * cross-organization rule of record D-40 for a change of role; since WC9 the
+ * last two share one message, judged after a request that changes nothing.
+ * Plan 5.4: a reason is required (WC10: one character that is not
+ * whitespace), and the commands refuse to remove a tenant's last
  * administrator.
  *
  * Runs against the migrated database named by
@@ -39,10 +44,14 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 
 const OWN_ROLE = "Administrators cannot change their own role";
 const OWN_REVOKE = "Administrators cannot revoke their own membership";
-const OPERATOR =
-  "A platform operator's membership cannot be changed by an organization administrator";
-const OTHER_ORGANIZATION =
-  "This person also belongs to another organization; their role cannot be changed here";
+/**
+ * Review of WP2c part 1, WC9: an operator's row and a person who belongs to
+ * another organization are refused with one message and one SQLSTATE, so the
+ * refusal names neither protected fact.
+ */
+const PROTECTED = "This person's role cannot be changed here";
+const CLASS_CHANGE =
+  "A role change keeps the row's class: change the sub-role or the administrator flag of a staff row. Give a row of another class by invitation, and end one with revoke_membership";
 const NOT_GRANTABLE =
   "This role cannot be granted by an organization administrator";
 const NOT_FOUND = "No live membership with that id in this organization";
@@ -202,36 +211,42 @@ describe.skipIf(!ADMIN_URL)(
     }
 
     describe("a tenant administrator", () => {
-      it("promotes a donor to staff: the donor row is revoked, a staff row is granted by them, and one audit row says so", () =>
+      // Review of WP2c part 1, WC5: the command changes a staff row only. A
+      // change of class (a donor made staff, a staff member made a donor) is
+      // refused below; within staff the old sub-role's row is revoked and the
+      // new one granted or revived.
+      it("moves a staff member to a new sub-role: the old row is revoked, a new one is granted by them, and one audit row says so", () =>
         tx(async () => {
           const out = await change(
             "UADM",
-            "mD1",
-            { role: "staff", staff: "finance" },
-            { reason: "Joined the finance team" },
+            "mDev",
+            { role: "staff", staff: "hr" },
+            { reason: "Moved to the HR team" },
           );
           expect(out.code, out.message).toBeNull();
           const r = out.rows[0]!.r as Record<string, unknown>;
           expect(r).toMatchObject({
             changed: true,
             tenant_id: id.TA,
-            user_id: id.UD1,
-            previous_membership_id: id.mD1,
+            user_id: id.UDEV,
+            previous_membership_id: id.mDev,
             role: "staff",
-            staff_role: "finance",
+            staff_role: "hr",
             is_tenant_admin: false,
           });
           const granted = String(r.membership_id);
-          expect(await membership(id.mD1)).toMatchObject({
+          expect(granted).not.toBe(id.mDev);
+          expect(granted).not.toBe(id.mDevFin);
+          expect(await membership(id.mDev)).toMatchObject({
             is_active: false,
             revoked: true,
-            role: "donor",
+            staff_role: "development",
           });
           expect(await membership(granted)).toMatchObject({
-            user_id: id.UD1,
+            user_id: id.UDEV,
             tenant_id: id.TA,
             role: "staff",
-            staff_role: "finance",
+            staff_role: "hr",
             is_tenant_admin: false,
             is_active: true,
             revoked: false,
@@ -244,19 +259,19 @@ describe.skipIf(!ADMIN_URL)(
               resource_type: "membership",
               resource_id: granted,
               details: {
-                reason: "Joined the finance team",
+                reason: "Moved to the HR team",
                 assignment_id: id.mAdm,
-                target_user_id: id.UD1,
+                target_user_id: id.UDEV,
                 from: {
-                  membership_id: id.mD1,
-                  role: "donor",
-                  staff_role: null,
+                  membership_id: id.mDev,
+                  role: "staff",
+                  staff_role: "development",
                   is_tenant_admin: false,
                 },
                 to: {
                   membership_id: granted,
                   role: "staff",
-                  staff_role: "finance",
+                  staff_role: "hr",
                   is_tenant_admin: false,
                 },
               },
@@ -265,9 +280,9 @@ describe.skipIf(!ADMIN_URL)(
           // The profile is display data: its role column is not written.
           const profile = await db.query(
             "select role from public.profiles where user_id = $1",
-            [id.UD1],
+            [id.UDEV],
           );
-          expect(profile.rows[0]?.role).not.toBe("staff");
+          expect(profile.rows[0]?.role).not.toBe("hr");
         }));
 
       it("makes a staff member an administrator on the same row, and demotes them again, each with an audit row", () =>
@@ -509,13 +524,28 @@ describe.skipIf(!ADMIN_URL)(
           await unchanged();
         }));
 
-      it("refuses a platform operator's row as a target, judged by the operator list", () =>
+      it("refuses a platform operator's row as a target, judged by the operator list, without saying why", () =>
         tx(async () => {
-          const a = await change("UADM", "mOpr", { role: "donor" });
-          expect([a.code, a.message]).toEqual(["42501", OPERATOR]);
+          const a = await change("UADM", "mOpr", {
+            role: "staff",
+            staff: "development",
+            admin: true,
+          });
+          expect([a.code, a.message]).toEqual(["42501", PROTECTED]);
           const b = await revoke("UADM", "mOpr");
-          expect([b.code, b.message]).toEqual(["42501", OPERATOR]);
-          expect(await membership(id.mOpr)).toMatchObject({ is_active: true });
+          expect([b.code, b.message]).toEqual(["42501", PROTECTED]);
+          expect(await membership(id.mOpr)).toMatchObject({
+            is_active: true,
+            is_tenant_admin: false,
+          });
+          // A request that changes nothing answers as for anyone (WC9): the
+          // refusal comes after that answer, so it reveals nothing.
+          const same = await change("UADM", "mOpr", {
+            role: "staff",
+            staff: "development",
+          });
+          expect(same.code, same.message).toBeNull();
+          expect(same.rows[0]!.r).toMatchObject({ changed: false });
           // Off the list, the same row is an ordinary member's.
           await db.query(
             "delete from authz.platform_operators where user_id = $1",
@@ -547,22 +577,66 @@ describe.skipIf(!ADMIN_URL)(
           await unchanged();
         }));
 
-      it("refuses to change the role of a member who also belongs to another organization (record D-40)", () =>
+      it("refuses to change the role of a staff member who also belongs to another organization (record D-40), without saying why", () =>
         tx(async () => {
+          // UDEV, staff of TA, is also a donor of TB.
+          await db.query(
+            "insert into authz.memberships (user_id, tenant_id, role) values ($1, $2, 'donor')",
+            [id.UDEV, id.TB],
+          );
           for (const to of [
             { role: "staff", staff: "finance" },
-            { role: "missionary" },
+            { role: "staff", staff: "development", admin: true },
           ]) {
-            const out = await change("UADM", "mDonA", to);
-            expect([out.code, out.message]).toEqual([
+            const out = await change("UADM", "mDev", to);
+            expect([out.code, out.message]).toEqual(["42501", PROTECTED]);
+          }
+          const same = await change("UADM", "mDev", {
+            role: "staff",
+            staff: "development",
+          });
+          expect(same.code, same.message).toBeNull();
+          expect(same.rows[0]!.r).toMatchObject({ changed: false });
+          await unchanged();
+        }));
+
+      // Review of WP2c part 1, WC5 (the coordinator's ruling): the command
+      // changes the sub-role and the flag of a staff row, and refuses a change
+      // of class either way. A row of another class is given by invitation
+      // (WP3), and leaving a class is revoke_membership; ending a donor row to
+      // make the person staff would take the donor portal from them, and
+      // making staff a donor would leave their staff access unseen.
+      it("refuses a change of class, either way, with what to do instead", () =>
+        tx(async () => {
+          for (const [row, to] of [
+            ["mD1", { role: "staff", staff: "finance" }],
+            ["mD1", { role: "missionary" }],
+            ["mDev", { role: "donor" }],
+            ["mDev", { role: "missionary" }],
+            ["mDonA", { role: "staff", staff: "development", admin: true }],
+          ] as const) {
+            const out = await change("UADM", row, to);
+            expect([row, out.code, out.message]).toEqual([
+              row,
               "42501",
-              OTHER_ORGANIZATION,
+              CLASS_CHANGE,
             ]);
           }
-          expect(await membership(id.mDonA)).toMatchObject({
-            role: "donor",
-            is_active: true,
-          });
+          expect(await liveRows("UD1")).toEqual([
+            {
+              id: id.mD1,
+              role: "donor",
+              staff_role: null,
+              is_tenant_admin: false,
+            },
+          ]);
+          await unchanged();
+        }));
+
+      it("refuses even an unchanged request on a row of another class: it changes staff rows only", () =>
+        tx(async () => {
+          const out = await change("UADM", "mD1", { role: "donor" });
+          expect([out.code, out.message]).toEqual(["42501", CLASS_CHANGE]);
           await unchanged();
         }));
 
@@ -596,13 +670,14 @@ describe.skipIf(!ADMIN_URL)(
           await unchanged();
         }));
 
-      it("requires a reason", () =>
+      // WC10: a reason needs one character that is not whitespace.
+      it("requires a reason with one character that is not whitespace", () =>
         tx(async () => {
-          for (const reason of [null, "", "   "]) {
+          for (const reason of [null, "", "   ", "\t", "\n\r\n", " \t \n "]) {
             const a = await change(
               "UADM",
-              "mD1",
-              { role: "missionary" },
+              "mDev",
+              { role: "staff", staff: "finance" },
               { reason },
             );
             expect([a.code, a.message]).toEqual(["22023", REASON]);
@@ -610,6 +685,17 @@ describe.skipIf(!ADMIN_URL)(
             expect([b.code, b.message]).toEqual(["22023", REASON]);
           }
           await unchanged();
+          // A reason with surrounding whitespace is kept, trimmed.
+          const ok = await change(
+            "UADM",
+            "mDev",
+            { role: "staff", staff: "finance" },
+            { reason: "\t Moved to finance \n" },
+          );
+          expect(ok.code, ok.message).toBeNull();
+          expect(
+            ((await audits())[0]!.details as { reason: string }).reason,
+          ).toBe("Moved to finance");
         }));
 
       it.each([
