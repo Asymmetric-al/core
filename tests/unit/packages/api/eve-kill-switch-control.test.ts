@@ -16,7 +16,6 @@ function createAdminIdentity() {
     email: "admin@example.com",
     tenantId: "00000000-0000-4000-8000-000000000003",
     role: "admin",
-    profileRole: "admin",
     memberships: [],
     profileId: "00000000-0000-4000-8000-000000000002",
     isAuthenticated: true,

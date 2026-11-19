@@ -120,10 +120,8 @@ export async function grantEveLaunchPermission(input: {
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<void> {
   const identity = requireAdminIdentity(input.auth);
-  if (
-    input.auth.role !== "super_admin" &&
-    input.auth.profileRole !== "super_admin"
-  ) {
+  // WP2c moves this platform gate to the operator list.
+  if (input.auth.role !== "super_admin") {
     throw new ApiHttpError(
       403,
       "Only a platform owner may grant Eve launch permissions.",

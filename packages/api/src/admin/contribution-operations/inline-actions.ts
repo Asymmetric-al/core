@@ -1,5 +1,5 @@
+import { directContributionCapabilityForAction } from "./action-capabilities";
 import { resolveCorrectionApprovalPolicy } from "./approval-policy";
-import { directContributionCapabilityForAction } from "./permissions";
 import {
   buildCorrectionActionAvailability,
   CRM_INLINE_CONTRIBUTION_ACTION_TYPES,
@@ -9,8 +9,8 @@ import {
 } from "./viewer-action-availability";
 
 import type { ContributionActionAvailability } from "./action-availability";
+import type { ContributionCapability } from "./action-capabilities";
 import type { CorrectionApprovalPolicy } from "./approval-policy";
-import type { ContributionCapability } from "./permissions";
 import type {
   CrmGiftInlineActionEntry,
   CrmGiftInlineActions,

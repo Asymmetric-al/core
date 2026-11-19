@@ -256,8 +256,10 @@ type PaymentSuccessSnapshot = Readonly<{
 }>;
 
 const PRESET_AMOUNTS = [50, 100, 250, 500];
+// No receipt is sent when a card payment succeeds, so this copy makes no
+// receipt claim or promise (WP0, audit finding NC-07).
 const PAYMENT_PROCESSING_MESSAGE =
-  "Your contribution is still processing — we'll email your receipt once it's confirmed.";
+  "Your payment is still processing. To avoid paying twice, wait for your bank to confirm it before you try again.";
 const CHECKOUT_CONFIGURATION_ERROR =
   "Checkout configuration is incomplete. Please contact support before completing this contribution.";
 
@@ -631,15 +633,21 @@ function SuccessView({
             </p>
           </div>
 
-          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed font-light tracking-tight break-words">
-            A secure receipt has been sent to{" "}
-            <span className="text-foreground font-semibold">
-              {donorInfo.email}
-            </span>
-            . Your gift is being routed to{" "}
-            <span className="text-foreground font-semibold">{workerTitle}</span>
-            .
-          </p>
+          <div className="space-y-3">
+            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed font-light tracking-tight break-words">
+              Your payment was accepted. Your gift is designated for{" "}
+              <span className="text-foreground font-semibold">
+                {workerTitle}
+              </span>
+              .
+            </p>
+            <p className="text-sm text-muted-foreground break-words">
+              Contact email for this gift:{" "}
+              <span className="text-foreground font-semibold">
+                {donorInfo.email}
+              </span>
+            </p>
+          </div>
 
           {mode === "test" && (
             <div

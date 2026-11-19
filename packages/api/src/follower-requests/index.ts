@@ -57,7 +57,6 @@ export async function GET(request: NextRequest) {
     const { data: profile } = await findProfileByUserId(
       supabaseAdmin,
       ctx.userId,
-      ctx.tenantId,
     );
 
     if (!profile) {

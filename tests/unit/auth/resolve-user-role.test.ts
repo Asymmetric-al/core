@@ -2,209 +2,153 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resolveUserRoleFromDatabase } from "../../../packages/auth/resolve-user-role";
 
-type ProfileRow = { tenant_id: string | null; role: string | null } | null;
-type MembershipRow = {
-  tenant_id: string | null;
-  role: string | null;
-  staff_role: string | null;
-  is_active: boolean | null;
-};
+/**
+ * AL-2675 (WP2a; plan 5.2; NR-20): the proxies' role check reads the caller's
+ * live memberships through `public.current_user_assignments()` and selects
+ * the one of the surface's role class. It reads no profile.
+ */
+const USER = "00000000-0000-4000-8000-0000000000a1";
+const TA = "00000000-0000-4000-8000-00000000000a";
+const TB = "00000000-0000-4000-8000-00000000000b";
+let next = 0x100;
+function row(
+  tenant: string,
+  role: "donor" | "missionary" | "staff",
+  staffRole: string | null = null,
+  isTenantAdmin = false,
+) {
+  next += 1;
+  return {
+    id: `00000000-0000-4000-8000-${next.toString(16).padStart(12, "0")}`,
+    user_id: USER,
+    tenant_id: tenant,
+    role,
+    staff_role: staffRole,
+    is_tenant_admin: isTenantAdmin,
+    updated_at: "2026-11-17T09:00:00.000000+00:00",
+  };
+}
 
-type RpcCall = { fn: string; args: Record<string, unknown> };
+type RpcCall = { fn: string; args: unknown[] };
 
 /**
- * Stands in for the request-scoped Supabase client. A hand-rolled double rather
- * than a mock of the real client: this asserts the resolver's observable
- * contract (what role comes out for a given database state), not which query
- * builder methods it happened to call.
- *
- * The one exception is `schema()`, which throws. PostgREST only serves the
- * schemas in `supabase/config.toml` (`public`, `graphql_public`), so a resolver
- * that switches to `authz` fails against a real database while a permissive
- * double stays green -- exactly the gap that shipped a full lockout once.
+ * Stands in for the request-scoped Supabase client. `from()` and `schema()`
+ * throw: the resolver must read neither a table nor an unexposed schema, only
+ * the assignments RPC.
  */
 function fakeSupabase({
-  profile = null,
-  memberships = [],
-  throwOn,
-  returnErrorOn,
-  queryError,
-  thrownError,
+  rows = [],
+  returnError,
+  throwError,
   rpcCalls,
 }: {
-  profile?: ProfileRow;
-  memberships?: MembershipRow[];
-  throwOn?: "profiles" | "memberships";
-  returnErrorOn?: "profiles" | "memberships";
-  queryError?: unknown;
-  thrownError?: unknown;
+  rows?: unknown;
+  returnError?: unknown;
+  throwError?: unknown;
   rpcCalls?: RpcCall[];
 }) {
   return {
     from(table: string) {
-      if (table !== "profiles") {
-        throw new Error(`unexpected table ${table}`);
-      }
-      return {
-        select: () => ({
-          eq: () => ({
-            maybeSingle: async () => {
-              if (throwOn === "profiles") {
-                throw thrownError ?? new Error("profiles unavailable");
-              }
-              return {
-                data: returnErrorOn === "profiles" ? null : profile,
-                error:
-                  returnErrorOn === "profiles"
-                    ? (queryError ?? new Error("profiles unavailable"))
-                    : null,
-              };
-            },
-          }),
-        }),
-      };
+      throw new Error(`unexpected table read: ${table}`);
     },
     schema(name: string) {
       throw new Error(
-        `schema("${name}") is not reachable through the Data API; use an RPC`,
+        `schema("${name}") is not reachable through the Data API`,
       );
     },
-    async rpc(fn: string, args: Record<string, unknown>) {
+    async rpc(fn: string, ...args: unknown[]) {
       rpcCalls?.push({ fn, args });
-
-      if (throwOn === "memberships") {
-        throw thrownError ?? new Error("memberships unavailable");
-      }
-
-      return {
-        data: returnErrorOn === "memberships" ? null : memberships,
-        error:
-          returnErrorOn === "memberships"
-            ? (queryError ?? new Error("memberships unavailable"))
-            : null,
-      };
+      if (throwError !== undefined) throw throwError;
+      return returnError !== undefined
+        ? { data: null, error: returnError }
+        : { data: rows, error: null };
     },
   } as never;
 }
 
-describe("resolveUserRoleFromDatabase", () => {
-  it("derives the role from the profile and active memberships", async () => {
-    const snapshot = await resolveUserRoleFromDatabase({
-      userId: "user_1",
-      supabase: fakeSupabase({
-        profile: { tenant_id: "tenant_1", role: "donor" },
-        memberships: [
-          {
-            tenant_id: "tenant_1",
-            role: "staff",
-            staff_role: null,
-            is_active: true,
-          },
-        ],
-      }),
-    });
+const resolve = (
+  supabase: never,
+  roleClass: "donor" | "missionary" | "staff" | null = "staff",
+  userId = USER,
+) => resolveUserRoleFromDatabase({ userId, supabase, roleClass });
 
-    expect(snapshot).toEqual({
-      profileRole: "donor",
+describe("resolveUserRoleFromDatabase", () => {
+  it("returns the one live membership of the surface's class, with its flag", async () => {
+    const admin = row(TA, "staff", "development", true);
+    const rpcCalls: RpcCall[] = [];
+    expect(
+      await resolve(
+        fakeSupabase({ rows: [row(TA, "donor"), admin], rpcCalls }),
+      ),
+    ).toEqual({
       memberships: [
         {
-          tenantId: "tenant_1",
+          tenantId: TA,
           role: "staff",
+          staffRole: "development",
+          isActive: true,
+          isTenantAdmin: true,
+        },
+      ],
+    });
+    expect(rpcCalls).toEqual([{ fn: "current_user_assignments", args: [] }]);
+  });
+
+  it("selects by the surface's class: the donor portal gets the donor row, never the staff row", async () => {
+    const supabase = fakeSupabase({
+      rows: [row(TA, "staff", "finance"), row(TA, "donor")],
+    });
+    expect(await resolve(supabase, "donor")).toEqual({
+      memberships: [
+        {
+          tenantId: TA,
+          role: "donor",
           staffRole: null,
           isActive: true,
+          isTenantAdmin: false,
         },
       ],
     });
   });
 
-  it("reads memberships through the exposed RPC, scoped to the tenant", async () => {
-    // Pins the read to `public.current_user_memberships`
-    // (20260802041500_current_user_memberships_rpc.sql). Querying `authz`
-    // directly returns PGRST106 against a real database, and the resolver
-    // turns that into a redirect for every signed-in user.
+  it.each([
+    ["no row of the class", [row(TA, "donor")], "staff"],
+    [
+      "two staff rows in one tenant",
+      [row(TA, "staff", "finance"), row(TA, "staff", "hr")],
+      "staff",
+    ],
+    [
+      "donor rows in two tenants",
+      [row(TA, "donor"), row(TB, "donor")],
+      "donor",
+    ],
+    ["no membership at all", [], "missionary"],
+  ] as const)("fails closed for %s", async (_name, rows, roleClass) => {
+    expect(await resolve(fakeSupabase({ rows }), roleClass)).toBeNull();
+  });
+
+  it("fails closed with no surface class, without a read", async () => {
     const rpcCalls: RpcCall[] = [];
-
-    await resolveUserRoleFromDatabase({
-      userId: "user_1",
-      supabase: fakeSupabase({
-        profile: { tenant_id: "tenant_1", role: "donor" },
-        rpcCalls,
-      }),
-    });
-
-    expect(rpcCalls).toEqual([
-      { fn: "current_user_memberships", args: { target_tenant: "tenant_1" } },
-    ]);
+    expect(
+      await resolve(
+        fakeSupabase({ rows: [row(TA, "staff", "hr")], rpcCalls }),
+        null,
+      ),
+    ).toBeNull();
+    expect(rpcCalls).toEqual([]);
   });
 
-  it("never passes a user id to the membership RPC", async () => {
-    // The function pins rows to auth.uid(); accepting a caller-supplied id
-    // would let the edge resolve someone else's roles.
-    const rpcCalls: RpcCall[] = [];
-
-    await resolveUserRoleFromDatabase({
-      userId: "user_1",
-      supabase: fakeSupabase({
-        profile: { tenant_id: "tenant_1", role: "donor" },
-        rpcCalls,
-      }),
-    });
-
-    expect(Object.keys(rpcCalls[0]?.args ?? {})).toEqual(["target_tenant"]);
-  });
-
-  it("fails closed when the user has no profile row", async () => {
-    const role = await resolveUserRoleFromDatabase({
-      userId: "user_missing",
-      supabase: fakeSupabase({ profile: null }),
-    });
-
-    expect(role).toBeNull();
-  });
-
-  it("fails closed when the profile lookup throws", async () => {
-    // An RLS denial or a transient outage must not read as "allowed". The
-    // middleware turns null into a redirect, so this is the difference between
-    // a locked door and an open one.
-    const role = await resolveUserRoleFromDatabase({
-      userId: "user_1",
-      supabase: fakeSupabase({ throwOn: "profiles" }),
-    });
-
-    expect(role).toBeNull();
-  });
-
-  it("fails closed when the membership lookup throws", async () => {
-    const role = await resolveUserRoleFromDatabase({
-      userId: "user_1",
-      supabase: fakeSupabase({
-        profile: { tenant_id: "tenant_1", role: "donor" },
-        throwOn: "memberships",
-      }),
-    });
-
-    expect(role).toBeNull();
-  });
-
-  it("fails closed when the profile lookup returns an error", async () => {
-    const snapshot = await resolveUserRoleFromDatabase({
-      userId: "user_1",
-      supabase: fakeSupabase({ returnErrorOn: "profiles" }),
-    });
-
-    expect(snapshot).toBeNull();
-  });
-
-  it("fails closed when the membership lookup returns an error", async () => {
-    const snapshot = await resolveUserRoleFromDatabase({
-      userId: "user_1",
-      supabase: fakeSupabase({
-        profile: { tenant_id: "tenant_1", role: "donor" },
-        returnErrorOn: "memberships",
-      }),
-    });
-
-    expect(snapshot).toBeNull();
+  it.each([
+    ["the RPC returns an error", { returnError: new Error("rpc down") }],
+    ["the RPC throws", { throwError: new Error("rpc threw") }],
+    ["the RPC returns a non-array", { rows: { id: "x" } }],
+    [
+      "a row is malformed",
+      { rows: [{ ...row(TA, "staff", "hr"), role: "admin" }] },
+    ],
+  ])("fails closed when %s", async (_name, options) => {
+    expect(await resolve(fakeSupabase(options))).toBeNull();
   });
 });
 
@@ -222,78 +166,54 @@ describe("preview role-resolution diagnostics", () => {
     vi.restoreAllMocks();
   });
 
-  it("distinguishes no visible profile from a query failure while denying both", async () => {
-    expect(
-      await resolveUserRoleFromDatabase({
-        userId: "private-user",
-        supabase: fakeSupabase({ profile: null }),
-      }),
-    ).toBeNull();
+  it("distinguishes no assignment from a query failure while denying both", async () => {
+    expect(await resolve(fakeSupabase({ rows: [] }))).toBeNull();
     expect(console.warn).toHaveBeenLastCalledWith({
       event: "auth_access_diagnostic",
-      stage: "profile_read",
-      outcome: "no_visible_profile",
+      stage: "membership_read",
+      outcome: "no_assignment",
       code: null,
     });
 
     expect(
-      await resolveUserRoleFromDatabase({
-        userId: "private-user",
-        supabase: fakeSupabase({
-          returnErrorOn: "profiles",
-          queryError: { code: "42501", message: "private query detail" },
+      await resolve(
+        fakeSupabase({
+          returnError: { code: "42501", message: "private query detail" },
         }),
-      }),
+      ),
     ).toBeNull();
     expect(console.warn).toHaveBeenLastCalledWith({
       event: "auth_access_diagnostic",
-      stage: "profile_read",
+      stage: "membership_read",
       outcome: "query_failed",
       code: "42501",
     });
     expect(console.warn).toHaveBeenCalledTimes(2);
   });
 
-  it("identifies a failed membership RPC without changing the null result", async () => {
+  it("reports a request with no surface class", async () => {
+    expect(await resolve(fakeSupabase({}), null)).toBeNull();
+    expect(console.warn).toHaveBeenCalledExactlyOnceWith({
+      event: "auth_access_diagnostic",
+      stage: "surface",
+      outcome: "no_role_class",
+      code: null,
+    });
+  });
+
+  it("keeps a thrown RPC failure closed with an other-code event", async () => {
     expect(
-      await resolveUserRoleFromDatabase({
-        userId: "private-user",
-        supabase: fakeSupabase({
-          profile: { tenant_id: "private-tenant", role: "donor" },
-          returnErrorOn: "memberships",
-          queryError: { code: "PGRST202", details: "private RPC detail" },
-        }),
-      }),
+      await resolve(
+        fakeSupabase({ throwError: new Error("private thrown detail") }),
+      ),
     ).toBeNull();
     expect(console.warn).toHaveBeenCalledExactlyOnceWith({
       event: "auth_access_diagnostic",
       stage: "membership_read",
       outcome: "query_failed",
-      code: "PGRST202",
+      code: "other",
     });
   });
-
-  it.each(["profiles", "memberships"] as const)(
-    "keeps a thrown %s failure closed with fixed exception metadata",
-    async (throwOn) => {
-      expect(
-        await resolveUserRoleFromDatabase({
-          userId: "private-user",
-          supabase: fakeSupabase({
-            profile: { tenant_id: "private-tenant", role: "donor" },
-            throwOn,
-            thrownError: new Error("private thrown detail"),
-          }),
-        }),
-      ).toBeNull();
-      expect(console.warn).toHaveBeenCalledExactlyOnceWith({
-        event: "auth_access_diagnostic",
-        stage: "resolver",
-        outcome: "exception",
-        code: "other",
-      });
-    },
-  );
 
   it.each([
     ["production", "preview"],
@@ -311,10 +231,7 @@ describe("preview role-resolution diagnostics", () => {
       const readCode = vi.fn(() => "42501");
       const queryError = Object.defineProperty({}, "code", { get: readCode });
       expect(
-        await resolveUserRoleFromDatabase({
-          userId: "private-user",
-          supabase: fakeSupabase({ returnErrorOn: "profiles", queryError }),
-        }),
+        await resolve(fakeSupabase({ returnError: queryError })),
       ).toBeNull();
       expect(readCode).not.toHaveBeenCalled();
       expect(console.warn).not.toHaveBeenCalled();
@@ -325,23 +242,15 @@ describe("preview role-resolution diagnostics", () => {
     vi.stubEnv("VERCEL_ENV", " Preview ");
     vi.stubEnv("VERCEL_TARGET_ENV", "");
     expect(
-      await resolveUserRoleFromDatabase({
-        userId: "private-user",
-        supabase: fakeSupabase({
-          profile: { tenant_id: "private-tenant", role: "donor" },
-        }),
-      }),
-    ).toEqual({ profileRole: "donor", memberships: [] });
+      await resolve(fakeSupabase({ rows: [row(TA, "donor")] }), "donor"),
+    ).not.toBeNull();
     expect(console.warn).not.toHaveBeenCalled();
 
-    await resolveUserRoleFromDatabase({
-      userId: "private-user",
-      supabase: fakeSupabase({ profile: null }),
-    });
+    await resolve(fakeSupabase({ rows: [] }), "donor");
     expect(console.warn).toHaveBeenCalledExactlyOnceWith({
       event: "auth_access_diagnostic",
-      stage: "profile_read",
-      outcome: "no_visible_profile",
+      stage: "membership_read",
+      outcome: "no_assignment",
       code: null,
     });
   });
@@ -356,17 +265,13 @@ describe("preview role-resolution diagnostics", () => {
     "PGRST301",
   ])("retains only the allowlisted query code %s", async (code) => {
     expect(
-      await resolveUserRoleFromDatabase({
-        userId: "private-user",
-        supabase: fakeSupabase({
-          returnErrorOn: "profiles",
-          queryError: { code, message: "private error" },
-        }),
-      }),
+      await resolve(
+        fakeSupabase({ returnError: { code, message: "private error" } }),
+      ),
     ).toBeNull();
     expect(console.warn).toHaveBeenCalledExactlyOnceWith({
       event: "auth_access_diagnostic",
-      stage: "profile_read",
+      stage: "membership_read",
       outcome: "query_failed",
       code,
     });
@@ -382,12 +287,9 @@ describe("preview role-resolution diagnostics", () => {
     const serialize = vi.fn(() => secret);
     for (const variant of variants) {
       expect(
-        await resolveUserRoleFromDatabase({
-          userId: variant,
-          supabase: fakeSupabase({
-            profile: { tenant_id: variant, role: "donor" },
-            returnErrorOn: "memberships",
-            queryError: {
+        await resolve(
+          fakeSupabase({
+            returnError: {
               code: variant,
               message: variant,
               details: variant,
@@ -399,7 +301,7 @@ describe("preview role-resolution diagnostics", () => {
               toString: serialize,
             },
           }),
-        }),
+        ),
       ).toBeNull();
       expect(console.warn).toHaveBeenLastCalledWith({
         event: "auth_access_diagnostic",
@@ -433,38 +335,30 @@ describe("preview role-resolution diagnostics", () => {
             return value.proxy;
           })();
       expect(
-        await resolveUserRoleFromDatabase({
-          userId: "private-user",
-          supabase: fakeSupabase({ returnErrorOn: "profiles", queryError }),
-        }),
+        await resolve(fakeSupabase({ returnError: queryError })),
       ).toBeNull();
       expect(console.warn).toHaveBeenCalledExactlyOnceWith({
         event: "auth_access_diagnostic",
-        stage: "profile_read",
+        stage: "membership_read",
         outcome: "query_failed",
         code: "other",
       });
     },
   );
 
-  it.each(["profile", "membership", "exception"])(
+  it.each(["no assignment", "membership", "exception"])(
     "preserves the denied %s result when logging throws",
     async (kind) => {
       vi.mocked(console.warn).mockImplementation(() => {
         throw new Error("private sink detail");
       });
       const supabase =
-        kind === "profile"
-          ? fakeSupabase({ profile: null })
+        kind === "no assignment"
+          ? fakeSupabase({ rows: [] })
           : kind === "membership"
-            ? fakeSupabase({
-                profile: { tenant_id: "private-tenant", role: "donor" },
-                returnErrorOn: "memberships",
-              })
-            : fakeSupabase({ throwOn: "profiles" });
-      await expect(
-        resolveUserRoleFromDatabase({ userId: "private-user", supabase }),
-      ).resolves.toBeNull();
+            ? fakeSupabase({ returnError: new Error("rpc down") })
+            : fakeSupabase({ throwError: new Error("rpc threw") });
+      await expect(resolve(supabase)).resolves.toBeNull();
       expect(console.warn).toHaveBeenCalledTimes(1);
     },
   );

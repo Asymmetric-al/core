@@ -1,5 +1,6 @@
 "use client";
 
+import { PASSWORD_RECOVERY_PATHS } from "@asym/auth/password-recovery";
 import { ShortcutHelp } from "@asym/ui/components/primitives/shortcut-help";
 import { usePathname } from "next/navigation";
 
@@ -9,10 +10,11 @@ import { AppShell } from "@/components/app-shell";
 import { MissionaryNavigationSearch } from "@/components/navigation-search";
 import { isMissionaryWorkspacePath } from "@/lib/route-policy";
 
+/** Every password recovery step sits under the request path, so it is an account screen too. */
 const ACCOUNT_ROUTES = [
   "/login",
   "/register",
-  "/forgot-password",
+  PASSWORD_RECOVERY_PATHS.request,
   "/no-access",
 ];
 

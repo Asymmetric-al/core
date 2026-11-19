@@ -5,6 +5,11 @@ import {
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
 } from "@asym/auth/e2e-auth";
+import {
+  createRpcAssignmentReader,
+  resolveActiveAssignment,
+  type AssignmentRpcClient,
+} from "@asym/auth/principal";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 
@@ -14,13 +19,6 @@ import type { AuthStrategy, BasePayload } from "payload";
 
 const STRATEGY_NAME = "supabase-session";
 const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
-const STAFF_SUBROLES = new Set([
-  "finance",
-  "mobilizer",
-  "development",
-  "hr",
-  "member_care",
-]);
 type CmsStaffRole = "staff" | "admin" | "super_admin";
 type CmsUserDoc = {
   id: number;
@@ -56,13 +54,13 @@ type SupabaseStrategyDependencies = {
   createSupabaseClient?: typeof createServerClient;
   createSupabaseDataClient?: () => Pick<
     ReturnType<typeof createServerClient>,
-    "from" | "schema"
+    "from"
   > | null;
 };
 
 function createTrustedSupabaseDataClient(): Pick<
   ReturnType<typeof createServerClient>,
-  "from" | "schema"
+  "from"
 > | null {
   const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -99,20 +97,6 @@ function parseCookieHeader(cookieHeader: string | null) {
       (cookie): cookie is { name: string; value: string } =>
         typeof cookie.name === "string" && cookie.name.length > 0,
     );
-}
-
-function readProfileRole(value: unknown): CmsStaffRole | null {
-  if (value === "super_admin" || value === "admin" || value === "staff") {
-    return value;
-  }
-
-  return null;
-}
-
-function readMembershipStaffRole(value: unknown): "staff" | null {
-  return typeof value === "string" && STAFF_SUBROLES.has(value)
-    ? "staff"
-    : null;
 }
 
 function normalizeSlug(value: string) {
@@ -384,45 +368,26 @@ export function createSupabaseAuthStrategy(
         };
       }
 
-      const supabaseDataClient = createSupabaseDataClient() ?? supabase;
-
-      const { data: profile } = await supabaseDataClient
-        .from("profiles")
-        .select("tenant_id, role")
-        .eq("user_id", supabaseUser.id)
-        .single();
-
-      const profileRole =
-        typeof profile?.role === "string" ? profile.role : null;
-      const publicTenantId =
-        typeof profile?.tenant_id === "string"
-          ? profile.tenant_id
-          : profileRole === "super_admin"
-            ? DEFAULT_TENANT_ID
-            : null;
-
-      const { data: staffMembership } = publicTenantId
-        ? await supabaseDataClient
-            .schema("authz")
-            .from("memberships")
-            .select("staff_role")
-            .eq("user_id", supabaseUser.id)
-            .eq("tenant_id", publicTenantId)
-            .eq("role", "staff")
-            .eq("is_active", true)
-            .limit(1)
-            .maybeSingle()
-        : { data: null };
-
-      const role =
-        profileRole === "super_admin"
-          ? "super_admin"
-          : (readProfileRole(profileRole) ??
-            readMembershipStaffRole(staffMembership?.staff_role));
-
-      if (!publicTenantId || !role) {
+      // Web Studio acts on staff rows (plan 5.1): the caller's one live staff
+      // membership, resolved on the caller's own session through
+      // `public.current_user_assignments()` (A08: `authz` is not exposed by
+      // the Data API). Its tenant is the Web Studio tenant, and its flag makes
+      // the CMS user an admin. The profile's tenant and role are not read.
+      // Until WP2b's tenant cookie, a person with several staff rows, or staff
+      // rows in two tenants, resolves nothing and is not signed in here.
+      const resolution = await resolveActiveAssignment(
+        { userId: supabaseUser.id, roleClass: "staff" },
+        createRpcAssignmentReader(supabase as unknown as AssignmentRpcClient),
+      );
+      if (!resolution.ok) {
         return { user: null };
       }
+      const publicTenantId = resolution.assignment.tenantId;
+      const role: CmsStaffRole = resolution.assignment.isTenantAdmin
+        ? "admin"
+        : "staff";
+
+      const supabaseDataClient = createSupabaseDataClient() ?? supabase;
 
       const { data: publicTenantData } = await supabaseDataClient
         .from("tenants")

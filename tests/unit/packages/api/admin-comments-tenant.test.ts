@@ -1,6 +1,8 @@
 import { type NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { memberPages, memberRow } from "../../../fixtures/fake-service-client";
+
 const { getAdminClientMock, getAuthContextMock } = vi.hoisted(() => ({
   getAdminClientMock: vi.fn(),
   getAuthContextMock: vi.fn(),
@@ -13,10 +15,16 @@ vi.mock("@asym/database/supabase/admin", () => ({
 vi.mock("@asym/auth/context", () => ({
   getAuthContext: getAuthContextMock,
   requireRole: vi.fn(),
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: vi.fn(),
+  requireTenantAdministrator: vi.fn(),
+  requireRoleClass: vi.fn(),
+  requireAuth: () => undefined,
 }));
 
 import { GET } from "../../../../packages/api/src/admin/comments/index";
 import { PATCH } from "../../../../packages/api/src/admin/comments/comment";
+import { TENANT_MEMBER_PAGE_SIZE } from "../../../../packages/api/src/shared/tenant-members";
 
 const TENANT_A = "00000000-0000-0000-0000-0000000000aa";
 const TENANT_B = "00000000-0000-0000-0000-0000000000bb";
@@ -26,12 +34,16 @@ function authContext(tenantId: string) {
     userId: "user-1",
     tenantId,
     role: "admin",
-    profileRole: "admin",
     memberships: [],
     profileId: "prof-1",
     isAuthenticated: true as const,
   };
 }
+
+/** The author's membership in tenant A, by login (AL-2675). */
+const authorMembership = vi.fn(
+  memberPages([memberRow({ profileId: "author", userId: "author" })]),
+);
 
 describe("admin comments tenant isolation", () => {
   beforeEach(() => {
@@ -81,6 +93,7 @@ describe("admin comments tenant isolation", () => {
           from: vi.fn((table: string) =>
             table === "post_comments" ? comments : profiles,
           ),
+          rpc: authorMembership,
         },
         error: null,
       });
@@ -92,7 +105,21 @@ describe("admin comments tenant isolation", () => {
       expect(profiles.select).toHaveBeenCalledWith(
         "id, first_name, last_name, full_name, avatar_url",
       );
-      expect(profiles.eq).toHaveBeenCalledWith("tenant_id", TENANT_A);
+      // AL-2675 (WP2a sweep; NR-68): an author is shown when their login
+      // holds a membership in this tenant (revoked ones too: the comment
+      // remains), read through tenant_member_profiles; profiles are read by
+      // id alone, never filtered on the profile's tenant column.
+      expect(authorMembership).toHaveBeenCalledWith("tenant_member_profiles", {
+        p_tenant_id: TENANT_A,
+        p_profile_ids: null,
+        p_user_ids: ["author"],
+        p_include_revoked: true,
+        p_role: null,
+        p_tenant_admin: null,
+        p_after_membership_id: null,
+        p_limit: TENANT_MEMBER_PAGE_SIZE,
+      });
+      expect(profiles.eq).not.toHaveBeenCalled();
       expect(profiles.in).toHaveBeenCalledWith("id", ["author"]);
       const body = await response.json();
       expect(body.comments[0].author.full_name).toBe(expected);
@@ -128,6 +155,7 @@ describe("admin comments tenant isolation", () => {
         from: vi.fn((table: string) =>
           table === "post_comments" ? comments : profiles,
         ),
+        rpc: authorMembership,
       },
       error: null,
     });
@@ -139,7 +167,10 @@ describe("admin comments tenant isolation", () => {
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ error: "Could not load authors" });
     expect(comments.eq).toHaveBeenCalledWith("post.tenant_id", TENANT_A);
-    expect(profiles.eq).toHaveBeenCalledWith("tenant_id", TENANT_A);
+    // One membership read: its page, then the empty page that ends it
+    // (council round 2 on WP2a, R2).
+    expect(authorMembership).toHaveBeenCalledTimes(2);
+    expect(profiles.eq).not.toHaveBeenCalled();
   });
 
   it("PATCH returns 404 when comment belongs to another tenant", async () => {

@@ -4,6 +4,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies, headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
 
+import { resolveAssignmentCapabilities } from "./capabilities/effective-capabilities";
+import { CapabilityResolutionError } from "./capabilities/errors";
 import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "./constants";
 import {
   assertSupabaseDatasourceAllowedForE2EBypass,
@@ -16,35 +18,44 @@ import {
 import {
   derivePrimaryRole,
   hasAnyRole,
+  hasMembershipClass,
   hasRole,
+  hasTenantAdministratorMembership,
   type AuthMembership,
 } from "./permissions";
+import { resolveActiveAssignment } from "./principal/assignment";
+import { createRpcAssignmentReader } from "./principal/reader";
+import {
+  ASSIGNMENT_HEADER,
+  parseRoleClass,
+  ROLE_CLASS_HEADER,
+} from "./request-headers";
 
+import type { Capability } from "./capabilities/registry";
+
+/** Handlers name capabilities through the auth context, never the registry (#492, AL-2675). */
+export type { Capability, RoleClass };
+import type {
+  ActiveAssignment,
+  AssignmentDenyReason,
+  RoleClass,
+} from "./principal/types";
 import type { UserRole } from "@asym/database/types";
-
-const MEMBERSHIP_ROLES = new Set(["donor", "missionary", "staff"]);
-const STAFF_SUBROLES = new Set([
-  "finance",
-  "mobilizer",
-  "development",
-  "hr",
-  "member_care",
-]);
-
-type MembershipRow = {
-  tenant_id: string | null;
-  role: string | null;
-  staff_role: string | null;
-  is_active: boolean | null;
-};
 
 export interface AuthContext {
   userId: string | null;
   email: string | null;
   tenantId: string | null;
   role: UserRole | null;
-  profileRole: UserRole | null;
+  /** The one membership the request acts under, as a role snapshot. */
   memberships: AuthMembership[];
+  /**
+   * The assignment the resolver selected; `null` (or absent, in contexts built
+   * outside `getAuthContext`) for an E2E bypass identity or a denial.
+   */
+  assignment?: ActiveAssignment | null;
+  /** Why no assignment resolved for a signed-in person; `null` otherwise. */
+  assignmentDenial?: AssignmentDenyReason | "no_role_class" | null;
   profileId: string | null;
   isAuthenticated: boolean;
 }
@@ -54,10 +65,21 @@ export interface AuthenticatedContext extends AuthContext {
   email: string | null;
   tenantId: string;
   role: UserRole;
-  profileRole: UserRole | null;
   memberships: AuthMembership[];
   profileId: string;
   isAuthenticated: true;
+}
+
+/**
+ * How a caller narrows the resolution. Each value falls back to the request:
+ * the role class to the `x-asym-role-class` header the app's proxy sets, the
+ * proposed assignment to the `x-asym-assignment` header. The expected tenant
+ * has no header yet: WP2b passes the tenant from the page address.
+ */
+export interface AuthContextOptions {
+  roleClass?: RoleClass;
+  proposedAssignmentId?: string;
+  expectedTenantId?: string;
 }
 
 function getBearerToken(request?: Request): string | null {
@@ -175,11 +197,42 @@ function createUnauthenticatedContext(): AuthContext {
     email: null,
     tenantId: null,
     role: null,
-    profileRole: null,
     memberships: [],
+    assignment: null,
+    assignmentDenial: null,
     profileId: null,
     isAuthenticated: false,
   };
+}
+
+/**
+ * The membership an E2E bypass session acts under, built from the role its
+ * signed cookie names: there is no membership row behind a bypass identity.
+ * An admin (or a legacy super_admin cookie) is a flagged staff member.
+ */
+function bypassMembership(
+  role: UserRole,
+  tenantId: string,
+): AuthMembership | null {
+  if (role === "donor" || role === "missionary") {
+    return {
+      tenantId,
+      role,
+      staffRole: null,
+      isActive: true,
+      isTenantAdmin: false,
+    };
+  }
+  if (role === "staff" || role === "admin" || role === "super_admin") {
+    return {
+      tenantId,
+      role: "staff",
+      staffRole: "development",
+      isActive: true,
+      isTenantAdmin: role !== "staff",
+    };
+  }
+  return null;
 }
 
 /**
@@ -188,7 +241,8 @@ function createUnauthenticatedContext(): AuthContext {
  * (NODE_ENV !== production) whenever E2E_AUTH_BYPASS is enabled.
  */
 async function getE2EAuthBypassContext(
-  request?: Request,
+  request: Request | undefined,
+  roleClass: RoleClass | null,
 ): Promise<AuthContext | null> {
   if (!isE2EAuthBypassEnabled()) {
     return null;
@@ -221,31 +275,32 @@ async function getE2EAuthBypassContext(
   if (!e2eSession) {
     return null;
   }
-  const profileRole = e2eSession.role;
-  const role = derivePrimaryRole({
-    profileRole,
-    memberships: [],
-  });
   const tenantIdForBypass = e2eSession.tenantId ?? DEMO_TENANT_ID;
-  const profileIdForBypass = e2eSession.profileId ?? DEMO_PROFILE_ID;
+  const membership = bypassMembership(e2eSession.role, tenantIdForBypass);
+  if (!membership || (roleClass !== null && membership.role !== roleClass)) {
+    return null;
+  }
+  const memberships = [membership];
   return {
     userId: e2eSession.userId,
     email: null,
     tenantId: tenantIdForBypass,
-    role,
-    profileRole,
-    memberships: [],
-    profileId: profileIdForBypass,
+    role: derivePrimaryRole({ memberships }),
+    memberships,
+    assignment: null,
+    assignmentDenial: null,
+    profileId: e2eSession.profileId ?? DEMO_PROFILE_ID,
     isAuthenticated: true,
   };
 }
 
 async function resolveUnauthenticatedOrE2EContext(
   bearerToken: string | null,
-  request?: Request,
+  request: Request | undefined,
+  roleClass: RoleClass | null,
 ): Promise<AuthContext> {
   if (!bearerToken) {
-    const e2e = await getE2EAuthBypassContext(request);
+    const e2e = await getE2EAuthBypassContext(request, roleClass);
     if (e2e) {
       return e2e;
     }
@@ -253,13 +308,60 @@ async function resolveUnauthenticatedOrE2EContext(
   return createUnauthenticatedContext();
 }
 
-export async function getAuthContext(request?: Request): Promise<AuthContext> {
+/**
+ * A request header: from the request when there is one, else from the
+ * render's request headers. `null` outside a request scope.
+ */
+async function readRequestHeader(
+  request: Request | undefined,
+  name: string,
+): Promise<string | null> {
+  if (request) {
+    return request.headers.get(name);
+  }
+  try {
+    return (await headers()).get(name);
+  } catch (error) {
+    unstable_rethrow(error);
+    return null;
+  }
+}
+
+function toAuthMembership(assignment: ActiveAssignment): AuthMembership {
+  return {
+    tenantId: assignment.tenantId,
+    role: assignment.membershipRole,
+    staffRole: assignment.staffRole,
+    isActive: true,
+    isTenantAdmin: assignment.isTenantAdmin,
+  };
+}
+
+/**
+ * Who the caller is and the one membership the request acts under (plan 5.1).
+ *
+ * The caller is the validated Supabase user. The assignment comes from the
+ * principal resolver over the caller's live memberships
+ * (`public.current_user_assignments()`), given the surface's role class and,
+ * when the person chose one, the proposed row. The resolver refuses a person
+ * with no live row of that class, or with several and no choice: it never
+ * guesses. The profile's tenant and role are not read: a profile role grants
+ * nothing, and a signed-in person with no assignment is not authenticated for
+ * the surface (`isAuthenticated: false`; `assignmentDenial` says why).
+ */
+export async function getAuthContext(
+  request?: Request,
+  options: AuthContextOptions = {},
+): Promise<AuthContext> {
   const bearerToken = getBearerToken(request);
+  const roleClass =
+    options.roleClass ??
+    parseRoleClass(await readRequestHeader(request, ROLE_CLASS_HEADER));
 
   const supabase = await createAuthContextClient(request);
 
   if (!supabase) {
-    return resolveUnauthenticatedOrE2EContext(bearerToken, request);
+    return resolveUnauthenticatedOrE2EContext(bearerToken, request, roleClass);
   }
 
   const {
@@ -268,104 +370,212 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
   } = await supabase.auth.getUser(bearerToken ?? undefined);
 
   if (userError || !user) {
-    return resolveUnauthenticatedOrE2EContext(bearerToken, request);
+    return resolveUnauthenticatedOrE2EContext(bearerToken, request, roleClass);
   }
 
-  // Resolve the caller under their own RLS authority. A CMS service credential
-  // must not change identity resolution or the database grants it requires.
+  const email = typeof user.email === "string" ? user.email : null;
+  const denied = (
+    profileId: string | null,
+    reason: AuthContext["assignmentDenial"],
+  ): AuthContext => ({
+    ...createUnauthenticatedContext(),
+    userId: user.id,
+    email,
+    profileId,
+    assignmentDenial: reason,
+  });
+
+  // Resolve the caller under their own RLS authority: the profile supplies
+  // the profile id and nothing else.
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, tenant_id, role")
+    .select("id")
     .eq("user_id", user.id)
     .single();
 
-  if (profileError || !profile) {
-    return {
+  if (profileError || !profile || typeof profile.id !== "string") {
+    return denied(null, null);
+  }
+
+  if (!roleClass) {
+    return denied(profile.id, "no_role_class");
+  }
+
+  const proposedAssignmentId =
+    options.proposedAssignmentId ??
+    (await readRequestHeader(request, ASSIGNMENT_HEADER))?.trim();
+
+  const result = await resolveActiveAssignment(
+    {
       userId: user.id,
-      email: typeof user.email === "string" ? user.email : null,
-      tenantId: null,
-      role: null,
-      profileRole: null,
-      memberships: [],
-      profileId: null,
-      isAuthenticated: false,
-    };
+      roleClass,
+      ...(proposedAssignmentId ? { proposedAssignmentId } : {}),
+      ...(options.expectedTenantId
+        ? { expectedTenantId: options.expectedTenantId }
+        : {}),
+    },
+    createRpcAssignmentReader(supabase),
+  );
+
+  if (!result.ok) {
+    return denied(profile.id, result.reason);
   }
 
-  const profileRole =
-    typeof profile.role === "string" ? (profile.role as UserRole) : null;
-  const tenantId =
-    typeof profile.tenant_id === "string"
-      ? profile.tenant_id
-      : profileRole === "super_admin"
-        ? DEMO_TENANT_ID
-        : null;
-  const memberships = await loadMembershipsForTenant(supabase, tenantId);
-  if (!memberships) {
-    return createUnauthenticatedContext();
-  }
-  const role = derivePrimaryRole({ profileRole, memberships });
-
+  const memberships = [toAuthMembership(result.assignment)];
   return {
     userId: user.id,
-    email: typeof user.email === "string" ? user.email : null,
-    tenantId,
-    role,
-    profileRole,
+    email,
+    tenantId: result.assignment.tenantId,
+    role: derivePrimaryRole({ memberships }),
     memberships,
+    assignment: result.assignment,
+    assignmentDenial: null,
     profileId: profile.id,
     isAuthenticated: true,
   };
 }
 
-async function loadMembershipsForTenant(
-  supabase: SupabaseClient,
-  tenantId: string | null,
-): Promise<AuthMembership[] | null> {
-  if (!tenantId) {
+/**
+ * The capabilities of the one membership the request acts under (plan 5.1):
+ * its sub-role or member bundle and, with the flag, the tenant administrator's.
+ * Empty for an unauthenticated context, a context that does not hold exactly
+ * one live membership, or a membership the registry cannot resolve: it fails
+ * closed. Handlers ask for a capability with `hasContextCapability`.
+ */
+export function contextCapabilities(
+  context: AuthContext,
+): readonly Capability[] {
+  const [membership, ...others] = context.memberships;
+  if (
+    !context.isAuthenticated ||
+    !membership ||
+    others.length > 0 ||
+    !membership.isActive ||
+    membership.tenantId !== context.tenantId
+  ) {
     return [];
   }
-
-  // authz is deliberately private; this RPC binds its rows to auth.uid().
-  const { data: rows, error } = await supabase.rpc("current_user_memberships", {
-    target_tenant: tenantId,
-  });
-
-  if (error) {
-    return null;
+  try {
+    return resolveAssignmentCapabilities({
+      assignmentId: context.assignment?.assignmentId ?? "unbacked-assignment",
+      tenantId: membership.tenantId,
+      membershipRole: membership.role,
+      staffRole: membership.staffRole,
+      isTenantAdmin: membership.isTenantAdmin === true,
+    });
+  } catch (error) {
+    if (error instanceof CapabilityResolutionError) return [];
+    throw error;
   }
+}
 
-  return ((rows ?? []) as MembershipRow[])
-    .filter(
-      (row): row is MembershipRow & { tenant_id: string; role: string } =>
-        row.tenant_id === tenantId &&
-        row.is_active === true &&
-        typeof row.role === "string" &&
-        MEMBERSHIP_ROLES.has(row.role),
-    )
-    .map((row) => ({
-      tenantId: row.tenant_id,
-      role: row.role as AuthMembership["role"],
-      staffRole:
-        typeof row.staff_role === "string" && STAFF_SUBROLES.has(row.staff_role)
-          ? (row.staff_role as NonNullable<AuthMembership["staffRole"]>)
-          : null,
-      isActive: row.is_active ?? true,
-    }));
+export function hasContextCapability(
+  context: AuthContext,
+  capability: Capability,
+): boolean {
+  return contextCapabilities(context).includes(capability);
+}
+
+/**
+ * Whether one live membership row holds `capability` in the registry, for
+ * server code that judges members other than the caller, such as the
+ * approvers a notification goes to (AL-2675). Fails closed like
+ * `contextCapabilities`.
+ */
+export function membershipHasCapability(
+  membership: AuthMembership,
+  capability: Capability,
+): boolean {
+  if (!membership.isActive) return false;
+  try {
+    return resolveAssignmentCapabilities({
+      assignmentId: "member-row",
+      tenantId: membership.tenantId,
+      membershipRole: membership.role,
+      staffRole: membership.staffRole,
+      isTenantAdmin: membership.isTenantAdmin === true,
+    }).includes(capability);
+  } catch (error) {
+    if (error instanceof CapabilityResolutionError) return false;
+    throw error;
+  }
+}
+
+/** The parts of a context that the membership checks read. */
+type MembershipView = Pick<
+  AuthContext,
+  "isAuthenticated" | "memberships" | "tenantId"
+>;
+
+/**
+ * Whether the request acts under a live membership of this class in its
+ * tenant (AL-2675). A class is a membership fact: there is no `admin` or
+ * `super_admin` class, so a handler that asks for a class cannot ask for a
+ * role name.
+ */
+export function hasContextRoleClass(
+  context: MembershipView,
+  roleClass: RoleClass,
+): boolean {
+  return (
+    context.isAuthenticated &&
+    hasMembershipClass(context.memberships, context.tenantId, roleClass)
+  );
+}
+
+/**
+ * Whether the staff row the request acts under carries the
+ * tenant-administrator flag (AL-2675, plan 5.1).
+ */
+export function isTenantAdministrator(context: MembershipView): boolean {
+  return (
+    context.isAuthenticated &&
+    hasTenantAdministratorMembership(context.memberships, context.tenantId)
+  );
+}
+
+/** Refuses unless the request acts under a live membership of one of `roleClasses`. */
+export function requireRoleClass(
+  context: AuthContext,
+  roleClasses: readonly RoleClass[],
+): asserts context is AuthenticatedContext {
+  requireAuth(context);
+  if (
+    !roleClasses.some((roleClass) => hasContextRoleClass(context, roleClass))
+  ) {
+    throw new Error(
+      `Forbidden: requires a ${roleClasses.join(" or ")} membership`,
+    );
+  }
+}
+
+/** Refuses unless the request acts under the flagged staff row of its tenant. */
+export function requireTenantAdministrator(
+  context: AuthContext,
+): asserts context is AuthenticatedContext {
+  requireAuth(context);
+  if (!isTenantAdministrator(context)) {
+    throw new Error("Forbidden: requires the tenant administrator");
+  }
+}
+
+/** Refuses unless the membership the request acts under holds `capability`. */
+export function requireCapability(
+  context: AuthContext,
+  capability: Capability,
+): asserts context is AuthenticatedContext {
+  requireAuth(context);
+  if (!hasContextCapability(context, capability)) {
+    throw new Error(`Forbidden: requires ${capability}`);
+  }
 }
 
 export function hasContextRole(context: AuthContext, role: UserRole) {
-  return hasRole(
-    { profileRole: context.profileRole, memberships: context.memberships },
-    role,
-  );
+  return hasRole({ memberships: context.memberships }, role);
 }
 
 export function hasAnyContextRole(context: AuthContext, roles: UserRole[]) {
-  return hasAnyRole(
-    { profileRole: context.profileRole, memberships: context.memberships },
-    roles,
-  );
+  return hasAnyRole({ memberships: context.memberships }, roles);
 }
 
 export function requireAuth(

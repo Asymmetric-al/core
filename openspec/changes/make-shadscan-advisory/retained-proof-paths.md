@@ -2,8 +2,8 @@
 
 Task 2.6 records every path that `tooling/shadscan/findings.json` cited as
 proof, because this change deletes that ledger. The list was taken from the
-ledger at `develop` commit `cf634218a2ac46c61dbede6c04c34a32d76bea66`: 129
-entries citing 142 distinct paths (`proof[].path` and
+ledger at `develop` commit `182eb0338405654a1e0354f700e8ac7abbda5af5`: 129
+entries citing 145 distinct paths (`proof[].path` and
 `verificationTests[]`).
 
 Every complete assertion span (design D3) present in these files on that
@@ -87,8 +87,10 @@ assertion spans unless they call `assert.`.
 - `packages/missionary/package.json`
 - `packages/ui/components.json`
 - `packages/ui/components/app-shell/account-menu.tsx`
+- `packages/ui/components/auth/ForgotPasswordScreen.tsx`
 - `packages/ui/components/auth/FullLoginCard.tsx`
 - `packages/ui/components/auth/LoginScreen.tsx`
+- `packages/ui/components/auth/ResetPasswordScreen.tsx`
 - `packages/ui/components/auth/auth-primitives.tsx`
 - `packages/ui/components/auth/change-password-form.tsx`
 - `packages/ui/components/primitives/image-cropper.tsx`
@@ -150,6 +152,7 @@ assertion spans unless they call `assert.`.
 - `tests/unit/packages/ui/base-ui-loading-button.test.tsx`
 - `tests/unit/packages/ui/change-password-form.test.tsx`
 - `tests/unit/packages/ui/navigation-command-palette.test.tsx`
+- `tests/unit/packages/ui/password-recovery-screens.test.tsx`
 - `tests/unit/packages/ui/shadscan-navbar.test.tsx`
 - `tests/unit/packages/ui/shadscan-readiness.test.tsx`
 - `tests/unit/packages/ui/shadscan-search-delegation.test.tsx`

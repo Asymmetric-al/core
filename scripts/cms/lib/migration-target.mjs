@@ -1,3 +1,9 @@
+import {
+  databaseUrlRoutingOverrides,
+  isLoopbackDatabaseUrl,
+} from "../../../packages/env/src/database-url.mjs";
+import { CMS_MIGRATION_ROLE } from "./migration-connection.mjs";
+
 export function assertCmsMigrationTarget({
   databaseUrl,
   supabaseUrl,
@@ -17,17 +23,15 @@ export function assertCmsMigrationTarget({
   }
 
   if (
-    ["host", "hostaddr", "service", "user", "dbname"].some((key) =>
-      database.searchParams.has(key),
-    ) ||
+    databaseUrlRoutingOverrides(database).length > 0 ||
     environment.PGHOSTADDR ||
     environment.PGSERVICE
   ) {
     throw new Error("CMS migration does not allow database routing overrides.");
   }
 
+  if (isLoopbackDatabaseUrl(database)) return;
   const hostname = database.hostname.replace(/^\[|\]$/g, "");
-  if (["localhost", "127.0.0.1", "::1"].includes(hostname)) return;
 
   let ref;
   try {
@@ -48,10 +52,17 @@ export function assertCmsMigrationTarget({
     );
   }
 
-  const role = environment.CMS_HOSTED_MIGRATION_ROLE || "postgres";
+  // Payload migrations run as cms_owner, never as postgres (plan 7.2). A
+  // qualification branch may still name another plain, unprivileged role.
+  const role = environment.CMS_HOSTED_MIGRATION_ROLE || CMS_MIGRATION_ROLE;
   if (!/^[a-z_][a-z0-9_]{0,62}$/.test(role)) {
     throw new Error(
       "CMS_HOSTED_MIGRATION_ROLE must be a plain Postgres role name.",
+    );
+  }
+  if (["postgres", "supabase_admin"].includes(role)) {
+    throw new Error(
+      `Hosted CMS migrations run as ${CMS_MIGRATION_ROLE}, not as ${role}.`,
     );
   }
 

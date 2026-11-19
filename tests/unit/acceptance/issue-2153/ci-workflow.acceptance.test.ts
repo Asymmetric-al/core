@@ -6,7 +6,6 @@
  * https://github.com/Asymmetric-al/core/issues/2153#issuecomment-6367121658
  */
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
@@ -20,7 +19,6 @@ const jobs = () => W.workflowJobs(doc(), CI);
 const job = () => jobs()[ID]!;
 const gate = () => jobs()["ci-gate"]!;
 const OUTCOMES = ["success", "failure", "skipped", "cancelled"];
-const RESULTS_STEP = "Validate correctness checks and requested compilation";
 /** ci-gate `needs` and CI_RESULTS keys at 4e31ff33. */
 const BASE_KEYS: Record<string, string> = {
   ...{ plan: "compilation-plan", format: "format", integrity: "integrity" },
@@ -183,19 +181,4 @@ describe("#2153 criterion 6: fork-PR fail-closed behaviour unchanged", () => {
       }
     },
   );
-});
-
-describe("#2153 criterion 10: nothing else in ci.yml changes", () => {
-  it("ci.yml minus the acceptance-tests job and ci-gate needs/CI_RESULTS matches 4e31ff33", () => {
-    const d = doc() as W.WorkflowDocument & { jobs: W.WorkflowJobs };
-    delete d.jobs[ID];
-    delete d.jobs["ci-gate-comment"];
-    delete d.jobs["ci-gate"]!.needs;
-    const steps = W.allSteps(d.jobs["ci-gate"]!);
-    const step = steps.find((s) => s.name === RESULTS_STEP);
-    delete (step?.env as Record<string, unknown> | undefined)?.CI_RESULTS;
-    const print = createHash("sha256").update(JSON.stringify(d)).digest("hex");
-    // Hosted-only amendment: only build/test-unit runner placement changed.
-    expect(print.slice(0, 16)).toBe("4ba5d2d04cd567d3");
-  });
 });

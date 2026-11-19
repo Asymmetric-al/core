@@ -4,7 +4,7 @@ import {
   tiles,
   type Tile,
 } from "@asym/config/tiles";
-import { mapProfileRoleToMCRole } from "@asym/lib/mission-control/bootstrap";
+import { mapRoleToMCRole } from "@asym/lib/mission-control/bootstrap";
 import { describe, expect, it } from "vitest";
 
 const adminTile = tiles.find((tile) => tile.id === "admin") as Tile;
@@ -64,7 +64,7 @@ describe("super admins on Home", () => {
   // profile to "admin" (packages/lib/mission-control/bootstrap.ts), which the
   // Eve page also admits, so Home must still offer them Eve.
   it("offers Eve to a super admin through the admin role", () => {
-    const role = mapProfileRoleToMCRole("super_admin");
+    const role = mapRoleToMCRole("super_admin");
     expect(role).toBe("admin");
     expect(
       quickActionsForRole(adminTile, role).map((action) => action.href),

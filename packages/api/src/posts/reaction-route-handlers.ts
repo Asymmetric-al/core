@@ -1,3 +1,4 @@
+import { getAuthContext } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
@@ -36,10 +37,11 @@ type ReactionRouteHandler = (
 function createReactionMutationHandler(
   config: ReactionMutationConfig,
 ): ReactionRouteHandler {
-  return async (_request, { params }) => {
+  return async (request, { params }) => {
     try {
       const supabase = await createClient();
       const { postId, userId, tenantId } = await resolveReactionRouteContext(
+        await getAuthContext(request),
         supabase,
         params,
       );

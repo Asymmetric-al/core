@@ -1,6 +1,6 @@
 # ADR-0145: Page-local composition, bounded reuse, and coherent Public Site Generations
 
-**Status:** Accepted (founder-ratified Phase 23 D1 C-prime-R, 2026-08-15)
+**Status:** Accepted (founder-ratified Phase 23 D1 C-prime-R, 2026-08-15; first-release scope amended 2026-11-17 for AL-2688)
 
 ## Context
 
@@ -50,6 +50,12 @@ compatibility, reach and safety contracts, and required artifacts; structurally
 reuses unchanged versions; and compiles bounded public projections. Only a
 complete compatible candidate may idempotently compare-and-swap one small
 serving head. Candidate failure leaves the prior generation serving.
+
+_Amended 2026-11-17 (see the first-release scope amendment below): the first
+release serves per-page immutable releases, with several documents activated
+together in one transaction, instead of a Site-and-locale generation. Public
+Site Generations remain the later target, with the triggers stated there. The
+two paragraphs above describe that target._
 
 “One release” therefore means one coherent serving generation. It does not
 mean a giant mutable Site Plan, full-site rewrite, Tenant-global lock,
@@ -112,6 +118,48 @@ distributed-transaction exclusions remain unchanged.
 Ratification of this planning decision authorizes no implementation, schema,
 migration, provider qualification, issue publication, release activation, or
 production change.
+
+## First-release scope amendment — 2026-11-17 (AL-2688)
+
+**Authority.** The owner's instruction of 17 November 2026 to implement the CRM,
+CMS and database plan ratifies the disposition its
+[section 14](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+lists for this record. The plan section 15.1 question whether the first release
+needs atomic multi-page launches is taken at its default, "not needed", under
+the [implementation record](../audits/core-crm-cms-database-implementation-record.md#6-decisions-and-deviations)
+(D-05). That is a default taken, not a fresh owner ruling. If the owner rules
+that the first release needs atomic multi-page launches, this amendment lapses
+and the plan's decision 1 returns to section 11.4. This amendment records
+intent, not implementation.
+
+**First release.** Each publish writes one immutable release row in Core for each
+published page or navigation set, and moves the heads of every document in that
+publish together, by compare-and-swap, in one transaction
+([ADR-0229](0229-per-page-releases-and-two-publish-commands.md)). Public reads
+take a page and its navigation in one statement. A failed publish leaves every
+previous head serving. There is no single Site-wide head that pins every member:
+a page and a menu published separately can disagree until both are published,
+and two separately cached fragments can disagree briefly. That is the stated
+price of deferring generations, and the council's dissent on it is preserved
+(plan section 11.3).
+
+**Later target, with triggers.** Whole-Site Public Site Generations return when a
+requirement needs atomic multi-page launches, scheduled releases or whole-Site
+rollback. They can be added then without replacing the release tables: releases
+already carry a locale column, and a nullable generation column can be added
+without rewriting a stored row.
+
+**Unchanged.** Page-local composition, bounded reuse, stable Page identity,
+Navigation as an independently versioned document, source-owned dynamic content
+referenced and never copied, and immediate adverse narrowing. The first
+release's CMS collections (plan section 6.2) hold no Reusable Section and no
+separate Page Placement Revision: a page's public path is its slug, unique per
+Site. Those, and the Phase 23 D10 presentation activation, which advances a
+generation, wait for the later target.
+
+**Dependent Phase 23 decisions.** The Phase 23 decision log records the same
+amendment under D1 and names the dependent decisions it narrows for the first
+release.
 
 ## References
 

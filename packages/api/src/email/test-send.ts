@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireTenantAdministrator,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -67,7 +67,7 @@ function statusFromErrorCode(errorCode?: string): number {
 export async function POST(request: NextRequest) {
   try {
     const auth = await getAuthContext(request);
-    requireRole(auth, ["admin", "super_admin"]);
+    requireTenantAdministrator(auth);
     const ctx = auth as AuthenticatedContext;
 
     const body = sendTestEmailSchema.parse(await ensureJsonBody(request));

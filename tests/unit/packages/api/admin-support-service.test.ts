@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { memberPages, memberRow } from "../../../fixtures/fake-service-client";
+
 const { randomUUIDMock } = vi.hoisted(() => ({
   randomUUIDMock: vi.fn(),
 }));
@@ -14,6 +16,7 @@ import {
   getSupportTicket,
   listSupportTickets,
 } from "../../../../packages/api/src/admin/support/service";
+import { TENANT_MEMBER_PAGE_SIZE } from "../../../../packages/api/src/shared/tenant-members";
 
 const TENANT_A = "00000000-0000-0000-0000-0000000000aa";
 
@@ -162,7 +165,10 @@ describe("admin support service tenant isolation", () => {
     );
   });
 
-  it("resolves an assignee name only through a tenant-scoped profile lookup", async () => {
+  // AL-2675 (WP2a sweep; NR-68): the assignee belongs to the tenant by
+  // membership (a revoked one included, since the ticket keeps them), read
+  // through tenant_member_profiles; the profile is then read by id alone.
+  it("resolves an assignee name only for a member of the tenant", async () => {
     const ticketQuery = createQuery({
       data: {
         public_id: "SUP-1",
@@ -178,10 +184,36 @@ describe("admin support service tenant isolation", () => {
     const from = vi.fn((table: string) =>
       table === "profiles" ? profileQuery : ticketQuery,
     );
-    const ticket = await getSupportTicket({ from } as never, TENANT_A, "SUP-1");
+    const rpc = vi.fn(memberPages([memberRow({ profileId: "profile-1" })]));
+    const ticket = await getSupportTicket(
+      { from, rpc } as never,
+      TENANT_A,
+      "SUP-1",
+    );
     expect(ticket?.assignedToName).toBe("Mina Chen");
-    expect(profileQuery.eq).toHaveBeenCalledWith("tenant_id", TENANT_A);
+    expect(rpc).toHaveBeenCalledWith("tenant_member_profiles", {
+      p_tenant_id: TENANT_A,
+      p_profile_ids: ["profile-1"],
+      p_user_ids: null,
+      p_include_revoked: true,
+      p_role: null,
+      p_tenant_admin: null,
+      p_after_membership_id: null,
+      p_limit: TENANT_MEMBER_PAGE_SIZE,
+    });
+    expect(profileQuery.eq).not.toHaveBeenCalledWith(
+      "tenant_id",
+      expect.anything(),
+    );
     expect(profileQuery.eq).toHaveBeenCalledWith("id", "profile-1");
+
+    rpc.mockResolvedValue({ data: [], error: null });
+    const outsider = await getSupportTicket(
+      { from, rpc } as never,
+      TENANT_A,
+      "SUP-1",
+    );
+    expect(outsider?.assignedToName).toBeUndefined();
   });
   it("returns null when a ticket id belongs to another tenant", async () => {
     const query = createQuery({ data: null, error: null });

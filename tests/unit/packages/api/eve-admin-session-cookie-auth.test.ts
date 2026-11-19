@@ -25,8 +25,16 @@ const verifiedAdmin = {
   email: "admin@example.com",
   tenantId: TENANT_ID,
   role: "admin",
-  profileRole: "admin",
-  memberships: [],
+  // AL-2675: an administrator is a staff membership with the flag.
+  memberships: [
+    {
+      isActive: true,
+      isTenantAdmin: true,
+      role: "staff",
+      staffRole: "development",
+      tenantId: TENANT_ID,
+    },
+  ],
   profileId: PROFILE_ID,
   isAuthenticated: true,
 } satisfies AuthContext;
@@ -95,5 +103,23 @@ describe("Eve admin cookie authentication", () => {
     expect(verifiedRequest.headers.get("cookie")).toBe(
       request.headers.get("cookie"),
     );
+    // AL-2675: the Eve runtime has no proxy in front of it, so it names the
+    // surface's role class itself: Eve admin sessions act on a staff row.
+    expect(getAuthContextMock.mock.calls[0]?.[1]).toEqual({
+      roleClass: "staff",
+    });
+  });
+
+  it("names the staff role class for a bearer request too", async () => {
+    getAuthContextMock.mockResolvedValue(verifiedAdmin);
+    await resolveAdminEveSessionIdentity(
+      new Request("https://eve.test/eve/v1/session", {
+        headers: { authorization: "Bearer direct-token" },
+        method: "POST",
+      }),
+    );
+    expect(getAuthContextMock).toHaveBeenCalledWith(expect.any(Request), {
+      roleClass: "staff",
+    });
   });
 });

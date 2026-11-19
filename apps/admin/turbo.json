@@ -1,4 +1,13 @@
 {
   "$schema": "https://v2-10-0.turborepo.dev/schema.json",
-  "extends": ["//", "@asym/eslint-config"]
+  "extends": ["//", "@asym/eslint-config"],
+  "tasks": {
+    "build": {
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "$TURBO_ROOT$/supabase/migrations/*.sql",
+        "$TURBO_ROOT$/scripts/release/migration-heads.mjs"
+      ]
+    }
+  }
 }

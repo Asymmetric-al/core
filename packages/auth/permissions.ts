@@ -4,146 +4,101 @@ import type {
   UserRole,
 } from "@asym/database/types";
 
-export type DashboardScope =
-  "donor_portal" | "missionary_dashboard" | "admin_dashboard";
-
-export type StaffCapability =
-  | "admin.dashboard.access"
-  | "admin.crm.manage"
-  | "admin.gifts.manage"
-  | "admin.reports.view";
-
 export interface AuthMembership {
   tenantId: string;
   role: MembershipRole;
   staffRole: StaffSubrole | null;
   isActive: boolean;
+  /**
+   * The tenant-administrator flag (plan 5.1); only ever `true` on a staff
+   * row. Absent means `false`: a snapshot built without it grants no
+   * administration.
+   */
+  isTenantAdmin?: boolean;
 }
-
-export interface RoleSnapshot {
-  profileRole: UserRole | null;
-  memberships: AuthMembership[];
-}
-
-const PUBLIC_COMPATIBILITY_ROLES = new Set<UserRole>(["donor", "missionary"]);
-
-const BASE_STAFF_CAPABILITIES: readonly StaffCapability[] = [
-  "admin.dashboard.access",
-  "admin.crm.manage",
-  "admin.gifts.manage",
-  "admin.reports.view",
-];
 
 /**
- * Foundation policy:
- * - All staff subroles have full Mission Control admin access in MVP.
- * - This map intentionally keeps capability sets explicit so we can narrow by
- *   subrole later without changing call sites.
+ * The membership rows a role check judges. Authority is a live membership
+ * and nothing else (plan 5.1, AL-2675): there is no profile role here, and
+ * none is consulted anywhere. A request's context holds exactly one row, the
+ * assignment the resolver selected.
  */
-export const STAFF_SUBROLE_CAPABILITIES: Readonly<
-  Record<StaffSubrole, readonly StaffCapability[]>
-> = {
-  finance: BASE_STAFF_CAPABILITIES,
-  mobilizer: BASE_STAFF_CAPABILITIES,
-  development: BASE_STAFF_CAPABILITIES,
-  hr: BASE_STAFF_CAPABILITIES,
-  member_care: BASE_STAFF_CAPABILITIES,
-};
+export interface RoleSnapshot {
+  memberships: readonly AuthMembership[];
+}
 
-function hasMembershipRole(snapshot: RoleSnapshot, role: MembershipRole) {
-  return snapshot.memberships.some(
+function liveMemberships(snapshot: RoleSnapshot, role: MembershipRole) {
+  return snapshot.memberships.filter(
     (membership) => membership.isActive && membership.role === role,
   );
 }
 
+/**
+ * Whether a live membership of `roleClass` in `tenantId` is among
+ * `memberships` (AL-2675). Pure, so runtimes without a request scope can use
+ * it; `@asym/auth/context` wraps it for a context.
+ */
+export function hasMembershipClass(
+  memberships: readonly AuthMembership[],
+  tenantId: string | null,
+  roleClass: MembershipRole,
+): boolean {
+  return memberships.some(
+    (membership) =>
+      membership.isActive &&
+      membership.tenantId === tenantId &&
+      membership.role === roleClass,
+  );
+}
+
+/** Whether the live staff row of `tenantId` carries the tenant-administrator flag (AL-2675). */
+export function hasTenantAdministratorMembership(
+  memberships: readonly AuthMembership[],
+  tenantId: string | null,
+): boolean {
+  return memberships.some(
+    (membership) =>
+      membership.isActive &&
+      membership.tenantId === tenantId &&
+      membership.role === "staff" &&
+      membership.isTenantAdmin === true,
+  );
+}
+
+/**
+ * Whether the snapshot's membership grants a role name:
+ * - `admin`: a live staff membership that carries the tenant-administrator
+ *   flag. A staff membership without it is not an administrator.
+ * - `staff`: any live staff membership, flagged or not.
+ * - `donor`, `missionary`: a live membership of that class.
+ * - `super_admin` and every other name: never. Platform operators are not a
+ *   membership role; WP2c gives them their own list.
+ */
 export function hasRole(snapshot: RoleSnapshot, role: UserRole): boolean {
-  if (role === "super_admin") {
-    return snapshot.profileRole === "super_admin";
-  }
-
   if (role === "admin") {
-    return (
-      hasMembershipRole(snapshot, "staff") ||
-      snapshot.profileRole === "admin" ||
-      snapshot.profileRole === "staff" ||
-      hasRole(snapshot, "super_admin")
+    return liveMemberships(snapshot, "staff").some(
+      (membership) => membership.isTenantAdmin === true,
     );
   }
-
-  if (role === "staff") {
-    return (
-      hasMembershipRole(snapshot, "staff") ||
-      snapshot.profileRole === "admin" ||
-      snapshot.profileRole === "staff" ||
-      hasRole(snapshot, "super_admin")
-    );
+  if (role === "staff" || role === "donor" || role === "missionary") {
+    return liveMemberships(snapshot, role).length > 0;
   }
-
-  if (role === "donor" || role === "missionary") {
-    return (
-      hasMembershipRole(snapshot, role) ||
-      (snapshot.profileRole
-        ? PUBLIC_COMPATIBILITY_ROLES.has(snapshot.profileRole) &&
-          snapshot.profileRole === role
-        : false) ||
-      snapshot.profileRole === "super_admin"
-    );
-  }
-
-  return snapshot.profileRole === role;
+  return false;
 }
 
 export function hasAnyRole(snapshot: RoleSnapshot, roles: readonly UserRole[]) {
   return roles.some((role) => hasRole(snapshot, role));
 }
 
+/**
+ * The primary role name of a snapshot, for display and routing: `admin` for a
+ * flagged staff membership, then `staff`, `missionary`, `donor`. `null` when
+ * no membership is live.
+ */
 export function derivePrimaryRole(snapshot: RoleSnapshot): UserRole | null {
-  if (snapshot.profileRole === "super_admin") return "super_admin";
-  if (hasMembershipRole(snapshot, "staff")) return "staff";
-  if (hasMembershipRole(snapshot, "missionary")) return "missionary";
-  if (hasMembershipRole(snapshot, "donor")) return "donor";
-  if (snapshot.profileRole === "admin") return "admin";
-  if (snapshot.profileRole === "staff") return "staff";
-
-  if (
-    snapshot.profileRole &&
-    PUBLIC_COMPATIBILITY_ROLES.has(snapshot.profileRole)
-  ) {
-    return snapshot.profileRole;
-  }
-
+  if (hasRole(snapshot, "admin")) return "admin";
+  if (hasRole(snapshot, "staff")) return "staff";
+  if (hasRole(snapshot, "missionary")) return "missionary";
+  if (hasRole(snapshot, "donor")) return "donor";
   return null;
-}
-
-export function hasStaffSubrole(
-  snapshot: RoleSnapshot,
-  staffRole: StaffSubrole,
-) {
-  if (snapshot.profileRole === "super_admin") {
-    return true;
-  }
-
-  return snapshot.memberships.some(
-    (membership) =>
-      membership.isActive &&
-      membership.role === "staff" &&
-      membership.staffRole === staffRole,
-  );
-}
-
-export function canAccessDashboard(
-  snapshot: RoleSnapshot,
-  scope: DashboardScope,
-) {
-  if (hasRole(snapshot, "super_admin")) return true;
-
-  if (scope === "admin_dashboard") {
-    return hasRole(snapshot, "staff") || hasRole(snapshot, "admin");
-  }
-
-  if (scope === "missionary_dashboard") {
-    return hasRole(snapshot, "missionary");
-  }
-
-  return hasRole(snapshot, "donor");
 }

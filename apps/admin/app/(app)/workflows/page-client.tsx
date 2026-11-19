@@ -14,7 +14,7 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { AlertTriangle, CircleAlert, RotateCw } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import {
   parseWorkflowStatusFilter,
@@ -73,8 +73,11 @@ export default function WorkflowsPageClient() {
 
   // Retry swaps the alert for the loading state, then for the runs or a new
   // alert; each swap removes the focused element, so focus follows it unless
-  // the person has already moved on.
-  useEffect(() => {
+  // the person has already moved on. A layout effect runs in the commit that
+  // made the swap: a passive one from the render that showed the alert can
+  // still be pending when Retry is pressed, and would then take that alert
+  // for the outcome of the retry.
+  useLayoutEffect(() => {
     if (!focusAfterRetry.current) return;
     if (data || error) focusAfterRetry.current = false;
     const active = document.activeElement;

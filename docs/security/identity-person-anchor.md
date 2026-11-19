@@ -115,40 +115,83 @@ tests, is:
     `super_admin`. The `super_admin` demo fallback mirrors `getAuthContext`
     and is tracked in #2267; if #2267 removes or moves it, these two policies
     change in the same PR.
-- Functions (SECURITY DEFINER unless marked INVOKER). Most bind an actor or
-  referenced profile to a tenant by requiring `profiles.tenant_id` to match:
-  - `enforce_contribution_operation_tenant_refs`
-  - `enforce_contribution_notification_tenant_refs`
-  - `assert_eve_retention_actor`
-  - `assert_eve_admin_memory_owner`
-  - `validate_eve_notification_recipient`
-  - `assert_eve_launch_profile`
-  - `assert_eve_policy_actor_tenant`
-  - `enforce_eve_policy_permission_tenant` (INVOKER)
-  - `enforce_eve_ai_settings_grant_tenant` (INVOKER)
-  - `atomic_update_profile_with_audit` (INVOKER)
-  - `atomic_update_user_role_with_audit` (INVOKER)
+- Functions (SECURITY DEFINER unless marked INVOKER). Most bound an actor or
+  referenced profile to a tenant by requiring `profiles.tenant_id` to match.
+  Since council round 2 on WP2a (R1), the five that check an actor the
+  application hands them test a live membership in the tenant instead, as the
+  application does; their `super_admin` branch keeps the profile check until
+  WP2c (`20261118093000_eve_actor_checks_read_membership.sql`; the decision
+  table's section 7 lists every one). They still name profiles beside
+  `authz.memberships.tenant_id`, so the lexical scan keeps them.
+  Since AL-2675 (WP2a, NR-49) `enforce_contribution_operation_tenant_refs` and
+  `enforce_contribution_notification_tenant_refs` test a live membership in the
+  row's tenant instead (`private.profile_in_tenant`) and are no longer readers;
+  `tenant_member_directory` reads profiles beside `authz.memberships.tenant_id`
+  and appears in the lexical scan, though it never reads the profile's tenant.
+  Since the WP2a sweep the scan covers the `private` schema too, and two more
+  functions appear in it on the same terms: `tenant_member_profiles`, the
+  service-key reader of a tenant's members, and `private.profile_in_tenant`
+  (INVOKER):
+  - `tenant_member_directory`: display names for the member directory.
+  - `tenant_member_profiles` (INVOKER since council round 1 on WP2a): a
+    tenant's memberships joined to profiles, for service-key server code
+    (AL-2675 sweep, NR-68).
+  - `profile_in_tenant` (`private`, INVOKER): whether a profile's login holds
+    a live membership in a tenant.
+  - `assert_eve_retention_actor`: a live flagged staff row for `admin`
+    since R1; the `super_admin` branch reads the profile's tenant.
+  - `assert_eve_admin_memory_owner`: a live row in the tenant since R1.
+  - `validate_eve_notification_recipient`: a `super_admin` profile of the
+    tenant; unchanged until WP2c, behind the closed recipient PATCH.
+  - `assert_eve_launch_profile`: a live row of the role's kind since R1; the
+    `super_admin` branch reads the profile's role and tenant.
+  - `assert_eve_policy_actor_tenant`: a live row in the tenant since R1; a
+    `super_admin` profile with no tenant still passes until WP2c.
+  - `enforce_eve_policy_permission_tenant` (INVOKER): the profiles' tenant;
+    no application code writes its table.
+  - `enforce_eve_ai_settings_grant_tenant` (INVOKER): the profile's tenant;
+    no application code writes its table.
+  - `atomic_update_profile_with_audit` (INVOKER): the profile's login holds a
+    live row in the tenant since R1.
+  - `atomic_update_user_role_with_audit`: since WP2a joined stage 1, DEFINER;
+    it judges the caller's tenant-administrator membership and finds the
+    target by membership, and reads no profile's tenant.
   - `set_eve_retention_hold`
   - `expire_eve_retention_records`
-  - `handle_new_user`: the writer that sets it at sign-up.
-- App code that uses `profile.tenant_id` to pick or check the tenant:
-  - `apps/admin/src/cms/auth/supabase-strategy.ts`
-  - `packages/api/src/eve/admin-memory/route.ts`
-  - `packages/api/src/posts/reaction-route-utils.ts`
-  - `packages/auth/context.ts`
-  - `packages/auth/resolve-user-role.ts`
-  - `packages/ui/hooks/retained-draft.tsx`
+  - `handle_new_user`: the writer. Since AL-2675 it gives the new login a
+    donor membership (WP2 "Interim rules"), and since council round 1 on WP2a
+    (F3) it writes that membership's tenant to the profile's tenant column
+    too, because the release already running reads it there (plan 7.4). The
+    column grants nothing under WP2a; the migration that drops it (WP5) ends
+    the write.
+- App code that uses `profile.tenant_id` to pick or check the tenant: none.
+  AL-2675 moved `packages/auth/context.ts`, `packages/auth/resolve-user-role.ts`
+  and `apps/admin/src/cms/auth/supabase-strategy.ts` to the caller's
+  membership, and the WP2a sweep moved the last three readers:
+  `packages/api/src/eve/admin-memory/route.ts` tests the caller's live
+  membership in the request's tenant, `packages/api/src/posts/reaction-route-utils.ts`
+  takes the tenant of the request's resolved assignment, and
+  `packages/ui/hooks/retained-draft.tsx` scopes drafts by the page's tenant.
+- App code that filters `profiles` by tenant or role: none. The WP2a sweep
+  moved every such query to membership, because a profile holds one tenant
+  at most and a person may hold memberships in two (NR-68). Server code that
+  needs a tenant's members, approvers, notification recipients, or the
+  authors and assignees it shows reads `tenant_member_profiles` with the
+  service key; Mission Control's users list reads the member directory
+  (`tenant_member_directory`) on the caller's own token, which checks the
+  caller's staff row and returns named columns only (council round 1 on
+  WP2a, F8). The reader manifest's filter half
+  (criterion 6b) fails on any query filter of the profile's tenant or role,
+  the generic tenant-row helper's call included.
 
-In `packages/auth/context.ts` and `packages/auth/resolve-user-role.ts` the hint
-selects the tenant whose `authz.memberships` are loaded; the membership, not the
-hint, carries the role. In `packages/ui/hooks/retained-draft.tsx`,
-`SessionRetainedDraftProvider` uses the profile's tenant hint together with the
-user ID and profile ID to scope in-memory drafts. An absent tenant leaves the
-store unowned, and an owner change remounts and clears it. This client-side
-memory boundary grants no permissions; route/API policies retain access
-authority. The remaining readers use the hint as a tenant-binding check. The
-retained-draft reader is included in the exact inventory tracked by #2267;
-future readers must be added to the pinned list and to this doc with #2267.
+In `packages/ui/hooks/retained-draft.tsx`, `SessionRetainedDraftProvider`
+scopes in-memory drafts by the user ID, the profile ID and the page's tenant,
+which the app's server-side role gate publishes with `RetainedDraftPageTenant`
+from the request's resolved assignment (until WP2b carries the tenant in the
+page address). Without a page tenant for this user the store is unowned, and
+an owner change remounts and clears it. This client-side memory boundary grants
+no permissions; route/API policies retain access authority. Future readers of
+the profile's tenant must be added to the pinned list and to this doc.
 
 ## Asym merge-candidate pairs: `donor_merge_candidates`
 

@@ -966,15 +966,15 @@
     {
       "kind": "container-image",
       "name": "Node scanner base",
-      "version": "24.22.1-trixie",
-      "selector": "node:24.22.1-trixie@sha256:e8bc2eedd0e82fb45a4d9a68aff03d1fbe478fc5794a67d7dc06b72a2caaa2ec",
+      "version": "24.22.3-trixie",
+      "selector": "node:24.22.3-trixie@sha256:6e5d4c38403930b420404f190be8563396dca2bd156a6cb4722707b0efcf6fc1",
       "sourcePath": ".oss-scanner/Dockerfile",
       "line": 3,
-      "upstream": "https://github.com/nodejs/docker-node/tree/80f02a542da739e6a662451d1db66456a0dea253/24/trixie",
+      "upstream": "https://github.com/nodejs/docker-node/tree/1274f3ee37d4d0e59d308ea25b83d9e21e4db862/24/trixie",
       "owner": "Core security and infrastructure maintainers",
       "state": "implemented-awaiting-infrastructure-checkpoint-qualification",
       "disposition": "upgraded",
-      "verification": "Exact rebuilt image and offline runner passed PostgreSQL17.11 migrations, selected SQL/RLS,227 mocked unit tests, all three normal browser/denial smokes and one explicit donor demo check. See runtime-infrastructure-qualification.json; OS inventory is scanner-os-packages.json.",
+      "verification": "Moved from 24.22.1-trixie to the Node 24.22.3 security release with the repository Node pin (AL-2674); the selector is the image-index digest Docker Hub served on 17 November 2026. The rebuilt-image qualification has not been rerun on this image; the 24.22.1 results in runtime-infrastructure-qualification.json are dated evidence for the previous image. OS inventory is scanner-os-packages.json.",
       "recheck": "Runtime, OS base, PostgreSQL, frozen lockfile, browser or scanner helper changes require rebuilt-image qualification."
     },
     {

@@ -1,31 +1,39 @@
+import { isTenantMemberProfile } from "./tenant-members";
+
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
-/** Finds the minimal profile record used for auth-to-profile resolution. */
-export function findProfileByUserId(
+const NOT_A_MEMBER = {
+  data: null,
+  error: { code: "PGRST116", message: "No member profile in this tenant" },
+} as const;
+
+/**
+ * The profile id of the signed-in person's login. Every caller passes the
+ * login of the request's resolved assignment, whose live membership in the
+ * request's tenant the resolver has just checked, so this reads no membership
+ * again (council round 1 on WP2a, F12). It filters on `user_id`, never on the
+ * profile's tenant column (AL-2675, NR-68).
+ */
+export async function findProfileByUserId(
   supabase: AdminSupabaseClient,
   userId: string,
-  tenantId: string,
 ) {
-  return supabase
-    .from("profiles")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("tenant_id", tenantId)
-    .single();
+  return supabase.from("profiles").select("id").eq("user_id", userId).single();
 }
 
-export function findProfileById(
+/** A profile by id; with a tenant, only when it is a live member there (AL-2675). */
+export async function findProfileById(
   supabase: AdminSupabaseClient,
   profileId: string,
   tenantId?: string,
 ) {
-  let query = supabase.from("profiles").select("*").eq("id", profileId);
-
-  if (tenantId) {
-    query = query.eq("tenant_id", tenantId);
+  if (
+    tenantId &&
+    !(await isTenantMemberProfile(supabase, tenantId, profileId))
+  ) {
+    return NOT_A_MEMBER;
   }
-
-  return query.single();
+  return supabase.from("profiles").select("*").eq("id", profileId).single();
 }
 
 export function findMissionaryByProfileId(

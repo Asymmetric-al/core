@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireTenantAdministrator,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { type NextRequest, NextResponse } from "next/server";
@@ -99,7 +99,7 @@ async function requireAdminContext(
   request?: Request,
 ): Promise<AuthenticatedContext> {
   const auth = await getAuthContext(request);
-  requireRole(auth, ["admin", "super_admin"]);
+  requireTenantAdministrator(auth);
   return auth as AuthenticatedContext;
 }
 

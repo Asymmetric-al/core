@@ -226,8 +226,10 @@ async function main() {
 
   console.log("");
   console.log("Next verification:");
+  console.log(
+    "- watch the Release workflow run for this push: it migrates, gates, stages, health-checks and promotes (docs/ops/release-job.md)",
+  );
   console.log(`- bun run verify:vercel-production -- --commit ${commit}`);
-  console.log("- monitor Vercel deployments for admin, donor, and missionary");
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

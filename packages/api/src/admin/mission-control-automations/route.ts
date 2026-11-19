@@ -34,7 +34,7 @@ export const GET = withOperation(
       return toErrorResponse(error, "Failed to list automations.", requestId);
     }
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );
 
 export const POST = withOperation(
@@ -54,5 +54,5 @@ export const POST = withOperation(
       return toErrorResponse(error, "Failed to save automation.", requestId);
     }
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );

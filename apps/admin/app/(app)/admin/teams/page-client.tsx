@@ -38,7 +38,7 @@ import { useId, useState } from "react";
 import {
   loadStaffAccounts,
   staffName,
-  STAFF_ROLE_LABELS,
+  staffRoleLabel,
   type StaffAccount,
 } from "./staff-directory";
 
@@ -60,12 +60,12 @@ const COLUMNS: DataGridColumnDef<StaffAccount>[] = [
     meta: { headerTitle: "Email" },
   },
   {
-    accessorKey: "role",
+    id: "role",
+    // The label, so that sorting by Role follows what the column shows.
+    accessorFn: staffRoleLabel,
     header: ({ column }) => (
       <DataGridColumnHeader column={column} title="Role" />
     ),
-    cell: ({ row }) =>
-      STAFF_ROLE_LABELS[row.original.role] ?? row.original.role,
     meta: { headerTitle: "Role" },
   },
 ];
@@ -126,7 +126,7 @@ function StaffDirectory() {
   });
   const headingId = useId();
   const rows = (people.data ?? []).filter((account) =>
-    `${staffName(account)} ${account.email ?? ""} ${STAFF_ROLE_LABELS[account.role] ?? account.role}`
+    `${staffName(account)} ${account.email ?? ""} ${staffRoleLabel(account)}`
       .toLowerCase()
       .includes(search.toLowerCase()),
   );
@@ -219,7 +219,7 @@ function StaffDirectory() {
                       {original.email || "No email on file"}
                     </ItemDescription>
                     <ItemDescription>
-                      {STAFF_ROLE_LABELS[original.role] ?? original.role}
+                      {staffRoleLabel(original)}
                     </ItemDescription>
                   </ItemContent>
                 </Item>

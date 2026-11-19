@@ -50,7 +50,7 @@ export const GET = withOperation(
       );
     }
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );
 
 export const POST = withOperation(
@@ -80,7 +80,7 @@ export const POST = withOperation(
       );
     }
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );
 
 export const PATCH = withOperation(
@@ -118,5 +118,5 @@ export const PATCH = withOperation(
       );
     }
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );

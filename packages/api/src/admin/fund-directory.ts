@@ -59,5 +59,5 @@ export const GET = withOperation(
 
     return NextResponse.json({ funds: data ?? [] });
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "admin.dashboard.access" },
 );

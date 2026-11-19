@@ -23,6 +23,11 @@ vi.mock("@asym/database/supabase/admin", () => ({
 vi.mock("@asym/auth/context", () => ({
   getAuthContext: getAuthContextMock,
   requireRole: requireRoleMock,
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: requireRoleMock,
+  requireTenantAdministrator: requireRoleMock,
+  requireRoleClass: requireRoleMock,
+  requireAuth: () => undefined,
 }));
 
 vi.mock("@asym/lib/audit/logger", () => ({
@@ -108,7 +113,6 @@ describe("admin contributions replay route", () => {
       email: "admin@example.test",
       memberships: [],
       profileId: "profile_1",
-      profileRole: "admin",
       role: "admin",
       tenantId: "tenant_1",
       userId: "user_1",
