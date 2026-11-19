@@ -58,6 +58,15 @@ After the migration, on any database whatever its default privileges:
   is NULL. `tests/unit/acceptance/issue-2675/organization-names.realstack.acceptance.test.ts`
   checks who sees which name and the grantee set, also after simulating the
   hosted defaults.
+- `public.post_comment_authors(uuid)` (AL-2675, JB11,
+  `20261119053722_post_comment_authors.sql`) gives one row for each person
+  who commented on a published public post: the display name (NULL when blank)
+  and the avatar, only to a caller with a live membership in the post's
+  organization, and NULL to anyone else. It runs as its owner because those
+  profiles are not the caller's. Its migration revokes `PUBLIC`, `anon`,
+  `authenticated` and `service_role` by name and grants `authenticated`
+  alone. `tests/unit/acceptance/issue-2675/post-comment-authors.realstack.acceptance.test.ts`
+  checks who sees which name and the grantee set.
 - The `authz` INVOKER helpers `current_user_id()` and `current_tenant_id()`
   keep `PUBLIC` EXECUTE; they run with the caller's privileges and gain nothing.
 - The 8 `authz staff tenant …` policies on `crm_command_logs`,

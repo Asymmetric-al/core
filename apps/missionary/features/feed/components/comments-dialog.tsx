@@ -18,7 +18,7 @@ import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
-import { Send } from "lucide-react";
+import { Send, UserRound } from "lucide-react";
 import { useState } from "react";
 
 function makeDisplayDate(value?: string | number | Date): Date {
@@ -31,12 +31,35 @@ interface Comment {
   id: string;
   content: string;
   created_at: string;
+  /**
+   * The commenter. Empty names when there is no name to show: a blank display
+   * name, or a viewer outside the post's organization (AL-2675, JB11).
+   */
   user: {
-    id: string;
+    id: string | null;
     first_name: string;
     last_name: string;
     avatar_url: string | null;
-  };
+  } | null;
+}
+
+/** The byline for an author with no name; not "Anonymous", which they did not ask to be. */
+const NAMELESS_AUTHOR = "Commenter";
+
+function authorName(comment: Comment): string {
+  return (
+    [comment.user?.first_name, comment.user?.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim() || NAMELESS_AUTHOR
+  );
+}
+
+/** The author's initials, or null for an author with no name. */
+function authorInitials(comment: Comment): string | null {
+  const first = comment.user?.first_name?.charAt(0) ?? "";
+  const last = comment.user?.last_name?.charAt(0) ?? "";
+  return `${first}${last}`.trim() || null;
 }
 
 interface CommentsDialogProps {
@@ -111,18 +134,19 @@ export function CommentsDialog({
               {comments.map((comment) => (
                 <div key={comment.id} className="flex gap-3">
                   <Avatar className="size-8">
-                    {comment.user.avatar_url && (
+                    {comment.user?.avatar_url && (
                       <AvatarImage src={comment.user.avatar_url} />
                     )}
                     <AvatarFallback>
-                      {comment.user.first_name[0]}
-                      {comment.user.last_name[0]}
+                      {authorInitials(comment) ?? (
+                        <UserRound aria-hidden className="size-4" />
+                      )}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <p className="text-sm">
                       <span className="font-semibold">
-                        {comment.user.first_name} {comment.user.last_name}
+                        {authorName(comment)}
                       </span>{" "}
                       {comment.content}
                     </p>
