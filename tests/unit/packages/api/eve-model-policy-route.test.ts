@@ -57,12 +57,15 @@ vi.mock("../../../../packages/api/src/eve/model-policy/control", () => ({
   createEveModelBudgetOverride: createOverrideMock,
 }));
 
+/** A signed-in request: it carries the Supabase session cookie (review WC3). */
 function request(method = "GET", body?: unknown): NextRequest {
   return new Request("https://admin.example.test/api/admin/eve/model-policy", {
     method,
     body: body === undefined ? undefined : JSON.stringify(body),
-    headers:
-      body === undefined ? undefined : { "content-type": "application/json" },
+    headers: {
+      cookie: "sb-127-auth-token=session",
+      ...(body === undefined ? {} : { "content-type": "application/json" }),
+    },
   }) as NextRequest;
 }
 

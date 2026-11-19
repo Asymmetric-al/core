@@ -121,11 +121,13 @@ const tenantAdmin: AuthContext = {
   isAuthenticated: true,
 };
 
+/** A signed-in request: it carries the Supabase session cookie (review WC3). */
 function createRequest(method: "GET" | "POST" | "PATCH"): NextRequest {
   return new NextRequest(
     "https://admin.example.test/api/admin/eve/governance",
     {
       method,
+      headers: { cookie: "sb-127-auth-token=session" },
     },
   );
 }

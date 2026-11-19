@@ -74,11 +74,14 @@ vi.mock("../../../../packages/api/src/eve/governance/control", async () => {
   };
 });
 
+/** A signed-in request: it carries the Supabase session cookie (review WC3). */
 function createRequest(method = "GET", body?: unknown): NextRequest {
   return new Request("https://admin.example.test/api/admin/eve/governance", {
     body: body === undefined ? undefined : JSON.stringify(body),
-    headers:
-      body === undefined ? undefined : { "content-type": "application/json" },
+    headers: {
+      cookie: "sb-127-auth-token=session",
+      ...(body === undefined ? {} : { "content-type": "application/json" }),
+    },
     method,
   }) as NextRequest;
 }

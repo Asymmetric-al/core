@@ -74,9 +74,14 @@ const authenticatedAdmin: TestAuthContext = {
   memberships: [],
 };
 
+/**
+ * A signed-in request: it carries the Supabase session cookie, so the shared
+ * operator check asks the database (review WC3).
+ */
 function createRequest(): NextRequest {
   return new NextRequest("http://localhost/api/test", {
     method: "POST",
+    headers: { cookie: "sb-127-auth-token=session" },
   });
 }
 
@@ -195,6 +200,40 @@ describe("withOperation", () => {
     });
     expect((await handler(createRequest())).status).toBe(500);
     expect(run).not.toHaveBeenCalled();
+  });
+
+  // Review of WP2c part 1, WC3: a request with no Supabase session (the
+  // test-only bypass identity is one) is "not an operator", never a 500.
+  it("refuses a platform gate with 403, not 500, and asks no database, for a request with no Supabase session", async () => {
+    mockedGetAdminClient.mockReturnValue({
+      client: {} as never,
+      error: null,
+    });
+    mockedGetAuthContext.mockResolvedValue(authenticatedAdmin);
+    operatorRpc.mockResolvedValue({
+      data: null,
+      error: { code: "PGRST202", message: "function not found" },
+    });
+    const run = vi.fn();
+    const handler = withOperation(
+      async () => {
+        run();
+        return NextResponse.json({ ok: true });
+      },
+      { platformOperator: true },
+    );
+
+    const response = await handler(
+      new NextRequest("http://localhost/api/test", {
+        method: "POST",
+        headers: { cookie: "asym_e2e_auth=signed-value" },
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(run).not.toHaveBeenCalled();
+    expect(createClient).not.toHaveBeenCalled();
+    expect(operatorRpc).not.toHaveBeenCalled();
   });
 
   it("runs the operator check at most once per request, and only when asked", async () => {
