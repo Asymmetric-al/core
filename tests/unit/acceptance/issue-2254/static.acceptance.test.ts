@@ -19,8 +19,11 @@ import {
   read,
   sha256,
 } from "./harness";
-import { loadWorkflowDocument } from "../../helpers/workflow-yaml";
-import { expectRealstackStep } from "../shared/realstack-step";
+import {
+  expectRealstackStep,
+  migrateSteps,
+  stepTestPaths,
+} from "../shared/realstack-step";
 
 const STEP_DOC = "docs/database/email-normalization.md";
 const REALSTACK =
@@ -257,18 +260,16 @@ describe("#2254 criterion 9: census evidence", () => {
 });
 
 describe("#2254 criterion 8: CI migrate step (Samson clarification)", () => {
-  const steps = () =>
-    loadWorkflowDocument(".github/workflows/ci-integration.yml").jobs!.migrate!
-      .steps as Record<string, string>[];
+  const identityStep = () =>
+    migrateSteps().find((step) => stepTestPaths(step).includes(REALSTACK));
+
   it("one blocking migrate step runs the issue-2254 real-stack file", () => {
-    const step = steps().find((s) => (s.run ?? "").includes(REALSTACK));
+    const step = identityStep();
     expect(step, "a migrate step runs issue-2254 files").toBeDefined();
     expectRealstackStep(step!.name!, [REALSTACK]);
   });
   it("amendment 6384990496: docs/database/email-normalization.md documents the step's name, check and failure", () => {
-    const step = steps().find((s) =>
-      /tests\/unit\/acceptance\/issue-2254\//.test(s.run ?? ""),
-    );
+    const step = identityStep();
     const text = flat(read(STEP_DOC));
     expect(text, `${STEP_DOC} must exist`).not.toBe("");
     expect(
