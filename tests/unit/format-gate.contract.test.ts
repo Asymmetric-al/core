@@ -25,9 +25,10 @@ const globsRunningPrettier = Object.entries(lintStagedConfig)
   .map(([glob]) => glob);
 
 describe("format gate contract", () => {
-  // The pre-push gate runs `prettier . --check` over the whole repo, so an
-  // enumerated allowlist lets files under tests/, scripts/, and repo-root paths
-  // commit unformatted and fail at push time.
+  // The full preflight profile and the required CI `format` job run
+  // `prettier . --check` over the whole repo (a push checks only changed
+  // files), so an enumerated allowlist lets files under tests/, scripts/, and
+  // repo-root paths commit unformatted and fail later.
   it("runs Prettier over every staged file, not an enumerated allowlist", () => {
     expect(globsRunningPrettier).toEqual(["*"]);
   });
@@ -40,7 +41,7 @@ describe("format gate contract", () => {
     expect(commands[0]).toContain("--write");
   });
 
-  it("keeps the pre-push format gate repo-wide", () => {
+  it("keeps the full-profile and CI format check repo-wide", () => {
     expect(packageJson.scripts["format:check"]).toBe("prettier . --check");
     expect(packageJson.scripts.format).toBe("prettier . --write");
   });

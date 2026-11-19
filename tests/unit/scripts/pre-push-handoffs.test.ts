@@ -11,7 +11,12 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { runPrePush } from "../../../scripts/git/pre-push.mjs";
+import { parsePrePushUpdates } from "../../../scripts/git/pre-push-guard.mjs";
+import {
+  PRE_PUSH_PROFILE_ENV,
+  runPrePush,
+  selectPreflight,
+} from "../../../scripts/git/pre-push.mjs";
 
 const created: string[] = [];
 
@@ -205,8 +210,114 @@ describe("feature branch handoffs", () => {
     expect(result).toBe(0);
     expect(runCommand).toHaveBeenCalledWith(
       "bun",
-      ["run", "ci:preflight"],
+      ["run", "ci:preflight", "--", "--fast"],
       expect.objectContaining({ env: {} }),
     );
+  });
+});
+
+describe("pre-push profile selection", () => {
+  const FEATURE_PUSH = `refs/heads/feature/x ${"a".repeat(40)} refs/heads/feature/x ${"b".repeat(40)}\n`;
+  const PRODUCTION_PUSH = `refs/heads/develop ${"a".repeat(40)} refs/heads/production ${"b".repeat(40)}\n`;
+  const RELEASE = {
+    ASYM_RELEASE_PRODUCTION_PUSH: "1",
+    ASYM_RELEASE_PRODUCTION_REASON: "release checkpoint",
+  };
+
+  it("names the selector the factory sets", () => {
+    expect(PRE_PUSH_PROFILE_ENV).toBe("ASYM_PRE_PUSH_PROFILE");
+  });
+
+  it.each([
+    ["no selector", {}, ["run", "ci:preflight", "--", "--fast"]],
+    [
+      "an empty selector",
+      { ASYM_PRE_PUSH_PROFILE: "" },
+      ["run", "ci:preflight", "--", "--fast"],
+    ],
+    [
+      "the fast selector",
+      { ASYM_PRE_PUSH_PROFILE: "fast" },
+      ["run", "ci:preflight", "--", "--fast"],
+    ],
+    [
+      "the full selector",
+      { ASYM_PRE_PUSH_PROFILE: "full" },
+      ["run", "ci:preflight"],
+    ],
+  ])("runs the selected profile for a feature push with %s", (_, env, args) => {
+    const runCommand = vi.fn(() => ({ status: 0 }));
+    expect(runPrePush({ input: FEATURE_PUSH, env, runCommand })).toBe(0);
+    expect(runCommand).toHaveBeenCalledTimes(1);
+    expect(runCommand).toHaveBeenCalledWith(
+      "bun",
+      args,
+      expect.objectContaining({ env }),
+    );
+  });
+
+  it.each([["fast"], ["full"], [""]])(
+    "runs the full profile with full compilation for production whatever the selector (%j)",
+    (profile) => {
+      const runCommand = vi.fn(() => ({ status: 0 }));
+      const env = { ...RELEASE, ASYM_PRE_PUSH_PROFILE: profile };
+      expect(runPrePush({ input: PRODUCTION_PUSH, env, runCommand })).toBe(0);
+      expect(runCommand).toHaveBeenCalledWith(
+        "bun",
+        ["run", "ci:preflight", "--", "--full"],
+        expect.objectContaining({ env }),
+      );
+    },
+  );
+
+  it.each([["Full"], ["slow"], ["full "], ["1"]])(
+    "blocks the push without running checks when the selector is %j",
+    (profile) => {
+      const runCommand = vi.fn(() => ({ status: 0 }));
+      const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+      try {
+        expect(
+          runPrePush({
+            input: FEATURE_PUSH,
+            env: { ASYM_PRE_PUSH_PROFILE: profile },
+            runCommand,
+          }),
+        ).toBe(1);
+        expect(runCommand).not.toHaveBeenCalled();
+        expect(errors.mock.calls.flat().join("\n")).toMatch(
+          /ASYM_PRE_PUSH_PROFILE.*"fast".*"full"/,
+        );
+      } finally {
+        errors.mockRestore();
+      }
+    },
+  );
+
+  it("passes a failed profile's exit status back to Git", () => {
+    const runCommand = vi.fn(() => ({ status: 3 }));
+    expect(runPrePush({ input: FEATURE_PUSH, env: {}, runCommand })).toBe(3);
+  });
+
+  it("selects the profile from the pushed refs and the selector alone", () => {
+    expect(
+      selectPreflight({
+        updates: parsePrePushUpdates(FEATURE_PUSH),
+        env: {},
+      }),
+    ).toEqual({
+      ok: true,
+      profile: "fast",
+      args: ["run", "ci:preflight", "--", "--fast"],
+    });
+    expect(
+      selectPreflight({
+        updates: parsePrePushUpdates(PRODUCTION_PUSH),
+        env: { ASYM_PRE_PUSH_PROFILE: "fast" },
+      }),
+    ).toEqual({
+      ok: true,
+      profile: "full",
+      args: ["run", "ci:preflight", "--", "--full"],
+    });
   });
 });

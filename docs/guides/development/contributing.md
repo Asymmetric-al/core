@@ -96,7 +96,7 @@ and Git writes in your normal authenticated development environment.
 # Fix formatting (only when needed)
 bun run format
 
-# Canonical PR/push-readiness gate
+# Canonical PR-readiness gate (full profile; git push runs -- --fast)
 bun run ci:preflight
 
 # After font asset or loader changes, in Linux/WSL with Playwright Chromium

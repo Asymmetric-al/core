@@ -186,25 +186,31 @@ export function readCompilationChanges({
   base = "origin/develop",
   head = "HEAD",
   includeWorkingTree = false,
+  cwd,
 } = {}) {
   try {
+    // -z keeps each path as named; plain output quotes paths with
+    // non-ASCII bytes, quotes, backslashes or tabs.
     const git = (args) =>
       execFileSync("git", args, {
+        cwd,
         encoding: "utf8",
         stdio: ["ignore", "pipe", "pipe"],
-      }).trim();
-    const changes = [
-      git(["diff", "--no-renames", "--name-only", `${base}...${head}`, "--"]),
+      }).split("\0");
+    const diff = (range) => [
+      "diff",
+      "--no-renames",
+      "--name-only",
+      "-z",
+      range,
+      "--",
     ];
+    const changes = [git(diff(`${base}...${head}`))];
     if (includeWorkingTree) {
-      changes.push(git(["diff", "--no-renames", "--name-only", "HEAD", "--"]));
-      changes.push(git(["ls-files", "--others", "--exclude-standard"]));
+      changes.push(git(diff("HEAD")));
+      changes.push(git(["ls-files", "-z", "--others", "--exclude-standard"]));
     }
-    return [
-      ...new Set(
-        changes.flatMap((text) => text.split(/\r?\n/)).filter(Boolean),
-      ),
-    ];
+    return [...new Set(changes.flat().filter(Boolean))];
   } catch {
     return null;
   }

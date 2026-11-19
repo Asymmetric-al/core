@@ -168,7 +168,8 @@ Root `package.json` scripts (the four separate claims kept distinct):
     (`docs/ci.md` §Branch protection). Whether GitHub actually enforces these is a
     platform setting → **Unknown** (§8).
 - **Contributors instructed to run it:** `README.md` + `docs/ci.md` instruct
-  `bun run ci:preflight` (wired into `.husky/pre-push`).
+  `bun run ci:preflight`; `.husky/pre-push` runs its fast profile
+  (`-- --fast`), and `-- --full` for a push to `production`.
 
 Classification: **Confirmed** for script existence and documented gate order;
 branch-protection enforcement **Unknown**.
@@ -187,9 +188,9 @@ Summary of what is repo-visible:
   `vendor/react-pdf-packages`.
 - **Import-path protection:** the data-access boundary (§4.2) is enforced on
   specific import paths by ESLint + `verify:data-boundary`.
-- **Push/branch guards (local):** `.husky/pre-push` runs normal preflight and
-  blocks direct `production` pushes unless via
-  `bun run release:production`.
+- **Push/branch guards (local):** `.husky/pre-push` runs the fast preflight
+  profile (the full one when `ASYM_PRE_PUSH_PROFILE=full`) and blocks direct
+  `production` pushes unless via `bun run release:production`.
 
 ### 4.5 Agent skills and mirrors
 
@@ -200,7 +201,7 @@ extra ecosystem packs on top of the canonical repo skills (`README.md:180-188`,
 root `AGENTS.md`). Direction of truth: **`docs/ai/skills/` → mirrors**, never the
 reverse. Scripts: `skills:sync` = `scripts/sync-agent-skills.mjs`,
 `skills:verify` = `scripts/verify-skills-sync.mjs` (fails on drift or a dirty tree
-after sync; runs in CI `format` job and in `ci:preflight`).
+after sync; runs in CI `integrity` job and in the full `ci:preflight` profile).
 
 `.claude/commands/` (5 entries) and `.claude/agents/` (2 entries) exist and,
 per root `AGENTS.md`, are format-checked (not prettier-ignored like the skill

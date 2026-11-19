@@ -35,9 +35,10 @@ Use this when adding tests, modifying critical flows, or verifying changes.
   `tests/e2e/instant-navigation.spec.ts`; rules:
   `docs/ai/rules/frontend.md` → Instant Navigation). Add `instant()` coverage
   when building or changing navigation-critical routes.
-- **Local CI parity:** Run `bun run ci:preflight` before push/PR-ready; development compilation is conditional on dependency/build inputs. Use `bun run ci:preflight -- --full` for full QA/release parity.
+- **Local CI parity:** Run `bun run ci:preflight` (the full profile) before a PR is ready; development compilation is conditional on dependency/build inputs. Use `bun run ci:preflight -- --full` for full QA/release parity.
 - **Fast local gate:** `bun run check` runs `lint`, `typecheck`, and `test:unit` only. Use it for tight iteration loops.
-- **Pre-push mirror:** `bun run ci:preflight` runs `scripts/verify/ci-preflight.mjs`, which mirrors the blocking stages in `.github/workflows/ci.yml` (through `test:unit`). It does **not** run `verify:deployment-discipline`; use `bun run verify:deployment-discipline` or `bun run release:production` when branch-protection or Vercel release posture changes.
+- **Pre-push gate:** `git push` runs the fast profile (`bun run ci:preflight -- --fast`): changed-file formatting, affected lint and typecheck, and the verifiers whose inputs the push changed, with no unit, acceptance or build stage. Stages and coverage: `docs/ci.md`.
+- **Full mirror:** `bun run ci:preflight` runs `scripts/verify/ci-preflight.mjs`, which mirrors the blocking stages in `.github/workflows/ci.yml` (through `test:unit` and `test:acceptance`). It does **not** run `verify:deployment-discipline`; use `bun run verify:deployment-discipline` or `bun run release:production` when branch-protection or Vercel release posture changes.
 
 ## What a check proves
 
@@ -188,7 +189,7 @@ already reachable from `develop`.
 
 1. Decide the test scope (unit, e2e, a11y, perf, or specific user flow).
 2. Add coverage to the appropriate Playwright specs if needed.
-3. Run `bun run ci:preflight` before push/PR-ready.
+3. Run `bun run ci:preflight` before the PR is ready (the push hook runs only the fast profile).
 4. Run the relevant Playwright command(s) before marking a PR ready.
 5. Fix failures before proceeding.
 6. For user-facing/runtime PRs targeting `develop`, apply `qa:smoke` when the
@@ -289,9 +290,11 @@ npx playwright show-report
   A workflow that needs more than this gets its own assertion, and the exact
   `migrate` pins in `tests/unit/helpers/workflow-yaml.ts`
   (`PINNED_STEP_BODIES`, `PINNED_JOB_IFS`) remain the backstop.
-- `tests/unit/scripts/ci-preflight.contract.test.ts` locks `ci:preflight` stage
-  order against `docs/ci.md` and ensures deployment discipline stays out of
-  preflight.
+- `tests/unit/scripts/ci-preflight.contract.test.ts` locks the stage order of
+  both `ci:preflight` profiles against `docs/ci.md`, the fast profile's scoping,
+  the failure output and the pass lines, and ensures deployment discipline
+  stays out of preflight. `tests/unit/scripts/pre-push-handoffs.test.ts` locks
+  which profile a push runs.
 - `tests/unit/scripts/local-gates.contract.test.ts` locks `bun run check` and
   per-app `lint:*` / `typecheck:*` scripts for donor and missionary.
 - `tests/unit/apps/donor-missionary-unit-smoke.contract.test.ts` keeps baseline
