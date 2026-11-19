@@ -569,6 +569,7 @@
   "patchedDependencies": {
     "@shadcn/lint@0.2.3": "tooling/eslint-config/patches/@shadcn%2Flint@0.2.3.patch",
     "@supabase-labs/tanstack-db@0.1.0": "packages/database/patches/@supabase-labs%2Ftanstack-db@0.1.0.patch",
+    "ultracite@8.3.0": "tooling/quality/patches/ultracite@8.3.0.patch",
   },
   "overrides": {
     "@asym/docraptor-client": "file:vendor/react-pdf-packages/asym-docraptor-client-0.1.0.tgz",
