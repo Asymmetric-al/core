@@ -785,8 +785,8 @@ describe("edit hook runs and time budget", () => {
       command.tool === "prettier"
         ? {
             status: 0,
-            // Prettier prints each rewritten file relative to its cwd.
-            stdout: "packages/api/src/b.ts\ndocs/notes.md\n",
+            // Prettier prints each rewritten file as it was passed in.
+            stdout: `${at("packages/api/src/b.ts")}\ndocs/notes.md\n`,
             stderr: "",
           }
         : ok,

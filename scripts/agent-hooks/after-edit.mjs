@@ -313,10 +313,19 @@ function outputLines(text) {
  * rewritten file before its next edit or that edit will not match.
  */
 export function summarizePrettier(result, command, root) {
-  const names = new Set(command.files.map((file) => relativeName(root, file)));
+  const names = new Map(
+    command.files.flatMap((file) => {
+      const relative = relativeName(root, file);
+      return [
+        [relative, relative],
+        [file.split(path.sep).join("/"), relative],
+      ];
+    }),
+  );
   const lines = outputLines(result.stdout)
     .map((line) => line.split(path.sep).join("/"))
-    .filter((name) => names.has(name))
+    .map((name) => names.get(name))
+    .filter((name) => name !== undefined)
     .map(
       (name) =>
         `${name}: reformatted by Prettier; re-read it before the next edit.`,
