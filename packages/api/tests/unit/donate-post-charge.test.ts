@@ -456,6 +456,15 @@ describe("POST /api/donate Gift processing-fee policy", () => {
       changesDuringClaim: false,
     },
     {
+      label: "foreign donor on customer creation",
+      amountCents: 10000,
+      paymentMethod: "card",
+      coverFees: false,
+      quoted: false,
+      missingCustomer: true,
+      changesDuringClaim: false,
+    },
+    {
       label: "legacy cover-card",
       amountCents: 10330,
       paymentMethod: "card",
@@ -494,6 +503,7 @@ describe("POST /api/donate Gift processing-fee policy", () => {
   ] as const)(
     "preserves payment replay state: $label",
     async ({
+      label,
       amountCents,
       paymentMethod,
       coverFees,
@@ -629,27 +639,32 @@ describe("POST /api/donate Gift processing-fee policy", () => {
       const from = vi.fn((table: string) => {
         if (table === "donations")
           return createDonationsFromMock(amountCents)(table);
-        if (table === "donors")
-          return {
-            select: () => ({
-              eq: (column: string, value: string) => ({
-                eq: () => ({
-                  single: async () => ({
-                    data:
-                      column === "tenant_id" &&
-                      value === authenticatedDonor.tenantId
-                        ? {
-                            id: "donor-1",
-                            profile_id: "profile-1",
-                            stripe_customer_id: null,
-                          }
-                        : null,
-                    error: null,
-                  }),
-                }),
-              }),
+        if (table === "donors") {
+          const row = {
+            id: "donor-1",
+            tenant_id: label.startsWith("foreign donor")
+              ? "another-tenant"
+              : authenticatedDonor.tenantId,
+            profile_id: "profile-1",
+            stripe_customer_id: null,
+          };
+          const filters = new Map<string, string>();
+          const query = {
+            eq(column: string, value: string) {
+              filters.set(column, value);
+              return query;
+            },
+            single: async () => ({
+              data: [...filters].every(
+                ([column, value]) => row[column as keyof typeof row] === value,
+              )
+                ? row
+                : null,
+              error: null,
             }),
           };
+          return { select: () => query };
+        }
         if (table === "profiles")
           return {
             select: () => ({
@@ -690,6 +705,16 @@ describe("POST /api/donate Gift processing-fee policy", () => {
       mockedProcessDonationSagaOutboxEvent.mockImplementation(
         processActualSaga,
       );
+      if (label.startsWith("foreign donor")) {
+        const response = await POST(createDonateRequest(requestBody));
+        expect(response.ok).toBe(false);
+        expect(await response.json()).toMatchObject({
+          error: expect.stringContaining("Donor not found"),
+        });
+        expect(createPaymentIntent).not.toHaveBeenCalled();
+        expect(createCustomer).not.toHaveBeenCalled();
+        return;
+      }
       if (changesDuringClaim) {
         expect(row.attempts).toBe(0);
       } else if (quoted) {

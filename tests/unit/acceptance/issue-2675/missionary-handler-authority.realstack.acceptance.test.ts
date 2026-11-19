@@ -25,7 +25,6 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
       "public.missionary_directory",
       "public.missionary_activities",
       "public.missionary_activity_create",
-      "public.crm_donor_activities",
     ];
     const result = await db.query(
       `select name, not proc.prosecdef and
@@ -36,6 +35,13 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
        join pg_proc as proc on proc.oid = to_regproc(guard.name)`,
       [guards],
     );
+    expect(
+      (
+        await db.query(
+          "select to_regproc('public.crm_donor_activities') as stale",
+        )
+      ).rows[0].stale,
+    ).toBeNull();
     expect(result.rows).toHaveLength(guards.length);
     for (const row of result.rows) expect(row.restricted, row.name).toBe(true);
   });
@@ -108,6 +114,14 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         const originalRow = { id: original, title: "Original", donor_id: null };
         if (elsewhere === "none") {
           const [created] = await write("create", null, { title: "General" });
+          expect(
+            (
+              await db.query(
+                "select status, priority, sort_key from public.missionary_tasks where id=$1",
+                [created.id],
+              )
+            ).rows,
+          ).toEqual([{ status: "pending", priority: "medium", sort_key: 0 }]);
           expect(created).toEqual({
             id: expect.any(String),
             title: "General",
@@ -175,7 +189,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
     const second = org();
     const orphan = randomUUID();
     const donorHat = randomUUID();
-    const staffHat = randomUUID();
+    const otherDonor = randomUUID();
     await db.query("begin");
     try {
       await db.query("insert into auth.users (id) values ($1)", [profile]);
@@ -210,8 +224,8 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         [donorHat, first.tenant, profile],
       );
       await db.query(
-        "insert into authz.memberships (id,tenant_id,user_id,role,staff_role) values ($1,$2,$3,'staff','development')",
-        [staffHat, first.tenant, profile],
+        "insert into public.donors (id,tenant_id,missionary_id) values ($1,$2,$3)",
+        [otherDonor, first.tenant, profile],
       );
       await db.query(
         "insert into public.missionary_tasks (id,missionary_id,title) values ($1,$2,'unplaced')",
@@ -252,17 +266,30 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
       expect(await activity(first, second.donor)).toEqual([]);
       const activities = await activity(first, first.donor);
       expect(activities).toHaveLength(1);
-      const staffActivities = (scope: typeof first, donor: string) =>
-        call("crm_donor_activities", scope, donor);
+      const otherActivities = await activity(first, otherDonor);
+      expect(otherActivities).toHaveLength(1);
       expect(
-        await staffActivities({ ...first, assignment: staffHat }, first.donor),
-      ).toEqual(activities);
+        await call("missionary_activities", first, [first.donor, otherDonor]),
+      ).toHaveLength(2);
+      expect(await call("missionary_activities", first, [first.donor])).toEqual(
+        activities,
+      );
       expect(
-        await staffActivities({ ...first, assignment: staffHat }, second.donor),
+        await call("missionary_activities", second, [first.donor]),
       ).toEqual([]);
-      expect(await staffActivities(first, first.donor)).toEqual([]);
-      expect(await call("missionary_activities", first)).toEqual(activities);
-      expect(await call("missionary_activities", second)).toEqual([]);
+      for (const [person, assignment] of [
+        [randomUUID(), first.assignment],
+        [profile, null],
+      ]) {
+        expect(
+          (
+            await db.query(
+              "select * from public.missionary_owned_tasks($1,$2,$3)",
+              [person, first.tenant, assignment],
+            )
+          ).rows,
+        ).toEqual([]);
+      }
       expect(await call("missionary_directory", first)).toEqual([
         first.missionary,
       ]);
@@ -329,8 +356,8 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
       expect(await call("missionary_directory", wrongHat)).toEqual([]);
       await db.query("reset role");
       await db.query(
-        "update authz.memberships set is_active=false,revoked_at=now() where id in ($1,$2)",
-        [first.assignment, staffHat],
+        "update authz.memberships set is_active=false,revoked_at=now() where id=$1",
+        [first.assignment],
       );
       await db.query("set local role service_role");
       for (const scope of [
@@ -340,7 +367,9 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
       ]) {
         expect(await reads(scope)).toEqual([[], [], []]);
         expect(await activity(scope, first.donor)).toEqual([]);
-        expect(await call("missionary_activities", scope)).toEqual([]);
+        expect(
+          await call("missionary_activities", scope, [first.donor]),
+        ).toEqual([]);
         expect(await call("missionary_directory", scope)).toEqual([]);
         expect(
           await task(scope, "create", null, {
@@ -356,9 +385,6 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         }
         expect(await edit(scope)).toEqual([]);
       }
-      expect(
-        await staffActivities({ ...first, assignment: staffHat }, first.donor),
-      ).toEqual([]);
       expect(await reads(second)).toEqual([
         [second.task],
         [second.request],

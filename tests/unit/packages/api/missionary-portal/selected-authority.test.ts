@@ -1,6 +1,9 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { membershipsForRole } from "../../../../fixtures/auth-memberships";
+import * as portal from "../../../../../packages/api/src/missionary-portal";
+import * as donors from "../../../../../packages/api/src/missionary-portal/donors";
+import * as crm from "../../../../../packages/api/src/admin/crm/detail";
 import * as tasks from "../../../../../packages/api/src/missionary-portal/tasks";
 import * as task from "../../../../../packages/api/src/missionary-portal/task";
 import * as followers from "../../../../../packages/api/src/follower-requests";
@@ -13,6 +16,9 @@ const fake = vi.hoisted(() => ({
   rpc: vi.fn(),
   from: vi.fn(),
   role: "missionary",
+  assigned: true,
+  update: vi.fn(),
+  selection: vi.fn(),
 }));
 const tenant = "00000000-0000-4000-8000-000000000001";
 const id = "00000000-0000-4000-8000-000000000002";
@@ -29,18 +35,28 @@ vi.mock("@asym/auth/context", async (importOriginal) => ({
     isAuthenticated: true,
     role: fake.role,
     memberships: membershipsForRole(fake.role, tenant),
-    assignment: {
-      assignmentId: assignment,
-      membershipRole: fake.role,
-      tenantId: tenant,
-      userId: id,
-    },
+    assignment: fake.assigned
+      ? {
+          assignmentId: assignment,
+          membershipRole: fake.role,
+          tenantId: tenant,
+          userId: id,
+        }
+      : null,
   }),
 }));
-function query(data: unknown) {
-  const result = { data, error: null };
+function query(data: unknown, error: unknown = null) {
+  const result = { data, error };
   const chain = {
-    select: () => chain,
+    select: (columns: string) => {
+      fake.selection(columns);
+      return chain;
+    },
+    update: (value: unknown) => {
+      fake.update(value);
+      return chain;
+    },
+    in: () => chain,
     eq: () => chain,
     order: () => chain,
     range: () => chain,
@@ -59,6 +75,8 @@ function request(method: string, body?: unknown) {
 }
 const args = { params: Promise.resolve({ taskId: id, requestId: id }) };
 const routes = [
+  ["portal", "missionary_own_record", () => portal.GET(request("GET"))],
+  ["donors", "missionary_activities", () => donors.GET(request("GET"))],
   ["directory", "missionary_directory", () => directory.GET(request("GET"))],
   [
     "activity create",
@@ -113,7 +131,10 @@ const routes = [
 beforeEach(() => {
   vi.clearAllMocks();
   fake.role = "missionary";
+  fake.assigned = true;
   fake.from.mockImplementation((table: string) => {
+    if (table === "donors") return query([{ id }]);
+    if (table === "donor_pledges") return query([]);
     if (table !== "profiles") throw Error("unscoped access");
     return query({ id });
   });
@@ -162,16 +183,150 @@ describe("missionary handler delegation", () => {
           p_assignment_id: assignment,
         }),
       );
-      expect(response.status).toBeLessThan(500);
+      expect(response.status).toBe(
+        [
+          "directory",
+          "donors",
+          "task list",
+          "follower list",
+          "missionary profile",
+        ].includes(_name)
+          ? 200
+          : 404,
+      );
     },
   );
-  it.each(routes)(
-    "%s never dispatches missionary work for the donor class",
-    async (name, _fn, invoke) => {
-      fake.role = "donor";
-      const response = await invoke();
-      expect(response.status).toBe(name === "missionary profile" ? 200 : 403);
+  describe.each(["staff", "donor"])("%s class", (role) => {
+    it.each(routes)(
+      "%s does not dispatch missionary work",
+      async (name, _fn, invoke) => {
+        fake.role = role;
+        const response = await invoke();
+        expect(response.status).toBe(name === "missionary profile" ? 200 : 403);
+        expect(fake.rpc).not.toHaveBeenCalled();
+      },
+    );
+    it("saves common profile fields without a missionary write", async () => {
+      fake.role = role;
+      expect(
+        (
+          await profile.PATCH(
+            request("PATCH", { firstName: "Jo", phone: "123" }),
+          )
+        ).status,
+      ).toBe(200);
+      expect(fake.update).toHaveBeenCalledWith(
+        expect.objectContaining({ first_name: "Jo", phone: "123" }),
+      );
       expect(fake.rpc).not.toHaveBeenCalled();
+    });
+  });
+  it.each(["missionary", "donor", "staff"])(
+    "enforces CRM record read access for %s",
+    async (role) => {
+      fake.role = role;
+      fake.from.mockReturnValue(query(null));
+      const response = await crm.GET(
+        new NextRequest("https://app.test/api/admin/crm/records/" + id),
+      );
+      expect(response.status).toBe(role === "staff" ? 404 : 403);
+      expect(fake.from.mock.calls.map(([table]) => table)).toEqual(
+        role === "staff" ? ["donors"] : [],
+      );
     },
   );
+  it.each(
+    routes.filter(([name]) =>
+      [
+        "task list",
+        "task update",
+        "portal",
+        "donors",
+        "missionary profile",
+        "missionary profile update",
+      ].includes(name),
+    ),
+  )(
+    "%s refuses missing assignment before accessing data",
+    async (_name, _fn, invoke) => {
+      fake.assigned = false;
+      expect((await invoke()).status).toBe(403);
+      expect(fake.rpc).not.toHaveBeenCalled();
+      expect(fake.from).not.toHaveBeenCalled();
+    },
+  );
+  it("preserves a database permission refusal", async () => {
+    fake.rpc.mockReturnValue(
+      query(null, { code: "42501", message: "permission denied" }),
+    );
+    expect((await tasks.GET(request("GET"))).status).toBe(403);
+  });
+  it.each(
+    routes.filter(([, fn]) => fn.endsWith("_write") || fn.endsWith("_create")),
+  )("%s returns its success status", async (name, _fn, invoke) => {
+    fake.rpc.mockReturnValue(query({ id }));
+    expect((await invoke()).status).toBe(name.endsWith("create") ? 201 : 200);
+  });
+  it.each([false, true])(
+    "missing missionary record, missionary-only field %s",
+    async (missionaryField) => {
+      const response = await profile.PATCH(
+        request("PATCH", {
+          firstName: "Jo",
+          phone: "123",
+          ...(missionaryField && { bio: "new" }),
+        }),
+      );
+      expect(response.status).toBe(missionaryField ? 404 : 200);
+      expect(fake.update).toHaveBeenCalledTimes(missionaryField ? 0 : 1);
+    },
+  );
+  it.each(["POST", "PATCH"])(
+    "%s rounds the stored sort key",
+    async (method) => {
+      fake.rpc.mockReturnValue(query({ id }));
+      const req = request(method, { title: "task", sort_key: 1.7 });
+      const response =
+        method === "POST" ? await tasks.POST(req) : await task.PATCH(req, args);
+      expect(response.status).toBe(method === "POST" ? 201 : 200);
+      expect(fake.rpc).toHaveBeenCalledWith(
+        "missionary_task_write",
+        expect.objectContaining({
+          p_patch: expect.objectContaining({ sort_key: 2 }),
+        }),
+      );
+    },
+  );
+  it("selects only the deleted task id", async () => {
+    fake.rpc.mockReturnValue(query({ id }));
+    expect((await task.DELETE(request("DELETE"), args)).status).toBe(200);
+    expect(fake.selection).toHaveBeenCalledExactlyOnceWith("id");
+  });
+  const invalid = {
+    params: Promise.resolve({
+      taskId: "invalid",
+      requestId: "invalid",
+      donorId: "invalid",
+    }),
+  };
+  it.each([
+    () =>
+      tasks.GET(
+        new NextRequest(
+          "https://app.test/api/missionary/tasks?donorId=invalid",
+        ),
+      ),
+    () => task.PATCH(request("PATCH", { title: "task" }), invalid),
+    () => task.DELETE(request("DELETE"), invalid),
+    () => follower.PATCH(request("PATCH", { status: "approved" }), invalid),
+    () => follower.DELETE(request("DELETE"), invalid),
+    () =>
+      POST_ACTIVITY(
+        request("POST", { activityType: "note", note: "called" }),
+        invalid,
+      ),
+  ])("rejects an invalid path or query id before dispatch", async (invoke) => {
+    expect((await invoke()).status).toBe(404);
+    expect(fake.rpc).not.toHaveBeenCalled();
+  });
 });

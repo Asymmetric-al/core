@@ -262,6 +262,20 @@ describe("staff handlers are mounted on the staff surface (AL-2675 F9)", () => {
     ).toEqual(["apps/donor/app/api/graphql/route.ts"]);
   });
 
+  it.each(["route.ts", "[requestId]/route.ts"])(
+    "mounts follower decisions only in the missionary workspace: %s",
+    (file) => {
+      expect(
+        existsSync(
+          join(root, "apps/missionary/app/api/follower-requests", file),
+        ),
+      ).toBe(true);
+      expect(
+        existsSync(join(root, "apps/donor/app/api/follower-requests", file)),
+      ).toBe(false);
+    },
+  );
+
   it("leaves only GraphQL in the donor app, until WP2c", () => {
     expect([...LEFT_UNTIL_WP2C]).toEqual([
       "apps/donor/app/api/graphql/route.ts",

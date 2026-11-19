@@ -1,0 +1,299 @@
+import { randomUUID } from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
+import { NextRequest } from "next/server";
+import pg from "pg";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { membershipsForRole } from "../../../fixtures/auth-memberships";
+import * as tasks from "../../../../packages/api/src/missionary-portal/tasks";
+import * as task from "../../../../packages/api/src/missionary-portal/task";
+import * as followers from "../../../../packages/api/src/follower-requests";
+import * as directory from "../../../../packages/api/src/missionaries";
+import * as profile from "../../../../packages/api/src/profile";
+import { POST_ACTIVITY } from "../../../../packages/api/src/missionary-portal/donor";
+
+const url = process.env.MISSIONARY_IT_SUPABASE_URL;
+const key = process.env.MISSIONARY_IT_SERVICE_ROLE_KEY;
+const database = process.env.MISSIONARY_IT_ADMIN_DATABASE_URL;
+const configured = Boolean(url || key || database);
+const person = randomUUID();
+const orgs = Array.from({ length: 2 }, () => ({
+  tenant: randomUUID(),
+  assignment: randomUUID(),
+  wrong: randomUUID(),
+  missionary: randomUUID(),
+  donor: randomUUID(),
+  task: randomUUID(),
+  follower: randomUUID(),
+}));
+let selected = orgs[0]!;
+let role: "donor" | "missionary" = "missionary";
+let client: ReturnType<typeof createClient>;
+vi.mock("@asym/database/supabase/admin", () => ({
+  getAdminClient: () => ({ client, error: null }),
+}));
+vi.mock("@asym/auth/context", async (original) => ({
+  ...(await original<typeof import("@asym/auth/context")>()),
+  getAuthContext: async () => ({
+    userId: person,
+    profileId: person,
+    tenantId: selected.tenant,
+    isAuthenticated: true,
+    role,
+    memberships: membershipsForRole(role, selected.tenant),
+    assignment: {
+      userId: person,
+      tenantId: selected.tenant,
+      membershipRole: role,
+      assignmentId:
+        role === "missionary" ? selected.assignment : selected.wrong,
+    },
+  }),
+}));
+function request(method: string, path: string, body?: unknown) {
+  return new NextRequest("http://localhost" + path, {
+    method,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+}
+async function json(response: Response, status: number) {
+  const body = await response.json();
+  expect(response.status, JSON.stringify(body)).toBe(status);
+  return body;
+}
+describe.skipIf(!configured)(
+  "missionary handlers through PostgREST with image privileges",
+  () => {
+    let db: pg.Client;
+    let installed = false;
+    beforeAll(async () => {
+      if (!url || !key || !database)
+        throw Error(
+          "Set all three MISSIONARY_IT settings for the disposable local stack",
+        );
+      for (const addr of [url, database])
+        if (
+          !["localhost", "127.0.0.1", "[::1]"].includes(new URL(addr).hostname)
+        )
+          throw Error("Only a local disposable stack is supported");
+      db = new pg.Client({ connectionString: database });
+      await db.connect();
+      client = createClient(url, key, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      await db.query("begin");
+      try {
+        for (const org of orgs)
+          await db.query(
+            "insert into public.tenants(id,name,slug) values ($1::uuid,'WP2H',$1::uuid::text)",
+            [org.tenant],
+          );
+        await db.query("insert into auth.users(id) values($1)", [person]);
+        for (const org of orgs) {
+          await db.query(
+            "insert into authz.memberships(id,tenant_id,user_id,role) values ($1,$2,$3,'missionary'),($4,$2,$3,'donor')",
+            [org.assignment, org.tenant, person, org.wrong],
+          );
+          await db.query(
+            "insert into public.missionaries(id,tenant_id,profile_id) values($1,$2,$3)",
+            [org.missionary, org.tenant, person],
+          );
+          await db.query(
+            "insert into public.donors(id,tenant_id,missionary_id,name,giving_preferences) values($1,$2,$3,$4,$5)",
+            [
+              org.donor,
+              org.tenant,
+              person,
+              org.donor,
+              { defaultAnonymousToRecipient: false },
+            ],
+          );
+          await db.query(
+            "insert into public.missionary_tasks(id,missionary_id,donor_id,title) values ($1,$2,$3,'original')",
+            [org.task, person, org.donor],
+          );
+          await db.query(
+            "insert into public.follower_requests(id,missionary_id,donor_id) values ($1,$2,$3)",
+            [org.follower, person, org.donor],
+          );
+        }
+        await db.query("commit");
+        installed = true;
+      } catch (error) {
+        await db.query("rollback");
+        throw error;
+      }
+    });
+    afterAll(async () => {
+      if (!db) return;
+      try {
+        if (installed) {
+          await db.query("begin");
+          for (const table of [
+            "donor_activities",
+            "follower_requests",
+            "missionary_tasks",
+          ])
+            await db.query(
+              "delete from public." + table + " where donor_id=any($1::uuid[])",
+              [orgs.map((org) => org.donor)],
+            );
+          await db.query("delete from public.donors where id=any($1::uuid[])", [
+            orgs.map((org) => org.donor),
+          ]);
+          await db.query("delete from auth.users where id=$1", [person]);
+          await db.query(
+            "delete from public.tenants where id=any($1::uuid[])",
+            [orgs.map((org) => org.tenant)],
+          );
+          await db.query("commit");
+        }
+      } finally {
+        await db.end();
+      }
+    });
+    it.each(orgs)(
+      "returns only the selected organization's rows ($tenant)",
+      async (org) => {
+        selected = org;
+        role = "missionary";
+        const listed = await json(
+          await tasks.GET(
+            request("GET", "/api/missionary/tasks?donorId=" + org.donor),
+          ),
+          200,
+        );
+        expect(listed.tasks).toMatchObject([
+          { id: org.task, donor: { id: org.donor, name: org.donor } },
+        ]);
+        const foreign = orgs.find((other) => other.tenant !== org.tenant)!;
+        expect(
+          (
+            await json(
+              await tasks.GET(
+                request(
+                  "GET",
+                  "/api/missionary/tasks?donorId=" + foreign.donor,
+                ),
+              ),
+              200,
+            )
+          ).tasks,
+        ).toEqual([]);
+        const args = {
+          p_profile_id: person,
+          p_tenant_id: org.tenant,
+          p_assignment_id: org.assignment,
+        };
+        const one = await client
+          .rpc("missionary_owned_tasks", args)
+          .select("id")
+          .eq("id", org.task)
+          .single();
+        expect(one.error).toBeNull();
+        expect(one.data).toEqual({ id: org.task });
+        const params = { params: Promise.resolve({ taskId: org.task }) };
+        expect(
+          (
+            await json(
+              await task.PATCH(
+                request("PATCH", "/api/missionary/tasks/" + org.task, {
+                  title: "edited",
+                }),
+                params,
+              ),
+              200,
+            )
+          ).task,
+        ).toMatchObject({ id: org.task, title: "edited" });
+        expect(
+          (
+            await json(
+              await followers.GET(request("GET", "/api/follower-requests")),
+              200,
+            )
+          ).requests,
+        ).toMatchObject([{ id: org.follower, name: org.donor }]);
+        expect(
+          (
+            await json(
+              await directory.GET(
+                request("GET", "/api/missionaries?limit=1&offset=0"),
+              ),
+              200,
+            )
+          ).missionaries,
+        ).toMatchObject([{ id: org.missionary, profile: { id: person } }]);
+        expect(
+          (await json(await profile.GET(request("GET", "/api/profile")), 200))
+            .profile.missionary.id,
+        ).toBe(org.missionary);
+        expect(
+          (
+            await json(
+              await profile.PATCH(
+                request("PATCH", "/api/profile", { bio: org.tenant }),
+              ),
+              200,
+            )
+          ).profile.missionary,
+        ).toMatchObject({ id: org.missionary, bio: org.tenant });
+        const activity = () =>
+          POST_ACTIVITY(
+            request(
+              "POST",
+              "/api/missionary/donors/" + org.donor + "/activities",
+              { note: "called", activityType: "note" },
+            ),
+            { params: Promise.resolve({ donorId: org.donor }) },
+          );
+        await json(await activity(), 201);
+        role = "donor";
+        const wrong = await client
+          .rpc("missionary_owned_tasks", {
+            ...args,
+            p_assignment_id: org.wrong,
+          })
+          .select("id")
+          .eq("id", org.task)
+          .single();
+        expect(wrong.error?.code).toBe("PGRST116");
+        await json(
+          await tasks.GET(
+            request("GET", "/api/missionary/tasks?donorId=" + org.donor),
+          ),
+          403,
+        );
+        await json(
+          await task.PATCH(
+            request("PATCH", "/api/missionary/tasks/" + org.task, {
+              title: "wrong",
+            }),
+            params,
+          ),
+          403,
+        );
+        await json(
+          await followers.GET(request("GET", "/api/follower-requests")),
+          403,
+        );
+        await json(
+          await directory.GET(
+            request("GET", "/api/missionaries?limit=1&offset=0"),
+          ),
+          403,
+        );
+        expect(
+          (await json(await profile.GET(request("GET", "/api/profile")), 200))
+            .profile,
+        ).not.toHaveProperty("missionary");
+        await json(
+          await profile.PATCH(
+            request("PATCH", "/api/profile", { bio: "wrong" }),
+          ),
+          403,
+        );
+        await json(await activity(), 403);
+      },
+    );
+  },
+);
