@@ -96,6 +96,19 @@
           "isTenantAdmin": false
         }
       ]
+    },
+    "secondAdmin": {
+      "userId": "00000000-0000-4000-8000-0000000e2e70",
+      "role": "admin",
+      "memberships": [
+        {
+          "id": "00000000-0000-4000-8000-0000000e2e71",
+          "tenantId": "00000000-0000-0000-0000-000000000002",
+          "role": "staff",
+          "staffRole": "development",
+          "isTenantAdmin": true
+        }
+      ]
     }
   }
 }

@@ -293,57 +293,69 @@ test("care data loaded, a switch to the finance assignment, then a late care res
 /*
  * Council on the joined release, JB1: plan 5.2, "a refused assignment or a
  * change of signed-in user reloads too". The second tab signs in as another
- * person; the session is the browser's, so the first tab now holds the second
- * person's session under the first person's scope.
+ * person, whose one row is in the other organization; the session is the
+ * browser's, so the first tab now holds that person's session under the
+ * first person's scope. A request of the first tab with no scope would be
+ * resolved to the second person's only row, in the second organization, so
+ * none may leave it (check of the fix lists, JR1).
  *
  * On a production build the session cookie is the page's to read, and the
- * first tab sees the change before it sends anything: its next request
- * carries no scope at all. Under the development sign-in bypass the identity
- * cookie is httpOnly, so the page cannot see the change; there the requests
- * it sends before the first answer still name the first person's assignment,
- * and the server refuses every one of them with the scope-refused mark: none
- * is answered under that assignment. In both, the tab loads a new document,
- * under the second person's scope, and shows nothing of the first person's.
+ * first tab sees the change before it sends anything: no request of the
+ * first document leaves the browser after the second sign-in. Under the
+ * development sign-in bypass the identity cookie is httpOnly, so the page
+ * cannot see the change; there the requests it sends before the first answer
+ * still name the first person's assignment, and the server refuses each with
+ * the scope-refused mark: none goes out without a scope, and none is answered
+ * under that assignment. In both, the tab loads a new document, where the
+ * proxy refuses the first organization's address to the second person, and
+ * shows nothing of the first person's.
  */
-test("two tabs: the second signs in as another person, and the first tab's next request does not carry the first person's assignment, and the tab reloads", async ({
+test("two tabs: the second signs in as a person of the other organization, and no request of the first tab's document reaches the server without its scope, and the tab reloads", async ({
   page,
 }) => {
-  const [first] = fixturePerson("twoTenants").memberships;
-  const [second] = fixturePerson("demoAdmin").memberships;
+  const [first] = fixturePerson("demoAdmin").memberships;
+  const [second] = fixturePerson("secondAdmin").memberships;
+  expect(first!.tenantId).toBe(DEMO);
+  expect(second!.tenantId).toBe(SECOND);
   const scopes: Record<string, CareScope> = {
     [first!.id]: { tenant: DEMO, rows: personnel("Demo") },
   };
   const seen = await serveScopedMemberCare(page, scopes);
-  await signInAs(page, "admin", "twoTenants", baseURL());
+  await signInAs(page, "admin", "demoAdmin", baseURL());
   await page.goto(tenantPath(DEMO, "/care/directory"));
   await expect(careRegion(page).getByText("Demo Person 01")).toBeVisible();
   expect(seen.at(-1)).toMatchObject({ tenant: DEMO, assignment: first!.id });
 
-  // The second tab signs in as another person, with a row in the same
-  // organization; what the server now answers is that person's.
+  // Watch the first tab before anything can make it reload (JR13): closing
+  // the second tab focuses it.
+  const documents = trackDocumentLoads(page);
   const other = await page.context().newPage();
-  await signInAs(other, "admin", "demoAdmin", baseURL());
+  await signInAs(other, "admin", "secondAdmin", baseURL());
   delete scopes[first!.id];
-  scopes[second!.id] = { tenant: DEMO, rows: personnel("Admin") };
+  scopes[second!.id] = { tenant: SECOND, rows: personnel("Harbor") };
+  const callsBefore = seen.length;
   await other.close();
 
-  const documents = trackDocumentLoads(page);
-  const callsBefore = seen.length;
   // The first tab's next request: it opens a record.
   await softNavigate(page, tenantPath(DEMO, "/care/directory/demo-02"));
 
   await expect.poll(() => documents.length).toBeGreaterThan(0);
   await expect
-    .poll(async () => (await documentScope(page)).assignment)
-    .toBe(second!.id);
-  await expect(page.getByText(/Demo Person/)).toHaveCount(0);
+    .poll(() => new URL(page.url()).pathname)
+    .not.toMatch(new RegExp(`^/${DEMO}`));
+  await expect(page.getByText(/Demo Person|Harbor Person/)).toHaveCount(0);
 
   const after = seen.slice(callsBefore);
-  const naming = after.filter((call) => call.assignment === first!.id);
   if (signsInThroughStub) {
-    expect(naming).toEqual([]);
+    expect(after).toEqual([]);
   } else {
-    for (const call of naming) expect(call.refused).toBe(true);
+    for (const call of after) {
+      expect(call).toMatchObject({
+        tenant: DEMO,
+        assignment: first!.id,
+        refused: true,
+      });
+    }
   }
 });
 

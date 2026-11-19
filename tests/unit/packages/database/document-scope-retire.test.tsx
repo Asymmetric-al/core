@@ -7,6 +7,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * too" (council on the joined release, JB1), through the one bounded reload
  * every guard shares, with no page content of the wrong scope on screen
  * meanwhile and a way out when the reload does not happen (JB2).
+ *
+ * A retired scope sends nothing more (check of the fix lists, JR1): a
+ * request with no scope would be resolved to the new person's only row, so
+ * a delayed save or a poll of a document rendered for the first person would
+ * run as the second, in the second person's organization. The own-API
+ * wrapper and the browser client's Data API fetch answer it in the browser
+ * with the refusal their callers already know: a 401 marked
+ * `x-asym-scope-refused`.
  */
 
 const reloadDocument = vi.hoisted(() => vi.fn());
@@ -40,7 +48,33 @@ async function load() {
   const ownApi = await import("../../../../packages/database/own-api");
   const claim =
     await import("../../../../packages/database/document-reload-claim");
-  return { ...scope, ...ownApi, ...claim };
+  const browser = await import("../../../../packages/database/supabase/client");
+  return {
+    ...scope,
+    ...ownApi,
+    ...claim,
+    createBrowserClient: browser.createClient,
+  };
+}
+
+/** Whether any request reached the network, to a path containing `part`. */
+function reached(part: string): boolean {
+  return fetchMock.mock.calls.some((call) => {
+    const [input] = call as unknown as [RequestInfo | URL];
+    const url =
+      typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.href
+          : input.url;
+    return url.includes(part);
+  });
+}
+
+/** The refusal the wrappers answer a retired scope with, made in the browser. */
+async function expectRefusedInBrowser(response: Response) {
+  expect(response.status).toBe(401);
+  expect(response.headers.get("x-asym-scope-refused")).toBe("retired");
 }
 
 const fetchMock = vi.fn(async () => Response.json({}));
@@ -60,7 +94,22 @@ async function renderCarePage(
   expect(screen.getByText("care rows of the first organization")).toBeTruthy();
 }
 
+// Each case loads the modules afresh, and each copy watches the tab's focus
+// and visibility; a copy left from an earlier case must not act in the next.
+type ListenerCall = [
+  string,
+  EventListenerOrEventListenerObject,
+  boolean | AddEventListenerOptions | undefined,
+];
+let listenerSpies: Array<
+  [EventTarget, { mock: { calls: unknown[][] }; mockRestore(): void }]
+> = [];
+
 beforeEach(() => {
+  listenerSpies = [
+    [window, vi.spyOn(window, "addEventListener")],
+    [document, vi.spyOn(document, "addEventListener")],
+  ];
   reloadDocument.mockReset();
   fetchMock.mockReset();
   fetchMock.mockImplementation(async () => Response.json({}));
@@ -70,26 +119,43 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  for (const [target, spy] of listenerSpies) {
+    for (const [type, listener, options] of spy.mock.calls as ListenerCall[]) {
+      target.removeEventListener(type, listener, options);
+    }
+    spy.mockRestore();
+  }
   cleanup();
   vi.unstubAllGlobals();
   signInBrowserAs(null);
+  // The real browser client of the Data API case may keep cookies of its own.
+  for (const pair of document.cookie.split(";")) {
+    const name = pair.trim().split("=")[0];
+    if (name?.startsWith("sb-"))
+      document.cookie = `${name}=; max-age=0; path=/`;
+  }
   window.history.replaceState(null, "", "/");
 });
 
 describe("a change of signed-in person", () => {
-  it("retires the scope: the next request carries none, the page gives way to the notice, and the document reloads once", async () => {
+  it("retires the scope: the next request is never sent, the page gives way to the notice, and the document reloads once", async () => {
     signInBrowserAs(PERSON_A);
     const mod = await load();
     await renderCarePage(mod);
 
     // Another tab signs in as someone else; the session cookie is shared.
     signInBrowserAs(PERSON_B);
+    let response: Response | undefined;
     await act(async () => {
-      await mod.ownApiFetch("/api/admin/member-care/dashboard");
+      response = await mod.ownApiFetch("/api/admin/member-care/dashboard", {
+        method: "POST",
+        body: "{}",
+      });
     });
 
-    expect(sent(0).has("x-asym-tenant")).toBe(false);
-    expect(sent(0).has("x-asym-assignment")).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+    await expectRefusedInBrowser(response!);
+    expect(await response!.json()).toEqual({ error: "Unauthorized" });
     expect(mod.getDocumentScope()).toBeNull();
     expect(
       screen.queryByText("care rows of the first organization"),
@@ -115,6 +181,61 @@ describe("a change of signed-in person", () => {
     ).toBeNull();
     expect(reloadDocument).toHaveBeenCalledTimes(1);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("the browser client's Data API fetch sends nothing either; Auth requests still go out", async () => {
+    signInBrowserAs(PERSON_A);
+    const mod = await load();
+    await renderCarePage(mod);
+    const supabase = mod.createBrowserClient();
+
+    signInBrowserAs(PERSON_B);
+    let result: Awaited<ReturnType<typeof supabase.from>> | undefined;
+    await act(async () => {
+      result = (await supabase
+        .from("care_notes")
+        .insert({ body: "for the first organization" })) as never;
+    });
+
+    expect(reached("/rest/v1/")).toBe(false);
+    const error = (
+      result as unknown as { error: { message: string } | null; status: number }
+    ).error;
+    expect(error?.message).toBe("Unauthorized");
+    expect((result as unknown as { status: number }).status).toBe(401);
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+  });
+
+  it("a person who changed before the page hydrated: the first request is never sent", async () => {
+    // The page was rendered on the server for person A; by the time it
+    // hydrates, the browser's session is person B's.
+    signInBrowserAs(PERSON_B);
+    const mod = await load();
+    await renderCarePage(mod);
+
+    let response: Response | undefined;
+    await act(async () => {
+      response = await mod.ownApiFetch("/api/admin/member-care/dashboard");
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    await expectRefusedInBrowser(response!);
+    expect(
+      screen.queryByText("care rows of the first organization"),
+    ).toBeNull();
+  });
+
+  it("a page outside the segment still calls without a scope, as before, while the scope is not retired", async () => {
+    signInBrowserAs(PERSON_A);
+    const mod = await load();
+    await renderCarePage(mod);
+
+    window.history.replaceState(null, "", "/login");
+    await mod.ownApiFetch("/api/auth/session");
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(sent(0).has("x-asym-tenant")).toBe(false);
+    expect(sent(0).has("x-asym-assignment")).toBe(false);
   });
 
   it("keeps the scope of an identity the browser cannot see (no session cookie when it loaded)", async () => {
@@ -171,8 +292,11 @@ describe("a refused assignment", () => {
       screen.queryByText("care rows of the first organization"),
     ).toBeNull();
     expect(reloadDocument).toHaveBeenCalledTimes(1);
-    await mod.ownApiFetch("/api/admin/member-care/dashboard");
-    expect(sent(3).has("x-asym-assignment")).toBe(false);
+    // Retired: the next request is answered in the browser, never sent.
+    await expectRefusedInBrowser(
+      await mod.ownApiFetch("/api/admin/member-care/dashboard"),
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 });
 
