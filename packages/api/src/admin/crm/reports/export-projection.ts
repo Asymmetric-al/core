@@ -1,4 +1,4 @@
-import { resolveAssignmentCapabilities } from "@asym/auth/capabilities";
+import { membershipHasCapability } from "@asym/auth/context";
 import { CSV_RECORD_SEPARATOR, CSV_UTF8_BOM, csvSafeCell } from "@asym/lib/csv";
 
 import { reportGroupRevision } from "./service";
@@ -51,7 +51,14 @@ export function serializeAdminCrmReportCsv(
   if (!keys.length) throw new Error("Missing exportable report policy");
   const audience =
     assignment.staffRole === "finance" ||
-    resolveAssignmentCapabilities(assignment).includes(
+    membershipHasCapability(
+      {
+        tenantId: assignment.tenantId,
+        role: assignment.membershipRole,
+        staffRole: assignment.staffRole,
+        isTenantAdmin: assignment.isTenantAdmin,
+        isActive: true,
+      },
       "contributions.manage_settings",
     )
       ? "finance"
