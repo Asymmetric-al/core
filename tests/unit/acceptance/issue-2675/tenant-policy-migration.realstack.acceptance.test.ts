@@ -1418,6 +1418,15 @@ describe.skipIf(!ADMIN_URL)(
                 `${sub} ${sql}`,
               ).toEqual(await outcome(sub, { "x-asym-tenant": id.TA! }, sql));
           }
+          // The command resolves the row the upper-case header names, not
+          // only the same answer in both cases (thread 4643328526).
+          expect(
+            await outcome(
+              "USG",
+              upper("mSGs"),
+              `select (public.resolve_command_assignment(${q("TA")})) ->> 'assignment_id' a`,
+            ),
+          ).toEqual({ code: null, rows: [{ a: id.mSGs }] });
           const donors = "select count(*)::int n from public.donors";
           expect((await outcome("USG", upper("mSGs"), donors)).rows).toEqual([
             { n: 4 },
@@ -1747,12 +1756,14 @@ describe.skipIf(!ADMIN_URL)(
             });
           await replica(false);
           const headers = { "x-asym-tenant": id.TA!, "x-asym-assignment": row };
+          // Without RETURNING, so the INSERT policy alone judges it: with it,
+          // the SELECT policy could be what refuses (thread 4643328537).
           const across = await as(
             "authenticated",
             { sub: "USA", headers },
-            `insert into public.donor_feed_preferences (donor_id, tenant_id) values ('${theirs}', ${q("TA")}) returning id`,
+            `insert into public.donor_feed_preferences (donor_id, tenant_id) values ('${theirs}', ${q("TA")})`,
           );
-          expect(across.code, JSON.stringify(across.rows)).toBe("42501");
+          expect(across.code, across.message).toBe("42501");
           const own = await as(
             "authenticated",
             { sub: "USA", headers },
@@ -1763,16 +1774,53 @@ describe.skipIf(!ADMIN_URL)(
           // Every own-row sub-select over donors or support_agents carries the
           // tenant. The one over missionaries cannot (signed-in users may
           // select only its id and profile_id; defect 10), and the
-          // missionaries policy, with no super-admin branch, bounds it.
-          const leaning = await rows(
-            `select c.relname || ': ' || p.polname n
+          // missionaries policy, with no super-admin branch, bounds it. Each
+          // sub-select's whole WHERE clause is read, so its tenant comparison
+          // counts wherever it stands (thread 4643328558).
+          const policies = (await rows(
+            `select c.relname || ': ' || p.polname n,
+                    coalesce(pg_get_expr(p.polqual, p.polrelid), '') || ' ' || coalesce(pg_get_expr(p.polwithcheck, p.polrelid), '') e
                from pg_policy p join pg_class c on c.oid = p.polrelid
               where c.relnamespace = 'public'::regnamespace
-                and coalesce(pg_get_expr(p.polqual, p.polrelid), '') || ' ' || coalesce(pg_get_expr(p.polwithcheck, p.polrelid), '')
-                    ~ 'FROM (donors d|support_agents a)\\s+WHERE \\(+(d|a)\\.(profile_id|user_id)'
               order by 1`,
-          );
-          expect(leaning).toEqual([]);
+          )) as { n: string; e: string }[];
+          const subselects: { n: string; alias: string; where: string }[] = [];
+          for (const { n, e } of policies)
+            for (const m of e.matchAll(
+              /FROM (donors d|support_agents a)\s+WHERE (?=\()/g,
+            )) {
+              const start = m.index! + m[0].length;
+              let depth = 0;
+              let end = start;
+              for (; end < e.length; end++) {
+                if (e[end] === "(") depth++;
+                else if (e[end] === ")" && --depth === 0) break;
+              }
+              subselects.push({
+                n,
+                alias: m[1]!.slice(-1),
+                where: e.slice(start, end + 1),
+              });
+            }
+          for (const table of [
+            "donor_activities",
+            "donor_feed_preferences",
+            "donations",
+            "support_notification_preferences",
+          ])
+            expect(
+              subselects.some((s) => s.n.startsWith(`${table}: `)),
+              table,
+            ).toBe(true);
+          const missing = subselects
+            .filter(
+              (s) =>
+                !s.where.includes(
+                  `${s.alias}.tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)`,
+                ),
+            )
+            .map((s) => s.n);
+          expect(missing).toEqual([]);
         }));
 
       // R12 (b): the policies compare the caller through the parallel-safe

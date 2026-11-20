@@ -72,11 +72,11 @@ After this release `authz.current_tenant_id()` no longer reads the token. It ret
 - the request's assignment resolves: the membership row that `x-asym-assignment` names, when it is the caller's, live, and in that tenant; or, with no assignment header, the caller's one live row there, of any class;
 - the tenant row exists. There is no status column yet; this is the interim, and WP3 adds the status test inside the same function, so every policy gets it at once (Q5).
 
-The role-class, sub-role, tenant-administrator and capability checks judge that one row and nothing else. A person's other rows, in this tenant or another, add nothing. A request that names no tenant gets no tenant, so every policy keyed on it admits nothing.
+The role-class, sub-role, tenant-administrator and capability checks judge that one row and nothing else. A person's other rows, in this tenant or another, add nothing. A request that names no tenant gets no tenant, so no policy keyed on it admits a row through its tenant-bound branch. Two things still answer without one: the reviewed exceptions of section 3, and the `(SELECT authz.is_super_admin())` branch that some policies keep beside the tenant condition until WP2c removes it (a `super_admin` profile with no headers still reads `support_inboxes`, for one).
 
 `authz.caller_assignment(tenant, class)`, which the member directory and the CRM table-preference functions use, follows the same rule (defect 9). With no header it now counts every live row of the caller in the tenant, of any class, so a person who is staff and donor in one tenant passes its staff check only when the request names the staff row. The first release sends the header on every request, so its callers are unaffected; a caller that sends none and holds two rows there is refused. A tenant header that names another tenant than the one the function is asked about selects nothing, so the member directory answers only for the tenant the request selected; with no header, a caller's one live row there still serves (council R8).
 
-On the Data API, "refused" means an empty answer, not an error: a request whose tenant and assignment resolve to no row of the caller's gets no row of a tenant table and no `42501`. `authz.request_assignment()` returns exactly one record, with every field null when nothing resolves, not an empty set; `current_tenant_id()` reads that record's tenant (council R15; both tested).
+On the Data API, "refused" means an empty answer, not an error: a request whose tenant and assignment resolve to no row of the caller's gets no row through a policy's tenant-bound branch and no `42501`; the reviewed exceptions and the retained super-admin branch still answer, as above. `authz.request_assignment()` returns exactly one record, with every field null when nothing resolves, not an empty set; `current_tenant_id()` reads that record's tenant (council R15; both tested).
 
 ## 1. The claim-keyed policies, and who gains what
 
@@ -253,7 +253,7 @@ In all, the migration alters 55 policies in `public` and 8 on `storage.objects`,
 
 ## 5. Staff-only tables
 
-After this migration a donor or missionary assignment reads no row of these tables through the Data API. The tests assert it for each (acceptance line "A donor-class member cannot read a table the activation review marked staff-only"):
+After this migration a donor or missionary assignment reads no row of these tables through the Data API, unless the profile is a `super_admin`, which reads through the retained `(SELECT authz.is_super_admin())` branch where a policy keeps it, until WP2c. The tests assert it for each (acceptance line "A donor-class member cannot read a table the activation review marked staff-only"):
 
 `account_claim_requests` (other than the requester's own rows), `assets`, `audit_logs`, `campaigns`, `crm_command_logs`, `crm_merge_candidates`, `crm_notes`, `crm_record_links`, `funds`, `legacy_account_invitations`, `member_care_activities`, `member_care_goals`, `member_care_private_notes`, `member_care_requirements`, `notification_queue`, `pdf_templates`, the six `pdf_template_*` tables, `persons`, `support_contacts`, `support_tickets`, and the 19 Support Hub tables. The six finance tables with the deny-all policy admit no one.
 
@@ -267,7 +267,7 @@ What a donor assignment reads: its own `donors` row, the gifts, pledges, activit
 
 ## 7. Reads that carry no tenant header, and what this release depends on
 
-This release depends on the first release of WP2b: its session clients (`createClient` in `packages/database/supabase/server.ts`, `createRequestSessionClient` in `packages/api/src/shared/request-session-client.ts`), its browser client and its field-policy reader send both headers. Before the first release they send none; with it they do, and so does the field-policy reader. An application that sends no headers gets nothing from a tenant table: every policy there fails closed.
+This release depends on the first release of WP2b: its session clients (`createClient` in `packages/database/supabase/server.ts`, `createRequestSessionClient` in `packages/api/src/shared/request-session-client.ts`), its browser client and its field-policy reader send both headers. Before the first release they send none; with it they do, and so does the field-policy reader. An application that sends no headers gets no row of a tenant table through a tenant-bound branch: every such branch fails closed. The reviewed exceptions and the retained super-admin branch still answer.
 
 The first release's list of reads that carry no header, each checked against the policies above:
 
