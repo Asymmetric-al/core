@@ -160,9 +160,12 @@ There is no rollback migration: reverting restores `PUBLIC` EXECUTE on the
 `authz` helpers and re-opens the gaps described above. If a revert is needed
 anyway, this restores the state the earlier migrations defined. It does not
 re-grant `anon` or `service_role` on `current_user_memberships`, which no
-migration intended. On a chain that has
-`20261119135300_request_tenant_policies.sql`, the five write policies it
-dropped do not exist: leave out their `ALTER POLICY` lines.
+migration intended. It applies only to a chain without
+`20261119135300_request_tenant_policies.sql`. On a chain with it, it would
+change grants and policy roles while that migration's predicates and helpers
+stay, which restores no earlier state. Roll that migration back first with
+its own file and procedure (`docs/ops/release-job.md`, "Rolling it back by
+hand"), then this revert applies as written.
 
 ```sql
 BEGIN;

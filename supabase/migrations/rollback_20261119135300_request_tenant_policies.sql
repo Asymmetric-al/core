@@ -1,14 +1,36 @@
 -- Rollback of 20261119135300_request_tenant_policies.sql (WP2b, second release;
 -- AL-2675). Run by hand, in one transaction, only to go back to the chain
--- before it; the apps of the first release keep working on either side.
+-- before it, and only while no Release run is in progress or queued for the
+-- database (docs/ops/release-job.md, "The request-tenant policies").
 --
 -- It stops, changing nothing, unless 20261119135300 is the newest version in
 -- the migration ledger (supabase_migrations.schema_migrations): it replaces
 -- policies, functions and grants by name, so over a later migration it would
--- undo what that migration changed. Reverse every later migration first. It
--- leaves the ledger as it is, and the Realtime publication too unless the
--- marked block in section 6 is run (see there). It ends with PostgREST's
--- schema reload.
+-- undo what that migration changed. Reverse every later migration first.
+-- Before it reads the ledger it locks the ledger table against writes until
+-- it commits, so no migration can be recorded, and no repair or second
+-- rollback run, between its check and its commit; a writer that holds the
+-- ledger makes it stop within its 5s lock timeout. The lock does not exclude
+-- SQL a release runs before it writes its ledger row: only the precondition
+-- above does. It leaves the ledger as it is (20261119135300 stays recorded;
+-- the runbook says how to apply the migration again), and the Realtime
+-- publication too unless the marked block in section 6 is run (see there). It
+-- ends with PostgREST's schema reload.
+--
+-- After it, authz.current_tenant_id() reads the token's tenant claim again. A
+-- session whose token carries no tenant claim, as hosted sessions do not,
+-- then reads no row through a policy keyed on it, exactly as before the
+-- migration. For the first release's apps, measured on disposable databases
+-- with such a token and the first release's headers, before the migration,
+-- with it and after this file: the member directory
+-- (public.tenant_member_directory), the commenters' names
+-- (public.post_comment_authors), the reactions route's post read and the
+-- reactions answer the same in all three states, and CRM table preferences
+-- are read with the service key and written through functions that check
+-- authz.caller_assignment, which reads the assignment header on both sides. A
+-- donor's saved feed preferences read as no row before the migration and
+-- after this file, so the route answers defaults; with the migration they
+-- read. The 2675 real-stack suite pins the feed-preference case.
 --
 -- Generated from the catalog of the chain with and without the migration
 -- (council R10): every policy, function (definition, owner, EXECUTE grants,
@@ -36,6 +58,9 @@ BEGIN
   IF pg_catalog.to_regclass('supabase_migrations.schema_migrations') IS NULL THEN
     RAISE EXCEPTION 'rollback_20261119135300: this database has no migration ledger (supabase_migrations.schema_migrations), so it cannot show that 20261119135300 is its newest migration; nothing was changed';
   END IF;
+  -- Held until this transaction ends: no other session writes the ledger
+  -- between this check and the commit.
+  LOCK TABLE supabase_migrations.schema_migrations IN SHARE ROW EXCLUSIVE MODE;
   SELECT pg_catalog.max(version) INTO v_newest FROM supabase_migrations.schema_migrations;
   IF v_newest IS DISTINCT FROM '20261119135300' THEN
     RAISE EXCEPTION 'rollback_20261119135300: the newest migration recorded is %, not 20261119135300. Reverse every later migration first, newest first, then run this file; nothing was changed', COALESCE(v_newest, 'none');

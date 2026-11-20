@@ -31,11 +31,11 @@ prop it posts `FormData { file, purpose }` with the session bearer to
 editor/{tenantId}/{userId}/{uuid}.{ext}
 ```
 
-- `tenantId` is the caller's `profiles.tenant_id`. A `super_admin` whose
-  `tenant_id` is NULL uses `DEMO_TENANT_ID`
-  (`00000000-0000-0000-0000-000000000001`, `packages/auth/constants.ts`); a
-  `super_admin` with a tenant never uses the demo one. This mirrors
-  `getAuthContext`, and the policy text is #2406's.
+- `tenantId` is the tenant of the membership row the request resolved
+  (`ctx.tenantId` from `getAuthContext`, since WP2b's first release, AL-2675),
+  and the policies accept it only where the caller holds a live membership.
+  Before that release it was the caller's `profiles.tenant_id`, with
+  `DEMO_TENANT_ID` for a `super_admin` whose `tenant_id` was NULL.
 - `userId` is `auth.uid()` (`ctx.userId`); `ext` comes from the detected type.
 - Nothing in the key comes from client text.
 
@@ -44,22 +44,29 @@ editor/{tenantId}/{userId}/{uuid}.{ext}
 Exactly four policies cover the bucket. All are `TO authenticated`; `anon`
 has none.
 
-| Policy                              | Command | Rule                                                                                                 |
-| ----------------------------------- | ------- | ---------------------------------------------------------------------------------------------------- |
-| `editor images owner folder insert` | INSERT  | WITH CHECK: the name is `editor/{own tenant}/{auth.uid()}/{non-empty rest}`                          |
-| `editor images owner folder update` | UPDATE  | USING: `owner = auth.uid()`. WITH CHECK: still the owner, and the name is in the caller's own folder |
-| `editor images owner select`        | SELECT  | USING: `owner = auth.uid()`                                                                          |
-| `Owner delete document-uploads`     | DELETE  | USING: `owner = auth.uid()` (unchanged since init_schema)                                            |
+As they stand since the second release of WP2b (below). "A live tenant" is
+one where the caller holds a live membership row, through
+`authz.caller_tenant_ids()`.
+
+| Policy                              | Command | Rule                                                                                                                                               |
+| ----------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `editor images owner folder insert` | INSERT  | WITH CHECK: the name is `editor/{a live tenant}/{auth.uid()}/{non-empty rest}`                                                                     |
+| `editor images owner folder update` | UPDATE  | USING and WITH CHECK: `owner = auth.uid()`, and the name is `editor/{a live tenant}/{auth.uid()}/{non-empty rest}`, before the update and after it |
+| `editor images owner select`        | SELECT  | USING: `owner = auth.uid()`, and the name is `editor/{a live tenant}/...`                                                                          |
+| `Owner delete document-uploads`     | DELETE  | USING: `owner = auth.uid()`, and the name is `editor/{a live tenant}/...`                                                                          |
 
 - The folder check splits the name with `string_to_array(name, '/')` and
   wraps `auth.uid()` as `(SELECT auth.uid())`; it never casts a segment.
-- Objects already at `editor/<random>-<timestamp>.<ext>` stay where they are
-  and stay readable at their public URLs. Owners can delete them or move them
-  into their own folder, but not update them in place.
+- Objects already at `editor/<random>-<timestamp>.<ext>` stay where they are,
+  and their public URLs still serve them. They are outside the owner-folder
+  layout, so no signed-in user can read, update, move or delete them through
+  the Storage API; only the server can.
 - The bucket stays `public`, so public object URLs are served without any
-  SELECT policy. Listing, signed URLs and downloads go through RLS.
-- The two folder policies read `profiles.tenant_id`, so they are in the
-  sanctioned reader set in `docs/security/identity-person-anchor.md` (#2267).
+  SELECT policy, to anyone who has the URL, whatever the policies say.
+  Listing, signed URLs and downloads through the API go through RLS.
+- Until the second release of WP2b the two folder policies read
+  `profiles.tenant_id`, which put them in the sanctioned reader set of
+  `docs/security/identity-person-anchor.md` (#2267). No policy reads it now.
 
 **Since the second release of WP2b (AL-2675,
 `20261119135300_request_tenant_policies.sql`).** The upload, replace, read and
@@ -69,11 +76,12 @@ in the tenant the `editor/{tenantId}/...` path names, through
 the request headers (plan 5.2; activation review Q10). A person with two
 memberships, or two rows in one tenant, uploads in each; a person whose
 membership has ended no longer reads or deletes their images in that tenant's
-folder through the API. Reads and deletes now require the owner-folder layout,
-so the legacy `editor/<random>-<timestamp>.<ext>` objects above stay at their
-public URLs and are reachable through the API only by the server (the
-coordinator's no-legacy ruling). No policy reads `profiles.tenant_id` any
-more.
+folder through the API. That does not withdraw an image: anyone who already
+has its public URL can still fetch it. Reads and deletes now require the
+owner-folder layout, so the legacy `editor/<random>-<timestamp>.<ext>`
+objects above stay at their public URLs and are reachable through the API
+only by the server (the coordinator's no-legacy ruling). No policy reads
+`profiles.tenant_id` any more.
 
 ## Bucket limits
 

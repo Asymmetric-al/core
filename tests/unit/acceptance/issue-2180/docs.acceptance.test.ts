@@ -245,6 +245,15 @@ const CI_BASES = [
     bytes: 47171,
     sha256: "d28ee0bd761514bc955e336c9f7350515cea27b7e54d44d958da6964177e3be2",
   },
+  {
+    // Amended by AL-2735 when the shadcn upstream review left ci:preflight: the stage
+    // list drops `verify:shadcn-diff` and renumbers, a new paragraph says the
+    // review runs by hand, and the `lint` section no longer lists it. Pinned
+    // on that exact reviewed prefix; the EOF runner section is unchanged.
+    ref: "AL-2735 shadcn upstream review leaves ci:preflight",
+    bytes: 47295,
+    sha256: "6b2f35b7cfdad5098dea0a699c073ca485e1bfe6420382a9dcd528e7c1eee7b2",
+  },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {
