@@ -62,6 +62,12 @@ function run(
 }
 
 describe("governed CRM report export", () => {
+  it("refuses sync failures without a classified export reference", async () => {
+    vi.clearAllMocks();
+    expect((await run("slice=sync-failures")).status).toBe(422);
+    for (const call of [session, policy, read, insert])
+      expect(call).not.toHaveBeenCalled();
+  });
   it.each([
     {},
     { "sec-fetch-site": "cross-site", referer: "http://localhost/reports" },

@@ -41,6 +41,11 @@ export const GET = withPlatformOperation(
       );
     }
     const params = parseAdminCrmReportParams(query);
+    if (params.slice === "sync-failures")
+      return NextResponse.json(
+        { error: "Sync failures have no classified export reference." },
+        { status: 422 },
+      );
 
     try {
       const sessionClient = await createRequestSessionClient(request, scope);
