@@ -6,6 +6,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -275,7 +276,10 @@ const discovered = (): string[] =>
     .sort();
 
 /** Read relative test modules, including harness re-exports, once per suite. */
-const withLocalImports = (file: string, seen = new Set<string>()): string[] => {
+const withLocalImports = (
+  file: string,
+  seen = new Set<string>(),
+): { file: string; text: string }[] => {
   const normalized = path.normalize(file);
   if (seen.has(normalized)) return [];
   seen.add(normalized);
@@ -287,18 +291,57 @@ const withLocalImports = (file: string, seen = new Set<string>()): string[] => {
         target.startsWith(`tests${path.sep}unit${path.sep}`) &&
         existsSync(target),
     );
-  return [text, ...local.flatMap((target) => withLocalImports(target, seen))];
+  return [
+    { file, text },
+    ...local.flatMap((target) => withLocalImports(target, seen)),
+  ];
 };
 
 /** The database URL inputs read by one suite or helper module. */
-const readDatabaseUrlVariables = (text: string): string[] => {
-  const envAccess =
-    /\bprocess\.env(?:\.([A-Z_]*DATABASE_URL)\b|\[\s*(["'])([A-Z_]*DATABASE_URL)\2\s*\])/g;
-  return [...text.matchAll(envAccess)].map((match) => match[1] ?? match[3]!);
+const readDatabaseUrlVariables = (
+  text: string,
+  file = "fixture.ts",
+): string[] => {
+  const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest);
+  const variables: string[] = [];
+
+  const visit = (node: ts.Node): void => {
+    ts.forEachChild(node, visit);
+    if (
+      !ts.isPropertyAccessExpression(node) &&
+      !ts.isElementAccessExpression(node)
+    ) {
+      return;
+    }
+
+    const env = node.expression;
+    if (
+      !ts.isPropertyAccessExpression(env) ||
+      env.name.text !== "env" ||
+      !ts.isIdentifier(env.expression) ||
+      env.expression.text !== "process"
+    ) {
+      return;
+    }
+
+    let name: string | undefined;
+    if (ts.isPropertyAccessExpression(node)) name = node.name.text;
+    else if (ts.isStringLiteralLike(node.argumentExpression)) {
+      name = node.argumentExpression.text;
+    }
+    if (name && /^[A-Z_]*DATABASE_URL$/.test(name)) variables.push(name);
+  };
+
+  visit(source);
+  return variables;
 };
 
 const databaseUrlVariables = (file: string): string[] => [
-  ...new Set(withLocalImports(file).flatMap(readDatabaseUrlVariables)),
+  ...new Set(
+    withLocalImports(file).flatMap(({ file, text }) =>
+      readDatabaseUrlVariables(text, file),
+    ),
+  ),
 ];
 
 describe("database URL inputs", () => {
@@ -309,6 +352,24 @@ describe("database URL inputs", () => {
   ])("recognizes %s", (source) => {
     expect(readDatabaseUrlVariables(source)).toEqual([
       "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
+    ]);
+  });
+
+  it.each([
+    "// Do not use process.env.LEGACY_DATABASE_URL here.",
+    '/* Avoid process.env["LEGACY_DATABASE_URL"]. */',
+    'const example = "process.env.LEGACY_DATABASE_URL";',
+    `const example = 'process.env["LEGACY_DATABASE_URL"]';`,
+    "const example = `process.env.LEGACY_DATABASE_URL`;",
+    "process.env[DYNAMIC_DATABASE_URL];",
+    "other.process.env.LEGACY_DATABASE_URL;",
+  ])("ignores %s", (source) => {
+    expect(readDatabaseUrlVariables(source)).toEqual([]);
+  });
+
+  it("recognizes a read inside a template substitution", () => {
+    expect(readDatabaseUrlVariables("`${process.env.DATABASE_URL}`")).toEqual([
+      "DATABASE_URL",
     ]);
   });
 
