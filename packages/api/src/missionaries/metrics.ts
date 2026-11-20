@@ -1,4 +1,13 @@
-import { getAuthContext, hasContextRoleClass } from "@asym/auth/context";
+import {
+  scopeRefusedHeaders,
+  getAuthContext,
+  hasContextRoleClass,
+  requestScopeOf,
+} from "@asym/auth/context";
+import {
+  type RequestScope,
+  requestScopeHeaders,
+} from "@asym/database/request-scope-headers";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
@@ -10,6 +19,7 @@ import {
 } from "../missionary-portal/currency";
 import { isAnonymousToRecipient } from "../missionary-portal/redaction";
 import { SETTLED_DONATION_STATUS_SET } from "../reads/settled-donation-statuses";
+import { createBearerSessionClient } from "../shared/request-session-client";
 
 export function projectMetricsMoney<
   T extends {
@@ -157,19 +167,24 @@ function isPermissionError(error: PermissionErrorLike | null) {
   );
 }
 
-function createAuthClient(request: NextRequest) {
-  const pendingCookies: PendingCookie[] = [];
-  const pendingHeaders = new Headers();
-  const supabaseUrl = serverEnv.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return { supabase: null, pendingCookies, pendingHeaders };
-  }
-
+/**
+ * The caller's own session, for an environment with no service-key client.
+ * Like every other session client, its Data API requests carry `scope`, the
+ * tenant and assignment the resolver selected (`requestScopeOf`), and never
+ * the tenant headers the caller sent (WP2b, AL-2675). A session rotated while
+ * it reads is handed back through `pendingCookies` and `pendingHeaders`.
+ */
+function createSessionReader(
+  request: NextRequest,
+  connection: { url: string; anonKey: string },
+  scope: RequestScope | null,
+  pendingCookies: PendingCookie[],
+  pendingHeaders: Headers,
+) {
   const requestCookies = parseCookieHeader(request.headers.get("cookie"));
 
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(connection.url, connection.anonKey, {
+    global: { headers: requestScopeHeaders(scope) },
     cookies: {
       getAll() {
         return requestCookies;
@@ -193,8 +208,6 @@ function createAuthClient(request: NextRequest) {
       },
     },
   });
-
-  return { supabase, pendingCookies, pendingHeaders };
 }
 
 function jsonWithCookies(
@@ -219,7 +232,7 @@ function jsonWithCookies(
 
 type MetricsReader =
   | NonNullable<ReturnType<typeof getAdminClient>["client"]>
-  | NonNullable<ReturnType<typeof createAuthClient>["supabase"]>;
+  | ReturnType<typeof createSessionReader>;
 
 /**
  * PostgREST answers at most `max_rows` (1,000, supabase/config.toml) rows per
@@ -262,9 +275,11 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { supabase, pendingCookies, pendingHeaders } =
-    createAuthClient(request);
-  if (!supabase) {
+  const pendingCookies: PendingCookie[] = [];
+  const pendingHeaders = new Headers();
+  const supabaseUrl = serverEnv.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
     return NextResponse.json(
       { error: "Supabase client unavailable." },
       { status: 503 },
@@ -286,6 +301,12 @@ export async function GET(
     const auth = await getAuthContext(request);
 
     if (!auth.isAuthenticated || !auth.userId) {
+      // A refused tenant or assignment is marked for the browser (JB1).
+      for (const [name, value] of Object.entries(
+        scopeRefusedHeaders(auth) ?? {},
+      )) {
+        pendingHeaders.set(name, value);
+      }
       return jsonWithCookies(
         { error: "Unauthorized" },
         { status: 401 },
@@ -310,12 +331,28 @@ export async function GET(
       );
     }
 
-    const dataReader = getAdminClient().client ?? supabase;
+    // The service-key client when the environment has one; otherwise the
+    // caller's own session, under the row the resolver selected: the bearer
+    // token first, as `getAuthContext` authenticated it, otherwise the
+    // cookies, which this route refreshes itself (JB13).
+    const dataReader =
+      getAdminClient().client ??
+      createBearerSessionClient(request, requestScopeOf(auth)) ??
+      createSessionReader(
+        request,
+        { url: supabaseUrl, anonKey: supabaseAnonKey },
+        requestScopeOf(auth),
+        pendingCookies,
+        pendingHeaders,
+      );
 
     const { data: missionary, error: missionaryError } = await dataReader
       .from("missionaries")
       .select("id, tenant_id, profile_id")
       .or(`id.eq.${missionaryId},profile_id.eq.${missionaryId}`)
+      // The resolved tenant's record only, before one row is taken: a person
+      // with a missionary record in two organizations has two (JB14).
+      .eq("tenant_id", auth.tenantId)
       .maybeSingle();
 
     if (missionaryError) {

@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-query";
 import { useSyncExternalStore } from "react";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import {
   adminLocationsCollection,
   fetchAdminLocationsResponse,
@@ -81,7 +83,7 @@ export function useUpsertLocation() {
 
   return useMutation({
     mutationFn: async (location: LocationMutationPayload) => {
-      const response = await fetch("/api/admin/locations", {
+      const response = await ownApiFetch("/api/admin/locations", {
         body: JSON.stringify(location),
         credentials: "same-origin",
         headers: {
@@ -102,7 +104,7 @@ export function useDeleteLocation() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch("/api/admin/locations", {
+      const response = await ownApiFetch("/api/admin/locations", {
         body: JSON.stringify({ id }),
         credentials: "same-origin",
         headers: {

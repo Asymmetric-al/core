@@ -1,6 +1,5 @@
-import { getAuthContext } from "@asym/auth/context";
+import { getAuthContext, requestScopeOf } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
-import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
 
 import {
@@ -9,6 +8,7 @@ import {
 } from "./ministry-update-reaction";
 import { resolveReactionRouteContext } from "./reaction-route-utils";
 import { ApiHttpError, toErrorResponse } from "../shared/http-errors";
+import { createRequestSessionClient } from "../shared/request-session-client";
 
 import type { NextRequest } from "next/server";
 
@@ -39,9 +39,16 @@ function createReactionMutationHandler(
 ): ReactionRouteHandler {
   return async (request, { params }) => {
     try {
-      const supabase = await createClient();
+      const auth = await getAuthContext(request);
+      // The caller's token, sending the resolved tenant and assignment
+      // (plan 5.4; WP2b, AL-2675): the bearer token first, as
+      // `getAuthContext` authenticated it, otherwise the cookies (JB13).
+      const supabase = await createRequestSessionClient(
+        request,
+        requestScopeOf(auth),
+      );
       const { postId, userId, tenantId } = await resolveReactionRouteContext(
-        await getAuthContext(request),
+        auth,
         supabase,
         params,
       );

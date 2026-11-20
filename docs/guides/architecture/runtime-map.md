@@ -280,8 +280,6 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | donor      | `/api/donor/portal`                                            | Node.js (no `runtime` segment export) | Donor self-service BFF, admin client               |
 | donor      | `/api/donor/receipts/[donationId]`                             | Node.js (no `runtime` segment export) | Owned donor receipt download, admin client         |
 | donor      | `/api/donor/statements/[year]`                                 | Node.js (no `runtime` segment export) | Owned donor statement download                     |
-| donor      | `/api/follower-requests`                                       | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
-| donor      | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | donor      | `/api/graphql`                                                 | Node.js (no `runtime` segment export) | graphql-yoga, `next/headers` cookies()             |
 | donor      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                        |
 | donor      | `/api/health/migrations`                                       | Node.js (no `runtime` segment export) | Migration-head check for the release job           |
@@ -292,13 +290,13 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | donor      | `/api/posts/[postId]/fire`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | donor      | `/api/posts/[postId]/like`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | donor      | `/api/posts/[postId]/prayer`                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
-| donor      | `/api/profile`                                                 | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
+| donor      | `/api/profile`                                                 | Node.js (no `runtime` segment export) | Service role; selected-assignment missionary RPCs  |
 | donor      | `/api/upload/image`                                            | Node.js (no `runtime` segment export) | Shared profile-photo upload, request-scoped client |
 | donor      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                           |
 | missionary | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                            |
 | missionary | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                               |
-| missionary | `/api/follower-requests`                                       | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
-| missionary | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
+| missionary | `/api/follower-requests`                                       | Node.js (no `runtime` segment export) | Selected missionary RPC, service-role client       |
+| missionary | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | Selected missionary RPC, service-role client       |
 | missionary | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                        |
 | missionary | `/api/health/migrations`                                       | Node.js (no `runtime` segment export) | Migration-head check for the release job           |
 | missionary | `/api/missionary/portal`                                       | Node.js (no `runtime` segment export) | Missionary workspace BFF, admin client             |
@@ -315,7 +313,7 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | missionary | `/api/posts/[postId]/fire`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | missionary | `/api/posts/[postId]/like`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | missionary | `/api/posts/[postId]/prayer`                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
-| missionary | `/api/profile`                                                 | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
+| missionary | `/api/profile`                                                 | Node.js (no `runtime` segment export) | Service role; selected-assignment missionary RPCs  |
 | missionary | `/api/upload/editor-image`                                     | Node.js (no `runtime` segment export) | Shared editor-image upload, request-scoped client  |
 | missionary | `/api/upload/image`                                            | Node.js (no `runtime` segment export) | Shared profile-photo upload, request-scoped client |
 | missionary | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                           |

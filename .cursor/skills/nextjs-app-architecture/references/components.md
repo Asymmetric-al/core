@@ -1,6 +1,6 @@
 # Components
 
-> **Core:** Async Server Components call a published `@asym/api/*` read. Derive Tenant from `@asym/auth/context` (`getAuthContext`) before privileged reads; use the relevant role/app shell gate before service-role or tenant-wide reads; do not take `tenantId` from route params or the client. Do not import `features/<domain>/*-queries.ts`. Approved `@asym/database/hooks` belong only in `'use client'` leaves. Privileged mutations stay in `packages/api`.
+> **Core:** Async Server Components call a published `@asym/api/*` read. Derive Tenant from `@asym/auth/context` (`getAuthContext`) before privileged reads; use the relevant role/app shell gate before service-role or tenant-wide reads; do not take `tenantId` from route params or the client. Web Studio (`apps/admin/app/(payload)`, `apps/admin/src/cms*`) is the exception: its organization is a signed cookie that `getAuthContext` does not read, so take Tenant from `requireWebStudioAccess(...).scope` in a page or layout and from Payload's `req.user` (`getTenantContext(req)`) inside Payload (`docs/guides/architecture/authz-memberships.md`, "Web Studio's organization"). Do not import `features/<domain>/*-queries.ts`. Approved `@asym/database/hooks` belong only in `'use client'` leaves. Privileged mutations stay in `packages/api`.
 
 How to build server and client components inside a feature folder.
 

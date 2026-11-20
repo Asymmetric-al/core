@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getAdminCrmDonorDetail } from "./service";
 import { requireCrmAccess } from "../../../crm/auth/access";
 import { ApiHttpError, toErrorResponse } from "../../../shared/http-errors";
+import { requireRouteUuid } from "../../../shared/route-uuid";
 import { withOperation } from "../../../shared/with-operation";
 import { resolveContributionCapabilities } from "../../contribution-operations/permissions";
 
@@ -16,7 +17,7 @@ function getRecordIdFromPath(request: Request) {
     throw new ApiHttpError(400, "Missing CRM record id.");
   }
 
-  return recordId;
+  return requireRouteUuid(recordId);
 }
 
 export const GET = withOperation(

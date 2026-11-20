@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { useQuery } from "@tanstack/react-query";
 
 export type StudioMissionaryRow = {
@@ -58,7 +59,7 @@ export async function fetchStudioMissionaries(
 ): Promise<StudioMissionaryRow[]> {
   const missionaries: StudioMissionaryRow[] = [];
   for (let offset = 0; ; offset += PAGE_SIZE) {
-    const response = await fetch(
+    const response = await ownApiFetch(
       `/api/admin/missionaries?limit=${PAGE_SIZE}&offset=${offset}`,
       { credentials: "include", signal },
     );

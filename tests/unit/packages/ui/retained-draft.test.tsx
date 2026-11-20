@@ -12,7 +12,6 @@ import { Activity, StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-  RetainedDraftPageTenant,
   RetainedDraftProvider,
   SessionRetainedDraftProvider,
   useRetainedDraft,
@@ -77,59 +76,16 @@ function beforeUnload() {
 }
 afterEach(cleanup);
 describe("provider-owned retained drafts", () => {
-  it("retains an authenticated owner's draft without inferring access from their base profile role", () => {
+  // The page's tenant for drafts is the document scope (AL-2675); the
+  // portal's published copy, RetainedDraftPageTenant, is gone (JB10). With a
+  // fixed scope, ownership is retained-draft-document-scope.test.tsx's case.
+  it("leaves session drafts unowned without a document scope", () => {
     render(
-      <SessionRetainedDraftProvider>
-        <RetainedDraftPageTenant userId="user-one" tenantId="tenant-one" />
-        <Editor />
-      </SessionRetainedDraftProvider>,
-    );
-    fireEvent.change(screen.getByLabelText("Draft"), {
-      target: { value: "Membership-authorized owner" },
-    });
-    expect(screen.getByLabelText("Draft")).toHaveProperty(
-      "value",
-      "Membership-authorized owner",
-    );
-    expect(beforeUnload()).toBe(true);
-  });
-  /**
-   * AL-2675 (WP2a sweep): drafts are scoped by the page's tenant, which the
-   * server-side role gate publishes from the request's resolved assignment,
-   * never by the profile's tenant column. A person in two organizations
-   * keeps one draft per organization.
-   */
-  it("scopes session drafts by the page's tenant and purges when it changes", () => {
-    const page = (tenantId: string) => (
-      <SessionRetainedDraftProvider>
-        <RetainedDraftPageTenant userId="user-one" tenantId={tenantId} />
-        <Editor />
-      </SessionRetainedDraftProvider>
-    );
-    const view = render(page("tenant-one"));
-    fireEvent.change(screen.getByLabelText("Draft"), {
-      target: { value: "For tenant one" },
-    });
-    expect(beforeUnload()).toBe(true);
-    view.rerender(page("tenant-two"));
-    expect(screen.getByLabelText("Draft")).toHaveProperty("value", "");
-    expect(beforeUnload()).toBe(false);
-  });
-  it("leaves session drafts unowned without a page tenant, or with another user's", () => {
-    const view = render(
       <SessionRetainedDraftProvider>
         <Editor />
       </SessionRetainedDraftProvider>,
     );
     act(() => draft.update({ text: "Unscoped" }));
-    expect(beforeUnload()).toBe(false);
-    view.rerender(
-      <SessionRetainedDraftProvider>
-        <RetainedDraftPageTenant userId="someone-else" tenantId="tenant-one" />
-        <Editor />
-      </SessionRetainedDraftProvider>,
-    );
-    act(() => draft.update({ text: "Still unscoped" }));
     expect(beforeUnload()).toBe(false);
   });
   it("restores after unmount and five intervening SPA routes", () => {

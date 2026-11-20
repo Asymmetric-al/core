@@ -93,6 +93,68 @@ describe("Web Studio display conventions", () => {
   });
 });
 
+describe("Payload's REST routes (AL-2675, WP2b slice C; plan 5.2)", () => {
+  it("answer under /web-studio/api, inside Web Studio's path and outside Mission Control's /api", () => {
+    expect(config.routes.admin).toBe("/web-studio");
+    expect(config.routes.api).toBe("/web-studio/api");
+    // GraphQL follows the setting; WP6 removes it.
+    expect(config.routes.graphQL).toBe("/graphql");
+  });
+
+  it("answer an anonymous Web Studio refusal with JSON that says why", async () => {
+    const { webStudioRefusalAfterError } =
+      await import("../../../apps/admin/src/cms/auth/web-studio-refusal");
+    expect(config.hooks?.afterError).toContain(webStudioRefusalAfterError);
+  });
+});
+
+describe("Payload's document locks stay inside the organization (AL-2675, council C3 and round 2 CR2)", () => {
+  it("the built configuration admits no lock create, and only the selected organization's locks to read, take over or release", async () => {
+    // Payload builds the lock collection with every signed-in user allowed
+    // every operation (payload/dist/locked-documents/config.js). The access is
+    // set on the configuration Payload is built from, so a development
+    // server's hot reload, which rebuilds the collections from a fresh
+    // configuration without running onInit again, keeps it (CR2, lens 1 I2).
+    const { lockAccessInOrganization, lockHeldByCaller } =
+      await import("../../../apps/admin/src/cms/document-locks");
+    const locks = config.collections.find(
+      (collection) => collection.slug === "payload-locked-documents",
+    );
+    expect(locks).toBeDefined();
+    const access = locks!.access as Record<string, unknown>;
+    expect(
+      await (access.create as (args: unknown) => unknown)({
+        req: { user: { id: 1, collection: "cms-users" } },
+      }),
+    ).toBe(false);
+    for (const operation of ["read", "update", "delete"]) {
+      expect(access[operation], operation).toBe(lockAccessInOrganization);
+    }
+    expect(locks!.hooks?.beforeChange).toContain(lockHeldByCaller);
+    expect(config.onInit).toBeUndefined();
+  });
+
+  it("dispatches form-state through Web Studio's lock rule from the Payload layout", async () => {
+    const { readFileSync } = await import("node:fs");
+    const layout = readFileSync("apps/admin/app/(payload)/layout.tsx", "utf8");
+    expect(layout).toContain("serverFunctions: webStudioServerFunctions");
+    const { webStudioServerFunctions } =
+      await import("../../../apps/admin/src/cms/web-studio-server-functions");
+    expect(Object.keys(webStudioServerFunctions)).toEqual(["form-state"]);
+  });
+
+  it("schedules no publication: the schedule-publish function queues jobs on publish permission alone", () => {
+    for (const collection of config.collections) {
+      const drafts = collection.versions && collection.versions.drafts;
+      const schedulePublish =
+        drafts && typeof drafts === "object"
+          ? drafts.schedulePublish
+          : undefined;
+      expect(Boolean(schedulePublish), collection.slug).toBe(false);
+    }
+  });
+});
+
 describe("Postgres adapter settings", () => {
   it("never lets Payload create a missing database or schema", () => {
     // The adapter keeps its options on the instance that init returns; init

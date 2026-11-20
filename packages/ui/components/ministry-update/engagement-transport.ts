@@ -8,8 +8,10 @@
  * always transport-backed — there is deliberately no way to render an
  * interactive reaction whose toggle does not go through a transport.
  *
- * Server-safe: no React imports (uses global `fetch` only at call time).
+ * Server-safe: no React imports (calls the own-API wrapper only at call time,
+ * which sends the document's tenant and assignment; plan 5.2, AL-2675).
  */
+import { ownApiFetch } from "@asym/database/own-api";
 
 import type { ReactionKind, ReactionState } from "./normalize";
 
@@ -155,7 +157,7 @@ function errorFromStatus(status: number): EngagementError {
 async function requestJson(path: string, init: RequestInit): Promise<unknown> {
   let response: Response;
   try {
-    response = await fetch(path, init);
+    response = await ownApiFetch(path, init);
   } catch (error) {
     if (isAbortError(error)) {
       throw error;

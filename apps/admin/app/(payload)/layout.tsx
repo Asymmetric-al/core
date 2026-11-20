@@ -1,4 +1,5 @@
 import { AgentBridge } from "@asym/ui/components/primitives/agent-bridge";
+import { ScopeReloadNotices } from "@asym/ui/components/scope-reload-notices";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -13,7 +14,7 @@ import { RootProviders } from "@payloadcms/ui";
 import { RenderServerComponent } from "@payloadcms/ui/elements/RenderServerComponent";
 import { getRootLayoutData } from "@payloadcms/ui/layouts/Root/getRootLayoutData";
 import { headers as nextHeaders } from "next/headers";
-import Link from "next/link";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { connection } from "next/server";
 import {
   createPayloadRequest,
@@ -30,13 +31,17 @@ import { importMap } from "./web-studio/importMap";
 
 import type { PayloadRequest, ServerFunctionClient } from "payload";
 
-import { requireAdminAccess } from "@/lib/admin-access";
 import {
   assertPayloadDatabaseConfiguration,
   PayloadDatabaseConfigurationError,
 } from "@/src/cms/payload-database-config";
 import { NextRouterAdapter } from "@/src/cms/payload-next-router-adapter";
+import { requireWebStudioAccess } from "@/src/cms/web-studio-access";
+import { runForWebStudioDocument } from "@/src/cms/web-studio-server-function";
+import { webStudioServerFunctions } from "@/src/cms/web-studio-server-functions";
 import { WEB_STUDIO_AGENT_PERMISSIONS } from "@/src/cms-ui/web-studio/agent-permissions";
+import { MissionControlLink } from "@/src/cms-ui/web-studio/shell/mission-control-link";
+import { WebStudioDocument } from "@/src/cms-ui/web-studio/shell/web-studio-document";
 
 type Props = {
   children: React.ReactNode;
@@ -48,11 +53,17 @@ const serverFunction: ServerFunctionClient = async (args) => {
   "use server";
 
   try {
-    return await handleServerFunctions({
-      ...args,
-      config,
-      importMap,
-    });
+    // Only for the document rendered for the organization the cookie selects
+    // now; any other is refused before Payload runs (JC2).
+    return await runForWebStudioDocument(() =>
+      handleServerFunctions({
+        ...args,
+        config,
+        importMap,
+        // form-state without document locks (council C3; document-locks.ts).
+        serverFunctions: webStudioServerFunctions,
+      }),
+    );
   } catch (cause: unknown) {
     const name =
       typeof args === "object" &&
@@ -101,13 +112,14 @@ export default async function PayloadLayout({ children }: Props) {
 async function PayloadEmbeddedLayout({ children }: Props) {
   // `(payload)` deliberately stays outside `(app)`: Payload's import-map
   // generator only resolves `app/(payload)/<adminRoute>/`, so moving this group
-  // breaks `generate:importmap`. That means the `(app)` layout's role gate does
-  // not cover these routes. `proxy.ts` rejects wrong-role sessions at the edge;
-  // this explicit gate is the same defense in depth (role and tenant) that the
-  // `(app)` layout gives its routes.
+  // breaks `generate:importmap`. That means the `(app)` layout's gate does not
+  // cover these routes. Web Studio works in the organization its signed
+  // cookie selects (plan 5.2): `proxy.ts` decides that before the page shell,
+  // and this gate decides it again, from the person's live staff rows, and
+  // gives the document the tenant and row it is rendered for.
   const gatePathname =
     (await nextHeaders()).get("x-asym-pathname") ?? "/web-studio";
-  await requireAdminAccess(gatePathname);
+  const access = await requireWebStudioAccess(gatePathname);
 
   try {
     assertPayloadDatabaseConfiguration();
@@ -167,11 +179,21 @@ async function PayloadEmbeddedLayout({ children }: Props) {
     >
       {/* eslint-disable-next-line shadcn/no-inline-styles -- TODO(integrate-design-system-lint): Payload requires this CSS layer order before its providers render. */}
       <style>@layer payload-default, payload;</style>
-      {renderPayloadProviders({
-        children,
-        permissions,
-        req,
-      })}
+      {/* The app's view of the reload notice, as in Mission Control's root
+          layout, for a Web Studio scope that is refused or retired (check of
+          the fix lists, JR14). */}
+      <ScopeReloadNotices>
+        <WebStudioDocument
+          scope={access.scope}
+          organization={access.organization}
+        >
+          {renderPayloadProviders({
+            children,
+            permissions,
+            req,
+          })}
+        </WebStudioDocument>
+      </ScopeReloadNotices>
     </RootProviders>
   );
 }
@@ -196,9 +218,11 @@ function WebStudioDatabaseConfigurationError() {
           <Link className={buttonVariants()} href="/web-studio">
             Try again
           </Link>
-          <Link className={buttonVariants({ variant: "outline" })} href="/">
+          <MissionControlLink
+            className={buttonVariants({ variant: "outline" })}
+          >
             Back to Mission Control
-          </Link>
+          </MissionControlLink>
         </CardContent>
       </Card>
     </main>

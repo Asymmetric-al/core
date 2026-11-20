@@ -1,11 +1,11 @@
 "use client";
 
+import { useRoutePathname as usePathname } from "@asym/auth/tenant-navigation";
 import {
   SidebarProvider,
   SidebarInset,
 } from "@asym/ui/components/shadcn/sidebar";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
-import { usePathname } from "next/navigation";
 
 import { AppHeader } from "./app-header";
 import { AppSidebar, isActivePath } from "./app-sidebar";

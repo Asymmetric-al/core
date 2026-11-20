@@ -1,7 +1,7 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { LogOutIcon, UserRound } from "lucide-react";
-import Link from "next/link";
 
 import {
   Avatar,

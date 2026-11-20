@@ -7,18 +7,31 @@ import {
 } from "@asym/auth/e2e-auth";
 import {
   createRpcAssignmentReader,
+  listE2EAuthAssignments,
   resolveActiveAssignment,
+  type ActiveAssignment,
   type AssignmentRpcClient,
 } from "@asym/auth/principal";
+import { ASSIGNMENT_HEADER, TENANT_HEADER } from "@asym/auth/request-headers";
+import {
+  decideWebStudioAccess,
+  WEB_STUDIO_TENANT_COOKIE,
+  webStudioResolveInput,
+  type WebStudioCookieState,
+} from "@asym/auth/web-studio";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 
 import { CMS_USERS_SLUG } from "../constants";
+import { readWebStudioTenantCookie } from "../web-studio-tenant-cookie";
+import {
+  markWebStudioRefusal,
+  type WebStudioRefusal,
+} from "./web-studio-refusal";
 
-import type { AuthStrategy, BasePayload } from "payload";
+import type { AuthStrategy, BasePayload, PayloadRequest } from "payload";
 
 const STRATEGY_NAME = "supabase-session";
-const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
 type CmsStaffRole = "staff" | "admin" | "super_admin";
 type CmsUserDoc = {
   id: number;
@@ -56,6 +69,8 @@ type SupabaseStrategyDependencies = {
     ReturnType<typeof createServerClient>,
     "from"
   > | null;
+  /** Reads the Web Studio cookie; the admin app's key by default. */
+  readWebStudioCookie?: (value: string | null) => Promise<WebStudioCookieState>;
 };
 
 function createTrustedSupabaseDataClient(): Pick<
@@ -247,15 +262,77 @@ async function findOrSyncCmsUser({
   return syncedUser as CmsUserDoc;
 }
 
+/** The methods that change data. */
+const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+/**
+ * Whether a REST call comes from a Web Studio document rendered for the
+ * assignment this request resolved (plan 5.2). Each document sends the tenant
+ * and row it was rendered for (`x-asym-tenant`, `x-asym-assignment`); once
+ * the person has switched organization in another tab, they differ from the
+ * cookie's and the call is refused, so an open form is never retargeted. A
+ * write must name its document. A read need not, as an image or a link does
+ * not, but one that names a document must name this one.
+ *
+ * Only a REST or GraphQL call has a request here; Payload's page renders
+ * authenticate without one and act in the cookie's organization. Its server
+ * functions do too, but the Payload layout checks their claims the same way
+ * before Payload runs them (`web-studio-server-function.ts`; council on the
+ * joined release, JC2). Nothing in Core calls Payload's GraphQL route, which
+ * WP6 removes; until then every GraphQL call counts as a write, so a
+ * mutation that names no document is refused.
+ */
+function isFromCurrentDocument(
+  {
+    headers,
+    req,
+    isGraphQL,
+  }: { headers: Headers; req?: PayloadRequest; isGraphQL?: boolean },
+  assignment: ActiveAssignment,
+): boolean {
+  if (!req) return true;
+  const tenantId = headers.get(TENANT_HEADER)?.trim() || null;
+  const assignmentId = headers.get(ASSIGNMENT_HEADER)?.trim() || null;
+  if (tenantId === null && assignmentId === null) {
+    return (
+      !isGraphQL && !WRITE_METHODS.has((req.method ?? "GET").toUpperCase())
+    );
+  }
+  return (
+    tenantId === assignment.tenantId && assignmentId === assignment.assignmentId
+  );
+}
+
+type AuthenticationOutcome =
+  { user: CmsAuthUser } | { user: null; refusal: WebStudioRefusal | null };
+
+const refused = (refusal: WebStudioRefusal | null): AuthenticationOutcome => ({
+  user: null,
+  refusal,
+});
+
+/**
+ * The E2E bypass identity, when the bypass is enabled and the request carries
+ * its signed cookie: judged by the Web Studio rule over the memberships the
+ * signed cookie names, exactly as a real session is over its live rows. Its
+ * organization comes from the Web Studio cookie, never from the identity's
+ * own default tenant. `null` when there is no bypass identity at all.
+ */
 async function authenticateE2EBypass({
   headers,
   payload,
   requestCookies,
+  cookie,
+  req,
+  isGraphQL,
 }: {
   headers: Headers;
   payload: PayloadAuthStore;
   requestCookies: Array<{ name: string; value: string }>;
-}): Promise<CmsAuthUser | null> {
+  cookie: WebStudioCookieState;
+  req?: PayloadRequest;
+  isGraphQL?: boolean;
+}): Promise<AuthenticationOutcome | null> {
   if (!isE2EAuthBypassEnabled()) {
     return null;
   }
@@ -279,12 +356,29 @@ async function authenticateE2EBypass({
     return null;
   }
 
-  const role = readE2ECmsRole(e2eSession.role);
-  if (!role) {
-    return null;
+  if (!readE2ECmsRole(e2eSession.role)) {
+    return refused(null);
   }
 
-  const publicTenantId = e2eSession.tenantId ?? DEFAULT_TENANT_ID;
+  const decision = decideWebStudioAccess({
+    assignments: listE2EAuthAssignments(e2eSession),
+    cookie,
+  });
+  if (decision.kind !== "allow") {
+    return refused("no_selection");
+  }
+  const { assignment } = decision;
+  if (!isFromCurrentDocument({ headers, req, isGraphQL }, assignment)) {
+    return refused("scope_mismatch");
+  }
+
+  const role: CmsStaffRole =
+    e2eSession.role === "super_admin"
+      ? "super_admin"
+      : assignment.isTenantAdmin
+        ? "admin"
+        : "staff";
+  const publicTenantId = assignment.tenantId;
   const publicTenant = {
     id: publicTenantId,
     name: "E2E Tenant",
@@ -304,10 +398,12 @@ async function authenticateE2EBypass({
   const userRecord = await findOrSyncCmsUser({ payload, desiredData });
 
   return {
-    ...userRecord,
-    publicTenantId,
-    _strategy: `${CMS_USERS_SLUG}-${STRATEGY_NAME}-e2e`,
-    collection: CMS_USERS_SLUG,
+    user: {
+      ...userRecord,
+      publicTenantId,
+      _strategy: `${CMS_USERS_SLUG}-${STRATEGY_NAME}-e2e`,
+      collection: CMS_USERS_SLUG,
+    },
   };
 }
 
@@ -318,109 +414,153 @@ export function createSupabaseAuthStrategy(
     dependencies.createSupabaseClient ?? createServerClient;
   const createSupabaseDataClient =
     dependencies.createSupabaseDataClient ?? createTrustedSupabaseDataClient;
+  const readCookie =
+    dependencies.readWebStudioCookie ?? readWebStudioTenantCookie;
+
+  async function authenticateRequest({
+    headers,
+    payload,
+    req,
+    isGraphQL,
+  }: {
+    headers: Headers;
+    payload: PayloadAuthStore;
+    req?: PayloadRequest;
+    isGraphQL?: boolean;
+  }): Promise<AuthenticationOutcome> {
+    const requestCookies = parseCookieHeader(headers.get("cookie"));
+    // The organization Web Studio works in: the signed cookie scoped to
+    // `/web-studio` (plan 5.2), a proposal the resolver checks below.
+    const cookie = await readCookie(
+      readCookieValue(requestCookies, WEB_STUDIO_TENANT_COOKIE),
+    );
+    const e2e = () =>
+      authenticateE2EBypass({
+        headers,
+        payload,
+        requestCookies,
+        cookie,
+        req,
+        isGraphQL,
+      });
+
+    const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseURL || !supabaseAnonKey) {
+      return (await e2e()) ?? refused("no_session");
+    }
+
+    const supabase = createSupabaseClient(supabaseURL, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return requestCookies;
+        },
+        setAll(
+          _cookiesToSet: Array<{
+            name: string;
+            value: string;
+            options?: Record<string, unknown>;
+          }>,
+        ) {
+          // This strategy only reads the session. The admin proxy refreshes
+          // it on every Web Studio request, REST routes included.
+        },
+      },
+    });
+
+    const {
+      data: { user: supabaseUser },
+    } = await supabase.auth.getUser();
+
+    if (!supabaseUser?.id) {
+      return (await e2e()) ?? refused("no_session");
+    }
+
+    // Web Studio acts on staff rows (plan 5.1): the row the Web Studio cookie
+    // names, proposed to the same resolver every other handler uses, over the
+    // caller's live memberships read on their own session through
+    // `public.current_user_assignments()` (A08: `authz` is not exposed by the
+    // Data API). Without a cookie, the one staff row of a person who needs no
+    // choice. A forged, foreign or revoked selection, or several rows and no
+    // choice, resolve nothing: there is no fallback to a first membership or
+    // a profile. Its flag makes the CMS user an admin.
+    const resolveInput = webStudioResolveInput(cookie);
+    if (!resolveInput.ok) {
+      return refused("no_selection");
+    }
+    const { ok: _ok, ...narrowing } = resolveInput;
+    const resolution = await resolveActiveAssignment(
+      { ...narrowing, userId: supabaseUser.id },
+      createRpcAssignmentReader(supabase as unknown as AssignmentRpcClient),
+    );
+    if (!resolution.ok) {
+      // Rows that could not be read are an ordinary failure, unmarked, which
+      // the person can retry; only the resolver's own refusal of the row is
+      // "choose an organization" (JR2's rule; last read of the first
+      // release, L3).
+      return refused(
+        resolution.reason === "reader_error" ? null : "no_selection",
+      );
+    }
+    const { assignment } = resolution;
+    if (!isFromCurrentDocument({ headers, req, isGraphQL }, assignment)) {
+      return refused("scope_mismatch");
+    }
+    const publicTenantId = assignment.tenantId;
+    const role: CmsStaffRole = assignment.isTenantAdmin ? "admin" : "staff";
+
+    const supabaseDataClient = createSupabaseDataClient() ?? supabase;
+
+    const { data: publicTenantData } = await supabaseDataClient
+      .from("tenants")
+      .select("id, name, slug")
+      .eq("id", publicTenantId)
+      .maybeSingle();
+    const publicTenant = readPublicTenant(publicTenantData);
+
+    if (!publicTenant) {
+      return refused(null);
+    }
+
+    const cmsTenantId = await findOrCreateCmsTenant({
+      payload,
+      publicTenant,
+    });
+
+    const desiredData: CmsUserSyncData = {
+      email: supabaseUser.email ?? `${supabaseUser.id}@asym.local`,
+      role,
+      supabaseUserId: supabaseUser.id,
+      tenantId: cmsTenantId,
+    };
+    const userRecord = await findOrSyncCmsUser({ payload, desiredData });
+
+    return {
+      user: {
+        ...userRecord,
+        publicTenantId,
+        _strategy: `${CMS_USERS_SLUG}-${STRATEGY_NAME}`,
+        collection: CMS_USERS_SLUG,
+      },
+    };
+  }
 
   return {
     name: STRATEGY_NAME,
-    authenticate: async ({ headers, payload }) => {
-      const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-      if (!supabaseURL || !supabaseAnonKey) {
-        return {
-          user: await authenticateE2EBypass({
-            headers,
-            payload,
-            requestCookies: parseCookieHeader(headers.get("cookie")),
-          }),
-        };
-      }
-
-      const requestCookies = parseCookieHeader(headers.get("cookie"));
-      const supabase = createSupabaseClient(supabaseURL, supabaseAnonKey, {
-        cookies: {
-          getAll() {
-            return requestCookies;
-          },
-          setAll(
-            _cookiesToSet: Array<{
-              name: string;
-              value: string;
-              options?: Record<string, unknown>;
-            }>,
-          ) {
-            // This auth strategy only reads server-side sessions.
-            // Session refresh is managed by our app middleware.
-          },
-        },
-      });
-
-      const {
-        data: { user: supabaseUser },
-      } = await supabase.auth.getUser();
-
-      if (!supabaseUser?.id) {
-        return {
-          user: await authenticateE2EBypass({
-            headers,
-            payload,
-            requestCookies,
-          }),
-        };
-      }
-
-      // Web Studio acts on staff rows (plan 5.1): the caller's one live staff
-      // membership, resolved on the caller's own session through
-      // `public.current_user_assignments()` (A08: `authz` is not exposed by
-      // the Data API). Its tenant is the Web Studio tenant, and its flag makes
-      // the CMS user an admin. The profile's tenant and role are not read.
-      // Until WP2b's tenant cookie, a person with several staff rows, or staff
-      // rows in two tenants, resolves nothing and is not signed in here.
-      const resolution = await resolveActiveAssignment(
-        { userId: supabaseUser.id, roleClass: "staff" },
-        createRpcAssignmentReader(supabase as unknown as AssignmentRpcClient),
-      );
-      if (!resolution.ok) {
-        return { user: null };
-      }
-      const publicTenantId = resolution.assignment.tenantId;
-      const role: CmsStaffRole = resolution.assignment.isTenantAdmin
-        ? "admin"
-        : "staff";
-
-      const supabaseDataClient = createSupabaseDataClient() ?? supabase;
-
-      const { data: publicTenantData } = await supabaseDataClient
-        .from("tenants")
-        .select("id, name, slug")
-        .eq("id", publicTenantId)
-        .maybeSingle();
-      const publicTenant = readPublicTenant(publicTenantData);
-
-      if (!publicTenant) {
-        return { user: null };
-      }
-
-      const cmsTenantId = await findOrCreateCmsTenant({
+    authenticate: async ({ headers, payload, req, isGraphQL }) => {
+      const outcome = await authenticateRequest({
+        headers,
         payload,
-        publicTenant,
+        req,
+        isGraphQL,
       });
-
-      const desiredData: CmsUserSyncData = {
-        email: supabaseUser.email ?? `${supabaseUser.id}@asym.local`,
-        role,
-        supabaseUserId: supabaseUser.id,
-        tenantId: cmsTenantId,
-      };
-      const userRecord = await findOrSyncCmsUser({ payload, desiredData });
-
-      return {
-        user: {
-          ...userRecord,
-          publicTenantId,
-          _strategy: `${CMS_USERS_SLUG}-${STRATEGY_NAME}`,
-          collection: CMS_USERS_SLUG,
-        },
-      };
+      if (outcome.user === null && outcome.refusal) {
+        // Payload then refuses the anonymous operation; the afterError hook
+        // turns that into the refusal's JSON answer (web-studio-refusal.ts).
+        markWebStudioRefusal(req, outcome.refusal);
+      }
+      return { user: outcome.user };
     },
   };
 }

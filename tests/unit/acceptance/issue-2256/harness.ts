@@ -89,6 +89,18 @@ export const READER_FUNCTIONS: Record<string, boolean> = {
   set_eve_retention_hold: true,
   expire_eve_retention_records: true,
   handle_new_user: true,
+  // DEFINER since AL-2675 (JB11, 20261119135200_post_comment_authors.sql):
+  // the commenters' display names and avatars, joined to profiles, for a
+  // caller with a live membership in the post's tenant. It names profiles
+  // beside posts.tenant_id and authz.memberships.tenant_id and reads no
+  // profile's tenant; the lexical scan keeps it.
+  post_comment_authors: true,
+  // Added by the handler-authority package of WP2 (AL-2675; D-18):
+  // `authz.selected_missionary` joins profiles to `authz.memberships` by
+  // user and compares the MEMBERSHIP's tenant_id with the selected tenant. It
+  // reads no profile's tenant; the lexical scan matches it, as it matches
+  // `profile_in_tenant`. An invoker: its only caller is the service role.
+  selected_missionary: false,
 };
 /** §1.3 policy rows ("schema.table policy", sorted): #2256's profiles policy,
  * #2406's profiles-bucket folder policies, and #2407a's editor-image folder

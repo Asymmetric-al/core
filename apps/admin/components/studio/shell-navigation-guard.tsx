@@ -1,5 +1,6 @@
 "use client";
 
+import { useTenantRouter as useRouter } from "@asym/auth/tenant-navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,7 +11,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@asym/ui/components/shadcn/alert-dialog";
-import { useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,

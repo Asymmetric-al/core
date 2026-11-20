@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { motion, useReducedMotion } from "@asym/lib/motion";
 import { transitionStandard } from "@asym/lib/motion-presets";
 import {
@@ -36,7 +37,6 @@ import {
   User,
   UserRound,
 } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
 
 import type { Task, TaskType, TaskStatus, TaskPriority } from "../types";

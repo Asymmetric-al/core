@@ -145,6 +145,11 @@ below record the set as #2256 froze it:
     (AL-2675 sweep, NR-68).
   - `profile_in_tenant` (`private`, INVOKER): whether a profile's login holds
     a live membership in a tenant.
+  - `selected_missionary` (`authz`, INVOKER; AL-2675, the handler-authority
+    package of WP2): whether the selected membership row is a live missionary
+    row of the selected tenant and belongs to the profile's login. It compares
+    the membership's tenant and reads no profile's tenant; its only caller is
+    the service role.
   - `assert_eve_retention_actor`: a live flagged staff row for `admin`
     since R1; the `super_admin` branch reads the profile's tenant.
   - `assert_eve_admin_memory_owner`: a live row in the tenant since R1.
@@ -171,6 +176,11 @@ below record the set as #2256 froze it:
     too, because the release already running reads it there (plan 7.4). The
     column grants nothing under WP2a; the migration that drops it (WP5) ends
     the write.
+  - `post_comment_authors` (AL-2675, JB11): the commenters' display names and
+    avatars, given only to a caller with a live membership in the post's
+    tenant. It names profiles beside `posts.tenant_id` and
+    `authz.memberships.tenant_id`, so the lexical scan keeps it, and reads no
+    profile's tenant.
 - App code that uses `profile.tenant_id` to pick or check the tenant: none.
   AL-2675 moved `packages/auth/context.ts`, `packages/auth/resolve-user-role.ts`
   and `apps/admin/src/cms/auth/supabase-strategy.ts` to the caller's
@@ -193,10 +203,10 @@ below record the set as #2256 froze it:
 
 In `packages/ui/hooks/retained-draft.tsx`, `SessionRetainedDraftProvider`
 scopes in-memory drafts by the user ID, the profile ID and the page's tenant,
-which the app's server-side role gate publishes with `RetainedDraftPageTenant`
-from the request's resolved assignment (until WP2b carries the tenant in the
-page address). Without a page tenant for this user the store is unowned, and
-an owner change remounts and clears it. This client-side memory boundary grants
+which is the document scope every signed-in surface fixes from the request's
+resolved assignment: the tenant in the page address, or the donor portal's
+one donor row (AL-2675). Without a fixed scope for this user the store is
+unowned, and an owner change remounts and clears it. This client-side memory boundary grants
 no permissions; route/API policies retain access authority. Future readers of
 the profile's tenant must be added to the pinned list and to this doc.
 

@@ -99,7 +99,10 @@ describe("deployment discipline verifier", () => {
     expect(workflow).toContain("run: bun run test:e2e:smoke");
     expect(workflow).toContain("run: bun run test:e2e:production-gate");
     expect(workflow).not.toContain("run: bun run test:e2e --project=chromium");
-    expect(workflow).toContain("timeout-minutes: 30");
+    // The test-e2e job's limit: 30 until AL-2675 (WP2b release 1, JR12), which
+    // added the tenant-address, request-scope and Web Studio steps and set it
+    // from the measured replay. The required gates below keep their limits.
+    expect(workflow).toContain("timeout-minutes: 55");
     expect(workflow).toContain("timeout-minutes: 25");
     expect(workflow).toContain("timeout-minutes: 10");
     expect(packageJson.scripts["test:e2e:smoke"]).toContain(

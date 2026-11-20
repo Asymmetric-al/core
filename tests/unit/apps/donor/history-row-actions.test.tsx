@@ -1,7 +1,15 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+const { ownApiDownloadMock } = vi.hoisted(() => ({
+  ownApiDownloadMock: vi.fn(async () => undefined),
+}));
+vi.mock("@asym/database/own-api", () => ({
+  ownApiDownload: ownApiDownloadMock,
+  ownApiFetch: vi.fn(),
+}));
 
 vi.mock("next/link", () => ({
   default: ({
@@ -63,20 +71,28 @@ describe("donor history rows", () => {
     expect(screen.queryByRole("link")).toBeNull();
   });
 
+  // WP2b, AL-2675: the receipt route is the app's own API, so the control
+  // downloads it through the own-API wrapper (a link would be a page load
+  // with no tenant header). Where this read the link's href and `download`
+  // attribute, it now clicks the control and reads the address downloaded.
   it("offers a receipt only for paid gifts", () => {
     renderCell("receipt", monthlyGift);
-    const receipt = screen.getByRole("link", {
+    const receipt = screen.getByRole("button", {
       // Each gift's own date and amount, so ten receipts for one partner
       // don't all read the same.
       name: "Download receipt for Jordan Hale, Feb 5, 2026, $30.00",
     });
-    expect(receipt.getAttribute("href")).toBe("/api/donor/receipts/gift-1");
-    expect(receipt.hasAttribute("download")).toBe(true);
+    fireEvent.click(receipt);
+    expect(ownApiDownloadMock).toHaveBeenCalledWith(
+      "/api/donor/receipts/gift-1",
+      {},
+    );
 
     for (const status of ["Processing", "Failed", "Refunded"] as const) {
       cleanup();
       renderCell("receipt", { ...monthlyGift, status });
       expect(screen.queryByRole("link")).toBeNull();
+      expect(screen.queryByRole("button")).toBeNull();
     }
   });
 

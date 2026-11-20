@@ -3,6 +3,7 @@ import {
   CONTRIBUTION_ACTION_TYPES,
   type ContributionActionType,
 } from "@asym/api/admin/contribution-operations/types";
+import { ownApiFetch } from "@asym/database/own-api";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
@@ -28,10 +29,10 @@ import {
 } from "./receipt-delivery-choice";
 import {
   receiptOutcomeStatusLabel,
-  receiptSnapshotPdfUrl,
   resolveInitialReceiptDeliveryValue,
   resolveReceiptDeliveryError,
 } from "./receipt-delivery-model";
+import { ReceiptSnapshotDownload } from "./receipt-snapshot-download";
 
 import type { ReceiptDeliveryOutcome } from "@asym/api/admin/contribution-operations";
 
@@ -83,7 +84,7 @@ async function postCorrectionRequestDecision(input: {
   /** Null means the approver kept the requester's proposal. */
   receiptDelivery: ReceiptDeliveryProposal | null;
 }): Promise<CorrectionDecisionSuccess> {
-  const response = await fetch(
+  const response = await ownApiFetch(
     `/api/admin/contribution-operations/correction-requests/${encodeURIComponent(
       input.requestId,
     )}/decision`,
@@ -485,15 +486,7 @@ function CorrectionDecisionResult({
       )}
       {receiptOutcome?.status === "pdf_generated" &&
         receiptOutcome.snapshotId && (
-          <a
-            href={receiptSnapshotPdfUrl(receiptOutcome.snapshotId)}
-            target="_blank"
-            rel="noreferrer"
-            className="text-xs font-medium text-foreground underline underline-offset-2"
-          >
-            Download updated receipt PDF
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
+          <ReceiptSnapshotDownload snapshotId={receiptOutcome.snapshotId} />
         )}
     </div>
   );

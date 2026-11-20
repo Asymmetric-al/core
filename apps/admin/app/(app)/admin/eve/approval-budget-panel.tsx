@@ -1,6 +1,7 @@
 "use client";
 
 import { EVE_POLICY_ACTION_IDS } from "@asym/api/eve/approval-budget";
+import { ownApiFetch } from "@asym/database/own-api";
 import {
   useLocaleFormat,
   type DateInput,
@@ -109,7 +110,7 @@ const ACTION_LABELS: Record<EvePolicyActionId, string> = {
 };
 
 async function requestPolicy(body?: MutationBody): Promise<ResponseBody> {
-  const response = await fetch(
+  const response = await ownApiFetch(
     "/api/admin/eve/approval-budget",
     body
       ? {
