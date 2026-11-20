@@ -155,7 +155,7 @@ function changeSentence(
 }
 
 function AnalyticsContent({ gifts }: { gifts: AnalyticsGift[] }) {
-  const now = React.useMemo(() => new Date(), []);
+  const [now] = React.useState(() => new Date());
   const year = givingYear(gifts, now);
   const retention = partnerRetention(gifts, now);
   const mix = givingMix(gifts, now);

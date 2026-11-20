@@ -2,7 +2,7 @@
 
 import { useConfig } from "@payloadcms/ui";
 import { isFieldDisabled } from "payload/shared";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useState } from "react";
 
 import type { RelationshipFilterOptions } from "./payload-where-filters";
 import type { FilterOption } from "@asym/ui/components/shadcn/data-table";
@@ -115,24 +115,29 @@ export function useRelationshipFilterOptions(
   const apiURL = `${config?.serverURL ?? ""}${config?.routes?.api ?? "/api"}`;
   const [options, setOptions] = useState<RelationshipFilterOptions>({});
 
-  useEffect(() => {
-    if (relationships.length === 0) return;
-    const controller = new AbortController();
-    void loadRelationshipFilterOptions({
+  // Reads this render's relationships and Payload config without making them
+  // dependencies: rebuilt `fields` or a rebuilt config with the same
+  // relationships (the same `key`) must not load the options again.
+  const loadOptions = useEffectEvent((url: string, signal: AbortSignal) =>
+    loadRelationshipFilterOptions({
       relationships,
-      apiURL,
+      apiURL: url,
       titleFieldOf: (collectionSlug) => {
         const entity = getEntityConfig?.({ collectionSlug }) as
           { admin?: { useAsTitle?: string } } | undefined;
         return entity?.admin?.useAsTitle ?? "id";
       },
-      signal: controller.signal,
-    }).then((loaded) => {
+      signal,
+    }),
+  );
+
+  useEffect(() => {
+    if (key === "") return;
+    const controller = new AbortController();
+    void loadOptions(apiURL, controller.signal).then((loaded) => {
       if (!controller.signal.aborted) setOptions(loaded);
     });
     return () => controller.abort();
-    // `key` stands for `relationships`; getEntityConfig is stable per config.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO(payload-relationship-config-stability) Relationship keys represent stable config selections.
   }, [key, apiURL]);
 
   return options;
