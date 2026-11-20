@@ -19,3 +19,5 @@ export class ApiHttpError extends Error {
     this.name = "ApiHttpError";
   }
 }
+
+export class ApiResponseContractError extends ApiHttpError {}

@@ -203,7 +203,7 @@ function authenticatedOperation<
 
       const normalized = toApiHttpError(error, "Internal error");
       if (normalized.status >= 500) {
-        reportOperationFailure(
+        await reportOperationFailure(
           "withOperation",
           error,
           requestId,

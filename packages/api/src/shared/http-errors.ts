@@ -1,13 +1,12 @@
 import { SCOPE_REFUSED_HEADER } from "@asym/database/request-scope-headers";
-import { captureError } from "@asym/lib/monitoring";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
-import { ApiHttpError } from "./api-http-error";
+import { ApiHttpError, ApiResponseContractError } from "./api-http-error";
 
 // Browser-safe modules import the class from "./api-http-error" directly;
 // this re-export keeps the server-side import surface unchanged.
-export { ApiHttpError };
+export { ApiHttpError, ApiResponseContractError };
 
 const STATUS_BY_ERROR_CODE: Record<string, number> = {
   "23503": 409, // foreign_key_violation
@@ -136,7 +135,9 @@ export function toErrorResponse(
 ) {
   const normalized = toApiHttpError(error, fallbackMessage);
   const message =
-    normalized.status >= 500 ? "Internal error" : normalized.message;
+    normalized.status >= 500 && !(error instanceof ApiResponseContractError)
+      ? "Internal error"
+      : normalized.message;
   return NextResponse.json(
     requestId ? { error: message, requestId } : { error: message },
     {
@@ -146,7 +147,7 @@ export function toErrorResponse(
   );
 }
 
-export function reportOperationFailure(
+export async function reportOperationFailure(
   operation: string,
   error: unknown,
   requestId: string,
@@ -179,5 +180,10 @@ export function reportOperationFailure(
   }
   const diagnostic = { requestId, status, name, code, stack: sanitized.stack };
   console.error(`[${operation}] Request failed`, diagnostic);
-  captureError(sanitized, diagnostic, { request_id: requestId });
+  try {
+    const { captureError } = await import("@asym/lib/monitoring");
+    captureError(sanitized, diagnostic, { request_id: requestId });
+  } catch {
+    console.error(`[${operation}] Error tracker unavailable`, { requestId });
+  }
 }

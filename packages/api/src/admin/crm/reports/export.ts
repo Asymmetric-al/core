@@ -88,7 +88,7 @@ export const GET = withPlatformOperation(
         },
       });
     } catch (error) {
-      reportOperationFailure("crm.report.export", error, requestId, 500);
+      await reportOperationFailure("crm.report.export", error, requestId, 500);
       return NextResponse.json(
         { error: "Failed to export CRM report.", requestId },
         { status: 500 },
