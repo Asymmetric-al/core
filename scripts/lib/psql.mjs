@@ -39,11 +39,12 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
   }
   if (!["postgres:", "postgresql:"].includes(url.protocol))
     throw new Error("the database URL must use postgres:// or postgresql://");
+  // Windows environment lookups are case-insensitive. Drop mixed-case keys
+  // too, then copy only the password through the platform's normal lookup.
   const env = Object.fromEntries(
-    Object.entries(baseEnv).filter(
-      ([key]) => !key.startsWith("PG") || key === "PGPASSWORD",
-    ),
+    Object.entries(baseEnv).filter(([key]) => !/^PG/i.test(key)),
   );
+  if (baseEnv.PGPASSWORD !== undefined) env.PGPASSWORD = baseEnv.PGPASSWORD;
   if (url.password) {
     env.PGPASSWORD = decodeURIComponent(url.password);
     url.password = "";
