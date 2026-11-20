@@ -10,6 +10,7 @@ import { parseAdminCrmReportParams } from "./query";
 import { buildAdminCrmExportGroups } from "./service";
 import { requireCrmAccess } from "../../../crm/auth/access";
 import { loadFieldPolicies } from "../../../field-policies/reader";
+import { reportOperationFailure } from "../../../shared/http-errors";
 import { createRequestSessionClient } from "../../../shared/request-session-client";
 import { withPlatformOperation } from "../../../shared/with-operation";
 
@@ -81,7 +82,8 @@ export const GET = withPlatformOperation(
           "X-Request-Id": requestId,
         },
       });
-    } catch {
+    } catch (error) {
+      reportOperationFailure("crm.report.export", error, requestId, 500);
       return NextResponse.json(
         { error: "Failed to export CRM report.", requestId },
         { status: 500 },

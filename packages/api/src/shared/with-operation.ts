@@ -14,7 +14,11 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { createAuditLogger } from "@asym/lib/audit/logger";
 import { NextResponse } from "next/server";
 
-import { toApiHttpError, toErrorResponse } from "./http-errors";
+import {
+  reportOperationFailure,
+  toApiHttpError,
+  toErrorResponse,
+} from "./http-errors";
 import {
   createRequestSessionClient,
   type RequestSessionClient,
@@ -199,10 +203,12 @@ function authenticatedOperation<
 
       const normalized = toApiHttpError(error, "Internal error");
       if (normalized.status >= 500) {
-        console.error("[withOperation] Request failed", {
+        reportOperationFailure(
+          "withOperation",
+          error,
           requestId,
-          status: normalized.status,
-        });
+          normalized.status,
+        );
       }
       return toErrorResponse(error, "Internal error", requestId);
     }
@@ -222,6 +228,7 @@ export function withOperation<
 ) {
   return authenticatedOperation<RouteContext>(async (context, routeContext) => {
     const scope = requestScopeOf(context.auth);
+    // Defense in depth: requireAuth above already requires the active assignment.
     if (!scope)
       return NextResponse.json(
         { error: "Active assignment required" },

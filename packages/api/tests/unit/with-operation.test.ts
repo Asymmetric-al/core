@@ -1,6 +1,7 @@
 import { getAuthContext, type AuthContext } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { createAuditLogger } from "@asym/lib/audit/logger";
+import { captureError } from "@asym/lib/monitoring";
 import { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 
@@ -14,6 +15,7 @@ const scope = vi.hoisted(() => ({
   tenantId: "tenant-1",
   assignmentId: "assignment-1",
 }));
+vi.mock("@asym/lib/monitoring", () => ({ captureError: vi.fn() }));
 vi.mock("../../src/shared/request-session-client", () => ({
   createRequestSessionClient: vi.fn(async () => ({ kind: "caller" })),
 }));
@@ -292,18 +294,35 @@ describe("withOperation", () => {
 
     const handler = withOperation(async () => {
       await Promise.resolve();
-      throw new Error("Database exploded");
+      throw Object.assign(
+        new TypeError("private note\n    at private content"),
+        { code: "23514" },
+      );
     });
 
     const response = await handler(createRequest());
 
     expect(response.status).toBe(500);
     const body = await response.json();
-    expect(body).toMatchObject({ error: "Database exploded" });
-    expect(logged).toHaveBeenCalledWith("[withOperation] Request failed", {
+    expect(body).toMatchObject({ error: "Internal error" });
+    const diagnostic = {
       requestId: body.requestId,
       status: 500,
+      name: "TypeError",
+      code: "23514",
+      stack: expect.stringContaining("with-operation.test.ts"),
+    };
+    expect(logged).toHaveBeenCalledWith(
+      "[withOperation] Request failed",
+      diagnostic,
+    );
+    expect(captureError).toHaveBeenCalledWith(expect.any(Error), diagnostic, {
+      request_id: body.requestId,
     });
+    expect(JSON.stringify(logged.mock.calls)).not.toContain("private");
+    expect(vi.mocked(captureError).mock.calls.at(-1)?.[0].stack).not.toContain(
+      "private",
+    );
     logged.mockRestore();
     expectBodyHasRequestId(body);
   });

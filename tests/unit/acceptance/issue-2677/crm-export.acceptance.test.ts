@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createAuditLogger } from "@asym/lib/audit/logger";
+import { captureError } from "@asym/lib/monitoring";
 import { GET } from "../../../../packages/api/src/admin/crm/reports/export";
 import { policies } from "../../packages/api/projection/fixtures";
 
@@ -9,6 +10,7 @@ const { insert, read, session, policy } = vi.hoisted(() => ({
   session: vi.fn(),
   policy: vi.fn(),
 }));
+vi.mock("@asym/lib/monitoring", () => ({ captureError: vi.fn() }));
 vi.mock("@asym/database/supabase/admin", () => ({
   createAdminClient: () => ({ from: () => ({ insert }) }),
 }));
@@ -98,6 +100,11 @@ describe("governed CRM report export", () => {
     );
     const refused = await run(query);
     expect(refused.status).toBe(500);
+    expect(captureError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ requestId: "request-1" }),
+      { request_id: "request-1" },
+    );
     expect(refused.headers.get("content-type")).not.toContain("csv");
     expect(await refused.text()).not.toContain("private detail");
   });

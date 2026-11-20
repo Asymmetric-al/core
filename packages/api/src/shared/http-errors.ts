@@ -1,4 +1,5 @@
 import { SCOPE_REFUSED_HEADER } from "@asym/database/request-scope-headers";
+import { captureError } from "@asym/lib/monitoring";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
@@ -134,13 +135,49 @@ export function toErrorResponse(
   requestId?: string,
 ) {
   const normalized = toApiHttpError(error, fallbackMessage);
+  const message =
+    normalized.status >= 500 ? "Internal error" : normalized.message;
   return NextResponse.json(
-    requestId
-      ? { error: normalized.message, requestId }
-      : { error: normalized.message },
+    requestId ? { error: message, requestId } : { error: message },
     {
       status: normalized.status,
       ...(normalized.headers ? { headers: normalized.headers } : {}),
     },
   );
+}
+
+export function reportOperationFailure(
+  operation: string,
+  error: unknown,
+  requestId: string,
+  status: number,
+) {
+  const name =
+    error instanceof Error &&
+    /^(?:Type|Range|Reference|Syntax|Aggregate|ApiHttp)?Error$/.test(error.name)
+      ? error.name
+      : "Error";
+  const rawCode =
+    error && typeof error === "object" && "code" in error ? error.code : null;
+  const code =
+    typeof rawCode === "string" &&
+    /^(?:[0-9A-Z]{5}|PGRST\d{3}|E(?:CONNRESET|CONNREFUSED|TIMEDOUT))$/.test(
+      rawCode,
+    )
+      ? rawCode
+      : null;
+  const sanitized = new Error("Request failed");
+  sanitized.name = name;
+  const header =
+    error instanceof Error ? `${error.name}: ${error.message}\n` : null;
+  if (header && error instanceof Error && error.stack?.startsWith(header)) {
+    const frames = error.stack
+      .slice(header.length)
+      .split("\n")
+      .filter((line) => /^\s+at /.test(line));
+    sanitized.stack = [`${name}: Request failed`, ...frames].join("\n");
+  }
+  const diagnostic = { requestId, status, name, code, stack: sanitized.stack };
+  console.error(`[${operation}] Request failed`, diagnostic);
+  captureError(sanitized, diagnostic, { request_id: requestId });
 }
