@@ -1,3 +1,4 @@
+import { missionaryArgs, type MissionaryScope } from "./missionary-authority";
 import { isTenantMemberProfile } from "./tenant-members";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -38,13 +39,12 @@ export async function findProfileById(
 
 export function findMissionaryByProfileId(
   supabase: AdminSupabaseClient,
-  profileId: string,
+  scope: MissionaryScope,
 ) {
   return supabase
-    .from("missionaries")
+    .rpc("missionary_own_record", missionaryArgs(scope))
     .select("*")
-    .eq("profile_id", profileId)
-    .single();
+    .maybeSingle();
 }
 
 export function findDonorByProfileId(

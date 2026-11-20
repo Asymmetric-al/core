@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { toErrorResponse } from "../shared/http-errors";
 import { withOperation } from "../shared/with-operation";
 
 export const GET = withOperation(
@@ -12,20 +13,17 @@ export const GET = withOperation(
       : Math.min(Math.max(limitParam, 1), 200);
     const offset = Number.isNaN(offsetParam) ? 0 : Math.max(offsetParam, 0);
 
-    let query = supabaseAdmin
+    const query = supabaseAdmin
       .from("missionaries")
       .select("id, tenant_id, profile_id, location, mission_field")
+      .eq("tenant_id", ctx.tenantId)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
-
-    if (ctx.role !== "super_admin") {
-      query = query.eq("tenant_id", ctx.tenantId);
-    }
 
     const { data: rows, error } = await query;
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return toErrorResponse(error, error.message);
     }
 
     const profileIds = Array.from(
@@ -48,10 +46,7 @@ export const GET = withOperation(
         .in("id", profileIds);
 
       if (profileError) {
-        return NextResponse.json(
-          { error: profileError.message },
-          { status: 500 },
-        );
+        return toErrorResponse(profileError, profileError.message);
       }
 
       profilesById = Object.fromEntries(

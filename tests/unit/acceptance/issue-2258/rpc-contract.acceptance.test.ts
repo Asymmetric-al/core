@@ -686,6 +686,12 @@ describe("#2258 pins (criteria 12, 13)", () => {
         47190,
         "74852f931758754843fbd50e41d432fbd40375f06f002c99f3524417f2b8782e",
       ],
+      // D-18: WP2H documents the proof dependencies, including its Vitest config and resolver plugins.
+      // This pin accepts only the reviewed file bytes, as before.
+      [
+        47791,
+        "bac3dc897167173b05ea29aca95ac25f4bd64f675f22780c71aeba1821b6a5b6",
+      ],
     ];
     expect(REVIEWED).toContainEqual([
       b.length,

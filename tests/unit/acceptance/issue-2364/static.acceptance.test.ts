@@ -122,7 +122,9 @@ describe("#2364 static [A][S]", () => {
       // gate, `{ roles: ["donor", "admin", "staff", "super_admin"] }` ->
       // `{ roleClasses: ["donor", "staff"] }` (the classes it served; no role
       // name authorizes). The rest of POST is byte-identical to 8ce4bff1….
-    ).toBe("174e2cb632f1048ef61c8f357f046c7a85dab2dfa632d615b97d6968835dfec5");
+      // D-18: H1 adds the checkout replay identity check before returning payment data.
+      // This digest still covers every byte of POST, with the schema and protected test pins unchanged.
+    ).toBe("39f8aea0a20e42b0dec48c0dee3a9e025e7fd105bc50751f743787742ffba069");
     // Baseline byte pins from 2b028084, one protected file per row.
     // prettier-ignore
     for (const [file, hash] of [

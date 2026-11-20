@@ -11,7 +11,11 @@ import {
   type MissionaryPortalTask,
   type MissionaryPortalTaskRow,
 } from "./model";
-import { ApiHttpError } from "../shared/http-errors";
+import { ApiHttpError, toApiHttpError } from "../shared/http-errors";
+import {
+  missionaryArgs,
+  type MissionaryScope,
+} from "../shared/missionary-authority";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
@@ -126,7 +130,7 @@ function assertResult<T>(
   }
 
   if (result.error) {
-    throw new ApiHttpError(500, result.error.message || fallbackMessage);
+    throw toApiHttpError(result.error, result.error.message || fallbackMessage);
   }
 
   if (!result.data) {
@@ -141,7 +145,7 @@ function assertArrayResult<T>(
   fallbackMessage: string,
 ): T[] {
   if (result.error) {
-    throw new ApiHttpError(500, result.error.message || fallbackMessage);
+    throw toApiHttpError(result.error, result.error.message || fallbackMessage);
   }
 
   return result.data ?? [];
@@ -166,11 +170,13 @@ export type MissionaryPortalContext = {
   missionary: MissionaryPortalMissionaryRow;
 };
 
-export async function resolveMissionaryPortalContext(input: {
+type ScopedClient = MissionaryScope & {
   supabaseAdmin: AdminSupabaseClient;
-  profileId: string;
-  tenantId: string;
-}): Promise<MissionaryPortalContext> {
+};
+
+export async function resolveMissionaryPortalContext(
+  input: ScopedClient,
+): Promise<MissionaryPortalContext> {
   const profile = assertResult(
     (await input.supabaseAdmin
       .from("profiles")
@@ -184,10 +190,8 @@ export async function resolveMissionaryPortalContext(input: {
 
   const missionary = assertResult(
     (await input.supabaseAdmin
-      .from("missionaries")
+      .rpc("missionary_own_record", missionaryArgs(input))
       .select(MISSIONARY_SELECT)
-      .eq("profile_id", input.profileId)
-      .eq("tenant_id", input.tenantId)
       .single()) as SupabaseResult<MissionaryPortalMissionaryRow>,
     "Missionary record not found",
   );
@@ -195,11 +199,9 @@ export async function resolveMissionaryPortalContext(input: {
   return { profile, missionary };
 }
 
-export async function getMissionaryPortalSnapshot(input: {
-  supabaseAdmin: AdminSupabaseClient;
-  profileId: string;
-  tenantId: string;
-}): Promise<MissionaryPortalSnapshot> {
+export async function getMissionaryPortalSnapshot(
+  input: ScopedClient,
+): Promise<MissionaryPortalSnapshot> {
   const { profile, missionary } = await resolveMissionaryPortalContext(input);
 
   const [donationsResult, donorsResult, tasksResult, postsResult] =
@@ -222,13 +224,7 @@ export async function getMissionaryPortalSnapshot(input: {
         .limit(250) as unknown as Promise<
         SupabaseResult<MissionaryPortalDonorRow[]>
       >,
-      input.supabaseAdmin
-        .from("missionary_tasks")
-        .select(TASK_SELECT)
-        .eq("missionary_id", input.profileId)
-        .order("sort_key", { ascending: true })
-        .order("created_at", { ascending: false })
-        .limit(100) as unknown as Promise<
+      taskList(input).limit(100) as unknown as Promise<
         SupabaseResult<MissionaryPortalTaskRow[]>
       >,
       input.supabaseAdmin
@@ -299,17 +295,18 @@ export async function getMissionaryPortalSnapshot(input: {
   });
 }
 
-export async function listMissionaryTasks(input: {
-  supabaseAdmin: AdminSupabaseClient;
-  profileId: string;
-  donorId?: string | null;
-}): Promise<MissionaryPortalTask[]> {
-  let query = input.supabaseAdmin
-    .from("missionary_tasks")
+function taskList(input: ScopedClient) {
+  return input.supabaseAdmin
+    .rpc("missionary_owned_tasks", missionaryArgs(input))
     .select(TASK_SELECT)
-    .eq("missionary_id", input.profileId)
     .order("sort_key", { ascending: true })
     .order("created_at", { ascending: false });
+}
+
+export async function listMissionaryTasks(
+  input: ScopedClient & { donorId?: string | null },
+): Promise<MissionaryPortalTask[]> {
+  let query = taskList(input);
 
   if (input.donorId) {
     query = query.eq("donor_id", input.donorId);
@@ -325,39 +322,24 @@ export async function listMissionaryTasks(input: {
   return rows.map(mapMissionaryTask);
 }
 
-export async function assertMissionaryDonorAccess(input: {
-  supabaseAdmin: AdminSupabaseClient;
-  donorId: string;
-  profileId: string;
-  tenantId: string;
-}) {
-  const result = (await input.supabaseAdmin
-    .from("donors")
-    .select("id")
-    .eq("id", input.donorId)
-    .eq("tenant_id", input.tenantId)
-    .eq("missionary_id", input.profileId)
-    .single()) as SupabaseResult<{ id: string }>;
-
-  assertResult(result, "Donor relationship not found");
-}
-
-export async function getMissionaryTask(input: {
-  supabaseAdmin: AdminSupabaseClient;
-  taskId: string;
-  profileId: string;
-}): Promise<MissionaryPortalTask> {
+export async function writeMissionaryTask(
+  input: ScopedClient,
+  operation: "create" | "update" | "delete",
+  id: string | null,
+  patch: Record<string, unknown> = {},
+) {
   const row = assertResult(
     (await input.supabaseAdmin
-      .from("missionary_tasks")
-      .select(TASK_SELECT)
-      .eq("id", input.taskId)
-      .eq("missionary_id", input.profileId)
+      .rpc("missionary_task_write", {
+        ...missionaryArgs(input),
+        p_operation: operation,
+        p_id: id,
+        p_patch: patch,
+      })
+      .select(operation === "delete" ? "id" : TASK_SELECT)
       .single()) as SupabaseResult<MissionaryPortalTaskRow>,
-    "Missionary task not found",
+    "Missionary task or donor relationship not found",
   );
-
-  return mapMissionaryTask(
-    normalizeTaskRows([row])[0] as MissionaryPortalTaskRow,
-  );
+  if (operation === "delete") return;
+  return mapMissionaryTask({ ...row, donor: normalizeJoinedOne(row.donor) });
 }

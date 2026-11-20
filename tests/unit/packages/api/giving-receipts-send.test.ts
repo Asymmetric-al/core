@@ -51,6 +51,7 @@ const connectedSettings = {
 };
 
 const cleanDonor = {
+  tenant_id: "tenant-1",
   id: "donor-1",
   profile_id: null,
   name: "Ada Lovelace",
@@ -95,8 +96,22 @@ function buildAdmin(options?: {
     if (table === "donors") {
       const chain: Record<string, unknown> = {};
       chain.select = vi.fn(() => chain);
-      chain.eq = vi.fn(() => chain);
-      chain.single = vi.fn(() => Promise.resolve({ data: donor, error: null }));
+      const filters = new Map<string, string>();
+      chain.eq = vi.fn((column: string, value: string) => {
+        filters.set(column, value);
+        return chain;
+      });
+      chain.single = vi.fn(() =>
+        Promise.resolve({
+          data:
+            donor &&
+            filters.has("tenant_id") &&
+            filters.get("tenant_id") !== donor.tenant_id
+              ? null
+              : donor,
+          error: null,
+        }),
+      );
       chain.limit = vi.fn(() => settle({ data: donor, error: null }));
       return chain;
     }
@@ -131,6 +146,18 @@ describe("sendStagedGiftReceipt consent gate", () => {
     decryptResendApiKeyMock.mockReturnValue("re_decrypted");
   });
 
+  it("does not address a receipt to a donor from another organization", async () => {
+    loadStagedGiftByIdMock.mockResolvedValue(gift);
+    const admin = buildAdmin({ donor: { ...cleanDonor, tenant_id: "other" } });
+    await expect(
+      sendStagedGiftReceipt({
+        supabaseAdmin: admin.client,
+        tenantId: gift.tenantId,
+        stagedGiftId: gift.id,
+      }),
+    ).rejects.toThrow("Receipt donor not found");
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
   it("skips a do_not_contact donor as a transactional message and records an audit event", async () => {
     loadStagedGiftByIdMock.mockResolvedValue(gift);
     readTenantEmailSettingsMock.mockResolvedValue(connectedSettings);
