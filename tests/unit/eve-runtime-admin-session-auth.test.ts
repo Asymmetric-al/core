@@ -29,6 +29,46 @@ afterEach(() => {
 });
 
 describe("Eve runtime admin session auth", () => {
+  it.each([
+    { origin: "https://admin.example.test", "content-type": "text/plain" },
+    { "content-type": "application/json" },
+  ])("checks cookie writes before session ownership: %j", async (headers) => {
+    const request = new Request("https://admin.example.test/eve/v1/session", {
+      method: "POST",
+      headers: { ...headers, cookie: "session=fixture" } as Record<
+        string,
+        string
+      >,
+    });
+    await expect(adminEveRouteAuth(request)).rejects.toMatchObject({
+      name: "ForbiddenError",
+    });
+    expect(
+      sessionOwnership.authorizeEveAdminRouteRequest,
+    ).not.toHaveBeenCalled();
+  });
+
+  it.each(["POST", "GET"])(
+    "preserves verified browser session %s requests",
+    async (method) => {
+      const headers = new Headers({
+        cookie: "session=fixture",
+        "sec-fetch-site": "same-origin",
+      });
+      if (method === "POST")
+        headers.set("content-type", "application/json; charset=utf-8");
+      const request = new Request("https://admin.example.test/eve/v1/session", {
+        method,
+        headers,
+      });
+      sessionOwnership.authorizeEveAdminRouteRequest.mockResolvedValue({});
+      await adminEveRouteAuth(request);
+      expect(
+        sessionOwnership.authorizeEveAdminRouteRequest,
+      ).toHaveBeenCalledWith(request);
+    },
+  );
+
   it("does not trust a spoofed loopback Host outside the local eval process", async () => {
     process.argv = ["node", "eve", "dev"];
     sessionOwnership.authorizeEveAdminRouteRequest.mockRejectedValue(
