@@ -861,9 +861,6 @@ function useTasksPageController() {
       result = result.filter((t) => t.priority === priorityFilter);
     }
 
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-
     if (viewMode === "list") {
       switch (viewFilter) {
         case "active":

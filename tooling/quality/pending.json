@@ -230,7 +230,7 @@
     "rule": "anti-slop/no-known-value-widening",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 364
+    "count": 366
   },
   {
     "rule": "anti-slop/no-module-mocking",
@@ -248,7 +248,7 @@
     "rule": "anti-slop/no-module-mocking",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 1438
+    "count": 1439
   },
   {
     "rule": "anti-slop/no-object-parameters",
@@ -769,7 +769,7 @@
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 24293
+    "count": 24304
   },
   {
     "rule": "anti-slop/require-readable-spacing",
@@ -1103,7 +1103,7 @@
   {
     "rule": "eslint/no-duplicate-imports",
     "task": "RS-javascript",
-    "count": 6
+    "count": 4
   },
   {
     "rule": "eslint/no-else-return",
@@ -1909,7 +1909,7 @@
     "rule": "import/first",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 275
+    "count": 276
   },
   {
     "rule": "import/namespace",
@@ -2242,7 +2242,7 @@
   {
     "rule": "react/hook-use-state",
     "task": "RS-react",
-    "count": 20
+    "count": 22
   },
   {
     "rule": "react/hooks",
@@ -2308,12 +2308,6 @@
     "rule": "react/no-unstable-nested-components",
     "task": "RS-react",
     "count": 34
-  },
-  {
-    "rule": "react/rule-suppression",
-    "workspace": "apps/admin",
-    "task": "RS-apps-admin",
-    "count": 1
   },
   {
     "rule": "react/state-in-constructor",
@@ -2555,7 +2549,7 @@
     "rule": "typescript/no-base-to-string",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 174
+    "count": 176
   },
   {
     "rule": "typescript/no-confusing-void-expression",
@@ -3039,7 +3033,7 @@
     "rule": "typescript/no-unsafe-assignment",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 1912
+    "count": 1913
   },
   {
     "rule": "typescript/no-unsafe-call",
@@ -4634,7 +4628,7 @@
     "rule": "unicorn/text-encoding-identifier-case",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 1618
+    "count": 1619
   },
   {
     "rule": "unicorn/text-encoding-identifier-case",
@@ -4664,7 +4658,7 @@
     "rule": "vitest/consistent-test-it",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 1073
+    "count": 1079
   },
   {
     "rule": "vitest/expect-expect",

@@ -1,6 +1,6 @@
 {
   "command": "CORE_LINT_AUDIT_PENDING=1 node tooling/quality/lint.mts --typed --format json",
-  "revision": "71dde57a3a6a5e395b2d52e7a1cefdb38b84f6c8",
+  "revision": "ac61fe5bdf534fea0406a850cfd63a0fa2fcdd43",
   "counts": [
     {
       "rule": "anti-slop/no-array-filter-map",
@@ -318,7 +318,7 @@
       "rule": "anti-slop/no-known-value-widening",
       "workspace": "tests",
       "scope": "tests",
-      "count": 364
+      "count": 366
     },
     {
       "rule": "anti-slop/no-module-mocking",
@@ -336,7 +336,7 @@
       "rule": "anti-slop/no-module-mocking",
       "workspace": "tests",
       "scope": "tests",
-      "count": 1438
+      "count": 1439
     },
     {
       "rule": "anti-slop/no-object-parameters",
@@ -924,7 +924,7 @@
       "rule": "anti-slop/require-readable-spacing",
       "workspace": "tests",
       "scope": "tests",
-      "count": 24293
+      "count": 24304
     },
     {
       "rule": "anti-slop/require-readable-spacing",
@@ -1489,12 +1489,6 @@
       "workspace": "tests",
       "scope": "tests",
       "count": 4
-    },
-    {
-      "rule": "eslint/no-duplicate-imports",
-      "workspace": "packages/ui",
-      "scope": "product",
-      "count": 2
     },
     {
       "rule": "eslint/no-duplicate-imports",
@@ -2700,7 +2694,7 @@
       "rule": "import/first",
       "workspace": "tests",
       "scope": "tests",
-      "count": 275
+      "count": 276
     },
     {
       "rule": "import/namespace",
@@ -2765,12 +2759,6 @@
     {
       "rule": "import/no-cycle",
       "workspace": "packages/api",
-      "scope": "product",
-      "count": 2
-    },
-    {
-      "rule": "import/no-duplicates",
-      "workspace": "packages/ui",
       "scope": "product",
       "count": 2
     },
@@ -3399,12 +3387,6 @@
       "count": 1
     },
     {
-      "rule": "react/exhaustive-deps",
-      "workspace": "apps/admin",
-      "scope": "product",
-      "count": 1
-    },
-    {
       "rule": "react/exhaustive-effect-dependencies",
       "workspace": "apps/admin",
       "scope": "product",
@@ -3438,13 +3420,19 @@
       "rule": "react/hook-use-state",
       "workspace": "apps/admin",
       "scope": "product",
-      "count": 11
+      "count": 12
     },
     {
       "rule": "react/hook-use-state",
       "workspace": "apps/factory-console",
       "scope": "product",
       "count": 2
+    },
+    {
+      "rule": "react/hook-use-state",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
     },
     {
       "rule": "react/hook-use-state",
@@ -3630,31 +3618,13 @@
       "rule": "react/purity",
       "workspace": "apps/admin",
       "scope": "product",
-      "count": 4
+      "count": 2
     },
     {
       "rule": "react/purity",
       "workspace": "apps/donor",
       "scope": "product",
       "count": 3
-    },
-    {
-      "rule": "react/purity",
-      "workspace": "apps/missionary",
-      "scope": "product",
-      "count": 2
-    },
-    {
-      "rule": "react/refs",
-      "workspace": "apps/donor",
-      "scope": "product",
-      "count": 1
-    },
-    {
-      "rule": "react/rule-suppression",
-      "workspace": "apps/admin",
-      "scope": "product",
-      "count": 1
     },
     {
       "rule": "react/state-in-constructor",
@@ -4014,7 +3984,7 @@
       "rule": "typescript/no-base-to-string",
       "workspace": "tests",
       "scope": "tests",
-      "count": 174
+      "count": 176
     },
     {
       "rule": "typescript/no-confusing-void-expression",
@@ -4944,7 +4914,7 @@
       "rule": "typescript/no-unsafe-assignment",
       "workspace": "tests",
       "scope": "tests",
-      "count": 1912
+      "count": 1913
     },
     {
       "rule": "typescript/no-unsafe-call",
@@ -7788,7 +7758,7 @@
       "rule": "unicorn/text-encoding-identifier-case",
       "workspace": "tests",
       "scope": "tests",
-      "count": 1618
+      "count": 1619
     },
     {
       "rule": "unicorn/text-encoding-identifier-case",
@@ -7818,7 +7788,7 @@
       "rule": "vitest/consistent-test-it",
       "workspace": "tests",
       "scope": "tests",
-      "count": 1073
+      "count": 1079
     },
     {
       "rule": "vitest/expect-expect",
