@@ -180,6 +180,11 @@ export const UNADMITTED_TABLE_GRANTS_SQL = `select c.relname as relation, null::
 
 export const TENANT_RLS_CATALOG_SQL = `-- tenant-rls-catalog-gate:v1
 select jsonb_build_object(
+  'tenant_delete_violations', coalesce((
+    select jsonb_agg(jsonb_build_object('table', n.nspname || '.' || r.relname, 'constraint', c.conname) order by n.nspname,r.relname,c.conname)
+    from pg_constraint c join pg_class r on r.oid=c.conrelid join pg_namespace n on n.oid=r.relnamespace
+    where c.contype='f' and c.confrelid='public.tenants'::regclass and c.confdeltype <> 'r'
+  ),'[]'::jsonb),
   'tables', coalesce((
     select jsonb_agg(jsonb_build_object(
       'table', c.relname,
@@ -811,6 +816,12 @@ export function evaluateTenantRlsCatalog(
   const failFn = (code, fn, detail) =>
     failures.push({ code, function: fn, detail });
   const tables = new Map(snapshot.tables.map((t) => [t.table, t]));
+  for (const edge of snapshot.tenant_delete_violations ?? [])
+    fail(
+      "TENANT_DELETE_ACTION",
+      edge.table,
+      `${edge.constraint} must restrict tenant deletion`,
+    );
   const tenant = snapshot.tables.filter((t) => t.tenant);
   for (const t of tenant) {
     if (!t.rls)
@@ -1222,6 +1233,7 @@ const isText = (value) => typeof value === "string";
 /** Throws unless every row carries the fields the evaluator reads. */
 function assertSnapshotShape(snapshot) {
   const lists = [
+    "tenant_delete_violations",
     "tables",
     "definers",
     "commands",

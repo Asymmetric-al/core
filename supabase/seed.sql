@@ -14,6 +14,11 @@ SET LOCAL timezone = 'UTC';
 -- 0) Reset public app tables in dependency order.
 -- ---------------------------------------------------------------------------
 DELETE FROM authz.memberships;
+DELETE FROM public.contribution_approval_policies;
+DELETE FROM public.donor_account_brands;
+DELETE FROM public.site_domains;
+DELETE FROM public.sites;
+DELETE FROM public.donor_portal_hosts;
 DELETE FROM public.notification_queue;
 DELETE FROM public.pledge_charge_attempts;
 DELETE FROM public.audit_logs;
@@ -39,6 +44,8 @@ DELETE FROM public.donor_pledges;
 DELETE FROM public.funds;
 DELETE FROM public.donors;
 DELETE FROM public.missionaries;
+DELETE FROM public.payment_account_bindings;
+DELETE FROM public.legal_entities;
 DELETE FROM public.locations;
 DELETE FROM public.profiles;
 DELETE FROM public.tenants;
@@ -481,6 +488,24 @@ $seed$;
 -- ---------------------------------------------------------------------------
 -- 2) Missionaries, donors, funds (projects)
 -- ---------------------------------------------------------------------------
+INSERT INTO public.legal_entities(id,tenant_id,name)
+SELECT md5(id::text||':legal')::uuid,id,name FROM public.tenants;
+INSERT INTO public.funds(id,tenant_id,legal_entity_id,name,system_purpose)
+SELECT md5(tenant_id::text||':fee')::uuid,tenant_id,id,'Fee cover','fee_cover' FROM public.legal_entities;
+INSERT INTO public.sites(id,tenant_id,name,is_default,primary_domain)
+SELECT md5(id::text||':site')::uuid,id,name,true,slug||'.localhost' FROM public.tenants;
+INSERT INTO public.sites(id,tenant_id,name,primary_domain)
+SELECT md5(id::text||':second')::uuid,id,'Harbor Light Stories','stories.'||slug||'.localhost'
+FROM public.tenants WHERE id='00000000-0000-0000-0000-000000000002';
+INSERT INTO public.donor_portal_hosts(id,tenant_id,primary_domain)
+SELECT md5(id::text||':portal')::uuid,id,slug||'-portal.localhost' FROM public.tenants;
+INSERT INTO public.site_domains(host,tenant_id,site_id,is_platform_host,verification_requested_at,deployment_attached_at)
+SELECT primary_domain,tenant_id,id,true,'2026-11-17','2026-11-17' FROM public.sites;
+INSERT INTO public.site_domains(host,tenant_id,portal_host_id,is_platform_host,verification_requested_at,deployment_attached_at,redirect_allowlisted_at)
+SELECT primary_domain,tenant_id,id,true,'2026-11-17','2026-11-17','2026-11-17' FROM public.donor_portal_hosts;
+INSERT INTO public.donor_account_brands(tenant_id,display_name) SELECT id,name FROM public.tenants;
+INSERT INTO public.contribution_approval_policies(tenant_id,ownership_mode) SELECT id,'no_approval_required' FROM public.tenants;
+
 WITH missionary_seed AS (
   SELECT
     gs,
@@ -506,6 +531,7 @@ WITH missionary_seed AS (
 INSERT INTO public.missionaries (
   id,
   tenant_id,
+  legal_entity_id,
   profile_id,
   bio,
   mission_field,
@@ -530,6 +556,7 @@ SELECT
   id,
   '00000000-0000-0000-0000-000000000001',
   -- Display-only teams have no authenticated profile. The demo identity below
+  md5('00000000-0000-0000-0000-000000000001:legal')::uuid,
   -- must resolve to exactly one missionary.
   NULL::uuid,
   format('Mission team %s is building long-term partnerships and reporting monthly outcomes.', gs),
@@ -584,6 +611,7 @@ FROM missionary_seed;
 INSERT INTO public.missionaries (
   id,
   tenant_id,
+  legal_entity_id,
   profile_id,
   bio,
   mission_field,
@@ -607,6 +635,7 @@ INSERT INTO public.missionaries (
 VALUES (
   '11111111-1111-1111-1111-111111111111',
   '00000000-0000-0000-0000-000000000001',
+  md5('00000000-0000-0000-0000-000000000001:legal')::uuid,
   '11111111-1111-1111-1111-111111111111',
   'I train village teachers and help schools get clean water in the hills north of Chiang Mai. Our three learning centres teach reading to children who would otherwise miss school, and share the hope of Jesus with their families.',
   'Education and clean water',
@@ -769,6 +798,7 @@ WITH fund_seed AS (
 INSERT INTO public.funds (
   id,
   tenant_id,
+  legal_entity_id,
   name,
   description,
   target_amount,
@@ -785,6 +815,7 @@ INSERT INTO public.funds (
 SELECT
   id,
   '00000000-0000-0000-0000-000000000001',
+  md5('00000000-0000-0000-0000-000000000001:legal')::uuid,
   name,
   CASE
     WHEN gs = 8 THEN 'Edge case: intentionally unfunded project to verify empty-state rendering.'

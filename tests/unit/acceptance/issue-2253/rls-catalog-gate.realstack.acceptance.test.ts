@@ -113,6 +113,11 @@ const POLICY = (t: string) =>
   `create policy acc2253 on public.${t} for select using (tenant_id = (select authz.current_tenant_id()));`;
 const CASES: [string, string, string[][]][] = [
   [
+    "a cascading key to tenants outside public",
+    "create schema acc2253_keys; create table acc2253_keys.child (org uuid references public.tenants on delete cascade);",
+    [["TENANT_DELETE_ACTION", "child"]],
+  ],
+  [
     "RLS_DISABLED (forced, with policy, not enabled)",
     `${TENANT("acc2253_off")} alter table public.acc2253_off force row level security; ${POLICY("acc2253_off")}`,
     [["RLS_DISABLED", "acc2253_off"]],
