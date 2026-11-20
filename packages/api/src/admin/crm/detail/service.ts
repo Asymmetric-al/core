@@ -1,6 +1,6 @@
 import { buildCrmGiftHistoryRow } from "./gift-history";
 import { SETTLED_DONATION_STATUS_SET } from "../../../reads/settled-donation-statuses";
-import { ApiHttpError } from "../../../shared/http-errors";
+import { ApiHttpError, toApiHttpError } from "../../../shared/http-errors";
 import { loadCorrectionApprovalPolicy } from "../../contribution-operations/correction-requests";
 import { loadSharedContributionRowInputs } from "../../contribution-shared/row-inputs";
 import { fetchMissionaryNames } from "../service";
@@ -113,7 +113,7 @@ function assertNoError(
   fallback: string,
 ): void {
   if (error) {
-    throw new ApiHttpError(500, error.message ?? fallback);
+    throw toApiHttpError(error, error.message ?? fallback);
   }
 }
 

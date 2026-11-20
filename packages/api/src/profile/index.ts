@@ -14,7 +14,12 @@ import {
   ApiHttpError,
   ensureJsonBody,
   toErrorResponse,
+  toApiHttpError,
 } from "../shared/http-errors";
+import {
+  missionaryScope,
+  missionaryArgs,
+} from "../shared/missionary-authority";
 import { findMissionaryByProfileId } from "../shared/queries";
 
 const profilePatchSchema = z
@@ -51,25 +56,25 @@ export async function GET(request: NextRequest) {
     const auth = await getAuthContext(request);
     requireAuth(auth);
     const ctx = auth as AuthenticatedContext;
+    const scope = hasContextRoleClass(ctx, "missionary")
+      ? missionaryScope(ctx)
+      : null;
 
     const { data: profile, error: profileError } = await findFullProfileById(
       supabaseAdmin,
       ctx.profileId,
     );
 
-    if (profileError)
-      return NextResponse.json(
-        { error: profileError.message },
-        { status: 500 },
-      );
+    if (profileError) throw toApiHttpError(profileError, profileError.message);
 
     let profileData = { ...profile };
 
-    if (hasContextRoleClass(ctx, "missionary")) {
-      const { data: missionary } = await findMissionaryByProfileId(
+    if (scope) {
+      const { data: missionary, error } = await findMissionaryByProfileId(
         supabaseAdmin,
-        ctx.profileId,
+        scope,
       );
+      if (error) throw toApiHttpError(error, error.message);
 
       if (missionary) {
         profileData = { ...profileData, missionary };
@@ -92,6 +97,9 @@ export async function PATCH(request: NextRequest) {
     const auth = await getAuthContext(request);
     requireAuth(auth);
     const ctx = auth as AuthenticatedContext;
+    const scope = hasContextRoleClass(ctx, "missionary")
+      ? missionaryScope(ctx)
+      : null;
     const patch = profilePatchSchema.parse(await ensureJsonBody(request));
     const [storedAvatar, storedCover] = await Promise.all([
       typeof patch.avatarUrl === "string"
@@ -101,17 +109,15 @@ export async function PATCH(request: NextRequest) {
             .eq("id", ctx.profileId)
             .maybeSingle()
         : null,
-      typeof patch.coverUrl === "string"
+      typeof patch.coverUrl === "string" && scope
         ? supabaseAdmin
-            .from("missionaries")
+            .rpc("missionary_own_record", missionaryArgs(scope))
             .select("cover_url")
-            .eq("profile_id", ctx.profileId)
-            .eq("tenant_id", ctx.tenantId)
             .maybeSingle()
         : null,
     ]);
     const lookupError = storedAvatar?.error ?? storedCover?.error;
-    if (lookupError) throw new ApiHttpError(500, lookupError.message);
+    if (lookupError) throw toApiHttpError(lookupError, lookupError.message);
     // #2406: validated before any write; unchanged stored values are skipped.
     // The avatar lookup is the caller's profile id. A tenant filter misses a
     // tenantless super_admin, whose auth tenant is the demo fallback.
@@ -141,7 +147,7 @@ export async function PATCH(request: NextRequest) {
     }
     if (patch.phone !== undefined) {
       profileUpdate.phone = patch.phone || null;
-      missionaryUpdate.phone = patch.phone || null;
+      if (scope) missionaryUpdate.phone = patch.phone || null;
     }
     if (writeAvatar) {
       profileUpdate.avatar_url = patch.avatarUrl || null;
@@ -169,6 +175,27 @@ export async function PATCH(request: NextRequest) {
       missionaryUpdate.social_links = patch.socialLinks;
     }
 
+    if (Object.keys(missionaryUpdate).length > 0) {
+      if (!scope)
+        throw new ApiHttpError(
+          403,
+          "Missionary profile fields require missionary access",
+        );
+      const { data, error } = await supabaseAdmin
+        .rpc("missionary_own_record_write", {
+          ...missionaryArgs(scope),
+          p_patch: missionaryUpdate,
+        })
+        .select("id")
+        .maybeSingle();
+      if (error) throw toApiHttpError(error, error.message);
+      if (
+        !data &&
+        Object.keys(missionaryUpdate).some((field) => field !== "phone")
+      )
+        throw new ApiHttpError(404, "Missionary record not found");
+    }
+
     if (Object.keys(profileUpdate).length > 0) {
       const { error } = await supabaseAdmin
         .from("profiles")
@@ -177,28 +204,7 @@ export async function PATCH(request: NextRequest) {
         // A profile's tenant column is no authority (AL-2675, NR-68).
         .eq("id", ctx.profileId);
 
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      }
-    }
-
-    if (Object.keys(missionaryUpdate).length > 0) {
-      if (!hasContextRoleClass(ctx, "missionary")) {
-        return NextResponse.json(
-          { error: "Missionary profile fields require missionary access" },
-          { status: 403 },
-        );
-      }
-
-      const { error } = await supabaseAdmin
-        .from("missionaries")
-        .update({ ...missionaryUpdate, updated_at: now })
-        .eq("profile_id", ctx.profileId)
-        .eq("tenant_id", ctx.tenantId);
-
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      }
+      if (error) throw toApiHttpError(error, error.message);
     }
 
     // Reload by the caller's profile id; a profile's tenant column is no
@@ -209,20 +215,16 @@ export async function PATCH(request: NextRequest) {
       .eq("id", ctx.profileId)
       .single();
 
-    if (profileError) {
-      return NextResponse.json(
-        { error: profileError.message },
-        { status: 500 },
-      );
-    }
+    if (profileError) throw toApiHttpError(profileError, profileError.message);
 
     let profileData = { ...profile };
 
-    if (hasContextRoleClass(ctx, "missionary")) {
-      const { data: missionary } = await findMissionaryByProfileId(
+    if (scope) {
+      const { data: missionary, error } = await findMissionaryByProfileId(
         supabaseAdmin,
-        ctx.profileId,
+        scope,
       );
+      if (error) throw toApiHttpError(error, error.message);
 
       if (missionary) {
         profileData = { ...profileData, missionary };

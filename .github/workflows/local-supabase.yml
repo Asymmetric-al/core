@@ -1,7 +1,7 @@
 name: Local Supabase Stack
 
 # Starts a local Supabase stack from source, then runs the Supabase Auth email
-# round trips against it. Two guards in one job (docs/ci.md, "Local Supabase
+# round trips and missionary handler authority proof against it (docs/ci.md, "Local Supabase
 # stack workflow"):
 #
 # - The migration chain and the seed on the real Supabase image. This is the
@@ -53,6 +53,27 @@ on:
       # The chooser the two-organization journey walks (AL-2675; Mission
       # Control's lives in (auth), above).
       - apps/missionary/app/choose-organization/**
+      # The missionary RPC arguments, embedded rows, writes and their route proof.
+      - packages/api/src/missionary-portal/**
+      - packages/api/src/follower-requests/**
+      - packages/api/src/missionaries/**
+      - packages/api/src/profile/**
+      - packages/api/src/shared/api-http-error.ts
+      - packages/api/src/shared/http-errors.ts
+      - packages/api/src/shared/missionary-authority.ts
+      - packages/api/src/shared/queries.ts
+      - packages/api/src/shared/route-uuid.ts
+      - packages/api/src/shared/tenant-members.ts
+      - packages/api/src/shared/with-operation.ts
+      - packages/database/supabase/admin.ts
+      - packages/database/supabase/config.ts
+      - tests/fixtures/auth-memberships.ts
+      - tests/fixtures/missionary-task-patch.ts
+      - vitest.config.mts
+      - vitest.per-importer-alias.mts
+      - vitest.pin-workspace-packages.mts
+      - tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
+      - tests/unit/workflows/local-supabase.test.ts
       # The round trips themselves.
       - playwright.auth-mail.config.ts
       - tests/e2e/auth-password-recovery.spec.ts
@@ -147,6 +168,15 @@ jobs:
           node scripts/release/schema-fingerprint.mjs capture --database-url-env REPLAY_DATABASE_URL --out "$RUNNER_TEMP/replay-fingerprint.json"
           node scripts/release/schema-fingerprint.mjs capture --database-url-env STACK_DATABASE_URL --out "$RUNNER_TEMP/stack-fingerprint.json"
           node scripts/release/schema-fingerprint.mjs compare "$RUNNER_TEMP/replay-fingerprint.json" "$RUNNER_TEMP/stack-fingerprint.json"
+      - name: Verify missionary handler authority through PostgREST
+        shell: bash
+        env:
+          MISSIONARY_IT_SUPABASE_URL: http://127.0.0.1:54321
+          MISSIONARY_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          export MISSIONARY_IT_SERVICE_ROLE_KEY
+          MISSIONARY_IT_SERVICE_ROLE_KEY="$(bun run supabase -- status -o json | node -e 'const status = JSON.parse(require("node:fs").readFileSync(0)); if (!status.SERVICE_ROLE_KEY) process.exit(1); process.stdout.write(status.SERVICE_ROLE_KEY)')"
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
       - name: Run the auth email round trips

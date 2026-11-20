@@ -98,6 +98,12 @@ function recordingClient(selects: Map<string, string[]>) {
     missionaries: [{ id: "missionary-1", profile_id: "profile-1" }],
   };
   return {
+    rpc(name: string) {
+      if (name === "missionary_own_record") return this.from("missionaries");
+      if (name === "missionary_owned_tasks")
+        return this.from("missionary_tasks");
+      throw Error(`Unexpected RPC ${name}`);
+    },
     from(table: string) {
       const query = {
         select(columns: string) {
@@ -125,6 +131,7 @@ describe("missionary portal snapshot reads", () => {
     const selects = new Map<string, string[]>();
     await getMissionaryPortalSnapshot({
       supabaseAdmin: recordingClient(selects) as never,
+      assignmentId: "assignment-1",
       tenantId: "tenant-1",
       profileId: "profile-1",
     });
@@ -143,18 +150,15 @@ describe("missionary portal snapshot reads", () => {
   });
 
   it("creates tasks with only columns the migrations create", () => {
-    const source = readFileSync(
-      path.resolve(
-        __dirname,
-        "../../../../../packages/api/src/missionary-portal/tasks.ts",
-      ),
-      "utf8",
-    );
+    const migration = readdirSync(MIGRATIONS).find((name) =>
+      name.endsWith("_missionary_handler_authority.sql"),
+    )!;
+    const source = readFileSync(path.join(MIGRATIONS, migration), "utf8");
     const payload = source.match(
-      /\.from\("missionary_tasks"\)\s*\.insert\(\{([\s\S]*?)\n\s*\}\)/,
+      /INSERT INTO public\.missionary_tasks(?: AS \w+)?\s*\(([^)]+)\)/i,
     )?.[1];
     expect(payload).toBeDefined();
-    const keys = [...payload!.matchAll(/^\s*(\w+):/gm)].map(([, key]) => key!);
+    const keys = payload!.split(",").map((key) => key.trim());
     const columns = migratedColumns().get("missionary_tasks");
 
     expect(keys).toContain("title");

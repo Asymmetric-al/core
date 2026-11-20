@@ -22,9 +22,10 @@ const lines = (text: string, file = "packages/api/src/admin/x.ts") =>
   );
 
 describe("frozen ceiling", () => {
-  it("is the pinned 117-entry ceiling: 81 / 29 / 8 / 70 sites in 111 files", () => {
+  // D-18: removing two follower-request sites lowers the ceiling; only growth needs a new ruling.
+  it("is the pinned 116-entry ceiling: 79 / 29 / 8 / 70 sites in 110 files", () => {
     expect(ceilingDigest()).toBe(
-      "5ee7fecf03548a4ddc4b7f81407e7b24a344a935c92cf70f313e9e64a0339ad1",
+      "f489df5f19dd57d096430c1d1e5387d2c694d5d6e2f7743fcc22e2cf795ea1a9",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -32,15 +33,15 @@ describe("frozen ceiling", () => {
       totals[kind] = (totals[kind] ?? 0) + count;
     }
     expect(totals).toEqual({
-      admin_client: 81,
+      admin_client: 79,
       service_role_key: 29,
       workflow_admin_wrapper: 8,
       operation_admin_context: 70,
     });
-    expect(CEILING.size).toBe(117);
+    expect(CEILING.size).toBe(116);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(111);
+    ).toBe(110);
   });
 });
 
@@ -132,6 +133,15 @@ describe("evaluateServiceRoleClientGate", () => {
     expect(result.failures).toEqual([]);
     expect(result).toMatchObject({ ok: true, files: 1 });
     expect(result.totals.admin_client).toBe(2);
+  });
+
+  it("rejects restoring the retired follower-request sites even with their old allowlist entry", () => {
+    const file = "packages/api/src/follower-requests/request.ts";
+    const result = evaluate(sites(2, file), [entry({ file, count: 2 })]);
+    expect(result.ok).toBe(false);
+    expect(result.failures).toEqual([
+      expect.stringContaining(`ALLOWLIST_GROWTH admin_client ${file}:`),
+    ]);
   });
 
   it("passes a shrink of the site and the entry together", () => {

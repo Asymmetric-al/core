@@ -82,6 +82,7 @@ function escapeHtml(value: string) {
 
 async function loadDonorReceiptIdentity(input: {
   supabaseAdmin: SupabaseAdminClient;
+  tenantId: string;
   donorId: string | null;
 }): Promise<DonorReceiptIdentity> {
   if (!input.donorId) {
@@ -91,6 +92,7 @@ async function loadDonorReceiptIdentity(input: {
   const donorResult = await input.supabaseAdmin
     .from("donors")
     .select("id, profile_id, name, email")
+    .eq("tenant_id", input.tenantId)
     .eq("id", input.donorId)
     .single();
 
@@ -429,6 +431,7 @@ export async function sendStagedGiftReceipt(input: {
 }) {
   const gift = await loadStagedGiftById(input);
   const donor = await loadDonorReceiptIdentity({
+    tenantId: gift.tenantId,
     supabaseAdmin: input.supabaseAdmin,
     donorId: gift.donorId,
   });
@@ -470,6 +473,7 @@ export async function sendUpdatedReceiptSnapshotEmail(input: {
 }) {
   const gift = await loadStagedGiftById(input);
   const donor = await loadDonorReceiptIdentity({
+    tenantId: gift.tenantId,
     supabaseAdmin: input.supabaseAdmin,
     donorId: gift.donorId,
   });
