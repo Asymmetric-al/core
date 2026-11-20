@@ -71,7 +71,7 @@ async function inspectLocalSupabaseContainers(projectId) {
 
 export async function verifyLocalFixtureTarget(
   input,
-  { inspect = inspectLocalSupabaseContainers } = {},
+  { inspect = inspectLocalSupabaseContainers, requireDatabase = false } = {},
 ) {
   const url = new URL(input.API_URL);
   assert.ok(/^asym-modernization-[a-z0-9-]+$/.test(input.projectId));
@@ -98,6 +98,26 @@ export async function verifyLocalFixtureTarget(
       ),
   );
   assert.equal(matching.length, 1, "API target is not the owned local gateway");
+  if (requireDatabase) {
+    const databases = containers.filter(
+      (container) =>
+        container?.running === true &&
+        container.name === `/supabase_db_${input.projectId}` &&
+        container.labels?.["com.supabase.cli.project"] === input.projectId &&
+        /^[a-f0-9]{64}$/.test(container.id),
+    );
+    assert.equal(
+      databases.length,
+      1,
+      "Expected exactly one owned local database",
+    );
+    return {
+      url,
+      containerId: matching[0].id,
+      endpoint,
+      databaseId: databases[0].id,
+    };
+  }
   return { url, containerId: matching[0].id };
 }
 

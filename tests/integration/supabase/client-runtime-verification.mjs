@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 
@@ -61,7 +62,9 @@ async function verify(input) {
     input.simulateLostTableCreationResponse === undefined ||
       ["tenants", "funds"].includes(input.simulateLostTableCreationResponse),
   );
-  const { url } = await verifyLocalFixtureTarget(input);
+  const { url, endpoint, databaseId } = await verifyLocalFixtureTarget(input, {
+    requireDatabase: true,
+  });
   checks.push("local-target-bound-to-owned-gateway");
 
   const require = createRequire(
@@ -122,6 +125,46 @@ async function verify(input) {
   const users = [];
   const runId = randomUUID();
   const fundId = randomUUID();
+  const legalEntityId = randomUUID();
+  let entityAttempted = false;
+  function entityQuery(sql) {
+    const result = spawnSync(
+      "docker",
+      [
+        "--host",
+        endpoint,
+        "exec",
+        "-i",
+        databaseId,
+        "psql",
+        "-XAtqw",
+        "-U",
+        "postgres",
+        "-d",
+        "postgres",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-v",
+        `entity_id=${legalEntityId}`,
+        "-v",
+        `tenant_id=${tenantIds[0]}`,
+        "-v",
+        `run_id=${runId}`,
+      ],
+      {
+        input: sql,
+        encoding: "utf8",
+        timeout: 12000,
+        stdio: ["pipe", "pipe", "pipe"],
+      },
+    );
+    assert.equal(
+      result.status,
+      0,
+      "Local legal entity fixture statement failed",
+    );
+    return result.stdout.trim();
+  }
   const tenantRows = tenantIds.map((id) => ({
     id,
     name: `SDK qualification fixture ${runId}`,
@@ -131,6 +174,7 @@ async function verify(input) {
     {
       id: fundId,
       tenant_id: tenantIds[0],
+      legal_entity_id: legalEntityId,
       name: `SDK qualification fund ${runId}`,
       goal_amount: 12345,
       currency: "USD",
@@ -184,6 +228,14 @@ async function verify(input) {
         "tenants",
         tenantRows,
       ),
+    );
+    entityAttempted = true;
+    assert.equal(
+      entityQuery(`INSERT INTO public.legal_entities(id, tenant_id, name)
+      SELECT :'entity_id'::uuid, id, :'run_id' FROM public.tenants
+      WHERE id = :'tenant_id'::uuid AND name = 'SDK qualification fixture ' || :'run_id'
+      RETURNING id;`),
+      legalEntityId,
     );
     for (const tenantId of tenantIds) {
       const email = `sdk-${randomUUID()}@example.invalid`;
@@ -356,6 +408,18 @@ async function verify(input) {
         },
       },
       ...fixtureTableCleanupOperations(admin, tableJournal, "funds"),
+      {
+        label: "remove-owned-legal-entity",
+        run: async () => {
+          if (!entityAttempted) return;
+          assert.equal(
+            entityQuery(`DELETE FROM public.legal_entities
+            WHERE id = :'entity_id'::uuid AND tenant_id = :'tenant_id'::uuid AND name = :'run_id';
+            SELECT count(*) FROM public.legal_entities WHERE id = :'entity_id'::uuid;`),
+            "0",
+          );
+        },
+      },
       ...fixtureAuthUserCleanupOperations(admin.auth.admin, users),
       ...fixtureTableCleanupOperations(admin, tableJournal, "tenants"),
       {

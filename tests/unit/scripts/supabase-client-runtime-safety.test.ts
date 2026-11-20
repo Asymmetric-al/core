@@ -25,6 +25,31 @@ const kong = {
 };
 
 describe("owned local SDK target", () => {
+  it("requires the project's running database before staging a legal entity", async () => {
+    const database = {
+      ...kong,
+      id: "b".repeat(64),
+      name: `/supabase_db_${projectId}`,
+      ports: {},
+    };
+    const inspect = vi.fn().mockResolvedValue({
+      endpoint: "unix:///var/run/docker.sock",
+      containers: [kong],
+    });
+    await expect(
+      verifyLocalFixtureTarget(target, { inspect, requireDatabase: true }),
+    ).rejects.toThrow(/owned local database/);
+    inspect.mockResolvedValue({
+      endpoint: "unix:///var/run/docker.sock",
+      containers: [kong, database],
+    });
+    await expect(
+      verifyLocalFixtureTarget(target, { inspect, requireDatabase: true }),
+    ).resolves.toMatchObject({
+      databaseId: database.id,
+      endpoint: "unix:///var/run/docker.sock",
+    });
+  });
   it("requires independent local daemon and published gateway evidence", async () => {
     const inspect = vi.fn().mockResolvedValue({
       endpoint: "unix:///var/run/docker.sock",
