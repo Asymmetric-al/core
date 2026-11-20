@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { getAdminCrmDonorDetail } from "../../../../packages/api/src/admin/crm/detail/service";
 import {
   buildAdminCrmReport,
-  serializeAdminCrmReportCsv,
+  buildAdminCrmExportGroups,
 } from "../../../../packages/api/src/admin/crm/reports/service";
 
 type Row = Record<string, unknown>;
@@ -627,8 +627,51 @@ describe("Phase 5 CRM donor detail and reports", () => {
       "rowCount",
       "timestamp",
     ]);
-    expect(serializeAdminCrmReportCsv(report)).toContain('"General Fund"');
   });
+
+  it.each([
+    [null, false],
+    [
+      { defaultAnonymousToRecipient: true, defaultAnonymousToPublic: false },
+      false,
+    ],
+    [
+      { defaultAnonymousToRecipient: false, defaultAnonymousToPublic: true },
+      false,
+    ],
+    [
+      { defaultAnonymousToRecipient: false, defaultAnonymousToPublic: false },
+      true,
+    ],
+  ] as const)(
+    "binds export groups and protects donor names before filtering: %j",
+    async (preferences, named) => {
+      const tables = {
+        ...baseTables,
+        donors: baseTables.donors!.map((donor) => ({
+          ...donor,
+          giving_preferences: preferences,
+        })),
+      };
+      const report = (search: string | null) =>
+        buildAdminCrmExportGroups({
+          tenantId: "tenant-1",
+          supabaseAdmin: createSupabaseFixture(tables) as never,
+          params: {
+            slice: "donors",
+            filters: { dateFrom: null, dateTo: null, search },
+          },
+        });
+      const { rows } = await report(null);
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({
+        tenant_id: "tenant-1",
+        groupId: named ? "donors:donor-1" : "donors:unassigned",
+        row: { label: named ? "Ada Donor" : "Anonymous donor" },
+      });
+      expect((await report("Ada")).rows).toHaveLength(named ? 1 : 0);
+    },
+  );
 
   it.each(["donors", "missionaries", "funds"] as const)(
     "does not label %s from another tenant",

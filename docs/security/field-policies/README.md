@@ -218,6 +218,22 @@ and acknowledgment/notification document classes must ship their own owner
 census and scope qualification; none is fabricated here. The manifest carries
 this disposition in `reserved_record_types`.
 
+## Derived CRM report groups
+
+`derived_record_types` classifies output rather than a Postgres relation. The gate
+requires the same five policy rows per field and refuses a physical relation of
+the same name. Mission Control's CRM export intersects the caller's selected
+staff assignment and report permissions with the `bulk_export` policies for
+`crm_report_groups`. Each group carries the tenant used for every source query,
+its slice and group ID, and a report revision. The CSV uses only resolved
+scalar cells. It exports no raw IDs, statuses or nested metadata. The audit
+records the session actor, emitted groups and filter names, never search text.
+
+Donor groups combine unnamed gifts before applying search. A donor name is
+eligible only when both recipient and public anonymity preferences explicitly
+allow it. Missing preferences or a missing donor row do not authorize a name.
+This governs report egress, not interactive CRM detail or a contact list.
+
 ## History: the AL-491 census
 
 `census-v1.json` was the immutable baseline seed specification of AL-491. The

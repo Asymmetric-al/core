@@ -59,14 +59,16 @@ export function loadManifest(root = repoRoot) {
 }
 
 /** The manifest's columns, flattened: { recordType, name, ...entry }. */
-export function manifestColumns(manifest) {
-  return Object.entries(manifest.record_types ?? {}).flatMap(
-    ([recordType, columns]) =>
-      Object.entries(columns ?? {}).map(([name, entry]) => ({
-        recordType,
-        name,
-        ...entry,
-      })),
+export function manifestColumns(manifest, physicalOnly = false) {
+  const records = physicalOnly
+    ? manifest.record_types
+    : { ...manifest.record_types, ...manifest.derived_record_types };
+  return Object.entries(records ?? {}).flatMap(([recordType, columns]) =>
+    Object.entries(columns ?? {}).map(([name, entry]) => ({
+      recordType,
+      name,
+      ...entry,
+    })),
   );
 }
 
@@ -104,7 +106,11 @@ export function manifestProblems(manifest, { root = repoRoot } = {}) {
   const reserved = manifest.reserved_record_types ?? {};
   if (!reserved.receipts?.physically_absent)
     fail("RESERVED", "receipts must stay reserved and physically absent");
-  const recordTypes = Object.keys(manifest.record_types ?? {});
+  const derived = Object.keys(manifest.derived_record_types ?? {});
+  for (const name of derived)
+    if (Object.hasOwn(manifest.record_types ?? {}, name))
+      fail("DERIVED", `${name} is also a physical record type`);
+  const recordTypes = [...Object.keys(manifest.record_types ?? {}), ...derived];
   if (recordTypes.length === 0) fail("EMPTY", "no record types classified");
   for (const recordType of recordTypes) {
     if (!IDENTIFIER.test(recordType))
@@ -201,7 +207,12 @@ export function catalogSql(manifest) {
     .filter(
       ([name, entry]) => entry?.physically_absent && IDENTIFIER.test(name),
     )
-    .map(([name]) => name);
+    .map(([name]) => name)
+    .concat(
+      Object.keys(manifest.derived_record_types ?? {}).filter((name) =>
+        IDENTIFIER.test(name),
+      ),
+    );
   const list = (values) =>
     `array[${values.map((value) => `'${value}'`).join(",")}]::text[]`;
   return `-- field-policy-manifest-gate:v1
@@ -263,7 +274,7 @@ export function catalogProblems(manifest, catalog) {
     ]),
   );
   const expected = new Map(
-    manifestColumns(manifest).map((column) => [
+    manifestColumns(manifest, true).map((column) => [
       `${column.recordType}.${column.name}`,
       column,
     ]),
@@ -359,13 +370,14 @@ export function runFieldPolicyGate({
 } = {}) {
   const manifest = loadManifest(root);
   const columns = manifestColumns(manifest);
+  const physical = manifestColumns(manifest, true);
   const recordTypes = Object.keys(manifest.record_types ?? {}).length;
   const lines = [];
   const staticProblems = manifestProblems(manifest, { root });
   if (staticProblems.length)
     return { ok: false, problems: staticProblems, lines };
   lines.push(
-    `PASS: field-policy manifest: ${recordTypes} record types, ${columns.length} columns, five surfaces, same-name floors, processor locks, reserved receipts and pinned sources.`,
+    `PASS: field-policy manifest: ${recordTypes + Object.keys(manifest.derived_record_types ?? {}).length} record types, ${columns.length} columns, five surfaces, same-name floors, processor locks, reserved receipts and pinned sources.`,
   );
   if (!databaseUrl || !isLocalDatabaseUrl(databaseUrl))
     throw new Error(
@@ -377,7 +389,7 @@ export function runFieldPolicyGate({
   );
   if (problems.length) return { ok: false, problems, lines };
   lines.push(
-    `PASS: the migrated columns of the ${recordTypes} classified record types equal the manifest's ${columns.length} entries; canonical receipts are absent.`,
+    `PASS: the migrated columns of the ${recordTypes} classified record types equal the manifest's ${physical.length} entries; canonical receipts are absent.`,
     `PASS: all ${columns.length * SURFACES.length} public.field_policies rows equal the manifest's flags and categories.`,
   );
   return { ok: true, problems, lines };

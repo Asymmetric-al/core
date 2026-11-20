@@ -48,6 +48,7 @@ type Gate = {
   loadManifest(root?: string): Manifest;
   manifestColumns(
     m: Manifest,
+    physicalOnly?: boolean,
   ): ({ recordType: string; name: string } & Record<string, unknown>)[];
   expectedFieldPolicyRows(m: Manifest): Record<string, unknown>[];
   manifestProblems(m: Manifest, options?: { root?: string }): string[];
@@ -66,11 +67,40 @@ afterAll(() =>
 );
 
 const manifest = (): Manifest => structuredClone(gate.loadManifest());
+
+it("classifies derived CRM report fields for bulk Mission Control export, not as a public table", () => {
+  const m = manifest();
+  const reportRows = gate
+    .expectedFieldPolicyRows(m)
+    .filter((row) => row.record_type === "crm_report_groups");
+  expect(
+    reportRows
+      .filter((row) => row.surface === "mission_control" && row.exportable)
+      .map((row) => row.field_key)
+      .sort(),
+  ).toEqual([
+    "donor_count",
+    "gift_count",
+    "label",
+    "last_gift_at",
+    "net_amount_cents",
+    "report_complete",
+    "report_gift_limit",
+  ]);
+  expect(
+    reportRows.filter(
+      (row) =>
+        row.surface !== "mission_control" && (row.visible || row.exportable),
+    ),
+  ).toEqual([]);
+  expect(m.record_types).not.toHaveProperty("crm_report_groups");
+  expect(gate.catalogProblems(m, catalogOf(m))).toEqual([]);
+});
 /** The catalog a database migrated from this tree would return. */
 function catalogOf(m: Manifest): Catalog {
   return {
     relations: Object.keys(m.record_types).sort(),
-    columns: gate.manifestColumns(m).map((c) => ({
+    columns: gate.manifestColumns(m, true).map((c) => ({
       record_type: c.recordType,
       field_key: c.name,
       type: c.type,

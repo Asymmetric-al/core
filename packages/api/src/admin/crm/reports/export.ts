@@ -1,9 +1,15 @@
+import { requestScopeOf } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 
+import {
+  reportRecordType,
+  serializeAdminCrmReportCsv,
+} from "./export-projection";
 import { parseAdminCrmReportParams } from "./query";
-import { buildAdminCrmReport, serializeAdminCrmReportCsv } from "./service";
+import { buildAdminCrmExportGroups } from "./service";
 import { requireCrmAccess } from "../../../crm/auth/access";
-import { toErrorResponse } from "../../../shared/http-errors";
+import { loadFieldPolicies } from "../../../field-policies/reader";
+import { createRequestSessionClient } from "../../../shared/request-session-client";
 import { withPlatformOperation } from "../../../shared/with-operation";
 
 export const GET = withPlatformOperation(
@@ -12,32 +18,71 @@ export const GET = withPlatformOperation(
       action: "crm.report.export",
       resourceType: "report",
     });
-    const params = parseAdminCrmReportParams(new URL(request.url).searchParams);
+    const query = new URL(request.url).searchParams;
+    const scope = requestScopeOf(auth);
+    const assignment = auth.assignment;
+    if (
+      !scope ||
+      !assignment ||
+      assignment.membershipRole !== "staff" ||
+      assignment.userId !== actor.userId ||
+      scope.tenantId !== actor.tenantId ||
+      [...query.getAll("tenantId"), ...query.getAll("tenant_id")].some(
+        (id) => id !== actor.tenantId,
+      )
+    ) {
+      return NextResponse.json(
+        { error: "Tenant or assignment mismatch" },
+        { status: 403 },
+      );
+    }
+    const params = parseAdminCrmReportParams(query);
 
     try {
-      const report = await buildAdminCrmReport({
+      const sessionClient = await createRequestSessionClient(request, scope);
+      const policies = await loadFieldPolicies({
+        sessionClient,
+        surface: "mission_control",
+        recordType: reportRecordType,
+      });
+      const report = await buildAdminCrmExportGroups({
         params,
         supabaseAdmin,
         tenantId: actor.tenantId,
       });
       const exportedAt = new Date().toISOString();
-      await audit.log("crm_export_created", "crm_report", params.slice, {
-        actorProfileId: actor.profileId,
-        filters: params.filters,
-        rowCount: report.rows.length,
-        tenantId: actor.tenantId,
-        timestamp: exportedAt,
-      });
+      const { csv, groupIds } = serializeAdminCrmReportCsv(
+        report,
+        assignment,
+        policies,
+      );
+      await audit.logRequired(
+        "crm_export_created",
+        "crm_report",
+        params.slice,
+        {
+          filters: Object.keys(params.filters).filter(
+            (key) =>
+              params.filters[key as keyof typeof params.filters] !== null,
+          ),
+          groupIds,
+          rowCount: groupIds.length,
+        },
+      );
 
-      return new NextResponse(serializeAdminCrmReportCsv(report), {
+      return new NextResponse(csv, {
         headers: {
+          "Cache-Control": "private, no-store",
           "Content-Disposition": `attachment; filename="crm-${params.slice}-${exportedAt.slice(0, 10)}.csv"`,
           "Content-Type": "text/csv; charset=utf-8",
           "X-Request-Id": requestId,
         },
       });
-    } catch (error) {
-      return toErrorResponse(error, "Failed to export CRM report.", requestId);
+    } catch {
+      return NextResponse.json(
+        { error: "Failed to export CRM report.", requestId },
+        { status: 500 },
+      );
     }
   },
   {

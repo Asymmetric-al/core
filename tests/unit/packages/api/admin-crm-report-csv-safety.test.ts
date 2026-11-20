@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  buildReportResponse,
-  serializeAdminCrmReportCsv,
-} from "../../../../packages/api/src/admin/crm/reports/service";
+import { buildReportResponse } from "../../../../packages/api/src/admin/crm/reports/service";
+import { serializeAdminCrmReportCsv as serialize } from "../../../../packages/api/src/admin/crm/reports/export-projection";
+import { policies } from "./projection/fixtures";
 
 import type { AdminCrmReportParams } from "../../../../packages/api/src/admin/crm/reports/query";
 import type { CrmReportRow } from "@asym/database/types";
@@ -44,6 +43,48 @@ const rows: CrmReportRow[] = [
   },
 ];
 
+const assignment = {
+  assignmentId: "assignment-a",
+  tenantId: "tenant-a",
+  userId: "user-a",
+  revision: "revision",
+  membershipRole: "staff",
+  staffRole: null,
+  isTenantAdmin: false,
+} as const;
+const keys = [
+  "label",
+  "net_amount_cents",
+  "report_complete",
+  "report_gift_limit",
+  "metadata",
+  "id",
+];
+function serializeAdminCrmReportCsv(
+  report: ReturnType<typeof buildReportResponse>,
+  tenantId = assignment.tenantId as string,
+  fields = keys,
+) {
+  return serialize(
+    {
+      slice: report.slice,
+      revision: "report-v1",
+      rows: report.rows.map((row) => ({
+        tenant_id: tenantId,
+        groupId: `${report.slice}:${row.id}`,
+        row,
+        completeness: report.completeness,
+      })),
+    },
+    assignment,
+    policies(
+      "mission_control",
+      "crm_report_groups",
+      fields.map((fieldKey) => ({ fieldKey })),
+    ),
+  ).csv;
+}
+
 describe("serializeAdminCrmReportCsv — export hardening", () => {
   const csv = serializeAdminCrmReportCsv(buildReportResponse(params, rows));
 
@@ -61,7 +102,7 @@ describe("serializeAdminCrmReportCsv — export hardening", () => {
   });
 
   it("quotes the header row through the shared serializer", () => {
-    expect(csv.slice(1)).toMatch(/^"id","label","net_amount_cents"/);
+    expect(csv.slice(1)).toMatch(/^"label","net_amount_cents"/);
   });
 
   it("neutralizes spreadsheet formula injection after a leading no-break space in the label column", () => {
@@ -73,8 +114,18 @@ describe("serializeAdminCrmReportCsv — export hardening", () => {
     expect(csv).toContain(`"${nonAsciiName}"`);
   });
 
-  it("JSON-serializes and quotes object metadata cells", () => {
-    expect(csv).toContain(`"{""source"":""donors""}"`);
+  it("never serializes raw IDs, nested metadata, or fields missing from the resolved policy", () => {
+    for (const hidden of [
+      "donor-1",
+      "metadata",
+      "source",
+      "gift_count",
+      "status",
+    ])
+      expect(csv).not.toContain(hidden);
+    const report = buildReportResponse(params, rows);
+    expect(serializeAdminCrmReportCsv(report, "tenant-b")).toBe("\ufeff");
+    expect(serializeAdminCrmReportCsv(report, "tenant-a", [])).toBe("\ufeff");
   });
 });
 

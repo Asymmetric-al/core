@@ -25,13 +25,25 @@ const MANIFEST = JSON.parse(
     path.join(root, "docs/security/field-policies/manifest.json"),
     "utf8",
   ),
-) as { surfaces: string[]; record_types: Record<string, object> };
-const RECORD_TYPES = Object.keys(MANIFEST.record_types).length;
+) as {
+  surfaces: string[];
+  record_types: Record<string, object>;
+  derived_record_types: Record<string, object>;
+};
+const allRecords = {
+  ...MANIFEST.record_types,
+  ...MANIFEST.derived_record_types,
+};
+const RECORD_TYPES = Object.keys(allRecords).length;
 const COLUMNS = Object.values(MANIFEST.record_types).reduce(
   (n, columns) => n + Object.keys(columns).length,
   0,
 );
-const ROWS = COLUMNS * MANIFEST.surfaces.length;
+const allColumns = Object.values(allRecords).reduce(
+  (count, fields) => count + Object.keys(fields).length,
+  0,
+);
+const ROWS = allColumns * MANIFEST.surfaces.length;
 const roots: string[] = [];
 const itPosix = process.platform === "win32" ? it.skip : it;
 afterEach(() => {
@@ -59,28 +71,31 @@ function runVerifier(
     ),
   );
   const surfaces: string[] = manifest.surfaces;
-  const entries = Object.entries(
-    manifest.record_types as Record<
-      string,
-      Record<string, Record<string, unknown>>
-    >,
-  ).flatMap(([recordType, columns]) =>
-    Object.entries(columns).map(([name, entry]) => ({
-      recordType,
-      name,
-      ...entry,
-    })),
+  const entries = Object.entries({
+    ...manifest.record_types,
+    ...manifest.derived_record_types,
+  } as Record<string, Record<string, Record<string, unknown>>>).flatMap(
+    ([recordType, columns]) =>
+      Object.entries(columns).map(([name, entry]) => ({
+        recordType,
+        name,
+        ...entry,
+      })),
   );
   const catalog = {
     relations: Object.keys(manifest.record_types).sort(),
-    columns: entries.map((column) => ({
-      record_type: column.recordType,
-      field_key: column.name,
-      type: column.type,
-      nullable: column.nullable,
-      generated: column.generated ?? null,
-      default: "default" in column ? column.default : null,
-    })),
+    columns: entries
+      .filter((column) =>
+        Object.hasOwn(manifest.record_types, column.recordType),
+      )
+      .map((column) => ({
+        record_type: column.recordType,
+        field_key: column.name,
+        type: column.type,
+        nullable: column.nullable,
+        generated: column.generated ?? null,
+        default: "default" in column ? column.default : null,
+      })),
     reserved_present: [],
     rows: entries.flatMap((column) =>
       surfaces.map((surface) => {
@@ -272,7 +287,7 @@ describe("supabase migrations verifier", () => {
       const result = runVerifier("clean");
       expect(result.status).toBe(0);
       expect(result.stdout).toContain(
-        `PASS: field-policy manifest: ${RECORD_TYPES} record types, ${COLUMNS} columns`,
+        `PASS: field-policy manifest: ${RECORD_TYPES} record types, ${allColumns} columns`,
       );
       expect(result.stdout).toContain(
         `PASS: all ${ROWS} public.field_policies rows equal the manifest`,

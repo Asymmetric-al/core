@@ -29,12 +29,17 @@ export function manifestTotals() {
   const m = JSON.parse(readFileSync(path.join(ROOT, MANIFEST), "utf8")) as {
     surfaces: string[];
     record_types: Record<string, object>;
+    derived_record_types?: Record<string, object>;
   };
   const columns = Object.values(m.record_types).reduce(
     (n, cols) => n + Object.keys(cols).length,
     0,
   );
-  return { columns, rows: columns * m.surfaces.length };
+  const derived = Object.values(m.derived_record_types ?? {}).reduce(
+    (sum, fields) => sum + Object.keys(fields).length,
+    0,
+  );
+  return { columns, rows: (columns + derived) * m.surfaces.length };
 }
 export const GATE = "scripts/verify/field-policy-census.mjs";
 export const FP = "docs/security/field-policies";
