@@ -35,6 +35,7 @@ export function manifestTotals() {
     (n, cols) => n + Object.keys(cols).length,
     0,
   );
+  // D-18: derived fields add policy rows, not physical columns, to the expected census.
   const derived = Object.values(m.derived_record_types ?? {}).reduce(
     (sum, fields) => sum + Object.keys(fields).length,
     0,

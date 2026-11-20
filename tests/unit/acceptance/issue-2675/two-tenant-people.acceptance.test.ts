@@ -170,6 +170,7 @@ describe("AL-2675 sweep: each tenant's people come from that tenant's membership
         tenantId: t,
         role: "admin",
         memberships: membershipsForRole("admin", t),
+        // D-18: exercise the same member-list boundary with the administrator's selected row in each tenant.
         assignment: {
           assignmentId:
             t === TA

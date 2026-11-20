@@ -7,8 +7,8 @@ const assignmentReader =
 const assignmentReaderDigest =
   "f5f2272e554bfaa1cfce3ca9dd566804fc05151bfba5df0ca832bc4a992a8101";
 const digest = (body) => createHash("sha256").update(body.trim()).digest("hex");
-const reviewedPreMembership = Object.freeze({});
-const preMembershipEntries = Object.freeze([]);
+export const reviewedPreMembership = Object.freeze({});
+export const preMembershipEntries = Object.freeze([]);
 
 export const isAssignmentReader = (command) =>
   command.function === assignmentReader &&

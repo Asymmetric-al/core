@@ -69,6 +69,7 @@ afterAll(() =>
 const manifest = (): Manifest => structuredClone(gate.loadManifest());
 
 it("classifies derived CRM report fields for bulk Mission Control export, not as a public table", () => {
+  // D-18: projection-only report fields must increase policy coverage without blessing a physical relation.
   const m = manifest();
   const reportRows = gate
     .expectedFieldPolicyRows(m)
@@ -95,6 +96,18 @@ it("classifies derived CRM report fields for bulk Mission Control export, not as
   ).toEqual([]);
   expect(m.record_types).not.toHaveProperty("crm_report_groups");
   expect(gate.catalogProblems(m, catalogOf(m))).toEqual([]);
+  expect(
+    gate.catalogProblems(m, {
+      ...catalogOf(m),
+      reserved_present: ["crm_report_groups"],
+    }),
+  ).toContainEqual(
+    expect.stringMatching(/^RESERVED public\.crm_report_groups/),
+  );
+  m.record_types.crm_report_groups = {};
+  expect(gate.manifestProblems(m)).toContain(
+    "DERIVED crm_report_groups is also a physical record type",
+  );
 });
 /** The catalog a database migrated from this tree would return. */
 function catalogOf(m: Manifest): Catalog {

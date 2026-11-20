@@ -192,6 +192,7 @@ jobs:
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
       - name: Verify caller-token field policy reads through PostgREST
         env:
+          FIELD_POLICY_IT_REQUIRED: "1"
           FIELD_POLICY_IT_SUPABASE_URL: http://127.0.0.1:54321
         run: |
           export FIELD_POLICY_IT_ANON_KEY

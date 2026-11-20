@@ -1,5 +1,10 @@
 import pg from "pg";
 import { expect, it } from "vitest";
+import {
+  catalogProblems,
+  catalogSql,
+  loadManifest,
+} from "../../../../scripts/verify/field-policy-census.mjs";
 
 import {
   ADMIN_URL,
@@ -11,6 +16,31 @@ import {
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("requires the migrate database", () =>
   expect(ADMIN_URL).not.toBe(""),
+);
+
+it.skipIf(!ADMIN_URL)(
+  "the catalog detects a physical relation shadowing the derived report",
+  async () => {
+    const db = new pg.Client({ connectionString: ADMIN_URL });
+    await db.connect();
+    try {
+      await db.query("begin");
+      await db.query("create table public.crm_report_groups (id uuid)");
+      const manifest = loadManifest();
+      const result = await db.query({
+        text: catalogSql(manifest),
+        rowMode: "array",
+      });
+      expect(
+        catalogProblems(manifest, JSON.parse(result.rows[0][0])),
+      ).toContain(
+        "RESERVED public.crm_report_groups exists but is reserved and must be absent",
+      );
+    } finally {
+      await db.query("rollback");
+      await db.end();
+    }
+  },
 );
 
 it.skipIf(!ADMIN_URL)(

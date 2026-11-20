@@ -1,7 +1,11 @@
 import { createHash } from "node:crypto";
 import { CAPABILITY_REGISTRY } from "../../../packages/auth/capabilities/registry";
 import keys from "../../../scripts/verify/command-capabilities.json";
-import { preMembershipExceptions } from "../../../scripts/verify/command-entry-boundaries.mjs";
+import {
+  preMembershipEntries,
+  reviewedPreMembership,
+  preMembershipExceptions,
+} from "../../../scripts/verify/command-entry-boundaries.mjs";
 
 import { describe, expect, it } from "vitest";
 
@@ -101,6 +105,10 @@ const allow = (...fns: string[]) => ({
 });
 
 describe("WP4 command boundaries", () => {
+  it("pins the complete pre-membership list and its independent review", () => {
+    expect(preMembershipEntries).toEqual([]);
+    expect(reviewedPreMembership).toEqual({});
+  });
   it("uses exactly the capability registry's sorted keys", () =>
     expect(keys).toEqual(Object.keys(CAPABILITY_REGISTRY).sort()));
   it("admits only reviewed exceptions with matching names, reasons, bodies and lane", () => {

@@ -115,6 +115,7 @@ describe("#2364 static [A][S]", () => {
       source.indexOf("export const POST"),
       source.indexOf("export async function GET"),
     );
+    // D-18: normalize only the renamed platform wrapper to preserve the frozen checkout body digest.
     const platformLane = "export const POST = withPlatformOperation(";
     expect(post.startsWith(platformLane)).toBe(true);
     expect(

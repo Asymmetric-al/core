@@ -1026,8 +1026,10 @@ export function evaluateTenantRlsCatalog(
   // A target a signed-in user may reach through a wrapper: every function of
   // that name in its command schema is executable by authenticated.
   const signedInTargets = new Map();
+  const humanTargets = new Set();
   for (const c of commands) {
     const key = c.function.slice(0, c.function.indexOf("(")).toLowerCase();
+    if (c.schema === "tenant_guard" && c.authenticated) humanTargets.add(key);
     signedInTargets.set(
       key,
       (signedInTargets.get(key) ?? true) && Boolean(c.authenticated),
@@ -1074,11 +1076,11 @@ export function evaluateTenantRlsCatalog(
         `${calls}: PUBLIC or anon may execute it`,
       );
     const workers = targets.filter((t) => signedInTargets.get(t) !== true);
-    if (w.service_role && targets.length && !workers.length)
+    if (w.service_role && targets.some((target) => humanTargets.has(target)))
       failFn(
         "WRAPPER_GRANTS_HUMAN",
         w.function,
-        "A wrapper calling only human entry points grants no EXECUTE to service_role",
+        "A wrapper calling a human entry point grants no EXECUTE to service_role",
       );
     if (w.authenticated && workers.length)
       failFn(

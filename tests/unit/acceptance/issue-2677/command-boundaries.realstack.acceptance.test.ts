@@ -62,6 +62,15 @@ it.skipIf(!ADMIN_URL)(
         `COMMAND_HELPER_EXPOSED ${helper}(p_tenant_id uuid)`,
         `WRAPPER_GRANTS_HUMAN ${wrapper}(p_tenant_id uuid)`,
       ]);
+      await db.query(
+        `create or replace function ${wrapper}(p_tenant_id uuid) returns void language sql security invoker set search_path='' as $$ select ${writer}(p_tenant_id); select ${helper}(p_tenant_id) $$`,
+      );
+      expect(await judge()).toContainEqual(
+        expect.objectContaining({
+          code: "WRAPPER_GRANTS_HUMAN",
+          function: `${wrapper}(p_tenant_id uuid)`,
+        }),
+      );
     } finally {
       await db.query("rollback");
       await db.end();
