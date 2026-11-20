@@ -203,10 +203,6 @@ function authenticatedOperation<
           requestId,
           status: normalized.status,
         });
-        return NextResponse.json(
-          { error: "Internal error", requestId },
-          { status: normalized.status },
-        );
       }
       return toErrorResponse(error, "Internal error", requestId);
     }

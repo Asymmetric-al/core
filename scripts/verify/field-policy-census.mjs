@@ -362,6 +362,14 @@ function readCatalog(manifest, { databaseUrl, psqlBin }) {
 /** Whether a URL names a database on this machine (the one loopback list). */
 export const isLocalDatabaseUrl = isLoopbackDatabaseUrl;
 
+function manifestSummary(recordTypes, columns) {
+  return `PASS: field-policy manifest: ${recordTypes} record types, ${columns.length} columns, five surfaces, same-name floors, processor locks, reserved receipts and pinned sources.`;
+}
+
+function migratedColumnsSummary(recordTypes, columns) {
+  return `PASS: the migrated columns of the ${recordTypes} classified record types equal the manifest's ${columns.length} entries; canonical receipts are absent.`;
+}
+
 /** Runs all three checks; returns { ok, problems, lines }. */
 export function runFieldPolicyGate({
   root = repoRoot,
@@ -371,14 +379,13 @@ export function runFieldPolicyGate({
   const manifest = loadManifest(root);
   const columns = manifestColumns(manifest);
   const physical = manifestColumns(manifest, true);
-  const recordTypes = Object.keys(manifest.record_types ?? {}).length;
+  const physicalTypes = Object.keys(manifest.record_types ?? {}).length;
+  const derivedTypes = Object.keys(manifest.derived_record_types ?? {}).length;
   const lines = [];
   const staticProblems = manifestProblems(manifest, { root });
   if (staticProblems.length)
     return { ok: false, problems: staticProblems, lines };
-  lines.push(
-    `PASS: field-policy manifest: ${recordTypes + Object.keys(manifest.derived_record_types ?? {}).length} record types, ${columns.length} columns, five surfaces, same-name floors, processor locks, reserved receipts and pinned sources.`,
-  );
+  lines.push(manifestSummary(physicalTypes + derivedTypes, columns));
   if (!databaseUrl || !isLocalDatabaseUrl(databaseUrl))
     throw new Error(
       "DATABASE_URL must identify a disposable local database for field-policy verification.",
@@ -389,7 +396,7 @@ export function runFieldPolicyGate({
   );
   if (problems.length) return { ok: false, problems, lines };
   lines.push(
-    `PASS: the migrated columns of the ${recordTypes} classified record types equal the manifest's ${physical.length} entries; canonical receipts are absent.`,
+    migratedColumnsSummary(physicalTypes, physical),
     `PASS: all ${columns.length * SURFACES.length} public.field_policies rows equal the manifest's flags and categories.`,
   );
   return { ok: true, problems, lines };

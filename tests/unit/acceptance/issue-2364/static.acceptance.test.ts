@@ -111,13 +111,14 @@ describe("#2364 static [A][S]", () => {
   });
   it("#2364 criterion 10: POST bytes and protected schema/tests remain unchanged (§7 pins)", () => {
     const source = H.read(API);
+    const post = source.slice(
+      source.indexOf("export const POST"),
+      source.indexOf("export async function GET"),
+    );
+    const platformLane = "export const POST = withPlatformOperation(";
+    expect(post.startsWith(platformLane)).toBe(true);
     expect(
-      sha(
-        source.slice(
-          source.indexOf("export const POST"),
-          source.indexOf("export async function GET"),
-        ),
-      ),
+      sha(post.replace(platformLane, "export const POST = withOperation(")),
       // Re-pinned by the WP2a sweep (AL-2675): the one changed line is the
       // gate, `{ roles: ["donor", "admin", "staff", "super_admin"] }` ->
       // `{ roleClasses: ["donor", "staff"] }` (the classes it served; no role

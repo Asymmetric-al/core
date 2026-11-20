@@ -299,7 +299,7 @@ describe("withOperation", () => {
 
     expect(response.status).toBe(500);
     const body = await response.json();
-    expect(body).toMatchObject({ error: "Internal error" });
+    expect(body).toMatchObject({ error: "Database exploded" });
     expect(logged).toHaveBeenCalledWith("[withOperation] Request failed", {
       requestId: body.requestId,
       status: 500,

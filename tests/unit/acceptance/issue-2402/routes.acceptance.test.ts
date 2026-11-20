@@ -15,6 +15,15 @@ const m = vi.hoisted(() => ({
     userId: "user",
     tenantId: "11111111-1111-4111-8111-111111111111",
     profileId: "22222222-2222-4222-8222-222222222222" as string | null,
+    assignment: {
+      assignmentId: "44444444-4444-4444-8444-444444444444",
+      userId: "user",
+      tenantId: "11111111-1111-4111-8111-111111111111",
+      revision: "1",
+      membershipRole: "staff",
+      staffRole: "development",
+      isTenantAdmin: true,
+    },
     role: "admin",
     memberships: [
       {

@@ -4,7 +4,7 @@ import { resolveProjection } from "../../../projection";
 
 import type { buildAdminCrmExportGroups } from "./service";
 import type { FieldPolicySet } from "../../../field-policies/reader";
-import type { ActiveAssignment } from "@asym/auth/principal";
+import type { AuthenticatedContext } from "@asym/auth/context";
 
 export const reportRecordType = "crm_report_groups";
 const surface = "mission_control";
@@ -23,7 +23,7 @@ const allowedMeasures = [
 
 export function serializeAdminCrmReportCsv(
   report: Awaited<ReturnType<typeof buildAdminCrmExportGroups>>,
-  assignment: ActiveAssignment,
+  assignment: NonNullable<AuthenticatedContext["assignment"]>,
   policies: FieldPolicySet,
 ) {
   const headers = new Set<string>();

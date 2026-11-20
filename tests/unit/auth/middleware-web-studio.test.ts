@@ -165,6 +165,7 @@ describe("Payload's REST routes under /web-studio/api", () => {
           new URL("/web-studio/api/pages/7", "http://localhost:3330"),
           {
             method,
+            headers: { origin: "http://localhost:3330" },
           },
         ),
       );
