@@ -20,6 +20,7 @@ import {
   signIn,
   sorted,
   stripScopeHeaders,
+  withOwner,
   type Fixtures,
   type Person,
   type PageRead,
@@ -63,9 +64,11 @@ import {
  * prove the route, not a screen.
  * - The feed-preferences route (`/api/donor/feed-preferences`), on the
  *   caller's token.
- * - The comments route, on the caller's token, as it stands before the
- *   commenter read replaces its embed of other people's profiles. The
- *   workspace's comments dialog calls it, but this case calls it directly.
+ * - The comments route, on the caller's token: a published public post's
+ *   comments, with the commenters' names, which the first release reads
+ *   through `public.post_comment_authors`, for a member of the post's
+ *   organization and for a signed-in person outside it. The workspace's
+ *   comments dialog calls it, but this case calls it directly.
  *
  * Not exercised here, because nothing calls them: the field-policy reader
  * (`loadFieldPolicies`) and the org-settings route.
@@ -83,6 +86,7 @@ const ADMIN_ORIGIN = `http://localhost:${process.env.AUTH_MAIL_ADMIN_PORT || 313
 let staffInBoth: Person | null = null;
 let missionaryInBoth: Person | null = null;
 let secondDonor: Person | null = null;
+let outsiderMissionary: Person | null = null;
 let fixtures: Fixtures | null = null;
 
 function surface(): "admin" | "missionary" | "donor" | null {
@@ -106,6 +110,10 @@ test.beforeAll(async () => {
   ]);
   secondDonor = await createPerson(env, "donor", [
     { role: "donor", tenantId: SECOND },
+  ]);
+  // No membership in the demo organization, whose post the comments case reads.
+  outsiderMissionary = await createPerson(env, "outsider", [
+    { role: "missionary", tenantId: SECOND },
   ]);
   fixtures = await addFixtures(env, {
     missionary: missionaryInBoth,
@@ -159,7 +167,12 @@ test.beforeAll(async () => {
 test.afterAll(async () => {
   if (!env?.dbUrl) return;
   await removeFixtures(env, fixtures);
-  for (const person of [staffInBoth, missionaryInBoth, secondDonor])
+  for (const person of [
+    staffInBoth,
+    missionaryInBoth,
+    secondDonor,
+    outsiderMissionary,
+  ])
     await deletePerson(env, person);
 });
 
@@ -455,50 +468,99 @@ test.describe("the missionary workspace", () => {
     expect(crmIds).toContain(fixtures!.partnerInDemo);
   });
 
-  test("the comments route returns a published post's comments, and, until the comments.ts step, no other commenter's name", async ({
+  // Fixcheck F7 (record D-72). The first release reads the commenters
+  // through `public.post_comment_authors`: a member of the post's
+  // organization gets each commenter's display name and avatar; a signed-in
+  // person with no membership there gets every comment, with an empty name
+  // and no avatar. Each is compared with what the database owner computes by
+  // the function's rule. This case replaced an expected failure (PGRST200 on
+  // the route's old embed of `profiles`), which the first release's route
+  // would have turned into a silent pass.
+  test("the comments route returns a published post's comments, with the commenters' names only to a member of the post's organization", async ({
     page,
+    browser,
+    baseURL,
   }) => {
-    // Finding, expected to fail until the first release's comments.ts change
-    // (its JB11) lands: the route embeds `user:profiles!user_id`, but
-    // post_comments.user_id references auth.users, not profiles, so the Data
-    // API finds no relationship (PGRST200) and the route answers 500 on
-    // either release, for every caller, whatever the policies. When it
-    // passes, rewrite this case to the route's new answer.
-    test.fail(true, "comments route embed has no relationship (PGRST200)");
     const stack = requireStack();
-    const person = missionaryInBoth!;
-    await signIn(page, person.email, person.password);
-    await choose(page, `Open ${ORGANIZATION_NAME[DEMO]}`, DEMO);
     const [post] = await ownerIds(
       stack,
       `select p.id::text from public.posts p
         where p.tenant_id = $1 and p.status = 'published' and p.visibility = 'public'
-          and exists (select 1 from public.post_comments c where c.post_id = p.id and c.user_id <> $2)
+          and exists (select 1 from public.post_comments c
+                        join public.profiles pr on pr.user_id = c.user_id or pr.id = c.user_id
+                       where c.post_id = p.id and nullif(btrim(pr.display_name), '') is not null)
         order by p.id limit 1`,
-      [DEMO, person.userId],
+      [DEMO],
     );
-    expect(post, "a published public post with others' comments").toBeTruthy();
-    // As the page's own wrapper sends it: the document's tenant and row.
-    const headers = await documentScopeHeaders(page);
-    expect(headers["x-asym-tenant"]).toBe(DEMO);
-    const response = await page.request.get(`/api/posts/${post}/comments`, {
-      headers,
-    });
-    expect(response.status()).toBe(200);
-    const { comments } = (await response.json()) as {
-      comments: { id: string; user_id: string; user: unknown }[];
+    expect(post, "a published public post with a named commenter").toBeTruthy();
+    type Shown = { id: string; name: string; last: string; avatar: unknown };
+    const named = await withOwner(
+      stack,
+      async (db) =>
+        (
+          await db.query(
+            `select c.id::text as id, coalesce(a.name, '') as name, '' as last, a.avatar
+               from public.post_comments c
+               left join lateral (
+                 select nullif(btrim(p.display_name), '') as name, p.avatar_url as avatar
+                   from public.profiles p
+                  where p.user_id = c.user_id or p.id = c.user_id
+                  order by (p.user_id is not distinct from c.user_id) desc
+                  limit 1) a on true
+              where c.post_id = $1
+              order by 1`,
+            [post],
+          )
+        ).rows as Shown[],
+    );
+    expect(named.some((c) => c.name !== "")).toBe(true);
+    /** The comments as the route answers a page, with the page's own scope. */
+    const shown = async (reader: Page): Promise<Shown[]> => {
+      const headers = await documentScopeHeaders(reader);
+      const response = await reader.request.get(`/api/posts/${post}/comments`, {
+        headers,
+      });
+      expect(response.status()).toBe(200);
+      const { comments } = (await response.json()) as {
+        comments: {
+          id: string;
+          user: { first_name: string; last_name: string; avatar_url: unknown };
+        }[];
+      };
+      return comments
+        .map((c) => ({
+          id: c.id,
+          name: c.user.first_name,
+          last: c.user.last_name,
+          avatar: c.user.avatar_url,
+        }))
+        .sort((a, b) => a.id.localeCompare(b.id));
     };
-    expect(sorted(comments.map((c) => c.id))).toEqual(
-      await ownerIds(
-        stack,
-        "select id::text from public.post_comments where post_id = $1",
-        [post],
-      ),
+
+    // A member of the post's organization, acting under that row.
+    await signIn(page, missionaryInBoth!.email, missionaryInBoth!.password);
+    await choose(page, `Open ${ORGANIZATION_NAME[DEMO]}`, DEMO);
+    expect((await documentScopeHeaders(page))["x-asym-tenant"]).toBe(DEMO);
+    expect(await shown(page)).toEqual(named);
+
+    // A signed-in person whose only membership is in another organization.
+    const context = await browser.newContext({ baseURL });
+    const outsider = await context.newPage();
+    await signIn(
+      outsider,
+      outsiderMissionary!.email,
+      outsiderMissionary!.password,
     );
-    // Finding for the comments.ts step (activation review Q9): another
-    // person's profile is no longer readable, so the embedded author is empty.
-    for (const comment of comments.filter((c) => c.user_id !== person.userId))
-      expect(comment.user, comment.id).toBeNull();
+    await expect(outsider).toHaveURL((url) => url.pathname === `/${SECOND}`, {
+      timeout: 120_000,
+    });
+    expect((await documentScopeHeaders(outsider))["x-asym-tenant"]).toBe(
+      SECOND,
+    );
+    expect(await shown(outsider)).toEqual(
+      named.map((c) => ({ ...c, name: "", avatar: null })),
+    );
+    await context.close();
   });
 });
 
