@@ -91,8 +91,6 @@ BEGIN
 END;
 $$;
 
-GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard;
-ALTER FUNCTION tenant_guard.create_site(uuid,text,text) OWNER TO tenant_guard;
 REVOKE ALL ON FUNCTION tenant_guard.create_site(uuid,text,text) FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION tenant_guard.create_site(uuid,text,text) TO authenticated;
 CREATE FUNCTION public.create_site(p_tenant_id uuid,p_name text,p_primary_domain text) RETURNS jsonb
@@ -100,7 +98,6 @@ LANGUAGE sql VOLATILE SECURITY INVOKER SET search_path='' AS $$ SELECT tenant_gu
 REVOKE ALL ON FUNCTION public.create_site(uuid,text,text) FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION public.create_site(uuid,text,text) TO authenticated;
 
-ALTER FUNCTION tenant_guard.set_site_status(uuid,uuid,text) OWNER TO tenant_guard;
 REVOKE ALL ON FUNCTION tenant_guard.set_site_status(uuid,uuid,text) FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION tenant_guard.set_site_status(uuid,uuid,text) TO authenticated;
 CREATE FUNCTION public.set_site_status(p_tenant_id uuid,p_site_id uuid,p_status text) RETURNS jsonb
@@ -108,7 +105,6 @@ LANGUAGE sql VOLATILE SECURITY INVOKER SET search_path='' AS $$ SELECT tenant_gu
 REVOKE ALL ON FUNCTION public.set_site_status(uuid,uuid,text) FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION public.set_site_status(uuid,uuid,text) TO authenticated;
 
-ALTER FUNCTION tenant_guard.verify_domain(uuid,text,uuid,uuid) OWNER TO tenant_guard;
 REVOKE ALL ON FUNCTION tenant_guard.verify_domain(uuid,text,uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION tenant_guard.verify_domain(uuid,text,uuid,uuid) TO authenticated;
 CREATE FUNCTION public.verify_domain(p_tenant_id uuid,p_host text,p_site_id uuid,p_portal_host_id uuid) RETURNS jsonb
@@ -116,7 +112,6 @@ LANGUAGE sql VOLATILE SECURITY INVOKER SET search_path='' AS $$ SELECT tenant_gu
 REVOKE ALL ON FUNCTION public.verify_domain(uuid,text,uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION public.verify_domain(uuid,text,uuid,uuid) TO authenticated;
 
-ALTER FUNCTION tenant_guard.set_account_brand(uuid,text) OWNER TO tenant_guard;
 REVOKE ALL ON FUNCTION tenant_guard.set_account_brand(uuid,text) FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION tenant_guard.set_account_brand(uuid,text) TO authenticated;
 CREATE FUNCTION public.set_account_brand(p_tenant_id uuid,p_display_name text) RETURNS jsonb
@@ -124,6 +119,11 @@ LANGUAGE sql VOLATILE SECURITY INVOKER SET search_path='' AS $$ SELECT tenant_gu
 REVOKE ALL ON FUNCTION public.set_account_brand(uuid,text) FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION public.set_account_brand(uuid,text) TO authenticated;
 
+GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard;
+ALTER FUNCTION tenant_guard.create_site(uuid,text,text) OWNER TO tenant_guard;
+ALTER FUNCTION tenant_guard.set_site_status(uuid,uuid,text) OWNER TO tenant_guard;
+ALTER FUNCTION tenant_guard.verify_domain(uuid,text,uuid,uuid) OWNER TO tenant_guard;
+ALTER FUNCTION tenant_guard.set_account_brand(uuid,text) OWNER TO tenant_guard;
 REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
 NOTIFY pgrst,'reload schema';
 COMMIT;

@@ -137,6 +137,36 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           ).toBe(true);
       }
     });
+    it("grants only the signed-in API role access to each Site command on the Supabase image", async () => {
+      const commands = [
+        "create_site",
+        "set_account_brand",
+        "set_site_status",
+        "verify_domain",
+      ];
+      const { rows } = await db!.query(
+        `select n.nspname as schema, p.proname as command,
+           has_function_privilege('authenticated', p.oid, 'EXECUTE') as authenticated,
+           has_function_privilege('anon', p.oid, 'EXECUTE') as anon,
+           has_function_privilege('service_role', p.oid, 'EXECUTE') as service_role
+         from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+         where n.nspname in ('public', 'tenant_guard') and p.proname=any($1::text[])
+         order by n.nspname, p.proname`,
+        [commands],
+      );
+      expect(rows).toEqual(
+        ["public", "tenant_guard"].flatMap((schema) =>
+          commands.map((command) => ({
+            schema,
+            command,
+            authenticated: true,
+            anon: false,
+            service_role: false,
+          })),
+        ),
+      );
+    });
+
     it.each([
       ["donations", "fund:funds(id),missionary:missionaries(id)"],
       [
