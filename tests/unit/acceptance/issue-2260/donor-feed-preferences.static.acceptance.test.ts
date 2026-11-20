@@ -101,6 +101,14 @@ const CI_BASES = [
     bytes: 47791,
     sha256: "bac3dc897167173b05ea29aca95ac25f4bd64f675f22780c71aeba1821b6a5b6",
   },
+  // Amended by AL-2735 when the shadcn upstream review left ci:preflight: the stage list
+  // drops `verify:shadcn-diff` and renumbers, a new paragraph says the review
+  // runs by hand, and the `lint` section no longer lists it. Pinned on that
+  // exact reviewed whole file.
+  {
+    bytes: 47915,
+    sha256: "e091011ebffb5faba38a9230a9982488fb679c02f38b6d08be0b515250530276",
+  },
 ];
 /** Criterion 20 doc rules, " ~ "-separated regexes. */
 const DOC_RULES = String.raw`anon ~ authenticated ~ service_role ~ SELECT, INSERT, UPDATE ~ auth\.uid\(\) ~ authz\.current_tenant_id\(\) ~ cross[- ]tenant ~ default (privileges|grants) ~ DELETE ~ #2251 ~ #668 ~ Down`;
