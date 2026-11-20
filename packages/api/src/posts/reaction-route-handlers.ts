@@ -1,5 +1,8 @@
 import { getAuthContext, requestScopeOf } from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase/admin";
+import {
+  getAdminClient,
+  publicAdminClientFailure,
+} from "@asym/database/supabase/admin";
 import { NextResponse } from "next/server";
 
 import {
@@ -59,13 +62,9 @@ function createReactionMutationHandler(
 
       const { client: supabaseAdmin, error: adminError } = getAdminClient();
       if (!supabaseAdmin) {
-        const missingKey = "SUPABASE_SERVICE_ROLE_KEY is not configured";
         throw new ApiResponseContractError(
           503,
-          adminError === missingKey ||
-            adminError === `Admin endpoints are disabled because ${missingKey}.`
-            ? missingKey
-            : "Admin client unavailable",
+          publicAdminClientFailure(adminError),
         );
       }
 
