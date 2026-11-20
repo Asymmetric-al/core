@@ -5805,8 +5805,8 @@
       "sourcePath": "skills/no-comments/SKILL.md",
       "rawSkillHash": "41c9b4e2a85f295ff96329736faf5c3af53579aa38c606d5139568d11662d2f7",
       "lockHash": "13acb25431f0285d427900bb0b86380911d43314a989ede51cfabf7f51bee0cd",
-      "entrypointHash": "b5930b0a2a9d2242dd75c3d007fa96dd34adc9bb8e802d653eb3a4ca9cfd168a",
-      "treeHash": "7f007bfcf3315b2326327f63e679bd228577f2f6ecb82e8da5e970559d50056a",
+      "entrypointHash": "1feea259ea93acc5429002a5a6f3a9f4d159eb7fe4350b77b4945dce7c26b723",
+      "treeHash": "52cb62c5058b99fb61e5e264bc5042f5e9c0a41dee6ed641ce0fa2789575412a",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -10577,8 +10577,8 @@
       "sourcePath": "packages/core/skills/ui-sdk/SKILL.md",
       "rawSkillHash": "bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a",
       "lockHash": "76946872dfa4db3d144c1629ce2fe8a44b1cd4442ef70eeb82f3da4cb5f68f07",
-      "entrypointHash": "d33b7f492be616b2818cb0562324fc1d35972248007d00ecea5148e941dbbb24",
-      "treeHash": "af60e5e2eefd97f60f8802540e831903737ae2890e3c275622d8f2d248eeb3b4",
+      "entrypointHash": "6ac1100f40fd20b879a9838ce16bed173c14a6ad1d8ea5b99d41e0189d88869b",
+      "treeHash": "2172b439f5491cf5649dc5796b67df55c3263d3ad21a626b4bc8fb631a4b1307",
       "license": {
         "identifier": "Apache-2.0",
         "status": "notice-preserved",

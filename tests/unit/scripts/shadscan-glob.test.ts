@@ -15,20 +15,20 @@ import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import {
+  scannerArguments,
+  scannerEnvironment,
+} from "../../../scripts/shadscan-audit.mjs";
+import {
   createScannerGlobHooks,
   normalizeScannerMatches,
   normalizeScannerPatterns,
-} from "../../../scripts/verify/shadscan-glob.mjs";
-import {
-  scannerArguments,
-  scannerEnvironment,
-} from "../../../scripts/verify/shadscan.mjs";
+} from "../../../scripts/shadscan-glob.mjs";
 
 const require = createRequire(import.meta.url);
 const cliRequire = createRequire(require.resolve("@shadscan/cli/package.json"));
 const globURL = pathToFileURL(cliRequire.resolve("tinyglobby")).href;
 const preloadURL = new URL(
-  "../../../scripts/verify/shadscan-glob.mjs",
+  "../../../scripts/shadscan-glob.mjs",
   import.meta.url,
 ).href;
 

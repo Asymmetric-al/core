@@ -105,7 +105,7 @@
     "verify:deployment-discipline": "node scripts/verify/deployment-discipline.mjs",
     "verify:shadcn-config": "node scripts/verify/shadcn-config-guardrails.mjs",
     "verify:shadcn-diff": "node scripts/verify/shadcn-diff.mjs",
-    "verify:shadscan": "node scripts/verify/shadscan.mjs",
+    "shadscan:audit": "node scripts/shadscan-audit.mjs",
     "verify:shadcn-registries": "node scripts/verify/shadcn-registry-smoke.mjs",
     "verify:reui": "node scripts/verify/reui.mjs",
     "verify:shadcn-token-drift": "node scripts/verify/shadcn-token-drift.mjs",

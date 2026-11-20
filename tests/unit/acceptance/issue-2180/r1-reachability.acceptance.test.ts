@@ -117,8 +117,8 @@ describe("#2180 criterion 2: R1 runs-on mutations fail, naming file and job", ()
     const g = await guard();
     const tree = mutated(
       "shadscan.yml",
-      "    runs-on: ubuntu-latest\n",
-      "    strategy:\n      matrix:\n        runner: [ubuntu-latest]\n    runs-on: ${{ matrix.runner }}\n",
+      "  report:\n    runs-on: ubuntu-latest\n",
+      "  report:\n    strategy:\n      matrix:\n        runner: [ubuntu-latest]\n    runs-on: ${{ matrix.runner }}\n",
     );
     expectProblem(
       g.selfHostedRunnerProblems(tree),

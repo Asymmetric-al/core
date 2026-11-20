@@ -494,9 +494,9 @@ proof before certification.
 
 ### Phase 22 UI-quality evidence
 
-For any Phase 22 implementation slice that changes `packages/ui`, run
-`bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive` before and
-after the slice. Record both scores, the configured floor, and the exact changed
-paths in the release evidence manifest. Treat an unassessed or below-floor
-result as a failed gate; never treat the score as accessibility, browser,
-performance, or public-safety certification.
+For any Phase 22 implementation slice that changes `packages/ui`, review the
+advisory Shadscan report on the slice's pull request and triage each new
+failing rule as the [Shadscan guide](shadscan.md) describes: repair a confirmed
+defect with a behavior test or track it as an issue. Record the exact changed
+paths in the release evidence manifest. The score is advisory and never
+accessibility, browser, performance, or public-safety certification.

@@ -598,11 +598,14 @@ Good tests here assert **external behavior and safety invariants**, not implemen
 - **Slice (the missionary giving page).** End-to-end: host resolves to tenant; the page fetches only published, tenant-isolated content through the choke-point; references resolve and validate; the CTA hands off a server-validated, enumeration-safe designation into checkout; Draft Mode preview renders the real page with the exact authorized draft/candidate, private and uncached, with consequential controls inert; a copied URL, unrelated authenticated user, expired/revoked grant, stale authorization epoch, cross-scope media request, or changed Phase 10 ceiling cannot continue preview access; publishing invalidates the page's tags; the page meets the repo's **accessibility** gate; a **parity test** asserts the choke-point's serialized output matches the current published output for a published document (a safe-migration guard).
 - **Prior art.** Phase 4's cross-tenant negative-test tier and enumeration-latency test; Phase 3's resolver/projection golden-snapshot tests; the existing public API's published-only tests; `packages/api` service unit tests. The slice needs ≥1 seeded tenant with a published missionary giving page and a real fund/missionary (a test-setup/evidence item).
 - **UI-quality evidence for Phase 22 implementation.** Any slice changing
-  `packages/ui` records the before/after output of
-  `bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive` and the
-  configured floor in its release evidence. Unassessed or below-floor output
-  fails the slice; the score never replaces accessibility, browser, performance,
-  or public-safety proof.
+  `packages/ui` has the advisory Shadscan report on its pull request reviewed,
+  and each new failing rule triaged as `docs/guides/development/shadscan.md`
+  describes. The score never replaces accessibility, browser, performance, or
+  public-safety proof. (Amended 2026-11-18 by the OpenSpec change
+  `make-shadscan-advisory`: the former before/after
+  `bunx @shadscan/cli@0.1.1 ./packages/ui` runs, the recorded floor and the
+  rejection of unassessed or below-floor output are withdrawn with the retired
+  score gate.)
 
 ---
 

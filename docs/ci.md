@@ -20,7 +20,7 @@ Current workflow semantics:
 - `instant-nav` compiles donor only for production PRs/pushes or explicit manual integration QA. Required migration, smoke, and development smoke gates continue running.
 - Explicit `qa:smoke` previews compile on the standard GitHub runner, then use `vercel deploy --prebuilt --target=preview`; Vercel does not compile the source again. Preview serving and fixed subscription costs still apply.
 - `ci-integration.yml` runs on all PR bases. Pushes still run only on `develop` and `production`.
-- `integrity` runs the locked workspace Shadscan audit on every CI event. The reusable `.github/workflows/shadscan.yml` publishes its retained report; audit failures block `ci-gate`. See [Shadscan](guides/development/shadscan.md) for discovery, per-app floors and evidence review.
+- `shadscan-report` calls the reusable `.github/workflows/shadscan.yml`, which runs the locked workspace Shadscan audit once on the submitted head commit, uploads the raw report and its JSON summary from a read-only job, then publishes advisory scores from a separate job. It is not required: `ci-gate` does not need it, and no score, finding or scan failure blocks a merge. See [Shadscan](guides/development/shadscan.md) for reading and triaging the report.
 - `e2e-smoke-gate` needs `migrate`, `smoke`, and `test-e2e-smoke` and passes
   only when all three succeeded; `integration-gate` summarizes `migrate`,
   `smoke`, and that gate. A skipped need never passes either gate (fail closed).
@@ -101,10 +101,9 @@ bun run ci:preflight
 14. `verify:eslint`
 15. `verify:shadcn-config`
 16. `verify:shadcn-diff`
-17. `verify:shadscan`
-18. `typecheck`
-19. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
-20. `test:unit`
+17. `typecheck`
+18. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
+19. `test:unit`
 
 For edits to the adopted roadmap and Studio packets, also run
 `bun run verify:program-roadmap` in the canonical WSL/Linux workspace before
