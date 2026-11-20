@@ -383,6 +383,11 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
       ref: "AL-2675 tenant address and request scope in test-e2e",
       hash: "32c9d975e89d0eb6",
     },
+    // D-18: pin the explicit donor CMS origin and the 35-minute hosted job budget (#2734).
+    {
+      ref: "AL-2675 WP2c hosted test-e2e contract",
+      hash: "328502bb7fb2c370",
+    },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(
