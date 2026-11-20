@@ -26,6 +26,10 @@ describe.skipIf(!ADMIN_URL)("tenant status under a selected membership", () => {
       await db.query("begin");
       try {
         await db.query(fixtureSql(id));
+        await db.query(`insert into public.posts(id,tenant_id,content,status,visibility) values ('${id.TA}','${id.TA}','Fixture','published','public');
+          insert into public.post_comments(post_id,user_id,content) values ('${id.TA}','${id.UADM}','Fixture');
+          insert into public.donors(id,tenant_id,profile_id) select '${id.TA}','${id.TA}',id from public.profiles where user_id='${id.UDON}';
+          insert into public.donations(id,tenant_id,donor_id,amount) values ('${id.TA}','${id.TA}','${id.TA}',10)`);
         await db.query("update public.tenants set status=$1 where id=$2", [
           status,
           id.TA,
@@ -71,6 +75,35 @@ describe.skipIf(!ADMIN_URL)("tenant status under a selected membership", () => {
           `select (tenant_guard.begin_human_command('${id.TA}','sites.manage')).assignment_id`,
         );
         expect(command.code).toBe(status === "active" ? null : "42501");
+        for (const principal of [admin, caller]) {
+          const gifts = await queryAs(
+            "authenticated",
+            principal,
+            `select id from public.donations where id='${id.TA}'`,
+          );
+          expect(gifts.code, gifts.message).toBeNull();
+          expect(gifts.rows).toEqual(
+            status === "active" ? [{ id: id.TA }] : [],
+          );
+        }
+        const memberships = await queryAs(
+          "authenticated",
+          caller,
+          `select tenant_id from public.current_user_memberships('${id.TA}')`,
+        );
+        expect(memberships.code, memberships.message).toBeNull();
+        expect
+          .soft(memberships.rows)
+          .toEqual(status === "active" ? [{ tenant_id: id.TA }] : []);
+        const authors = await queryAs(
+          "authenticated",
+          caller,
+          `select display_name from public.post_comment_authors('${id.TA}')`,
+        );
+        expect(authors.code, authors.message).toBeNull();
+        expect(authors.rows).toEqual([
+          { display_name: status === "active" ? "Blair Admin" : null },
+        ]);
       } finally {
         await db.query("rollback");
       }

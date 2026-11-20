@@ -1,3 +1,8 @@
+-- Add tenant lifecycle status and replace the six request/membership helpers.
+-- ALTER TABLE takes ACCESS EXCLUSIVE on tenants through COMMIT; the constant
+-- default needs no heap rewrite, but the CHECK must validate existing rows.
+-- Drain long transactions first. Before any later migration, the catalog
+-- rollback_20261120130001_tenant_status_membership.sql restores the old reads.
 BEGIN;
 
 SET LOCAL lock_timeout = '5s';

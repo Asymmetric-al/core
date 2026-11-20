@@ -477,6 +477,8 @@ ends. The job holds only the preview project's credentials.
 
 ### The request-tenant policies: after the first release's apps, never below them
 
+Once WP3a's Site and tenant-status migrations are applied, the WP2b rollback cannot be run as written. Its ledger guard requires `20261119135300` to be newest. Do not edit the ledger to get around that check; use a forward fix or rebuild from the intended source chain.
+
 `20261119135300_request_tenant_policies.sql` (WP2b's second release,
 AL-2675) makes the database read the tenant and the assignment from the
 `x-asym-tenant` and `x-asym-assignment` request headers, which only the apps

@@ -78,6 +78,10 @@ Signed-in users have USAGE on both schemas, so that a `public` invoker wrapper c
 
 ### What the guard role holds
 
+The guard also has EXECUTE on `authz.caller_tenant_ids()` so the human preamble can require an active tenant before entering it. This grants no direct read of `tenants`.
+
+`public.resolve_verified_host(text)` takes an ASCII DNS host (an international name must already be in its ASCII form). It lowercases the input and removes a numeric port and one trailing dot. It returns only `tenant_id` and `site_id`, never brand or domain configuration. The four Site tables grant `service_role` nothing. WP3b must add a reviewed projection for the portal host, account brand name, Site status and primary domain it actually uses.
+
 `tenant_guard` stays NOLOGIN, NOBYPASSRLS, NOSUPERUSER and NOINHERIT (contract item 7). It holds:
 
 - USAGE on schemas `public`, `tenant_guard` and `authz`;
@@ -118,7 +122,7 @@ EXECUTE besides the owner, on the migrated chain:
 In one forward migration:
 
 1. Create `tenant_guard.<command>(p_tenant_id uuid, ...) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''`. Its first statement is `v_ctx := tenant_guard.begin_human_command(p_tenant_id);` (or `PERFORM ...`), and the function's outer block has no `EXCEPTION` section: a handler that encloses the preamble could swallow its refusal.
-2. The preamble reads the caller from the session and the assignment from the request's `x-asym-assignment` header. It refuses with `42501` unless the named row is the caller's live row in that tenant, or, when no row is named, the caller holds exactly one live row there. Only then does it enter the tenant for the transaction. It returns `tenant_guard.command_context` (`actor_id`, `tenant_id`, `assignment_id`, `role`, `staff_role`). WP2a puts the capability check and the `revoked_at` test inside it and WP3 the tenant-status check, so a command relies on the preamble for those and repeats none of them.
+2. The preamble reads the caller from the session and the assignment from the request's `x-asym-assignment` header. It refuses with `42501` unless the named row is the caller's live row in that tenant, or, when no row is named, the caller holds exactly one live row there. Only then does it enter the tenant for the transaction. It returns `tenant_guard.command_context` (`actor_id`, `tenant_id`, `assignment_id`, `role`, `staff_role`). The preamble checks the capability, `revoked_at` and active tenant status, so a command relies on the preamble for those and repeats none of them.
 
    The read side parses the two request headers by the same rule as `tenant_guard.request_assignment_id()`: absent or blank is no value, a hyphenated UUID in any letter case is compared as a `uuid`, anything else raises `22P02` (`authz.request_tenant_id()`, `authz.request_assignment_id()`; activation review Q11).
 

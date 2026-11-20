@@ -200,7 +200,7 @@ export class Stack {
         ).toBe(0);
       }
       if (!this.connected) await this.beforeForward();
-      // D-18: this historical schema needs the signup trigger's tenant, not the current seed.
+      // D-18: this full-chain replay needs only the signup trigger's tenant, not the demo seed.
       await this.db.query(
         "insert into public.tenants(id,name,slug) values ('00000000-0000-0000-0000-000000000001','Fixture signup','fixture-signup') on conflict (id) do nothing",
       );
