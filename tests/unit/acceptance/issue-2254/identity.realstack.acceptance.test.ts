@@ -16,6 +16,8 @@
  * classified column by the field-policy README failed here. The totals now
  * come from the manifest, which the gate holds equal to the migrated schema
  * and to every field_policies row; the ten In 4 rows stay pinned exactly.
+ * AL-2677: derived output has baseline rows but no physical column. Count
+ * both kinds for row parity, and physical entries alone for schema parity.
  */
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -44,12 +46,20 @@ const MANIFEST = JSON.parse(
     path.join(ROOT, "docs/security/field-policies/manifest.json"),
     "utf8",
   ),
-) as { surfaces: string[]; record_types: Record<string, object> };
-const CLASSIFIED = Object.values(MANIFEST.record_types).reduce(
-  (n, columns) => n + Object.keys(columns).length,
-  0,
-);
-const POLICY_ROWS = CLASSIFIED * MANIFEST.surfaces.length;
+) as {
+  surfaces: string[];
+  record_types: Record<string, object>;
+  derived_record_types: Record<string, object>;
+};
+const fieldCount = (types: Record<string, object>) =>
+  Object.values(types).reduce(
+    (count, fields) => count + Object.keys(fields).length,
+    0,
+  );
+const CLASSIFIED = fieldCount(MANIFEST.record_types);
+const POLICY_ROWS =
+  (CLASSIFIED + fieldCount(MANIFEST.derived_record_types)) *
+  MANIFEST.surfaces.length;
 const local = (() => {
   try {
     return ["localhost", "127.0.0.1", "[::1]"].includes(new URL(URL_).hostname);
