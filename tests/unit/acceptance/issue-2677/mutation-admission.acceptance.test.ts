@@ -31,6 +31,30 @@ it.each([
 describe.each([admin, donor, missionary])(
   "mutation admission through each product proxy",
   (proxy) => {
+    it("uses the browser's request authority rather than Next's bind address", async () => {
+      const target = "http://127.0.0.1:3030";
+      const write = (source: string) =>
+        new NextRequest(`${target}/api/profile`, {
+          method: "POST",
+          headers: {
+            host: "127.0.0.1:3030",
+            origin: source,
+            "x-forwarded-host": "another.example.test",
+            "content-type": "application/json",
+          },
+          body: "{}",
+        });
+      expect(
+        (await proxy(write(target))).headers.get("x-middleware-next"),
+      ).toBe("1");
+      for (const other of [
+        "http://localhost:3030",
+        "http://another.example.test",
+        "http://127.0.0.1:3031",
+      ])
+        expect((await proxy(write(other))).status).toBe(403);
+    });
+
     it.each([
       [
         {

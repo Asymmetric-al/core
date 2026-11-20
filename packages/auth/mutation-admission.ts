@@ -12,16 +12,32 @@ const uploads = new Set([
   "/api/email/assets/upload",
 ]);
 
+function requestOrigin({ headers, nextUrl }: NextRequest): string | null {
+  const authority = headers.get("host") ?? nextUrl.host;
+  if (
+    !["http:", "https:"].includes(nextUrl.protocol) ||
+    !/^(?:[a-z\d.-]+|\[[a-f\d:.]+\])(?::\d+)?$/i.test(authority)
+  )
+    return null;
+  try {
+    return new URL(`${nextUrl.protocol}//${authority}`).origin;
+  } catch {
+    return null;
+  }
+}
+
 function trustedSource(request: NextRequest, signed: boolean): boolean {
-  const { headers, nextUrl } = request;
+  const { headers } = request;
+  const expected = requestOrigin(request);
+  if (!expected) return false;
   const origin = headers.get("origin");
-  if (origin !== null) return origin === nextUrl.origin;
+  if (origin !== null) return origin === expected;
   const site = headers.get("sec-fetch-site");
   if (site !== null && site !== "same-origin") return false;
   const referer = headers.get("referer");
   if (referer !== null) {
     try {
-      return new URL(referer).origin === nextUrl.origin;
+      return new URL(referer).origin === expected;
     } catch {
       return false;
     }

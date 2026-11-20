@@ -389,7 +389,7 @@ To comply, reach tenant data through `withTenant` (see "Adding a guarded functio
 
 ### HTTP mutation admission and audit (AL-2677)
 
-All three product proxies call `admitApiMutation` in `createAuthMiddleware` before dispatching API writes. Browser requests must match the request URL's exact origin (scheme, host and port). Do not use a forwarded host header or one fixed donor application URL. WP3b should resolve the request host against the verified Site/portal registry at the donor proxy boundary before dispatch; passing that check does not make a sibling verified host same-origin.
+All three product proxies call `admitApiMutation` in `createAuthMiddleware` before dispatching API writes. Browser requests must match the request's exact origin: the request scheme and the HTTP `Host` (including its port). Next's adapter URL can contain the server's bind hostname and normalizes loopback IPs to `localhost`; use its authority only if no `Host` is present. Do not use a forwarded host header or one fixed donor application URL. WP3b should resolve the incoming authority against the verified Site/portal registry at the donor proxy boundary before calling `createAuthMiddleware`; passing that check does not make a sibling verified host same-origin.
 
 Without Origin, a matching Referer or same-origin Fetch Metadata can attest a browser request. Otherwise only a cookie-free bearer request or the exact Stripe, Resend and Inngest endpoints proceeds to its own authentication. JSON is accepted; multipart is limited to media uploads and Web Studio. A bodyless write needs no content type. Admission is not authorization or signature validation.
 
