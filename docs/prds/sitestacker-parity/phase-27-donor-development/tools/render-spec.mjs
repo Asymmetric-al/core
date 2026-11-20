@@ -1,6 +1,8 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { formatSource } from "../../../../../scripts/lib/format-source.mts";
+import { renderContractView } from "../../../../../scripts/lib/openspec-contracts.mjs";
 
 const base = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repo = path.resolve(base, "../../../..");
@@ -167,28 +169,21 @@ const outputs = [
   ],
   [path.join(base, "traceability.json"), trace],
 ];
-const { default: prettier } = await import("prettier");
-const { renderContractView } = await import(
-  path.join(repo, "scripts/lib/openspec-contracts.mjs")
-);
-const formatOptions = await prettier.resolveConfig(mainFile);
-for (const [file, content] of outputs) {
-  let formatted = await prettier.format(content, {
-    ...formatOptions,
-    filepath: file,
-  });
+const prepared = new Map();
+for (const [file, content] of outputs)
+  prepared.set(file, await formatSource(file, content, "trusted"));
+for (const [file, content] of prepared) {
   if (file.endsWith(path.join("specs", "donor-development", "spec.md"))) {
-    formatted = await renderContractView({
+    const compact = await renderContractView({
       repoRoot: repo,
       capability: "donor-development",
-      content: formatted,
+      content,
       write,
     });
-    formatted = await prettier.format(formatted, {
-      ...formatOptions,
-      filepath: file,
-    });
+    prepared.set(file, compact);
   }
+}
+for (const [file, formatted] of prepared) {
   if (write) await writeFile(file, formatted);
   else if ((await readFile(file, "utf8")) !== formatted)
     fail(`Generated content differs: ${path.relative(repo, file)}`);

@@ -116,3 +116,22 @@ docs/security/rls-deny-by-default-exceptions.json
 
 # One frozen entry per line; checked by scripts/verify/service-role-client-gate.mjs.
 docs/security/service-role-client-allowlist.json
+
+# Historical evidence, hash-bound records and released factory-pack bytes.
+*.toml
+docs/qa/**
+docs/ops/phase-evidence/**
+docs/features/support-hub/grill/**
+docs/features/support-hub/docs/adr/**
+docs/features/support-hub/CONTEXT.md
+docs/features/support-hub/README.md
+docs/features/support-hub/publication-provenance.*
+docs/features/support-hub/phase26-spec-publication.md
+docs/prds/sitestacker-parity/phase-26-support-hub-*
+openspec/changes/add-support-hub-conversation-management/**
+openspec/changes/archive/**
+scripts/archon-factory/pack/**
+
+# These canonical imports retain the exact reviewed upstream bytes.
+docs/ai/skills/bendc-frontend-guidelines/references/readme-original.md
+docs/ai/skills/impeccable/scripts/modern-screenshot.umd.js
