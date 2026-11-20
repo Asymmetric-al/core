@@ -110,7 +110,9 @@ const failingTail = `
 export const firstValue = (values: readonly string[]): string =>
   values[0] as string;
 `;
-const strictFinding = "typescript(non-nullable-type-assertion-style)";
+// The policy (PL-1) turns non-nullable-type-assertion-style off in favour of no-unsafe-type-assertion,
+// which also reports only under strictNullChecks: without it `values[0]` is `string` and nothing narrows.
+const strictFinding = "typescript(no-unsafe-type-assertion)";
 const nonStrictFinding = "typescript(no-unnecessary-type-assertion)";
 
 type Diagnostic = { code: string; filename: string; message: string };
@@ -197,12 +199,19 @@ describe("central-test lint-context programs", () => {
           failing: toRepoPath(failing),
         };
       });
+      // The controls measure program strictness, not repository policy: bypass the pending list's
+      // off-switch (the config reads this variable) so the strict-only rule reports in every test area.
+      const audit = process.env.CORE_LINT_AUDIT_PENDING;
+      process.env.CORE_LINT_AUDIT_PENDING = "1";
+
       const result = invoke([
         "--typed",
         "--format",
         "json",
         ...twins.flatMap(({ passing, failing }) => [passing, failing]),
       ]);
+      if (audit === undefined) delete process.env.CORE_LINT_AUDIT_PENDING;
+      else process.env.CORE_LINT_AUDIT_PENDING = audit;
       output = result.output;
       status = result.status;
       diagnostics = parseDiagnostics(result.stdout);
