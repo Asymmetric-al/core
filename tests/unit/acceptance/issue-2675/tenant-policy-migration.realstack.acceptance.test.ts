@@ -1985,6 +1985,71 @@ describe.skipIf(!ADMIN_URL)(
           expect(await members()).toEqual([...SEVEN_REALTIME].sort());
         }));
 
+      // Review of pull request 2737 (thread 4641188062). After the rollback,
+      // authz.current_tenant_id() reads the token's tenant claim again. A
+      // session whose token carries none, as hosted sessions do not, reads a
+      // donor's saved feed preferences as the chain before the migration
+      // answers them: no row, so the route answers defaults. The rollback's
+      // own statements for the helper and the three feed-preference policies
+      // run here alone; the whole file runs in the fingerprint proof.
+      it("after it, a token with no tenant claim and a valid donor assignment reads no saved feed preference, as before the migration; with the claim it reads", () =>
+        tx(async () => {
+          await db.query(
+            `insert into public.donor_feed_preferences (tenant_id, donor_id, show_org_posts, show_missionary_posts)
+             values (${q("TA")}, ${q("dDON")}, false, false)`,
+          );
+          const read =
+            "select show_org_posts, show_missionary_posts from public.donor_feed_preferences";
+          const saved = [
+            { show_org_posts: false, show_missionary_posts: false },
+          ];
+          const claimless = () =>
+            as("authenticated", { sub: "UDON", headers: under("mDon") }, read);
+          const before = await claimless();
+          expect(before.code, before.message).toBeNull();
+          expect(before.rows).toEqual(saved);
+
+          const helper = body.slice(
+            body.indexOf(
+              "CREATE OR REPLACE FUNCTION authz.current_tenant_id()",
+            ),
+            body.indexOf("COMMENT ON FUNCTION authz.current_tenant_id() IS"),
+          );
+          expect(helper).toMatch(/app_metadata/);
+          const policies = [
+            ...body.matchAll(
+              /^(?:DROP POLICY \S+ ON public\.donor_feed_preferences;|CREATE POLICY \S+ ON public\.donor_feed_preferences\n[\s\S]*?;)$/gm,
+            ),
+          ].map((m) => m[0]);
+          expect(policies).toHaveLength(6);
+          expect(await run([helper, ...policies].join("\n"))).toBeNull();
+
+          const after = await claimless();
+          expect(after.code, after.message).toBeNull();
+          expect(after.rows).toEqual([]);
+          // The restored policy keys on the claim: with it, the row reads.
+          await db.query("savepoint claim_case");
+          try {
+            await db.query("set local role authenticated");
+            await db.query(
+              `select set_config('request.jwt.claims', $1, true),
+                      set_config('request.jwt.claim.sub', '', true),
+                      set_config('request.headers', $2, true)`,
+              [
+                JSON.stringify({
+                  sub: id.UDON,
+                  role: "authenticated",
+                  app_metadata: { tenant_id: id.TA },
+                }),
+                JSON.stringify(under("mDon")),
+              ],
+            );
+            expect((await db.query(read)).rows).toEqual(saved);
+          } finally {
+            await db.query("rollback to savepoint claim_case");
+          }
+        }));
+
       it("restores the claim-reading helper with its comment, and ends with the schema reload", () => {
         const helper = body.slice(
           body.indexOf("CREATE OR REPLACE FUNCTION authz.current_tenant_id()"),
