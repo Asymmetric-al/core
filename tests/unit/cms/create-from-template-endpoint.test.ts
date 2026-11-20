@@ -83,6 +83,88 @@ function makeReq({
 }
 
 describe("webStudioCreateFromTemplateEndpoint", () => {
+  it.each([null, "fee_cover"])(
+    "filters project references and template creation by system purpose (%s)",
+    async (purpose) => {
+      const tenant = "2d693c98-f6eb-4a3c-b49e-4326220a43f0";
+      const fund = {
+        id: "01ca510d-02b3-4b30-bfd5-008ce53ded6b",
+        name: "Giving",
+        tenant_id: tenant,
+        system_purpose: purpose,
+      };
+      const from = vi.fn(() => {
+        const filters = new Map<string, unknown>();
+        const match = () => ({
+          data: [...filters].every(
+            ([column, value]) => Reflect.get(fund, column) === value,
+          )
+            ? fund
+            : null,
+          error: null,
+        });
+        const query = {
+          select: () => query,
+          eq: (column: string, value: unknown) => {
+            filters.set(column, value);
+            return query;
+          },
+          is: (column: string, value: unknown) => {
+            filters.set(column, value);
+            return query;
+          },
+          single: match,
+          maybeSingle: match,
+        };
+        return query;
+      });
+      getAdminClientMock.mockReturnValue({ client: { from }, error: null });
+      const create = vi.fn().mockResolvedValue({ id: 44 });
+      const req = makeReq({
+        user: {
+          id: "u1",
+          role: "staff",
+          tenantId: "17",
+          publicTenantId: tenant,
+        },
+        body: {
+          targetCollection: "project-pages",
+          templateId: "1",
+          fundId: fund.id,
+        },
+        payloadOverrides: {
+          findByID: vi
+            .fn()
+            .mockResolvedValue({
+              id: 1,
+              tenant: 17,
+              pageType: "project",
+              templateKey: "project-default",
+            }),
+          find: vi.fn().mockResolvedValue({ docs: [] }),
+          create,
+        },
+      });
+      const { buildPageBuilderCollectionFields } =
+        await import("../../../apps/admin/src/cms/collections/page-builders");
+      const field = buildPageBuilderCollectionFields("project").find(
+        (field) => field.type === "text" && field.name === "fundId",
+      );
+      if (
+        !field ||
+        field.type !== "text" ||
+        typeof field.validate !== "function"
+      )
+        throw Error("Missing project fund validator");
+      expect(
+        await Reflect.apply(field.validate, undefined, [fund.id, { req }]),
+      ).toBe(purpose ? "Fund not found in this organization." : true);
+      const response = await handler(req);
+      expect(response.status).toBe(purpose ? 404 : 200);
+      expect(create).toHaveBeenCalledTimes(purpose ? 0 : 1);
+      expect(from.mock.calls).toEqual([["funds"], ["funds"]]);
+    },
+  );
   it.each(["pages", "ministry-updates"])(
     "rejects an empty normalized slug before creating %s",
     async (targetCollection) => {

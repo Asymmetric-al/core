@@ -38,7 +38,53 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
     await db.query("begin");
     try {
       await expect(
-        db.query("delete from public.tenants"),
+        db.query(
+          "delete from public.tenants where id='00000000-0000-0000-0000-000000000001'",
+        ),
+      ).rejects.toMatchObject({ code: "23503" });
+    } finally {
+      await db.query("rollback");
+    }
+  });
+  it("grants clients no table or column writes on tenant, entity or Site records", async () => {
+    const violations = await db.query(
+      `select relation, principal from unnest(array['tenants','legal_entities','payment_account_bindings','giving_target_entity_locks','sites','site_domains','donor_portal_hosts','donor_account_brands']) relation cross join unnest(array['anon','authenticated']) principal where has_any_column_privilege(principal,'public.'||relation,'insert,update,references') or has_table_privilege(principal,'public.'||relation,'delete,truncate,trigger')`,
+    );
+    expect(violations.rows).toEqual([]);
+  });
+  it("permits a fee fund per entity and enforces the binding tenant key for service writers", async () => {
+    await db.query("begin");
+    try {
+      const tenant = randomUUID(),
+        other = randomUUID(),
+        second = randomUUID();
+      await db.query(
+        "insert into public.tenants(id,name,slug) values ($1,'First',$1::uuid::text),($2,'Other',$2::uuid::text)",
+        [tenant, other],
+      );
+      await db.query(
+        "insert into public.legal_entities(id,tenant_id,name) values ($1,$1,'First'),($2,$1,'Second')",
+        [tenant, second],
+      );
+      await db.query(
+        "insert into public.funds(tenant_id,legal_entity_id,name,system_purpose) values ($1,$1,'Fee','fee_cover'),($1,$2,'Fee','fee_cover')",
+        [tenant, second],
+      );
+      await db.query("savepoint duplicate_fee");
+      await expect(
+        db.query(
+          "insert into public.funds(tenant_id,legal_entity_id,name,system_purpose) values ($1,$1,'Fee','fee_cover')",
+          [tenant],
+        ),
+      ).rejects.toMatchObject({ code: "23505" });
+      await db.query(
+        "rollback to duplicate_fee; grant insert on public.payment_account_bindings to service_role; set local role service_role",
+      );
+      await expect(
+        db.query(
+          "insert into public.payment_account_bindings(tenant_id,legal_entity_id) values ($1,$2)",
+          [other, second],
+        ),
       ).rejects.toMatchObject({ code: "23503" });
     } finally {
       await db.query("rollback");
@@ -73,6 +119,9 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
         [second, target],
       );
       await db.query("savepoint wrong");
+      await db.query(
+        `grant select,update on public.${table} to service_role; set local role service_role`,
+      );
       await expect(
         db.query(`update public.${table} set legal_entity_id=$1 where id=$2`, [
           foreign,

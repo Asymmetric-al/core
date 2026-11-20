@@ -1,3 +1,4 @@
+// D-18, WP3: giving-target fixtures now name a legal entity owned by their tenant.
 import { randomUUID } from "node:crypto";
 
 import { expect, type Page } from "@playwright/test";
@@ -227,8 +228,8 @@ export async function addFixtures(
       [f.missionaryInSecond, SECOND, `Harbor field ${tag}`],
     ] as const)
       await db.query(
-        `insert into public.missionaries (id, tenant_id, profile_id, location)
-         values ($1, $2, $3, $4)`,
+        `insert into public.missionaries (id, tenant_id, profile_id, location, legal_entity_id)
+         select $1, tenant_id, $3, $4, id from public.legal_entities where tenant_id=$2`,
         [record, tenant, missionary.userId, place],
       );
     for (const [partner, tenant, name] of [
@@ -244,7 +245,7 @@ export async function addFixtures(
         [partner, tenant, name, `${partner}@example.test`, missionary.userId],
       );
     await db.query(
-      `insert into public.funds (id, tenant_id, name) values ($1, $2, $3)`,
+      `insert into public.funds (id, tenant_id, name, legal_entity_id) select $1, tenant_id, $3, id from public.legal_entities where tenant_id=$2`,
       [f.secondFund, SECOND, `Harbor wells ${tag}`],
     );
     await db.query(

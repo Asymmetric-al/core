@@ -135,6 +135,9 @@ describe.skipIf(!ADMIN_URL)("verified host routing", () => {
         "insert into public.tenants(id,name,slug) values ($1,'Other',$1::uuid::text)",
         [other],
       );
+      await db.query(
+        "grant insert on public.site_domains to service_role; set local role service_role",
+      );
       for (const [column, id] of [
         ["site_id", site],
         ["portal_host_id", portal],
@@ -148,6 +151,7 @@ describe.skipIf(!ADMIN_URL)("verified host routing", () => {
         ).rejects.toMatchObject({ code: "23503" });
         await db.query("rollback to invalid_host");
       }
+      await db.query("reset role");
       await expect(
         db.query(
           "update public.sites set status='inactive' where tenant_id=$1",
@@ -158,6 +162,9 @@ describe.skipIf(!ADMIN_URL)("verified host routing", () => {
 
   it("keeps the primary domain on the same Site and reserves each hostname globally", () =>
     fixture(async (tenant, site, _portal, host) => {
+      await db.query(
+        "grant select, update on public.sites to service_role; set local role service_role",
+      );
       await db.query("savepoint invalid_primary");
       await expect(
         db.query("update public.sites set primary_domain=$1 where id=$2", [
@@ -166,6 +173,7 @@ describe.skipIf(!ADMIN_URL)("verified host routing", () => {
         ]),
       ).rejects.toMatchObject({ code: "23503" });
       await db.query("rollback to invalid_primary");
+      await db.query("reset role");
       await expect(
         db.query(
           "insert into public.site_domains(host,tenant_id,site_id) values ($1,$2,$3)",

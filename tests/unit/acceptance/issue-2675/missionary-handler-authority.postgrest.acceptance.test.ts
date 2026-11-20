@@ -1,3 +1,4 @@
+// D-18, WP3: giving-target fixtures now name a legal entity owned by their tenant.
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest } from "next/server";
@@ -99,7 +100,7 @@ describe.skipIf(!configured)(
             [org.assignment, org.tenant, person, org.wrong],
           );
           await db.query(
-            "insert into public.missionaries(id,tenant_id,profile_id) values($1,$2,$3)",
+            "with entity as (insert into public.legal_entities(id,tenant_id,name) values ($2,$2,'Fixture') returning id) insert into public.missionaries(id,tenant_id,profile_id,legal_entity_id) select $1,$2,$3,id from entity",
             [org.missionary, org.tenant, person],
           );
           await db.query(
@@ -146,6 +147,11 @@ describe.skipIf(!configured)(
             orgs.map((org) => org.donor),
           ]);
           await db.query("delete from auth.users where id=$1", [person]);
+          for (const table of ["missionaries", "legal_entities"])
+            await db.query(
+              `delete from public.${table} where tenant_id=any($1::uuid[])`,
+              [orgs.map((org) => org.tenant)],
+            );
           await db.query(
             "delete from public.tenants where id=any($1::uuid[])",
             [orgs.map((org) => org.tenant)],
@@ -197,7 +203,7 @@ describe.skipIf(!configured)(
       await db.query("insert into auth.users(id) values ($1)", [newOwner]);
       try {
         await db.query(
-          "insert into public.missionaries(tenant_id,profile_id) values ($1,$2)",
+          "insert into public.missionaries(tenant_id,profile_id,legal_entity_id) values ($1,$2,$1)",
           [org.tenant, newOwner],
         );
         await db.query(
