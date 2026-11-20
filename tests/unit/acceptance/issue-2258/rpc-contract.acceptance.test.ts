@@ -704,6 +704,11 @@ describe("#2258 pins (criteria 12, 13)", () => {
         47791,
         "bac3dc897167173b05ea29aca95ac25f4bd64f675f22780c71aeba1821b6a5b6",
       ],
+      // D-18: document operator MFA, the explicit CMS origin and the hosted 35-minute job cap.
+      [
+        48273,
+        "a8003d2514282e6f202dace1c66c702fed75dd086ba4ac025a72d7bf026bc00e",
+      ],
     ];
     expect(REVIEWED).toContainEqual([
       b.length,

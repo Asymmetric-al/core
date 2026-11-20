@@ -107,6 +107,11 @@ const CI_BASES = [
     bytes: 47791,
     sha256: "bac3dc897167173b05ea29aca95ac25f4bd64f675f22780c71aeba1821b6a5b6",
   },
+  // D-18: document operator MFA, the explicit CMS origin and the hosted 35-minute job cap.
+  {
+    bytes: 48273,
+    sha256: "a8003d2514282e6f202dace1c66c702fed75dd086ba4ac025a72d7bf026bc00e",
+  },
 ];
 const STEP = "Verify tenant isolation (real stack)";
 const CII = ".github/workflows/ci-integration.yml";

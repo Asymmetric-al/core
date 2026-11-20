@@ -245,6 +245,12 @@ const CI_BASES = [
     bytes: 47171,
     sha256: "d28ee0bd761514bc955e336c9f7350515cea27b7e54d44d958da6964177e3be2",
   },
+  // D-18: document operator MFA, the explicit CMS origin and the hosted 35-minute job cap.
+  {
+    ref: "AL-2675 WP2c operator MFA and hosted E2E contract",
+    bytes: 47653,
+    sha256: "b070e49b84cb4016ee219a60ba19aa0341152bf4e5a422664121ffb381f6148b",
+  },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {
