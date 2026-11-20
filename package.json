@@ -190,7 +190,8 @@
     "test:react-cleanup": "playwright test --config=tests/e2e/playwright-isolated.config.ts",
     "verify:node-version": "node scripts/verify/node-version.mjs",
     "verify:typescript-toolchain": "node scripts/verify/typescript-toolchain.mjs",
-    "verify:pdf-package-provenance": "node scripts/verify/pdf-package-provenance.mjs"
+    "verify:pdf-package-provenance": "node scripts/verify/pdf-package-provenance.mjs",
+    "lint:query": "turbo run lint:query --concurrency=1"
   },
   "dependencies": {
     "@asym/api": "workspace:*",

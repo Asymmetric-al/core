@@ -68,7 +68,8 @@
   "scripts": {
     "build": "tsc --noEmit",
     "lint": "node ../../tooling/eslint-config/lint.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:query": "node ../../node_modules/eslint/bin/eslint.js --config ../../tooling/quality/eslint-query.config.mjs --no-inline-config --exit-on-fatal-error --max-warnings 0 \"**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@asym/auth": "workspace:*",

@@ -14,7 +14,8 @@
     "legal:generate:md": "bun ./scripts/openpolicy.ts generate --format markdown",
     "legal:generate:html": "bun ./scripts/openpolicy.ts generate --format html",
     "legal:generate:pdf": "bun ./scripts/openpolicy.ts generate --format pdf",
-    "legal:generate:all": "bun ./scripts/openpolicy.ts generate --format markdown,html,pdf"
+    "legal:generate:all": "bun ./scripts/openpolicy.ts generate --format markdown,html,pdf",
+    "lint:query": "node ../../node_modules/eslint/bin/eslint.js --config ../../tooling/quality/eslint-query.config.mjs --no-inline-config --exit-on-fatal-error --max-warnings 0 \"**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@asym/api": "workspace:*",

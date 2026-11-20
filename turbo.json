@@ -242,6 +242,9 @@
     },
     "clean": {
       "cache": false
+    },
+    "lint:query": {
+      "cache": false
     }
   }
 }
