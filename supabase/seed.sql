@@ -1,5 +1,6 @@
 -- Deterministic demo seed for Supabase
--- - Idempotent by design (reset + deterministic inserts)
+-- - Repeatable on a disposable database containing only these fixtures. Other
+--   referencing rows can block tenant deletion under RESTRICT; reset first.
 -- - Two tenants (AL-2675): the demo organization, which holds the demo
 --   dataset, and a second organization as a fixture, so every suite and the
 --   seeded application have two tenants
@@ -555,8 +556,8 @@ INSERT INTO public.missionaries (
 SELECT
   id,
   '00000000-0000-0000-0000-000000000001',
-  -- Display-only teams have no authenticated profile. The demo identity below
   md5('00000000-0000-0000-0000-000000000001:legal')::uuid,
+  -- Display-only teams have no authenticated profile. The demo identity below
   -- must resolve to exactly one missionary.
   NULL::uuid,
   format('Mission team %s is building long-term partnerships and reporting monthly outcomes.', gs),
