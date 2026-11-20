@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   DataGridPanel,
   DataGridSearch,
@@ -36,7 +37,6 @@ import {
 } from "@asym/ui/components/shadcn/tooltip";
 import { formatDistanceToNowStrict, parseISO } from "date-fns";
 import { Copy, SearchX, Workflow } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 

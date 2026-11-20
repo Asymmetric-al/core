@@ -1,6 +1,7 @@
 import {
   hasContextCapability,
   isTenantAdministrator,
+  ScopeRefusedError,
 } from "@asym/auth/context";
 import { hasAnyRole } from "@asym/auth/permissions";
 
@@ -31,6 +32,10 @@ export function requireCrmAccess(
     !context.tenantId ||
     !context.role
   ) {
+    // A refused tenant or assignment is marked for the browser (JB1).
+    if (context.scopeRefused) {
+      throw new ScopeRefusedError(context.assignmentDenial);
+    }
     throw new Error("Unauthorized");
   }
 

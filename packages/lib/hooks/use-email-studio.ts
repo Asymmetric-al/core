@@ -1,5 +1,6 @@
 "use client";
 
+import { documentStorageKey } from "@asym/database/document-storage";
 import { useState, useCallback, useSyncExternalStore } from "react";
 
 import type {
@@ -36,8 +37,13 @@ const storedItemsCache = new Map<
 >();
 const storedItemsListeners = new Set<() => void>();
 
-function readStoredItems<T>(key: string): T[] {
+// Drafts are rows of one organization, so each key carries the document's
+// person and tenant; a document with no scope stores and reads nothing
+// (plan 5.2; WP2b, AL-2675).
+function readStoredItems<T>(base: string): T[] {
   if (typeof window === "undefined") return EMPTY_ITEMS as T[];
+  const key = documentStorageKey(base);
+  if (!key) return EMPTY_ITEMS as T[];
 
   const raw = localStorage.getItem(key);
   const cached = storedItemsCache.get(key);
@@ -48,7 +54,9 @@ function readStoredItems<T>(key: string): T[] {
   return items;
 }
 
-function writeStoredItems<T>(key: string, items: T[]): void {
+function writeStoredItems<T>(base: string, items: T[]): void {
+  const key = documentStorageKey(base);
+  if (!key) return;
   const raw = JSON.stringify(items);
   localStorage.setItem(key, raw);
   storedItemsCache.set(key, { raw, items });

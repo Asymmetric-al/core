@@ -1,3 +1,5 @@
+import { STAFF_SUBROLES } from "../staff-subroles";
+
 import type {
   ActiveAssignment,
   AssignmentDenyReason,
@@ -19,13 +21,6 @@ const STAFF_ROLE_REQUIRED: Readonly<Record<MembershipRole, boolean>> = {
   missionary: false,
   staff: true,
 };
-const STAFF_SUBROLES: readonly StaffSubrole[] = [
-  "finance",
-  "mobilizer",
-  "development",
-  "hr",
-  "member_care",
-];
 
 function isCanonicalUuid(value: unknown): value is string {
   return typeof value === "string" && CANONICAL_UUID.test(value);
@@ -105,42 +100,61 @@ function deny(reason: AssignmentDenyReason): ResolveAssignmentResult {
   return { ok: false, reason };
 }
 
-/**
- * Selects and validates the acting assignment from live membership rows on
- * every call (plan 5.1). The surface's role class comes first: only rows of
- * that class are candidates, so a staff row is never preferred over a donor
- * or missionary row. A proposed row (the chosen assignment) must be the
- * caller's, live, of that class and, when a tenant is expected, in that
- * tenant. With no proposal, the one candidate is the assignment; several
- * candidates, in one tenant or across tenants, are refused: the resolver never
- * guesses. Never throws, never caches, and never falls back to a default
- * tenant: a forged, foreign or inactive proposal, a missing or ambiguous
- * assignment, and any reader failure or malformed row all deny.
- */
-export async function resolveActiveAssignment(
-  input: ResolveAssignmentInput,
-  reader: AssignmentReader,
-): Promise<ResolveAssignmentResult> {
-  const { userId, roleClass, proposedAssignmentId, expectedTenantId } = input;
-  if (!isCanonicalUuid(userId)) return deny("reader_error");
-  if (!isMembershipRole(roleClass)) return deny("no_assignment");
-  if (
-    proposedAssignmentId !== undefined &&
-    !isCanonicalUuid(proposedAssignmentId)
-  ) {
-    return deny("not_owned_or_inactive");
-  }
+/** The caller's live rows, every one validated, or `reader_error`. */
+export type ReadAssignmentsResult =
+  | { readonly ok: true; readonly assignments: readonly ActiveAssignment[] }
+  | { readonly ok: false; readonly reason: "reader_error" };
 
+/**
+ * Reads and validates the caller's live membership rows once. Never throws:
+ * a reader failure, a malformed row or a repeated id is `reader_error`, and
+ * bad rows are never dropped.
+ */
+export async function readActiveAssignments(
+  userId: string,
+  reader: AssignmentReader,
+): Promise<ReadAssignmentsResult> {
+  if (!isCanonicalUuid(userId)) return { ok: false, reason: "reader_error" };
   let rows: unknown;
   try {
     rows = await reader.listActiveAssignments();
   } catch {
-    return deny("reader_error");
+    return { ok: false, reason: "reader_error" };
   }
   const assignments = toActiveAssignments(rows, userId);
-  if (!assignments) return deny("reader_error");
+  return assignments
+    ? { ok: true, assignments }
+    : { ok: false, reason: "reader_error" };
+}
 
+/**
+ * The resolver's rule over rows already read and validated (plan 5.1). The
+ * surface's role class comes first: only rows of that class are candidates. A
+ * proposed row must be one of them and, when a tenant is expected, in that
+ * tenant. With no proposal, the one candidate is the assignment; several are
+ * refused: it never guesses.
+ */
+export function selectAssignment(
+  assignments: readonly ActiveAssignment[],
+  input: Omit<ResolveAssignmentInput, "userId">,
+): ResolveAssignmentResult {
+  const { roleClass, proposedAssignmentId, expectedTenantId } = input;
+  if (!isMembershipRole(roleClass)) return deny("no_assignment");
+  // Plan 12, WP2, "Interim rules until WP3": on the donor portal a person
+  // with donor memberships in two organizations is refused, for the proxy
+  // check, server reads and the browser header alike, until WP3 resolves the
+  // portal's host. So there must be exactly one live donor row before either
+  // header is matched: a proposal never picks one of several (AL-2675, JB12).
+  if (
+    roleClass === "donor" &&
+    assignments.filter((a) => a.membershipRole === "donor").length > 1
+  ) {
+    return deny("ambiguous");
+  }
   if (proposedAssignmentId !== undefined) {
+    if (!isCanonicalUuid(proposedAssignmentId)) {
+      return deny("not_owned_or_inactive");
+    }
     const proposed = assignments.find(
       (a) => a.assignmentId === proposedAssignmentId,
     );
@@ -165,6 +179,34 @@ export async function resolveActiveAssignment(
   if (candidates.length === 0) return deny("no_assignment");
   if (candidates.length > 1) return deny("ambiguous");
   return { ok: true, assignment: candidates[0]!, selection: "sole" };
+}
+
+/**
+ * Selects and validates the acting assignment from live membership rows on
+ * every call (plan 5.1): `readActiveAssignments`, then `selectAssignment`.
+ * A proposed row (the chosen assignment) must be the caller's, live, of the
+ * surface's class and, when a tenant is expected, in that tenant. Never
+ * throws, never caches, and never falls back to a default tenant: a forged,
+ * foreign or inactive proposal, a missing or ambiguous assignment, and any
+ * reader failure or malformed row all deny.
+ */
+export async function resolveActiveAssignment(
+  input: ResolveAssignmentInput,
+  reader: AssignmentReader,
+): Promise<ResolveAssignmentResult> {
+  const { userId, roleClass, proposedAssignmentId } = input;
+  if (!isCanonicalUuid(userId)) return deny("reader_error");
+  if (!isMembershipRole(roleClass)) return deny("no_assignment");
+  if (
+    proposedAssignmentId !== undefined &&
+    !isCanonicalUuid(proposedAssignmentId)
+  ) {
+    return deny("not_owned_or_inactive");
+  }
+
+  const read = await readActiveAssignments(userId, reader);
+  if (!read.ok) return deny(read.reason);
+  return selectAssignment(read.assignments, input);
 }
 
 /** Thrown by `resolveActivePrincipal` when no assignment validates. */

@@ -50,6 +50,9 @@ on:
       - apps/*/app/auth/**
       - apps/missionary/app/forgot-password/**
       - apps/missionary/app/register/**
+      # The chooser the two-organization journey walks (AL-2675; Mission
+      # Control's lives in (auth), above).
+      - apps/missionary/app/choose-organization/**
       # The missionary RPC arguments, embedded rows, writes and their route proof.
       - packages/api/src/missionary-portal/**
       - packages/api/src/follower-requests/**
@@ -75,6 +78,7 @@ on:
       - playwright.auth-mail.config.ts
       - tests/e2e/auth-password-recovery.spec.ts
       - tests/e2e/auth-signup-confirmation.spec.ts
+      - tests/e2e/auth-two-organizations.spec.ts
       - tests/e2e/helpers/auth-mail.ts
       - scripts/e2e/run-auth-mail.mjs
 

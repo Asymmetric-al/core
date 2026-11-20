@@ -1,8 +1,8 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { SquarePlusIcon } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 
 import { MotionPreset } from "@asym/ui/components/primitives/motion-preset";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRoutePathname as usePathname } from "@asym/auth/tenant-navigation";
 import { useMC } from "@asym/lib/mission-control/context";
 import {
   useShortcut,
@@ -30,7 +31,6 @@ import {
 } from "@asym/ui/components/shadcn/tooltip";
 import { useEveAgent } from "eve/react";
 import { Bot, RotateCcw, Send, Sparkles, Square } from "lucide-react";
-import { usePathname } from "next/navigation";
 import {
   useId,
   useLayoutEffect,

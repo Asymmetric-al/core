@@ -1,4 +1,8 @@
-import { E2E_AUTH_COOKIE_NAME, isE2EAuthBypassEnabled } from "@asym/auth";
+import {
+  E2E_AUTH_COOKIE_NAME,
+  getE2EAuthCookieNameForRequest,
+  isE2EAuthBypassEnabled,
+} from "@asym/auth";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
@@ -167,12 +171,19 @@ export async function POST(request: Request) {
 
   if (isE2EAuthBypassEnabled()) {
     const response = noStoreJson({ ok: true });
-    response.cookies.set(E2E_AUTH_COOKIE_NAME, "", {
-      httpOnly: true,
-      maxAge: 0,
-      path: "/",
-      sameSite: "lax",
-    });
+    // The legacy cookie and this app's own (`E2E_AUTH_COOKIE_NAMES`), which
+    // the E2E sign-in and Demo Access set and the proxy reads first. The
+    // other apps' cookies share the host and keep their own sessions.
+    const appCookie = getE2EAuthCookieNameForRequest(request);
+    for (const name of new Set([E2E_AUTH_COOKIE_NAME, appCookie])) {
+      if (!name) continue;
+      response.cookies.set(name, "", {
+        httpOnly: true,
+        maxAge: 0,
+        path: "/",
+        sameSite: "lax",
+      });
+    }
     return response;
   }
 

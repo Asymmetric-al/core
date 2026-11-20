@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
@@ -29,7 +30,7 @@ interface NotificationResponse extends EveNotificationAdminView {
 const QUERY_KEY = ["admin", "eve", "notifications"] as const;
 
 async function loadNotifications(): Promise<NotificationResponse> {
-  const response = await fetch("/api/admin/eve/notifications", {
+  const response = await ownApiFetch("/api/admin/eve/notifications", {
     credentials: "same-origin",
     headers: { accept: "application/json" },
   });
@@ -42,7 +43,7 @@ async function updateChannel(input: {
   enabled?: boolean;
   paused?: boolean;
 }): Promise<NotificationResponse> {
-  const response = await fetch("/api/admin/eve/notifications", {
+  const response = await ownApiFetch("/api/admin/eve/notifications", {
     method: "PATCH",
     credentials: "same-origin",
     headers: { "content-type": "application/json" },
@@ -62,7 +63,7 @@ async function updateRecipient(input: {
   enabled: boolean;
   optedOut: boolean;
 }): Promise<NotificationResponse> {
-  const response = await fetch("/api/admin/eve/notifications", {
+  const response = await ownApiFetch("/api/admin/eve/notifications", {
     method: "PATCH",
     credentials: "same-origin",
     headers: { "content-type": "application/json" },

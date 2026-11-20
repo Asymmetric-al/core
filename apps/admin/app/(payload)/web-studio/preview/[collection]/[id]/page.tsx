@@ -1,3 +1,5 @@
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import { redirectInTenant } from "@asym/auth/tenant-server";
 import { renderPublicCmsPageContent } from "@asym/lib/cms/public-page-renderer";
 import {
   renderPublicBlocks,
@@ -12,8 +14,7 @@ import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import { headers } from "next/headers";
 import Image from "next/image";
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { createPayloadRequest } from "payload";
 
@@ -25,6 +26,8 @@ import {
   getWebStudioPreviewCollectionLabel,
   isWebStudioPreviewCollection,
 } from "@/src/cms/preview/authenticated-preview";
+import { requireWebStudioAccess } from "@/src/cms/web-studio-access";
+import { WebStudioPageScope } from "@/src/cms-ui/web-studio/shell/web-studio-document";
 
 type PageProps = {
   params: Promise<{
@@ -50,6 +53,13 @@ export default async function WebStudioAuthenticatedPreviewPage({
   if (!isWebStudioPreviewCollection(collection)) {
     notFound();
   }
+  // Every render asks the gate, a client navigation included: the layout
+  // does not render again then. Rendered for another organization than the
+  // open document's, the preview shows nothing and reloads (AL-2675, council
+  // C1).
+  const access = await requireWebStudioAccess(
+    `/web-studio/preview/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`,
+  );
 
   const headerStore = await headers();
   const payload = await getPayloadClient();
@@ -60,7 +70,7 @@ export default async function WebStudioAuthenticatedPreviewPage({
   const auth = await payload.auth({ headers: headerStore, req });
 
   if (!auth.user) {
-    redirect(
+    return redirectInTenant(
       `/login?next=${encodeURIComponent(
         `/web-studio/preview/${collection}/${id}`,
       )}`,
@@ -108,69 +118,71 @@ export default async function WebStudioAuthenticatedPreviewPage({
         : null;
 
   return (
-    <main className="min-h-dvh bg-background text-foreground">
-      <header className="border-border border-b bg-card px-4 py-4 sm:px-6">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {preview.title}
-            </h1>
-            <div className="flex items-center gap-2">
-              <p className="text-muted-foreground text-sm">{label}</p>
-              {status ? <Badge variant="secondary">{status}</Badge> : null}
+    <WebStudioPageScope scope={access.scope}>
+      <main className="min-h-dvh bg-background text-foreground">
+        <header className="border-border border-b bg-card px-4 py-4 sm:px-6">
+          <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {preview.title}
+              </h1>
+              <div className="flex items-center gap-2">
+                <p className="text-muted-foreground text-sm">{label}</p>
+                {status ? <Badge variant="secondary">{status}</Badge> : null}
+              </div>
             </div>
+            <ButtonLink
+              variant="outline"
+              render={
+                <Link
+                  href={`/web-studio/collections/${collection}/${encodeURIComponent(id)}`}
+                >
+                  Back to editor
+                </Link>
+              }
+            />
           </div>
-          <ButtonLink
-            variant="outline"
-            render={
-              <Link
-                href={`/web-studio/collections/${collection}/${encodeURIComponent(id)}`}
-              >
-                Back to editor
-              </Link>
-            }
-          />
+        </header>
+
+        <div className="mx-auto max-w-5xl px-4 pt-6 sm:px-6">
+          <Alert role="note" variant="info">
+            <AlertTitle>Private preview</AlertTitle>
+            <AlertDescription>
+              Only signed-in editors with access to this document can see this
+              preview. It shows the latest saved version, which may be a draft.
+              Unsaved changes are not included. Preview buttons do not navigate;
+              their destinations are shown below them.
+            </AlertDescription>
+          </Alert>
         </div>
-      </header>
 
-      <div className="mx-auto max-w-5xl px-4 pt-6 sm:px-6">
-        <Alert role="note" variant="info">
-          <AlertTitle>Private preview</AlertTitle>
-          <AlertDescription>
-            Only signed-in editors with access to this document can see this
-            preview. It shows the latest saved version, which may be a draft.
-            Unsaved changes are not included. Preview buttons do not navigate;
-            their destinations are shown below them.
-          </AlertDescription>
-        </Alert>
-      </div>
-
-      <article className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
-        {preview.summary ? (
-          <p className="mb-8 max-w-3xl text-lg text-muted-foreground">
-            {preview.summary}
-          </p>
-        ) : null}
-
-        <div className="space-y-6">
-          {renderedLayout}
-
-          {renderedContent ? (
-            <section className="prose prose-zinc max-w-none rounded-lg border border-border bg-card p-6">
-              {renderedContent}
-            </section>
+        <article className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
+          {preview.summary ? (
+            <p className="mb-8 max-w-3xl text-lg text-muted-foreground">
+              {preview.summary}
+            </p>
           ) : null}
 
-          {!renderedLayout && !renderedContent ? (
-            <section className="rounded-lg border border-border bg-card p-6">
-              <p className="text-muted-foreground text-sm">
-                This draft has no previewable rich-text or layout content yet.
-              </p>
-            </section>
-          ) : null}
-        </div>
-      </article>
-    </main>
+          <div className="space-y-6">
+            {renderedLayout}
+
+            {renderedContent ? (
+              <section className="prose prose-zinc max-w-none rounded-lg border border-border bg-card p-6">
+                {renderedContent}
+              </section>
+            ) : null}
+
+            {!renderedLayout && !renderedContent ? (
+              <section className="rounded-lg border border-border bg-card p-6">
+                <p className="text-muted-foreground text-sm">
+                  This draft has no previewable rich-text or layout content yet.
+                </p>
+              </section>
+            ) : null}
+          </div>
+        </article>
+      </main>
+    </WebStudioPageScope>
   );
 }
 

@@ -16,7 +16,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
-import { Send } from "lucide-react";
+import { Send, UserRound } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -63,16 +63,27 @@ function commentsQueryKey(updateId: string): readonly [string, string] {
   return ["ministry-update-comments", updateId];
 }
 
+/**
+ * The byline for an author with no name to show: a blank display name, or a
+ * viewer outside the post's organization (AL-2675, JB11). Not "Anonymous":
+ * the person did not ask to be anonymous.
+ */
+const NAMELESS_AUTHOR = "Commenter";
+
 function commentAuthorName(comment: UpdateComment): string {
-  return [comment.user.first_name, comment.user.last_name]
-    .filter(Boolean)
-    .join(" ");
+  return (
+    [comment.user?.first_name, comment.user?.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim() || NAMELESS_AUTHOR
+  );
 }
 
-function commentInitials(comment: UpdateComment): string {
-  const first = comment.user.first_name.charAt(0);
-  const last = comment.user.last_name.charAt(0);
-  return `${first}${last}` || "?";
+/** The author's initials, or null for an author with no name. */
+function commentInitials(comment: UpdateComment): string | null {
+  const first = comment.user?.first_name?.charAt(0) ?? "";
+  const last = comment.user?.last_name?.charAt(0) ?? "";
+  return `${first}${last}`.trim() || null;
 }
 
 /**
@@ -234,11 +245,13 @@ export function CommentsDialog({
                 {comments.map((comment) => (
                   <div key={comment.id} className="flex gap-3">
                     <Avatar className="size-8">
-                      {comment.user.avatar_url && (
+                      {comment.user?.avatar_url && (
                         <AvatarImage src={comment.user.avatar_url} />
                       )}
                       <AvatarFallback>
-                        {commentInitials(comment)}
+                        {commentInitials(comment) ?? (
+                          <UserRound aria-hidden className="size-4" />
+                        )}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">

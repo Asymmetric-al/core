@@ -2,6 +2,8 @@
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import type { PostWithAuthor } from "../types/database";
 
 /**
@@ -62,7 +64,7 @@ async function fetchDonorFeedPostsResponse(
     params.set("missionaryId", options.missionaryId);
   }
 
-  const response = await fetch(`/api/posts?${params.toString()}`, {
+  const response = await ownApiFetch(`/api/posts?${params.toString()}`, {
     headers: { accept: "application/json" },
   });
 

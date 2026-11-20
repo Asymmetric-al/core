@@ -17,6 +17,7 @@ import {
   formatSharedContributionAmount,
   SHARED_RECEIPT_STATUS_LABELS,
 } from "@asym/api/admin/contribution-shared";
+import { ownApiFetch } from "@asym/database/own-api";
 import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
@@ -75,10 +76,10 @@ import {
 import {
   receiptDeliveryChoiceLabel,
   receiptOutcomeStatusLabel,
-  receiptSnapshotPdfUrl,
   resolveInitialReceiptDeliveryValue,
   resolveReceiptDeliveryError,
 } from "./receipt-delivery-model";
+import { ReceiptSnapshotDownload } from "./receipt-snapshot-download";
 
 // Type-only imports are erased at compile time, so pulling this one type
 // from the barrel does not evaluate its server-only modules in the client
@@ -221,21 +222,24 @@ async function submitOperation(input: {
   idempotencyKey: string;
   payload: Record<string, unknown>;
 }): Promise<ContributionActionResult> {
-  const response = await fetch("/api/admin/contribution-operations/actions", {
-    body: JSON.stringify({
-      actionType: input.actionType,
-      contributionId: input.contributionId,
-      stagedGiftId: input.stagedGiftId,
-      sourceSurface: input.sourceSurface,
-      reason: input.reason,
-      confirmationToken: input.confirmationToken,
-      expectedRevision: input.expectedRevision,
-      idempotencyKey: input.idempotencyKey,
-      payload: input.payload,
-    }),
-    headers: { "content-type": "application/json" },
-    method: "POST",
-  });
+  const response = await ownApiFetch(
+    "/api/admin/contribution-operations/actions",
+    {
+      body: JSON.stringify({
+        actionType: input.actionType,
+        contributionId: input.contributionId,
+        stagedGiftId: input.stagedGiftId,
+        sourceSurface: input.sourceSurface,
+        reason: input.reason,
+        confirmationToken: input.confirmationToken,
+        expectedRevision: input.expectedRevision,
+        idempotencyKey: input.idempotencyKey,
+        payload: input.payload,
+      }),
+      headers: { "content-type": "application/json" },
+      method: "POST",
+    },
+  );
 
   const parsed = await readJsonBody<{
     result?: ContributionActionResult;
@@ -278,15 +282,7 @@ function ReceiptOutcomeResultItems({
       {deferReason && <li>Defer reason: {deferReason}</li>}
       {outcome.status === "pdf_generated" && outcome.snapshotId && (
         <li>
-          <a
-            href={receiptSnapshotPdfUrl(outcome.snapshotId)}
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium text-foreground underline underline-offset-2"
-          >
-            Download updated receipt PDF
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
+          <ReceiptSnapshotDownload snapshotId={outcome.snapshotId} />
         </li>
       )}
     </>
@@ -626,9 +622,12 @@ async function fetchOperationFunds(
       offset: String(offset),
       tenantId,
     });
-    const response = await fetch(`/api/admin/funds?${params.toString()}`, {
-      headers: { accept: "application/json" },
-    });
+    const response = await ownApiFetch(
+      `/api/admin/funds?${params.toString()}`,
+      {
+        headers: { accept: "application/json" },
+      },
+    );
     const parsed = await readJsonBody<{ funds?: OperationFundRow[] }>(response);
     if (!parsed.ok) {
       throw new Error("Couldn’t load funds.");

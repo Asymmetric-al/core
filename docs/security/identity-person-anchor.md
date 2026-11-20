@@ -169,6 +169,11 @@ tests, is:
     too, because the release already running reads it there (plan 7.4). The
     column grants nothing under WP2a; the migration that drops it (WP5) ends
     the write.
+  - `post_comment_authors` (AL-2675, JB11): the commenters' display names and
+    avatars, given only to a caller with a live membership in the post's
+    tenant. It names profiles beside `posts.tenant_id` and
+    `authz.memberships.tenant_id`, so the lexical scan keeps it, and reads no
+    profile's tenant.
 - App code that uses `profile.tenant_id` to pick or check the tenant: none.
   AL-2675 moved `packages/auth/context.ts`, `packages/auth/resolve-user-role.ts`
   and `apps/admin/src/cms/auth/supabase-strategy.ts` to the caller's
@@ -191,10 +196,10 @@ tests, is:
 
 In `packages/ui/hooks/retained-draft.tsx`, `SessionRetainedDraftProvider`
 scopes in-memory drafts by the user ID, the profile ID and the page's tenant,
-which the app's server-side role gate publishes with `RetainedDraftPageTenant`
-from the request's resolved assignment (until WP2b carries the tenant in the
-page address). Without a page tenant for this user the store is unowned, and
-an owner change remounts and clears it. This client-side memory boundary grants
+which is the document scope every signed-in surface fixes from the request's
+resolved assignment: the tenant in the page address, or the donor portal's
+one donor row (AL-2675). Without a fixed scope for this user the store is
+unowned, and an owner change remounts and clears it. This client-side memory boundary grants
 no permissions; route/API policies retain access authority. Future readers of
 the profile's tenant must be added to the pinned list and to this doc.
 

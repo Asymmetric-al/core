@@ -1,3 +1,4 @@
+import { SCOPE_REFUSED_HEADER } from "@asym/database/request-scope-headers";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
@@ -110,6 +111,17 @@ export function toApiHttpError(
     return new ApiHttpError(400, getZodErrorMessage(error));
   }
 
+  // The resolver refused the tenant or assignment the request proposed
+  // (`ScopeRefusedError` from @asym/auth/context, known by name so this
+  // module stays free of the auth runtime): the same 401 as before, marked so
+  // the browser can tell it from any other (AL-2675, JB1).
+  if (error instanceof Error && error.name === "ScopeRefusedError") {
+    const reason = (error as Error & { reason?: unknown }).reason;
+    return new ApiHttpError(401, error.message, {
+      [SCOPE_REFUSED_HEADER]: typeof reason === "string" ? reason : "refused",
+    });
+  }
+
   const message = error instanceof Error ? error.message : fallbackMessage;
   const status = getStatusFromUnknown(error) ?? 500;
 
@@ -126,6 +138,9 @@ export function toErrorResponse(
     requestId
       ? { error: normalized.message, requestId }
       : { error: normalized.message },
-    { status: normalized.status },
+    {
+      status: normalized.status,
+      ...(normalized.headers ? { headers: normalized.headers } : {}),
+    },
   );
 }

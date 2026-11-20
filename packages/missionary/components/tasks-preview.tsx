@@ -1,3 +1,4 @@
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -7,7 +8,6 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
 import { CheckSquare, Plus, Clock } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
 
 interface Task {

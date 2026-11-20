@@ -1,12 +1,12 @@
 "use client";
 
+import { useTenantRouter as useRouter } from "@asym/auth/tenant-navigation";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
 } from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
 import type { GivingTrend } from "@asym/api/reads/dashboard-stats";

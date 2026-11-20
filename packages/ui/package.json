@@ -39,6 +39,7 @@
     "./components/boneyard-skeleton": "./components/boneyard-skeleton.tsx",
     "./components/brand-logo": "./components/brand-logo.tsx",
     "./components/page-header": "./components/page-header.tsx",
+    "./components/scope-reload-notices": "./components/scope-reload-notices.tsx",
     "./components/app-shell/*": "./components/app-shell/*.tsx",
     "./components/public/navbar": "./components/public/navbar.tsx",
     "./components/public/footer": "./components/public/footer.tsx",

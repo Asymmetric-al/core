@@ -29,6 +29,7 @@ function row(
 }
 
 const mocks = vi.hoisted(() => ({
+  connection: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
   getUser: vi.fn(),
   profile: vi.fn(),
   profileSelect: vi.fn(),
@@ -63,6 +64,7 @@ function requestClient() {
   };
 }
 
+vi.mock("next/server", () => ({ connection: mocks.connection }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ getAll: () => [], set: vi.fn() }),
   headers: async () => ({
@@ -79,7 +81,7 @@ vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: mocks.admin,
 }));
 vi.mock("@supabase/ssr", () => ({
-  createServerClient: () => requestClient(),
+  createServerClient: vi.fn(requestClient),
   parseCookieHeader: () => [],
 }));
 vi.mock("@supabase/supabase-js", () => ({
@@ -92,6 +94,7 @@ vi.mock("@supabase/supabase-js", () => ({
 import {
   contextCapabilities,
   getAuthContext,
+  getSignedInAssignments,
   hasContextCapability,
   hasContextRole,
 } from "./context";
@@ -114,6 +117,28 @@ describe("getAuthContext: the one assignment of the surface's role class", () =>
     });
     rows(row(TA, "donor"));
   });
+
+  it.each([
+    ["the protected shell", () => getAuthContext()],
+    ["the organization chooser", () => getSignedInAssignments()],
+  ] as const)(
+    "waits for the request before creating the session client for %s",
+    async (_, readSession) => {
+      const { createServerClient } = await import("@supabase/ssr");
+      let releaseRequest!: () => void;
+      const request = new Promise<void>((resolve) => {
+        releaseRequest = resolve;
+      });
+      mocks.connection.mockReturnValueOnce(request);
+
+      const result = readSession();
+      await vi.waitFor(() => expect(mocks.connection).toHaveBeenCalledOnce());
+      expect(createServerClient).not.toHaveBeenCalled();
+      releaseRequest();
+      await result;
+      expect(createServerClient).toHaveBeenCalledOnce();
+    },
+  );
 
   it("resolves a signed-in donor's one donor membership, with its tenant, through the assignments RPC", async () => {
     const context = await getAuthContext();
@@ -374,5 +399,262 @@ describe("getAuthContext: the one assignment of the surface's role class", () =>
     expect(context.isAuthenticated).toBe(false);
     expect(mocks.profile).not.toHaveBeenCalled();
     expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * AL-2675 (WP2b; plan 5.2): the tenant in the page address reaches the
+ * resolver as the expected tenant, so a person in two organizations is
+ * resolved in the one the address names, and a person with several staff
+ * rows acts under the row they chose.
+ */
+describe("getAuthContext: the tenant and assignment the request names", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.headers.clear();
+    mocks.headers.set("x-asym-role-class", "staff");
+    mocks.getUser.mockResolvedValue({
+      data: { user: { id: USER, email: "staff@example.test" } },
+      error: null,
+    });
+    mocks.profile.mockResolvedValue({
+      data: { id: "profile-one" },
+      error: null,
+    });
+  });
+
+  it("resolves a person in two organizations in the tenant the header names", async () => {
+    const inA = row(TA, "staff", "finance");
+    const inB = row(TB, "staff", "development");
+    rows(inA, inB);
+
+    const unscoped = await getAuthContext();
+    expect(unscoped.assignmentDenial).toBe("ambiguous");
+
+    mocks.headers.set("x-asym-tenant", TB);
+    const inTenantB = await getAuthContext();
+    expect(inTenantB.isAuthenticated).toBe(true);
+    expect(inTenantB.tenantId).toBe(TB);
+    expect(inTenantB.assignment?.assignmentId).toBe(inB.id);
+
+    const onApi = await getAuthContext(
+      new Request("https://example.test/api/admin/x", {
+        headers: { "x-asym-role-class": "staff", "x-asym-tenant": TA },
+      }),
+    );
+    expect(onApi.tenantId).toBe(TA);
+  });
+
+  it("acts under the chosen staff row, and never under a row in another tenant", async () => {
+    const finance = row(TA, "staff", "finance");
+    const care = row(TA, "staff", "member_care");
+    const inB = row(TB, "staff", "development");
+    rows(finance, care, inB);
+    mocks.headers.set("x-asym-tenant", TA);
+
+    expect((await getAuthContext()).assignmentDenial).toBe("ambiguous");
+
+    mocks.headers.set("x-asym-assignment", care.id);
+    const chosen = await getAuthContext();
+    expect(chosen.assignment?.assignmentId).toBe(care.id);
+    expect(hasContextCapability(chosen, "care.access")).toBe(true);
+
+    mocks.headers.set("x-asym-assignment", finance.id);
+    const financeContext = await getAuthContext();
+    expect(financeContext.assignment?.assignmentId).toBe(finance.id);
+    expect(hasContextCapability(financeContext, "care.access")).toBe(false);
+
+    mocks.headers.set("x-asym-assignment", inB.id);
+    expect((await getAuthContext()).assignmentDenial).toBe("tenant_mismatch");
+  });
+
+  // Check of the fix lists, JR2: the browser retires its document on the
+  // mark, so only the resolver's own refusal of the row a request proposed
+  // carries it, never a failed read (council's rule for JB1: "the resolver's
+  // own refusal, never any other 401 or 403").
+  describe("the scope-refused mark", () => {
+    const NOT_THEIRS = "00000000-0000-4000-8000-0000000000ff";
+
+    it.each([
+      [
+        "not_owned_or_inactive",
+        "a row that is not the caller's, or revoked",
+        () => {
+          rows(row(TA, "staff", "finance"));
+          mocks.headers.set("x-asym-tenant", TA);
+          mocks.headers.set("x-asym-assignment", NOT_THEIRS);
+        },
+      ],
+      [
+        "role_class_mismatch",
+        "a row of another class than the surface's",
+        () => {
+          const donor = row(TA, "donor");
+          rows(row(TA, "staff", "finance"), donor);
+          mocks.headers.set("x-asym-tenant", TA);
+          mocks.headers.set("x-asym-assignment", donor.id);
+        },
+      ],
+      [
+        "tenant_mismatch",
+        "a row in another tenant than the one named",
+        () => {
+          const inB = row(TB, "staff", "development");
+          rows(row(TA, "staff", "finance"), inB);
+          mocks.headers.set("x-asym-tenant", TA);
+          mocks.headers.set("x-asym-assignment", inB.id);
+        },
+      ],
+      [
+        "ambiguous",
+        "a tenant named in which the caller holds two rows, and no row",
+        () => {
+          rows(row(TA, "staff", "finance"), row(TA, "staff", "member_care"));
+          mocks.headers.set("x-asym-tenant", TA);
+        },
+      ],
+      [
+        "no_assignment",
+        "a tenant named in which the caller's last row was revoked",
+        () => {
+          rows(row(TB, "staff", "development"));
+          mocks.headers.set("x-asym-tenant", TA);
+        },
+      ],
+    ] as const)("marks %s: %s", async (reason, _what, arrange) => {
+      arrange();
+      const context = await getAuthContext();
+      expect(context.isAuthenticated).toBe(false);
+      expect(context.assignmentDenial).toBe(reason);
+      expect(context.scopeRefused).toBe(true);
+    });
+
+    it.each([
+      [
+        "a failed read",
+        () =>
+          mocks.rpc.mockResolvedValue({ data: null, error: { code: "57014" } }),
+      ],
+      [
+        "a malformed row",
+        () =>
+          mocks.rpc.mockResolvedValue({
+            data: [{ ...row(TA, "staff", "finance"), tenant_id: "not-a-uuid" }],
+            error: null,
+          }),
+      ],
+      [
+        "a reader that throws",
+        () => mocks.rpc.mockRejectedValue(new Error("connection reset")),
+      ],
+    ] as const)(
+      "does not mark a reader_error (%s): the request fails as any other",
+      async (_what, arrange) => {
+        const finance = row(TA, "staff", "finance");
+        arrange();
+        mocks.headers.set("x-asym-tenant", TA);
+        mocks.headers.set("x-asym-assignment", finance.id);
+        const context = await getAuthContext();
+        expect(context.isAuthenticated).toBe(false);
+        expect(context.assignmentDenial).toBe("reader_error");
+        expect(context.scopeRefused).not.toBe(true);
+      },
+    );
+  });
+});
+
+/**
+ * AL-2675 (WP2b): the organization chooser lists every live row of a
+ * signed-in person before any one is selected, which `getAuthContext`
+ * cannot do for a person in two organizations.
+ */
+describe("getSignedInAssignments", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.headers.clear();
+    mocks.getUser.mockResolvedValue({
+      data: { user: { id: USER, email: "staff@example.test" } },
+      error: null,
+    });
+  });
+
+  /** Each RPC answers its own function: the rows, and the organizations' names. */
+  function rpcs(
+    assignments: ReturnType<typeof row>[],
+    organizations: { data: unknown; error: unknown } = {
+      data: [
+        { tenant_id: TA, name: "Alpha Mission" },
+        { tenant_id: TB, name: "Bravo Mission" },
+      ],
+      error: null,
+    },
+  ) {
+    mocks.rpc.mockImplementation(async (fn: string) =>
+      fn === "current_user_organizations"
+        ? organizations
+        : { data: assignments, error: null },
+    );
+  }
+
+  it("returns every live row of the signed-in person, validated, with the names of their organizations", async () => {
+    const { getSignedInAssignments } = await import("./context");
+    const inA = row(TA, "staff", "finance");
+    const inB = row(TB, "missionary");
+    rpcs([inA, inB]);
+
+    const result = await getSignedInAssignments();
+
+    expect(result).toMatchObject({
+      kind: "signed_in",
+      userId: USER,
+      assignments: [
+        { assignmentId: inA.id, tenantId: TA, staffRole: "finance" },
+        { assignmentId: inB.id, tenantId: TB, membershipRole: "missionary" },
+      ],
+    });
+    // D-26 as the coordinator's ruling amends it: the names come from the
+    // caller's own organizations, on the caller's token.
+    expect(mocks.rpc).toHaveBeenCalledWith("current_user_organizations");
+    expect(
+      result.kind === "signed_in" && [...result.organizationNames],
+    ).toEqual([
+      [TA, "Alpha Mission"],
+      [TB, "Bravo Mission"],
+    ]);
+  });
+
+  it.each([
+    ["a failed read", { data: null, error: { code: "PGRST202" } }],
+    ["a result that is not a list", { data: { tenant_id: TA }, error: null }],
+    [
+      "a row whose tenant is not a UUID",
+      { data: [{ tenant_id: "x", name: "Alpha Mission" }], error: null },
+    ],
+    [
+      "a row with no name",
+      { data: [{ tenant_id: TA, name: null }], error: null },
+    ],
+  ])(
+    "reports %s of the organizations' names as unavailable, never as missing names",
+    async (_label, organizations) => {
+      const { getSignedInAssignments } = await import("./context");
+      rpcs([row(TA, "staff", "finance")], organizations);
+      await expect(getSignedInAssignments()).resolves.toEqual({
+        kind: "unavailable",
+      });
+    },
+  );
+
+  it("fails closed on a malformed row and says so for a signed-out visitor", async () => {
+    const { getSignedInAssignments } = await import("./context");
+    rpcs([{ ...row(TA, "staff", "finance"), staff_role: null }]);
+    await expect(getSignedInAssignments()).resolves.toEqual({
+      kind: "unavailable",
+    });
+
+    mocks.getUser.mockResolvedValue({ data: { user: null }, error: null });
+    await expect(getSignedInAssignments()).resolves.toEqual({
+      kind: "signed_out",
+    });
   });
 });

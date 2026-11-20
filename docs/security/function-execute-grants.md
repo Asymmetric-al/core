@@ -32,6 +32,8 @@ After the migration, on any database whatever its default privileges:
 | Function                                               | Security | EXECUTE grantees (exact)                                            |
 | ------------------------------------------------------ | -------- | ------------------------------------------------------------------- |
 | `public.current_user_memberships(uuid)`                | DEFINER  | `postgres` (owner), `authenticated`                                 |
+| `public.current_user_organizations()`                  | DEFINER  | `postgres` (owner), `authenticated`                                 |
+| `public.post_comment_authors(uuid)`                    | DEFINER  | `postgres` (owner), `authenticated`                                 |
 | `authz.is_super_admin()`                               | DEFINER  | `postgres` (owner), `authenticated`, `service_role`                 |
 | `authz.has_membership(uuid, authz.membership_role[])`  | DEFINER  | `postgres` (owner), `authenticated`, `service_role`, `tenant_guard` |
 | `authz.has_staff_membership(uuid, authz.staff_role[])` | DEFINER  | `postgres` (owner), `authenticated`, `service_role`, `tenant_guard` |
@@ -47,6 +49,25 @@ After the migration, on any database whatever its default privileges:
   in `packages/auth/principal`), and both functions return the
   tenant-administrator flag. AL-2675 drops and recreates both (their result
   types changed) with the same grants.
+- `public.current_user_organizations()` (AL-2675,
+  `20261119135100_current_user_organizations.sql`) names the organization
+  chooser's organizations: the id and name of each tenant in which the session
+  caller holds a live membership row, and nothing else. Signed-in users have
+  no privilege on `public.tenants`, so it runs as its owner. Its migration
+  revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name and
+  grants `authenticated` alone; for `service_role` and `anon`, `auth.uid()`
+  is NULL. `tests/unit/acceptance/issue-2675/organization-names.realstack.acceptance.test.ts`
+  checks who sees which name and the grantee set, also after simulating the
+  hosted defaults.
+- `public.post_comment_authors(uuid)` (AL-2675, JB11,
+  `20261119135200_post_comment_authors.sql`) gives one row for each person
+  who commented on a published public post: the display name (NULL when blank)
+  and the avatar, only to a caller with a live membership in the post's
+  organization, and NULL to anyone else. It runs as its owner because those
+  profiles are not the caller's. Its migration revokes `PUBLIC`, `anon`,
+  `authenticated` and `service_role` by name and grants `authenticated`
+  alone. `tests/unit/acceptance/issue-2675/post-comment-authors.realstack.acceptance.test.ts`
+  checks who sees which name and the grantee set.
 - The `authz` INVOKER helpers `current_user_id()` and `current_tenant_id()`
   keep `PUBLIC` EXECUTE; they run with the caller's privileges and gain nothing.
 - The 8 `authz staff tenant …` policies on `crm_command_logs`,

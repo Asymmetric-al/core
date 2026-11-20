@@ -146,4 +146,35 @@ describe("api/auth/signout", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(response.headers.get("set-cookie")).toContain("asym_e2e_auth=");
   });
+
+  // The E2E sign-in and Demo Access set the app's own bypass cookie
+  // (`E2E_AUTH_COOKIE_NAMES`), which the proxy honours before the legacy
+  // one: a sign-out that cleared only the legacy cookie left the person
+  // signed in under the bypass (AL-2675, Web Studio's "Log out").
+  it("clears the app's own e2e bypass cookie as well as the legacy one", async () => {
+    const { POST } = await import("../../../packages/api/src/auth/signout");
+    process.env.E2E_AUTH_BYPASS = "true";
+
+    const request = new Request("http://localhost:3030/api/auth/signout", {
+      method: "POST",
+      headers: {
+        origin: "http://localhost:3030",
+        cookie: "asym_e2e_auth_admin=test-cookie",
+      },
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    const cleared = response.headers
+      .getSetCookie()
+      .filter((cookie) => /max-age=0/i.test(cookie))
+      .map((cookie) => cookie.slice(0, cookie.indexOf("=")));
+    expect(cleared).toEqual(
+      expect.arrayContaining(["asym_e2e_auth", "asym_e2e_auth_admin"]),
+    );
+    // Only this app's: the donor portal and the missionary workspace share
+    // the host's cookies and keep their own sessions.
+    expect(cleared).not.toContain("asym_e2e_auth_donor");
+    expect(cleared).not.toContain("asym_e2e_auth_missionary");
+  });
 });

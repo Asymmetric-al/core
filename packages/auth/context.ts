@@ -3,10 +3,11 @@ import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies, headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
+import { connection } from "next/server";
 
 import { resolveAssignmentCapabilities } from "./capabilities/effective-capabilities";
 import { CapabilityResolutionError } from "./capabilities/errors";
-import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "./constants";
+import { DEMO_PROFILE_ID } from "./constants";
 import {
   assertSupabaseDatasourceAllowedForE2EBypass,
   E2E_AUTH_COOKIE_NAME,
@@ -14,7 +15,12 @@ import {
   getE2EAuthCookieNameForRequest,
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
+  type E2EAuthSession,
 } from "./e2e-auth";
+import {
+  OrganizationNamesReadError,
+  readOrganizationNames,
+} from "./organization-names";
 import {
   derivePrimaryRole,
   hasAnyRole,
@@ -23,12 +29,19 @@ import {
   hasTenantAdministratorMembership,
   type AuthMembership,
 } from "./permissions";
-import { resolveActiveAssignment } from "./principal/assignment";
+import {
+  readActiveAssignments,
+  resolveActiveAssignment,
+  selectAssignment,
+} from "./principal/assignment";
+import { listE2EAuthAssignments } from "./principal/e2e-assignments";
 import { createRpcAssignmentReader } from "./principal/reader";
 import {
   ASSIGNMENT_HEADER,
   parseRoleClass,
   ROLE_CLASS_HEADER,
+  SCOPE_REFUSED_HEADER,
+  TENANT_HEADER,
 } from "./request-headers";
 
 import type { Capability } from "./capabilities/registry";
@@ -40,6 +53,7 @@ import type {
   AssignmentDenyReason,
   RoleClass,
 } from "./principal/types";
+import type { RequestScope } from "@asym/database/request-scope-headers";
 import type { UserRole } from "@asym/database/types";
 
 export interface AuthContext {
@@ -56,6 +70,15 @@ export interface AuthContext {
   assignment?: ActiveAssignment | null;
   /** Why no assignment resolved for a signed-in person; `null` otherwise. */
   assignmentDenial?: AssignmentDenyReason | "no_role_class" | null;
+  /**
+   * True when the request proposed a tenant or assignment (the page's
+   * `x-asym-tenant` / `x-asym-assignment`) and the resolver refused it: the
+   * document's scope is no longer the caller's (a revoked row, another
+   * signed-in person). Routes answer it with the `x-asym-scope-refused`
+   * header, which the own-API wrapper tells from any other 401 or 403 and
+   * retires the document on (plan 5.2; AL-2675, JB1).
+   */
+  scopeRefused?: boolean;
   profileId: string | null;
   isAuthenticated: boolean;
 }
@@ -73,8 +96,11 @@ export interface AuthenticatedContext extends AuthContext {
 /**
  * How a caller narrows the resolution. Each value falls back to the request:
  * the role class to the `x-asym-role-class` header the app's proxy sets, the
- * proposed assignment to the `x-asym-assignment` header. The expected tenant
- * has no header yet: WP2b passes the tenant from the page address.
+ * proposed assignment to the `x-asym-assignment` header and the expected
+ * tenant to the `x-asym-tenant` header. On a page request the proxy sets the
+ * last two from the page address after its membership decision; on an API
+ * request the own-API fetch wrapper sends the page's (plan 5.2). Each only
+ * narrows: the resolver checks them against the caller's live rows.
  */
 export interface AuthContextOptions {
   roleClass?: RoleClass;
@@ -143,6 +169,7 @@ async function createAuthContextClient(
   // ambient store is unavailable (forwarded/sidecar contexts).
   try {
     const cookieStore = await cookies();
+    if (!request) await connection();
 
     return createServerClient(url, key, {
       cookies: {
@@ -206,44 +233,12 @@ function createUnauthenticatedContext(): AuthContext {
 }
 
 /**
- * The membership an E2E bypass session acts under, built from the role its
- * signed cookie names: there is no membership row behind a bypass identity.
- * An admin (or a legacy super_admin cookie) is a flagged staff member.
+ * The signed E2E bypass session on this request, when the bypass is enabled
+ * against an allowlisted datasource; `null` otherwise.
  */
-function bypassMembership(
-  role: UserRole,
-  tenantId: string,
-): AuthMembership | null {
-  if (role === "donor" || role === "missionary") {
-    return {
-      tenantId,
-      role,
-      staffRole: null,
-      isActive: true,
-      isTenantAdmin: false,
-    };
-  }
-  if (role === "staff" || role === "admin" || role === "super_admin") {
-    return {
-      tenantId,
-      role: "staff",
-      staffRole: "development",
-      isActive: true,
-      isTenantAdmin: role !== "staff",
-    };
-  }
-  return null;
-}
-
-/**
- * E2E bypass identity is only used when there is no valid Supabase session.
- * Otherwise a stale asym_e2e_auth cookie could override the real user in dev
- * (NODE_ENV !== production) whenever E2E_AUTH_BYPASS is enabled.
- */
-async function getE2EAuthBypassContext(
+async function readE2EBypassSession(
   request: Request | undefined,
-  roleClass: RoleClass | null,
-): Promise<AuthContext | null> {
+): Promise<E2EAuthSession | null> {
   if (!isE2EAuthBypassEnabled()) {
     return null;
   }
@@ -272,22 +267,59 @@ async function getE2EAuthBypassContext(
       getCookieValue(E2E_AUTH_COOKIE_NAME),
     );
   }
+  return e2eSession;
+}
+
+/**
+ * E2E bypass identity is only used when there is no valid Supabase session.
+ * Otherwise a stale asym_e2e_auth cookie could override the real user in dev
+ * (NODE_ENV !== production) whenever E2E_AUTH_BYPASS is enabled.
+ */
+async function getE2EAuthBypassContext(
+  request: Request | undefined,
+  narrowing: AssignmentNarrowing,
+): Promise<AuthContext | null> {
+  const e2eSession = await readE2EBypassSession(request);
   if (!e2eSession) {
     return null;
   }
-  const tenantIdForBypass = e2eSession.tenantId ?? DEMO_TENANT_ID;
-  const membership = bypassMembership(e2eSession.role, tenantIdForBypass);
-  if (!membership || (roleClass !== null && membership.role !== roleClass)) {
-    return null;
+  // The bypass identity holds the memberships its signed cookie names (or the
+  // one its role implies) and is judged by the resolver's own rule, so the
+  // tenant and assignment the request names select among them exactly as
+  // they would among live rows.
+  const assignments = listE2EAuthAssignments(e2eSession);
+  const { roleClass } = narrowing;
+  let selected: ActiveAssignment | null;
+  let denial: AssignmentDenyReason = "no_assignment";
+  if (roleClass) {
+    const result = selectAssignment(assignments, { ...narrowing, roleClass });
+    selected = result.ok ? result.assignment : null;
+    if (!result.ok) denial = result.reason;
+  } else {
+    // No surface class (a context built outside a proxied request): only an
+    // identity with exactly one membership resolves.
+    selected = assignments.length === 1 ? assignments[0]! : null;
   }
-  const memberships = [membership];
+  if (!selected) {
+    // A refused proposal is marked so the route can say so (JB1), still with
+    // no user id; without one, the identity is simply not authenticated for
+    // this surface.
+    return proposesScope(narrowing)
+      ? {
+          ...createUnauthenticatedContext(),
+          assignmentDenial: denial,
+          scopeRefused: refusesProposedScope(narrowing, denial),
+        }
+      : null;
+  }
+  const memberships = [toAuthMembership(selected)];
   return {
     userId: e2eSession.userId,
     email: null,
-    tenantId: tenantIdForBypass,
+    tenantId: selected.tenantId,
     role: derivePrimaryRole({ memberships }),
     memberships,
-    assignment: null,
+    assignment: selected,
     assignmentDenial: null,
     profileId: e2eSession.profileId ?? DEMO_PROFILE_ID,
     isAuthenticated: true,
@@ -297,10 +329,10 @@ async function getE2EAuthBypassContext(
 async function resolveUnauthenticatedOrE2EContext(
   bearerToken: string | null,
   request: Request | undefined,
-  roleClass: RoleClass | null,
+  narrowing: AssignmentNarrowing,
 ): Promise<AuthContext> {
   if (!bearerToken) {
-    const e2e = await getE2EAuthBypassContext(request, roleClass);
+    const e2e = await getE2EAuthBypassContext(request, narrowing);
     if (e2e) {
       return e2e;
     }
@@ -325,6 +357,65 @@ async function readRequestHeader(
     unstable_rethrow(error);
     return null;
   }
+}
+
+interface AssignmentNarrowing {
+  roleClass: RoleClass | null;
+  proposedAssignmentId?: string;
+  expectedTenantId?: string;
+}
+
+/** Whether the request proposed a tenant or an assignment (JB1). */
+function proposesScope(narrowing: AssignmentNarrowing): boolean {
+  return (
+    narrowing.proposedAssignmentId !== undefined ||
+    narrowing.expectedTenantId !== undefined
+  );
+}
+
+/**
+ * The resolver's own refusals of a row: a proposal that is not the caller's
+ * live row, of another class or in another tenant than the one named, or a
+ * tenant named in which the caller holds no row, or several and chose none.
+ * Not `reader_error` (a thrown or failed read, a malformed row): that is an
+ * ordinary failure, and marking it would retire the document and reload it
+ * on one passing database error (check of the fix lists, JR2).
+ */
+const SCOPE_REFUSALS: ReadonlySet<AssignmentDenyReason> = new Set([
+  "not_owned_or_inactive",
+  "role_class_mismatch",
+  "tenant_mismatch",
+  "ambiguous",
+  "no_assignment",
+]);
+
+/** Whether a denial is the resolver refusing the scope the request proposed. */
+function refusesProposedScope(
+  narrowing: AssignmentNarrowing,
+  reason: AssignmentDenyReason,
+): boolean {
+  return proposesScope(narrowing) && SCOPE_REFUSALS.has(reason);
+}
+
+/** The options, each falling back to its request header; blank values are absent. */
+async function readAssignmentNarrowing(
+  request: Request | undefined,
+  options: AuthContextOptions,
+): Promise<AssignmentNarrowing> {
+  const roleClass =
+    options.roleClass ??
+    parseRoleClass(await readRequestHeader(request, ROLE_CLASS_HEADER));
+  const proposedAssignmentId =
+    options.proposedAssignmentId ??
+    (await readRequestHeader(request, ASSIGNMENT_HEADER))?.trim();
+  const expectedTenantId =
+    options.expectedTenantId ??
+    (await readRequestHeader(request, TENANT_HEADER))?.trim();
+  return {
+    roleClass,
+    ...(proposedAssignmentId ? { proposedAssignmentId } : {}),
+    ...(expectedTenantId ? { expectedTenantId } : {}),
+  };
 }
 
 function toAuthMembership(assignment: ActiveAssignment): AuthMembership {
@@ -354,14 +445,13 @@ export async function getAuthContext(
   options: AuthContextOptions = {},
 ): Promise<AuthContext> {
   const bearerToken = getBearerToken(request);
-  const roleClass =
-    options.roleClass ??
-    parseRoleClass(await readRequestHeader(request, ROLE_CLASS_HEADER));
+  const narrowing = await readAssignmentNarrowing(request, options);
+  const { roleClass } = narrowing;
 
   const supabase = await createAuthContextClient(request);
 
   if (!supabase) {
-    return resolveUnauthenticatedOrE2EContext(bearerToken, request, roleClass);
+    return resolveUnauthenticatedOrE2EContext(bearerToken, request, narrowing);
   }
 
   const {
@@ -370,7 +460,7 @@ export async function getAuthContext(
   } = await supabase.auth.getUser(bearerToken ?? undefined);
 
   if (userError || !user) {
-    return resolveUnauthenticatedOrE2EContext(bearerToken, request, roleClass);
+    return resolveUnauthenticatedOrE2EContext(bearerToken, request, narrowing);
   }
 
   const email = typeof user.email === "string" ? user.email : null;
@@ -401,24 +491,16 @@ export async function getAuthContext(
     return denied(profile.id, "no_role_class");
   }
 
-  const proposedAssignmentId =
-    options.proposedAssignmentId ??
-    (await readRequestHeader(request, ASSIGNMENT_HEADER))?.trim();
-
   const result = await resolveActiveAssignment(
-    {
-      userId: user.id,
-      roleClass,
-      ...(proposedAssignmentId ? { proposedAssignmentId } : {}),
-      ...(options.expectedTenantId
-        ? { expectedTenantId: options.expectedTenantId }
-        : {}),
-    },
+    { ...narrowing, userId: user.id, roleClass },
     createRpcAssignmentReader(supabase),
   );
 
   if (!result.ok) {
-    return denied(profile.id, result.reason);
+    return {
+      ...denied(profile.id, result.reason),
+      scopeRefused: refusesProposedScope(narrowing, result.reason),
+    };
   }
 
   const memberships = [toAuthMembership(result.assignment)];
@@ -433,6 +515,90 @@ export async function getAuthContext(
     profileId: profile.id,
     isAuthenticated: true,
   };
+}
+
+/**
+ * What the request acts under, for the server's session clients to send to
+ * the database (plan 5.4; AL-2675): the tenant and the membership row the
+ * resolver selected. `null` when no assignment resolved. It is never the
+ * tenant or assignment header the caller sent: those are only proposals,
+ * which the resolver has already checked against the caller's live rows.
+ */
+export function requestScopeOf(context: AuthContext): RequestScope | null {
+  const { assignment } = context;
+  if (
+    !context.isAuthenticated ||
+    !assignment ||
+    assignment.tenantId !== context.tenantId
+  ) {
+    return null;
+  }
+  return {
+    tenantId: assignment.tenantId,
+    assignmentId: assignment.assignmentId,
+  };
+}
+
+export type SignedInAssignments =
+  | {
+      kind: "signed_in";
+      userId: string;
+      assignments: readonly ActiveAssignment[];
+      /**
+       * The name of each organization the person holds a live row in, by
+       * tenant id. Empty for an E2E bypass identity: no rows stand behind it.
+       */
+      organizationNames: ReadonlyMap<string, string>;
+    }
+  | { kind: "signed_out" }
+  /** A read failed or returned a malformed row. */
+  | { kind: "unavailable" };
+
+/**
+ * Every live membership row of the signed-in person, of every class and in
+ * every tenant, validated by the resolver's reader, with the names of their
+ * organizations (plan 5.2; D-26). Only the organization chooser reads this:
+ * it must list a person's rows before any one is selected, which
+ * `getAuthContext` refuses for a person in two organizations. Both reads run
+ * on the person's own token. It authorizes nothing; whatever the person picks
+ * goes back through the proxy's membership decision.
+ */
+export async function getSignedInAssignments(): Promise<SignedInAssignments> {
+  const supabase = await createAuthContextClient();
+  const {
+    data: { user },
+    error,
+  } = supabase
+    ? await supabase.auth.getUser()
+    : { data: { user: null }, error: null };
+
+  if (supabase && user && !error) {
+    const [read, organizationNames] = await Promise.all([
+      readActiveAssignments(user.id, createRpcAssignmentReader(supabase)),
+      readOrganizationNames(supabase).catch((cause: unknown) => {
+        if (cause instanceof OrganizationNamesReadError) return null;
+        throw cause;
+      }),
+    ]);
+    return read.ok && organizationNames
+      ? {
+          kind: "signed_in",
+          userId: user.id,
+          assignments: read.assignments,
+          organizationNames,
+        }
+      : { kind: "unavailable" };
+  }
+
+  const e2eSession = await readE2EBypassSession(undefined);
+  return e2eSession
+    ? {
+        kind: "signed_in",
+        userId: e2eSession.userId,
+        assignments: listE2EAuthAssignments(e2eSession),
+        organizationNames: new Map(),
+      }
+    : { kind: "signed_out" };
 }
 
 /**
@@ -578,6 +744,32 @@ export function hasAnyContextRole(context: AuthContext, roles: UserRole[]) {
   return hasAnyRole({ memberships: context.memberships }, roles);
 }
 
+/**
+ * The resolver refused the tenant or assignment the request proposed. Still
+ * the same "Unauthorized" error, message and status as before (every route
+ * that maps the message keeps its answer), and it carries the
+ * `x-asym-scope-refused` header (`scopeRefusedHeaders`), so the browser can
+ * retire the document instead of treating it as any other 401 (JB1).
+ */
+export class ScopeRefusedError extends Error {
+  readonly reason: string;
+
+  constructor(reason: string | null | undefined) {
+    super("Unauthorized");
+    this.name = "ScopeRefusedError";
+    this.reason = reason ?? "refused";
+  }
+}
+
+/** The response headers that mark a refused scope, or none. */
+export function scopeRefusedHeaders(
+  context: Pick<AuthContext, "scopeRefused" | "assignmentDenial">,
+): Record<string, string> | undefined {
+  return context.scopeRefused
+    ? { [SCOPE_REFUSED_HEADER]: context.assignmentDenial ?? "refused" }
+    : undefined;
+}
+
 export function requireAuth(
   context: AuthContext,
 ): asserts context is AuthenticatedContext {
@@ -587,6 +779,9 @@ export function requireAuth(
     !context.tenantId ||
     !context.role
   ) {
+    if (context.scopeRefused) {
+      throw new ScopeRefusedError(context.assignmentDenial);
+    }
     throw new Error("Unauthorized");
   }
 }

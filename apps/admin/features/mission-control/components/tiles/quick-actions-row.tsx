@@ -1,10 +1,10 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { useMC } from "@asym/lib/mission-control/context";
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
 import { TILES } from "@asym/lib/mission-control/tiles";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
-import Link from "next/link";
 
 import { getIcon } from "../icon-map";
 

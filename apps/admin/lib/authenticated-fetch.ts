@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { createBrowserClient } from "@asym/database/supabase";
 
 function readSupabaseSessionCookieValue() {
@@ -106,13 +107,15 @@ export async function createSupabaseAuthHeaders(
   return headers;
 }
 
-export async function fetchWithSupabaseAuth(
-  input: RequestInfo | URL,
-  init?: RequestInit,
-) {
+/**
+ * An own-API call that also sends the caller's access token as a bearer
+ * header. It goes through the own-API wrapper, so it carries the document's
+ * tenant and assignment too (plan 5.2; WP2b, AL-2675).
+ */
+export async function fetchWithSupabaseAuth(path: string, init?: RequestInit) {
   const headers = await createSupabaseAuthHeaders(init?.headers);
 
-  return fetch(input, {
+  return ownApiFetch(path, {
     ...init,
     headers,
   });

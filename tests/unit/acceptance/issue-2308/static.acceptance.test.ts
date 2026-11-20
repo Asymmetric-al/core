@@ -96,11 +96,13 @@ describe("#2308 static contracts (A)", () => {
   // D-18: five advisory line lists now point to the actual call sites.
   // D-18: the allowlist bytes stay pinned; its two removed sites also leave the ceiling, as required.
   // Only raising the ceiling needs a new ruling.
+  // D-18: merging WP2's handler package into WP2b's first release moved 36 advisory line lists to their
+  // call sites in the merged tree; no site, count, entry or ceiling row changed.
   it("C12: pins the missionary workspace reclassification and follower-request shrink", () => {
     expect(
       createHash("sha256")
         .update(read("docs/security/service-role-client-allowlist.json"))
         .digest("hex"),
-    ).toBe("5276be2a44b8e8a866e5aa41ad617645f6d0107932a2ef873c181dd3332f09a7");
+    ).toBe("4908396f69194f67223b0c32cf768737717bda07481aa67c2e35f72a3de1604e");
   });
 });

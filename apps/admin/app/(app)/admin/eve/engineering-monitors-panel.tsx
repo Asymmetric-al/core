@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
@@ -24,7 +25,7 @@ interface MonitorResponse extends EveEngineeringMonitorAdminView {
 const QUERY_KEY = ["admin", "eve", "engineering-monitors"] as const;
 
 async function loadMonitors(): Promise<MonitorResponse> {
-  const response = await fetch("/api/admin/eve/engineering-monitors", {
+  const response = await ownApiFetch("/api/admin/eve/engineering-monitors", {
     credentials: "same-origin",
     headers: { accept: "application/json" },
   });

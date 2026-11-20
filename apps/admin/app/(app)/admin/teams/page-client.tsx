@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { useMC } from "@asym/lib/mission-control/context";
 import {
   DataGridPanel,
@@ -32,7 +33,6 @@ import {
   ItemDescription,
 } from "@asym/ui/components/shadcn/item";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
 import { useId, useState } from "react";
 
 import {

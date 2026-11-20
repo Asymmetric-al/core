@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   Alert,
   AlertTitle,
@@ -22,7 +23,6 @@ import {
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { Send } from "lucide-react";
-import Link from "next/link";
 
 export interface EmailStudioTestSendDialogProps {
   error?: string | null;

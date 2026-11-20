@@ -58,7 +58,8 @@ describe("donor high-complexity extraction contracts", () => {
       source.indexOf("function CheckoutContent("),
     );
     expect(checkoutContent).toContain("const handlePayment = async (");
-    expect(checkoutContent).toContain('fetch("/api/donate"');
+    // WP2b, AL-2675: the donate call goes through the own-API wrapper.
+    expect(checkoutContent).toContain('ownApiFetch("/api/donate"');
     expect(checkoutContent).toContain("Idempotency-Key");
     expect(checkoutContent).toContain("stripe.confirmCardPayment(");
     expect(checkoutContent).not.toContain("Preparing secure checkout");

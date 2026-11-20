@@ -9,9 +9,9 @@ separately define the behavior still to implement and qualify.
 
 | Application          | Source                    | Current route examples                                                                                   | Responsibility                             |
 | -------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| Mission Control      | `apps/admin`              | `/`, `/crm`, `/contributions`, `/support`, `/reports`, `/email`, `/web-studio`                           | Staff operations and tenant administration |
+| Mission Control      | `apps/admin`              | `/<tenant>`, `/<tenant>/crm`, `/<tenant>/contributions`, `/<tenant>/support`, `/web-studio`              | Staff operations and tenant administration |
 | Donor experience     | `apps/donor`              | `/donor-dashboard` and its `history`, `pledges` (recurring gifts), `wallet`, `feed` and `settings` pages | Authenticated donor self-service           |
-| Missionary workspace | `apps/missionary`         | `/`, `/donors`, `/feed`, `/ministry-updates`, `/tasks`                                                   | Role-scoped missionary work                |
+| Missionary workspace | `apps/missionary`         | `/<tenant>`, `/<tenant>/donors`, `/<tenant>/feed`, `/<tenant>/tasks`                                     | Role-scoped missionary work                |
 | Public website       | `apps/donor/app/(public)` | `/`, `/workers`, `/checkout`, CMS catch-all                                                              | Existing public content and giving paths   |
 
 API routes are listed in [`runtime-map.md`](./runtime-map.md). The public route examples include prototype and partial implementations. Their
@@ -23,6 +23,28 @@ Mission Control's ordinary routes live under `apps/admin/app/(app)`; its
 Payload engine routes live under `apps/admin/app/(payload)`. The donor portal
 lives under `apps/donor/app/(dashboard)/donor-dashboard` and the public site
 under `apps/donor/app/(public)`.
+
+Signed-in pages of Mission Control and the missionary workspace are served
+under the tenant in the page address, `/<tenant>[~<sub-role>]` (plan 5.2;
+AL-2675): each app's proxy decides the person's membership in that tenant
+before the page shell and rewrites the address onto the page files above. A
+bare address such as `/crm` is sent to the person's one organization or to
+the organization chooser (`/choose-organization`). Sign-in, the chooser and the
+API routes stay outside every segment. Web Studio's pages are outside the
+tenant segment but a segment of their own: their organization comes from a
+signed cookie, and Web Studio's own chooser is not one of them. Crossing the
+boundary of either segment loads a new document. A link the client router prefetched before
+the person's membership was revoked can show at most its route's App Shell,
+which holds no tenant data, before the navigation's own request is refused
+and ends on `/no-access` (established on a production build in
+`tests/e2e/admin-tenant-address.spec.ts`). An App Shell may read session data and carries
+cached content such as Home's figures, but the pages' session read,
+`getAuthContext()` with no request, stops it: it waits for `connection()`
+after reading the cookies, and on a production build with that wait
+removed the shell still stopped there, at the read's own `Date.now()`. The
+same spec shows a prefetched link to Home carries none of its figures. The rules for page code are in
+[`docs/ai/rules/frontend.md`](../../ai/rules/frontend.md) § The tenant in the
+page address.
 
 `apps/factory-console` is the private operator console for the software
 factory (`scripts/archon-factory`). It runs only on the factory VM and is not
