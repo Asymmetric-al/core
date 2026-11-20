@@ -30,6 +30,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { runPsqlQuery } from "../lib/psql.mjs";
+import {
+  isAssignmentReader,
+  preMembershipExceptions,
+  protectedEntry,
+} from "./command-entry-boundaries.mjs";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -243,6 +248,7 @@ select jsonb_build_object(
       'body', ${BODY},
       'authenticated', has_function_privilege('authenticated', p.oid, 'EXECUTE'),
       'anon', has_function_privilege('anon', p.oid, 'EXECUTE'),
+      'service_role', has_function_privilege('service_role', p.oid, 'EXECUTE'),
       'public_execute', ${PUBLIC_EXECUTE}) order by n.nspname, p.proname, p.oid)
     from pg_proc p
     join pg_namespace n on n.oid = p.pronamespace
@@ -337,7 +343,10 @@ select jsonb_build_object(
  * quoted). It only finds where comments and literals start and end, so that a
  * call or an EXCEPTION clause cannot hide in, or be faked by, either.
  */
-export function stripComments(body, { blankStrings = false } = {}) {
+export function stripComments(
+  body,
+  { blankStrings = false, preserveWidth = false } = {},
+) {
   const IDENT = /[A-Za-z0-9_$]/;
   const DOLLAR = /\$([A-Za-z_][A-Za-z0-9_]*)?\$/y;
   let out = "";
@@ -367,7 +376,9 @@ export function stripComments(body, { blankStrings = false } = {}) {
     if (dollar) {
       const close = body.indexOf(dollar[0], i + dollar[0].length);
       const end = close < 0 ? body.length : close + dollar[0].length;
-      out += blankStrings ? "''" : body.slice(i, end);
+      out += blankStrings
+        ? "''".padEnd(preserveWidth ? end - i : 2)
+        : body.slice(i, end);
       i = end;
       continue;
     }
@@ -383,7 +394,10 @@ export function stripComments(body, { blankStrings = false } = {}) {
         else if (body[j] === ch) break;
         else j += 1;
       }
-      out += blankStrings && ch === "'" ? "''" : body.slice(i, j + 1);
+      out +=
+        blankStrings && ch === "'"
+          ? "''".padEnd(preserveWidth ? j + 1 - i : 2)
+          : body.slice(i, j + 1);
       i = j + 1;
       continue;
     }
@@ -472,6 +486,22 @@ export function laneCheckProblem({ schema, language, body }) {
   if (outerBlockHasHandler(main))
     return "has an EXCEPTION section that encloses the preamble";
   return null;
+}
+
+function entryStatement(body) {
+  const raw = stripComments(body);
+  const masked = stripComments(raw, {
+    blankStrings: true,
+    preserveWidth: true,
+  }).replace(/"(?:[^"]|"")*"/g, (name) => "_".repeat(name.length));
+  const begin = /\bBEGIN\b/i.exec(masked);
+  if (!begin) return null;
+  const start = begin.index + begin[0].length;
+  return {
+    raw: raw.slice(start),
+    main: masked.slice(start),
+    declarations: masked.slice(0, begin.index),
+  };
 }
 
 /** The command-schema functions a body calls, as `schema.name`, comments ignored and dynamic SQL included. */
@@ -920,6 +950,8 @@ export function evaluateTenantRlsCatalog(
     );
     return false;
   });
+  const preMembership = preMembershipExceptions(commands);
+  failures.push(...preMembership.failures);
   for (const c of commands) {
     if (c.public_execute || c.anon)
       failFn(
@@ -939,18 +971,44 @@ export function evaluateTenantRlsCatalog(
         c.function,
         `a function in the ${c.schema} schema names the auth schema, which the guard cannot be granted on Supabase's own image; read the caller with tenant_guard.caller_id() and the claims with tenant_guard.request_claims()`,
       );
+    if (
+      c.schema === "tenant_guard" &&
+      c.service_role &&
+      !c.authenticated &&
+      (!c.definer ||
+        c.owner !== COMMAND_OWNER ||
+        !protectedEntry(c, entryStatement(c.body), outerBlockHasHandler))
+    )
+      failFn(
+        "COMMAND_HELPER_EXPOSED",
+        c.function,
+        "Service EXECUTE requires a guard-owned definer that enters its tenant before any other work",
+      );
     if (!c.authenticated) continue;
     if (c.schema === "tenant_guard") {
       const problem = !c.definer
         ? "is not SECURITY DEFINER"
         : c.owner !== COMMAND_OWNER
           ? `is owned by ${c.owner}, not ${COMMAND_OWNER}`
-          : laneCheckProblem(c);
+          : preMembership.allowed.has(c.function)
+            ? null
+            : laneCheckProblem(c);
       if (problem)
         failFn(
           "COMMAND_HUMAN_NO_PREAMBLE",
           c.function,
           `a tenant_guard function authenticated may execute is a SECURITY DEFINER owned by ${COMMAND_OWNER} whose first statement calls ${COMMAND_PREAMBLES.tenant_guard}...); this one ${problem}`,
+        );
+      else if (
+        !c.service_role &&
+        !preMembership.allowed.has(c.function) &&
+        !isAssignmentReader(c) &&
+        !protectedEntry(c, entryStatement(c.body), outerBlockHasHandler)
+      )
+        failFn(
+          "COMMAND_CAPABILITY",
+          c.function,
+          "Open with a tenant argument and one literal code-registry capability; no declaration initializer may run first",
         );
     } else {
       const problem = c.definer
@@ -1016,6 +1074,12 @@ export function evaluateTenantRlsCatalog(
         `${calls}: PUBLIC or anon may execute it`,
       );
     const workers = targets.filter((t) => signedInTargets.get(t) !== true);
+    if (w.service_role && targets.length && !workers.length)
+      failFn(
+        "WRAPPER_GRANTS_HUMAN",
+        w.function,
+        "A wrapper calling only human entry points grants no EXECUTE to service_role",
+      );
     if (w.authenticated && workers.length)
       failFn(
         "WRAPPER_GRANTS_WORKER",
@@ -1256,7 +1320,7 @@ function assertSnapshotShape(snapshot) {
       throw incomplete("command", c);
   for (const w of snapshot.wrappers)
     if (
-      ![...lane, "definer"].every((k) => isBool(w?.[k])) ||
+      ![...lane, "definer", "service_role"].every((k) => isBool(w?.[k])) ||
       !isText(w.body) ||
       !("search_path" in w)
     )
