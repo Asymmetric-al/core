@@ -21,12 +21,17 @@ describe("collections of the tables out of the Realtime publication", () => {
   it.each(OUT_OF_THE_PUBLICATION)(
     "does not realtime-sync %s, which the second release of WP2b takes out of the publication",
     (table) => {
-      const collection = supabaseTableCollectionRegistry.find(
+      // Every collection registered for the table, not the first alone
+      // (review of pull request 2737, thread 4641188166).
+      const collections = supabaseTableCollectionRegistry.filter(
         (entry) => "tableName" in entry && entry.tableName === table,
       );
 
-      expect(collection, `${table} has a collection`).toBeDefined();
-      expect(collection?.realtime).toBe("disabled");
+      expect(collections.length, `${table} has a collection`).toBeGreaterThan(
+        0,
+      );
+      for (const collection of collections)
+        expect(collection.realtime, table).toBe("disabled");
     },
   );
 });

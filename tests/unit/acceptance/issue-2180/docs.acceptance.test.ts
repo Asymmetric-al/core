@@ -245,11 +245,20 @@ const CI_BASES = [
     bytes: 47171,
     sha256: "d28ee0bd761514bc955e336c9f7350515cea27b7e54d44d958da6964177e3be2",
   },
-  // D-18: document operator MFA, the explicit CMS origin and the hosted 35-minute job cap.
+  {
+    // Amended by AL-2735 when the shadcn upstream review left ci:preflight: the stage
+    // list drops `verify:shadcn-diff` and renumbers, a new paragraph says the
+    // review runs by hand, and the `lint` section no longer lists it. Pinned
+    // on that exact reviewed prefix; the EOF runner section is unchanged.
+    ref: "AL-2735 shadcn upstream review leaves ci:preflight",
+    bytes: 47295,
+    sha256: "6b2f35b7cfdad5098dea0a699c073ca485e1bfe6420382a9dcd528e7c1eee7b2",
+  },
+  // D-18 (AL-2675): retain the manual shadcn review; document operator MFA, CMS origin and the 35-minute E2E cap.
   {
     ref: "AL-2675 WP2c operator MFA and hosted E2E contract",
-    bytes: 47653,
-    sha256: "b070e49b84cb4016ee219a60ba19aa0341152bf4e5a422664121ffb381f6148b",
+    bytes: 47777,
+    sha256: "1eb8eb5babf75235330acc36612374123672bfde0cc07db2336e5c6dde6c4346",
   },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;

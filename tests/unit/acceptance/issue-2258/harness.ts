@@ -60,9 +60,12 @@ export const UNEDITED: Record<string, string> = {
   // Q7, Q8: three whose grants were revoked, and the two of crm_record_links,
   // which never had one) and checks the standing ones' new predicates
   // exactly; the static suite lists the three authz definers the policy
-  // migration adds. Each file records its reason beside the change.
+  // migration adds. Each file records its reason beside the change. The
+  // review of pull request 2737 (record D-18) re-pins the real-stack suite
+  // once more: its C8 checks the INSERT and UPDATE grants with
+  // has_any_column_privilege, so a column-level write grant fails it.
   "tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts":
-    "5e63e439a20ad2d6f2408b18ea4687532d0b3dbd",
+    "1f5364818a1dc2c46f79bb7fc8b8ab681b496050",
   "tests/unit/acceptance/issue-2270/harness.ts":
     "e9e7201350e5d1f90f85c266f762d450ca3637d5",
   "tests/unit/acceptance/issue-2270/static.acceptance.test.ts":

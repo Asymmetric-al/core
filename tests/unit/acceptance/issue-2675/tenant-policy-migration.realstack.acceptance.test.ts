@@ -181,6 +181,23 @@ const OVERRIDES: Record<string, Record<string, string>> = {
   },
 };
 
+/**
+ * Whether policy `p` admits no write, judged by the predicate Postgres applies
+ * to each write it governs (review of pull request 2737, thread 4641188131):
+ * INSERT by its WITH CHECK; DELETE by its USING; UPDATE by both, either one
+ * false denying it; FOR ALL by both being false. A missing USING admits every
+ * row, and a missing WITH CHECK is the USING.
+ */
+const DENIES_WRITES = `(
+  case p.polcmd
+    when 'a' then coalesce(pg_get_expr(p.polwithcheck, p.polrelid), 'true') = 'false'
+    when 'd' then coalesce(pg_get_expr(p.polqual, p.polrelid), 'true') = 'false'
+    when 'w' then coalesce(pg_get_expr(p.polqual, p.polrelid), 'true') = 'false'
+               or coalesce(pg_get_expr(p.polwithcheck, p.polrelid), pg_get_expr(p.polqual, p.polrelid), 'true') = 'false'
+    else coalesce(pg_get_expr(p.polqual, p.polrelid), 'true') = 'false'
+         and coalesce(pg_get_expr(p.polwithcheck, p.polrelid), pg_get_expr(p.polqual, p.polrelid), 'true') = 'false'
+  end)`;
+
 const SEVEN_REALTIME = [
   "funds",
   "locations",
@@ -731,7 +748,10 @@ describe.skipIf(!ADMIN_URL)(
               "select id from public.donations",
             );
           expect(ids(await gifts("mSGd"))).toEqual(["g1"]);
-          expect((await gifts(null)).rows).toEqual([]);
+          // A successful empty answer, not a failed read (thread 4641188149).
+          const unnamed = await gifts(null);
+          expect(unnamed.code, unnamed.message).toBeNull();
+          expect(unnamed.rows).toEqual([]);
           expect(sorted(ids(await gifts("mSGs")))).toEqual(
             sorted(["g1", "g2", "g3", "g4"]),
           );
@@ -752,6 +772,7 @@ describe.skipIf(!ADMIN_URL)(
             { sub: "UMG", headers: under("mMGm") },
             "select id from public.donors",
           );
+          expect(donors.code, donors.message).toBeNull();
           expect(donors.rows).toEqual([]);
           const own = await as(
             "authenticated",
@@ -1054,32 +1075,54 @@ describe.skipIf(!ADMIN_URL)(
 
       it("Q3: a signed-in unfiltered read of posts returns published public rows only, under any assignment or none", () =>
         tx(async () => {
+          // Rows of both tenants, so a policy that leaked another tenant's
+          // non-public rows would show in the unfiltered read (review of
+          // pull request 2737, thread 4641188106).
+          const posts: Record<string, string> = {};
           await replica(true);
-          for (const [status, visibility] of [
-            ["published", "public"],
-            ["draft", "public"],
-            ["published", "followers"],
-          ])
+          for (const [key, tenant, status, visibility] of [
+            ["aPublic", "TA", "published", "public"],
+            ["aDraft", "TA", "draft", "public"],
+            ["aFollowers", "TA", "published", "followers"],
+            ["bDraft", "TB", "draft", "public"],
+            ["bFollowers", "TB", "published", "followers"],
+          ] as const) {
+            posts[key] = randomUUID();
             await insertRow("posts", {
-              tenant_id: q("TA"),
+              id: `'${posts[key]}'`,
+              tenant_id: q(tenant),
               status: `'${status}'`,
               visibility: `'${visibility}'`,
             });
+          }
           await replica(false);
+          const fixture = `'{${Object.values(posts).join(",")}}'::uuid[]`;
           for (const [sub, headers] of [
             ["UP", under("mPA")],
+            ["UP", under("mPB")],
             ["UDON", under("mDon")],
             ["UX", undefined],
           ] as [User, Record<string, string> | undefined][]) {
-            const r = await as(
+            const label = `${sub} ${JSON.stringify(headers)}`;
+            // Unfiltered: whatever else the database holds, only published
+            // public rows come back.
+            const all = await as(
               "authenticated",
               { sub, headers },
-              `select distinct status, visibility from public.posts where tenant_id = ${q("TA")}`,
+              "select distinct status, visibility from public.posts",
             );
-            expect(r.code, sub).toBeNull();
-            expect(r.rows, sub).toEqual([
+            expect(all.code, label).toBeNull();
+            expect(all.rows, label).toEqual([
               { status: "published", visibility: "public" },
             ]);
+            // Of this case's rows, in either tenant, only the public one.
+            const mine = await as(
+              "authenticated",
+              { sub, headers },
+              `select id from public.posts where id = any(${fixture})`,
+            );
+            expect(mine.code, label).toBeNull();
+            expect(mine.rows, label).toEqual([{ id: posts.aPublic }]);
           }
         }));
 
@@ -1089,7 +1132,7 @@ describe.skipIf(!ADMIN_URL)(
             `select c.relname::text t, p.polname::text p from pg_policy p join pg_class c on c.oid = p.polrelid
               where c.relnamespace = 'public'::regnamespace and p.polcmd in ('a', 'w', 'd', '*')
                 and p.polroles && array[0::oid, 'authenticated'::regrole::oid]
-                and pg_get_expr(p.polqual, p.polrelid) is distinct from 'false'
+                and not ${DENIES_WRITES}
                 and c.relname = any($1) order by 1, 2`,
             [
               [
@@ -1132,10 +1175,13 @@ describe.skipIf(!ADMIN_URL)(
       // write grant on either table.
       it("Q7: pdf_templates and crm_record_links carry no signed-in write policy, and a staff member's direct insert and update on each are refused", () =>
         tx(async () => {
+          // FOR ALL policies write too (review of pull request 2737, thread
+          // 4641188140); only a plain deny of every write may stand.
           const left = await rows(
             `select c.relname::text t, p.polname::text p from pg_policy p join pg_class c on c.oid = p.polrelid
-              where c.relnamespace = 'public'::regnamespace and p.polcmd in ('a', 'w', 'd')
+              where c.relnamespace = 'public'::regnamespace and p.polcmd in ('a', 'w', 'd', '*')
                 and p.polroles && array[0::oid, 'authenticated'::regrole::oid]
+                and not ${DENIES_WRITES}
                 and c.relname in ('pdf_templates', 'crm_record_links') order by 1, 2`,
           );
           expect(left).toEqual([]);
@@ -1282,18 +1328,23 @@ describe.skipIf(!ADMIN_URL)(
             "update authz.memberships set revoked_at = now() where id = $1",
             [id.mPA],
           );
+          // Each call must succeed with no row: asRole answers no rows when
+          // the statement fails, so the code is checked first (review of
+          // pull request 2737, thread 4641188149).
           for (const [bucket, [, b]] of Object.entries(paths)) {
             const read = await as(
               "authenticated",
               { sub: "UP" },
               `select name from storage.objects where bucket_id = '${bucket}' and name = '${b}'`,
             );
+            expect(read.code, `${bucket}: ${read.message}`).toBeNull();
             expect(read.rows, bucket).toEqual([]);
             const del = await as(
               "authenticated",
               { sub: "UP" },
               `delete from storage.objects where bucket_id = '${bucket}' and name = '${b}' returning name`,
             );
+            expect(del.code, `${bucket}: ${del.message}`).toBeNull();
             expect(del.rows, bucket).toEqual([]);
           }
           // Each call above runs in its own rolled-back savepoint, so the
@@ -1307,67 +1358,87 @@ describe.skipIf(!ADMIN_URL)(
           ).toEqual([{ n: 4 }]);
         }));
 
-      it("Q11: an upper-case assignment header works on a Data API read, the member directory and a command; garbage raises 22P02 on all three; a blank header acts as absent", () =>
+      // Review of pull request 2737 (thread 4641188158). USG holds two live
+      // rows in TA (staff mSGs, donor mSGd), so with no row named nothing
+      // resolves: an upper-case header read as absent would show here, where
+      // a caller with one row there falls back to it.
+      it("Q11: an upper-case assignment header selects the row it names on a Data API read, the member directory and a command; garbage raises 22P02 on all three; a blank header answers as an omitted one", () =>
         tx(async () => {
-          const upper = {
+          const upper = (m: string) => ({
             "x-asym-tenant": id.TA!.toUpperCase(),
-            "x-asym-assignment": id.mPA!.toUpperCase(),
+            "x-asym-assignment": id[m]!.toUpperCase(),
+          });
+          const resolved = async (headers: Record<string, string>) => {
+            const r = await as(
+              "authenticated",
+              { sub: "USG", headers },
+              "select membership_id::text m from authz.request_assignment()",
+            );
+            expect(r.code, r.message).toBeNull();
+            return r.rows[0]!.m ?? null;
+          };
+          expect(await resolved(upper("mSGs"))).toBe(id.mSGs);
+          expect(await resolved(upper("mSGd"))).toBe(id.mSGd);
+          expect(await resolved({ "x-asym-tenant": id.TA! })).toBeNull();
+
+          const outcome = async (
+            sub: User,
+            headers: Record<string, string> | undefined,
+            sql: string,
+          ) => {
+            const r = await as("authenticated", { sub, headers }, sql);
+            return { code: r.code, rows: r.rows };
           };
           const calls = [
-            "select count(*)::int n from public.donors",
-            `select count(*)::int n from public.tenant_member_directory(${q("TA")})`,
+            "select id::text from public.donors order by 1",
+            `select membership_id::text from public.tenant_member_directory(${q("TA")}) order by 1`,
             `select (public.resolve_command_assignment(${q("TA")}))::text n`,
           ];
           for (const sql of calls) {
-            const ok = await as(
-              "authenticated",
-              { sub: "UP", headers: upper },
-              sql,
-            );
-            expect(ok.code, `${sql}: ${ok.message}`).toBeNull();
-            const bad = await as(
-              "authenticated",
-              {
-                sub: "UP",
-                headers: {
-                  "x-asym-tenant": id.TA!,
-                  "x-asym-assignment": "garbage",
-                },
-              },
+            // Upper case answers exactly as lower case, for the named row.
+            const up = await outcome("USG", upper("mSGs"), sql);
+            expect(up.code, sql).toBeNull();
+            expect(up.rows.length, sql).toBeGreaterThan(0);
+            expect(up, sql).toEqual(await outcome("USG", under("mSGs"), sql));
+            const bad = await outcome(
+              "USG",
+              { "x-asym-tenant": id.TA!, "x-asym-assignment": "garbage" },
               sql,
             );
             expect(bad.code, sql).toBe("22P02");
-            const blank = await as(
-              "authenticated",
-              {
-                sub: "UP",
-                headers: {
-                  "x-asym-tenant": id.TA!,
-                  "x-asym-assignment": "   ",
-                },
-              },
-              sql,
-            );
-            expect(blank.code, `${sql}: ${blank.message}`).toBeNull();
+            // A blank header answers exactly as an omitted one, for a caller
+            // with one row there and for one with two.
+            for (const sub of ["UP", "USG"] as User[])
+              expect(
+                await outcome(
+                  sub,
+                  { "x-asym-tenant": id.TA!, "x-asym-assignment": "   " },
+                  sql,
+                ),
+                `${sub} ${sql}`,
+              ).toEqual(await outcome(sub, { "x-asym-tenant": id.TA! }, sql));
           }
-          const donors = await as(
-            "authenticated",
-            { sub: "UP", headers: upper },
-            "select count(*)::int n from public.donors",
-          );
-          expect(donors.rows[0]!.n).toBe(4);
-          const badTenant = await as(
-            "authenticated",
-            { sub: "UP", headers: { "x-asym-tenant": "garbage" } },
-            "select count(*)::int n from public.donors",
-          );
-          expect(badTenant.code).toBe("22P02");
-          const blankTenant = await as(
-            "authenticated",
-            { sub: "UP", headers: { "x-asym-tenant": " " } },
-            "select count(*)::int n from public.donors",
-          );
-          expect(blankTenant.rows[0]!.n).toBe(0);
+          // The command resolves the row the upper-case header names, not
+          // only the same answer in both cases (thread 4643328526).
+          expect(
+            await outcome(
+              "USG",
+              upper("mSGs"),
+              `select (public.resolve_command_assignment(${q("TA")})) ->> 'assignment_id' a`,
+            ),
+          ).toEqual({ code: null, rows: [{ a: id.mSGs }] });
+          const donors = "select count(*)::int n from public.donors";
+          expect((await outcome("USG", upper("mSGs"), donors)).rows).toEqual([
+            { n: 4 },
+          ]);
+          expect(
+            (await outcome("UP", { "x-asym-tenant": "garbage" }, donors)).code,
+          ).toBe("22P02");
+          for (const sub of ["UP", "USG"] as User[])
+            expect(
+              await outcome(sub, { "x-asym-tenant": " " }, donors),
+              sub,
+            ).toEqual(await outcome(sub, undefined, donors));
         }));
 
       it("defect 9: with no assignment header, a person with a staff and a donor row in the tenant passes no staff check of the member directory; naming the staff row does", () =>
@@ -1685,12 +1756,14 @@ describe.skipIf(!ADMIN_URL)(
             });
           await replica(false);
           const headers = { "x-asym-tenant": id.TA!, "x-asym-assignment": row };
+          // Without RETURNING, so the INSERT policy alone judges it: with it,
+          // the SELECT policy could be what refuses (thread 4643328537).
           const across = await as(
             "authenticated",
             { sub: "USA", headers },
-            `insert into public.donor_feed_preferences (donor_id, tenant_id) values ('${theirs}', ${q("TA")}) returning id`,
+            `insert into public.donor_feed_preferences (donor_id, tenant_id) values ('${theirs}', ${q("TA")})`,
           );
-          expect(across.code, JSON.stringify(across.rows)).toBe("42501");
+          expect(across.code, across.message).toBe("42501");
           const own = await as(
             "authenticated",
             { sub: "USA", headers },
@@ -1701,16 +1774,53 @@ describe.skipIf(!ADMIN_URL)(
           // Every own-row sub-select over donors or support_agents carries the
           // tenant. The one over missionaries cannot (signed-in users may
           // select only its id and profile_id; defect 10), and the
-          // missionaries policy, with no super-admin branch, bounds it.
-          const leaning = await rows(
-            `select c.relname || ': ' || p.polname n
+          // missionaries policy, with no super-admin branch, bounds it. Each
+          // sub-select's whole WHERE clause is read, so its tenant comparison
+          // counts wherever it stands (thread 4643328558).
+          const policies = (await rows(
+            `select c.relname || ': ' || p.polname n,
+                    coalesce(pg_get_expr(p.polqual, p.polrelid), '') || ' ' || coalesce(pg_get_expr(p.polwithcheck, p.polrelid), '') e
                from pg_policy p join pg_class c on c.oid = p.polrelid
               where c.relnamespace = 'public'::regnamespace
-                and coalesce(pg_get_expr(p.polqual, p.polrelid), '') || ' ' || coalesce(pg_get_expr(p.polwithcheck, p.polrelid), '')
-                    ~ 'FROM (donors d|support_agents a)\\s+WHERE \\(+(d|a)\\.(profile_id|user_id)'
               order by 1`,
-          );
-          expect(leaning).toEqual([]);
+          )) as { n: string; e: string }[];
+          const subselects: { n: string; alias: string; where: string }[] = [];
+          for (const { n, e } of policies)
+            for (const m of e.matchAll(
+              /FROM (donors d|support_agents a)\s+WHERE (?=\()/g,
+            )) {
+              const start = m.index! + m[0].length;
+              let depth = 0;
+              let end = start;
+              for (; end < e.length; end++) {
+                if (e[end] === "(") depth++;
+                else if (e[end] === ")" && --depth === 0) break;
+              }
+              subselects.push({
+                n,
+                alias: m[1]!.slice(-1),
+                where: e.slice(start, end + 1),
+              });
+            }
+          for (const table of [
+            "donor_activities",
+            "donor_feed_preferences",
+            "donations",
+            "support_notification_preferences",
+          ])
+            expect(
+              subselects.some((s) => s.n.startsWith(`${table}: `)),
+              table,
+            ).toBe(true);
+          const missing = subselects
+            .filter(
+              (s) =>
+                !s.where.includes(
+                  `${s.alias}.tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)`,
+                ),
+            )
+            .map((s) => s.n);
+          expect(missing).toEqual([]);
         }));
 
       // R12 (b): the policies compare the caller through the parallel-safe
@@ -1771,13 +1881,16 @@ describe.skipIf(!ADMIN_URL)(
       it("R15: authz.request_assignment() returns exactly one record, all null when nothing resolves", () =>
         tx(async () => {
           // USG holds two live rows in TA, so the tenant alone selects none.
+          // Every field of the record, whatever fields it has (review of
+          // pull request 2737, thread 4641188164).
           const shape = (headers?: Record<string, string>) =>
             as(
               "authenticated",
               { sub: "USG", headers },
               `select count(*)::int n,
-                      bool_and(membership_id is null and tenant_id is null and role is null) all_null
-                 from authz.request_assignment()`,
+                      bool_and(not exists (select 1 from jsonb_each(to_jsonb(a)) f where f.value <> 'null'::jsonb)) all_null,
+                      max(a.membership_id::text) membership
+                 from authz.request_assignment() a`,
             );
           const unresolved: (Record<string, string> | undefined)[] = [
             undefined,
@@ -1789,11 +1902,13 @@ describe.skipIf(!ADMIN_URL)(
             const r = await shape(headers);
             expect(r.code, r.message).toBeNull();
             expect(r.rows, JSON.stringify(headers)).toEqual([
-              { n: 1, all_null: true },
+              { n: 1, all_null: true, membership: null },
             ]);
           }
           const resolved = await shape(under("mSGs"));
-          expect(resolved.rows).toEqual([{ n: 1, all_null: false }]);
+          expect(resolved.rows).toEqual([
+            { n: 1, all_null: false, membership: id.mSGs },
+          ]);
         }));
 
       // R5: a replace tests the membership on the object as it stands, too.
@@ -1983,6 +2098,71 @@ describe.skipIf(!ADMIN_URL)(
           expect(block).toHaveLength(SEVEN_REALTIME.length);
           expect(await run(block.join("\n"))).toBeNull();
           expect(await members()).toEqual([...SEVEN_REALTIME].sort());
+        }));
+
+      // Review of pull request 2737 (thread 4641188062). After the rollback,
+      // authz.current_tenant_id() reads the token's tenant claim again. A
+      // session whose token carries none, as hosted sessions do not, reads a
+      // donor's saved feed preferences as the chain before the migration
+      // answers them: no row, so the route answers defaults. The rollback's
+      // own statements for the helper and the three feed-preference policies
+      // run here alone; the whole file runs in the fingerprint proof.
+      it("after it, a token with no tenant claim and a valid donor assignment reads no saved feed preference, as before the migration; with the claim it reads", () =>
+        tx(async () => {
+          await db.query(
+            `insert into public.donor_feed_preferences (tenant_id, donor_id, show_org_posts, show_missionary_posts)
+             values (${q("TA")}, ${q("dDON")}, false, false)`,
+          );
+          const read =
+            "select show_org_posts, show_missionary_posts from public.donor_feed_preferences";
+          const saved = [
+            { show_org_posts: false, show_missionary_posts: false },
+          ];
+          const claimless = () =>
+            as("authenticated", { sub: "UDON", headers: under("mDon") }, read);
+          const before = await claimless();
+          expect(before.code, before.message).toBeNull();
+          expect(before.rows).toEqual(saved);
+
+          const helper = body.slice(
+            body.indexOf(
+              "CREATE OR REPLACE FUNCTION authz.current_tenant_id()",
+            ),
+            body.indexOf("COMMENT ON FUNCTION authz.current_tenant_id() IS"),
+          );
+          expect(helper).toMatch(/app_metadata/);
+          const policies = [
+            ...body.matchAll(
+              /^(?:DROP POLICY \S+ ON public\.donor_feed_preferences;|CREATE POLICY \S+ ON public\.donor_feed_preferences\n[\s\S]*?;)$/gm,
+            ),
+          ].map((m) => m[0]);
+          expect(policies).toHaveLength(6);
+          expect(await run([helper, ...policies].join("\n"))).toBeNull();
+
+          const after = await claimless();
+          expect(after.code, after.message).toBeNull();
+          expect(after.rows).toEqual([]);
+          // The restored policy keys on the claim: with it, the row reads.
+          await db.query("savepoint claim_case");
+          try {
+            await db.query("set local role authenticated");
+            await db.query(
+              `select set_config('request.jwt.claims', $1, true),
+                      set_config('request.jwt.claim.sub', '', true),
+                      set_config('request.headers', $2, true)`,
+              [
+                JSON.stringify({
+                  sub: id.UDON,
+                  role: "authenticated",
+                  app_metadata: { tenant_id: id.TA },
+                }),
+                JSON.stringify(under("mDon")),
+              ],
+            );
+            expect((await db.query(read)).rows).toEqual(saved);
+          } finally {
+            await db.query("rollback to savepoint claim_case");
+          }
         }));
 
       it("restores the claim-reading helper with its comment, and ends with the schema reload", () => {

@@ -704,10 +704,18 @@ describe("#2258 pins (criteria 12, 13)", () => {
         47791,
         "bac3dc897167173b05ea29aca95ac25f4bd64f675f22780c71aeba1821b6a5b6",
       ],
-      // D-18: document operator MFA, the explicit CMS origin and the hosted 35-minute job cap.
+      // Amended by AL-2735 when the shadcn upstream review left ci:preflight: the stage
+      // list drops `verify:shadcn-diff` and renumbers, a new paragraph says
+      // the review runs by hand, and the `lint` section no longer lists it.
+      // Pinned on that exact reviewed whole file.
       [
-        48273,
-        "a8003d2514282e6f202dace1c66c702fed75dd086ba4ac025a72d7bf026bc00e",
+        47915,
+        "e091011ebffb5faba38a9230a9982488fb679c02f38b6d08be0b515250530276",
+      ],
+      // D-18 (AL-2675): retain the manual shadcn review; document operator MFA, CMS origin and the 35-minute E2E cap.
+      [
+        48397,
+        "b94a4abb2503c2a4b54b349d94218659910b587989be8fddba59d3f7350e8674",
       ],
     ];
     expect(REVIEWED).toContainEqual([

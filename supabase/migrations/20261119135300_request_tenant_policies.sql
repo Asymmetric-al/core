@@ -103,12 +103,18 @@
 -- chain to a database with no recorded heads, and a guard would stop it.
 --
 -- Down: supabase/migrations/rollback_20261119135300_request_tenant_policies.sql,
--- run by hand in one transaction. It restores the chain before this
--- migration exactly: every policy, grant, function, parallel mark and
--- publication member this migration changed, and only the privileges each
--- table held before (council R10). Proven on a disposable database: the
--- chain, then the rollback, has the schema fingerprint of the chain without
--- this migration (scripts/release/schema-fingerprint.mjs).
+-- run by hand in one transaction, only while this is the newest migration in
+-- the ledger. It restores every policy, grant, function, comment and parallel
+-- mark this migration changed, and only the privileges each table held
+-- before (council R10). As written it leaves the seven tables of section 5
+-- out of supabase_realtime: no hosted database published them, so on a
+-- hosted database that is the state before this migration. A database built
+-- by replaying the chain did publish them, and only there is its marked block
+-- run to put them back. Proven on a disposable database built by replaying
+-- the chain: the chain, then the rollback with that block, has the schema
+-- fingerprint of the chain without this migration
+-- (scripts/release/schema-fingerprint.mjs). docs/ops/release-job.md says
+-- how to run it, and how to apply this migration again afterwards.
 
 BEGIN;
 
@@ -1258,7 +1264,11 @@ BEGIN
     INTO v_problem
     FROM pg_catalog.unnest(ARRAY['audit_logs', 'crm_merge_candidates', 'member_care_activities', 'member_care_goals', 'member_care_private_notes', 'member_care_requirements', 'field_policies', 'notification_queue', 'support_agents', 'support_assignments', 'support_audit_log', 'support_automation_rules', 'support_business_hours', 'support_canned_responses', 'support_conversation_labels', 'support_conversations', 'support_inbox_settings', 'support_inboxes', 'support_labels', 'support_macros', 'support_message_attachments', 'support_messages', 'support_notification_preferences', 'support_saved_views', 'support_signatures', 'support_sla_policies', 'support_teams', 'support_contacts', 'support_tickets', 'pdf_template_artifacts', 'pdf_template_audit_events', 'pdf_template_batch_jobs', 'pdf_template_batches', 'pdf_template_renders', 'pdf_template_versions', 'crm_command_logs', 'stripe_raw_events', 'staged_gifts', 'staged_gift_allocations', 'staged_gift_audit_events', 'donation_crm_links', 'giving_reconciliation_runs']) AS t,
          pg_catalog.unnest(ARRAY['INSERT', 'UPDATE', 'DELETE']) AS p
-   WHERE pg_catalog.has_table_privilege('authenticated', ('public.' || t)::regclass, p);
+   -- On the table or on any column of it: a column grant is a write grant.
+   WHERE CASE p
+           WHEN 'DELETE' THEN pg_catalog.has_table_privilege('authenticated', ('public.' || t)::regclass, p)
+           ELSE pg_catalog.has_any_column_privilege('authenticated', ('public.' || t)::regclass, p)
+         END;
   IF v_problem IS NOT NULL THEN
     RAISE EXCEPTION 'AL-2675: signed-in users still hold %', v_problem;
   END IF;
@@ -1290,20 +1300,63 @@ BEGIN
     JOIN pg_catalog.pg_class AS c ON c.oid = p.polrelid
    WHERE c.relnamespace = 'public'::regnamespace
      AND p.polcmd IN ('a', 'w', 'd')
-     AND p.polroles && ARRAY[0::OID, 'authenticated'::regrole::OID]
+     -- The roles a policy reaches, by the catalog gate's rule: authenticated
+     -- or anon, where the policy names PUBLIC or a role it holds by
+     -- membership (scripts/verify/tenant-rls-catalog.mjs, POLICY_REACHES).
+     AND EXISTS (
+       SELECT 1
+         FROM pg_catalog.unnest(ARRAY['authenticated', 'anon']) AS g(r)
+        WHERE p.polroles @> ARRAY[0::OID]
+           OR EXISTS (SELECT 1 FROM pg_catalog.unnest(p.polroles) AS x(rid)
+                       WHERE pg_catalog.pg_has_role(g.r, x.rid, 'MEMBER')))
      AND NOT EXISTS (
        SELECT 1
-         FROM pg_catalog.unnest(
-                ARRAY['authenticated'] ||
-                CASE WHEN p.polroles @> ARRAY[0::OID] THEN ARRAY['anon'] ELSE ARRAY[]::TEXT[] END
-              ) AS g(r)
-        WHERE CASE p.polcmd
+         FROM pg_catalog.unnest(ARRAY['authenticated', 'anon']) AS g(r)
+        WHERE (p.polroles @> ARRAY[0::OID]
+               OR EXISTS (SELECT 1 FROM pg_catalog.unnest(p.polroles) AS x(rid)
+                           WHERE pg_catalog.pg_has_role(g.r, x.rid, 'MEMBER')))
+          AND CASE p.polcmd
                 WHEN 'a' THEN pg_catalog.has_any_column_privilege(g.r, c.oid, 'INSERT')
                 WHEN 'w' THEN pg_catalog.has_any_column_privilege(g.r, c.oid, 'UPDATE')
                 ELSE pg_catalog.has_table_privilege(g.r, c.oid, 'DELETE')
               END);
   IF v_problem IS NOT NULL THEN
     RAISE EXCEPTION 'AL-2675: write policies stand where no signed-in write grant does: %', v_problem;
+  END IF;
+
+  -- A FOR ALL policy writes too: where no signed-in role it names holds any
+  -- write privilege, only a plain deny may stand, false for every command it
+  -- governs, as the deny-all policies of the six finance tables are (council
+  -- R3; the gate's WRITE_POLICY_WITHOUT_GRANT). A missing WITH CHECK is the
+  -- USING, and a missing USING admits every row.
+  SELECT pg_catalog.string_agg(c.relname || ': ' || p.polname, ', ')
+    INTO v_problem
+    FROM pg_catalog.pg_policy AS p
+    JOIN pg_catalog.pg_class AS c ON c.oid = p.polrelid
+   WHERE c.relnamespace = 'public'::regnamespace
+     AND p.polcmd = '*'
+     -- The roles a policy reaches, by the catalog gate's rule, as above.
+     AND EXISTS (
+       SELECT 1
+         FROM pg_catalog.unnest(ARRAY['authenticated', 'anon']) AS g(r)
+        WHERE p.polroles @> ARRAY[0::OID]
+           OR EXISTS (SELECT 1 FROM pg_catalog.unnest(p.polroles) AS x(rid)
+                       WHERE pg_catalog.pg_has_role(g.r, x.rid, 'MEMBER')))
+     AND NOT EXISTS (
+       SELECT 1
+         FROM pg_catalog.unnest(ARRAY['authenticated', 'anon']) AS g(r)
+        WHERE (p.polroles @> ARRAY[0::OID]
+               OR EXISTS (SELECT 1 FROM pg_catalog.unnest(p.polroles) AS x(rid)
+                           WHERE pg_catalog.pg_has_role(g.r, x.rid, 'MEMBER')))
+          AND (pg_catalog.has_any_column_privilege(g.r, c.oid, 'INSERT, UPDATE')
+               OR pg_catalog.has_table_privilege(g.r, c.oid, 'DELETE')))
+     AND NOT (
+       COALESCE(pg_catalog.pg_get_expr(p.polqual, p.polrelid), 'true') = 'false'
+       AND COALESCE(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid),
+                    pg_catalog.pg_get_expr(p.polqual, p.polrelid), 'true') = 'false'
+     );
+  IF v_problem IS NOT NULL THEN
+    RAISE EXCEPTION 'AL-2675: FOR ALL policies that are not a plain deny stand where no signed-in write grant does: %', v_problem;
   END IF;
 
   -- Every policy of the two buckets tests a live membership in the path's

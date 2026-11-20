@@ -82,13 +82,13 @@ AND (
 - **Not an owner:** the followed missionary (`follows.missionary_id`, a profile id). Missionary follower lists are served by the admin client.
 - **Dependency:** the own term reads `donors` and `profiles` as the caller. It relies on the owner branch of `"donors owner or staff select"` and on `"profiles select own authenticated"` (both `20260625002117`), and on `authenticated` keeping SELECT on both tables. Narrowing either policy breaks the own term.
 
-NULL-tenant rows are hidden from every user JWT. With no tenant context, or a malformed one, `authz.current_tenant_id()` is NULL and nothing matches.
+NULL-tenant rows are hidden from every user JWT. With no tenant context, or one that does not resolve to a live row of the caller's, `authz.current_tenant_id()` is NULL and nothing matches. A malformed tenant header (anything but a hyphenated UUID) is not read as none: it raises `22P02` wherever a policy evaluates the lookup, and only where no lookup runs (an empty scan) does the read come back empty.
 
 ## Who reads these tables
 
 Every product read goes through the service-role admin client and is unchanged. The TanStack collections for these tables (including `followsCollection`) are defined but nothing instantiates them. The only anon reader was `scripts/supabase-env-smoke.mjs`; its anon probe of `campaigns` now expects permission denied (42501) and fails when rows come back.
 
-Signed-in reads follow `authz.current_tenant_id()`. Since the second release of WP2b (AL-2675) it no longer reads the JWT `app_metadata.tenant_id` claim: it returns the tenant the request's `x-asym-tenant` header names, when the request's one assignment resolves there (the row `x-asym-assignment` names, or the caller's one live row), and NULL otherwise. A request that names no tenant reads nothing. This is the repoint #2298 planned, carried by a request header in place of a GUC.
+Signed-in reads follow `authz.current_tenant_id()`. Since the second release of WP2b (AL-2675) it no longer reads the JWT `app_metadata.tenant_id` claim: it returns the tenant the request's `x-asym-tenant` header names, when the request's one assignment resolves there (the row `x-asym-assignment` names, or the caller's one live row), and NULL when the header is missing or blank or the assignment does not resolve. A request that names no tenant reads nothing through these policies. A malformed header raises `22P02` where a policy evaluates the lookup, rather than reading as NULL. This is the repoint #2298 planned, carried by a request header in place of a GUC.
 
 **Realtime:** since the second release of WP2b no tenant table is in `supabase_realtime`, `funds` included (plan 5.2): a subscription would need a read policy that ignores the active tenant. The catalog gate fails a published tenant table.
 
