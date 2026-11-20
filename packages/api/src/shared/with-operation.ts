@@ -199,7 +199,14 @@ function authenticatedOperation<
 
       const normalized = toApiHttpError(error, "Internal error");
       if (normalized.status >= 500) {
-        console.error("[withOperation] Unhandled error:", error);
+        console.error("[withOperation] Request failed", {
+          requestId,
+          status: normalized.status,
+        });
+        return NextResponse.json(
+          { error: "Internal error", requestId },
+          { status: normalized.status },
+        );
       }
       return toErrorResponse(error, "Internal error", requestId);
     }

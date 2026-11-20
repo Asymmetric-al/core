@@ -24,6 +24,7 @@ vi.mock("@asym/database/supabase/admin", () => ({
 
 vi.mock("@asym/lib/audit/logger", () => ({
   createAuditLogger: vi.fn(() => ({
+    logRequired: vi.fn(),
     log: vi.fn(),
     logDonation: vi.fn(),
     logPost: vi.fn(),
@@ -208,6 +209,7 @@ describe("withOperation", () => {
     });
     mockedGetAuthContext.mockResolvedValue(authenticatedAdmin);
     mockedCreateAuditLogger.mockReturnValue({
+      logRequired: vi.fn(),
       log: vi.fn(),
       logDonation: vi.fn(),
       logPost: vi.fn(),
@@ -236,6 +238,7 @@ describe("withOperation", () => {
     });
     mockedGetAuthContext.mockResolvedValue(authenticatedAdmin);
     mockedCreateAuditLogger.mockReturnValue({
+      logRequired: vi.fn(),
       log: vi.fn(),
       logDonation: vi.fn(),
       logPost: vi.fn(),
@@ -280,6 +283,7 @@ describe("withOperation", () => {
   });
 
   it("normalizes async handler failures with requestId", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
     mockedGetAdminClient.mockReturnValue({
       client: {} as never,
       error: null,
@@ -295,7 +299,12 @@ describe("withOperation", () => {
 
     expect(response.status).toBe(500);
     const body = await response.json();
-    expect(body).toMatchObject({ error: "Database exploded" });
+    expect(body).toMatchObject({ error: "Internal error" });
+    expect(logged).toHaveBeenCalledWith("[withOperation] Request failed", {
+      requestId: body.requestId,
+      status: 500,
+    });
+    logged.mockRestore();
     expectBodyHasRequestId(body);
   });
 });

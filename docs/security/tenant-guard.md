@@ -382,3 +382,11 @@ Re-exporting the factory, `requireWorkflowAdminClient` or `withPlatformOperation
 - an entry with an unknown kind, a non-positive count, an empty reason or a duplicate key (`ALLOWLIST_MALFORMED`).
 
 To comply, reach tenant data through `withTenant` (see "Adding a guarded function" above), not a new service-role site. A PR that removes sites lowers or deletes the matching allowlist entry and ceiling row in the same change. Adding an entry or raising a count means editing the pinned ceiling, which needs a new security ruling from Samson. Entries are reviewed like the deny-by-default list: each one needs a specific `reason` and its follow-up. Moving a site within an allowlisted file passes, which is acceptable for a shrink-only ceiling.
+
+### HTTP mutation admission and audit (AL-2677)
+
+All three product proxies call `admitApiMutation` in `createAuthMiddleware` before dispatching API writes. Browser requests must match the request URL's exact origin (scheme, host and port). Do not use a forwarded host header or one fixed donor application URL. WP3b should resolve the request host against the verified Site/portal registry at the donor proxy boundary before dispatch; passing that check does not make a sibling verified host same-origin.
+
+Without Origin, a matching Referer or same-origin Fetch Metadata can attest a browser request. Otherwise only a cookie-free bearer request or the exact Stripe, Resend and Inngest endpoints proceeds to its own authentication. JSON is accepted; multipart is limited to media uploads and Web Studio. A bodyless write needs no content type. Admission is not authorization or signature validation.
+
+Operation failures log status and correlation ID, not exception objects. CRM command rows record actor, action, references and outcome only. The human audit logger binds identity to the authenticated context; system events have no human actor. Governed exports require a successful audit insert.

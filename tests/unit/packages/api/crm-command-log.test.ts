@@ -40,8 +40,18 @@ describe("CRM command log boundary", () => {
   it("logs audited commands with the Supabase actor and tenant", async () => {
     const { client, insertMock } = createSupabaseRecorder();
 
+    const untrusted = {
+      commandPayload: {
+        title: "private note",
+        content: { text: "restricted" },
+        actor_user_id: "body actor",
+      },
+      resultSummary: { displayName: "restricted" },
+      errorMessage: "private database detail",
+    };
     await expect(
       logCrmCommand(client, {
+        ...untrusted,
         actor,
         action: "crm.person.create",
         resourceType: "person",
@@ -49,16 +59,6 @@ describe("CRM command log boundary", () => {
         idempotencyKey: "cmd-1",
         status: "succeeded",
         requestId: "request-1",
-        commandPayload: {
-          email: "ada@example.test",
-          apiKey: "secret-api-key",
-          nested: {
-            webhookSecret: "secret-webhook",
-          },
-        },
-        resultSummary: {
-          twentyId: "twenty-person-1",
-        },
       }),
     ).resolves.toMatchObject({
       ok: true,
@@ -78,17 +78,8 @@ describe("CRM command log boundary", () => {
         tenant_id: "tenant-1",
       }),
     );
-    expect(insertMock.mock.calls[0]?.[0]).toMatchObject({
-      command_payload: {
-        email: "ada@example.test",
-        apiKey: "[redacted]",
-        nested: {
-          webhookSecret: "[redacted]",
-        },
-      },
-      result_summary: {
-        twentyId: "twenty-person-1",
-      },
-    });
+    expect(JSON.stringify(insertMock.mock.calls)).not.toMatch(
+      /private|restricted|body actor/,
+    );
   });
 });

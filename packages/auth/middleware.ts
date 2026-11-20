@@ -15,6 +15,7 @@ import {
   parseE2EAuthCookieValue,
   type E2EAuthSession,
 } from "./e2e-auth";
+import { admitApiMutation } from "./mutation-admission";
 import { hasAnyRole, type RoleSnapshot } from "./permissions";
 import { readActiveAssignments } from "./principal/assignment";
 import { listE2EAuthAssignments } from "./principal/e2e-assignments";
@@ -434,6 +435,8 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
 
   return async function authMiddleware(request: NextRequest) {
     const addressPathname = request.nextUrl.pathname;
+    const refusal = admitApiMutation(request, addressPathname);
+    if (refusal) return refusal;
 
     if (
       tenantAddress &&
