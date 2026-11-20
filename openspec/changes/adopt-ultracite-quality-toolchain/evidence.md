@@ -1416,3 +1416,11 @@ wrapping the second in one `describe`, the listing exits 0 (13,137 tests in 1,59
 tests run and pass with the same names. The listing names fewer tests than the unit run executes (20,314 at that
 revision) and none for the migrations file itself, so a before-and-after comparison uses the test names in the
 run's JSON report.
+
+## E81. Oxlint import patterns match one depth; the port adds `/**` [X]
+
+Oxlint 1.94.0's `no-restricted-imports` matches a pattern only at its exact path depth, where ESLint's also bans every
+path below a matched one. Ported literally, the incumbent options let `motion/react/x`, `@supabase/ssr/foo` and
+`payload/x/y` through: 46 of 61 probe specifiers differed between the engines on the same options. With an explicit
+`/**` form added to each pattern, the two engines agree on all 4,711 specifiers tested (every import specifier in the
+tree plus the probes). The tiers find no import on the tree at the PL-2 revision.

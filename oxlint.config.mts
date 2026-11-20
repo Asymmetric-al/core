@@ -146,6 +146,227 @@ for (const entry of parity.rules) {
   parityGroups.set(key, group);
 }
 
+const vendoredGrid = [
+  "data-grid",
+  "data-grid-column-filter",
+  "data-grid-column-header",
+  "data-grid-column-visibility",
+  "data-grid-i18n",
+  "data-grid-pagination",
+  "data-grid-scroll-area",
+  "data-grid-table",
+  "data-grid-table-virtual",
+].map((name) => `packages/ui/components/reui/data-grid/${name}.tsx`);
+
+// Design 4.3: the four import tiers, ported from eslint.config.mjs, tooling/eslint-config/{base,restricted-imports}.mjs
+// and packages/api/eslint.config.mjs (the union of every config that lints a path). A later setting of this rule
+// replaces an earlier one, so each block carries every ban for its paths, widest first. ESLint's gitignore matching
+// also bans what lies below a matched path; Oxlint matches the exact depth only, so each group adds its `/**` form.
+type Restriction = {
+  patterns: { group: string[]; message: string }[];
+  paths: { name: string; message: string }[];
+};
+
+const banned = (message: string, ...globs: string[]) => ({
+  message,
+  group: [
+    ...new Set(
+      globs.flatMap((glob) =>
+        glob.endsWith("/**") ? [glob] : [glob, `${glob}/**`],
+      ),
+    ),
+  ],
+});
+
+const restriction = (
+  ...parts: Partial<Restriction>[]
+): ["error", Restriction] => [
+  "error",
+  {
+    patterns: parts.flatMap((part) => part.patterns ?? []),
+    paths: parts.flatMap((part) => part.paths ?? []),
+  },
+];
+
+const crossApp = {
+  patterns: [
+    banned(
+      "Apps cannot import from other apps. Use @asym/* packages instead.",
+      "../../apps/*",
+      "../../../apps/*",
+      "../../../../apps/*",
+    ),
+    ...["admin", "donor", "missionary", "factory-console"].map((app) =>
+      banned(
+        `Cannot import from apps/${app}. Use @asym/* packages instead.`,
+        `**/apps/${app}/**`,
+      ),
+    ),
+  ],
+};
+
+const motion = {
+  patterns: [
+    banned(
+      "Import motion APIs from @asym/lib/motion (LazyMotion m + MotionConfig reducedMotion). See docs/ai/skills/anim/SKILL.md.",
+      "motion/react",
+      "framer-motion",
+    ),
+  ],
+};
+
+const twentyClient = {
+  patterns: [
+    banned(
+      "App code must not import raw Twenty clients. Use stable @asym/api CRM contracts and route re-exports instead.",
+      "@asym/api/crm/client",
+      "@asym/api/crm/client/*",
+      "@asym/api/src/crm/client",
+      "@asym/api/src/crm/client/*",
+      "**/packages/api/src/crm/client",
+      "**/packages/api/src/crm/client/*",
+      "**/packages/api/src/crm/client/**",
+    ),
+  ],
+};
+
+const tableEngine = {
+  paths: [
+    {
+      name: "@tanstack/react-table",
+      message:
+        "Import table values/types from the boundary module @asym/ui/components/shadcn/data-table/tanstack (relative ./tanstack within shared UI), not @tanstack/react-table directly (ADR-3). @tanstack/react-table-devtools is allowed.",
+    },
+  ],
+};
+
+const uiClients = {
+  patterns: [
+    banned(
+      "Client-side surfaces must consume Supabase via @asym/database wrappers, not @supabase/* directly.",
+      "@supabase/*",
+    ),
+  ],
+  paths: ["admin", "server"].map((client) => ({
+    name: `@asym/database/supabase/${client}`,
+    message: `UI layers must not import the ${client} database client directly.`,
+  })),
+};
+
+const routeClients = {
+  patterns: [
+    banned(
+      "Route handlers must not import Supabase clients directly; re-export handlers from @asym/api instead.",
+      "@asym/database/supabase",
+      "@asym/database/supabase/*",
+      "@asym/database/supabase/**",
+    ),
+    banned(
+      "Route handlers must not import @supabase/* directly; use @asym/api boundaries.",
+      "@supabase/*",
+    ),
+  ],
+  paths: [
+    ...["", "/client", "/server", "/admin"].map((entry) => ({
+      name: `@asym/database/supabase${entry}`,
+      message: `Route handlers must not import @asym/database/supabase${entry} directly; re-export handlers from @asym/api instead.`,
+    })),
+    ...["@supabase/ssr", "@supabase/supabase-js"].map((name) => ({
+      name,
+      message: `Route handlers must not import ${name} directly; use @asym/api boundaries.`,
+    })),
+  ],
+};
+
+const publicContract = {
+  patterns: [
+    banned(
+      "The public-content contract package must not import Payload; the single Payload-touching reader implementation is co-located in apps/admin (ADR-0027).",
+      "payload",
+      "payload/*",
+      "@payloadcms/*",
+      "@payloadcms/**",
+    ),
+  ],
+};
+
+const firstParty = ["apps", "packages", "tooling"];
+
+const uiLayer = [
+  "apps/*/components",
+  "apps/*/features",
+  "apps/*/src/components",
+  "apps/*/src/features",
+  "packages/ui",
+];
+
+const routeHandlers = ["apps/*/app/api", "apps/*/src/app/api"];
+
+const tableBoundary = [
+  "packages/ui/components/shadcn/data-table/tanstack.ts",
+  "packages/ui/components/shadcn/data-table/types.ts",
+  "packages/ui/components/data-grid-panel/data-grid-engine.ts",
+];
+
+const appTier = [crossApp, twentyClient, motion, tableEngine];
+
+const importTiers: OxlintOverride[] = [
+  {
+    files: firstParty.map((area) => `${area}/${source}`),
+    rules: { "no-restricted-imports": restriction(crossApp, motion) },
+  }, // Tier 0: first-party code never imports an app and reaches motion only through @asym/lib/motion.
+  {
+    files: ["packages/lib/motion.ts", "packages/lib/motion-provider.tsx"],
+    rules: { "no-restricted-imports": restriction(crossApp) },
+  }, // The motion re-export and the provider that mounts LazyMotion and MotionConfig.
+  {
+    files: [`apps/${source}`],
+    rules: { "no-restricted-imports": restriction(...appTier) },
+  }, // Tier 1: app-wide.
+  {
+    files: uiLayer.map((dir) => `${dir}/${source}`),
+    rules: { "no-restricted-imports": restriction(...appTier, uiClients) },
+  }, // Tier 2: the UI layer.
+  {
+    files: firstParty.map((area) => `${area}/**/src/cms-ui/**`),
+    rules: {
+      "no-restricted-imports": restriction(crossApp, twentyClient, tableEngine),
+    },
+  }, // Payload's admin React tree mounts no MotionProvider or LazyMotion, so direct motion/react stays allowed.
+  {
+    files: [...tableBoundary, ...vendoredGrid],
+    rules: {
+      "no-restricted-imports": restriction(
+        crossApp,
+        twentyClient,
+        motion,
+        uiClients,
+      ),
+    },
+  }, // ADR-3: the table boundary modules, the engine's module augmentation and the vendored ReUI grid import the engine.
+  {
+    files: [`packages/api/src/cms/public/${source}`],
+    rules: {
+      "no-restricted-imports": restriction(
+        crossApp,
+        twentyClient,
+        motion,
+        publicContract,
+      ),
+    },
+  }, // ADR-0027: the public-content contract never imports Payload.
+  {
+    files: routeHandlers.map((dir) => `${dir}/${source}`),
+    rules: { "no-restricted-imports": restriction(...appTier, routeClients) },
+  }, // Tier 3: route handlers re-export @asym/api handlers.
+  {
+    files: routeHandlers.map(
+      (dir) => `${dir}/health/route.{ts,tsx,mts,cts,js,jsx,mjs,cjs}`,
+    ),
+    rules: { "no-restricted-imports": restriction(...appTier) },
+  }, // The health probe is excepted from tier 3 only (data-access-boundary.md).
+];
+
 const jsxRule = (name: string) =>
   /^(jsx-a11y\/|react-perf\/|react\/(?:jsx-|button-has-type|checked-requires-onchange-or-readonly|forbid-(?:component-props|dom-props|elements)|iframe-missing-sandbox|no-(?:danger|children-prop|string-refs|unescaped-entities|unknown-property)|self-closing-comp|style-prop-object|void-dom-elements))/.test(
     name,
@@ -174,17 +395,6 @@ const playwrightRules: DummyRuleMap = {
   "playwright/no-skipped-test": ["error", { allowConditional: true }],
 };
 const vitestRules = vitest.overrides[0]?.rules ?? {};
-const vendoredGrid = [
-  "data-grid",
-  "data-grid-column-filter",
-  "data-grid-column-header",
-  "data-grid-column-visibility",
-  "data-grid-i18n",
-  "data-grid-pagination",
-  "data-grid-scroll-area",
-  "data-grid-table",
-  "data-grid-table-virtual",
-].map((name) => `packages/ui/components/reui/data-grid/${name}.tsx`);
 const profiles: DummyRuleMap[] = [
   { ...core.rules, ...antiSlop.rules },
   {
@@ -404,6 +614,7 @@ export default defineConfig({
       rules: { "anti-slop/no-unknown-parameters": "off" },
     }, // Validators for CLI, filesystem and subprocess input cannot assume a trusted caller.
     ...parityGroups.values(),
+    ...importTiers,
     {
       files: apps.map((dir) => `${dir}/**/*.{ts,tsx,mts,cts,js,jsx,mjs}`),
       excludeFiles: ["**/*.config.mjs"],

@@ -15,13 +15,13 @@
     "vendored": "Unpacked third-party distributions.",
     "fixture": "Base UI browser fixtures outside that program's fixed include list (L9 keeps the program as it is). workspace-main.tsx needs Missionary's @/, which conflicts with the directory's @/ for the UI package (E40)."
   },
-  "trackedFiles": 4257,
+  "trackedFiles": 4258,
   "counts": {
     "compiled": 2343,
     "compiled-elsewhere": 33,
     "negative-fixture": 4,
     "evidence": 3,
-    "lint-context": 1762,
+    "lint-context": 1763,
     "none": 112
   },
   "programs": [
@@ -205,7 +205,7 @@
       "config": "tests/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 2072,
+      "trackedMembers": 2073,
       "importedOnly": 987,
       "reason": "Central tests that need no workspace alias (E40), with allowJs so imported scripts keep inferred types. Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
@@ -530,7 +530,7 @@
     },
     {
       "path": "tests/**",
-      "files": 1082,
+      "files": 1083,
       "class": "lint-context",
       "roots": "tests/tsconfig.json",
       "kind": ""

@@ -1,0 +1,10 @@
+import { motion } from "motion/react";
+import type { Variants } from "framer-motion";
+
+export { AnimatePresence } from "motion/react";
+
+export type PanelVariants = Variants;
+
+export const Panel = motion.div;
+
+export const loadMotion = () => import("motion/react");

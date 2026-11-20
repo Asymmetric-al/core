@@ -405,6 +405,11 @@ an earlier one, so each path's block carries the full list):
 2. UI layer (`components`, `features`, `packages/ui`): no `@supabase/*` and no admin or server database clients;
 3. route handlers: no Supabase clients, except the health route's probe.
 
+PL-2 ports every incumbent ban with its message and file-specific exceptions (the motion modules, Payload's
+admin UI, the table boundary and the vendored grid files, the health route, the public-content contract) into nine
+ordered blocks, each pattern also in an explicit `/**` form (E81). Root `tests/**` and `scripts/**` stay outside the
+tiers, as before; `require()` is not covered by either engine's rule.
+
 `verify:data-boundary`, `verify:service-role-clients` and `verify:cms-public-sole-entry` stay as independent gates.
 
 ### 4.4 TanStack libraries
