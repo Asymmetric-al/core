@@ -383,11 +383,19 @@ describe("#2312 unchanged (criterion 8)", () => {
   );
   it("8: no missionaries.person_id read or write in the migration", () =>
     expect(sql()).not.toMatch(/person_id/i));
-  it("8: #2253's service-role allowlist is not grown (117 entries at develop 88eefbd9)", () => {
+  it("8: #2253's service-role allowlist does not grow in either reviewed pool", () => {
     const a = (
-      JSON.parse(H.read(H.ALLOWLIST)) as { entries: { file: string }[] }
+      JSON.parse(H.read(H.ALLOWLIST)) as {
+        entries: { file: string; follow_up: string }[];
+      }
     ).entries;
-    expect(a.length).toBeLessThanOrEqual(117);
+    // D-18: WP4a counts six existing bypass paths for WP4b; the original pool shrank to 115.
+    expect(
+      a.filter((entry) => entry.follow_up !== "WP4b").length,
+    ).toBeLessThanOrEqual(115);
+    expect(
+      a.filter((entry) => entry.follow_up === "WP4b").length,
+    ).toBeLessThanOrEqual(6);
   });
   it(`8 (addendum 1 item 4): '${STEP}' runs ${H.REALSTACK}`, () => {
     const step = (

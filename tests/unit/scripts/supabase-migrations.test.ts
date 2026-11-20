@@ -30,20 +30,17 @@ const MANIFEST = JSON.parse(
   record_types: Record<string, object>;
   derived_record_types: Record<string, object>;
 };
-const allRecords = {
-  ...MANIFEST.record_types,
-  ...MANIFEST.derived_record_types,
-};
-const RECORD_TYPES = Object.keys(allRecords).length;
+const PHYSICAL_TYPES = Object.keys(MANIFEST.record_types).length;
+const DERIVED_TYPES = Object.keys(MANIFEST.derived_record_types).length;
 const COLUMNS = Object.values(MANIFEST.record_types).reduce(
   (n, columns) => n + Object.keys(columns).length,
   0,
 );
-const allColumns = Object.values(allRecords).reduce(
+const DERIVED_FIELDS = Object.values(MANIFEST.derived_record_types).reduce(
   (count, fields) => count + Object.keys(fields).length,
   0,
 );
-const ROWS = allColumns * MANIFEST.surfaces.length;
+const ROWS = (COLUMNS + DERIVED_FIELDS) * MANIFEST.surfaces.length;
 const roots: string[] = [];
 const itPosix = process.platform === "win32" ? it.skip : it;
 afterEach(() => {
@@ -287,20 +284,22 @@ describe("supabase migrations verifier", () => {
       const result = runVerifier("clean");
       expect(result.status).toBe(0);
       expect(result.stdout).toContain(
-        `PASS: field-policy manifest: ${RECORD_TYPES} record types, ${allColumns} columns`,
+        `PASS: field-policy manifest: ${PHYSICAL_TYPES} physical types (${COLUMNS} columns), ${DERIVED_TYPES} derived types (${DERIVED_FIELDS} fields)`,
       );
       expect(result.stdout).toContain(
         `PASS: all ${ROWS} public.field_policies rows equal the manifest`,
       );
       expect(result.stdout).toContain(
-        `equal the manifest's ${COLUMNS} entries`,
+        `equal the manifest's ${COLUMNS} physical columns`,
       );
       // AL-2674 (D09) removed one exception entry with its dropped table.
       const gateLine = result.stdout.indexOf(
         "PASS: tenant RLS catalog gate: 85 tenant tables enabled and forced (1 with policies, 84 listed deny-by-default, 0 stale)",
       );
       expect(
-        result.stdout.indexOf(`equal the manifest's ${COLUMNS} entries`),
+        result.stdout.indexOf(
+          `equal the manifest's ${COLUMNS} physical columns`,
+        ),
       ).toBeLessThan(gateLine);
       expect(gateLine).toBeLessThan(
         result.stdout.indexOf("forward Supabase migrations"),
