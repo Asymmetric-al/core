@@ -380,6 +380,27 @@ it(
     }
   },
 );
+it("refuses to fix through a supplied link path", { timeout }, () => {
+  const outside = mkdtempSync(join(tmpdir(), "quality-link-target-"));
+  try {
+    writeFileSync(
+      join(repo, ".gitignore"),
+      "node_modules/" +
+        String.fromCharCode(10) +
+        "hidden/" +
+        String.fromCharCode(10),
+    );
+    mkdirSync(join(repo, "hidden"));
+    symlinkSync(outside, join(repo, "hidden/external"), "junction");
+    symlinkSync(join(repo, "hidden"), join(repo, "selected"), "junction");
+    unlinkSync(join(repo, "node_modules/.bin", bin("oxlint")));
+    const result = run("--fix", "selected");
+    expect(result.status, result.output).toBe(2);
+    expect(result.stderr).toMatch(/through a link.*selected/i);
+  } finally {
+    removeFixture(tmpdir(), outside);
+  }
+});
 it(
   "fixes a selected directory without rejecting ignored or out-of-scope links",
   { timeout },
