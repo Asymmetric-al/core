@@ -7,7 +7,7 @@ import {
   moveSupportConversation,
   retryFailedBulkMove,
 } from "./move-service";
-import { withOperation } from "../../shared/with-operation";
+import { withPlatformOperation } from "../../shared/with-operation";
 
 const moveSchema = z
   .object({
@@ -38,7 +38,7 @@ const retrySchema = z
  * Explicit audited Support Hub conversation move. Tenant scoping, reason
  * validation, retention rules, markers, and audit live in the move service.
  */
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 
@@ -73,7 +73,7 @@ export const POST = withOperation(
   { capability: "admin.dashboard.access" },
 );
 
-export const bulkMovePOST = withOperation(
+export const bulkMovePOST = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 
@@ -99,7 +99,7 @@ export const bulkMovePOST = withOperation(
   { capability: "admin.dashboard.access" },
 );
 
-export const retryPOST = withOperation(
+export const retryPOST = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 

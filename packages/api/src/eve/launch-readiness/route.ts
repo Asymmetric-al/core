@@ -22,7 +22,7 @@ import {
 } from "./store";
 import { EVE_LAUNCH_CANARY_IDS } from "./types";
 import { toErrorResponse } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { withPlatformOperation } from "../../shared/with-operation";
 import { loadEveGovernanceSnapshot } from "../governance";
 
 const safeReason = eveLaunchSafeTextSchema;
@@ -102,7 +102,7 @@ async function adminView(input: {
   };
 }
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ auth, requestId, supabaseAdmin }) => {
     try {
       return NextResponse.json({
@@ -124,7 +124,7 @@ export const GET = withOperation(
   { tenantAdministrator: true },
 );
 
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     const parsed = mutationSchema.safeParse(
       await request.json().catch(() => null),

@@ -10,7 +10,7 @@ import {
 } from "./store";
 import { EVE_NOTIFICATION_CHANNELS } from "./types";
 import { toErrorResponse } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { withPlatformOperation } from "../../shared/with-operation";
 import { createAdminEveAuditIdentity } from "../audit/identity";
 import { traceEveAuditEvent } from "../audit/record";
 import { createEveAuditStore } from "../audit/store";
@@ -54,7 +54,7 @@ async function ensureDefaults(input: {
   return governance;
 }
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ auth, requestId, supabaseAdmin }) => {
     try {
       await ensureDefaults({ supabaseAdmin, tenantId: auth.tenantId });
@@ -76,7 +76,7 @@ export const GET = withOperation(
   { tenantAdministrator: true },
 );
 
-export const PATCH = withOperation(
+export const PATCH = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     const parsed = mutationSchema.safeParse(
       await request.json().catch(() => null),

@@ -27,7 +27,7 @@ import {
   ensureJsonBody,
   toErrorResponse,
 } from "../shared/http-errors";
-import { withOperation } from "../shared/with-operation";
+import { withPlatformOperation } from "../shared/with-operation";
 import { resolveTenantStripe } from "../stripe/tenant-client";
 
 const stripeConfigurationError = () =>
@@ -36,7 +36,7 @@ const stripeConfigurationError = () =>
     { status: 500 },
   );
 
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 

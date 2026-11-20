@@ -17,7 +17,7 @@ import {
   loadEveModelPolicies,
 } from "./store";
 import { toErrorResponse } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { withPlatformOperation } from "../../shared/with-operation";
 
 async function loadAdminView(
   input: Parameters<typeof canManageEveModelPolicy>[0],
@@ -35,7 +35,7 @@ async function loadAdminView(
   };
 }
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ auth, supabaseAdmin, requestId }) => {
     try {
       return NextResponse.json({
@@ -53,7 +53,7 @@ export const GET = withOperation(
   { tenantAdministrator: true },
 );
 
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ auth, request, supabaseAdmin, requestId }) => {
     try {
       const parsed = createEveModelPolicyDraftSchema.parse(
@@ -83,7 +83,7 @@ export const POST = withOperation(
   { tenantAdministrator: true },
 );
 
-export const PATCH = withOperation(
+export const PATCH = withPlatformOperation(
   async ({ auth, request, supabaseAdmin, requestId }) => {
     try {
       const mutation = mutateEveModelPolicySchema.parse(await request.json());

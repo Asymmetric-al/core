@@ -2,9 +2,21 @@ import { getAuthContext, type AuthContext } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { createAuditLogger } from "@asym/lib/audit/logger";
 import { NextRequest, NextResponse } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 
-import { withOperation } from "../../src/shared/with-operation";
+import { createRequestSessionClient } from "../../src/shared/request-session-client";
+import {
+  withOperation,
+  withPlatformOperation,
+} from "../../src/shared/with-operation";
+
+const scope = vi.hoisted(() => ({
+  tenantId: "tenant-1",
+  assignmentId: "assignment-1",
+}));
+vi.mock("../../src/shared/request-session-client", () => ({
+  createRequestSessionClient: vi.fn(async () => ({ kind: "caller" })),
+}));
 
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: vi.fn(),
@@ -21,6 +33,7 @@ vi.mock("@asym/lib/audit/logger", () => ({
 
 vi.mock("@asym/auth/context", () => ({
   getAuthContext: vi.fn(),
+  requestScopeOf: vi.fn(() => scope),
   requireAuth: vi.fn(
     (context: {
       isAuthenticated?: boolean;
@@ -102,20 +115,41 @@ describe("withOperation", () => {
     vi.clearAllMocks();
   });
 
-  it("returns 503 with requestId when admin client is unavailable", async () => {
+  it("hands the caller only the session client for the resolved assignment", async () => {
+    mockedGetAdminClient.mockReturnValue({
+      client: null,
+      error: "not configured",
+    });
+    mockedGetAuthContext.mockResolvedValue(authenticatedAdmin);
+    const request = createRequest();
+    const response = await withOperation(async (ctx) => {
+      expectTypeOf(ctx).not.toHaveProperty("supabaseAdmin");
+      expect(ctx).not.toHaveProperty("supabaseAdmin");
+      expect(ctx.sessionClient).toEqual({ kind: "caller" });
+      return NextResponse.json({ ok: true });
+    })(request);
+    expect(response.status).toBe(200);
+    expect(createRequestSessionClient).toHaveBeenCalledWith(request, scope);
+    expect(mockedGetAdminClient).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 with requestId when the platform client is unavailable", async () => {
+    mockedGetAuthContext.mockResolvedValue(authenticatedAdmin);
     mockedGetAdminClient.mockReturnValue({
       client: null,
       error: "Admin client unavailable",
     });
 
-    const handler = withOperation(async () => NextResponse.json({ ok: true }));
+    const handler = withPlatformOperation(async () =>
+      NextResponse.json({ ok: true }),
+    );
     const response = await handler(createRequest());
 
     expect(response.status).toBe(503);
     const body = await response.json();
     expect(body).toMatchObject({ error: "Admin client unavailable" });
     expectBodyHasRequestId(body);
-    expect(mockedGetAuthContext).not.toHaveBeenCalled();
+    expect(createRequestSessionClient).not.toHaveBeenCalled();
   });
 
   it("returns 401 with requestId when request is unauthenticated", async () => {

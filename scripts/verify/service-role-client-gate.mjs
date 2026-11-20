@@ -48,7 +48,7 @@ const MODULES = [
   {
     kind: "operation_admin_context",
     file: "packages/api/src/shared/with-operation",
-    names: ["withOperation"],
+    names: ["withPlatformOperation"],
   },
 ];
 const SCAN_ROOTS = ["apps", "packages", "scripts", "tooling"];
@@ -89,7 +89,7 @@ packages/api/src/admin/crm/notes/index.ts operation_admin_context 2
 packages/api/src/admin/crm/relationships/index.ts operation_admin_context 1
 packages/api/src/admin/crm/reports/export.ts operation_admin_context 1
 packages/api/src/admin/crm/reports/index.ts operation_admin_context 1
-packages/api/src/admin/crm/table-preferences/route.ts operation_admin_context 7
+packages/api/src/admin/crm/table-preferences/route.ts operation_admin_context 3
 packages/api/src/admin/fund-directory.ts operation_admin_context 1
 packages/api/src/admin/locations/index.ts admin_client 1
 packages/api/src/admin/member-care/mutations.ts admin_client 1
@@ -108,7 +108,6 @@ packages/api/src/admin/support/loaders.ts admin_client 1
 packages/api/src/admin/support/ticket.ts admin_client 1
 packages/api/src/admin/support/tickets.ts admin_client 1
 packages/api/src/admin/support/tickets.ts operation_admin_context 1
-packages/api/src/admin/users.ts operation_admin_context 1
 packages/api/src/admin/workflows/notification-policy.ts operation_admin_context 2
 packages/api/src/admin/workflows/summaries.ts operation_admin_context 1
 packages/api/src/auth/cleanup-demo-users.ts admin_client 1
@@ -150,7 +149,7 @@ packages/api/src/posts/index.ts admin_client 2
 packages/api/src/posts/post.ts admin_client 2
 packages/api/src/posts/reaction-route-handlers.ts admin_client 1
 packages/api/src/profile/index.ts admin_client 2
-packages/api/src/reads/dashboard-stats.ts admin_client 2
+packages/api/src/reads/dashboard-stats.ts admin_client 1
 packages/api/src/reads/donor-history.ts admin_client 2
 packages/api/src/reads/member-care.ts admin_client 1
 packages/api/src/reads/missionary-metrics.ts admin_client 1
@@ -183,7 +182,7 @@ scripts/cms/lib/env.mjs service_role_key 7
 scripts/cms/lib/local-data.mjs service_role_key 1
 scripts/document-cutover/assess-document-cutover.ts service_role_key 2
 scripts/supabase-env-smoke.mjs service_role_key 2
-scripts/verify-money-units.ts service_role_key 3
+scripts/verify-money-units.ts service_role_key 1
 scripts/verify/vercel-production-readiness.mjs service_role_key 1
 `;
 
@@ -231,57 +230,6 @@ const unwrap = (node) => {
     n = n.parent;
   return n;
 };
-
-/** True when a destructuring pattern reaches supabaseAdmin (or may: rest, computed key). */
-const patternTouchesAdmin = (pattern) =>
-  !ts.isObjectBindingPattern(pattern) ||
-  pattern.elements.some(
-    (e) => e.dotDotDotToken || [null, "supabaseAdmin"].includes(propertyKey(e)),
-  );
-
-/** True when the handler context parameter `name` reaches supabaseAdmin or escapes whole. */
-function contextTouchesAdmin(body, name) {
-  let touched = false;
-  const visit = (node) => {
-    if (touched) return;
-    if (ts.isIdentifier(node) && node.text === name) {
-      const p = node.parent;
-      if (ts.isPropertyAccessExpression(p) && p.name === node) return;
-      if (ts.isPropertyAssignment(p) && p.name === node) return;
-      if (
-        (ts.isPropertyAccessExpression(p) || ts.isElementAccessExpression(p)) &&
-        p.expression === node
-      ) {
-        if ([null, "supabaseAdmin"].includes(memberName(p))) touched = true;
-        return;
-      }
-      if (ts.isVariableDeclaration(p) && p.initializer === node) {
-        if (patternTouchesAdmin(p.name)) touched = true;
-        return;
-      }
-      touched = true;
-      return;
-    }
-    ts.forEachChild(node, visit);
-  };
-  visit(body);
-  return touched;
-}
-
-function handlerIsSite(call) {
-  const handler = call.arguments[0];
-  if (
-    !handler ||
-    !(ts.isArrowFunction(handler) || ts.isFunctionExpression(handler))
-  )
-    return handler ?? call;
-  const param = handler.parameters[0];
-  if (!param) return null;
-  const touches = ts.isIdentifier(param.name)
-    ? contextTouchesAdmin(handler.body, param.name.text)
-    : patternTouchesAdmin(param.name);
-  return touches ? handler : null;
-}
 
 /** Sites and re-exports in one file: { sites: [{ kind, line }], reexports: [{ kind, line }] }. */
 export function scanSource(file, text) {
@@ -373,25 +321,12 @@ export function scanSource(file, text) {
             member === "then" ||
             module.names.includes(member)
           )
-            use(module, p);
+            site(module, p);
         } else site(module, outer);
       }
     }
     ts.forEachChild(node, collect);
   };
-
-  /** A reference to a tracked function (direct, or a namespace member). */
-  function use(module, node) {
-    const p = unwrap(node).parent;
-    const callee = unwrap(node);
-    if (ts.isCallExpression(p) && p.expression === callee) {
-      if (module.kind !== "operation_admin_context") site(module, node);
-      else {
-        const handler = handlerIsSite(p);
-        if (handler) site(module, handler);
-      }
-    } else site(module, node);
-  }
 
   const references = (node) => {
     if (
@@ -418,14 +353,14 @@ export function scanSource(file, text) {
       } else if (ts.isExportAssignment(p))
         reexports.push({ kind: module.kind, line: at(node) });
       else if (!isName && !inTypePosition(node)) {
-        if (!namespace) use(module, node);
+        if (!namespace) site(module, node);
         else if (
           (ts.isPropertyAccessExpression(p) ||
             ts.isElementAccessExpression(p)) &&
           p.expression === node
         ) {
           const member = memberName(p);
-          if (member === null || module.names.includes(member)) use(module, p);
+          if (member === null || module.names.includes(member)) site(module, p);
         } else site(module, node);
       }
     }

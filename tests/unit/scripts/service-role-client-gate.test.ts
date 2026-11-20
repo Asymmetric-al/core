@@ -15,6 +15,8 @@ import {
 
 const FACTORY = "@asym/database/supabase/admin";
 const OP = 'import { withOperation } from "../shared/with-operation";\n';
+const PLATFORM =
+  'import { withPlatformOperation } from "../shared/with-operation";\n';
 const FILE = "packages/api/src/posts/index.ts";
 const lines = (text: string, file = "packages/api/src/admin/x.ts") =>
   scanSource(file, text).sites.map((s: { kind: string; line: number }) =>
@@ -23,9 +25,9 @@ const lines = (text: string, file = "packages/api/src/admin/x.ts") =>
 
 describe("frozen ceiling", () => {
   // D-18: removing two follower-request sites lowers the ceiling; only growth needs a new ruling.
-  it("is the pinned 116-entry ceiling: 79 / 29 / 8 / 70 sites in 110 files", () => {
+  it("is the pinned 115-entry ceiling: 78 / 27 / 8 / 65 sites in 109 files", () => {
     expect(ceilingDigest()).toBe(
-      "f489df5f19dd57d096430c1d1e5387d2c694d5d6e2f7743fcc22e2cf795ea1a9",
+      "c24f080d257d2f9ec4c6d646e8f0a1badfda3814a453dfadbf7995319c824554",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -33,19 +35,40 @@ describe("frozen ceiling", () => {
       totals[kind] = (totals[kind] ?? 0) + count;
     }
     expect(totals).toEqual({
-      admin_client: 79,
-      service_role_key: 29,
+      admin_client: 78,
+      service_role_key: 27,
       workflow_admin_wrapper: 8,
-      operation_admin_context: 70,
+      operation_admin_context: 65,
     });
-    expect(CEILING.size).toBe(116);
+    expect(CEILING.size).toBe(115);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(110);
+    ).toBe(109);
   });
 });
 
 describe("scanSource binding forms beyond the acceptance fixtures", () => {
+  it("counts the platform wrapper, not the caller wrapper, even for an opaque handler", () => {
+    const code = [
+      'import { withOperation, withPlatformOperation } from "../shared/with-operation";',
+      "withOperation(callback);",
+      "withPlatformOperation(callback);",
+    ].join("\n");
+    expect(lines(code)).toEqual(["operation_admin_context:3"]);
+  });
+
+  it("rejects an unlisted direct factory reference in a caller-lane handler", () => {
+    const file = "packages/api/src/admin/plant.ts";
+    const code = `${OP}import { getAdminClient } from "${FACTORY}";\nwithOperation(() => getAdminClient());`;
+    const { sites } = scanSource(file, code);
+    const result = evaluateServiceRoleClientGate(
+      { sites: sites.map((site) => ({ ...site, file })), reexports: [] },
+      { entries: [] },
+    );
+    expect(result.failures).toContainEqual(
+      expect.stringContaining(`NEW_SITE admin_client ${file}`),
+    );
+  });
   it.each<[string, string, string[]]>([
     [
       "a property call on an awaited dynamic import",
@@ -69,23 +92,23 @@ describe("scanSource binding forms beyond the acceptance fixtures", () => {
     ],
     [
       "a context destructured in the body",
-      `${OP}withOperation(async (ctx) => { const { supabaseAdmin } = ctx; return supabaseAdmin; });`,
+      `${PLATFORM}withPlatformOperation(async (ctx) => { const { supabaseAdmin } = ctx; return supabaseAdmin; });`,
       ["operation_admin_context:2"],
     ],
     [
       "a context destructured in the body without the client",
-      `${OP}withOperation(async (ctx) => { const { auth } = ctx; return ctx.request ?? auth; });`,
-      [],
+      `${PLATFORM}withPlatformOperation(async (ctx) => { const { auth } = ctx; return ctx.request ?? auth; });`,
+      ["operation_admin_context:2"],
     ],
     [
       "a computed context key",
-      `${OP}withOperation(async (ctx) => ctx[key]);`,
+      `${PLATFORM}withPlatformOperation(async (ctx) => ctx[key]);`,
       ["operation_admin_context:2"],
     ],
     [
       "a handler without parameters, and withOperation called with none",
-      `${OP}withOperation(async () => ok());\nwithOperation();`,
-      ["operation_admin_context:3"],
+      `${PLATFORM}withPlatformOperation(async () => ok());\nwithPlatformOperation();`,
+      ["operation_admin_context:2", "operation_admin_context:3"],
     ],
   ])("%s", (_name, text, expected) => {
     expect(lines(text)).toEqual(expected);

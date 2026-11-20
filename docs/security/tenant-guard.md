@@ -370,9 +370,9 @@ It counts four kinds of site:
 - `admin_client`: a call to `getAdminClient` or `createAdminClient` bound from the factory (named, aliased, namespace, `await import()`, `require` or a relative path), or any non-call value use of such a binding. `typeof` in a type is not a site.
 - `service_role_key`: every whole-word occurrence of the service-role key's env name (with or without the `SUPABASE_` prefix) in the file text, including string arguments, name lists, regexes and comments.
 - `workflow_admin_wrapper`: a call to, or value use of, `requireWorkflowAdminClient` from `packages/api/src/workflows/admin-client.ts`.
-- `operation_admin_context`: a `withOperation` handler (from `packages/api/src/shared/with-operation.ts`) whose context parameter destructures or reads `supabaseAdmin`, uses a rest element, or is passed on, spread, returned or assigned whole; a handler that is not an inline function; or a non-call value use of `withOperation`. A handler that takes only `{ auth, request }` is not a site.
+- `operation_admin_context`: every call to or value use of `withPlatformOperation` from `packages/api/src/shared/with-operation.ts`. The ordinary `withOperation` authenticates the request and supplies only the caller-token client bound to the resolved tenant and assignment. It is not a service-role site.
 
-Re-exporting the factory, `requireWorkflowAdminClient` or `withOperation` from any other file always fails and cannot be allowlisted.
+Re-exporting the factory, `requireWorkflowAdminClient` or `withPlatformOperation` from any other file always fails and cannot be allowlisted.
 
 `docs/security/service-role-client-allowlist.json` is the frozen, shrink-only allowlist (Samson's Q4 ruling): one entry per (file, kind) with a `count`, a non-empty `reason`, its `path_ref` and `follow_up` (#2261–#2265), and `lines` for reference only. It was frozen at 117 entries, 188 sites in 111 files. A copy of every frozen count is also kept as a ceiling inside the gate, whose SHA-256 is pinned by `tests/unit/scripts/service-role-client-gate.test.ts`. The gate fails, naming the file, the kind and the real `file:line` of every site of that kind, on:
 

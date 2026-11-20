@@ -9,7 +9,7 @@ import {
   ensureJsonBody,
   toErrorResponse,
 } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { withPlatformOperation } from "../../shared/with-operation";
 import {
   claimStripeRawEvent,
   completeStripeRawEvent,
@@ -88,7 +88,7 @@ async function requireTenantOwnedSagaOutboxRow(params: {
   }
 }
 
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
       const body = replaySchema.parse(await ensureJsonBody(request));
