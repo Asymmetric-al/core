@@ -116,8 +116,7 @@ function assertReceiptableStagedGift(gift: StagedGiftRow) {
 
 /**
  * Every donor, fund and missionary a review edit names must belong to the
- * gift's tenant. The foreign keys do not include the tenant, so the service
- * client would otherwise accept another organization's records.
+ * gift's tenant. A staff-supplied fund must also be an ordinary designation.
  */
 async function assertTenantReferences(input: {
   supabaseAdmin: Parameters<typeof loadStagedGiftById>[0]["supabaseAdmin"];
@@ -157,11 +156,14 @@ async function assertTenantReferences(input: {
       continue;
     }
 
-    const { data, error } = await input.supabaseAdmin
+    const query = input.supabaseAdmin
       .from(reference.table)
       .select("id")
       .eq("tenant_id", input.tenantId)
       .in("id", ids);
+    const { data, error } = await (reference.table === "funds"
+      ? query.is("system_purpose", null)
+      : query);
     if (error) {
       throw new Error(error.message);
     }

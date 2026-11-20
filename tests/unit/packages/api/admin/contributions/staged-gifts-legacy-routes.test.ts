@@ -88,7 +88,12 @@ function resetDatabase(gift: Row = giftRow()) {
     { id: FOREIGN_DONOR, tenant_id: OTHER_TENANT },
   ]);
   tables.set("funds", [
-    { id: FUND, tenant_id: TENANT },
+    { id: FUND, tenant_id: TENANT, system_purpose: null },
+    {
+      id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      tenant_id: TENANT,
+      system_purpose: "fee_cover",
+    },
     { id: FOREIGN_FUND, tenant_id: OTHER_TENANT },
   ]);
   tables.set("missionaries", [
@@ -130,6 +135,7 @@ function query(table: string) {
   };
   const builder = {
     select: () => builder,
+    is: (column: string, value: null) => builder.eq(column, value),
     order: () => builder,
     limit: () => builder,
     eq: (column: string, value: unknown) => {
@@ -459,6 +465,14 @@ describe("legacy edit checks the staged gift's state (NV-03)", () => {
     ["a donor", { donorId: FOREIGN_DONOR }],
     ["a fund", { allocations: [{ fundId: FOREIGN_FUND, amount: 10_000 }] }],
     [
+      "the reserved fund",
+      {
+        allocations: [
+          { fundId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", amount: 10_000 },
+        ],
+      },
+    ],
+    [
       "a missionary",
       { allocations: [{ missionaryId: FOREIGN_MISSIONARY, amount: 10_000 }] },
     ],
@@ -471,7 +485,7 @@ describe("legacy edit checks the staged gift's state (NV-03)", () => {
       },
     ],
   ])(
-    "refuses %s from another tenant and writes nothing",
+    "refuses %s as an allocation or donor reference and writes nothing",
     async (_label, body) => {
       const response = await routes.PATCH(body);
       expect(response.status).toBe(400);
