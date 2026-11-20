@@ -130,7 +130,6 @@ export class Stack {
           .filter((f) => /^\d{14}_.+\.sql$/.test(f))
           .sort()
           .map((f) => `${MIG}/${f}`),
-        "supabase/seed.sql",
       ];
       for (const file of files) {
         if (file === FORWARD) await this.beforeForward();
@@ -147,6 +146,10 @@ export class Stack {
         ).toBe(0);
       }
       if (!this.connected) await this.beforeForward();
+      // D-18: this historical schema needs the signup trigger's tenant, not the current seed.
+      await this.db.query(
+        "insert into public.tenants(id,name,slug) values ('00000000-0000-0000-0000-000000000001','Fixture signup','fixture-signup') on conflict (id) do nothing",
+      );
     } catch (error) {
       await this.close();
       throw error;

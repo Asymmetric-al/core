@@ -328,7 +328,7 @@ test.describe("Mission Control", () => {
       ).toEqual(
         await ownerIds(
           stack,
-          "select id::text from public.funds where tenant_id = $1",
+          "select id::text from public.funds where tenant_id = $1 and system_purpose is null",
           [tenant],
         ),
       );
