@@ -15,13 +15,13 @@
     "vendored": "Unpacked third-party distributions.",
     "fixture": "Base UI browser fixtures outside that program's fixed include list (L9 keeps the program as it is). workspace-main.tsx needs Missionary's @/, which conflicts with the directory's @/ for the UI package (E40)."
   },
-  "trackedFiles": 4251,
+  "trackedFiles": 4257,
   "counts": {
-    "compiled": 2340,
+    "compiled": 2343,
     "compiled-elsewhere": 33,
     "negative-fixture": 4,
     "evidence": 3,
-    "lint-context": 1759,
+    "lint-context": 1762,
     "none": 112
   },
   "programs": [
@@ -29,16 +29,16 @@
       "config": "apps/admin/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (apps/admin)",
-      "trackedMembers": 1454,
-      "importedOnly": 706,
+      "trackedMembers": 1455,
+      "importedOnly": 707,
       "reason": "Workspace program."
     },
     {
       "config": "apps/donor/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (apps/donor)",
-      "trackedMembers": 622,
-      "importedOnly": 473,
+      "trackedMembers": 619,
+      "importedOnly": 472,
       "reason": "Workspace program."
     },
     {
@@ -53,15 +53,15 @@
       "config": "apps/missionary/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (apps/missionary)",
-      "trackedMembers": 586,
-      "importedOnly": 457,
+      "trackedMembers": 588,
+      "importedOnly": 459,
       "reason": "Workspace program."
     },
     {
       "config": "packages/api/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (packages/api)",
-      "trackedMembers": 596,
+      "trackedMembers": 601,
       "importedOnly": 77,
       "reason": "Workspace program."
     },
@@ -205,8 +205,8 @@
       "config": "tests/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 2060,
-      "importedOnly": 978,
+      "trackedMembers": 2072,
+      "importedOnly": 987,
       "reason": "Central tests that need no workspace alias (E40), with allowJs so imported scripts keep inferred types. Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
@@ -237,8 +237,8 @@
       "config": "tests/unit/acceptance/issue-2364/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 160,
-      "importedOnly": 155,
+      "trackedMembers": 161,
+      "importedOnly": 156,
       "reason": "Donor acceptance tests outside the Donor partition: Donor's options and @/ (E40). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
@@ -334,7 +334,7 @@
     },
     {
       "path": "apps/donor/**",
-      "files": 149,
+      "files": 147,
       "class": "compiled",
       "roots": "apps/donor/tsconfig.json",
       "kind": ""
@@ -369,7 +369,7 @@
     },
     {
       "path": "packages/api/**",
-      "files": 519,
+      "files": 524,
       "class": "compiled",
       "roots": "packages/api/tsconfig.json",
       "kind": ""
@@ -530,7 +530,7 @@
     },
     {
       "path": "tests/**",
-      "files": 1079,
+      "files": 1082,
       "class": "lint-context",
       "roots": "tests/tsconfig.json",
       "kind": ""
