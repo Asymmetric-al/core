@@ -7,7 +7,7 @@
  * Selecting only the donor's `id` adds no donor PII.
  */
 export const DONATION_WITH_PARTIES_SELECT =
-  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries(*, profile:profiles!profile_id(*))";
+  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries!donations_missionary_same_tenant_fk(*, profile:profiles!profile_id(*))";
 
 /** What a gift request asked for, as passed to `begin_donation_saga`. */
 export type RequestedGift = {

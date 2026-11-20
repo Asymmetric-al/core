@@ -6,7 +6,8 @@ const url = process.env.WP3_SITE_IT_URL;
 const database = process.env.WP3_SITE_IT_DATABASE_URL;
 const anon = process.env.WP3_SITE_IT_ANON_KEY;
 const service = process.env.WP3_SITE_IT_SERVICE_KEY;
-describe.skipIf(![url, database, anon, service].some(Boolean))(
+const required = process.env.GITHUB_JOB === "local-supabase";
+describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
   "Site administration on a signed-in person's token",
   () => {
     const tenant = randomUUID(),
@@ -136,6 +137,26 @@ describe.skipIf(![url, database, anon, service].some(Boolean))(
           ).toBe(true);
       }
     });
+    it.each([
+      ["donations", "fund:funds(id),missionary:missionaries(id)"],
+      [
+        "donor_pledges",
+        "fund:funds(id),missionary:missionaries!inner(profile_id)",
+      ],
+    ])(
+      "resolves the existing %s portal embeds without an added hint",
+      async (table, select) => {
+        const response = await api(
+          `rest/v1/${table}?${new URLSearchParams({ select, limit: "1" })}`,
+          service!,
+          service!,
+        );
+        const body = await response.json();
+        expect(response.status, body?.code).toBe(200);
+        expect(Array.isArray(body)).toBe(true);
+      },
+    );
+
     it("uses both headers on browser reads, live assignments and Site commands", async () => {
       const rpc = (name: string, args: object) =>
         api(`rest/v1/rpc/${name}`, anon!, token, args);

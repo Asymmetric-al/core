@@ -31,8 +31,8 @@ const SELECT_TS = "packages/api/src/donations/select.ts";
 const NAME = "DONATION_WITH_PARTIES_SELECT";
 /** Spec 1.1, verbatim. */
 const SPEC_SELECT =
-  // D-18: a single column is no longer a valid hint for WP3's composite missionary FK.
-  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries(*, profile:profiles!profile_id(*))";
+  // D-18: name WP3's composite missionary FK even if another relationship is added.
+  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries!donations_missionary_same_tenant_fk(*, profile:profiles!profile_id(*))";
 const read = (f: string) => (existsSync(f) ? readFileSync(f, "utf8") : "");
 
 type Site = { name: string; file: string; start: RegExp; filter: Filter };

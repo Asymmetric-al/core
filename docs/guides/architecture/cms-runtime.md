@@ -238,7 +238,7 @@ lifecycle is non-authoritative and closes nothing. See
 
 ## Phase 22 D23 current-state qualification
 
-D23 is not implemented by the current `org-settings` route,
+D23 is not implemented by the retired `org-settings` route,
 `tenants.org_settings`, Payload preferences or collection defaults, or any
 client-side settings form. Those seams are migration and UI evidence only. The
 target is one private, scope-first, disposable Public Page Setup & Settings
