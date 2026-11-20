@@ -103,12 +103,18 @@
 -- chain to a database with no recorded heads, and a guard would stop it.
 --
 -- Down: supabase/migrations/rollback_20261119135300_request_tenant_policies.sql,
--- run by hand in one transaction. It restores the chain before this
--- migration exactly: every policy, grant, function, parallel mark and
--- publication member this migration changed, and only the privileges each
--- table held before (council R10). Proven on a disposable database: the
--- chain, then the rollback, has the schema fingerprint of the chain without
--- this migration (scripts/release/schema-fingerprint.mjs).
+-- run by hand in one transaction, only while this is the newest migration in
+-- the ledger. It restores every policy, grant, function, comment and parallel
+-- mark this migration changed, and only the privileges each table held
+-- before (council R10). As written it leaves the seven tables of section 5
+-- out of supabase_realtime: no hosted database published them, so on a
+-- hosted database that is the state before this migration. A database built
+-- by replaying the chain did publish them, and only there is its marked block
+-- run to put them back. Proven on a disposable database built by replaying
+-- the chain: the chain, then the rollback with that block, has the schema
+-- fingerprint of the chain without this migration
+-- (scripts/release/schema-fingerprint.mjs). docs/ops/release-job.md says
+-- how to run it, and how to apply this migration again afterwards.
 
 BEGIN;
 
@@ -1304,6 +1310,35 @@ BEGIN
               END);
   IF v_problem IS NOT NULL THEN
     RAISE EXCEPTION 'AL-2675: write policies stand where no signed-in write grant does: %', v_problem;
+  END IF;
+
+  -- A FOR ALL policy writes too: where no signed-in role it names holds any
+  -- write privilege, only a plain deny may stand, false for every command it
+  -- governs, as the deny-all policies of the six finance tables are (council
+  -- R3; the gate's WRITE_POLICY_WITHOUT_GRANT). A missing WITH CHECK is the
+  -- USING, and a missing USING admits every row.
+  SELECT pg_catalog.string_agg(c.relname || ': ' || p.polname, ', ')
+    INTO v_problem
+    FROM pg_catalog.pg_policy AS p
+    JOIN pg_catalog.pg_class AS c ON c.oid = p.polrelid
+   WHERE c.relnamespace = 'public'::regnamespace
+     AND p.polcmd = '*'
+     AND p.polroles && ARRAY[0::OID, 'authenticated'::regrole::OID]
+     AND NOT EXISTS (
+       SELECT 1
+         FROM pg_catalog.unnest(
+                ARRAY['authenticated'] ||
+                CASE WHEN p.polroles @> ARRAY[0::OID] THEN ARRAY['anon'] ELSE ARRAY[]::TEXT[] END
+              ) AS g(r)
+        WHERE pg_catalog.has_any_column_privilege(g.r, c.oid, 'INSERT, UPDATE')
+           OR pg_catalog.has_table_privilege(g.r, c.oid, 'DELETE'))
+     AND NOT (
+       COALESCE(pg_catalog.pg_get_expr(p.polqual, p.polrelid), 'true') = 'false'
+       AND COALESCE(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid),
+                    pg_catalog.pg_get_expr(p.polqual, p.polrelid), 'true') = 'false'
+     );
+  IF v_problem IS NOT NULL THEN
+    RAISE EXCEPTION 'AL-2675: FOR ALL policies that are not a plain deny stand where no signed-in write grant does: %', v_problem;
   END IF;
 
   -- Every policy of the two buckets tests a live membership in the path's
