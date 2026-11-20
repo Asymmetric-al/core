@@ -704,6 +704,14 @@ describe("#2258 pins (criteria 12, 13)", () => {
         47791,
         "bac3dc897167173b05ea29aca95ac25f4bd64f675f22780c71aeba1821b6a5b6",
       ],
+      // Amended by AL-2735 when the shadcn upstream review left ci:preflight: the stage
+      // list drops `verify:shadcn-diff` and renumbers, a new paragraph says
+      // the review runs by hand, and the `lint` section no longer lists it.
+      // Pinned on that exact reviewed whole file.
+      [
+        47915,
+        "e091011ebffb5faba38a9230a9982488fb679c02f38b6d08be0b515250530276",
+      ],
     ];
     expect(REVIEWED).toContainEqual([
       b.length,

@@ -23,14 +23,14 @@ const ciSupabasePublicEnv = {
  * -> openspec:validate -> verify:openspec-deltas -> lint -> verify:data-boundary
  * -> verify:cms-public-sole-entry
  * -> verify:workspace-contract -> verify:bun-lock-drift
- * -> verify:eslint -> verify:shadcn-config
- * -> verify:shadcn-diff -> verify:shadscan
+ * -> verify:eslint -> verify:shadcn-config -> verify:shadscan
  * -> typecheck -> build -> test-unit
  */
-// Exceptions to the mirror: ci.yml has no step for verify:shadcn-config or
-// verify:shadcn-diff (they run only here), its acceptance-tests job is not
-// mirrored, and getPreflightStages replaces `build` with the selected
-// compilation (none for routine development changes).
+// Exceptions to the mirror: ci.yml has no step for verify:shadcn-config (it
+// runs only here), its acceptance-tests job is not mirrored, and
+// getPreflightStages replaces `build` with the selected compilation (none for
+// routine development changes). The shadcn upstream review is deliberately
+// not a stage: it depends on the public registry, so it runs only by hand.
 const stages = [
   {
     id: "runtime",
@@ -91,10 +91,6 @@ const stages = [
   {
     id: "verify-shadcn-config",
     script: "verify:shadcn-config",
-  },
-  {
-    id: "verify-shadcn-diff",
-    script: "verify:shadcn-diff",
   },
   {
     id: "verify-shadscan",
