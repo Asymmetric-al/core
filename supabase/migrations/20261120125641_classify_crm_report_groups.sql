@@ -1,7 +1,7 @@
 INSERT INTO public.field_policies
   (record_type, field_key, surface, tenant_id, visible, editable, exportable, sensitivity_category)
 SELECT 'crm_report_groups', field_key, surface, NULL, admitted AND surface = 'mission_control',
-       false, admitted AND surface = 'mission_control', category
+       false, admitted AND surface = 'mission_control', category::public.field_sensitivity_category
 FROM (VALUES
   ('id', 'internal', false)
 , ('tenant_id', 'internal', false)
