@@ -3,7 +3,7 @@ source_name: cursor/plugins (review-and-ship)
 source_url: https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/review-and-ship
 source_type: github
 upstream_path: cursor-team-kit/skills/review-and-ship/
-skills_lock_hash: 5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1
+skills_lock_hash: 985bc492e0aa356d1ca352f3bb7e2c941647aca89f0538e749226344999b06a8
 last_reviewed: 2026-09-16
 ---
 
@@ -16,7 +16,7 @@ Canonical copy in this repo: `docs/ai/skills/review-and-ship/` (mirrored to `.cu
 - **Commit reviewed:** `c1c0a32802223f4be824112dd83d33ad29a8b26c`
 - **Upstream path:** `cursor-team-kit/skills/review-and-ship/`
 - **Lock skillPath:** `cursor-team-kit/skills/review-and-ship/SKILL.md`
-- **Computed hash:** `5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1`
+- **Computed hash:** `985bc492e0aa356d1ca352f3bb7e2c941647aca89f0538e749226344999b06a8`
 
 ## Refresh from upstream
 

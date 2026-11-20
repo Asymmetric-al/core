@@ -21,7 +21,7 @@ function readLock() {
 
 describe("skills lock current upstream paths", () => {
   it("keeps the current lockfile skill names", () => {
-    expect(Object.keys(readLock().skills)).toHaveLength(200);
+    expect(Object.keys(readLock().skills)).toHaveLength(193);
   });
 
   it("pins the reviewed vercel-labs/ui ui-sdk skill without its maintainer skills", () => {

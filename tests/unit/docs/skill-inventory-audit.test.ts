@@ -11,7 +11,6 @@ const runtimeRoots = [
   ".claude/skills",
 ] as const;
 const retainedSnapshots = new Set([
-  "better-forms",
   "clean-code",
   "remotion-best-practices",
   "pdf",
@@ -20,6 +19,11 @@ const retainedSnapshots = new Set([
 // Retired 2026-11-17 (AL-2695). Their upstream deleted them as superseded or
 // personal, or their guidance conflicts with Core's stack. The maintenance
 // log records each source, last hash and replacement.
+// Retired 2026-11-18 (AL-2715) after the owner reviewed a skill-quality pass:
+// tooling for things Core does not have, unsafe deploy and provisioning
+// recipes, a hook installer that overwrites Core's hooks, and recipes that
+// contradict Core's Stripe and forms rules. The maintenance log records each
+// source, last hash and what covers the need instead.
 const retiredSkillNames = new Set([
   "design-an-interface",
   "edit-article",
@@ -28,6 +32,14 @@ const retiredSkillNames = new Set([
   "request-refactor-plan",
   "tailwind-v4-shadcn",
   "ubiquitous-language",
+  "better-forms",
+  "deploy-to-vercel",
+  "scaffold-exercises",
+  "setup-pre-commit",
+  "stripe-integration",
+  "stripe-projects",
+  "vercel-cli-with-tokens",
+  "webapp-testing",
 ]);
 
 // Skills at reviewed baseline c4d36cb029121641b8882237632d0d6da434049e.
@@ -356,18 +368,6 @@ const reviewedEcosystemSkills = [
     },
   },
   {
-    name: "stripe-integration",
-    source: "wshobson/agents",
-    skillPath: "plugins/payment-processing/skills/stripe-integration/SKILL.md",
-    reviewedCommit: "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
-    computedHash:
-      "32b5a60d3f6cad896b3dc468ee7b81e55afa61adf740512e95a411efdb4ae0f6",
-    licenses: {
-      "references/LICENSE.md":
-        "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1",
-    },
-  },
-  {
     name: "bats-testing-patterns",
     source: "wshobson/agents",
     skillPath: "plugins/shell-scripting/skills/bats-testing-patterns/SKILL.md",
@@ -477,6 +477,113 @@ const reviewedEcosystemSkills = [
         "ad877e194d5f86a095f08f641bf8fd614af314e404b0c20684dd4003d764d481",
       "references/LICENSE.md":
         "a55a73d663695ef30cb5c865b777f8205165f512719a4978f2855b2df71dd682",
+    },
+  },
+  // Core overlays added by the 2026-11-18 skill-quality pass (AL-2715).
+  {
+    name: "resend",
+    source: "resend/resend-skills",
+    skillPath: "skills/resend/SKILL.md",
+    reviewedCommit: "b2ae7b1798b70134faf679f35fc05b4331462988",
+    computedHash:
+      "56b5f80dc21a4ef7e7b92586d98af3e00dfdad802fc7be98fd143d95092cdfb3",
+    licenses: {
+      "references/UPSTREAM-LICENSE":
+        "f71cc2b0a8199ff748415642e1006c760f017d8defbc29237ce43ae1e8fa8197",
+    },
+  },
+  {
+    name: "agent-email-inbox",
+    source: "resend/resend-skills",
+    skillPath: "skills/agent-email-inbox/SKILL.md",
+    reviewedCommit: "b2ae7b1798b70134faf679f35fc05b4331462988",
+    computedHash:
+      "b4aaeb24aeb4d34ccd48cdce0ab7f91a65aed60ced1704922c977d56add4ee93",
+    licenses: {
+      "references/UPSTREAM-LICENSE":
+        "f71cc2b0a8199ff748415642e1006c760f017d8defbc29237ce43ae1e8fa8197",
+    },
+  },
+  {
+    name: "email-best-practices",
+    source: "resend/resend-skills",
+    skillPath: "skills/email-best-practices/SKILL.md",
+    reviewedCommit: "b2ae7b1798b70134faf679f35fc05b4331462988",
+    computedHash:
+      "f1b957138619784e2c22f7ae689bde6e903a8134ee52d626d8846809382ef0c8",
+    licenses: {
+      "references/UPSTREAM-LICENSE":
+        "f71cc2b0a8199ff748415642e1006c760f017d8defbc29237ce43ae1e8fa8197",
+    },
+  },
+  {
+    name: "react-email",
+    source: "resend/react-email",
+    skillPath: "skills/react-email/SKILL.md",
+    reviewedCommit: "e0561e164e9c28859d24373804e30b364931ee77",
+    computedHash:
+      "5d989d8109068b40bfc00111013d8488b577c21d8973013f0e810e946a670987",
+    licenses: {
+      "references/UPSTREAM-LICENSE":
+        "824a5acd4cf751b349d2f37513b94c682bceddbf6ead1d0225ff0aaa9b7eb2e4",
+    },
+  },
+  {
+    name: "web-design-guidelines",
+    source: "vercel-labs/agent-skills",
+    skillPath: "skills/web-design-guidelines/SKILL.md",
+    reviewedCommit: "063bee94c3f4df8453406c830b0a7df0f2860278",
+    computedHash:
+      "f3bc47f890f42a44db1007ab390709ec368e4b8c089baee6b0007182236ac474",
+    // No licence notice ships with this skill; see its provenance.
+    licenses: {},
+  },
+  {
+    name: "next-cache-components-adoption",
+    source: "vercel/next.js",
+    skillPath: "skills/next-cache-components-adoption/SKILL.md",
+    reviewedCommit: "684cf7ea8915613a53e1ed34d88d2cfb093ed57d",
+    computedHash:
+      "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
+    licenses: {
+      "references/UPSTREAM-license.md":
+        "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+    },
+  },
+  {
+    name: "next-bundle-optimizer",
+    source: "vercel/next.js",
+    skillPath: "skills/next-bundle-optimizer/SKILL.md",
+    reviewedCommit: "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+    computedHash:
+      "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
+    licenses: {
+      "references/UPSTREAM-license.md":
+        "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+    },
+  },
+  {
+    name: "next-partial-prefetching-adoption",
+    source: "vercel/next.js",
+    skillPath: "skills/next-partial-prefetching-adoption/SKILL.md",
+    reviewedCommit: "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+    computedHash:
+      "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
+    licenses: {
+      "references/UPSTREAM-license.md":
+        "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+    },
+  },
+  {
+    name: "next-partial-prefetching-optimizer",
+    source: "vercel/next.js",
+    skillPath: "skills/next-partial-prefetching-optimizer/SKILL.md",
+    reviewedCommit: "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+    computedHash:
+      "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+    licenses: {
+      "references/UPSTREAM-license.md":
+        "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
     },
   },
 ] as const;
@@ -645,6 +752,46 @@ describe("reviewed installed skill inventory", () => {
         "unowned installed skill: " + name,
       ).toBe(true);
     }
+  });
+
+  // A plain (unquoted) YAML scalar cannot contain ": " or end with ":", so
+  // either one makes the frontmatter fail to parse and strict clients drop the
+  // skill. A trailing " #" comment is valid YAML. A YAML parser is not a root
+  // dependency; this checks that one rule.
+  it("keeps every skill's plain frontmatter values parseable", () => {
+    const broken: string[] = [];
+    for (const root of ["docs/ai/skills", ...runtimeRoots]) {
+      for (const name of installedSkills(root)) {
+        const source = readRepoFile(root + "/" + name + "/SKILL.md");
+        const header = /^---\r?\n([\s\S]*?)\r?\n---/.exec(source)?.[1];
+        if (header === undefined) {
+          broken.push(root + "/" + name + ": no frontmatter");
+          continue;
+        }
+        let plain = false;
+        for (const line of header.split(/\r?\n/)) {
+          const entry = /^([A-Za-z0-9_-]+):(?:[ \t]+(.*))?$/.exec(line);
+          let value: string | undefined;
+          if (entry) {
+            value = entry[2]?.trim();
+            plain = !!value && !/^["'>|[{&*!%@`]/.test(value);
+          } else if (/^\S/.test(line)) {
+            plain = false;
+          } else if (plain) {
+            value = line.trim();
+          }
+          const content = value?.replace(/\s#.*$/, "");
+          if (
+            plain &&
+            content &&
+            (/:\s/.test(content) || content.endsWith(":"))
+          ) {
+            broken.push(root + "/" + name + ": " + line.slice(0, 80));
+          }
+        }
+      }
+    }
+    expect(broken).toEqual([]);
   });
 
   it("keeps retired skills out of every source, mirror, lock and audit", () => {
@@ -847,6 +994,30 @@ describe("reviewed installed skill inventory", () => {
       expect(skill.entrypointHash, skill.name).toBe(entrypointHash);
       expect(skill.treeHash, skill.name).toBe(hash.digest("hex"));
     }
+  });
+
+  // The audit's `lockHash` is the hash `skills-lock.json` tracks for the skill
+  // (its hashMeaning: "Existing Skills CLI/tracked import hash"), so the two
+  // move together, and a skill with no lock entry records none.
+  it("keeps every audit lockHash equal to the skill's lock computedHash", () => {
+    const { skills } = readLock();
+    const audit = JSON.parse(
+      readRepoFile("docs/ai/skill-source-audit.json"),
+    ) as { skills: Array<{ name: string; lockHash: string | null }> };
+    const disagreements = audit.skills
+      .filter(
+        (skill) =>
+          skill.lockHash !== (skills[skill.name]?.computedHash ?? null),
+      )
+      .map((skill) => skill.name);
+
+    expect(disagreements).toEqual([]);
+    expect(Object.keys(skills).sort()).toEqual(
+      audit.skills
+        .filter((skill) => skill.lockHash !== null)
+        .map((skill) => skill.name)
+        .sort(),
+    );
   });
 
   it("distinguishes reviewed ReUI bundle identity from removed-source availability evidence", () => {
