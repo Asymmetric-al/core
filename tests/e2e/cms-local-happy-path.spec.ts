@@ -96,6 +96,88 @@ async function findPayloadDoc<T extends DocWithId>(
 }
 
 test.describe("@cms-local strict local CMS happy path", () => {
+  test("bodyless browser deletes remove a reaction, its post and a Studio draft", async ({
+    page,
+  }) => {
+    const missionary = process.env.PLAYWRIGHT_MISSIONARY_BASE_URL;
+    test.skip(
+      !missionary,
+      "Requires the missionary app on the same seeded local stack.",
+    );
+    await signInAsLocalDemoAdmin(page);
+    const headers = await writeHeaders(
+      page,
+      `${new URL(adminBaseURL).origin}/`,
+    );
+    const studio = await page.request.post(
+      `${adminBaseURL}/web-studio/api/pages?draft=true`,
+      {
+        headers,
+        data: {
+          title: "Browser delete check",
+          slug: `delete-${Date.now()}`,
+          pageType: "standard",
+          _status: "draft",
+        },
+      },
+    );
+    expect(studio.status()).toBe(201);
+    const documentId = (await studio.json()).doc.id;
+    const removedDraft = await page.evaluate(
+      async ({ documentId, headers }) => {
+        const response = await fetch(`/web-studio/api/pages/${documentId}`, {
+          method: "DELETE",
+          headers,
+        });
+        return response.status;
+      },
+      { documentId, headers },
+    );
+    expect(removedDraft).toBe(200);
+
+    await page.goto(`${missionary}/api/health`);
+    const post = await page.evaluate(async () => {
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          content: "Browser deletion fixture",
+          visibility: "public",
+        }),
+      });
+      return {
+        status: response.status,
+        id: (await response.json()).post?.id as string | undefined,
+      };
+    });
+    expect(post.status).toBe(201);
+    expect(post.id).toBeTruthy();
+    try {
+      await page.goto(`${donorBaseURL}/api/playwright-ready`);
+      for (const method of ["POST", "DELETE"]) {
+        const reaction = await page.evaluate(
+          async ({ id, method }) => {
+            const response = await fetch(`/api/posts/${id}/like`, { method });
+            return { status: response.status, result: await response.json() };
+          },
+          { id: post.id, method },
+        );
+        expect(reaction).toEqual({
+          status: 200,
+          result: { success: true, applied: true },
+        });
+      }
+    } finally {
+      await page.goto(`${missionary}/api/health`);
+      const status = await page.evaluate(
+        async (id) =>
+          (await fetch(`/api/posts/${id}`, { method: "DELETE" })).status,
+        post.id,
+      );
+      expect(status).toBe(200);
+    }
+  });
+
   test("picker lookups load template and uploaded media options on a seeded page", async ({
     page,
   }) => {

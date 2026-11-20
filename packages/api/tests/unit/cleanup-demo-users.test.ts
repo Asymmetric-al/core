@@ -16,10 +16,15 @@ vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
 }));
 
-import { GET } from "../../src/auth/cleanup-demo-users";
+import * as route from "../../src/auth/cleanup-demo-users";
+
+it("exposes the destructive cleanup only as POST", () => {
+  expect(Object.keys(route)).toEqual(["POST"]);
+});
 
 function req(headers?: HeadersInit): Request {
   return new Request("https://example.com/api/auth/cleanup-demo-users", {
+    method: "POST",
     headers,
   });
 }
@@ -52,7 +57,7 @@ describe("api/auth/cleanup-demo-users — fail-closed auth (finding 06 Gap 1)", 
     serverEnvMock.CRON_SECRET = undefined;
     const { deleteUser } = mockAdminNoUsers();
 
-    const res = await GET(req());
+    const res = await route.POST(req());
 
     expect([401, 503]).toContain(res.status);
     expect(getAdminClientMock).not.toHaveBeenCalled();
@@ -63,7 +68,7 @@ describe("api/auth/cleanup-demo-users — fail-closed auth (finding 06 Gap 1)", 
     serverEnvMock.CRON_SECRET = "";
     const { deleteUser } = mockAdminNoUsers();
 
-    const res = await GET(req({ authorization: "Bearer " }));
+    const res = await route.POST(req({ authorization: "Bearer " }));
 
     expect([401, 503]).toContain(res.status);
     expect(getAdminClientMock).not.toHaveBeenCalled();
@@ -74,17 +79,17 @@ describe("api/auth/cleanup-demo-users — fail-closed auth (finding 06 Gap 1)", 
     serverEnvMock.CRON_SECRET = "s3cret";
     mockAdminNoUsers();
 
-    expect((await GET(req())).status).toBe(401);
-    expect((await GET(req({ authorization: "Bearer wrong" }))).status).toBe(
-      401,
-    );
+    expect((await route.POST(req())).status).toBe(401);
+    expect(
+      (await route.POST(req({ authorization: "Bearer wrong" }))).status,
+    ).toBe(401);
   });
 
   it("PROCEEDS on the legitimate cron path (correct Bearer token)", async () => {
     serverEnvMock.CRON_SECRET = "s3cret";
     const { deleteUser } = mockAdminNoUsers();
 
-    const res = await GET(req({ authorization: "Bearer s3cret" }));
+    const res = await route.POST(req({ authorization: "Bearer s3cret" }));
     const body = await res.json();
 
     expect(res.status).toBe(200);
