@@ -1,5 +1,6 @@
 import fs from "node:fs";
 
+import { isLoopbackDatabaseUrl } from "../../../packages/env/src/database-url.mjs";
 import {
   LOCAL_DATABASE_URL,
   LOCAL_ENV_DEFAULTS,
@@ -7,6 +8,21 @@ import {
 } from "./local-data.mjs";
 import { rootEnvPath } from "./paths.mjs";
 import { maskValue } from "./process.mjs";
+
+export function isLocalCmsVerificationTarget(apiUrl, databaseUrl) {
+  if (!isLoopbackDatabaseUrl(databaseUrl) || !URL.canParse(apiUrl))
+    return false;
+  const url = new URL(apiUrl);
+  return (
+    url.protocol === "http:" &&
+    ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) &&
+    url.pathname === "/" &&
+    !url.username &&
+    !url.password &&
+    !url.search &&
+    !url.hash
+  );
+}
 
 const STATUS_ENV_KEY_CANDIDATES = {
   NEXT_PUBLIC_SUPABASE_URL: [

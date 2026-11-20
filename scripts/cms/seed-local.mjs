@@ -162,6 +162,7 @@ async function ensurePublicSeedRows() {
       SELECT f.id, f.name, f.description
       FROM public.funds f
       WHERE f.tenant_id = '${DEMO_PUBLIC_TENANT_ID}'::uuid
+        AND f.system_purpose IS NULL
       ORDER BY CASE WHEN f.is_active THEN 0 ELSE 1 END, f.created_at, f.id
       LIMIT 1
     ),
@@ -234,11 +235,7 @@ async function ensurePublicSeedRows() {
       '2026-05-16T00:00:00Z'::timestamptz,
       '2026-05-16T00:00:00Z'::timestamptz
     )
-    ON CONFLICT (id) DO UPDATE
-    SET name = EXCLUDED.name,
-        slug = EXCLUDED.slug,
-        org_settings = EXCLUDED.org_settings,
-        updated_at = EXCLUDED.updated_at;
+    ON CONFLICT (id) DO NOTHING;
   `);
 
   return seed;
