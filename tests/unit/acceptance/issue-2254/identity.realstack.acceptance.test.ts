@@ -253,9 +253,9 @@ describe.skipIf(!local)("#2254 real stack (DATABASE_URL)", () => {
       { cwd: ROOT, encoding: "utf8" },
     );
     expect(census.status, census.stderr).toBe(0);
-    // AL-2674: the census is the manifest gate; its PASS line names the count.
+    // D-18: pin physical columns independently of derived fields and their policy rows.
     expect(census.stdout).toContain(
-      `equal the manifest's ${CLASSIFIED} entries`,
+      `equal the manifest's ${CLASSIFIED} physical columns`,
     );
     for (const f of [
       "field_policies_foundation.sql",
