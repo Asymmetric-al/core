@@ -146,17 +146,14 @@ not load a report and does not require an audit summary file:
   with the same statement. Today a failed scan leaves the previous head's
   scores in the comment, where they read as current.
 
-The job's own red status remains the primary signal. The audit step records
-its outcome and does not use `continue-on-error`, which would let the job
-finish green. Both publishers and a final step have conditions that start
-with `!cancelled()`, so a failed setup step or installation does not skip
-them. The final step exits
-non-zero when installation or the audit did not succeed. The unavailable
-statement names the cause: dependency installation failed, a setup step
-failed before installation (installation is then skipped, not failed), or
-the audit produced no valid report. Tests check the final step's condition
-and exit, the job summary, and the replaced marker comment for these
-failures. D8 records what reads the red status.
+The scan job has `contents: read` permissions and retains a non-zero outcome
+from failed setup, installation, audit or artifact upload. Its artifact holds
+the raw report and JSON summary. A separate job checks out the publisher,
+downloads the artifact outside its checkout and passes the JSON through the
+publisher's summary validation. The publisher has the comment and issue write
+permissions and runs without a dependency install. A failed scan or download
+publishes unavailable evidence and keeps the failed job visible. The message
+names which stage failed. D8 records what reads the red status.
 
 A cancelled run publishes nothing. `ci.yml` cancels a pull request's
 in-progress run when a newer push arrives. Under `always()`, the first
@@ -279,8 +276,8 @@ section imposes no present behavior.
 
 ### D8. A red report job may turn the CI check suite red
 
-`shadscan-report` runs inside the `CI` workflow run. When D2's final step
-fails the job, that run's GitHub Actions check suite concludes `failure`,
+`shadscan-report` runs inside the `CI` workflow run. When its scan or
+publication fails, that run's GitHub Actions check suite concludes `failure`,
 although every required check passed. Branch protection reads required
 checks only, so the merge itself is unaffected. On 2026-11-18 the two
 automations that might read a suite's conclusion were checked:

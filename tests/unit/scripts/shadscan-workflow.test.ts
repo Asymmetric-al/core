@@ -17,24 +17,21 @@ import {
 const HEAD = "0123456789abcdef0123456789abcdef01234567";
 const MERGE = "fedcba9876543210fedcba9876543210fedcba98";
 
-let cachedJob: WorkflowJob | undefined;
+const { jobs: reportJobs = {} } = loadWorkflowDocument(
+  ".github/workflows/shadscan.yml",
+);
+const scanJob = reportJobs.report!;
+const publishJob = reportJobs.publish!;
 
-// Parsed once, so steps compare by identity across helpers.
-function reportJob(): WorkflowJob {
-  if (cachedJob) return cachedJob;
-  const document = loadWorkflowDocument(".github/workflows/shadscan.yml");
-  const jobs = Object.values(document.jobs ?? {});
-  expect(jobs).toHaveLength(1);
-  cachedJob = jobs[0]!;
-  return cachedJob;
+function steps(job: WorkflowJob = scanJob): WorkflowStep[] {
+  return job.steps ?? [];
 }
 
-function steps(): WorkflowStep[] {
-  return (reportJob().steps ?? []) as WorkflowStep[];
-}
-
-function stepWith(predicate: (step: WorkflowStep) => boolean): WorkflowStep {
-  const found = steps().filter(predicate);
+function stepWith(
+  predicate: (step: WorkflowStep) => boolean,
+  job: WorkflowJob = scanJob,
+): WorkflowStep {
+  const found = steps(job).filter(predicate);
   expect(found).toHaveLength(1);
   return found[0]!;
 }
@@ -43,7 +40,11 @@ const text = (value: unknown) => (typeof value === "string" ? value : "");
 const run = (step: WorkflowStep) => text(step.run);
 const uses = (step: WorkflowStep) => text(step.uses);
 
-function context(outcomes: Record<string, string>, pullRequest = true) {
+function context(
+  outcomes: Record<string, string>,
+  pullRequest = true,
+  scan = "success",
+) {
   return {
     contexts: {
       github: {
@@ -58,6 +59,7 @@ function context(outcomes: Record<string, string>, pullRequest = true) {
           { outcome, conclusion: outcome },
         ]),
       ),
+      needs: { report: { result: scan } },
       runner: { temp: "/runner/temp" },
       env: {},
     } as Record<string, ExprValue>,
@@ -88,17 +90,22 @@ function stepCondition(step: WorkflowStep): string {
 // ends in exit 1). `cancelledDuring` cancels the run, as a newer push to the
 // pull request does, while that step runs: its outcome is `cancelled` and
 // later steps see a cancelled job.
-function simulate(failing: string[], cancelledDuring?: string) {
+function simulate(
+  job: WorkflowJob,
+  failing: string[] = [],
+  cancelledDuring?: string,
+  scan = "success",
+) {
   const outcomes: Record<string, string> = {};
   const ran: string[] = [];
   let failed = false;
   let cancelled = false;
-  for (const step of steps()) {
+  for (const step of steps(job)) {
     const name = stepName(step);
     const condition = stepCondition(step);
     const shouldRun = truthy(
       evaluateExpression(parseExpression(condition), {
-        ...context(outcomes),
+        ...context(outcomes, true, scan),
         status: {
           success: !failed && !cancelled,
           failure: failed && !cancelled,
@@ -117,8 +124,7 @@ function simulate(failing: string[], cancelledDuring?: string) {
       cancelled = true;
       continue;
     }
-    const fails =
-      failing.some((key) => matches(step, key)) || /\bexit 1\b/.test(run(step));
+    const fails = failing.some((key) => matches(step, key));
     if (id) outcomes[id] = fails ? "failure" : "success";
     if (fails) failed = true;
   }
@@ -133,6 +139,24 @@ const publishUnavailable = (step: WorkflowStep) =>
   /node scripts\/shadscan-publish\.mjs --unavailable/.test(run(step));
 
 describe("Shadscan reporting workflow", () => {
+  it("isolates dependency installation and the audit from write permissions", () => {
+    const { jobs = {} } = loadWorkflowDocument(
+      ".github/workflows/shadscan.yml",
+    );
+    const scan = Object.values(jobs).find((job) =>
+      job.steps?.some((step) => step.id === "install"),
+    );
+    const publisher = Object.values(jobs).find((job) =>
+      job.steps?.some(publishScores),
+    );
+    expect(scan?.permissions).toEqual({ contents: "read" });
+    expect(publisher).not.toBe(scan);
+    expect(publisher?.needs).toBe("report");
+    expect(
+      publisher?.steps?.some((step) => /bun ci|shadscan:audit/.test(run(step))),
+    ).toBe(false);
+  });
+
   it("scans the submitted head commit, not the merge ref, with one checkout", () => {
     const checkouts = steps().filter((step) =>
       uses(step).startsWith("actions/checkout@"),
@@ -175,76 +199,108 @@ describe("Shadscan reporting workflow", () => {
     );
     const options = upload.with as Record<string, unknown>;
     expect(options.name).toBe("shadscan-audit");
-    expect(String(options.path)).toMatch(/shadscan\/shadscan\.raw\.json$/);
+    expect(String(options.path).trim().split("\n")).toEqual([
+      "${{ runner.temp }}/shadscan/shadscan.raw.json",
+      "${{ runner.temp }}/shadscan/shadscan.summary.json",
+    ]);
     expect(options["if-no-files-found"]).toBe("error");
+    const download = stepWith((step) => step.id === "download", publishJob);
+    expect(uses(download)).toMatch(/^actions\/download-artifact@[a-f0-9]{40}$/);
+    expect(download.with).toEqual({
+      name: options.name,
+      path: "${{ runner.temp }}/shadscan",
+    });
   });
 
-  it("publishes scores and keeps the job green when the audit succeeds", () => {
-    const { ran, failed } = simulate([]);
-    expect(ran.some((name) => /upload-artifact|raw report/i.test(name))).toBe(
-      true,
+  it("publishes scores when the audit and artifact transfer succeed", () => {
+    expect(simulate(scanJob).outcomes.upload).toBe("success");
+    const { ran, failed } = simulate(publishJob);
+    expect(ran).toContain(stepName(stepWith(publishScores, publishJob)));
+    expect(ran).not.toContain(
+      stepName(stepWith(publishUnavailable, publishJob)),
     );
-    expect(ran).toContain(text(stepWith(publishScores).name));
-    expect(ran).not.toContain(text(stepWith(publishUnavailable).name));
     expect(failed).toBe(false);
   });
 
-  it.each([["install"], ["audit"]])(
-    "publishes unavailable evidence and fails the job when %s fails",
+  it.each(["install", "audit", "upload", "oven-sh/setup-bun"])(
+    "reports unavailable evidence when %s fails and retains the scan failure",
     (failing) => {
-      const { ran, failed } = simulate([failing]);
-      const unavailable = stepWith(publishUnavailable);
-      expect(ran).toContain(text(unavailable.name));
-      expect(ran).not.toContain(text(stepWith(publishScores).name));
-      expect(failed).toBe(true);
-      // The final step is what turns the job red after publishing.
-      const last = steps().at(-1)!;
-      expect(ran.at(-1)).toBe(text(last.name));
-      // `!cancelled()` still runs after a failed step; unlike `always()`, it
-      // does not run once the run is cancelled.
-      expect(String(last.if)).toMatch(/!\s*cancelled\(\)/);
-      expect(steps().indexOf(unavailable)).toBeLessThan(steps().indexOf(last));
-      expect(text(unavailable.if)).toMatch(/!\s*cancelled\(\)/);
+      const failedStep =
+        failing === "oven-sh/setup-bun"
+          ? stepName(
+              stepWith((step) => uses(step).startsWith("oven-sh/setup-bun@")),
+            )
+          : failing;
+      const scan = simulate(scanJob, [failedStep]);
+      expect(scan.failed).toBe(true);
+      expect(scan.outcomes.unavailable).toBe("success");
+      if (failing === "oven-sh/setup-bun") {
+        expect(scan.outcomes).toMatchObject({
+          install: "skipped",
+          audit: "skipped",
+        });
+      }
+      const condition = unwrapExpression(String(publishJob.if));
+      expect(usesStatusFunction(parseExpression(condition))).toBe(true);
+      expect(
+        evaluateExpression(
+          parseExpression(condition),
+          context({}, true, "failure"),
+        ),
+      ).toBe(true);
+      const publish = simulate(publishJob, [], undefined, "failure");
+      expect(publish.outcomes.download).toBe("skipped");
+      expect(publish.ran).toContain(
+        stepName(stepWith(publishUnavailable, publishJob)),
+      );
+      expect(publish.ran).not.toContain(
+        stepName(stepWith(publishScores, publishJob)),
+      );
     },
   );
 
-  it("publishes unavailable evidence and fails the job when a setup step fails before installation", () => {
-    const setupBun = stepWith((step) =>
-      uses(step).startsWith("oven-sh/setup-bun@"),
-    );
-    const { ran, failed, outcomes } = simulate([stepName(setupBun)]);
-    expect(outcomes).toMatchObject({ install: "skipped", audit: "skipped" });
-    const unavailable = stepWith(publishUnavailable);
-    expect(ran).toContain(text(unavailable.name));
-    expect(ran).not.toContain(text(stepWith(publishScores).name));
-    expect(ran.at(-1)).toBe(text(steps().at(-1)!.name));
+  it("publishes unavailable evidence when the report cannot be downloaded", () => {
+    const { ran, failed } = simulate(publishJob, ["download"]);
+    expect(ran).toContain(stepName(stepWith(publishUnavailable, publishJob)));
+    expect(ran).not.toContain(stepName(stepWith(publishScores, publishJob)));
     expect(failed).toBe(true);
   });
 
-  it.each([["install"], ["audit"], ["Retain the raw report"]])(
-    "publishes nothing and adds no failing step when the run is cancelled during %s",
+  it.each(["install", "audit", "upload"])(
+    "publishes nothing when the scan is cancelled during %s",
     (cancelledDuring) => {
-      // ci.yml cancels a superseded pull request run when a newer push
-      // arrives; the newer run owns the report comment.
-      const { ran, failed, cancelled } = simulate([], cancelledDuring);
-      expect(cancelled).toBe(true);
-      expect(failed).toBe(false);
-      expect(ran.at(-1)).toBe(
-        stepName(stepWith((step) => matches(step, cancelledDuring))),
+      const scan = simulate(scanJob, [], cancelledDuring);
+      expect(scan.cancelled).toBe(true);
+      expect(scan.outcomes.unavailable).toBe("skipped");
+      const condition = parseExpression(
+        unwrapExpression(String(publishJob.if)),
       );
-      expect(ran).not.toContain(text(stepWith(publishUnavailable).name));
-      expect(ran).not.toContain(text(stepWith(publishScores).name));
-      expect(ran).not.toContain(text(steps().at(-1)!.name));
-      for (const step of steps())
-        expect(String(step.if ?? "")).not.toMatch(/\balways\(\)/);
+      expect(
+        evaluateExpression(condition, context({}, true, "cancelled")),
+      ).toBe(false);
+      expect(
+        evaluateExpression(condition, {
+          ...context({}, true, "success"),
+          status: { success: false, failure: false, cancelled: true },
+        }),
+      ).toBe(false);
     },
   );
+
+  it("publishes nothing when cancellation interrupts artifact download", () => {
+    const { ran, cancelled } = simulate(publishJob, [], "download");
+    expect(cancelled).toBe(true);
+    expect(ran).not.toContain(stepName(stepWith(publishScores, publishJob)));
+    expect(ran).not.toContain(
+      stepName(stepWith(publishUnavailable, publishJob)),
+    );
+  });
 
   it("stops a hung installation as a failed step inside the job time limit", () => {
     // A job that reaches its own time limit is cancelled, and a cancelled
     // job publishes nothing. Step limits keep a hung step a failure, so
     // unavailable evidence is still published.
-    const job = reportJob();
+    const job = scanJob;
     const install = stepWith((step) => step.id === "install");
     const audit = stepWith((step) => step.id === "audit");
     expect(install["timeout-minutes"]).toBe(15);
@@ -254,14 +310,17 @@ describe("Shadscan reporting workflow", () => {
   });
 
   it("gives both publishers the reporting token and the head commit", () => {
-    const job = reportJob();
+    const job = publishJob;
     expect(
       evaluate(
         String((job.env as Record<string, unknown>).SHADSCAN_HEAD_SHA),
         {},
       ),
     ).toBe(HEAD);
-    for (const step of [stepWith(publishScores), stepWith(publishUnavailable)])
+    for (const step of [
+      stepWith(publishScores, publishJob),
+      stepWith(publishUnavailable, publishJob),
+    ])
       expect((step.env as Record<string, unknown>).GH_TOKEN).toBe(
         "${{ github.token }}",
       );
@@ -274,8 +333,7 @@ describe("Shadscan reporting workflow", () => {
 
   it("names which step failed in unavailable evidence", () => {
     const reason = String(
-      (stepWith(publishUnavailable).env as Record<string, unknown>)
-        .SHADSCAN_UNAVAILABLE_REASON,
+      stepWith((step) => step.id === "unavailable").env?.UNAVAILABLE_REASON,
     );
     expect(evaluate(reason, { install: "failure", audit: "skipped" })).toMatch(
       /installation/i,
@@ -289,6 +347,13 @@ describe("Shadscan reporting workflow", () => {
     );
     expect(skipped).toMatch(/setup/i);
     expect(skipped).not.toMatch(/installation failed/i);
+    expect(
+      evaluate(reason, {
+        install: "success",
+        audit: "success",
+        upload: "failure",
+      }),
+    ).toMatch(/uploaded/i);
   });
 });
 

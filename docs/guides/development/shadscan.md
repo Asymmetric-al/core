@@ -14,8 +14,9 @@ locked in `bun.lock`. The owner retired the former blocking gate on
 
 - **CI:** the non-required `shadscan-report` job (`.github/workflows/shadscan.yml`,
   called from `ci.yml`) scans the submitted head commit once per CI event,
-  uploads the raw report as the `shadscan-audit` artifact and publishes a
-  summary. `ci-gate` does not depend on it.
+  uploads the raw report and its JSON summary as the `shadscan-audit`
+  artifact, and publishes the summary from a separate job. The scan has
+  read-only repository access. `ci-gate` does not depend on either job.
 - **Locally:** only when you run it. The pre-commit hook and `ci:preflight` do
   not scan.
 
