@@ -21,17 +21,17 @@ integrated or blocked (with the blocker). Each numbered group is one pull reques
 
 ## 3. Compiler
 
-- [ ] 3.1 **TS-1** (planned) Move the alias and the 16 workspace pins to 7.1.0-beta with the lockfile; make the two Admin repairs; add `ES2023.Intl`; add `.next/types/**/*.ts` and `next typegen` to the three product apps; update the version verifier, the compiler-family fixtures, the Principal harness and the TypeScript guidance. Verify: VR-7
-- [ ] 3.2 **GEN-1a** (planned) Check Payload types present and absent, and that the import-map producer equals the committed file
-- [ ] 3.3 **RB-1** (planned) Rehearse the rollback to 7.0.2 once, in a scratch copy
-- [ ] 3.4 **TS-3** (planned) Write the program inventory by actual membership; add compiled programs for root config, `scripts/` and `tooling/` to `typecheck` and CI; add strict lint-context programs for the central test groups, each with a failing and a passing typed control and its recorded reason; open the follow-up issue Central test compiler coverage. Verify: VR-6, VR-7
+- [x] 3.1 **TS-1** Move the alias and the 16 workspace pins to 7.1.0-beta with the lockfile; make the two Admin repairs; add `ES2023.Intl`; add `.next/types/**/*.ts` and `next typegen` to the three product apps; update the version verifier, the compiler-family fixtures, the Principal harness and the TypeScript guidance. Verify: VR-7. Verified at `6e24bf412` (Ubuntu): frozen install, uncached typecheck of all workspaces, the strict builds, `verify:typescript-toolchain`, `verify:workspace-contract`
+- [x] 3.2 **GEN-1a** Check Payload types present and absent, and that the import-map producer equals the committed file. Verified at `6e24bf412`: Payload types checked present and absent; the import-map producer equals the committed file
+- [x] 3.3 **RB-1** Rehearse the rollback to 7.0.2 once, in a scratch copy. Verified at `6e24bf412`: the rollback to 7.0.2 rehearsed once in a scratch copy
+- [x] 3.4 **TS-3** Write the program inventory by actual membership; add compiled programs for root config, `scripts/` and `tooling/` to `typecheck` and CI; add strict lint-context programs for the central test groups, each with a failing and a passing typed control and its recorded reason; open the follow-up issue Central test compiler coverage. Verify: VR-6, VR-7. Verified at `db72f5c92` (Ubuntu): uncached typecheck 17/17 including `//#typecheck:programs`, a seeded error fails it; inventory `--check`; controls and the CI-pinning acceptance suites green. Wired through Turbo (`typecheck` depends on the root task), so `ci.yml` is unchanged. Follow-up: #2732
 
 ## 4. Formatter
 
-- [ ] 4.1 **FM-1** (planned) Add `oxfmt.config.mts`, the `.prettierignore` additions and the ignore and protected-bytes tests
-- [ ] 4.2 **FM-2** (planned) Add `scripts/lib/format-source.mts` with the `trusted` and `managed` profiles
-- [ ] 4.3 **FM-3** (planned) Find all formatter consumers by reference search. Port each with its test: the two Python renderers use the CLI; the others use the adapter (L7).
-- [ ] 4.4 **GEN-1b** (planned) Route the currency generator and the import-map postprocessor through the adapter
+- [x] 4.1 **FM-1** Add `oxfmt.config.mts`, the `.prettierignore` additions and the ignore and protected-bytes tests. Verified at `9154806ff` (Ubuntu): config, ignore and protected-bytes tests; Oxfmt lists 223 differing files, none written
+- [x] 4.2 **FM-2** Add `scripts/lib/format-source.mts` with the `trusted` and `managed` profiles. Verified at `9154806ff`: adapter tests, fail-closed on a missing formatter and malformed input
+- [x] 4.3 **FM-3** Find all formatter consumers by reference search. Port each with its test: the two Python renderers use the CLI; the others use the adapter (L7).. Verified at `9154806ff`: every caller ported with its tests; the five renderers `--check`; scripts and docs suites green
+- [x] 4.4 **GEN-1b** Route the currency generator and the import-map postprocessor through the adapter. Verified at `9154806ff`: fixed-input generator tests; the postprocessor strips the legacy header
 - [ ] 4.5 **SD-1** (planned) Add `--refresh-local` and `--refresh-diffs` to `shadcn-diff.mjs`
 - [ ] 4.6 **FC-1** (planned) Cut over: `format`, `format:check`, the read-only `lint-staged` check with its new flags (design L11), CI, editor settings, contract tests and docs; remove the direct Prettier dependency and confirm by reference search that no Core caller of Prettier remains. Wait for the open stack for up to two working days first (design L12). Verify: VR-8, VR-9
 - [ ] 4.7 **FC-2** (planned) Make the one formatting commit from a clean tree, refresh the records it stales, add its blame-ignore entry. Verify: the reviewer's replay on the parent commit; `format:check`; a second pass changes nothing; typecheck and tests
