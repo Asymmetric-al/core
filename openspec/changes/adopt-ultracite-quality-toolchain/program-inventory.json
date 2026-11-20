@@ -15,13 +15,13 @@
     "vendored": "Unpacked third-party distributions.",
     "fixture": "Base UI browser fixtures outside that program's fixed include list (L9 keeps the program as it is). workspace-main.tsx needs Missionary's @/, which conflicts with the directory's @/ for the UI package (E40)."
   },
-  "trackedFiles": 4247,
+  "trackedFiles": 4249,
   "counts": {
-    "compiled": 2338,
+    "compiled": 2339,
     "compiled-elsewhere": 33,
     "negative-fixture": 4,
     "evidence": 3,
-    "lint-context": 1757,
+    "lint-context": 1758,
     "none": 112
   },
   "programs": [
@@ -165,7 +165,7 @@
       "config": "scripts/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (typecheck:programs)",
-      "trackedMembers": 18,
+      "trackedMembers": 19,
       "importedOnly": 11,
       "reason": "Root configuration, scripts or tooling program (L9)."
     },
@@ -205,8 +205,8 @@
       "config": "tests/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 2055,
-      "importedOnly": 975,
+      "trackedMembers": 2057,
+      "importedOnly": 976,
       "reason": "Central tests that need no workspace alias (E40), with allowJs so imported scripts keep inferred types. Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
@@ -460,7 +460,7 @@
     },
     {
       "path": "scripts/**",
-      "files": 7,
+      "files": 8,
       "class": "compiled",
       "roots": "scripts/tsconfig.json",
       "kind": ""
@@ -530,7 +530,7 @@
     },
     {
       "path": "tests/**",
-      "files": 1077,
+      "files": 1078,
       "class": "lint-context",
       "roots": "tests/tsconfig.json",
       "kind": ""

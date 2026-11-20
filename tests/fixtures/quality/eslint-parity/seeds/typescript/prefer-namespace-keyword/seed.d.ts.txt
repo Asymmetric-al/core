@@ -1,0 +1,3 @@
+declare module Legacy {
+  const value: number;
+}

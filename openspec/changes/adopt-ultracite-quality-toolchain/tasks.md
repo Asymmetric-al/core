@@ -38,7 +38,7 @@ integrated or blocked (with the blocker). Each numbered group is one pull reques
 
 ## 5. Linter
 
-- [ ] 5.1 **PL-0** (planned) List every rule the incumbent ESLint configs enforce at `error`, with its scope and its Oxlint equivalent, bridge or stated gap; seed one violation per rule and see it fail through Oxlint before ESLint is retired
+- [x] 5.1 **PL-0** List every rule the incumbent ESLint configs enforce at `error`, with its scope and its Oxlint equivalent, bridge or stated gap; seed one violation per rule and see it fail through Oxlint before ESLint is retired. Done (Ubuntu): `tooling/quality/eslint-parity.json` from `scripts/verify/eslint-parity.mts` (`--check` green): 71 rules at error in 17 live configs; 60 map to Oxlint, 6 stay on the shadcn bridge, 5 gaps (the four the plan names and `react/no-deprecated`, which PL-1 settles). 59 seeds fire in both engines; `react/preserve-manual-memoization` fires in neither and is pinned silent until PL-1 counts it in the real tree
 - [ ] 5.2 **PL-1** (planned) Write the per-rule policy from fresh counts: design section 4 in the config, the test and script profile with a reason per rule, `tooling/quality/pending.json` with a task per entry, and `verify:lint-pending`
 - [ ] 5.3 **PL-2** (planned) Add framework scoping, the Playwright scope and the four import tiers, each with a failing and a clean fixture. Verify: VR-3, VR-4
 - [ ] 5.4 **QB-1** (planned) Add the Query bridge config and the uncached per-workspace `lint:query` task. Verify: VR-5
