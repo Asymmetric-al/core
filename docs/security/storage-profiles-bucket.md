@@ -13,11 +13,11 @@ through the API to the owner, and sets size and type limits. Rollback:
 ```
 
 - `avatars` or `covers` is the purpose.
-- `tenantId` is the caller's `profiles.tenant_id`. A `super_admin` whose
-  `tenant_id` is NULL uses `DEMO_TENANT_ID`
-  (`00000000-0000-0000-0000-000000000001`, `packages/auth/constants.ts`); a
-  `super_admin` with a tenant uses that tenant and never the demo one. This
-  mirrors `getAuthContext`.
+- `tenantId` is the tenant of the membership row the request resolved
+  (`ctx.tenantId` from `getAuthContext`, since WP2b's first release, AL-2675),
+  and the policies accept it only where the caller holds a live membership.
+  Before that release it was the caller's `profiles.tenant_id`, with
+  `DEMO_TENANT_ID` for a `super_admin` whose `tenant_id` was NULL.
 - `userId` is `auth.uid()` (`ctx.userId`).
 - `rest` is non-empty. The upload route (`POST /api/upload/image`, #2308)
   writes `{uuid}.{ext}` with `upsert: false`.
@@ -27,25 +27,32 @@ through the API to the owner, and sets size and type limits. Rollback:
 Exactly four policies cover the bucket. All are `TO authenticated`; `anon`
 has none.
 
-| Policy                         | Command | Rule                                                                                                 |
-| ------------------------------ | ------- | ---------------------------------------------------------------------------------------------------- |
-| `profiles owner folder insert` | INSERT  | WITH CHECK: the name is in the caller's own folder (layout above)                                    |
-| `profiles owner folder update` | UPDATE  | USING: `owner = auth.uid()`. WITH CHECK: still the owner, and the name is in the caller's own folder |
-| `profiles owner select`        | SELECT  | USING: `owner = auth.uid()`                                                                          |
-| `Owner delete profiles`        | DELETE  | USING: `owner = auth.uid()` (unchanged since init_schema)                                            |
+As they stand since the second release of WP2b (below). "A live tenant" is
+one where the caller holds a live membership row, through
+`authz.caller_tenant_ids()`.
+
+| Policy                         | Command | Rule                                                                                                                                                          |
+| ------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `profiles owner folder insert` | INSERT  | WITH CHECK: the name is `{avatars\|covers}/{a live tenant}/{auth.uid()}/{non-empty rest}`                                                                     |
+| `profiles owner folder update` | UPDATE  | USING and WITH CHECK: `owner = auth.uid()`, and the name is `{avatars\|covers}/{a live tenant}/{auth.uid()}/{non-empty rest}`, before the update and after it |
+| `profiles owner select`        | SELECT  | USING: `owner = auth.uid()`, and the name is `{avatars\|covers}/{a live tenant}/...`                                                                          |
+| `Owner delete profiles`        | DELETE  | USING: `owner = auth.uid()`, and the name is `{avatars\|covers}/{a live tenant}/...`                                                                          |
 
 - The folder check splits the name with `string_to_array(name, '/')`, not
   `storage.foldername()`, and wraps `auth.uid()` as `(SELECT auth.uid())`.
 - Uploading a new object needs INSERT only. Storage API `remove` and `move`
   need SELECT on the owner's own rows, which `profiles owner select` gives.
-- An owned object outside the layout (a legacy path) can be deleted or moved
-  into the owner's folder, but not updated in place.
+- An owned object outside the layout (a legacy path) stays where it is, and
+  its public URL still serves it, but no signed-in user can read, update,
+  move or delete it through the Storage API; only the server can.
 - The bucket stays `public`, so public object URLs are served without any
-  SELECT policy. Listing, signed URLs and downloads go through RLS.
+  SELECT policy, to anyone who has the URL, whatever the policies say.
+  Listing, signed URLs and downloads through the API go through RLS.
 - Direct browser uploads (the dormant `useBackendProcessing={false}` branch
   of `ImageUpload`) must use this layout and `upsert: false`.
-- The two folder policies read `profiles.tenant_id`, so they are in the
-  sanctioned reader set in `docs/security/identity-person-anchor.md` (#2267).
+- Until the second release of WP2b the two folder policies read
+  `profiles.tenant_id`, which put them in the sanctioned reader set of
+  `docs/security/identity-person-anchor.md` (#2267). No policy reads it now.
 
 **Since the second release of WP2b (AL-2675,
 `20261119135300_request_tenant_policies.sql`).** All four policies test a
@@ -57,7 +64,8 @@ memberships, or two rows in one tenant, uploads in each. The reads and deletes
 also require the `avatars|covers/{tenantId}` layout: a person whose membership
 in a tenant has ended no longer reads or deletes their images in that tenant's
 folder through the API, and an object outside the layout is reachable only by
-the server. No policy reads `profiles.tenant_id` any more, and the
+the server. Neither withdraws an image: anyone who already has its public URL
+can still fetch it. No policy reads `profiles.tenant_id` any more, and the
 `super_admin` fallback to the demo tenant is gone: WP2a gave such a profile a
 staff row in its tenant.
 
