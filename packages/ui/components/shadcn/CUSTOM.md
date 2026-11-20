@@ -48,4 +48,4 @@ Rules:
 
 ## Drift checks
 
-`bun run ci:preflight` runs `bun run verify:shadcn-diff` (`scripts/verify/shadcn-diff.mjs`). It previews each component with the pinned shadcn CLI (`add --dry-run` and `add --diff`) and checks the result against the reviewed hashes in `tooling/shadcn/upstream-review-baseline.json`. If it fails, refresh components from the registry or reconcile intentional overrides before merging.
+`bun run verify:shadcn-diff` (`scripts/verify/shadcn-diff.mjs`) is a manual review, not a CI or pre-push gate, because it depends on the public registry at `ui.shadcn.com`, which rate-limits and stalls. It previews each component with the pinned shadcn CLI (`add --dry-run` and `add --diff`) and checks the result against the reviewed hashes in `tooling/shadcn/upstream-review-baseline.json`. Run it when you refresh components from the registry. Nothing keeps the baseline current between runs, so expect stale local hashes: re-review each reported entry and update it, then reconcile upstream changes with intentional overrides.
