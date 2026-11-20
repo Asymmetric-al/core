@@ -1,3 +1,4 @@
+// D-18, WP3: giving-target fixtures now name a legal entity owned by their tenant.
 /**
  * #2269 acceptance (spec r1 = issue comment 6385584133, approved with all
  * defaults in 6385601889). Static C1, C2 (SDL), C8, then the (R) real-catalog
@@ -30,7 +31,8 @@ const SELECT_TS = "packages/api/src/donations/select.ts";
 const NAME = "DONATION_WITH_PARTIES_SELECT";
 /** Spec 1.1, verbatim. */
 const SPEC_SELECT =
-  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))";
+  // D-18: a single column is no longer a valid hint for WP3's composite missionary FK.
+  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries(*, profile:profiles!profile_id(*))";
 const read = (f: string) => (existsSync(f) ? readFileSync(f, "utf8") : "");
 
 type Site = { name: string; file: string; start: RegExp; filter: Filter };
@@ -242,7 +244,9 @@ describe.skipIf(!ADMIN_URL)("#2269 C3 real catalog (R)", () => {
       `insert into public.tenants (id, name, slug) values ($1, 'acc2269 A', 'acc2269-' || $1), ($2, 'acc2269 B', 'acc2269-' || $2);
        insert into auth.users (id) values ($3), ($4);
        insert into public.profiles (id, tenant_id, role) values ($3, $1, 'donor'), ($4, $1, 'missionary') on conflict (id) do update set tenant_id = excluded.tenant_id, role = excluded.role;
-       insert into public.missionaries (id, tenant_id, profile_id) values ($5, $1, $4), ($6, $2, $4);
+       -- D-18: the giving targets name their own tenant's entity.
+       insert into public.legal_entities(id,tenant_id,name) values ($1,$1,'A'),($2,$2,'B');
+       insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id) values ($5, $1, $4,$1), ($6, $2, $4,$2);
        insert into public.donors (id, tenant_id, profile_id) values ($7, $1, $3), ($8, $1, null), ($9, $2, $3);
        insert into public.donations (id, tenant_id, donor_id, missionary_id, amount) values ($10, $1, $7, $5, 1000), ($11, $1, $8, $5, 2000), ($12, $2, $9, $6, 3000);`.replace(
         /\$(\d+)/g,
