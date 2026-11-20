@@ -10,11 +10,13 @@ This document is the canonical reference for how environments are defined and op
 | ------------- | ------------------------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
 | Trigger       | `bun run dev:*`                      | Disabled by default                                                   | Explicit checkpoint; merges to `develop` do not deploy                                                       | `bun run release:production` to `production`                        |
 | URL           | `localhost:3000`                     | `*.vercel.app`                                                        | `development-admin.asymmetric.al`, `development-donor.asymmetric.al`, `development-missionary.asymmetric.al` | `*.asymmetric.al`                                                   |
-| Supabase      | `bun run supabase -- start` (Docker) | Development; the disposable preview project for a PR with a migration | Dedicated development project                                                                                | Disposable preview project until switch-on step 6; then development |
+| Supabase      | `bun run supabase -- start` (Docker) | Development; a migration PR's preview path is not set up (note below) | Dedicated development project                                                                                | Disposable preview project until switch-on step 6; then development |
 | Stripe        | Test-mode                            | Test-mode                                                             | Test-mode                                                                                                    | Live-mode                                                           |
 | Sentry        | Optional (DSN may be unset)          | Optional                                                              | Configured                                                                                                   | Configured                                                          |
-| Safe to break | Yes - fully disposable               | Mostly - shares development; a migration PR's preview is disposable   | Mostly - recoverable                                                                                         | **No - real donors, real money**                                    |
+| Safe to break | Yes - fully disposable               | No blanket reset - shares development; no migration previews (below)  | Mostly - recoverable                                                                                         | **No - real donors, real money**                                    |
 | Seed data     | Local seed script                    | Shared test data                                                      | Demo data (periodically refreshed)                                                                           | Real data                                                           |
+
+Production and the two hosted projects, as section 5.3 says: until [switch-on step 6](./release-job.md#switching-it-on), Production reads the disposable preview project, which a migration PR's preview rebuild would reset if that path were enabled; after step 6 it reads the development project, which ordinary previews write to. Neither holds live data before WP11 (D-37 and D-44 in the [implementation record](../audits/core-crm-cms-database-implementation-record.md)). There is no automatic Git preview: Git deployments are off (`apps/*/vercel.json`). An eligible pull request without a migration can get an ordinary preview, against development, through the label-gated QA workflow (section 4). A migration pull request gets none today: its path would rebuild and read the disposable project only if the GitHub environment `release-preview` and a paid `preview-database` custom environment in Vercel existed, and neither does (D-38).
 
 ## 3. Local Development Setup
 
@@ -35,11 +37,11 @@ All other `.env.example` entries (Stripe, Sentry, Cloudinary, Email, PDF, etc.) 
 
 ## 4. Preview Environment Setup
 
-Preview deploys for `admin`, `donor`, and `missionary`, created by the label-gated QA smoke workflow, read the development project. A pull request that carries a migration instead rebuilds and reads the disposable `preview` project, `btewedpsxwsjczvmegby` (the production-named project until WP11; [release job](./release-job.md), step 8). Keep both to test-only data.
+A pull request does not get a Preview deployment automatically: Git deployments are off (`apps/*/vercel.json`). For an eligible pull request without a migration, the label-gated QA smoke workflow (label `qa:smoke`) can deploy `admin`, `donor` and `missionary` previews that read the development project. A pull request that carries a migration gets no such deployment today. The workflow's separate `preview-database` job would rebuild and read the disposable `preview` project, `btewedpsxwsjczvmegby` (the production-named project until WP11; [release job](./release-job.md), step 8), only if the GitHub environment `release-preview` and a `preview-database` custom Vercel environment existed. Neither does: a second custom environment costs money, and it was not created (D-38). Keep both projects to test-only data.
 
 - Ordinary Vercel Preview scope: use the development project, `https://pnmlrbgjiqzzsthsoikm.supabase.co`, and its matching keys.
-- Migration PRs only: the `preview-database` job resets the disposable project. Its preview deploys use the separate `preview-database` custom Vercel environment and that project's URL and keys, not ordinary Preview scope.
-- Data policy: PR preview environments write to development or to the preview project; never use production data
+- Migration PRs only, once step 8 is enabled: the `preview-database` job would reset the disposable project, and its preview deploys would use the separate `preview-database` custom Vercel environment and that project's URL and keys, not ordinary Preview scope. Until then a migration PR gets no preview.
+- Data policy: ordinary PR previews write to development, and migration previews, once enabled, to the preview project; never use production data
 
 ### 4.1 Preview env vars (scope: Preview only)
 
@@ -286,7 +288,7 @@ bun run verify:vercel-env-inventory -- --environments production,development
 
 Expected refs:
 
-- Production currently reads `btewedpsxwsjczvmegby`: a migration PR's preview rebuild resets the very database Production reads. On 18 November 2026 the owner confirmed that nothing was using production ([implementation record](../audits/core-crm-cms-database-implementation-record.md), D-37; operating limits in D-44). Do not put live data there. After this PR, [switch-on step 6](./release-job.md#switching-it-on) moves Production to development and ends this overlap; the disposable preview project remains the migration PR target.
+- Production currently reads `btewedpsxwsjczvmegby`: a migration PR's preview rebuild would reset the very database Production reads, if that path were enabled (step 8 of the release job; today it is not). On 18 November 2026 the owner confirmed that nothing was using production ([implementation record](../audits/core-crm-cms-database-implementation-record.md), D-37; operating limits in D-44). Do not put live data there. After [switch-on step 6](./release-job.md#switching-it-on), Production moves to development and this overlap ends; the disposable preview project remains the target of the migration PR path, once that path is enabled.
 - Development is `pnmlrbgjiqzzsthsoikm`.
 - No active Vercel environment variable should reference `uarazyactrqlxzmeygmr`.
 
@@ -544,7 +546,7 @@ sequenceDiagram
 
     Dev->>PR: Open PR (feature branch)
     PR->>Vercel: Label-gated QA preview only (qa-smoke-preview-deploy.yml)
-    Note over Vercel: Development for ordinary Preview; disposable preview project for migration PRs
+    Note over Vercel: Development for an eligible PR without a migration; no preview for a migration PR until step 8
 
     PR->>Develop: Merge/push validated development work
     Develop-->>Vercel: No automatic deploy; explicit checkpoint refreshes development-*.asymmetric.al
