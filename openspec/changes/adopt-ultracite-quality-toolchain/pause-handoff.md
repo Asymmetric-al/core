@@ -104,11 +104,46 @@ TypeScript 6.0.3 for the compiler API, the parser and the editor.
   do with this migration. The drift check is explicit instead: `node scripts/verify/eslint-parity.mts --check`, or
   the test with `CORE_ESLINT_PARITY=live`.
 - **This file was added.**
-- **LC-0 is on its own branch.** The 17 findings that can never be pending (13 from rules ESLint enforces today, 4
-  from the Query bridge) are repaired on `chore/AL-2728-cutover-repairs`, stacked on this branch, with its own pull
-  request. It is kept apart because it changes product code, including the donor checkout's payment handler, while
-  everything else on this branch is inactive. Its pull request states the result of its independent review and the
-  questions it leaves for the owner.
+- **LC-0 is half done, on its own branch.** Seventeen findings can never be pending: 13 from rules ESLint enforces
+  today and 4 from the Query bridge. A delegate repaired all of them; an independent review by a different model
+  accepted eight and rejected the rest. The eight accepted repairs are on `chore/AL-2728-cutover-repairs`, stacked
+  on this branch, as a draft pull request. They are kept apart because they change product code, including the
+  donor checkout's payment handler, while everything else on this branch is inactive. Section 4.2 has every site.
+
+### 4.2 LC-0, site by site
+
+<!-- prettier-ignore -->
+| Site | Finding | State |
+|---|---|---|
+| `apps/admin/features/support-hub/components/settings/automations/AutomationRuleForm.tsx` | `react/purity` ×2 | Repaired on the branch; reviewed correct |
+| `apps/missionary/app/analytics/page-client.tsx` | `react/purity` | Repaired on the branch; reviewed correct |
+| `apps/missionary/app/tasks/page-client.tsx` | `react/purity` (dead code) | Repaired on the branch; reviewed correct |
+| `packages/ui/components/primitives/motion-preset.tsx`, `ripple-button.tsx` | `import/no-duplicates` ×2 | Repaired on the branch; reviewed correct |
+| `apps/admin/src/cms-ui/web-studio/collections/shared/list-workspace/relationship-filter-options.ts` | `react/exhaustive-deps` | Repaired on the branch with a new test; reviewed correct. The `eslint-disable` comment is gone |
+| `apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx` | `react/refs` | Repaired on the branch; reviewed correct. The payment handler is built when the donor confirms instead of during render; the 49 checkout tests pass on the old and the new code. The `eslint-disable` comment is gone, so LC-1 has only the inline configuration comment on line 4 to convert (E64) |
+| `apps/admin/app/(app)/crm/giving-by-year-chart.tsx` | `react/purity` | **Redo.** Reading the year once at mount leaves an open chart on last year after 1 January |
+| `apps/donor/app/(dashboard)/donor-dashboard/history/page-content.tsx` | `react/purity` | **Redo.** The same for the current month. Its test must not mock `@asym/database/hooks` |
+| `apps/donor/app/(dashboard)/donor-dashboard/wallet/page-client.tsx` | `react/purity` | **Redo.** A card that expires while the wallet is open keeps "Expires soon" |
+| `apps/donor/features/donor/components/donor-dashboard-main-body.tsx` | `react/purity` | **Redo.** After 1 January an open overview shows last year's heading and $0.00 |
+| `apps/admin/features/support-hub/hooks/use-support-stats.ts` | `react/purity` | **Owner decision.** The repair read the inbox's shared minute clock, so Past due advances as time passes; today it updates only when the rows change |
+| `packages/database/hooks/member-care.ts` | Query `no-rest-destructuring` ×4 | **Redo.** The repair kept the keys and their order but lost type narrowing on `isError` and `isSuccess`, and still reads `data` before a consumer asks for it |
+
+What the redo needs:
+
+- **A clock that is pure in render and still moves.** All nine purity findings are `new Date()` during render;
+  ESLint's check knows only `Date.now`, `Math.random` and `performance.now`, which is why it is silent. Reading the
+  clock once in `useState` satisfies the rule and breaks views that stay open across midnight, a month end or a
+  year end. Read "now" from state that an effect or an external store advances, at the grain the view needs (a day
+  for the wallet and the overview, a month or a year for the charts), and make it survive a suspended tab. The
+  support hub's `useSupportNow` is the local precedent; decide whether one shared hook serves all four views. Pin
+  each with a test that rerenders the same mounted view across the boundary.
+- **`react/hook-use-state` conflicts with that fix.** It flags `const [now] = useState(() => …)`, and its own fix
+  would break purity. It is pending today; decide in the policy whether it stays on.
+- **Member care.** Keep every variant of the query result union (a distributive type, no cast), read `query.data`
+  only when a consumer reads `data` or a derived field, and add a type-level test at the public hook and a test
+  that a status-only consumer does not re-render on a data-only change.
+
+The full patch, the author's report and the review are in the coordinator's records (section 11).
 
 ## 5. What is left, in order
 
@@ -152,8 +187,8 @@ LC-1 is the largest single pull request before the repairs. Its list, including 
    `--base <the pull request's base commit>`; the default base is `origin/develop`. The exact edits are in the PL-1
    report (section 11).
 4. **Repair what today's rules already forbid.** With the pending list applied, typed lint reports 13 findings from
-   rules ESLint enforces today, and the Query bridge reports 4. They can never be pending. The repairs are on the
-   LC-0 branch (section 4.1); merge it first, or redo them from its pull request if it has gone stale.
+   rules ESLint enforces today, and the Query bridge reports 4. They can never be pending. Eight are repaired on
+   the LC-0 branch; five purity findings and the four Query findings still need the work section 4.2 describes.
 5. **Re-measure the pending list** on the merged tree (section 7.3). New code in develop will have added findings.
 6. **Directives.** Convert non-shadcn `eslint-disable` and `eslint-enable` comments in authored sources to
    `oxlint-*`. Delete the 230 `eslint-disable no-restricted-imports` comments in `tests/**`: the import tiers do not
@@ -383,6 +418,10 @@ document renderers with `--check` (FM-3), then `bun run ci:preflight` on Linux.
   found by running both engines over every import specifier in the tree; a literal port would have opened holes.
 - **Briefs for delegates should say which protected files exist.** One patch edited two acceptance pins and missed
   a third; the fix was to avoid the pinned file altogether.
+- **A review by a different model earns its cost on product code.** The LC-0 repairs passed typed lint, five
+  typechecks and 418 tests, and the review still rejected nine of seventeen by rerendering the same mounted view
+  across a date boundary and by compiling a consumer against the changed types. Ask for those two probes in every
+  repair brief.
 
 ## 11. Records
 
