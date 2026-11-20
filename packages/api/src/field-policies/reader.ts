@@ -1,13 +1,10 @@
 import {
-  createClient,
-  type RequestScope,
-} from "@asym/database/supabase/server";
-
-import {
   isSensitivityCategory,
   type SensitivityCategory,
   type Surface,
 } from "./taxonomy";
+
+import type { RequestSessionClient } from "../shared/request-session-client";
 
 export type FieldPolicyRow = Readonly<{
   recordType: string;
@@ -26,13 +23,7 @@ export type FieldPolicySet = Readonly<{
   get(fieldKey: string): FieldPolicyRow | undefined;
 }>;
 export type LoadFieldPoliciesInput = Readonly<{
-  /**
-   * What the request acts under: the tenant and assignment the resolver
-   * selected (`requestScopeOf` in `@asym/auth/context`). The read of
-   * `field_policies` sends both, so that it still finds its rows once the
-   * second release of WP2b repoints the database helper to them (NR-56).
-   */
-  requestScope: RequestScope | null;
+  sessionClient: RequestSessionClient;
   surface: Surface;
   recordType: string;
   /** Reserved; deliberately ignored until tenant override qualification. */
@@ -61,7 +52,7 @@ const wholeKey = /^[a-z_][a-z0-9_]*$/;
 
 /** Returns a static ceiling, never actor authority. RLS remains a separate backup. */
 export async function loadFieldPolicies({
-  requestScope,
+  sessionClient,
   surface,
   recordType,
 }: LoadFieldPoliciesInput): Promise<FieldPolicySet> {
@@ -76,8 +67,7 @@ export async function loadFieldPolicies({
   if (!wholeKey.test(surface) || reservedReceipts.has(recordType))
     return result;
 
-  const supabase = await createClient(requestScope);
-  const { data, error } = await supabase
+  const { data, error } = await sessionClient
     .from("field_policies")
     .select(
       "record_type,field_key,surface,tenant_id,visible,editable,exportable,sensitivity_category",
