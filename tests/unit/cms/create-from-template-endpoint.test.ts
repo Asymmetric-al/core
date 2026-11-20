@@ -133,14 +133,12 @@ describe("webStudioCreateFromTemplateEndpoint", () => {
           fundId: fund.id,
         },
         payloadOverrides: {
-          findByID: vi
-            .fn()
-            .mockResolvedValue({
-              id: 1,
-              tenant: 17,
-              pageType: "project",
-              templateKey: "project-default",
-            }),
+          findByID: vi.fn().mockResolvedValue({
+            id: 1,
+            tenant: 17,
+            pageType: "project",
+            templateKey: "project-default",
+          }),
           find: vi.fn().mockResolvedValue({ docs: [] }),
           create,
         },
