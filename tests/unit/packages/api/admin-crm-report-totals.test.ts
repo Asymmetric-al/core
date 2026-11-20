@@ -179,12 +179,20 @@ function donation(overrides: Row): Row {
 }
 
 const funds = [
-  { id: "fund-1", name: "General Fund" },
-  { id: "fund-2", name: "Building Fund" },
+  { id: "fund-1", name: "General Fund", tenant_id: "tenant-1" },
+  { id: "fund-2", name: "Building Fund", tenant_id: "tenant-1" },
 ];
 const missionaries = [
-  { id: "missionary-1", profile: { display_name: "Mina" } },
-  { id: "missionary-2", profile: { display_name: "Noah" } },
+  {
+    id: "missionary-1",
+    profile: { display_name: "Mina" },
+    tenant_id: "tenant-1",
+  },
+  {
+    id: "missionary-2",
+    profile: { display_name: "Noah" },
+    tenant_id: "tenant-1",
+  },
 ];
 
 async function report(
