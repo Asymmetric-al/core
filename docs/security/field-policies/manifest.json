@@ -53,6 +53,16 @@
   ],
   "record_types": {
     "giving_target_entity_locks": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
       "tenant_id": {
         "type": "uuid",
         "nullable": false,
@@ -286,7 +296,7 @@
       "tenant_id": {
         "type": "uuid",
         "nullable": false,
-        "category": "internal",
+        "category": "public",
         "mission_control": "v--",
         "donor": "---",
         "missionary": "---",
@@ -296,7 +306,7 @@
       "site_id": {
         "type": "uuid",
         "nullable": true,
-        "category": "internal",
+        "category": "public",
         "mission_control": "v--",
         "donor": "---",
         "missionary": "---",

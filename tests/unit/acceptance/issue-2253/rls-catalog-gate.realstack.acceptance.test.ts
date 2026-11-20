@@ -97,7 +97,8 @@ const pairs = (r: Result) =>
 
 const NOBYPASS = "create role acc2253_nobypass nosuperuser nobypassrls;";
 const TENANT = (t: string, extra = "") =>
-  `create table public.${t} (id int, tenant_id uuid)${extra};`;
+  // D-18: ordinary fixtures need WP3's tenant key, so only the named fault is planted.
+  `create table public.${t} (id int, tenant_id uuid references public.tenants on delete restrict)${extra};`;
 /**
  * Amended by AL-2675 (WP2b, second release; record D-18): the gate now also
  * fails a signed-in policy of a tenant table that admits a row without the
@@ -112,6 +113,16 @@ const TENANT = (t: string, extra = "") =>
 const POLICY = (t: string) =>
   `create policy acc2253 on public.${t} for select using (tenant_id = (select authz.current_tenant_id()));`;
 const CASES: [string, string, string[][]][] = [
+  [
+    "a tenant_id outside public with no key",
+    "create schema acc2253_absent; create table acc2253_absent.child(tenant_id uuid)",
+    [["TENANT_KEY_MISSING", "child"]],
+  ],
+  [
+    "a key cascading tenant updates",
+    "create schema acc2253_update; create table acc2253_update.child(tenant_id uuid references public.tenants on delete restrict on update cascade)",
+    [["TENANT_UPDATE_ACTION", "child"]],
+  ],
   [
     "a cascading key to tenants outside public",
     "create schema acc2253_keys; create table acc2253_keys.child (org uuid references public.tenants on delete cascade);",
@@ -134,7 +145,7 @@ const CASES: [string, string, string[][]][] = [
   ],
   [
     "all three on a bare partitioned (relkind p) tenant table",
-    "create table public.acc2253_part (tenant_id uuid) partition by list (tenant_id);",
+    "create table public.acc2253_part (tenant_id uuid references public.tenants on delete restrict) partition by list (tenant_id);",
     [
       ["FORCE_MISSING", "acc2253_part"],
       ["NO_POLICY_UNLISTED", "acc2253_part"],
@@ -143,7 +154,7 @@ const CASES: [string, string, string[][]][] = [
   ],
   [
     "nothing for a non-tenant table, a dropped tenant_id, a view or a non-public schema (5)",
-    `create table public.acc2253_plain (id int); ${TENANT("acc2253_dropped")} alter table public.acc2253_dropped drop column tenant_id; create view public.acc2253_v as select null::uuid tenant_id; create schema acc2253_s; create table acc2253_s.t (tenant_id uuid); ${NOBYPASS} alter table public.acc2253_plain owner to acc2253_nobypass;`,
+    `create table public.acc2253_plain (id int); ${TENANT("acc2253_dropped")} alter table public.acc2253_dropped drop column tenant_id; create view public.acc2253_v as select null::uuid tenant_id; create schema acc2253_s; create table acc2253_s.t (tenant_id uuid references public.tenants on delete restrict); ${NOBYPASS} alter table public.acc2253_plain owner to acc2253_nobypass;`,
     [],
   ],
   [
@@ -231,7 +242,8 @@ async function catalogCounts() {
   return rows[0] as { n: number; pol: number };
 }
 // AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
-const LISTED = 84;
+// D-18: WP3a's three internal entity tables admit no client or guard policy.
+const LISTED = 87;
 
 describe.skipIf(!ADMIN_URL)(
   "#2253 tenant RLS catalog gate (real stack)",

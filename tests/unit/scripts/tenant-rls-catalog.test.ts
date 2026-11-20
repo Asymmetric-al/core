@@ -1,4 +1,24 @@
 import { describe, expect, it } from "vitest";
+import keyExceptions from "../../../docs/security/tenant-key-exceptions.json";
+
+it("allows the reviewed CMS tenant-key debt to shrink, never to grow", () => {
+  const original = new Set([
+    "cms.cms_users",
+    "cms.media",
+    "cms.ministry_updates",
+    "cms.missionary_giving_pages",
+    "cms.missionary_profiles",
+    "cms.navigation",
+    "cms.page_templates",
+    "cms.pages",
+    "cms.project_pages",
+  ]);
+  expect(keyExceptions.reason.trim()).not.toBe("");
+  expect(new Set(keyExceptions.tables).size).toBe(keyExceptions.tables.length);
+  expect(keyExceptions.tables.filter((name) => !original.has(name))).toEqual(
+    [],
+  );
+});
 
 import {
   TENANT_RLS_CATALOG_SQL,

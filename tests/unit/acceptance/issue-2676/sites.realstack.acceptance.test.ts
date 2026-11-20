@@ -74,6 +74,53 @@ describe.skipIf(!ADMIN_URL)("verified host routing", () => {
     }
   });
 
+  it("normalizes HTTP host spelling, not Unicode or malformed names", () =>
+    fixture(async (tenant, site) => {
+      const ascii = `xn--bcher-kva.${tenant}.org`;
+      await db.query(
+        "insert into public.site_domains(host,tenant_id,site_id,is_platform_host,verification_requested_at,deployment_attached_at) values ($1,$2,$3,true,now(),now())",
+        [ascii, tenant, site],
+      );
+      for (const spelling of [
+        ascii,
+        ascii.toUpperCase(),
+        `${ascii}:443`,
+        `${ascii}.`,
+        `${ascii.toUpperCase()}.:8443`,
+      ]) {
+        expect(await resolve(spelling), spelling).toEqual([
+          { tenant_id: tenant, site_id: site },
+        ]);
+      }
+      for (const spelling of [
+        ascii.replace("xn--bcher-kva", "bücher"),
+        `${ascii}..`,
+        `${ascii}:no`,
+        `${ascii}:12:23`,
+      ]) {
+        expect(await resolve(spelling), spelling).toEqual([]);
+      }
+    }));
+
+  it("retains the request time when its requester is erased", () =>
+    fixture(async (_tenant, _site, _portal, host) => {
+      const user = randomUUID();
+      await db.query("insert into auth.users(id) values ($1)", [user]);
+      await db.query(
+        "update public.site_domains set is_platform_host=false,verification_requested_by=$1,verification_requested_at=now() where host=$2",
+        [user, host],
+      );
+      await db.query("delete from auth.users where id=$1", [user]);
+      expect(
+        (
+          await db.query(
+            "select verification_requested_by, verification_requested_at is not null as requested from public.site_domains where host=$1",
+            [host],
+          )
+        ).rows,
+      ).toEqual([{ verification_requested_by: null, requested: true }]);
+    }));
+
   it("admits only verified hosts and returns exactly their public fields", () =>
     fixture(async (tenant, site, _portal, host) => {
       const portal = `portal.${host}`;

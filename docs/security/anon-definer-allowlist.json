@@ -5,7 +5,7 @@
     {
       "function": "public.resolve_verified_host(p_host text)",
       "reason": "Exact verified hostname lookup for WP3. Returns only tenant_id and site_id. The portal also requires the Auth redirect step and its current primary hostname. No client grants on the underlying tables.",
-      "reviewed_by": "WP3a-1 implementation review against the coordinator's verified-host ruling, 2026-11-20"
+      "reviewed_by": "Coordinator's WP3a-1 council, two independent lenses, 2026-11-21"
     }
   ]
 }

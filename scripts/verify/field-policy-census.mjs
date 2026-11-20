@@ -90,6 +90,12 @@ export function expectedFieldPolicyRows(manifest) {
   );
 }
 
+// D-18, 2026-11-21 council: only the anonymous resolver's tenant projection
+// (plan 5.4) may differ from the same-name floor; C6 still admits no exception.
+export const HOST_PROJECTION_FLOORS = Object.freeze({
+  "site_domains.tenant_id": { category: "public", floor: "internal" },
+});
+
 /** Problems found in the manifest alone, without a database. */
 export function manifestProblems(manifest, { root = repoRoot } = {}) {
   const problems = [];
@@ -149,12 +155,17 @@ export function manifestProblems(manifest, { root = repoRoot } = {}) {
       if (typeof column[surface] !== "string" || !FLAGS.test(column[surface]))
         fail("FLAGS", `${key} ${surface} must match [v-][e-][x-]`);
     const prior = floors.get(column.name);
-    if (prior && prior.category !== column.category)
+    if (
+      !Object.hasOwn(HOST_PROJECTION_FLOORS, key) &&
+      prior &&
+      prior.category !== column.category
+    )
       fail(
         "FLOOR",
         `${key} is ${column.category} but ${prior.key} is ${prior.category}; one column name has one category`,
       );
-    if (!prior) floors.set(column.name, { key, category: column.category });
+    if (!Object.hasOwn(HOST_PROJECTION_FLOORS, key) && !prior)
+      floors.set(column.name, { key, category: column.category });
     const processor = column.processor_identifier === true;
     if ("processor_identifier" in column && !processor)
       fail("PROCESSOR", `${key} processor_identifier may only be true`);
@@ -171,6 +182,17 @@ export function manifestProblems(manifest, { root = repoRoot } = {}) {
         if (surface !== "mission_control" && value !== "---")
           fail("PROCESSOR", `${key} is denied on ${surface}`);
       }
+  }
+  for (const [key, reviewed] of Object.entries(HOST_PROJECTION_FLOORS)) {
+    const [record, field] = key.split(".");
+    if (
+      manifest.record_types[record]?.[field]?.category !== reviewed.category ||
+      floors.get(field)?.category !== reviewed.floor
+    )
+      fail(
+        "FLOOR",
+        `${key} override is stale or no longer matches its reviewed categories`,
+      );
   }
   for (const source of manifest.pinned_sources ?? []) {
     if (!/^supabase\/migrations\/[^/]+\.sql$/.test(source.path ?? "")) {

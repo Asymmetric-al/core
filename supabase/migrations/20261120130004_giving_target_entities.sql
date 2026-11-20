@@ -1,5 +1,41 @@
+-- Give every fund and missionary a legal entity and retain it once any of
+-- the five money tables names that target. This includes pledges, staging
+-- and the saga outbox: even abandoned money was directed to that entity.
+-- Moving future activity to another entity requires a new target.
+-- Apply in a quiet window: writers are excluded before the preflight; ALTER
+-- TABLE upgrades locks to ACCESS EXCLUSIVE and holds them through COMMIT,
+-- including backfill, index builds and validation of all ten references.
+-- Forward only: dropping the locks could reassign historical money. Rebuild
+-- a disposable database from source, or repair forward preserving history.
 BEGIN;
 SET LOCAL lock_timeout='5s';
+LOCK TABLE public.funds, public.missionaries, public.donations, public.donor_pledges,
+  public.staged_gifts, public.staged_gift_allocations, public.donation_saga_outbox IN SHARE ROW EXCLUSIVE MODE;
+DO $$
+DECLARE
+  source_table text;
+  null_funds bigint;
+  null_missionaries bigint;
+  wrong_funds bigint := 0;
+  wrong_missionaries bigint := 0;
+  fund_count bigint;
+  missionary_count bigint;
+BEGIN
+  SELECT count(*) INTO null_funds FROM public.funds WHERE tenant_id IS NULL;
+  SELECT count(*) INTO null_missionaries FROM public.missionaries WHERE tenant_id IS NULL;
+  FOREACH source_table IN ARRAY ARRAY['donations','donor_pledges','staged_gifts','staged_gift_allocations','donation_saga_outbox'] LOOP
+    EXECUTE format('SELECT count(*) FILTER (WHERE g.fund_id IS NOT NULL AND (g.tenant_id IS NULL OR g.tenant_id IS DISTINCT FROM f.tenant_id)),
+                           count(*) FILTER (WHERE g.missionary_id IS NOT NULL AND (g.tenant_id IS NULL OR g.tenant_id IS DISTINCT FROM m.tenant_id))
+                    FROM public.%I g LEFT JOIN public.funds f ON f.id=g.fund_id LEFT JOIN public.missionaries m ON m.id=g.missionary_id',source_table)
+      INTO fund_count,missionary_count;
+    wrong_funds := wrong_funds + fund_count;
+    wrong_missionaries := wrong_missionaries + missionary_count;
+  END LOOP;
+  IF null_funds + null_missionaries + wrong_funds + wrong_missionaries > 0 THEN
+    RAISE EXCEPTION 'Giving-target preflight: tenantless funds=%, tenantless missionaries=%, wrong-tenant fund references=%, wrong-tenant missionary references=%',null_funds,null_missionaries,wrong_funds,wrong_missionaries
+      USING HINT='Inspect the rows with scripts/sql/giving-target-preflight.sql; resolve their ownership before retrying.';
+  END IF;
+END $$;
 CREATE TABLE public.legal_entities (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL REFERENCES public.tenants ON DELETE RESTRICT,
   name text NOT NULL CHECK(length(btrim(name))>0), created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(tenant_id,id)
@@ -24,6 +60,7 @@ CREATE UNIQUE INDEX funds_one_fee_cover_per_entity ON public.funds(legal_entity_
 ALTER POLICY "tenant scoped read" ON public.funds USING (tenant_id=(SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff'::authz.membership_role)) AND system_purpose IS NULL);
 
 CREATE TABLE public.giving_target_entity_locks (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id uuid NOT NULL REFERENCES public.tenants ON DELETE RESTRICT, legal_entity_id uuid NOT NULL,
   fund_id uuid UNIQUE, missionary_id uuid UNIQUE, CHECK(num_nonnulls(fund_id,missionary_id)=1),
   FOREIGN KEY (tenant_id,fund_id,legal_entity_id) REFERENCES public.funds(tenant_id,id,legal_entity_id) ON UPDATE RESTRICT ON DELETE CASCADE,
@@ -48,14 +85,11 @@ $$;
 REVOKE ALL ON FUNCTION private.freeze_giving_target_entity() FROM PUBLIC,anon,authenticated,service_role;
 ALTER TABLE public.legal_entities ENABLE ROW LEVEL SECURITY, FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON public.legal_entities FROM PUBLIC,anon,authenticated,service_role;
-CREATE POLICY tenant_guard_isolation ON public.legal_entities FOR SELECT TO tenant_guard USING (tenant_id=tenant_guard.current_tenant_id());
 ALTER TABLE public.payment_account_bindings ENABLE ROW LEVEL SECURITY, FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON public.payment_account_bindings FROM PUBLIC,anon,authenticated,service_role;
-CREATE POLICY tenant_guard_isolation ON public.payment_account_bindings FOR SELECT TO tenant_guard USING (tenant_id=tenant_guard.current_tenant_id());
 ALTER TABLE public.giving_target_entity_locks ENABLE ROW LEVEL SECURITY, FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON public.giving_target_entity_locks FROM PUBLIC,anon,authenticated,service_role;
-CREATE POLICY tenant_guard_isolation ON public.giving_target_entity_locks FOR SELECT TO tenant_guard USING (tenant_id=tenant_guard.current_tenant_id());
-ALTER TABLE public.donations ADD CHECK (tenant_id IS NOT NULL OR (fund_id IS NULL AND missionary_id IS NULL));
+ALTER TABLE public.donations ADD CONSTRAINT donations_target_requires_tenant CHECK (tenant_id IS NOT NULL OR (fund_id IS NULL AND missionary_id IS NULL));
 ALTER TABLE public.donations ADD CONSTRAINT donations_fund_same_tenant_fk FOREIGN KEY (tenant_id,fund_id) REFERENCES public.funds(tenant_id,id) NOT VALID;
 ALTER TABLE public.donations VALIDATE CONSTRAINT donations_fund_same_tenant_fk;
 ALTER TABLE public.donations DROP CONSTRAINT donations_fund_id_fkey;
@@ -65,7 +99,7 @@ ALTER TABLE public.donations VALIDATE CONSTRAINT donations_missionary_same_tenan
 ALTER TABLE public.donations DROP CONSTRAINT donations_missionary_id_fkey;
 INSERT INTO public.giving_target_entity_locks(tenant_id,missionary_id,legal_entity_id) SELECT DISTINCT target.tenant_id,target.id,target.legal_entity_id FROM public.donations gift JOIN public.missionaries target ON (gift.tenant_id,gift.missionary_id)=(target.tenant_id,target.id) ON CONFLICT (missionary_id) DO NOTHING;
 CREATE TRIGGER freeze_giving_target_entity AFTER INSERT OR UPDATE OF tenant_id,fund_id,missionary_id ON public.donations FOR EACH ROW EXECUTE FUNCTION private.freeze_giving_target_entity();
-ALTER TABLE public.donor_pledges ADD CHECK (tenant_id IS NOT NULL OR (fund_id IS NULL AND missionary_id IS NULL));
+ALTER TABLE public.donor_pledges ADD CONSTRAINT donor_pledges_target_requires_tenant CHECK (tenant_id IS NOT NULL OR (fund_id IS NULL AND missionary_id IS NULL));
 ALTER TABLE public.donor_pledges ADD CONSTRAINT donor_pledges_fund_same_tenant_fk FOREIGN KEY (tenant_id,fund_id) REFERENCES public.funds(tenant_id,id) ON DELETE SET NULL (fund_id) NOT VALID;
 ALTER TABLE public.donor_pledges VALIDATE CONSTRAINT donor_pledges_fund_same_tenant_fk;
 ALTER TABLE public.donor_pledges DROP CONSTRAINT donor_pledges_fund_id_fkey;
@@ -113,6 +147,7 @@ SELECT record_type,field_key,surface,surface='mission_control',false,false,categ
 ('payment_account_bindings','legal_entity_id','financial'),
 ('payment_account_bindings','created_at','internal'),
 ('giving_target_entity_locks','tenant_id','internal'),
+('giving_target_entity_locks','id','internal'),
 ('giving_target_entity_locks','legal_entity_id','financial'),
 ('giving_target_entity_locks','fund_id','internal'),
 ('giving_target_entity_locks','missionary_id','internal'),

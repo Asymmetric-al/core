@@ -1,3 +1,7 @@
+-- Add the four administrator commands and their grants; roll back by reverting
+-- this additive change. Check the Site schema and sites.manage registration
+-- first. Creating the trigger locks site_domains in SHARE ROW EXCLUSIVE mode
+-- through COMMIT; this migration does not scan the host table.
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 

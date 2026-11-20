@@ -30,6 +30,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { runPsqlQuery } from "../lib/psql.mjs";
+import keyExceptions from "../../docs/security/tenant-key-exceptions.json" with { type: "json" };
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -180,6 +181,13 @@ export const UNADMITTED_TABLE_GRANTS_SQL = `select c.relname as relation, null::
 
 export const TENANT_RLS_CATALOG_SQL = `-- tenant-rls-catalog-gate:v1
 select jsonb_build_object(
+  'tenant_keys', coalesce((select jsonb_agg(jsonb_build_object('table', n.nspname || '.' || r.relname, 'keyed', exists (
+      select from pg_constraint fk join pg_attribute parent on parent.attrelid=fk.confrelid and parent.attname='id'
+        where fk.contype='f' and fk.conrelid=r.oid and fk.conkey=array[a.attnum] and fk.confrelid='public.tenants'::regclass and fk.confkey=array[parent.attnum] and fk.convalidated
+    ))) from pg_class r join pg_namespace n on n.oid=r.relnamespace join pg_attribute a on a.attrelid=r.oid and a.attname='tenant_id' and not a.attisdropped
+    where r.relkind in ('r','p') and r.relpersistence <> 't'), '[]'::jsonb),
+  'payload_installed', to_regclass('cms.payload_migrations') is not null,
+  'tenant_update_violations', coalesce((select jsonb_agg(jsonb_build_object('table',n.nspname||'.'||r.relname,'constraint',c.conname)) from pg_constraint c join pg_class r on r.oid=c.conrelid join pg_namespace n on n.oid=r.relnamespace where c.contype='f' and c.confrelid='public.tenants'::regclass and c.confupdtype not in ('a','r')),'[]'::jsonb),
   'tenant_delete_violations', coalesce((
     select jsonb_agg(jsonb_build_object('table', n.nspname || '.' || r.relname, 'constraint', c.conname) order by n.nspname,r.relname,c.conname)
     from pg_constraint c join pg_class r on r.oid=c.conrelid join pg_namespace n on n.oid=r.relnamespace
@@ -816,6 +824,32 @@ export function evaluateTenantRlsCatalog(
   const failFn = (code, fn, detail) =>
     failures.push({ code, function: fn, detail });
   const tables = new Map(snapshot.tables.map((t) => [t.table, t]));
+  const missingKeys = new Set(
+    (snapshot.tenant_keys ?? [])
+      .filter((item) => !item.keyed)
+      .map((item) => item.table),
+  );
+  for (const name of missingKeys)
+    if (!keyExceptions.tables.includes(name))
+      fail(
+        "TENANT_KEY_MISSING",
+        name,
+        "tenant_id has no validated foreign key to public.tenants(id)",
+      );
+  if (snapshot.payload_installed)
+    for (const name of keyExceptions.tables)
+      if (!missingKeys.has(name))
+        fail(
+          "TENANT_KEY_STALE_EXCEPTION",
+          name,
+          "remove the obsolete CMS tenant-key exception",
+        );
+  for (const edge of snapshot.tenant_update_violations ?? [])
+    fail(
+      "TENANT_UPDATE_ACTION",
+      edge.table,
+      `${edge.constraint} must restrict tenant updates or use NO ACTION`,
+    );
   for (const edge of snapshot.tenant_delete_violations ?? [])
     fail(
       "TENANT_DELETE_ACTION",
@@ -1233,6 +1267,8 @@ const isText = (value) => typeof value === "string";
 /** Throws unless every row carries the fields the evaluator reads. */
 function assertSnapshotShape(snapshot) {
   const lists = [
+    "tenant_keys",
+    "tenant_update_violations",
     "tenant_delete_violations",
     "tables",
     "definers",

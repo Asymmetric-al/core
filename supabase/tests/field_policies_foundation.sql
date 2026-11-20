@@ -112,10 +112,7 @@ BEGIN
   IF EXISTS (SELECT 1 FROM public.field_policies WHERE field_key='stripe_refund_ids' AND editable) THEN
     RAISE EXCEPTION 'C6: refund identifier array must not be policy-editable on any surface'; END IF;
   IF EXISTS (SELECT 1 FROM public.field_policies WHERE surface IN ('donor','missionary','public','export')
-    AND sensitivity_category IN ('internal','care','security') AND (visible OR exportable)
-    -- D-18: WP3 exposes only the verified-host resolver's two identifiers, read-only on public.
-    AND NOT (record_type='site_domains' AND field_key IN ('tenant_id','site_id') AND surface='public'
-      AND sensitivity_category='internal' AND visible AND NOT editable AND NOT exportable)) THEN
+    AND sensitivity_category IN ('internal','care','security') AND (visible OR exportable)) THEN
     RAISE EXCEPTION 'C6: internal/care/security column disclosed externally'; END IF;
   RAISE NOTICE 'C6: seeded processor identifiers and restricted categories retain disclosure locks';
 END $$;

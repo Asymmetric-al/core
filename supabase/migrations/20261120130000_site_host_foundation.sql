@@ -1,3 +1,8 @@
+-- Add Site routing, primary hosts and the account brand. Check that the four
+-- relation names and resolve_verified_host(text) are free before applying.
+-- Creating the FKs locks tenants and auth.users in SHARE ROW EXCLUSIVE mode
+-- until COMMIT; the new relations have no existing data to scan. Rollback:
+-- revert the additive change before dependants or real Site data exist.
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 
@@ -30,12 +35,11 @@ CREATE TABLE public.site_domains (
   portal_host_id uuid,
   is_platform_host boolean NOT NULL DEFAULT false,
   verification_requested_at timestamptz,
-  verification_requested_by uuid REFERENCES auth.users(id) ON DELETE RESTRICT,
+  verification_requested_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   deployment_attached_at timestamptz,
   redirect_allowlisted_at timestamptz,
   CHECK (num_nonnulls(site_id,portal_host_id) = 1),
   CHECK (verification_requested_by IS NULL OR verification_requested_at IS NOT NULL),
-  CHECK (verification_requested_at IS NULL OR is_platform_host OR verification_requested_by IS NOT NULL),
   CHECK (deployment_attached_at IS NULL OR verification_requested_at IS NOT NULL),
   CHECK (redirect_allowlisted_at IS NULL OR (portal_host_id IS NOT NULL AND verification_requested_at IS NOT NULL)),
   UNIQUE (tenant_id,site_id,host),
@@ -81,7 +85,7 @@ RETURNS TABLE (tenant_id uuid, site_id uuid)
 LANGUAGE sql STABLE STRICT SECURITY DEFINER SET search_path = '' AS $$
   SELECT domain.tenant_id, domain.site_id
     FROM public.site_domains AS domain
-   WHERE domain.host = p_host AND domain.deployment_attached_at IS NOT NULL
+   WHERE domain.host = pg_catalog.lower(pg_catalog.regexp_replace(p_host COLLATE "C", '\.?(:[0-9]+)?$', '')) AND domain.deployment_attached_at IS NOT NULL
      AND (domain.site_id IS NOT NULL OR (
        domain.redirect_allowlisted_at IS NOT NULL AND EXISTS (
          SELECT 1 FROM public.donor_portal_hosts AS portal
@@ -99,9 +103,11 @@ SELECT fields.record_type, key, surface,
        false,false,fields.category::public.field_sensitivity_category
 FROM (VALUES
   ('sites','internal',ARRAY['id','tenant_id','is_default','primary_domain']),
-  ('sites','contact',ARRAY['name']),('sites','care',ARRAY['status']),
+  ('sites','contact',ARRAY['name']),
+  ('sites','care',ARRAY['status']),
   ('donor_portal_hosts','internal',ARRAY['id','tenant_id','primary_domain']),
-  ('site_domains','internal',ARRAY['host','tenant_id','site_id','portal_host_id','is_platform_host']),
+  ('site_domains','internal',ARRAY['host','portal_host_id','is_platform_host']),
+  ('site_domains','public',ARRAY['tenant_id','site_id']),
   ('site_domains','security',ARRAY['verification_requested_at','verification_requested_by','deployment_attached_at','redirect_allowlisted_at']),
   ('donor_account_brands','internal',ARRAY['tenant_id']),('donor_account_brands','contact',ARRAY['display_name'])
 ) AS fields(record_type,category,keys)

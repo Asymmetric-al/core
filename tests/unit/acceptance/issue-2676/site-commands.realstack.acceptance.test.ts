@@ -63,6 +63,86 @@ describe.skipIf(!ADMIN_URL)("Site administration", () => {
       await db.query("rollback");
     }
   });
+  it("refuses foreign destinations, occupied hosts and platform siblings without changing either tenant", async () => {
+    await db.query("begin");
+    try {
+      await db.query(fixtureSql(id));
+      const otherSite = randomUUID(),
+        otherPortal = randomUUID();
+      const platform = `platform.${site}.org`,
+        occupied = `occupied.${host}`;
+      await db.query(
+        `insert into public.sites(id,tenant_id,name,primary_domain) values ($1,$2,'Local',$3),($4,$5,'Other',$6)`,
+        [site, id.TA, host, otherSite, id.TB, occupied],
+      );
+      await db.query(
+        `insert into public.donor_portal_hosts(id,tenant_id,primary_domain) values ($1,$2,$3)`,
+        [otherPortal, id.TB, `portal.${host}`],
+      );
+      await db.query(
+        `insert into public.site_domains(host,tenant_id,site_id,is_platform_host) values ($1,$2,$3,false),($4,$5,$6,false),($7,$5,$6,true)`,
+        [host, id.TA, site, occupied, id.TB, otherSite, platform],
+      );
+      await db.query(
+        `insert into public.site_domains(host,tenant_id,portal_host_id) values ($1,$2,$3)`,
+        [`portal.${host}`, id.TB, otherPortal],
+      );
+      const snapshot = async () => {
+        const tables = [];
+        for (const table of [
+          "sites",
+          "site_domains",
+          "donor_portal_hosts",
+          "donor_account_brands",
+        ]) {
+          const { rows } = await db.query(
+            `select to_jsonb(record) as value from public.${table} record where tenant_id=any($1::uuid[]) order by to_jsonb(record)::text`,
+            [[id.TA, id.TB]],
+          );
+          tables.push(rows);
+        }
+        return tables;
+      };
+      const before = await snapshot();
+      await db.query(
+        "select set_config('request.jwt.claims',$1,true),set_config('request.headers',$2,true)",
+        [
+          JSON.stringify({ sub: id.UADM, role: "authenticated" }),
+          JSON.stringify(caller.headers),
+        ],
+      );
+      for (const [statement, code] of [
+        [`set_site_status('${id.TA}','${otherSite}','inactive')`, "P0002"],
+        [
+          `verify_domain('${id.TA}','free.${host}','${otherSite}',null)`,
+          "22023",
+        ],
+        [
+          `verify_domain('${id.TA}','free.${host}',null,'${otherPortal}')`,
+          "22023",
+        ],
+        [`verify_domain('${id.TA}','${occupied}','${site}',null)`, "23505"],
+        [`create_site('${id.TA}','Taken','${occupied}')`, "23505"],
+        [
+          `create_site('${id.TA}','Platform sibling','sibling.${site}.org')`,
+          "23514",
+        ],
+        [`verify_domain('${id.TA}','${site}.org','${site}',null)`, "23514"],
+      ]) {
+        await db.query("savepoint request; set local role authenticated");
+        await expect(
+          db.query(`select public.${statement}`),
+          statement,
+        ).rejects.toMatchObject({ code });
+        await db.query(
+          "rollback to savepoint request; release savepoint request",
+        );
+        expect(await snapshot(), statement).toEqual(before);
+      }
+    } finally {
+      await db.query("rollback");
+    }
+  });
   it("changes Site status and brand; requesting verification does not attach or allowlist", async () => {
     await db.query("begin");
     try {

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ADMIN_URL, IN_MIGRATE_JOB } from "../issue-2675/harness";
@@ -10,6 +11,13 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
   const db = new pg.Client({ connectionString: ADMIN_URL });
   beforeAll(() => db.connect());
   afterAll(() => db.end());
+  it("keeps a primary key on the permanent lock and no unused guard policies", async () => {
+    const result =
+      await db.query(`select exists(select from pg_constraint where conrelid='public.giving_target_entity_locks'::regclass and contype='p') as keyed,
+      (select count(*)::int from pg_policies where schemaname='public' and tablename in ('legal_entities','payment_account_bindings','giving_target_entity_locks') and 'tenant_guard'=any(roles)) as unused,
+      (select count(*)::int from pg_constraint where (conrelid,conname) in (('public.donations'::regclass,'donations_target_requires_tenant'),('public.donor_pledges'::regclass,'donor_pledges_target_requires_tenant')) and contype='c') as checks`);
+    expect(result.rows).toEqual([{ keyed: true, unused: 0, checks: 2 }]);
+  });
   it("every reference to tenants restricts deletion", async () => {
     const { rows } = await db.query(
       "select count(*)::int as total, count(*) filter(where confdeltype<>'r')::int as invalid from pg_constraint where contype='f' and confrelid='public.tenants'::regclass",
@@ -154,6 +162,106 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       await db.query("rollback");
     }
   });
+  it.each([
+    "donations",
+    "donor_pledges",
+    "staged_gifts",
+    "staged_gift_allocations",
+    "donation_saga_outbox",
+  ])(
+    "locks both entities permanently from %s, including existing rows at upgrade",
+    async (source) => {
+      const tenant = randomUUID(),
+        entity = randomUUID(),
+        fund = randomUUID(),
+        missionary = randomUUID(),
+        gift = randomUUID(),
+        donor = randomUUID(),
+        staged = randomUUID();
+      const migration = readFileSync(
+        new URL(
+          "../../../../supabase/migrations/20261120130004_giving_target_entities.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      );
+      await db.query("begin");
+      try {
+        await db.query(
+          `insert into public.tenants(id,name,slug) values ($1,'test',$1::uuid::text)`,
+          [tenant],
+        );
+        await db.query(
+          `insert into public.legal_entities(id,tenant_id,name) values ($1,$2,'First')`,
+          [entity, tenant],
+        );
+        await db.query(
+          `insert into public.funds(id,tenant_id,legal_entity_id,name) values ($1,$2,$3,'Target')`,
+          [fund, tenant, entity],
+        );
+        await db.query(
+          `insert into public.missionaries(id,tenant_id,legal_entity_id) values ($1,$2,$3)`,
+          [missionary, tenant, entity],
+        );
+        await db.query(
+          `insert into public.donors(id,tenant_id) values ($1,$2)`,
+          [donor, tenant],
+        );
+        await db.query(
+          `insert into public.donations(id,tenant_id,amount) values ($1,$2,100)`,
+          [gift, tenant],
+        );
+        if (source === "staged_gift_allocations")
+          await db.query(
+            `insert into public.staged_gifts(id,tenant_id,donation_id,amount) values ($1,$2,$3,100)`,
+            [staged, tenant, gift],
+          );
+        const extras: Record<string, [string, string[]]> = {
+          donations: ["", []],
+          donor_pledges: ["", []],
+          staged_gifts: [",donation_id", [gift]],
+          staged_gift_allocations: [",staged_gift_id", [staged]],
+          donation_saga_outbox: [
+            ",donation_id,donor_id,idempotency_key",
+            [gift, donor, randomUUID()],
+          ],
+        };
+        const [columns, args] = extras[source]!;
+        const inserted = await db.query(
+          `insert into public.${source}(tenant_id,fund_id,missionary_id,amount${columns}) values ($1,$2,$3,100${args.map((_, index) => `,$${index + 4}`).join("")}) returning id`,
+          [tenant, fund, missionary, ...args],
+        );
+        const locks = async () =>
+          (
+            await db.query(
+              `select fund_id,missionary_id,legal_entity_id from public.giving_target_entity_locks where tenant_id=$1 order by fund_id nulls last`,
+              [tenant],
+            )
+          ).rows;
+        const expected = [
+          { fund_id: fund, missionary_id: null, legal_entity_id: entity },
+          { fund_id: null, missionary_id: missionary, legal_entity_id: entity },
+        ];
+        expect(await locks()).toEqual(expected);
+        await db.query(
+          `delete from public.giving_target_entity_locks where tenant_id=$1`,
+          [tenant],
+        );
+        const backfill =
+          migration.match(
+            /^INSERT INTO public\.giving_target_entity_locks\b[^;]+;/gm,
+          ) ?? [];
+        await db.query(backfill.join("\n"));
+        expect(await locks()).toEqual(expected);
+        await db.query(`delete from public.${source} where id=$1`, [
+          inserted.rows[0].id,
+        ]);
+        expect(await locks()).toEqual(expected);
+      } finally {
+        await db.query("rollback");
+      }
+    },
+  );
   it("all ten gift target keys are composite, validated and replace their predecessors", async () => {
     const { rows } = await db.query(
       `select c.convalidated, cardinality(c.conkey) as width from pg_constraint c where c.contype='f' and c.confrelid in ('public.funds'::regclass,'public.missionaries'::regclass) and c.conrelid::regclass::text=any($1)`,

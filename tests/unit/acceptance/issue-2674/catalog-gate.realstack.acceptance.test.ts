@@ -455,6 +455,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
     async (_name, sql, expected, allowlist) => {
       const r = await judge(
         sql,
+        // D-18: retain the reviewed host reader when adding the case's own entry.
         allowlist
           ? {
               entries: [
