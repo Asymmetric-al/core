@@ -16,7 +16,7 @@ This document is the canonical reference for how environments are defined and op
 | Safe to break | Yes - fully disposable               | No blanket reset - shares development; no migration previews (below)  | Mostly - recoverable                                                                                         | **No - real donors, real money**                                    |
 | Seed data     | Local seed script                    | Shared test data                                                      | Demo data (periodically refreshed)                                                                           | Real data                                                           |
 
-Production and the two hosted projects, as section 5.3 says: until [switch-on step 6](./release-job.md#switching-it-on), Production reads the disposable preview project, which a migration PR's preview rebuild would reset if that path were enabled; after step 6 it reads the development project, which ordinary previews write to. Neither holds live data before WP11 (D-37 and D-44 in the [implementation record](../audits/core-crm-cms-database-implementation-record.md)). There is no automatic Git preview: Git deployments are off (`apps/*/vercel.json`). An eligible pull request without a migration can get an ordinary preview, against development, through the label-gated QA workflow (section 4). A migration pull request gets none today: its path would rebuild and read the disposable project only if the GitHub environment `release-preview` and a paid `preview-database` custom environment in Vercel existed, and neither does (D-38).
+Production and the two hosted projects, as section 5.3 says: until the first release after [switch-on step 6](./release-job.md#switching-it-on), Production reads the disposable preview project, which a migration PR's preview rebuild would reset if that path were enabled. Step 6 changes the Vercel variables only; they reach users with the next deployment, which is step 7. From then on Production reads the development project, which ordinary previews write to. Neither holds live data before WP11 (D-37 and D-44 in the [implementation record](../audits/core-crm-cms-database-implementation-record.md)). There is no automatic Git preview: Git deployments are off (`apps/*/vercel.json`). An eligible pull request without a migration can get an ordinary preview, against development, through the label-gated QA workflow (section 4). A migration pull request gets none today, because neither of its path's two gates exists (D-38). The gates are separate: the rebuild of the disposable project needs only the GitHub environment `release-preview` with its release secrets, and runs before any deployment; the preview deployments that follow need a paid `preview-database` custom environment in Vercel as well. So creating `release-preview` alone would let a labelled migration pull request reset the project that Production reads today.
 
 ## 3. Local Development Setup
 
@@ -37,10 +37,10 @@ All other `.env.example` entries (Stripe, Sentry, Cloudinary, Email, PDF, etc.) 
 
 ## 4. Preview Environment Setup
 
-A pull request does not get a Preview deployment automatically: Git deployments are off (`apps/*/vercel.json`). For an eligible pull request without a migration, the label-gated QA smoke workflow (label `qa:smoke`) can deploy `admin`, `donor` and `missionary` previews that read the development project. A pull request that carries a migration gets no such deployment today. The workflow's separate `preview-database` job would rebuild and read the disposable `preview` project, `btewedpsxwsjczvmegby` (the production-named project until WP11; [release job](./release-job.md), step 8), only if the GitHub environment `release-preview` and a `preview-database` custom Vercel environment existed. Neither does: a second custom environment costs money, and it was not created (D-38). Keep both projects to test-only data.
+A pull request does not get a Preview deployment automatically: Git deployments are off (`apps/*/vercel.json`). For an eligible pull request without a migration, the label-gated QA smoke workflow (label `qa:smoke`) can deploy `admin`, `donor` and `missionary` previews that read the development project. A pull request that carries a migration gets no such deployment today. The workflow's separate `preview-database` job would rebuild the disposable `preview` project, `btewedpsxwsjczvmegby` (the production-named project until WP11; [release job](./release-job.md), step 8), as soon as the GitHub environment `release-preview` existed with its release secrets: the rebuild is its first hosted step and does not look at Vercel. Only its later steps, the preview deployments that read that project, need a `preview-database` custom Vercel environment. Neither exists: a second custom environment costs money, and it was not created (D-38). Do not create `release-preview` on its own while Production reads that project. Keep both projects to test-only data.
 
 - Ordinary Vercel Preview scope: use the development project, `https://pnmlrbgjiqzzsthsoikm.supabase.co`, and its matching keys.
-- Migration PRs only, once step 8 is enabled: the `preview-database` job would reset the disposable project, and its preview deploys would use the separate `preview-database` custom Vercel environment and that project's URL and keys, not ordinary Preview scope. Until then a migration PR gets no preview.
+- Migration PRs only, once step 8 is enabled: the `preview-database` job would reset the disposable project (for which the GitHub environment `release-preview` is enough), and its preview deploys would use the separate `preview-database` custom Vercel environment and that project's URL and keys, not ordinary Preview scope. Until then a migration PR gets no preview.
 - Data policy: ordinary PR previews write to development, and migration previews, once enabled, to the preview project; never use production data
 
 ### 4.1 Preview env vars (scope: Preview only)
@@ -156,7 +156,7 @@ node -e "import('./scripts/vercel/should-ignore-build.mjs').then(({resolveBuildD
 Each app also keeps source-controlled Git deployment branch gates in
 `apps/*/vercel.json`:
 
-- `production`: production deployments
+- `production`: disabled; a release goes through `bun run release:production` and the release job
 - `develop`: disabled; development hosts refresh only at explicit checkpoints
 - `main`: deny-only legacy name; no canonical branch exists
 - all other branches: no Git deployment creation because `"*": false` closes
@@ -186,7 +186,7 @@ Official references:
 
 ## 5. Development Environment Setup (`develop`)
 
-Development is branch-bound to `develop` using Vercel Custom Environments and remains isolated from both preview and production infrastructure.
+Development is branch-bound to `develop` using Vercel Custom Environments. Its Vercel environment is separate from Preview and Production; its Supabase project is not: ordinary previews write to it, and Production reads it from the first release after switch-on step 6.
 
 ### 5.1 Canonical development URLs
 
@@ -288,7 +288,7 @@ bun run verify:vercel-env-inventory -- --environments production,development
 
 Expected refs:
 
-- Production currently reads `btewedpsxwsjczvmegby`: a migration PR's preview rebuild would reset the very database Production reads, if that path were enabled (step 8 of the release job; today it is not). On 18 November 2026 the owner confirmed that nothing was using production ([implementation record](../audits/core-crm-cms-database-implementation-record.md), D-37; operating limits in D-44). Do not put live data there. After [switch-on step 6](./release-job.md#switching-it-on), Production moves to development and this overlap ends; the disposable preview project remains the target of the migration PR path, once that path is enabled.
+- Production currently reads `btewedpsxwsjczvmegby`: a migration PR's preview rebuild would reset the very database Production reads, if that path were enabled (step 8 of the release job; today it is not). On 18 November 2026 the owner confirmed that nothing was using production ([implementation record](../audits/core-crm-cms-database-implementation-record.md), D-37; operating limits in D-44). Do not put live data there. With the first release after [switch-on step 6](./release-job.md#switching-it-on) (step 7; step 6 alone changes variables that reach users only with the next deployment), Production moves to development and this overlap ends; the disposable preview project remains the target of the migration PR path, once that path is enabled.
 - Development is `pnmlrbgjiqzzsthsoikm`.
 - No active Vercel environment variable should reference `uarazyactrqlxzmeygmr`.
 
