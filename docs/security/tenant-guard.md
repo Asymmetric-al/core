@@ -376,7 +376,9 @@ It counts four kinds of site:
 - `workflow_admin_wrapper`: a call to, or value use of, `requireWorkflowAdminClient` from `packages/api/src/workflows/admin-client.ts`.
 - `operation_admin_context`: every call to or value use of `withPlatformOperation` from `packages/api/src/shared/with-operation.ts`. The ordinary `withOperation` authenticates the request and supplies only the caller-token client bound to the resolved tenant and assignment. It is not a service-role site.
 
-Re-exporting the factory, `requireWorkflowAdminClient` or `withPlatformOperation` from any other file always fails and cannot be allowlisted.
+The gate also counts `runDonorPortalOperation` and `runMissionaryPortalOperation` as platform context sites. A caller-lane file must not import a module with an admin-client site: this check sees direct imports only, not arbitrary transitive dependencies. The caller context's audit writer is the one accepted exception: it inserts behind the logger with a privileged client until WP4b moves it.
+
+Re-exporting a tracked factory or privileged wrapper from any other file always fails and cannot be allowlisted.
 
 `docs/security/service-role-client-allowlist.json` is the frozen, shrink-only allowlist (Samson's Q4 ruling): one entry per (file, kind) with a `count`, a non-empty `reason`, its `path_ref` and `follow_up` (#2261–#2265), and `lines` for reference only. It was frozen at 117 entries, 188 sites in 111 files. A copy of every frozen count is also kept as a ceiling inside the gate, whose SHA-256 is pinned by `tests/unit/scripts/service-role-client-gate.test.ts`. The gate fails, naming the file, the kind and the real `file:line` of every site of that kind, on:
 
@@ -393,4 +395,6 @@ All three product proxies call `admitApiMutation` in `createAuthMiddleware` befo
 
 Without Origin, a matching Referer or same-origin Fetch Metadata can attest a browser request. Otherwise only a cookie-free bearer request or the exact Stripe, Resend and Inngest endpoints proceeds to its own authentication. JSON is accepted; multipart is limited to media uploads and Web Studio. A bodyless write needs no content type: with no transfer encoding, HTTP's zero content length declares it empty even when Next supplies a stream. A positive or unknown-length stream still needs a supported type. Admission is not authorization or signature validation.
 
-Operation failures log status and correlation ID, not exception objects. CRM command rows record actor, action, references and outcome only. The human audit logger binds identity to the authenticated context; system events have no human actor. Governed exports require a successful audit insert.
+Server Actions, including Web Studio organization actions and Payload's server function, are outside this API gate. Next checks their origin and trusts `X-Forwarded-Host`; the ingress must overwrite that header rather than forward a client-supplied value. This repository does not establish that every deployed proxy does so. Studio picker lookups additionally admit same-origin form POSTs with Payload's GET override.
+
+Operation failures log sanitized exception name, code, stack, status and request ID; the tracker receives the same correlation ID. CRM command rows record actor, action, references and outcome only. The human audit logger binds identity to the authenticated context; system events have no human actor. Governed exports require a same-origin download and a successful audit insert.

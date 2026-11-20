@@ -24,10 +24,59 @@ const lines = (text: string, file = "packages/api/src/admin/x.ts") =>
   );
 
 describe("frozen ceiling", () => {
+  it.each(["donor", "missionary"])(
+    "counts the %s portal operation adapter",
+    (portal) => {
+      const helper =
+        portal === "donor"
+          ? "runDonorPortalOperation"
+          : "runMissionaryPortalOperation";
+      expect(
+        lines(
+          `import { ${helper} as run } from "../${portal}-portal/route-helpers";\nrun();`,
+        ),
+      ).toEqual(["operation_admin_context:2"]);
+    },
+  );
+
+  it("rejects a direct privileged helper import in a caller operation", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "caller-lane-"));
+    const files = {
+      "packages/api/src/admin/member-care/mutations.ts": `import {getAdminClient} from "${FACTORY}"; export const helper = () => getAdminClient();`,
+      "packages/api/src/admin/example.ts":
+        'import {withOperation as caller} from "../shared/with-operation";\nimport {helper} from "./member-care/mutations"; export const GET = caller(helper);',
+      "docs/security/service-role-client-allowlist.json": JSON.stringify({
+        version: 1,
+        entries: [
+          {
+            file: "packages/api/src/admin/member-care/mutations.ts",
+            kind: "admin_client",
+            count: 1,
+            lines: [1],
+            reason: "fixture",
+            path_ref: "fixture",
+            follow_up: "fixture",
+          },
+        ],
+      }),
+    };
+    try {
+      for (const [file, content] of Object.entries(files)) {
+        mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+        writeFileSync(path.join(root, file), content);
+      }
+      spawnSync("git", ["init", "-q"], { cwd: root });
+      expect(runServiceRoleClientGate({ root }).failures).toContainEqual(
+        expect.stringMatching(/^CALLER_PRIVILEGED_IMPORT .*example.ts:2/),
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
   // D-18: removing two follower-request sites lowers the ceiling; only growth needs a new ruling.
-  it("is the pinned 115-entry ceiling: 78 / 27 / 8 / 65 sites in 109 files", () => {
+  it("pins the 121 entries, including the eight previously uncounted calls", () => {
     expect(ceilingDigest()).toBe(
-      "c24f080d257d2f9ec4c6d646e8f0a1badfda3814a453dfadbf7995319c824554",
+      "e25de42921ceb99b0be9b8c0242f8e8100f158dd910207645c07aa16ebed9e47",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -38,12 +87,12 @@ describe("frozen ceiling", () => {
       admin_client: 78,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
-      operation_admin_context: 65,
+      operation_admin_context: 73,
     });
-    expect(CEILING.size).toBe(115);
+    expect(CEILING.size).toBe(121);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(109);
+    ).toBe(115);
   });
 });
 
