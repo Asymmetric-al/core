@@ -1,6 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { requestOrigin } from "./request-headers";
+import {
+  mutationMediaType,
+  STUDIO_ORIGIN_REFUSAL,
+  trustedMutationSource,
+} from "./request-headers";
 
 const writes = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const signedRoutes = new Set([
@@ -14,33 +18,29 @@ const uploads = new Set([
   "/api/email/assets/upload",
 ]);
 
-function trustedSource(request: NextRequest, signed: boolean): boolean {
-  const { headers } = request;
-  const expected = requestOrigin(request);
-  if (!expected) return false;
-  const origin = headers.get("origin");
-  if (origin !== null) return origin === expected;
-  const site = headers.get("sec-fetch-site");
-  if (site !== null && site !== "same-origin") return false;
-  const referer = headers.get("referer");
-  if (referer !== null) {
-    try {
-      return new URL(referer).origin === expected;
-    } catch {
-      return false;
+async function isEmptyWrite(request: Request): Promise<boolean> {
+  if (request.headers.has("transfer-encoding")) return false;
+  const length = request.headers.get("content-length");
+  if (length !== null) return length === "0";
+  if (!request.body) return true;
+  const reader = request.body.getReader();
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) return true;
+      if (value.byteLength) return false;
     }
+  } catch {
+    return false;
+  } finally {
+    reader.releaseLock();
   }
-  return (
-    site === "same-origin" ||
-    (!headers.has("cookie") &&
-      (signed || /^Bearer \S+$/i.test(headers.get("authorization") ?? "")))
-  );
 }
 
-export function admitApiMutation(
+export async function admitApiMutation(
   request: NextRequest,
   path: string,
-): NextResponse | null {
+): Promise<NextResponse | null> {
   if (!writes.has(request.method)) return null;
   let canonical: string;
   try {
@@ -55,24 +55,17 @@ export function admitApiMutation(
     canonical === "/web-studio/api" || canonical.startsWith("/web-studio/api/");
   if (!studio && !canonical.startsWith("/api/")) return null;
   const reject = (status: number, error: string) =>
-    NextResponse.json(
-      { error },
-      { status, headers: { "cache-control": "no-store" } },
+    NextResponse.json(studio ? { errors: [{ message: error }] } : { error }, {
+      status,
+      headers: { "cache-control": "no-store" },
+    });
+  if (!trustedMutationSource(request, signedRoutes.has(canonical)))
+    return reject(
+      403,
+      studio ? STUDIO_ORIGIN_REFUSAL : "Mutation origin not accepted.",
     );
-  if (!trustedSource(request, signedRoutes.has(canonical)))
-    return reject(403, "Mutation origin not accepted.");
-  const contentType = request.headers
-    .get("content-type")
-    ?.split(";", 1)[0]
-    ?.trim()
-    .toLowerCase();
-  const length = request.headers.get("content-length");
-  if (
-    contentType === undefined &&
-    !request.headers.has("transfer-encoding") &&
-    (length === "0" || (length === null && request.body === null))
-  )
-    return null;
+  const contentType = mutationMediaType(request);
+  if (contentType === undefined && (await isEmptyWrite(request))) return null;
   if (contentType === "application/json") return null;
   if (
     studio &&

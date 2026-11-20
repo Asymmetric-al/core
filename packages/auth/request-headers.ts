@@ -22,6 +22,43 @@ export function requestOrigin(request: Request): string | null {
   }
 }
 
+export const STUDIO_ORIGIN_REFUSAL =
+  "Web Studio only accepts changes made from Web Studio itself.";
+
+export function trustedMutationSource(
+  request: Request,
+  signed = false,
+): boolean {
+  const { headers } = request;
+  const expected = requestOrigin(request);
+  if (!expected) return false;
+  const origin = headers.get("origin");
+  if (origin !== null) return origin === expected;
+  const site = headers.get("sec-fetch-site");
+  if (site !== null && site !== "same-origin") return false;
+  const referer = headers.get("referer");
+  if (referer !== null) {
+    try {
+      return new URL(referer).origin === expected;
+    } catch {
+      return false;
+    }
+  }
+  return (
+    site === "same-origin" ||
+    (!headers.has("cookie") &&
+      (signed || /^Bearer \S+$/i.test(headers.get("authorization") ?? "")))
+  );
+}
+
+export function mutationMediaType(request: Request): string | undefined {
+  return request.headers
+    .get("content-type")
+    ?.split(";", 1)[0]
+    ?.trim()
+    .toLowerCase();
+}
+
 export function isSameOriginDownload(request: Request): boolean {
   const site = request.headers.get("sec-fetch-site");
   if (site !== null) return site === "same-origin";

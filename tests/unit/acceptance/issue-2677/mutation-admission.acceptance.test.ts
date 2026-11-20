@@ -55,9 +55,64 @@ it("admits only Web Studio's same-origin POST-as-GET form transport", async () =
   ).toBe(403);
 });
 
+it("returns the Payload error envelope on Studio admission refusals", async () => {
+  for (const [source, status, message] of [
+    [
+      "https://other.example.test",
+      403,
+      "Web Studio only accepts changes made from Web Studio itself.",
+    ],
+    [origin, 415, "Unsupported mutation content type."],
+  ] as const) {
+    const refusal = await admin(
+      request("/web-studio/api/pages", {
+        origin: source,
+        "content-type": "text/plain",
+      }),
+    );
+    expect(refusal.status).toBe(status);
+    expect(await refusal.json()).toEqual({ errors: [{ message }] });
+  }
+});
+
 describe.each([admin, donor, missionary])(
   "mutation admission through each product proxy",
   (proxy) => {
+    it.each(["POST", "PUT", "PATCH", "DELETE"])(
+      "admits an empty %s stream with omitted or zero length",
+      async (method) => {
+        for (const framing of [
+          new Headers(),
+          new Headers({ "content-length": "0" }),
+        ]) {
+          framing.set("origin", origin);
+          const empty = new NextRequest(`${origin}/api/profile`, {
+            method,
+            headers: framing,
+            body: new Blob([]),
+          });
+          expect(empty.body).not.toBeNull();
+          expect((await proxy(empty)).headers.get("x-middleware-next")).toBe(
+            "1",
+          );
+        }
+      },
+    );
+
+    it("does not treat data of unknown length or transfer encoding as empty", async () => {
+      for (const headers of [
+        new Headers({ origin }),
+        new Headers({ origin, "transfer-encoding": "chunked" }),
+      ]) {
+        const write = new NextRequest(`${origin}/api/profile`, {
+          method: "PATCH",
+          headers,
+          body: new Blob(["value"]),
+        });
+        expect((await proxy(write)).status).toBe(415);
+      }
+    });
+
     it("refuses a foreign write addressed by an encoded API segment", async () => {
       const response = await proxy(
         request(

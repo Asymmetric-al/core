@@ -435,7 +435,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
 
   return async function authMiddleware(request: NextRequest) {
     const addressPathname = request.nextUrl.pathname;
-    const refusal = admitApiMutation(request, addressPathname);
+    const refusal = await admitApiMutation(request, addressPathname);
     if (refusal) return refusal;
 
     if (
