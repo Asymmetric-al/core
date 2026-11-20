@@ -81,6 +81,25 @@ function directoryLinkTarget(name: string) {
 }
 
 function checkFixScope(paths: string[]) {
+  // A supplied path that is, or passes through, a link is refused outright: the scan below lists
+  // entries through Git, which omits ignored files behind such an alias.
+  for (const name of paths) {
+    for (
+      let part = name;
+      part && part !== ".";
+      part = path.posix.dirname(part)
+    ) {
+      if (
+        lstatSync(path.join(root, part), {
+          throwIfNoEntry: false,
+        })?.isSymbolicLink()
+      )
+        throw new Error(
+          `Refusing to fix through a link (it may lead outside the repository): ${part}`,
+        );
+      if (path.posix.dirname(part) === part) break;
+    }
+  }
   const inspected = new Set<string>();
   const expanded = new Set<string>();
   let pending = paths.map((name) => {
