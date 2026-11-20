@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
@@ -25,7 +26,7 @@ interface RetentionResponse extends EveRetentionAdminView {
 const QUERY_KEY = ["admin", "eve", "retention"] as const;
 
 async function loadRetention(): Promise<RetentionResponse> {
-  const response = await fetch("/api/admin/eve/retention", {
+  const response = await ownApiFetch("/api/admin/eve/retention", {
     credentials: "same-origin",
     headers: { accept: "application/json" },
   });
@@ -34,7 +35,7 @@ async function loadRetention(): Promise<RetentionResponse> {
 }
 
 async function mutateRetention(body: Record<string, unknown>) {
-  const response = await fetch("/api/admin/eve/retention", {
+  const response = await ownApiFetch("/api/admin/eve/retention", {
     method: "POST",
     credentials: "same-origin",
     headers: { accept: "application/json", "content-type": "application/json" },

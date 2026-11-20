@@ -12,6 +12,8 @@ import {
 } from "@tanstack/react-query";
 import * as React from "react";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
 interface ContributionGridRow {
@@ -255,13 +257,16 @@ async function fetchContributionPage({
     sorting,
     after,
   });
-  const response = await fetch(`/api/admin/contributions?${searchParams}`, {
-    credentials: "same-origin",
-    headers: {
-      Accept: "application/json",
+  const response = await ownApiFetch(
+    `/api/admin/contributions?${searchParams}`,
+    {
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+      },
+      signal,
     },
-    signal,
-  });
+  );
 
   if (!response.ok) {
     const payload = (await response.json().catch(() => null)) as {
@@ -276,7 +281,7 @@ async function fetchContributionPage({
 }
 
 async function fetchContributionSummary() {
-  const response = await fetch("/api/admin/contributions/summary", {
+  const response = await ownApiFetch("/api/admin/contributions/summary", {
     credentials: "same-origin",
     headers: {
       Accept: "application/json",

@@ -23,7 +23,7 @@ const serializers = [
 const media = {
   id: 44,
   alt: "Jane in field",
-  url: "/api/media/file/jane.jpg",
+  url: "/web-studio/api/media/file/jane.jpg",
   width: 1200,
   height: 800,
   mimeType: "image/jpeg",
@@ -41,7 +41,7 @@ const media = {
 const publicMedia = {
   id: "44",
   alt: "Jane in field",
-  url: "/api/media/file/jane.jpg",
+  url: "/web-studio/api/media/file/jane.jpg",
   width: 1200,
   height: 800,
   mimeType: "image/jpeg",
@@ -78,18 +78,18 @@ describe.each(serializers)("$name media variants", ({ serialize }) => {
       ...media,
       variants: {
         thumbnail: {
-          url: "/api/media/file/jane-320.jpg",
+          url: "/web-studio/api/media/file/jane-320.jpg",
           prefix: "private-variant-prefix",
           _objectKey: "private-thumbnail-object-key",
         },
-        card: { url: "/api/media/file/jane-960.jpg" },
+        card: { url: "/web-studio/api/media/file/jane-960.jpg" },
       },
     });
 
     expect(serialize(doc).layout).toEqual(
       expectedLayout(
-        "/api/media/file/jane-320.jpg",
-        "/api/media/file/jane-960.jpg",
+        "/web-studio/api/media/file/jane-320.jpg",
+        "/web-studio/api/media/file/jane-960.jpg",
       ),
     );
   });
@@ -98,16 +98,16 @@ describe.each(serializers)("$name media variants", ({ serialize }) => {
     const doc = pageWithMedia({
       ...media,
       variants: {
-        thumbnail: { url: "/api/media/file/current-thumbnail.jpg" },
+        thumbnail: { url: "/web-studio/api/media/file/current-thumbnail.jpg" },
       },
       sizes: {
-        thumbnail: { url: "/api/media/file/stale-thumbnail.jpg" },
-        card: { url: "/api/media/file/stale-card.jpg" },
+        thumbnail: { url: "/web-studio/api/media/file/stale-thumbnail.jpg" },
+        card: { url: "/web-studio/api/media/file/stale-card.jpg" },
       },
     });
 
     expect(serialize(doc).layout).toEqual(
-      expectedLayout("/api/media/file/current-thumbnail.jpg", null),
+      expectedLayout("/web-studio/api/media/file/current-thumbnail.jpg", null),
     );
   });
 
@@ -115,7 +115,7 @@ describe.each(serializers)("$name media variants", ({ serialize }) => {
     const doc = pageWithMedia({
       ...media,
       variants: {
-        thumbnail: "/api/media/file/not-a-variant-object.jpg",
+        thumbnail: "/web-studio/api/media/file/not-a-variant-object.jpg",
         card: { url: 42, _objectKey: "private-card-object-key" },
       },
     });

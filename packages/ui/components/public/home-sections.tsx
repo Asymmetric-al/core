@@ -1,3 +1,4 @@
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { siteConfig } from "@asym/config/site";
 import {
   ArrowRight,
@@ -8,7 +9,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";

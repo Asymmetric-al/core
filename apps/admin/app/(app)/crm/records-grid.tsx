@@ -20,7 +20,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Empty,
   EmptyContent,
@@ -40,6 +40,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
+import { useOwnApiDownload } from "@asym/ui/hooks";
 import { Download, SearchX, Users } from "lucide-react";
 import { useId, useMemo } from "react";
 
@@ -80,7 +81,7 @@ type CrmRecordsGridState = ReturnType<typeof useAdminCrmRecordsInfiniteGrid>;
  * `q` matches donor names only, unlike the records search (name, email,
  * organization, phone), so the grid's search and filters are not passed on.
  */
-export const CRM_DONOR_EXPORT_HREF =
+export const CRM_DONOR_EXPORT_PATH =
   "/api/admin/crm/reports/export?slice=donors";
 
 /** Server search filter id: the records API searches name, email, org, phone. */
@@ -251,10 +252,7 @@ function CrmDonorReportLink({
 }) {
   const hintId = useId();
   const hint = unavailable ?? CRM_DONOR_REPORT_HINT;
-  const className = buttonVariants({
-    variant: "outline",
-    size: compact ? "icon-sm" : "sm",
-  });
+  const { download, buttonProps } = useOwnApiDownload();
   const content = (
     <>
       <Download aria-hidden="true" />
@@ -278,15 +276,18 @@ function CrmDonorReportLink({
                 {content}
               </Button>
             ) : (
-              <a
-                href={CRM_DONOR_EXPORT_HREF}
-                download
+              // An own-API download with the document's scope, not a link:
+              // a page load carries no tenant header (WP2b, AL-2675).
+              <Button
+                variant="outline"
+                size={compact ? "icon-sm" : "sm"}
+                {...buttonProps}
+                onClick={() => void download(CRM_DONOR_EXPORT_PATH)}
                 aria-label={compact ? "Export donor report" : undefined}
                 aria-describedby={hintId}
-                className={className}
               >
                 {content}
-              </a>
+              </Button>
             )
           }
         />

@@ -134,7 +134,8 @@ export function createAppHealthHandler(surface: HealthSurface) {
     const startedAt = Date.now();
 
     try {
-      const supabase = await createClient();
+      // A connectivity probe: it names no tenant, and an empty result is healthy.
+      const supabase = await createClient(null);
       const { error } = await supabase.from("profiles").select("id").limit(1);
       const latencyMs = Date.now() - startedAt;
 

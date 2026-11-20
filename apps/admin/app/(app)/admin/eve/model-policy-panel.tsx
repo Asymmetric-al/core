@@ -5,6 +5,7 @@ import {
   eveModelPolicyActions,
   eveModelPolicyDocumentSchema,
 } from "@asym/api/eve/model-policy";
+import { ownApiFetch } from "@asym/database/own-api";
 import {
   Alert,
   AlertDescription,
@@ -98,7 +99,7 @@ type EveModelPolicyMutation =
 const MODEL_POLICY_QUERY_KEY = ["admin", "eve", "model-policy"] as const;
 
 async function loadEveModelPolicy(): Promise<EveModelPolicyResponse> {
-  const response = await fetch("/api/admin/eve/model-policy", {
+  const response = await ownApiFetch("/api/admin/eve/model-policy", {
     credentials: "same-origin",
     headers: { accept: "application/json" },
   });
@@ -114,7 +115,7 @@ async function loadEveModelPolicy(): Promise<EveModelPolicyResponse> {
 async function mutateEveModelPolicy(
   mutation: EveModelPolicyMutation,
 ): Promise<EveModelPolicyResponse> {
-  const response = await fetch("/api/admin/eve/model-policy", {
+  const response = await ownApiFetch("/api/admin/eve/model-policy", {
     method: mutation.method,
     credentials: "same-origin",
     headers: {

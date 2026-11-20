@@ -1,3 +1,4 @@
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Empty,
@@ -6,7 +7,6 @@ import {
   EmptyHeader,
   EmptyTitle,
 } from "@asym/ui/components/shadcn/empty";
-import Link from "next/link";
 
 export default function RouteNotFound() {
   return (

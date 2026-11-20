@@ -8,4 +8,10 @@ describe("buildWebStudioCreateFromTemplateUrl", () => {
     expect(url).toContain("/api");
     expect(url).toContain("web-studio/create-from-template");
   });
+
+  it("follows Payload's REST routes under /web-studio/api (AL-2675, WP2b slice C)", () => {
+    expect(
+      buildWebStudioCreateFromTemplateUrl({ apiRoute: "/web-studio/api" }),
+    ).toBe("/web-studio/api/web-studio/create-from-template");
+  });
 });

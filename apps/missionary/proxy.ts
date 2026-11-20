@@ -23,6 +23,9 @@ const authProxy = createAuthMiddleware({
   roleClass: "missionary",
   allowedRoles: MISSIONARY_ALLOWED_ROLES,
   resolveUserRole: resolveUserRoleFromDatabase,
+  // Signed-in pages live under `/<tenant>` (plan 5.2): the proxy decides the
+  // person's missionary row in the address's tenant before the page shell.
+  tenantAddress: true,
 });
 
 export function proxy(request: NextRequest) {
@@ -31,9 +34,19 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Every API path, whatever it ends in, so the proxy always fixes the
-    // role class (plan 5.1): a dynamic route answers `/api/x/y.json` too.
-    "/api/:path*",
-    "/((?!_next/static|_next/image|_next/data|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest|json|txt|xml)$).*)",
+    // Every path the app can answer runs the proxy, pages and API routes
+    // alike, whatever the path ends in: a dynamic route answers
+    // `/donors/x.json` and `/api/x/y.json` too, and a request that skipped
+    // the proxy would keep the scope headers the client sent (plan 5.1, 5.2;
+    // council round 1: WP2a F5 and WP2b A3). Exactly these paths answer
+    // without it (council round 2, AR7):
+    // - `/_next/*`: Next.js's own assets;
+    // - one file name at the root with a static extension: the app icon
+    //   (`/icon.svg`), the manifest (`/manifest.webmanifest`), and the
+    //   global not-found page for any other (`/favicon.ico`, `/x.json`): no
+    //   page route has a dynamic segment at the root.
+    // The workspace has no public folder. None of them renders a layout or
+    // reads a header the proxy sets.
+    "/((?!_next/|[^/]+\\.(?:ico|svg|png|jpg|jpeg|gif|webp|webmanifest|json|txt|xml)$).*)",
   ],
 };

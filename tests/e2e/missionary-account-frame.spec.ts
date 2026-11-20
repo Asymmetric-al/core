@@ -2,6 +2,12 @@ import AxeBuilder from "@axe-core/playwright";
 import { instant } from "@next/playwright";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
+import {
+  DEMO_TENANT_PREFIX,
+  demoTenantPath,
+  routePathname,
+} from "./helpers/tenant-address";
+
 /**
  * Run against the Missionary application with playwright.missionary.config.ts.
  * The full suite uses next dev and run-with-ci-env.mjs's non-production demo
@@ -43,11 +49,56 @@ async function capture(page: Page, testInfo: TestInfo, name: string) {
   await testInfo.attach(name, { path, contentType: "image/png" });
 }
 
+/**
+ * A workspace page under the tenant address: the proxy's landing, the role
+ * gate and the document scope come before the chrome, which streams after
+ * them, and `next dev` compiles the route on its first visit. So wait for
+ * the document scope with a timeout long enough to compile, then assert the
+ * chrome at the ordinary timeout (council round 1, A17).
+ */
+const WORKSPACE_READY_MS = 90_000;
+async function expectWorkspaceReady(page: Page) {
+  await expect(page.locator("[data-tenant-scope]")).toHaveCount(1, {
+    timeout: WORKSPACE_READY_MS,
+  });
+  // The server renders the scope marker and the chrome, so neither says the
+  // page can be used, and `networkidle` can come before the page's code has
+  // run: since a demo sign-in loads a new document (A17), a click or a key
+  // right after it landed before hydration and was lost (council round 2,
+  // AR12). React marks a node it has hydrated: wait for the chrome's own
+  // control to carry that mark, then for two frames, after which its effects
+  // (the keyboard shortcuts) have run.
+  const chrome = page.getByRole("button", { name: "Search missionary pages" });
+  await expect(chrome).toBeVisible({ timeout: WORKSPACE_READY_MS });
+  await expect
+    .poll(
+      () =>
+        chrome.evaluate((element) =>
+          Object.keys(element).some((key) => key.startsWith("__reactFiber$")),
+        ),
+      { timeout: WORKSPACE_READY_MS },
+    )
+    .toBe(true);
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+}
+
 async function enterDemoWorkspace(page: Page, next = "/") {
   await page.goto(`/login?next=${encodeURIComponent(next)}`);
   await expect(page.getByRole("heading", { name: "Sign In" })).toBeVisible();
   await page.getByRole("button", { name: "Demo Access" }).click();
-  await page.waitForURL((url) => `${url.pathname}${url.search}` === next);
+  // Signed-in pages live under the demo organization's address (plan 5.2).
+  await page.waitForURL(
+    (url) =>
+      url.pathname.startsWith(DEMO_TENANT_PREFIX) &&
+      `${routePathname(url)}${url.search}` === next,
+    { timeout: WORKSPACE_READY_MS },
+  );
+  await expectWorkspaceReady(page);
   await expect(
     page.getByRole("button", { name: "Search missionary pages" }),
   ).toBeVisible();
@@ -206,7 +257,10 @@ test("protected deep links retain their validated destination through the author
   expect(new URL(page.url()).searchParams.get("next")).toBe(destination);
   await expectStandaloneAccountFrame(page);
   await page.getByRole("button", { name: "Demo Access" }).click();
-  await expect(page).toHaveURL(/\/settings\?tab=account$/);
+  await expect(page).toHaveURL(/\/settings\?tab=account$/, {
+    timeout: WORKSPACE_READY_MS,
+  });
+  await expectWorkspaceReady(page);
   await expect(page.getByTestId("account-menu")).toBeVisible();
   await expect(page.locator('[data-slot="sidebar"]')).toBeVisible();
   await expect(
@@ -214,6 +268,7 @@ test("protected deep links retain their validated destination through the author
   ).toBeVisible();
   await page.reload();
   await expect(page).toHaveURL(/\/settings\?tab=account$/);
+  await expectWorkspaceReady(page);
   await expect(page.getByTestId("account-menu")).toBeVisible();
   await capture(page, testInfo, "fixture-protected-return");
 });
@@ -249,10 +304,9 @@ test("mobile workspace sign-out removes sidebar portals and shortcuts and demo s
   await page.keyboard.press("Control+b");
   await expect(page.locator('[data-slot="sidebar"]')).toHaveCount(0);
   await page.getByRole("button", { name: "Demo Access" }).click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(
-    page.getByRole("button", { name: "Search missionary pages" }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`${DEMO_TENANT_PREFIX}$`));
+  // A new document: wait until it can take the shortcut (AR12).
+  await expectWorkspaceReady(page);
   await page.keyboard.press("Control+k");
   await expect(
     page.getByRole("dialog", { name: "Missionary navigation" }),
@@ -301,9 +355,10 @@ test("no-access preserves the session until a successful explicit switch and exp
     ).toBeEnabled();
     await expect(page).toHaveURL(/\/no-access$/);
     // The failed operation must not invalidate the authorized fixture session.
-    const protectedResponse = await page.request.get("/settings", {
-      maxRedirects: 0,
-    });
+    const protectedResponse = await page.request.get(
+      demoTenantPath("/settings"),
+      { maxRedirects: 0 },
+    );
     expect(protectedResponse.status()).toBe(200);
     await capture(page, testInfo, "no-access-signout-failure");
   } finally {

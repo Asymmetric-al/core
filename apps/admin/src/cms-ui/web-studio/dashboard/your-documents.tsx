@@ -61,7 +61,12 @@ import { WEB_STUDIO_ADMIN_COLLECTIONS } from "../shell/admin-collections";
 import type { WebStudioCollectionSlug } from "../collections/config";
 import type { ComponentType } from "react";
 
-/** One row of Payload's `get-dashboard-documents` server function. */
+/**
+ * One row of Payload's `get-activity-widget-docs` server function, the
+ * Activity widget's documents: Payload 4.0.0-beta.9's name for beta.3's
+ * `get-dashboard-documents`, the same rows and checks, its `tab` argument now
+ * `type` (AL-2675).
+ */
 export type DashboardDocument = {
   id: string | number;
   collectionSlug: string;
@@ -144,8 +149,8 @@ function useDashboardDocuments(tab: DocumentsTab, page: number) {
     enabled: Boolean(user),
     queryFn: async () =>
       (await serverFunction({
-        name: "get-dashboard-documents",
-        args: { limit: PAGE_SIZE, page, tab },
+        name: "get-activity-widget-docs",
+        args: { limit: PAGE_SIZE, page, type: tab },
       })) as DashboardDocumentsPage,
     // Keep this tab's last page on screen while the next one loads, so the
     // pager keeps focus and its live region; never another tab's documents.
@@ -449,7 +454,7 @@ function focusAfterRemoval(
 
 /**
  * Payload's per-user "Pinned" and "Recently viewed" dashboard lists in the
- * Studio's own card. Documents come from Payload's `get-dashboard-documents`
+ * Studio's own card. Documents come from Payload's `get-activity-widget-docs`
  * server function (access-checked, with draft/changed status) and pins live
  * in Payload's `pinned-documents` preference, shared with its stock widget.
  * Documents are pinned from their workspace header (`DocumentPinToggle`).

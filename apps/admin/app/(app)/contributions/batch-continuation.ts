@@ -25,9 +25,17 @@ interface BatchResponseLike {
   json: () => Promise<unknown>;
 }
 
+/**
+ * How each process step is sent: the own-API wrapper (`ownApiFetch`) in the
+ * app, so every step carries the document's tenant and assignment as the
+ * first POST does (WP2b, AL-2675); a fake in tests. Typed to the wrapper's
+ * own signature. The global `fetch` is never passed here: a step sent on it
+ * names no tenant, and the process route's resolver refuses a person in two
+ * organizations.
+ */
 type BatchFetcher = (
-  input: string,
-  init?: { method: "POST" },
+  path: string,
+  init?: RequestInit,
 ) => Promise<BatchResponseLike>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {

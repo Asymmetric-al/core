@@ -6,6 +6,7 @@ import {
 } from "@playwright/test";
 
 import { adminBaseURL, donorBaseURL } from "./base-urls";
+import { writeHeaders } from "./helpers/web-studio";
 import { textMatchesPayloadDbFailure } from "./lib/payload-db-failure";
 
 const tenantHeaders = {
@@ -339,9 +340,12 @@ test.describe("@cms-local strict local CMS happy path", () => {
     const createdIds: string[] = [];
     for (const suffix of ["first", "second"]) {
       const title = `Created Local Standard Page ${suffix}`;
+      // Payload's REST routes, custom endpoints included, answer under
+      // /web-studio/api (AL-2675, WP2b slice C).
       const createResponse = await page.request.post(
-        `${adminBaseURL}/api/web-studio/create-from-template`,
+        `${adminBaseURL}/web-studio/api/web-studio/create-from-template`,
         {
+          headers: await writeHeaders(page, adminBaseURL),
           data: {
             targetCollection: "pages",
             templateId: String(standardTemplate.id),

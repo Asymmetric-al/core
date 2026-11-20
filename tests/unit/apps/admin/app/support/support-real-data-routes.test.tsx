@@ -19,6 +19,9 @@ vi.mock("next/navigation", () => ({
   redirect: mocks.redirect,
   permanentRedirect: mocks.permanentRedirect,
 }));
+vi.mock("next/headers", () => ({
+  headers: async () => ({ get: () => null }),
+}));
 afterEach(cleanup);
 it("searches saved contacts and links to real ticket and CRM searches", async () => {
   mocks.load.mockResolvedValue([
@@ -82,8 +85,8 @@ it("preserves repeated and unknown report query parameters", async () => {
   expect(url.searchParams.get("scopeId")).toBe("care");
   expect(url.searchParams.get("extra")).toBe("keep");
 });
-it("redirects the retired sample macro library to the canonical settings route", () => {
-  MacrosPage();
+it("redirects the retired sample macro library to the canonical settings route", async () => {
+  await MacrosPage();
   expect(mocks.permanentRedirect).toHaveBeenCalledWith(
     "/support/settings/macros",
   );

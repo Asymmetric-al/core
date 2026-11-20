@@ -135,6 +135,15 @@ describe("defineBoneyardConfig", () => {
     }
   });
 
+  // Council round 1, A17: every surface states its assertion timeout, so no
+  // wait silently inherits Playwright's default; a wait that must cover a
+  // route's first compile says so with its own timeout in the spec.
+  it("sets an explicit assertion timeout for every surface", () => {
+    for (const surface of [ADMIN_SURFACE, DONOR_SURFACE, MISSIONARY_SURFACE]) {
+      expect(defineBoneyardConfig(surface, {}).expect?.timeout).toBe(5_000);
+    }
+  });
+
   it("starts the surface dev server against a local base URL", () => {
     const config = defineBoneyardConfig(ADMIN_SURFACE, {});
     const webServer = singleWebServer(config);
@@ -177,6 +186,31 @@ describe("defineBoneyardConfig", () => {
       PLAYWRIGHT_ADMIN_BASE_URL: "http://localhost:3030",
     });
     expect(singleWebServer(config)).toBeDefined();
+  });
+
+  it("starts a configured local server on the configured port, bound to localhost", () => {
+    // A rewrite stays internal only on a server bound to localhost (record
+    // D-19), and a checkout running beside others needs its own port.
+    for (const [surface, variable] of [
+      [ADMIN_SURFACE, "PLAYWRIGHT_ADMIN_BASE_URL"],
+      [MISSIONARY_SURFACE, "PLAYWRIGHT_MISSIONARY_BASE_URL"],
+    ] as const) {
+      const webServer = singleWebServer(
+        defineBoneyardConfig(surface, { [variable]: "http://127.0.0.1:4130" }),
+      );
+      expect(webServer?.command).toContain("--port 4130");
+      expect(webServer?.command).toContain("--hostname localhost");
+      expect(webServer?.url).toBe("http://localhost:4130");
+    }
+  });
+
+  it("names the surface whose E2E cookie the dev server honours, whatever its port", () => {
+    for (const surface of [ADMIN_SURFACE, DONOR_SURFACE, MISSIONARY_SURFACE]) {
+      const config = defineBoneyardConfig(surface, {});
+      expect(singleWebServer(config)?.env?.ASYM_E2E_AUTH_SURFACE).toBe(
+        surface.app,
+      );
+    }
   });
 
   it("applies the admin first-compile timeout only where declared", () => {

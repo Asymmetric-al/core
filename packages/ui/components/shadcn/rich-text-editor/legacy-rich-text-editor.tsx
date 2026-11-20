@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { createBrowserClient } from "@asym/database/supabase";
 import * as React from "react";
 import { toast } from "sonner";
@@ -63,7 +64,7 @@ export function LegacyRichTextEditor({
       const body = new FormData();
       body.append("file", file);
       body.append("purpose", imagePurpose);
-      const response = await fetch("/api/upload/editor-image", {
+      const response = await ownApiFetch("/api/upload/editor-image", {
         method: "POST",
         headers: { Authorization: `Bearer ${session.access_token}` },
         body,

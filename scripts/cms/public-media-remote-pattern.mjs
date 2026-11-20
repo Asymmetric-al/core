@@ -3,7 +3,8 @@
  * (Phase 5 (Public Website Runtime Contract), ruling A12; issue #529).
  *
  * Public CMS media is uploaded through the admin app and served from the
- * Payload media file route (`/api/media/file/<filename>`) on the admin
+ * Payload media file route (`/web-studio/api/media/file/<filename>`, under
+ * Payload's REST routes since AL-2675) on the admin
  * origin; in hosted deployments the Payload Vercel Blob adapter stores the
  * bytes at `https://<store>.public.blob.vercel-storage.com` behind that same
  * route. The donor image optimizer must accept exactly those origins — and,
@@ -27,8 +28,17 @@
 
 const LOCAL_DEV_CMS_BASE_URL = "http://127.0.0.1:3030";
 
-/** The Payload media file route on the CMS origin — the only public media path. */
-const CMS_MEDIA_FILE_PATHNAME = "/api/media/file/**";
+/**
+ * The Payload media file route on the CMS origin — the only public media
+ * path. It moved under `/web-studio/api` with Payload's REST routes (AL-2675,
+ * WP2b slice C). The release job promotes the apps one after another, so for
+ * this release both routes are admitted (plan 7.4); the next release removes
+ * `/api/media/file/**`.
+ */
+const CMS_MEDIA_FILE_PATHNAMES = [
+  "/web-studio/api/media/file/**",
+  "/api/media/file/**",
+];
 
 /**
  * @typedef {{ protocol: "http" | "https", hostname: string, port: string, pathname?: string }} CmsImageRemotePattern
@@ -52,14 +62,16 @@ export function buildPublicCmsImageRemotePatterns(cmsBaseUrl) {
   }
 
   if (parsed && (parsed.protocol === "http:" || parsed.protocol === "https:")) {
-    patterns.push({
-      protocol: parsed.protocol === "http:" ? "http" : "https",
-      hostname: parsed.hostname,
-      // `URL#port` is "" for default ports; an explicit empty string blocks
-      // custom ports instead of the omitted-field `**` wildcard.
-      port: parsed.port,
-      pathname: CMS_MEDIA_FILE_PATHNAME,
-    });
+    for (const pathname of CMS_MEDIA_FILE_PATHNAMES) {
+      patterns.push({
+        protocol: parsed.protocol === "http:" ? "http" : "https",
+        hostname: parsed.hostname,
+        // `URL#port` is "" for default ports; an explicit empty string blocks
+        // custom ports instead of the omitted-field `**` wildcard.
+        port: parsed.port,
+        pathname,
+      });
+    }
   }
 
   // Payload `@payloadcms/storage-vercel-blob` with `access: "public"` serves

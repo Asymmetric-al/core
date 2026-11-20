@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo } from "react";
 
@@ -45,7 +46,7 @@ async function readListPage(
   if (cursor) {
     params.set("after", cursor);
   }
-  const response = await fetch(
+  const response = await ownApiFetch(
     `/api/admin/contributions?${params.toString()}`,
     { headers: { accept: "application/json" }, signal },
   );

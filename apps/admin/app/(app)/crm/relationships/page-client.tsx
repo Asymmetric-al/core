@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   CRM_RELATIONSHIP_DOMAIN_OPTIONS,
   useAdminCrmRelationshipsGrid,
@@ -62,7 +63,6 @@ import {
   ShieldAlert,
   StickyNote,
 } from "lucide-react";
-import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import {

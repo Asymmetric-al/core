@@ -42,6 +42,15 @@ export const nextConfig: NextConfig & {
       { source: "/mc", destination: "/", permanent: false },
       { source: "/mc/", destination: "/", permanent: false },
       { source: "/mc/:path*", destination: "/:path*", permanent: false },
+      // Payload's media route moved under /web-studio/api (AL-2675). For
+      // this release, links that still hold the old address keep working;
+      // the release that drops the old prefix removes this redirect
+      // (docs/guides/architecture/cms-runtime.md).
+      {
+        source: "/api/media/file/:path*",
+        destination: "/web-studio/api/media/file/:path*",
+        permanent: false,
+      },
     ];
   },
   reactCompiler: {

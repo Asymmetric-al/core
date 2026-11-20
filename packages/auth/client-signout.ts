@@ -1,3 +1,4 @@
+import { ownApiFetch } from "@asym/database/own-api";
 export interface ServerSignOutResult {
   ok: boolean;
   message?: string;
@@ -21,7 +22,7 @@ function normalizeSignOutMessage(payload: unknown) {
  */
 export async function signOutOnServer(): Promise<ServerSignOutResult> {
   try {
-    const response = await fetch("/api/auth/signout", { method: "POST" });
+    const response = await ownApiFetch("/api/auth/signout", { method: "POST" });
     if (!response.ok) {
       const payload = await response.json().catch(() => null);
       const message = normalizeSignOutMessage(payload);

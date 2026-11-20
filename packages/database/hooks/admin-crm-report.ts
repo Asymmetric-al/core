@@ -3,6 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import type {
   AdminCrmReportResponse,
   CrmReportSlice,
@@ -91,7 +93,7 @@ async function fetchCrmReport({
   const searchParams = new URLSearchParams({ slice });
   if (period.dateFrom) searchParams.set("dateFrom", period.dateFrom);
   if (period.dateTo) searchParams.set("dateTo", period.dateTo);
-  const response = await fetch(`/api/admin/crm/reports?${searchParams}`, {
+  const response = await ownApiFetch(`/api/admin/crm/reports?${searchParams}`, {
     credentials: "same-origin",
     headers: {
       Accept: "application/json",

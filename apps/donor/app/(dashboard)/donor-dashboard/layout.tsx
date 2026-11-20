@@ -1,12 +1,14 @@
 import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
+import { PortalDocument } from "@asym/auth/portal-document";
 import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import { readPortalDocumentScope } from "@asym/auth/tenant-server";
 import { siteConfig } from "@asym/config/site-client";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
-import { RetainedDraftPageTenant } from "@asym/ui/hooks";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
+import { DonorPortalFrameSkeleton } from "./donor-portal-frame-skeleton";
 import { DonorPortalHeader } from "../../../features/donor/components/donor-portal-header";
 
 import type { Metadata } from "next";
@@ -31,23 +33,27 @@ export default function DonorDashboardLayout({
 }) {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <DonorPortalHeader />
-      <div className="flex flex-1 flex-col">
-        <main id="main-content" className="flex-1 pt-8 pb-20">
-          <RouteMainViewTransitionBoundary className="container-responsive">
-            {/*
-             * Sibling, not a wrapper: while it wrapped `{children}` this null
-             * fallback covered the whole page and the per-route `loading.tsx`
-             * skeletons could never render. `fallback={null}` is only correct
-             * because the gate renders nothing on success.
-             */}
-            <Suspense fallback={null}>
-              <DonorRoleGate />
-            </Suspense>
-            {children}
-          </RouteMainViewTransitionBoundary>
-        </main>
-      </div>
+      {/*
+       * The header and the pages render inside the portal's document scope
+       * (WP2b, AL-2675), as the workspace's chrome renders inside its
+       * `TenantDocument`: the header reads the donor's own data through the
+       * own-API wrapper, and a call made outside the scope would leave with
+       * no tenant or assignment. Both wait for the request's donor
+       * membership behind a skeleton frame, never `null`, and each route's
+       * own `loading.tsx` still streams inside the scoped document.
+       */}
+      <Suspense fallback={<DonorPortalFrameSkeleton />}>
+        <DonorPortalDocument>
+          <DonorPortalHeader />
+          <div className="flex flex-1 flex-col">
+            <main id="main-content" className="flex-1 pt-8 pb-20">
+              <RouteMainViewTransitionBoundary className="container-responsive">
+                {children}
+              </RouteMainViewTransitionBoundary>
+            </main>
+          </div>
+        </DonorPortalDocument>
+      </Suspense>
       <DonorPortalFooter />
     </div>
   );
@@ -79,15 +85,23 @@ function DonorPortalFooter() {
 }
 
 /**
- * Role-only defence in depth; renders nothing, it only redirects.
+ * The role gate and the portal's document scope.
  *
- * Safe as a sibling because the edge now enforces role, not just authentication:
- * `apps/donor/proxy.ts` passes `allowedRoles: ["donor"]` and
- * `packages/auth/middleware.ts` rejects any other role for `/donor-dashboard`
- * before the app renders. A wrong-role visitor is redirected at the proxy, so
- * `{children}` rendering beside this gate does not leak dashboard content.
+ * The gate is defence in depth: `apps/donor/proxy.ts` passes
+ * `allowedRoles: ["donor"]` and `packages/auth/middleware.ts` rejects any
+ * other role for `/donor-dashboard` before the app renders.
+ *
+ * Until WP3 resolves the portal's host, the scope is the person's one live
+ * donor membership (plan 12, WP2, "Interim rules until WP3"; AL-2675): the
+ * own-API wrapper, the browser client and the query cache read it as they
+ * read a tenant address's scope elsewhere. A person with donor memberships in
+ * two tenants resolves no assignment and is refused.
  */
-async function DonorRoleGate() {
+async function DonorPortalDocument({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const authContext = await getAuthContext(undefined, { roleClass: "donor" });
   const authRedirectPath = getProtectedAppRedirectPath(
     authContext,
@@ -102,12 +116,10 @@ async function DonorRoleGate() {
     redirect("/no-access");
   }
 
-  // Retained drafts are scoped by the page's tenant: the resolved donor
-  // assignment's (AL-2675). Renders nothing.
-  return authContext.userId && authContext.tenantId ? (
-    <RetainedDraftPageTenant
-      userId={authContext.userId}
-      tenantId={authContext.tenantId}
-    />
-  ) : null;
+  const scope = readPortalDocumentScope(authContext);
+  if (!scope) {
+    redirect("/no-access");
+  }
+
+  return <PortalDocument scope={scope}>{children}</PortalDocument>;
 }

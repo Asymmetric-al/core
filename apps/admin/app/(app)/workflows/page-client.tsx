@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  useRoutePathname as usePathname,
+  useTenantRouter as useRouter,
+} from "@asym/auth/tenant-navigation";
+import { ownApiFetch } from "@asym/database/own-api";
+import {
   MetricCard,
   MetricGrid,
 } from "@asym/ui/components/primitives/metric-card";
@@ -13,7 +18,7 @@ import {
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { AlertTriangle, CircleAlert, RotateCw } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import {
@@ -52,7 +57,7 @@ export default function WorkflowsPageClient() {
   useEffect(() => {
     let cancelled = false;
 
-    fetch("/api/admin/workflows/summaries")
+    ownApiFetch("/api/admin/workflows/summaries")
       .then(async (response) => {
         if (!response.ok) throw new Error("summaries_unavailable");
         return (await response.json()) as SummariesResponse;

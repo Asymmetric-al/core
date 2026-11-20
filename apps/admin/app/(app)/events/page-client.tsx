@@ -1,3 +1,4 @@
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
@@ -9,7 +10,6 @@ import {
   EmptyContent,
 } from "@asym/ui/components/shadcn/empty";
 import { CalendarDays } from "lucide-react";
-import Link from "next/link";
 
 export default function EventsPage() {
   return (

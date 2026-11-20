@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
@@ -17,7 +18,6 @@ import {
   RotateCw,
   TriangleAlert,
 } from "lucide-react";
-import Link from "next/link";
 import { useId } from "react";
 
 import {

@@ -245,15 +245,23 @@ describe("#2258 resolver (criteria 3, 4, 5, 9, 17 S; DI fakes, no vi.mock)", () 
   // criterion 17 (S), as restated by AL-2675: the surface's role class
   // filters the candidates and nothing ranks one class over another.
   // "label | reader rows | input | expected ([row] selection, or reason)".
+  //
+  // Criterion 3's narrowing by expectedTenantId holds for every class. Its
+  // case was written with donor rows; since the joined release's JB12 the
+  // donor surface refuses a person with donor rows in two organizations
+  // before any narrowing, by plan 12's interim rule until WP3. So the
+  // narrowing is shown on missionary rows, and the donor refusal beside it.
   const R: Record<string, H.Row> = {
     D: row(TA, "donor"),
     M: row(TA, "missionary"),
     S1: row(TA, "staff", "finance"),
     S2: row(TA, "staff", "member_care"),
     DB: row(TB, "donor"),
+    MB: row(TB, "missionary"),
   };
   const CASES = `3/17: one row of the class → sole | staff | S1 | - | S1 sole
-3/17: expectedTenantId TA, rows in TA and TB → the TA row, sole | donor | D DB | TA | D sole
+3/17: expectedTenantId TA, rows in TA and TB → the TA row, sole | missionary | M MB | TA | M sole
+3/17 with WP2's interim rule: donor rows in TA and TB, narrowed to TA → ambiguous | donor | D DB | TA | ambiguous
 3/17: donor rows in TA and TB, no expectedTenantId → ambiguous | donor | D DB | - | ambiguous
 17a: staff + donor, staff surface → the staff row, sole | staff | S1 D | - | S1 sole
 17a': staff + donor, donor portal → the donor row, never the staff row | donor | S1 D | - | D sole
@@ -558,6 +566,10 @@ describe("#2258 principal/** scans (criteria 1, 4, 5, 8, 10, 15, 17 S)", () => {
       "packages/auth/middleware.ts",
       "packages/auth/request-headers.ts",
       "packages/auth/resolve-user-role.ts",
+      // WP2b slice C (AL-2675): Web Studio decides its organization with the
+      // resolver's own rule (selectAssignment) over the person's live rows,
+      // for the admin proxy, the Web Studio layout and Payload's strategy.
+      "packages/auth/web-studio.ts",
     ]);
   });
 });

@@ -1,9 +1,11 @@
 "use client";
 
+import {
+  TenantLink as Link,
+  useRoutePathname,
+} from "@asym/auth/tenant-navigation";
 import { useIsHydrated } from "@asym/lib/hooks/use-locale-format";
 import { Menu } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { cn } from "../../lib/utils";
@@ -49,7 +51,7 @@ function CurrentPathname({
 }: {
   onChange: (pathname: string) => void;
 }) {
-  const pathname = usePathname();
+  const pathname = useRoutePathname();
   useEffect(() => {
     onChange(pathname);
   }, [onChange, pathname]);

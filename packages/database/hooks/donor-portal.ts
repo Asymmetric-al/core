@@ -2,6 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import { parseJsonResponse } from "../http/parse-json-response";
 import { getQueryClient } from "../providers/query-client";
 
@@ -154,7 +156,7 @@ export type DonorPortalPatch = {
 const DONOR_PORTAL_QUERY_KEY = ["donor", "portal"] as const;
 
 export async function fetchDonorPortalSnapshot(): Promise<DonorPortalSnapshot> {
-  const response = await fetch("/api/donor/portal", {
+  const response = await ownApiFetch("/api/donor/portal", {
     credentials: "same-origin",
     headers: {
       Accept: "application/json",
@@ -201,7 +203,7 @@ export function useUpdateDonorPortal() {
 
   return useMutation({
     mutationFn: async (patch: DonorPortalPatch) => {
-      const response = await fetch("/api/donor/portal", {
+      const response = await ownApiFetch("/api/donor/portal", {
         body: JSON.stringify(patch),
         credentials: "same-origin",
         headers: {
@@ -225,7 +227,7 @@ export function useCreateDonorBillingPortalSession() {
   // react-doctor-disable-next-line react-doctor/query-mutation-missing-invalidation
   return useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/donor/billing-portal", {
+      const response = await ownApiFetch("/api/donor/billing-portal", {
         credentials: "same-origin",
         headers: {
           Accept: "application/json",
@@ -261,7 +263,7 @@ export function useDonorWallet() {
   return useQuery({
     queryKey: DONOR_WALLET_QUERY_KEY,
     queryFn: async () => {
-      const response = await fetch("/api/donor/payment-methods", {
+      const response = await ownApiFetch("/api/donor/payment-methods", {
         credentials: "same-origin",
         headers: { Accept: "application/json" },
         method: "GET",
