@@ -1,0 +1,896 @@
+{
+  "description": "Tracked TypeScript by actual program membership (TS-3, design L9). A file is described by the most specific scope matching it: its own path, else the nearest dir/**. Regenerate with `node scripts/verify/typescript-programs.mts --write`; check with `--check`.",
+  "classes": {
+    "compiled": "In a program that `bun run typecheck` compiles.",
+    "compiled-elsewhere": "In a program another gate compiles.",
+    "negative-fixture": "In a program that is meant to fail.",
+    "evidence": "In a documentation evidence program no gate compiles.",
+    "lint-context": "Only in central-test lint-context programs; compiling them is #2732 (Central test compiler coverage).",
+    "none": "In no program; `kind` names why."
+  },
+  "kinds": {
+    "factory-release": "The factory's Archon pack: a changed pack is a new release under its own review (scripts/AGENTS.md, L2), so scripts/tsconfig.json excludes it and this change does not edit it.",
+    "managed-copy": "Installed and mirrored agent skills.",
+    "evidence": "Documentation evidence and source probes, kept as recorded.",
+    "vendored": "Unpacked third-party distributions.",
+    "fixture": "Base UI browser fixtures outside that program's fixed include list (L9 keeps the program as it is). workspace-main.tsx needs Missionary's @/, which conflicts with the directory's @/ for the UI package (E40)."
+  },
+  "trackedFiles": 4245,
+  "counts": {
+    "compiled": 2338,
+    "compiled-elsewhere": 33,
+    "negative-fixture": 4,
+    "evidence": 3,
+    "lint-context": 1755,
+    "none": 112
+  },
+  "programs": [
+    {
+      "config": "apps/admin/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (apps/admin)",
+      "trackedMembers": 1454,
+      "importedOnly": 706,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "apps/donor/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (apps/donor)",
+      "trackedMembers": 622,
+      "importedOnly": 473,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "apps/factory-console/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (apps/factory-console)",
+      "trackedMembers": 204,
+      "importedOnly": 138,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "apps/missionary/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (apps/missionary)",
+      "trackedMembers": 586,
+      "importedOnly": 457,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "packages/api/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (packages/api)",
+      "trackedMembers": 596,
+      "importedOnly": 77,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "packages/auth/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (packages/auth)",
+      "trackedMembers": 54,
+      "importedOnly": 19,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "packages/config/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (packages/config)",
+      "trackedMembers": 20,
+      "importedOnly": 8,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "packages/database/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (packages/database)",
+      "trackedMembers": 73,
+      "importedOnly": 4,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "packages/email/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (packages/email)",
+      "trackedMembers": 20,
+      "importedOnly": 0,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "packages/env/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (packages/env)",
+      "trackedMembers": 4,
+      "importedOnly": 0,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "packages/eve-runtime/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (packages/eve-runtime)",
+      "trackedMembers": 278,
+      "importedOnly": 141,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "packages/graphql/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (packages/graphql)",
+      "trackedMembers": 45,
+      "importedOnly": 41,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "packages/lib/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (packages/lib)",
+      "trackedMembers": 102,
+      "importedOnly": 46,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "packages/missionary/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (packages/missionary)",
+      "trackedMembers": 170,
+      "importedOnly": 130,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "packages/mock-data/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (packages/mock-data)",
+      "trackedMembers": 5,
+      "importedOnly": 0,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "packages/ui/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (packages/ui)",
+      "trackedMembers": 382,
+      "importedOnly": 62,
+      "reason": "Workspace program."
+    },
+    {
+      "config": "tsconfig.root.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (typecheck:programs)",
+      "trackedMembers": 17,
+      "importedOnly": 4,
+      "reason": "Root configuration, scripts or tooling program (L9)."
+    },
+    {
+      "config": "scripts/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (typecheck:programs)",
+      "trackedMembers": 18,
+      "importedOnly": 11,
+      "reason": "Root configuration, scripts or tooling program (L9)."
+    },
+    {
+      "config": "tooling/tsconfig.json",
+      "role": "typecheck",
+      "gate": "bun run typecheck (typecheck:programs)",
+      "trackedMembers": 1,
+      "importedOnly": 0,
+      "reason": "Root configuration, scripts or tooling program (L9)."
+    },
+    {
+      "config": "tests/fixtures/base-ui-compliance/tsconfig.json",
+      "role": "other-gate",
+      "gate": "bun run test:e2e:base-ui",
+      "trackedMembers": 278,
+      "importedOnly": 245,
+      "reason": "Base UI browser fixture, compiled before its Playwright run."
+    },
+    {
+      "config": "tests/fixtures/capability-registry/tsconfig.json",
+      "role": "negative-fixture",
+      "gate": "tests/unit/auth/capabilities/fixtures.test.ts",
+      "trackedMembers": 28,
+      "importedOnly": 24,
+      "reason": "Intentional compile failures; the test asserts the exact native diagnostics."
+    },
+    {
+      "config": "docs/qa/admin-workspaces-hillclimb/fixtures/tsconfig.json",
+      "role": "evidence",
+      "gate": "none",
+      "trackedMembers": 201,
+      "importedOnly": 198,
+      "reason": "Review evidence fixtures under docs/; no gate compiles them."
+    },
+    {
+      "config": "tests/tsconfig.json",
+      "role": "lint-context",
+      "gate": "typed lint",
+      "trackedMembers": 2053,
+      "importedOnly": 975,
+      "reason": "Central tests that need no workspace alias (E40), with allowJs so imported scripts keep inferred types. Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
+    },
+    {
+      "config": "tests/unit/apps/admin/tsconfig.json",
+      "role": "lint-context",
+      "gate": "typed lint",
+      "trackedMembers": 1276,
+      "importedOnly": 981,
+      "reason": "Admin tests: Admin's options, @/ and @payload-config (E40, E45). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
+    },
+    {
+      "config": "tests/unit/apps/donor/tsconfig.json",
+      "role": "lint-context",
+      "gate": "typed lint",
+      "trackedMembers": 418,
+      "importedOnly": 361,
+      "reason": "Donor tests: Donor's options and @/ (E40). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
+    },
+    {
+      "config": "tests/unit/apps/missionary/tsconfig.json",
+      "role": "lint-context",
+      "gate": "typed lint",
+      "trackedMembers": 440,
+      "importedOnly": 358,
+      "reason": "Missionary tests: Missionary's options and @/ (E40). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
+    },
+    {
+      "config": "tests/unit/acceptance/issue-2364/tsconfig.json",
+      "role": "lint-context",
+      "gate": "typed lint",
+      "trackedMembers": 160,
+      "importedOnly": 155,
+      "reason": "Donor acceptance tests outside the Donor partition: Donor's options and @/ (E40). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
+    },
+    {
+      "config": "tests/unit/packages/ui/tsconfig.json",
+      "role": "lint-context",
+      "gate": "typed lint",
+      "trackedMembers": 626,
+      "importedOnly": 452,
+      "reason": "Shared UI tests: the UI package's options and @/ (E40). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
+    },
+    {
+      "config": "tests/unit/cms/tsconfig.json",
+      "role": "lint-context",
+      "gate": "typed lint",
+      "trackedMembers": 140,
+      "importedOnly": 96,
+      "reason": "CMS tests: @payload-config only (E45). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
+    },
+    {
+      "config": "tests/unit/packages/api/principal/tsconfig.json",
+      "role": "lint-context",
+      "gate": "typed lint",
+      "trackedMembers": 25,
+      "importedOnly": 23,
+      "reason": "Existing Principal program, kept as it is (L9). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
+    },
+    {
+      "config": "tests/unit/packages/api/projection/tsconfig.json",
+      "role": "lint-context",
+      "gate": "typed lint",
+      "trackedMembers": 19,
+      "importedOnly": 11,
+      "reason": "Existing Projection program, kept as it is (L9). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
+    }
+  ],
+  "generated": [
+    {
+      "file": "apps/admin/bones/registry.ts",
+      "producer": "npx boneyard-js build",
+      "class": "compiled"
+    },
+    {
+      "file": "apps/donor/bones/registry.ts",
+      "producer": "npx boneyard-js build",
+      "class": "compiled"
+    },
+    {
+      "file": "apps/missionary/bones/registry.ts",
+      "producer": "npx boneyard-js build",
+      "class": "compiled"
+    },
+    {
+      "file": "packages/database/types/currency-foundation.generated.ts",
+      "producer": "scripts/generate-currency-foundation-types.mjs",
+      "class": "compiled"
+    }
+  ],
+  "scopes": [
+    {
+      "path": "**",
+      "files": 13,
+      "class": "compiled",
+      "roots": "tsconfig.root.json",
+      "kind": ""
+    },
+    {
+      "path": ".agents/**",
+      "files": 11,
+      "class": "none",
+      "roots": "",
+      "kind": "managed-copy"
+    },
+    {
+      "path": ".claude/**",
+      "files": 11,
+      "class": "none",
+      "roots": "",
+      "kind": "managed-copy"
+    },
+    {
+      "path": ".cursor/**",
+      "files": 11,
+      "class": "none",
+      "roots": "",
+      "kind": "managed-copy"
+    },
+    {
+      "path": "apps/admin/**",
+      "files": 748,
+      "class": "compiled",
+      "roots": "apps/admin/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "apps/donor/**",
+      "files": 149,
+      "class": "compiled",
+      "roots": "apps/donor/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "apps/factory-console/**",
+      "files": 66,
+      "class": "compiled",
+      "roots": "apps/factory-console/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "apps/missionary/**",
+      "files": 129,
+      "class": "compiled",
+      "roots": "apps/missionary/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "docs/**",
+      "files": 11,
+      "class": "none",
+      "roots": "",
+      "kind": "evidence"
+    },
+    {
+      "path": "docs/qa/admin-workspaces-hillclimb/fixtures/**",
+      "files": 3,
+      "class": "evidence",
+      "roots": "docs/qa/admin-workspaces-hillclimb/fixtures/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "packages/api/**",
+      "files": 519,
+      "class": "compiled",
+      "roots": "packages/api/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "packages/api/src/health/release-contract.d.mts",
+      "files": 1,
+      "class": "compiled",
+      "roots": "",
+      "kind": ""
+    },
+    {
+      "path": "packages/auth/**",
+      "files": 35,
+      "class": "compiled",
+      "roots": "packages/auth/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "packages/config/**",
+      "files": 12,
+      "class": "compiled",
+      "roots": "packages/config/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "packages/database/**",
+      "files": 69,
+      "class": "compiled",
+      "roots": "packages/database/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "packages/email/**",
+      "files": 20,
+      "class": "compiled",
+      "roots": "packages/email/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "packages/env/**",
+      "files": 4,
+      "class": "compiled",
+      "roots": "packages/env/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "packages/eve-runtime/**",
+      "files": 137,
+      "class": "compiled",
+      "roots": "packages/eve-runtime/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "packages/graphql/**",
+      "files": 4,
+      "class": "compiled",
+      "roots": "packages/graphql/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "packages/lib/**",
+      "files": 56,
+      "class": "compiled",
+      "roots": "packages/lib/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "packages/missionary/**",
+      "files": 40,
+      "class": "compiled",
+      "roots": "packages/missionary/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "packages/mock-data/**",
+      "files": 5,
+      "class": "compiled",
+      "roots": "packages/mock-data/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "packages/ui/**",
+      "files": 320,
+      "class": "compiled",
+      "roots": "packages/ui/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "scripts/**",
+      "files": 7,
+      "class": "compiled",
+      "roots": "scripts/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "scripts/archon-factory/**",
+      "files": 13,
+      "class": "lint-context",
+      "roots": "",
+      "kind": ""
+    },
+    {
+      "path": "scripts/archon-factory/pack/analyze/scripts/record.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "factory-release"
+    },
+    {
+      "path": "scripts/archon-factory/pack/answer/scripts/record.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "factory-release"
+    },
+    {
+      "path": "scripts/archon-factory/pack/deliver/scripts/after-adjudicate.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "factory-release"
+    },
+    {
+      "path": "scripts/archon-factory/pack/deliver/scripts/after-assess.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "factory-release"
+    },
+    {
+      "path": "scripts/archon-factory/pack/deliver/scripts/after-define.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "factory-release"
+    },
+    {
+      "path": "scripts/archon-factory/pack/deliver/scripts/context.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "factory-release"
+    },
+    {
+      "path": "scripts/archon-factory/pack/deliver/scripts/publish.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "factory-release"
+    },
+    {
+      "path": "scripts/archon-factory/pack/deliver/scripts/seal.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "factory-release"
+    },
+    {
+      "path": "tests/**",
+      "files": 1075,
+      "class": "lint-context",
+      "roots": "tests/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tests/e2e/base-urls.ts",
+      "files": 1,
+      "class": "compiled",
+      "roots": "tests/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tests/e2e/playwright-shared.ts",
+      "files": 1,
+      "class": "compiled",
+      "roots": "tests/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tests/e2e/development-smoke/safe-reporter.ts",
+      "files": 1,
+      "class": "compiled",
+      "roots": "tests/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/**",
+      "files": 33,
+      "class": "compiled-elsewhere",
+      "roots": "tests/fixtures/base-ui-compliance/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/admin-availability-main.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/admin-shadscan-contracts.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/analytics-chart-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/analytics-metrics-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/composition-contracts.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/controls-contracts.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/display-contracts.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/donor-auth-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/donor-portal-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/drawer-contracts.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/faq-main.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/input-contracts.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/label-mutation-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/main.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/modernization-main.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/search-delegation-contracts.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/search-demo-image-stub.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/shadscan-contracts.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/shadscan-locations-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/shadscan-map-stub.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/support-composer-identity-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/support-composer-main.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/support-control-layouts.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/support-layout-stubs.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/support-loader-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/support-main.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/support-navigation-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/support-suggestion-contracts.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/task-toolbar-hooks-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/task-toolbar-main.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/task-toolbar-supabase-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/toolbar-contracts.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/view-transition-env-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/workspace-main.tsx",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/workspace-navigation-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/base-ui-compliance/workspace-session-stub.ts",
+      "files": 1,
+      "class": "none",
+      "roots": "",
+      "kind": "fixture"
+    },
+    {
+      "path": "tests/fixtures/capability-registry/**",
+      "files": 4,
+      "class": "negative-fixture",
+      "roots": "tests/fixtures/capability-registry/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tests/unit/acceptance/issue-2364/**",
+      "files": 5,
+      "class": "lint-context",
+      "roots": "tests/unit/acceptance/issue-2364/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tests/unit/apps/admin/**",
+      "files": 295,
+      "class": "lint-context",
+      "roots": "tests/unit/apps/admin/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tests/unit/apps/donor/**",
+      "files": 57,
+      "class": "lint-context",
+      "roots": "tests/unit/apps/donor/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tests/unit/apps/missionary/**",
+      "files": 82,
+      "class": "lint-context",
+      "roots": "tests/unit/apps/missionary/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tests/unit/cms/**",
+      "files": 44,
+      "class": "lint-context",
+      "roots": "tests/unit/cms/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tests/unit/packages/api/principal/**",
+      "files": 2,
+      "class": "lint-context",
+      "roots": "tests/unit/packages/api/principal/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tests/unit/packages/api/projection/**",
+      "files": 8,
+      "class": "lint-context",
+      "roots": "tests/unit/packages/api/projection/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tests/unit/packages/ui/**",
+      "files": 174,
+      "class": "lint-context",
+      "roots": "tests/unit/packages/ui/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "tooling/**",
+      "files": 1,
+      "class": "compiled",
+      "roots": "tooling/tsconfig.json",
+      "kind": ""
+    },
+    {
+      "path": "vendor/**",
+      "files": 24,
+      "class": "none",
+      "roots": "",
+      "kind": "vendored"
+    }
+  ]
+}

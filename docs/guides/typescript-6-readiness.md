@@ -73,6 +73,35 @@ The live presets under `tooling/typescript-config/` are authoritative.
 - Keep `stableTypeOrdering` out of normal configurations. Do not introduce native
   preview packages or `tsgo` as the stable compiler entrypoint.
 
+## Programs outside the workspaces
+
+`bun run typecheck` runs each workspace's `typecheck` and the root
+`typecheck:programs` task, which compiles three programs with the root native
+compiler: `tsconfig.root.json` (root `*.ts` and `*.mts` configuration),
+`scripts/tsconfig.json` and `tooling/tsconfig.json` (`**/*.ts` and `**/*.mts`).
+They are Node programs: `types: ["node"]`, `lib` `ES2023` with `ES2023.Intl`, no
+DOM, `noEmit` with `allowImportingTsExtensions`. Keep include patterns literal:
+`include` has no brace expansion, and a pattern that matches nothing fails with
+TS18003. The factory's Archon pack (`scripts/archon-factory/pack/**`) is
+excluded; it is a release the factory reviews on its own. Pull-request CI runs
+the task beside the affected workspace typecheck. A new `.tsx` or `.cts` file in
+these scopes needs an include pattern; the
+[program tests](../../tests/unit/scripts/typescript-programs.test.ts) fail until
+it is compiled.
+
+Central tests under `tests/` have lint-context programs instead: a
+directory-rooted `tsconfig.json` per alias owner (Admin, Donor, Missionary, the
+UI package, CMS and the Donor acceptance directory `issue-2364`) and the
+fallback `tests/tsconfig.json`, so typed lint sees them with strict options and
+the aliases of the code they test. They are not compiled as a gate; compiling
+them is the follow-up #2732.
+[Typed controls](../../tests/unit/scripts/typescript-lint-programs.test.ts)
+prove each one runs strict with working aliases. The
+[program inventory](../../openspec/changes/adopt-ultracite-quality-toolchain/program-inventory.json)
+classes every tracked TypeScript file by actual program membership;
+`node scripts/verify/typescript-programs.mts --write` refreshes it and `--check`
+compares it with the tree.
+
 ## Tests and aliases
 
 `vitest.config.mts` loads its ESM helpers directly. Per-importer aliases follow

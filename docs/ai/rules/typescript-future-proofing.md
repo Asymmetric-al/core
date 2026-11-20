@@ -29,6 +29,11 @@ TypeScript 7 is already in use.
    `rootDir`/`outDir`. Keep package exports as public runtime boundaries.
 7. After shared configuration or compiler changes, run full typecheck, lint and
    unit tests, plus workspace/AST verification and the affected real builds.
+8. Root configuration, `scripts/` and `tooling/` TypeScript compiles in
+   `typecheck:programs`; central tests have lint-context programs, not a
+   compile gate. Add a program or a tsconfig only with its entry in
+   `scripts/verify/typescript-programs.mts`; the guide's "Programs outside the
+   workspaces" section has the details.
 
 ## Guardrails
 

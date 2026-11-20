@@ -45,6 +45,7 @@
     "ci:preflight": "node scripts/verify/ci-preflight.mjs",
     "release:production": "node scripts/release/production.mjs",
     "typecheck": "turbo run typecheck",
+    "typecheck:programs": "tsc -p tsconfig.root.json && tsc -p scripts/tsconfig.json && tsc -p tooling/tsconfig.json",
     "typecheck:admin": "turbo run typecheck --filter=@asym/admin",
     "typecheck:missionary": "turbo run typecheck --filter=@asym/missionary-app",
     "typecheck:donor": "turbo run typecheck --filter=@asym/donor",
