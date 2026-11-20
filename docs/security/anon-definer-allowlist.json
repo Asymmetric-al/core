@@ -1,5 +1,11 @@
 {
   "version": 1,
   "rule": "Plan 5.4 (AL-2674): anon may execute a SECURITY DEFINER function only when it is listed here. Each listed function is a public read function: STABLE or IMMUTABLE, SET search_path = '', an explicit projection, no dynamic SQL, and its own host, Site, tenant and subject admission; anon still holds no grant on any table or view beneath it. Each entry names the function as the catalog gate prints it (schema.name(identity arguments)), with a reason and its reviewer. scripts/verify/tenant-rls-catalog.mjs enforces the list both ways.",
-  "entries": []
+  "entries": [
+    {
+      "function": "public.resolve_verified_host(p_host text)",
+      "reason": "Exact verified hostname lookup for WP3. Returns only tenant_id and site_id. The portal also requires the Auth redirect step and its current primary hostname. No client grants on the underlying tables.",
+      "reviewed_by": "WP3a-1 implementation review against the coordinator's verified-host ruling, 2026-11-20"
+    }
+  ]
 }
