@@ -175,11 +175,11 @@ describe("#2250 migration text (static)", () => {
     // repoint (5.4) redefines the helper once more, onto the request's tenant
     // header and a live membership. No other migration may, and the guard's
     // own setting stays apart from it (tenant_guard.current_tenant_id()).
+    // The reviewed repoint by its exact file name, so a renamed or re-dated
+    // file is reviewed again (review of pull request 2737, thread 4641188080).
     expect(defs).toEqual([
       AUTHZ_FOUNDATION,
-      readdirSync(MIG).find((f) =>
-        /^\d{14}_request_tenant_policies\.sql$/.test(f),
-      ),
+      "20261119135300_request_tenant_policies.sql",
     ]);
   });
 });

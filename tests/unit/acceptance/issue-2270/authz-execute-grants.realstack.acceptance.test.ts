@@ -338,10 +338,12 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
         ["crm_record_links", "INSERT"],
         ["crm_record_links", "UPDATE"],
       ])
+        // On the table or on any column of it: a column grant is a write
+        // grant too (review of pull request 2737, thread 4641188091).
         expect(
           (
             await db.query(
-              "select has_table_privilege('authenticated', $1, $2) ok",
+              "select has_any_column_privilege('authenticated', $1, $2) ok",
               [`public.${t}`, privilege],
             )
           ).rows[0].ok,
