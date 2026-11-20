@@ -28,9 +28,51 @@ it.each([
   );
 });
 
+it("admits only Web Studio's same-origin POST-as-GET form transport", async () => {
+  const path = "/web-studio/api/media";
+  const form = { origin, "content-type": "application/x-www-form-urlencoded" };
+  const override = { "X-Payload-HTTP-Method-Override": "GET" };
+  expect(
+    (
+      await admin(request(path, { ...form, ...override }, "depth=0"))
+    ).headers.get("x-middleware-next"),
+  ).toBe("1");
+  expect((await admin(request(path, form, "depth=0"))).status).toBe(415);
+  expect(
+    (await admin(request("/api/profile", { ...form, ...override }, "depth=0")))
+      .status,
+  ).toBe(415);
+  expect(
+    (
+      await admin(
+        request(
+          path,
+          { ...form, ...override, origin: "https://other.example.test" },
+          "depth=0",
+        ),
+      )
+    ).status,
+  ).toBe(403);
+});
+
 describe.each([admin, donor, missionary])(
   "mutation admission through each product proxy",
   (proxy) => {
+    it("refuses a foreign write addressed by an encoded API segment", async () => {
+      const response = await proxy(
+        request(
+          "/%61pi/profile",
+          {
+            origin: "https://other.example.test",
+            "content-type": "text/plain",
+          },
+          "test",
+        ),
+      );
+      expect(response.status).toBe(403);
+      expect(response.headers.has("x-middleware-next")).toBe(false);
+    });
+
     it("admits a zero-length POST stream but not an untyped payload", async () => {
       const write = (length: string, body: Uint8Array) =>
         new NextRequest(`${origin}/api/upload/image`, {

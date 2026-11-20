@@ -54,7 +54,15 @@ export function admitApiMutation(
   path: string,
 ): NextResponse | null {
   if (!writes.has(request.method)) return null;
-  const canonical = path.replace(/\/$/, "");
+  let canonical: string;
+  try {
+    canonical = decodeURIComponent(path).replace(/\/$/, "");
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request path." },
+      { status: 400 },
+    );
+  }
   const studio =
     canonical === "/web-studio/api" || canonical.startsWith("/web-studio/api/");
   if (!studio && !canonical.startsWith("/api/")) return null;
@@ -78,6 +86,13 @@ export function admitApiMutation(
   )
     return null;
   if (contentType === "application/json") return null;
+  if (
+    studio &&
+    request.method === "POST" &&
+    contentType === "application/x-www-form-urlencoded" &&
+    request.headers.get("x-payload-http-method-override") === "GET"
+  )
+    return null;
   if (
     contentType === "multipart/form-data" &&
     (studio || uploads.has(canonical))
