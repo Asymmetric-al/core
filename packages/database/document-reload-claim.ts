@@ -13,7 +13,14 @@ import { reloadDocument } from "./document-reload";
  * - `"crossing"`: a navigation that landed outside the document's scope.
  *   The new document cures it, so a document that renders in its scope
  *   forgets these claims (`forgetDocumentReload`), and switching
- *   organization twice in a few seconds reloads both times.
+ *   organization twice in a few seconds reloads both times. And the claim
+ *   stops only the document its own reload loaded: that document meeting
+ *   the crossing again is the loop. A document the person navigated to (a
+ *   link, an address, the history) makes a new crossing, so a reloaded page
+ *   left before it hydrated, which never rendered and never forgot its
+ *   claim, does not leave the next switch on the notice (Web Studio's suite
+ *   on a production build, after the develop merge). Where the browser
+ *   cannot say how the document was loaded, the claim stops it, as before.
  * - `"refused"`: the server refused the scope, or another person signed in.
  *   A page that renders and is then refused every time would claim, reload,
  *   render and forget for ever, so this claim is kept for the window
@@ -48,12 +55,29 @@ function readClaims(key: string, now: number): Record<string, number> {
 }
 
 /**
+ * Whether a reload loaded this document, from the navigation timing entry:
+ * `false` when the person navigated to it, `null` where the browser cannot
+ * say.
+ */
+function loadedByReload(): boolean | null {
+  try {
+    const [entry] = performance.getEntriesByType(
+      "navigation",
+    ) as PerformanceNavigationTiming[];
+    return entry?.type ? entry.type === "reload" : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Claims this tab's one reload of the current address for `cause`: `false`
  * when a reload of it for that cause was already tried within
  * `RELOAD_CLAIM_MS` (and, for a crossing, no document has rendered in its
- * scope since), which would make another one a loop. Without session
- * storage a tab cannot remember the reload, so it does not reload (a person
- * whose browser refuses storage cannot sign in either).
+ * scope since and this document is not one the person navigated to), which
+ * would make another one a loop. Without session storage a tab cannot
+ * remember the reload, so it does not reload (a person whose browser refuses
+ * storage cannot sign in either).
  */
 export function claimDocumentReload(
   cause: DocumentReloadCause = "crossing",
@@ -63,7 +87,8 @@ export function claimDocumentReload(
   try {
     const key = RELOAD_CLAIMS[cause];
     const claims = readClaims(key, now);
-    if (href in claims) return false;
+    const newCrossing = cause === "crossing" && loadedByReload() === false;
+    if (href in claims && !newCrossing) return false;
     claims[href] = now;
     window.sessionStorage.setItem(key, JSON.stringify(claims));
     return true;
