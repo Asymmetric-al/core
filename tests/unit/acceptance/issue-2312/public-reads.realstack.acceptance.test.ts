@@ -63,7 +63,8 @@ describe.skipIf(!ADMIN_URL)(
     insert into public.profiles (id, user_id, tenant_id, role) values (:UD1, :UD1, :A, 'donor'), (:UD2, :UD2, :A, 'donor'), (:UD3, :UD3, :B, 'donor'),
       (:SA, :SA, :A, 'donor'), (:SB, :SB, :B, 'donor'), (:M1, :M1, :A, 'donor'), (:M2, :M2, :B, 'donor')
       on conflict (id) do update set user_id = excluded.user_id, tenant_id = excluded.tenant_id, role = excluded.role;
-    insert into authz.memberships (user_id, tenant_id, role, staff_role, is_active) values (:SA, :A, 'staff', 'finance', true), (:SB, :B, 'staff', 'finance', true), (:M1, :A, 'missionary', null, true);
+    insert into authz.memberships (user_id, tenant_id, role, staff_role, is_active) values (:SA, :A, 'staff', 'finance', true), (:SB, :B, 'staff', 'finance', true), (:M1, :A, 'missionary', null, true),
+      (:UD1, :A, 'donor', null, true), (:UD2, :A, 'donor', null, true), (:UD3, :B, 'donor', null, true), (:M2, :B, 'missionary', null, true);
     insert into public.donors (id, tenant_id, profile_id) values (:D1, :A, :UD1), (:D2, :A, :UD2), (:D3, :B, :UD3);
     insert into public.missionaries (id, tenant_id, profile_id) values (:MA, :A, :M1), (:MB, :B, :M2), (:MN, null, :M1);
     insert into public.funds (id, tenant_id, name) values (:FA, :A, 'acc2312 A'), (:FB, :B, 'acc2312 B'), (:FN, null, 'acc2312 N');
@@ -152,6 +153,13 @@ describe.skipIf(!ADMIN_URL)(
       tenant,
     });
     const ANON: Who = { role: "anon" };
+    /**
+     * Amended by AL-2675 (WP2b, second release; record D-18): a signed-in
+     * request's tenant is the `x-asym-tenant` header with a live membership
+     * there, no longer the token claim. So the caller's tenant is also sent as
+     * that header, and the fixture gives the donors UD1, UD2, UD3 and the
+     * missionary M2 the memberships the claim stood in for.
+     */
     async function as(who: Who, sql: string) {
       await db.query("savepoint q");
       try {
@@ -166,8 +174,15 @@ describe.skipIf(!ADMIN_URL)(
             })
           : "";
         await db.query(
-          "select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', $2, true), set_config('app.current_tenant_id', $3, true)",
-          [claims, who.user ? id[who.user] : "", t ?? ""],
+          "select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', $2, true), set_config('app.current_tenant_id', $3, true), set_config('request.headers', $4, true)",
+          [
+            claims,
+            who.user ? id[who.user] : "",
+            t ?? "",
+            who.user && t !== undefined
+              ? JSON.stringify({ "x-asym-tenant": t })
+              : "",
+          ],
         );
         const r = await db.query(sql);
         await db.query("rollback to savepoint q");
@@ -177,6 +192,24 @@ describe.skipIf(!ADMIN_URL)(
         return { rows: [], code: (e as { code?: string }).code ?? String(e) };
       }
     }
+    /**
+     * Amended by AL-2675 (WP2b, second release; record D-18): the deparsed
+     * qual each policy has on this chain. The second release of WP2b keeps
+     * each policy's name, role and command and rewrites its qual: the tenant
+     * condition with a class term as a whole sub-select. funds, assets and
+     * campaigns are staff-only (activation review Q2); follows binds its own
+     * row to a donor assignment; the missionary's own key read gains the
+     * tenant condition and a missionary assignment. The comparison is as exact
+     * as before. The council's R11 (record D-18) puts the request's tenant
+     * inside follows' own-row sub-select over donors too, so that it does not
+     * lean on the donors policy, whose super-admin branch crosses tenants.
+     */
+    const currentQual = (t: string) =>
+      t === "missionaries"
+        ? "tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('missionary')) AND profile_id IN (SELECT authz.caller_profile_ids())"
+        : t === "follows"
+          ? "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids()))))"
+          : "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')))";
     const keyOf = (v: unknown) =>
       Object.keys(id).find((k) => id[k] === v) ?? String(v);
     /** Fixture keys `who` can SELECT from public.<t> (restricted to fixture ids). */
@@ -295,11 +328,9 @@ describe.skipIf(!ADMIN_URL)(
               ],
             ]);
             await db.query(
-              `create policy acc2312_ref on public.${t} as permissive for select to authenticated using (${
-                serverOnlyMissionaries(t)
-                  ? "EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = missionaries.profile_id AND (p.user_id = (SELECT auth.uid()) OR p.id = (SELECT auth.uid())))"
-                  : H.qualFor(t)
-              })`,
+              `create policy acc2312_ref on public.${t} as permissive for select to authenticated using (${currentQual(
+                t,
+              )})`,
             );
             const ref = (await policies(t)).find(
               (x) => x.policyname === "acc2312_ref",
@@ -365,14 +396,16 @@ describe.skipIf(!ADMIN_URL)(
           }));
       });
 
-      it("1: supabase_realtime still carries funds only, of the five tables", () =>
+      // Amended by AL-2675 (record D-18; plan 5.2): the second release of WP2b
+      // takes funds out of the publication too, so none of the five is in it.
+      it("1: supabase_realtime carries none of the five tables", () =>
         tx(async () => {
           const r = await db.query(
             "select tablename from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = any($1) order by 1",
             [H.TABLES],
           );
           expect(r.rows.map((x: { tablename: string }) => x.tablename)).toEqual(
-            ["funds"],
+            [],
           );
         }));
     });
@@ -390,18 +423,24 @@ describe.skipIf(!ADMIN_URL)(
         "2: public.%s tenant-floor rows; #2364 missionaries join keys show only the caller's own record",
         (t) =>
           tx(async () => {
-            expect(await sees(user("UD1", "A"), t, keys(t))).toEqual(
-              serverOnlyMissionaries(t) ? [] : [ROWS[t]![0]],
-            );
-            expect(await sees(user("UD3", "B"), t, keys(t))).toEqual(
-              serverOnlyMissionaries(t) ? [] : [ROWS[t]![1]],
-            );
+            // Amended by AL-2675 (record D-18; activation review Q2): donors
+            // read none of funds, assets and campaigns in this release; the
+            // floor is held by staff, who read their own tenant's row and
+            // neither the other tenant's nor the NULL-tenant row. A
+            // missionary's own key read now names its tenant, so the
+            // NULL-tenant MN row is no longer the caller's under tenant A.
+            expect(await sees(user("UD1", "A"), t, keys(t))).toEqual([]);
+            expect(await sees(user("UD3", "B"), t, keys(t))).toEqual([]);
             if (serverOnlyMissionaries(t)) {
-              expect(await sees(user("M1", "A"), t, keys(t))).toEqual([
-                "MA",
-                "MN",
-              ]);
+              expect(await sees(user("M1", "A"), t, keys(t))).toEqual(["MA"]);
               expect(await sees(user("M2", "B"), t, keys(t))).toEqual(["MB"]);
+            } else {
+              expect(await sees(user("SA", "A"), t, keys(t))).toEqual([
+                ROWS[t]![0],
+              ]);
+              expect(await sees(user("SB", "B"), t, keys(t))).toEqual([
+                ROWS[t]![1],
+              ]);
             }
           }),
       );
@@ -410,9 +449,14 @@ describe.skipIf(!ADMIN_URL)(
         (t) =>
           tx(async () => {
             expect(await sees(user("UD1"), t, keys(t))).toEqual([]);
-            expect(await sees(user("UD1", "not-a-uuid"), t, keys(t))).toEqual(
-              [],
+            expect(await sees(user("SA"), t, keys(t))).toEqual([]);
+            // Amended by AL-2675 (record D-18): a malformed tenant arrives as
+            // the request header and is refused with 22P02, not read as none.
+            const malformed = await as(
+              user("SA", "not-a-uuid"),
+              `select id from public.${t} where id in (${keys(t).map(q).join(", ")})`,
             );
+            expect(malformed.code).toBe("22P02");
           }),
       );
       it.each(H.FLOOR_TABLES)(

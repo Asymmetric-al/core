@@ -124,6 +124,53 @@ function runVerifier(
     commands: [],
     wrappers: [],
     grants: [],
+    // AL-2675 (WP2b, second release; record D-18): the gate also reads every
+    // signed-in policy in public, the request-tenant helpers and the published
+    // tables. The fake catalog holds the reviewed exceptions as they stand and
+    // the four helpers, so a clean run stays clean.
+    policies: JSON.parse(
+      readFileSync(
+        path.join(root, "docs/security/tenant-policy-exceptions.json"),
+        "utf8",
+      ),
+    ).entries.map(
+      (entry: {
+        table: string;
+        policy: string;
+        cmd: string;
+        roles: string[];
+        permissive: boolean;
+        using: string;
+        check: string;
+      }) => ({
+        table: entry.table,
+        policy: entry.policy,
+        // Council R3: each pin names its command, roles and kind.
+        cmd: entry.cmd,
+        roles: entry.roles,
+        permissive: entry.permissive,
+        using: entry.using,
+        check: entry.check,
+        // Signed-in users hold SELECT on each excepted table.
+        granted: true,
+        writable: true,
+      }),
+    ),
+    tenant_helpers: [
+      "current_tenant_id",
+      "request_tenant_id",
+      "request_assignment_id",
+      "request_assignment",
+    ].map((name) => ({
+      function: `authz.${name}()`,
+      body: "SELECT a.tenant_id FROM authz.request_assignment() AS a",
+      // Amended by fixcheck F4 (record D-18): the gate reads each helper's
+      // search path, which the migrated helpers fix empty.
+      search_path: '""',
+      // Council R12 (a): the helpers themselves, not functions they call.
+      root: true,
+    })),
+    published: [],
   };
   const psql = path.join(temporary, "psql.cjs");
   const calls = path.join(temporary, "calls.jsonl");

@@ -211,9 +211,29 @@ service-role admin client: `GET /api/missionaries`, the admin directory, the
 donor and missionary portals, dashboard and metrics reads, and GraphQL
 `missionaries`/`missionary`. `anon` holds no privilege on the table. The
 `authenticated` role keeps column SELECT on `id` and `profile_id` for its own
-row only, so the own-missionary branch of the `donations` and `donor_pledges`
-read policies keeps working. No browser or user-key code reads it, and
-`missionariesCollection` must not be instantiated for browser sync.
+row only, in the request's tenant and under a missionary assignment, so the
+own-missionary branch of the `donations` and `donor_pledges` read policies
+keeps working. Those branches read no other column of `missionaries`, or every
+signed-in read of the two tables fails. No browser or user-key code reads it,
+and `missionariesCollection` must not be instantiated for browser sync.
+
+## Reads on the caller's token
+
+Since the second release of WP2b (AL-2675), the database admits a signed-in
+read of a tenant table only for the tenant and the assignment the request
+names: the `x-asym-tenant` and `x-asym-assignment` headers, which the shared
+own-API wrapper, the browser client and the server's session clients send. A
+read on the caller's token that names no tenant returns nothing from a tenant
+table. The reads in `public` that need no tenant (the caller's own profile,
+the published public posts and locations, the comments and reactions of a
+public post, a claimant's own claims, and the global field-policy rows) are
+the reviewed exceptions of `docs/security/tenant-policy-exceptions.json`,
+which holds `public` policies only. The caller's own assignments come from
+`authz.memberships`, outside `public`; Auth and Storage keep their own
+policies, Storage's testing live membership in the tenant the object path
+names. Commenters' names on a public post come from the first release's
+`public.post_comment_authors(post)`, not from other people's `profiles` rows,
+which only their owner may read.
 
 `GET /api/donate` returns checkout config only, `{ "publishableKey": "<pk>" }`.
 It no longer returns designations or donor rows.
