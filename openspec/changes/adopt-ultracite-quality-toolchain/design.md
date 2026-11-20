@@ -297,6 +297,13 @@ Arbiter ruling of 2026-11-20 (E79). TS-3 inventories every authored TypeScript s
   change introduces is fixed here. The 1,703 legacy findings and the ledger's retirement stay with
   `integrate-design-system-lint` (tasks 5.4 to 5.10). The final handoff reports the actual raw count, the owner and
   the open tasks: enforcement preserved, legacy cleanup not done here.
+- **Core's own rules** (E82). `own-api/no-direct-call`, `tenant-navigation/no-prefixless-navigation` and
+  `tenant-navigation/no-tenantless-cache` arrived from develop after PL-0. They guard tenant correctness and stay
+  enforced at `error`, in their scopes, through the linter cutover. LC-1 first tries them through Oxlint's JS
+  plugin loader, as the five Query rules run, and keeps that only if a seeded violation of each fires and a valid
+  twin passes in every scope; otherwise they stay on ESLint as a third bridge with one config, like the Query
+  bridge. The choice is open until both are tested, and this paragraph gets a focused review when work resumes.
+  Any rule of Core's own added later is handled the same way.
 
 ### L11. Staging, hooks and editors
 

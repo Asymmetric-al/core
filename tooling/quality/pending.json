@@ -2,7 +2,7 @@
   {
     "rule": "anti-slop/no-array-filter-map",
     "task": "RS-anti-slop",
-    "count": 82
+    "count": 83
   },
   {
     "rule": "anti-slop/no-chained-type-assertions",
@@ -20,13 +20,13 @@
     "rule": "anti-slop/no-chained-type-assertions",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 69
+    "count": 70
   },
   {
     "rule": "anti-slop/no-chained-type-assertions",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 1
+    "count": 2
   },
   {
     "rule": "anti-slop/no-chained-type-assertions",
@@ -44,7 +44,7 @@
     "rule": "anti-slop/no-chained-type-assertions",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 219
+    "count": 238
   },
   {
     "rule": "anti-slop/no-conditional-empty-object-spread",
@@ -56,7 +56,7 @@
     "rule": "anti-slop/no-conditional-empty-object-spread",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 15
+    "count": 16
   },
   {
     "rule": "anti-slop/no-conditional-empty-object-spread",
@@ -80,13 +80,13 @@
     "rule": "anti-slop/no-conditional-empty-object-spread",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 32
+    "count": 34
   },
   {
     "rule": "anti-slop/no-conditional-empty-object-spread",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 4
+    "count": 6
   },
   {
     "rule": "anti-slop/no-conditional-empty-object-spread",
@@ -122,25 +122,25 @@
     "rule": "anti-slop/no-conditional-empty-object-spread",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 37
+    "count": 41
   },
   {
     "rule": "anti-slop/no-conditional-empty-object-spread",
     "workspace": "tooling/eslint-config",
     "task": "RS-tooling-eslint-config",
-    "count": 2
+    "count": 4
   },
   {
     "rule": "anti-slop/no-known-value-widening",
     "workspace": "(root)",
     "task": "RS-root",
-    "count": 5
+    "count": 7
   },
   {
     "rule": "anti-slop/no-known-value-widening",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 87
+    "count": 88
   },
   {
     "rule": "anti-slop/no-known-value-widening",
@@ -164,13 +164,13 @@
     "rule": "anti-slop/no-known-value-widening",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 79
+    "count": 80
   },
   {
     "rule": "anti-slop/no-known-value-widening",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 9
+    "count": 14
   },
   {
     "rule": "anti-slop/no-known-value-widening",
@@ -182,7 +182,7 @@
     "rule": "anti-slop/no-known-value-widening",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 19
+    "count": 20
   },
   {
     "rule": "anti-slop/no-known-value-widening",
@@ -230,30 +230,30 @@
     "rule": "anti-slop/no-known-value-widening",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 341
+    "count": 364
   },
   {
     "rule": "anti-slop/no-module-mocking",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 26
+    "count": 27
   },
   {
     "rule": "anti-slop/no-module-mocking",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 10
+    "count": 12
   },
   {
     "rule": "anti-slop/no-module-mocking",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 1265
+    "count": 1438
   },
   {
     "rule": "anti-slop/no-object-parameters",
     "task": "RS-anti-slop",
-    "count": 18
+    "count": 22
   },
   {
     "rule": "anti-slop/no-reflect-apply",
@@ -277,7 +277,7 @@
     "rule": "anti-slop/no-runtime-typeof",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 244
+    "count": 246
   },
   {
     "rule": "anti-slop/no-runtime-typeof",
@@ -301,13 +301,13 @@
     "rule": "anti-slop/no-runtime-typeof",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 313
+    "count": 315
   },
   {
     "rule": "anti-slop/no-runtime-typeof",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 23
+    "count": 39
   },
   {
     "rule": "anti-slop/no-runtime-typeof",
@@ -319,7 +319,7 @@
     "rule": "anti-slop/no-runtime-typeof",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 23
+    "count": 32
   },
   {
     "rule": "anti-slop/no-runtime-typeof",
@@ -343,13 +343,13 @@
     "rule": "anti-slop/no-runtime-typeof",
     "workspace": "packages/lib",
     "task": "RS-packages-lib",
-    "count": 26
+    "count": 25
   },
   {
     "rule": "anti-slop/no-runtime-typeof",
     "workspace": "packages/missionary",
     "task": "RS-packages-missionary",
-    "count": 2
+    "count": 4
   },
   {
     "rule": "anti-slop/no-runtime-typeof",
@@ -367,7 +367,7 @@
     "rule": "anti-slop/no-runtime-typeof",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 327
+    "count": 346
   },
   {
     "rule": "anti-slop/no-runtime-typeof",
@@ -415,7 +415,7 @@
     "rule": "anti-slop/no-unknown-parameters",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 75
+    "count": 76
   },
   {
     "rule": "anti-slop/no-unknown-parameters",
@@ -445,7 +445,7 @@
     "rule": "anti-slop/no-unknown-parameters",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 11
+    "count": 13
   },
   {
     "rule": "anti-slop/no-unknown-parameters",
@@ -457,7 +457,7 @@
     "rule": "anti-slop/no-unknown-parameters",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 14
+    "count": 15
   },
   {
     "rule": "anti-slop/no-unknown-parameters",
@@ -493,7 +493,7 @@
     "rule": "anti-slop/no-unknown-parameters",
     "workspace": "packages/ui",
     "task": "RS-packages-ui",
-    "count": 37
+    "count": 38
   },
   {
     "rule": "anti-slop/no-unknown-returns",
@@ -521,6 +521,12 @@
   },
   {
     "rule": "anti-slop/no-unknown-returns",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-unknown-returns",
     "workspace": "packages/database",
     "task": "RS-packages-database",
     "count": 3
@@ -541,7 +547,7 @@
     "rule": "anti-slop/no-unknown-returns",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 147
+    "count": 156
   },
   {
     "rule": "anti-slop/no-unsafe-dictionary-type",
@@ -553,7 +559,7 @@
     "rule": "anti-slop/no-unsafe-dictionary-type",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 85
+    "count": 87
   },
   {
     "rule": "anti-slop/no-unsafe-dictionary-type",
@@ -577,13 +583,13 @@
     "rule": "anti-slop/no-unsafe-dictionary-type",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 229
+    "count": 232
   },
   {
     "rule": "anti-slop/no-unsafe-dictionary-type",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 6
+    "count": 9
   },
   {
     "rule": "anti-slop/no-unsafe-dictionary-type",
@@ -643,13 +649,13 @@
     "rule": "anti-slop/no-unsafe-dictionary-type",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 827
+    "count": 862
   },
   {
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "(root)",
     "task": "RS-root",
-    "count": 80
+    "count": 82
   },
   {
     "rule": "anti-slop/require-readable-spacing",
@@ -661,13 +667,13 @@
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 3930
+    "count": 4065
   },
   {
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "apps/donor",
     "task": "RS-apps-donor",
-    "count": 411
+    "count": 414
   },
   {
     "rule": "anti-slop/require-readable-spacing",
@@ -679,19 +685,19 @@
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "apps/missionary",
     "task": "RS-apps-missionary",
-    "count": 462
+    "count": 473
   },
   {
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 4564
+    "count": 4628
   },
   {
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 289
+    "count": 508
   },
   {
     "rule": "anti-slop/require-readable-spacing",
@@ -703,7 +709,7 @@
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 305
+    "count": 391
   },
   {
     "rule": "anti-slop/require-readable-spacing",
@@ -733,13 +739,13 @@
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "packages/lib",
     "task": "RS-packages-lib",
-    "count": 276
+    "count": 278
   },
   {
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "packages/missionary",
     "task": "RS-packages-missionary",
-    "count": 231
+    "count": 237
   },
   {
     "rule": "anti-slop/require-readable-spacing",
@@ -751,25 +757,25 @@
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "packages/ui",
     "task": "RS-packages-ui",
-    "count": 1360
+    "count": 1373
   },
   {
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "scripts",
     "task": "RS-scripts",
-    "count": 4594
+    "count": 4603
   },
   {
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 22877
+    "count": 24293
   },
   {
     "rule": "anti-slop/require-readable-spacing",
     "workspace": "tooling/eslint-config",
     "task": "RS-tooling-eslint-config",
-    "count": 64
+    "count": 276
   },
   {
     "rule": "anti-slop/require-readable-spacing",
@@ -787,7 +793,7 @@
     "rule": "anti-slop/require-safety-comment-for-type-assertion",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 270
+    "count": 278
   },
   {
     "rule": "anti-slop/require-safety-comment-for-type-assertion",
@@ -817,7 +823,7 @@
     "rule": "anti-slop/require-safety-comment-for-type-assertion",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 29
+    "count": 41
   },
   {
     "rule": "anti-slop/require-safety-comment-for-type-assertion",
@@ -829,7 +835,7 @@
     "rule": "anti-slop/require-safety-comment-for-type-assertion",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 67
+    "count": 70
   },
   {
     "rule": "anti-slop/require-safety-comment-for-type-assertion",
@@ -859,13 +865,13 @@
     "rule": "anti-slop/require-safety-comment-for-type-assertion",
     "workspace": "packages/lib",
     "task": "RS-packages-lib",
-    "count": 18
+    "count": 19
   },
   {
     "rule": "anti-slop/require-safety-comment-for-type-assertion",
     "workspace": "packages/missionary",
     "task": "RS-packages-missionary",
-    "count": 6
+    "count": 9
   },
   {
     "rule": "anti-slop/require-safety-comment-for-type-assertion",
@@ -877,7 +883,7 @@
     "rule": "anti-slop/require-safety-comment-for-type-assertion",
     "workspace": "packages/ui",
     "task": "RS-packages-ui",
-    "count": 219
+    "count": 221
   },
   {
     "rule": "anti-slop/require-safety-comment-for-type-assertion",
@@ -889,7 +895,7 @@
     "rule": "anti-slop/require-safety-comment-for-type-assertion",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 2872
+    "count": 3080
   },
   {
     "rule": "eslint/accessor-pairs",
@@ -912,7 +918,7 @@
     "rule": "eslint/curly",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 794
+    "count": 846
   },
   {
     "rule": "eslint/curly",
@@ -930,25 +936,25 @@
     "rule": "eslint/curly",
     "workspace": "apps/missionary",
     "task": "RS-apps-missionary",
-    "count": 136
+    "count": 139
   },
   {
     "rule": "eslint/curly",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 612
+    "count": 637
   },
   {
     "rule": "eslint/curly",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 78
+    "count": 163
   },
   {
     "rule": "eslint/curly",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 22
+    "count": 49
   },
   {
     "rule": "eslint/curly",
@@ -984,7 +990,7 @@
     "rule": "eslint/curly",
     "workspace": "packages/missionary",
     "task": "RS-packages-missionary",
-    "count": 50
+    "count": 52
   },
   {
     "rule": "eslint/curly",
@@ -996,25 +1002,25 @@
     "rule": "eslint/curly",
     "workspace": "packages/ui",
     "task": "RS-packages-ui",
-    "count": 344
+    "count": 349
   },
   {
     "rule": "eslint/curly",
     "workspace": "scripts",
     "task": "RS-scripts",
-    "count": 1385
+    "count": 1387
   },
   {
     "rule": "eslint/curly",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 2617
+    "count": 2759
   },
   {
     "rule": "eslint/curly",
     "workspace": "tooling/eslint-config",
     "task": "RS-tooling-eslint-config",
-    "count": 10
+    "count": 109
   },
   {
     "rule": "eslint/curly",
@@ -1025,7 +1031,7 @@
   {
     "rule": "eslint/default-case",
     "task": "RS-javascript",
-    "count": 39
+    "count": 41
   },
   {
     "rule": "eslint/default-param-last",
@@ -1048,7 +1054,7 @@
   {
     "rule": "eslint/func-names",
     "task": "RS-javascript",
-    "count": 17
+    "count": 18
   },
   {
     "rule": "eslint/logical-assignment-operators",
@@ -1059,7 +1065,7 @@
   {
     "rule": "eslint/max-classes-per-file",
     "task": "RS-javascript",
-    "count": 16
+    "count": 18
   },
   {
     "rule": "eslint/no-alert",
@@ -1086,18 +1092,18 @@
   {
     "rule": "eslint/no-div-regex",
     "task": "RS-javascript",
-    "count": 10
+    "count": 11
   },
   {
     "rule": "eslint/no-dupe-keys",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 1
+    "count": 4
   },
   {
     "rule": "eslint/no-duplicate-imports",
     "task": "RS-javascript",
-    "count": 5
+    "count": 6
   },
   {
     "rule": "eslint/no-else-return",
@@ -1119,7 +1125,7 @@
     "rule": "eslint/no-empty-pattern",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 1
+    "count": 5
   },
   {
     "rule": "eslint/no-eq-null",
@@ -1170,14 +1176,20 @@
     "count": 9
   },
   {
+    "rule": "eslint/no-eq-null",
+    "workspace": "tooling/eslint-config",
+    "task": "RS-tooling-eslint-config",
+    "count": 1
+  },
+  {
     "rule": "eslint/no-inner-declarations",
     "task": "RS-javascript",
-    "count": 7
+    "count": 8
   },
   {
     "rule": "eslint/no-loop-func",
     "task": "RS-javascript",
-    "count": 34
+    "count": 35
   },
   {
     "rule": "eslint/no-multi-assign",
@@ -1272,7 +1284,7 @@
     "rule": "eslint/no-nested-ternary",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 140
+    "count": 141
   },
   {
     "rule": "eslint/no-nested-ternary",
@@ -1344,7 +1356,7 @@
     "rule": "eslint/no-nested-ternary",
     "workspace": "packages/ui",
     "task": "RS-packages-ui",
-    "count": 29
+    "count": 31
   },
   {
     "rule": "eslint/no-nested-ternary",
@@ -1356,7 +1368,7 @@
     "rule": "eslint/no-nested-ternary",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 88
+    "count": 93
   },
   {
     "rule": "eslint/no-nested-ternary",
@@ -1389,7 +1401,7 @@
   {
     "rule": "eslint/no-promise-executor-return",
     "task": "RS-javascript",
-    "count": 85
+    "count": 94
   },
   {
     "rule": "eslint/no-proto",
@@ -1441,13 +1453,13 @@
     "rule": "eslint/no-shadow",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 4
+    "count": 5
   },
   {
     "rule": "eslint/no-shadow",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 1
+    "count": 4
   },
   {
     "rule": "eslint/no-shadow",
@@ -1465,7 +1477,7 @@
     "rule": "eslint/no-shadow",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 82
+    "count": 99
   },
   {
     "rule": "eslint/no-shadow",
@@ -1489,7 +1501,7 @@
     "rule": "eslint/no-template-curly-in-string",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 230
+    "count": 251
   },
   {
     "rule": "eslint/no-throw-literal",
@@ -1517,13 +1529,13 @@
     "rule": "eslint/no-use-before-define",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 317
+    "count": 321
   },
   {
     "rule": "eslint/no-use-before-define",
     "workspace": "apps/donor",
     "task": "RS-apps-donor",
-    "count": 21
+    "count": 23
   },
   {
     "rule": "eslint/no-use-before-define",
@@ -1535,19 +1547,19 @@
     "rule": "eslint/no-use-before-define",
     "workspace": "apps/missionary",
     "task": "RS-apps-missionary",
-    "count": 27
+    "count": 28
   },
   {
     "rule": "eslint/no-use-before-define",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 184
+    "count": 185
   },
   {
     "rule": "eslint/no-use-before-define",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 6
+    "count": 20
   },
   {
     "rule": "eslint/no-use-before-define",
@@ -1559,7 +1571,7 @@
     "rule": "eslint/no-use-before-define",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 4
+    "count": 9
   },
   {
     "rule": "eslint/no-use-before-define",
@@ -1601,7 +1613,7 @@
     "rule": "eslint/no-use-before-define",
     "workspace": "packages/ui",
     "task": "RS-packages-ui",
-    "count": 96
+    "count": 100
   },
   {
     "rule": "eslint/no-use-before-define",
@@ -1613,13 +1625,13 @@
     "rule": "eslint/no-use-before-define",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 87
+    "count": 92
   },
   {
     "rule": "eslint/no-use-before-define",
     "workspace": "tooling/eslint-config",
     "task": "RS-tooling-eslint-config",
-    "count": 3
+    "count": 5
   },
   {
     "rule": "eslint/no-useless-concat",
@@ -1630,7 +1642,7 @@
   {
     "rule": "eslint/no-useless-escape",
     "task": "RS-javascript",
-    "count": 9
+    "count": 10
   },
   {
     "rule": "eslint/no-useless-return",
@@ -1641,13 +1653,13 @@
     "rule": "eslint/no-void",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 82
+    "count": 86
   },
   {
     "rule": "eslint/no-void",
     "workspace": "apps/donor",
     "task": "RS-apps-donor",
-    "count": 4
+    "count": 7
   },
   {
     "rule": "eslint/no-void",
@@ -1671,7 +1683,7 @@
     "rule": "eslint/no-void",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 9
+    "count": 10
   },
   {
     "rule": "eslint/object-shorthand",
@@ -1697,7 +1709,7 @@
     "rule": "eslint/prefer-object-spread",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 1
+    "count": 2
   },
   {
     "rule": "eslint/prefer-regex-literals",
@@ -1745,7 +1757,7 @@
     "rule": "eslint/prefer-template",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 219
+    "count": 244
   },
   {
     "rule": "eslint/preserve-caught-error",
@@ -1777,7 +1789,7 @@
     "rule": "import/consistent-type-specifier-style",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 177
+    "count": 186
   },
   {
     "rule": "import/consistent-type-specifier-style",
@@ -1801,13 +1813,13 @@
     "rule": "import/consistent-type-specifier-style",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 284
+    "count": 286
   },
   {
     "rule": "import/consistent-type-specifier-style",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 8
+    "count": 16
   },
   {
     "rule": "import/consistent-type-specifier-style",
@@ -1819,7 +1831,7 @@
     "rule": "import/consistent-type-specifier-style",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 16
+    "count": 19
   },
   {
     "rule": "import/consistent-type-specifier-style",
@@ -1855,25 +1867,25 @@
     "rule": "import/consistent-type-specifier-style",
     "workspace": "packages/ui",
     "task": "RS-packages-ui",
-    "count": 121
+    "count": 123
   },
   {
     "rule": "import/consistent-type-specifier-style",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 227
+    "count": 251
   },
   {
     "rule": "import/first",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 16
+    "count": 17
   },
   {
     "rule": "import/first",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 6
+    "count": 7
   },
   {
     "rule": "import/first",
@@ -1897,7 +1909,7 @@
     "rule": "import/first",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 267
+    "count": 275
   },
   {
     "rule": "import/namespace",
@@ -1908,13 +1920,19 @@
     "rule": "import/newline-after-import",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 20
+    "count": 21
   },
   {
     "rule": "import/newline-after-import",
     "workspace": "packages/api",
     "task": "RS-packages-api",
     "count": 3
+  },
+  {
+    "rule": "import/newline-after-import",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 1
   },
   {
     "rule": "import/newline-after-import",
@@ -1966,7 +1984,7 @@
   {
     "rule": "import/no-named-as-default-member",
     "task": "RS-imports",
-    "count": 53
+    "count": 60
   },
   {
     "rule": "import/no-named-default",
@@ -1978,7 +1996,7 @@
     "rule": "jsdoc/check-tag-names",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 251
+    "count": 256
   },
   {
     "rule": "jsdoc/require-param-description",
@@ -2005,7 +2023,7 @@
   {
     "rule": "jsx-a11y/anchor-has-content",
     "task": "RS-accessibility",
-    "count": 19
+    "count": 22
   },
   {
     "rule": "jsx-a11y/click-events-have-key-events",
@@ -2063,7 +2081,7 @@
   {
     "rule": "node/callback-return",
     "task": "RS-node",
-    "count": 14
+    "count": 17
   },
   {
     "rule": "oxc/branches-sharing-code",
@@ -2085,30 +2103,30 @@
     "rule": "playwright/expect-expect",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 1
+    "count": 2
   },
   {
     "rule": "playwright/missing-playwright-await",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 33
+    "count": 34
   },
   {
     "rule": "playwright/no-conditional-expect",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 222
+    "count": 232
   },
   {
     "rule": "playwright/no-conditional-in-test",
     "task": "RS-playwright",
-    "count": 80
+    "count": 94
   },
   {
     "rule": "playwright/no-networkidle",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 11
+    "count": 16
   },
   {
     "rule": "playwright/no-useless-not",
@@ -2149,7 +2167,7 @@
     "rule": "playwright/prefer-web-first-assertions",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 3
+    "count": 6
   },
   {
     "rule": "playwright/valid-describe-callback",
@@ -2187,12 +2205,12 @@
   {
     "rule": "promise/prefer-await-to-callbacks",
     "task": "RS-promise-safety",
-    "count": 93
+    "count": 94
   },
   {
     "rule": "promise/prefer-catch",
     "task": "RS-promise-safety",
-    "count": 45
+    "count": 48
   },
   {
     "rule": "query/exhaustive-deps",
@@ -2211,6 +2229,12 @@
     "count": 29
   },
   {
+    "rule": "react/capitalized-calls",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 1
+  },
+  {
     "rule": "react/exhaustive-effect-dependencies",
     "task": "RS-react",
     "count": 19
@@ -2219,6 +2243,12 @@
     "rule": "react/hook-use-state",
     "task": "RS-react",
     "count": 20
+  },
+  {
+    "rule": "react/hooks",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
   },
   {
     "rule": "react/iframe-missing-sandbox",
@@ -2246,7 +2276,7 @@
   {
     "rule": "react/jsx-no-useless-fragment",
     "task": "RS-react",
-    "count": 41
+    "count": 43
   },
   {
     "rule": "react/memo-dependencies",
@@ -2256,7 +2286,7 @@
   {
     "rule": "react/no-clone-element",
     "task": "RS-react",
-    "count": 3
+    "count": 6
   },
   {
     "rule": "react/no-danger",
@@ -2289,13 +2319,13 @@
     "rule": "react/state-in-constructor",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 2
+    "count": 3
   },
   {
     "rule": "typescript/array-type",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 51
+    "count": 54
   },
   {
     "rule": "typescript/array-type",
@@ -2307,13 +2337,13 @@
     "rule": "typescript/array-type",
     "workspace": "apps/missionary",
     "task": "RS-apps-missionary",
-    "count": 2
+    "count": 3
   },
   {
     "rule": "typescript/array-type",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 85
+    "count": 86
   },
   {
     "rule": "typescript/array-type",
@@ -2365,15 +2395,21 @@
   },
   {
     "rule": "typescript/array-type",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 1
+  },
+  {
+    "rule": "typescript/array-type",
     "workspace": "packages/ui",
     "task": "RS-packages-ui",
-    "count": 4
+    "count": 7
   },
   {
     "rule": "typescript/array-type",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 277
+    "count": 312
   },
   {
     "rule": "typescript/await-thenable",
@@ -2383,7 +2419,7 @@
   {
     "rule": "typescript/consistent-return",
     "task": "RS-typescript",
-    "count": 87
+    "count": 92
   },
   {
     "rule": "typescript/consistent-type-exports",
@@ -2400,12 +2436,12 @@
     "rule": "typescript/consistent-type-imports",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 110
+    "count": 141
   },
   {
     "rule": "typescript/dot-notation",
     "task": "RS-typescript",
-    "count": 9
+    "count": 33
   },
   {
     "rule": "typescript/method-signature-style",
@@ -2423,7 +2459,7 @@
     "rule": "typescript/method-signature-style",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 2
+    "count": 3
   },
   {
     "rule": "typescript/method-signature-style",
@@ -2465,13 +2501,13 @@
     "rule": "typescript/method-signature-style",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 38
+    "count": 48
   },
   {
     "rule": "typescript/no-base-to-string",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 15
+    "count": 19
   },
   {
     "rule": "typescript/no-base-to-string",
@@ -2519,12 +2555,12 @@
     "rule": "typescript/no-base-to-string",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 172
+    "count": 174
   },
   {
     "rule": "typescript/no-confusing-void-expression",
     "task": "RS-typescript",
-    "count": 19
+    "count": 20
   },
   {
     "rule": "typescript/no-deprecated",
@@ -2560,7 +2596,7 @@
     "rule": "typescript/no-deprecated",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 9
+    "count": 10
   },
   {
     "rule": "typescript/no-deprecated",
@@ -2590,7 +2626,7 @@
     "rule": "typescript/no-deprecated",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 48
+    "count": 51
   },
   {
     "rule": "typescript/no-duplicate-type-constituents",
@@ -2600,7 +2636,7 @@
   {
     "rule": "typescript/no-dynamic-delete",
     "task": "RS-typescript",
-    "count": 37
+    "count": 42
   },
   {
     "rule": "typescript/no-floating-promises",
@@ -2654,7 +2690,7 @@
     "rule": "typescript/no-floating-promises",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 56
+    "count": 61
   },
   {
     "rule": "typescript/no-generated-empty-object-type",
@@ -2670,7 +2706,7 @@
   {
     "rule": "typescript/no-import-type-side-effects",
     "task": "RS-typescript",
-    "count": 46
+    "count": 45
   },
   {
     "rule": "typescript/no-inferrable-types",
@@ -2696,7 +2732,7 @@
     "rule": "typescript/no-non-null-assertion",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 29
+    "count": 32
   },
   {
     "rule": "typescript/no-non-null-assertion",
@@ -2714,25 +2750,25 @@
     "rule": "typescript/no-non-null-assertion",
     "workspace": "apps/missionary",
     "task": "RS-apps-missionary",
-    "count": 6
+    "count": 7
   },
   {
     "rule": "typescript/no-non-null-assertion",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 67
+    "count": 66
   },
   {
     "rule": "typescript/no-non-null-assertion",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 3
+    "count": 10
   },
   {
     "rule": "typescript/no-non-null-assertion",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 1
+    "count": 2
   },
   {
     "rule": "typescript/no-non-null-assertion",
@@ -2756,7 +2792,7 @@
     "rule": "typescript/no-non-null-assertion",
     "workspace": "packages/ui",
     "task": "RS-packages-ui",
-    "count": 5
+    "count": 6
   },
   {
     "rule": "typescript/no-non-null-assertion",
@@ -2768,7 +2804,7 @@
     "rule": "typescript/no-non-null-assertion",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 2441
+    "count": 2640
   },
   {
     "rule": "typescript/no-redundant-type-constituents",
@@ -2819,13 +2855,13 @@
     "rule": "typescript/no-unnecessary-type-assertion",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 113
+    "count": 107
   },
   {
     "rule": "typescript/no-unnecessary-type-assertion",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 5
+    "count": 6
   },
   {
     "rule": "typescript/no-unnecessary-type-assertion",
@@ -2849,7 +2885,7 @@
     "rule": "typescript/no-unnecessary-type-assertion",
     "workspace": "packages/lib",
     "task": "RS-packages-lib",
-    "count": 3
+    "count": 4
   },
   {
     "rule": "typescript/no-unnecessary-type-assertion",
@@ -2861,12 +2897,12 @@
     "rule": "typescript/no-unnecessary-type-assertion",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 328
+    "count": 340
   },
   {
     "rule": "typescript/no-unnecessary-type-conversion",
     "task": "RS-typescript",
-    "count": 90
+    "count": 92
   },
   {
     "rule": "typescript/no-unnecessary-type-parameters",
@@ -2889,7 +2925,7 @@
     "rule": "typescript/no-unsafe-argument",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 13
+    "count": 12
   },
   {
     "rule": "typescript/no-unsafe-argument",
@@ -2919,7 +2955,7 @@
     "rule": "typescript/no-unsafe-argument",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 305
+    "count": 313
   },
   {
     "rule": "typescript/no-unsafe-argument",
@@ -2955,7 +2991,7 @@
     "rule": "typescript/no-unsafe-assignment",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 141
+    "count": 138
   },
   {
     "rule": "typescript/no-unsafe-assignment",
@@ -2989,12 +3025,6 @@
   },
   {
     "rule": "typescript/no-unsafe-assignment",
-    "workspace": "packages/missionary",
-    "task": "RS-packages-missionary",
-    "count": 6
-  },
-  {
-    "rule": "typescript/no-unsafe-assignment",
     "workspace": "packages/ui",
     "task": "RS-packages-ui",
     "count": 8
@@ -3009,7 +3039,7 @@
     "rule": "typescript/no-unsafe-assignment",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 1873
+    "count": 1912
   },
   {
     "rule": "typescript/no-unsafe-call",
@@ -3045,7 +3075,7 @@
     "rule": "typescript/no-unsafe-call",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 722
+    "count": 730
   },
   {
     "rule": "typescript/no-unsafe-enum-comparison",
@@ -3122,7 +3152,7 @@
     "rule": "typescript/no-unsafe-member-access",
     "workspace": "packages/missionary",
     "task": "RS-packages-missionary",
-    "count": 3
+    "count": 1
   },
   {
     "rule": "typescript/no-unsafe-member-access",
@@ -3134,7 +3164,7 @@
     "rule": "typescript/no-unsafe-member-access",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 2274
+    "count": 2319
   },
   {
     "rule": "typescript/no-unsafe-member-access",
@@ -3200,7 +3230,7 @@
     "rule": "typescript/no-unsafe-return",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 404
+    "count": 418
   },
   {
     "rule": "typescript/no-unsafe-type-assertion",
@@ -3212,7 +3242,7 @@
     "rule": "typescript/no-unsafe-type-assertion",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 188
+    "count": 191
   },
   {
     "rule": "typescript/no-unsafe-type-assertion",
@@ -3236,13 +3266,13 @@
     "rule": "typescript/no-unsafe-type-assertion",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 310
+    "count": 314
   },
   {
     "rule": "typescript/no-unsafe-type-assertion",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 20
+    "count": 29
   },
   {
     "rule": "typescript/no-unsafe-type-assertion",
@@ -3254,7 +3284,7 @@
     "rule": "typescript/no-unsafe-type-assertion",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 53
+    "count": 56
   },
   {
     "rule": "typescript/no-unsafe-type-assertion",
@@ -3290,7 +3320,7 @@
     "rule": "typescript/no-unsafe-type-assertion",
     "workspace": "packages/missionary",
     "task": "RS-packages-missionary",
-    "count": 5
+    "count": 8
   },
   {
     "rule": "typescript/no-unsafe-type-assertion",
@@ -3302,7 +3332,7 @@
     "rule": "typescript/no-unsafe-type-assertion",
     "workspace": "packages/ui",
     "task": "RS-packages-ui",
-    "count": 136
+    "count": 138
   },
   {
     "rule": "typescript/no-unsafe-type-assertion",
@@ -3314,7 +3344,7 @@
     "rule": "typescript/no-unsafe-type-assertion",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 2074
+    "count": 2187
   },
   {
     "rule": "typescript/no-useless-default-assignment",
@@ -3330,7 +3360,7 @@
   {
     "rule": "typescript/parameter-properties",
     "task": "RS-typescript",
-    "count": 70
+    "count": 74
   },
   {
     "rule": "typescript/prefer-find",
@@ -3380,7 +3410,7 @@
   {
     "rule": "typescript/prefer-regexp-exec",
     "task": "RS-typescript",
-    "count": 87
+    "count": 88
   },
   {
     "rule": "typescript/prefer-string-starts-ends-with",
@@ -3390,7 +3420,7 @@
   {
     "rule": "typescript/require-array-sort-compare",
     "task": "RS-typescript",
-    "count": 38
+    "count": 39
   },
   {
     "rule": "typescript/restrict-plus-operands",
@@ -3400,13 +3430,13 @@
   {
     "rule": "typescript/restrict-template-expressions",
     "task": "RS-typescript",
-    "count": 40
+    "count": 41
   },
   {
     "rule": "typescript/return-await",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 72
+    "count": 94
   },
   {
     "rule": "typescript/return-await",
@@ -3424,25 +3454,25 @@
     "rule": "typescript/return-await",
     "workspace": "apps/missionary",
     "task": "RS-apps-missionary",
-    "count": 3
+    "count": 10
   },
   {
     "rule": "typescript/return-await",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 121
+    "count": 120
   },
   {
     "rule": "typescript/return-await",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 4
+    "count": 7
   },
   {
     "rule": "typescript/return-await",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 25
+    "count": 26
   },
   {
     "rule": "typescript/return-await",
@@ -3478,7 +3508,7 @@
     "rule": "typescript/return-await",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 152
+    "count": 185
   },
   {
     "rule": "typescript/strict-boolean-expressions",
@@ -3490,7 +3520,7 @@
     "rule": "typescript/strict-boolean-expressions",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 112
+    "count": 113
   },
   {
     "rule": "typescript/strict-boolean-expressions",
@@ -3508,25 +3538,25 @@
     "rule": "typescript/strict-boolean-expressions",
     "workspace": "apps/missionary",
     "task": "RS-apps-missionary",
-    "count": 11
+    "count": 13
   },
   {
     "rule": "typescript/strict-boolean-expressions",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 135
+    "count": 134
   },
   {
     "rule": "typescript/strict-boolean-expressions",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 5
+    "count": 8
   },
   {
     "rule": "typescript/strict-boolean-expressions",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 13
+    "count": 14
   },
   {
     "rule": "typescript/strict-boolean-expressions",
@@ -3556,7 +3586,7 @@
     "rule": "typescript/strict-boolean-expressions",
     "workspace": "packages/missionary",
     "task": "RS-packages-missionary",
-    "count": 15
+    "count": 12
   },
   {
     "rule": "typescript/strict-boolean-expressions",
@@ -3574,7 +3604,7 @@
     "rule": "typescript/strict-boolean-expressions",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 195
+    "count": 206
   },
   {
     "rule": "typescript/strict-boolean-expressions",
@@ -3616,7 +3646,7 @@
     "rule": "typescript/strict-void-return",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 1
+    "count": 2
   },
   {
     "rule": "typescript/strict-void-return",
@@ -3640,7 +3670,7 @@
     "rule": "typescript/strict-void-return",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 953
+    "count": 969
   },
   {
     "rule": "typescript/switch-exhaustiveness-check",
@@ -3651,7 +3681,7 @@
     "rule": "typescript/unbound-method",
     "workspace": "apps/admin",
     "task": "RS-apps-admin",
-    "count": 31
+    "count": 29
   },
   {
     "rule": "typescript/unbound-method",
@@ -3699,12 +3729,12 @@
     "rule": "typescript/unbound-method",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 79
+    "count": 81
   },
   {
     "rule": "typescript/use-unknown-in-catch-callback-variable",
     "task": "RS-typescript",
-    "count": 20
+    "count": 21
   },
   {
     "rule": "unicorn/catch-error-name",
@@ -3731,7 +3761,7 @@
   {
     "rule": "unicorn/custom-error-definition",
     "task": "RS-unicorn",
-    "count": 31
+    "count": 35
   },
   {
     "rule": "unicorn/error-message",
@@ -3751,13 +3781,13 @@
   {
     "rule": "unicorn/import-style",
     "task": "RS-unicorn",
-    "count": 63
+    "count": 65
   },
   {
     "rule": "unicorn/new-for-builtins",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 10
+    "count": 16
   },
   {
     "rule": "unicorn/no-array-fill-with-reference-type",
@@ -3775,6 +3805,12 @@
     "workspace": "packages/ui",
     "task": "RS-packages-ui",
     "count": 1
+  },
+  {
+    "rule": "unicorn/no-document-cookie",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 8
   },
   {
     "rule": "unicorn/no-hex-escape",
@@ -3872,12 +3908,12 @@
   {
     "rule": "unicorn/no-object-as-default-parameter",
     "task": "RS-unicorn",
-    "count": 16
+    "count": 17
   },
   {
     "rule": "unicorn/no-thenable",
     "task": "RS-unicorn",
-    "count": 73
+    "count": 75
   },
   {
     "rule": "unicorn/no-typeof-undefined",
@@ -3888,7 +3924,7 @@
   {
     "rule": "unicorn/no-unreadable-array-destructuring",
     "task": "RS-unicorn",
-    "count": 4
+    "count": 6
   },
   {
     "rule": "unicorn/no-useless-collection-argument",
@@ -3898,7 +3934,7 @@
   {
     "rule": "unicorn/no-useless-fallback-in-spread",
     "task": "RS-unicorn",
-    "count": 26
+    "count": 27
   },
   {
     "rule": "unicorn/no-useless-promise-resolve-reject",
@@ -3986,7 +4022,7 @@
     "rule": "unicorn/no-useless-undefined",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 170
+    "count": 193
   },
   {
     "rule": "unicorn/no-zero-fractions",
@@ -4015,7 +4051,7 @@
     "rule": "unicorn/numeric-separators-style",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 102
+    "count": 105
   },
   {
     "rule": "unicorn/numeric-separators-style",
@@ -4033,7 +4069,7 @@
     "rule": "unicorn/numeric-separators-style",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 4
+    "count": 5
   },
   {
     "rule": "unicorn/numeric-separators-style",
@@ -4075,7 +4111,7 @@
     "rule": "unicorn/numeric-separators-style",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 566
+    "count": 582
   },
   {
     "rule": "unicorn/prefer-add-event-listener",
@@ -4106,7 +4142,7 @@
   {
     "rule": "unicorn/prefer-code-point",
     "task": "RS-unicorn",
-    "count": 30
+    "count": 33
   },
   {
     "rule": "unicorn/prefer-date-now",
@@ -4133,7 +4169,7 @@
   {
     "rule": "unicorn/prefer-dom-node-text-content",
     "task": "RS-unicorn",
-    "count": 4
+    "count": 5
   },
   {
     "rule": "unicorn/prefer-event-target",
@@ -4175,7 +4211,7 @@
     "rule": "unicorn/prefer-import-meta-properties",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 18
+    "count": 19
   },
   {
     "rule": "unicorn/prefer-includes",
@@ -4244,8 +4280,20 @@
   },
   {
     "rule": "unicorn/prefer-response-static-json",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-response-static-json",
     "workspace": "apps/factory-console",
     "task": "RS-apps-factory-console",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-response-static-json",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
     "count": 1
   },
   {
@@ -4263,12 +4311,12 @@
   {
     "rule": "unicorn/prefer-set-has",
     "task": "RS-unicorn",
-    "count": 28
+    "count": 29
   },
   {
     "rule": "unicorn/prefer-single-call",
     "task": "RS-unicorn",
-    "count": 43
+    "count": 46
   },
   {
     "rule": "unicorn/prefer-spread",
@@ -4334,7 +4382,7 @@
     "rule": "unicorn/prefer-spread",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 49
+    "count": 53
   },
   {
     "rule": "unicorn/prefer-string-replace-all",
@@ -4370,13 +4418,13 @@
     "rule": "unicorn/prefer-string-replace-all",
     "workspace": "packages/auth",
     "task": "RS-packages-auth",
-    "count": 4
+    "count": 9
   },
   {
     "rule": "unicorn/prefer-string-replace-all",
     "workspace": "packages/database",
     "task": "RS-packages-database",
-    "count": 3
+    "count": 5
   },
   {
     "rule": "unicorn/prefer-string-replace-all",
@@ -4412,7 +4460,7 @@
     "rule": "unicorn/prefer-string-replace-all",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 209
+    "count": 214
   },
   {
     "rule": "unicorn/prefer-string-slice",
@@ -4434,7 +4482,7 @@
   {
     "rule": "unicorn/prefer-ternary",
     "task": "RS-unicorn",
-    "count": 27
+    "count": 30
   },
   {
     "rule": "unicorn/prefer-type-error",
@@ -4444,7 +4492,7 @@
   {
     "rule": "unicorn/relative-url-style",
     "task": "RS-unicorn",
-    "count": 7
+    "count": 8
   },
   {
     "rule": "unicorn/require-array-join-separator",
@@ -4485,6 +4533,12 @@
     "workspace": "packages/api",
     "task": "RS-packages-api",
     "count": 235
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 8
   },
   {
     "rule": "unicorn/switch-case-braces",
@@ -4535,6 +4589,12 @@
     "count": 81
   },
   {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "tooling/eslint-config",
+    "task": "RS-tooling-eslint-config",
+    "count": 26
+  },
+  {
     "rule": "unicorn/text-encoding-identifier-case",
     "workspace": "(root)",
     "task": "RS-root",
@@ -4568,13 +4628,13 @@
     "rule": "unicorn/text-encoding-identifier-case",
     "workspace": "scripts",
     "task": "RS-scripts",
-    "count": 295
+    "count": 296
   },
   {
     "rule": "unicorn/text-encoding-identifier-case",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 1595
+    "count": 1618
   },
   {
     "rule": "unicorn/text-encoding-identifier-case",
@@ -4589,6 +4649,12 @@
     "count": 1
   },
   {
+    "rule": "unicorn/throw-new-error",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 6
+  },
+  {
     "rule": "vitest/consistent-test-it",
     "workspace": "packages/api",
     "task": "RS-packages-api",
@@ -4598,7 +4664,7 @@
     "rule": "vitest/consistent-test-it",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 1024
+    "count": 1073
   },
   {
     "rule": "vitest/expect-expect",
@@ -4610,7 +4676,7 @@
     "rule": "vitest/expect-expect",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 135
+    "count": 138
   },
   {
     "rule": "vitest/no-alias-methods",
@@ -4622,13 +4688,13 @@
     "rule": "vitest/no-conditional-expect",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 25
+    "count": 30
   },
   {
     "rule": "vitest/no-conditional-expect",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 372
+    "count": 396
   },
   {
     "rule": "vitest/no-conditional-tests",
@@ -4652,13 +4718,13 @@
     "rule": "vitest/no-standalone-expect",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 430
+    "count": 437
   },
   {
     "rule": "vitest/padding-around-after-all-blocks",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 52
+    "count": 64
   },
   {
     "rule": "vitest/padding-around-test-blocks",
@@ -4676,7 +4742,7 @@
     "rule": "vitest/padding-around-test-blocks",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 904
+    "count": 924
   },
   {
     "rule": "vitest/prefer-called-exactly-once-with",
@@ -4694,12 +4760,12 @@
     "rule": "vitest/prefer-called-once",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 346
+    "count": 416
   },
   {
     "rule": "vitest/prefer-called-with",
     "task": "RS-vitest",
-    "count": 88
+    "count": 92
   },
   {
     "rule": "vitest/prefer-comparison-matcher",
@@ -4729,7 +4795,7 @@
     "rule": "vitest/prefer-expect-resolves",
     "workspace": "packages/api",
     "task": "RS-packages-api",
-    "count": 23
+    "count": 26
   },
   {
     "rule": "vitest/prefer-expect-resolves",
@@ -4741,17 +4807,17 @@
     "rule": "vitest/prefer-expect-resolves",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 1120
+    "count": 1260
   },
   {
     "rule": "vitest/prefer-expect-type-of",
     "task": "RS-vitest",
-    "count": 32
+    "count": 33
   },
   {
     "rule": "vitest/prefer-hooks-in-order",
     "task": "RS-vitest",
-    "count": 23
+    "count": 26
   },
   {
     "rule": "vitest/prefer-hooks-on-top",
@@ -4767,7 +4833,7 @@
   {
     "rule": "vitest/prefer-mock-return-shorthand",
     "task": "RS-vitest",
-    "count": 75
+    "count": 79
   },
   {
     "rule": "vitest/prefer-spy-on",
@@ -4795,7 +4861,7 @@
   {
     "rule": "vitest/prefer-to-have-length",
     "task": "RS-vitest",
-    "count": 31
+    "count": 32
   },
   {
     "rule": "vitest/prefer-todo",
@@ -4819,7 +4885,7 @@
     "rule": "vitest/require-to-throw-message",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 106
+    "count": 111
   },
   {
     "rule": "vitest/valid-describe-callback",
@@ -4843,7 +4909,7 @@
     "rule": "vitest/valid-expect",
     "workspace": "tests",
     "task": "RS-tests",
-    "count": 934
+    "count": 993
   },
   {
     "rule": "vitest/warn-todo",

@@ -15,13 +15,13 @@
     "vendored": "Unpacked third-party distributions.",
     "fixture": "Base UI browser fixtures outside that program's fixed include list (L9 keeps the program as it is). workspace-main.tsx needs Missionary's @/, which conflicts with the directory's @/ for the UI package (E40)."
   },
-  "trackedFiles": 4260,
+  "trackedFiles": 4403,
   "counts": {
-    "compiled": 2343,
+    "compiled": 2391,
     "compiled-elsewhere": 33,
     "negative-fixture": 4,
     "evidence": 3,
-    "lint-context": 1765,
+    "lint-context": 1860,
     "none": 112
   },
   "programs": [
@@ -29,48 +29,48 @@
       "config": "apps/admin/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (apps/admin)",
-      "trackedMembers": 1455,
-      "importedOnly": 707,
+      "trackedMembers": 1498,
+      "importedOnly": 730,
       "reason": "Workspace program."
     },
     {
       "config": "apps/donor/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (apps/donor)",
-      "trackedMembers": 619,
-      "importedOnly": 472,
+      "trackedMembers": 643,
+      "importedOnly": 495,
       "reason": "Workspace program."
     },
     {
       "config": "apps/factory-console/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (apps/factory-console)",
-      "trackedMembers": 204,
-      "importedOnly": 138,
+      "trackedMembers": 211,
+      "importedOnly": 145,
       "reason": "Workspace program."
     },
     {
       "config": "apps/missionary/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (apps/missionary)",
-      "trackedMembers": 588,
-      "importedOnly": 459,
+      "trackedMembers": 615,
+      "importedOnly": 485,
       "reason": "Workspace program."
     },
     {
       "config": "packages/api/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (packages/api)",
-      "trackedMembers": 601,
-      "importedOnly": 77,
+      "trackedMembers": 617,
+      "importedOnly": 91,
       "reason": "Workspace program."
     },
     {
       "config": "packages/auth/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (packages/auth)",
-      "trackedMembers": 54,
-      "importedOnly": 19,
+      "trackedMembers": 71,
+      "importedOnly": 26,
       "reason": "Workspace program."
     },
     {
@@ -85,7 +85,7 @@
       "config": "packages/database/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (packages/database)",
-      "trackedMembers": 73,
+      "trackedMembers": 81,
       "importedOnly": 4,
       "reason": "Workspace program."
     },
@@ -109,32 +109,32 @@
       "config": "packages/eve-runtime/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (packages/eve-runtime)",
-      "trackedMembers": 278,
-      "importedOnly": 141,
+      "trackedMembers": 282,
+      "importedOnly": 145,
       "reason": "Workspace program."
     },
     {
       "config": "packages/graphql/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (packages/graphql)",
-      "trackedMembers": 45,
-      "importedOnly": 41,
+      "trackedMembers": 49,
+      "importedOnly": 45,
       "reason": "Workspace program."
     },
     {
       "config": "packages/lib/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (packages/lib)",
-      "trackedMembers": 102,
-      "importedOnly": 46,
+      "trackedMembers": 113,
+      "importedOnly": 57,
       "reason": "Workspace program."
     },
     {
       "config": "packages/missionary/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (packages/missionary)",
-      "trackedMembers": 170,
-      "importedOnly": 130,
+      "trackedMembers": 187,
+      "importedOnly": 146,
       "reason": "Workspace program."
     },
     {
@@ -149,8 +149,8 @@
       "config": "packages/ui/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (packages/ui)",
-      "trackedMembers": 382,
-      "importedOnly": 62,
+      "trackedMembers": 401,
+      "importedOnly": 76,
       "reason": "Workspace program."
     },
     {
@@ -181,96 +181,96 @@
       "config": "tests/fixtures/base-ui-compliance/tsconfig.json",
       "role": "other-gate",
       "gate": "bun run test:e2e:base-ui",
-      "trackedMembers": 278,
-      "importedOnly": 245,
+      "trackedMembers": 300,
+      "importedOnly": 267,
       "reason": "Base UI browser fixture, compiled before its Playwright run."
     },
     {
       "config": "tests/fixtures/capability-registry/tsconfig.json",
       "role": "negative-fixture",
       "gate": "tests/unit/auth/capabilities/fixtures.test.ts",
-      "trackedMembers": 28,
-      "importedOnly": 24,
+      "trackedMembers": 32,
+      "importedOnly": 28,
       "reason": "Intentional compile failures; the test asserts the exact native diagnostics."
     },
     {
       "config": "docs/qa/admin-workspaces-hillclimb/fixtures/tsconfig.json",
       "role": "evidence",
       "gate": "none",
-      "trackedMembers": 201,
-      "importedOnly": 198,
+      "trackedMembers": 211,
+      "importedOnly": 208,
       "reason": "Review evidence fixtures under docs/; no gate compiles them."
     },
     {
       "config": "tests/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 2075,
-      "importedOnly": 987,
+      "trackedMembers": 2220,
+      "importedOnly": 1069,
       "reason": "Central tests that need no workspace alias (E40), with allowJs so imported scripts keep inferred types. Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
       "config": "tests/unit/apps/admin/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 1276,
-      "importedOnly": 981,
+      "trackedMembers": 1371,
+      "importedOnly": 1061,
       "reason": "Admin tests: Admin's options, @/ and @payload-config (E40, E45). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
       "config": "tests/unit/apps/donor/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 418,
-      "importedOnly": 361,
+      "trackedMembers": 470,
+      "importedOnly": 410,
       "reason": "Donor tests: Donor's options and @/ (E40). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
       "config": "tests/unit/apps/missionary/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 440,
-      "importedOnly": 358,
+      "trackedMembers": 504,
+      "importedOnly": 419,
       "reason": "Missionary tests: Missionary's options and @/ (E40). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
       "config": "tests/unit/acceptance/issue-2364/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 161,
-      "importedOnly": 156,
+      "trackedMembers": 176,
+      "importedOnly": 171,
       "reason": "Donor acceptance tests outside the Donor partition: Donor's options and @/ (E40). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
       "config": "tests/unit/packages/ui/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 626,
-      "importedOnly": 452,
+      "trackedMembers": 650,
+      "importedOnly": 471,
       "reason": "Shared UI tests: the UI package's options and @/ (E40). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
       "config": "tests/unit/cms/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 140,
-      "importedOnly": 96,
+      "trackedMembers": 181,
+      "importedOnly": 131,
       "reason": "CMS tests: @payload-config only (E45). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
       "config": "tests/unit/packages/api/principal/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 25,
-      "importedOnly": 23,
+      "trackedMembers": 30,
+      "importedOnly": 28,
       "reason": "Existing Principal program, kept as it is (L9). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
       "config": "tests/unit/packages/api/projection/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 19,
-      "importedOnly": 11,
+      "trackedMembers": 20,
+      "importedOnly": 12,
       "reason": "Existing Projection program, kept as it is (L9). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     }
   ],
@@ -327,14 +327,14 @@
     },
     {
       "path": "apps/admin/**",
-      "files": 748,
+      "files": 768,
       "class": "compiled",
       "roots": "apps/admin/tsconfig.json",
       "kind": ""
     },
     {
       "path": "apps/donor/**",
-      "files": 147,
+      "files": 148,
       "class": "compiled",
       "roots": "apps/donor/tsconfig.json",
       "kind": ""
@@ -348,7 +348,7 @@
     },
     {
       "path": "apps/missionary/**",
-      "files": 129,
+      "files": 130,
       "class": "compiled",
       "roots": "apps/missionary/tsconfig.json",
       "kind": ""
@@ -369,7 +369,7 @@
     },
     {
       "path": "packages/api/**",
-      "files": 524,
+      "files": 526,
       "class": "compiled",
       "roots": "packages/api/tsconfig.json",
       "kind": ""
@@ -383,7 +383,7 @@
     },
     {
       "path": "packages/auth/**",
-      "files": 35,
+      "files": 45,
       "class": "compiled",
       "roots": "packages/auth/tsconfig.json",
       "kind": ""
@@ -397,7 +397,7 @@
     },
     {
       "path": "packages/database/**",
-      "files": 69,
+      "files": 77,
       "class": "compiled",
       "roots": "packages/database/tsconfig.json",
       "kind": ""
@@ -439,7 +439,7 @@
     },
     {
       "path": "packages/missionary/**",
-      "files": 40,
+      "files": 41,
       "class": "compiled",
       "roots": "packages/missionary/tsconfig.json",
       "kind": ""
@@ -453,7 +453,7 @@
     },
     {
       "path": "packages/ui/**",
-      "files": 320,
+      "files": 325,
       "class": "compiled",
       "roots": "packages/ui/tsconfig.json",
       "kind": ""
@@ -530,7 +530,7 @@
     },
     {
       "path": "tests/**",
-      "files": 1085,
+      "files": 1148,
       "class": "lint-context",
       "roots": "tests/tsconfig.json",
       "kind": ""
@@ -831,28 +831,28 @@
     },
     {
       "path": "tests/unit/apps/admin/**",
-      "files": 295,
+      "files": 310,
       "class": "lint-context",
       "roots": "tests/unit/apps/admin/tsconfig.json",
       "kind": ""
     },
     {
       "path": "tests/unit/apps/donor/**",
-      "files": 57,
+      "files": 60,
       "class": "lint-context",
       "roots": "tests/unit/apps/donor/tsconfig.json",
       "kind": ""
     },
     {
       "path": "tests/unit/apps/missionary/**",
-      "files": 82,
+      "files": 85,
       "class": "lint-context",
       "roots": "tests/unit/apps/missionary/tsconfig.json",
       "kind": ""
     },
     {
       "path": "tests/unit/cms/**",
-      "files": 44,
+      "files": 50,
       "class": "lint-context",
       "roots": "tests/unit/cms/tsconfig.json",
       "kind": ""
@@ -873,7 +873,7 @@
     },
     {
       "path": "tests/unit/packages/ui/**",
-      "files": 174,
+      "files": 179,
       "class": "lint-context",
       "roots": "tests/unit/packages/ui/tsconfig.json",
       "kind": ""

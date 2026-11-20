@@ -3,11 +3,11 @@
   "eslint": "10.13.0",
   "oxlint": "1.94.0",
   "counts": {
-    "rules": 71,
+    "rules": 74,
     "oxlint": 60,
     "bridge": 6,
-    "gaps": 5,
-    "unexpectedGaps": 1
+    "gaps": 8,
+    "unexpectedGaps": 4
   },
   "sources": [
     {
@@ -16,7 +16,7 @@
       "configLookup": false,
       "commands": ["apps/admin: lint"],
       "scopes": ["apps/admin/**"],
-      "rulesAtError": 71
+      "rulesAtError": 74
     },
     {
       "config": "apps/donor/eslint.config.mjs",
@@ -24,7 +24,7 @@
       "configLookup": false,
       "commands": ["apps/donor: lint"],
       "scopes": ["apps/donor/**"],
-      "rulesAtError": 71
+      "rulesAtError": 72
     },
     {
       "config": "apps/factory-console/eslint.config.mjs",
@@ -46,7 +46,7 @@
       "configLookup": false,
       "commands": ["apps/missionary: lint"],
       "scopes": ["apps/missionary/**"],
-      "rulesAtError": 71
+      "rulesAtError": 74
     },
     {
       "config": "eslint.config.mjs",
@@ -76,7 +76,7 @@
         "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
         "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
       ],
-      "rulesAtError": 34
+      "rulesAtError": 37
     },
     {
       "config": "packages/api/eslint.config.mjs",
@@ -84,7 +84,7 @@
       "configLookup": true,
       "commands": ["packages/api: lint"],
       "scopes": ["packages/api/**"],
-      "rulesAtError": 27
+      "rulesAtError": 29
     },
     {
       "config": "packages/auth/eslint.config.mjs",
@@ -92,7 +92,7 @@
       "configLookup": true,
       "commands": ["packages/auth: lint"],
       "scopes": ["packages/auth/**"],
-      "rulesAtError": 27
+      "rulesAtError": 29
     },
     {
       "config": "packages/config/eslint.config.mjs",
@@ -108,7 +108,7 @@
       "configLookup": true,
       "commands": ["packages/database: lint"],
       "scopes": ["packages/database/**"],
-      "rulesAtError": 27
+      "rulesAtError": 29
     },
     {
       "config": "packages/email/eslint.config.mjs",
@@ -152,7 +152,7 @@
       "configLookup": true,
       "commands": ["packages/lib: lint"],
       "scopes": ["packages/lib/**"],
-      "rulesAtError": 27
+      "rulesAtError": 30
     },
     {
       "config": "packages/missionary/eslint.config.mjs",
@@ -160,7 +160,7 @@
       "configLookup": false,
       "commands": ["packages/missionary: lint"],
       "scopes": ["packages/missionary/**"],
-      "rulesAtError": 33
+      "rulesAtError": 36
     },
     {
       "config": "packages/mock-data/eslint.config.mjs",
@@ -176,7 +176,7 @@
       "configLookup": false,
       "commands": ["packages/ui: lint"],
       "scopes": ["packages/ui/**"],
-      "rulesAtError": 33
+      "rulesAtError": 36
     }
   ],
   "notLinted": [
@@ -1811,6 +1811,35 @@
       }
     },
     {
+      "rule": "own-api/no-direct-call",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/missionary/**",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/ui/**"
+        ],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "gap",
+        "expected": false,
+        "reason": "No Oxlint 1.94.0 rule matches (no Oxlint plugin ports \"own-api\"); design L5 does not expect this gap."
+      }
+    },
+    {
       "rule": "prefer-const",
       "scopes": {
         "apps/admin/eslint.config.mjs": ["apps/admin/**/*.{cts,mts,ts,tsx}"],
@@ -3164,6 +3193,60 @@
       "mapping": {
         "kind": "bridge",
         "bridge": "bun run lint:ui (tooling/eslint-config/lint.mjs)"
+      }
+    },
+    {
+      "rule": "tenant-navigation/no-prefixless-navigation",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/ui/**"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": true,
+      "mapping": {
+        "kind": "gap",
+        "expected": false,
+        "reason": "No Oxlint 1.94.0 rule matches (no Oxlint plugin ports \"tenant-navigation\"); design L5 does not expect this gap."
+      }
+    },
+    {
+      "rule": "tenant-navigation/no-tenantless-cache",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/ui/**"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": true,
+      "mapping": {
+        "kind": "gap",
+        "expected": false,
+        "reason": "No Oxlint 1.94.0 rule matches (no Oxlint plugin ports \"tenant-navigation\"); design L5 does not expect this gap."
       }
     }
   ]

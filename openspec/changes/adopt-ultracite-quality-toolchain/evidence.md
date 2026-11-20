@@ -1424,3 +1424,14 @@ path below a matched one. Ported literally, the incumbent options let `motion/re
 `payload/x/y` through: 46 of 61 probe specifiers differed between the engines on the same options. With an explicit
 `/**` form added to each pattern, the two engines agree on all 4,711 specifiers tested (every import specifier in the
 tree plus the probes). The tiers find no import on the tree at the PL-2 revision.
+
+## E82. Develop added three ESLint rules of Core's own, and 4,756 findings, in one merge [X]
+
+Merging develop at `7b0ac284b` (pull request #2734, AL-2675) on 20 November 2026 brought
+`tooling/eslint-config/own-api.mjs` and `tooling/eslint-config/tenant-navigation.mjs`: three custom rules enforced at
+`error`, `own-api/no-direct-call` (nine configs), `tenant-navigation/no-prefixless-navigation` (nine) and
+`tenant-navigation/no-tenantless-cache` (seven). The parity generator maps none of them, because no Oxlint plugin
+ports them; it records each as an unexpected gap. The same merge raised the typed finding count with every policy
+rule on from 93,883 to 98,639: 3,419 more in tests, 976 in product code and 361 in scripts. Twelve pending entries
+were added for rule and workspace pairs that had no finding before, and one entry was dropped as clean (833 to
+844). Both effects follow from the new policy not gating lint yet: develop is written to ESLint's rules alone.
