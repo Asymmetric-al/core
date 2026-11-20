@@ -1,7 +1,9 @@
 -- Rollback of 20261119135300_request_tenant_policies.sql (WP2b, second release;
 -- AL-2675). Run by hand, in one transaction, only to go back to the chain
--- before it, and only while no Release run is in progress or queued for the
--- database (docs/ops/release-job.md, "The request-tenant policies").
+-- before it, and only while no run that can reach the database is unfinished
+-- (queued, in progress, requested, waiting or pending), with releases and
+-- preview rebuilds paused until the migration is applied again
+-- (docs/ops/release-job.md, "The request-tenant policies").
 --
 -- It stops, changing nothing, unless 20261119135300 is the newest version in
 -- the migration ledger (supabase_migrations.schema_migrations): it replaces
@@ -30,7 +32,13 @@
 -- authz.caller_assignment, which reads the assignment header on both sides. A
 -- donor's saved feed preferences read as no row before the migration and
 -- after this file, so the route answers defaults; with the migration they
--- read. The 2675 real-stack suite pins the feed-preference case.
+-- read. The 2675 real-stack suite pins the feed-preference case. Image
+-- uploads: this file restores the two Storage INSERT policies that compare
+-- the path's tenant with the uploader's profiles.tenant_id, while the first
+-- release's upload routes build the path from the resolved assignment's
+-- tenant and upload on the caller's token, so a person whose profile names
+-- another tenant than the one they act in is refused and the route answers
+-- 502, exactly as before the migration with the first release's apps.
 --
 -- Generated from the catalog of the chain with and without the migration
 -- (council R10): every policy, function (definition, owner, EXECUTE grants,

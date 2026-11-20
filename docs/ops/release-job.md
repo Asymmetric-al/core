@@ -556,7 +556,9 @@ already gone). Do not edit the file (council R9):
    echo "repair exit status: $status"
    ```
 
-3. Dispatch **Release**, branch `production`, operation `release`. Its
+3. Dispatch **Release**, branch `production`, operation `release`, with
+   `environment` set to the environment whose database `$DB` is
+   (`production` or `preview`; the form's default is `production`). Its
    `gates` step (`node scripts/release/release-database.mjs gates`) runs the
    catalog gates and compares the database's schema fingerprint with the
    replay the job builds, before it records the heads or deploys anything.
@@ -580,22 +582,41 @@ The rollback is
 `supabase/migrations/rollback_20261119135300_request_tenant_policies.sql`,
 one transaction. Run it only when both hold:
 
-- No Release run is in progress or queued for that environment, and nothing
-  is pushed to `production` until it has committed. Releases wait for each
-  other through the workflow's concurrency group (`release-production`, or
-  `preview-database` for `preview`, which the `preview-database` job of
+- No run that can reach that environment's database is unfinished, and
+  nothing is pushed to `production` until it has committed. Releases wait for
+  each other through the workflow's concurrency group (`release-production`,
+  or `preview-database` for `preview`, which the `preview-database` job of
   `qa-smoke-preview-deploy.yml` shares; never cancelled, every waiting run
   queued), but a rollback run by hand is outside that group, so only this
-  check keeps them apart. Look at the Actions tab, workflow **Release** (and,
-  for `preview`, that job), or run
-  `gh run list --workflow release.yml --status in_progress` and the same with
-  `--status queued`: both must list nothing.
+  check keeps them apart. A run that waits in the group or for the owner's
+  approval is unfinished too. Of the statuses `gh run list --status` takes,
+  the unfinished ones are `queued`, `in_progress`, `requested`, `waiting` and
+  `pending`; this must print nothing (for `preview`, run it for
+  `qa-smoke-preview-deploy.yml` too):
+
+  ```sh
+  for s in queued in_progress requested waiting pending; do gh run list --workflow release.yml --status "$s"; done
+  ```
+
+  From the rollback until step 3 of
+  [Applying it again after a rollback](#applying-it-again-after-a-rollback)
+  dispatches the release, keep releases and preview rebuilds of that
+  environment paused.
+
 - 20261119135300 is the newest version in the migration ledger. The file
   checks it and stops, changing nothing, otherwise: reverse every later
   migration first.
 
-Connect as above and run it with
-`psql "$DB" -X -v ON_ERROR_STOP=1 -f supabase/migrations/rollback_20261119135300_request_tenant_policies.sql`.
+Connect as above and run it, keeping `psql`'s exit status and removing the
+password and `PGREQUIREAUTH` on either outcome:
+
+```sh
+psql "$DB" -X -v ON_ERROR_STOP=1 -f supabase/migrations/rollback_20261119135300_request_tenant_policies.sql
+status=$?
+unset PGPASSWORD PGREQUIREAUTH
+echo "rollback exit status: $status"
+```
+
 Before it reads the ledger it locks the ledger table against writes until it
 commits, so no migration can be recorded, and no repair or second rollback
 run, between its check and its commit; a writer that holds the ledger makes
@@ -608,10 +629,13 @@ before; no hosted database published them. It ends with PostgREST's schema
 reload.
 
 It leaves 20261119135300 recorded in the ledger. A release after it would
-apply nothing and stop at its gates, because the catalog gate fails on a
-helper that reads the token claim and the schema fingerprint differs from the
-replay's; nothing would be recorded or deployed. To release again, apply the
-migration again as the next section says.
+not apply that migration again. Its migrate step runs before its gates, so it
+would apply, and record in the ledger, any migration newer than 20261119135300
+that its commit carries, and then stop at its gates, because the catalog gate
+fails on a helper that reads the token claim and the schema fingerprint
+differs from the replay's; no head would be recorded and nothing deployed.
+That is why releases stay paused. To release again, apply the migration again
+as the next section says.
 
 After the rollback, `authz.current_tenant_id()` reads the token's tenant
 claim again. A session whose token carries no tenant claim, as hosted
@@ -628,34 +652,56 @@ donor's saved feed preferences read as no row before the migration and after
 the rollback, so the route answers defaults; with the migration they read.
 The rollback case of
 `tests/unit/acceptance/issue-2675/tenant-policy-migration.realstack.acceptance.test.ts`
-pins the feed-preference read.
+pins the feed-preference read. Image uploads: the rollback restores the two
+Storage INSERT policies that compare the path's tenant with the uploader's
+`profiles.tenant_id`, while the first release's upload routes build the path
+from the tenant of the assignment the request resolved and upload on the
+caller's token. A person whose profile names another tenant than the one they
+act in is then refused by Storage, and the route answers `502` ("Image
+upload failed.", `uploadOnce` in `packages/api/src/upload/image.ts`), exactly as
+before the migration with the first release's apps.
 
 #### Applying it again after a rollback
 
 After a rollback the schema is the one before the migration, but the ledger
-still records 20261119135300. Fix what made you roll back first; the order
-at the top of this section still holds. Then:
+still records 20261119135300. Releases and preview rebuilds of that
+environment stay paused from the rollback until the dispatch of step 3. Fix
+what made you roll back first; the order at the top of this section still
+holds. Then:
 
-1. Connect as above, and see that schema and ledger disagree: `recorded`
-   reads `t` and `applied` reads `f`. Both `t` means the migration is in
-   place; stop.
+1. Connect as above, and see that schema and ledger disagree and that
+   nothing came after: `recorded` reads `t`, `applied` reads `f` and `newest`
+   reads `t`. Both `recorded` and `applied` `t` means the migration is in
+   place; stop. `newest` `f` means a later migration was recorded after the
+   rollback, which a release that was not paused applies before its gates
+   stop it: stop, and remove nothing, because 20261119135300 would then sort
+   before the database's head, and the release job refuses a pending
+   migration dated at or before the head as out of order.
 
    ```sh
-   psql "$DB" -X -c "select exists (select 1 from supabase_migrations.schema_migrations where version = '20261119135300') as recorded, to_regprocedure('authz.request_assignment()') is not null as applied"
+   psql "$DB" -X -c "select exists (select 1 from supabase_migrations.schema_migrations where version = '20261119135300') as recorded, to_regprocedure('authz.request_assignment()') is not null as applied, coalesce((select max(version) from supabase_migrations.schema_migrations) = '20261119135300', false) as newest"
    ```
 
-2. Remove the version from the ledger. Go on only if the status reads 0 and
-   both columns `f`:
+2. Remove the version from the ledger. The block checks again that it is the
+   newest version and removes nothing otherwise. Go on only if the status
+   reads 0 and both `recorded` and `applied` read `f`:
 
    ```sh
-   SUPABASE_CLI_FORCE_PINNED=1 bun run supabase -- migration repair --status reverted 20261119135300 --db-url "$DB" --yes
-   status=$?
+   if [ "$(psql "$DB" -X -tA -c "select coalesce((select max(version) from supabase_migrations.schema_migrations) = '20261119135300', false)")" = t ]; then
+     SUPABASE_CLI_FORCE_PINNED=1 bun run supabase -- migration repair --status reverted 20261119135300 --db-url "$DB" --yes
+     status=$?
+   else
+     echo "20261119135300 is not the newest version in the ledger: stop, nothing removed"
+     status=1
+   fi
    psql "$DB" -X -c "select exists (select 1 from supabase_migrations.schema_migrations where version = '20261119135300') as recorded, to_regprocedure('authz.request_assignment()') is not null as applied"
    unset PGPASSWORD PGREQUIREAUTH
    echo "repair exit status: $status"
    ```
 
-3. Dispatch **Release**, branch `production`, operation `release`. Its
+3. Dispatch **Release**, branch `production`, operation `release`, with
+   `environment` set to the environment whose database `$DB` is
+   (`production` or `preview`; the form's default is `production`). Its
    migrate step applies 20261119135300 again, as a pending migration newer
    than the database's head, and its gates compare the fingerprint with the
    replay's before it records the heads. The recorded heads stay at
@@ -665,9 +711,12 @@ at the top of this section still holds. Then:
 This procedure was run on a disposable database built by replaying the chain
 with a full ledger, after the rollback, against a local Postgres without TLS,
 with the pinned CLI (2.121.0) first on the `PATH` and
-`SUPABASE_CLI_FORCE_PINNED=1`: step 1 read `t` and `f`, the repair exited 0
-and the check read `f` twice, the job's own `db push` then applied
-20261119135300, and the schema fingerprint equalled the migrated chain's.
+`SUPABASE_CLI_FORCE_PINNED=1`: step 1 read `t`, `f` and `t`, the repair
+exited 0 and the check read `f` twice, the job's own `db push` then applied
+20261119135300, and the schema fingerprint equalled the migrated chain's. On a
+second copy with 20991231000000 recorded after the rollback, step 1 read `t`,
+`f` and `f`, and step 2 removed nothing and ended with status 1, the row of
+20261119135300 still recorded.
 
 ### The database's certificate
 

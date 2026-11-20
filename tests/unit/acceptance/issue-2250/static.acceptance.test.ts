@@ -186,7 +186,9 @@ describe("#2250 migration text (static)", () => {
     // own setting stays apart from it (tenant_guard.current_tenant_id()).
     // The reviewed repoint by its exact file name, so a renamed or re-dated
     // file is reviewed again (review of pull request 2737, thread 4641188080).
-    expect(defs).toEqual([
+    // Sorted, because a directory listing's order is the file system's
+    // (thread 4643328522).
+    expect([...defs].sort()).toEqual([
       AUTHZ_FOUNDATION,
       "20261119135300_request_tenant_policies.sql",
     ]);

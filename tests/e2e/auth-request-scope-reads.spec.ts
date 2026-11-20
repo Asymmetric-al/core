@@ -657,13 +657,36 @@ test.describe("the donor portal", () => {
   });
 });
 
+/** Every value of a `tenantId` or `tenant_id` key anywhere in a payload. */
+function tenantIdsIn(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value.flatMap(tenantIdsIn);
+  if (!value || typeof value !== "object") return [];
+  return Object.entries(value).flatMap(([key, inner]) =>
+    key === "tenantId" || key === "tenant_id"
+      ? [inner, ...tenantIdsIn(inner)]
+      : tenantIdsIn(inner),
+  );
+}
+
+/** The seeded owner's one donor row (supabase/seed.sql). */
+const OWNER_DONOR = "30000000-0000-0000-0000-000000000001";
+
 /*
  * A stale tab: a document whose requests carry neither scope header, as a
- * page loaded before the first release would send them. Acceptable: an empty
- * list or a clear refusal. A reload loop or an error boundary is a finding.
+ * page loaded before the first release would send them (review of pull
+ * request 2737, thread 4641200068; the coordinator's ruling). The resolver
+ * refuses such a request when the caller's scope is ambiguous: a person with
+ * rows of the surface's class in two organizations gets 401 on every read,
+ * the page shows its refusal, and nothing the same account reads with its
+ * headers appears. When the caller holds exactly one live row of that class,
+ * the request is answered from it: the designed fallback of plan WP2's
+ * interim rule until WP3 ("From WP2a it takes the tenant from the person's
+ * one live donor membership, through the resolver"), so the seeded owner's
+ * portal answers with that owner's own data and no one else's. A reload loop
+ * or an error page is a finding on every surface.
  */
 test.describe("a stale tab sends neither header", () => {
-  test("each surface shows an empty list or a refusal, not a loop or a crash", async ({
+  test("an ambiguous scope is refused and a single row answers its own data, never a loop or a crash", async ({
     page,
   }) => {
     const stack = requireStack();
@@ -671,21 +694,65 @@ test.describe("a stale tab sends neither header", () => {
     test.skip(!app, "Each app's project.");
     let opened: string;
     let watched: RegExp;
+    // A value the same account reads with its headers, which the stale tab
+    // must not show (admin and missionary).
+    let guarded: string | null = null;
     if (app === "admin") {
       await signIn(page, staffInBoth!.email, staffInBoth!.password);
       await choose(page, `${ORGANIZATION_NAME[DEMO]}: Development`, DEMO);
       opened = `/${DEMO}/admin/teams`;
       watched = /^\/api\/admin\/users$/;
+      // The directory reads once per staff role; another staff member's name
+      // from any of those reads, not the caller's own (the shell names it).
+      const headed = collectReads(page, watched);
+      await page.goto(opened);
+      await expect
+        .poll(() => headed.length, { timeout: 120_000 })
+        .toBeGreaterThanOrEqual(STAFF_ROLES.size);
+      for (const read of headed) expect(read.status, read.path).toBe(200);
+      guarded =
+        headed
+          .flatMap(
+            (read) =>
+              (read.json as { users: { display_name: string | null }[] }).users,
+          )
+          .map((user) => user.display_name)
+          .find(
+            (name) =>
+              !!name &&
+              name.length > 3 &&
+              name !== staffInBoth!.name &&
+              !/scope/i.test(name),
+          ) ?? null;
     } else if (app === "missionary") {
       await signIn(page, missionaryInBoth!.email, missionaryInBoth!.password);
       await choose(page, `Open ${ORGANIZATION_NAME[DEMO]}`, DEMO);
       opened = `/${DEMO}/donors`;
       watched = /^\/api\/missionary\/donors$/;
+      const first = await nextRead(page, watched, () => page.goto(opened));
+      expect(first.status).toBe(200);
+      guarded =
+        (first.json as { donors: { name: string | null }[] }).donors
+          .map((donor) => donor.name)
+          .find(
+            (name) =>
+              !!name &&
+              name.length > 3 &&
+              !/anonymous|unnamed|scope/i.test(name),
+          ) ?? null;
     } else {
       await signIn(page, SEEDED.owner.email, SEEDED_PASSWORD);
       await expect(page).toHaveURL(/\/donor-dashboard/, { timeout: 120_000 });
       opened = "/donor-dashboard/history";
       watched = /^\/api\/donor\/portal$/;
+    }
+    if (app !== "donor") {
+      expect(guarded, "a name read with the headers").toBeTruthy();
+      // With its headers the page shows it, so its absence later means
+      // something.
+      await expect(page.getByText(guarded!).first()).toBeVisible({
+        timeout: 120_000,
+      });
     }
     const stripped = await stripScopeHeaders(page);
     const reads = collectReads(page, watched);
@@ -703,7 +770,7 @@ test.describe("a stale tab sends neither header", () => {
       .catch(() => undefined);
     // A crash is the page itself gone: its heading replaced by a route's
     // error page. A message inside an intact page ("Unauthorized", "Could
-    // not load staff") is the refusal this case accepts, and is recorded.
+    // not load staff") is the refusal an ambiguous scope gets.
     const outcome = {
       surface: app,
       documentLoads: loads.count,
@@ -732,6 +799,44 @@ test.describe("a stale tab sends neither header", () => {
     );
     expect(outcome.pageHeading, JSON.stringify(outcome)).toBeGreaterThan(0);
     expect(outcome.routeError, JSON.stringify(outcome)).toBe(0);
-    void stack;
+    if (app === "donor") {
+      // One live donor row: every read is answered from it, with the owner's
+      // own snapshot and no other donor's id or name.
+      const others = await withOwner(
+        stack,
+        async (db) =>
+          (
+            await db.query(
+              "select id::text as id, coalesce(name, '') as name from public.donors where id <> $1",
+              [OWNER_DONOR],
+            )
+          ).rows as { id: string; name: string }[],
+      );
+      expect(others.length).toBeGreaterThan(0);
+      for (const read of reads)
+        expect(read.status, JSON.stringify(outcome)).toBe(200);
+      const answered = reads.filter((read) => read.json !== null);
+      expect(answered.length, JSON.stringify(outcome)).toBeGreaterThan(0);
+      for (const read of answered) {
+        const { portal } = read.json as { portal: { donor: { id: string } } };
+        expect(portal.donor.id).toBe(OWNER_DONOR);
+        const text = JSON.stringify(read.json);
+        for (const other of others) {
+          expect(text, other.id).not.toContain(other.id);
+          if (other.name.trim().length > 3)
+            expect(text, other.name).not.toContain(other.name);
+        }
+        for (const tenant of tenantIdsIn(read.json)) expect(tenant).toBe(DEMO);
+      }
+    } else {
+      // Rows in both organizations and no proposal: every read is refused,
+      // the page says so, and the name read with the headers is gone.
+      for (const read of reads)
+        expect(read.status, JSON.stringify(outcome)).toBe(401);
+      expect(outcome.refusal.length, JSON.stringify(outcome)).toBeGreaterThan(
+        0,
+      );
+      expect(await page.getByText(guarded!).count(), guarded!).toBe(0);
+    }
   });
 });
