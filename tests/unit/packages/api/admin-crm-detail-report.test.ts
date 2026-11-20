@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { serializeAdminCrmReportCsv } from "../../../../packages/api/src/admin/crm/reports/export-projection";
+import { policies } from "./projection/fixtures";
 
 import { getAdminCrmDonorDetail } from "../../../../packages/api/src/admin/crm/detail/service";
 import {
@@ -630,7 +632,8 @@ describe("Phase 5 CRM donor detail and reports", () => {
   });
 
   it.each([
-    [null, false],
+    [null, true],
+    [{}, true],
     [
       { defaultAnonymousToRecipient: true, defaultAnonymousToPublic: false },
       false,
@@ -648,10 +651,22 @@ describe("Phase 5 CRM donor detail and reports", () => {
     async (preferences, named) => {
       const tables = {
         ...baseTables,
-        donors: baseTables.donors!.map((donor) => ({
-          ...donor,
-          giving_preferences: preferences,
-        })),
+        donations: [
+          ...baseTables.donations!,
+          {
+            ...baseTables.donations![0],
+            tenant_id: "tenant-2",
+            id: "other-gift",
+            donor_id: "other-donor",
+          },
+        ],
+        donors: [
+          ...baseTables.donors!.map((donor) => ({
+            ...donor,
+            giving_preferences: preferences,
+          })),
+          { id: "other-donor", tenant_id: "tenant-2", name: "Other tenant" },
+        ],
       };
       const report = (search: string | null) =>
         buildAdminCrmExportGroups({
@@ -662,14 +677,34 @@ describe("Phase 5 CRM donor detail and reports", () => {
             filters: { dateFrom: null, dateTo: null, search },
           },
         });
-      const { rows } = await report(null);
-      expect(rows).toHaveLength(1);
-      expect(rows[0]).toMatchObject({
-        tenant_id: "tenant-1",
-        groupId: named ? "donors:donor-1" : "donors:unassigned",
-        row: { label: named ? "Ada Donor" : "Anonymous donor" },
-      });
-      expect((await report("Ada")).rows).toHaveLength(named ? 1 : 0);
+      for (const staffRole of ["finance", "development"] as const) {
+        for (const isTenantAdmin of [false, true]) {
+          const seesName = named || staffRole === "finance" || isTenantAdmin;
+          for (const search of [null, "Ada"]) {
+            const groups = await report(search);
+            expect(groups.rows).toHaveLength(1);
+            const exported = serializeAdminCrmReportCsv(
+              groups,
+              {
+                assignmentId: "membership-1",
+                userId: "user-1",
+                tenantId: "tenant-1",
+                revision: "v1",
+                membershipRole: "staff",
+                staffRole,
+                isTenantAdmin,
+              },
+              policies("mission_control", "crm_report_groups", [
+                { fieldKey: "label" },
+                { fieldKey: "gift_count" },
+              ]),
+            );
+            expect(exported.csv.includes("Ada Donor")).toBe(seesName);
+            expect(exported.csv).not.toContain("Other tenant");
+            expect(exported.groupIds).toHaveLength(!search || seesName ? 1 : 0);
+          }
+        }
+      }
     },
   );
 

@@ -1,7 +1,5 @@
-import {
-  isAnonymousToPublic,
-  isAnonymousToRecipient,
-} from "../../../missionary-portal/redaction";
+import { createHash } from "node:crypto";
+
 import { ApiHttpError } from "../../../shared/http-errors";
 import {
   deriveEffectiveContribution,
@@ -518,15 +516,32 @@ interface ReportInput {
 }
 
 export function buildAdminCrmReport(input: ReportInput) {
-  return buildReport(input, false);
+  return buildReport(input);
+}
+
+export function reportGroupRevision(
+  row: CrmReportRow,
+  completeness: AdminCrmReportCompleteness,
+  anonymous: boolean,
+) {
+  return createHash("sha256")
+    .update(JSON.stringify([row, completeness, anonymous]))
+    .digest("hex");
 }
 
 export async function buildAdminCrmExportGroups(input: ReportInput) {
-  const report = await buildReport(input, true);
+  const anonymousDonors = new Set<string>();
+  const report = await buildReport(input, anonymousDonors);
   return {
     slice: report.slice,
-    revision: crypto.randomUUID(),
+    search: report.slice === "donors" ? input.params.filters.search : null,
     rows: report.rows.map((row) => ({
+      anonymous: anonymousDonors.has(row.id),
+      revision: reportGroupRevision(
+        row,
+        report.completeness,
+        anonymousDonors.has(row.id),
+      ),
       tenant_id: input.tenantId,
       groupId: `${report.slice}:${row.id}`,
       completeness: report.completeness,
@@ -537,7 +552,7 @@ export async function buildAdminCrmExportGroups(input: ReportInput) {
 
 async function buildReport(
   input: ReportInput,
-  exporting: boolean,
+  anonymousDonors?: Set<string>,
 ): Promise<AdminCrmReportResponse> {
   if (input.params.slice === "sync-failures") {
     const rows = await buildSyncFailureRows(
@@ -612,19 +627,22 @@ async function buildReport(
     input.supabaseAdmin,
     input.tenantId,
     uniq(gifts.map((gift) => gift.donorId)),
-    exporting,
+    anonymousDonors !== undefined,
   );
-  const exportGifts = exporting
-    ? gifts.map((gift) => {
-        const givingPreferences = gift.donorId
-          ? donors.get(gift.donorId)?.giving_preferences
-          : null;
-        return isAnonymousToPublic({ givingPreferences }) ||
-          isAnonymousToRecipient({ givingPreferences })
-          ? { ...gift, donorId: null }
-          : gift;
-      })
-    : gifts;
+  if (anonymousDonors) {
+    for (const donor of donors.values()) {
+      const prefs = donor.giving_preferences;
+      if (
+        prefs &&
+        typeof prefs === "object" &&
+        (("defaultAnonymousToPublic" in prefs &&
+          prefs.defaultAnonymousToPublic === true) ||
+          ("defaultAnonymousToRecipient" in prefs &&
+            prefs.defaultAnonymousToRecipient === true))
+      )
+        anonymousDonors.add(donor.id);
+    }
+  }
   return respond(
     aggregateGifts({
       getGiftGroupId: (gift) => gift.donorId,
@@ -636,8 +654,8 @@ async function buildReport(
         return donor?.name ?? donor?.organization ?? "Unnamed donor";
       },
       getStatus: (id) => (id ? (donors.get(id)?.status ?? null) : null),
-      gifts: exportGifts,
-      search: input.params.filters.search,
+      gifts,
+      search: anonymousDonors ? null : input.params.filters.search,
     }),
   );
 }

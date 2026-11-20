@@ -1,6 +1,9 @@
+import { resolveAssignmentCapabilities } from "@asym/auth/capabilities";
 import { CSV_RECORD_SEPARATOR, CSV_UTF8_BOM, csvSafeCell } from "@asym/lib/csv";
 
+import { reportGroupRevision } from "./service";
 import { resolveProjection } from "../../../projection";
+import { admits } from "../../../projection/policy";
 
 import type { buildAdminCrmExportGroups } from "./service";
 import type { FieldPolicySet } from "../../../field-policies/reader";
@@ -26,16 +29,50 @@ export function serializeAdminCrmReportCsv(
   assignment: NonNullable<AuthenticatedContext["assignment"]>,
   policies: FieldPolicySet,
 ) {
-  const headers = new Set<string>();
+  const context = {
+    contextRef: assignment.assignmentId,
+    contextRevision: assignment.revision,
+    purpose,
+    operation,
+    surface,
+    recordType: reportRecordType,
+  } as const;
+  const ceiling = {
+    ...context,
+    readableFields: allowedMeasures,
+    exportableFields: allowedMeasures,
+  };
+  const keys = allowedMeasures.filter(
+    (key) =>
+      policies.surface === surface &&
+      policies.recordType === reportRecordType &&
+      admits(policies, key, { binding: context, ceiling }),
+  );
+  if (!keys.length) throw new Error("Missing exportable report policy");
+  const audience =
+    assignment.staffRole === "finance" ||
+    resolveAssignmentCapabilities(assignment).includes(
+      "contributions.manage_settings",
+    )
+      ? "finance"
+      : "identity_restricted";
   const groupIds: string[] = [];
   const records: Record<string, unknown>[] = [];
-  for (const { row, groupId, tenant_id, completeness } of report.rows) {
+  for (const {
+    row,
+    groupId,
+    tenant_id,
+    completeness,
+    anonymous,
+    revision,
+  } of report.rows) {
     const current = {
       contextRevision: assignment.revision,
-      sourceRevision: report.revision,
+      sourceRevision: reportGroupRevision(row, completeness, anonymous),
     };
     const binding = {
       ...current,
+      sourceRevision: revision,
       contextRef: assignment.assignmentId,
       principalId: assignment.userId,
       tenantId: assignment.tenantId,
@@ -46,7 +83,6 @@ export function serializeAdminCrmReportCsv(
       sourceRef: `${tenant_id}:${groupId}`,
       operation,
     } as const;
-    const anonymous = report.slice === "donors" && row.id === "unassigned";
     const resolved = resolveProjection({
       surface,
       recordType: reportRecordType,
@@ -54,7 +90,7 @@ export function serializeAdminCrmReportCsv(
       row: {
         id: `${report.slice}:${row.id}`,
         tenant_id,
-        label: anonymous ? "Anonymous donor" : row.label,
+        label: row.label,
         net_amount_cents: row.amountCents,
         gift_count: row.giftCount,
         donor_count: row.donorCount,
@@ -73,17 +109,10 @@ export function serializeAdminCrmReportCsv(
           principalId: assignment.userId,
           tenantId: assignment.tenantId,
         },
-        ceiling: {
-          contextRef: assignment.assignmentId,
-          contextRevision: assignment.revision,
-          purpose,
-          operation,
-          readableFields: allowedMeasures,
-          exportableFields: allowedMeasures,
-        },
+        ceiling,
         legalEntities: {
-          revision: report.revision,
-          currentRevision: report.revision,
+          revision: assignment.revision,
+          currentRevision: assignment.revision,
           ids: [],
         },
       },
@@ -98,8 +127,8 @@ export function serializeAdminCrmReportCsv(
             : {
                 kind: "applicable",
                 intent: anonymous ? "anonymous" : "named",
-                audience: "identity_restricted",
-                identityFields: ["id"],
+                audience,
+                identityFields: ["id", "label"],
                 identityField: "id",
                 identityRequired: true,
               },
@@ -109,17 +138,22 @@ export function serializeAdminCrmReportCsv(
       },
     });
     if (resolved.kind !== "allowed") continue;
+    if (
+      report.search &&
+      !resolved.projection.label
+        ?.toLowerCase()
+        .includes(report.search.toLowerCase())
+    )
+      continue;
     const cells = Object.entries(resolved.projection).filter(
       ([, value]) =>
         value === null ||
         ["string", "number", "boolean"].includes(typeof value),
     );
     if (!cells.length) continue;
-    for (const [key] of cells) headers.add(key);
     records.push(Object.fromEntries(cells));
     groupIds.push(groupId);
   }
-  const keys = [...headers];
   const lines = [
     keys,
     ...records.map((record) => keys.map((key) => record[key])),

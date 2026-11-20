@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { buildReportResponse } from "../../../../packages/api/src/admin/crm/reports/service";
+import {
+  buildReportResponse,
+  reportGroupRevision,
+} from "../../../../packages/api/src/admin/crm/reports/service";
 import { serializeAdminCrmReportCsv as serialize } from "../../../../packages/api/src/admin/crm/reports/export-projection";
 import { policies } from "./projection/fixtures";
 
@@ -49,7 +52,7 @@ const assignment = {
   userId: "user-a",
   revision: "revision",
   membershipRole: "staff",
-  staffRole: null,
+  staffRole: "development",
   isTenantAdmin: false,
 } as const;
 const keys = [
@@ -68,8 +71,10 @@ function serializeAdminCrmReportCsv(
   return serialize(
     {
       slice: report.slice,
-      revision: "report-v1",
+      search: null,
       rows: report.rows.map((row) => ({
+        anonymous: false,
+        revision: reportGroupRevision(row, report.completeness, false),
         tenant_id: tenantId,
         groupId: `${report.slice}:${row.id}`,
         row,
@@ -124,8 +129,12 @@ describe("serializeAdminCrmReportCsv — export hardening", () => {
     ])
       expect(csv).not.toContain(hidden);
     const report = buildReportResponse(params, rows);
-    expect(serializeAdminCrmReportCsv(report, "tenant-b")).toBe("\ufeff");
-    expect(serializeAdminCrmReportCsv(report, "tenant-a", [])).toBe("\ufeff");
+    expect(serializeAdminCrmReportCsv(report, "tenant-b")).toBe(
+      csv.split("\r\n")[0],
+    );
+    expect(() => serializeAdminCrmReportCsv(report, "tenant-a", [])).toThrow(
+      /policy/i,
+    );
   });
 });
 

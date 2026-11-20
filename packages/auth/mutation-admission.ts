@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { requestOrigin } from "./request-headers";
+
 const writes = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const signedRoutes = new Set([
   "/api/webhooks/stripe",
@@ -11,20 +13,6 @@ const uploads = new Set([
   "/api/upload/image",
   "/api/email/assets/upload",
 ]);
-
-function requestOrigin({ headers, nextUrl }: NextRequest): string | null {
-  const authority = headers.get("host") ?? nextUrl.host;
-  if (
-    !["http:", "https:"].includes(nextUrl.protocol) ||
-    !/^(?:[a-z\d.-]+|\[[a-f\d:.]+\])(?::\d+)?$/i.test(authority)
-  )
-    return null;
-  try {
-    return new URL(`${nextUrl.protocol}//${authority}`).origin;
-  } catch {
-    return null;
-  }
-}
 
 function trustedSource(request: NextRequest, signed: boolean): boolean {
   const { headers } = request;

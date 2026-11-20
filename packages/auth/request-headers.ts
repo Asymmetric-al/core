@@ -6,6 +6,35 @@ import {
 
 import type { RoleClass } from "./principal/types";
 
+export function requestOrigin(request: Request): string | null {
+  const { headers } = request;
+  const nextUrl = new URL(request.url);
+  const authority = headers.get("host") ?? nextUrl.host;
+  if (
+    !["http:", "https:"].includes(nextUrl.protocol) ||
+    !/^(?:[a-z\d.-]+|\[[a-f\d:.]+\])(?::\d+)?$/i.test(authority)
+  )
+    return null;
+  try {
+    return new URL(`${nextUrl.protocol}//${authority}`).origin;
+  } catch {
+    return null;
+  }
+}
+
+export function isSameOriginDownload(request: Request): boolean {
+  const site = request.headers.get("sec-fetch-site");
+  if (site !== null) return site === "same-origin";
+  const referer = request.headers.get("referer");
+  try {
+    return (
+      referer !== null && new URL(referer).origin === requestOrigin(request)
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Request headers that carry the assignment context (plan 5.1, 5.2).
  *

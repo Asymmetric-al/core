@@ -1,4 +1,5 @@
 import { requestScopeOf } from "@asym/auth/context";
+import { isSameOriginDownload } from "@asym/auth/request-headers";
 import { NextResponse } from "next/server";
 
 import {
@@ -14,6 +15,11 @@ import { withPlatformOperation } from "../../../shared/with-operation";
 
 export const GET = withPlatformOperation(
   async ({ audit, auth, request, requestId, supabaseAdmin }) => {
+    if (!isSameOriginDownload(request))
+      return NextResponse.json(
+        { error: "Same-origin download required" },
+        { status: 403 },
+      );
     const actor = requireCrmAccess(auth, {
       action: "crm.report.export",
       resourceType: "report",
@@ -26,10 +32,7 @@ export const GET = withPlatformOperation(
       !assignment ||
       assignment.membershipRole !== "staff" ||
       assignment.userId !== actor.userId ||
-      scope.tenantId !== actor.tenantId ||
-      [...query.getAll("tenantId"), ...query.getAll("tenant_id")].some(
-        (id) => id !== actor.tenantId,
-      )
+      scope.tenantId !== actor.tenantId
     ) {
       return NextResponse.json(
         { error: "Tenant or assignment mismatch" },
