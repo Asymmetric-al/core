@@ -83,7 +83,7 @@ describe("#2308 static contracts (A)", () => {
     expect(result.error).toBeUndefined();
     expect(result.status, `${result.stdout}${result.stderr}`).toBe(0);
   });
-  it("C12: the service-role allowlist stays within the AL-2675 shrink and does not restore the admin users allowance", () => {
+  it("C12: the service-role allowlist stays within the AL-2675 shrink and does not restore retired allowances", () => {
     const doc: unknown = JSON.parse(
       read("docs/security/service-role-client-allowlist.json"),
     );
@@ -101,10 +101,13 @@ describe("#2308 static contracts (A)", () => {
       "entries without a whole count and a lines array of that many line numbers",
     ).toEqual([]);
     const rows = entries.filter(isAllowlistEntry);
-    expect(rows).not.toContainEqual(
-      expect.objectContaining({ file: "packages/api/src/admin/users.ts" }),
-    );
-    expect(rows.length).toBeLessThanOrEqual(116);
-    expect(rows.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(180);
+    for (const file of [
+      "packages/api/src/admin/users.ts",
+      "packages/api/src/follower-requests/request.ts",
+    ]) {
+      expect(rows).not.toContainEqual(expect.objectContaining({ file }));
+    }
+    expect(rows.length).toBeLessThanOrEqual(115);
+    expect(rows.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(178);
   });
 });

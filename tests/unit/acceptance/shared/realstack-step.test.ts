@@ -255,6 +255,7 @@ const REAL_DATABASE_FILES = [
     "issue-2675/capability-parity.realstack",
     "issue-2675/eve-actor-membership.realstack",
     "issue-2675/membership-core.realstack",
+    "issue-2675/missionary-handler-authority.realstack",
   ].map((f) => `${A}/${f}.acceptance.test.ts`),
   // #2714: the release job's database suites and Payload's CMS roles.
   "tests/unit/cms/cms-database-roles.realstack.test.ts",

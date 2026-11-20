@@ -6,6 +6,7 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { giftMismatches } from "../donations/select";
 import { assertTransactable, MoneyError } from "../money";
 import { beginGiftIntake } from "./begin-gift-intake";
 import {
@@ -148,7 +149,9 @@ export const POST = withOperation(
       const { data: storedDonation, error: storedDonationError } =
         await supabaseAdmin
           .from("donations")
-          .select("amount")
+          .select(
+            "amount, currency, missionary_id, fund_id, donor:donors(profile:profiles!profile_id(id))",
+          )
           .eq("id", begin.donationId)
           .eq("tenant_id", ctx.tenantId)
           .single();
@@ -164,7 +167,20 @@ export const POST = withOperation(
           "Failed to load the existing donation for this idempotency key.",
         );
       }
-      if (storedAmountCents !== feeQuote.chargedAmountCents) {
+      const mismatches = giftMismatches(storedDonation, {
+        profileId: ctx.profileId,
+        amountCents: feeQuote.chargedAmountCents,
+        currency,
+        missionaryId: missionary_id ?? null,
+        fundId: fund_id ?? null,
+      });
+      if (mismatches.some((field) => field !== "amount")) {
+        return NextResponse.json(
+          { error: "Idempotency key already used" },
+          { status: 409 },
+        );
+      }
+      if (mismatches.includes("amount")) {
         throw new ApiHttpError(
           409,
           "This idempotency key was already used for a different charged amount.",

@@ -138,6 +138,11 @@ tests, is:
     (AL-2675 sweep, NR-68).
   - `profile_in_tenant` (`private`, INVOKER): whether a profile's login holds
     a live membership in a tenant.
+  - `selected_missionary` (`authz`, INVOKER; AL-2675, the handler-authority
+    package of WP2): whether the selected membership row is a live missionary
+    row of the selected tenant and belongs to the profile's login. It compares
+    the membership's tenant and reads no profile's tenant; its only caller is
+    the service role.
   - `assert_eve_retention_actor`: a live flagged staff row for `admin`
     since R1; the `super_admin` branch reads the profile's tenant.
   - `assert_eve_admin_memory_owner`: a live row in the tenant since R1.
