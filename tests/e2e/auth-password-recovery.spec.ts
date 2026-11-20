@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import {
   AUTH_MAIL_TENANT_ID,
@@ -13,6 +13,7 @@ import {
   warmUpRoutes,
   type AuthMailMembership,
 } from "./helpers/auth-mail";
+import { buildTenantPrefix } from "../../packages/auth/tenant-address";
 
 /**
  * WP0b acceptance: a password recovery email round trip succeeds in each
@@ -22,9 +23,10 @@ import {
 
 /**
  * Each app's person holds the membership that app admits, in the demo
- * organization: memberships are the only authority since AL-2675, and a
- * profile role grants nothing.
+ * organization. Mission Control and the missionary workspace land a person
+ * with one row of their class on that organization's tenant address (AL-2675).
  */
+const TENANT_HOME = buildTenantPrefix(AUTH_MAIL_TENANT_ID, null);
 const SURFACES: Record<
   string,
   { membership: AuthMailMembership; homePath: string }
@@ -39,15 +41,25 @@ const SURFACES: Record<
       staffRole: "development",
       tenantId: AUTH_MAIL_TENANT_ID,
     },
-    homePath: "/",
+    homePath: TENANT_HOME,
   },
   "auth-mail-missionary": {
     membership: { role: "missionary", tenantId: AUTH_MAIL_TENANT_ID },
-    homePath: "/",
+    homePath: TENANT_HOME,
   },
 };
 
 const env = readAuthMailEnv();
+
+/** On a tenant address, the page rendered with that address's document scope. */
+async function expectTenantPage(page: Page, homePath: string) {
+  if (homePath !== TENANT_HOME) return;
+  await expect(page.locator("[data-tenant-scope]")).toHaveCount(1);
+  await expect(page.locator("[data-tenant-scope]")).toHaveAttribute(
+    "data-tenant-scope",
+    TENANT_HOME,
+  );
+}
 
 test.beforeAll(async () => {
   const { project } = test.info();
@@ -119,8 +131,11 @@ test("a recovery email round trip ends signed in with the new password", async (
     await page.getByLabel("Confirm new password").fill(newPassword);
     await page.getByRole("button", { name: "Save new password" }).click();
 
-    // Signed in, in the app, on the same host.
+    // Signed in, in the app, on the same host, and the page rendered in the
+    // organization its address names: a 500 there would keep the URL
+    // (council round 1, A23).
     await expect(page).toHaveURL(home);
+    await expectTenantPage(page, surface.homePath);
 
     // The new password works and the old one no longer does.
     expect(await passwordSignInStatus(env, email, newPassword)).toBe(200);
@@ -136,6 +151,7 @@ test("a recovery email round trip ends signed in with the new password", async (
       await signIn.getByLabel("Password", { exact: true }).fill(newPassword);
       await signIn.getByRole("button", { name: "Sign in" }).click();
       await expect(signIn).toHaveURL(home);
+      await expectTenantPage(signIn, surface.homePath);
 
       // The link works once: opened again, in a browser with no recovery
       // session, it explains and offers a new link.

@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { fetchResult, readErrorMessage } from "@asym/lib/http/fetch-result";
 import { useRetainedDraft } from "@asym/ui/hooks";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -171,7 +172,7 @@ export function useProfilePageView(): ProfilePageViewModel {
     queryKey: ["profile"],
     enabled: canRead,
     queryFn: async () => {
-      const res = await fetch("/api/profile");
+      const res = await ownApiFetch("/api/profile");
       let data: unknown = null;
       try {
         data = await res.json();

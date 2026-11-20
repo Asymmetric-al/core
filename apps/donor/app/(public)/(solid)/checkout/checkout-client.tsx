@@ -1,9 +1,12 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import { knownDonorRecipient } from "@asym/database/hooks";
+import { ownApiFetch } from "@asym/database/own-api";
+
 // Match the app refs correctness rule when shared root lint runs this file.
 /* eslint react-hooks/refs: "error" */
 
-import { knownDonorRecipient } from "@asym/database/hooks";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import {
@@ -72,7 +75,6 @@ import {
   Shield,
   AlertTriangle,
 } from "lucide-react";
-import Link from "next/link";
 import React, {
   useCallback,
   useEffect,
@@ -361,7 +363,10 @@ async function fetchCheckoutRuntimeConfig(
   signal: AbortSignal,
 ): Promise<CheckoutRuntimeConfig | null> {
   try {
-    const response = await fetch("/api/donate", { method: "GET", signal });
+    const response = await ownApiFetch("/api/donate", {
+      method: "GET",
+      signal,
+    });
     const { ok, body: payload } = await readJsonBody<unknown>(response);
 
     if (signal.aborted) {
@@ -1835,7 +1840,7 @@ function createCheckoutPaymentSubmission({
         fundId,
       });
 
-      const response = await fetch("/api/donate", {
+      const response = await ownApiFetch("/api/donate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

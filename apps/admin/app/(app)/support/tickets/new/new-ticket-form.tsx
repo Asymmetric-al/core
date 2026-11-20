@@ -1,5 +1,7 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import { ownApiFetch } from "@asym/database/own-api";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import {
   Button,
@@ -21,7 +23,6 @@ import {
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import Link from "next/link";
 import { useId, useRef, useState } from "react";
 
 import { CONVERSATION_PRIORITY_LABELS } from "../../../../../features/support-hub/lib/status-labels";
@@ -125,7 +126,7 @@ export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
     submissionInFlight.current = true;
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/admin/support/tickets", {
+      const response = await ownApiFetch("/api/admin/support/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -18,6 +18,16 @@ import { useAdminContributions } from "../../../../../apps/admin/app/(app)/contr
 
 import type { CrmPostFailedScope } from "@asym/api/admin/contribution-operations";
 
+// WP2b, AL-2675: the updated-receipt PDF is an own-API download; only the
+// download itself is replaced, ownApiFetch stays real.
+const { ownApiDownloadMock } = vi.hoisted(() => ({
+  ownApiDownloadMock: vi.fn(async () => undefined),
+}));
+vi.mock("@asym/database/own-api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/database/own-api")>()),
+  ownApiDownload: ownApiDownloadMock,
+}));
+
 vi.mock("@asym/database/hooks", () => ({
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ["admin", "crm", "records", "detail"],
   ADMIN_CRM_RECORDS_QUERY_KEY: ["admin", "crm", "records"],
@@ -1737,11 +1747,16 @@ describe("ContributionOperationShell", () => {
 
     await view.findByTestId("operation-result-panel");
     expect(view.getByText(/receipt: pdf generated/i)).toBeTruthy();
-    const link = view.getByRole("link", {
+    // WP2b, AL-2675: an own-API download with the document's scope, not a
+    // link (a page load carries no tenant header). Where this read the
+    // link's href, it now reads the address the click downloads.
+    const control = view.getByRole("button", {
       name: /download updated receipt pdf/i,
     });
-    expect(link.getAttribute("href")).toBe(
+    fireEvent.click(control);
+    expect(ownApiDownloadMock).toHaveBeenCalledWith(
       "/api/admin/contribution-operations/receipt-snapshots/snap-9/pdf",
+      {},
     );
 
     const actionCall = fetchMock.mock.calls.find(([url]) =>

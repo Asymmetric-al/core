@@ -2,12 +2,10 @@ import { type AuthenticatedContext } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import {
-  assertMissionaryDonorAccess,
-  getMissionaryTask,
-  listMissionaryTasks,
-} from "./service";
+import { writeMissionaryTask, listMissionaryTasks } from "./service";
 import { ensureJsonBody } from "../shared/http-errors";
+import { missionaryScope } from "../shared/missionary-authority";
+import { requireRouteUuid } from "../shared/route-uuid";
 import { withOperation } from "../shared/with-operation";
 
 const taskStatusSchema = z.enum([
@@ -36,7 +34,7 @@ const createTaskSchema = z
     priority: taskPrioritySchema.default("none"),
     due_date: z.string().datetime().nullable().optional(),
     donor_id: z.string().uuid().nullable().optional(),
-    sort_key: z.number().finite().optional(),
+    sort_key: z.number().finite().transform(Math.round).optional(),
   })
   .strict();
 
@@ -44,19 +42,11 @@ export const GET = withOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
     const donorId = new URL(request.url).searchParams.get("donorId");
-    if (donorId) {
-      await assertMissionaryDonorAccess({
-        supabaseAdmin,
-        donorId,
-        profileId: ctx.profileId,
-        tenantId: ctx.tenantId,
-      });
-    }
 
     const tasks = await listMissionaryTasks({
       supabaseAdmin,
-      profileId: ctx.profileId,
-      donorId,
+      ...missionaryScope(ctx),
+      donorId: donorId === null ? null : requireRouteUuid(donorId),
     });
 
     return NextResponse.json({ tasks });
@@ -67,47 +57,20 @@ export const GET = withOperation(
 export const POST = withOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
+    const scope = missionaryScope(ctx);
     const input = createTaskSchema.parse(await ensureJsonBody(request));
 
-    if (input.donor_id) {
-      await assertMissionaryDonorAccess({
-        supabaseAdmin,
-        donorId: input.donor_id,
-        profileId: ctx.profileId,
-        tenantId: ctx.tenantId,
-      });
-    }
-
-    const { data, error } = await supabaseAdmin
-      .from("missionary_tasks")
-      .insert({
-        missionary_id: ctx.profileId,
-        donor_id: input.donor_id ?? null,
-        title: input.title,
-        description: input.description ?? null,
-        task_type: input.task_type,
-        status: input.status,
-        priority: input.priority,
-        due_date: input.due_date ?? null,
-        sort_key: input.sort_key ?? Date.now() / 1000,
+    const task = await writeMissionaryTask(
+      { supabaseAdmin, ...scope },
+      "create",
+      null,
+      {
+        ...input,
+        sort_key: input.sort_key ?? Math.floor(Date.now() / 1000),
         completed_at:
           input.status === "completed" ? new Date().toISOString() : null,
-      })
-      .select("id")
-      .single();
-
-    if (error || !data) {
-      return NextResponse.json(
-        { error: error?.message ?? "Unable to create task" },
-        { status: 500 },
-      );
-    }
-
-    const task = await getMissionaryTask({
-      supabaseAdmin,
-      taskId: data.id,
-      profileId: ctx.profileId,
-    });
+      },
+    );
 
     return NextResponse.json({ task }, { status: 201 });
   },

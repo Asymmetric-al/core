@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   useMissionControlAutomations,
   type MissionControlAutomationRuleDto,
@@ -18,7 +19,6 @@ import {
 import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Activity, AlertTriangle, RotateCw } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import {

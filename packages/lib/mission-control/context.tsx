@@ -4,6 +4,7 @@ import {
   signOutClientSession,
   subscribeToClientAuthState,
 } from "@asym/auth/client-session";
+import { retireDocumentScope } from "@asym/database/document-scope";
 import { runtimeEnvFlags } from "@asym/env";
 import {
   createContext,
@@ -134,6 +135,16 @@ export function MCProvider({
       ({ user: sessionUser }) => {
         if (!sessionUser) {
           applySignedOutState();
+          return;
+        }
+
+        // Another person's session in this document: never show the first
+        // person as signed in. The document's scope retires and the page
+        // reloads once, where the proxy decides (plan 5.2; AL-2675, JB1).
+        const bootstrapUser = currentUserRef.current;
+        if (bootstrapUser && bootstrapUser.id !== sessionUser.id) {
+          applySignedOutState();
+          retireDocumentScope();
           return;
         }
 

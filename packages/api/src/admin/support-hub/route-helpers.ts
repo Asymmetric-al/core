@@ -1,6 +1,7 @@
 import {
   getAuthContext,
   hasContextCapability,
+  scopeRefusedHeaders,
   isTenantAdministrator,
 } from "@asym/auth/context";
 import { ZodError, type ZodType } from "zod";
@@ -44,7 +45,11 @@ export async function requireSupportHubAccess(
   if (!auth.isAuthenticated || !auth.userId || !auth.tenantId) {
     return {
       ok: false,
-      response: Response.json({ error: "Unauthorized" }, { status: 401 }),
+      // A refused tenant or assignment is marked for the browser (JB1).
+      response: Response.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: scopeRefusedHeaders(auth) },
+      ),
     };
   }
 

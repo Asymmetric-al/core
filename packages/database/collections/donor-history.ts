@@ -4,6 +4,8 @@ import { createCollection } from "@tanstack/db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { z } from "zod";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import { getQueryClient } from "../providers/query-client";
 
 // Route-backed transition collection. Donor history needs receipt/payment
@@ -128,7 +130,7 @@ export function toDonorHistoryTransaction(
 async function fetchDonorHistoryTransactions(): Promise<
   DonorHistoryTransaction[]
 > {
-  const response = await fetch("/api/donor/portal", {
+  const response = await ownApiFetch("/api/donor/portal", {
     credentials: "same-origin",
     headers: {
       Accept: "application/json",

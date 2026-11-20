@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { getAdminCrmDonorDetail } from "../../../../packages/api/src/admin/crm/detail/service";
 import {
@@ -106,9 +106,7 @@ class QueryBuilder implements PromiseLike<{ data: Row[]; error: null }> {
 
 function createSupabaseFixture(tables: Record<string, Row[]>) {
   return {
-    from(table: string) {
-      return new QueryBuilder(tables[table] ?? []);
-    },
+    from: vi.fn((table: string) => new QueryBuilder(tables[table] ?? [])),
   };
 }
 
@@ -152,7 +150,9 @@ const baseTables: Record<string, Row[]> = {
     },
   ],
   donor_activities: [
+    { id: "unrelated", donor_id: "donor-2", type: "note", title: "unrelated" },
     {
+      "owner.tenant_id": "tenant-1",
       amount: null,
       created_at: "2026-05-11T00:00:00.000Z",
       date: "2026-05-11T00:00:00.000Z",
@@ -194,9 +194,10 @@ const baseTables: Record<string, Row[]> = {
       type: "individual",
     },
   ],
-  funds: [{ id: "fund-1", name: "General Fund" }],
+  funds: [{ id: "fund-1", tenant_id: "tenant-1", name: "General Fund" }],
   missionaries: [
     {
+      tenant_id: "tenant-1",
       id: "missionary-1",
       profile: {
         display_name: "Mina Missionary",
@@ -221,6 +222,18 @@ const baseTables: Record<string, Row[]> = {
 };
 
 describe("Phase 5 CRM donor detail and reports", () => {
+  it("does not read old activities when the donor no longer belongs to the selected tenant", async () => {
+    const client = createSupabaseFixture(baseTables);
+    await expect(
+      getAdminCrmDonorDetail({
+        tenantId: "tenant-2",
+        donorId: "donor-1",
+        isTenantAdministrator: false,
+        supabaseAdmin: client as never,
+      }),
+    ).rejects.toMatchObject({ status: 404 });
+    expect(client.from.mock.calls).toEqual([["donors"]]);
+  });
   it("builds donor care detail without making Twenty payment truth", async () => {
     const detail = await getAdminCrmDonorDetail({
       crmWritesEnabled: false,
@@ -230,6 +243,9 @@ describe("Phase 5 CRM donor detail and reports", () => {
       tenantId: "tenant-1",
     });
 
+    expect(
+      detail.timeline.filter((entry) => entry.kind === "activity"),
+    ).toHaveLength(1);
     expect(detail.donor.name).toBe("Ada Donor");
     expect(detail.giftHistory[0]).toMatchObject({
       currencyCode: "USD",
@@ -613,6 +629,31 @@ describe("Phase 5 CRM donor detail and reports", () => {
     ]);
     expect(serializeAdminCrmReportCsv(report)).toContain('"General Fund"');
   });
+
+  it.each(["donors", "missionaries", "funds"] as const)(
+    "does not label %s from another tenant",
+    async (slice) => {
+      const tables = {
+        ...baseTables,
+        [slice]: baseTables[slice].map((row) => ({
+          ...row,
+          tenant_id: "other",
+        })),
+      };
+      const report = await buildAdminCrmReport({
+        tenantId: "tenant-1",
+        supabaseAdmin: createSupabaseFixture(tables) as never,
+        params: {
+          slice,
+          filters: { dateFrom: null, dateTo: null, search: null },
+        },
+      });
+      expect(report.rows).toHaveLength(1);
+      expect(report.rows[0]?.label).not.toMatch(
+        /Ada Donor|Mina Missionary|General Fund/,
+      );
+    },
+  );
 
   it("reports leftover CRM gift-link rows that still need reconciliation", async () => {
     const report = await buildAdminCrmReport({

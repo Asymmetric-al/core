@@ -1,0 +1,7 @@
+type Id<T> = T;
+type Wrap<T> = Id<Readonly<T>>;
+
+export function keep<T>(value: Wrap<T>): Wrap<T> {
+  return value;
+}
+export const bad: Wrap<Record<string, number>> = { a: 1 };

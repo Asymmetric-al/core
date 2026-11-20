@@ -5,10 +5,12 @@ import {
   type AppId,
 } from "@asym/auth/demo-login";
 import { PASSWORD_RECOVERY_PATHS } from "@asym/auth/password-recovery";
+import {
+  TenantLink as Link,
+  useTenantRouter,
+} from "@asym/auth/tenant-navigation";
 import { createBrowserClient } from "@asym/database/supabase";
 import { KeyRound, LinkIcon } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import {
@@ -148,7 +150,7 @@ function NewPasswordForm({
   secondsLeft: number;
   requestHref: string;
 }) {
-  const { replace, refresh } = useRouter();
+  const { replace, refresh } = useTenantRouter();
   const [password, setPassword] = React.useState("");
   const [confirmation, setConfirmation] = React.useState("");
   const [problem, setProblem] = React.useState<Problem | null>(null);

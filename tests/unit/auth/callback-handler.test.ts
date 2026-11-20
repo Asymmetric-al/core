@@ -198,6 +198,28 @@ describe("Supabase auth callback redirects", () => {
     expect(location).not.toMatch(/^[a-z]+:/i);
   });
 
+  it.each([
+    ["Mission Control", "staff"],
+    ["the missionary workspace", "missionary"],
+  ])(
+    "lands a person of %s on its home, relative to the browser's host, where the proxy enters their tenant address (AL-2675)",
+    async (_app, roleClass) => {
+      // The tenant address must not undo WP1.4: the callback stays relative,
+      // and its home (`/`) is where the proxy sends the person on to their
+      // prefix or the chooser (tests/unit/auth/tenant-address-public-paths.test.ts).
+      vi.stubGlobal("fetch", fakeAuthFetch({ classes: [roleClass] }));
+
+      const response = await GET(
+        new Request("http://localhost:3330/auth/callback?code=fixture-code", {
+          headers: { host: "127.0.0.1:3330", "x-asym-role-class": roleClass },
+        }),
+      );
+
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toBe("/");
+    },
+  );
+
   it("returns a private failure redirect without exchanging a missing code", async () => {
     const fetch = fakeAuthFetch();
     vi.stubGlobal("fetch", fetch);

@@ -1,7 +1,7 @@
 import { queryOnce as supabaseQueryOnce } from "@supabase-labs/tanstack-db";
 import { Query } from "@tanstack/db";
 
-import { createClient } from "../supabase/server";
+import type { createClient } from "../supabase/server";
 
 type QueryOnceCallback = Parameters<typeof supabaseQueryOnce>[0];
 type QueryOnceSupabaseClient = Parameters<typeof supabaseQueryOnce>[1];
@@ -379,13 +379,21 @@ async function executeSimpleSupabaseRead<TCallback extends QueryOnceCallback>(
   >;
 }
 
+/**
+ * Runs a collection query once on the server, on `supabase`: a session client
+ * the caller opened with the request's resolved scope (`createClient` from
+ * `@asym/database/supabase/server`), so that the read names its tenant and
+ * assignment (plan 5.4; WP2b, AL-2675). There is no default client: an
+ * unscoped read on the caller's token returns nothing once the second
+ * release of WP2b repoints the database helper.
+ */
 export async function querySupabaseCollectionOnce<
   TCallback extends QueryOnceCallback,
 >(
   callback: TCallback,
-  supabase?: Awaited<ReturnType<typeof createClient>>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
 ): Promise<Awaited<ReturnType<typeof supabaseQueryOnce<TCallback>>>> {
-  const client = supabase ?? (await createClient());
+  const client = supabase;
   const query = getQuery(callback);
 
   if (

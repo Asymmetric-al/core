@@ -4,6 +4,7 @@ import {
   tenantScopedUpdateAccess,
 } from "../access/tenant-access";
 import { createSupabaseAuthStrategy } from "../auth/supabase-strategy";
+import { clearWebStudioTenantOnLogout } from "../auth/web-studio-logout";
 import { CMS_USERS_SLUG } from "../constants";
 
 import type { CollectionConfig, FieldAccess } from "payload";
@@ -43,6 +44,9 @@ export const CmsUsers: CollectionConfig = {
   auth: {
     disableLocalStrategy: true,
     strategies: [createSupabaseAuthStrategy()],
+  },
+  hooks: {
+    afterLogout: [clearWebStudioTenantOnLogout],
   },
   fields: [
     {

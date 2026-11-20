@@ -2,8 +2,10 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
 import { runMissionaryPortalOperation } from "./route-helpers";
-import { assertMissionaryDonorAccess, getMissionaryTask } from "./service";
+import { writeMissionaryTask } from "./service";
 import { ensureJsonBody } from "../shared/http-errors";
+import { missionaryScope } from "../shared/missionary-authority";
+import { requireRouteUuid } from "../shared/route-uuid";
 
 const taskStatusSchema = z.enum([
   "not_started",
@@ -31,7 +33,7 @@ const updateTaskSchema = z
     priority: taskPrioritySchema.optional(),
     due_date: z.string().datetime().nullable().optional(),
     donor_id: z.string().uuid().nullable().optional(),
-    sort_key: z.number().finite().optional(),
+    sort_key: z.number().finite().transform(Math.round).optional(),
   })
   .strict();
 
@@ -67,32 +69,15 @@ export async function PATCH(
   return runMissionaryPortalOperation(
     request,
     async ({ supabaseAdmin, auth }) => {
+      const scope = missionaryScope(auth);
       const input = updateTaskSchema.parse(await ensureJsonBody(request));
 
-      if (input.donor_id) {
-        await assertMissionaryDonorAccess({
-          supabaseAdmin,
-          donorId: input.donor_id,
-          profileId: auth.profileId,
-          tenantId: auth.tenantId,
-        });
-      }
-
-      const { error } = await supabaseAdmin
-        .from("missionary_tasks")
-        .update(taskUpdateFromInput(input))
-        .eq("id", taskId)
-        .eq("missionary_id", auth.profileId);
-
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      }
-
-      const task = await getMissionaryTask({
-        supabaseAdmin,
-        taskId,
-        profileId: auth.profileId,
-      });
+      const task = await writeMissionaryTask(
+        { supabaseAdmin, ...scope },
+        "update",
+        requireRouteUuid(taskId),
+        taskUpdateFromInput(input),
+      );
 
       return NextResponse.json({ task });
     },
@@ -108,15 +93,11 @@ export async function DELETE(
   return runMissionaryPortalOperation(
     request,
     async ({ supabaseAdmin, auth }) => {
-      const { error } = await supabaseAdmin
-        .from("missionary_tasks")
-        .delete()
-        .eq("id", taskId)
-        .eq("missionary_id", auth.profileId);
-
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      }
+      await writeMissionaryTask(
+        { supabaseAdmin, ...missionaryScope(auth) },
+        "delete",
+        requireRouteUuid(taskId),
+      );
 
       return NextResponse.json({ success: true });
     },

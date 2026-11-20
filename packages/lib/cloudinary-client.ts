@@ -1,3 +1,4 @@
+import { ownApiFetch } from "@asym/database/own-api";
 import { clientEnv } from "@asym/env";
 
 export interface CloudinaryUploadResponse {
@@ -28,13 +29,16 @@ export async function uploadToCloudinary(
   file: Blob | File,
   options: { folder?: string; purpose?: string } = {},
 ): Promise<CloudinaryUploadResponse> {
-  const signatureResponse = await fetch("/api/upload/cloudinary/signature", {
-    method: "POST",
-    body: JSON.stringify(options),
-    headers: {
-      "Content-Type": "application/json",
+  const signatureResponse = await ownApiFetch(
+    "/api/upload/cloudinary/signature",
+    {
+      method: "POST",
+      body: JSON.stringify(options),
+      headers: {
+        "Content-Type": "application/json",
+      },
     },
-  });
+  );
 
   if (!signatureResponse.ok) {
     const error = await signatureResponse.json();

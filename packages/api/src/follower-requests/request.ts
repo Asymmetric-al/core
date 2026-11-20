@@ -1,184 +1,76 @@
-import {
-  getAuthContext,
-  requireAuth,
-  type AuthenticatedContext,
-} from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
-import { findProfileByUserId } from "../shared/queries";
+import { runMissionaryPortalOperation } from "../missionary-portal/route-helpers";
+import {
+  ApiHttpError,
+  ensureJsonBody,
+  toApiHttpError,
+} from "../shared/http-errors";
+import {
+  missionaryArgs,
+  missionaryScope,
+} from "../shared/missionary-authority";
+import { requireRouteUuid } from "../shared/route-uuid";
 
-interface FollowerRequestWithDonor {
-  donor?: {
-    name?: string | null;
-  } | null;
-}
+type RequestParams = { params: Promise<{ requestId: string }> };
+const decision = z.object({
+  status: z.enum(["approved", "rejected"]),
+  access_level: z.unknown().optional(),
+});
 
-export async function PATCH(
+function decide(
   request: NextRequest,
-  { params }: { params: Promise<{ requestId: string }> },
+  params: RequestParams,
+  operation: "update" | "delete",
 ) {
-  try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
-
-    const auth = await getAuthContext(request);
-    requireAuth(auth);
-    const ctx = auth as AuthenticatedContext;
-    const { requestId } = await params;
-
-    const body = await request.json();
-    const { status, access_level } = body;
-
-    if (!status || !["approved", "rejected"].includes(status)) {
-      return NextResponse.json(
-        { error: "Valid status (approved/rejected) is required" },
-        { status: 400 },
-      );
-    }
-
-    const { data: profile } = await findProfileByUserId(
-      supabaseAdmin,
-      ctx.userId,
-    );
-
-    if (!profile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-    }
-
-    const { data: existingRequest } = await supabaseAdmin
-      .from("follower_requests")
-      .select("id, missionary_id")
-      .eq("id", requestId)
-      .single();
-
-    if (!existingRequest) {
-      return NextResponse.json({ error: "Request not found" }, { status: 404 });
-    }
-
-    if (existingRequest.missionary_id !== profile.id) {
-      return NextResponse.json(
-        { error: "Unauthorized to modify this request" },
-        { status: 403 },
-      );
-    }
-
-    const updateData: Record<string, string> = {
-      status,
-      updated_at: new Date().toISOString(),
-      resolved_at: new Date().toISOString(),
-    };
-
-    if (access_level && ["view", "comment"].includes(access_level)) {
-      updateData.access_level = access_level;
-    }
-
-    const { data: updatedRequest, error } = await supabaseAdmin
-      .from("follower_requests")
-      .update(updateData)
-      .eq("id", requestId)
-      .select(
-        `
-        id,
-        donor_id,
-        status,
-        access_level,
-        created_at,
-        updated_at,
-        donor:donors!donor_id(
-          id,
-          name,
-          avatar_url
+  return runMissionaryPortalOperation(
+    request,
+    async ({ auth, supabaseAdmin }) => {
+      const scope = missionaryScope(auth);
+      const { requestId } = await params.params;
+      const input =
+        operation === "update"
+          ? decision.parse(await ensureJsonBody(request))
+          : null;
+      const level = input?.access_level;
+      const { data, error } = await supabaseAdmin
+        .rpc("missionary_follower_request_write", {
+          ...missionaryArgs(scope),
+          p_operation: operation,
+          p_id: requireRouteUuid(requestId),
+          p_status: input?.status ?? null,
+          p_access_level:
+            level === "comment" || level === "view" ? level : null,
+        })
+        .select(
+          operation === "delete"
+            ? "id"
+            : `
+      id, donor_id, status, access_level, created_at, updated_at,
+      donor:donors!donor_id(id, name, avatar_url)
+    `,
         )
-      `,
-      )
-      .single();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    const donorName =
-      (updatedRequest as FollowerRequestWithDonor | null)?.donor?.name ||
-      "Unknown Donor";
-
-    return NextResponse.json({
-      request: {
-        ...updatedRequest,
-        name: donorName,
-        initials: getInitials(donorName),
-      },
-    });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+        .maybeSingle();
+      if (error) throw toApiHttpError(error, error.message);
+      if (!data) throw new ApiHttpError(404, "Request not found");
+      if (operation === "delete") return NextResponse.json({ success: true });
+      const row = data as unknown as { donor: { name?: string | null } | null };
+      const name = row.donor?.name || "Unknown Donor";
+      const initials = name
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+      return NextResponse.json({ request: { ...row, name, initials } });
+    },
+  );
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ requestId: string }> },
-) {
-  try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
-
-    const auth = await getAuthContext(request);
-    requireAuth(auth);
-    const ctx = auth as AuthenticatedContext;
-    const { requestId } = await params;
-
-    const { data: profile } = await findProfileByUserId(
-      supabaseAdmin,
-      ctx.userId,
-    );
-
-    if (!profile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-    }
-
-    const { data: existingRequest } = await supabaseAdmin
-      .from("follower_requests")
-      .select("id, missionary_id")
-      .eq("id", requestId)
-      .single();
-
-    if (!existingRequest) {
-      return NextResponse.json({ error: "Request not found" }, { status: 404 });
-    }
-
-    if (existingRequest.missionary_id !== profile.id) {
-      return NextResponse.json(
-        { error: "Unauthorized to delete this request" },
-        { status: 403 },
-      );
-    }
-
-    const { error } = await supabaseAdmin
-      .from("follower_requests")
-      .delete()
-      .eq("id", requestId);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+export function PATCH(request: NextRequest, params: RequestParams) {
+  return decide(request, params, "update");
 }
-
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((word) => word[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+export function DELETE(request: NextRequest, params: RequestParams) {
+  return decide(request, params, "delete");
 }

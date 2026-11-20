@@ -1,5 +1,8 @@
 "use client";
 
+import { signOutClientSession } from "@asym/auth/client-session";
+import { useRoutePathname } from "@asym/auth/tenant-navigation";
+import { WEB_STUDIO_CHOOSER_PATH } from "@asym/auth/web-studio";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   Breadcrumb,
@@ -22,11 +25,20 @@ import {
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { cn } from "@asym/ui/lib/utils";
 import { useAuth, useConfig } from "@payloadcms/ui";
-import { ChevronLeft, LogOut, UserRound, UserRoundCog } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Building2,
+  ChevronLeft,
+  LogOut,
+  UserRound,
+  UserRoundCog,
+} from "lucide-react";
 import { formatAdminURL } from "payload/shared";
 
 import { getEnabledWebStudioCollections } from "../collections/config";
 import { Link } from "../routing";
+import { MissionControlLink } from "./mission-control-link";
+import { useWebStudioOrganization } from "./web-studio-document";
 
 type StudioTopBarProps = {
   sectionLabel?: string;
@@ -45,6 +57,23 @@ function resolveUserLabel(user: unknown): string | null {
   return null;
 }
 
+/**
+ * The organization Web Studio works in, in the bar itself (council on the
+ * joined release, JC3): a person in two organizations sees which one every
+ * save goes to without opening the account menu.
+ */
+function StudioOrganizationName() {
+  const organization = useWebStudioOrganization();
+  if (!organization) return null;
+  return (
+    <p className="flex min-w-0 max-w-28 items-center gap-1.5 text-sm text-muted-foreground sm:max-w-56">
+      <Building2 aria-hidden="true" className="size-4 shrink-0" />
+      <span className="sr-only">Working in </span>
+      <span className="truncate">{organization.name}</span>
+    </p>
+  );
+}
+
 function StudioUserMenu() {
   const { user } = useAuth();
   const {
@@ -54,8 +83,12 @@ function StudioUserMenu() {
     },
   } = useConfig();
   const label = resolveUserLabel(user);
+  // The organization this document works in (plan 5.2): one for the whole of
+  // Web Studio, switched through the Web Studio chooser.
+  const organization = useWebStudioOrganization();
+  const pathname = useRoutePathname();
+  const switchHref = `${WEB_STUDIO_CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`;
   const accountHref = formatAdminURL({ adminRoute, path: routes.account });
-  const logoutHref = formatAdminURL({ adminRoute, path: routes.logout });
 
   return (
     <DropdownMenu>
@@ -75,19 +108,37 @@ function StudioUserMenu() {
         <DropdownMenuGroup>
           <DropdownMenuLabel>
             <span className="block truncate">{label ?? "Your account"}</span>
+            {organization ? (
+              <span className="block truncate font-normal text-muted-foreground">
+                {organization.name}
+              </span>
+            ) : null}
           </DropdownMenuLabel>
+          {organization?.canSwitch ? (
+            // A full document load: nothing of this organization's page
+            // stays behind.
+            <DropdownMenuItem render={<a href={switchHref} />}>
+              <ArrowLeftRight aria-hidden="true" />
+              Switch organization
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuItem render={<Link href={accountHref} />}>
             <UserRoundCog aria-hidden="true" />
             Account
           </DropdownMenuItem>
-          <DropdownMenuItem render={<Link href="/" />}>
+          <DropdownMenuItem render={<MissionControlLink />}>
             <ChevronLeft aria-hidden="true" />
             Mission Control
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem render={<Link href={logoutHref} />}>
+          {/* Mission Control's own sign-out: the server ends the Supabase
+              session (and clears the Web Studio cookie), then the login page
+              loads as a new document. Payload's logout page, with its local
+              strategy off, ends only Payload's side and would leave the
+              person signed in (coordinator's ruling on the joined release). */}
+          <DropdownMenuItem onClick={() => void signOutClientSession()}>
             <LogOut aria-hidden="true" />
             Log out
           </DropdownMenuItem>
@@ -119,8 +170,7 @@ export function StudioTopBar({
         className,
       )}
     >
-      <Link
-        href="/"
+      <MissionControlLink
         className={cn(
           buttonVariants({ variant: "ghost", size: "sm" }),
           "hidden sm:inline-flex",
@@ -128,7 +178,7 @@ export function StudioTopBar({
       >
         <ChevronLeft aria-hidden="true" />
         Mission Control
-      </Link>
+      </MissionControlLink>
       <Separator orientation="vertical" className="hidden h-4 sm:flex" />
 
       <div className="min-w-0 flex-1 overflow-hidden px-1">
@@ -236,6 +286,7 @@ export function StudioTopBar({
         </div>
       </div>
 
+      <StudioOrganizationName />
       <Badge variant="outline">Staff only</Badge>
       <StudioUserMenu />
     </header>

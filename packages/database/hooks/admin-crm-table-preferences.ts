@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import {
   applyCrmRowActionPin,
   applyCrmTablePreferencePatch,
@@ -35,11 +36,14 @@ async function fetchCrmTablePreferences({
   signal: AbortSignal;
 }) {
   const params = new URLSearchParams({ tableId });
-  const response = await fetch(`/api/admin/crm/table-preferences?${params}`, {
-    credentials: "same-origin",
-    headers: { Accept: "application/json" },
-    signal,
-  });
+  const response = await ownApiFetch(
+    `/api/admin/crm/table-preferences?${params}`,
+    {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+      signal,
+    },
+  );
 
   if (!response.ok) {
     throw new Error(
@@ -57,7 +61,7 @@ async function saveCrmRowActionPin(input: {
   tableId: string;
   pinnedActionId: string | null;
 }) {
-  const response = await fetch("/api/admin/crm/table-preferences", {
+  const response = await ownApiFetch("/api/admin/crm/table-preferences", {
     body: JSON.stringify(input),
     credentials: "same-origin",
     headers: {
@@ -106,7 +110,7 @@ async function saveCrmTablePreferencePatch(input: {
   tableId: string;
   patch: CrmViewSettingsSavePatch;
 }) {
-  const response = await fetch("/api/admin/crm/table-preferences", {
+  const response = await ownApiFetch("/api/admin/crm/table-preferences", {
     body: JSON.stringify({ tableId: input.tableId, ...input.patch }),
     credentials: "same-origin",
     headers: {
@@ -176,7 +180,7 @@ async function saveCrmTenantDefault(input: {
   tableId: string;
   patch: CrmTenantDefaultSavePatch;
 }) {
-  const response = await fetch(
+  const response = await ownApiFetch(
     "/api/admin/crm/table-preferences/tenant-default",
     {
       body: JSON.stringify({ tableId: input.tableId, ...input.patch }),

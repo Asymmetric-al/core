@@ -59,7 +59,11 @@ const MOVED_JOB_EXACT_TIMEOUT_MINUTES: Record<
   migrate: 50,
   smoke: 10,
   "test-e2e-smoke": 25,
-  "test-e2e": 30,
+  // Amended by AL-2675 (WP2b release 1, JR12; D-18): 30 until the job gained
+  // the tenant-address, request-scope and Web Studio steps. The whole job was
+  // replayed on the joined tree at about 44 minutes without the boneyard
+  // smokes, so its limit is 55. test-e2e is not a required check.
+  "test-e2e": 55,
   "instant-nav": 25,
 };
 

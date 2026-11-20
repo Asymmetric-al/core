@@ -1,4 +1,5 @@
 "use client";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import {
   DataGridPanel,
@@ -10,7 +11,6 @@ import {
   type PaginationState,
 } from "@asym/ui/components/data-grid-panel";
 import { DataGridColumnHeader } from "@asym/ui/components/reui/data-grid/data-grid-column-header";
-import Link from "next/link";
 import * as React from "react";
 
 import { SUPPORT_TICKET_STATUS_LABELS } from "../../../../app/(app)/support/support-hub.derived";

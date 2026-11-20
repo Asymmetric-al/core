@@ -1,5 +1,6 @@
 /**
- * Payload `config.endpoints` handler: **POST** `/api/web-studio/create-from-template`
+ * Payload `config.endpoints` handler: **POST** `/web-studio/api/web-studio/create-from-template` (Payload's REST
+ * routes sit under `/web-studio/api`; AL-2675)
  *
  * Instantiates **draft** CMS documents from `page-templates` while reusing Payload `req`
  * (staff auth, tenant access, audit hooks). Validates canonical IDs against Supabase when needed.

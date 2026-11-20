@@ -262,6 +262,20 @@ describe("staff handlers are mounted on the staff surface (AL-2675 F9)", () => {
     ).toEqual(["apps/donor/app/api/graphql/route.ts"]);
   });
 
+  it.each(["route.ts", "[requestId]/route.ts"])(
+    "mounts follower decisions only in the missionary workspace: %s",
+    (file) => {
+      expect(
+        existsSync(
+          join(root, "apps/missionary/app/api/follower-requests", file),
+        ),
+      ).toBe(true);
+      expect(
+        existsSync(join(root, "apps/donor/app/api/follower-requests", file)),
+      ).toBe(false);
+    },
+  );
+
   // Rewritten by AL-2675 (WP2c, part 1; record D-18). The role mutation, the
   // branch that needed `people.manage_members`, is deleted. GraphQL keeps its
   // staff branches (`admin.dashboard.access`), which the donor class cannot

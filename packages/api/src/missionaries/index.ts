@@ -1,12 +1,12 @@
-import {
-  getAuthContext,
-  requireAuth,
-  type AuthenticatedContext,
-} from "@asym/auth/context";
+import { getAuthContext, requireRoleClass } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { toErrorResponse } from "../shared/http-errors";
+import { toErrorResponse, toApiHttpError } from "../shared/http-errors";
+import {
+  missionaryArgs,
+  missionaryScope,
+} from "../shared/missionary-authority";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,21 +19,18 @@ export async function GET(request: NextRequest) {
     }
 
     const auth = await getAuthContext(request);
-    requireAuth(auth);
-    const ctx = auth as AuthenticatedContext;
+    requireRoleClass(auth, ["missionary"]);
 
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = parseInt(searchParams.get("offset") || "0");
 
     const { data, error } = await supabaseAdmin
-      .from("missionaries")
+      .rpc("missionary_directory", missionaryArgs(missionaryScope(auth)))
       .select("*, profile:profiles!profile_id(*)")
-      .eq("tenant_id", ctx.tenantId)
       .range(offset, offset + limit - 1);
 
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) throw toApiHttpError(error, error.message);
     return NextResponse.json({ missionaries: data });
   } catch (e) {
     return toErrorResponse(e);

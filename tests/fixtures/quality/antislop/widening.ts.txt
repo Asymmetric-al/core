@@ -1,0 +1,8 @@
+type DailyKey = "today";
+type Counts = Record<DailyKey, number>;
+type View<DailyKey> = Counts;
+
+type Values<Key extends string> = Record<Key, number>;
+export const daily: View<string> = { today: 1 };
+export const exact: Values<"today"> = { today: 1 };
+export const wide: Values<string> = { today: 1 };

@@ -53,6 +53,18 @@ copy with `--workdir` (its own project ID and ports), set
 CI runs the same command in `.github/workflows/local-supabase.yml`
 (`docs/ci.md`, "Local Supabase stack workflow").
 
+The same stack carries `tests/e2e/auth-request-scope-reads.spec.ts`
+(AL-2675): real people sign in through each app's own form and read real rows
+through each tenant-scoped read path of WP2b's first release, against the
+second release's policies. Each read is pinned against what the database
+owner computes with the same rule, and a switch of organization or row must
+show the other set and none of the first. The database owner adds the second
+organization's rows before the journeys and removes them after. Its header
+says which reads go through a page and which only by a direct call to the
+route, because no screen calls them. Web Studio's Payload reads the stack's
+database (`PAYLOAD_DATABASE_URI`, which the config takes from the stack when it
+is unset).
+
 ## Running in UI mode
 
 `bun run test:e2e:ui`

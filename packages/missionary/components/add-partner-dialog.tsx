@@ -118,9 +118,11 @@ export function AddPartnerDialog({
         onSuccess?.();
       } catch (error: unknown) {
         console.error("Error adding partner:", error);
-        const message =
-          error instanceof Error ? error.message : "Failed to add partner";
-        toast.error(message);
+        // Plain words, never the database's own message (WP2b, AL-2675).
+        toast.error("The partner wasn't added.", {
+          description:
+            "Something went wrong on our side, so nothing was saved. Your details are still in the form.",
+        });
       }
     },
   });

@@ -14,15 +14,36 @@ const auth = vi.hoisted(() => ({ signOut: vi.fn() }));
 vi.mock("@asym/database/supabase", () => ({
   createBrowserClient: () => ({ auth }),
 }));
+const scope = vi.hoisted(() => ({ kind: "unscoped" as string }));
+vi.mock("@asym/database/document-scope", () => ({
+  readDocumentScopeForSend: () => ({ kind: scope.kind }),
+}));
 
 import { SignOutOtherSessions } from "../../../../packages/ui/components/auth/sign-out-other-sessions";
 
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  scope.kind = "unscoped";
 });
 
 describe("SignOutOtherSessions", () => {
+  // Last read of the first release, L4: Auth traffic does not pass the
+  // request wrappers, so on a page rendered for one person, after another
+  // signed in, the click would end the second person's other sessions. The
+  // document's one read (L1) says the scope is retired: nothing is sent.
+  it("ends no session from a page whose scope is retired, and says to reload", async () => {
+    scope.kind = "retired";
+    render(<SignOutOtherSessions />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Sign out other devices" }),
+    );
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "Reload the page",
+    );
+    expect(auth.signOut).not.toHaveBeenCalled();
+  });
+
   it("signs out every other session and keeps this one", async () => {
     auth.signOut.mockResolvedValue({ error: null });
     render(<SignOutOtherSessions />);

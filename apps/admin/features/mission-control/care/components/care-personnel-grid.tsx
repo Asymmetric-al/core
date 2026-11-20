@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  TenantLink as Link,
+  useTenantRouter as useRouter,
+} from "@asym/auth/tenant-navigation";
+import {
   DataGridPanel,
   DataGridRowPrimary,
   DataGridSearch,
@@ -38,8 +42,6 @@ import {
 } from "@asym/ui/components/shadcn/select";
 import { cn } from "@asym/ui/lib/utils";
 import { Flag, SearchX, Users } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import {
