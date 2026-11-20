@@ -26,7 +26,8 @@ vi.mock("@asym/lib/audit/logger", () => ({
   })),
 }));
 
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: vi.fn(),
   requireAuth: vi.fn(
     (context: {

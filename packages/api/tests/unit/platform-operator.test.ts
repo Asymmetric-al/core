@@ -47,6 +47,7 @@ describe("confirmPlatformOperator", () => {
       await expect(
         confirmPlatformOperator({
           request: request(headers),
+          scope: null,
           userId: "user-1",
         }),
       ).resolves.toBe(false);
@@ -54,6 +55,7 @@ describe("confirmPlatformOperator", () => {
       await expect(
         confirmPlatformOperator({
           request: request(headers),
+          scope: null,
           userId: "user-1",
           client: { rpc },
         }),
@@ -73,6 +75,7 @@ describe("confirmPlatformOperator", () => {
     await expect(
       confirmPlatformOperator({
         request: request({ cookie }),
+        scope: null,
         userId: "user-1",
       }),
     ).resolves.toBe(true);
@@ -83,6 +86,7 @@ describe("confirmPlatformOperator", () => {
     await expect(
       confirmPlatformOperator({
         request: request({ authorization: "Bearer a.jwt.token" }),
+        scope: null,
         userId: "user-1",
         client: { rpc },
       }),
@@ -100,7 +104,11 @@ describe("confirmPlatformOperator", () => {
       },
     });
     await expect(
-      confirmPlatformOperator({ request: request(cookie), userId: "user-1" }),
+      confirmPlatformOperator({
+        request: request(cookie),
+        scope: null,
+        userId: "user-1",
+      }),
     ).resolves.toBe(false);
 
     rpc.mockResolvedValueOnce({
@@ -108,7 +116,11 @@ describe("confirmPlatformOperator", () => {
       error: { code: "PGRST202", message: "Could not find the function" },
     });
     await expect(
-      confirmPlatformOperator({ request: request(cookie), userId: "user-1" }),
+      confirmPlatformOperator({
+        request: request(cookie),
+        scope: null,
+        userId: "user-1",
+      }),
     ).rejects.toThrow("The platform operator check failed");
   });
 
@@ -117,6 +129,7 @@ describe("confirmPlatformOperator", () => {
     await expect(
       confirmPlatformOperator({
         request: request({ cookie: "sb-127-auth-token=base64-session" }),
+        scope: null,
         userId: "user-1",
       }),
     ).resolves.toBe(false);

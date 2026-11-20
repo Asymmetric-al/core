@@ -1,5 +1,6 @@
 import {
   getAuthContext,
+  requestScopeOf,
   requireAuth,
   requireCapability,
   requireRoleClass,
@@ -186,6 +187,7 @@ export function withOperation<
         (operatorCheck ??= confirmPlatformOperator({
           request,
           userId: authContext.userId,
+          scope: requestScopeOf(authContext),
         }));
       if (options?.platformOperator && !(await isPlatformOperator())) {
         throw new Error(NOT_AN_OPERATOR);

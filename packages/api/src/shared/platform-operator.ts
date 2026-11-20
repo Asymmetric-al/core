@@ -3,6 +3,8 @@ import {
   requestCarriesSupabaseSession,
 } from "./request-session-client";
 
+import type { RequestScope } from "@asym/database/request-scope-headers";
+
 /** The part of a Supabase client the check uses. */
 export interface OperatorCheckClient {
   rpc(fn: string): PromiseLike<{
@@ -28,6 +30,7 @@ export interface OperatorCheckClient {
 export async function confirmPlatformOperator(input: {
   request: Request;
   userId: string;
+  scope: RequestScope | null;
   client?: OperatorCheckClient;
 }): Promise<boolean> {
   if (!requestCarriesSupabaseSession(input.request)) return false;
@@ -35,6 +38,7 @@ export async function confirmPlatformOperator(input: {
     input.client ??
     ((await createRequestSessionClient(
       input.request,
+      input.scope,
     )) as unknown as OperatorCheckClient);
   const { data, error } = await client.rpc("platform_operator_session");
   if (error) {
