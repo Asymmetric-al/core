@@ -25,6 +25,7 @@ async function authenticateAsDemoAdmin(
 ): Promise<boolean> {
   const signInResponse = await request.post("/api/auth/demo-account", {
     data: { role: "admin" },
+    headers: { "Sec-Fetch-Site": "same-origin" },
   });
 
   if (!signInResponse.ok()) return false;

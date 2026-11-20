@@ -80,7 +80,9 @@ test.describe("@cms Web Studio native shell", () => {
       await expect(page.getByTestId("web-studio-native-shell")).toBeVisible();
       expect(renderErrors).toEqual([]);
     } finally {
-      await page.request.post(`${adminBaseURL}/api/auth/signout`);
+      await page.request.post(`${adminBaseURL}/api/auth/signout`, {
+        headers: { Origin: new URL(adminBaseURL).origin },
+      });
     }
   });
 
@@ -190,6 +192,7 @@ test.describe("@cms Web Studio native shell", () => {
       try {
         const signedOut = await page.request.post(
           `${adminBaseURL}/api/auth/signout`,
+          { headers: { Origin: new URL(adminBaseURL).origin } },
         );
         expect(signedOut.ok()).toBe(true);
       } catch (error) {
