@@ -182,7 +182,11 @@ describe("AL-2674 manifest: the committed file", () => {
       );
       const want = {
         type: c.type,
-        nullable: c.nullable,
+        // D-18: WP3 made the assignment's tenant mandatory without changing any field-policy flag.
+        nullable:
+          c.recordType === "missionaries" && c.name === "tenant_id"
+            ? false
+            : c.nullable,
         category: c.category,
         semantic_category: c.semantic_category,
         processor_identifier: c.processor_identifier,
