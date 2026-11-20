@@ -107,6 +107,13 @@ const CI_BASES = [
     bytes: 47190,
     sha256: "74852f931758754843fbd50e41d432fbd40375f06f002c99f3524417f2b8782e",
   },
+  // D-18: WP2H documents the proof dependencies, including its Vitest config and resolver plugins.
+  // This pin accepts only the reviewed file bytes, as before.
+  {
+    ref: "AL-2675 WP2H PostgREST proof paths",
+    bytes: 47791,
+    sha256: "bac3dc897167173b05ea29aca95ac25f4bd64f675f22780c71aeba1821b6a5b6",
+  },
 ] as const;
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */

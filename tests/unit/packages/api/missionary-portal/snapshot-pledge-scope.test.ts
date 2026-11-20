@@ -14,6 +14,18 @@ function fakeDatabase(
   afterRead?: (table: string, rows: Row[]) => void,
 ) {
   return {
+    rpc(name: string, args: { p_tenant_id: string; p_profile_id: string }) {
+      if (name === "missionary_own_record")
+        return this.from("missionaries")
+          .eq("tenant_id", args.p_tenant_id)
+          .eq("profile_id", args.p_profile_id);
+      if (name === "missionary_owned_tasks")
+        return this.from("missionary_tasks").eq(
+          "missionary_id",
+          args.p_profile_id,
+        );
+      throw Error(`Unexpected RPC ${name}`);
+    },
     from(table: string) {
       const filters: Array<(row: Row) => boolean> = [];
       const orders: Array<{ column: string; ascending: boolean }> = [];
@@ -144,6 +156,7 @@ describe("missionary portal committed support", () => {
 
     const snapshot = await getMissionaryPortalSnapshot({
       supabaseAdmin: supabase as never,
+      assignmentId: "assignment-1",
       profileId: PROFILE,
       tenantId: TENANT,
     });
@@ -175,6 +188,7 @@ describe("missionary portal committed support", () => {
 
     const snapshot = await getMissionaryPortalSnapshot({
       supabaseAdmin: supabase as never,
+      assignmentId: "assignment-1",
       profileId: PROFILE,
       tenantId: TENANT,
     });
@@ -203,6 +217,7 @@ describe("missionary portal committed support", () => {
     });
     const snapshot = await getMissionaryPortalSnapshot({
       supabaseAdmin: supabase as never,
+      assignmentId: "assignment-1",
       profileId: PROFILE,
       tenantId: TENANT,
     });
@@ -232,6 +247,7 @@ describe("missionary portal committed support", () => {
 
     const snapshot = await getMissionaryPortalSnapshot({
       supabaseAdmin: supabase as never,
+      assignmentId: "assignment-1",
       profileId: PROFILE,
       tenantId: TENANT,
     });

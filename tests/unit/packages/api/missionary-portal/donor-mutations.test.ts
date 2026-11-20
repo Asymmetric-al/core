@@ -24,13 +24,6 @@ function createSelectQuery<T>(result: QueryResult<T>) {
   return query;
 }
 
-function createInsertQuery<T>(result: QueryResult<T>) {
-  const query = {
-    insert: vi.fn(() => Promise.resolve(result)),
-  };
-  return query;
-}
-
 function createUpdateQuery<T>(result: QueryResult<T>) {
   const query = {
     update: vi.fn(() => query),
@@ -76,17 +69,11 @@ describe("missionary donor mutations", () => {
       data: { id: "donor-1" },
       error: null,
     });
-    const insertQuery = createInsertQuery({ data: null, error: null });
-    const supabase = {
-      from: vi.fn((table: string) => {
-        if (table === "donors") return accessQuery;
-        if (table === "donor_activities") return insertQuery;
-        throw new Error(`Unexpected table ${table}`);
-      }),
-    };
+    const supabase = { rpc: vi.fn(() => accessQuery) };
 
     await recordMissionaryDonorActivity({
       supabaseAdmin: supabase as never,
+      assignmentId: "assignment-1",
       donorId: "donor-1",
       profileId: "missionary-profile-1",
       tenantId: "tenant-1",
@@ -95,20 +82,15 @@ describe("missionary donor mutations", () => {
       now: new Date("2026-05-21T12:00:00.000Z"),
     });
 
-    expect(supabase.from).toHaveBeenNthCalledWith(1, "donors");
-    expect(accessQuery.eq).toHaveBeenCalledWith("id", "donor-1");
-    expect(accessQuery.eq).toHaveBeenCalledWith("tenant_id", "tenant-1");
-    expect(accessQuery.eq).toHaveBeenCalledWith(
-      "missionary_id",
-      "missionary-profile-1",
-    );
-    expect(supabase.from).toHaveBeenNthCalledWith(2, "donor_activities");
-    expect(insertQuery.insert).toHaveBeenCalledWith({
-      donor_id: "donor-1",
-      type: "call",
-      title: "Phone Call",
-      description: "Left voicemail",
-      date: "2026-05-21T12:00:00.000Z",
+    expect(supabase.rpc).toHaveBeenCalledWith("missionary_activity_create", {
+      p_tenant_id: "tenant-1",
+      p_profile_id: "missionary-profile-1",
+      p_assignment_id: "assignment-1",
+      p_donor_id: "donor-1",
+      p_type: "call",
+      p_title: "Phone Call",
+      p_note: "Left voicemail",
+      p_date: "2026-05-21T12:00:00.000Z",
     });
   });
 
