@@ -31,6 +31,19 @@ it.each([
 describe.each([admin, donor, missionary])(
   "mutation admission through each product proxy",
   (proxy) => {
+    it("admits a zero-length POST stream but not an untyped payload", async () => {
+      const write = (length: string, body: Uint8Array) =>
+        new NextRequest(`${origin}/api/upload/image`, {
+          method: "POST",
+          headers: { origin, "content-length": length },
+          body: new Blob([new Uint8Array(body)]),
+        });
+      const empty = write("0", new Uint8Array());
+      expect(empty.body).not.toBeNull();
+      expect((await proxy(empty)).headers.get("x-middleware-next")).toBe("1");
+      expect((await proxy(write("1", Uint8Array.of(1)))).status).toBe(415);
+    });
+
     it("uses the browser's request authority rather than Next's bind address", async () => {
       const target = "http://127.0.0.1:3030";
       const write = (source: string) =>

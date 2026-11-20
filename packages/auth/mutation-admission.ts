@@ -70,11 +70,11 @@ export function admitApiMutation(
     ?.split(";", 1)[0]
     ?.trim()
     .toLowerCase();
+  const length = request.headers.get("content-length");
   if (
-    !contentType &&
-    request.body == null &&
+    contentType === undefined &&
     !request.headers.has("transfer-encoding") &&
-    [null, "0"].includes(request.headers.get("content-length"))
+    (length === "0" || (length === null && request.body === null))
   )
     return null;
   if (contentType === "application/json") return null;
