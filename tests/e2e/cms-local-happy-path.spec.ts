@@ -45,19 +45,14 @@ async function expectNoPayloadFailure(page: Page) {
 }
 
 async function signInAsLocalDemoAdmin(page: Page, next = "/web-studio") {
-  const availability = await page.request.get(
-    `${adminBaseURL}/api/auth/demo-account`,
-  );
-  expect(availability.ok()).toBe(true);
-
-  const payload = (await availability.json()) as {
-    availableRoles?: Record<string, boolean>;
-    roles?: Record<string, boolean>;
-  };
-  expect(payload.availableRoles?.admin ?? payload.roles?.admin).toBe(true);
-
+  const email = process.env.DEMO_ADMIN_EMAIL;
+  const password = process.env.DEMO_PASSWORD;
+  if (!email || !password)
+    throw new Error("Missing local CMS seed credentials");
   await page.goto(`${adminBaseURL}/login?next=${encodeURIComponent(next)}`);
-  await page.getByRole("button", { name: "Demo Access" }).click();
+  await page.getByRole("textbox", { name: "Email" }).fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.waitForURL(new RegExp(next.replace(/\//g, "\\/")));
   await expect(
     page.getByTestId("web-studio-native-shell").filter({ visible: true }),
