@@ -30,11 +30,19 @@ async function load() {
   return import("../../../../packages/database/document-scope");
 }
 
-/** The address the browser loaded this document at (the navigation entry). */
-function documentLoadedAt(pathname: string) {
+/**
+ * The address the browser loaded this document at (the navigation entry),
+ * and, when given, how it loaded it (the entry's type).
+ */
+function documentLoadedAt(pathname: string, how?: NavigationTimingType) {
   vi.spyOn(performance, "getEntriesByType").mockImplementation((type) =>
     type === "navigation"
-      ? ([{ name: `http://localhost:3005${pathname}` }] as PerformanceEntryList)
+      ? ([
+          {
+            name: `http://localhost:3005${pathname}`,
+            ...(how ? { type: how } : {}),
+          },
+        ] as PerformanceEntryList)
       : [],
   );
 }
@@ -231,6 +239,46 @@ describe("DocumentScopeProvider's segment", () => {
       expect(screen.queryByText("studio page")).toBeNull();
       expect(reloadDocument).toHaveBeenCalledTimes(1);
       expect(isDocumentScopeFixed()).toBe(false);
+    });
+
+    // Web Studio's suite on a production build, after the develop merge: a
+    // person chose one organization, left the reloaded page for the chooser
+    // before it hydrated (so it never rendered in its scope and never freed
+    // the address), and chose the other within the reload limit's window.
+    // The page stayed on "This page could not load again." The second
+    // choice is a new crossing, made in a document the person navigated to.
+    it("reloads again when the person chooses again before the reloaded page hydrated", async () => {
+      const chooser = await load();
+      documentLoadedAt("/web-studio/organization", "navigate");
+      at("/web-studio");
+      render(
+        <chooser.DocumentScopeProvider scope={studioScope} segment={STUDIO}>
+          <p>studio page</p>
+        </chooser.DocumentScopeProvider>,
+      );
+      expect(reloadDocument).toHaveBeenCalledTimes(1);
+      cleanup();
+
+      // The reload loads /web-studio, and the person leaves it before any of
+      // its code runs: nothing of it renders here. The chooser again, a new
+      // document, and the other organization's page landed on softly.
+      const again = await load();
+      documentLoadedAt("/web-studio/organization", "navigate");
+      at("/web-studio");
+      render(
+        <again.DocumentScopeProvider
+          scope={{ ...studioScope, tenantId: PORTAL.tenantId }}
+          segment={STUDIO}
+        >
+          <p>studio page</p>
+        </again.DocumentScopeProvider>,
+      );
+
+      expect(screen.queryByText("studio page")).toBeNull();
+      expect(reloadDocument).toHaveBeenCalledTimes(2);
+      expect(screen.getByRole("status").textContent).toBe(
+        "Loading this page again…",
+      );
     });
 
     it("is the same segment as another provider with its name, whatever object carries it", async () => {
