@@ -91,7 +91,7 @@ async function findPayloadDoc<T extends DocWithId>(
   params.set(`where[${field}][equals]`, value);
 
   const response = await request.get(
-    `${adminBaseURL}/api/${collection}?${params.toString()}`,
+    `${adminBaseURL}/web-studio/api/${collection}?${params.toString()}`,
   );
   expect(response.ok()).toBe(true);
 
@@ -101,6 +101,66 @@ async function findPayloadDoc<T extends DocWithId>(
 }
 
 test.describe("@cms-local strict local CMS happy path", () => {
+  test("picker lookups load template and uploaded media options on a seeded page", async ({
+    page,
+  }) => {
+    await signInAsLocalDemoAdmin(page, "/web-studio/collections/pages");
+    const doc = await findPayloadDoc<DocWithId>(
+      page.request,
+      "pages",
+      "slug",
+      "local-cms-home",
+    );
+    await page.goto(`${adminBaseURL}/web-studio/collections/pages/${doc.id}`);
+    for (const [field, collection, search] of [
+      ["#field-template", "page-templates", "Project"],
+      ["#field-layout__0__backgroundImage", "media", "Local"],
+    ] as const) {
+      const combobox = page.locator(field).getByRole("combobox");
+      if (collection === "media" && !(await combobox.isVisible())) {
+        const toggle = page
+          .locator('[id$="layout-row-0"] button[aria-expanded="false"]')
+          .first();
+        if (await toggle.isVisible()) await toggle.click();
+      }
+      await combobox.click();
+      const result = page.waitForResponse((response) => {
+        const request = response.request();
+        return (
+          new URL(response.url()).pathname ===
+            `/web-studio/api/${collection}` &&
+          request.method() === "POST" &&
+          request.headers()["x-payload-http-method-override"] === "GET" &&
+          Boolean(request.postData()?.includes(search))
+        );
+      });
+      await combobox.fill(search);
+      const response = await result;
+      expect(response.status()).toBe(200);
+      expect((await response.json()).docs).toBeInstanceOf(Array);
+      await combobox.press("Escape");
+    }
+  });
+
+  test("the signed-in Reports screen downloads its same-origin CSV", async ({
+    page,
+  }) => {
+    await signInAsLocalDemoAdmin(page);
+    await page.goto(`${adminBaseURL}/reports`);
+    const [response, download] = await Promise.all([
+      page.waitForResponse(
+        (result) =>
+          new URL(result.url()).pathname === "/api/admin/crm/reports/export",
+      ),
+      page.waitForEvent("download"),
+      page.getByRole("button", { name: "Export CSV" }).click(),
+    ]);
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toContain("text/csv");
+    expect(await download.failure()).toBeNull();
+    expect(download.suggestedFilename()).toMatch(/\.csv$/);
+  });
+
   test("redirects unauthenticated Web Studio users to Mission Control login", async ({
     page,
   }) => {
