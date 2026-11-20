@@ -1,0 +1,439 @@
+/**
+ * The semantic real-stack step check (#2706) must be at least as hard to get
+ * past as the exact `run:` strings it replaced: a required real-database step
+ * cannot be skipped, made non-blocking, or made to pass while its tests fail.
+ */
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
+
+import ts from "typescript";
+import { describe, expect, it } from "vitest";
+
+import {
+  expectRealstackStep,
+  migrateJob,
+  migrateSteps,
+  realstackStepProblems,
+  stepTestPaths,
+} from "./realstack-step";
+
+import type { WorkflowStep } from "../../helpers/workflow-yaml";
+
+const A = "tests/unit/acceptance";
+const F2250 = `${A}/issue-2250/tenant-guard.realstack.acceptance.test.ts`;
+const F2260 = `${A}/issue-2260/donor-feed-preferences.realstack.acceptance.test.ts`;
+const F2364 = `${A}/issue-2364/missionaries-reads.realstack.acceptance.test.ts`;
+const STEP = "Verify tenant isolation (real stack)";
+const ENV = { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" };
+const RUN = `bun x vitest run ${F2250} ${F2364}`;
+
+/** A `migrate` job's steps with the real-stack step written as `run`. */
+const stepsWith = (
+  run: string,
+  extra: Partial<WorkflowStep> = {},
+): WorkflowStep[] => [
+  { name: "Reject fork pull requests", run: "exit 1" },
+  {
+    name: "Apply migrations",
+    run: "node scripts/verify/supabase-migrations.mjs",
+  },
+  { name: STEP, env: { ...ENV }, run, ...extra },
+];
+
+const problems = (run: string, extra?: Partial<WorkflowStep>) =>
+  realstackStepProblems(stepsWith(run, extra), STEP, [F2364], ENV);
+
+describe("realstackStepProblems (fixtures)", () => {
+  it("a sound step has no problems, including a block scalar's newline", () => {
+    expect(problems(RUN)).toEqual([]);
+    expect(problems(`${RUN}\n`)).toEqual([]);
+  });
+
+  describe("kept from #2706", () => {
+    it.each<[string, () => string[]]>([
+      [
+        "the file is not on the run line",
+        () => problems(`bun x vitest run ${F2250}`),
+      ],
+      ["continue-on-error", () => problems(RUN, { "continue-on-error": true })],
+      [
+        "continue-on-error: false still counts",
+        () => problems(RUN, { "continue-on-error": false }),
+      ],
+      ["an if", () => problems(RUN, { if: "github.event_name == 'push'" })],
+      ["a different command", () => problems(`bunx vitest run ${F2364}`)],
+      [
+        "a wrong env value",
+        () =>
+          problems(RUN, {
+            env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "postgres://elsewhere" },
+          }),
+      ],
+      ["a missing env", () => problems(RUN, { env: {} })],
+    ])("rejects %s", (_label, run) => {
+      expect(run()).not.toEqual([]);
+    });
+
+    it("rejects a step before Apply migrations", () => {
+      const [fork, apply, step] = stepsWith(RUN);
+      expect(
+        realstackStepProblems([fork!, step!, apply!], STEP, [F2364], ENV),
+      ).toEqual([expect.stringMatching(/before Apply migrations/)]);
+    });
+
+    it("rejects a duplicated or missing step", () => {
+      const steps = stepsWith(RUN);
+      expect(
+        realstackStepProblems([...steps, steps[2]!], STEP, [F2364]),
+      ).toEqual([expect.stringMatching(/exactly one/)]);
+      expect(realstackStepProblems(steps, "Verify nothing", [F2364])).toEqual([
+        expect.stringMatching(/exactly one/),
+      ]);
+    });
+  });
+
+  describe("the run line holds only the command and plain test paths", () => {
+    it.each([
+      `${RUN} || true`,
+      `${RUN} || true # flaky`,
+      `(${RUN} || true)`,
+      `${RUN} || echo failed`,
+      `${RUN} || /bin/true`,
+      `${RUN}; true`,
+      `${RUN} || true; echo ok`,
+      `set +e\n${RUN}`,
+      `${RUN}\nexit 0`,
+      `${RUN} && echo ok`,
+      `${RUN} 2>&1 | tee realstack.log`,
+      `${RUN} --passWithNoTests`,
+      `${RUN} $EXTRA_FILES`,
+      `${RUN} "${A}/issue-2406/profiles-storage.realstack.acceptance.test.ts"`,
+    ])("rejects %j", (run) => {
+      expect(problems(run)).toContainEqual(
+        expect.stringMatching(/not a plain test path/),
+      );
+    });
+
+    it("rejects a test path that does not exist (vitest would skip it)", () => {
+      const missing = `${A}/issue-9999/missing.realstack.acceptance.test.ts`;
+      expect(problems(`${RUN} ${missing}`)).toEqual([
+        expect.stringMatching(/issue-9999.*does not exist/),
+      ]);
+    });
+
+    it("rejects a step that names no test file", () => {
+      expect(
+        realstackStepProblems(stepsWith("bun x vitest run"), STEP, []),
+      ).toEqual([expect.stringMatching(/names no test file/)]);
+    });
+
+    // #2716 review: Bash runs each line as its own command, so a path on a
+    // later line is not a vitest argument.
+    it.each([`bun x vitest run\n${F2364}`, `${RUN}\n${F2250}`])(
+      "rejects a run spread over lines: %j",
+      (run) => {
+        expect(problems(run)).toContainEqual(
+          expect.stringMatching(/run spans several lines/),
+        );
+      },
+    );
+  });
+
+  // #2716 review: keys other than name, env and run change how the run line
+  // executes (its shell, its directory) without changing the line itself.
+  describe("the step carries nothing but name, env and run", () => {
+    it.each<[string, Partial<WorkflowStep>, RegExp]>([
+      ["a shell template", { shell: "bash {0} || true" }, /sets 'shell'/],
+      [
+        "a working directory",
+        { "working-directory": "apps/admin" },
+        /sets 'working-directory'/,
+      ],
+      ["a timeout", { "timeout-minutes": 1 }, /sets 'timeout-minutes'/],
+    ])("rejects %s", (_label, extra, message) => {
+      expect(problems(RUN, extra)).toEqual([expect.stringMatching(message)]);
+    });
+
+    it("rejects a step-level DATABASE_URL, which redirects the job's migrated database", () => {
+      expect(
+        problems(RUN, {
+          env: { ...ENV, DATABASE_URL: "postgres://elsewhere" },
+        }),
+      ).toEqual([expect.stringMatching(/sets DATABASE_URL/)]);
+    });
+
+    it("allows DATABASE_URL when the caller expects that exact value", () => {
+      const env = { DATABASE_URL: "${{ env.DATABASE_URL }}" };
+      expect(
+        realstackStepProblems(stepsWith(RUN, { env }), STEP, [F2364], env),
+      ).toEqual([]);
+    });
+  });
+
+  // #2714 runs its program's suites with one Bash glob. Bash expands it to
+  // the matching files before vitest starts, so each match is a test path.
+  describe("a Bash glob on the run line", () => {
+    const GLOB = `${A}/issue-22[56]0/*.realstack.acceptance.test.ts`;
+    const globProblems = (run: string, files: readonly string[]) =>
+      realstackStepProblems(stepsWith(run), STEP, files, ENV);
+
+    it("counts each file the glob matches as run", () => {
+      expect(globProblems(`bun x vitest run ${GLOB}`, [F2250, F2260])).toEqual(
+        [],
+      );
+      expect(
+        stepTestPaths({ run: `bun x vitest run ${GLOB} ${F2364}` }),
+      ).toEqual([F2250, F2260, F2364]);
+    });
+
+    it("rejects a glob that does not match an expected file", () => {
+      expect(globProblems(`bun x vitest run ${GLOB}`, [F2364])).toEqual([
+        expect.stringMatching(/does not run .*issue-2364/),
+      ]);
+    });
+
+    it("rejects a glob that matches no file (Bash would pass it on as text)", () => {
+      expect(
+        globProblems(
+          `bun x vitest run ${A}/issue-99[0-9]9/*.realstack.acceptance.test.ts`,
+          [],
+        ),
+      ).toEqual([expect.stringMatching(/matches no file/)]);
+    });
+
+    it("rejects a glob that matches a file that is not a test", () => {
+      expect(
+        globProblems(`bun x vitest run ${A}/shared/realstack-step.*`, []),
+      ).toEqual([expect.stringMatching(/realstack-step\.ts, not a test path/)]);
+    });
+
+    it.each([
+      `bun x vitest run ${A}/issue-{2250,2260}/*.realstack.acceptance.test.ts`,
+      `bun x vitest run ${A}/issue-22[56]0/*.realstack.acceptance.test.ts || true`,
+      `bun x vitest run ${A}/issue-22[5/*.realstack.acceptance.test.ts`,
+      `bun x vitest run "${GLOB}"`,
+    ])("rejects %j", (run) => {
+      expect(globProblems(run, [])).toContainEqual(
+        expect.stringMatching(/not a plain test path/),
+      );
+    });
+
+    it("finds no test paths in a step that does not run vitest", () => {
+      expect(stepTestPaths({ run: `node scripts/x.mjs ${F2250}` })).toEqual([]);
+    });
+  });
+});
+
+/**
+ * Every real-database test file, by name. Each skips without its database
+ * URL, so dropping one from CI would pass silently.
+ */
+const REAL_DATABASE_FILES = [
+  ...[
+    "issue-2067/reader-role.integration",
+    "issue-2250/tenant-guard.realstack",
+    "issue-2251/rls-posture.realstack",
+    "issue-2252/donor-spine-fk.realstack",
+    "issue-2253/rls-catalog-gate.realstack",
+    "issue-2254/identity.realstack",
+    "issue-2255/claim-tables.realstack",
+    "issue-2256/person-anchor.realstack",
+    "issue-2258/current-user-assignments.realstack",
+    "issue-2260/donor-feed-preferences.realstack",
+    "issue-2269/donations-embed.realstack",
+    "issue-2270/authz-execute-grants.realstack",
+    "issue-2312/public-reads.realstack",
+    "issue-2364/missionaries-reads.realstack",
+    "issue-2402/crm-table-preferences.realstack",
+    "issue-2406/profiles-storage.realstack",
+    "issue-2407/editor-images.realstack",
+    // #2714 (AL-2671 stage 1): run by the program step's glob.
+    "issue-2672/role-change-command.realstack",
+    "issue-2672/staged-gift-allocations.realstack",
+    "issue-2674/catalog-gate.realstack",
+    "issue-2674/command-lane.realstack",
+    "issue-2674/privileges-manifest.realstack",
+    "issue-2675/capability-parity.realstack",
+    "issue-2675/eve-actor-membership.realstack",
+    "issue-2675/membership-core.realstack",
+    "issue-2675/missionary-handler-authority.realstack",
+  ].map((f) => `${A}/${f}.acceptance.test.ts`),
+  // #2714: the release job's database suites and Payload's CMS roles.
+  "tests/unit/cms/cms-database-roles.realstack.test.ts",
+  "tests/unit/scripts/release/release-database.realstack.test.ts",
+  "tests/unit/scripts/release/schema-fingerprint.realstack.test.ts",
+];
+
+/** A real-database test by its name: `*.realstack.*` or `*.integration.acceptance.*`. */
+const REAL_DATABASE_NAME =
+  /\.(?:realstack(?:\.acceptance)?|integration\.acceptance)\.test\.tsx?$/;
+
+/** Real-database test files on disk, so a new one cannot go unwired. */
+const discovered = (): string[] =>
+  readdirSync("tests/unit", { recursive: true, encoding: "utf8" })
+    .map((f) => `tests/unit/${f.split(path.sep).join("/")}`)
+    .filter((f) => REAL_DATABASE_NAME.test(f))
+    .sort();
+
+/** Read relative test modules, including harness re-exports, once per suite. */
+const withLocalImports = (
+  file: string,
+  seen = new Set<string>(),
+): { file: string; text: string }[] => {
+  const normalized = path.normalize(file);
+  if (seen.has(normalized)) return [];
+  seen.add(normalized);
+  const text = readFileSync(file, "utf8");
+  const local = [...text.matchAll(/\bfrom\s+["'](\.\.?\/[^"']+)["']/g)]
+    .map((match) => path.join(path.dirname(file), `${match[1]!}.ts`))
+    .filter(
+      (target) =>
+        target.startsWith(`tests${path.sep}unit${path.sep}`) &&
+        existsSync(target),
+    );
+  return [
+    { file, text },
+    ...local.flatMap((target) => withLocalImports(target, seen)),
+  ];
+};
+
+/** The database URL inputs read by one suite or helper module. */
+const readDatabaseUrlVariables = (
+  text: string,
+  file = "fixture.ts",
+): string[] => {
+  const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest);
+  const variables: string[] = [];
+
+  const visit = (node: ts.Node): void => {
+    ts.forEachChild(node, visit);
+    if (
+      !ts.isPropertyAccessExpression(node) &&
+      !ts.isElementAccessExpression(node)
+    ) {
+      return;
+    }
+
+    const env = node.expression;
+    if (
+      !ts.isPropertyAccessExpression(env) ||
+      env.name.text !== "env" ||
+      !ts.isIdentifier(env.expression) ||
+      env.expression.text !== "process"
+    ) {
+      return;
+    }
+
+    let name: string | undefined;
+    if (ts.isPropertyAccessExpression(node)) name = node.name.text;
+    else if (ts.isStringLiteralLike(node.argumentExpression)) {
+      name = node.argumentExpression.text;
+    }
+    if (name && /^[A-Z_]*DATABASE_URL$/.test(name)) variables.push(name);
+  };
+
+  visit(source);
+  return variables;
+};
+
+const databaseUrlVariables = (file: string): string[] => [
+  ...new Set(
+    withLocalImports(file).flatMap(({ file, text }) =>
+      readDatabaseUrlVariables(text, file),
+    ),
+  ),
+];
+
+describe("database URL inputs", () => {
+  it.each([
+    "process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL",
+    'process.env["TENANT_GUARD_IT_ADMIN_DATABASE_URL"]',
+    "process.env['TENANT_GUARD_IT_ADMIN_DATABASE_URL']",
+  ])("recognizes %s", (source) => {
+    expect(readDatabaseUrlVariables(source)).toEqual([
+      "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
+    ]);
+  });
+
+  it.each([
+    "// Do not use process.env.LEGACY_DATABASE_URL here.",
+    '/* Avoid process.env["LEGACY_DATABASE_URL"]. */',
+    'const example = "process.env.LEGACY_DATABASE_URL";',
+    `const example = 'process.env["LEGACY_DATABASE_URL"]';`,
+    "const example = `process.env.LEGACY_DATABASE_URL`;",
+    "process.env[DYNAMIC_DATABASE_URL];",
+    "other.process.env.LEGACY_DATABASE_URL;",
+  ])("ignores %s", (source) => {
+    expect(readDatabaseUrlVariables(source)).toEqual([]);
+  });
+
+  it("recognizes a read inside a template substitution", () => {
+    expect(readDatabaseUrlVariables("`${process.env.DATABASE_URL}`")).toEqual([
+      "DATABASE_URL",
+    ]);
+  });
+
+  it("ignores unrelated variables and longer names", () => {
+    expect(
+      readDatabaseUrlVariables(`
+        process.env.API_URL;
+        process.env.DATABASE_URL_BACKUP;
+        process.env["DATABASE_URL_BACKUP"];
+      `),
+    ).toEqual([]);
+  });
+});
+
+describe("every real-database test file runs in a blocking migrate step (#2706)", () => {
+  it("the named files are exactly the real-database files on disk", () => {
+    expect(discovered()).toEqual([...REAL_DATABASE_FILES].sort());
+  });
+
+  it.each(REAL_DATABASE_FILES)("%s", (file) => {
+    const steps = migrateSteps();
+    const running = steps.filter((s) => stepTestPaths(s).includes(file));
+    expect(
+      running.map((s) => s.name),
+      "migrate steps that run it",
+    ).toHaveLength(1);
+    const variables = databaseUrlVariables(file);
+    expect(variables, "the database URL variables it reads").not.toHaveLength(
+      0,
+    );
+    // DATABASE_URL comes from the job. Each other input comes from the step
+    // and must point at the same migrated database.
+    const env = Object.fromEntries(
+      variables
+        .filter((variable) => variable !== "DATABASE_URL")
+        .map((variable) => [variable, "${{ env.DATABASE_URL }}"]),
+    );
+    expect(
+      realstackStepProblems(steps, running[0]!.name!, [file], env),
+    ).toEqual([]);
+    const jobEnv = migrateJob()?.env as Record<string, unknown> | undefined;
+    expect(jobEnv?.DATABASE_URL, "migrate job sets DATABASE_URL").toEqual(
+      expect.stringMatching(/\S/),
+    );
+  });
+});
+
+describe("#2714's real-stack steps (AL-2671 stage 1)", () => {
+  const MIGRATED = "${{ env.DATABASE_URL }}";
+  it("the program step runs every issue-2670..2689 real-stack suite", () => {
+    expectRealstackStep(
+      "Verify AL-2671 program suites, issues 2670-2689 (real stack)",
+      REAL_DATABASE_FILES.filter((f) => /\/issue-26[78]\d\//.test(f)),
+      { TENANT_GUARD_IT_ADMIN_DATABASE_URL: MIGRATED },
+    );
+  });
+  it("the release step runs the release database and CMS role suites", () => {
+    expectRealstackStep(
+      "Verify release job database steps, schema fingerprint and CMS roles (real stack)",
+      REAL_DATABASE_FILES.filter((f) => !f.startsWith(`${A}/`)),
+      {
+        RELEASE_IT_ADMIN_DATABASE_URL: MIGRATED,
+        TENANT_GUARD_IT_ADMIN_DATABASE_URL: MIGRATED,
+      },
+    );
+  });
+});
