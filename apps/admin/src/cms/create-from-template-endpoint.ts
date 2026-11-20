@@ -556,6 +556,7 @@ async function createProjectPageFromTemplate(
   const fundQuery = supabase
     .from("funds")
     .select("id, name, description, missionary_id")
+    .is("system_purpose", null)
     .eq("id", parsed.fundId);
 
   const scopedFundQuery = fundQuery.eq("tenant_id", publicTenantId);

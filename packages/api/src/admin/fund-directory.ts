@@ -38,6 +38,7 @@ export const GET = withOperation(
     let query = supabaseAdmin
       .from("funds")
       .select("id, name, description, missionary_id, tenant_id")
+      .is("system_purpose", null)
       .order("name", { ascending: true })
       .range(offset, offset + limit - 1);
 

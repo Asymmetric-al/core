@@ -70,8 +70,7 @@ import {
  *   organization and for a signed-in person outside it. The workspace's
  *   comments dialog calls it, but this case calls it directly.
  *
- * Not exercised here, because nothing calls them: the field-policy reader
- * (`loadFieldPolicies`) and the org-settings route.
+ * The field-policy reader (`loadFieldPolicies`) has no caller to exercise here.
  *
  * And a stale tab: a document whose requests carry neither header.
  *

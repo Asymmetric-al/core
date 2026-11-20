@@ -166,16 +166,6 @@ const handlers: Array<[string, Call]> = [
     },
   ],
   [
-    "the organization's settings",
-    async (headers) => {
-      const { GET } =
-        await import("../../../../packages/api/src/admin/org-settings");
-      return GET(
-        new Request("http://localhost/api/admin/org-settings", { headers }),
-      );
-    },
-  ],
-  [
     "a missionary's metrics, with no service-key client",
     async (headers) => {
       const { GET } =

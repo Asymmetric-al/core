@@ -11,7 +11,7 @@ type Call = [method: string, ...args: unknown[]];
 function recordingClient(rows: unknown[] = []) {
   const calls: Call[] = [];
   const query: Record<string, unknown> = {};
-  for (const method of ["select", "order", "range", "eq", "ilike"]) {
+  for (const method of ["select", "order", "range", "eq", "ilike", "is"]) {
     query[method] = (...args: unknown[]) => {
       calls.push([method, ...args]);
       return query;
@@ -53,6 +53,7 @@ describe("admin fund directory", () => {
     );
 
     expect(response.status).toBe(200);
+    expect(calls).toContainEqual(["is", "system_purpose", null]);
     const tenantFilters = calls.filter(
       ([method, column]) => method === "eq" && column === "tenant_id",
     );
