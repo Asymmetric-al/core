@@ -225,6 +225,8 @@ export function run(argv: string[], { backendPath = bin("tsrs-lint") } = {}) {
       threads.argument,
     ];
     if (typed) args.push("--type-aware");
+    // --fix is a manual command for a trusted checkout. Its scope checks guard against mistakes, not a
+    // hostile tree: a path swapped for a link after the check still reaches Oxlint. Hooks and CI never pass --fix.
     if (fix) {
       checkFixScope(paths.length ? paths : ["."]);
       args.push("--fix");
