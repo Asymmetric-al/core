@@ -18,6 +18,18 @@ const step = (marker: string) => steps.find((s) => s.includes(marker));
 const at = (marker: string) => workflow.indexOf(marker);
 
 describe("Local Supabase Stack workflow: the replay matches the platform's image", () => {
+  it("requires the governed projection round trip after fingerprinting", () => {
+    const command =
+      "bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts";
+    const run = step(command);
+    expect(run).toContain('FIELD_POLICY_IT_REQUIRED: "1"');
+    expect(run).toContain(
+      "FIELD_POLICY_IT_SUPABASE_URL: http://127.0.0.1:54321",
+    );
+    expect(run).toContain("export FIELD_POLICY_IT_ANON_KEY");
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    expect(at(command)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
+  });
   it("replays the chain on plain Postgres with the hosted defaults, as the release job does", () => {
     expect(workflow).toMatch(
       /services:\n\s+postgres:\n\s+image: public\.ecr\.aws\/docker\/library\/postgres:17\.11-alpine@sha256:[0-9a-f]{64}/,
@@ -58,9 +70,33 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     const compare = at("schema-fingerprint.mjs compare");
     const roundTrips = at("name: Run the auth email round trips");
     expect(start).toBeGreaterThan(0);
-    expect(start).toBeLessThan(replay);
+    const client = at("run: bash scripts/github/install-postgresql-client.sh");
+    expect(start).toBeLessThan(client);
+    expect(client).toBeLessThan(replay);
     expect(replay).toBeLessThan(compare);
     expect(compare).toBeLessThan(roundTrips);
+    expect(roundTrips).toBeLessThan(
+      at("run: node scripts/e2e/run-operator-mfa.mjs"),
+    );
+  });
+
+  it("runs both proofs independently once their own prerequisites pass", () => {
+    expect(step("name: Start the local Supabase stack")).toContain("id: stack");
+    expect(step("name: Install Playwright Chromium")).toContain("id: chromium");
+    expect(step("name: Run the auth email round trips")).toContain(
+      "!cancelled() && steps.stack.outcome == 'success' && steps.chromium.outcome == 'success'",
+    );
+    expect(step("name: Prove the platform operators")).toContain(
+      "!cancelled() && steps.stack.outcome == 'success'",
+    );
+    for (const path of [
+      "packages/api/src/shared/request-session-client.ts",
+      "scripts/lib/psql.mjs",
+      "scripts/release/lib/database-target.mjs",
+      "packages/env/src/database-url.mjs",
+    ]) {
+      expect(workflow).toContain(`      - ${path}\n`);
+    }
   });
 
   it("exercises the missionary handlers against the stack after fingerprinting", () => {

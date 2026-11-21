@@ -2,7 +2,7 @@ import { type AuthenticatedContext } from "@asym/auth/context";
 import { type getAdminClient } from "@asym/database/supabase/admin";
 import { NextResponse } from "next/server";
 
-import { withOperation } from "../../shared/with-operation";
+import { withPlatformOperation } from "../../shared/with-operation";
 import {
   countWorkflowNotifications,
   evaluateWorkflowNotification,
@@ -33,7 +33,7 @@ async function loadOverrides(
  * notification levels. No raw Inngest step logs, secrets, provider
  * internals, signed URLs, stack traces, or cross-tenant details.
  */
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ supabaseAdmin, auth }) => {
     const ctx = auth as AuthenticatedContext;
 

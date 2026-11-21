@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../../src/shared/with-operation", () => ({
-  withOperation: (handler: unknown) => handler,
+  withPlatformOperation: (handler: unknown) => handler,
 }));
 import { GET } from "../../src/admin/missionary-directory";
 

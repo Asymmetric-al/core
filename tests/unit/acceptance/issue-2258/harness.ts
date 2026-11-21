@@ -7,10 +7,8 @@
  * `packages/auth/principal`, where `getAuthContext` can use it; it takes the
  * surface's role class, its rows carry the tenant-administrator flag, and the
  * staff-over-donor default is gone. `tests/unit/auth/membership-rpc-contract.test.ts`
- * leaves the unedited list: the proxies' role check moved to the assignments
- * function, which that test now pins.
+ * checks the proxies' role check against the assignments function.
  */
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 
 export const MIG = "supabase/migrations";
@@ -39,38 +37,8 @@ export const MOD = {
 export const DOC = "docs/guides/architecture/authz-memberships.md";
 export const REALSTACK =
   "tests/unit/acceptance/issue-2258/current-user-assignments.realstack.acceptance.test.ts";
-/**
- * c12 + addendum 1 item 3: tests that stay green AND unedited, pinned by git
- * blob id at develop 88eefbd9 (`git ls-tree 88eefbd9 <path>`).
- */
-export const UNEDITED: Record<string, string> = {
-  "tests/unit/packages/api/auth/get-auth-context-request-propagation.test.ts":
-    "83cc87dcfb0af9840e8bde281a62fc04a357262e",
-  // #2402 27cd6961 adds the REVOKE ALL ON SCHEMA private expectation.
-  "tests/unit/security/authz-definer-execute-grants.test.ts":
-    "596a3626eb8f864bd56cb8baf367b8f8f110e73b",
-  // AL-2674 (plan 5.4, NR-13) adds tenant_guard to the expected EXECUTE
-  // grantees of the two authz membership helpers, and nothing else.
-  "tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts":
-    "d8d167fc3f6a764836d5e7bca8bada29b35be72d",
-  "tests/unit/acceptance/issue-2270/harness.ts":
-    "e9e7201350e5d1f90f85c266f762d450ca3637d5",
-  "tests/unit/acceptance/issue-2270/static.acceptance.test.ts":
-    "dba22b6452fc7f51a6345cef502acb195e622902",
-  /** c2: projection/types.ts is not edited. */
-  "packages/api/src/projection/types.ts":
-    "bb325e269ee9ec18689717f7fbbdeaad9a924998",
-};
-
 export const read = (f: string) =>
   existsSync(f) ? readFileSync(f, "utf8") : "";
-/** git's blob id of a working-tree file (sha1 of "blob <len>\0" + bytes). */
-export const blobId = (f: string) => {
-  const b = readFileSync(f);
-  return createHash("sha1")
-    .update(Buffer.concat([Buffer.from(`blob ${b.length}\0`), b]))
-    .digest("hex");
-};
 /** SQL with comments removed (executable text only). */
 export const code = (sql: string) =>
   sql.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/--[^\n]*/g, " ");

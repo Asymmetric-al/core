@@ -341,6 +341,15 @@ const githubUpstreamGroups = [
   },
 ];
 
+// Upstream loads babysit for any request that mentions a workflow, a loop or
+// orchestration, then requires its SDK for every task. Core keeps it
+// explicit-only in every client (AL-2715).
+const BABYSIT_UPSTREAM_DESCRIPTION =
+  "description: Execute via @babysitter. Use this skill when asked to babysit a task, do anything that is structured process-driven (even a loop) or whenever it is called explicitly. (babysit, babysitter, with a process, orchestrate, orchestrate a run, workflow, loop until, etc.)";
+
+const BABYSIT_CORE_DISCOVERY =
+  "description: Run a task through the Babysitter SDK run loop (@babysitter). Use only when the user explicitly invokes /babysit or explicitly asks to babysit a task with Babysitter.\ndisable-model-invocation: true";
+
 const BABYSIT_UPSTREAM_DEPENDENCY_BLOCK = `Read the SDK version from \`versions.json\` to ensure version compatibility:
 
 \`\`\`bash
@@ -432,6 +441,13 @@ const POST_REFRESH_REPLACEMENTS = [
     relativePath: "SKILL.md",
     search: BABYSIT_UPSTREAM_INSTRUCTIONS_BLOCK,
     replace: BABYSIT_CORE_INSTRUCTIONS_BLOCK,
+    required: true,
+  },
+  {
+    skillName: "babysit",
+    relativePath: "SKILL.md",
+    search: BABYSIT_UPSTREAM_DESCRIPTION,
+    replace: BABYSIT_CORE_DISCOVERY,
     required: true,
   },
   {
@@ -1432,6 +1448,67 @@ const POST_REFRESH_REPLACEMENTS = [
       "out = (\n  tmpl.replace('/* INJECT_CSS */', css)\n      .replace('/* INJECT_JS */', js)\n      .replace('<!-- INJECT_BODY -->', html)\n      .replace('{\"__PR_DIFFS_PLACEHOLDER__\":true}', safe_json)\n)\n\nPath('/tmp/pr-review-{number}.html').write_text(out)",
     replace:
       "out = (\n  tmpl.replace('/* INJECT_CSS */', css)\n      .replace('/* INJECT_JS */', js)\n      .replace('<!-- INJECT_BODY -->', html)\n)\n\n# Swap the sentinel JSON inside the pr-diffs-json script element without\n# depending on its exact formatting (formatters may reflow the placeholder).\nout = re.sub(\n    r'(<script id=\"pr-diffs-json\"[^>]*>).*?(</script>)',\n    lambda match: match.group(1) + safe_json + match.group(2),\n    out,\n    count=1,\n    flags=re.DOTALL,\n)\n\nPath('/tmp/pr-review-{number}.html').write_text(out)",
+    required: true,
+  },
+  // Cursor Team Kit skills name a `main` branch; Core's base branch is
+  // `develop` and the repository has none (docs/ai/rules/general.md, AL-2715).
+  {
+    skillName: "deslop",
+    relativePath: "SKILL.md",
+    search:
+      "Check the diff against main and remove AI-generated slop introduced in the branch.",
+    replace:
+      "Check the diff against the base branch (`develop` in Core) and remove AI-generated slop introduced in the branch.",
+    required: true,
+  },
+  {
+    skillName: "new-branch-and-pr",
+    relativePath: "SKILL.md",
+    search: "2. Create a descriptive branch from the latest main.",
+    replace:
+      "2. Create a descriptive branch from the latest `origin/develop`, named as `docs/ai/rules/general.md` describes.",
+    required: true,
+  },
+  {
+    skillName: "loop-on-ci",
+    relativePath: "SKILL.md",
+    search: "gh pr view --json number,url,headRefName\n",
+    replace: "gh pr view --json number,url,headRefName,baseRefName\n",
+    required: true,
+  },
+  {
+    skillName: "loop-on-ci",
+    relativePath: "SKILL.md",
+    search:
+      "- If the failure is clearly unrelated to the PR and appears fixed on main, merge latest main instead of bloating the PR with unrelated fixes.",
+    replace:
+      "- If the failure comes from the base branch and is already fixed there, fetch and merge the PR's `baseRefName` from its base repository. Core PRs usually target `develop`; a stacked PR can target another branch.",
+    required: true,
+  },
+  {
+    skillName: "review-and-ship",
+    relativePath: "SKILL.md",
+    search: "git fetch origin main\ngit diff origin/main...HEAD",
+    replace: "git fetch origin develop\ngit diff origin/develop...HEAD",
+    required: true,
+  },
+  // run-smoke-tests names `npm run smoketest`, which Core does not have. Use
+  // the root package's smoke scripts instead (AL-2715).
+  {
+    skillName: "run-smoke-tests",
+    relativePath: "SKILL.md",
+    search: "1. Build prerequisites for the target app.",
+    replace:
+      "1. Pick the suite. Playwright starts the app dev servers itself and reuses ones already running, so there is no separate build step.",
+    required: true,
+  },
+  {
+    skillName: "run-smoke-tests",
+    relativePath: "SKILL.md",
+    search:
+      "# Run full smoke suite\nnpm run smoketest\n\n# Run a specific smoke test file\nnpm run smoketest -- path/to/test.spec.ts\n\n# Faster iteration when build artifacts are ready\nnpm run smoketest-no-compile -- path/to/test.spec.ts",
+    replace:
+      "# The required smoke gate (CI's e2e-smoke-gate runs the same script)\nbun run test:e2e:smoke\n\n# One spec, with the CI-safe environment defaults\nbun run test:e2e tests/e2e/donate.spec.ts --project=chromium --workers=1\n\n# The live development hosts (needs local-only secrets; see docs/ai/rules/testing.md)\nbun run test:e2e:development-smoke:donor",
     required: true,
   },
 ];

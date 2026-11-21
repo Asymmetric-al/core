@@ -36,9 +36,14 @@ export function clearUserContext() {
   Sentry.setUser(null);
 }
 
-export function captureError(error: Error, context?: Record<string, unknown>) {
+export function captureError(
+  error: Error,
+  context?: Record<string, unknown>,
+  tags?: Record<string, string>,
+) {
   Sentry.captureException(error, {
     extra: context,
+    tags,
   });
 }
 

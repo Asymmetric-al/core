@@ -32,7 +32,6 @@ Vendored from [p3-stack](https://github.com/uzairansaruzi/p3-stack) (MIT) at com
 - Explicit invocation only: use it when the user invokes `/no-comments` (Claude Code, Cursor, T3 Code) or `$no-comments` (Codex), or when an invoked p3-stack skill routes here. Do not route other work to it.
 - The T3 Code tools named above map to Claude Code, Codex, and Cursor in `docs/ai/skills/p3-mode/references/core-adapter.md`. Read it before you delegate, watch a PR, schedule work, or drive a preview outside T3 Code.
 - Confirm before outward-facing or hard-to-reverse actions such as pushing, merging, deploying, deleting, or posting messages, unless the user authorized that action for this task.
-- Some lint and type suppressions in Core are bound to hash-checked ledgers such as `docs/qa/react-doctor/exceptions.json` and `tooling/shadscan/findings.json`. Check those before deleting a suppression.
 - The Comment Sicko brief lives at `docs/ai/skills/p3-mode/references/agents/comment-sicko.md`.
 
 Edit this canonical copy in `docs/ai/skills/no-comments/`, then run `bun run skills:sync` and `bun run skills:verify`.

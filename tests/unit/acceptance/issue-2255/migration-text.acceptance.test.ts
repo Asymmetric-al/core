@@ -11,8 +11,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
-  AFTER_STEPS,
   CI_STEP,
+  CI_STEP_FILE,
   CLAIMS,
   DOC,
   INVITES,
@@ -23,10 +23,7 @@ import {
   code,
   sqlFile,
 } from "./harness";
-import {
-  loadWorkflowDocument,
-  workflowJobs,
-} from "../../helpers/workflow-yaml";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const DIR = path.dirname(MIGRATION);
 const OWN = path.basename(MIGRATION);
@@ -180,10 +177,26 @@ describe("#2255 forward migration text", () => {
 
   it("no other forward migration creates or alters these tables (redefinition scan, all forward files)", () => {
     const re = new RegExp(`\\b(${TABLES.join("|")})\\b`, "i");
+    // Amended by AL-2675 (WP2b, second release; record D-18): the policy
+    // migration rewrites the two staff policies in place, by ALTER POLICY,
+    // and touches nothing else of these tables. Any other statement there,
+    // and any other migration, still fails.
+    const POLICY_MIGRATION = /^\d{14}_request_tenant_policies\.sql$/;
     const hits = readdirSync(DIR)
       .filter((f) => /^\d{14}_.*\.sql$/.test(f) && f !== OWN)
+      .filter((f) => !POLICY_MIGRATION.test(f))
       .filter((f) => re.test(code(readFileSync(path.join(DIR, f), "utf8"))));
     expect(hits).toEqual([]);
+    const policyMigration = readdirSync(DIR).find((f) =>
+      POLICY_MIGRATION.test(f),
+    );
+    const naming = code(readFileSync(path.join(DIR, policyMigration!), "utf8"))
+      .split("\n")
+      .filter((line) => re.test(line));
+    expect(naming).toEqual([
+      'ALTER POLICY "account_claim_requests_staff_select" ON public.account_claim_requests',
+      'ALTER POLICY "legacy_account_invitations_staff_select" ON public.legacy_account_invitations',
+    ]);
   });
 });
 
@@ -262,18 +275,8 @@ describe("#2255 consumers and docs", () => {
   });
 });
 
-describe("#2255 CI step (Samson's ruling: own migrate step, relative order only)", () => {
-  it("ci-integration.yml migrate has exactly one 'Verify claim tables (real stack)' step, with exactly this env and run, after #2250's and #2270's real-stack steps", () => {
-    const steps =
-      workflowJobs(loadWorkflowDocument(".github/workflows/ci-integration.yml"))
-        .migrate?.steps ?? [];
-    const idx = (n: string) => steps.findIndex((s) => s.name === n);
-    expect(steps.filter((s) => s.name === CI_STEP.name)).toHaveLength(1);
-    const i = idx(CI_STEP.name);
-    expect(steps[i]).toEqual(CI_STEP);
-    for (const name of AFTER_STEPS) {
-      expect(idx(name), `${name} present`).toBeGreaterThanOrEqual(0);
-      expect(i, `after ${name}`).toBeGreaterThan(idx(name));
-    }
+describe("#2255 CI step (Samson's ruling: own migrate step)", () => {
+  it("ci-integration.yml migrate has one blocking 'Verify claim tables (real stack)' step that runs #2255's real-stack file", () => {
+    expectRealstackStep(CI_STEP.name, [CI_STEP_FILE], CI_STEP.env);
   });
 });

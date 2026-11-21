@@ -9,8 +9,8 @@ import { z } from "zod";
 
 import { parseSupportTicketListParams } from "./query";
 import { createSupportTicket, listSupportTickets } from "./service";
-import { toErrorResponse } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
+import { withPlatformOperation } from "../../shared/with-operation";
 
 const createSupportTicketSchema = z.object({
   contactId: z.string().uuid().optional(),
@@ -48,9 +48,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ auth, request, supabaseAdmin }) => {
-    const body = await request.json();
+    const body = await ensureJsonBody(request);
     const parsed = createSupportTicketSchema.safeParse(body);
 
     if (!parsed.success) {

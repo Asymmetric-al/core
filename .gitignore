@@ -41,6 +41,8 @@ yarn-error.log*
 *.log
 *.bak
 /.tmp-*
+# fixtures tests/unit/scripts/factory-hosted-startup.test.ts writes inside the checkout
+/.factory-hosted-test-*/
 
 # local env files
 .env

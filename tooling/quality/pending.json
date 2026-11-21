@@ -335,12 +335,6 @@
   },
   {
     "rule": "anti-slop/no-runtime-typeof",
-    "workspace": "packages/graphql",
-    "task": "RS-packages-graphql",
-    "count": 1
-  },
-  {
-    "rule": "anti-slop/no-runtime-typeof",
     "workspace": "packages/lib",
     "task": "RS-packages-lib",
     "count": 25

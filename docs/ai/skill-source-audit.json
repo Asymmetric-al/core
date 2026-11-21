@@ -3,15 +3,15 @@
   "reviewedAt": "2026-10-22",
   "baselineCommit": "c4d36cb029121641b8882237632d0d6da434049e",
   "counts": {
-    "canonical": 182,
-    "runtimePerClient": 240,
-    "lockEntries": 200,
+    "canonical": 181,
+    "runtimePerClient": 232,
+    "lockEntries": 193,
     "outcomes": {
-      "current": 89,
+      "current": 84,
       "excluded": 1,
       "retained-snapshot": 5,
-      "unresolved": 8,
-      "updated": 137
+      "unresolved": 7,
+      "updated": 135
     }
   },
   "treeHashAlgorithm": "SHA-256 of sorted POSIX relative path, NUL, file bytes, NUL; symlinks rejected.",
@@ -81,15 +81,16 @@
       "sourcePath": "skills/agent-browser/SKILL.md",
       "rawSkillHash": "3a7520e64de2dfaa516b6721c001e84e06e3c06a187b82af029ae721540ebfac",
       "lockHash": "228f87d57035100d9dc6efcfc05aafd4b6e3962adacaa04b8217ab2fadb15dc8",
-      "entrypointHash": "3a7520e64de2dfaa516b6721c001e84e06e3c06a187b82af029ae721540ebfac",
-      "treeHash": "80161e6836b3b40f4e83730a290deb40ac14d877d38c97ad5f6d71be37ce74c3",
+      "entrypointHash": "1d347c7b344056656e65783278a4a76a798abe014963f636d8777b418dff9328",
+      "treeHash": "d295f9a0fce705dbe42bdc83a638fcf17a0e12eceeaacd7c5e3349190206b1f0",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
         "noticeFiles": []
       },
       "adaptations": [
-        "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained."
+        "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained.",
+        "Drop the description's claim to precede every other browser tool, replace the global npm install with the pinned `bunx agent-browser`, and add `Bash(bunx agent-browser:*)` to allowed-tools so the prescribed form is pre-approved. Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/agent-browser/SKILL.md",
       "reviewEvidence": [
@@ -118,8 +119,8 @@
       "sourcePath": "skills/agent-email-inbox",
       "rawSkillHash": "b4aaeb24aeb4d34ccd48cdce0ab7f91a65aed60ced1704922c977d56add4ee93",
       "lockHash": "b4aaeb24aeb4d34ccd48cdce0ab7f91a65aed60ced1704922c977d56add4ee93",
-      "entrypointHash": "c6d71054fc076f4b9367a93b1be42914aede180ff55582fde9f7dafde60154b2",
-      "treeHash": "6c9c720a5c0fb45a809fc014e81cb12165e9c2eebe8bb0011a3fa1f6564511e3",
+      "entrypointHash": "b54aa4c6e6fe95d888b97a58e1e156a43015dfa8c3bcb45805decaa64011bde3",
+      "treeHash": "b3dc59e2ed67bc7bddb6acd68ca6957737228523be2cd591bfdf27a9d1205b0a",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -131,7 +132,8 @@
         ]
       },
       "adaptations": [
-        "Reviewed immutable source with existing Core compatibility preserved."
+        "Reviewed immutable source with existing Core compatibility preserved.",
+        "Core overlay pointing at Core's inbound webhook path, packages/email and packages/eve-runtime/AGENTS.md. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/agent-email-inbox/references/upstream.md",
       "reviewEvidence": [
@@ -727,9 +729,9 @@
       "examinedRef": "baae1ad6c9386bad2fc04a95a13530a4497b3ff5",
       "sourcePath": "skills/babysit/SKILL.md",
       "rawSkillHash": "532d534cc1ec6f83e10a4bf6a00ebefddea348e85ed80b88e1703612fdd68de5",
-      "lockHash": "f7f9b3f8eddef18c6ae55c3e74216f0c26ccb375de651dfac4f0877d66bd47af",
-      "entrypointHash": "f7f9b3f8eddef18c6ae55c3e74216f0c26ccb375de651dfac4f0877d66bd47af",
-      "treeHash": "13964e49fe494ee00a55526855397697408ac3837a256995c71fb70d1e8b41c8",
+      "lockHash": "d787edc432d7bf2cb6d3b40805b68a9fd62243899c0e356ad8b2cf1f99cf611d",
+      "entrypointHash": "d787edc432d7bf2cb6d3b40805b68a9fd62243899c0e356ad8b2cf1f99cf611d",
+      "treeHash": "7b032756021a70153db89747d123850d484e329b5b40d479008a595395255668",
       "license": {
         "identifier": null,
         "status": "unresolved-applicable-license",
@@ -1036,35 +1038,6 @@
             "token-naming.md": "f8a09fab2b45d9ddd2d0fadddb64af125ad824ad68ed6b0ce186328760b82a0d"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
-        }
-      ]
-    },
-    {
-      "name": "better-forms",
-      "status": "unresolved",
-      "ownership": "ecosystem",
-      "authorship": "upstream with Core adaptations",
-      "source": "unverified",
-      "importedRef": null,
-      "examinedRef": null,
-      "sourcePath": null,
-      "rawSkillHash": null,
-      "lockHash": null,
-      "entrypointHash": "a3ed60a48ff907c20518a2aaf1e5c0ed910949941652f6e98d9d8b49687b25b4",
-      "treeHash": "72bdcc2776b9474415812a397d71aa5d5d628149922830bda80e68f64932e1a1",
-      "license": {
-        "identifier": null,
-        "status": "unverified-origin",
-        "noticeFiles": []
-      },
-      "adaptations": [
-        "No trustworthy origin established. Existing payload retained unchanged."
-      ],
-      "evidence": ".agents/skills/better-forms/SKILL.md",
-      "reviewEvidence": [
-        {
-          "kind": "retained-evidence-gap",
-          "finding": "No trustworthy origin established. No claim of prohibited use or upstream freshness."
         }
       ]
     },
@@ -2137,8 +2110,8 @@
       "sourcePath": "skills/create-agent/SKILL.md",
       "rawSkillHash": null,
       "lockHash": "c8575147679edca4064025fe922032a00732b6bb208ae2a8f51a7b2d783df6da",
-      "entrypointHash": "b3a68e436125f404296976c6978248be1e86aafbe259675ef4cdd6f987a6db5a",
-      "treeHash": "2a79e3513a92ddf935f9aa52d73e115752920be5a649628a727b625a940ce9cd",
+      "entrypointHash": "7500b8b7b349525d0cfff38ee42bea5eebd3b6e863099a7688d14c6a8694a5d7",
+      "treeHash": "e418c238814c056ae3adf2c289eb6ac07505a006212efdf7a5c30b9b3f9e23a9",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -2192,43 +2165,6 @@
           "rawSkillSha256": "527975b6a53b736cd382c30512faf7913e42e667988ef3c975cc4ee352f73bdd",
           "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
           "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
-        }
-      ]
-    },
-    {
-      "name": "deploy-to-vercel",
-      "status": "current",
-      "ownership": "ecosystem",
-      "authorship": "upstream with Core adaptations",
-      "source": "vercel-labs/agent-skills",
-      "importedRef": null,
-      "examinedRef": "063bee94c3f4df8453406c830b0a7df0f2860278",
-      "sourcePath": "skills/deploy-to-vercel/SKILL.md",
-      "rawSkillHash": "cfcc3dd479ab2e0ae721ddf39b8af84d977321487672f1487c8d6855f576927b",
-      "lockHash": "03e0eaaa9bf13ba1e7ffa387f5893de6f324c0868c627001f179395a8feaa7c9",
-      "entrypointHash": "cfcc3dd479ab2e0ae721ddf39b8af84d977321487672f1487c8d6855f576927b",
-      "treeHash": "8e95b408c650467aef6ea3b82d25814ffe53f3de2564b63e1f8b341ca402021c",
-      "license": {
-        "identifier": null,
-        "status": "not-established-in-this-review",
-        "noticeFiles": []
-      },
-      "adaptations": [
-        "Entrypoint matches after formatting and both installed resources/*.sh files match upstream bytes exactly. Archive.zip is an unreferenced macOS distribution archive containing duplicates/older packaged source and __MACOSX resource forks; it is not required by the installed entrypoint/scripts and remains omitted."
-      ],
-      "evidence": ".agents/skills/deploy-to-vercel/SKILL.md",
-      "reviewEvidence": [
-        {
-          "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "063bee94c3f4df8453406c830b0a7df0f2860278",
-          "sourcePath": "skills/deploy-to-vercel/SKILL.md",
-          "upstreamFileCount": 4,
-          "normalizedDifferences": [],
-          "omittedOptionalFiles": ["Archive.zip"],
-          "proof": [
-            "Entrypoint matches after formatting and both installed resources/*.sh files match upstream bytes exactly. Archive.zip is an unreferenced macOS distribution archive containing duplicates/older packaged source and __MACOSX resource forks; it is not required by the installed entrypoint/scripts and remains omitted."
-          ],
-          "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
       ]
     },
@@ -2476,9 +2412,9 @@
       "examinedRef": "eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10",
       "sourcePath": "cursor-team-kit/skills/deslop/SKILL.md",
       "rawSkillHash": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
-      "lockHash": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
-      "entrypointHash": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
-      "treeHash": "ddf6d77770dfd4736c4ed73ba120a349a54a019bf8e8aba890fadef67e5768d1",
+      "lockHash": "395e35c4c66c0e83d4e9cd696572df7dca629c870cf03991459befe77cecb457",
+      "entrypointHash": "395e35c4c66c0e83d4e9cd696572df7dca629c870cf03991459befe77cecb457",
+      "treeHash": "166383cb60a76556282ac0ce8d887cbc47e83e200b662f5afdf64c9ddae97dc8",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -2663,8 +2599,8 @@
       "sourcePath": "skills/email-best-practices",
       "rawSkillHash": "f1b957138619784e2c22f7ae689bde6e903a8134ee52d626d8846809382ef0c8",
       "lockHash": "f1b957138619784e2c22f7ae689bde6e903a8134ee52d626d8846809382ef0c8",
-      "entrypointHash": "47441373ace6fc6a63bfdcb94a2dd29ba24220abe663b3ae0b1c22cbe6e754e9",
-      "treeHash": "59e1e863f6b2040e333074d199f777b9640d44e467dc1d61ddc65bb62d014024",
+      "entrypointHash": "fce20043707f089660e6a660354b6f05335667e068364131212023ce7535965a",
+      "treeHash": "700ba5f9970cc77bf15d5dd82d931b2112b30ddd175e12938782b3d764a744de",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -2676,7 +2612,8 @@
         ]
       },
       "adaptations": [
-        "Correct invalid new AbortSignal.timeout constructor to static AbortSignal.timeout factory"
+        "Correct invalid new AbortSignal.timeout constructor to static AbortSignal.timeout factory",
+        "Core overlay pointing at the packages/email owners and docs/guides/features/resend-integration.md. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/email-best-practices/references/upstream.md",
       "reviewEvidence": [
@@ -2848,8 +2785,8 @@
       "sourcePath": "skills/eve/SKILL.md",
       "rawSkillHash": "35a7c82f96e20871ff91e9a3a0054ac110f341d35050ed72cd79f441fb9be8a6",
       "lockHash": "79a1e606ecf33eed33c1f3adc1cc266de391e19aa9237ca37e4f3aa3fba6b228",
-      "entrypointHash": "35a7c82f96e20871ff91e9a3a0054ac110f341d35050ed72cd79f441fb9be8a6",
-      "treeHash": "ac567e130a9c1211bd8ee072ccfa6de5960e3e949b07337aa51465f52857bb83",
+      "entrypointHash": "8fc30f6233940b843bfa1d27d2bf393622058368b88d4e3533acf4e74e46da6b",
+      "treeHash": "898858df51eacc4a812eb622c872dc174d13ba39b8c61d64ce62b2726947ac2b",
       "license": {
         "identifier": "Apache-2.0",
         "status": "notice-preserved",
@@ -4771,9 +4708,9 @@
       "examinedRef": "eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10",
       "sourcePath": "cursor-team-kit/skills/loop-on-ci/SKILL.md",
       "rawSkillHash": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de",
-      "lockHash": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de",
-      "entrypointHash": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de",
-      "treeHash": "0589ff7b01958eca41a45d6f9bbfe5df54620f307e9263f1a27682af2f383724",
+      "lockHash": "839666f5dd10735032f5c8f3abb5bc02db09c32c4c001b718185cb609368ef94",
+      "entrypointHash": "839666f5dd10735032f5c8f3abb5bc02db09c32c4c001b718185cb609368ef94",
+      "treeHash": "ae63a0b3d29f273c3faef6dda06fb6f5d36ca422bbb9139030e747d65017a4ea",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -4920,8 +4857,8 @@
       "sourcePath": "skills/misc/migrate-to-shoehorn/SKILL.md",
       "rawSkillHash": "de4da4c11d924fac79c924b2ee3d2db4a5cb98386eb490a599119463d036ae72",
       "lockHash": "67fdd18f8f4f7c89b3003eb944220679272738c1deb680719fd2e282495d87f4",
-      "entrypointHash": "de4da4c11d924fac79c924b2ee3d2db4a5cb98386eb490a599119463d036ae72",
-      "treeHash": "d8af9a576e6a54afb31e98159286e08bc44a211153c524ce00bf757fe2a5a4e5",
+      "entrypointHash": "3c08a18472de9b8e4854e59b6b6e972c60ba8463e14aaae225e54ad9e42e10c3",
+      "treeHash": "bca79ade5ca09d879da87c98d9a865c5e8a3630a5eba46fcb4a779da1945227e",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -4978,8 +4915,8 @@
       "sourcePath": "docs/ai/skills/moai-library-shadcn/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "b7175a50a0874b05994a7961b7e929f550bde89544271a72a73133719e598f39",
-      "treeHash": "24fec74432f9ef3b14402164cc8a9c01b738ee7f9fd73627cf2758375dfb0a23",
+      "entrypointHash": "4e19e9bc50128a7143cd9ce25d5c63ef1b4f929d9e8f620dbc3abfcdae02b9b8",
+      "treeHash": "c31efcdd75d0b4f2a7d2b66df87333f734ca5b0cc45722d2fa0c5013575a6334",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -5354,9 +5291,9 @@
       "examinedRef": "eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10",
       "sourcePath": "cursor-team-kit/skills/new-branch-and-pr/SKILL.md",
       "rawSkillHash": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
-      "lockHash": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
-      "entrypointHash": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
-      "treeHash": "759eb9ce30d1fcccfe2e692aaa4f17772f1faa5ea0ed840d7f58ea2af0484cd8",
+      "lockHash": "02a4c8a12ef41c36894635e1ebcc9eca9a979ef5cf4e42277755d6fb6752d320",
+      "entrypointHash": "02a4c8a12ef41c36894635e1ebcc9eca9a979ef5cf4e42277755d6fb6752d320",
+      "treeHash": "65bc3e5583cdb85ba63940e04147303fc36e8531c31244a756411b216191a6d9",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -5392,8 +5329,8 @@
       "sourcePath": "skills/next-bundle-optimizer",
       "rawSkillHash": "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
       "lockHash": "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
-      "entrypointHash": "baf65ec7211b04873d555da55e2a42aca5669fcf68e978e9e3152c073f2f8d79",
-      "treeHash": "6e9e68967211c913f10ade996faaeab692bd78bd5e64cd2c52752c1e8408a1ce",
+      "entrypointHash": "0b749818aad2953eeeccf0225bbef3936a201b51c830647d5233faa4134cbf97",
+      "treeHash": "0660ab9331e6abe0c830df0d4d8e87f31ecc17dc2c6edb4094830814a3094254",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5405,7 +5342,8 @@
         ]
       },
       "adaptations": [
-        "Marked Core overlay after the frontmatter: Turbopack apps only (not apps/factory-console, which builds with webpack), Bun commands for next analyze and bun why, analyzer output kept outside the repository, sandbox escapes only through the client's permission request, and fix-mode dependency and UI changes routed through Core skills and rulebooks. Upstream text unchanged."
+        "Marked Core overlay after the frontmatter: Turbopack apps only (not apps/factory-console, which builds with webpack), Bun commands for next analyze and bun why, analyzer output kept outside the repository, sandbox escapes only through the client's permission request, and fix-mode dependency and UI changes routed through Core skills and rulebooks. Upstream text unchanged.",
+        "AL-2715 review fixes: the overlay says the capture commands are unexercised in Core and must be confirmed on first use, and that a capture missing environment is stopped and reported rather than run through the untried build environment wrapper. Restored by ecosystem-core-overlays.json at every skills:sync."
       ],
       "evidence": ".agents/skills/next-bundle-optimizer/references/upstream.md",
       "reviewEvidence": [
@@ -5422,11 +5360,11 @@
             "references/graph-methods.md": "e636d046190ebff651dbd74d6fa9999a9bc3c1882ec315ac8303ff8be1bdc242"
           },
           "adaptedFileHashes": {
-            "SKILL.md": "baf65ec7211b04873d555da55e2a42aca5669fcf68e978e9e3152c073f2f8d79",
+            "SKILL.md": "0b749818aad2953eeeccf0225bbef3936a201b51c830647d5233faa4134cbf97",
             "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
             "references/fix-patterns.md": "c805ff1f56678dcc906bd66990c553c9087f13215d1c426d387ca1d96ff4d0aa",
             "references/graph-methods.md": "e636d046190ebff651dbd74d6fa9999a9bc3c1882ec315ac8303ff8be1bdc242",
-            "references/upstream.md": "8cb6fb0b272be821f58edb7b9a2c6dbc30ad7e1026605fafff8e9adba372e6aa"
+            "references/upstream.md": "3633ce5f72735f011b513c827acf0265d5dc43ee20ceb4617a062f3a4823c3a3"
           },
           "claim": "Imported with skills@1.5.7 from a reviewed local checkout of the release tag matching the installed Next.js; imported code was not executed."
         }
@@ -5443,8 +5381,8 @@
       "sourcePath": "skills/next-cache-components-adoption",
       "rawSkillHash": "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
       "lockHash": "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
-      "entrypointHash": "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
-      "treeHash": "b9db7c193e9c862617de520899b6806064745ba9963b88e1de00a293a496f12d",
+      "entrypointHash": "5a4ec79547d8f13a5910a5b5e9e5e0657d6e7a939ffb4badc03e152ee2eb2b13",
+      "treeHash": "7cca540bf1cf1e1323dc617eefb29bc7ff92874483b40c55559a72805bd362fa",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5456,7 +5394,9 @@
         ]
       },
       "adaptations": [
-        "Reviewed immutable source with existing Core compatibility preserved."
+        "Reviewed immutable source with existing Core compatibility preserved.",
+        "Core overlay: Cache Components is already on in every app; no unpinned codemods, `npx skills add`, `--force` or `git stash`. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715).",
+        "AL-2715 review fix: the overlay says root AGENTS.md opens with the Next.js block that next dev writes; the rest is hand-maintained."
       ],
       "evidence": ".agents/skills/next-cache-components-adoption/references/upstream.md",
       "reviewEvidence": [
@@ -5467,7 +5407,7 @@
           "rawSkillHash": "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
           "sourceFileHashes": null,
           "adaptedFileHashes": {
-            "SKILL.md": "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
+            "SKILL.md": "5a4ec79547d8f13a5910a5b5e9e5e0657d6e7a939ffb4badc03e152ee2eb2b13",
             "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
             "references/dev-only-validations.md": "57383f4216cf0409041cf0129f97bad0f489246f7c4fa9e7308576b6b843817f",
             "references/per-page-decisions.md": "5064a7efdfe073bb644883edfa00ae919b60b8c76bf12d25b2e1e83b49913c83",
@@ -5534,8 +5474,8 @@
       "sourcePath": "skills/next-dev-loop",
       "rawSkillHash": "ca45c937ae77b2dc39399ffbe5afbfabcc1862056a62fd50c76342a32e6f8375",
       "lockHash": "ca45c937ae77b2dc39399ffbe5afbfabcc1862056a62fd50c76342a32e6f8375",
-      "entrypointHash": "ca45c937ae77b2dc39399ffbe5afbfabcc1862056a62fd50c76342a32e6f8375",
-      "treeHash": "066328b6babd3aec4c49e05624418c5cf4a3932d9f18aa97081cfdb0991dcafb",
+      "entrypointHash": "48b93b279d1fa59448916a5fcb48c92a7e018de1e5887128d18c9711ec652b69",
+      "treeHash": "7c21aeb99580eb1adb33850d941f550e152288174951b166886aed8754d81630",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5547,7 +5487,8 @@
         ]
       },
       "adaptations": [
-        "Reviewed immutable source with existing Core compatibility preserved."
+        "Reviewed immutable source with existing Core compatibility preserved.",
+        "Replace the global `npm i -g agent-browser@latest` install with the pinned `bunx agent-browser`, and the `pnpm next upgrade` step with Core's reviewed dependency change. Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/next-dev-loop/references/upstream.md",
       "reviewEvidence": [
@@ -5577,8 +5518,8 @@
       "sourcePath": "skills/next-partial-prefetching-adoption",
       "rawSkillHash": "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
       "lockHash": "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
-      "entrypointHash": "88b1bbf5a283a7eb3f36fbe8b79f0a668f01bc621ac23362b14d6f3b7d27a338",
-      "treeHash": "78dec92c19c2184204a07420cb13b77c197619b985a5cf4278a6461520f3b700",
+      "entrypointHash": "51f2eea0b25c84ed966a54872f610dd877d9a379b099df864c6b9bcb1b5719ea",
+      "treeHash": "05a8d087271f3f69e23016f531153feb84dc0a70c1cac8c2bee624d78db56f1e",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5590,7 +5531,8 @@
         ]
       },
       "adaptations": [
-        "Marked Core overlay after the frontmatter: Partial Prefetching already adopted in every app, installed skills instead of canary links and npx skills add, no unpinned @next/codemod commands, --force or git stash, reuse of the root instant-nav.rig.md, and commit and pull-request authority under docs/ai/rules/general.md. Upstream text unchanged."
+        "Marked Core overlay after the frontmatter: Partial Prefetching already adopted in every app, installed skills instead of canary links and npx skills add, no unpinned @next/codemod commands, --force or git stash, reuse of the root instant-nav.rig.md, and commit and pull-request authority under docs/ai/rules/general.md. Upstream text unchanged.",
+        "AL-2715 review fixes: the overlay also limits the step 5 sweep to the routes or features the request names, and says root AGENTS.md opens with the Next.js block that next dev writes. Restored by ecosystem-core-overlays.json at every skills:sync."
       ],
       "evidence": ".agents/skills/next-partial-prefetching-adoption/references/upstream.md",
       "reviewEvidence": [
@@ -5606,9 +5548,9 @@
             "rig-template.md": "d3f296e1e29d93086f89fbfd0997b688c494513ccfc731cb06f2c67aef2ec3e6"
           },
           "adaptedFileHashes": {
-            "SKILL.md": "88b1bbf5a283a7eb3f36fbe8b79f0a668f01bc621ac23362b14d6f3b7d27a338",
+            "SKILL.md": "51f2eea0b25c84ed966a54872f610dd877d9a379b099df864c6b9bcb1b5719ea",
             "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
-            "references/upstream.md": "6435ff6f84fc699a99018ea8ae648d7765bd982b78b1b77857b46e91d4f36ad1",
+            "references/upstream.md": "aed05da751005cdf6b21a540cdcc030b67b7a7910fe12de0c75d0e418d37082f",
             "rig-template.md": "d3f296e1e29d93086f89fbfd0997b688c494513ccfc731cb06f2c67aef2ec3e6"
           },
           "claim": "Imported with skills@1.5.7 from a reviewed local checkout of the release tag matching the installed Next.js; imported code was not executed."
@@ -5626,8 +5568,8 @@
       "sourcePath": "skills/next-partial-prefetching-optimizer",
       "rawSkillHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
       "lockHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
-      "entrypointHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
-      "treeHash": "2daef65e50d36e2e872a9aa0d9185db39c9afcf4e28fa9977ce796197681e054",
+      "entrypointHash": "37f72bafbb8e24dd13e615714f96afca322b8cd36d0c978ddacbec85c5583217",
+      "treeHash": "6421500d53db6672b551daa8b062376924c0f9d1e2686f7fd8a18d1dcdecd1df",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5639,7 +5581,7 @@
         ]
       },
       "adaptations": [
-        "None. Complete upstream subtree imported unchanged; provenance and the licence notice added under references/."
+        "Marked Core overlay after the frontmatter (AL-2715): reuse the root instant-nav.rig.md and its Bun commands instead of the pnpm examples in rig-template.md, the local loop instead of the remote push loop, only the navigations the user named, and commit and pull-request authority under docs/ai/rules/general.md. Upstream text unchanged; provenance and the licence notice added under references/. Restored by ecosystem-core-overlays.json at every skills:sync."
       ],
       "evidence": ".agents/skills/next-partial-prefetching-optimizer/references/upstream.md",
       "reviewEvidence": [
@@ -5656,10 +5598,10 @@
             "rig-template.md": "031c73bb10e9fe1966b2eaaa546f421de9b0633dc29979cf43c2d2313b2ea775"
           },
           "adaptedFileHashes": {
-            "SKILL.md": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+            "SKILL.md": "37f72bafbb8e24dd13e615714f96afca322b8cd36d0c978ddacbec85c5583217",
             "reference/red-test-robustness.md": "dd70265f32a5ecf1b798d98fa047420ca71f1897ae1399fb2e4a4805f49a9f1d",
             "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
-            "references/upstream.md": "bb89e001fbf01171324b23bcf7e7be2ad3a7d7e332d1465fe1a66d4ee90994a6",
+            "references/upstream.md": "08029e321f978dc433b74bc8a1c4d95bedaab92c5c392070c67fcf58014cfabb",
             "rig-template.md": "031c73bb10e9fe1966b2eaaa546f421de9b0633dc29979cf43c2d2313b2ea775"
           },
           "claim": "Imported with skills@1.5.7 from a reviewed local checkout of the release tag matching the installed Next.js; imported code was not executed."
@@ -5769,8 +5711,8 @@
       "sourcePath": "docs/ai/skills/nextjs-supabase-auth/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "13df21a3983cdffbcebccb867958f6a0fa439820d314cd7c17bb1b0596fa8c0e",
-      "treeHash": "e891e253c022bd3c3bb9cd83fb8694580713831b504930dc66be78e0f3d5c6c2",
+      "entrypointHash": "4fefaa676a47773cae377d85d06168b8a244d1b2263e78cfac4c2606c6bfd208",
+      "treeHash": "739a46ba95578049446a0bfee5218ef37eeb31bba2c5df1309a6efb314cb46c7",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -5805,8 +5747,8 @@
       "sourcePath": "skills/no-comments/SKILL.md",
       "rawSkillHash": "41c9b4e2a85f295ff96329736faf5c3af53579aa38c606d5139568d11662d2f7",
       "lockHash": "13acb25431f0285d427900bb0b86380911d43314a989ede51cfabf7f51bee0cd",
-      "entrypointHash": "b5930b0a2a9d2242dd75c3d007fa96dd34adc9bb8e802d653eb3a4ca9cfd168a",
-      "treeHash": "7f007bfcf3315b2326327f63e679bd228577f2f6ecb82e8da5e970559d50056a",
+      "entrypointHash": "f1be1ed9edad41034fe68b8f4f0621ec5220ced04c104b911fb21f4b0f10e888",
+      "treeHash": "034a2718c97de9265ccafacb3836db927463538e39b954fd2de1a339e395d22a",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -6270,7 +6212,7 @@
       "rawSkillHash": "804902c52be09d48429a4e67f95d4243fce6b198dea2012ba41d1fe0f1622cba",
       "lockHash": "a1a7f767f90a4b9cafcefb4ee0a7462abf71f0b3c999c1e53ce1a69917db397f",
       "entrypointHash": "36cdcd5f13e25cc17d134e2506872bbd10841a01257c8550615a09312122c517",
-      "treeHash": "00f06a0bcfdd19f20f3e37737c93c9a83e11644f29693be8b18813ad7eb39f11",
+      "treeHash": "fc1c7829ce9997942cca46aa4ce4bbaaa4d35dbae762430e81a725d200490e4d",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -6886,8 +6828,8 @@
       "sourcePath": "./SKILL.md",
       "rawSkillHash": "2a1041c630dc58963aba6a76cd2b9a7533e49124dff39295f584605c4a2ec461",
       "lockHash": "2a1041c630dc58963aba6a76cd2b9a7533e49124dff39295f584605c4a2ec461",
-      "entrypointHash": "2a1041c630dc58963aba6a76cd2b9a7533e49124dff39295f584605c4a2ec461",
-      "treeHash": "0aa236e5e98b69d8cbc4def5e50318128bf7b271676aa79f60c554c12b30f2d3",
+      "entrypointHash": "1900d08d1e659c084ad543fbd18057bd73a775614977a54b4b6c4fa2900617f4",
+      "treeHash": "5b7604bdd5aae0f63861cea5db2c84e85030784c1c2b5094d58b0a12f02a55a1",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -6903,7 +6845,8 @@
         ]
       },
       "adaptations": [
-        "Reviewed immutable source with existing Core compatibility preserved."
+        "Reviewed immutable source with existing Core compatibility preserved.",
+        "Quote the frontmatter description so it parses as YAML (the unquoted value contained \": \"). Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/playwright-skill/references/upstream.md",
       "reviewEvidence": [
@@ -8101,8 +8044,8 @@
       "sourcePath": "docs/ai/skills/react-component-dev/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "9f97aa03bced43d87e4deb8d774fa808dda94b484038202fa496cb98942df098",
-      "treeHash": "7f8e7400ed4f364289a35ea492edc16bbff932418ff880b0ff7090cfee7db8dc",
+      "entrypointHash": "1c4ebc1db2692215ce1354e121d57246a5e4069a40b21390d3204e16aab708b3",
+      "treeHash": "61f38565889d43bdc4969bd8002670a956cc0cb6653d8e6febb95102bfa2bd62",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -8137,8 +8080,8 @@
       "sourcePath": "docs/ai/skills/react-doctor/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "57b9cf4477899bc37754c14207ca5ea9ffe2eed1753056d7a2c06cdfcafdc0e0",
-      "treeHash": "bc384db035a950ce7b2299426d616143076fe50b03f6cfd6ba2b950e79a2644e",
+      "entrypointHash": "8ad36d19fe14f395fe155f87a1113085ff22753fc1b5a9d54c6ead54e5849e0a",
+      "treeHash": "ed2bfbfcd5b5639650c6713873dee00c2f2d4c7c3d5fb16356482976a331ed58",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -8173,8 +8116,8 @@
       "sourcePath": "skills/react-email/SKILL.md",
       "rawSkillHash": "6316bdbe822e49f93a709e81bc011569d1a1ea20f7de78cd33ea8a0501ad79b7",
       "lockHash": "5d989d8109068b40bfc00111013d8488b577c21d8973013f0e810e946a670987",
-      "entrypointHash": "15793b4dfed084d6006679193aa100f48d7624db17dee8b0675766bc6fed05ff",
-      "treeHash": "923be4e54b763729f7583ce5101e268e2fb0f7fd5db9fed25d127e2858ec8b45",
+      "entrypointHash": "6934a290b3d5e4484acf36aa05e5fbfafe693d224ba65c6a36d461f2d7ca98ad",
+      "treeHash": "9f7498628dcdba38da95a03e4f1d02bf40256ae453050c3cdca126e666e24827",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -8186,9 +8129,10 @@
         ]
       },
       "adaptations": [
-        "Retain scanner allowlist comments; no upstream instruction delta."
+        "Retain scanner allowlist comments; no upstream instruction delta.",
+        "Core overlay pointing at the packages/ui React Email editor, packages/email and docs/guides/features/resend-integration.md, with local provenance added. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715)."
       ],
-      "evidence": ".agents/skills/react-email/SKILL.md",
+      "evidence": ".agents/skills/react-email/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "immutable-upstream-entrypoint",
@@ -8596,8 +8540,8 @@
       "sourcePath": "skills/resend",
       "rawSkillHash": "56b5f80dc21a4ef7e7b92586d98af3e00dfdad802fc7be98fd143d95092cdfb3",
       "lockHash": "56b5f80dc21a4ef7e7b92586d98af3e00dfdad802fc7be98fd143d95092cdfb3",
-      "entrypointHash": "56b5f80dc21a4ef7e7b92586d98af3e00dfdad802fc7be98fd143d95092cdfb3",
-      "treeHash": "c8d2c91e4e20a0733258ffb753e08c26a816ba1c73c46b35effdc3501974a8ff",
+      "entrypointHash": "494de93158362606a5c3447d0b69c7a3b3af7605452a50cb903538165c0416ea",
+      "treeHash": "819483fa54be312df90a446c92cee5c8043ef85ff4037d3dee224d6392907de9",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -8609,7 +8553,8 @@
         ]
       },
       "adaptations": [
-        "Reviewed immutable source with existing Core compatibility preserved."
+        "Reviewed immutable source with existing Core compatibility preserved.",
+        "Core overlay pointing at the packages/email owners, packages/api webhook handling and docs/guides/features/resend-integration.md. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/resend/references/upstream.md",
       "reviewEvidence": [
@@ -8849,9 +8794,9 @@
       "examinedRef": "eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10",
       "sourcePath": "cursor-team-kit/skills/review-and-ship/SKILL.md",
       "rawSkillHash": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
-      "lockHash": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
-      "entrypointHash": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
-      "treeHash": "238b7f529d9235780ee3ffbd512d93bf1c20e01ff65f7d10ae34ec33873d686f",
+      "lockHash": "985bc492e0aa356d1ca352f3bb7e2c941647aca89f0538e749226344999b06a8",
+      "entrypointHash": "985bc492e0aa356d1ca352f3bb7e2c941647aca89f0538e749226344999b06a8",
+      "treeHash": "fab958c2c6f8530a5a4c7b53abf79e2090eddefb210c4ad4159442d7cd6d5d18",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -8974,9 +8919,9 @@
       "examinedRef": "eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10",
       "sourcePath": "cursor-team-kit/skills/run-smoke-tests/SKILL.md",
       "rawSkillHash": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb",
-      "lockHash": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb",
-      "entrypointHash": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb",
-      "treeHash": "ee1fbc57d236d9ffb5a287452bea03df84976a38e8cf863720df074e72dcae7a",
+      "lockHash": "b515fb0563602965efd04d1a8416df786788bee782b5bf6bb4ae4633fc0971bc",
+      "entrypointHash": "b515fb0563602965efd04d1a8416df786788bee782b5bf6bb4ae4633fc0971bc",
+      "treeHash": "5b9eb7b609d290f53dee0c70b190a0c35c9a483df1e3413acc4fd334a497a365",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -9012,8 +8957,8 @@
       "sourcePath": "docs/ai/skills/samson-factory/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "79b1f5f3a37f26d0295c75871b01e374c70b99b325ce65fcbe02d760c29898ba",
-      "treeHash": "c39ab0aaac036a39493d4a3df559aee0be5fcdb00fd01bb9a0325d53e63b3c34",
+      "entrypointHash": "36ca8e0b674ff29fd8f466bdc1e63b2bd732d9aa8132777a831b15fe15104e98",
+      "treeHash": "3817a3a5b7340a1114765f86aa28dcae4365b46e2febde2c12ab80487a69d051",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -9034,64 +8979,6 @@
             "package.json"
           ],
           "claim": "Source ownership and installed-contract retention; no external freshness claim."
-        }
-      ]
-    },
-    {
-      "name": "scaffold-exercises",
-      "status": "current",
-      "ownership": "ecosystem",
-      "authorship": "upstream with Core adaptations",
-      "source": "mattpocock/skills",
-      "importedRef": null,
-      "examinedRef": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-      "sourcePath": "skills/misc/scaffold-exercises/SKILL.md",
-      "rawSkillHash": "75f5c9d771606fb9762f16522efc954df11c324f87148d8ff069bce166257de9",
-      "lockHash": "1127f69a77b48cb855067db4c9c42e7638e6672f1cb3fafb0ffd61a1ecdfae70",
-      "entrypointHash": "75f5c9d771606fb9762f16522efc954df11c324f87148d8ff069bce166257de9",
-      "treeHash": "2d3917d55e81ce1db16bbc4db74b683a84f5a317d3901affaf94984b2df78553",
-      "license": {
-        "identifier": "MIT",
-        "status": "notice-preserved",
-        "noticeFiles": [
-          {
-            "path": "references/UPSTREAM-LICENSE",
-            "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
-          }
-        ]
-      },
-      "adaptations": [
-        "Existing source matches reviewed upstream after repository formatting; retain Core overlays."
-      ],
-      "evidence": ".agents/skills/scaffold-exercises/SKILL.md",
-      "reviewEvidence": [
-        {
-          "kind": "immutable-upstream-entrypoint",
-          "url": "https://github.com/mattpocock/skills/blob/5beb35b040e3de97e54fa9e386d7e42d15c295c2/skills/misc/scaffold-exercises/SKILL.md",
-          "rawSha256": "75f5c9d771606fb9762f16522efc954df11c324f87148d8ff069bce166257de9",
-          "matchesAfterRepositoryMarkdownFormatting": true,
-          "acceptedDifferences": []
-        },
-        {
-          "kind": "complete-source-companion-comparison",
-          "upstreamFileCount": 1,
-          "files": [
-            {
-              "path": "agents/openai.yaml",
-              "gitBlobHash": "963723a58973effa256cbfe0f23a7bcc03a374b8",
-              "comparison": "exact"
-            }
-          ],
-          "missingFiles": [],
-          "method": "Git blob identity, or trusted repository Prettier normalization; no imported script execution."
-        },
-        {
-          "kind": "exact-upstream-notice-import",
-          "source": "mattpocock/skills",
-          "ref": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "upstreamPath": "LICENSE",
-          "target": ".agents/skills/scaffold-exercises/references/UPSTREAM-LICENSE",
-          "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
         }
       ]
     },
@@ -9230,64 +9117,6 @@
       ]
     },
     {
-      "name": "setup-pre-commit",
-      "status": "current",
-      "ownership": "canonical",
-      "authorship": "upstream with Core adaptations",
-      "source": "mattpocock/skills",
-      "importedRef": null,
-      "examinedRef": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-      "sourcePath": "skills/misc/setup-pre-commit/SKILL.md",
-      "rawSkillHash": "c9819d7f1e3b198064edc1faa3154224ed67395e9f07f5d3cea4b67cf0a11a98",
-      "lockHash": "f2ce8663857d919cf7e4146cd716b0aee1757b85123b758e6e7d98fcbaf14054",
-      "entrypointHash": "c9819d7f1e3b198064edc1faa3154224ed67395e9f07f5d3cea4b67cf0a11a98",
-      "treeHash": "a628adb90c1725a8dc0701228ed168970bc973e15559593ac9f619420b6b4297",
-      "license": {
-        "identifier": "MIT",
-        "status": "notice-preserved",
-        "noticeFiles": [
-          {
-            "path": "references/UPSTREAM-LICENSE",
-            "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
-          }
-        ]
-      },
-      "adaptations": [
-        "Existing source matches reviewed upstream after repository formatting; retain Core overlays."
-      ],
-      "evidence": "docs/ai/skills/setup-pre-commit/references/upstream.md",
-      "reviewEvidence": [
-        {
-          "kind": "immutable-upstream-entrypoint",
-          "url": "https://github.com/mattpocock/skills/blob/5beb35b040e3de97e54fa9e386d7e42d15c295c2/skills/misc/setup-pre-commit/SKILL.md",
-          "rawSha256": "c9819d7f1e3b198064edc1faa3154224ed67395e9f07f5d3cea4b67cf0a11a98",
-          "matchesAfterRepositoryMarkdownFormatting": true,
-          "acceptedDifferences": []
-        },
-        {
-          "kind": "complete-source-companion-comparison",
-          "upstreamFileCount": 1,
-          "files": [
-            {
-              "path": "agents/openai.yaml",
-              "gitBlobHash": "e5a1c63df9e0703893cdad799bd5e2a6b5e6939d",
-              "comparison": "exact"
-            }
-          ],
-          "missingFiles": [],
-          "method": "Git blob identity, or trusted repository Prettier normalization; no imported script execution."
-        },
-        {
-          "kind": "exact-upstream-notice-import",
-          "source": "mattpocock/skills",
-          "ref": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "upstreamPath": "LICENSE",
-          "target": "docs/ai/skills/setup-pre-commit/references/UPSTREAM-LICENSE",
-          "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
-        }
-      ]
-    },
-    {
       "name": "shadcn",
       "status": "updated",
       "ownership": "ecosystem",
@@ -9298,8 +9127,8 @@
       "sourcePath": "skills/shadcn",
       "rawSkillHash": "93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592",
       "lockHash": "93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592",
-      "entrypointHash": "89860c0a605caa201a1d95e736c49676319999ebac27887e8a2d78a10278c56b",
-      "treeHash": "d447b3da312c8230422af76ad5fe1070de1822e6bb48bf128568869a3ac92cc1",
+      "entrypointHash": "b7122cfd1186d85cf679497b35543e5c501a27d1190ffd4c798ee00f90ded02c",
+      "treeHash": "a4e86a12f2846101d7c742c7d21475425358d93d1c78e5e68d3b7d5b8fe53fcb",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -9311,7 +9140,8 @@
         ]
       },
       "adaptations": [
-        "Preserve existing shared Sonner host and Base UI/base-maia boundaries"
+        "Preserve existing shared Sonner host and Base UI/base-maia boundaries",
+        "Remove the load-time `npx shadcn@latest info --json` injection and route shadcn commands through `bunx shadcn` from packages/ui; the Key Fields and Workflow lines that said the context was injected now tell the agent to run `bunx shadcn info --json` from packages/ui; `allowed-tools` pre-approves only `Bash(bunx shadcn *)`, not the upstream `@latest` runners. Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/shadcn/references/upstream.md",
       "reviewEvidence": [
@@ -9322,7 +9152,7 @@
           "rawSkillHash": "93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592",
           "sourceFileHashes": null,
           "adaptedFileHashes": {
-            "SKILL.md": "89860c0a605caa201a1d95e736c49676319999ebac27887e8a2d78a10278c56b",
+            "SKILL.md": "b7122cfd1186d85cf679497b35543e5c501a27d1190ffd4c798ee00f90ded02c",
             "agents/openai.yml": "35db91b1eef58b2abe01da9b88577de5a44e233b740cd93d692ddeeadd2afe4d",
             "assets/shadcn-small.png": "0ecc62d682727f68fc4937eed19960c706714fa084d44f63028d611ae02bf3d7",
             "assets/shadcn.png": "7d60ad6fec4d89a0d44ba5a3c9283d2fea0047af5467f9227040e20d927d39b7",
@@ -9336,7 +9166,7 @@
             "evals/evals.json": "e82c747326a5c21e37a1c962274d36b1bfebb3e6602ee368b98e2dba5db18369",
             "mcp.md": "8d696b4e45b7d0e337367248513bd9acebe8f3bcfd7b748c775e5a337c8f38c8",
             "references/UPSTREAM-LICENSE.md": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f",
-            "references/upstream.md": "600bb96472cdca50f8ce42c33cfc4476bf70e76a69fb435a0b0ea32127495ccd",
+            "references/upstream.md": "41fe2f32eccba2d90054d7726156205040d111732a5785eca632d5c22a619d57",
             "registry.md": "4f239be36bd2b58e17047db1ca80ab7da00e15a8b73242e5e4d50d113c4caa05",
             "rules/base-vs-radix.md": "2b2deb47d004285220c1fc6b38bb2edc2d0ccbcdafd031b0b189d5d8ed0d1ba8",
             "rules/chat.md": "4b4610d487ddc9751f3cfe0c554a06560ac723fcc2460abad77a1d3c7c9a4b95",
@@ -9559,93 +9389,6 @@
       ]
     },
     {
-      "name": "stripe-integration",
-      "status": "updated",
-      "ownership": "ecosystem",
-      "authorship": "upstream with Core adaptations",
-      "source": "wshobson/agents",
-      "importedRef": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
-      "examinedRef": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
-      "sourcePath": "plugins/payment-processing/skills/stripe-integration",
-      "rawSkillHash": "32b5a60d3f6cad896b3dc468ee7b81e55afa61adf740512e95a411efdb4ae0f6",
-      "lockHash": "32b5a60d3f6cad896b3dc468ee7b81e55afa61adf740512e95a411efdb4ae0f6",
-      "entrypointHash": "6b791386c6dfb51625e91dcf623090256990fee9a9d0cc958e3474682e90f0d1",
-      "treeHash": "6364f73af4316a377d7a607b1b0a7d60cf168fa645d86c0f20456e3d1f8a7bea",
-      "license": {
-        "identifier": "MIT",
-        "status": "notice-preserved",
-        "noticeFiles": [
-          {
-            "path": "references/LICENSE.md",
-            "sha256": "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1"
-          }
-        ]
-      },
-      "adaptations": [
-        "Added marked Core applicability, ecosystem ownership, and non-executing maintenance overlay.",
-        "Normalized Markdown trailing whitespace and final newlines; retained hard breaks without trailing spaces.",
-        "Registered the reviewed compatibility adapter in sync's committed ecosystem overlay/replacement configs."
-      ],
-      "evidence": ".agents/skills/stripe-integration/references/upstream.md",
-      "reviewEvidence": [
-        {
-          "kind": "reviewed-source-import-record",
-          "source": "wshobson/agents",
-          "examinedRef": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
-          "rawSkillHash": "32b5a60d3f6cad896b3dc468ee7b81e55afa61adf740512e95a411efdb4ae0f6",
-          "sourceFileHashes": {
-            "SKILL.md": "32b5a60d3f6cad896b3dc468ee7b81e55afa61adf740512e95a411efdb4ae0f6",
-            "references/LICENSE.md": "f89abb55d9f073f38f1703e4518f0613c788c6174be7f13b8dfe48a1c076c746",
-            "references/details.md": "3250e4e0a94bd4ade630c771b925d88b8e002966c424c48292762ba4ac547a7b"
-          },
-          "adaptedFileHashes": {
-            "SKILL.md": "6b791386c6dfb51625e91dcf623090256990fee9a9d0cc958e3474682e90f0d1",
-            "references/LICENSE.md": "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1",
-            "references/details.md": "3250e4e0a94bd4ade630c771b925d88b8e002966c424c48292762ba4ac547a7b",
-            "references/upstream.md": "6e41b320a364721282068c74e99be92949994630566dff880d9ad3b5a8643b6d"
-          },
-          "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
-        }
-      ]
-    },
-    {
-      "name": "stripe-projects",
-      "status": "updated",
-      "ownership": "ecosystem",
-      "authorship": "upstream with Core adaptations",
-      "source": "https://docs.stripe.com/.well-known/skills/stripe-projects/",
-      "importedRef": null,
-      "examinedRef": null,
-      "sourcePath": null,
-      "rawSkillHash": "3f6f72b6fe29418f2740977f2d4bc5c6e7675562df41b94e4da4ad34fd590bd7",
-      "lockHash": "3f6f72b6fe29418f2740977f2d4bc5c6e7675562df41b94e4da4ad34fd590bd7",
-      "entrypointHash": "0cd1b4d90d38f468788681fe5d1cb641382aa154ab6af3e21fb61443e28f73fc",
-      "treeHash": "c0c71a95ada5f3663acde40e3a582555c793cf9bb76be90954aa30a12676d7f1",
-      "license": {
-        "identifier": null,
-        "status": "not-established-in-this-review",
-        "noticeFiles": []
-      },
-      "adaptations": [
-        "Core version, payment method, product tax-code, credential and provisioning contracts preserved"
-      ],
-      "evidence": ".agents/skills/stripe-projects/references/upstream.md",
-      "reviewEvidence": [
-        {
-          "kind": "reviewed-source-import-record",
-          "source": "https://docs.stripe.com/.well-known/skills/stripe-projects/",
-          "examinedRef": null,
-          "rawSkillHash": "3f6f72b6fe29418f2740977f2d4bc5c6e7675562df41b94e4da4ad34fd590bd7",
-          "sourceFileHashes": null,
-          "adaptedFileHashes": {
-            "SKILL.md": "0cd1b4d90d38f468788681fe5d1cb641382aa154ab6af3e21fb61443e28f73fc",
-            "references/upstream.md": "6e7ca7b6560dcdaafe97449d92c4b7cc05d6055852e2916008cd000dd284d8b7"
-          },
-          "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
-        }
-      ]
-    },
-    {
       "name": "supabase",
       "status": "updated",
       "ownership": "canonical",
@@ -9656,8 +9399,8 @@
       "sourcePath": "skills/supabase",
       "rawSkillHash": "697e0e949f97621c6fc1784169eb3ccbf673747d6bb8299a52962d3d84d93dc6",
       "lockHash": "697e0e949f97621c6fc1784169eb3ccbf673747d6bb8299a52962d3d84d93dc6",
-      "entrypointHash": "f41511df08c3ef8c39e348dbaa4d9eafd691f555219a31a1a9fe1f3632f44c18",
-      "treeHash": "e8b2e3b8bc8e8a979acdb17de2b561c7cd978d24a96f475f1bd4db121d2c974e",
+      "entrypointHash": "dc912cacf0f6517c60f2d8086d8990b715b089d2f7bd345d4bff59ca87f5e959",
+      "treeHash": "0e3e5abcd02609fdf494237c6ea9694ee3aa09b889bc27edb9db3bf17b9e4bd7",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -10577,8 +10320,8 @@
       "sourcePath": "packages/core/skills/ui-sdk/SKILL.md",
       "rawSkillHash": "bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a",
       "lockHash": "76946872dfa4db3d144c1629ce2fe8a44b1cd4442ef70eeb82f3da4cb5f68f07",
-      "entrypointHash": "d33b7f492be616b2818cb0562324fc1d35972248007d00ecea5148e941dbbb24",
-      "treeHash": "af60e5e2eefd97f60f8802540e831903737ae2890e3c275622d8f2d248eeb3b4",
+      "entrypointHash": "6ac1100f40fd20b879a9838ce16bed173c14a6ad1d8ea5b99d41e0189d88869b",
+      "treeHash": "2172b439f5491cf5649dc5796b67df55c3263d3ad21a626b4bc8fb631a4b1307",
       "license": {
         "identifier": "Apache-2.0",
         "status": "notice-preserved",
@@ -10724,43 +10467,6 @@
             "references/upstream.md": "06d8010673009944409867d4f66b5056800b2a749fcd4e7d9a5567db05f51369"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
-        }
-      ]
-    },
-    {
-      "name": "vercel-cli-with-tokens",
-      "status": "current",
-      "ownership": "ecosystem",
-      "authorship": "upstream with Core adaptations",
-      "source": "vercel-labs/agent-skills",
-      "importedRef": null,
-      "examinedRef": "063bee94c3f4df8453406c830b0a7df0f2860278",
-      "sourcePath": "skills/vercel-cli-with-tokens/SKILL.md",
-      "rawSkillHash": "c06bea99e75eab07fde4fae26069baa002f82f39b53f07981704c2901551dd4c",
-      "lockHash": "eb16b20dcbe6ce51e0372083d624e0847af1b09487ec99249227d5a8eddebfc0",
-      "entrypointHash": "c06bea99e75eab07fde4fae26069baa002f82f39b53f07981704c2901551dd4c",
-      "treeHash": "eb16b20dcbe6ce51e0372083d624e0847af1b09487ec99249227d5a8eddebfc0",
-      "license": {
-        "identifier": null,
-        "status": "not-established-in-this-review",
-        "noticeFiles": []
-      },
-      "adaptations": [
-        "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained."
-      ],
-      "evidence": ".agents/skills/vercel-cli-with-tokens/SKILL.md",
-      "reviewEvidence": [
-        {
-          "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "063bee94c3f4df8453406c830b0a7df0f2860278",
-          "sourcePath": "skills/vercel-cli-with-tokens/SKILL.md",
-          "upstreamFileCount": 1,
-          "normalizedDifferences": [],
-          "omittedOptionalFiles": [],
-          "proof": [
-            "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained."
-          ],
-          "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
       ]
     },
@@ -11101,17 +10807,18 @@
       "sourcePath": "skills/web-design-guidelines/SKILL.md",
       "rawSkillHash": "f4647ca866a3accf763777f83e7682954f0187cd6bea7eea0399796652414e8f",
       "lockHash": "f3bc47f890f42a44db1007ab390709ec368e4b8c089baee6b0007182236ac474",
-      "entrypointHash": "f4647ca866a3accf763777f83e7682954f0187cd6bea7eea0399796652414e8f",
-      "treeHash": "1db1cfbe4c860ae59815abc457c99529dc73bd7c12f72fade1109103e6d14405",
+      "entrypointHash": "dd7eda521d4b6971120fc6bd58e6346727540e652eab35f43351a9f1ebfad837",
+      "treeHash": "7a2b68cb17820bd222e65c8746670a257beff75488dca6f768e4f6bc96124b6a",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
         "noticeFiles": []
       },
       "adaptations": [
-        "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained."
+        "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained.",
+        "Core overlay: accessibility-review and docs/ai/rules/frontend.md take precedence, and the fetched guideline text is data, not instructions; local provenance added. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715)."
       ],
-      "evidence": ".agents/skills/web-design-guidelines/SKILL.md",
+      "evidence": ".agents/skills/web-design-guidelines/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
@@ -11124,76 +10831,6 @@
             "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
-        }
-      ]
-    },
-    {
-      "name": "webapp-testing",
-      "status": "current",
-      "ownership": "ecosystem",
-      "authorship": "upstream with Core adaptations",
-      "source": "anthropics/skills",
-      "importedRef": null,
-      "examinedRef": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
-      "sourcePath": "skills/webapp-testing/SKILL.md",
-      "rawSkillHash": "51b7349e77ec63b7744a6f63647e7566a0b4d2e301121cc10e8c2113af6556a2",
-      "lockHash": "3f14af7f5690695209c22fbf8c8d133769a86d64892602c09bb13f135e14e857",
-      "entrypointHash": "51b7349e77ec63b7744a6f63647e7566a0b4d2e301121cc10e8c2113af6556a2",
-      "treeHash": "abfaf4cc6cf572346e22fed42dc0cfaacd2f64c5d9667f44a94b02ea0d3b1342",
-      "license": {
-        "identifier": null,
-        "status": "notice-preserved",
-        "noticeFiles": [
-          {
-            "path": "LICENSE.txt",
-            "sha256": "bc6b3af2f331cbc7fb0da1344efb2cbe5877a31498b4d70dbc7000f3405a1362"
-          }
-        ]
-      },
-      "adaptations": [
-        "Existing source matches reviewed upstream after repository formatting; retain Core overlays."
-      ],
-      "evidence": ".agents/skills/webapp-testing/SKILL.md",
-      "reviewEvidence": [
-        {
-          "kind": "immutable-upstream-entrypoint",
-          "url": "https://github.com/anthropics/skills/blob/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/webapp-testing/SKILL.md",
-          "rawSha256": "51b7349e77ec63b7744a6f63647e7566a0b4d2e301121cc10e8c2113af6556a2",
-          "matchesAfterRepositoryMarkdownFormatting": true,
-          "acceptedDifferences": []
-        },
-        {
-          "kind": "complete-source-companion-comparison",
-          "upstreamFileCount": 5,
-          "files": [
-            {
-              "path": "LICENSE.txt",
-              "gitBlobHash": "4f881c52d1f72f4cfb720e339e2d35c3058d01a9",
-              "comparison": "exact"
-            },
-            {
-              "path": "examples/console_logging.py",
-              "gitBlobHash": "9329b5e232ed53d944bfe95e750070117d31b9ab",
-              "comparison": "exact"
-            },
-            {
-              "path": "examples/element_discovery.py",
-              "gitBlobHash": "917ba72f52421a1b324f93ae8e38af72010a87b9",
-              "comparison": "exact"
-            },
-            {
-              "path": "examples/static_html_automation.py",
-              "gitBlobHash": "90bbedcc08cdb345c74fb938ebad02c0baf56603",
-              "comparison": "exact"
-            },
-            {
-              "path": "scripts/with_server.py",
-              "gitBlobHash": "431f2eba16b268b7f3e2ae4daae9db41c0289b6d",
-              "comparison": "exact"
-            }
-          ],
-          "missingFiles": [],
-          "method": "Git blob identity, or trusted repository Prettier normalization; no imported script execution."
         }
       ]
     },

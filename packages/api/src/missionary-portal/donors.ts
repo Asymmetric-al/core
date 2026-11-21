@@ -8,7 +8,7 @@ import {
   missionaryArgs,
   missionaryScope,
 } from "../shared/missionary-authority";
-import { withOperation } from "../shared/with-operation";
+import { withPlatformOperation } from "../shared/with-operation";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
@@ -632,7 +632,7 @@ export async function getMissionaryDonorRows(input: {
   };
 }
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
     const pagination = readDonorRowsPagination(request.nextUrl.searchParams);

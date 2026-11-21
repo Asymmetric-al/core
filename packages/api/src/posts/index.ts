@@ -16,7 +16,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createMissionaryPost } from "./create";
 import { postsQuerySchema, postWriteSchema } from "../schemas/posts";
 import { CACHE_TAGS } from "../shared/cache-tags";
-import { toErrorResponse } from "../shared/http-errors";
+import { readJsonBodyOrNull, toErrorResponse } from "../shared/http-errors";
 
 interface FeedPostsQuery {
   tenantId: string;
@@ -161,9 +161,7 @@ export async function POST(request: NextRequest) {
     requireRoleClass(auth, ["missionary"]);
     const ctx = auth as AuthenticatedContext;
 
-    const parsed = postWriteSchema.safeParse(
-      await request.json().catch(() => null),
-    );
+    const parsed = postWriteSchema.safeParse(await readJsonBodyOrNull(request));
     if (!parsed.success) {
       return NextResponse.json(
         { error: parsed.error.issues[0]?.message ?? "Invalid update" },

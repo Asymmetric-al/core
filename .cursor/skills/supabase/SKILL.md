@@ -36,6 +36,25 @@ before running `bun run skills:sync`.
 - [ ] Added or updated migration/type/test coverage when behavior changed.
 - [ ] Ran a focused verification command and captured any blocked checks.
 
+### Schema changes (this overrides "Option B" below)
+
+`supabase/migrations/*.sql` is Core's schema source of truth
+(`supabase/AGENTS.md`), so Core does not iterate on schema with direct SQL:
+
+- Create each schema change as a migration file with
+  `bun run supabase -- migration new <name>`, write the SQL by hand, and apply
+  it to the local stack with `bun run supabase -- db reset --local`, which
+  replays every migration and the seed.
+- Do not change schema with `execute_sql` (MCP), `supabase db query` or
+  `psql`, and never run them against a hosted project. Read-only queries
+  against the local database are fine for diagnosis.
+- Do not generate a migration with `supabase db pull`; the reviewed migration
+  file is the change.
+- Run every CLI command through the pinned wrapper `bun run supabase --`.
+- Tenant tables keep RLS enabled and forced with tenant-scoped policies.
+  Follow `supabase/AGENTS.md`, and check active OpenSpec changes that touch the
+  same tables, before writing a migration.
+
 Reuse existing authentication as opaque secure input. Scope new credentials only when required by an explicitly authorized operation; do not rotate, copy, print, or request replacement credentials during skill maintenance.
 <!-- CORE-OVERLAY-END -->
 

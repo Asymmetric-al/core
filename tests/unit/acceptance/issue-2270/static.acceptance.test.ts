@@ -17,10 +17,7 @@ import {
   read,
   statements,
 } from "./harness";
-import {
-  loadWorkflowDocument,
-  workflowJobs,
-} from "../../helpers/workflow-yaml";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const MIG = "supabase/migrations";
 const forward = () =>
@@ -57,11 +54,22 @@ describe("#2270 C6/C7: authz grant-list guard across every forward migration", (
         if (m && /\bSECURITY DEFINER\b/i.test(s)) definers.add(m[1]!);
       }
     }
+    // Amended by AL-2675 (WP2b, second release; record D-18): the policy
+    // migration adds three reviewed authz definers, each owned by postgres
+    // with an empty search path and executable by authenticated and
+    // service_role only: request_assignment (the one row a request acts
+    // under), assignment_holds (a capability of that row) and
+    // caller_tenant_ids (the caller's live tenants, for Storage). The list is
+    // as exact as before.
     expect([...definers].sort()).toEqual(
-      Object.keys(GRANTS)
-        .filter((k) => k.startsWith("authz."))
-        .map((k) => k.slice(6, k.indexOf("(")))
-        .sort(),
+      [
+        ...Object.keys(GRANTS)
+          .filter((k) => k.startsWith("authz."))
+          .map((k) => k.slice(6, k.indexOf("("))),
+        "assignment_holds",
+        "caller_tenant_ids",
+        "request_assignment",
+      ].sort(),
     );
   });
   it("C7: no migration grants authz functions or current_user_memberships to PUBLIC/anon, or authz USAGE to anon", () => {
@@ -134,20 +142,14 @@ describe("#2270 C12 and §7 pins", () => {
   );
 });
 
-describe("#2270 CI step (Samson's ruling: own explicit-path step after #2250's)", () => {
-  it("'Verify authz EXECUTE grants (real stack)' is migrate step 17, immediately after #2250's step 16, with exactly this env and run", () => {
-    const all =
-      workflowJobs(loadWorkflowDocument(".github/workflows/ci-integration.yml"))
-        .migrate?.steps ?? [];
-    const i = all.findIndex(
-      (s) => s.name === "Verify authz EXECUTE grants (real stack)",
+describe("#2270 CI step (Samson's ruling: own explicit-path step)", () => {
+  it("'Verify authz EXECUTE grants (real stack)' is a blocking migrate step that runs #2270's real-stack file", () => {
+    expectRealstackStep(
+      "Verify authz EXECUTE grants (real stack)",
+      [
+        "tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts",
+      ],
+      { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
     );
-    expect(i).toBe(17);
-    expect(all[i - 1]?.name).toBe("Verify tenant isolation (real stack)");
-    expect(all[i]).toEqual({
-      name: "Verify authz EXECUTE grants (real stack)",
-      env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
-      run: "bun x vitest run tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts",
-    });
   });
 });

@@ -217,12 +217,15 @@ export async function clearEveRetentionHold(input: {
 export async function runEveRetentionExpiry(input: {
   auth: AuthenticatedContext;
   limit: number;
+  /** The shared operator check's result (`withOperation`'s `isPlatformOperator()`). */
+  platformOperator?: boolean;
   supabaseAdmin: AdminSupabaseClient;
 }) {
-  if (input.auth.role !== "super_admin") {
+  // A platform gate (AL-2675 WP2c): the shared operator check, not a role name.
+  if (input.platformOperator !== true) {
     throw new ApiHttpError(
       403,
-      "Only super administrators can run global retention expiry.",
+      "Only a platform operator can run global retention expiry.",
     );
   }
 

@@ -9,10 +9,10 @@ import {
 } from "./control";
 import { mutateEveRetentionSchema } from "./schema";
 import { loadEveRetentionAdminView } from "./store";
-import { toErrorResponse } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
+import { withPlatformOperation } from "../../shared/with-operation";
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ auth, requestId, supabaseAdmin }) => {
     try {
       return NextResponse.json({
@@ -30,10 +30,12 @@ export const GET = withOperation(
   { tenantAdministrator: true },
 );
 
-export const POST = withOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
+export const POST = withPlatformOperation(
+  async ({ auth, request, requestId, supabaseAdmin, isPlatformOperator }) => {
     try {
-      const mutation = mutateEveRetentionSchema.parse(await request.json());
+      const mutation = mutateEveRetentionSchema.parse(
+        await ensureJsonBody(request),
+      );
       let result: unknown;
       switch (mutation.action) {
         case "store_artifact":
@@ -66,6 +68,7 @@ export const POST = withOperation(
         case "run_expiry":
           result = await runEveRetentionExpiry({
             auth,
+            platformOperator: await isPlatformOperator(),
             supabaseAdmin,
             ...mutation,
           });

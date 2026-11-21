@@ -1,8 +1,6 @@
-import { requestScopeOf } from "@asym/auth/context";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { adminUsersListQuerySchema } from "../schemas/admin";
-import { createRequestSessionClient } from "../shared/request-session-client";
 import { withOperation } from "../shared/with-operation";
 
 /** One row of `public.tenant_member_directory`. */
@@ -47,7 +45,7 @@ interface DirectoryClient {
  * the page are applied in SQL. The service-key client is not used.
  */
 export const GET = withOperation(
-  async ({ auth: ctx, request }) => {
+  async ({ auth: ctx, request, sessionClient }) => {
     const { searchParams } = new URL(request.url);
     const parsed = adminUsersListQuerySchema.safeParse({
       limit: searchParams.get("limit") ?? "50",
@@ -69,10 +67,7 @@ export const GET = withOperation(
     // Every request of the session client carries the resolved tenant and
     // assignment (WP2b, AL-2675), so the directory reads the row the
     // resolver selected.
-    const session = (await createRequestSessionClient(
-      request,
-      requestScopeOf(ctx),
-    )) as unknown as DirectoryClient;
+    const session = sessionClient as unknown as DirectoryClient;
     let query = session.rpc("tenant_member_directory", {
       p_tenant_id: ctx.tenantId,
     });

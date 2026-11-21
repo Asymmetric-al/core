@@ -39,7 +39,10 @@ checks that have not run when the commit is prepared.
 - [x] 4.6 Repair donor About landmark composition and verify skip-link/browser behavior.
 - [x] 4.7 Replace deprecated drift output with complete, reviewed modern CLI evidence.
 - [x] 4.8 Write the plan for genuine 100 in every application/category, including upstream detection, product decisions and wider design debt.
-- [ ] 4.9 Review affected finding proofs, run full relevant gates, publish small commits and verify current-head CI/review/preview.
+- [ ] 4.9 Run full relevant gates, publish small commits and verify current-head CI/review/preview.
+      (Superseded 2026-11-18 by `make-shadscan-advisory`: the opening clause
+      "Review affected finding proofs" served the retired findings ledger and
+      is withdrawn. The rest of the task stands.)
 
 - [x] 4.10 Repair task deletion confirmation, Feed headings and unsupported controls/filters with real DOM tests; preserve actual engagement and bookmarks.
 - [x] 4.11 Repair shared page-heading contrast/desktop descriptions and public footer overflow/headings/placeholder destinations with browser proof; remove only resolved lint suppressions.
@@ -54,13 +57,24 @@ Task 4.9 records the final publication and exact-head CI/preview readback on the
 ## 5. Genuine 100/100 execution
 
 - [x] 5.1 Add mandatory per-app category floors with RED/GREEN coverage for incomplete protection, hidden category regressions, unassessed areas and rounded perfect scores; preserve raw reports and current floors.
-- [ ] 5.2 Independently review the category gate, reconcile affected proofs, validate OpenSpec and run the full applicable local/provider gates.
 - [ ] 5.3 Add useful navigation command palettes only to signed-in donor/missionary workspaces with Base UI/base-maia and existing permitted navigation.
 - [ ] 5.4 Prove and repair donor mobile control names and actual sign-out pending feedback without changing authentication effects.
-- [ ] 5.5 Prepare secret-free positive/negative upstream fixtures for detector gaps and the retained forced-light/private/preview/redirect contracts.
 - [ ] 5.6 Complete concrete route/state/role/environment coverage and repair confirmed advisory, token and diagnostic defects in bounded batches.
-- [ ] 5.7 Adopt a compatible official released scanner, reconcile its complete findings and require genuine 100 in every app/category before raising every floor to 100.
-- [ ] 5.8 Verify exact-head CI, previews, review closure and approved production revision before declaring the complete goal achieved.
+
+## Superseded 2026-11-18 by `make-shadscan-advisory`
+
+On 2026-11-18 the owner ratified the retirement part of `make-shadscan-advisory`
+("Do #2"). The Shadscan score gate, its per-application and per-category
+floors, its policy file and its findings ledger are retired, and so is the
+"genuine 100/100 in every app and category" target. The following former open
+tasks are withdrawn and kept only as dated history. They are not tracked work.
+
+- Former 5.2: Independently review the category gate, reconcile affected proofs, validate OpenSpec and run the full applicable local/provider gates.
+- Former 5.5: Prepare secret-free positive/negative upstream fixtures for detector gaps and the retained forced-light/private/preview/redirect contracts.
+- Former 5.7: Adopt a compatible official released scanner, reconcile its complete findings and require genuine 100 in every app/category before raising every floor to 100.
+- Former 5.8: Verify exact-head CI, previews, review closure and approved production revision before declaring the complete goal achieved.
+
+Tasks 3.5, 5.3, 5.4 and 5.6 and the rest of 4.9 remain open and applicable.
 
 The owner approved official scanner scores, forced light and useful signed-in
 donor/missionary palettes on 2026-10-04. Palette implementation supersedes the

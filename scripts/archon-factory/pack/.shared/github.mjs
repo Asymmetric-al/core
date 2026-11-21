@@ -34,6 +34,12 @@ export async function githubToken({ gh, configDir, run = runProcess }) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// GraphQL error types that mean GitHub rejected the request. Any other error
+// (a rate limit, a server-side failure, one without a type) may follow a
+// mutation that ran. GitHub does not document the types; see the
+// support-factory-merge-queue design for the evidence.
+const REJECTED = new Set(["FORBIDDEN", "NOT_FOUND", "UNPROCESSABLE"]);
+
 export function createGitHub({
   token,
   repo,
@@ -159,6 +165,48 @@ export function createGitHub({
     if (result.data?.errors?.length)
       throw new GitHubError(`GraphQL: ${result.data.errors[0].message}`);
     return result.data.data;
+  }
+  // GitHub's REST merge "does not support ... merging with a merge queue";
+  // GraphQL enqueuePullRequest adds the pull request at the expected head.
+  // Sent as a write: a lost answer is unknown, a rejection refused. Queued is
+  // not merged, so the result has no `merged`.
+  async function enqueue(nodeId, sha) {
+    if (!nodeId)
+      throw new GitHubError("Enqueue needs the pull request's node id", {
+        outcome: "refused",
+      });
+    const result = await request(
+      "POST",
+      "/graphql",
+      {
+        query: `
+          mutation ($id: ID!, $sha: GitObjectID) {
+            enqueuePullRequest(input: { pullRequestId: $id, expectedHeadOid: $sha }) {
+              mergeQueueEntry {
+                id
+                state
+                position
+              }
+            }
+          }
+        `,
+        variables: { id: nodeId, sha },
+      },
+      { write: true },
+    );
+    const errors = result.data?.errors;
+    if (errors?.length)
+      throw new GitHubError(`GraphQL: ${errors[0].message}`, {
+        outcome: errors.every((error) => REJECTED.has(error?.type))
+          ? "refused"
+          : "unknown",
+      });
+    const entry = result.data?.data?.enqueuePullRequest?.mergeQueueEntry;
+    if (!entry)
+      throw new GitHubError("GitHub returned no merge queue entry", {
+        outcome: "unknown",
+      });
+    return { queued: true, mergeQueueEntry: entry };
   }
   const r = `/repos/${owner}/${name}`;
   return {
@@ -337,14 +385,17 @@ export function createGitHub({
         `,
         { id: nodeId },
       ),
-    merge: async (n, { sha, method, title }) =>
-      (
-        await request(
-          "PUT",
-          `${r}/pulls/${n}/merge`,
-          { sha, merge_method: method, commit_title: title },
-          { write: true },
-        )
-      ).data,
+    // `mergeQueue`: readiness found the base branch requires a merge queue.
+    merge: async (n, { sha, method, title, mergeQueue = false, nodeId }) =>
+      mergeQueue
+        ? enqueue(nodeId, sha)
+        : (
+            await request(
+              "PUT",
+              `${r}/pulls/${n}/merge`,
+              { sha, merge_method: method, commit_title: title },
+              { write: true },
+            )
+          ).data,
   };
 }

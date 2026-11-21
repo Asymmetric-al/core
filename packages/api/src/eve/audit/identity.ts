@@ -3,18 +3,28 @@ import type { EveSessionIdentity } from "../session-ownership/types";
 import type { AuthenticatedContext } from "@asym/auth/context";
 import type { UserRole } from "@asym/database/types";
 
+/**
+ * The audit identity of a signed-in person acting in Eve's admin screens.
+ * `platformOperator` is the result of the shared operator check
+ * (`withOperation`'s `isPlatformOperator()`, AL-2675 WP2c): a confirmed
+ * operator acts with the platform actor role, which Eve's SQL names
+ * `super_admin` and judges by the operator list, and may name the tenant it
+ * acts on, or none for a global action. Anyone else acts with their own role
+ * in their own tenant. The membership role is never `super_admin`.
+ */
 export function createAdminEveAuditIdentity(
   auth: AuthenticatedContext,
-  options?: { tenantId?: string },
+  options?: { tenantId?: string; platformOperator?: boolean },
 ): EveVerifiedAuditIdentity {
+  const operator = options?.platformOperator === true;
   return {
     actorId: auth.userId,
     actorProfileId: auth.profileId,
-    actorRole: auth.role,
+    actorRole: operator ? "super_admin" : auth.role,
     identityMode: "admin",
     initiatorId: auth.userId,
     initiatorType: "authenticated_admin",
-    tenantId: auth.role === "super_admin" ? options?.tenantId : auth.tenantId,
+    tenantId: operator ? options?.tenantId : auth.tenantId,
   } as EveVerifiedAuditIdentity;
 }
 

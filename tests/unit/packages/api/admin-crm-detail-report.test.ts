@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
+import { serializeAdminCrmReportCsv } from "../../../../packages/api/src/admin/crm/reports/export-projection";
+import { policies } from "./projection/fixtures";
 
 import { getAdminCrmDonorDetail } from "../../../../packages/api/src/admin/crm/detail/service";
 import {
   buildAdminCrmReport,
-  serializeAdminCrmReportCsv,
+  buildAdminCrmExportGroups,
 } from "../../../../packages/api/src/admin/crm/reports/service";
 
 type Row = Record<string, unknown>;
@@ -627,7 +629,135 @@ describe("Phase 5 CRM donor detail and reports", () => {
       "rowCount",
       "timestamp",
     ]);
-    expect(serializeAdminCrmReportCsv(report)).toContain('"General Fund"');
+  });
+
+  it.each([
+    [null, true],
+    [{}, true],
+    [
+      { defaultAnonymousToRecipient: true, defaultAnonymousToPublic: false },
+      false,
+    ],
+    [
+      { defaultAnonymousToRecipient: false, defaultAnonymousToPublic: true },
+      false,
+    ],
+    [
+      { defaultAnonymousToRecipient: false, defaultAnonymousToPublic: false },
+      true,
+    ],
+  ] as const)(
+    "binds export groups and protects donor names before filtering: %j",
+    async (preferences, named) => {
+      const tables = {
+        ...baseTables,
+        donations: [
+          ...baseTables.donations!,
+          {
+            ...baseTables.donations![0],
+            tenant_id: "tenant-2",
+            id: "other-gift",
+            donor_id: "other-donor",
+          },
+        ],
+        donors: [
+          ...baseTables.donors!.map((donor) => ({
+            ...donor,
+            giving_preferences: preferences,
+          })),
+          { id: "other-donor", tenant_id: "tenant-2", name: "Other tenant" },
+        ],
+      };
+      const report = (search: string | null) =>
+        buildAdminCrmExportGroups({
+          tenantId: "tenant-1",
+          supabaseAdmin: createSupabaseFixture(tables) as never,
+          params: {
+            slice: "donors",
+            filters: { dateFrom: null, dateTo: null, search },
+          },
+        });
+      for (const staffRole of ["finance", "development"] as const) {
+        for (const isTenantAdmin of [false, true]) {
+          const seesName = named || staffRole === "finance" || isTenantAdmin;
+          for (const search of [null, "Ada"]) {
+            const groups = await report(search);
+            expect(groups.rows).toHaveLength(1);
+            const exported = serializeAdminCrmReportCsv(
+              groups,
+              {
+                assignmentId: "membership-1",
+                userId: "user-1",
+                tenantId: "tenant-1",
+                revision: "v1",
+                membershipRole: "staff",
+                staffRole,
+                isTenantAdmin,
+              },
+              policies("mission_control", "crm_report_groups", [
+                { fieldKey: "label" },
+                { fieldKey: "gift_count" },
+              ]),
+            );
+            expect(exported.csv.includes("Ada Donor")).toBe(seesName);
+            expect(exported.csv).not.toContain("Other tenant");
+            // The row is in the file unless a search hides it. The audit
+            // row, which every staff member reads, references a donor only
+            // when they made no anonymous choice; one who did is a count, for
+            // every audience (fix check G2, re-check H1).
+            expect(exported.rowCount).toBe(!search || seesName ? 1 : 0);
+            expect(exported.groupIds).toHaveLength(named ? 1 : 0);
+            expect(exported.anonymousGroups).toBe(
+              !named && (!search || seesName) ? 1 : 0,
+            );
+          }
+        }
+      }
+    },
+  );
+
+  // F11(c), fix check G3: a group's source revision is a digest of its
+  // tenant, slice, group and values, so a group whose values change after it
+  // was built fails the export instead of leaving the file incomplete.
+  it("fails the export when a group's values changed after the export bound them", async () => {
+    const groups = await buildAdminCrmExportGroups({
+      tenantId: "tenant-1",
+      supabaseAdmin: createSupabaseFixture(baseTables) as never,
+      params: {
+        slice: "funds",
+        filters: { dateFrom: null, dateTo: null, search: null },
+      },
+    });
+    const assignment = {
+      assignmentId: "membership-1",
+      userId: "user-1",
+      tenantId: "tenant-1",
+      revision: "v1",
+      membershipRole: "staff",
+      staffRole: "finance",
+      isTenantAdmin: false,
+    } as const;
+    const fields = policies("mission_control", "crm_report_groups", [
+      { fieldKey: "label" },
+      { fieldKey: "net_amount_cents" },
+    ]);
+    expect(groups.rows).toHaveLength(1);
+    const bound = serializeAdminCrmReportCsv(groups, assignment, fields);
+    expect(bound.groupIds).toEqual(["funds:fund-1"]);
+    expect(bound.csv).toContain('"General Fund","12500"');
+    expect(() =>
+      serializeAdminCrmReportCsv(
+        {
+          ...groups,
+          rows: groups.rows.map((group) => ({
+            ...group,
+            row: { ...group.row, amountCents: group.row.amountCents + 1 },
+          })),
+        },
+        assignment,
+        fields,
+      ),
+    ).toThrow("A report group failed its binding");
   });
 
   it.each(["donors", "missionaries", "funds"] as const)(

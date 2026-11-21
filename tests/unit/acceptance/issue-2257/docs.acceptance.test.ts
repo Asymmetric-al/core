@@ -31,16 +31,30 @@ const bullet = (text: string, anchor: string) => {
 };
 
 describe("#2257 criterion 10: ADR-0001 Phase 9 re-confirm", () => {
-  it("is additive: ADR :1-138 (incl. Status) and the phase-09 PRD body are unchanged", () => {
+  // #2706 keeps this hash: an accepted ADR changes only through its
+  // Amendments section, so its body up to there must never change.
+  it("is additive: ADR :1-138 (incl. Status) are unchanged", () => {
     expect(sha(`${read(ADR).split("\n").slice(0, 138).join("\n")}\n`)).toBe(
       "9c22b96bc08b73bdc51c9c3392c78a447be08f1d651be679bef5e277cd509174",
     );
-    // #2257 left the Phase 9 PRD unchanged at digest 5ad79f0a…5773b. The
-    // AL-2645 reconciliation later amended it; pin that current content so a
-    // revert of those corrections also fails.
-    expect(sha(read(`${PRD}9-full-crm-depth-relationship-graph.md`))).toBe(
-      "bab8005ca769a52695ec31cb53ed9dcc78da08295b96b897f5234757a2213642",
-    );
+  });
+  // #2706 retired the whole-PRD hash. #2257 left the Phase 9 PRD unchanged
+  // (a scope check of that PR); the AL-2645 reconciliation then amended the
+  // PRD and re-pinned the hash three times so a revert of its corrections
+  // would fail. Those corrections are asserted directly instead.
+  it("the Phase 9 PRD keeps the AL-2645 Twenty-retirement corrections", () => {
+    // Visible text only: a correction moved into an HTML comment is gone.
+    const prd = read(`${PRD}9-full-crm-depth-relationship-graph.md`)
+      .replace(/<!--[\s\S]*?-->/g, " ")
+      .replace(/\s+/g, " ");
+    for (const correction of [
+      "re-groom #603 completed 2026-07-07",
+      "the store is `donor_merge_candidates`, and the Twenty-era `crm_merge_candidates` is not extended",
+      "`crm_command_logs` is not Phase 9's write-path or audit carrier (Phase 9 audits through `crm_audit_events`",
+      "PR #1325 (merged 2026-08-19) already created an interim native `public.crm_notes`",
+      "#616 must reach the columns above through an explicit forward migration that reshapes or replaces that table (a `CREATE TABLE IF NOT EXISTS` would silently no-op)",
+    ])
+      expect(prd).toContain(correction);
   });
   it("records the ruling, kept values + consumer, lockstep rule and parity test", () => {
     const a = amendment();
