@@ -3,8 +3,13 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 import { baseConfig } from "@asym/eslint-config/base.mjs";
 import { designSystemConfig } from "@asym/eslint-config/design-system.mjs";
+import {
+  ownApiConfig,
+  ownApiWorkspaces,
+} from "@asym/eslint-config/own-api.mjs";
 import { appRestrictedImports } from "@asym/eslint-config/restricted-imports.mjs";
 import { reuiDataGridFiles } from "@asym/eslint-config/reui-data-grid-exceptions.mjs";
+import { tenantNavigationConfig } from "@asym/eslint-config/tenant-navigation.mjs";
 
 const sourceCodeFiles = "**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}";
 
@@ -18,6 +23,9 @@ const tableEngineImportRestriction = [
 
 const eslintConfig = defineConfig([
   ...designSystemConfig(),
+  // One way to build an address across both apps and the shared packages
+  // (AL-2675; council round 1, A10).
+  ...tenantNavigationConfig(),
   // Root fallback/orchestrator config.
   // Individual apps/packages should define local eslint.config.mjs files.
   ...baseConfig,
@@ -41,6 +49,16 @@ const eslintConfig = defineConfig([
       }),
     },
   },
+  // Page code calls the app's own API only through ownApiFetch (plan 5.2).
+  // `bun run lint` runs it from each linted workspace's own config; this
+  // block gives editors that use the root config the same answer, over the
+  // same workspaces (`ownApiWorkspaces.linted`).
+  ...ownApiConfig.map((block) => ({
+    ...block,
+    files: ownApiWorkspaces.linted.map(
+      (workspace) => `${workspace}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}`,
+    ),
+  })),
   {
     files: [
       "apps/*/components/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}",

@@ -1,7 +1,17 @@
-import { getAuthContext } from "@asym/auth/context";
-import { createClient } from "@asym/database/supabase/server";
+import {
+  getAuthContext,
+  requestScopeOf,
+  scopeRefusedHeaders,
+  type AuthContext,
+} from "@asym/auth/context";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+
+import { ApiHttpError, readJsonBodyOrNull } from "../shared/http-errors";
+import {
+  createRequestSessionClient,
+  type RequestSessionClient,
+} from "../shared/request-session-client";
 
 import type { DonorFeedPreferences } from "@asym/database/types";
 
@@ -21,7 +31,7 @@ const defaultFeedPreferencesResponse = {
   emailMissionaryPosts: false,
 };
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+type SupabaseServerClient = RequestSessionClient;
 type FeedPreferencesUpdate = z.infer<typeof feedPreferencesUpdateSchema>;
 type FeedPreferencesUpsert = {
   donor_id: string;
@@ -46,6 +56,34 @@ type AuthenticatedDonorLookup =
   | { status: "found"; donor: DonorIdentity; tenantId: string };
 
 /**
+ * The resolved request and a user-JWT client that sends its tenant and
+ * assignment (plan 5.4; WP2b, AL-2675). The route is on the resolver: its
+ * tenant is the resolved donor assignment's, never the token's claim.
+ */
+async function openDonorSession(request: Request) {
+  const auth = await getAuthContext(request);
+  // No resolved donor assignment: refused before any session is opened,
+  // with the scope-refused mark when the resolver refused the scope the page
+  // proposed, so the page retires its document (JB1; check of the fix
+  // lists, JR8), not as a 403 "Tenant context required".
+  if (!auth.isAuthenticated) {
+    return {
+      refusal: NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: scopeRefusedHeaders(auth) },
+      ),
+    } as const;
+  }
+  // The credential the request was authenticated with: its bearer token
+  // first, otherwise its cookies (council on the joined release, JB13).
+  const supabase = await createRequestSessionClient(
+    request,
+    requestScopeOf(auth),
+  );
+  return { auth, supabase } as const;
+}
+
+/**
  * Resolves the caller's donor in the tenant of the request's resolved donor
  * assignment, by profile ownership, with the user-JWT client, mirroring the
  * donor_feed_preferences own-row policies
@@ -54,10 +92,8 @@ type AuthenticatedDonorLookup =
  */
 async function findDonorByAuthenticatedUser(
   supabase: SupabaseServerClient,
-  request: Request,
+  auth: AuthContext,
 ): Promise<AuthenticatedDonorLookup> {
-  const auth = await getAuthContext(request);
-
   if (!auth.userId) {
     return { status: "unauthenticated" };
   }
@@ -127,12 +163,9 @@ function donorLookupFailure(lookup: AuthenticatedDonorLookup) {
   }
 }
 
+/** An empty or malformed body reads as null; one that is not JSON is refused (fix check G1). */
 async function readRequestBody(request: Request) {
-  try {
-    return await request.json();
-  } catch {
-    return null;
-  }
+  return readJsonBodyOrNull(request);
 }
 
 function parseFeedPreferencesUpdate(body: unknown) {
@@ -196,8 +229,10 @@ function toFeedPreferencesUpsert(
 
 export async function GET(request: Request) {
   try {
-    const supabase = await createClient();
-    const donorLookup = await findDonorByAuthenticatedUser(supabase, request);
+    const session = await openDonorSession(request);
+    if ("refusal" in session) return session.refusal;
+    const { auth, supabase } = session;
+    const donorLookup = await findDonorByAuthenticatedUser(supabase, auth);
     const failure = donorLookupFailure(donorLookup);
 
     if (failure) {
@@ -235,8 +270,10 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const donorLookup = await findDonorByAuthenticatedUser(supabase, request);
+    const session = await openDonorSession(request);
+    if ("refusal" in session) return session.refusal;
+    const { auth, supabase } = session;
+    const donorLookup = await findDonorByAuthenticatedUser(supabase, auth);
     const failure = donorLookupFailure(donorLookup);
 
     if (failure) {
@@ -279,6 +316,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json(toFeedPreferencesResponse(updated));
   } catch (error) {
+    if (error instanceof ApiHttpError && error.status === 415)
+      return NextResponse.json({ error: error.message }, { status: 415 });
     console.error("Error updating feed preferences:", error);
     return NextResponse.json(
       { error: "Failed to update preferences" },

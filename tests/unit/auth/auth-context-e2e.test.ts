@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mockGetUser = vi.fn();
 const mockCookieGet = vi.fn();
 
+vi.mock("next/server", () => ({ connection: () => Promise.resolve() }));
 vi.mock("next/headers", () => ({
   cookies: () =>
     Promise.resolve({

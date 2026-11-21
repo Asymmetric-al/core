@@ -1,8 +1,10 @@
 import "@asym/env";
+import { TenantSegmentBoundary } from "@asym/auth/tenant-navigation";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { MotionProvider } from "@asym/lib/motion-provider";
+import { ScopeReloadNotices } from "@asym/ui/components/scope-reload-notices";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { fontVariables } from "@asym/ui/fonts";
@@ -83,13 +85,19 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <BoneyardRegistry />
-            <QueryProvider>
-              <TooltipProvider delay={0}>
-                <MotionProvider>
-                  <NuqsAdapter>{children}</NuqsAdapter>
-                </MotionProvider>
-              </TooltipProvider>
-            </QueryProvider>
+            {/* A navigation across the tenant segment's boundary loads a
+                new document, so no client state crosses it (AL-2675). */}
+            <ScopeReloadNotices>
+              <TenantSegmentBoundary>
+                <QueryProvider>
+                  <TooltipProvider delay={0}>
+                    <MotionProvider>
+                      <NuqsAdapter>{children}</NuqsAdapter>
+                    </MotionProvider>
+                  </TooltipProvider>
+                </QueryProvider>
+              </TenantSegmentBoundary>
+            </ScopeReloadNotices>
             <AdminTanStackDevtools />
             <Toaster />
           </ThemeProvider>

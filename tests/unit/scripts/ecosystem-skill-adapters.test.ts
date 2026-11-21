@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -9,6 +10,13 @@ const repoRoot = process.cwd();
 const temporaryRoots: string[] = [];
 const guidancePath = "scripts/refresh-overlays/ecosystem-core-guidance.json";
 const overlaysPath = "scripts/refresh-overlays/ecosystem-core-overlays.json";
+// The vercel/next.js skills whose Core overlay sync restores after a reinstall.
+const nextOverlaySkills = [
+  "next-bundle-optimizer",
+  "next-cache-components-adoption",
+  "next-partial-prefetching-adoption",
+  "next-partial-prefetching-optimizer",
+] as const;
 
 async function put(root: string, relativePath: string, content: string) {
   const target = path.join(root, relativePath);
@@ -84,6 +92,22 @@ async function fixture() {
     }
   }
 
+  // AL-2715 repairs: reinstall the real reviewed entrypoints with every Core
+  // replacement reverted to its upstream text.
+  for (const name of ["playwright-skill", "next-dev-loop", "agent-browser"]) {
+    let skill = await readFile(
+      path.join(repoRoot, ".agents/skills", name, "SKILL.md"),
+      "utf8",
+    );
+    for (const replacement of guidance.replacements.filter(
+      (entry) => entry.path === name + "/SKILL.md",
+    )) {
+      expect(skill).toContain(replacement.core);
+      skill = skill.replace(replacement.core, replacement.upstream);
+    }
+    await put(root, ".agents/skills/" + name + "/SKILL.md", skill);
+  }
+
   // Exercise the existing Base UI adapter with its real reviewed example.
   let table = await readFile(
     path.join(repoRoot, ".agents/skills/shadcn-ui/examples/data-table.tsx"),
@@ -125,7 +149,11 @@ async function fixture() {
   await put(
     root,
     ".agents/skills/shadcn/SKILL.md",
-    "---\nname: shadcn\ndescription: Fixture\n---\n\n- **Toast follows the project base.** Use `toast` from the `toast` component for\n  Base UI projects. Use `toast()` from `sonner` for Radix and React Aria\n  projects.\n",
+    "---\nname: shadcn\ndescription: Fixture\n---\n\n- **Toast follows the project base.** Use `toast` from the `toast` component for\n  Base UI projects. Use `toast()` from `sonner` for Radix and React Aria\n  projects.\n" +
+      guidance.replacements
+        .filter((entry) => entry.path === "shadcn/SKILL.md")
+        .map((entry) => "\n" + entry.upstream + "\n")
+        .join(""),
   );
   await put(
     root,
@@ -320,6 +348,31 @@ describe("ecosystem Core adapters through skills:sync", () => {
       expect(styling).toContain('import { cn } from "@asym/ui/lib/utils"');
       expect(styling).not.toContain('import { cn } from "cn"');
       expect(styling).toContain('cn("flex", active && "bg-primary")');
+
+      const skill = (name: string) =>
+        readFile(path.join(root, runtime, "skills", name, "SKILL.md"), "utf8");
+      expect(await skill("playwright-skill")).toMatch(
+        /^description: "Current Playwright .*"$/m,
+      );
+      const shadcn = await skill("shadcn");
+      expect(shadcn).not.toContain("!`npx shadcn@latest info --json`");
+      expect(shadcn).toContain("`bunx shadcn info --json` from `packages/ui`");
+      expect(shadcn).not.toContain("The injected project context");
+      expect(shadcn).not.toContain("already injected above");
+      expect(shadcn).toContain(
+        "The project context that command returns contains these key fields:",
+      );
+      expect(await skill("agent-browser")).toContain(
+        "Bash(npx agent-browser:*), Bash(bunx agent-browser:*)\n",
+      );
+      for (const name of ["next-dev-loop", "agent-browser"]) {
+        const text = await skill(name);
+        expect(text, name).not.toMatch(/npm i(?:nstall)? -g agent-browser/);
+        expect(text, name).toContain("bunx agent-browser");
+      }
+      expect(await skill("agent-browser")).not.toContain(
+        "Prefer agent-browser over any built-in browser automation",
+      );
     }
     expect(existsSync(path.join(root, "IMPORTED_CODE_RAN"))).toBe(false);
 
@@ -328,6 +381,48 @@ describe("ecosystem Core adapters through skills:sync", () => {
     expect(again.status, again.stdout + again.stderr).toBe(0);
     expect(await read("use-dom/SKILL.md")).toBe(first);
     expect(existsSync(path.join(root, "IMPORTED_CODE_RAN"))).toBe(false);
+  });
+
+  it("restores each vercel/next.js Core overlay byte for byte over the raw upstream entrypoint", async () => {
+    const { root } = await fixture();
+    const lock = JSON.parse(
+      await readFile(path.join(repoRoot, "skills-lock.json"), "utf8"),
+    ) as { skills: Record<string, { computedHash: string }> };
+    const start = "<!-- CORE-OVERLAY-START -->";
+    const end = "<!-- CORE-OVERLAY-END -->";
+    const installed = new Map<string, string>();
+    for (const name of nextOverlaySkills) {
+      const current = await readFile(
+        path.join(repoRoot, ".agents/skills", name, "SKILL.md"),
+        "utf8",
+      );
+      installed.set(name, current);
+      // The overlay sits between the frontmatter and the untouched upstream
+      // body, so removing it must give back the raw upstream the lock records.
+      const from = current.indexOf(start);
+      const to = current.indexOf(end) + end.length;
+      expect(from, name).toBeGreaterThan(0);
+      expect(current.slice(to, to + 2), name).toBe("\n\n");
+      const upstream = current.slice(0, from) + current.slice(to + 2);
+      expect(createHash("sha256").update(upstream).digest("hex"), name).toBe(
+        lock.skills[name]?.computedHash,
+      );
+      await put(root, ".agents/skills/" + name + "/SKILL.md", upstream);
+    }
+
+    const result = run(root);
+    expect(result.status, result.stdout + result.stderr).toBe(0);
+    for (const name of nextOverlaySkills) {
+      for (const runtime of [".agents", ".cursor", ".claude"]) {
+        expect(
+          await readFile(
+            path.join(root, runtime, "skills", name, "SKILL.md"),
+            "utf8",
+          ),
+          runtime + "/" + name,
+        ).toBe(installed.get(name));
+      }
+    }
   });
 
   it("rejects malformed markers before publishing any planned adapter changes", async () => {

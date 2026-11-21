@@ -21,8 +21,8 @@ import {
   loadEveLaunchAdminView,
 } from "./store";
 import { EVE_LAUNCH_CANARY_IDS } from "./types";
-import { toErrorResponse } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { readJsonBodyOrNull, toErrorResponse } from "../../shared/http-errors";
+import { withPlatformOperation } from "../../shared/with-operation";
 import { loadEveGovernanceSnapshot } from "../governance";
 
 const safeReason = eveLaunchSafeTextSchema;
@@ -102,7 +102,7 @@ async function adminView(input: {
   };
 }
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ auth, requestId, supabaseAdmin }) => {
     try {
       return NextResponse.json({
@@ -124,11 +124,9 @@ export const GET = withOperation(
   { tenantAdministrator: true },
 );
 
-export const POST = withOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
-    const parsed = mutationSchema.safeParse(
-      await request.json().catch(() => null),
-    );
+export const POST = withPlatformOperation(
+  async ({ auth, request, requestId, supabaseAdmin, isPlatformOperator }) => {
+    const parsed = mutationSchema.safeParse(await readJsonBodyOrNull(request));
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid Eve launch request.", requestId },
@@ -136,15 +134,36 @@ export const POST = withOperation(
       );
     }
     try {
+      // A tenant administrator may submit a manifest or engage emergency off.
+      // Every other step (review, launch permissions, activation, canary
+      // close, disabling release or clearing emergency off) is the platform's:
+      // it runs only for a caller who passed the shared operator check, and
+      // is refused here, before any control runs, for anyone else. Eve's SQL,
+      // called with the service key, judges its platform actor by the operator
+      // list and a live row alone and cannot see the second factor, so this
+      // check is where the second factor holds (AL-2675 WP2c).
+      const tenantAdministratorStep =
+        parsed.data.kind === "manifest" ||
+        (parsed.data.kind === "safety_control" &&
+          parsed.data.mode === "emergency_off");
+      if (!tenantAdministratorStep && !(await isPlatformOperator())) {
+        return NextResponse.json(
+          { error: "A confirmed platform operator is required.", requestId },
+          { status: 403 },
+        );
+      }
+      const platformOperator = !tenantAdministratorStep;
       if (parsed.data.kind === "manifest") {
         await createEveLaunchManifest({
           auth,
+          platformOperator,
           document: parsed.data.document,
           supabaseAdmin,
         });
       } else if (parsed.data.kind === "review") {
         await reviewEveLaunchManifest({
           auth,
+          platformOperator,
           decision: parsed.data.decision,
           manifestId: parsed.data.manifestId,
           reviewerRole: parsed.data.reviewerRole,
@@ -154,6 +173,7 @@ export const POST = withOperation(
       } else if (parsed.data.kind === "permission") {
         await grantEveLaunchPermission({
           auth,
+          platformOperator,
           enabled: parsed.data.enabled,
           permission: parsed.data.permission,
           profileId: parsed.data.profileId,
@@ -163,6 +183,7 @@ export const POST = withOperation(
       } else if (parsed.data.kind === "activate") {
         await activateEveLaunchManifest({
           auth,
+          platformOperator,
           expectedStateVersion: parsed.data.expectedStateVersion,
           justification: parsed.data.justification,
           manifestId: parsed.data.manifestId,
@@ -171,6 +192,7 @@ export const POST = withOperation(
       } else if (parsed.data.kind === "safety_control") {
         await setEveReleaseSafetyControl({
           auth,
+          platformOperator,
           expectedStateVersion: parsed.data.expectedStateVersion,
           mode: parsed.data.mode,
           reason: parsed.data.reason,
@@ -179,6 +201,7 @@ export const POST = withOperation(
       } else {
         await closeEveLaunchCanary({
           auth,
+          platformOperator,
           launchId: parsed.data.launchId,
           reason: parsed.data.reason,
           results: parsed.data.results,

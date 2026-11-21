@@ -116,7 +116,9 @@ describe("Shadscan CMS boundary evidence", () => {
     expect(authenticate.parent.kind).toBe(ts.SyntaxKind.AwaitExpression);
     expect(read.parent.kind).toBe(ts.SyntaxKind.AwaitExpression);
     const unauthenticated = guardFor(source, "!auth.user");
-    const redirect = callsTo(source, "redirect", unauthenticated)[0];
+    // Through the tenant helper, the plain redirect outside the segment
+    // (council round 1, A10).
+    const redirect = callsTo(source, "redirectInTenant", unauthenticated)[0];
     expect(redirect).toBeDefined();
     expect(authenticate.getStart()).toBeLessThan(unauthenticated.getStart());
     expect(unauthenticated.end).toBeLessThan(read.getStart());
@@ -168,8 +170,10 @@ describe("Shadscan CMS boundary evidence", () => {
     expect(view.text).toMatch(
       /<Link href="\/web-studio"[^>]*>\s*Back to Web Studio\s*<\/Link>/,
     );
+    // Mission Control's is a full document load (AL-2675, council C12;
+    // web-studio-mission-control-links.test.tsx clicks it).
     expect(view.text).toMatch(
-      /<Link href="\/"[^>]*>\s*Back to Mission Control\s*<\/Link>/,
+      /<MissionControlLink\b[^>]*>\s*Back to Mission Control\s*<\/MissionControlLink>/,
     );
     // Everyone else gets Payload's installed NotFoundClient, checked below.
     expect(view.text).toMatch(

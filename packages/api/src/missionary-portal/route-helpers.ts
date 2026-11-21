@@ -29,7 +29,7 @@ export async function runMissionaryPortalOperation(
     const auth = await getAuthContext(request);
     requireRoleClass(auth, ["missionary"]);
 
-    return handler({ supabaseAdmin, auth });
+    return await handler({ supabaseAdmin, auth });
   } catch (error) {
     return toErrorResponse(error, "Internal error");
   }

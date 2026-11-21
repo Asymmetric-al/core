@@ -38,10 +38,11 @@ const EXT = [".ts", ".tsx", ".js", ".mjs"];
 
 /**
  * Routes left as they are, with the reason. GraphQL in the donor app: its
- * staff and missionary branches and `updateUserRole` are unreachable from the
- * donor surface; WP2c deletes the mutation, and the WP2a decision table names
- * it. Nothing else may be listed. The last case below keeps GraphQL in the
- * donor app and nowhere else (PR #2720 review).
+ * staff and missionary branches are unreachable from the donor surface, and
+ * the package that owns each surface moves or deletes them (record section 9,
+ * "WP2c, WP3"); `updateUserRole` was one too, and WP2c (AL-2675) deleted it.
+ * Nothing else may be listed. The last case below keeps GraphQL in the donor
+ * app and nowhere else (PR #2720 review).
  */
 const LEFT_UNTIL_WP2C = new Set(["apps/donor/app/api/graphql/route.ts"]);
 
@@ -235,17 +236,16 @@ describe("staff handlers are mounted on the staff surface (AL-2675 F9)", () => {
     ).toBe(false);
   });
 
-  // PR #2720 review (AL-2675): GraphQL's `updateUserRole` runs
-  // `atomic_update_user_role_with_audit`, which changes `profiles.role` and
+  // PR #2720 review (AL-2675): GraphQL's `updateUserRole` ran
+  // `atomic_update_user_role_with_audit`, which changed `profiles.role` and
   // nothing else; since WP2a that grants and revokes no application access.
-  // No person can run it only because GraphQL is mounted in the donor app,
-  // whose proxy fixes the donor class, and a donor row holds no
-  // `people.manage_members` (tests/unit/apps/donor/graphql-update-user-role-
-  // unreachable.test.ts). Mounted on a staff surface, the command would be
-  // reachable while changing the profile role without the membership, and the
-  // check above would not see it: a staff row can hold that capability. So
-  // every route of every app that reaches the handler is listed here. WP2c
-  // deletes the mutation and builds plan 5.4's membership command.
+  // No person could run it only because GraphQL is mounted in the donor app,
+  // whose proxy fixes the donor class. WP2c (AL-2675) deleted the mutation and
+  // the function and built plan 5.4's membership commands
+  // (tests/unit/apps/donor/graphql-update-user-role-unreachable.test.ts). The
+  // staff branches GraphQL keeps are still unreachable only from the donor
+  // surface, so every route of every app that reaches the handler stays
+  // listed here.
   it("mounts GraphQL in the donor app and nowhere else, until WP2c", () => {
     const graphql = new Set([
       "packages/graphql/index.ts",
@@ -262,16 +262,36 @@ describe("staff handlers are mounted on the staff surface (AL-2675 F9)", () => {
     ).toEqual(["apps/donor/app/api/graphql/route.ts"]);
   });
 
-  it("leaves only GraphQL in the donor app, until WP2c", () => {
+  it.each(["route.ts", "[requestId]/route.ts"])(
+    "mounts follower decisions only in the missionary workspace: %s",
+    (file) => {
+      expect(
+        existsSync(
+          join(root, "apps/missionary/app/api/follower-requests", file),
+        ),
+      ).toBe(true);
+      expect(
+        existsSync(join(root, "apps/donor/app/api/follower-requests", file)),
+      ).toBe(false);
+    },
+  );
+
+  // Rewritten by AL-2675 (WP2c, part 1; record D-18). The role mutation, the
+  // branch that needed `people.manage_members`, is deleted. GraphQL keeps its
+  // staff branches (`admin.dashboard.access`), which the donor class cannot
+  // reach, so the exemption stays real and its whole requirement is pinned;
+  // the package that owns each surface moves or deletes those branches
+  // (record section 9, "WP2c, WP3").
+  it("leaves only GraphQL in the donor app, whose remaining exemption is its staff branches", () => {
     expect([...LEFT_UNTIL_WP2C]).toEqual([
       "apps/donor/app/api/graphql/route.ts",
     ]);
     for (const route of LEFT_UNTIL_WP2C) {
       expect(existsSync(join(root, route))).toBe(true);
       // The exemption is real: read like any other route, it would fail.
-      expect([...requirements(handlerSources(route)).capabilities]).toContain(
-        "people.manage_members",
-      );
+      const { capabilities } = requirements(handlerSources(route));
+      expect([...capabilities].sort()).toEqual(["admin.dashboard.access"]);
+      expect(capabilities.has("people.manage_members")).toBe(false);
     }
   });
 });

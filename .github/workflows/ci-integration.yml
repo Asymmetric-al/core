@@ -290,7 +290,8 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository)
     continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # On GitHub #2734 took 23m16s (Web Studio 505s, production gate 286s).
+    timeout-minutes: 35
     services:
       postgres:
         image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
@@ -319,6 +320,7 @@ jobs:
       E2E_AUTH_SECRET: ${{ secrets.E2E_AUTH_SECRET }}
       E2E_AUTH_ALLOWED_SUPABASE_REFS: ${{ secrets.E2E_AUTH_ALLOWED_SUPABASE_REFS }}
       PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
+      CMS_BASE_URL: "http://127.0.0.1:3030"
       PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030"
       PLAYWRIGHT_INCLUDE_ADMIN: "1"
       PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"
@@ -367,10 +369,12 @@ jobs:
       - name: Start donor app
         run: bash scripts/github/e2e-dev-server.sh donor start 3005
       - name: Wait for donor health endpoint
+        id: donor-ready
         run: bash scripts/github/e2e-dev-server.sh donor wait 3005
       - name: Start admin app
         run: bash scripts/github/e2e-dev-server.sh admin start 3030
       - name: Wait for admin health endpoint
+        id: admin-ready
         run: bash scripts/github/e2e-dev-server.sh admin wait 3030
       - name: Demo auth preflight
         env:
@@ -390,9 +394,37 @@ jobs:
           CI: "1"
           PLAYWRIGHT_BONEYARD_TARGET: "admin"
         run: bun run test:e2e:boneyard:admin
+      # The tenant in the page address end to end (AL-2675; council round 1,
+      # A14, record D-18): the acceptance lines' proof and D-19's first
+      # condition, on the dev server started above. This program's steps run
+      # after an earlier failure, so the job reports on them, but only when
+      # the server each needs answered its health check: a step whose server
+      # never started is skipped, not failed for its absence (check of the
+      # fix lists, JR12). Each writes its evidence to folders of its own
+      # (council round 2 on slice B, BR3, BR4).
+      - name: Tenant address (admin app)
+        if: ${{ !cancelled() && steps.admin-ready.outcome == 'success' }}
+        timeout-minutes: 10
+        env:
+          CI: "1"
+        run: bun run test:e2e:tenant-address:admin
+      # The tenant and the assignment on every request a page makes
+      # (AL-2675; council round 1 on slice B, SB1; record D-18), on the dev
+      # server started above.
+      - name: Request scope (admin app)
+        if: ${{ !cancelled() && steps.admin-ready.outcome == 'success' }}
+        timeout-minutes: 5
+        env:
+          CI: "1"
+        run: bun run test:e2e:request-scope:admin
+      # Started after an earlier failure too, so the missionary steps below
+      # never meet a cold or missing server (JB5).
       - name: Start missionary app
+        if: ${{ !cancelled() }}
         run: bash scripts/github/e2e-dev-server.sh missionary start 4000
       - name: Wait for missionary health endpoint
+        id: missionary-ready
+        if: ${{ !cancelled() }}
         run: bash scripts/github/e2e-dev-server.sh missionary wait 4000
       - name: Boneyard smoke (missionary app)
         timeout-minutes: 5
@@ -401,6 +433,20 @@ jobs:
           PLAYWRIGHT_BONEYARD_TARGET: "missionary"
           PLAYWRIGHT_MISSIONARY_BASE_URL: "http://127.0.0.1:4000"
         run: bun run test:e2e:boneyard:missionary
+      - name: Tenant address (missionary app)
+        if: ${{ !cancelled() && steps.missionary-ready.outcome == 'success' }}
+        timeout-minutes: 5
+        env:
+          CI: "1"
+          PLAYWRIGHT_MISSIONARY_BASE_URL: "http://127.0.0.1:4000"
+        run: bun run test:e2e:tenant-address:missionary
+      - name: Request scope (missionary app)
+        if: ${{ !cancelled() && steps.missionary-ready.outcome == 'success' }}
+        timeout-minutes: 5
+        env:
+          CI: "1"
+          PLAYWRIGHT_MISSIONARY_BASE_URL: "http://127.0.0.1:4000"
+        run: bun run test:e2e:request-scope:missionary
       - name: Boneyard smoke (donor app)
         timeout-minutes: 5
         env:
@@ -408,7 +454,19 @@ jobs:
           PLAYWRIGHT_BONEYARD_TARGET: "donor"
           PLAYWRIGHT_DONOR_BASE_URL: "http://127.0.0.1:3005"
         run: bun run test:e2e:boneyard:donor
+      - name: Request scope (donor app)
+        if: ${{ !cancelled() && steps.donor-ready.outcome == 'success' }}
+        timeout-minutes: 5
+        env:
+          PLAYWRIGHT_REPORT_DIR: "playwright-report/request-scope-donor"
+          PLAYWRIGHT_INCLUDE_ADMIN: "0"
+          CI: "1"
+        run: bun run test:e2e:request-scope:donor
+      # It runs on the same condition as the Web Studio step after it, which
+      # counts on it to have compiled Web Studio's views: an earlier failure
+      # skips neither, so the Web Studio step never runs cold (JR12).
       - name: Run Playwright CMS E2E
+        if: ${{ !cancelled() && steps.donor-ready.outcome == 'success' && steps.admin-ready.outcome == 'success' }}
         timeout-minutes: 10
         env:
           PLAYWRIGHT_REPORT_DIR: "playwright-report/cms"
@@ -416,8 +474,26 @@ jobs:
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
           PLAYWRIGHT_INCLUDE_ADMIN: "1"
         run: bun run test:e2e:cms --project=chromium
+      # Web Studio under the person's organization (AL-2675; council on the
+      # joined release, JB4): its own step, as the program's other specs run,
+      # after the CMS step has compiled Web Studio's views. Its cases are race
+      # cases, so no retries; it runs after an earlier failure, on the CMS
+      # step's own condition (JR12), and writes to folders of its own.
+      - name: Web Studio tenant (admin app)
+        if: ${{ !cancelled() && steps.donor-ready.outcome == 'success' && steps.admin-ready.outcome == 'success' }}
+        # 21 cases took 14.4 minutes alone at a load of 10 (JR12); 18 minutes
+        # was measured on 13.
+        timeout-minutes: 20
+        env:
+          PLAYWRIGHT_REPORT_DIR: "playwright-report/web-studio-tenant"
+          CI: "1"
+          PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
+          PLAYWRIGHT_INCLUDE_ADMIN: "1"
+        run: bun run test:e2e:web-studio-tenant
+      # Also when the job is cancelled, as GitHub cancels a job that reaches
+      # its timeout-minutes; failure() alone is false then (JB5).
       - name: Upload artifact on failure
-        if: failure()
+        if: ${{ failure() || cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report

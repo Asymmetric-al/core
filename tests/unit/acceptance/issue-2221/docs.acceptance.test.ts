@@ -111,8 +111,16 @@ describe("#2221 criterion 12 negatives: overview table and ci-gate bullet unchan
     const all = lines();
     const start = all.findIndex((l) => /^\|?\s*Workflow\s*\|/.test(l));
     expect(start, "overview table").toBeGreaterThanOrEqual(0);
-    // A GFM row may omit its leading pipe; the table ends at a blank line.
-    const end = all.findIndex((l, i) => i > start && l.trim() === "");
+    // Validate the GFM delimiter row immediately following the header row.
+    expect(all[start + 1] ?? "", "overview table delimiter row").toMatch(
+      /^\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$/,
+    );
+    // A GFM table ends at the first blank line or non-table line (e.g., heading).
+    const end = all.findIndex(
+      (l, i) =>
+        i > start + 1 &&
+        (l.trim() === "" || !l.includes("|") || /^\s*#{1,6}\s/.test(l)),
+    );
     const table = all.slice(start, end < 0 ? undefined : end);
     for (const row of [
       /^\|?\s*Fast checks\s*\|/,

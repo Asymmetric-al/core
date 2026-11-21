@@ -159,6 +159,8 @@ describe("preview role-resolution diagnostics", () => {
     vi.stubEnv("VERCEL_ENV", "preview");
     vi.stubEnv("VERCEL_TARGET_ENV", "preview");
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    // The failure line every environment writes (AR6, below).
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
   });
 
   afterEach(() => {
@@ -224,7 +226,7 @@ describe("preview role-resolution diagnostics", () => {
     ["development", ""],
     ["", ""],
   ])(
-    "stays silent and denied for VERCEL_ENV=%s and target=%s",
+    "keeps the preview diagnostic silent, and denies, for VERCEL_ENV=%s and target=%s",
     async (env, target) => {
       vi.stubEnv("VERCEL_ENV", env);
       vi.stubEnv("VERCEL_TARGET_ENV", target);
@@ -233,8 +235,17 @@ describe("preview role-resolution diagnostics", () => {
       expect(
         await resolve(fakeSupabase({ returnError: queryError })),
       ).toBeNull();
-      expect(readCode).not.toHaveBeenCalled();
       expect(console.warn).not.toHaveBeenCalled();
+      // Council round 2, AR6: the code is read once, for the line a failed
+      // read writes in every environment; the preview diagnostic, silent
+      // here, does not read it.
+      expect(readCode).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledExactlyOnceWith({
+        event: "auth_membership_read_failed",
+        reason: "membership_query_failed",
+        code: "42501",
+        class: "permission",
+      });
     },
   );
 
@@ -362,4 +373,181 @@ describe("preview role-resolution diagnostics", () => {
       expect(console.warn).toHaveBeenCalledTimes(1);
     },
   );
+});
+
+// Council round 2, AR6: a failed membership read sends every person to
+// /no-access, so its cause reaches the server log in every environment, not
+// only on unprotected previews: one line, literal fields only (the reason,
+// the database's own error code when it is a known one, and its class). The
+// preview diagnostic above is unchanged.
+describe("the membership read failure log", () => {
+  const line = (code: string | null, errorClass: string) => ({
+    event: "auth_membership_read_failed",
+    reason: "membership_query_failed",
+    code,
+    class: errorClass,
+  });
+
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it.each([
+    ["production", "production", "production"],
+    ["a preview", "production", "preview"],
+    ["development", "development", ""],
+    ["a test run", "test", ""],
+  ])("writes one line in %s", async (_label, nodeEnv, vercelEnv) => {
+    vi.stubEnv("NODE_ENV", nodeEnv);
+    vi.stubEnv("VERCEL_ENV", vercelEnv);
+    vi.stubEnv("VERCEL_TARGET_ENV", vercelEnv);
+    expect(
+      await resolve(
+        fakeSupabase({
+          returnError: { code: "42501", message: "private query detail" },
+        }),
+      ),
+    ).toBeNull();
+    expect(console.error).toHaveBeenCalledExactlyOnceWith(
+      line("42501", "permission"),
+    );
+  });
+
+  it.each([
+    ["a statement timeout", { code: "57014" }, line("57014", "timeout")],
+    [
+      "a schema cache still loading",
+      { code: "PGRST002" },
+      line("PGRST002", "schema_cache"),
+    ],
+    [
+      "a function missing from the schema cache",
+      { code: "PGRST202" },
+      line("PGRST202", "schema_cache"),
+    ],
+    [
+      "no connection from PostgREST",
+      { code: "PGRST000" },
+      line("PGRST000", "connection"),
+    ],
+    [
+      "an exhausted connection pool",
+      { code: "PGRST003" },
+      line("PGRST003", "connection"),
+    ],
+    [
+      "a lost database connection",
+      { code: "08006" },
+      line("08006", "connection"),
+    ],
+    ["too many connections", { code: "53300" }, line("53300", "connection")],
+    ["an invalid session token", { code: "PGRST301" }, line("PGRST301", "jwt")],
+    ["a missing table", { code: "42P01" }, line("42P01", "missing_object")],
+    ["an unexpected result", { code: "PGRST116" }, line("PGRST116", "result")],
+    [
+      "a network failure, as the client reports it",
+      { code: "", message: "TypeError: fetch failed", details: "", hint: "" },
+      line(null, "connection"),
+    ],
+    [
+      "an aborted request, as the client reports it",
+      {
+        code: "",
+        message: "AbortError: This operation was aborted",
+        hint: "Request was aborted (timeout or manual cancellation)",
+      },
+      line(null, "timeout"),
+    ],
+    [
+      "an unknown code",
+      { code: "XX000", message: "internal" },
+      line("other", "other"),
+    ],
+    ["no code at all", { message: "something" }, line(null, "other")],
+  ])("classifies %s", async (_label, returnError, expected) => {
+    expect(await resolve(fakeSupabase({ returnError }))).toBeNull();
+    expect(console.error).toHaveBeenCalledExactlyOnceWith(expected);
+  });
+
+  it.each([
+    [
+      "a fetch that failed",
+      new TypeError("fetch failed"),
+      line(null, "connection"),
+    ],
+    [
+      "a timeout",
+      Object.assign(new Error("signal timed out"), { name: "TimeoutError" }),
+      line(null, "timeout"),
+    ],
+    ["any other error", new Error("rpc threw"), line(null, "other")],
+  ])("classifies a thrown read: %s", async (_label, throwError, expected) => {
+    expect(await resolve(fakeSupabase({ throwError }))).toBeNull();
+    expect(console.error).toHaveBeenCalledExactlyOnceWith(expected);
+  });
+
+  it("writes no personal data, and does not serialize the error", async () => {
+    const secret = "dummy+password@example.test";
+    const serialize = vi.fn(() => secret);
+    for (const variant of [
+      secret,
+      USER,
+      TA,
+      `TypeError: fetch failed ${USER}`,
+    ]) {
+      expect(
+        await resolve(
+          fakeSupabase({
+            returnError: {
+              code: variant,
+              message: variant,
+              details: variant,
+              hint: variant,
+              name: variant,
+              cause: { userId: variant },
+              toJSON: serialize,
+              toString: serialize,
+            },
+          }),
+        ),
+      ).toBeNull();
+      expect(console.error).toHaveBeenLastCalledWith(line("other", "other"));
+    }
+    const output = JSON.stringify(vi.mocked(console.error).mock.calls);
+    for (const value of [secret, USER, TA]) expect(output).not.toContain(value);
+    expect(serialize).not.toHaveBeenCalled();
+  });
+
+  it("keeps an unreadable error, and a failing log sink, closed", async () => {
+    const unreadable = Object.defineProperty({}, "code", {
+      get() {
+        throw new Error("private getter detail");
+      },
+    });
+    expect(await resolve(fakeSupabase({ returnError: unreadable }))).toBeNull();
+    expect(console.error).toHaveBeenCalledExactlyOnceWith(
+      line("other", "other"),
+    );
+
+    vi.mocked(console.error).mockImplementation(() => {
+      throw new Error("private sink detail");
+    });
+    await expect(
+      resolve(fakeSupabase({ returnError: { code: "42501" } })),
+    ).resolves.toBeNull();
+  });
+
+  it("writes nothing when the read succeeds or finds no row", async () => {
+    expect(
+      await resolve(fakeSupabase({ rows: [row(TA, "staff", "development")] })),
+    ).not.toBeNull();
+    expect(await resolve(fakeSupabase({ rows: [] }))).toBeNull();
+    expect(console.error).not.toHaveBeenCalled();
+  });
 });

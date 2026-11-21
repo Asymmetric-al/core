@@ -13,6 +13,7 @@ import { NotFoundClient, useAuth } from "@payloadcms/ui";
 import { FileQuestion } from "lucide-react";
 
 import { Link } from "../routing";
+import { MissionControlLink } from "../shell/mission-control-link";
 import { StudioLayout } from "../shell/studio-layout";
 
 export function WebStudioNotFoundView() {
@@ -39,9 +40,11 @@ export function WebStudioNotFoundView() {
             <Link href="/web-studio" className={buttonVariants()}>
               Back to Web Studio
             </Link>
-            <Link href="/" className={buttonVariants({ variant: "outline" })}>
+            <MissionControlLink
+              className={buttonVariants({ variant: "outline" })}
+            >
               Back to Mission Control
-            </Link>
+            </MissionControlLink>
           </div>
         </EmptyContent>
       </Empty>

@@ -2,9 +2,9 @@
 
 import { answerReadsAsSent } from "@asym/auth/auth-email-request";
 import { passwordRecoveryRedirectUrl } from "@asym/auth/password-recovery";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { createBrowserClient } from "@asym/database/supabase";
 import { KeyRound } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
 
 import {

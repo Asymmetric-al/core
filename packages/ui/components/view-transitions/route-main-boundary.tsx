@@ -2,13 +2,13 @@
 
 import type {} from "react/experimental";
 
+import { useRoutePathname } from "@asym/auth/tenant-navigation";
 import { useReducedMotion } from "@asym/lib/motion";
 import {
   ViewTransitionRouteLayerContext,
   isViewTransitionsFeatureEnabled,
   useSupportsViewTransitions,
 } from "@asym/lib/view-transitions";
-import { usePathname } from "next/navigation";
 import { ViewTransition } from "react";
 
 type RouteMainBoundaryProps = {
@@ -33,7 +33,7 @@ export function RouteMainViewTransitionBoundary({
   children,
   className,
 }: RouteMainBoundaryProps) {
-  const pathname = usePathname();
+  const pathname = useRoutePathname();
   const reduceMotion = useReducedMotion();
   const supportsViewTransitions = useSupportsViewTransitions();
   const enabled =

@@ -15,6 +15,8 @@ import {
 
 const FACTORY = "@asym/database/supabase/admin";
 const OP = 'import { withOperation } from "../shared/with-operation";\n';
+const PLATFORM =
+  'import { withPlatformOperation } from "../shared/with-operation";\n';
 const FILE = "packages/api/src/posts/index.ts";
 const lines = (text: string, file = "packages/api/src/admin/x.ts") =>
   scanSource(file, text).sites.map((s: { kind: string; line: number }) =>
@@ -22,9 +24,61 @@ const lines = (text: string, file = "packages/api/src/admin/x.ts") =>
   );
 
 describe("frozen ceiling", () => {
-  it("is the pinned 117-entry ceiling: 81 / 29 / 8 / 70 sites in 111 files", () => {
+  it.each(["donor", "missionary"])(
+    "counts the %s portal operation adapter",
+    (portal) => {
+      const helper =
+        portal === "donor"
+          ? "runDonorPortalOperation"
+          : "runMissionaryPortalOperation";
+      expect(
+        lines(
+          `import { ${helper} as run } from "../${portal}-portal/route-helpers";\nrun();`,
+        ),
+      ).toEqual(["operation_admin_context:2"]);
+    },
+  );
+
+  it("rejects a direct privileged helper import in a caller operation", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "caller-lane-"));
+    const files = {
+      "packages/api/src/admin/member-care/mutations.ts": `import {getAdminClient} from "${FACTORY}"; export const helper = () => getAdminClient();`,
+      "packages/api/src/admin/example.ts":
+        'import {withOperation as caller} from "../shared/with-operation";\nimport {helper} from "./member-care/mutations"; export const GET = caller(helper);',
+      "docs/security/service-role-client-allowlist.json": JSON.stringify({
+        version: 1,
+        entries: [
+          {
+            file: "packages/api/src/admin/member-care/mutations.ts",
+            kind: "admin_client",
+            count: 1,
+            lines: [1],
+            reason: "fixture",
+            path_ref: "fixture",
+            follow_up: "fixture",
+          },
+        ],
+      }),
+    };
+    try {
+      for (const [file, content] of Object.entries(files)) {
+        mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+        writeFileSync(path.join(root, file), content);
+      }
+      spawnSync("git", ["init", "-q"], { cwd: root });
+      expect(runServiceRoleClientGate({ root }).failures).toContainEqual(
+        expect.stringMatching(/^CALLER_PRIVILEGED_IMPORT .*example.ts:2/),
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+  // D-18: the ceiling falls with the allowlist. It rose once, by the coordinator's ruling of
+  // 21 November 2026 (F3, F4): by exactly the eight platform-wrapper sites that reached the key
+  // uncounted, each named for WP4b. Any other growth needs a new ruling.
+  it("pins the 121 entries, including the eight previously uncounted calls", () => {
     expect(ceilingDigest()).toBe(
-      "5ee7fecf03548a4ddc4b7f81407e7b24a344a935c92cf70f313e9e64a0339ad1",
+      "e25de42921ceb99b0be9b8c0242f8e8100f158dd910207645c07aa16ebed9e47",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -32,19 +86,40 @@ describe("frozen ceiling", () => {
       totals[kind] = (totals[kind] ?? 0) + count;
     }
     expect(totals).toEqual({
-      admin_client: 81,
-      service_role_key: 29,
+      admin_client: 78,
+      service_role_key: 27,
       workflow_admin_wrapper: 8,
-      operation_admin_context: 70,
+      operation_admin_context: 73,
     });
-    expect(CEILING.size).toBe(117);
+    expect(CEILING.size).toBe(121);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(111);
+    ).toBe(115);
   });
 });
 
 describe("scanSource binding forms beyond the acceptance fixtures", () => {
+  it("counts the platform wrapper, not the caller wrapper, even for an opaque handler", () => {
+    const code = [
+      'import { withOperation, withPlatformOperation } from "../shared/with-operation";',
+      "withOperation(callback);",
+      "withPlatformOperation(callback);",
+    ].join("\n");
+    expect(lines(code)).toEqual(["operation_admin_context:3"]);
+  });
+
+  it("rejects an unlisted direct factory reference in a caller-lane handler", () => {
+    const file = "packages/api/src/admin/plant.ts";
+    const code = `${OP}import { getAdminClient } from "${FACTORY}";\nwithOperation(() => getAdminClient());`;
+    const { sites } = scanSource(file, code);
+    const result = evaluateServiceRoleClientGate(
+      { sites: sites.map((site) => ({ ...site, file })), reexports: [] },
+      { entries: [] },
+    );
+    expect(result.failures).toContainEqual(
+      expect.stringContaining(`NEW_SITE admin_client ${file}`),
+    );
+  });
   it.each<[string, string, string[]]>([
     [
       "a property call on an awaited dynamic import",
@@ -68,23 +143,23 @@ describe("scanSource binding forms beyond the acceptance fixtures", () => {
     ],
     [
       "a context destructured in the body",
-      `${OP}withOperation(async (ctx) => { const { supabaseAdmin } = ctx; return supabaseAdmin; });`,
+      `${PLATFORM}withPlatformOperation(async (ctx) => { const { supabaseAdmin } = ctx; return supabaseAdmin; });`,
       ["operation_admin_context:2"],
     ],
     [
       "a context destructured in the body without the client",
-      `${OP}withOperation(async (ctx) => { const { auth } = ctx; return ctx.request ?? auth; });`,
-      [],
+      `${PLATFORM}withPlatformOperation(async (ctx) => { const { auth } = ctx; return ctx.request ?? auth; });`,
+      ["operation_admin_context:2"],
     ],
     [
       "a computed context key",
-      `${OP}withOperation(async (ctx) => ctx[key]);`,
+      `${PLATFORM}withPlatformOperation(async (ctx) => ctx[key]);`,
       ["operation_admin_context:2"],
     ],
     [
       "a handler without parameters, and withOperation called with none",
-      `${OP}withOperation(async () => ok());\nwithOperation();`,
-      ["operation_admin_context:3"],
+      `${PLATFORM}withPlatformOperation(async () => ok());\nwithPlatformOperation();`,
+      ["operation_admin_context:2", "operation_admin_context:3"],
     ],
   ])("%s", (_name, text, expected) => {
     expect(lines(text)).toEqual(expected);
@@ -132,6 +207,15 @@ describe("evaluateServiceRoleClientGate", () => {
     expect(result.failures).toEqual([]);
     expect(result).toMatchObject({ ok: true, files: 1 });
     expect(result.totals.admin_client).toBe(2);
+  });
+
+  it("rejects restoring the retired follower-request sites even with their old allowlist entry", () => {
+    const file = "packages/api/src/follower-requests/request.ts";
+    const result = evaluate(sites(2, file), [entry({ file, count: 2 })]);
+    expect(result.ok).toBe(false);
+    expect(result.failures).toEqual([
+      expect.stringContaining(`ALLOWLIST_GROWTH admin_client ${file}:`),
+    ]);
   });
 
   it("passes a shrink of the site and the entry together", () => {

@@ -40,8 +40,19 @@ const stateVersionResultSchema = z.object({
   stateVersion: z.number().int().positive(),
 });
 
-function requireAdminIdentity(auth: AuthenticatedContext) {
-  const identity = createAdminEveAuditIdentity(auth);
+/**
+ * The launch actor. A caller who passed the shared operator check acts as the
+ * platform operator (`super_admin` to Eve's SQL, which judges it by the
+ * operator list and a live row in the tenant); anyone else with their own role.
+ */
+function requireAdminIdentity(
+  auth: AuthenticatedContext,
+  platformOperator = false,
+) {
+  const identity = createAdminEveAuditIdentity(auth, {
+    platformOperator,
+    tenantId: auth.tenantId,
+  });
   if (!identity.actorProfileId || !identity.tenantId) {
     throw new ApiHttpError(403, "Verified Eve launch identity is required.");
   }
@@ -88,10 +99,12 @@ function mapLaunchError(error: { message: string } | null): never {
 
 export async function createEveLaunchManifest(input: {
   auth: AuthenticatedContext;
+  /** The shared operator check's result (`withOperation`'s `isPlatformOperator()`). */
+  platformOperator?: boolean;
   document: EveLaunchManifestDocument;
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<EveLaunchManifestRecord> {
-  const identity = requireAdminIdentity(input.auth);
+  const identity = requireAdminIdentity(input.auth, input.platformOperator);
   const normalized = normalizeEveLaunchManifest(input.document);
   const evaluation = evaluateEveLaunchReadiness({ document: normalized });
   const contentHash = hashEveLaunchManifest(normalized);
@@ -113,15 +126,17 @@ export async function createEveLaunchManifest(input: {
 
 export async function grantEveLaunchPermission(input: {
   auth: AuthenticatedContext;
+  /** The shared operator check's result (`withOperation`'s `isPlatformOperator()`). */
+  platformOperator?: boolean;
   enabled: boolean;
   permission: EveLaunchPermission;
   profileId: string;
   reason: string;
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<void> {
-  const identity = requireAdminIdentity(input.auth);
-  // WP2c moves this platform gate to the operator list.
-  if (input.auth.role !== "super_admin") {
+  const identity = requireAdminIdentity(input.auth, input.platformOperator);
+  // A platform gate (WP2c): the shared operator check, not a role name.
+  if (input.platformOperator !== true) {
     throw new ApiHttpError(
       403,
       "Only a platform owner may grant Eve launch permissions.",
@@ -148,13 +163,15 @@ export async function grantEveLaunchPermission(input: {
 
 export async function reviewEveLaunchManifest(input: {
   auth: AuthenticatedContext;
+  /** The shared operator check's result (`withOperation`'s `isPlatformOperator()`). */
+  platformOperator?: boolean;
   decision: "approved" | "rejected";
   manifestId: string;
   reviewerRole: "release" | "security";
   summary: string;
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<EveLaunchReview> {
-  const identity = requireAdminIdentity(input.auth);
+  const identity = requireAdminIdentity(input.auth, input.platformOperator);
   const { data, error } = await input.supabaseAdmin.rpc(
     "review_eve_launch_manifest",
     {
@@ -177,12 +194,14 @@ export async function reviewEveLaunchManifest(input: {
 
 export async function activateEveLaunchManifest(input: {
   auth: AuthenticatedContext;
+  /** The shared operator check's result (`withOperation`'s `isPlatformOperator()`). */
+  platformOperator?: boolean;
   expectedStateVersion: number;
   justification: string;
   manifestId: string;
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<{ launchId: string; stateVersion: number }> {
-  const identity = requireAdminIdentity(input.auth);
+  const identity = requireAdminIdentity(input.auth, input.platformOperator);
   const governance = await loadEveGovernanceSnapshot({
     supabaseAdmin: input.supabaseAdmin,
   });
@@ -256,12 +275,14 @@ export async function activateEveLaunchManifest(input: {
 
 export async function setEveReleaseSafetyControl(input: {
   auth: AuthenticatedContext;
+  /** The shared operator check's result (`withOperation`'s `isPlatformOperator()`). */
+  platformOperator?: boolean;
   expectedStateVersion: number;
   mode: "clear_emergency" | "disable" | "emergency_off";
   reason: string;
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<{ stateVersion: number }> {
-  const identity = requireAdminIdentity(input.auth);
+  const identity = requireAdminIdentity(input.auth, input.platformOperator);
   const { data, error } = await input.supabaseAdmin.rpc(
     "set_eve_release_safety_control",
     {
@@ -283,13 +304,15 @@ export async function setEveReleaseSafetyControl(input: {
 
 export async function closeEveLaunchCanary(input: {
   auth: AuthenticatedContext;
+  /** The shared operator check's result (`withOperation`'s `isPlatformOperator()`). */
+  platformOperator?: boolean;
   launchId: string;
   reason: string;
   results: Record<EveLaunchCanaryId, boolean>;
   status: "completed" | "failed";
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<void> {
-  const identity = requireAdminIdentity(input.auth);
+  const identity = requireAdminIdentity(input.auth, input.platformOperator);
   const { error } = await input.supabaseAdmin.rpc("close_eve_launch_canary", {
     p_actor_id: identity.actorId,
     p_actor_profile_id: identity.actorProfileId,

@@ -12,6 +12,8 @@ import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
+import { ApiHttpError, ensureJsonBody } from "../shared/http-errors";
+
 import type { UserRole } from "@asym/database/types";
 
 type DemoAvailability = Record<AppRole, boolean>;
@@ -246,7 +248,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { role } = (await request.json()) as { role?: AppRole };
+    const { role } = (await ensureJsonBody(request)) as { role?: AppRole };
 
     if (!role || !APP_ROLES.includes(role)) {
       return NextResponse.json(
@@ -371,7 +373,13 @@ export async function POST(request: Request) {
       );
     });
     return response;
-  } catch {
+  } catch (error) {
+    // The shared reader refuses a body that is not JSON (fix check G1).
+    if (error instanceof ApiHttpError && error.status === 415)
+      return NextResponse.json(
+        { ok: false, error: error.message, code: "DEMO_UNSUPPORTED_BODY" },
+        { status: 415 },
+      );
     return NextResponse.json(
       { ok: false, error: "Internal server error", code: "DEMO_SERVER_ERROR" },
       { status: 500 },

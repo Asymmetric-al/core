@@ -1,10 +1,14 @@
 "use client";
 
+import {
+  useRoutePathname as usePathname,
+  useTenantRouter as useRouter,
+} from "@asym/auth/tenant-navigation";
 import { AddPartnerDialog } from "@asym/missionary/components/add-partner-dialog";
 import { PageHeader } from "@asym/ui/components/page-header";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Download, Plus } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import * as React from "react";
 
 import { downloadPartnersCsv } from "./partners-export";

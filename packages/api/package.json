@@ -18,6 +18,7 @@
     "./auth/callback": "./src/auth/callback.ts",
     "./auth/password-recovery": "./src/auth/password-recovery.ts",
     "./auth/demo-account": "./src/auth/demo-account.ts",
+    "./auth/organization-choices": "./src/auth/organization-choices.ts",
     "./auth/signout": "./src/auth/signout.ts",
     "./auth/cleanup-demo-users": "./src/auth/cleanup-demo-users.ts",
     "./document-cutover": "./src/document-cutover/index.ts",

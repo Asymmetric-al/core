@@ -27,7 +27,7 @@ import {
 afterAll(removeTempDirs);
 
 const K = "SUPABASE_SERVICE_ROLE_KEY";
-const OP = 'import { withOperation } from "../shared/with-operation";';
+const OP = 'import { withPlatformOperation } from "../shared/with-operation";';
 const call = (n: number, fn = "getAdminClient") =>
   `import { ${fn} } from "${FACTORY}";\n${`${fn}();\n`.repeat(n)}`;
 /** Each fixture is an unlisted file; [file, kind, text, site lines, non-site lines]. */
@@ -112,18 +112,18 @@ const SITES: [string, string, string, number[], number[]][] = [
     "operation_admin_context",
     [
       OP,
-      "export const a = withOperation(async ({ supabaseAdmin }) => supabaseAdmin);",
-      "export const b = withOperation(async ({ supabaseAdmin: db }) => db);",
-      "export const c = withOperation(async (ctx) => ctx.supabaseAdmin);",
-      "export const d = withOperation(async ({ auth, ...rest }) => rest);",
-      "export const e = withOperation(async (ctx) => other(ctx));",
-      "export const f = withOperation(handler);",
-      "export const g = withOperation(async ({ auth, request }) => auth);",
-      "export const h = withOperation;",
-      'export const i = withOperation(async (ctx) => ctx["supabaseAdmin"]);',
+      "export const a = withPlatformOperation(async ({ supabaseAdmin }) => supabaseAdmin);",
+      "export const b = withPlatformOperation(async ({ supabaseAdmin: db }) => db);",
+      "export const c = withPlatformOperation(async (ctx) => ctx.supabaseAdmin);",
+      "export const d = withPlatformOperation(async ({ auth, ...rest }) => rest);",
+      "export const e = withPlatformOperation(async (ctx) => other(ctx));",
+      "export const f = withPlatformOperation(handler);",
+      "export const g = withPlatformOperation(async ({ auth, request }) => auth);",
+      "export const h = withPlatformOperation;",
+      'export const i = withPlatformOperation(async (ctx) => ctx["supabaseAdmin"]);',
     ].join("\n"),
-    [2, 3, 4, 5, 6, 7, 9, 10],
-    [8],
+    [2, 3, 4, 5, 6, 7, 8, 9, 10],
+    [],
   ],
 ];
 
@@ -132,14 +132,14 @@ const CLEAN: Record<string, string> = {
   "packages/database/supabase/admin.ts": `export function getAdminClient() { return process.env.${K}; }`,
   "packages/api/src/identity/guard.ts": `${call(1)}process.env.${K};`,
   "packages/api/src/workflows/admin-client.ts": `${call(1)}export function requireWorkflowAdminClient() {}`,
-  "packages/api/src/shared/with-operation.ts": `${call(1)}export function withOperation(h) { return h; }`,
+  "packages/api/src/shared/with-operation.ts": `${call(1)}export function withPlatformOperation(h) { return h; }`,
   "packages/api/src/posts/index.ts": call(1),
   "packages/api/src/profile/index.ts": call(2),
   "scripts/verify-money-units.ts": `process.env.${K};`,
   "packages/api/src/workflows/functions/stripe-event-processing.ts":
     'import { requireWorkflowAdminClient } from "../admin-client";\nrequireWorkflowAdminClient("x");',
-  "packages/api/src/admin/crm/table-preferences/route.ts": `${OP.replace("../", "../../../")}\nexport const a = withOperation(async ({ supabaseAdmin }) => supabaseAdmin);`,
-  "packages/api/src/admin/fx-neg.ts": `${OP}\nexport const g = withOperation(async ({ auth, request }) => auth);\nfunction getAdminClient() {}\ngetAdminClient();\nimport type { AdminSupabaseClient } from "${FACTORY}";`,
+  "packages/api/src/admin/crm/table-preferences/route.ts": `${OP.replace("../", "../../../")}\nexport const a = withPlatformOperation(async ({ supabaseAdmin }) => supabaseAdmin);`,
+  "packages/api/src/admin/fx-neg.ts": `${OP.replaceAll("withPlatformOperation", "withOperation")}\nexport const g = withOperation(async ({ auth, request }) => auth);\nfunction getAdminClient() {}\ngetAdminClient();\nimport type { AdminSupabaseClient } from "${FACTORY}";`,
   ...Object.fromEntries(
     [
       "packages/fx/a.test.ts",
@@ -217,7 +217,7 @@ describe("#2253 service-role gate on fixtures (8, 9, 10)", () => {
     );
   });
 
-  it("8: re-exporting the factory, requireWorkflowAdminClient or withOperation fails even when allowlisted", () => {
+  it("8: re-exporting the factory, requireWorkflowAdminClient or withPlatformOperation fails even when allowlisted", () => {
     const fx: [string, string, string][] = [
       [
         "packages/api/src/donate/index.ts",
@@ -230,9 +230,9 @@ describe("#2253 service-role gate on fixtures (8, 9, 10)", () => {
         'export { requireWorkflowAdminClient } from "../admin-client";\nimport { requireWorkflowAdminClient } from "../admin-client";\nrequireWorkflowAdminClient("x");',
       ],
       [
-        "packages/api/src/admin/users.ts",
+        "packages/api/src/admin/fund-directory.ts",
         "operation_admin_context",
-        `export { withOperation as w } from "../shared/with-operation";\n${OP}\nexport const a = withOperation(async ({ supabaseAdmin }) => supabaseAdmin);`,
+        `export { withPlatformOperation as w } from "../shared/with-operation";\n${OP}\nexport const a = withPlatformOperation(async ({ supabaseAdmin }) => supabaseAdmin);`,
       ],
     ];
     const r = gate(
@@ -333,8 +333,8 @@ type Allow = {
   })[];
 };
 const doc = () => JSON.parse(read(ALLOWLIST) || "null") as Allow | null;
-/** Pinned CEILING totals at c541b84b (lead's ruling): sites, entries, files. */
-const CEILING_TOTALS = [188, 117, 111] as const;
+// D-18: count the platform wrapper instead of the caller lane, including eight already-privileged member-care and portal sites under the 21 November ruling.
+const CEILING_TOTALS = [186, 121, 115] as const;
 const live = (d: Allow) => [
   d.entries.reduce((a, x) => a + x.count, 0),
   d.entries.length,
@@ -342,7 +342,7 @@ const live = (d: Allow) => [
 ];
 
 describe("#2253 service-role gate on the real tree (9, 11)", () => {
-  it("9: the allowlist is the frozen v1 list, at or under the pinned ceiling: 188 sites, 117 entries, 111 files, per-kind totals as specced (removals pass)", () => {
+  it("9: the allowlist is the frozen v1 list, at or under the reviewed ceiling (removals pass)", () => {
     const d = doc();
     expect(d, `${ALLOWLIST} exists and is JSON`).not.toBeNull();
     expect([d!.version, d!.ruling, d!.frozen_at]).toEqual([
@@ -362,12 +362,13 @@ describe("#2253 service-role gate on the real tree (9, 11)", () => {
     for (const k of KINDS) {
       const xs = d!.entries.filter((x) => x.kind === k);
       const got = [xs.reduce((n, x) => n + x.count, 0), xs.length];
-      const ok = got.every((n, i) => n <= TOTALS[k][i]!);
-      expect(ok, `${k} ${got.join("/")} <= ${TOTALS[k].join("/")}`).toBe(true);
+      const limit = k === "operation_admin_context" ? [73, 43] : TOTALS[k];
+      const ok = got.every((n, i) => n <= limit[i]!);
+      expect(ok, `${k} ${got.join("/")} <= ${limit.join("/")}`).toBe(true);
     }
     const got = live(d!);
     const ok = got.every((n, i) => n <= CEILING_TOTALS[i]!);
-    expect(ok, `${got.join("/")} <= 188/117/111`).toBe(true);
+    expect(ok, `${got.join("/")} <= ${CEILING_TOTALS.join("/")}`).toBe(true);
   });
 
   it("9 (non-vacuous): service_role_key entries equal an independent key-name count over the scanned tree, the gate itself excluded", () => {

@@ -28,9 +28,13 @@ const read = (file: string) => {
 /** An allowlist row: a whole `count` and exactly that many line numbers. */
 const isAllowlistEntry = (
   e: unknown,
-): e is { count: number; lines: number[] } =>
+): e is { kind: string; reason: string; count: number; lines: number[] } =>
   typeof e === "object" &&
   e !== null &&
+  "kind" in e &&
+  typeof e.kind === "string" &&
+  "reason" in e &&
+  typeof e.reason === "string" &&
   "count" in e &&
   "lines" in e &&
   Number.isInteger(e.count) &&
@@ -83,7 +87,7 @@ describe("#2308 static contracts (A)", () => {
     expect(result.error).toBeUndefined();
     expect(result.status, `${result.stdout}${result.stderr}`).toBe(0);
   });
-  it("C12: the service-role allowlist stays within the AL-2675 shrink and does not restore the admin users allowance", () => {
+  it("C12: the service-role allowlist stays within the reviewed ceilings and does not restore retired allowances", () => {
     const doc: unknown = JSON.parse(
       read("docs/security/service-role-client-allowlist.json"),
     );
@@ -101,10 +105,29 @@ describe("#2308 static contracts (A)", () => {
       "entries without a whole count and a lines array of that many line numbers",
     ).toEqual([]);
     const rows = entries.filter(isAllowlistEntry);
-    expect(rows).not.toContainEqual(
-      expect.objectContaining({ file: "packages/api/src/admin/users.ts" }),
+    for (const file of ["packages/api/src/admin/users.ts"]) {
+      expect(rows).not.toContainEqual(expect.objectContaining({ file }));
+    }
+    const platform = rows.filter(
+      (entry) => entry.kind === "operation_admin_context",
     );
-    expect(rows.length).toBeLessThanOrEqual(116);
-    expect(rows.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(180);
+    const helpers = platform.filter(
+      (entry) =>
+        entry.reason ===
+        "counted from 21 November 2026; reached the key before the split through an uncounted helper",
+    );
+    expect(helpers.length).toBeLessThanOrEqual(6);
+    expect(
+      helpers.reduce((sites, entry) => sites + entry.count, 0),
+    ).toBeLessThanOrEqual(8);
+    const originals = platform.filter((entry) => !helpers.includes(entry));
+    expect(originals.length).toBeLessThanOrEqual(37);
+    expect(
+      originals.reduce((sites, entry) => sites + entry.count, 0),
+    ).toBeLessThanOrEqual(65);
+    for (const entry of originals)
+      expect(entry.reason).toContain("withPlatformOperation");
+    expect(rows.length).toBeLessThanOrEqual(121);
+    expect(rows.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(186);
   });
 });

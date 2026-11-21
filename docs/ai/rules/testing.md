@@ -98,6 +98,19 @@ breaks, never because a file's bytes changed. The owner retired byte pins on
 - A hash is fine when the hash is the behavior under test, for example a
   provenance chain or an applied migration that must never change.
 
+## The tenant-address specs on production builds
+
+`tests/e2e/admin-tenant-address.spec.ts` and
+`tests/e2e/missionary-tenant-address.spec.ts` run on a development server in
+CI's end-to-end job. Their production block (the one prerendered shell for
+every tenant, holding no tenant; sign-in through the form; the D-19 guard on a
+server bound to `127.0.0.1`) runs only on production builds:
+`bun run test:e2e:tenant-address:production [admin|missionary] [-- <playwright args>]`
+(`scripts/e2e/tenant-address-production.sh`). It builds each app against the
+Supabase stub and needs `PAYLOAD_DATABASE_URI` naming a Payload database
+migrated with `bun run cms:migrate`. CI does not run it yet: it needs two
+extra production builds and a Payload database in a job of its own.
+
 ## Working in parallel checkouts
 
 Several agents may run in separate worktrees on one machine. Local Playwright

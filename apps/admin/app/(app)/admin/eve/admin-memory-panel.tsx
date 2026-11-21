@@ -1,6 +1,7 @@
 "use client";
 
 import { EVE_ADMIN_MEMORY_CATEGORIES } from "@asym/api/eve/admin-memory";
+import { ownApiFetch } from "@asym/database/own-api";
 import {
   useLocaleFormat,
   type DateInput,
@@ -118,7 +119,7 @@ const LABELS: Record<EveAdminMemoryCategory, string> = {
 };
 
 async function requestMemory(input?: Mutation): Promise<ResponseBody> {
-  const response = await fetch(
+  const response = await ownApiFetch(
     "/api/admin/eve/admin-memory",
     input
       ? {

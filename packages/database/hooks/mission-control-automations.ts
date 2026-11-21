@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import type { MissionControlAutomationActivationStatus } from "@asym/database/mission-control-automations";
 
 export type { MissionControlAutomationActivationStatus };
@@ -58,7 +60,7 @@ export const MISSION_CONTROL_AUTOMATIONS_QUERY_KEY = [
 ] as const;
 
 async function loadMissionControlAutomations(): Promise<MissionControlAutomationsResponse> {
-  const response = await fetch("/api/admin/mission-control/automations", {
+  const response = await ownApiFetch("/api/admin/mission-control/automations", {
     credentials: "same-origin",
     headers: { accept: "application/json" },
   });

@@ -1,7 +1,7 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { ChevronDown, LogOut } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";

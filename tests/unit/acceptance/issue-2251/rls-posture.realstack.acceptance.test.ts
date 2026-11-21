@@ -104,7 +104,15 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
       sql.replace(/:(DA|DB|A|B|U)\b/g, (_m, k: string) => `'${ids[k]}'`),
     );
   }
-  /** Run one statement as `role` with the given JWT claims (or none); nothing leaks. */
+  /**
+   * Run one statement as `role` with the given JWT claims (or none); nothing
+   * leaks. Amended by AL-2675 (WP2b, second release; record D-18): the
+   * signed-in caller's tenant comes from the request's `x-asym-tenant` header
+   * and a live membership there, no longer from the token claim, so a caller
+   * with claims also names tenant A in the request, as the Data API carries
+   * it. The claim stays in the token and reads nothing. Criterion 3 asserts
+   * the same rows as before.
+   */
   async function as(
     role: string,
     claims: string | null,
@@ -115,8 +123,12 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
     try {
       await db.query(`set local role ${role}`);
       await db.query(
-        "select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', $2, true)",
-        [claims ?? "", claims ? U : ""],
+        "select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', $2, true), set_config('request.headers', $3, true)",
+        [
+          claims ?? "",
+          claims ? U : "",
+          claims ? JSON.stringify({ "x-asym-tenant": TA }) : "",
+        ],
       );
       const r = await db.query(sql, args);
       return {

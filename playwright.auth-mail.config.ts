@@ -7,7 +7,9 @@ import {
 
 /**
  * Supabase Auth email journeys against a local Supabase stack and its mail
- * catcher: each spec runs once per app, on servers this config starts.
+ * catcher: each spec runs once per app, on servers this config starts. The
+ * same stack carries the request-scope journeys (AL-2675): real sessions
+ * reading real rows through each app's tenant-scoped reads.
  *
  * Needs, all pointing at the local stack (`supabase status -o env`):
  * NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY (or
@@ -19,9 +21,20 @@ import {
  * the email links must come back through the local redirect allowlist. The
  * ports stay clear of the apps' everyday dev ports; override them with
  * AUTH_MAIL_DONOR_PORT, AUTH_MAIL_ADMIN_PORT and AUTH_MAIL_MISSIONARY_PORT.
+ *
+ * Mission Control and the missionary workspace serve every signed-in page
+ * through their proxy's rewrite of the tenant address (AL-2675). Bound to a
+ * loopback IP literal, Next sends that rewrite out of the server and the
+ * proxy answers 500 (record D-19). They bind the loopback name instead,
+ * resolved IPv4 first, so they still listen on 127.0.0.1, as
+ * scripts/github/e2e-dev-server.sh starts them for CI.
  */
 
 const SERVER_HOST = "127.0.0.1";
+const TENANT_ADDRESS_APPS: ReadonlySet<string> = new Set([
+  "admin",
+  "missionary",
+]);
 const SERVER_TIMEOUT_MS = Number(
   process.env.PLAYWRIGHT_WEB_SERVER_TIMEOUT_MS || 600_000,
 );
@@ -52,13 +65,40 @@ const serverEnv = {
   // These journeys never reach the assistant runtime. A set base URL stops
   // Mission Control's dev server from building and starting it (`eve/next`).
   EVE_BASE_URL: process.env.EVE_BASE_URL || "http://127.0.0.1:9",
+  // Web Studio's Payload reads the stack's database. Without this it assumes
+  // the default local port, which a stack started on other ports does not use.
+  ...(!process.env.PAYLOAD_DATABASE_URI && process.env.E2E_AUTH_MAIL_DB_URL
+    ? { PAYLOAD_DATABASE_URI: process.env.E2E_AUTH_MAIL_DB_URL }
+    : {}),
 } as Record<string, string>;
+
+/** The hostname an app's dev server binds, and the environment it starts with. */
+function binding(app: string): {
+  hostname: string;
+  env: Record<string, string>;
+} {
+  if (!TENANT_ADDRESS_APPS.has(app)) {
+    return { hostname: SERVER_HOST, env: serverEnv };
+  }
+  const inherited = serverEnv.NODE_OPTIONS?.trim();
+  return {
+    hostname: "localhost",
+    env: {
+      ...serverEnv,
+      NODE_OPTIONS: [inherited, "--dns-result-order=ipv4first"]
+        .filter(Boolean)
+        .join(" "),
+    },
+  };
+}
 
 export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: [
     "**/auth-password-recovery.spec.ts",
     "**/auth-signup-confirmation.spec.ts",
+    "**/auth-two-organizations.spec.ts",
+    "**/auth-request-scope-reads.spec.ts",
   ],
   outputDir: "test-results/auth-mail",
   fullyParallel: false,
@@ -81,9 +121,9 @@ export default defineConfig({
     use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${port}` },
   })),
   webServer: surfaces.map(({ app, port, readyPath }) => ({
-    command: devServerCommand(app, port, SERVER_HOST),
+    command: devServerCommand(app, port, binding(app).hostname),
     url: `http://${SERVER_HOST}:${port}${readyPath}`,
-    env: serverEnv,
+    env: binding(app).env,
     reuseExistingServer: shouldReuseExistingServer(process.env),
     timeout: SERVER_TIMEOUT_MS,
   })),

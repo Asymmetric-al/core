@@ -5,6 +5,10 @@ import {
   toEveSessionAuthSnapshot,
 } from "@asym/api/eve/session-ownership";
 import {
+  mutationMediaType,
+  trustedMutationSource,
+} from "@asym/auth/request-headers";
+import {
   ForbiddenError,
   UnauthenticatedError,
   type AuthFn,
@@ -26,7 +30,23 @@ function isLoopbackVerificationRequest(request: Request): boolean {
   );
 }
 
+// Every write method (fix check M3). Eve 0.25.1's client sends
+// `content-type: application/json` on each POST, the bodyless cancel call
+// included, so a cookie-carrying write needs no empty-write exception.
+const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
 export const adminEveRouteAuth: AuthFn<Request> = async (request) => {
+  if (
+    WRITE_METHODS.has(request.method) &&
+    request.headers.has("cookie") &&
+    (!trustedMutationSource(request) ||
+      mutationMediaType(request) !== "application/json")
+  ) {
+    throw new ForbiddenError({
+      message: "Eve session writes require same-origin JSON.",
+    });
+  }
+
   // Preserve #425's offline deterministic eval without trusting Host alone.
   // Eve runs local evals in this process with the `eval` CLI command, and the
   // following localDev() authenticator independently rechecks loopback.

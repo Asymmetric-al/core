@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 import { Badge } from "@asym/ui/components/shadcn/badge";
@@ -415,7 +416,7 @@ function useOfflineGiftForm(handlers: UseOfflineGiftFormHandlers) {
       }, SUBMIT_TIMEOUT_MS);
 
       try {
-        const response = await fetch("/api/admin/contributions/offline", {
+        const response = await ownApiFetch("/api/admin/contributions/offline", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify(toOfflineContributionRequest(value)),

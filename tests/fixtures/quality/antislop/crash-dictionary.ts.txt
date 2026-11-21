@@ -1,0 +1,5 @@
+type Box<T> = Record<string, T>;
+type ReadonlyBox<T> = Box<Readonly<T>>;
+
+export type Safe = ReadonlyBox<{ id: string }>;
+export type Unsafe = ReadonlyBox<unknown>;

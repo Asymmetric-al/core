@@ -68,15 +68,30 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
   const one = async (sql: string, p: unknown[] = []) =>
     Object.values((await rows(sql, p))[0] ?? {})[0];
 
-  /** Runs `sql` in a savepoint (optionally as `role` with `sub`), always rolled back; returns rows or the error. */
-  async function run(sql: string, p: unknown[] = [], role = "", sub = "") {
+  /**
+   * Runs `sql` in a savepoint (optionally as `role` with `sub`), always rolled back; returns rows or the error.
+   * Amended by AL-2675 (WP2b, second release; record D-18): a signed-in
+   * request acts in the tenant its `x-asym-tenant` header names, where the
+   * caller holds a live membership, so `tenant` is sent as that header.
+   */
+  async function run(
+    sql: string,
+    p: unknown[] = [],
+    role = "",
+    sub = "",
+    tenant = "",
+  ) {
     await db.query("SAVEPOINT s");
     try {
       if (role) {
         await db.query(`SET LOCAL ROLE ${role}`);
         await db.query(
-          "SELECT set_config('request.jwt.claim.sub', $1, true), set_config('request.jwt.claims', $2, true)",
-          [sub, JSON.stringify({ sub: sub || null, role })],
+          "SELECT set_config('request.jwt.claim.sub', $1, true), set_config('request.jwt.claims', $2, true), set_config('request.headers', $3, true)",
+          [
+            sub,
+            JSON.stringify({ sub: sub || null, role }),
+            tenant ? JSON.stringify({ "x-asym-tenant": tenant }) : "",
+          ],
         );
       }
       const r = await db.query(sql, p);
@@ -90,8 +105,9 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
   }
   const fails = async (sql: string, p: unknown[] = []) =>
     (await run(sql, p)).code;
+  /** Each person's requests name their own tenant: B for staffB, A for everyone else. */
   const as = (who: keyof typeof U, sql: string, p: unknown[] = []) =>
-    run(sql, p, "authenticated", U[who]);
+    run(sql, p, "authenticated", U[who], who === "staffB" ? B : A);
   const personIds = async (who: keyof typeof U) =>
     (await as(who, "SELECT id FROM public.persons ORDER BY id")).rows.map(
       (r) => r.id as string,
@@ -277,8 +293,11 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
         permissive: "PERMISSIVE",
         with_check: null,
       });
-      expect(String(pols[0]!.qual)).toMatch(
-        /authz\.has_staff_membership\((persons\.)?tenant_id, NULL(::authz\.staff_role\[\])?\)/,
+      // Amended by AL-2675 (WP2b, second release; record D-18): the staff
+      // check reads the request's tenant and the staff class of its one
+      // assignment, as whole sub-selects, in place of the row's own tenant.
+      expect(String(pols[0]!.qual)).toBe(
+        "((tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)) AND ( SELECT authz.assignment_is('staff'::authz.membership_role) AS assignment_is))",
       );
       expect(
         await one(
@@ -394,7 +413,14 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
           .map((p) => `${p.schemaname}.${p.tablename} ${p.policyname}`)
           .sort(),
         `policy readers of profiles.tenant_id changed; ${POINTER}`,
-      ).toEqual(READER_POLICIES);
+      ).toEqual(
+        // Amended by AL-2675 (WP2b, second release; record D-18; plan WP2
+        // "Data"): the staff profile read is dropped and the Storage policies
+        // test membership in the path's tenant, so no policy reads
+        // profiles.tenant_id any more. The harness keeps the list the static
+        // suite checks against #2256's own migration text.
+        READER_POLICIES.filter(() => false),
+      );
       // The WP2a sweep (AL-2675) adds `private` to the scanned schemas.
       const fns = await rows(
         `SELECT p.proname, p.prosecdef FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
@@ -492,14 +518,31 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
   /** #2256 objects only: persons, person_id, and the 4 spec §1.2 constraint names (not e.g. `in_person_visit`). */
   const OURS = new RegExp(["persons", "person_id", ...CONSTRAINTS].join("|"));
   const ours = (v: string) => OURS.test(v);
+  /**
+   * Amended by AL-2675 (WP2b, second release; record D-18): a later
+   * migration rewrites the persons staff policy this file creates, so
+   * applying this file again restores its own text for that one policy and
+   * for nothing else.
+   */
+  const rewrittenLater = (v: string) =>
+    v.startsWith("pol public.persons persons_staff_select ");
 
   tx(
-    "11: re-applying the forward file succeeds twice and changes no catalog or field_policies row",
+    "11: re-applying the forward file succeeds twice; the second changes nothing, the first only restores its own text of the persons staff policy a later migration rewrote",
     async () => {
       const before = await catalog();
       await db.query(body(MIGRATION));
+      const once = await catalog();
       await db.query(body(MIGRATION));
-      expect(await catalog()).toEqual(before);
+      expect(await catalog()).toEqual(once);
+      expect(
+        once
+          .filter((v) => !before.includes(v))
+          .map((v) => v.split(" ").slice(0, 3).join(" ")),
+      ).toEqual(["pol public.persons persons_staff_select"]);
+      expect(once.filter((v) => !rewrittenLater(v))).toEqual(
+        before.filter((v) => !rewrittenLater(v)),
+      );
     },
   );
 
@@ -525,7 +568,9 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
         ),
       ).toBe("normalize_email(text)");
       await db.query(body(MIGRATION));
-      expect(await catalog()).toEqual(before);
+      expect((await catalog()).filter((v) => !rewrittenLater(v))).toEqual(
+        before.filter((v) => !rewrittenLater(v)),
+      );
     },
   );
 

@@ -98,11 +98,16 @@ export function migrateSteps(): WorkflowStep[] {
   return migrateJob()?.steps ?? [];
 }
 
+/** Normalize Bash backslash-newline continuations into spaces. */
+function normalizeRunLine(run: unknown): string {
+  return String(run ?? "")
+    .replace(/\\\r?\n[ \t]*/g, " ")
+    .trim();
+}
+
 /** The whitespace-separated words of a step's `run:` text. */
 export function runWords(step: WorkflowStep): string[] {
-  return String(step.run ?? "")
-    .trim()
-    .split(/\s+/);
+  return normalizeRunLine(step.run).split(/\s+/);
 }
 
 /**
@@ -158,16 +163,31 @@ export function realstackStepProblems(
   }
   const migrated = steps.findIndex((s) => s.name === "Apply migrations");
   if (migrated < 0) problems.push("migrate has no 'Apply migrations' step");
-  else if (steps.indexOf(step) < migrated) {
-    problems.push(`${name}: runs before Apply migrations`);
+  else {
+    const migrateStep = steps[migrated]!;
+    if (migrateStep["continue-on-error"] !== undefined) {
+      problems.push(
+        "Apply migrations: sets continue-on-error, so it is not blocking",
+      );
+    }
+    if (migrateStep.if !== undefined) {
+      problems.push("Apply migrations: has an if, so it can be skipped");
+    }
+    if (
+      normalizeRunLine(migrateStep.run) !==
+      "node scripts/verify/supabase-migrations.mjs"
+    ) {
+      problems.push(
+        "Apply migrations: does not run 'node scripts/verify/supabase-migrations.mjs'",
+      );
+    }
+    if (steps.indexOf(step) < migrated) {
+      problems.push(`${name}: runs before Apply migrations`);
+    }
   }
-  // Bash runs each line as its own command, so a path on a later line is
-  // not a vitest argument.
-  if (
-    String(step.run ?? "")
-      .trim()
-      .includes("\n")
-  ) {
+  // Bash runs each unescaped newline as its own command, so a path on a later
+  // line without a backslash continuation is not a vitest argument.
+  if (normalizeRunLine(step.run).includes("\n")) {
     problems.push(
       `${name}: run spans several lines, so Bash runs more than one command`,
     );

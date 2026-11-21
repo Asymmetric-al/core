@@ -34,7 +34,7 @@ function recordStatements() {
 
 async function loadPayload() {
   const statements = recordStatements();
-  const { getPayload } = await import(
+  const { getPayload, handleEndpoints } = await import(
     pathToFileURL(adminRequire.resolve("payload")).href
   );
   const { default: config } = await import(
@@ -55,6 +55,7 @@ async function loadPayload() {
     buildPublicReadRequestContext,
     config,
     getPayload,
+    handleEndpoints,
     statements,
   };
 }
@@ -86,6 +87,31 @@ async function outcome(run) {
   }
 }
 
+/**
+ * One REST call through Payload's own router (`handleEndpoints`, which the
+ * Next.js route under `/web-studio/api` hands every request to), as an
+ * anonymous browser would make it.
+ */
+async function restCall(handleEndpoints, config, pathname) {
+  const response = await handleEndpoints({
+    config,
+    request: new Request(new URL(pathname, "http://qualification.invalid")),
+  });
+  const text = await response.text();
+  let body = null;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    // Not JSON: recorded as such.
+  }
+  return {
+    status: response.status,
+    contentType: response.headers.get("content-type"),
+    errors: Array.isArray(body?.errors) ? body.errors.length : 0,
+    message: typeof body?.message === "string" ? body.message : null,
+  };
+}
+
 function docIds(result) {
   return result.ok ? result.value.docs.map((doc) => String(doc.id)) : null;
 }
@@ -100,6 +126,7 @@ export async function runStartupProof() {
     buildPublicReadRequestContext,
     config,
     getPayload,
+    handleEndpoints,
     statements,
   } = await loadPayload();
 
@@ -205,11 +232,25 @@ export async function runStartupProof() {
     ),
   };
 
+  // Payload's REST routes live under `/web-studio/api` (plan 5.2; AL-2675,
+  // WP2b slice C): an anonymous read there is Payload's JSON refusal, and
+  // nothing of Payload's answers under `/api`.
+  const restRoutes = {
+    configured: payload.config.routes.api,
+    underWebStudio: await restCall(
+      handleEndpoints,
+      config,
+      "/web-studio/api/pages?limit=1",
+    ),
+    underApi: await restCall(handleEndpoints, config, "/api/pages?limit=1"),
+  };
+
   const allStatements = [...statements];
   await payload.destroy();
 
   return {
     identity: identity.rows[0],
+    restRoutes,
     statementCount: allStatements.length,
     startupStatementCount: startupStatements.length,
     sentinelRecorded: allStatements.some((text) =>

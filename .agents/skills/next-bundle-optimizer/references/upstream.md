@@ -22,15 +22,15 @@ Outcome: imported the complete upstream subtree (`SKILL.md`, `references/fix-pat
 
 ## Core adaptations
 
-- A marked Core overlay (`<!-- CORE-OVERLAY-START -->` to `<!-- CORE-OVERLAY-END -->`) sits between the frontmatter and the upstream title. It limits the skill to the three Turbopack apps (`next analyze` works only with Turbopack, and `apps/factory-console` builds with webpack), maps the `pnpm` commands to Bun, keeps analyzer output out of the repository, sends sandbox escapes through the client's own permission request, and routes fix-mode dependency and UI changes through Core's skills and rulebooks.
-- No upstream sentence is edited. The installed `SKILL.md` therefore differs from the raw upstream hash above only by the overlay block.
+- A marked Core overlay (`<!-- CORE-OVERLAY-START -->` to `<!-- CORE-OVERLAY-END -->`) sits between the frontmatter and the upstream title. It limits the skill to the three Turbopack apps (`next analyze` works only with Turbopack, and `apps/factory-console` builds with webpack), maps the `pnpm` commands to Bun, keeps analyzer output out of the repository, sends sandbox escapes through the client's own permission request, and routes fix-mode dependency and UI changes through Core's skills and rulebooks. Since AL-2715 it also says that the capture commands are unexercised in Core (checked only against `--help`) and must be confirmed on first use, and that a capture that fails for missing environment is stopped and reported; the build environment wrapper in `instant-nav.rig.md` has not been tried with `next analyze`.
+- No upstream sentence is edited. The installed `SKILL.md` therefore differs from the raw upstream hash above only by the overlay block. `scripts/lib/ecosystem-skill-adapters.mjs` restores it from `scripts/refresh-overlays/ecosystem-core-overlays.json` at every `bun run skills:sync`, so a raw reinstall is repaired on the next sync (AL-2715).
 
 Next.js 16.4.0 added `next analyze export` and this skill. The installed `next@16.4.5` CLI reports `next analyze` as "Only compatible with Turbopack" and ships `next/analyze/graph-v1.schema.json`.
 
 ## Refresh
 
 1. Use an isolated temporary checkout at the `vercel/next.js` release tag that matches the installed `next` version. Verify the tag's commit and the complete file inventory before import. Stage only this skill with `npx --yes skills@1.5.7 add <reviewed-local-checkout> --skill next-bundle-optimizer --agent codex --copy -y` from a scratch directory. Do not use global defaults, `canary`, or other pack members.
-2. Compare the complete source tree and all support files. Re-insert the marked Core overlay after the frontmatter and re-check each of its facts against the installed Next.js CLI and the repository. Record raw upstream hashes separately from adapted bytes.
+2. Compare the complete source tree and all support files. `bun run skills:sync` re-inserts the marked Core overlay after the frontmatter from `scripts/refresh-overlays/ecosystem-core-overlays.json`; re-check each of its facts against the installed Next.js CLI and the repository and update the overlay there. Record raw upstream hashes separately from adapted bytes.
 3. Replace the installed source directory transactionally, keeping this provenance and the licence notice. Update its lock entry and source-audit record in the same change. Never run imported scripts or tests as a refresh side effect.
 4. Run `bun run skills:sync`, then non-mutating `bun run skills:verify`, then `bunx vitest run tests/unit/docs`.
 

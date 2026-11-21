@@ -11,12 +11,12 @@ import {
 /**
  * Source-text guards for the missionary app's edge gate.
  *
- * Every route in this app is staff-facing, and `app/layout.tsx` renders
- * `{children}` beside its role gate rather than behind it, so the shell is
- * generated before that gate can redirect. That trade is only safe while the
- * edge turns the wrong visitor away first. The behaviour is covered in
- * `tests/unit/auth/middleware.test.ts`; these assertions cover the config that
- * decides whether the behaviour is reached at all.
+ * Every signed-in route in this app lives under the tenant in the page
+ * address, and the edge decides membership in that tenant before the page
+ * shell; `app/layout.tsx` repeats the gate behind it. The behaviour is
+ * covered in `tests/unit/auth/middleware.test.ts` and
+ * `middleware-tenant-address.test.ts`; these assertions cover the config
+ * that decides whether the behaviour is reached at all.
  */
 const proxySource = readFileSync(
   fileURLToPath(
@@ -26,21 +26,16 @@ const proxySource = readFileSync(
 ).replace(/\/\*[\s\S]*?\*\//g, "");
 
 describe("missionary edge gate", () => {
-  it("retains the proxy's existing public routes exactly", () => {
+  // Council round 1, A13: the entries the workspace has no page for went
+  // (public site pages, a signing page, root files the matcher never runs
+  // on); each one left lies outside the tenant segment. Only narrower: a
+  // removed path now needs a signed-in person.
+  it("keeps the proxy's public routes exactly", () => {
     expect(MISSIONARY_PUBLIC_ROUTES).toEqual([
-      "/about",
       "/auth/callback",
-      "/faq",
-      "/financials",
       "/register",
       "/forgot-password",
-      "/ways-to-give",
-      "/workers",
-      "/checkout",
-      "/sign",
       "/api/auth/demo-account",
-      "/sitemap.xml",
-      "/robots.txt",
       "/no-access",
       "/boneyard",
     ]);
@@ -53,6 +48,7 @@ describe("missionary edge gate", () => {
     ["/auth/callback", true],
     ["/forgot-password", true],
     ["/no-access", true],
+    ["/choose-organization", true],
     ["/api/example", true],
     ["/boneyard/capture", true],
     ["/", false],
@@ -81,6 +77,7 @@ describe("missionary edge gate", () => {
 
   it("protects every route and enforces a role", () => {
     expect(proxySource).toMatch(/protectedRoutePrefixes:\s*\["\/"\]/);
+    expect(proxySource).toMatch(/tenantAddress:\s*true/);
     expect(proxySource).toMatch(/allowedRoles:\s*MISSIONARY_ALLOWED_ROLES/);
     expect(proxySource).toMatch(
       /resolveUserRole:\s*resolveUserRoleFromDatabase/,

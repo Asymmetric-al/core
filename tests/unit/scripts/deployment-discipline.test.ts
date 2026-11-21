@@ -99,7 +99,8 @@ describe("deployment discipline verifier", () => {
     expect(workflow).toContain("run: bun run test:e2e:smoke");
     expect(workflow).toContain("run: bun run test:e2e:production-gate");
     expect(workflow).not.toContain("run: bun run test:e2e --project=chromium");
-    expect(workflow).toContain("timeout-minutes: 30");
+    // D-18: GitHub ran #2734 in 23m16s. Bound the job at 35 minutes; keep step caps.
+    expect(workflow).toContain("timeout-minutes: 35");
     expect(workflow).toContain("timeout-minutes: 25");
     expect(workflow).toContain("timeout-minutes: 10");
     expect(packageJson.scripts["test:e2e:smoke"]).toContain(

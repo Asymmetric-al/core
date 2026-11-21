@@ -236,6 +236,55 @@ describe("migration health route", () => {
     expect(source).toContain(`process.env.${BUILD_MIGRATION_HEADS_ENV}`);
   });
 
+  it("includes VERCEL_DEPLOYMENT_ID in the bypass-authenticated release detail only", async () => {
+    const prevId = process.env.VERCEL_DEPLOYMENT_ID;
+    const prevSha = process.env.VERCEL_GIT_COMMIT_SHA;
+    const prevEnv = process.env.VERCEL_ENV;
+    try {
+      process.env.VERCEL_DEPLOYMENT_ID = "dpl_runtime123";
+      process.env.VERCEL_GIT_COMMIT_SHA = "a".repeat(40);
+      process.env.VERCEL_ENV = "production";
+      const rpc = vi.fn(async () => ({
+        data: { environment: "shared", expected_heads: build },
+        error: null,
+      }));
+      const handler = createMigrationHealthHandler("admin", {
+        connection: vi.fn(async () => {}),
+        getClient: () => ({ client: { rpc }, error: null }),
+        readBuildHeads: () => JSON.stringify(build),
+        readSupabaseUrl: () => "https://abcdefghijklmnopqrst.supabase.co",
+        readBypassSecret: () => BYPASS,
+      });
+
+      const authed = await call(handler, fromReleaseJob());
+      expect(authed.status).toBe(200);
+      expect(authed.body.release).toMatchObject({
+        commit: "a".repeat(40),
+        deploymentId: "dpl_runtime123",
+        environment: "production",
+      });
+
+      const unauthed = await call(
+        handler,
+        new Request("https://admin.asymmetric.al/api/health/migrations"),
+      );
+      expect(unauthed.status).toBe(200);
+      expect(unauthed.body).toEqual({ status: "ok" });
+
+      delete process.env.VERCEL_DEPLOYMENT_ID;
+      const withoutId = await call(handler, fromReleaseJob());
+      expect(withoutId.status).toBe(200);
+      expect(withoutId.body.release.deploymentId).toBeNull();
+    } finally {
+      if (prevId === undefined) delete process.env.VERCEL_DEPLOYMENT_ID;
+      else process.env.VERCEL_DEPLOYMENT_ID = prevId;
+      if (prevSha === undefined) delete process.env.VERCEL_GIT_COMMIT_SHA;
+      else process.env.VERCEL_GIT_COMMIT_SHA = prevSha;
+      if (prevEnv === undefined) delete process.env.VERCEL_ENV;
+      else process.env.VERCEL_ENV = prevEnv;
+    }
+  });
+
   it("derives the Supabase project ref from the public URL", () => {
     expect(
       supabaseProjectRefOf("https://abcdefghijklmnopqrst.supabase.co"),

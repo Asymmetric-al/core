@@ -6,6 +6,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -43,9 +44,12 @@ const problems = (run: string, extra?: Partial<WorkflowStep>) =>
   realstackStepProblems(stepsWith(run, extra), STEP, [F2364], ENV);
 
 describe("realstackStepProblems (fixtures)", () => {
-  it("a sound step has no problems, including a block scalar's newline", () => {
+  it("a sound step has no problems, including a block scalar's newline or Bash line continuation", () => {
     expect(problems(RUN)).toEqual([]);
     expect(problems(`${RUN}\n`)).toEqual([]);
+    expect(problems(`bun x vitest run \\\n  ${F2250} \\\n  ${F2364}`)).toEqual(
+      [],
+    );
   });
 
   describe("kept from #2706", () => {
@@ -73,11 +77,29 @@ describe("realstackStepProblems (fixtures)", () => {
       expect(run()).not.toEqual([]);
     });
 
-    it("rejects a step before Apply migrations", () => {
+    it("rejects a step before Apply migrations or a weakened Apply migrations step", () => {
       const [fork, apply, step] = stepsWith(RUN);
       expect(
         realstackStepProblems([fork!, step!, apply!], STEP, [F2364], ENV),
       ).toEqual([expect.stringMatching(/before Apply migrations/)]);
+      expect(
+        realstackStepProblems(
+          [fork!, { ...apply!, run: "echo skipped" }, step!],
+          STEP,
+          [F2364],
+          ENV,
+        ),
+      ).toEqual([expect.stringMatching(/Apply migrations: does not run/)]);
+      expect(
+        realstackStepProblems(
+          [fork!, { ...apply!, "continue-on-error": true }, step!],
+          STEP,
+          [F2364],
+          ENV,
+        ),
+      ).toEqual([
+        expect.stringMatching(/Apply migrations: sets continue-on-error/),
+      ]);
     });
 
     it("rejects a duplicated or missing step", () => {
@@ -255,6 +277,21 @@ const REAL_DATABASE_FILES = [
     "issue-2675/capability-parity.realstack",
     "issue-2675/eve-actor-membership.realstack",
     "issue-2675/membership-core.realstack",
+    "issue-2675/membership-role-commands.realstack",
+    "issue-2675/missionary-handler-authority.realstack",
+    "issue-2675/organization-names.realstack",
+    "issue-2675/platform-operator-script.realstack",
+    "issue-2675/platform-operators.realstack",
+    "issue-2675/post-comment-authors.realstack",
+    "issue-2675/request-scope-headers.realstack",
+    "issue-2675/request-tenant-order.realstack",
+    "issue-2675/tenant-policy-migration.realstack",
+    "issue-2675/web-studio-document-locks.realstack",
+    "issue-2675/web-studio-selection.realstack",
+    "issue-2677/command-boundaries.realstack",
+    "issue-2677/command-log.realstack",
+    "issue-2677/export-audit.realstack",
+    "issue-2677/field-policy-reader.realstack",
   ].map((f) => `${A}/${f}.acceptance.test.ts`),
   // #2714: the release job's database suites and Payload's CMS roles.
   "tests/unit/cms/cms-database-roles.realstack.test.ts",
@@ -274,7 +311,10 @@ const discovered = (): string[] =>
     .sort();
 
 /** Read relative test modules, including harness re-exports, once per suite. */
-const withLocalImports = (file: string, seen = new Set<string>()): string[] => {
+const withLocalImports = (
+  file: string,
+  seen = new Set<string>(),
+): { file: string; text: string }[] => {
   const normalized = path.normalize(file);
   if (seen.has(normalized)) return [];
   seen.add(normalized);
@@ -286,22 +326,98 @@ const withLocalImports = (file: string, seen = new Set<string>()): string[] => {
         target.startsWith(`tests${path.sep}unit${path.sep}`) &&
         existsSync(target),
     );
-  return [text, ...local.flatMap((target) => withLocalImports(target, seen))];
+  return [
+    { file, text },
+    ...local.flatMap((target) => withLocalImports(target, seen)),
+  ];
 };
 
-/**
- * The `process.env.*DATABASE_URL` a real-database file needs to run at all,
- * read in the suite or its test helpers.
- */
-const databaseUrlVariable = (file: string): string[] => [
+/** The database URL inputs read by one suite or helper module. */
+const readDatabaseUrlVariables = (
+  text: string,
+  file = "fixture.ts",
+): string[] => {
+  const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest);
+  const variables: string[] = [];
+
+  const visit = (node: ts.Node): void => {
+    ts.forEachChild(node, visit);
+    if (
+      !ts.isPropertyAccessExpression(node) &&
+      !ts.isElementAccessExpression(node)
+    ) {
+      return;
+    }
+
+    const env = node.expression;
+    if (
+      !ts.isPropertyAccessExpression(env) ||
+      env.name.text !== "env" ||
+      !ts.isIdentifier(env.expression) ||
+      env.expression.text !== "process"
+    ) {
+      return;
+    }
+
+    let name: string | undefined;
+    if (ts.isPropertyAccessExpression(node)) name = node.name.text;
+    else if (ts.isStringLiteralLike(node.argumentExpression)) {
+      name = node.argumentExpression.text;
+    }
+    if (name && /^[A-Z_]*DATABASE_URL$/.test(name)) variables.push(name);
+  };
+
+  visit(source);
+  return variables;
+};
+
+const databaseUrlVariables = (file: string): string[] => [
   ...new Set(
-    withLocalImports(file).flatMap((text) =>
-      [...text.matchAll(/process\.env\.([A-Z_]*DATABASE_URL)\b/g)].map(
-        (m) => m[1]!,
-      ),
+    withLocalImports(file).flatMap(({ file, text }) =>
+      readDatabaseUrlVariables(text, file),
     ),
   ),
 ];
+
+describe("database URL inputs", () => {
+  it.each([
+    "process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL",
+    'process.env["TENANT_GUARD_IT_ADMIN_DATABASE_URL"]',
+    "process.env['TENANT_GUARD_IT_ADMIN_DATABASE_URL']",
+  ])("recognizes %s", (source) => {
+    expect(readDatabaseUrlVariables(source)).toEqual([
+      "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
+    ]);
+  });
+
+  it.each([
+    "// Do not use process.env.LEGACY_DATABASE_URL here.",
+    '/* Avoid process.env["LEGACY_DATABASE_URL"]. */',
+    'const example = "process.env.LEGACY_DATABASE_URL";',
+    `const example = 'process.env["LEGACY_DATABASE_URL"]';`,
+    "const example = `process.env.LEGACY_DATABASE_URL`;",
+    "process.env[DYNAMIC_DATABASE_URL];",
+    "other.process.env.LEGACY_DATABASE_URL;",
+  ])("ignores %s", (source) => {
+    expect(readDatabaseUrlVariables(source)).toEqual([]);
+  });
+
+  it("recognizes a read inside a template substitution", () => {
+    expect(readDatabaseUrlVariables("`${process.env.DATABASE_URL}`")).toEqual([
+      "DATABASE_URL",
+    ]);
+  });
+
+  it("ignores unrelated variables and longer names", () => {
+    expect(
+      readDatabaseUrlVariables(`
+        process.env.API_URL;
+        process.env.DATABASE_URL_BACKUP;
+        process.env["DATABASE_URL_BACKUP"];
+      `),
+    ).toEqual([]);
+  });
+});
 
 describe("every real-database test file runs in a blocking migrate step (#2706)", () => {
   it("the named files are exactly the real-database files on disk", () => {
@@ -315,15 +431,17 @@ describe("every real-database test file runs in a blocking migrate step (#2706)"
       running.map((s) => s.name),
       "migrate steps that run it",
     ).toHaveLength(1);
-    const variables = databaseUrlVariable(file);
-    expect(variables, "the database URL variable it reads").toHaveLength(1);
-    const [variable] = variables;
-    // DATABASE_URL comes from the job; any other variable from the step,
-    // pointing at the migrated database.
-    const env =
-      variable === "DATABASE_URL"
-        ? undefined
-        : { [variable!]: "${{ env.DATABASE_URL }}" };
+    const variables = databaseUrlVariables(file);
+    expect(variables, "the database URL variables it reads").not.toHaveLength(
+      0,
+    );
+    // DATABASE_URL comes from the job. Each other input comes from the step
+    // and must point at the same migrated database.
+    const env = Object.fromEntries(
+      variables
+        .filter((variable) => variable !== "DATABASE_URL")
+        .map((variable) => [variable, "${{ env.DATABASE_URL }}"]),
+    );
     expect(
       realstackStepProblems(steps, running[0]!.name!, [file], env),
     ).toEqual([]);

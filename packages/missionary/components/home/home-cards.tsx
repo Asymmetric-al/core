@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   Avatar,
   AvatarFallback,
@@ -27,7 +28,6 @@ import {
   UserPlus,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import * as React from "react";
 
 import { formatCents, MONEY_UNAVAILABLE, moneyProgress } from "../money-units";

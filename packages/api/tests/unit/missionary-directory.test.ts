@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../../src/shared/with-operation", () => ({
-  withOperation: (handler: unknown) => handler,
+  withPlatformOperation: (handler: unknown) => handler,
 }));
 import { GET } from "../../src/admin/missionary-directory";
 
@@ -74,19 +74,19 @@ describe("admin missionary directory context", () => {
       ],
     });
   });
-  it("preserves the super-admin scope and reports failed profile reads", async () => {
+  it("reports a failed profile read for a tenant-scoped directory", async () => {
     const missionaries = query([
-      { id: "m1", tenant_id: "t2", profile_id: "p1" },
+      { id: "m1", tenant_id: "t1", profile_id: "p1" },
     ]);
     const profiles = query([], { message: "Lookup failed" });
     const response = await handler({
       supabaseAdmin: {
         from: (name) => (name === "missionaries" ? missionaries : profiles),
       },
-      auth: { tenantId: "t1", role: "super_admin" },
+      auth: { tenantId: "t1", role: "staff" },
       request: new NextRequest("https://example.com/api/admin/missionaries"),
     });
-    expect(missionaries.eq).not.toHaveBeenCalled();
+    expect(missionaries.eq).toHaveBeenCalledWith("tenant_id", "t1");
     expect(response.status).toBe(500);
   });
 });

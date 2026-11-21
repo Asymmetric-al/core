@@ -15,6 +15,13 @@ import {
 
 const DEFAULT_LOCAL_WORKERS = 1;
 const DEFAULT_WEB_SERVER_TIMEOUT_MS = 120_000;
+/**
+ * Every assertion's timeout, stated rather than inherited from Playwright, so
+ * that a wait which must cover a route's first compile in `next dev` says
+ * so with its own timeout in the spec instead of hiding behind this one or
+ * behind CI's retries (council round 1, A17).
+ */
+const EXPECT_TIMEOUT_MS = 5_000;
 
 export interface BoneyardSurface {
   /** Workspace directory under apps/ that owns the dev server. */
@@ -208,6 +215,7 @@ export function defineBoneyardConfig(
     retries: env.CI ? 2 : 0,
     workers: getWorkerCount(env),
     ...(surface.testTimeout ? { timeout: surface.testTimeout } : {}),
+    expect: { timeout: EXPECT_TIMEOUT_MS },
     reporter: [["list"]],
     use: {
       baseURL,
@@ -220,9 +228,11 @@ export function defineBoneyardConfig(
     ],
     webServer: startLocalWebServer
       ? {
+          // Serve on the base URL's port, so a checkout beside others can
+          // pick its own.
           command: devServerCommand(
             surface.app,
-            surface.defaultPort,
+            Number(new URL(baseURL).port) || surface.defaultPort,
             surface.serverHostname,
             env,
           ),
@@ -230,6 +240,8 @@ export function defineBoneyardConfig(
           env: {
             ...env,
             E2E_AUTH_BYPASS: env.E2E_AUTH_BYPASS || "true",
+            // The E2E cookie is chosen by port for the default ports only.
+            ASYM_E2E_AUTH_SURFACE: surface.app,
           } as Record<string, string>,
           reuseExistingServer: shouldReuseExistingServer(env),
           timeout: DEFAULT_WEB_SERVER_TIMEOUT_MS,

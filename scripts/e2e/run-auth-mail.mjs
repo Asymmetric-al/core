@@ -15,7 +15,10 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { LOOPBACK_HOSTS } from "../lib/psql.mjs";
+import {
+  LOOPBACK_DATABASE_HOSTS,
+  isLoopbackDatabaseUrl,
+} from "../../packages/env/src/database-url.mjs";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -57,9 +60,16 @@ export function authMailEnvFromStatus(output) {
     );
   }
 
+  // The database is judged as every local-only tool judges one
+  // (isLoopbackDatabaseUrl): node-postgres, which the journeys write
+  // memberships through, follows a host in the URL's query over the one the
+  // URL shows (AL-2674). The two HTTP addresses have no such query.
   for (const name of ["API_URL", "MAILPIT_URL", "DB_URL"]) {
-    const { hostname } = new URL(reported[name]);
-    if (!LOOPBACK_HOSTS.has(hostname)) {
+    const local =
+      name === "DB_URL"
+        ? isLoopbackDatabaseUrl(reported[name])
+        : LOOPBACK_DATABASE_HOSTS.includes(new URL(reported[name]).hostname);
+    if (!local) {
       throw new Error(
         `${name} is not on this machine; the auth email journeys run only against a local Supabase stack.`,
       );

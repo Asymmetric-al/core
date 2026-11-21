@@ -12,13 +12,13 @@ disabled and paused, and Eve's global release switch remains authoritative.
    connection flow. Never put a Resend key in browser configuration.
 3. Add `EVE_DISCORD_WEBHOOK_URL` only to the Eve runtime environment. Use an
    `https://discord.com/api/webhooks/...` URL; it is never persisted.
-4. In Mission Control, enable eligible platform-owner email recipients, then
+4. In Mission Control, enable eligible tenant administrator recipients, then
    enable and resume only the intended channel.
 5. Keep the global release switch off until the #437 launch checklist passes.
 
 ## Safety and operations
 
-- Email addresses come from current tenant `super_admin` profiles only.
+- Only enabled recipients who have not opted out, with a live flagged staff membership in this tenant and a nonblank profile email, receive mail. A confirmed operator manages recipient settings; operator status alone does not make someone eligible.
 - Discord receives high/critical events by default, with rich details off.
 - Pause or disable a channel before rotating provider credentials.
 - Inspect delivery state and #419 audit events in Mission Control. Stored

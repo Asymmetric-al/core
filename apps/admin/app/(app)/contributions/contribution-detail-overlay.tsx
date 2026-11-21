@@ -1,6 +1,7 @@
 "use client";
 
 import { OPERATION_DEFINITIONS } from "@asym/api/admin/contribution-operations/catalog";
+import { ownApiFetch } from "@asym/database/own-api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -39,20 +40,23 @@ async function postContributionOperation(input: {
    */
   expectedRevision?: string | null;
 }) {
-  const response = await fetch("/api/admin/contribution-operations/actions", {
-    body: JSON.stringify({
-      actionType: input.actionType,
-      contributionId: input.contributionId,
-      expectedRevision: input.expectedRevision ?? null,
-      payload: input.payload ?? {},
-      sourceSurface: input.sourceSurface,
-      stagedGiftId: input.stagedGiftId,
-    }),
-    headers: {
-      "content-type": "application/json",
+  const response = await ownApiFetch(
+    "/api/admin/contribution-operations/actions",
+    {
+      body: JSON.stringify({
+        actionType: input.actionType,
+        contributionId: input.contributionId,
+        expectedRevision: input.expectedRevision ?? null,
+        payload: input.payload ?? {},
+        sourceSurface: input.sourceSurface,
+        stagedGiftId: input.stagedGiftId,
+      }),
+      headers: {
+        "content-type": "application/json",
+      },
+      method: "POST",
     },
-    method: "POST",
-  });
+  );
 
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as {

@@ -1,3 +1,5 @@
+import { ownApiFetch } from "@asym/database/own-api";
+
 import type { EditDonorFormValues } from "./edit-donor-form-model";
 
 export type DonorActivityType = "note" | "call" | "meeting" | "email";
@@ -22,7 +24,7 @@ async function requestDonorMutation(
   init: RequestInit,
 ): Promise<DonorMutationResult> {
   try {
-    const response = await fetch(
+    const response = await ownApiFetch(
       `/api/missionary/donors/${encodeURIComponent(donorId)}${pathSuffix}`,
       {
         ...init,

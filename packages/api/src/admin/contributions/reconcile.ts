@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 import { runGivingReconciliation } from "../../giving/staged-gifts";
 import { revalidateAdminContributionsCache } from "../../shared/cache-tags";
 import { toErrorResponse } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { withPlatformOperation } from "../../shared/with-operation";
 
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ auth, requestId, supabaseAdmin }) => {
     try {
       const result = await runGivingReconciliation({

@@ -113,11 +113,16 @@ production-targeting push always select full mode:
 13. `verify:bun-lock-drift`
 14. `verify:eslint`
 15. `verify:shadcn-config`
-16. `verify:shadcn-diff`
-17. `typecheck`
-18. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
-19. `test:unit` (excludes `tests/unit/acceptance/` in the full profile)
-20. `test:acceptance` (`node scripts/verify/acceptance-tests.mjs`), as its own stage
+16. `typecheck`
+17. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
+18. `test:unit` (excludes `tests/unit/acceptance/` in the full profile)
+19. `test:acceptance` (`node scripts/verify/acceptance-tests.mjs`), as its own stage
+
+The shadcn upstream review (`bun run verify:shadcn-diff`) is not a preflight
+stage or a GitHub check. It compares every installed component with the public
+registry at `ui.shadcn.com`, whose rate limits and stalled connections made it
+an unreliable gate. Run it by hand when refreshing components from the
+registry; `packages/ui/components/shadcn/CUSTOM.md` describes it.
 
 ### Fast profile (what a push runs)
 
@@ -128,11 +133,8 @@ against `origin/develop` (working tree included), in the full profile's
 order. Stages marked _scoped_ run only when the push changes one of their
 inputs and otherwise print `==> SKIP <stage> (no change to its inputs; …)`.
 When the branch diff cannot be read, every stage runs on the whole
-repository; when it is empty, every scoped stage runs. Every stage except
-`verify:shadcn-diff` runs without the network, so the fast profile needs it
-only when that stage runs: for a push that changes one of its inputs, an
-empty or unreadable branch diff, or a review baseline or tsconfig chain that
-cannot be read:
+repository; when it is empty, every scoped stage runs. Every stage runs
+without the network:
 
 1. `verify:node-version`
 2. Prettier `--check` on the changed files that still exist
@@ -144,25 +146,12 @@ cannot be read:
 6. `verify:data-boundary`, `verify:cms-public-sole-entry`,
    `verify:workspace-contract` (scoped); `verify:bun-lock-drift`,
    `verify:shadcn-config`
-7. `verify:shadcn-diff` (scoped; calls the public shadcn registry)
-8. Typecheck of the affected workspaces (`turbo run typecheck --affected`)
+7. Typecheck of the affected workspaces (`turbo run typecheck --affected`)
 
 The scoped verifiers' input lists are in `scripts/verify/ci-preflight.mjs`
 (`STAGE_INPUTS`, taken from a trace of the files each one reads, plus shared
 inputs such as `bun.lock` and any `package.json`). Each also runs in the
-required `integrity` or `lint` job. `verify:shadcn-diff`, which no CI job
-runs, takes the inputs its own verifier derives (`shadcnDiffInputs`: the
-review baseline, every file it hashes, what the upstream CLI reads, and the
-`extends` chain of `packages/ui/tsconfig.json`). The root `package.json` and
-`bun.lock` select it only when they change what the CLI resolves: the
-`shadcn` entry and its dependency tree, the UI workspace's entries, the
-package manager, workspaces or resolution settings
-(`scripts/verify/ci-preflight-shadcn.mjs`); a script addition or an
-unrelated lock change does not. It can take many minutes. A registry read
-that fails with a connect timeout, `ECONNRESET`, `ETIMEDOUT` or
-`EAI_AGAIN` gets up to three attempts within the same deadline, and a
-failure prints one line naming the component and the CLI's reason, with
-credentials redacted.
+required `integrity` or `lint` job.
 
 It leaves out the stages that are slow. Required CI covers each of them on
 every pull request:
@@ -335,9 +324,9 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `lint`
 
-- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract over live source; gitignored Eve `.eve`, `.nitro`, and `.output` generated trees are excluded), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails, including the exact `base-maia` style). `bun run verify:shadcn-diff` (pinned modern CLI review guard over all installed official components and explicit file previews; checks reviewed customizations rather than stock byte parity) runs in `ci:preflight` only, not in this job.
-- _Why it exists:_ Enforces consistent code quality and prevents architecture, workspace, ESLint and design-system config drift.
-- _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:data-boundary`, `bun run verify:cms-public-sole-entry`, `bun run verify:workspace-contract`, `bun run verify:bun-lock-drift`, `bun run verify:eslint`, `bun run verify:shadcn-config`, and `bun run verify:shadcn-diff`.
+- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract over live source; gitignored Eve `.eve`, `.nitro`, and `.output` generated trees are excluded), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails).
+- _Why it exists:_ Enforces consistent code quality and prevents architecture, workspace, and ESLint config drift.
+- _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:data-boundary`, `bun run verify:cms-public-sole-entry`, `bun run verify:workspace-contract`, `bun run verify:bun-lock-drift`, `bun run verify:eslint`, and `bun run verify:shadcn-config`.
 
 ### `typecheck`
 
@@ -437,12 +426,12 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 
 ### `test-e2e` (needs: `smoke`, `test-e2e-smoke`)
 
-- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005 and `apps/admin` on port 3030, enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, and sets `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` so Playwright reuses the already-started servers instead of trying to bind those ports again. It executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs bounded production-release suites:
+- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005 and `apps/admin` on port 3030, points donor CMS reads at that admin server (`CMS_BASE_URL=http://127.0.0.1:3030`), enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, and sets `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` so Playwright reuses the already-started servers instead of trying to bind those ports again. It executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs bounded production-release suites:
   1. `bun run test:e2e:production-gate` (donor usability, donation, About/Wallet layout and local interactions, admin Support Hub smoke and Teams controls, shared dialog-dismissal/popover-positioning/primitive-contrast and table-control accessibility coverage, and missionary summary/dashboard/chart/loading geometry)
   2. `bun run test:e2e:boneyard:admin`, `bun run test:e2e:boneyard:missionary`, and `bun run test:e2e:boneyard:donor` (visual regression smoke by app)
      The Missionary command also runs the standalone account-frame regressions.
   3. `bun run test:e2e:cms --project=chromium` (portable CMS/admin suite tagged `@cms`, excluding `@manual` and local-seed-only `@cms-local`; CI reuses the same donor/admin servers)
-     The job has a 30-minute cap, and individual Playwright suite steps have 5-10 minute caps. Uploads `playwright-report/` as an artifact on failure (retained 7 days).
+     The job has a 35-minute cap; the production gate has 10 minutes and the Web Studio tenant step has 20. Uploads `playwright-report/` as an artifact on failure (retained 7 days).
 - _Artifacts:_ Auth preflight, production gate, and CMS invocations use distinct
   `PLAYWRIGHT_REPORT_DIR` paths under `playwright-report/`. The default reporter
   streams each test's progress and writes an atomic, bounded
@@ -551,7 +540,7 @@ the secrets it needs by name and the owner's steps to switch it on, is
 
 Starts a local Supabase stack from source and runs the Supabase Auth email
 round trips against it. A workflow of its own, so `ci.yml` and
-`ci-integration.yml` do not change. Not a required check. It guards two
+`ci-integration.yml` do not change. Not a required check. It guards five
 things:
 
 - _The migration chain and the seed on the real Supabase image._ It is the
@@ -568,6 +557,25 @@ things:
   packages (`packages/auth/**`, `packages/api/src/auth/**`), the three proxies,
   the missionary route policy or the suite itself run them too, and so does
   manual dispatch.
+- _The release job's replay against the image (WP1.6):_ the job replays the
+  chain on plain Postgres as the release job does
+  (`scripts/verify/supabase-migrations.mjs --hosted-defaults`) and fails
+  unless that replay fingerprints exactly as the stack does. It compares
+  with the image the pinned CLI starts, not with hosted; a change of the
+  defaults on hosted is caught by the release's gates.
+- _Missionary handler authority (WP2H):_ after fingerprinting, the route suite
+  exercises task and follower writes, embedded donors, the activity UUID array,
+  the missionary directory, portal and profile against the stack's PostgREST.
+  It checks the selected organization and denied assignments using the local
+  stack's service role, not a mocked RPC. The workflow runs for changes to
+  those handler directories, their listed shared API helpers, the database's
+  Supabase admin and config modules, the proof and its fixtures, or the root
+  Vitest configuration and its two local resolver plugins.
+- _Platform operator second factor (WP2c):_ `node scripts/e2e/run-operator-mfa.mjs`
+  tests TOTP enrolment and challenge against local Auth, the caller's operator
+  check through PostgREST, and the operator CLI against the same database.
+  After a successful stack start it runs even if the auth-mail journeys fail,
+  unless the job was cancelled. Missing stack values fail the proof.
 - _Job:_ installs the Supabase CLI at the version `scripts/supabase-cli.mjs`
   pins, starts the stack with `bun run supabase -- start` (every migration and
   the seed, then Auth, PostgREST and Mailpit), then runs

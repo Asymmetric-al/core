@@ -44,10 +44,17 @@ const STATES = new Set([
 ]);
 const TERMINAL = new Set(["READY", "ERROR", "CANCELED"]);
 const SHA = /^[a-f0-9]{40}$/;
+const PROJECT_REF = /^[a-z0-9]{20}$/;
 
-export class ReleaseStop extends Error {}
-const stop = (message) => {
-  throw new ReleaseStop(message);
+export class ReleaseStop extends Error {
+  constructor(message, options) {
+    super(message);
+    this.fatal = options?.fatal ?? false;
+    this.seenId = options?.seenId ?? null;
+  }
+}
+const stop = (message, options) => {
+  throw new ReleaseStop(message, options);
 };
 
 export function projectFor(app) {
@@ -109,7 +116,7 @@ export async function assertStagingEnabled({ call, app }) {
   }
   if (settings?.autoAssignCustomDomains !== false) {
     stop(
-      `${app}: production domains are assigned automatically, so a deployment would go live before its health check. Turn off auto-assignment (docs/ops/release-job.md, step 2).`,
+      `${app}: production domains are assigned automatically, so a deployment would go live before its health check. Turn off auto-assignment (docs/ops/release-job.md, step 3).`,
     );
   }
   if (settings?.link?.productionBranch !== PRODUCTION_BRANCH) {
@@ -117,11 +124,25 @@ export async function assertStagingEnabled({ call, app }) {
   }
 }
 
+const APPS_MODES = new Set(["changed", "all"]);
+
 /**
  * Apps whose files changed since the commit each app is serving. An app whose
  * live commit is unknown, or not an ancestor of this release, is built.
+ * When `buildAll` is true, every app is built regardless of its live commit.
  */
-export function selectReleaseApps({ liveCommits, listChangedFiles }) {
+export function selectReleaseApps({
+  liveCommits,
+  listChangedFiles,
+  buildAll = false,
+}) {
+  if (buildAll) {
+    return Object.keys(APPS).map((app) => ({
+      app,
+      build: true,
+      reason: "release input requested all apps",
+    }));
+  }
   return Object.keys(APPS).map((app) => {
     const live = liveCommits[app];
     if (!SHA.test(live ?? "")) {
@@ -243,11 +264,16 @@ export async function checkDeploymentHealth({
   bypassSecret,
   sha,
   projectRef,
+  deploymentId,
+  phase = "staged",
   request = fetch,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   attempts = 6,
 }) {
+  const isLive = phase === "live";
+  const suffix = isLive ? "." : "; not promoted.";
   let last = "no response";
+  let lastSeenId = null;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     let response;
     let body;
@@ -263,36 +289,82 @@ export async function checkDeploymentHealth({
       body = await response.json();
     } catch {
       last = "the health route could not be reached";
-      await sleep(5_000);
+      if (attempt < attempts) await sleep(5_000);
       continue;
     }
     const status = body?.status;
+    const seenId = body?.release?.deploymentId ?? null;
+    if (seenId) lastSeenId = seenId;
+
+    // On a production domain after promotion, an answer that does not identify
+    // itself (e.g. an older deployment rejecting a rotated bypass secret and
+    // answering status-only) or identifies another deployment is never accepted
+    // and never final: keep retrying within the attempt bound.
+    if (deploymentId && isLive) {
+      if (!body?.release || !seenId) {
+        last = `expected deployment ${deploymentId}, saw none identified (HTTP ${response.status}, status ${status ?? "unknown"})`;
+        if (attempt < attempts) await sleep(5_000);
+        continue;
+      }
+      if (seenId !== deploymentId) {
+        last = `expected deployment ${deploymentId}, saw ${seenId}`;
+        if (attempt < attempts) await sleep(5_000);
+        continue;
+      }
+    } else if (deploymentId && body?.release && seenId !== deploymentId) {
+      last = `expected deployment ${deploymentId}, saw ${seenId ?? "unknown"}`;
+      if (attempt < attempts) await sleep(5_000);
+      continue;
+    }
+
+    // Compare a supplied Supabase project ref as soon as the target deployment
+    // is confirmed (whatever its HTTP status); answers without a ref keep
+    // retrying.
+    const reportedRef = body?.database?.supabaseProjectRef;
+    if (projectRef && reportedRef && reportedRef !== projectRef) {
+      stop(
+        `The deployment reads Supabase project ${reportedRef}, not ${projectRef}${suffix}`,
+        { fatal: true, seenId },
+      );
+    }
+
     if (status === "behind") {
       stop(
-        `The database is behind this build (${JSON.stringify(body.migrations)}); not promoted.`,
+        `The database is behind this build (${JSON.stringify(body.migrations)})${suffix}`,
+        { fatal: true, seenId },
       );
     }
     if (response.status === 200 && status === "ok") {
       // The route gives its detail only to the bypass header (A6f).
       if (!body?.release) {
         stop(
-          "The migration health route answered without its detail: it did not accept the deployment-protection bypass header; not promoted.",
+          `The migration health route answered without its detail: it did not accept the deployment-protection bypass header${suffix}`,
+          { fatal: true },
         );
       }
       if (sha && body?.release?.commit !== sha) {
-        stop("The deployment reports a different commit; not promoted.");
+        stop(`The deployment reports a different commit${suffix}`, {
+          fatal: true,
+          seenId,
+        });
       }
-      if (projectRef && body?.database?.supabaseProjectRef !== projectRef) {
+      if (projectRef && reportedRef !== projectRef) {
         stop(
-          `The deployment reads Supabase project ${body?.database?.supabaseProjectRef ?? "unknown"}, not ${projectRef}; not promoted.`,
+          `The deployment reads Supabase project ${reportedRef ?? "unknown"}, not ${projectRef}${suffix}`,
+          { fatal: true, seenId },
         );
       }
       return body;
     }
     last = `HTTP ${response.status}, status ${status ?? "unknown"}${body?.error?.code ? ` (${body.error.code})` : ""}`;
-    await sleep(5_000);
+    if (attempt < attempts) await sleep(5_000);
   }
-  stop(`The migration health check did not pass: ${last}; not promoted.`);
+  stop(
+    isLive
+      ? `${last}.`
+      : `The migration health check did not pass: ${last}; not promoted.`,
+    { fatal: false, seenId: lastSeenId },
+  );
 }
 
 /** Points production traffic at a staged deployment. Vercel does not rebuild. */
@@ -335,30 +407,46 @@ export async function verifyLive({
   app,
   sha,
   projectRef,
+  deploymentId,
   bypassSecret,
   request = fetch,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   attempts = 18,
 }) {
+  if (!/^dpl_[A-Za-z0-9]+$/.test(deploymentId ?? "")) {
+    stop("The deployment to verify has no valid identity.");
+  }
+  const domain = PRODUCTION_HOSTS[app];
+  let lastSeenId = null;
+  let sawAnyIdentified = false;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       return await checkDeploymentHealth({
-        url: `https://${PRODUCTION_HOSTS[app]}`,
+        url: `https://${domain}`,
         bypassSecret,
         sha,
         projectRef,
+        deploymentId,
+        phase: "live",
         request,
         sleep,
         attempts: 1,
       });
     } catch (error) {
-      if (attempt === attempts) throw error;
-      if (
-        /behind|different Supabase|reads Supabase|without its detail/.test(
-          error.message,
-        )
-      ) {
-        throw error;
+      if (error instanceof ReleaseStop && error.seenId) {
+        lastSeenId = error.seenId;
+        sawAnyIdentified = true;
+      }
+      const fatal = error instanceof ReleaseStop && error.fatal;
+      if (fatal || attempt === attempts) {
+        const seen = lastSeenId ?? "none identified";
+        const detail = sawAnyIdentified
+          ? error.message
+          : `never saw an identified answer (${error.message.replace(/\.$/, "")}).`;
+        stop(
+          `${app} (${domain}): promotion of ${deploymentId} was requested and could not be verified (expected ${deploymentId}, last seen ${seen}): ${detail} Check what ${domain} serves before dispatching again or rolling back.`,
+          { fatal: true, seenId: lastSeenId },
+        );
       }
       await sleep(10_000);
     }
@@ -383,6 +471,9 @@ export async function deployRelease({
   sleep,
   log = console.log,
 }) {
+  if (!PROJECT_REF.test(projectRef ?? "")) {
+    stop("RELEASE_SUPABASE_PROJECT_REF is not a valid Supabase project ref.");
+  }
   const staged = [];
   for (const app of apps) {
     await assertStagingEnabled({ call, app });
@@ -395,6 +486,7 @@ export async function deployRelease({
       bypassSecret: env[BYPASS_SECRETS[deployment.app]],
       sha,
       projectRef,
+      deploymentId: deployment.id,
       request,
       sleep,
     });
@@ -413,11 +505,14 @@ export async function deployRelease({
       app: deployment.app,
       sha,
       projectRef,
+      deploymentId: deployment.id,
       bypassSecret: env[BYPASS_SECRETS[deployment.app]],
       request,
       sleep,
     });
-    log(`${deployment.app}: the production domain serves this release.`);
+    log(
+      `${deployment.app}: the production domain serves ${deployment.id} for this release.`,
+    );
   }
   return staged;
 }
@@ -463,31 +558,62 @@ function releaseSha(env) {
   return sha;
 }
 
+function releaseProjectRef(env) {
+  const ref = env.RELEASE_SUPABASE_PROJECT_REF?.trim();
+  if (!PROJECT_REF.test(ref ?? "")) {
+    stop("RELEASE_SUPABASE_PROJECT_REF is not a valid Supabase project ref.");
+  }
+  return ref;
+}
+
+function readAppsMode(env) {
+  if (env.RELEASE_APPS_MODE === undefined) return "changed";
+  const mode = env.RELEASE_APPS_MODE;
+  if (!APPS_MODES.has(mode)) {
+    stop(
+      `RELEASE_APPS_MODE must be "changed" or "all" (got ${JSON.stringify(mode)}).`,
+    );
+  }
+  return mode;
+}
+
 const STEPS = ["plan", "preflight", "deploy", "check", "register-jobs"];
 
-export async function runCli(argv, env = process.env, log = console.log) {
+export async function runCli(
+  argv,
+  env = process.env,
+  log = console.log,
+  { request = fetch, listChangedFiles } = {},
+) {
   const [step, ...rest] = argv;
   if (!STEPS.includes(step))
     stop(`Usage: vercel-release.mjs ${STEPS.join("|")}`);
   const app = option(rest, "--app");
   if (step === "plan") {
-    const liveCommits = {};
-    for (const name of Object.keys(APPS)) {
-      liveCommits[name] = await readLiveCommit({ app: name });
-    }
+    const mode = readAppsMode(env);
     const sha = releaseSha(env);
+    const buildAll = mode === "all";
+    const liveCommits = {};
+    if (!buildAll) {
+      for (const name of Object.keys(APPS)) {
+        liveCommits[name] = await readLiveCommit({ app: name, request });
+      }
+    }
     const plan = selectReleaseApps({
       liveCommits,
-      listChangedFiles: (live) => {
-        execFileSync("git", ["merge-base", "--is-ancestor", live, sha], {
-          stdio: "ignore",
-        });
-        return execFileSync("git", ["diff", "--name-only", live, sha], {
-          encoding: "utf8",
-        })
-          .split("\n")
-          .filter(Boolean);
-      },
+      buildAll,
+      listChangedFiles:
+        listChangedFiles ??
+        ((live) => {
+          execFileSync("git", ["merge-base", "--is-ancestor", live, sha], {
+            stdio: "ignore",
+          });
+          return execFileSync("git", ["diff", "--name-only", live, sha], {
+            encoding: "utf8",
+          })
+            .split("\n")
+            .filter(Boolean);
+        }),
     });
     for (const item of plan) {
       log(`${item.app}: ${item.build ? "build" : "skip"} - ${item.reason}`);
@@ -532,6 +658,7 @@ export async function runCli(argv, env = process.env, log = console.log) {
     return;
   }
   if (step === "deploy") {
+    const projectRef = releaseProjectRef(env);
     const apps = (env.RELEASE_APPS ?? "")
       .split(",")
       .map((name) => name.trim())
@@ -544,7 +671,7 @@ export async function runCli(argv, env = process.env, log = console.log) {
     await deployRelease({
       apps,
       sha: releaseSha(env),
-      projectRef: env.RELEASE_SUPABASE_PROJECT_REF,
+      projectRef,
       env,
       call,
     });

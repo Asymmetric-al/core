@@ -1,5 +1,5 @@
 import { execFileSync, spawn } from "node:child_process";
-import { readFileSync, statSync } from "node:fs";
+import { statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -8,11 +8,6 @@ import {
   readCompilationChanges,
   resolveCompilation,
 } from "./ci-build-policy.mjs";
-import {
-  SHADCN_RESOLUTION_FILES,
-  shadcnResolutionChanged,
-} from "./ci-preflight-shadcn.mjs";
-import { SHADCN_REVIEW_BASELINE, shadcnDiffInputs } from "./shadcn-diff.mjs";
 
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
@@ -49,12 +44,13 @@ const AFFECTED_FILTERS = [
  * -> verify:cms-public-sole-entry
  * -> verify:workspace-contract -> verify:bun-lock-drift
  * -> verify:eslint -> verify:shadcn-config
- * -> verify:shadcn-diff
  * -> typecheck -> build -> test-unit -> acceptance
  */
-// Exceptions to the mirror: verify:shadcn-diff runs only here, and
-// getPreflightStages replaces `build` with the selected compilation (none
-// for routine development changes).
+// Exceptions to the mirror: ci.yml has no step for verify:shadcn-config (it
+// runs only here), and getPreflightStages replaces `build` with the selected
+// compilation (none for routine development changes). The shadcn upstream
+// review is deliberately not a stage: it depends on the public registry, so
+// it runs only by hand.
 const stages = [
   {
     id: "runtime",
@@ -117,10 +113,6 @@ const stages = [
     script: "verify:shadcn-config",
   },
   {
-    id: "verify-shadcn-diff",
-    script: "verify:shadcn-diff",
-  },
-  {
     id: "typecheck",
     script: "typecheck",
   },
@@ -169,7 +161,6 @@ const SHARED_INPUTS = [
   ".npmrc",
   ".node-version",
   "scripts/verify/ci-preflight.mjs",
-  "scripts/verify/ci-preflight-shadcn.mjs",
   "scripts/verify/ci-build-policy.mjs",
   /(?:^|\/)package\.(?:json|yaml)$/,
   /(?:^|\/)(?:\.prettierrc(?:\.[^/]+)?|prettier\.config\.[^/]+|\.editorconfig)$/,
@@ -248,65 +239,16 @@ export function touchesInputs(changedFiles, inputs) {
   );
 }
 
-function readShadcnBaseline() {
-  try {
-    return JSON.parse(
-      readFileSync(path.join(REPO_ROOT, SHADCN_REVIEW_BASELINE), "utf8"),
-    );
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Whether this checkout's change to a root manifest or lock can change what
- * the shadcn CLI resolves: the file at the merge base with origin/develop
- * against the working tree. A side that cannot be read counts as a change.
- */
-function readShadcnResolutionChange(file) {
-  const git = (args) =>
-    execFileSync("git", args, {
-      cwd: REPO_ROOT,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-      maxBuffer: 64 * 1024 * 1024,
-    });
-  let before = null;
-  try {
-    const base = git(["merge-base", "origin/develop", "HEAD"]).trim();
-    before = git(["show", `${base}:${file}`]);
-  } catch {
-    before = null;
-  }
-  let after = null;
-  try {
-    after = readFileSync(path.join(REPO_ROOT, file), "utf8");
-  } catch {
-    after = null;
-  }
-  return shadcnResolutionChanged(file, before, after);
-}
-
 /**
  * Inputs per scoped stage. The traced stages also take the shared inputs.
- * verify:shadcn-diff takes exactly what its verifier derives from itself, its
- * review baseline and the UI tsconfig's extends chain (it calls the public
- * registry, so it runs no more often than that); null means they cannot be
- * told (an unreadable baseline or unresolved chain), so the stage runs.
  */
-function scopedStageInputs(shadcnBaseline, tsconfigChain) {
-  return {
-    ...Object.fromEntries(
-      Object.entries(STAGE_INPUTS).map(([id, inputs]) => [
-        id,
-        [...inputs, ...SHARED_INPUTS],
-      ]),
-    ),
-    "verify-shadcn-diff": shadcnDiffInputs(
-      shadcnBaseline,
-      tsconfigChain === undefined ? undefined : { tsconfigChain },
-    ),
-  };
+function scopedStageInputs() {
+  return Object.fromEntries(
+    Object.entries(STAGE_INPUTS).map(([id, inputs]) => [
+      id,
+      [...inputs, ...SHARED_INPUTS],
+    ]),
+  );
 }
 
 function isExistingFile(file) {
@@ -340,29 +282,12 @@ export function formatChunks(files, limit = FORMAT_CHUNK_CHARS) {
  * origin/develop with working-tree changes (readCompilationChanges), or null
  * when that diff is unknown: then every stage runs and checks the whole
  * repository. An empty list is uncertain too (the pushed ref may not be the
- * checked-out tree), so every scoped stage runs. `shadcnBaseline` is the
- * parsed shadcn review baseline (null when unreadable); `shadcnTsconfigChain`
- * overrides the derived extends chain of the UI tsconfig (null: unresolved);
- * `shadcnResolutionChanged(file)` says whether a root manifest or lock change
- * can change what the shadcn CLI resolves.
+ * checked-out tree), so every scoped stage runs.
  */
-export function getFastStages({
-  changedFiles,
-  exists = isExistingFile,
-  shadcnBaseline = readShadcnBaseline(),
-  shadcnTsconfigChain,
-  shadcnResolutionChanged: resolutionChanged = readShadcnResolutionChange,
-}) {
+export function getFastStages({ changedFiles, exists = isExistingFile }) {
   const known = Array.isArray(changedFiles);
   const scopeKnown = known && changedFiles.length > 0;
-  const scoped = scopedStageInputs(shadcnBaseline, shadcnTsconfigChain);
-  // The shadcn review judges the root manifest and lock by what they resolve.
-  const resolutionFiles = scopeKnown
-    ? changedFiles.filter((file) => SHADCN_RESOLUTION_FILES.includes(file))
-    : [];
-  const unresolved = new Set(
-    resolutionFiles.filter((file) => !resolutionChanged(file)),
-  );
+  const scoped = scopedStageInputs();
   const skipped = (stage, skip) => ({ ...stage, runs: [], skip });
   return stages
     .filter((stage) => !FAST_EXCLUDED.has(stage.id))
@@ -370,23 +295,11 @@ export function getFastStages({
       if (!known) return stage;
       if (stage.id in scoped) {
         const inputs = scoped[stage.id];
-        const shadcn = stage.id === "verify-shadcn-diff";
-        const changes = shadcn
-          ? changedFiles.filter((file) => !unresolved.has(file))
-          : changedFiles;
-        if (!scopeKnown || !inputs || touchesInputs(changes, inputs))
+        if (!scopeKnown || !inputs || touchesInputs(changedFiles, inputs))
           return stage;
         return skipped(
           stage,
-          `no change to its inputs${
-            shadcn && unresolved.size > 0
-              ? ` (${[...unresolved].join(" and ")} changed, but not what the shadcn CLI resolves)`
-              : ""
-          }; ${
-            shadcn
-              ? "the full profile and the production release run it"
-              : "required CI runs it on every pull request"
-          }`,
+          "no change to its inputs; required CI runs it on every pull request",
         );
       }
       if (stage.id === "format") {

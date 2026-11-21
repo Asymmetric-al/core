@@ -1,4 +1,5 @@
 import { loadSupportTicketDetail } from "@asym/api/admin/support/loaders";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Alert,
@@ -13,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import Link from "next/link";
 
 import { SupportSubNav } from "../../../../../features/support-hub/components/workspace/SupportSubNav";
 import { formatSupportRelativeTime } from "../../support-hub.derived";

@@ -1,13 +1,36 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, renderHook } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import { useSavedFilters } from "../../../../packages/ui/components/shadcn/data-table/filters/saved-filters";
 import { createEmptyFilterState } from "../../../../packages/ui/components/shadcn/data-table/filters/types";
+import { renderDocumentScope } from "../database/scope-fixture";
 
+// WP2b, AL-2675 (council round 1 on slice B, SB5): saved views are stored
+// under a key that carries the document's person and tenant, and a document
+// with no scope stores nothing. This page is given a scope, as a signed-in
+// page has, and `fullKey` is that scoped key; every assertion is unchanged.
+const SCOPE = {
+  userId: "00000000-0000-4000-8000-0000000000a1",
+  tenantId: "00000000-0000-0000-0000-000000000001",
+  assignmentId: "00000000-0000-4000-8000-000000000101",
+  addressPrefix: "/00000000-0000-0000-0000-000000000001",
+};
 const storageKey = "ui-improvement-views";
-const fullKey = `saved-filters-${storageKey}`;
+const fullKey = `saved-filters-${storageKey}::${SCOPE.userId}::${SCOPE.tenantId}`;
+
+beforeAll(async () => {
+  await renderDocumentScope(SCOPE);
+});
 const persistedView = {
   id: "known-view",
   name: "Active partners",
