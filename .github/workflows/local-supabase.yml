@@ -1,8 +1,6 @@
 name: Local Supabase Stack
 
-# Starts a local Supabase stack from source, then runs the Supabase Auth email
-# round trips against it. Two guards in one job (docs/ci.md, "Local Supabase
-# stack workflow"):
+# Five guards share a local Supabase stack (docs/ci.md, "Local Supabase stack workflow"):
 #
 # - The migration chain and the seed on the real Supabase image. This is the
 #   only job that applies them there, with Supabase's roles and grants and a
@@ -10,9 +8,22 @@ name: Local Supabase Stack
 #   a superuser, which hid two stage 1 migrations that the real image refuses
 #   (council round 2). So every pull request that changes the chain, the seed,
 #   the stack's configuration or the CLI pin starts the stack.
+# - Missionary handler authority through PostgREST, with release policies in force.
 # - The email round trips of WP0b and WP1.4: password recovery in all three
 #   apps and sign-up confirmation on two hosts of the donor portal, through
 #   the stack's Auth server and mail catcher (council round 2, B4).
+# - The platform operators' second factor (AL-2675, WP2c): TOTP enrolment and
+#   the challenge through the stack's Auth server, the shared operator check
+#   through its Data API, and the operator script against its database. CI's
+#   `migrate` job has no Auth server, so this is where it runs.
+# - The release job's replay against the platform's image (WP1.6). The release
+#   job fingerprints a replay of the chain on plain Postgres, made with hosted
+#   Supabase's default privileges (scripts/sql/hosted-default-privileges.sql),
+#   and stops when a hosted database differs from it. The stack runs
+#   Supabase's own image, so the same replay must fingerprint exactly as the
+#   stack does. This job runs only when a listed path changes, and it compares
+#   with the image the pinned CLI starts, not with hosted: a change of the
+#   defaults on hosted is caught by the release's gates.
 #
 # Its own workflow, so that no frozen suite of ci.yml or ci-integration.yml
 # changes. Not a required check.
@@ -27,6 +38,11 @@ on:
       - supabase/seed.sql
       - supabase/config.toml
       - scripts/supabase-cli.mjs
+      # The release job's replay and its fingerprint (WP1.6).
+      - scripts/sql/hosted-default-privileges.sql
+      - scripts/sql/supabase-compat-bootstrap.sql
+      - scripts/verify/supabase-migrations.mjs
+      - scripts/release/schema-fingerprint.mjs
       # The auth screens, packages, routes and proxies the round trips cover.
       - packages/ui/components/auth/**
       - packages/auth/**
@@ -37,12 +53,60 @@ on:
       - apps/*/app/auth/**
       - apps/missionary/app/forgot-password/**
       - apps/missionary/app/register/**
+      # The chooser the two-organization journey walks (AL-2675; Mission
+      # Control's lives in (auth), above).
+      - apps/missionary/app/choose-organization/**
+      # The missionary RPC arguments, embedded rows, writes and their route proof.
+      - packages/api/src/missionary-portal/**
+      - packages/api/src/follower-requests/**
+      - packages/api/src/missionaries/**
+      - packages/api/src/profile/**
+      - packages/api/src/shared/api-http-error.ts
+      - packages/api/src/shared/http-errors.ts
+      - packages/api/src/shared/missionary-authority.ts
+      - packages/api/src/shared/queries.ts
+      - packages/api/src/shared/route-uuid.ts
+      - packages/api/src/shared/tenant-members.ts
+      - packages/api/src/shared/with-operation.ts
+      - packages/database/supabase/admin.ts
+      - packages/database/supabase/config.ts
+      - tests/fixtures/auth-memberships.ts
+      - tests/fixtures/missionary-task-patch.ts
+      - vitest.config.mts
+      - vitest.per-importer-alias.mts
+      - vitest.pin-workspace-packages.mts
+      - tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
+      - tests/unit/workflows/local-supabase.test.ts
       # The round trips themselves.
       - playwright.auth-mail.config.ts
       - tests/e2e/auth-password-recovery.spec.ts
       - tests/e2e/auth-signup-confirmation.spec.ts
+      - tests/e2e/auth-two-organizations.spec.ts
       - tests/e2e/helpers/auth-mail.ts
       - scripts/e2e/run-auth-mail.mjs
+      - scripts/lib/psql.mjs
+      - scripts/release/lib/database-target.mjs
+      - packages/env/src/database-url.mjs
+      # The operators' second factor (AL-2675, WP2c).
+      - scripts/e2e/run-operator-mfa.mjs
+      - scripts/platform/**
+      - packages/api/src/shared/platform-operator.ts
+      - scripts/cms/lib/postgres.mjs
+      - scripts/release/release-database.mjs
+      - tests/unit/acceptance/issue-2675/operator-mfa.localstack.test.ts
+      # The first release's reads against the second release's policies
+      # (AL-2675): the journeys, and the request scope they prove.
+      - tests/e2e/auth-request-scope-reads.spec.ts
+      - tests/e2e/helpers/request-scope-reads.ts
+      - packages/database/document-scope.tsx
+      - packages/database/own-api.ts
+      - packages/database/request-scope-headers.ts
+      - packages/database/supabase/client.ts
+      - packages/database/supabase/server.ts
+      - packages/api/src/shared/request-session-client.ts
+      - packages/api/src/field-policies/**
+      - packages/api/src/projection/**
+      - tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts
 
 permissions:
   contents: read
@@ -59,6 +123,24 @@ jobs:
   local-supabase:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      REPLAY_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/release_replay
+    # The plain Postgres the release job replays on (release.yml); the stack's
+    # own database listens on 54322.
+    services:
+      postgres:
+        image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres # pragma: allowlist secret
+          POSTGRES_DB: release_replay
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Reject fork pull requests
         if: >-
@@ -94,17 +176,57 @@ jobs:
       # Applies every migration and the seed to a real Supabase stack (roles,
       # Auth, PostgREST, Mailpit), which CI's plain Postgres does not have.
       - name: Start the local Supabase stack
+        id: stack
         run: >-
           bun run supabase -- start
           -x studio,edge-runtime,logflare,vector,imgproxy,postgres-meta,supavisor
+      # The release job's replay, made as it makes it, must fingerprint exactly
+      # as the stack does, before the round trips write to the stack.
+      - name: Install PostgreSQL client
+        run: bash scripts/github/install-postgresql-client.sh
+      - name: Replay every migration on plain Postgres, as the release job does
+        env:
+          DATABASE_URL: ${{ env.REPLAY_DATABASE_URL }}
+        run: node scripts/verify/supabase-migrations.mjs --hosted-defaults
+      - name: The replay fingerprints exactly as the stack does
+        env:
+          STACK_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          node scripts/release/schema-fingerprint.mjs capture --database-url-env REPLAY_DATABASE_URL --out "$RUNNER_TEMP/replay-fingerprint.json"
+          node scripts/release/schema-fingerprint.mjs capture --database-url-env STACK_DATABASE_URL --out "$RUNNER_TEMP/stack-fingerprint.json"
+          node scripts/release/schema-fingerprint.mjs compare "$RUNNER_TEMP/replay-fingerprint.json" "$RUNNER_TEMP/stack-fingerprint.json"
+      - name: Verify missionary handler authority through PostgREST
+        shell: bash
+        env:
+          MISSIONARY_IT_SUPABASE_URL: http://127.0.0.1:54321
+          MISSIONARY_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          export MISSIONARY_IT_SERVICE_ROLE_KEY
+          MISSIONARY_IT_SERVICE_ROLE_KEY="$(bun run supabase -- status -o json | node -e 'const status = JSON.parse(require("node:fs").readFileSync(0)); if (!status.SERVICE_ROLE_KEY) process.exit(1); process.stdout.write(status.SERVICE_ROLE_KEY)')"
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
+      - name: Verify caller-token field policy reads through PostgREST
+        env:
+          FIELD_POLICY_IT_REQUIRED: "1"
+          FIELD_POLICY_IT_SUPABASE_URL: http://127.0.0.1:54321
+        run: |
+          export FIELD_POLICY_IT_ANON_KEY
+          FIELD_POLICY_IT_ANON_KEY="$(bun run supabase -- status -o json | jq -er '.ANON_KEY')"
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts
       - name: Install Playwright Chromium
+        id: chromium
         run: bunx playwright install --with-deps chromium
       - name: Run the auth email round trips
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' && steps.chromium.outcome == 'success' }}
         timeout-minutes: 40
         env:
           CI: "1"
           PLAYWRIGHT_REUSE_EXISTING_SERVER: "0"
         run: bun run test:e2e:auth-mail
+      # Fails, never skips, when the stack's values are missing.
+      - name: Prove the platform operators' second factor (WP2c)
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
+        timeout-minutes: 10
+        run: node scripts/e2e/run-operator-mfa.mjs
       - name: Show Auth logs on failure
         if: failure()
         run: docker logs --tail 200 "$(docker ps --filter name=supabase_auth_ --format '{{.Names}}' | head -n 1)" || true

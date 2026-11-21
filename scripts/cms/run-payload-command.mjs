@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 
 import nextEnv from "@next/env";
 
+import { isLoopbackDatabaseUrl } from "../../packages/env/src/database-url.mjs";
 import { requireDisposableDatabase } from "../lib/environment-marker.mjs";
 import { LOCAL_DATABASE_URL, LOCAL_PAYLOAD_SECRET } from "./lib/local-data.mjs";
 import {
@@ -45,6 +46,9 @@ const MIGRATION_WRITE_COMMANDS = [
   "migrate:refresh",
 ];
 const isMigrationWrite = MIGRATION_WRITE_COMMANDS.includes(command);
+// Review N3: only a migration and a status read are ever run against a hosted
+// database (by the release job); every other command works on this machine's.
+const runsOnHostedDatabase = isMigrationWrite || command === "migrate:status";
 
 // Migrations run on the cms_owner connection; a status check may read through
 // the run-time one. Payload's child process receives exactly one connection,
@@ -118,7 +122,19 @@ function assertNoPayloadDevMigrationMarker() {
   }
 }
 
-if (isMigrationWrite) {
+// Review M2: every command handed an address that is not on this machine
+// goes through the one hosted check (the project, the role, verify-full and
+// the CA), not only a migration write. A status read with
+// PAYLOAD_MIGRATION_DATABASE_URI set would otherwise use the cms_owner login
+// unchecked.
+const localDatabase = isLoopbackDatabaseUrl(databaseUrl);
+if (!localDatabase && !runsOnHostedDatabase) {
+  console.error(
+    `payload ${command} works on a database on this machine, and PAYLOAD_DATABASE_URI names one that is not. Point PAYLOAD_DATABASE_URI at the local database (bun run cms:local:reset -- --force-env writes the local values).`,
+  );
+  process.exit(1);
+}
+if (isMigrationWrite || !localDatabase) {
   try {
     assertCmsMigrationTarget({
       databaseUrl,
@@ -130,7 +146,7 @@ if (isMigrationWrite) {
     // Plan 7.5: rolling migrations back or resetting them runs only on a
     // database marked disposable. The marker is read without the cms_owner
     // session role, which cannot read `platform` (council round 2, A7c).
-    if (command !== "migrate")
+    if (isMigrationWrite && command !== "migrate")
       requireDisposableDatabase({
         databaseUrl: markerUrl,
         action: `run payload ${command} on`,

@@ -13,16 +13,52 @@ import {
   getE2EAuthCookieNameForProxyHost,
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
+  type E2EAuthSession,
 } from "./e2e-auth";
+import { admitApiMutation } from "./mutation-admission";
 import { hasAnyRole, type RoleSnapshot } from "./permissions";
-import { ROLE_CLASS_HEADER } from "./request-headers";
+import { readActiveAssignments } from "./principal/assignment";
+import { listE2EAuthAssignments } from "./principal/e2e-assignments";
+import {
+  createRpcAssignmentReader,
+  withReadErrorCause,
+} from "./principal/reader";
+import {
+  ADDRESS_PREFIX_HEADER,
+  ASSIGNMENT_HEADER,
+  PAGE_SCOPE_HEADERS,
+  ROLE_CLASS_HEADER,
+  TENANT_HEADER,
+  TENANT_REWRITE_HEADER,
+} from "./request-headers";
 import {
   isListedRouteMatch,
   matchesListedRoute,
   matchesProtectedPrefix,
 } from "./route-matching";
+import {
+  CHOOSER_PATH,
+  isOutsideTenantSegment,
+  parseTenantAddress,
+} from "./tenant-address";
+import { decideLanding, decideTenantAddress } from "./tenant-address-decisions";
+import {
+  decideWebStudioAccess,
+  isStrayWebStudioChooserPath,
+  isWebStudioApiPath,
+  isWebStudioPath,
+  WEB_STUDIO_CHOOSER_PATH,
+  WEB_STUDIO_TENANT_COOKIE,
+  type WebStudioCookieState,
+} from "./web-studio";
+import {
+  refreshWebStudioApiSession,
+  webStudioChooserUrl,
+  webStudioEntryRedirect,
+} from "./web-studio-proxy";
 
-import type { RoleClass } from "./principal/types";
+import type { AssignmentRpcClient } from "./principal/reader";
+import type { ActiveAssignment, RoleClass } from "./principal/types";
 import type { UserRole } from "@asym/database/types";
 
 export interface AuthMiddlewareOptions {
@@ -58,6 +94,35 @@ export interface AuthMiddlewareOptions {
     request: NextRequest;
     roleClass: RoleClass | null;
   }) => Promise<RoleSnapshot | null>;
+  /**
+   * Serve the signed-in pages under the tenant in the page address (plan 5.2;
+   * AL-2675): `/<tenant>[~<sub-role>]/<page>`. Requires `roleClass`.
+   *
+   * For a tenant address the proxy decides membership before the page shell,
+   * from the person's live rows of the surface's class in that tenant, in
+   * place of the role check: it refuses a tenant the person does not belong
+   * to, drops a suffix a one-row person does not need, sends a person with
+   * several rows to the chooser unless the suffix names one they hold, and
+   * otherwise rewrites onto the existing page with the tenant, the chosen
+   * row and the prefix as request headers. A signed-in page address without
+   * a tenant goes to the person's one organization or to the chooser.
+   * Sign-in, the chooser, Web Studio and every `/api` route stay outside the
+   * tenant segment (`OUTSIDE_TENANT_SEGMENT_ROOTS`).
+   */
+  tenantAddress?: boolean;
+  /**
+   * Web Studio (plan 5.2, "One stated exception: Web Studio"; AL-2675).
+   * Payload's REST routes under `/web-studio/api` only have their session
+   * refreshed: no role lookup and never a redirect, so Payload's strategy
+   * answers an expired or unauthorized call with JSON. Web Studio's pages
+   * take the organization from the signed Web Studio cookie, which only
+   * narrows: the person's live staff rows decide, and a person with several
+   * and no usable selection goes to the Web Studio chooser. Staff only.
+   */
+  webStudio?: {
+    /** Reads and verifies the Web Studio cookie's value. */
+    readCookie: (value: string | undefined) => Promise<WebStudioCookieState>;
+  };
 }
 
 /**
@@ -75,6 +140,32 @@ export interface UnauthenticatedRedirectRule {
 
 const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
 
+/**
+ * A value only this server process knows, set on every rewritten tenant
+ * address. Next fetches an external rewrite over HTTP with the forwarded
+ * request headers, so the proxy then sees its own marker come back: on a
+ * server bound to a loopback IP literal (`127.0.0.1`, `::1`) Next treats the
+ * rewrite as external and would otherwise render the page with no tenant and
+ * no error (record D-19). A client that forges the header cannot know the
+ * value, so its copy is simply deleted.
+ *
+ * What it detects, and what it cannot (council round 1, A4): it fires only
+ * when the rewritten request comes back to the same process, which is the
+ * case for `next dev`, `next start` and a standalone server. With several
+ * instances, or with the proxy in a function of its own as on a hosted
+ * platform, the request can reach a process that does not know this value:
+ * there the marker is deleted as a forgery, the inner path has no tenant
+ * prefix, and the proxy lands it with a 307 on the tenant address (or the
+ * chooser), so the browser sees a redirect loop instead of this 500. A page
+ * still never renders without its tenant, but the failure is not named. A
+ * rewrite to another origin never gets this far: the own-origin check
+ * refuses it first.
+ * The hosted proof is a preview deployment where a tenant page answers 200
+ * with its scope, no response carries this header, and the `//` form is
+ * refused (the hosted smoke suite, `tests/e2e/development-smoke`).
+ */
+const TENANT_REWRITE_MARKER = crypto.randomUUID();
+
 function isPublicRoute(pathname: string, publicRoutes: string[]) {
   return isListedRouteMatch(pathname, publicRoutes, matchesListedRoute);
 }
@@ -85,17 +176,26 @@ function isProtectedRoute(pathname: string, prefixes: string[]) {
 
 /**
  * The request headers the proxy passes on: the pathname, and the surface's
- * role class or nothing, never a value the client sent.
+ * role class or nothing, never a value the client sent. On a page request
+ * every scope header is deleted, so only the proxy's own decision sets one.
+ * On an API request the tenant and assignment headers the own-API fetch
+ * wrapper sends stay, as proposals the resolver checks.
  */
 function forwardedRequestHeaders(
   request: NextRequest,
   pathname: string,
   roleClass: RoleClass | null,
+  isApiRequest: boolean,
 ) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-asym-pathname", pathname);
   if (roleClass) requestHeaders.set(ROLE_CLASS_HEADER, roleClass);
   else requestHeaders.delete(ROLE_CLASS_HEADER);
+  for (const name of PAGE_SCOPE_HEADERS) {
+    if (isApiRequest && (name === TENANT_HEADER || name === ASSIGNMENT_HEADER))
+      continue;
+    requestHeaders.delete(name);
+  }
   return requestHeaders;
 }
 
@@ -106,7 +206,12 @@ function withPathHeader(
 ) {
   return NextResponse.next({
     request: {
-      headers: forwardedRequestHeaders(request, pathname, roleClass),
+      headers: forwardedRequestHeaders(
+        request,
+        pathname,
+        roleClass,
+        pathname.startsWith("/api/"),
+      ),
     },
   });
 }
@@ -151,8 +256,11 @@ function buildUnauthenticatedRedirectUrl(
   return buildRedirectUrl(request, redirectPath, next);
 }
 
-function redirectWithCookies(url: URL, cookieSource: NextResponse) {
-  const response = NextResponse.redirect(url);
+/** Copies the refreshed session cookies and their cache headers onto `response`. */
+function withSessionFrom<T extends NextResponse>(
+  response: T,
+  cookieSource: NextResponse,
+): T {
   for (const name of ["Cache-Control", "Expires", "Pragma"]) {
     const value = cookieSource.headers.get(name);
     if (value !== null) response.headers.set(name, value);
@@ -161,6 +269,10 @@ function redirectWithCookies(url: URL, cookieSource: NextResponse) {
     response.cookies.set(cookie);
   });
   return response;
+}
+
+function redirectWithCookies(url: URL, cookieSource: NextResponse) {
+  return withSessionFrom(NextResponse.redirect(url), cookieSource);
 }
 
 function logMissingSupabaseConfig(
@@ -179,6 +291,74 @@ function logMissingSupabaseConfig(
   console.error(
     `[auth] Supabase auth config missing in proxy.${missingHint} Failing closed for protected path "${pathname}".`,
   );
+}
+
+/** Record D-19: the failure is loud, never a page rendered without its tenant. */
+function rewriteLeftServerResponse(pathname: string) {
+  const message =
+    "Tenant address rewrite left the server: the proxy received its own " +
+    `rewritten request for "${pathname}". Next treats a rewrite as external ` +
+    "when the server is bound to a loopback IP address such as 127.0.0.1 " +
+    "or ::1; " +
+    "bind it to localhost (record D-19).";
+  console.error(`[auth] ${message}`);
+  return new NextResponse(message, {
+    status: 500,
+    headers: { "content-type": "text/plain; charset=utf-8" },
+  });
+}
+
+/** `pathname` plus the request's query, as a redirect target or `next`. */
+function withSearch(request: NextRequest, pathname: string) {
+  return `${pathname}${request.nextUrl.search}`;
+}
+
+/**
+ * `path` as a URL on the request's own origin, or null when it would resolve
+ * anywhere else. Every rewrite target and every redirect the proxy builds
+ * from the page address goes through this. Next.js fetches a rewrite to
+ * another origin itself, with the request headers the proxy set, the session
+ * cookie among them, so such a target is refused, never followed (council
+ * round 1, A2). `parseTenantAddress` already refuses an inner path that
+ * starts another authority (A1); this refusal stands if a parse ever lets
+ * one through.
+ *
+ * The origin alone is not enough: a dot segment can resolve to a path that
+ * starts with `//` on the same origin (`/login/..//evil.example`), and
+ * Next.js relativizes a same-origin Location to that path, which a browser
+ * reads as another host. Such a path is refused too (council round 2, AR5).
+ *
+ * On a Node server the raw tab is refused and the double slash is redirected
+ * before the proxy sees it, so the proxy's own refusal is the defence on a
+ * platform whose front differs, and it is proved by the tests
+ * (`tests/unit/auth/tenant-address-rewrite-*.test.ts`).
+ */
+function ownOriginUrl(request: NextRequest, path: string): URL | null {
+  if (!path.startsWith("/")) return null;
+  const url = new URL(path, request.nextUrl.origin);
+  return url.origin === request.nextUrl.origin && !url.pathname.startsWith("//")
+    ? url
+    : null;
+}
+
+/**
+ * The answer to an address the proxy will not serve: no page, as for an API
+ * route under a tenant prefix. Nothing in it comes from the address, and it
+ * carries no session cookie.
+ */
+function refusedAddress(): NextResponse {
+  return new NextResponse(null, { status: 404 });
+}
+
+function chooserUrl(
+  request: NextRequest,
+  tenantId: string | null,
+  next: string,
+) {
+  const url = new URL(CHOOSER_PATH, request.nextUrl.origin);
+  if (tenantId) url.searchParams.set("tenant", tenantId);
+  url.searchParams.set("next", next);
+  return url;
 }
 
 /**
@@ -212,6 +392,8 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const unauthorizedRedirectTo = options.unauthorizedRedirectTo ?? loginPath;
   const resolveUserRole = options.resolveUserRole;
   const roleClass = options.roleClass ?? null;
+  const tenantAddress = options.tenantAddress === true;
+  const webStudio = options.webStudio ?? null;
 
   // A role gate with no way to resolve a role fails closed on every request, so
   // the misconfiguration presents as "nobody can sign in anywhere" rather than
@@ -224,12 +406,72 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         "from every protected route. Pass a `resolveUserRole` implementation.",
     );
   }
+  // One list of the addresses outside the tenant segment (council round 1,
+  // A13): a public route it does not cover would get a prefix from the
+  // helpers and a redirect back from the proxy.
+  const publicInside = tenantAddress
+    ? publicRoutes.filter((route) => !isOutsideTenantSegment(route))
+    : [];
+  if (publicInside.length > 0) {
+    throw new Error(
+      `createAuthMiddleware: public route(s) ${publicInside.join(", ")} lie ` +
+        "inside the tenant segment. Add each page outside it to " +
+        "OUTSIDE_TENANT_SEGMENT_ROOTS (packages/auth/tenant-address.ts), the " +
+        "one list of addresses outside the segment, or drop the route.",
+    );
+  }
+  if (tenantAddress && !roleClass) {
+    throw new Error(
+      "createAuthMiddleware: `tenantAddress` needs the surface's `roleClass`, " +
+        "because the membership decision reads only rows of that class.",
+    );
+  }
+  if (webStudio && roleClass !== "staff") {
+    throw new Error(
+      "createAuthMiddleware: `webStudio` needs the staff `roleClass`: Web " +
+        "Studio acts on staff rows.",
+    );
+  }
 
   return async function authMiddleware(request: NextRequest) {
-    const pathname = request.nextUrl.pathname;
+    const addressPathname = request.nextUrl.pathname;
+    const refusal = await admitApiMutation(request, addressPathname);
+    if (refusal) return refusal;
+
+    if (
+      tenantAddress &&
+      request.headers.get(TENANT_REWRITE_HEADER) === TENANT_REWRITE_MARKER
+    ) {
+      return rewriteLeftServerResponse(addressPathname);
+    }
+
+    const address = tenantAddress ? parseTenantAddress(addressPathname) : null;
+    // Route decisions use the pathname the page files see.
+    const pathname = address ? address.innerPathname : addressPathname;
 
     if (allowApi && pathname.startsWith("/api/")) {
+      // No API route lives inside the tenant segment (plan 5.2).
+      if (address) return new NextResponse(null, { status: 404 });
       return withPathHeader(request, pathname, roleClass);
+    }
+
+    // Payload's REST routes under `/web-studio/api` (plan 5.2): the session
+    // is refreshed and nothing else. Never inside the tenant segment.
+    if (webStudio && isWebStudioApiPath(pathname)) {
+      if (address) return refusedAddress();
+      return refreshWebStudioApiSession(request, pathname, roleClass);
+    }
+
+    // Under the chooser but not the chooser (check of the fix lists, JR5):
+    // no page lives there, and the gate below would take it for a Web Studio
+    // page whose document, outside its own segment, reloads without end. To
+    // the chooser, with the query kept, before the gate.
+    if (webStudio && !address && isStrayWebStudioChooserPath(pathname)) {
+      const target = ownOriginUrl(
+        request,
+        withSearch(request, WEB_STUDIO_CHOOSER_PATH),
+      );
+      return target ? NextResponse.redirect(target) : refusedAddress();
     }
 
     const config = getSupabasePublicConfig();
@@ -239,8 +481,18 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     );
     const isExplicitlyPublic =
       isAuthRoute || isPublicRoute(pathname, publicRoutes);
-    const requiresAuthentication =
-      !isExplicitlyPublic && isProtectedRoute(pathname, protectedRoutePrefixes);
+
+    // Sign-in, the chooser, Web Studio and the public pages stay outside the
+    // tenant segment: an address that puts one inside it loses the prefix.
+    if (address && (isExplicitlyPublic || isOutsideTenantSegment(pathname))) {
+      const target = ownOriginUrl(request, withSearch(request, pathname));
+      return target ? NextResponse.redirect(target) : refusedAddress();
+    }
+
+    // A tenant address is a signed-in page by definition.
+    const isProtectedPath =
+      address !== null || isProtectedRoute(pathname, protectedRoutePrefixes);
+    const requiresAuthentication = !isExplicitlyPublic && isProtectedPath;
 
     if (!url || !key) {
       if (requiresAuthentication) {
@@ -261,10 +513,12 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       return withPathHeader(request, pathname, roleClass);
     }
 
+    // The full address, so the layouts' sign-in redirect returns to it.
     const requestHeaders = forwardedRequestHeaders(
       request,
-      pathname,
+      addressPathname,
       roleClass,
+      false,
     );
     let supabaseResponse = NextResponse.next({
       request: { headers: requestHeaders },
@@ -318,8 +572,8 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       data: { user },
     } = await supabase.auth.getUser();
     let userId = user?.id ?? null;
+    let bypassSession: E2EAuthSession | null = null;
 
-    const isProtectedPath = isProtectedRoute(pathname, protectedRoutePrefixes);
     const e2eAuthBypassEnabled = isE2EAuthBypassEnabled();
 
     // Bind the bypass to datasource identity, not NODE_ENV: when the bypass flag
@@ -340,6 +594,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       const e2eSession = await parseE2EAuthCookieValue(rawCookie);
       if (e2eSession && isRoleAllowedForApp(e2eSession.role, allowedRoles)) {
         userId = e2eSession.userId;
+        bypassSession = e2eSession;
       }
 
       if (!userId) {
@@ -351,6 +606,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
           isRoleAllowedForApp(legacySession.role, allowedRoles)
         ) {
           userId = legacySession.userId;
+          bypassSession = legacySession;
         }
       }
     }
@@ -365,7 +621,10 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       // bypass populates `userId` from a cookie with no Supabase session, and
       // redirecting those would bounce the e2e suite off /login and /register.
       if (user && redirectAuthenticatedTo) {
-        if (allowedRoles && allowedRoles.length > 0) {
+        // Under the tenant address the target page makes the membership
+        // decision; a role check here would refuse a person in two
+        // organizations before they can choose one.
+        if (!tenantAddress && allowedRoles && allowedRoles.length > 0) {
           const roleSnapshot = resolveUserRole
             ? await resolveUserRole({
                 userId: user.id,
@@ -409,6 +668,148 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       );
     }
 
+    // Web Studio's pages (plan 5.2): outside the tenant segment, the
+    // organization comes from the signed Web Studio cookie, judged against
+    // the person's live staff rows, in place of the role check, which would
+    // refuse a person in two organizations. The chooser needs only a
+    // signed-in person.
+    if (webStudio && userId && isProtectedPath && isWebStudioPath(pathname)) {
+      if (pathname === WEB_STUDIO_CHOOSER_PATH) return supabaseResponse;
+      const assignments = await readSurfaceAssignments(
+        user?.id ?? null,
+        bypassSession,
+        supabase,
+      );
+      const decision = assignments
+        ? decideWebStudioAccess({
+            assignments,
+            cookie: await webStudio.readCookie(
+              request.cookies.get(WEB_STUDIO_TENANT_COOKIE)?.value,
+            ),
+          })
+        : ({ kind: "refuse" } as const);
+      // A link from Mission Control names the organization it came from
+      // (council on the joined release, JC3).
+      const entry = webStudioEntryRedirect(request, pathname, decision);
+      if (entry) return redirectWithCookies(entry, supabaseResponse);
+      if (decision.kind === "allow") return supabaseResponse;
+      if (decision.kind === "refuse" && assignments) {
+        reportAccessDiagnostic("no_assignment");
+      }
+      return redirectWithCookies(
+        decision.kind === "choose"
+          ? webStudioChooserUrl(request, withSearch(request, pathname))
+          : buildRedirectUrl(request, unauthorizedRedirectTo),
+        supabaseResponse,
+      );
+    }
+
+    // The tenant in the page address (plan 5.2): the membership decision,
+    // scoped to the address's tenant, replaces the role check on every
+    // signed-in page inside the tenant segment.
+    if (
+      tenantAddress &&
+      roleClass &&
+      userId &&
+      isProtectedPath &&
+      !isOutsideTenantSegment(pathname)
+    ) {
+      const assignments = await readSurfaceAssignments(
+        user?.id ?? null,
+        bypassSession,
+        supabase,
+      );
+      if (!assignments) {
+        return redirectWithCookies(
+          buildRedirectUrl(request, unauthorizedRedirectTo),
+          supabaseResponse,
+        );
+      }
+
+      if (!address) {
+        const landing = decideLanding({ assignments, roleClass });
+        if (landing.kind === "refuse") {
+          reportAccessDiagnostic("no_assignment");
+          return redirectWithCookies(
+            buildRedirectUrl(request, unauthorizedRedirectTo),
+            supabaseResponse,
+          );
+        }
+        const target =
+          landing.kind === "enter"
+            ? ownOriginUrl(
+                request,
+                withSearch(
+                  request,
+                  `${landing.prefix}${pathname === "/" ? "" : pathname}`,
+                ),
+              )
+            : chooserUrl(
+                request,
+                landing.tenantId,
+                withSearch(request, pathname),
+              );
+        if (!target) return refusedAddress();
+        return redirectWithCookies(target, supabaseResponse);
+      }
+
+      const decision = decideTenantAddress({
+        assignments,
+        roleClass,
+        tenantId: address.tenantId,
+        subRole: address.subRole,
+      });
+      switch (decision.kind) {
+        case "refuse":
+          reportAccessDiagnostic("no_assignment");
+          return redirectWithCookies(
+            buildRedirectUrl(request, unauthorizedRedirectTo),
+            supabaseResponse,
+          );
+        case "canonical": {
+          const target = ownOriginUrl(
+            request,
+            withSearch(
+              request,
+              `${decision.prefix}${pathname === "/" ? "" : pathname}`,
+            ),
+          );
+          if (!target) return refusedAddress();
+          return redirectWithCookies(target, supabaseResponse);
+        }
+        case "choose":
+          return redirectWithCookies(
+            chooserUrl(
+              request,
+              decision.tenantId,
+              withSearch(request, pathname),
+            ),
+            supabaseResponse,
+          );
+        case "allow": {
+          // The rewrite target keeps the request's origin, so Next serves it
+          // from this server; anything else is refused before a header is
+          // set (A2), and the marker catches a same-origin rewrite that Next
+          // still sends out (D-19).
+          const target = ownOriginUrl(request, withSearch(request, pathname));
+          if (!target) return refusedAddress();
+          requestHeaders.set(TENANT_HEADER, decision.assignment.tenantId);
+          requestHeaders.set(
+            ASSIGNMENT_HEADER,
+            decision.assignment.assignmentId,
+          );
+          requestHeaders.set(ADDRESS_PREFIX_HEADER, decision.prefix);
+          requestHeaders.set(TENANT_REWRITE_HEADER, TENANT_REWRITE_MARKER);
+          return withSessionFrom(
+            NextResponse.rewrite(target, {
+              request: { headers: requestHeaders },
+            }),
+            supabaseResponse,
+          );
+        }
+      }
+    }
+
     // Authentication is not authorization: without this, any signed-in user of
     // any app reaches every other app's protected routes, because the check
     // above only proves *someone* is signed in.
@@ -418,8 +819,16 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     // applied `isRoleAllowedForApp` to it; re-resolving that id here would look
     // up a user who does not exist, resolve `null`, and bounce the suite.
     //
-    // Fails closed: an unresolved role is treated as not allowed.
-    if (isProtectedPath && user && allowedRoles && allowedRoles.length > 0) {
+    // Fails closed: an unresolved role is treated as not allowed. The chooser
+    // only lists the person's own rows, so it takes no role check: it is where
+    // a person in two organizations, whom the check would refuse, chooses one.
+    if (
+      isProtectedPath &&
+      user &&
+      allowedRoles &&
+      allowedRoles.length > 0 &&
+      !(tenantAddress && pathname === CHOOSER_PATH)
+    ) {
       const roleSnapshot = resolveUserRole
         ? await resolveUserRole({
             userId: user.id,
@@ -442,4 +851,31 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
 
     return supabaseResponse;
   };
+}
+
+/**
+ * The person's live rows, validated, for the membership decision: from the
+ * assignments RPC on the request's own session, or from the signed cookie of
+ * an E2E bypass identity. `null` when the read fails or a row is malformed:
+ * the caller refuses.
+ */
+async function readSurfaceAssignments(
+  userId: string | null,
+  bypassSession: E2EAuthSession | null,
+  supabase: SupabaseUserRoleReader,
+): Promise<readonly ActiveAssignment[] | null> {
+  if (!userId) {
+    return bypassSession ? listE2EAuthAssignments(bypassSession) : null;
+  }
+  const { reader, readError } = withReadErrorCause(
+    createRpcAssignmentReader(supabase as unknown as AssignmentRpcClient),
+  );
+  const read = await readActiveAssignments(userId, reader);
+  if (!read.ok) {
+    // The cause goes to the server log as a safe error code; the person's
+    // answer is the same refusal (council round 1, A5).
+    reportAccessDiagnostic("membership_query_failed", readError());
+    return null;
+  }
+  return read.assignments;
 }

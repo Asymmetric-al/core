@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Empty,
@@ -9,7 +10,6 @@ import {
   EmptyTitle,
 } from "@asym/ui/components/shadcn/empty";
 import * as Sentry from "@sentry/nextjs";
-import Link from "next/link";
 import { useEffect } from "react";
 
 export default function RouteError({

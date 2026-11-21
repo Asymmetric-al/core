@@ -1,8 +1,6 @@
-import { ASSIGNMENT_HEADER } from "@asym/auth/request-headers";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { adminUsersListQuerySchema } from "../schemas/admin";
-import { createRequestSessionClient } from "../shared/request-session-client";
 import { withOperation } from "../shared/with-operation";
 
 /** One row of `public.tenant_member_directory`. */
@@ -30,7 +28,6 @@ interface DirectoryQuery extends PromiseLike<DirectoryResult> {
     options: { ascending: boolean; nullsFirst?: boolean },
   ): DirectoryQuery;
   range(from: number, to: number): DirectoryQuery;
-  setHeader(name: string, value: string): DirectoryQuery;
 }
 interface DirectoryClient {
   rpc(
@@ -48,7 +45,7 @@ interface DirectoryClient {
  * the page are applied in SQL. The service-key client is not used.
  */
 export const GET = withOperation(
-  async ({ auth: ctx, request }) => {
+  async ({ auth: ctx, request, sessionClient }) => {
     const { searchParams } = new URL(request.url);
     const parsed = adminUsersListQuerySchema.safeParse({
       limit: searchParams.get("limit") ?? "50",
@@ -67,15 +64,13 @@ export const GET = withOperation(
     const filters = roleLabelFilters(role);
     if (!filters) return NextResponse.json({ users: [] });
 
-    const session = (await createRequestSessionClient(
-      request,
-    )) as unknown as DirectoryClient;
+    // Every request of the session client carries the resolved tenant and
+    // assignment (WP2b, AL-2675), so the directory reads the row the
+    // resolver selected.
+    const session = sessionClient as unknown as DirectoryClient;
     let query = session.rpc("tenant_member_directory", {
       p_tenant_id: ctx.tenantId,
     });
-    if (ctx.assignment) {
-      query = query.setHeader(ASSIGNMENT_HEADER, ctx.assignment.assignmentId);
-    }
     for (const [column, value] of filters) query = query.eq(column, value);
     const { data, error } = await query
       .order("display_name", { ascending: true, nullsFirst: false })

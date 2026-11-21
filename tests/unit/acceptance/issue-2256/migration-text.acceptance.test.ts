@@ -162,14 +162,26 @@ describe("#2256 forward migration text", () => {
   });
 
   it("no other forward migration names persons or person_id", () => {
+    // Amended by AL-2675 (WP2b, second release; record D-18): the policy
+    // migration rewrites the persons staff policy in place, by ALTER POLICY,
+    // and names persons nowhere else. Any other statement there, and any
+    // other migration, still fails.
+    const POLICY_MIGRATION = /^\d{14}_request_tenant_policies\.sql$/;
+    const re = /\b(persons|person_id)\b/i;
     const hits = readdirSync(DIR)
       .filter((f) => /^\d{14}_.*\.sql$/.test(f) && f !== OWN)
-      .filter((f) =>
-        /\b(persons|person_id)\b/i.test(
-          code(readFileSync(path.join(DIR, f), "utf8")),
-        ),
-      );
+      .filter((f) => !POLICY_MIGRATION.test(f))
+      .filter((f) => re.test(code(readFileSync(path.join(DIR, f), "utf8"))));
     expect(hits).toEqual([]);
+    const policyMigration = readdirSync(DIR).find((f) =>
+      POLICY_MIGRATION.test(f),
+    );
+    const naming = code(readFileSync(path.join(DIR, policyMigration!), "utf8"))
+      .split("\n")
+      .filter((line) => re.test(line));
+    expect(naming).toEqual([
+      'ALTER POLICY "persons_staff_select" ON public.persons',
+    ]);
   });
 });
 
@@ -272,7 +284,7 @@ describe("#2256 seams, readers and writers", () => {
     );
   });
 
-  it('16 (S): the .from("missionaries") write sites equal the frozen list; payload keys never include person_id (see #2268)', () => {
+  it("16 (S): the direct and scoped missionary writers never update person_id (see #2268, AL-2675)", () => {
     const sites: string[] = [];
     for (const f of lsFiles(...APP_DIRS).filter(
       (x) => SRC.test(x) && !TEST.test(x),
@@ -293,7 +305,6 @@ describe("#2256 seams, readers and writers", () => {
     }
     expect(sites.sort()).toEqual([
       "packages/api/src/admin/member-care/mutations.ts",
-      "packages/api/src/profile/index.ts",
     ]);
     const profile = readFileSync("packages/api/src/profile/index.ts", "utf8");
     const keys = new Set(
@@ -303,8 +314,22 @@ describe("#2256 seams, readers and writers", () => {
       "bio cover_url location mission_field phone social_links tagline",
     );
     expect(profile).toMatch(
-      /\.from\("missionaries"\)\s*\.update\(\{ \.\.\.missionaryUpdate, updated_at: now \}\)/,
+      /\.rpc\("missionary_own_record_write",\s*\{\s*\.\.\.missionaryArgs\(scope\),\s*p_patch: missionaryUpdate,?\s*\}\)/,
     );
+    // AL-2675 moves the profile write into SQL. Pin its target columns as well as the route payload.
+    const authorityFiles = readdirSync(DIR).filter((name) =>
+      name.endsWith("_missionary_handler_authority.sql"),
+    );
+    expect(authorityFiles).toHaveLength(1);
+    const authority = readFileSync(path.join(DIR, authorityFiles[0]!), "utf8");
+    const writer =
+      /CREATE FUNCTION public\.missionary_own_record_write\([\s\S]*?AS \$\$([\s\S]*?)\$\$;/i.exec(
+        authority,
+      )?.[1];
+    expect(writer).toMatch(
+      /UPDATE public\.missionaries AS missionary\s+SET \(phone, bio, tagline, mission_field, location, cover_url, social_links\) =/i,
+    );
+    expect(writer).not.toMatch(/\bperson_id\b/i);
     expect(
       readFileSync("packages/api/src/admin/member-care/mutations.ts", "utf8"),
     ).toMatch(

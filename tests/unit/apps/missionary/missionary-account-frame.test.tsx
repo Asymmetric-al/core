@@ -3,7 +3,7 @@
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { setPlatform } from "@ui-sdk/core/testing";
 import { renderToString } from "react-dom/server";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, expect, it, vi } from "vitest";
 
 const navigation = vi.hoisted(() => ({
   pathname: "/login",
@@ -14,6 +14,38 @@ const navigation = vi.hoisted(() => ({
 vi.mock("next/navigation", () => ({
   usePathname: () => navigation.pathname,
   useRouter: () => navigation,
+}));
+// The shell as app/layout.tsx composes it, its workspace gate resolved once
+// for a workspace page (council round 1, A24; ./layout-shell.tsx).
+vi.mock("next/headers", () => ({
+  headers: async () =>
+    new Headers({
+      "x-asym-pathname": "/00000000-0000-0000-0000-000000000001/tasks",
+    }),
+}));
+vi.mock("@asym/auth/context", () => ({
+  getAuthContext: async () => ({
+    isAuthenticated: true,
+    userId: "00000000-0000-4000-8000-0000000e2e40",
+    tenantId: "00000000-0000-0000-0000-000000000001",
+    role: "missionary",
+  }),
+  hasAnyContextRole: () => true,
+}));
+vi.mock("@asym/auth/tenant-server", () => ({
+  readDocumentScope: async () => ({
+    userId: "00000000-0000-4000-8000-0000000e2e40",
+    tenantId: "00000000-0000-0000-0000-000000000001",
+    assignmentId: "00000000-0000-4000-8000-0000000e2e41",
+    addressPrefix: "/00000000-0000-0000-0000-000000000001",
+  }),
+  redirectInTenant: async () => {
+    throw new Error("the workspace gate redirected");
+  },
+}));
+vi.mock("@asym/ui/fonts", () => ({ fontVariables: "" }));
+vi.mock("@asym/database/supabase/config", () => ({
+  getSupabasePublicConfig: () => ({ url: "https://example.supabase.co" }),
 }));
 vi.mock("@asym/auth/client-session", () => ({
   signOutClientSession: vi.fn(),
@@ -32,8 +64,6 @@ vi.mock("@asym/database/supabase", () => ({
 
 // eslint-disable-next-line no-restricted-imports -- AL-1976: Test actual Missionary account composition rather than a replacement shell.
 import LoginLoading from "../../../../apps/missionary/app/(auth)/login/loading";
-// eslint-disable-next-line no-restricted-imports -- AL-1976: The app selector is the public account/workspace presentation seam.
-import { MissionaryLayoutShell } from "../../../../apps/missionary/app/_providers/missionary-layout-shell";
 // eslint-disable-next-line no-restricted-imports -- AL-1976: Preserve the app's existing password-help content in composed coverage.
 import ForgotPasswordPage from "../../../../apps/missionary/app/forgot-password/page";
 // eslint-disable-next-line no-restricted-imports -- AL-2673: The reset step's loading state must keep the account frame.
@@ -50,7 +80,19 @@ import {
   QueryClientProvider,
 } from "../../../../packages/ui/node_modules/@tanstack/react-query/build/modern/index.js";
 
-import type { ReactNode } from "react";
+import { LAYOUT_PREFIX, shellFromLayout } from "./layout-shell";
+
+import type { ReactElement, ReactNode } from "react";
+
+let layoutShell: (children: ReactNode) => ReactElement;
+beforeAll(async () => {
+  layoutShell = await shellFromLayout();
+});
+
+/** The shell exactly as `app/layout.tsx` composes it (A24). */
+function Shell({ children }: { children: ReactNode }) {
+  return layoutShell(children);
+}
 
 const clients: QueryClient[] = [];
 const scrollDescriptor = Object.getOwnPropertyDescriptor(
@@ -105,7 +147,7 @@ function compose(children: ReactNode) {
   clients.push(client);
   return (
     <QueryClientProvider client={client}>
-      <MissionaryLayoutShell>{children}</MissionaryLayoutShell>
+      <Shell>{children}</Shell>
     </QueryClientProvider>
   );
 }
@@ -127,9 +169,9 @@ function expectStandalone(view: ReturnType<typeof render>) {
 
 it("server-renders login loading without any dashboard chrome", () => {
   const markup = renderToString(
-    <MissionaryLayoutShell>
+    <Shell>
       <LoginLoading />
-    </MissionaryLayoutShell>,
+    </Shell>,
   );
   const view = render(<div dangerouslySetInnerHTML={{ __html: markup }} />);
   expectStandalone(view);
@@ -140,9 +182,9 @@ it("server-renders login loading without any dashboard chrome", () => {
 it("server-renders registration loading with one full-page content landmark", () => {
   navigation.pathname = "/register";
   const markup = renderToString(
-    <MissionaryLayoutShell>
+    <Shell>
       <RegisterLoading />
-    </MissionaryLayoutShell>,
+    </Shell>,
   );
   const view = render(<div dangerouslySetInnerHTML={{ __html: markup }} />);
   expect(view.getAllByRole("main")).toHaveLength(1);
@@ -233,13 +275,14 @@ it.each([
   expect(view.container.firstElementChild).toBe(view.getByRole("main"));
 });
 
+// /workers and /checkout left this list with the public routes the workspace
+// never had pages for (council round 1, A13). Workspace pages are tenant
+// addresses; /auth/callback is a route handler, where the layout's gate
+// renders nothing (A24).
 it.each([
-  "/",
-  "/tasks",
-  "/workers",
-  "/checkout",
-  "/auth/callback",
-  "/login-history",
+  LAYOUT_PREFIX,
+  `${LAYOUT_PREFIX}/tasks`,
+  `${LAYOUT_PREFIX}/login-history`,
 ])("preserves the existing shell on %s", (pathname) => {
   navigation.pathname = pathname;
   const view = render(compose(<h1>Existing page</h1>));
@@ -251,8 +294,8 @@ it.each([
     view.getAllByRole("button", { name: "Toggle Sidebar" }).length,
   ).toBeGreaterThan(0);
   expect(
-    Boolean(view.queryByRole("button", { name: "Search missionary pages" })),
-  ).toBe(["/", "/tasks", "/login-history"].includes(pathname));
+    view.getByRole("button", { name: "Search missionary pages" }),
+  ).toBeTruthy();
 });
 
 it.each(["/boneyard", "/boneyard/capture"])(
@@ -272,7 +315,7 @@ it.each(["/boneyard", "/boneyard/capture"])(
 it.each(["palette", "sidebar"])(
   "unmounts an open %s portal and both workspace shortcuts on login, then restores navigation",
   async (overlay) => {
-    navigation.pathname = "/tasks";
+    navigation.pathname = `${LAYOUT_PREFIX}/tasks`;
     const view = render(compose(<h1>Tasks</h1>));
     fireEvent.click(
       view.getAllByRole("button", {
@@ -299,7 +342,7 @@ it.each(["palette", "sidebar"])(
       expect(shortcut.defaultPrevented).toBe(false);
     }
 
-    navigation.pathname = "/tasks";
+    navigation.pathname = `${LAYOUT_PREFIX}/tasks`;
     view.rerender(compose(<h1>Tasks</h1>));
     const shortcut = new KeyboardEvent("keydown", {
       key: "k",
@@ -311,6 +354,6 @@ it.each(["palette", "sidebar"])(
     expect(shortcut.defaultPrevented).toBe(true);
     await view.findByRole("dialog", { name: "Missionary navigation" });
     fireEvent.click(view.getByRole("option", { name: "Home" }));
-    expect(navigation.push).toHaveBeenCalledWith("/");
+    expect(navigation.push).toHaveBeenCalledWith(LAYOUT_PREFIX);
   },
 );

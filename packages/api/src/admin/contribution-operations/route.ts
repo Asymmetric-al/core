@@ -47,7 +47,7 @@ import {
   toErrorResponse,
 } from "../../shared/http-errors";
 import {
-  withOperation,
+  withPlatformOperation,
   type OperationRouteContext,
 } from "../../shared/with-operation";
 
@@ -113,7 +113,7 @@ function actorPermissionsFromAuth(
     : [];
 }
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ supabaseAdmin, auth, requestId, routeContext }) => {
     try {
       const contributionId = await getRouteParam(
@@ -197,7 +197,7 @@ export const GET = withOperation(
   { capability: "admin.gifts.manage" },
 );
 
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ request, supabaseAdmin, auth, requestId }) => {
     try {
       const body = actionRequestSchema.parse(await ensureJsonBody(request));
@@ -265,7 +265,7 @@ export const decisionRequestSchema = z.object({
     .optional(),
 });
 
-export const POST_CORRECTION_REQUEST_DECISION = withOperation(
+export const POST_CORRECTION_REQUEST_DECISION = withPlatformOperation(
   async ({ request, supabaseAdmin, auth, requestId, routeContext }) => {
     try {
       const correctionRequestId = await getRouteParam(
@@ -349,10 +349,10 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
 
 /**
  * Streams the durable updated-receipt PDF for a stored snapshot (#263).
- * Binary responses pass through `withOperation` untouched — its error
+ * Binary responses pass through `withPlatformOperation` untouched — its error
  * normalization only rewrites non-OK `application/json` bodies.
  */
-export const GET_RECEIPT_SNAPSHOT_PDF = withOperation(
+export const GET_RECEIPT_SNAPSHOT_PDF = withPlatformOperation(
   async ({ supabaseAdmin, auth, requestId, routeContext }) => {
     try {
       const snapshotId = await getRouteParam(

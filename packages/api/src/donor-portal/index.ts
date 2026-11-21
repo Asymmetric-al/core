@@ -12,7 +12,7 @@ import { getDonorPortalSnapshot, resolveDonorPortalContext } from "./service";
 import { donorPortalPatchSchema } from "./settings-patch";
 import { checkProfileImageUrl } from "../profile/image-url";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
-import { withOperation } from "../shared/with-operation";
+import { withPlatformOperation } from "../shared/with-operation";
 
 import type { NextRequest } from "next/server";
 
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-export const PATCH = withOperation(
+export const PATCH = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
     const patch = donorPortalPatchSchema.parse(await ensureJsonBody(request));

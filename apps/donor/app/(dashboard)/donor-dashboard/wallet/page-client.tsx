@@ -1,6 +1,7 @@
 "use client";
 
 import { formatMoney, isSupportedCurrency } from "@asym/api/money";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   useCreateDonorBillingPortalSession,
   useDonorPortalSnapshot,
@@ -31,7 +32,6 @@ import {
   Loader2,
   WalletCards,
 } from "lucide-react";
-import Link from "next/link";
 import { useRef, useState } from "react";
 
 const FREQUENCY_WORDS: Record<string, string> = {

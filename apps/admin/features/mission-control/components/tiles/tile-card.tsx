@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { insideForRole, quickActionsForRole } from "@asym/config/tiles";
 import { useMC } from "@asym/lib/mission-control/context";
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
@@ -12,7 +13,6 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@asym/ui/components/shadcn/item";
-import Link from "next/link";
 
 import { ChevronRight, DynamicIcon } from "../icons";
 

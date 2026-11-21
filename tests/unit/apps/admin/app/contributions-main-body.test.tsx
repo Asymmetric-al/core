@@ -25,6 +25,22 @@ import type {
 } from "@asym/api/admin/contribution-batches";
 import type { ContributionGridRow as Contribution } from "@asym/api/admin/contributions/types";
 
+// WP2b, AL-2675: these calls go through the own-API wrapper, whose own suite
+// (tests/unit/packages/database/own-api.test.ts) proves what it adds: the
+// document's tenant and assignment, and no HTTP cache. Here it passes each
+// call through unchanged, so the assertions below still read exactly the
+// request the caller sends, and it records the calls, so a test can tell a
+// call made through the wrapper from one made on the raw `fetch`.
+const { ownApiFetchSpy } = vi.hoisted(() => ({
+  ownApiFetchSpy: vi.fn((path: string, init?: RequestInit) =>
+    globalThis.fetch(path, init),
+  ),
+}));
+vi.mock("@asym/database/own-api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/database/own-api")>()),
+  ownApiFetch: ownApiFetchSpy,
+}));
+
 const toastErrorMock = vi.fn();
 const toastSuccessMock = vi.fn();
 const toastWarningMock = vi.fn();
@@ -711,6 +727,40 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
       "Sent 29 receipts; 1 failed.",
     );
     expect(onBulkReceiptSuccessMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends every process step through the own-API wrapper, so each carries the document's scope (WP2b, AL-2675)", async () => {
+    // The process route resolves the caller's tenant and assignment
+    // (`withOperation` → `getAuthContext`). A step sent on the raw `fetch`
+    // names neither, and the resolver refuses a person in two organizations
+    // or with two staff rows in one: the batch would be saved, then stall.
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        okBatchResponse({ status: "running", includeNextAction: true }),
+      )
+      .mockResolvedValueOnce(
+        okBatchResponse({ status: "running", processed: 25, succeeded: 25 }),
+      )
+      .mockResolvedValueOnce(okBatchResponse({ processed: 30, succeeded: 30 }));
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const view = renderMainBody([makeContribution()]);
+
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
+    fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
+
+    await waitFor(() => {
+      expect(toastSuccessMock).toHaveBeenCalled();
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(ownApiFetchSpy.mock.calls.map(([path]) => path)).toEqual([
+      "/api/admin/contribution-batches",
+      persistedBatchProcessHref,
+      persistedBatchProcessHref,
+    ]);
   });
 
   it("retries the existing persisted batch instead of creating another batch", async () => {

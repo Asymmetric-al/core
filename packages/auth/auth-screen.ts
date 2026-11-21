@@ -1,9 +1,9 @@
 import { createClient } from "@asym/database/supabase/server";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 
 import { getDefaultPostLoginPathForApp, safeNextParam } from "./demo-login";
 import { passwordRecoverySecondsLeft } from "./password-recovery";
+import { redirectInTenant } from "./tenant-server";
 
 import type { AppId } from "./demo-login";
 
@@ -27,13 +27,15 @@ export async function requireAnonymousVisitor(params: {
   const firstNext = Array.isArray(rawNext) ? rawNext[0] : rawNext;
   const nextPath = safeNextParam(firstNext ?? null);
 
-  const supabase = await createClient();
+  const supabase = await createClient(null); // Auth only: reads no tenant table.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (user) {
-    redirect(nextPath ?? getDefaultPostLoginPathForApp(params.appId));
+    return redirectInTenant(
+      nextPath ?? getDefaultPostLoginPathForApp(params.appId),
+    );
   }
 
   return { nextPath };
@@ -66,7 +68,7 @@ export async function readPasswordRecovery(): Promise<PasswordRecovery | null> {
   // The window check reads the clock, so it must run at request time and
   // never in a prerender, including a runtime prefetch that has cookies.
   await connection();
-  const supabase = await createClient();
+  const supabase = await createClient(null); // Auth only: reads no tenant table.
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data?.claims) {
     return null;

@@ -14,8 +14,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const {
   AUTH_TENANT_ID,
   AUTH_PROFILE_ID,
+  AUTH_ASSIGNMENT_ID,
   adminRpcCalls,
   bearerClientOptions,
+  cookieClientScopes,
   rpcCalls,
   sessionClient,
 } = vi.hoisted(() => {
@@ -23,8 +25,10 @@ const {
   return {
     AUTH_TENANT_ID: "11111111-1111-4111-8111-111111111111",
     AUTH_PROFILE_ID: "22222222-2222-4222-8222-222222222222",
+    AUTH_ASSIGNMENT_ID: "33333333-3333-4333-8333-333333333333",
     adminRpcCalls: [] as string[],
     bearerClientOptions: [] as unknown[],
+    cookieClientScopes: [] as unknown[],
     rpcCalls,
     sessionClient: {
       rpc: async (name: string, params: Record<string, unknown>) => {
@@ -60,7 +64,10 @@ vi.mock("@asym/database/supabase/admin", () => ({
 // Cookie sessions use the shared server client; bearer sessions get an
 // anon-key client that forwards the caller's token.
 vi.mock("@asym/database/supabase/server", () => ({
-  createClient: async () => sessionClient,
+  createClient: async (scope: unknown) => {
+    cookieClientScopes.push(scope);
+    return sessionClient;
+  },
 }));
 
 vi.mock("@supabase/ssr", () => ({
@@ -88,6 +95,16 @@ vi.mock("@asym/auth/context", async (importOriginal) => {
         isTenantAdmin: true,
       },
     ],
+    // The row the resolver selected (WP2b, AL-2675).
+    assignment: {
+      assignmentId: AUTH_ASSIGNMENT_ID,
+      userId: "user-1",
+      tenantId: AUTH_TENANT_ID,
+      revision: "1",
+      membershipRole: "staff",
+      staffRole: "development",
+      isTenantAdmin: true,
+    },
   };
   return {
     ...actual,
@@ -122,7 +139,42 @@ describe("admin/crm/table-preferences PUT handler", () => {
   beforeEach(() => {
     adminRpcCalls.length = 0;
     bearerClientOptions.length = 0;
+    cookieClientScopes.length = 0;
     rpcCalls.length = 0;
+  });
+
+  it("sends the resolved tenant and assignment to the database, never the caller's headers (WP2b, AL-2675)", async () => {
+    const forged = {
+      "x-asym-tenant": "99999999-9999-4999-8999-999999999999",
+      "x-asym-assignment": "88888888-8888-4888-8888-888888888888",
+    };
+    const resolved = {
+      "x-asym-tenant": AUTH_TENANT_ID,
+      "x-asym-assignment": AUTH_ASSIGNMENT_ID,
+    };
+
+    const cookie = await PUT(
+      putRequest(
+        { tableId: "crm.giftHistory", pinnedActionId: "resend_receipt" },
+        forged,
+      ),
+    );
+    expect(cookie.status).toBe(200);
+    expect(cookieClientScopes).toEqual([
+      { tenantId: AUTH_TENANT_ID, assignmentId: AUTH_ASSIGNMENT_ID },
+    ]);
+
+    const bearer = await PUT(
+      putRequest(
+        { tableId: "crm.giftHistory", pinnedActionId: "resend_receipt" },
+        { ...forged, authorization: "Bearer caller-access-token" },
+      ),
+    );
+    expect(bearer.status).toBe(200);
+    expect(bearerClientOptions).toHaveLength(1);
+    expect(bearerClientOptions[0]).toMatchObject({
+      global: { headers: resolved },
+    });
   });
 
   it("scopes the tenant from the authenticated context, never the body, and sends no profile", async () => {

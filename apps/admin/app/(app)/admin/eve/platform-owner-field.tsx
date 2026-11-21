@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
@@ -71,7 +72,7 @@ export function platformOwnerOption(
 }
 
 async function loadPlatformOwners(): Promise<SearchableSelectOption[]> {
-  const response = await fetch(PLATFORM_OWNERS_URL, {
+  const response = await ownApiFetch(PLATFORM_OWNERS_URL, {
     credentials: "same-origin",
     headers: { accept: "application/json" },
   });

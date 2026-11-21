@@ -131,7 +131,10 @@ describe("release workflow (plan 7.4)", () => {
     expect(repair).toContain(
       "run: node scripts/release/release-database.mjs replace-seeded-login-passwords",
     );
+    // Review L6: the repair connects to the database too, so it verifies the
+    // project's CA like every other step.
     expect(repair.match(/secrets\.[A-Z_]+/g)?.sort()).toEqual([
+      "secrets.RELEASE_DATABASE_SSL_CA",
       "secrets.RELEASE_DATABASE_URL",
       "secrets.RELEASE_SEED_LOGIN_PASSWORD",
     ]);
@@ -175,6 +178,28 @@ describe("release workflow (plan 7.4)", () => {
       ),
     ).toBe(true);
     expect(deploy).toContain("environment: release-production");
+  });
+
+  // WP1.6 (record D-18): the first hosted run stopped at the fingerprint,
+  // because hosted Supabase gives `postgres` default privileges in `public`
+  // that a plain replay lacks. The replay applies them first, from the one
+  // file the privileges harness reads too.
+  it("replays the chain with hosted Supabase's default privileges before it fingerprints the replay", () => {
+    const database = job("database");
+    const replay = database
+      .split("\n      - ")
+      .find((step) => step.includes("Replay every migration"))!;
+    expect(replay).toContain(
+      "run: node scripts/verify/supabase-migrations.mjs --hosted-defaults",
+    );
+    expect(
+      before(
+        database,
+        "supabase-migrations.mjs --hosted-defaults",
+        "schema-fingerprint.mjs capture",
+      ),
+    ).toBe(true);
+    expect(workflow.match(/supabase-migrations\.mjs/g)).toHaveLength(1);
   });
 
   it("deploys only through the API stage-check-promote step, never a CLI production deploy", () => {
@@ -246,6 +271,44 @@ describe("release workflow (plan 7.4)", () => {
       ),
     ).toBe(true);
   });
+
+  // WP1.7 (AL-2674): operators need a way to rebuild every app on a dispatched
+  // release (for example after changing Vercel variables), while pushes to
+  // production always build only changed apps.
+  it("exposes a release-only apps choice input and passes it to plan via env, never on push", () => {
+    const dispatchInputs = workflow.slice(
+      workflow.indexOf("  workflow_dispatch:\n"),
+      workflow.indexOf("\npermissions:\n"),
+    );
+    expect(dispatchInputs).toMatch(
+      /      apps:\n        description: [^\n]*release only[^\n]*\n        required: false\n        default: changed\n        type: choice\n        options: \[changed, all\]\n/,
+    );
+
+    const deploy = job("deploy");
+    const planStep = deploy
+      .split("\n      - ")
+      .find((step) => step.includes("vercel-release.mjs plan"))!;
+    expect(planStep).toBeDefined();
+    expect(planStep).toContain(
+      "RELEASE_APPS_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.apps || 'changed' }}",
+    );
+    expect(planStep).toContain(
+      "run: node scripts/release/vercel-release.mjs plan",
+    );
+    const runLine = planStep.slice(planStep.indexOf("run:"));
+    expect(runLine).not.toContain("inputs.");
+  });
+
+  // PR #2742 (P1): worst-case sequential deploy for three apps (`apps: all`)
+  // is 3 x 20m builds (60m) + 3 x staged checks (~11m) + 3 x 18-attempt live
+  // checks (~36m) + ~10m checkout/setup/API calls = ~117m. Keep headroom at
+  // 150m so a run is not cancelled after promotion.
+  it("gives the deploy job enough timeout-minutes for three sequential builds and full live checks", () => {
+    const deploy = job("deploy");
+    const match = /timeout-minutes:\s*(\d+)/.exec(deploy);
+    expect(match).not.toBeNull();
+    expect(Number(match![1])).toBe(150);
+  });
 });
 
 /**
@@ -269,3 +332,19 @@ function supabaseCliInstall(jobText: string) {
     !/npx[^\n]*supabase@/.test(jobText)
   );
 }
+
+// Review L6: a hosted release verifies every connection against the
+// project's CA, so every step that runs the release script holds it.
+describe("the project's CA in release.yml", () => {
+  it("goes to every step that runs the release script", () => {
+    const text = readFileSync(".github/workflows/release.yml", "utf8");
+    const steps = text
+      .split("\n      - ")
+      .filter((step) => step.includes("scripts/release/release-database.mjs"));
+    expect(steps.length).toBeGreaterThan(0);
+    for (const step of steps)
+      expect(step, step.split("\n")[0]).toContain(
+        "RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}",
+      );
+  });
+});

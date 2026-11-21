@@ -1,5 +1,6 @@
 "use client";
 
+import { documentStorageKey } from "@asym/database/document-storage";
 import {
   BookmarkIcon,
   MoreHorizontalIcon,
@@ -332,6 +333,32 @@ const savedFiltersCache = new Map<
 >();
 const savedFiltersListeners = new Map<string, Set<() => void>>();
 
+/**
+ * Where saved views live (plan 5.2; WP2b, AL-2675). In browser storage under a
+ * key that carries the document's person and tenant (`documentStorageKey`),
+ * because storage outlives the document load that switching organization
+ * performs. A document with no scope keeps its views for this page only, in
+ * memory, and stores nothing.
+ */
+const PAGE_MEMORY_PREFIX = "page-memory:";
+const pageMemory = new Map<string, string>();
+
+function savedFiltersKey(storageKey: string): string {
+  const base = `saved-filters-${storageKey}`;
+  return documentStorageKey(base) ?? `${PAGE_MEMORY_PREFIX}${base}`;
+}
+
+function readSaved(key: string): string | null {
+  return key.startsWith(PAGE_MEMORY_PREFIX)
+    ? (pageMemory.get(key) ?? null)
+    : localStorage.getItem(key);
+}
+
+function writeSaved(key: string, value: string): void {
+  if (key.startsWith(PAGE_MEMORY_PREFIX)) pageMemory.set(key, value);
+  else localStorage.setItem(key, value);
+}
+
 function createLocalStorageSubscribe(key: string) {
   return (callback: () => void) => {
     const listeners = savedFiltersListeners.get(key) ?? new Set<() => void>();
@@ -351,7 +378,7 @@ function createLocalStorageSubscribe(key: string) {
 
 function getLocalStorageSnapshot(key: string): SavedFilter[] {
   try {
-    const stored = localStorage.getItem(key);
+    const stored = readSaved(key);
     const cached = savedFiltersCache.get(key);
     if (cached?.raw === stored) return cached.filters;
     let filters = EMPTY_SAVED_FILTERS;
@@ -376,7 +403,7 @@ export function useSavedFilters({
   storageKey,
   onApply,
 }: UseSavedFiltersOptions) {
-  const fullKey = `saved-filters-${storageKey}`;
+  const fullKey = savedFiltersKey(storageKey);
 
   const subscribe = useCallback(
     (callback: () => void) => createLocalStorageSubscribe(fullKey)(callback),
@@ -397,7 +424,7 @@ export function useSavedFilters({
   const persistFilters = useCallback(
     (filters: SavedFilter[]) => {
       if (typeof window !== "undefined") {
-        localStorage.setItem(fullKey, JSON.stringify(filters));
+        writeSaved(fullKey, JSON.stringify(filters));
         for (const listener of savedFiltersListeners.get(fullKey) ?? [])
           listener();
       }

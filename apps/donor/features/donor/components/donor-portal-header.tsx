@@ -1,6 +1,10 @@
 "use client";
 
 import { signOutClientSession } from "@asym/auth/client-session";
+import {
+  TenantLink as Link,
+  useTenantRouter,
+} from "@asym/auth/tenant-navigation";
 import { siteConfig } from "@asym/config/site-client";
 import { useDonorPortalSnapshot } from "@asym/database/hooks";
 import { useAuth } from "@asym/lib/hooks";
@@ -28,8 +32,7 @@ import {
   Repeat,
   Settings,
 } from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useRef, useTransition } from "react";
 
 const SECTIONS = [
@@ -90,7 +93,7 @@ function currentBar(active: boolean) {
  */
 export function DonorPortalHeader() {
   const pathname = usePathname();
-  const router = useRouter();
+  const router = useTenantRouter();
   const { profile, user } = useAuth();
   // The donor record's name and photo, the same ones the pages use.
   const donor = useDonorPortalSnapshot().data?.profile;

@@ -17,9 +17,66 @@ import {
   resolveRootCompilerCommand,
   validateCompilerToolchain,
   verifyCompilerToolchain,
+  verifyLintBackends,
 } from "../../../scripts/verify/typescript-toolchain.mjs";
 
 const require = createRequire(import.meta.url);
+
+describe("type-aware lint backend ownership", () => {
+  it.each([
+    "valid",
+    "range",
+    "missing",
+    "mismatch",
+    "root declaration",
+    "workspace alias",
+    "root install",
+    "scoped install",
+    "isolated install",
+  ])("checks %s", { timeout: 120_000 }, (variant) => {
+    const parent = os.tmpdir();
+    const root = mkdtempSync(path.join(parent, "quality-backends-"));
+    try {
+      const version = "7.1.0-beta.tsrs2";
+      const write = (file: string, value: object) => {
+        const destination = path.join(root, file);
+        mkdirSync(path.dirname(destination), { recursive: true });
+        writeFileSync(destination, JSON.stringify(value));
+      };
+      write("package.json", {
+        devDependencies: {
+          tsrs: variant === "range" ? `^${version}` : version,
+          ...(variant === "root declaration" ? { "oxlint-tsgolint": "1" } : {}),
+        },
+      });
+      write("apps/app/package.json", {
+        optionalDependencies:
+          variant === "workspace alias"
+            ? { other: "npm:oxlint-tsgolint@1" }
+            : {},
+      });
+      if (variant !== "missing")
+        write("node_modules/tsrs/package.json", {
+          version: variant === "mismatch" ? "7.0.0" : version,
+        });
+      if (variant === "root install")
+        write("node_modules/oxlint-tsgolint/package.json", {});
+      if (variant === "scoped install")
+        write("apps/app/node_modules/@oxlint-tsgolint/native/package.json", {});
+      if (variant === "isolated install")
+        write(
+          "node_modules/.bun/oxlint-tsgolint@1/node_modules/oxlint-tsgolint/package.json",
+          {},
+        );
+      const verify = () => verifyLintBackends(root, ["apps/app/package.json"]);
+      if (variant === "valid") expect(verify()).toBe(version);
+      else expect(verify).toThrow(/tsrs|oxlint-tsgolint/i);
+    } finally {
+      if (path.dirname(root) === parent)
+        rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
 
 describe("product compiler and JavaScript API boundary", () => {
   it("resolves every product compiler, root command, parser API and editor SDK to its owned context", () => {

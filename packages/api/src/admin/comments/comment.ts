@@ -6,6 +6,8 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ commentId: string }> },
@@ -21,7 +23,7 @@ export async function PATCH(
     const ctx = auth as AuthenticatedContext;
     const { commentId } = await params;
 
-    const body = await request.json();
+    const body = (await ensureJsonBody(request)) as { content?: string };
     const { content } = body;
 
     const { data: existingComment } = await supabaseAdmin
@@ -68,8 +70,10 @@ export async function PATCH(
 
     return NextResponse.json({ comment });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    // The shared answer: the guard's refusal of a proposed scope keeps its
+    // 401 and its mark, any other error its status (check of the fix lists,
+    // JR8).
+    return toErrorResponse(e);
   }
 }
 
@@ -107,7 +111,9 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    // The shared answer: the guard's refusal of a proposed scope keeps its
+    // 401 and its mark, any other error its status (check of the fix lists,
+    // JR8).
+    return toErrorResponse(e);
   }
 }

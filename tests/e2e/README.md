@@ -20,6 +20,8 @@ Uses `scripts/run-with-ci-env.mjs` so `SKIP_ENV_VALIDATION` and placeholder Supa
 
 ## E2E auth bypass (`E2E_AUTH_BYPASS`)
 
+The bypass is a UI fixture, not a Supabase session. It must not mint a JWT, fabricate a caller-token client or fall back to the service key. Use the isolated local Auth/PostgREST job for tests that need real scoped reads; the field-policy reader there verifies that the same signed-in token with and without the selected tenant and assignment produces different projections.
+
 When `E2E_AUTH_BYPASS=true` (non-production), `POST /api/auth/demo-account` sets the `asym_e2e_auth` cookie. **Middleware and `getAuthContext` must treat that cookie as a session** so protected routes (e.g. `/donor-dashboard`) and server layouts see an authenticated user without calling Supabase. That wiring lives in `@asym/auth/middleware` and `@asym/auth/context`.
 
 The donor demo cookie uses seeded demo tenant/profile identifiers so dashboard routes that cross API boundaries can resolve the same account shape in CI and locally. Donor portal endpoints may serve deterministic E2E fixture data when bypass auth is enabled and no Supabase service-role client is configured.
@@ -52,6 +54,18 @@ copy with `--workdir` (its own project ID and ports), set
 `--`, for example `bun run test:e2e:auth-mail -- --project=auth-mail-donor`.
 CI runs the same command in `.github/workflows/local-supabase.yml`
 (`docs/ci.md`, "Local Supabase stack workflow").
+
+The same stack carries `tests/e2e/auth-request-scope-reads.spec.ts`
+(AL-2675): real people sign in through each app's own form and read real rows
+through each tenant-scoped read path of WP2b's first release, against the
+second release's policies. Each read is pinned against what the database
+owner computes with the same rule, and a switch of organization or row must
+show the other set and none of the first. The database owner adds the second
+organization's rows before the journeys and removes them after. Its header
+says which reads go through a page and which only by a direct call to the
+route, because no screen calls them. Web Studio's Payload reads the stack's
+database (`PAYLOAD_DATABASE_URI`, which the config takes from the stack when it
+is unset).
 
 ## Running in UI mode
 

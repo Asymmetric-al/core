@@ -3,6 +3,11 @@ import { expect, test, type Page } from "@playwright/test";
 import { adminBaseURL } from "./base-urls";
 import { getDemoRoleMap } from "./helpers/demo-auth";
 import { installDemoSessionInBrowser } from "./helpers/install-demo-session";
+import {
+  DEMO_TENANT_PREFIX,
+  demoTenantPath,
+  routePathname,
+} from "./helpers/tenant-address";
 
 test.setTimeout(180_000);
 
@@ -47,10 +52,12 @@ test("admin demo login redirects and persists session", async ({ page }) => {
     adminPath(`/login?next=${encodeURIComponent(protectedPath)}`),
   );
   await page.getByRole("button", { name: "Demo Access" }).click();
+  // The demo admin belongs to one organization, so the address without a
+  // tenant lands in it (plan 5.2).
   await page.waitForURL(
     (url) =>
       url.origin === new URL(adminBaseURL).origin &&
-      url.pathname === protectedPath,
+      url.pathname === DEMO_TENANT_PREFIX,
   );
 
   // Full navigation is more reliable than `reload()` in Next dev (streaming / long tasks).
@@ -58,7 +65,8 @@ test("admin demo login redirects and persists session", async ({ page }) => {
     waitUntil: "domcontentloaded",
     timeout: 120_000,
   });
-  expect(new URL(page.url()).pathname).toBe(protectedPath);
+  expect(new URL(page.url()).pathname).toBe(demoTenantPath(protectedPath));
+  expect(routePathname(page.url())).toBe(protectedPath);
   expect(page.url()).not.toContain("/login");
 });
 
@@ -78,9 +86,15 @@ test("admin profile menu exposes distinct real destinations", async ({
   const manageTeam = menu.getByRole("menuitem", { name: "Staff directory" });
   const about = menu.getByRole("menuitem", { name: "About" });
 
-  await expect(administration).toHaveAttribute("href", "/admin");
-  await expect(manageTeam).toHaveAttribute("href", "/admin/teams");
-  await expect(about).toHaveAttribute("href", "/help/about");
+  await expect(administration).toHaveAttribute(
+    "href",
+    demoTenantPath("/admin"),
+  );
+  await expect(manageTeam).toHaveAttribute(
+    "href",
+    demoTenantPath("/admin/teams"),
+  );
+  await expect(about).toHaveAttribute("href", demoTenantPath("/help/about"));
   await expect(menu.getByText("My account")).toHaveCount(0);
   await expect(menu.getByText("Settings")).toHaveCount(0);
   await expect(menu.getByText("Customization")).toHaveCount(0);

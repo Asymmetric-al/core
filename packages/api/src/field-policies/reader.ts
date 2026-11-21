@@ -1,10 +1,10 @@
-import { createClient } from "@asym/database/supabase/server";
-
 import {
   isSensitivityCategory,
   type SensitivityCategory,
   type Surface,
 } from "./taxonomy";
+
+import type { RequestSessionClient } from "../shared/request-session-client";
 
 export type FieldPolicyRow = Readonly<{
   recordType: string;
@@ -23,6 +23,7 @@ export type FieldPolicySet = Readonly<{
   get(fieldKey: string): FieldPolicyRow | undefined;
 }>;
 export type LoadFieldPoliciesInput = Readonly<{
+  sessionClient: RequestSessionClient;
   surface: Surface;
   recordType: string;
   /** Reserved; deliberately ignored until tenant override qualification. */
@@ -51,6 +52,7 @@ const wholeKey = /^[a-z_][a-z0-9_]*$/;
 
 /** Returns a static ceiling, never actor authority. RLS remains a separate backup. */
 export async function loadFieldPolicies({
+  sessionClient,
   surface,
   recordType,
 }: LoadFieldPoliciesInput): Promise<FieldPolicySet> {
@@ -65,8 +67,7 @@ export async function loadFieldPolicies({
   if (!wholeKey.test(surface) || reservedReceipts.has(recordType))
     return result;
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
+  const { data, error } = await sessionClient
     .from("field_policies")
     .select(
       "record_type,field_key,surface,tenant_id,visible,editable,exportable,sensitivity_category",

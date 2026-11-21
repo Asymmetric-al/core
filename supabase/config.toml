@@ -283,10 +283,14 @@ auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 # Control how many MFA factors can be enrolled at once per user.
 max_enrolled_factors = 10
 
-# Control MFA via App Authenticator (TOTP)
+# Control MFA via App Authenticator (TOTP). On (AL-2675, WP2c): platform
+# operators must pass a second factor, which every platform command checks
+# from the session's assurance level (plan 5.1, 5.4). Hosted projects are
+# switched on by the owner in their Auth settings (docs/ops/platform-operators.md);
+# no job pushes this file.
 [auth.mfa.totp]
-enroll_enabled = false
-verify_enabled = false
+enroll_enabled = true
+verify_enabled = true
 
 # Configure MFA via Phone Messaging
 [auth.mfa.phone]

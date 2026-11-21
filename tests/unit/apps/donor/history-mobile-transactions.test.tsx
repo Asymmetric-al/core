@@ -32,6 +32,13 @@ vi.mock("next/link", () => ({
 vi.mock("@asym/database/hooks", () => ({
   useDonorHistoryTransactions: () => ({ data: [], isLoading: false }),
 }));
+const { ownApiDownloadMock } = vi.hoisted(() => ({
+  ownApiDownloadMock: vi.fn(async () => undefined),
+}));
+vi.mock("@asym/database/own-api", () => ({
+  ownApiDownload: ownApiDownloadMock,
+  ownApiFetch: vi.fn(),
+}));
 
 const transactions: Transaction[] = getDemoDonorPortalSnapshot().donations.map(
   toDonorHistoryTransaction,
@@ -80,22 +87,28 @@ it("shows the actual transaction identity, formatted amount/date and status in n
   expect(screen.getByText("Page 1 of 1")).toBeTruthy();
 });
 
+// WP2b, AL-2675: the receipt route is the app's own API, so the control
+// downloads it through the own-API wrapper (a link would be a page load with
+// no tenant header). Where this read the link's href and `download`
+// attribute, it now reads the address the click downloads.
 it("keeps the receipt link bound to its paid gift and offers none for a processing gift", async () => {
   installMobileMedia();
   render(<HistoryTransactionsCard filteredTransactions={transactions} />);
-  const receipt = await screen.findByRole("link", {
+  const receipt = await screen.findByRole("button", {
     name: /^Download receipt for Field Team 1, /,
   });
-  expect(receipt.getAttribute("href")).toBe(transactions[0]!.receiptUrl);
-  expect(receipt.hasAttribute("download")).toBe(true);
   receipt.focus();
   expect(document.activeElement).toBe(receipt);
   const activate = vi.fn((event: Event) => event.preventDefault());
   receipt.addEventListener("click", activate);
   fireEvent.click(receipt);
   expect(activate).toHaveBeenCalledTimes(1);
+  expect(ownApiDownloadMock).toHaveBeenCalledWith(
+    transactions[0]!.receiptUrl,
+    {},
+  );
   expect(
-    screen.queryByRole("link", {
+    screen.queryByRole("button", {
       name: /^Download receipt for General fund, /,
     }),
   ).toBeNull();

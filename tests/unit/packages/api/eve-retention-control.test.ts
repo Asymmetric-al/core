@@ -313,6 +313,9 @@ describe("Eve retention controls", () => {
       runEveRetentionExpiry({
         auth: superAdminAuth,
         limit: 100,
+        // AL-2675 (WP2c): the shared operator check's result, which replaced
+        // the super_admin role name as global expiry's gate.
+        platformOperator: true,
         supabaseAdmin: {
           rpc,
           storage: { from: () => ({ remove }) },
@@ -372,6 +375,9 @@ describe("Eve retention controls", () => {
       runEveRetentionExpiry({
         auth: superAdminAuth,
         limit: 100,
+        // AL-2675 (WP2c): the shared operator check's result, which replaced
+        // the super_admin role name as global expiry's gate.
+        platformOperator: true,
         supabaseAdmin: {
           rpc,
           storage: { from: () => ({ remove }) },
@@ -403,6 +409,26 @@ describe("Eve retention controls", () => {
         supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
       }),
     ).rejects.toMatchObject({ status: 403 });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  // AL-2675 (WP2c, part 1): the role name decides nothing; only the shared
+  // operator check does.
+  it("rejects a super_admin role name the operator check did not confirm before global expiry RPCs execute", async () => {
+    const rpc = vi.fn();
+    const { runEveRetentionExpiry } =
+      await import("../../../../packages/api/src/eve/retention/control");
+
+    for (const platformOperator of [undefined, false]) {
+      await expect(
+        runEveRetentionExpiry({
+          auth: superAdminAuth,
+          limit: 100,
+          platformOperator,
+          supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
+        }),
+      ).rejects.toMatchObject({ status: 403 });
+    }
     expect(rpc).not.toHaveBeenCalled();
   });
 });

@@ -28,7 +28,18 @@ afterEach(() => {
 const HOSTED_RUNTIME_URL =
   "postgresql://cms_runtime.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require";
 const HOSTED_MIGRATION_URL =
-  "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require";
+  "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full";
+/**
+ * The project's CA, as the release job hands it to the runner (L6, L7): the
+ * release job's certificate fixture. The runner's psql reads it from the file
+ * PGSSLROOTCERT names (phase 15, P3), and Payload from
+ * PAYLOAD_DATABASE_SSL_CA, the same certificate (phase 16, Q1).
+ */
+const CA_FILE = path.resolve("tests/unit/scripts/release/fixtures/ca/ca.crt");
+const CA_ENV = {
+  PAYLOAD_DATABASE_SSL_CA: readFileSync(CA_FILE, "utf8"),
+  PGSSLROOTCERT: CA_FILE,
+};
 
 type SpawnRecord = {
   command: string;
@@ -51,6 +62,8 @@ const realSpawnSync=childProcess.spawnSync;
 childProcess.spawnSync=(command,args=[],options={})=>{
   // A test's fake psql runs for real, so the marker it reports is read.
   if(process.env.PSQL_BIN&&command===process.env.PSQL_BIN)return realSpawnSync(command,args,options);
+  // Review N6: a hosted address makes the CMS builder ask psql's version first.
+  if(args[0]==='--version')return {status:0,stdout:'psql (PostgreSQL) 17.11\\n',stderr:''};
   const env=options.env??{};
   appendFileSync(process.env.CORE_CLI_SPAWN_MARKER,JSON.stringify({
     command,
@@ -123,11 +136,15 @@ describe("Payload CLI migration preflight", () => {
     ["--no-json", "migrate:status"],
     ["--cron", "0 * * * *", "migrate:status"],
   ])(
-    "allows a status check without hosted write approval for argv %j",
+    // Review M2: a status read on a hosted address passes the same hosted
+    // check as a migration; it used to read through the cms_owner login
+    // unchecked.
+    "refuses a hosted status check without the hosted approval for argv %j",
     (...args) => {
       const result = runCommand(args);
-      expect(result.status, result.stderr).toBe(0);
-      expect(result.childSpawned).toBe(true);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("CMS_HOSTED_MIGRATION_REF");
+      expect(result.childSpawned).toBe(false);
     },
   );
 
@@ -160,6 +177,7 @@ describe("Payload CLI migration preflight", () => {
 
   it("migrates as cms_owner and hands Payload only that connection", () => {
     const result = runCommand(["migrate"], {
+      ...CA_ENV,
       CMS_HOSTED_MIGRATION_REF: "fixture",
     });
     expect(result.status, result.stderr).toBe(0);
@@ -167,13 +185,144 @@ describe("Payload CLI migration preflight", () => {
     expect(result.payloadSpawn?.hasMigrationUri).toBe(false);
   });
 
-  it("reads hosted status through the run-time connection when no migration connection is set", () => {
+  // Review L7: the runner refuses a hosted migration that would not check the
+  // server's certificate and host name, before Payload starts.
+  it.each([
+    [
+      "sslmode=require",
+      {
+        ...CA_ENV,
+        PAYLOAD_MIGRATION_DATABASE_URI: HOSTED_MIGRATION_URL.replace(
+          "verify-full",
+          "require",
+        ),
+      },
+      "sslmode=verify-full",
+    ],
+    [
+      "sslmode=no-verify",
+      {
+        ...CA_ENV,
+        PAYLOAD_MIGRATION_DATABASE_URI: HOSTED_MIGRATION_URL.replace(
+          "verify-full",
+          "no-verify",
+        ),
+      },
+      "sslmode=verify-full",
+    ],
+    [
+      "no CA",
+      { PAYLOAD_DATABASE_SSL_CA: "", PGSSLROOTCERT: "" },
+      "PAYLOAD_DATABASE_SSL_CA",
+    ],
+  ])(
+    "refuses a hosted migration with %s, and never starts Payload",
+    (_case, env, words) => {
+      const result = runCommand(["migrate"], {
+        CMS_HOSTED_MIGRATION_REF: "fixture",
+        ...env,
+      });
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(words);
+      expect(result.childSpawned).toBe(false);
+    },
+  );
+
+  // Review M2: every command handed an address that is not on this machine
+  // goes through the hosted check, verify-full and the CA included.
+  it.each([
+    [
+      "a status read through the run-time connection",
+      ["migrate:status"],
+      {
+        PAYLOAD_MIGRATION_DATABASE_URI: "",
+        CMS_HOSTED_MIGRATION_REF: "fixture",
+      },
+    ],
+    [
+      "a status read at require, approved",
+      ["migrate:status"],
+      {
+        ...CA_ENV,
+        CMS_HOSTED_MIGRATION_REF: "fixture",
+        PAYLOAD_MIGRATION_DATABASE_URI: HOSTED_MIGRATION_URL.replace(
+          "verify-full",
+          "require",
+        ),
+      },
+    ],
+    [
+      "a status read with no CA, approved",
+      ["migrate:status"],
+      {
+        CMS_HOSTED_MIGRATION_REF: "fixture",
+        PAYLOAD_DATABASE_SSL_CA: "",
+        PGSSLROOTCERT: "",
+      },
+    ],
+    [
+      "the import map on the run-time connection",
+      ["generate:importmap"],
+      { PAYLOAD_MIGRATION_DATABASE_URI: "" },
+    ],
+    [
+      "the local-only import map even with matching migration approval and CA",
+      ["generate:importmap"],
+      {
+        ...CA_ENV,
+        PAYLOAD_DATABASE_URI: HOSTED_MIGRATION_URL,
+        CMS_HOSTED_MIGRATION_REF: "fixture",
+        CMS_HOSTED_MIGRATION_ROLE: "cms_owner",
+      },
+    ],
+  ])(
+    "refuses %s on a hosted address, and never starts Payload",
+    (_case, args, env) => {
+      const result = runCommand(args, env);
+      expect(result.status).toBe(1);
+      expect(result.childSpawned).toBe(false);
+    },
+  );
+
+  // Review N3: a command that is neither a migration nor a status read works
+  // on this machine's database. Refused on a hosted address, it names the
+  // local fix rather than the hosted gate.
+  it.each([["generate:importmap"], ["migrate:create"]])(
+    "tells a developer whose address is hosted to point %s at the local database",
+    (command) => {
+      const result = runCommand([command], {
+        PAYLOAD_MIGRATION_DATABASE_URI: "",
+      });
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(
+        "Point PAYLOAD_DATABASE_URI at the local database",
+      );
+      expect(result.stderr).not.toContain("CMS_HOSTED_MIGRATION_REF");
+      expect(result.childSpawned).toBe(false);
+    },
+  );
+
+  it("reads hosted status only through the checked cms_owner connection", () => {
     const result = runCommand(["migrate:status"], {
-      PAYLOAD_MIGRATION_DATABASE_URI: "",
+      ...CA_ENV,
+      CMS_HOSTED_MIGRATION_REF: "fixture",
     });
     expect(result.status, result.stderr).toBe(0);
-    expect(result.payloadSpawn?.payloadDatabaseUri).toBe(HOSTED_RUNTIME_URL);
+    expect(result.payloadSpawn?.payloadDatabaseUri).toBe(HOSTED_MIGRATION_URL);
   });
+
+  it.each([["migrate:status"], ["generate:importmap"]])(
+    "leaves %s on this machine as it was",
+    (command) => {
+      const result = runCommand([command], {
+        PAYLOAD_DATABASE_URI:
+          "postgresql://postgres:postgres@127.0.0.1:57432/wp12_fixture",
+        PAYLOAD_MIGRATION_DATABASE_URI: "",
+      });
+      expect(result.status, result.stderr).toBe(0);
+      expect(result.childSpawned).toBe(true);
+    },
+  );
 
   it("migrates a loopback database as cms_owner without a password", () => {
     const result = runCommand(["migrate"], {
@@ -183,7 +332,7 @@ describe("Payload CLI migration preflight", () => {
     });
     expect(result.status, result.stderr).toBe(0);
     expect(result.payloadSpawn?.payloadDatabaseUri).toContain(
-      "options=-c+role%3Dcms_owner",
+      "options=-c%20role%3Dcms_owner",
     );
   });
 
@@ -231,7 +380,7 @@ process.stdout.write(sql.includes("to_regprocedure") ? "t\\n" : ${JSON.stringify
           expect(result.status, result.stderr).toBe(0);
           expect(result.payloadSpawn?.args).toContain(command);
           expect(result.payloadSpawn?.payloadDatabaseUri).toContain(
-            "options=-c+role%3Dcms_owner",
+            "options=-c%20role%3Dcms_owner",
           );
         },
       );

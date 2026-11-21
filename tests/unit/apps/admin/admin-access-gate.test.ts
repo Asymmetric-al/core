@@ -29,6 +29,10 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
+// `redirectInTenant` reads the request's address prefix; these pages and
+// gates have none, so it is the plain redirect (council round 1, A10).
+vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
+
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: () => ({ client: null }),
 }));
@@ -73,6 +77,32 @@ describe("requireAdminAccess", () => {
       "/login?next=%2Fweb-studio",
     );
   });
+
+  // Council on the joined release, JB3: the proxy sends a signed-in person
+  // who opens /login straight on to `next` (packages/auth/middleware.ts), so a
+  // signed-in person this gate refuses must not be sent to /login, or the two
+  // send them back and forth until the browser gives up. As
+  // `getProtectedAppRedirectPath` decides: no user, sign-in; a user the
+  // resolver refused, /no-access.
+  it.each([
+    ["with no readable profile row", null],
+    ["in two organizations who named none", "ambiguous"],
+    ["whose proposed row is not theirs or not live", "not_owned_or_inactive"],
+    ["with no live staff row", "no_assignment"],
+  ])(
+    "sends a signed-in person %s to /no-access, not back through /login",
+    async (_case, assignmentDenial) => {
+      getAuthContextMock.mockResolvedValue({
+        isAuthenticated: false,
+        userId: "user_signed_in",
+        tenantId: null,
+        role: null,
+        assignmentDenial,
+      });
+
+      expect(await expectRedirect("/care")).toBe("/no-access");
+    },
+  );
 
   it("sends an authenticated donor to /no-access instead of the admin", async () => {
     getAuthContextMock.mockResolvedValue({

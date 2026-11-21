@@ -2,6 +2,8 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 /**
  * Missionary "Partners" donor rows.
  *
@@ -115,7 +117,7 @@ async function fetchMissionaryDonorRowsPage(
     offset: String(offset),
   });
 
-  const response = await fetch(`/api/missionary/donors?${searchParams}`, {
+  const response = await ownApiFetch(`/api/missionary/donors?${searchParams}`, {
     headers: { accept: "application/json" },
   });
 

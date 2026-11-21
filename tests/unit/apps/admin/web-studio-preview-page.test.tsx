@@ -47,6 +47,19 @@ vi.mock("../../../../apps/admin/src/cms/get-payload", () => ({
     findByID: fixture.findByID,
   }),
 }));
+// The page asks Web Studio's gate on every render (AL-2675, council C1;
+// web-studio-page-scope.test.tsx); here it admits the editor.
+vi.mock("../../../../apps/admin/src/cms/web-studio-access", () => ({
+  requireWebStudioAccess: async () => ({
+    scope: {
+      userId: "00000000-0000-4000-8000-0000000000c1",
+      tenantId: "00000000-0000-0000-0000-000000000001",
+      assignmentId: "00000000-0000-4000-8000-0000000000a1",
+      addressPrefix: "",
+    },
+    organization: { name: "Alpha Mission", canSwitch: false },
+  }),
+}));
 
 function richText(text: string) {
   return {

@@ -1,3 +1,4 @@
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   Card,
@@ -6,7 +7,6 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { AlertCircle, ChevronRight } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
 
 interface Alert {

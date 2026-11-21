@@ -231,6 +231,45 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     // removed the two intermediate states of stage 1's integration, which
     // develop never held.
     { ref: "AL-2674 seed counts and program steps", hash: "bf3afd9e9950a9f5" },
+    // Amended by AL-2675 (WP2b release 1, slices A and B joined; record
+    // D-18). The test-e2e job runs the program's five specs on the servers it
+    // already started: "Tenant address (admin app)" and "Request scope (admin
+    // app)" after the admin boneyard smoke, the same two for the missionary
+    // app after its boneyard smoke, and "Request scope (donor app)" after the
+    // donor boneyard smoke (bun run test:e2e:tenant-address:* and
+    // test:e2e:request-scope:*). Each step has a limit set from measured times
+    // (10 minutes for the admin tenant-address step, 5 for the others; the
+    // job's 30 unchanged), runs after an earlier failure (if: !cancelled()),
+    // and writes its evidence to folders of its own: the donor step has its
+    // own report folder and no admin server. All pinned in
+    // tests/unit/scripts/ci-integration-workflow.contract.test.ts. Slice A's
+    // and slice B's earlier entries were intermediate states of the joined
+    // branch, which develop never held, and are replaced by this one.
+    // Council on the joined release, JB4 and JB5 (the coordinator's list B):
+    // Web Studio's spec leaves the CMS step for a step of its own, "Web
+    // Studio tenant (admin app)" (bun run test:e2e:web-studio-tenant, no
+    // retries, if: !cancelled(), its own folders, 18 minutes from a measured
+    // replay of the whole job); "Start missionary app" and its wait run after
+    // an earlier failure; the upload runs on failure or cancellation. The
+    // job keeps its 30 minutes. Pinned in the same contract test; the entry
+    // before this one was the joined branch's, which develop never held.
+    // Check of the fix lists, JR12: each step that needs a server runs after
+    // an earlier failure only when that server's health check passed (ids
+    // donor-ready, admin-ready and missionary-ready), and the CMS step runs on
+    // the Web Studio step's condition, so the Web Studio step never runs
+    // cold. Pinned in the same contract test, which now also lists the CMS
+    // step's selection to show it leaves the Web Studio spec out. Then, from
+    // the measured replay of the whole job on the joined tree: the Web Studio
+    // step's limit 20 minutes and the job's 55.
+    {
+      ref: "AL-2675 tenant address and request scope in test-e2e",
+      hash: "c7ea497087351e4b",
+    },
+    // D-18: pin the explicit donor CMS origin and the 35-minute hosted job budget (#2734).
+    {
+      ref: "AL-2675 WP2c hosted test-e2e contract",
+      hash: "b0faf7bc2b022be3",
+    },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {
     const prints = [CI, CII].map((file) => {

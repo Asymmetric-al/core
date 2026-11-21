@@ -16,7 +16,10 @@ import {
   ensureJsonBody,
   toErrorResponse,
 } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import {
+  withOperation,
+  withPlatformOperation,
+} from "../../shared/with-operation";
 import {
   assertContributionActionPermission,
   assertContributionPermission,
@@ -242,7 +245,7 @@ export async function replaceStagedGiftAllocations(input: {
   }
 }
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ request, supabaseAdmin, auth, requestId }) => {
     try {
       assertContributionPermission(auth, "finance:manage_contributions");
@@ -276,7 +279,7 @@ export const GET = withOperation(
   { capability: "admin.gifts.manage" },
 );
 
-export const PATCH = withOperation(
+export const PATCH = withPlatformOperation(
   async ({ request, supabaseAdmin, auth, requestId }) => {
     try {
       assertContributionActionPermission(auth, "metadata_update");
@@ -437,7 +440,7 @@ export const PATCH = withOperation(
   { capability: "contributions.apply_corrections" },
 );
 
-export const POST_APPROVE = withOperation(
+export const POST_APPROVE = withPlatformOperation(
   async ({ request, supabaseAdmin, auth, requestId }) => {
     try {
       assertContributionActionPermission(auth, "approve_staged_gift");
@@ -480,7 +483,7 @@ export const POST_RETRY = withOperation(
   { capability: "contributions.retry_crm_post" },
 );
 
-export const POST_RECEIPT = withOperation(
+export const POST_RECEIPT = withPlatformOperation(
   async ({ request, supabaseAdmin, auth, requestId }) => {
     try {
       assertContributionActionPermission(auth, "resend_receipt");

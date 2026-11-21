@@ -1,0 +1,322 @@
+import { spawn } from "node:child_process";
+
+import { DEMO_TENANT_ID } from "../../../packages/auth/constants";
+import {
+  createE2EAuthCookieValue,
+  E2E_AUTH_COOKIE_NAMES,
+  type E2EAuthAppSurface,
+  type E2EAuthMembership,
+  type E2EAuthSession,
+} from "../../../packages/auth/e2e-auth";
+import {
+  stripTenantAddress,
+  withTenantAddress,
+} from "../../../packages/auth/tenant-address";
+import fixtures from "../fixtures/tenant-people.json";
+
+import type { BrowserContext, Page } from "@playwright/test";
+
+/**
+ * Signed-in pages of Mission Control and the missionary workspace live under
+ * the tenant in the page address (plan 5.2; AL-2675). Suites build those
+ * addresses and read them back through these helpers.
+ */
+
+export const TENANTS = fixtures.tenants;
+
+/**
+ * How the chooser names a fixture organization: by its name, which a real
+ * session reads from `public.current_user_organizations()` (the stub on a
+ * production build), or by a short form of its id for an E2E bypass identity,
+ * which has no rows behind it to name.
+ */
+export function organizationLabel(tenantId: string): string {
+  return signsInThroughStub
+    ? (fixtures.tenantNames as Record<string, string>)[tenantId]!
+    : `Organization ${tenantId.slice(0, 8)}…${tenantId.slice(-4)}`;
+}
+export const DEMO_TENANT_PREFIX = `/${DEMO_TENANT_ID}`;
+
+/** A signed-in page address in the demo organization, as the app's links build it. */
+export function demoTenantPath(path: string): string {
+  return withTenantAddress(DEMO_TENANT_PREFIX, path);
+}
+
+/** A signed-in page address in any tenant, with an optional sub-role suffix. */
+export function tenantPath(
+  tenantId: string,
+  path: string,
+  subRole: string | null = null,
+): string {
+  return withTenantAddress(
+    subRole ? `/${tenantId}~${subRole}` : `/${tenantId}`,
+    path,
+  );
+}
+
+/** The pathname the page files see: the address without its tenant prefix. */
+export function routePathname(url: string | URL): string {
+  return stripTenantAddress(new URL(url).pathname);
+}
+
+export type FixturePerson = keyof typeof fixtures.people;
+
+export function fixturePerson(name: FixturePerson) {
+  return fixtures.people[name] as {
+    userId: string;
+    role: E2EAuthSession["role"];
+    memberships: E2EAuthMembership[];
+  };
+}
+
+/**
+ * The Supabase stub a production build is pointed at
+ * (`tests/e2e/fixtures/supabase-stub.mjs`); unset in development, where the
+ * E2E bypass signs fixture people in.
+ */
+const STUB_URL = process.env.E2E_SUPABASE_STUB_URL ?? null;
+
+export const signsInThroughStub = STUB_URL !== null;
+
+/** A Supabase session cookie the stub accepts; the token is not signed. */
+async function addStubSession(
+  context: BrowserContext,
+  baseURL: string,
+  userId: string,
+) {
+  const expiresAt = Math.floor(Date.now() / 1000) + 6 * 3600;
+  const accessToken = [
+    { alg: "HS256", typ: "JWT" },
+    {
+      sub: userId,
+      exp: expiresAt,
+      aud: "authenticated",
+      role: "authenticated",
+    },
+  ]
+    .map((part) => Buffer.from(JSON.stringify(part)).toString("base64url"))
+    .concat("stub-not-a-real-signature")
+    .join(".");
+  const session = {
+    access_token: accessToken,
+    refresh_token: "stub-refresh-token",
+    token_type: "bearer",
+    expires_in: 6 * 3600,
+    expires_at: expiresAt,
+    user: {
+      id: userId,
+      aud: "authenticated",
+      role: "authenticated",
+      email: `${userId}@example.test`,
+      app_metadata: { provider: "email", providers: ["email"] },
+      user_metadata: {},
+      created_at: "2026-11-17T00:00:00.000Z",
+    },
+  };
+  const ref = new URL(STUB_URL!).hostname.split(".")[0];
+  await context.addCookies([
+    {
+      name: `sb-${ref}-auth-token`,
+      value: `base64-${Buffer.from(JSON.stringify(session)).toString("base64url")}`,
+      url: baseURL,
+      sameSite: "Lax",
+    },
+  ]);
+}
+
+/** Signs a fixture person in to one app, replacing any earlier session. */
+export async function signInAs(
+  page: Page,
+  surface: E2EAuthAppSurface,
+  name: FixturePerson,
+  baseURL: string,
+) {
+  const person = fixturePerson(name);
+  const context = page.context();
+  await context.clearCookies();
+  if (signsInThroughStub) {
+    await addStubSession(context, baseURL, person.userId);
+    return;
+  }
+  const value = await createE2EAuthCookieValue({
+    userId: person.userId,
+    role: person.role,
+    tenantId: person.memberships[0]!.tenantId,
+    memberships: person.memberships,
+  });
+  await context.addCookies([
+    {
+      name: E2E_AUTH_COOKIE_NAMES[surface],
+      value,
+      url: baseURL,
+      httpOnly: true,
+      sameSite: "Lax",
+    },
+  ]);
+}
+
+/**
+ * Revokes one of a signed-in fixture person's memberships, as revoking it
+ * changes the live rows: on a production build, in the Supabase stub (undo
+ * with `restoreRevokedMemberships`); in development, by re-signing the
+ * person's bypass identity without the row.
+ */
+export async function revokeMembership(
+  page: Page,
+  surface: E2EAuthAppSurface,
+  name: FixturePerson,
+  membershipId: string,
+  baseURL: string,
+) {
+  if (signsInThroughStub) {
+    await stubControl("revoke", { membershipId });
+    return;
+  }
+  const person = fixturePerson(name);
+  const memberships = person.memberships.filter(
+    (membership) => membership.id !== membershipId,
+  );
+  // The bypass identity names its first row as its tenant, so one must be
+  // left, and the one named must go (JR13); revoking a person's only row is
+  // the stub's case alone.
+  if (
+    memberships.length === 0 ||
+    memberships.length === person.memberships.length
+  ) {
+    throw new Error(
+      `revokeMembership: ${name} must keep a row and lose ${membershipId}; on the development bypass a person's only row cannot be revoked`,
+    );
+  }
+  await page.context().addCookies([
+    {
+      name: E2E_AUTH_COOKIE_NAMES[surface],
+      value: await createE2EAuthCookieValue({
+        userId: person.userId,
+        role: person.role,
+        tenantId: memberships[0]!.tenantId,
+        memberships,
+      }),
+      url: baseURL,
+      httpOnly: true,
+      sameSite: "Lax",
+    },
+  ]);
+}
+
+/** Gives the Supabase stub its fixture rows back (production builds only). */
+export async function restoreRevokedMemberships() {
+  if (signsInThroughStub) await stubControl("reset");
+}
+
+async function stubControl(route: "reset" | "revoke", body: object = {}) {
+  const response = await fetch(new URL(`/__stub/${route}`, STUB_URL!), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error(`stub ${route}: ${response.status}`);
+}
+
+/** The scope the page's `TenantDocument` was rendered with. */
+export async function documentScope(page: Page) {
+  const marker = page.locator("[data-tenant-scope]");
+  return {
+    prefix: await marker.getAttribute("data-tenant-scope"),
+    assignment: await marker.getAttribute("data-tenant-assignment"),
+  };
+}
+
+/** Counts full document loads in the main frame; a soft navigation issues none. */
+export function trackDocumentLoads(page: Page): string[] {
+  const documents: string[] = [];
+  page.on("request", (request) => {
+    if (
+      request.resourceType() === "document" &&
+      request.frame() === page.mainFrame()
+    ) {
+      documents.push(new URL(request.url()).pathname);
+    }
+  });
+  return documents;
+}
+
+/** Pushes a soft navigation through the app's client router. */
+export async function softNavigate(page: Page, href: string) {
+  await page.evaluate((target) => {
+    const next = (
+      window as unknown as { next?: { router?: { push(href: string): void } } }
+    ).next;
+    if (!next?.router) throw new Error("The client router is not exposed.");
+    next.router.push(target);
+  }, href);
+}
+
+/**
+ * Runs `run` against a second production server of the same build, bound to
+ * the loopback IP literal 127.0.0.1 (record D-19; council round 1, A19).
+ * There Next treats the proxy's tenant-address rewrite as external, and the
+ * proxy must answer 500 rather than render a page without its tenant. The
+ * server is stopped afterwards.
+ */
+export async function withServerBoundToLoopbackLiteral(
+  app: "admin" | "missionary",
+  port: number,
+  run: (baseURL: string) => Promise<void>,
+) {
+  const server = spawn(
+    "bun",
+    [
+      "run",
+      "--cwd",
+      `apps/${app}`,
+      "start",
+      "--",
+      "--port",
+      String(port),
+      "--hostname",
+      "127.0.0.1",
+    ],
+    { detached: true, env: process.env, stdio: "ignore" },
+  );
+  const baseURL = `http://127.0.0.1:${port}`;
+  try {
+    const deadline = Date.now() + 90_000;
+    for (;;) {
+      try {
+        await fetch(`${baseURL}/login`, { redirect: "manual" });
+        break;
+      } catch {
+        if (Date.now() > deadline) {
+          throw new Error(`No production server answered on ${baseURL}.`);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }
+    await run(baseURL);
+  } finally {
+    try {
+      process.kill(-server.pid!, "SIGTERM");
+    } catch {
+      // Already stopped.
+    }
+  }
+}
+
+/**
+ * A route's prerendered shell is the same for every tenant, and it must hold
+ * no tenant at all: two tenants could otherwise receive the same leaked
+ * value, a read cached without its tenant argument or a default tenant id,
+ * and still share one shell (record D-19, second condition; council round 1,
+ * A15). So no fixture tenant id, no organization name and no document scope.
+ */
+export function tenantFreeShellProblems(shell: string): string[] {
+  const problems: string[] = [];
+  for (const tenantId of Object.values(fixtures.tenants)) {
+    if (shell.includes(tenantId)) problems.push(`tenant id ${tenantId}`);
+  }
+  for (const name of Object.values(fixtures.tenantNames)) {
+    if (shell.includes(name)) problems.push(`organization name ${name}`);
+  }
+  if (shell.includes("data-tenant-scope")) problems.push("a document scope");
+  return problems;
+}

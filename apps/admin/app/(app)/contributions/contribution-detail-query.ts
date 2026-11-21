@@ -5,6 +5,7 @@ import {
   ADMIN_CRM_RECORDS_QUERY_KEY,
   MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
 } from "@asym/database/hooks";
+import { ownApiFetch } from "@asym/database/own-api";
 import { useQuery, type QueryClient } from "@tanstack/react-query";
 
 import { ADMIN_CONTRIBUTIONS_QUERY_KEY } from "./use-admin-contributions";
@@ -77,7 +78,7 @@ export async function invalidateContributionOperationQueries(
 }
 
 async function fetchContributionDetail(donationId: string) {
-  const response = await fetch(
+  const response = await ownApiFetch(
     `/api/admin/contribution-operations/${encodeURIComponent(donationId)}`,
     { headers: { accept: "application/json" } },
   );

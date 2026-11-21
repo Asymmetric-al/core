@@ -1,0 +1,8 @@
+type Amount = number;
+type Totals = Record<string, Amount>;
+type Projection<Amount> = Totals;
+
+type Entries<Value, Entry = Value> = Record<string, Entry>;
+export type DailyTotals = Projection<unknown>;
+export type NamedEntries = Entries<string>;
+export type RawEntries = Entries<unknown>;

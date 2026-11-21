@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import {
   EMPTY_REACT_EMAIL_DESIGN,
   type EmailStudioEditorHandle,
@@ -289,7 +290,7 @@ export const ReactEmailEditor = forwardRef<
         formData.append("templateId", templateId);
       }
 
-      const response = await fetch("/api/email/assets/upload", {
+      const response = await ownApiFetch("/api/email/assets/upload", {
         method: "POST",
         body: formData,
       });

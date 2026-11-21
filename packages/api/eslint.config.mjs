@@ -1,5 +1,6 @@
 import { libraryConfig } from "@asym/eslint-config/library.mjs";
 import { restrictedImports } from "@asym/eslint-config/restricted-imports.mjs";
+import { tenantNavigationConfig } from "@asym/eslint-config/tenant-navigation.mjs";
 
 export { libraryConfig };
 
@@ -27,4 +28,5 @@ export default [
       }),
     },
   },
+  ...tenantNavigationConfig({ workspace: "packages/api" }),
 ];

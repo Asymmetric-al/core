@@ -2,7 +2,8 @@ import { type AuthenticatedContext } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { withOperation } from "../../shared/with-operation";
+import { ensureJsonBody } from "../../shared/http-errors";
+import { withPlatformOperation } from "../../shared/with-operation";
 import {
   listInboundRoutes,
   saveInboundRouteAndResume,
@@ -22,7 +23,7 @@ const saveRouteSchema = z
  * Tenant admins view saved inbound routes. Route data is tenant-scoped and
  * carries no provider internals.
  */
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ supabaseAdmin, auth }) => {
     const ctx = auth as AuthenticatedContext;
 
@@ -47,11 +48,11 @@ export const GET = withOperation(
  * toward Support Hub routing. Tenant-domain defaults require explicit
  * confirmation and the confirmation result is audit logged.
  */
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 
-    const parsed = saveRouteSchema.safeParse(await request.json());
+    const parsed = saveRouteSchema.safeParse(await ensureJsonBody(request));
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid route request." },

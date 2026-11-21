@@ -1,9 +1,17 @@
 /**
- * PR #2720 review (AL-2675): GraphQL `updateUserRole` runs
- * `atomic_update_user_role_with_audit`, which writes only `profiles.role`.
+ * PR #2720 review (AL-2675): GraphQL `updateUserRole` ran
+ * `atomic_update_user_role_with_audit`, which wrote only `profiles.role`.
  * Since WP2a that column grants and revokes no application access, so the
- * command must stay unreachable until WP2c deletes it and builds plan 5.4's
- * membership command. This pins that no person can run it.
+ * command had to stay unreachable until WP2c deleted it and built plan 5.4's
+ * membership command. This pinned that no person could run it.
+ *
+ * Rewritten by AL-2675 (WP2c, part 1; record section 9 and D-18): WP2c deletes
+ * the mutation and drops the SQL function, and builds the role-change and
+ * revoke commands of the command lane. The same person and the same real path
+ * now prove more: every request, the control included that used to reach the
+ * command under the staff class, meets a schema with no role mutation, and
+ * nothing is called with the service key. The donor-class assertions are
+ * kept as they were.
  *
  * The person is the strongest case: a flagged tenant administrator (a staff
  * row with the flag) who is also a donor in the same organization. GraphQL is
@@ -119,6 +127,19 @@ const MUTATION = `mutation ($input: UpdateUserRoleInput!) {
 }`;
 
 /**
+ * What the schema answers since WP2c: the mutation and its input are gone.
+ * GraphQL's "Did you mean" suggestion that follows each is not compared.
+ */
+const ROLE_MUTATION_ABSENT = [
+  'Cannot query field "updateUserRole" on type "Mutation".',
+  'Unknown type "UpdateUserRoleInput".',
+];
+const schemaErrors = (errors: unknown[] | undefined) =>
+  (errors ?? [])
+    .map((e) => (e as { message: string }).message.split(" Did you mean")[0])
+    .sort();
+
+/**
  * A client's POST to the donor app's `/api/graphql`, passed through the donor
  * proxy. Next.js hands on the request headers the proxy names in
  * `x-middleware-override-headers`, each from `x-middleware-request-<name>`.
@@ -195,7 +216,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("GraphQL updateUserRole cannot be run through the donor app (PR #2720, AL-2675)", () => {
+describe("GraphQL updateUserRole cannot be run through the donor app, and since WP2c does not exist (PR #2720, AL-2675)", () => {
   it.each([
     ["with no class or row chosen by the client", {}],
     ["when the client sends the staff class", { [ROLE_CLASS_HEADER]: "staff" }],
@@ -212,8 +233,8 @@ describe("GraphQL updateUserRole cannot be run through the donor app (PR #2720, 
       expect(hasContextCapability(auth, "people.manage_members")).toBe(false);
 
       const body = await callRoute(forwarded);
-      expect(body.data).toBeNull();
-      expect(body.errors).toHaveLength(1);
+      expect(body.data ?? null).toBeNull();
+      expect(schemaErrors(body.errors)).toEqual(ROLE_MUTATION_ABSENT);
       expect(h.adminRpc).not.toHaveBeenCalled();
       expect(h.adminFrom).not.toHaveBeenCalled();
     },
@@ -232,30 +253,33 @@ describe("GraphQL updateUserRole cannot be run through the donor app (PR #2720, 
     expect(auth.assignmentDenial).toBe("role_class_mismatch");
 
     const body = await callRoute(forwarded);
-    expect(body.data).toBeNull();
-    expect(body.errors).toHaveLength(1);
+    expect(body.data ?? null).toBeNull();
+    expect(schemaErrors(body.errors)).toEqual(ROLE_MUTATION_ABSENT);
     expect(h.adminRpc).not.toHaveBeenCalled();
     expect(h.adminFrom).not.toHaveBeenCalled();
   });
 
-  // The control: the staff class a staff surface's proxy would set. The same
-  // person then acts under the flagged staff row and the handler runs the
-  // command, so the refusals above come from the donor surface, and mounting
-  // GraphQL on a staff surface would make the command reachable.
-  it("reaches the command under the staff class (control)", async () => {
+  // The control, rewritten by WP2c: the staff class a staff surface's proxy
+  // would set. The same person acts under the flagged staff row, which holds
+  // `people.manage_members`, and before WP2c the handler ran the command
+  // here. Now the schema has no role mutation, so even this request is
+  // refused before execution and nothing is called with the service key.
+  it("reaches no role change even under the staff class, as a flagged administrator (control)", async () => {
     const headers = new Headers({
       "content-type": "application/json",
       authorization: `Bearer ${TOKEN}`,
       [ROLE_CLASS_HEADER]: "staff",
     });
-    await callRoute(headers);
-    expect(h.adminRpc).toHaveBeenCalledWith(
-      "atomic_update_user_role_with_audit",
-      expect.objectContaining({
-        p_profile_id: TARGET,
-        p_tenant_id: TENANT,
-        p_new_role: "donor",
-      }),
-    );
+    const { getAuthContext, hasContextCapability } =
+      await import("../../../../packages/auth/context");
+    const auth = await getAuthContext(graphqlRequest(headers));
+    expect(auth.assignment?.assignmentId).toBe(STAFF_ROW);
+    expect(hasContextCapability(auth, "people.manage_members")).toBe(true);
+
+    const body = await callRoute(headers);
+    expect(body.data ?? null).toBeNull();
+    expect(schemaErrors(body.errors)).toEqual(ROLE_MUTATION_ABSENT);
+    expect(h.adminRpc).not.toHaveBeenCalled();
+    expect(h.adminFrom).not.toHaveBeenCalled();
   });
 });

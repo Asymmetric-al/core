@@ -1,6 +1,6 @@
 # Rollback procedure — before the first canonical write
 
-**Procedure version:** 1
+**Procedure version:** 2
 **Owner:** Phase 18 Generated Documents (`docs/prds/sitestacker-parity/phase-18-receipt-pdf-template-system.md`, D17)
 **Consumed by:** `scripts/document-cutover/assess-document-cutover.ts` (presence + digest verified; never executed by the gate)
 
@@ -10,6 +10,8 @@ environment. After the first canonical write, rollback is no longer a
 procedure — a failed environment is rebuilt with the fresh reset/rebuild
 procedure instead. The environment assertion requires this document to be
 present and version-pinned; it never executes it.
+
+**Address check.** `scripts/document-cutover/assess-document-cutover.ts` checks `DOCUMENT_CUTOVER_DATABASE_URL` with a check of its own, weaker than the release job's ([`docs/ops/release-job.md`](../release-job.md), "The database's certificate") until it moves onto the shared one. On a hosted address it accepts `sslmode=require` and `verify-ca` as well as `verify-full`, and it checks the certificate and the host name against Node's own store of public CAs, which `NODE_EXTRA_CA_CERTS` widens, not against the project's CA alone. On a hosted address, set `sslmode=verify-full` yourself, and `NODE_EXTRA_CA_CERTS` to the project's CA file (`prod-ca-2021.crt`) and nothing else.
 
 ## Scope
 

@@ -72,7 +72,10 @@ const ASSET_PATHS = [
   "/robots.txt",
   "/sitemap.xml",
   "/site.webmanifest",
-  "/images/hero.webp",
+  // Council round 2, AR7: no app has `public/images`, so `/images/*` runs
+  // the proxy now (tests/unit/auth/proxy-matcher-scope-headers.test.ts); a
+  // root file name stands in its place.
+  "/apple-touch-icon.png",
 ];
 
 beforeEach(() => {

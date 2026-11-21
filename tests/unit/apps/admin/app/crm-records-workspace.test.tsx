@@ -39,6 +39,27 @@ const route = vi.hoisted(() => ({
 const grid = vi.hoisted(() => ({ hook: vi.fn() }));
 const detail = vi.hoisted(() => ({ hook: vi.fn() }));
 
+// WP2b, AL-2675: the donor report is an own-API download that carries the
+// document's tenant and assignment, not a link (a page load carries no
+// header). Each assertion that read the link's href now clicks the control
+// and reads the address it downloads.
+const download = vi.hoisted(() => ({
+  ownApiDownload: vi.fn(async () => undefined),
+}));
+vi.mock("@asym/database/own-api", () => ({
+  ownApiDownload: download.ownApiDownload,
+  ownApiFetch: vi.fn(),
+}));
+
+function expectDonorReportDownload(control: HTMLElement) {
+  download.ownApiDownload.mockClear();
+  fireEvent.click(control);
+  expect(download.ownApiDownload).toHaveBeenCalledWith(
+    "/api/admin/crm/reports/export?slice=donors",
+    {},
+  );
+}
+
 vi.mock("next/navigation", async () => {
   const { useSyncExternalStore } = await import("react");
   return {
@@ -329,11 +350,11 @@ describe("CRM records workspace", () => {
     expect(screen.queryByRole("button", { name: /archive/i })).toBeNull();
     // The report ignores the grid search and filters, so its label names the
     // report rather than reading as "export this view".
-    const exportLink = screen.getByRole("link", { name: /export/i });
+    const exportLink = screen.getByRole("button", {
+      name: "Export donor report",
+    });
     expect(exportLink.textContent).toBe("Export donor report");
-    expect(exportLink.getAttribute("href")).toBe(
-      "/api/admin/crm/reports/export?slice=donors",
-    );
+    expectDonorReportDownload(exportLink);
   });
 
   it("does not repeat an organization's name as its own subline", async () => {
@@ -405,7 +426,7 @@ describe("CRM records workspace", () => {
     renderWorkspace();
     await screen.findByText("No CRM records");
     expect(
-      screen.getByRole("link", { name: "Export donor report" }),
+      screen.getByRole("button", { name: "Export donor report" }),
     ).toBeTruthy();
   });
 
@@ -418,7 +439,7 @@ describe("CRM records workspace", () => {
     );
     renderWorkspace();
     expect(
-      screen.getByRole("link", { name: "Export donor report" }),
+      screen.getByRole("button", { name: "Export donor report" }),
     ).toBeTruthy();
   });
 
@@ -431,12 +452,10 @@ describe("CRM records workspace", () => {
       }),
     );
     renderWorkspace();
-    const report = await screen.findByRole("link", {
+    const report = await screen.findByRole("button", {
       name: "Export donor report",
     });
-    expect(report.getAttribute("href")).toBe(
-      "/api/admin/crm/reports/export?slice=donors",
-    );
+    expectDonorReportDownload(report);
   });
 
   it("names a dropped connection only when the browser reports one", async () => {
@@ -659,10 +678,10 @@ describe("CRM records workspace", () => {
       const refresh = await screen.findByRole("button", { name: "Refresh" });
       fireEvent.click(refresh);
       expect(state.onRefresh).toHaveBeenCalledTimes(1);
-      const report = screen.getByRole("link", { name: "Export donor report" });
-      expect(report.getAttribute("href")).toBe(
-        "/api/admin/crm/reports/export?slice=donors",
-      );
+      const report = screen.getByRole("button", {
+        name: "Export donor report",
+      });
+      expectDonorReportDownload(report);
     });
 
     it("says how many records are listed on phones too", async () => {
@@ -868,7 +887,9 @@ describe("CRM records workspace", () => {
   it("says what the donor report covers to keyboard and screen-reader users", async () => {
     renderWorkspace();
     await waitFor(() => expect(recordButtons().length).toBeGreaterThan(0));
-    const exportLink = screen.getByRole("link", { name: /export/i });
+    const exportLink = screen.getByRole("button", {
+      name: "Export donor report",
+    });
     const describedBy = exportLink.getAttribute("aria-describedby") ?? "";
     const description = describedBy
       .split(" ")
@@ -947,6 +968,31 @@ describe("CRM records workspace", () => {
         (grid.hook.mock.results.at(-1)?.value as ReturnType<typeof gridState>)
           .onFiltersChange,
       ).not.toHaveBeenCalled();
+    });
+
+    // Council round 2, AR1: the route path has no tenant prefix; the address
+    // written is the live one, prefix included, or the document reloads.
+    it("writes list changes to the live address, keeping the tenant prefix", async () => {
+      const tenantCrm = "/00000000-0000-0000-0000-000000000002/crm";
+      window.history.pushState(null, "", tenantCrm);
+      try {
+        const replaceState = followReplaceState();
+        grid.hook.mockReturnValue(
+          gridState({ columnFilters: [{ id: "displayName", value: "hale" }] }),
+        );
+        renderWorkspace();
+
+        await waitFor(() =>
+          expect(replaceState).toHaveBeenLastCalledWith(
+            null,
+            "",
+            `${tenantCrm}?q=hale`,
+          ),
+        );
+      } finally {
+        vi.restoreAllMocks();
+        window.history.pushState(null, "", "/crm");
+      }
     });
 
     it("follows Back and Forward to another list state", async () => {
@@ -1126,11 +1172,9 @@ describe("CRM records workspace", () => {
     const board = await screen.findByRole("region", { name: "CRM board" });
     fireEvent.click(within(board).getByRole("button", { name: "Refresh" }));
     expect(state.onRefresh).toHaveBeenCalledTimes(1);
-    expect(
-      within(board)
-        .getByRole("link", { name: "Export donor report" })
-        .getAttribute("href"),
-    ).toBe("/api/admin/crm/reports/export?slice=donors");
+    expectDonorReportDownload(
+      within(board).getByRole("button", { name: "Export donor report" }),
+    );
   });
 
   it("keeps the board's count, Load more, Refresh and report together at the row's end", async () => {
@@ -1147,7 +1191,7 @@ describe("CRM records workspace", () => {
     for (const control of [
       within(board).getByRole("button", { name: "Load more" }),
       within(board).getByRole("button", { name: "Refresh" }),
-      within(board).getByRole("link", { name: "Export donor report" }),
+      within(board).getByRole("button", { name: "Export donor report" }),
     ]) {
       expect(actions.contains(control)).toBe(true);
     }

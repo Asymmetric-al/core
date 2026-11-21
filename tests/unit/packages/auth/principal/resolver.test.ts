@@ -29,6 +29,59 @@ const ok = (r: AssignmentRow, selection: string) => ({
 });
 const no = (reason: string) => ({ ok: false, reason });
 
+// Plan 12, WP2, "Interim rules until WP3": on the donor portal a person
+// with donor memberships in two organizations is refused, for the proxy
+// check, server reads and the browser header alike. So on the donor surface
+// there must be exactly one live donor row before either header is matched
+// (council on the joined release, JB12).
+describe("resolveActiveAssignment: the donor surface until WP3", () => {
+  const DONOR_TA = row(TA, "donor");
+  const DONOR_TB = row(TB, "donor");
+  const STAFF = row(TA, "staff", "finance");
+
+  it.each([
+    ["a proposal of one of them", { proposedAssignmentId: DONOR_TB.id }],
+    [
+      "a proposal of one of them in its expected tenant",
+      { proposedAssignmentId: DONOR_TB.id, expectedTenantId: TB },
+    ],
+    ["an expected tenant alone", { expectedTenantId: TA }],
+    ["no proposal", {}],
+  ])(
+    "refuses a person with two live donor rows, given %s, as ambiguous",
+    async (_label, narrowing) => {
+      await expect(
+        resolveActiveAssignment(
+          { userId: U1, roleClass: "donor", ...narrowing },
+          fakeReader([DONOR_TA, STAFF, DONOR_TB]),
+        ),
+      ).resolves.toEqual(no("ambiguous"));
+    },
+  );
+
+  it("still takes the one donor row of a person who also holds other classes, proposed or not", async () => {
+    for (const narrowing of [{}, { proposedAssignmentId: DONOR_TA.id }]) {
+      await expect(
+        resolveActiveAssignment(
+          { userId: U1, roleClass: "donor", ...narrowing },
+          fakeReader([STAFF, DONOR_TA]),
+        ),
+      ).resolves.toEqual(
+        ok(DONOR_TA, "proposedAssignmentId" in narrowing ? "proposed" : "sole"),
+      );
+    }
+  });
+
+  it("leaves the staff surface's chosen row alone: two donor rows there change nothing", async () => {
+    await expect(
+      resolveActiveAssignment(
+        { userId: U1, roleClass: "staff", proposedAssignmentId: STAFF.id },
+        fakeReader([DONOR_TA, STAFF, DONOR_TB]),
+      ),
+    ).resolves.toEqual(ok(STAFF, "proposed"));
+  });
+});
+
 describe("resolveActiveAssignment: proposals (the chosen row)", () => {
   const STAFF = row(TA, "staff", "finance");
   const DONOR_TB = row(TB, "donor");
@@ -218,6 +271,7 @@ describe("resolveActiveAssignment: the surface's role class (plan 5.1)", () => {
   const S1 = row(TA, "staff", "finance");
   const S2 = row(TA, "staff", "member_care");
   const DB = row(TB, "donor");
+  const MB = row(TB, "missionary");
   const SB = row(TB, "staff", "hr");
   const ADM = row(TA, "staff", "development", U1, true);
 
@@ -289,12 +343,22 @@ describe("resolveActiveAssignment: the surface's role class (plan 5.1)", () => {
       {},
       ok(S1, "sole"),
     ],
+    // Narrowing to a tenant holds for every class; on the donor surface two
+    // donor rows are refused first, by plan 12's interim rule until WP3
+    // (JB12; "the donor surface until WP3" above).
     [
-      "donor rows in two tenants narrowed to TB → the TB row",
+      "missionary rows in two tenants narrowed to TB → the TB row",
+      "missionary",
+      [M, MB],
+      { expectedTenantId: TB },
+      ok(MB, "sole"),
+    ],
+    [
+      "donor rows in two tenants narrowed to TB → ambiguous, until WP3",
       "donor",
       [D, DB],
       { expectedTenantId: TB },
-      ok(DB, "sole"),
+      no("ambiguous"),
     ],
     [
       "narrowed to a tenant with no row of the class → no_assignment",

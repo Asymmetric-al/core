@@ -5,8 +5,8 @@ import { recordOfflineContribution } from "./offline-entry";
 import { offlineContributionSchema } from "../../schemas/contributions-offline";
 import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
 import {
-  withOperation,
-  type OperationContext,
+  withPlatformOperation,
+  type PlatformOperationContext,
 } from "../../shared/with-operation";
 import { assertContributionPermission } from "../contribution-operations/permissions";
 
@@ -15,7 +15,7 @@ import { assertContributionPermission } from "../contribution-operations/permiss
  * Source: DONOR_ANONYMITY_GUEST_GIVING_SPEC §6, §9.3.
  *
  * Thin transport around the tested pieces:
- *   1. coarse role gate (withOperation roles) + fine capability gate
+ *   1. coarse role gate (withPlatformOperation roles) + fine capability gate
  *      (`finance:manage_contributions`);
  *   2. §9.3 contract validation (`offlineContributionSchema`) — the authoritative
  *      server gate, re-checking whatever the form already validated client-side;
@@ -31,7 +31,7 @@ import { assertContributionPermission } from "../contribution-operations/permiss
  */
 export async function handleOfflineContribution(
   ctx: Pick<
-    OperationContext,
+    PlatformOperationContext,
     "request" | "supabaseAdmin" | "auth" | "requestId"
   >,
   createDeps: typeof createOfflineEntryDependencies = createOfflineEntryDependencies,
@@ -60,6 +60,9 @@ export async function handleOfflineContribution(
   }
 }
 
-export const POST = withOperation((ctx) => handleOfflineContribution(ctx), {
-  capability: "contributions.apply_corrections",
-});
+export const POST = withPlatformOperation(
+  (ctx) => handleOfflineContribution(ctx),
+  {
+    capability: "contributions.apply_corrections",
+  },
+);

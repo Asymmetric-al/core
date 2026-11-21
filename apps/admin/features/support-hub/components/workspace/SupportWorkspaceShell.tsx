@@ -1,7 +1,7 @@
 "use client";
 
+import { useRoutePathname as usePathname } from "@asym/auth/tenant-navigation";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { usePathname } from "next/navigation";
 import * as React from "react";
 
 import { ConfirmProvider } from "./confirm-provider";

@@ -1,4 +1,11 @@
-import type { UserRole } from "@asym/database/types";
+import { DEMO_TENANT_ID } from "./constants";
+import { STAFF_SUBROLES } from "./staff-subroles";
+
+import type {
+  MembershipRole,
+  StaffSubrole,
+  UserRole,
+} from "@asym/database/types";
 
 /** @deprecated Prefer surface-specific names; kept for grep/docs compatibility */
 export const E2E_AUTH_COOKIE_NAME = "asym_e2e_auth";
@@ -80,11 +87,113 @@ const USER_ROLE_SET = new Set(USER_ROLES);
  */
 const E2E_AUTH_TOKEN_TTL_SECONDS = 60 * 60;
 
+/**
+ * One membership of a bypass identity (AL-2675). No row stands behind it: the
+ * signed cookie names it, so end-to-end suites can sign in as a person with
+ * several staff rows, or rows in two tenants, without a database.
+ */
+export interface E2EAuthMembership {
+  /** Stands in for `authz.memberships.id`; a canonical UUID. */
+  id: string;
+  tenantId: string;
+  role: MembershipRole;
+  staffRole: StaffSubrole | null;
+  isTenantAdmin: boolean;
+}
+
 export interface E2EAuthSession {
   userId: string;
   role: UserRole;
   tenantId: string | null;
   profileId?: string | null;
+  /** Absent: the one membership `role` implies, in `tenantId` or the demo tenant. */
+  memberships?: E2EAuthMembership[];
+}
+
+/** The id of the one membership a bypass session without a list holds. */
+export const E2E_BYPASS_ASSIGNMENT_ID = "00000000-0000-4000-8000-0000000e2e00";
+
+const CANONICAL_UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const MEMBERSHIP_ROLES: readonly MembershipRole[] = [
+  "donor",
+  "missionary",
+  "staff",
+];
+
+/** A signed membership entry, or `null` when any field breaks the table's rules. */
+function parseE2EAuthMembership(raw: unknown): E2EAuthMembership | null {
+  if (raw === null || typeof raw !== "object") return null;
+  const { id, tenantId, role, staffRole, isTenantAdmin } = raw as Record<
+    string,
+    unknown
+  >;
+  if (typeof id !== "string" || !CANONICAL_UUID.test(id)) return null;
+  if (typeof tenantId !== "string" || !CANONICAL_UUID.test(tenantId)) {
+    return null;
+  }
+  if (!MEMBERSHIP_ROLES.includes(role as MembershipRole)) return null;
+  if (
+    staffRole !== null &&
+    !STAFF_SUBROLES.includes(staffRole as StaffSubrole)
+  ) {
+    return null;
+  }
+  if ((role === "staff") !== (staffRole !== null)) return null;
+  if (typeof isTenantAdmin !== "boolean") return null;
+  if (isTenantAdmin && role !== "staff") return null;
+  return {
+    id,
+    tenantId,
+    role: role as MembershipRole,
+    staffRole: staffRole as StaffSubrole | null,
+    isTenantAdmin,
+  };
+}
+
+/** The membership a bypass role implies: an admin is a flagged staff member. */
+function impliedE2EAuthMembership(
+  session: E2EAuthSession,
+): E2EAuthMembership | null {
+  const tenantId = session.tenantId ?? DEMO_TENANT_ID;
+  const base = { id: E2E_BYPASS_ASSIGNMENT_ID, tenantId };
+  switch (session.role) {
+    case "donor":
+    case "missionary":
+      return {
+        ...base,
+        role: session.role,
+        staffRole: null,
+        isTenantAdmin: false,
+      };
+    case "staff":
+    case "admin":
+    case "super_admin":
+      return {
+        ...base,
+        role: "staff",
+        staffRole: "development",
+        isTenantAdmin: session.role !== "staff",
+      };
+    default:
+      return null;
+  }
+}
+
+/**
+ * The memberships a bypass identity holds: those its signed cookie names, or
+ * the one its role implies. `listE2EAuthAssignments` (`./principal`) gives
+ * them the resolver's shape.
+ */
+export function listE2EAuthMemberships(
+  session: E2EAuthSession,
+): E2EAuthMembership[] {
+  return (
+    session.memberships ??
+    [impliedE2EAuthMembership(session)].filter(
+      (m): m is E2EAuthMembership => m !== null,
+    )
+  );
 }
 
 /** Signed on-the-wire payload: an {@link E2EAuthSession} plus an absolute expiry. */
@@ -283,6 +392,7 @@ export async function createE2EAuthCookieValue(
     ...(session.profileId !== undefined
       ? { profileId: session.profileId }
       : {}),
+    ...(session.memberships ? { memberships: session.memberships } : {}),
     exp: Math.floor(Date.now() / 1000) + E2E_AUTH_TOKEN_TTL_SECONDS,
   };
 
@@ -360,11 +470,24 @@ export async function parseE2EAuthCookieValue(
         ? null
         : undefined;
 
+  let memberships: E2EAuthMembership[] | undefined;
+  if (parsed.memberships !== undefined) {
+    if (!Array.isArray(parsed.memberships)) return null;
+    memberships = [];
+    for (const raw of parsed.memberships as unknown[]) {
+      const membership = parseE2EAuthMembership(raw);
+      // Authentic but malformed: fail closed rather than drop a row.
+      if (!membership) return null;
+      memberships.push(membership);
+    }
+  }
+
   return {
     userId: parsed.userId,
     role: parsed.role as UserRole,
     tenantId: typeof parsed.tenantId === "string" ? parsed.tenantId : null,
     ...(profileId !== undefined ? { profileId } : {}),
+    ...(memberships ? { memberships } : {}),
   };
 }
 

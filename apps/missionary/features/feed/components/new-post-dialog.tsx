@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
@@ -45,7 +46,7 @@ export function NewPostDialog({ open, onOpenChange }: NewPostDialogProps) {
 
   const createPost = useMutation({
     mutationFn: async (data: { content: string; media: MediaItem[] }) => {
-      const res = await fetch("/api/posts", {
+      const res = await ownApiFetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

@@ -1,6 +1,5 @@
 "use client";
 
-import { createBrowserClient } from "@asym/database/supabase";
 import { useAuth } from "@asym/lib/hooks";
 import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -50,6 +49,7 @@ import {
 import * as React from "react";
 import { toast } from "sonner";
 
+import { listMissionaryTaskPartners, saveMissionaryTask } from "./task-api";
 import {
   createInitialTaskFormValues,
   taskSchema,
@@ -142,7 +142,6 @@ function useMissionaryTaskForm(options: {
   onSuccess?: (task: Task) => void;
   profileId?: string;
   setOpen?: (open: boolean) => void;
-  supabase: ReturnType<typeof createBrowserClient>;
   task?: Task | null;
 }) {
   const {
@@ -152,7 +151,6 @@ function useMissionaryTaskForm(options: {
     onSuccess,
     profileId,
     setOpen,
-    supabase,
     task,
   } = options;
 
@@ -177,48 +175,22 @@ function useMissionaryTaskForm(options: {
           values: value,
         });
 
-        let result: Task;
-
-        if (task) {
-          const { data, error } = await supabase
-            .from("missionary_tasks")
-            .update(taskData)
-            .eq("id", task.id)
-            .select(
-              `
-              *,
-              donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url)
-            `,
-            )
-            .single();
-
-          if (error) {
-            toast.error(error.message || "Failed to update task");
-            return;
-          }
-
-          result = { ...data, donor: data.donor || null };
-          toast.success("Task updated successfully");
-        } else {
-          const { data, error } = await supabase
-            .from("missionary_tasks")
-            .insert(taskData)
-            .select(
-              `
-              *,
-              donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url)
-            `,
-            )
-            .single();
-
-          if (error) {
-            toast.error(error.message || "Failed to create task");
-            return;
-          }
-
-          result = { ...data, donor: data.donor || null };
-          toast.success("Task created successfully");
-        }
+        // The task routes take the missionary and the tenant from the
+        // request's resolved assignment, never from the body (WP2b,
+        // AL-2675). They store these fields; `missionary_tasks` has no
+        // notes, reminder or auto-generation column.
+        const result = await saveMissionaryTask(task?.id ?? null, {
+          title: taskData.title,
+          description: taskData.description,
+          task_type: taskData.task_type,
+          status: taskData.status,
+          priority: taskData.priority,
+          due_date: taskData.due_date,
+          donor_id: taskData.donor_id,
+        });
+        toast.success(
+          task ? "Task updated successfully" : "Task created successfully",
+        );
 
         setOpen?.(false);
         onSuccess?.(result);
@@ -538,7 +510,6 @@ export function TaskDialog({
   onOpenChange: controlledOnOpenChange,
 }: TaskDialogProps) {
   const { profile } = useAuth();
-  const supabase = React.useMemo(() => createBrowserClient(), []);
 
   const [internalOpen, setInternalOpen] = React.useState(false);
   const isControlled = controlledOpen !== undefined;
@@ -569,7 +540,6 @@ export function TaskDialog({
     onSuccess,
     profileId: profile?.id,
     setOpen,
-    supabase,
   });
 
   const fetchDonors = React.useCallback(async () => {
@@ -580,24 +550,14 @@ export function TaskDialog({
     setLoadingDonors(true);
 
     try {
-      const { data, error } = await supabase
-        .from("donors")
-        .select("id, name, email, avatar_url")
-        .eq("missionary_id", profile.id)
-        .order("name");
-
-      if (error) {
-        console.error("Error fetching donors:", error);
-        return;
-      }
-
-      setDonors(data || []);
+      // The workspace's redacted partner list, through the own-API wrapper.
+      setDonors(await listMissionaryTaskPartners());
     } catch (error) {
       console.error("Error fetching donors:", error);
     } finally {
       setLoadingDonors(false);
     }
-  }, [profile?.id, supabase]);
+  }, [profile?.id]);
 
   React.useEffect(() => {
     if (open && profile?.id && donors.length === 0 && !loadingDonors) {

@@ -46,7 +46,11 @@ export interface MigrationHealthDeps {
   getClient: () => RpcClientResult;
   readBuildHeads: () => string | undefined;
   readSupabaseUrl: () => string | undefined;
-  readRelease: () => { commit: string; environment: string };
+  readRelease: () => {
+    commit: string;
+    environment: string;
+    deploymentId?: string | null;
+  };
   /** The deployment's Protection Bypass for Automation secret, if any. */
   readBypassSecret: () => string | undefined;
 }
@@ -86,8 +90,11 @@ const defaultDeps: Omit<MigrationHealthDeps, "getClient"> = {
   // Keep the literal member expression: Next.js replaces only this exact form.
   readBuildHeads: () => process.env.CORE_BUILD_MIGRATION_HEADS,
   readSupabaseUrl: () => process.env.NEXT_PUBLIC_SUPABASE_URL,
+  // VERCEL_DEPLOYMENT_ID is a Vercel System Environment Variable available at
+  // build and runtime; exposed only in the bypass-authenticated detail below.
   readRelease: () => ({
     commit: process.env.VERCEL_GIT_COMMIT_SHA?.trim() || "unknown",
+    deploymentId: process.env.VERCEL_DEPLOYMENT_ID?.trim() || null,
     environment: resolveDeploymentEnvironment({
       VERCEL_ENV: process.env.VERCEL_ENV,
       VERCEL_TARGET_ENV: process.env.VERCEL_TARGET_ENV,

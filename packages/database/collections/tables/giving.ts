@@ -36,4 +36,9 @@ export const fundsCollection = defineSupabaseCollection({
   tableName: "funds",
   schema: fundSchema,
   keys: ["id"],
+  realtime: {
+    enabled: false,
+    reason:
+      "funds is not in the supabase_realtime publication (AL-2675, WP2b second release), so a channel would error and rejoin; read it once.",
+  },
 });

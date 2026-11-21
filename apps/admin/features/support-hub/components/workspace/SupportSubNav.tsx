@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  TenantLink as Link,
+  useRoutePathname as usePathname,
+  useTenantRouter as useRouter,
+} from "@asym/auth/tenant-navigation";
 import { NavTabs, NavTabsLink } from "@asym/ui/components/primitives/nav-tabs";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
@@ -10,8 +15,6 @@ import {
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
 import { cn } from "@asym/ui/lib/utils";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
 export type SupportSection = "inbox" | "tickets" | "reports" | "settings";

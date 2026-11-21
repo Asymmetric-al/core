@@ -1,9 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { serializeAdminCrmReportCsv } from "../../../../packages/api/src/admin/crm/reports/export-projection";
+import { policies } from "./projection/fixtures";
 
 import { getAdminCrmDonorDetail } from "../../../../packages/api/src/admin/crm/detail/service";
 import {
   buildAdminCrmReport,
-  serializeAdminCrmReportCsv,
+  buildAdminCrmExportGroups,
 } from "../../../../packages/api/src/admin/crm/reports/service";
 
 type Row = Record<string, unknown>;
@@ -106,9 +108,7 @@ class QueryBuilder implements PromiseLike<{ data: Row[]; error: null }> {
 
 function createSupabaseFixture(tables: Record<string, Row[]>) {
   return {
-    from(table: string) {
-      return new QueryBuilder(tables[table] ?? []);
-    },
+    from: vi.fn((table: string) => new QueryBuilder(tables[table] ?? [])),
   };
 }
 
@@ -152,7 +152,9 @@ const baseTables: Record<string, Row[]> = {
     },
   ],
   donor_activities: [
+    { id: "unrelated", donor_id: "donor-2", type: "note", title: "unrelated" },
     {
+      "owner.tenant_id": "tenant-1",
       amount: null,
       created_at: "2026-05-11T00:00:00.000Z",
       date: "2026-05-11T00:00:00.000Z",
@@ -194,9 +196,10 @@ const baseTables: Record<string, Row[]> = {
       type: "individual",
     },
   ],
-  funds: [{ id: "fund-1", name: "General Fund" }],
+  funds: [{ id: "fund-1", tenant_id: "tenant-1", name: "General Fund" }],
   missionaries: [
     {
+      tenant_id: "tenant-1",
       id: "missionary-1",
       profile: {
         display_name: "Mina Missionary",
@@ -221,6 +224,18 @@ const baseTables: Record<string, Row[]> = {
 };
 
 describe("Phase 5 CRM donor detail and reports", () => {
+  it("does not read old activities when the donor no longer belongs to the selected tenant", async () => {
+    const client = createSupabaseFixture(baseTables);
+    await expect(
+      getAdminCrmDonorDetail({
+        tenantId: "tenant-2",
+        donorId: "donor-1",
+        isTenantAdministrator: false,
+        supabaseAdmin: client as never,
+      }),
+    ).rejects.toMatchObject({ status: 404 });
+    expect(client.from.mock.calls).toEqual([["donors"]]);
+  });
   it("builds donor care detail without making Twenty payment truth", async () => {
     const detail = await getAdminCrmDonorDetail({
       crmWritesEnabled: false,
@@ -230,6 +245,9 @@ describe("Phase 5 CRM donor detail and reports", () => {
       tenantId: "tenant-1",
     });
 
+    expect(
+      detail.timeline.filter((entry) => entry.kind === "activity"),
+    ).toHaveLength(1);
     expect(detail.donor.name).toBe("Ada Donor");
     expect(detail.giftHistory[0]).toMatchObject({
       currencyCode: "USD",
@@ -611,8 +629,161 @@ describe("Phase 5 CRM donor detail and reports", () => {
       "rowCount",
       "timestamp",
     ]);
-    expect(serializeAdminCrmReportCsv(report)).toContain('"General Fund"');
   });
+
+  it.each([
+    [null, true],
+    [{}, true],
+    [
+      { defaultAnonymousToRecipient: true, defaultAnonymousToPublic: false },
+      false,
+    ],
+    [
+      { defaultAnonymousToRecipient: false, defaultAnonymousToPublic: true },
+      false,
+    ],
+    [
+      { defaultAnonymousToRecipient: false, defaultAnonymousToPublic: false },
+      true,
+    ],
+  ] as const)(
+    "binds export groups and protects donor names before filtering: %j",
+    async (preferences, named) => {
+      const tables = {
+        ...baseTables,
+        donations: [
+          ...baseTables.donations!,
+          {
+            ...baseTables.donations![0],
+            tenant_id: "tenant-2",
+            id: "other-gift",
+            donor_id: "other-donor",
+          },
+        ],
+        donors: [
+          ...baseTables.donors!.map((donor) => ({
+            ...donor,
+            giving_preferences: preferences,
+          })),
+          { id: "other-donor", tenant_id: "tenant-2", name: "Other tenant" },
+        ],
+      };
+      const report = (search: string | null) =>
+        buildAdminCrmExportGroups({
+          tenantId: "tenant-1",
+          supabaseAdmin: createSupabaseFixture(tables) as never,
+          params: {
+            slice: "donors",
+            filters: { dateFrom: null, dateTo: null, search },
+          },
+        });
+      for (const staffRole of ["finance", "development"] as const) {
+        for (const isTenantAdmin of [false, true]) {
+          const seesName = named || staffRole === "finance" || isTenantAdmin;
+          for (const search of [null, "Ada"]) {
+            const groups = await report(search);
+            expect(groups.rows).toHaveLength(1);
+            const exported = serializeAdminCrmReportCsv(
+              groups,
+              {
+                assignmentId: "membership-1",
+                userId: "user-1",
+                tenantId: "tenant-1",
+                revision: "v1",
+                membershipRole: "staff",
+                staffRole,
+                isTenantAdmin,
+              },
+              policies("mission_control", "crm_report_groups", [
+                { fieldKey: "label" },
+                { fieldKey: "gift_count" },
+              ]),
+            );
+            expect(exported.csv.includes("Ada Donor")).toBe(seesName);
+            expect(exported.csv).not.toContain("Other tenant");
+            // The row is in the file unless a search hides it. The audit
+            // row, which every staff member reads, references a donor only
+            // when they made no anonymous choice; one who did is a count, for
+            // every audience (fix check G2, re-check H1).
+            expect(exported.rowCount).toBe(!search || seesName ? 1 : 0);
+            expect(exported.groupIds).toHaveLength(named ? 1 : 0);
+            expect(exported.anonymousGroups).toBe(
+              !named && (!search || seesName) ? 1 : 0,
+            );
+          }
+        }
+      }
+    },
+  );
+
+  // F11(c), fix check G3: a group's source revision is a digest of its
+  // tenant, slice, group and values, so a group whose values change after it
+  // was built fails the export instead of leaving the file incomplete.
+  it("fails the export when a group's values changed after the export bound them", async () => {
+    const groups = await buildAdminCrmExportGroups({
+      tenantId: "tenant-1",
+      supabaseAdmin: createSupabaseFixture(baseTables) as never,
+      params: {
+        slice: "funds",
+        filters: { dateFrom: null, dateTo: null, search: null },
+      },
+    });
+    const assignment = {
+      assignmentId: "membership-1",
+      userId: "user-1",
+      tenantId: "tenant-1",
+      revision: "v1",
+      membershipRole: "staff",
+      staffRole: "finance",
+      isTenantAdmin: false,
+    } as const;
+    const fields = policies("mission_control", "crm_report_groups", [
+      { fieldKey: "label" },
+      { fieldKey: "net_amount_cents" },
+    ]);
+    expect(groups.rows).toHaveLength(1);
+    const bound = serializeAdminCrmReportCsv(groups, assignment, fields);
+    expect(bound.groupIds).toEqual(["funds:fund-1"]);
+    expect(bound.csv).toContain('"General Fund","12500"');
+    expect(() =>
+      serializeAdminCrmReportCsv(
+        {
+          ...groups,
+          rows: groups.rows.map((group) => ({
+            ...group,
+            row: { ...group.row, amountCents: group.row.amountCents + 1 },
+          })),
+        },
+        assignment,
+        fields,
+      ),
+    ).toThrow("A report group failed its binding");
+  });
+
+  it.each(["donors", "missionaries", "funds"] as const)(
+    "does not label %s from another tenant",
+    async (slice) => {
+      const tables = {
+        ...baseTables,
+        [slice]: baseTables[slice].map((row) => ({
+          ...row,
+          tenant_id: "other",
+        })),
+      };
+      const report = await buildAdminCrmReport({
+        tenantId: "tenant-1",
+        supabaseAdmin: createSupabaseFixture(tables) as never,
+        params: {
+          slice,
+          filters: { dateFrom: null, dateTo: null, search: null },
+        },
+      });
+      expect(report.rows).toHaveLength(1);
+      expect(report.rows[0]?.label).not.toMatch(
+        /Ada Donor|Mina Missionary|General Fund/,
+      );
+    },
+  );
 
   it("reports leftover CRM gift-link rows that still need reconciliation", async () => {
     const report = await buildAdminCrmReport({

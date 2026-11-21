@@ -100,9 +100,12 @@ export async function installDemoSessionInBrowser(
   const url = baseURL
     ? new URL("/api/auth/demo-account", baseURL).toString()
     : "/api/auth/demo-account";
+  const source: Record<string, string> = baseURL
+    ? { Origin: new URL(baseURL).origin }
+    : { "Sec-Fetch-Site": "same-origin" };
   const res = await page.request.post(url, {
     data: JSON.stringify({ role }),
-    headers: { "Content-Type": "application/json" },
+    headers: { ...source, "Content-Type": "application/json" },
   });
   if (
     res.ok() &&

@@ -109,29 +109,23 @@ export function createEveAuditStore(
 
 export async function loadRecentEveAuditEvents(input: {
   supabaseAdmin: AdminSupabaseClient;
-  tenantId: string | null;
+  tenantId: string;
   limit?: number;
-  auth?: AuthenticatedContext;
+  auth: AuthenticatedContext;
 }): Promise<EveAuditEventRecord[]> {
-  if (input.auth && input.tenantId !== input.auth.tenantId) {
+  if (!input.tenantId || input.tenantId !== input.auth?.tenantId) {
     throw new Error(
       "Audit tenant scope must match the verified admin context.",
     );
   }
 
-  let query = input.supabaseAdmin
+  const query = input.supabaseAdmin
     .from("eve_audit_events")
     .select(
       "id, run_id, tenant_id, actor_id, actor_profile_id, actor_role, identity_mode, initiator_type, initiator_id, policy_id, policy_status, governance_state_version, action, target, result, tool_name, subagent_name, model_role, evidence_summary, change_summary, decision_summary, debug_metadata, redaction_version, created_at",
-    );
-
-  if (input.tenantId !== null) {
-    query = query.eq("tenant_id", input.tenantId);
-  }
-
-  if (input.auth) {
-    query = query.eq("actor_profile_id", input.auth.profileId);
-  }
+    )
+    .eq("tenant_id", input.tenantId)
+    .eq("actor_profile_id", input.auth.profileId);
 
   const { data, error } = await query
     .order("created_at", { ascending: false })

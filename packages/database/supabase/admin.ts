@@ -11,6 +11,15 @@ type AdminClientResult =
 let cachedClient: SupabaseClient | null | undefined;
 let cachedError: string | null = null;
 
+const missingServiceKey = "SUPABASE_SERVICE_ROLE_KEY is not configured";
+const disabledAdmin = `Admin endpoints are disabled because ${missingServiceKey}.`;
+
+export function publicAdminClientFailure(error: string | null): string {
+  if (error === disabledAdmin) return disabledAdmin;
+  if (error === missingServiceKey) return missingServiceKey;
+  return "Admin client unavailable";
+}
+
 export function getAdminClient(): AdminClientResult {
   if (cachedClient !== undefined) {
     return cachedClient
@@ -29,8 +38,7 @@ export function getAdminClient(): AdminClientResult {
 
   if (!serviceRoleKey) {
     cachedClient = null;
-    cachedError =
-      "Admin endpoints are disabled because SUPABASE_SERVICE_ROLE_KEY is not configured.";
+    cachedError = disabledAdmin;
     return { client: null, error: cachedError };
   }
 

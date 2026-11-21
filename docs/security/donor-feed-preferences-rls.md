@@ -53,8 +53,8 @@ Hosted Supabase grants ALL on new `public` tables to `anon` and `authenticated` 
 ## Dependencies: #2251 and #668
 
 - **#2251** enables and forces RLS on the table. The migration's precondition raises unless both flags are set. This change removes the table from `docs/security/rls-deny-by-default-exceptions.json`, because the table now has policies.
-- **JWT tenant source:** `authz.current_tenant_id()` reads `app_metadata.tenant_id` from `auth.jwt()` today.
-- **#668** plans to make `authz.current_tenant_id()` read a request GUC. These policies go through that function, so they follow the rewrite. #668 also plans a gate that says RLS holds no identity logic. The `auth.uid()` clause here is identity logic by ruling, so #668 must exempt or rewrite these policies when it lands.
+- **Tenant source:** since the second release of WP2b (AL-2675, `20261119135300_request_tenant_policies.sql`), `authz.current_tenant_id()` reads no token claim. It returns the tenant the request's `x-asym-tenant` header names, when the request's one assignment resolves there. The three policies were rewritten in the same migration: the tenant condition, a donor assignment (`(SELECT authz.assignment_is('donor'))`), and the caller's own donor record in that tenant through `donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids()))`, each lookup a whole sub-select (council R11). So a staff member who also gives reads and writes their preferences only under their donor assignment. A malformed tenant header raises `22P02` wherever a policy's lookup runs; where it never runs, because the table holds no row the filter could return, the answer is empty and not an error (council R13). Either way nothing is admitted. The predicate above is the #2260 text.
+- **#668** planned the same repoint through a request GUC; WP2b carried it by the request header instead.
 
 ## Down
 

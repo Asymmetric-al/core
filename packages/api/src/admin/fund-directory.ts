@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { withOperation } from "../shared/with-operation";
+import { withPlatformOperation } from "../shared/with-operation";
 
 const GUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -17,7 +17,7 @@ function likeContainsPattern(search: string) {
  * cross-tenant directory to one organization; everyone else is always held
  * to their own tenant, whatever they ask for.
  */
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ supabaseAdmin, auth: ctx, request }) => {
     const { searchParams } = new URL(request.url);
     const rawLimit = Number.parseInt(searchParams.get("limit") || "50", 10);

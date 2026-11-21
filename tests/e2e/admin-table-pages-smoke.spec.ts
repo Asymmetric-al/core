@@ -3,6 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { adminBaseURL } from "./base-urls";
 import { getDemoRoleMap } from "./helpers/demo-auth";
 import { installDemoSessionInBrowser } from "./helpers/install-demo-session";
+import { demoTenantPath } from "./helpers/tenant-address";
 
 async function ensureAdminDemo(page: Page) {
   const availability = await page.request.get(
@@ -22,8 +23,9 @@ async function ensureAdminDemo(page: Page) {
   }
 }
 
+/** A signed-in page in the demo admin's one organization (plan 5.2). */
 function adminPath(path: string): string {
-  return new URL(path, adminBaseURL).toString();
+  return new URL(demoTenantPath(path), adminBaseURL).toString();
 }
 
 async function ensureSupportHubDatabase(page: Page) {

@@ -8,7 +8,7 @@ import {
   saveMissionControlAutomationRule,
 } from "./store";
 import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { withPlatformOperation } from "../../shared/with-operation";
 
 const automationPostBodySchema = z.union([
   z.object({ rule: automationRuleSchema }),
@@ -20,7 +20,7 @@ function parseAutomationPostBody(body: unknown) {
   return "rule" in parsed ? parsed.rule : parsed;
 }
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ auth, requestId, supabaseAdmin }) => {
     try {
       assertAutomationPermission(auth);
@@ -37,7 +37,7 @@ export const GET = withOperation(
   { tenantAdministrator: true },
 );
 
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
       assertAutomationPermission(auth);
