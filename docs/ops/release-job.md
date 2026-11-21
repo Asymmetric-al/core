@@ -1015,12 +1015,28 @@ below follow those decisions.
    `SUPABASE_DB_URL` reopens NA-04). They reach users only through the next
    deployment.
 
-7. **Release.** Dispatch **Release** with operation `release`.
-   Check: the run is green; `bun run verify:vercel-production -- --commit <sha>`
-   is READY; `curl https://admin.asymmetric.al/api/health/migrations` answers
-   `"status":"ok"` with the expected ref; the deployments Vercel lists for the
-   commit are exactly the IDs the run logged, so the push started none
-   outside the job.
+7. **Release.** Dispatch **Release** with operation `release`. This release
+   must build all three apps, because the variables of step 6 reach an app
+   only through a new production deployment, and the job skips an app whose
+   files and shared inputs did not change since the commit its production
+   domain serves. Its plan step logs `build` or `skip` for each app, with the
+   reason: read it. At the first release every app is expected to be built,
+   because shared inputs under `packages/` have changed since the commits the
+   production domains serve. If the plan logs `skip` for any app, stop: the
+   switch-on is not complete, and that app still serves a deployment built
+   with the old variables. Do not redeploy it from Vercel's dashboard: that
+   rebuilds the commit the app serves and not the release, the project's
+   Ignored Build Step can cancel it, and its ID is not one the run logged.
+   The remedy is a release that builds every app, for which the job has no
+   input yet (execution record, section 9).
+   Check: the run is green; the plan step logged `build` for admin, donor and
+   missionary; `bun run verify:vercel-production -- --commit <sha>` is READY;
+   `curl https://admin.asymmetric.al/api/health/migrations` answers
+   `"status":"ok"`, and so does the same path on the donor and the missionary
+   production domains (a plain request is not shown the project ref: the job
+   compared it, with each project's bypass secret, on every deployment before
+   it promoted it); the deployments Vercel lists for the commit are exactly
+   the IDs the run logged, so the push started none outside the job.
    Undo: Vercel _Instant Rollback_ to the previous production deployment; it
    stays healthy, because a database that is ahead passes.
 8. **The `preview` Supabase project.** No project is created: a third
