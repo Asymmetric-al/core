@@ -8,6 +8,8 @@ import {
   LEGAL_ENTITY_FIXTURE_DELETE,
   LEGAL_ENTITY_FIXTURE_INSERT,
   legalEntityFixtureCommand,
+  MEMBERSHIP_FIXTURE_DELETE,
+  MEMBERSHIP_FIXTURE_INSERT,
   orderFixtureCleanup,
   runFixtureCleanup,
   verifyLocalFixtureTarget,
@@ -569,13 +571,14 @@ describe("the SDK fixture's legal entity", () => {
     );
   });
 
-  it("removes the funds before their legal entity, and the entity before the tenants", () => {
+  it("removes the funds before their legal entity, and the entity and membership before the tenants", () => {
     const step = (label: string) => ({ label, run: async () => {} });
     expect(
       orderFixtureCleanup({
         channels: step("channels"),
         funds: [step("fund")],
         legalEntity: step("entity"),
+        membership: step("membership"),
         users: [step("user")],
         tenants: [step("tenant-a"), step("tenant-b")],
         census: step("census"),
@@ -584,10 +587,26 @@ describe("the SDK fixture's legal entity", () => {
       "channels",
       "fund",
       "entity",
+      "membership",
       "user",
       "tenant-a",
       "tenant-b",
       "census",
     ]);
+  });
+
+  // L1: the fixture user reads the fund on its own token, as staff of the
+  // run's own tenant only.
+  it("gives the run's own user a staff membership in the run's own tenant, and removes only that row", () => {
+    expect(MEMBERSHIP_FIXTURE_INSERT).toMatch(/'staff', 'development', false/);
+    expect(MEMBERSHIP_FIXTURE_INSERT).toMatch(
+      /t\.name = 'SDK qualification fixture ' \|\| :'run_id'/,
+    );
+    expect(MEMBERSHIP_FIXTURE_INSERT).toMatch(
+      /raw_app_meta_data->>'sdk_qualification_run' = :'run_id'/,
+    );
+    expect(MEMBERSHIP_FIXTURE_DELETE).toMatch(
+      /WHERE id = :'membership_id'::uuid AND user_id = :'user_id'::uuid AND tenant_id = :'tenant_id'::uuid;/,
+    );
   });
 });

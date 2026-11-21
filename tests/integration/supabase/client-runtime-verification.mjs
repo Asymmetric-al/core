@@ -11,13 +11,18 @@ import {
   isDeniedSelfRoleUpdate,
   LEGAL_ENTITY_FIXTURE_DELETE,
   LEGAL_ENTITY_FIXTURE_INSERT,
-  legalEntityFixtureCommand,
+  MEMBERSHIP_FIXTURE_DELETE,
+  MEMBERSHIP_FIXTURE_INSERT,
   orderFixtureCleanup,
+  ownedDatabaseCommand,
   runFixtureCleanup,
   verifyLocalFixtureTarget,
 } from "./client-runtime-checks.mjs";
 
 // Feed credentials from an owned local CLI status response through stdin only.
+// The Realtime broadcast round trip proves only that the signed-in socket
+// delivers: no application table is in the publication at this head, so it
+// proves nothing about authorization; the fund read on the caller's token does.
 // Never invoke this fixture against a shared or hosted project.
 const checks = [];
 let step = "validate-local-target";
@@ -130,14 +135,20 @@ async function verify(input) {
   const runId = randomUUID();
   const fundId = randomUUID();
   const legalEntityId = randomUUID();
+  const membershipId = randomUUID();
   let entityAttempted = false;
+  let membershipUserId;
   function entityQuery(sql) {
-    const invocation = legalEntityFixtureCommand({
+    const invocation = ownedDatabaseCommand({
       endpoint,
       databaseId,
-      entityId: legalEntityId,
-      tenantId: tenantIds[0],
-      runId,
+      variables: {
+        entity_id: legalEntityId,
+        tenant_id: tenantIds[0],
+        run_id: runId,
+        membership_id: membershipId,
+        user_id: membershipUserId ?? randomUUID(),
+      },
     });
     const result = spawnSync(invocation.command, invocation.args, {
       env: invocation.env,
@@ -249,6 +260,8 @@ async function verify(input) {
       );
       check(profile.tenant_id === tenantId, "fixture-profile-tenant-assigned");
     }
+    membershipUserId = users[0].id;
+    assert.equal(entityQuery(MEMBERSHIP_FIXTURE_INSERT), membershipId);
 
     step = "browser-auth-and-row-isolation";
     const login = successful(await browser.auth.signInWithPassword(users[0]));
@@ -337,20 +350,44 @@ async function verify(input) {
     successful(
       await createTrackedFixtureRows(admin, tableJournal, "funds", fundRows),
     );
-    const fund = successful(
-      await admin
+    // L1: the caller's own token, scoped by both request headers.
+    const token = successful(await browser.auth.getSession()).session
+      .access_token;
+    const asCaller = (tenantId) =>
+      createClient(url.href, input.PUBLIC_KEY, {
+        ...options,
+        global: {
+          ...global,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "x-asym-tenant": tenantId,
+            "x-asym-assignment": membershipId,
+          },
+        },
+      });
+    const funds = successful(
+      await asCaller(tenantIds[0])
         .from("funds")
         .select("id,tenant_id,legal_entity_id,goal_amount,currency")
-        .eq("tenant_id", tenantIds[0])
-        .eq("id", fundId)
-        .single(),
+        .eq("id", fundId),
     );
     check(
-      fund.id === fundId &&
-        fund.legal_entity_id === legalEntityId &&
-        fund.goal_amount === 12345 &&
-        fund.currency === "usd",
-      "scoped-read-preserves-minor-units-and-currency",
+      funds.length === 1 &&
+        funds[0].tenant_id === tenantIds[0] &&
+        funds[0].legal_entity_id === legalEntityId &&
+        funds[0].goal_amount === 12345 &&
+        funds[0].currency === "usd",
+      "caller-token-reads-minor-units-and-currency",
+    );
+    const elsewhere = await asCaller(tenantIds[1])
+      .from("funds")
+      .select("id")
+      .eq("id", fundId);
+    check(
+      elsewhere.error
+        ? elsewhere.error.code === "42501"
+        : elsewhere.data.length === 0,
+      "caller-token-denied-under-other-tenant",
     );
     check(
       (await channel.send({
@@ -412,6 +449,13 @@ async function verify(input) {
           run: async () => {
             if (!entityAttempted) return;
             assert.equal(entityQuery(LEGAL_ENTITY_FIXTURE_DELETE), "0");
+          },
+        },
+        membership: {
+          label: "remove-owned-membership",
+          run: async () => {
+            if (!membershipUserId) return;
+            assert.equal(entityQuery(MEMBERSHIP_FIXTURE_DELETE), "0");
           },
         },
         users: fixtureAuthUserCleanupOperations(admin.auth.admin, users),

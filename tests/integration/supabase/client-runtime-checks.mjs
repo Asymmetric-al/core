@@ -384,12 +384,26 @@ export const LEGAL_ENTITY_FIXTURE_DELETE = `DELETE FROM public.legal_entities
 WHERE id = :'entity_id'::uuid AND tenant_id = :'tenant_id'::uuid AND name = :'run_id';
 SELECT count(*) FROM public.legal_entities WHERE id = :'entity_id'::uuid;`;
 
-export function legalEntityFixtureCommand({
+/**
+ * The fixture user's staff membership in its own tenant (L1, re-check of
+ * WP3a part 1a): the verifier reads the fund on the caller's token, which
+ * needs a live staff assignment. Bound to the run's user and tenant.
+ */
+export const MEMBERSHIP_FIXTURE_INSERT = `INSERT INTO authz.memberships(id, user_id, tenant_id, role, staff_role, is_tenant_admin)
+SELECT :'membership_id'::uuid, u.id, t.id, 'staff', 'development', false
+FROM auth.users u JOIN public.tenants t ON t.id = :'tenant_id'::uuid AND t.name = 'SDK qualification fixture ' || :'run_id'
+WHERE u.id = :'user_id'::uuid AND u.raw_app_meta_data->>'sdk_qualification_run' = :'run_id'
+RETURNING id;`;
+
+export const MEMBERSHIP_FIXTURE_DELETE = `DELETE FROM authz.memberships
+WHERE id = :'membership_id'::uuid AND user_id = :'user_id'::uuid AND tenant_id = :'tenant_id'::uuid;
+SELECT count(*) FROM authz.memberships WHERE id = :'membership_id'::uuid;`;
+
+/** psql in the owned database container, each variable passed with -v. */
+export function ownedDatabaseCommand({
   endpoint,
   databaseId,
-  entityId,
-  tenantId,
-  runId,
+  variables,
   env = process.env,
 }) {
   return {
@@ -408,29 +422,52 @@ export function legalEntityFixtureCommand({
       "postgres",
       "-v",
       "ON_ERROR_STOP=1",
-      "-v",
-      `entity_id=${entityId}`,
-      "-v",
-      `tenant_id=${tenantId}`,
-      "-v",
-      `run_id=${runId}`,
+      ...Object.entries(variables).flatMap(([name, value]) => [
+        "-v",
+        `${name}=${value}`,
+      ]),
     ],
     env: withoutDockerClientSettings(env),
   };
 }
 
+export function legalEntityFixtureCommand({
+  endpoint,
+  databaseId,
+  entityId,
+  tenantId,
+  runId,
+  env = process.env,
+}) {
+  return ownedDatabaseCommand({
+    endpoint,
+    databaseId,
+    variables: { entity_id: entityId, tenant_id: tenantId, run_id: runId },
+    env,
+  });
+}
+
 /**
  * Clean-up in key order: the channels first; the funds, which name the legal
- * entity; the entity, which names its tenant; the users; the tenants, which
- * every RESTRICT key above protects; and the census last.
+ * entity; the entity and the membership, which name their tenant; the users;
+ * the tenants, which every RESTRICT key above protects; and the census last.
  */
 export function orderFixtureCleanup({
   channels,
   funds,
   legalEntity,
+  membership,
   users,
   tenants,
   census,
 }) {
-  return [channels, ...funds, legalEntity, ...users, ...tenants, census];
+  return [
+    channels,
+    ...funds,
+    legalEntity,
+    membership,
+    ...users,
+    ...tenants,
+    census,
+  ];
 }
