@@ -18,6 +18,19 @@ const step = (marker: string) => steps.find((s) => s.includes(marker));
 const at = (marker: string) => workflow.indexOf(marker);
 
 describe("Local Supabase Stack workflow: the replay matches the platform's image", () => {
+  it("requires the CRM caller-token suite on the seeded stack", () => {
+    const run = step("Verify CRM reads through scoped PostgREST sessions");
+    expect(run).toContain('CRM_READ_IT_REQUIRED: "1"');
+    expect(run).toContain("CRM_READ_IT_SUPABASE_URL: http://127.0.0.1:54321");
+    expect(run).toContain(
+      "CRM_READ_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    );
+    expect(run).toContain("jq -er '.ANON_KEY'");
+    expect(run).toContain(
+      "bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts",
+    );
+    expect(run).not.toMatch(/^\s*(?:if|continue-on-error):/m);
+  });
   it("requires the governed projection round trip after fingerprinting", () => {
     const command =
       "bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts";

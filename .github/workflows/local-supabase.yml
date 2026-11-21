@@ -105,6 +105,10 @@ on:
       - packages/database/supabase/server.ts
       - packages/api/src/shared/request-session-client.ts
       - packages/api/src/field-policies/**
+      - packages/api/src/admin/crm/**
+      - packages/api/src/admin/contribution-shared/**
+      - packages/api/src/admin/contribution-operations/correction-requests.ts
+      - tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts
       - packages/api/src/projection/**
       - tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts
 
@@ -212,6 +216,15 @@ jobs:
           export FIELD_POLICY_IT_ANON_KEY
           FIELD_POLICY_IT_ANON_KEY="$(bun run supabase -- status -o json | jq -er '.ANON_KEY')"
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts
+      - name: Verify CRM reads through scoped PostgREST sessions
+        env:
+          CRM_READ_IT_REQUIRED: "1"
+          CRM_READ_IT_SUPABASE_URL: http://127.0.0.1:54321
+          CRM_READ_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          export CRM_READ_IT_ANON_KEY
+          CRM_READ_IT_ANON_KEY="$(bun run supabase -- status -o json | jq -er '.ANON_KEY')"
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts
       - name: Install Playwright Chromium
         id: chromium
         run: bunx playwright install --with-deps chromium
