@@ -80,8 +80,6 @@ Signed-in users have USAGE on both schemas, so that a `public` invoker wrapper c
 
 The guard also has EXECUTE on `authz.caller_tenant_ids()` so the human preamble can require an active tenant before entering it. This grants no direct read of `tenants`.
 
-`public.resolve_verified_host(text)` takes an ASCII DNS host (an international name must already be in its ASCII form). It lowercases the input and removes a numeric port and one trailing dot. It returns only `tenant_id` and `site_id`, never brand or domain configuration. The four Site tables grant `service_role` nothing. WP3b must add a reviewed projection for the portal host, account brand name, Site status and primary domain it actually uses.
-
 `tenant_guard` stays NOLOGIN, NOBYPASSRLS, NOSUPERUSER and NOINHERIT (contract item 7). It holds:
 
 - USAGE on schemas `public`, `tenant_guard` and `authz`;

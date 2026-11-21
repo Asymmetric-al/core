@@ -84,7 +84,7 @@ export class Stack {
       ).toBe(0);
     }
     await this.db.connect();
-    // D-18: this historical predecessor predates Sites and legal entities. Only the signup tenant is needed by the isolated fixture.
+    // D-18: this historical predecessor predates legal entities. Only the signup tenant is needed by the isolated fixture.
     await this.db.query(
       "insert into public.tenants(id,name,slug) values ('00000000-0000-0000-0000-000000000001','Fixture signup','fixture-signup') on conflict (id) do nothing",
     );
