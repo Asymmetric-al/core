@@ -9,13 +9,11 @@ import {
   mapContributionAdjustmentRow,
   type ContributionAdjustmentRecord,
 } from "../../contribution-shared/effective-values";
-import { resolveContributionProfileLabel } from "../../contribution-shared/profile-label";
 import { normalizeSharedPaymentStatus } from "../../contribution-shared/row-contract";
 import { toContributionCents } from "../../contribution-shared/row-inputs";
 
 import type { AdminCrmReportParams } from "./query";
 import type { RequestSessionClient } from "../../../shared/request-session-client";
-import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type {
   AdminCrmReportCompleteness,
   AdminCrmReportResponse,
@@ -59,13 +57,6 @@ interface DonorRow {
 interface LabelRow {
   id: string;
   name?: string | null;
-  profile?: {
-    display_name?: string | null;
-    full_name?: string | null;
-    first_name?: string | null;
-    last_name?: string | null;
-    email?: string | null;
-  } | null;
 }
 
 /** One designation of a settled gift, net of refunds, after corrections. */
@@ -101,13 +92,6 @@ function uniq(values: Array<string | null | undefined>) {
 
 function matchesSearch(label: string, search: string | null) {
   return !search || label.toLowerCase().includes(search.toLowerCase());
-}
-
-function profileName(row: LabelRow): string {
-  return (
-    resolveContributionProfileLabel(row.profile, row.name ?? null) ??
-    "Unassigned"
-  );
 }
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
@@ -272,26 +256,6 @@ async function fetchFundLabels(
     .eq("tenant_id", tenantId)
     .in("id", ids);
   assertNoError(error, "Failed to load fund labels.");
-  return new Map(((data ?? []) as LabelRow[]).map((row) => [row.id, row]));
-}
-
-async function fetchMissionaryLabels(
-  sessionClient: RequestSessionClient,
-  tenantId: string,
-  ids: string[],
-): Promise<Map<string, LabelRow>> {
-  if (ids.length === 0) {
-    return new Map();
-  }
-
-  const { data, error } = await sessionClient
-    .from("missionaries")
-    .select(
-      "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name, email)",
-    )
-    .eq("tenant_id", tenantId)
-    .in("id", ids);
-  assertNoError(error, "Failed to load missionary labels.");
   return new Map(((data ?? []) as LabelRow[]).map((row) => [row.id, row]));
 }
 
@@ -532,22 +496,9 @@ export function buildAdminCrmReport(input: ReportInput) {
   return buildReport(input);
 }
 
-export async function buildAdminCrmExportGroups(
-  input: Omit<ReportInput, "sessionClient"> & {
-    supabaseAdmin: AdminSupabaseClient;
-  },
-) {
+export async function buildAdminCrmExportGroups(input: ReportInput) {
   const anonymousDonors = new Set<string>();
-  const report = await buildReport(
-    { ...input, sessionClient: input.supabaseAdmin },
-    anonymousDonors,
-    async (client, tenantId, ids) => {
-      const labels = await loadReportLabels(ids, (chunk) =>
-        fetchMissionaryLabels(client, tenantId, chunk),
-      );
-      return new Map([...labels].map(([id, row]) => [id, profileName(row)]));
-    },
-  );
+  const report = await buildReport(input, anonymousDonors);
   return {
     slice: report.slice,
     search: report.slice === "donors" ? input.params.filters.search : null,
@@ -576,7 +527,6 @@ export async function buildAdminCrmExportGroups(
 async function buildReport(
   input: ReportInput,
   anonymousDonors?: Set<string>,
-  readMissionaries = loadCrmMissionaryLabels,
 ): Promise<AdminCrmReportResponse> {
   if (input.params.slice === "sync-failures") {
     const rows = await buildSyncFailureRows(
@@ -644,7 +594,7 @@ async function buildReport(
 
   if (input.params.slice === "missionaries") {
     const ids = uniq(lines.map((line) => line.missionaryId));
-    const labels = await readMissionaries(
+    const labels = await loadCrmMissionaryLabels(
       input.sessionClient,
       input.tenantId,
       ids,

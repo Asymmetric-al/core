@@ -6,6 +6,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { GET as notes } from "../../../../packages/api/src/admin/crm/notes";
+import { GET as download } from "../../../../packages/api/src/admin/crm/reports/export";
 import { GET as report } from "../../../../packages/api/src/admin/crm/reports";
 import { GET as detail } from "../../../../packages/api/src/admin/crm/detail";
 import { GET as relationships } from "../../../../packages/api/src/admin/crm/relationships";
@@ -21,12 +22,23 @@ import {
 import { createRequestSessionClient } from "../../../../packages/api/src/shared/request-session-client";
 
 vi.mock("@asym/database/supabase/admin", () => ({
+  // The accepted audit exception exposes only an insert, through the local Data API.
+  createAdminClient: () => ({
+    from(table: string) {
+      if (table !== "audit_logs")
+        throw new Error("Unexpected privileged table");
+      const audit = createClient(url!, process.env.CRM_READ_IT_AUDIT_KEY!, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      return {
+        insert: (row: Record<string, unknown>) =>
+          audit.from("audit_logs").insert(row),
+      };
+    },
+  }),
   getAdminClient: vi.fn(() => {
     throw new Error("CRM read used the service key");
   }),
-}));
-vi.mock("@asym/lib/audit/logger", () => ({
-  createAuditLogger: () => ({ logRequired: vi.fn() }),
 }));
 
 const url = process.env.CRM_READ_IT_SUPABASE_URL;
@@ -64,7 +76,12 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
       const key = process.env.CRM_READ_IT_ANON_KEY;
       const local = (value?: string) =>
         value && ["127.0.0.1", "localhost"].includes(new URL(value).hostname);
-      if (!local(url) || !local(database) || !key)
+      if (
+        !local(url) ||
+        !local(database) ||
+        !key ||
+        !process.env.CRM_READ_IT_AUDIT_KEY
+      )
         throw new Error(
           "CRM acceptance requires the disposable local stack, database and public key",
         );
@@ -474,6 +491,97 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
         expect(getAdminClient).not.toHaveBeenCalled();
       },
     );
+
+    it("projects donor anonymity for both export audiences and stores only safe audit references", async () => {
+      const ids = [randomUUID(), randomUUID(), randomUUID()];
+      const gifts = ids.map(() => randomUUID());
+      const assignment = randomUUID();
+      const auditMarker = randomUUID();
+      const path =
+        "/api/admin/crm/reports/export?slice=donors&dateFrom=2038-02-01&dateTo=2038-02-01";
+      const names = ids.map((_, i) => `Export choice ${i}`);
+      const run = async (person: typeof dual, tenant: string, query = "") => {
+        const req = request(path + query, person, tenant);
+        req.headers.set("user-agent", auditMarker);
+        return download(req);
+      };
+      const audit = async () =>
+        (
+          await db.query(
+            "select tenant_id,user_id,details from public.audit_logs where user_agent=$1 order by created_at",
+            [auditMarker],
+          )
+        ).rows;
+      try {
+        await db.query(
+          "insert into authz.memberships(id,user_id,tenant_id,role,staff_role) values ($1,$2,$3,'staff','finance')",
+          [assignment, dualUser, tenantA],
+        );
+        for (const [i, id] of ids.entries()) {
+          await db.query(
+            "insert into public.donors (id,name,tenant_id,giving_preferences) values ($1,$2,$3,$4)",
+            [
+              id,
+              names[i],
+              tenantA,
+              i === 0 ? {} : { defaultAnonymousToPublic: i === 1 },
+            ],
+          );
+          await db.query(
+            "insert into public.donations(id,donor_id,tenant_id,amount,status,gift_date) values ($1,$2,$3,123,'completed','2038-02-01')",
+            [gifts[i], id, tenantA],
+          );
+        }
+        const denied = await run(sole, tenantB);
+        expect(denied.status).toBe(401);
+        expect(await audit()).toEqual([]);
+        for (const finance of [false, true]) {
+          const person = finance ? { ...dual, assignment } : dual;
+          const res = await run(person, tenantA);
+          expect(res.status).toBe(200);
+          const csv = await res.text();
+          expect(csv).toContain('"label","net_amount_cents"');
+          expect(csv).toContain(names[0]);
+          expect(csv).toContain(names[2]);
+          expect(csv.includes(names[1])).toBe(finance);
+          expect(csv).not.toMatch(
+            /giving_preferences|defaultAnonymousToPublic/,
+          );
+          expect((await audit()).at(-1)).toMatchObject({
+            tenant_id: tenantA,
+            user_id: dualUser,
+            details: { anonymousGroups: 1, rowCount: 3 },
+          });
+          const details = (await audit()).at(-1).details;
+          expect(details.groupIds.sort()).toEqual(
+            [ids[0], ids[2]].map((id) => "donors:" + id).sort(),
+          );
+          const searched = await run(
+            person,
+            tenantA,
+            "&q=" + encodeURIComponent(names[1]),
+          );
+          expect(searched.status).toBe(200);
+          expect((await searched.text()).includes(names[1])).toBe(finance);
+          expect((await audit()).at(-1).details.rowCount).toBe(finance ? 1 : 0);
+        }
+        expect(getAdminClient).not.toHaveBeenCalled();
+      } finally {
+        await db.query("delete from public.audit_logs where user_agent=$1", [
+          auditMarker,
+        ]);
+        await db.query(
+          "delete from public.donations where id=any($1::uuid[])",
+          [gifts],
+        );
+        await db.query("delete from public.donors where id=any($1::uuid[])", [
+          ids,
+        ]);
+        await db.query("delete from authz.memberships where id=$1", [
+          assignment,
+        ]);
+      }
+    });
 
     it("reads the selected tenant's notes and enforces restricted visibility in PostgREST", async () => {
       const path = "/api/admin/crm/notes";

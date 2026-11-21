@@ -223,6 +223,8 @@ jobs:
           CRM_READ_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
         run: |
           export CRM_READ_IT_ANON_KEY
+          export CRM_READ_IT_AUDIT_KEY
+          CRM_READ_IT_AUDIT_KEY="$(bun run supabase -- status -o json | jq -er '.SERVICE_ROLE_KEY')"
           CRM_READ_IT_ANON_KEY="$(bun run supabase -- status -o json | jq -er '.ANON_KEY')"
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts
       - name: Install Playwright Chromium

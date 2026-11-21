@@ -721,7 +721,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
       const report = (search: string | null) =>
         buildAdminCrmExportGroups({
           tenantId: "tenant-1",
-          supabaseAdmin: createSupabaseFixture(tables) as never,
+          sessionClient: createSupabaseFixture(tables) as never,
           params: {
             slice: "donors",
             filters: { dateFrom: null, dateTo: null, search },
@@ -772,7 +772,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
   it("fails the export when a group's values changed after the export bound them", async () => {
     const groups = await buildAdminCrmExportGroups({
       tenantId: "tenant-1",
-      supabaseAdmin: createSupabaseFixture(baseTables) as never,
+      sessionClient: createSupabaseFixture(baseTables) as never,
       params: {
         slice: "funds",
         filters: { dateFrom: null, dateTo: null, search: null },
