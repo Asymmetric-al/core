@@ -136,16 +136,25 @@ export const POST = withOperation(
       );
     }
     try {
-      // Review, activation, canary close and launch permissions are the steps
-      // Eve's SQL keeps for a platform operator; they act as one only after
-      // the shared operator check. A tenant administrator may submit a
-      // manifest or engage emergency off, but not disable or clear it.
-      const platformOperator =
+      // A tenant administrator may submit a manifest or engage emergency off.
+      // Every other step (review, launch permissions, activation, canary
+      // close, disabling release or clearing emergency off) is the platform's:
+      // it runs only for a caller who passed the shared operator check, and
+      // is refused here, before any control runs, for anyone else. Eve's SQL,
+      // called with the service key, judges its platform actor by the operator
+      // list and a live row alone and cannot see the second factor, so this
+      // check is where the second factor holds (AL-2675 WP2c).
+      const tenantAdministratorStep =
         parsed.data.kind === "manifest" ||
         (parsed.data.kind === "safety_control" &&
-          parsed.data.mode === "emergency_off")
-          ? false
-          : await isPlatformOperator();
+          parsed.data.mode === "emergency_off");
+      if (!tenantAdministratorStep && !(await isPlatformOperator())) {
+        return NextResponse.json(
+          { error: "A confirmed platform operator is required.", requestId },
+          { status: 403 },
+        );
+      }
+      const platformOperator = !tenantAdministratorStep;
       if (parsed.data.kind === "manifest") {
         await createEveLaunchManifest({
           auth,
@@ -183,12 +192,6 @@ export const POST = withOperation(
           supabaseAdmin,
         });
       } else if (parsed.data.kind === "safety_control") {
-        if (parsed.data.mode !== "emergency_off" && !platformOperator) {
-          return NextResponse.json(
-            { error: "A confirmed platform operator is required.", requestId },
-            { status: 403 },
-          );
-        }
         await setEveReleaseSafetyControl({
           auth,
           platformOperator,
