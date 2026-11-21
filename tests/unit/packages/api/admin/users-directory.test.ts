@@ -188,11 +188,13 @@ describe("the Mission Control users list (council round 1 on WP2a, F8)", () => {
   });
 
   it("lists nobody for super_admin or an unknown label, without a query", async () => {
+    const session = sessionClient({ data: [], error: null });
+    h.session.mockResolvedValue(session.client);
     for (const label of ["super_admin", "events"]) {
       const response = await list(`role=${label}`);
       expect(await response.json()).toEqual({ users: [] });
     }
-    expect(h.session).not.toHaveBeenCalled();
+    expect(session.calls).toEqual([]);
   });
 
   it("answers 403 when the directory refuses the caller", async () => {

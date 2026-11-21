@@ -6,7 +6,11 @@ import {
 } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 
-import { ApiHttpError, toErrorResponse } from "../shared/http-errors";
+import {
+  ApiHttpError,
+  ApiResponseContractError,
+  toErrorResponse,
+} from "../shared/http-errors";
 
 /** Cap on the cropped upload the control sends, not the source photo (#2308 OQ1). */
 export const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -206,7 +210,7 @@ export async function uploadOnce(
   } catch {
     failed = true;
   }
-  if (failed) throw new ApiHttpError(502, UPLOAD_FAILED);
+  if (failed) throw new ApiResponseContractError(502, UPLOAD_FAILED);
 }
 
 export async function POST(request: Request) {

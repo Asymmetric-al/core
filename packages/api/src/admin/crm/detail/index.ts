@@ -4,7 +4,7 @@ import { getAdminCrmDonorDetail } from "./service";
 import { requireCrmAccess } from "../../../crm/auth/access";
 import { ApiHttpError, toErrorResponse } from "../../../shared/http-errors";
 import { requireRouteUuid } from "../../../shared/route-uuid";
-import { withOperation } from "../../../shared/with-operation";
+import { withPlatformOperation } from "../../../shared/with-operation";
 import { resolveContributionCapabilities } from "../../contribution-operations/permissions";
 
 function getRecordIdFromPath(request: Request) {
@@ -20,7 +20,7 @@ function getRecordIdFromPath(request: Request) {
   return requireRouteUuid(recordId);
 }
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.record.read",

@@ -24,6 +24,23 @@ function browserPage() {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("installDemoSessionInBrowser hermetic client identity", () => {
+  it.each([undefined, "http://orchard.localhost:3030"])(
+    "provides a first-party browser source for demo login at %s",
+    async (baseURL) => {
+      const fixture = browserPage();
+      await installDemoSessionInBrowser(fixture.page, "donor", baseURL);
+      expect(fixture.post).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining(
+            baseURL
+              ? { Origin: new URL(baseURL).origin }
+              : { "Sec-Fetch-Site": "same-origin" },
+          ),
+        }),
+      );
+    },
+  );
   it("installs cookie-backed browser identity matching the signed local donor demo", async () => {
     vi.stubEnv("ASYM_E2E_REQUIRE_HERMETIC_SUPABASE", "1");
     vi.stubEnv("E2E_AUTH_BYPASS", "true");

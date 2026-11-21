@@ -28,9 +28,6 @@ export interface LogCrmCommandInput {
   idempotencyKey?: string | null;
   status: CrmCommandStatus;
   requestId?: string | null;
-  commandPayload?: JsonRecord;
-  resultSummary?: JsonRecord;
-  errorMessage?: string | null;
 }
 
 export type LogCrmCommandResult =
@@ -42,29 +39,6 @@ export type LogCrmCommandResult =
       ok: false;
       error: string;
     };
-
-const REDACTED = "[redacted]";
-const SENSITIVE_KEY_PATTERN =
-  /authorization|bearer|credential|password|secret|token|api.?key/i;
-
-function redactSensitiveValues(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map(redactSensitiveValues);
-  }
-
-  if (value === null || typeof value !== "object") {
-    return value;
-  }
-
-  return Object.fromEntries(
-    Object.entries(value).map(([key, childValue]) => [
-      key,
-      SENSITIVE_KEY_PATTERN.test(key)
-        ? REDACTED
-        : redactSensitiveValues(childValue),
-    ]),
-  );
-}
 
 export async function logCrmCommand(
   supabaseAdmin: CrmCommandLogClient,
@@ -80,9 +54,6 @@ export async function logCrmCommand(
     resource_id: input.resourceId ?? null,
     idempotency_key: input.idempotencyKey ?? null,
     status: input.status,
-    command_payload: redactSensitiveValues(input.commandPayload ?? {}),
-    result_summary: redactSensitiveValues(input.resultSummary ?? {}),
-    error_message: input.errorMessage ?? null,
   };
 
   const { data, error } = await supabaseAdmin

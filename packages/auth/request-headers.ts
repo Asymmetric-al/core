@@ -6,6 +6,75 @@ import {
 
 import type { RoleClass } from "./principal/types";
 
+export function requestOrigin(request: Request): string | null {
+  const { headers } = request;
+  const nextUrl = new URL(request.url);
+  const authority = headers.get("host") ?? nextUrl.host;
+  if (
+    !["http:", "https:"].includes(nextUrl.protocol) ||
+    !/^(?:[a-z\d.-]+|\[[a-f\d:.]+\])(?::\d+)?$/i.test(authority)
+  )
+    return null;
+  try {
+    return new URL(`${nextUrl.protocol}//${authority}`).origin;
+  } catch {
+    return null;
+  }
+}
+
+export const STUDIO_ORIGIN_REFUSAL =
+  "Web Studio only accepts changes made from Web Studio itself.";
+
+/** The 415 refusal of the proxy and of the shared JSON reader behind it. */
+export const UNSUPPORTED_MUTATION_TYPE = "Unsupported mutation content type.";
+
+export function trustedMutationSource(
+  request: Request,
+  signed = false,
+): boolean {
+  const { headers } = request;
+  const expected = requestOrigin(request);
+  if (!expected) return false;
+  const origin = headers.get("origin");
+  if (origin !== null) return origin === expected;
+  const site = headers.get("sec-fetch-site");
+  if (site !== null && site !== "same-origin") return false;
+  const referer = headers.get("referer");
+  if (referer !== null) {
+    try {
+      return new URL(referer).origin === expected;
+    } catch {
+      return false;
+    }
+  }
+  return (
+    site === "same-origin" ||
+    (!headers.has("cookie") &&
+      (signed || /^Bearer \S+$/i.test(headers.get("authorization") ?? "")))
+  );
+}
+
+export function mutationMediaType(request: Request): string | undefined {
+  return request.headers
+    .get("content-type")
+    ?.split(";", 1)[0]
+    ?.trim()
+    .toLowerCase();
+}
+
+export function isSameOriginDownload(request: Request): boolean {
+  const site = request.headers.get("sec-fetch-site");
+  if (site !== null) return site === "same-origin";
+  const referer = request.headers.get("referer");
+  try {
+    return (
+      referer !== null && new URL(referer).origin === requestOrigin(request)
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Request headers that carry the assignment context (plan 5.1, 5.2).
  *

@@ -21,7 +21,7 @@ import {
   toErrorResponse,
 } from "../../shared/http-errors";
 import {
-  withOperation,
+  withPlatformOperation,
   type OperationRouteContext,
 } from "../../shared/with-operation";
 import { executeContributionAction } from "../contribution-operations/actions";
@@ -165,7 +165,7 @@ async function getBatchIdFromRouteContext(
   return typeof batchId === "string" && batchId.length > 0 ? batchId : null;
 }
 
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
       const body = batchRequestSchema.parse(await ensureJsonBody(request));
@@ -439,7 +439,7 @@ export const POST = withOperation(
   { capability: "admin.gifts.manage" },
 );
 
-export const POST_PROCESS_BATCH = withOperation(
+export const POST_PROCESS_BATCH = withPlatformOperation(
   async ({ auth, requestId, routeContext, supabaseAdmin }) => {
     try {
       const batchId = await getBatchIdFromRouteContext(routeContext);

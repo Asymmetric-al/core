@@ -40,8 +40,10 @@ const READY = {
   ready: true,
 };
 
-vi.mock("../../../../packages/api/src/shared/with-operation", () => ({
-  withOperation:
+// The route runs on the platform wrapper since AL-2677 split the lanes; the
+// stub hands it the same context under either name.
+vi.mock("../../../../packages/api/src/shared/with-operation", () => {
+  const wrap =
     (handle: (context: unknown) => Promise<Response>) => (request: Request) =>
       handle({
         auth: {
@@ -54,8 +56,9 @@ vi.mock("../../../../packages/api/src/shared/with-operation", () => ({
         requestId: "request",
         isPlatformOperator: confirmed,
         supabaseAdmin: { rpc },
-      }),
-}));
+      });
+  return { withOperation: wrap, withPlatformOperation: wrap };
+});
 vi.mock("../../../../packages/api/src/eve/governance", () => ({
   loadEveGovernanceSnapshot: governance,
 }));
@@ -172,8 +175,11 @@ function rpcResult(fn: string, params: Record<string, unknown>) {
 
 function post(body: Record<string, unknown>) {
   return POST(
+    // Typed as the browser sends it: the shared JSON reader refuses an
+    // untyped or text/plain body (AL-2677, fix check G1).
     new Request("https://example.test/launch", {
       method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     }) as NextRequest,
   );

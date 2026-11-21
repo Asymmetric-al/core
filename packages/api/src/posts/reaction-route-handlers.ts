@@ -1,5 +1,8 @@
 import { getAuthContext, requestScopeOf } from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase/admin";
+import {
+  getAdminClient,
+  publicAdminClientFailure,
+} from "@asym/database/supabase/admin";
 import { NextResponse } from "next/server";
 
 import {
@@ -7,7 +10,11 @@ import {
   type MinistryUpdateReactionKind,
 } from "./ministry-update-reaction";
 import { resolveReactionRouteContext } from "./reaction-route-utils";
-import { ApiHttpError, toErrorResponse } from "../shared/http-errors";
+import {
+  ApiHttpError,
+  ApiResponseContractError,
+  toErrorResponse,
+} from "../shared/http-errors";
 import { createRequestSessionClient } from "../shared/request-session-client";
 
 import type { NextRequest } from "next/server";
@@ -55,7 +62,10 @@ function createReactionMutationHandler(
 
       const { client: supabaseAdmin, error: adminError } = getAdminClient();
       if (!supabaseAdmin) {
-        throw new ApiHttpError(503, adminError || "Admin client unavailable");
+        throw new ApiResponseContractError(
+          503,
+          publicAdminClientFailure(adminError),
+        );
       }
 
       const result = await applyMinistryUpdateReaction({
@@ -74,7 +84,7 @@ function createReactionMutationHandler(
           case "not_found":
             throw new ApiHttpError(404, "Post not found");
           case "failed":
-            throw new ApiHttpError(500, config.failureMessage);
+            throw new ApiResponseContractError(500, config.failureMessage);
           default: {
             const _exhaustive: never = result;
             throw new ApiHttpError(500, String(_exhaustive));

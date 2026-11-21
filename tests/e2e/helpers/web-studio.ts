@@ -107,7 +107,7 @@ export async function webStudioScope(page: Page) {
 export async function writeHeaders(page: Page, origin: string) {
   const scope = await webStudioScope(page);
   return {
-    origin,
+    origin: new URL(origin).origin,
     "x-asym-tenant": scope.tenant ?? "",
     "x-asym-assignment": scope.assignment ?? "",
   };

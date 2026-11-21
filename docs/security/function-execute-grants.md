@@ -7,6 +7,8 @@ reads past RLS, so who may call it is the whole boundary.
 
 ## Why `REVOKE … FROM PUBLIC` is not enough
 
+CI keeps two different local controls. The plain PG17 `migrate` database checks that the application does not depend on implicit hosted grants; it is not privilege-identical to hosted Supabase. The stage-1 privilege acceptance suite in that job and the release fingerprint replay separately start with `scripts/sql/hosted-default-privileges.sql`. On a disposable replay after WP4a's export migration, plain defaults granted `service_role` SELECT on future public tables only; hosted-style defaults still granted it all table and sequence privileges and function EXECUTE. The field census and tenant catalog passed with the hosted defaults. Keep both initial states rather than replacing the plain control. Do not infer least privilege for `service_role` from either gate. The 21 November 2026 ruling retains service_role's default table, sequence and function privileges until WP4 exit. WP4 exit revisits them with a grant inventory of the remaining service and worker callers.
+
 Postgres grants EXECUTE on a new function to `PUBLIC`. Hosted Supabase goes
 further: the `postgres` role has default privileges that grant EXECUTE on new
 `public` functions to `anon`, `authenticated` and `service_role` **by name**.
