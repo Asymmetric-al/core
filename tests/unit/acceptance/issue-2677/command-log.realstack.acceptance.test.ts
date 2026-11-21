@@ -34,18 +34,40 @@ it.skipIf(!ADMIN_URL)(
         headers: { "x-asym-tenant": ids.TA, "x-asym-assignment": ids.mDev },
       };
       const read = asRole(db, ids);
+      // Fix check G4: staff could once insert free JSON and text into
+      // result_summary and error_message, so a signed-in caller reads none of
+      // the three request-shaped columns.
       const grants = await read(
         "authenticated",
         caller,
-        `select has_column_privilege(current_user,'public.crm_command_logs','command_payload','select') as payload`,
+        `select ${["command_payload", "result_summary", "error_message"]
+          .map(
+            (column) =>
+              `has_column_privilege(current_user,'public.crm_command_logs','${column}','select') as ${column}`,
+          )
+          .join(",")}`,
       );
-      expect(grants.rows).toEqual([{ payload: false }]);
+      expect(grants.rows).toEqual([
+        {
+          command_payload: false,
+          result_summary: false,
+          error_message: false,
+        },
+      ]);
       const safe = await read(
         "authenticated",
         caller,
-        `select idempotency_key from public.crm_command_logs where id='${row.id}'`,
+        `select idempotency_key, status from public.crm_command_logs where id='${row.id}'`,
       );
-      expect(safe.rows).toEqual([{ idempotency_key: "fixture-retry" }]);
+      expect(safe.rows).toEqual([
+        { idempotency_key: "fixture-retry", status: "succeeded" },
+      ]);
+      const counted = await read(
+        "authenticated",
+        caller,
+        `select count(*)::int as n from public.crm_command_logs where id='${row.id}'`,
+      );
+      expect(counted.rows).toEqual([{ n: 1 }]);
       await db.query(
         readFileSync(migration("scrub_crm_command_payloads"), "utf8"),
       );
