@@ -9,6 +9,18 @@ description: >
   with `export const instant = false` and fixing them in place.
 ---
 
+<!-- CORE-OVERLAY-START -->
+## This repository (Asymmetric-al/core)
+
+Core overlay, reviewed 2026-11-18 against Next.js 16.4.5. The upstream text below is unchanged. Where it conflicts with this block, this block wins.
+
+- **Cache Components is already on.** Every app's `next.config.ts` sets `cacheComponents: true`. The flag flip, the codemod pre-step and step 1's strategy choice describe a migration Core has made; repeating it needs an explicit request. What still applies: the step 2 loop for a route that still blocks, the blocker recipes for new or changed routes, and the verification ladder. The `export const instant = false` opt-outs on the Payload admin routes under `apps/admin/app/(payload)/` are deliberate and say why; removing one needs an explicit request. Route work follows **Instant Navigation** in `docs/ai/rules/frontend.md` and the `cache-components` skill.
+- **Use the installed skills.** `next-dev-loop` is installed; use it instead of the `tree/canary` link below. Do not run `npx skills add`: skills enter Core only through the reviewed import in `docs/ai/rules/agent-skill-routing.md`.
+- **Do not run the unpinned codemods.** Do not run `npx @next/codemod@latest upgrade latest`: each app pins Next.js, and an upgrade is a separate, reviewed dependency change. Do not run `npx @next/codemod@latest agents-md`: Core's installed Next.js bundles its docs in `node_modules/next/dist/docs/` (mirrored in `.next-docs/`), and root `AGENTS.md` already carries the Next.js block that `next dev` writes and re-adds; the rest of that file is hand-maintained. To opt a route out, add `export const instant = false` by hand as the skill's manual fallback describes instead of running `cache-components-instant-false`.
+- **Never pass `--force`, and set work aside with a commit, not `git stash`,** because the stash is shared by every worktree.
+- **Scope.** Commits, pushes and pull requests follow `docs/ai/rules/general.md`; asking the user whether to commit or open a pull request does not authorize either.
+<!-- CORE-OVERLAY-END -->
+
 # next-cache-components-adoption
 
 Enable Cache Components on an app and walk it to a passing build. This skill sequences the work; per-error recipes live in the dev overlay fix cards and the build's terminal output. The [migrating to Cache Components guide](https://nextjs.org/docs/app/guides/migrating-to-cache-components) is the canonical reference for the concepts and per-API recipes this skill applies — consult it whenever the skill steps reference a pattern (`"use cache"`, `cacheLife`, `<Suspense>` placement, etc.) and you want the full explanation.

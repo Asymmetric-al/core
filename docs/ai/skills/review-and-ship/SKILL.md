@@ -21,8 +21,8 @@ Reviewing changes before shipping. Close key issues, verify behavior, and open o
 ## Suggested Checks
 
 ```bash
-git fetch origin main
-git diff origin/main...HEAD
+git fetch origin develop
+git diff origin/develop...HEAD
 git status
 gh pr checks --json name,bucket,state,workflow,link
 ```
