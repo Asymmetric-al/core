@@ -117,6 +117,35 @@ it.skipIf(!ADMIN_URL)(
         sub: "UDEV",
         headers: { "x-asym-tenant": ids.TA, "x-asym-assignment": ids.mDev },
       };
+      const shape = await read(
+        "authenticated",
+        caller,
+        `select to_jsonb(result) as row from public.search_crm_donors('${ids.TA}','b_12') as result limit 1`,
+      );
+      expect(shape.code).toBeNull();
+      expect(Object.keys(shape.rows[0]!.row as object).sort()).toEqual(
+        [
+          "tenant_id",
+          "id",
+          "profile_id",
+          "missionary_id",
+          "name",
+          "email",
+          "phone",
+          "avatar_url",
+          "location",
+          "type",
+          "status",
+          "total_given",
+          "last_gift_date",
+          "tags",
+          "organization",
+          "title",
+          "notes",
+          "created_at",
+          "updated_at",
+        ].sort(),
+      );
       for (const [tenant, n] of [
         [ids.TA, 4],
         [ids.TB, 0],

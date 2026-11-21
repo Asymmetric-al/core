@@ -8,12 +8,21 @@ BEGIN;
 SET LOCAL lock_timeout = '5s';
 
 CREATE FUNCTION public.search_crm_donors(p_tenant_id uuid, p_term text)
-RETURNS SETOF public.donors
+RETURNS TABLE (
+  tenant_id uuid, id uuid, profile_id uuid, missionary_id uuid,
+  name text, email text, phone text, avatar_url text,
+  location text, type text, status text, total_given bigint,
+  last_gift_date timestamptz, tags text[], organization text, title text,
+  notes text, created_at timestamptz, updated_at timestamptz
+)
 LANGUAGE sql STABLE PARALLEL SAFE SECURITY INVOKER
 BEGIN ATOMIC
-  -- Return the composite. Expanding d.* binds a separate dependency on
-  -- every donor column, including fields the search never reads.
-  SELECT d FROM public.donors d
+  -- Keep the projected columns inlinable and bind no unused donor fields.
+  SELECT d.tenant_id, d.id, d.profile_id, d.missionary_id, d.name,
+         d.email, d.phone, d.avatar_url, d.location, d.type,
+         d.status, d.total_given, d.last_gift_date, d.tags, d.organization,
+         d.title, d.notes, d.created_at, d.updated_at
+    FROM public.donors d
    WHERE d.tenant_id = p_tenant_id
      AND d.tenant_id = (SELECT authz.current_tenant_id())
      AND (SELECT authz.assignment_is('staff'))

@@ -72,14 +72,16 @@ BEGIN
   RETURN QUERY EXECUTE format($page$
     WITH scoped AS NOT MATERIALIZED (
       SELECT d.* FROM public.donors d WHERE d.tenant_id = $1
+    ), oversized AS MATERIALIZED (
+      SELECT * FROM scoped
+       WHERE GREATEST(octet_length(name), octet_length(type), octet_length(status), 0) > 1536
     )
     SELECT candidates.* FROM (
       (SELECT * FROM scoped
         WHERE GREATEST(octet_length(name), octet_length(type), octet_length(status), 0) <= 1536
         ORDER BY %1$I %2$s NULLS LAST, id %2$s LIMIT $2)
       UNION ALL
-      (SELECT * FROM scoped
-        WHERE GREATEST(octet_length(name), octet_length(type), octet_length(status), 0) > 1536
+      (SELECT * FROM oversized
         ORDER BY %1$I %2$s NULLS LAST, id %2$s LIMIT $2)
     ) candidates
     ORDER BY %1$I %2$s NULLS LAST, id %2$s LIMIT $2
