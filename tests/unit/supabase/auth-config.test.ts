@@ -54,9 +54,15 @@ describe("local Auth configuration", () => {
     expect(setting("local_smtp", "enabled")).toBe("true");
   });
 
-  it("leaves TOTP for WP2c to switch on", () => {
-    expect(setting("auth.mfa.totp", "enroll_enabled")).toBe("false");
-    expect(setting("auth.mfa.totp", "verify_enabled")).toBe("false");
+  // AL-2675 (WP2c, part 1; plan 5.1): platform operators must have a second
+  // factor, checked from the session's assurance level, so TOTP enrolment and
+  // verification are on. Phone factors stay off. The hosted projects' setting
+  // is the owner's (docs/ops/platform-operators.md); no job pushes this file.
+  it("switches TOTP enrolment and verification on for the operators' second factor (WP2c)", () => {
+    expect(setting("auth.mfa.totp", "enroll_enabled")).toBe("true");
+    expect(setting("auth.mfa.totp", "verify_enabled")).toBe("true");
+    expect(setting("auth.mfa.phone", "enroll_enabled")).toBe("false");
+    expect(setting("auth.mfa.phone", "verify_enabled")).toBe("false");
   });
 });
 

@@ -91,7 +91,9 @@ and none is ever cancelled.
    first hosted run recorded heads after a failed gate on a disposable
    database (WP1.6).
 6. **Deploy** (`scripts/release/vercel-release.mjs`). The job picks the apps
-   whose files changed since the commit each production domain serves. For
+   whose files or shared inputs changed since the commit each production domain
+   serves, or all three apps when a dispatched `release` sets `apps` to `all`.
+   For
    each it creates a production-target deployment of the exact SHA through
    Vercel's API. The build runs on Vercel, so application secrets stay there.
    With custom-domain auto-assignment off, the deployment is staged: it
@@ -101,7 +103,15 @@ and none is ever cancelled.
    Promotion does not rebuild. A failed build or check promotes nothing.
    Promotion is one call per app, one after the other, so it is not all or
    nothing: see [If a promotion fails part way](#if-a-promotion-fails-part-way).
-   Finally each production domain must serve the commit and pass.
+   Finally each production domain must serve the promoted deployment ID, commit
+   and expected Supabase project ref and pass `/api/health/migrations`. This
+   live check is bounded by attempts (18 attempts, with a 10-second pause
+   between attempts and a 30-second per-request timeout), not a wall-clock
+   deadline: while an older or unidentified deployment answers during alias
+   propagation (including status-only answers after a bypass-secret rotation),
+   it keeps retrying within those 18 attempts. If verification fails after
+   promotion was requested, inspect what the domain serves before dispatching
+   again or rolling back.
 7. **Register job functions** (optional, `RELEASE_REGISTER_JOB_FUNCTIONS`):
    a `PUT` to the admin app's Inngest serve route, because Git deployment no
    longer triggers a sync (council reservation 7).
@@ -128,12 +138,17 @@ ceiling are unchanged, and #2308 pins the file's bytes.
 
 The route is public and uncached. Any caller gets the status alone, with its
 `200` or `503`. The detail (the Supabase project ref the app reads, the
-environment marker, the heads and the commit) goes only to a caller whose
+environment marker, the heads, the commit and the deployment ID from
+`VERCEL_DEPLOYMENT_ID`) goes only to a caller whose
 `x-vercel-protection-bypass` header equals the deployment's
 `VERCEL_AUTOMATION_BYPASS_SECRET`, the system variable Vercel sets at build and
 run time once the project has a Protection Bypass for Automation secret. The
 job sends that header to the staged deployments and to the production
-domains, and stops if a healthy answer comes back without its detail.
+domains: on a staged URL a healthy answer without its detail stops promotion
+immediately; on a production domain after promotion, an unidentified answer
+(for example from an older deployment before a rotated bypass secret switches
+over) keeps retrying within the live check's 18-attempt bound and fails
+verification if the promoted deployment ID never answers.
 
 ### If a promotion fails part way
 
@@ -141,24 +156,47 @@ The job promotes the apps one after the other. If the promotion of a later
 app fails, the apps promoted before it serve the new commit and the rest the
 previous one. The database is already migrated, and every migration is safe
 for the release still running (plan 7.4: expand, then contract), so each app
-still works. To recover, dispatch **Release** with operation `release`: it
-plans the apps whose domain does not serve the commit, stages, checks and
-promotes them. If that fails again, roll the promoted apps back with Vercel's
-_Instant Rollback_ to their previous production deployment, so that all three
-serve the previous commit, and fix the cause before the next release. The job
-has no rollback of its own.
+still works. To recover, dispatch **Release** anew from branch `production` (do not use
+**Re-run all jobs** or **Re-run failed jobs** on the failed run: a re-run keeps
+its original commit and inputs, and neither the workflow nor `releaseSha`
+refuses a commit that is no longer `production`'s head) with operation
+`release` and the same `apps` value as the run that failed: `changed` for a
+code release, or `apps: all` after a change of Vercel variables (with `changed`,
+an app that already serves the commit is skipped and keeps its old variables).
+With `apps: all`, check that the plan step logged `build` for admin, donor and
+missionary. Before a recovery dispatch with `apps: changed`, check each app the
+failed run already promoted that the new run will skip (a skipped app is not
+live-checked by the recovery run): confirm its production domain serves the
+deployment ID the failed run logged for it, and that its
+`/api/health/migrations` response (with that project's
+`x-vercel-protection-bypass` header) is `ok` with the expected Supabase project
+ref and commit; if that check cannot be made, fix the cause and dispatch with
+`apps: all`, which builds, promotes and live-checks every app. Before the first
+dispatch of a release that carries changed Vercel variables,
+note for each app the deployment ID its production domain currently serves
+(read it from `https://<domain>/api/health/migrations` with that project's
+`x-vercel-protection-bypass` header, or from the project's **Deployments**
+page in Vercel; the job's `plan` step does not log live deployment IDs). If
+the second dispatch fails too, do not blindly roll back to "the previous
+production deployment": for an app promoted by both runs of the same commit,
+its previous deployment is the first failed attempt, not what served before
+the release. Either return each app to the pre-release deployment ID you noted
+before the first dispatch, or go forward (fix the cause and release again) if
+the pre-release deployment's credentials no longer work — after a credential
+rotation, revoked credentials on the pre-release deployment will not work. The
+job has no rollback of its own.
 
 ### Dispatched operations
 
 Run from the Actions tab, workflow **Release**, branch `production`:
 
-| Operation                        | Inputs                                                         | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| -------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `release`                        | `environment: production`                                      | Re-runs the release of the `production` head                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `set-environment-marker`         | `environment`, `marker`, `confirmation: <ref>:<marker>`        | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                                                                                                                          |
-| `first-rebuild`                  | `environment`, `census_signoff`, `confirmation: rebuild <ref>` | The first rebuild, retryable before either head is recorded on an unmarked or disposable database: put the platform's default privileges back, drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
-| `set-cms-role-passwords`         | `environment`                                                  | Makes `cms_owner` and `cms_runtime` log in with the secrets: a role whose secret already logs in is left alone, and one refused for its password is set and verified within the bound. For rotation and after a restore (plan 8.5)                                                                                                                                                                                                                                                |
-| `replace-seeded-login-passwords` | `environment`                                                  | Gives every login that still carries a password the repository publishes `RELEASE_SEED_LOGIN_PASSWORD` instead. Resets nothing and changes no other login. The repair after a rebuild that stopped between its seed and that replacement ([below](#if-seeded-logins-keep-a-published-password))                                                                                                                                                                                   |
+| Operation                        | Inputs                                                                    | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `release`                        | `environment: production`, `apps` (`changed` or `all`, default `changed`) | Dispatches a release of the `production` head (always dispatch anew; never re-run an older run). With `apps: all`, builds, checks and promotes every app regardless of its live commit so changed Vercel variables reach users; check that the plan step logged `build` for admin, donor and missionary                                                                                                                                                                           |
+| `set-environment-marker`         | `environment`, `marker`, `confirmation: <ref>:<marker>`                   | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                                                                                                                          |
+| `first-rebuild`                  | `environment`, `census_signoff`, `confirmation: rebuild <ref>`            | The first rebuild, retryable before either head is recorded on an unmarked or disposable database: put the platform's default privileges back, drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
+| `set-cms-role-passwords`         | `environment`                                                             | Makes `cms_owner` and `cms_runtime` log in with the secrets: a role whose secret already logs in is left alone, and one refused for its password is set and verified within the bound. For rotation and after a restore (plan 8.5)                                                                                                                                                                                                                                                |
+| `replace-seeded-login-passwords` | `environment`                                                             | Gives every login that still carries a password the repository publishes `RELEASE_SEED_LOGIN_PASSWORD` instead. Resets nothing and changes no other login. The repair after a rebuild that stopped between its seed and that replacement ([below](#if-seeded-logins-keep-a-published-password))                                                                                                                                                                                   |
 
 The marker change and the first rebuild run only after a required reviewer of
 the GitHub environment `release-owner-approval` approves the run's
@@ -274,8 +312,8 @@ release environment's password instead (`replaceSeededLoginPasswords` in
 the runner reaches the server, in the form Supabase Auth verifies; logins
 that do not carry a published password are left alone. The step stops if any
 login still carries one. Anyone who signs in as a seeded login on a hosted
-project uses that secret. `bun run seed:demo:users` refuses a published
-password for a hosted project too.
+project uses that secret. `bun run seed:demo:users` is a separate local-only
+tool. It refuses every hosted project, regardless of the password.
 
 The replacement runs after any reset that was attempted, whatever the reset's
 outcome, because a reset that fails after its seed has already put the
@@ -818,8 +856,11 @@ new CA has a new fingerprint, so the recorded one cannot confirm it. Then:
    must print `Verification: OK` in the middle of its output, after the
    certificate chain, and `Verify return code: 0 (ok)` near its end.
 3. Set it as `RELEASE_DATABASE_SSL_CA` in both `release-production` and
-   `release-preview`, and as `PAYLOAD_DATABASE_SSL_CA` on the admin app; then
-   redeploy the admin app.
+   `release-preview`, and as `PAYLOAD_DATABASE_SSL_CA` on the admin app; once
+   switch-on step 7 has run, dispatch **Release** anew with operation `release`
+   and `apps: all` so the changed variable reaches users, and check that the
+   plan step logged `build` for admin, donor and missionary (before step 7,
+   redeploy and promote by hand; see step 3 below).
 4. In the same pull request as a document change, record the new CA's name,
    dates and fingerprint here and in step 2 of
    [Switching it on](#switching-it-on). No code changes: the job pins no
@@ -1010,31 +1051,41 @@ below follow those decisions.
 
    Check: `bun run verify:runtime-connection-strings` prints
    `Overall: READY`. Undo: restore the previous values (re-adding
-   `SUPABASE_DB_URL` reopens NA-04). They reach users only through the next
-   deployment.
+   `SUPABASE_DB_URL` reopens NA-04). They reach users only through a release
+   dispatched with `apps: all` (step 7).
 
-7. **Release.** Dispatch **Release** with operation `release`. This release
-   must build all three apps, because the variables of step 6 reach an app
-   only through a new production deployment, and the job skips an app whose
-   files and shared inputs did not change since the commit its production
-   domain serves. Its plan step logs `build` or `skip` for each app, with the
-   reason: read it. At the first release every app is expected to be built,
-   because shared inputs under `packages/` have changed since the commits the
-   production domains serve. If the plan logs `skip` for any app, stop: the
-   switch-on is not complete, and that app still serves a deployment built
-   with the old variables. Do not redeploy it from Vercel's dashboard: that
-   rebuilds the commit the app serves and not the release, the project's
-   Ignored Build Step can cancel it, and its ID is not one the run logged.
-   The remedy is a release that builds every app, for which the job has no
-   input yet (execution record, section 9).
+7. **Release.** First note each app's current live deployment ID (from
+   `/api/health/migrations` with the project's bypass header or the project's
+   **Deployments** page, as in
+   [If a promotion fails part way](#if-a-promotion-fails-part-way)), then
+   dispatch **Release** anew from branch `production` with operation `release`
+   and `apps` set to `all`. This release must build all
+   three apps, because the variables of step 6 reach an app only through a new
+   production deployment, and with the default `apps: changed` the job skips an
+   app whose files and shared inputs did not change since the commit its
+   production domain serves. With `apps: all`, the plan step selects admin,
+   donor and missionary regardless of their live commits and logs `build` for
+   each, with the reason: read it. If the plan logged `skip` for any app, stop:
+   `apps` was left at `changed`, and that app still serves a deployment built
+   with the old variables. Dispatch **Release** anew with operation `release`
+   and `apps: all` (never re-run an earlier run, and do not redeploy a skipped
+   app from Vercel's dashboard: that rebuilds the commit the app serves and not
+   the release, the project's Ignored Build Step can cancel it, and its ID is
+   not one the run logged). Whenever changed Vercel variables must reach users,
+   dispatch **Release** anew with operation `release` and `apps: all` and check
+   that the plan step logged `build` for admin, donor and missionary.
    Check: the run is green; the plan step logged `build` for admin, donor and
-   missionary; `bun run verify:vercel-production -- --commit <sha>` is READY;
-   `curl https://admin.asymmetric.al/api/health/migrations` answers
+   missionary; the run's last log line for each app names the deployment ID its
+   production domain serves (the job compared that deployment ID, the commit
+   and the project ref with each project's bypass secret on the staged
+   deployment and again on the production domain); `bun run verify:vercel-production -- --commit <sha>`
+   is READY; `curl https://admin.asymmetric.al/api/health/migrations` answers
    `"status":"ok"`, and so does the same path on the donor and the missionary
-   production domains (a plain request is not shown the project ref: the job
-   compared it, with each project's bypass secret, on every deployment before
-   it promoted it); the deployments Vercel lists for the commit are exactly
-   the IDs the run logged, so the push started none outside the job.
+   production domains (a plain request is not shown the project ref or
+   deployment ID); each production domain serves the ID the run logged for that
+   app, and no deployment of the commit was created outside the IDs the runs
+   logged in the release's window (earlier deployments of the same commit from
+   before the release may still appear in Vercel's list).
    Undo: Vercel _Instant Rollback_ to the previous production deployment; it
    stays healthy, because a database that is ahead passes.
 8. **The `preview` Supabase project.** No project is created: a third
@@ -1162,8 +1213,10 @@ Added by council round 2. The first four are now seen on hosted Supabase
 - The detail of `/api/health/migrations`: that Vercel passes the
   `x-vercel-protection-bypass` header through to the route, on staged
   deployments and on the production domains, and sets
-  `VERCEL_AUTOMATION_BYPASS_SECRET` at run time. If it does not, every check
-  fails closed with "answered without its detail" and nothing is promoted.
+  `VERCEL_AUTOMATION_BYPASS_SECRET` and `VERCEL_DEPLOYMENT_ID` at run time
+  (System Environment Variables enabled). If either is missing, the staged
+  check fails closed ("answered without its detail" or "expected deployment
+  <id>, saw unknown") and nothing is promoted.
 - The `owner-approval` job: that a dispatched marker change or first rebuild
   waits for the required reviewer, that a rejection skips the work, that
   **Re-run failed jobs** skips it too (the approval output names the earlier

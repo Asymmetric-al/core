@@ -25,11 +25,31 @@ const ADMIN_AUTH = {
   isAuthenticated: true,
 } satisfies Parameters<typeof createAdminEveAuditIdentity>[0];
 
+/**
+ * Rewritten by AL-2675 (WP2c, part 1): the platform actor was the
+ * `super_admin` role name, which no membership holds since WP2a. It is the
+ * result of the shared operator check now, passed as `platformOperator`; the
+ * role name alone scopes nothing.
+ */
 describe("createAdminEveAuditIdentity", () => {
-  it("leaves a super-admin carrying the demo fallback unscoped by default", () => {
-    const identity = createAdminEveAuditIdentity(SUPER_ADMIN_AUTH);
+  it("leaves a confirmed platform operator unscoped by default, acting as the platform actor", () => {
+    const identity = createAdminEveAuditIdentity(SUPER_ADMIN_AUTH, {
+      platformOperator: true,
+    });
 
     expect(identity.tenantId).toBeUndefined();
+    expect(identity.actorRole).toBe("super_admin");
+  });
+
+  it("scopes a super_admin role name the operator check did not confirm to its own tenant, with its own role", () => {
+    const identity = createAdminEveAuditIdentity(ADMIN_AUTH, {
+      tenantId: DEMO_TENANT_ID,
+    });
+    expect(identity.tenantId).toBe(ACTION_TENANT_ID);
+    expect(identity.actorRole).toBe("admin");
+    expect(createAdminEveAuditIdentity(SUPER_ADMIN_AUTH).tenantId).toBe(
+      DEMO_TENANT_ID,
+    );
   });
 
   it("keeps an ordinary admin scoped to the authenticated tenant", () => {
@@ -38,8 +58,9 @@ describe("createAdminEveAuditIdentity", () => {
     expect(identity.tenantId).toBe(ACTION_TENANT_ID);
   });
 
-  it("preserves an explicit tenant for tenant-specific super-admin work", () => {
+  it("preserves an explicit tenant for a confirmed operator's tenant-specific work", () => {
     const identity = createAdminEveAuditIdentity(SUPER_ADMIN_AUTH, {
+      platformOperator: true,
       tenantId: ACTION_TENANT_ID,
     });
 

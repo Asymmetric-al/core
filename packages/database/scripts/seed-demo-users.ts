@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-import { publishedLoginPasswords } from "../../../scripts/lib/published-passwords.mjs";
+import { LOOPBACK_DATABASE_HOSTS } from "../../env/src/database-url.mjs";
 
 type DemoRole =
   "admin" | "missionary" | "donor" | "delivery" | "ticketing" | "machinery";
@@ -34,15 +34,24 @@ const DEMO_EMAIL_ENV: Record<DemoRole, string> = {
 
 const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
 
-/** Whether the Supabase URL names this machine. */
+/**
+ * Whether the Supabase URL names this machine: an http or https URL whose
+ * host is on the one loopback host list, the list `isLoopbackDatabaseUrl`
+ * decides with (packages/env/src/database-url.mjs), with no login in it.
+ */
 function isLoopbackSupabaseUrl(value: string) {
+  let url: URL;
   try {
-    return ["127.0.0.1", "localhost", "[::1]"].includes(
-      new URL(value).hostname,
-    );
+    url = new URL(value);
   } catch {
     return false;
   }
+  return (
+    ["http:", "https:"].includes(url.protocol) &&
+    !url.username &&
+    !url.password &&
+    (LOOPBACK_DATABASE_HOSTS as readonly string[]).includes(url.hostname)
+  );
 }
 
 function toDisplayName(role: DemoRole) {
@@ -156,14 +165,12 @@ async function run() {
     );
   }
 
-  // A hosted project never carries a password published in the repository
-  // (record D-24); a local stack keeps the seed's.
-  if (
-    !isLoopbackSupabaseUrl(supabaseUrl) &&
-    publishedLoginPasswords().includes(demoPassword)
-  ) {
+  // Demo logins with a known password belong on a local stack only (AL-2675
+  // WP2c; record section 9). A hosted project gets none, with the seed's
+  // published password (record D-24) or any other.
+  if (!isLoopbackSupabaseUrl(supabaseUrl)) {
     throw new Error(
-      "DEMO_PASSWORD is a password published in the repository (supabase/seed.sql), and a hosted project never carries one. Set DEMO_PASSWORD from a secret.",
+      "NEXT_PUBLIC_SUPABASE_URL is not on this machine. seed:demo:users creates demo logins with a known password on a local Supabase stack only (127.0.0.1, localhost or [::1]); a hosted project never gets them.",
     );
   }
 

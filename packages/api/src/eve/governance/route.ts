@@ -11,13 +11,17 @@ import { loadRecentEveAuditEvents } from "../audit/store";
 export const GET = withPlatformOperation(
   async ({ auth, supabaseAdmin, requestId }) => {
     try {
+      // The caller's own tenant's history, for a platform operator too: an
+      // operator sees a tenant's data only through an ordinary membership
+      // (AL-2675 WP2c, review WC1). A read across tenants belongs to the
+      // operator area or to support access, not to this route.
       const [governance, auditHistory] = await Promise.all([
         loadEveGovernanceAdminView({ supabaseAdmin }),
-        loadRecentEveAuditEvents(
-          auth.role === "super_admin"
-            ? { supabaseAdmin, tenantId: null }
-            : { auth, supabaseAdmin, tenantId: auth.tenantId },
-        ),
+        loadRecentEveAuditEvents({
+          auth,
+          supabaseAdmin,
+          tenantId: auth.tenantId,
+        }),
       ]);
       return NextResponse.json({ ...governance, auditHistory, requestId });
     } catch (error) {
@@ -78,18 +82,22 @@ export const POST = withPlatformOperation(
 export const PATCH = withPlatformOperation(
   async ({ auth, request, supabaseAdmin, requestId }) => {
     try {
+      // Only a confirmed platform operator reaches this handler (the gate
+      // below), and the kill switch is global.
       const mutation = await setEveKillSwitch({
         supabaseAdmin,
-        identity: createAdminEveAuditIdentity(auth),
+        identity: createAdminEveAuditIdentity(auth, { platformOperator: true }),
         ...eveKillSwitchMutationSchema.parse(await ensureJsonBody(request)),
       });
+      // The switch is global; the history returned is the caller's own
+      // tenant's, as on GET (review WC1).
       const [governance, auditHistory] = await Promise.all([
         loadEveGovernanceAdminView({ supabaseAdmin }),
-        loadRecentEveAuditEvents(
-          auth.role === "super_admin"
-            ? { supabaseAdmin, tenantId: null }
-            : { auth, supabaseAdmin, tenantId: auth.tenantId },
-        ),
+        loadRecentEveAuditEvents({
+          auth,
+          supabaseAdmin,
+          tenantId: auth.tenantId,
+        }),
       ]);
 
       return NextResponse.json({
@@ -106,5 +114,5 @@ export const PATCH = withPlatformOperation(
       );
     }
   },
-  { roles: ["super_admin"] },
+  { platformOperator: true },
 );

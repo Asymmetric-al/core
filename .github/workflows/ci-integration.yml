@@ -289,12 +289,8 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository)
     continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
     runs-on: ubuntu-latest
-    # Measured on the joined first release (check of the fix lists, JR12):
-    # the steps that ran took about 44 minutes at a load of 7 to 25 (the
-    # production gate 10.4, the Web Studio step 14.4 at load 10, the CMS
-    # step 4.6, the admin tenant-address step 5.5), with the three boneyard
-    # smokes not measured; 30 minutes cannot hold them.
-    timeout-minutes: 55
+    # On GitHub #2734 took 23m16s (Web Studio 505s, production gate 286s).
+    timeout-minutes: 35
     services:
       postgres:
         image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
@@ -323,6 +319,7 @@ jobs:
       E2E_AUTH_SECRET: ${{ secrets.E2E_AUTH_SECRET }}
       E2E_AUTH_ALLOWED_SUPABASE_REFS: ${{ secrets.E2E_AUTH_ALLOWED_SUPABASE_REFS }}
       PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
+      CMS_BASE_URL: "http://127.0.0.1:3030"
       PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030"
       PLAYWRIGHT_INCLUDE_ADMIN: "1"
       PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"

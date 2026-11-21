@@ -20,11 +20,19 @@ const auth = {
   userId: "user_1",
   email: "admin@example.com",
   tenantId: "00000000-0000-4000-8000-000000000003",
-  role: "super_admin",
+  role: "admin",
   memberships: [],
   profileId: "00000000-0000-4000-8000-000000000002",
   isAuthenticated: true,
 } as AuthenticatedContext;
+
+const operatorIdentity = {
+  p_actor_id: auth.userId,
+  p_actor_profile_id: auth.profileId,
+  p_actor_role: "super_admin",
+  p_tenant_id: null,
+  p_audit_id: expect.any(String),
+};
 
 describe("Eve model-policy control", () => {
   beforeEach(() => {
@@ -41,21 +49,20 @@ describe("Eve model-policy control", () => {
     await expect(
       createEveModelPolicyDraft({
         auth,
+        platformOperator: true,
         policy: createDefaultEveModelPolicy(),
         supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
       }),
     ).resolves.toBe(policyId);
 
     expect(assertPermissionMock).toHaveBeenCalledWith(
-      expect.objectContaining({ action: "draft" }),
+      expect.objectContaining({ action: "draft", platformOperator: true }),
     );
     expect(rpc).toHaveBeenCalledWith(
       "create_eve_model_policy_draft",
       expect.objectContaining({
-        p_actor_id: "user_1",
-        p_actor_profile_id: auth.profileId,
+        ...operatorIdentity,
         p_policy_hash: expect.stringMatching(/^[a-f0-9]{64}$/),
-        p_audit_id: expect.any(String),
       }),
     );
   });
@@ -79,6 +86,7 @@ describe("Eve model-policy control", () => {
     await expect(
       evaluateEveModelPolicyDraft({
         auth,
+        platformOperator: true,
         policyId: "00000000-0000-4000-8000-000000000004",
         supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
       }),
@@ -88,12 +96,58 @@ describe("Eve model-policy control", () => {
       "evaluate_eve_model_policy_draft",
       expect.objectContaining({
         p_policy_hash: policyHash,
+        ...operatorIdentity,
         p_eval_status: "passed",
         p_eval_summary: expect.objectContaining({ status: "passed" }),
       }),
     );
   });
 
+  it.each([
+    ["activate", "activate_eve_model_policy"],
+    ["rollback", "rollback_eve_model_policy"],
+    ["override_budget", "create_eve_model_budget_override"],
+  ] as const)(
+    "records the verified operator on %s",
+    async (action, rpcName) => {
+      const policyId = "00000000-0000-4000-8000-000000000004";
+      const rpc = vi.fn().mockResolvedValue({
+        data: action === "override_budget" ? policyId : true,
+        error: null,
+      });
+      const input = {
+        auth,
+        platformOperator: true,
+        policyId,
+        expectedActivePolicyId: policyId,
+        supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
+      };
+      const control =
+        await import("../../../../packages/api/src/eve/model-policy/control");
+      if (action === "activate") await control.activateEveModelPolicy(input);
+      else if (action === "rollback")
+        await control.rollbackEveModelPolicy(input);
+      else
+        await control.createEveModelBudgetOverride({
+          ...input,
+          scopeType: "role",
+          scopeId: "agent",
+          expiresAt: "2026-11-21T00:00:00Z",
+          reason: "incident",
+          additionalRequests: 1,
+          additionalInputTokens: 1,
+          additionalOutputTokens: 1,
+          additionalUsdMicros: 1,
+        });
+      expect(assertPermissionMock).toHaveBeenCalledWith(
+        expect.objectContaining({ action, platformOperator: true }),
+      );
+      expect(rpc).toHaveBeenCalledWith(
+        rpcName,
+        expect.objectContaining(operatorIdentity),
+      );
+    },
+  );
   it("fails closed when activation has not passed evaluation", async () => {
     const rpc = vi.fn().mockResolvedValue({
       data: null,

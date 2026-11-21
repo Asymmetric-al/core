@@ -355,12 +355,12 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 
 ### `test-e2e` (needs: `smoke`)
 
-- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005 and `apps/admin` on port 3030, enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, and sets `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` so Playwright reuses the already-started servers instead of trying to bind those ports again. It executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs bounded production-release suites:
+- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005 and `apps/admin` on port 3030, points donor CMS reads at that admin server (`CMS_BASE_URL=http://127.0.0.1:3030`), enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, and sets `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` so Playwright reuses the already-started servers instead of trying to bind those ports again. It executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs bounded production-release suites:
   1. `bun run test:e2e:production-gate` (donor usability, donation, About/Wallet layout and local interactions, admin Support Hub smoke and Teams controls, shared dialog-dismissal/popover-positioning/primitive-contrast and table-control accessibility coverage, and missionary summary/dashboard/chart/loading geometry)
   2. `bun run test:e2e:boneyard:admin`, `bun run test:e2e:boneyard:missionary`, and `bun run test:e2e:boneyard:donor` (visual regression smoke by app)
      The Missionary command also runs the standalone account-frame regressions.
   3. `bun run test:e2e:cms --project=chromium` (portable CMS/admin suite tagged `@cms`, excluding `@manual` and local-seed-only `@cms-local`; CI reuses the same donor/admin servers)
-     The job has a 30-minute cap, and individual Playwright suite steps have 5-10 minute caps. Uploads `playwright-report/` as an artifact on failure (retained 7 days).
+     The job has a 35-minute cap; the production gate has 10 minutes and the Web Studio tenant step has 20. Uploads `playwright-report/` as an artifact on failure (retained 7 days).
 - _Artifacts:_ Auth preflight, production gate, and CMS invocations use distinct
   `PLAYWRIGHT_REPORT_DIR` paths under `playwright-report/`. The default reporter
   streams each test's progress and writes an atomic, bounded
@@ -441,7 +441,7 @@ the secrets it needs by name and the owner's steps to switch it on, is
 
 Starts a local Supabase stack from source and runs the Supabase Auth email
 round trips against it. A workflow of its own, so `ci.yml` and
-`ci-integration.yml` do not change. Not a required check. It guards four
+`ci-integration.yml` do not change. Not a required check. It guards five
 things:
 
 - _The migration chain and the seed on the real Supabase image._ It is the
@@ -472,6 +472,11 @@ things:
   those handler directories, their listed shared API helpers, the database's
   Supabase admin and config modules, the proof and its fixtures, or the root
   Vitest configuration and its two local resolver plugins.
+- _Platform operator second factor (WP2c):_ `node scripts/e2e/run-operator-mfa.mjs`
+  tests TOTP enrolment and challenge against local Auth, the caller's operator
+  check through PostgREST, and the operator CLI against the same database.
+  After a successful stack start it runs even if the auth-mail journeys fail,
+  unless the job was cancelled. Missing stack values fail the proof.
 - _Job:_ installs the Supabase CLI at the version `scripts/supabase-cli.mjs`
   pins, starts the stack with `bun run supabase -- start` (every migration and
   the seed, then Auth, PostgREST and Mailpit), then runs
