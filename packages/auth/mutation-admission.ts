@@ -18,23 +18,17 @@ const uploads = new Set([
   "/api/email/assets/upload",
 ]);
 
-async function isEmptyWrite(request: Request): Promise<boolean> {
+/**
+ * An untyped write is empty by its framing headers alone: no transfer
+ * encoding, and a length of zero or none. Next hands the proxy a body stream
+ * for every write, so the stream says nothing. Next serves HTTP/1.1, where a
+ * request with neither header has no body (RFC 9112, section 6.3): the bytes
+ * after its headers are parsed as the next request, never read by a route.
+ */
+function isEmptyWrite(request: Request): boolean {
   if (request.headers.has("transfer-encoding")) return false;
   const length = request.headers.get("content-length");
-  if (length !== null) return length === "0";
-  if (!request.body) return true;
-  const reader = request.body.getReader();
-  try {
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) return true;
-      if (value.byteLength) return false;
-    }
-  } catch {
-    return false;
-  } finally {
-    reader.releaseLock();
-  }
+  return length === null || length === "0";
 }
 
 export async function admitApiMutation(
@@ -65,7 +59,7 @@ export async function admitApiMutation(
       studio ? STUDIO_ORIGIN_REFUSAL : "Mutation origin not accepted.",
     );
   const contentType = mutationMediaType(request);
-  if (contentType === undefined && (await isEmptyWrite(request))) return null;
+  if (contentType === undefined && isEmptyWrite(request)) return null;
   if (contentType === "application/json") return null;
   if (
     studio &&

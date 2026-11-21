@@ -1,3 +1,6 @@
+import { createServer } from "node:http";
+import { connect, type AddressInfo } from "node:net";
+
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 
@@ -55,6 +58,43 @@ it("admits only Web Studio's same-origin POST-as-GET form transport", async () =
   ).toBe(403);
 });
 
+it("gives a write with neither length nor transfer encoding no body on Node's HTTP/1.1 server", async () => {
+  // Next serves through Node's HTTP/1.1 server. A request with neither
+  // header has no body (RFC 9112, section 6.3): what follows its headers is
+  // parsed as the next request and refused, so no route ever reads an untyped
+  // body the header rule above admitted.
+  let bodyBytes: Promise<number> | undefined;
+  const server = createServer((incoming, response) => {
+    bodyBytes = (async () => {
+      let total = 0;
+      for await (const chunk of incoming) total += (chunk as Buffer).length;
+      return total;
+    })();
+    void bodyBytes.then(() => response.end());
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const { port } = server.address() as AddressInfo;
+  try {
+    const reply = await new Promise<string>((resolve, reject) => {
+      const socket = connect(port, "127.0.0.1");
+      let text = "";
+      socket.on("data", (chunk) => (text += chunk.toString("latin1")));
+      socket.on("close", () => resolve(text));
+      socket.on("error", reject);
+      socket.end(
+        `DELETE /api/profile HTTP/1.1\r\nHost: 127.0.0.1:${port}\r\n` +
+          `Origin: http://127.0.0.1:${port}\r\n\r\n{"smuggled":true}`,
+      );
+    });
+    expect(bodyBytes).toBeDefined();
+    expect(await bodyBytes).toBe(0);
+    expect(reply).toContain("HTTP/1.1 400 Bad Request");
+  } finally {
+    server.closeAllConnections();
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
 it("returns the Payload error envelope on Studio admission refusals", async () => {
   for (const [source, status, message] of [
     [
@@ -99,19 +139,30 @@ describe.each([admin, donor, missionary])(
       },
     );
 
-    it("does not treat data of unknown length or transfer encoding as empty", async () => {
-      for (const headers of [
-        new Headers({ origin }),
-        new Headers({ origin, "transfer-encoding": "chunked" }),
-      ]) {
-        const write = new NextRequest(`${origin}/api/profile`, {
-          method: "PATCH",
-          headers,
-          body: new Blob(["value"]),
-        });
-        expect((await proxy(write)).status).toBe(415);
-      }
-    });
+    // The ruling on F13 (21 November 2026): an untyped write is empty by its
+    // framing headers alone, whatever body stream Next hands the proxy (it
+    // hands one to every write). With neither header, HTTP/1.1 gives the
+    // request no body: the Node server case below.
+    it.each(["POST", "PUT", "PATCH", "DELETE"])(
+      "judges an untyped %s empty by its framing headers alone",
+      async (method) => {
+        const write = (headers: Record<string, string>) =>
+          new NextRequest(`${origin}/api/profile`, {
+            method,
+            headers: { origin, ...headers },
+            body: new Blob(["value"]),
+          });
+        expect((await proxy(write({}))).headers.get("x-middleware-next")).toBe(
+          "1",
+        );
+        for (const framing of [
+          { "transfer-encoding": "chunked" },
+          { "content-length": "5" },
+          { "content-length": "0", "transfer-encoding": "chunked" },
+        ])
+          expect((await proxy(write(framing))).status).toBe(415);
+      },
+    );
 
     it("refuses a foreign write addressed by an encoded API segment", async () => {
       const response = await proxy(
