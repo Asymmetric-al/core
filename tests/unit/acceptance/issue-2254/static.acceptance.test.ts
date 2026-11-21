@@ -129,6 +129,12 @@ const CI_BASES = [
     bytes: 48397,
     sha256: "b94a4abb2503c2a4b54b349d94218659910b587989be8fddba59d3f7350e8674",
   },
+  // Amended by AL-2674: test-e2e runs hermetically on every event with placeholder Supabase and no hosted secrets; no end-to-end job runs against a hosted database.
+  {
+    ref: "AL-2674 hermetic test-e2e on every event",
+    bytes: 48720,
+    sha256: "cd7905010a53551e041243b8e6eb0b42788338df6c547f6d36d6656f45e905e9",
+  },
 ] as const;
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */

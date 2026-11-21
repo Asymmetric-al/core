@@ -260,6 +260,12 @@ const CI_BASES = [
     bytes: 47777,
     sha256: "1eb8eb5babf75235330acc36612374123672bfde0cc07db2336e5c6dde6c4346",
   },
+  // Amended by AL-2674: test-e2e runs hermetically on every event with placeholder Supabase and no hosted secrets; no end-to-end job runs against a hosted database.
+  {
+    ref: "AL-2674 hermetic test-e2e on every event",
+    bytes: 48100,
+    sha256: "a15f591b0dffb5197a7523af420b77fe2923a5c648f7ba0a5deb7f801945e687",
+  },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {

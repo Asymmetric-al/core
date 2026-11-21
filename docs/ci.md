@@ -28,10 +28,12 @@ Current workflow semantics:
   first non-success need in dependency order, so an upstream `migrate` or
   `smoke` failure is not reported as an E2E failure. See § Branch protection
   for the dated live required-context inventory.
-- Non-production PRs run the same placeholder Supabase E2E path as `develop`
-  (`example.supabase.co`, zero-config bypass). They do **not** inherit
-  `continue-on-error`; full E2E must pass. Production PRs keep hosted secrets
-  and `e2e-gate`.
+- Every event that runs `test-e2e`, production PRs and pushes included, uses
+  the hermetic placeholder Supabase datasource (`example.supabase.co`,
+  zero-config bypass, `ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1`) and the job's
+  seeded local Postgres database with no hosted secrets. Non-`develop` PRs do
+  **not** inherit `continue-on-error`, and production PRs and pushes keep
+  `e2e-gate`. No end-to-end job runs against a hosted database.
 - `test-e2e` remains informational on `develop` and is summarized by
   `e2e-gate` on `production`. Its job-level `if:` skips it in merge-queue
   (`merge_group`) runs; it still runs on the `develop` push that follows the
@@ -355,7 +357,7 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 
 ### `test-e2e` (needs: `smoke`)
 
-- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005 and `apps/admin` on port 3030, points donor CMS reads at that admin server (`CMS_BASE_URL=http://127.0.0.1:3030`), enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, and sets `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` so Playwright reuses the already-started servers instead of trying to bind those ports again. It executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs bounded production-release suites:
+- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005 and `apps/admin` on port 3030, points donor CMS reads at that admin server (`CMS_BASE_URL=http://127.0.0.1:3030`), enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) against the placeholder Supabase datasource (`example.supabase.co`, `ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1`, no hosted secrets) for Playwright web servers, and sets `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` so Playwright reuses the already-started servers instead of trying to bind those ports again. It executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs bounded production-release suites:
   1. `bun run test:e2e:production-gate` (donor usability, donation, About/Wallet layout and local interactions, admin Support Hub smoke and Teams controls, shared dialog-dismissal/popover-positioning/primitive-contrast and table-control accessibility coverage, and missionary summary/dashboard/chart/loading geometry)
   2. `bun run test:e2e:boneyard:admin`, `bun run test:e2e:boneyard:missionary`, and `bun run test:e2e:boneyard:donor` (visual regression smoke by app)
      The Missionary command also runs the standalone account-frame regressions.
