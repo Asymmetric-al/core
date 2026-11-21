@@ -279,9 +279,9 @@ describe("#2256 seams, readers and writers", () => {
         hits.push(`${f} (${lines.length})`);
     }
     expect(hits).toEqual([]);
-    // D-18: AL-2676 adds Site RPCs, tenant status and giving-entity rows without exposing the person anchor.
+    // D-18: AL-2676 adds tenant status and giving-entity rows without exposing the person anchor.
     expect(sha256("packages/database/types/database.ts")).toBe(
-      "d8c0dc9d8c5ea7611793c63c2a6e3d22ad40ed1f56adffd32a7c4864d93d81d4",
+      "942e3239260618c138b91b992c6cc25531ffbf5629ea1f1e5030f3018cede907",
     );
   });
 

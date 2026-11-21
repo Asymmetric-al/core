@@ -84,38 +84,6 @@ export interface Tenant {
   updated_at: string;
 }
 
-export interface Site {
-  id: string;
-  tenant_id: string;
-  name: string;
-  is_default: boolean;
-  status: "active" | "inactive";
-  primary_domain: string;
-}
-
-export interface DonorPortalHost {
-  id: string;
-  tenant_id: string;
-  primary_domain: string;
-}
-
-export interface SiteDomain {
-  host: string;
-  tenant_id: string;
-  site_id: string | null;
-  portal_host_id: string | null;
-  is_platform_host: boolean;
-  verification_requested_at: string | null;
-  verification_requested_by: string | null;
-  deployment_attached_at: string | null;
-  redirect_allowlisted_at: string | null;
-}
-
-export interface DonorAccountBrand {
-  tenant_id: string;
-  display_name: string;
-}
-
 export interface LegalEntity {
   id: string;
   tenant_id: string;
@@ -136,34 +104,6 @@ export interface GivingTargetEntityLock {
   legal_entity_id: string;
   fund_id: string | null;
   missionary_id: string | null;
-}
-
-export interface SiteFunctions {
-  resolve_verified_host: {
-    Args: { p_host: string };
-    Returns: Pick<SiteDomain, "tenant_id" | "site_id">[];
-  };
-  create_site: {
-    Args: { p_tenant_id: string; p_name: string; p_primary_domain: string };
-    Returns: Site;
-  };
-  set_site_status: {
-    Args: { p_tenant_id: string; p_site_id: string; p_status: Site["status"] };
-    Returns: Site;
-  };
-  verify_domain: {
-    Args: {
-      p_tenant_id: string;
-      p_host: string;
-      p_site_id: string | null;
-      p_portal_host_id: string | null;
-    };
-    Returns: SiteDomain;
-  };
-  set_account_brand: {
-    Args: { p_tenant_id: string; p_display_name: string };
-    Returns: DonorAccountBrand;
-  };
 }
 
 export interface DonorFeedPreferences {

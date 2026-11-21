@@ -236,12 +236,12 @@ describe("#2255 consumers and docs", () => {
       .filter(Boolean);
     const re = new RegExp(`${CLAIMS}|${INVITES}`);
     expect(files.filter((f) => re.test(readFileSync(f, "utf8")))).toEqual([]);
-    // D-18: AL-2676 adds Site RPCs, tenant status and giving-entity rows, not claim or invite consumers.
+    // D-18: AL-2676 adds tenant status and giving-entity rows, not claim or invite consumers.
     expect(
       createHash("sha256")
         .update(readFileSync("packages/database/types/database.ts"))
         .digest("hex"),
-    ).toBe("d8c0dc9d8c5ea7611793c63c2a6e3d22ad40ed1f56adffd32a7c4864d93d81d4");
+    ).toBe("942e3239260618c138b91b992c6cc25531ffbf5629ea1f1e5030f3018cede907");
   });
 
   it(`16: ${DOC} covers both tables, columns, access matrix, Q15, Q16, writers and rollback order`, () => {
