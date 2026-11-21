@@ -100,7 +100,13 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
   // CMS runner's psql goes through scripts/cms/lib/postgres.mjs. An ambient
   // PGSSLROOTCERT=system would make a hand-run hosted address that names no
   // CA trust the system store.
-  const env = keptAmbientLibpqEnv(baseEnv, ["PGPASSWORD"]);
+  // Windows environment lookups are case-insensitive. Drop mixed-case PG*
+  // keys too while preserving keptAmbientLibpqEnv's allowlist contract.
+  const env = Object.fromEntries(
+    Object.entries(keptAmbientLibpqEnv(baseEnv, ["PGPASSWORD"])).filter(
+      ([key]) => !/^PG/i.test(key) || key === "PGPASSWORD",
+    ),
+  );
   const query = libpqQueryEntries(databaseUrl);
   const settings = query.filter(([key]) => key !== "password");
   const queryPassword = query.find(([key]) => key === "password");

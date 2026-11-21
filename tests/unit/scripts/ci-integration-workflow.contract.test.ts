@@ -95,7 +95,10 @@ describe("ci-integration workflow contract", () => {
     const e2eSmokeGate = jobBlock(workflow, "e2e-smoke-gate");
     const e2eGate = jobBlock(workflow, "e2e-gate");
 
-    expect(testE2eSmoke).toContain("needs: smoke");
+    // The required browser smoke applies its own migrations and seed and
+    // starts its own servers, so it starts beside migrate (#2711); the gate
+    // still needs and reads all three jobs.
+    expect(testE2eSmoke).not.toMatch(/^\s+needs:/m);
     expect(testE2e).toContain("needs: [smoke, test-e2e-smoke]");
     expect(testE2e).toContain("fetch-depth: 0");
     expect(testE2eSmoke).toContain('E2E_AUTH_BYPASS: "true"');
@@ -275,10 +278,19 @@ describe("ci-integration workflow contract", () => {
   // hosted), the test steps take about 14 minutes hosted, about 19 with the
   // setup steps, inside 30; a job that reaches its limit now still uploads
   // its evidence (the upload runs on cancellation).
+  it("points donor CMS reads at the admin server started by test-e2e", () => {
+    const job = jobBlock(workflow, "test-e2e");
+    const port = job.match(/e2e-dev-server\.sh admin start (\d+)/)?.[1];
+    expect(port).toBeDefined();
+    expect(job.split("    steps:\n")[0]).toContain(
+      `      CMS_BASE_URL: "http://127.0.0.1:${port}"\n`,
+    );
+  });
+
   it("bounds the AL-2675 steps by their measured times, inside the job's limit", () => {
     const testE2e = jobBlock(workflow, "test-e2e");
-    // The job's limit from the joined release's measured replay (JR12).
-    expect(testE2e).toMatch(/^ {4}timeout-minutes: 55$/m);
+    // D-18: #2734 took 23m16s on GitHub; leave headroom without extending any step.
+    expect(testE2e).toMatch(/^ {4}timeout-minutes: 35$/m);
     const stepBlock = (name: string) => {
       const start = testE2e.indexOf(`      - name: ${name}\n`);
       expect(start).toBeGreaterThanOrEqual(0);

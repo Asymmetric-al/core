@@ -13,13 +13,14 @@
  * preflights pass to Payload unchanged.
  */
 
+import { STUDIO_ORIGIN_REFUSAL } from "@asym/auth/request-headers";
+
 type RouteHandler<Args> = (request: Request, args: Args) => Promise<Response>;
 
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
-export const CROSS_ORIGIN_WRITE_MESSAGE =
-  "Web Studio only accepts changes made from Web Studio itself.";
+export const CROSS_ORIGIN_WRITE_MESSAGE = STUDIO_ORIGIN_REFUSAL;
 
 function originOf(value: string | null): string | null {
   if (!value || value === "null") return null;

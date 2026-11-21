@@ -1,6 +1,7 @@
 ---
 name: babysit
-description: Execute via @babysitter. Use this skill when asked to babysit a task, do anything that is structured process-driven (even a loop) or whenever it is called explicitly. (babysit, babysitter, with a process, orchestrate, orchestrate a run, workflow, loop until, etc.)
+description: Run a task through the Babysitter SDK run loop (@babysitter). Use only when the user explicitly invokes /babysit or explicitly asks to babysit a task with Babysitter.
+disable-model-invocation: true
 allowed-tools: Read, Grep, Write, Task, Bash, Edit, Grep, Glob, WebFetch, WebSearch, Search, AskUserQuestion, TodoWrite, TodoRead, Skill, BashOutput, KillShell, MultiEdit, LS
 version: 0.1.3
 ---
@@ -18,8 +19,11 @@ Reconcile this overlay after upstream refreshes before running
 
 ### Triggers
 
-- The user asks to babysit, orchestrate, or run a structured process through
-  `@babysitter`.
+- Explicit only: the user invokes `/babysit` (`$babysit` in Codex) or
+  explicitly asks to babysit a task with Babysitter. Never load it for an
+  ordinary task that merely mentions a workflow, loop or orchestration. The
+  upstream rule below to use the SDK "no matter how small" applies only inside
+  a run the user asked for.
 
 ### Workflow
 

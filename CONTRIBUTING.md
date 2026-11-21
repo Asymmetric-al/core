@@ -45,14 +45,17 @@ without repairing it. Setup does not start an issue trial.
 - **UI lint:** use `bun run lint:ui <repo-relative-path>` during iteration.
   Follow the [canonical workflow](docs/ai/skills/moai-library-shadcn/references/design-system-lint.md)
   for raw findings, shared-consumer checks, exceptions, and legacy debt.
-- **UI audit:** `bun run verify:shadscan` uses the locked scanner across all three
-  apps. CI and pre-commit require honest app floors and current reviewed evidence;
-  see the [Shadscan guide](docs/guides/development/shadscan.md).
-- **React diagnostics:** `bun run react-doctor:check` enforces the pinned,
-  all-applicable-rule local profile across eight targets. Preserve the raw
-  inventory and exact source/test-bound exceptions; advisory helper exits do not
-  prove acceptance. Use `bun run test:react-cleanup` for isolated component
-  keyboard/axe checks and disclose its synthetic/provider limits. See the
+- **UI audit:** `bun run shadscan:audit` runs the locked scanner across the
+  workspace and writes an advisory report. Its scores never block a commit,
+  push or required check; CI publishes them on each pull request for review.
+  See the [Shadscan guide](docs/guides/development/shadscan.md).
+- **React diagnostics:** `bun run react-doctor:audit` is an advisory, on-demand
+  report: the pinned, all-applicable-rule local profile across eight targets,
+  with findings triaged by review and no acceptance target. After React edits,
+  add `-- --changed-since=origin/develop` to list your own findings, fix
+  confirmed defects with tests, and report the rest. Use
+  `bun run test:react-cleanup` for isolated component keyboard/axe checks and
+  disclose its synthetic/provider limits. See the
   [React Doctor guide](docs/guides/development/react-doctor.md).
 - **Setup (macOS/Linux):** `bun run setup` (creates/validates `.env.local`, installs deps, runs verification).
 - **Mission Control in Cursor Cloud:** `bun run setup:mission-control:cloud && bun run dev:mission-control` (writes gitignored dev placeholders only).
@@ -61,8 +64,18 @@ without repairing it. Setup does not start an issue trial.
 - **GitHub operations:** internal Windows developers may use their authenticated
   Windows `gh` for normal issue, pull-request, review, check, and Actions work;
   see `docs/guides/development/contributing.md`.
-- **Required local PR/push-readiness gate:** `bun run ci:preflight` (conditional development compilation; exact stages
-  and focused debugging commands are documented in `docs/ci.md`).
+- **Required local PR-readiness gate:** `bun run ci:preflight`, the full
+  profile (conditional development compilation; exact stages and focused
+  debugging commands are documented in `docs/ci.md`).
+- **Push gate:** `git push` runs the fast profile
+  (`bun run ci:preflight -- --fast`): formatting of changed files, affected
+  lint and typecheck, and the verifiers whose inputs changed. It does not
+  replace the full profile before a pull request is ready.
+- **Agent edit hook:** Claude Code, Codex and Cursor format and lint each file
+  an agent edits through `scripts/agent-hooks/after-edit.mjs`; it reports
+  lint problems instead of fixing them. Codex runs it
+  after you trust it once with `/hooks`. Set `ASYM_EDIT_HOOK=format` to skip
+  its lint step on a slow machine, or `off` to skip it.
 - **Font asset changes:** run `bun run verify:fonts:offline` in Linux/WSL with
   Playwright Chromium installed. See [shared font maintenance](packages/ui/fonts/README.md)
   for the exact asset, license, subset and preload contract.
@@ -91,6 +104,6 @@ By contributing, you agree that we will release your contributions under the sam
 
 ## Development-phase build policy
 
-Routine `develop` PRs retain formatting, integrity, lint, type checking, unit tests, migration and smoke feedback. Dependency/build-configuration changes compile affected apps; ordinary source/docs changes may merge without a full release build. Merges into `develop` do not automatically deploy. Request `qa:smoke` for a ready preview; GitHub builds and uploads prebuilt output. Use `bun run ci:preflight -- --full` for full QA. Production releases and production-targeting pushes always require full preflight. A push to `production` starts the Release workflow, which migrates the database and stages, checks and promotes the apps; Vercel's Git integration deploys nothing. A migration must be safe for the application release already running (expand first, contract in a later release). See [CI reference](docs/ci.md) and [the release job runbook](docs/ops/release-job.md).
+Routine `develop` PRs retain formatting, integrity, lint, type checking, unit tests, migration and smoke feedback. Dependency/build-configuration changes compile affected apps; ordinary source/docs changes may merge without a full release build. The one exception is the non-required `instant-nav` job, which builds donor once for the `instant()` navigation guards when a PR can affect them. Merges into `develop` do not automatically deploy. Request `qa:smoke` for a ready preview; GitHub builds and uploads prebuilt output. Use `bun run ci:preflight -- --full` for full QA. Production releases and production-targeting pushes always require full preflight. A push to `production` starts the Release workflow, which migrates the database and stages, checks and promotes the apps; Vercel's Git integration deploys nothing. A migration must be safe for the application release already running (expand first, contract in a later release). See [CI reference](docs/ci.md) and [the release job runbook](docs/ops/release-job.md).
 
 Imported PDF updates follow the [source and artifact refresh workflow](docs/maintenance/modernization/pdf-packages.md). `bun run verify:pdf-package-provenance` checks the frozen archives and extracted files offline and runs in normal preflight.

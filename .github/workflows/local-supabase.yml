@@ -1,8 +1,6 @@
 name: Local Supabase Stack
 
-# Starts a local Supabase stack from source, then runs the Supabase Auth email
-# round trips and missionary handler authority proof against it (docs/ci.md, "Local Supabase
-# stack workflow"):
+# Five guards share a local Supabase stack (docs/ci.md, "Local Supabase stack workflow"):
 #
 # - The migration chain and the seed on the real Supabase image. This is the
 #   only job that applies them there, with Supabase's roles and grants and a
@@ -10,9 +8,14 @@ name: Local Supabase Stack
 #   a superuser, which hid two stage 1 migrations that the real image refuses
 #   (council round 2). So every pull request that changes the chain, the seed,
 #   the stack's configuration or the CLI pin starts the stack.
+# - Missionary handler authority through PostgREST, with release policies in force.
 # - The email round trips of WP0b and WP1.4: password recovery in all three
 #   apps and sign-up confirmation on two hosts of the donor portal, through
 #   the stack's Auth server and mail catcher (council round 2, B4).
+# - The platform operators' second factor (AL-2675, WP2c): TOTP enrolment and
+#   the challenge through the stack's Auth server, the shared operator check
+#   through its Data API, and the operator script against its database. CI's
+#   `migrate` job has no Auth server, so this is where it runs.
 # - The release job's replay against the platform's image (WP1.6). The release
 #   job fingerprints a replay of the chain on plain Postgres, made with hosted
 #   Supabase's default privileges (scripts/sql/hosted-default-privileges.sql),
@@ -81,6 +84,29 @@ on:
       - tests/e2e/auth-two-organizations.spec.ts
       - tests/e2e/helpers/auth-mail.ts
       - scripts/e2e/run-auth-mail.mjs
+      - scripts/lib/psql.mjs
+      - scripts/release/lib/database-target.mjs
+      - packages/env/src/database-url.mjs
+      # The operators' second factor (AL-2675, WP2c).
+      - scripts/e2e/run-operator-mfa.mjs
+      - scripts/platform/**
+      - packages/api/src/shared/platform-operator.ts
+      - scripts/cms/lib/postgres.mjs
+      - scripts/release/release-database.mjs
+      - tests/unit/acceptance/issue-2675/operator-mfa.localstack.test.ts
+      # The first release's reads against the second release's policies
+      # (AL-2675): the journeys, and the request scope they prove.
+      - tests/e2e/auth-request-scope-reads.spec.ts
+      - tests/e2e/helpers/request-scope-reads.ts
+      - packages/database/document-scope.tsx
+      - packages/database/own-api.ts
+      - packages/database/request-scope-headers.ts
+      - packages/database/supabase/client.ts
+      - packages/database/supabase/server.ts
+      - packages/api/src/shared/request-session-client.ts
+      - packages/api/src/field-policies/**
+      - packages/api/src/projection/**
+      - tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts
 
 permissions:
   contents: read
@@ -150,6 +176,7 @@ jobs:
       # Applies every migration and the seed to a real Supabase stack (roles,
       # Auth, PostgREST, Mailpit), which CI's plain Postgres does not have.
       - name: Start the local Supabase stack
+        id: stack
         run: >-
           bun run supabase -- start
           -x studio,edge-runtime,logflare,vector,imgproxy,postgres-meta,supavisor
@@ -177,14 +204,29 @@ jobs:
           export MISSIONARY_IT_SERVICE_ROLE_KEY
           MISSIONARY_IT_SERVICE_ROLE_KEY="$(bun run supabase -- status -o json | node -e 'const status = JSON.parse(require("node:fs").readFileSync(0)); if (!status.SERVICE_ROLE_KEY) process.exit(1); process.stdout.write(status.SERVICE_ROLE_KEY)')"
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
+      - name: Verify caller-token field policy reads through PostgREST
+        env:
+          FIELD_POLICY_IT_REQUIRED: "1"
+          FIELD_POLICY_IT_SUPABASE_URL: http://127.0.0.1:54321
+        run: |
+          export FIELD_POLICY_IT_ANON_KEY
+          FIELD_POLICY_IT_ANON_KEY="$(bun run supabase -- status -o json | jq -er '.ANON_KEY')"
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts
       - name: Install Playwright Chromium
+        id: chromium
         run: bunx playwright install --with-deps chromium
       - name: Run the auth email round trips
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' && steps.chromium.outcome == 'success' }}
         timeout-minutes: 40
         env:
           CI: "1"
           PLAYWRIGHT_REUSE_EXISTING_SERVER: "0"
         run: bun run test:e2e:auth-mail
+      # Fails, never skips, when the stack's values are missing.
+      - name: Prove the platform operators' second factor (WP2c)
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
+        timeout-minutes: 10
+        run: node scripts/e2e/run-operator-mfa.mjs
       - name: Show Auth logs on failure
         if: failure()
         run: docker logs --tail 200 "$(docker ps --filter name=supabase_auth_ --format '{{.Names}}' | head -n 1)" || true

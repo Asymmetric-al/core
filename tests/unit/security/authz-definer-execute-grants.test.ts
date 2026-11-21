@@ -29,6 +29,19 @@ const AUTHZ_DEFINER_GRANTS: Record<string, { args: string; to: string[] }> = {
   },
 };
 
+/**
+ * AL-2675 (WP2b, second release; record D-18): the request-tenant migration
+ * adds three authz SECURITY DEFINER helpers, each owned by postgres, revoked
+ * from PUBLIC, anon, authenticated and service_role by name, and granted to
+ * authenticated and service_role only. The #2270 lockdown above is unchanged.
+ */
+const REQUEST_TENANT_MIGRATION = /^\d{14}_request_tenant_policies\.sql$/;
+const REQUEST_TENANT_DEFINERS: Record<string, string> = {
+  request_assignment: "",
+  assignment_holds: "TEXT",
+  caller_tenant_ids: "",
+};
+
 const POLICIES = [
   ["select", "crm_command_logs"],
   ["insert", "crm_command_logs"],
@@ -95,8 +108,32 @@ describe("authz SECURITY DEFINER EXECUTE grants (#2270)", () => {
     }
 
     expect([...definers].sort()).toEqual(
-      Object.keys(AUTHZ_DEFINER_GRANTS).sort(),
+      [
+        ...Object.keys(AUTHZ_DEFINER_GRANTS),
+        ...Object.keys(REQUEST_TENANT_DEFINERS),
+      ].sort(),
     );
+  });
+
+  it("grants the request-tenant definers to authenticated and service_role only, revoked by name first (AL-2675)", () => {
+    const migration = forwardMigrations().find(({ filename }) =>
+      REQUEST_TENANT_MIGRATION.test(filename),
+    );
+    expect(migration).toBeDefined();
+    const all = statements(migration!.sql);
+    for (const [name, args] of Object.entries(REQUEST_TENANT_DEFINERS)) {
+      const fn = `authz.${name}(${args})`;
+      expect(all).toContain(`ALTER FUNCTION ${fn} OWNER TO postgres`);
+      expect(all).toContain(
+        `REVOKE ALL ON FUNCTION ${fn} FROM PUBLIC, anon, authenticated, service_role`,
+      );
+      expect(all).toContain(
+        `GRANT EXECUTE ON FUNCTION ${fn} TO authenticated, service_role`,
+      );
+      expect(
+        all.filter((s) => s.startsWith("GRANT") && s.includes(`${fn} `)),
+      ).toHaveLength(1);
+    }
   });
 
   it("never grants authz functions or current_user_memberships to PUBLIC or anon", () => {

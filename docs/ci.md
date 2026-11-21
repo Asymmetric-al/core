@@ -6,21 +6,22 @@ Two workflow files run on every PR base, including internal stacked branches,
 on every push to `develop` and `production`, and on the GitHub merge queue's
 `merge_group` event (`checks_requested`, no branch filter):
 
-| Workflow          | File                                   | Branches                                                       | Jobs                                                                                             | Target time               |
-| ----------------- | -------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------- |
-| Fast checks       | `.github/workflows/ci.yml`             | all PR bases; pushes on `develop`, `production`; `merge_group` | `format`, `integrity`, `lint`, `typecheck`, `build`, `test-unit`, `acceptance-tests` → `ci-gate` | < 4 min with remote cache |
-| Integration + E2E | `.github/workflows/ci-integration.yml` | all PR bases; pushes on `develop`, `production`; `merge_group` | `migrate → smoke → test-e2e-smoke → test-e2e`                                                    | ~5–25 min                 |
+| Workflow          | File                                   | Branches                                                       | Jobs                                                                                                        | Target time                        |
+| ----------------- | -------------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| Fast checks       | `.github/workflows/ci.yml`             | all PR bases; pushes on `develop`, `production`; `merge_group` | `format`, `integrity`, `lint`, `typecheck`, `build`, `test-unit` (3 shards), `acceptance-tests` → `ci-gate` | ~7 min (slowest `test-unit` shard) |
+| Integration + E2E | `.github/workflows/ci-integration.yml` | all PR bases; pushes on `develop`, `production`; `merge_group` | `migrate → smoke` beside `test-e2e-smoke`, then `test-e2e`; `instant-nav`                                   | ~5–25 min                          |
 
 Current workflow semantics:
 
 - `ci.yml` is the always-on correctness gate for all PRs, including automation-created stacked PRs. `compilation-plan` selects affected apps only for dependency/build-configuration changes on PRs to `develop`; ordinary source/docs changes skip compilation. Missing diff context, production PRs/pushes, other PR bases, and explicit manual CI request full compilation.
 - `develop` pushes retain correctness feedback but do not repeat full compilation or trigger Vercel deployments. Superseded PR runs are canceled; production push runs are not canceled.
 - `ci-gate` accepts `build: skipped` only after a successful plan explicitly requests no build and all correctness prerequisites pass. A failed/canceled requested build or failed plan still blocks merging.
-- `acceptance-tests` runs `bun run test:acceptance` on a GitHub-hosted runner for every event, with no `if:` or `needs`, so it never reports `skipped`. `ci-gate` fails unless it succeeded.
-- `instant-nav` compiles donor only for production PRs/pushes or explicit manual integration QA. Required migration, smoke, and development smoke gates continue running.
+- `acceptance-tests` runs `bun run test:acceptance` on a GitHub-hosted runner for every event, with no `if:` or `needs`, so it never reports `skipped`. `ci-gate` fails unless it succeeded. It is the only job in `ci.yml` that runs `tests/unit/acceptance/`: `bun run test:unit` excludes that directory unless it is given test filters, in which case Vitest's own filter matching decides which files run. Real-database acceptance files also run in `migrate`.
+- `test-unit` runs every non-acceptance unit test on each eligible event (fork PRs are excluded), as three matrix shards (`bun run test:unit --shard=<i>/3`) with `fail-fast: false`. Nothing is skipped by what a PR changes; sharding only cuts wall time. `ci-gate` reads the matrix result, which is `success` only when every shard succeeded.
+- `instant-nav` compiles donor for production PRs/pushes, explicit manual integration QA, and same-repository PRs into `develop` whose changes can affect donor or the `instant()` guards. On `develop` it is a visible, non-required check that no gate needs; on `production`, `e2e-gate` requires it. Required migration, smoke, and development smoke gates continue running.
 - Explicit `qa:smoke` previews compile on the standard GitHub runner, then use `vercel deploy --prebuilt --target=preview`; Vercel does not compile the source again. Preview serving and fixed subscription costs still apply.
 - `ci-integration.yml` runs on all PR bases. Pushes still run only on `develop` and `production`.
-- `integrity` runs the locked workspace Shadscan audit on every CI event. The reusable `.github/workflows/shadscan.yml` publishes its retained report; audit failures block `ci-gate`. See [Shadscan](guides/development/shadscan.md) for discovery, per-app floors and evidence review.
+- `shadscan-report` calls the reusable `.github/workflows/shadscan.yml`, which runs the locked workspace Shadscan audit once on the submitted head commit, uploads the raw report and its JSON summary from a read-only job, then publishes advisory scores from a separate job. It is not required: `ci-gate` does not need it, and no score, finding or scan failure blocks a merge. See [Shadscan](guides/development/shadscan.md) for reading and triaging the report.
 - `e2e-smoke-gate` needs `migrate`, `smoke`, and `test-e2e-smoke` and passes
   only when all three succeeded; `integration-gate` summarizes `migrate`,
   `smoke`, and that gate. A skipped need never passes either gate (fail closed).
@@ -75,15 +76,27 @@ bunx --no-install turbo prune @asym/donor --docker
 - **Turbo cache keys** in `ci.yml` include `bun-${{ env.BUN_VERSION }}` so cache restores do not cross Bun upgrades.
 - **Local parity:** match the pin (`bun run verify:bun-version`). That command also fails if a first-party `.github/workflows/*.{yml,yaml}` `BUN_VERSION` or `oven-sh/setup-bun` pin disagrees with `packageManager`. Reproducible install from a clean tree is `bun ci`. GitHub Actions uses `bun ci --no-cache --backend=copyfile` so Linux runners use Bun's portable install backend for vendored `file:` tarballs.
 
-## Local CI parity (pre-push)
+## Local CI parity and the pre-push gate
 
-Use the local preflight command to mirror blocking GitHub checks before pushing:
+The local preflight has two profiles in one script
+(`scripts/verify/ci-preflight.mjs`):
 
-```bash
-bun run ci:preflight
-```
+| Command                                     | Profile                         | Who runs it                                                                                    |
+| ------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `bun run ci:preflight -- --fast`            | fast                            | `.husky/pre-push` on every push that does not target `production`                              |
+| `bun run ci:preflight`                      | full                            | You, before a pull request is ready; the factory's publish step (`ASYM_PRE_PUSH_PROFILE=full`) |
+| `bun run ci:preflight -- --full`            | full, every app compiled        | The release command and any authorized push to `production`                                    |
+| `bun run ci:preflight -- [--fast] --only X` | one stage of the chosen profile | You, to repeat one stage alone (a failed stage prints its own re-run command)                  |
 
-`ci:preflight` runs the correctness stage order below. Its build stage is conditional under the same development policy as `.github/workflows/ci.yml`; app-specific build inputs select `build:<app>`. Use `bun run ci:preflight -- --full` for a complete QA/release checkpoint. The release command and any authorized production-targeting push always select full mode:
+### Full profile
+
+`bun run ci:preflight` mirrors the blocking GitHub checks in the stage order
+below and prints `==> PASS ci:preflight` only when every stage passed (the
+factory reads that line). Its build stage is conditional under the same
+development policy as `.github/workflows/ci.yml`; app-specific build inputs
+select `build:<app>`. Use `bun run ci:preflight -- --full` for a complete
+QA/release checkpoint. The release command and any authorized
+production-targeting push always select full mode:
 
 1. `verify:node-version` (Node 24 at or above `.node-version`; other majors fail)
 2. `format:check`
@@ -100,11 +113,65 @@ bun run ci:preflight
 13. `verify:bun-lock-drift`
 14. `verify:eslint`
 15. `verify:shadcn-config`
-16. `verify:shadcn-diff`
-17. `verify:shadscan`
-18. `typecheck`
-19. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
-20. `test:unit`
+16. `typecheck`
+17. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
+18. `test:unit` (excludes `tests/unit/acceptance/` in the full profile)
+19. `test:acceptance` (`node scripts/verify/acceptance-tests.mjs`), as its own stage
+
+The shadcn upstream review (`bun run verify:shadcn-diff`) is not a preflight
+stage or a GitHub check. It compares every installed component with the public
+registry at `ui.shadcn.com`, whose rate limits and stalled connections made it
+an unreliable gate. Run it by hand when refreshing components from the
+registry; `packages/ui/components/shadcn/CUSTOM.md` describes it.
+
+### Fast profile (what a push runs)
+
+A push that does not target `production` runs the fast profile unless the
+pushing environment sets `ASYM_PRE_PUSH_PROFILE=full`. Any other value of that
+variable blocks the push. The fast profile checks what the branch changed
+against `origin/develop` (working tree included), in the full profile's
+order. Stages marked _scoped_ run only when the push changes one of their
+inputs and otherwise print `==> SKIP <stage> (no change to its inputs; …)`.
+When the branch diff cannot be read, every stage runs on the whole
+repository; when it is empty, every scoped stage runs. Every stage runs
+without the network:
+
+1. `verify:node-version`
+2. Prettier `--check` on the changed files that still exist
+3. `verify:phase25-spec`, `verify:phase27-spec`, `verify:phase28-spec`
+   (scoped)
+4. `openspec:validate`, `verify:openspec-deltas` (scoped)
+5. Lint of the affected workspaces (`turbo run lint --affected` with
+   `TURBO_SCM_BASE=origin/develop`, as pull-request CI runs it)
+6. `verify:data-boundary`, `verify:cms-public-sole-entry`,
+   `verify:workspace-contract` (scoped); `verify:bun-lock-drift`,
+   `verify:shadcn-config`
+7. Typecheck of the affected workspaces (`turbo run typecheck --affected`)
+
+The scoped verifiers' input lists are in `scripts/verify/ci-preflight.mjs`
+(`STAGE_INPUTS`, taken from a trace of the files each one reads, plus shared
+inputs such as `bun.lock` and any `package.json`). Each also runs in the
+required `integrity` or `lint` job.
+
+It leaves out the stages that are slow. Required CI covers each of them on
+every pull request:
+
+| Left out of the fast profile | Why                                           | Covered by                                          |
+| ---------------------------- | --------------------------------------------- | --------------------------------------------------- |
+| `skills:verify`              | 183 s alone on a loaded Windows host          | `integrity` job (required through `ci-gate`)        |
+| `verify:eslint`              | 54 s alone on the same host                   | `lint` job (required through `ci-gate`)             |
+| Compilation                  | Minutes per app                               | `build` job when the compilation plan selects apps  |
+| `test:unit`                  | The longest stage                             | `test-unit` job (required through `ci-gate`)        |
+| `test:acceptance`            | Runs after the unit suite in the full profile | `acceptance-tests` job (required through `ci-gate`) |
+
+A failed stage in either profile ends with `==> FAIL <stage>`, the exact
+command that re-runs that stage alone (`bun run <script>` for a plain script
+stage, `bun run ci:preflight -- [--fast] --only <stage>` for one whose
+command or environment the preflight builds), and the last 40 lines of its
+output, then stops. A pass names the profile and, for the fast profile,
+counts the stages that ran and those skipped; `--only` on a stage the
+profile skipped says it did not run. Only a complete full profile prints
+`==> PASS ci:preflight`.
 
 For edits to the adopted roadmap and Studio packets, also run
 `bun run verify:program-roadmap` in the canonical WSL/Linux workspace before
@@ -115,12 +182,13 @@ links. It never executes the supplied reference scripts or claims runtime
 qualification. It is a scoped documentation check in addition to the unchanged
 preflight stage sequence.
 
-Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage order),
-`tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
+Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage
+order of both profiles, scoping and output), `tests/unit/scripts/pre-push-handoffs.test.ts`
+(profile selection), `tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
 `tests/unit/apps/donor-missionary-unit-smoke.contract.test.ts` (app unit smoke paths).
 
-The `.husky/pre-push` coordinator preserves the production push guard and runs
-normal CI preflight. Commit authors, committers, names, emails, and signatures
+The `.husky/pre-push` coordinator applies the production push guard first,
+then runs the selected profile. Commit authors, committers, names, emails, and signatures
 are not development gates. GitHub access authorizes people and approved
 automation; see `docs/ops/github-access.md` for agent command authorization.
 
@@ -256,9 +324,9 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `lint`
 
-- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract over live source; gitignored Eve `.eve`, `.nitro`, and `.output` generated trees are excluded), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails) and `bun run verify:shadcn-diff` (pinned modern CLI review guard over all installed official components and explicit file previews; checks reviewed customizations rather than stock byte parity).
+- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract over live source; gitignored Eve `.eve`, `.nitro`, and `.output` generated trees are excluded), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails).
 - _Why it exists:_ Enforces consistent code quality and prevents architecture, workspace, and ESLint config drift.
-- _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:data-boundary`, `bun run verify:cms-public-sole-entry`, `bun run verify:workspace-contract`, `bun run verify:bun-lock-drift`, `bun run verify:eslint`, `bun run verify:shadcn-config`, and `bun run verify:shadcn-diff`.
+- _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:data-boundary`, `bun run verify:cms-public-sole-entry`, `bun run verify:workspace-contract`, `bun run verify:bun-lock-drift`, `bun run verify:eslint`, and `bun run verify:shadcn-config`.
 
 ### `typecheck`
 
@@ -270,14 +338,17 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 - _What it checks:_ Compiles apps selected by `scripts/verify/ci-build-policy.mjs`. Routine develop PR source/docs changes and develop pushes select no build; app-specific build configuration selects that app; shared dependency/build changes, missing diff context, production, and manual CI select all apps. Explicit full local preflight runs `bun run build` (Turborepo → `next build` for all apps). The script applies CI-equivalent env defaults (`SKIP_ENV_VALIDATION=1`, stub Supabase keys, and a stub `PAYLOAD_SECRET`) when missing.
 - _Why it exists:_ Catches bundle errors, missing imports, and Next.js build-time failures that type-checking alone cannot catch.
-- _Debug locally:_ Run `bun run build` for CI-equivalent behavior, or `bun run build:strict` to validate with real local env values only.
+- _On failure:_ An `if: failure()` step runs `node scripts/verify/ci-build.mjs --debug-prerender`, which rebuilds each app whose `next build` failed with `next build --debug-prerender`: server source maps, unminified stacks and every failing route instead of the first. It does nothing on a green build or when the failure came before an app build, and refuses to run outside GitHub Actions or on Vercel. The step has its own 6-minute limit, so a slow rebuild cannot use up the 15-minute job budget: the job ends failed with the compile error rather than cancelled. Running only after a failure, it cannot turn the job green. The normal build command, which Vercel also runs, never carries the flag: Next.js says a debug-prerender build must not be deployed.
+- _Debug locally:_ Run `bun run build` for CI-equivalent behavior, or `bun run build:strict` to validate with real local env values only. For readable prerender errors run `bun run --cwd apps/<app> build -- --debug-prerender`.
 
 ### `test-unit`
 
-- _What it checks:_ Runs `bun run test:unit` (Vitest with coverage enabled, targets `tests/unit/**/*.test.ts(x)`, `environment: "node"`).
-- _Artifacts:_ Uploads generated `coverage/` as `unit-test-coverage` (`if-no-files-found: ignore`, retained for 7 days). The supported V8 provider emits measured `coverage-summary.json`, the standard Istanbul `coverage-final.json`, and an HTML report.
+- _What it checks:_ Runs `bun run test:unit` (Vitest with coverage enabled, targets `tests/unit/**/*.test.ts(x)`, `environment: "node"`), excluding `tests/unit/acceptance/`, which runs once in `acceptance-tests`. Each eligible event runs all of these files. Fork pull requests skip this job, and there is no changed-path filter.
+- _Shards:_ A matrix of three jobs (`test-unit (1)` to `test-unit (3)` in the checks list), each running `bun run test:unit --shard=<i>/3`. Vitest assigns files to shards by a hash of their path, in equal counts, so each file runs in exactly one shard; `tests/unit/scripts/unit-test-shards.test.ts` checks that against Vitest's own assignment. `fail-fast: false` lets every shard finish, so one red shard cannot hide another's failures. `ci-gate` needs `test-unit` and requires `"unit": "success"`; a matrix job's result is `success` only when every shard succeeded.
+- _Timing:_ Unsharded, the job took 795–1,222 s on the last five develop pushes (test step median about 971 s, with the acceptance directory). Modelled from the per-file times of three of those runs, each shard job takes about 5–7.5 minutes, of which setup (checkout, canvas packages, Node, Bun, install) is about 1.3–1.5 minutes, against about 12–18 minutes for one job without the acceptance directory. Each shard repeats the setup and GitHub rounds each job up to a whole minute, so billed minutes for `test-unit` rise from about 12–18 to about 17–23 per run; the repository is public, so hosted minutes are free. Real timings come from the first PR run.
+- _Artifacts:_ Each shard uploads its `coverage/` as `unit-test-coverage-<i>` (`if-no-files-found: ignore`, retained for 7 days). The supported V8 provider emits measured `coverage-summary.json`, the standard Istanbul `coverage-final.json`, and an HTML report. Each report covers only the files its shard ran; nothing merges or reads them.
 - _Why it exists:_ Validates pure logic, utilities, and shared package behaviour without a browser or network.
-- _Debug locally:_ Run `bun run test:unit` to execute unit tests and generate coverage output in `coverage/`. For watch mode: `bunx vitest`.
+- _Debug locally:_ Run `bun run test:unit` to execute unit tests and generate coverage output in `coverage/`. `bun run test:unit --shard=<i>/3` runs one CI shard's files: Vitest hashes the forward-slash path, so the split matches CI's (on Windows the runner also leaves out `tests/unit/scripts/bun-version.test.ts`, which can move one file across a shard boundary). With test filters (`bun run test:unit <filter>`) Vitest's own matching decides which files run, acceptance files included. For watch mode: `bunx vitest`.
 
 Optional focused CMS unit coverage (not a `ci.yml` job today): `bun run test:unit:cms`.
 
@@ -287,7 +358,7 @@ Optional focused CMS unit coverage (not a `ci.yml` job today): `bun run test:uni
 - _Fails closed:_ The job fails when Vitest is missing, cannot be spawned or exits non-zero; when the JSON summary is missing or unreadable; when zero acceptance test files are collected; when zero tests execute (skipped and todo tests do not count); or when any test fails.
 - _Runner:_ GitHub-hosted `ubuntu-latest`, with no job-level `if:`, no `needs` and no path filter. It runs on every event, including fork PRs and `merge_group`, and never concludes `skipped`. It uses no secrets, variables or Turbo cache and inherits the workflow's read-only token permissions.
 - _Gate:_ `ci-gate` needs this job and requires `"acceptance": "success"` in `CI_RESULTS`. Any other result, including `skipped`, fails `ci-gate`.
-- _Why it exists:_ Acceptance criteria get a named check that cannot be skipped. `test-unit` also runs these files as part of `tests/unit/**`, but it is self-hosted and skipped on fork PRs.
+- _Why it exists:_ Acceptance criteria get a named check that cannot be skipped, including on fork PRs, where `test-unit` is skipped. It is the only job in `ci.yml` that runs these files. The integration workflow also runs real-database acceptance suites in `migrate`.
 - _Debug locally:_ Run `bun run test:acceptance`, or `bunx vitest run tests/unit/acceptance/issue-<number>` for one issue's suite.
 
 ### `ci-gate-comment`
@@ -335,9 +406,14 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 - _Why it matters:_ Verifies the app boots without a crash — catches missing imports, broken middleware, and startup-time errors that build alone cannot catch.
 - _Debug locally:_ Run `bun run test:e2e` (default CI-equivalent env) or `bun run dev:donor` with real `.env.local` values, then `curl http://localhost:3005/api/health`. Expect `{"status":"ok","checks":{"supabase":"ok"},"observability":{"surface":"donor",...}}`; `observability.release` carries the commit/ref/environment metadata when the deployment provides it.
 
-### `test-e2e-smoke` (needs: `smoke`)
+### `test-e2e-smoke` (no `needs`; starts beside `migrate`)
 
 - _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data. Playwright Chromium is installed before either dev server starts, so `bunx` does not mutate the module graph while Turbopack is compiling. The job then starts `apps/donor` on port 3005 with `E2E_AUTH_BYPASS=true`, waits until `/api/health` and `/api/auth/demo-account` both succeed, starts `apps/admin` on port 3030, waits for admin `/api/health`, and runs the bounded Playwright smoke suite via `bun run test:e2e:smoke` (demo auth preflight, usability smoke, donate, upload-crop under the donor-auth project, and Support Hub smoke). The job has a 25-minute cap, the Playwright smoke step has a 15-minute cap, and failures upload `playwright-smoke-report/` plus the dev-server logs.
+- _Why it does not wait:_ It applies its own migrations and seed and starts its
+  own servers, so it depends on neither `migrate` nor `smoke`. Running beside
+  them makes the required path its own length (about five minutes) instead of
+  all three in series (about ten). When `migrate` fails it still runs, and the
+  gate still blames `migrate` first.
 - _Branch behavior:_ Produces `e2e-smoke-gate`, which also needs `migrate` and
   `smoke`; `integration-gate` summarizes that gate. Both gates fail when any
   need is skipped, failed, or cancelled, and log one `Root cause:` line for
@@ -348,14 +424,14 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 - _Coverage note:_ This bounded smoke gate is not the a11y, hydration, perf, or full auth signal. Run `bun run test:a11y`, `bun run test:perf`, or the broader `bun run test:e2e` when a change affects those contracts.
 - _Regression guards (unit):_ `tests/unit/scripts/ci-integration-workflow.contract.test.ts` locks `integration-gate` / `e2e-smoke-gate` / `e2e-gate` wiring; `tests/unit/e2e/e2e-flake-guards.test.ts` forbids `waitForTimeout` in `tests/e2e/**/*.spec.ts`; `tests/unit/scripts/ci-preflight.contract.test.ts` locks `ci:preflight` stage order; `tests/unit/scripts/local-gates.contract.test.ts` locks `bun run check`; `tests/unit/apps/donor-missionary-unit-smoke.contract.test.ts` keeps donor/missionary unit smoke coverage and API email mock posture.
 
-### `test-e2e` (needs: `smoke`)
+### `test-e2e` (needs: `smoke`, `test-e2e-smoke`)
 
-- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005 and `apps/admin` on port 3030, enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, and sets `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` so Playwright reuses the already-started servers instead of trying to bind those ports again. It executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs bounded production-release suites:
+- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005 and `apps/admin` on port 3030, points donor CMS reads at that admin server (`CMS_BASE_URL=http://127.0.0.1:3030`), enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, and sets `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` so Playwright reuses the already-started servers instead of trying to bind those ports again. It executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs bounded production-release suites:
   1. `bun run test:e2e:production-gate` (donor usability, donation, About/Wallet layout and local interactions, admin Support Hub smoke and Teams controls, shared dialog-dismissal/popover-positioning/primitive-contrast and table-control accessibility coverage, and missionary summary/dashboard/chart/loading geometry)
   2. `bun run test:e2e:boneyard:admin`, `bun run test:e2e:boneyard:missionary`, and `bun run test:e2e:boneyard:donor` (visual regression smoke by app)
      The Missionary command also runs the standalone account-frame regressions.
   3. `bun run test:e2e:cms --project=chromium` (portable CMS/admin suite tagged `@cms`, excluding `@manual` and local-seed-only `@cms-local`; CI reuses the same donor/admin servers)
-     The job has a 30-minute cap, and individual Playwright suite steps have 5-10 minute caps. Uploads `playwright-report/` as an artifact on failure (retained 7 days).
+     The job has a 35-minute cap; the production gate has 10 minutes and the Web Studio tenant step has 20. Uploads `playwright-report/` as an artifact on failure (retained 7 days).
 - _Artifacts:_ Auth preflight, production gate, and CMS invocations use distinct
   `PLAYWRIGHT_REPORT_DIR` paths under `playwright-report/`. The default reporter
   streams each test's progress and writes an atomic, bounded
@@ -383,21 +459,49 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
   be run separately when those surfaces are in scope.
 - _Debug locally:_ Run `bun run test:e2e:auth-preflight` first, then `bun run test:e2e:production-gate` for the required production gate, `bun run test:e2e` for the broader local suite, `bun run test:e2e:cms` for portable CMS/admin coverage, `bun run test:e2e:cms:local` for the local seed-dependent CMS proof, `bun run test:e2e:strict` (core strict env), `bun run test:e2e:cms:strict` (CMS strict env), `bun run test:perf` (perf-only suites), or `bun run test:e2e --project=chromium` (Chromium only). Use `bun run test:e2e:ui` for interactive debugging.
 
+### `instant-nav`
+
+- _What it does:_ Builds donor in production mode with the Next.js testing API exposed (`VERCEL_ENV=preview`, `EXPOSE_TESTING_API=1`), starts it on port 3006 and runs the `instant()` navigation guards in `tests/e2e/instant-navigation.spec.ts` with `--retries=0`. See `instant-nav.rig.md`.
+- _When it runs:_ Production PRs and pushes, manual dispatch, and same-repository PRs into `develop`. On `develop` PRs a first step asks `node scripts/verify/instant-navigation-scope.mjs` whether the change can affect donor or the guards (donor, shared packages, tooling, vendored packages, root scripts, `tests/e2e/**`, Playwright configuration, root manifests, lockfile, Turbo and TypeScript configuration, or this workflow); if not, the remaining steps are skipped and the log says why. An unknown change set runs the guards. That step runs only on `develop` PRs, so production PRs and pushes and dispatch never depend on it. Only a `develop` PR for which it wrote exactly `run=false` skips the guards; when it wrote nothing they run, and when it fails the job fails.
+- _Branch behavior:_ On `develop` it is a visible, non-required check: no gate needs it and it has no `continue-on-error`, so a failure shows red without blocking a merge. On `production`, `e2e-gate` requires it to succeed.
+- _Debug locally:_ Follow `instant-nav.rig.md`; `next dev` cannot produce a valid verdict for these guards.
+
 ### Service container images
 
-- `migrate`, `smoke`, `test-e2e-smoke`, and `test-e2e` each run one `postgres`
-  service from
+- `migrate`, `smoke`, `test-e2e-smoke`, `test-e2e`, and `api-contract` each run
+  one `postgres` service from
   `public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24`.
   ECR Public mirrors the Docker official image, which avoids anonymous Docker
   Hub pull limits on the shared runner egress IP.
 - The pull is anonymous: no secret or `credentials:` key is required. The
   fork-reachable `migrate` and `smoke` jobs must not reference secrets anyway.
 - The digest pins the reviewed bytes even when the `17.11-alpine` tag moves.
-- _Bump:_ change the tag and digest in all four `image:` lines together, and
-  first confirm the digest exists on the mirror (for example,
-  `docker manifest inspect public.ecr.aws/docker/library/postgres@sha256:<digest>`).
+- _Bump:_ confirm the digest exists on the mirror with
+  `docker manifest inspect public.ecr.aws/docker/library/postgres@sha256:<digest>`.
+  Update the five workflow `image:` references, including
+  `.github/workflows/api-contract.yml`, and `POSTGRES_IMAGE` in
+  `scripts/api-contract/stack.mjs` together.
 
 ---
+
+## API Contract workflow (`api-contract.yml`)
+
+This advisory workflow runs on pull requests that change API contract inputs,
+pushes to `develop`, and manual dispatch. It starts PostgREST on a fresh
+Postgres service after applying the same migrations and demo seed as `migrate`.
+The tests exercise statically resolvable `packages/api` selects, real missionary
+portal reads, the configured row cap, and tenant isolation. The isolation sweep
+verifies each fixture caller's subject and tenant claim, then reports which
+tables produced isolation evidence, lacked fixture evidence, or refused access.
+The required unit job also runs the pure tests under `tests/unit/api-contract/`.
+
+For a local run on a disposable Docker stack:
+
+```bash
+bun run test:api-contract:up
+bun run test:api-contract
+bun run test:api-contract:down
+```
 
 ## Release workflow (`release.yml`)
 
@@ -436,7 +540,7 @@ the secrets it needs by name and the owner's steps to switch it on, is
 
 Starts a local Supabase stack from source and runs the Supabase Auth email
 round trips against it. A workflow of its own, so `ci.yml` and
-`ci-integration.yml` do not change. Not a required check. It guards four
+`ci-integration.yml` do not change. Not a required check. It guards five
 things:
 
 - _The migration chain and the seed on the real Supabase image._ It is the
@@ -467,6 +571,11 @@ things:
   those handler directories, their listed shared API helpers, the database's
   Supabase admin and config modules, the proof and its fixtures, or the root
   Vitest configuration and its two local resolver plugins.
+- _Platform operator second factor (WP2c):_ `node scripts/e2e/run-operator-mfa.mjs`
+  tests TOTP enrolment and challenge against local Auth, the caller's operator
+  check through PostgREST, and the operator CLI against the same database.
+  After a successful stack start it runs even if the auth-mail journeys fail,
+  unless the job was cancelled. Missing stack values fail the proof.
 - _Job:_ installs the Supabase CLI at the version `scripts/supabase-cli.mjs`
   pins, starts the stack with `bun run supabase -- start` (every migration and
   the seed, then Auth, PostgREST and Mailpit), then runs

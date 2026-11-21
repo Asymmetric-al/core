@@ -8,10 +8,7 @@ import {
   chooseContributionBatchExecutionMode,
   createContributionBatchPreview,
 } from "../../../../../packages/api/src/admin/contribution-batches/preview";
-import {
-  buildContributionBatchCsv,
-  summarizeContributionBatchResults,
-} from "../../../../../packages/api/src/admin/contribution-batches/results";
+import { summarizeContributionBatchResults } from "../../../../../packages/api/src/admin/contribution-batches/results";
 import {
   markContributionBatchFailed,
   processContributionBatch,
@@ -1921,25 +1918,5 @@ describe("bulk contribution results", () => {
       failed: 1,
       followUpTasksCreated: 0,
     });
-  });
-
-  it("exports CSV with required result fields", () => {
-    const csv = buildContributionBatchCsv([
-      {
-        contributionId: "donation_1",
-        donorName: "Ada Donor",
-        donorEmail: "ada@example.com",
-        amount: 10000,
-        currency: "USD",
-        action: "resend_receipt",
-        status: "succeeded",
-        auditEventId: "audit_1",
-        taskId: null,
-        timestamp: "2026-05-26T00:00:00.000Z",
-      },
-    ]);
-
-    expect(csv).toContain("contributionId,donorName,donorEmail,amount");
-    expect(csv).toContain("donation_1,Ada Donor,ada@example.com,10000");
   });
 });

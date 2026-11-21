@@ -60,6 +60,47 @@ const SHARED_BUILDERS = PSQL_STARTERS.slice(0, 3);
  * sorted as psqlLines gives them, duplicates kept.
  */
 const PSQL_NAMERS: Record<string, { reason: string; lines: string[] }> = {
+  "scripts/platform/operators.mjs": {
+    reason:
+      "imports the shared connection checker and calls the shared runner with transaction inputs and arguments that never ask for a password (review 4650094359 on #2741: a comment line changed, no psql is started)",
+    lines: [
+      "* The psql arguments after the connection: never ask for a password (psql",
+      "/** The environment psql reads the inputs from. */",
+      "/** The environment variables psql reads the inputs from (\\getenv). */",
+      "/** The whole psql input for one action: one transaction. */",
+      "/** psql statements that put the matching login's id in `asym.operator_user`, or refuse. */",
+      "// output, the result; psql's error on standard error and a non-zero exit when",
+      "// psql as environment variables read with \\getenv, so they appear neither in",
+      "// runner (scripts/lib/psql.mjs), which drops every ambient PG* setting and",
+      "// this machine (`isLoopbackDatabaseUrl`). psql starts only through the shared",
+      "MIN_PSQL_MAJOR,",
+      "[PSQL_INPUTS.actor]: parsed.actor,",
+      '[PSQL_INPUTS.email]: parsed.email ?? "",',
+      "[PSQL_INPUTS.reason]: parsed.reason,",
+      '[PSQL_INPUTS.userId]: parsed.userId ?? "",',
+      "\\\\getenv op_email ${PSQL_INPUTS.email}",
+      "\\\\getenv op_reason ${PSQL_INPUTS.reason}",
+      "`error: could not start the database client. Install postgresql-client ${MIN_PSQL_MAJOR} or later and check PSQL_BIN.`,",
+      "args: [...PSQL_ARGS],",
+      "baseEnv: { ...env, ...psqlInputs(parsed) },",
+      "const FIND_USER = `\\\\getenv op_user_id ${PSQL_INPUTS.userId}",
+      "const READ_ACTOR = `\\\\getenv op_actor ${PSQL_INPUTS.actor}",
+      "const result = spawnPsql({",
+      "export const PSQL_ARGS = Object.freeze([",
+      "export const PSQL_INPUTS = Object.freeze({",
+      "export function psqlInputs(parsed) {",
+      'psqlBin: env.PSQL_BIN?.trim() || "psql",',
+      "spawnPsql,",
+      '} from "../lib/psql.mjs";',
+    ],
+  },
+  "scripts/e2e/run-operator-mfa.mjs": {
+    reason:
+      "imports the loopback checks for the local stack; starts no database client",
+    lines: [
+      'import { LOOPBACK_HOSTS, isLoopbackDatabaseUrl } from "../lib/psql.mjs";',
+    ],
+  },
   "scripts/cms/lib/migration-target.mjs": {
     reason:
       "comments and two messages that name the CMS runner's psql and the CA file it reads",

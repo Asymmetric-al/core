@@ -44,20 +44,21 @@ async function expectNoPayloadFailure(page: Page) {
   expect(textMatchesPayloadDbFailure(bodyText)).toBe(false);
 }
 
+// D-18 (AL-2677, 3bd91aa9f; fix check G7): sign in through the login form
+// with the seeded login rather than the Demo Access button. On a production
+// build of the local stack the login page offered no Demo Access button (the
+// run of 21 November 2026 timed out waiting for it); the form works on every
+// build. `bun run test:e2e:cms:local` supplies the seeded login from
+// scripts/cms/lib/local-data.mjs when the environment holds none.
 async function signInAsLocalDemoAdmin(page: Page, next = "/web-studio") {
-  const availability = await page.request.get(
-    `${adminBaseURL}/api/auth/demo-account`,
-  );
-  expect(availability.ok()).toBe(true);
-
-  const payload = (await availability.json()) as {
-    availableRoles?: Record<string, boolean>;
-    roles?: Record<string, boolean>;
-  };
-  expect(payload.availableRoles?.admin ?? payload.roles?.admin).toBe(true);
-
+  const email = process.env.DEMO_ADMIN_EMAIL;
+  const password = process.env.DEMO_PASSWORD;
+  if (!email || !password)
+    throw new Error("Missing local CMS seed credentials");
   await page.goto(`${adminBaseURL}/login?next=${encodeURIComponent(next)}`);
-  await page.getByRole("button", { name: "Demo Access" }).click();
+  await page.getByRole("textbox", { name: "Email" }).fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.waitForURL(new RegExp(next.replace(/\//g, "\\/")));
   await expect(
     page.getByTestId("web-studio-native-shell").filter({ visible: true }),
@@ -91,7 +92,7 @@ async function findPayloadDoc<T extends DocWithId>(
   params.set(`where[${field}][equals]`, value);
 
   const response = await request.get(
-    `${adminBaseURL}/api/${collection}?${params.toString()}`,
+    `${adminBaseURL}/web-studio/api/${collection}?${params.toString()}`,
   );
   expect(response.ok()).toBe(true);
 
@@ -101,6 +102,150 @@ async function findPayloadDoc<T extends DocWithId>(
 }
 
 test.describe("@cms-local strict local CMS happy path", () => {
+  test("bodyless browser deletes remove a reaction, its post and a Studio draft", async ({
+    page,
+  }) => {
+    // Fix check G6: fail, not skip, without the missionary app; the strict
+    // local run starts it (scripts/cms/run-local-e2e.mjs).
+    const missionary = process.env.PLAYWRIGHT_MISSIONARY_BASE_URL;
+    expect(
+      missionary,
+      "PLAYWRIGHT_MISSIONARY_BASE_URL: the missionary app on the same seeded local stack",
+    ).toBeTruthy();
+    await signInAsLocalDemoAdmin(page);
+    const headers = await writeHeaders(
+      page,
+      `${new URL(adminBaseURL).origin}/`,
+    );
+    const studio = await page.request.post(
+      `${adminBaseURL}/web-studio/api/pages?draft=true`,
+      {
+        headers,
+        data: {
+          title: "Browser delete check",
+          slug: `delete-${Date.now()}`,
+          pageType: "standard",
+          _status: "draft",
+        },
+      },
+    );
+    expect(studio.status()).toBe(201);
+    const documentId = (await studio.json()).doc.id;
+    const removedDraft = await page.evaluate(
+      async ({ documentId, headers }) => {
+        const response = await fetch(`/web-studio/api/pages/${documentId}`, {
+          method: "DELETE",
+          headers,
+        });
+        return response.status;
+      },
+      { documentId, headers },
+    );
+    expect(removedDraft).toBe(200);
+
+    await page.goto(`${missionary}/api/health`);
+    const post = await page.evaluate(async () => {
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          content: "Browser deletion fixture",
+          visibility: "public",
+        }),
+      });
+      return {
+        status: response.status,
+        id: (await response.json()).post?.id as string | undefined,
+      };
+    });
+    expect(post.status).toBe(201);
+    expect(post.id).toBeTruthy();
+    try {
+      await page.goto(`${donorBaseURL}/api/playwright-ready`);
+      for (const method of ["POST", "DELETE"]) {
+        const reaction = await page.evaluate(
+          async ({ id, method }) => {
+            const response = await fetch(`/api/posts/${id}/like`, { method });
+            return { status: response.status, result: await response.json() };
+          },
+          { id: post.id, method },
+        );
+        expect(reaction).toEqual({
+          status: 200,
+          result: { success: true, applied: true },
+        });
+      }
+    } finally {
+      await page.goto(`${missionary}/api/health`);
+      const status = await page.evaluate(
+        async (id) =>
+          (await fetch(`/api/posts/${id}`, { method: "DELETE" })).status,
+        post.id,
+      );
+      expect(status).toBe(200);
+    }
+  });
+
+  test("picker lookups load template and uploaded media options on a seeded page", async ({
+    page,
+  }) => {
+    await signInAsLocalDemoAdmin(page, "/web-studio/collections/pages");
+    const doc = await findPayloadDoc<DocWithId>(
+      page.request,
+      "pages",
+      "slug",
+      "local-cms-home",
+    );
+    await page.goto(`${adminBaseURL}/web-studio/collections/pages/${doc.id}`);
+    for (const [field, collection, search] of [
+      ["#field-template", "page-templates", "Project"],
+      ["#field-layout__0__backgroundImage", "media", "Local"],
+    ] as const) {
+      const combobox = page.locator(field).getByRole("combobox");
+      if (collection === "media" && !(await combobox.isVisible())) {
+        const toggle = page
+          .locator('[id$="layout-row-0"] button[aria-expanded="false"]')
+          .first();
+        if (await toggle.isVisible()) await toggle.click();
+      }
+      await combobox.click();
+      const result = page.waitForResponse((response) => {
+        const request = response.request();
+        return (
+          new URL(response.url()).pathname ===
+            `/web-studio/api/${collection}` &&
+          request.method() === "POST" &&
+          request.headers()["x-payload-http-method-override"] === "GET" &&
+          Boolean(request.postData()?.includes(search))
+        );
+      });
+      await combobox.fill(search);
+      const response = await result;
+      expect(response.status()).toBe(200);
+      expect((await response.json()).docs).toBeInstanceOf(Array);
+      await combobox.press("Escape");
+    }
+  });
+
+  test("the signed-in Reports screen downloads its same-origin CSV", async ({
+    page,
+  }) => {
+    await signInAsLocalDemoAdmin(page);
+    await page.goto(`${adminBaseURL}/reports`);
+    const [response, download] = await Promise.all([
+      page.waitForResponse(
+        (result) =>
+          new URL(result.url()).pathname === "/api/admin/crm/reports/export",
+      ),
+      page.waitForEvent("download"),
+      page.getByRole("button", { name: "Export CSV" }).click(),
+    ]);
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toContain("text/csv");
+    expect(await download.failure()).toBeNull();
+    expect(download.suggestedFilename()).toMatch(/\.csv$/);
+  });
+
   test("redirects unauthenticated Web Studio users to Mission Control login", async ({
     page,
   }) => {

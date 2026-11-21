@@ -3,7 +3,7 @@ source_name: cursor/plugins (new-branch-and-pr)
 source_url: https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/new-branch-and-pr
 source_type: github
 upstream_path: cursor-team-kit/skills/new-branch-and-pr/
-skills_lock_hash: 4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd
+skills_lock_hash: 02a4c8a12ef41c36894635e1ebcc9eca9a979ef5cf4e42277755d6fb6752d320
 last_reviewed: 2026-09-16
 ---
 
@@ -16,7 +16,7 @@ Canonical copy in this repo: `docs/ai/skills/new-branch-and-pr/` (mirrored to `.
 - **Commit reviewed:** `c1c0a32802223f4be824112dd83d33ad29a8b26c`
 - **Upstream path:** `cursor-team-kit/skills/new-branch-and-pr/`
 - **Lock skillPath:** `cursor-team-kit/skills/new-branch-and-pr/SKILL.md`
-- **Computed hash:** `4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd`
+- **Computed hash:** `02a4c8a12ef41c36894635e1ebcc9eca9a979ef5cf4e42277755d6fb6752d320`
 
 ## Refresh from upstream
 

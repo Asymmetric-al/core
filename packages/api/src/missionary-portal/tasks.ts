@@ -6,7 +6,7 @@ import { writeMissionaryTask, listMissionaryTasks } from "./service";
 import { ensureJsonBody } from "../shared/http-errors";
 import { missionaryScope } from "../shared/missionary-authority";
 import { requireRouteUuid } from "../shared/route-uuid";
-import { withOperation } from "../shared/with-operation";
+import { withPlatformOperation } from "../shared/with-operation";
 
 const taskStatusSchema = z.enum([
   "not_started",
@@ -38,7 +38,7 @@ const createTaskSchema = z
   })
   .strict();
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
     const donorId = new URL(request.url).searchParams.get("donorId");
@@ -54,7 +54,7 @@ export const GET = withOperation(
   { roleClasses: ["missionary"] },
 );
 
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
     const scope = missionaryScope(ctx);

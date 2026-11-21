@@ -2,7 +2,8 @@ import { type AuthenticatedContext } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { withOperation } from "../../shared/with-operation";
+import { ensureJsonBody } from "../../shared/http-errors";
+import { withPlatformOperation } from "../../shared/with-operation";
 import {
   deleteInboundRoute,
   updateInboundRoute,
@@ -24,13 +25,13 @@ interface RouteParams {
  * inbound route. Changes apply to future routing; already routed messages
  * keep their historical routing audit trail.
  */
-export const PATCH = withOperation<RouteParams>(
+export const PATCH = withPlatformOperation<RouteParams>(
   async ({ supabaseAdmin, auth, request }, routeContext) => {
     const ctx = auth as AuthenticatedContext;
 
     const { routeId } = await (routeContext as RouteParams).params;
     const routeIdParsed = z.string().uuid().safeParse(routeId);
-    const parsed = updateRouteSchema.safeParse(await request.json());
+    const parsed = updateRouteSchema.safeParse(await ensureJsonBody(request));
 
     if (!routeIdParsed.success || !parsed.success) {
       return NextResponse.json(
@@ -59,7 +60,7 @@ export const PATCH = withOperation<RouteParams>(
 /**
  * Deleting a route removes the future active rule only; audit history stays.
  */
-export const DELETE = withOperation<RouteParams>(
+export const DELETE = withPlatformOperation<RouteParams>(
   async ({ supabaseAdmin, auth }, routeContext) => {
     const ctx = auth as AuthenticatedContext;
 

@@ -91,7 +91,9 @@ and none is ever cancelled.
    first hosted run recorded heads after a failed gate on a disposable
    database (WP1.6).
 6. **Deploy** (`scripts/release/vercel-release.mjs`). The job picks the apps
-   whose files changed since the commit each production domain serves. For
+   whose files or shared inputs changed since the commit each production domain
+   serves, or all three apps when a dispatched `release` sets `apps` to `all`.
+   For
    each it creates a production-target deployment of the exact SHA through
    Vercel's API. The build runs on Vercel, so application secrets stay there.
    With custom-domain auto-assignment off, the deployment is staged: it
@@ -101,7 +103,15 @@ and none is ever cancelled.
    Promotion does not rebuild. A failed build or check promotes nothing.
    Promotion is one call per app, one after the other, so it is not all or
    nothing: see [If a promotion fails part way](#if-a-promotion-fails-part-way).
-   Finally each production domain must serve the commit and pass.
+   Finally each production domain must serve the promoted deployment ID, commit
+   and expected Supabase project ref and pass `/api/health/migrations`. This
+   live check is bounded by attempts (18 attempts, with a 10-second pause
+   between attempts and a 30-second per-request timeout), not a wall-clock
+   deadline: while an older or unidentified deployment answers during alias
+   propagation (including status-only answers after a bypass-secret rotation),
+   it keeps retrying within those 18 attempts. If verification fails after
+   promotion was requested, inspect what the domain serves before dispatching
+   again or rolling back.
 7. **Register job functions** (optional, `RELEASE_REGISTER_JOB_FUNCTIONS`):
    a `PUT` to the admin app's Inngest serve route, because Git deployment no
    longer triggers a sync (council reservation 7).
@@ -128,12 +138,17 @@ ceiling are unchanged, and #2308 pins the file's bytes.
 
 The route is public and uncached. Any caller gets the status alone, with its
 `200` or `503`. The detail (the Supabase project ref the app reads, the
-environment marker, the heads and the commit) goes only to a caller whose
+environment marker, the heads, the commit and the deployment ID from
+`VERCEL_DEPLOYMENT_ID`) goes only to a caller whose
 `x-vercel-protection-bypass` header equals the deployment's
 `VERCEL_AUTOMATION_BYPASS_SECRET`, the system variable Vercel sets at build and
 run time once the project has a Protection Bypass for Automation secret. The
 job sends that header to the staged deployments and to the production
-domains, and stops if a healthy answer comes back without its detail.
+domains: on a staged URL a healthy answer without its detail stops promotion
+immediately; on a production domain after promotion, an unidentified answer
+(for example from an older deployment before a rotated bypass secret switches
+over) keeps retrying within the live check's 18-attempt bound and fails
+verification if the promoted deployment ID never answers.
 
 ### If a promotion fails part way
 
@@ -141,24 +156,47 @@ The job promotes the apps one after the other. If the promotion of a later
 app fails, the apps promoted before it serve the new commit and the rest the
 previous one. The database is already migrated, and every migration is safe
 for the release still running (plan 7.4: expand, then contract), so each app
-still works. To recover, dispatch **Release** with operation `release`: it
-plans the apps whose domain does not serve the commit, stages, checks and
-promotes them. If that fails again, roll the promoted apps back with Vercel's
-_Instant Rollback_ to their previous production deployment, so that all three
-serve the previous commit, and fix the cause before the next release. The job
-has no rollback of its own.
+still works. To recover, dispatch **Release** anew from branch `production` (do not use
+**Re-run all jobs** or **Re-run failed jobs** on the failed run: a re-run keeps
+its original commit and inputs, and neither the workflow nor `releaseSha`
+refuses a commit that is no longer `production`'s head) with operation
+`release` and the same `apps` value as the run that failed: `changed` for a
+code release, or `apps: all` after a change of Vercel variables (with `changed`,
+an app that already serves the commit is skipped and keeps its old variables).
+With `apps: all`, check that the plan step logged `build` for admin, donor and
+missionary. Before a recovery dispatch with `apps: changed`, check each app the
+failed run already promoted that the new run will skip (a skipped app is not
+live-checked by the recovery run): confirm its production domain serves the
+deployment ID the failed run logged for it, and that its
+`/api/health/migrations` response (with that project's
+`x-vercel-protection-bypass` header) is `ok` with the expected Supabase project
+ref and commit; if that check cannot be made, fix the cause and dispatch with
+`apps: all`, which builds, promotes and live-checks every app. Before the first
+dispatch of a release that carries changed Vercel variables,
+note for each app the deployment ID its production domain currently serves
+(read it from `https://<domain>/api/health/migrations` with that project's
+`x-vercel-protection-bypass` header, or from the project's **Deployments**
+page in Vercel; the job's `plan` step does not log live deployment IDs). If
+the second dispatch fails too, do not blindly roll back to "the previous
+production deployment": for an app promoted by both runs of the same commit,
+its previous deployment is the first failed attempt, not what served before
+the release. Either return each app to the pre-release deployment ID you noted
+before the first dispatch, or go forward (fix the cause and release again) if
+the pre-release deployment's credentials no longer work — after a credential
+rotation, revoked credentials on the pre-release deployment will not work. The
+job has no rollback of its own.
 
 ### Dispatched operations
 
 Run from the Actions tab, workflow **Release**, branch `production`:
 
-| Operation                        | Inputs                                                         | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| -------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `release`                        | `environment: production`                                      | Re-runs the release of the `production` head                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `set-environment-marker`         | `environment`, `marker`, `confirmation: <ref>:<marker>`        | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                                                                                                                          |
-| `first-rebuild`                  | `environment`, `census_signoff`, `confirmation: rebuild <ref>` | The first rebuild, retryable before either head is recorded on an unmarked or disposable database: put the platform's default privileges back, drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
-| `set-cms-role-passwords`         | `environment`                                                  | Makes `cms_owner` and `cms_runtime` log in with the secrets: a role whose secret already logs in is left alone, and one refused for its password is set and verified within the bound. For rotation and after a restore (plan 8.5)                                                                                                                                                                                                                                                |
-| `replace-seeded-login-passwords` | `environment`                                                  | Gives every login that still carries a password the repository publishes `RELEASE_SEED_LOGIN_PASSWORD` instead. Resets nothing and changes no other login. The repair after a rebuild that stopped between its seed and that replacement ([below](#if-seeded-logins-keep-a-published-password))                                                                                                                                                                                   |
+| Operation                        | Inputs                                                                    | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `release`                        | `environment: production`, `apps` (`changed` or `all`, default `changed`) | Dispatches a release of the `production` head (always dispatch anew; never re-run an older run). With `apps: all`, builds, checks and promotes every app regardless of its live commit so changed Vercel variables reach users; check that the plan step logged `build` for admin, donor and missionary                                                                                                                                                                           |
+| `set-environment-marker`         | `environment`, `marker`, `confirmation: <ref>:<marker>`                   | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                                                                                                                          |
+| `first-rebuild`                  | `environment`, `census_signoff`, `confirmation: rebuild <ref>`            | The first rebuild, retryable before either head is recorded on an unmarked or disposable database: put the platform's default privileges back, drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
+| `set-cms-role-passwords`         | `environment`                                                             | Makes `cms_owner` and `cms_runtime` log in with the secrets: a role whose secret already logs in is left alone, and one refused for its password is set and verified within the bound. For rotation and after a restore (plan 8.5)                                                                                                                                                                                                                                                |
+| `replace-seeded-login-passwords` | `environment`                                                             | Gives every login that still carries a password the repository publishes `RELEASE_SEED_LOGIN_PASSWORD` instead. Resets nothing and changes no other login. The repair after a rebuild that stopped between its seed and that replacement ([below](#if-seeded-logins-keep-a-published-password))                                                                                                                                                                                   |
 
 The marker change and the first rebuild run only after a required reviewer of
 the GitHub environment `release-owner-approval` approves the run's
@@ -274,8 +312,8 @@ release environment's password instead (`replaceSeededLoginPasswords` in
 the runner reaches the server, in the form Supabase Auth verifies; logins
 that do not carry a published password are left alone. The step stops if any
 login still carries one. Anyone who signs in as a seeded login on a hosted
-project uses that secret. `bun run seed:demo:users` refuses a published
-password for a hosted project too.
+project uses that secret. `bun run seed:demo:users` is a separate local-only
+tool. It refuses every hosted project, regardless of the password.
 
 The replacement runs after any reset that was attempted, whatever the reset's
 outcome, because a reset that fails after its seed has already put the
@@ -475,6 +513,249 @@ deployment reads the preview project at the migrated heads, then the smoke
 run. The next such pull request starts its rebuild only after this smoke run
 ends. The job holds only the preview project's credentials.
 
+### The request-tenant policies: after the first release's apps, never below them
+
+`20261119135300_request_tenant_policies.sql` (WP2b's second release,
+AL-2675) makes the database read the tenant and the assignment from the
+`x-asym-tenant` and `x-asym-assignment` request headers, which only the apps
+of WP2b's first release send. An app that sends neither gets no row of a
+tenant table. So:
+
+- release this migration to an environment only after a release that carries
+  the first release's apps has completed there;
+- once it has shipped there, no application rollback goes below the first
+  release, whether by _Instant Rollback_ or by a release of an older commit.
+
+The database does not enforce the order: a rebuild from source applies the
+whole chain to a database with no recorded heads, and a guard in the
+migration would stop it (council R6).
+
+No dispatched operation repairs the ledger or rolls this migration back, so
+the three procedures below run by hand, in bash, from a checkout of the
+released commit.
+
+#### Connecting as the job does
+
+The address is the one the environment's `RELEASE_DATABASE_URL` holds,
+without its password: `postgres.<ref>` on the project's session pooler, with
+`sslmode=verify-full` once, and the project's CA as `sslrootcert`, a file you
+take and check as steps 1 and 2 of
+[If the CA is rotated or expires](#if-the-ca-is-rotated-or-expires) say
+([The database's certificate](#the-databases-certificate)). The password is
+the project's database password, which the owner holds (GitHub never shows a
+secret's value). As in the job, it goes in `PGPASSWORD`, never on a command
+line; type it at a prompt that does not echo it. Set `PGREQUIREAUTH` as the
+job does for every hosted connection, and use `psql` 16 or later, whose libpq
+honours it:
+
+```sh
+DB='postgresql://postgres.<ref>@<pooler host>:5432/postgres?sslmode=verify-full&sslrootcert=<CA file>'
+read -rs PGPASSWORD && export PGPASSWORD
+export PGREQUIREAUTH=scram-sha-256
+psql --version
+supabase --version
+```
+
+Run the Supabase CLI as the job does: the version `scripts/supabase-cli.mjs`
+pins (2.121.0) first on the `PATH`, which `supabase --version` must print,
+and `SUPABASE_CLI_FORCE_PINNED=1` on the command, under which the repository's
+wrapper runs only that binary, never fetches one, and stops if the one on the
+`PATH` reports another version. The CLI reads the password from `PGPASSWORD`
+for a `--db-url` that carries none, and the CA from the address's
+`sslrootcert`, as the job's `db push` does. Each repair below keeps its exit
+status, checks the ledger, and then removes the password and `PGREQUIREAUTH`
+on either outcome. Dispatch the release again only after a repair that exited
+0 and whose check reads as its step says.
+
+#### If the migration committed but its ledger row is missing
+
+The migration sets `lock_timeout` to 5s. If a long reader holds one of the
+fifty tables it alters, it fails fast with `55P03` and nothing is applied;
+dispatch the release again when the database is quiet. If its SQL committed
+but the job stopped before the migration ledger recorded it, a second push
+runs the file again and fails at its first `DROP POLICY` (the policy is
+already gone). Do not edit the file (council R9):
+
+1. Connect as above, and confirm that the SQL committed. Both columns must
+   read `t`; if either reads `f`, nothing was applied: stop here and dispatch
+   the release again, which applies the file.
+
+   ```sh
+   psql "$DB" -X -c "select to_regprocedure('authz.request_assignment()') is not null as helper_present, not exists (select 1 from pg_policy where polrelid = 'public.profiles'::regclass and polname = 'profiles staff tenant select') as old_policy_gone"
+   ```
+
+2. Record the version. Go on only if the status reads 0 and the count 1:
+
+   ```sh
+   SUPABASE_CLI_FORCE_PINNED=1 bun run supabase -- migration repair --status applied 20261119135300 --db-url "$DB" --yes
+   status=$?
+   psql "$DB" -X -tA -c "select count(*) from supabase_migrations.schema_migrations where version = '20261119135300'"
+   unset PGPASSWORD PGREQUIREAUTH
+   echo "repair exit status: $status"
+   ```
+
+3. Dispatch **Release**, branch `production`, operation `release`, with
+   `environment` set to the environment whose database `$DB` is
+   (`production` or `preview`; the form's default is `production`). Its
+   `gates` step (`node scripts/release/release-database.mjs gates`) runs the
+   catalog gates and compares the database's schema fingerprint with the
+   replay the job builds, before it records the heads or deploys anything.
+   Nothing is run by hand for this: `scripts/release/catalog-gates.mjs` is a
+   module the step calls, with no command of its own, and the step needs the
+   fingerprint of the replay the job builds in the same run. If the gates
+   fail, nothing is recorded or deployed.
+
+The connection, step 1's query and step 2's repair (then without
+`SUPABASE_CLI_FORCE_PINNED`, the wrapper fetching the pinned version) were
+run, with `psql` 17 and the pinned CLI (2.121.0), against a local Postgres
+that served TLS with a
+certificate a test CA signed and held the objects the query reads but not the
+ledger row. With that CA as `sslrootcert` the query read `t` twice and the
+repair recorded the version. With another CA, `psql` and the CLI both refused
+the server's certificate, and nothing was recorded.
+
+#### Rolling it back by hand
+
+The rollback is
+`supabase/migrations/rollback_20261119135300_request_tenant_policies.sql`,
+one transaction. Run it only when both hold:
+
+- No run that can reach that environment's database is unfinished, and
+  nothing is pushed to `production` until it has committed. Releases wait for
+  each other through the workflow's concurrency group (`release-production`,
+  or `preview-database` for `preview`, which the `preview-database` job of
+  `qa-smoke-preview-deploy.yml` shares; never cancelled, every waiting run
+  queued), but a rollback run by hand is outside that group, so only this
+  check keeps them apart. A run that waits in the group or for the owner's
+  approval is unfinished too. Of the statuses `gh run list --status` takes,
+  the unfinished ones are `queued`, `in_progress`, `requested`, `waiting` and
+  `pending`; this must print nothing (for `preview`, run it for
+  `qa-smoke-preview-deploy.yml` too):
+
+  ```sh
+  for s in queued in_progress requested waiting pending; do gh run list --workflow release.yml --status "$s"; done
+  ```
+
+  From the rollback until step 3 of
+  [Applying it again after a rollback](#applying-it-again-after-a-rollback)
+  dispatches the release, keep releases and preview rebuilds of that
+  environment paused.
+
+- 20261119135300 is the newest version in the migration ledger. The file
+  checks it and stops, changing nothing, otherwise: reverse every later
+  migration first.
+
+Connect as above and run it, keeping `psql`'s exit status and removing the
+password and `PGREQUIREAUTH` on either outcome:
+
+```sh
+psql "$DB" -X -v ON_ERROR_STOP=1 -f supabase/migrations/rollback_20261119135300_request_tenant_policies.sql
+status=$?
+unset PGPASSWORD PGREQUIREAUTH
+echo "rollback exit status: $status"
+```
+
+Before it reads the ledger it locks the ledger table against writes until it
+commits, so no migration can be recorded, and no repair or second rollback
+run, between its check and its commit; a writer that holds the ledger makes
+it stop within its 5s lock timeout. The lock does not exclude SQL a release
+runs before it writes its ledger row: only the precondition above does. A
+lock shared with the release job is recorded for WP11. The file leaves the
+Realtime publication alone unless its marked block is run, which is only for
+a database built by replaying the chain, where the seven tables were members
+before; no hosted database published them. It ends with PostgREST's schema
+reload.
+
+It leaves 20261119135300 recorded in the ledger. A release after it would
+not apply that migration again. Its migrate step runs before its gates, so it
+would apply, and record in the ledger, any migration newer than 20261119135300
+that its commit carries, and then stop at its gates, because the catalog gate
+fails on a helper that reads the token claim and the schema fingerprint
+differs from the replay's; no head would be recorded and nothing deployed.
+That is why releases stay paused. To release again, apply the migration again
+as the next section says.
+
+After the rollback, `authz.current_tenant_id()` reads the token's tenant
+claim again. A session whose token carries no tenant claim, as hosted
+sessions do not, then reads no row through a policy keyed on it, exactly as
+before the migration. For the first release's apps, measured on disposable
+databases with such a token and the first release's headers, before the
+migration, with it and after the rollback: the member directory
+(`public.tenant_member_directory`), the commenters' names
+(`public.post_comment_authors`), the reactions route's post read and the
+reactions answer the same in all three states, and CRM table preferences are
+read with the service key and written through functions that check
+`authz.caller_assignment`, which reads the assignment header on both sides. A
+donor's saved feed preferences read as no row before the migration and after
+the rollback, so the route answers defaults; with the migration they read.
+The rollback case of
+`tests/unit/acceptance/issue-2675/tenant-policy-migration.realstack.acceptance.test.ts`
+pins the feed-preference read. Image uploads: the rollback restores the two
+Storage INSERT policies that compare the path's tenant with the uploader's
+`profiles.tenant_id`, while the first release's upload routes build the path
+from the tenant of the assignment the request resolved and upload on the
+caller's token. A person whose profile names another tenant than the one they
+act in is then refused by Storage, and the route answers `502` ("Image
+upload failed.", `uploadOnce` in `packages/api/src/upload/image.ts`), exactly as
+before the migration with the first release's apps.
+
+#### Applying it again after a rollback
+
+After a rollback the schema is the one before the migration, but the ledger
+still records 20261119135300. Releases and preview rebuilds of that
+environment stay paused from the rollback until the dispatch of step 3. Fix
+what made you roll back first; the order at the top of this section still
+holds. Then:
+
+1. Connect as above, and see that schema and ledger disagree and that
+   nothing came after: `recorded` reads `t`, `applied` reads `f` and `newest`
+   reads `t`. Both `recorded` and `applied` `t` means the migration is in
+   place; stop. `newest` `f` means a later migration was recorded after the
+   rollback, which a release that was not paused applies before its gates
+   stop it: stop, and remove nothing, because 20261119135300 would then sort
+   before the database's head, and the release job refuses a pending
+   migration dated at or before the head as out of order.
+
+   ```sh
+   psql "$DB" -X -c "select exists (select 1 from supabase_migrations.schema_migrations where version = '20261119135300') as recorded, to_regprocedure('authz.request_assignment()') is not null as applied, coalesce((select max(version) from supabase_migrations.schema_migrations) = '20261119135300', false) as newest"
+   ```
+
+2. Remove the version from the ledger. The block checks again that it is the
+   newest version and removes nothing otherwise. Go on only if the status
+   reads 0 and both `recorded` and `applied` read `f`:
+
+   ```sh
+   if [ "$(psql "$DB" -X -tA -c "select coalesce((select max(version) from supabase_migrations.schema_migrations) = '20261119135300', false)")" = t ]; then
+     SUPABASE_CLI_FORCE_PINNED=1 bun run supabase -- migration repair --status reverted 20261119135300 --db-url "$DB" --yes
+     status=$?
+   else
+     echo "20261119135300 is not the newest version in the ledger: stop, nothing removed"
+     status=1
+   fi
+   psql "$DB" -X -c "select exists (select 1 from supabase_migrations.schema_migrations where version = '20261119135300') as recorded, to_regprocedure('authz.request_assignment()') is not null as applied"
+   unset PGPASSWORD PGREQUIREAUTH
+   echo "repair exit status: $status"
+   ```
+
+3. Dispatch **Release**, branch `production`, operation `release`, with
+   `environment` set to the environment whose database `$DB` is
+   (`production` or `preview`; the form's default is `production`). Its
+   migrate step applies 20261119135300 again, as a pending migration newer
+   than the database's head, and its gates compare the fingerprint with the
+   replay's before it records the heads. The recorded heads stay at
+   20261119135300 throughout (they only move forward), so the apps'
+   `/api/health/migrations` keeps answering `ok`.
+
+This procedure was run on a disposable database built by replaying the chain
+with a full ledger, after the rollback, against a local Postgres without TLS,
+with the pinned CLI (2.121.0) first on the `PATH` and
+`SUPABASE_CLI_FORCE_PINNED=1`: step 1 read `t`, `f` and `t`, the repair
+exited 0 and the check read `f` twice, the job's own `db push` then applied
+20261119135300, and the schema fingerprint equalled the migrated chain's. On a
+second copy with 20991231000000 recorded after the rollback, step 1 read `t`,
+`f` and `f`, and step 2 removed nothing and ended with status 1, the row of
+20261119135300 still recorded.
+
 ### The database's certificate
 
 Every connection the job opens to a hosted database checks the server's
@@ -575,8 +856,11 @@ new CA has a new fingerprint, so the recorded one cannot confirm it. Then:
    must print `Verification: OK` in the middle of its output, after the
    certificate chain, and `Verify return code: 0 (ok)` near its end.
 3. Set it as `RELEASE_DATABASE_SSL_CA` in both `release-production` and
-   `release-preview`, and as `PAYLOAD_DATABASE_SSL_CA` on the admin app; then
-   redeploy the admin app.
+   `release-preview`, and as `PAYLOAD_DATABASE_SSL_CA` on the admin app; once
+   switch-on step 7 has run, dispatch **Release** anew with operation `release`
+   and `apps: all` so the changed variable reaches users, and check that the
+   plan step logged `build` for admin, donor and missionary (before step 7,
+   redeploy and promote by hand; see step 3 below).
 4. In the same pull request as a document change, record the new CA's name,
    dates and fingerprint here and in step 2 of
    [Switching it on](#switching-it-on). No code changes: the job pins no
@@ -767,15 +1051,41 @@ below follow those decisions.
 
    Check: `bun run verify:runtime-connection-strings` prints
    `Overall: READY`. Undo: restore the previous values (re-adding
-   `SUPABASE_DB_URL` reopens NA-04). They reach users only through the next
-   deployment.
+   `SUPABASE_DB_URL` reopens NA-04). They reach users only through a release
+   dispatched with `apps: all` (step 7).
 
-7. **Release.** Dispatch **Release** with operation `release`.
-   Check: the run is green; `bun run verify:vercel-production -- --commit <sha>`
+7. **Release.** First note each app's current live deployment ID (from
+   `/api/health/migrations` with the project's bypass header or the project's
+   **Deployments** page, as in
+   [If a promotion fails part way](#if-a-promotion-fails-part-way)), then
+   dispatch **Release** anew from branch `production` with operation `release`
+   and `apps` set to `all`. This release must build all
+   three apps, because the variables of step 6 reach an app only through a new
+   production deployment, and with the default `apps: changed` the job skips an
+   app whose files and shared inputs did not change since the commit its
+   production domain serves. With `apps: all`, the plan step selects admin,
+   donor and missionary regardless of their live commits and logs `build` for
+   each, with the reason: read it. If the plan logged `skip` for any app, stop:
+   `apps` was left at `changed`, and that app still serves a deployment built
+   with the old variables. Dispatch **Release** anew with operation `release`
+   and `apps: all` (never re-run an earlier run, and do not redeploy a skipped
+   app from Vercel's dashboard: that rebuilds the commit the app serves and not
+   the release, the project's Ignored Build Step can cancel it, and its ID is
+   not one the run logged). Whenever changed Vercel variables must reach users,
+   dispatch **Release** anew with operation `release` and `apps: all` and check
+   that the plan step logged `build` for admin, donor and missionary.
+   Check: the run is green; the plan step logged `build` for admin, donor and
+   missionary; the run's last log line for each app names the deployment ID its
+   production domain serves (the job compared that deployment ID, the commit
+   and the project ref with each project's bypass secret on the staged
+   deployment and again on the production domain); `bun run verify:vercel-production -- --commit <sha>`
    is READY; `curl https://admin.asymmetric.al/api/health/migrations` answers
-   `"status":"ok"` with the expected ref; the deployments Vercel lists for the
-   commit are exactly the IDs the run logged, so the push started none
-   outside the job.
+   `"status":"ok"`, and so does the same path on the donor and the missionary
+   production domains (a plain request is not shown the project ref or
+   deployment ID); each production domain serves the ID the run logged for that
+   app, and no deployment of the commit was created outside the IDs the runs
+   logged in the release's window (earlier deployments of the same commit from
+   before the release may still appear in Vercel's list).
    Undo: Vercel _Instant Rollback_ to the previous production deployment; it
    stays healthy, because a database that is ahead passes.
 8. **The `preview` Supabase project.** No project is created: a third
@@ -903,8 +1213,10 @@ Added by council round 2. The first four are now seen on hosted Supabase
 - The detail of `/api/health/migrations`: that Vercel passes the
   `x-vercel-protection-bypass` header through to the route, on staged
   deployments and on the production domains, and sets
-  `VERCEL_AUTOMATION_BYPASS_SECRET` at run time. If it does not, every check
-  fails closed with "answered without its detail" and nothing is promoted.
+  `VERCEL_AUTOMATION_BYPASS_SECRET` and `VERCEL_DEPLOYMENT_ID` at run time
+  (System Environment Variables enabled). If either is missing, the staged
+  check fails closed ("answered without its detail" or "expected deployment
+  <id>, saw unknown") and nothing is promoted.
 - The `owner-approval` job: that a dispatched marker change or first rebuild
   waits for the required reviewer, that a rejection skips the work, that
   **Re-run failed jobs** skips it too (the approval output names the earlier

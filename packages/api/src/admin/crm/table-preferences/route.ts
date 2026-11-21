@@ -25,6 +25,7 @@ import {
 import { createRequestSessionClient } from "../../../shared/request-session-client";
 import {
   withOperation,
+  withPlatformOperation,
   type OperationRouteContext,
 } from "../../../shared/with-operation";
 import { resolveContributionCapabilities } from "../../contribution-operations/permissions";
@@ -168,7 +169,7 @@ function resolveTableId(request: Request): string {
   return parsed.data;
 }
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.read",
@@ -211,7 +212,7 @@ export const GET = withOperation(
 );
 
 export const PUT = withOperation(
-  async ({ auth, request, requestId }) => {
+  async ({ auth, request, requestId, sessionClient }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.write",
       resourceType: "record",
@@ -221,10 +222,7 @@ export const PUT = withOperation(
       const body = savePreferenceSchema.parse(await ensureJsonBody(request));
       requireProfileId(actor.profileId);
       const user = await saveCrmUserTablePreference({
-        sessionClient: await createRequestSessionClient(
-          request,
-          requestScopeOf(auth),
-        ),
+        sessionClient,
         tenantId: actor.tenantId,
         tableId: body.tableId,
         pinnedActionId: body.pinnedActionId,
@@ -245,7 +243,7 @@ export const PUT = withOperation(
   },
 );
 
-export const PUT_TENANT_DEFAULT = withOperation(
+export const PUT_TENANT_DEFAULT = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.manage_defaults",
@@ -321,7 +319,7 @@ export const PUT_TENANT_DEFAULT = withOperation(
   },
 );
 
-export const GET_NAMED_VIEWS = withOperation(
+export const GET_NAMED_VIEWS = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.read",
@@ -348,7 +346,7 @@ export const GET_NAMED_VIEWS = withOperation(
 );
 
 export const POST_NAMED_VIEW = withOperation(
-  async ({ auth, request, requestId }) => {
+  async ({ auth, request, requestId, sessionClient }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.write",
       resourceType: "record",
@@ -358,10 +356,7 @@ export const POST_NAMED_VIEW = withOperation(
       const body = namedViewCreateSchema.parse(await ensureJsonBody(request));
       requireProfileId(actor.profileId);
       const view = await createCrmNamedView({
-        sessionClient: await createRequestSessionClient(
-          request,
-          requestScopeOf(auth),
-        ),
+        sessionClient,
         tenantId: actor.tenantId,
         tableId: body.tableId,
         name: body.name,
@@ -385,7 +380,7 @@ export const POST_NAMED_VIEW = withOperation(
 );
 
 export const PUT_NAMED_VIEW = withOperation(
-  async ({ auth, request, requestId, routeContext }) => {
+  async ({ auth, request, requestId, routeContext, sessionClient }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.write",
       resourceType: "record",
@@ -396,10 +391,7 @@ export const PUT_NAMED_VIEW = withOperation(
       const body = namedViewUpdateSchema.parse(await ensureJsonBody(request));
       requireProfileId(actor.profileId);
       const view = await updateCrmNamedView({
-        sessionClient: await createRequestSessionClient(
-          request,
-          requestScopeOf(auth),
-        ),
+        sessionClient,
         tenantId: actor.tenantId,
         tableId: body.tableId,
         viewId,
@@ -427,7 +419,7 @@ export const PUT_NAMED_VIEW = withOperation(
 );
 
 export const DELETE_NAMED_VIEW = withOperation(
-  async ({ auth, request, requestId, routeContext }) => {
+  async ({ auth, request, requestId, routeContext, sessionClient }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.write",
       resourceType: "record",
@@ -442,10 +434,7 @@ export const DELETE_NAMED_VIEW = withOperation(
       requireProfileId(actor.profileId);
       const tableId = resolveTableId(request);
       await deleteCrmNamedView({
-        sessionClient: await createRequestSessionClient(
-          request,
-          requestScopeOf(auth),
-        ),
+        sessionClient,
         tenantId: actor.tenantId,
         tableId,
         viewId,

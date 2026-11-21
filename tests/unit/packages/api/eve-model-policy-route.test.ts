@@ -14,6 +14,12 @@ const evaluateDraftMock = vi.fn();
 const activateMock = vi.fn();
 const rollbackMock = vi.fn();
 const createOverrideMock = vi.fn();
+/** AL-2675 (WP2c): the shared operator check, on the caller's own session client. */
+const operatorRpcMock = vi.fn();
+
+vi.mock("@asym/database/supabase/server", () => ({
+  createClient: async () => ({ rpc: operatorRpcMock }),
+}));
 
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
@@ -51,12 +57,15 @@ vi.mock("../../../../packages/api/src/eve/model-policy/control", () => ({
   createEveModelBudgetOverride: createOverrideMock,
 }));
 
+/** A signed-in request: it carries the Supabase session cookie (review WC3). */
 function request(method = "GET", body?: unknown): NextRequest {
   return new Request("https://admin.example.test/api/admin/eve/model-policy", {
     method,
     body: body === undefined ? undefined : JSON.stringify(body),
-    headers:
-      body === undefined ? undefined : { "content-type": "application/json" },
+    headers: {
+      cookie: "sb-127-auth-token=session",
+      ...(body === undefined ? {} : { "content-type": "application/json" }),
+    },
   }) as NextRequest;
 }
 
@@ -77,6 +86,13 @@ describe("Eve model-policy admin route", () => {
       isAuthenticated: true,
     });
     createAuditLoggerMock.mockReturnValue({});
+    operatorRpcMock.mockResolvedValue({
+      data: null,
+      error: {
+        code: "42501",
+        message: "platform: the caller is not a platform operator",
+      },
+    });
     canManageMock.mockResolvedValue(true);
     loadPoliciesMock.mockResolvedValue([]);
     loadOverridesMock.mockResolvedValue([]);
@@ -92,6 +108,10 @@ describe("Eve model-policy admin route", () => {
     // AL-2675: the route asks for the tenant administrator.
     expect(requireRoleMock).toHaveBeenCalledWith(expect.anything());
     expect(requireRoleMock.mock.calls[0]).toHaveLength(1);
+    // AL-2675 (WP2c): the platform gate is the shared operator check.
+    expect(canManageMock).toHaveBeenCalledWith(
+      expect.objectContaining({ platformOperator: false }),
+    );
     expect(await response.json()).toEqual({
       canManage: true,
       policies: [],
@@ -125,6 +145,31 @@ describe("Eve model-policy admin route", () => {
           policyId: "00000000-0000-4000-8000-000000000004",
         },
       }),
+    );
+  });
+
+  it("passes a confirmed platform operator to the permission and the commands (WP2c)", async () => {
+    operatorRpcMock.mockResolvedValue({
+      data: { operator_id: "user_1" },
+      error: null,
+    });
+    const { createDefaultEveModelPolicy } =
+      await import("../../../../packages/api/src/eve/model-policy/schema");
+    createDraftMock.mockResolvedValue("00000000-0000-4000-8000-000000000004");
+    const { POST } =
+      await import("../../../../packages/api/src/eve/model-policy/route");
+
+    const response = await POST(
+      request("POST", { policy: createDefaultEveModelPolicy() }),
+    );
+
+    expect(response.status).toBe(201);
+    expect(operatorRpcMock).toHaveBeenCalledTimes(1);
+    expect(createDraftMock).toHaveBeenCalledWith(
+      expect.objectContaining({ platformOperator: true }),
+    );
+    expect(canManageMock).toHaveBeenCalledWith(
+      expect.objectContaining({ platformOperator: true }),
     );
   });
 

@@ -70,8 +70,11 @@ const OWN = `${P}/avatars/${T}/${U}/x.webp`;
 async function patch(body: Row) {
   m.ctx = { userId: U, tenantId: T, profileId: "p-1", role: "donor" };
   const res = await PATCH(
+    // Typed as the browser sends it: the shared JSON reader refuses an
+    // untyped or text/plain body (AL-2677, fix check G1).
     new NextRequest("https://app.test/api/donor/portal", {
       method: "PATCH",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     }),
   );

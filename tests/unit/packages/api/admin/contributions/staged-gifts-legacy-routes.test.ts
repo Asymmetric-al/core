@@ -28,6 +28,10 @@ vi.mock("@asym/database/supabase/admin", () => ({
 }));
 vi.mock("@asym/lib/audit/logger", () => ({ createAuditLogger: () => ({}) }));
 vi.mock("next/cache", () => ({ revalidateTag: vi.fn() }));
+vi.mock(
+  "../../../../../../packages/api/src/shared/request-session-client",
+  () => ({ createRequestSessionClient: vi.fn(async () => ({})) }),
+);
 vi.mock("../../../../../../packages/api/src/giving/receipts", () => ({
   sendStagedGiftReceipt: seams.sendStagedGiftReceipt,
 }));
@@ -231,6 +235,17 @@ function staffWith(staffRole: string, isTenantAdmin = false): AuthContext {
   return {
     ...baseAuth,
     role: isTenantAdmin ? "admin" : "staff",
+    assignment: {
+      assignmentId: "00000000-0000-4000-8000-000000000001",
+      tenantId: TENANT,
+      userId: baseAuth.userId,
+      membershipRole: "staff",
+      staffRole: staffRole as NonNullable<
+        AuthContext["assignment"]
+      >["staffRole"],
+      isTenantAdmin,
+      revision: "1",
+    },
     memberships: [
       {
         tenantId: TENANT,

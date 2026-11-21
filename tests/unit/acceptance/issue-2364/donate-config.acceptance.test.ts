@@ -8,12 +8,13 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GET } from "../../../../packages/api/src/donate";
+import { GET, POST } from "../../../../packages/api/src/donate";
 import { FORBIDDEN_PUBLIC_COLUMNS } from "../../../../packages/api/src/public-giving/columns";
 import { resolveTenantStripe } from "../../../../packages/api/src/stripe/tenant-client";
 
 vi.mock("@asym/database/supabase/admin", () => ({ getAdminClient: vi.fn() }));
-vi.mock("@asym/auth/context", () => ({
+vi.mock(import("@asym/auth/context"), async (importOriginal) => ({
+  ...(await importOriginal()),
   getAuthContext: vi.fn(),
   requireAuth: vi.fn(),
 }));
@@ -21,7 +22,7 @@ vi.mock("../../../../packages/api/src/stripe/tenant-client", () => ({
   resolveTenantStripe: vi.fn(),
 }));
 
-const auth: AuthContext = {
+const auth = {
   userId: "user-A",
   tenantId: "tenant-A",
   profileId: "profile-A",
@@ -29,7 +30,7 @@ const auth: AuthContext = {
   email: "acceptance@example.test",
   isAuthenticated: true,
   memberships: [],
-};
+} satisfies AuthContext;
 const from = vi.fn((table: string) => {
   // Resolve the old GET too: a shape failure must expose the old contract,
   // rather than a missing fluent mock method or an artificial 500.
@@ -73,6 +74,26 @@ beforeEach(() => {
 });
 
 describe("#2364 donate config [A]", () => {
+  it.each([
+    ["donor", 400],
+    ["staff", 400],
+    ["missionary", 403],
+  ] as const)(
+    "POST with an empty body: %s membership gets %i",
+    async (role, status) => {
+      vi.mocked(getAuthContext).mockResolvedValue({
+        ...auth,
+        memberships: [
+          { tenantId: auth.tenantId, role, staffRole: null, isActive: true },
+        ],
+      });
+      const response = await POST(
+        new NextRequest("http://localhost/api/donate", { method: "POST" }),
+      );
+      expect(response.status).toBe(status);
+      expect(resolveTenantStripe).not.toHaveBeenCalled();
+    },
+  );
   it.each([
     "",
     "?missionary_id=20000000-0000-0000-0000-000000000001&fund_id=40000000-0000-0000-0000-000000000001",

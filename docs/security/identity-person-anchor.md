@@ -94,8 +94,15 @@ reading it for authz.
 
 **Finding: the repository contradicts the plan.** It is read as a tenant input
 today. Per spec In 3, this is escalated in the PR and tracked in #2267; this
-slice changes no behavior. The frozen reader set, pinned by the #2256 acceptance
-tests, is:
+slice changes no behavior.
+
+**Since the second release of WP2b (AL-2675,
+`20261119135300_request_tenant_policies.sql`), no RLS policy reads
+`profiles.tenant_id`.** The staff profile read is dropped (plan 5.1), and the
+four Storage policies below test a live membership in the path's tenant
+(`authz.caller_tenant_ids()`). The #2256 real-stack suite now expects an empty
+policy reader set; the function readers below are unchanged. The policy rows
+below record the set as #2256 froze it, not current authorization:
 
 - RLS policies:
   - `public.profiles` `profiles staff tenant select`. Staff of the profile's
@@ -119,9 +126,9 @@ tests, is:
   referenced profile to a tenant by requiring `profiles.tenant_id` to match.
   Since council round 2 on WP2a (R1), the five that check an actor the
   application hands them test a live membership in the tenant instead, as the
-  application does; their `super_admin` branch keeps the profile check until
-  WP2c (`20261118093000_eve_actor_checks_read_membership.sql`; the decision
-  table's section 7 lists every one). They still name profiles beside
+  application does. WP2c replaced the remaining profile-role branches with
+  the operator-list and tenant-membership checks listed below
+  (`20261119135600_wp2c_eve_actor_checks_operator_list.sql`). They still name profiles beside
   `authz.memberships.tenant_id`, so the lexical scan keeps them.
   Since AL-2675 (WP2a, NR-49) `enforce_contribution_operation_tenant_refs` and
   `enforce_contribution_notification_tenant_refs` test a live membership in the
@@ -144,23 +151,37 @@ tests, is:
     the membership's tenant and reads no profile's tenant; its only caller is
     the service role.
   - `assert_eve_retention_actor`: a live flagged staff row for `admin`
-    since R1; the `super_admin` branch reads the profile's tenant.
+    since R1; since WP2c the `super_admin` actor is a platform operator
+    (the operator list) with a live row in the tenant.
   - `assert_eve_admin_memory_owner`: a live row in the tenant since R1.
-  - `validate_eve_notification_recipient`: a `super_admin` profile of the
-    tenant; unchanged until WP2c, behind the closed recipient PATCH.
-  - `assert_eve_launch_profile`: a live row of the role's kind since R1; the
-    `super_admin` branch reads the profile's role and tenant.
-  - `assert_eve_policy_actor_tenant`: a live row in the tenant since R1; a
-    `super_admin` profile with no tenant still passes until WP2c.
-  - `enforce_eve_policy_permission_tenant` (INVOKER): the profiles' tenant;
+  - `validate_eve_notification_recipient`: since WP2c, a live
+    administrator of the tenant (a staff row with the flag) whose profile
+    has an email, in the release that opens the recipient PATCH to
+    platform operators.
+  - `assert_eve_launch_profile`: a live row of the role's kind since R1;
+    since WP2c the `super_admin` actor is a platform operator (the operator
+    list) with a live row in the tenant.
+  - `assert_eve_policy_actor_tenant`: a live row in the tenant since R1;
+    WP2c removed the branch that passed a `super_admin` profile with no
+    tenant.
+  - `has_eve_policy_permission`: checks the profile's login against the
+    operator list, or checks an active permission grant in the requested
+    tenant. The lexical scan matches the grant's `tenant_id`; the function
+    does not read `profiles.tenant_id`.
+  - `enforce_eve_policy_permission_tenant` (INVOKER): since WP2c, live
+    rows of the grantee and the granter in the tenant, checked again when
+    either changes, the grant is reactivated, or its permission changes;
     no application code writes its table.
-  - `enforce_eve_ai_settings_grant_tenant` (INVOKER): the profile's tenant;
-    no application code writes its table.
+  - `enforce_eve_ai_settings_grant_tenant` (INVOKER): since WP2c, a live row
+    of the grantee in the tenant, checked again when the grantee or tenant
+    changes or the grant is reactivated; no application code writes its table.
   - `atomic_update_profile_with_audit` (INVOKER): the profile's login holds a
     live row in the tenant since R1.
-  - `atomic_update_user_role_with_audit`: since WP2a joined stage 1, DEFINER;
-    it judges the caller's tenant-administrator membership and finds the
-    target by membership, and reads no profile's tenant.
+  - `atomic_update_user_role_with_audit`: dropped by WP2c (AL-2675) with
+    GraphQL `updateUserRole`. The role-change and revoke commands that
+    replace it (`tenant_guard.change_membership_role`,
+    `tenant_guard.revoke_membership`) write the membership and read no
+    profile.
   - `set_eve_retention_hold`
   - `expire_eve_retention_records`
   - `handle_new_user`: the writer. Since AL-2675 it gives the new login a

@@ -307,7 +307,9 @@ test.describe("Backend Image Processing", () => {
   });
 
   test("API should reject requests without auth", async ({ request }) => {
-    const response = await request.post("/api/upload/image");
+    const response = await request.post("/api/upload/image", {
+      headers: { "Sec-Fetch-Site": "same-origin" },
+    });
 
     expect(response.status()).toBe(401);
     const data = await response.json();

@@ -84,6 +84,176 @@ export const SHADCN_MAPPED_SUPPORTING_SOURCES = Object.freeze(
 const UI_DIRECTORY = "packages/ui";
 const COMPONENT_DIRECTORY = "components/shadcn";
 const PREVIEW_END = "└ Run without --dry-run to apply.";
+// What the upstream CLI sees through createUpstreamSourceView: these root
+// files and these entries of the UI package.
+export const SHADCN_VIEW_ROOT_FILES = Object.freeze([
+  "package.json",
+  "bun.lock",
+  "tsconfig.json",
+  "tsconfig.base.json",
+]);
+export const SHADCN_VIEW_UI_ENTRIES = Object.freeze([
+  "package.json",
+  "components.json",
+  "tsconfig.json",
+  "components",
+  "lib",
+  "hooks",
+  "styles",
+]);
+const VERIFIER_ROOT = fileURLToPath(new URL("../..", import.meta.url));
+const VERIFIER_PATH = path
+  .relative(VERIFIER_ROOT, fileURLToPath(import.meta.url))
+  .split(path.sep)
+  .join("/");
+
+const toPosix = (file) => file.split(path.sep).join("/");
+
+function insideRoot(root, file) {
+  const relative = path.relative(root, file);
+  return relative !== "" &&
+    relative !== ".." &&
+    !relative.startsWith(`..${path.sep}`) &&
+    !path.isAbsolute(relative)
+    ? toPosix(relative)
+    : null;
+}
+
+function packageName(specifier) {
+  const parts = specifier.split("/");
+  const length = specifier.startsWith("@") ? 2 : 1;
+  return parts.length < length || parts.slice(0, length).some((part) => !part)
+    ? null
+    : {
+        name: parts.slice(0, length).join("/"),
+        subpath: parts.slice(length).join("/"),
+      };
+}
+
+/**
+ * The repository files the `extends` chain of packages/ui/tsconfig.json
+ * reaches, which the CLI reads through the linked node_modules when it
+ * resolves path aliases: relative and package specifiers, arrays included,
+ * with the manifest of each package it goes through. Returns null when any
+ * link cannot be followed or leaves the repository, so a caller cannot tell.
+ */
+export function shadcnTsconfigChain(root = VERIFIER_ROOT) {
+  const chain = new Set();
+  const pending = [path.join(root, UI_DIRECTORY, "tsconfig.json")];
+  const seen = new Set();
+  const existing = (file) => {
+    try {
+      return statSync(file).isFile() ? file : null;
+    } catch {
+      return null;
+    }
+  };
+  const asJson = (file) =>
+    existing(file) ??
+    (file.endsWith(".json") ? null : existing(`${file}.json`));
+  const resolveExtends = (from, specifier) => {
+    if (typeof specifier !== "string" || specifier === "") return null;
+    if (specifier.startsWith(".") || path.isAbsolute(specifier))
+      return asJson(path.resolve(path.dirname(from), specifier));
+    const parsed = packageName(specifier);
+    if (!parsed) return null;
+    for (
+      let directory = path.dirname(from);
+      insideRoot(root, directory) !== null || directory === path.resolve(root);
+      directory = path.dirname(directory)
+    ) {
+      const linked = path.join(directory, "node_modules", parsed.name);
+      let packageDirectory;
+      try {
+        packageDirectory = realpathSync(linked);
+      } catch {
+        continue;
+      }
+      const manifestFile = path.join(packageDirectory, "package.json");
+      const manifest = JSON.parse(readFileSync(manifestFile, "utf8"));
+      // Package exports can redirect the specifier; this resolver does not.
+      if (manifest.exports !== undefined) return null;
+      const relativeManifest = insideRoot(root, manifestFile);
+      if (relativeManifest === null) return null;
+      chain.add(relativeManifest);
+      return asJson(
+        path.join(packageDirectory, parsed.subpath || "tsconfig.json"),
+      );
+    }
+    return null;
+  };
+  try {
+    while (pending.length > 0) {
+      const file = pending.pop();
+      if (seen.has(file)) continue;
+      seen.add(file);
+      const config = JSON.parse(readFileSync(file, "utf8"));
+      if (!config || typeof config !== "object" || Array.isArray(config))
+        return null;
+      const parents =
+        config.extends === undefined ? [] : [config.extends].flat();
+      for (const specifier of parents) {
+        const parent = resolveExtends(file, specifier);
+        const relative = parent && insideRoot(root, realpathSync(parent));
+        if (!relative) return null;
+        chain.add(relative);
+        pending.push(realpathSync(parent));
+      }
+    }
+  } catch {
+    return null;
+  }
+  return [...chain];
+}
+
+/**
+ * Every repository path this verifier's result depends on, for a parsed
+ * review baseline: this script, the baseline, each file it hashes (proofs,
+ * protected sources, reviewed and local component sources) and what the
+ * upstream CLI reads, including the extends chain of the UI package's
+ * tsconfig (`tsconfigChain`, derived from this checkout by default). A path
+ * ending in "/" stands for everything under it. Returns null when the
+ * baseline is unusable or the chain cannot be resolved, so a caller cannot
+ * tell.
+ */
+export function shadcnDiffInputs(
+  baseline,
+  { tsconfigChain = shadcnTsconfigChain() } = {},
+) {
+  if (!baseline || typeof baseline !== "object" || Array.isArray(baseline))
+    return null;
+  if (!Array.isArray(tsconfigChain)) return null;
+  const ui = (file) => `${UI_DIRECTORY}/${file}`;
+  const paths = (entries, pick, prefix = "") =>
+    (Array.isArray(entries) ? entries : []).flatMap((entry) => {
+      const file = entry && pick(entry);
+      return typeof file === "string" ? [prefix + file] : [];
+    });
+  // Without split-component mappings the CLI runs in the UI package itself.
+  const cliView =
+    baseline.schemaVersion === 3
+      ? SHADCN_VIEW_UI_ENTRIES.flatMap((entry) => [ui(entry), `${ui(entry)}/`])
+      : [`${UI_DIRECTORY}/`];
+  return [
+    ...new Set([
+      VERIFIER_PATH,
+      SHADCN_REVIEW_BASELINE,
+      ...SHADCN_VIEW_ROOT_FILES,
+      ...cliView,
+      ...tsconfigChain,
+      ...SHADCN_REQUIRED_SUPPORTING_SOURCES,
+      ...SHADCN_MAPPED_SUPPORTING_SOURCES,
+      ...paths(baseline.protectedSources, (entry) => entry.path),
+      ...paths(baseline.proofSources, (entry) => entry.path),
+      ...paths(
+        baseline.files,
+        (entry) => entry.localPath ?? entry.path,
+        `${UI_DIRECTORY}/`,
+      ),
+      ...paths(baseline.localOnly, (entry) => entry.path, `${UI_DIRECTORY}/`),
+    ]),
+  ];
+}
 
 function requireCondition(condition, message) {
   if (!condition) throw new Error(message);
@@ -416,6 +586,96 @@ function approvedProxyEnvironment() {
   return proxies;
 }
 
+const TLS_DIAGNOSTIC =
+  /\b(?:TLS|SSL|certificates?|self[- ]signed|unable to verify|ERR_TLS_[A-Z_]+|CERT_[A-Z_]+|UNABLE_TO_VERIFY_[A-Z_]+)\b/i;
+const PUBLIC_REGISTRY_URL = /^https:\/\/ui\.shadcn\.com\/r\/[A-Za-z0-9._/-]+$/;
+// What the pinned CLI prints on stdout (its logger writes errors there) when
+// a registry request fails below HTTP (@shadcn/registry's fetcher).
+const REQUEST_FAILURE = /^(?:Error: )?Request to (\S+) failed, reason: (.+)$/gm;
+const CLI_BOILERPLATE =
+  /^(?:Something went wrong\b|If the problem persists\b|You can also try a previous version\b|(?:npx|bunx|pnpm dlx|yarn dlx) shadcn@|(?:Message|Error|Suggestion):$)/;
+
+/** The kind of a connect-level failure worth one more attempt, or null. */
+function connectFailureKind(reason) {
+  if (/\bConnect Timeout Error\b|\bUND_ERR_CONNECT_TIMEOUT\b/.test(reason))
+    return "connect timeout";
+  return /\b(ECONNRESET|ETIMEDOUT|EAI_AGAIN)\b/.exec(reason)?.[1] ?? null;
+}
+
+/**
+ * One line of CLI output safe to print: URL userinfo (proxy credentials),
+ * query strings and fragments, and Bearer or Basic values are redacted, and
+ * the line is capped.
+ */
+export function redactCliLine(line) {
+  return line
+    .replace(/\b([a-z][a-z0-9+.-]*:\/\/)[^\s/?#@]*@/gi, "$1<redacted>@")
+    .replace(/(\b[a-z][a-z0-9+.-]*:\/\/[^\s?#]*)[?#]\S*/gi, "$1?<redacted>")
+    .replace(/\b(Bearer|Basic)\s+\S+/gi, "$1 <redacted>")
+    .slice(0, 300);
+}
+
+/**
+ * The CLI's own reason for a failed run: its request failure, else its
+ * registry error, else the first line of its error report. The rest of its
+ * output, and all of stderr, stays hidden.
+ */
+function cliFailureReason(output) {
+  const lines = output
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const request = lines.find((line) =>
+    /^(?:Error: )?Request to \S+ failed, reason: /.test(line),
+  );
+  const line =
+    request?.replace(/^Error: /, "") ??
+    lines.find((candidate) =>
+      /^Failed to fetch from registry\b/.test(candidate),
+    ) ??
+    lines.find((candidate) => !CLI_BOILERPLATE.test(candidate));
+  return line ? redactCliLine(line) : null;
+}
+
+function cliLabel(args) {
+  if (args[0] === "add" && typeof args[1] === "string")
+    return args[2] === "--diff" && args[3]
+      ? `${args[1]} (diff ${args[3]})`
+      : args[1];
+  return args.join(" ");
+}
+
+/**
+ * Whether a failed read is worth one more attempt: exactly one public
+ * registry error, either an HTTP 502/503/504 or a connect-level failure
+ * (connect timeout, ECONNRESET, ETIMEDOUT, EAI_AGAIN), and no TLS or
+ * contradictory diagnostic. Returns how to name it, or null.
+ */
+function transientFailure(output) {
+  if (TLS_DIAGNOSTIC.test(output)) return null;
+  const registryErrors =
+    output.match(/^Failed to fetch from registry.*$/gm) ?? [];
+  const requests = [...output.matchAll(REQUEST_FAILURE)];
+  if (registryErrors.length === 1 && requests.length === 0) {
+    const status = registryErrors[0].match(
+      /^Failed to fetch from registry \((502|503|504)\): (\S+)$/,
+    );
+    return status && PUBLIC_REGISTRY_URL.test(status[2])
+      ? { retry: `HTTP ${status[1]}`, final: `HTTP ${status[1]}` }
+      : null;
+  }
+  if (registryErrors.length === 0 && requests.length === 1) {
+    const [, url, reason] = requests[0];
+    const kind = PUBLIC_REGISTRY_URL.test(url)
+      ? connectFailureKind(reason)
+      : null;
+    return kind
+      ? { retry: `connect failure (${kind})`, final: "connect failure" }
+      : null;
+  }
+  return null;
+}
+
 export function createCliRunner({
   cwd,
   root = fileURLToPath(new URL("../..", import.meta.url)),
@@ -533,33 +793,24 @@ export function createCliRunner({
               /\r\n/g,
               "\n",
             );
-            const registryErrors =
-              output.match(/^Failed to fetch from registry.*$/gm) ?? [];
             // Contradictory registry or TLS diagnostics fail closed. Only one
             // unambiguous anonymous public transient error may be retried.
             const transient =
-              code === 1 &&
-              readOnly &&
-              registryErrors.length === 1 &&
-              !/\b(?:TLS|SSL|certificates?|self[- ]signed|unable to verify|ERR_TLS_[A-Z_]+|CERT_[A-Z_]+|UNABLE_TO_VERIFY_[A-Z_]+)\b/i.test(
-                output,
-              )
-                ? registryErrors[0].match(
-                    /^Failed to fetch from registry \((502|503|504)\): https:\/\/ui\.shadcn\.com\/r\/[A-Za-z0-9._/-]+$/,
-                  )
-                : undefined;
+              code === 1 && readOnly ? transientFailure(output) : null;
             if (transient && attempts < 3) {
               console.warn(
-                `[shadcn-diff] public registry HTTP ${transient[1]}; retry ${attempts + 1}/3 within the existing CLI coverage deadline.`,
+                `[shadcn-diff] public registry ${transient.retry}; retry ${attempts + 1}/3 within the existing CLI coverage deadline.`,
               );
               backoff = setTimeout(launch, 100 * attempts);
             } else {
               const cause = transient
-                ? `; public registry HTTP ${transient[1]} after ${attempts} attempts`
+                ? `; public registry ${transient.final} after ${attempts} attempts`
                 : "";
+              const reason = cliFailureReason(output);
+              // One line: which read failed and the CLI's own reason.
               settle(
                 new Error(
-                  `shadcn CLI coverage failed (exit ${code ?? "unknown"}${cause})`,
+                  `shadcn CLI coverage failed (exit ${code ?? "unknown"}${cause}) for ${cliLabel(cliArgs)}: ${reason ?? "the CLI printed no reason"}`,
                 ),
               );
             }
@@ -967,25 +1218,12 @@ export function createUpstreamSourceView(root, mappings) {
         copyFileSync(source, target);
       }
     };
-    for (const file of [
-      "package.json",
-      "bun.lock",
-      "tsconfig.json",
-      "tsconfig.base.json",
-    ])
+    for (const file of SHADCN_VIEW_ROOT_FILES)
       if (existsSync(path.join(root, file)))
         copy(path.join(root, file), path.join(view, file));
     const ui = path.join(root, UI_DIRECTORY),
       copiedUi = path.join(view, UI_DIRECTORY);
-    for (const file of [
-      "package.json",
-      "components.json",
-      "tsconfig.json",
-      "components",
-      "lib",
-      "hooks",
-      "styles",
-    ])
+    for (const file of SHADCN_VIEW_UI_ENTRIES)
       if (existsSync(path.join(ui, file)))
         copy(path.join(ui, file), path.join(copiedUi, file));
     for (const directory of ["", UI_DIRECTORY]) {

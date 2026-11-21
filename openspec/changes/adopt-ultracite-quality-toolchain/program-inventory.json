@@ -15,13 +15,13 @@
     "vendored": "Unpacked third-party distributions.",
     "fixture": "Base UI browser fixtures outside that program's fixed include list (L9 keeps the program as it is). workspace-main.tsx needs Missionary's @/, which conflicts with the directory's @/ for the UI package (E40)."
   },
-  "trackedFiles": 4403,
+  "trackedFiles": 4469,
   "counts": {
-    "compiled": 2391,
+    "compiled": 2396,
     "compiled-elsewhere": 33,
     "negative-fixture": 4,
     "evidence": 3,
-    "lint-context": 1860,
+    "lint-context": 1921,
     "none": 112
   },
   "programs": [
@@ -29,16 +29,16 @@
       "config": "apps/admin/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (apps/admin)",
-      "trackedMembers": 1498,
-      "importedOnly": 730,
+      "trackedMembers": 1511,
+      "importedOnly": 743,
       "reason": "Workspace program."
     },
     {
       "config": "apps/donor/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (apps/donor)",
-      "trackedMembers": 643,
-      "importedOnly": 495,
+      "trackedMembers": 646,
+      "importedOnly": 498,
       "reason": "Workspace program."
     },
     {
@@ -53,23 +53,23 @@
       "config": "apps/missionary/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (apps/missionary)",
-      "trackedMembers": 615,
-      "importedOnly": 485,
+      "trackedMembers": 618,
+      "importedOnly": 488,
       "reason": "Workspace program."
     },
     {
       "config": "packages/api/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (packages/api)",
-      "trackedMembers": 617,
-      "importedOnly": 91,
+      "trackedMembers": 624,
+      "importedOnly": 94,
       "reason": "Workspace program."
     },
     {
       "config": "packages/auth/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (packages/auth)",
-      "trackedMembers": 71,
+      "trackedMembers": 72,
       "importedOnly": 26,
       "reason": "Workspace program."
     },
@@ -109,16 +109,16 @@
       "config": "packages/eve-runtime/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (packages/eve-runtime)",
-      "trackedMembers": 282,
-      "importedOnly": 145,
+      "trackedMembers": 285,
+      "importedOnly": 148,
       "reason": "Workspace program."
     },
     {
       "config": "packages/graphql/tsconfig.json",
       "role": "typecheck",
       "gate": "bun run typecheck (packages/graphql)",
-      "trackedMembers": 49,
-      "importedOnly": 45,
+      "trackedMembers": 51,
+      "importedOnly": 47,
       "reason": "Workspace program."
     },
     {
@@ -181,8 +181,8 @@
       "config": "tests/fixtures/base-ui-compliance/tsconfig.json",
       "role": "other-gate",
       "gate": "bun run test:e2e:base-ui",
-      "trackedMembers": 300,
-      "importedOnly": 267,
+      "trackedMembers": 303,
+      "importedOnly": 270,
       "reason": "Base UI browser fixture, compiled before its Playwright run."
     },
     {
@@ -197,32 +197,32 @@
       "config": "docs/qa/admin-workspaces-hillclimb/fixtures/tsconfig.json",
       "role": "evidence",
       "gate": "none",
-      "trackedMembers": 211,
-      "importedOnly": 208,
+      "trackedMembers": 213,
+      "importedOnly": 210,
       "reason": "Review evidence fixtures under docs/; no gate compiles them."
     },
     {
       "config": "tests/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 2220,
-      "importedOnly": 1069,
+      "trackedMembers": 2294,
+      "importedOnly": 1083,
       "reason": "Central tests that need no workspace alias (E40), with allowJs so imported scripts keep inferred types. Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
       "config": "tests/unit/apps/admin/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 1371,
-      "importedOnly": 1061,
+      "trackedMembers": 1376,
+      "importedOnly": 1066,
       "reason": "Admin tests: Admin's options, @/ and @payload-config (E40, E45). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
       "config": "tests/unit/apps/donor/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 470,
-      "importedOnly": 410,
+      "trackedMembers": 473,
+      "importedOnly": 413,
       "reason": "Donor tests: Donor's options and @/ (E40). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
@@ -237,8 +237,8 @@
       "config": "tests/unit/acceptance/issue-2364/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 176,
-      "importedOnly": 171,
+      "trackedMembers": 184,
+      "importedOnly": 179,
       "reason": "Donor acceptance tests outside the Donor partition: Donor's options and @/ (E40). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
@@ -253,24 +253,24 @@
       "config": "tests/unit/cms/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 181,
-      "importedOnly": 131,
+      "trackedMembers": 186,
+      "importedOnly": 135,
       "reason": "CMS tests: @payload-config only (E45). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
       "config": "tests/unit/packages/api/principal/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 30,
-      "importedOnly": 28,
+      "trackedMembers": 31,
+      "importedOnly": 29,
       "reason": "Existing Principal program, kept as it is (L9). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     },
     {
       "config": "tests/unit/packages/api/projection/tsconfig.json",
       "role": "lint-context",
       "gate": "typed lint",
-      "trackedMembers": 20,
-      "importedOnly": 12,
+      "trackedMembers": 21,
+      "importedOnly": 13,
       "reason": "Existing Projection program, kept as it is (L9). Lint context only (L9): typed lint checks it strictly; it is not compiled as a gate until #2732 (Central test compiler coverage)."
     }
   ],
@@ -369,7 +369,7 @@
     },
     {
       "path": "packages/api/**",
-      "files": 526,
+      "files": 530,
       "class": "compiled",
       "roots": "packages/api/tsconfig.json",
       "kind": ""
@@ -383,7 +383,7 @@
     },
     {
       "path": "packages/auth/**",
-      "files": 45,
+      "files": 46,
       "class": "compiled",
       "roots": "packages/auth/tsconfig.json",
       "kind": ""
@@ -530,7 +530,7 @@
     },
     {
       "path": "tests/**",
-      "files": 1148,
+      "files": 1208,
       "class": "lint-context",
       "roots": "tests/tsconfig.json",
       "kind": ""
@@ -852,7 +852,7 @@
     },
     {
       "path": "tests/unit/cms/**",
-      "files": 50,
+      "files": 51,
       "class": "lint-context",
       "roots": "tests/unit/cms/tsconfig.json",
       "kind": ""

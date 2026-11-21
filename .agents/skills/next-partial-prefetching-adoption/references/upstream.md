@@ -22,15 +22,15 @@ Outcome: imported the complete upstream subtree (`SKILL.md`, `rig-template.md`).
 
 ## Core adaptations
 
-- A marked Core overlay (`<!-- CORE-OVERLAY-START -->` to `<!-- CORE-OVERLAY-END -->`) sits between the frontmatter and the upstream title. It records that Core already runs `partialPrefetching: true` in every app, sends the agent to the installed Next.js skills instead of `canary` links and `npx skills add`, rules out the unpinned `@next/codemod@latest agents-md` and `@next/codemod@canary remove-partial-prefetch` commands, `--force` and `git stash`, points at Core's `instant-nav.rig.md`, and keeps commits and pull requests under `docs/ai/rules/general.md`.
-- No upstream sentence is edited. The installed `SKILL.md` therefore differs from the raw upstream hash above only by the overlay block.
+- A marked Core overlay (`<!-- CORE-OVERLAY-START -->` to `<!-- CORE-OVERLAY-END -->`) sits between the frontmatter and the upstream title. It records that Core already runs `partialPrefetching: true` in every app, sends the agent to the installed Next.js skills instead of `canary` links and `npx skills add`, rules out the unpinned `@next/codemod@latest agents-md` and `@next/codemod@canary remove-partial-prefetch` commands, `--force` and `git stash`, points at Core's `instant-nav.rig.md`, and keeps commits and pull requests under `docs/ai/rules/general.md`. Since AL-2715 it also limits the step 5 sweep to the routes or features the request names, and says that root `AGENTS.md` opens with the Next.js block `next dev` writes.
+- No upstream sentence is edited. The installed `SKILL.md` therefore differs from the raw upstream hash above only by the overlay block. `scripts/lib/ecosystem-skill-adapters.mjs` restores it from `scripts/refresh-overlays/ecosystem-core-overlays.json` at every `bun run skills:sync`, so a raw reinstall is repaired on the next sync (AL-2715).
 
 Imported because the installed `next-cache-components-adoption` names it as its follow-up, and the Next.js AI-agents guide lists it among the official skills.
 
 ## Refresh
 
 1. Use an isolated temporary checkout at the `vercel/next.js` release tag that matches the installed `next` version. Verify the tag's commit and the complete file inventory before import. Stage only this skill with `npx --yes skills@1.5.7 add <reviewed-local-checkout> --skill next-partial-prefetching-adoption --agent codex --copy -y` from a scratch directory. Do not use global defaults, `canary`, or other pack members.
-2. Compare the complete source tree and all support files. Re-insert the marked Core overlay after the frontmatter and re-check each of its facts against the repository. Record raw upstream hashes separately from adapted bytes.
+2. Compare the complete source tree and all support files. `bun run skills:sync` re-inserts the marked Core overlay after the frontmatter from `scripts/refresh-overlays/ecosystem-core-overlays.json`; re-check each of its facts against the repository and update the overlay there. Record raw upstream hashes separately from adapted bytes.
 3. Replace the installed source directory transactionally, keeping this provenance and the licence notice. Update its lock entry and source-audit record in the same change. Never run imported scripts or tests as a refresh side effect.
 4. Run `bun run skills:sync`, then non-mutating `bun run skills:verify`, then `bunx vitest run tests/unit/docs`.
 

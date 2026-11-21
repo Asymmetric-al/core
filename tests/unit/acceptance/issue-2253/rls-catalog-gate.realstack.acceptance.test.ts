@@ -98,8 +98,19 @@ const pairs = (r: Result) =>
 const NOBYPASS = "create role acc2253_nobypass nosuperuser nobypassrls;";
 const TENANT = (t: string, extra = "") =>
   `create table public.${t} (id int, tenant_id uuid)${extra};`;
+/**
+ * Amended by AL-2675 (WP2b, second release; record D-18): the gate now also
+ * fails a signed-in policy of a tenant table that admits a row without the
+ * request's tenant (TENANT_CONDITION_MISSING), so the planted policy is the
+ * tenant condition itself. Each case still plants exactly the one violation
+ * it names, and the gate must name exactly that one. Amended again by the
+ * council's R3 on that release (record D-18): a FOR ALL policy also writes,
+ * and on a planted table signed-in users hold no write grant, where only a
+ * plain deny may stand; so the planted policy reads only (FOR SELECT), and
+ * is still the one policy that makes the table "with policy".
+ */
 const POLICY = (t: string) =>
-  `create policy acc2253 on public.${t} using (true);`;
+  `create policy acc2253 on public.${t} for select using (tenant_id = (select authz.current_tenant_id()));`;
 const CASES: [string, string, string[][]][] = [
   [
     "RLS_DISABLED (forced, with policy, not enabled)",
@@ -183,10 +194,15 @@ const CASES: [string, string, string[][]][] = [
       ["GRANT_WITHOUT_POLICY", "donors"],
     ],
   ],
+  // Amended by AL-2675's fixcheck F4 (record D-18): the gate now reads a
+  // policy addressed to anon alone too, and fails one on a tenant table that
+  // admits a row without the request's tenant, so the planted anon policy is
+  // the tenant condition itself. The case still plants only a grant that a
+  // policy admits for that role and command, and expects nothing.
   [
     "nothing for a table grant that a policy admits for that role and command",
     `${TENANT("acc2253_read")} alter table public.acc2253_read enable row level security, force row level security;
-     create policy acc2253 on public.acc2253_read for select to anon using (true);
+     create policy acc2253 on public.acc2253_read for select to anon using (tenant_id = (select authz.current_tenant_id()));
      grant select on public.acc2253_read to anon;`,
     [],
   ],

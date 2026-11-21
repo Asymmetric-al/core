@@ -22,6 +22,15 @@ describe("the local Supabase workflow's path filter", () => {
     "tests/e2e/auth-two-organizations.spec.ts",
     "tests/e2e/helpers/auth-mail.ts",
     "playwright.auth-mail.config.ts",
+    // AL-2675: the first release's reads against the second release's policies.
+    "tests/e2e/auth-request-scope-reads.spec.ts",
+    "tests/e2e/helpers/request-scope-reads.ts",
+    "packages/database/document-scope.tsx",
+    "packages/database/own-api.ts",
+    "packages/database/request-scope-headers.ts",
+    "packages/database/supabase/client.ts",
+    "packages/database/supabase/server.ts",
+    "packages/api/src/shared/request-session-client.ts",
   ])("starts the journeys when %s changes", (file) => {
     expect(paths).toContain(file);
   });

@@ -12,8 +12,15 @@ import type { EveModelPolicyDocument } from "./types";
 import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
-function identityParams(auth: AuthenticatedContext) {
-  return toEveAuditIdentityRpcParams(createAdminEveAuditIdentity(auth));
+function identityParams(input: {
+  auth: AuthenticatedContext;
+  platformOperator?: boolean;
+}) {
+  return toEveAuditIdentityRpcParams(
+    createAdminEveAuditIdentity(input.auth, {
+      platformOperator: input.platformOperator,
+    }),
+  );
 }
 
 function mapMutationError(error: { message: string } | null): never {
@@ -85,12 +92,15 @@ function assertBooleanMutationResult(
 
 export async function createEveModelPolicyDraft(input: {
   auth: AuthenticatedContext;
+  /** The shared operator check's result (`withOperation`'s `isPlatformOperator()`). */
+  platformOperator?: boolean;
   policy: EveModelPolicyDocument;
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<string> {
   await assertEveModelPolicyPermission({
     action: "draft",
     auth: input.auth,
+    platformOperator: input.platformOperator,
     supabaseAdmin: input.supabaseAdmin,
     target: "model_policy:platform",
   });
@@ -102,7 +112,7 @@ export async function createEveModelPolicyDraft(input: {
       p_policy: input.policy,
       p_policy_hash: policyHash,
       p_audit_id: auditId,
-      ...identityParams(input.auth),
+      ...identityParams(input),
     },
   );
   return readUuidMutationResult(data, error);
@@ -110,12 +120,15 @@ export async function createEveModelPolicyDraft(input: {
 
 export async function evaluateEveModelPolicyDraft(input: {
   auth: AuthenticatedContext;
+  /** The shared operator check's result (`withOperation`'s `isPlatformOperator()`). */
+  platformOperator?: boolean;
   policyId: string;
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<void> {
   await assertEveModelPolicyPermission({
     action: "evaluate",
     auth: input.auth,
+    platformOperator: input.platformOperator,
     supabaseAdmin: input.supabaseAdmin,
     target: `model_policy:${input.policyId}`,
   });
@@ -138,7 +151,7 @@ export async function evaluateEveModelPolicyDraft(input: {
       p_eval_status: evaluation.status,
       p_eval_summary: evaluation,
       p_audit_id: crypto.randomUUID(),
-      ...identityParams(input.auth),
+      ...identityParams(input),
     },
   );
   assertBooleanMutationResult(data, error);
@@ -146,6 +159,8 @@ export async function evaluateEveModelPolicyDraft(input: {
 
 export async function activateEveModelPolicy(input: {
   auth: AuthenticatedContext;
+  /** The shared operator check's result (`withOperation`'s `isPlatformOperator()`). */
+  platformOperator?: boolean;
   expectedActivePolicyId: string | null;
   policyId: string;
   supabaseAdmin: AdminSupabaseClient;
@@ -153,6 +168,7 @@ export async function activateEveModelPolicy(input: {
   await assertEveModelPolicyPermission({
     action: "activate",
     auth: input.auth,
+    platformOperator: input.platformOperator,
     supabaseAdmin: input.supabaseAdmin,
     target: `model_policy:${input.policyId}`,
   });
@@ -162,7 +178,7 @@ export async function activateEveModelPolicy(input: {
       p_policy_id: input.policyId,
       p_expected_active_policy_id: input.expectedActivePolicyId,
       p_audit_id: crypto.randomUUID(),
-      ...identityParams(input.auth),
+      ...identityParams(input),
     },
   );
   assertBooleanMutationResult(data, error);
@@ -170,12 +186,15 @@ export async function activateEveModelPolicy(input: {
 
 export async function rollbackEveModelPolicy(input: {
   auth: AuthenticatedContext;
+  /** The shared operator check's result (`withOperation`'s `isPlatformOperator()`). */
+  platformOperator?: boolean;
   expectedActivePolicyId: string;
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<void> {
   await assertEveModelPolicyPermission({
     action: "rollback",
     auth: input.auth,
+    platformOperator: input.platformOperator,
     supabaseAdmin: input.supabaseAdmin,
     target: `model_policy:${input.expectedActivePolicyId}`,
   });
@@ -184,7 +203,7 @@ export async function rollbackEveModelPolicy(input: {
     {
       p_expected_active_policy_id: input.expectedActivePolicyId,
       p_audit_id: crypto.randomUUID(),
-      ...identityParams(input.auth),
+      ...identityParams(input),
     },
   );
   assertBooleanMutationResult(data, error);
@@ -196,6 +215,8 @@ export async function createEveModelBudgetOverride(input: {
   additionalRequests: number;
   additionalUsdMicros: number;
   auth: AuthenticatedContext;
+  /** The shared operator check's result (`withOperation`'s `isPlatformOperator()`). */
+  platformOperator?: boolean;
   expiresAt: string;
   policyId: string;
   reason: string;
@@ -206,6 +227,7 @@ export async function createEveModelBudgetOverride(input: {
   await assertEveModelPolicyPermission({
     action: "override_budget",
     auth: input.auth,
+    platformOperator: input.platformOperator,
     supabaseAdmin: input.supabaseAdmin,
     target: `${input.scopeType}:${input.scopeId}`,
   });
@@ -222,7 +244,7 @@ export async function createEveModelBudgetOverride(input: {
       p_expires_at: input.expiresAt,
       p_reason: summarizeEveAuditValue(input.reason),
       p_audit_id: crypto.randomUUID(),
-      ...identityParams(input.auth),
+      ...identityParams(input),
     },
   );
   readUuidMutationResult(data, error);

@@ -1,75 +1,9 @@
 ## Purpose
 
-Keep Core's UI quality audits reproducible and complete across its
-applications, with independent per-application score floors,
-evidence-preserving classification, accessible UI repairs, and reviewed
-upstream-component and browser-run evidence.
+Defines how Core reports third-party UI audit results and how it enforces
+accessibility, so real defects block regressions without score bookkeeping.
 
 ## ADDED Requirements
-
-### Requirement: Workspace UI Audits Are Reproducible And Complete
-
-Core SHALL use the same exactly locked Shadscan engine and report contract for
-local hooks and CI. It SHALL require complete coverage of admin, donor and
-missionary applications and report shared-library findings separately.
-
-#### Scenario: A workspace audit is executed
-
-- WHEN the local hook or CI executes the audit
-- THEN the engine, ruleset, schema and application inventory are verified
-- AND missing, truncated, partial or unassessed coverage fails the gate
-- AND raw application and library results remain available for inspection
-
-### Requirement: Each Application Has An Independent Score Floor
-
-Core SHALL independently enforce each application's verified raw score floor.
-An aggregate improvement SHALL NOT hide an individual application's regression.
-Floors SHALL be captured after verified remediation and SHALL NOT be lowered
-without explicit owner acceptance of that regression.
-
-#### Scenario: One application regresses
-
-- WHEN an application's raw score falls below its recorded floor
-- THEN the shared gate fails even if the pooled score passes
-- AND the report identifies the application, observed score and required floor
-
-### Requirement: Each Application Category Has An Independent Score Floor
-
-Core SHALL protect all six categories of each deployed application independently using verified raw assessment percentages.
-
-Every clause in `openspec/contracts/ui-quality-audits.md#contract-7aab1c5a8227bf2da9b4` MUST apply without exception.
-
-#### Scenario: A category regresses while the pooled score stays high
-
-- WHEN an application's category percentage falls below its recorded floor
-- THEN the shared gate fails and identifies the application, category and floor
-- AND raw scores and findings remain unchanged
-
-#### Scenario: A rounded perfect score still contains a scored failure
-
-- WHEN a protected application or category rounds to 100 without earning all points
-- THEN a 100-point floor fails
-- AND the unchanged assessment remains available for review
-
-#### Scenario: An unresolved behavior is excluded from a perfect score
-
-- WHEN an application's overall floor is activated at 100 and a score-bearing rule is advisory in any of its categories
-- THEN the perfect-score gate fails even if the remaining assessed rules earn 100
-- AND the unchanged advisory remains available for verification
-- AND current lower floors and zero-point advisories keep their existing behavior
-
-### Requirement: Audit Classifications Preserve Evidence
-
-Core SHALL retain unmodified scanner statuses and scores. Scanner limitations
-and product-policy differences SHALL identify exact scope and current source or
-behavior evidence. A classification SHALL NOT silently accept unrelated or stale
-evidence or exempt an entire rule based on one example.
-
-#### Scenario: Classification evidence becomes stale
-
-- WHEN a classified finding or its executable proof no longer matches
-- THEN the gate rejects that classification or reports it as unreviewed
-- AND the original scanner finding remains visible
 
 ### Requirement: UI Repairs Preserve Accessible Interaction And Product Intent
 

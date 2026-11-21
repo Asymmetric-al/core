@@ -67,7 +67,8 @@ describe.skipIf(!ADMIN_URL)("#2260 donor_feed_preferences own rows (R)", () => {
     insert into auth.users (id) values (:U1), (:U2), (:U3), (:S);
     insert into public.profiles (id, user_id, tenant_id, role) values (:U1, :U1, :A, 'donor'), (:U2, :U2, :A, 'donor'), (:U3, :U3, :B, 'donor'), (:S, :S, :A, 'donor')
       on conflict (id) do update set user_id = excluded.user_id, tenant_id = excluded.tenant_id, role = excluded.role;
-    insert into authz.memberships (user_id, tenant_id, role, staff_role, is_active) values (:S, :A, 'staff', 'finance', true);
+    insert into authz.memberships (user_id, tenant_id, role, staff_role, is_active) values (:S, :A, 'staff', 'finance', true),
+      (:U1, :A, 'donor', NULL, true), (:U2, :A, 'donor', NULL, true), (:U3, :B, 'donor', NULL, true);
     insert into public.donors (id, tenant_id, profile_id) values (:D1, :A, :U1), (:D2, :A, :U2), (:D3, :B, :U3);
     insert into ${T} (id, donor_id, tenant_id) values (:P1, :D1, :A), (:P2, :D2, :A), (:P3, :D3, :B);`.replace(
       /:([A-Z]\d?)\b/g,
@@ -146,14 +147,32 @@ describe.skipIf(!ADMIN_URL)("#2260 donor_feed_preferences own rows (R)", () => {
     });
   type Who = { role: string; user?: string; tenant?: string };
   const U1A: Who = { role: "authenticated", user: "U1", tenant: "A" };
-  /** One statement as `who`; rolled back unless `keep`. Returns rows, rowCount, SQLSTATE. */
+  /**
+   * One statement as `who`; rolled back unless `keep`. Returns rows, rowCount, SQLSTATE.
+   * Amended by AL-2675 (WP2b, second release; record D-18): the tenant a
+   * signed-in request acts in comes from the `x-asym-tenant` header and a
+   * live membership there, no longer from the token claim. So `who.tenant`
+   * is also sent as that header, as the Data API carries it, and the fixture
+   * gives U1, U2 and U3 the donor memberships the claim used to stand in
+   * for. Every case asserts what it asserted before.
+   */
   async function as(who: Who, sql: string, keep = false) {
     await db.query("savepoint q");
     try {
       await db.query(`set local role ${who.role}`);
       await db.query(
-        "select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', $2, true)",
-        who.user ? [claims(who.user, who.tenant), id[who.user]] : ["", ""],
+        "select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', $2, true), set_config('request.headers', $3, true)",
+        who.user
+          ? [
+              claims(who.user, who.tenant),
+              id[who.user],
+              who.tenant === undefined
+                ? ""
+                : JSON.stringify({
+                    "x-asym-tenant": id[who.tenant] ?? who.tenant,
+                  }),
+            ]
+          : ["", "", ""],
       );
       const r = await db.query(sql);
       await db.query(
@@ -223,7 +242,14 @@ describe.skipIf(!ADMIN_URL)("#2260 donor_feed_preferences own rows (R)", () => {
       [],
     );
   }
-  async function policyShape() {
+  /**
+   * Amended by AL-2675 (record D-18): the policies of this chain are the
+   * second release of WP2b's, which keep the tenant condition and bind the
+   * own row to a donor assignment through authz.caller_profile_ids(), which
+   * reads auth.uid(). `ownFile` checks the shape this suite's own migration
+   * writes, when a case has re-applied it.
+   */
+  async function policyShape(ownFile = false) {
     const { rows } = await db.query(
       `select policyname, roles::text, cmd, qual, with_check from pg_policies where schemaname = 'public' and tablename = 'donor_feed_preferences' order by policyname`,
     );
@@ -232,8 +258,14 @@ describe.skipIf(!ADMIN_URL)("#2260 donor_feed_preferences own rows (R)", () => {
     );
     for (const r of rows)
       for (const e of [r.qual, r.with_check].filter(Boolean)) {
-        expect(e, r.policyname).toContain("auth.uid()");
         expect(e, r.policyname).toContain("authz.current_tenant_id()");
+        if (ownFile) expect(e, r.policyname).toContain("auth.uid()");
+        else {
+          expect(e, r.policyname).toContain("authz.caller_profile_ids()");
+          expect(e, r.policyname).toContain(
+            "authz.assignment_is('donor'::authz.membership_role)",
+          );
+        }
       }
     expect(
       rows.find((r) => r.cmd === "UPDATE")?.with_check,
@@ -286,18 +318,35 @@ describe.skipIf(!ADMIN_URL)("#2260 donor_feed_preferences own rows (R)", () => {
       expect((await as(U1A, upd("show_org_posts = false", "P1"))).n).toBe(1),
     ));
 
+  // Amended by AL-2675 (WP2b, second release; record D-18): the tenant now
+  // arrives as the request header. With none, U1 reads nothing, updates
+  // nothing and cannot insert, as before. A tenant that is not a UUID is
+  // refused with 22P02, so a client defect is not an empty read: the read,
+  // the update and the insert are each refused, which is at least what the
+  // case asserted before.
   it.each([
-    ["no tenant_id", undefined],
-    ["a non-UUID tenant_id", "not-a-uuid"],
-  ])(
-    "4: with %s, U1 reads 0 rows, cannot insert (42501), updates 0 rows",
-    (_n, tenant) =>
+    ["no tenant", undefined, null],
+    ["a non-UUID tenant", "not-a-uuid", "22P02"],
+  ] as const)(
+    "4: with %s, U1 reads 0 rows, updates 0 rows and cannot insert",
+    (_n, tenant, refusal) =>
       tx(async () => {
         const who = { role: "authenticated", user: "U1", tenant };
-        expect(await ids(who)).toEqual([]);
-        expect((await as(who, upd("show_org_posts = false", "P1"))).n).toBe(0);
-        await drop("P1");
-        expect((await as(who, ins("D1", "A"))).code).toBe("42501");
+        if (refusal === null) {
+          expect(await ids(who)).toEqual([]);
+          expect((await as(who, upd("show_org_posts = false", "P1"))).n).toBe(
+            0,
+          );
+          await drop("P1");
+          expect((await as(who, ins("D1", "A"))).code).toBe("42501");
+        } else {
+          expect((await as(who, `select id from ${T}`)).code).toBe(refusal);
+          expect(
+            (await as(who, upd("show_org_posts = false", "P1"))).code,
+          ).toBe(refusal);
+          await drop("P1");
+          expect((await as(who, ins("D1", "A"))).code).toBe(refusal);
+        }
       }),
   );
 
@@ -382,7 +431,7 @@ describe.skipIf(!ADMIN_URL)("#2260 donor_feed_preferences own rows (R)", () => {
       expect(await rerun()).toBeNull();
       expect(await rerun()).toBeNull();
       await exactAcl(before);
-      await policyShape();
+      await policyShape(true);
     }));
 
   it("16: service_role sees every row in tenants A and B", () =>

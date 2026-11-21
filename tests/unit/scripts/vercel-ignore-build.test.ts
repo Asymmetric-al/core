@@ -327,6 +327,25 @@ describe.each([false, true])(
         );
       },
     );
+    it.each(appNames)(
+      "characterises the release marker: builds %s even when previous deployment matches HEAD",
+      (app) => {
+        const head = git("rev-parse", "HEAD");
+        const result = check(
+          head,
+          {
+            VERCEL_ENV: "production",
+            VERCEL_GIT_COMMIT_SHA: head,
+            CORE_RELEASE_FORCE_BUILD_SHA: head,
+          },
+          app,
+        );
+        expect(result.status).toBe(1);
+        expect(result.stdout).toBe(
+          "[vercel-ignore] release job marker matched\n",
+        );
+      },
+    );
     it.each([
       ["preview", { VERCEL_ENV: "preview" }],
       ["mismatched provider SHA", { VERCEL_GIT_COMMIT_SHA: "f".repeat(40) }],

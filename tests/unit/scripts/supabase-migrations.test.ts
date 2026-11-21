@@ -25,13 +25,22 @@ const MANIFEST = JSON.parse(
     path.join(root, "docs/security/field-policies/manifest.json"),
     "utf8",
   ),
-) as { surfaces: string[]; record_types: Record<string, object> };
-const RECORD_TYPES = Object.keys(MANIFEST.record_types).length;
+) as {
+  surfaces: string[];
+  record_types: Record<string, object>;
+  derived_record_types: Record<string, object>;
+};
+const PHYSICAL_TYPES = Object.keys(MANIFEST.record_types).length;
+const DERIVED_TYPES = Object.keys(MANIFEST.derived_record_types).length;
 const COLUMNS = Object.values(MANIFEST.record_types).reduce(
   (n, columns) => n + Object.keys(columns).length,
   0,
 );
-const ROWS = COLUMNS * MANIFEST.surfaces.length;
+const DERIVED_FIELDS = Object.values(MANIFEST.derived_record_types).reduce(
+  (count, fields) => count + Object.keys(fields).length,
+  0,
+);
+const ROWS = (COLUMNS + DERIVED_FIELDS) * MANIFEST.surfaces.length;
 const roots: string[] = [];
 const itPosix = process.platform === "win32" ? it.skip : it;
 afterEach(() => {
@@ -59,28 +68,31 @@ function runVerifier(
     ),
   );
   const surfaces: string[] = manifest.surfaces;
-  const entries = Object.entries(
-    manifest.record_types as Record<
-      string,
-      Record<string, Record<string, unknown>>
-    >,
-  ).flatMap(([recordType, columns]) =>
-    Object.entries(columns).map(([name, entry]) => ({
-      recordType,
-      name,
-      ...entry,
-    })),
+  const entries = Object.entries({
+    ...manifest.record_types,
+    ...manifest.derived_record_types,
+  } as Record<string, Record<string, Record<string, unknown>>>).flatMap(
+    ([recordType, columns]) =>
+      Object.entries(columns).map(([name, entry]) => ({
+        recordType,
+        name,
+        ...entry,
+      })),
   );
   const catalog = {
     relations: Object.keys(manifest.record_types).sort(),
-    columns: entries.map((column) => ({
-      record_type: column.recordType,
-      field_key: column.name,
-      type: column.type,
-      nullable: column.nullable,
-      generated: column.generated ?? null,
-      default: "default" in column ? column.default : null,
-    })),
+    columns: entries
+      .filter((column) =>
+        Object.hasOwn(manifest.record_types, column.recordType),
+      )
+      .map((column) => ({
+        record_type: column.recordType,
+        field_key: column.name,
+        type: column.type,
+        nullable: column.nullable,
+        generated: column.generated ?? null,
+        default: "default" in column ? column.default : null,
+      })),
     reserved_present: [],
     rows: entries.flatMap((column) =>
       surfaces.map((surface) => {
@@ -124,6 +136,53 @@ function runVerifier(
     commands: [],
     wrappers: [],
     grants: [],
+    // AL-2675 (WP2b, second release; record D-18): the gate also reads every
+    // signed-in policy in public, the request-tenant helpers and the published
+    // tables. The fake catalog holds the reviewed exceptions as they stand and
+    // the four helpers, so a clean run stays clean.
+    policies: JSON.parse(
+      readFileSync(
+        path.join(root, "docs/security/tenant-policy-exceptions.json"),
+        "utf8",
+      ),
+    ).entries.map(
+      (entry: {
+        table: string;
+        policy: string;
+        cmd: string;
+        roles: string[];
+        permissive: boolean;
+        using: string;
+        check: string;
+      }) => ({
+        table: entry.table,
+        policy: entry.policy,
+        // Council R3: each pin names its command, roles and kind.
+        cmd: entry.cmd,
+        roles: entry.roles,
+        permissive: entry.permissive,
+        using: entry.using,
+        check: entry.check,
+        // Signed-in users hold SELECT on each excepted table.
+        granted: true,
+        writable: true,
+      }),
+    ),
+    tenant_helpers: [
+      "current_tenant_id",
+      "request_tenant_id",
+      "request_assignment_id",
+      "request_assignment",
+    ].map((name) => ({
+      function: `authz.${name}()`,
+      body: "SELECT a.tenant_id FROM authz.request_assignment() AS a",
+      // Amended by fixcheck F4 (record D-18): the gate reads each helper's
+      // search path, which the migrated helpers fix empty.
+      search_path: '""',
+      // Council R12 (a): the helpers themselves, not functions they call.
+      root: true,
+    })),
+    published: [],
   };
   const psql = path.join(temporary, "psql.cjs");
   const calls = path.join(temporary, "calls.jsonl");
@@ -225,20 +284,22 @@ describe("supabase migrations verifier", () => {
       const result = runVerifier("clean");
       expect(result.status).toBe(0);
       expect(result.stdout).toContain(
-        `PASS: field-policy manifest: ${RECORD_TYPES} record types, ${COLUMNS} columns`,
+        `PASS: field-policy manifest: ${PHYSICAL_TYPES} physical types (${COLUMNS} columns), ${DERIVED_TYPES} derived types (${DERIVED_FIELDS} fields)`,
       );
       expect(result.stdout).toContain(
         `PASS: all ${ROWS} public.field_policies rows equal the manifest`,
       );
       expect(result.stdout).toContain(
-        `equal the manifest's ${COLUMNS} entries`,
+        `equal the manifest's ${COLUMNS} physical columns`,
       );
       // AL-2674 (D09) removed one exception entry with its dropped table.
       const gateLine = result.stdout.indexOf(
         "PASS: tenant RLS catalog gate: 85 tenant tables enabled and forced (1 with policies, 84 listed deny-by-default, 0 stale)",
       );
       expect(
-        result.stdout.indexOf(`equal the manifest's ${COLUMNS} entries`),
+        result.stdout.indexOf(
+          `equal the manifest's ${COLUMNS} physical columns`,
+        ),
       ).toBeLessThan(gateLine);
       expect(gateLine).toBeLessThan(
         result.stdout.indexOf("forward Supabase migrations"),

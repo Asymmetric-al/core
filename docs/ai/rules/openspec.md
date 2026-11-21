@@ -67,9 +67,8 @@ This keeps durable project context, intended behavior, and active change scope v
      `scripts/refresh-upstream-skills.mjs`, the seven imported skills through
      that script's scoped refresh, their source-review records in
      `docs/ai/skill-source-audit.json`, the pin constants in
-     `tests/unit/docs/openspec-modernization.test.ts`, and the `package.json`
-     proof hash in `tooling/shadscan/findings.json`. Try the new release in a
-     scratch checkout first. Do not relax `--strict` to get there.
+     `tests/unit/docs/openspec-modernization.test.ts`. Try the new release in
+     a scratch checkout first. Do not relax `--strict` to get there.
 
 4. **Keep repo-owned instruction files hand-maintained.**
    - Do not run `openspec update` or `openspec init` against this live

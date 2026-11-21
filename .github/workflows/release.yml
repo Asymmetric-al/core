@@ -43,6 +43,12 @@ on:
         default: production
         type: choice
         options: [production, preview]
+      apps:
+        description: release only (ignored otherwise) - changed builds affected apps; all builds every app so changed Vercel variables reach users
+        required: false
+        default: changed
+        type: choice
+        options: [changed, all]
       marker:
         description: set-environment-marker only (ignored otherwise)
         required: false
@@ -230,7 +236,11 @@ jobs:
       (github.event_name == 'push' || inputs.operation == 'release') &&
       (inputs.environment || 'production') == 'production'
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # Worst-case sequential budget for three apps (`apps: all`):
+    # 3 x 20m stage builds (60m) + 3 x staged checks (6 x 30s + 5 x 5s = ~11m)
+    # + 3 x live checks (18 x 30s + 17 x 10s = ~36m) + ~10m checkout/setup/API
+    # calls = ~117m; 150m leaves headroom so a run is not cancelled after promotion.
+    timeout-minutes: 150
     environment: release-production
     env:
       RELEASE_SHA: ${{ github.sha }}
@@ -250,6 +260,8 @@ jobs:
         run: node scripts/release/vercel-release.mjs preflight
       - name: Choose the apps this release builds
         id: plan
+        env:
+          RELEASE_APPS_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.apps || 'changed' }}
         run: node scripts/release/vercel-release.mjs plan
       - name: Stage, health-check and promote
         env:

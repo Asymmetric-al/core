@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const { summarizeMock } = vi.hoisted(() => ({ summarizeMock: vi.fn() }));
 vi.mock("../../../../../packages/api/src/shared/with-operation", () => ({
-  withOperation: (handler: unknown) => handler,
+  withPlatformOperation: (handler: unknown) => handler,
 }));
 vi.mock("../../../../../packages/api/src/workflows/summaries", () => ({
   summarizeWorkflowRuns: summarizeMock,

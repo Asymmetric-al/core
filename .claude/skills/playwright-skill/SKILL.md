@@ -1,6 +1,6 @@
 ---
 name: playwright-skill
-description: Current Playwright (1.64) patterns for writing, debugging, and scaling reliable test suites. Use for any Playwright task, even ones you think you know, because the guides cover APIs and CLI flags newer than most training data. Covers writing or fixing tests, locators, a failing or flaky test, a trace.zip or error message, playwright.config and projects, network mocking, auth, visual and accessibility testing, Docker and CI sharding, playwright-cli browser automation, Playwright Test Agents, page objects, migrating from Cypress or Selenium, and QA work: test case design, bug reports from failures, automating manual test cases, and reviewing tests. TypeScript and JavaScript.
+description: "Current Playwright (1.64) patterns for writing, debugging, and scaling reliable test suites. Use for any Playwright task, even ones you think you know, because the guides cover APIs and CLI flags newer than most training data. Covers writing or fixing tests, locators, a failing or flaky test, a trace.zip or error message, playwright.config and projects, network mocking, auth, visual and accessibility testing, Docker and CI sharding, playwright-cli browser automation, Playwright Test Agents, page objects, migrating from Cypress or Selenium, and QA work: test case design, bug reports from failures, automating manual test cases, and reviewing tests. TypeScript and JavaScript."
 license: MIT
 metadata:
   author: testdino.com

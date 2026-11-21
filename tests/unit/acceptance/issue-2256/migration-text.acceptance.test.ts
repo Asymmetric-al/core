@@ -1,10 +1,8 @@
 /**
  * #2256 static acceptance (spec r2 §4, the (S) parts of criteria 6-9, 14 and
  * 16, plus the §1/§2 migration discipline and In 8). Reads files only. The
- * criterion 8 PR-diff check is opt-in (issue-2183 pattern): set
- * ACCEPTANCE_2256_SCOPE=1 (diff against `git merge-base origin/develop HEAD`)
- * or ACCEPTANCE_2256_BASE=<ref|sha>. Owned by Acceptance; implementers must not
- * edit.
+ * opt-in criterion 8 PR-diff check was retired by #2706. Owned by Acceptance;
+ * implementers must not edit.
  */
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -162,14 +160,26 @@ describe("#2256 forward migration text", () => {
   });
 
   it("no other forward migration names persons or person_id", () => {
+    // Amended by AL-2675 (WP2b, second release; record D-18): the policy
+    // migration rewrites the persons staff policy in place, by ALTER POLICY,
+    // and names persons nowhere else. Any other statement there, and any
+    // other migration, still fails.
+    const POLICY_MIGRATION = /^\d{14}_request_tenant_policies\.sql$/;
+    const re = /\b(persons|person_id)\b/i;
     const hits = readdirSync(DIR)
       .filter((f) => /^\d{14}_.*\.sql$/.test(f) && f !== OWN)
-      .filter((f) =>
-        /\b(persons|person_id)\b/i.test(
-          code(readFileSync(path.join(DIR, f), "utf8")),
-        ),
-      );
+      .filter((f) => !POLICY_MIGRATION.test(f))
+      .filter((f) => re.test(code(readFileSync(path.join(DIR, f), "utf8"))));
     expect(hits).toEqual([]);
+    const policyMigration = readdirSync(DIR).find((f) =>
+      POLICY_MIGRATION.test(f),
+    );
+    const naming = code(readFileSync(path.join(DIR, policyMigration!), "utf8"))
+      .split("\n")
+      .filter((line) => re.test(line));
+    expect(naming).toEqual([
+      'ALTER POLICY "persons_staff_select" ON public.persons',
+    ]);
   });
 });
 
@@ -411,41 +421,5 @@ describe("#2256 census artifacts and docs", () => {
       new RegExp(V3.replace(/\./g, "\\.")),
     ])
       expect(readme).toMatch(re);
-  });
-});
-
-const BASE_OVERRIDE = process.env.ACCEPTANCE_2256_BASE?.trim() ?? "";
-const SCOPE =
-  process.env.ACCEPTANCE_2256_SCOPE?.trim() === "1" || BASE_OVERRIDE !== "";
-
-describe.skipIf(!SCOPE)("#2256 criterion 8 (S): PR diff scope (opt-in)", () => {
-  it("the PR diff touches neither crm_merge_candidates' nor donor_merge_candidates' migration or test", () => {
-    const base =
-      BASE_OVERRIDE ||
-      execFileSync("git", ["merge-base", "origin/develop", "HEAD"], {
-        encoding: "utf8",
-      }).trim();
-    expect(base, "ACCEPTANCE_2256_BASE or merge-base").not.toBe("");
-    const changed = execFileSync(
-      "git",
-      ["diff", "--name-only", "--no-renames", base],
-      { encoding: "utf8" },
-    )
-      .split("\n")
-      .filter(Boolean);
-    expect(
-      changed.filter((f) =>
-        /20260704140000_donor_matching_merge_candidates\.sql$|donor-matching-merge-candidates-migration\.test\.ts$|crm_merge_candidates/.test(
-          f,
-        ),
-      ),
-    ).toEqual([]);
-    for (const f of changed.filter(
-      (x) =>
-        x.startsWith(`${DIR}/`) && readdirSync(DIR).includes(path.basename(x)),
-    ))
-      expect(code(readFileSync(f, "utf8")), f).not.toMatch(
-        /\bcrm_merge_candidates\b/,
-      );
   });
 });
