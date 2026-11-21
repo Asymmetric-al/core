@@ -77,6 +77,35 @@ describe("report group revision", () => {
     );
   });
 
+  // Re-check H5: metadata is canonicalized (sorted keys, recursively), so the
+  // same values in another key order give the same revision.
+  it("gives the same metadata in two key orders one revision", () => {
+    const facts = {
+      tenantId: "tenant-1",
+      slice: "funds" as const,
+      groupId: "funds:fund-1",
+      completeness,
+      anonymous: false,
+    };
+    expect(
+      reportGroupRevision({
+        ...facts,
+        row: {
+          ...row,
+          metadata: { a: 1, b: { c: 2, d: [3, { e: 4, f: 5 }] } },
+        },
+      }),
+    ).toBe(
+      reportGroupRevision({
+        ...facts,
+        row: {
+          ...row,
+          metadata: { b: { d: [3, { f: 5, e: 4 }], c: 2 }, a: 1 },
+        },
+      }),
+    );
+  });
+
   it("gives equal values under two groups, slices or tenants different digests", () => {
     const facts = {
       tenantId: "tenant-1",

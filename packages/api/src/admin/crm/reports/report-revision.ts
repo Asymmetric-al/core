@@ -17,6 +17,24 @@ export type ReportGroupFacts = Readonly<{
 }>;
 
 /**
+ * A value with every object's keys sorted, recursively, so the same values in
+ * another key order serialize alike (re-check H5).
+ */
+function canonical(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value !== null && typeof value === "object")
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [
+          key,
+          canonical((value as Record<string, unknown>)[key]),
+        ]),
+    );
+  return value;
+}
+
+/**
  * A digest of one fixed-order tuple: the group's tenant, slice and qualified
  * group ID, every value of its row, the report's completeness and the
  * anonymity the export decided. It binds a row to its tenant and its group:
@@ -42,7 +60,7 @@ export function reportGroupRevision({
     row.donorCount,
     row.lastGiftAt,
     row.status,
-    JSON.stringify(row.metadata ?? null),
+    JSON.stringify(canonical(row.metadata ?? null)),
     completeness.complete,
     completeness.includedGiftCount,
     completeness.donationLimit,
