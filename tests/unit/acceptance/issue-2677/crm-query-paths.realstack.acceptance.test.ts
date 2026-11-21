@@ -32,10 +32,33 @@ it.skipIf(!ADMIN_URL)(
       const scoped = await read(
         "authenticated",
         caller,
-        `select id from public.crm_donors_for_text_order('${ids.TA}') where id='${result.rows[0].id}' order by name,id`,
+        `select id from public.crm_donor_text_page('${ids.TA}','name',false,101) where id='${result.rows[0].id}' order by name,id`,
       );
       expect(scoped.code).toBeNull();
       expect(scoped.rows).toEqual(result.rows);
+      await db.query(
+        "insert into public.donors (tenant_id,name,type,status) select $1,'Member '||i, 'member','active' from generate_series(1,105) i",
+        [ids.TA],
+      );
+      for (const column of ["name", "type", "status"]) {
+        for (const descending of [false, true]) {
+          const direction = descending ? "desc" : "asc";
+          const order = `order by ${column} ${direction} nulls last, id ${direction}`;
+          const native = await read(
+            "authenticated",
+            caller,
+            `select id from public.donors where tenant_id='${ids.TA}' ${order} limit 51`,
+          );
+          const paged = await read(
+            "authenticated",
+            caller,
+            `select id from public.crm_donor_text_page('${ids.TA}','${column}',${descending},51) ${order}`,
+          );
+          expect(native.code).toBeNull();
+          expect(paged.code).toBeNull();
+          expect(paged.rows).toEqual(native.rows);
+        }
+      }
     } finally {
       await db.query("rollback");
       await db.end();

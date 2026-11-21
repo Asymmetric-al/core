@@ -48,20 +48,46 @@ CREATE INDEX crm_donors_tenant_last_gift_date_desc_idx
 CREATE INDEX crm_donors_long_sort_keys_idx ON public.donors(tenant_id, id)
   WHERE GREATEST(octet_length(name), octet_length(type), octet_length(status), 0) > 1536;
 
-CREATE FUNCTION public.crm_donors_for_text_order(p_tenant_id uuid)
+CREATE FUNCTION public.crm_donor_text_page(
+  p_tenant_id uuid, p_column text, p_descending boolean, p_limit integer
+)
 RETURNS SETOF public.donors
-LANGUAGE sql STABLE PARALLEL SAFE SECURITY INVOKER
-BEGIN ATOMIC
-  WITH scoped AS NOT MATERIALIZED (
-    SELECT d.* FROM public.donors d WHERE d.tenant_id = p_tenant_id
-      AND d.tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff'))
-  )
-  SELECT * FROM scoped WHERE GREATEST(octet_length(name), octet_length(type), octet_length(status), 0) <= 1536
-  UNION ALL
-  SELECT * FROM scoped WHERE GREATEST(octet_length(name), octet_length(type), octet_length(status), 0) > 1536;
+LANGUAGE plpgsql STABLE SECURITY INVOKER SET search_path = ''
+AS $$
+DECLARE
+  sort_direction text := CASE WHEN p_descending THEN 'DESC' ELSE 'ASC' END;
+BEGIN
+  IF p_column IS NULL OR p_column NOT IN ('name', 'type', 'status')
+     OR p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 101 THEN
+    RAISE EXCEPTION 'Invalid CRM page order or limit' USING ERRCODE = '22023';
+  END IF;
+  IF p_tenant_id IS DISTINCT FROM (SELECT authz.current_tenant_id())
+     OR NOT COALESCE((SELECT authz.assignment_is('staff')), false) THEN
+    RETURN;
+  END IF;
+
+  -- The best N from the union must be in the best N of one of its two
+  -- ranges. Keep both limits inside the query so the ordinary range can
+  -- stop at its Nth index entry even when the tenant has very long keys.
+  RETURN QUERY EXECUTE format($page$
+    WITH scoped AS NOT MATERIALIZED (
+      SELECT d.* FROM public.donors d WHERE d.tenant_id = $1
+    )
+    SELECT candidates.* FROM (
+      (SELECT * FROM scoped
+        WHERE GREATEST(octet_length(name), octet_length(type), octet_length(status), 0) <= 1536
+        ORDER BY %1$I %2$s NULLS LAST, id %2$s LIMIT $2)
+      UNION ALL
+      (SELECT * FROM scoped
+        WHERE GREATEST(octet_length(name), octet_length(type), octet_length(status), 0) > 1536
+        ORDER BY %1$I %2$s NULLS LAST, id %2$s LIMIT $2)
+    ) candidates
+    ORDER BY %1$I %2$s NULLS LAST, id %2$s LIMIT $2
+  $page$, p_column, sort_direction) USING p_tenant_id, p_limit;
 END;
-REVOKE ALL ON FUNCTION public.crm_donors_for_text_order(uuid) FROM PUBLIC, anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.crm_donors_for_text_order(uuid) TO authenticated;
+$$;
+REVOKE ALL ON FUNCTION public.crm_donor_text_page(uuid,text,boolean,integer) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.crm_donor_text_page(uuid,text,boolean,integer) TO authenticated;
 
 CREATE INDEX crm_donations_tenant_created_idx
   ON public.donations (tenant_id, created_at DESC, id DESC);

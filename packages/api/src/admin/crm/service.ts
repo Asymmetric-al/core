@@ -129,17 +129,26 @@ async function fetchFilteredDonorRows(
   params: AdminCrmParams,
   limit: number,
 ) {
-  const textOrder = ["name", "recordType", "lifecycleStatus"].includes(
-    params.sort.field,
-  );
+  const sortColumn = SORT_COLUMN_BY_FIELD[params.sort.field];
+  const { filters } = params;
+  const firstUnfilteredTextPage =
+    ["name", "type", "status"].includes(sortColumn) &&
+    !params.cursor &&
+    !filters.recordTypes.length &&
+    !filters.lifecycleStatuses.length &&
+    !filters.tags.length &&
+    filters.hasPortal === null;
   let donors;
   if (params.search) {
     donors = sessionClient.rpc("search_crm_donors", {
       p_tenant_id: tenantId,
       p_term: escapeSearchValue(params.search),
     });
-  } else if (textOrder) {
-    donors = sessionClient.rpc("crm_donors_for_text_order", {
+  } else if (firstUnfilteredTextPage) {
+    donors = sessionClient.rpc("crm_donor_text_page", {
+      p_column: sortColumn,
+      p_descending: params.sort.direction === "desc",
+      p_limit: limit,
       p_tenant_id: tenantId,
     });
   } else {
@@ -153,7 +162,6 @@ async function fetchFilteredDonorRows(
 
   query = applyBaseFilters(query, params);
 
-  const sortColumn = SORT_COLUMN_BY_FIELD[params.sort.field];
   const nullsFirst =
     params.sort.field === "lastGiftAt"
       ? params.sort.direction === "asc"
