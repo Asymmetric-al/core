@@ -10,7 +10,6 @@ import {
 } from "../../../../../packages/api/src/admin/crm/table-preferences/service";
 
 import type { RequestSessionClient } from "../../../../../packages/api/src/shared/request-session-client";
-import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 interface StubState {
   dropActiveViewBeforeUserPreferenceRpc?: boolean;
@@ -239,7 +238,6 @@ function createSupabaseStub(state: StubState = {}) {
   };
 
   return {
-    supabaseAdmin: stub as unknown as AdminSupabaseClient,
     sessionClient: stub as unknown as RequestSessionClient,
     auditEvents,
     namedViews,
@@ -252,7 +250,7 @@ function createSupabaseStub(state: StubState = {}) {
 
 describe("admin/crm/table-preferences/service", () => {
   it("loads user and tenant preference records as the server source of truth", async () => {
-    const { supabaseAdmin } = createSupabaseStub({
+    const { sessionClient } = createSupabaseStub({
       rowsByTable: {
         crm_table_user_preferences: {
           pinned_action_id: "amount_correction",
@@ -266,7 +264,7 @@ describe("admin/crm/table-preferences/service", () => {
     });
 
     const preferences = await getCrmTablePreferences({
-      supabaseAdmin,
+      sessionClient,
       tenantId: "tenant-1",
       profileId: "profile-1",
       tableId: "crm.giftHistory",

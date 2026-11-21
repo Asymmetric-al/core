@@ -98,7 +98,6 @@ packages/api/src/admin/crm/notes/index.ts operation_admin_context 1
 packages/api/src/admin/crm/relationships/index.ts operation_admin_context 1
 packages/api/src/admin/crm/reports/export.ts operation_admin_context 1
 packages/api/src/admin/crm/reports/index.ts operation_admin_context 1
-packages/api/src/admin/crm/table-preferences/route.ts operation_admin_context 3
 packages/api/src/admin/fund-directory.ts operation_admin_context 1
 packages/api/src/admin/locations/index.ts admin_client 1
 packages/api/src/admin/member-care/mutations.ts admin_client 1

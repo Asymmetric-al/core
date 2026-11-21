@@ -6,7 +6,6 @@ import { ApiHttpError } from "../../../shared/http-errors";
 import { isRecord } from "../../../shared/json-coerce";
 
 import type { RequestSessionClient } from "../../../shared/request-session-client";
-import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type {
   CrmTablePreferencesResponse,
   CrmTableRowActionPreference,
@@ -17,8 +16,6 @@ import type {
 // Re-exported so existing consumers (route handlers) keep importing the patch
 // type from this module while the shared semantics live in @asym/database.
 export type { CrmViewSettingsPatch };
-
-type SupabaseAdmin = AdminSupabaseClient;
 
 interface PreferenceRow {
   pinned_action_id: string | null;
@@ -68,20 +65,20 @@ function mapPreferenceRow(
 }
 
 export async function getCrmTablePreferences(input: {
-  supabaseAdmin: SupabaseAdmin;
+  sessionClient: RequestSessionClient;
   tenantId: string;
   profileId: string;
   tableId: string;
 }): Promise<CrmTablePreferencesResponse> {
   const [userResult, tenantResult] = await Promise.all([
-    input.supabaseAdmin
+    input.sessionClient
       .from("crm_table_user_preferences")
       .select(PREFERENCE_COLUMNS)
       .eq("tenant_id", input.tenantId)
       .eq("profile_id", input.profileId)
       .eq("table_id", input.tableId)
       .maybeSingle(),
-    input.supabaseAdmin
+    input.sessionClient
       .from("crm_table_tenant_defaults")
       .select(PREFERENCE_COLUMNS)
       .eq("tenant_id", input.tenantId)
@@ -97,6 +94,8 @@ export async function getCrmTablePreferences(input: {
   }
 
   return {
+    // RLS makes an invisible personal setting indistinguishable from an unset one.
+    // A null layer selects the system default and confers no write authority.
     tableId: input.tableId,
     schemaVersion: CRM_ROW_ACTION_SCHEMA_VERSION,
     user: mapPreferenceRow(userResult.data as PreferenceRow | null),
