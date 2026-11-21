@@ -62,11 +62,11 @@ const SHARED_BUILDERS = PSQL_STARTERS.slice(0, 3);
 const PSQL_NAMERS: Record<string, { reason: string; lines: string[] }> = {
   "scripts/platform/operators.mjs": {
     reason:
-      "imports the shared connection checker and calls the shared runner with transaction inputs",
+      "imports the shared connection checker and calls the shared runner with transaction inputs and arguments that never ask for a password (review 4650094359 on #2741: a comment line changed, no psql is started)",
     lines: [
+      "* The psql arguments after the connection: never ask for a password (psql",
       "/** The environment psql reads the inputs from. */",
       "/** The environment variables psql reads the inputs from (\\getenv). */",
-      "/** The psql arguments after the connection: quiet, unaligned, stop on error, SQL on stdin. */",
       "/** The whole psql input for one action: one transaction. */",
       "/** psql statements that put the matching login's id in `asym.operator_user`, or refuse. */",
       "// output, the result; psql's error on standard error and a non-zero exit when",
