@@ -735,8 +735,10 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
       const json = await ensureJsonBody(req as Request);
       parsed = bodySchema.parse(json);
     } catch (error) {
+      // The Studio envelope, as the proxy answers this refusal on these
+      // paths (re-check H4).
       if (error instanceof ApiHttpError && error.status === 415)
-        return jsonResponse({ error: error.message }, 415);
+        return jsonResponse({ errors: [{ message: error.message }] }, 415);
       return jsonResponse({ error: "Invalid request body" }, 400);
     }
 

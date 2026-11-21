@@ -118,8 +118,9 @@ describe("webStudioCreateFromTemplateEndpoint", () => {
     ) as never;
     const response = await handler(req);
     expect(response.status).toBe(415);
+    // Re-check H4: the Studio envelope, as the proxy answers on these paths.
     expect(await response.json()).toEqual({
-      error: "Unsupported mutation content type.",
+      errors: [{ message: "Unsupported mutation content type." }],
     });
     expect(findByID).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
