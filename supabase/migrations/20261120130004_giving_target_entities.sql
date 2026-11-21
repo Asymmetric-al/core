@@ -13,14 +13,16 @@
 -- entity could not copy; a money row naming another tenant's fund or
 -- missionary). The preflight below repeats that test under the table locks
 -- and, if it finds any, stops with the counts before anything is changed.
--- Apply in a quiet window: writers are excluded before the preflight; ALTER
+-- Apply in a quiet window: the opening lock excludes writers on eight tables
+-- (tenants, funds, missionaries and the five money tables) before the
+-- preflight, so no name or target changes between the test and the copy; ALTER
 -- TABLE upgrades locks to ACCESS EXCLUSIVE and holds them through COMMIT,
 -- including backfill, index builds and validation of all ten references.
 -- Forward only: dropping the locks could reassign historical money. Rebuild
 -- a disposable database from source, or repair forward preserving history.
 BEGIN;
 SET LOCAL lock_timeout='5s';
-LOCK TABLE public.funds, public.missionaries, public.donations, public.donor_pledges,
+LOCK TABLE public.tenants, public.funds, public.missionaries, public.donations, public.donor_pledges,
   public.staged_gifts, public.staged_gift_allocations, public.donation_saga_outbox IN SHARE ROW EXCLUSIVE MODE;
 DO $$
 DECLARE

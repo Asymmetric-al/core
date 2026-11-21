@@ -334,14 +334,20 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       await db.query("rollback");
     }
   });
-  // 20261120130006 (coordinator, from WP3b's handoff): a gift's tenant is
-  // always named by its writer; the column no longer defaults to the demo
-  // tenant, so a writer that forgot it cannot file a gift there.
-  it("donations.tenant_id has no default: a gift that names no tenant names none", async () => {
+  // 20261120130006 (coordinator, from WP3b's handoff; L2 of the re-check):
+  // the column no longer defaults to the demo tenant. It stays nullable
+  // (WP8a owes the NOT NULL): a gift without a tenant that names nothing is
+  // stored with none, visible to no tenant; one that names a donor, fund or
+  // missionary is refused.
+  it("donations.tenant_id has no default: a gift with no tenant is stored with none if it names nothing, and refused (23514) if it names a donor, fund or missionary", async () => {
     const { rows } = await db.query(
       "select column_default from information_schema.columns where table_schema='public' and table_name='donations' and column_name='tenant_id'",
     );
     expect(rows).toEqual([{ column_default: null }]);
+    const [tenant, entity, donor, fund, missionary] = Array.from(
+      { length: 5 },
+      () => randomUUID(),
+    );
     await db.query("begin");
     try {
       const gift = await db.query(
@@ -349,6 +355,41 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
         [randomUUID()],
       );
       expect(gift.rows).toEqual([{ tenant_id: null }]);
+      await db.query(
+        "insert into public.tenants(id,name,slug) values ($1,'test',$1::uuid::text)",
+        [tenant],
+      );
+      await db.query(
+        "insert into public.legal_entities(id,tenant_id,name) values ($1,$2,'First')",
+        [entity, tenant],
+      );
+      await db.query("insert into public.donors(id,tenant_id) values ($1,$2)", [
+        donor,
+        tenant,
+      ]);
+      await db.query(
+        "insert into public.funds(id,tenant_id,legal_entity_id,name) values ($1,$2,$3,'Target')",
+        [fund, tenant, entity],
+      );
+      await db.query(
+        "insert into public.missionaries(id,tenant_id,legal_entity_id) values ($1,$2,$3)",
+        [missionary, tenant, entity],
+      );
+      for (const [column, id] of [
+        ["donor_id", donor],
+        ["fund_id", fund],
+        ["missionary_id", missionary],
+      ] as const) {
+        await db.query("savepoint untenanted");
+        await expect(
+          db.query(
+            `insert into public.donations(${column},amount) values ($1,100)`,
+            [id],
+          ),
+          column,
+        ).rejects.toMatchObject({ code: "23514" });
+        await db.query("rollback to savepoint untenanted");
+      }
     } finally {
       await db.query("rollback");
     }
@@ -390,6 +431,30 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       .map((statement) => statement.trim().split(/\s+/).slice(0, 2).join(" "))
       .filter(Boolean);
     expect(opening).toEqual(["BEGIN", "SET LOCAL", "LOCK TABLE"]);
+    // L3 (re-check, 21 November): the lock taken before the preflight
+    // excludes writers on every table the preflight reads, tenants among
+    // them, so a tenant cannot be renamed blank between the test and the copy.
+    const lock = migration
+      .slice(0, start)
+      .replace(/--.*$/gm, "")
+      .match(/LOCK TABLE ([^;]+) IN SHARE ROW EXCLUSIVE MODE;/);
+    expect(
+      lock?.[1]
+        .split(",")
+        .map((table) => table.trim())
+        .sort(),
+    ).toEqual(
+      [
+        "public.tenants",
+        "public.funds",
+        "public.missionaries",
+        "public.donations",
+        "public.donor_pledges",
+        "public.staged_gifts",
+        "public.staged_gift_allocations",
+        "public.donation_saga_outbox",
+      ].sort(),
+    );
     const schema = `acc2676_preflight_${randomUUID().slice(0, 8)}`;
     const scratch = (sql: string) => sql.replaceAll("public.", `${schema}.`);
     const preflight = scratch(migration.slice(start, end));
