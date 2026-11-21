@@ -211,6 +211,7 @@ describe.skipIf(!ADMIN_URL)(
         : t === "follows"
           ? "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids()))))"
           : "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')))" +
+            // D-18 (AL-2676): the funds policy also hides the reserved fee-cover fund.
             (t === "funds" ? " AND system_purpose IS NULL" : "");
     const keyOf = (v: unknown) =>
       Object.keys(id).find((k) => id[k] === v) ?? String(v);

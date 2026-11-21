@@ -1,6 +1,19 @@
+-- The two signed-in readers of live memberships that 20261120130001 left
+-- out answer only for an active tenant, through authz.caller_tenant_ids():
+-- current_user_memberships(uuid), which also tests revoked_at, and
+-- post_comment_authors(uuid); caller_tenant_ids() gets a true comment.
 -- Keep the historical membership RPC for its contract callers, including
 -- issue-2675/membership-core.realstack. Its application successor is
 -- current_user_assignments(). CREATE OR REPLACE preserves both RPCs' ACLs.
+-- Locks: the function catalog only (each replaced function's own entry,
+-- until COMMIT); no table is locked, read or rewritten.
+-- Check first: 20261120130001 is applied (caller_tenant_ids() must carry
+-- the status test these bodies rely on).
+-- Back, in one transaction: CREATE OR REPLACE each with its earlier body:
+-- current_user_memberships from 20261117160000_membership_lifecycle_and_
+-- tenant_admin_flag.sql:285-308, post_comment_authors from
+-- 20261119135200_post_comment_authors.sql:32-66, and the comment on
+-- authz.caller_tenant_ids() from 20261119135300_request_tenant_policies.sql:376.
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 

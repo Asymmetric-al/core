@@ -78,12 +78,10 @@ Signed-in users have USAGE on both schemas, so that a `public` invoker wrapper c
 
 ### What the guard role holds
 
-The guard also has EXECUTE on `authz.caller_tenant_ids()` so the human preamble can require an active tenant before entering it. This grants no direct read of `tenants`.
-
 `tenant_guard` stays NOLOGIN, NOBYPASSRLS, NOSUPERUSER and NOINHERIT (contract item 7). It holds:
 
 - USAGE on schemas `public`, `tenant_guard` and `authz`;
-- EXECUTE on `authz.has_membership(uuid, authz.membership_role[])` and `authz.has_staff_membership(uuid, authz.staff_role[])`, and on the `tenant_guard` helpers below. `authz.is_super_admin()` is deliberately not granted: a command never takes a platform-role branch. Both membership helpers are SECURITY DEFINER functions owned by `postgres`, so they read `auth.uid()` as `postgres`, never as the guard. Since WP2a (AL-2675) it also holds EXECUTE on `authz.assignment_capabilities(uuid)`, which `begin_human_command(uuid, text)` calls to check the capability a command requires: an invoker owned by `postgres` that reads only `authz.memberships`, through the policy below, and names nothing in `auth`;
+- EXECUTE on `authz.has_membership(uuid, authz.membership_role[])` and `authz.has_staff_membership(uuid, authz.staff_role[])`, and on the `tenant_guard` helpers below. `authz.is_super_admin()` is deliberately not granted: a command never takes a platform-role branch. Both membership helpers are SECURITY DEFINER functions owned by `postgres`, so they read `auth.uid()` as `postgres`, never as the guard. Since WP2a (AL-2675) it also holds EXECUTE on `authz.assignment_capabilities(uuid)`, which `begin_human_command(uuid, text)` calls to check the capability a command requires: an invoker owned by `postgres` that reads only `authz.memberships`, through the policy below, and names nothing in `auth`. Since WP3a (AL-2676) it also holds EXECUTE on `authz.caller_tenant_ids()`, which `begin_human_command(uuid, text)` calls to refuse a tenant that is not active before entering it: a SECURITY DEFINER function owned by `postgres` that returns the caller's tenants with a live membership and an active status; the guard gains no read of `tenants` itself;
 - SELECT on `authz.memberships`, through the policy `tenant_guard_own_assignments`, which shows the guard only the session caller's own rows (`user_id = tenant_guard.caller_id()`; a worker call, with no session caller, sees none);
 - `SELECT, INSERT, UPDATE` on `public.workflow_work_claims`, through `tenant_guard_isolation`.
 
@@ -93,25 +91,26 @@ It holds nothing on `auth`. On Supabase's own Postgres image `auth` belongs to `
 
 EXECUTE besides the owner, on the migrated chain:
 
-| Function                                                                                                                                                 | Owner          | Security | EXECUTE         |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | -------- | --------------- |
-| `tenant_guard.enter(uuid)`                                                                                                                               | `postgres`     | INVOKER  | `tenant_guard`  |
-| `tenant_guard.current_tenant_id()`                                                                                                                       | `postgres`     | INVOKER  | `tenant_guard`  |
-| `tenant_guard.caller_id()`                                                                                                                               | `postgres`     | INVOKER  | `tenant_guard`  |
-| `tenant_guard.request_claims()`                                                                                                                          | `postgres`     | INVOKER  | `tenant_guard`  |
-| `tenant_guard.request_assignment_id()`                                                                                                                   | `postgres`     | INVOKER  | `tenant_guard`  |
-| `tenant_guard.begin_human_command(uuid, text)`                                                                                                           | `postgres`     | INVOKER  | `tenant_guard`  |
-| `tenant_guard.resolve_command_assignment(uuid)`                                                                                                          | `tenant_guard` | DEFINER  | `authenticated` |
-| `tenant_guard.acquire_workflow_work_claim(...)`                                                                                                          | `tenant_guard` | DEFINER  | `service_role`  |
-| `tenant_guard.release_workflow_work_claim(...)`                                                                                                          | `tenant_guard` | DEFINER  | `service_role`  |
-| `public.resolve_command_assignment(uuid)`                                                                                                                | `postgres`     | INVOKER  | `authenticated` |
-| `public.acquire_workflow_work_claim(...)`                                                                                                                | `postgres`     | INVOKER  | `service_role`  |
-| `public.release_workflow_work_claim(...)`                                                                                                                | `postgres`     | INVOKER  | `service_role`  |
-| `platform.health()`                                                                                                                                      | `postgres`     | DEFINER  | `service_role`  |
-| `public.platform_health()`                                                                                                                               | `postgres`     | INVOKER  | `service_role`  |
-| `platform.require_operator()`                                                                                                                            | `postgres`     | INVOKER  | none            |
-| `platform.caller_on_operator_list()`                                                                                                                     | `postgres`     | INVOKER  | none            |
-| `platform.environment_kind()`, `advance_environment(text)`, `record_migration_head(text, text)`, `holds_people_or_gifts()`, `guard_environment_marker()` | `postgres`     | INVOKER  | none            |
+| Function                                                                                                                                                 | Owner          | Security | EXECUTE                         |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | -------- | ------------------------------- |
+| `tenant_guard.enter(uuid)`                                                                                                                               | `postgres`     | INVOKER  | `tenant_guard`                  |
+| `tenant_guard.current_tenant_id()`                                                                                                                       | `postgres`     | INVOKER  | `tenant_guard`                  |
+| `tenant_guard.caller_id()`                                                                                                                               | `postgres`     | INVOKER  | `tenant_guard`                  |
+| `tenant_guard.request_claims()`                                                                                                                          | `postgres`     | INVOKER  | `tenant_guard`                  |
+| `tenant_guard.request_assignment_id()`                                                                                                                   | `postgres`     | INVOKER  | `tenant_guard`                  |
+| `tenant_guard.begin_human_command(uuid, text)`                                                                                                           | `postgres`     | INVOKER  | `tenant_guard`                  |
+| `authz.caller_tenant_ids()`                                                                                                                              | `postgres`     | DEFINER  | `authenticated`, `tenant_guard` |
+| `tenant_guard.resolve_command_assignment(uuid)`                                                                                                          | `tenant_guard` | DEFINER  | `authenticated`                 |
+| `tenant_guard.acquire_workflow_work_claim(...)`                                                                                                          | `tenant_guard` | DEFINER  | `service_role`                  |
+| `tenant_guard.release_workflow_work_claim(...)`                                                                                                          | `tenant_guard` | DEFINER  | `service_role`                  |
+| `public.resolve_command_assignment(uuid)`                                                                                                                | `postgres`     | INVOKER  | `authenticated`                 |
+| `public.acquire_workflow_work_claim(...)`                                                                                                                | `postgres`     | INVOKER  | `service_role`                  |
+| `public.release_workflow_work_claim(...)`                                                                                                                | `postgres`     | INVOKER  | `service_role`                  |
+| `platform.health()`                                                                                                                                      | `postgres`     | DEFINER  | `service_role`                  |
+| `public.platform_health()`                                                                                                                               | `postgres`     | INVOKER  | `service_role`                  |
+| `platform.require_operator()`                                                                                                                            | `postgres`     | INVOKER  | none                            |
+| `platform.caller_on_operator_list()`                                                                                                                     | `postgres`     | INVOKER  | none                            |
+| `platform.environment_kind()`, `advance_environment(text)`, `record_migration_head(text, text)`, `holds_people_or_gifts()`, `guard_environment_marker()` | `postgres`     | INVOKER  | none                            |
 
 `resolve_command_assignment` is the one human entry point so far. It exists so that one human command can be proved on a signed-in token; no application code calls it, and WP2b decides whether the organization chooser uses it or it is dropped. There is no platform command yet; WP3 ships the first.
 
