@@ -103,7 +103,15 @@ and none is ever cancelled.
    Promotion does not rebuild. A failed build or check promotes nothing.
    Promotion is one call per app, one after the other, so it is not all or
    nothing: see [If a promotion fails part way](#if-a-promotion-fails-part-way).
-   Finally each production domain must serve the commit and pass.
+   Finally each production domain must serve the promoted deployment ID, commit
+   and expected Supabase project ref and pass `/api/health/migrations`. This
+   live check is bounded by attempts (18 attempts, with a 10-second pause
+   between attempts and a 30-second per-request timeout), not a wall-clock
+   deadline: while an older or unidentified deployment answers during alias
+   propagation (including status-only answers after a bypass-secret rotation),
+   it keeps retrying within those 18 attempts. If verification fails after
+   promotion was requested, inspect what the domain serves before dispatching
+   again or rolling back.
 7. **Register job functions** (optional, `RELEASE_REGISTER_JOB_FUNCTIONS`):
    a `PUT` to the admin app's Inngest serve route, because Git deployment no
    longer triggers a sync (council reservation 7).
@@ -136,7 +144,11 @@ environment marker, the heads, the commit and the deployment ID from
 `VERCEL_AUTOMATION_BYPASS_SECRET`, the system variable Vercel sets at build and
 run time once the project has a Protection Bypass for Automation secret. The
 job sends that header to the staged deployments and to the production
-domains, and stops if a healthy answer comes back without its detail.
+domains: on a staged URL a healthy answer without its detail stops promotion
+immediately; on a production domain after promotion, an unidentified answer
+(for example from an older deployment before a rotated bypass secret switches
+over) keeps retrying within the live check's 18-attempt bound and fails
+verification if the promoted deployment ID never answers.
 
 ### If a promotion fails part way
 
@@ -152,10 +164,19 @@ refuses a commit that is no longer `production`'s head) with operation
 code release, or `apps: all` after a change of Vercel variables (with `changed`,
 an app that already serves the commit is skipped and keeps its old variables).
 With `apps: all`, check that the plan step logged `build` for admin, donor and
-missionary. If that fails again, roll the promoted apps back with Vercel's
-_Instant Rollback_ to their previous production deployment, so that all three
-serve the previous commit, and fix the cause before the next release. The job
-has no rollback of its own.
+missionary. Before the first dispatch of a release that carries changed Vercel variables,
+note for each app the deployment ID its production domain currently serves
+(read it from `https://<domain>/api/health/migrations` with that project's
+`x-vercel-protection-bypass` header, or from the project's **Deployments**
+page in Vercel; the job's `plan` step does not log live deployment IDs). If
+the second dispatch fails too, do not blindly roll back to "the previous
+production deployment": for an app promoted by both runs of the same commit,
+its previous deployment is the first failed attempt, not what served before
+the release. Either return each app to the pre-release deployment ID you noted
+before the first dispatch, or go forward (fix the cause and release again) if
+the pre-release deployment's credentials no longer work — after a credential
+rotation, revoked credentials on the pre-release deployment will not work. The
+job has no rollback of its own.
 
 ### Dispatched operations
 
@@ -1025,8 +1046,12 @@ below follow those decisions.
    `SUPABASE_DB_URL` reopens NA-04). They reach users only through a release
    dispatched with `apps: all` (step 7).
 
-7. **Release.** Dispatch **Release** anew from branch `production` with
-   operation `release` and `apps` set to `all`. This release must build all
+7. **Release.** First note each app's current live deployment ID (from
+   `/api/health/migrations` with the project's bypass header or the project's
+   **Deployments** page, as in
+   [If a promotion fails part way](#if-a-promotion-fails-part-way)), then
+   dispatch **Release** anew from branch `production` with operation `release`
+   and `apps` set to `all`. This release must build all
    three apps, because the variables of step 6 reach an app only through a new
    production deployment, and with the default `apps: changed` the job skips an
    app whose files and shared inputs did not change since the commit its
