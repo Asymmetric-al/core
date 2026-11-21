@@ -13,8 +13,16 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { createAuditLogger } from "@asym/lib/audit/logger";
 import { NextResponse } from "next/server";
 
-import { toApiHttpError, toErrorResponse } from "./http-errors";
+import {
+  reportOperationFailure,
+  toApiHttpError,
+  toErrorResponse,
+} from "./http-errors";
 import { confirmPlatformOperator } from "./platform-operator";
+import {
+  createRequestSessionClient,
+  type RequestSessionClient,
+} from "./request-session-client";
 
 import type { NextRequest } from "next/server";
 
@@ -27,8 +35,7 @@ export interface OperationRouteContext {
   params?: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export interface OperationContext {
-  supabaseAdmin: AdminSupabaseClient;
+interface BaseOperationContext {
   auth: AuthenticatedContext;
   audit: ReturnType<typeof createAuditLogger>;
   request: NextRequest;
@@ -40,6 +47,14 @@ export interface OperationContext {
    * caller's own token, at most once per request (AL-2675 WP2c).
    */
   isPlatformOperator: () => Promise<boolean>;
+}
+
+export interface OperationContext extends BaseOperationContext {
+  sessionClient: RequestSessionClient;
+}
+
+export interface PlatformOperationContext extends BaseOperationContext {
+  supabaseAdmin: AdminSupabaseClient;
 }
 
 /**
@@ -137,11 +152,11 @@ async function normalizeHandlerErrorResponse(
   }
 }
 
-export function withOperation<
+function authenticatedOperation<
   RouteContext extends OperationRouteContext = OperationRouteContext,
 >(
   handler: (
-    ctx: OperationContext,
+    ctx: BaseOperationContext,
     routeContext?: RouteContext,
   ) => Promise<NextResponse>,
   options?: OperationOptions,
@@ -161,14 +176,6 @@ export function withOperation<
       // prerender *before* `next/headers` `cookies()` runs (see Next.js Route Handlers
       // + Cache Components docs: request headers/url stop prerendering).
       void request.headers.get("cookie");
-
-      const { client: supabaseAdmin, error: adminError } = getAdminClient();
-      if (!supabaseAdmin) {
-        return NextResponse.json(
-          { error: adminError, requestId },
-          { status: 503 },
-        );
-      }
 
       const authContext = await getAuthContext(request);
       requireAuth(authContext);
@@ -198,7 +205,6 @@ export function withOperation<
 
       const response = await handler(
         {
-          supabaseAdmin,
           auth,
           audit,
           request,
@@ -217,9 +223,54 @@ export function withOperation<
 
       const normalized = toApiHttpError(error, "Internal error");
       if (normalized.status >= 500) {
-        console.error("[withOperation] Unhandled error:", error);
+        await reportOperationFailure(
+          "withOperation",
+          error,
+          requestId,
+          normalized.status,
+        );
       }
       return toErrorResponse(error, "Internal error", requestId);
     }
   };
+}
+
+type OperationHandler<Context, RouteContext extends OperationRouteContext> = (
+  ctx: Context,
+  routeContext?: RouteContext,
+) => Promise<NextResponse>;
+
+export function withOperation<
+  RouteContext extends OperationRouteContext = OperationRouteContext,
+>(
+  handler: OperationHandler<OperationContext, RouteContext>,
+  options?: OperationOptions,
+) {
+  return authenticatedOperation<RouteContext>(async (context, routeContext) => {
+    const scope = requestScopeOf(context.auth);
+    // Defense in depth: requireAuth above already requires the active assignment.
+    if (!scope)
+      return NextResponse.json(
+        { error: "Active assignment required" },
+        { status: 403 },
+      );
+    const sessionClient = await createRequestSessionClient(
+      context.request,
+      scope,
+    );
+    return handler({ ...context, sessionClient }, routeContext);
+  }, options);
+}
+
+export function withPlatformOperation<
+  RouteContext extends OperationRouteContext = OperationRouteContext,
+>(
+  handler: OperationHandler<PlatformOperationContext, RouteContext>,
+  options?: OperationOptions,
+) {
+  return authenticatedOperation<RouteContext>(async (context, routeContext) => {
+    const { client: supabaseAdmin, error } = getAdminClient();
+    if (!supabaseAdmin) return NextResponse.json({ error }, { status: 503 });
+    return handler({ ...context, supabaseAdmin }, routeContext);
+  }, options);
 }

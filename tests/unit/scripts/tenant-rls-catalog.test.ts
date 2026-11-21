@@ -1,3 +1,12 @@
+import { createHash } from "node:crypto";
+import { CAPABILITY_REGISTRY } from "../../../packages/auth/capabilities/registry";
+import keys from "../../../scripts/verify/command-capabilities.json";
+import {
+  preMembershipEntries,
+  reviewedPreMembership,
+  preMembershipExceptions,
+} from "../../../scripts/verify/command-entry-boundaries.mjs";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -6,6 +15,7 @@ import {
   formatTenantRlsCatalogSummary,
   perRowLookups,
   splitTopLevel,
+  laneCheckProblem,
   stripParens,
   tenantBound,
 } from "../../../scripts/verify/tenant-rls-catalog.mjs";
@@ -30,7 +40,7 @@ const HUMAN_BODY = `
 DECLARE
   v_ctx tenant_guard.command_context;
 BEGIN
-  v_ctx := tenant_guard.begin_human_command(p_tenant_id);
+  v_ctx := tenant_guard.begin_human_command(p_tenant_id, 'people.manage_members');
   RETURN NULL;
 END;
 `;
@@ -74,7 +84,7 @@ const wrapper = (
 ) => ({
   ...{ function: fn, schema: fn.split(".")[0], definer: false },
   ...{ search_path: '""', body, authenticated: false, anon: false },
-  ...{ public_execute: false, ...over },
+  ...{ public_execute: false, service_role: false, ...over },
 });
 /** A table or column grant row as the catalog query reports one that no policy admits. */
 const grant = (
@@ -92,6 +102,155 @@ const allow = (...fns: string[]) => ({
     reason: "fixture",
     reviewed_by: "x",
   })),
+});
+
+describe("WP4 command boundaries", () => {
+  it("pins the complete pre-membership list and its independent review", () => {
+    expect(preMembershipEntries).toEqual([]);
+    expect(reviewedPreMembership).toEqual({});
+  });
+  it("uses exactly the capability registry's sorted keys", () =>
+    expect(keys).toEqual(Object.keys(CAPABILITY_REGISTRY).sort()));
+  it("admits only reviewed exceptions with matching names, reasons, bodies and lane", () => {
+    const name = "tenant_guard.example(p_tenant_id uuid)";
+    const row = human(name);
+    const entry = { function: name, reason: "fixture: no prior membership" };
+    const reviewed = {
+      [name]: {
+        reason: entry.reason,
+        digest: createHash("sha256").update(HUMAN_BODY.trim()).digest("hex"),
+      },
+    };
+    expect(preMembershipExceptions([row], [entry]).allowed.size).toBe(0);
+    expect(
+      preMembershipExceptions([row], [entry], reviewed).allowed.has(name),
+    ).toBe(true);
+    for (const invalid of [
+      preMembershipExceptions([], [entry], reviewed),
+      preMembershipExceptions(
+        [row],
+        [{ ...entry, reason: "different" }],
+        reviewed,
+      ),
+      preMembershipExceptions(
+        [{ ...row, body: "BEGIN RETURN; END;" }],
+        [entry],
+        reviewed,
+      ),
+      preMembershipExceptions(
+        [{ ...row, service_role: true }],
+        [entry],
+        reviewed,
+      ),
+      preMembershipExceptions([row], [entry, entry], reviewed),
+    ])
+      expect(invalid.failures).toHaveLength(1);
+  });
+  it("does not exempt a changed assignment reader by name alone", () => {
+    const name = "tenant_guard.resolve_command_assignment(p_tenant_id uuid)";
+    expect(
+      codes(
+        evaluate(
+          [],
+          listed(),
+          [],
+          [
+            human(name, {
+              body: "BEGIN PERFORM tenant_guard.begin_human_command(p_tenant_id); RETURN; END;",
+            }),
+          ],
+        ),
+      ),
+    ).toContain(`COMMAND_CAPABILITY ${name}`);
+  });
+  it.each([
+    "p_tenant_id",
+    "p_tenant_id, 'missing.key'",
+    "p_tenant_id, p_capability",
+  ])("requires a registered literal before a membership write (%s)", (args) => {
+    const body = `BEGIN PERFORM tenant_guard.begin_human_command(${args}); UPDATE authz.memberships SET updated_at=now() WHERE false; END;`;
+    expect(
+      codes(
+        evaluate(
+          [],
+          listed(),
+          [],
+          [human("tenant_guard.edit(uuid)", { body })],
+        ),
+      ),
+    ).toContain("COMMAND_CAPABILITY tenant_guard.edit(uuid)");
+  });
+  it.each([
+    { owner: "postgres" },
+    { definer: false },
+    { body: "BEGIN RETURN; END;" },
+    {
+      body: "DECLARE v uuid := private.load(); BEGIN PERFORM tenant_guard.enter(p_tenant_id); END;",
+    },
+  ])("rejects a service-callable helper without protected entry %j", (over) => {
+    expect(
+      codes(
+        evaluate(
+          [],
+          listed(),
+          [],
+          [command("tenant_guard.helper(uuid)", over)],
+        ),
+      ),
+    ).toContain("COMMAND_HELPER_EXPOSED tenant_guard.helper(uuid)");
+  });
+  it("rejects service EXECUTE on a wrapper of human commands alone", () => {
+    expect(
+      codes(
+        evaluate(
+          [],
+          listed(),
+          [],
+          [human("tenant_guard.edit(uuid)")],
+          allow(),
+          {
+            wrappers: [
+              wrapper("public.edit(uuid)", "SELECT tenant_guard.edit(p)", {
+                service_role: true,
+              }),
+            ],
+          },
+        ),
+      ),
+    ).toContain("WRAPPER_GRANTS_HUMAN public.edit(uuid)");
+  });
+  // Fix check G5: every signed-in command is a human target, a platform
+  // command as much as a tenant_guard one, alone or beside a worker.
+  it.each([
+    ["alone", "SELECT platform.block(p)"],
+    [
+      "beside a worker",
+      "SELECT platform.block(p); SELECT tenant_guard.work(p)",
+    ],
+  ])(
+    "rejects service EXECUTE on a wrapper of a signed-in platform command %s",
+    (_name, body) => {
+      expect(
+        codes(
+          evaluate(
+            [],
+            listed(),
+            [],
+            [
+              platformCommand("platform.block(uuid)"),
+              command("tenant_guard.work(uuid)"),
+            ],
+            allow(),
+            {
+              wrappers: [
+                wrapper("public.block(uuid)", body, { service_role: true }),
+              ],
+            },
+          ),
+        ),
+      ).toContain("WRAPPER_GRANTS_HUMAN public.block(uuid)");
+    },
+  );
 });
 const evaluate = (
   tables: object[],
@@ -392,7 +551,7 @@ describe("evaluateTenantRlsCatalog: command lanes (AL-2674, plan 5.4)", () => {
         human("tenant_guard.wrong_owner(uuid)", { owner: "postgres" }),
         human("tenant_guard.ok(uuid)"),
         human("tenant_guard.perform(uuid)", {
-          body: "BEGIN\n  PERFORM tenant_guard.begin_human_command(p_tenant_id);\n  RETURN 1;\nEND;",
+          body: "BEGIN\n  PERFORM tenant_guard.begin_human_command(p_tenant_id, 'people.manage_members');\n  RETURN 1;\nEND;",
         }),
       ],
     );
@@ -684,7 +843,7 @@ describe("evaluateTenantRlsCatalog: the preamble is the real first step (AL-2674
       `-- resolve the assignment first
        DECLARE v_x int; /* a note */
        BEGIN
-         PERFORM tenant_guard.begin_human_command(p_tenant_id); -- refuses
+         PERFORM tenant_guard.begin_human_command(p_tenant_id, 'people.manage_members'); -- refuses
          BEGIN
            INSERT INTO public.t VALUES (1);
          EXCEPTION WHEN unique_violation THEN
@@ -698,9 +857,10 @@ describe("evaluateTenantRlsCatalog: the preamble is the real first step (AL-2674
     [
       "a label, quoted words and a string that holds comment markers",
       `<<outer>>
-       DECLARE v_note text := 'it''s -- not a comment';
+       DECLARE v_note text;
        BEGIN
-         v := tenant_guard.begin_human_command(p);
+         v := tenant_guard.begin_human_command(p, 'people.manage_members');
+         v_note := 'it''s -- not a comment';
          RAISE NOTICE E'\\' EXCEPTION WHEN OTHERS';
          RETURN $q$ EXCEPTION WHEN OTHERS THEN $q$;
        END outer;`,
@@ -875,8 +1035,13 @@ describe("evaluateTenantRlsCatalog: council round 2 (A3)", () => {
       "a quoted identifier that holds a parenthesis",
       'BEGIN PERFORM tenant_guard.begin_human_command(p."odd)name" ) ; END;',
     ],
-  ])("passes a human entry point whose preamble has %s", (_n, body) => {
-    expect(humanWith(body).failures).toEqual([]);
+  ])("parses %s but does not admit an unregistered argument", (_n, body) => {
+    expect(
+      laneCheckProblem({ schema: "tenant_guard", language: "plpgsql", body }),
+    ).toBeNull();
+    expect(codes(humanWith(body))).toEqual([
+      "COMMAND_CAPABILITY tenant_guard.cmd(uuid)",
+    ]);
   });
 
   it("fails a platform command whose operator check is part of a larger initialiser", () => {
@@ -1018,7 +1183,7 @@ describe("evaluateTenantRlsCatalog: council round 3 (lens 1 I2)", () => {
   it('passes a human entry point whose quoted identifiers are only names: v."end", "case"', () => {
     expect(
       humanWith(
-        'DECLARE "case" int; BEGIN v_ctx := tenant_guard.begin_human_command(p."end"); "case" := 1; RETURN v_ctx; END;',
+        'DECLARE "case" int; BEGIN v_ctx := tenant_guard.begin_human_command(p, \'people.manage_members\'); "case" := v."end"; RETURN v_ctx; END;',
       ).failures,
     ).toEqual([]);
   });

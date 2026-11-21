@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 import { resolveDonorPortalContext } from "./service";
 import { listDonorWallet } from "./wallet";
-import { withOperation } from "../shared/with-operation";
+import { withPlatformOperation } from "../shared/with-operation";
 import { resolveTenantStripe } from "../stripe/tenant-client";
 
 /**
@@ -12,7 +12,7 @@ import { resolveTenantStripe } from "../stripe/tenant-client";
  * - POST opens Stripe's billing portal, where they add, remove or choose a
  *   default payment method.
  */
-const donorBilling = withOperation(
+const donorBilling = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
     const { donor } = await resolveDonorPortalContext(

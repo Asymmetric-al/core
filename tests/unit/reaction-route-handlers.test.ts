@@ -29,7 +29,8 @@ vi.mock("@asym/database/supabase/server", () => ({
   createClient: createClientMock,
 }));
 
-vi.mock("@asym/database/supabase/admin", () => ({
+vi.mock("@asym/database/supabase/admin", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/database/supabase/admin")>()),
   getAdminClient: getAdminClientMock,
 }));
 
@@ -334,6 +335,23 @@ describe("donor reaction route handlers", () => {
       expect(getAdminClientMock).toHaveBeenCalledOnce();
       expect(requestClient.requestRpc).not.toHaveBeenCalled();
       expect(revalidateTagMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    [
+      "Admin endpoints are disabled because SUPABASE_SERVICE_ROLE_KEY is not configured.",
+      "Admin endpoints are disabled because SUPABASE_SERVICE_ROLE_KEY is not configured.",
+    ],
+    ["vendor supplied private detail", "Admin client unavailable"],
+  ])(
+    "preserves only reviewed configuration messages: %s",
+    async (error, publicMessage) => {
+      mockRequestClient();
+      getAdminClientMock.mockReturnValue({ client: null, error });
+      const response = await invoke(mutationCases[0]!.handler);
+      expect(response.status).toBe(503);
+      await expect(response.json()).resolves.toEqual({ error: publicMessage });
     },
   );
 

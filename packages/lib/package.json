@@ -13,6 +13,7 @@
     "./image-utils": "./image-utils.ts",
     "./assets": "./assets.ts",
     "./monitoring": "./monitoring/index.ts",
+    "./monitoring/sentry": "./monitoring/sentry.ts",
     "./monitoring/sentry-policy": "./monitoring/sentry-policy.ts",
     "./seo": "./seo/index.ts",
     "./html/sanitize": "./html/sanitize.ts",

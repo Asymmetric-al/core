@@ -42,8 +42,9 @@ export const ROLLBACK_REST = [
  * Until then they were the a8fbab2f census lines.
  */
 export const PASS_LINES = [
-  "field-policy manifest: ${recordTypes} record types, ${columns.length} columns, five surfaces, same-name floors, processor locks, reserved receipts and pinned sources.",
-  "the migrated columns of the ${recordTypes} classified record types equal the manifest's ${columns.length} entries; canonical receipts are absent.",
+  // D-18: derived export fields have policy rows but are not physical columns; pin the separate inventories.
+  "field-policy manifest: ${physicalTypes} physical types (${physical.length} columns), ${derivedTypes} derived types (${columns.length - physical.length} fields), five surfaces, same-name floors, processor locks, reserved receipts and pinned sources.",
+  "the migrated columns of the ${physicalTypes} physical types equal the manifest's ${physical.length} physical columns; reserved and derived relations are absent.",
   "all ${columns.length * SURFACES.length} public.field_policies rows equal the manifest's flags and categories.",
 ].map((l) => `PASS: ${l}`);
 /**

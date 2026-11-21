@@ -16,8 +16,8 @@ import {
   loadActiveEveModelBudgetOverrides,
   loadEveModelPolicies,
 } from "./store";
-import { toErrorResponse } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
+import { withPlatformOperation } from "../../shared/with-operation";
 
 async function loadAdminView(
   input: Parameters<typeof canManageEveModelPolicy>[0],
@@ -35,7 +35,7 @@ async function loadAdminView(
   };
 }
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ auth, supabaseAdmin, requestId, isPlatformOperator }) => {
     try {
       const platformOperator = await isPlatformOperator();
@@ -54,11 +54,11 @@ export const GET = withOperation(
   { tenantAdministrator: true },
 );
 
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ auth, request, supabaseAdmin, requestId, isPlatformOperator }) => {
     try {
       const parsed = createEveModelPolicyDraftSchema.parse(
-        await request.json(),
+        await ensureJsonBody(request),
       );
       // A platform operator manages model policy too (AL-2675 WP2c: the
       // shared operator check, not the super_admin role name).
@@ -88,10 +88,12 @@ export const POST = withOperation(
   { tenantAdministrator: true },
 );
 
-export const PATCH = withOperation(
+export const PATCH = withPlatformOperation(
   async ({ auth, request, supabaseAdmin, requestId, isPlatformOperator }) => {
     try {
-      const mutation = mutateEveModelPolicySchema.parse(await request.json());
+      const mutation = mutateEveModelPolicySchema.parse(
+        await ensureJsonBody(request),
+      );
       const platformOperator = await isPlatformOperator();
       if (mutation.action === "evaluate") {
         await evaluateEveModelPolicyDraft({

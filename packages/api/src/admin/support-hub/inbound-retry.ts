@@ -2,7 +2,8 @@ import { type AuthenticatedContext } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { withOperation } from "../../shared/with-operation";
+import { ensureJsonBody } from "../../shared/http-errors";
+import { withPlatformOperation } from "../../shared/with-operation";
 import { requestInboundEmailRetryDispatch } from "../../workflows/adapters/inbound-email";
 
 const retryRequestSchema = z
@@ -18,11 +19,11 @@ const retryRequestSchema = z
  * server; the browser never calls the provider and never receives provider
  * secrets, signed URLs, raw payloads, or attachment bytes.
  */
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 
-    const parsed = retryRequestSchema.safeParse(await request.json());
+    const parsed = retryRequestSchema.safeParse(await ensureJsonBody(request));
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid retry request." },

@@ -368,6 +368,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@asym/api": "workspace:*",
+        "@asym/auth": "workspace:*",
         "@asym/database": "workspace:*",
         "@asym/env": "workspace:*",
         "@vercel/connect": "0.4.0",

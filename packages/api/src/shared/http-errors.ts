@@ -1,12 +1,16 @@
+import {
+  mutationMediaType,
+  UNSUPPORTED_MUTATION_TYPE,
+} from "@asym/auth/request-headers";
 import { SCOPE_REFUSED_HEADER } from "@asym/database/request-scope-headers";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
-import { ApiHttpError } from "./api-http-error";
+import { ApiHttpError, ApiResponseContractError } from "./api-http-error";
 
 // Browser-safe modules import the class from "./api-http-error" directly;
 // this re-export keeps the server-side import surface unchanged.
-export { ApiHttpError };
+export { ApiHttpError, ApiResponseContractError };
 
 const STATUS_BY_ERROR_CODE: Record<string, number> = {
   "23503": 409, // foreign_key_violation
@@ -15,11 +19,63 @@ const STATUS_BY_ERROR_CODE: Record<string, number> = {
   PGRST116: 404,
 };
 
+/**
+ * The shared JSON reader, and the second line behind the proxy (F13, fix
+ * check G1). The proxy judges a write by its headers alone and forwards one
+ * with no type and no framing as empty; over HTTP/2 or HTTP/3 a body needs no
+ * length header, so one may still arrive. This reader decides by the bytes it
+ * reads: a non-empty body whose media type is not JSON gets the proxy's 415.
+ * An empty body is what it always was here: invalid JSON (400).
+ */
 export async function ensureJsonBody(request: Request): Promise<unknown> {
+  let text = "";
+  if (mutationMediaType(request) === "application/json") {
+    // No size limit for an accepted JSON body here: the platform's own
+    // request limit bounds it, and a product limit is a decision of its own
+    // (re-check H3).
+    try {
+      text = await request.text();
+    } catch {
+      throw new ApiHttpError(400, "Invalid JSON body");
+    }
+  } else if (request.body) {
+    // A body that is not JSON is refused on its first non-empty chunk, and
+    // the rest of the stream is never read (re-check H3).
+    const reader = request.body.getReader();
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value.byteLength > 0) {
+          await reader.cancel().catch(() => undefined);
+          throw new ApiHttpError(415, UNSUPPORTED_MUTATION_TYPE);
+        }
+      }
+    } catch (error) {
+      if (error instanceof ApiHttpError) throw error;
+      throw new ApiHttpError(400, "Invalid JSON body");
+    } finally {
+      reader.releaseLock();
+    }
+  }
   try {
-    return await request.json();
+    return JSON.parse(text);
   } catch {
     throw new ApiHttpError(400, "Invalid JSON body");
+  }
+}
+
+/**
+ * The shared reader for a handler whose body is optional: an empty or
+ * malformed body reads as `null`, as `request.json().catch(() => null)` did,
+ * but a non-empty body that is not JSON is still refused with 415.
+ */
+export async function readJsonBodyOrNull(request: Request): Promise<unknown> {
+  try {
+    return await ensureJsonBody(request);
+  } catch (error) {
+    if (error instanceof ApiHttpError && error.status === 415) throw error;
+    return null;
   }
 }
 
@@ -134,13 +190,62 @@ export function toErrorResponse(
   requestId?: string,
 ) {
   const normalized = toApiHttpError(error, fallbackMessage);
+  const message =
+    normalized.status >= 500 && !(error instanceof ApiResponseContractError)
+      ? "Internal error"
+      : normalized.message;
   return NextResponse.json(
-    requestId
-      ? { error: normalized.message, requestId }
-      : { error: normalized.message },
+    requestId ? { error: message, requestId } : { error: message },
     {
       status: normalized.status,
       ...(normalized.headers ? { headers: normalized.headers } : {}),
     },
   );
+}
+
+export async function reportOperationFailure(
+  operation: string,
+  error: unknown,
+  requestId: string,
+  status: number,
+) {
+  const name =
+    error instanceof Error &&
+    /^(?:Type|Range|Reference|Syntax|Aggregate|ApiHttp)?Error$/.test(error.name)
+      ? error.name
+      : "Error";
+  const rawCode =
+    error && typeof error === "object" && "code" in error ? error.code : null;
+  const code =
+    typeof rawCode === "string" &&
+    /^(?:[0-9A-Z]{5}|PGRST\d{3}|E(?:CONNRESET|CONNREFUSED|TIMEDOUT))$/.test(
+      rawCode,
+    )
+      ? rawCode
+      : null;
+  const sanitized = new Error("Request failed");
+  sanitized.name = name;
+  // Node heads a stack with "Name: message", or "Name" alone when the message
+  // is empty (fix check M1).
+  const header =
+    error instanceof Error
+      ? `${error.message ? `${error.name}: ${error.message}` : error.name}\n`
+      : null;
+  if (header && error instanceof Error && error.stack?.startsWith(header)) {
+    const frames = error.stack
+      .slice(header.length)
+      .split("\n")
+      .filter((line) => /^\s+at /.test(line));
+    sanitized.stack = [`${name}: Request failed`, ...frames].join("\n");
+  }
+  const diagnostic = { requestId, status, name, code, stack: sanitized.stack };
+  console.error(`[${operation}] Request failed`, diagnostic);
+  try {
+    // The Sentry reporter alone, not the monitoring barrel, which also
+    // re-exports a client module and the admin-client audit scanner.
+    const { captureError } = await import("@asym/lib/monitoring/sentry");
+    captureError(sanitized, diagnostic, { request_id: requestId });
+  } catch {
+    console.error(`[${operation}] Error tracker unavailable`, { requestId });
+  }
 }

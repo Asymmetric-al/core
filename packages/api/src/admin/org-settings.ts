@@ -6,7 +6,7 @@ import {
 } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 
-import { toErrorResponse } from "../shared/http-errors";
+import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
 import { createRequestSessionClient } from "../shared/request-session-client";
 
 import type { OrgPostVisibility } from "@asym/database/types";
@@ -65,7 +65,9 @@ export async function PATCH(request: Request) {
       request,
       requestScopeOf(auth),
     );
-    const body = await request.json();
+    const body = (await ensureJsonBody(request)) as {
+      orgPostVisibility?: unknown;
+    };
     const visibility = body.orgPostVisibility as OrgPostVisibility;
 
     if (!["all_donors", "followers_only"].includes(visibility)) {

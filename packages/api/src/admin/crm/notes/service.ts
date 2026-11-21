@@ -256,13 +256,6 @@ export async function createMissionControlCrmNote(
     {
       action: "crm.note.create",
       actor: options.actor,
-      commandPayload: {
-        body,
-        linkedRecordId,
-        linkedRecordType,
-        title,
-        visibility,
-      },
       idempotencyKey,
       requestId: options.requestId,
       resourceId: note.id,

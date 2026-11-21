@@ -3,12 +3,12 @@ import { NextResponse } from "next/server";
 import { eveKillSwitchMutationSchema, setEveKillSwitch } from "./control";
 import { loadEveGovernanceAdminView } from "./store";
 import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { withPlatformOperation } from "../../shared/with-operation";
 import { traceEveControlDecision } from "../audit/control-decision";
 import { createAdminEveAuditIdentity } from "../audit/identity";
 import { loadRecentEveAuditEvents } from "../audit/store";
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ auth, supabaseAdmin, requestId }) => {
     try {
       // The caller's own tenant's history, for a platform operator too: an
@@ -35,7 +35,7 @@ export const GET = withOperation(
   { tenantAdministrator: true },
 );
 
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ auth, supabaseAdmin, requestId }) => {
     try {
       const governance = await loadEveGovernanceAdminView({ supabaseAdmin });
@@ -79,7 +79,7 @@ export const POST = withOperation(
   { tenantAdministrator: true },
 );
 
-export const PATCH = withOperation(
+export const PATCH = withPlatformOperation(
   async ({ auth, request, supabaseAdmin, requestId }) => {
     try {
       // Only a confirmed platform operator reaches this handler (the gate

@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 
 import { getMissionaryPortalSnapshot } from "./service";
 import { missionaryScope } from "../shared/missionary-authority";
-import { withOperation } from "../shared/with-operation";
+import { withPlatformOperation } from "../shared/with-operation";
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ supabaseAdmin, auth }) => {
     const portal = await getMissionaryPortalSnapshot({
       supabaseAdmin,

@@ -1,1 +1,1 @@
-export { GET } from "@asym/api/auth/cleanup-demo-users";
+export { POST } from "@asym/api/auth/cleanup-demo-users";

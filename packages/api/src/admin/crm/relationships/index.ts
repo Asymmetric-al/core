@@ -7,9 +7,9 @@ import {
 } from "./service";
 import { requireCrmAccess } from "../../../crm/auth/access";
 import { toErrorResponse } from "../../../shared/http-errors";
-import { withOperation } from "../../../shared/with-operation";
+import { withPlatformOperation } from "../../../shared/with-operation";
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.relationship.read",

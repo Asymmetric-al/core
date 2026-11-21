@@ -6,7 +6,7 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { toErrorResponse } from "../../shared/http-errors";
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
 
 export async function PATCH(
   request: NextRequest,
@@ -23,7 +23,7 @@ export async function PATCH(
     const ctx = auth as AuthenticatedContext;
     const { commentId } = await params;
 
-    const body = await request.json();
+    const body = (await ensureJsonBody(request)) as { content?: string };
     const { content } = body;
 
     const { data: existingComment } = await supabaseAdmin
