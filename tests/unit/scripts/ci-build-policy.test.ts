@@ -1,5 +1,13 @@
-import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
@@ -8,6 +16,7 @@ import {
   COMPILATION_APPS,
   OPERATOR_BUILD_APPS,
   parseBuildSelection,
+  readCompilationChanges,
   readWorkspaceDependencyDirs,
   resolveCompilation,
   validateCiGate,
@@ -164,6 +173,64 @@ describe("development compilation policy", () => {
       "missionary",
       "factory-console",
     ]);
+  });
+});
+
+describe("changed-file reading", () => {
+  // Git quotes paths with non-ASCII bytes (and quotes, backslashes or tabs)
+  // in plain --name-only output; the lists must keep the real names.
+  it("returns paths git would quote exactly as they are named", () => {
+    const root = mkdtempSync(join(tmpdir(), "changed-files-"));
+    const git = (...args: string[]) =>
+      execFileSync("git", args, { cwd: root, stdio: "ignore" });
+    const write = (file: string, text: string) => {
+      mkdirSync(dirname(join(root, file)), { recursive: true });
+      writeFileSync(join(root, file), text);
+    };
+    try {
+      git("init", "-q", "-b", "develop");
+      git("config", "user.email", "test@example.invalid");
+      git("config", "user.name", "Test");
+      git("config", "commit.gpgsign", "false");
+      git("config", "core.quotePath", "true");
+      write("docs/base.md", "base\n");
+      git("add", "-A");
+      git("commit", "-q", "-m", "base");
+      git("checkout", "-q", "-b", "feature");
+      write("docs/café.md", "committed\n");
+      write("apps/donor/app/(public)/naïve page.tsx", "committed\n");
+      git("add", "-A");
+      git("commit", "-q", "-m", "change");
+      write("docs/base.md", "edited\n");
+      write("docs/über.md", "untracked\n");
+      expect(
+        readCompilationChanges({
+          base: "develop",
+          head: "HEAD",
+          includeWorkingTree: true,
+          cwd: root,
+        })?.sort(),
+      ).toEqual(
+        [
+          "apps/donor/app/(public)/naïve page.tsx",
+          "docs/base.md",
+          "docs/café.md",
+          "docs/über.md",
+        ].sort(),
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("reports an unknown change set when the base is missing", () => {
+    const root = mkdtempSync(join(tmpdir(), "changed-files-"));
+    try {
+      execFileSync("git", ["init", "-q"], { cwd: root, stdio: "ignore" });
+      expect(readCompilationChanges({ base: "develop", cwd: root })).toBeNull();
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
 

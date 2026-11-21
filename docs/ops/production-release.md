@@ -51,7 +51,9 @@ checked production release apart from an accidental direct push.
 ## Guardrails
 
 - Direct `git push origin production` is blocked by `.husky/pre-push`.
-- Non-production pushes still run the normal `ci:preflight` hook.
+- Non-production pushes run the fast preflight profile
+  (`bun run ci:preflight -- --fast`); a production push from the release
+  command runs the full profile with every app compiled.
 - Emergency production pushes require a visible reason:
 
   ```bash

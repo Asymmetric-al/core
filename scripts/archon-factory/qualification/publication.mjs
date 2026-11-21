@@ -20,6 +20,7 @@ import {
   statusPorcelain,
 } from "../pack/.shared/git.mjs";
 import {
+  FULL_PREFLIGHT_ENV,
   hookEvidence,
   hookedGit,
   restoreHookShims,
@@ -181,6 +182,7 @@ const push = await step("pre-push-preflight", async () =>
         network: "bridge",
         cache: true,
         outbox: true,
+        env: { ...FULL_PREFLIGHT_ENV },
         timeoutMs: 110 * 60_000,
         memoryMb: 32768,
         cpus: 16,

@@ -109,8 +109,9 @@ preparation, not a new identity gate in repository hooks.
    Apply the same inspection and isolation conditions to documented reproduction
    commands required by acceptance. Advance only with PASS and no unresolved
    material findings.
-8. Push normally through the required `ci:preflight` hook; do not bypass hooks or
-   repeat the full gate without reason. Verify the remote head. Open/update a
+8. Push normally with `ASYM_PRE_PUSH_PROFILE=full`, so the required pre-push
+   hook runs the full `ci:preflight`; do not bypass hooks or repeat the full
+   gate without reason. Verify the remote head. Open/update a
    PR to `develop`, reference the issue, attach its URL to the task, and report
    checks actually run.
 9. Read live required checks and actionable feedback. Wait using bounded native

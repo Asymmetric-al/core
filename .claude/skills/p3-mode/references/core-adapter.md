@@ -65,8 +65,8 @@ Use the operating system's temporary directory where a skill names `/tmp`.
   `production` directly, so the Orchestrate playbook's direct landing push does
   not apply. Merge, enable auto-merge, or run `gh pr merge` only when the user
   asked to merge, land, or ship.
-- **Hooks and gates.** Never skip hooks. `bun run ci:preflight` is the push
-  gate. Follow `docs/ai/rules/general.md` for branches and PRs, and
+- **Hooks and gates.** Never skip hooks. `git push` runs the fast preflight
+  profile; `bun run ci:preflight` (full) is the pull-request readiness gate. Follow `docs/ai/rules/general.md` for branches and PRs, and
   `docs/ai/rules/review-bots.md` for review-bot triage.
 - **Destructive commands.** Never run `git reset --hard`, `git clean`,
   `git worktree remove --force`, `rm -rf`, or simulator and cache deletion
