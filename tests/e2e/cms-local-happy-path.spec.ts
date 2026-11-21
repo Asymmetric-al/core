@@ -44,6 +44,12 @@ async function expectNoPayloadFailure(page: Page) {
   expect(textMatchesPayloadDbFailure(bodyText)).toBe(false);
 }
 
+// D-18 (AL-2677, 3bd91aa9f; fix check G7): sign in through the login form
+// with the seeded login rather than the Demo Access button. On a production
+// build of the local stack the login page offered no Demo Access button (the
+// run of 21 November 2026 timed out waiting for it); the form works on every
+// build. `bun run test:e2e:cms:local` supplies the seeded login from
+// scripts/cms/lib/local-data.mjs when the environment holds none.
 async function signInAsLocalDemoAdmin(page: Page, next = "/web-studio") {
   const email = process.env.DEMO_ADMIN_EMAIL;
   const password = process.env.DEMO_PASSWORD;
@@ -99,11 +105,13 @@ test.describe("@cms-local strict local CMS happy path", () => {
   test("bodyless browser deletes remove a reaction, its post and a Studio draft", async ({
     page,
   }) => {
+    // Fix check G6: fail, not skip, without the missionary app; the strict
+    // local run starts it (scripts/cms/run-local-e2e.mjs).
     const missionary = process.env.PLAYWRIGHT_MISSIONARY_BASE_URL;
-    test.skip(
-      !missionary,
-      "Requires the missionary app on the same seeded local stack.",
-    );
+    expect(
+      missionary,
+      "PLAYWRIGHT_MISSIONARY_BASE_URL: the missionary app on the same seeded local stack",
+    ).toBeTruthy();
     await signInAsLocalDemoAdmin(page);
     const headers = await writeHeaders(
       page,
