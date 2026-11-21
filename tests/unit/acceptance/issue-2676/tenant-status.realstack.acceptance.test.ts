@@ -109,4 +109,41 @@ describe.skipIf(!ADMIN_URL)("tenant status under a selected membership", () => {
       }
     },
   );
+
+  // K3 (fix check, 21 November). The CHECK of 20261117160000:75 ties
+  // is_active to revoked_at, so a revoked row is always inactive and no data
+  // can tell the two filters apart; the reader's own text must keep both.
+  it("current_user_memberships answers nothing for a revoked row, and keeps its revoked_at test", async () => {
+    await db.query("begin");
+    try {
+      await db.query(fixtureSql(id));
+      const caller = {
+        sub: "UDON",
+        headers: { "x-asym-tenant": id.TA!, "x-asym-assignment": id.mDonA! },
+      };
+      const read = () =>
+        queryAs(
+          "authenticated",
+          caller,
+          `select tenant_id from public.current_user_memberships('${id.TA}')`,
+        );
+      expect((await read()).rows).toEqual([{ tenant_id: id.TA }]);
+      await db.query(
+        "update authz.memberships set revoked_at = now() where id = $1",
+        [id.mDonA],
+      );
+      const revoked = await read();
+      expect(revoked.code, revoked.message).toBeNull();
+      expect(revoked.rows).toEqual([]);
+      const [text] = (
+        await db.query(
+          "select pg_get_functiondef('public.current_user_memberships(uuid)'::regprocedure) as body",
+        )
+      ).rows;
+      expect(text.body).toMatch(/\bm\.revoked_at IS NULL\b/);
+      expect(text.body).toMatch(/\bm\.is_active\b/);
+    } finally {
+      await db.query("rollback");
+    }
+  });
 });
