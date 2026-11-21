@@ -171,10 +171,7 @@ Thus `notes`, `status`, `title`, and `type` are **care** across this baseline,
 including financial status and donor workflow/job-title columns. This deliberate
 restriction avoids weakening care meanings; it may reduce future positive
 projections until an owner reviews the underlying model. Email/phone remain
-contact and avatar URLs public consistently across records. The sole reviewed
-exception is `site_domains.tenant_id`: the anonymous verified-host resolver
-returns this public identifier (plan §5.4, coordinator ruling 2026-11-21).
-Other `tenant_id` columns stay internal. The census rejects stale exceptions.
+contact and avatar URLs public consistently across records.
 
 Structural identifiers, timestamps and workflow metadata are explicitly internal,
 not implicit fallbacks. Gift/pledge money and processor identifiers are financial;

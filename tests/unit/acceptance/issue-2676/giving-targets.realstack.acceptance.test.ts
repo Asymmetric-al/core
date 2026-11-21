@@ -25,19 +25,26 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
     expect(rows[0].total).toBeGreaterThan(100);
     expect(rows[0].invalid).toBe(0);
   });
-  it("the seed owns two default Sites, portal hosts, brands, explicit approval policies and fee funds", async () => {
+  it("the seed owns, for each tenant, a legal entity with its fee-cover fund and an explicit approval policy", async () => {
     const result =
-      await db.query(`select t.id, s.id as site, portal.tenant_id as portal, b.display_name, a.ownership_mode, f.name,
-      (select count(*)::int from public.sites all_sites where all_sites.tenant_id=t.id) as sites
-      from public.tenants t join public.sites s on s.tenant_id=t.id and s.is_default
-      join lateral public.resolve_verified_host(t.slug||'.localhost') h on h.site_id=s.id and h.tenant_id=t.id
-      join lateral public.resolve_verified_host(t.slug||'-portal.localhost') portal on portal.site_id is null and portal.tenant_id=t.id
-      join public.donor_account_brands b on b.tenant_id=t.id join public.contribution_approval_policies a on a.tenant_id=t.id
-      join public.funds f on f.tenant_id=t.id and f.system_purpose='fee_cover'
+      await db.query(`select t.id, e.name as entity, a.ownership_mode, f.name
+      from public.tenants t join public.legal_entities e on e.tenant_id=t.id
+      join public.contribution_approval_policies a on a.tenant_id=t.id
+      join public.funds f on f.tenant_id=t.id and f.legal_entity_id=e.id and f.system_purpose='fee_cover'
       where t.id in ('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002') order by t.id`);
-    expect(result.rows.map((row) => [row.sites, row.ownership_mode])).toEqual([
-      [1, "no_approval_required"],
-      [2, "no_approval_required"],
+    expect(
+      result.rows.map((row) => [row.id, row.ownership_mode, row.name]),
+    ).toEqual([
+      [
+        "00000000-0000-0000-0000-000000000001",
+        "no_approval_required",
+        "Fee cover",
+      ],
+      [
+        "00000000-0000-0000-0000-000000000002",
+        "no_approval_required",
+        "Fee cover",
+      ],
     ]);
     expect(
       (await db.query("select id from public.payment_account_bindings"))
@@ -54,9 +61,9 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       await db.query("rollback");
     }
   });
-  it("grants clients no table or column writes on tenant, entity or Site records", async () => {
+  it("grants clients no table or column writes on tenant or entity records", async () => {
     const violations = await db.query(
-      `select relation, principal from unnest(array['tenants','legal_entities','payment_account_bindings','giving_target_entity_locks','sites','site_domains','donor_portal_hosts','donor_account_brands']) relation cross join unnest(array['anon','authenticated']) principal where has_any_column_privilege(principal,'public.'||relation,'insert,update,references') or has_table_privilege(principal,'public.'||relation,'delete,truncate,trigger')`,
+      `select relation, principal from unnest(array['tenants','legal_entities','payment_account_bindings','giving_target_entity_locks']) relation cross join unnest(array['anon','authenticated']) principal where has_any_column_privilege(principal,'public.'||relation,'insert,update,references') or has_table_privilege(principal,'public.'||relation,'delete,truncate,trigger')`,
     );
     expect(violations.rows).toEqual([]);
   });

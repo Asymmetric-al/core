@@ -72,7 +72,7 @@ describe.skipIf(!ADMIN_URL)("tenant status under a selected membership", () => {
         const command = await queryAs(
           "tenant_guard",
           admin,
-          `select (tenant_guard.begin_human_command('${id.TA}','sites.manage')).assignment_id`,
+          `select (tenant_guard.begin_human_command('${id.TA}','people.manage_members')).assignment_id`,
         );
         expect(command.code).toBe(status === "active" ? null : "42501");
         for (const principal of [admin, caller]) {

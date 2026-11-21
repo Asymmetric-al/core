@@ -16,10 +16,6 @@ SET LOCAL timezone = 'UTC';
 -- ---------------------------------------------------------------------------
 DELETE FROM authz.memberships;
 DELETE FROM public.contribution_approval_policies;
-DELETE FROM public.donor_account_brands;
-DELETE FROM public.site_domains;
-DELETE FROM public.sites;
-DELETE FROM public.donor_portal_hosts;
 DELETE FROM public.notification_queue;
 DELETE FROM public.pledge_charge_attempts;
 DELETE FROM public.audit_logs;
@@ -493,18 +489,6 @@ INSERT INTO public.legal_entities(id,tenant_id,name)
 SELECT md5(id::text||':legal')::uuid,id,name FROM public.tenants;
 INSERT INTO public.funds(id,tenant_id,legal_entity_id,name,system_purpose)
 SELECT md5(tenant_id::text||':fee')::uuid,tenant_id,id,'Fee cover','fee_cover' FROM public.legal_entities;
-INSERT INTO public.sites(id,tenant_id,name,is_default,primary_domain)
-SELECT md5(id::text||':site')::uuid,id,name,true,slug||'.localhost' FROM public.tenants;
-INSERT INTO public.sites(id,tenant_id,name,primary_domain)
-SELECT md5(id::text||':second')::uuid,id,'Harbor Light Stories','stories.'||slug||'.localhost'
-FROM public.tenants WHERE id='00000000-0000-0000-0000-000000000002';
-INSERT INTO public.donor_portal_hosts(id,tenant_id,primary_domain)
-SELECT md5(id::text||':portal')::uuid,id,slug||'-portal.localhost' FROM public.tenants;
-INSERT INTO public.site_domains(host,tenant_id,site_id,is_platform_host,verification_requested_at,deployment_attached_at)
-SELECT primary_domain,tenant_id,id,true,'2026-11-17','2026-11-17' FROM public.sites;
-INSERT INTO public.site_domains(host,tenant_id,portal_host_id,is_platform_host,verification_requested_at,deployment_attached_at,redirect_allowlisted_at)
-SELECT primary_domain,tenant_id,id,true,'2026-11-17','2026-11-17','2026-11-17' FROM public.donor_portal_hosts;
-INSERT INTO public.donor_account_brands(tenant_id,display_name) SELECT id,name FROM public.tenants;
 INSERT INTO public.contribution_approval_policies(tenant_id,ownership_mode) SELECT id,'no_approval_required' FROM public.tenants;
 
 WITH missionary_seed AS (

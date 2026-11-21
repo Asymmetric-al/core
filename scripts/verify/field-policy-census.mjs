@@ -90,12 +90,6 @@ export function expectedFieldPolicyRows(manifest) {
   );
 }
 
-// D-18, 2026-11-21 council: only the anonymous resolver's tenant projection
-// (plan 5.4) may differ from the same-name floor; C6 still admits no exception.
-export const HOST_PROJECTION_FLOORS = Object.freeze({
-  "site_domains.tenant_id": { category: "public", floor: "internal" },
-});
-
 /** Problems found in the manifest alone, without a database. */
 export function manifestProblems(manifest, { root = repoRoot } = {}) {
   const problems = [];
@@ -155,17 +149,12 @@ export function manifestProblems(manifest, { root = repoRoot } = {}) {
       if (typeof column[surface] !== "string" || !FLAGS.test(column[surface]))
         fail("FLAGS", `${key} ${surface} must match [v-][e-][x-]`);
     const prior = floors.get(column.name);
-    if (
-      !Object.hasOwn(HOST_PROJECTION_FLOORS, key) &&
-      prior &&
-      prior.category !== column.category
-    )
+    if (prior && prior.category !== column.category)
       fail(
         "FLOOR",
         `${key} is ${column.category} but ${prior.key} is ${prior.category}; one column name has one category`,
       );
-    if (!Object.hasOwn(HOST_PROJECTION_FLOORS, key) && !prior)
-      floors.set(column.name, { key, category: column.category });
+    if (!prior) floors.set(column.name, { key, category: column.category });
     const processor = column.processor_identifier === true;
     if ("processor_identifier" in column && !processor)
       fail("PROCESSOR", `${key} processor_identifier may only be true`);
@@ -182,22 +171,6 @@ export function manifestProblems(manifest, { root = repoRoot } = {}) {
         if (surface !== "mission_control" && value !== "---")
           fail("PROCESSOR", `${key} is denied on ${surface}`);
       }
-  }
-  for (const [key, reviewed] of Object.entries(HOST_PROJECTION_FLOORS)) {
-    const [record, field] = key.split(".");
-    // A manifest without the record type (a historical oracle aligned to its
-    // own columns, as #2254's suite judges) gives the override nothing to
-    // exempt. The repository's own manifest is held to carry it, with its
-    // reviewed category, by tests/unit/acceptance/issue-2676.
-    if (!Object.hasOwn(manifest.record_types ?? {}, record)) continue;
-    if (
-      manifest.record_types[record]?.[field]?.category !== reviewed.category ||
-      floors.get(field)?.category !== reviewed.floor
-    )
-      fail(
-        "FLOOR",
-        `${key} override is stale or no longer matches its reviewed categories`,
-      );
   }
   for (const source of manifest.pinned_sources ?? []) {
     if (!/^supabase\/migrations\/[^/]+\.sql$/.test(source.path ?? "")) {
