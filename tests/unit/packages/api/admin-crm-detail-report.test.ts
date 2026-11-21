@@ -708,6 +708,49 @@ describe("Phase 5 CRM donor detail and reports", () => {
     },
   );
 
+  // F11(c): a group's source revision is a digest of its own values, so a
+  // group whose values change after it was built is withheld, not exported.
+  it("withholds a group whose values changed after the export bound them", async () => {
+    const groups = await buildAdminCrmExportGroups({
+      tenantId: "tenant-1",
+      supabaseAdmin: createSupabaseFixture(baseTables) as never,
+      params: {
+        slice: "funds",
+        filters: { dateFrom: null, dateTo: null, search: null },
+      },
+    });
+    const assignment = {
+      assignmentId: "membership-1",
+      userId: "user-1",
+      tenantId: "tenant-1",
+      revision: "v1",
+      membershipRole: "staff",
+      staffRole: "finance",
+      isTenantAdmin: false,
+    } as const;
+    const fields = policies("mission_control", "crm_report_groups", [
+      { fieldKey: "label" },
+      { fieldKey: "net_amount_cents" },
+    ]);
+    expect(groups.rows).toHaveLength(1);
+    const bound = serializeAdminCrmReportCsv(groups, assignment, fields);
+    expect(bound.groupIds).toEqual(["funds:fund-1"]);
+    expect(bound.csv).toContain('"General Fund","12500"');
+    const changed = serializeAdminCrmReportCsv(
+      {
+        ...groups,
+        rows: groups.rows.map((group) => ({
+          ...group,
+          row: { ...group.row, amountCents: group.row.amountCents + 1 },
+        })),
+      },
+      assignment,
+      fields,
+    );
+    expect(changed.groupIds).toEqual([]);
+    expect(changed.csv).not.toContain("General Fund");
+  });
+
   it.each(["donors", "missionaries", "funds"] as const)(
     "does not label %s from another tenant",
     async (slice) => {
