@@ -239,6 +239,8 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
 
   /** A platform operator is not a target. */
   const PROTECTED = "This person's role cannot be changed here";
+  /** Nobody changes their own row. */
+  const SELF = "Administrators cannot change their own role";
   const CLASS_CHANGE =
     "A role change keeps the row's class: change the sub-role or the administrator flag of a staff row. Give a row of another class by invitation, and end one with revoke_membership";
 
@@ -352,7 +354,10 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
           tenant: tenantA,
           role,
         });
-        expect(outcome.code).toBe("42501");
+        // The refusal of one's own row, by its message: the donor row would
+        // also be refused, with the same code, as a change of class, and that
+        // must not stand in for this rule (review 4650094369 on #2741).
+        expect([outcome.code, outcome.message]).toEqual(["42501", SELF]);
       }
       expect(await rolesOf("adminA")).toEqual(["admin", "donor"]);
     }));
