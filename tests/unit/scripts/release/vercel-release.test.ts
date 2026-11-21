@@ -236,7 +236,7 @@ describe("release job: Vercel steps", () => {
         sleep: noSleep,
         attempts: 1,
       }),
-    ).rejects.toThrow(/without its detail/);
+    ).rejects.toThrow(/without its detail.*not promoted/);
   });
 
   // Council round 2, A6g: nothing called the single-app steps.
@@ -676,8 +676,22 @@ describe("release job: Vercel steps", () => {
         sleep: noSleep,
         attempts: 3,
       }),
-    ).rejects.toThrow(/dpl_new1.*dpl_old1|dpl_old1.*dpl_new1/);
-    expect(request).toHaveBeenCalledTimes(3);
+    ).rejects.toThrow(
+      /admin \(admin\.asymmetric\.al\): promotion of dpl_new1 was requested and could not be verified.*expected dpl_new1, last seen dpl_old1.*Check what admin\.asymmetric\.al serves before dispatching again or rolling back/,
+    );
+    await expect(
+      verifyLive({
+        app: "admin",
+        sha,
+        projectRef: ref,
+        deploymentId: "dpl_new1",
+        bypassSecret: "bypass",
+        request,
+        sleep: noSleep,
+        attempts: 1,
+      }),
+    ).rejects.not.toThrow(/not promoted/);
+    expect(request).toHaveBeenCalledTimes(4);
   });
 
   it("verifyLive stops immediately without retrying when the confirmed new deployment ID reads a wrong Supabase project ref", async () => {
@@ -704,6 +718,177 @@ describe("release job: Vercel steps", () => {
       }),
     ).rejects.toThrow(/reads Supabase project btewedpsxwsjczvmegby/);
     expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it("verifyLive retries status-only ok and behind answers (e.g. rotated bypass secret on old deployment) until the new deployment ID answers", async () => {
+    let calls = 0;
+    const request = vi.fn(async () => {
+      calls += 1;
+      if (calls === 1) {
+        return {
+          status: 200,
+          json: async () => ({ status: "ok" }),
+        } as Response;
+      }
+      if (calls === 2) {
+        return {
+          status: 503,
+          json: async () => ({ status: "behind" }),
+        } as Response;
+      }
+      return {
+        status: 200,
+        json: async () =>
+          healthy({
+            release: { commit: sha, deploymentId: "dpl_new1" },
+          }).body,
+      } as Response;
+    });
+
+    const body = await verifyLive({
+      app: "admin",
+      sha,
+      projectRef: ref,
+      deploymentId: "dpl_new1",
+      bypassSecret: "bypass",
+      request,
+      sleep: noSleep,
+      attempts: 5,
+    });
+    expect(calls).toBe(3);
+    expect(body.release.deploymentId).toBe("dpl_new1");
+  });
+
+  it("verifyLive fails after the bound on status-only answers, naming app, domain, expected ID, none identified and never-identified detail without saying not promoted", async () => {
+    const request = fakeHealth({
+      "*": { status: 200, body: { status: "ok" } },
+    });
+
+    let message = "";
+    try {
+      await verifyLive({
+        app: "donor",
+        sha,
+        projectRef: ref,
+        deploymentId: "dpl_new2",
+        bypassSecret: "bypass",
+        request,
+        sleep: noSleep,
+        attempts: 3,
+      });
+    } catch (error) {
+      message = (error as Error).message;
+    }
+
+    expect(request).toHaveBeenCalledTimes(3);
+    expect(message).toContain("donor");
+    expect(message).toContain(PRODUCTION_HOSTS.donor);
+    expect(message).toContain("dpl_new2");
+    expect(message).toContain("none identified");
+    expect(message).toContain("never saw an identified answer");
+    expect(message).toContain(
+      "promotion of dpl_new2 was requested and could not be verified",
+    );
+    expect(message).toContain(
+      `Check what ${PRODUCTION_HOSTS.donor} serves before dispatching again or rolling back.`,
+    );
+    expect(message).not.toContain("not promoted");
+  });
+
+  it("stops immediately when a confirmed new deployment reports a wrong project ref even on 503, while still retrying 503 answers without a ref", async () => {
+    const wrongRef503 = fakeHealth({
+      "*": {
+        status: 503,
+        body: {
+          status: "unknown",
+          release: { commit: sha, deploymentId: "dpl_new1" },
+          database: {
+            supabaseProjectRef: "btewedpsxwsjczvmegby",
+            environment: "disposable",
+          },
+        },
+      },
+    });
+
+    let stagedMessage = "";
+    try {
+      await checkDeploymentHealth({
+        url: "https://admin-1.vercel.app",
+        bypassSecret: "bypass",
+        sha,
+        projectRef: ref,
+        deploymentId: "dpl_new1",
+        request: wrongRef503,
+        sleep: noSleep,
+        attempts: 4,
+      });
+    } catch (error) {
+      stagedMessage = (error as Error).message;
+    }
+    expect(wrongRef503).toHaveBeenCalledTimes(1);
+    expect(stagedMessage).toMatch(
+      /reads Supabase project btewedpsxwsjczvmegby.*not promoted/,
+    );
+
+    wrongRef503.mockClear();
+    let liveMessage = "";
+    try {
+      await verifyLive({
+        app: "admin",
+        sha,
+        projectRef: ref,
+        deploymentId: "dpl_new1",
+        bypassSecret: "bypass",
+        request: wrongRef503,
+        sleep: noSleep,
+        attempts: 4,
+      });
+    } catch (error) {
+      liveMessage = (error as Error).message;
+    }
+    expect(wrongRef503).toHaveBeenCalledTimes(1);
+    expect(liveMessage).toContain(
+      "reads Supabase project btewedpsxwsjczvmegby",
+    );
+    expect(liveMessage).toContain(
+      "promotion of dpl_new1 was requested and could not be verified",
+    );
+    expect(liveMessage).not.toContain("not promoted");
+
+    let calls = 0;
+    const noRef503ThenOk = vi.fn(async () => {
+      calls += 1;
+      if (calls === 1) {
+        return {
+          status: 503,
+          json: async () => ({
+            status: "error",
+            release: { commit: sha, deploymentId: "dpl_new1" },
+            error: { code: "PGRST202" },
+          }),
+        } as Response;
+      }
+      return {
+        status: 200,
+        json: async () =>
+          healthy({
+            release: { commit: sha, deploymentId: "dpl_new1" },
+          }).body,
+      } as Response;
+    });
+
+    const body = await verifyLive({
+      app: "admin",
+      sha,
+      projectRef: ref,
+      deploymentId: "dpl_new1",
+      bypassSecret: "bypass",
+      request: noRef503ThenOk,
+      sleep: noSleep,
+      attempts: 4,
+    });
+    expect(calls).toBe(2);
+    expect(body.release.deploymentId).toBe("dpl_new1");
   });
 
   it.each([

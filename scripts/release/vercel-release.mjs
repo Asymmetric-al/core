@@ -46,9 +46,15 @@ const TERMINAL = new Set(["READY", "ERROR", "CANCELED"]);
 const SHA = /^[a-f0-9]{40}$/;
 const PROJECT_REF = /^[a-z0-9]{20}$/;
 
-export class ReleaseStop extends Error {}
-const stop = (message) => {
-  throw new ReleaseStop(message);
+export class ReleaseStop extends Error {
+  constructor(message, options) {
+    super(message);
+    this.fatal = options?.fatal ?? false;
+    this.seenId = options?.seenId ?? null;
+  }
+}
+const stop = (message, options) => {
+  throw new ReleaseStop(message, options);
 };
 
 export function projectFor(app) {
@@ -259,11 +265,15 @@ export async function checkDeploymentHealth({
   sha,
   projectRef,
   deploymentId,
+  phase = "staged",
   request = fetch,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   attempts = 6,
 }) {
+  const isLive = phase === "live";
+  const suffix = isLive ? "." : "; not promoted.";
   let last = "no response";
+  let lastSeenId = null;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     let response;
     let body;
@@ -284,32 +294,64 @@ export async function checkDeploymentHealth({
     }
     const status = body?.status;
     const seenId = body?.release?.deploymentId ?? null;
-    // When verifying a specific deployment, an answer from another deployment
-    // (e.g. the previous one during alias propagation) keeps retrying instead
-    // of attributing the old deployment's status or project ref to the new one.
-    if (deploymentId && body?.release && seenId !== deploymentId) {
+    if (seenId) lastSeenId = seenId;
+
+    // On a production domain after promotion, an answer that does not identify
+    // itself (e.g. an older deployment rejecting a rotated bypass secret and
+    // answering status-only) or identifies another deployment is never accepted
+    // and never final: keep retrying within the attempt bound.
+    if (deploymentId && isLive) {
+      if (!body?.release || !seenId) {
+        last = `expected deployment ${deploymentId}, saw none identified (HTTP ${response.status}, status ${status ?? "unknown"})`;
+        if (attempt < attempts) await sleep(5_000);
+        continue;
+      }
+      if (seenId !== deploymentId) {
+        last = `expected deployment ${deploymentId}, saw ${seenId}`;
+        if (attempt < attempts) await sleep(5_000);
+        continue;
+      }
+    } else if (deploymentId && body?.release && seenId !== deploymentId) {
       last = `expected deployment ${deploymentId}, saw ${seenId ?? "unknown"}`;
       if (attempt < attempts) await sleep(5_000);
       continue;
     }
+
+    // Compare a supplied Supabase project ref as soon as the target deployment
+    // is confirmed (whatever its HTTP status); answers without a ref keep
+    // retrying.
+    const reportedRef = body?.database?.supabaseProjectRef;
+    if (projectRef && reportedRef && reportedRef !== projectRef) {
+      stop(
+        `The deployment reads Supabase project ${reportedRef}, not ${projectRef}${suffix}`,
+        { fatal: true, seenId },
+      );
+    }
+
     if (status === "behind") {
       stop(
-        `The database is behind this build (${JSON.stringify(body.migrations)}); not promoted.`,
+        `The database is behind this build (${JSON.stringify(body.migrations)})${suffix}`,
+        { fatal: true, seenId },
       );
     }
     if (response.status === 200 && status === "ok") {
       // The route gives its detail only to the bypass header (A6f).
       if (!body?.release) {
         stop(
-          "The migration health route answered without its detail: it did not accept the deployment-protection bypass header; not promoted.",
+          `The migration health route answered without its detail: it did not accept the deployment-protection bypass header${suffix}`,
+          { fatal: true },
         );
       }
       if (sha && body?.release?.commit !== sha) {
-        stop("The deployment reports a different commit; not promoted.");
+        stop(`The deployment reports a different commit${suffix}`, {
+          fatal: true,
+          seenId,
+        });
       }
-      if (projectRef && body?.database?.supabaseProjectRef !== projectRef) {
+      if (projectRef && reportedRef !== projectRef) {
         stop(
-          `The deployment reads Supabase project ${body?.database?.supabaseProjectRef ?? "unknown"}, not ${projectRef}; not promoted.`,
+          `The deployment reads Supabase project ${reportedRef ?? "unknown"}, not ${projectRef}${suffix}`,
+          { fatal: true, seenId },
         );
       }
       return body;
@@ -317,7 +359,12 @@ export async function checkDeploymentHealth({
     last = `HTTP ${response.status}, status ${status ?? "unknown"}${body?.error?.code ? ` (${body.error.code})` : ""}`;
     if (attempt < attempts) await sleep(5_000);
   }
-  stop(`The migration health check did not pass: ${last}; not promoted.`);
+  stop(
+    isLive
+      ? `${last}.`
+      : `The migration health check did not pass: ${last}; not promoted.`,
+    { fatal: false, seenId: lastSeenId },
+  );
 }
 
 /** Points production traffic at a staged deployment. Vercel does not rebuild. */
@@ -369,26 +416,37 @@ export async function verifyLive({
   if (!/^dpl_[A-Za-z0-9]+$/.test(deploymentId ?? "")) {
     stop("The deployment to verify has no valid identity.");
   }
+  const domain = PRODUCTION_HOSTS[app];
+  let lastSeenId = null;
+  let sawAnyIdentified = false;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       return await checkDeploymentHealth({
-        url: `https://${PRODUCTION_HOSTS[app]}`,
+        url: `https://${domain}`,
         bypassSecret,
         sha,
         projectRef,
         deploymentId,
+        phase: "live",
         request,
         sleep,
         attempts: 1,
       });
     } catch (error) {
-      if (attempt === attempts) throw error;
-      if (
-        /behind|different commit|different Supabase|reads Supabase|without its detail/.test(
-          error.message,
-        )
-      ) {
-        throw error;
+      if (error instanceof ReleaseStop && error.seenId) {
+        lastSeenId = error.seenId;
+        sawAnyIdentified = true;
+      }
+      const fatal = error instanceof ReleaseStop && error.fatal;
+      if (fatal || attempt === attempts) {
+        const seen = lastSeenId ?? "none identified";
+        const detail = sawAnyIdentified
+          ? error.message
+          : `never saw an identified answer (${error.message.replace(/\.$/, "")}).`;
+        stop(
+          `${app} (${domain}): promotion of ${deploymentId} was requested and could not be verified (expected ${deploymentId}, last seen ${seen}): ${detail} Check what ${domain} serves before dispatching again or rolling back.`,
+          { fatal: true, seenId: lastSeenId },
+        );
       }
       await sleep(10_000);
     }
