@@ -1,132 +1,160 @@
 # Shadscan
 
-Core uses the exact `@shadscan/cli` version in root `package.json` and `bun.lock`.
-The pre-commit hook, local CI preflight and GitHub CI use the same repository
-gate. CI's reusable reporter publishes the gate's existing artifacts; it does
-not download another scanner or run a second audit.
+Shadscan is a third-party static scorer for React and shadcn interfaces. In
+Core it is **advisory**: its scores and findings never fail a commit, a push,
+the local `ci:preflight` or a required CI check. There are no score floors, no
+score target and no findings ledger. Reviewers read the report and triage what
+it finds.
+
+Core uses the exact `@shadscan/cli` version declared in root `package.json` and
+locked in `bun.lock`. The owner retired the former blocking gate on
+2026-11-18; the record is the OpenSpec change `make-shadscan-advisory`.
+
+## Where it runs
+
+- **CI:** the non-required `shadscan-report` job (`.github/workflows/shadscan.yml`,
+  called from `ci.yml`) scans the submitted head commit once per CI event,
+  uploads the raw report and its JSON summary as the `shadscan-audit`
+  artifact, and publishes the summary from a separate job. The scan has
+  read-only repository access. `ci-gate` does not depend on either job.
+- **Locally:** only when you run it. The pre-commit hook and `ci:preflight` do
+  not scan.
 
 ```sh
 bun ci
-bun run verify:shadscan
-bun run verify:shadscan -- --output /tmp/core-shadscan
+bun run shadscan:audit
+bun run shadscan:audit -- --output .tmp/shadscan
 ```
 
-The output directory contains the unchanged `shadscan.raw.json`, an annotated
-`shadscan.summary.json` and a readable `shadscan.summary.md`. The ordinary command
-fails when coverage, compatibility, any application floor or finding review fails.
-For investigation, `--report-only` retains the failing gate result while allowing
-the command to exit successfully. Hooks and CI never use that option.
+The output directory holds the unchanged `shadscan.raw.json`, a
+`shadscan.summary.json` and a readable `shadscan.summary.md`. Without
+`--output` the command writes to a new temporary directory and prints its
+path. The command exits 0 whenever the scanner produced a valid report,
+whatever the scores. It exits non-zero only when no valid report exists: the
+declared and installed versions differ, the scanner fails or runs past its
+nine-minute limit, or its output is not JSON in the installed report schema.
 
-## Coverage and scores
+## Reading the report
 
-The scan starts at the workspace root. All four gated applications must be
-discovered: the deployed `apps/admin`, `apps/donor` and `apps/missionary`, and the
-private operator app `apps/factory-console`. The gate also retains
-the reviewed library inventory, including the workspace root. Missing projects,
-truncated discovery, incomplete source coverage, incompatible report versions
-and unassessed scores fail the gate.
+The summary lists every expected application: `apps/admin`, `apps/donor`,
+`apps/missionary` and the private operator Console `apps/factory-console`.
+The scanner discovers every Next.js workspace as an application, so the
+Console appears beside the three product apps. For each one it shows:
 
-`tooling/shadscan/policy.json` binds the engine, ruleset and report schema and
-protects each application's raw score independently. Policy schema 2 also requires
-all six category floors for each app. Categories are recomputed from the unchanged
-raw assessments; a higher pooled or application score cannot compensate for a
-regressing category. Missing or unassessed categories fail even at a zero floor.
-A 100-point application or category floor requires every applicable scored point,
-not a percentage rounded to 100. Activating an application's overall floor at
-100 also rejects unresolved advisories on rules with positive point values in
-any of its categories. An unassessed behavior cannot disappear from that final
-perfect-application claim. Existing raw category floors and zero-point advisories
-keep their current behavior. Current floors capture the verified baseline;
-they do not claim the 100/100 target has been reached.
+- the raw overall score,
+- the percentage for each of the six categories (foundation, interaction,
+  states, accessibility, forms, production polish), or `n/a` where no scored
+  rule applies,
+- the IDs of its failing rules.
 
-Library findings remain visible and reviewed;
-their scores do not contribute to the scanner's pooled application score. Core
-does not calculate an adjusted score or present exceptions as passing raw rules.
+An expected application the scanner did not find is shown as "not
+discovered". Library projects, including `packages/ui`, are scanned
+separately; their scores do not pool into the application score.
 
-The audit before AL-1931 used 0.1.1 on `packages/ui` alone and scored 31/100.
-Using published 0.17.0 on the same library scored 33/100; its complete workspace
-audit scored 40/100, with admin 35, donor 41 and missionary 47. These are different
-audit scopes. The 63 initial failing app-rule results included both real defects
-and scanner limitations. The final protected floors live in policy, after repairs.
+Where the summary appears:
 
-This static audit complements lint, unit tests and browser verification. It does
-not prove that every route or authenticated state is accessible, nor that a
-production deployment contains local changes. Record the actual routes, viewport,
-keyboard checks, revision and environment when reporting rendered verification.
+- **Same-repository pull request:** one comment marked
+  `<!-- shadscan-report -->`, updated in place on every run, and the job
+  summary.
+- **Fork pull request:** the job summary only. The fork token is read-only,
+  and Core does not hand a write token to a workflow that processes fork
+  output.
+- **Push to `develop`:** the job summary and one bot-owned tracking issue
+  labelled `shadscan`.
 
-## Reviewing a finding
+If dependency installation or the scan fails, the job publishes an
+"audit evidence is unavailable" statement naming the head commit. It replaces
+any earlier scores in the comment, so an older commit's scores never read as
+current, and the job is marked failed. That failure blocks nothing.
 
-First inspect the exact source and rendered behavior. Repair confirmed defects
-at the owning component and rescan: some rules report only the first failure, so
-a successful fix can expose another site. Preserve shared `packages/ui` ownership,
-Base UI composition, semantic tokens and the canonical `base-maia` configuration.
+## Triage
 
-The remaining scored failures require exact entries in
-`tooling/shadscan/findings.json`. Each entry binds the project, rule, normalized
-raw evidence fingerprint, rationale and SHA256 hashes of its source or policy
-proof. Scanner limitations additionally require executable repository tests whose
-files are included in that proof. Proof paths must be safe repository source
-files; credentials, environment files, generated output and symlinks are rejected.
+Treat each failing rule as a lead, not a verdict:
 
-The classifications are:
+1. Inspect the exact source and the rendered behavior. The MCP
+   `explain_rule` tool below, or the official documentation linked at the
+   end, says what a rule checks.
+2. **Confirmed defect:** repair it at the owning shared or application
+   component with a focused behavior test, or open an issue that records it.
+   Some rules report only their first failure, so rescan after a repair: the
+   next site can appear.
+3. **Scanner limitation or accepted product decision:** no change and no
+   repository record. Do not change code only to raise a score.
 
-- `scanner-limitation`: the scanner cannot resolve correct behavior through a
-  shared wrapper, Base UI composition or a supported framework convention.
-- `product-decision`: an explicit product or architecture choice intentionally
-  omits the suggested feature.
-- `library-applicability`: the finding requires application ownership that the
-  inspected library does not have.
-- `confirmed-defect`: a real defect still needs repair and blocks the gate.
+Preserve shared `packages/ui` ownership, Base UI composition, semantic tokens
+and the canonical `base-maia` configuration in every repair.
 
-New evidence for the same rule is a new finding. Stale source hashes, stale entries,
-ambiguous entries, unclassified failures and confirmed defects block the gate.
-There are no whole-rule exemptions. Refresh proof only after reviewing the change;
-bulk rehashing to restore green checks is not evidence review.
+## MCP use
+
+Agents with the read-only Shadscan MCP server can explore findings without a
+full run:
+
+- `list_projects` lists the packages it would scan and why each is an
+  application or a library;
+- `scan` rescans the current files, optionally filtered by `packageDir`,
+  category or severity;
+- `explain_rule` describes one rule by its ID.
+
+The MCP server may run a different Shadscan version from the repository pin.
+For the numbers a pull request reports, use `bun run shadscan:audit`.
+
+## Known static-analysis limits
+
+The audit reads source; it does not run the app. Expect these false or
+irrelevant findings:
+
+- **Shared wrappers and Base UI composition.** The scanner often cannot see
+  that a shared `packages/ui` component, or a Base UI `render` prop, supplies
+  the name, role or keyboard behavior a rule looks for.
+- **Library projects.** App-shell rules (theme provider, metadata, toaster,
+  command menu, error routes) do not apply to a component library.
+- **Framework conventions.** Global Next.js recovery boundaries and
+  redirect-only Suspense siblings follow framework conventions rather than
+  the scanner's filename heuristics.
+
+A static score does not prove that a route or authenticated state is
+accessible, or that a deployment contains a change. The axe-based Playwright
+checks and focused behavior tests are the evidence for rendered behavior.
+Record the actual routes, viewport, keyboard checks, revision and environment
+when reporting rendered verification.
+
+Retiring the gate left no blocking static accessibility check beyond the six
+`jsx-a11y` rules `eslint-config-next` enables in the three Next apps. Full
+`jsx-a11y` enforcement is proposed, not ratified, in the OpenSpec change
+`enforce-jsx-a11y-lint`.
 
 ## Core's intentional contracts
 
-The three product applications currently force the light theme. A global theme
-shortcut would contradict that choice. App-local `components.json` files are prohibited; shadcn
-configuration belongs to `packages/ui`. Private Mission Control and missionary
-pages keep their publication restrictions rather than adding public social cards
-for a score. The public donor site's declared social image must resolve.
+These choices outrank a finding that asks for something else:
 
-Mission Control navigation search uses the user's permitted navigation and guards
-Cmd/Ctrl+K against text editing and other active dialogs. Support inbox shortcuts
-retain their local scope. The owner approved useful donor and missionary
-navigation palettes on 2026-10-04. They mount once in each signed-in workspace,
-compose the shared Base UI/base-maia command widget, and use the existing
-permitted destinations. Public giving, checkout and login flows retain their
-existing navigation. The published scanner still misses this shared-package
-composition; executable caller and keyboard/focus tests support that finding.
-
-The Factory Console (`apps/factory-console`) is one owner's private control
-surface on the factory VM, reached only through that owner's SSH tunnel; it is
-not a product application. It has a visible light and dark switch and no toast
-channel, command menu, theme shortcut or social preview. Those omissions are
-recorded with their reasons under "Deliberate omissions" in
-`apps/factory-console/README.md`. They were proposed on 2026-11-12, when the
-Console first came under this gate, and await the owner's ratification.
-
-Authenticated CMS preview retains its blocking dynamic boundary. Redirect-only
-Suspense siblings retain invisible fallbacks. Global Next.js recovery boundaries
-are verified against the framework conventions rather than duplicated to match a
-scanner filename heuristic.
+- The three product applications force the light theme. A global theme
+  shortcut would contradict that choice.
+- App-local `components.json` files are prohibited; shadcn configuration
+  belongs to `packages/ui`.
+- Private Mission Control and missionary pages keep their publication
+  restrictions rather than adding public social cards. The public donor
+  site's declared social image must resolve.
+- Mission Control navigation search uses the user's permitted navigation and
+  guards Cmd/Ctrl+K against text editing and other active dialogs. Support
+  inbox shortcuts keep their local scope. The owner approved donor and
+  missionary navigation palettes on 2026-10-04; they mount once in each
+  signed-in workspace, compose the shared Base UI/base-maia command widget
+  and use the existing permitted destinations. Public giving, checkout and
+  login flows keep their existing navigation.
+- The Factory Console (`apps/factory-console`) is one owner's private control
+  surface on the factory VM, reached only through that owner's SSH tunnel; it
+  is not a product application. It has a visible light and dark switch and no
+  toast channel, command menu, theme shortcut or social preview. The reasons
+  are recorded under "Deliberate omissions" in `apps/factory-console/README.md`.
+  They were proposed on 2026-11-12 and await the owner's ratification.
+- Authenticated CMS preview keeps its blocking dynamic boundary.
 
 ## Updating the scanner
 
 Check the [published package](https://www.npmjs.com/package/@shadscan/cli), its
 matching [source](https://github.com/TheOrcDev/shadscan) and the
-[official documentation](https://www.shadscan.com/docs). As of 2026-10-03 the
-website advertised 0.17.1 while the public registry's latest installable package
-was 0.17.0. Core pins the published package, not an unavailable website version.
-
-Update the exact dependency and lock together, then review the new report schema,
-ruleset, discovery and every finding. Preserve the Bun lockfile compatibility
-ceiling documented in [CI](../../ci.md). Re-run source and browser regressions and
-ratchet honest app floors after verified repairs. Do not lower a floor or rewrite
-raw statuses to make an upgrade pass.
-
-The pre-commit audit uses a temporary Git-index snapshot, including staged policy
-and proof. Unstaged fixes cannot hide a staged regression. Stage a coherent change
-before committing; the snapshot is removed after the audit.
+[official documentation](https://www.shadscan.com/docs). Update the exact
+dependency and the lockfile together, run `bun run shadscan:audit`, and read
+the new report schema, ruleset and discovery before relying on the numbers.
+Preserve the Bun lockfile compatibility ceiling documented in
+[CI](../../ci.md). There are no floors to raise or lower.

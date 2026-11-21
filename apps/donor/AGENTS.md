@@ -33,6 +33,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 2. Confirm Instant Navigation: Stream, Cache, or explicit Block.
 3. Follow TDD for substantive behavior (`docs/ai/skills/tdd/SKILL.md`).
 4. Run `bunx turbo run lint typecheck --filter=@asym/donor`, the focused unit tests (`bunx vitest run tests/unit/apps/donor/<area>`; most unit tests for this app live under the root `tests/unit/apps/donor/`), and `bun run verify:data-boundary` when routes or data access change. `bun run check` is the broader gate.
+5. For route or UI changes, verify at runtime with the `next-dev-loop` skill. Reuse the dev server named in `apps/donor/.next/dev/lock` (when `next dev` says another server is running, use its URL; don't delete the lock), check compilation with `get_compilation_issues` or `compile_route` and errors with `get_errors` through the Next.js MCP, then check the page with `agent-browser`. Don't run `next build` to check compilation while editing.
 
 ## Checklist
 

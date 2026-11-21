@@ -50,6 +50,11 @@ describe("realstackStepProblems (fixtures)", () => {
     expect(problems(`bun x vitest run \\\n  ${F2250} \\\n  ${F2364}`)).toEqual(
       [],
     );
+    // Bash removes backslash-newline without adding a separator, so adjacent
+    // paths become one argument and must be rejected.
+    expect(problems(`bun x vitest run ${F2250}\\\n${F2364}`)).toContainEqual(
+      expect.stringMatching(/not a plain test path|does not exist/),
+    );
   });
 
   describe("kept from #2706", () => {

@@ -23,6 +23,8 @@ import * as gitModule from "../../../scripts/archon-factory/pack/.shared/git.mjs
 import * as publicationModule from "../../../scripts/archon-factory/pack/.shared/publication.mjs";
 import * as roundModule from "../../../scripts/archon-factory/pack/.shared/round.mjs";
 import { prepareRoleView } from "../../../scripts/archon-factory/pack/.shared/views.mjs";
+import { PRE_PUSH_PROFILE_ENV } from "../../../scripts/git/pre-push.mjs";
+import { completionLines } from "../../../scripts/verify/ci-preflight.mjs";
 
 vi.mock(
   "../../../scripts/archon-factory/pack/.shared/storage-policy.mjs",
@@ -35,6 +37,7 @@ const { createGit, ensureIssueRepo } = gitModule as Record<string, any>;
 const { ensureInstall, nodeModulesMounts, runInIssueRepo, sha256 } =
   roundModule as Record<string, any>;
 const {
+  FULL_PREFLIGHT_ENV,
   crashedTool,
   hookEvidence,
   hookedGit,
@@ -698,6 +701,64 @@ describe("Core hooks are pinned and must be seen to run", () => {
     ["pre-push", "==> PASS ci:preflight\n", false],
   ])("judges whether the %s hook ran from its receipt", (hook, stdout, ran) => {
     expect(hookEvidence(hook, { stdout, stderr: "" }).ran).toBe(ran);
+  });
+
+  it("selects the full pre-push profile through the hook's own selector", () => {
+    expect(FULL_PREFLIGHT_ENV).toEqual({ [PRE_PUSH_PROFILE_ENV]: "full" });
+  });
+
+  it("accepts the full profile's pass line and refuses the fast profile's", () => {
+    const shim = "core-factory: pre-push hook passed\n";
+    const full = completionLines({ profile: "full", ran: 20, seconds: 1 });
+    const fast = completionLines({
+      profile: "fast",
+      ran: 6,
+      skipped: 9,
+      seconds: 1,
+    });
+    expect(
+      hookEvidence("pre-push", {
+        stdout: `${full.join("\n")}\n${shim}`,
+        stderr: "",
+      }).ran,
+    ).toBe(true);
+    expect(
+      hookEvidence("pre-push", {
+        stdout: `${fast.join("\n")}\n${shim}`,
+        stderr: "",
+      }),
+    ).toEqual({ ran: false, shim: true, tool: false });
+  });
+
+  it("runs every hooked push with the full pre-push profile selected", async () => {
+    const { round } = await issueRound();
+    const execute = vi
+      .fn()
+      .mockResolvedValueOnce({
+        status: "failed",
+        exitCode: 1,
+        stdout:
+          '==> CI preflight: format\nerror: script "format:check" was terminated by signal SIGSEGV\n',
+        stderr: "",
+        cleanupConfirmed: true,
+        reusable: true,
+      })
+      .mockResolvedValue({
+        status: "passed",
+        exitCode: 0,
+        stdout: "Everything up-to-date\n",
+        stderr: "",
+        cleanupConfirmed: true,
+        reusable: true,
+      });
+    await publishCandidate(
+      round,
+      { branch: "factory/7-x", candidate: "a".repeat(40) },
+      { execute },
+    );
+    expect(execute.mock.calls.length).toBe(2);
+    for (const [input] of execute.mock.calls)
+      expect(input.env).toMatchObject({ ASYM_PRE_PUSH_PROFILE: "full" });
   });
 
   it("pushes to the outbox through the pinned pre-push hook", async () => {

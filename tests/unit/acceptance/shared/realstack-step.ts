@@ -98,10 +98,10 @@ export function migrateSteps(): WorkflowStep[] {
   return migrateJob()?.steps ?? [];
 }
 
-/** Normalize Bash backslash-newline continuations into spaces. */
+/** Remove Bash backslash-newline continuations without inserting separators. */
 function normalizeRunLine(run: unknown): string {
   return String(run ?? "")
-    .replace(/\\\r?\n[ \t]*/g, " ")
+    .replace(/\\\r?\n/g, "")
     .trim();
 }
 

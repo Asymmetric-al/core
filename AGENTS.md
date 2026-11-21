@@ -1,6 +1,6 @@
 <!-- BEGIN:nextjs-agent-rules -->
 
-# This is NOT the Next.js you know
+## This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
@@ -120,7 +120,7 @@ Use Bun and the scripts declared in the current root `package.json`.
 - Individual gates: `bun run lint`, `bun run typecheck`, `bun run test:unit`, `bun run format:check`
 - Workspace contract: `bun run verify:workspace-contract`
 - Docs, skills and specs: `bun run skills:verify`, `bun run openspec:validate`, `bun run verify:openspec-deltas`, then `bunx vitest run tests/unit/docs`
-- PR/push readiness: `bun run ci:preflight`
+- PR readiness: `bun run ci:preflight` (full profile); `git push` runs its fast profile, `bun run ci:preflight -- --fast`
 
 Run the smallest relevant checks while iterating, then the broader gate proportional to risk. Avoid repeating passed checks unless new edits, failures, unresolved risk, or required workflow gates justify it. Do not bypass hooks or claim checks that were not run. Secrets stay out of source, docs, commands, and logs.
 

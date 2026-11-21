@@ -1,14 +1,25 @@
-import { readFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  failedAppsRecordPath,
+  findStaleNextLockFiles,
   getAppBuildStep,
+  getDebugPrerenderStep,
   getProcessListCommand,
   getRequestedApps,
   getSharedPackageBuildSteps,
   getSleepCommand,
+  planDebugPrerender,
   resolveTurboBin,
 } from "../../../scripts/verify/ci-build.mjs";
 
@@ -318,5 +329,103 @@ describe("ci-build command planning", () => {
       command: "powershell",
       args: ["-NoProfile", "-Command", "Start-Sleep -Seconds 1"],
     });
+  });
+});
+
+describe("Next lock clean-up", () => {
+  const roots: string[] = [];
+  afterEach(() => {
+    for (const root of roots.splice(0))
+      rmSync(root, { recursive: true, force: true });
+  });
+
+  it("finds build locks but never a dev server's lock under .next/dev", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "ci-build-locks-"));
+    roots.push(root);
+    for (const file of [
+      "apps/donor/.next/lock",
+      "apps/donor/.next/dev/lock",
+      "apps/donor/.next/dev/cache/turbopack/lock",
+      "apps/admin/.next/cache/build/lock",
+    ]) {
+      mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+      writeFileSync(path.join(root, file), "");
+    }
+    const found = findStaleNextLockFiles(root)
+      .map((file) => path.relative(root, file).split(path.sep).join("/"))
+      .sort();
+    expect(found).toEqual([
+      "apps/admin/.next/cache/build/lock",
+      "apps/donor/.next/lock",
+    ]);
+  });
+});
+
+describe("prerender diagnostics after a failed CI build", () => {
+  const donor = getRequestedApps(["--app", "donor"])[0]!;
+  const github = { GITHUB_ACTIONS: "true", RUNNER_TEMP: "/runner/tmp" };
+
+  it("rebuilds an app with --debug-prerender through the CI env wrapper", () => {
+    expect(getDebugPrerenderStep(donor)).toEqual({
+      label: "donor (debug prerender)",
+      command: "node",
+      args: [
+        "scripts/run-with-ci-env.mjs",
+        "--",
+        "bun",
+        "run",
+        "--cwd",
+        "apps/donor",
+        "build",
+        "--",
+        "--debug-prerender",
+      ],
+      env: { CORE_EVE_BUILD_MODE: "artifacts" },
+    });
+  });
+
+  it("records a failed app only in GitHub Actions outside Vercel", () => {
+    expect(failedAppsRecordPath(github)).toBe(
+      path.join("/runner/tmp", "ci-build-failed-apps"),
+    );
+    for (const env of [
+      {},
+      { RUNNER_TEMP: "/runner/tmp" },
+      { ...github, VERCEL: "1" },
+      { GITHUB_ACTIONS: "true" },
+    ])
+      expect(failedAppsRecordPath(env)).toBeNull();
+  });
+
+  it("plans debug rebuilds only for recorded, known apps", () => {
+    const read = () => "donor\nnot-an-app\ndonor\n";
+    expect(planDebugPrerender({ env: github, read })).toEqual({
+      steps: [getDebugPrerenderStep(donor)],
+      reason: "rebuilding donor with --debug-prerender",
+    });
+  });
+
+  it("refuses on Vercel or outside GitHub Actions, and explains an empty record", () => {
+    const read = () => "donor\n";
+    expect(
+      planDebugPrerender({ env: { ...github, VERCEL: "1" }, read }).steps,
+    ).toEqual([]);
+    expect(planDebugPrerender({ env: {}, read }).steps).toEqual([]);
+    const none = planDebugPrerender({
+      env: github,
+      read: () => {
+        throw Object.assign(new Error("missing"), { code: "ENOENT" });
+      },
+    });
+    expect(none.steps).toEqual([]);
+    expect(none.reason).toMatch(/no app build failed/);
+  });
+
+  it("never adds the flag to the normal app build", () => {
+    for (const platform of ["linux", "win32"])
+      for (const strict of [false, true])
+        expect(
+          getAppBuildStep(donor, { platform, strict }).args.join(" "),
+        ).not.toContain("debug-prerender");
   });
 });

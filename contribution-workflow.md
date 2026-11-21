@@ -73,8 +73,9 @@ rules.
 ## Handoffs
 
 A human or approved agent may continue another authorized actor's branch. The
-pre-push hook runs normal CI preflight and guards direct production pushes; it
-does not inspect commit identity. Eve checks the authenticated GitHub command
+pre-push hook guards direct production pushes and runs the fast preflight
+profile (`bun run ci:preflight -- --fast`); it does not inspect commit
+identity. Run the full `bun run ci:preflight` before the pull request is ready. Eve checks the authenticated GitHub command
 sender before privileged work. See `docs/ops/github-access.md`.
 
 ## Troubleshooting
@@ -82,8 +83,8 @@ sender before privileged work. See `docs/ops/github-access.md`.
 - **Wrong base:** rebase or recreate the feature branch from current `develop`.
 - **Issue does not close:** use GitHub closing-keyword syntax such as
   `Fixes #123` on its own line. `AL-123` without `#123` does not close the issue.
-- **Gate fails:** fix the first failure, rerun its focused command, then rerun
-  `bun run ci:preflight`.
+- **Gate fails:** fix the first failure, rerun the command the failure prints
+  under `Re-run this stage alone`, then rerun the whole profile that failed.
 - **Push authentication fails in WSL:** verify the local credential-helper path
   and the Windows GCM session. Do not export or copy its stored credential.
 - **GitHub operation is denied:** check `gh auth status` in Windows and the

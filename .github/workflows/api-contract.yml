@@ -1,0 +1,150 @@
+name: API Contract
+
+# Advisory real-backend check (#2708, openspec/changes/add-api-contract-verification).
+#
+# Builds the database the way ci-integration.yml's migrate job does (plain
+# Postgres 17, compat bootstrap, every migration, the demo seed), starts
+# PostgREST on it with the schemas and row cap supabase/config.toml declares,
+# and runs tests/integration/api-contract with tokens minted for this run (the
+# project also runs the check's pure tests in tests/unit/api-contract, which
+# the required unit run covers too):
+#
+# - every statically resolvable packages/api select runs through the Data
+#   API, so a phantom column, embed or unexposed schema fails by file and
+#   line; selects built at run time are listed as not verified;
+# - the real missionary-portal reads run for two tenants;
+# - a read matching more rows than max_rows returns exactly the cap;
+# - every tenant table is probed as a user of each of two tenants written for
+#   the run and as anon, after each user's token is shown to reach the
+#   database with its subject and its tenant claim (the seed's demo tenant id
+#   is not accepted by authz.current_tenant_id(), so its user is not a
+#   caller; a test reports that defect). What that proves is printed per
+#   caller: tables evidenced (readable
+#   and holding rows the caller must not read; donors, donations,
+#   donor_pledges, profiles, missionaries, posts and locations must be), tables
+#   readable but unevidenced, and tables refused for lack of privilege. Plain
+#   Postgres lacks hosted Supabase's default grants, so a refused table proves
+#   nothing about its row policy on a hosted project.
+#
+# Its own workflow, so no file of ci.yml or ci-integration.yml changes. Not a
+# required check: promoting it needs an unfiltered pull_request trigger and a
+# merge_group trigger, since a filtered required check never reports on the
+# pull requests it skips (and workflow-paths.test.ts adapted with it). It uses
+# no repository secrets: the JWT secret and database passwords are random per
+# run.
+#
+# Local run: node scripts/api-contract/stack.mjs up && node
+# scripts/api-contract/stack.mjs test; node scripts/api-contract/stack.mjs down
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # The inputs workflow-paths.test.ts derives: the files the steps run and
+    # what they import, spawn or read by a literal path, the project's tests
+    # and their imports, the Vitest configuration chain and the workspace
+    # packages the swept code needs. It fails when one is missing. Paths
+    # built at run time are not derived.
+    paths:
+      - .github/workflows/api-contract.yml
+      - scripts/api-contract/**
+      - tests/integration/api-contract/**
+      - tests/unit/api-contract/**
+      - packages/**
+      - supabase/migrations/**
+      - supabase/seed.sql
+      - supabase/config.toml
+      - scripts/sql/supabase-compat-bootstrap.sql
+      - scripts/sql/postgres17-upgrade-readiness.sql
+      - scripts/sql/hosted-default-privileges.sql
+      - scripts/verify/supabase-migrations.mjs
+      - scripts/verify/tenant-rls-catalog.mjs
+      - scripts/verify/field-policy-census.mjs
+      - scripts/verify/command-capabilities.json
+      - scripts/verify/command-entry-boundaries.mjs
+      - scripts/lib/postgres-upgrade-preflight.mjs
+      - scripts/lib/psql.mjs
+      - scripts/lib/environment-marker.mjs
+      - tests/integration/supabase/postgres17-upgrade-readiness-verification.sql
+      - docs/security/anon-definer-allowlist.json
+      - docs/security/rls-deny-by-default-exceptions.json
+      - docs/security/tenant-policy-exceptions.json
+      - docs/security/field-policies/**
+      - scripts/github/install-canvas-deps.sh
+      - scripts/github/install-postgresql-client.sh
+      - scripts/github/prepare-apt.sh
+      - vitest.config.mts
+      - vitest.*.mts
+      - tests/setup/**
+      - tests/mocks/**
+      - package.json
+      - bun.lock
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+env:
+  BUN_VERSION: "1.4.3"
+  NODE_VERSION: "24.22.3"
+
+concurrency:
+  group: api-contract-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  api-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asymmetrical_test
+      SKIP_ENV_VALIDATION: "1"
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
+    services:
+      postgres:
+        image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres # pragma: allowlist secret
+          POSTGRES_DB: asymmetrical_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history, as the migrate job: the field-policy census in
+          # "Apply migrations" reads a pinned base commit with git show.
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install system dependencies (canvas)
+        run: bash scripts/github/install-canvas-deps.sh
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Install dependencies
+        run: bun ci --no-cache --backend=copyfile
+      - name: Install PostgreSQL client
+        run: bash scripts/github/install-postgresql-client.sh
+      - name: Apply migrations
+        run: node scripts/verify/supabase-migrations.mjs
+      - name: Apply demo seed
+        run: node scripts/api-contract/stack.mjs seed
+      - name: Start PostgREST on the migrated database
+        run: node scripts/api-contract/stack.mjs prepare
+      - name: Run the API contract tests
+        run: node scripts/api-contract/stack.mjs test --reporter=default
+      - name: Show PostgREST logs on failure
+        if: failure()
+        run: docker logs --tail 100 core-api-contract-rest 2>&1 | sed -E 's#(authenticator:)[^@]*@#\1***@#g' || true
+      - name: Stop PostgREST
+        if: always()
+        run: node scripts/api-contract/stack.mjs down

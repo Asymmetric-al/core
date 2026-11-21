@@ -173,8 +173,10 @@ the root of your checkout; resolve them there when you start elsewhere.
    `bun run lint`, focused `bunx vitest run <files>`, and
    `node node_modules/@playwright/test/cli.js test --config=tests/e2e/playwright-isolated.config.ts <spec>`.
    Do not use `npx tsc` or install packages as part of UI work. Editing
-   `packages/ui/package.json` stales Shadscan's hash-bound review proofs;
-   rebind them after review as `bun run verify:shadscan` reports.
+   `packages/ui/styles/globals.css`, `packages/ui/AGENTS.md` or
+   `docs/ai/rules/frontend.md` stales hash-bound review proofs in
+   `tooling/shadcn/upstream-review-baseline.json`; rebind them after review as
+   `bun run verify:shadcn-diff` reports.
 9. **Upgrade deliberately.** UI SDK is beta. Never bump it as a side effect. A
    bump moves both exact pins together, rereads that release's docs, reruns
    the wrapper tests and refreshes this skill from the same release.
