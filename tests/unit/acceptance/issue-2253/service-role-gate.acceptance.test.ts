@@ -334,7 +334,7 @@ type Allow = {
 };
 const doc = () => JSON.parse(read(ALLOWLIST) || "null") as Allow | null;
 // D-18 (AL-2677): each CRM read proven on a scoped session loses its platform site; only the reviewed privileged callers can remain.
-const CEILING_TOTALS = [182, 120, 114] as const;
+const CEILING_TOTALS = [181, 119, 113] as const;
 const live = (d: Allow) => [
   d.entries.reduce((a, x) => a + x.count, 0),
   d.entries.length,

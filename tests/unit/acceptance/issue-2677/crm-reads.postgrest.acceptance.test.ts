@@ -7,6 +7,10 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { GET as notes } from "../../../../packages/api/src/admin/crm/notes";
 import {
+  GET as records,
+  GET_TAG_OPTIONS as tags,
+} from "../../../../packages/api/src/admin/crm";
+import {
   GET as preferences,
   GET_NAMED_VIEWS as views,
   PUT_TENANT_DEFAULT as setDefault,
@@ -35,6 +39,8 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
     const noteA = randomUUID();
     const noteB = randomUUID();
     const restrictedA = randomUUID();
+    const donorIds = [randomUUID(), randomUUID(), randomUUID()];
+    const marker = `CRM-fixture-${randomUUID()}`;
     const preferenceIds = Array.from({ length: 3 }, () => randomUUID());
     const auditIds: string[] = [];
     const viewIds = Array.from({ length: 3 }, () => randomUUID());
@@ -58,6 +64,18 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
       vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", key);
       db = new pg.Client({ connectionString: database });
       await db.connect();
+      await db.query(
+        "insert into public.donors (id,tenant_id,missionary_id,name,tags) values ($1,$4,$6,$8,array[$8]),($2,$4,$7,$8,array[$8]),($3,$5,$7,$8,array[$9])",
+        [
+          ...donorIds,
+          tenantA,
+          tenantB,
+          otherProfile,
+          "33333333-3333-3333-3333-333333333333",
+          marker,
+          marker + "-B",
+        ],
+      );
       await db.query(
         "insert into authz.memberships (id,user_id,tenant_id,role,staff_role) values ($1,$3,$4,'staff','development'),($2,$3,$5,'staff','development')",
         [dualA, dualB, dualUser, tenantA, tenantB],
@@ -128,6 +146,9 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
       vi.unstubAllEnvs();
       if (db) {
         try {
+          await db.query("delete from public.donors where id=any($1::uuid[])", [
+            donorIds,
+          ]);
           await db.query(
             "delete from public.crm_table_preference_audit_events where id=any($1::uuid[])",
             [auditIds],
@@ -250,6 +271,49 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
             : { tenant_id: tenantA, profile_id: dualUser },
         ]);
       }
+    });
+
+    it.each([
+      ["records", records],
+      ["tags", tags],
+    ] as const)("reads %s with the caller token", async (kind, handler) => {
+      const path = "/api/admin/crm?q=" + marker;
+      const refused = await handler(request(path, sole, tenantB));
+      expect(refused.status).toBe(401);
+      expect(refused.headers.has("x-asym-scope-refused")).toBe(true);
+      const req = request(path, dual);
+      const list = await handler(req);
+      expect(list.status).toBe(200);
+      const body = await list.json();
+      if (kind === "records") {
+        expect(body.rows.map((r: { id: string }) => r.id).sort()).toEqual(
+          donorIds.slice(0, 2).sort(),
+        );
+        expect(
+          body.rows.find((r: { id: string }) => r.id === donorIds[0])
+            .assignedMissionaryName,
+        ).toBeTruthy();
+        expect(
+          body.rows.find((r: { id: string }) => r.id === donorIds[1])
+            .assignedMissionaryName,
+        ).toBe("Former member");
+      } else {
+        expect(body.tags).toContain(marker);
+        expect(body.tags).not.toContain(marker + "-B");
+      }
+      const scoped = await createRequestSessionClient(req, {
+        tenantId: tenantA,
+        assignmentId: dual.assignment,
+      });
+      const direct = await scoped
+        .from("donors")
+        .select("id")
+        .in("id", donorIds);
+      expect(direct.error).toBeNull();
+      expect(direct.data?.map((r) => r.id).sort()).toEqual(
+        donorIds.slice(0, 2).sort(),
+      );
+      expect(getAdminClient).not.toHaveBeenCalled();
     });
 
     it("reads the selected tenant's notes and enforces restricted visibility in PostgREST", async () => {

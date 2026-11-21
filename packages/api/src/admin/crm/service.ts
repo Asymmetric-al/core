@@ -1,4 +1,5 @@
 import { expandStoredValueSpellings } from "./filter-variants";
+import { loadCrmMemberLabels } from "./member-labels";
 import { buildCrmGridRow } from "./model";
 import {
   encodeCrmCursor,
@@ -9,6 +10,7 @@ import { ApiHttpError } from "../../shared/http-errors";
 import { resolveContributionProfileLabel } from "../contribution-shared/profile-label";
 
 import type { AdminCrmListResponse } from "./types";
+import type { RequestSessionClient } from "../../shared/request-session-client";
 import type {
   AdminSupabaseFluentFilterBuilder,
   SupabaseColumn,
@@ -172,12 +174,12 @@ export async function fetchMissionaryNames(
 }
 
 async function fetchFilteredDonorRows(
-  supabaseAdmin: AdminSupabase,
+  sessionClient: RequestSessionClient,
   tenantId: string,
   params: AdminCrmParams,
   limit: number,
 ) {
-  let query = supabaseAdmin
+  let query = sessionClient
     .from("donors")
     .select(
       "id, profile_id, missionary_id, name, email, phone, avatar_url, location, type, status, total_given, last_gift_date, tags, organization, title, notes, created_at, updated_at",
@@ -210,12 +212,12 @@ async function fetchFilteredDonorRows(
 }
 
 export async function listAdminCrmRecords(
-  supabaseAdmin: AdminSupabase,
+  sessionClient: RequestSessionClient,
   tenantId: string,
   params: AdminCrmParams,
 ): Promise<AdminCrmListResponse> {
   const rows = await fetchFilteredDonorRows(
-    supabaseAdmin,
+    sessionClient,
     tenantId,
     params,
     params.limit + 1,
@@ -227,8 +229,9 @@ export async function listAdminCrmRecords(
   const missionaryIds = normalizeIds(
     pageRows.map((d) => d.missionary_id || ""),
   );
-  const missionaryNames = await fetchMissionaryNames(
-    supabaseAdmin,
+  const missionaryNames = await loadCrmMemberLabels(
+    sessionClient,
+    tenantId,
     missionaryIds,
   );
 
