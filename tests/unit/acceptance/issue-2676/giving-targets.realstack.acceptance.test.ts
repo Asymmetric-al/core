@@ -334,6 +334,25 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       await db.query("rollback");
     }
   });
+  // 20261120130006 (coordinator, from WP3b's handoff): a gift's tenant is
+  // always named by its writer; the column no longer defaults to the demo
+  // tenant, so a writer that forgot it cannot file a gift there.
+  it("donations.tenant_id has no default: a gift that names no tenant names none", async () => {
+    const { rows } = await db.query(
+      "select column_default from information_schema.columns where table_schema='public' and table_name='donations' and column_name='tenant_id'",
+    );
+    expect(rows).toEqual([{ column_default: null }]);
+    await db.query("begin");
+    try {
+      const gift = await db.query(
+        "insert into public.donations(id,amount) values ($1,100) returning tenant_id",
+        [randomUUID()],
+      );
+      expect(gift.rows).toEqual([{ tenant_id: null }]);
+    } finally {
+      await db.query("rollback");
+    }
+  });
   it("all ten gift target keys are composite, validated and replace their predecessors", async () => {
     const { rows } = await db.query(
       `select c.convalidated, cardinality(c.conkey) as width from pg_constraint c where c.contype='f' and c.confrelid in ('public.funds'::regclass,'public.missionaries'::regclass) and c.conrelid::regclass::text=any($1)`,
