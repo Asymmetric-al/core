@@ -63,18 +63,18 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     expect(compare).toBeLessThan(roundTrips);
   });
 
-  it("requires the signed-in Site proof on the local stack after fingerprinting", () => {
+  it("requires the signed-in tenant-record proof on the local stack after fingerprinting", () => {
     const suite =
-      "tests/unit/acceptance/issue-2676/site-status.postgrest.acceptance.test.ts";
+      "tests/unit/acceptance/issue-2676/tenant-records.postgrest.acceptance.test.ts";
     const marker = "bunx vitest run --maxWorkers=1 " + suite;
     const run = step(marker);
     expect(run).toBeDefined();
     expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
     for (const variable of [
-      "WP3_SITE_IT_URL",
-      "WP3_SITE_IT_DATABASE_URL",
-      "WP3_SITE_IT_SERVICE_KEY",
-      "WP3_SITE_IT_ANON_KEY",
+      "WP3_TENANT_IT_URL",
+      "WP3_TENANT_IT_DATABASE_URL",
+      "WP3_TENANT_IT_SERVICE_KEY",
+      "WP3_TENANT_IT_ANON_KEY",
     ])
       expect(run).toContain(variable);
     expect(run).toContain("supabase -- status -o json");

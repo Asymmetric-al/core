@@ -2,13 +2,17 @@ import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-const url = process.env.WP3_SITE_IT_URL;
-const database = process.env.WP3_SITE_IT_DATABASE_URL;
-const anon = process.env.WP3_SITE_IT_ANON_KEY;
-const service = process.env.WP3_SITE_IT_SERVICE_KEY;
+// WP3a part 1a (AL-2676): the tenant records on a real token through
+// PostgREST, in the Local Supabase Stack job (fix list F5). Split out on
+// 21 November by the coordinator's ruling; the package's other PostgREST
+// cases stay on feature/AL-2676-wp3a-1b-domains.
+const url = process.env.WP3_TENANT_IT_URL;
+const database = process.env.WP3_TENANT_IT_DATABASE_URL;
+const anon = process.env.WP3_TENANT_IT_ANON_KEY;
+const service = process.env.WP3_TENANT_IT_SERVICE_KEY;
 const required = process.env.GITHUB_JOB === "local-supabase";
 describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
-  "Site administration on a signed-in person's token",
+  "Tenant records on a signed-in person's token",
   () => {
     const tenant = randomUUID(),
       membership = randomUUID(),
@@ -84,14 +88,6 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           "insert into public.funds(id,tenant_id,name,legal_entity_id,system_purpose) values ($1,$2,'General',$2,null),(gen_random_uuid(),$2,'Fee',$2,'fee_cover')",
           [fund, tenant],
         );
-        await db.query(
-          "insert into public.sites(id,tenant_id,name,is_default,primary_domain) values ($1,$1,'Default',true,$2)",
-          [tenant, `default.${tenant}.org`],
-        );
-        await db.query(
-          "insert into public.site_domains(host,tenant_id,site_id) values ($1,$2,$2)",
-          [`default.${tenant}.org`, tenant],
-        );
         await db.query("commit");
       } catch (error) {
         await db.query("rollback");
@@ -104,8 +100,6 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           await db.query("begin");
           try {
             for (const table of [
-              "public.site_domains",
-              "public.sites",
               "public.funds",
               "public.legal_entities",
               "authz.memberships",
@@ -137,35 +131,6 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           ).toBe(true);
       }
     });
-    it("grants only the signed-in API role access to each Site command on the Supabase image", async () => {
-      const commands = [
-        "create_site",
-        "set_account_brand",
-        "set_site_status",
-        "verify_domain",
-      ];
-      const { rows } = await db!.query(
-        `select n.nspname as schema, p.proname as command,
-           has_function_privilege('authenticated', p.oid, 'EXECUTE') as authenticated,
-           has_function_privilege('anon', p.oid, 'EXECUTE') as anon,
-           has_function_privilege('service_role', p.oid, 'EXECUTE') as service_role
-         from pg_proc p join pg_namespace n on n.oid=p.pronamespace
-         where n.nspname in ('public', 'tenant_guard') and p.proname=any($1::text[])
-         order by n.nspname, p.proname`,
-        [commands],
-      );
-      expect(rows).toEqual(
-        ["public", "tenant_guard"].flatMap((schema) =>
-          commands.map((command) => ({
-            schema,
-            command,
-            authenticated: true,
-            anon: false,
-            service_role: false,
-          })),
-        ),
-      );
-    });
 
     it.each([
       ["donations", "fund:funds(id),missionary:missionaries(id)"],
@@ -187,31 +152,9 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       },
     );
 
-    it("uses both headers on browser reads, live assignments and Site commands", async () => {
+    it("uses both headers on browser reads and live assignments, and answers nothing for a suspended or closed tenant", async () => {
       const rpc = (name: string, args: object) =>
         api(`rest/v1/rpc/${name}`, anon!, token, args);
-      const create = () =>
-        rpc("create_site", {
-          p_tenant_id: tenant,
-          p_name: "Second",
-          p_primary_domain: `${randomUUID()}.org`,
-        });
-      expect((await create()).ok).toBe(true);
-      const deactivate = await rpc("set_site_status", {
-        p_tenant_id: tenant,
-        p_site_id: tenant,
-        p_status: "inactive",
-      });
-      expect((await deactivate.json()).code).toBe("23514");
-      await db!.query(
-        "update authz.memberships set is_tenant_admin=false where id=$1",
-        [membership],
-      );
-      expect((await (await create()).json()).code).toBe("42501");
-      await db!.query(
-        "update authz.memberships set is_tenant_admin=true where id=$1",
-        [membership],
-      );
       for (const status of ["active", "suspended", "closed"]) {
         await db!.query("update public.tenants set status=$2 where id=$1", [
           tenant,
@@ -233,16 +176,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
             (row) => row.tenant_id === tenant,
           ),
         ).toBe(status === "active");
-        if (status !== "active")
-          expect((await (await create()).json()).code).toBe("42501");
       }
-      expect(
-        (
-          await db!.query("select id from public.sites where tenant_id=$1", [
-            tenant,
-          ])
-        ).rowCount,
-      ).toBe(2);
     });
   },
 );

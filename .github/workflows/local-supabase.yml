@@ -73,7 +73,7 @@ on:
       - vitest.per-importer-alias.mts
       - vitest.pin-workspace-packages.mts
       - tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
-      - tests/unit/acceptance/issue-2676/site-status.postgrest.acceptance.test.ts
+      - tests/unit/acceptance/issue-2676/tenant-records.postgrest.acceptance.test.ts
       - tests/unit/workflows/local-supabase.test.ts
       # The round trips themselves.
       - playwright.auth-mail.config.ts
@@ -188,17 +188,17 @@ jobs:
           export MISSIONARY_IT_SERVICE_ROLE_KEY
           MISSIONARY_IT_SERVICE_ROLE_KEY="$(bun run supabase -- status -o json | node -e 'const status = JSON.parse(require("node:fs").readFileSync(0)); if (!status.SERVICE_ROLE_KEY) process.exit(1); process.stdout.write(status.SERVICE_ROLE_KEY)')"
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
-      - name: Verify Site administration through PostgREST
+      - name: Verify tenant records through PostgREST
         shell: bash
         env:
-          WP3_SITE_IT_URL: http://127.0.0.1:54321
-          WP3_SITE_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          WP3_TENANT_IT_URL: http://127.0.0.1:54321
+          WP3_TENANT_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
         run: |
           status="$(bun run supabase -- status -o json)"
-          WP3_SITE_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
-          WP3_SITE_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
-          export WP3_SITE_IT_ANON_KEY WP3_SITE_IT_SERVICE_KEY
-          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/site-status.postgrest.acceptance.test.ts
+          WP3_TENANT_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          WP3_TENANT_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export WP3_TENANT_IT_ANON_KEY WP3_TENANT_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/tenant-records.postgrest.acceptance.test.ts
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
       - name: Run the auth email round trips
