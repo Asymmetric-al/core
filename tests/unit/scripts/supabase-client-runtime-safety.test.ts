@@ -5,6 +5,10 @@ import {
   createTrackedFixtureUser,
   fixtureAuthUserCleanupOperations,
   fixtureTableCleanupOperations,
+  LEGAL_ENTITY_FIXTURE_DELETE,
+  LEGAL_ENTITY_FIXTURE_INSERT,
+  legalEntityFixtureCommand,
+  orderFixtureCleanup,
   runFixtureCleanup,
   verifyLocalFixtureTarget,
 } from "../../integration/supabase/client-runtime-checks.mjs";
@@ -514,5 +518,76 @@ describe("ambiguous fixture user creation", () => {
     expect(fixture.auth.getUserById).toHaveBeenCalledWith(reservation.id);
     expect(fixture.users.size).toBe(0);
     expect(fixture.profiles.size).toBe(0);
+  });
+});
+
+// K7 (fix check, 21 November): the fixture's legal entity is written by psql
+// in the owned database container, with the explicit host and none of the
+// Docker client settings, and removed in key order.
+describe("the SDK fixture's legal entity", () => {
+  it("runs psql in the owned database container without inherited Docker client settings", () => {
+    const invocation = legalEntityFixtureCommand({
+      endpoint: "unix:///var/run/docker.sock",
+      databaseId: "b".repeat(64),
+      entityId: "11111111-1111-4111-8111-111111111111",
+      tenantId: "22222222-2222-4222-8222-222222222222",
+      runId: "33333333-3333-4333-8333-333333333333",
+      env: {
+        PATH: "/usr/bin",
+        DOCKER_HOST: "tcp://elsewhere:2376",
+        DOCKER_CONTEXT: "remote",
+        DOCKER_TLS_VERIFY: "1",
+        DOCKER_CERT_PATH: "/certs",
+      },
+    });
+    expect(invocation.command).toBe("docker");
+    expect(invocation.args.slice(0, 6)).toEqual([
+      "--host",
+      "unix:///var/run/docker.sock",
+      "exec",
+      "-i",
+      "b".repeat(64),
+      "psql",
+    ]);
+    expect(invocation.args).toEqual(
+      expect.arrayContaining([
+        "entity_id=11111111-1111-4111-8111-111111111111",
+        "tenant_id=22222222-2222-4222-8222-222222222222",
+        "run_id=33333333-3333-4333-8333-333333333333",
+        "ON_ERROR_STOP=1",
+      ]),
+    );
+    expect(invocation.env).toEqual({ PATH: "/usr/bin" });
+  });
+
+  it("binds the entity to the run's own tenant and removes only that row", () => {
+    expect(LEGAL_ENTITY_FIXTURE_INSERT).toMatch(
+      /WHERE id = :'tenant_id'::uuid AND name = 'SDK qualification fixture ' \|\| :'run_id'/,
+    );
+    expect(LEGAL_ENTITY_FIXTURE_DELETE).toMatch(
+      /DELETE FROM public\.legal_entities\s+WHERE id = :'entity_id'::uuid AND tenant_id = :'tenant_id'::uuid AND name = :'run_id';/,
+    );
+  });
+
+  it("removes the funds before their legal entity, and the entity before the tenants", () => {
+    const step = (label: string) => ({ label, run: async () => {} });
+    expect(
+      orderFixtureCleanup({
+        channels: step("channels"),
+        funds: [step("fund")],
+        legalEntity: step("entity"),
+        users: [step("user")],
+        tenants: [step("tenant-a"), step("tenant-b")],
+        census: step("census"),
+      }).map((operation: { label: string }) => operation.label),
+    ).toEqual([
+      "channels",
+      "fund",
+      "entity",
+      "user",
+      "tenant-a",
+      "tenant-b",
+      "census",
+    ]);
   });
 });

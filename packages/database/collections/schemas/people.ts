@@ -26,7 +26,7 @@ export const profileSchema = z.object({
 export const missionarySchema = z.object({
   id: z.string().min(1),
   tenant_id: z.string().min(1),
-  legal_entity_id: z.string().min(1).optional(),
+  legal_entity_id: z.string().min(1),
   profile_id: z.string().min(1),
   bio: z.string().nullable(),
   mission_field: z.string().nullable(),

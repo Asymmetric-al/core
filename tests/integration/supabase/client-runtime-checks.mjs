@@ -354,3 +354,83 @@ export function isDeniedSelfRoleUpdate(result, persistedRole) {
       result.data.length === 0;
   return denied && persistedRole === "donor";
 }
+
+/** The Docker client settings an explicit `--host` must not inherit (K7). */
+const DOCKER_CLIENT_SETTINGS = [
+  "DOCKER_HOST",
+  "DOCKER_CONTEXT",
+  "DOCKER_TLS_VERIFY",
+  "DOCKER_CERT_PATH",
+];
+
+export function withoutDockerClientSettings(env = process.env) {
+  const copy = { ...env };
+  for (const key of DOCKER_CLIENT_SETTINGS) delete copy[key];
+  return copy;
+}
+
+/**
+ * The fixture fund names a legal entity of its own tenant (WP3a, AL-2676).
+ * legal_entities grants the service role nothing (deny by default), so the
+ * entity is written by psql in the owned database
+ * container, bound to the run's tenant and named after the run.
+ */
+export const LEGAL_ENTITY_FIXTURE_INSERT = `INSERT INTO public.legal_entities(id, tenant_id, name)
+SELECT :'entity_id'::uuid, id, :'run_id' FROM public.tenants
+WHERE id = :'tenant_id'::uuid AND name = 'SDK qualification fixture ' || :'run_id'
+RETURNING id;`;
+
+export const LEGAL_ENTITY_FIXTURE_DELETE = `DELETE FROM public.legal_entities
+WHERE id = :'entity_id'::uuid AND tenant_id = :'tenant_id'::uuid AND name = :'run_id';
+SELECT count(*) FROM public.legal_entities WHERE id = :'entity_id'::uuid;`;
+
+export function legalEntityFixtureCommand({
+  endpoint,
+  databaseId,
+  entityId,
+  tenantId,
+  runId,
+  env = process.env,
+}) {
+  return {
+    command: "docker",
+    args: [
+      "--host",
+      endpoint,
+      "exec",
+      "-i",
+      databaseId,
+      "psql",
+      "-XAtqw",
+      "-U",
+      "postgres",
+      "-d",
+      "postgres",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      `entity_id=${entityId}`,
+      "-v",
+      `tenant_id=${tenantId}`,
+      "-v",
+      `run_id=${runId}`,
+    ],
+    env: withoutDockerClientSettings(env),
+  };
+}
+
+/**
+ * Clean-up in key order: the channels first; the funds, which name the legal
+ * entity; the entity, which names its tenant; the users; the tenants, which
+ * every RESTRICT key above protects; and the census last.
+ */
+export function orderFixtureCleanup({
+  channels,
+  funds,
+  legalEntity,
+  users,
+  tenants,
+  census,
+}) {
+  return [channels, ...funds, legalEntity, ...users, ...tenants, census];
+}

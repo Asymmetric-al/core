@@ -9,6 +9,10 @@ import {
   fixtureAuthUserCleanupOperations,
   fixtureTableCleanupOperations,
   isDeniedSelfRoleUpdate,
+  LEGAL_ENTITY_FIXTURE_DELETE,
+  LEGAL_ENTITY_FIXTURE_INSERT,
+  legalEntityFixtureCommand,
+  orderFixtureCleanup,
   runFixtureCleanup,
   verifyLocalFixtureTarget,
 } from "./client-runtime-checks.mjs";
@@ -128,36 +132,20 @@ async function verify(input) {
   const legalEntityId = randomUUID();
   let entityAttempted = false;
   function entityQuery(sql) {
-    const result = spawnSync(
-      "docker",
-      [
-        "--host",
-        endpoint,
-        "exec",
-        "-i",
-        databaseId,
-        "psql",
-        "-XAtqw",
-        "-U",
-        "postgres",
-        "-d",
-        "postgres",
-        "-v",
-        "ON_ERROR_STOP=1",
-        "-v",
-        `entity_id=${legalEntityId}`,
-        "-v",
-        `tenant_id=${tenantIds[0]}`,
-        "-v",
-        `run_id=${runId}`,
-      ],
-      {
-        input: sql,
-        encoding: "utf8",
-        timeout: 12000,
-        stdio: ["pipe", "pipe", "pipe"],
-      },
-    );
+    const invocation = legalEntityFixtureCommand({
+      endpoint,
+      databaseId,
+      entityId: legalEntityId,
+      tenantId: tenantIds[0],
+      runId,
+    });
+    const result = spawnSync(invocation.command, invocation.args, {
+      env: invocation.env,
+      input: sql,
+      encoding: "utf8",
+      timeout: 12000,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
     assert.equal(
       result.status,
       0,
@@ -230,13 +218,7 @@ async function verify(input) {
       ),
     );
     entityAttempted = true;
-    assert.equal(
-      entityQuery(`INSERT INTO public.legal_entities(id, tenant_id, name)
-      SELECT :'entity_id'::uuid, id, :'run_id' FROM public.tenants
-      WHERE id = :'tenant_id'::uuid AND name = 'SDK qualification fixture ' || :'run_id'
-      RETURNING id;`),
-      legalEntityId,
-    );
+    assert.equal(entityQuery(LEGAL_ENTITY_FIXTURE_INSERT), legalEntityId);
     for (const tenantId of tenantIds) {
       const email = `sdk-${randomUUID()}@example.invalid`;
       const password = randomBytes(32).toString("base64url");
@@ -314,6 +296,13 @@ async function verify(input) {
       "self-role-escalation-denied",
     );
 
+    // K10 (fix check, 21 November): WP2b's request-tenant release took funds
+    // and the six other tables out of supabase_realtime
+    // (20261119135300_request_tenant_policies.sql, section 5), the catalog
+    // gate refuses a published tenant table, and no table is published at
+    // the tip, so no database change can be delivered. The signed-in
+    // session's Realtime is proved by a broadcast round trip, and the money
+    // contract by a tenant-scoped read of the fund.
     step = "authenticated-realtime-and-money-contract";
     let acceptChange;
     const changed = new Promise((resolve) => {
@@ -325,21 +314,12 @@ async function verify(input) {
       acceptSubscription = resolve;
       rejectSubscription = reject;
     });
-    browser
+    const channel = browser
       .channel(`sdk-qualification-${fundId}`, {
-        config: {
-          postgres_changes_options: { wait: true, timeout: 8_000 },
-        },
+        config: { broadcast: { self: true, ack: true } },
       })
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "funds",
-          filter: `id=eq.${fundId}`,
-        },
-        acceptChange,
+      .on("broadcast", { event: "fixture" }, (message) =>
+        acceptChange(message.payload),
       )
       .subscribe((status, error) => {
         if (cleaningUp) return;
@@ -357,13 +337,31 @@ async function verify(input) {
     successful(
       await createTrackedFixtureRows(admin, tableJournal, "funds", fundRows),
     );
-    const event = await bounded(changed, "Realtime delivery deadline");
-    check(
-      event.new.id === fundId &&
-        event.new.goal_amount === 12345 &&
-        event.new.currency === "usd",
-      "realtime-preserves-minor-units-and-currency",
+    const fund = successful(
+      await admin
+        .from("funds")
+        .select("id,tenant_id,legal_entity_id,goal_amount,currency")
+        .eq("tenant_id", tenantIds[0])
+        .eq("id", fundId)
+        .single(),
     );
+    check(
+      fund.id === fundId &&
+        fund.legal_entity_id === legalEntityId &&
+        fund.goal_amount === 12345 &&
+        fund.currency === "usd",
+      "scoped-read-preserves-minor-units-and-currency",
+    );
+    check(
+      (await channel.send({
+        type: "broadcast",
+        event: "fixture",
+        payload: { id: fundId },
+      })) === "ok",
+      "realtime-broadcast-acknowledged",
+    );
+    const event = await bounded(changed, "Realtime delivery deadline");
+    check(event?.id === fundId, "realtime-broadcast-delivered");
     check(
       successful(await browser.auth.refreshSession()).user.id === users[0].id,
       "browser-session-refresh",
@@ -399,39 +397,36 @@ async function verify(input) {
       assert.equal(result.error, null, "Fixture cleanup request failed");
       return result.data;
     };
-    const failures = await runFixtureCleanup([
-      {
-        label: "remove-channels",
-        run: async () => {
-          const results = await browser.removeAllChannels();
-          assert.ok(results.every((result) => result === "ok"));
+    const failures = await runFixtureCleanup(
+      orderFixtureCleanup({
+        channels: {
+          label: "remove-channels",
+          run: async () => {
+            const results = await browser.removeAllChannels();
+            assert.ok(results.every((result) => result === "ok"));
+          },
         },
-      },
-      ...fixtureTableCleanupOperations(admin, tableJournal, "funds"),
-      {
-        label: "remove-owned-legal-entity",
-        run: async () => {
-          if (!entityAttempted) return;
-          assert.equal(
-            entityQuery(`DELETE FROM public.legal_entities
-            WHERE id = :'entity_id'::uuid AND tenant_id = :'tenant_id'::uuid AND name = :'run_id';
-            SELECT count(*) FROM public.legal_entities WHERE id = :'entity_id'::uuid;`),
-            "0",
-          );
+        funds: fixtureTableCleanupOperations(admin, tableJournal, "funds"),
+        legalEntity: {
+          label: "remove-owned-legal-entity",
+          run: async () => {
+            if (!entityAttempted) return;
+            assert.equal(entityQuery(LEGAL_ENTITY_FIXTURE_DELETE), "0");
+          },
         },
-      },
-      ...fixtureAuthUserCleanupOperations(admin.auth.admin, users),
-      ...fixtureTableCleanupOperations(admin, tableJournal, "tenants"),
-      {
-        label: "restore-census",
-        run: async () =>
-          assert.deepEqual(
-            await census(cleanupSuccessful),
-            before,
-            "Fixture census changed",
-          ),
-      },
-    ]);
+        users: fixtureAuthUserCleanupOperations(admin.auth.admin, users),
+        tenants: fixtureTableCleanupOperations(admin, tableJournal, "tenants"),
+        census: {
+          label: "restore-census",
+          run: async () =>
+            assert.deepEqual(
+              await census(cleanupSuccessful),
+              before,
+              "Fixture census changed",
+            ),
+        },
+      }),
+    );
     if (failures.length === 0) checks.push("fixture-census-restored");
     if (failures.length > 0) cleanupFailures = failures;
     if (verificationFailed) {
