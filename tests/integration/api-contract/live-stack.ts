@@ -56,11 +56,16 @@ export function describeLive(
  * PostgREST. supabase-js addresses `<url>/rest/v1`; the fetch below maps that
  * prefix onto the bare PostgREST URL and changes nothing else.
  */
-export function dataApiClient(stack: LiveStack, token: string): SupabaseClient {
+export function dataApiClient(
+  stack: LiveStack,
+  token: string,
+  headers?: Record<string, string>,
+): SupabaseClient {
   const base = "http://api-contract.invalid";
   return createClient(base, token, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: {
+      ...(headers ? { headers } : {}),
       fetch: (input, init) =>
         fetch(
           String(input instanceof Request ? input.url : input).replace(
@@ -92,17 +97,21 @@ export async function claimsOfUser(
   return claimsForAuthUser(rows[0]);
 }
 
-/** A client whose token carries exactly `claims`. */
-export const claimsClient = (stack: LiveStack, claims: JwtClaims) =>
-  dataApiClient(stack, mintToken(claims, stack.jwtSecret));
+/** A client whose token carries exactly `claims`, with optional request headers. */
+export const claimsClient = (
+  stack: LiveStack,
+  claims: JwtClaims,
+  headers?: Record<string, string>,
+) => dataApiClient(stack, mintToken(claims, stack.jwtSecret), headers);
 
 /** A client signed in as `userId`, with the claims GoTrue would issue. */
 export async function userClient(
   stack: LiveStack,
   db: pg.Client,
   userId: string,
+  headers?: Record<string, string>,
 ): Promise<SupabaseClient> {
-  return claimsClient(stack, await claimsOfUser(db, userId));
+  return claimsClient(stack, await claimsOfUser(db, userId), headers);
 }
 
 export async function adminDatabase(stack: LiveStack): Promise<pg.Client> {

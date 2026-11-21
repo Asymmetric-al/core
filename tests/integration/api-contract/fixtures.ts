@@ -232,6 +232,28 @@ export async function removeTenantFixture(
   return problems;
 }
 
+/** Active membership id for a user in a tenant with a given role. */
+export async function membershipIdForRole(
+  db: pg.Client,
+  userId: string,
+  tenantId: string,
+  role: "staff" | "donor" | "missionary",
+): Promise<string> {
+  const { rows } = await db.query<{ id: string }>(
+    `select id::text from authz.memberships
+      where user_id = $1 and tenant_id = $2 and role = $3
+        and is_active and revoked_at is null
+      order by id limit 1`,
+    [userId, tenantId, role],
+  );
+  if (!rows[0]) {
+    throw new Error(
+      `no active ${role} membership for user ${userId} in tenant ${tenantId}`,
+    );
+  }
+  return rows[0].id;
+}
+
 /** Every string anywhere in a value, for asserting on returned ids. */
 export function collectStrings(value: unknown, into = new Set<string>()) {
   if (typeof value === "string") into.add(value);

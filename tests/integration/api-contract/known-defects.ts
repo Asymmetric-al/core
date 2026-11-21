@@ -27,16 +27,6 @@ export type KnownSelectDefect = {
 
 export const KNOWN_SELECT_DEFECTS: readonly KnownSelectDefect[] = [
   {
-    file: "packages/api/src/posts/comments.ts",
-    table: "post_comments",
-    code: "PGRST200",
-    match: "user:profiles!user_id(",
-    message:
-      "Could not find a relationship between 'post_comments' and 'profiles'",
-    defect:
-      "embeds profiles!user_id, but post_comments.user_id references auth.users(id), not profiles: GET /api/posts/[postId]/comments answers 500 on every migrated database",
-  },
-  {
     file: "packages/api/src/admin/comments/comment.ts",
     table: "post_comments",
     code: "PGRST200",

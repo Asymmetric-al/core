@@ -55,15 +55,19 @@ on:
       - supabase/config.toml
       - scripts/sql/supabase-compat-bootstrap.sql
       - scripts/sql/postgres17-upgrade-readiness.sql
+      - scripts/sql/hosted-default-privileges.sql
       - scripts/verify/supabase-migrations.mjs
       - scripts/verify/tenant-rls-catalog.mjs
       - scripts/verify/field-policy-census.mjs
+      - scripts/verify/command-capabilities.json
+      - scripts/verify/command-entry-boundaries.mjs
       - scripts/lib/postgres-upgrade-preflight.mjs
       - scripts/lib/psql.mjs
       - scripts/lib/environment-marker.mjs
       - tests/integration/supabase/postgres17-upgrade-readiness-verification.sql
       - docs/security/anon-definer-allowlist.json
       - docs/security/rls-deny-by-default-exceptions.json
+      - docs/security/tenant-policy-exceptions.json
       - docs/security/field-policies/**
       - scripts/github/install-canvas-deps.sh
       - scripts/github/install-postgresql-client.sh
