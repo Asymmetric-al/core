@@ -1,4 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   PRODUCTION_HOSTS,
@@ -12,6 +17,8 @@ import {
 import { EXPECTED_PROJECTS } from "../../../../scripts/verify/vercel-build-controls.mjs";
 
 const sha = "a".repeat(40);
+const NO_NETWORK_PRELOAD =
+  "data:text/javascript,globalThis.fetch=()=>{throw new Error('network disabled in unit test')}";
 const ref = "pnmlrbgjiqzzsthsoikm";
 const noSleep = async () => {};
 const silent = () => {};
@@ -286,5 +293,359 @@ describe("release job: Vercel steps", () => {
       ["donor", false],
       ["missionary", true],
     ]);
+  });
+
+  it("builds all three apps when buildAll is true regardless of live commits", () => {
+    const live = "b".repeat(40);
+    const cases: Array<{
+      name: string;
+      liveCommits: Record<string, string | null | undefined>;
+      listChangedFiles: (commit: string) => string[];
+    }> = [
+      {
+        name: "live commits equal to the release commit",
+        liveCommits: { admin: sha, donor: sha, missionary: sha },
+        listChangedFiles: () => [],
+      },
+      {
+        name: "live commits behind with no app-affecting changes",
+        liveCommits: { admin: live, donor: live, missionary: live },
+        listChangedFiles: () => ["docs/ops/release-job.md"],
+      },
+      {
+        name: "unknown live commits",
+        liveCommits: { admin: null, donor: undefined, missionary: "unknown" },
+        listChangedFiles: () => [],
+      },
+    ];
+
+    for (const testCase of cases) {
+      const plan = selectReleaseApps({
+        liveCommits: testCase.liveCommits,
+        listChangedFiles: testCase.listChangedFiles,
+        buildAll: true,
+      });
+      expect(plan, testCase.name).toEqual([
+        {
+          app: "admin",
+          build: true,
+          reason: "release input requested all apps",
+        },
+        {
+          app: "donor",
+          build: true,
+          reason: "release input requested all apps",
+        },
+        {
+          app: "missionary",
+          build: true,
+          reason: "release input requested all apps",
+        },
+      ]);
+    }
+  });
+
+  it("keeps byte-for-byte existing selectReleaseApps results when buildAll is omitted or false", () => {
+    const live = "b".repeat(40);
+    const args = {
+      liveCommits: { admin: sha, donor: live, missionary: null },
+      listChangedFiles: (commit: string) =>
+        commit === sha ? [] : ["docs/ops/release-job.md"],
+    };
+    const withoutFlag = selectReleaseApps(args);
+    const withFalse = selectReleaseApps({ ...args, buildAll: false });
+    expect(withoutFlag).toEqual([
+      { app: "admin", build: false, reason: "already serving this commit" },
+      {
+        app: "donor",
+        build: false,
+        reason: "changed files do not affect this Vercel app",
+      },
+      { app: "missionary", build: true, reason: "live commit unknown" },
+    ]);
+    expect(withFalse).toEqual(withoutFlag);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("plan CLI reads RELEASE_APPS_MODE=all and writes all three apps to GITHUB_OUTPUT", async () => {
+    vi.stubGlobal("fetch", () => {
+      throw new Error("network disabled in unit test");
+    });
+    const dir = mkdtempSync(path.join(os.tmpdir(), "vercel-release-plan-"));
+    try {
+      const outputFile = path.join(dir, "github-output");
+      const logs: string[] = [];
+      const request = vi.fn(async () => ({
+        status: 200,
+        json: async () => ({ observability: { release: { commit: sha } } }),
+      }));
+      await runCli(
+        ["plan"],
+        {
+          RELEASE_SHA: sha,
+          RELEASE_APPS_MODE: "all",
+          GITHUB_OUTPUT: outputFile,
+        },
+        (line: string) => logs.push(line),
+        {
+          request: request as unknown as typeof fetch,
+          listChangedFiles: () => [],
+        },
+      );
+      expect(readFileSync(outputFile, "utf8")).toBe(
+        "apps=admin,donor,missionary\n",
+      );
+      expect(logs).toEqual([
+        "admin: build - release input requested all apps",
+        "donor: build - release input requested all apps",
+        "missionary: build - release input requested all apps",
+      ]);
+
+      const subOut = path.join(dir, "sub-output");
+      const result = spawnSync(
+        process.execPath,
+        [
+          "--import",
+          NO_NETWORK_PRELOAD,
+          path.resolve("scripts/release/vercel-release.mjs"),
+          "plan",
+        ],
+        {
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            RELEASE_SHA: sha,
+            RELEASE_APPS_MODE: "all",
+            GITHUB_OUTPUT: subOut,
+          },
+        },
+      );
+      expect(result.status).toBe(0);
+      expect(readFileSync(subOut, "utf8")).toBe(
+        "apps=admin,donor,missionary\n",
+      );
+      expect(result.stdout).toContain(
+        "admin: build - release input requested all apps",
+      );
+      expect(result.stdout).toContain(
+        "donor: build - release input requested all apps",
+      );
+      expect(result.stdout).toContain(
+        "missionary: build - release input requested all apps",
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it.each([
+    ["absent", undefined],
+    ["changed", "changed"],
+  ])(
+    "plan CLI keeps changed-only behaviour when RELEASE_APPS_MODE is %s",
+    async (_label, mode) => {
+      vi.stubGlobal("fetch", () => {
+        throw new Error("network disabled in unit test");
+      });
+      const dir = mkdtempSync(path.join(os.tmpdir(), "vercel-release-plan-"));
+      try {
+        const live = "b".repeat(40);
+        const outputFile = path.join(dir, "github-output");
+        const logs: string[] = [];
+        const liveByHost: Record<string, string> = {
+          [PRODUCTION_HOSTS.admin]: live,
+          [PRODUCTION_HOSTS.donor]: sha,
+          [PRODUCTION_HOSTS.missionary]: live,
+        };
+        const request = vi.fn(async (input: URL | string) => {
+          const host = new URL(String(input)).host;
+          return {
+            status: 200,
+            json: async () => ({
+              observability: { release: { commit: liveByHost[host] } },
+            }),
+          } as Response;
+        });
+        const env: Record<string, string> = {
+          RELEASE_SHA: sha,
+          GITHUB_OUTPUT: outputFile,
+        };
+        if (mode !== undefined) env.RELEASE_APPS_MODE = mode;
+        await runCli(["plan"], env, (line: string) => logs.push(line), {
+          request: request as unknown as typeof fetch,
+          listChangedFiles: (commit: string) =>
+            commit === sha
+              ? []
+              : ["apps/admin/app/page.tsx", "docs/ops/release-job.md"],
+        });
+        expect(readFileSync(outputFile, "utf8")).toBe("apps=admin\n");
+        expect(logs).toEqual([
+          "admin: build - changed app file: apps/admin/app/page.tsx",
+          "donor: skip - already serving this commit",
+          "missionary: skip - changed files do not affect this Vercel app",
+        ]);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it.each(["", " ", "ALL", "admin", "everything"])(
+    "plan CLI refuses invalid RELEASE_APPS_MODE %j with exit code 1 and writes no output",
+    async (badValue) => {
+      vi.stubGlobal("fetch", () => {
+        throw new Error("network disabled in unit test");
+      });
+      const dir = mkdtempSync(path.join(os.tmpdir(), "vercel-release-bad-"));
+      try {
+        const outputFile = path.join(dir, "github-output");
+        const request = vi.fn();
+        await expect(
+          runCli(
+            ["plan"],
+            {
+              RELEASE_SHA: sha,
+              RELEASE_APPS_MODE: badValue,
+              GITHUB_OUTPUT: outputFile,
+            },
+            silent,
+            { request: request as unknown as typeof fetch },
+          ),
+        ).rejects.toThrow(/RELEASE_APPS_MODE/);
+        expect(request).not.toHaveBeenCalled();
+        expect(existsSync(outputFile)).toBe(false);
+
+        const result = spawnSync(
+          process.execPath,
+          [
+            "--import",
+            NO_NETWORK_PRELOAD,
+            path.resolve("scripts/release/vercel-release.mjs"),
+            "plan",
+          ],
+          {
+            encoding: "utf8",
+            env: {
+              ...process.env,
+              RELEASE_SHA: sha,
+              RELEASE_APPS_MODE: badValue,
+              GITHUB_OUTPUT: outputFile,
+            },
+          },
+        );
+        expect(result.status).toBe(1);
+        expect(result.stderr).toContain("RELEASE_APPS_MODE");
+        expect(existsSync(outputFile)).toBe(false);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it("stages with forceNew and CORE_RELEASE_FORCE_BUILD_SHA, checks projectRef with bypass secret, promotes and logs deployment IDs for forced apps already serving the commit", async () => {
+    const plan = selectReleaseApps({
+      liveCommits: { admin: sha, donor: sha, missionary: sha },
+      listChangedFiles: () => [],
+      buildAll: true,
+    });
+    const apps = plan.filter((item) => item.build).map((item) => item.app);
+    expect(apps).toEqual(["admin", "donor", "missionary"]);
+
+    const { call, calls } = fakeVercel();
+    const request = fakeHealth({ "*": healthy() });
+    const logs: string[] = [];
+    const bypassEnv = {
+      VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET: "bypass-admin",
+      VERCEL_DONOR_AUTOMATION_BYPASS_SECRET: "bypass-donor",
+      VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET: "bypass-missionary",
+    };
+
+    const staged = await deployRelease({
+      apps,
+      sha,
+      projectRef: ref,
+      env: bypassEnv,
+      call,
+      request,
+      sleep: noSleep,
+      log: (line: string) => logs.push(line),
+    });
+
+    expect(staged.map((s) => [s.app, s.id])).toEqual([
+      ["admin", "dpl_1"],
+      ["donor", "dpl_2"],
+      ["missionary", "dpl_3"],
+    ]);
+
+    const creates = calls.filter(
+      (c) => c.method === "POST" && c.path.startsWith("/v13/deployments?"),
+    );
+    expect(creates).toHaveLength(3);
+    for (const create of creates) {
+      expect(create.path).toContain("forceNew=1");
+      expect(create.body).toMatchObject({
+        target: "production",
+        gitSource: { ref: "production", sha },
+        build: { env: { CORE_RELEASE_FORCE_BUILD_SHA: sha } },
+      });
+    }
+
+    const expectedBypassByHost: Record<string, string> = {
+      "admin-1.vercel.app": "bypass-admin",
+      "donor-2.vercel.app": "bypass-donor",
+      "missionary-3.vercel.app": "bypass-missionary",
+      [PRODUCTION_HOSTS.admin]: "bypass-admin",
+      [PRODUCTION_HOSTS.donor]: "bypass-donor",
+      [PRODUCTION_HOSTS.missionary]: "bypass-missionary",
+    };
+    for (const [host, secret] of Object.entries(expectedBypassByHost)) {
+      const checkCall = request.mock.calls.find(
+        ([input]) => new URL(String(input)).host === host,
+      );
+      expect(checkCall, host).toBeDefined();
+      expect((checkCall![1] as RequestInit).headers).toEqual({
+        "x-vercel-protection-bypass": secret,
+      });
+    }
+
+    const promotes = calls.filter((c) => c.path.includes("/promote/"));
+    expect(promotes.map((c) => c.path)).toEqual([
+      expect.stringContaining("/promote/dpl_1?"),
+      expect.stringContaining("/promote/dpl_2?"),
+      expect.stringContaining("/promote/dpl_3?"),
+    ]);
+
+    expect(logs).toContain("admin: staged dpl_1.");
+    expect(logs).toContain("donor: staged dpl_2.");
+    expect(logs).toContain("missionary: staged dpl_3.");
+    expect(logs).toContain("admin: promoted dpl_1 without a rebuild.");
+    expect(logs).toContain("donor: promoted dpl_2 without a rebuild.");
+    expect(logs).toContain("missionary: promoted dpl_3 without a rebuild.");
+
+    // A forced app whose staged deployment reads the wrong Supabase project is not promoted.
+    const wrongRefVercel = fakeVercel();
+    await expect(
+      deployRelease({
+        apps,
+        sha,
+        projectRef: ref,
+        env: bypassEnv,
+        call: wrongRefVercel.call,
+        request: fakeHealth({
+          "*": healthy(),
+          "donor-2.vercel.app": healthy({
+            database: { supabaseProjectRef: "btewedpsxwsjczvmegby" },
+          }),
+        }),
+        sleep: noSleep,
+        log: silent,
+      }),
+    ).rejects.toThrow(/reads Supabase project btewedpsxwsjczvmegby/);
+    expect(
+      wrongRefVercel.calls.filter((c) => c.path.includes("/promote/")),
+    ).toHaveLength(0);
   });
 });

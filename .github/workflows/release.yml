@@ -43,6 +43,12 @@ on:
         default: production
         type: choice
         options: [production, preview]
+      apps:
+        description: release only (ignored otherwise) - changed builds affected apps; all builds every app so changed Vercel variables reach users
+        required: false
+        default: changed
+        type: choice
+        options: [changed, all]
       marker:
         description: set-environment-marker only (ignored otherwise)
         required: false
@@ -250,6 +256,8 @@ jobs:
         run: node scripts/release/vercel-release.mjs preflight
       - name: Choose the apps this release builds
         id: plan
+        env:
+          RELEASE_APPS_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.apps || 'changed' }}
         run: node scripts/release/vercel-release.mjs plan
       - name: Stage, health-check and promote
         env:

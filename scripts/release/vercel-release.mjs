@@ -117,11 +117,25 @@ export async function assertStagingEnabled({ call, app }) {
   }
 }
 
+const APPS_MODES = new Set(["changed", "all"]);
+
 /**
  * Apps whose files changed since the commit each app is serving. An app whose
  * live commit is unknown, or not an ancestor of this release, is built.
+ * When `buildAll` is true, every app is built regardless of its live commit.
  */
-export function selectReleaseApps({ liveCommits, listChangedFiles }) {
+export function selectReleaseApps({
+  liveCommits,
+  listChangedFiles,
+  buildAll = false,
+}) {
+  if (buildAll) {
+    return Object.keys(APPS).map((app) => ({
+      app,
+      build: true,
+      reason: "release input requested all apps",
+    }));
+  }
   return Object.keys(APPS).map((app) => {
     const live = liveCommits[app];
     if (!SHA.test(live ?? "")) {
@@ -463,31 +477,54 @@ function releaseSha(env) {
   return sha;
 }
 
+function readAppsMode(env) {
+  if (env.RELEASE_APPS_MODE === undefined) return "changed";
+  const mode = env.RELEASE_APPS_MODE;
+  if (!APPS_MODES.has(mode)) {
+    stop(
+      `RELEASE_APPS_MODE must be "changed" or "all" (got ${JSON.stringify(mode)}).`,
+    );
+  }
+  return mode;
+}
+
 const STEPS = ["plan", "preflight", "deploy", "check", "register-jobs"];
 
-export async function runCli(argv, env = process.env, log = console.log) {
+export async function runCli(
+  argv,
+  env = process.env,
+  log = console.log,
+  { request = fetch, listChangedFiles } = {},
+) {
   const [step, ...rest] = argv;
   if (!STEPS.includes(step))
     stop(`Usage: vercel-release.mjs ${STEPS.join("|")}`);
   const app = option(rest, "--app");
   if (step === "plan") {
-    const liveCommits = {};
-    for (const name of Object.keys(APPS)) {
-      liveCommits[name] = await readLiveCommit({ app: name });
-    }
+    const mode = readAppsMode(env);
     const sha = releaseSha(env);
+    const buildAll = mode === "all";
+    const liveCommits = {};
+    if (!buildAll) {
+      for (const name of Object.keys(APPS)) {
+        liveCommits[name] = await readLiveCommit({ app: name, request });
+      }
+    }
     const plan = selectReleaseApps({
       liveCommits,
-      listChangedFiles: (live) => {
-        execFileSync("git", ["merge-base", "--is-ancestor", live, sha], {
-          stdio: "ignore",
-        });
-        return execFileSync("git", ["diff", "--name-only", live, sha], {
-          encoding: "utf8",
-        })
-          .split("\n")
-          .filter(Boolean);
-      },
+      buildAll,
+      listChangedFiles:
+        listChangedFiles ??
+        ((live) => {
+          execFileSync("git", ["merge-base", "--is-ancestor", live, sha], {
+            stdio: "ignore",
+          });
+          return execFileSync("git", ["diff", "--name-only", live, sha], {
+            encoding: "utf8",
+          })
+            .split("\n")
+            .filter(Boolean);
+        }),
     });
     for (const item of plan) {
       log(`${item.app}: ${item.build ? "build" : "skip"} - ${item.reason}`);

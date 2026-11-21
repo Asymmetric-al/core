@@ -271,6 +271,33 @@ describe("release workflow (plan 7.4)", () => {
       ),
     ).toBe(true);
   });
+
+  // WP1.7 (AL-2674): operators need a way to rebuild every app on a dispatched
+  // release (for example after changing Vercel variables), while pushes to
+  // production always build only changed apps.
+  it("exposes a release-only apps choice input and passes it to plan via env, never on push", () => {
+    const dispatchInputs = workflow.slice(
+      workflow.indexOf("  workflow_dispatch:\n"),
+      workflow.indexOf("\npermissions:\n"),
+    );
+    expect(dispatchInputs).toMatch(
+      /      apps:\n        description: [^\n]*release only[^\n]*\n        required: false\n        default: changed\n        type: choice\n        options: \[changed, all\]\n/,
+    );
+
+    const deploy = job("deploy");
+    const planStep = deploy
+      .split("\n      - ")
+      .find((step) => step.includes("vercel-release.mjs plan"))!;
+    expect(planStep).toBeDefined();
+    expect(planStep).toContain(
+      "RELEASE_APPS_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.apps || 'changed' }}",
+    );
+    expect(planStep).toContain(
+      "run: node scripts/release/vercel-release.mjs plan",
+    );
+    const runLine = planStep.slice(planStep.indexOf("run:"));
+    expect(runLine).not.toContain("inputs.");
+  });
 });
 
 /**
