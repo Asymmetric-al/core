@@ -41,6 +41,14 @@
 -- 5. public.has_eve_policy_permission checks the operator list for the
 --    super_admin shortcut; ordinary permissions still require a live grant.
 --    Its SECURITY DEFINER body uses qualified names and an empty search path.
+--    The shortcut is not a grant path for a tenant's approval-budget route
+--    (packages/api/src/eve/approval-budget), the one caller of its two users,
+--    public.decide_eve_policy_approval and
+--    public.create_eve_budget_emergency_override: that route never asks the
+--    shared operator check, so it sends the caller's own role, never
+--    super_admin. An operator holds no authority on a tenant's approvals or
+--    budget by the list alone and needs a live grant there like anyone else,
+--    as before this migration.
 --
 -- Signatures, owners, security modes and grants are unchanged. Error names
 -- stay as the application and the incident guide know them, though
