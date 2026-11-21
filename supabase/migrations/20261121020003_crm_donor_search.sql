@@ -11,7 +11,9 @@ CREATE FUNCTION public.search_crm_donors(p_tenant_id uuid, p_term text)
 RETURNS SETOF public.donors
 LANGUAGE sql STABLE PARALLEL SAFE SECURITY INVOKER
 BEGIN ATOMIC
-  SELECT d.* FROM public.donors d
+  -- Return the composite. Expanding d.* binds a separate dependency on
+  -- every donor column, including fields the search never reads.
+  SELECT d FROM public.donors d
    WHERE d.tenant_id = p_tenant_id
      AND d.tenant_id = (SELECT authz.current_tenant_id())
      AND (SELECT authz.assignment_is('staff'))
