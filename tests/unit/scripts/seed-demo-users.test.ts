@@ -66,6 +66,10 @@ describe("seed:demo:users seeds only a project on this machine", () => {
       expect(result.status).toBe(1);
       expect(result.stderr).not.toContain(NOT_LOCAL);
       expect(result.stderr).not.toContain("published in the repository");
+      // It got as far as asking the database for its environment marker,
+      // which it does only after it accepted the address; an earlier failure
+      // would show neither refusal either (review 4650094410 on #2741).
+      expect(result.stderr).toContain("has no readable environment marker");
     },
   );
 });
