@@ -30,9 +30,14 @@ function isLoopbackVerificationRequest(request: Request): boolean {
   );
 }
 
+// Every write method (fix check M3). Eve 0.25.1's client sends
+// `content-type: application/json` on each POST, the bodyless cancel call
+// included, so a cookie-carrying write needs no empty-write exception.
+const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
 export const adminEveRouteAuth: AuthFn<Request> = async (request) => {
   if (
-    request.method === "POST" &&
+    WRITE_METHODS.has(request.method) &&
     request.headers.has("cookie") &&
     (!trustedMutationSource(request) ||
       mutationMediaType(request) !== "application/json")

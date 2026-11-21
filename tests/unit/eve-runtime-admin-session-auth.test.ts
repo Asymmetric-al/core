@@ -48,6 +48,31 @@ describe("Eve runtime admin session auth", () => {
     ).not.toHaveBeenCalled();
   });
 
+  // Fix check M3: every write method, not only POST.
+  it.each(["PUT", "PATCH", "DELETE"])(
+    "checks a cookie-carrying %s like a POST",
+    async (method) => {
+      for (const headers of [
+        {
+          origin: "https://other.example.test",
+          "content-type": "application/json",
+        },
+        { origin: "https://admin.example.test", "content-type": "text/plain" },
+      ]) {
+        const request = new Request(
+          "https://admin.example.test/eve/v1/session/s-1",
+          { method, headers: { ...headers, cookie: "session=fixture" } },
+        );
+        await expect(adminEveRouteAuth(request)).rejects.toMatchObject({
+          name: "ForbiddenError",
+        });
+      }
+      expect(
+        sessionOwnership.authorizeEveAdminRouteRequest,
+      ).not.toHaveBeenCalled();
+    },
+  );
+
   it.each(["POST", "GET"])(
     "preserves verified browser session %s requests",
     async (method) => {
