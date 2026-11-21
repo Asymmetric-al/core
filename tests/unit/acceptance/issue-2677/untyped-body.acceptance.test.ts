@@ -54,6 +54,28 @@ const write = (method: string, body?: string, type?: string) =>
 beforeEach(() => vi.clearAllMocks());
 
 describe("the shared JSON reader", () => {
+  // Re-check H3: a body that is not JSON is refused on its first non-empty
+  // chunk; the rest of the stream is never pulled.
+  it("refuses a large untyped stream after its first chunk", async () => {
+    let pulls = 0;
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulls += 1;
+        if (pulls > 10_000) controller.close();
+        else controller.enqueue(new Uint8Array(1024).fill(123));
+      },
+    });
+    const request = new Request(url, {
+      method: "POST",
+      body,
+      duplex: "half",
+    } as RequestInit);
+    await expect(ensureJsonBody(request)).rejects.toMatchObject({
+      status: 415,
+    });
+    expect(pulls).toBeLessThanOrEqual(3);
+  });
+
   it.each([
     ["no media type", undefined],
     ["text/plain", "text/plain;charset=UTF-8"],

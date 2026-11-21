@@ -28,16 +28,38 @@ const STATUS_BY_ERROR_CODE: Record<string, number> = {
  * An empty body is what it always was here: invalid JSON (400).
  */
 export async function ensureJsonBody(request: Request): Promise<unknown> {
-  let bytes: ArrayBuffer;
-  try {
-    bytes = await request.arrayBuffer();
-  } catch {
-    throw new ApiHttpError(400, "Invalid JSON body");
+  let text = "";
+  if (mutationMediaType(request) === "application/json") {
+    // No size limit for an accepted JSON body here: the platform's own
+    // request limit bounds it, and a product limit is a decision of its own
+    // (re-check H3).
+    try {
+      text = await request.text();
+    } catch {
+      throw new ApiHttpError(400, "Invalid JSON body");
+    }
+  } else if (request.body) {
+    // A body that is not JSON is refused on its first non-empty chunk, and
+    // the rest of the stream is never read (re-check H3).
+    const reader = request.body.getReader();
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value.byteLength > 0) {
+          await reader.cancel().catch(() => undefined);
+          throw new ApiHttpError(415, UNSUPPORTED_MUTATION_TYPE);
+        }
+      }
+    } catch (error) {
+      if (error instanceof ApiHttpError) throw error;
+      throw new ApiHttpError(400, "Invalid JSON body");
+    } finally {
+      reader.releaseLock();
+    }
   }
-  if (bytes.byteLength > 0 && mutationMediaType(request) !== "application/json")
-    throw new ApiHttpError(415, UNSUPPORTED_MUTATION_TYPE);
   try {
-    return JSON.parse(new TextDecoder().decode(bytes));
+    return JSON.parse(text);
   } catch {
     throw new ApiHttpError(400, "Invalid JSON body");
   }
