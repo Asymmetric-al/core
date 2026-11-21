@@ -1,9 +1,8 @@
-/** #2406 spec r2 static contract (no database): criterion 1 (version, rollback
+/** #2406 spec r2 static contract (no database): criterion 1 (version, base order, rollback
  * header), 9 (migration text: GRANT-free, single REVOKE target, policy names,
  * string_to_array, (SELECT auth.uid())), 10 (rollback text), §2.3 bootstrap
- * columns, 19/20 (Builder tests present), 21 (doc), 22 (CI append + pin), 23
- * (append-only init, allowlist lines only, service-role gate), §6 declared
- * edits, and text mutants M6, M10, M14-M16 (each with a self-check that the
+ * columns, 19/20 (Builder tests present), 21 (doc), 22 (CI step), 23
+ * (append-only init, service-role gate), and text mutants M6, M10, M14-M16 (each with a self-check that the
  * predicate rejects a synthetic mutant). Runtime mutants are mapped in the
  * real-stack and route files.
  */
@@ -16,10 +15,11 @@ import { describe, expect, it } from "vitest";
 import * as H from "./harness";
 import { DEMO_TENANT_ID } from "../../../../packages/auth/constants";
 import {
-  loadWorkflowDocument,
-  PINNED_STEP_BODIES,
-  workflowJobs,
-} from "../../helpers/workflow-yaml";
+  ciBaseCommit,
+  migrationsAt,
+  outOfOrderMigrations,
+} from "../shared/migration-order";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const fwd = () => H.code(H.read(H.FORWARD));
 const back = () => H.code(H.read(H.ROLLBACK));
@@ -28,40 +28,7 @@ const statements = (sql: string, re: RegExp) =>
     .split(";")
     .map(H.squash)
     .filter((s) => re.test(s));
-const ALLOWLIST = "docs/security/service-role-client-allowlist.json";
 const STEP = "Verify tenant isolation (real stack)";
-const git = (...args: string[]) => spawnSync("git", args, { encoding: "utf8" });
-
-/**
- * PR base for the base-relative checks (criterion 1 order, 23 allowlist, §6
- * scope). Branch-agnostic on purpose: ACCEPTANCE_2406_BASE, else
- * `git merge-base HEAD origin/develop`, never a pinned develop SHA, so files
- * other PRs merge into develop never count as #2406 edits. Returns a skip
- * reason when the base is unknown, when a merge queue commit may carry PRs
- * queued ahead of this one, or when the forward migration is already on the
- * base (#2406 merged: the scope belonged to its own PR, which CI checked).
- */
-function prBase(): { base: string } | { skip: string } {
-  if (process.env.GITHUB_EVENT_NAME === "merge_group")
-    return { skip: "merge_group commits can include other queued PRs" };
-  const pinned = process.env.ACCEPTANCE_2406_BASE?.trim();
-  const r = pinned
-    ? git("rev-parse", "--verify", `${pinned}^{commit}`)
-    : git("merge-base", "HEAD", "origin/develop");
-  if (r.status !== 0)
-    return {
-      skip: "no origin/develop (or ACCEPTANCE_2406_BASE) in this checkout",
-    };
-  const base = r.stdout.trim();
-  if (git("cat-file", "-e", `${base}:${H.FORWARD}`).status === 0)
-    return { skip: `#2406 already merged at base ${base}; scope was its PR's` };
-  return { base };
-}
-const withBase = (ctx: { skip: (note?: string) => void }) => {
-  const b = prBase();
-  if ("skip" in b) ctx.skip(b.skip);
-  return (b as { base: string }).base;
-};
 
 /** M16 predicate: one REVOKE ALL on the backup table naming all four roles. */
 const revokesBackup = (sql: string) => {
@@ -174,14 +141,21 @@ describe("#2406 static contract", () => {
       true,
     );
   });
-  it("#2406 criterion 1: the version sorts above every forward migration on the PR base", (ctx) => {
-    const base = withBase(ctx);
-    const r = git("ls-tree", "--name-only", `${base}:${H.MIG}`);
-    expect(r.status).toBe(0);
-    const higher = r.stdout
-      .split("\n")
-      .filter((f) => /^\d{14}_/.test(f) && f.slice(0, 14) >= H.VERSION);
-    expect(higher, `base ${base}`).toEqual([]);
+  // #2706 removed the merge-base comparison, not the rule: every forward
+  // migration a pull request adds sorts above every one on its base. The base
+  // is the commit CI names for the run; with none, the test says so.
+  it("#2406 criterion 1: every forward migration the pull request adds sorts above every forward migration on its base", (ctx) => {
+    const base = ciBaseCommit();
+    if (!base) {
+      ctx.skip("no pull_request or merge_group base commit in this run");
+      return;
+    }
+    expect(
+      outOfOrderMigrations(migrationsAt(base), readdirSync(H.MIG)),
+      `forward migrations that do not sort above every one on base ${base}`,
+    ).toEqual([]);
+  });
+  it("#2406 criterion 1: no other forward migration shares the version", () => {
     const local = readdirSync(H.MIG).filter(
       (f) => /^\d{14}_/.test(f) && f.slice(0, 14) === H.VERSION,
     );
@@ -373,20 +347,11 @@ describe("#2406 static contract", () => {
     ])
       expect(doc).toMatch(heading);
   });
-  it("#2406 criterion 22: the real-stack path is appended to the tenant isolation step and the shared pin matches", () => {
-    expect(existsSync(H.REALSTACK)).toBe(true);
-    const steps = workflowJobs(
-      loadWorkflowDocument(".github/workflows/ci-integration.yml"),
-    ).migrate!.steps!;
-    const i = steps.findIndex((s) => s.name === STEP);
-    const tokens = String(steps[i]!.run).split(/\s+/);
-    expect(tokens).toContain(H.REALSTACK);
-    expect(tokens.at(-1)).toBe(
-      "tests/unit/acceptance/issue-2407/editor-images.realstack.acceptance.test.ts",
-    );
-    const { index, ...rest } = PINNED_STEP_BODIES.migrate![`name:${STEP}`]!;
-    expect(index).toBe(i);
-    expect(steps[i]).toEqual({ name: STEP, ...rest });
+  it("#2406 criterion 22: the tenant isolation migrate step runs the #2406 real-stack file", () => {
+    // The shared check also fails, naming the step, when the file is missing.
+    expectRealstackStep(STEP, [H.REALSTACK], {
+      TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}",
+    });
   });
   it("#2406 criterion 23: init_schema stays byte-identical to 2b028084", () => {
     const hash = createHash("sha256")
@@ -403,64 +368,6 @@ describe("#2406 static contract", () => {
       { encoding: "utf8", timeout: 120_000 },
     );
     expect(r.status, `${r.stdout}\n${r.stderr}`.slice(-2000)).toBe(0);
-  });
-  it("#2406 criterion 23: allowlist differs from the PR base only in profile/donor-portal lines; counts equal", (ctx) => {
-    const base = withBase(ctx);
-    const shown = git("show", `${base}:${ALLOWLIST}`);
-    expect(shown.status).toBe(0);
-    type Entry = Record<string, unknown>;
-    const before = JSON.parse(shown.stdout) as { entries: Entry[] } & Entry;
-    const after = JSON.parse(readFileSync(ALLOWLIST, "utf8")) as typeof before;
-    const moved = [
-      "packages/api/src/profile/index.ts",
-      "packages/api/src/donor-portal/index.ts",
-    ];
-    const strip = (doc: typeof before) => ({
-      ...doc,
-      entries: doc.entries.map((e) =>
-        moved.includes(String(e.file)) ? { ...e, lines: "<may move>" } : e,
-      ),
-    });
-    expect(strip(after)).toEqual(strip(before));
-    for (const e of after.entries)
-      expect((e.lines as unknown[]).length).toBe(e.count);
-  });
-  it("#2406 §6: the PR diff touches only declared edits (branch-agnostic merge-base)", (ctx) => {
-    const base = withBase(ctx);
-    const r = git("diff", "--name-only", "--no-renames", base, "HEAD");
-    expect(r.status).toBe(0);
-    const declared = new Set([
-      H.FORWARD,
-      H.ROLLBACK,
-      H.BOOTSTRAP,
-      H.DOC,
-      ALLOWLIST,
-      "docs/security/identity-person-anchor.md",
-      ...`packages/api/src/profile/image-url.ts packages/api/src/profile/index.ts
-        packages/api/src/donor-portal/settings-patch.ts packages/api/src/donor-portal/index.ts
-        .github/workflows/ci-integration.yml tests/unit/helpers/workflow-yaml.ts`.split(
-        /\s+/,
-      ),
-      ...[
-        "issue-2250/static",
-        "issue-2155/postgres-ecr-gates",
-        "issue-2201/merge-group",
-        "issue-2308/static",
-        "issue-2402/static",
-      ].map((p) => `tests/unit/acceptance/${p}.acceptance.test.ts`),
-    ]);
-    const prefixes = [
-      `${H.DIR}/`,
-      "tests/unit/acceptance/issue-2256/",
-      "tests/unit/packages/api/profile/",
-      "tests/unit/packages/api/donor-portal/",
-    ];
-    const outside = r.stdout
-      .split("\n")
-      .filter(
-        (p) => p && !declared.has(p) && !prefixes.some((x) => p.startsWith(x)),
-      );
-    expect(outside, `diff against ${base}`).toEqual([]);
   });
   it("#2406 harness: DEMO matches packages/auth/constants DEMO_TENANT_ID", () => {
     expect(H.DEMO).toBe(DEMO_TENANT_ID);

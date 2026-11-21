@@ -71,6 +71,25 @@ refund, a published update), name the acceptance criteria or journey it belongs
 to and the surfaces you observed. An isolated local edit does not need all
 three apps.
 
+## Acceptance tests assert behavior, not bytes
+
+An acceptance or regression test fails when behavior or a structural invariant
+breaks, never because a file's bytes changed. The owner retired byte pins on
+2026-11-18 (#2706).
+
+- Do not hash or fingerprint a whole file, compare a file byte for byte with a
+  stored copy or prefix, keep a list of "reviewed" fingerprints, or pin line
+  numbers or step positions.
+- Do not assert that a merged change touched nothing else. Diff scope
+  (`git diff`, `git merge-base`, declared-edit lists) is checked in review of
+  the pull request, not in a permanent test.
+- Assert the meaning instead. For a CI step: it exists in the required job, is
+  not `continue-on-error` or conditional, and runs the named command or files
+  (`tests/unit/acceptance/shared/realstack-step.ts`). For a document: the
+  section exists and says what the criterion requires.
+- A hash is fine when the hash is the behavior under test, for example a
+  provenance chain or an applied migration that must never change.
+
 ## The tenant-address specs on production builds
 
 `tests/e2e/admin-tenant-address.spec.ts` and
@@ -267,6 +286,22 @@ npx playwright show-report
 
 ## Unit and gate regression guards (required)
 
+- `tests/unit/workflows/required-ci-checks.test.ts` fails when a required
+  check on `develop` (`ci-gate`, `e2e-smoke-gate`, `migrate`, `smoke`) or a job
+  it needs becomes non-blocking (`continue-on-error`, a run line that swallows
+  failure such as `|| true`, `|| echo`, `; true` or `set +e`, a step that never
+  runs, or a call to a reusable workflow), when `migrate` or `smoke` has a job
+  `if` that can skip it on a `develop` pull request, push or merge-queue run,
+  when a gate stops needing or reading a job it gates or is not `if: always()`,
+  when `e2e-smoke-gate`'s script, run once per outcome, passes although a job
+  it gates did not succeed, or when a required job id disappears. It is a
+  heuristic with known limits. It reads other run scripts as text. It reports
+  a step condition only when no modelled event meets it, so a step that runs
+  on pull requests but is skipped on pushes passes. It checks job conditions
+  only on `migrate` and `smoke`; the gates have the `always()` rule instead.
+  A workflow that needs more than this gets its own assertion, and the exact
+  `migrate` pins in `tests/unit/helpers/workflow-yaml.ts`
+  (`PINNED_STEP_BODIES`, `PINNED_JOB_IFS`) remain the backstop.
 - `tests/unit/scripts/ci-preflight.contract.test.ts` locks `ci:preflight` stage
   order against `docs/ci.md` and ensures deployment discipline stays out of
   preflight.

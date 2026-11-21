@@ -2,12 +2,10 @@
  * #2303 criteria 6, 7, 10 and 11 (spec r1, issue comment 6392009852; approved
  * in 6392018376; sparse pin from 6389488653): a hole in `sources` throws
  * `missing_context`, the for…in and forEach refactors are killed, and the
- * suspension mapping is documented. Criterion 11's diff scope is opt-in
- * (#2183 pattern): ACCEPTANCE_2303_SCOPE=1 (base: git merge-base origin/develop
- * HEAD) or ACCEPTANCE_2303_BASE=<ref>. Owned by Acceptance. Implementers must
- * not edit this file to satisfy their PR.
+ * suspension mapping is documented. Criterion 11's opt-in diff scope was
+ * retired by #2706. Owned by Acceptance. Implementers must not edit this file
+ * to satisfy their PR.
  */
-import { spawnSync } from "node:child_process";
 
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
@@ -200,37 +198,3 @@ describe("#2303 criterion 7: the suspension mapping is documented", () => {
     expect((await H.thrown(H.ctx(fin, gone))).code).toBe("inactive_source");
   });
 });
-
-const BASE = process.env.ACCEPTANCE_2303_BASE?.trim() ?? "";
-const ON = process.env.ACCEPTANCE_2303_SCOPE?.trim() === "1" || BASE !== "";
-/** §6 declared edits (Builder + Acceptance). */
-const DECLARED = `tests/fixtures/capability-registry/authenticated-context.ts
-  tests/fixtures/capability-registry/tsconfig.json packages/auth/capabilities/freeze.ts
-  packages/auth/capabilities/registry.ts packages/auth/capabilities/bundles.ts
-  packages/auth/capabilities/effective-capabilities.ts docs/security/capability-spine/registry.md
-  ${UNIT} tests/unit/acceptance/issue-2303/fixture-drift.acceptance.test.ts
-  tests/unit/acceptance/issue-2303/frozen-tables.acceptance.test.ts
-  tests/unit/acceptance/issue-2303/sparse-sources.acceptance.test.ts`.split(
-  /\s+/,
-);
-
-describe.skipIf(!ON)(
-  "#2303 opt-in (PR base; ACCEPTANCE_2303_SCOPE=1 or ACCEPTANCE_2303_BASE)",
-  () => {
-    it("criterion 11: only §6 paths change and tests/unit/acceptance/issue-492/** is byte-unchanged", () => {
-      const git = (...args: string[]) => {
-        const r = spawnSync("git", args, { encoding: "utf8" });
-        expect(r.status, `git ${args.join(" ")}: ${r.stderr}`).toBe(0);
-        return r.stdout.trim();
-      };
-      const base = BASE || git("merge-base", "origin/develop", "HEAD");
-      const changed = git("diff", "--name-only", base)
-        .split("\n")
-        .filter(Boolean);
-      expect(
-        changed.filter((f) => f.startsWith("tests/unit/acceptance/issue-492/")),
-      ).toEqual([]);
-      expect(changed.filter((f) => !DECLARED.includes(f))).toEqual([]);
-    });
-  },
-);

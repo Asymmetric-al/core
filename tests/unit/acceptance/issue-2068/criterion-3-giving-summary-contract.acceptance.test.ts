@@ -34,29 +34,19 @@
  * - Item 3: `PURPOSE_LAUNCH_GATES` gains exactly the three new names,
  *   appended at the end in order, and existing names keep their order.
  * The field and gate order checks run by default (they are this PR's
- * content). The exact `PURPOSE_LAUNCH_GATES` check stays opt-in.
+ * content). #2706 retired the opt-in exact-set check on
+ * `PURPOSE_LAUNCH_GATES` (a scope check of the merged PR; a later PR may
+ * legitimately add gate names); the no-removal and order checks stay.
  *
  * Interpretation:
  * - "tests assert each one" = the In item 4 test files name each asserted
  *   value literally.
- * - The exact-set check on `PURPOSE_LAUNCH_GATES` is opt-in
- *   (`ACCEPTANCE_2068_SCOPE=1` or `ACCEPTANCE_2068_BASE=<ref>`), because a
- *   later PR may legitimately add gate names.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
 
 import { describe, expect, it } from "vitest";
 
-const SCOPE_ENABLED =
-  process.env.ACCEPTANCE_2068_SCOPE?.trim() === "1" ||
-  (process.env.ACCEPTANCE_2068_BASE?.trim() ?? "") !== "";
-
-import {
-  DOCUMENT_PURPOSE_IDS,
-  getDocumentPurposeContract,
-  PURPOSE_LAUNCH_GATES,
-} from "../../../../packages/api/src/generated-documents/purpose-catalog";
 import {
   ADDED_SECTION_FIELDS,
   AVAILABILITY_TEST_FILE,
@@ -78,6 +68,11 @@ import {
   SPEC_BASE_SHA,
   UNCHANGED_FIELDS,
 } from "./catalog-scan";
+import {
+  DOCUMENT_PURPOSE_IDS,
+  getDocumentPurposeContract,
+  PURPOSE_LAUNCH_GATES,
+} from "../../../../packages/api/src/generated-documents/purpose-catalog";
 
 /** Quoted string literals in a file as it was at the spec base. */
 function baseSource(relativePath: string): string {
@@ -179,17 +174,6 @@ describe("issue #2068 done criterion 3: launch.gates", () => {
       ...BASE_PURPOSE_LAUNCH_GATES,
     ]);
   });
-
-  // Opt-in: a later PR may legitimately add or insert more gate names.
-  it.skipIf(!SCOPE_ENABLED)(
-    "criterion 3 / addendum 1 item 4 + addendum 2 item 3: PURPOSE_LAUNCH_GATES is the base list in its order followed by exactly phase07, phase13, phase14 at the end (opt-in: ACCEPTANCE_2068_SCOPE=1 or ACCEPTANCE_2068_BASE=<ref>)",
-    () => {
-      expect([...PURPOSE_LAUNCH_GATES]).toEqual([
-        ...BASE_PURPOSE_LAUNCH_GATES,
-        ...NEW_GATES,
-      ]);
-    },
-  );
 });
 
 describe("issue #2068 done criterion 3: approved data view (D2a)", () => {
