@@ -688,6 +688,16 @@ if (decision.verdict === "MERGE")
               ),
           };
         const pending = value.pr?.mergeRequest;
+        // GitHub's queue merges it; step 4 reads MERGED once it has. A pull
+        // request the queue removed looks the same and is never enqueued again.
+        if (pending?.head === value.head && pending.status === "queued")
+          return {
+            verdict: "WAIT",
+            reason: `Still in the ${target} merge queue at ${value.head.slice(0, 12)}; if GitHub removed it, a person re-adds it with Merge when ready (a direct merge is refused)`,
+          };
+        // An enqueue whose outcome is unknown may have queued the pull request;
+        // GitHub refuses a direct merge while the queue is required.
+        const queueRecovery = `Look at the ${target} merge queue page. If the PR is there, leave pr.mergeRequest as it is; if not, add it with Merge when ready. Either way, retry the issue only after GitHub reports it merged`;
         if (pending?.head === value.head && pending.status !== "refused")
           return {
             verdict: "BLOCKED",
@@ -697,7 +707,9 @@ if (decision.verdict === "MERGE")
                 code: "merge-unconfirmed",
                 detail: `Request for ${pending.head} is ${pending.status ?? "unconfirmed"}`,
                 recovery:
-                  "Inspect the PR and reconcile the recorded merge request before any retry",
+                  decision.mergeQueue === true
+                    ? queueRecovery
+                    : "Inspect the PR and reconcile the recorded merge request before any retry",
               },
             },
           };
@@ -725,6 +737,7 @@ if (decision.verdict === "MERGE")
           merged?: boolean;
           sha?: string;
           message?: string;
+          queued?: boolean;
         } | null = null;
         let refusal: string | null = null;
         try {
@@ -732,6 +745,10 @@ if (decision.verdict === "MERGE")
             sha: value.head,
             method: round.config.repository.mergeMethod,
             title: `${pr.title} (#${prNumber})`,
+            // The target branch requires a merge queue: enqueue, not merge.
+            ...(decision.mergeQueue === true
+              ? { mergeQueue: true, nodeId: pr.node_id }
+              : {}),
           });
         } catch (error) {
           if ((error as { outcome?: string })?.outcome === "refused")
@@ -755,6 +772,19 @@ if (decision.verdict === "MERGE")
                 detail: refusal.slice(0, 1000),
               },
             },
+          };
+        }
+        // Queued is not merged; the next round reads the pull request.
+        if (merged?.queued === true) {
+          await checkpoint({
+            pr: {
+              ...value.pr,
+              mergeRequest: { ...request, status: "queued" },
+            },
+          });
+          return {
+            verdict: "WAIT",
+            reason: `Added to the ${target} merge queue at ${value.head.slice(0, 12)}; waiting for GitHub to merge it`,
           };
         }
         const mergeCommit =
@@ -782,7 +812,10 @@ if (decision.verdict === "MERGE")
               blocked: {
                 code: "merge-unconfirmed",
                 detail: JSON.stringify(merged ?? {}).slice(0, 400),
-                recovery: "Inspect the PR before any retry",
+                recovery:
+                  decision.mergeQueue === true
+                    ? queueRecovery
+                    : "Inspect the PR before any retry",
               },
             },
           };

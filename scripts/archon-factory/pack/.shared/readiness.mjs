@@ -2,6 +2,7 @@
 // immediately before marking a PR ready or requesting a protected merge.
 // Verdicts:
 //   MERGE     every condition holds and merge is authorized now
+//             (`mergeQueue`: through the target branch's required merge queue)
 //   PR_READY  every readiness condition holds; merge not authorized/permitted,
 //             or a person must act (approval, standing change request)
 //   WAIT      something is pending (checks, mergeability, a review provider,
@@ -38,6 +39,13 @@ export function requiredChecksFromRules(rules, protection) {
         strict: Boolean(protection.required_status_checks.strict),
       });
   return [...required.values()];
+}
+
+// GitHub reports a required merge queue only as an active ruleset rule; its
+// REST branch-protection response has no merge-queue field, so a queue set in
+// classic branch protection is not seen here (runbook: use a ruleset).
+export function mergeQueueRequired(rules) {
+  return (rules ?? []).some((rule) => rule?.type === "merge_queue");
 }
 
 export function requiredApprovalsFromRules(rules, protection) {
@@ -569,6 +577,7 @@ export function evaluateReadiness(input) {
       blocked.push(`${reviewer} review is not CLEAR for this candidate`);
   }
   const required = requiredChecksFromRules(rules, protection);
+  const mergeQueue = mergeQueueRequired(rules);
   for (const check of required) {
     const state = checkState(check, checkRuns ?? [], statuses, head);
     if (state.state === "pending" || state.state === "missing")
@@ -598,7 +607,9 @@ export function evaluateReadiness(input) {
     integrate = true;
   } else if (
     pr.mergeable_state === "behind" &&
-    required.some((check) => check.strict)
+    required.some((check) => check.strict) &&
+    // A merge queue tests the change on the latest base before it merges.
+    !mergeQueue
   ) {
     repairs.push(
       "Strict protection requires updating the branch with its base",
@@ -715,5 +726,7 @@ export function evaluateReadiness(input) {
     if (factory?.mergeHold) reasons.push("Operator merge hold is active");
     return { verdict: "PR_READY", reasons, humanReviewPending };
   }
-  return { verdict: "MERGE", reasons };
+  return mergeQueue
+    ? { verdict: "MERGE", reasons, mergeQueue }
+    : { verdict: "MERGE", reasons };
 }
