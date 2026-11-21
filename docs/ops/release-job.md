@@ -517,6 +517,8 @@ ends. The job holds only the preview project's credentials.
 
 Once WP3a's tenant-record migrations (`20261120130001` and later) are applied, the WP2b rollback cannot be run as written. Its ledger guard requires `20261119135300` to be newest. Do not edit the ledger to get around that check; use a forward fix or rebuild from the intended source chain.
 
+Before the release that applies WP3a's giving-target migration (`20261120130004`), run the read-only query `scripts/sql/giving-target-preflight.sql` on preview and then on production. It must return no rows: no fund or missionary without a tenant, no tenant whose name is blank, and no money row naming another tenant's fund or missionary. The migration repeats that test under its table locks and stops, with the counts and the blank tenants' ids, before it changes anything; repair the rows it names, then release again.
+
 `20261119135300_request_tenant_policies.sql` (WP2b's second release,
 AL-2675) makes the database read the tenant and the assignment from the
 `x-asym-tenant` and `x-asym-assignment` request headers, which only the apps

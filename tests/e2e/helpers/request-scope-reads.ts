@@ -286,6 +286,12 @@ export async function removeFixtures(env: AuthMailEnv, f: Fixtures | null) {
     await db.query("delete from public.donors where id = any($1::uuid[])", [
       [f.partnerInDemo, ...f.partnersInSecond, f.secondDonor],
     ]);
+    // AL-2676 (K9): the gifts above locked these targets' legal entity, and a
+    // locked target cannot be deleted; the owner removes the locks first.
+    await db.query(
+      "delete from public.giving_target_entity_locks where fund_id = $1 or missionary_id = any($2::uuid[])",
+      [f.secondFund, [f.missionaryInDemo, f.missionaryInSecond]],
+    );
     await db.query("delete from public.funds where id = $1", [f.secondFund]);
     await db.query(
       "delete from public.missionaries where id = any($1::uuid[])",

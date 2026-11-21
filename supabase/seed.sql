@@ -38,6 +38,9 @@ DELETE FROM public.donations;
 DELETE FROM public.campaigns;
 DELETE FROM public.posts;
 DELETE FROM public.donor_pledges;
+-- K9: a target that a lock names cannot be deleted; a reset removes the
+-- permanent locks first, as their owner, on a disposable database only.
+DELETE FROM public.giving_target_entity_locks;
 DELETE FROM public.funds;
 DELETE FROM public.donors;
 DELETE FROM public.missionaries;

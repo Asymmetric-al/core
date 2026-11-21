@@ -1,5 +1,6 @@
 SELECT 'funds' AS source, id FROM public.funds WHERE tenant_id IS NULL
-UNION ALL SELECT 'missionaries', id FROM public.missionaries WHERE tenant_id IS NULL;
+UNION ALL SELECT 'missionaries', id FROM public.missionaries WHERE tenant_id IS NULL
+UNION ALL SELECT 'tenants with a blank name', id FROM public.tenants WHERE btrim(name) = '';
 
 WITH gifts(source,id,tenant_id,fund_id,missionary_id) AS (
   SELECT 'donations',id,tenant_id,fund_id,missionary_id FROM public.donations

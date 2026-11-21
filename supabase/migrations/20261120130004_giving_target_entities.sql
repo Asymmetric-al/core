@@ -1,14 +1,16 @@
 -- Give every fund and missionary a legal entity and retain it once any of
 -- the five money tables names that target. This includes pledges, staging
 -- and the saga outbox: even abandoned money was directed to that entity.
--- Moving future activity to another entity requires a new target.
+-- Moving future activity to another entity requires a new target, and a
+-- target that a lock names cannot be deleted (fix check K9, 21 November).
 -- Deviation from plan line 910 ("once a gift names it"), accepted by the
 -- coordinator on 21 November 2026: a row on any of the five tables fixes the
 -- entity for good, also when that row is later rejected, abandoned or removed,
 -- because money in flight was sent toward the entity the target had then.
 -- Check first, on preview and then production: the read-only operator query
 -- scripts/sql/giving-target-preflight.sql must return no rows (a fund or
--- missionary with no tenant; a money row naming another tenant's fund or
+-- missionary with no tenant; a tenant whose name is blank, which its legal
+-- entity could not copy; a money row naming another tenant's fund or
 -- missionary). The preflight below repeats that test under the table locks
 -- and, if it finds any, stops with the counts before anything is changed.
 -- Apply in a quiet window: writers are excluded before the preflight; ALTER
@@ -29,7 +31,11 @@ DECLARE
   wrong_missionaries bigint := 0;
   fund_count bigint;
   missionary_count bigint;
+  blank_names bigint;
+  blank_ids text;
 BEGIN
+  SELECT count(*), string_agg(id::text, ', ' ORDER BY id) INTO blank_names, blank_ids
+    FROM public.tenants WHERE btrim(name) = '';
   SELECT count(*) INTO null_funds FROM public.funds WHERE tenant_id IS NULL;
   SELECT count(*) INTO null_missionaries FROM public.missionaries WHERE tenant_id IS NULL;
   FOREACH source_table IN ARRAY ARRAY['donations','donor_pledges','staged_gifts','staged_gift_allocations','donation_saga_outbox'] LOOP
@@ -40,9 +46,10 @@ BEGIN
     wrong_funds := wrong_funds + fund_count;
     wrong_missionaries := wrong_missionaries + missionary_count;
   END LOOP;
-  IF null_funds + null_missionaries + wrong_funds + wrong_missionaries > 0 THEN
-    RAISE EXCEPTION 'Giving-target preflight: tenantless funds=%, tenantless missionaries=%, wrong-tenant fund references=%, wrong-tenant missionary references=%',null_funds,null_missionaries,wrong_funds,wrong_missionaries
-      USING HINT='Inspect the rows with scripts/sql/giving-target-preflight.sql; resolve their ownership before retrying.';
+  IF null_funds + null_missionaries + wrong_funds + wrong_missionaries + blank_names > 0 THEN
+    RAISE EXCEPTION 'Giving-target preflight: tenantless funds=%, tenantless missionaries=%, wrong-tenant fund references=%, wrong-tenant missionary references=%, tenants with a blank name=%',null_funds,null_missionaries,wrong_funds,wrong_missionaries,blank_names
+      USING DETAIL=CASE WHEN blank_names > 0 THEN 'Tenants with a blank name: '||blank_ids ELSE 'No tenant has a blank name.' END,
+            HINT='Inspect the rows with scripts/sql/giving-target-preflight.sql; resolve their ownership or name before retrying.';
   END IF;
 END $$;
 CREATE TABLE public.legal_entities (
@@ -72,8 +79,8 @@ CREATE TABLE public.giving_target_entity_locks (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id uuid NOT NULL REFERENCES public.tenants ON DELETE RESTRICT, legal_entity_id uuid NOT NULL,
   fund_id uuid UNIQUE, missionary_id uuid UNIQUE, CHECK(num_nonnulls(fund_id,missionary_id)=1),
-  FOREIGN KEY (tenant_id,fund_id,legal_entity_id) REFERENCES public.funds(tenant_id,id,legal_entity_id) ON UPDATE RESTRICT ON DELETE CASCADE,
-  FOREIGN KEY (tenant_id,missionary_id,legal_entity_id) REFERENCES public.missionaries(tenant_id,id,legal_entity_id) ON UPDATE RESTRICT ON DELETE CASCADE
+  FOREIGN KEY (tenant_id,fund_id,legal_entity_id) REFERENCES public.funds(tenant_id,id,legal_entity_id) ON UPDATE RESTRICT ON DELETE RESTRICT,
+  FOREIGN KEY (tenant_id,missionary_id,legal_entity_id) REFERENCES public.missionaries(tenant_id,id,legal_entity_id) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 CREATE FUNCTION private.freeze_giving_target_entity() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$

@@ -230,8 +230,11 @@ describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
     );
   });
   afterAll(async () => {
+    // D-18 (AL-2676, K9): a gift locks its missionary's legal entity and a
+    // locked target cannot be deleted, so the clean-up removes this tenant's
+    // locks after its gifts; every assertion of the suite is unchanged.
     await s.db.query(
-      `delete from public.donations where tenant_id = $1; delete from public.donors where tenant_id = $1;
+      `delete from public.donations where tenant_id = $1; delete from public.giving_target_entity_locks where tenant_id = $1; delete from public.donors where tenant_id = $1;
        delete from public.missionaries where tenant_id = $1; delete from auth.users where id in ($2, $3, $4);
        delete from public.profiles where id in ($2, $3, $4); delete from public.legal_entities where tenant_id=$1; delete from public.tenants where id = $1;`.replace(
         /\$(\d+)/g,

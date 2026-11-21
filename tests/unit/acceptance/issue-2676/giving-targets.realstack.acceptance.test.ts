@@ -269,6 +269,71 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       }
     },
   );
+  // K9 (fix check, 21 November; coordinator's ruling): a locked target cannot
+  // be deleted, so its entity's record outlives the money row that set it.
+  it("refuses to delete a fund or missionary that money named, after the money row is gone, and still deletes an unnamed one", async () => {
+    const [tenant, entity, fund, missionary, spareFund, spareMissionary, gift] =
+      Array.from({ length: 7 }, () => randomUUID());
+    await db.query("begin");
+    try {
+      await db.query(
+        "insert into public.tenants(id,name,slug) values ($1,'test',$1::uuid::text)",
+        [tenant],
+      );
+      await db.query(
+        "insert into public.legal_entities(id,tenant_id,name) values ($1,$2,'First')",
+        [entity, tenant],
+      );
+      await db.query(
+        "insert into public.funds(id,tenant_id,legal_entity_id,name) values ($1,$3,$4,'Named'),($2,$3,$4,'Spare')",
+        [fund, spareFund, tenant, entity],
+      );
+      await db.query(
+        "insert into public.missionaries(id,tenant_id,legal_entity_id) values ($1,$3,$4),($2,$3,$4)",
+        [missionary, spareMissionary, tenant, entity],
+      );
+      await db.query(
+        "insert into public.donations(id,tenant_id,fund_id,missionary_id,amount) values ($1,$2,$3,$4,100)",
+        [gift, tenant, fund, missionary],
+      );
+      await db.query("delete from public.donations where id=$1", [gift]);
+      for (const [table, id] of [
+        ["funds", fund],
+        ["missionaries", missionary],
+      ] as const) {
+        await db.query("savepoint locked_target");
+        await expect(
+          db.query(`delete from public.${table} where id=$1`, [id]),
+          table,
+        ).rejects.toMatchObject({ code: "23503" });
+        await db.query("rollback to savepoint locked_target");
+      }
+      expect(
+        (
+          await db.query(
+            "select fund_id,missionary_id,legal_entity_id from public.giving_target_entity_locks where tenant_id=$1 order by fund_id nulls last",
+            [tenant],
+          )
+        ).rows,
+      ).toEqual([
+        { fund_id: fund, missionary_id: null, legal_entity_id: entity },
+        { fund_id: null, missionary_id: missionary, legal_entity_id: entity },
+      ]);
+      expect(
+        (await db.query("delete from public.funds where id=$1", [spareFund]))
+          .rowCount,
+      ).toBe(1);
+      expect(
+        (
+          await db.query("delete from public.missionaries where id=$1", [
+            spareMissionary,
+          ])
+        ).rowCount,
+      ).toBe(1);
+    } finally {
+      await db.query("rollback");
+    }
+  });
   it("all ten gift target keys are composite, validated and replace their predecessors", async () => {
     const { rows } = await db.query(
       `select c.convalidated, cardinality(c.conkey) as width from pg_constraint c where c.contype='f' and c.confrelid in ('public.funds'::regclass,'public.missionaries'::regclass) and c.conrelid::regclass::text=any($1)`,
@@ -327,6 +392,7 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
     try {
       await db.query(
         `create schema ${schema};
+         create table ${schema}.tenants(id uuid primary key, name text not null);
          create table ${schema}.funds(id uuid primary key, tenant_id uuid);
          create table ${schema}.missionaries(id uuid primary key, tenant_id uuid);
          ${gifts.map((gift) => `create table ${schema}.${gift}(id uuid primary key default gen_random_uuid(), tenant_id uuid, fund_id uuid, missionary_id uuid);`).join("\n")}`,
@@ -334,7 +400,8 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       const results = async (sql: string) =>
         (await db.query(sql)) as unknown as pg.QueryResult[];
       await db.query(
-        `insert into ${schema}.funds values ('${fundA}','${a}'),('${fundB}','${b}');
+        `insert into ${schema}.tenants values ('${a}','First'),('${b}','Second');
+         insert into ${schema}.funds values ('${fundA}','${a}'),('${fundB}','${b}');
          insert into ${schema}.missionaries values ('${missionaryA}','${a}'),('${missionaryB}','${b}')`,
       );
       for (const gift of gifts)
@@ -347,6 +414,10 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
         0, 0,
       ]);
 
+      // K11 (fix check, 21 November): a blank name, which the legal entity
+      // copied from it would refuse, stops the preflight and is named.
+      const blank = randomUUID();
+      await db.query(`insert into ${schema}.tenants values ('${blank}','   ')`);
       await db.query(
         `insert into ${schema}.funds values ('${randomUUID()}',null);
          insert into ${schema}.missionaries values ('${randomUUID()}',null)`,
@@ -363,13 +434,19 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       await db.query("savepoint refused");
       const refusal = await db.query(preflight).then(
         () => undefined,
-        (error: { code?: string; message?: string; hint?: string }) => error,
+        (error: {
+          code?: string;
+          message?: string;
+          detail?: string;
+          hint?: string;
+        }) => error,
       );
       await db.query("rollback to savepoint refused");
       expect(refusal).toMatchObject({
         code: "P0001",
         message:
-          "Giving-target preflight: tenantless funds=1, tenantless missionaries=1, wrong-tenant fund references=6, wrong-tenant missionary references=5",
+          "Giving-target preflight: tenantless funds=1, tenantless missionaries=1, wrong-tenant fund references=6, wrong-tenant missionary references=5, tenants with a blank name=1",
+        detail: `Tenants with a blank name: ${blank}`,
         hint: expect.stringContaining(
           "scripts/sql/giving-target-preflight.sql",
         ),
@@ -378,7 +455,11 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       expect(targets.rows.map((row) => row.source).sort()).toEqual([
         "funds",
         "missionaries",
+        "tenants with a blank name",
       ]);
+      expect(
+        targets.rows.find((row) => row.source.startsWith("tenants"))?.id,
+      ).toBe(blank);
       expect(references.rowCount).toBe(11);
       expect(
         [...new Set(references.rows.map((row) => row.source))].sort(),
