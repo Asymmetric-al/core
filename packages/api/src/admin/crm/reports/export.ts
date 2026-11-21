@@ -3,6 +3,7 @@ import { isSameOriginDownload } from "@asym/auth/request-headers";
 import { NextResponse } from "next/server";
 
 import {
+  crmExportAuditDetails,
   reportRecordType,
   serializeAdminCrmReportCsv,
 } from "./export-projection";
@@ -60,25 +61,14 @@ export const GET = withPlatformOperation(
         tenantId: actor.tenantId,
       });
       const exportedAt = new Date().toISOString();
-      const { csv, groupIds, withheld, rowCount } = serializeAdminCrmReportCsv(
-        report,
-        assignment,
-        policies,
-      );
+      const exported = serializeAdminCrmReportCsv(report, assignment, policies);
       await audit.logRequired(
         "crm_export_created",
         "crm_report",
         params.slice,
-        {
-          filters: Object.keys(params.filters).filter(
-            (key) =>
-              params.filters[key as keyof typeof params.filters] !== null,
-          ),
-          groupIds,
-          ...(withheld ? { withheldGroups: withheld } : {}),
-          rowCount,
-        },
+        crmExportAuditDetails(params.filters, exported),
       );
+      const { csv } = exported;
 
       return new NextResponse(csv, {
         headers: {

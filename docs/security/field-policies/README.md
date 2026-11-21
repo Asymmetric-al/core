@@ -230,8 +230,10 @@ and values, recomputed when the CSV is built. A group that fails that binding
 fails the whole export (a logged 500, no file, no audit row) instead of being
 left out. The CSV uses only resolved scalar cells. It exports no raw IDs,
 statuses or nested metadata. The audit records the session actor, the emitted
-group IDs and filter names, never search text; a donor whose name the audience
-may not see is recorded as a count (`withheldGroups`), never by reference.
+group IDs and filter names, never search text. Every staff member of the tenant
+can read that row, so a donor who explicitly chose anonymity is recorded only as
+a count (`anonymousGroups`), never by reference, whoever exported, finance
+included.
 
 Donor groups are one per donor, and the projection resolver decides each name.
 The audience is `finance` for an assignment that holds the finance sub-role or

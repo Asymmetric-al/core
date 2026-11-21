@@ -63,11 +63,13 @@ export function serializeAdminCrmReportCsv(
     )
       ? "finance"
       : "identity_restricted";
-  // Rows whose identity this audience may not see are exported unlabeled and
-  // audited only as a count: their group IDs resolve to the donor (fix check
-  // G2). A finance audience sees every name and keeps every reference.
+  // The audit row is readable by every staff member of the tenant, so a donor
+  // who explicitly chose anonymity is audited only as a count, whoever
+  // exports: a group ID resolves to the donor (fix check G2, re-check H1).
+  // Finance still sees the name in the file; other audiences get the row
+  // unlabeled.
   const groupIds: string[] = [];
-  let withheld = 0;
+  let anonymousGroups = 0;
   const records: Record<string, unknown>[] = [];
   for (const {
     row,
@@ -175,12 +177,7 @@ export function serializeAdminCrmReportCsv(
     );
     if (!cells.length) continue;
     records.push(Object.fromEntries(cells));
-    if (
-      report.slice === "donors" &&
-      anonymous &&
-      audience === "identity_restricted"
-    )
-      withheld += 1;
+    if (report.slice === "donors" && anonymous) anonymousGroups += 1;
     else groupIds.push(groupId);
   }
   const lines = [
@@ -194,7 +191,31 @@ export function serializeAdminCrmReportCsv(
         .map((line) => line.map(csvSafeCell).join(","))
         .join(CSV_RECORD_SEPARATOR),
     groupIds,
-    withheld,
+    anonymousGroups,
     rowCount: records.length,
+  };
+}
+
+/**
+ * The details of an export's audit row. Every staff member of the tenant may
+ * read them (the select policy on `audit_logs`), so they hold filter names,
+ * never values, and no reference to a donor who chose anonymity.
+ */
+export function crmExportAuditDetails(
+  filters: object,
+  exported: Pick<
+    ReturnType<typeof serializeAdminCrmReportCsv>,
+    "groupIds" | "anonymousGroups" | "rowCount"
+  >,
+) {
+  return {
+    filters: Object.entries(filters)
+      .filter(([, value]) => value !== null)
+      .map(([key]) => key),
+    groupIds: exported.groupIds,
+    ...(exported.anonymousGroups
+      ? { anonymousGroups: exported.anonymousGroups }
+      : {}),
+    rowCount: exported.rowCount,
   };
 }

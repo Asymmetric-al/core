@@ -117,12 +117,15 @@ describe("governed CRM report export", () => {
     expect(await refused.text()).not.toContain("private detail");
   });
   // Fix check G2: a donor whose name the audience may not see is counted in
-  // the audit row, never named by a reference that resolves to them.
+  // the audit row, never named by a reference that resolves to them. Re-check
+  // H1: the audit row is readable by every staff member of the tenant, so a
+  // donor who explicitly chose anonymity is a count there whoever exports;
+  // finance still sees the name in the file.
   it.each([
     ["development", false],
     ["finance", true],
   ] as const)(
-    "records a withheld donor only as a count (%s audience)",
+    "records a donor who chose anonymity only as a count (%s audience)",
     async (staffRole, named) => {
       vi.clearAllMocks();
       const completeness = {
@@ -184,21 +187,13 @@ describe("governed CRM report export", () => {
       const stored = insert.mock.calls.at(-1)?.[0] as {
         details: Record<string, unknown>;
       };
-      expect(JSON.stringify(stored).includes("donor-withheld-7f3c")).toBe(
-        named,
-      );
-      expect(stored.details).toMatchObject(
-        named
-          ? {
-              groupIds: ["donors:donor-withheld-7f3c", "donors:donor-named-1"],
-              rowCount: 2,
-            }
-          : {
-              groupIds: ["donors:donor-named-1"],
-              withheldGroups: 1,
-              rowCount: 2,
-            },
-      );
+      expect(JSON.stringify(stored)).not.toContain("donor-withheld-7f3c");
+      expect(stored.details).toMatchObject({
+        groupIds: ["donors:donor-named-1"],
+        anonymousGroups: 1,
+        rowCount: 2,
+      });
+      expect(stored.details).not.toHaveProperty("withheldGroups");
     },
   );
   // Fix check G3: a group that fails its binding fails the export: no file,

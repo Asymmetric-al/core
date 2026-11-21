@@ -701,11 +701,15 @@ describe("Phase 5 CRM donor detail and reports", () => {
             );
             expect(exported.csv.includes("Ada Donor")).toBe(seesName);
             expect(exported.csv).not.toContain("Other tenant");
-            // The row is in the file unless a search hides it; its reference
-            // is audited only when the audience sees the name (fix check G2).
+            // The row is in the file unless a search hides it. The audit
+            // row, which every staff member reads, references a donor only
+            // when they made no anonymous choice; one who did is a count, for
+            // every audience (fix check G2, re-check H1).
             expect(exported.rowCount).toBe(!search || seesName ? 1 : 0);
-            expect(exported.groupIds).toHaveLength(seesName ? 1 : 0);
-            expect(exported.withheld).toBe(!search && !seesName ? 1 : 0);
+            expect(exported.groupIds).toHaveLength(named ? 1 : 0);
+            expect(exported.anonymousGroups).toBe(
+              !named && (!search || seesName) ? 1 : 0,
+            );
           }
         }
       }
