@@ -242,7 +242,10 @@ const missionaryServer =
           NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
           NEXT_PUBLIC_SUPABASE_URL: supabaseURL,
         },
-        url: `${missionaryBaseURL.replace(/\/$/, "")}/api/health`,
+        // The public sign-in page: /api/health probes Supabase as anon,
+        // which holds no SELECT on profiles on a migrated stack, and answers
+        // 503 there, which Playwright never counts as ready.
+        url: `${missionaryBaseURL.replace(/\/$/, "")}/login`,
         reuseExistingServer,
         timeout: PLAYWRIGHT_WEB_SERVER_TIMEOUT_MS,
       } as const)
