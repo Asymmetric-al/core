@@ -56,10 +56,9 @@ Editing a cited file, even a comment, makes the ledger entry stale and fails
 its gate. Update the ledger entry in the same change after re-reviewing the
 claim; never edit the hash alone to make the gate pass.
 
-| Ledger                                         | Pinned field                                                | Enforced by                                                        | Kind                                                                   |
-| ---------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| `tooling/shadcn/upstream-review-baseline.json` | `proofSources[].sha256`                                     | `scripts/verify/shadcn-diff.mjs` via `verify:shadcn-diff`          | Repository-enforced (`ci:preflight`)                                   |
-| `docs/qa/react-doctor/exceptions.json`         | `sourceFileHash`, `sourceContextHash`, `evidenceFileHashes` | `scripts/react-doctor-ledger.mjs` via `bun run react-doctor:check` | Repository-enforced (manual command only; not in CI or `ci:preflight`) |
+| Ledger                                         | Pinned field            | Enforced by                                               | Kind                                 |
+| ---------------------------------------------- | ----------------------- | --------------------------------------------------------- | ------------------------------------ |
+| `tooling/shadcn/upstream-review-baseline.json` | `proofSources[].sha256` | `scripts/verify/shadcn-diff.mjs` via `verify:shadcn-diff` | Repository-enforced (`ci:preflight`) |
 
 ## Import-path protection (data-access boundary)
 
@@ -76,12 +75,13 @@ excluded in `data-boundary-check.mjs`.
 
 ## Branch / push guards
 
-| Path / target               | Protection                                                                                                                           | Controlling evidence                                                       | Kind                                                        |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Local pushes                | `bun run ci:preflight` (`--full` when a push targets `production`); no commit identity check                                         | `.husky/pre-push` → `scripts/git/pre-push.mjs`; `docs/ci.md`               | Repository-enforced (local hook; bypassed by `--no-verify`) |
-| Direct push to `production` | Allowed only through `bun run release:production` or a true emergency with a concrete reason in `ASYM_PRODUCTION_PUSH_BYPASS_REASON` | `scripts/git/pre-push-guard.mjs`                                           | Repository-enforced (local hook)                            |
-| `develop` / `production`    | Required checks, force-push and deletion settings                                                                                    | [`docs/ci.md`](../ci.md#branch-protection); live GitHub settings           | Platform-enforced                                           |
-| Agent commands on GitHub    | Only an active organization member with Core Write or higher, or an approved App identity, can direct agent commands                 | [`docs/ops/github-access.md`](../ops/github-access.md); Eve GitHub channel | Webhook boundary                                            |
+| Path / target               | Protection                                                                                                                                                                                      | Controlling evidence                                                                                     | Kind                                                         |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Local pushes                | Fast profile `bun run ci:preflight -- --fast`; full profile when `ASYM_PRE_PUSH_PROFILE=full` (the factory's publish step); `--full` when a push targets `production`; no commit identity check | `.husky/pre-push` → `scripts/git/pre-push.mjs`; `docs/ci.md`                                             | Repository-enforced (local hook; bypassed by `--no-verify`)  |
+| Direct push to `production` | Allowed only through `bun run release:production` or a true emergency with a concrete reason in `ASYM_PRODUCTION_PUSH_BYPASS_REASON`                                                            | `scripts/git/pre-push-guard.mjs`                                                                         | Repository-enforced (local hook)                             |
+| Agent edits                 | Claude Code, Codex and Cursor format and lint each edited file; the hook never writes generated, mirrored or vendored trees, `.next`, `.next-docs` or `.agents`                                 | `scripts/agent-hooks/after-edit.mjs`; `.claude/settings.json`, `.codex/hooks.json`, `.cursor/hooks.json` | Repository-enforced (agent harness; trusted workspaces only) |
+| `develop` / `production`    | Required checks, force-push and deletion settings                                                                                                                                               | [`docs/ci.md`](../ci.md#branch-protection); live GitHub settings                                         | Platform-enforced                                            |
+| Agent commands on GitHub    | Only an active organization member with Core Write or higher, or an approved App identity, can direct agent commands                                                                            | [`docs/ops/github-access.md`](../ops/github-access.md); Eve GitHub channel                               | Webhook boundary                                             |
 
 ## Platform evidence limits
 

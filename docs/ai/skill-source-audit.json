@@ -5805,8 +5805,8 @@
       "sourcePath": "skills/no-comments/SKILL.md",
       "rawSkillHash": "41c9b4e2a85f295ff96329736faf5c3af53579aa38c606d5139568d11662d2f7",
       "lockHash": "13acb25431f0285d427900bb0b86380911d43314a989ede51cfabf7f51bee0cd",
-      "entrypointHash": "1feea259ea93acc5429002a5a6f3a9f4d159eb7fe4350b77b4945dce7c26b723",
-      "treeHash": "52cb62c5058b99fb61e5e264bc5042f5e9c0a41dee6ed641ce0fa2789575412a",
+      "entrypointHash": "f1be1ed9edad41034fe68b8f4f0621ec5220ced04c104b911fb21f4b0f10e888",
+      "treeHash": "034a2718c97de9265ccafacb3836db927463538e39b954fd2de1a339e395d22a",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -6270,7 +6270,7 @@
       "rawSkillHash": "804902c52be09d48429a4e67f95d4243fce6b198dea2012ba41d1fe0f1622cba",
       "lockHash": "a1a7f767f90a4b9cafcefb4ee0a7462abf71f0b3c999c1e53ce1a69917db397f",
       "entrypointHash": "36cdcd5f13e25cc17d134e2506872bbd10841a01257c8550615a09312122c517",
-      "treeHash": "00f06a0bcfdd19f20f3e37737c93c9a83e11644f29693be8b18813ad7eb39f11",
+      "treeHash": "fc1c7829ce9997942cca46aa4ce4bbaaa4d35dbae762430e81a725d200490e4d",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -8137,8 +8137,8 @@
       "sourcePath": "docs/ai/skills/react-doctor/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "57b9cf4477899bc37754c14207ca5ea9ffe2eed1753056d7a2c06cdfcafdc0e0",
-      "treeHash": "bc384db035a950ce7b2299426d616143076fe50b03f6cfd6ba2b950e79a2644e",
+      "entrypointHash": "8ad36d19fe14f395fe155f87a1113085ff22753fc1b5a9d54c6ead54e5849e0a",
+      "treeHash": "ed2bfbfcd5b5639650c6713873dee00c2f2d4c7c3d5fb16356482976a331ed58",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -8152,7 +8152,7 @@
         {
           "kind": "Core-source-owned-contract",
           "path": "docs/ai/skills/react-doctor/SKILL.md",
-          "entrypointSha256": "57b9cf4477899bc37754c14207ca5ea9ffe2eed1753056d7a2c06cdfcafdc0e0",
+          "entrypointSha256": "8ad36d19fe14f395fe155f87a1113085ff22753fc1b5a9d54c6ead54e5849e0a",
           "authority": [
             "AGENTS.md",
             "docs/ai/stack-registry.md",
@@ -9012,8 +9012,8 @@
       "sourcePath": "docs/ai/skills/samson-factory/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "79b1f5f3a37f26d0295c75871b01e374c70b99b325ce65fcbe02d760c29898ba",
-      "treeHash": "c39ab0aaac036a39493d4a3df559aee0be5fcdb00fd01bb9a0325d53e63b3c34",
+      "entrypointHash": "36ca8e0b674ff29fd8f466bdc1e63b2bd732d9aa8132777a831b15fe15104e98",
+      "treeHash": "3817a3a5b7340a1114765f86aa28dcae4365b46e2febde2c12ab80487a69d051",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
