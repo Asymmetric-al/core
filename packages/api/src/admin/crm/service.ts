@@ -30,7 +30,7 @@ const SORT_COLUMN_BY_FIELD = {
 } satisfies Record<CrmSortField, DonorColumn>;
 
 function escapeSearchValue(value: string) {
-  return value.replace(/[%(),]/g, " ");
+  return value.replace(/[%(),]/g, " ").replaceAll("*", "%");
 }
 
 function normalizeIds(ids: Iterable<string>) {
@@ -46,7 +46,7 @@ function applyBaseFilters<TQuery extends DonorQueryBuilder<TQuery>>(
   query: TQuery,
   params: AdminCrmParams,
 ): TQuery {
-  const { filters, search } = params;
+  const { filters } = params;
 
   // Writers stored these columns in several spellings (`at_risk`, `At Risk`),
   // so each filter value matches all of them.
@@ -69,13 +69,6 @@ function applyBaseFilters<TQuery extends DonorQueryBuilder<TQuery>>(
     query = query.not("profile_id", "is", null);
   } else if (filters.hasPortal === false) {
     query = query.is("profile_id", null);
-  }
-
-  if (search) {
-    const term = escapeSearchValue(search);
-    query = query.or(
-      `name.ilike.%${term}%,email.ilike.%${term}%,organization.ilike.%${term}%,phone.ilike.%${term}%`,
-    );
   }
 
   return query;
@@ -136,8 +129,23 @@ async function fetchFilteredDonorRows(
   params: AdminCrmParams,
   limit: number,
 ) {
-  let query = sessionClient
-    .from("donors")
+  const textOrder = ["name", "recordType", "lifecycleStatus"].includes(
+    params.sort.field,
+  );
+  let donors;
+  if (params.search) {
+    donors = sessionClient.rpc("search_crm_donors", {
+      p_tenant_id: tenantId,
+      p_term: escapeSearchValue(params.search),
+    });
+  } else if (textOrder) {
+    donors = sessionClient.rpc("crm_donors_for_text_order", {
+      p_tenant_id: tenantId,
+    });
+  } else {
+    donors = sessionClient.from("donors");
+  }
+  let query = donors
     .select(
       "id, profile_id, missionary_id, name, email, phone, avatar_url, location, type, status, total_given, last_gift_date, tags, organization, title, notes, created_at, updated_at",
     )
