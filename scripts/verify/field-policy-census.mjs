@@ -185,6 +185,11 @@ export function manifestProblems(manifest, { root = repoRoot } = {}) {
   }
   for (const [key, reviewed] of Object.entries(HOST_PROJECTION_FLOORS)) {
     const [record, field] = key.split(".");
+    // A manifest without the record type (a historical oracle aligned to its
+    // own columns, as #2254's suite judges) gives the override nothing to
+    // exempt. The repository's own manifest is held to carry it, with its
+    // reviewed category, by tests/unit/acceptance/issue-2676.
+    if (!Object.hasOwn(manifest.record_types ?? {}, record)) continue;
     if (
       manifest.record_types[record]?.[field]?.category !== reviewed.category ||
       floors.get(field)?.category !== reviewed.floor

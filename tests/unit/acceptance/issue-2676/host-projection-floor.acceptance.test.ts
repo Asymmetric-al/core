@@ -24,4 +24,29 @@ describe("anonymous host projection", () => {
       /FLOOR .*site_domains\.tenant_id.*stale/,
     );
   });
+  it("rejects the override once its column leaves a manifest that keeps the table", () => {
+    const copy = structuredClone(manifest);
+    delete (copy.record_types.site_domains as Record<string, unknown>)
+      .tenant_id;
+    expect(census.manifestProblems(copy).join("\n")).toMatch(
+      /FLOOR .*site_domains\.tenant_id.*stale/,
+    );
+  });
+  // The gate is also run on a manifest aligned to a historical oracle that
+  // predates the Site tables (#2254, criterion 9): the override is inert
+  // there, so the repository's own manifest is pinned to carry it here.
+  it("holds the repository's manifest to the reviewed column, and leaves a manifest without Sites alone", () => {
+    expect(manifest.record_types.site_domains.tenant_id.category).toBe(
+      "public",
+    );
+    const copy = structuredClone(manifest) as {
+      record_types: Record<string, unknown>;
+    };
+    delete copy.record_types.site_domains;
+    expect(
+      census
+        .manifestProblems(copy as typeof manifest)
+        .filter((problem: string) => problem.startsWith("FLOOR")),
+    ).toEqual([]);
+  });
 });
