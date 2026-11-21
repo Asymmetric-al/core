@@ -73,7 +73,9 @@ describe("frozen ceiling", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
-  // D-18: removing two follower-request sites lowers the ceiling; only growth needs a new ruling.
+  // D-18: the ceiling falls with the allowlist. It rose once, by the coordinator's ruling of
+  // 21 November 2026 (F3, F4): by exactly the eight platform-wrapper sites that reached the key
+  // uncounted, each named for WP4b. Any other growth needs a new ruling.
   it("pins the 121 entries, including the eight previously uncounted calls", () => {
     expect(ceilingDigest()).toBe(
       "e25de42921ceb99b0be9b8c0242f8e8100f158dd910207645c07aa16ebed9e47",

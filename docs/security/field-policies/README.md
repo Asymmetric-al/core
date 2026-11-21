@@ -229,10 +229,16 @@ its slice and group ID, and a report revision. The CSV uses only resolved
 scalar cells. It exports no raw IDs, statuses or nested metadata. The audit
 records the session actor, emitted groups and filter names, never search text.
 
-Donor groups combine unnamed gifts before applying search. A donor name is
-eligible only when both recipient and public anonymity preferences explicitly
-allow it. Missing preferences or a missing donor row do not authorize a name.
-This governs report egress, not interactive CRM detail or a contact list.
+Donor groups are one per donor, and the projection resolver decides each name.
+The audience is `finance` for an assignment that holds the finance sub-role or
+`contributions.manage_settings`, and `identity_restricted` for every other
+staff assignment. Finance sees every donor's name. Any other audience sees a
+donor's name unless that donor explicitly chose anonymity (either
+default-anonymous preference `true`); a donor with no stated choice is named on
+this surface. A withheld name leaves an unlabeled row. Search runs after the
+projection, so it never matches a name the audience may not see. This governs
+report egress, not interactive CRM detail or a contact list; the missionary and
+public surfaces keep their own anonymity rules.
 
 ## History: the AL-491 census
 
