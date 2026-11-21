@@ -105,11 +105,7 @@ my-agent/
     └── channels/
 ```
 
-Scaffold:
-
-```bash
-npx eve@latest init my-agent
-```
+Use the [scaffold steps](SKILL.md#2-install--scaffold) to run Core's pinned Eve CLI from the selected project's parent directory.
 
 ### Existing monorepo
 
@@ -133,10 +129,11 @@ Do not invent a monorepo layout. Copy what the repo already does.
 
 ## Docs discovery
 
-Before implementing any eve surface, read the bundled docs:
+Before implementing any eve surface, read the bundled docs. In Core they are
+under `packages/eve-runtime`, not the repository root:
 
 ```
-node_modules/eve/docs/
+packages/eve-runtime/node_modules/eve/docs/
 ```
 
 **Minimum read list:**
@@ -149,7 +146,7 @@ node_modules/eve/docs/
 | Channels                                            | channels surface page         |
 | Skills, schedules, hooks, sandbox, subagents, evals | matching surface page         |
 
-Also scan sibling agents in the repo for established patterns. Do not copy API calls from this skill — they may be stale. If eve is not yet installed, read the published docs at [beta.eve.dev](https://beta.eve.dev) until `node_modules/eve/docs/` is available.
+Also scan sibling agents in the repo for established patterns. Do not copy API calls from this skill — they may be stale. If eve is not yet installed, read the published docs at [beta.eve.dev](https://beta.eve.dev) until `packages/eve-runtime/node_modules/eve/docs/` is available.
 
 ---
 
@@ -164,7 +161,7 @@ Generated agent code is a **tutorial**. Comments should explain eve concepts as 
 1. **Surface literacy** — the user finishes v1 knowing what tools, channels, connections, skills, etc. are and when to use each.
 2. **Discovery model** — explain how eve finds files (path-derived tool names, folder conventions).
 3. **Turn lifecycle** — tie comments to what happens when a user sends a message (channel → agent → model → tool → response).
-4. **Docs bridge** — point to `node_modules/eve/docs/<topic>` (or [beta.eve.dev](https://beta.eve.dev)) for depth; do not duplicate entire doc pages.
+4. **Docs bridge** — point to `packages/eve-runtime/node_modules/eve/docs/<topic>` (or [beta.eve.dev](https://beta.eve.dev)) for depth; do not duplicate entire doc pages.
 
 ### Per-file pattern
 
@@ -178,7 +175,7 @@ Generated agent code is a **tutorial**. Comments should explain eve concepts as 
  * - Tool identity: agent/tools/get_foo.ts → tool name "get_foo"
  * - How the model decides to call this tool (see instructions.md)
  *
- * Docs: node_modules/eve/docs/tools.md (adjust to actual path after reading docs)
+ * Docs: packages/eve-runtime/node_modules/eve/docs/tools/overview.mdx (adjust to actual path after reading docs)
  */
 
 // --- Imports ---

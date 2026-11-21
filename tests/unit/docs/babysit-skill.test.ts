@@ -277,12 +277,51 @@ describe("babysit skill", () => {
     expect(babysitReplacements?.[1]).toContain(
       "replace: BABYSIT_CORE_INSTRUCTIONS_BLOCK",
     );
-    expect(babysitReplacements?.[1].match(/required: true/g)).toHaveLength(2);
+    expect(babysitReplacements?.[1]).toContain(
+      "search: BABYSIT_UPSTREAM_DESCRIPTION",
+    );
+    expect(babysitReplacements?.[1]).toContain(
+      "replace: BABYSIT_CORE_DISCOVERY",
+    );
+    expect(babysitReplacements?.[1].match(/required: true/g)).toHaveLength(3);
     expect(refreshScript).toContain(
       "Required Core compatibility replacement is missing",
     );
     expect(refreshScript).toContain(
       "review upstream drift before refreshing canonical skills",
+    );
+  });
+
+  it("loads only on an explicit request in every client", () => {
+    const frontmatter = /^---\n([\s\S]*?)\n---/.exec(skill)?.[1] ?? "";
+    const description = /^description: (.*)$/m.exec(frontmatter)?.[1] ?? "";
+
+    expect(frontmatter).toMatch(/^disable-model-invocation: true$/m);
+    expect(description).toContain("explicitly");
+    for (const broadTrigger of [
+      "process-driven",
+      "workflow",
+      "orchestrate",
+      "loop until",
+    ]) {
+      expect(description, broadTrigger).not.toContain(broadTrigger);
+    }
+    expect(
+      readFileSync(path.join(canonicalSkillRoot, "agents/openai.yaml"), "utf8"),
+    ).toBe("policy:\n  allow_implicit_invocation: false\n");
+
+    const refreshScript = readFileSync(refreshScriptPath, "utf8");
+    const upstreamDescription = refreshScript.match(
+      /const BABYSIT_UPSTREAM_DESCRIPTION =\n {2}"([^"]*)";/,
+    );
+    const coreDiscovery = refreshScript.match(
+      /const BABYSIT_CORE_DISCOVERY =\n {2}"([^"]*)";/,
+    );
+    expect(upstreamDescription, "reviewed upstream description").not.toBeNull();
+    expect(upstreamDescription?.[1]).toContain("orchestrate");
+    expect(coreDiscovery, "Core discovery metadata").not.toBeNull();
+    expect(frontmatter).toContain(
+      coreDiscovery?.[1].replaceAll("\\n", "\n") ?? "<missing>",
     );
   });
 
@@ -306,8 +345,12 @@ describe("babysit skill", () => {
     );
   });
 
-  it("keeps the six changed runtime mirror files byte-identical", () => {
-    const relativePaths = ["SKILL.md", "references/upstream.md"] as const;
+  it("keeps the changed runtime mirror files byte-identical", () => {
+    const relativePaths = [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md",
+    ] as const;
     const runtimeRoots = [
       ".agents/skills/babysit",
       ".cursor/skills/babysit",
