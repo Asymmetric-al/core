@@ -11,7 +11,7 @@ import {
 } from "node:fs/promises";
 import path from "node:path";
 
-import { format } from "prettier";
+import { formatSource } from "../../../scripts/lib/format-source.mts";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
@@ -507,7 +507,7 @@ describe("reviewed raw managed-skill restoration", () => {
     // Formatting the restored Markdown must not invalidate the owned notice.
     for (const [relative, content] of first) {
       if (relative.startsWith("references/")) continue;
-      const formatted = await format(content, { parser: "markdown" });
+      const formatted = await formatSource(relative, content, "managed");
       await writeFile(path.join(root, relative), formatted);
       first.set(relative, formatted);
     }

@@ -1,0 +1,8 @@
+import { queryOptions } from "@tanstack/react-query";
+
+import { maybeCount } from "./loaders";
+
+export const options = queryOptions({
+  queryKey: ["count"],
+  queryFn: maybeCount,
+});

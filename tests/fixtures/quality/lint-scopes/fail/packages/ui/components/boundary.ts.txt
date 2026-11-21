@@ -1,0 +1,10 @@
+import { getCoreRowModel } from "@tanstack/react-table";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export { createServerClient } from "@asym/database/supabase/server";
+
+export type Client = SupabaseClient;
+
+export const rows = getCoreRowModel;
+
+export const loadCrm = () => import("@asym/api/crm/client/people");

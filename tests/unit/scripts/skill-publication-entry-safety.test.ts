@@ -68,7 +68,7 @@ describe("skill publication entry safety", () => {
     source = source.replace("  rename,\n", "  rename as realRename,\n");
     source += `
 async function rename(from,to) {
-  if (String(from).includes(".staging-") && String(to).endsWith("/.cursor/skills/ecosystem")) {
+  if (String(from).includes(".staging-") && String(to).endsWith(path.join(".cursor", "skills", "ecosystem"))) {
     await mkdir(to); await writeFile(path.join(to,"concurrent.txt"),"competing entry");
     console.error("REACHED_ECOSYSTEM_COLLISION");
     throw Object.assign(new Error("fixture collision"),{code:"EXDEV"});
@@ -182,7 +182,7 @@ async function rename(from,to) {
       );
       source += `
 async function rename(from,to) {
-  if (String(from).includes(".refresh-staging-") && String(to).endsWith("/supabase")) {
+  if (String(from).includes(".refresh-staging-") && path.basename(String(to)) === "supabase") {
     await symlink("missing-competing-target",to,"dir");
     console.error("REACHED_COMPETING_SYMLINK");
     ${fault === "EXDEV" ? 'throw Object.assign(new Error("fixture cross-device"),{code:"EXDEV"});' : ""}

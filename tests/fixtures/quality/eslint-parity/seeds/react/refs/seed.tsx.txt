@@ -1,0 +1,6 @@
+import { useRef } from "react";
+
+export function Field() {
+  const ref = useRef(0);
+  return <p>{ref.current}</p>;
+}

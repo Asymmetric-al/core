@@ -1,0 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
+
+export function useCountState() {
+  const { data, isPending } = useQuery({
+    queryKey: ["count"],
+    queryFn: () => 1,
+  });
+  return { data, isPending: isPending };
+}

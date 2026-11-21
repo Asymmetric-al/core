@@ -1,6 +1,8 @@
 /** Extract scoped generated mirrors without replacing Core's application types. */
 import { readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import ts from "typescript";
+import { formatSource } from "./lib/format-source.mts";
 
 const input = process.argv[2];
 if (!input)
@@ -27,10 +29,10 @@ const scoped = [
   "currency_rate_snapshots",
 ].map((name) => member(tables, name).getText(file));
 const output = `// Generated from Supabase CLI public schema output. Do not hand-edit.\n// Regenerate with scripts/generate-currency-foundation-types.mjs.\ntype Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];\n\nexport type CurrencyFoundationTables = {\n${scoped.join("\n")}\n};\n\nexport type CurrencyMetadataRow = CurrencyFoundationTables["currency_metadata"]["Row"];\nexport type CurrencyRateSnapshotRow = CurrencyFoundationTables["currency_rate_snapshots"]["Row"];\n`;
-writeFileSync(
+const target = fileURLToPath(
   new URL(
     "../packages/database/types/currency-foundation.generated.ts",
     import.meta.url,
   ),
-  output,
 );
+writeFileSync(target, await formatSource(target, output, "trusted"));

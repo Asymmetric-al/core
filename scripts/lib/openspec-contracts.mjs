@@ -11,6 +11,7 @@ import {
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { formatSource } from "./format-source.mts";
 
 const require = createRequire(import.meta.url);
 const parserRoot = path.join(
@@ -219,7 +220,7 @@ function verifyReferences(
   }
 }
 
-export async function renderContractView({
+async function prepareContractView({
   repoRoot = defaultRepoRoot,
   capability,
   content,
@@ -269,12 +270,41 @@ export async function renderContractView({
     compact = compact.replace(block.raw, () => replacement);
   }
   verifyReferences(capability, compact, entries);
+  const view = await formatSource("spec.md", compact, "trusted");
+  verifyReferences(capability, view, entries);
   if (changed) {
     const file = await safeContractFile(repoRoot, capability);
+    const formatted = await formatSource(
+      file,
+      renderContracts(capability, entries),
+      "trusted",
+    );
+    return { view, companion: { file, formatted } };
+  }
+  return { view };
+}
+
+export async function renderContractViews(
+  views,
+  { repoRoot = defaultRepoRoot, write = false } = {},
+) {
+  const prepared = [];
+  const capabilities = new Set();
+  for (const { capability, content } of views) {
+    if (capabilities.has(capability))
+      throw new Error(`Duplicate capability: ${capability}`);
+    capabilities.add(capability);
+    prepared.push(
+      await prepareContractView({ repoRoot, capability, content, write }),
+    );
+  }
+  for (const { companion } of prepared) {
+    if (!companion) continue;
+    const { file, formatted } = companion;
     await mkdir(path.dirname(file), { recursive: true });
     const temporary = `${file}.${randomUUID()}.tmp`;
     try {
-      await writeFile(temporary, renderContracts(capability, entries), {
+      await writeFile(temporary, formatted, {
         flag: "wx",
       });
       await rename(temporary, file);
@@ -282,5 +312,18 @@ export async function renderContractView({
       await rm(temporary, { force: true });
     }
   }
-  return compact;
+  return prepared.map(({ view }) => view);
+}
+
+export async function renderContractView({
+  repoRoot,
+  capability,
+  content,
+  write,
+}) {
+  const [view] = await renderContractViews([{ capability, content }], {
+    repoRoot,
+    write,
+  });
+  return view;
 }

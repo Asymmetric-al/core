@@ -1,0 +1,7 @@
+import { useState } from "react";
+
+export function Loop() {
+  const [count, setCount] = useState(0);
+  setCount(1);
+  return <p>{count}</p>;
+}

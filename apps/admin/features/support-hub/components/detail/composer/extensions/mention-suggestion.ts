@@ -18,7 +18,7 @@ export function buildMentionExtension({
   getAgents = () => agents,
   isEnabled = () => true,
   onMention,
-}: MentionSuggestionOptions) {
+}: MentionSuggestionOptions): ReturnType<typeof Mention.configure> {
   return Mention.configure({
     HTMLAttributes: {
       class: "support-mention rounded-md bg-accent px-1 text-accent-foreground",

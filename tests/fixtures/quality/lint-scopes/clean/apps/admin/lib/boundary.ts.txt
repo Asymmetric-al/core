@@ -1,0 +1,11 @@
+import { createServerClient } from "@supabase/ssr";
+import type { DevtoolsOptions } from "@tanstack/react-table-devtools";
+
+export { m } from "@asym/lib/motion";
+
+export type Options = DevtoolsOptions;
+
+export const connect = createServerClient;
+
+export const loadTable = () =>
+  import("@asym/ui/components/shadcn/data-table/tanstack");

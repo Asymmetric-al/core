@@ -1,0 +1,6 @@
+import { useMemo } from "react";
+
+export function Label({ text }: { text: string }) {
+  const upper = useMemo(async () => text.toUpperCase(), [text]);
+  return <p>{String(upper)}</p>;
+}

@@ -1,0 +1,5 @@
+// The incumbent rule matches app routes only for "/": it adds a trailing slash to every href, which the
+// nested app-route patterns never accept. Oxlint also reports nested routes.
+export default function About() {
+  return <a href="/">Home</a>;
+}

@@ -10,6 +10,7 @@
  * 4. `bun run skills:sync` && `bun run skills:verify`
  */
 import { spawnSync } from "node:child_process";
+import { formatSource, SourceFormatError } from "./lib/format-source.mts";
 import { createHash } from "node:crypto";
 import {
   applyManagedSkillCompatibility,
@@ -2455,6 +2456,8 @@ async function updateEmilCloneSkillLockHashes(preparedRefreshes) {
   await writeSkillsLock(lockfile);
 }
 
+class UnsafeSkillSourceError extends Error {}
+
 async function listFilesRecursively(rootDir, currentDir = rootDir) {
   const entries = await readdir(currentDir, { withFileTypes: true });
   const files = [];
@@ -2465,7 +2468,10 @@ async function listFilesRecursively(rootDir, currentDir = rootDir) {
       files.push(...(await listFilesRecursively(rootDir, absolutePath)));
     } else if (entry.isFile()) {
       files.push(absolutePath);
-    }
+    } else
+      throw new UnsafeSkillSourceError(
+        `Refusing non-regular skill entry: ${absolutePath}`,
+      );
   }
 
   return files;
@@ -2499,44 +2505,9 @@ async function computeVendoredTreeHash(targetRoot) {
 }
 
 async function formatSkillTarget(targetRoot) {
-  // The launcher's presence gates formatting. On Windows its name depends on
-  // the package manager: npm writes `prettier.cmd`, Bun writes `prettier.exe`.
-  const binRoot = path.join(repoRoot, "node_modules", ".bin");
-  const launchers =
-    process.platform === "win32"
-      ? ["prettier.cmd", "prettier.exe"]
-      : ["prettier"];
-  const found = await Promise.all(
-    launchers.map((name) => fileExists(path.join(binRoot, name))),
-  );
-
-  if (!found.includes(true)) {
-    console.warn(
-      `[warn] prettier not found in ${path.relative(repoRoot, binRoot)}; copied ${path.relative(repoRoot, targetRoot)} without repo formatting`,
-    );
-    return;
-  }
-
-  // A directory CLI invocation discovers executable configuration and plugins
-  // inside the imported tree. Resolve options only from the trusted repository
-  // and parse supported regular files as data, including hidden staging trees.
-  const prettier = await import("prettier");
-  const repositoryOptions =
-    (await prettier.resolveConfig(path.join(repoRoot, "package.json"), {
-      editorconfig: false,
-    })) ?? {};
   for (const file of (await listFilesRecursively(targetRoot)).sort()) {
-    const info = await prettier.getFileInfo(file, {
-      resolveConfig: false,
-      ignorePath: [],
-      plugins: repositoryOptions.plugins,
-    });
-    if (!info.inferredParser) continue;
     const content = await readFile(file, "utf8");
-    const formatted = await prettier.format(content, {
-      ...repositoryOptions,
-      filepath: file,
-    });
+    const formatted = await formatSource(file, content, "managed");
     if (formatted !== content) await writeFile(file, formatted, "utf8");
   }
 }
@@ -2707,7 +2678,7 @@ async function writeCompanionFiles(companionFiles) {
 /**
  * Stage one GitHub-vendored skill into a temporary sibling of its canonical
  * directory: copy from the clone, copy configured support files, format with
- * repo Prettier, hash, and regenerate `references/upstream.md`. Nothing under
+ * the managed profile, hash, and regenerate `references/upstream.md`. Nothing under
  * `docs/ai/skills/` is mutated. Returns `null` when the upstream skill is
  * missing so the caller can warn and skip it without touching the canonical copy.
  */
@@ -2737,8 +2708,13 @@ async function prepareGithubSkillRefresh({
     throw new Error(
       "Upstream skill source must be a real directory: " + upstreamSkillDir,
     );
-  if (group.source === "cloudflare/security-audit-skill")
-    await assertSecurityAuditSource(upstreamSkillDir, cloneDir);
+  if (group.source === "cloudflare/security-audit-skill") {
+    try {
+      await assertSecurityAuditSource(upstreamSkillDir, cloneDir);
+    } catch (cause) {
+      throw new UnsafeSkillSourceError(cause.message, { cause });
+    }
+  }
   await assertCanonicalDirectoryEntry(to);
 
   const staging = getTemporarySiblingPath(to, "refresh-staging");
@@ -2793,6 +2769,59 @@ async function prepareGithubSkillRefresh({
     await rm(staging, { recursive: true, force: true });
     throw error;
   }
+}
+
+async function assertRegularGitSources(cloneDir, commit, group) {
+  const importedPaths = [
+    ...group.skillNames.map((name) => path.posix.join(group.sourceRoot, name)),
+    ...Object.values(group.skillExtraCopies ?? {})
+      .flat()
+      .map(({ from }) => from),
+    ...(group.extraCopies ?? []).map(({ from }) => from),
+  ];
+  // A skill directory committed as a link gets the specific message the per-skill check gives.
+  for (const name of group.skillNames) {
+    const skillPath = path.posix.join(group.sourceRoot, name);
+    if ((await pathEntry(path.join(cloneDir, skillPath)))?.isSymbolicLink())
+      throw new UnsafeSkillSourceError(
+        "Upstream skill source must be a real directory: " + skillPath,
+      );
+  }
+  const parents = new Set();
+  for (const file of importedPaths) {
+    const parts = file.split("/");
+    for (let length = 1; length < parts.length; length++)
+      parents.add(parts.slice(0, length).join("/"));
+  }
+  for (const parent of parents) {
+    const entry = await pathEntry(path.join(cloneDir, parent));
+    if (entry && !entry.isDirectory())
+      throw new UnsafeSkillSourceError(
+        `Upstream skill source must use regular directories: ${parent}`,
+      );
+  }
+  const modes = runGit(
+    [
+      "-C",
+      cloneDir,
+      "ls-tree",
+      "-rz",
+      "--format=%(objectmode)",
+      commit,
+      "--",
+      ...importedPaths,
+    ],
+    "verify imported Git modes",
+    { capture: true },
+  );
+  if (
+    modes
+      .split("\0")
+      .some((mode) => mode && mode !== "100644" && mode !== "100755")
+  )
+    throw new UnsafeSkillSourceError(
+      "Upstream skill sources must contain only regular files",
+    );
 }
 
 /**
@@ -2862,6 +2891,7 @@ async function refreshGithubGroup(group, lockfile) {
 
     if (group.reviewedCommit && commitSha !== group.reviewedCommit)
       throw new Error("Reviewed source commit mismatch for " + group.name);
+    await assertRegularGitSources(cloneDir, commitSha, group);
     const preparedRefreshes = [];
     const lockEntries = new Map();
 
@@ -2971,7 +3001,12 @@ async function refreshGithubGroups(groups, { focused }) {
           { cause: error },
         );
       }
-      if (isIncompleteSkillRefreshRollbackError(error)) throw error;
+      if (
+        isIncompleteSkillRefreshRollbackError(error) ||
+        error instanceof SourceFormatError ||
+        error instanceof UnsafeSkillSourceError
+      )
+        throw error;
       console.warn(
         `[warn] skipping ${group.name} (${group.skillNames.join(", ")}): ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -3085,6 +3120,11 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
     );
   }
 
+  if (!(await lstat(from)).isDirectory())
+    throw new UnsafeSkillSourceError(
+      `Refusing non-directory skill source: ${from}`,
+    );
+  await listFilesRecursively(from);
   await assertRefreshSourceCompatibility(skillName, from);
   const emilCloneSkillHash = emilKowalskiSkillNames.includes(skillName)
     ? await hashEmilCloneSkillMd(path.join(from, "SKILL.md"))
@@ -3304,11 +3344,13 @@ async function swapPreparedRefresh(preparedRefresh) {
     if (hasBackup) await rm(to, { recursive: true, force: true });
     await moveDirectory(staging, to);
   } catch (error) {
+    const destination = await pathEntry(to);
     if (
-      ["EEXIST", "ENOTEMPTY", "ENOTDIR", "EISDIR"].includes(
-        getErrorCode(error),
-      ) &&
-      (await pathExists(to))
+      destination &&
+      (destination.isSymbolicLink() ||
+        ["EEXIST", "ENOTEMPTY", "ENOTDIR", "EISDIR"].includes(
+          getErrorCode(error),
+        ))
     ) {
       // A competing destination is not ours to remove. Keep both it and the
       // complete recovery copy and stop instead of claiming a clean rollback.
@@ -3483,7 +3525,11 @@ async function main() {
       try {
         await refreshSkillsAtomically(groupedSources);
       } catch (error) {
-        if (isIncompleteSkillRefreshRollbackError(error)) {
+        if (
+          isIncompleteSkillRefreshRollbackError(error) ||
+          error instanceof SourceFormatError ||
+          error instanceof UnsafeSkillSourceError
+        ) {
           throw error;
         }
         console.warn(

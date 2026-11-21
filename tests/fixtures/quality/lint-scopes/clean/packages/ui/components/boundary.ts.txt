@@ -1,0 +1,10 @@
+import { getCoreRowModel } from "./shadcn/data-table/tanstack";
+import type { Gift } from "@asym/database/types";
+
+export { m } from "@asym/lib/motion";
+
+export type UiGift = Gift;
+
+export const rows = getCoreRowModel;
+
+export const loadHooks = () => import("@asym/database/hooks");

@@ -1,12 +1,12 @@
 import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import prettier from "prettier";
+import { formatSource } from "../lib/format-source.mts";
 
 /**
  * Payload may emit an import map under `web-studio/` (current) or `admin/` (legacy).
  * Long-term we ship a single canonical map per admin app; post-process every file
- * that exists so eslint + typed export stay consistent after `cms:importmap`.
+ * that exists so its formatting and typed export stay consistent after `cms:importmap`.
  */
 const importMapCandidates = [
   path.resolve(process.cwd(), "app/(payload)/web-studio/importMap.js"),
@@ -24,19 +24,11 @@ async function listExistingImportMaps() {
     try {
       await access(candidate);
       found.push(candidate);
-    } catch {
-      /* absent */
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
     }
   }
   return found;
-}
-
-function ensureLintHeader(content) {
-  if (content.startsWith(lintHeader)) {
-    return content;
-  }
-
-  return `${lintHeader}\n${content}`;
 }
 
 function ensureTypedExport(content) {
@@ -50,22 +42,18 @@ function ensureTypedExport(content) {
   );
 }
 
-async function postProcessFile(importMapPath) {
+async function prepareFile(importMapPath) {
   const current = await readFile(importMapPath, "utf8");
-  const withHeader = ensureLintHeader(current);
-  const withTypedExport = ensureTypedExport(withHeader);
-  const prettierConfig = (await prettier.resolveConfig(importMapPath)) ?? {};
-  const formatted = await prettier.format(withTypedExport, {
-    ...prettierConfig,
-    filepath: importMapPath,
-  });
-
-  if (formatted !== current) {
-    await writeFile(importMapPath, formatted, "utf8");
-    console.log(`Post-processed Payload import map at ${importMapPath}`);
-  } else {
-    console.log(`Payload import map already post-processed: ${importMapPath}`);
-  }
+  const normalized = current.replaceAll("\r\n", "\n");
+  const body = normalized.startsWith(`${lintHeader}\n`)
+    ? normalized.slice(lintHeader.length + 1)
+    : normalized;
+  const formatted = await formatSource(
+    importMapPath,
+    ensureTypedExport(body),
+    "trusted",
+  );
+  return { importMapPath, current, formatted };
 }
 
 async function run() {
@@ -76,8 +64,17 @@ async function run() {
     );
   }
 
-  for (const p of paths) {
-    await postProcessFile(p);
+  for (const { importMapPath, current, formatted } of await Promise.all(
+    paths.map(prepareFile),
+  )) {
+    if (formatted !== current) {
+      await writeFile(importMapPath, formatted, "utf8");
+      console.log(`Post-processed Payload import map at ${importMapPath}`);
+    } else {
+      console.log(
+        `Payload import map already post-processed: ${importMapPath}`,
+      );
+    }
   }
 }
 

@@ -201,7 +201,7 @@ async function rm(target, options) {
     console.error("REACHED_STAGING_CLEANUP_FAILURE");
     throw Object.assign(new Error("staging cleanup failed"), { code: "EIO" });
   }
-  if (process.env.TEST_FAULT === "partial-backup" && !removedOnce && String(target).endsWith("/docs/ai/skills/supabase")) {
+  if (process.env.TEST_FAULT === "partial-backup" && !removedOnce && String(target).endsWith(path.join("docs", "ai", "skills", "supabase"))) {
     removedOnce = true;
     await real_rm(path.join(target, "SKILL.md"), { force: true });
     console.error("REACHED_PARTIAL_CANONICAL_REMOVAL");
@@ -510,6 +510,44 @@ ${copy}`,
       code: "ENOENT",
     });
   });
+  it.each(["missing formatter", "malformed source"])(
+    "preserves the skill, companions and lock on %s",
+    async (failure) => {
+      const root = await createGithubFixture();
+      const outputs = [
+        "docs/ai/skills/weekly-review/SKILL.md",
+        ".cursor/agents/ci-watcher.md",
+        ".cursor/agents/thermo-nuclear-code-quality-review.md",
+        "skills-lock.json",
+      ].map((file) => path.join(root, file));
+      const before = await Promise.all(outputs.map((file) => readFile(file)));
+      if (failure === "missing formatter") {
+        const shadow = path.join(root, "node_modules/oxfmt");
+        await mkdir(shadow, { recursive: true });
+        await writeFile(
+          path.join(shadow, "package.json"),
+          '{"exports":"./unavailable.js"}',
+        );
+      } else {
+        const upstream = path.join(root, "upstream");
+        await writeFile(
+          path.join(upstream, "cursor-team-kit/skills/weekly-review/broken.ts"),
+          "export const =",
+        );
+        expect(fixtureGit(upstream, ["add", "."]).status).toBe(0);
+        expect(
+          fixtureGit(upstream, ["commit", "-m", "Malformed input fixture"])
+            .status,
+        ).toBe(0);
+      }
+      const result = run(root, "", "cursor/plugins");
+      expect(result.status).not.toBe(0);
+      expect(result.output).toMatch(/Oxfmt failed/u);
+      expect(await Promise.all(outputs.map((file) => readFile(file)))).toEqual(
+        before,
+      );
+    },
+  );
   it("formats staged source with trusted options without executing vendor configuration, plugins or lifecycle hooks", async () => {
     const root = await createGithubFixture();
     const upstream = path.join(root, "upstream");
@@ -522,6 +560,10 @@ ${copy}`,
     await mkdir(path.join(vendor, "nested"));
     await writeFile(path.join(vendor, ".prettierrc.cjs"), payload);
     await writeFile(path.join(vendor, "nested/prettier.config.cjs"), payload);
+    await writeFile(
+      path.join(vendor, "nested/oxfmt.config.mts"),
+      'import "../vendor-plugin.cjs"; export default { semi: false };',
+    );
     await writeFile(path.join(vendor, "vendor-plugin.cjs"), payload);
     await writeFile(
       path.join(vendor, "package.json"),
@@ -547,11 +589,6 @@ ${copy}`,
       "Inert vendor formatter fixtures",
     ]);
     expect(saved.status, saved.stderr).toBe(0);
-    await mkdir(path.join(root, "node_modules/.bin"), { recursive: true });
-    await symlink(
-      path.join(repoRoot, "node_modules/.bin/prettier"),
-      path.join(root, "node_modules/.bin/prettier"),
-    );
     const result = run(root, "", "cursor/plugins");
     expect(result.status, result.output).toBe(0);
     const canonical = path.join(root, "docs/ai/skills/weekly-review");

@@ -25,6 +25,19 @@ const SAFE_TARGET_PREFIXES = [
   "@utils/",
 ];
 
+// This script runs under Bun (`bun run shadcn:uikit:add`) and the root does not
+// install `@types/bun`. Declare the one Bun call it makes; the declaration is
+// type-only and scoped to this module.
+declare const Bun: {
+  spawnSync(options: {
+    cmd: string[];
+    stdin: "inherit";
+    stdout: "inherit";
+    stderr: "inherit";
+    env: NodeJS.ProcessEnv;
+  }): { exitCode: number };
+};
+
 type ParsedArgs = {
   itemInputs: string[];
   dryRun: boolean;
@@ -207,8 +220,14 @@ async function fetchRegistryItem(
   if (!response.ok) {
     let message = `${response.status} ${response.statusText}`;
     try {
-      const body = await response.json();
-      if (typeof body?.message === "string" && body.message.length > 0) {
+      const body: unknown = await response.json();
+      if (
+        typeof body === "object" &&
+        body !== null &&
+        "message" in body &&
+        typeof body.message === "string" &&
+        body.message.length > 0
+      ) {
         message = body.message;
       }
     } catch {

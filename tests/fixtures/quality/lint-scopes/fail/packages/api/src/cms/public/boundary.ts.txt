@@ -1,0 +1,10 @@
+import { getPayload } from "payload";
+import type { AdminViewProps } from "@payloadcms/next/views";
+
+export { sanitizeConfig } from "payload/shared/config";
+
+export type ViewProps = AdminViewProps;
+
+export const load = getPayload;
+
+export const loadCrm = () => import("@asym/api/crm/client");

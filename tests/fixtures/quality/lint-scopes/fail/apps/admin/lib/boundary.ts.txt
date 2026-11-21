@@ -1,0 +1,10 @@
+import { useReactTable } from "@tanstack/react-table";
+import type { CrmClient } from "@asym/api/crm/client/types";
+
+export { m } from "motion/react";
+
+export type Client = CrmClient;
+
+export const useTable = useReactTable;
+
+export const loadDonorPage = () => import("../../../apps/donor/page");

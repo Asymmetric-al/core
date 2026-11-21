@@ -16,7 +16,9 @@ import {
   readSync,
   readdirSync,
   realpathSync,
+  renameSync,
   statSync,
+  writeFileSync,
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -921,13 +923,7 @@ function verifyReviewProofs(root, baseline) {
   }
 }
 
-async function runUpstreamReviewInView({
-  root,
-  baseline,
-  runCli,
-  previewRoot = root,
-  mappings = [],
-}) {
+async function readCliInventory({ root, baseline, runCli }) {
   requireCondition(
     [2, 3].includes(baseline?.schemaVersion) &&
       baseline.cliVersion === SHADCN_CLI_VERSION,
@@ -965,6 +961,25 @@ async function runUpstreamReviewInView({
     ),
     "Installed component coverage",
   );
+  return components;
+}
+
+async function fetchPreview({ runCli, previewRoot }, name) {
+  return parseDryRun(
+    await runCli(["add", name, "--dry-run"]),
+    name,
+    previewRoot,
+  );
+}
+
+async function fetchDiff({ runCli, previewRoot }, entry) {
+  const diff = await runCli(["add", entry.diffComponent, "--diff", entry.path]);
+  return parseFileDiff(diff, entry.diffComponent, entry.path, previewRoot);
+}
+
+async function runUpstreamReviewInView(context) {
+  const { root, baseline, mappings } = context;
+  const components = await readCliInventory(context);
   const directory = path.join(root, UI_DIRECTORY, COMPONENT_DIRECTORY);
   const entries = readdirSync(directory, { withFileTypes: true });
   const direct = entries
@@ -1037,12 +1052,8 @@ async function runUpstreamReviewInView({
       entry.localSha256,
       `Local adapter ${entry.path}`,
     );
-  const previews = await mapTwo(components, async (component) =>
-    parseDryRun(
-      await runCli(["add", component, "--dry-run"]),
-      component,
-      previewRoot,
-    ),
+  const previews = await mapTwo(components, (component) =>
+    fetchPreview(context, component),
   );
   compare(
     previews,
@@ -1087,14 +1098,8 @@ async function runUpstreamReviewInView({
       entry.localSha256,
       `Local source ${entry.path}`,
     );
-    const diff = await runCli([
-      "add",
-      entry.diffComponent,
-      "--diff",
-      entry.path,
-    ]);
     compare(
-      parseFileDiff(diff, entry.diffComponent, entry.path, previewRoot),
+      await fetchDiff(context, entry),
       entry.diffSha256,
       `Upstream diff ${entry.path}`,
     );
@@ -1248,7 +1253,7 @@ export function createUpstreamSourceView(root, mappings) {
   }
 }
 
-export async function runUpstreamReview({ root, baseline, runCli }) {
+async function withUpstreamSourceView({ root, baseline, runCli }, operation) {
   const mappings = validateSourceMappings(root, baseline);
   let view;
   try {
@@ -1259,7 +1264,7 @@ export async function runUpstreamReview({ root, baseline, runCli }) {
         root,
         cwd: view?.cwd ?? path.join(root, UI_DIRECTORY),
       });
-    return await runUpstreamReviewInView({
+    return await operation({
       root,
       baseline,
       runCli: runner,
@@ -1271,9 +1276,187 @@ export async function runUpstreamReview({ root, baseline, runCli }) {
   }
 }
 
+export function runUpstreamReview(options) {
+  return withUpstreamSourceView(options, runUpstreamReviewInView);
+}
+
+function relativeInside(root, target, label) {
+  const relative = path.relative(root, target);
+  requireCondition(
+    relative !== ".." &&
+      !relative.startsWith(`..${path.sep}`) &&
+      !path.isAbsolute(relative),
+    `Path outside repository: ${label}`,
+  );
+  return relative.split(path.sep).join("/");
+}
+
+function refreshTargets(root, baseline, paths, local) {
+  const records = [
+    ...baseline.proofSources.map((entry) => ({
+      file: entry.path,
+      entry,
+      hash: "sha256",
+    })),
+    ...baseline.protectedSources.map((entry) => ({
+      file: entry.path,
+      entry,
+      hash: "localSha256",
+    })),
+    ...baseline.localOnly.map((entry) => ({
+      file: `${UI_DIRECTORY}/${entry.path}`,
+      entry,
+      hash: "localSha256",
+    })),
+    ...baseline.files.map((entry) => ({
+      file: `${UI_DIRECTORY}/${entry.localPath ?? entry.path}`,
+      entry,
+      hash: "localSha256",
+      upstream: true,
+    })),
+  ];
+  const targets = new Map();
+  for (const input of paths) {
+    const normalized = input.replaceAll("\\", "/");
+    requireCondition(
+      !path.win32.parse(normalized).root || path.isAbsolute(normalized),
+      `Invalid repository path: ${input}`,
+    );
+    const file = relativeInside(root, path.resolve(root, normalized), input);
+    if (targets.has(file)) continue;
+    const matches = records.filter(
+      (record) => record.file === file && (local || record.upstream),
+    );
+    requireCondition(
+      matches.length > 0,
+      `No ${local ? "local hash" : "registry diff"} to refresh for ${input}`,
+    );
+    const actual = relativeInside(
+      root,
+      realpathSync(path.join(root, file)),
+      input,
+    );
+    requireCondition(
+      actual !== SHADCN_REVIEW_BASELINE,
+      "Review baseline cannot hash itself",
+    );
+    targets.set(file, matches);
+  }
+  return targets;
+}
+
+async function refreshDiffs(context, entries) {
+  await readCliInventory(context);
+  const affected = new Set();
+  for (const entry of entries) {
+    safeRelativePath(entry.path);
+    const owners = context.baseline.components.filter((component) =>
+      component.files.some((file) => file.path === entry.path),
+    );
+    compare(
+      owners.map(({ name }) => name),
+      entry.owners,
+      `Diff owners for ${entry.path}`,
+    );
+    requireCondition(
+      entry.owners.includes(entry.diffComponent),
+      `Invalid diff owner for ${entry.path}`,
+    );
+    for (const component of owners) affected.add(component);
+  }
+  await mapTwo([...affected], async (component) => {
+    const preview = await fetchPreview(context, component.name);
+    compare(
+      preview.files,
+      component.files,
+      `Upstream preview file coverage for ${component.name}`,
+    );
+    component.previewSha256 = preview.previewSha256;
+  });
+  await mapTwo(entries, async (entry) => {
+    entry.diffSha256 = await fetchDiff(context, entry);
+  });
+}
+
+function writeRefreshedBaseline(root, source, baseline) {
+  const token =
+    /("(?:sha256|localSha256|diffSha256|previewSha256)"\s*:\s*")([a-f0-9]{64})(?=")/g;
+  const hashes = JSON.stringify(baseline).matchAll(token);
+  const updated = source.replace(token, (_match, prefix) => {
+    const next = hashes.next();
+    requireCondition(!next.done, "Unexpected baseline hash token");
+    return prefix + next.value[2];
+  });
+  compare(
+    parseJson(updated, "refreshed baseline"),
+    baseline,
+    "Hash-only refresh serialization",
+  );
+  const target = path.join(root, SHADCN_REVIEW_BASELINE);
+  requireCondition(
+    readFileSync(target, "utf8") === source,
+    "Baseline changed during refresh; retry after review",
+  );
+  if (updated === source) return;
+  const directory = mkdtempSync(
+    path.join(path.dirname(target), ".shadcn-refresh-"),
+  );
+  try {
+    const temp = path.join(directory, "baseline.json");
+    writeFileSync(temp, updated);
+    renameSync(temp, target);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+
+const USAGE = `Usage: node scripts/verify/shadcn-diff.mjs [mode]
+  (no arguments)               Verify the reviewed upstream baseline (read-only).
+  --refresh-local <paths...>   Refresh only local source/proof hashes (offline).
+  --refresh-diffs <paths...>   Refresh registry diffs and their owners' previews (network).
+Pass repository paths after reviewing the change; neither mode updates reasons or proofs.`;
+
+async function refreshBaseline(root, mode, paths) {
+  requireCondition(
+    ["--refresh-local", "--refresh-diffs"].includes(mode) && paths.length > 0,
+    USAGE,
+  );
+  const target = path.join(root, SHADCN_REVIEW_BASELINE);
+  relativeInside(root, realpathSync(target), SHADCN_REVIEW_BASELINE);
+  const source = new TextDecoder("utf-8", {
+    fatal: true,
+    ignoreBOM: true,
+  }).decode(readFileSync(target));
+  const baseline = parseJson(source, "review baseline");
+  const local = mode === "--refresh-local";
+  const targets = refreshTargets(root, baseline, paths, local);
+  if (local) {
+    validateSourceMappings(root, baseline);
+    for (const [file, matches] of targets) {
+      const digest = sourceHash(readSource(root, file));
+      for (const { entry, hash } of matches) entry[hash] = digest;
+    }
+  } else {
+    const entries = [...targets.values()].flat().map(({ entry }) => entry);
+    await withUpstreamSourceView({ root, baseline }, (context) =>
+      refreshDiffs(context, entries),
+    );
+  }
+  writeRefreshedBaseline(root, source, baseline);
+  return targets.size;
+}
+
 async function main() {
   const root = fileURLToPath(new URL("../..", import.meta.url));
+  const [mode, ...paths] = process.argv.slice(2);
   try {
+    if (mode === "--help" && !paths.length) return console.log(USAGE);
+    if (mode !== undefined) {
+      const count = await refreshBaseline(root, mode, paths);
+      return console.log(
+        `[shadcn-diff] ${mode}: refreshed hashes for ${count} path(s).`,
+      );
+    }
     const baseline = parseJson(
       readSource(root, SHADCN_REVIEW_BASELINE),
       "review baseline",
@@ -1284,7 +1467,7 @@ async function main() {
     );
   } catch (error) {
     console.error(`[shadcn-diff] ${error.message}`);
-    process.exitCode = 1;
+    process.exitCode = mode === undefined ? 1 : 2;
   }
 }
 
