@@ -542,6 +542,7 @@ sequenceDiagram
     participant PR as PullRequest
     participant Develop as developBranch
     participant Prod as productionBranch
+    participant Release as releaseWorkflow
     participant Vercel as Vercel
 
     Dev->>PR: Open PR (feature branch)
@@ -554,7 +555,9 @@ sequenceDiagram
 
     PR->>Prod: Merge approved production release to production
     Dev->>Prod: Or run bun run release:production from a clean release checkout
-    Prod->>Vercel: Production deploy or ignored build (*.asymmetric.al)
+    Prod-->>Vercel: No Git deployment (apps/*/vercel.json)
+    Prod->>Release: Push starts the Release workflow (release.yml)
+    Release->>Vercel: After migrations and gates, stage, health-check and promote each affected app (*.asymmetric.al)
     Note over Vercel: Disposable preview project until the first release after switch-on step 6 (step 7); then development
 
     Note over Prod,Develop: Optional best-effort sync for QA/demos
@@ -562,8 +565,13 @@ sequenceDiagram
 ```
 
 `develop` may drift from the Production Branch; best-effort sync is performed
-before QA/demo cycles. For docs/evidence-only releases, Vercel may record an
-ignored build rather than spend build minutes on all three apps.
+before QA/demo cycles. Git deployments are off in every `apps/*/vercel.json`, so a
+push to `production` produces no Vercel build of its own; the Release workflow
+stages and promotes the apps its plan selects: an app whose own files or a
+shared input (anything under `packages/`, among others) changed since the
+commit its production domain serves, and any app whose live commit is unknown
+or is not an ancestor of the release. An app the plan skips keeps its current
+deployment, with the variables that deployment was built with.
 
 ## 7. Playwright `baseURL` Configuration
 
@@ -571,16 +579,16 @@ E2E tests can target different environments using `PLAYWRIGHT_BASE_URL`, configu
 
 ## 8. Credential Rotation Schedule
 
-| Environment | Service            | Frequency                 | How                                                                                                                                             |
-| ----------- | ------------------ | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Preview     | Supabase           | Quarterly                 | Rotate development keys with ordinary Preview; rotate disposable project keys in preview-database only (also update Production until switch-on) |
-| Preview     | Stripe             | Quarterly                 | Roll test-mode keys in Stripe dashboard -> update Vercel env vars                                                                               |
-| Preview     | Sentry             | Quarterly                 | Regenerate DSN -> update Vercel env vars                                                                                                        |
-| Development | All services       | Quarterly                 | Same process, development scope                                                                                                                 |
-| Production  | Supabase           | Quarterly + on compromise | Same process, production scope. Coordinate with team.                                                                                           |
-| Production  | Stripe             | Quarterly + on compromise | Rolling live keys causes brief webhook verification downtime                                                                                    |
-| Production  | Sentry, Cloudinary | Quarterly + on compromise | Same process                                                                                                                                    |
-| Production  | Email, PDF         | Quarterly + on compromise | Rotate in respective service dashboards -> update Vercel env vars                                                                               |
+| Environment | Service            | Frequency                 | How                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------- | ------------------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Preview     | Supabase           | Quarterly                 | Rotate development keys in ordinary Preview scope. No `preview-database` environment exists (section 4). Until switch-on step 6, Production scope holds the disposable project's keys: a rotation before then rotates that project's keys too and updates Production scope. Step 6 changes those variables. Either way new values reach an app's users only with that app's next production deployment, and a release builds only the apps its plan selects ([release job](./release-job.md#switching-it-on), step 7) |
+| Preview     | Stripe             | Quarterly                 | Roll test-mode keys in Stripe dashboard -> update Vercel env vars                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Preview     | Sentry             | Quarterly                 | Regenerate DSN -> update Vercel env vars                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Development | All services       | Quarterly                 | Same process, development scope                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Production  | Supabase           | Quarterly + on compromise | Same process, production scope. Coordinate with team.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Production  | Stripe             | Quarterly + on compromise | Rolling live keys causes brief webhook verification downtime                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Production  | Sentry, Cloudinary | Quarterly + on compromise | Same process                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Production  | Email, PDF         | Quarterly + on compromise | Rotate in respective service dashboards -> update Vercel env vars                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 Every rotation window must cover all six services: Supabase, Stripe, Sentry, Cloudinary, Email, and PDF generation services such as DocRaptor when configured.
 
