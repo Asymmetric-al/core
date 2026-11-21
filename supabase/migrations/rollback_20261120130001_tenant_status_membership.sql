@@ -1,6 +1,9 @@
 -- Restore the six definitions from the catalog immediately before 20261120130001.
 -- Reconcile the release ledger separately; this rollback never edits it.
 -- Rebuild later WP3 migrations first or use a forward fix: their readers depend on status.
+-- Refuses while any tenant is suspended or closed (fix check K12): dropping the
+-- status would give it back its members' access. Such a state is repaired
+-- forward, never by this file.
 BEGIN;
 
 SET LOCAL lock_timeout = '5s';
@@ -9,6 +12,7 @@ SET LOCAL search_path = public;
 DO $$
 DECLARE
   v_newest TEXT;
+  v_inactive BIGINT;
 BEGIN
   IF pg_catalog.to_regclass('supabase_migrations.schema_migrations') IS NULL THEN
     RAISE EXCEPTION 'rollback_20261120130001: this database has no migration ledger (supabase_migrations.schema_migrations), so it cannot show that 20261120130001 is its newest migration; nothing was changed';
@@ -19,6 +23,13 @@ BEGIN
   SELECT pg_catalog.max(version) INTO v_newest FROM supabase_migrations.schema_migrations;
   IF v_newest IS DISTINCT FROM '20261120130001' THEN
     RAISE EXCEPTION 'rollback_20261120130001: the newest migration recorded is %, not 20261120130001. Reverse every later migration first, newest first, then run this file; nothing was changed', COALESCE(v_newest, 'none');
+  END IF;
+  -- Held until this transaction ends: no tenant's status changes between this
+  -- count and the drop of the column.
+  LOCK TABLE public.tenants IN SHARE ROW EXCLUSIVE MODE;
+  SELECT pg_catalog.count(*) INTO v_inactive FROM public.tenants WHERE status <> 'active';
+  IF v_inactive > 0 THEN
+    RAISE EXCEPTION 'rollback_20261120130001: % tenant(s) are suspended or closed, and dropping the status would restore their access. Repair that state forward instead; nothing was changed', v_inactive;
   END IF;
 END $$;
 
