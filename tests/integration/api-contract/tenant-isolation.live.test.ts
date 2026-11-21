@@ -44,6 +44,7 @@ import { afterAll, beforeAll, expect, it } from "vitest";
 
 import {
   createTenantFixture,
+  membershipIdForRole,
   removeTenantFixture,
   SEED_USER_A,
   TENANT_A,
@@ -148,6 +149,8 @@ describeLive("tenant isolation through the Data API", (stack) => {
   let db: pg.Client;
   let a: TenantFixture;
   let b: TenantFixture;
+  let aStaffMembershipId: string;
+  let bStaffMembershipId: string;
   let tables: Relation[];
   const callers: Record<"A" | "B" | "anon", Caller> = {} as Record<
     "A" | "B" | "anon",
@@ -167,16 +170,34 @@ describeLive("tenant isolation through the Data API", (stack) => {
         [settings.schemas],
       )
     ).rows;
+    aStaffMembershipId = await membershipIdForRole(
+      db,
+      a.userId,
+      a.tenantId,
+      "staff",
+    );
+    bStaffMembershipId = await membershipIdForRole(
+      db,
+      b.userId,
+      b.tenantId,
+      "staff",
+    );
     callers.A = {
       name: "tenant A",
-      client: await userClient(stack, db, a.userId),
+      client: await userClient(stack, db, a.userId, {
+        "x-asym-tenant": a.tenantId,
+        "x-asym-assignment": aStaffMembershipId,
+      }),
       role: "authenticated",
       tenantId: a.tenantId,
       userId: a.userId,
     };
     callers.B = {
       name: "tenant B",
-      client: await userClient(stack, db, b.userId),
+      client: await userClient(stack, db, b.userId, {
+        "x-asym-tenant": b.tenantId,
+        "x-asym-assignment": bStaffMembershipId,
+      }),
       role: "authenticated",
       tenantId: b.tenantId,
       userId: b.userId,
@@ -468,7 +489,14 @@ describeLive("tenant isolation through the Data API", (stack) => {
 
   it("a token whose subject is not the user does not pass the identity guard", async () => {
     const claims = await claimsOfUser(db, a.userId);
-    const stranger = claimsClient(stack, { ...claims, sub: randomUUID() });
+    const stranger = claimsClient(
+      stack,
+      { ...claims, sub: randomUUID() },
+      {
+        "x-asym-tenant": a.tenantId,
+        "x-asym-assignment": aStaffMembershipId,
+      },
+    );
     const problems = await identityProblems(stranger, a.userId, a.tenantId);
     console.info(
       `API contract: a token for an unknown subject with tenant A's claims fails the identity guard: ${problems.join("; ")}.`,
@@ -491,7 +519,14 @@ describeLive("tenant isolation through the Data API", (stack) => {
   }
 
   it("a token with the user's subject and another tenant's claim does not pass the identity guard", async () => {
-    const wrongTenant = claimsClient(stack, await claimsWithTenant(b.tenantId));
+    const wrongTenant = claimsClient(
+      stack,
+      await claimsWithTenant(b.tenantId),
+      {
+        "x-asym-tenant": b.tenantId,
+        "x-asym-assignment": bStaffMembershipId,
+      },
+    );
     const problems = await identityProblems(wrongTenant, a.userId, a.tenantId);
     console.info(
       `API contract: a token with tenant A's subject and tenant B's tenant claim fails the identity guard: ${problems.join("; ")}.`,
