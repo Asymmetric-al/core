@@ -8,6 +8,7 @@
  * @see docs/guides/architecture/web-studio-living-spec.md
  */
 import { findMissionaryById } from "@asym/api/missionaries/queries";
+import { ApiHttpError, ensureJsonBody } from "@asym/api/shared/http-errors";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { defaultRichTextValue } from "@payloadcms/richtext-lexical";
 import { z } from "zod";
@@ -726,11 +727,16 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
 
     const { ctx } = auth;
 
+    // Payload parses bodies only for its own endpoints; this one reads the
+    // raw request through the shared reader, which refuses a body that is
+    // not JSON (fix check G1).
     let parsed: ParsedBody;
     try {
-      const json = (await (req as Request).json()) as unknown;
+      const json = await ensureJsonBody(req as Request);
       parsed = bodySchema.parse(json);
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiHttpError && error.status === 415)
+        return jsonResponse({ error: error.message }, 415);
       return jsonResponse({ error: "Invalid request body" }, 400);
     }
 

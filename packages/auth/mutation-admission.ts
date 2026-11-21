@@ -4,6 +4,7 @@ import {
   mutationMediaType,
   STUDIO_ORIGIN_REFUSAL,
   trustedMutationSource,
+  UNSUPPORTED_MUTATION_TYPE,
 } from "./request-headers";
 
 const writes = new Set(["POST", "PUT", "PATCH", "DELETE"]);
@@ -73,5 +74,5 @@ export async function admitApiMutation(
     (studio || uploads.has(canonical))
   )
     return null;
-  return reject(415, "Unsupported mutation content type.");
+  return reject(415, UNSUPPORTED_MUTATION_TYPE);
 }

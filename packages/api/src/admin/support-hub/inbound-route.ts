@@ -2,6 +2,7 @@ import { type AuthenticatedContext } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { ensureJsonBody } from "../../shared/http-errors";
 import { withPlatformOperation } from "../../shared/with-operation";
 import {
   deleteInboundRoute,
@@ -30,7 +31,7 @@ export const PATCH = withPlatformOperation<RouteParams>(
 
     const { routeId } = await (routeContext as RouteParams).params;
     const routeIdParsed = z.string().uuid().safeParse(routeId);
-    const parsed = updateRouteSchema.safeParse(await request.json());
+    const parsed = updateRouteSchema.safeParse(await ensureJsonBody(request));
 
     if (!routeIdParsed.success || !parsed.success) {
       return NextResponse.json(

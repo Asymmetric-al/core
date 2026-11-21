@@ -9,7 +9,7 @@ import {
   updateEveNotificationChannel,
 } from "./store";
 import { EVE_NOTIFICATION_CHANNELS } from "./types";
-import { toErrorResponse } from "../../shared/http-errors";
+import { readJsonBodyOrNull, toErrorResponse } from "../../shared/http-errors";
 import { withPlatformOperation } from "../../shared/with-operation";
 import { createAdminEveAuditIdentity } from "../audit/identity";
 import { traceEveAuditEvent } from "../audit/record";
@@ -78,9 +78,7 @@ export const GET = withPlatformOperation(
 
 export const PATCH = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
-    const parsed = mutationSchema.safeParse(
-      await request.json().catch(() => null),
-    );
+    const parsed = mutationSchema.safeParse(await readJsonBodyOrNull(request));
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid Eve notification request.", requestId },

@@ -16,7 +16,7 @@ import {
   loadActiveEveModelBudgetOverrides,
   loadEveModelPolicies,
 } from "./store";
-import { toErrorResponse } from "../../shared/http-errors";
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
 import { withPlatformOperation } from "../../shared/with-operation";
 
 async function loadAdminView(
@@ -57,7 +57,7 @@ export const POST = withPlatformOperation(
   async ({ auth, request, supabaseAdmin, requestId }) => {
     try {
       const parsed = createEveModelPolicyDraftSchema.parse(
-        await request.json(),
+        await ensureJsonBody(request),
       );
       const policyId = await createEveModelPolicyDraft({
         auth,
@@ -86,7 +86,9 @@ export const POST = withPlatformOperation(
 export const PATCH = withPlatformOperation(
   async ({ auth, request, supabaseAdmin, requestId }) => {
     try {
-      const mutation = mutateEveModelPolicySchema.parse(await request.json());
+      const mutation = mutateEveModelPolicySchema.parse(
+        await ensureJsonBody(request),
+      );
       if (mutation.action === "evaluate") {
         await evaluateEveModelPolicyDraft({
           auth,

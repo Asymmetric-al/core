@@ -7,6 +7,7 @@ import {
   moveSupportConversation,
   retryFailedBulkMove,
 } from "./move-service";
+import { ensureJsonBody } from "../../shared/http-errors";
 import { withPlatformOperation } from "../../shared/with-operation";
 
 const moveSchema = z
@@ -42,7 +43,7 @@ export const POST = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 
-    const parsed = moveSchema.safeParse(await request.json());
+    const parsed = moveSchema.safeParse(await ensureJsonBody(request));
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid move request." },
@@ -77,7 +78,7 @@ export const bulkMovePOST = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 
-    const parsed = bulkMoveSchema.safeParse(await request.json());
+    const parsed = bulkMoveSchema.safeParse(await ensureJsonBody(request));
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid bulk move request." },
@@ -103,7 +104,7 @@ export const retryPOST = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 
-    const parsed = retrySchema.safeParse(await request.json());
+    const parsed = retrySchema.safeParse(await ensureJsonBody(request));
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid retry request." },

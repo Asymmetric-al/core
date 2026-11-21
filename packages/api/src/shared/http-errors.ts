@@ -1,3 +1,7 @@
+import {
+  mutationMediaType,
+  UNSUPPORTED_MUTATION_TYPE,
+} from "@asym/auth/request-headers";
 import { SCOPE_REFUSED_HEADER } from "@asym/database/request-scope-headers";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
@@ -15,11 +19,41 @@ const STATUS_BY_ERROR_CODE: Record<string, number> = {
   PGRST116: 404,
 };
 
+/**
+ * The shared JSON reader, and the second line behind the proxy (F13, fix
+ * check G1). The proxy judges a write by its headers alone and forwards one
+ * with no type and no framing as empty; over HTTP/2 or HTTP/3 a body needs no
+ * length header, so one may still arrive. This reader decides by the bytes it
+ * reads: a non-empty body whose media type is not JSON gets the proxy's 415.
+ * An empty body is what it always was here: invalid JSON (400).
+ */
 export async function ensureJsonBody(request: Request): Promise<unknown> {
+  let bytes: ArrayBuffer;
   try {
-    return await request.json();
+    bytes = await request.arrayBuffer();
   } catch {
     throw new ApiHttpError(400, "Invalid JSON body");
+  }
+  if (bytes.byteLength > 0 && mutationMediaType(request) !== "application/json")
+    throw new ApiHttpError(415, UNSUPPORTED_MUTATION_TYPE);
+  try {
+    return JSON.parse(new TextDecoder().decode(bytes));
+  } catch {
+    throw new ApiHttpError(400, "Invalid JSON body");
+  }
+}
+
+/**
+ * The shared reader for a handler whose body is optional: an empty or
+ * malformed body reads as `null`, as `request.json().catch(() => null)` did,
+ * but a non-empty body that is not JSON is still refused with 415.
+ */
+export async function readJsonBodyOrNull(request: Request): Promise<unknown> {
+  try {
+    return await ensureJsonBody(request);
+  } catch (error) {
+    if (error instanceof ApiHttpError && error.status === 415) throw error;
+    return null;
   }
 }
 

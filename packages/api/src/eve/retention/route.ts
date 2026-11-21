@@ -9,7 +9,7 @@ import {
 } from "./control";
 import { mutateEveRetentionSchema } from "./schema";
 import { loadEveRetentionAdminView } from "./store";
-import { toErrorResponse } from "../../shared/http-errors";
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
 import { withPlatformOperation } from "../../shared/with-operation";
 
 export const GET = withPlatformOperation(
@@ -33,7 +33,9 @@ export const GET = withPlatformOperation(
 export const POST = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
-      const mutation = mutateEveRetentionSchema.parse(await request.json());
+      const mutation = mutateEveRetentionSchema.parse(
+        await ensureJsonBody(request),
+      );
       let result: unknown;
       switch (mutation.action) {
         case "store_artifact":

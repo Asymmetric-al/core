@@ -100,8 +100,11 @@ async function patch(body: Row, role = "missionary") {
     memberships: membershipsForRole(role, T),
   };
   const res = await PATCH(
+    // Typed as the browser sends it: the shared JSON reader refuses an
+    // untyped or text/plain body (AL-2677, fix check G1).
     new NextRequest("https://app.test/api/profile", {
       method: "PATCH",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     }),
   );

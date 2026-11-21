@@ -21,7 +21,7 @@ import {
   loadEveLaunchAdminView,
 } from "./store";
 import { EVE_LAUNCH_CANARY_IDS } from "./types";
-import { toErrorResponse } from "../../shared/http-errors";
+import { readJsonBodyOrNull, toErrorResponse } from "../../shared/http-errors";
 import { withPlatformOperation } from "../../shared/with-operation";
 import { loadEveGovernanceSnapshot } from "../governance";
 
@@ -126,9 +126,7 @@ export const GET = withPlatformOperation(
 
 export const POST = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
-    const parsed = mutationSchema.safeParse(
-      await request.json().catch(() => null),
-    );
+    const parsed = mutationSchema.safeParse(await readJsonBodyOrNull(request));
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid Eve launch request.", requestId },

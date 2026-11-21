@@ -8,7 +8,7 @@ import {
 } from "./control";
 import { mutateEveApprovalBudgetSchema } from "./schema";
 import { loadEveApprovalBudgetAdminView } from "./store";
-import { toErrorResponse } from "../../shared/http-errors";
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
 import { withPlatformOperation } from "../../shared/with-operation";
 
 export const GET = withPlatformOperation(
@@ -35,7 +35,7 @@ export const POST = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
       const mutation = mutateEveApprovalBudgetSchema.parse(
-        await request.json(),
+        await ensureJsonBody(request),
       );
       let result: unknown;
       if (mutation.action === "execute")

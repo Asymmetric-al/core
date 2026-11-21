@@ -72,9 +72,16 @@ function query(data: unknown, error: unknown = null) {
   return chain;
 }
 function request(method: string, body?: unknown) {
+  // Typed as the browser sends it: the shared JSON reader refuses an untyped
+  // or text/plain body (AL-2677, fix check G1).
   return new NextRequest("https://app.test/api/resource", {
     method,
-    body: body ? JSON.stringify(body) : undefined,
+    ...(body
+      ? {
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      : {}),
   });
 }
 const args = { params: Promise.resolve({ taskId: id, requestId: id }) };

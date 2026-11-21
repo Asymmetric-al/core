@@ -177,7 +177,11 @@ async function uploadToSupabaseStorage(input: {
 export async function POST(request: NextRequest) {
   try {
     const ctx = await requireAdminContext(request);
-    const formData = await request.formData();
+    // The multipart parser needs the request's type; a body without one is
+    // refused here, before any storage call (fix check G1).
+    const formData = await request.formData().catch(() => {
+      throw new ApiHttpError(400, "Invalid form data.");
+    });
     const file = validateImageFile(formData.get("file"));
     const templateIdValue = formData.get("templateId");
     const templateId =

@@ -14,7 +14,7 @@ import {
 } from "./schema";
 import { loadEveAdminMemoryAdminView } from "./store";
 import { ApiHttpError } from "../../shared/api-http-error";
-import { toErrorResponse } from "../../shared/http-errors";
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
 import { listTenantMembers } from "../../shared/tenant-members";
 import { withPlatformOperation } from "../../shared/with-operation";
 
@@ -93,7 +93,9 @@ export const POST = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
       await requireVerifiedMemoryTenant({ auth, supabaseAdmin });
-      const parsed = createEveAdminMemorySchema.parse(await request.json());
+      const parsed = createEveAdminMemorySchema.parse(
+        await ensureJsonBody(request),
+      );
       const mutation = await createEveAdminMemory({
         auth,
         supabaseAdmin,
@@ -118,7 +120,9 @@ export const PATCH = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
       await requireVerifiedMemoryTenant({ auth, supabaseAdmin });
-      const parsed = updateEveAdminMemorySchema.parse(await request.json());
+      const parsed = updateEveAdminMemorySchema.parse(
+        await ensureJsonBody(request),
+      );
       const mutation =
         parsed.action === "edit"
           ? await updateEveAdminMemory({ auth, supabaseAdmin, ...parsed })
@@ -147,7 +151,9 @@ export const DELETE = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
       await requireVerifiedMemoryTenant({ auth, supabaseAdmin });
-      const parsed = deleteEveAdminMemorySchema.parse(await request.json());
+      const parsed = deleteEveAdminMemorySchema.parse(
+        await ensureJsonBody(request),
+      );
       await deleteEveAdminMemory({ auth, supabaseAdmin, ...parsed });
       return NextResponse.json({
         ...(await view({ auth, supabaseAdmin })),

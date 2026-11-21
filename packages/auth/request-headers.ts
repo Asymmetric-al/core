@@ -25,6 +25,9 @@ export function requestOrigin(request: Request): string | null {
 export const STUDIO_ORIGIN_REFUSAL =
   "Web Studio only accepts changes made from Web Studio itself.";
 
+/** The 415 refusal of the proxy and of the shared JSON reader behind it. */
+export const UNSUPPORTED_MUTATION_TYPE = "Unsupported mutation content type.";
+
 export function trustedMutationSource(
   request: Request,
   signed = false,

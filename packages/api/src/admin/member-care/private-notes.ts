@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { createCarePrivateNote, privateNoteSchema } from "./mutations";
-import { toErrorResponse } from "../../shared/http-errors";
+import { readJsonBodyOrNull, toErrorResponse } from "../../shared/http-errors";
 import { withPlatformOperation } from "../../shared/with-operation";
 
 export const POST = withPlatformOperation(
   async ({ auth, request }) => {
-    const body = await request.json().catch(() => null);
+    const body = await readJsonBodyOrNull(request);
     const parsed = privateNoteSchema.safeParse(body);
 
     if (!parsed.success) {

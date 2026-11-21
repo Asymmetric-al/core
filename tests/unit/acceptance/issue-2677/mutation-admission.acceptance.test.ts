@@ -143,8 +143,10 @@ describe.each([admin, donor, missionary])(
     // framing headers alone, whatever body stream Next hands the proxy (it
     // hands one to every write). With neither header, HTTP/1.1 gives the
     // request no body: the Node server case below.
+    // The proxy forwards; the shared JSON reader refuses a body that arrives
+    // (untyped-body.acceptance.test.ts, fix check G1).
     it.each(["POST", "PUT", "PATCH", "DELETE"])(
-      "judges an untyped %s empty by its framing headers alone",
+      "forwards an untyped %s with no framing headers, judged empty by its headers alone (the shared reader refuses a body that arrives)",
       async (method) => {
         const write = (headers: Record<string, string>) =>
           new NextRequest(`${origin}/api/profile`, {

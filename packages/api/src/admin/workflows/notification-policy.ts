@@ -2,6 +2,7 @@ import { type AuthenticatedContext } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { ensureJsonBody } from "../../shared/http-errors";
 import { withPlatformOperation } from "../../shared/with-operation";
 
 const overridesSchema = z
@@ -36,7 +37,7 @@ export const PUT = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 
-    const parsed = overridesSchema.safeParse(await request.json());
+    const parsed = overridesSchema.safeParse(await ensureJsonBody(request));
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid notification policy." },
