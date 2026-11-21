@@ -42,11 +42,12 @@ const DEFINER = /^(\w+)\.(\w+) \(SECURITY DEFINER, owner postgres\)$/;
 
 describe(LIST, () => {
   // AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
-  it("has version 1, the Q5 + clash 2 ruling and at least the 84 reviewed entries", () => {
+  // D-18 (AL-2677): eight formerly exempt tables now have a scoped staff read.
+  it("has version 1, the Q5 + clash 2 ruling and at least the 76 remaining reviewed entries", () => {
     expect(Object.keys(doc)).toEqual(["version", "ruling", "entries"]);
     expect(doc.version).toBe(1);
     expect(doc.ruling).toBe("Samson Q5 + clash 2, Oct 24, 2026");
-    expect(doc.entries.length).toBeGreaterThanOrEqual(84);
+    expect(doc.entries.length).toBeGreaterThanOrEqual(76);
   });
 
   it("keeps one entry per line, sorted by table and unique", () => {

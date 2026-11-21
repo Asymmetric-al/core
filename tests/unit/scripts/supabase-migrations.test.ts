@@ -294,7 +294,8 @@ describe("supabase migrations verifier", () => {
       );
       // AL-2674 (D09) removed one exception entry with its dropped table.
       const gateLine = result.stdout.indexOf(
-        "PASS: tenant RLS catalog gate: 85 tenant tables enabled and forced (1 with policies, 84 listed deny-by-default, 0 stale)",
+        // D-18 (AL-2677): the fixture contains one policy-backed table and the 76 reviewed exceptions.
+        "PASS: tenant RLS catalog gate: 77 tenant tables enabled and forced (1 with policies, 76 listed deny-by-default, 0 stale)",
       );
       expect(
         result.stdout.indexOf(
