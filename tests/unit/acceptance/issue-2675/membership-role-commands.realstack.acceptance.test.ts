@@ -240,6 +240,18 @@ describe.skipIf(!ADMIN_URL)(
       // new one granted or revived.
       it("moves a staff member to a new sub-role: the old row is revoked, a new one is granted by them, and one audit row says so", () =>
         tx(async () => {
+          // The profile is display data: its role column is not written
+          // (review 4650094382 on #2741: compared before and after, so any
+          // write shows, not only one of the new sub-role).
+          const profileRole = async () =>
+            (
+              await db.query(
+                "select role from public.profiles where user_id = $1",
+                [id.UDEV],
+              )
+            ).rows;
+          const profileBefore = await profileRole();
+          expect(profileBefore).toHaveLength(1);
           const out = await change(
             "UADM",
             "mDev",
@@ -300,12 +312,7 @@ describe.skipIf(!ADMIN_URL)(
               },
             },
           ]);
-          // The profile is display data: its role column is not written.
-          const profile = await db.query(
-            "select role from public.profiles where user_id = $1",
-            [id.UDEV],
-          );
-          expect(profile.rows[0]?.role).not.toBe("hr");
+          expect(await profileRole()).toEqual(profileBefore);
         }));
 
       it("makes a staff member an administrator on the same row, and demotes them again, each with an audit row", () =>
