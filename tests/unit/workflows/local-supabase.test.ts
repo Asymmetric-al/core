@@ -58,9 +58,33 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     const compare = at("schema-fingerprint.mjs compare");
     const roundTrips = at("name: Run the auth email round trips");
     expect(start).toBeGreaterThan(0);
-    expect(start).toBeLessThan(replay);
+    const client = at("run: bash scripts/github/install-postgresql-client.sh");
+    expect(start).toBeLessThan(client);
+    expect(client).toBeLessThan(replay);
     expect(replay).toBeLessThan(compare);
     expect(compare).toBeLessThan(roundTrips);
+    expect(roundTrips).toBeLessThan(
+      at("run: node scripts/e2e/run-operator-mfa.mjs"),
+    );
+  });
+
+  it("runs both proofs independently once their own prerequisites pass", () => {
+    expect(step("name: Start the local Supabase stack")).toContain("id: stack");
+    expect(step("name: Install Playwright Chromium")).toContain("id: chromium");
+    expect(step("name: Run the auth email round trips")).toContain(
+      "!cancelled() && steps.stack.outcome == 'success' && steps.chromium.outcome == 'success'",
+    );
+    expect(step("name: Prove the platform operators")).toContain(
+      "!cancelled() && steps.stack.outcome == 'success'",
+    );
+    for (const path of [
+      "packages/api/src/shared/request-session-client.ts",
+      "scripts/lib/psql.mjs",
+      "scripts/release/lib/database-target.mjs",
+      "packages/env/src/database-url.mjs",
+    ]) {
+      expect(workflow).toContain(`      - ${path}\n`);
+    }
   });
 
   it("requires the signed-in tenant-record proof on the local stack after fingerprinting", () => {

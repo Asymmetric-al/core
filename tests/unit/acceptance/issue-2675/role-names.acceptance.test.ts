@@ -14,6 +14,18 @@
  *    the demo-account persona chooser, which grants nothing; each is pinned
  *    here by count, so a new hit or a WP2c removal changes this file.
  * 2. No route reads the token's claims for its tenant or role.
+ *
+ * Amended by AL-2675 (WP2c, part 1; plan 12 WP2c; record D-18): "The
+ * assistant runtime's platform gates that test super_admin move to the
+ * operator list." The seven Eve hits and `withOperation`'s `roles` option
+ * leave the allowlist: those gates ask for the shared operator check
+ * (`withOperation`'s `platformOperator`, `isPlatformOperator()`), and no
+ * handler can pass a role name any more. The `super_admin` branches that
+ * remain are outside the assistant runtime: the CRM, the fund and missionary
+ * directories, member care and the Support Hub. No membership holds that
+ * role since WP2a, so each is dead; the package that settles each surface's
+ * cross-tenant reads (WP2c's third part with the read policies, or WP10's
+ * support grant) removes it.
  */
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -51,30 +63,6 @@ const ALLOWED: Record<string, [number, string]> = {
     1,
     "WP2c: isSuperAdmin, the cross-tenant CRM branch",
   ],
-  "packages/api/src/eve/audit/identity.ts": [
-    1,
-    "WP2c: the super_admin audit tenant override",
-  ],
-  "packages/api/src/eve/governance/route.ts": [
-    3,
-    "WP2c: the global kill switch and its super_admin readers",
-  ],
-  "packages/api/src/eve/notifications/route.ts": [
-    1,
-    "WP2c: recipient changes are the platform owner's",
-  ],
-  "packages/api/src/eve/launch-readiness/control.ts": [
-    1,
-    "WP2c: launch permissions are the platform owner's",
-  ],
-  "packages/api/src/eve/model-policy/permissions.ts": [
-    1,
-    "WP2c: the platform owner manages the model policy",
-  ],
-  "packages/api/src/eve/retention/control.ts": [
-    1,
-    "WP2c: retention holds are the platform owner's",
-  ],
   "packages/api/src/admin/fund-directory.ts": [
     1,
     "WP2c: the super_admin cross-tenant directory",
@@ -90,10 +78,6 @@ const ALLOWED: Record<string, [number, string]> = {
   "packages/api/src/auth/demo-account.ts": [
     1,
     "the demo persona to create; grants nothing",
-  ],
-  "packages/api/src/shared/with-operation.ts": [
-    1,
-    "WP2c: the roles option, which only the super_admin gates above pass",
   ],
 };
 
@@ -113,7 +97,7 @@ describe("AL-2675 sweep: no handler passes or fails on a role-name string", () =
     );
   });
 
-  it("every allowed hit is a super_admin branch, WP2c's roles option or the demo persona chooser", () => {
+  it("every allowed hit is a super_admin branch or the demo persona chooser", () => {
     for (const f of Object.keys(ALLOWED)) {
       const text = readFileSync(f, "utf8");
       for (const re of PATTERNS)
@@ -121,8 +105,6 @@ describe("AL-2675 sweep: no handler passes or fails on a role-name string", () =
           const near = text.slice(m.index!, m.index! + 160);
           expect(
             /super_admin/.test(near) ||
-              (f.endsWith("with-operation.ts") &&
-                /options\.roles/.test(near)) ||
               (f.endsWith("demo-account.ts") && /role === "admin"/.test(near)),
             `${f}: ${near.split("\n")[0]!.trim()}`,
           ).toBe(true);

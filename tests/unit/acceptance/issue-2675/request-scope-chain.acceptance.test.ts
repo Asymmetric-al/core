@@ -120,18 +120,22 @@ async function listUsers(
   memberships: E2EAuthMembership[],
   scopeHeaders: Record<string, string>,
 ) {
-  const cookie = `${E2E_AUTH_COOKIE_NAME}=${await createE2EAuthCookieValue({
-    userId: USER,
-    role: "staff",
-    tenantId: memberships[0]!.tenantId,
-    memberships,
-  })}`;
+  const cookie = await identityCookie(memberships);
   const { GET } = await import("../../../../packages/api/src/admin/users");
   return GET(
     new NextRequest("http://localhost:3030/api/admin/users", {
       headers: { ...scopeHeaders, cookie, "x-asym-role-class": "staff" },
     }),
   );
+}
+
+async function identityCookie(memberships: E2EAuthMembership[]) {
+  return `${E2E_AUTH_COOKIE_NAME}=${await createE2EAuthCookieValue({
+    userId: USER,
+    role: "staff",
+    tenantId: memberships[0]!.tenantId,
+    memberships,
+  })}`;
 }
 
 function directoryReads() {
@@ -244,5 +248,45 @@ describe("the refusal the browser retires its document on", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.has("x-asym-scope-refused")).toBe(false);
+  });
+});
+
+describe("Eve governance operator route", () => {
+  async function patchGovernance(scopeHeaders: Record<string, string>) {
+    const { PATCH } =
+      await import("../../../../packages/api/src/eve/governance/route");
+    const identity = await identityCookie([IN_SECOND]);
+    return PATCH(
+      new NextRequest("http://localhost:3030/api/eve/governance", {
+        method: "PATCH",
+        headers: {
+          ...scopeHeaders,
+          cookie: `${identity}; sb-project-auth-token=session`,
+          "x-asym-role-class": "staff",
+        },
+      }),
+    );
+  }
+
+  it("runs the operator RPC under the resolver's assignment, even when no scope headers were sent", async () => {
+    const response = await patchGovernance({});
+    expect(dataApi).toHaveLength(1);
+    expect(dataApi[0]!.url).toContain("/rpc/platform_operator_session");
+    expect(dataApi[0]!.headers.get("x-asym-tenant")).toBe(SECOND);
+    expect(dataApi[0]!.headers.get("x-asym-assignment")).toBe(IN_SECOND.id);
+    expect(response.status).toBe(403);
+    expect(response.headers.has("x-asym-scope-refused")).toBe(false);
+  });
+
+  it("marks a refused assignment and never asks for operator authority", async () => {
+    const response = await patchGovernance({
+      "x-asym-tenant": DEMO,
+      "x-asym-assignment": IN_DEMO.id,
+    });
+    expect(response.status).toBe(401);
+    expect(response.headers.get("x-asym-scope-refused")).toBe(
+      "not_owned_or_inactive",
+    );
+    expect(dataApi).toEqual([]);
   });
 });

@@ -312,8 +312,8 @@ release environment's password instead (`replaceSeededLoginPasswords` in
 the runner reaches the server, in the form Supabase Auth verifies; logins
 that do not carry a published password are left alone. The step stops if any
 login still carries one. Anyone who signs in as a seeded login on a hosted
-project uses that secret. `bun run seed:demo:users` refuses a published
-password for a hosted project too.
+project uses that secret. `bun run seed:demo:users` is a separate local-only
+tool. It refuses every hosted project, regardless of the password.
 
 The replacement runs after any reset that was attempted, whatever the reset's
 outcome, because a reset that fails after its seed has already put the

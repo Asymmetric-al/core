@@ -474,16 +474,34 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
         }
       }));
 
-    it("the shared check fails closed until WP2c supplies the operator list, then also demands a second factor", () =>
+    // Rewritten by AL-2675 (WP2c, part 1), which supplies the operator list
+    // (record D-18: a frozen assertion is replaced in the change that
+    // legitimately changes its seam, with one as strong). Stage 1 proved the
+    // check failed closed by reading the stub's body (`SELECT false;`) and
+    // simulated WP2c by replacing the stub with one that returned true. The
+    // list now exists, so the same facts are proved on it, without replacing
+    // any function: a caller who is not on the list is refused at either
+    // assurance level; once on the list, the caller is refused without a
+    // second factor and passes with one.
+    it("the shared check reads WP2c's operator list and refuses a caller not on it, then also demands a second factor", () =>
       tx(async () => {
         await db.query(PROBE);
-        const listed = await one(
-          "select prosrc from pg_proc where oid = 'platform.caller_on_operator_list()'::regprocedure",
-        );
-        expect(String(listed.prosrc).trim()).toBe("SELECT false;");
-        // Simulate WP2c: the caller is on the list.
+        for (const aal of ["aal1", "aal2"]) {
+          const unlisted = await as(
+            "authenticated",
+            { sub: "U1", aal },
+            "select platform.acc2674_probe('x') r",
+          );
+          expect([aal, unlisted.code, unlisted.message]).toEqual([
+            aal,
+            "42501",
+            "platform: the caller is not a platform operator",
+          ]);
+        }
+        // The caller joins the list, as the operator script would add them.
         await db.query(
-          "create or replace function platform.caller_on_operator_list() returns boolean language sql stable set search_path = '' as $$ select true $$",
+          "insert into authz.platform_operators (user_id, added_by, reason) values ($1, 'acceptance', 'AL-2674 proof 3')",
+          [id.U1],
         );
         const aal1 = await as(
           "authenticated",

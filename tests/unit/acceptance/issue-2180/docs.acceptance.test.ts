@@ -254,6 +254,12 @@ const CI_BASES = [
     bytes: 47295,
     sha256: "6b2f35b7cfdad5098dea0a699c073ca485e1bfe6420382a9dcd528e7c1eee7b2",
   },
+  // D-18 (AL-2675): retain the manual shadcn review; document operator MFA, CMS origin and the 35-minute E2E cap.
+  {
+    ref: "AL-2675 WP2c operator MFA and hosted E2E contract",
+    bytes: 47777,
+    sha256: "1eb8eb5babf75235330acc36612374123672bfde0cc07db2336e5c6dde6c4346",
+  },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {

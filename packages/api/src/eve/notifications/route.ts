@@ -119,7 +119,12 @@ export const PATCH = withOperation(
               "Pause or disable the channel in Mission Control.",
           },
           evidence: { requestId },
-          identity: createAdminEveAuditIdentity(auth),
+          // Only a confirmed platform operator reaches this handler (the gate
+          // below), acting on the tenant it is signed in to.
+          identity: createAdminEveAuditIdentity(auth, {
+            platformOperator: true,
+            tenantId: auth.tenantId,
+          }),
           modelRole: "not_used",
           policy: {
             governanceStateVersion: governance.stateVersion,
@@ -149,5 +154,5 @@ export const PATCH = withOperation(
       );
     }
   },
-  { roles: ["super_admin"] },
+  { tenantAdministrator: true, platformOperator: true },
 );
