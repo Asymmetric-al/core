@@ -143,6 +143,8 @@ describe("psqlConnection", () => {
         "PGTARGETSESSIONATTRS",
         "PGSSLMODE",
         "PGPASSFILE",
+        "pgHostAddr",
+        "pgoptions",
       ].map((key) => [key, "elsewhere"]),
     );
     const { env } = psqlConnection(
