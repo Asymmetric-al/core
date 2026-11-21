@@ -6,6 +6,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { GET as notes } from "../../../../packages/api/src/admin/crm/notes";
+import { GET as relationships } from "../../../../packages/api/src/admin/crm/relationships";
 import {
   GET as records,
   GET_TAG_OPTIONS as tags,
@@ -39,6 +40,7 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
     const noteA = randomUUID();
     const noteB = randomUUID();
     const restrictedA = randomUUID();
+    const workerIds = [randomUUID(), randomUUID()];
     const donorIds = [randomUUID(), randomUUID(), randomUUID()];
     const marker = `CRM-fixture-${randomUUID()}`;
     const preferenceIds = Array.from({ length: 3 }, () => randomUUID());
@@ -64,6 +66,16 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
       vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", key);
       db = new pg.Client({ connectionString: database });
       await db.connect();
+      await db.query(
+        "insert into public.missionaries (id,tenant_id,profile_id,location) values ($1,$3,$5,'Fixture Alpha'),($2,$4,$6,'Fixture Beta')",
+        [
+          ...workerIds,
+          tenantA,
+          tenantB,
+          dualUser,
+          "33333333-3333-3333-3333-333333333333",
+        ],
+      );
       await db.query(
         "insert into public.donors (id,tenant_id,missionary_id,name,tags) values ($1,$4,$6,$8,array[$8]),($2,$4,$7,$8,array[$8]),($3,$5,$7,$8,array[$9])",
         [
@@ -146,6 +158,10 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
       vi.unstubAllEnvs();
       if (db) {
         try {
+          await db.query(
+            "delete from public.missionaries where id=any($1::uuid[])",
+            [workerIds],
+          );
           await db.query("delete from public.donors where id=any($1::uuid[])", [
             donorIds,
           ]);
@@ -313,6 +329,41 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
       expect(direct.data?.map((r) => r.id).sort()).toEqual(
         donorIds.slice(0, 2).sort(),
       );
+      expect(getAdminClient).not.toHaveBeenCalled();
+    });
+
+    it("reads relationships from the selected tenant and names workers from the directory", async () => {
+      const path = "/api/admin/crm/relationships?q=Riley";
+      const refused = await relationships(request(path, sole, tenantB));
+      expect(refused.status).toBe(401);
+      expect(refused.headers.has("x-asym-scope-refused")).toBe(true);
+      const req = request(path);
+      const res = await relationships(req);
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.rows).toContainEqual(
+        expect.objectContaining({
+          recordId: workerIds[0],
+          displayName: "Riley Okafor",
+          location: "Fixture Alpha",
+        }),
+      );
+      expect(JSON.stringify(body)).not.toContain(workerIds[1]);
+      const scoped = await createRequestSessionClient(req, {
+        tenantId: tenantA,
+        assignmentId: dual.assignment,
+      });
+      const direct = await scoped
+        .from("missionaries")
+        .select("id")
+        .in("id", workerIds);
+      expect(direct.error).toBeNull();
+      expect(direct.data).toEqual([{ id: workerIds[0] }]);
+      const care = await scoped
+        .from("missionaries")
+        .select("health_status")
+        .in("id", workerIds);
+      expect(care.error?.code).toBe("42501");
       expect(getAdminClient).not.toHaveBeenCalled();
     });
 
