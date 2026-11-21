@@ -1,5 +1,10 @@
+import { ownApiFetch } from "@asym/database/own-api";
+
 /**
- * `fetch` wrappers that never throw.
+ * Wrappers for calls to the app's own API that never throw. Each call goes
+ * through `ownApiFetch`, so it carries the document's tenant and assignment
+ * (plan 5.2; WP2b, AL-2675), and an address that is not an own-API path is
+ * a failure, never a request.
  *
  * `fetch()` resolves on HTTP 4xx/5xx, so callers that read the body first
  * silently treat an error payload as data. These helpers check
@@ -41,10 +46,8 @@ export function readErrorMessage(payload: unknown): string | null {
   return null;
 }
 
-function describeInput(input: RequestInfo | URL): string {
-  if (typeof input === "string") return input;
-  if (input instanceof URL) return input.toString();
-  return input.url;
+function describeInput(input: string): string {
+  return input;
 }
 
 export type JsonBody<T> = {
@@ -72,14 +75,14 @@ export async function readJsonBody<T>(
   return { ok: true, status: response.status, body };
 }
 
-/** `fetch` that resolves to a result; the body is untouched on success. */
+/** An own-API call that resolves to a result; the body is untouched on success. */
 export async function fetchResult(
-  input: RequestInfo | URL,
+  input: string,
   init?: RequestInit,
 ): Promise<FetchResult> {
   let response: Response;
   try {
-    response = await fetch(input, init);
+    response = await ownApiFetch(input, init);
   } catch (cause) {
     return {
       ok: false,
@@ -114,7 +117,7 @@ export async function fetchResult(
 
 /** `fetchResult` plus a JSON body parse on success. */
 export async function fetchJsonResult<T>(
-  input: RequestInfo | URL,
+  input: string,
   init?: RequestInit,
 ): Promise<FetchJsonResult<T>> {
   const result = await fetchResult(input, init);

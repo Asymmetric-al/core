@@ -44,9 +44,12 @@ const problems = (run: string, extra?: Partial<WorkflowStep>) =>
   realstackStepProblems(stepsWith(run, extra), STEP, [F2364], ENV);
 
 describe("realstackStepProblems (fixtures)", () => {
-  it("a sound step has no problems, including a block scalar's newline", () => {
+  it("a sound step has no problems, including a block scalar's newline or Bash line continuation", () => {
     expect(problems(RUN)).toEqual([]);
     expect(problems(`${RUN}\n`)).toEqual([]);
+    expect(problems(`bun x vitest run \\\n  ${F2250} \\\n  ${F2364}`)).toEqual(
+      [],
+    );
   });
 
   describe("kept from #2706", () => {
@@ -74,11 +77,29 @@ describe("realstackStepProblems (fixtures)", () => {
       expect(run()).not.toEqual([]);
     });
 
-    it("rejects a step before Apply migrations", () => {
+    it("rejects a step before Apply migrations or a weakened Apply migrations step", () => {
       const [fork, apply, step] = stepsWith(RUN);
       expect(
         realstackStepProblems([fork!, step!, apply!], STEP, [F2364], ENV),
       ).toEqual([expect.stringMatching(/before Apply migrations/)]);
+      expect(
+        realstackStepProblems(
+          [fork!, { ...apply!, run: "echo skipped" }, step!],
+          STEP,
+          [F2364],
+          ENV,
+        ),
+      ).toEqual([expect.stringMatching(/Apply migrations: does not run/)]);
+      expect(
+        realstackStepProblems(
+          [fork!, { ...apply!, "continue-on-error": true }, step!],
+          STEP,
+          [F2364],
+          ENV,
+        ),
+      ).toEqual([
+        expect.stringMatching(/Apply migrations: sets continue-on-error/),
+      ]);
     });
 
     it("rejects a duplicated or missing step", () => {
@@ -256,7 +277,21 @@ const REAL_DATABASE_FILES = [
     "issue-2675/capability-parity.realstack",
     "issue-2675/eve-actor-membership.realstack",
     "issue-2675/membership-core.realstack",
+    "issue-2675/membership-role-commands.realstack",
     "issue-2675/missionary-handler-authority.realstack",
+    "issue-2675/organization-names.realstack",
+    "issue-2675/platform-operator-script.realstack",
+    "issue-2675/platform-operators.realstack",
+    "issue-2675/post-comment-authors.realstack",
+    "issue-2675/request-scope-headers.realstack",
+    "issue-2675/request-tenant-order.realstack",
+    "issue-2675/tenant-policy-migration.realstack",
+    "issue-2675/web-studio-document-locks.realstack",
+    "issue-2675/web-studio-selection.realstack",
+    "issue-2677/command-boundaries.realstack",
+    "issue-2677/command-log.realstack",
+    "issue-2677/export-audit.realstack",
+    "issue-2677/field-policy-reader.realstack",
   ].map((f) => `${A}/${f}.acceptance.test.ts`),
   // #2714: the release job's database suites and Payload's CMS roles.
   "tests/unit/cms/cms-database-roles.realstack.test.ts",

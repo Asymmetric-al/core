@@ -271,6 +271,44 @@ describe("release workflow (plan 7.4)", () => {
       ),
     ).toBe(true);
   });
+
+  // WP1.7 (AL-2674): operators need a way to rebuild every app on a dispatched
+  // release (for example after changing Vercel variables), while pushes to
+  // production always build only changed apps.
+  it("exposes a release-only apps choice input and passes it to plan via env, never on push", () => {
+    const dispatchInputs = workflow.slice(
+      workflow.indexOf("  workflow_dispatch:\n"),
+      workflow.indexOf("\npermissions:\n"),
+    );
+    expect(dispatchInputs).toMatch(
+      /      apps:\n        description: [^\n]*release only[^\n]*\n        required: false\n        default: changed\n        type: choice\n        options: \[changed, all\]\n/,
+    );
+
+    const deploy = job("deploy");
+    const planStep = deploy
+      .split("\n      - ")
+      .find((step) => step.includes("vercel-release.mjs plan"))!;
+    expect(planStep).toBeDefined();
+    expect(planStep).toContain(
+      "RELEASE_APPS_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.apps || 'changed' }}",
+    );
+    expect(planStep).toContain(
+      "run: node scripts/release/vercel-release.mjs plan",
+    );
+    const runLine = planStep.slice(planStep.indexOf("run:"));
+    expect(runLine).not.toContain("inputs.");
+  });
+
+  // PR #2742 (P1): worst-case sequential deploy for three apps (`apps: all`)
+  // is 3 x 20m builds (60m) + 3 x staged checks (~11m) + 3 x 18-attempt live
+  // checks (~36m) + ~10m checkout/setup/API calls = ~117m. Keep headroom at
+  // 150m so a run is not cancelled after promotion.
+  it("gives the deploy job enough timeout-minutes for three sequential builds and full live checks", () => {
+    const deploy = job("deploy");
+    const match = /timeout-minutes:\s*(\d+)/.exec(deploy);
+    expect(match).not.toBeNull();
+    expect(Number(match![1])).toBe(150);
+  });
 });
 
 /**

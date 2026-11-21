@@ -58,6 +58,35 @@ describe("the auth email suite's environment", () => {
     ).toThrow(/DB_URL is not on this machine/);
   });
 
+  // Council round 1 on slice A, A18, kept through the merge of develop
+  // (d2402280c): each routing key the query may carry is refused, by the
+  // runner and by the journeys, now through isLoopbackDatabaseUrl.
+  it.each(["host", "hostaddr", "port", "dbname", "user", "service"])(
+    "refuses a database URL whose query routes it elsewhere (%s)",
+    async (key) => {
+      const routed = `postgresql://postgres:postgres@127.0.0.1:25322/postgres?${key}=db.example.com`;
+      expect(() =>
+        authMailEnvFromStatus(
+          STATUS.replace(
+            "postgresql://postgres:postgres@127.0.0.1:25322/postgres",
+            routed,
+          ),
+        ),
+      ).toThrow(/DB_URL is not on this machine/);
+
+      const { readAuthMailEnv } = await import("../../e2e/helpers/auth-mail");
+      expect(() =>
+        readAuthMailEnv({
+          NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:25321",
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon",
+          SUPABASE_SERVICE_ROLE_KEY: "service",
+          E2E_AUTH_MAIL_URL: "http://127.0.0.1:25324",
+          E2E_AUTH_MAIL_DB_URL: routed,
+        }),
+      ).toThrow(/does not name a database on this machine/);
+    },
+  );
+
   // AL-2674, phase 15: node-postgres, which the journeys write memberships
   // through, follows a host in the query over the one the URL shows. So the
   // database is judged by isLoopbackDatabaseUrl, never by its host name.

@@ -1,8 +1,8 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
-import Link from "next/link";
 import { useId } from "react";
 
 import { CHECK_IN_INTERVAL_DAYS } from "@/features/mission-control/care/components/care-display";

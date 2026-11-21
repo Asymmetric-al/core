@@ -84,8 +84,62 @@ export function resolveRootCompilerCommand(root, platform = process.platform) {
   return existsSync(resolved) ? realpathSync(resolved) : null;
 }
 
+const readJson = (file) => JSON.parse(readFileSync(file, "utf8"));
+
+export function verifyLintBackends(root, workspacePaths) {
+  const declared = readJson(path.join(root, "package.json")).devDependencies
+    ?.tsrs;
+  const installed = readJson(
+    path.join(root, "node_modules/tsrs/package.json"),
+  ).version;
+  if (!/^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(declared) || declared !== installed)
+    throw new Error(
+      `Expected an exact root tsrs pin matching the installation: declared ${declared}, installed ${installed}`,
+    );
+  const alternate = "oxlint-tsgolint";
+  for (const file of ["package.json", ...workspacePaths]) {
+    const manifest = readJson(path.join(root, file));
+    for (const field of [
+      "dependencies",
+      "devDependencies",
+      "optionalDependencies",
+      "peerDependencies",
+    ]) {
+      for (const [name, value] of Object.entries(manifest[field] ?? {})) {
+        if (
+          name === alternate ||
+          name.startsWith(`@${alternate}/`) ||
+          /^npm:(?:oxlint-tsgolint(?:@|$)|@oxlint-tsgolint\/)/.test(value)
+        )
+          throw new Error(
+            `${file}: alternate backend ${alternate} must not be declared`,
+          );
+      }
+    }
+    const modules = path.join(root, path.dirname(file), "node_modules");
+    if (
+      [alternate, `@${alternate}`].some((name) =>
+        existsSync(path.join(modules, name)),
+      )
+    )
+      throw new Error(`${alternate} must not be installed in ${modules}`);
+  }
+  if (
+    globSync(
+      [
+        "node_modules/.bun/oxlint-tsgolint@*/node_modules/oxlint-tsgolint",
+        "node_modules/.bun/@oxlint-tsgolint+*/node_modules/@oxlint-tsgolint",
+      ],
+      { cwd: root },
+    ).length
+  )
+    throw new Error(
+      `${alternate} must not be installed in the isolated Bun store`,
+    );
+  return installed;
+}
+
 export function verifyCompilerToolchain(root = repoRoot) {
-  const readJson = (file) => JSON.parse(readFileSync(file, "utf8"));
   const rootPackage = readJson(path.join(root, "package.json"));
   const require = createRequire(path.join(root, "package.json"));
   const api = require("typescript");
@@ -100,32 +154,31 @@ export function verifyCompilerToolchain(root = repoRoot) {
     parserRequire.resolve("@typescript-eslint/typescript-estree"),
   );
   const parserApi = estreeRequire("typescript");
-  const workspaces = [
+  const workspacePaths = [
     ...new Set(
       globSync(
         rootPackage.workspaces.map((pattern) => `${pattern}/package.json`),
         { cwd: root },
       ),
     ),
-  ]
-    .sort()
-    .flatMap((relative) => {
-      const file = path.join(root, relative);
-      const manifest = readJson(file);
-      const declared =
-        manifest.devDependencies?.typescript ??
-        manifest.dependencies?.typescript;
-      if (!declared) return [];
-      const workspaceRequire = createRequire(file);
-      return [
-        {
-          path: relative.replaceAll("\\", "/"),
-          declared,
-          installed: workspaceRequire("typescript/package.json").version,
-        },
-      ];
-    });
+  ].sort();
+  const workspaces = workspacePaths.flatMap((relative) => {
+    const file = path.join(root, relative);
+    const manifest = readJson(file);
+    const declared =
+      manifest.devDependencies?.typescript ?? manifest.dependencies?.typescript;
+    if (!declared) return [];
+    const workspaceRequire = createRequire(file);
+    return [
+      {
+        path: relative.replaceAll("\\", "/"),
+        declared,
+        installed: workspaceRequire("typescript/package.json").version,
+      },
+    ];
+  });
   return validateCompilerToolchain({
+    tsrs: verifyLintBackends(root, workspacePaths),
     api: {
       declared: rootPackage.devDependencies.typescript,
       installed: api.version,
@@ -165,7 +218,7 @@ if (
   try {
     const snapshot = verifyCompilerToolchain();
     console.log(
-      `TypeScript ${snapshot.native.installed}: ${snapshot.workspaces.length} product workspaces; API/editor/parser ${snapshot.api.installed}`,
+      `TypeScript ${snapshot.native.installed}: ${snapshot.workspaces.length} product workspaces; API/editor/parser ${snapshot.api.installed}; TSRS ${snapshot.tsrs}`,
     );
   } catch (error) {
     console.error(error.message);

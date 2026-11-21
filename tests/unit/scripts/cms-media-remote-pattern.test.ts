@@ -2,7 +2,23 @@ import { describe, expect, it } from "vitest";
 
 import { buildPublicCmsImageRemotePatterns } from "../../../scripts/cms/public-media-remote-pattern.mjs";
 
-const CMS_MEDIA_FILE_PATHNAME = "/api/media/file/**";
+/**
+ * Payload's media route moved under /web-studio/api (AL-2675, WP2b slice C).
+ * The release job promotes the apps one after another, so for this release
+ * the donor admits both routes (plan 7.4); the next release drops the old one.
+ */
+const CMS_MEDIA_FILE_PATHNAMES = [
+  "/web-studio/api/media/file/**",
+  "/api/media/file/**",
+] as const;
+
+function cmsPatterns(origin: {
+  protocol: "http" | "https";
+  hostname: string;
+  port: string;
+}) {
+  return CMS_MEDIA_FILE_PATHNAMES.map((pathname) => ({ ...origin, pathname }));
+}
 
 const VERCEL_BLOB_PUBLIC_PATTERN = {
   protocol: "https" as const,
@@ -15,38 +31,27 @@ describe("buildPublicCmsImageRemotePatterns", () => {
     expect(
       buildPublicCmsImageRemotePatterns("https://admin.example.org"),
     ).toEqual([
-      {
+      // An explicit empty port blocks custom ports; an omitted field would
+      // imply the `**` wildcard (Next.js remotePatterns docs).
+      ...cmsPatterns({
         protocol: "https",
         hostname: "admin.example.org",
-        // An explicit empty port blocks custom ports; an omitted field would
-        // imply the `**` wildcard (Next.js remotePatterns docs).
         port: "",
-        pathname: CMS_MEDIA_FILE_PATHNAME,
-      },
+      }),
       VERCEL_BLOB_PUBLIC_PATTERN,
     ]);
   });
 
   it("keeps explicit ports", () => {
     expect(buildPublicCmsImageRemotePatterns("http://127.0.0.1:3030")).toEqual([
-      {
-        protocol: "http",
-        hostname: "127.0.0.1",
-        port: "3030",
-        pathname: CMS_MEDIA_FILE_PATHNAME,
-      },
+      ...cmsPatterns({ protocol: "http", hostname: "127.0.0.1", port: "3030" }),
       VERCEL_BLOB_PUBLIC_PATTERN,
     ]);
   });
 
   it("falls back to the local-dev CMS origin when unset (matching the donor CMS client default)", () => {
     const expected = [
-      {
-        protocol: "http",
-        hostname: "127.0.0.1",
-        port: "3030",
-        pathname: CMS_MEDIA_FILE_PATHNAME,
-      },
+      ...cmsPatterns({ protocol: "http", hostname: "127.0.0.1", port: "3030" }),
       VERCEL_BLOB_PUBLIC_PATTERN,
     ];
     expect(buildPublicCmsImageRemotePatterns(undefined)).toEqual(expected);

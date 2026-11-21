@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   mapToRecentUpdate,
   useDonorFeedPosts,
@@ -29,10 +30,9 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { useLoadRetry } from "@asym/ui/hooks";
+import { useLoadRetry, useOwnApiDownload } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import { CircleAlert, Download } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
 
 import { FeaturedUpdateHero } from "./featured-update-hero";
@@ -291,6 +291,7 @@ export function DonorDashboardMainBody() {
   const year = givenThisYear(portal);
   const next = nextScheduledGift(portal);
   const statementYear = statementPromptYear(portal);
+  const { download, buttonProps: statementButtonProps } = useOwnApiDownload();
   const giveAgain = lastSupported(portal);
   // Offline, a first load waits for the connection without fetching; it is
   // still loading, not failed or empty.
@@ -331,13 +332,17 @@ export function DonorDashboardMainBody() {
         description="Your giving, what’s coming up, and news from the field."
       >
         {statementYear ? (
-          <a
-            href={`/api/donor/statements/${statementYear}`}
-            className={buttonVariants({ variant: "outline" })}
+          // An own-API download with the document's scope (WP2b, AL-2675).
+          <Button
+            variant="outline"
+            {...statementButtonProps}
+            onClick={() =>
+              void download(`/api/donor/statements/${statementYear}`)
+            }
           >
             <Download data-icon="inline-start" aria-hidden />
             {`${statementYear} giving statement`}
-          </a>
+          </Button>
         ) : null}
         <Link
           href={giveAgain ? giveHref(giveAgain.id) : "/workers"}

@@ -144,9 +144,21 @@ describe("#2180 criterion 10: docs/ci.md runner-security pointer", () => {
     ).toBeGreaterThanOrEqual(0);
     const body = text.slice(at).split("\n");
     const level = body[0]!.indexOf(" ");
-    const end = body.findIndex(
-      (l, i) => i > 0 && new RegExp(`^#{1,${level}} `).test(l),
-    );
+    let inFence = false;
+    let end = -1;
+    for (let i = 1; i < body.length; i += 1) {
+      const line = body[i]!;
+      if (/^\s*(?:```|~~~)/.test(line)) {
+        inFence = !inFence;
+        continue;
+      }
+      if (inFence) continue;
+      const headingMatch = /^(#{1,6}) /.exec(line);
+      if (headingMatch && headingMatch[1]!.length <= level) {
+        end = i;
+        break;
+      }
+    }
     return body.slice(0, end < 0 ? undefined : end).join("\n");
   };
   it("is one 'Self-hosted runner security' section of <= 8 lines", () => {

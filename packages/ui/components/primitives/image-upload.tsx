@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { createBrowserClient } from "@asym/database/supabase";
 import {
   uploadToCloudinary,
@@ -210,7 +211,7 @@ async function uploadWithBackendProcessing(
   formData.append("bucket", bucket);
   formData.append("path", path);
 
-  const response = await fetch("/api/upload/image", {
+  const response = await ownApiFetch("/api/upload/image", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -380,7 +381,7 @@ export function ImageUpload({
           });
 
           // No app serves this route (deleted with /signature in 217777eda).
-          const metadataResponse = await fetch(
+          const metadataResponse = await ownApiFetch(
             "/api/upload/cloudinary/metadata",
             {
               method: "POST",

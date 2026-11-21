@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { useMissionControlNeedsAttention } from "@asym/database/hooks";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -11,7 +12,6 @@ import {
   ItemTitle,
 } from "@asym/ui/components/shadcn/item";
 import { ChevronRight, TriangleAlert } from "lucide-react";
-import Link from "next/link";
 import { useId } from "react";
 
 import { attentionUrgency } from "../../needs-attention/attention-vocabulary";

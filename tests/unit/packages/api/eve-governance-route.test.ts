@@ -12,6 +12,20 @@ const createEveAuditStoreMock = vi.fn();
 const loadRecentEveAuditEventsMock = vi.fn();
 const traceEveAuditEventMock = vi.fn();
 const setEveKillSwitchMock = vi.fn();
+/** AL-2675 (WP2c): the shared operator check, on the caller's own session client. */
+const operatorRpcMock = vi.fn();
+const NOT_AN_OPERATOR = {
+  data: null,
+  error: {
+    code: "42501",
+    message: "platform: the caller is not a platform operator",
+  },
+};
+const AN_OPERATOR = { data: { operator_id: "user_1" }, error: null };
+
+vi.mock("@asym/database/supabase/server", () => ({
+  createClient: async () => ({ rpc: operatorRpcMock }),
+}));
 
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
@@ -60,11 +74,14 @@ vi.mock("../../../../packages/api/src/eve/governance/control", async () => {
   };
 });
 
+/** A signed-in request: it carries the Supabase session cookie (review WC3). */
 function createRequest(method = "GET", body?: unknown): NextRequest {
   return new Request("https://admin.example.test/api/admin/eve/governance", {
     body: body === undefined ? undefined : JSON.stringify(body),
-    headers:
-      body === undefined ? undefined : { "content-type": "application/json" },
+    headers: {
+      cookie: "sb-127-auth-token=session",
+      ...(body === undefined ? {} : { "content-type": "application/json" }),
+    },
     method,
   }) as NextRequest;
 }
@@ -86,6 +103,7 @@ describe("Eve governance admin route", () => {
       isAuthenticated: true,
     });
     createAuditLoggerMock.mockReturnValue({});
+    operatorRpcMock.mockResolvedValue(NOT_AN_OPERATOR);
     createAdminEveAuditIdentityMock.mockReturnValue({ verified: true });
     createEveAuditStoreMock.mockReturnValue({ append: vi.fn() });
     traceEveAuditEventMock.mockResolvedValue({});
@@ -164,11 +182,155 @@ describe("Eve governance admin route", () => {
     );
   });
 
-  it("loads global audit history for authorized super admins", async () => {
+  // Rewritten by AL-2675 (WP2c, part 1), and again by its review (WC1). The
+  // global audit history was the `super_admin` role name's, which no
+  // membership holds since WP2a; part 1 gave it to a confirmed operator. The
+  // plan says an operator "sees a tenant's data only through an ordinary
+  // membership", so an operator working in tenant A reads tenant A's history,
+  // as a tenant administrator does, on GET and after a PATCH, and never an
+  // event of tenant B. The audit reader runs for real here, over a table that
+  // holds both tenants' events, the operator's own among them.
+  describe("an operator working in one tenant (WC1)", () => {
+    const TENANT_A = "00000000-0000-4000-8000-00000000000a";
+    const TENANT_B = "00000000-0000-4000-8000-00000000000b";
+    const OPERATOR_PROFILE = "00000000-0000-4000-8000-0000000000c1";
+    const OTHER_PROFILE = "00000000-0000-4000-8000-0000000000c2";
+
+    function auditRow(id: string, tenantId: string, profileId: string) {
+      return {
+        id,
+        run_id: null,
+        tenant_id: tenantId,
+        actor_id: `admin:${profileId}`,
+        actor_profile_id: profileId,
+        actor_role: "admin",
+        identity_mode: "admin",
+        initiator_type: "admin",
+        initiator_id: profileId,
+        policy_id: "eve-governance-kernel",
+        policy_status: "not_configured",
+        governance_state_version: 1,
+        action: "audit.tracer.verify",
+        target: "eve:global",
+        result: "succeeded",
+        tool_name: null,
+        subagent_name: null,
+        model_role: "none",
+        evidence_summary: "{}",
+        change_summary: "{}",
+        decision_summary: "{}",
+        debug_metadata: { tenant: tenantId },
+        redaction_version: "eve-audit-v1",
+        created_at: "2026-11-19T00:00:00.000Z",
+      };
+    }
+
+    const ROWS = [
+      auditRow(
+        "00000000-0000-4000-8000-0000000000e1",
+        TENANT_A,
+        OPERATOR_PROFILE,
+      ),
+      auditRow(
+        "00000000-0000-4000-8000-0000000000e2",
+        TENANT_B,
+        OPERATOR_PROFILE,
+      ),
+      auditRow("00000000-0000-4000-8000-0000000000e3", TENANT_B, OTHER_PROFILE),
+    ];
+
+    /** `eve_audit_events` holding both tenants' rows, filtered as PostgREST would. */
+    function auditTable() {
+      return {
+        from: vi.fn((table: string) => {
+          expect(table).toBe("eve_audit_events");
+          let rows: Array<Record<string, unknown>> = [...ROWS];
+          const builder = {
+            select: () => builder,
+            eq: (column: string, value: unknown) => {
+              rows = rows.filter((row) => row[column] === value);
+              return builder;
+            },
+            order: () => builder,
+            limit: async (count: number) => ({
+              data: rows.slice(0, count),
+              error: null,
+            }),
+          };
+          return builder;
+        }),
+      };
+    }
+
+    beforeEach(async () => {
+      const actual = await vi.importActual<
+        typeof import("../../../../packages/api/src/eve/audit/store")
+      >("../../../../packages/api/src/eve/audit/store");
+      loadRecentEveAuditEventsMock.mockImplementation(
+        actual.loadRecentEveAuditEvents,
+      );
+      getAdminClientMock.mockReturnValue({ client: auditTable(), error: null });
+      getAuthContextMock.mockResolvedValue({
+        userId: "user_1",
+        email: "operator@example.com",
+        tenantId: TENANT_A,
+        role: "admin",
+        memberships: [],
+        profileId: OPERATOR_PROFILE,
+        isAuthenticated: true,
+      });
+      operatorRpcMock.mockResolvedValue(AN_OPERATOR);
+    });
+
+    it("GET returns tenant A's history and no event of tenant B, without asking the operator check", async () => {
+      const { GET } =
+        await import("../../../../packages/api/src/eve/governance/route");
+
+      const response = await GET(createRequest());
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        auditHistory: Array<{ id: string; tenantId?: string }>;
+      };
+      expect(
+        body.auditHistory.map((event) => [event.id, event.tenantId]),
+      ).toEqual([["00000000-0000-4000-8000-0000000000e1", TENANT_A]]);
+      expect(JSON.stringify(body)).not.toContain(TENANT_B);
+      // The GET no longer needs the fact, so it does not ask for it.
+      expect(operatorRpcMock).not.toHaveBeenCalled();
+    });
+
+    it("PATCH by a confirmed operator returns tenant A's history and no event of tenant B", async () => {
+      const { PATCH } =
+        await import("../../../../packages/api/src/eve/governance/route");
+
+      const response = await PATCH(
+        createRequest("PATCH", {
+          switchKey: "github_actions",
+          enabled: true,
+          expectedStateVersion: 1,
+          reason: "Pause GitHub effects during incident review.",
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      expect(operatorRpcMock).toHaveBeenCalledWith("platform_operator_session");
+      expect(setEveKillSwitchMock).toHaveBeenCalledTimes(1);
+      const body = (await response.json()) as {
+        auditHistory: Array<{ id: string; tenantId?: string }>;
+      };
+      expect(
+        body.auditHistory.map((event) => [event.id, event.tenantId]),
+      ).toEqual([["00000000-0000-4000-8000-0000000000e1", TENANT_A]]);
+      expect(JSON.stringify(body)).not.toContain(TENANT_B);
+    });
+  });
+
+  it("keeps a super_admin role name that the operator check refuses to its own tenant (WP2c)", async () => {
     getAuthContextMock.mockResolvedValue({
       userId: "user_1",
       email: "super-admin@example.com",
-      tenantId: null,
+      tenantId: "tenant_1",
       role: "super_admin",
       memberships: [],
       profileId: "profile_1",
@@ -180,10 +342,9 @@ describe("Eve governance admin route", () => {
     const response = await GET(createRequest());
 
     expect(response.status).toBe(200);
-    expect(loadRecentEveAuditEventsMock).toHaveBeenCalledWith({
-      supabaseAdmin: { from: expect.any(Function) },
-      tenantId: null,
-    });
+    expect(loadRecentEveAuditEventsMock).toHaveBeenCalledWith(
+      expect.objectContaining({ tenantId: "tenant_1" }),
+    );
   });
 
   it("records an explicit safe tracer verification under verified admin identity", async () => {
@@ -212,6 +373,7 @@ describe("Eve governance admin route", () => {
   });
 
   it("deliberately changes a kill switch under verified admin identity", async () => {
+    operatorRpcMock.mockResolvedValue(AN_OPERATOR);
     const { PATCH } =
       await import("../../../../packages/api/src/eve/governance/route");
 
@@ -227,6 +389,7 @@ describe("Eve governance admin route", () => {
     expect(response.status).toBe(200);
     expect(createAdminEveAuditIdentityMock).toHaveBeenCalledWith(
       expect.objectContaining({ profileId: "profile_1" }),
+      { platformOperator: true },
     );
     expect(setEveKillSwitchMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -247,7 +410,25 @@ describe("Eve governance admin route", () => {
     );
   });
 
+  it("refuses the kill switch to a tenant administrator who is not a confirmed operator (WP2c)", async () => {
+    const { PATCH } =
+      await import("../../../../packages/api/src/eve/governance/route");
+
+    const response = await PATCH(
+      createRequest("PATCH", {
+        switchKey: "github_actions",
+        enabled: true,
+        expectedStateVersion: 1,
+        reason: "Pause GitHub effects during incident review.",
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(setEveKillSwitchMock).not.toHaveBeenCalled();
+  });
+
   it("rejects an unknown kill-switch key before any mutation", async () => {
+    operatorRpcMock.mockResolvedValue(AN_OPERATOR);
     const { PATCH } =
       await import("../../../../packages/api/src/eve/governance/route");
 

@@ -1,4 +1,5 @@
 import { loadSupportTicketList } from "@asym/api/admin/support/loaders";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   MetricCard,
   MetricGrid,
@@ -15,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import Link from "next/link";
 
 import { SUPPORT_TICKETS_PAGE_META } from "../../../../components/table-page-meta";
 import { SupportTicketsTable } from "../../../../features/support-hub/components/tickets/SupportTicketsTable";

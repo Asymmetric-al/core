@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 
 import { loadEveEngineeringMonitorAdminView } from "./store";
 import { toErrorResponse } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { withPlatformOperation } from "../../shared/with-operation";
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ auth, requestId, supabaseAdmin }) => {
     try {
       return NextResponse.json({

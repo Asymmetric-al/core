@@ -1,8 +1,12 @@
 /** @vitest-environment jsdom */
 
-import { setPlatform } from "@ui-sdk/core/testing";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { setPlatform } from "@ui-sdk/core/testing";
+import { afterEach, beforeAll, beforeEach, expect, it, vi } from "vitest";
+
+import { LAYOUT_PREFIX, shellFromLayout } from "./layout-shell";
+
+import type { ReactElement, ReactNode } from "react";
 
 const navigation = vi.hoisted(() => ({ pathname: "/", push: vi.fn() }));
 vi.mock("next/navigation", () => ({
@@ -13,13 +17,53 @@ vi.mock("@asym/database/hooks", () => ({
   useMissionaryPortalSnapshot: () => ({ data: undefined }),
   usePendingFollowRequestCount: () => ({ data: undefined }),
 }));
+// The shell as app/layout.tsx composes it, its workspace gate resolved once
+// for a workspace page (council round 1, A24; ./layout-shell.tsx).
+vi.mock("next/headers", () => ({
+  headers: async () =>
+    new Headers({
+      "x-asym-pathname": "/00000000-0000-0000-0000-000000000001/tasks",
+    }),
+}));
+vi.mock("@asym/auth/context", () => ({
+  getAuthContext: async () => ({
+    isAuthenticated: true,
+    userId: "00000000-0000-4000-8000-0000000e2e40",
+    tenantId: "00000000-0000-0000-0000-000000000001",
+    role: "missionary",
+  }),
+  hasAnyContextRole: () => true,
+}));
+vi.mock("@asym/auth/tenant-server", () => ({
+  readDocumentScope: async () => ({
+    userId: "00000000-0000-4000-8000-0000000e2e40",
+    tenantId: "00000000-0000-0000-0000-000000000001",
+    assignmentId: "00000000-0000-4000-8000-0000000e2e41",
+    addressPrefix: "/00000000-0000-0000-0000-000000000001",
+  }),
+  redirectInTenant: async () => {
+    throw new Error("the workspace gate redirected");
+  },
+}));
+vi.mock("@asym/ui/fonts", () => ({ fontVariables: "" }));
+vi.mock("@asym/database/supabase/config", () => ({
+  getSupabasePublicConfig: () => ({ url: "https://example.supabase.co" }),
+}));
 vi.mock("@asym/auth/client-session", () => ({
   signOutClientSession: vi.fn(),
   // The sidebar identity subscribes to client auth state; stay "loading".
   subscribeToClientAuthState: () => () => {},
 }));
 
-import { MissionaryLayoutShell } from "../../../../apps/missionary/app/_providers/missionary-layout-shell";
+let layoutShell: (children: ReactNode) => ReactElement;
+beforeAll(async () => {
+  layoutShell = await shellFromLayout();
+});
+
+/** The shell exactly as `app/layout.tsx` composes it (A24). */
+function Shell({ children }: { children: ReactNode }) {
+  return layoutShell(children);
+}
 
 const scrollDescriptor = Object.getOwnPropertyDescriptor(
   HTMLElement.prototype,
@@ -27,7 +71,7 @@ const scrollDescriptor = Object.getOwnPropertyDescriptor(
 );
 beforeEach(() => {
   setPlatform("other");
-  navigation.pathname = "/";
+  navigation.pathname = LAYOUT_PREFIX;
   Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
     configurable: true,
     value: vi.fn(),
@@ -63,9 +107,9 @@ afterEach(() => {
 
 it("mounts one missionary palette with the existing sidebar destinations", async () => {
   const view = render(
-    <MissionaryLayoutShell>
+    <Shell>
       <h1>Workspace</h1>
-    </MissionaryLayoutShell>,
+    </Shell>,
   );
   fireEvent.click(
     view.getByRole("button", { name: "Search missionary pages" }),
@@ -89,7 +133,10 @@ it("mounts one missionary palette with the existing sidebar destinations", async
   ).toBeNull();
   fireEvent.change(search, { target: { value: "tasks" } });
   fireEvent.click(await view.findByRole("option", { name: "Tasks" }));
-  expect(navigation.push).toHaveBeenCalledExactlyOnceWith("/tasks");
+  // The tenant router carries the organization's prefix.
+  expect(navigation.push).toHaveBeenCalledExactlyOnceWith(
+    `${LAYOUT_PREFIX}/tasks`,
+  );
   await waitFor(() => expect(view.queryByRole("dialog")).toBeNull());
 });
 
@@ -98,29 +145,18 @@ it.each([
   "/register",
   "/forgot-password",
   "/no-access",
-  "/auth/callback",
-  "/about",
-  "/faq",
-  "/financials",
-  "/ways-to-give",
-  "/workers",
-  "/checkout",
-  "/sign",
-  "/api/auth/demo-account",
-  "/sitemap.xml",
-  "/robots.txt",
+  // The public site pages the workspace never had left its public routes
+  // (A13); /auth/callback and /api paths are route handlers, never pages,
+  // where the layout's gate renders nothing (A24).
   "/boneyard",
   "/boneyard/capture",
-  "/api/example",
   "/login/recovery",
-  "/checkout/success",
-  "/workers/example",
 ])("keeps public %s free of workspace search and its shortcut", (pathname) => {
   navigation.pathname = pathname;
   const view = render(
-    <MissionaryLayoutShell>
+    <Shell>
       <h1>Sign in</h1>
-    </MissionaryLayoutShell>,
+    </Shell>,
   );
   expect(view.getByRole("heading", { name: "Sign in" })).toBeTruthy();
   expect(
@@ -140,9 +176,9 @@ it.each([
 
 it("releases an open workspace palette and its shortcut when returning to login", async () => {
   const content = (
-    <MissionaryLayoutShell>
+    <Shell>
       <h1>Current page</h1>
-    </MissionaryLayoutShell>
+    </Shell>
   );
   const view = render(content);
   fireEvent.click(
@@ -152,9 +188,9 @@ it("releases an open workspace palette and its shortcut when returning to login"
 
   navigation.pathname = "/login";
   view.rerender(
-    <MissionaryLayoutShell>
+    <Shell>
       <h1>Sign in</h1>
-    </MissionaryLayoutShell>,
+    </Shell>,
   );
   await waitFor(() => expect(view.queryByRole("dialog")).toBeNull());
   const shortcut = new KeyboardEvent("keydown", {

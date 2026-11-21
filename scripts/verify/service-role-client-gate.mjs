@@ -48,8 +48,17 @@ const MODULES = [
   {
     kind: "operation_admin_context",
     file: "packages/api/src/shared/with-operation",
-    names: ["withOperation"],
+    names: ["withPlatformOperation"],
   },
+  ...["donor", "missionary"].map((portal) => ({
+    kind: "operation_admin_context",
+    file: `packages/api/src/${portal}-portal/route-helpers`,
+    names: [
+      portal === "donor"
+        ? "runDonorPortalOperation"
+        : "runMissionaryPortalOperation",
+    ],
+  })),
 ];
 const SCAN_ROOTS = ["apps", "packages", "scripts", "tooling"];
 const SOURCE_RE = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/;
@@ -89,10 +98,11 @@ packages/api/src/admin/crm/notes/index.ts operation_admin_context 2
 packages/api/src/admin/crm/relationships/index.ts operation_admin_context 1
 packages/api/src/admin/crm/reports/export.ts operation_admin_context 1
 packages/api/src/admin/crm/reports/index.ts operation_admin_context 1
-packages/api/src/admin/crm/table-preferences/route.ts operation_admin_context 7
+packages/api/src/admin/crm/table-preferences/route.ts operation_admin_context 3
 packages/api/src/admin/fund-directory.ts operation_admin_context 1
 packages/api/src/admin/locations/index.ts admin_client 1
 packages/api/src/admin/member-care/mutations.ts admin_client 1
+packages/api/src/admin/member-care/private-notes.ts operation_admin_context 1
 packages/api/src/admin/mission-control-automations/route.ts operation_admin_context 2
 packages/api/src/admin/mission-control-tasks/route.ts operation_admin_context 1
 packages/api/src/admin/missionary-directory.ts operation_admin_context 1
@@ -108,7 +118,6 @@ packages/api/src/admin/support/loaders.ts admin_client 1
 packages/api/src/admin/support/ticket.ts admin_client 1
 packages/api/src/admin/support/tickets.ts admin_client 1
 packages/api/src/admin/support/tickets.ts operation_admin_context 1
-packages/api/src/admin/users.ts operation_admin_context 1
 packages/api/src/admin/workflows/notification-policy.ts operation_admin_context 2
 packages/api/src/admin/workflows/summaries.ts operation_admin_context 1
 packages/api/src/auth/cleanup-demo-users.ts admin_client 1
@@ -119,7 +128,9 @@ packages/api/src/donations/index.ts admin_client 1
 packages/api/src/donor-portal/billing.ts operation_admin_context 1
 packages/api/src/donor-portal/index.ts admin_client 1
 packages/api/src/donor-portal/index.ts operation_admin_context 1
+packages/api/src/donor-portal/receipts.ts operation_admin_context 1
 packages/api/src/donor-portal/route-helpers.ts admin_client 1
+packages/api/src/donor-portal/statements.ts operation_admin_context 1
 packages/api/src/email/assets.ts admin_client 1
 packages/api/src/email/settings-store.ts admin_client 1
 packages/api/src/email/template-store.ts admin_client 1
@@ -138,19 +149,22 @@ packages/api/src/eve/sandbox/control.ts admin_client 3
 packages/api/src/eve/sandbox/guardrails.ts service_role_key 1
 packages/api/src/eve/session-ownership/route-auth.ts admin_client 2
 packages/api/src/follower-requests/index.ts admin_client 1
+packages/api/src/follower-requests/request.ts operation_admin_context 1
 packages/api/src/health/db.ts admin_client 1
 packages/api/src/missionaries/index.ts admin_client 1
 packages/api/src/missionaries/metrics.ts admin_client 1
+packages/api/src/missionary-portal/donor.ts operation_admin_context 2
 packages/api/src/missionary-portal/donors.ts operation_admin_context 1
 packages/api/src/missionary-portal/index.ts operation_admin_context 1
 packages/api/src/missionary-portal/route-helpers.ts admin_client 1
+packages/api/src/missionary-portal/task.ts operation_admin_context 2
 packages/api/src/missionary-portal/tasks.ts operation_admin_context 2
 packages/api/src/pdf-templates/store.ts admin_client 1
 packages/api/src/posts/index.ts admin_client 2
 packages/api/src/posts/post.ts admin_client 2
 packages/api/src/posts/reaction-route-handlers.ts admin_client 1
 packages/api/src/profile/index.ts admin_client 2
-packages/api/src/reads/dashboard-stats.ts admin_client 2
+packages/api/src/reads/dashboard-stats.ts admin_client 1
 packages/api/src/reads/donor-history.ts admin_client 2
 packages/api/src/reads/member-care.ts admin_client 1
 packages/api/src/reads/missionary-metrics.ts admin_client 1
@@ -183,7 +197,7 @@ scripts/cms/lib/env.mjs service_role_key 7
 scripts/cms/lib/local-data.mjs service_role_key 1
 scripts/document-cutover/assess-document-cutover.ts service_role_key 2
 scripts/supabase-env-smoke.mjs service_role_key 2
-scripts/verify-money-units.ts service_role_key 3
+scripts/verify-money-units.ts service_role_key 1
 scripts/verify/vercel-production-readiness.mjs service_role_key 1
 `;
 
@@ -196,12 +210,17 @@ export const CEILING = new Map(
 export const ceilingDigest = () =>
   createHash("sha256").update(CEILING_ROWS.trim()).digest("hex");
 
-function moduleKind(file, specifier) {
-  const target = specifier.startsWith(".")
+function importTarget(file, specifier) {
+  return specifier.startsWith(".")
     ? path.posix
         .join(path.posix.dirname(file), specifier)
         .replace(/\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/, "")
-    : specifier;
+    : specifier
+        .replace(/^@asym\/api\//, "packages/api/src/")
+        .replace(/^@asym\/(database|lib)\//, "packages/$1/");
+}
+function moduleKind(file, specifier) {
+  const target = importTarget(file, specifier);
   return MODULES.find((m) => m.file === target || m.alias === target);
 }
 
@@ -232,60 +251,13 @@ const unwrap = (node) => {
   return n;
 };
 
-/** True when a destructuring pattern reaches supabaseAdmin (or may: rest, computed key). */
-const patternTouchesAdmin = (pattern) =>
-  !ts.isObjectBindingPattern(pattern) ||
-  pattern.elements.some(
-    (e) => e.dotDotDotToken || [null, "supabaseAdmin"].includes(propertyKey(e)),
-  );
-
-/** True when the handler context parameter `name` reaches supabaseAdmin or escapes whole. */
-function contextTouchesAdmin(body, name) {
-  let touched = false;
-  const visit = (node) => {
-    if (touched) return;
-    if (ts.isIdentifier(node) && node.text === name) {
-      const p = node.parent;
-      if (ts.isPropertyAccessExpression(p) && p.name === node) return;
-      if (ts.isPropertyAssignment(p) && p.name === node) return;
-      if (
-        (ts.isPropertyAccessExpression(p) || ts.isElementAccessExpression(p)) &&
-        p.expression === node
-      ) {
-        if ([null, "supabaseAdmin"].includes(memberName(p))) touched = true;
-        return;
-      }
-      if (ts.isVariableDeclaration(p) && p.initializer === node) {
-        if (patternTouchesAdmin(p.name)) touched = true;
-        return;
-      }
-      touched = true;
-      return;
-    }
-    ts.forEachChild(node, visit);
-  };
-  visit(body);
-  return touched;
-}
-
-function handlerIsSite(call) {
-  const handler = call.arguments[0];
-  if (
-    !handler ||
-    !(ts.isArrowFunction(handler) || ts.isFunctionExpression(handler))
-  )
-    return handler ?? call;
-  const param = handler.parameters[0];
-  if (!param) return null;
-  const touches = ts.isIdentifier(param.name)
-    ? contextTouchesAdmin(handler.body, param.name.text)
-    : patternTouchesAdmin(param.name);
-  return touches ? handler : null;
-}
-
 /** Sites and re-exports in one file: { sites: [{ kind, line }], reexports: [{ kind, line }] }. */
 export function scanSource(file, text) {
   const sites = [];
+  const imports = [];
+  const callerNames = new Set();
+  const callerNamespaces = new Set();
+  let callsCaller = false;
   const reexports = [];
   const lineAt = (offset) => text.slice(0, offset).split("\n").length;
   for (const match of text.matchAll(KEY_RE))
@@ -307,6 +279,27 @@ export function scanSource(file, text) {
     if (ts.isImportDeclaration(node) && !node.importClause?.isTypeOnly) {
       const module = moduleKind(file, node.moduleSpecifier.text);
       const clause = node.importClause;
+      const named = clause?.namedBindings;
+      if (
+        !named ||
+        clause.name ||
+        ts.isNamespaceImport(named) ||
+        named.elements.some((s) => !s.isTypeOnly)
+      ) {
+        const target = importTarget(file, node.moduleSpecifier.text);
+        if (target !== "packages/api/src/shared/with-operation")
+          imports.push({ target, line: at(node) });
+        else if (named && ts.isNamespaceImport(named))
+          callerNamespaces.add(named.name.text);
+        else
+          for (const binding of named?.elements ?? []) {
+            if (
+              !binding.isTypeOnly &&
+              (binding.propertyName ?? binding.name).text === "withOperation"
+            )
+              callerNames.add(binding.name.text);
+          }
+      }
       if (module && clause) {
         if (clause.name) bind(clause.name, module, true);
         const named = clause.namedBindings;
@@ -347,6 +340,33 @@ export function scanSource(file, text) {
       ts.isStringLiteralLike(node.arguments[0])
     ) {
       const module = moduleKind(file, node.arguments[0].text);
+      const target = importTarget(file, node.arguments[0].text);
+      if (target !== "packages/api/src/shared/with-operation")
+        imports.push({ target, line: at(node) });
+      else {
+        const declaration = unwrap(node).parent;
+        if (
+          ts.isVariableDeclaration(declaration) &&
+          ts.isIdentifier(declaration.name)
+        )
+          callerNamespaces.add(declaration.name.text);
+        else if (
+          ts.isVariableDeclaration(declaration) &&
+          ts.isObjectBindingPattern(declaration.name)
+        ) {
+          for (const element of declaration.name.elements)
+            if (
+              propertyKey(element) === "withOperation" &&
+              ts.isIdentifier(element.name)
+            )
+              callerNames.add(element.name.text);
+        } else if (
+          (ts.isPropertyAccessExpression(declaration) ||
+            ts.isElementAccessExpression(declaration)) &&
+          memberName(declaration) === "withOperation"
+        )
+          callsCaller = true;
+      }
       if (module) {
         const outer = unwrap(node);
         const p = outer.parent;
@@ -373,27 +393,26 @@ export function scanSource(file, text) {
             member === "then" ||
             module.names.includes(member)
           )
-            use(module, p);
+            site(module, p);
         } else site(module, outer);
       }
     }
     ts.forEachChild(node, collect);
   };
 
-  /** A reference to a tracked function (direct, or a namespace member). */
-  function use(module, node) {
-    const p = unwrap(node).parent;
-    const callee = unwrap(node);
-    if (ts.isCallExpression(p) && p.expression === callee) {
-      if (module.kind !== "operation_admin_context") site(module, node);
-      else {
-        const handler = handlerIsSite(p);
-        if (handler) site(module, handler);
-      }
-    } else site(module, node);
-  }
-
   const references = (node) => {
+    if (ts.isCallExpression(node)) {
+      const fn = node.expression;
+      if (
+        (ts.isIdentifier(fn) && callerNames.has(fn.text)) ||
+        ((ts.isPropertyAccessExpression(fn) ||
+          ts.isElementAccessExpression(fn)) &&
+          ts.isIdentifier(fn.expression) &&
+          callerNamespaces.has(fn.expression.text) &&
+          memberName(fn) === "withOperation")
+      )
+        callsCaller = true;
+    }
     if (
       ts.isIdentifier(node) &&
       bindings.has(node.text) &&
@@ -418,14 +437,14 @@ export function scanSource(file, text) {
       } else if (ts.isExportAssignment(p))
         reexports.push({ kind: module.kind, line: at(node) });
       else if (!isName && !inTypePosition(node)) {
-        if (!namespace) use(module, node);
+        if (!namespace) site(module, node);
         else if (
           (ts.isPropertyAccessExpression(p) ||
             ts.isElementAccessExpression(p)) &&
           p.expression === node
         ) {
           const member = memberName(p);
-          if (member === null || module.names.includes(member)) use(module, p);
+          if (member === null || module.names.includes(member)) site(module, p);
         } else site(module, node);
       }
     }
@@ -434,7 +453,7 @@ export function scanSource(file, text) {
 
   collect(source);
   references(source);
-  return { sites, reexports };
+  return { sites, reexports, callerImports: callsCaller ? imports : [] };
 }
 
 /** Tracked source files under the scan roots, repo-relative, minus tests, build output and exempt paths. */
@@ -572,13 +591,15 @@ export function evaluateServiceRoleClientGate(
 /** Scans `root` and evaluates it against its allowlist. */
 export function runServiceRoleClientGate({ root = repoRoot } = {}) {
   const found = { sites: [], reexports: [] };
+  const imports = [];
   for (const file of listScannedFiles(root)) {
-    const { sites, reexports } = scanSource(
+    const { sites, reexports, callerImports } = scanSource(
       file,
       readFileSync(path.join(root, file), "utf8"),
     );
     for (const s of sites) found.sites.push({ file, ...s });
     for (const r of reexports) found.reexports.push({ file, ...r });
+    for (const entry of callerImports) imports.push({ file, ...entry });
   }
   let allowlist;
   try {
@@ -588,7 +609,20 @@ export function runServiceRoleClientGate({ root = repoRoot } = {}) {
   } catch (error) {
     allowlist = new Error(error.message);
   }
-  return { ...evaluateServiceRoleClientGate(found, allowlist), found };
+  const result = evaluateServiceRoleClientGate(found, allowlist);
+  const privileged = new Set(
+    found.sites
+      .filter((site) => site.kind === "admin_client")
+      .map((site) => site.file.replace(SOURCE_RE, "")),
+  );
+  privileged.add("packages/database/supabase/admin");
+  for (const { file, target, line } of imports)
+    if (privileged.has(target) || privileged.has(`${target}/index`)) {
+      result.failures.push(
+        `CALLER_PRIVILEGED_IMPORT ${file}:${line}: caller operation imports ${target}, which supplies a privileged client`,
+      );
+    }
+  return { ...result, ok: !result.failures.length, found };
 }
 
 if (

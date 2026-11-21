@@ -2,6 +2,7 @@
 
 import { type EmailStudioFullConfig } from "@asym/config/email-studio";
 import { type PDFStudioFullConfig } from "@asym/config/pdf-studio";
+import { ownApiFetch } from "@asym/database/own-api";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import {
   DocumentTemplateV1Schema,
@@ -1172,7 +1173,7 @@ export function PDFTemplatePickerDialog({
 type DeleteTemplateResult = { ok: true } | { ok: false; error: string };
 
 async function fetchPdfTemplates(): Promise<PDFTemplateListEntry[]> {
-  const response = await fetch("/api/pdf-templates", {
+  const response = await ownApiFetch("/api/pdf-templates", {
     method: "GET",
   });
   const { ok, body } = await readJsonBody<{
@@ -1192,7 +1193,7 @@ async function runDeletePdfTemplate(
   templateId: string,
 ): Promise<DeleteTemplateResult> {
   try {
-    const response = await fetch(`/api/pdf-templates/${templateId}`, {
+    const response = await ownApiFetch(`/api/pdf-templates/${templateId}`, {
       method: "DELETE",
     });
     if (!response.ok) {
@@ -1242,7 +1243,7 @@ async function runSaveTemplate(options: {
 
     const method = options.metadata.id ? "PUT" : "POST";
 
-    const response = await fetch(url, {
+    const response = await ownApiFetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -1292,7 +1293,7 @@ async function runSaveNativeTemplate(options: {
       : "/api/pdf-templates";
     const method = options.metadata.id ? "PUT" : "POST";
 
-    const response = await fetch(url, {
+    const response = await ownApiFetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -1320,7 +1321,7 @@ async function runSaveNativeTemplate(options: {
 async function runNativePreview(template: DocumentTemplateV1) {
   const sampleDataCategory =
     template.category === "custom" ? "donation_receipt" : template.category;
-  const response = await fetch("/api/pdf-templates/native/preview", {
+  const response = await ownApiFetch("/api/pdf-templates/native/preview", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -1442,7 +1443,7 @@ export function usePDFStudioController() {
       try {
         dispatchUi({ type: "set_exporting", value: true });
         const template = parseNativeTemplateJson(nativeTemplateText);
-        const response = await fetch("/api/pdf-templates/native/render", {
+        const response = await ownApiFetch("/api/pdf-templates/native/render", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

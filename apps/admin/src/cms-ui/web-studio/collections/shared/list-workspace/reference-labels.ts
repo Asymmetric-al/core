@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { useEffect, useState } from "react";
 
 import type { RelationshipFilterOptions } from "./payload-where-filters";
@@ -126,14 +127,18 @@ export function documentReferenceOf(
  * Names for the reference-ID columns among `accessors`, keyed by accessor.
  * A list that fails to load (or that the viewer may not read) names nothing,
  * and its cells keep the short ID.
+ *
+ * The lists are Mission Control's own API, which the Web Studio cookie never
+ * reaches, so they are read through the own-API wrapper with the tenant and
+ * assignment of the document's scope (plan 5.2; WP2b, AL-2675).
  */
 export async function loadReferenceLabels({
   accessors,
-  fetcher = fetch,
+  fetcher = ownApiFetch,
   signal,
 }: {
   accessors: readonly string[];
-  fetcher?: typeof fetch;
+  fetcher?: (path: string, init?: RequestInit) => Promise<Response>;
   signal?: AbortSignal;
 }): Promise<RelationshipFilterOptions> {
   const entries = await Promise.all(

@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   MetricCard,
   MetricGrid,
@@ -28,7 +29,6 @@ import {
 } from "@asym/ui/components/shadcn/item";
 import { format, formatDistanceToNowStrict, parseISO } from "date-fns";
 import { ChevronRight, HeartHandshake, MessageSquareText } from "lucide-react";
-import Link from "next/link";
 import { useId, useMemo } from "react";
 
 import {

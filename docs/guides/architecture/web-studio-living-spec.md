@@ -29,10 +29,10 @@
 | **Runtime**              | Single Payload instance in `apps/admin`; Postgres `cms` schema via `@payloadcms/db-postgres`.                                                                                                                                          |
 | **Admin route**          | `routes.admin: /web-studio` in `apps/admin/payload.config.ts`; Next catch-all `apps/admin/app/(payload)/web-studio/[[...segments]]/page.tsx`.                                                                                          |
 | **Admin provider shell** | `apps/admin/app/(payload)/layout.tsx` embeds public Payload `RootProviders` using `getRootLayoutData` inside the existing Mission Control document shell; it does not render another `<html>` / `<body>`.                              |
-| **Payload REST/GraphQL** | `apps/admin/app/(payload)/api/[...slug]/route.ts`, `.../api/graphql/route.ts` — same origin as admin app.                                                                                                                              |
+| **Payload REST/GraphQL** | `routes.api: /web-studio/api`; `apps/admin/app/(payload)/web-studio/api/[...slug]/route.ts`, `.../graphql/route.ts` — same origin, writes must be same-origin, organization from the Web Studio tenant cookie (plan 5.2).              |
 | **Public read API**      | `apps/admin/app/api/cms/public/**` — **not** the `(payload)` group; tenant resolution + published-only queries.                                                                                                                        |
 | **Custom views**         | `buildConfig.admin.components.views` for top-level flows; per-collection `admin.components.views` for list/edit overrides.                                                                                                             |
-| **Custom endpoint**      | `POST /api/web-studio/create-from-template` via `config.endpoints` → `apps/admin/src/cms/create-from-template-endpoint.ts`.                                                                                                            |
+| **Custom endpoint**      | `POST /web-studio/api/web-studio/create-from-template` via `config.endpoints` → `apps/admin/src/cms/create-from-template-endpoint.ts`.                                                                                                 |
 | **Access**               | `apps/admin/src/cms/access/*` + tenant hooks on collections; public content reads use the sole `PublishedContentReader` with `overrideAccess: false` and the independent public-read policy; tenant lookup is a non-content exception. |
 | **Preferences**          | Payload preferences API; keys in `apps/admin/src/cms-ui/web-studio/preferences/keys.ts`.                                                                                                                                               |
 
@@ -134,20 +134,21 @@ flowchart LR
 
 ### Admin (authenticated)
 
-| Path pattern                                | Owner                | Source                                       |
-| ------------------------------------------- | -------------------- | -------------------------------------------- |
-| `/web-studio`                               | Payload + Next       | `(payload)/web-studio/[[...segments]]`       |
-| `/web-studio/collections/:slug`             | Native list or stock | Collection `admin.components.views.list`     |
-| `/web-studio/collections/:slug/:id`         | Native edit or stock | `views.edit.default`                         |
-| `/web-studio/templates`                     | Custom view          | `payload.config.ts` `admin.components.views` |
-| `/web-studio/missionaries`                  | Custom view          | same                                         |
-| `/web-studio/pages/give`                    | Custom view          | same                                         |
-| `/web-studio/projects/new`                  | Custom view          | same                                         |
-| `/web-studio/pages/new-from-template`       | Custom view          | same                                         |
-| `/web-studio/ministry-updates/new`          | Custom view          | same                                         |
-| `/api/*` (Payload)                          | Payload REST         | `(payload)/api/[...slug]`                    |
-| `/api/graphql`                              | Payload              | `(payload)/api/graphql`                      |
-| `POST /api/web-studio/create-from-template` | Custom               | `config.endpoints`                           |
+| Path pattern                                           | Owner                | Source                                       |
+| ------------------------------------------------------ | -------------------- | -------------------------------------------- |
+| `/web-studio`                                          | Payload + Next       | `(payload)/web-studio/[[...segments]]`       |
+| `/web-studio/collections/:slug`                        | Native list or stock | Collection `admin.components.views.list`     |
+| `/web-studio/collections/:slug/:id`                    | Native edit or stock | `views.edit.default`                         |
+| `/web-studio/templates`                                | Custom view          | `payload.config.ts` `admin.components.views` |
+| `/web-studio/missionaries`                             | Custom view          | same                                         |
+| `/web-studio/pages/give`                               | Custom view          | same                                         |
+| `/web-studio/projects/new`                             | Custom view          | same                                         |
+| `/web-studio/pages/new-from-template`                  | Custom view          | same                                         |
+| `/web-studio/ministry-updates/new`                     | Custom view          | same                                         |
+| `/web-studio/api/*` (Payload)                          | Payload REST         | `(payload)/web-studio/api/[...slug]`         |
+| `/web-studio/api/graphql`                              | Payload              | `(payload)/web-studio/api/graphql`           |
+| `POST /web-studio/api/web-studio/create-from-template` | Custom               | `config.endpoints`                           |
+| `/web-studio/organization`                             | Organization choice  | `(auth)/web-studio/organization`             |
 
 ### Public (unauthenticated, tenant-scoped)
 
@@ -1491,7 +1492,7 @@ flowchart TD
 ```mermaid
 sequenceDiagram
   participant W as Wizard UI
-  participant API as POST /api/web-studio/create-from-template
+  participant API as POST /web-studio/api/web-studio/create-from-template
   participant P as Payload Local API
   participant S as Supabase optional
   W->>API: JSON body

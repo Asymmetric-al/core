@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   LazyMotion,
   domAnimation,
@@ -20,7 +21,6 @@ import { buildCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { Target, Users, Shield, Heart, Globe, Sparkles } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";

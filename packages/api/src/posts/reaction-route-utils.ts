@@ -1,7 +1,8 @@
+import { ScopeRefusedError, type AuthContext } from "@asym/auth/context";
+
 import { postIdParamSchema } from "../schemas/posts";
 import { ApiHttpError } from "../shared/http-errors";
 
-import type { AuthContext } from "@asym/auth/context";
 import type { createClient } from "@asym/database/supabase/server";
 
 type PostsRouteSupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -24,6 +25,8 @@ export async function resolveReactionRouteContext(
   params: Promise<{ postId: string }>,
 ): Promise<ReactionRouteContext> {
   if (!auth.isAuthenticated || !auth.userId || !auth.tenantId) {
+    // A refused tenant or assignment is marked for the browser (JB1).
+    if (auth.scopeRefused) throw new ScopeRefusedError(auth.assignmentDenial);
     throw new ApiHttpError(401, "Unauthorized");
   }
   const { postId } = postIdParamSchema.parse(await params);

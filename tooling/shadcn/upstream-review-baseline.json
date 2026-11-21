@@ -1907,7 +1907,7 @@
     },
     {
       "path": "packages/ui/components/primitives/image-upload.tsx",
-      "localSha256": "59b20224bad282beacdb466ffd473dfefd3843dc09c36a02b79018f20a01f15c",
+      "localSha256": "f37f499bd17844927441976d564c6d8ca778013fdbc04d82fdd316af74c7d70d",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": [
         "packages/ui/components/primitives/image-upload.tsx",
@@ -2169,7 +2169,7 @@
   "proofSources": [
     {
       "path": "docs/ai/rules/frontend.md",
-      "sha256": "4a88af7cbdd79e9f4439e003d7f1bcee178f91c8366483391138233ad57f4bb0"
+      "sha256": "6ca827419ec478fa6bb44b299ad9f72ad0be85fbba44b28cc577208bb7924730"
     },
     {
       "path": "packages/lib/hooks/use-mobile.ts",
@@ -2205,7 +2205,7 @@
     },
     {
       "path": "packages/ui/components/primitives/image-upload.tsx",
-      "sha256": "59b20224bad282beacdb466ffd473dfefd3843dc09c36a02b79018f20a01f15c"
+      "sha256": "f37f499bd17844927441976d564c6d8ca778013fdbc04d82fdd316af74c7d70d"
     },
     {
       "path": "packages/ui/components/primitives/map.tsx",

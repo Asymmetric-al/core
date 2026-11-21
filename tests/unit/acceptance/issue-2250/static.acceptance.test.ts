@@ -71,7 +71,18 @@ describe("#2250 migration text (static)", () => {
     const defs = readdirSync(MIG)
       .filter((f) => /^\d{14}_.+\.sql$/.test(f))
       .filter((f) => def.test(read(`${MIG}/${f}`)));
-    expect(defs).toEqual([AUTHZ_FOUNDATION]);
+    // Amended by AL-2675 (WP2b, second release; record D-18): the plan's
+    // repoint (5.4) redefines the helper once more, onto the request's tenant
+    // header and a live membership. No other migration may, and the guard's
+    // own setting stays apart from it (tenant_guard.current_tenant_id()).
+    // The reviewed repoint by its exact file name, so a renamed or re-dated
+    // file is reviewed again (review of pull request 2737, thread 4641188080).
+    // Sorted, because a directory listing's order is the file system's
+    // (thread 4643328522).
+    expect([...defs].sort()).toEqual([
+      AUTHZ_FOUNDATION,
+      "20261119135300_request_tenant_policies.sql",
+    ]);
   });
 });
 

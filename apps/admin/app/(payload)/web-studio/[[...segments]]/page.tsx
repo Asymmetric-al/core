@@ -6,6 +6,9 @@ import { importMap } from "../importMap";
 
 import type { Metadata } from "next";
 
+import { requireWebStudioAccess } from "@/src/cms/web-studio-access";
+import { WebStudioPageScope } from "@/src/cms-ui/web-studio/shell/web-studio-document";
+
 /** Block: sibling of the preview route, and the Payload admin cannot prerender (see `(payload)/layout.tsx`). */
 export const instant = false;
 
@@ -28,7 +31,20 @@ export const generateMetadata = async ({
 
 const Page = async ({ params, searchParams }: Args) => {
   await connection();
-  return RootPage({ config, importMap, params, searchParams });
+  // Every render asks the gate, a client navigation included: the layout
+  // does not render again then. Rendered for another organization than the
+  // open document's, the page shows nothing and reloads (AL-2675, council C1).
+  const { segments } = await params;
+  // Next passes no segments at Web Studio's home.
+  const path = Array.isArray(segments) ? segments : [];
+  const access = await requireWebStudioAccess(
+    ["/web-studio", ...path.map(encodeURIComponent)].join("/"),
+  );
+  return (
+    <WebStudioPageScope scope={access.scope}>
+      {await RootPage({ config, importMap, params, searchParams })}
+    </WebStudioPageScope>
+  );
 };
 
 export default Page;

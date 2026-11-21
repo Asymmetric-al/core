@@ -54,9 +54,10 @@
 - [x] 6.4 State the hash exception in the spec delta and the exact authority
       in the proposal; correct the #2308 ceiling comment; date-note the
       #2068 and #2154 runtime checklists.
-- [ ] 6.5 Owner confirms on the pull request that #2706 covers the
+- [x] 6.5 Owner confirms on the pull request that #2706 covers the
       diff-scope, step-position and blob-pin removals as well as the
-      fingerprint comparisons.
+      fingerprint comparisons. (Confirmed 2026-11-21: owner directed #2716
+      to be merged as written.)
 
 ## 7. Bot review of #2716
 

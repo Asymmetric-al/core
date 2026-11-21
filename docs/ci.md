@@ -100,11 +100,16 @@ bun run ci:preflight
 13. `verify:bun-lock-drift`
 14. `verify:eslint`
 15. `verify:shadcn-config`
-16. `verify:shadcn-diff`
-17. `verify:shadscan`
-18. `typecheck`
-19. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
-20. `test:unit`
+16. `verify:shadscan`
+17. `typecheck`
+18. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
+19. `test:unit`
+
+The shadcn upstream review (`bun run verify:shadcn-diff`) is not a preflight
+stage or a GitHub check. It compares every installed component with the public
+registry at `ui.shadcn.com`, whose rate limits and stalled connections made it
+an unreliable gate. Run it by hand when refreshing components from the
+registry; `packages/ui/components/shadcn/CUSTOM.md` describes it.
 
 For edits to the adopted roadmap and Studio packets, also run
 `bun run verify:program-roadmap` in the canonical WSL/Linux workspace before
@@ -256,9 +261,9 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `lint`
 
-- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract over live source; gitignored Eve `.eve`, `.nitro`, and `.output` generated trees are excluded), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails) and `bun run verify:shadcn-diff` (pinned modern CLI review guard over all installed official components and explicit file previews; checks reviewed customizations rather than stock byte parity).
+- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract over live source; gitignored Eve `.eve`, `.nitro`, and `.output` generated trees are excluded), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails).
 - _Why it exists:_ Enforces consistent code quality and prevents architecture, workspace, and ESLint config drift.
-- _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:data-boundary`, `bun run verify:cms-public-sole-entry`, `bun run verify:workspace-contract`, `bun run verify:bun-lock-drift`, `bun run verify:eslint`, `bun run verify:shadcn-config`, and `bun run verify:shadcn-diff`.
+- _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:data-boundary`, `bun run verify:cms-public-sole-entry`, `bun run verify:workspace-contract`, `bun run verify:bun-lock-drift`, `bun run verify:eslint`, and `bun run verify:shadcn-config`.
 
 ### `typecheck`
 
@@ -350,12 +355,12 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 
 ### `test-e2e` (needs: `smoke`)
 
-- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005 and `apps/admin` on port 3030, enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, and sets `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` so Playwright reuses the already-started servers instead of trying to bind those ports again. It executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs bounded production-release suites:
+- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005 and `apps/admin` on port 3030, points donor CMS reads at that admin server (`CMS_BASE_URL=http://127.0.0.1:3030`), enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, and sets `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` so Playwright reuses the already-started servers instead of trying to bind those ports again. It executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs bounded production-release suites:
   1. `bun run test:e2e:production-gate` (donor usability, donation, About/Wallet layout and local interactions, admin Support Hub smoke and Teams controls, shared dialog-dismissal/popover-positioning/primitive-contrast and table-control accessibility coverage, and missionary summary/dashboard/chart/loading geometry)
   2. `bun run test:e2e:boneyard:admin`, `bun run test:e2e:boneyard:missionary`, and `bun run test:e2e:boneyard:donor` (visual regression smoke by app)
      The Missionary command also runs the standalone account-frame regressions.
   3. `bun run test:e2e:cms --project=chromium` (portable CMS/admin suite tagged `@cms`, excluding `@manual` and local-seed-only `@cms-local`; CI reuses the same donor/admin servers)
-     The job has a 30-minute cap, and individual Playwright suite steps have 5-10 minute caps. Uploads `playwright-report/` as an artifact on failure (retained 7 days).
+     The job has a 35-minute cap; the production gate has 10 minutes and the Web Studio tenant step has 20. Uploads `playwright-report/` as an artifact on failure (retained 7 days).
 - _Artifacts:_ Auth preflight, production gate, and CMS invocations use distinct
   `PLAYWRIGHT_REPORT_DIR` paths under `playwright-report/`. The default reporter
   streams each test's progress and writes an atomic, bounded
@@ -436,7 +441,7 @@ the secrets it needs by name and the owner's steps to switch it on, is
 
 Starts a local Supabase stack from source and runs the Supabase Auth email
 round trips against it. A workflow of its own, so `ci.yml` and
-`ci-integration.yml` do not change. Not a required check. It guards four
+`ci-integration.yml` do not change. Not a required check. It guards five
 things:
 
 - _The migration chain and the seed on the real Supabase image._ It is the
@@ -467,6 +472,11 @@ things:
   those handler directories, their listed shared API helpers, the database's
   Supabase admin and config modules, the proof and its fixtures, or the root
   Vitest configuration and its two local resolver plugins.
+- _Platform operator second factor (WP2c):_ `node scripts/e2e/run-operator-mfa.mjs`
+  tests TOTP enrolment and challenge against local Auth, the caller's operator
+  check through PostgREST, and the operator CLI against the same database.
+  After a successful stack start it runs even if the auth-mail journeys fail,
+  unless the job was cancelled. Missing stack values fail the proof.
 - _Job:_ installs the Supabase CLI at the version `scripts/supabase-cli.mjs`
   pins, starts the stack with `bun run supabase -- start` (every migration and
   the seed, then Auth, PostgREST and Mailpit), then runs

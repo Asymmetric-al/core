@@ -1,7 +1,7 @@
 "use client";
 
+import { useTenantRouter as useRouter } from "@asym/auth/tenant-navigation";
 import { NavigationCommandPalette } from "@asym/ui/components/primitives/navigation-command-palette";
-import { useRouter } from "next/navigation";
 
 import { getNavItems } from "./navigation-items";
 

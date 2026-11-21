@@ -4,6 +4,8 @@ import { createCollection } from "@tanstack/db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { z } from "zod";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import { parseJsonResponse } from "../http/parse-json-response";
 import { getQueryClient } from "../providers/query-client";
 import { adminSurfaceQueryKeys } from "../query-keys";
@@ -47,7 +49,7 @@ type AdminLocationsResponse = {
 };
 
 export async function fetchAdminLocationsResponse(): Promise<AdminLocationsResponse> {
-  const response = await fetch("/api/admin/locations", {
+  const response = await ownApiFetch("/api/admin/locations", {
     cache: "no-store",
     credentials: "same-origin",
     headers: {

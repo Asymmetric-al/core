@@ -27,7 +27,7 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
 
   if (code) {
-    const supabase = await createClient();
+    const supabase = await createClient(null); // Auth only: reads no tenant table.
     // A refused exchange issues no session; the reset screen reports it.
     await supabase.auth.exchangeCodeForSession(code);
   }

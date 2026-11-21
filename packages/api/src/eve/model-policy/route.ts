@@ -16,8 +16,8 @@ import {
   loadActiveEveModelBudgetOverrides,
   loadEveModelPolicies,
 } from "./store";
-import { toErrorResponse } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
+import { withPlatformOperation } from "../../shared/with-operation";
 
 async function loadAdminView(
   input: Parameters<typeof canManageEveModelPolicy>[0],
@@ -35,11 +35,12 @@ async function loadAdminView(
   };
 }
 
-export const GET = withOperation(
-  async ({ auth, supabaseAdmin, requestId }) => {
+export const GET = withPlatformOperation(
+  async ({ auth, supabaseAdmin, requestId, isPlatformOperator }) => {
     try {
+      const platformOperator = await isPlatformOperator();
       return NextResponse.json({
-        ...(await loadAdminView({ auth, supabaseAdmin })),
+        ...(await loadAdminView({ auth, supabaseAdmin, platformOperator })),
         requestId,
       });
     } catch (error) {
@@ -53,20 +54,24 @@ export const GET = withOperation(
   { tenantAdministrator: true },
 );
 
-export const POST = withOperation(
-  async ({ auth, request, supabaseAdmin, requestId }) => {
+export const POST = withPlatformOperation(
+  async ({ auth, request, supabaseAdmin, requestId, isPlatformOperator }) => {
     try {
       const parsed = createEveModelPolicyDraftSchema.parse(
-        await request.json(),
+        await ensureJsonBody(request),
       );
+      // A platform operator manages model policy too (AL-2675 WP2c: the
+      // shared operator check, not the super_admin role name).
+      const platformOperator = await isPlatformOperator();
       const policyId = await createEveModelPolicyDraft({
         auth,
+        platformOperator,
         supabaseAdmin,
         policy: parsed.policy,
       });
       return NextResponse.json(
         {
-          ...(await loadAdminView({ auth, supabaseAdmin })),
+          ...(await loadAdminView({ auth, supabaseAdmin, platformOperator })),
           mutation: { action: "draft", policyId },
           requestId,
         },
@@ -83,30 +88,45 @@ export const POST = withOperation(
   { tenantAdministrator: true },
 );
 
-export const PATCH = withOperation(
-  async ({ auth, request, supabaseAdmin, requestId }) => {
+export const PATCH = withPlatformOperation(
+  async ({ auth, request, supabaseAdmin, requestId, isPlatformOperator }) => {
     try {
-      const mutation = mutateEveModelPolicySchema.parse(await request.json());
+      const mutation = mutateEveModelPolicySchema.parse(
+        await ensureJsonBody(request),
+      );
+      const platformOperator = await isPlatformOperator();
       if (mutation.action === "evaluate") {
         await evaluateEveModelPolicyDraft({
           auth,
+          platformOperator,
           supabaseAdmin,
           policyId: mutation.policyId,
         });
       } else if (mutation.action === "activate") {
-        await activateEveModelPolicy({ auth, supabaseAdmin, ...mutation });
+        await activateEveModelPolicy({
+          auth,
+          platformOperator,
+          supabaseAdmin,
+          ...mutation,
+        });
       } else if (mutation.action === "rollback") {
-        await rollbackEveModelPolicy({ auth, supabaseAdmin, ...mutation });
+        await rollbackEveModelPolicy({
+          auth,
+          platformOperator,
+          supabaseAdmin,
+          ...mutation,
+        });
       } else {
         await createEveModelBudgetOverride({
           auth,
+          platformOperator,
           supabaseAdmin,
           ...mutation,
         });
       }
 
       return NextResponse.json({
-        ...(await loadAdminView({ auth, supabaseAdmin })),
+        ...(await loadAdminView({ auth, supabaseAdmin, platformOperator })),
         mutation: { action: mutation.action },
         requestId,
       });

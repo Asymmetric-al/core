@@ -30,6 +30,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { runPsqlQuery } from "../lib/psql.mjs";
+import {
+  isAssignmentReader,
+  preMembershipExceptions,
+  protectedEntry,
+} from "./command-entry-boundaries.mjs";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -38,6 +43,26 @@ const repoRoot = path.resolve(
 );
 export const TENANT_RLS_EXCEPTIONS_PATH =
   "docs/security/rls-deny-by-default-exceptions.json";
+/**
+ * Reviewed signed-in policies of tenant tables that carry no request-tenant
+ * condition, each pinned to its deparsed text (AL-2675, WP2b second release;
+ * docs/security/tenant-policy-activation-review.md, section 3).
+ */
+export const TENANT_POLICY_EXCEPTIONS_PATH =
+  "docs/security/tenant-policy-exceptions.json";
+/** The helpers behind the request's tenant; none may read the token claim. */
+export const TENANT_HELPERS = [
+  "current_tenant_id",
+  "request_tenant_id",
+  "request_assignment_id",
+  "request_assignment",
+];
+/** The tenant condition every signed-in policy of a tenant table carries, as deparsed. */
+export const TENANT_CONDITION =
+  "tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)";
+/** The super-admin branch WP2c removes; until then it may stand beside the tenant condition. */
+export const SUPER_ADMIN_BRANCH =
+  "SELECT authz.is_super_admin() AS is_super_admin";
 /** Reviewed SECURITY DEFINER functions that anon may execute (plan 5.4). */
 export const ANON_DEFINER_ALLOWLIST_PATH =
   "docs/security/anon-definer-allowlist.json";
@@ -70,6 +95,20 @@ const UNSAFE_TABLE_PRIVILEGES = [
   "TRIGGER",
   "MAINTAIN",
 ];
+/** Policy commands that only write; a signed-in one needs the grant for it. */
+const WRITE_COMMANDS = ["INSERT", "UPDATE", "DELETE"];
+/**
+ * Tables in `public` with no tenant column whose rows reach their tenant
+ * through a parent row (council R3): every signed-in policy on them is a
+ * reviewed pin, and none of them may be published.
+ */
+export const PARENT_SCOPED_TABLES = [
+  "donor_activities",
+  "post_comments",
+  "post_fires",
+  "post_likes",
+  "post_prayers",
+];
 
 const quoted = (names) => names.map((s) => `'${s}'`).join(", ");
 const PUBLIC_EXECUTE = `exists (select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
@@ -83,6 +122,15 @@ const SEARCH_PATH = `(select substr(c, 13) from unnest(p.proconfig) c where c li
  * `tenant_guard` and `platform` are never on that session's search path.
  */
 const BODY = `(p.prosrc || coalesce(E'\\n' || pg_get_function_sqlbody(p.oid), ''))`;
+/**
+ * The Data API roles, as rows g(r), and whether policy `p` reaches g.r: it
+ * names PUBLIC, or a role g.r holds by membership, itself included
+ * (fixcheck F4).
+ */
+const API_ROLES = `unnest(array['authenticated', 'anon']) g(r)`;
+const POLICY_REACHES = `(p.polroles @> array[0::oid]
+             or exists (select 1 from unnest(p.polroles) x(rid)
+                        where pg_has_role(g.r, x.rid, 'MEMBER')))`;
 const COMMAND_SCHEMA_PATTERN = COMMAND_SCHEMAS.join("|");
 
 /** A row-security policy admits role `a.grantee` for the command of `a.privilege_type` on relation `c`. */
@@ -200,6 +248,7 @@ select jsonb_build_object(
       'body', ${BODY},
       'authenticated', has_function_privilege('authenticated', p.oid, 'EXECUTE'),
       'anon', has_function_privilege('anon', p.oid, 'EXECUTE'),
+      'service_role', has_function_privilege('service_role', p.oid, 'EXECUTE'),
       'public_execute', ${PUBLIC_EXECUTE}) order by n.nspname, p.proname, p.oid)
     from pg_proc p
     join pg_namespace n on n.oid = p.pronamespace
@@ -210,7 +259,82 @@ select jsonb_build_object(
         or ${SEARCH_PATH} ~* '(${COMMAND_SCHEMA_PATTERN})')), '[]'::jsonb),
   'grants', coalesce((
     select jsonb_agg(to_jsonb(g) order by g.relation, g.grantee, g.privilege)
-    from (${UNADMITTED_TABLE_GRANTS_SQL}) g), '[]'::jsonb)
+    from (${UNADMITTED_TABLE_GRANTS_SQL}) g), '[]'::jsonb),
+  -- AL-2675 (WP2b, second release): every policy signed-in users reach in
+  -- public, as Postgres deparses it, the bodies of the request-tenant
+  -- helpers, and the public tables in the Realtime publication. 'granted'
+  -- says whether a signed-in role the policy names (authenticated, and anon
+  -- too when it is TO public) holds the privilege its command needs, on the
+  -- table or on any column of it, directly, through PUBLIC or a membership.
+  'policies', coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'table', c.relname,
+      'policy', p.polname,
+      'cmd', case p.polcmd when 'r' then 'SELECT' when 'a' then 'INSERT'
+                           when 'w' then 'UPDATE' when 'd' then 'DELETE' else 'ALL' end,
+      'roles', (select jsonb_agg(case r when 0 then 'public' else r::regrole::text end order by 1)
+                  from unnest(p.polroles) r),
+      'using', pg_get_expr(p.polqual, p.polrelid),
+      'check', pg_get_expr(p.polwithcheck, p.polrelid),
+      'granted', exists (
+        select 1
+        from ${API_ROLES}
+        where ${POLICY_REACHES} and case p.polcmd
+                when 'r' then has_any_column_privilege(g.r, c.oid, 'SELECT')
+                when 'a' then has_any_column_privilege(g.r, c.oid, 'INSERT')
+                when 'w' then has_any_column_privilege(g.r, c.oid, 'UPDATE')
+                when 'd' then has_table_privilege(g.r, c.oid, 'DELETE')
+                else has_any_column_privilege(g.r, c.oid, 'SELECT, INSERT, UPDATE')
+                  or has_table_privilege(g.r, c.oid, 'DELETE') end),
+      -- Council R3: whether the policy is permissive, and whether a signed-in
+      -- role it names holds any write privilege, which a FOR ALL policy needs
+      -- for its write half.
+      'permissive', p.polpermissive,
+      'writable', exists (
+        select 1
+        from ${API_ROLES}
+        where ${POLICY_REACHES}
+          and (has_any_column_privilege(g.r, c.oid, 'INSERT, UPDATE')
+               or has_table_privilege(g.r, c.oid, 'DELETE')))) order by c.relname, p.polname)
+    from pg_policy p
+    join pg_class c on c.oid = p.polrelid
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public'
+      -- Fixcheck F4: every policy a Data API role reaches, TO PUBLIC or to a
+      -- role that authenticated or anon holds by membership.
+      and exists (select 1 from ${API_ROLES} where ${POLICY_REACHES})), '[]'::jsonb),
+  -- Council R12 (a): every overload of each request-tenant helper ('root'),
+  -- and every function they reach through a qualified call in their text.
+  'tenant_helpers', coalesce((
+    with recursive reach(oid, root) as (
+      select p.oid, true
+      from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'authz'
+        and p.proname in (${quoted(TENANT_HELPERS)})
+      union
+      select q.oid, false
+      from reach r
+      join pg_proc rp on rp.oid = r.oid
+      join pg_proc q on q.oid <> rp.oid
+      join pg_namespace qn on qn.oid = q.pronamespace
+      where qn.nspname not in ('pg_catalog', 'information_schema')
+        and qn.nspname not like 'pg\\_%'
+        and (rp.prosrc || coalesce(pg_get_function_sqlbody(rp.oid), ''))
+            ~* ('(^|[^a-z0-9_$."])"?' || qn.nspname || '"?\\s*\\.\\s*"?' || q.proname || '"?\\s*\\(')
+    )
+    select jsonb_agg(jsonb_build_object(
+      'function', ${SIGNATURE},
+      'body', ${BODY},
+      'search_path', ${SEARCH_PATH},
+      'root', r.root) order by ${SIGNATURE})
+    from (select oid, bool_or(root) as root from reach group by oid) r
+    join pg_proc p on p.oid = r.oid
+    join pg_namespace n on n.oid = p.pronamespace), '[]'::jsonb),
+  'published', coalesce((
+    select jsonb_agg(t.tablename::text order by t.tablename)
+    from pg_publication_tables t
+    where t.schemaname = 'public'), '[]'::jsonb)
 )::text;`;
 
 /**
@@ -219,7 +343,10 @@ select jsonb_build_object(
  * quoted). It only finds where comments and literals start and end, so that a
  * call or an EXCEPTION clause cannot hide in, or be faked by, either.
  */
-export function stripComments(body, { blankStrings = false } = {}) {
+export function stripComments(
+  body,
+  { blankStrings = false, preserveWidth = false } = {},
+) {
   const IDENT = /[A-Za-z0-9_$]/;
   const DOLLAR = /\$([A-Za-z_][A-Za-z0-9_]*)?\$/y;
   let out = "";
@@ -249,7 +376,9 @@ export function stripComments(body, { blankStrings = false } = {}) {
     if (dollar) {
       const close = body.indexOf(dollar[0], i + dollar[0].length);
       const end = close < 0 ? body.length : close + dollar[0].length;
-      out += blankStrings ? "''" : body.slice(i, end);
+      out += blankStrings
+        ? "''".padEnd(preserveWidth ? end - i : 2)
+        : body.slice(i, end);
       i = end;
       continue;
     }
@@ -265,7 +394,10 @@ export function stripComments(body, { blankStrings = false } = {}) {
         else if (body[j] === ch) break;
         else j += 1;
       }
-      out += blankStrings && ch === "'" ? "''" : body.slice(i, j + 1);
+      out +=
+        blankStrings && ch === "'"
+          ? "''".padEnd(preserveWidth ? j + 1 - i : 2)
+          : body.slice(i, j + 1);
       i = j + 1;
       continue;
     }
@@ -356,6 +488,22 @@ export function laneCheckProblem({ schema, language, body }) {
   return null;
 }
 
+function entryStatement(body) {
+  const raw = stripComments(body);
+  const masked = stripComments(raw, {
+    blankStrings: true,
+    preserveWidth: true,
+  }).replace(/"(?:[^"]|"")*"/g, (name) => "_".repeat(name.length));
+  const begin = /\bBEGIN\b/i.exec(masked);
+  if (!begin) return null;
+  const start = begin.index + begin[0].length;
+  return {
+    raw: raw.slice(start),
+    main: masked.slice(start),
+    declarations: masked.slice(0, begin.index),
+  };
+}
+
 /** The command-schema functions a body calls, as `schema.name`, comments ignored and dynamic SQL included. */
 export function callsIntoCommandSchemas(body) {
   const calls = new Set();
@@ -415,6 +563,222 @@ function searchPathProblem(schema, searchPath) {
 }
 
 /** Parses the exception list: { listed: Set<table>, failures }. */
+/**
+ * Walks deparsed policy text and calls `visit(index, depth)` for every
+ * character outside single-quoted literals and double-quoted identifiers,
+ * with the parenthesis depth before it.
+ */
+function walkExpression(text, visit) {
+  let depth = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"') {
+      const close = text.indexOf(ch, i + 1);
+      i = close < 0 ? text.length : close;
+      // A doubled quote inside a literal continues it.
+      while (text[i + 1] === ch) {
+        const next = text.indexOf(ch, i + 2);
+        i = next < 0 ? text.length : next;
+      }
+      continue;
+    }
+    if (visit(i, depth) === false) return;
+    if (ch === "(") depth += 1;
+    else if (ch === ")") depth -= 1;
+  }
+}
+
+/** The text without the parentheses that enclose all of it. */
+export function stripParens(text) {
+  let s = text.trim();
+  for (;;) {
+    if (!s.startsWith("(") || !s.endsWith(")")) return s;
+    let closesAtEnd = true;
+    walkExpression(s, (i, depth) => {
+      if (s[i] === ")" && depth === 1 && i < s.length - 1) {
+        closesAtEnd = false;
+        return false;
+      }
+    });
+    if (!closesAtEnd) return s;
+    s = s.slice(1, -1).trim();
+  }
+}
+
+/** The operands of `text` joined at the top level by `op` ("AND" or "OR"). */
+export function splitTopLevel(text, op) {
+  const s = stripParens(text);
+  const token = ` ${op} `;
+  const parts = [];
+  let start = 0;
+  walkExpression(s, (i, depth) => {
+    if (depth === 0 && s.startsWith(token, i)) {
+      parts.push(s.slice(start, i));
+      start = i + token.length;
+    }
+  });
+  parts.push(s.slice(start));
+  return parts.map((p) => p.trim());
+}
+
+const isSuperAdminBranch = (expr) => stripParens(expr) === SUPER_ADMIN_BRANCH;
+
+/**
+ * Whether a deparsed policy expression admits a row only under the request's
+ * tenant: the tenant condition itself, a conjunction with a tenant-bound
+ * operand, or a disjunction whose every operand is tenant-bound, beside at
+ * most one super-admin branch, `(SELECT authz.is_super_admin())`, until WP2c
+ * removes it (activation review Q6). Any other disjunct fails.
+ */
+export function tenantBound(expr) {
+  const s = stripParens(expr);
+  if (s === TENANT_CONDITION) return true;
+  const ors = splitTopLevel(s, "OR");
+  if (ors.length > 1) {
+    const branches = ors.filter(isSuperAdminBranch).length;
+    return (
+      branches <= 1 &&
+      ors.every((d) => isSuperAdminBranch(d) || tenantBound(d)) &&
+      ors.some((d) => !isSuperAdminBranch(d))
+    );
+  }
+  const ands = splitTopLevel(s, "AND");
+  return ands.length > 1 && ands.some(tenantBound);
+}
+
+/**
+ * The calls of `authz` helpers in a deparsed policy expression that run once
+ * for every row: a call that is not the whole of its own sub-select, or whose
+ * arguments name anything but constants, casts and other whole sub-selects
+ * of helpers (record D-25; TP1 section 8, item 1).
+ */
+export function perRowLookups(expr) {
+  const found = [];
+  const s = expr;
+  // Council R12 (b): `auth.` calls too, such as a bare auth.uid() compared
+  // with a column, which runs once for every row.
+  const CALL = /(?:authz|auth)\.([A-Za-z_][A-Za-z0-9_$]*)\s*\(/y;
+  walkExpression(s, (i) => {
+    // A call, not a type in a cast ('staff'::authz.membership_role).
+    if (/[A-Za-z0-9_$.":]/.test(s[i - 1] ?? "")) return;
+    CALL.lastIndex = i;
+    const m = CALL.exec(s);
+    if (!m) return;
+    const open = i + m[0].length - 1;
+    const name = m[1];
+    let close = -1;
+    walkExpression(s.slice(open), (j, depth) => {
+      if (s[open + j] === ")" && depth === 1) {
+        close = open + j;
+        return false;
+      }
+    });
+    const call = s.slice(i, close + 1);
+    const wrapped =
+      /\(\s*SELECT\s+$/.test(s.slice(0, i)) &&
+      s.startsWith(` AS ${name})`, close + 1);
+    const args = s
+      .slice(open + 1, close)
+      .replace(/\(\s*SELECT\s+authz\.[a-z_]+\([^()]*\)\s+AS\s+[a-z_]+\)/g, "")
+      .replace(/'(?:[^']|'')*'/g, "")
+      .replace(/::[A-Za-z_][\w.]*(\[\])?/g, "")
+      .replace(/\b(ARRAY|NULL|true|false)\b/g, "");
+    if (!wrapped || /[A-Za-z_]/.test(args)) found.push(call);
+  });
+  return found;
+}
+
+/** Whether a deparsed expression or a function body reads the token's claims for authority. */
+const readsTokenClaim = (text) =>
+  /auth\.jwt\s*\(|app_metadata|request\.jwt\.claims?\b/i.test(text ?? "");
+
+/**
+ * Whether a function a request-tenant helper calls reads anything of the
+ * token but its subject (council R12 (a)): `auth.uid()` reads the subject,
+ * the caller's identity, and nothing else may be read.
+ */
+function readsClaimBeyondSubject(text) {
+  const t = text ?? "";
+  if (/auth\.jwt\s*\(|app_metadata|user_metadata/i.test(t)) return true;
+  if (/request\.jwt\.claim\.(?!sub\b)[a-z_]/i.test(t)) return true;
+  if (/request\.jwt\.claims\b/i.test(t)) {
+    const keys = [...t.matchAll(/->>?\s*'([^']*)'/g)].map((m) => m[1]);
+    return keys.length === 0 || keys.some((key) => key !== "sub");
+  }
+  return false;
+}
+
+/**
+ * What a policy effectively admits for its command, as Postgres reads it
+ * (council R2): a missing USING is true for every row, a missing WITH CHECK
+ * is the USING. SELECT and DELETE are judged by their USING, INSERT by its
+ * WITH CHECK, UPDATE and FOR ALL by both.
+ */
+export function effectivePredicates(p) {
+  const using = p.using ?? "true";
+  const check = p.check ?? using;
+  if (p.cmd === "SELECT" || p.cmd === "DELETE") return [using];
+  if (p.cmd === "INSERT") return [check];
+  return using === check ? [using] : [using, check];
+}
+
+/** A policy that admits nothing: `false` for every command it governs. */
+const isPlainDeny = (p) =>
+  effectivePredicates(p).every((e) => stripParens(e) === "false");
+
+const sortedRoles = (roles) => [...(roles ?? [])].map(String).sort();
+
+/** Whether a pinned entry still describes the policy: text, command, roles and kind. */
+function pinMatches(entry, p) {
+  return (
+    (entry.using ?? null) === (p.using ?? null) &&
+    (entry.check ?? null) === (p.check ?? null) &&
+    entry.cmd === p.cmd &&
+    entry.permissive === p.permissive &&
+    JSON.stringify(sortedRoles(entry.roles)) ===
+      JSON.stringify(sortedRoles(p.roles))
+  );
+}
+
+/**
+ * Parses the reviewed policy exceptions: { listed: Map<"table|policy", entry>,
+ * failures }. Each entry names a table and policy, the exact deparsed `using`
+ * and `check` text it is reviewed with (null when the policy has none), its
+ * command, its roles and whether it is permissive (council R3), and a reason.
+ */
+function readPolicyExceptions(exceptions) {
+  const failures = [];
+  const listed = new Map();
+  const malformed = (detail, table) =>
+    failures.push({ code: "POLICY_EXCEPTIONS_MALFORMED", table, detail });
+  if (exceptions instanceof Error) malformed(exceptions.message);
+  else if (!Array.isArray(exceptions?.entries))
+    malformed("expected an object with an entries array");
+  else
+    for (const [i, entry] of exceptions.entries.entries()) {
+      const key = `${entry?.table}|${entry?.policy}`;
+      if (typeof entry?.table !== "string" || typeof entry?.policy !== "string")
+        malformed(`entry ${i} has no table or policy`);
+      else if (listed.has(key)) malformed(`duplicate entry ${i}`, entry.table);
+      else if (typeof entry.reason !== "string" || !entry.reason.trim())
+        malformed(`entry ${i} has no reason`, entry.table);
+      else if (!("using" in entry) || !("check" in entry))
+        malformed(`entry ${i} has no using or check text`, entry.table);
+      else if (
+        typeof entry.cmd !== "string" ||
+        !Array.isArray(entry.roles) ||
+        !entry.roles.every((r) => typeof r === "string") ||
+        typeof entry.permissive !== "boolean"
+      )
+        malformed(
+          `entry ${i} does not pin its command, roles and permissive flag`,
+          entry.table,
+        );
+      else listed.set(key, entry);
+    }
+  return { listed, failures };
+}
+
 function readExceptions(exceptions) {
   const failures = [];
   const listed = new Set();
@@ -470,6 +834,7 @@ export function evaluateTenantRlsCatalog(
   snapshot,
   exceptions,
   anonAllowlist = { entries: [] },
+  policyExceptionList = { entries: [] },
 ) {
   const { listed, failures, usable } = readExceptions(exceptions);
   const fail = (code, table, detail) => failures.push({ code, table, detail });
@@ -585,6 +950,8 @@ export function evaluateTenantRlsCatalog(
     );
     return false;
   });
+  const preMembership = preMembershipExceptions(commands);
+  failures.push(...preMembership.failures);
   for (const c of commands) {
     if (c.public_execute || c.anon)
       failFn(
@@ -604,18 +971,44 @@ export function evaluateTenantRlsCatalog(
         c.function,
         `a function in the ${c.schema} schema names the auth schema, which the guard cannot be granted on Supabase's own image; read the caller with tenant_guard.caller_id() and the claims with tenant_guard.request_claims()`,
       );
+    if (
+      c.schema === "tenant_guard" &&
+      c.service_role &&
+      !c.authenticated &&
+      (!c.definer ||
+        c.owner !== COMMAND_OWNER ||
+        !protectedEntry(c, entryStatement(c.body), outerBlockHasHandler))
+    )
+      failFn(
+        "COMMAND_HELPER_EXPOSED",
+        c.function,
+        "Service EXECUTE requires a guard-owned definer that enters its tenant before any other work",
+      );
     if (!c.authenticated) continue;
     if (c.schema === "tenant_guard") {
       const problem = !c.definer
         ? "is not SECURITY DEFINER"
         : c.owner !== COMMAND_OWNER
           ? `is owned by ${c.owner}, not ${COMMAND_OWNER}`
-          : laneCheckProblem(c);
+          : preMembership.allowed.has(c.function)
+            ? null
+            : laneCheckProblem(c);
       if (problem)
         failFn(
           "COMMAND_HUMAN_NO_PREAMBLE",
           c.function,
           `a tenant_guard function authenticated may execute is a SECURITY DEFINER owned by ${COMMAND_OWNER} whose first statement calls ${COMMAND_PREAMBLES.tenant_guard}...); this one ${problem}`,
+        );
+      else if (
+        !c.service_role &&
+        !preMembership.allowed.has(c.function) &&
+        !isAssignmentReader(c) &&
+        !protectedEntry(c, entryStatement(c.body), outerBlockHasHandler)
+      )
+        failFn(
+          "COMMAND_CAPABILITY",
+          c.function,
+          "Open with a tenant argument and one literal code-registry capability; no declaration initializer may run first",
         );
     } else {
       const problem = c.definer
@@ -631,10 +1024,14 @@ export function evaluateTenantRlsCatalog(
   }
 
   // A target a signed-in user may reach through a wrapper: every function of
-  // that name in its command schema is executable by authenticated.
+  // that name in its command schema is executable by authenticated. Every
+  // signed-in command, a platform command as much as a tenant_guard one, is a
+  // human target: a wrapper that calls one grants nothing to service_role.
   const signedInTargets = new Map();
+  const humanTargets = new Set();
   for (const c of commands) {
     const key = c.function.slice(0, c.function.indexOf("(")).toLowerCase();
+    if (c.authenticated) humanTargets.add(key);
     signedInTargets.set(
       key,
       (signedInTargets.get(key) ?? true) && Boolean(c.authenticated),
@@ -681,6 +1078,12 @@ export function evaluateTenantRlsCatalog(
         `${calls}: PUBLIC or anon may execute it`,
       );
     const workers = targets.filter((t) => signedInTargets.get(t) !== true);
+    if (w.service_role && targets.some((target) => humanTargets.has(target)))
+      failFn(
+        "WRAPPER_GRANTS_HUMAN",
+        w.function,
+        "A wrapper calling a human entry point grants no EXECUTE to service_role",
+      );
     if (w.authenticated && workers.length)
       failFn(
         "WRAPPER_GRANTS_WORKER",
@@ -708,7 +1111,151 @@ export function evaluateTenantRlsCatalog(
     fail(code, g.relation, `${g.grantee} holds ${g.privilege}${on}: ${why}`);
   }
 
+  // AL-2675 (WP2b, second release; plan 12, WP2 exit): the tenant condition
+  // on every signed-in policy of a tenant table, each lookup once for a
+  // statement, no policy and no tenant helper that reads the token claim, and
+  // no tenant table in the Realtime publication (plan 5.2).
+  const policyExceptions = readPolicyExceptions(policyExceptionList);
+  failures.push(...policyExceptions.failures);
+  const seen = new Set();
+  let tenantPolicies = 0;
+  for (const p of snapshot.policies ?? []) {
+    const key = `${p.table}|${p.policy}`;
+    const exprs = [p.using, p.check].filter(
+      (e) => e !== null && e !== undefined,
+    );
+    if (exprs.some(readsTokenClaim))
+      fail(
+        "POLICY_READS_TOKEN_CLAIM",
+        p.table,
+        `policy "${p.policy}" reads the token's claims; the request's tenant comes from authz.current_tenant_id()`,
+      );
+    // Activation review Q7, as the coordinator widened it: no signed-in
+    // write policy where no signed-in role holds the privilege its command
+    // needs. Such a policy admits nothing today and would admit every role
+    // it names the day a grant came back, unreviewed. It holds on every
+    // table in public, a tenant table or not, listed or not. A FOR ALL policy
+    // also governs reads and is held to the rules below instead.
+    if (WRITE_COMMANDS.includes(p.cmd) && p.granted === false)
+      fail(
+        "WRITE_POLICY_WITHOUT_GRANT",
+        p.table,
+        `policy "${p.policy}" (${p.cmd}) stands where no signed-in role it names holds ${p.cmd}: drop the policy, or grant the privilege and review the policy with it`,
+      );
+    // Council R3: a FOR ALL policy also writes; where no signed-in role holds
+    // a write privilege only a plain deny may stand.
+    if (p.cmd === "ALL" && p.writable === false && !isPlainDeny(p))
+      fail(
+        "WRITE_POLICY_WITHOUT_GRANT",
+        p.table,
+        `policy "${p.policy}" (ALL) is not a plain deny and no signed-in role it names holds INSERT, UPDATE or DELETE: make it a SELECT policy, or a deny`,
+      );
+    // A listed exception is pinned to its text, command, roles and kind on
+    // any table in public, a tenant table or not (the post tables have no
+    // tenant column). On a table that reaches its tenant through a parent,
+    // every signed-in policy is a pin (council R3).
+    const listedEntry = policyExceptions.listed.get(key);
+    const parentScoped = PARENT_SCOPED_TABLES.includes(p.table);
+    if (!tables.get(p.table)?.tenant && !listedEntry && !parentScoped) continue;
+    if (tables.get(p.table)?.tenant) tenantPolicies += 1;
+    const lookups = (e) => {
+      for (const call of perRowLookups(e))
+        fail(
+          "POLICY_LOOKUP_PER_ROW",
+          p.table,
+          `policy "${p.policy}" calls ${call} once for every row: write it as a whole sub-select, (SELECT authz.f(...)), with no column of the row`,
+        );
+    };
+    if (listedEntry) {
+      seen.add(key);
+      if (!pinMatches(listedEntry, p))
+        fail(
+          "POLICY_EXCEPTION_CHANGED",
+          p.table,
+          `policy "${p.policy}" differs from its reviewed text, command, roles or kind in ${TENANT_POLICY_EXCEPTIONS_PATH}: review it again`,
+        );
+      else for (const e of exprs) lookups(e);
+      continue;
+    }
+    if (parentScoped) {
+      fail(
+        "PARENT_SCOPED_POLICY_NOT_PINNED",
+        p.table,
+        `policy "${p.policy}" (${p.cmd}) on a table that reaches its tenant through a parent is not a reviewed pin in ${TENANT_POLICY_EXCEPTIONS_PATH}; Postgres ORs it with the pinned one`,
+      );
+      continue;
+    }
+    // Council R2: the effective predicate of each command, with a missing
+    // USING as true and a missing WITH CHECK as the USING. The super-admin
+    // branch passes only beside the tenant condition (tenantBound).
+    for (const e of effectivePredicates(p)) {
+      if (stripParens(e) === "false") continue;
+      if (!tenantBound(e))
+        fail(
+          "TENANT_CONDITION_MISSING",
+          p.table,
+          `policy "${p.policy}" (${p.cmd}) admits a row without ${TENANT_CONDITION}`,
+        );
+      lookups(e);
+    }
+  }
+  for (const key of policyExceptions.listed.keys())
+    if (!seen.has(key)) {
+      const [table, policy] = key.split("|");
+      fail(
+        "POLICY_EXCEPTION_STALE",
+        table,
+        `no signed-in policy "${policy}" on this table: remove it from ${TENANT_POLICY_EXCEPTIONS_PATH}`,
+      );
+    }
+  if (snapshot.tenant_helpers) {
+    // Council R12 (a): every entry by its signature, so an overload cannot
+    // hide another; each helper reads no claim, and each function they call
+    // reads the token's subject at most.
+    const roots = snapshot.tenant_helpers.filter((h) => h.root !== false);
+    for (const name of TENANT_HELPERS)
+      if (!roots.some((h) => h.function.startsWith(`authz.${name}(`)))
+        failFn(
+          "TENANT_HELPER_MISSING",
+          `authz.${name}`,
+          "the request-tenant helper is missing",
+        );
+    for (const h of snapshot.tenant_helpers) {
+      const body = stripComments(h.body);
+      if (
+        h.root !== false ? readsTokenClaim(body) : readsClaimBeyondSubject(body)
+      )
+        failFn(
+          "TENANT_HELPER_READS_CLAIM",
+          h.function,
+          h.root !== false
+            ? "the request's tenant comes from the x-asym-tenant header and a live membership, never the token's claims"
+            : "a request-tenant helper calls this function, which reads the token beyond its subject",
+        );
+      // Fixcheck F4: the gate follows schema-qualified calls only. With an
+      // empty search path, a call a helper makes without a schema resolves in
+      // pg_catalog alone, so nothing it reaches goes unread.
+      if (h.root !== false && h.search_path !== '""')
+        failFn(
+          "TENANT_HELPER_SEARCH_PATH",
+          h.function,
+          "a request-tenant helper sets an empty search path (SET search_path = ''), so a call without a schema cannot reach a function the gate does not read",
+        );
+    }
+  }
+  for (const t of snapshot.published ?? [])
+    if (tables.get(t)?.tenant || PARENT_SCOPED_TABLES.includes(t))
+      fail(
+        "TENANT_TABLE_PUBLISHED",
+        t,
+        tables.get(t)?.tenant
+          ? "a tenant table is in a publication: a subscription would need a read policy that ignores the active tenant (plan 5.2)"
+          : "a table that reaches its tenant through a parent is in a publication: a subscription would need a read policy that ignores the active tenant (plan 5.2; council R3)",
+      );
+
   const counts = {
+    tenantPolicies,
+    policyExceptions: policyExceptions.listed.size,
     tenant: tenant.length,
     withPolicy: tenant.filter((t) => Number(t.policies) > 0).length,
     listed: listed.size,
@@ -728,7 +1275,7 @@ export function evaluateTenantRlsCatalog(
 
 /** One-line summary printed by the verifier. */
 export const formatTenantRlsCatalogSummary = ({ counts: c }) =>
-  `PASS: tenant RLS catalog gate: ${c.tenant} tenant tables enabled and forced (${c.withPolicy} with policies, ${c.listed} listed deny-by-default, ${c.stale} stale), ${c.definers} SECURITY DEFINER functions with RLS-bypassing owners, a fixed search path and no PUBLIC EXECUTE (${c.anonAllowed ?? 0} anon-allowlisted); command lanes: ${c.humanEntryPoints ?? 0} human entry points, ${c.platformCommands ?? 0} platform commands, ${c.wrappers ?? 0} wrappers; no table grant in public outside a policy.`;
+  `PASS: tenant RLS catalog gate: ${c.tenant} tenant tables enabled and forced (${c.withPolicy} with policies, ${c.listed} listed deny-by-default, ${c.stale} stale), ${c.definers} SECURITY DEFINER functions with RLS-bypassing owners, a fixed search path and no PUBLIC EXECUTE (${c.anonAllowed ?? 0} anon-allowlisted); command lanes: ${c.humanEntryPoints ?? 0} human entry points, ${c.platformCommands ?? 0} platform commands, ${c.wrappers ?? 0} wrappers; no table grant in public outside a policy; ${c.tenantPolicies ?? 0} signed-in policies of tenant tables carry the request's tenant with each lookup once a statement (${c.policyExceptions ?? 0} reviewed exceptions), none reads the token claim, no signed-in write policy stands without the grant for its command, and no tenant table is published.`;
 
 function readJson(root, relativePath) {
   try {
@@ -742,7 +1289,16 @@ const isBool = (value) => typeof value === "boolean";
 const isText = (value) => typeof value === "string";
 /** Throws unless every row carries the fields the evaluator reads. */
 function assertSnapshotShape(snapshot) {
-  const lists = ["tables", "definers", "commands", "wrappers", "grants"];
+  const lists = [
+    "tables",
+    "definers",
+    "commands",
+    "wrappers",
+    "grants",
+    "policies",
+    "tenant_helpers",
+    "published",
+  ];
   if (!lists.every((k) => Array.isArray(snapshot?.[k])))
     throw new Error(
       `tenant RLS catalog snapshot has no ${lists.join(", ")} lists`,
@@ -768,7 +1324,7 @@ function assertSnapshotShape(snapshot) {
       throw incomplete("command", c);
   for (const w of snapshot.wrappers)
     if (
-      ![...lane, "definer"].every((k) => isBool(w?.[k])) ||
+      ![...lane, "definer", "service_role"].every((k) => isBool(w?.[k])) ||
       !isText(w.body) ||
       !("search_path" in w)
     )
@@ -779,6 +1335,23 @@ function assertSnapshotShape(snapshot) {
       !(g.column === null || isText(g.column))
     )
       throw incomplete("grant", g);
+  const textOrNull = (v) => v === null || isText(v);
+  for (const p of snapshot.policies)
+    if (
+      ![p?.table, p?.policy, p?.cmd].every(isText) ||
+      !Array.isArray(p.roles) ||
+      !textOrNull(p.using) ||
+      !textOrNull(p.check) ||
+      !isBool(p.granted) ||
+      !isBool(p.permissive) ||
+      !isBool(p.writable)
+    )
+      throw incomplete("policy", { relation: `${p?.table} ${p?.policy}` });
+  for (const h of snapshot.tenant_helpers)
+    if (![h?.function, h?.body].every(isText) || !isBool(h.root))
+      throw incomplete("tenant helper", h);
+  if (!snapshot.published.every(isText))
+    throw incomplete("publication", { relation: "published" });
 }
 
 /**
@@ -793,6 +1366,7 @@ export function runTenantRlsCatalogGate({
 }) {
   const exceptions = readJson(root, TENANT_RLS_EXCEPTIONS_PATH);
   const anonAllowlist = readJson(root, ANON_DEFINER_ALLOWLIST_PATH);
+  const policyExceptions = readJson(root, TENANT_POLICY_EXCEPTIONS_PATH);
   const stdout = runPsqlQuery({
     databaseUrl,
     sql: TENANT_RLS_CATALOG_SQL,
@@ -809,5 +1383,10 @@ export function runTenantRlsCatalogGate({
     );
   }
   assertSnapshotShape(snapshot);
-  return evaluateTenantRlsCatalog(snapshot, exceptions, anonAllowlist);
+  return evaluateTenantRlsCatalog(
+    snapshot,
+    exceptions,
+    anonAllowlist,
+    policyExceptions,
+  );
 }

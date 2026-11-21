@@ -9,6 +9,7 @@ import {
   type EveNotificationRecipient,
   type EveNotificationRecord,
 } from "./types";
+import { readAllPages } from "../../shared/read-all-pages";
 import { listTenantMembers } from "../../shared/tenant-members";
 import {
   EVE_ENGINEERING_FINDING_SEVERITIES,
@@ -176,20 +177,21 @@ export async function listEveNotificationRecipients(input: {
           .in("id", adminIds)
           .not("email", "is", null)
       : Promise.resolve({ data: [], error: null }),
-    // Bounded, not paged (council round 2 on WP2a, R2): the table's key is
-    // (tenant_id, profile_id), and its trigger
-    // (validate_eve_notification_recipient) admits only a super_admin profile
-    // of the tenant with an email, so it holds one row at most per platform
-    // operator of the tenant, a handful. Its only writer, the recipient
-    // PATCH, is closed until WP2c; page this read when WP2c opens recipients
-    // to every tenant administrator.
-    input.supabaseAdmin
-      .from("eve_notification_recipient_configs")
-      .select("profile_id, enabled, opted_out")
-      .eq("tenant_id", input.tenantId),
+    // Read to the end (AL-2675 WP2c): the recipient PATCH is open to platform
+    // operators, and its trigger admits every live administrator of the
+    // tenant, so the rows are no longer a handful (council round 2 on WP2a,
+    // R2, asked for this when WP2c opened them). After 10,000 non-empty pages
+    // the shared reader fails rather than returning a partial recipient list.
+    readAllPages((from, to) =>
+      input.supabaseAdmin
+        .from("eve_notification_recipient_configs")
+        .select("profile_id, enabled, opted_out")
+        .eq("tenant_id", input.tenantId)
+        .order("profile_id")
+        .range(from, to),
+    ),
   ]);
-  const error = profiles.error ?? preferences.error;
-  if (error) throw new Error(error.message);
+  if (profiles.error) throw new Error(profiles.error.message);
   const preferenceMap = new Map(
     z
       .array(
@@ -199,7 +201,7 @@ export async function listEveNotificationRecipients(input: {
           opted_out: z.boolean(),
         }),
       )
-      .parse(preferences.data ?? [])
+      .parse(preferences)
       .map((value) => [value.profile_id, value]),
   );
   return z

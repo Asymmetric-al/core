@@ -6,7 +6,7 @@
 
 - **Hybrid content model (documented choice):** separate Payload collections for `missionary-giving-pages`, `project-pages`, and `page-templates`, while `pages` keeps standard URLs and gains optional `pageType`, `template` relationship, `layout` blocks, and legacy `content` + `legacyContentFallback` for rollout-safe rendering.
 - **Template gallery + wizards:** Payload `admin.components.views` routes under `/web-studio` for gallery, missionary hub, and create flows. Wizards use **TanStack Form + Zod** (non-Payload forms). Document editing remains Payload-owned (`DefaultEditView` wrappers).
-- **Server-backed instantiation:** `POST /api/web-studio/create-from-template` (`webStudioCreateFromTemplateEndpoint`) uses Payload `req` + Local API `create` with normal access hooks. Missionary rows are validated against `public.missionaries`; fund rows against `public.funds`.
+- **Server-backed instantiation:** `POST /web-studio/api/web-studio/create-from-template` (`webStudioCreateFromTemplateEndpoint`) uses Payload `req` + Local API `create` with normal access hooks. Missionary rows are validated against `public.missionaries`; fund rows against `public.funds`.
 - **Public read APIs (additive):**
   - `GET /api/cms/public/missionary-pages/:id` — published `missionary-giving-pages` by `missionaryId`
   - `GET /api/cms/public/project-pages/:slug` — published `project-pages` by `slug`

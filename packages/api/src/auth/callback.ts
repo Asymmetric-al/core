@@ -74,7 +74,8 @@ export async function GET(request: Request) {
   const next = safeNextParam(searchParams.get("next")) ?? "/";
 
   if (code) {
-    const supabase = await createClient();
+    // Auth and the person's own rows in every tenant: no tenant is chosen yet.
+    const supabase = await createClient(null);
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {

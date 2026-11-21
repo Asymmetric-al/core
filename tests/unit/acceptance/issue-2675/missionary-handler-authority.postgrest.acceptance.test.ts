@@ -55,9 +55,19 @@ vi.mock("@asym/auth/context", async (original) => ({
   }),
 }));
 function request(method: string, path: string, body?: unknown) {
+  // Changed by AL-2677 (fix check G1): a string body with no type goes out as
+  // text/plain, which the proxy and the shared JSON reader refuse with 415.
+  // Typed as the missionary app's callers send it (`use-tasks`, `task-api`,
+  // the profile, follower and donor-activity clients); the assertions are
+  // unchanged.
   return new NextRequest("http://localhost" + path, {
     method,
-    body: body ? JSON.stringify(body) : undefined,
+    ...(body
+      ? {
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      : {}),
   });
 }
 async function json(response: Response, status: number) {

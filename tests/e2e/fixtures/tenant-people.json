@@ -1,0 +1,114 @@
+{
+  "$comment": "Fixture people for the tenant-address suites (AL-2675; plan 5.2). Development signs them in with signed E2E bypass cookies that name these memberships; a production build signs them in through tests/e2e/fixtures/supabase-stub.mjs, which serves the same rows. The tenants are the seed's two fixture organizations and a third that no fixture belongs to. tenantNames are the names supabase/seed.sql gives the two fixture organizations, and one for the third; the stub returns a name only for a tenant the caller holds a row in, as public.current_user_organizations() does.",
+  "tenants": {
+    "demo": "00000000-0000-0000-0000-000000000001",
+    "second": "00000000-0000-0000-0000-000000000002",
+    "foreign": "6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a"
+  },
+  "tenantNames": {
+    "00000000-0000-0000-0000-000000000001": "GiveHope Demo Organization",
+    "00000000-0000-0000-0000-000000000002": "Harbor Light Mission",
+    "6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a": "Foreign Fixture Mission"
+  },
+  "people": {
+    "demoAdmin": {
+      "userId": "00000000-0000-4000-8000-0000000e2e10",
+      "role": "admin",
+      "memberships": [
+        {
+          "id": "00000000-0000-4000-8000-0000000e2e11",
+          "tenantId": "00000000-0000-0000-0000-000000000001",
+          "role": "staff",
+          "staffRole": "development",
+          "isTenantAdmin": true
+        }
+      ]
+    },
+    "twoRows": {
+      "userId": "00000000-0000-4000-8000-0000000e2e20",
+      "role": "staff",
+      "memberships": [
+        {
+          "id": "00000000-0000-4000-8000-0000000e2e21",
+          "tenantId": "00000000-0000-0000-0000-000000000001",
+          "role": "staff",
+          "staffRole": "finance",
+          "isTenantAdmin": false
+        },
+        {
+          "id": "00000000-0000-4000-8000-0000000e2e22",
+          "tenantId": "00000000-0000-0000-0000-000000000001",
+          "role": "staff",
+          "staffRole": "member_care",
+          "isTenantAdmin": false
+        }
+      ]
+    },
+    "twoTenants": {
+      "userId": "00000000-0000-4000-8000-0000000e2e30",
+      "role": "staff",
+      "memberships": [
+        {
+          "id": "00000000-0000-4000-8000-0000000e2e31",
+          "tenantId": "00000000-0000-0000-0000-000000000001",
+          "role": "staff",
+          "staffRole": "development",
+          "isTenantAdmin": false
+        },
+        {
+          "id": "00000000-0000-4000-8000-0000000e2e32",
+          "tenantId": "00000000-0000-0000-0000-000000000002",
+          "role": "staff",
+          "staffRole": "development",
+          "isTenantAdmin": false
+        }
+      ]
+    },
+    "missionary": {
+      "userId": "00000000-0000-4000-8000-0000000e2e40",
+      "role": "missionary",
+      "memberships": [
+        {
+          "id": "00000000-0000-4000-8000-0000000e2e41",
+          "tenantId": "00000000-0000-0000-0000-000000000001",
+          "role": "missionary",
+          "staffRole": null,
+          "isTenantAdmin": false
+        }
+      ]
+    },
+    "twoTenantMissionary": {
+      "userId": "00000000-0000-4000-8000-0000000e2e50",
+      "role": "missionary",
+      "memberships": [
+        {
+          "id": "00000000-0000-4000-8000-0000000e2e51",
+          "tenantId": "00000000-0000-0000-0000-000000000001",
+          "role": "missionary",
+          "staffRole": null,
+          "isTenantAdmin": false
+        },
+        {
+          "id": "00000000-0000-4000-8000-0000000e2e52",
+          "tenantId": "00000000-0000-0000-0000-000000000002",
+          "role": "missionary",
+          "staffRole": null,
+          "isTenantAdmin": false
+        }
+      ]
+    },
+    "secondAdmin": {
+      "userId": "00000000-0000-4000-8000-0000000e2e70",
+      "role": "admin",
+      "memberships": [
+        {
+          "id": "00000000-0000-4000-8000-0000000e2e71",
+          "tenantId": "00000000-0000-0000-0000-000000000002",
+          "role": "staff",
+          "staffRole": "development",
+          "isTenantAdmin": true
+        }
+      ]
+    }
+  }
+}

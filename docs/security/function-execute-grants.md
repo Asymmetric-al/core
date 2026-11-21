@@ -7,6 +7,8 @@ reads past RLS, so who may call it is the whole boundary.
 
 ## Why `REVOKE … FROM PUBLIC` is not enough
 
+CI keeps two different local controls. The plain PG17 `migrate` database checks that the application does not depend on implicit hosted grants; it is not privilege-identical to hosted Supabase. The stage-1 privilege acceptance suite in that job and the release fingerprint replay separately start with `scripts/sql/hosted-default-privileges.sql`. On a disposable replay after WP4a's export migration, plain defaults granted `service_role` SELECT on future public tables only; hosted-style defaults still granted it all table and sequence privileges and function EXECUTE. The field census and tenant catalog passed with the hosted defaults. Keep both initial states rather than replacing the plain control. Do not infer least privilege for `service_role` from either gate. The 21 November 2026 ruling retains service_role's default table, sequence and function privileges until WP4 exit. WP4 exit revisits them with a grant inventory of the remaining service and worker callers.
+
 Postgres grants EXECUTE on a new function to `PUBLIC`. Hosted Supabase goes
 further: the `postgres` role has default privileges that grant EXECUTE on new
 `public` functions to `anon`, `authenticated` and `service_role` **by name**.
@@ -32,6 +34,8 @@ After the migration, on any database whatever its default privileges:
 | Function                                               | Security | EXECUTE grantees (exact)                                            |
 | ------------------------------------------------------ | -------- | ------------------------------------------------------------------- |
 | `public.current_user_memberships(uuid)`                | DEFINER  | `postgres` (owner), `authenticated`                                 |
+| `public.current_user_organizations()`                  | DEFINER  | `postgres` (owner), `authenticated`                                 |
+| `public.post_comment_authors(uuid)`                    | DEFINER  | `postgres` (owner), `authenticated`                                 |
 | `authz.is_super_admin()`                               | DEFINER  | `postgres` (owner), `authenticated`, `service_role`                 |
 | `authz.has_membership(uuid, authz.membership_role[])`  | DEFINER  | `postgres` (owner), `authenticated`, `service_role`, `tenant_guard` |
 | `authz.has_staff_membership(uuid, authz.staff_role[])` | DEFINER  | `postgres` (owner), `authenticated`, `service_role`, `tenant_guard` |
@@ -47,14 +51,53 @@ After the migration, on any database whatever its default privileges:
   in `packages/auth/principal`), and both functions return the
   tenant-administrator flag. AL-2675 drops and recreates both (their result
   types changed) with the same grants.
+- `public.current_user_organizations()` (AL-2675,
+  `20261119135100_current_user_organizations.sql`) names the organization
+  chooser's organizations: the id and name of each tenant in which the session
+  caller holds a live membership row, and nothing else. Signed-in users have
+  no privilege on `public.tenants`, so it runs as its owner. Its migration
+  revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name and
+  grants `authenticated` alone; for `service_role` and `anon`, `auth.uid()`
+  is NULL. `tests/unit/acceptance/issue-2675/organization-names.realstack.acceptance.test.ts`
+  checks who sees which name and the grantee set, also after simulating the
+  hosted defaults.
+- `public.post_comment_authors(uuid)` (AL-2675, JB11,
+  `20261119135200_post_comment_authors.sql`) gives one row for each person
+  who commented on a published public post: the display name (NULL when blank)
+  and the avatar, only to a caller with a live membership in the post's
+  organization, and NULL to anyone else. It runs as its owner because those
+  profiles are not the caller's. Its migration revokes `PUBLIC`, `anon`,
+  `authenticated` and `service_role` by name and grants `authenticated`
+  alone. `tests/unit/acceptance/issue-2675/post-comment-authors.realstack.acceptance.test.ts`
+  checks who sees which name and the grantee set.
 - The `authz` INVOKER helpers `current_user_id()` and `current_tenant_id()`
   keep `PUBLIC` EXECUTE; they run with the caller's privileges and gain nothing.
+- Since the second release of WP2b (AL-2675,
+  `20261119135300_request_tenant_policies.sql`), `has_membership` and
+  `has_staff_membership` keep these grants and judge the request's one
+  assignment, through `authz.request_assignment()`. The request-tenant helpers
+  it adds (`authz.request_tenant_id()`, `request_assignment_id()`,
+  `request_assignment()`, `assignment_is(...)`, `assignment_is_tenant_admin()`,
+  `assignment_holds(text)`, `caller_profile_ids()`, `caller_tenant_ids()`) are
+  owned by `postgres` and executable by `authenticated` and `service_role`
+  only; so `anon` calling `current_tenant_id()` gets `42501`. It marks
+  `authz.is_super_admin()` and `authz.current_user_id()` `PARALLEL SAFE`.
+  The commenter read, `public.post_comment_authors(uuid)`, ships with the
+  first release of WP2b, not this one (council R1). `tenant_guard` keeps its
+  `EXECUTE` on `has_membership` and `has_staff_membership` (AL-2674's
+  command-lane migration asserts it); nothing in `tenant_guard` or
+  `platform` calls them, and after this migration no policy in `public` does.
 - The 8 `authz staff tenant …` policies on `crm_command_logs`,
   `crm_record_links` and `crm_merge_candidates` were `TO public` and call these
   helpers. They are now `TO authenticated`, with USING and WITH CHECK
   unchanged. Hosted defaults give `anon` table privileges, so without this
   `anon` would get `permission denied for function is_super_admin` instead of
-  0 rows.
+  0 rows. Since the second release of WP2b (AL-2675) five of them are
+  dropped: the insert of `crm_command_logs` and the insert and update of
+  `crm_merge_candidates` with their write grants, and the insert and update of
+  `crm_record_links`, where signed-in users never held a write grant. The
+  three read policies that stand carry the request's tenant
+  (`tenant-policy-activation-review.md`, Q7 and Q8).
 
 `tests/unit/security/authz-definer-execute-grants.test.ts` fails the build if
 a forward migration defines an `authz` SECURITY DEFINER function that is not in
@@ -119,7 +162,12 @@ There is no rollback migration: reverting restores `PUBLIC` EXECUTE on the
 `authz` helpers and re-opens the gaps described above. If a revert is needed
 anyway, this restores the state the earlier migrations defined. It does not
 re-grant `anon` or `service_role` on `current_user_memberships`, which no
-migration intended.
+migration intended. It applies only to a chain without
+`20261119135300_request_tenant_policies.sql`. On a chain with it, it would
+change grants and policy roles while that migration's predicates and helpers
+stay, which restores no earlier state. Roll that migration back first with
+its own file and procedure (`docs/ops/release-job.md`, "Rolling it back by
+hand"), then this revert applies as written.
 
 ```sql
 BEGIN;

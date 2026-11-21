@@ -1,3 +1,4 @@
+import { SwitchAccountButton } from "@asym/ui/components/auth/SwitchAccountButton";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import Link from "next/link";
 
@@ -17,15 +18,14 @@ export default function NoAccessPage() {
           Your account does not have permission to view this page.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/donor-dashboard" className={buttonVariants()}>
-            Go to donor home
+          {/* The portal sends the people it refuses here, so the way out is
+              the public site, never back to the portal (AL-2675); or another
+              account, which needs this one signed out first: the sign-in
+              screen sends a signed-in person straight on (BR8). */}
+          <Link href="/" className={buttonVariants()}>
+            Go to home
           </Link>
-          <Link
-            href="/login"
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Switch account
-          </Link>
+          <SwitchAccountButton variant="outline" />
         </div>
       </div>
     </main>

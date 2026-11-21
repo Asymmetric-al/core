@@ -1,11 +1,11 @@
 "use client";
 
+import { useTenantRouter as useRouter } from "@asym/auth/tenant-navigation";
 import { AnimatePresence, motion } from "@asym/lib/motion";
 import { buildCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import { ArrowRight, DollarSign } from "lucide-react";
-import { useRouter } from "next/navigation";
 import * as React from "react";
 
 type QuickGiveProps = {

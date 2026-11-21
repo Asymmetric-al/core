@@ -22,6 +22,17 @@ import { filterSharedContributions } from "../../../../../packages/api/src/admin
 import type { Contribution } from "../../../../../apps/admin/app/(app)/contributions/types";
 import type { ReactNode } from "react";
 
+// WP2b, AL-2675: these calls go through the own-API wrapper, whose own suite
+// (tests/unit/packages/database/own-api.test.ts) proves what it adds: the
+// document's tenant and assignment, and no HTTP cache. Here it passes each
+// call through unchanged, so the assertions below still read exactly the
+// request the caller sends.
+vi.mock("@asym/database/own-api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/database/own-api")>()),
+  ownApiFetch: (path: string, init?: RequestInit) =>
+    globalThis.fetch(path, init),
+}));
+
 type ContributionsPageComponent =
   typeof import("../../../../../apps/admin/app/(app)/contributions/page-client").default;
 type InvalidateContributionOperationQueries =

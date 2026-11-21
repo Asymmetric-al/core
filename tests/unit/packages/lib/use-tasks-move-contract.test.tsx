@@ -11,6 +11,17 @@ import type {
   TaskStatus,
 } from "../../../../packages/lib/hooks/use-tasks";
 
+// WP2b, AL-2675: these calls go through the own-API wrapper, whose own suite
+// (tests/unit/packages/database/own-api.test.ts) proves what it adds: the
+// document's tenant and assignment, and no HTTP cache. Here it passes each
+// call through unchanged, so the assertions below still read exactly the
+// request the caller sends.
+vi.mock("@asym/database/own-api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/database/own-api")>()),
+  ownApiFetch: (path: string, init?: RequestInit) =>
+    globalThis.fetch(path, init),
+}));
+
 vi.mock("../../../../packages/lib/hooks/use-auth", () => ({
   useAuth: () => ({ profile: { id: "missionary-fixture" } }),
 }));

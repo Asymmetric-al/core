@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as publicApi from "../../packages/graphql";
@@ -235,18 +237,26 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
     expect(seams.from).not.toHaveBeenCalled();
   });
 
-  describe("updateUserRole (WP0, audit finding A01)", () => {
+  /**
+   * Rewritten by AL-2675 (WP2c, part 1; plan 5.4; record section 9 and D-18).
+   * WP0 proved that `updateUserRole` refused every caller but an organization
+   * administrator, and never granted the platform role, and WP2a moved its
+   * check to the tenant-administrator membership. WP2c deletes the mutation
+   * and retires its SQL function. A staff row's sub-role and administrator
+   * flag change only through the command lane's
+   * `public.change_membership_role`, which never changes a member's class: a
+   * membership of another class is given by an invitation, and
+   * `public.revoke_membership` ends one (tests/unit/acceptance/issue-2675/
+   * membership-role-commands.realstack.acceptance.test.ts). So every caller
+   * WP0 refused, and the administrator it admitted, now meets a schema with no
+   * role mutation, before execution: no RPC and no read. That is stronger
+   * than each refusal it replaces, and the admitted call is the one case that
+   * now fails on purpose.
+   */
+  describe("no role mutation (WP0 A01, retired by WP2c)", () => {
     const roleMutation = (role: string, userId = "profile-b") =>
       `mutation { updateUserRole(input: { userId: "${userId}", role: ${role} }) { id role } }`;
 
-    /**
-     * Rewritten when WP2a joined stage 1 (AL-2675; plan WP0 and WP2a): the
-     * caller was described by a profile role; the resolver now judges the
-     * membership the request acts under (`people.manage_members`, the
-     * tenant-administrator flag), so each caller holds the membership its
-     * role means. A platform operator holds none. The refusals and the
-     * admitted call are asserted as before.
-     */
     function callerWith(
       role: AuthContext["role"],
       memberships: AuthContext["memberships"] = membershipsForRole(
@@ -269,12 +279,6 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
     };
 
     beforeEach(() => {
-      tables.get("profiles")?.push({
-        ...profile,
-        id: "profile-b",
-        user_id: "user-b",
-        role: "staff",
-      });
       seams.rpc.mockResolvedValue({ data: null, error: null });
     });
 
@@ -287,105 +291,93 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
         "an admin role name on an unflagged staff row (WP2a)",
         callerWith("admin", [{ ...staffMembership, isTenantAdmin: false }]),
       ],
+      ["an organization administrator", callerWith("admin")],
     ])(
-      "rejects %s before RPC transport, so no role changes",
+      "gives %s no role mutation: refused before execution, with no RPC or read",
       async (_label, caller) => {
         seams.getAuthContext.mockResolvedValue(caller);
-        const { body } = await execute(roleMutation("admin"));
-        expect(body.errors).toHaveLength(1);
-        expect(body.data).toBeNull();
+        for (const [role, target] of [
+          ["admin", "profile-b"],
+          ["missionary", "profile-b"],
+          ["super_admin", "profile-b"],
+          ["donor", "profile-a"],
+        ] as const) {
+          const { body } = await execute(roleMutation(role, target));
+          // A validation error: the operation never executes.
+          expect(body.data).toBeUndefined();
+          expect(body.errors).toHaveLength(1);
+          expect(body.errors?.[0]?.message).toMatch(
+            /Cannot query field "updateUserRole" on type "Mutation"/,
+          );
+        }
         expect(seams.rpc).not.toHaveBeenCalled();
         expect(seams.from).not.toHaveBeenCalled();
       },
     );
 
-    it("rejects a staff caller promoting themselves to super_admin", async () => {
-      seams.getAuthContext.mockResolvedValue(callerWith("staff"));
-      const { body } = await execute(roleMutation("super_admin", "profile-a"));
-      expect(body.errors?.length).toBeGreaterThan(0);
-      expect(seams.rpc).not.toHaveBeenCalled();
-    });
-
-    it("rejects a platform role written in the query before execution", async () => {
+    it("rejects the input type passed as a variable, which no longer exists, before execution", async () => {
       seams.getAuthContext.mockResolvedValue(callerWith("admin"));
-      const { body } = await execute(roleMutation("super_admin"));
-      expect(body.data).toBeUndefined();
-      expect(body.errors?.[0]?.message).toMatch(/AssignableUserRole/);
-      expect(seams.rpc).not.toHaveBeenCalled();
-      expect(seams.from).not.toHaveBeenCalled();
-    });
-
-    it("rejects a platform role passed as a variable before execution", async () => {
-      seams.getAuthContext.mockResolvedValue(callerWith("admin"));
-      const { response, body } = await execute(
+      const { body } = await execute(
         "mutation Change($input: UpdateUserRoleInput!) { updateUserRole(input: $input) { id } }",
-        { input: { userId: "profile-b", role: "super_admin" } },
+        { input: { userId: "profile-b", role: "admin" } },
       );
-      expect(response.status).toBe(400);
-      expect(body.errors?.length).toBeGreaterThan(0);
+      expect(body.data).toBeUndefined();
+      // GraphQL's "Did you mean" suggestion after each message is not compared.
+      expect(
+        body.errors?.map((e) => e.message.split(" Did you mean")[0]).sort(),
+      ).toEqual([
+        'Cannot query field "updateUserRole" on type "Mutation".',
+        'Unknown type "UpdateUserRoleInput".',
+      ]);
       expect(seams.rpc).not.toHaveBeenCalled();
       expect(seams.from).not.toHaveBeenCalled();
     });
 
-    it("rejects an admin targeting their own profile", async () => {
+    // Review 4650094352 and 4650094401 on #2741: the role-change command
+    // changes a staff row's sub-role or flag and refuses any change of class,
+    // so the schema's own description, which clients read by introspection,
+    // must not send them to it for a class.
+    it("describes the role-change command as a staff row's sub-role and flag, never a member's class", async () => {
       seams.getAuthContext.mockResolvedValue(callerWith("admin"));
-      const { body } = await execute(roleMutation("donor", "profile-a"));
-      expect(body.errors).toHaveLength(1);
-      expect(seams.rpc).not.toHaveBeenCalled();
-    });
-
-    it("passes an admin's change of another profile to the command, scoped to the caller's tenant", async () => {
-      seams.getAuthContext.mockResolvedValue(callerWith("admin"));
-      const { body } = await execute(roleMutation("missionary"), undefined, {
-        "user-agent": "wp0-test",
-      });
+      const { body } = await execute(
+        '{ __type(name: "Mutation") { description } }',
+      );
       expect(body.errors).toBeUndefined();
-      expect(seams.rpc).toHaveBeenCalledTimes(1);
-      expect(seams.rpc).toHaveBeenCalledWith(
-        "atomic_update_user_role_with_audit",
-        {
-          p_profile_id: "profile-b",
-          p_tenant_id: "tenant-a",
-          p_actor_user_id: "user-a",
-          p_new_role: "missionary",
-          p_ip_address: null,
-          p_user_agent: "wp0-test",
-        },
+      const type = body.data?.__type;
+      const description =
+        type !== null &&
+        typeof type === "object" &&
+        "description" in type &&
+        typeof type.description === "string"
+          ? type.description.replace(/\s+/g, " ")
+          : "";
+      expect(description).toContain("A member's class never changes");
+      expect(description).toContain(
+        "public.change_membership_role changes only a staff row's sub-role and tenant-administrator flag",
       );
-    });
-
-    it("reports the command's own refusal as an error, not a changed role", async () => {
-      seams.getAuthContext.mockResolvedValue(callerWith("admin"));
-      seams.rpc.mockResolvedValue({
-        data: null,
-        error: { code: "42501", message: "Forbidden" },
-      });
-      const { body } = await execute(roleMutation("staff"));
-      expect(body.errors).toHaveLength(1);
-      expect(body.data).toBeNull();
+      expect(description).toContain(
+        "a membership of another class is given by an invitation",
+      );
+      expect(description).toContain(
+        "public.revoke_membership ends a membership",
+      );
+      expect(description).not.toMatch(/class, sub-role and/);
+      expect(seams.rpc).not.toHaveBeenCalled();
       expect(seams.from).not.toHaveBeenCalled();
     });
 
-    // PR #2714 review: the command refuses (42501) a person who also holds an
-    // active membership in another organization, because profiles.role is
-    // that person's one role everywhere. The caller reports that refusal as
-    // an error, returns no profile and reads none. (The endpoint masks a
-    // resolver's own message, so the reason is not asserted here.)
-    it("reports the refusal for a person who also belongs to another organization", async () => {
-      seams.getAuthContext.mockResolvedValue(callerWith("admin"));
-      seams.rpc.mockResolvedValue({
-        data: null,
-        error: {
-          code: "42501",
-          message:
-            "This person also belongs to another organization; their role cannot be changed here",
-        },
-      });
-      const { body } = await execute(roleMutation("admin"));
-      expect(body.data).toBeNull();
-      expect(body.errors).toHaveLength(1);
-      expect(seams.rpc).toHaveBeenCalledTimes(1);
-      expect(seams.from).not.toHaveBeenCalled();
+    it("names no role-change type, field or command in its schema or resolvers", () => {
+      const source = readFileSync(
+        new URL("../../packages/graphql/handler.ts", import.meta.url),
+        "utf8",
+      );
+      for (const name of [
+        "updateUserRole",
+        "UpdateUserRoleInput",
+        "AssignableUserRole",
+        "atomic_update_user_role_with_audit",
+      ])
+        expect(source).not.toContain(name);
     });
   });
 

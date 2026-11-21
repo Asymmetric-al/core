@@ -1,6 +1,7 @@
 import {
   getAuthContext,
   hasContextCapability,
+  scopeRefusedHeaders,
   isTenantAdministrator,
 } from "@asym/auth/context";
 import { ZodError, type ZodType } from "zod";
@@ -9,6 +10,7 @@ import { supportHubAdapter } from "./adapter";
 import { SupportCannedResponseError } from "./canned-response-error";
 import { matchSupportAgentId, SupportHubForbiddenError } from "./ownership";
 import { runWithSupportHubTenant } from "./request-context";
+import { ApiHttpError, ensureJsonBody } from "../../shared/http-errors";
 
 export type SupportHubContext = {
   tenantId: string;
@@ -44,7 +46,11 @@ export async function requireSupportHubAccess(
   if (!auth.isAuthenticated || !auth.userId || !auth.tenantId) {
     return {
       ok: false,
-      response: Response.json({ error: "Unauthorized" }, { status: 401 }),
+      // A refused tenant or assignment is marked for the browser (JB1).
+      response: Response.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: scopeRefusedHeaders(auth) },
+      ),
     };
   }
 
@@ -94,7 +100,7 @@ export async function readJsonBody<T = unknown>(
   schema?: ZodType<T>,
 ): Promise<JsonResult<T>> {
   try {
-    const body = await request.json();
+    const body = await ensureJsonBody(request);
     if (!body || typeof body !== "object" || Array.isArray(body)) {
       return {
         ok: false,
@@ -121,7 +127,13 @@ export async function readJsonBody<T = unknown>(
       return { ok: true, body: parsed.data };
     }
     return { ok: true, body: body as T };
-  } catch {
+  } catch (error) {
+    // The shared reader refuses a body that is not JSON (fix check G1).
+    if (error instanceof ApiHttpError && error.status === 415)
+      return {
+        ok: false,
+        response: Response.json({ error: error.message }, { status: 415 }),
+      };
     return {
       ok: false,
       response: Response.json({ error: "Invalid JSON body." }, { status: 400 }),

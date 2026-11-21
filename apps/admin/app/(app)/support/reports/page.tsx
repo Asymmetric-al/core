@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { redirectInTenant } from "@asym/auth/tenant-server";
 import { Suspense } from "react";
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -18,7 +18,7 @@ async function ReportsRedirect({ searchParams }: Props): Promise<never> {
       value.forEach((entry) => query.append(key, entry));
     else if (value !== undefined) query.set(key, value);
   }
-  redirect(
+  return redirectInTenant(
     "/support/reports/overview" + (query.size ? "?" + query.toString() : ""),
   );
 }

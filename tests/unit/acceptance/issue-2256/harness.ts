@@ -79,16 +79,23 @@ export const READER_FUNCTIONS: Record<string, boolean> = {
   validate_eve_notification_recipient: true,
   assert_eve_launch_profile: true,
   assert_eve_policy_actor_tenant: true,
+  // WP2c verifies the operator's login from profiles; tenant_id belongs to the grant.
+  has_eve_policy_permission: true,
   enforce_eve_policy_permission_tenant: false,
   enforce_eve_ai_settings_grant_tenant: false,
   atomic_update_profile_with_audit: false,
-  // DEFINER since WP2a joined stage 1 (AL-2675): the role-change command reads
-  // the caller's tenant-administrator membership and the target's membership,
-  // which needs the owner's rights; it reads no profile's tenant.
-  atomic_update_user_role_with_audit: true,
+  // `atomic_update_user_role_with_audit` left the set with AL-2675 (WP2c, part
+  // 1; record D-18): WP2c drops it with GraphQL `updateUserRole`, and the
+  // role-change and revoke commands that replace it read no profile.
   set_eve_retention_hold: true,
   expire_eve_retention_records: true,
   handle_new_user: true,
+  // DEFINER since AL-2675 (JB11, 20261119135200_post_comment_authors.sql):
+  // the commenters' display names and avatars, joined to profiles, for a
+  // caller with a live membership in the post's tenant. It names profiles
+  // beside posts.tenant_id and authz.memberships.tenant_id and reads no
+  // profile's tenant; the lexical scan keeps it.
+  post_comment_authors: true,
   // Added by the handler-authority package of WP2 (AL-2675; D-18):
   // `authz.selected_missionary` joins profiles to `authz.memberships` by
   // user and compares the MEMBERSHIP's tenant_id with the selected tenant. It

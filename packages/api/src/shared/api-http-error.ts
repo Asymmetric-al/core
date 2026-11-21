@@ -12,8 +12,12 @@ export class ApiHttpError extends Error {
   constructor(
     readonly status: number,
     message: string,
+    /** Response headers the answer carries, such as a refused scope's (JB1). */
+    readonly headers?: Readonly<Record<string, string>>,
   ) {
     super(message);
     this.name = "ApiHttpError";
   }
 }
+
+export class ApiResponseContractError extends ApiHttpError {}

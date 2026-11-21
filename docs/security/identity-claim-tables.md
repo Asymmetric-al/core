@@ -77,6 +77,16 @@ The policies are `account_claim_requests_staff_select`,
 `account_claim_requests_requester_select` and
 `legacy_account_invitations_staff_select`.
 
+Since the second release of WP2b (AL-2675,
+`20261119135300_request_tenant_policies.sql`), the two staff policies read
+`tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT
+authz.assignment_is('staff'))`: staff see a tenant's rows only when the request
+names that tenant and its one assignment there is a staff row. The requester's
+own read is unchanged, a named exception that ends in WP5
+(`docs/security/tenant-policy-exceptions.json`; activation review Q4). It shows
+the claimant `donor_id`, `match_type`, `match_confidence` and `resolved_by`;
+WP5, which builds account claims, decides what a claimant sees.
+
 The contract the acceptance suite checks:
 
 1. **Staff isolation.** A user with an active `staff` membership in tenant A

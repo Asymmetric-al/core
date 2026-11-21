@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  useRoutePathname as usePathname,
+  useTenantRouter as useRouter,
+} from "@asym/auth/tenant-navigation";
 import { useMissionControlNeedsAttention } from "@asym/database/hooks";
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
@@ -15,7 +19,7 @@ import {
 } from "@asym/ui/components/shadcn/empty";
 import { useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, RotateCw } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 

@@ -1,6 +1,6 @@
 import { type getAdminClient } from "@asym/database/supabase/admin";
 
-import { ApiHttpError } from "../../shared/http-errors";
+import { ApiResponseContractError } from "../../shared/http-errors";
 
 import type { OfflineEntryDependencies } from "./offline-entry";
 
@@ -39,7 +39,7 @@ export const OFFLINE_ENTRY_UNBOUND_MESSAGE =
   "extension, and a maintainer to bind the donor resolver + atomic insert/audit " +
   "deps (Gate 8).";
 
-class OfflineEntryUnboundError extends ApiHttpError {
+class OfflineEntryUnboundError extends ApiResponseContractError {
   constructor() {
     super(501, OFFLINE_ENTRY_UNBOUND_MESSAGE);
     this.name = "OfflineEntryUnboundError";

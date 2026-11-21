@@ -6,15 +6,17 @@ This document is the canonical reference for how environments are defined and op
 
 ## 2. Four-Environment Matrix
 
-| Property      | Local                                | Preview                                                               | Development                                                                                                  | Production                                                          |
-| ------------- | ------------------------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| Trigger       | `bun run dev:*`                      | Disabled by default                                                   | Explicit checkpoint; merges to `develop` do not deploy                                                       | `bun run release:production` to `production`                        |
-| URL           | `localhost:3000`                     | `*.vercel.app`                                                        | `development-admin.asymmetric.al`, `development-donor.asymmetric.al`, `development-missionary.asymmetric.al` | `*.asymmetric.al`                                                   |
-| Supabase      | `bun run supabase -- start` (Docker) | Development; the disposable preview project for a PR with a migration | Dedicated development project                                                                                | Disposable preview project until switch-on step 6; then development |
-| Stripe        | Test-mode                            | Test-mode                                                             | Test-mode                                                                                                    | Live-mode                                                           |
-| Sentry        | Optional (DSN may be unset)          | Optional                                                              | Configured                                                                                                   | Configured                                                          |
-| Safe to break | Yes - fully disposable               | Mostly - shares development; a migration PR's preview is disposable   | Mostly - recoverable                                                                                         | **No - real donors, real money**                                    |
-| Seed data     | Local seed script                    | Shared test data                                                      | Demo data (periodically refreshed)                                                                           | Real data                                                           |
+| Property      | Local                                | Preview                                                               | Development                                                                                                  | Production                                                                                           |
+| ------------- | ------------------------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| Trigger       | `bun run dev:*`                      | Disabled by default                                                   | Explicit checkpoint; merges to `develop` do not deploy                                                       | `bun run release:production` to `production`                                                         |
+| URL           | `localhost:3000`                     | `*.vercel.app`                                                        | `development-admin.asymmetric.al`, `development-donor.asymmetric.al`, `development-missionary.asymmetric.al` | `*.asymmetric.al`                                                                                    |
+| Supabase      | `bun run supabase -- start` (Docker) | Development; a migration PR's preview path is not set up (note below) | Dedicated development project                                                                                | Disposable preview project until the first release after switch-on step 6 (step 7); then development |
+| Stripe        | Test-mode                            | Test-mode                                                             | Test-mode                                                                                                    | Live-mode                                                                                            |
+| Sentry        | Optional (DSN may be unset)          | Optional                                                              | Configured                                                                                                   | Configured                                                                                           |
+| Safe to break | Yes - fully disposable               | No blanket reset - shares development; no migration previews (below)  | Mostly - recoverable                                                                                         | **No - real donors, real money**                                                                     |
+| Seed data     | Local seed script                    | Shared test data                                                      | Demo data (periodically refreshed)                                                                           | Real data                                                                                            |
+
+Production and the two hosted projects, as section 5.3 says: until the first release after [switch-on step 6](./release-job.md#switching-it-on), Production reads the disposable preview project, which a migration PR's preview rebuild would reset if that path were enabled. Step 6 changes the Vercel variables only; they reach users with the next deployment, which is step 7. From then on Production reads the development project, which ordinary previews write to. Neither holds live data before WP11 (D-37 and D-44 in the [implementation record](../audits/core-crm-cms-database-implementation-record.md)). There is no automatic Git preview: Git deployments are off (`apps/*/vercel.json`). An eligible pull request without a migration can get an ordinary preview, against development, through the label-gated QA workflow (section 4). A migration pull request gets none today, because neither of its path's two gates exists (D-38). The gates are separate: the rebuild of the disposable project needs only the GitHub environment `release-preview` with its release secrets, and runs before any deployment; the preview deployments that follow need a paid `preview-database` custom environment in Vercel as well. So creating `release-preview` alone would let a labelled migration pull request reset the project that Production reads today.
 
 ## 3. Local Development Setup
 
@@ -35,11 +37,11 @@ All other `.env.example` entries (Stripe, Sentry, Cloudinary, Email, PDF, etc.) 
 
 ## 4. Preview Environment Setup
 
-Preview deploys for `admin`, `donor`, and `missionary`, created by the label-gated QA smoke workflow, read the development project. A pull request that carries a migration instead rebuilds and reads the disposable `preview` project, `btewedpsxwsjczvmegby` (the production-named project until WP11; [release job](./release-job.md), step 8). Keep both to test-only data.
+A pull request does not get a Preview deployment automatically: Git deployments are off (`apps/*/vercel.json`). For an eligible pull request without a migration, the label-gated QA smoke workflow (label `qa:smoke`) can deploy `admin`, `donor` and `missionary` previews that read the development project. A pull request that carries a migration gets no such deployment today. The workflow's separate `preview-database` job would rebuild the disposable `preview` project, `btewedpsxwsjczvmegby` (the production-named project until WP11; [release job](./release-job.md), step 8), as soon as the GitHub environment `release-preview` existed with its release secrets: the rebuild is its first hosted step and does not look at Vercel. Only its later steps, the preview deployments that read that project, need a `preview-database` custom Vercel environment. Neither exists: a second custom environment costs money, and it was not created (D-38). Do not create `release-preview` on its own while Production reads that project. Keep both projects to test-only data.
 
 - Ordinary Vercel Preview scope: use the development project, `https://pnmlrbgjiqzzsthsoikm.supabase.co`, and its matching keys.
-- Migration PRs only: the `preview-database` job resets the disposable project. Its preview deploys use the separate `preview-database` custom Vercel environment and that project's URL and keys, not ordinary Preview scope.
-- Data policy: PR preview environments write to development or to the preview project; never use production data
+- Migration PRs only, once step 8 is enabled: the `preview-database` job would reset the disposable project (for which the GitHub environment `release-preview` is enough), and its preview deploys would use the separate `preview-database` custom Vercel environment and that project's URL and keys, not ordinary Preview scope. Until then a migration PR gets no preview.
+- Data policy: ordinary PR previews write to development, and migration previews, once enabled, to the preview project; never use production data
 
 ### 4.1 Preview env vars (scope: Preview only)
 
@@ -154,7 +156,7 @@ node -e "import('./scripts/vercel/should-ignore-build.mjs').then(({resolveBuildD
 Each app also keeps source-controlled Git deployment branch gates in
 `apps/*/vercel.json`:
 
-- `production`: production deployments
+- `production`: disabled; a release goes through `bun run release:production` and the release job
 - `develop`: disabled; development hosts refresh only at explicit checkpoints
 - `main`: deny-only legacy name; no canonical branch exists
 - all other branches: no Git deployment creation because `"*": false` closes
@@ -184,7 +186,7 @@ Official references:
 
 ## 5. Development Environment Setup (`develop`)
 
-Development is branch-bound to `develop` using Vercel Custom Environments and remains isolated from both preview and production infrastructure.
+Development is branch-bound to `develop` using Vercel Custom Environments. Its Vercel environment is separate from Preview and Production; its Supabase project is not: ordinary previews write to it, and Production reads it from the first release after switch-on step 6.
 
 ### 5.1 Canonical development URLs
 
@@ -286,7 +288,7 @@ bun run verify:vercel-env-inventory -- --environments production,development
 
 Expected refs:
 
-- Production currently reads `btewedpsxwsjczvmegby`: a migration PR's preview rebuild resets the very database Production reads. On 18 November 2026 the owner confirmed that nothing was using production ([implementation record](../audits/core-crm-cms-database-implementation-record.md), D-37; operating limits in D-44). Do not put live data there. After this PR, [switch-on step 6](./release-job.md#switching-it-on) moves Production to development and ends this overlap; the disposable preview project remains the migration PR target.
+- Production currently reads `btewedpsxwsjczvmegby`: a migration PR's preview rebuild would reset the very database Production reads, if that path were enabled (step 8 of the release job; today it is not). On 18 November 2026 the owner confirmed that nothing was using production ([implementation record](../audits/core-crm-cms-database-implementation-record.md), D-37; operating limits in D-44). Do not put live data there. With the first release after [switch-on step 6](./release-job.md#switching-it-on) (step 7; step 6 alone changes variables that reach users only with the next deployment), Production moves to development and this overlap ends; the disposable preview project remains the target of the migration PR path, once that path is enabled.
 - Development is `pnmlrbgjiqzzsthsoikm`.
 - No active Vercel environment variable should reference `uarazyactrqlxzmeygmr`.
 
@@ -421,7 +423,12 @@ Configure each endpoint in the active Stripe mode for at least these events:
 - `charge.refunded`
 
 After creating each endpoint, copy its signing secret into that app's
-`STRIPE_WEBHOOK_SECRET` in Vercel Production scope, then redeploy.
+`STRIPE_WEBHOOK_SECRET` in Vercel Production scope. Once
+[switch-on step 7](./release-job.md#switching-it-on) has run, dispatch
+**Release** with operation `release` and `apps: all` so the changed variables
+reach users, and check that the plan step logged `build` for admin, donor and
+missionary; before step 7, redeploy and promote by hand
+([release job](./release-job.md#switching-it-on), step 3).
 
 Production Resend webhook endpoint:
 
@@ -540,11 +547,12 @@ sequenceDiagram
     participant PR as PullRequest
     participant Develop as developBranch
     participant Prod as productionBranch
+    participant Release as releaseWorkflow
     participant Vercel as Vercel
 
     Dev->>PR: Open PR (feature branch)
     PR->>Vercel: Label-gated QA preview only (qa-smoke-preview-deploy.yml)
-    Note over Vercel: Development for ordinary Preview; disposable preview project for migration PRs
+    Note over Vercel: Development for an eligible PR without a migration; no preview for a migration PR until step 8
 
     PR->>Develop: Merge/push validated development work
     Develop-->>Vercel: No automatic deploy; explicit checkpoint refreshes development-*.asymmetric.al
@@ -552,16 +560,28 @@ sequenceDiagram
 
     PR->>Prod: Merge approved production release to production
     Dev->>Prod: Or run bun run release:production from a clean release checkout
-    Prod->>Vercel: Production deploy or ignored build (*.asymmetric.al)
-    Note over Vercel: Disposable preview project until switch-on step 6; then development
+    Prod-->>Vercel: No Git deployment (apps/*/vercel.json)
+    Prod->>Release: Push starts the Release workflow (release.yml)
+    Release->>Vercel: After migrations and gates, stage, health-check and promote each affected app (*.asymmetric.al)
+    Note over Vercel: Disposable preview project until the first release after switch-on step 6 (step 7); then development
 
     Note over Prod,Develop: Optional best-effort sync for QA/demos
     Prod->>Develop: Merge/cherry-pick (best effort)
 ```
 
 `develop` may drift from the Production Branch; best-effort sync is performed
-before QA/demo cycles. For docs/evidence-only releases, Vercel may record an
-ignored build rather than spend build minutes on all three apps.
+before QA/demo cycles. Git deployments are off in every `apps/*/vercel.json`, so a
+push to `production` produces no Vercel build of its own; the Release workflow
+stages and promotes the apps its plan selects: an app whose own files or a
+shared input (anything under `packages/`, among others) changed since the
+commit its production domain serves, and any app whose live commit is unknown
+or is not an ancestor of the release. An app the plan skips keeps its current
+deployment, with the variables that deployment was built with; once
+[switch-on step 7](./release-job.md#switching-it-on) has run, to make changed
+Vercel variables reach users of every app, dispatch **Release** with operation
+`release` and `apps: all` and check that the plan step logged `build` for
+admin, donor and missionary (before step 7, redeploy and promote by hand;
+[release job](./release-job.md#switching-it-on), step 3).
 
 ## 7. Playwright `baseURL` Configuration
 
@@ -569,24 +589,24 @@ E2E tests can target different environments using `PLAYWRIGHT_BASE_URL`, configu
 
 ## 8. Credential Rotation Schedule
 
-| Environment | Service            | Frequency                 | How                                                                                                                                             |
-| ----------- | ------------------ | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Preview     | Supabase           | Quarterly                 | Rotate development keys with ordinary Preview; rotate disposable project keys in preview-database only (also update Production until switch-on) |
-| Preview     | Stripe             | Quarterly                 | Roll test-mode keys in Stripe dashboard -> update Vercel env vars                                                                               |
-| Preview     | Sentry             | Quarterly                 | Regenerate DSN -> update Vercel env vars                                                                                                        |
-| Development | All services       | Quarterly                 | Same process, development scope                                                                                                                 |
-| Production  | Supabase           | Quarterly + on compromise | Same process, production scope. Coordinate with team.                                                                                           |
-| Production  | Stripe             | Quarterly + on compromise | Rolling live keys causes brief webhook verification downtime                                                                                    |
-| Production  | Sentry, Cloudinary | Quarterly + on compromise | Same process                                                                                                                                    |
-| Production  | Email, PDF         | Quarterly + on compromise | Rotate in respective service dashboards -> update Vercel env vars                                                                               |
+| Environment | Service            | Frequency                 | How                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------- | ------------------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Preview     | Supabase           | Quarterly                 | Rotate development keys in ordinary Preview scope, then redeploy existing previews (a new push or a redeploy of the preview; the Release workflow deploys Production only). No `preview-database` environment exists (section 4). Until switch-on step 6, Production scope holds the disposable project's keys: a rotation before then rotates that project's keys too, updates Production scope, and redeploys and promotes Production by hand (release job, step 3) |
+| Preview     | Stripe             | Quarterly                 | Roll test-mode keys in Stripe dashboard -> update Vercel Preview env vars -> redeploy existing previews                                                                                                                                                                                                                                                                                                                                                               |
+| Preview     | Sentry             | Quarterly                 | Regenerate DSN -> update Vercel Preview env vars -> redeploy existing previews                                                                                                                                                                                                                                                                                                                                                                                        |
+| Development | All services       | Quarterly                 | Rotate in service dashboards -> update Vercel `development` scope env vars -> refresh development deployments at the next checkpoint (section 5.3)                                                                                                                                                                                                                                                                                                                    |
+| Production  | Supabase           | Quarterly + on compromise | Rotate Supabase keys in Vercel Production scope; once switch-on step 7 has run, dispatch **Release** with operation `release` and `apps: all` and check that the plan logged `build` for admin, donor and missionary ([release job](./release-job.md#switching-it-on), step 7); before step 7, redeploy and promote by hand (release job, step 3). Coordinate with team.                                                                                              |
+| Production  | Stripe             | Quarterly + on compromise | Roll live keys -> update Vercel Production env vars -> release Production as in the Production Supabase row (rolling live keys causes brief webhook verification downtime)                                                                                                                                                                                                                                                                                            |
+| Production  | Sentry, Cloudinary | Quarterly + on compromise | Rotate in service dashboards -> update Vercel Production env vars -> release Production as in the Production Supabase row                                                                                                                                                                                                                                                                                                                                             |
+| Production  | Email, PDF         | Quarterly + on compromise | Rotate in respective service dashboards -> update Vercel Production env vars -> once switch-on step 7 has run, dispatch **Release** with operation `release` and `apps: all` and check that the plan logged `build` for all three apps (before step 7, redeploy and promote by hand, release job step 3)                                                                                                                                                              |
 
-Every rotation window must cover all six services: Supabase, Stripe, Sentry, Cloudinary, Email, and PDF generation services such as DocRaptor when configured.
+Every rotation window must cover all six services: Supabase, Stripe, Sentry, Cloudinary, Email, and PDF generation services such as DocRaptor when configured. After changing Production Vercel variables, once [switch-on step 7](./release-job.md#switching-it-on) has run, dispatch **Release** with operation `release` and `apps: all` and check that the plan step logged `build` for admin, donor and missionary so the new values reach users of all three apps; before step 7, redeploy and promote by hand ([release job](./release-job.md#switching-it-on), step 3).
 
 ## 9. If an Environment Is Compromised
 
 1. **Immediately rotate** all credentials for the affected environment in each service dashboard, following the schedule above.
 2. **Update Vercel environment variables** for the affected scope (preview/development/production) across all three projects: `admin`, `donor`, and `missionary`.
-3. **Redeploy** all three apps so new credentials are loaded.
+3. **Redeploy** all three apps so new credentials are loaded (for Production once [switch-on step 7](./release-job.md#switching-it-on) has run, dispatch **Release** with operation `release` and `apps: all` and check that the plan step logged `build` for admin, donor and missionary; before step 7, redeploy and promote by hand, release job step 3).
 4. **For production compromises**, coordinate with the full team before rotating Stripe live keys (brief webhook downtime expected), and notify affected users if any data was exposed.
 5. **Audit access logs** in Supabase, Stripe, and Sentry for the affected incident window.
 6. **Document the incident** in a post-mortem.
