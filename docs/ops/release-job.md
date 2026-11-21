@@ -164,7 +164,15 @@ refuses a commit that is no longer `production`'s head) with operation
 code release, or `apps: all` after a change of Vercel variables (with `changed`,
 an app that already serves the commit is skipped and keeps its old variables).
 With `apps: all`, check that the plan step logged `build` for admin, donor and
-missionary. Before the first dispatch of a release that carries changed Vercel variables,
+missionary. Before a recovery dispatch with `apps: changed`, check each app the
+failed run already promoted that the new run will skip (a skipped app is not
+live-checked by the recovery run): confirm its production domain serves the
+deployment ID the failed run logged for it, and that its
+`/api/health/migrations` response (with that project's
+`x-vercel-protection-bypass` header) is `ok` with the expected Supabase project
+ref and commit; if that check cannot be made, fix the cause and dispatch with
+`apps: all`, which builds, promotes and live-checks every app. Before the first
+dispatch of a release that carries changed Vercel variables,
 note for each app the deployment ID its production domain currently serves
 (read it from `https://<domain>/api/health/migrations` with that project's
 `x-vercel-protection-bypass` header, or from the project's **Deployments**
