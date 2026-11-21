@@ -195,9 +195,11 @@ const typeDefs = /* GraphQL */ `
   }
 
   """
-  There is no role mutation (AL-2675, WP2c): a member's class, sub-role and
-  tenant-administrator flag change only through the command lane's
-  public.change_membership_role and public.revoke_membership (plan 5.4).
+  There is no role mutation (AL-2675, WP2c). A member's class never changes:
+  the command lane's public.change_membership_role changes only a staff row's
+  sub-role and tenant-administrator flag, a membership of another class is
+  given by an invitation, and public.revoke_membership ends a membership
+  (plan 5.4).
   """
   type Mutation {
     updateMyProfile(input: UpdateProfileInput!): Profile!

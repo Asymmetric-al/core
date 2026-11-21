@@ -242,9 +242,11 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
    * WP0 proved that `updateUserRole` refused every caller but an organization
    * administrator, and never granted the platform role, and WP2a moved its
    * check to the tenant-administrator membership. WP2c deletes the mutation
-   * and retires its SQL function: a member's class, sub-role and flag change
-   * only through the command lane (`public.change_membership_role`,
-   * `public.revoke_membership`; tests/unit/acceptance/issue-2675/
+   * and retires its SQL function. A staff row's sub-role and administrator
+   * flag change only through the command lane's
+   * `public.change_membership_role`, which never changes a member's class: a
+   * membership of another class is given by an invitation, and
+   * `public.revoke_membership` ends one (tests/unit/acceptance/issue-2675/
    * membership-role-commands.realstack.acceptance.test.ts). So every caller
    * WP0 refused, and the administrator it admitted, now meets a schema with no
    * role mutation, before execution: no RPC and no read. That is stronger
@@ -327,6 +329,39 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
         'Cannot query field "updateUserRole" on type "Mutation".',
         'Unknown type "UpdateUserRoleInput".',
       ]);
+      expect(seams.rpc).not.toHaveBeenCalled();
+      expect(seams.from).not.toHaveBeenCalled();
+    });
+
+    // Review 4650094352 and 4650094401 on #2741: the role-change command
+    // changes a staff row's sub-role or flag and refuses any change of class,
+    // so the schema's own description, which clients read by introspection,
+    // must not send them to it for a class.
+    it("describes the role-change command as a staff row's sub-role and flag, never a member's class", async () => {
+      seams.getAuthContext.mockResolvedValue(callerWith("admin"));
+      const { body } = await execute(
+        '{ __type(name: "Mutation") { description } }',
+      );
+      expect(body.errors).toBeUndefined();
+      const type = body.data?.__type;
+      const description =
+        type !== null &&
+        typeof type === "object" &&
+        "description" in type &&
+        typeof type.description === "string"
+          ? type.description.replace(/\s+/g, " ")
+          : "";
+      expect(description).toContain("A member's class never changes");
+      expect(description).toContain(
+        "public.change_membership_role changes only a staff row's sub-role and tenant-administrator flag",
+      );
+      expect(description).toContain(
+        "a membership of another class is given by an invitation",
+      );
+      expect(description).toContain(
+        "public.revoke_membership ends a membership",
+      );
+      expect(description).not.toMatch(/class, sub-role and/);
       expect(seams.rpc).not.toHaveBeenCalled();
       expect(seams.from).not.toHaveBeenCalled();
     });
