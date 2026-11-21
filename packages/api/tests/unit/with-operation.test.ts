@@ -152,6 +152,22 @@ describe("withOperation", () => {
     expect(mockedGetAdminClient).not.toHaveBeenCalled();
   });
 
+  it("marks a sessionless UI identity and refuses before constructing a client", async () => {
+    mockedGetAuthContext.mockResolvedValue(authenticatedAdmin);
+    const handler = vi.fn(async () => NextResponse.json({ ok: true }));
+    const response = await withOperation(handler)(
+      new NextRequest("http://localhost/api/test"),
+    );
+    expect(response.status).toBe(401);
+    expect(await response.json()).toMatchObject({
+      code: "SESSION_REQUIRED",
+      requestId: expect.any(String),
+    });
+    expect(handler).not.toHaveBeenCalled();
+    expect(createRequestSessionClient).not.toHaveBeenCalled();
+    expect(mockedGetAdminClient).not.toHaveBeenCalled();
+  });
+
   it("returns 503 with requestId when the platform client is unavailable", async () => {
     mockedGetAuthContext.mockResolvedValue(authenticatedAdmin);
     mockedGetAdminClient.mockReturnValue({
