@@ -6,6 +6,7 @@ import {
   type EveKillSwitchKey,
   type EveKillSwitchMutationResult,
 } from "@asym/api/eve/governance/types";
+import { ownApiFetch } from "@asym/database/own-api";
 import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import {
   MetricCard,
@@ -127,7 +128,7 @@ const KILL_SWITCH_COPY: Record<
 };
 
 async function loadEveGovernance(): Promise<EveGovernanceResponse> {
-  const response = await fetch("/api/admin/eve/governance", {
+  const response = await ownApiFetch("/api/admin/eve/governance", {
     credentials: "same-origin",
     headers: { accept: "application/json" },
   });
@@ -148,7 +149,7 @@ async function updateEveKillSwitch(input: {
   expectedStateVersion: number;
 }): Promise<EveKillSwitchResponse> {
   const label = KILL_SWITCH_COPY[input.switchKey].label;
-  const response = await fetch("/api/admin/eve/governance", {
+  const response = await ownApiFetch("/api/admin/eve/governance", {
     method: "PATCH",
     credentials: "same-origin",
     headers: {

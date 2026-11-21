@@ -16,6 +16,7 @@ import {
   useStudioFieldErrors,
 } from "./studio-flow-frame";
 import { StudioFlowLoading } from "./studio-flow-loading";
+import { fetchStudioFunds } from "./studio-funds";
 import {
   StudioTemplateField,
   canChooseTemplate,
@@ -27,11 +28,6 @@ import { TENANT_REQUIRED_MESSAGE, TenantSelectField } from "./tenant-picker";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { WEB_STUDIO_COLLECTION_CONFIGS } from "../collections/config";
 import { useRouter, useSearchParams } from "../routing";
-
-type FundRow = {
-  id: string;
-  name?: string | null;
-};
 
 /** Field ids in screen order: the first invalid one takes focus. */
 const FIELD_IDS = {
@@ -83,16 +79,7 @@ function ProjectPageCreateViewContent() {
     isPending: fundsIsPending,
   } = useQuery({
     queryKey: ["web-studio", "admin-funds"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/funds?limit=200", {
-        credentials: "include",
-      });
-      if (!res.ok) {
-        throw new Error("Failed to load funds");
-      }
-      const json = (await res.json()) as { funds?: FundRow[] };
-      return json.funds ?? [];
-    },
+    queryFn: ({ signal }) => fetchStudioFunds(signal),
   });
 
   const {

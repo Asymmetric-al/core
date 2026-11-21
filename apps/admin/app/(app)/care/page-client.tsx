@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { MetricGrid } from "@asym/ui/components/primitives/metric-card";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
@@ -10,7 +11,6 @@ import {
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { AlertCircle, Users } from "lucide-react";
-import Link from "next/link";
 
 import { CareContactTrend } from "@/features/mission-control/care/components/care-contact-trend";
 import { CareOverview } from "@/features/mission-control/care/components/CareDashboard";

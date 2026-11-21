@@ -127,11 +127,11 @@ function setup({
 } = {}) {
   let stored = storedPins;
   fixture.serverFunction.mockImplementation(
-    async ({ name, args }: { name: string; args: { tab: string } }) => {
-      expect(name).toBe("get-dashboard-documents");
+    async ({ name, args }: { name: string; args: { type: string } }) => {
+      expect(name).toBe("get-activity-widget-docs");
       if (failLoad) throw new Error("offline");
       const items =
-        args.tab === "pinned"
+        args.type === "pinned"
           ? pinned.filter((doc) =>
               stored.some(
                 (pin) =>
@@ -178,8 +178,8 @@ it("lists pinned documents with Studio names and the lists' status words", async
   expect(within(rows[1]!).getByText("Giving pages")).toBeTruthy();
   expect(within(rows[1]!).getByText("Published")).toBeTruthy();
   expect(fixture.serverFunction).toHaveBeenCalledWith({
-    name: "get-dashboard-documents",
-    args: { limit: 5, page: 1, tab: "pinned" },
+    name: "get-activity-widget-docs",
+    args: { limit: 5, page: 1, type: "pinned" },
   });
 });
 
@@ -202,7 +202,7 @@ it("unpins through Payload's pinned-documents preference and refreshes", async (
   await waitFor(() =>
     expect(
       fixture.serverFunction.mock.calls.filter(
-        ([call]) => (call as { args: { tab: string } }).args.tab === "pinned",
+        ([call]) => (call as { args: { type: string } }).args.type === "pinned",
       ).length,
     ).toBeGreaterThan(1),
   );
@@ -264,8 +264,8 @@ it("switches to the user's recently viewed documents", async () => {
   ).toBe("/web-studio/collections/media/m1");
   expect(within(list).getByText("5 minutes ago")).toBeTruthy();
   expect(fixture.serverFunction).toHaveBeenCalledWith({
-    name: "get-dashboard-documents",
-    args: { limit: 5, page: 1, tab: "recents" },
+    name: "get-activity-widget-docs",
+    args: { limit: 5, page: 1, type: "recents" },
   });
 });
 
@@ -346,9 +346,9 @@ it("moves back to the last page when unpinning empties the current one", async (
     async ({
       args,
     }: {
-      args: { tab: string; page: number; limit: number };
+      args: { type: string; page: number; limit: number };
     }) => {
-      if (args.tab !== "pinned") {
+      if (args.type !== "pinned") {
         return { items: VIEWED, page: 1, totalDocs: VIEWED.length };
       }
       const start = (args.page - 1) * args.limit;
@@ -406,8 +406,8 @@ it("moves back to the last page when unpinning empties the current one", async (
   );
   expect(screen.queryByText("No pinned documents")).toBeNull();
   expect(fixture.serverFunction).toHaveBeenLastCalledWith({
-    name: "get-dashboard-documents",
-    args: { limit: 5, page: 1, tab: "pinned" },
+    name: "get-activity-widget-docs",
+    args: { limit: 5, page: 1, type: "pinned" },
   });
 });
 
@@ -415,8 +415,8 @@ it("keeps Previous on a page another session emptied", async () => {
   // Page 2 had pins when it was opened; they were unpinned elsewhere.
   let total = 6;
   fixture.serverFunction.mockImplementation(
-    async ({ args }: { args: { tab: string; page: number } }) => {
-      if (args.tab !== "pinned") return { items: [], page: 1, totalDocs: 0 };
+    async ({ args }: { args: { type: string; page: number } }) => {
+      if (args.type !== "pinned") return { items: [], page: 1, totalDocs: 0 };
       const docs = Array.from({ length: total }, (_, index) => ({
         ...PINNED[0]!,
         id: index + 1,
@@ -482,8 +482,8 @@ function renderPages({
     href: `/web-studio/collections/pages/${index + 1}`,
   }));
   fixture.serverFunction.mockImplementation(
-    async ({ args }: { args: { tab: string; page: number } }) => {
-      if (args.tab !== "pinned") {
+    async ({ args }: { args: { type: string; page: number } }) => {
+      if (args.type !== "pinned") {
         await loadPage();
         return { items: VIEWED, page: 1, totalDocs: VIEWED.length };
       }
@@ -521,8 +521,8 @@ it("keeps the page, pager and focus on screen while the next page loads", async 
 
   await waitFor(() =>
     expect(fixture.serverFunction).toHaveBeenCalledWith({
-      name: "get-dashboard-documents",
-      args: { limit: 5, page: 2, tab: "pinned" },
+      name: "get-activity-widget-docs",
+      args: { limit: 5, page: 2, type: "pinned" },
     }),
   );
   expect(screen.getByRole("link", { name: "Doc 1" })).toBeTruthy();

@@ -1,5 +1,6 @@
 import "./globals.css";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -8,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import Link from "next/link";
 
 import type { Metadata } from "next";
 

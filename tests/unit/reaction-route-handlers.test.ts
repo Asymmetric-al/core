@@ -29,7 +29,8 @@ vi.mock("@asym/database/supabase/server", () => ({
   createClient: createClientMock,
 }));
 
-vi.mock("@asym/database/supabase/admin", () => ({
+vi.mock("@asym/database/supabase/admin", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/database/supabase/admin")>()),
   getAdminClient: getAdminClientMock,
 }));
 
@@ -52,6 +53,7 @@ import {
 
 const POST_ID = "00000000-0000-4000-8000-000000000001";
 const TENANT_ID = "tenant-1";
+const DONOR_ASSIGNMENT_ID = "00000000-0000-4000-8000-0000000000d1";
 const OTHER_TENANT_ID = "tenant-2";
 const USER_ID = "user-1";
 
@@ -100,6 +102,19 @@ function mockRequestClient({
             },
           ]
         : [],
+    // The donor row the resolver selected (WP2b, AL-2675).
+    assignment:
+      session === "donor"
+        ? {
+            assignmentId: DONOR_ASSIGNMENT_ID,
+            userId: USER_ID,
+            tenantId: TENANT_ID,
+            revision: "1",
+            membershipRole: "donor",
+            staffRole: null,
+            isTenantAdmin: false,
+          }
+        : null,
     profileId: session === "signed-out" ? null : "profile-1",
     isAuthenticated: session === "donor",
   });
@@ -237,6 +252,11 @@ describe("donor reaction route handlers", () => {
       });
       expect(response.status).toBe(200);
       expect(getAuthContextMock).toHaveBeenCalledOnce();
+      // The post lookup runs on the caller's token with the resolved scope.
+      expect(createClientMock).toHaveBeenCalledWith({
+        tenantId: TENANT_ID,
+        assignmentId: DONOR_ASSIGNMENT_ID,
+      });
       expect(requestClient.from.mock.calls).toEqual([["posts"]]);
       expect(requestClient.postLookup.eq).toHaveBeenNthCalledWith(
         1,
@@ -315,6 +335,23 @@ describe("donor reaction route handlers", () => {
       expect(getAdminClientMock).toHaveBeenCalledOnce();
       expect(requestClient.requestRpc).not.toHaveBeenCalled();
       expect(revalidateTagMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    [
+      "Admin endpoints are disabled because SUPABASE_SERVICE_ROLE_KEY is not configured.",
+      "Admin endpoints are disabled because SUPABASE_SERVICE_ROLE_KEY is not configured.",
+    ],
+    ["vendor supplied private detail", "Admin client unavailable"],
+  ])(
+    "preserves only reviewed configuration messages: %s",
+    async (error, publicMessage) => {
+      mockRequestClient();
+      getAdminClientMock.mockReturnValue({ client: null, error });
+      const response = await invoke(mutationCases[0]!.handler);
+      expect(response.status).toBe(503);
+      await expect(response.json()).resolves.toEqual({ error: publicMessage });
     },
   );
 

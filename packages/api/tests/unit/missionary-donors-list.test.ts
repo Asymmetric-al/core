@@ -605,9 +605,24 @@ function expectNoOperation(
 
 function createFakeSupabaseAdmin(results: Record<string, FakeQueryResult>) {
   const queries: Record<string, FakeSupabaseQuery> = {};
+  let activityPage: unknown;
   return {
     queries,
+    get activityPage() {
+      return activityPage;
+    },
     client: {
+      rpc(name: string, args: Record<string, unknown>) {
+        expect(name).toBe("missionary_activities");
+        activityPage = args.p_donor_ids;
+        expect(args).toEqual({
+          p_donor_ids: expect.any(Array),
+          p_profile_id: missionaryProfileId,
+          p_tenant_id: "tenant-1",
+          p_assignment_id: "assignment-1",
+        });
+        return this.from("donor_activities");
+      },
       from(table: string) {
         const query = new FakeSupabaseQuery(table, results[table]!);
         queries[table] = query;
@@ -671,6 +686,7 @@ describe("getMissionaryDonorRows", () => {
 
     const page = await getMissionaryDonorRows({
       supabaseAdmin: fake.client as never,
+      assignmentId: "assignment-1",
       profileId: missionaryProfileId,
       tenantId: "tenant-1",
       limit: 2,
@@ -710,11 +726,7 @@ describe("getMissionaryDonorRows", () => {
       method: "eq",
       column: "tenant_id",
     });
-    expect(fake.queries.donor_activities!.operations).toContainEqual({
-      method: "in",
-      column: "donor_id",
-      values: ["donor-B", "donor-C"],
-    });
+    expect(fake.activityPage).toEqual(["donor-B", "donor-C"]);
     expect(fake.queries.donor_pledges!.operations).toContainEqual({
       method: "eq",
       column: "tenant_id",
@@ -758,6 +770,7 @@ describe("getMissionaryDonorRows", () => {
     await expect(
       getMissionaryDonorRows({
         supabaseAdmin: fake.client as never,
+        assignmentId: "assignment-1",
         profileId: missionaryProfileId,
         tenantId: "tenant-1",
         limit: 25,

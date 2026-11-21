@@ -245,15 +245,23 @@ describe("#2258 resolver (criteria 3, 4, 5, 9, 17 S; DI fakes, no vi.mock)", () 
   // criterion 17 (S), as restated by AL-2675: the surface's role class
   // filters the candidates and nothing ranks one class over another.
   // "label | reader rows | input | expected ([row] selection, or reason)".
+  //
+  // Criterion 3's narrowing by expectedTenantId holds for every class. Its
+  // case was written with donor rows; since the joined release's JB12 the
+  // donor surface refuses a person with donor rows in two organizations
+  // before any narrowing, by plan 12's interim rule until WP3. So the
+  // narrowing is shown on missionary rows, and the donor refusal beside it.
   const R: Record<string, H.Row> = {
     D: row(TA, "donor"),
     M: row(TA, "missionary"),
     S1: row(TA, "staff", "finance"),
     S2: row(TA, "staff", "member_care"),
     DB: row(TB, "donor"),
+    MB: row(TB, "missionary"),
   };
   const CASES = `3/17: one row of the class → sole | staff | S1 | - | S1 sole
-3/17: expectedTenantId TA, rows in TA and TB → the TA row, sole | donor | D DB | TA | D sole
+3/17: expectedTenantId TA, rows in TA and TB → the TA row, sole | missionary | M MB | TA | M sole
+3/17 with WP2's interim rule: donor rows in TA and TB, narrowed to TA → ambiguous | donor | D DB | TA | ambiguous
 3/17: donor rows in TA and TB, no expectedTenantId → ambiguous | donor | D DB | - | ambiguous
 17a: staff + donor, staff surface → the staff row, sole | staff | S1 D | - | S1 sole
 17a': staff + donor, donor portal → the donor row, never the staff row | donor | S1 D | - | D sole
@@ -558,6 +566,10 @@ describe("#2258 principal/** scans (criteria 1, 4, 5, 8, 10, 15, 17 S)", () => {
       "packages/auth/middleware.ts",
       "packages/auth/request-headers.ts",
       "packages/auth/resolve-user-role.ts",
+      // WP2b slice C (AL-2675): Web Studio decides its organization with the
+      // resolver's own rule (selectAssignment) over the person's live rows,
+      // for the admin proxy, the Web Studio layout and Payload's strategy.
+      "packages/auth/web-studio.ts",
     ]);
   });
 });
@@ -663,6 +675,47 @@ describe("#2258 pins (criteria 12, 13)", () => {
       [
         46788,
         "b83d66c4b3ccfc91c2ba86c7118eebff6e9e1b5fafcf748ad9996b1a4a3e006b",
+      ],
+      // Amended by AL-2674 (WP1.6, record D-18): docs/ci.md's "Local Supabase
+      // stack workflow" section gains one bullet, and its count of what it
+      // guards goes from two to three. The workflow now also replays the chain
+      // on plain Postgres as the release job does (`--hosted-defaults`) and
+      // fails unless that replay fingerprints exactly as the stack does, so a
+      // change of Supabase's default privileges fails a pull request rather
+      // than a release. Nothing else in the file changes.
+      // Pinned on that exact reviewed whole file.
+      [
+        47141,
+        "a1e298892caec8406bdeef31e41814f9532bf3527e2d77436104d052d1d4ad37",
+      ],
+      // Amended by AL-2674 (WP1.6 review H7, record D-18): the WP1.6 bullet of
+      // docs/ci.md's "Local Supabase stack workflow" section no longer says
+      // that a change of Supabase's default privileges fails a pull request
+      // rather than a release. It says the job compares with the image the
+      // pinned CLI starts, not with hosted, and that the release's gates catch
+      // a change on hosted. Nothing else in the file changes. Pinned on that exact reviewed whole file.
+      [
+        47190,
+        "74852f931758754843fbd50e41d432fbd40375f06f002c99f3524417f2b8782e",
+      ],
+      // D-18: WP2H documents the proof dependencies, including its Vitest config and resolver plugins.
+      // This pin accepts only the reviewed file bytes, as before.
+      [
+        47791,
+        "bac3dc897167173b05ea29aca95ac25f4bd64f675f22780c71aeba1821b6a5b6",
+      ],
+      // Amended by AL-2735 when the shadcn upstream review left ci:preflight: the stage
+      // list drops `verify:shadcn-diff` and renumbers, a new paragraph says
+      // the review runs by hand, and the `lint` section no longer lists it.
+      // Pinned on that exact reviewed whole file.
+      [
+        47915,
+        "e091011ebffb5faba38a9230a9982488fb679c02f38b6d08be0b515250530276",
+      ],
+      // D-18 (AL-2675): retain the manual shadcn review; document operator MFA, CMS origin and the 35-minute E2E cap.
+      [
+        48397,
+        "b94a4abb2503c2a4b54b349d94218659910b587989be8fddba59d3f7350e8674",
       ],
     ];
     expect(REVIEWED).toContainEqual([

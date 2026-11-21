@@ -25,7 +25,6 @@ const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
   { id: "verify-bun-lock-drift", script: "verify:bun-lock-drift" },
   { id: "verify-eslint", script: "verify:eslint" },
   { id: "verify-shadcn-config", script: "verify:shadcn-config" },
-  { id: "verify-shadcn-diff", script: "verify:shadcn-diff" },
   { id: "verify-shadscan", script: "verify:shadscan" },
   { id: "typecheck", script: "typecheck" },
   { id: "build", script: "build" },
@@ -167,6 +166,13 @@ describe("ci-preflight contract", () => {
     expect(source).not.toContain("verify:deployment-discipline");
     expect(stages.map((stage) => stage.script)).not.toContain(
       "verify:deployment-discipline",
+    );
+  });
+
+  it("does not run the networked shadcn upstream review inside preflight", () => {
+    expect(source).not.toContain("verify:shadcn-diff");
+    expect(stages.map((stage) => stage.script)).not.toContain(
+      "verify:shadcn-diff",
     );
   });
 

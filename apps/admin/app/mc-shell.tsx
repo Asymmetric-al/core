@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  TenantLink as Link,
+  useRoutePathname as usePathname,
+  useTenantRouter as useRouter,
+} from "@asym/auth/tenant-navigation";
+import {
   findNavDestination,
   getNavItemsByRole,
   getNavSectionsByRole,
@@ -71,8 +76,6 @@ import ProfileDropdown, {
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
 import { cn } from "@asym/ui/lib/utils";
 import { ChevronRight, Info, Shield, UserRound, Users } from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { EveGlobalPanel } from "./eve/global-panel";

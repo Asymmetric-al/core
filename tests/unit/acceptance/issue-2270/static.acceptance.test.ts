@@ -57,11 +57,22 @@ describe("#2270 C6/C7: authz grant-list guard across every forward migration", (
         if (m && /\bSECURITY DEFINER\b/i.test(s)) definers.add(m[1]!);
       }
     }
+    // Amended by AL-2675 (WP2b, second release; record D-18): the policy
+    // migration adds three reviewed authz definers, each owned by postgres
+    // with an empty search path and executable by authenticated and
+    // service_role only: request_assignment (the one row a request acts
+    // under), assignment_holds (a capability of that row) and
+    // caller_tenant_ids (the caller's live tenants, for Storage). The list is
+    // as exact as before.
     expect([...definers].sort()).toEqual(
-      Object.keys(GRANTS)
-        .filter((k) => k.startsWith("authz."))
-        .map((k) => k.slice(6, k.indexOf("(")))
-        .sort(),
+      [
+        ...Object.keys(GRANTS)
+          .filter((k) => k.startsWith("authz."))
+          .map((k) => k.slice(6, k.indexOf("("))),
+        "assignment_holds",
+        "caller_tenant_ids",
+        "request_assignment",
+      ].sort(),
     );
   });
   it("C7: no migration grants authz functions or current_user_memberships to PUBLIC/anon, or authz USAGE to anon", () => {

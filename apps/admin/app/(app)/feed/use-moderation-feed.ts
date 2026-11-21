@@ -1,4 +1,6 @@
 "use client";
+
+import { ownApiFetch } from "@asym/database/own-api";
 import { useMC } from "@asym/lib/mission-control/context";
 import { useQuery } from "@tanstack/react-query";
 
@@ -39,7 +41,7 @@ interface CommentsResponse {
 }
 
 async function getJson<T>(url: string, signal: AbortSignal): Promise<T> {
-  const response = await fetch(url, {
+  const response = await ownApiFetch(url, {
     signal,
     credentials: "same-origin",
     headers: { accept: "application/json" },

@@ -5,7 +5,8 @@
  * sits in the database adapter's `init`, which every path that starts Payload
  * goes through, before it connects.
  *
- * Each case loads the two route modules as Next.js does, with a protected
+ * Each case loads the two route modules as Next.js does, from where they
+ * now live under `/web-studio/api` (AL-2675, WP2b slice C), with a protected
  * deployment's environment whose database connection names a local listener.
  * A connection that reaches the listener means Payload tried to use the
  * refused configuration.
@@ -55,9 +56,9 @@ async function loadRoutes(env: Record<string, string>) {
   vi.stubEnv("VERCEL_ENV", "production");
   for (const [key, value] of Object.entries(env)) vi.stubEnv(key, value);
   const rest =
-    await import("../../../apps/admin/app/(payload)/api/[...slug]/route");
+    await import("../../../apps/admin/app/(payload)/web-studio/api/[...slug]/route");
   const graphql =
-    await import("../../../apps/admin/app/(payload)/api/graphql/route");
+    await import("../../../apps/admin/app/(payload)/web-studio/api/graphql/route");
   return { rest, graphql };
 }
 
@@ -88,7 +89,7 @@ describe("Payload's REST and GraphQL routes refuse a database configuration a pr
       const errors = vi.spyOn(console, "error").mockImplementation(() => {});
 
       const response = await rest.GET(
-        new Request("http://admin.test/api/pages?limit=1"),
+        new Request("http://admin.test/web-studio/api/pages?limit=1"),
         { params: Promise.resolve({ slug: ["pages"] }) },
       );
       expect(response.status).toBe(500);
@@ -98,9 +99,13 @@ describe("Payload's REST and GraphQL routes refuse a database configuration a pr
 
       await expect(
         graphql.POST(
-          new Request("http://admin.test/api/graphql", {
+          new Request("http://admin.test/web-studio/api/graphql", {
             method: "POST",
-            headers: { "content-type": "application/json" },
+            // Same-origin, so the write guard lets it reach Payload.
+            headers: {
+              "content-type": "application/json",
+              origin: "http://admin.test",
+            },
             body: JSON.stringify({ query: "{ __typename }" }),
           }),
         ),

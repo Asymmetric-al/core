@@ -1,3 +1,5 @@
+import { ownApiFetch } from "@asym/database/own-api";
+
 import type {
   EmailMetadata,
   EmailTemplateListEntry,
@@ -34,7 +36,7 @@ async function readJsonBody<T>(response: Response): Promise<T | null> {
 }
 
 export async function fetchEmailTemplates(): Promise<EmailTemplateListEntry[]> {
-  const response = await fetch("/api/email/templates", {
+  const response = await ownApiFetch("/api/email/templates", {
     method: "GET",
   });
   const body = await readJsonBody<ListTemplatesResponse>(response);
@@ -66,7 +68,7 @@ export async function persistEmailTemplate(
     },
   };
 
-  const response = await fetch(
+  const response = await ownApiFetch(
     metadata.id
       ? `/api/email/templates/${metadata.id}`
       : "/api/email/templates",
@@ -104,7 +106,7 @@ export async function sendTemplateTestEmail(
   const testSendPath = metadata.id
     ? `/api/email/templates/${metadata.id}/test-send`
     : "/api/email/templates/test-send";
-  const response = await fetch(testSendPath, {
+  const response = await ownApiFetch(testSendPath, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({

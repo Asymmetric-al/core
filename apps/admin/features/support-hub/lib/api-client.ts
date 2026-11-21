@@ -1,5 +1,7 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 export class SupportApiError extends Error {
   constructor(
     message: string,
@@ -31,7 +33,7 @@ async function readApiError(response: Response): Promise<string> {
 }
 
 export async function supportApiGet<T>(path: string): Promise<T> {
-  const response = await fetch(path, {
+  const response = await ownApiFetch(path, {
     headers: { accept: "application/json" },
   });
   if (!response.ok) {
@@ -45,7 +47,7 @@ export async function supportApiJson<T>(
   method: "POST" | "PATCH" | "DELETE",
   body?: unknown,
 ): Promise<T> {
-  const response = await fetch(path, {
+  const response = await ownApiFetch(path, {
     method,
     headers: {
       accept: "application/json",

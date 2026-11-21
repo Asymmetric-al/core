@@ -219,11 +219,49 @@ const includeAdminServer =
 const defaultProjectTestIgnore =
   getDefaultProjectTestIgnore(includeAdminServer);
 
+/**
+ * The missionary app, only for the strict local CMS run
+ * (scripts/cms/run-local-e2e.mjs sets CMS_LOCAL_STRICT and the address),
+ * whose bodyless-delete case writes there (AL-2677, fix check G6).
+ */
+const missionaryBaseURL = process.env.PLAYWRIGHT_MISSIONARY_BASE_URL;
+const missionaryServer =
+  !isRemoteBaseUrl &&
+  process.env.CMS_LOCAL_STRICT === "1" &&
+  missionaryBaseURL &&
+  isLocalHostname(new URL(missionaryBaseURL).hostname)
+    ? ({
+        command: devServerCommand(
+          "missionary",
+          Number(new URL(missionaryBaseURL).port || 4000),
+          DEFAULT_LOCAL_HOSTNAME,
+        ),
+        env: {
+          ...resolvedEnv,
+          ASYM_E2E_AUTH_SURFACE: "missionary",
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
+          NEXT_PUBLIC_SUPABASE_URL: supabaseURL,
+        },
+        // The public sign-in page: /api/health probes Supabase as anon,
+        // which holds no SELECT on profiles on a migrated stack, and answers
+        // 503 there, which Playwright never counts as ready.
+        url: `${missionaryBaseURL.replace(/\/$/, "")}/login`,
+        reuseExistingServer,
+        timeout: PLAYWRIGHT_WEB_SERVER_TIMEOUT_MS,
+      } as const)
+    : null;
+
 const webServer = isRemoteBaseUrl
   ? undefined
   : includeAdminServer
-    ? [donorServer, adminServer]
-    : donorServer;
+    ? [
+        donorServer,
+        adminServer,
+        ...(missionaryServer ? [missionaryServer] : []),
+      ]
+    : missionaryServer
+      ? [donorServer, missionaryServer]
+      : donorServer;
 
 const donorAuthState = path.join(__dirname, ".auth", "donor.json");
 const adminAuthState = path.join(__dirname, ".auth", "admin.json");

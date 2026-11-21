@@ -5620,7 +5620,7 @@
       "rawSkillHash": "0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b",
       "lockHash": "0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b",
       "entrypointHash": "b3b6924d79bf0b685c5d50525612885a17c8afb1f3f83a2a1792dfd144bc96bc",
-      "treeHash": "ce5ab71c87e3daa1e02361520198e42b7101954219186164bcedbaa0c59152d8",
+      "treeHash": "a9cadf28e334c18769577a1fc0bc4429b8771a4d4dd9438c2617ebabd5bba923",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5649,7 +5649,7 @@
             "SKILL.md": "b3b6924d79bf0b685c5d50525612885a17c8afb1f3f83a2a1792dfd144bc96bc",
             "metadata.json": "c6074064b7b7793e7a246a5ea5d5bed62adc0276af52769968c9d06c17be527e",
             "references/cache-components.md": "9609fb375c1414fff0f6337630a41824c08b408079690a82ab6506f97f33fe51",
-            "references/components.md": "b647bd9a76cd2346511dc477a003d486da2d61c7f5756861e3c972ce7a8cebaf",
+            "references/components.md": "58fddbdd031b7d0e2f2dd544ece3deaec30f9792736e5125b12ff17466a35c4b",
             "references/example.md": "6ffb1ab6783dc592ceb4be80434afdaeb2ce6c6c9e837413254e5fba38337798",
             "references/feature-folders.md": "26c9e10e081d4ac62f3dc4680b00e4024df6c1f3164b9053d5778cb2a316286a",
             "references/instant-navigation.md": "d887381717d9ca8321d1aefa084caa68b54097c2e3ed116bd74799cf773988ca",
@@ -10320,8 +10320,8 @@
       "sourcePath": "packages/core/skills/ui-sdk/SKILL.md",
       "rawSkillHash": "bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a",
       "lockHash": "76946872dfa4db3d144c1629ce2fe8a44b1cd4442ef70eeb82f3da4cb5f68f07",
-      "entrypointHash": "d33b7f492be616b2818cb0562324fc1d35972248007d00ecea5148e941dbbb24",
-      "treeHash": "af60e5e2eefd97f60f8802540e831903737ae2890e3c275622d8f2d248eeb3b4",
+      "entrypointHash": "e8709bed026b3f6b46f100eac03732f913fe0f01d04cb3be38f400c833b9940c",
+      "treeHash": "3493ed9cc8360d6034346882ea647aa9f38270b6b5c7e3bb85fca207e4413e5f",
       "license": {
         "identifier": "Apache-2.0",
         "status": "notice-preserved",

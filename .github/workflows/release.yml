@@ -10,7 +10,7 @@
 # Manually dispatched operations, from the production branch only:
 #   release                 re-run a release of the production branch head
 #   set-environment-marker  move the marker forward (owner's approval)
-#   first-rebuild           the one-off rebuild of a database with no marker
+#   first-rebuild           first rebuild before any recorded head, on an unmarked or disposable database
 #   set-cms-role-passwords  set cms_owner and cms_runtime from the secrets
 #   replace-seeded-login-passwords
 #                           give seeded logins that still carry a password the
@@ -43,6 +43,12 @@ on:
         default: production
         type: choice
         options: [production, preview]
+      apps:
+        description: release only (ignored otherwise) - changed builds affected apps; all builds every app so changed Vercel variables reach users
+        required: false
+        default: changed
+        type: choice
+        options: [changed, all]
       marker:
         description: set-environment-marker only (ignored otherwise)
         required: false
@@ -167,10 +173,14 @@ jobs:
       - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
           version: ${{ steps.supabase-pin.outputs.version }}
+      # Hosted Supabase gives `postgres` default privileges in `public` before
+      # any migration runs; the replay applies the same ones first, or its
+      # access lists never equal the target's and the fingerprint gate stops
+      # every hosted release (WP1.6; scripts/sql/hosted-default-privileges.sql).
       - name: Replay every migration on a fresh database
         env:
           DATABASE_URL: ${{ env.REPLAY_DATABASE_URL }}
-        run: node scripts/verify/supabase-migrations.mjs
+        run: node scripts/verify/supabase-migrations.mjs --hosted-defaults
       - name: Replay Payload migrations on the fresh database
         env:
           PAYLOAD_DATABASE_URI: ${{ env.REPLAY_DATABASE_URL }}
@@ -206,11 +216,13 @@ jobs:
       - name: Catalog gates and schema fingerprint against the replay
         env:
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
           RELEASE_REPLAY_FINGERPRINT: ${{ runner.temp }}/replay-fingerprint.json
         run: node scripts/release/release-database.mjs gates
       - name: Record the expected migration heads
         env:
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
         run: node scripts/release/release-database.mjs record-heads
 
   deploy:
@@ -224,7 +236,11 @@ jobs:
       (github.event_name == 'push' || inputs.operation == 'release') &&
       (inputs.environment || 'production') == 'production'
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # Worst-case sequential budget for three apps (`apps: all`):
+    # 3 x 20m stage builds (60m) + 3 x staged checks (6 x 30s + 5 x 5s = ~11m)
+    # + 3 x live checks (18 x 30s + 17 x 10s = ~36m) + ~10m checkout/setup/API
+    # calls = ~117m; 150m leaves headroom so a run is not cancelled after promotion.
+    timeout-minutes: 150
     environment: release-production
     env:
       RELEASE_SHA: ${{ github.sha }}
@@ -244,6 +260,8 @@ jobs:
         run: node scripts/release/vercel-release.mjs preflight
       - name: Choose the apps this release builds
         id: plan
+        env:
+          RELEASE_APPS_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.apps || 'changed' }}
         run: node scripts/release/vercel-release.mjs plan
       - name: Stage, health-check and promote
         env:
@@ -289,6 +307,7 @@ jobs:
           RELEASE_ENVIRONMENT: ${{ inputs.environment }}
           RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
           RELEASE_MARKER: ${{ inputs.marker }}
           RELEASE_CONFIRMATION: ${{ inputs.confirmation }}
         run: node scripts/release/release-database.mjs set-marker
@@ -318,6 +337,7 @@ jobs:
           RELEASE_ENVIRONMENT: ${{ inputs.environment }}
           RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
           RELEASE_CMS_OWNER_PASSWORD: ${{ secrets.RELEASE_CMS_OWNER_PASSWORD }}
           RELEASE_CMS_RUNTIME_PASSWORD: ${{ secrets.RELEASE_CMS_RUNTIME_PASSWORD }}
         run: node scripts/release/release-database.mjs cms-role-passwords
@@ -351,5 +371,6 @@ jobs:
           RELEASE_ENVIRONMENT: ${{ inputs.environment }}
           RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
           RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}
         run: node scripts/release/release-database.mjs replace-seeded-login-passwords

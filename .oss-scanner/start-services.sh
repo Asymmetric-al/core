@@ -102,7 +102,13 @@ if [[ "$mode" == demo ]]; then
 fi
 for app in "${apps[@]}"; do
   case "$app" in donor) port=3005 ;; admin) port=3030 ;; missionary) port=4000 ;; esac
-  setsid bash .oss-scanner/run-local.sh "$profile" bash -c 'cd "apps/$1"; exec bun run "$2" -- --port "$3" --hostname 127.0.0.1' scanner-app "$app" "$command" "$port" > "$state/$app.log" 2>&1 &
+  # Mission Control and the missionary workspace serve every signed-in page
+  # through their proxy's rewrite of the tenant address. Bound to a loopback
+  # IP literal, Next sends that rewrite out of the server and the proxy
+  # answers 500 (record D-19), so they bind the loopback name, resolved IPv4
+  # first so the probes below still reach them on 127.0.0.1.
+  case "$app" in admin|missionary) host=localhost ;; *) host=127.0.0.1 ;; esac
+  setsid bash .oss-scanner/run-local.sh "$profile" bash -c 'cd "apps/$1"; if [[ "$4" == localhost ]]; then export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--dns-result-order=ipv4first"; fi; exec bun run "$2" -- --port "$3" --hostname "$4"' scanner-app "$app" "$command" "$port" "$host" > "$state/$app.log" 2>&1 &
   pid=$!
   echo "$pid" > "$state/$app.pid"
   ready=0

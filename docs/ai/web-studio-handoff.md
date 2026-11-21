@@ -36,7 +36,7 @@
 ## Existing implementation flows
 
 1. **List/edit:** Collection `admin.components.views` → native components wrap Payload `DefaultEditView` / list hooks.
-2. **Templates:** `/web-studio/templates` → wizard routes → `POST /api/web-studio/create-from-template` → redirect to new document.
+2. **Templates:** `/web-studio/templates` → wizard routes → `POST /web-studio/api/web-studio/create-from-template` → redirect to new document.
 3. **Public read:** `apps/admin/app/api/cms/public/*` → the sole `PublishedContentReader` with the independent public-read policy; internal Payload access remains behind the private reader adapter. Preserve current protections while qualifying the adopted exact-generation serving contract.
 
 These paths describe the existing prototype surface. They do not make raw Payload forms, publish controls or provider APIs the required final product. The Phase 42 implementation must qualify its Asym-owned editor, isolated composer and owner commands before enabling them; a UI failure must not expose raw Payload Admin.

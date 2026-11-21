@@ -59,7 +59,8 @@ const MOVED_JOB_EXACT_TIMEOUT_MINUTES: Record<
   migrate: 50,
   smoke: 10,
   "test-e2e-smoke": 25,
-  "test-e2e": 30,
+  // D-18: #2734 took 23m16s on GitHub; the 35-minute job cap supersedes the local replay.
+  "test-e2e": 35,
   "instant-nav": 25,
 };
 

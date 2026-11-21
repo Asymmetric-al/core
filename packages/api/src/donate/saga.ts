@@ -11,7 +11,10 @@ import {
   mergeDonationPaymentIntentMetadata,
   type DonationPaymentIntentMethodType,
 } from "./payment-intent";
-import { ApiHttpError } from "../shared/api-http-error";
+import {
+  ApiHttpError,
+  ApiResponseContractError,
+} from "../shared/api-http-error";
 
 import type { getAdminClient } from "@asym/database/supabase/admin";
 import type Stripe from "stripe";
@@ -206,17 +209,17 @@ async function ensureStripeCustomerId(params: {
   idempotencyKey: string;
   existingStripeCustomerId: string | null;
 }) {
-  if (params.existingStripeCustomerId) {
-    return params.existingStripeCustomerId;
-  }
-
   const { data: donor, error: donorError } = await params.supabaseAdmin
     .from("donors")
     .select("id, profile_id, stripe_customer_id")
+    .eq("tenant_id", params.tenantId)
     .eq("id", params.donorId)
     .single();
-  if (donorError || !donor) {
-    throw new Error(donorError?.message ?? "Donor not found");
+  if (donorError) throw new Error(donorError.message);
+  if (!donor) throw new ApiResponseContractError(500, "Donor not found");
+
+  if (params.existingStripeCustomerId) {
+    return params.existingStripeCustomerId;
   }
 
   const donorStripeCustomerId = stringOrNull(donor.stripe_customer_id);

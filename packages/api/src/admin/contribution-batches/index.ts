@@ -11,10 +11,7 @@ export {
   chooseContributionBatchExecutionMode,
   createContributionBatchPreview,
 } from "./preview";
-export {
-  buildContributionBatchCsv,
-  summarizeContributionBatchResults,
-} from "./results";
+export { summarizeContributionBatchResults } from "./results";
 
 export type {
   ContributionBatchApiResponse,

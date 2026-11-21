@@ -15,7 +15,7 @@ vi.mock("@asym/database/supabase/admin", () => ({
 }));
 
 import {
-  logAuditEvent,
+  createAuditLogger,
   logSystemAuditEvent,
 } from "../../../../packages/lib/audit/logger";
 
@@ -44,17 +44,33 @@ describe("logSystemAuditEvent", () => {
     );
   });
 
-  it("still records the human actor for logAuditEvent", async () => {
-    await logAuditEvent({
+  const logger = createAuditLogger(
+    {
       tenantId: "tenant-1",
       userId: "user-1",
-      action: "create",
-      resourceType: "donation",
-      resourceId: "donation-1",
-    });
+      email: null,
+      profileId: "profile-1",
+      memberships: [],
+      role: "admin",
+      isAuthenticated: true,
+    },
+    new Request("https://example.test", {
+      method: "POST",
+      body: JSON.stringify({ userId: "other" }),
+    }),
+  );
+
+  it("writes required events with the session actor, not a body identity", async () => {
+    await logger.logRequired("create", "donation", "donation-1");
 
     expect(insertMock).toHaveBeenCalledWith(
       expect.objectContaining({ user_id: "user-1", action: "create" }),
     );
+  });
+  it("refuses a required event if storage fails without disclosing the database message", async () => {
+    insertMock.mockResolvedValueOnce({ error: { message: "private note" } });
+    await expect(
+      logger.logRequired("crm_export_created", "crm_report"),
+    ).rejects.toThrow(/^Audit write failed$/);
   });
 });

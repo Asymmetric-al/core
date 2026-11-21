@@ -3,6 +3,8 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import * as React from "react";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import type {
   AdminCrmRelationshipsListResponse,
   CrmRelationshipDomain,
@@ -127,13 +129,16 @@ async function fetchCrmRelationships({
     search,
     sorting,
   });
-  const response = await fetch(`/api/admin/crm/relationships?${searchParams}`, {
-    credentials: "same-origin",
-    headers: {
-      Accept: "application/json",
+  const response = await ownApiFetch(
+    `/api/admin/crm/relationships?${searchParams}`,
+    {
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+      },
+      signal,
     },
-    signal,
-  });
+  );
 
   if (!response.ok) {
     throw new Error(

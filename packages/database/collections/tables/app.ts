@@ -7,6 +7,11 @@ export const locationsCollection = defineSupabaseCollection({
   tableName: "locations",
   schema: locationSchema,
   keys: ["id"],
+  realtime: {
+    enabled: false,
+    reason:
+      "locations is not in the supabase_realtime publication (AL-2675, WP2b second release), so a channel would error and rejoin; the public map reads it once.",
+  },
 });
 
 export const assetsCollection = defineSupabaseCollection({

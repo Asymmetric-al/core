@@ -6,10 +6,11 @@ import {
   safeNextParam,
   type AppId,
 } from "@asym/auth/demo-login";
+import { useTenantRouter } from "@asym/auth/tenant-navigation";
+import { ownApiFetch } from "@asym/database/own-api";
 import { createBrowserClient } from "@asym/database/supabase";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { AuthShell } from "./auth-primitives";
@@ -64,7 +65,7 @@ export function LoginScreen({
   showRegisterLink = true,
   accountNote,
 }: LoginScreenProps) {
-  const { replace, refresh } = useRouter();
+  const { replace, refresh } = useTenantRouter();
   const demoRole = getDemoRoleForApp(appId);
   const defaultPostLoginPath = getDefaultPostLoginPathForApp(appId);
   const sanitizedNextPath = safeNextParam(nextPath);
@@ -85,7 +86,7 @@ export function LoginScreen({
     enabled: !demoOnly,
     staleTime: 60_000,
     queryFn: async () => {
-      const response = await fetch("/api/auth/demo-account", {
+      const response = await ownApiFetch("/api/auth/demo-account", {
         method: "GET",
         cache: "no-store",
       });
@@ -120,7 +121,7 @@ export function LoginScreen({
     setIsDemoSubmitting(true);
 
     try {
-      const response = await fetch("/api/auth/demo-account", {
+      const response = await ownApiFetch("/api/auth/demo-account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: demoRole }),

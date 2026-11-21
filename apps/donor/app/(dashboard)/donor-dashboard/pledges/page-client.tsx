@@ -2,6 +2,7 @@
 
 import { formatPledgeDate } from "@asym/api/donor-portal/pledge-view";
 import { formatMoney, isSupportedCurrency } from "@asym/api/money";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   useCreateDonorBillingPortalSession,
   useDonorPortalSnapshot,
@@ -27,7 +28,6 @@ import {
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { useLoadRetry } from "@asym/ui/hooks";
 import { Loader2 } from "lucide-react";
-import Link from "next/link";
 import { useRef } from "react";
 
 import { todayDateInputValue } from "@/lib/dates";

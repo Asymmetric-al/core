@@ -3,13 +3,6 @@ import type {
   ContributionBatchStatus,
 } from "./types";
 
-function csvEscape(value: unknown): string {
-  const stringValue = value == null ? "" : String(value);
-  return /[",\n]/.test(stringValue)
-    ? `"${stringValue.replaceAll('"', '""')}"`
-    : stringValue;
-}
-
 export function summarizeContributionBatchResults(
   results: Array<Pick<ContributionBatchItemResult, "status" | "taskId">>,
 ) {
@@ -39,43 +32,4 @@ export function summarizeContributionBatchResults(
     failed,
     followUpTasksCreated,
   };
-}
-
-export function buildContributionBatchCsv(
-  results: ContributionBatchItemResult[],
-): string {
-  const headers = [
-    "contributionId",
-    "donorName",
-    "donorEmail",
-    "amount",
-    "currency",
-    "action",
-    "status",
-    "skipReason",
-    "failureReason",
-    "auditEventId",
-    "taskId",
-    "timestamp",
-  ];
-  const rows = results.map((result) =>
-    [
-      result.contributionId,
-      result.donorName,
-      result.donorEmail,
-      result.amount,
-      result.currency,
-      result.action,
-      result.status,
-      result.skipReason,
-      result.failureReason,
-      result.auditEventId,
-      result.taskId,
-      result.timestamp,
-    ]
-      .map(csvEscape)
-      .join(","),
-  );
-
-  return [headers.join(","), ...rows].join("\n");
 }

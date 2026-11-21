@@ -10,6 +10,12 @@
  * actor role the application would send. CI's `migrate` job runs this file
  * (tests/unit/acceptance/issue-26[78][0-9]/*.realstack.acceptance.test.ts).
  *
+ * Amended by AL-2675 (WP2c, part 1; record section 9 and D-18;
+ * 20261119135600_wp2c_eve_actor_checks_operator_list.sql): the three cases
+ * that kept the `super_admin` actor on the profile "until WP2c" now prove the
+ * operator list and a live row in the tenant, and the triggers on the
+ * notification recipients and the two grant tables read membership.
+ *
  * Runs against TENANT_GUARD_IT_ADMIN_DATABASE_URL; without it the block
  * skips, except in the CI `migrate` job, where it fails. Every check runs in
  * its own transaction, rolled back.
@@ -129,12 +135,17 @@ describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
     }
   }
 
-  async function emergencyOff(person: Person, tenant: string, role = "admin") {
+  async function safetyControl(
+    person: Person,
+    tenant: string,
+    role: string,
+    mode: "disable" | "clear_emergency" | "emergency_off",
+  ) {
     const state = await db.query(
       "select state_version from public.eve_governance_state where id = 'global'",
     );
     return asService(
-      `select public.set_eve_release_safety_control($1::uuid, 'emergency_off', $2::bigint,
+      `select public.set_eve_release_safety_control($1::uuid, $6::text, $2::bigint,
          'incident drill', gen_random_uuid(), $3::text, $4::uuid, $5::text,
          'authenticated_admin', $3::text)`,
       [
@@ -143,9 +154,12 @@ describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
         people[person],
         people[person],
         role,
+        mode,
       ],
     );
   }
+  const emergencyOff = (person: Person, tenant: string, role = "admin") =>
+    safetyControl(person, tenant, role, "emergency_off");
   const emergencyIsOff = async () =>
     (
       await db.query(
@@ -158,6 +172,12 @@ describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
       `select public.set_eve_retention_hold($1::uuid, $2::uuid, $3::text,
          'incident', 'category', 'audit_record', 'incident drill')`,
       [tenant, people[person], role],
+    );
+  /** Puts a person on the platform operator list (WP2c), as the operator script would. */
+  const onList = (person: Person) =>
+    db.query(
+      "insert into authz.platform_operators (user_id, added_by, reason) values ($1, 'acceptance', 'R1 fixture')",
+      [people[person]],
     );
   const holds = async (person: Person) =>
     (
@@ -200,10 +220,95 @@ describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
         }),
     );
 
-    it("still judges the super_admin actor role by the profile, until WP2c", () =>
+    it("requires a second-factor operator for disable and clear, independent of profile role", () =>
       tx(async () => {
+        const state = async () =>
+          (
+            await db.query(
+              "select state_version::int as version, release_enabled, emergency_off from public.eve_governance_state where id = 'global'",
+            )
+          ).rows[0]!;
+        const session = async (person: Person, aal: string) => {
+          await db.query("savepoint operator_session");
+          try {
+            await db.query("set local role authenticated");
+            await db.query(
+              "select set_config('request.jwt.claims', $1, true)",
+              [
+                JSON.stringify({
+                  role: "authenticated",
+                  sub: people[person],
+                  aal,
+                }),
+              ],
+            );
+            return (
+              await db.query(
+                "select public.platform_operator_session() as session",
+              )
+            ).rows[0]!.session;
+          } finally {
+            await db.query("rollback to savepoint operator_session");
+            await db.query("release savepoint operator_session");
+          }
+        };
+        await onList("staffProfileFlagged");
+        expect(await emergencyOff("superAdminFlagged", TA)).toBeNull();
+        for (const mode of ["disable", "clear_emergency"] as const) {
+          const before = await state();
+          await expect(
+            session("superAdminFlagged", "aal2"),
+          ).rejects.toMatchObject({
+            code: "42501",
+            message: expect.stringContaining("not a platform operator"),
+          });
+          expect(
+            await safetyControl("superAdminFlagged", TA, "super_admin", mode),
+          ).toMatch(/eve_launch_profile_tenant_mismatch/);
+          await expect(
+            session("staffProfileFlagged", "aal1"),
+          ).rejects.toMatchObject({
+            code: "42501",
+            message: expect.stringContaining("second factor"),
+          });
+          expect(
+            await safetyControl("staffProfileFlagged", TA, "admin", mode),
+          ).toMatch(/eve_launch_safety_permission_required/);
+          expect(await state()).toEqual(before);
+          expect(await session("staffProfileFlagged", "aal2")).toEqual({
+            operator_id: people.staffProfileFlagged,
+          });
+          expect(
+            await safetyControl("staffProfileFlagged", TA, "super_admin", mode),
+          ).toBeNull();
+          expect(await state()).toEqual({
+            version: before.version + 1,
+            release_enabled: false,
+            emergency_off: mode === "disable",
+          });
+        }
+      }));
+
+    // Rewritten by AL-2675 (WP2c, part 1; record section 9 and D-18): the
+    // super_admin actor role is a platform operator now. WP2a kept it on the
+    // profile's role and tenant until WP2c; it is judged by the operator list
+    // and a live row in the tenant, and the profile no longer decides.
+    it("judges the super_admin actor role by the operator list and a live row in the tenant (WP2c)", () =>
+      tx(async () => {
+        // A super_admin profile that is not on the list is refused.
+        expect(await emergencyOff("platformOwner", TA, "super_admin")).toMatch(
+          /eve_launch_profile_tenant_mismatch/,
+        );
+        // On the list, with no live row in the tenant: refused.
+        await onList("platformOwnerNoTenant");
         expect(
-          await emergencyOff("platformOwner", TA, "super_admin"),
+          await emergencyOff("platformOwnerNoTenant", TA, "super_admin"),
+        ).toMatch(/eve_launch_profile_tenant_mismatch/);
+        expect(await emergencyIsOff()).toBe(false);
+        // On the list with a live row there, whatever the profile says.
+        await onList("staffProfileFlagged");
+        expect(
+          await emergencyOff("staffProfileFlagged", TA, "super_admin"),
         ).toBeNull();
         expect(await emergencyIsOff()).toBe(true);
       }));
@@ -255,13 +360,45 @@ describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
         expect(await holds("staffProfileFlagged")).toBe(0);
       }));
 
-    it("still judges the super_admin actor role by the profile, until WP2c", () =>
+    // Rewritten by AL-2675 (WP2c, part 1; record D-18), as for emergency off.
+    it("judges the super_admin actor role by the operator list and a live row in the tenant (WP2c)", () =>
       tx(async () => {
+        expect(await hold("platformOwner", TA, "super_admin")).toMatch(
+          /eve_retention_actor_tenant_mismatch/,
+        );
+        await onList("platformOwnerNoTenant");
+        expect(await hold("platformOwnerNoTenant", TA, "super_admin")).toMatch(
+          /eve_retention_actor_tenant_mismatch/,
+        );
+        await onList("platformOwner");
         expect(await hold("platformOwner", TA, "super_admin")).toBeNull();
+        expect(await holds("platformOwner")).toBe(1);
+        expect(await holds("platformOwnerNoTenant")).toBe(0);
       }));
   });
 
   describe("the policy actor and the assistant-memory owner", () => {
+    it("requires a listed login for platform budget authority", () =>
+      tx(async () => {
+        const allowed = async (role: string | null) =>
+          (
+            await db.query(
+              "select public.has_eve_policy_permission($1, $2, $3, 'budget.emergency_override') as allowed",
+              [TA, people.platformOwner, role],
+            )
+          ).rows[0].allowed;
+        expect(await allowed("super_admin")).toBe(false);
+        expect(await allowed(null)).toBe(false);
+        await onList("platformOwner");
+        expect(await allowed("admin")).toBe(false);
+        expect(await allowed("super_admin")).toBe(true);
+        await db.query(
+          "insert into public.eve_policy_permission_grants (tenant_id, profile_id, granted_by_profile_id, permission) values ($1, $2, $3, 'budget.emergency_override')",
+          [TA, people.platformOwner, people.staffProfileFlagged],
+        );
+        expect(await allowed("admin")).toBe(true);
+      }));
+
     // Both are executable by their owner only: the commands that reach them
     // (policy approvals, the budget override, the assistant-memory commands)
     // are definers owned by postgres. Call them as the owner.
@@ -298,22 +435,269 @@ describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
         }),
     );
 
-    it("keeps the platform super_admin with no tenant for the policy actor, until WP2c", () =>
+    // Rewritten by AL-2675 (WP2c, part 1; record D-18). WP2a kept a
+    // super_admin profile with no tenant as a policy actor in every tenant
+    // until WP2c. The branch is gone, not moved to the operator list: an
+    // operator acts in a tenant only through a live row there (plan 12 WP2c,
+    // "Nothing in this package admits an operator to a tenant's data"), and a
+    // live row passes the membership test already.
+    it("no longer admits a platform owner with no row in the tenant as the policy actor, on the operator list or not (WP2c)", () =>
       tx(async () => {
+        for (const listed of [false, true]) {
+          if (listed) await onList("platformOwnerNoTenant");
+          expect(
+            await check(
+              "assert_eve_policy_actor_tenant",
+              "platformOwnerNoTenant",
+              TA,
+            ),
+          ).toMatch(/eve_policy_actor_tenant_mismatch/);
+          expect(
+            await check(
+              "assert_eve_admin_memory_owner",
+              "platformOwnerNoTenant",
+              TA,
+            ),
+          ).toMatch(/eve_admin_memory_owner_tenant_mismatch/);
+        }
+        // A super_admin profile with a live row in the tenant passes by the row.
         expect(
-          await check(
-            "assert_eve_policy_actor_tenant",
-            "platformOwnerNoTenant",
-            TA,
+          await check("assert_eve_policy_actor_tenant", "platformOwner", TA),
+        ).toBeNull();
+      }));
+  });
+
+  // AL-2675 (WP2c, part 1; record section 9): the three triggers that judged
+  // a person by the profile's role or tenant read membership. The recipient
+  // rule is the one the application already applies (a live tenant
+  // administrator with an email), opened in the same release as the
+  // recipient PATCH, whose gate moves to the operator check.
+  describe("the notification recipient and the two grant tables (WP2c)", () => {
+    async function write(sql: string, params: unknown[]) {
+      await db.query("savepoint w");
+      try {
+        await db.query(sql, params);
+        await db.query("release savepoint w");
+        return null;
+      } catch (e) {
+        await db.query("rollback to savepoint w");
+        return (e as { message?: string }).message ?? String(e);
+      }
+    }
+    const recipient = (person: Person, tenant = TA) =>
+      write(
+        "insert into public.eve_notification_recipient_configs (tenant_id, profile_id) values ($1, $2)",
+        [tenant, people[person]],
+      );
+    const aiGrant = (person: Person, tenant = TA) =>
+      write(
+        "insert into public.eve_ai_settings_grants (tenant_id, profile_id) values ($1, $2)",
+        [tenant, people[person]],
+      );
+    const policyGrant = (person: Person, granter: Person, tenant = TA) =>
+      write(
+        "insert into public.eve_policy_permission_grants (tenant_id, profile_id, permission, granted_by_profile_id) values ($1, $2, 'approval.policy.manage', $3)",
+        [tenant, people[person], people[granter]],
+      );
+
+    it("admits as a notification recipient a live administrator of the tenant with an email, whatever the profile says", () =>
+      tx(async () => {
+        for (const person of [
+          "staffProfileFlagged",
+          "otherTenantProfileFlagged",
+          "superAdminFlagged",
+        ] as const)
+          expect([person, await recipient(person)]).toEqual([person, null]);
+      }));
+
+    it("refuses as a notification recipient a super_admin profile, an operator, a member without the flag, a revoked row, another tenant's administrator, and one with no email", () =>
+      tx(async () => {
+        await onList("platformOwner");
+        await db.query(
+          "update public.profiles set email = null where id = $1",
+          [people.staffProfileFlagged],
+        );
+        for (const person of [
+          "platformOwner",
+          "unflagged",
+          "revoked",
+          "adminOfB",
+          "staffProfileFlagged",
+        ] as const)
+          expect([person, await recipient(person)]).toEqual([
+            person,
+            expect.stringMatching(/eve_notification_platform_owner_required/),
+          ]);
+      }));
+
+    async function triggerFixture(table: string, validate: string) {
+      await db.query(
+        `create temp table checked_row (like public.${table} including defaults) on commit drop`,
+      );
+      await db.query(
+        `create trigger validate before insert or update on checked_row for each row execute function public.${validate}()`,
+      );
+    }
+
+    it.each(["enabled = true", "opted_out = false"])(
+      "rechecks the notification recipient for %s",
+      (change) =>
+        tx(async () => {
+          await triggerFixture(
+            "eve_notification_recipient_configs",
+            "validate_eve_notification_recipient",
+          );
+          await db.query(
+            "insert into checked_row (tenant_id, profile_id) values ($1, $2)",
+            [TA, people.staffProfileFlagged],
+          );
+          await db.query(
+            "update authz.memberships set is_tenant_admin = false where user_id = $1",
+            [people.staffProfileFlagged],
+          );
+          expect(await write(`update checked_row set ${change}`, [])).toMatch(
+            /eve_notification_platform_owner_required/,
+          );
+        }),
+    );
+
+    it("requires a nonblank recipient email", () =>
+      tx(async () => {
+        await db.query(
+          "update public.profiles set email = '   ' where id = $1",
+          [people.staffProfileFlagged],
+        );
+        expect(await recipient("staffProfileFlagged")).toMatch(
+          /eve_notification_platform_owner_required/,
+        );
+      }));
+
+    it("rechecks membership before enabling AI settings", () =>
+      tx(async () => {
+        await triggerFixture(
+          "eve_ai_settings_grants",
+          "enforce_eve_ai_settings_grant_tenant",
+        );
+        await db.query(
+          "insert into checked_row (tenant_id, profile_id, is_active) values ($1, $2, false)",
+          [TA, people.unflagged],
+        );
+        await db.query(
+          "update authz.memberships set is_active = false where user_id = $1",
+          [people.unflagged],
+        );
+        expect(
+          await write("update checked_row set is_active = true", []),
+        ).toMatch(/eve_ai_settings_grant_profile_tenant_mismatch/);
+      }));
+
+    it.each(["unflagged", "staffProfileFlagged"] as const)(
+      "rechecks policy activation and permission changes after %s leaves",
+      (person) =>
+        tx(async () => {
+          await triggerFixture(
+            "eve_policy_permission_grants",
+            "enforce_eve_policy_permission_tenant",
+          );
+          await db.query(
+            "insert into checked_row (tenant_id, profile_id, granted_by_profile_id, permission, is_active) values ($1, $2, $3, 'approval.policy.manage', false)",
+            [TA, people.unflagged, people.staffProfileFlagged],
+          );
+          await db.query(
+            "update authz.memberships set is_active = false where user_id = $1",
+            [people[person]],
+          );
+          for (const change of [
+            "is_active = true",
+            "permission = 'budget.emergency_override'",
+          ]) {
+            expect(await write(`update checked_row set ${change}`, [])).toMatch(
+              /eve_policy_permission_profile_tenant_mismatch/,
+            );
+          }
+        }),
+    );
+
+    /** Revokes every row of the `revoked` person, whose donor row the sign-up trigger left live. */
+    const revokeAll = () =>
+      db.query(
+        "update authz.memberships set is_active = false where user_id = $1",
+        [people.revoked],
+      );
+
+    it("admits an AI-settings grant for a live member of the tenant, and refuses one for a person with no live row there", () =>
+      tx(async () => {
+        await revokeAll();
+        expect(await aiGrant("otherTenantProfileFlagged")).toBeNull();
+        expect(await aiGrant("unflagged")).toBeNull();
+        for (const person of [
+          "adminOfB",
+          "revoked",
+          "platformOwnerNoTenant",
+        ] as const)
+          expect([person, await aiGrant(person)]).toEqual([
+            person,
+            expect.stringMatching(
+              /eve_ai_settings_grant_profile_tenant_mismatch/,
+            ),
+          ]);
+      }));
+
+    // As WP2a's contribution triggers do (NR-49): a reference an update leaves
+    // unchanged is not judged again, so a later revocation never freezes a
+    // grant, which must stay possible to switch off.
+    it("lets a grant of a person revoked since be switched off, and judges a changed grantee again", () =>
+      tx(async () => {
+        expect(await aiGrant("unflagged")).toBeNull();
+        expect(
+          await policyGrant("unflagged", "staffProfileFlagged"),
+        ).toBeNull();
+        await db.query(
+          "update authz.memberships set is_active = false where user_id = $1",
+          [people.unflagged],
+        );
+        expect(
+          await write(
+            "update public.eve_ai_settings_grants set is_active = false where profile_id = $1",
+            [people.unflagged],
           ),
         ).toBeNull();
         expect(
-          await check(
-            "assert_eve_admin_memory_owner",
-            "platformOwnerNoTenant",
-            TA,
+          await write(
+            "update public.eve_policy_permission_grants set is_active = false where profile_id = $1",
+            [people.unflagged],
           ),
-        ).toMatch(/eve_admin_memory_owner_tenant_mismatch/);
+        ).toBeNull();
+        expect(
+          await write(
+            "update public.eve_ai_settings_grants set profile_id = $2 where profile_id = $1",
+            [people.unflagged, people.adminOfB],
+          ),
+        ).toMatch(/eve_ai_settings_grant_profile_tenant_mismatch/);
+      }));
+
+    it("admits a policy-permission grant when the grantee and the granter are live members of the tenant, and refuses it otherwise", () =>
+      tx(async () => {
+        await revokeAll();
+        expect(
+          await policyGrant("otherTenantProfileFlagged", "staffProfileFlagged"),
+        ).toBeNull();
+        for (const [grantee, granter] of [
+          ["adminOfB", "staffProfileFlagged"],
+          ["unflagged", "adminOfB"],
+          ["revoked", "staffProfileFlagged"],
+        ] as const)
+          expect([
+            grantee,
+            granter,
+            await policyGrant(grantee, granter),
+          ]).toEqual([
+            grantee,
+            granter,
+            expect.stringMatching(
+              /eve_policy_permission_profile_tenant_mismatch/,
+            ),
+          ]);
       }));
   });
 

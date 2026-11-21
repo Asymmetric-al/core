@@ -2,6 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import type {
   AdminCrmNoteCreateResponse,
   CrmDonorDetailResponse,
@@ -33,7 +35,7 @@ async function fetchCrmRecordDetail({
   recordId: string;
   signal: AbortSignal;
 }) {
-  const response = await fetch(`/api/admin/crm/records/${recordId}`, {
+  const response = await ownApiFetch(`/api/admin/crm/records/${recordId}`, {
     credentials: "same-origin",
     headers: {
       Accept: "application/json",
@@ -64,7 +66,7 @@ async function createLinkedCrmNote(input: {
   title: string;
   visibility?: "standard" | "restricted";
 }) {
-  const response = await fetch("/api/admin/crm/notes", {
+  const response = await ownApiFetch("/api/admin/crm/notes", {
     body: JSON.stringify(input),
     credentials: "same-origin",
     headers: {

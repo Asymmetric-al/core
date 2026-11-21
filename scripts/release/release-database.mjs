@@ -12,12 +12,14 @@
 // Inputs are environment variables (names only; values never print):
 //   RELEASE_ENVIRONMENT            production | preview
 //   RELEASE_SUPABASE_PROJECT_REF   the project this environment migrates
-//   RELEASE_DATABASE_URL           postgres login, session pooler, sslmode=require
+//   RELEASE_DATABASE_URL           postgres login, session pooler,
+//                                  sslmode=verify-full
 //   RELEASE_CMS_OWNER_PASSWORD     cms_owner password (Payload migrations log in
 //                                  as cms_owner on the same host)
 //   RELEASE_CMS_RUNTIME_PASSWORD   cms_runtime password (the password step only)
-//   RELEASE_DATABASE_SSL_CA        the project's CA certificate (PEM); Payload
-//                                  verifies the pooler against it
+//   RELEASE_DATABASE_SSL_CA        the project's CA certificate (PEM); every
+//                                  connection to a hosted database verifies
+//                                  the pooler against it
 //   RELEASE_SEED_LOGIN_PASSWORD    the password every seeded login gets on a
 //                                  hosted rebuild, in place of the seed's
 //   RELEASE_REPLAY_FINGERPRINT     fingerprint file of CI's fresh replay (gates)
@@ -27,6 +29,7 @@
 // command line. The job's own psql queries (lib/postgres.mjs) take the
 // connection from PG* variables and the values they need from named variables.
 import { spawnSync } from "node:child_process";
+import { X509Certificate } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -38,7 +41,14 @@ import {
   isForwardMarkerChange,
   parseReleaseHealth,
 } from "../../packages/api/src/health/release-contract.mjs";
+import { isLoopbackDatabaseUrl } from "../../packages/env/src/database-url.mjs";
+import { requirePsqlHonoursRequireAuth } from "../lib/psql.mjs";
 import { publishedLoginPasswords } from "../lib/published-passwords.mjs";
+import {
+  checkSeedCounts,
+  countSql,
+  readSeedExpectations,
+} from "../verify/seed-counts.mjs";
 import { runCatalogGates } from "./catalog-gates.mjs";
 import {
   KNOWN_PROJECT_REFS,
@@ -71,22 +81,20 @@ const repoRoot = path.resolve(
 /**
  * What each release environment may touch. Until WP11 the production-target
  * deployments use the development database (plan 12, "The production-named
- * project until WP11"), so the production job refuses the frozen
- * production-named project; WP11 changes that line. The preview environment
- * refuses both shared projects whatever its configuration says.
+ * project until WP11"), so the production job refuses the preview project,
+ * the production-named project that serves as the disposable preview
+ * database; WP11 changes that line. The preview environment refuses
+ * development, the shared database, whatever its configuration says.
  */
 export const RELEASE_ENVIRONMENTS = Object.freeze({
   production: Object.freeze({
     markers: ENVIRONMENT_MARKERS,
-    forbiddenRefs: Object.freeze([KNOWN_PROJECT_REFS.productionNamed]),
+    forbiddenRefs: Object.freeze([KNOWN_PROJECT_REFS.preview]),
     rebuild: "first-only",
   }),
   preview: Object.freeze({
     markers: Object.freeze(["disposable"]),
-    forbiddenRefs: Object.freeze([
-      KNOWN_PROJECT_REFS.development,
-      KNOWN_PROJECT_REFS.productionNamed,
-    ]),
+    forbiddenRefs: Object.freeze([KNOWN_PROJECT_REFS.development]),
     rebuild: "disposable",
   }),
 });
@@ -119,6 +127,7 @@ function stop(message) {
  */
 export function roleDatabaseUrl(databaseUrl, role, password) {
   const url = new URL(databaseUrl);
+  stripQueryPassword(url);
   const user = decodeURIComponent(url.username);
   const suffix = user.includes(".") ? user.slice(user.indexOf(".")) : "";
   url.username = encodeURIComponent(`${role}${suffix}`);
@@ -164,6 +173,112 @@ export function readReleaseSettings(env = process.env) {
 }
 
 /**
+ * Review L6: every connection the job opens to a hosted database verifies the
+ * server's certificate and its host name against the project's CA. The CA is
+ * written from RELEASE_DATABASE_SSL_CA to a file only the job can read, and
+ * the address names it as `sslrootcert`, which the job's own psql
+ * (lib/postgres.mjs), the reset guard (scripts/lib/psql.mjs) and the Supabase
+ * CLI (its TypeScript connection layer on node-postgres, checked on 2.121.0)
+ * all read; with sslmode=verify-full, which the target check requires, each
+ * verifies the chain to that CA and the host name. Payload gets the same CA as PAYLOAD_DATABASE_SSL_CA
+ * (payloadMigrate). The rest of the address is left as it was, byte for byte.
+ * A loopback address is left alone. `remove` deletes the file.
+ */
+const PEM_CERTIFICATE =
+  /-----BEGIN CERTIFICATE-----\n[\s\S]*?\n-----END CERTIFICATE-----/g;
+
+/**
+ * Review M3: what RELEASE_DATABASE_SSL_CA holds, read before anything is
+ * written: exactly one PEM certificate and nothing else, a CA, valid now.
+ * Node's X509Certificate reads only the first certificate of a bundle, so the
+ * blocks are counted first. A stop says what was found (how many, the
+ * subject, the dates, the SHA-256 fingerprint), never the content. No
+ * fingerprint is pinned here: the runbook gives it for the owner to compare,
+ * and a rotation by Supabase must not need a release of ours. Returns the one
+ * certificate as a PEM block. `name` is what the messages call the PEM's
+ * holder: the CMS runner reads the file PGSSLROOTCERT names with this same
+ * check (scripts/cms/lib/postgres.mjs, assertProjectCaFile).
+ */
+export function readDatabaseCa(
+  pem,
+  { now = new Date(), name = "RELEASE_DATABASE_SSL_CA" } = {},
+) {
+  const text = String(pem ?? "")
+    .replace(/\r\n/g, "\n")
+    .trim();
+  const blocks = text.match(PEM_CERTIFICATE) ?? [];
+  if (blocks.length === 0)
+    stop(
+      `${name} holds no PEM certificate. Set it to the project's CA certificate, the PEM from its Database settings.`,
+    );
+  if (blocks.length > 1)
+    stop(
+      `${name} holds ${blocks.length} certificates; it must hold exactly one, the project's CA.`,
+    );
+  if (text !== blocks[0])
+    stop(
+      `${name} holds something besides one certificate. It must hold the project's CA certificate and nothing else.`,
+    );
+  let certificate;
+  try {
+    certificate = new X509Certificate(blocks[0]);
+  } catch (error) {
+    stop(
+      `${name}'s certificate cannot be read (${error?.code ?? "not a certificate"}).`,
+    );
+  }
+  const found = `subject ${certificate.subject.replace(/\n/g, ", ")}, SHA-256 ${certificate.fingerprint256}`;
+  if (!certificate.ca)
+    stop(
+      `${name} holds a certificate that is not a CA (${found}). Set it to the project's CA certificate from its Database settings.`,
+    );
+  if (now < new Date(certificate.validFrom))
+    stop(
+      `${name}'s CA is not valid until ${certificate.validFrom} (${found}).`,
+    );
+  if (now > new Date(certificate.validTo))
+    stop(
+      `${name}'s CA expired on ${certificate.validTo} (${found}). Take the current CA from the project's Database settings and follow "If the CA is rotated or expires" in docs/ops/release-job.md.`,
+    );
+  return `${blocks[0]}\n`;
+}
+
+export function withDatabaseCaFile(
+  settings,
+  { tempRoot = process.env.RUNNER_TEMP || os.tmpdir(), now = new Date() } = {},
+) {
+  const unchanged = { settings, remove() {} };
+  let url;
+  try {
+    url = new URL(settings.databaseUrl);
+  } catch {
+    return unchanged; // assertTarget refuses it, with its own words.
+  }
+  if (isLoopbackDatabaseUrl(settings.databaseUrl)) return unchanged;
+  if (url.searchParams.has("sslrootcert"))
+    stop(
+      "RELEASE_DATABASE_URL names its own CA file (sslrootcert). Leave it out: the job verifies every connection against RELEASE_DATABASE_SSL_CA.",
+    );
+  if (!settings.databaseCa)
+    stop(
+      "RELEASE_DATABASE_SSL_CA is not set. A hosted release verifies the database's certificate and host name against the project's CA: set it to the PEM of the CA certificate in the project's Database settings.",
+    );
+  const ca = readDatabaseCa(settings.databaseCa, { now });
+  const dir = mkdtempSync(path.join(tempRoot, "release-ca-"));
+  const file = path.join(dir, "root.crt");
+  writeFileSync(file, ca, { mode: 0o600 });
+  const separator = settings.databaseUrl.includes("?") ? "&" : "?";
+  return {
+    settings: {
+      ...settings,
+      databaseCa: ca,
+      databaseUrl: `${settings.databaseUrl}${separator}sslrootcert=${encodeURIComponent(file)}`,
+    },
+    remove: () => rmSync(dir, { recursive: true, force: true }),
+  };
+}
+
+/**
  * The environment a child process gets: this process's, without any
  * RELEASE_* variable (the job's connection string and passwords) and without
  * any ambient PG* setting, then `extra`.
@@ -179,10 +294,27 @@ export function childEnvironment(extra = {}, base = process.env) {
   };
 }
 
+function stripQueryPassword(url) {
+  if (!url.searchParams.has("password")) return undefined;
+  let password;
+  url.search = url.search
+    .slice(1)
+    .split("&")
+    .filter((pair) => {
+      const separator = pair.indexOf("=");
+      if (decodeURIComponent(pair.slice(0, separator)) !== "password")
+        return true;
+      password = decodeURIComponent(pair.slice(separator + 1));
+      return false;
+    })
+    .join("&");
+  return password;
+}
+
 /** A connection string without its password, and the password. */
 export function splitPassword(databaseUrl) {
   const url = new URL(databaseUrl);
-  const password = decodeURIComponent(url.password);
+  const password = stripQueryPassword(url) ?? decodeURIComponent(url.password);
   url.password = "";
   return { url: url.toString(), password };
 }
@@ -208,6 +340,27 @@ export function assertTarget(
 const HEALTH_EXISTS_SQL = `SELECT json_build_object('exists',
   to_regprocedure('${RELEASE_DATABASE_CONTRACT.healthFunction}()') IS NOT NULL)::text;`;
 const HEALTH_SQL = `SELECT ${RELEASE_DATABASE_CONTRACT.healthFunction}()::text;`;
+
+/**
+ * Explicit global and public-schema defaults that grant client roles access
+ * to new objects, either directly or through PUBLIC (grantee OID zero).
+ */
+const PUBLIC_DEFAULTS_OPEN = `EXISTS (
+  SELECT 1 FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) AS a
+  WHERE d.defaclrole = 'postgres'::regrole
+    AND d.defaclnamespace IN (0, 'public'::regnamespace)
+    AND (a.grantee = 0 OR a.grantee IN (SELECT oid FROM pg_roles WHERE rolname IN ('anon', 'authenticated'))))`;
+const DEFAULTS_OPEN_SQL = `SELECT json_build_object('open', ${PUBLIC_DEFAULTS_OPEN})::text;`;
+/**
+ * After a failed reset: the marker and those defaults in one query. The
+ * marker is read through query_to_xml, so a reset that dropped the platform
+ * schema reads as no marker rather than as an error.
+ */
+const AFTER_FAILED_RESET_SQL = `SELECT json_build_object(
+  'marker', CASE WHEN to_regclass('platform.environment') IS NULL THEN NULL
+    ELSE (xpath('//kind/text()', query_to_xml('SELECT kind FROM platform.environment', false, false, '')))[1]::text END,
+  'open', ${PUBLIC_DEFAULTS_OPEN}
+)::text;`;
 
 /** The marker and recorded heads, or null when the database predates WP1. */
 export function readReleaseHealth({ databaseUrl, query = queryJson }) {
@@ -264,12 +417,16 @@ export function preflight({
   });
   if (!health) {
     stop(
-      "The database has no release health function: it predates WP1. Its first rebuild is the dispatched first-rebuild step.",
+      "The database has no release health function: it predates WP1 or its setup is incomplete. Dispatch first-rebuild with the census link only if no head exists and the marker is absent or disposable.",
     );
   }
   if (health.environment === null) {
+    if (Object.values(health.heads).some(Boolean))
+      stop(
+        "The database has no environment marker but has a recorded head. First-rebuild is forbidden; stop and consult the owner.",
+      );
     stop(
-      "The database has no environment marker, which counts as not disposable. Its first rebuild is the dispatched first-rebuild step.",
+      "The database has no environment marker or recorded head. Dispatch first-rebuild with the census link and fresh owner approval.",
     );
   }
   if (!settings.policy.markers.includes(health.environment)) {
@@ -277,8 +434,38 @@ export function preflight({
       `The ${settings.environment} release refuses a database marked ${health.environment}.`,
     );
   }
+  if (
+    settings.policy.rebuild === "first-only" &&
+    !Object.values(health.heads).some(Boolean)
+  ) {
+    if (health.environment !== "disposable")
+      stop(
+        `This database has no recorded head and is marked ${health.environment}. The marker forbids first-rebuild; stop and consult the owner.`,
+      );
+    stop(
+      "This database has no recorded head. Dispatch first-rebuild again with the census link, typed confirmation and fresh owner approval.",
+    );
+  }
   // A rebuild that stopped between its seed and the replacement of the seed's
   // password leaves that published password live (record D-24).
+  // Review K3: a rebuild that stopped after it reopened postgres's defaults
+  // in public, and before the chain closed them, must not be migrated.
+  const defaults = query({
+    databaseUrl: settings.databaseUrl,
+    sql: DEFAULTS_OPEN_SQL,
+    label: "read the default privileges of postgres in public",
+  });
+  if (defaults?.open) {
+    stop(
+      [
+        "The default privileges of postgres grant access to anon, authenticated, or PUBLIC, globally or in schema public; nothing was migrated or deployed.",
+        "Inspect the grants with psql's \\ddp.",
+        "Revoke each offending grant with ALTER DEFAULT PRIVILEGES FOR ROLE postgres [IN SCHEMA public] REVOKE <privileges> ON <object type> FROM <grantee>, then rerun the release.",
+        "Omit IN SCHEMA public for a global grant.",
+        "First-rebuild is an option only when no head is recorded and the marker is absent or disposable.",
+      ].join(" "),
+    );
+  }
   const published = countPublishedLogins({ settings, root, query });
   if (published > 0) {
     stop(
@@ -316,6 +503,11 @@ function runChecked(runCommand, label, command, args, env) {
 /**
  * The pinned Supabase CLI reads the password of a `--db-url` that carries
  * none from PGPASSWORD (checked on 2.121.0), so it stays off the command line.
+ * splitPassword clears both password locations; the target check
+ * refuses a hosted address with a password in its query (review M1).
+ * It reads the CA file the address names (withDatabaseCaFile) and, under
+ * sslmode=verify-full, verifies the chain to it and the host name (its
+ * TypeScript connection layer on node-postgres; checked on 2.121.0).
  * The repository wrapper's reset guard reads the marker the same way
  * (scripts/lib/psql.mjs keeps an ambient PGPASSWORD). SUPABASE_CLI_FORCE_PINNED
  * makes the wrapper run only the CLI the workflow installed, which must report
@@ -360,17 +552,17 @@ function requirePinnedSupabaseCli(runCommand) {
     !probe.error && probe.status === 0 ? String(probe.stdout ?? "").trim() : "";
   if (found !== pinned)
     stop(
-      `The first rebuild needs the Supabase CLI ${pinned} on the PATH (found ${found || "none"}); the release workflow installs it with supabase/setup-cli. Nothing was reset.`,
+      `A rebuild needs the Supabase CLI ${pinned} on the PATH (found ${found || "none"}); the release workflow installs it with supabase/setup-cli. Nothing was reset.`,
     );
 }
 
 /**
  * The one reset that does not go through `bun run supabase`. That wrapper
  * refuses to reset a database not marked disposable (WP1.1), and the first
- * rebuild of a hosted database has no marker by definition: it is the named
+ * rebuild may start without a marker: it is the named
  * exception of plan 7.5. It runs only here, in the release job's dispatched
  * first-rebuild step, after the checks in rebuild(): the target project, a
- * database with no marker, the owner's census sign-off (or a provably empty
+ * database with no recorded head and no protected marker, the owner's census sign-off (or a provably empty
  * new project) and the typed confirmation. It uses the same pinned CLI: the
  * one the release workflow installs with supabase/setup-cli, never one fetched
  * at run time (npx inside the repository stops on the root package.json's
@@ -557,13 +749,28 @@ export function migrate({
   run = runPsql,
   runCommand = spawnSync,
   log = console.log,
+  sleep,
+  now,
 }) {
   preflight({ settings, root, query, log });
   supabaseCli(runCommand, "Supabase migrations", ["db", "push"], settings);
   // Plan 7.5: after the role migration, before Payload logs in as cms_owner.
-  // Every release sets them, so a restore (whose backup drops custom role
-  // passwords, plan 8.5) is repaired by the next release too.
-  setCmsRolePasswords({ settings, env, query, run, log });
+  // Every release makes the secrets log in, so a restore (whose backup drops
+  // custom role passwords, plan 8.5) is repaired by the next release too.
+  // Default privileges stay as the chain left them: only a rebuild, which
+  // resets, puts the platform's back.
+  setCmsRolePasswords({
+    settings,
+    env,
+    query,
+    run,
+    log,
+    sleep,
+    now,
+    next: "This release stopped before Payload's migrations, the gates, the heads and the deployment, so nothing was deployed. Wait two minutes, then re-run the release; a password that then logs in is left alone.",
+    nextUnchanged:
+      "Supabase migrations may already be applied. This release stopped before Payload's migrations, the gates, the heads and the deployment, so nothing was deployed. Fix what the refusal names, then re-run the release.",
+  });
   payloadMigrate({ settings, runCommand });
   const { checks } = checkLedgers({
     databaseUrl: settings.databaseUrl,
@@ -695,6 +902,176 @@ SELECT ${RELEASE_DATABASE_CONTRACT.advanceMarkerFunction}(:'marker');`,
   log(`Environment marker of ${settings.projectRef}: ${current} -> ${marker}.`);
 }
 
+/**
+ * The platform's default privileges for `postgres` in `public`: the one file
+ * the replay applies before the chain (scripts/verify/supabase-migrations.mjs
+ * --hosted-defaults) and a rebuild applies before its reset.
+ */
+export const HOSTED_DEFAULT_PRIVILEGES =
+  "scripts/sql/hosted-default-privileges.sql";
+
+/**
+ * Puts the platform's default privileges back before a rebuild resets the
+ * database. A hosted reset (the pinned CLI's `db reset`) drops the schemas the
+ * chain made and every object in `public`, but not `public` itself, so it
+ * keeps the default privileges `postgres` holds there as the chain left them,
+ * and the chain changes them (stage 1 closes them for anon and authenticated).
+ * Without this, a rebuild of a rebuilt project starts from the chain's end
+ * state rather than where a fresh project starts: the functions made before
+ * that change lack the grants a fresh project gives them, and the fingerprint
+ * gate stops the release (WP1.6, the second rebuild of the preview project).
+ * Every statement of the file runs as the release login, `postgres`: the
+ * defaults are its own, and as the database's owner it may grant on `public`.
+ * Only the two rebuilds call this; `migrate` never resets, so it keeps the
+ * chain's own defaults. The file runs in one transaction, so a failure part
+ * way applies nothing (review H1.2).
+ *
+ * The file only grants, so any other default privilege of `postgres` would
+ * survive it and the reset: a grant to another role in `public`, or any entry
+ * for every schema, such as a revoke from PUBLIC. The gates would then fail
+ * only after the reset, which cannot be undone. So the restore first works
+ * out, from the file itself and in a transaction it rolls back, what a replay
+ * starts from: the file applied to no default privileges of `postgres` in
+ * `public`. It then puts the platform's defaults back and commits only if
+ * `postgres`'s default privileges are exactly that and it holds none for
+ * every schema; otherwise it names each entry that differs and changes
+ * nothing (review H5).
+ */
+const POSTGRES_DEFAULT_ENTRIES = (
+  where,
+) => `(SELECT coalesce(string_agg(entry, ' ' ORDER BY entry), '') FROM (
+  SELECT CASE d.defaclobjtype WHEN 'r' THEN 'tables' WHEN 'S' THEN 'sequences'
+              WHEN 'f' THEN 'functions' WHEN 'T' THEN 'types' WHEN 'n' THEN 'schemas'
+              ELSE d.defaclobjtype::text END || ':' || coalesce(item::text, '<empty>') AS entry
+  FROM pg_default_acl d LEFT JOIN LATERAL unnest(d.defaclacl) AS item ON true
+  WHERE d.defaclrole = 'postgres'::regrole AND ${where}) AS entries)`;
+
+const CLEAR_PUBLIC_DEFAULTS_SQL = `DO $clear$
+DECLARE
+  entry record;
+BEGIN
+  FOR entry IN
+    SELECT DISTINCT d.defaclobjtype AS kind,
+           CASE WHEN a.grantee = 0 THEN 'PUBLIC'
+                ELSE quote_ident(pg_get_userbyid(a.grantee)) END AS grantee
+    FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) AS a
+    WHERE d.defaclrole = 'postgres'::regrole
+      AND d.defaclnamespace = 'public'::regnamespace
+  LOOP
+    EXECUTE format(
+      'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON %s FROM %s',
+      CASE entry.kind WHEN 'r' THEN 'TABLES' WHEN 'S' THEN 'SEQUENCES'
+                      WHEN 'f' THEN 'FUNCTIONS' ELSE 'TYPES' END,
+      entry.grantee);
+  END LOOP;
+END
+$clear$;`;
+
+const CHECK_RESTORED_DEFAULTS_SQL = `SELECT format('DO %L', format('BEGIN RAISE EXCEPTION ''%%'', %L; END',
+  'postgres holds default privileges a replay does not start from, after the platform''s were put back: '
+  || found.diff || '. Remove each, or record why it stays, then rebuild.'))
+FROM (
+  SELECT string_agg(x, '; ' ORDER BY x) AS diff FROM (
+    (SELECT 'unexpected in public ' || e FROM unnest(string_to_array(:'release_actual_defaults', ' ')) AS e
+     EXCEPT
+     SELECT 'unexpected in public ' || e FROM unnest(string_to_array(:'release_expected_defaults', ' ')) AS e)
+    UNION ALL
+    (SELECT 'missing in public ' || e FROM unnest(string_to_array(:'release_expected_defaults', ' ')) AS e
+     EXCEPT
+     SELECT 'missing in public ' || e FROM unnest(string_to_array(:'release_actual_defaults', ' ')) AS e)
+    UNION ALL
+    SELECT 'in every schema ' || e FROM unnest(string_to_array(:'release_global_defaults', ' ')) AS e
+  ) AS differences(x)
+) AS found
+WHERE found.diff IS NOT NULL \\gexec`;
+
+export function restoreHostedDefaultPrivileges({
+  settings,
+  root = repoRoot,
+  run = runPsql,
+  log = console.log,
+}) {
+  try {
+    const file = readFileSync(
+      path.join(root, HOSTED_DEFAULT_PRIVILEGES),
+      "utf8",
+    );
+    const defaults = file.endsWith("\n") ? file : `${file}\n`;
+    const publicEntries = POSTGRES_DEFAULT_ENTRIES(
+      "d.defaclnamespace = 'public'::regnamespace",
+    );
+    run({
+      databaseUrl: settings.databaseUrl,
+      sql: [
+        // What a replay starts from, worked out from the file; never committed.
+        "BEGIN;",
+        CLEAR_PUBLIC_DEFAULTS_SQL,
+        defaults,
+        `SELECT ${publicEntries} AS release_expected_defaults \\gset`,
+        "ROLLBACK;",
+        // The restore itself, committed only when the result is exactly that.
+        "BEGIN;",
+        defaults,
+        `SELECT ${publicEntries} AS release_actual_defaults, ${POSTGRES_DEFAULT_ENTRIES("d.defaclnamespace = 0")} AS release_global_defaults \\gset`,
+        CHECK_RESTORED_DEFAULTS_SQL,
+        "COMMIT;",
+        "",
+      ].join("\n"),
+      label: "put back the platform's default privileges",
+    });
+  } catch (error) {
+    stop(
+      `The platform's default privileges could not be put back (${error.message}); nothing was reset.`,
+    );
+  }
+  log(
+    `Put back the platform's default privileges in public (${HOSTED_DEFAULT_PRIVILEGES}).`,
+  );
+}
+
+/**
+ * What a failed reset left, and what to run next (review K3). The restore
+ * reopened postgres's defaults in public; the chain closes them again, and
+ * an early migration writes the marker. So the marker and those defaults say
+ * how far the chain got.
+ */
+/** The marker and postgres's defaults in public after a failed reset, or null when the database cannot be read (review K3). */
+export function readStateAfterFailedReset({ settings, query = queryJson }) {
+  try {
+    return query({
+      databaseUrl: settings.databaseUrl,
+      sql: AFTER_FAILED_RESET_SQL,
+      label: "read the marker and the defaults after the failed reset",
+    });
+  } catch {
+    return null;
+  }
+}
+
+function failedResetMessage({ resetFailure, state, mode }) {
+  const head = `The reset failed (${resetFailure.message}) after the platform's default privileges were put back.`;
+  const guide = `docs/ops/release-job.md, "If the reset fails after this step"`;
+  if (!state || typeof state.open !== "boolean") {
+    return `${head} The database could not be read afterwards, so treat the default privileges of postgres in public as open to anon and authenticated; preflight refuses migrate while they are. Restore connectivity and inspect the marker, heads and defaults before selecting a recovery (${guide}).`;
+  }
+  const marker = state.marker
+    ? `Its marker reads ${state.marker}`
+    : "It has no marker";
+  const defaults = state.open
+    ? "the default privileges of postgres in public are open to anon and authenticated, as the restore left them: the chain did not get as far as closing them"
+    : "the default privileges of postgres in public are closed again: the chain ran past the migration that closes them";
+  const next =
+    state.marker && state.marker !== "disposable"
+      ? "This marker forbids a reset; stop and investigate with the owner."
+      : mode === "first" || !state.marker
+        ? "Fix the cause, then dispatch first-rebuild again with the census link, typed confirmation and fresh approval, provided no head has been recorded."
+        : "Fix the cause. Rebuild it again.";
+  const guard = state.open
+    ? " Until then preflight refuses migrate on it."
+    : "";
+  return `${head} ${marker}, and ${defaults}. ${next}${guard} (${guide}).`;
+}
+
 const CENSUS_SIGNOFF =
   /^https:\/\/github\.com\/Asymmetric-al\/core\/(issues|pull)\/\d+(#issuecomment-\d+)?$/;
 const EMPTY_SQL = `SELECT json_build_object(
@@ -704,12 +1081,12 @@ const EMPTY_SQL = `SELECT json_build_object(
 )::text;`;
 
 /**
- * Rebuilds a database from source: drop what migrations made, apply every
- * migration, seed, give the seeded logins the release environment's password,
- * then Payload migrations. The gates and the heads follow as the release's
+ * Rebuilds a database from source: put the platform's default privileges
+ * back, drop what migrations made, apply every migration, seed, give the
+ * seeded logins the release environment's password, then Payload migrations. The gates and the heads follow as the release's
  * next steps.
  *
- * - mode "first": the one-off first rebuild of a database with no marker
+ * - mode "first": first rebuild before either head is recorded, on a database with no marker or a disposable marker
  *   (plan 7.5). It takes the owner's census sign-off as its input, or, for a
  *   newly created project, proof that the database is empty.
  * - mode "disposable": the preview rebuild, only where the marker says
@@ -728,6 +1105,8 @@ export async function rebuild({
   runCommand = spawnSync,
   requireDisposable = requireDisposableDatabaseShared,
   log = console.log,
+  sleep,
+  now,
 }) {
   assertTarget(settings);
   if (confirmation !== `rebuild ${settings.projectRef}`) {
@@ -738,21 +1117,35 @@ export async function rebuild({
       databaseUrl: settings.databaseUrl,
       query,
     });
-    const marker = health?.environment ?? null;
-    if (marker !== null) {
+    const { marker, recorded } = health
+      ? {
+          marker: health.environment,
+          recorded: Object.values(health.heads).some(Boolean),
+        }
+      : query({
+          databaseUrl: settings.databaseUrl,
+          label: "inspect partial release state",
+          sql: `SELECT json_build_object(
+          'marker', CASE WHEN to_regclass('platform.environment') IS NOT NULL THEN
+            (xpath('//kind/text()',query_to_xml('SELECT kind FROM platform.environment',false,false,'')))[1]::text END,
+          'recorded', CASE WHEN to_regclass('platform.migration_heads') IS NULL THEN false ELSE
+            cardinality(xpath('//ledger/text()',query_to_xml('SELECT ledger FROM platform.migration_heads',false,false,''))) > 0 END)::text;`,
+        });
+    if (recorded !== false)
       stop(
-        `The database is already marked ${marker}; the first rebuild runs once, on a database with no marker.`,
+        "A recorded head permanently closes first-rebuild; do not reset this database.",
       );
-    }
+    if (marker !== null && marker !== "disposable")
+      stop(`The database is marked ${marker}; first-rebuild refuses it.`);
     if (signoff === "empty-project") {
       const state = query({
         databaseUrl: settings.databaseUrl,
         sql: EMPTY_SQL,
         label: "check the project is empty",
       });
-      if (state.relations !== 0 || state.ledger !== 0) {
+      if (marker !== null || state.relations !== 0 || state.ledger !== 0) {
         stop(
-          "The project is not empty; its first rebuild needs the owner's census sign-off.",
+          "The project is not empty. Dispatch first-rebuild again with the owner's census sign-off link, typed confirmation and fresh approval.",
         );
       }
     } else if (!CENSUS_SIGNOFF.test(signoff ?? "")) {
@@ -786,10 +1179,15 @@ export async function rebuild({
       `${error.message} A hosted rebuild gives every seeded login that password in place of the one published in the repository; nothing was reset.`,
     );
   }
-  if (mode === "first") requirePinnedSupabaseCli(runCommand);
+  // Both rebuilds, before anything touches the database: the preview rebuild's
+  // wrapper checks the CLI too, but only after the defaults are back (H1.1).
+  requirePinnedSupabaseCli(runCommand);
   log(
     `Rebuilding ${settings.projectRef} from source (${mode}${mode === "first" ? `, sign-off ${signoff}` : ""}).`,
   );
+  // Before the reset, which keeps them: the rebuild starts where a fresh
+  // project starts, as CI's replay does.
+  restoreHostedDefaultPrivileges({ settings, run, log });
   let resetFailure = null;
   try {
     if (mode === "first") {
@@ -816,7 +1214,28 @@ export async function rebuild({
       `${resetFailure ? `The reset failed (${resetFailure.message}), and the` : "The"} replacement of the seeded logins' password failed: ${error.message} Seeded logins may still carry the password published in the repository, and anyone who knows it could sign in: do not use the database. Fix the cause, then ${PUBLISHED_PASSWORD_REPAIR.replace(/^D/, "d")}; until then every release of this database stops at its preflight.`,
     );
   }
-  if (resetFailure) throw resetFailure;
+  // Review H1.3: the defaults are open again, and a reset that failed before
+  // it dropped anything leaves the whole chain under them. migrate would then
+  // create every new table, sequence and function in public open to both.
+  if (resetFailure) {
+    const state = readStateAfterFailedReset({ settings, query });
+    stop(failedResetMessage({ resetFailure, state, mode }));
+  }
+  const fixtures = checkSeedCounts({
+    expectations: readSeedExpectations(),
+    count: (table) =>
+      String(
+        query({
+          databaseUrl: settings.databaseUrl,
+          sql: countSql(table),
+          label: `count seeded rows in ${table}`,
+        }),
+      ),
+  });
+  if (!fixtures.ok)
+    stop(
+      `The seed did not match its expectations; stopped before Payload. ${fixtures.lines.join("; ")}. Fix the seed configuration, then ${mode === "first" ? "dispatch first-rebuild again with the census link and fresh approval" : "rebuild preview again"}.`,
+    );
   // The marker migration writes `disposable` when public.profiles,
   // public.donors and public.donations are empty, as they are right after the
   // reset drops and recreates them. Anything else is a failed rebuild.
@@ -826,16 +1245,117 @@ export async function rebuild({
       `The database is not marked disposable after the migrations (it reads ${after?.environment ?? "no marker"}). The rebuild stopped before the CMS role passwords and Payload's migrations; nothing was deployed.`,
     );
   }
-  setCmsRolePasswords({ settings, env, query, run, log });
+  setCmsRolePasswords({
+    settings,
+    env,
+    query,
+    run,
+    log,
+    sleep,
+    now,
+    next:
+      mode === "first"
+        ? "This first rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads. Wait two minutes, then dispatch first-rebuild again with the census link, typed confirmation and fresh approval."
+        : "This rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads. Wait two minutes, then rebuild again; a password that then logs in is left alone.",
+    nextUnchanged:
+      mode === "first"
+        ? "This first rebuild stopped after reset and seed, before Payload, the gates and the heads. Fix what the refusal names, then dispatch first-rebuild again with the census link, typed confirmation and fresh approval."
+        : "This rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads. Fix what the refusal names, then rebuild again.",
+  });
   payloadMigrate({ settings, runCommand });
   checkLedgers({ databaseUrl: settings.databaseUrl, query });
   log("Rebuild complete; the database is marked disposable.");
 }
 
 /**
- * Sets the two CMS login roles' passwords from the job's secrets (plan 7.5,
- * 8.5). Only SCRAM verifiers reach the server, then each role logs in with its
- * new password to prove it.
+ * When the step tries each login after it has set a password, in seconds
+ * after the change. The shared pooler (Supavisor) caches a role's credentials
+ * for a while, so a login right after `ALTER ROLE ... PASSWORD` can be refused
+ * although the new password is right; a new login attempt is what makes the
+ * pooler fetch the new one (Supabase, "Supavisor error: password
+ * authentication failed after rotating database password"). On the preview
+ * project the pooler refused the first login after a change and accepted one
+ * about 80 seconds later (WP1.6 report). So the last attempt comes after 90
+ * seconds. Supavisor v2.10.1 (commit 83ca93e1f463f37ff7882aaa87f810a0de5ef9cc,
+ * its newest tag on 18 November 2026) blocks a project's client address for
+ * 120 seconds after 10 refused logins in 150 seconds
+ * (`lib/supavisor/circuit_breaker.ex`, `:auth_error`). Supabase does not
+ * publish which version its pooler runs, so for hosted these figures are an
+ * estimate. With the first login before the change, one role costs at most
+ * four refusals and the two roles of one run at most eight.
+ */
+export const ROLE_LOGIN_VERIFICATION = Object.freeze({
+  attemptsAtSeconds: Object.freeze([0, 30, 90]),
+});
+
+/**
+ * Whether a refused login of `role` means its secret is not a usable password
+ * of that role ("password") or something else ("other"). Two forms only, as
+ * Supavisor v2.10.1 (commit 83ca93e1f463f37ff7882aaa87f810a0de5ef9cc) words
+ * them:
+ *
+ * - `password authentication failed for user "<role>"` (SQLSTATE 28P01): a
+ *   wrong password (`lib/supavisor/errors/wrong_password_error.ex`), or one
+ *   changed since the pooler cached the role's salt
+ *   (`lib/supavisor/errors/password_changed_error.ex`, which keeps Postgres's
+ *   own wording). Postgres says the same.
+ * - `(EAUTHQUERY) unsupported or invalid secret format`: the stored secret is
+ *   neither a SCRAM verifier nor MD5, as for a role made without a password
+ *   (`lib/supavisor/auth_query.ex`, `parse_secret/2`).
+ *
+ * Both seen word for word on the preview project's pooler on 18 November
+ * 2026 (review K4; report, section 19), naming the bare role, not
+ * `<role>.<ref>`: `FATAL:  password authentication failed for user
+ * "cms_owner"` at 17:00:02 UTC for a wrong password, and `FATAL:  (EAUTHQUERY)
+ * unsupported or invalid secret format` (SQLSTATE XX000) at 17:01:07 UTC for
+ * a login role with no password.
+ *
+ * Every other refusal is "other", other EAUTHQUERY reasons included: a failed
+ * or timed-out auth query, an unknown user, an MD5 secret. So is a refusal
+ * naming another user, and so are no route, TLS, the role's connection limit
+ * and the pooler's circuit breaker.
+ */
+export function classifyLoginRefusal(message, role) {
+  const text = String(message ?? "");
+  if (text.includes(`password authentication failed for user "${role}"`))
+    return "password";
+  if (text.includes("(EAUTHQUERY) unsupported or invalid secret format"))
+    return "password";
+  return "other";
+}
+
+function sleepSync(milliseconds) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
+}
+
+/** One login as `role` with `password`; refusals come back, never thrown. */
+function tryRoleLogin({ settings, role, password, query }) {
+  let who;
+  try {
+    who = query({
+      databaseUrl: roleDatabaseUrl(settings.databaseUrl, role, password),
+      label: `log in as ${role}`,
+      sql: "SELECT json_build_object('user', current_user)::text;",
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { ok: false, kind: classifyLoginRefusal(message, role), message };
+  }
+  if (who?.user !== role)
+    stop(`Logging in as ${role} did not yield that role.`);
+  return { ok: true };
+}
+
+/**
+ * Makes the two CMS login roles' passwords those of the job's secrets (plan
+ * 7.5, 8.5). Each role first logs in with its secret: when that works the
+ * password is already right and nothing changes, so the pooler has nothing
+ * stale to hold. Only a login refused for the password (a rotation, a restore
+ * from backup, a role just made) sets it, from a SCRAM verifier computed here,
+ * and then the step logs in again within ROLE_LOGIN_VERIFICATION's bound. A
+ * login refused for any other reason leaves that role's password unchanged
+ * and stops the step. An earlier role may already have its new password.
+ * No password or verifier reaches an argument list, a log line or an error.
  */
 export function setCmsRolePasswords({
   settings,
@@ -844,6 +1364,15 @@ export function setCmsRolePasswords({
   query = queryJson,
   run = runPsql,
   log = console.log,
+  sleep = sleepSync,
+  now = Date.now,
+  // What the run skipped, and what to run next, when a password was set but
+  // never verified (review H4). The default suits the dispatched
+  // set-cms-role-passwords operation; migrate and the rebuilds say their own.
+  next = "Wait two minutes, then dispatch set-cms-role-passwords again; a password that then logs in is left alone.",
+  // The same for a refusal the step does not recognise, before it changed
+  // anything (review K3).
+  nextUnchanged = "Fix what the refusal names, then dispatch set-cms-role-passwords again; for the pooler's circuit breaker, wait two minutes first.",
 }) {
   assertTarget(settings);
   const names = Object.keys(roleVariables);
@@ -876,7 +1405,27 @@ export function setCmsRolePasswords({
         `Login role ${role} does not exist; the CMS role migration has not run.`,
       );
   }
+  const { attemptsAtSeconds } = ROLE_LOGIN_VERIFICATION;
+  const boundSeconds = attemptsAtSeconds.at(-1);
+  const outcomes = [];
   for (const { role, password } of passwords) {
+    const first = tryRoleLogin({ settings, role, password, query });
+    if (first.ok) {
+      log(`The ${role} password already logs in; nothing changed.`);
+      outcomes.push({ role, changed: false });
+      continue;
+    }
+    if (first.kind !== "password") {
+      const changed = outcomes
+        .filter((outcome) => outcome.changed)
+        .map((outcome) => outcome.role);
+      const earlier = changed.length
+        ? ` The password for ${changed.join(", ")} was already changed and verified.`
+        : "";
+      stop(
+        `Logging in as ${role} was refused for a reason other than its password, so its password was not changed: ${first.message}${earlier} ${nextUnchanged}`,
+      );
+    }
     run({
       databaseUrl: settings.databaseUrl,
       label: `set ${role} password`,
@@ -884,15 +1433,33 @@ export function setCmsRolePasswords({
       sql: `\\getenv verifier RELEASE_ROLE_VERIFIER
 ALTER ROLE ${role} WITH PASSWORD :'verifier';`,
     });
-    const who = query({
-      databaseUrl: roleDatabaseUrl(settings.databaseUrl, role, password),
-      label: `log in as ${role}`,
-      sql: "SELECT json_build_object('user', current_user)::text;",
-    });
-    if (who.user !== role)
-      stop(`Logging in as ${role} did not yield that role.`);
-    log(`Set and verified the ${role} password.`);
+    const changedAt = now();
+    let attempts = 0;
+    let last = first;
+    for (const seconds of attemptsAtSeconds) {
+      const wait = changedAt + seconds * 1000 - now();
+      if (wait > 0) sleep(wait);
+      attempts += 1;
+      last = tryRoleLogin({ settings, role, password, query });
+      if (last.ok) break;
+      if (last.kind !== "password") {
+        stop(
+          `The ${role} password was set, but logging in as ${role} was then refused for another reason: ${last.message} ${next}`,
+        );
+      }
+    }
+    if (!last.ok) {
+      stop(
+        `The ${role} password was set, but logging in as ${role} was still refused after ${attempts} attempts over ${boundSeconds} seconds; the pooler may hold the old credentials longer. ${next}`,
+      );
+    }
+    const waited = Math.round((now() - changedAt) / 1000);
+    log(
+      `Set the ${role} password; it logged in on attempt ${attempts}, ${waited} s after the change.`,
+    );
+    outcomes.push({ role, changed: true, attempts, waitedSeconds: waited });
   }
+  return outcomes;
 }
 
 const STEPS = {
@@ -928,11 +1495,41 @@ const STEPS = {
     repairSeededLoginPasswords({ settings, env }),
 };
 
+/**
+ * Reviews M3 and N6: a hosted step stops, before it connects, unless the psql
+ * it runs reports 16 or later; PGREQUIREAUTH, which every hosted libpq
+ * connection takes, is ignored by an older libpq without a word. The check is
+ * the shared one in scripts/lib/psql.mjs, which each builder also runs before
+ * it starts psql on a hosted address. The release workflow installs Ubuntu's
+ * postgresql-client (scripts/github/install-postgresql-client.sh) on
+ * ubuntu-latest, whose image carries PostgreSQL 16.
+ */
+export function requirePsqlForHostedRelease({ psqlBin, run } = {}) {
+  try {
+    requirePsqlHonoursRequireAuth({
+      ...(psqlBin ? { psqlBin } : {}),
+      ...(run ? { run } : {}),
+      env: childEnvironment(),
+    });
+  } catch (error) {
+    stop(error.message);
+  }
+}
+
 export async function runStep(step, env = process.env) {
   const handler = STEPS[step];
   if (!handler)
     stop(`Unknown step ${step}. Steps: ${Object.keys(STEPS).join(", ")}.`);
-  return await handler({ settings: readReleaseSettings(env), env });
+  const settings = readReleaseSettings(env);
+  assertTarget(settings);
+  const ca = withDatabaseCaFile(settings);
+  try {
+    if (!isLoopbackDatabaseUrl(settings.databaseUrl))
+      requirePsqlForHostedRelease();
+    return await handler({ settings: ca.settings, env });
+  } finally {
+    ca.remove();
+  }
 }
 
 if (

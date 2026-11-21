@@ -41,6 +41,7 @@ import {
 import { WEB_STUDIO_PREF_KEYS } from "../preferences/keys";
 import { Link, usePathname } from "../routing";
 import { readableAdminCollections } from "./admin-collections";
+import { MissionControlLink } from "./mission-control-link";
 
 import type { WebStudioAdminCollectionSlug } from "./admin-collections";
 import type { ComponentType } from "react";
@@ -416,9 +417,7 @@ export function StudioNavRail({ className }: { className?: string }) {
               ) : null}
               {/* The top bar drops its Mission Control link on phones. */}
               <div className="border-t px-2 pt-4">
-                <Link
-                  href="/"
-                  onClick={() => setMobileOpen(false)}
+                <MissionControlLink
                   className={cn(
                     buttonVariants({ variant: "ghost", size: "sm" }),
                     "w-full justify-start font-normal text-muted-foreground",
@@ -426,7 +425,7 @@ export function StudioNavRail({ className }: { className?: string }) {
                 >
                   <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
                   Mission Control
-                </Link>
+                </MissionControlLink>
               </div>
             </div>
           </SheetContent>

@@ -79,6 +79,47 @@ const CI_BASES = [
     bytes: 46788,
     sha256: "b83d66c4b3ccfc91c2ba86c7118eebff6e9e1b5fafcf748ad9996b1a4a3e006b",
   },
+  {
+    // Amended by AL-2674 (WP1.6, record D-18): docs/ci.md's "Local Supabase
+    // stack workflow" section gains one bullet, and its count of what it
+    // guards goes from two to three. The workflow now also replays the chain
+    // on plain Postgres as the release job does (`--hosted-defaults`) and
+    // fails unless that replay fingerprints exactly as the stack does, so a
+    // change of Supabase's default privileges fails a pull request rather
+    // than a release. Nothing else in the file changes.
+    // Pinned on that exact reviewed whole file.
+    bytes: 47141,
+    sha256: "a1e298892caec8406bdeef31e41814f9532bf3527e2d77436104d052d1d4ad37",
+  },
+  {
+    // Amended by AL-2674 (WP1.6 review H7, record D-18): the WP1.6 bullet of
+    // docs/ci.md's "Local Supabase stack workflow" section no longer says
+    // that a change of Supabase's default privileges fails a pull request
+    // rather than a release. It says the job compares with the image the
+    // pinned CLI starts, not with hosted, and that the release's gates catch
+    // a change on hosted. Nothing else in the file changes. Pinned on that exact reviewed whole file.
+    bytes: 47190,
+    sha256: "74852f931758754843fbd50e41d432fbd40375f06f002c99f3524417f2b8782e",
+  },
+  // D-18: WP2H documents the proof dependencies, including its Vitest config and resolver plugins.
+  // This pin accepts only the reviewed file bytes, as before.
+  {
+    bytes: 47791,
+    sha256: "bac3dc897167173b05ea29aca95ac25f4bd64f675f22780c71aeba1821b6a5b6",
+  },
+  // Amended by AL-2735 when the shadcn upstream review left ci:preflight: the stage list
+  // drops `verify:shadcn-diff` and renumbers, a new paragraph says the review
+  // runs by hand, and the `lint` section no longer lists it. Pinned on that
+  // exact reviewed whole file.
+  {
+    bytes: 47915,
+    sha256: "e091011ebffb5faba38a9230a9982488fb679c02f38b6d08be0b515250530276",
+  },
+  // D-18 (AL-2675): retain the manual shadcn review; document operator MFA, CMS origin and the 35-minute E2E cap.
+  {
+    bytes: 48397,
+    sha256: "b94a4abb2503c2a4b54b349d94218659910b587989be8fddba59d3f7350e8674",
+  },
 ];
 const STEP = "Verify tenant isolation (real stack)";
 const CII = ".github/workflows/ci-integration.yml";
@@ -347,11 +388,19 @@ describe("#2312 unchanged (criterion 8)", () => {
   );
   it("8: no missionaries.person_id read or write in the migration", () =>
     expect(sql()).not.toMatch(/person_id/i));
-  it("8: #2253's service-role allowlist is not grown (117 entries at develop 88eefbd9)", () => {
+  it("8: #2253's service-role allowlist does not grow in either reviewed pool", () => {
     const a = (
-      JSON.parse(H.read(H.ALLOWLIST)) as { entries: { file: string }[] }
+      JSON.parse(H.read(H.ALLOWLIST)) as {
+        entries: { file: string; follow_up: string }[];
+      }
     ).entries;
-    expect(a.length).toBeLessThanOrEqual(117);
+    // D-18: WP4a counts six existing bypass paths for WP4b; the original pool shrank to 115.
+    expect(
+      a.filter((entry) => entry.follow_up !== "WP4b").length,
+    ).toBeLessThanOrEqual(115);
+    expect(
+      a.filter((entry) => entry.follow_up === "WP4b").length,
+    ).toBeLessThanOrEqual(6);
   });
   it(`8 (addendum 1 item 4): '${STEP}' runs ${H.REALSTACK}`, () => {
     const step = (

@@ -1,9 +1,9 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { DataGridRowPrimary } from "@asym/ui/components/data-grid-panel";
 import { DataGridColumnHeader } from "@asym/ui/components/reui/data-grid/data-grid-column-header";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import Link from "next/link";
 
 import { CrmEmptyValue, formatCrmDate } from "../crm-display";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { useEffect, useState } from "react";
 
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";

@@ -4,6 +4,8 @@ import { createCollection } from "@tanstack/db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { type z } from "zod";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import { getQueryClient } from "../providers/query-client";
 import {
   supportHubCollectionQueryKey,
@@ -60,7 +62,7 @@ async function fetchSupportHubRows<T>(
   key: string,
   schema: z.ZodType<T>,
 ): Promise<T[]> {
-  const response = await fetch(path, {
+  const response = await ownApiFetch(path, {
     ...SUPPORT_HUB_FETCH_INIT,
     signal: AbortSignal.timeout(SUPPORT_HUB_REQUEST_TIMEOUT_MS),
   });

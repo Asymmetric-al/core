@@ -70,19 +70,62 @@ function makeReq({
     create: (...args: any[]) => Promise<unknown>;
   }>;
 }) {
-  return {
-    user,
-    json: async () => body,
-    payload: {
-      findByID: vi.fn(),
-      find: vi.fn(),
-      create: vi.fn(),
-      ...payloadOverrides,
+  // A real request typed as JSON, as Payload hands it on: the endpoint reads
+  // it through the shared JSON reader (AL-2677, fix check G1).
+  return Object.assign(
+    new Request(
+      "https://admin.test/web-studio/api/web-studio/create-from-template",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    ),
+    {
+      user,
+      payload: {
+        findByID: vi.fn(),
+        find: vi.fn(),
+        create: vi.fn(),
+        ...payloadOverrides,
+      },
     },
-  } as never;
+  ) as never;
 }
 
 describe("webStudioCreateFromTemplateEndpoint", () => {
+  it("refuses an untyped JSON body with 415 before reading anything", async () => {
+    const create = vi.fn();
+    const findByID = vi.fn();
+    const req = Object.assign(
+      new Request(
+        "https://admin.test/web-studio/api/web-studio/create-from-template",
+        {
+          method: "POST",
+          body: new TextEncoder().encode(
+            JSON.stringify({
+              targetCollection: "pages",
+              templateId: "t",
+              title: "T",
+            }),
+          ),
+        },
+      ),
+      {
+        user: { id: "u1", role: "staff", tenantId: "17" },
+        payload: { create, findByID, find: vi.fn() },
+      },
+    ) as never;
+    const response = await handler(req);
+    expect(response.status).toBe(415);
+    // Re-check H4: the Studio envelope, as the proxy answers on these paths.
+    expect(await response.json()).toEqual({
+      errors: [{ message: "Unsupported mutation content type." }],
+    });
+    expect(findByID).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+  });
+
   it.each(["pages", "ministry-updates"])(
     "rejects an empty normalized slug before creating %s",
     async (targetCollection) => {

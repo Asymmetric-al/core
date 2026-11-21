@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 export const ADMIN_CRM_TAG_OPTIONS_QUERY_KEY = [
   "admin-crm-tag-options",
 ] as const;
@@ -9,7 +11,7 @@ export const ADMIN_CRM_TAG_OPTIONS_QUERY_KEY = [
 async function fetchAdminCrmTagOptions(
   signal?: AbortSignal,
 ): Promise<string[]> {
-  const response = await fetch("/api/admin/crm/tags", {
+  const response = await ownApiFetch("/api/admin/crm/tags", {
     credentials: "same-origin",
     headers: { Accept: "application/json" },
     signal,

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { serializePublishedPageLike } from "../../../apps/admin/src/cms/public/serialize-published-page";
+
 import type { PublicRequestContext } from "../../../packages/api/src/cms/public/context";
 
 const context: PublicRequestContext = {
@@ -74,11 +75,11 @@ describe("serializePublishedPageLike", () => {
           backgroundImage: {
             id: 44,
             alt: "Jane in field",
-            url: "/api/media/file/jane.jpg",
+            url: "/web-studio/api/media/file/jane.jpg",
             tenant: 99,
             variants: {
-              thumbnail: { url: "/api/media/file/jane-320.jpg" },
-              card: { url: "/api/media/file/jane-960.jpg" },
+              thumbnail: { url: "/web-studio/api/media/file/jane-320.jpg" },
+              card: { url: "/web-studio/api/media/file/jane-960.jpg" },
             },
           },
         },
@@ -98,9 +99,9 @@ describe("serializePublishedPageLike", () => {
         backgroundImage: {
           id: "44",
           alt: "Jane in field",
-          url: "/api/media/file/jane.jpg",
-          thumbnailURL: "/api/media/file/jane-320.jpg",
-          cardURL: "/api/media/file/jane-960.jpg",
+          url: "/web-studio/api/media/file/jane.jpg",
+          thumbnailURL: "/web-studio/api/media/file/jane-320.jpg",
+          cardURL: "/web-studio/api/media/file/jane-960.jpg",
           width: null,
           height: null,
           mimeType: null,
@@ -130,7 +131,7 @@ describe("serializePublishedPageLike", () => {
           media: {
             id: 44,
             alt: "Jane in field",
-            url: "/api/media/file/jane.jpg",
+            url: "/web-studio/api/media/file/jane.jpg",
             width: 1200,
             height: 800,
             mimeType: "image/jpeg",
@@ -175,7 +176,7 @@ describe("serializePublishedPageLike", () => {
               media: {
                 id: 44,
                 alt: "Jane in field",
-                url: "/api/media/file/jane.jpg",
+                url: "/web-studio/api/media/file/jane.jpg",
                 width: 1200,
                 height: 800,
                 mimeType: "image/jpeg",

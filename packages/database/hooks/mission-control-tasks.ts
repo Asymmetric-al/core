@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 export interface MissionControlNeedsAttentionItem {
   id: string;
   taskId: string | null;
@@ -31,12 +33,15 @@ export const MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY = [
 ] as const;
 
 async function loadNeedsAttention() {
-  const response = await fetch("/api/admin/mission-control/needs-attention", {
-    credentials: "same-origin",
-    headers: {
-      accept: "application/json",
+  const response = await ownApiFetch(
+    "/api/admin/mission-control/needs-attention",
+    {
+      credentials: "same-origin",
+      headers: {
+        accept: "application/json",
+      },
     },
-  });
+  );
 
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as {

@@ -18,24 +18,23 @@ const duplicateRows = vi.hoisted(() => {
   return [row, { ...row }];
 });
 // Synthetic reader boundary only; this does not prove live database uniqueness/RLS.
-vi.mock("@asym/database/supabase/server", () => ({
-  createClient: async () => ({
-    from: () => {
-      const query = {
-        select: () => query,
-        eq: () => query,
-        is: () => query,
-        then: (resolve: (value: unknown) => unknown) =>
-          Promise.resolve(resolve({ data: duplicateRows, error: null })),
-      };
-      return query;
-    },
-  }),
-}));
+const sessionClient = {
+  from: () => {
+    const query = {
+      select: () => query,
+      eq: () => query,
+      is: () => query,
+      then: (resolve: (value: unknown) => unknown) =>
+        Promise.resolve(resolve({ data: duplicateRows, error: null })),
+    };
+    return query;
+  },
+} as unknown as Parameters<typeof loadFieldPolicies>[0]["sessionClient"];
 
 it("a reader-denied duplicate ceiling cannot be restored by the projection core", async () => {
   const x = fixture();
   const policies = await loadFieldPolicies({
+    sessionClient,
     surface: x.surface,
     recordType: x.recordType,
   });

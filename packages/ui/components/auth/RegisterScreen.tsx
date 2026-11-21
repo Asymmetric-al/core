@@ -6,9 +6,11 @@ import {
   type AppId,
 } from "@asym/auth/demo-login";
 import { signUpConfirmationRedirectUrl } from "@asym/auth/sign-up-confirmation";
+import {
+  TenantLink as Link,
+  useTenantRouter,
+} from "@asym/auth/tenant-navigation";
 import { createBrowserClient } from "@asym/database/supabase";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import {
@@ -72,7 +74,7 @@ export function RegisterScreen({
   subtitle = "Create your account to continue",
   loginHref = "/login",
 }: RegisterScreenProps) {
-  const { replace, refresh } = useRouter();
+  const { replace, refresh } = useTenantRouter();
   const defaultPostLoginPath = getDefaultPostLoginPathForApp(appId);
   const [firstName, setFirstName] = React.useState("");
   const [lastName, setLastName] = React.useState("");

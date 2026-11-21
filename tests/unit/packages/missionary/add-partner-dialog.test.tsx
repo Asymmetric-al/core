@@ -168,9 +168,14 @@ describe("AddPartnerDialog public form behavior", () => {
     expect(screen.getByRole("dialog")).toBeTruthy();
   });
 
-  it("preserves entered values and reports a rejected insert without success", async () => {
+  it("preserves entered values and reports a rejected insert without success, in plain words", async () => {
+    // WP2b, AL-2675 (council round 1 on slice B, the coordinator's ruling on
+    // Add partner): the toast tells the person in plain words, never the
+    // database's own message.
     boundary.insert.mockResolvedValueOnce({
-      error: new Error("Fixture rejected insert"),
+      error: new Error(
+        'new row violates row-level security policy for table "donors"',
+      ),
     });
     const consoleError = vi
       .spyOn(console, "error")
@@ -187,7 +192,13 @@ describe("AddPartnerDialog public form behavior", () => {
     fillValidFields();
     await submit();
     await waitFor(() =>
-      expect(boundary.error).toHaveBeenCalledWith("Fixture rejected insert"),
+      expect(boundary.error).toHaveBeenCalledWith("The partner wasn't added.", {
+        description:
+          "Something went wrong on our side, so nothing was saved. Your details are still in the form.",
+      }),
+    );
+    expect(JSON.stringify(boundary.error.mock.calls)).not.toMatch(
+      /row-level security|donors/,
     );
     expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe(
       "Fixture partner",

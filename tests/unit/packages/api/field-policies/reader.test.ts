@@ -18,11 +18,11 @@ const database = vi.hoisted(() => ({
   error: null as { message: string; code: string } | null,
 }));
 
-// The database boundary is the only fake. It honors Supabase query filters
-// and deliberately retains malformed policy rows for the reader to reject.
-vi.mock("@asym/database/supabase/server", () => ({
-  createClient: async () => ({
-    from: () => {
+const observed = vi.fn();
+function fakeClient() {
+  return {
+    from: (table: string) => {
+      observed(table);
       const predicates: Array<(row: DatabaseRow) => boolean> = [];
       const query = {
         select: () => query,
@@ -54,8 +54,12 @@ vi.mock("@asym/database/supabase/server", () => ({
       };
       return query;
     },
-  }),
-}));
+  };
+}
+
+const sessionClient = fakeClient() as unknown as Parameters<
+  typeof loadFieldPolicies
+>[0]["sessionClient"];
 
 function row(overrides: Partial<DatabaseRow> = {}): DatabaseRow {
   return {
@@ -86,12 +90,26 @@ const denied = { visible: false, editable: false, exportable: false };
 beforeEach(() => {
   database.rows = [];
   database.error = null;
+  observed.mockClear();
+});
+
+describe("loadFieldPolicies request scope (WP2b, AL-2675; NR-56)", () => {
+  it("reads field_policies through the exact client the operation supplied", async () => {
+    database.rows = [row()];
+    await loadFieldPolicies({
+      sessionClient,
+      surface: "donor",
+      recordType: "donors",
+    });
+    expect(observed).toHaveBeenCalledWith("field_policies");
+  });
 });
 
 describe("loadFieldPolicies static ceiling", () => {
   it("returns a typed policy for a classified whole column", async () => {
     database.rows = [row()];
     const policies = await loadFieldPolicies({
+      sessionClient,
       surface: "donor",
       recordType: "donors",
     });
@@ -109,6 +127,7 @@ describe("loadFieldPolicies static ceiling", () => {
 
   it("retains the requested surface and record type", async () => {
     const policies = await loadFieldPolicies({
+      sessionClient,
       surface: "donor",
       recordType: "donors",
     });
@@ -125,6 +144,7 @@ describe("loadFieldPolicies static ceiling", () => {
     "does not synthesize permission for an unclassified key on %s",
     async (surface) => {
       const policies = await loadFieldPolicies({
+        sessionClient,
         surface,
         recordType: "donors",
       });
@@ -135,6 +155,7 @@ describe("loadFieldPolicies static ceiling", () => {
   it("leaves dotted keys inert even when an explicit positive row exists", async () => {
     database.rows = [row({ field_key: "address.street" })];
     const policies = await loadFieldPolicies({
+      sessionClient,
       surface: "donor",
       recordType: "donors",
     });
@@ -144,6 +165,7 @@ describe("loadFieldPolicies static ceiling", () => {
   it("reads a whole JSONB column without evaluating child keys", async () => {
     database.rows = [row({ field_key: "address" })];
     const policies = await loadFieldPolicies({
+      sessionClient,
       surface: "donor",
       recordType: "donors",
     });
@@ -153,6 +175,7 @@ describe("loadFieldPolicies static ceiling", () => {
   it("does not infer child access from a positive whole-column policy", async () => {
     database.rows = [row({ field_key: "address" })];
     const policies = await loadFieldPolicies({
+      sessionClient,
       surface: "donor",
       recordType: "donors",
     });
@@ -162,6 +185,7 @@ describe("loadFieldPolicies static ceiling", () => {
   it("does not reuse policies from another record type", async () => {
     database.rows = [row()];
     const policies = await loadFieldPolicies({
+      sessionClient,
       surface: "donor",
       recordType: "profiles",
     });
@@ -171,6 +195,7 @@ describe("loadFieldPolicies static ceiling", () => {
   it("does not reuse policies from another surface", async () => {
     database.rows = [row()];
     const policies = await loadFieldPolicies({
+      sessionClient,
       surface: "missionary",
       recordType: "donors",
     });
@@ -188,6 +213,7 @@ describe("loadFieldPolicies static ceiling", () => {
       }),
     ];
     const policies = await loadFieldPolicies({
+      sessionClient,
       surface: "future_surface_491",
       recordType: "donors",
     });
@@ -208,6 +234,7 @@ describe("loadFieldPolicies static ceiling", () => {
       row({ field_key: "display_name", sensitivity_category: "public" }),
     ];
     const policies = await loadFieldPolicies({
+      sessionClient,
       surface: "future_surface_491",
       recordType: "donors",
     });
@@ -220,6 +247,7 @@ describe("loadFieldPolicies static ceiling", () => {
       row({ tenant_id: "tenant-491", exportable: true }),
     ];
     const policies = await loadFieldPolicies({
+      sessionClient,
       surface: "donor",
       recordType: "donors",
       tenantId: "tenant-491",
@@ -232,6 +260,7 @@ describe("loadFieldPolicies static ceiling", () => {
       row({ sensitivity_category: "future_sensitive_category" }),
     ];
     const policies = await loadFieldPolicies({
+      sessionClient,
       surface: "donor",
       recordType: "donors",
     });
@@ -258,6 +287,7 @@ describe("loadFieldPolicies static ceiling", () => {
           }),
         ];
         const policies = await loadFieldPolicies({
+          sessionClient,
           surface,
           recordType: "donors",
         });
@@ -286,6 +316,7 @@ describe("loadFieldPolicies static ceiling", () => {
         }),
       ];
       const policies = await loadFieldPolicies({
+        sessionClient,
         surface: "mission_control",
         recordType: "donations",
       });
@@ -304,6 +335,7 @@ describe("loadFieldPolicies static ceiling", () => {
       }),
     ];
     const policies = await loadFieldPolicies({
+      sessionClient,
       surface: "mission_control",
       recordType: "donations",
     });
@@ -341,7 +373,11 @@ describe("loadFieldPolicies static ceiling", () => {
             sensitivity_category: "financial",
           }),
         ];
-        const policies = await loadFieldPolicies({ surface, recordType });
+        const policies = await loadFieldPolicies({
+          sessionClient,
+          surface,
+          recordType,
+        });
         expect(operations(policies.get("amount"))).toEqual(denied);
       },
     );

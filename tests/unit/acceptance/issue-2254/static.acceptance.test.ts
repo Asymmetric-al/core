@@ -83,6 +83,52 @@ const CI_BASES = [
     bytes: 46788,
     sha256: "b83d66c4b3ccfc91c2ba86c7118eebff6e9e1b5fafcf748ad9996b1a4a3e006b",
   },
+  {
+    // Amended by AL-2674 (WP1.6, record D-18): docs/ci.md's "Local Supabase
+    // stack workflow" section gains one bullet, and its count of what it
+    // guards goes from two to three. The workflow now also replays the chain
+    // on plain Postgres as the release job does (`--hosted-defaults`) and
+    // fails unless that replay fingerprints exactly as the stack does, so a
+    // change of Supabase's default privileges fails a pull request rather
+    // than a release. Nothing else in the file changes.
+    // Pinned on that exact reviewed whole file.
+    ref: "AL-2674 WP1.6 release replay against the image",
+    bytes: 47141,
+    sha256: "a1e298892caec8406bdeef31e41814f9532bf3527e2d77436104d052d1d4ad37",
+  },
+  {
+    // Amended by AL-2674 (WP1.6 review H7, record D-18): the WP1.6 bullet of
+    // docs/ci.md's "Local Supabase stack workflow" section no longer says
+    // that a change of Supabase's default privileges fails a pull request
+    // rather than a release. It says the job compares with the image the
+    // pinned CLI starts, not with hosted, and that the release's gates catch
+    // a change on hosted. Nothing else in the file changes. Pinned on that exact reviewed whole file.
+    ref: "AL-2674 WP1.6 review H7, the drift guard's limits",
+    bytes: 47190,
+    sha256: "74852f931758754843fbd50e41d432fbd40375f06f002c99f3524417f2b8782e",
+  },
+  // D-18: WP2H documents the proof dependencies, including its Vitest config and resolver plugins.
+  // This pin accepts only the reviewed file bytes, as before.
+  {
+    ref: "AL-2675 WP2H PostgREST proof paths",
+    bytes: 47791,
+    sha256: "bac3dc897167173b05ea29aca95ac25f4bd64f675f22780c71aeba1821b6a5b6",
+  },
+  // Amended by AL-2735 when the shadcn upstream review left ci:preflight: the stage list
+  // drops `verify:shadcn-diff` and renumbers, a new paragraph says the review
+  // runs by hand, and the `lint` section no longer lists it. Pinned on that
+  // exact reviewed whole file.
+  {
+    ref: "AL-2735 shadcn upstream review leaves ci:preflight",
+    bytes: 47915,
+    sha256: "e091011ebffb5faba38a9230a9982488fb679c02f38b6d08be0b515250530276",
+  },
+  // D-18 (AL-2675): retain the manual shadcn review; document operator MFA, CMS origin and the 35-minute E2E cap.
+  {
+    ref: "AL-2675 WP2c operator MFA and hosted E2E contract",
+    bytes: 48397,
+    sha256: "b94a4abb2503c2a4b54b349d94218659910b587989be8fddba59d3f7350e8674",
+  },
 ] as const;
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */

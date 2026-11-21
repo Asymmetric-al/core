@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { motion, useReducedMotion } from "@asym/lib/motion";
 import {
   Avatar,
@@ -25,7 +26,6 @@ import {
   Clock,
   Sparkles,
 } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
 
 import {

@@ -8,10 +8,10 @@ import {
 } from "./control";
 import { mutateEveApprovalBudgetSchema } from "./schema";
 import { loadEveApprovalBudgetAdminView } from "./store";
-import { toErrorResponse } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
+import { withPlatformOperation } from "../../shared/with-operation";
 
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ auth, requestId, supabaseAdmin }) => {
     try {
       return NextResponse.json({
@@ -31,11 +31,11 @@ export const GET = withOperation(
   },
   { tenantAdministrator: true },
 );
-export const POST = withOperation(
+export const POST = withPlatformOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
       const mutation = mutateEveApprovalBudgetSchema.parse(
-        await request.json(),
+        await ensureJsonBody(request),
       );
       let result: unknown;
       if (mutation.action === "execute")

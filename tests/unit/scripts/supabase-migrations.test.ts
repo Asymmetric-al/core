@@ -13,7 +13,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { afterEach, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { MIGRATION } from "../acceptance/issue-2256/harness";
 
@@ -25,13 +25,22 @@ const MANIFEST = JSON.parse(
     path.join(root, "docs/security/field-policies/manifest.json"),
     "utf8",
   ),
-) as { surfaces: string[]; record_types: Record<string, object> };
-const RECORD_TYPES = Object.keys(MANIFEST.record_types).length;
+) as {
+  surfaces: string[];
+  record_types: Record<string, object>;
+  derived_record_types: Record<string, object>;
+};
+const PHYSICAL_TYPES = Object.keys(MANIFEST.record_types).length;
+const DERIVED_TYPES = Object.keys(MANIFEST.derived_record_types).length;
 const COLUMNS = Object.values(MANIFEST.record_types).reduce(
   (n, columns) => n + Object.keys(columns).length,
   0,
 );
-const ROWS = COLUMNS * MANIFEST.surfaces.length;
+const DERIVED_FIELDS = Object.values(MANIFEST.derived_record_types).reduce(
+  (count, fields) => count + Object.keys(fields).length,
+  0,
+);
+const ROWS = (COLUMNS + DERIVED_FIELDS) * MANIFEST.surfaces.length;
 const roots: string[] = [];
 const itPosix = process.platform === "win32" ? it.skip : it;
 afterEach(() => {
@@ -44,6 +53,7 @@ function runVerifier(
   databaseUrl = "postgresql://postgres@127.0.0.1:5432/disposable_test",
   allowNonlocal = false,
   ambient: Record<string, string> = {},
+  cliArgs: string[] = [],
 ) {
   const temporary = mkdtempSync(path.join(os.tmpdir(), "migration-census-"));
   roots.push(temporary);
@@ -58,28 +68,31 @@ function runVerifier(
     ),
   );
   const surfaces: string[] = manifest.surfaces;
-  const entries = Object.entries(
-    manifest.record_types as Record<
-      string,
-      Record<string, Record<string, unknown>>
-    >,
-  ).flatMap(([recordType, columns]) =>
-    Object.entries(columns).map(([name, entry]) => ({
-      recordType,
-      name,
-      ...entry,
-    })),
+  const entries = Object.entries({
+    ...manifest.record_types,
+    ...manifest.derived_record_types,
+  } as Record<string, Record<string, Record<string, unknown>>>).flatMap(
+    ([recordType, columns]) =>
+      Object.entries(columns).map(([name, entry]) => ({
+        recordType,
+        name,
+        ...entry,
+      })),
   );
   const catalog = {
     relations: Object.keys(manifest.record_types).sort(),
-    columns: entries.map((column) => ({
-      record_type: column.recordType,
-      field_key: column.name,
-      type: column.type,
-      nullable: column.nullable,
-      generated: column.generated ?? null,
-      default: "default" in column ? column.default : null,
-    })),
+    columns: entries
+      .filter((column) =>
+        Object.hasOwn(manifest.record_types, column.recordType),
+      )
+      .map((column) => ({
+        record_type: column.recordType,
+        field_key: column.name,
+        type: column.type,
+        nullable: column.nullable,
+        generated: column.generated ?? null,
+        default: "default" in column ? column.default : null,
+      })),
     reserved_present: [],
     rows: entries.flatMap((column) =>
       surfaces.map((surface) => {
@@ -123,6 +136,53 @@ function runVerifier(
     commands: [],
     wrappers: [],
     grants: [],
+    // AL-2675 (WP2b, second release; record D-18): the gate also reads every
+    // signed-in policy in public, the request-tenant helpers and the published
+    // tables. The fake catalog holds the reviewed exceptions as they stand and
+    // the four helpers, so a clean run stays clean.
+    policies: JSON.parse(
+      readFileSync(
+        path.join(root, "docs/security/tenant-policy-exceptions.json"),
+        "utf8",
+      ),
+    ).entries.map(
+      (entry: {
+        table: string;
+        policy: string;
+        cmd: string;
+        roles: string[];
+        permissive: boolean;
+        using: string;
+        check: string;
+      }) => ({
+        table: entry.table,
+        policy: entry.policy,
+        // Council R3: each pin names its command, roles and kind.
+        cmd: entry.cmd,
+        roles: entry.roles,
+        permissive: entry.permissive,
+        using: entry.using,
+        check: entry.check,
+        // Signed-in users hold SELECT on each excepted table.
+        granted: true,
+        writable: true,
+      }),
+    ),
+    tenant_helpers: [
+      "current_tenant_id",
+      "request_tenant_id",
+      "request_assignment_id",
+      "request_assignment",
+    ].map((name) => ({
+      function: `authz.${name}()`,
+      body: "SELECT a.tenant_id FROM authz.request_assignment() AS a",
+      // Amended by fixcheck F4 (record D-18): the gate reads each helper's
+      // search path, which the migrated helpers fix empty.
+      search_path: '""',
+      // Council R12 (a): the helpers themselves, not functions they call.
+      root: true,
+    })),
+    published: [],
   };
   const psql = path.join(temporary, "psql.cjs");
   const calls = path.join(temporary, "calls.jsonl");
@@ -178,7 +238,7 @@ else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
   }
   const result = spawnSync(
     process.execPath,
-    [path.join(repo, "scripts/verify/supabase-migrations.mjs")],
+    [path.join(repo, "scripts/verify/supabase-migrations.mjs"), ...cliArgs],
     {
       cwd: repo,
       encoding: "utf8",
@@ -217,177 +277,231 @@ else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
   };
 }
 
-itPosix(
-  "requires the reviewed census after applying the complete migration sequence",
-  () => {
-    const result = runVerifier("clean");
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain(
-      `PASS: field-policy manifest: ${RECORD_TYPES} record types, ${COLUMNS} columns`,
-    );
-    expect(result.stdout).toContain(
-      `PASS: all ${ROWS} public.field_policies rows equal the manifest`,
-    );
-    expect(result.stdout).toContain(`equal the manifest's ${COLUMNS} entries`);
-    // AL-2674 (D09) removed one exception entry with its dropped table.
-    const gateLine = result.stdout.indexOf(
-      "PASS: tenant RLS catalog gate: 85 tenant tables enabled and forced (1 with policies, 84 listed deny-by-default, 0 stale)",
-    );
-    expect(
-      result.stdout.indexOf(`equal the manifest's ${COLUMNS} entries`),
-    ).toBeLessThan(gateLine);
-    expect(gateLine).toBeLessThan(
-      result.stdout.indexOf("forward Supabase migrations"),
-    );
-    const probeIndex = result.calls.findIndex(
-      (args: string[]) => !args.includes("-f") && !args.includes("-c"),
-    );
-    expect(probeIndex).toBeGreaterThan(1);
-    expect(result.inputs[probeIndex]).toContain(
-      "'storedPgpFunctionCandidates'",
-    );
-    expect(result.inputs[probeIndex]).toContain(
-      "CREATE FUNCTION pg_temp.modernization_mixed_case_pgp_probe",
-    );
-    expect(result.inputs[probeIndex]).toContain(
-      "CREATE FUNCTION pg_temp.modernization_sql_standard_pgp_probe",
-    );
-    expect(result.inputs[probeIndex]).toContain("BEGIN ATOMIC");
-    expect(result.inputs[probeIndex]).not.toContain(
-      "-- CORE_POSTGRES_UPGRADE_READINESS_QUERY",
-    );
-    const queryIndex = result.calls.findIndex((args: string[]) =>
-      args.includes("-c"),
-    );
-    expect(queryIndex).toBeGreaterThan(probeIndex);
-    expect(result.stdout).toContain(
-      "verify PostgreSQL upgrade preflight detects mixed-case callers",
-    );
-    expect(
-      result.calls
-        .slice(0, probeIndex)
-        .every((args: string[]) => args.includes("-f")),
-    ).toBe(true);
-    expect(
-      result.calls.every(
-        (args: string[]) =>
-          args[0] === "postgresql://postgres@127.0.0.1:5432/disposable_test",
-      ),
-    ).toBe(true);
-  },
-);
+describe("supabase migrations verifier", () => {
+  itPosix(
+    "requires the reviewed census after applying the complete migration sequence",
+    () => {
+      const result = runVerifier("clean");
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain(
+        `PASS: field-policy manifest: ${PHYSICAL_TYPES} physical types (${COLUMNS} columns), ${DERIVED_TYPES} derived types (${DERIVED_FIELDS} fields)`,
+      );
+      expect(result.stdout).toContain(
+        `PASS: all ${ROWS} public.field_policies rows equal the manifest`,
+      );
+      expect(result.stdout).toContain(
+        `equal the manifest's ${COLUMNS} physical columns`,
+      );
+      // AL-2674 (D09) removed one exception entry with its dropped table.
+      const gateLine = result.stdout.indexOf(
+        "PASS: tenant RLS catalog gate: 85 tenant tables enabled and forced (1 with policies, 84 listed deny-by-default, 0 stale)",
+      );
+      expect(
+        result.stdout.indexOf(
+          `equal the manifest's ${COLUMNS} physical columns`,
+        ),
+      ).toBeLessThan(gateLine);
+      expect(gateLine).toBeLessThan(
+        result.stdout.indexOf("forward Supabase migrations"),
+      );
+      const probeIndex = result.calls.findIndex(
+        (args: string[]) => !args.includes("-f") && !args.includes("-c"),
+      );
+      expect(probeIndex).toBeGreaterThan(1);
+      expect(result.inputs[probeIndex]).toContain(
+        "'storedPgpFunctionCandidates'",
+      );
+      expect(result.inputs[probeIndex]).toContain(
+        "CREATE FUNCTION pg_temp.modernization_mixed_case_pgp_probe",
+      );
+      expect(result.inputs[probeIndex]).toContain(
+        "CREATE FUNCTION pg_temp.modernization_sql_standard_pgp_probe",
+      );
+      expect(result.inputs[probeIndex]).toContain("BEGIN ATOMIC");
+      expect(result.inputs[probeIndex]).not.toContain(
+        "-- CORE_POSTGRES_UPGRADE_READINESS_QUERY",
+      );
+      const queryIndex = result.calls.findIndex((args: string[]) =>
+        args.includes("-c"),
+      );
+      expect(queryIndex).toBeGreaterThan(probeIndex);
+      expect(result.stdout).toContain(
+        "verify PostgreSQL upgrade preflight detects mixed-case callers",
+      );
+      expect(
+        result.calls
+          .slice(0, probeIndex)
+          .every((args: string[]) => args.includes("-f")),
+      ).toBe(true);
+      expect(
+        result.calls.every(
+          (args: string[]) =>
+            args[0] ===
+              "host='127.0.0.1' port='5432' dbname='disposable_test' user='postgres'" &&
+            args[1] === "-X",
+        ),
+      ).toBe(true);
+    },
+  );
 
-itPosix.each([
-  "policy-drift",
-  "column-drift",
-  "query-failure",
-  "rls-gate-drift",
-  "rls-gate-malformed",
-])(
-  "fails normal migration verification for %s without reporting success",
-  (mode) => {
+  itPosix.each([
+    "policy-drift",
+    "column-drift",
+    "query-failure",
+    "rls-gate-drift",
+    "rls-gate-malformed",
+  ])(
+    "fails normal migration verification for %s without reporting success",
+    (mode) => {
+      const result = runVerifier(mode);
+      expect(result.status).not.toBe(0);
+      expect(result.stdout).not.toContain("forward Supabase migrations");
+      if (mode === "query-failure")
+        expect(result.stderr).toContain("Injected census query failure");
+      if (mode === "rls-gate-drift")
+        expect(result.stderr).toContain("FORCE_MISSING donors");
+      if (mode === "rls-gate-malformed")
+        expect(result.stderr).toContain("printed no snapshot");
+    },
+  );
+
+  itPosix.each([
+    "v3-row-missing",
+    "v3-row-drift",
+    "v3-column-missing",
+    "v3-third-column",
+    "v3-source-edited",
+  ])("fails the #2256 v3 census for %s", (mode) => {
+    const clean = runVerifier("clean");
+    expect(clean.status, "clean baseline must pass first").toBe(0);
     const result = runVerifier(mode);
     expect(result.status).not.toBe(0);
     expect(result.stdout).not.toContain("forward Supabase migrations");
-    if (mode === "query-failure")
-      expect(result.stderr).toContain("Injected census query failure");
-    if (mode === "rls-gate-drift")
-      expect(result.stderr).toContain("FORCE_MISSING donors");
-    if (mode === "rls-gate-malformed")
-      expect(result.stderr).toContain("printed no snapshot");
-  },
-);
+    // #2400 criterion 7: the failure is the source-hash check itself, now the
+    // manifest gate's pinned-source check (AL-2674).
+    if (mode === "v3-source-edited") {
+      const mismatch = `PINNED ${MIGRATION} changed`;
+      expect(clean.stderr).not.toContain(mismatch);
+      expect(result.stderr).toContain(mismatch);
+    }
+  });
 
-itPosix.each([
-  "v3-row-missing",
-  "v3-row-drift",
-  "v3-column-missing",
-  "v3-third-column",
-  "v3-source-edited",
-])("fails the #2256 v3 census for %s", (mode) => {
-  const clean = runVerifier("clean");
-  expect(clean.status, "clean baseline must pass first").toBe(0);
-  const result = runVerifier(mode);
-  expect(result.status).not.toBe(0);
-  expect(result.stdout).not.toContain("forward Supabase migrations");
-  // #2400 criterion 7: the failure is the source-hash check itself, now the
-  // manifest gate's pinned-source check (AL-2674).
-  if (mode === "v3-source-edited") {
-    const mismatch = `PINNED ${MIGRATION} changed`;
-    expect(clean.stderr).not.toContain(mismatch);
-    expect(result.stderr).toContain(mismatch);
-  }
-});
+  itPosix(
+    "refuses unsupported nonlocal targets before any SQL even with the old override",
+    () => {
+      const result = runVerifier(
+        "clean",
+        "postgresql://postgres@disposable.invalid/test",
+        true,
+      );
+      expect(result.status).not.toBe(0);
+      expect(result.calls).toEqual([]);
+      expect(result.stdout).not.toContain("bootstrap Supabase");
+    },
+  );
 
-itPosix(
-  "refuses unsupported nonlocal targets before any SQL even with the old override",
-  () => {
-    const result = runVerifier(
-      "clean",
-      "postgresql://postgres@disposable.invalid/test",
-      true,
-    );
-    expect(result.status).not.toBe(0);
-    expect(result.calls).toEqual([]);
-    expect(result.stdout).not.toContain("bootstrap Supabase");
-  },
-);
+  // PR #2714 review: a query key such as `host` wins over the authority, so this
+  // URL names the hosted server however local its authority looks.
+  itPosix(
+    "refuses a loopback-looking URL with a routing override before any SQL",
+    () => {
+      const result = runVerifier(
+        "clean",
+        "postgresql://postgres@127.0.0.1:5432/disposable_test?host=db.example.supabase.co",
+      );
+      expect(result.status).not.toBe(0);
+      expect(result.calls).toEqual([]);
+      expect(result.stdout).not.toContain("bootstrap Supabase");
+    },
+  );
 
-// PR #2714 review: a query key such as `host` wins over the authority, so this
-// URL names the hosted server however local its authority looks.
-itPosix(
-  "refuses a loopback-looking URL with a routing override before any SQL",
-  () => {
-    const result = runVerifier(
-      "clean",
-      "postgresql://postgres@127.0.0.1:5432/disposable_test?host=db.example.supabase.co",
-    );
-    expect(result.status).not.toBe(0);
-    expect(result.calls).toEqual([]);
-    expect(result.stdout).not.toContain("bootstrap Supabase");
-  },
-);
+  // PR #2714 review: every psql the verifier starts goes through psqlConnection.
+  // An ambient PGHOSTADDR overrides the URL's host, PGSERVICE and PGHOST fill in
+  // a target and PGOPTIONS can choose a role, so none may reach psql; and the
+  // password travels in PGPASSWORD, never in the argument list.
+  itPosix(
+    "starts every psql with the URL alone: no ambient PG* setting and no password in its arguments",
+    () => {
+      const result = runVerifier(
+        "clean",
+        "postgresql://postgres:s3cret-verify@127.0.0.1:5432/disposable_test",
+        false,
+        {
+          PGHOSTADDR: "203.0.113.9",
+          PGHOST: "db.example.supabase.co",
+          PGPORT: "6543",
+          PGSERVICE: "hosted",
+          PGOPTIONS: "-c role=postgres",
+        },
+      );
+      expect(result.status, result.stderr).toBe(0);
+      expect(result.calls.length).toBeGreaterThan(3);
+      for (const [index, args] of result.calls.entries()) {
+        expect(result.environments[index]).toEqual({
+          PGPASSWORD: "s3cret-verify",
+        });
+        // H11: the URL's parsed parts, never the raw string.
+        expect(args[0]).toBe(
+          "host='127.0.0.1' port='5432' dbname='disposable_test' user='postgres'",
+        );
+        expect(JSON.stringify(args)).not.toContain("s3cret-verify");
+      }
+    },
+  );
 
-// PR #2714 review: every psql the verifier starts goes through psqlConnection.
-// An ambient PGHOSTADDR overrides the URL's host, PGSERVICE and PGHOST fill in
-// a target and PGOPTIONS can choose a role, so none may reach psql; and the
-// password travels in PGPASSWORD, never in the argument list.
-itPosix(
-  "starts every psql with the URL alone: no ambient PG* setting and no password in its arguments",
-  () => {
-    const result = runVerifier(
-      "clean",
-      "postgresql://postgres:s3cret-verify@127.0.0.1:5432/disposable_test",
-      false,
-      {
-        PGHOSTADDR: "203.0.113.9",
-        PGHOST: "db.example.supabase.co",
-        PGPORT: "6543",
-        PGSERVICE: "hosted",
-        PGOPTIONS: "-c role=postgres",
-      },
-    );
-    expect(result.status, result.stderr).toBe(0);
-    expect(result.calls.length).toBeGreaterThan(3);
-    for (const [index, args] of result.calls.entries()) {
-      expect(result.environments[index]).toEqual({
+  // WP1.6, joined with PR #2714's review: the hosted-defaults step of the
+  // release replay starts psql like every other step, the URL first and once,
+  // the password in PGPASSWORD only, after the bootstrap and before the first
+  // migration.
+  itPosix(
+    "applies the hosted default privileges after the bootstrap and before the first migration, through the same psql start",
+    () => {
+      const result = runVerifier(
+        "clean",
+        "postgresql://postgres:s3cret-verify@127.0.0.1:5432/disposable_test",
+        false,
+        {},
+        ["--hosted-defaults"],
+      );
+      expect(result.status, result.stderr).toBe(0);
+      const files = result.calls.map((args) =>
+        args.includes("-f") ? args[args.indexOf("-f") + 1]! : "",
+      );
+      const bootstrap = files.findIndex((file) =>
+        file.endsWith("scripts/sql/supabase-compat-bootstrap.sql"),
+      );
+      const defaults = files.findIndex((file) =>
+        file.endsWith("scripts/sql/hosted-default-privileges.sql"),
+      );
+      const firstMigration = files.findIndex((file) =>
+        /supabase\/migrations\/\d{14}_/.test(file),
+      );
+      expect(bootstrap).toBeGreaterThanOrEqual(0);
+      expect(defaults).toBe(bootstrap + 1);
+      expect(firstMigration).toBe(defaults + 1);
+      const call = result.calls[defaults]!;
+      expect(call[0]).toBe(
+        "host='127.0.0.1' port='5432' dbname='disposable_test' user='postgres'",
+      );
+      expect(call.filter((arg) => arg.startsWith("host="))).toHaveLength(1);
+      expect(JSON.stringify(call)).not.toContain("s3cret-verify");
+      expect(result.environments[defaults]).toEqual({
         PGPASSWORD: "s3cret-verify",
       });
-      expect(args[0]).toBe(
-        "postgresql://postgres@127.0.0.1:5432/disposable_test",
-      );
-      expect(JSON.stringify(args)).not.toContain("s3cret-verify");
-    }
-  },
-);
-
-itPosix("accepts IPv6 loopback under the same census locality contract", () => {
-  const result = runVerifier(
-    "clean",
-    "postgresql://postgres@[::1]:5432/disposable_test",
+    },
   );
-  expect(result.status).toBe(0);
-  expect(result.stdout).toContain(
-    `PASS: all ${ROWS} public.field_policies rows equal the manifest`,
+
+  itPosix(
+    "accepts IPv6 loopback under the same census locality contract",
+    () => {
+      const result = runVerifier(
+        "clean",
+        "postgresql://postgres@[::1]:5432/disposable_test",
+      );
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain(
+        `PASS: all ${ROWS} public.field_policies rows equal the manifest`,
+      );
+    },
   );
 });

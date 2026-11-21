@@ -2,6 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import { ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY } from "./admin-crm-table-preferences";
 
 import type {
@@ -32,7 +34,7 @@ async function fetchCrmNamedViews({
   signal: AbortSignal;
 }) {
   const params = new URLSearchParams({ tableId });
-  const response = await fetch(
+  const response = await ownApiFetch(
     `/api/admin/crm/table-preferences/views?${params}`,
     {
       credentials: "same-origin",
@@ -108,15 +110,18 @@ export function useCreateCrmNamedView(tableId: string) {
 
   return useMutation({
     mutationFn: async (input: CrmNamedViewCreateInput) => {
-      const response = await fetch("/api/admin/crm/table-preferences/views", {
-        body: JSON.stringify({ tableId, ...input }),
-        credentials: "same-origin",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
+      const response = await ownApiFetch(
+        "/api/admin/crm/table-preferences/views",
+        {
+          body: JSON.stringify({ tableId, ...input }),
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          method: "POST",
         },
-        method: "POST",
-      });
+      );
 
       if (!response.ok) {
         throw new Error(
@@ -138,7 +143,7 @@ export function useUpdateCrmNamedView(tableId: string) {
 
   return useMutation({
     mutationFn: async ({ viewId, ...input }: CrmNamedViewUpdateInput) => {
-      const response = await fetch(
+      const response = await ownApiFetch(
         `/api/admin/crm/table-preferences/views/${viewId}`,
         {
           body: JSON.stringify({ tableId, ...input }),
@@ -175,7 +180,7 @@ export function useDeleteCrmNamedView(tableId: string) {
       if (input.nextDefaultViewId) {
         params.set("nextDefaultViewId", input.nextDefaultViewId);
       }
-      const response = await fetch(
+      const response = await ownApiFetch(
         `/api/admin/crm/table-preferences/views/${input.viewId}?${params}`,
         {
           credentials: "same-origin",

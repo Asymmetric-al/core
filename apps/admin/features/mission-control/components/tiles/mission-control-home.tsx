@@ -1,6 +1,10 @@
 "use client";
 
 import { formatMoney } from "@asym/api/money";
+import {
+  TenantLink as Link,
+  useTenantRouter as useRouter,
+} from "@asym/auth/tenant-navigation";
 import { navigation } from "@asym/config/navigation";
 import { useMC } from "@asym/lib/mission-control/context";
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
@@ -26,8 +30,6 @@ import {
 } from "@asym/ui/components/shadcn/dialog";
 import { cn } from "@asym/ui/lib/utils";
 import { ChevronDown, LayoutGrid } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
 
 import { QuickActionsRow } from "./quick-actions-row";

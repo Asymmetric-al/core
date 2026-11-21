@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { useMC } from "@asym/lib/mission-control/context";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
@@ -18,7 +19,6 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import Link from "next/link";
 import { useId } from "react";
 
 import type { Role } from "@asym/config/navigation";

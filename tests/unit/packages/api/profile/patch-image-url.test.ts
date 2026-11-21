@@ -12,6 +12,25 @@ const m = vi.hoisted(() => ({
 /** Reads return m.rows[table]; updates are recorded in m.writes. */
 function fakeAdmin() {
   return {
+    rpc(name: string, args: Row) {
+      if (
+        name !== "missionary_own_record" &&
+        name !== "missionary_own_record_write"
+      )
+        throw Error(name);
+      return {
+        select: () => ({
+          maybeSingle: async () => {
+            if (name.endsWith("_write"))
+              m.writes.push({
+                table: "missionaries",
+                values: args.p_patch as Row,
+              });
+            return { data: m.rows.missionaries, error: null };
+          },
+        }),
+      };
+    },
     from(table: string) {
       let values: Row | null = null;
       const result = () => {
@@ -71,12 +90,21 @@ async function patch(body: Row, role = "missionary") {
     tenantId: T,
     profileId: "p-1",
     role,
+    assignment: {
+      assignmentId: "assignment-1",
+      membershipRole: role,
+      tenantId: T,
+      userId: U,
+    },
     isAuthenticated: true,
     memberships: membershipsForRole(role, T),
   };
   const res = await PATCH(
+    // Typed as the browser sends it: the shared JSON reader refuses an
+    // untyped or text/plain body (AL-2677, fix check G1).
     new NextRequest("https://app.test/api/profile", {
       method: "PATCH",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     }),
   );
