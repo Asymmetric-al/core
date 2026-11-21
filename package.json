@@ -185,7 +185,6 @@
     "verify:program-roadmap": "python3 docs/prds/program-roadmap/tools/render-phases.py --check && python3 docs/prds/program-roadmap/tools/verify.py && python3 docs/prds/program-roadmap/tools/verify-extensions.py && python3 docs/prds/workflow-studio/tools/render.py --check && python3 docs/prds/workflow-studio/tools/verify.py && node docs/prds/web-studio-hybrid/tools/verify-package.mjs",
     "react-doctor:audit": "node scripts/react-doctor-audit.mjs",
     "react-doctor:raw": "node scripts/react-doctor-audit.mjs --raw",
-    "react-doctor:check": "node scripts/react-doctor-audit.mjs --check",
     "test:react-cleanup": "playwright test --config=tests/e2e/playwright-isolated.config.ts",
     "verify:node-version": "node scripts/verify/node-version.mjs",
     "verify:typescript-toolchain": "node scripts/verify/typescript-toolchain.mjs",
