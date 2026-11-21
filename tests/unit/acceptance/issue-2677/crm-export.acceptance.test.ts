@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createAuditLogger } from "@asym/lib/audit/logger";
 import { captureError } from "@asym/lib/monitoring";
 import { GET } from "../../../../packages/api/src/admin/crm/reports/export";
-import { reportGroupRevision } from "../../../../packages/api/src/admin/crm/reports/service";
+import { reportGroupRevision } from "../../../../packages/api/src/admin/crm/reports/report-revision";
 import { policies } from "../../packages/api/projection/fixtures";
 
 const { insert, read, session, policy } = vi.hoisted(() => ({
@@ -24,14 +24,10 @@ vi.mock("../../../../packages/api/src/shared/request-session-client", () => ({
 vi.mock("../../../../packages/api/src/field-policies/reader", () => ({
   loadFieldPolicies: policy,
 }));
-vi.mock(
-  "../../../../packages/api/src/admin/crm/reports/service",
-  async (original) => ({
-    ...(await original<object>()),
-    buildAdminCrmReport: read,
-    buildAdminCrmExportGroups: read,
-  }),
-);
+vi.mock("../../../../packages/api/src/admin/crm/reports/service", () => ({
+  buildAdminCrmReport: read,
+  buildAdminCrmExportGroups: read,
+}));
 vi.mock("../../../../packages/api/src/crm/auth/access", () => ({
   requireCrmAccess: () => ({ tenantId: "tenant-1", userId: "user-1" }),
 }));
@@ -147,7 +143,14 @@ describe("governed CRM report export", () => {
         };
         return {
           anonymous,
-          revision: reportGroupRevision(row, completeness, anonymous),
+          revision: reportGroupRevision({
+            tenantId: "tenant-1",
+            slice: "donors",
+            groupId: `donors:${id}`,
+            row,
+            completeness,
+            anonymous,
+          }),
           tenant_id: "tenant-1",
           groupId: `donors:${id}`,
           completeness,
@@ -198,6 +201,49 @@ describe("governed CRM report export", () => {
       );
     },
   );
+  // Fix check G3: a group that fails its binding fails the export: no file,
+  // no success audit row, a logged 500.
+  it("fails the whole export when a group fails its binding", async () => {
+    vi.clearAllMocks();
+    const row = {
+      id: "fund-1",
+      label: "General Fund",
+      amountCents: 500,
+      giftCount: 1,
+      donorCount: 1,
+      lastGiftAt: null,
+      status: null,
+      metadata: {},
+    };
+    read.mockResolvedValue({
+      slice: "funds",
+      search: null,
+      rows: [
+        {
+          anonymous: false,
+          revision: "a-revision-of-other-values",
+          tenant_id: "tenant-1",
+          groupId: "funds:fund-1",
+          completeness: {
+            complete: true,
+            donationLimit: 100,
+            includedGiftCount: 1,
+          },
+          row,
+        },
+      ],
+    });
+    session.mockResolvedValue({});
+    policy.mockResolvedValue(
+      policies("mission_control", "crm_report_groups", [{ fieldKey: "label" }]),
+    );
+    insert.mockResolvedValue({ error: null });
+    const response = await run("slice=funds");
+    expect(response.status).toBe(500);
+    expect(response.headers.get("content-type")).not.toContain("csv");
+    expect(insert).not.toHaveBeenCalled();
+    expect(captureError).toHaveBeenCalled();
+  });
   it("does not audit or download without exportable policy rows", async () => {
     vi.clearAllMocks();
     policy.mockResolvedValue(

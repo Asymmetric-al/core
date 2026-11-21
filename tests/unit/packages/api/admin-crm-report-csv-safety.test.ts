@@ -1,10 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  buildReportResponse,
-  reportGroupRevision,
-} from "../../../../packages/api/src/admin/crm/reports/service";
+import { buildReportResponse } from "../../../../packages/api/src/admin/crm/reports/service";
 import { serializeAdminCrmReportCsv as serialize } from "../../../../packages/api/src/admin/crm/reports/export-projection";
+import { reportGroupRevision } from "../../../../packages/api/src/admin/crm/reports/report-revision";
 import { policies } from "./projection/fixtures";
 
 import type { AdminCrmReportParams } from "../../../../packages/api/src/admin/crm/reports/query";
@@ -74,7 +72,14 @@ function serializeAdminCrmReportCsv(
       search: null,
       rows: report.rows.map((row) => ({
         anonymous: false,
-        revision: reportGroupRevision(row, report.completeness, false),
+        revision: reportGroupRevision({
+          tenantId,
+          slice: report.slice,
+          groupId: `${report.slice}:${row.id}`,
+          row,
+          completeness: report.completeness,
+          anonymous: false,
+        }),
         tenant_id: tenantId,
         groupId: `${report.slice}:${row.id}`,
         row,
@@ -129,8 +134,9 @@ describe("serializeAdminCrmReportCsv — export hardening", () => {
     ])
       expect(csv).not.toContain(hidden);
     const report = buildReportResponse(params, rows);
-    expect(serializeAdminCrmReportCsv(report, "tenant-b")).toBe(
-      csv.split("\r\n")[0],
+    // Fix check G3: a group of another tenant fails the export, not the row.
+    expect(() => serializeAdminCrmReportCsv(report, "tenant-b")).toThrow(
+      "A report group failed its binding",
     );
     expect(() => serializeAdminCrmReportCsv(report, "tenant-a", [])).toThrow(
       /policy/i,

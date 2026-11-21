@@ -9,7 +9,7 @@ import { resolveProjection } from "../../../../packages/api/src/projection";
 import { createRequestSessionClient } from "../../../../packages/api/src/shared/request-session-client";
 import { fixture } from "../../packages/api/projection/fixtures";
 import { serializeAdminCrmReportCsv } from "../../../../packages/api/src/admin/crm/reports/export-projection";
-import { reportGroupRevision } from "../../../../packages/api/src/admin/crm/reports/service";
+import { reportGroupRevision } from "../../../../packages/api/src/admin/crm/reports/report-revision";
 import { GET as exportReport } from "../../../../packages/api/src/admin/crm/reports/export";
 
 vi.mock("@asym/database/supabase/admin", () => ({ getAdminClient: vi.fn() }));
@@ -108,7 +108,14 @@ it.skipIf(!url && process.env.FIELD_POLICY_IT_REQUIRED !== "1")(
                   row,
                   completeness,
                   anonymous: false,
-                  revision: reportGroupRevision(row, completeness, false),
+                  revision: reportGroupRevision({
+                    tenantId: staff.tenant_id,
+                    slice: "funds",
+                    groupId: "funds:fund",
+                    row,
+                    completeness,
+                    anonymous: false,
+                  }),
                 },
               ],
             },

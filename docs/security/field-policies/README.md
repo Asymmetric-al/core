@@ -225,9 +225,13 @@ requires the same five policy rows per field and refuses a physical relation of
 the same name. Mission Control's CRM export intersects the caller's selected
 staff assignment and report permissions with the `bulk_export` policies for
 `crm_report_groups`. Each group carries the tenant used for every source query,
-its slice and group ID, and a report revision. The CSV uses only resolved
-scalar cells. It exports no raw IDs, statuses or nested metadata. The audit
-records the session actor, emitted groups and filter names, never search text.
+its slice and group ID, and a revision: a digest of its tenant, slice, group ID
+and values, recomputed when the CSV is built. A group that fails that binding
+fails the whole export (a logged 500, no file, no audit row) instead of being
+left out. The CSV uses only resolved scalar cells. It exports no raw IDs,
+statuses or nested metadata. The audit records the session actor, the emitted
+group IDs and filter names, never search text; a donor whose name the audience
+may not see is recorded as a count (`withheldGroups`), never by reference.
 
 Donor groups are one per donor, and the projection resolver decides each name.
 The audience is `finance` for an assignment that holds the finance sub-role or

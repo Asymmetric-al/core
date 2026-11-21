@@ -1,5 +1,4 @@
-import { createHash } from "node:crypto";
-
+import { reportGroupRevision } from "./report-revision";
 import { ApiHttpError } from "../../../shared/http-errors";
 import {
   deriveEffectiveContribution,
@@ -519,34 +518,31 @@ export function buildAdminCrmReport(input: ReportInput) {
   return buildReport(input);
 }
 
-export function reportGroupRevision(
-  row: CrmReportRow,
-  completeness: AdminCrmReportCompleteness,
-  anonymous: boolean,
-) {
-  return createHash("sha256")
-    .update(JSON.stringify([row, completeness, anonymous]))
-    .digest("hex");
-}
-
 export async function buildAdminCrmExportGroups(input: ReportInput) {
   const anonymousDonors = new Set<string>();
   const report = await buildReport(input, anonymousDonors);
   return {
     slice: report.slice,
     search: report.slice === "donors" ? input.params.filters.search : null,
-    rows: report.rows.map((row) => ({
-      anonymous: anonymousDonors.has(row.id),
-      revision: reportGroupRevision(
+    rows: report.rows.map((row) => {
+      const anonymous = anonymousDonors.has(row.id);
+      const groupId = `${report.slice}:${row.id}`;
+      return {
+        anonymous,
+        revision: reportGroupRevision({
+          tenantId: input.tenantId,
+          slice: report.slice,
+          groupId,
+          row,
+          completeness: report.completeness,
+          anonymous,
+        }),
+        tenant_id: input.tenantId,
+        groupId,
+        completeness: report.completeness,
         row,
-        report.completeness,
-        anonymousDonors.has(row.id),
-      ),
-      tenant_id: input.tenantId,
-      groupId: `${report.slice}:${row.id}`,
-      completeness: report.completeness,
-      row,
-    })),
+      };
+    }),
   };
 }
 

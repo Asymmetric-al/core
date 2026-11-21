@@ -712,9 +712,10 @@ describe("Phase 5 CRM donor detail and reports", () => {
     },
   );
 
-  // F11(c): a group's source revision is a digest of its own values, so a
-  // group whose values change after it was built is withheld, not exported.
-  it("withholds a group whose values changed after the export bound them", async () => {
+  // F11(c), fix check G3: a group's source revision is a digest of its
+  // tenant, slice, group and values, so a group whose values change after it
+  // was built fails the export instead of leaving the file incomplete.
+  it("fails the export when a group's values changed after the export bound them", async () => {
     const groups = await buildAdminCrmExportGroups({
       tenantId: "tenant-1",
       supabaseAdmin: createSupabaseFixture(baseTables) as never,
@@ -740,19 +741,19 @@ describe("Phase 5 CRM donor detail and reports", () => {
     const bound = serializeAdminCrmReportCsv(groups, assignment, fields);
     expect(bound.groupIds).toEqual(["funds:fund-1"]);
     expect(bound.csv).toContain('"General Fund","12500"');
-    const changed = serializeAdminCrmReportCsv(
-      {
-        ...groups,
-        rows: groups.rows.map((group) => ({
-          ...group,
-          row: { ...group.row, amountCents: group.row.amountCents + 1 },
-        })),
-      },
-      assignment,
-      fields,
-    );
-    expect(changed.groupIds).toEqual([]);
-    expect(changed.csv).not.toContain("General Fund");
+    expect(() =>
+      serializeAdminCrmReportCsv(
+        {
+          ...groups,
+          rows: groups.rows.map((group) => ({
+            ...group,
+            row: { ...group.row, amountCents: group.row.amountCents + 1 },
+          })),
+        },
+        assignment,
+        fields,
+      ),
+    ).toThrow("A report group failed its binding");
   });
 
   it.each(["donors", "missionaries", "funds"] as const)(

@@ -1,7 +1,7 @@
 import { membershipHasCapability } from "@asym/auth/context";
 import { CSV_RECORD_SEPARATOR, CSV_UTF8_BOM, csvSafeCell } from "@asym/lib/csv";
 
-import { reportGroupRevision } from "./service";
+import { reportGroupRevision } from "./report-revision";
 import { resolveProjection } from "../../../projection";
 import { admits } from "../../../projection/policy";
 
@@ -79,7 +79,14 @@ export function serializeAdminCrmReportCsv(
   } of report.rows) {
     const current = {
       contextRevision: assignment.revision,
-      sourceRevision: reportGroupRevision(row, completeness, anonymous),
+      sourceRevision: reportGroupRevision({
+        tenantId: tenant_id,
+        slice: report.slice,
+        groupId,
+        row,
+        completeness,
+        anonymous,
+      }),
     };
     const binding = {
       ...current,
@@ -148,7 +155,12 @@ export function serializeAdminCrmReportCsv(
         predicates: [],
       },
     });
-    if (resolved.kind !== "allowed") continue;
+    // Policy subtracts fields inside an allowed projection. A refusal here
+    // is a group that fails its binding (its revision, tenant or group), so
+    // the export fails rather than answer with an incomplete file (fix
+    // check G3).
+    if (resolved.kind !== "allowed")
+      throw new Error("A report group failed its binding");
     if (
       report.search &&
       !resolved.projection.label
