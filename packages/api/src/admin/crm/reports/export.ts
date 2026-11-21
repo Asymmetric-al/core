@@ -60,7 +60,7 @@ export const GET = withPlatformOperation(
         tenantId: actor.tenantId,
       });
       const exportedAt = new Date().toISOString();
-      const { csv, groupIds } = serializeAdminCrmReportCsv(
+      const { csv, groupIds, withheld, rowCount } = serializeAdminCrmReportCsv(
         report,
         assignment,
         policies,
@@ -75,7 +75,8 @@ export const GET = withPlatformOperation(
               params.filters[key as keyof typeof params.filters] !== null,
           ),
           groupIds,
-          rowCount: groupIds.length,
+          ...(withheld ? { withheldGroups: withheld } : {}),
+          rowCount,
         },
       );
 

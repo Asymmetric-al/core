@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createAuditLogger } from "@asym/lib/audit/logger";
 import { captureError } from "@asym/lib/monitoring";
 import { GET } from "../../../../packages/api/src/admin/crm/reports/export";
+import { reportGroupRevision } from "../../../../packages/api/src/admin/crm/reports/service";
 import { policies } from "../../packages/api/projection/fixtures";
 
 const { insert, read, session, policy } = vi.hoisted(() => ({
@@ -23,10 +24,14 @@ vi.mock("../../../../packages/api/src/shared/request-session-client", () => ({
 vi.mock("../../../../packages/api/src/field-policies/reader", () => ({
   loadFieldPolicies: policy,
 }));
-vi.mock("../../../../packages/api/src/admin/crm/reports/service", () => ({
-  buildAdminCrmReport: read,
-  buildAdminCrmExportGroups: read,
-}));
+vi.mock(
+  "../../../../packages/api/src/admin/crm/reports/service",
+  async (original) => ({
+    ...(await original<object>()),
+    buildAdminCrmReport: read,
+    buildAdminCrmExportGroups: read,
+  }),
+);
 vi.mock("../../../../packages/api/src/crm/auth/access", () => ({
   requireCrmAccess: () => ({ tenantId: "tenant-1", userId: "user-1" }),
 }));
@@ -34,6 +39,7 @@ vi.mock("../../../../packages/api/src/crm/auth/access", () => ({
 function run(
   query: string,
   headers: Record<string, string> = { "sec-fetch-site": "same-origin" },
+  staffRole: "finance" | "development" = "finance",
 ) {
   const auth = {
     isAuthenticated: true,
@@ -45,7 +51,7 @@ function run(
       assignmentId: "assignment-1",
       revision: "1",
       membershipRole: "staff",
-      staffRole: "finance",
+      staffRole,
       isTenantAdmin: false,
     },
   };
@@ -114,6 +120,84 @@ describe("governed CRM report export", () => {
     expect(refused.headers.get("content-type")).not.toContain("csv");
     expect(await refused.text()).not.toContain("private detail");
   });
+  // Fix check G2: a donor whose name the audience may not see is counted in
+  // the audit row, never named by a reference that resolves to them.
+  it.each([
+    ["development", false],
+    ["finance", true],
+  ] as const)(
+    "records a withheld donor only as a count (%s audience)",
+    async (staffRole, named) => {
+      vi.clearAllMocks();
+      const completeness = {
+        complete: true,
+        donationLimit: 100,
+        includedGiftCount: 2,
+      };
+      const group = (id: string, label: string, anonymous: boolean) => {
+        const row = {
+          id,
+          label,
+          amountCents: 500,
+          giftCount: 1,
+          donorCount: 1,
+          lastGiftAt: null,
+          status: null,
+          metadata: {},
+        };
+        return {
+          anonymous,
+          revision: reportGroupRevision(row, completeness, anonymous),
+          tenant_id: "tenant-1",
+          groupId: `donors:${id}`,
+          completeness,
+          row,
+        };
+      };
+      read.mockResolvedValue({
+        slice: "donors",
+        search: null,
+        rows: [
+          group("donor-withheld-7f3c", "Quiet Giver", true),
+          group("donor-named-1", "Ada Donor", false),
+        ],
+      });
+      session.mockResolvedValue({});
+      policy.mockResolvedValue(
+        policies("mission_control", "crm_report_groups", [
+          { fieldKey: "label" },
+          { fieldKey: "gift_count" },
+        ]),
+      );
+      insert.mockResolvedValue({ error: null });
+      const response = await run(
+        "slice=donors",
+        { "sec-fetch-site": "same-origin" },
+        staffRole,
+      );
+      expect(response.status).toBe(200);
+      const csv = await response.text();
+      expect(csv.includes("Quiet Giver")).toBe(named);
+      const stored = insert.mock.calls.at(-1)?.[0] as {
+        details: Record<string, unknown>;
+      };
+      expect(JSON.stringify(stored).includes("donor-withheld-7f3c")).toBe(
+        named,
+      );
+      expect(stored.details).toMatchObject(
+        named
+          ? {
+              groupIds: ["donors:donor-withheld-7f3c", "donors:donor-named-1"],
+              rowCount: 2,
+            }
+          : {
+              groupIds: ["donors:donor-named-1"],
+              withheldGroups: 1,
+              rowCount: 2,
+            },
+      );
+    },
+  );
   it("does not audit or download without exportable policy rows", async () => {
     vi.clearAllMocks();
     policy.mockResolvedValue(

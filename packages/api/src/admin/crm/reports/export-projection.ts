@@ -63,7 +63,11 @@ export function serializeAdminCrmReportCsv(
     )
       ? "finance"
       : "identity_restricted";
+  // Rows whose identity this audience may not see are exported unlabeled and
+  // audited only as a count: their group IDs resolve to the donor (fix check
+  // G2). A finance audience sees every name and keeps every reference.
   const groupIds: string[] = [];
+  let withheld = 0;
   const records: Record<string, unknown>[] = [];
   for (const {
     row,
@@ -159,7 +163,13 @@ export function serializeAdminCrmReportCsv(
     );
     if (!cells.length) continue;
     records.push(Object.fromEntries(cells));
-    groupIds.push(groupId);
+    if (
+      report.slice === "donors" &&
+      anonymous &&
+      audience === "identity_restricted"
+    )
+      withheld += 1;
+    else groupIds.push(groupId);
   }
   const lines = [
     keys,
@@ -172,5 +182,7 @@ export function serializeAdminCrmReportCsv(
         .map((line) => line.map(csvSafeCell).join(","))
         .join(CSV_RECORD_SEPARATOR),
     groupIds,
+    withheld,
+    rowCount: records.length,
   };
 }
