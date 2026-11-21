@@ -660,7 +660,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
         },
         slice: "funds",
       },
-      supabaseAdmin: createSupabaseFixture(baseTables) as never,
+      sessionClient: createSupabaseFixture(baseTables) as never,
       tenantId: "tenant-1",
     });
 
@@ -822,7 +822,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
       };
       const report = await buildAdminCrmReport({
         tenantId: "tenant-1",
-        supabaseAdmin: createSupabaseFixture(tables) as never,
+        sessionClient: createSupabaseFixture(tables) as never,
         params: {
           slice,
           filters: { dateFrom: null, dateTo: null, search: null },
@@ -845,7 +845,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
         },
         slice: "sync-failures",
       },
-      supabaseAdmin: createSupabaseFixture({
+      sessionClient: createSupabaseFixture({
         donation_crm_links: [
           {
             id: "link-1",

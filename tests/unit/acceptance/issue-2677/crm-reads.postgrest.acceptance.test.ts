@@ -6,6 +6,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { GET as notes } from "../../../../packages/api/src/admin/crm/notes";
+import { GET as report } from "../../../../packages/api/src/admin/crm/reports";
 import { GET as detail } from "../../../../packages/api/src/admin/crm/detail";
 import { GET as relationships } from "../../../../packages/api/src/admin/crm/relationships";
 import {
@@ -45,6 +46,8 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
     const donorIds = [randomUUID(), randomUUID(), randomUUID()];
     const candidateId = randomUUID();
     const giftIds = [randomUUID(), randomUUID()];
+    const fundIds = [randomUUID(), randomUUID()];
+    const syncIds = [randomUUID(), randomUUID()];
     const marker = `CRM-fixture-${randomUUID()}`;
     const preferenceIds = Array.from({ length: 3 }, () => randomUUID());
     const auditIds: string[] = [];
@@ -141,6 +144,18 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
         "insert into public.donations (id,tenant_id,donor_id,missionary_id,amount,currency,status,gift_date) values ($1,$3,$5,$7,1234,'usd','completed','2038-01-10'),($2,$4,$6,$8,4321,'usd','completed','2038-01-10')",
         [...giftIds, tenantA, tenantB, donorIds[0], donorIds[2], ...workerIds],
       );
+      await db.query(
+        "insert into public.funds (id,tenant_id,name) values ($1,$3,'Scope A fund'),($2,$4,'Scope B fund')",
+        [...fundIds, tenantA, tenantB],
+      );
+      await db.query(
+        "update public.donations set fund_id=case when tenant_id=$3 then $1::uuid else $2::uuid end where id=any($4::uuid[])",
+        [...fundIds, tenantA, giftIds],
+      );
+      await db.query(
+        "insert into public.donation_crm_links (id,tenant_id,donation_id,scope,link_status) values ($1,$3,$5,'parent','failed'),($2,$4,$6,'parent','failed')",
+        [...syncIds, tenantA, tenantB, ...giftIds],
+      );
       async function signIn(email: string) {
         const client = createClient(url!, key!, {
           auth: { persistSession: false, autoRefreshToken: false },
@@ -170,6 +185,10 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
       if (db) {
         try {
           await db.query(
+            "delete from public.donation_crm_links where id=any($1::uuid[])",
+            [syncIds],
+          );
+          await db.query(
             "delete from public.donations where id=any($1::uuid[])",
             [giftIds],
           );
@@ -181,6 +200,9 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
             "delete from public.missionaries where id=any($1::uuid[])",
             [workerIds],
           );
+          await db.query("delete from public.funds where id=any($1::uuid[])", [
+            fundIds,
+          ]);
           await db.query("delete from public.donors where id=any($1::uuid[])", [
             donorIds,
           ]);
@@ -416,6 +438,42 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
       }
       expect(getAdminClient).not.toHaveBeenCalled();
     });
+
+    it.each(["donors", "funds", "missionaries", "sync-failures"] as const)(
+      "scopes the %s report to the active staff assignment",
+      async (slice) => {
+        const path = `/api/admin/crm/reports?slice=${slice}&dateFrom=2038-01-10&dateTo=2038-01-10`;
+        const denied = await report(request(path, sole, tenantB));
+        expect(denied.status).toBe(401);
+        expect(denied.headers.has("x-asym-scope-refused")).toBe(true);
+        const res = await report(request(path));
+        expect(res.status).toBe(200);
+        const body = await res.json();
+        const ids = {
+          donors: donorIds,
+          funds: fundIds,
+          missionaries: workerIds,
+          "sync-failures": syncIds,
+        }[slice];
+        expect(body.rows.map((row: { id: string }) => row.id)).toContain(
+          ids[0],
+        );
+        expect(JSON.stringify(body)).not.toContain(ids.at(-1));
+        if (slice !== "sync-failures") {
+          expect(body.rows).toHaveLength(1);
+          expect(body.rows[0]).toMatchObject({
+            amountCents: 1234,
+            label: {
+              donors: marker,
+              funds: "Scope A fund",
+              missionaries: "Riley Okafor",
+            }[slice],
+          });
+          expect(body.completeness.complete).toBe(true);
+        }
+        expect(getAdminClient).not.toHaveBeenCalled();
+      },
+    );
 
     it("reads the selected tenant's notes and enforces restricted visibility in PostgREST", async () => {
       const path = "/api/admin/crm/notes";
