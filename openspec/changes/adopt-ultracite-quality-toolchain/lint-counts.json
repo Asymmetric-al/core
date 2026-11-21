@@ -1,6 +1,6 @@
 {
   "command": "CORE_LINT_AUDIT_PENDING=1 node tooling/quality/lint.mts --typed --format json",
-  "revision": "ac61fe5bdf534fea0406a850cfd63a0fa2fcdd43",
+  "revision": "eba558d5646ef82559f60529c7687756ae550979",
   "counts": [
     {
       "rule": "anti-slop/no-array-filter-map",
@@ -318,7 +318,7 @@
       "rule": "anti-slop/no-known-value-widening",
       "workspace": "tests",
       "scope": "tests",
-      "count": 391
+      "count": 393
     },
     {
       "rule": "anti-slop/no-module-mocking",
@@ -336,7 +336,7 @@
       "rule": "anti-slop/no-module-mocking",
       "workspace": "tests",
       "scope": "tests",
-      "count": 1458
+      "count": 1459
     },
     {
       "rule": "anti-slop/no-object-parameters",
@@ -918,7 +918,7 @@
       "rule": "anti-slop/require-readable-spacing",
       "workspace": "tests",
       "scope": "tests",
-      "count": 26015
+      "count": 26025
     },
     {
       "rule": "anti-slop/require-readable-spacing",
@@ -1483,12 +1483,6 @@
       "workspace": "tests",
       "scope": "tests",
       "count": 1
-    },
-    {
-      "rule": "eslint/no-duplicate-imports",
-      "workspace": "packages/ui",
-      "scope": "product",
-      "count": 2
     },
     {
       "rule": "eslint/no-duplicate-imports",
@@ -2694,7 +2688,7 @@
       "rule": "import/first",
       "workspace": "tests",
       "scope": "tests",
-      "count": 279
+      "count": 280
     },
     {
       "rule": "import/namespace",
@@ -2759,12 +2753,6 @@
     {
       "rule": "import/no-cycle",
       "workspace": "packages/api",
-      "scope": "product",
-      "count": 2
-    },
-    {
-      "rule": "import/no-duplicates",
-      "workspace": "packages/ui",
       "scope": "product",
       "count": 2
     },
@@ -3393,12 +3381,6 @@
       "count": 1
     },
     {
-      "rule": "react/exhaustive-deps",
-      "workspace": "apps/admin",
-      "scope": "product",
-      "count": 1
-    },
-    {
       "rule": "react/exhaustive-effect-dependencies",
       "workspace": "apps/admin",
       "scope": "product",
@@ -3432,13 +3414,19 @@
       "rule": "react/hook-use-state",
       "workspace": "apps/admin",
       "scope": "product",
-      "count": 11
+      "count": 12
     },
     {
       "rule": "react/hook-use-state",
       "workspace": "apps/factory-console",
       "scope": "product",
       "count": 2
+    },
+    {
+      "rule": "react/hook-use-state",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
     },
     {
       "rule": "react/hook-use-state",
@@ -3624,31 +3612,13 @@
       "rule": "react/purity",
       "workspace": "apps/admin",
       "scope": "product",
-      "count": 4
+      "count": 2
     },
     {
       "rule": "react/purity",
       "workspace": "apps/donor",
       "scope": "product",
       "count": 3
-    },
-    {
-      "rule": "react/purity",
-      "workspace": "apps/missionary",
-      "scope": "product",
-      "count": 2
-    },
-    {
-      "rule": "react/refs",
-      "workspace": "apps/donor",
-      "scope": "product",
-      "count": 1
-    },
-    {
-      "rule": "react/rule-suppression",
-      "workspace": "apps/admin",
-      "scope": "product",
-      "count": 1
     },
     {
       "rule": "react/state-in-constructor",
@@ -4014,7 +3984,7 @@
       "rule": "typescript/no-base-to-string",
       "workspace": "tests",
       "scope": "tests",
-      "count": 179
+      "count": 181
     },
     {
       "rule": "typescript/no-confusing-void-expression",
@@ -7860,7 +7830,7 @@
       "rule": "vitest/consistent-test-it",
       "workspace": "tests",
       "scope": "tests",
-      "count": 1100
+      "count": 1106
     },
     {
       "rule": "vitest/expect-expect",
