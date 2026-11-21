@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createAuditLogger } from "@asym/lib/audit/logger";
-import { captureError } from "@asym/lib/monitoring";
+import { captureError } from "@asym/lib/monitoring/sentry";
 import { GET } from "../../../../packages/api/src/admin/crm/reports/export";
 import { reportGroupRevision } from "../../../../packages/api/src/admin/crm/reports/report-revision";
 import { policies } from "../../packages/api/projection/fixtures";
@@ -11,7 +11,7 @@ const { insert, read, session, policy } = vi.hoisted(() => ({
   session: vi.fn(),
   policy: vi.fn(),
 }));
-vi.mock("@asym/lib/monitoring", () => ({ captureError: vi.fn() }));
+vi.mock("@asym/lib/monitoring/sentry", () => ({ captureError: vi.fn() }));
 vi.mock("@asym/database/supabase/admin", () => ({
   createAdminClient: () => ({ from: () => ({ insert }) }),
 }));

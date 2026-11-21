@@ -1,7 +1,7 @@
 import { getAuthContext, type AuthContext } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { createAuditLogger } from "@asym/lib/audit/logger";
-import { captureError } from "@asym/lib/monitoring";
+import { captureError } from "@asym/lib/monitoring/sentry";
 import { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 
@@ -15,7 +15,7 @@ const scope = vi.hoisted(() => ({
   tenantId: "tenant-1",
   assignmentId: "assignment-1",
 }));
-vi.mock("@asym/lib/monitoring", () => ({ captureError: vi.fn() }));
+vi.mock("@asym/lib/monitoring/sentry", () => ({ captureError: vi.fn() }));
 vi.mock("../../src/shared/request-session-client", () => ({
   createRequestSessionClient: vi.fn(async () => ({ kind: "caller" })),
 }));
@@ -282,6 +282,27 @@ describe("withOperation", () => {
     const handler = withOperation(async () => NextResponse.json({ ok: true }));
 
     await expect(handler(createRequest())).rejects.toBe(prerenderError);
+  });
+
+  // Fix check M1: an error with an empty message keeps its own frames, not
+  // the reporter's. Node heads such a stack with "Error", not "Error: "
+  // (Vitest formats stacks itself, so the native form is given here).
+  it("keeps the frames of an error with an empty message", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockedGetAdminClient.mockReturnValue({ client: {} as never, error: null });
+    mockedGetAuthContext.mockResolvedValue(authenticatedAdmin);
+    const handler = withOperation(async () => {
+      throw Object.assign(new Error(""), {
+        stack: "Error\n    at throwsEmptyError (handler.ts:1:1)",
+      });
+    });
+    const response = await handler(createRequest());
+    expect(response.status).toBe(500);
+    const stack = vi.mocked(captureError).mock.calls.at(-1)?.[0].stack;
+    expect(stack).toBe(
+      "Error: Request failed\n    at throwsEmptyError (handler.ts:1:1)",
+    );
+    logged.mockRestore();
   });
 
   it("normalizes async handler failures with requestId", async () => {

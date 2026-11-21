@@ -203,8 +203,12 @@ export async function reportOperationFailure(
       : null;
   const sanitized = new Error("Request failed");
   sanitized.name = name;
+  // Node heads a stack with "Name: message", or "Name" alone when the message
+  // is empty (fix check M1).
   const header =
-    error instanceof Error ? `${error.name}: ${error.message}\n` : null;
+    error instanceof Error
+      ? `${error.message ? `${error.name}: ${error.message}` : error.name}\n`
+      : null;
   if (header && error instanceof Error && error.stack?.startsWith(header)) {
     const frames = error.stack
       .slice(header.length)
@@ -215,7 +219,9 @@ export async function reportOperationFailure(
   const diagnostic = { requestId, status, name, code, stack: sanitized.stack };
   console.error(`[${operation}] Request failed`, diagnostic);
   try {
-    const { captureError } = await import("@asym/lib/monitoring");
+    // The Sentry reporter alone, not the monitoring barrel, which also
+    // re-exports a client module and the admin-client audit scanner.
+    const { captureError } = await import("@asym/lib/monitoring/sentry");
     captureError(sanitized, diagnostic, { request_id: requestId });
   } catch {
     console.error(`[${operation}] Error tracker unavailable`, { requestId });
