@@ -91,7 +91,9 @@ and none is ever cancelled.
    first hosted run recorded heads after a failed gate on a disposable
    database (WP1.6).
 6. **Deploy** (`scripts/release/vercel-release.mjs`). The job picks the apps
-   whose files changed since the commit each production domain serves. For
+   whose files or shared inputs changed since the commit each production domain
+   serves, or all three apps when a dispatched `release` sets `apps` to `all`.
+   For
    each it creates a production-target deployment of the exact SHA through
    Vercel's API. The build runs on Vercel, so application secrets stay there.
    With custom-domain auto-assignment off, the deployment is staged: it
@@ -152,13 +154,13 @@ has no rollback of its own.
 
 Run from the Actions tab, workflow **Release**, branch `production`:
 
-| Operation                        | Inputs                                                         | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| -------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `release`                        | `environment: production`                                      | Re-runs the release of the `production` head                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `set-environment-marker`         | `environment`, `marker`, `confirmation: <ref>:<marker>`        | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                                                                                                                          |
-| `first-rebuild`                  | `environment`, `census_signoff`, `confirmation: rebuild <ref>` | The first rebuild, retryable before either head is recorded on an unmarked or disposable database: put the platform's default privileges back, drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
-| `set-cms-role-passwords`         | `environment`                                                  | Makes `cms_owner` and `cms_runtime` log in with the secrets: a role whose secret already logs in is left alone, and one refused for its password is set and verified within the bound. For rotation and after a restore (plan 8.5)                                                                                                                                                                                                                                                |
-| `replace-seeded-login-passwords` | `environment`                                                  | Gives every login that still carries a password the repository publishes `RELEASE_SEED_LOGIN_PASSWORD` instead. Resets nothing and changes no other login. The repair after a rebuild that stopped between its seed and that replacement ([below](#if-seeded-logins-keep-a-published-password))                                                                                                                                                                                   |
+| Operation                        | Inputs                                                                    | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `release`                        | `environment: production`, `apps` (`changed` or `all`, default `changed`) | Re-runs the release of the `production` head. With `apps: all`, builds, checks and promotes every app regardless of its live commit, so changed Vercel variables reach users                                                                                                                                                                                                                                                                                                      |
+| `set-environment-marker`         | `environment`, `marker`, `confirmation: <ref>:<marker>`                   | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                                                                                                                          |
+| `first-rebuild`                  | `environment`, `census_signoff`, `confirmation: rebuild <ref>`            | The first rebuild, retryable before either head is recorded on an unmarked or disposable database: put the platform's default privileges back, drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
+| `set-cms-role-passwords`         | `environment`                                                             | Makes `cms_owner` and `cms_runtime` log in with the secrets: a role whose secret already logs in is left alone, and one refused for its password is set and verified within the bound. For rotation and after a restore (plan 8.5)                                                                                                                                                                                                                                                |
+| `replace-seeded-login-passwords` | `environment`                                                             | Gives every login that still carries a password the repository publishes `RELEASE_SEED_LOGIN_PASSWORD` instead. Resets nothing and changes no other login. The repair after a rebuild that stopped between its seed and that replacement ([below](#if-seeded-logins-keep-a-published-password))                                                                                                                                                                                   |
 
 The marker change and the first rebuild run only after a required reviewer of
 the GitHub environment `release-owner-approval` approves the run's
@@ -819,7 +821,8 @@ new CA has a new fingerprint, so the recorded one cannot confirm it. Then:
    certificate chain, and `Verify return code: 0 (ok)` near its end.
 3. Set it as `RELEASE_DATABASE_SSL_CA` in both `release-production` and
    `release-preview`, and as `PAYLOAD_DATABASE_SSL_CA` on the admin app; then
-   redeploy the admin app.
+   dispatch **Release** with operation `release` and `apps: all` so the changed
+   variable reaches users.
 4. In the same pull request as a document change, record the new CA's name,
    dates and fingerprint here and in step 2 of
    [Switching it on](#switching-it-on). No code changes: the job pins no
@@ -1010,23 +1013,21 @@ below follow those decisions.
 
    Check: `bun run verify:runtime-connection-strings` prints
    `Overall: READY`. Undo: restore the previous values (re-adding
-   `SUPABASE_DB_URL` reopens NA-04). They reach users only through the next
-   deployment.
+   `SUPABASE_DB_URL` reopens NA-04). They reach users only through a release
+   dispatched with `apps: all` (step 7).
 
-7. **Release.** Dispatch **Release** with operation `release`. This release
-   must build all three apps, because the variables of step 6 reach an app
-   only through a new production deployment, and the job skips an app whose
-   files and shared inputs did not change since the commit its production
-   domain serves. Its plan step logs `build` or `skip` for each app, with the
-   reason: read it. At the first release every app is expected to be built,
-   because shared inputs under `packages/` have changed since the commits the
-   production domains serve. If the plan logs `skip` for any app, stop: the
-   switch-on is not complete, and that app still serves a deployment built
-   with the old variables. Do not redeploy it from Vercel's dashboard: that
-   rebuilds the commit the app serves and not the release, the project's
-   Ignored Build Step can cancel it, and its ID is not one the run logged.
-   The remedy is a release that builds every app, for which the job has no
-   input yet (execution record, section 9).
+7. **Release.** Dispatch **Release** with operation `release` and `apps` set
+   to `all`. This release must build all three apps, because the variables of
+   step 6 reach an app only through a new production deployment, and with the
+   default `apps: changed` the job skips an app whose files and shared inputs
+   did not change since the commit its production domain serves. With
+   `apps: all`, the plan step selects admin, donor and missionary regardless of
+   their live commits and logs `build` for each, with the reason: read it. Do
+   not redeploy a skipped app from Vercel's dashboard: that rebuilds the commit
+   the app serves and not the release, the project's Ignored Build Step can
+   cancel it, and its ID is not one the run logged. Whenever changed Vercel
+   variables must reach users, dispatch **Release** with operation `release`
+   and `apps: all`.
    Check: the run is green; the plan step logged `build` for admin, donor and
    missionary; `bun run verify:vercel-production -- --commit <sha>` is READY;
    `curl https://admin.asymmetric.al/api/health/migrations` answers
