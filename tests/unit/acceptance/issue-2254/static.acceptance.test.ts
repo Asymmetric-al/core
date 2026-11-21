@@ -129,6 +129,12 @@ const CI_BASES = [
     bytes: 48397,
     sha256: "b94a4abb2503c2a4b54b349d94218659910b587989be8fddba59d3f7350e8674",
   },
+  // D-18 (AL-2677): the local stack now proves CRM reads, export audits and the real-session browser journeys.
+  {
+    ref: "AL-2677 CRM caller-token route and browser suites",
+    bytes: 48777,
+    sha256: "e56f8b459ff62af7cb97e3e7336489616f22e9bc984135c747a62b3ce7d4d793",
+  },
 ] as const;
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */

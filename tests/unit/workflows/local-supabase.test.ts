@@ -18,6 +18,14 @@ const step = (marker: string) => steps.find((s) => s.includes(marker));
 const at = (marker: string) => workflow.indexOf(marker);
 
 describe("Local Supabase Stack workflow: the replay matches the platform's image", () => {
+  it("runs CRM data journeys in the real Auth job", () => {
+    const config = readFileSync("playwright.auth-mail.config.ts", "utf8");
+    expect(config).toContain('"**/auth-crm-reads.spec.ts"');
+    expect(workflow).toContain("- tests/e2e/auth-crm-reads.spec.ts");
+    expect(step("Run the auth email round trips")).toContain(
+      "bun run test:e2e:auth-mail",
+    );
+  });
   it("requires the CRM caller-token suite on the seeded stack", () => {
     const run = step("Verify CRM reads through scoped PostgREST sessions");
     expect(run).toContain('CRM_READ_IT_REQUIRED: "1"');

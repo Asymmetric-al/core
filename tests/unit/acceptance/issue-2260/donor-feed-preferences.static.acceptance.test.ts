@@ -26,10 +26,13 @@ const sql = () => {
  * sha256 of the other exceptions entry lines, trimmed, "\n"-joined. It was
  * 9b004012... for the 85 lines at develop 0727d810; AL-2674 (D09) drops the
  * backup_notification_queue_orphans_20260214 table and its entry, and this is
- * the digest of those same lines without that one.
+ * the digest of those same lines without that one. D-18 (AL-2677): the
+ * four contribution settings/history tables, three CRM preference tables,
+ * and donor_merge_candidates now admit scoped staff reads. The remaining
+ * 76 entry lines match their prior bytes and order.
  */
 const OTHERS_SHA =
-  "866842f870309fb9a6e47f9d9a138c3ba4a612c0b08cca3ce49b335dee76d1f9";
+  "279470bb593c1da283b50a201076f158d9a8b986c7a3ff88c5b83c49e1cbbde5";
 /** Reviewed docs/ci.md prefixes, one entry per reviewed file. */
 const CI_BASES = [
   // Reviewed hosted-only R1 pointer amendment to #2250's CI-doc prefix.
@@ -114,6 +117,11 @@ const CI_BASES = [
     bytes: 48397,
     sha256: "b94a4abb2503c2a4b54b349d94218659910b587989be8fddba59d3f7350e8674",
   },
+  // D-18 (AL-2677): the local stack now proves CRM reads, export audits and the real-session browser journeys.
+  {
+    bytes: 48777,
+    sha256: "e56f8b459ff62af7cb97e3e7336489616f22e9bc984135c747a62b3ce7d4d793",
+  },
 ];
 /** Criterion 20 doc rules, " ~ "-separated regexes. */
 const DOC_RULES = String.raw`anon ~ authenticated ~ service_role ~ SELECT, INSERT, UPDATE ~ auth\.uid\(\) ~ authz\.current_tenant_id\(\) ~ cross[- ]tenant ~ default (privileges|grants) ~ DELETE ~ #2251 ~ #668 ~ Down`;
@@ -145,14 +153,14 @@ describe("#2260 static (17-20)", () => {
     for (const g of body.match(/\bGRANT\b[^;]*;/gi) ?? [])
       expect(g).not.toMatch(/\b(DELETE|ALL|TRUNCATE)\b/i);
   });
-  it("18: exceptions JSON drops only donor_feed_preferences: 84 entries (67 S + 17 D, after AL-2674), others byte-identical, sorted", () => {
+  it("18: donor_feed_preferences stays outside the 76 reviewed exceptions (60 service, 16 deny), with unchanged entry bytes and order", () => {
     const raw = H.read(H.EXCEPTIONS);
     const e = (
       JSON.parse(raw) as { entries: { table: string; outcome: string }[] }
     ).entries;
     const n = (o: string) => e.filter((x) => x.outcome === o).length;
     expect([e.length, n("service_role_needed"), n("deny_by_default")]).toEqual([
-      84, 67, 17,
+      76, 60, 16,
     ]);
     const lines = raw
       .split("\n")

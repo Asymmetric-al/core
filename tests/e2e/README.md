@@ -55,6 +55,11 @@ copy with `--workdir` (its own project ID and ports), set
 CI runs the same command in `.github/workflows/local-supabase.yml`
 (`docs/ci.md`, "Local Supabase stack workflow").
 
+Mission Control's CRM data journeys run in `tests/e2e/auth-crm-reads.spec.ts`
+on the auth-mail admin project. They use the sign-in form and the local Auth
+server for record search, tenant navigation, notes and relationships. The
+demo-bypass smoke cases assert the page shell and its session-required reply.
+
 The same stack carries `tests/e2e/auth-request-scope-reads.spec.ts`
 (AL-2675): real people sign in through each app's own form and read real rows
 through each tenant-scoped read path of WP2b's first release, against the

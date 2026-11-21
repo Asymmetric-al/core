@@ -36,20 +36,20 @@ import {
  * first, and each count is pinned against what the database owner computes
  * with the read's own rule.
  *
- * What it proves and what it does not (fixcheck F6): six of its nine reads
- * (the CRM list, the shell, Web Studio's missionaries and funds, the
+ * Five of its nine reads
+ * (the shell, Web Studio's missionaries and funds, the
  * workspace's partners, the donor portal's history) go through service-key
  * routes. They show that the first release's pages still work, and still hold
  * to the selected organization, under the new policies; they do not test the
- * policies. Only three read on the caller's own token, so only they exercise
- * the policies end to end: the member directory, the feed preferences and the
+ * policies. Four read on the caller's own token and exercise
+ * the policies end to end: the CRM list, the member directory, the feed preferences and the
  * comments case. The real-stack suites of issue 2675 test the policies table
  * by table.
  *
  * Read through a page, as a person on that screen makes it:
  * - Mission Control: the member directory (Teams), on the caller's token
  *   through `public.tenant_member_directory`; the CRM list, through the
- *   own-API wrapper to a service-key route held to the resolved tenant; the
+ *   own-API wrapper on the caller's scoped session (AL-2677); the
  *   shell, rendered on the server for the resolved row (with the service key
  *   when the server has one, as it does here).
  * - Web Studio, under its tenant cookie: the missionaries and funds an

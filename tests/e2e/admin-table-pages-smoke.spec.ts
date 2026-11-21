@@ -49,27 +49,22 @@ async function expectMissionControlChrome(page: Page) {
   ).toBeVisible({ timeout: 120_000 });
 }
 
-const TABLE_ROUTES = [
-  { path: "/crm", name: "CRM" },
-  { path: "/crm/notes", name: "CRM Notes" },
-  { path: "/crm/relationships", name: "CRM Relationships" },
+const TABLE_ROUTES: ReadonlyArray<{
+  path: string;
+  name: string;
+  crmApi?: string;
+}> = [
+  { path: "/crm", name: "CRM", crmApi: "/api/admin/crm/records" },
+  { path: "/crm/notes", name: "CRM Notes", crmApi: "/api/admin/crm/notes" },
+  {
+    path: "/crm/relationships",
+    name: "CRM Relationships",
+    crmApi: "/api/admin/crm/relationships",
+  },
   { path: "/contributions", name: "Contributions" },
   { path: "/tasks", name: "Tasks" },
   { path: "/care", name: "Care" },
   { path: "/mobilize/locations", name: "Locations" },
-] as const;
-
-const CRM_LOCAL_SURFACES = [
-  {
-    path: "/crm/notes",
-    heading: "CRM Notes",
-    emptyState: /No CRM notes/i,
-  },
-  {
-    path: "/crm/relationships",
-    heading: "CRM Relationships",
-    emptyState: /No CRM relationships/i,
-  },
 ] as const;
 
 const SUPPORT_ROUTES = [
@@ -83,113 +78,45 @@ const SUPPORT_ROUTES = [
 
 test.describe("Admin table pages smoke", () => {
   test.setTimeout(180_000);
-  for (const { path, name } of TABLE_ROUTES) {
+  for (const { path, name, crmApi } of TABLE_ROUTES) {
     test(`${name} (${path}) loads without client error overlay`, async ({
       page,
     }) => {
-      await ensureAdminDemo(page);
-      await page.goto(adminPath(path));
-      await page.waitForLoadState("domcontentloaded");
+      const bypassRead = crmApi && process.env.E2E_AUTH_BYPASS === "true";
+      if (bypassRead) {
+        const session = await installDemoSessionInBrowser(
+          page,
+          "admin",
+          adminBaseURL,
+        );
+        expect(session.ok).toBe(true);
+      } else {
+        await ensureAdminDemo(page);
+      }
+      // On a cold dev server the first compile can take over a minute.
+      const [response] = await Promise.all([
+        bypassRead
+          ? page.waitForResponse(
+              (reply) => new URL(reply.url()).pathname === crmApi,
+              { timeout: 120_000 },
+            )
+          : null,
+        page.goto(adminPath(path), { waitUntil: "domcontentloaded" }),
+      ]);
+      if (response) {
+        expect(response.status()).toBe(401);
+        expect(await response.json()).toMatchObject({
+          code: "SESSION_REQUIRED",
+        });
+        await expect(
+          page.getByText("A Supabase session is required.").first(),
+        ).toBeVisible();
+      }
 
       await expect(page.locator("#__next_error__")).toHaveCount(0);
       await expectMissionControlChrome(page);
     });
   }
-
-  test.describe("Local CRM notes and relationships", () => {
-    for (const { emptyState, heading, path } of CRM_LOCAL_SURFACES) {
-      test(`${heading} (${path}) loads local Asym Postgres data without overlay`, async ({
-        page,
-      }) => {
-        await ensureAdminDemo(page);
-        await page.goto(adminPath(path));
-        await page.waitForLoadState("domcontentloaded");
-
-        await expect(page.locator("#__next_error__")).toHaveCount(0);
-        await expectMissionControlChrome(page);
-        await expect(
-          page.getByRole("heading", { name: heading }),
-        ).toBeVisible();
-        await expect(page.getByText(emptyState).first()).toBeVisible({
-          timeout: 120_000,
-        });
-        await expect(
-          page
-            .getByRole("group", { name: "Data sources" })
-            .getByText("Mission Control"),
-        ).toBeVisible();
-        await expect(page.getByText("Twenty CRM", { exact: true })).toHaveCount(
-          0,
-        );
-        await expect(
-          page.getByText("Twenty-backed", { exact: true }),
-        ).toHaveCount(0);
-      });
-    }
-
-    test("authorized staff can create a local CRM note that remains readable", async ({
-      page,
-    }) => {
-      await ensureAdminDemo(page);
-      await page.goto(adminPath("/crm/notes"));
-      await page.waitForLoadState("domcontentloaded");
-
-      const uniqueTitle = `Local CRM note ${Date.now()}`;
-      await page.getByLabel("Title").fill(uniqueTitle);
-      await page.getByLabel("Body").fill("Authoritative Asym Postgres note.");
-      await page.getByRole("button", { name: "Save note" }).click();
-
-      await expect(page.getByText("CRM note saved")).toBeVisible();
-      await expect(page.getByRole("cell", { name: uniqueTitle })).toBeVisible();
-      await expect(page.getByText("Queued for Twenty")).toHaveCount(0);
-    });
-  });
-
-  test.describe("CRM table interactions", () => {
-    test.beforeEach(async ({ page }) => {
-      await page.setViewportSize({ width: 1280, height: 900 });
-    });
-
-    test("search filters records and clearing shows rows again", async ({
-      page,
-    }) => {
-      await ensureAdminDemo(page);
-      await page.goto(adminPath("/crm"));
-      await page.waitForLoadState("domcontentloaded");
-      await expect(page.locator("#__next_error__")).toHaveCount(0);
-
-      const search = page.getByRole("searchbox", {
-        name: "Search CRM records",
-      });
-      await expect(search).toBeVisible();
-
-      await search.fill("__no_such_contact__");
-      await expect(page.getByText("No matching records")).toBeVisible();
-
-      await page.getByRole("button", { name: "Clear search" }).click();
-      await expect(
-        page.getByRole("button", { name: /Alice Johnson/i }).first(),
-      ).toBeVisible();
-    });
-
-    test("shows every loaded record without client pagination", async ({
-      page,
-    }) => {
-      await ensureAdminDemo(page);
-      await page.goto(adminPath("/crm"));
-      await page.waitForLoadState("domcontentloaded");
-
-      const records = page.getByRole("region", { name: "CRM records" });
-      await expect(
-        records.getByRole("button", { name: /Alice Johnson/i }).first(),
-      ).toBeVisible();
-      // The ReUI grid renders loaded pages in one scroll body (no 10-row page).
-      await expect(page.getByText(/^Page \d+ of \d+$/)).toHaveCount(0);
-      await expect(
-        records.getByRole("button", { name: /Frank Miller/i }).first(),
-      ).toBeAttached();
-    });
-  });
 
   test.describe("Support Hub smoke", () => {
     for (const { path, heading } of SUPPORT_ROUTES) {
