@@ -80,7 +80,9 @@ test.describe("@cms Web Studio native shell", () => {
       await expect(page.getByTestId("web-studio-native-shell")).toBeVisible();
       expect(renderErrors).toEqual([]);
     } finally {
-      await page.request.post(`${adminBaseURL}/api/auth/signout`);
+      await page.request.post(`${adminBaseURL}/api/auth/signout`, {
+        headers: { Origin: new URL(adminBaseURL).origin },
+      });
     }
   });
 
@@ -190,6 +192,7 @@ test.describe("@cms Web Studio native shell", () => {
       try {
         const signedOut = await page.request.post(
           `${adminBaseURL}/api/auth/signout`,
+          { headers: { Origin: new URL(adminBaseURL).origin } },
         );
         expect(signedOut.ok()).toBe(true);
       } catch (error) {
@@ -204,6 +207,103 @@ test.describe("@cms Web Studio native shell", () => {
           throw new AggregateError(cleanupErrors, "Draft cleanup failed");
         }
       }
+    }
+  });
+
+  // AL-2677, F1 and F13 (fix check G6): where CI runs this spec, Web
+  // Studio's two pickers load through Payload's form transport (a POST with
+  // X-Payload-HTTP-Method-Override: GET) and a browser's bodyless DELETE, no
+  // Content-Length and no Content-Type, removes a document. Web Studio has no
+  // upload-type field: its media picker is a relationship to the media
+  // upload collection, read by the same Relationship input.
+  test("a draft's pickers load by Payload's form transport and a bodyless browser delete removes it", async ({
+    page,
+  }) => {
+    test.setTimeout(150_000);
+    let documentId: string | number | undefined;
+    try {
+      await signInAsAdmin(page);
+      const headers = await writeHeaders(page, adminBaseURL);
+      const created = await page.request.post(
+        `${adminBaseURL}/web-studio/api/pages?draft=true`,
+        {
+          headers,
+          data: {
+            title: "Picker and delete check",
+            slug: `picker-delete-check-${Date.now()}`,
+            pageType: "standard",
+            _status: "draft",
+            layout: [{ blockType: "hero", headline: "Picker check" }],
+            content: {
+              root: {
+                type: "root",
+                children: [],
+                direction: null,
+                format: "",
+                indent: 0,
+                version: 1,
+              },
+            },
+          },
+        },
+      );
+      expect(created.status()).toBe(201);
+      documentId = (await created.json()).doc.id;
+
+      await page.goto(
+        `${adminBaseURL}/web-studio/collections/pages/${documentId}`,
+      );
+      for (const [field, collection] of [
+        ["#field-template", "page-templates"],
+        ["#field-layout__0__backgroundImage", "media"],
+      ] as const) {
+        const combobox = page.locator(field).getByRole("combobox");
+        if (!(await combobox.isVisible())) {
+          const toggle = page
+            .locator('[id$="layout-row-0"] button[aria-expanded="false"]')
+            .first();
+          if (await toggle.isVisible()) await toggle.click();
+        }
+        await combobox.click();
+        const lookup = page.waitForResponse((response) => {
+          const request = response.request();
+          return (
+            new URL(response.url()).pathname ===
+              `/web-studio/api/${collection}` &&
+            request.method() === "POST" &&
+            request.headers()["x-payload-http-method-override"] === "GET" &&
+            Boolean(request.postData()?.includes("Picker"))
+          );
+        });
+        await combobox.fill("Picker");
+        const response = await lookup;
+        expect(response.status()).toBe(200);
+        expect((await response.json()).docs).toBeInstanceOf(Array);
+        await combobox.press("Escape");
+      }
+
+      const deleted = await page.evaluate(
+        async ({ id, scope }) =>
+          (
+            await fetch(`/web-studio/api/pages/${id}`, {
+              method: "DELETE",
+              headers: scope,
+            })
+          ).status,
+        { id: documentId, scope: headers },
+      );
+      expect(deleted).toBe(200);
+      const gone = await page.request.get(
+        `${adminBaseURL}/web-studio/api/pages/${documentId}?draft=true&depth=0`,
+      );
+      expect(gone.ok()).toBe(false);
+      documentId = undefined;
+    } finally {
+      if (documentId !== undefined)
+        await page.request.delete(
+          `${adminBaseURL}/web-studio/api/pages/${documentId}`,
+          { headers: await writeHeaders(page, adminBaseURL) },
+        );
     }
   });
 

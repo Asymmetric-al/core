@@ -7,6 +7,7 @@ import {
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { ApiHttpError, readJsonBodyOrNull } from "../shared/http-errors";
 import {
   createRequestSessionClient,
   type RequestSessionClient,
@@ -162,12 +163,9 @@ function donorLookupFailure(lookup: AuthenticatedDonorLookup) {
   }
 }
 
+/** An empty or malformed body reads as null; one that is not JSON is refused (fix check G1). */
 async function readRequestBody(request: Request) {
-  try {
-    return await request.json();
-  } catch {
-    return null;
-  }
+  return readJsonBodyOrNull(request);
 }
 
 function parseFeedPreferencesUpdate(body: unknown) {
@@ -318,6 +316,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json(toFeedPreferencesResponse(updated));
   } catch (error) {
+    if (error instanceof ApiHttpError && error.status === 415)
+      return NextResponse.json({ error: error.message }, { status: 415 });
     console.error("Error updating feed preferences:", error);
     return NextResponse.json(
       { error: "Failed to update preferences" },

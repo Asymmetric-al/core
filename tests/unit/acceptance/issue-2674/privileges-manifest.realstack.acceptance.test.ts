@@ -529,8 +529,9 @@ describe.skipIf(!ADMIN_URL)(
           delete m.record_types.donors![column!];
         });
         expect(dropped.status, dropped.stderr).toBe(0);
+        // D-18: dropping a real column changes the physical count, not the derived inventory.
         expect(dropped.stdout).toContain(
-          `equal the manifest's ${H.manifestTotals().columns - 1} entries`,
+          `equal the manifest's ${H.manifestTotals().columns - 1} physical columns`,
         );
 
         // The field-policy database tests CI runs accept the drop as well.

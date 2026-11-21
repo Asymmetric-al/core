@@ -59,11 +59,13 @@ BEGIN
       AND c.is_nullable='YES' AND c.column_default IS NULL);
   IF bad IS NOT NULL THEN
     RAISE EXCEPTION 'C4: person anchor supplement must be nullable UUID person_id: %', bad; END IF;
-  -- Every baseline row names a live column, and every classified column has
-  -- exactly one baseline row on each of the five surfaces.
+  -- AL-2677: only the reviewed report output fields have no physical column.
+  -- Both physical and derived fields retain all five surface and category checks.
   SELECT string_agg(DISTINCT p.record_type||'.'||p.field_key, ', ') INTO bad
     FROM public.field_policies p
-    WHERE NOT EXISTS (SELECT 1 FROM information_schema.columns c WHERE c.table_schema='public'
+    WHERE NOT (p.record_type='crm_report_groups' AND p.field_key IN
+      ('id','tenant_id','label','net_amount_cents','gift_count','donor_count','last_gift_at','report_complete','report_gift_limit'))
+      AND NOT EXISTS (SELECT 1 FROM information_schema.columns c WHERE c.table_schema='public'
       AND c.table_name=p.record_type AND c.column_name=p.field_key);
   IF bad IS NOT NULL THEN RAISE EXCEPTION 'C4: baseline rows name missing columns: %',bad; END IF;
   SELECT string_agg(record_type||'.'||field_key, ', ') INTO bad FROM (
@@ -91,7 +93,7 @@ BEGIN
   IF EXISTS (SELECT 1 FROM public.field_policies WHERE record_type='donations'
     AND field_key='stripe_refund_ids' AND sensitivity_category<>'financial') THEN
     RAISE EXCEPTION 'C4: entire refund-identifier array must be financial'; END IF;
-  RAISE NOTICE 'C4: every classified column is live, has five baseline rows and keeps its category floors (exact parity: manifest gate)';
+  RAISE NOTICE 'C4: physical columns are live; physical and derived fields have five baseline rows and keep their category floors (exact parity: manifest gate)';
 
   -- Canonical receipts remain absent. Existing repository prototype tables are
   -- not canonical authority and must stay unseeded/denied; their existence is

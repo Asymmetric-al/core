@@ -98,11 +98,32 @@ describe("#2308 static contracts (A)", () => {
   // Only raising the ceiling needs a new ruling.
   // D-18: merging WP2's handler package into WP2b's first release moved 36 advisory line lists to their
   // call sites in the merged tree; no site, count, entry or ceiling row changed.
-  it("C12: pins the missionary workspace reclassification and follower-request shrink", () => {
+  // D-18: retain the platform-wrapper inventory pin and count the eight previously invisible calls separately under the WP4a ruling.
+  it("C12: pins the reviewed platform calls and the newly visible helper calls", () => {
+    const inventory = read("docs/security/service-role-client-allowlist.json");
+    const entries: { kind: string; reason: string; count: number }[] =
+      JSON.parse(inventory).entries;
+    const platform = entries.filter(
+      (entry) => entry.kind === "operation_admin_context",
+    );
+    const helpers = platform.filter(
+      (entry) =>
+        entry.reason ===
+        "counted from 21 November 2026; reached the key before the split through an uncounted helper",
+    );
+    expect(helpers.length).toBeLessThanOrEqual(6);
     expect(
-      createHash("sha256")
-        .update(read("docs/security/service-role-client-allowlist.json"))
-        .digest("hex"),
-    ).toBe("4908396f69194f67223b0c32cf768737717bda07481aa67c2e35f72a3de1604e");
+      helpers.reduce((sites, entry) => sites + entry.count, 0),
+    ).toBeLessThanOrEqual(8);
+    const originals = platform.filter((entry) => !helpers.includes(entry));
+    expect(originals.length).toBeLessThanOrEqual(37);
+    expect(
+      originals.reduce((sites, entry) => sites + entry.count, 0),
+    ).toBeLessThanOrEqual(65);
+    for (const entry of originals)
+      expect(entry.reason).toContain("withPlatformOperation");
+    expect(createHash("sha256").update(inventory).digest("hex")).toBe(
+      "621c5a51948568595edbe9e1cfaa4a9d896452ecf0cb923515890d92ec4eb410",
+    );
   });
 });

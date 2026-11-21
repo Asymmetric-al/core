@@ -181,11 +181,17 @@ describe("#2260 static (17-20)", () => {
     );
     if (!existsSync(H.ALLOWLIST)) return;
     const a = (
-      JSON.parse(H.read(H.ALLOWLIST)) as { entries: { file: string }[] }
+      JSON.parse(H.read(H.ALLOWLIST)) as {
+        entries: { file: string; follow_up: string }[];
+      }
     ).entries;
-    expect(a.length, "117 entries at develop 0727d810").toBeLessThanOrEqual(
-      117,
-    );
+    // D-18: WP4a counts six existing bypass paths for WP4b; the original pool shrank to 115.
+    expect(
+      a.filter((entry) => entry.follow_up !== "WP4b").length,
+    ).toBeLessThanOrEqual(115);
+    expect(
+      a.filter((entry) => entry.follow_up === "WP4b").length,
+    ).toBeLessThanOrEqual(6);
     expect(a.map((x) => x.file)).not.toContain(H.ROUTE);
   });
   it.each(DOC_RULES.split(" ~ "))(`20: ${H.DOC} matches /%s/i`, (re) =>

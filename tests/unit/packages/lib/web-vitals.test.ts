@@ -41,8 +41,8 @@ function report(name: keyof typeof observers, value: Metric) {
 }
 
 describe("web-vitals analytics adapter", () => {
-  it("preserves each metric identity and delta across load, SPA and BFCache reports", () => {
-    const sendBeacon = vi.fn((_url: string, _body: string) => true);
+  it("preserves each metric identity and delta across load, SPA and BFCache reports", async () => {
+    const sendBeacon = vi.fn((_url: string, _body: Blob) => true);
     vi.stubGlobal("navigator", { sendBeacon, userAgent: "fixture-browser" });
     const violation = vi.fn();
     initWebVitals({
@@ -69,7 +69,20 @@ describe("web-vitals analytics adapter", () => {
     ];
     values.forEach((value) => report("onLCP", value));
     expect(sendBeacon).toHaveBeenCalledTimes(4);
-    const payloads = sendBeacon.mock.calls.map(([, body]) => JSON.parse(body));
+    const payloads = await Promise.all(
+      sendBeacon.mock.calls.map(async ([, body]) => {
+        expect(body).toBeInstanceOf(Blob);
+        expect(body.type).toBe("application/json");
+        return JSON.parse(
+          await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result));
+            reader.onerror = () => reject(reader.error);
+            reader.readAsText(body);
+          }),
+        );
+      }),
+    );
     expect(
       payloads.map(({ id, delta, navigationType }) => ({
         id,

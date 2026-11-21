@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../../../../../packages/api/src/shared/with-operation", () => ({
-  withOperation: (handler: unknown) => handler,
+  withPlatformOperation: (handler: unknown) => handler,
 }));
 
 import { GET } from "../../../../../packages/api/src/admin/fund-directory";

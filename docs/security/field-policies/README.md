@@ -218,6 +218,34 @@ and acknowledgment/notification document classes must ship their own owner
 census and scope qualification; none is fabricated here. The manifest carries
 this disposition in `reserved_record_types`.
 
+## Derived CRM report groups
+
+`derived_record_types` classifies output rather than a Postgres relation. The gate
+requires the same five policy rows per field and refuses a physical relation of
+the same name. Mission Control's CRM export intersects the caller's selected
+staff assignment and report permissions with the `bulk_export` policies for
+`crm_report_groups`. Each group carries the tenant used for every source query,
+its slice and group ID, and a revision: a digest of its tenant, slice, group ID
+and values, recomputed when the CSV is built. A group that fails that binding
+fails the whole export (a logged 500, no file, no audit row) instead of being
+left out. The CSV uses only resolved scalar cells. It exports no raw IDs,
+statuses or nested metadata. The audit records the session actor, the emitted
+group IDs and filter names, never search text. Every staff member of the tenant
+can read that row, so a donor who explicitly chose anonymity is recorded only as
+a count (`anonymousGroups`), never by reference, whoever exported, finance
+included.
+
+Donor groups are one per donor, and the projection resolver decides each name.
+The audience is `finance` for an assignment that holds the finance sub-role or
+`contributions.manage_settings`, and `identity_restricted` for every other
+staff assignment. Finance sees every donor's name. Any other audience sees a
+donor's name unless that donor explicitly chose anonymity (either
+default-anonymous preference `true`); a donor with no stated choice is named on
+this surface. A withheld name leaves an unlabeled row. Search runs after the
+projection, so it never matches a name the audience may not see. This governs
+report egress, not interactive CRM detail or a contact list; the missionary and
+public surfaces keep their own anonymity rules.
+
 ## History: the AL-491 census
 
 `census-v1.json` was the immutable baseline seed specification of AL-491. The
