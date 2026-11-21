@@ -298,6 +298,17 @@ describe("release workflow (plan 7.4)", () => {
     const runLine = planStep.slice(planStep.indexOf("run:"));
     expect(runLine).not.toContain("inputs.");
   });
+
+  // PR #2742 (P1): worst-case sequential deploy for three apps (`apps: all`)
+  // is 3 x 20m builds (60m) + 3 x staged checks (~11m) + 3 x 18-attempt live
+  // checks (~36m) + ~10m checkout/setup/API calls = ~117m. Keep headroom at
+  // 150m so a run is not cancelled after promotion.
+  it("gives the deploy job enough timeout-minutes for three sequential builds and full live checks", () => {
+    const deploy = job("deploy");
+    const match = /timeout-minutes:\s*(\d+)/.exec(deploy);
+    expect(match).not.toBeNull();
+    expect(Number(match![1])).toBe(150);
+  });
 });
 
 /**
