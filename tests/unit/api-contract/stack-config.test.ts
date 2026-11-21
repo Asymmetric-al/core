@@ -275,7 +275,9 @@ else if (args.includes("-c")) console.log(marker);
         else expect(result.stderr).toContain("fake docker invoked");
         expect(calls).toHaveLength(3);
         for (const { args, pg } of calls) {
-          expect(args[0]).toBe("postgresql://postgres@127.0.0.1:1/contract");
+          expect(args[0]).toBe(
+            "host='127.0.0.1' port='1' dbname='contract' user='postgres'",
+          );
           expect(args.join(" ")).not.toContain("fixture-password");
           expect(pg).toEqual({ PGPASSWORD: "fixture-password" });
         }

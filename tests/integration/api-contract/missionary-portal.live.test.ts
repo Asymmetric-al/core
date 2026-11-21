@@ -9,6 +9,7 @@ import { afterAll, beforeAll, expect, it } from "vitest";
 import {
   collectStrings,
   createTenantFixture,
+  membershipIdForRole,
   removeTenantFixture,
   SEED_USER_A,
   TENANT_A,
@@ -30,11 +31,25 @@ describeLive("missionary portal reads stay inside their tenant", (stack) => {
   let client: AdminSupabaseClient;
   let aDonorIds: string[];
   let aTaskIds: string[];
+  let aAssignmentId: string;
+  let bAssignmentId: string;
 
   beforeAll(async () => {
     db = await adminDatabase(stack);
     b = await createTenantFixture(db);
     client = serviceClient(stack) as unknown as AdminSupabaseClient;
+    aAssignmentId = await membershipIdForRole(
+      db,
+      SEED_USER_A,
+      TENANT_A,
+      "missionary",
+    );
+    bAssignmentId = await membershipIdForRole(
+      db,
+      b.userId,
+      b.tenantId,
+      "missionary",
+    );
     aDonorIds = (
       await db.query<{ id: string }>(
         "select id::text from public.donors where tenant_id = $1 and missionary_id = $2",
@@ -67,6 +82,7 @@ describeLive("missionary portal reads stay inside their tenant", (stack) => {
       supabaseAdmin: client,
       profileId: SEED_USER_A,
       tenantId: TENANT_A,
+      assignmentId: aAssignmentId,
     });
     const strings = collectStrings(snapshot);
     expect(aDonorIds.some((id) => strings.has(id))).toBe(true);
@@ -80,6 +96,7 @@ describeLive("missionary portal reads stay inside their tenant", (stack) => {
       supabaseAdmin: client,
       profileId: b.userId,
       tenantId: b.tenantId,
+      assignmentId: bAssignmentId,
     });
     const strings = collectStrings(snapshot);
     expect(strings.has(b.donorId)).toBe(true);
@@ -96,6 +113,7 @@ describeLive("missionary portal reads stay inside their tenant", (stack) => {
         supabaseAdmin: client,
         profileId: b.userId,
         tenantId: TENANT_A,
+        assignmentId: bAssignmentId,
       }),
     ).rejects.toMatchObject({ status: 404 });
   });
@@ -104,6 +122,8 @@ describeLive("missionary portal reads stay inside their tenant", (stack) => {
     const tasks = await listMissionaryTasks({
       supabaseAdmin: client,
       profileId: b.userId,
+      tenantId: b.tenantId,
+      assignmentId: bAssignmentId,
     });
     expect(tasks.map((t) => t.id)).toEqual([b.taskId]);
     expect(collectStrings(tasks).has(b.donorId)).toBe(true);

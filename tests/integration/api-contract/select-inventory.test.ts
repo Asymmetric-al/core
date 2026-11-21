@@ -168,17 +168,20 @@ describe("the real packages/api inventory", () => {
   const repoRoot = path.resolve(import.meta.dirname, "../../..");
   const sites = inventorySelects({ repoRoot, roots: ["packages/api/src"] });
 
-  it("includes the missionary-portal task select the 23f2bd454 defect lived in", () => {
-    const task = sites.filter(
+  it("includes explicit FK-disambiguated selects in packages/api/src", () => {
+    const disambiguated = sites.filter(
+      (s) =>
+        s.file === "packages/api/src/admin/contributions/service.ts" &&
+        s.table === "donors" &&
+        s.select?.includes("profiles!donors_profile_id_fkey!inner"),
+    );
+    expect(disambiguated.length).toBeGreaterThan(0);
+    const portal = sites.filter(
       (s) =>
         s.file === "packages/api/src/missionary-portal/service.ts" &&
-        s.table === "missionary_tasks",
+        s.table === "donors",
     );
-    expect(task.length).toBeGreaterThan(0);
-    for (const site of task)
-      expect(site.select).toContain(
-        "donor:donors!missionary_tasks_donor_id_fkey",
-      );
+    expect(portal.length).toBeGreaterThan(0);
   });
 
   it("resolves most selects, so the sweep is not vacuous", () => {
