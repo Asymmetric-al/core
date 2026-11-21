@@ -328,7 +328,7 @@ describe.each([false, true])(
       },
     );
     it.each(appNames)(
-      "builds %s when the release job forces a commit the app already serves",
+      "characterises the release marker: builds %s even when previous deployment matches HEAD",
       (app) => {
         const head = git("rev-parse", "HEAD");
         const result = check(

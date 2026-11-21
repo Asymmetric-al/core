@@ -44,6 +44,7 @@ const STATES = new Set([
 ]);
 const TERMINAL = new Set(["READY", "ERROR", "CANCELED"]);
 const SHA = /^[a-f0-9]{40}$/;
+const PROJECT_REF = /^[a-z0-9]{20}$/;
 
 export class ReleaseStop extends Error {}
 const stop = (message) => {
@@ -109,7 +110,7 @@ export async function assertStagingEnabled({ call, app }) {
   }
   if (settings?.autoAssignCustomDomains !== false) {
     stop(
-      `${app}: production domains are assigned automatically, so a deployment would go live before its health check. Turn off auto-assignment (docs/ops/release-job.md, step 2).`,
+      `${app}: production domains are assigned automatically, so a deployment would go live before its health check. Turn off auto-assignment (docs/ops/release-job.md, step 3).`,
     );
   }
   if (settings?.link?.productionBranch !== PRODUCTION_BRANCH) {
@@ -257,6 +258,7 @@ export async function checkDeploymentHealth({
   bypassSecret,
   sha,
   projectRef,
+  deploymentId,
   request = fetch,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   attempts = 6,
@@ -277,10 +279,19 @@ export async function checkDeploymentHealth({
       body = await response.json();
     } catch {
       last = "the health route could not be reached";
-      await sleep(5_000);
+      if (attempt < attempts) await sleep(5_000);
       continue;
     }
     const status = body?.status;
+    const seenId = body?.release?.deploymentId ?? null;
+    // When verifying a specific deployment, an answer from another deployment
+    // (e.g. the previous one during alias propagation) keeps retrying instead
+    // of attributing the old deployment's status or project ref to the new one.
+    if (deploymentId && body?.release && seenId !== deploymentId) {
+      last = `expected deployment ${deploymentId}, saw ${seenId ?? "unknown"}`;
+      if (attempt < attempts) await sleep(5_000);
+      continue;
+    }
     if (status === "behind") {
       stop(
         `The database is behind this build (${JSON.stringify(body.migrations)}); not promoted.`,
@@ -304,7 +315,7 @@ export async function checkDeploymentHealth({
       return body;
     }
     last = `HTTP ${response.status}, status ${status ?? "unknown"}${body?.error?.code ? ` (${body.error.code})` : ""}`;
-    await sleep(5_000);
+    if (attempt < attempts) await sleep(5_000);
   }
   stop(`The migration health check did not pass: ${last}; not promoted.`);
 }
@@ -349,11 +360,15 @@ export async function verifyLive({
   app,
   sha,
   projectRef,
+  deploymentId,
   bypassSecret,
   request = fetch,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   attempts = 18,
 }) {
+  if (!/^dpl_[A-Za-z0-9]+$/.test(deploymentId ?? "")) {
+    stop("The deployment to verify has no valid identity.");
+  }
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       return await checkDeploymentHealth({
@@ -361,6 +376,7 @@ export async function verifyLive({
         bypassSecret,
         sha,
         projectRef,
+        deploymentId,
         request,
         sleep,
         attempts: 1,
@@ -368,7 +384,7 @@ export async function verifyLive({
     } catch (error) {
       if (attempt === attempts) throw error;
       if (
-        /behind|different Supabase|reads Supabase|without its detail/.test(
+        /behind|different commit|different Supabase|reads Supabase|without its detail/.test(
           error.message,
         )
       ) {
@@ -397,6 +413,9 @@ export async function deployRelease({
   sleep,
   log = console.log,
 }) {
+  if (!PROJECT_REF.test(projectRef ?? "")) {
+    stop("RELEASE_SUPABASE_PROJECT_REF is not a valid Supabase project ref.");
+  }
   const staged = [];
   for (const app of apps) {
     await assertStagingEnabled({ call, app });
@@ -409,6 +428,7 @@ export async function deployRelease({
       bypassSecret: env[BYPASS_SECRETS[deployment.app]],
       sha,
       projectRef,
+      deploymentId: deployment.id,
       request,
       sleep,
     });
@@ -427,11 +447,14 @@ export async function deployRelease({
       app: deployment.app,
       sha,
       projectRef,
+      deploymentId: deployment.id,
       bypassSecret: env[BYPASS_SECRETS[deployment.app]],
       request,
       sleep,
     });
-    log(`${deployment.app}: the production domain serves this release.`);
+    log(
+      `${deployment.app}: the production domain serves ${deployment.id} for this release.`,
+    );
   }
   return staged;
 }
@@ -475,6 +498,14 @@ function releaseSha(env) {
   const sha = env.RELEASE_SHA?.trim();
   if (!SHA.test(sha ?? "")) stop("RELEASE_SHA is not a full commit SHA.");
   return sha;
+}
+
+function releaseProjectRef(env) {
+  const ref = env.RELEASE_SUPABASE_PROJECT_REF?.trim();
+  if (!PROJECT_REF.test(ref ?? "")) {
+    stop("RELEASE_SUPABASE_PROJECT_REF is not a valid Supabase project ref.");
+  }
+  return ref;
 }
 
 function readAppsMode(env) {
@@ -569,6 +600,7 @@ export async function runCli(
     return;
   }
   if (step === "deploy") {
+    const projectRef = releaseProjectRef(env);
     const apps = (env.RELEASE_APPS ?? "")
       .split(",")
       .map((name) => name.trim())
@@ -581,7 +613,7 @@ export async function runCli(
     await deployRelease({
       apps,
       sha: releaseSha(env),
-      projectRef: env.RELEASE_SUPABASE_PROJECT_REF,
+      projectRef,
       env,
       call,
     });

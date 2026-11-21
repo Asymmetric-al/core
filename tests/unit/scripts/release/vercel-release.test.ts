@@ -13,6 +13,7 @@ import {
   runCli,
   selectReleaseApps,
   stageDeployment,
+  verifyLive,
 } from "../../../../scripts/release/vercel-release.mjs";
 import { EXPECTED_PROJECTS } from "../../../../scripts/verify/vercel-build-controls.mjs";
 
@@ -96,7 +97,7 @@ describe("release job: Vercel steps", () => {
   it("refuses to deploy while production domains are assigned on deploy", async () => {
     const { call } = fakeVercel({ autoAssign: true });
     await expect(assertStagingEnabled({ call, app: "admin" })).rejects.toThrow(
-      /before its health check/,
+      /before its health check.*docs\/ops\/release-job\.md, step 3/,
     );
   });
 
@@ -138,7 +139,12 @@ describe("release job: Vercel steps", () => {
   it("does not promote any app when one staged deployment's database is behind its build", async () => {
     const { call, calls } = fakeVercel();
     const request = fakeHealth({
-      "*": healthy(),
+      "admin-1.vercel.app": healthy({
+        release: { commit: sha, deploymentId: "dpl_1" },
+      }),
+      "missionary-3.vercel.app": healthy({
+        release: { commit: sha, deploymentId: "dpl_3" },
+      }),
       "donor-2.vercel.app": {
         status: 503,
         body: {
@@ -164,7 +170,20 @@ describe("release job: Vercel steps", () => {
 
   it("promotes every staged deployment only after all pass, then confirms each production domain", async () => {
     const { call, calls } = fakeVercel();
-    const request = fakeHealth({ "*": healthy() });
+    const request = fakeHealth({
+      "admin-1.vercel.app": healthy({
+        release: { commit: sha, deploymentId: "dpl_1" },
+      }),
+      "missionary-2.vercel.app": healthy({
+        release: { commit: sha, deploymentId: "dpl_2" },
+      }),
+      [PRODUCTION_HOSTS.admin]: healthy({
+        release: { commit: sha, deploymentId: "dpl_1" },
+      }),
+      [PRODUCTION_HOSTS.missionary]: healthy({
+        release: { commit: sha, deploymentId: "dpl_2" },
+      }),
+    });
     const staged = await deployRelease({
       apps: ["admin", "missionary"],
       sha,
@@ -545,7 +564,184 @@ describe("release job: Vercel steps", () => {
     },
   );
 
-  it("stages with forceNew and CORE_RELEASE_FORCE_BUILD_SHA, checks projectRef with bypass secret, promotes and logs deployment IDs for forced apps already serving the commit", async () => {
+  it("characterises unchanged default selectReleaseApps for non-ancestor commits and shared runtime inputs", () => {
+    const live = "b".repeat(40);
+    const nonAncestor = selectReleaseApps({
+      liveCommits: { admin: live, donor: live, missionary: live },
+      listChangedFiles: () => {
+        throw new Error("not an ancestor");
+      },
+    });
+    expect(nonAncestor).toEqual([
+      { app: "admin", build: true, reason: "live commit is not an ancestor" },
+      { app: "donor", build: true, reason: "live commit is not an ancestor" },
+      {
+        app: "missionary",
+        build: true,
+        reason: "live commit is not an ancestor",
+      },
+    ]);
+
+    const sharedInput = selectReleaseApps({
+      liveCommits: { admin: live, donor: live, missionary: live },
+      listChangedFiles: () => ["packages/api/src/index.ts"],
+    });
+    expect(sharedInput).toEqual([
+      {
+        app: "admin",
+        build: true,
+        reason: "changed shared runtime input: packages/api/src/index.ts",
+      },
+      {
+        app: "donor",
+        build: true,
+        reason: "changed shared runtime input: packages/api/src/index.ts",
+      },
+      {
+        app: "missionary",
+        build: true,
+        reason: "changed shared runtime input: packages/api/src/index.ts",
+      },
+    ]);
+  });
+
+  it("verifyLive retries while an old deployment ID answers (even with a different project ref) and succeeds once the new ID answers", async () => {
+    let calls = 0;
+    const request = vi.fn(async () => {
+      calls += 1;
+      if (calls === 1) {
+        return {
+          status: 200,
+          json: async () =>
+            healthy({
+              release: { commit: "b".repeat(40), deploymentId: "dpl_old1" },
+              database: {
+                supabaseProjectRef: "btewedpsxwsjczvmegby",
+                environment: "disposable",
+              },
+            }).body,
+        } as Response;
+      }
+      if (calls === 2) {
+        return {
+          status: 200,
+          json: async () =>
+            healthy({
+              release: { commit: sha },
+              database: {
+                supabaseProjectRef: "btewedpsxwsjczvmegby",
+                environment: "disposable",
+              },
+            }).body,
+        } as Response;
+      }
+      return {
+        status: 200,
+        json: async () =>
+          healthy({
+            release: { commit: sha, deploymentId: "dpl_new1" },
+          }).body,
+      } as Response;
+    });
+
+    const body = await verifyLive({
+      app: "admin",
+      sha,
+      projectRef: ref,
+      deploymentId: "dpl_new1",
+      bypassSecret: "bypass",
+      request,
+      sleep: noSleep,
+      attempts: 5,
+    });
+    expect(calls).toBe(3);
+    expect(body.release.deploymentId).toBe("dpl_new1");
+  });
+
+  it("verifyLive fails after the deadline when an old deployment ID keeps answering on the same commit and ref, naming both IDs", async () => {
+    const request = fakeHealth({
+      "*": healthy({
+        release: { commit: sha, deploymentId: "dpl_old1" },
+      }),
+    });
+
+    await expect(
+      verifyLive({
+        app: "admin",
+        sha,
+        projectRef: ref,
+        deploymentId: "dpl_new1",
+        bypassSecret: "bypass",
+        request,
+        sleep: noSleep,
+        attempts: 3,
+      }),
+    ).rejects.toThrow(/dpl_new1.*dpl_old1|dpl_old1.*dpl_new1/);
+    expect(request).toHaveBeenCalledTimes(3);
+  });
+
+  it("verifyLive stops immediately without retrying when the confirmed new deployment ID reads a wrong Supabase project ref", async () => {
+    const request = fakeHealth({
+      "*": healthy({
+        release: { commit: sha, deploymentId: "dpl_new1" },
+        database: {
+          supabaseProjectRef: "btewedpsxwsjczvmegby",
+          environment: "disposable",
+        },
+      }),
+    });
+
+    await expect(
+      verifyLive({
+        app: "admin",
+        sha,
+        projectRef: ref,
+        deploymentId: "dpl_new1",
+        bypassSecret: "bypass",
+        request,
+        sleep: noSleep,
+        attempts: 5,
+      }),
+    ).rejects.toThrow(/reads Supabase project btewedpsxwsjczvmegby/);
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["omitted", undefined],
+    ["empty", ""],
+    ["whitespace", "   "],
+    ["invalid", "not-a-ref"],
+  ])(
+    "refuses to deploy when RELEASE_SUPABASE_PROJECT_REF is %s",
+    async (_label, badRef) => {
+      const { call } = fakeVercel();
+      await expect(
+        deployRelease({
+          apps: ["admin"],
+          sha,
+          projectRef: badRef,
+          env: {},
+          call,
+          request: fakeHealth({ "*": healthy() }),
+          sleep: noSleep,
+          log: silent,
+        }),
+      ).rejects.toThrow(/RELEASE_SUPABASE_PROJECT_REF/);
+      expect(call).not.toHaveBeenCalled();
+
+      const env: Record<string, string> = {
+        RELEASE_APPS: "admin",
+        RELEASE_SHA: sha,
+        VERCEL_TOKEN: "token-fixture",
+      };
+      if (badRef !== undefined) env.RELEASE_SUPABASE_PROJECT_REF = badRef;
+      await expect(runCli(["deploy"], env, silent)).rejects.toThrow(
+        /RELEASE_SUPABASE_PROJECT_REF/,
+      );
+    },
+  );
+
+  it("models forced apps already serving the commit: stages with forceNew and CORE_RELEASE_FORCE_BUILD_SHA, switches production hosts on promote, waits out stale old IDs, and fails if an old ID keeps serving", async () => {
     const plan = selectReleaseApps({
       liveCommits: { admin: sha, donor: sha, missionary: sha },
       listChangedFiles: () => [],
@@ -554,15 +750,86 @@ describe("release job: Vercel steps", () => {
     const apps = plan.filter((item) => item.build).map((item) => item.app);
     expect(apps).toEqual(["admin", "donor", "missionary"]);
 
-    const { call, calls } = fakeVercel();
-    const request = fakeHealth({ "*": healthy() });
-    const logs: string[] = [];
     const bypassEnv = {
       VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET: "bypass-admin",
       VERCEL_DONOR_AUTOMATION_BYPASS_SECRET: "bypass-donor",
       VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET: "bypass-missionary",
     };
 
+    // Stateful model: production domains serve old deployment IDs of the same
+    // commit until promotion, answer one stale old-ID response during alias
+    // propagation, then serve the promoted deployment IDs.
+    const { call: baseCall, calls } = fakeVercel();
+    const liveIdByHost = new Map<string, string>([
+      [PRODUCTION_HOSTS.admin, "dpl_oldAdmin"],
+      [PRODUCTION_HOSTS.donor, "dpl_oldDonor"],
+      [PRODUCTION_HOSTS.missionary, "dpl_oldMissionary"],
+    ]);
+    const promotedIdByHost = new Map<string, string>();
+    const staleLeftByHost = new Map<string, number>();
+    const stagedIdByHost = new Map<string, string>();
+
+    const call = vi.fn(
+      async (pathname: string, method = "GET", body?: Record<string, any>) => {
+        const res = await baseCall(pathname, method, body);
+        if (pathname.startsWith("/v13/deployments?") && method === "POST") {
+          const id = (res as { id: string }).id;
+          const num = id.slice("dpl_".length);
+          stagedIdByHost.set(`${body!.name}-${num}.vercel.app`, id);
+        }
+        const promoteMatch =
+          /^\/v10\/projects\/(prj_[A-Za-z0-9]+)\/promote\/(dpl_\w+)\?/.exec(
+            pathname,
+          );
+        if (promoteMatch && method === "POST") {
+          const appKey = EXPECTED_PROJECTS.find(
+            (p) => p.projectId === promoteMatch[1],
+          )!.key as keyof typeof PRODUCTION_HOSTS;
+          const host = PRODUCTION_HOSTS[appKey];
+          promotedIdByHost.set(host, promoteMatch[2]!);
+          staleLeftByHost.set(host, 1);
+        }
+        return res;
+      },
+    );
+
+    const request = vi.fn(async (input: URL | string) => {
+      const host = new URL(String(input)).host;
+      if (stagedIdByHost.has(host)) {
+        return {
+          status: 200,
+          json: async () =>
+            healthy({
+              release: { commit: sha, deploymentId: stagedIdByHost.get(host) },
+            }).body,
+        } as Response;
+      }
+      const staleLeft = staleLeftByHost.get(host) ?? 0;
+      if (staleLeft > 0) {
+        staleLeftByHost.set(host, staleLeft - 1);
+        return {
+          status: 200,
+          json: async () =>
+            healthy({
+              release: { commit: sha, deploymentId: liveIdByHost.get(host) },
+              database: {
+                supabaseProjectRef: "btewedpsxwsjczvmegby",
+                environment: "disposable",
+              },
+            }).body,
+        } as Response;
+      }
+      const activeId = promotedIdByHost.get(host) ?? liveIdByHost.get(host);
+      return {
+        status: 200,
+        json: async () =>
+          healthy({
+            release: { commit: sha, deploymentId: activeId },
+          }).body,
+      } as Response;
+    });
+
+    const logs: string[] = [];
     const staged = await deployRelease({
       apps,
       sha,
@@ -624,6 +891,39 @@ describe("release job: Vercel steps", () => {
     expect(logs).toContain("admin: promoted dpl_1 without a rebuild.");
     expect(logs).toContain("donor: promoted dpl_2 without a rebuild.");
     expect(logs).toContain("missionary: promoted dpl_3 without a rebuild.");
+    expect(logs).toContain(
+      "admin: the production domain serves dpl_1 for this release.",
+    );
+    expect(logs).toContain(
+      "donor: the production domain serves dpl_2 for this release.",
+    );
+    expect(logs).toContain(
+      "missionary: the production domain serves dpl_3 for this release.",
+    );
+
+    // If a production host never switches off its old deployment ID (even on the
+    // same commit and ref), deployRelease fails instead of reporting success.
+    const stuckVercel = fakeVercel();
+    const stuckRequest = fakeHealth({
+      "admin-1.vercel.app": healthy({
+        release: { commit: sha, deploymentId: "dpl_1" },
+      }),
+      [PRODUCTION_HOSTS.admin]: healthy({
+        release: { commit: sha, deploymentId: "dpl_oldAdmin" },
+      }),
+    });
+    await expect(
+      deployRelease({
+        apps: ["admin"],
+        sha,
+        projectRef: ref,
+        env: bypassEnv,
+        call: stuckVercel.call,
+        request: stuckRequest,
+        sleep: noSleep,
+        log: silent,
+      }),
+    ).rejects.toThrow(/dpl_1.*dpl_oldAdmin|dpl_oldAdmin.*dpl_1/);
 
     // A forced app whose staged deployment reads the wrong Supabase project is not promoted.
     const wrongRefVercel = fakeVercel();
@@ -635,9 +935,15 @@ describe("release job: Vercel steps", () => {
         env: bypassEnv,
         call: wrongRefVercel.call,
         request: fakeHealth({
-          "*": healthy(),
+          "admin-1.vercel.app": healthy({
+            release: { commit: sha, deploymentId: "dpl_1" },
+          }),
           "donor-2.vercel.app": healthy({
+            release: { commit: sha, deploymentId: "dpl_2" },
             database: { supabaseProjectRef: "btewedpsxwsjczvmegby" },
+          }),
+          "missionary-3.vercel.app": healthy({
+            release: { commit: sha, deploymentId: "dpl_3" },
           }),
         }),
         sleep: noSleep,
@@ -646,6 +952,29 @@ describe("release job: Vercel steps", () => {
     ).rejects.toThrow(/reads Supabase project btewedpsxwsjczvmegby/);
     expect(
       wrongRefVercel.calls.filter((c) => c.path.includes("/promote/")),
+    ).toHaveLength(0);
+
+    // A staged deployment that omits its own deployment ID (e.g. System Environment
+    // Variables disabled) is refused before promotion.
+    const missingIdVercel = fakeVercel();
+    await expect(
+      deployRelease({
+        apps: ["admin"],
+        sha,
+        projectRef: ref,
+        env: bypassEnv,
+        call: missingIdVercel.call,
+        request: fakeHealth({
+          "admin-1.vercel.app": healthy({
+            release: { commit: sha, deploymentId: null },
+          }),
+        }),
+        sleep: noSleep,
+        log: silent,
+      }),
+    ).rejects.toThrow(/expected deployment dpl_1, saw unknown/);
+    expect(
+      missingIdVercel.calls.filter((c) => c.path.includes("/promote/")),
     ).toHaveLength(0);
   });
 });
