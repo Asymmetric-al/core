@@ -260,6 +260,13 @@ const CI_BASES = [
     bytes: 47777,
     sha256: "1eb8eb5babf75235330acc36612374123672bfde0cc07db2336e5c6dde6c4346",
   },
+  {
+    // D-18 (AL-2677): the local-stack section now documents the CRM real-token
+    // and browser cases. The original EOF runner section is byte-identical.
+    ref: "AL-2677 CRM caller-token route and browser suites",
+    bytes: 48157,
+    sha256: "0bd9f31f55cc9f71044b5824d7c0d3407c3209da7a02b9803d108e1540e9b156",
+  },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {

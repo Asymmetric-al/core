@@ -122,8 +122,10 @@ describe("#2308 static contracts (A)", () => {
     ).toBeLessThanOrEqual(65);
     for (const entry of originals)
       expect(entry.reason).toContain("withPlatformOperation");
+    // D-18 (AL-2677): six CRM entries and nine sites left the inventory.
+    // The remaining CRM site is note creation on withPlatformOperation.
     expect(createHash("sha256").update(inventory).digest("hex")).toBe(
-      "621c5a51948568595edbe9e1cfaa4a9d896452ecf0cb923515890d92ec4eb410",
+      "a87e039409a5fd1573b354bbb8ca033010e9e28a0a46b771463572e4eaef1bae",
     );
   });
 });

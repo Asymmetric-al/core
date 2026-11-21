@@ -182,15 +182,33 @@ test.describe("CRM on the caller's session", () => {
       });
       await expect(search).toBeVisible();
 
-      await search.fill("__no_such_contact__");
+      const alice = page
+        .getByRole("button", { name: /Alice Johnson/i })
+        .first();
+      await expect(alice).toBeVisible();
+      const missing = "__no_such_contact__";
+      const [filtered] = await Promise.all([
+        page.waitForResponse((response) => {
+          const url = new URL(response.url());
+          return (
+            url.pathname === "/api/admin/crm/records" &&
+            url.searchParams.get("q") === missing
+          );
+        }),
+        search.fill(missing),
+      ]);
+      expect(filtered.status()).toBe(200);
+      await expect(page).toHaveURL(
+        (url) => url.searchParams.get("q") === missing,
+      );
       await expect(page.getByText("No matching records")).toBeVisible();
 
       await page
         .getByRole("button", { name: "Clear search", exact: true })
         .click();
-      await expect(
-        page.getByRole("button", { name: /Alice Johnson/i }).first(),
-      ).toBeVisible();
+      await expect(search).toHaveValue("");
+      await expect(page).toHaveURL((url) => !url.searchParams.has("q"));
+      await expect(alice).toBeVisible();
     });
 
     test("shows every loaded record without client pagination", async ({
