@@ -95,6 +95,25 @@ it("gives a write with neither length nor transfer encoding no body on Node's HT
   }
 });
 
+// Fix check M4: a malformed encoding refused on a Web Studio path answers in
+// Payload's error shape too; an API path keeps its own.
+it.each([
+  [
+    "/web-studio/api/pages%E0%A4%A",
+    { errors: [{ message: "Invalid request path." }] },
+  ],
+  ["/api/profile%E0%A4%A", { error: "Invalid request path." }],
+])(
+  "refuses the malformed path %s in its surface's shape",
+  async (path, body) => {
+    const refusal = await admin(
+      request(path, { origin, "content-type": "application/json" }, "{}"),
+    );
+    expect(refusal.status).toBe(400);
+    expect(await refusal.json()).toEqual(body);
+  },
+);
+
 it("returns the Payload error envelope on Studio admission refusals", async () => {
   for (const [source, status, message] of [
     [

@@ -41,8 +41,13 @@ export async function admitApiMutation(
   try {
     canonical = decodeURIComponent(path).replace(/\/$/, "");
   } catch {
+    // On a Web Studio path, in Payload's error shape like every other
+    // refusal there (fix check M4).
+    const message = "Invalid request path.";
     return NextResponse.json(
-      { error: "Invalid request path." },
+      /^\/web-studio\/api(?:\/|$)/.test(path)
+        ? { errors: [{ message }] }
+        : { error: message },
       { status: 400 },
     );
   }
