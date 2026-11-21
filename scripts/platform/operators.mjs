@@ -265,8 +265,13 @@ export function psqlInputs(parsed) {
   };
 }
 
-/** The psql arguments after the connection: quiet, unaligned, stop on error, SQL on stdin. */
+/**
+ * The psql arguments after the connection: never ask for a password (psql
+ * would ask at the terminal, so a URL without one fails at once instead of
+ * waiting), quiet, unaligned, stop on error, SQL on stdin.
+ */
 export const PSQL_ARGS = Object.freeze([
+  "--no-password",
   "-X",
   "-q",
   "-A",

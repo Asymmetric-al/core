@@ -38,7 +38,7 @@ For reference only, this is the shell form of a hosted URL with **dummy values**
 OPERATORS_DATABASE_URL='postgresql://postgres.PROJECT_REF:pa%40ss%23word@POOLER_HOST:5432/postgres?sslmode=verify-full&sslrootcert=/absolute/path/project-ca.crt'
 ```
 
-Single quotes protect `&` from the shell. Percent-encode password characters inside the URL (`@` → `%40`, `#` → `%23`). At the hidden prompt paste the actual URL **without surrounding quotes**. Use the absolute path of a readable PEM file containing the project's one valid CA certificate from Database settings; `sslrootcert=system` is refused.
+Single quotes protect `&` from the shell. The password belongs in the URL: the script starts `psql` with `--no-password`, so a URL without one fails at once instead of waiting for a prompt. Percent-encode password characters inside the URL (`@` → `%40`, `#` → `%23`). At the hidden prompt paste the actual URL **without surrounding quotes**. Use the absolute path of a readable PEM file containing the project's one valid CA certificate from Database settings; `sslrootcert=system` is refused.
 
 For removal, use `remove` instead of `add`, with the reason for removal. The subshell discards the variables when it exits.
 
