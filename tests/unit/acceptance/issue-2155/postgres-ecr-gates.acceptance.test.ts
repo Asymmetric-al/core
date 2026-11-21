@@ -388,6 +388,13 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
       ref: "AL-2675 WP2c hosted test-e2e contract",
       hash: "328502bb7fb2c370",
     },
+    // Amended by AL-2674: test-e2e runs hermetically on every event (placeholder
+    // Supabase + ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1 in job env; no secrets;
+    // conditional non-production placeholder step removed).
+    {
+      ref: "AL-2674 hermetic test-e2e on every event",
+      hash: "9f45180ee9c663dd",
+    },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(

@@ -310,25 +310,19 @@ jobs:
       PAYLOAD_DATABASE_URI: postgresql://postgres:postgres@localhost:5432/asymmetrical_test
       PAYLOAD_SECRET: ci-payload-secret
       SKIP_ENV_VALIDATION: "1"
+      # Hermetic for every event, production PRs and pushes included: the
+      # example.supabase.co placeholder is a non-confidential datasource, so
+      # the bypass uses its built-in fallback HMAC key and implicit allowlist
+      # with no hosted Supabase secrets or DEMO_* accounts.
       E2E_AUTH_BYPASS: "true"
-      # Required secrets for the datasource-bound bypass against the hosted demo project.
-      # Non-production PRs switch to the example
-      # placeholder before app startup below. Production PRs keep hosted secrets.
-      #   E2E_AUTH_SECRET                 — HMAC signing key shared by producer + verifiers
-      #   E2E_AUTH_ALLOWED_SUPABASE_REFS  — project ref of the demo Supabase project (never prod)
-      E2E_AUTH_SECRET: ${{ secrets.E2E_AUTH_SECRET }}
-      E2E_AUTH_ALLOWED_SUPABASE_REFS: ${{ secrets.E2E_AUTH_ALLOWED_SUPABASE_REFS }}
       PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
       CMS_BASE_URL: "http://127.0.0.1:3030"
       PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030"
       PLAYWRIGHT_INCLUDE_ADMIN: "1"
       PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
-      DEMO_ADMIN_EMAIL: ${{ secrets.DEMO_ADMIN_EMAIL }}
-      DEMO_MISSIONARY_EMAIL: ${{ secrets.DEMO_MISSIONARY_EMAIL }}
-      DEMO_DONOR_EMAIL: ${{ secrets.DEMO_DONOR_EMAIL }}
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
+      ASYM_E2E_REQUIRE_HERMETIC_SUPABASE: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -356,15 +350,6 @@ jobs:
         run: psql "$DATABASE_URL" -f supabase/seed.sql -v ON_ERROR_STOP=1
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
-      - name: Use placeholder Supabase for non-production E2E
-        if: >-
-          (github.event_name == 'pull_request' && github.base_ref != 'production') ||
-          (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
-          (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/production')
-        run: |
-          echo "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co" >> "$GITHUB_ENV"
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key" >> "$GITHUB_ENV"
-          echo "ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1" >> "$GITHUB_ENV"
       - name: Start donor app
         run: bash scripts/github/e2e-dev-server.sh donor start 3005
       - name: Wait for donor health endpoint

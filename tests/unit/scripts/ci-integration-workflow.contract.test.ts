@@ -4,6 +4,8 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import * as W from "../helpers/workflow-yaml";
+
 const WORKFLOW_PATH = ".github/workflows/ci-integration.yml";
 const PACKAGE_JSON_PATH = "package.json";
 const PLAYWRIGHT_CLI = path.join(
@@ -129,14 +131,12 @@ describe("ci-integration workflow contract", () => {
       "continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}",
     );
     expect(testE2e).toContain(
-      "Use placeholder Supabase for non-production E2E",
+      "NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co",
     );
-    expect(testE2e).toContain("github.base_ref != 'production'");
     expect(testE2e).toContain(
-      "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key",
     );
-    expect(testE2e).toContain("NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key");
-    expect(testE2e).toContain("ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1");
+    expect(testE2e).toContain('ASYM_E2E_REQUIRE_HERMETIC_SUPABASE: "1"');
     expect(testE2eSmoke).toContain('ASYM_E2E_REQUIRE_HERMETIC_SUPABASE: "1"');
 
     expect(integrationGate).toContain(
@@ -152,6 +152,75 @@ describe("ci-integration workflow contract", () => {
     expect(e2eGate).toContain("github.base_ref == 'production'");
     expect(e2eGate).toContain("refs/heads/production");
     expect(e2eGate).not.toContain("develop");
+  });
+
+  it("runs test-e2e hermetically on placeholder Supabase with no hosted secrets for every event, including production PRs and pushes", () => {
+    const jobs = W.workflowJobs(
+      W.loadWorkflowDocument(WORKFLOW_PATH),
+      WORKFLOW_PATH,
+    );
+    const job = jobs["test-e2e"]!;
+    const okNeeds = Object.fromEntries(
+      W.needsList(job).map((name) => [
+        name,
+        { result: "success", outputs: {} },
+      ]),
+    );
+    const runningScenarios = W.EVENT_SCENARIOS.filter((scenario) =>
+      W.evaluateIfCondition(
+        W.ifExpression(job),
+        W.scenarioContext(scenario, okNeeds),
+      ),
+    );
+    const labels = runningScenarios.map((scenario) => scenario.label);
+    expect(labels).toContain("pull_request same-repo -> production");
+    expect(labels).toContain("push production");
+    expect(labels).toContain("pull_request same-repo -> develop");
+    expect(labels).toContain("push develop");
+    expect(labels).toContain("workflow_dispatch production");
+
+    const env = (job.env ?? {}) as Record<string, unknown>;
+    expect(env.NEXT_PUBLIC_SUPABASE_URL).toBe("https://example.supabase.co");
+    expect(env.NEXT_PUBLIC_SUPABASE_ANON_KEY).toBe("example-anon-key");
+    expect(env.ASYM_E2E_REQUIRE_HERMETIC_SUPABASE).toBe("1");
+    expect(env.E2E_AUTH_BYPASS).toBe("true");
+
+    // No hosted Supabase or demo-credential secret reaches the job or any step.
+    expect(W.jobLevelReferencesSecrets(job)).toBe(false);
+    expect(W.firstSecretStepIndex(job)).toBe(-1);
+
+    const hostedOnlyKeys = [
+      "E2E_AUTH_SECRET",
+      "E2E_AUTH_ALLOWED_SUPABASE_REFS",
+      "DEMO_PASSWORD",
+      "DEMO_ADMIN_EMAIL",
+      "DEMO_MISSIONARY_EMAIL",
+      "DEMO_DONOR_EMAIL",
+    ];
+    for (const key of hostedOnlyKeys) {
+      expect(env).not.toHaveProperty(key);
+    }
+
+    // No conditional step mutates Supabase env by branch or event.
+    for (const step of W.allSteps(job)) {
+      expect(step.name).not.toBe(
+        "Use placeholder Supabase for non-production E2E",
+      );
+      const stepEnv = (step.env ?? {}) as Record<string, unknown>;
+      for (const key of [
+        ...hostedOnlyKeys,
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "ASYM_E2E_REQUIRE_HERMETIC_SUPABASE",
+      ]) {
+        expect(stepEnv).not.toHaveProperty(key);
+      }
+      if (typeof step.run === "string") {
+        expect(step.run).not.toMatch(
+          /(NEXT_PUBLIC_SUPABASE_URL|NEXT_PUBLIC_SUPABASE_ANON_KEY|ASYM_E2E_REQUIRE_HERMETIC_SUPABASE)=.*GITHUB_ENV/,
+        );
+      }
+    }
   });
 
   // Council round 1, A14 (record D-18): the tenant-address specs carry every

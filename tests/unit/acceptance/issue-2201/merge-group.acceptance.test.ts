@@ -133,7 +133,10 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     ]);
     expect(ids((j) => j.permissions)).toBe("shadscan-report ci-gate-comment");
     expect(ids((j) => j.environment)).toBe("");
-    expect(ids(usesSecrets)).toBe(`${MG_SECRET_JOBS} test-e2e`);
+    // Amended by AL-2674: test-e2e runs hermetically on placeholder Supabase
+    // for every event with no repository secrets, so no ci-integration.yml job
+    // references secrets.
+    expect(ids(usesSecrets)).toBe(MG_SECRET_JOBS);
   });
   it("concurrency unchanged; merge_group group is unique and never cancels", () => {
     for (const prefix of ["ci-", "ci-integration-"]) {
@@ -269,6 +272,13 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     {
       ref: "AL-2675 WP2c hosted test-e2e contract",
       hash: "b0faf7bc2b022be3",
+    },
+    // Amended by AL-2674: test-e2e runs hermetically on every event (placeholder
+    // Supabase + ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1 in job env; no secrets;
+    // conditional non-production placeholder step removed).
+    {
+      ref: "AL-2674 hermetic test-e2e on every event",
+      hash: "cce85f7163acdd4c",
     },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {
