@@ -1009,15 +1009,24 @@ describe.skipIf(!ADMIN_URL)(
     });
 
     afterAll(async () => {
-      await admin.query(
-        `begin;
-         delete from public.audit_logs where tenant_id = '${t}';
-         delete from authz.memberships where tenant_id = '${t}' or user_id in ('${u1}', '${u2}');
-         delete from public.tenants where id = '${t}';
-         delete from auth.users where id in ('${u1}', '${u2}');
-         commit;`,
-      );
-      await Promise.all([admin.end(), one.end(), two.end()]);
+      try {
+        // A race case that failed midway can leave either worker in its
+        // transaction, holding row locks the clean-up below would wait on
+        // (review 4650094384 on #2741). End `one` first: `two` may be waiting
+        // on its locks. A rollback with no transaction open only warns.
+        await one.query("rollback");
+        await two.query("rollback");
+        await admin.query(
+          `begin;
+           delete from public.audit_logs where tenant_id = '${t}';
+           delete from authz.memberships where tenant_id = '${t}' or user_id in ('${u1}', '${u2}');
+           delete from public.tenants where id = '${t}';
+           delete from auth.users where id in ('${u1}', '${u2}');
+           commit;`,
+        );
+      } finally {
+        await Promise.all([admin.end(), one.end(), two.end()]);
+      }
     });
 
     async function begin(client: pg.Client, user: string) {
