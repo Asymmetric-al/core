@@ -3,16 +3,14 @@ import { SETTLED_DONATION_STATUS_SET } from "../../../reads/settled-donation-sta
 import { ApiHttpError, toApiHttpError } from "../../../shared/http-errors";
 import { loadCorrectionApprovalPolicy } from "../../contribution-operations/correction-requests";
 import { loadSharedContributionRowInputs } from "../../contribution-shared/row-inputs";
-import { fetchMissionaryNames } from "../service";
+import { loadCrmMemberLabels, loadCrmMissionaryLabels } from "../member-labels";
 
-import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
+import type { RequestSessionClient } from "../../../shared/request-session-client";
 import type {
   CrmDonorDetailResponse,
   SharedContributionPaymentStatus,
   SharedContributionRefundState,
 } from "@asym/database/types";
-
-type SupabaseAdmin = AdminSupabaseClient;
 
 const GIFT_HISTORY_LIMIT = 100;
 
@@ -102,10 +100,16 @@ interface PledgeRow {
 
 interface DuplicateCandidateRow {
   id: string;
-  candidate_twenty_record_id: string | null;
-  confidence: string | null;
-  score: number | null;
-  match_reasons: string[] | null;
+  existing: {
+    id: string;
+    name: string | null;
+    organization: string | null;
+  } | null;
+  incoming: {
+    id: string;
+    name: string | null;
+    organization: string | null;
+  } | null;
 }
 
 function assertNoError(
@@ -250,7 +254,7 @@ function buildSupportSummary(input: {
 }
 
 export async function getAdminCrmDonorDetail(input: {
-  supabaseAdmin: SupabaseAdmin;
+  sessionClient: RequestSessionClient;
   tenantId: string;
   donorId: string;
   /** The staff row the request acts under carries the flag (AL-2675). */
@@ -259,7 +263,7 @@ export async function getAdminCrmDonorDetail(input: {
   /** Filters which contribution operations surface inline on gift rows (#270). */
   viewerCapabilities?: string[];
 }): Promise<CrmDonorDetailResponse> {
-  const donorResult = await input.supabaseAdmin
+  const donorResult = await input.sessionClient
     .from("donors")
     .select(
       "id, profile_id, missionary_id, name, email, phone, avatar_url, location, organization, title, type, status, total_given, last_gift_date, tags, notes, created_at, updated_at",
@@ -268,6 +272,8 @@ export async function getAdminCrmDonorDetail(input: {
     .eq("id", input.donorId)
     .maybeSingle();
 
+  // Row security makes an invisible record indistinguishable from an absent one.
+  // The same 404 for both keeps the other tenant's records private.
   // Only a missing row (or an id that cannot be one: 22P02, invalid uuid) is
   // "not found"; any other failure is a server error the page can retry.
   if (donorResult.error && donorResult.error.code !== "22P02") {
@@ -282,9 +288,11 @@ export async function getAdminCrmDonorDetail(input: {
   // way the records list names it, so a deep-linked drawer can say who owns
   // the record without searching the list.
   const ownerNames = donor.missionary_id
-    ? await fetchMissionaryNames(input.supabaseAdmin, [donor.missionary_id])
+    ? await loadCrmMemberLabels(input.sessionClient, input.tenantId, [
+        donor.missionary_id,
+      ])
     : new Map<string, string>();
-  const donationsResult = await input.supabaseAdmin
+  const donationsResult = await input.sessionClient
     .from("donations")
     .select(
       "id, donor_id, missionary_id, fund_id, amount, currency, status, is_recurring, recurring_interval, pledge_id, donation_type, gift_date, refund_amount, refunded_at, stripe_payment_intent_id, stripe_charge_id, created_at, updated_at",
@@ -311,7 +319,7 @@ export async function getAdminCrmDonorDetail(input: {
     approvalPolicy,
   ] = await Promise.all([
     donationIds.length > 0
-      ? input.supabaseAdmin
+      ? input.sessionClient
           .from("staged_gifts")
           .select(
             "id, donation_id, fund_id, missionary_id, receipt_status, crm_post_status, status, twenty_record_id, posted_at, created_at",
@@ -319,13 +327,13 @@ export async function getAdminCrmDonorDetail(input: {
           .eq("tenant_id", input.tenantId)
           .in("donation_id", donationIds)
       : Promise.resolve({ data: [], error: null }),
-    input.supabaseAdmin
+    input.sessionClient
       .from("donor_activities")
       .select("id, type, title, description, amount, date, created_at")
       .eq("donor_id", donor.id)
       .order("date", { ascending: false })
       .limit(50),
-    input.supabaseAdmin
+    input.sessionClient
       .from("donor_pledges")
       .select(
         "id, amount, frequency, status, missionary_id, fund_id, next_payment_date, updated_at",
@@ -334,21 +342,18 @@ export async function getAdminCrmDonorDetail(input: {
       .eq("donor_id", donor.id)
       .order("updated_at", { ascending: false })
       .limit(50),
-    input.supabaseAdmin
-      .from("crm_merge_candidates")
+    input.sessionClient
+      .from("donor_merge_candidates")
       .select(
-        "id, candidate_twenty_record_id, confidence, score, match_reasons",
+        "id, existing:donors!donor_merge_candidates_existing_donor_same_tenant_fk(id,name,organization), incoming:donors!donor_merge_candidates_incoming_donor_same_tenant_fk(id,name,organization)",
       )
       .eq("tenant_id", input.tenantId)
-      .eq("source_entity_type", "donor_profile")
-      .eq("source_entity_id", donor.id)
-      .eq("status", "pending")
-      .order("score", { ascending: false })
+      .eq("status", "open")
+      .not("incoming_donor_id", "is", null)
+      .or(`existing_donor_id.eq.${donor.id},incoming_donor_id.eq.${donor.id}`)
+      .order("id")
       .limit(10),
-    loadCorrectionApprovalPolicy({
-      supabaseAdmin: input.supabaseAdmin,
-      tenantId: input.tenantId,
-    }),
+    loadCorrectionApprovalPolicy(input.sessionClient, input.tenantId),
   ]);
   assertNoError(stagedGiftResult.error, "Failed to load staged gift links.");
   assertNoError(activityResult.error, "Failed to load donor activities.");
@@ -360,7 +365,7 @@ export async function getAdminCrmDonorDetail(input: {
   const stagedGiftIds = mergeUniqueIds(stagedGifts.map((gift) => gift.id));
   const [linkResult, sharedInputs] = await Promise.all([
     stagedGiftIds.length > 0
-      ? input.supabaseAdmin
+      ? input.sessionClient
           .from("donation_crm_links")
           .select(
             "id, donation_id, staged_gift_id, link_status, twenty_record_id",
@@ -371,7 +376,9 @@ export async function getAdminCrmDonorDetail(input: {
       : Promise.resolve({ data: [], error: null }),
     // Corrections, effective values, and designation sets come from the same
     // shared loader the Contributions Hub uses (ADR-CD-032, #256).
-    loadSharedContributionRowInputs(input.supabaseAdmin, {
+    loadSharedContributionRowInputs(input.sessionClient, {
+      readMissionaryLabels: (ids) =>
+        loadCrmMissionaryLabels(input.sessionClient, input.tenantId, ids),
       tenantId: input.tenantId,
       donations,
       stagedGifts,
@@ -513,15 +520,25 @@ export async function getAdminCrmDonorDetail(input: {
   );
 
   const duplicateWarnings = (
-    (duplicateResult.data ?? []) as DuplicateCandidateRow[]
-  ).map((candidate) => ({
-    candidateId: candidate.candidate_twenty_record_id,
-    candidateLabel: candidate.candidate_twenty_record_id,
-    confidence: candidate.confidence,
-    id: candidate.id,
-    reason: candidate.match_reasons?.join(", ") || "Potential duplicate",
-    score: candidate.score,
-  }));
+    (duplicateResult.data ?? []) as unknown as DuplicateCandidateRow[]
+  ).flatMap((candidate) => {
+    const other =
+      candidate.existing?.id === donor.id
+        ? candidate.incoming
+        : candidate.existing;
+    if (!other) return [];
+    const label = other.name || other.organization || "Unnamed donor";
+    return [
+      {
+        id: candidate.id,
+        candidateId: other.id,
+        candidateLabel: label,
+        confidence: null,
+        score: null,
+        reason: `Possible duplicate of ${label}`,
+      },
+    ];
+  });
 
   return {
     donor: {

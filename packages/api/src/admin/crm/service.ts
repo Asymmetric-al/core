@@ -7,7 +7,6 @@ import {
   type CrmSortField,
 } from "./query";
 import { ApiHttpError } from "../../shared/http-errors";
-import { resolveContributionProfileLabel } from "../contribution-shared/profile-label";
 
 import type { AdminCrmListResponse } from "./types";
 import type { RequestSessionClient } from "../../shared/request-session-client";
@@ -15,10 +14,7 @@ import type {
   AdminSupabaseFluentFilterBuilder,
   SupabaseColumn,
 } from "../shared/supabase-filter-builder";
-import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type { Donor } from "@asym/database/types";
-
-type AdminSupabase = AdminSupabaseClient;
 
 type DonorRow = Parameters<typeof buildCrmGridRow>[0];
 type DonorColumn = SupabaseColumn<Donor>;
@@ -132,45 +128,6 @@ function getCursorValue(donor: DonorRow, field: CrmSortField) {
     default:
       return donor.updated_at;
   }
-}
-
-/**
- * Owner names for CRM records. `donors.missionary_id` is a profile id, so
- * owners are named from profiles (shared by the list and the detail read).
- */
-export async function fetchMissionaryNames(
-  supabaseAdmin: AdminSupabase,
-  missionaryProfileIds: string[],
-) {
-  if (missionaryProfileIds.length === 0) {
-    return new Map<string, string>();
-  }
-
-  const { data, error } = await supabaseAdmin
-    .from("profiles")
-    .select("id, display_name, full_name, first_name, last_name, email")
-    .in("id", missionaryProfileIds);
-
-  if (error) {
-    throw new ApiHttpError(500, error.message);
-  }
-
-  const map = new Map<string, string>();
-  for (const row of data ?? []) {
-    const r = row as {
-      id: string;
-      display_name: string | null;
-      full_name: string | null;
-      first_name: string | null;
-      last_name: string | null;
-      email: string | null;
-    };
-    const name = resolveContributionProfileLabel(r);
-    if (name) {
-      map.set(r.id, name);
-    }
-  }
-  return map;
 }
 
 async function fetchFilteredDonorRows(

@@ -30,3 +30,28 @@ export async function loadCrmMemberLabels(
   }
   return labels;
 }
+
+export async function loadCrmMissionaryLabels(
+  client: DirectoryClient,
+  tenantId: string,
+  missionaryIds: readonly string[],
+) {
+  const labels = new Map<string, string | null>();
+  const ids = [...new Set(missionaryIds)];
+  for (let offset = 0; offset < ids.length; offset += CRM_LOOKUP_CHUNK_SIZE) {
+    const { data, error } = await client.rpc("crm_missionary_labels", {
+      p_tenant_id: tenantId,
+      p_ids: ids.slice(offset, offset + CRM_LOOKUP_CHUNK_SIZE),
+    });
+    if (error) throw new ApiHttpError(500, error.message);
+    for (const row of (data ?? []) as Array<
+      DirectoryRow & { id: string; member_profile_id: string | null }
+    >) {
+      const name = row.member_profile_id
+        ? row.display_name || row.email || "Member"
+        : "Former member";
+      labels.set(row.id, row.profile_id ? name : null);
+    }
+  }
+  return labels;
+}

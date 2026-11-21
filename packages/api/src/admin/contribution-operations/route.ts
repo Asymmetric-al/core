@@ -131,10 +131,7 @@ export const GET = withPlatformOperation(
           tenantId: auth.tenantId,
           contributionId,
         }),
-        loadCorrectionApprovalPolicy({
-          supabaseAdmin,
-          tenantId: auth.tenantId,
-        }),
+        loadCorrectionApprovalPolicy(supabaseAdmin, auth.tenantId),
       ]);
       const viewerCapabilities = resolveContributionCapabilities(auth);
       // Mode-aware dashboard proof links: the tenant Stripe key is resolved
@@ -202,10 +199,10 @@ export const POST = withPlatformOperation(
     try {
       const body = actionRequestSchema.parse(await ensureJsonBody(request));
       const viewerCapabilities = resolveContributionCapabilities(auth);
-      const approvalPolicy = await loadCorrectionApprovalPolicy({
+      const approvalPolicy = await loadCorrectionApprovalPolicy(
         supabaseAdmin,
-        tenantId: auth.tenantId,
-      });
+        auth.tenantId,
+      );
       const result = await executeContributionAction({
         tenantId: auth.tenantId,
         actorProfileId: auth.profileId,

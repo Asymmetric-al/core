@@ -78,7 +78,7 @@ describe("frozen ceiling", () => {
   // uncounted, each named for WP4b. Any other growth needs a new ruling.
   it("pins the reviewed service-role sites after each CRM read moves", () => {
     expect(ceilingDigest()).toBe(
-      "1bfb49afcad82ec610c13fc84baba2331ec4f94420f82f3f51e63665b66e7fe6",
+      "7d3516d1a5af0e14a9844f32fac9b9c626307107b99927435b929d1241520b19",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -89,12 +89,12 @@ describe("frozen ceiling", () => {
       admin_client: 77,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
-      operation_admin_context: 68,
+      operation_admin_context: 67,
     });
-    expect(CEILING.size).toBe(118);
+    expect(CEILING.size).toBe(117);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(112);
+    ).toBe(111);
   });
 });
 

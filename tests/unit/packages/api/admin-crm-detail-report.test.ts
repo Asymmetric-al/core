@@ -33,6 +33,19 @@ class QueryBuilder implements PromiseLike<{ data: Row[]; error: null }> {
     return this;
   }
 
+  not(column: string, operation: string, value: unknown) {
+    if (operation !== "is" || value !== null)
+      throw new Error("Unexpected not filter");
+    this.filters.push((row) => row[column] != null);
+    return this;
+  }
+  or(conditions: string) {
+    const fields = conditions.split(",").map((term) => term.split(".eq."));
+    this.filters.push((row) =>
+      fields.some(([column, value]) => column && row[column] === value),
+    );
+    return this;
+  }
   gte(column: string, value: string) {
     this.filters.push((row) => String(row[column] ?? "") >= value);
     return this;
@@ -108,22 +121,55 @@ class QueryBuilder implements PromiseLike<{ data: Row[]; error: null }> {
 
 function createSupabaseFixture(tables: Record<string, Row[]>) {
   return {
+    rpc: vi.fn(
+      async (
+        name: string,
+        args: {
+          p_ids?: string[];
+          p_profile_ids?: string[];
+          p_tenant_id: string;
+        },
+      ) => {
+        if (name === "tenant_member_directory")
+          return {
+            data: (tables.profiles ?? [])
+              .filter((row) => args.p_profile_ids?.includes(String(row.id)))
+              .map((row) => ({ ...row, profile_id: row.id })),
+            error: null,
+          };
+        if (name === "crm_missionary_labels")
+          return {
+            data: (tables.missionaries ?? [])
+              .filter(
+                (row) =>
+                  row.tenant_id === args.p_tenant_id &&
+                  args.p_ids?.includes(String(row.id)),
+              )
+              .map((row) => ({
+                id: row.id,
+                profile_id: row.id,
+                member_profile_id: row.id,
+                ...(row.profile as Row),
+              })),
+            error: null,
+          };
+        throw new Error("Unexpected RPC " + name);
+      },
+    ),
     from: vi.fn((table: string) => new QueryBuilder(tables[table] ?? [])),
   };
 }
 
 const baseTables: Record<string, Row[]> = {
-  crm_merge_candidates: [
+  donor_merge_candidates: [
     {
-      candidate_twenty_record_id: "twenty-person-duplicate",
-      confidence: "medium",
       id: "candidate-1",
-      match_reasons: ["same_email"],
-      score: 72,
-      source_entity_id: "donor-1",
-      source_entity_type: "donor_profile",
-      status: "pending",
       tenant_id: "tenant-1",
+      status: "open",
+      existing_donor_id: "donor-1",
+      incoming_donor_id: "donor-2",
+      existing: { id: "donor-1", name: "Ada Donor" },
+      incoming: { id: "donor-2", name: "Pat Partner" },
     },
   ],
   donation_crm_links: [
@@ -231,7 +277,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
         tenantId: "tenant-2",
         donorId: "donor-1",
         isTenantAdministrator: false,
-        supabaseAdmin: client as never,
+        sessionClient: client as never,
       }),
     ).rejects.toMatchObject({ status: 404 });
     expect(client.from.mock.calls).toEqual([["donors"]]);
@@ -241,7 +287,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "staff",
-      supabaseAdmin: createSupabaseFixture(baseTables) as never,
+      sessionClient: createSupabaseFixture(baseTables) as never,
       tenantId: "tenant-1",
     });
 
@@ -259,8 +305,11 @@ describe("Phase 5 CRM donor detail and reports", () => {
       expect.arrayContaining(["gift", "activity"]),
     );
     expect(detail.duplicateWarnings[0]).toMatchObject({
-      confidence: "medium",
-      reason: "same_email",
+      candidateId: "donor-2",
+      candidateLabel: "Pat Partner",
+      confidence: null,
+      score: null,
+      reason: "Possible duplicate of Pat Partner",
     });
     expect(detail.support).toMatchObject({
       activeRecurringCommitments: 1,
@@ -275,11 +324,11 @@ describe("Phase 5 CRM donor detail and reports", () => {
   });
 
   it("says not found only when the tenant has no such record", async () => {
-    const read = (supabaseAdmin: unknown) =>
+    const read = (sessionClient: unknown) =>
       getAdminCrmDonorDetail({
         donorId: "donor-missing",
         role: "staff",
-        supabaseAdmin: supabaseAdmin as never,
+        sessionClient: sessionClient as never,
         tenantId: "tenant-1",
       });
 
@@ -331,7 +380,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
     const detail = await getAdminCrmDonorDetail({
       donorId: "donor-1",
       role: "staff",
-      supabaseAdmin: createSupabaseFixture({
+      sessionClient: createSupabaseFixture({
         ...baseTables,
         donations: [
           gift("settled-legacy", "Succeeded"),
@@ -359,7 +408,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
     const detail = await getAdminCrmDonorDetail({
       donorId: "donor-1",
       role: "staff",
-      supabaseAdmin: createSupabaseFixture({
+      sessionClient: createSupabaseFixture({
         ...baseTables,
         donations: [
           gift("ok", "Succeeded"),
@@ -394,7 +443,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
     ).toBeNull();
   });
 
-  it("names the record owner from profiles, as the records list does", async () => {
+  it("names the record owner from the member directory, as the records list does", async () => {
     const donorWithOwner = {
       ...baseTables.donors![0]!,
       missionary_id: "profile-owner",
@@ -402,7 +451,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
     const detail = await getAdminCrmDonorDetail({
       donorId: "donor-1",
       role: "staff",
-      supabaseAdmin: createSupabaseFixture({
+      sessionClient: createSupabaseFixture({
         ...baseTables,
         donors: [donorWithOwner],
         profiles: [
@@ -421,7 +470,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
     const detail = await getAdminCrmDonorDetail({
       donorId: "donor-1",
       role: "staff",
-      supabaseAdmin: createSupabaseFixture({
+      sessionClient: createSupabaseFixture({
         ...baseTables,
         donors: [{ ...baseTables.donors![0]!, missionary_id: null }],
       }) as never,
@@ -436,7 +485,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "admin",
-      supabaseAdmin: createSupabaseFixture(baseTables) as never,
+      sessionClient: createSupabaseFixture(baseTables) as never,
       tenantId: "tenant-1",
       viewerCapabilities: ["contributions.use_provider_actions"],
     });
@@ -455,6 +504,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
     let policyLoads = 0;
     const fixture = createSupabaseFixture(baseTables);
     const countingSupabase = {
+      rpc: fixture.rpc,
       from(table: string) {
         if (table === "contribution_approval_policies") {
           policyLoads += 1;
@@ -466,7 +516,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "staff",
-      supabaseAdmin: countingSupabase as never,
+      sessionClient: countingSupabase as never,
       tenantId: "tenant-1",
       viewerCapabilities: requestCapableViewer,
     });
@@ -486,7 +536,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "staff",
-      supabaseAdmin: createSupabaseFixture({
+      sessionClient: createSupabaseFixture({
         ...baseTables,
         contribution_approval_policies: [
           {
@@ -514,7 +564,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "staff",
-      supabaseAdmin: createSupabaseFixture({
+      sessionClient: createSupabaseFixture({
         ...baseTables,
         donation_crm_links: [],
         staged_gifts: baseTables.staged_gifts.map((stagedGift) => ({
@@ -545,7 +595,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "staff",
-      supabaseAdmin: createSupabaseFixture({
+      sessionClient: createSupabaseFixture({
         ...baseTables,
         donation_crm_links: baseTables.donation_crm_links.map((link) => ({
           ...link,
@@ -587,7 +637,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "staff",
-      supabaseAdmin: createSupabaseFixture({
+      sessionClient: createSupabaseFixture({
         ...baseTables,
         donation_crm_links: [],
         donations,

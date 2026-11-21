@@ -166,22 +166,23 @@ export async function loadContributionCorrectionRequest(input: {
   return mapCorrectionRequestRow(data);
 }
 
-export async function loadCorrectionApprovalPolicy(input: {
-  supabaseAdmin: SupabaseAdmin;
-  tenantId: string;
-}): Promise<CorrectionApprovalPolicy> {
-  const { data, error } = await input.supabaseAdmin
+export async function loadCorrectionApprovalPolicy(
+  client: Pick<SupabaseAdmin, "from">,
+  tenantId: string,
+): Promise<CorrectionApprovalPolicy> {
+  const { data, error } = await client
     .from("contribution_approval_policies")
     .select(
       "ownership_mode, suppressed_gates, stronger_approval_categories, reminder_hours, escalation_hours",
     )
-    .eq("tenant_id", input.tenantId)
+    .eq("tenant_id", tenantId)
     .maybeSingle();
 
   if (error) {
     throw new Error(error.message);
   }
 
+  // An invisible or absent row uses the same strictest policy.
   return resolveCorrectionApprovalPolicy(
     (data as CorrectionApprovalPolicyRow | null) ?? null,
   );
@@ -334,10 +335,7 @@ export async function decideContributionCorrectionRequest(
 
   const policy =
     input.policy ??
-    (await loadCorrectionApprovalPolicy({
-      supabaseAdmin: input.supabaseAdmin,
-      tenantId: input.tenantId,
-    }));
+    (await loadCorrectionApprovalPolicy(input.supabaseAdmin, input.tenantId));
 
   assertCanDecideCorrectionRequest({
     policy,

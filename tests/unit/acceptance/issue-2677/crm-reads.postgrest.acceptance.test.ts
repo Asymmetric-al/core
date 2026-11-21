@@ -6,6 +6,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { GET as notes } from "../../../../packages/api/src/admin/crm/notes";
+import { GET as detail } from "../../../../packages/api/src/admin/crm/detail";
 import { GET as relationships } from "../../../../packages/api/src/admin/crm/relationships";
 import {
   GET as records,
@@ -42,6 +43,8 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
     const restrictedA = randomUUID();
     const workerIds = [randomUUID(), randomUUID()];
     const donorIds = [randomUUID(), randomUUID(), randomUUID()];
+    const candidateId = randomUUID();
+    const giftIds = [randomUUID(), randomUUID()];
     const marker = `CRM-fixture-${randomUUID()}`;
     const preferenceIds = Array.from({ length: 3 }, () => randomUUID());
     const auditIds: string[] = [];
@@ -130,6 +133,14 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           ],
         );
       }
+      await db.query(
+        "insert into public.donor_merge_candidates (id,tenant_id,existing_donor_id,incoming_donor_id,confidence) values ($1,$2,$3,$4,'possible')",
+        [candidateId, tenantA, donorIds[0], donorIds[1]],
+      );
+      await db.query(
+        "insert into public.donations (id,tenant_id,donor_id,missionary_id,amount,currency,status,gift_date) values ($1,$3,$5,$7,1234,'usd','completed','2038-01-10'),($2,$4,$6,$8,4321,'usd','completed','2038-01-10')",
+        [...giftIds, tenantA, tenantB, donorIds[0], donorIds[2], ...workerIds],
+      );
       async function signIn(email: string) {
         const client = createClient(url!, key!, {
           auth: { persistSession: false, autoRefreshToken: false },
@@ -158,6 +169,14 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
       vi.unstubAllEnvs();
       if (db) {
         try {
+          await db.query(
+            "delete from public.donations where id=any($1::uuid[])",
+            [giftIds],
+          );
+          await db.query(
+            "delete from public.donor_merge_candidates where id=$1",
+            [candidateId],
+          );
           await db.query(
             "delete from public.missionaries where id=any($1::uuid[])",
             [workerIds],
@@ -364,6 +383,37 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
         .select("health_status")
         .in("id", workerIds);
       expect(care.error?.code).toBe("42501");
+      expect(getAdminClient).not.toHaveBeenCalled();
+    });
+
+    it("reads donor detail, gifts and either side of an open native duplicate candidate", async () => {
+      const path = (id: string) => "/api/admin/crm/records/" + id;
+      const denied = await detail(request(path(donorIds[2]), sole, tenantB));
+      expect(denied.status).toBe(401);
+      expect(denied.headers.has("x-asym-scope-refused")).toBe(true);
+      const hidden = await detail(request(path(donorIds[2])));
+      expect(hidden.status).toBe(404);
+      expect((await detail(request(path(randomUUID())))).status).toBe(404);
+      for (const side of [0, 1]) {
+        const res = await detail(request(path(donorIds[side])));
+        expect(res.status).toBe(200);
+        const body = await res.json();
+        expect(body.donor.id).toBe(donorIds[side]);
+        expect(body.duplicateWarnings).toEqual([
+          expect.objectContaining({
+            id: candidateId,
+            candidateId: donorIds[1 - side],
+            candidateLabel: marker,
+            confidence: null,
+            score: null,
+          }),
+        ]);
+        if (side === 0) {
+          expect(JSON.stringify(body.giftHistory)).toContain(giftIds[0]);
+          expect(JSON.stringify(body)).toContain("Riley Okafor");
+        }
+        expect(JSON.stringify(body)).not.toContain(giftIds[1]);
+      }
       expect(getAdminClient).not.toHaveBeenCalled();
     });
 
