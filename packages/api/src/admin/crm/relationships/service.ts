@@ -1,4 +1,3 @@
-import { loadCrmMemberLabels } from "../member-labels";
 import {
   buildCrmRelationshipReport,
   CRM_RELATIONSHIP_DOMAINS,
@@ -12,6 +11,8 @@ import {
 } from "./query";
 import { assertCrmTenantAccess } from "../../../crm/auth/access";
 import { ApiHttpError } from "../../../shared/api-http-error";
+import { isRecord } from "../../../shared/json-coerce";
+import { loadCrmMemberLabels } from "../member-labels";
 
 import type { ActorContext } from "../../../crm/types";
 import type { RequestSessionClient } from "../../../shared/request-session-client";
@@ -131,5 +132,9 @@ async function selectTenantRows(
   if (error) {
     throw new ApiHttpError(500, `Failed to load ${table}: ${error.message}`);
   }
-  return Array.isArray(data) ? data : [];
+  const rows: unknown = data ?? [];
+  if (!Array.isArray(rows) || !rows.every(isRecord)) {
+    throw new ApiHttpError(500, `Invalid ${table} row data.`);
+  }
+  return rows;
 }

@@ -169,11 +169,14 @@ export async function loadContributionCorrectionRequest(input: {
 export async function loadCorrectionApprovalPolicy(
   client: Pick<SupabaseAdmin, "from">,
   tenantId: string,
+  purpose: "operations" | "crm" = "operations",
 ): Promise<CorrectionApprovalPolicy> {
   const { data, error } = await client
     .from("contribution_approval_policies")
     .select(
-      "ownership_mode, suppressed_gates, stronger_approval_categories, reminder_hours, escalation_hours",
+      purpose === "crm"
+        ? "ownership_mode, suppressed_gates, stronger_approval_categories"
+        : "ownership_mode, suppressed_gates, stronger_approval_categories, reminder_hours, escalation_hours",
     )
     .eq("tenant_id", tenantId)
     .maybeSingle();

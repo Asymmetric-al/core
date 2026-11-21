@@ -353,7 +353,7 @@ export async function getAdminCrmDonorDetail(input: {
       .or(`existing_donor_id.eq.${donor.id},incoming_donor_id.eq.${donor.id}`)
       .order("id")
       .limit(10),
-    loadCorrectionApprovalPolicy(input.sessionClient, input.tenantId),
+    loadCorrectionApprovalPolicy(input.sessionClient, input.tenantId, "crm"),
   ]);
   assertNoError(stagedGiftResult.error, "Failed to load staged gift links.");
   assertNoError(activityResult.error, "Failed to load donor activities.");

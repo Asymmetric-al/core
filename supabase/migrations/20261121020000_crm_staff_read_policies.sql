@@ -10,7 +10,7 @@ GRANT SELECT (tenant_id, location, created_at, updated_at)
 GRANT SELECT (tenant_id, id, existing_donor_id, incoming_donor_id, status)
   ON public.donor_merge_candidates TO authenticated;
 
-GRANT SELECT (tenant_id, ownership_mode, suppressed_gates, stronger_approval_categories, reminder_hours, escalation_hours)
+GRANT SELECT (tenant_id, ownership_mode, suppressed_gates, stronger_approval_categories)
   ON public.contribution_approval_policies TO authenticated;
 
 GRANT SELECT (tenant_id, donation_id, status)

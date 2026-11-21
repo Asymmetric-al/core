@@ -45,7 +45,11 @@ export async function loadCrmMissionaryLabels(
     });
     if (error) throw new ApiHttpError(500, error.message);
     for (const row of (data ?? []) as Array<
-      DirectoryRow & { id: string; member_profile_id: string | null }
+      Omit<DirectoryRow, "profile_id"> & {
+        id: string;
+        profile_id: string | null;
+        member_profile_id: string | null;
+      }
     >) {
       const name = row.member_profile_id
         ? row.display_name || row.email || "Member"

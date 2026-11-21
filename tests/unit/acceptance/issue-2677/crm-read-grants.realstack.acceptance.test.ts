@@ -10,7 +10,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("requires the migrate database", () =>
 const readColumns = {
   missionaries: "created_at id location profile_id tenant_id updated_at",
   contribution_approval_policies:
-    "escalation_hours ownership_mode reminder_hours stronger_approval_categories suppressed_gates tenant_id",
+    "ownership_mode stronger_approval_categories suppressed_gates tenant_id",
   contribution_corrections: "donation_id status tenant_id",
   contribution_correction_requests: "donation_id status tenant_id",
   contribution_adjustments:

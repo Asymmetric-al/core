@@ -51,6 +51,7 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
   () => {
     const dualA = randomUUID();
     const dualB = randomUUID();
+    const revokedOwner = randomUUID();
     const noteA = randomUUID();
     const noteB = randomUUID();
     const restrictedA = randomUUID();
@@ -89,6 +90,10 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
       vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", key);
       db = new pg.Client({ connectionString: database });
       await db.connect();
+      await db.query(
+        "insert into authz.memberships (id,user_id,tenant_id,role,staff_role,is_active,revoked_at) values ($1,$2,$3,'staff','development',false,now())",
+        [revokedOwner, "33333333-3333-3333-3333-333333333333", tenantA],
+      );
       await db.query(
         "insert into public.missionaries (id,tenant_id,profile_id,location) values ($1,$3,$5,'Fixture Alpha'),($2,$4,$6,'Fixture Beta')",
         [
@@ -131,7 +136,7 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
             tenant,
             profile,
             tableId,
-            { columns: { hidden: [`preference-${index}`] } },
+            { columns: { designation: index === 0, statusLine: index === 2 } },
           ],
         );
         await db.query(
@@ -148,7 +153,7 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
             tableId,
             {
               delegatedManagerProfileIds: [dualUser],
-              columns: { hidden: [`default-${index}`] },
+              columns: { designation: index === 0, statusLine: false },
             },
           ],
         );
@@ -245,7 +250,7 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           );
           await db.query(
             "delete from authz.memberships where id = any($1::uuid[])",
-            [[dualA, dualB]],
+            [[dualA, dualB, revokedOwner]],
           );
         } finally {
           await db.end();
@@ -313,8 +318,12 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
         const body = await res.json();
         if (operation === "preferences")
           expect(body).toMatchObject({
-            user: { settings: { columns: { hidden: ["preference-0"] } } },
-            tenantDefault: { settings: { columns: { hidden: ["default-0"] } } },
+            user: {
+              settings: { columns: { designation: true, statusLine: false } },
+            },
+            tenantDefault: {
+              settings: { columns: { designation: true, statusLine: false } },
+            },
             canManageTenantDefaults: true,
           });
         if (operation === "views")
@@ -583,6 +592,208 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
       }
     });
 
+    it("keeps both tenants' populated CRM tables isolated without a caller-side tenant condition", async () => {
+      const pairs = () => [randomUUID(), randomUUID()];
+      const staged = pairs(),
+        allocations = pairs(),
+        commitments = pairs(),
+        activities = pairs(),
+        care = pairs(),
+        corrections = pairs(),
+        requests = pairs(),
+        adjustments = pairs();
+      const secondCandidate = randomUUID();
+      const addedPolicies: string[] = [];
+      try {
+        for (const [i, tenant] of [tenantA, tenantB].entries()) {
+          const donor = donorIds[i === 0 ? 0 : 2],
+            gift = giftIds[i];
+          await db.query(
+            "insert into public.staged_gifts(id,tenant_id,donation_id,amount) values ($1,$2,$3,123)",
+            [staged[i], tenant, gift],
+          );
+          await db.query(
+            "insert into public.staged_gift_allocations(id,tenant_id,staged_gift_id,amount) values ($1,$2,$3,123)",
+            [allocations[i], tenant, staged[i]],
+          );
+          await db.query(
+            "insert into public.donor_pledges(id,tenant_id,donor_id,amount) values ($1,$2,$3,123)",
+            [commitments[i], tenant, donor],
+          );
+          await db.query(
+            "insert into public.donor_activities(id,donor_id,type,title) values ($1,$2,'call','Fixture call')",
+            [activities[i], donor],
+          );
+          await db.query(
+            "insert into public.member_care_activities(id,tenant_id,missionary_id,author_user_id,type,description) values ($1,$2,$3,$4,'video_call','Fixture call')",
+            [care[i], tenant, workerIds[i], dualUser],
+          );
+          await db.query(
+            "insert into public.contribution_corrections(id,tenant_id,donation_id,correction_type,reason,source_surface) values ($1,$2,$3,'metadata_update','test','api')",
+            [corrections[i], tenant, gift],
+          );
+          await db.query(
+            "insert into public.contribution_correction_requests(id,tenant_id,donation_id,action_type,reason,source_surface) values ($1,$2,$3,'metadata_update','test','api')",
+            [requests[i], tenant, gift],
+          );
+          // A legacy adjustment in A can name B's targets. Neither label may appear.
+          await db.query(
+            "insert into public.contribution_adjustments(id,tenant_id,donation_id,adjustment_type,reason,source_surface,effective_values) values ($1,$2,$3,'fund_correction','test','api',$4)",
+            [
+              adjustments[i],
+              tenant,
+              gift,
+              { fundId: fundIds[1], missionaryId: workerIds[1] },
+            ],
+          );
+          const policy = await db.query(
+            "insert into public.contribution_approval_policies(tenant_id) values ($1) on conflict do nothing returning tenant_id",
+            [tenant],
+          );
+          if (policy.rowCount) addedPolicies.push(tenant);
+        }
+        await db.query(
+          "insert into public.donor_merge_candidates(id,tenant_id,existing_donor_id,confidence) values ($1,$2,$3,'low')",
+          [secondCandidate, tenantB, donorIds[2]],
+        );
+        const req = request("/"),
+          scoped = await createRequestSessionClient(req, {
+            tenantId: tenantA,
+            assignmentId: dual.assignment,
+          });
+        for (const [table, key, ids] of [
+          ["donations", "id", giftIds],
+          ["funds", "id", fundIds],
+          ["staged_gifts", "id", staged],
+          ["staged_gift_allocations", "id", allocations],
+          ["donor_pledges", "id", commitments],
+          ["donor_activities", "id", activities],
+          ["member_care_activities", "id", care],
+          ["contribution_corrections", "donation_id", giftIds],
+          ["contribution_correction_requests", "donation_id", giftIds],
+          ["contribution_adjustments", "id", adjustments],
+          ["donor_merge_candidates", "id", [candidateId, secondCandidate]],
+          ["donation_crm_links", "id", syncIds],
+          ["contribution_approval_policies", "tenant_id", [tenantA, tenantB]],
+        ] as const) {
+          const result = await scoped.from(table).select(key).in(key, ids);
+          expect(result.error, table).toBeNull();
+          expect(result.data, table).toEqual([{ [key]: ids[0] }]);
+        }
+        const policies = await scoped
+          .from("field_policies")
+          .select("tenant_id");
+        expect(policies.error).toBeNull();
+        expect(policies.data?.length).toBeGreaterThan(0);
+        expect(
+          policies.data?.every(
+            (row) => row.tenant_id === null || row.tenant_id === tenantA,
+          ),
+        ).toBe(true);
+        for (const slice of ["funds", "missionaries"]) {
+          const res = await report(
+            request(
+              `/api/admin/crm/reports?slice=${slice}&dateFrom=2038-01-10&dateTo=2038-01-10`,
+            ),
+          );
+          expect(res.status).toBe(200);
+          const body = await res.json();
+          expect(body.completeness.complete).toBe(false);
+          expect(body.rows.map((row: { label: string }) => row.label)).toEqual([
+            slice === "funds" ? "Unnamed fund" : "Unassigned",
+          ]);
+        }
+      } finally {
+        for (const [table, ids] of [
+          ["staged_gift_allocations", allocations],
+          ["staged_gifts", staged],
+          ["donor_pledges", commitments],
+          ["donor_activities", activities],
+          ["member_care_activities", care],
+          ["contribution_corrections", corrections],
+          ["contribution_correction_requests", requests],
+          ["contribution_adjustments", adjustments],
+          ["donor_merge_candidates", [secondCandidate]],
+        ] as const) {
+          await db.query(
+            `delete from public.${table} where id=any($1::uuid[])`,
+            [ids],
+          );
+        }
+        await db.query(
+          "delete from public.contribution_approval_policies where tenant_id=any($1::uuid[])",
+          [addedPolicies],
+        );
+      }
+    });
+
+    it("resolves every label across two lookup chunks through PostgREST", async () => {
+      const ids = Array.from({ length: 151 }, () => randomUUID());
+      const source = "unnest($1::uuid[]) with ordinality as f(id,n)";
+      try {
+        await db.query("begin");
+        await db.query(
+          `insert into auth.users(id,email,raw_user_meta_data) select id,id::text || '@crm-fixture.invalid','{}'::jsonb from ${source}`,
+          [ids],
+        );
+        await db.query(
+          `update public.profiles p set display_name=case when f.n>1 then 'Worker '||f.n end,first_name=null,last_name=null,full_name=null from ${source} where p.user_id=f.id`,
+          [ids],
+        );
+        await db.query(
+          `insert into public.missionaries(id,tenant_id,profile_id) select f.id,$2::uuid,p.id from ${source} join public.profiles p on p.user_id=f.id`,
+          [ids, tenantA],
+        );
+        await db.query(
+          `insert into public.funds(id,tenant_id,name) select id,$2::uuid,'Fund '||n from ${source}`,
+          [ids, tenantA],
+        );
+        await db.query(
+          `insert into public.donors(id,tenant_id,name) select id,$2::uuid,'Donor '||n from ${source}`,
+          [ids, tenantA],
+        );
+        await db.query(
+          `insert into public.donations(id,tenant_id,donor_id,fund_id,missionary_id,amount,status,gift_date) select id,$2::uuid,id,id,id,123,'completed','2038-03-01' from ${source}`,
+          [ids, tenantA],
+        );
+        await db.query("commit");
+        for (const [slice, prefix] of [
+          ["donors", "Donor"],
+          ["funds", "Fund"],
+          ["missionaries", "Worker"],
+        ] as const) {
+          const url = `/api/admin/crm/reports?slice=${slice}&dateFrom=2038-03-01&dateTo=2038-03-01`;
+          const response = await report(request(url));
+          expect(response.status).toBe(200);
+          const body = await response.json();
+          expect(body.completeness.complete).toBe(true);
+          expect(body.totals.giftCount).toBe(ids.length);
+          const labels = new Map(
+            body.rows.map((row: { id: string; label: string }) => [
+              row.id,
+              row.label,
+            ]),
+          );
+          ids.forEach((id, index) =>
+            expect(labels.get(id)).toBe(
+              slice === "missionaries" && index === 0
+                ? id + "@crm-fixture.invalid"
+                : prefix + " " + (index + 1),
+            ),
+          );
+        }
+      } finally {
+        await db.query("rollback");
+        for (const table of ["donations", "donors", "funds", "missionaries"])
+          await db.query(
+            `delete from public.${table} where id=any($1::uuid[])`,
+            [ids],
+          );
+        await db.query("delete from auth.users where id=any($1::uuid[])", [
+          ids,
+        ]);
+      }
+    });
     it("reads the selected tenant's notes and enforces restricted visibility in PostgREST", async () => {
       const path = "/api/admin/crm/notes";
       const refused = await notes(request(path, sole, tenantB));

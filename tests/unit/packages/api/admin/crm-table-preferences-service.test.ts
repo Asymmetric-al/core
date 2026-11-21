@@ -249,6 +249,16 @@ function createSupabaseStub(state: StubState = {}) {
 }
 
 describe("admin/crm/table-preferences/service", () => {
+  it("uses the system fallback when row security returns no visible preference layer", async () => {
+    const { sessionClient } = createSupabaseStub({ rowsByTable: {} });
+    const result = await getCrmTablePreferences({
+      sessionClient,
+      tenantId: "tenant-empty",
+      profileId: "profile-empty",
+      tableId: "crm.giftHistory",
+    });
+    expect(result).toMatchObject({ user: null, tenantDefault: null });
+  });
   it("loads user and tenant preference records as the server source of truth", async () => {
     const { sessionClient } = createSupabaseStub({
       rowsByTable: {
