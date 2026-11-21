@@ -1024,12 +1024,14 @@ export function evaluateTenantRlsCatalog(
   }
 
   // A target a signed-in user may reach through a wrapper: every function of
-  // that name in its command schema is executable by authenticated.
+  // that name in its command schema is executable by authenticated. Every
+  // signed-in command, a platform command as much as a tenant_guard one, is a
+  // human target: a wrapper that calls one grants nothing to service_role.
   const signedInTargets = new Map();
   const humanTargets = new Set();
   for (const c of commands) {
     const key = c.function.slice(0, c.function.indexOf("(")).toLowerCase();
-    if (c.schema === "tenant_guard" && c.authenticated) humanTargets.add(key);
+    if (c.authenticated) humanTargets.add(key);
     signedInTargets.set(
       key,
       (signedInTargets.get(key) ?? true) && Boolean(c.authenticated),

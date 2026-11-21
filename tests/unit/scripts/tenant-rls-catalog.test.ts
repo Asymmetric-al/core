@@ -219,6 +219,38 @@ describe("WP4 command boundaries", () => {
       ),
     ).toContain("WRAPPER_GRANTS_HUMAN public.edit(uuid)");
   });
+  // Fix check G5: every signed-in command is a human target, a platform
+  // command as much as a tenant_guard one, alone or beside a worker.
+  it.each([
+    ["alone", "SELECT platform.block(p)"],
+    [
+      "beside a worker",
+      "SELECT platform.block(p); SELECT tenant_guard.work(p)",
+    ],
+  ])(
+    "rejects service EXECUTE on a wrapper of a signed-in platform command %s",
+    (_name, body) => {
+      expect(
+        codes(
+          evaluate(
+            [],
+            listed(),
+            [],
+            [
+              platformCommand("platform.block(uuid)"),
+              command("tenant_guard.work(uuid)"),
+            ],
+            allow(),
+            {
+              wrappers: [
+                wrapper("public.block(uuid)", body, { service_role: true }),
+              ],
+            },
+          ),
+        ),
+      ).toContain("WRAPPER_GRANTS_HUMAN public.block(uuid)");
+    },
+  );
 });
 const evaluate = (
   tables: object[],
