@@ -22,6 +22,8 @@
  * are the same 176 columns, so nothing is dropped from either side; the
  * oracle's own 176 columns and 880 rows stay pinned, and every mutation still
  * fails. A change to an oracle column's classification still fails here.
+ * AL-2677: this historical oracle contains physical columns only. The live
+ * manifest gate separately compares every derived field's five policy rows.
  */
 import {
   appendFileSync,
@@ -42,6 +44,7 @@ import { NEW_ROWS as V3_ROWS } from "../issue-2256/harness";
 type Row = Record<string, unknown>;
 type Manifest = {
   record_types: Record<string, Record<string, Record<string, unknown>>>;
+  derived_record_types: Record<string, Record<string, Record<string, unknown>>>;
 };
 type Catalog = {
   relations: string[];
@@ -150,6 +153,7 @@ type Mutate = (dir: string, m: Manifest, db: Catalog) => void;
 
 /** Keeps, on both sides, only the columns both the manifest and the oracle classify. */
 function align(m: Manifest, db: Catalog) {
+  m.derived_record_types = {};
   const key = (t: unknown, c: unknown) => `${t}.${c}`;
   const inOracle = new Set(
     db.columns.map((c) => key(c.record_type, c.field_key)),

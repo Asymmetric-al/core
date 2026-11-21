@@ -66,7 +66,10 @@ describe("the admin proxy, as proxy.ts configures it", () => {
   it("passes a session-less call to Payload's REST routes through, with no Location and no role lookup", async () => {
     for (const method of ["GET", "PATCH"]) {
       const response = await proxy(
-        new NextRequest(new URL("/web-studio/api/pages", ORIGIN), { method }),
+        new NextRequest(new URL("/web-studio/api/pages", ORIGIN), {
+          method,
+          headers: { origin: ORIGIN },
+        }),
       );
       expect(response.headers.get("x-middleware-next"), method).toBe("1");
       expect(response.headers.get("location"), method).toBeNull();

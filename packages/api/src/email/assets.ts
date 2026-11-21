@@ -8,7 +8,11 @@ import { serverEnv } from "@asym/env";
 import { generateCloudinarySignature } from "@asym/lib/cloudinary-server";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { ApiHttpError, toErrorResponse } from "../shared/http-errors";
+import {
+  ApiHttpError,
+  ApiResponseContractError,
+  toErrorResponse,
+} from "../shared/http-errors";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set([
@@ -84,7 +88,7 @@ async function uploadToCloudinary(input: {
   const apiSecret = serverEnv.CLOUDINARY_API_SECRET;
 
   if (!cloudName || !apiKey || !apiSecret) {
-    throw new ApiHttpError(
+    throw new ApiResponseContractError(
       503,
       "Cloudinary image upload is enabled but not fully configured.",
     );
@@ -173,7 +177,11 @@ async function uploadToSupabaseStorage(input: {
 export async function POST(request: NextRequest) {
   try {
     const ctx = await requireAdminContext(request);
-    const formData = await request.formData();
+    // The multipart parser needs the request's type; a body without one is
+    // refused here, before any storage call (fix check G1).
+    const formData = await request.formData().catch(() => {
+      throw new ApiHttpError(400, "Invalid form data.");
+    });
     const file = validateImageFile(formData.get("file"));
     const templateIdValue = formData.get("templateId");
     const templateId =

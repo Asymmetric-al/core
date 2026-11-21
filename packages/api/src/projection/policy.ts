@@ -1,7 +1,7 @@
 import { dataObject, fieldKey } from "./validation";
 import { isSensitivityCategory } from "../field-policies/taxonomy";
 
-import type { HumanProjectionContext } from "./types";
+import type { ProjectionBinding, ProjectionCeiling } from "./types";
 import type { FieldPolicyRow, FieldPolicySet } from "../field-policies/reader";
 
 const processors = new Set([
@@ -51,7 +51,18 @@ function policySnapshot(value: unknown): FieldPolicyRow | undefined {
 export function admits(
   policies: FieldPolicySet,
   key: string,
-  auth: HumanProjectionContext,
+  auth: {
+    binding: Pick<
+      ProjectionBinding,
+      | "surface"
+      | "operation"
+      | "recordType"
+      | "contextRef"
+      | "contextRevision"
+      | "purpose"
+    >;
+    ceiling: ProjectionCeiling;
+  },
 ): boolean {
   if (!fieldKey(key)) return false;
   const first = policySnapshot(policies.get(key));

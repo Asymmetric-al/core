@@ -11,7 +11,11 @@ import { ZodError } from "zod";
 import { normalizeStoredPostContent } from "./content";
 import { postIdParamSchema, postUpdateSchema } from "../schemas/posts";
 import { CACHE_TAGS } from "../shared/cache-tags";
-import { toErrorResponse } from "../shared/http-errors";
+import {
+  ApiHttpError,
+  ensureJsonBody,
+  toErrorResponse,
+} from "../shared/http-errors";
 import { findProfileByUserId } from "../shared/queries";
 
 function revalidatePostTags(postId: string, tenantId: string) {
@@ -20,6 +24,8 @@ function revalidatePostTags(postId: string, tenantId: string) {
 }
 
 function toAuthAwareErrorResponse(error: unknown) {
+  // The shared reader's refusals (400, 415) keep their status (fix check G1).
+  if (error instanceof ApiHttpError) return toErrorResponse(error);
   if (error instanceof ZodError) {
     const firstIssue = error.issues[0];
     return NextResponse.json(
@@ -66,7 +72,7 @@ export async function PATCH(
       post_type,
       autosave,
       expected_updated_at,
-    } = postUpdateSchema.parse(await request.json());
+    } = postUpdateSchema.parse(await ensureJsonBody(request));
 
     const { data: profile } = await findProfileByUserId(
       supabaseAdmin,

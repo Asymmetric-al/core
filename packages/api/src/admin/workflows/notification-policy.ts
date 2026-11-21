@@ -2,7 +2,8 @@ import { type AuthenticatedContext } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { withOperation } from "../../shared/with-operation";
+import { ensureJsonBody } from "../../shared/http-errors";
+import { withPlatformOperation } from "../../shared/with-operation";
 
 const overridesSchema = z
   .object({
@@ -12,7 +13,7 @@ const overridesSchema = z
   .strict();
 
 /** Tenant admins read the current workflow notification overrides. */
-export const GET = withOperation(
+export const GET = withPlatformOperation(
   async ({ supabaseAdmin, auth }) => {
     const ctx = auth as AuthenticatedContext;
 
@@ -32,11 +33,11 @@ export const GET = withOperation(
  * are accepted; the quiet defaults stay in code so adjustments cannot make
  * the default noisy for everyone.
  */
-export const PUT = withOperation(
+export const PUT = withPlatformOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 
-    const parsed = overridesSchema.safeParse(await request.json());
+    const parsed = overridesSchema.safeParse(await ensureJsonBody(request));
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid notification policy." },

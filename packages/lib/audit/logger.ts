@@ -32,7 +32,7 @@ export type AuditAction =
   | "profile_updated"
   | "email_send_suppressed";
 
-export interface AuditLogEntry {
+interface AuditLogEntry {
   tenantId: string;
   userId: string;
   action: AuditAction;
@@ -70,31 +70,40 @@ interface AuditLogRow {
   user_agent: string | null;
 }
 
-async function writeAuditLog(row: AuditLogRow): Promise<void> {
-  const supabaseAdmin = createAdminClient();
-  if (!supabaseAdmin) {
-    console.warn("[audit] Skipping audit log: Admin client unavailable");
-    return;
-  }
-
-  try {
-    await supabaseAdmin.from("audit_logs").insert(row);
-  } catch (error) {
-    console.error("Failed to write audit log:", error);
-  }
+async function writeAuditLog(
+  row: AuditLogRow,
+  required = false,
+): Promise<void> {
+  const insert = async () => {
+    const supabaseAdmin = createAdminClient();
+    if (supabaseAdmin) {
+      const { error } = await supabaseAdmin.from("audit_logs").insert(row);
+      return !error;
+    }
+    return false;
+  };
+  if (await insert().catch(() => false)) return;
+  if (required) throw new Error("Audit write failed");
+  console.warn("[audit] Audit write failed");
 }
 
-export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
-  await writeAuditLog({
-    tenant_id: entry.tenantId,
-    user_id: entry.userId,
-    action: entry.action,
-    resource_type: entry.resourceType,
-    resource_id: entry.resourceId || null,
-    details: entry.details || {},
-    ip_address: entry.ipAddress || null,
-    user_agent: entry.userAgent || null,
-  });
+async function logAuditEvent(
+  entry: AuditLogEntry,
+  required = false,
+): Promise<void> {
+  await writeAuditLog(
+    {
+      tenant_id: entry.tenantId,
+      user_id: entry.userId,
+      action: entry.action,
+      resource_type: entry.resourceType,
+      resource_id: entry.resourceId || null,
+      details: entry.details || {},
+      ip_address: entry.ipAddress || null,
+      user_agent: entry.userAgent || null,
+    },
+    required,
+  );
 }
 
 /** Record an audit event for a system/service action (no human actor). */
@@ -122,25 +131,30 @@ export function createAuditLogger(
     request?.headers.get("x-real-ip") ||
     undefined;
   const userAgent = request?.headers.get("user-agent") || undefined;
-
-  return {
-    log: (
+  const record =
+    (required: boolean) =>
+    (
       action: AuditAction,
       resourceType: string,
       resourceId?: string,
       details?: Record<string, unknown>,
     ) =>
-      logAuditEvent({
-        tenantId: context.tenantId,
-        userId: context.userId,
-        action,
-        resourceType,
-        resourceId,
-        details,
-        ipAddress,
-        userAgent,
-      }),
-
+      logAuditEvent(
+        {
+          tenantId: context.tenantId,
+          userId: context.userId,
+          action,
+          resourceType,
+          resourceId,
+          details,
+          ipAddress,
+          userAgent,
+        },
+        required,
+      );
+  return {
+    log: record(false),
+    logRequired: record(true),
     logDonation: (
       donationId: string,
       action:

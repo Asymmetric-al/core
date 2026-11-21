@@ -1,5 +1,4 @@
-import { CSV_RECORD_SEPARATOR, CSV_UTF8_BOM, csvSafeCell } from "@asym/lib/csv";
-
+import { reportGroupRevision } from "./report-revision";
 import { ApiHttpError } from "../../../shared/http-errors";
 import {
   deriveEffectiveContribution,
@@ -48,6 +47,7 @@ interface DonationRow {
 }
 
 interface DonorRow {
+  giving_preferences?: unknown;
   id: string;
   name: string | null;
   organization: string | null;
@@ -285,16 +285,17 @@ async function fetchDonors(
   supabaseAdmin: SupabaseAdmin,
   tenantId: string,
   ids: string[],
+  exporting: boolean,
 ): Promise<Map<string, DonorRow>> {
   if (ids.length === 0) {
     return new Map();
   }
 
-  const { data, error } = await supabaseAdmin
-    .from("donors")
-    .select("id, name, organization, status")
-    .eq("tenant_id", tenantId)
-    .in("id", ids);
+  const donors = supabaseAdmin.from("donors");
+  const query = exporting
+    ? donors.select("id, name, organization, status, giving_preferences")
+    : donors.select("id, name, organization, status");
+  const { data, error } = await query.eq("tenant_id", tenantId).in("id", ids);
   assertNoError(error, "Failed to load donor labels.");
   return new Map(((data ?? []) as DonorRow[]).map((row) => [row.id, row]));
 }
@@ -505,13 +506,50 @@ async function buildSyncFailureRows(
   );
 }
 
-export async function buildAdminCrmReport(input: {
+interface ReportInput {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   params: AdminCrmReportParams;
   /** Read bound; defaults to {@link CRM_REPORT_DONATION_LIMIT}. */
   maxDonations?: number;
-}): Promise<AdminCrmReportResponse> {
+}
+
+export function buildAdminCrmReport(input: ReportInput) {
+  return buildReport(input);
+}
+
+export async function buildAdminCrmExportGroups(input: ReportInput) {
+  const anonymousDonors = new Set<string>();
+  const report = await buildReport(input, anonymousDonors);
+  return {
+    slice: report.slice,
+    search: report.slice === "donors" ? input.params.filters.search : null,
+    rows: report.rows.map((row) => {
+      const anonymous = anonymousDonors.has(row.id);
+      const groupId = `${report.slice}:${row.id}`;
+      return {
+        anonymous,
+        revision: reportGroupRevision({
+          tenantId: input.tenantId,
+          slice: report.slice,
+          groupId,
+          row,
+          completeness: report.completeness,
+          anonymous,
+        }),
+        tenant_id: input.tenantId,
+        groupId,
+        completeness: report.completeness,
+        row,
+      };
+    }),
+  };
+}
+
+async function buildReport(
+  input: ReportInput,
+  anonymousDonors?: Set<string>,
+): Promise<AdminCrmReportResponse> {
   if (input.params.slice === "sync-failures") {
     const rows = await buildSyncFailureRows(
       input.supabaseAdmin,
@@ -585,7 +623,22 @@ export async function buildAdminCrmReport(input: {
     input.supabaseAdmin,
     input.tenantId,
     uniq(gifts.map((gift) => gift.donorId)),
+    anonymousDonors !== undefined,
   );
+  if (anonymousDonors) {
+    for (const donor of donors.values()) {
+      const prefs = donor.giving_preferences;
+      if (
+        prefs &&
+        typeof prefs === "object" &&
+        (("defaultAnonymousToPublic" in prefs &&
+          prefs.defaultAnonymousToPublic === true) ||
+          ("defaultAnonymousToRecipient" in prefs &&
+            prefs.defaultAnonymousToRecipient === true))
+      )
+        anonymousDonors.add(donor.id);
+    }
+  }
   return respond(
     aggregateGifts({
       getGiftGroupId: (gift) => gift.donorId,
@@ -598,7 +651,7 @@ export async function buildAdminCrmReport(input: {
       },
       getStatus: (id) => (id ? (donors.get(id)?.status ?? null) : null),
       gifts,
-      search: input.params.filters.search,
+      search: anonymousDonors ? null : input.params.filters.search,
     }),
   );
 }
@@ -639,46 +692,4 @@ export function buildReportResponse(
       rowCount: rows.length,
     },
   };
-}
-
-export function serializeAdminCrmReportCsv(report: AdminCrmReportResponse) {
-  // Every row says whether the report read every gift in the period, so a
-  // file cut at the read limit can't pass for complete once downloaded.
-  const reportComplete = report.completeness.complete === true;
-  const reportGiftLimit = report.completeness.donationLimit ?? "";
-  const headers = [
-    "id",
-    "label",
-    "net_amount_cents",
-    "gift_count",
-    "donor_count",
-    "last_gift_at",
-    "status",
-    "metadata",
-    "report_complete",
-    "report_gift_limit",
-  ];
-  const rows = report.rows.map((row) =>
-    [
-      row.id,
-      row.label,
-      row.amountCents,
-      row.giftCount,
-      row.donorCount,
-      row.lastGiftAt,
-      row.status,
-      row.metadata,
-      reportComplete,
-      reportGiftLimit,
-    ]
-      .map(csvSafeCell)
-      .join(","),
-  );
-
-  // Emit CRLF records + a UTF-8 BOM so Excel renders non-ASCII donor/org names
-  // correctly and matches the client download path (@asym/ui data-table export).
-  const body = [headers.map(csvSafeCell).join(","), ...rows].join(
-    CSV_RECORD_SEPARATOR,
-  );
-  return `${CSV_UTF8_BOM}${body}`;
 }

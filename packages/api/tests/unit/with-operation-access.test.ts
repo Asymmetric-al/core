@@ -6,6 +6,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { withOperation } from "../../src/shared/with-operation";
+
 import type * as AuthModule from "@asym/auth/context";
 import type { AuthContext } from "@asym/auth/context";
 import type { AuthMembership } from "@asym/auth/permissions";
@@ -23,7 +25,9 @@ vi.mock("@asym/lib/audit/logger", () => ({
   createAuditLogger: vi.fn(() => ({})),
 }));
 
-import { withOperation } from "../../src/shared/with-operation";
+vi.mock("../../src/shared/request-session-client", () => ({
+  createRequestSessionClient: vi.fn(async () => ({})),
+}));
 
 const TENANT = "00000000-0000-4000-8000-0000000000a1";
 
@@ -45,6 +49,20 @@ function context(membership: Partial<AuthMembership> | null): AuthContext {
     email: null,
     tenantId: TENANT,
     role: membership?.isTenantAdmin ? "admin" : (membership?.role ?? "staff"),
+    assignment: membership
+      ? {
+          assignmentId: "00000000-0000-4000-8000-000000000001",
+          tenantId: TENANT,
+          userId: "00000000-0000-4000-8000-0000000000b1",
+          membershipRole: membership.role ?? "staff",
+          staffRole:
+            membership.staffRole === undefined
+              ? "development"
+              : membership.staffRole,
+          isTenantAdmin: membership.isTenantAdmin ?? false,
+          revision: "1",
+        }
+      : null,
     memberships,
     profileId: "00000000-0000-4000-8000-0000000000c1",
     isAuthenticated: true,
@@ -65,6 +83,10 @@ async function status(
 beforeEach(() => vi.clearAllMocks());
 
 describe("withOperation access options (AL-2675)", () => {
+  it("does not run the caller handler without a resolved assignment", async () => {
+    expect(await status({}, context(null))).toBe(403);
+    expect(ok).not.toHaveBeenCalled();
+  });
   it("capability: admits a holder and refuses a row whose bundle lacks it", async () => {
     const gate = { capability: "contributions.apply_corrections" } as const;
     expect(await status(gate, context({ staffRole: "finance" }))).toBe(200);

@@ -51,6 +51,100 @@
       "reason": "Defines missionaries.person_id and profiles.person_id and seeds their rows (census supplement v3, #2256)."
     }
   ],
+  "derived_record_types": {
+    "crm_report_groups": {
+      "id": {
+        "type": "text",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "---",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "tenant_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "---",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "label": {
+        "type": "text",
+        "nullable": false,
+        "category": "contact",
+        "mission_control": "v-x",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "net_amount_cents": {
+        "type": "bigint",
+        "nullable": false,
+        "category": "financial",
+        "mission_control": "v-x",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "gift_count": {
+        "type": "integer",
+        "nullable": false,
+        "category": "financial",
+        "mission_control": "v-x",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "donor_count": {
+        "type": "integer",
+        "nullable": false,
+        "category": "financial",
+        "mission_control": "v-x",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "last_gift_at": {
+        "type": "timestamptz",
+        "nullable": true,
+        "category": "financial",
+        "mission_control": "v-x",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "report_complete": {
+        "type": "boolean",
+        "nullable": false,
+        "category": "public",
+        "mission_control": "v-x",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "report_gift_limit": {
+        "type": "integer",
+        "nullable": true,
+        "category": "financial",
+        "mission_control": "v-x",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      }
+    }
+  },
   "record_types": {
     "giving_target_entity_locks": {
       "id": {

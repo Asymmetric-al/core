@@ -48,7 +48,7 @@ async function hasGivingHistory(supabase: AdminClient, userId: string) {
   return false;
 }
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   const cronSecret = serverEnv.CRON_SECRET;
   // Fail CLOSED: this endpoint deletes users via the admin (RLS-bypass) client
   // and middleware exempts /api/*. If no CRON_SECRET is configured it must

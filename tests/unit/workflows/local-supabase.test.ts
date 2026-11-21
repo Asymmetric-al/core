@@ -18,6 +18,18 @@ const step = (marker: string) => steps.find((s) => s.includes(marker));
 const at = (marker: string) => workflow.indexOf(marker);
 
 describe("Local Supabase Stack workflow: the replay matches the platform's image", () => {
+  it("requires the governed projection round trip after fingerprinting", () => {
+    const command =
+      "bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts";
+    const run = step(command);
+    expect(run).toContain('FIELD_POLICY_IT_REQUIRED: "1"');
+    expect(run).toContain(
+      "FIELD_POLICY_IT_SUPABASE_URL: http://127.0.0.1:54321",
+    );
+    expect(run).toContain("export FIELD_POLICY_IT_ANON_KEY");
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    expect(at(command)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
+  });
   it("replays the chain on plain Postgres with the hosted defaults, as the release job does", () => {
     expect(workflow).toMatch(
       /services:\n\s+postgres:\n\s+image: public\.ecr\.aws\/docker\/library\/postgres:17\.11-alpine@sha256:[0-9a-f]{64}/,

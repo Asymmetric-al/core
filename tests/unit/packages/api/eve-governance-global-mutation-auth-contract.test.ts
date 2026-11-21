@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  withOperation,
+  withPlatformOperation,
   type OperationOptions,
 } from "../../../../packages/api/src/shared/with-operation";
 
@@ -158,7 +158,7 @@ describe("Eve governance global mutation authorization contract", () => {
   it("rejects active tenant staff before the global mutation can execute", async () => {
     getAuthContextMock.mockResolvedValue(activeTenantStaff);
     const setEveKillSwitch = vi.fn();
-    const patch = withOperation(async () => {
+    const patch = withPlatformOperation(async () => {
       setEveKillSwitch();
       return NextResponse.json({ ok: true });
     }, patchGate);
@@ -187,7 +187,7 @@ describe("Eve governance global mutation authorization contract", () => {
   it("refuses the global PATCH to a tenant administrator who is not a confirmed operator", async () => {
     getAuthContextMock.mockResolvedValue(tenantAdmin);
     const setEveKillSwitch = vi.fn();
-    const patch = withOperation(async () => {
+    const patch = withPlatformOperation(async () => {
       setEveKillSwitch();
       return NextResponse.json({ ok: true });
     }, patchGate);
@@ -206,7 +206,8 @@ describe("Eve governance global mutation authorization contract", () => {
       error: null,
     });
     const setEveKillSwitch = vi.fn();
-    const patch = withOperation(async () => {
+    // The governance route runs on the platform wrapper (AL-2677).
+    const patch = withPlatformOperation(async () => {
       setEveKillSwitch();
       return NextResponse.json({ ok: true });
     }, patchGate);
@@ -222,8 +223,8 @@ describe("Eve governance global mutation authorization contract", () => {
     expect(postGate).toEqual({ tenantAdministrator: true });
 
     const handler = vi.fn(async () => NextResponse.json({ ok: true }));
-    const get = withOperation(handler, getGate);
-    const post = withOperation(handler, postGate);
+    const get = withPlatformOperation(handler, getGate);
+    const post = withPlatformOperation(handler, postGate);
 
     getAuthContextMock.mockResolvedValue(activeTenantStaff);
     const staffResponses = await Promise.all([

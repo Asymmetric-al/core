@@ -170,6 +170,19 @@ describe("AL-2675 sweep: each tenant's people come from that tenant's membership
         tenantId: t,
         role: "admin",
         memberships: membershipsForRole("admin", t),
+        // D-18: exercise the same member-list boundary with the administrator's selected row in each tenant.
+        assignment: {
+          assignmentId:
+            t === TA
+              ? "00000000-0000-4000-8000-000000000001"
+              : "00000000-0000-4000-8000-000000000002",
+          tenantId: t,
+          userId: userId("admA"),
+          membershipRole: "staff",
+          staffRole: "development",
+          isTenantAdmin: true,
+          revision: "1",
+        },
         profileId: P.admA,
         isAuthenticated: true,
       } satisfies AuthContext);
