@@ -45,6 +45,7 @@ const PARITY = [
   "donation_saga_outbox",
   "email_templates",
   "donor_merge_candidates",
+  "crm_table_preference_audit_events",
 ];
 type Target = {
   t: string;
@@ -97,6 +98,7 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
       insert into public.donation_saga_outbox (tenant_id, donation_id, donor_id, amount, idempotency_key)
         select tenant_id, id, donor_id, 100, 'acc2251-' || id from public.donations where tenant_id in (:A, :B);
       insert into public.donor_merge_candidates (tenant_id, existing_donor_id, confidence) values (:A, :DA, 'low'), (:B, :DB, 'low');
+      insert into public.crm_table_preference_audit_events (tenant_id,table_id) values (:A,'acc2251'),(:B,'acc2251');
       insert into public.email_templates (tenant_id, name) values (:A, 'acc2251'), (:B, 'acc2251');
       insert into public.funds (tenant_id, name) values (:A, 'acc2251'), (:B, 'acc2251');`;
     const ids: Record<string, string> = { A: TA, B: TB, U, DA, DB };
@@ -198,7 +200,8 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
         const live = new Map((await targets()).map((x) => [x.t, x]));
         const e = exceptions();
         // AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
-        expect(e.length).toBeGreaterThanOrEqual(84);
+        // D-18: eight CRM tables now have scoped policies; the rest still need review.
+        expect(e.length).toBeGreaterThanOrEqual(76);
         const bad = e
           .map((x) => [x.table, live.get(x.table)] as const)
           .filter(([, l]) => !l || !l.rls || !l.force || l.policies !== 0)
@@ -213,9 +216,15 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
   it("criterion 2: an owner without BYPASSRLS is bound by RLS on an F and a D table", () =>
     tx(async () => {
       await ownerless();
-      for (const t of ["donors", "donor_merge_candidates"])
+      // D-18: keep both a populated deny-by-default table and the now-scoped candidates.
+      const tables = [
+        "donors",
+        "donor_merge_candidates",
+        "crm_table_preference_audit_events",
+      ];
+      for (const t of tables)
         await db.query(`alter table public.${t} owner to it_owner`);
-      for (const t of ["donors", "donor_merge_candidates"]) {
+      for (const t of tables) {
         const sel = await as(
           "it_owner",
           null,
@@ -235,8 +244,8 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
       const ins = await as(
         "it_owner",
         null,
-        "insert into public.donor_merge_candidates (tenant_id, existing_donor_id, confidence) values ($1, $2, 'low')",
-        [TA, DA],
+        "insert into public.crm_table_preference_audit_events (tenant_id,table_id) values ($1,'acc2251')",
+        [TA],
       );
       expect(ins.code, "D-table insert").toBe("42501");
     }, true));

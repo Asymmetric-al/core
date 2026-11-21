@@ -76,6 +76,10 @@ const ROWS: [
  * admit no one; pdf_templates has no grant for signed-in users at all.
  */
 const STAFF_ONLY = [
+  // D-18 (AL-2677): CRM staff may read staging rows for their selected tenant.
+  "donation_crm_links",
+  "staged_gift_allocations",
+  "staged_gifts",
   "account_claim_requests",
   "audit_logs",
   "crm_command_logs",
@@ -118,17 +122,26 @@ const STAFF_ONLY = [
   "support_teams",
 ];
 const NOBODY = [
-  "donation_crm_links",
   "giving_reconciliation_runs",
-  "staged_gift_allocations",
   "staged_gift_audit_events",
-  "staged_gifts",
   "stripe_raw_events",
 ];
 const NO_GRANT = ["pdf_templates"];
 
 /** Values a generated row needs where a column's check constraint asks for one. */
 const OVERRIDES: Record<string, Record<string, string>> = {
+  // D-18: exercise every newly readable CRM relation in the no-scope sweep.
+  contribution_adjustments: { source_surface: "'api'", status: "'applied'" },
+  contribution_corrections: {
+    correction_type: "'metadata_update'",
+    source_surface: "'api'",
+    status: "'pending'",
+  },
+  contribution_correction_requests: {
+    source_surface: "'api'",
+    status: "'pending'",
+  },
+  donor_merge_candidates: { confidence: "'possible'", status: "'open'" },
   crm_command_logs: { status: "'queued'" },
   crm_notes: { visibility: "'standard'", title: "'t'", body: "'b'" },
   member_care_activities: { type: "'check_in'" },

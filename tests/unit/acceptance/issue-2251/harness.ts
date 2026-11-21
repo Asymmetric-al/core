@@ -92,20 +92,12 @@ const words = (s: string) => s.split(/\s+/).filter(Boolean);
  * #2260, which gives it own-row policies: S 68 -> 67, F 57 -> 58).
  */
 const S_PATHS: Record<string, string> = {
-  contribution_adjustments:
-    "admin/contribution-operations/operations.ts admin/contribution-shared/row-inputs.ts",
   contribution_approval_notification_preferences:
     "admin/contribution-operations/approval-notifications.ts",
   contribution_approval_notification_settings:
     "admin/contribution-operations/approval-notifications.ts",
   contribution_approval_notifications:
     "admin/contribution-operations/approval-notifications.ts",
-  contribution_approval_policies:
-    "admin/contribution-operations/correction-requests.ts",
-  contribution_correction_requests:
-    "admin/contribution-operations/correction-requests.ts admin/contribution-shared/row-inputs.ts",
-  contribution_corrections:
-    "admin/contribution-operations/operations.ts admin/contribution-shared/row-inputs.ts",
   contribution_notification_events:
     "admin/contribution-operations/notifications/store.ts",
   contribution_notification_settings:
@@ -121,9 +113,6 @@ const S_PATHS: Record<string, string> = {
   contribution_receipt_snapshots:
     "admin/contribution-operations/operations.ts admin/contribution-operations/receipt-pdf.ts",
   contribution_refund_attempts: "admin/contribution-operations/store.ts",
-  crm_table_named_views: "admin/crm/table-preferences/named-views.ts",
-  crm_table_tenant_defaults: "admin/crm/table-preferences/service.ts",
-  crm_table_user_preferences: "admin/crm/table-preferences/service.ts",
   donation_saga_outbox:
     "workflows/adapters/donations.ts workflows/summaries.ts",
   email_events: "email/webhooks/resend.ts",
@@ -192,14 +181,17 @@ export const S = Object.fromEntries(
 export const D = words(`
   contribution_operation_prompt_settings
   contribution_operation_user_preferences crm_table_preference_audit_events
-  currency_rate_snapshots donor_merge_audit donor_merge_candidates
+  currency_rate_snapshots donor_merge_audit
   donor_merge_redirects email_suppression_groups eve_notification_attempts
   eve_policy_permission_grants eve_policy_tracer_artifacts
   mission_control_automation_previews mission_control_automation_rule_versions
   mission_control_automation_test_runs mission_control_task_comments
   mission_control_task_reminders pledge_charge_attempts
 `);
+// D-18 (AL-2677): scoped CRM SELECT policies replace eight deny-by-default exceptions.
 export const F = words(`
+  contribution_adjustments contribution_approval_policies contribution_correction_requests contribution_corrections
+  crm_table_named_views crm_table_tenant_defaults crm_table_user_preferences donor_merge_candidates
   assets audit_logs campaigns crm_command_logs crm_merge_candidates crm_notes
   crm_record_links donation_crm_links donations donor_feed_preferences
   donor_pledges donors
