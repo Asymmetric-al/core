@@ -1,0 +1,10 @@
+import Head from "next/head";
+import Script from "next/script";
+
+export function Page() {
+  return (
+    <Head>
+      <Script src="/analytics.js" />
+    </Head>
+  );
+}

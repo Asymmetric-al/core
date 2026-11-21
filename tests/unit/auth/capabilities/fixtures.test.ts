@@ -1,8 +1,11 @@
+import { spawnSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
 
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+
+import { diagnosticLocations } from "../../../setup/tsc-diagnostics";
 
 /*
  * Every `.ts` file in DIR must fail `tsc --noEmit -p DIR/tsconfig.json` exactly
@@ -18,7 +21,7 @@ function taggedErrors() {
     .filter((file) => file.endsWith(".ts"))
     .flatMap((file) =>
       readFileSync(join(DIR, file), "utf8")
-        .split("\n")
+        .split(/\r?\n/)
         .flatMap((line, index) => {
           const match = TAG.exec(line);
           return match ? [`${file}:${index + 1} TS${match[1]}`] : [];
@@ -47,5 +50,35 @@ describe("capability registry tsc poison fixtures", () => {
     const tagged = taggedErrors();
     expect(tagged.length).toBeGreaterThanOrEqual(10);
     expect(compilerErrors().sort()).toEqual(tagged.sort());
+  });
+
+  it("fails exactly on the corresponding native compiler diagnostics", () => {
+    const nativeCodes = new Map([
+      [
+        "authenticated-context.ts:7 TS2345",
+        "authenticated-context.ts:7 TS2741",
+      ],
+    ]);
+    const expected = taggedErrors()
+      .map((tag) => nativeCodes.get(tag) ?? tag)
+      .sort();
+    const result = spawnSync(
+      process.execPath,
+      [
+        "node_modules/@typescript/native/lib/tsc.js",
+        "--pretty",
+        "false",
+        "--noEmit",
+        "-p",
+        DIR,
+      ],
+      { encoding: "utf8" },
+    );
+    const output = `${result.stdout}${result.stderr}`;
+    expect(result.error).toBeUndefined();
+    expect([1, 2], output).toContain(result.status);
+    expect(diagnosticLocations(output, process.cwd(), DIR), output).toEqual(
+      expected,
+    );
   });
 });

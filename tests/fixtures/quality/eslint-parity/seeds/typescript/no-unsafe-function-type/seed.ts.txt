@@ -1,0 +1,1 @@
+export const call = (callback: Function) => callback;

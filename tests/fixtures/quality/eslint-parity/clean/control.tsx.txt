@@ -1,0 +1,24 @@
+import { useEffect, useState } from "react";
+
+// Badge is referenced only from JSX: no-unused-vars must count that use (react/jsx-uses-vars).
+function Badge({ label }: { label: string }) {
+  return <span>{label}</span>;
+}
+
+export function Panel({ items }: { items: string[] }) {
+  const [count, setCount] = useState(items.length);
+  useEffect(() => {
+    const handle = setTimeout(() => setCount(items.length), 0);
+    return () => clearTimeout(handle);
+  }, [items]);
+  return (
+    <ul>
+      {items.map((item) => (
+        <li key={item}>
+          <Badge label={item} />
+        </li>
+      ))}
+      <li>{count}</li>
+    </ul>
+  );
+}

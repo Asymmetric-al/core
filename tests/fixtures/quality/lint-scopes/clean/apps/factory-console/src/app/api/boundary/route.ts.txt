@@ -1,0 +1,10 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+export { GET } from "../../../server/console-route";
+
+export type Request = NextRequest;
+
+export const respond = NextResponse.json;
+
+export const loadRoute = () => import("../../../server/console-route");

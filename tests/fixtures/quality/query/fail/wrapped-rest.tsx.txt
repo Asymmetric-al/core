@@ -1,0 +1,6 @@
+import { useCount } from "./loaders";
+
+export function useCountState() {
+  const { data, ...rest } = useCount();
+  return { data, isPending: rest.isPending };
+}

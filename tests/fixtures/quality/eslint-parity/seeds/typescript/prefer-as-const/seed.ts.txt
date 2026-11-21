@@ -1,0 +1,1 @@
+export const mode = "dark" as "dark";

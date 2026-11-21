@@ -1,0 +1,10 @@
+import { createServerClient } from "@supabase/ssr";
+import type { AdminClient } from "@asym/database/supabase/admin";
+
+export { m } from "motion/react";
+
+export type Client = AdminClient;
+
+export const connect = createServerClient;
+
+export const loadAdmin = () => import("../../../../../apps/admin/table");

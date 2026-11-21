@@ -1,0 +1,4 @@
+export function total() {
+  let sum = 1;
+  return sum;
+}

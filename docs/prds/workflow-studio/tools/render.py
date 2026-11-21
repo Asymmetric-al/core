@@ -11,7 +11,7 @@ REPO = PACKAGE.parents[2]
 CHANGE = REPO / "openspec/changes/add-workflow-studio-program-contracts"
 
 def read(name):
-    return json.loads((PACKAGE / name).read_text())
+    return json.loads((PACKAGE / name).read_text(encoding="utf-8"))
 
 def render():
     recipes = read("contracts/recipe-catalog.json")["recipes"]
@@ -65,6 +65,12 @@ def render():
     out[CHANGE / "tasks.md"] = text
     return out
 
+def format_local(content, path):
+    return subprocess.run(
+        ["bunx", "--no-install", "oxfmt", "--no-error-on-unmatched-pattern", "--disable-nested-config", "--stdin-filepath", str(path)],
+        input=content.encode("utf-8"), capture_output=True, cwd=REPO, check=True,
+    ).stdout.decode("utf-8")
+
 def main():
     parser = argparse.ArgumentParser()
     mode = parser.add_mutually_exclusive_group(required=True)
@@ -72,15 +78,19 @@ def main():
     mode.add_argument("--check", action="store_true")
     args = parser.parse_args()
     failures = []
-    for path, content in render().items():
-        formatted = subprocess.run(["bunx", "--no-install", "prettier", "--stdin-filepath", str(path)], input=content, text=True, capture_output=True, cwd=REPO, check=True).stdout
-        if path.name == "spec.md":
-            formatted = subprocess.run(["node", str(REPO / "scripts/openspec-contract-view.mjs"), path.parent.name, "--write" if args.write else "--check"], input=formatted, text=True, capture_output=True, cwd=REPO, check=True).stdout
-            formatted = subprocess.run(["bunx", "--no-install", "prettier", "--stdin-filepath", str(path)], input=formatted, text=True, capture_output=True, cwd=REPO, check=True).stdout
+    outputs = {path: format_local(content, path) for path, content in render().items()}
+    specs = [path for path in outputs if path.name == "spec.md"]
+    batch = [{"capability": path.parent.name, "content": outputs[path]} for path in specs]
+    compact = subprocess.run(
+        ["node", str(REPO / "scripts/openspec-contract-view.mjs"), "--batch", "--write" if args.write else "--check"],
+        input=json.dumps(batch).encode("utf-8"), stdout=subprocess.PIPE, cwd=REPO, check=True,
+    )
+    outputs.update(zip(specs, json.loads(compact.stdout), strict=True))
+    for path, formatted in outputs.items():
         if args.write:
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(formatted)
-        elif not path.exists() or path.read_text() != formatted:
+            path.write_text(formatted, encoding="utf-8", newline="\n")
+        elif not path.exists() or path.read_text(encoding="utf-8") != formatted:
             failures.append(str(path.relative_to(REPO)))
     if failures:
         print("Stale generated views: " + ", ".join(failures), file=sys.stderr)

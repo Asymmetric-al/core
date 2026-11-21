@@ -15,7 +15,7 @@ import {
 } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { format, resolveConfig } from "prettier";
+import { formatSource } from "./lib/format-source.mts";
 
 const defaultRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -104,13 +104,11 @@ async function updateHashes(repoRoot, names) {
     Object.assign(entry, { entrypointHash, treeHash });
   const temporary = `${auditPath}.${randomUUID()}.tmp`;
   try {
-    const configuration = await resolveConfig(
-      path.join(defaultRoot, "package.json"),
+    const content = await formatSource(
+      auditPath,
+      JSON.stringify(audit),
+      "trusted",
     );
-    const content = await format(JSON.stringify(audit), {
-      ...configuration,
-      parser: "json",
-    });
     await writeFile(temporary, content, { flag: "wx" });
     await rename(temporary, auditPath);
   } finally {

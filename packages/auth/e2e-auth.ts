@@ -316,7 +316,9 @@ function decodeBase64Url(value: string): string {
   return new TextDecoder().decode(base64UrlToBytes(value));
 }
 
-async function importE2EAuthKey(secret: string): Promise<CryptoKey> {
+async function importE2EAuthKey(
+  secret: string,
+): ReturnType<typeof crypto.subtle.importKey> {
   return crypto.subtle.importKey(
     "raw",
     utf8Bytes(secret),

@@ -1,0 +1,10 @@
+import { createClient } from "@asym/database/supabase";
+import type { CookieOptions } from "@supabase/ssr";
+
+export { createServerClient } from "@supabase/ssr";
+
+export type Options = CookieOptions;
+
+export const connect = createClient;
+
+export const loadServer = () => import("@asym/database/supabase/server");

@@ -1,0 +1,6 @@
+import { queryOptions } from "@tanstack/react-query";
+
+export const options = queryOptions({
+  queryKey: ["count"],
+  queryFn: () => Promise.resolve(),
+});

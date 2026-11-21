@@ -5,13 +5,13 @@
   "files": [
     {
       "path": "scripts/inspect.mjs",
-      "upstreamHash": "999ea1a4a53893576d1699799073754795f9532c297e52578f3fddf07bcb180d",
+      "upstreamNormalizedHash": "4054a8617122ab5541a95c69594a96d0bcb526fc51b43af3035094f7d51985a3",
       "coreHash": "4329113ce4d609788784e80865ce4a5a17b52ec0eb63d0a0bb4a8e1a17e279d2",
       "template": "taste-inspect.mjs"
     },
     {
       "path": "scripts/scenes.mjs",
-      "upstreamHash": "2372caf01e575bb86f49eb6baa3d78f5cdcda20357e01eff0925a7fd8a9f6a2d",
+      "upstreamNormalizedHash": "2372caf01e575bb86f49eb6baa3d78f5cdcda20357e01eff0925a7fd8a9f6a2d",
       "coreHash": "b0fb41436903e352e5cfe6039d4d2c360e83d092c737257b318e0880882f7d3c",
       "template": "taste-scenes.mjs"
     }

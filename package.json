@@ -45,6 +45,7 @@
     "ci:preflight": "node scripts/verify/ci-preflight.mjs",
     "release:production": "node scripts/release/production.mjs",
     "typecheck": "turbo run typecheck",
+    "typecheck:programs": "tsc -p tsconfig.root.json && tsc -p scripts/tsconfig.json && tsc -p tooling/tsconfig.json",
     "typecheck:admin": "turbo run typecheck --filter=@asym/admin",
     "typecheck:missionary": "turbo run typecheck --filter=@asym/missionary-app",
     "typecheck:donor": "turbo run typecheck --filter=@asym/donor",
@@ -196,7 +197,8 @@
     "test:react-cleanup": "playwright test --config=tests/e2e/playwright-isolated.config.ts",
     "verify:node-version": "node scripts/verify/node-version.mjs",
     "verify:typescript-toolchain": "node scripts/verify/typescript-toolchain.mjs",
-    "verify:pdf-package-provenance": "node scripts/verify/pdf-package-provenance.mjs"
+    "verify:pdf-package-provenance": "node scripts/verify/pdf-package-provenance.mjs",
+    "lint:query": "turbo run lint:query --concurrency=1"
   },
   "dependencies": {
     "@asym/api": "workspace:*",
@@ -242,7 +244,7 @@
     "@types/react-dom": "19.3.0",
     "@typescript-eslint/eslint-plugin": "8.72.0",
     "@typescript-eslint/parser": "8.72.0",
-    "@typescript/native": "npm:typescript@7.0.2",
+    "@typescript/native": "npm:typescript@7.1.0-beta",
     "@vitejs/plugin-react": "6.1.2",
     "@vitest/coverage-v8": "5.0.5",
     "agent-browser": "0.39.1",

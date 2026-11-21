@@ -1,0 +1,4920 @@
+[
+  {
+    "rule": "anti-slop/no-array-filter-map",
+    "task": "RS-anti-slop",
+    "count": 83
+  },
+  {
+    "rule": "anti-slop/no-chained-type-assertions",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 5
+  },
+  {
+    "rule": "anti-slop/no-chained-type-assertions",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-chained-type-assertions",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 70
+  },
+  {
+    "rule": "anti-slop/no-chained-type-assertions",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 2
+  },
+  {
+    "rule": "anti-slop/no-chained-type-assertions",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-chained-type-assertions",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 28
+  },
+  {
+    "rule": "anti-slop/no-chained-type-assertions",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 238
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 5
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 16
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 14
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 2
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 34
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 6
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 2
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 10
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 27
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 41
+  },
+  {
+    "rule": "anti-slop/no-conditional-empty-object-spread",
+    "workspace": "tooling/eslint-config",
+    "task": "RS-tooling-eslint-config",
+    "count": 4
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 7
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 88
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 5
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 25
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 7
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 80
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 14
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "packages/config",
+    "task": "RS-packages-config",
+    "count": 6
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 20
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 14
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 2
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 13
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 4
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 10
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 8
+  },
+  {
+    "rule": "anti-slop/no-known-value-widening",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 364
+  },
+  {
+    "rule": "anti-slop/no-module-mocking",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 27
+  },
+  {
+    "rule": "anti-slop/no-module-mocking",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 12
+  },
+  {
+    "rule": "anti-slop/no-module-mocking",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1438
+  },
+  {
+    "rule": "anti-slop/no-object-parameters",
+    "task": "RS-anti-slop",
+    "count": 22
+  },
+  {
+    "rule": "anti-slop/no-reflect-apply",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 11
+  },
+  {
+    "rule": "anti-slop/no-reflect-get",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 17
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 6
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 246
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 24
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 30
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 8
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 315
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 39
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "packages/config",
+    "task": "RS-packages-config",
+    "count": 6
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 32
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 13
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 54
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 25
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 4
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 84
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 25
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 346
+  },
+  {
+    "rule": "anti-slop/no-runtime-typeof",
+    "workspace": "tooling/quality",
+    "task": "RS-tooling-quality",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-shape-in-symbol-names",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 9
+  },
+  {
+    "rule": "anti-slop/no-shape-in-symbol-names",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 35
+  },
+  {
+    "rule": "anti-slop/no-shape-in-symbol-names",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 3
+  },
+  {
+    "rule": "anti-slop/no-shape-in-symbol-names",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 13
+  },
+  {
+    "rule": "anti-slop/no-shape-in-symbol-names",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 2
+  },
+  {
+    "rule": "anti-slop/no-shape-in-symbol-names",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 81
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 76
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 8
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 12
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 3
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 188
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 13
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "packages/config",
+    "task": "RS-packages-config",
+    "count": 6
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 15
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 18
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 15
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 23
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 9
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 4
+  },
+  {
+    "rule": "anti-slop/no-unknown-parameters",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 38
+  },
+  {
+    "rule": "anti-slop/no-unknown-returns",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 37
+  },
+  {
+    "rule": "anti-slop/no-unknown-returns",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 2
+  },
+  {
+    "rule": "anti-slop/no-unknown-returns",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 3
+  },
+  {
+    "rule": "anti-slop/no-unknown-returns",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 24
+  },
+  {
+    "rule": "anti-slop/no-unknown-returns",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-unknown-returns",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 3
+  },
+  {
+    "rule": "anti-slop/no-unknown-returns",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 5
+  },
+  {
+    "rule": "anti-slop/no-unknown-returns",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-unknown-returns",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 156
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 5
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 87
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 6
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 68
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 232
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 9
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 48
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 35
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 7
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 15
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 12
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "packages/mock-data",
+    "task": "RS-packages-mock-data",
+    "count": 1
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 35
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 11
+  },
+  {
+    "rule": "anti-slop/no-unsafe-dictionary-type",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 862
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 82
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": ".oss-scanner",
+    "task": "RS-oss-scanner",
+    "count": 16
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 4065
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 414
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 1492
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 473
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 4628
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 508
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "packages/config",
+    "task": "RS-packages-config",
+    "count": 29
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 391
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 100
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "packages/env",
+    "task": "RS-packages-env",
+    "count": 48
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 485
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 56
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 278
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 237
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "packages/mock-data",
+    "task": "RS-packages-mock-data",
+    "count": 23
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 1373
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 4603
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 24293
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "tooling/eslint-config",
+    "task": "RS-tooling-eslint-config",
+    "count": 276
+  },
+  {
+    "rule": "anti-slop/require-readable-spacing",
+    "workspace": "tooling/quality",
+    "task": "RS-tooling-quality",
+    "count": 49
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 5
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 278
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 17
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 92
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 19
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 605
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 41
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "packages/config",
+    "task": "RS-packages-config",
+    "count": 13
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 70
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 5
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "packages/env",
+    "task": "RS-packages-env",
+    "count": 4
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 10
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 30
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 19
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 9
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "packages/mock-data",
+    "task": "RS-packages-mock-data",
+    "count": 4
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 221
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 9
+  },
+  {
+    "rule": "anti-slop/require-safety-comment-for-type-assertion",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 3080
+  },
+  {
+    "rule": "eslint/accessor-pairs",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 2
+  },
+  {
+    "rule": "eslint/arrow-body-style",
+    "task": "RS-javascript",
+    "count": 60
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 15
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 846
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 103
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 533
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 139
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 637
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 163
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 49
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 3
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "packages/env",
+    "task": "RS-packages-env",
+    "count": 26
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 89
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 31
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 60
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 52
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "packages/mock-data",
+    "task": "RS-packages-mock-data",
+    "count": 5
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 349
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 1387
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 2759
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "tooling/eslint-config",
+    "task": "RS-tooling-eslint-config",
+    "count": 109
+  },
+  {
+    "rule": "eslint/curly",
+    "workspace": "tooling/quality",
+    "task": "RS-tooling-quality",
+    "count": 33
+  },
+  {
+    "rule": "eslint/default-case",
+    "task": "RS-javascript",
+    "count": 41
+  },
+  {
+    "rule": "eslint/default-param-last",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 2
+  },
+  {
+    "rule": "eslint/eqeqeq",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 1
+  },
+  {
+    "rule": "eslint/func-name-matching",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 1
+  },
+  {
+    "rule": "eslint/func-names",
+    "task": "RS-javascript",
+    "count": 18
+  },
+  {
+    "rule": "eslint/logical-assignment-operators",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 1
+  },
+  {
+    "rule": "eslint/max-classes-per-file",
+    "task": "RS-javascript",
+    "count": 18
+  },
+  {
+    "rule": "eslint/no-alert",
+    "task": "RS-javascript",
+    "count": 2
+  },
+  {
+    "rule": "eslint/no-case-declarations",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-constant-binary-expression",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-control-regex",
+    "task": "RS-javascript",
+    "count": 12
+  },
+  {
+    "rule": "eslint/no-div-regex",
+    "task": "RS-javascript",
+    "count": 11
+  },
+  {
+    "rule": "eslint/no-dupe-keys",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 4
+  },
+  {
+    "rule": "eslint/no-duplicate-imports",
+    "task": "RS-javascript",
+    "count": 6
+  },
+  {
+    "rule": "eslint/no-else-return",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-empty",
+    "task": "RS-javascript",
+    "count": 12
+  },
+  {
+    "rule": "eslint/no-empty-function",
+    "task": "RS-javascript",
+    "count": 89
+  },
+  {
+    "rule": "eslint/no-empty-pattern",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 5
+  },
+  {
+    "rule": "eslint/no-eq-null",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 30
+  },
+  {
+    "rule": "eslint/no-eq-null",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 44
+  },
+  {
+    "rule": "eslint/no-eq-null",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 2
+  },
+  {
+    "rule": "eslint/no-eq-null",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 2
+  },
+  {
+    "rule": "eslint/no-eq-null",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 6
+  },
+  {
+    "rule": "eslint/no-eq-null",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 17
+  },
+  {
+    "rule": "eslint/no-eq-null",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 3
+  },
+  {
+    "rule": "eslint/no-eq-null",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 9
+  },
+  {
+    "rule": "eslint/no-eq-null",
+    "workspace": "tooling/eslint-config",
+    "task": "RS-tooling-eslint-config",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-inner-declarations",
+    "task": "RS-javascript",
+    "count": 8
+  },
+  {
+    "rule": "eslint/no-loop-func",
+    "task": "RS-javascript",
+    "count": 35
+  },
+  {
+    "rule": "eslint/no-multi-assign",
+    "task": "RS-javascript",
+    "count": 14
+  },
+  {
+    "rule": "eslint/no-negated-condition",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 31
+  },
+  {
+    "rule": "eslint/no-negated-condition",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 7
+  },
+  {
+    "rule": "eslint/no-negated-condition",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 29
+  },
+  {
+    "rule": "eslint/no-negated-condition",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 7
+  },
+  {
+    "rule": "eslint/no-negated-condition",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 14
+  },
+  {
+    "rule": "eslint/no-negated-condition",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 2
+  },
+  {
+    "rule": "eslint/no-negated-condition",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-negated-condition",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-negated-condition",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 2
+  },
+  {
+    "rule": "eslint/no-negated-condition",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-negated-condition",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 19
+  },
+  {
+    "rule": "eslint/no-negated-condition",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 20
+  },
+  {
+    "rule": "eslint/no-negated-condition",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 15
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 2
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 141
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 28
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 67
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 29
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 19
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 2
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 3
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 2
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 9
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "packages/mock-data",
+    "task": "RS-packages-mock-data",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 31
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 32
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 93
+  },
+  {
+    "rule": "eslint/no-nested-ternary",
+    "workspace": "tooling/eslint-config",
+    "task": "RS-tooling-eslint-config",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-new",
+    "task": "RS-javascript",
+    "count": 3
+  },
+  {
+    "rule": "eslint/no-new-func",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 3
+  },
+  {
+    "rule": "eslint/no-new-wrappers",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 2
+  },
+  {
+    "rule": "eslint/no-param-reassign",
+    "task": "RS-javascript",
+    "count": 29
+  },
+  {
+    "rule": "eslint/no-promise-executor-return",
+    "task": "RS-javascript",
+    "count": 94
+  },
+  {
+    "rule": "eslint/no-proto",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-regex-spaces",
+    "task": "RS-javascript",
+    "count": 23
+  },
+  {
+    "rule": "eslint/no-script-url",
+    "task": "RS-javascript",
+    "count": 26
+  },
+  {
+    "rule": "eslint/no-sequences",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 32
+  },
+  {
+    "rule": "eslint/no-shadow",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-shadow",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-shadow",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 3
+  },
+  {
+    "rule": "eslint/no-shadow",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-shadow",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 5
+  },
+  {
+    "rule": "eslint/no-shadow",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 4
+  },
+  {
+    "rule": "eslint/no-shadow",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 10
+  },
+  {
+    "rule": "eslint/no-shadow",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 14
+  },
+  {
+    "rule": "eslint/no-shadow",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 99
+  },
+  {
+    "rule": "eslint/no-shadow",
+    "workspace": "tooling/quality",
+    "task": "RS-tooling-quality",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-sparse-arrays",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-template-curly-in-string",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 3
+  },
+  {
+    "rule": "eslint/no-template-curly-in-string",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 251
+  },
+  {
+    "rule": "eslint/no-throw-literal",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 4
+  },
+  {
+    "rule": "eslint/no-unmodified-loop-condition",
+    "task": "RS-javascript",
+    "count": 4
+  },
+  {
+    "rule": "eslint/no-unsafe-finally",
+    "task": "RS-javascript",
+    "count": 6
+  },
+  {
+    "rule": "eslint/no-unsafe-optional-chaining",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 4
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 321
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 23
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 129
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 28
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 185
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 20
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "packages/config",
+    "task": "RS-packages-config",
+    "count": 16
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 9
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 2
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "packages/env",
+    "task": "RS-packages-env",
+    "count": 6
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 19
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 22
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 7
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 100
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 67
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 92
+  },
+  {
+    "rule": "eslint/no-use-before-define",
+    "workspace": "tooling/eslint-config",
+    "task": "RS-tooling-eslint-config",
+    "count": 5
+  },
+  {
+    "rule": "eslint/no-useless-concat",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 5
+  },
+  {
+    "rule": "eslint/no-useless-escape",
+    "task": "RS-javascript",
+    "count": 10
+  },
+  {
+    "rule": "eslint/no-useless-return",
+    "task": "RS-javascript",
+    "count": 5
+  },
+  {
+    "rule": "eslint/no-void",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 86
+  },
+  {
+    "rule": "eslint/no-void",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 7
+  },
+  {
+    "rule": "eslint/no-void",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 13
+  },
+  {
+    "rule": "eslint/no-void",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 6
+  },
+  {
+    "rule": "eslint/no-void",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 1
+  },
+  {
+    "rule": "eslint/no-void",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 10
+  },
+  {
+    "rule": "eslint/object-shorthand",
+    "task": "RS-javascript",
+    "count": 50
+  },
+  {
+    "rule": "eslint/one-var",
+    "task": "RS-javascript",
+    "count": 43
+  },
+  {
+    "rule": "eslint/prefer-arrow-callback",
+    "task": "RS-javascript",
+    "count": 21
+  },
+  {
+    "rule": "eslint/prefer-object-has-own",
+    "task": "RS-javascript",
+    "count": 11
+  },
+  {
+    "rule": "eslint/prefer-object-spread",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 2
+  },
+  {
+    "rule": "eslint/prefer-regex-literals",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "eslint/prefer-template",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 1
+  },
+  {
+    "rule": "eslint/prefer-template",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 32
+  },
+  {
+    "rule": "eslint/prefer-template",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 2
+  },
+  {
+    "rule": "eslint/prefer-template",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 1
+  },
+  {
+    "rule": "eslint/prefer-template",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 1
+  },
+  {
+    "rule": "eslint/prefer-template",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 106
+  },
+  {
+    "rule": "eslint/prefer-template",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 244
+  },
+  {
+    "rule": "eslint/preserve-caught-error",
+    "task": "RS-javascript",
+    "count": 20
+  },
+  {
+    "rule": "eslint/radix",
+    "task": "RS-javascript",
+    "count": 12
+  },
+  {
+    "rule": "eslint/sort-vars",
+    "task": "RS-javascript",
+    "count": 25
+  },
+  {
+    "rule": "eslint/unicode-bom",
+    "task": "RS-javascript",
+    "count": 5
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 3
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 186
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 24
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 70
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 21
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 286
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 16
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "packages/config",
+    "task": "RS-packages-config",
+    "count": 3
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 19
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 4
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 10
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 6
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 14
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 2
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 123
+  },
+  {
+    "rule": "import/consistent-type-specifier-style",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 251
+  },
+  {
+    "rule": "import/first",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 17
+  },
+  {
+    "rule": "import/first",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 7
+  },
+  {
+    "rule": "import/first",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 1
+  },
+  {
+    "rule": "import/first",
+    "workspace": "packages/mock-data",
+    "task": "RS-packages-mock-data",
+    "count": 3
+  },
+  {
+    "rule": "import/first",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 1
+  },
+  {
+    "rule": "import/first",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 275
+  },
+  {
+    "rule": "import/namespace",
+    "task": "RS-imports",
+    "count": 9
+  },
+  {
+    "rule": "import/newline-after-import",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 21
+  },
+  {
+    "rule": "import/newline-after-import",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 3
+  },
+  {
+    "rule": "import/newline-after-import",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 1
+  },
+  {
+    "rule": "import/newline-after-import",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 2
+  },
+  {
+    "rule": "import/newline-after-import",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 17
+  },
+  {
+    "rule": "import/newline-after-import",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 2
+  },
+  {
+    "rule": "import/newline-after-import",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 61
+  },
+  {
+    "rule": "import/no-cycle",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 2
+  },
+  {
+    "rule": "import/no-empty-named-blocks",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 3
+  },
+  {
+    "rule": "import/no-mutable-exports",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "import/no-named-as-default",
+    "task": "RS-imports",
+    "count": 47
+  },
+  {
+    "rule": "import/no-named-as-default-member",
+    "task": "RS-imports",
+    "count": 60
+  },
+  {
+    "rule": "import/no-named-default",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "jsdoc/check-tag-names",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 256
+  },
+  {
+    "rule": "jsdoc/require-param-description",
+    "task": "RS-jsdoc",
+    "count": 14
+  },
+  {
+    "rule": "jsdoc/require-returns-description",
+    "task": "RS-jsdoc",
+    "count": 3
+  },
+  {
+    "rule": "jsdoc/require-yields",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 2
+  },
+  {
+    "rule": "jsx-a11y/alt-text",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "jsx-a11y/anchor-has-content",
+    "task": "RS-accessibility",
+    "count": 22
+  },
+  {
+    "rule": "jsx-a11y/click-events-have-key-events",
+    "task": "RS-accessibility",
+    "count": 4
+  },
+  {
+    "rule": "jsx-a11y/control-has-associated-label",
+    "task": "RS-accessibility",
+    "count": 21
+  },
+  {
+    "rule": "jsx-a11y/heading-has-content",
+    "task": "RS-accessibility",
+    "count": 2
+  },
+  {
+    "rule": "jsx-a11y/label-has-associated-control",
+    "task": "RS-accessibility",
+    "count": 17
+  },
+  {
+    "rule": "jsx-a11y/media-has-caption",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 1
+  },
+  {
+    "rule": "jsx-a11y/no-noninteractive-element-interactions",
+    "task": "RS-accessibility",
+    "count": 5
+  },
+  {
+    "rule": "jsx-a11y/no-noninteractive-tabindex",
+    "task": "RS-accessibility",
+    "count": 7
+  },
+  {
+    "rule": "jsx-a11y/no-redundant-roles",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 1
+  },
+  {
+    "rule": "jsx-a11y/no-static-element-interactions",
+    "task": "RS-accessibility",
+    "count": 3
+  },
+  {
+    "rule": "jsx-a11y/role-has-required-aria-props",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 1
+  },
+  {
+    "rule": "node/callback-return",
+    "task": "RS-node",
+    "count": 17
+  },
+  {
+    "rule": "oxc/branches-sharing-code",
+    "task": "RS-oxc",
+    "count": 5
+  },
+  {
+    "rule": "oxc/no-accumulating-spread",
+    "task": "RS-oxc",
+    "count": 3
+  },
+  {
+    "rule": "playwright/consistent-spacing-between-blocks",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 9
+  },
+  {
+    "rule": "playwright/expect-expect",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 2
+  },
+  {
+    "rule": "playwright/missing-playwright-await",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 34
+  },
+  {
+    "rule": "playwright/no-conditional-expect",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 232
+  },
+  {
+    "rule": "playwright/no-conditional-in-test",
+    "task": "RS-playwright",
+    "count": 94
+  },
+  {
+    "rule": "playwright/no-networkidle",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 16
+  },
+  {
+    "rule": "playwright/no-useless-not",
+    "task": "RS-playwright",
+    "count": 6
+  },
+  {
+    "rule": "playwright/no-wait-for-selector",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 3
+  },
+  {
+    "rule": "playwright/prefer-hooks-in-order",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "playwright/prefer-locator",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 4
+  },
+  {
+    "rule": "playwright/prefer-to-have-count",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 3
+  },
+  {
+    "rule": "playwright/prefer-to-have-length",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 1
+  },
+  {
+    "rule": "playwright/prefer-web-first-assertions",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 6
+  },
+  {
+    "rule": "playwright/valid-describe-callback",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "playwright/valid-expect",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 4
+  },
+  {
+    "rule": "promise/always-return",
+    "task": "RS-promise-safety",
+    "count": 17
+  },
+  {
+    "rule": "promise/catch-or-return",
+    "task": "RS-promise-safety",
+    "count": 6
+  },
+  {
+    "rule": "promise/no-callback-in-promise",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 1
+  },
+  {
+    "rule": "promise/param-names",
+    "task": "RS-promise-safety",
+    "count": 45
+  },
+  {
+    "rule": "promise/prefer-await-to-callbacks",
+    "task": "RS-promise-safety",
+    "count": 94
+  },
+  {
+    "rule": "promise/prefer-catch",
+    "task": "RS-promise-safety",
+    "count": 48
+  },
+  {
+    "rule": "query/exhaustive-deps",
+    "task": "RS-tanstack-query",
+    "count": 5
+  },
+  {
+    "rule": "query/no-unstable-deps",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 3
+  },
+  {
+    "rule": "react/button-has-type",
+    "task": "RS-react",
+    "count": 29
+  },
+  {
+    "rule": "react/capitalized-calls",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 1
+  },
+  {
+    "rule": "react/exhaustive-effect-dependencies",
+    "task": "RS-react",
+    "count": 19
+  },
+  {
+    "rule": "react/hook-use-state",
+    "task": "RS-react",
+    "count": 20
+  },
+  {
+    "rule": "react/hooks",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "react/iframe-missing-sandbox",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "react/incompatible-library",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 1
+  },
+  {
+    "rule": "react/jsx-curly-brace-presence",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "react/jsx-no-constructed-context-values",
+    "task": "RS-react",
+    "count": 8
+  },
+  {
+    "rule": "react/jsx-no-useless-fragment",
+    "task": "RS-react",
+    "count": 43
+  },
+  {
+    "rule": "react/memo-dependencies",
+    "task": "RS-react",
+    "count": 3
+  },
+  {
+    "rule": "react/no-clone-element",
+    "task": "RS-react",
+    "count": 6
+  },
+  {
+    "rule": "react/no-danger",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 3
+  },
+  {
+    "rule": "react/no-object-type-as-default-prop",
+    "task": "RS-react",
+    "count": 20
+  },
+  {
+    "rule": "react/no-react-children",
+    "task": "RS-react",
+    "count": 3
+  },
+  {
+    "rule": "react/no-unstable-nested-components",
+    "task": "RS-react",
+    "count": 34
+  },
+  {
+    "rule": "react/rule-suppression",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 1
+  },
+  {
+    "rule": "react/state-in-constructor",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 3
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 54
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 1
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 3
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 86
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 2
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "packages/config",
+    "task": "RS-packages-config",
+    "count": 1
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 14
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 12
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "packages/env",
+    "task": "RS-packages-env",
+    "count": 1
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 20
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 1
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 4
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 1
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 7
+  },
+  {
+    "rule": "typescript/array-type",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 312
+  },
+  {
+    "rule": "typescript/await-thenable",
+    "task": "RS-typescript",
+    "count": 3
+  },
+  {
+    "rule": "typescript/consistent-return",
+    "task": "RS-typescript",
+    "count": 92
+  },
+  {
+    "rule": "typescript/consistent-type-exports",
+    "task": "RS-typescript",
+    "count": 9
+  },
+  {
+    "rule": "typescript/consistent-type-imports",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 1
+  },
+  {
+    "rule": "typescript/consistent-type-imports",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 141
+  },
+  {
+    "rule": "typescript/dot-notation",
+    "task": "RS-typescript",
+    "count": 33
+  },
+  {
+    "rule": "typescript/method-signature-style",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 3
+  },
+  {
+    "rule": "typescript/method-signature-style",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 102
+  },
+  {
+    "rule": "typescript/method-signature-style",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 3
+  },
+  {
+    "rule": "typescript/method-signature-style",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 12
+  },
+  {
+    "rule": "typescript/method-signature-style",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 11
+  },
+  {
+    "rule": "typescript/method-signature-style",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 2
+  },
+  {
+    "rule": "typescript/method-signature-style",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 4
+  },
+  {
+    "rule": "typescript/method-signature-style",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 10
+  },
+  {
+    "rule": "typescript/method-signature-style",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 3
+  },
+  {
+    "rule": "typescript/method-signature-style",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 48
+  },
+  {
+    "rule": "typescript/no-base-to-string",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 19
+  },
+  {
+    "rule": "typescript/no-base-to-string",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-base-to-string",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 3
+  },
+  {
+    "rule": "typescript/no-base-to-string",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 9
+  },
+  {
+    "rule": "typescript/no-base-to-string",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 3
+  },
+  {
+    "rule": "typescript/no-base-to-string",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-base-to-string",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-base-to-string",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 24
+  },
+  {
+    "rule": "typescript/no-base-to-string",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 174
+  },
+  {
+    "rule": "typescript/no-confusing-void-expression",
+    "task": "RS-typescript",
+    "count": 20
+  },
+  {
+    "rule": "typescript/no-deprecated",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 29
+  },
+  {
+    "rule": "typescript/no-deprecated",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-deprecated",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-deprecated",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-deprecated",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 167
+  },
+  {
+    "rule": "typescript/no-deprecated",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 10
+  },
+  {
+    "rule": "typescript/no-deprecated",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-deprecated",
+    "workspace": "packages/env",
+    "task": "RS-packages-env",
+    "count": 21
+  },
+  {
+    "rule": "typescript/no-deprecated",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-deprecated",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 39
+  },
+  {
+    "rule": "typescript/no-deprecated",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 51
+  },
+  {
+    "rule": "typescript/no-duplicate-type-constituents",
+    "task": "RS-typescript",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-dynamic-delete",
+    "task": "RS-typescript",
+    "count": 42
+  },
+  {
+    "rule": "typescript/no-floating-promises",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 61
+  },
+  {
+    "rule": "typescript/no-floating-promises",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-floating-promises",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 7
+  },
+  {
+    "rule": "typescript/no-floating-promises",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 23
+  },
+  {
+    "rule": "typescript/no-floating-promises",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 7
+  },
+  {
+    "rule": "typescript/no-floating-promises",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 3
+  },
+  {
+    "rule": "typescript/no-floating-promises",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 3
+  },
+  {
+    "rule": "typescript/no-floating-promises",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 22
+  },
+  {
+    "rule": "typescript/no-floating-promises",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 61
+  },
+  {
+    "rule": "typescript/no-generated-empty-object-type",
+    "task": "RS-typescript",
+    "count": 3
+  },
+  {
+    "rule": "typescript/no-implied-eval",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 3
+  },
+  {
+    "rule": "typescript/no-import-type-side-effects",
+    "task": "RS-typescript",
+    "count": 45
+  },
+  {
+    "rule": "typescript/no-inferrable-types",
+    "task": "RS-typescript",
+    "count": 7
+  },
+  {
+    "rule": "typescript/no-invalid-void-type",
+    "task": "RS-typescript",
+    "count": 18
+  },
+  {
+    "rule": "typescript/no-misused-promises",
+    "task": "RS-typescript",
+    "count": 70
+  },
+  {
+    "rule": "typescript/no-misused-spread",
+    "task": "RS-typescript",
+    "count": 15
+  },
+  {
+    "rule": "typescript/no-non-null-assertion",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 32
+  },
+  {
+    "rule": "typescript/no-non-null-assertion",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 8
+  },
+  {
+    "rule": "typescript/no-non-null-assertion",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 15
+  },
+  {
+    "rule": "typescript/no-non-null-assertion",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 7
+  },
+  {
+    "rule": "typescript/no-non-null-assertion",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 66
+  },
+  {
+    "rule": "typescript/no-non-null-assertion",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 10
+  },
+  {
+    "rule": "typescript/no-non-null-assertion",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-non-null-assertion",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-non-null-assertion",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 7
+  },
+  {
+    "rule": "typescript/no-non-null-assertion",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 3
+  },
+  {
+    "rule": "typescript/no-non-null-assertion",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 6
+  },
+  {
+    "rule": "typescript/no-non-null-assertion",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-non-null-assertion",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 2640
+  },
+  {
+    "rule": "typescript/no-redundant-type-constituents",
+    "task": "RS-typescript",
+    "count": 27
+  },
+  {
+    "rule": "typescript/no-unnecessary-boolean-literal-compare",
+    "task": "RS-typescript",
+    "count": 41
+  },
+  {
+    "rule": "typescript/no-unnecessary-template-expression",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-arguments",
+    "task": "RS-typescript",
+    "count": 34
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-assertion",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 34
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-assertion",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-assertion",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 12
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-assertion",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 5
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-assertion",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 107
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-assertion",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 6
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-assertion",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 8
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-assertion",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 6
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-assertion",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 19
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-assertion",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 4
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-assertion",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 28
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-assertion",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 340
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-conversion",
+    "task": "RS-typescript",
+    "count": 92
+  },
+  {
+    "rule": "typescript/no-unnecessary-type-parameters",
+    "task": "RS-typescript",
+    "count": 15
+  },
+  {
+    "rule": "typescript/no-unsafe-argument",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 6
+  },
+  {
+    "rule": "typescript/no-unsafe-argument",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-unsafe-argument",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 12
+  },
+  {
+    "rule": "typescript/no-unsafe-argument",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 12
+  },
+  {
+    "rule": "typescript/no-unsafe-argument",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 13
+  },
+  {
+    "rule": "typescript/no-unsafe-argument",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 3
+  },
+  {
+    "rule": "typescript/no-unsafe-argument",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-unsafe-argument",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 313
+  },
+  {
+    "rule": "typescript/no-unsafe-argument",
+    "workspace": "tooling/quality",
+    "task": "RS-tooling-quality",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-unsafe-assignment",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-unsafe-assignment",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 17
+  },
+  {
+    "rule": "typescript/no-unsafe-assignment",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 18
+  },
+  {
+    "rule": "typescript/no-unsafe-assignment",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-unsafe-assignment",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 138
+  },
+  {
+    "rule": "typescript/no-unsafe-assignment",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 4
+  },
+  {
+    "rule": "typescript/no-unsafe-assignment",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 5
+  },
+  {
+    "rule": "typescript/no-unsafe-assignment",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-unsafe-assignment",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 15
+  },
+  {
+    "rule": "typescript/no-unsafe-assignment",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 7
+  },
+  {
+    "rule": "typescript/no-unsafe-assignment",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 8
+  },
+  {
+    "rule": "typescript/no-unsafe-assignment",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-unsafe-assignment",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1912
+  },
+  {
+    "rule": "typescript/no-unsafe-call",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-unsafe-call",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 5
+  },
+  {
+    "rule": "typescript/no-unsafe-call",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-unsafe-call",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-unsafe-call",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-unsafe-call",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 730
+  },
+  {
+    "rule": "typescript/no-unsafe-enum-comparison",
+    "task": "RS-typescript",
+    "count": 4
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 20
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 19
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 25
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 4
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 4
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 10
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 5
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 2319
+  },
+  {
+    "rule": "typescript/no-unsafe-member-access",
+    "workspace": "tooling/quality",
+    "task": "RS-tooling-quality",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-unsafe-return",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-unsafe-return",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 12
+  },
+  {
+    "rule": "typescript/no-unsafe-return",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-unsafe-return",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 3
+  },
+  {
+    "rule": "typescript/no-unsafe-return",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 3
+  },
+  {
+    "rule": "typescript/no-unsafe-return",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 10
+  },
+  {
+    "rule": "typescript/no-unsafe-return",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 2
+  },
+  {
+    "rule": "typescript/no-unsafe-return",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 3
+  },
+  {
+    "rule": "typescript/no-unsafe-return",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 7
+  },
+  {
+    "rule": "typescript/no-unsafe-return",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 418
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 4
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 191
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 14
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 74
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 9
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 314
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 29
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "packages/config",
+    "task": "RS-packages-config",
+    "count": 3
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 56
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 1
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "packages/env",
+    "task": "RS-packages-env",
+    "count": 4
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 10
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 11
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 8
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 8
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "packages/mock-data",
+    "task": "RS-packages-mock-data",
+    "count": 4
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 138
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 9
+  },
+  {
+    "rule": "typescript/no-unsafe-type-assertion",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 2187
+  },
+  {
+    "rule": "typescript/no-useless-default-assignment",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "typescript/only-throw-error",
+    "task": "RS-typescript",
+    "count": 10
+  },
+  {
+    "rule": "typescript/parameter-properties",
+    "task": "RS-typescript",
+    "count": 74
+  },
+  {
+    "rule": "typescript/prefer-find",
+    "task": "RS-typescript",
+    "count": 2
+  },
+  {
+    "rule": "typescript/prefer-for-of",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 1
+  },
+  {
+    "rule": "typescript/prefer-function-type",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 1
+  },
+  {
+    "rule": "typescript/prefer-includes",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 39
+  },
+  {
+    "rule": "typescript/prefer-nullish-coalescing",
+    "task": "RS-typescript",
+    "count": 51
+  },
+  {
+    "rule": "typescript/prefer-promise-reject-errors",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 5
+  },
+  {
+    "rule": "typescript/prefer-readonly",
+    "task": "RS-typescript",
+    "count": 29
+  },
+  {
+    "rule": "typescript/prefer-reduce-type-parameter",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 1
+  },
+  {
+    "rule": "typescript/prefer-regexp-exec",
+    "task": "RS-typescript",
+    "count": 88
+  },
+  {
+    "rule": "typescript/prefer-string-starts-ends-with",
+    "task": "RS-typescript",
+    "count": 11
+  },
+  {
+    "rule": "typescript/require-array-sort-compare",
+    "task": "RS-typescript",
+    "count": 39
+  },
+  {
+    "rule": "typescript/restrict-plus-operands",
+    "task": "RS-typescript",
+    "count": 3
+  },
+  {
+    "rule": "typescript/restrict-template-expressions",
+    "task": "RS-typescript",
+    "count": 41
+  },
+  {
+    "rule": "typescript/return-await",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 94
+  },
+  {
+    "rule": "typescript/return-await",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 4
+  },
+  {
+    "rule": "typescript/return-await",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 3
+  },
+  {
+    "rule": "typescript/return-await",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 10
+  },
+  {
+    "rule": "typescript/return-await",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 120
+  },
+  {
+    "rule": "typescript/return-await",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 7
+  },
+  {
+    "rule": "typescript/return-await",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 26
+  },
+  {
+    "rule": "typescript/return-await",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 1
+  },
+  {
+    "rule": "typescript/return-await",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 24
+  },
+  {
+    "rule": "typescript/return-await",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 7
+  },
+  {
+    "rule": "typescript/return-await",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 3
+  },
+  {
+    "rule": "typescript/return-await",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 1
+  },
+  {
+    "rule": "typescript/return-await",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 185
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 2
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 113
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 27
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 37
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 13
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 134
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 8
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 14
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 9
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 24
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 24
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 22
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 12
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 91
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 2
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 206
+  },
+  {
+    "rule": "typescript/strict-boolean-expressions",
+    "workspace": "tooling/quality",
+    "task": "RS-tooling-quality",
+    "count": 2
+  },
+  {
+    "rule": "typescript/strict-void-return",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 51
+  },
+  {
+    "rule": "typescript/strict-void-return",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 4
+  },
+  {
+    "rule": "typescript/strict-void-return",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 3
+  },
+  {
+    "rule": "typescript/strict-void-return",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 10
+  },
+  {
+    "rule": "typescript/strict-void-return",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 2
+  },
+  {
+    "rule": "typescript/strict-void-return",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 2
+  },
+  {
+    "rule": "typescript/strict-void-return",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 1
+  },
+  {
+    "rule": "typescript/strict-void-return",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 2
+  },
+  {
+    "rule": "typescript/strict-void-return",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 31
+  },
+  {
+    "rule": "typescript/strict-void-return",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 969
+  },
+  {
+    "rule": "typescript/switch-exhaustiveness-check",
+    "task": "RS-typescript",
+    "count": 50
+  },
+  {
+    "rule": "typescript/unbound-method",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 29
+  },
+  {
+    "rule": "typescript/unbound-method",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 4
+  },
+  {
+    "rule": "typescript/unbound-method",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 1
+  },
+  {
+    "rule": "typescript/unbound-method",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 5
+  },
+  {
+    "rule": "typescript/unbound-method",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 2
+  },
+  {
+    "rule": "typescript/unbound-method",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 2
+  },
+  {
+    "rule": "typescript/unbound-method",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 1
+  },
+  {
+    "rule": "typescript/unbound-method",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 9
+  },
+  {
+    "rule": "typescript/unbound-method",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 81
+  },
+  {
+    "rule": "typescript/use-unknown-in-catch-callback-variable",
+    "task": "RS-typescript",
+    "count": 21
+  },
+  {
+    "rule": "unicorn/catch-error-name",
+    "task": "RS-unicorn",
+    "count": 80
+  },
+  {
+    "rule": "unicorn/consistent-assert",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 12
+  },
+  {
+    "rule": "unicorn/consistent-date-clone",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/consistent-existence-index-check",
+    "task": "RS-unicorn",
+    "count": 54
+  },
+  {
+    "rule": "unicorn/custom-error-definition",
+    "task": "RS-unicorn",
+    "count": 35
+  },
+  {
+    "rule": "unicorn/error-message",
+    "task": "RS-unicorn",
+    "count": 7
+  },
+  {
+    "rule": "unicorn/escape-case",
+    "task": "RS-unicorn",
+    "count": 58
+  },
+  {
+    "rule": "unicorn/explicit-timer-delay",
+    "task": "RS-unicorn",
+    "count": 4
+  },
+  {
+    "rule": "unicorn/import-style",
+    "task": "RS-unicorn",
+    "count": 65
+  },
+  {
+    "rule": "unicorn/new-for-builtins",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 16
+  },
+  {
+    "rule": "unicorn/no-array-fill-with-reference-type",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/no-array-reduce",
+    "task": "RS-unicorn",
+    "count": 28
+  },
+  {
+    "rule": "unicorn/no-document-cookie",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/no-document-cookie",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 8
+  },
+  {
+    "rule": "unicorn/no-hex-escape",
+    "task": "RS-unicorn",
+    "count": 17
+  },
+  {
+    "rule": "unicorn/no-lonely-if",
+    "task": "RS-unicorn",
+    "count": 11
+  },
+  {
+    "rule": "unicorn/no-negated-condition",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 31
+  },
+  {
+    "rule": "unicorn/no-negated-condition",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 7
+  },
+  {
+    "rule": "unicorn/no-negated-condition",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 29
+  },
+  {
+    "rule": "unicorn/no-negated-condition",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 7
+  },
+  {
+    "rule": "unicorn/no-negated-condition",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 14
+  },
+  {
+    "rule": "unicorn/no-negated-condition",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/no-negated-condition",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/no-negated-condition",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/no-negated-condition",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/no-negated-condition",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/no-negated-condition",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 19
+  },
+  {
+    "rule": "unicorn/no-negated-condition",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 20
+  },
+  {
+    "rule": "unicorn/no-negated-condition",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 15
+  },
+  {
+    "rule": "unicorn/no-new-array",
+    "task": "RS-unicorn",
+    "count": 4
+  },
+  {
+    "rule": "unicorn/no-object-as-default-parameter",
+    "task": "RS-unicorn",
+    "count": 17
+  },
+  {
+    "rule": "unicorn/no-thenable",
+    "task": "RS-unicorn",
+    "count": 75
+  },
+  {
+    "rule": "unicorn/no-typeof-undefined",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/no-unreadable-array-destructuring",
+    "task": "RS-unicorn",
+    "count": 6
+  },
+  {
+    "rule": "unicorn/no-useless-collection-argument",
+    "task": "RS-unicorn",
+    "count": 9
+  },
+  {
+    "rule": "unicorn/no-useless-fallback-in-spread",
+    "task": "RS-unicorn",
+    "count": 27
+  },
+  {
+    "rule": "unicorn/no-useless-promise-resolve-reject",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/no-useless-spread",
+    "task": "RS-unicorn",
+    "count": 52
+  },
+  {
+    "rule": "unicorn/no-useless-switch-case",
+    "task": "RS-unicorn",
+    "count": 9
+  },
+  {
+    "rule": "unicorn/no-useless-undefined",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/no-useless-undefined",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/no-useless-undefined",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 19
+  },
+  {
+    "rule": "unicorn/no-useless-undefined",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 4
+  },
+  {
+    "rule": "unicorn/no-useless-undefined",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/no-useless-undefined",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/no-useless-undefined",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 3
+  },
+  {
+    "rule": "unicorn/no-useless-undefined",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/no-useless-undefined",
+    "workspace": "packages/mock-data",
+    "task": "RS-packages-mock-data",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/no-useless-undefined",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 7
+  },
+  {
+    "rule": "unicorn/no-useless-undefined",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 8
+  },
+  {
+    "rule": "unicorn/no-useless-undefined",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 193
+  },
+  {
+    "rule": "unicorn/no-zero-fractions",
+    "task": "RS-unicorn",
+    "count": 27
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 4
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 6
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 105
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "packages/config",
+    "task": "RS-packages-config",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 5
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 4
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 6
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "packages/mock-data",
+    "task": "RS-packages-mock-data",
+    "count": 27
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 23
+  },
+  {
+    "rule": "unicorn/numeric-separators-style",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 582
+  },
+  {
+    "rule": "unicorn/prefer-add-event-listener",
+    "task": "RS-unicorn",
+    "count": 4
+  },
+  {
+    "rule": "unicorn/prefer-array-find",
+    "task": "RS-unicorn",
+    "count": 7
+  },
+  {
+    "rule": "unicorn/prefer-array-flat-map",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/prefer-array-index-of",
+    "task": "RS-unicorn",
+    "count": 3
+  },
+  {
+    "rule": "unicorn/prefer-at",
+    "task": "RS-unicorn",
+    "count": 21
+  },
+  {
+    "rule": "unicorn/prefer-code-point",
+    "task": "RS-unicorn",
+    "count": 33
+  },
+  {
+    "rule": "unicorn/prefer-date-now",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-default-parameters",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-dom-node-append",
+    "task": "RS-unicorn",
+    "count": 15
+  },
+  {
+    "rule": "unicorn/prefer-dom-node-remove",
+    "task": "RS-unicorn",
+    "count": 4
+  },
+  {
+    "rule": "unicorn/prefer-dom-node-text-content",
+    "task": "RS-unicorn",
+    "count": 5
+  },
+  {
+    "rule": "unicorn/prefer-event-target",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 8
+  },
+  {
+    "rule": "unicorn/prefer-import-meta-properties",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-import-meta-properties",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/prefer-import-meta-properties",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/prefer-import-meta-properties",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-import-meta-properties",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 90
+  },
+  {
+    "rule": "unicorn/prefer-import-meta-properties",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 19
+  },
+  {
+    "rule": "unicorn/prefer-includes",
+    "task": "RS-unicorn",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/prefer-logical-operator-over-ternary",
+    "task": "RS-unicorn",
+    "count": 10
+  },
+  {
+    "rule": "unicorn/prefer-module",
+    "task": "RS-unicorn",
+    "count": 34
+  },
+  {
+    "rule": "unicorn/prefer-native-coercion-functions",
+    "task": "RS-unicorn",
+    "count": 4
+  },
+  {
+    "rule": "unicorn/prefer-node-protocol",
+    "task": "RS-unicorn",
+    "count": 7
+  },
+  {
+    "rule": "unicorn/prefer-number-properties",
+    "task": "RS-unicorn",
+    "count": 49
+  },
+  {
+    "rule": "unicorn/prefer-optional-catch-binding",
+    "task": "RS-unicorn",
+    "count": 4
+  },
+  {
+    "rule": "unicorn/prefer-query-selector",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 15
+  },
+  {
+    "rule": "unicorn/prefer-query-selector",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/prefer-query-selector",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-query-selector",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 104
+  },
+  {
+    "rule": "unicorn/prefer-regexp-test",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/prefer-response-static-json",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-response-static-json",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-response-static-json",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-response-static-json",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-response-static-json",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 132
+  },
+  {
+    "rule": "unicorn/prefer-set-has",
+    "task": "RS-unicorn",
+    "count": 29
+  },
+  {
+    "rule": "unicorn/prefer-single-call",
+    "task": "RS-unicorn",
+    "count": 46
+  },
+  {
+    "rule": "unicorn/prefer-spread",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 15
+  },
+  {
+    "rule": "unicorn/prefer-spread",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/prefer-spread",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-spread",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-spread",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 32
+  },
+  {
+    "rule": "unicorn/prefer-spread",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 3
+  },
+  {
+    "rule": "unicorn/prefer-spread",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-spread",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/prefer-spread",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 4
+  },
+  {
+    "rule": "unicorn/prefer-spread",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/prefer-spread",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 53
+  },
+  {
+    "rule": "unicorn/prefer-string-replace-all",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 47
+  },
+  {
+    "rule": "unicorn/prefer-string-replace-all",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/prefer-string-replace-all",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 7
+  },
+  {
+    "rule": "unicorn/prefer-string-replace-all",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/prefer-string-replace-all",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 80
+  },
+  {
+    "rule": "unicorn/prefer-string-replace-all",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 9
+  },
+  {
+    "rule": "unicorn/prefer-string-replace-all",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 5
+  },
+  {
+    "rule": "unicorn/prefer-string-replace-all",
+    "workspace": "packages/email",
+    "task": "RS-packages-email",
+    "count": 6
+  },
+  {
+    "rule": "unicorn/prefer-string-replace-all",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/prefer-string-replace-all",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 3
+  },
+  {
+    "rule": "unicorn/prefer-string-replace-all",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 6
+  },
+  {
+    "rule": "unicorn/prefer-string-replace-all",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 59
+  },
+  {
+    "rule": "unicorn/prefer-string-replace-all",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 214
+  },
+  {
+    "rule": "unicorn/prefer-string-slice",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-string-starts-ends-with",
+    "task": "RS-unicorn",
+    "count": 11
+  },
+  {
+    "rule": "unicorn/prefer-structured-clone",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 14
+  },
+  {
+    "rule": "unicorn/prefer-ternary",
+    "task": "RS-unicorn",
+    "count": 30
+  },
+  {
+    "rule": "unicorn/prefer-type-error",
+    "task": "RS-unicorn",
+    "count": 41
+  },
+  {
+    "rule": "unicorn/relative-url-style",
+    "task": "RS-unicorn",
+    "count": 8
+  },
+  {
+    "rule": "unicorn/require-array-join-separator",
+    "task": "RS-unicorn",
+    "count": 16
+  },
+  {
+    "rule": "unicorn/require-module-specifiers",
+    "task": "RS-unicorn",
+    "count": 6
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "apps/admin",
+    "task": "RS-apps-admin",
+    "count": 266
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 11
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 30
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "apps/missionary",
+    "task": "RS-apps-missionary",
+    "count": 44
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 235
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 8
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "packages/database",
+    "task": "RS-packages-database",
+    "count": 72
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "packages/eve-runtime",
+    "task": "RS-packages-eve-runtime",
+    "count": 20
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "packages/graphql",
+    "task": "RS-packages-graphql",
+    "count": 3
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "packages/lib",
+    "task": "RS-packages-lib",
+    "count": 59
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "packages/missionary",
+    "task": "RS-packages-missionary",
+    "count": 15
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "packages/ui",
+    "task": "RS-packages-ui",
+    "count": 82
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 17
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 81
+  },
+  {
+    "rule": "unicorn/switch-case-braces",
+    "workspace": "tooling/eslint-config",
+    "task": "RS-tooling-eslint-config",
+    "count": 26
+  },
+  {
+    "rule": "unicorn/text-encoding-identifier-case",
+    "workspace": "(root)",
+    "task": "RS-root",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/text-encoding-identifier-case",
+    "workspace": "apps/donor",
+    "task": "RS-apps-donor",
+    "count": 3
+  },
+  {
+    "rule": "unicorn/text-encoding-identifier-case",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 9
+  },
+  {
+    "rule": "unicorn/text-encoding-identifier-case",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 14
+  },
+  {
+    "rule": "unicorn/text-encoding-identifier-case",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/text-encoding-identifier-case",
+    "workspace": "scripts",
+    "task": "RS-scripts",
+    "count": 296
+  },
+  {
+    "rule": "unicorn/text-encoding-identifier-case",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1618
+  },
+  {
+    "rule": "unicorn/text-encoding-identifier-case",
+    "workspace": "tooling/eslint-config",
+    "task": "RS-tooling-eslint-config",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/text-encoding-identifier-case",
+    "workspace": "tooling/quality",
+    "task": "RS-tooling-quality",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/throw-new-error",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 6
+  },
+  {
+    "rule": "vitest/consistent-test-it",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 4
+  },
+  {
+    "rule": "vitest/consistent-test-it",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1073
+  },
+  {
+    "rule": "vitest/expect-expect",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 1
+  },
+  {
+    "rule": "vitest/expect-expect",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 138
+  },
+  {
+    "rule": "vitest/no-alias-methods",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 19
+  },
+  {
+    "rule": "vitest/no-conditional-expect",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 30
+  },
+  {
+    "rule": "vitest/no-conditional-expect",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 396
+  },
+  {
+    "rule": "vitest/no-conditional-tests",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 17
+  },
+  {
+    "rule": "vitest/no-disabled-tests",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 7
+  },
+  {
+    "rule": "vitest/no-duplicate-hooks",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 4
+  },
+  {
+    "rule": "vitest/no-standalone-expect",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 437
+  },
+  {
+    "rule": "vitest/padding-around-after-all-blocks",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 64
+  },
+  {
+    "rule": "vitest/padding-around-test-blocks",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 5
+  },
+  {
+    "rule": "vitest/padding-around-test-blocks",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 27
+  },
+  {
+    "rule": "vitest/padding-around-test-blocks",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 924
+  },
+  {
+    "rule": "vitest/prefer-called-exactly-once-with",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 9
+  },
+  {
+    "rule": "vitest/prefer-called-once",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 5
+  },
+  {
+    "rule": "vitest/prefer-called-once",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 416
+  },
+  {
+    "rule": "vitest/prefer-called-with",
+    "task": "RS-vitest",
+    "count": 92
+  },
+  {
+    "rule": "vitest/prefer-comparison-matcher",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 7
+  },
+  {
+    "rule": "vitest/prefer-each",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 71
+  },
+  {
+    "rule": "vitest/prefer-equality-matcher",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 7
+  },
+  {
+    "rule": "vitest/prefer-expect-resolves",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 10
+  },
+  {
+    "rule": "vitest/prefer-expect-resolves",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 26
+  },
+  {
+    "rule": "vitest/prefer-expect-resolves",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 13
+  },
+  {
+    "rule": "vitest/prefer-expect-resolves",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1260
+  },
+  {
+    "rule": "vitest/prefer-expect-type-of",
+    "task": "RS-vitest",
+    "count": 33
+  },
+  {
+    "rule": "vitest/prefer-hooks-in-order",
+    "task": "RS-vitest",
+    "count": 26
+  },
+  {
+    "rule": "vitest/prefer-hooks-on-top",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 11
+  },
+  {
+    "rule": "vitest/prefer-mock-promise-shorthand",
+    "task": "RS-vitest",
+    "count": 4
+  },
+  {
+    "rule": "vitest/prefer-mock-return-shorthand",
+    "task": "RS-vitest",
+    "count": 79
+  },
+  {
+    "rule": "vitest/prefer-spy-on",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 106
+  },
+  {
+    "rule": "vitest/prefer-to-be",
+    "task": "RS-vitest",
+    "count": 35
+  },
+  {
+    "rule": "vitest/prefer-to-contain",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 3
+  },
+  {
+    "rule": "vitest/prefer-to-have-been-called-times",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 8
+  },
+  {
+    "rule": "vitest/prefer-to-have-length",
+    "task": "RS-vitest",
+    "count": 32
+  },
+  {
+    "rule": "vitest/prefer-todo",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 7
+  },
+  {
+    "rule": "vitest/require-to-throw-message",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 2
+  },
+  {
+    "rule": "vitest/require-to-throw-message",
+    "workspace": "packages/api",
+    "task": "RS-packages-api",
+    "count": 22
+  },
+  {
+    "rule": "vitest/require-to-throw-message",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 111
+  },
+  {
+    "rule": "vitest/valid-describe-callback",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 1
+  },
+  {
+    "rule": "vitest/valid-expect",
+    "workspace": "apps/factory-console",
+    "task": "RS-apps-factory-console",
+    "count": 9
+  },
+  {
+    "rule": "vitest/valid-expect",
+    "workspace": "packages/auth",
+    "task": "RS-packages-auth",
+    "count": 1
+  },
+  {
+    "rule": "vitest/valid-expect",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 993
+  },
+  {
+    "rule": "vitest/warn-todo",
+    "workspace": "tests",
+    "task": "RS-tests",
+    "count": 4
+  }
+]

@@ -1,0 +1,11 @@
+import { Component } from "react";
+
+export class Loader extends Component {
+  load() {
+    if (this.isMounted()) return;
+  }
+
+  render() {
+    return <div />;
+  }
+}
