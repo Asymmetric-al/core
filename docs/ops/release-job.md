@@ -1013,10 +1013,19 @@ below follow those decisions.
    `SUPABASE_DB_URL` reopens NA-04). They reach users only through the next
    deployment.
 
-7. **Release.** Dispatch **Release** with operation `release`.
-   Check: the run is green; `bun run verify:vercel-production -- --commit <sha>`
+7. **Release.** Dispatch **Release** with operation `release`. This release
+   must build all three apps, because the variables of step 6 reach an app
+   only through a new production deployment, and the job skips an app whose
+   files and shared inputs did not change since the commit its production
+   domain serves. Its plan step logs `build` or `skip` for each app, with the
+   reason: read it. If an app is skipped, redeploy that app's production
+   deployment in Vercel from the same commit, and promote it once its
+   `/api/health/migrations` answers with the expected ref.
+   Check: the run is green; the plan step built admin, donor and missionary,
+   or each skipped app was redeployed and promoted; `bun run verify:vercel-production -- --commit <sha>`
    is READY; `curl https://admin.asymmetric.al/api/health/migrations` answers
-   `"status":"ok"` with the expected ref; the deployments Vercel lists for the
+   `"status":"ok"` with the expected ref, and so does the same path on the
+   donor and the missionary production domains; the deployments Vercel lists for the
    commit are exactly the IDs the run logged, so the push started none
    outside the job.
    Undo: Vercel _Instant Rollback_ to the previous production deployment; it
