@@ -278,4 +278,106 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
     expect(rows).toHaveLength(10);
     expect(rows.every((row) => row.convalidated && row.width === 2)).toBe(true);
   });
+  // F3 (council 21 November): on a database it cannot convert, 130004 stops
+  // before it changes anything, reports counts and names the operator's query.
+  // The shipped preflight and query run unchanged except for their schema, on
+  // scratch copies of the seven tables, because the migrated catalog itself
+  // can no longer hold the rows they refuse.
+  it("130004 stops on unconvertible targets before any change and names the operator's query", async () => {
+    const read = (path: string) =>
+      readFileSync(new URL(`../../../../${path}`, import.meta.url), "utf8");
+    const migration = read(
+      "supabase/migrations/20261120130004_giving_target_entities.sql",
+    );
+    const start = migration.indexOf("DO $$");
+    const end = migration.indexOf("END $$;", start) + "END $$;".length;
+    expect(start).toBeGreaterThan(0);
+    const opening = migration
+      .slice(0, start)
+      .replace(/--.*$/gm, "")
+      .split(";")
+      .map((statement) => statement.trim().split(/\s+/).slice(0, 2).join(" "))
+      .filter(Boolean);
+    expect(opening).toEqual(["BEGIN", "SET LOCAL", "LOCK TABLE"]);
+    const schema = `acc2676_preflight_${randomUUID().slice(0, 8)}`;
+    const scratch = (sql: string) => sql.replaceAll("public.", `${schema}.`);
+    const preflight = scratch(migration.slice(start, end));
+    const operatorQuery = scratch(
+      read("scripts/sql/giving-target-preflight.sql"),
+    );
+    const gifts = [
+      "donations",
+      "donor_pledges",
+      "staged_gifts",
+      "staged_gift_allocations",
+      "donation_saga_outbox",
+    ];
+    const [a, b, fundA, fundB, missionaryA, missionaryB] = Array.from(
+      { length: 6 },
+      () => randomUUID(),
+    );
+    await db.query("begin");
+    try {
+      await db.query(
+        `create schema ${schema};
+         create table ${schema}.funds(id uuid primary key, tenant_id uuid);
+         create table ${schema}.missionaries(id uuid primary key, tenant_id uuid);
+         ${gifts.map((gift) => `create table ${schema}.${gift}(id uuid primary key default gen_random_uuid(), tenant_id uuid, fund_id uuid, missionary_id uuid);`).join("\n")}`,
+      );
+      const results = async (sql: string) =>
+        (await db.query(sql)) as unknown as pg.QueryResult[];
+      await db.query(
+        `insert into ${schema}.funds values ('${fundA}','${a}'),('${fundB}','${b}');
+         insert into ${schema}.missionaries values ('${missionaryA}','${a}'),('${missionaryB}','${b}')`,
+      );
+      for (const gift of gifts)
+        await db.query(
+          `insert into ${schema}.${gift}(tenant_id,fund_id,missionary_id) values ($1,$2,$3)`,
+          [a, fundA, missionaryA],
+        );
+      await db.query(preflight);
+      expect((await results(operatorQuery)).map((r) => r.rowCount)).toEqual([
+        0, 0,
+      ]);
+
+      await db.query(
+        `insert into ${schema}.funds values ('${randomUUID()}',null);
+         insert into ${schema}.missionaries values ('${randomUUID()}',null)`,
+      );
+      for (const gift of gifts)
+        await db.query(
+          `insert into ${schema}.${gift}(tenant_id,fund_id,missionary_id) values ($1,$2,null),($1,null,$3)`,
+          [a, fundB, missionaryB],
+        );
+      await db.query(
+        `insert into ${schema}.donations(tenant_id,fund_id) values (null,$1)`,
+        [fundA],
+      );
+      await db.query("savepoint refused");
+      const refusal = await db.query(preflight).then(
+        () => undefined,
+        (error: { code?: string; message?: string; hint?: string }) => error,
+      );
+      await db.query("rollback to savepoint refused");
+      expect(refusal).toMatchObject({
+        code: "P0001",
+        message:
+          "Giving-target preflight: tenantless funds=1, tenantless missionaries=1, wrong-tenant fund references=6, wrong-tenant missionary references=5",
+        hint: expect.stringContaining(
+          "scripts/sql/giving-target-preflight.sql",
+        ),
+      });
+      const [targets, references] = await results(operatorQuery);
+      expect(targets.rows.map((row) => row.source).sort()).toEqual([
+        "funds",
+        "missionaries",
+      ]);
+      expect(references.rowCount).toBe(11);
+      expect(
+        [...new Set(references.rows.map((row) => row.source))].sort(),
+      ).toEqual([...gifts].sort());
+    } finally {
+      await db.query("rollback");
+    }
+  });
 });
