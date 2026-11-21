@@ -78,6 +78,9 @@ const savedEnv = Object.fromEntries(
 );
 
 /** Every request that left for Supabase's Data API, with its headers. */
+// D-18: the read uses a bearer accepted by the Auth fixture. The recorder
+// counts business reads after identity and live membership resolution.
+let sessionRows: E2EAuthMembership[] = [];
 const dataApi: Array<{ url: string; headers: Headers }> = [];
 
 beforeEach(() => {
@@ -97,6 +100,28 @@ beforeEach(() => {
       const headers = new Headers(
         init.headers ?? (input instanceof Request ? input.headers : undefined),
       );
+      if (headers.get("authorization") === "Bearer verified-unit-session") {
+        const path = new URL(url).pathname;
+        if (path === "/auth/v1/user")
+          return Response.json({
+            id: USER,
+            aud: "authenticated",
+            email: "staff@example.test",
+          });
+        if (path === "/rest/v1/profiles") return Response.json({ id: USER });
+        if (path === "/rest/v1/rpc/current_user_assignments")
+          return Response.json(
+            sessionRows.map((row) => ({
+              id: row.id,
+              user_id: USER,
+              tenant_id: row.tenantId,
+              role: row.role,
+              staff_role: row.staffRole,
+              is_tenant_admin: row.isTenantAdmin,
+              updated_at: "2026-11-01T00:00:00Z",
+            })),
+          );
+      }
       if (url.startsWith(`${SUPABASE_URL}/rest/v1/`)) {
         dataApi.push({ url, headers });
         return Response.json([]);
@@ -120,11 +145,15 @@ async function listUsers(
   memberships: E2EAuthMembership[],
   scopeHeaders: Record<string, string>,
 ) {
-  const cookie = await identityCookie(memberships);
+  sessionRows = memberships;
   const { GET } = await import("../../../../packages/api/src/admin/users");
   return GET(
     new NextRequest("http://localhost:3030/api/admin/users", {
-      headers: { ...scopeHeaders, cookie, "x-asym-role-class": "staff" },
+      headers: {
+        ...scopeHeaders,
+        authorization: "Bearer verified-unit-session",
+        "x-asym-role-class": "staff",
+      },
     }),
   );
 }

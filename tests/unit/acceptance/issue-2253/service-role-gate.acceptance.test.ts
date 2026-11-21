@@ -138,7 +138,8 @@ const CLEAN: Record<string, string> = {
   "scripts/verify-money-units.ts": `process.env.${K};`,
   "packages/api/src/workflows/functions/stripe-event-processing.ts":
     'import { requireWorkflowAdminClient } from "../admin-client";\nrequireWorkflowAdminClient("x");',
-  "packages/api/src/admin/crm/table-preferences/route.ts": `${OP.replace("../", "../../../")}\nexport const a = withPlatformOperation(async ({ supabaseAdmin }) => supabaseAdmin);`,
+  // D-18: use a remaining platform file to prove its positive count may shrink.
+  "packages/api/src/admin/contribution-operations/route.ts": `${OP.replace("../", "../../")}\nexport const a = withPlatformOperation(async ({ supabaseAdmin }) => supabaseAdmin);`,
   "packages/api/src/admin/fx-neg.ts": `${OP.replaceAll("withPlatformOperation", "withOperation")}\nexport const g = withOperation(async ({ auth, request }) => auth);\nfunction getAdminClient() {}\ngetAdminClient();\nimport type { AdminSupabaseClient } from "${FACTORY}";`,
   ...Object.fromEntries(
     [
@@ -176,7 +177,7 @@ const CLEAN_LIST: Entry[] = [
     1,
   ),
   e(
-    "packages/api/src/admin/crm/table-preferences/route.ts",
+    "packages/api/src/admin/contribution-operations/route.ts",
     "operation_admin_context",
     1,
   ),

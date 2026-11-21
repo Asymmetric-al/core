@@ -9,7 +9,6 @@ import {
 } from "../../../../../packages/api/src/admin/crm/table-preferences/named-views";
 
 import type { RequestSessionClient } from "../../../../../packages/api/src/shared/request-session-client";
-import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 interface ViewRow {
   id: string;
@@ -269,7 +268,6 @@ function createSupabaseStub(initialRows: ViewRow[] = []) {
   };
 
   return {
-    supabaseAdmin: stub as unknown as AdminSupabaseClient,
     sessionClient: stub as unknown as RequestSessionClient,
     rows,
     updates,
@@ -292,7 +290,7 @@ const WRITE_SCOPE = {
 
 describe("admin/crm/table-preferences/named-views", () => {
   it("migrates renamed pinned operation ids when listing views", async () => {
-    const { supabaseAdmin } = createSupabaseStub([
+    const { sessionClient } = createSupabaseStub([
       {
         id: "view-1",
         name: "Receipts",
@@ -303,7 +301,7 @@ describe("admin/crm/table-preferences/named-views", () => {
       },
     ]);
 
-    const views = await listCrmNamedViews({ supabaseAdmin, ...SCOPE });
+    const views = await listCrmNamedViews({ sessionClient, ...SCOPE });
 
     expect(views).toEqual([
       {
