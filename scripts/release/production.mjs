@@ -10,12 +10,17 @@ const DEVELOPMENT_BRANCH = "develop";
 const DEFAULT_REMOTE = "origin";
 const RELEASE_PUSH_ENV = "ASYM_RELEASE_PRODUCTION_PUSH";
 const RELEASE_REASON_ENV = "ASYM_RELEASE_PRODUCTION_REASON";
+// Large release diffs can exceed spawnSync's 1 MiB default maxBuffer.
+const DIFF_MAX_BUFFER_BYTES = 256 * 1024 * 1024;
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
     encoding: "utf8",
     stdio: options.inherit ? "inherit" : ["ignore", "pipe", "pipe"],
     env: options.env ?? process.env,
+    ...(options.maxBuffer === undefined
+      ? {}
+      : { maxBuffer: options.maxBuffer }),
   });
 
   if (result.error) {
@@ -96,13 +101,12 @@ function assertReleaseSourceBranch(branch) {
 function readChangedFiles(remote) {
   run("git", ["fetch", remote, TARGET_BRANCH], { inherit: true });
   const targetRef = `${remote}/${TARGET_BRANCH}`;
-  const changed = run("git", [
-    "diff",
-    "--name-only",
-    `${targetRef}...HEAD`,
-    "--",
-  ]);
-  return changed.split(/\r?\n/).filter(Boolean);
+  const changed = run(
+    "git",
+    ["diff", "--name-only", "-z", `${targetRef}...HEAD`, "--"],
+    { maxBuffer: DIFF_MAX_BUFFER_BYTES },
+  );
+  return changed.split("\0").filter(Boolean);
 }
 
 export function validateProductionSource({ headSha, isAncestor }) {
