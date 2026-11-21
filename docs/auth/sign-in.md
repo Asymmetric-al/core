@@ -71,7 +71,7 @@ Notes:
 
 ## Demo user seeding
 
-Create or update demo auth users + profile roles:
+On a local Supabase stack only, create or update the demo Auth logins:
 
 ```bash
 bun run seed:demo:users
@@ -84,7 +84,7 @@ Required env vars for the script:
 - `DEMO_PASSWORD`
 - the `DEMO_*_EMAIL` variables you want to seed
 
-The script is idempotent and prints a summary table (`created`, `updated`, `skipped`).
+The script is idempotent and refuses every hosted project. Memberships, not profile roles, grant access. For logins created by a hosted rebuild, follow the [release job's seeded-login procedure](../ops/release-job.md#seeded-logins-on-a-hosted-rebuild); do not run this command there.
 
 ---
 

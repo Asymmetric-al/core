@@ -265,6 +265,11 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
       ref: "AL-2675 tenant address and request scope in test-e2e",
       hash: "c7ea497087351e4b",
     },
+    // D-18: pin the explicit donor CMS origin and the 35-minute hosted job budget (#2734).
+    {
+      ref: "AL-2675 WP2c hosted test-e2e contract",
+      hash: "b0faf7bc2b022be3",
+    },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {
     const prints = [CI, CII].map((file) => {

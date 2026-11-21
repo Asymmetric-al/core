@@ -10,12 +10,23 @@ import {
 
 import type { AuthContext } from "@asym/auth/context";
 
-const { createAuditLoggerMock, getAdminClientMock, getAuthContextMock } =
-  vi.hoisted(() => ({
-    createAuditLoggerMock: vi.fn(),
-    getAdminClientMock: vi.fn(),
-    getAuthContextMock: vi.fn(),
-  }));
+const {
+  createAuditLoggerMock,
+  getAdminClientMock,
+  getAuthContextMock,
+  operatorRpcMock,
+} = vi.hoisted(() => ({
+  createAuditLoggerMock: vi.fn(),
+  getAdminClientMock: vi.fn(),
+  getAuthContextMock: vi.fn(),
+  operatorRpcMock: vi.fn(),
+}));
+
+// AL-2675 (WP2c): the shared operator check runs in the database on the
+// caller's own session client; its answer is stubbed.
+vi.mock("@asym/database/supabase/server", () => ({
+  createClient: async () => ({ rpc: operatorRpcMock }),
+}));
 
 // AL-2675: the real gates run; only the verified session is stubbed.
 vi.mock("@asym/auth/context", async (importOriginal) => ({
@@ -59,11 +70,9 @@ function readHandlerSource(
 /** The wrapper's gate option, read from the route source. */
 function readGate(handlerSource: string): OperationOptions {
   const admin = /\{\s*tenantAdministrator:\s*true\s*\}/.test(handlerSource);
-  const roles = handlerSource.match(/\{\s*roles:\s*(\[[^\]]*\])\s*\}/);
-  expect(admin || Boolean(roles)).toBe(true);
-  return admin
-    ? { tenantAdministrator: true }
-    : { roles: JSON.parse(roles?.[1] ?? "[]") };
+  const operator = /\{\s*platformOperator:\s*true\s*\}/.test(handlerSource);
+  expect(admin !== operator).toBe(true);
+  return admin ? { tenantAdministrator: true } : { platformOperator: true };
 }
 
 const getGate = readGate(readHandlerSource("GET", "POST"));
@@ -112,11 +121,13 @@ const tenantAdmin: AuthContext = {
   isAuthenticated: true,
 };
 
+/** A signed-in request: it carries the Supabase session cookie (review WC3). */
 function createRequest(method: "GET" | "POST" | "PATCH"): NextRequest {
   return new NextRequest(
     "https://admin.example.test/api/admin/eve/governance",
     {
       method,
+      headers: { cookie: "sb-127-auth-token=session" },
     },
   );
 }
@@ -126,10 +137,21 @@ describe("Eve governance global mutation authorization contract", () => {
     vi.clearAllMocks();
     getAdminClientMock.mockReturnValue({ client: {}, error: null });
     createAuditLoggerMock.mockReturnValue({});
+    operatorRpcMock.mockResolvedValue({
+      data: null,
+      error: {
+        code: "42501",
+        message: "platform: the caller is not a platform operator",
+      },
+    });
   });
 
-  it("names only super_admin on the PATCH wrapper (WP2c's operator gate)", () => {
-    expect(patchGate).toEqual({ roles: ["super_admin"] });
+  // Rewritten by AL-2675 (WP2c, part 1): the PATCH wrapper named the
+  // `super_admin` role, which no membership holds. It names the shared
+  // operator check now, and no role name.
+  it("gates the PATCH wrapper on the shared operator check, not a role name (WP2c)", () => {
+    expect(patchGate).toEqual({ platformOperator: true });
+    expect(patchSource).not.toMatch(/roles:\s*\[/);
     expect(patchSource).toContain("await setEveKillSwitch({");
   });
 
@@ -147,10 +169,22 @@ describe("Eve governance global mutation authorization contract", () => {
     expect(setEveKillSwitch).not.toHaveBeenCalled();
   });
 
-  // AL-2675: the kill switch names only super_admin, which is no membership
-  // role. It has no holder until WP2c's operator list, so it fails closed for
-  // a tenant administrator too.
-  it("refuses the global PATCH to a tenant administrator until WP2c", async () => {
+  it("refuses the notification PATCH to a confirmed operator without tenant administration", async () => {
+    getAuthContextMock.mockResolvedValue(activeTenantStaff);
+    operatorRpcMock.mockResolvedValue({
+      data: { operator_id: activeTenantStaff.userId },
+      error: null,
+    });
+    const { PATCH } =
+      await import("../../../../packages/api/src/eve/notifications/route");
+    expect((await PATCH(createRequest("PATCH"))).status).toBe(403);
+  });
+
+  // AL-2675: the kill switch named only super_admin, which is no membership
+  // role, so it failed closed for a tenant administrator too. Since WP2c it
+  // is a platform operator's, confirmed in the database: a tenant
+  // administrator the check refuses is still refused.
+  it("refuses the global PATCH to a tenant administrator who is not a confirmed operator", async () => {
     getAuthContextMock.mockResolvedValue(tenantAdmin);
     const setEveKillSwitch = vi.fn();
     const patch = withOperation(async () => {
@@ -162,6 +196,25 @@ describe("Eve governance global mutation authorization contract", () => {
 
     expect(response.status).toBe(403);
     expect(setEveKillSwitch).not.toHaveBeenCalled();
+    expect(operatorRpcMock).toHaveBeenCalledWith("platform_operator_session");
+  });
+
+  it("admits the global PATCH for a confirmed platform operator (WP2c)", async () => {
+    getAuthContextMock.mockResolvedValue(tenantAdmin);
+    operatorRpcMock.mockResolvedValue({
+      data: { operator_id: tenantAdmin.userId },
+      error: null,
+    });
+    const setEveKillSwitch = vi.fn();
+    const patch = withOperation(async () => {
+      setEveKillSwitch();
+      return NextResponse.json({ ok: true });
+    }, patchGate);
+
+    const response = await patch(createRequest("PATCH"));
+
+    expect(response.status).toBe(200);
+    expect(setEveKillSwitch).toHaveBeenCalledTimes(1);
   });
 
   it("admits GET and POST for the flagged staff row only (AL-2675)", async () => {

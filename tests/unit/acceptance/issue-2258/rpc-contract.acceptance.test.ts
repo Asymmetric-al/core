@@ -712,6 +712,11 @@ describe("#2258 pins (criteria 12, 13)", () => {
         47915,
         "e091011ebffb5faba38a9230a9982488fb679c02f38b6d08be0b515250530276",
       ],
+      // D-18 (AL-2675): retain the manual shadcn review; document operator MFA, CMS origin and the 35-minute E2E cap.
+      [
+        48397,
+        "b94a4abb2503c2a4b54b349d94218659910b587989be8fddba59d3f7350e8674",
+      ],
     ];
     expect(REVIEWED).toContainEqual([
       b.length,

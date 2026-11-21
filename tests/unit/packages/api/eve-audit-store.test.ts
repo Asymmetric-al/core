@@ -67,6 +67,22 @@ describe("Eve audit store", () => {
     expect(insert.mock.calls[0]?.[0]).not.toHaveProperty("payload");
   });
 
+  it("requires both verified context and tenant before starting any read", async () => {
+    const from = vi.fn();
+    const supabaseAdmin = { from } as unknown as AdminSupabaseClient;
+    // Each directive sits on the line above the invalid call, where the
+    // error is (review 4650094408 on #2741).
+    await expect(
+      // @ts-expect-error callers must supply a verified context
+      loadRecentEveAuditEvents({ tenantId: RECORD.tenantId, supabaseAdmin }),
+    ).rejects.toThrow(/tenant scope/);
+    await expect(
+      // @ts-expect-error null is not a tenant scope
+      loadRecentEveAuditEvents({ auth: AUTH, tenantId: null, supabaseAdmin }),
+    ).rejects.toThrow(/tenant scope/);
+    expect(from).not.toHaveBeenCalled();
+  });
+
   it("maps recent audit rows for the authorized admin view", async () => {
     const limit = vi.fn().mockResolvedValue({
       data: [

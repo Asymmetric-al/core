@@ -275,10 +275,19 @@ describe("ci-integration workflow contract", () => {
   // hosted), the test steps take about 14 minutes hosted, about 19 with the
   // setup steps, inside 30; a job that reaches its limit now still uploads
   // its evidence (the upload runs on cancellation).
+  it("points donor CMS reads at the admin server started by test-e2e", () => {
+    const job = jobBlock(workflow, "test-e2e");
+    const port = job.match(/e2e-dev-server\.sh admin start (\d+)/)?.[1];
+    expect(port).toBeDefined();
+    expect(job.split("    steps:\n")[0]).toContain(
+      `      CMS_BASE_URL: "http://127.0.0.1:${port}"\n`,
+    );
+  });
+
   it("bounds the AL-2675 steps by their measured times, inside the job's limit", () => {
     const testE2e = jobBlock(workflow, "test-e2e");
-    // The job's limit from the joined release's measured replay (JR12).
-    expect(testE2e).toMatch(/^ {4}timeout-minutes: 55$/m);
+    // D-18: #2734 took 23m16s on GitHub; leave headroom without extending any step.
+    expect(testE2e).toMatch(/^ {4}timeout-minutes: 35$/m);
     const stepBlock = (name: string) => {
       const start = testE2e.indexOf(`      - name: ${name}\n`);
       expect(start).toBeGreaterThanOrEqual(0);

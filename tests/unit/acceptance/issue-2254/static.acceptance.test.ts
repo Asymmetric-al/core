@@ -123,6 +123,12 @@ const CI_BASES = [
     bytes: 47915,
     sha256: "e091011ebffb5faba38a9230a9982488fb679c02f38b6d08be0b515250530276",
   },
+  // D-18 (AL-2675): retain the manual shadcn review; document operator MFA, CMS origin and the 35-minute E2E cap.
+  {
+    ref: "AL-2675 WP2c operator MFA and hosted E2E contract",
+    bytes: 48397,
+    sha256: "b94a4abb2503c2a4b54b349d94218659910b587989be8fddba59d3f7350e8674",
+  },
 ] as const;
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */
