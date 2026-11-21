@@ -2,6 +2,15 @@
 -- the five money tables names that target. This includes pledges, staging
 -- and the saga outbox: even abandoned money was directed to that entity.
 -- Moving future activity to another entity requires a new target.
+-- Deviation from plan line 910 ("once a gift names it"), accepted by the
+-- coordinator on 21 November 2026: a row on any of the five tables fixes the
+-- entity for good, also when that row is later rejected, abandoned or removed,
+-- because money in flight was sent toward the entity the target had then.
+-- Check first, on preview and then production: the read-only operator query
+-- scripts/sql/giving-target-preflight.sql must return no rows (a fund or
+-- missionary with no tenant; a money row naming another tenant's fund or
+-- missionary). The preflight below repeats that test under the table locks
+-- and, if it finds any, stops with the counts before anything is changed.
 -- Apply in a quiet window: writers are excluded before the preflight; ALTER
 -- TABLE upgrades locks to ACCESS EXCLUSIVE and holds them through COMMIT,
 -- including backfill, index builds and validation of all ten references.
