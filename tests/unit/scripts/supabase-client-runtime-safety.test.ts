@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -608,5 +610,37 @@ describe("the SDK fixture's legal entity", () => {
     expect(MEMBERSHIP_FIXTURE_DELETE).toMatch(
       /WHERE id = :'membership_id'::uuid AND user_id = :'user_id'::uuid AND tenant_id = :'tenant_id'::uuid;/,
     );
+  });
+
+  // Round M (L1's committed test): the verifier is run by hand, so its
+  // source is held here. The caller reads the fund on its own token with
+  // both request headers, never through the service key, and two refusals
+  // are checked: the member under another tenant, and a signed-in user with
+  // no membership under the fund's own tenant.
+  it("reads the fund on the caller's own token and checks both refusals", () => {
+    const verifier = readFileSync(
+      "tests/integration/supabase/client-runtime-verification.mjs",
+      "utf8",
+    );
+    expect(verifier).toMatch(/Authorization: `Bearer \$\{token\}`/);
+    expect(verifier).toMatch(/"x-asym-tenant": tenantId/);
+    expect(verifier).toMatch(/"x-asym-assignment": membershipId/);
+    expect(verifier).toMatch(
+      /asCaller\(tenantIds\[0\]\)\s*\.from\("funds"\)\s*\.select\(/,
+    );
+    expect(verifier).toMatch(
+      /asCaller\(tenantIds\[1\]\)\s*\.from\("funds"\)\s*\.select\(/,
+    );
+    expect(verifier).not.toMatch(
+      /\badmin\s*\.from\(\s*["'`]funds["'`]\s*\)\s*\.select\(/,
+    );
+    expect(verifier).toMatch(/\.signInWithPassword\(users\[1\]\)/);
+    expect(verifier).toMatch(/"x-asym-tenant": tenantIds\[0\]/);
+    for (const label of [
+      "caller-token-reads-minor-units-and-currency",
+      "caller-token-denied-under-other-tenant",
+      "caller-token-non-member-denied",
+    ])
+      expect(verifier).toContain(`"${label}"`);
   });
 });

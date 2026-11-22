@@ -389,6 +389,32 @@ async function verify(input) {
         : elsewhere.data.length === 0,
       "caller-token-denied-under-other-tenant",
     );
+    // Round M: a signed-in user with no membership, under the fund's own
+    // tenant, is refused too. (The check above alone would also pass a policy
+    // that trusted the tenant header without a membership.)
+    const outsider = createClient(url.href, input.PUBLIC_KEY, options);
+    const outsiderToken = successful(
+      await outsider.auth.signInWithPassword(users[1]),
+    ).session.access_token;
+    const nonMember = await createClient(url.href, input.PUBLIC_KEY, {
+      ...options,
+      global: {
+        ...global,
+        headers: {
+          Authorization: `Bearer ${outsiderToken}`,
+          "x-asym-tenant": tenantIds[0],
+        },
+      },
+    })
+      .from("funds")
+      .select("id")
+      .eq("id", fundId);
+    check(
+      nonMember.error
+        ? nonMember.error.code === "42501"
+        : nonMember.data.length === 0,
+      "caller-token-non-member-denied",
+    );
     check(
       (await channel.send({
         type: "broadcast",
