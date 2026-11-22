@@ -134,7 +134,10 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     ]);
     expect(ids((j) => j.permissions)).toBe("shadscan-report ci-gate-comment");
     expect(ids((j) => j.environment)).toBe("");
-    expect(ids(usesSecrets)).toBe(`${MG_SECRET_JOBS} test-e2e`);
+    // Amended by AL-2674: test-e2e runs hermetically on placeholder Supabase
+    // for every event with no repository secrets, so no ci-integration.yml job
+    // references secrets.
+    expect(ids(usesSecrets)).toBe(MG_SECRET_JOBS);
   });
   it("concurrency unchanged; merge_group group is unique and never cancels", () => {
     for (const prefix of ["ci-", "ci-integration-"]) {
