@@ -67,6 +67,7 @@ on:
       - tests/integration/supabase/postgres17-upgrade-readiness-verification.sql
       - docs/security/anon-definer-allowlist.json
       - docs/security/rls-deny-by-default-exceptions.json
+      - docs/security/tenant-key-exceptions.json
       - docs/security/tenant-policy-exceptions.json
       - docs/security/field-policies/**
       - scripts/github/install-canvas-deps.sh

@@ -28,7 +28,6 @@ const h = vi.hoisted(() => ({
   listEmailTemplates: vi.fn(),
   listPdfTemplates: vi.fn(),
   loadAutomations: vi.fn(),
-  tenantUpdate: vi.fn(),
   getAdminClient: vi.fn(),
 }));
 
@@ -88,17 +87,7 @@ vi.mock("@asym/database/supabase/server", () => ({
   createClient: vi.fn(async () => {
     const recorder = recordingClient("server");
     return {
-      from: (table: string) =>
-        table === "tenants"
-          ? {
-              update: (values: unknown) => ({
-                eq: async () => {
-                  h.tenantUpdate(values);
-                  return { error: null };
-                },
-              }),
-            }
-          : (recorder.from as (t: string) => unknown)(table),
+      from: (table: string) => (recorder.from as (t: string) => unknown)(table),
       rpc: (...args: unknown[]) =>
         (recorder.rpc as (...a: unknown[]) => unknown)(...args),
       auth: recorder.auth,
@@ -128,7 +117,6 @@ import { GET as donationsGET } from "../../../../packages/api/src/donations";
 import { GET as donorPortalGET } from "../../../../packages/api/src/donor-portal";
 import { GET as eveGovernanceGET } from "../../../../packages/api/src/eve/governance/route";
 import { GET as missionaryPortalGET } from "../../../../packages/api/src/missionary-portal";
-import { PATCH as orgSettingsPATCH } from "../../../../packages/api/src/admin/org-settings";
 import { GET as emailTemplatesGET } from "../../../../packages/api/src/email/templates";
 import { GET as pdfTemplatesGET } from "../../../../packages/api/src/pdf-templates";
 
@@ -181,18 +169,7 @@ const HANDLERS = [
         ),
       ),
   },
-  {
-    name: "organization settings",
-    reached: () => h.tenantUpdate,
-    call: () =>
-      orgSettingsPATCH(
-        new Request("https://admin.example.test/api/admin/org-settings", {
-          method: "PATCH",
-          body: JSON.stringify({ orgPostVisibility: "followers_only" }),
-          headers: { "content-type": "application/json" },
-        }),
-      ),
-  },
+  // D-18/D-48: WP3 removed the unused direct tenant-settings handler and its case.
 ] as const;
 
 beforeEach(() => {

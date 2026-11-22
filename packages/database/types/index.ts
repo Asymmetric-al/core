@@ -130,6 +130,9 @@ export type {
   NotificationQueueItem,
   PledgeChargeAttempt,
   Fund,
+  GivingTargetEntityLock,
+  LegalEntity,
+  PaymentAccountBinding,
   Follow,
 } from "./database";
 

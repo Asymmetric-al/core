@@ -26,6 +26,7 @@ function createThenableQuery<T>(result: QueryResult<T>) {
   const query: {
     select: ReturnType<typeof vi.fn>;
     eq: ReturnType<typeof vi.fn>;
+    is: ReturnType<typeof vi.fn>;
     in: ReturnType<typeof vi.fn>;
     gte: ReturnType<typeof vi.fn>;
     or: ReturnType<typeof vi.fn>;
@@ -35,6 +36,7 @@ function createThenableQuery<T>(result: QueryResult<T>) {
   } = {
     select: vi.fn(() => query),
     eq: vi.fn(() => query),
+    is: vi.fn(() => query),
     in: vi.fn(() => query),
     gte: vi.fn(() => query),
     or: vi.fn(() => query),
@@ -186,6 +188,7 @@ describe("api/reads/dashboard-stats", () => {
       revenueThisMonthCents: 200,
       activeFundsCount: 4,
     });
+    expect(activeFundsQuery.is).toHaveBeenCalledWith("system_purpose", null);
     expect(revenueQuery.in).not.toHaveBeenCalledWith("status", SETTLED);
     expect(from).toHaveBeenCalledTimes(5);
     expect(cacheTag).toHaveBeenCalledWith(

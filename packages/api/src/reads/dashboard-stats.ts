@@ -347,6 +347,7 @@ export async function getDashboardStats(
     client
       .from("funds")
       .select("id", { count: "exact", head: true })
+      .is("system_purpose", null)
       .eq("tenant_id", tenantId)
       .eq("is_active", true),
   ]);

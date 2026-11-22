@@ -97,7 +97,7 @@ Mission Control–native UI that wraps **Payload CMS** (mounted at `/web-studio`
     deleting an optional shared
     task closes no Page cause or impact. See
     [ADR-0139](../../../../../docs/adr/0139-derived-public-page-operations-with-cause-owned-actions.md).
-14. Treat the current `org-settings` route, `tenants.org_settings`, Payload
+14. Treat the retired `org-settings` route, `tenants.org_settings`, Payload
     preferences, collection defaults, and simulated settings success as D23
     migration or UI evidence only. D23 is one private, scope-first, disposable
     setup/settings projection over exact source-owned versions. Each Change
