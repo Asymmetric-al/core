@@ -17,6 +17,7 @@ import {
 } from "./vercel-production-readiness.mjs";
 
 const DEFAULT_SCOPE = "asymmetric-al";
+const MAX_SHARED_ENV_PAGES = 100;
 
 function environmentsOf(env) {
   const names = [...(Array.isArray(env?.target) ? env.target : [])];
@@ -108,8 +109,10 @@ function readSharedRuntimeConnectionStrings({ scope, run }) {
   const allEnvs = [];
   const seenCursors = new Set();
   let cursor = null;
+  let pages = 0;
 
   while (true) {
+    pages += 1;
     const endpoint =
       cursor === null
         ? "/v1/env"
@@ -135,8 +138,18 @@ function readSharedRuntimeConnectionStrings({ scope, run }) {
       break;
     }
     const nextKey = String(next);
-    if (seenCursors.has(nextKey)) {
-      break;
+    if (
+      (cursor !== null && nextKey === String(cursor)) ||
+      seenCursors.has(nextKey)
+    ) {
+      throw new Error(
+        `Vercel shared variable pagination repeated cursor for ${scope}.`,
+      );
+    }
+    if (pages >= MAX_SHARED_ENV_PAGES) {
+      throw new Error(
+        `Vercel shared variable pagination exceeded ${MAX_SHARED_ENV_PAGES} pages for ${scope}.`,
+      );
     }
     seenCursors.add(nextKey);
     cursor = next;

@@ -231,4 +231,71 @@ describe("runtime connection-string check (WP1 exit)", () => {
       }),
     ).toThrow(/shared variable list/);
   });
+
+  it("fails closed when shared variable pagination repeats a cursor or exceeds the page bound", () => {
+    const repeatedCursorRun = vi.fn((_command: string, args: string[]) => {
+      if (args[1]?.startsWith("/v1/env")) {
+        return JSON.stringify({
+          data: [],
+          pagination: { count: 20, next: 1700000000000, prev: null },
+        });
+      }
+      return JSON.stringify({ envs: [] });
+    });
+
+    expect(() =>
+      readRuntimeConnectionStrings({
+        scope: "asymmetric-al",
+        run: repeatedCursorRun,
+      }),
+    ).toThrow(/repeated cursor|did not advance/i);
+
+    const cyclicCursorRun = vi.fn((_command: string, args: string[]) => {
+      if (args[1] === "/v1/env") {
+        return JSON.stringify({
+          data: [],
+          pagination: { count: 20, next: 1700000000000, prev: null },
+        });
+      }
+      if (args[1] === "/v1/env?until=1700000000000") {
+        return JSON.stringify({
+          data: [],
+          pagination: { count: 20, next: 1699999990000, prev: null },
+        });
+      }
+      if (args[1] === "/v1/env?until=1699999990000") {
+        return JSON.stringify({
+          data: [],
+          pagination: { count: 20, next: 1700000000000, prev: null },
+        });
+      }
+      return JSON.stringify({ envs: [] });
+    });
+
+    expect(() =>
+      readRuntimeConnectionStrings({
+        scope: "asymmetric-al",
+        run: cyclicCursorRun,
+      }),
+    ).toThrow(/repeated cursor|did not advance/i);
+
+    let counter = 1700000000000;
+    const unboundedRun = vi.fn((_command: string, args: string[]) => {
+      if (args[1]?.startsWith("/v1/env")) {
+        counter -= 1;
+        return JSON.stringify({
+          data: [],
+          pagination: { count: 20, next: counter, prev: null },
+        });
+      }
+      return JSON.stringify({ envs: [] });
+    });
+
+    expect(() =>
+      readRuntimeConnectionStrings({
+        scope: "asymmetric-al",
+        run: unboundedRun,
+      }),
+    ).toThrow(/page limit|exceeded/i);
+  });
 });
