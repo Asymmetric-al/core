@@ -774,4 +774,97 @@ describe("release job: Vercel steps", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it("plan CLI selects an app when a file is moved out of its directory into docs", async () => {
+    vi.stubGlobal("fetch", () => {
+      throw new Error("network disabled in unit test");
+    });
+    const dir = mkdtempSync(
+      path.join(os.tmpdir(), "vercel-release-rename-plan-"),
+    );
+    const previousCwd = process.cwd();
+    try {
+      const gitEnv: Record<string, string> = {};
+      for (const [key, value] of Object.entries(process.env)) {
+        if (value !== undefined && !key.startsWith("GIT_")) {
+          gitEnv[key] = value;
+        }
+      }
+      gitEnv.GIT_CONFIG_NOSYSTEM = "1";
+      gitEnv.GIT_CONFIG_GLOBAL = path.join(dir, "gitconfig");
+
+      const git = (args: string[], input?: string) => {
+        const result = spawnSync("git", args, {
+          cwd: dir,
+          env: gitEnv,
+          encoding: "utf8",
+          input,
+        });
+        if (result.error) throw result.error;
+        if (result.status !== 0) {
+          throw new Error(`git ${args.join(" ")}: ${result.stderr}`);
+        }
+        return result.stdout.trim();
+      };
+
+      const dataBlock = (content: string) =>
+        `data ${Buffer.byteLength(content, "utf8")}\n${content}`;
+
+      git(["init", "-q", "-b", "production"]);
+      const streamLines = [
+        "blob",
+        "mark :1",
+        dataBlock(
+          "export const movedFixture = 'identical content for rename detection';\n",
+        ),
+        "commit refs/heads/production",
+        "mark :10",
+        "committer Test <test@example.invalid> 1700000000 +0000",
+        dataBlock("live baseline\n"),
+        "M 100644 :1 apps/admin/app/moved-note.ts",
+        "",
+        "commit refs/heads/release",
+        "mark :11",
+        "committer Test <test@example.invalid> 1700000001 +0000",
+        dataBlock("move file out of admin into docs\n"),
+        "from :10",
+        "deleteall",
+        "M 100644 :1 docs/moved-note.ts",
+        "",
+        "done",
+        "",
+      ];
+      git(["fast-import", "--quiet"], streamLines.join("\n"));
+
+      const liveSha = git(["rev-parse", "refs/heads/production"]);
+      const releaseHeadSha = git(["rev-parse", "refs/heads/release"]);
+
+      const outputFile = path.join(dir, "github-output");
+      const logs: string[] = [];
+      const request = vi.fn(async () => ({
+        status: 200,
+        json: async () => ({
+          observability: { release: { commit: liveSha } },
+        }),
+      }));
+
+      process.chdir(dir);
+      await runCli(
+        ["plan"],
+        { RELEASE_SHA: releaseHeadSha, GITHUB_OUTPUT: outputFile },
+        (line: string) => logs.push(line),
+        { request: request as unknown as typeof fetch },
+      );
+
+      expect(readFileSync(outputFile, "utf8")).toBe("apps=admin\n");
+      expect(logs).toEqual([
+        "admin: build - changed app file: apps/admin/app/moved-note.ts",
+        "donor: skip - changed files do not affect this Vercel app",
+        "missionary: skip - changed files do not affect this Vercel app",
+      ]);
+    } finally {
+      process.chdir(previousCwd);
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

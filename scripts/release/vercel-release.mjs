@@ -138,7 +138,7 @@ function isGitAncestor(live, sha) {
 function listGitChangedFiles(live, sha) {
   const result = spawnSync(
     "git",
-    ["diff", "--name-only", "-z", live, sha, "--"],
+    ["diff", "--name-only", "-z", "--no-renames", live, sha, "--"],
     { encoding: "utf8", maxBuffer: Infinity },
   );
   if (result.error || result.status !== 0) {
