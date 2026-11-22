@@ -100,7 +100,19 @@ test.describe("Admin table pages smoke", () => {
       } else {
         await ensureAdminDemo(page);
       }
-      await page.goto(adminPath(path), { waitUntil: "domcontentloaded" });
+      // The search input is visible in the server HTML. The grid requests its
+      // tag options after mounting, when React can handle input on either layout.
+      const [tagOptions] = await Promise.all([
+        bypassRead && path === "/crm"
+          ? page.waitForResponse(
+              (response) =>
+                new URL(response.url()).pathname === "/api/admin/crm/tags" &&
+                response.request().method() === "GET",
+              { timeout: 120_000 },
+            )
+          : null,
+        page.goto(adminPath(path), { waitUntil: "domcontentloaded" }),
+      ]);
       if (bypassRead) {
         const refusal = await page.request.get(
           new URL(crmApi, adminBaseURL).href,
@@ -112,14 +124,12 @@ test.describe("Admin table pages smoke", () => {
         expect(await refusal.json()).toMatchObject({
           code: "SESSION_REQUIRED",
         });
-        if (path === "/crm") {
-          // The mobile layout can cancel the first records query. Search from
-          // the mounted grid to exercise its refusal state on both viewports.
+        if (tagOptions) {
+          expect(tagOptions.status()).toBe(401);
           const search = page.getByRole("searchbox", {
             name: "Search CRM records",
           });
           await expect(search).toBeVisible();
-          await page.waitForLoadState("networkidle");
           const term = "shell-session-check";
           const [searched] = await Promise.all([
             page.waitForResponse(
