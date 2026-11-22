@@ -178,6 +178,49 @@ export function parseVercelEnvEntries(jsonText) {
     .sort((a, b) => a.key.localeCompare(b.key));
 }
 
+function appliesToProduction(env) {
+  if (env?.gitBranch) return false;
+  if (env?.target === undefined) return true;
+  if (env.target === "production") return true;
+  return Array.isArray(env.target) && env.target.includes("production");
+}
+
+function isSharedEnvEntry(env) {
+  return (
+    Array.isArray(env?.projectId) ||
+    env?.shared === true ||
+    env?.source === "shared"
+  );
+}
+
+export function resolveProductionEnvTypes(jsonText) {
+  const parsed = parseJson(jsonText, {});
+  const envs = Array.isArray(parsed.envs) ? parsed.envs : [];
+  const byKey = new Map();
+
+  for (const env of envs) {
+    if (typeof env?.key !== "string" || env.key.length === 0) continue;
+    if (!appliesToProduction(env)) continue;
+    const list = byKey.get(env.key) ?? [];
+    list.push(env);
+    byKey.set(env.key, list);
+  }
+
+  const types = {};
+  for (const [key, entries] of byKey.entries()) {
+    const projectEntries = entries.filter((env) => !isSharedEnvEntry(env));
+    const effective = projectEntries.length > 0 ? projectEntries : entries;
+    if (effective.every((env) => env?.type === "sensitive")) {
+      types[key] = "sensitive";
+    } else {
+      const nonSensitive = effective.find((env) => env?.type !== "sensitive");
+      types[key] = nonSensitive?.type;
+    }
+  }
+
+  return types;
+}
+
 export function parseVercelDeployments(jsonText) {
   const parsed = parseJson(jsonText, {});
   const deployments = Array.isArray(parsed.deployments)
@@ -661,10 +704,8 @@ function readProductionEnv(project, scope) {
       { cwd },
     );
     return {
-      envKeys: envEntries.map((env) => env.key),
-      envTypes: Object.fromEntries(
-        envEntries.map((env) => [env.key, env.type]),
-      ),
+      envKeys: unique(envEntries.map((env) => env.key)),
+      envTypes: resolveProductionEnvTypes(listOutput),
       envValues: parseDotEnv(readFileSync(envPath, "utf8")),
     };
   });
