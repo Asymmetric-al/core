@@ -50,12 +50,15 @@ and the mechanism is part of what the Oxlint migration replaces.
 
 ### D2. The ratchet compares trees, not baselines
 
-For each file changed since the merge base with the base branch
-(`origin/develop` by default, the pull request's base in CI, and on a branch
-push the revision the branch was at before the push), the gate counts
-the banned comments in the file now and in its base version. The count must
-not be higher. A renamed file is compared with the file it was renamed from,
-so a rename keeps its comments. A new file must have none.
+For each file changed since the base, the gate counts the banned comments in
+the file now and in its base version. The count must not be higher. A renamed
+file is compared with the file it was renamed from, so a rename keeps its
+comments. A new file must have none.
+
+The base is the merge base with `origin/develop` by default, and with the
+pull request's target branch in CI. On a branch push it is the revision the
+branch was at before the push, used directly and not through a merge base, so
+a force-push is compared with the tip it replaced.
 
 The gate then requires the committed baseline to equal the tree. Because the
 tree cannot gain comments and the baseline must mirror the tree, nobody can

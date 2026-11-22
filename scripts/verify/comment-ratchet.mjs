@@ -141,7 +141,8 @@ function resolveBase(root, requested, pushedFrom) {
   }
   if (PUSHED_REVISION.test(pushedFrom ?? "")) {
     try {
-      return mergeBase(root, pushedFrom);
+      git(root, ["cat-file", "-e", `${pushedFrom}^{commit}`]);
+      return pushedFrom;
     } catch {
       pushedFrom = `${pushedFrom}, which is not in this checkout`;
     }

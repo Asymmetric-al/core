@@ -335,6 +335,39 @@ describe("the comment ratchet", () => {
     expect(created.output).toContain("packages/api/src/a.ts: 2 -> 3");
   });
 
+  it("compares a force-push with the tip it replaced, not their common ancestor", () => {
+    const three = `${COMMENTED}// three\n`;
+    const root = repository({ "packages/api/src/a.ts": three });
+    run(root, "--write");
+    git(root, "add", "--all");
+    git(root, "commit", "--quiet", "--message=ancestor");
+    const ancestor = git(root, "rev-parse", "HEAD").trim();
+    const commitWith = (text: string, count: number, message: string) => {
+      write(root, "packages/api/src/a.ts", text);
+      write(
+        root,
+        commentBaselineFile,
+        `${JSON.stringify({ "packages/api/src/a.ts": count }, null, 2)}\n`,
+      );
+      git(root, "commit", "--quiet", "--all", `--message=${message}`);
+      return git(root, "rev-parse", "HEAD").trim();
+    };
+    const replaced = commitWith("// one\nexport const a = 1;\n", 1, "tip");
+    git(root, "reset", "--quiet", "--hard", ancestor);
+    commitWith(COMMENTED, 2, "forced");
+
+    const output: string[] = [];
+    const status = runCommentRatchet({
+      root,
+      args: [],
+      env: { COMMENT_RATCHET_PUSHED_FROM: replaced },
+      log: (line: string) => output.push(line),
+      error: (line: string) => output.push(line),
+    });
+    expect(status).toBe(1);
+    expect(output.join("\n")).toContain("packages/api/src/a.ts: 1 -> 2");
+  });
+
   it("refuses a push it has no earlier revision to compare with", () => {
     const root = repository({ "packages/api/src/a.ts": COMMENTED });
     run(root, "--write");
