@@ -1,0 +1,10 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+export { GET, POST } from "@asym/api/posts";
+
+export type Request = NextRequest;
+
+export const respond = NextResponse.json;
+
+export const loadHandlers = () => import("@asym/api/posts");

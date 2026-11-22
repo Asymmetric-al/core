@@ -2,24 +2,19 @@
  * c1: reserved version/header; c2a: named revokes incl. M1/M3 text mutants;
  * c4/5: five DEFINER wrappers, empty path, reduced signatures; c12: no touch;
  * c13: session helper (five RPCs/status mapping in routes.acceptance.test.ts);
- * c14: contract/docs; c15: rollback; c16: CI append/pin; c17: immutable hashes.
- * §6/9: declared edit allow-list. c6-11/M2/M4 runtime checks are in realstack.
+ * c14: contract/docs; c15: rollback; c16: CI step; c17: immutable hashes.
+ * c6-11/M2/M4 runtime checks are in realstack. The §6/9 declared-edit check
+ * of the merged PR was retired by #2706 (diff scope belongs in review).
  */
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
 import * as H from "./harness";
-import {
-  loadWorkflowDocument,
-  PINNED_STEP_BODIES,
-  workflowJobs,
-} from "../../helpers/workflow-yaml";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const sql = () => H.code(H.read(H.FORWARD));
-const ROOT = "packages/api/src/admin/crm/table-preferences";
 const REAL =
   "tests/unit/acceptance/issue-2402/crm-table-preferences.realstack.acceptance.test.ts";
 const revoke = (text: string, schema: string, fn: string, roles: string[]) => {
@@ -132,16 +127,10 @@ describe("#2402 static contract", () => {
     expect(doc).toContain(`rollback_${H.NAME}`);
     expect(doc).toMatch(/same (?:release|window)|paired|together/i);
   });
-  it("16: real-stack path appended at step 16 and shared step pin matches", () => {
-    const step = workflowJobs(
-      loadWorkflowDocument(".github/workflows/ci-integration.yml"),
-    ).migrate!.steps![16]!;
-    expect(step.name).toBe("Verify tenant isolation (real stack)");
-    expect(String(step.run).split(/\s+/)).toContain(REAL);
-    const { index, ...rest } =
-      PINNED_STEP_BODIES.migrate![`name:${step.name}`]!;
-    expect(index).toBe(16);
-    expect(step).toEqual({ name: step.name, ...rest });
+  it("16: the tenant isolation migrate step runs the #2402 real-stack file", () => {
+    expectRealstackStep("Verify tenant isolation (real stack)", [REAL], {
+      TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}",
+    });
   });
   // Pinned bytes from a1375d46; one file per row for review.
   it.each(
@@ -157,59 +146,5 @@ describe("#2402 static contract", () => {
   )("17: %s retains baseline bytes", (file, hash) => {
     const bytes = readFileSync(`${H.MIG}/${file}`);
     expect(createHash("sha256").update(bytes).digest("hex")).toBe(hash);
-  });
-  it("§6/9: diff contains only declared edits", (ctx) => {
-    // PR #2414 merged #2402 into develop; scope belongs to that change on any branch.
-    const merged = "2b02808407d7eb1f85065ae798adf018ee8b4496";
-    const history = spawnSync(
-      "git",
-      ["rev-parse", "--verify", `${merged}^1^{commit}`],
-      { encoding: "utf8" },
-    );
-    expect(history.error).toBeUndefined();
-    // CI unit/acceptance jobs fetch full history (ci.yml fetch-depth: 0).
-    if (history.status !== 0)
-      ctx.skip(
-        "#2402 merge or first-parent history unavailable in this checkout",
-      );
-    const r = spawnSync(
-      "git",
-      ["diff", "--name-only", `${merged}^1..${merged}`],
-      {
-        encoding: "utf8",
-      },
-    );
-    expect(r.status).toBe(0);
-    const allowed = new Set([
-      H.FORWARD,
-      H.ROLLBACK,
-      // Recorded test-only departure for the #2258 12/2 re-freeze (#2402 531cf5847).
-      "tests/unit/acceptance/issue-2258/harness.ts",
-      ..."service named-views route".split(" ").map((n) => `${ROOT}/${n}.ts`),
-      ...`packages/api/src/shared/request-session-client.ts
- docs/security/function-execute-grants.md
- docs/security/service-role-client-allowlist.json
- docs/security/tenant-guard.md
- .github/workflows/ci-integration.yml
- tests/unit/helpers/workflow-yaml.ts
- tests/unit/security/authz-definer-execute-grants.test.ts
- tests/unit/acceptance/issue-2250/static.acceptance.test.ts
- tests/unit/acceptance/issue-2155/postgres-ecr-gates.acceptance.test.ts
- tests/unit/acceptance/issue-2201/merge-group.acceptance.test.ts`.split(/\s+/),
-      ..."crm-named-views crm-table-preferences-service crm-table-preferences-route-handler"
-        .split(" ")
-        .map((n) => `tests/unit/packages/api/admin/${n}.test.ts`),
-    ]);
-    expect(
-      r.stdout
-        .trim()
-        .split("\n")
-        .filter(
-          (p) =>
-            p &&
-            !allowed.has(p) &&
-            !p.startsWith("tests/unit/acceptance/issue-2402/"),
-        ),
-    ).toEqual([]);
   });
 });

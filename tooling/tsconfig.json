@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../tooling/typescript-config/base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "ES2023.Intl"],
+    "types": ["node"],
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "incremental": false
+  },
+  "include": ["**/*.ts", "**/*.mts"]
+}

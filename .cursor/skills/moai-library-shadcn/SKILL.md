@@ -25,7 +25,8 @@ before running `bun run skills:sync`.
 
 1. Read `packages/ui/components.json` and confirm `style: "base-maia"`,
    `tailwind.baseColor: "zinc"`, `tailwind.cssVariables: true`.
-2. Run `bunx shadcn@latest info --json` from `packages/ui` (never from an app).
+2. Run `bunx shadcn info --json` from `packages/ui` (never from an app); it
+   uses the CLI version pinned in the root `package.json`.
 3. Search existing `@asym/ui` components before adding anything new.
 4. For registry or generated components, inspect CLI output and its actual
    dependencies (take the Base UI build, not Radix), adapt to Maia, and

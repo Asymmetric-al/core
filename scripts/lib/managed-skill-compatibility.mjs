@@ -7,15 +7,12 @@ import {
   writeFile,
 } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { formatSource } from "./format-source.mts";
 import { applyTasteChartCompatibility } from "./taste-charts-adapter.mjs";
 import { applyTastePreviewCompatibility } from "./taste-preview-adapter.mjs";
 import { applyComponentsBuildCompatibility } from "./components-build-adapter.mjs";
 
 // Reviewed source text is data. Never import code from a skill tree.
-const repositoryPackage = fileURLToPath(
-  new URL("../../package.json", import.meta.url),
-);
 const configUrl = new URL(
   "../refresh-overlays/managed-core-guidance.json",
   import.meta.url,
@@ -100,7 +97,6 @@ export async function applyManagedSkillCompatibility(skillName, targetRoot) {
       if (error.code !== "ENOENT") throw error;
     }
   }
-  const prettier = await import("prettier");
   for (const relative of await filesUnder(targetRoot)) {
     if (
       !relative.endsWith(".md") ||
@@ -125,10 +121,7 @@ export async function applyManagedSkillCompatibility(skillName, targetRoot) {
     if (!(
       skillName === "improve-animations" && relative === "PLAN-TEMPLATE.md"
     ))
-      content = await prettier.format(content, {
-        ...(await prettier.resolveConfig(repositoryPackage)),
-        filepath: file,
-      });
+      content = await formatSource(file, content, "managed");
     for (const row of (guidance.tableRows ?? []).filter(
       (item) => item.skillName === skillName && item.relativePath === relative,
     )) {
@@ -482,19 +475,11 @@ function isExplicitOnlyFrontmatter(frontmatter) {
 export async function formatManagedSkillOutput(skillName, targetRoot) {
   const guidance = await config();
   if (!guidance?.skills?.[skillName]) return;
-  const prettier = await import("prettier");
   for (const relative of await filesUnder(targetRoot)) {
     if (!relative.endsWith(".md") || relative.startsWith("references/"))
       continue;
     const file = path.join(targetRoot, relative);
     const content = await readFile(file, "utf8");
-    await writeFile(
-      file,
-      await prettier.format(content, {
-        ...(await prettier.resolveConfig(repositoryPackage)),
-        filepath: file,
-      }),
-      "utf8",
-    );
+    await writeFile(file, await formatSource(file, content, "managed"), "utf8");
   }
 }

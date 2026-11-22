@@ -1,0 +1,10 @@
+import { adminTheme } from "../../apps/admin/theme";
+import type { DonorTheme } from "../../apps/donor/theme";
+
+export { missionaryTheme } from "../../apps/missionary/theme";
+
+export type Theme = DonorTheme;
+
+export const theme = adminTheme;
+
+export const loadConsole = () => import("../../apps/factory-console/src/theme");

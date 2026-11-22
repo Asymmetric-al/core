@@ -2,7 +2,7 @@
 name: shadcn
 description: Manages shadcn components and projects — adding, searching, fixing, debugging, styling, and composing UI, including chat interfaces. Provides project context, component docs, and usage examples. Applies when working with shadcn/ui, component registries, presets, --preset codes, or any project with a components.json file. Also triggers for "shadcn init", "create an app with --preset", "switch to --preset", and for building a design system or applying a DESIGN.md or brand spec to shadcn/ui.
 user-invocable: false
-allowed-tools: Bash(npx shadcn@latest *), Bash(pnpm dlx shadcn@latest *), Bash(bunx --bun shadcn@latest *)
+allowed-tools: Bash(bunx shadcn *)
 ---
 
 <!-- CORE-OVERLAY-START -->
@@ -13,15 +13,11 @@ allowed-tools: Bash(npx shadcn@latest *), Bash(pnpm dlx shadcn@latest *), Bash(b
 
 A framework for building ui, components and design systems. Components are added as source code to the user's project via the CLI.
 
-> **IMPORTANT:** Run all CLI commands using the project's package runner: `npx shadcn@latest`, `pnpm dlx shadcn@latest`, or `bunx --bun shadcn@latest` — based on the project's `packageManager`. Examples below use `npx shadcn@latest` but substitute the correct runner for the project.
+> **IMPORTANT (Core):** Run every shadcn command from `packages/ui` as `bunx shadcn …`, which uses the CLI version pinned in the root `package.json`; read `npx shadcn@latest` in the examples below that way. Never run `init`, `create` or a preset switch: `packages/ui/AGENTS.md` and `moai-library-shadcn` own Core's shadcn setup.
 
 ## Current Project Context
 
-```json
-!`npx shadcn@latest info --json`
-```
-
-The JSON above contains the project config and installed components. Use `npx shadcn@latest docs <component>` to get documentation and example URLs for any component.
+Core does not inject project context when this skill loads: the repository root has no `components.json`, and an unpinned `@latest` CLI would run there. When you need the project config and installed components, run `bunx shadcn info --json` from `packages/ui`. From the same directory, `bunx shadcn docs <component>` gives documentation and example URLs for any component.
 
 ## Principles
 
@@ -153,7 +149,7 @@ These are the most common patterns that differentiate correct shadcn/ui code. Fo
 
 ## Key Fields
 
-The injected project context contains these key fields:
+Run the pinned `bunx shadcn info --json` from `packages/ui` to get the project context. The project context that command returns contains these key fields:
 
 - **`aliases`** → use the actual alias prefix for imports (e.g. `@/`, `~/`), never hardcode.
 - **`isRSC`** → when `true`, components using `useState`, `useEffect`, event handlers, or browser APIs need `"use client"` at the top of the file. Always reference this field when advising on the directive.
@@ -181,7 +177,7 @@ npx shadcn@latest docs button dialog select
 
 ## Workflow
 
-1. **Get project context** — already injected above. Run `npx shadcn@latest info` again if you need to refresh.
+1. **Get project context** — nothing is injected when this skill loads: run the pinned `bunx shadcn info --json` from `packages/ui` first, and again if you need to refresh.
 2. **Check installed components first** — before running `add`, always check the `components` list from project context or list the `resolvedPaths.ui` directory. Don't import components that haven't been added, and don't re-add ones already installed.
 3. **Find components** — `npx shadcn@latest search`.
 4. **Get docs and examples** — run `npx shadcn@latest docs <component>` to get URLs, then fetch them. Use `npx shadcn@latest view` to browse registry items you haven't installed. To preview changes to installed components, use `npx shadcn@latest add --diff`.

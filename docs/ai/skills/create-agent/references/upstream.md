@@ -21,4 +21,9 @@ Pair with **`docs/ai/skills/eve/SKILL.md`** for current eve implementation detai
 
 Do **not** treat a 404 on `skills/create-agent/SKILL.md` as a reason to delete this skill during a catalog refresh.
 
+## Core adaptations
+
+- Docs paths point at `packages/eve-runtime/node_modules/eve/docs/`, where Core installs eve, and at `packages/eve-runtime/AGENTS.md` (AL-2715).
+- Scaffold and verify commands use the installed, pinned CLI through `bunx eve` from `packages/eve-runtime` and Bun scripts, instead of `npx eve@latest` and pnpm or npm (AL-2715).
+
 This skill is **not** updated by `bun run skills:refresh-upstream` today.

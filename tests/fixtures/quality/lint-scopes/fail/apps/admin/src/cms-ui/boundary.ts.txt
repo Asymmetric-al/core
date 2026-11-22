@@ -1,0 +1,10 @@
+import { flexRender } from "@tanstack/react-table";
+import type { DonorPage } from "../../../../apps/donor/page";
+
+export { createCrmClient } from "@asym/api/crm/client";
+
+export type Page = DonorPage;
+
+export const render = flexRender;
+
+export const loadEngine = () => import("@tanstack/react-table");

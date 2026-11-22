@@ -195,7 +195,8 @@ An older `{kind, items}` repair maps `acceptance` and `context-change` to Ezra,
 **Scope.** `after-scope` validates Samson's scope: source and test paths are
 disjoint repository-relative globs, and none may reach a protected path
 (`.github/**`, `.husky/**`, `scripts/git/**`, `scripts/archon-factory/**`,
-`.archon/**`, `.claude/**`, `bunfig.toml`, `.npmrc`, the root `package.json`,
+`.archon/**`, `.claude/**`, `scripts/agent-hooks/**`, `.codex/hooks.json`,
+`.codex/config.toml`, `.cursor/hooks.json`, `bunfig.toml`, `.npmrc`, the root `package.json`,
 `scripts/verify/ci-*.mjs`) unless `core/scope.allowProtected[<n>]` is `true` or
 lists that protected glob (`control.mjs allow-protected`). Otherwise the issue
 is BLOCKED `protected-path`; later rounds re-check the recorded scope against
@@ -269,10 +270,12 @@ candidate and retries the issue, readiness adopts it as the candidate and sends
 it through the `review` route before any merge (runbook, "Base conflict"). A
 round that resolves review threads answers `WAIT` and decides next round on
 fresh mergeability. A thread someone unresolves after the factory resolved it
-goes back to Samson, flagged `reopened`. A `MERGED` verdict carries `merged_by`: `factory` when the
-factory requested the merge of that exact head (`pr.mergeRequest`), otherwise
-`external`; `record` keeps an external merge as a fact even under a `PR_READY`
-assignment.
+goes back to Samson, flagged `reopened`. A `MERGED` verdict carries `merged_by`: `factory` only when
+GitHub confirmed the factory's own direct merge of that exact head with the
+merge commit now on the pull request (`pr.mergeRequest` with status
+`confirmed`), otherwise `external`. A merge the factory added to a merge queue
+is therefore `external`: the queue made the merge commit. `record` keeps an
+external merge as a fact even under a `PR_READY` assignment.
 
 **After `PR_READY`.** The factory follows one thing on a pull request it
 reported ready: whether somebody merged it. The intake pass asks GitHub once
@@ -355,9 +358,11 @@ reply or an edit needs a new disposition.
 Besides `number`, `url`, `nodeId`, `head` and `publishedAt`, a work item's `pr`
 may carry `pending {head, base, from, carried, at}` (a base integration pushed
 but not yet recorded), `conflict {head, base, files, at}` (a conflicted base
-merge), `mergeRequest {head, at, run}` (the factory asked GitHub to merge that
-head) and, once merged, `mergedAt`, `mergeCommit`, `mergedBy`, `onTarget` and
-`issueClosed`.
+merge), `mergeRequest {head, at, run, status, mergeCommit}` (the factory asked
+GitHub to merge, or to queue, that head; `status` is `requested`, `refused`,
+`queued`, `confirmed` or `unknown`, and `mergeCommit` is present only when
+`confirmed`) and, once merged, `mergedAt`, `mergeCommit`, `mergedBy`,
+`onTarget` and `issueClosed`.
 
 Read with `archon state get|list --project _folder/control` (env
 `ARCHON_HOME=/srv/core-factory/archon`, `ARCHON_USER_ID=core-factory`).

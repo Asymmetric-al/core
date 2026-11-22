@@ -24,7 +24,8 @@ import { harness } from "../../../../apps/factory-console/tests/fixtures/harness
 
 /**
  * Rendered proof for the Shadscan findings on the private VM 100 operator
- * Console that are scanner limitations (tooling/shadscan/findings.json).
+ * Console that are scanner limitations (recorded in the findings ledger until
+ * the advisory change retired it on 2026-11-18).
  *
  * The real Console is mounted over its real BFF dispatcher and the app's own
  * synthetic factory fixture, so every assertion is about what an operator and

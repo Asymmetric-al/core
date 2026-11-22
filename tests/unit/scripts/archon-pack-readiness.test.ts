@@ -5,6 +5,7 @@ import {
   currentDisposition,
   evaluateReadiness,
   feedbackItems,
+  mergeQueueRequired,
   requiredApprovalsFromRules,
   requiredChecksFromRules,
   reviewProvidersFrom,
@@ -2605,5 +2606,156 @@ describe("a thread a person reopened after the factory resolved it", () => {
         input.dispositions = resolvedByFactory;
       }).verdict,
     ).toBe("MERGE");
+  });
+});
+
+// A rule shaped like GitHub's `GET /rules/branches/{branch}` merge_queue entry.
+const MERGE_QUEUE_RULE: Rule = {
+  type: "merge_queue",
+  parameters: {
+    check_response_timeout_minutes: 60,
+    grouping_strategy: "ALLGREEN",
+    max_entries_to_build: 5,
+    max_entries_to_merge: 5,
+    merge_method: "MERGE",
+    min_entries_to_merge: 1,
+    min_entries_to_merge_wait_minutes: 5,
+  },
+};
+
+describe("mergeQueueRequired", () => {
+  it("is false when the branch has no rules", () => {
+    expect([
+      mergeQueueRequired([]),
+      mergeQueueRequired(null),
+      mergeQueueRequired(undefined),
+    ]).toEqual([false, false, false]);
+  });
+
+  it("is false when the branch's rules include no merge queue", () => {
+    expect(
+      mergeQueueRequired([
+        {
+          type: "required_status_checks",
+          parameters: {
+            strict_required_status_checks_policy: true,
+            required_status_checks: [{ context: "smoke" }],
+          },
+        },
+        { type: "pull_request", parameters: {} },
+      ]),
+    ).toBe(false);
+  });
+
+  it("is true when an active ruleset rule requires a merge queue", () => {
+    expect(
+      mergeQueueRequired([
+        { type: "required_status_checks", parameters: {} },
+        MERGE_QUEUE_RULE,
+      ]),
+    ).toBe(true);
+  });
+});
+
+describe("evaluateReadiness with a required merge queue", () => {
+  it("merges through the queue when every condition holds", () => {
+    expect(
+      decide((input) => {
+        input.rules = [MERGE_QUEUE_RULE];
+      }),
+    ).toEqual({ verdict: "MERGE", reasons: [ALL_PASSED], mergeQueue: true });
+  });
+
+  it("does not ask a behind branch to update under strict protection", () => {
+    expect(
+      decide((input) => {
+        pull(input).mergeable_state = "behind";
+        input.rules = [MERGE_QUEUE_RULE];
+      }),
+    ).toEqual({ verdict: "MERGE", reasons: [ALL_PASSED], mergeQueue: true });
+  });
+
+  it("does not ask a behind branch to update when a ruleset makes the checks strict", () => {
+    expect(
+      decide((input) => {
+        pull(input).mergeable_state = "behind";
+        input.protection = null;
+        input.rules = [
+          {
+            type: "required_status_checks",
+            parameters: {
+              strict_required_status_checks_policy: true,
+              required_status_checks: REQUIRED.map((context) => ({
+                context,
+                integration_id: ACTIONS_APP,
+              })),
+            },
+          },
+          MERGE_QUEUE_RULE,
+        ];
+      }),
+    ).toEqual({ verdict: "MERGE", reasons: [ALL_PASSED], mergeQueue: true });
+  });
+
+  it("still integrates the base when the branch conflicts with it", () => {
+    expect(
+      decide((input) => {
+        pull(input).mergeable = false;
+        pull(input).mergeable_state = "dirty";
+        input.rules = [MERGE_QUEUE_RULE];
+      }),
+    ).toMatchObject({
+      verdict: "REPAIR",
+      reasons: ["The PR conflicts with its base"],
+      integrate: true,
+    });
+  });
+
+  // Code-owner approval is proven only by GitHub's `clean`: the reviews list
+  // does not say who owns the code, and GitHub documents neither whether
+  // `blocked` outranks `behind` nor whether `reviewDecision` covers code owners.
+  const CODE_OWNERS_RULE: Rule = {
+    type: "pull_request",
+    parameters: {
+      required_approving_review_count: 0,
+      require_code_owner_review: true,
+    },
+  };
+
+  it("enqueues under required code-owner review when GitHub reports the PR clean", () => {
+    expect(
+      decide((input) => {
+        input.rules = [CODE_OWNERS_RULE, MERGE_QUEUE_RULE];
+      }),
+    ).toEqual({ verdict: "MERGE", reasons: [ALL_PASSED], mergeQueue: true });
+  });
+
+  it("keeps required code-owner review pending for a behind branch under a queue", () => {
+    expect(
+      decide((input) => {
+        pull(input).mergeable_state = "behind";
+        input.rules = [CODE_OWNERS_RULE, MERGE_QUEUE_RULE];
+      }),
+    ).toEqual({
+      verdict: "PR_READY",
+      reasons: [ALL_PASSED, "Required human review pending (0/0, code owners)"],
+      humanReviewPending: true,
+    });
+  });
+
+  it("keeps today's strict update without a queue", () => {
+    expect(
+      decide((input) => {
+        pull(input).mergeable_state = "behind";
+      }),
+    ).toMatchObject({
+      verdict: "REPAIR",
+      reasons: ["Strict protection requires updating the branch with its base"],
+      integrate: true,
+    });
+  });
+
+  it("adds nothing to a merge decision without a queue", () => {
+    expect(decide()).not.toHaveProperty("mergeQueue");
   });
 });

@@ -17,6 +17,13 @@ import { checkFactoryStorage } from "./storage-policy.mjs";
 const posix = path.posix;
 export const PINNED_HOOKS = ["pre-commit", "pre-push"];
 
+// Core's pre-push hook runs a fast profile unless the pusher selects the full
+// one (scripts/git/pre-push.mjs PRE_PUSH_PROFILE_ENV). Factory pushes always
+// select it, so "==> PASS ci:preflight" keeps meaning the full preflight.
+export const FULL_PREFLIGHT_ENV = Object.freeze({
+  ASYM_PRE_PUSH_PROFILE: "full",
+});
+
 // Runs the tracked .husky/<hook> exactly like Husky's runner, ignoring
 // HUSKY=0 and user init files, and reports start and outcome.
 const SHIM = `#!/bin/sh
@@ -169,6 +176,7 @@ export async function publishCandidate(
         network: "bridge",
         cache: true,
         outbox: true,
+        env: { ...FULL_PREFLIGHT_ENV },
         timeoutMs: 85 * 60_000,
         memoryMb: 32768,
         cpus: 16,

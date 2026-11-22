@@ -109,7 +109,8 @@
     "build": "tsc --noEmit",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "seed:demo-users": "bun scripts/seed-demo-users.ts"
+    "seed:demo-users": "bun scripts/seed-demo-users.ts",
+    "lint:query": "node ../../node_modules/eslint/bin/eslint.js --config ../../tooling/quality/eslint-query.config.mjs --no-inline-config --exit-on-fatal-error --max-warnings 0 \"**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@asym/env": "workspace:*",
@@ -128,6 +129,6 @@
   },
   "devDependencies": {
     "@asym/typescript-config": "workspace:*",
-    "typescript": "7.0.2"
+    "typescript": "7.1.0-beta"
   }
 }

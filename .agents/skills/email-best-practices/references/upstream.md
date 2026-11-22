@@ -7,6 +7,7 @@ reviewed_commit: b2ae7b1798b70134faf679f35fc05b4331462988
 skills_lock_hash: f1b957138619784e2c22f7ae689bde6e903a8134ee52d626d8846809382ef0c8
 license: MIT
 last_reviewed: 2026-10-22
+ownership: ecosystem
 ---
 
 # Upstream: email-best-practices
@@ -14,7 +15,7 @@ last_reviewed: 2026-10-22
 Reviewed source: https://github.com/resend/resend-skills/tree/b2ae7b1798b70134faf679f35fc05b4331462988/skills/email-best-practices
 Raw upstream `SKILL.md` SHA-256: `f1b957138619784e2c22f7ae689bde6e903a8134ee52d626d8846809382ef0c8`. License notices are preserved in `UPSTREAM-LICENSE`.
 
-Outcome: updated from the complete installed upstream subtree. Reviewed obsolete upstream companions are removed. Core adaptations: correct the invalid `new AbortSignal.timeout(10000)` constructor example to `AbortSignal.timeout(10000)`; `timeout` is a static factory, not a constructor.
+Outcome: updated from the complete installed upstream subtree. Reviewed obsolete upstream companions are removed. Core adaptations: correct the invalid `new AbortSignal.timeout(10000)` constructor example to `AbortSignal.timeout(10000)`; `timeout` is a static factory, not a constructor. A marked Core overlay (AL-2715) points at Core's email owners in `packages/email` and at `docs/guides/features/resend-integration.md`.
 
 ## Refresh
 
@@ -22,5 +23,7 @@ Outcome: updated from the complete installed upstream subtree. Reviewed obsolete
 2. Compare the complete source tree and all support files. Preserve marked Core overlays, exact package ownership, installed-version compatibility, and documented in-place corrections. Record raw upstream hashes separately from adapted bytes.
 3. Replace the installed source directory transactionally, removing reviewed stale upstream files while retaining local provenance and legitimate Core assets. Update its lock metadata in the same transaction. Never run imported lifecycle hooks, launchers, scripts or tests as a refresh side effect.
 4. Run `bun run skills:sync`, then non-mutating `bun run skills:verify`; review canonical or ecosystem sources and generated mirrors together.
+
+The AL-2715 Core adaptation is restored by `scripts/lib/ecosystem-skill-adapters.mjs` from `scripts/refresh-overlays/ecosystem-core-overlays.json` during `bun run skills:sync`. Review it with upstream drift; it does not advance provenance.
 
 This skill remains ecosystem-owned under `.agents/skills`. Repository authority, secrets policy and installed package evidence outrank generic source recipes.

@@ -1,0 +1,4 @@
+export function Title(props: { title: string }) {
+  props.title = "changed";
+  return <h1>{props.title}</h1>;
+}

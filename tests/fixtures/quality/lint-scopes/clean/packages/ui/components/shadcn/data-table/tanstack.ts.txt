@@ -1,0 +1,10 @@
+import { useReactTable } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
+
+export { flexRender, getCoreRowModel } from "@tanstack/react-table";
+
+export type Column = ColumnDef<{ id: string }>;
+
+export const useTable = useReactTable;
+
+export const loadEngine = () => import("@tanstack/react-table");

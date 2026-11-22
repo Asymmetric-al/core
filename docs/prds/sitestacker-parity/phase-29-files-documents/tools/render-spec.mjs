@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { format, resolveConfig } from "prettier";
+import { formatSource } from "../../../../../scripts/lib/format-source.mts";
 import { renderContractView } from "../../../../../scripts/lib/openspec-contracts.mjs";
 
 // Same canonical-volume/full-contract projection boundary as Phase 28.
@@ -159,17 +159,20 @@ const outputs = new Map([
 ]);
 let stale = false;
 for (const [file, raw] of outputs) {
-  const config = await resolveConfig(file);
-  let text = await format(raw, { ...config, filepath: file });
+  outputs.set(file, await formatSource(file, raw, "trusted"));
+}
+for (const [file, formatted] of outputs) {
   if (file === filesDocumentsSpec) {
-    text = await renderContractView({
+    const compact = await renderContractView({
       repoRoot: root,
       capability: "files-documents",
-      content: text,
+      content: formatted,
       write,
     });
-    text = await format(text, { ...config, filepath: file });
+    outputs.set(file, compact);
   }
+}
+for (const [file, text] of outputs) {
   if (write) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, text);

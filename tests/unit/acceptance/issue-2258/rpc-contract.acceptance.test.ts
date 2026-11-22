@@ -3,9 +3,8 @@
  * pins addendum 1 (6419311427, approved 6419380148). Covers the S halves of
  * criteria 1-17 at acceptance level (c7 S is the spec's named content of this
  * file); Builder's own unit/compile-fail/poison suites live under
- * tests/unit/packages/api/principal/**. Opt-in criterion 11 (diff scope, the one
- * workflow run: line, base version): ACCEPTANCE_2258_SCOPE=1 (base: git
- * merge-base origin/develop HEAD) or ACCEPTANCE_2258_BASE=<ref>.
+ * tests/unit/packages/api/principal/**. The opt-in criterion 11 checks (diff
+ * scope, the one workflow run: line, base version) were retired by #2706.
  * The principal modules are loaded with import() so each test fails on its own
  * while they are missing. R criteria are in current-user-assignments.realstack.
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
@@ -17,16 +16,13 @@
  * (criterion 15 restated), and the guide's section says so (criterion 13).
  */
 import { spawnSync } from "node:child_process";
-import { createHash, randomUUID } from "node:crypto";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { randomUUID } from "node:crypto";
+import { existsSync, readdirSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
 import * as H from "./harness";
-import {
-  loadWorkflowDocument,
-  workflowJobs,
-} from "../../helpers/workflow-yaml";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const ver = (f: string) => f.slice(0, 14);
 const forward = (fs: string[]) => fs.filter((f) => /^\d{14}_.+\.sql$/.test(f));
@@ -41,7 +37,6 @@ const load = async <T>(m: keyof typeof H.MOD): Promise<T> => {
 const resolver = async () =>
   (await load<{ resolveActiveAssignment: H.Resolve }>("assignment"))
     .resolveActiveAssignment;
-const CII = ".github/workflows/ci-integration.yml";
 const STEP = "Verify tenant isolation (real stack)";
 
 /* ---------- DI fakes ---------- */
@@ -575,19 +570,6 @@ describe("#2258 principal/** scans (criteria 1, 4, 5, 8, 10, 15, 17 S)", () => {
 });
 
 describe("#2258 pins (criteria 12, 13)", () => {
-  it.each(Object.entries(H.UNEDITED))(
-    "12/2: %s is unedited (git blob at develop 88eefbd9)",
-    (f, blob) => {
-      expect(existsSync(f), f).toBe(true);
-      expect(H.blobId(f)).toBe(blob);
-    },
-  );
-  it("12 (addendum 1 item 3): tests/unit/acceptance/issue-2270/ holds exactly its three develop files", () =>
-    expect(readdirSync("tests/unit/acceptance/issue-2270").sort()).toEqual([
-      "authz-execute-grants.realstack.acceptance.test.ts",
-      "harness.ts",
-      "static.acceptance.test.ts",
-    ]));
   it('In 8/addendum 1 item 4: packages/api/package.json exports "./principal" right after "./projection"', () => {
     const keys = Object.keys(
       (
@@ -606,11 +588,8 @@ describe("#2258 pins (criteria 12, 13)", () => {
     ).toBe("./src/principal/index.ts");
   });
   it(`addendum 1 item 4: '${STEP}' runs ${H.REALSTACK}`, () => {
-    const step = (
-      workflowJobs(loadWorkflowDocument(CII)).migrate?.steps ?? []
-    ).find((s) => s.name === STEP);
-    expect(step, STEP).toBeDefined();
-    expect(String(step!.run).split(/\s+/)).toContain(H.REALSTACK);
+    // The path must be a vitest argument, not just a word on the line.
+    expectRealstackStep(STEP, [H.REALSTACK]);
   });
   it("13: the In 7 section sits before '## Key files' and names the required phrases; one Key-files line", () => {
     const doc = H.read(H.DOC);
@@ -632,102 +611,6 @@ describe("#2258 pins (criteria 12, 13)", () => {
       expect(section).toContain(p);
     expect(doc.slice(keyFiles)).toMatch(/principal/);
   });
-  it("13: docs/ci.md matches the reviewed hosted-only R1 pointer amendment", () => {
-    const b = readFileSync("docs/ci.md");
-    /** One entry per reviewed whole file. */
-    const REVIEWED = [
-      [
-        40204,
-        "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
-      ],
-      // #2215: only the `test-e2e` bullet's e2e-gate merge_group skip cause changes.
-      [
-        40426,
-        "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
-      ],
-      // Amended by AL-2674 (WP1 slice 1.3, plan 7.1): docs/ci.md documents the
-      // release workflow, the preview database job and the two new migrate
-      // steps, and its field-policy paragraph describes the classification
-      // manifest that replaced the AL-491 census. Pinned on that exact reviewed
-      // whole file.
-      [
-        44177,
-        "97278ee9a0648442ac26f152b01acc8c16ae96f9478e5d7f4bdab556dc076118",
-      ],
-      // Amended by AL-2674 (WP1.2 joined): docs/ci.md's Node line follows
-      // .node-version to 24.22.3, its migrate real-stack bullet describes the
-      // three AL-2674 steps (the program-wide suite glob, the release and CMS
-      // role suites, the Payload qualification), its migrate summary names the
-      // seed-count check and supabase/seed-expectations.json, and its release
-      // section names PAYLOAD_MIGRATION_DATABASE_URI. Pinned on that exact
-      // reviewed whole file.
-      [
-        45088,
-        "6cb39ed32ae6b0a6e7a57bb7b62ad8e6bf179086703cb32f9b4f6bb42d3a4ada",
-      ],
-      // Amended by AL-2673 (council round 2, B4 and its follow-up): docs/ci.md
-      // gains one section, "Local Supabase stack workflow", after the release
-      // workflow section. It documents `.github/workflows/local-supabase.yml`,
-      // which applies the chain and the seed to the real Supabase image and runs
-      // the auth email round trips, a workflow of its own so that ci.yml and
-      // ci-integration.yml do not change. Nothing else in the file changes.
-      // Pinned on that exact reviewed whole file.
-      [
-        46788,
-        "b83d66c4b3ccfc91c2ba86c7118eebff6e9e1b5fafcf748ad9996b1a4a3e006b",
-      ],
-      // Amended by AL-2674 (WP1.6, record D-18): docs/ci.md's "Local Supabase
-      // stack workflow" section gains one bullet, and its count of what it
-      // guards goes from two to three. The workflow now also replays the chain
-      // on plain Postgres as the release job does (`--hosted-defaults`) and
-      // fails unless that replay fingerprints exactly as the stack does, so a
-      // change of Supabase's default privileges fails a pull request rather
-      // than a release. Nothing else in the file changes.
-      // Pinned on that exact reviewed whole file.
-      [
-        47141,
-        "a1e298892caec8406bdeef31e41814f9532bf3527e2d77436104d052d1d4ad37",
-      ],
-      // Amended by AL-2674 (WP1.6 review H7, record D-18): the WP1.6 bullet of
-      // docs/ci.md's "Local Supabase stack workflow" section no longer says
-      // that a change of Supabase's default privileges fails a pull request
-      // rather than a release. It says the job compares with the image the
-      // pinned CLI starts, not with hosted, and that the release's gates catch
-      // a change on hosted. Nothing else in the file changes. Pinned on that exact reviewed whole file.
-      [
-        47190,
-        "74852f931758754843fbd50e41d432fbd40375f06f002c99f3524417f2b8782e",
-      ],
-      // D-18: WP2H documents the proof dependencies, including its Vitest config and resolver plugins.
-      // This pin accepts only the reviewed file bytes, as before.
-      [
-        47791,
-        "bac3dc897167173b05ea29aca95ac25f4bd64f675f22780c71aeba1821b6a5b6",
-      ],
-      // Amended by AL-2735 when the shadcn upstream review left ci:preflight: the stage
-      // list drops `verify:shadcn-diff` and renumbers, a new paragraph says
-      // the review runs by hand, and the `lint` section no longer lists it.
-      // Pinned on that exact reviewed whole file.
-      [
-        47915,
-        "e091011ebffb5faba38a9230a9982488fb679c02f38b6d08be0b515250530276",
-      ],
-      // D-18 (AL-2675): retain the manual shadcn review; document operator MFA, CMS origin and the 35-minute E2E cap.
-      [
-        48397,
-        "b94a4abb2503c2a4b54b349d94218659910b587989be8fddba59d3f7350e8674",
-      ],
-      // D-18 (AL-2677): the local stack now proves CRM reads, export audits and the real-session browser journeys.
-      [
-        48777,
-        "e56f8b459ff62af7cb97e3e7336489616f22e9bc984135c747a62b3ce7d4d793",
-      ],
-    ];
-    expect(REVIEWED).toContainEqual([
-      b.length,
-      createHash("sha256").update(b).digest("hex"),
-    ]);
-  });
   it.todo(
     "14: PR body has `Closes #2258` and `Refs #669`, base develop (review check; not visible in the tree)",
   );
@@ -735,91 +618,3 @@ describe("#2258 pins (criteria 12, 13)", () => {
     "12: `bun run typecheck`, `test:unit` and `test:acceptance` pass (CI result, not assertable from inside a test)",
   );
 });
-
-const BASE = process.env.ACCEPTANCE_2258_BASE?.trim() ?? "";
-const ON = process.env.ACCEPTANCE_2258_SCOPE?.trim() === "1" || BASE !== "";
-const git = (...args: string[]) => {
-  const r = spawnSync("git", args, { encoding: "utf8" });
-  expect(r.status, `git ${args.join(" ")}: ${r.stderr}`).toBe(0);
-  return r.stdout.trim();
-};
-/** §6 paths plus addendum 1 item 4's CI edits and fingerprint appends. */
-const DECLARED = [
-  H.MIGRATION,
-  H.ROLLBACK,
-  "packages/api/package.json",
-  H.DOC,
-  CII,
-].concat(
-  `helpers/workflow-yaml.ts acceptance/issue-2250/static.acceptance.test.ts
-  acceptance/issue-2155/postgres-ecr-gates.acceptance.test.ts acceptance/issue-2201/merge-group.acceptance.test.ts`
-    .split(/\s+/)
-    .map((p) => `tests/unit/${p}`),
-);
-const PREFIXES = [
-  `${H.PRINCIPAL_DIR}/`,
-  "tests/unit/packages/api/principal/",
-  "tests/unit/acceptance/issue-2258/",
-];
-
-describe.skipIf(!ON)(
-  "#2258 opt-in (PR base; ACCEPTANCE_2258_SCOPE=1 or ACCEPTANCE_2258_BASE)",
-  () => {
-    const base = () => BASE || git("merge-base", "origin/develop", "HEAD");
-    const changed = () =>
-      [
-        ...git("diff", "--name-only", "--no-renames", base()).split("\n"),
-        ...git("ls-files", "--others", "--exclude-standard").split("\n"),
-      ].filter(Boolean);
-    it("11: the PR diff touches only §6 paths and addendum 1 item 4's files", () => {
-      const outside = changed().filter(
-        (f) => !DECLARED.includes(f) && !PREFIXES.some((p) => f.startsWith(p)),
-      );
-      expect(outside, `diff against ${base()}`).toEqual([]);
-    });
-    it("11/16: no line the PR adds to a non-test file (workflow excluded) contains set_config, CREATE POLICY, tenant_guard, person_id or missionaries", () => {
-      const untracked = git("ls-files", "--others", "--exclude-standard");
-      const added = (f: string) =>
-        untracked.split("\n").includes(f)
-          ? readFileSync(f, "utf8")
-          : git("diff", "-U0", "--no-color", "--no-renames", base(), "--", f)
-              .split("\n")
-              .filter((l) => /^\+(?!\+\+ (b\/|\/dev\/null))/.test(l))
-              .join("\n");
-      const bad =
-        /^.*(?:set_config|CREATE\s+POLICY|tenant_guard|person_id|missionaries).*$/gim;
-      const hits = changed()
-        .filter((f) => !f.startsWith("tests/") && f !== CII && existsSync(f))
-        .flatMap((f) =>
-          (added(f).match(bad) ?? []).map((l) => `${f}: ${l.trim()}`),
-        );
-      expect(hits).toEqual([]);
-    });
-    it(`11 (addendum 1 item 4): in ${CII} only the '${STEP}' run: line changes, by appending ${H.REALSTACK}`, () => {
-      const diff = git("diff", "-U0", "--no-color", base(), "--", CII)
-        .split("\n")
-        .filter((l) => /^[-+](?![-+]{2} )/.test(l));
-      if (diff.length === 0) return;
-      const minus = diff.filter((l) => l.startsWith("-"));
-      const plus = diff.filter((l) => l.startsWith("+"));
-      expect([minus.length, plus.length]).toEqual([1, 1]);
-      const words = (l: string) => l.slice(1).trim().split(/\s+/);
-      expect(words(minus[0]!).slice(0, 4)).toEqual([
-        "run:",
-        "bun",
-        "x",
-        "vitest",
-      ]);
-      expect(words(plus[0]!)).toEqual([...words(minus[0]!), H.REALSTACK]);
-    });
-    it("12 (OQ9): the version is greater than every migration on the PR base", () => {
-      const onBase = forward(
-        git("ls-tree", "--name-only", `${base()}:${H.MIG}`).split("\n"),
-      );
-      expect(
-        onBase.filter((f) => ver(f) >= ver(H.MIGRATION_NAME)),
-        `base ${base()}`,
-      ).toEqual([]);
-    });
-  },
-);

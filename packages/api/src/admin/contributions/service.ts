@@ -156,7 +156,7 @@ async function resolveMatchingDonorIds(
       .limit(200),
     supabaseAdmin
       .from("donors")
-      .select("id, profiles!inner(id)")
+      .select("id, profiles!donors_profile_id_fkey!inner(id)")
       .eq("tenant_id", tenantId)
       .or(
         `display_name.ilike.%${term}%,first_name.ilike.%${term}%,last_name.ilike.%${term}%,full_name.ilike.%${term}%,email.ilike.%${term}%`,

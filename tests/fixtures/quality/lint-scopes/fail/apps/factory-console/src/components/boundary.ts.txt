@@ -1,0 +1,10 @@
+import { createBrowserClient } from "@supabase/ssr";
+import type { AdminClient } from "@asym/database/supabase/admin";
+
+export { createClient } from "@supabase/supabase-js";
+
+export type Client = AdminClient;
+
+export const connect = createBrowserClient;
+
+export const loadServer = () => import("@asym/database/supabase/server");

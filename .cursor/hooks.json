@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "node scripts/agent-hooks/after-edit.mjs cursor",
+        "timeout": 120
+      }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+import { Component } from "react";
+
+export class Counter extends Component<object, { count: number }> {
+  state = { count: 0 };
+
+  increment() {
+    this.state.count = 1;
+  }
+
+  render() {
+    return <p>{this.state.count}</p>;
+  }
+}

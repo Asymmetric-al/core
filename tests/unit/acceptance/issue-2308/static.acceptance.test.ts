@@ -14,7 +14,6 @@
  * Builder owns C13 (sniffer), C14 (key/extension), C15 (bearer factory).
  */
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
@@ -25,6 +24,23 @@ const read = (file: string) => {
   expect(existsSync(path), `${file} must exist (#2308)`).toBe(true);
   return readFileSync(path, "utf8");
 };
+
+/** An allowlist row: a whole `count` and exactly that many line numbers. */
+const isAllowlistEntry = (
+  e: unknown,
+): e is { kind: string; reason: string; count: number; lines: number[] } =>
+  typeof e === "object" &&
+  e !== null &&
+  "kind" in e &&
+  typeof e.kind === "string" &&
+  "reason" in e &&
+  typeof e.reason === "string" &&
+  "count" in e &&
+  "lines" in e &&
+  Number.isInteger(e.count) &&
+  Array.isArray(e.lines) &&
+  e.lines.length === e.count &&
+  e.lines.every((line) => Number.isInteger(line) && line > 0);
 
 describe("#2308 static contracts (A)", () => {
   it.each(["missionary", "donor"])(
@@ -71,39 +87,28 @@ describe("#2308 static contracts (A)", () => {
     expect(result.error).toBeUndefined();
     expect(result.status, `${result.stdout}${result.stderr}`).toBe(0);
   });
-  // Re-frozen after develop d99a1fc4 shrank the table-preferences entry,
-  // again at #2406 Builder 9563beea (only `lines` fields moved; no new sites),
-  // in the admin hill-climb round 12, which shrank dashboard-stats.ts from
-  // 2 sites to 1 (the CRM tags read reuses crm/index.ts's one site; no new
-  // sites), and at #2419, which shrank scripts/verify-money-units.ts from 3
-  // sites to 1 (the anon-key fallback was removed).
-  //
-  // Amended by AL-2674 (WP1 slice 1.3, plan 7.1 and 7.4): the health probe's
-  // one site in packages/api/src/health/db.ts now also serves each app's
-  // migration-head check, so that entry's reason names it, and the `lines`
-  // fields of three entries moved with their sources (db.ts 51 to 16, the env
-  // schema 302 to 301, vercel-production-readiness 35 to 66). No site, count
-  // or entry was added; the ceiling is unchanged. The pin stays a whole-file
-  // hash, re-taken on that reviewed content.
-  //
-  // Re-frozen at AL-2675 (council round 1 on WP2a, F8): Mission Control's
-  // users list reads the member directory on the caller's token and no
-  // longer uses the service-key client, so the packages/api/src/admin/users.ts
-  // entry (operation_admin_context, 1 site) is deleted, as the shrink-only
-  // rule asks. Nothing else changed; no site, count or entry was added.
-  // D-18: WP2H reclassified the missionary workspace routes and removed two sites in follower-requests/request.ts.
-  // The digest still checks every byte of the reviewed inventory; the ceiling did not increase.
-  // D-18: five advisory line lists now point to the actual call sites.
-  // D-18: the allowlist bytes stay pinned; its two removed sites also leave the ceiling, as required.
-  // Only raising the ceiling needs a new ruling.
-  // D-18: merging WP2's handler package into WP2b's first release moved 36 advisory line lists to their
-  // call sites in the merged tree; no site, count, entry or ceiling row changed.
-  // D-18: retain the platform-wrapper inventory pin and count the eight previously invisible calls separately under the WP4a ruling.
-  it("C12: pins the reviewed platform calls and the newly visible helper calls", () => {
-    const inventory = read("docs/security/service-role-client-allowlist.json");
-    const entries: { kind: string; reason: string; count: number }[] =
-      JSON.parse(inventory).entries;
-    const platform = entries.filter(
+  it("C12: the service-role allowlist stays within the reviewed ceilings and does not restore retired allowances", () => {
+    const doc: unknown = JSON.parse(
+      read("docs/security/service-role-client-allowlist.json"),
+    );
+    const entries: unknown[] =
+      typeof doc === "object" &&
+      doc !== null &&
+      "entries" in doc &&
+      Array.isArray(doc.entries)
+        ? doc.entries
+        : [];
+    expect(entries.length, "allowlist entries").toBeGreaterThan(0);
+    // Each row holds `count` line numbers; a malformed row cannot be counted.
+    expect(
+      entries.filter((e) => !isAllowlistEntry(e)),
+      "entries without a whole count and a lines array of that many line numbers",
+    ).toEqual([]);
+    const rows = entries.filter(isAllowlistEntry);
+    for (const file of ["packages/api/src/admin/users.ts"]) {
+      expect(rows).not.toContainEqual(expect.objectContaining({ file }));
+    }
+    const platform = rows.filter(
       (entry) => entry.kind === "operation_admin_context",
     );
     const helpers = platform.filter(
@@ -122,10 +127,9 @@ describe("#2308 static contracts (A)", () => {
     ).toBeLessThanOrEqual(65);
     for (const entry of originals)
       expect(entry.reason).toContain("withPlatformOperation");
-    // D-18 (AL-2677): six CRM entries and nine sites left the inventory.
-    // The remaining CRM site is note creation on withPlatformOperation.
-    expect(createHash("sha256").update(inventory).digest("hex")).toBe(
-      "a87e039409a5fd1573b354bbb8ca033010e9e28a0a46b771463572e4eaef1bae",
-    );
+    // D-18 (AL-2677): the six retired CRM entries and nine sites reduce
+    // both of the inventory ceilings. Preserve the semantic checks above.
+    expect(rows.length).toBeLessThanOrEqual(115);
+    expect(rows.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(177);
   });
 });

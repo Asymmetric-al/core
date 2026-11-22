@@ -2,10 +2,24 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "../tooling/typescript-config/library-transitional.json",
   "compilerOptions": {
-    "noEmit": true
+    "types": ["node"],
+    "allowJs": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "incremental": false
   },
-  "include": [
-    "unit/packages/ui/components/shadcn/rich-text-editor/**/*.ts",
-    "unit/packages/ui/components/shadcn/rich-text-editor/**/*.tsx"
+  "include": ["**/*.ts", "**/*.tsx", "**/*.mts"],
+  "exclude": [
+    "node_modules",
+    "unit/apps/admin/**",
+    "unit/apps/donor/**",
+    "unit/apps/missionary/**",
+    "unit/packages/ui/**",
+    "unit/cms/**",
+    "unit/acceptance/issue-2364/**",
+    "unit/packages/api/principal/**",
+    "unit/packages/api/projection/**",
+    "fixtures/base-ui-compliance/**",
+    "fixtures/capability-registry/**"
   ]
 }

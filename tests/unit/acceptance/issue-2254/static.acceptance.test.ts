@@ -20,122 +20,14 @@ import {
   sha256,
 } from "./harness";
 import {
-  MODELLED_KEYS_BY_JOB,
-  PINNED_STEP_BODIES,
-  loadWorkflowDocument,
-} from "../../helpers/workflow-yaml";
+  expectRealstackStep,
+  migrateSteps,
+  stepTestPaths,
+} from "../shared/realstack-step";
 
 const STEP_DOC = "docs/database/email-normalization.md";
-/**
- * Accepted docs/ci.md prefixes, #2180-style (Samson on #2250 Q11, applied to
- * #2254): develop at c541b84b. Later develop appends keep passing; extend
- * this list (as #2246 did for #2180) if develop rewrites earlier bytes.
- */
-const CI_BASES = [
-  {
-    ref: "c541b84b",
-    bytes: 40058,
-    sha256: "f636ef0f0127f1159db711fb005a212aaf0cb3c9ceb9fe64bb308305c55d4e4b",
-  },
-  {
-    // Reviewed hosted-only amendment changes only the CI-doc terminal pointer.
-    ref: "AL-2218 hosted CI baseline",
-    bytes: 40204,
-    sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
-  },
-  {
-    // #2215: only the `test-e2e` bullet's e2e-gate merge_group skip cause changes.
-    ref: "#2215 e2e-gate merge_group wording",
-    bytes: 40426,
-    sha256: "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
-  },
-  {
-    // Amended by AL-2674 (WP1 slice 1.3, plan 7.1): docs/ci.md documents the
-    // release workflow, the preview database job and the two new migrate
-    // steps, and its field-policy paragraph describes the classification
-    // manifest that replaced the AL-491 census. Pinned on that exact reviewed
-    // whole file.
-    ref: "AL-2674 release workflow",
-    bytes: 44177,
-    sha256: "97278ee9a0648442ac26f152b01acc8c16ae96f9478e5d7f4bdab556dc076118",
-  },
-  {
-    // Amended by AL-2674 (WP1.2 joined): docs/ci.md's Node line follows
-    // .node-version to 24.22.3, its migrate real-stack bullet describes the
-    // three AL-2674 steps (the program-wide suite glob, the release and CMS
-    // role suites, the Payload qualification), its migrate summary names the
-    // seed-count check and supabase/seed-expectations.json, and its release
-    // section names PAYLOAD_MIGRATION_DATABASE_URI. Pinned on that exact
-    // reviewed whole file, so nothing follows it.
-    ref: "AL-2674 Node 24.22.3 and program steps",
-    bytes: 45088,
-    sha256: "6cb39ed32ae6b0a6e7a57bb7b62ad8e6bf179086703cb32f9b4f6bb42d3a4ada",
-  },
-  {
-    // Amended by AL-2673 (council round 2, B4 and its follow-up): docs/ci.md
-    // gains one section, "Local Supabase stack workflow", after the release
-    // workflow section. It documents `.github/workflows/local-supabase.yml`,
-    // which applies the chain and the seed to the real Supabase image and runs
-    // the auth email round trips, a workflow of its own so that ci.yml and
-    // ci-integration.yml do not change. Nothing else in the file changes.
-    // Pinned on that exact reviewed whole file.
-    ref: "AL-2673 local Supabase stack workflow",
-    bytes: 46788,
-    sha256: "b83d66c4b3ccfc91c2ba86c7118eebff6e9e1b5fafcf748ad9996b1a4a3e006b",
-  },
-  {
-    // Amended by AL-2674 (WP1.6, record D-18): docs/ci.md's "Local Supabase
-    // stack workflow" section gains one bullet, and its count of what it
-    // guards goes from two to three. The workflow now also replays the chain
-    // on plain Postgres as the release job does (`--hosted-defaults`) and
-    // fails unless that replay fingerprints exactly as the stack does, so a
-    // change of Supabase's default privileges fails a pull request rather
-    // than a release. Nothing else in the file changes.
-    // Pinned on that exact reviewed whole file.
-    ref: "AL-2674 WP1.6 release replay against the image",
-    bytes: 47141,
-    sha256: "a1e298892caec8406bdeef31e41814f9532bf3527e2d77436104d052d1d4ad37",
-  },
-  {
-    // Amended by AL-2674 (WP1.6 review H7, record D-18): the WP1.6 bullet of
-    // docs/ci.md's "Local Supabase stack workflow" section no longer says
-    // that a change of Supabase's default privileges fails a pull request
-    // rather than a release. It says the job compares with the image the
-    // pinned CLI starts, not with hosted, and that the release's gates catch
-    // a change on hosted. Nothing else in the file changes. Pinned on that exact reviewed whole file.
-    ref: "AL-2674 WP1.6 review H7, the drift guard's limits",
-    bytes: 47190,
-    sha256: "74852f931758754843fbd50e41d432fbd40375f06f002c99f3524417f2b8782e",
-  },
-  // D-18: WP2H documents the proof dependencies, including its Vitest config and resolver plugins.
-  // This pin accepts only the reviewed file bytes, as before.
-  {
-    ref: "AL-2675 WP2H PostgREST proof paths",
-    bytes: 47791,
-    sha256: "bac3dc897167173b05ea29aca95ac25f4bd64f675f22780c71aeba1821b6a5b6",
-  },
-  // Amended by AL-2735 when the shadcn upstream review left ci:preflight: the stage list
-  // drops `verify:shadcn-diff` and renumbers, a new paragraph says the review
-  // runs by hand, and the `lint` section no longer lists it. Pinned on that
-  // exact reviewed whole file.
-  {
-    ref: "AL-2735 shadcn upstream review leaves ci:preflight",
-    bytes: 47915,
-    sha256: "e091011ebffb5faba38a9230a9982488fb679c02f38b6d08be0b515250530276",
-  },
-  // D-18 (AL-2675): retain the manual shadcn review; document operator MFA, CMS origin and the 35-minute E2E cap.
-  {
-    ref: "AL-2675 WP2c operator MFA and hosted E2E contract",
-    bytes: 48397,
-    sha256: "b94a4abb2503c2a4b54b349d94218659910b587989be8fddba59d3f7350e8674",
-  },
-  // D-18 (AL-2677): the local stack now proves CRM reads, export audits and the real-session browser journeys.
-  {
-    ref: "AL-2677 CRM caller-token route and browser suites",
-    bytes: 48777,
-    sha256: "e56f8b459ff62af7cb97e3e7336489616f22e9bc984135c747a62b3ce7d4d793",
-  },
-] as const;
+const REALSTACK =
+  "tests/unit/acceptance/issue-2254/identity.realstack.acceptance.test.ts";
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */
 const missing = (text: string, pats: (string | RegExp)[]) =>
@@ -368,36 +260,16 @@ describe("#2254 criterion 9: census evidence", () => {
 });
 
 describe("#2254 criterion 8: CI migrate step (Samson clarification)", () => {
-  const steps = () =>
-    loadWorkflowDocument(".github/workflows/ci-integration.yml").jobs!.migrate!
-      .steps as Record<string, string>[];
-  it("one name+run step after the reader-role step runs the issue-2254 real-stack file(s)", () => {
-    const all = steps();
-    const reader = all.findIndex(
-      (s) => s.name === "Verify document-cutover reader role (real stack)",
-    );
-    const index = all.findIndex((s) =>
-      /tests\/unit\/acceptance\/issue-2254\//.test(s.run ?? ""),
-    );
-    expect(reader).toBe(14);
-    expect(index).toBeGreaterThan(reader);
-    const step = all[index]!;
-    expect(Object.keys(step).sort()).toEqual(["name", "run"]);
-    expect(step.run).toMatch(
-      /^bun x vitest run tests\/unit\/acceptance\/issue-2254\//,
-    );
-    expect(MODELLED_KEYS_BY_JOB.migrate!.steps[`name:${step.name}`]).toEqual([
-      "name",
-      "run",
-    ]);
-    const pin = PINNED_STEP_BODIES.migrate![`name:${step.name}`];
-    expect(pin?.index).toBe(index);
-    expect(pin?.run).toBe(step.run!.trim());
+  const identityStep = () =>
+    migrateSteps().find((step) => stepTestPaths(step).includes(REALSTACK));
+
+  it("one blocking migrate step runs the issue-2254 real-stack file", () => {
+    const step = identityStep();
+    expect(step, "a migrate step runs issue-2254 files").toBeDefined();
+    expectRealstackStep(step!.name!, [REALSTACK]);
   });
   it("amendment 6384990496: docs/database/email-normalization.md documents the step's name, check and failure", () => {
-    const step = steps().find((s) =>
-      /tests\/unit\/acceptance\/issue-2254\//.test(s.run ?? ""),
-    );
+    const step = identityStep();
     const text = flat(read(STEP_DOC));
     expect(text, `${STEP_DOC} must exist`).not.toBe("");
     expect(
@@ -412,23 +284,6 @@ describe("#2254 criterion 8: CI migrate step (Samson clarification)", () => {
         /ids[- ]only|donor ids|no (?:email|PII)|without (?:email|PII)/i,
       ]),
     ).toEqual([]);
-  });
-  it("amendment 6384990496: docs/ci.md keeps develop's bytes as a prefix; anything after is not #2254's", () => {
-    const bytes = readFileSync("docs/ci.md");
-    const base = CI_BASES.find(
-      (b) => sha256(bytes.subarray(0, b.bytes)) === b.sha256,
-    );
-    expect(
-      base?.ref,
-      `existing docs/ci.md bytes unchanged (prefix of develop ${CI_BASES.map((b) => b.ref).join(" or ")})`,
-    ).toBeDefined();
-    const later = bytes.subarray(base!.bytes).toString("utf8");
-    expect(
-      /2254|email[- _]normali[sz]|normalize_email|email-normalization\.md/i.test(
-        later,
-      ),
-      "bytes after the develop prefix (later develop appends only) must not document #2254",
-    ).toBe(false);
   });
 });
 

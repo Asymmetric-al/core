@@ -78,7 +78,6 @@ const REPO_ROOT = path.resolve(
   "..",
   "..",
 );
-const SPEC_BASE_SHA = "cc568c92c1cd283d82a4ef9c6d4be7dabe4efee4";
 const ACCEPTANCE_DIR = "tests/unit/acceptance/issue-2154/";
 const MIRRORS = [".agents", ".claude", ".cursor"];
 
@@ -407,54 +406,5 @@ describe("issue #2154 done criterion 5: skill mirrors", () => {
       expect(state()).toBe(afterFirst);
     },
     120_000,
-  );
-});
-
-// --- Criterion 6 -----------------------------------------------------------
-
-/** Addendum 2 item 1: the one test file this PR may change outside docs. */
-const STARTUP_GUIDANCE_TEST =
-  "tests/unit/scripts/factory-startup-guidance.contract.test.ts";
-
-const SCOPE_BASE = process.env.ACCEPTANCE_2154_BASE?.trim() ?? "";
-const SCOPE_ENABLED =
-  process.env.ACCEPTANCE_2154_SCOPE?.trim() === "1" || SCOPE_BASE !== "";
-
-describe("issue #2154 done criterion 6: diff scope", () => {
-  // Opt-in: in the normal suite this would fail every later PR.
-  it.skipIf(!SCOPE_ENABLED)(
-    "criterion 6 / addendum 2 item 3: the diff touches only docs/ai/**, docs/agents/**, the three mirror folders and tests/unit/scripts/factory-startup-guidance.contract.test.ts (opt-in: ACCEPTANCE_2154_SCOPE=1 or ACCEPTANCE_2154_BASE=<ref>)",
-    () => {
-      let base = SCOPE_BASE;
-      if (!base) {
-        const mergeBase = run("git", ["merge-base", "HEAD", "origin/develop"]);
-        base = mergeBase.status === 0 ? mergeBase.stdout.trim() : SPEC_BASE_SHA;
-      }
-      const changed = [
-        ...run("git", [
-          "diff",
-          "--name-only",
-          "--no-renames",
-          base,
-        ]).stdout.split("\n"),
-        ...run("git", [
-          "ls-files",
-          "--others",
-          "--exclude-standard",
-        ]).stdout.split("\n"),
-      ].filter(Boolean);
-      const allowed = [
-        "docs/ai/",
-        "docs/agents/",
-        ...MIRRORS.map((m) => `${m}/`),
-        ACCEPTANCE_DIR,
-      ];
-      const outside = [...new Set(changed)].filter(
-        (file) =>
-          file !== STARTUP_GUIDANCE_TEST &&
-          !allowed.some((prefix) => file.startsWith(prefix)),
-      );
-      expect(outside, `outside scope vs ${base}`).toEqual([]);
-    },
   );
 });

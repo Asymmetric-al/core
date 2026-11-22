@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, rmSync } from "node:fs";
+import {
+  appendFileSync,
+  existsSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+} from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -197,7 +203,78 @@ export function getRequestedApps(args = [], apps = NEXT_APPS) {
   return [requestedApp];
 }
 
-function run(command, args, label, environment) {
+/**
+ * A failure-only rebuild with `next build --debug-prerender` (server source
+ * maps, every failing route reported). Never used for the normal build:
+ * Vercel runs the same `bun run build:<app>`, and Next.js says a debug
+ * prerender build must not be deployed.
+ */
+export function getDebugPrerenderStep(app) {
+  return createBuildStep(`${app.id} (debug prerender)`, "bun", [
+    "run",
+    "--cwd",
+    app.cwd,
+    "build",
+    "--",
+    "--debug-prerender",
+  ]);
+}
+
+const FAILED_APPS_FILE = "ci-build-failed-apps";
+
+/** Where a failed app build is recorded: GitHub Actions only, never Vercel. */
+export function failedAppsRecordPath(env = process.env) {
+  if (env.GITHUB_ACTIONS !== "true" || env.VERCEL || !env.RUNNER_TEMP)
+    return null;
+  return path.join(env.RUNNER_TEMP, FAILED_APPS_FILE);
+}
+
+function recordFailedApp(app, env = process.env) {
+  const file = failedAppsRecordPath(env);
+  if (!file) return;
+  try {
+    appendFileSync(file, `${app.id}\n`);
+  } catch (error) {
+    console.error(
+      `Could not record the failed ${app.id} build: ${error.message}`,
+    );
+  }
+}
+
+/** The debug rebuilds a failure-only CI step should run, with the reason. */
+export function planDebugPrerender({
+  env = process.env,
+  read = (file) => readFileSync(file, "utf8"),
+} = {}) {
+  const file = failedAppsRecordPath(env);
+  if (!file)
+    return {
+      steps: [],
+      reason:
+        "debug prerender rebuilds run only in GitHub Actions, never on Vercel",
+    };
+  let text;
+  try {
+    text = read(file);
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+    text = "";
+  }
+  const ids = new Set(text.split(/\r?\n/).map((line) => line.trim()));
+  const apps = NEXT_APPS.filter((app) => ids.has(app.id));
+  if (apps.length === 0)
+    return {
+      steps: [],
+      reason:
+        "no app build failed (the failure came earlier); nothing to rebuild",
+    };
+  return {
+    steps: apps.map(getDebugPrerenderStep),
+    reason: `rebuilding ${apps.map((app) => app.id).join(", ")} with --debug-prerender`,
+  };
+}
+
+function run(command, args, label, environment, onFailure = () => {}) {
   console.log(`==> CI build: ${label}`);
   const result = spawnSync(command, args, {
     cwd: REPO_ROOT,
@@ -207,11 +284,13 @@ function run(command, args, label, environment) {
 
   if (result.error) {
     console.error(`==> FAIL ${label} (${result.error.message})`);
+    onFailure();
     process.exit(result.status ?? 1);
   }
 
   if (result.status !== 0) {
     console.error(`==> FAIL ${label} (exit ${result.status ?? "unknown"})`);
+    onFailure();
     process.exit(result.status ?? 1);
   }
 
@@ -252,26 +331,32 @@ function waitForNextBuildsToExit() {
   return !isNextBuildRunning();
 }
 
-function findNextLockFiles() {
+/**
+ * Build lock files under each app's `.next`. `.next/dev` belongs to a
+ * running `next dev`: Next.js holds its lock as an operating-system lock that
+ * is released when the process dies, so it is never stale and never removed.
+ */
+export function findStaleNextLockFiles(root = REPO_ROOT, apps = NEXT_APPS) {
   const lockFiles = [];
 
-  for (const app of NEXT_APPS) {
-    const nextDir = path.join(REPO_ROOT, app.nextDir);
+  for (const app of apps) {
+    const nextDir = path.join(root, app.nextDir);
     if (!existsSync(nextDir)) continue;
 
-    collectLockFiles(nextDir, lockFiles);
+    collectLockFiles(nextDir, lockFiles, path.join(nextDir, "dev"));
   }
 
   return lockFiles;
 }
 
-function collectLockFiles(directory, lockFiles) {
+function collectLockFiles(directory, lockFiles, devDirectory) {
   const entries = readdirSync(directory, { withFileTypes: true });
 
   for (const entry of entries) {
     const entryPath = path.join(directory, entry.name);
     if (entry.isDirectory()) {
-      collectLockFiles(entryPath, lockFiles);
+      if (entryPath === devDirectory) continue;
+      collectLockFiles(entryPath, lockFiles, devDirectory);
     } else if (entry.isFile() && entry.name === "lock") {
       lockFiles.push(entryPath);
     }
@@ -279,7 +364,7 @@ function collectLockFiles(directory, lockFiles) {
 }
 
 function clearStaleNextLocks() {
-  const lockFiles = findNextLockFiles();
+  const lockFiles = findStaleNextLockFiles();
   if (lockFiles.length === 0) return;
 
   if (isNextBuildRunning()) {
@@ -339,11 +424,29 @@ function main(args = process.argv.slice(2)) {
     // scripts/repair-workspace-links.mjs.
     repairAndLogWorkspaceLinks();
     clearStaleNextLocks();
-    run(step.command, step.args, step.label, step.env);
+    run(step.command, step.args, step.label, step.env, () =>
+      recordFailedApp(app),
+    );
     clearStaleNextLocks();
   }
 
   console.log("==> PASS ci-build");
+}
+
+/** CI `if: failure()` step: rebuild each recorded failed app for diagnostics. */
+function debugPrerender() {
+  const plan = planDebugPrerender();
+  console.log(`==> CI build diagnostics: ${plan.reason}`);
+  for (const step of plan.steps) {
+    console.log(`==> CI build: ${step.label}`);
+    spawnSync(step.command, step.args, {
+      cwd: REPO_ROOT,
+      stdio: "inherit",
+      env: { ...process.env, ...step.env },
+    });
+  }
+  // Diagnostics only: the build job has already failed.
+  return 0;
 }
 
 const isDirectExecution =
@@ -351,5 +454,7 @@ const isDirectExecution =
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
 if (isDirectExecution) {
+  if (process.argv.includes("--debug-prerender"))
+    process.exit(debugPrerender());
   main();
 }

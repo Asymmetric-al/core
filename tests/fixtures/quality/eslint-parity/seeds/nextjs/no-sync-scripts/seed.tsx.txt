@@ -1,0 +1,3 @@
+export function Page() {
+  return <script src="/legacy.js" />;
+}
