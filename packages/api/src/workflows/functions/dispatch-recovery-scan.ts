@@ -11,7 +11,9 @@ import { runDispatchRecoveryScan } from "../recovery";
 export const dispatchRecoveryScan = inngest.createFunction(
   {
     id: "workflow-dispatch-recovery-scan",
-    triggers: [{ cron: "*/5 * * * *" }],
+    // Pre-launch free-tier cadence (30m): keeps all three recovery scans well
+    // under Inngest's 50k/month execution cap until moving to a paid plan.
+    triggers: [{ cron: "*/30 * * * *" }],
     retries: 2,
     concurrency: [{ limit: 1 }],
   },

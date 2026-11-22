@@ -74,7 +74,9 @@ export const donationSagaRecovery = inngest.createFunction(
 export const donationSagaRecoveryScan = inngest.createFunction(
   {
     id: "donation-saga-recovery-scan",
-    triggers: [{ cron: "*/2 * * * *" }],
+    // Pre-launch free-tier cadence (30m): keeps all three recovery scans well
+    // under Inngest's 50k/month execution cap until moving to a paid plan.
+    triggers: [{ cron: "*/30 * * * *" }],
     retries: 2,
     concurrency: [{ limit: 1 }],
   },
