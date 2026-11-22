@@ -76,6 +76,30 @@ const DONOR_READY =
 const BOTH_READY =
   "if: ${{ !cancelled() && steps.donor-ready.outcome == 'success' && steps.admin-ready.outcome == 'success' }}";
 
+const HOSTED_ONLY_E2E_ENV_KEYS = [
+  "E2E_AUTH_SECRET",
+  "E2E_AUTH_ALLOWED_SUPABASE_REFS",
+  "DEMO_PASSWORD",
+  "DEMO_ADMIN_EMAIL",
+  "DEMO_MISSIONARY_EMAIL",
+  "DEMO_DONOR_EMAIL",
+] as const;
+
+const PROTECTED_E2E_ENV_KEYS = [
+  ...HOSTED_ONLY_E2E_ENV_KEYS,
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "ASYM_E2E_REQUIRE_HERMETIC_SUPABASE",
+] as const;
+
+const PROTECTED_E2E_ENV_ASSIGNMENT = new RegExp(
+  `\\b(?:${PROTECTED_E2E_ENV_KEYS.join("|")})(?:=|<<)`,
+);
+
+function writesHermeticSupabaseEnvFile(run: string): boolean {
+  return /\bGITHUB_ENV\b/.test(run) && PROTECTED_E2E_ENV_ASSIGNMENT.test(run);
+}
+
 describe("ci-integration workflow contract", () => {
   const workflow = readWorkflow();
   const scripts = readPackageScripts();
@@ -192,15 +216,7 @@ describe("ci-integration workflow contract", () => {
     expect(W.jobLevelReferencesSecrets(job)).toBe(false);
     expect(W.firstSecretStepIndex(job)).toBe(-1);
 
-    const hostedOnlyKeys = [
-      "E2E_AUTH_SECRET",
-      "E2E_AUTH_ALLOWED_SUPABASE_REFS",
-      "DEMO_PASSWORD",
-      "DEMO_ADMIN_EMAIL",
-      "DEMO_MISSIONARY_EMAIL",
-      "DEMO_DONOR_EMAIL",
-    ];
-    for (const key of hostedOnlyKeys) {
+    for (const key of HOSTED_ONLY_E2E_ENV_KEYS) {
       expect(env).not.toHaveProperty(key);
     }
 
@@ -210,20 +226,39 @@ describe("ci-integration workflow contract", () => {
         "Use placeholder Supabase for non-production E2E",
       );
       const stepEnv = (step.env ?? {}) as Record<string, unknown>;
-      for (const key of [
-        ...hostedOnlyKeys,
-        "NEXT_PUBLIC_SUPABASE_URL",
-        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-        "ASYM_E2E_REQUIRE_HERMETIC_SUPABASE",
-      ]) {
+      for (const key of PROTECTED_E2E_ENV_KEYS) {
         expect(stepEnv).not.toHaveProperty(key);
       }
       if (typeof step.run === "string") {
-        expect(step.run).not.toMatch(
-          /(NEXT_PUBLIC_SUPABASE_URL|NEXT_PUBLIC_SUPABASE_ANON_KEY|ASYM_E2E_REQUIRE_HERMETIC_SUPABASE)=.*GITHUB_ENV/,
-        );
+        expect(writesHermeticSupabaseEnvFile(step.run)).toBe(false);
       }
     }
+  });
+
+  it("catches grouped and multiline GITHUB_ENV writes to Supabase E2E env keys", () => {
+    const groupedWrite = [
+      "{",
+      '  echo "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co"',
+      '  echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key"',
+      '  echo "ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1"',
+      '} >> "$GITHUB_ENV"',
+    ].join("\n");
+    const heredocWrite = [
+      "cat <<'EOF' >> \"$GITHUB_ENV\"",
+      "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co",
+      "EOF",
+    ].join("\n");
+    const singleLineWrite =
+      'echo "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co" >> "$GITHUB_ENV"';
+    const unrelatedEnvWrite = 'echo "PLAYWRIGHT_SHARD=1" >> "$GITHUB_ENV"';
+    const nonEnvFileRun =
+      "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co bun run test:e2e";
+
+    expect(writesHermeticSupabaseEnvFile(groupedWrite)).toBe(true);
+    expect(writesHermeticSupabaseEnvFile(heredocWrite)).toBe(true);
+    expect(writesHermeticSupabaseEnvFile(singleLineWrite)).toBe(true);
+    expect(writesHermeticSupabaseEnvFile(unrelatedEnvWrite)).toBe(false);
+    expect(writesHermeticSupabaseEnvFile(nonEnvFileRun)).toBe(false);
   });
 
   // Council round 1, A14 (record D-18): the tenant-address specs carry every
