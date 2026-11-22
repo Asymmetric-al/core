@@ -20,19 +20,159 @@ describe("Eve build dispatch", () => {
     },
     { VERCEL_ENV: "preview" },
     {},
-  ])("keeps service qualification full outside hosted preview (%j)", (env) => {
+  ])(
+    "keeps service qualification full outside hosted preview when governance does not confirm release_disabled (%j)",
+    (env) => {
+      vi.spyOn(console, "log").mockImplementation(() => undefined);
+      const spawn = vi.fn(() => ({ status: 1 }));
+      runEveBuild({
+        environment: { ...env, CORE_EVE_BUILD_MODE: "artifacts" },
+        service: true,
+        spawn,
+      });
+      expect(spawn).toHaveBeenCalledWith(
+        process.execPath,
+        [expect.any(String), "build"],
+        expect.anything(),
+      );
+    },
+  );
+
+  it.each([
+    { VERCEL: "1", VERCEL_ENV: "production" },
+    { VERCEL: "1", VERCEL_ENV: "preview", VERCEL_TARGET_ENV: "production" },
+    { VERCEL: "1", VERCEL_ENV: "preview", VERCEL_TARGET_ENV: " Production " },
+    { VERCEL: "1", VERCEL_ENV: " Preview ", VERCEL_TARGET_ENV: "production" },
+  ])(
+    "compiles hosted production service artifacts without sandbox prewarming only when persisted governance confirms release_disabled (%j)",
+    (signals) => {
+      const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+      const spawn = vi.fn(() => ({ status: 0 }));
+      const resolveProductionGovernance = vi.fn(() => ({
+        allowed: false,
+        reason: "release_disabled",
+      }));
+
+      expect(
+        runEveBuild({
+          environment: {
+            ...signals,
+            CORE_EVE_BUILD_MODE: "full",
+          },
+          service: true,
+          spawn,
+          resolveProductionGovernance,
+        }),
+      ).toBe(0);
+      expect(resolveProductionGovernance).toHaveBeenCalledTimes(1);
+      expect(spawn).toHaveBeenCalledWith(
+        process.execPath,
+        [expect.any(String), "build", "--skip-sandbox-prewarm"],
+        expect.anything(),
+      );
+      expect(log).toHaveBeenCalledWith(
+        expect.stringContaining("release_disabled"),
+      );
+    },
+  );
+
+  it.each([
+    { allowed: false, reason: "governance_unavailable" },
+    { allowed: false, reason: "emergency_off" },
+    { allowed: false, reason: "kill_switch_active" },
+    { allowed: false, reason: "policy_not_ready" },
+    { allowed: true, reason: "governance_allowed" },
+    { allowed: true, reason: "release_disabled" },
+    null,
+  ])(
+    "keeps hosted production service builds on the full prewarm path when governance returns %j",
+    (decision) => {
+      vi.spyOn(console, "log").mockImplementation(() => undefined);
+      const spawn = vi.fn(() => ({ status: 1 }));
+      const resolveProductionGovernance = vi.fn(() => decision);
+
+      expect(
+        runEveBuild({
+          environment: {
+            VERCEL: "1",
+            VERCEL_ENV: "production",
+            CORE_EVE_BUILD_MODE: "artifacts",
+          },
+          service: true,
+          spawn,
+          resolveProductionGovernance,
+        }),
+      ).toBe(1);
+      expect(resolveProductionGovernance).toHaveBeenCalledTimes(1);
+      expect(spawn).toHaveBeenCalledWith(
+        process.execPath,
+        [expect.any(String), "build"],
+        expect.anything(),
+      );
+    },
+  );
+
+  it("fails closed to full prewarming when the production governance lookup throws", () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const spawn = vi.fn(() => ({ status: 1 }));
-    runEveBuild({
-      environment: { ...env, CORE_EVE_BUILD_MODE: "artifacts" },
-      service: true,
-      spawn,
+    const resolveProductionGovernance = vi.fn(() => {
+      throw new Error("database unreachable");
     });
+
+    expect(
+      runEveBuild({
+        environment: {
+          VERCEL: "1",
+          VERCEL_ENV: "production",
+          CORE_EVE_BUILD_MODE: "artifacts",
+        },
+        service: true,
+        spawn,
+        resolveProductionGovernance,
+      }),
+    ).toBe(1);
     expect(spawn).toHaveBeenCalledWith(
       process.execPath,
       [expect.any(String), "build"],
       expect.anything(),
     );
+  });
+
+  it("never skips prewarm via governance on explicit full builds or non-Vercel production environments", () => {
+    const spawn = vi.fn(() => ({ status: 1 }));
+    const resolveProductionGovernance = vi.fn(() => ({
+      allowed: false,
+      reason: "release_disabled",
+    }));
+
+    runEveBuild({
+      environment: { VERCEL: "1", VERCEL_ENV: "production" },
+      mode: "full",
+      spawn,
+      resolveProductionGovernance,
+    });
+    runEveBuild({
+      environment: { VERCEL_ENV: "production" },
+      service: true,
+      spawn,
+      resolveProductionGovernance,
+    });
+    runEveBuild({
+      environment: {
+        VERCEL: "1",
+        VERCEL_ENV: "development",
+        VERCEL_TARGET_ENV: "development",
+      },
+      service: true,
+      spawn,
+      resolveProductionGovernance,
+    });
+
+    expect(resolveProductionGovernance).not.toHaveBeenCalled();
+    expect(spawn).toHaveBeenCalledTimes(3);
+    for (const call of spawn.mock.calls) {
+      expect(call[1]).toEqual([expect.any(String), "build"]);
+    }
   });
 
   it.each([undefined, "full"])(

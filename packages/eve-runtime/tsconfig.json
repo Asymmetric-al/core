@@ -10,5 +10,10 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["agent/**/*.ts", "evals/**/*.ts", "src/**/*.ts"]
+  "include": [
+    "agent/**/*.ts",
+    "evals/**/*.ts",
+    "scripts/**/*.ts",
+    "src/**/*.ts"
+  ]
 }

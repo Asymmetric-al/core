@@ -36,17 +36,23 @@ The generic web build planner sets `CORE_EVE_BUILD_MODE=artifacts` for its
 children. Eve 0.25.1 then compiles with `--skip-sandbox-prewarm`; this applies to
 both dependency and app phases without changing Turbo's dependency order.
 Admin uses `bun run build:service` through the supported `withEve` build-command
-option. This stable command selects artifact mode only when it executes on a
-hosted preview. Production services retain the full SDK build, even when web
+option. This stable command selects artifact mode on a hosted preview, or on a
+hosted Vercel production build only when live persisted governance
+(`resolveEveSandboxNetworkDecision()`) explicitly confirms `release_disabled`
+(allowing `apps/admin` to deploy with Eve off as required by
+`eve-final-release-switch-launch-verification`). Whenever persisted governance is
+unavailable, `emergency_off`, `kill_switch_active`, `policy_not_ready`, or
+`release_enabled`, production services retain the full SDK build, even when web
 dependencies were compiled in artifact mode. The decision happens at service
 execution because the SDK preserves previously generated service commands when
 the same checkout builds another target.
 
-These are **unqualified Release-Off artifacts**. They can expose the deployed
-candidate for inspection, but do not prove a sandbox template exists or permit
-autonomous effects. Auth, governance, policy, audit and release admission remain
-unchanged. The bundled Vercel runtime refuses a missing sandbox template; preview
-health or web smoke success is not sandbox qualification.
+These are **unqualified Release-Off artifacts** (whether built for a preview or
+a Release-Off production deploy). They can expose the deployed candidate for
+inspection, but do not prove a sandbox template exists or permit autonomous
+effects. Auth, governance, policy, audit and release admission remain unchanged.
+The bundled Vercel runtime refuses a missing sandbox template; preview or
+Release-Off production health or web smoke success is not sandbox qualification.
 
 - `bun run --cwd packages/eve-runtime build` defaults to the full SDK build when
   `CORE_EVE_BUILD_MODE` is unset. Unknown modes fail before the SDK starts.

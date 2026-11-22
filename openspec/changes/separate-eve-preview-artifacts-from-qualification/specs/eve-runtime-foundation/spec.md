@@ -4,7 +4,7 @@
 
 Generic web builds MUST compile their Eve dependency without provisioning a sandbox.
 
-Every clause in `openspec/contracts/eve-runtime-foundation.md#contract-f7575c53fcf5e197aeda` MUST apply without exception.
+Every clause in `openspec/contracts/eve-runtime-foundation.md#contract-790e1f5af63b9776e70a` MUST apply without exception.
 
 #### Scenario: A Release-Off preview compiles without provisioning
 
@@ -14,10 +14,18 @@ Every clause in `openspec/contracts/eve-runtime-foundation.md#contract-f7575c53f
 - **AND** existing runtime governance continues to deny unauthorized effects
 - **AND** a successful preview is not represented as full Eve qualification
 
+#### Scenario: A Release-Off production service build compiles without provisioning
+
+- **GIVEN** `apps/admin` deploys on Vercel production while persisted Eve governance confirms `release_disabled`
+- **WHEN** the generated production service build (`build:service`) executes
+- **THEN** complete app/workflow artifacts are emitted without sandbox prewarm
+- **AND** existing runtime governance continues to deny unauthorized effects and refuses missing templates on demand
+- **AND** the Release-Off production build is not represented as full Eve qualification
+
 #### Scenario: Full qualification remains mandatory
 
 - **GIVEN** an artifact build succeeded without a qualified sandbox template
-- **WHEN** a standalone full build or production service build runs
+- **WHEN** a standalone full build runs, or a hosted production service build runs when persisted governance is unavailable, `emergency_off`, `kill_switch_active`, `policy_not_ready`, or has `release_enabled` turned on
 - **THEN** the normal SDK prewarm path still runs and any denial fails the build
 - **AND** artifact or prior cache success cannot substitute for that qualification
 - **AND** full runtime verification and target-bound launch evidence remain
@@ -27,7 +35,7 @@ Every clause in `openspec/contracts/eve-runtime-foundation.md#contract-f7575c53f
 
 - **GIVEN** a checkout generated an Eve service during a preview build
 - **WHEN** that service command executes for a production target
-- **THEN** it selects full SDK qualification using the current target
+- **THEN** it selects full SDK qualification using the current target unless live persisted governance explicitly confirms `release_disabled`
 - **AND** neither stale preview configuration nor an inherited web artifact
   variable can skip prewarming
 
@@ -42,7 +50,7 @@ Every clause in `openspec/contracts/eve-runtime-foundation.md#contract-f7575c53f
 
 - **GIVEN** the current target has production casing or whitespace accepted by the canonical environment model
 - **WHEN** the generated service dispatcher selects its build mode
-- **THEN** production still requires full prewarming even with a conflicting preview marker
+- **THEN** production still follows the production qualification rule (requiring full prewarming unless live persisted governance explicitly confirms `release_disabled`) even with a conflicting preview marker
 - **AND** local development stays full while hosted core-development and legacy staging use artifacts
 
 #### Scenario: Explicit full commands receive a conflicting skip flag
