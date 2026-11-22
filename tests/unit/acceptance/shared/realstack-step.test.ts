@@ -293,6 +293,10 @@ const REAL_DATABASE_FILES = [
     "issue-2675/tenant-policy-migration.realstack",
     "issue-2675/web-studio-document-locks.realstack",
     "issue-2675/web-studio-selection.realstack",
+    // AL-2676 (WP3a part 1a): run by the same program step's glob.
+    "issue-2676/giving-targets.realstack",
+    "issue-2676/tenant-status-rollback.realstack",
+    "issue-2676/tenant-status.realstack",
     "issue-2677/command-boundaries.realstack",
     "issue-2677/command-log.realstack",
     "issue-2677/export-audit.realstack",
