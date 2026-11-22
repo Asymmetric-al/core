@@ -860,7 +860,7 @@ WHERE contype = 'f' AND confrelid = 'public.tenants'::regclass AND confdeltype <
 SELECT c.oid::regclass, c.relowner::regrole
 FROM pg_constraint k
 JOIN pg_class c ON c.oid = k.conrelid
-WHERE k.contype = 'f' AND k.confrelid = 'public.tenants'::regclass
+WHERE k.contype = 'f' AND k.confrelid = 'public.tenants'::regclass AND k.confdeltype <> 'r'
   AND NOT pg_has_role(current_user, c.relowner, 'USAGE');
 ```
 
