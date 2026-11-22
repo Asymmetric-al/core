@@ -771,9 +771,9 @@ until new builds promote, and stay down if the release stops after `db push`.
 
 - The five migrations (`20261120130001`, `20261120130003` to `20261120130006`)
   are safe for a running release that carries the unhinted missionary embed
-  (expand PR #TBD, `fix/AL-2674-health-probe-embed-expand`, released and
-  promoted on all three apps first by the coordinator) and **NOT** for an older
-  one.
+  (PR #2747, commit `474c5679f`, `fix/AL-2674-health-probe-embed-expand`,
+  released and promoted on all three apps first by the coordinator) and **NOT**
+  for an older one.
 - A release that carries this part must build all three apps (`admin`, `donor`
   and `missionary`), because the new builds read `funds.system_purpose`.
 - The labelled `preview-database` smoke

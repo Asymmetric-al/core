@@ -472,6 +472,7 @@ describe("required PostgREST suites run on the local Supabase stack (#2706)", ()
   it.each([
     "issue-2674/app-health",
     "issue-2675/missionary-handler-authority",
+    "issue-2676/tenant-records",
     "issue-2677/field-policy-reader",
   ])("runs %s in a blocking step", (suite) => {
     const file = `${A}/${suite}.postgrest.acceptance.test.ts`;

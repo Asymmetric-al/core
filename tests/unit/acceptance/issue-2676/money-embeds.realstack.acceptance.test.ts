@@ -58,7 +58,7 @@ type Site = {
 const SITES: Site[] = [
   {
     file: "packages/api/src/donations/select.ts",
-    embed: "missionary:missionaries!donations_missionary_same_tenant_fk(",
+    embed: "missionary:missionaries(",
     root: "donations",
     note: "DONATION_WITH_PARTIES_SELECT (REST and GraphQL donation reads)",
   },
