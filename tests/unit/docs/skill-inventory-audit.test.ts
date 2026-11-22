@@ -724,6 +724,7 @@ const expectedNames = [
   ...baselineSkillNames.filter((name) => !retiredSkillNames.has(name)),
   "security-audit",
   "council",
+  "delete-comment",
   // vercel-labs/ui skill bundled with the installed @ui-sdk/core release.
   "ui-sdk",
   ...p3StackSkillNames,
