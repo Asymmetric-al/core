@@ -53,7 +53,9 @@ interface StubState {
   emailSendLogs?: Array<Record<string, unknown>>;
   stagedGiftUpdates?: Array<Record<string, unknown>>;
   suppressions?: Array<Record<string, unknown>>;
-  funds?: Array<string | { id: string; name?: string | null }>;
+  funds?: Array<
+    string | { id: string; name?: string | null; system_purpose?: string }
+  >;
   missionaries?: string[];
 }
 
@@ -63,6 +65,7 @@ class QueryBuilder {
   private updatePayload: Record<string, unknown> | null = null;
   private wantsSingle = false;
   private inValues: unknown[] = [];
+  private ordinaryFundsOnly = false;
 
   constructor(
     private readonly table: string,
@@ -90,6 +93,11 @@ class QueryBuilder {
   }
 
   ilike() {
+    return this;
+  }
+
+  is(column: string, value: null) {
+    this.ordinaryFundsOnly = column === "system_purpose" && value === null;
     return this;
   }
 
@@ -142,7 +150,12 @@ class QueryBuilder {
             typeof item === "string" ? item === id : item.id === id,
           );
 
-          if (!fund) {
+          if (
+            !fund ||
+            (this.ordinaryFundsOnly &&
+              typeof fund !== "string" &&
+              fund.system_purpose)
+          ) {
             return null;
           }
 
@@ -877,6 +890,26 @@ describe("applyContributionCorrection", () => {
     });
 
     expect(state.adjustments).toHaveLength(0);
+  });
+
+  it("refuses the tenant's reserved fund before writing a correction", async () => {
+    const state: StubState = {
+      adjustments: [],
+      insertCount: 0,
+      funds: [{ id: FUND_VALID, system_purpose: "fee_cover" }],
+    };
+    await expect(
+      applyContributionCorrection({
+        ...baseInput(state),
+        actionType: "fund_correction",
+        payload: { fundId: FUND_VALID },
+        reason: "Requested designation",
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      message: expect.stringMatching(/unknown fund/i),
+    });
+    expect(state.adjustments).toEqual([]);
   });
 
   it("rejects malformed reference payloads instead of clearing financial truth", async () => {

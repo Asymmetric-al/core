@@ -98,7 +98,9 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
         select tenant_id, id, donor_id, 100, 'acc2251-' || id from public.donations where tenant_id in (:A, :B);
       insert into public.donor_merge_candidates (tenant_id, existing_donor_id, confidence) values (:A, :DA, 'low'), (:B, :DB, 'low');
       insert into public.email_templates (tenant_id, name) values (:A, 'acc2251'), (:B, 'acc2251');
-      insert into public.funds (tenant_id, name) values (:A, 'acc2251'), (:B, 'acc2251');`;
+      -- D-18: each giving target now names an entity explicitly.
+      insert into public.legal_entities(id,tenant_id,name) values (:A,:A,'A'),(:B,:B,'B');
+      insert into public.funds (tenant_id, name, legal_entity_id) values (:A, 'acc2251', :A), (:B, 'acc2251', :B);`;
     const ids: Record<string, string> = { A: TA, B: TB, U, DA, DB };
     await db.query(
       sql.replace(/:(DA|DB|A|B|U)\b/g, (_m, k: string) => `'${ids[k]}'`),

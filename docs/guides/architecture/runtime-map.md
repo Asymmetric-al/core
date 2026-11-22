@@ -186,7 +186,6 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/admin/mission-control/automations`                       | Node.js (no `runtime` segment export) | Mission Control automations, admin client          |
 | admin      | `/api/admin/mission-control/needs-attention`                   | Node.js (no `runtime` segment export) | Mission Control task attention dashboard           |
 | admin      | `/api/admin/missionaries`                                      | Node.js (no `runtime` segment export) | Admin client                                       |
-| admin      | `/api/admin/org-settings`                                      | Node.js (no `runtime` segment export) | Admin client                                       |
 | admin      | `/api/admin/posts`                                             | Node.js (no `runtime` segment export) | Admin client                                       |
 | admin      | `/api/admin/posts/[postId]`                                    | Node.js (no `runtime` segment export) | Admin client                                       |
 | admin      | `/api/admin/support`                                           | Node.js (no `runtime` segment export) | Admin client                                       |

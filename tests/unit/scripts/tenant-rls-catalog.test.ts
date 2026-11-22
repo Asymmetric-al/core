@@ -8,6 +8,26 @@ import {
 } from "../../../scripts/verify/command-entry-boundaries.mjs";
 
 import { describe, expect, it } from "vitest";
+import keyExceptions from "../../../docs/security/tenant-key-exceptions.json";
+
+it("allows the reviewed CMS tenant-key debt to shrink, never to grow", () => {
+  const original = new Set([
+    "cms.cms_users",
+    "cms.media",
+    "cms.ministry_updates",
+    "cms.missionary_giving_pages",
+    "cms.missionary_profiles",
+    "cms.navigation",
+    "cms.page_templates",
+    "cms.pages",
+    "cms.project_pages",
+  ]);
+  expect(keyExceptions.reason.trim()).not.toBe("");
+  expect(new Set(keyExceptions.tables).size).toBe(keyExceptions.tables.length);
+  expect(keyExceptions.tables.filter((name) => !original.has(name))).toEqual(
+    [],
+  );
+});
 
 import {
   TENANT_RLS_CATALOG_SQL,
@@ -1810,5 +1830,60 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     // Council R12 (a): every function the helpers reach, marked root or not.
     expect(TENANT_RLS_CATALOG_SQL).toContain("with recursive reach");
     expect(TENANT_RLS_CATALOG_SQL).toContain("'root'");
+  });
+});
+
+// F9 (council 21 November): a tenant_id with no validated key to tenants fails
+// unless the reviewed CMS list names it, and a listed table that gains its key
+// fails until its entry is removed, once Payload's tables exist to judge.
+describe("tenant keys", () => {
+  const judge = (
+    tenant_keys: { table: string; keyed: boolean }[],
+    payload_installed: boolean,
+  ) =>
+    codes(
+      evaluateTenantRlsCatalog(
+        {
+          tables: [],
+          definers: [],
+          commands: [],
+          wrappers: [],
+          grants: [],
+          policies: [],
+          published: [],
+          tenant_delete_violations: [],
+          tenant_update_violations: [],
+          tenant_keys,
+          payload_installed,
+        },
+        listed(),
+      ),
+    );
+  const cms = (keyed: (table: string) => boolean) =>
+    keyExceptions.tables.map((table) => ({ table, keyed: keyed(table) }));
+
+  it("admits the listed CMS selectors and fails an unlisted table without a key", () => {
+    expect(
+      judge(
+        cms(() => false),
+        true,
+      ),
+    ).toEqual([]);
+    expect(
+      judge(
+        [...cms(() => false), { table: "public.planted", keyed: false }],
+        true,
+      ),
+    ).toEqual(["TENANT_KEY_MISSING public.planted"]);
+  });
+
+  it("fails a stale CMS entry once Payload is installed, and not before", () => {
+    expect(
+      judge(
+        cms((table) => table === "cms.pages"),
+        true,
+      ),
+    ).toEqual(["TENANT_KEY_STALE_EXCEPTION cms.pages"]);
+    expect(judge([], false)).toEqual([]);
   });
 });

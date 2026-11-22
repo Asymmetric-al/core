@@ -296,6 +296,11 @@ const REAL_DATABASE_FILES = [
     "issue-2675/tenant-policy-migration.realstack",
     "issue-2675/web-studio-document-locks.realstack",
     "issue-2675/web-studio-selection.realstack",
+    // AL-2676 (WP3a part 1a): run by the same program step's glob.
+    "issue-2676/giving-targets.realstack",
+    "issue-2676/money-embeds.realstack",
+    "issue-2676/tenant-status-rollback.realstack",
+    "issue-2676/tenant-status.realstack",
     "issue-2677/command-boundaries.realstack",
     "issue-2677/command-log.realstack",
     "issue-2677/export-audit.realstack",
@@ -467,6 +472,7 @@ describe("required PostgREST suites run on the local Supabase stack (#2706)", ()
   it.each([
     "issue-2674/app-health",
     "issue-2675/missionary-handler-authority",
+    "issue-2676/tenant-records",
     "issue-2677/field-policy-reader",
   ])("runs %s in a blocking step", (suite) => {
     const file = `${A}/${suite}.postgrest.acceptance.test.ts`;

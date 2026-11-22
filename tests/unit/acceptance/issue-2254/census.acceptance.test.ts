@@ -114,7 +114,10 @@ function oracle(): Catalog {
         String(c.recordType),
         String(c.name),
         String(c.type),
-        Boolean(c.nullable),
+        // D-18: WP3's composite giving-target keys require the assignment's tenant on every row.
+        c.recordType === "missionaries" && c.name === "tenant_id"
+          ? false
+          : Boolean(c.nullable),
       ),
     ),
     column(

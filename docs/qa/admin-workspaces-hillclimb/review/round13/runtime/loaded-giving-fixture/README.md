@@ -21,7 +21,7 @@ Only these current dashboard requests are supported:
 | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | HEAD donors                  | Exact demo tenant, `select=id`, `Prefer: count=exact`; 48                                                                                                              |
 | HEAD missionaries            | Same count contract; 12                                                                                                                                                |
-| HEAD funds                   | Same count contract plus `is_active=eq.true`; 4                                                                                                                        |
+| HEAD funds                   | Same count contract plus `is_active=eq.true` and `system_purpose=is.null`; 4                                                                                           |
 | GET donations                | Exact dashboard projection, tenant, canonical `gift_date`/legacy `created_at` 13-month window, no raw-status prefilter, `id.asc`, explicit offset/limit; 43 candidates |
 | GET contribution_adjustments | Exact dashboard projection, tenant, `status=eq.applied`, up to 150 loaded donation IDs, stable time/ID order and offset/limit; one applicable correction               |
 
