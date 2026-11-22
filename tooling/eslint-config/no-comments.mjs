@@ -44,7 +44,7 @@ const BLOCK_DIRECTIVES = [
 ];
 const DEPRECATION = /^\*[^]*@deprecated\b/;
 const JSDOC_TYPE =
-  /^\*[^]*@(?:type|typedef|import|satisfies|template|callback|overload|param|returns?|this|enum|extends|augments|implements|property|prop)\b\s*\{|^\*[^]*@(?:typedef|import|template|overload)\b/;
+  /^\*[^]*@(?:type|typedef|import|satisfies|template|callback|overload|param|arg|argument|returns?|this|enum|extends|augments|implements|property|prop)\b\s*\{|^\*[^]*@(?:typedef|import|template|overload|readonly|override)\b/;
 
 export function inCommentBanScope(file) {
   return (

@@ -140,7 +140,12 @@ passing database error must not have that effect.
     validated by `readActiveAssignments`, with each organization's name from
     `public.current_user_organizations()`. Both reads run on the person's own
     token, so the names come only from organizations in which the person holds
-    a live row. If either read fails, the result is `unavailable`. The function
+    a live row. The result is `unavailable` when `readActiveAssignments`
+    reports a failed or malformed read, or when the organization read ends in
+    an `OrganizationNamesReadError`: the RPC answered with an error, with
+    something that is not an array, or with a malformed row. Any other error
+    from the organization read, such as a request that rejects, is thrown to
+    the caller, so `unavailable` does not cover every failure. The function
     exists because a chooser must list a person's rows before any one is
     selected, which `getAuthContext` refuses for a person in two organizations.
     It decides nothing itself: a choice in the organization chooser goes back

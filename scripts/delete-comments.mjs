@@ -78,7 +78,10 @@ export function stripComments(text, file) {
     const before = stripped.slice(lineStart, from);
     const after = stripped.slice(to, lineEnd);
     if (after.trim() !== "") {
-      stripped = stripped.slice(0, from) + stripped.slice(to);
+      const joinsTokens =
+        /\S$/.test(stripped.slice(0, from)) && /^\S/.test(stripped.slice(to));
+      stripped =
+        stripped.slice(0, from) + (joinsTokens ? " " : "") + stripped.slice(to);
     } else if (before.trim() === "") {
       stripped =
         stripped.slice(0, lineStart) +
@@ -204,21 +207,29 @@ export async function runDeleteComments({
   const unsafe = [];
   for (const file of files) {
     const text = readFileSync(path.join(root, file), "utf8");
-    const { removed, text: stripped } = stripComments(text, file);
-    if (removed === 0) continue;
-    const formatted = await format(root, file, stripped);
-    if (!sameProgram(text, formatted, file)) {
+    let result;
+    try {
+      const { removed, text: stripped } = stripComments(text, file);
+      if (removed === 0) continue;
+      const formatted = await format(root, file, stripped);
+      result = sameProgram(text, formatted, file)
+        ? { removed, formatted }
+        : null;
+    } catch {
+      result = null;
+    }
+    if (result === null) {
       unsafe.push(file);
       continue;
     }
-    writeFileSync(path.join(root, file), formatted);
-    comments += removed;
+    writeFileSync(path.join(root, file), result.formatted);
+    comments += result.removed;
     written += 1;
   }
   log(`delete-comments: removed ${comments} comments from ${written} file(s).`);
   if (unsafe.length === 0) return 0;
   error(
-    `delete-comments: left ${unsafe.length} file(s) unchanged, because removing their comments would change the code:`,
+    `delete-comments: left ${unsafe.length} file(s) unchanged, because they cannot be parsed or removing their comments would change the code:`,
   );
   for (const file of unsafe) error(`  ${file}`);
   error(

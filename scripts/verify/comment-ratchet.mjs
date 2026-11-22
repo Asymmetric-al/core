@@ -16,6 +16,7 @@ import {
 
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
 const DEFAULT_BASE = "origin/develop";
+const PUSHED_REVISION = /^(?!0{40}$)[0-9a-f]{40}$/;
 const MAX_BUFFER = 256 * 1024 * 1024;
 const SKILL = "docs/ai/skills/delete-comment/SKILL.md";
 const WRITE_COMMAND = "bun run verify:comments -- --write";
@@ -123,16 +124,32 @@ export function parseNameStatus(output) {
   return changes;
 }
 
-function resolveBase(root, requested) {
-  try {
-    return git(root, ["merge-base", requested ?? DEFAULT_BASE, "HEAD"]).trim();
-  } catch (error) {
-    if (requested === undefined) return null;
-    throw new Error(
-      `Cannot find a merge base with ${requested}: ${String(error.stderr ?? error.message).trim()}`,
-      { cause: error },
-    );
+function mergeBase(root, ref) {
+  return git(root, ["merge-base", ref, "HEAD"]).trim();
+}
+
+function resolveBase(root, requested, pushedFrom) {
+  if (requested !== undefined) {
+    try {
+      return mergeBase(root, requested);
+    } catch (error) {
+      throw new Error(
+        `Cannot find a merge base with ${requested}: ${String(error.stderr ?? error.message).trim()}`,
+        { cause: error },
+      );
+    }
   }
+  const candidates = PUSHED_REVISION.test(pushedFrom ?? "")
+    ? [pushedFrom, DEFAULT_BASE]
+    : [DEFAULT_BASE];
+  for (const candidate of candidates) {
+    try {
+      return mergeBase(root, candidate);
+    } catch {
+      continue;
+    }
+  }
+  return null;
 }
 
 function countAt(root, commit, file) {
@@ -259,7 +276,13 @@ export function runCommentRatchet({
       .sort((a, b) => (a[0] < b[0] ? -1 : 1)),
   );
   const requested = values.base ?? (env.COMMENT_RATCHET_BASE || undefined);
-  const base = resolveBase(root, requested);
+  const base = resolveBase(root, requested, env.COMMENT_RATCHET_PUSHED_FROM);
+  if (base === null && values.write) {
+    error(
+      `comment ratchet: cannot write the baseline without a base to compare with. Fetch ${DEFAULT_BASE} or pass --base <git ref>.`,
+    );
+    return 1;
+  }
   const grown = base === null ? [] : findGrowth(root, base, measured);
   if (base === null) {
     log(

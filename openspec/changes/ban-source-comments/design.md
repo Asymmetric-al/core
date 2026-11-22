@@ -51,7 +51,8 @@ and the mechanism is part of what the Oxlint migration replaces.
 ### D2. The ratchet compares trees, not baselines
 
 For each file changed since the merge base with the base branch
-(`origin/develop` by default, the pull request's base in CI), the gate counts
+(`origin/develop` by default, the pull request's base in CI, and on a branch
+push the revision the branch was at before the push), the gate counts
 the banned comments in the file now and in its base version. The count must
 not be higher. A renamed file is compared with the file it was renamed from,
 so a rename keeps its comments. A new file must have none.
@@ -59,7 +60,7 @@ so a rename keeps its comments. A new file must have none.
 The gate then requires the committed baseline to equal the tree. Because the
 tree cannot gain comments and the baseline must mirror the tree, nobody can
 raise a baseline entry by hand. `--write` refuses to write while any file has
-gained comments.
+gained comments, and refuses when it has no base to compare with.
 
 Alternative considered: compare the baseline with the base branch's baseline
 and refuse widened entries. Rejected: it cannot tell a rename from a new

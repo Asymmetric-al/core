@@ -106,6 +106,21 @@ describe("stripComments", () => {
     ).toBe("export const A = ({ a }: { a: string }) => <div>{a }</div>;\n");
   });
 
+  it("keeps two tokens apart when a comment was all that separated them", () => {
+    expect(
+      stripComments(
+        "export const n = 1/* note */.toString();\n",
+        "packages/api/src/a.ts",
+      ),
+    ).toEqual({ removed: 1, text: "export const n = 1 .toString();\n" });
+  });
+
+  it("keeps a JSDoc modifier that TypeScript reads in a JavaScript file", () => {
+    const text =
+      "export class A {\n  /** @readonly */\n  name = 1;\n  /** @arg {string} value */\n  set(value) {}\n}\n";
+    expect(stripComments(text, "scripts/a.mjs")).toEqual({ removed: 0, text });
+  });
+
   it("leaves text that only looks like a comment", () => {
     const text =
       'export const url = "https://example.org/a"; export const re = /\\/\\*/;\n';
@@ -221,6 +236,31 @@ describe("the delete-comments command", () => {
     expect(result.status).toBe(1);
     expect(result.output).toContain("apps/admin/a.tsx");
     expect(read(root, "apps/admin/a.tsx")).toBe(source);
+  });
+
+  it("writes a file whose tokens a comment kept apart", async () => {
+    const root = repository({
+      "packages/api/src/a.ts": "export const n = 1/* note */.toString();\n",
+    });
+
+    expect((await run(root, "strip", "packages/api")).status).toBe(0);
+    expect(read(root, "packages/api/src/a.ts")).toBe(
+      "export const n = (1).toString();\n",
+    );
+  });
+
+  it("names a file it cannot parse and still strips the others", async () => {
+    const broken = "// note\nexport const = ;\n";
+    const root = repository({
+      "packages/api/src/a.ts": broken,
+      "packages/api/src/b.ts": "// gone\nexport const b = 2;\n",
+    });
+
+    const result = await run(root, "strip", "packages/api");
+    expect(result.status).toBe(1);
+    expect(result.output).toContain("packages/api/src/a.ts");
+    expect(read(root, "packages/api/src/a.ts")).toBe(broken);
+    expect(read(root, "packages/api/src/b.ts")).toBe("export const b = 2;\n");
   });
 
   it("refuses a path that matches no source file", async () => {

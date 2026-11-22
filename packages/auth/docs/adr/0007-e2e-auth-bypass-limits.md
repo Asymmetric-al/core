@@ -86,19 +86,24 @@ as a real person.
 
 ### Signing the cookie
 
-6. **A real remote datasource needs an explicit signing key. A public fallback
-   key serves only datasources that cannot hold real data.** `getE2EAuthSecret`
-   in `packages/auth/e2e-auth.ts` returns `E2E_AUTH_SECRET` when it is set. When
-   it is not, it returns the public key `E2E_AUTH_DEV_FALLBACK_SECRET`, but only
-   if `isNonConfidentialE2EDatasource` finds that the datasource cannot hold real
-   data: none is configured, its host is local by the same list as decision 1,
-   or it is exactly `example.supabase.co`. A URL that does not parse counts as
-   confidential. For any other datasource it returns `null`, so minting refuses
-   and verifying rejects until a confidential secret is set. The fallback lets
-   local development and the placeholder CI job run with no secret setup. It is
-   safe for that key to be public because it is used only where the bypass
-   reaches throwaway or non-existent data, and the datasource check of decision
-   1 forbids production projects on its own. The function reads `process.env`
+6. **A hosted datasource needs an explicit signing key. A public fallback key
+   serves only local and placeholder datasources.** `getE2EAuthSecret` in
+   `packages/auth/e2e-auth.ts` returns `E2E_AUTH_SECRET` when it is set. When it
+   is not, it returns the public key `E2E_AUTH_DEV_FALLBACK_SECRET`, but only if
+   `isNonConfidentialE2EDatasource` accepts the datasource: none is configured,
+   its host is local by the same list as decision 1, or it is exactly
+   `example.supabase.co`. A URL that does not parse is not accepted. For any
+   other datasource it returns `null`, so minting refuses and verifying rejects
+   until a confidential secret is set. That includes a hosted project on the
+   allowlist: listing a project in `E2E_AUTH_ALLOWED_SUPABASE_REFS` admits the
+   bypass against it (decision 1), whatever data it holds, but never gives it
+   the public key. The fallback lets local development and the placeholder CI
+   job run with no secret setup. The key can be public only on the assumption
+   that a local or placeholder datasource holds throwaway data or none. The
+   code does not check that assumption. It reads the host name and nothing
+   behind it, so a local host that forwards to real data would still get the
+   public key. Keeping such datasources isolated and disposable is the
+   operator's job. The function reads `process.env`
    directly, not `@asym/env`, so the module stays edge-safe and light on
    dependencies, like the other environment reads in that file. The test
    `fails closed for a real remote datasource when the secret is unset` in

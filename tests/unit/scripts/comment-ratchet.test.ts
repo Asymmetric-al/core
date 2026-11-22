@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -275,8 +276,61 @@ describe("the comment ratchet", () => {
       error: (line: string) => output.push(line),
     };
 
-    expect(runCommentRatchet({ ...options, args: ["--write"] })).toBe(0);
+    expect(
+      runCommentRatchet({ ...options, args: ["--base", "develop", "--write"] }),
+    ).toBe(0);
     expect(runCommentRatchet({ ...options, args: [] })).toBe(0);
     expect(output.join("\n")).toContain("origin/develop is not available");
+  });
+
+  it("does not write a baseline without a base to compare with", () => {
+    const root = repository({ "packages/api/src/a.ts": COMMENTED });
+    const output: string[] = [];
+
+    expect(
+      runCommentRatchet({
+        root,
+        args: ["--write"],
+        env: {},
+        log: (line: string) => output.push(line),
+        error: (line: string) => output.push(line),
+      }),
+    ).toBe(1);
+    expect(output.join("\n")).toContain("--base");
+    expect(existsSync(path.join(root, commentBaselineFile))).toBe(false);
+  });
+
+  it("compares a pushed branch with the revision before the push", () => {
+    const root = repository({ "packages/api/src/a.ts": COMMENTED });
+    run(root, "--write");
+    git(root, "add", "--all");
+    git(root, "commit", "--quiet", "--message=baseline");
+    const before = git(root, "rev-parse", "HEAD").trim();
+    write(root, "packages/api/src/a.ts", `${COMMENTED}// three\n`);
+    write(
+      root,
+      commentBaselineFile,
+      `${JSON.stringify({ "packages/api/src/a.ts": 3 }, null, 2)}\n`,
+    );
+    git(root, "commit", "--quiet", "--all", "--message=pushed");
+    const check = (pushedFrom: string) => {
+      const output: string[] = [];
+      const status = runCommentRatchet({
+        root,
+        args: [],
+        env: { COMMENT_RATCHET_PUSHED_FROM: pushedFrom },
+        log: (line: string) => output.push(line),
+        error: (line: string) => output.push(line),
+      });
+      return { status, output: output.join("\n") };
+    };
+
+    const pushed = check(before);
+    expect(pushed.status).toBe(1);
+    expect(pushed.output).toContain("packages/api/src/a.ts: 2 -> 3");
+
+    const created = check("0".repeat(40));
+    expect(created.status).toBe(0);
+    expect(created.output).toContain("origin/develop is not available");
   });
 });

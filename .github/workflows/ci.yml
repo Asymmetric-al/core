@@ -155,6 +155,7 @@ jobs:
       - name: Check the comment ratchet
         env:
           COMMENT_RATCHET_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+          COMMENT_RATCHET_PUSHED_FROM: ${{ github.event_name == 'push' && github.event.before || '' }}
         run: bun run verify:comments
       - name: Check data access boundary
         run: bun run verify:data-boundary

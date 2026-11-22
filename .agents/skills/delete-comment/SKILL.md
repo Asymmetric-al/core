@@ -49,6 +49,7 @@ request.
 ### 2. List every comment
 
 ```bash
+mkdir -p .tmp/comment-audit
 node scripts/delete-comments.mjs list <path> > .tmp/comment-audit/inventory.json
 ```
 
@@ -142,9 +143,18 @@ by hand and check the rendered text.
 
 1. `bun run verify:comments -- --write`, then `bun run verify:comments`.
 2. Lint, typecheck and the unit tests of the workspace.
-3. A test that reads source text or pins a file's hash can fail once a
-   comment is gone. Re-check what the pin protects and update the pin
-   (`docs/ai/protected-paths.md`). Never restore the comment to make it pass.
+3. A test can fail once a comment is gone. Find out which kind it is before
+   you change anything:
+   - **The test requires the comment itself**, such as an acceptance criterion
+     that names a JSDoc or a test that reads a sentence from the source. Put
+     the comment back and leave the test alone. Run
+     `bun run verify:comments -- --write` again so the baseline records it,
+     and tell the user: removing it means changing the requirement, and that
+     is theirs to decide. `strip` cannot know about such a comment, so this
+     step is the only place it is caught.
+   - **The test pins the file's bytes or hash**, and what the pin protects has
+     not changed. Re-check the claim and update the pin
+     (`docs/ai/protected-paths.md`).
 4. `bunx prettier --check` on the ADRs.
 
 ### 8. Report

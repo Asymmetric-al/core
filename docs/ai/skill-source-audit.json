@@ -2179,8 +2179,8 @@
       "sourcePath": "docs/ai/skills/delete-comment/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "cc532827b813c2254630bd3ba1ac676e15f31b02e7e51169cb3c93cfc507dc3b",
-      "treeHash": "90c25a9e120728947584ebb4a1f356f829762e763b8c81c242dd5f6eef930678",
+      "entrypointHash": "00b2ad7fab43f7e9c2443521242974c5d9465f8dc74a5abb6014af02d4958838",
+      "treeHash": "47c731cfb8e2dee17fd6b8ed3fac2cfb9d4330af725cc27c2e0836243da84f48",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -2194,7 +2194,7 @@
         {
           "kind": "Core-source-owned-contract",
           "path": "docs/ai/skills/delete-comment/SKILL.md",
-          "entrypointSha256": "cc532827b813c2254630bd3ba1ac676e15f31b02e7e51169cb3c93cfc507dc3b",
+          "entrypointSha256": "00b2ad7fab43f7e9c2443521242974c5d9465f8dc74a5abb6014af02d4958838",
           "authority": [
             "AGENTS.md",
             "docs/ai/rules/general.md",

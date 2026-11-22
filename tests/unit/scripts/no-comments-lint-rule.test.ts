@@ -108,6 +108,11 @@ ruleTester.run("core/no-comments", rule, {
       code: '/** @type {import("node:fs").Stats | null} */\nexport const stats = null;',
     },
     {
+      name: "the JSDoc aliases and modifiers TypeScript reads in a JavaScript file",
+      filename: at("scripts/tool.mjs"),
+      code: "export class Tool {\n  /** @readonly */\n  name = 1;\n  /** @override */\n  toString() { return ''; }\n  /** @arg {string} value */\n  set(value) {}\n  /** @argument {string} value */\n  put(value) {}\n}",
+    },
+    {
       name: "documentation tooling outside the banned trees",
       filename: at("docs/qa/tool.mjs"),
       code: "// evidence script\nexport const value = 1;",
@@ -186,6 +191,12 @@ ruleTester.run("core/no-comments", rule, {
       name: "a JSDoc type tag in a TypeScript file",
       filename: at("packages/api/src/clean.ts"),
       code: "/** @param {string} name the name */\nexport const greet = (name: string) => name;",
+      errors: banned,
+    },
+    {
+      name: "a JSDoc modifier in a TypeScript file",
+      filename: at("packages/api/src/clean.ts"),
+      code: "export class Tool {\n  /** @readonly */\n  name = 1;\n}",
       errors: banned,
     },
     {

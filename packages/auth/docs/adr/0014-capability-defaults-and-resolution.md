@@ -107,7 +107,11 @@ than why.
     context's tenant and sources, and each source's fields, exactly once into
     plain `SourceSnapshot` objects. Validation and the union both use these
     copies, so a getter on the input cannot give one value to the check and
-    another to the union. Input of the wrong shape fails with `missing_context`.
+    another to the union. The snapshot fails with `missing_context` in five
+    cases: the context is not an object, its tenant is not a non-empty string,
+    its sources are not an array, a source is not an object, or a source's kind
+    is neither `assignment` nor `named`. It does not read `assignmentId` or
+    `grantId`, so a source without its ID is not refused for that.
     `lookup` matches only a primitive string that names an own property of the
     table, so an inherited name such as `toString` never selects a bundle.
     `assignmentBundles` accepts a sub-role only when it is `null` or a primitive
