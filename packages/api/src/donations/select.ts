@@ -3,11 +3,12 @@
  *
  * `donations.donor_id` references `donors`, not `profiles`, so the donor's
  * profile is reached through `donors.profile_id`. That profile is null for a
- * guest donor. The donors embed is unhinted, so it resolves to whichever single
- * donations→donors FK exists, and it selects only `id` so no donor PII is added.
+ * guest donor. Neither party embed hints a column: each resolves through its
+ * sole relationship with donations, whether the key is single or composite.
+ * The donors embed selects only `id` alongside the profile, adding no donor PII.
  */
 export const DONATION_WITH_PARTIES_SELECT =
-  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))";
+  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries(*, profile:profiles!profile_id(*))";
 
 /** What a gift request asked for, as passed to `begin_donation_saga`. */
 export type RequestedGift = {
