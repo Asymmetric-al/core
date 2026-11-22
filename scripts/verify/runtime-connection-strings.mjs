@@ -10,6 +10,7 @@ import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { EXPECTED_PROJECTS } from "./vercel-build-controls.mjs";
 import {
   FORBIDDEN_RUNTIME_ENV_NAMES,
   PROJECTS,
@@ -28,6 +29,35 @@ function environmentsOf(env) {
   return names.length > 0 ? names : ["unknown"];
 }
 
+function sharedEnvironmentsOf(env) {
+  const names = [
+    ...(Array.isArray(env?.target)
+      ? env.target.filter((target) => typeof target === "string" && target)
+      : []),
+  ];
+  if (
+    env?.applyToAllCustomEnvironments === true ||
+    (Array.isArray(env?.customEnvironmentIds) &&
+      env.customEnvironmentIds.length > 0)
+  ) {
+    names.push("custom environment");
+  }
+  return names;
+}
+
+function linkedProjectsOf(env, projects) {
+  const ids = new Set(
+    Array.isArray(env?.projectId)
+      ? env.projectId
+      : typeof env?.projectId === "string"
+        ? [env.projectId]
+        : [],
+  );
+  return projects
+    .filter((project) => ids.has(project.projectId))
+    .map((project) => project.key);
+}
+
 export function findRuntimeConnectionStrings({ project, listing }) {
   const envs = Array.isArray(listing?.envs) ? listing.envs : [];
   return (
@@ -43,6 +73,81 @@ export function findRuntimeConnectionStrings({ project, listing }) {
   );
 }
 
+export function findSharedRuntimeConnectionStrings({
+  listing,
+  scope = DEFAULT_SCOPE,
+  projects = EXPECTED_PROJECTS,
+}) {
+  const envs = Array.isArray(listing)
+    ? listing
+    : Array.isArray(listing?.data)
+      ? listing.data
+      : [];
+  return envs
+    .filter((env) => FORBIDDEN_RUNTIME_ENV_NAMES.includes(env?.key))
+    .flatMap((env) => {
+      const linkedProjects = linkedProjectsOf(env, projects);
+      const environments = sharedEnvironmentsOf(env);
+      if (linkedProjects.length === 0 || environments.length === 0) {
+        return [];
+      }
+      return [
+        {
+          scope: "team-shared",
+          team: scope,
+          projects: linkedProjects,
+          key: env.key,
+          environments,
+        },
+      ];
+    })
+    .sort((a, b) => a.key.localeCompare(b.key));
+}
+
+function readSharedRuntimeConnectionStrings({ scope, run }) {
+  const allEnvs = [];
+  const seenCursors = new Set();
+  let cursor = null;
+
+  while (true) {
+    const endpoint =
+      cursor === null
+        ? "/v1/env"
+        : `/v1/env?until=${encodeURIComponent(String(cursor))}`;
+    const raw = run("vercel", ["api", endpoint, "--scope", scope, "--raw"]);
+    let listing;
+    try {
+      listing = JSON.parse(raw);
+    } catch {
+      throw new Error(`Vercel returned no shared variable list for ${scope}.`);
+    }
+    const page = Array.isArray(listing)
+      ? listing
+      : Array.isArray(listing?.data)
+        ? listing.data
+        : null;
+    if (!page) {
+      throw new Error(`Vercel returned no shared variable list for ${scope}.`);
+    }
+    allEnvs.push(...page);
+    const next = listing?.pagination?.next;
+    if (next === null || next === undefined || next === "") {
+      break;
+    }
+    const nextKey = String(next);
+    if (seenCursors.has(nextKey)) {
+      break;
+    }
+    seenCursors.add(nextKey);
+    cursor = next;
+  }
+
+  return findSharedRuntimeConnectionStrings({
+    listing: { data: allEnvs },
+    scope,
+  });
+}
+
 export function readRuntimeConnectionStrings({
   scope = DEFAULT_SCOPE,
   run = (command, args) =>
@@ -54,7 +159,7 @@ export function readRuntimeConnectionStrings({
       shell: process.platform === "win32",
     }),
 }) {
-  return PROJECTS.flatMap((project) => {
+  const projectFindings = PROJECTS.flatMap((project) => {
     const raw = run("vercel", [
       "api",
       `/v10/projects/${project.project}/env`,
@@ -72,6 +177,8 @@ export function readRuntimeConnectionStrings({
     }
     return findRuntimeConnectionStrings({ project: project.project, listing });
   });
+  const sharedFindings = readSharedRuntimeConnectionStrings({ scope, run });
+  return [...projectFindings, ...sharedFindings];
 }
 
 export function formatRuntimeConnectionStrings(found) {
@@ -81,8 +188,12 @@ export function formatRuntimeConnectionStrings(found) {
     return lines.join("\n");
   }
   for (const row of found) {
+    const location =
+      row.scope === "team-shared"
+        ? `team ${row.team} (shared; projects: ${row.projects.join(", ")})`
+        : row.project;
     lines.push(
-      `- ${row.project}: \`${row.key}\` in ${row.environments.join(", ")} (remove it; only the release job migrates)`,
+      `- ${location}: \`${row.key}\` in ${row.environments.join(", ")} (remove it; only the release job migrates)`,
     );
   }
   lines.push("", `Overall: BLOCKED (${found.length})`, "");

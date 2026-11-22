@@ -5,6 +5,7 @@ import {
   formatRuntimeConnectionStrings,
   readRuntimeConnectionStrings,
 } from "../../../scripts/verify/runtime-connection-strings.mjs";
+import { EXPECTED_PROJECTS } from "../../../scripts/verify/vercel-build-controls.mjs";
 
 const listing = {
   envs: [
@@ -66,18 +67,168 @@ describe("runtime connection-string check (WP1 exit)", () => {
     ).not.toContain("PAYLOAD_DATABASE_URI");
   });
 
-  it("reads each project's variables through the Vercel API, names only", () => {
-    const run = vi.fn(() => JSON.stringify({ envs: [] }));
+  it("reads each project's and the team's shared variables through the Vercel API, names only", () => {
+    const run = vi.fn((_command: string, args: string[]) =>
+      args[1]?.startsWith("/v1/env")
+        ? JSON.stringify({ data: [] })
+        : JSON.stringify({ envs: [] }),
+    );
     const result = readRuntimeConnectionStrings({
       scope: "asymmetric-al",
       run,
     });
     expect(result).toEqual([]);
-    expect(run).toHaveBeenCalledTimes(3);
+    expect(run).toHaveBeenCalledTimes(4);
     expect(run.mock.calls[0]).toEqual([
       "vercel",
       ["api", "/v10/projects/admin/env", "--scope", "asymmetric-al", "--raw"],
     ]);
+    expect(run.mock.calls[3]).toEqual([
+      "vercel",
+      ["api", "/v1/env", "--scope", "asymmetric-al", "--raw"],
+    ]);
     expect(formatRuntimeConnectionStrings(result)).toContain("READY");
+  });
+
+  it("blocks when a team-level shared forbidden variable is linked to the three projects in a custom environment or target", () => {
+    const [adminId, donorId, missionaryId] = EXPECTED_PROJECTS.map(
+      (project) => project.projectId,
+    );
+    const run = vi.fn((_command: string, args: string[]) => {
+      if (args[1] === "/v1/env") {
+        return JSON.stringify({
+          data: [
+            {
+              key: "SUPABASE_DB_URL",
+              target: [],
+              projectId: [adminId, donorId, missionaryId],
+              customEnvironmentIds: ["env_a", "env_b", "env_c"],
+              type: "sensitive",
+              value: "postgresql://postgres:shared-secret@x/y",
+            },
+            {
+              key: "POSTGRES_URL",
+              target: ["preview", "development"],
+              projectId: [donorId, "prj_unrelated"],
+              customEnvironmentIds: [],
+              type: "encrypted",
+            },
+            {
+              key: "DATABASE_URL",
+              target: ["production"],
+              projectId: ["prj_unrelated"],
+              customEnvironmentIds: [],
+              type: "sensitive",
+            },
+            {
+              key: "DIRECT_URL",
+              target: [],
+              projectId: [adminId],
+              customEnvironmentIds: [],
+              type: "sensitive",
+            },
+            {
+              key: "PAYLOAD_DATABASE_URI",
+              target: ["production"],
+              projectId: [adminId],
+              customEnvironmentIds: [],
+              type: "sensitive",
+            },
+          ],
+          pagination: { count: 5, next: null, prev: null },
+        });
+      }
+      return JSON.stringify({ envs: [] });
+    });
+
+    const found = readRuntimeConnectionStrings({
+      scope: "asymmetric-al",
+      run,
+    });
+
+    expect(found).toEqual([
+      {
+        scope: "team-shared",
+        team: "asymmetric-al",
+        projects: ["donor"],
+        key: "POSTGRES_URL",
+        environments: ["preview", "development"],
+      },
+      {
+        scope: "team-shared",
+        team: "asymmetric-al",
+        projects: ["admin", "donor", "missionary"],
+        key: "SUPABASE_DB_URL",
+        environments: ["custom environment"],
+      },
+    ]);
+
+    const report = formatRuntimeConnectionStrings(found);
+    expect(report).toContain(
+      "- team asymmetric-al (shared; projects: admin, donor, missionary): `SUPABASE_DB_URL` in custom environment",
+    );
+    expect(report).toContain(
+      "- team asymmetric-al (shared; projects: donor): `POSTGRES_URL` in preview, development",
+    );
+    expect(report).not.toContain("shared-secret");
+    expect(report).not.toContain("DATABASE_URL");
+    expect(report).not.toContain("DIRECT_URL");
+    expect(report).not.toContain("PAYLOAD_DATABASE_URI");
+    expect(report).toContain("Overall: BLOCKED (2)");
+  });
+
+  it("paginates team shared variables and fails closed on unreadable shared listings", () => {
+    const missionaryId = EXPECTED_PROJECTS.find(
+      (project) => project.key === "missionary",
+    )!.projectId;
+    const run = vi.fn((_command: string, args: string[]) => {
+      if (args[1] === "/v1/env") {
+        return JSON.stringify({
+          data: [],
+          pagination: { count: 20, next: 1700000000000, prev: null },
+        });
+      }
+      if (args[1] === "/v1/env?until=1700000000000") {
+        return JSON.stringify({
+          data: [
+            {
+              key: "DB_URL",
+              target: [],
+              projectId: [missionaryId],
+              applyToAllCustomEnvironments: true,
+              type: "sensitive",
+            },
+          ],
+          pagination: { count: 1, next: null, prev: 1700000000000 },
+        });
+      }
+      return JSON.stringify({ envs: [] });
+    });
+
+    const found = readRuntimeConnectionStrings({
+      scope: "asymmetric-al",
+      run,
+    });
+    expect(found).toEqual([
+      {
+        scope: "team-shared",
+        team: "asymmetric-al",
+        projects: ["missionary"],
+        key: "DB_URL",
+        environments: ["custom environment"],
+      },
+    ]);
+
+    const badSharedRun = vi.fn((_command: string, args: string[]) =>
+      args[1] === "/v1/env"
+        ? JSON.stringify({ error: { code: "forbidden" } })
+        : JSON.stringify({ envs: [] }),
+    );
+    expect(() =>
+      readRuntimeConnectionStrings({
+        scope: "asymmetric-al",
+        run: badSharedRun,
+      }),
+    ).toThrow(/shared variable list/);
   });
 });
