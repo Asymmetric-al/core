@@ -4,6 +4,8 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import * as W from "../helpers/workflow-yaml";
+
 const WORKFLOW_PATH = ".github/workflows/ci-integration.yml";
 const PACKAGE_JSON_PATH = "package.json";
 const PLAYWRIGHT_CLI = path.join(
@@ -74,6 +76,30 @@ const DONOR_READY =
 const BOTH_READY =
   "if: ${{ !cancelled() && steps.donor-ready.outcome == 'success' && steps.admin-ready.outcome == 'success' }}";
 
+const HOSTED_ONLY_E2E_ENV_KEYS = [
+  "E2E_AUTH_SECRET",
+  "E2E_AUTH_ALLOWED_SUPABASE_REFS",
+  "DEMO_PASSWORD",
+  "DEMO_ADMIN_EMAIL",
+  "DEMO_MISSIONARY_EMAIL",
+  "DEMO_DONOR_EMAIL",
+] as const;
+
+const PROTECTED_E2E_ENV_KEYS = [
+  ...HOSTED_ONLY_E2E_ENV_KEYS,
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "ASYM_E2E_REQUIRE_HERMETIC_SUPABASE",
+] as const;
+
+const PROTECTED_E2E_ENV_ASSIGNMENT = new RegExp(
+  `\\b(?:${PROTECTED_E2E_ENV_KEYS.join("|")})(?:=|<<)`,
+);
+
+function writesHermeticSupabaseEnvFile(run: string): boolean {
+  return /\bGITHUB_ENV\b/.test(run) && PROTECTED_E2E_ENV_ASSIGNMENT.test(run);
+}
+
 describe("ci-integration workflow contract", () => {
   const workflow = readWorkflow();
   const scripts = readPackageScripts();
@@ -132,14 +158,12 @@ describe("ci-integration workflow contract", () => {
       "continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}",
     );
     expect(testE2e).toContain(
-      "Use placeholder Supabase for non-production E2E",
+      "NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co",
     );
-    expect(testE2e).toContain("github.base_ref != 'production'");
     expect(testE2e).toContain(
-      "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key",
     );
-    expect(testE2e).toContain("NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key");
-    expect(testE2e).toContain("ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1");
+    expect(testE2e).toContain('ASYM_E2E_REQUIRE_HERMETIC_SUPABASE: "1"');
     expect(testE2eSmoke).toContain('ASYM_E2E_REQUIRE_HERMETIC_SUPABASE: "1"');
 
     expect(integrationGate).toContain(
@@ -155,6 +179,86 @@ describe("ci-integration workflow contract", () => {
     expect(e2eGate).toContain("github.base_ref == 'production'");
     expect(e2eGate).toContain("refs/heads/production");
     expect(e2eGate).not.toContain("develop");
+  });
+
+  it("runs test-e2e hermetically on placeholder Supabase with no hosted secrets for every event, including production PRs and pushes", () => {
+    const jobs = W.workflowJobs(
+      W.loadWorkflowDocument(WORKFLOW_PATH),
+      WORKFLOW_PATH,
+    );
+    const job = jobs["test-e2e"]!;
+    const okNeeds = Object.fromEntries(
+      W.needsList(job).map((name) => [
+        name,
+        { result: "success", outputs: {} },
+      ]),
+    );
+    const runningScenarios = W.EVENT_SCENARIOS.filter((scenario) =>
+      W.evaluateIfCondition(
+        W.ifExpression(job),
+        W.scenarioContext(scenario, okNeeds),
+      ),
+    );
+    const labels = runningScenarios.map((scenario) => scenario.label);
+    expect(labels).toContain("pull_request same-repo -> production");
+    expect(labels).toContain("push production");
+    expect(labels).toContain("pull_request same-repo -> develop");
+    expect(labels).toContain("push develop");
+    expect(labels).toContain("workflow_dispatch production");
+
+    const env = (job.env ?? {}) as Record<string, unknown>;
+    expect(env.NEXT_PUBLIC_SUPABASE_URL).toBe("https://example.supabase.co");
+    expect(env.NEXT_PUBLIC_SUPABASE_ANON_KEY).toBe("example-anon-key");
+    expect(env.ASYM_E2E_REQUIRE_HERMETIC_SUPABASE).toBe("1");
+    expect(env.E2E_AUTH_BYPASS).toBe("true");
+
+    // No hosted Supabase or demo-credential secret reaches the job or any step.
+    expect(W.jobLevelReferencesSecrets(job)).toBe(false);
+    expect(W.firstSecretStepIndex(job)).toBe(-1);
+
+    for (const key of HOSTED_ONLY_E2E_ENV_KEYS) {
+      expect(env).not.toHaveProperty(key);
+    }
+
+    // No conditional step mutates Supabase env by branch or event.
+    for (const step of W.allSteps(job)) {
+      expect(step.name).not.toBe(
+        "Use placeholder Supabase for non-production E2E",
+      );
+      const stepEnv = (step.env ?? {}) as Record<string, unknown>;
+      for (const key of PROTECTED_E2E_ENV_KEYS) {
+        expect(stepEnv).not.toHaveProperty(key);
+      }
+      if (typeof step.run === "string") {
+        expect(writesHermeticSupabaseEnvFile(step.run)).toBe(false);
+      }
+    }
+  });
+
+  it("catches grouped and multiline GITHUB_ENV writes to Supabase E2E env keys", () => {
+    const groupedWrite = [
+      "{",
+      '  echo "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co"',
+      '  echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key"',
+      '  echo "ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1"',
+      '} >> "$GITHUB_ENV"',
+    ].join("\n");
+    const heredocWrite = [
+      "cat <<'EOF' >> \"$GITHUB_ENV\"",
+      "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co",
+      "EOF",
+    ].join("\n");
+    const singleLineWrite =
+      'echo "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co" >> "$GITHUB_ENV"';
+    const unrelatedEnvWrite = 'echo "PLAYWRIGHT_SHARD=1" >> "$GITHUB_ENV"';
+    const nonEnvFileRun =
+      "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co bun run test:e2e";
+
+    expect(writesHermeticSupabaseEnvFile(groupedWrite)).toBe(true);
+    expect(writesHermeticSupabaseEnvFile(heredocWrite)).toBe(true);
+    expect(writesHermeticSupabaseEnvFile(singleLineWrite)).toBe(true);
+    expect(writesHermeticSupabaseEnvFile(unrelatedEnvWrite)).toBe(false);
+    expect(writesHermeticSupabaseEnvFile(nonEnvFileRun)).toBe(false);
   });
 
   // Council round 1, A14 (record D-18): the tenant-address specs carry every

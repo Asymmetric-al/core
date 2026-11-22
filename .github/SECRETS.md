@@ -9,24 +9,18 @@ This file documents every secret and variable required by `.github/workflows/ci.
 
 ## Required secrets and variables
 
-| Name                             | Type                      | Used by                                                                | Purpose                                                                            |
-| -------------------------------- | ------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `TURBO_TOKEN`                    | Secret                    | `format`, `lint`, `typecheck`, `build` and `test-unit` jobs (`ci.yml`) | Vercel Turborepo remote cache authentication                                       |
-| `TURBO_TEAM`                     | **Variable** (not Secret) | `format`, `lint`, `typecheck`, `build` and `test-unit` jobs (`ci.yml`) | Vercel team slug for remote cache scoping                                          |
-| `NEXT_PUBLIC_SUPABASE_URL`       | Secret                    | `build` job (`ci.yml`), `test-e2e` job (`ci-integration.yml`)          | Supabase project URL — stub value is fine for `build`; real value needed for E2E   |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`  | Secret                    | `build` job (`ci.yml`), `test-e2e` job (`ci-integration.yml`)          | Supabase anon key — stub for `build`; real for E2E                                 |
-| `E2E_AUTH_SECRET`                | Secret                    | `test-e2e` job (`ci-integration.yml`)                                  | HMAC signing key for the E2E auth bypass cookie (shared by producer + verifiers)   |
-| `E2E_AUTH_ALLOWED_SUPABASE_REFS` | Secret                    | `test-e2e` job (`ci-integration.yml`)                                  | Supabase project ref(s) allowed for the E2E auth bypass (demo project, never prod) |
-| `DEMO_PASSWORD`                  | Secret                    | `test-e2e` job (`ci-integration.yml`)                                  | Password for the demo login accounts used by E2E flows                             |
-| `DEMO_ADMIN_EMAIL`               | Secret                    | `test-e2e` job (`ci-integration.yml`)                                  | Demo admin account email                                                           |
-| `DEMO_MISSIONARY_EMAIL`          | Secret                    | `test-e2e` job (`ci-integration.yml`)                                  | Demo missionary account email                                                      |
-| `DEMO_DONOR_EMAIL`               | Secret                    | `test-e2e` job (`ci-integration.yml`)                                  | Demo donor account email                                                           |
+| Name                            | Type                      | Used by                                                                | Purpose                                                                            |
+| ------------------------------- | ------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `TURBO_TOKEN`                   | Secret                    | `format`, `lint`, `typecheck`, `build` and `test-unit` jobs (`ci.yml`) | Vercel Turborepo remote cache authentication                                       |
+| `TURBO_TEAM`                    | **Variable** (not Secret) | `format`, `lint`, `typecheck`, `build` and `test-unit` jobs (`ci.yml`) | Vercel team slug for remote cache scoping                                          |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Secret                    | `build` job (`ci.yml`)                                                 | Supabase project URL — stub value is fine for `build` with `SKIP_ENV_VALIDATION=1` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Secret                    | `build` job (`ci.yml`)                                                 | Supabase anon key — stub value is fine for `build` with `SKIP_ENV_VALIDATION=1`    |
 
 ## Notes
 
 - `TURBO_TEAM` must be added under **Variables**, not Secrets. It is referenced in the workflow as `${{ vars.TURBO_TEAM }}`.
-- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are used with `SKIP_ENV_VALIDATION=1` in the `build` job, so stub values (e.g. `https://example.supabase.co` / `example-anon-key`) are sufficient for build-time validation. Real values are required for the `test-e2e` job.
-- The local-Supabase jobs in `ci-integration.yml` run against the CLI stack with its non-confidential built-in keys, so they need no repository secrets; only the hosted-project `test-e2e` job consumes the `E2E_AUTH_*` and `DEMO_*` secrets above.
+- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are used with `SKIP_ENV_VALIDATION=1` in the `build` job (`ci.yml`), so stub values (e.g. `https://example.supabase.co` / `example-anon-key`) are sufficient for build-time validation.
+- All jobs in `ci-integration.yml` (`migrate`, `smoke`, `test-e2e-smoke`, `test-e2e`, and `instant-nav`) run hermetically against the placeholder Supabase datasource (`https://example.supabase.co` / `example-anon-key`) and ephemeral Postgres containers, so they need no repository secrets (`E2E_AUTH_*`, `DEMO_*`, or hosted Supabase keys). No `ci-integration.yml` end-to-end job runs against a hosted database; the label-gated preview smoke in `qa-smoke-preview-deploy.yml` is the one end-to-end run that does.
 - Stripe keys (`STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `*_STRIPE_WEBHOOK_SECRET`) are **not** used by CI; `sync-vercel-production-env.yml` (manual production env sync) reads them from its `production` environment.
 
 ## How to add a secret
