@@ -1,3 +1,6 @@
+import { randomUUID } from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
+import { CRM_LOOKUP_CHUNK_SIZE } from "../../../../packages/api/src/admin/crm/member-labels";
 import pg from "pg";
 import { expect, it } from "vitest";
 import {
@@ -75,5 +78,59 @@ it.skipIf(!ADMIN_URL)(
       await db.query("rollback");
       await db.end();
     }
+  },
+);
+
+const stackUrl = process.env.CRM_READ_IT_SUPABASE_URL;
+it.runIf(stackUrl || process.env.CRM_READ_IT_REQUIRED === "1").each([
+  ["tenant_member_directory", "p_profile_ids"],
+  ["crm_missionary_labels", "p_ids"],
+] as const)(
+  "accepts one application chunk and rejects an extra ID through %s",
+  async (rpc, argument) => {
+    const key = process.env.CRM_READ_IT_ANON_KEY;
+    if (
+      !stackUrl ||
+      !["localhost", "127.0.0.1"].includes(new URL(stackUrl).hostname) ||
+      !key
+    )
+      throw new Error(
+        "CRM directory requires the disposable local stack and public key",
+      );
+    const auth = { persistSession: false, autoRefreshToken: false };
+    const login = createClient(stackUrl, key, { auth });
+    const { data, error } = await login.auth.signInWithPassword({
+      email: "demo-owner@givehope.test",
+      password: "demo-password",
+    });
+    expect(error).toBeNull();
+    const tenant = "00000000-0000-0000-0000-000000000001";
+    const memberships = await login.rpc("current_user_assignments");
+    expect(memberships.error).toBeNull();
+    const staff = memberships.data.find(
+      (row: { tenant_id: string; role: string }) =>
+        row.tenant_id === tenant && row.role === "staff",
+    );
+    expect(staff).toBeDefined();
+    const client = createClient(stackUrl, key, {
+      auth,
+      accessToken: async () => data.session!.access_token,
+      global: {
+        headers: { "x-asym-tenant": tenant, "x-asym-assignment": staff.id },
+      },
+    });
+    const read = (ids: string[]) =>
+      client.rpc(rpc, { p_tenant_id: tenant, [argument]: ids });
+    const ids = Array.from({ length: CRM_LOOKUP_CHUNK_SIZE }, () =>
+      randomUUID(),
+    );
+    expect(ids).toHaveLength(150);
+    for (const allowed of [[], ids]) {
+      const result = await read(allowed);
+      expect(result.error).toBeNull();
+      expect(result.data).toEqual([]);
+    }
+    const over = await read([...ids, randomUUID()]);
+    expect(over.error?.code).toBe("22023");
   },
 );

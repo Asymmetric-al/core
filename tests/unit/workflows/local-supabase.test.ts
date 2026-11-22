@@ -37,6 +37,9 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     expect(run).toContain(
       "bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts",
     );
+    expect(run).toContain(
+      "tests/unit/acceptance/issue-2677/crm-directory.realstack.acceptance.test.ts",
+    );
     expect(run).not.toMatch(/^\s*(?:if|continue-on-error):/m);
   });
   it("requires the governed projection round trip after fingerprinting", () => {

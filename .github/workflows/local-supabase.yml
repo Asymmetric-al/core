@@ -115,6 +115,7 @@ on:
       - packages/api/src/admin/contribution-shared/**
       - packages/api/src/admin/contribution-operations/correction-requests.ts
       - tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts
+      - tests/unit/acceptance/issue-2677/crm-directory.realstack.acceptance.test.ts
       - packages/api/src/projection/**
       - tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts
       - packages/api/src/health/app.ts
@@ -247,7 +248,7 @@ jobs:
           export CRM_READ_IT_AUDIT_KEY
           CRM_READ_IT_AUDIT_KEY="$(bun run supabase -- status -o json | jq -er '.SERVICE_ROLE_KEY')"
           CRM_READ_IT_ANON_KEY="$(bun run supabase -- status -o json | jq -er '.ANON_KEY')"
-          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts tests/unit/acceptance/issue-2677/crm-directory.realstack.acceptance.test.ts
       - name: Install Playwright Chromium
         id: chromium
         run: bunx playwright install --with-deps chromium
