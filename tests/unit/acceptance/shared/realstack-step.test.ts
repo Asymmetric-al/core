@@ -295,6 +295,10 @@ const REAL_DATABASE_FILES = [
     "issue-2675/web-studio-selection.realstack",
     "issue-2677/command-boundaries.realstack",
     "issue-2677/command-log.realstack",
+    // D-18 (AL-2677): the migrate job must run all three caller-token CRM suites.
+    "issue-2677/crm-directory.realstack",
+    "issue-2677/crm-query-paths.realstack",
+    "issue-2677/crm-read-grants.realstack",
     "issue-2677/export-audit.realstack",
     "issue-2677/field-policy-reader.realstack",
   ].map((f) => `${A}/${f}.acceptance.test.ts`),
