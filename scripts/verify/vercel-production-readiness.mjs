@@ -279,12 +279,20 @@ export function missingEnvValues(envValues, requiredEnv) {
     .filter((key) => !isNonEmpty(envValues[key]));
 }
 
-export function invalidEnvValues(envValues, requiredEnv) {
+const SENSITIVE_PLACEHOLDER = "[sensitive]";
+
+export function invalidEnvValues(envValues, requiredEnv, envTypes = {}) {
   return requiredEnv.flatMap((requirement) => {
     if (typeof requirement === "string") return [];
 
     const value = envValues[requirement.key];
-    if (!isNonEmpty(value) || requirement.validate(value)) return [];
+    if (
+      !isNonEmpty(value) ||
+      isSensitivePlaceholder(requirement.key, envValues, envTypes) ||
+      requirement.validate(value)
+    ) {
+      return [];
+    }
 
     return [
       {
@@ -296,7 +304,11 @@ export function invalidEnvValues(envValues, requiredEnv) {
 }
 
 function isSensitivePlaceholder(key, envValues, envTypes) {
-  return envTypes[key] === "sensitive" && !isNonEmpty(envValues[key]);
+  const value = envValues[key];
+  return (
+    envTypes?.[key] === "sensitive" &&
+    (!isNonEmpty(value) || value === SENSITIVE_PLACEHOLDER)
+  );
 }
 
 function hiddenEnvValues(envKeys, envValues, envTypes, requiredEnv) {
@@ -353,7 +365,11 @@ export function summarizeProjectReadiness({
       project.requiredEnv,
     ),
   ]);
-  const invalidEnv = invalidEnvValues(resolvedEnvValues, project.requiredEnv);
+  const invalidEnv = invalidEnvValues(
+    resolvedEnvValues,
+    project.requiredEnv,
+    resolvedEnvTypes,
+  );
   const unreadableEnv = hiddenEnvValues(
     resolvedEnvKeys,
     resolvedEnvValues,

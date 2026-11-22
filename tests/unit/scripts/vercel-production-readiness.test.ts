@@ -254,6 +254,136 @@ export RESEND_API_KEY='re_hidden'
     expect(report.unreadableEnv).toEqual(["STRIPE_SECRET_KEY"]);
   });
 
+  it("treats the Vercel CLI literal [sensitive] placeholder as unreadable, never invalid", () => {
+    const validatedProject = {
+      key: "admin",
+      project: "admin",
+      vercelConfigPath: "apps/admin/vercel.json",
+      healthUrl: "https://admin.asymmetric.al/api/health",
+      requiredEnv: [
+        {
+          key: "NEXT_PUBLIC_SUPABASE_URL",
+          reason: "must be a URL",
+          validate: (value: string) => value.startsWith("https://"),
+        },
+        {
+          key: "STRIPE_SECRET_KEY",
+          reason: "must start with sk_",
+          validate: (value: string) => value.startsWith("sk_"),
+        },
+        {
+          key: "RESEND_API_KEY",
+          reason: "must start with re_",
+          validate: (value: string) => value.startsWith("re_"),
+        },
+        {
+          key: "PAYLOAD_SECRET",
+          reason: "must be set",
+          validate: (value: string) => value.length > 0,
+        },
+      ],
+    };
+
+    const report = summarizeProjectReadiness({
+      project: validatedProject,
+      envKeys: [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "STRIPE_SECRET_KEY",
+        "RESEND_API_KEY",
+        "PAYLOAD_SECRET",
+      ],
+      envTypes: {
+        NEXT_PUBLIC_SUPABASE_URL: "plain",
+        STRIPE_SECRET_KEY: "sensitive",
+        RESEND_API_KEY: "sensitive",
+        PAYLOAD_SECRET: "sensitive",
+      },
+      envValues: parseDotEnv(`
+NEXT_PUBLIC_SUPABASE_URL="https://example.supabase.co"
+STRIPE_SECRET_KEY="[sensitive]"
+RESEND_API_KEY=[sensitive]
+PAYLOAD_SECRET="[sensitive]"
+      `),
+      deployments: [
+        {
+          url: "admin.example.vercel.app",
+          state: "READY",
+          target: "production",
+          createdAt: 123,
+          commitSha: "abc123",
+          commitRef: "production",
+        },
+      ],
+      commit: "abc123",
+      health: { url: validatedProject.healthUrl, status: 200 },
+      productionBranch: "production",
+      productionGitDeployments: false,
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.missingEnv).toEqual([]);
+    expect(report.invalidEnv).toEqual([]);
+    expect(report.unreadableEnv).toEqual([
+      "STRIPE_SECRET_KEY",
+      "RESEND_API_KEY",
+      "PAYLOAD_SECRET",
+    ]);
+
+    const formatted = formatReadinessReport({
+      commit: "abc123",
+      reports: [report],
+    });
+    expect(formatted).toContain("Invalid Production env values: none");
+    expect(formatted).toContain("Present but unreadable by Vercel CLI:");
+    expect(formatted).toContain("- `STRIPE_SECRET_KEY`");
+    expect(formatted).toContain("- `RESEND_API_KEY`");
+    expect(formatted).toContain("- `PAYLOAD_SECRET`");
+    expect(formatted).toContain("Overall: READY");
+
+    const plainLiteral = summarizeProjectReadiness({
+      project: validatedProject,
+      envKeys: [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "STRIPE_SECRET_KEY",
+        "RESEND_API_KEY",
+        "PAYLOAD_SECRET",
+      ],
+      envTypes: {
+        NEXT_PUBLIC_SUPABASE_URL: "plain",
+        STRIPE_SECRET_KEY: "encrypted",
+        RESEND_API_KEY: "plain",
+        PAYLOAD_SECRET: "sensitive",
+      },
+      envValues: {
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+        STRIPE_SECRET_KEY: "[sensitive]",
+        RESEND_API_KEY: "[sensitive]",
+        PAYLOAD_SECRET: "[sensitive]",
+      },
+      deployments: [
+        {
+          url: "admin.example.vercel.app",
+          state: "READY",
+          target: "production",
+          createdAt: 123,
+          commitSha: "abc123",
+          commitRef: "production",
+        },
+      ],
+      commit: "abc123",
+      health: { url: validatedProject.healthUrl, status: 200 },
+      productionBranch: "production",
+      productionGitDeployments: false,
+    });
+
+    expect(plainLiteral.ready).toBe(false);
+    expect(plainLiteral.invalidEnv).toEqual([
+      { key: "STRIPE_SECRET_KEY", reason: "must start with sk_" },
+      { key: "RESEND_API_KEY", reason: "must start with re_" },
+    ]);
+    expect(plainLiteral.unreadableEnv).toEqual(["PAYLOAD_SECRET"]);
+  });
+
   it("marks a project ready only when env, deployment, and health all pass", () => {
     const report = summarizeProjectReadiness({
       project,
