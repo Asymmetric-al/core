@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 
@@ -8,11 +9,20 @@ import {
   fixtureAuthUserCleanupOperations,
   fixtureTableCleanupOperations,
   isDeniedSelfRoleUpdate,
+  LEGAL_ENTITY_FIXTURE_DELETE,
+  LEGAL_ENTITY_FIXTURE_INSERT,
+  MEMBERSHIP_FIXTURE_DELETE,
+  MEMBERSHIP_FIXTURE_INSERT,
+  orderFixtureCleanup,
+  ownedDatabaseCommand,
   runFixtureCleanup,
   verifyLocalFixtureTarget,
 } from "./client-runtime-checks.mjs";
 
 // Feed credentials from an owned local CLI status response through stdin only.
+// The Realtime broadcast round trip proves only that the signed-in socket
+// delivers: no application table is in the publication at this head, so it
+// proves nothing about authorization; the fund read on the caller's token does.
 // Never invoke this fixture against a shared or hosted project.
 const checks = [];
 let step = "validate-local-target";
@@ -61,7 +71,9 @@ async function verify(input) {
     input.simulateLostTableCreationResponse === undefined ||
       ["tenants", "funds"].includes(input.simulateLostTableCreationResponse),
   );
-  const { url } = await verifyLocalFixtureTarget(input);
+  const { url, endpoint, databaseId } = await verifyLocalFixtureTarget(input, {
+    requireDatabase: true,
+  });
   checks.push("local-target-bound-to-owned-gateway");
 
   const require = createRequire(
@@ -122,6 +134,36 @@ async function verify(input) {
   const users = [];
   const runId = randomUUID();
   const fundId = randomUUID();
+  const legalEntityId = randomUUID();
+  const membershipId = randomUUID();
+  let entityAttempted = false;
+  let membershipUserId;
+  function entityQuery(sql) {
+    const invocation = ownedDatabaseCommand({
+      endpoint,
+      databaseId,
+      variables: {
+        entity_id: legalEntityId,
+        tenant_id: tenantIds[0],
+        run_id: runId,
+        membership_id: membershipId,
+        user_id: membershipUserId ?? randomUUID(),
+      },
+    });
+    const result = spawnSync(invocation.command, invocation.args, {
+      env: invocation.env,
+      input: sql,
+      encoding: "utf8",
+      timeout: 12000,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    assert.equal(
+      result.status,
+      0,
+      "Local legal entity fixture statement failed",
+    );
+    return result.stdout.trim();
+  }
   const tenantRows = tenantIds.map((id) => ({
     id,
     name: `SDK qualification fixture ${runId}`,
@@ -131,6 +173,7 @@ async function verify(input) {
     {
       id: fundId,
       tenant_id: tenantIds[0],
+      legal_entity_id: legalEntityId,
       name: `SDK qualification fund ${runId}`,
       goal_amount: 12345,
       currency: "USD",
@@ -185,6 +228,8 @@ async function verify(input) {
         tenantRows,
       ),
     );
+    entityAttempted = true;
+    assert.equal(entityQuery(LEGAL_ENTITY_FIXTURE_INSERT), legalEntityId);
     for (const tenantId of tenantIds) {
       const email = `sdk-${randomUUID()}@example.invalid`;
       const password = randomBytes(32).toString("base64url");
@@ -215,6 +260,8 @@ async function verify(input) {
       );
       check(profile.tenant_id === tenantId, "fixture-profile-tenant-assigned");
     }
+    membershipUserId = users[0].id;
+    assert.equal(entityQuery(MEMBERSHIP_FIXTURE_INSERT), membershipId);
 
     step = "browser-auth-and-row-isolation";
     const login = successful(await browser.auth.signInWithPassword(users[0]));
@@ -262,6 +309,13 @@ async function verify(input) {
       "self-role-escalation-denied",
     );
 
+    // K10 (fix check, 21 November): WP2b's request-tenant release took funds
+    // and the six other tables out of supabase_realtime
+    // (20261119135300_request_tenant_policies.sql, section 5), the catalog
+    // gate refuses a published tenant table, and no table is published at
+    // the tip, so no database change can be delivered. The signed-in
+    // session's Realtime is proved by a broadcast round trip, and the money
+    // contract by a tenant-scoped read of the fund.
     step = "authenticated-realtime-and-money-contract";
     let acceptChange;
     const changed = new Promise((resolve) => {
@@ -273,21 +327,12 @@ async function verify(input) {
       acceptSubscription = resolve;
       rejectSubscription = reject;
     });
-    browser
+    const channel = browser
       .channel(`sdk-qualification-${fundId}`, {
-        config: {
-          postgres_changes_options: { wait: true, timeout: 8_000 },
-        },
+        config: { broadcast: { self: true, ack: true } },
       })
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "funds",
-          filter: `id=eq.${fundId}`,
-        },
-        acceptChange,
+      .on("broadcast", { event: "fixture" }, (message) =>
+        acceptChange(message.payload),
       )
       .subscribe((status, error) => {
         if (cleaningUp) return;
@@ -305,13 +350,81 @@ async function verify(input) {
     successful(
       await createTrackedFixtureRows(admin, tableJournal, "funds", fundRows),
     );
-    const event = await bounded(changed, "Realtime delivery deadline");
-    check(
-      event.new.id === fundId &&
-        event.new.goal_amount === 12345 &&
-        event.new.currency === "usd",
-      "realtime-preserves-minor-units-and-currency",
+    // L1: the caller's own token, scoped by both request headers.
+    const token = successful(await browser.auth.getSession()).session
+      .access_token;
+    const asCaller = (tenantId) =>
+      createClient(url.href, input.PUBLIC_KEY, {
+        ...options,
+        global: {
+          ...global,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "x-asym-tenant": tenantId,
+            "x-asym-assignment": membershipId,
+          },
+        },
+      });
+    const funds = successful(
+      await asCaller(tenantIds[0])
+        .from("funds")
+        .select("id,tenant_id,legal_entity_id,goal_amount,currency")
+        .eq("id", fundId),
     );
+    check(
+      funds.length === 1 &&
+        funds[0].tenant_id === tenantIds[0] &&
+        funds[0].legal_entity_id === legalEntityId &&
+        funds[0].goal_amount === 12345 &&
+        funds[0].currency === "usd",
+      "caller-token-reads-minor-units-and-currency",
+    );
+    const elsewhere = await asCaller(tenantIds[1])
+      .from("funds")
+      .select("id")
+      .eq("id", fundId);
+    check(
+      elsewhere.error
+        ? elsewhere.error.code === "42501"
+        : elsewhere.data.length === 0,
+      "caller-token-denied-under-other-tenant",
+    );
+    // Round M: a signed-in user with no membership, under the fund's own
+    // tenant, is refused too. (The check above alone would also pass a policy
+    // that trusted the tenant header without a membership.)
+    const outsider = createClient(url.href, input.PUBLIC_KEY, options);
+    const outsiderToken = successful(
+      await outsider.auth.signInWithPassword(users[1]),
+    ).session.access_token;
+    const nonMember = await createClient(url.href, input.PUBLIC_KEY, {
+      ...options,
+      global: {
+        ...global,
+        headers: {
+          Authorization: `Bearer ${outsiderToken}`,
+          "x-asym-tenant": tenantIds[0],
+        },
+      },
+    })
+      .from("funds")
+      .select("id")
+      .eq("id", fundId);
+    check(
+      nonMember.error
+        ? nonMember.error.code === "42501"
+        : nonMember.data.length === 0,
+      "caller-token-non-member-denied",
+    );
+    check(
+      (await channel.send({
+        type: "broadcast",
+        event: "fixture",
+        payload: { id: fundId },
+      })) === "ok",
+      "realtime-broadcast-acknowledged",
+    );
+    const event = await bounded(changed, "Realtime delivery deadline");
+    check(event?.id === fundId, "realtime-broadcast-delivered");
     check(
       successful(await browser.auth.refreshSession()).user.id === users[0].id,
       "browser-session-refresh",
@@ -347,27 +460,43 @@ async function verify(input) {
       assert.equal(result.error, null, "Fixture cleanup request failed");
       return result.data;
     };
-    const failures = await runFixtureCleanup([
-      {
-        label: "remove-channels",
-        run: async () => {
-          const results = await browser.removeAllChannels();
-          assert.ok(results.every((result) => result === "ok"));
+    const failures = await runFixtureCleanup(
+      orderFixtureCleanup({
+        channels: {
+          label: "remove-channels",
+          run: async () => {
+            const results = await browser.removeAllChannels();
+            assert.ok(results.every((result) => result === "ok"));
+          },
         },
-      },
-      ...fixtureTableCleanupOperations(admin, tableJournal, "funds"),
-      ...fixtureAuthUserCleanupOperations(admin.auth.admin, users),
-      ...fixtureTableCleanupOperations(admin, tableJournal, "tenants"),
-      {
-        label: "restore-census",
-        run: async () =>
-          assert.deepEqual(
-            await census(cleanupSuccessful),
-            before,
-            "Fixture census changed",
-          ),
-      },
-    ]);
+        funds: fixtureTableCleanupOperations(admin, tableJournal, "funds"),
+        legalEntity: {
+          label: "remove-owned-legal-entity",
+          run: async () => {
+            if (!entityAttempted) return;
+            assert.equal(entityQuery(LEGAL_ENTITY_FIXTURE_DELETE), "0");
+          },
+        },
+        membership: {
+          label: "remove-owned-membership",
+          run: async () => {
+            if (!membershipUserId) return;
+            assert.equal(entityQuery(MEMBERSHIP_FIXTURE_DELETE), "0");
+          },
+        },
+        users: fixtureAuthUserCleanupOperations(admin.auth.admin, users),
+        tenants: fixtureTableCleanupOperations(admin, tableJournal, "tenants"),
+        census: {
+          label: "restore-census",
+          run: async () =>
+            assert.deepEqual(
+              await census(cleanupSuccessful),
+              before,
+              "Fixture census changed",
+            ),
+        },
+      }),
+    );
     if (failures.length === 0) checks.push("fixture-census-restored");
     if (failures.length > 0) cleanupFailures = failures;
     if (verificationFailed) {

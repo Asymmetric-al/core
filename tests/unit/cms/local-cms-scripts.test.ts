@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildLocalEnvValues,
+  isLocalCmsVerificationTarget,
   parseSupabaseStatusOutput,
   writeLocalEnv,
 } from "../../../scripts/cms/lib/env.mjs";
@@ -22,6 +23,33 @@ import {
   PAYLOAD_V4_NODE_RANGE,
   parseNodeVersion,
 } from "../../../scripts/cms/lib/payload-runtime.mjs";
+
+it("leaves seeded tenant identity intact and selects only ordinary funds", () => {
+  const seed = fs.readFileSync("scripts/cms/seed-local.mjs", "utf8");
+  expect(seed).toMatch(
+    /INSERT INTO public\.tenants[\s\S]*?ON CONFLICT \(id\) DO NOTHING;/,
+  );
+  for (const source of [
+    seed,
+    fs.readFileSync("scripts/cms/verify-local.mjs", "utf8"),
+  ]) {
+    expect(source.match(/FROM public\.funds[\s\S]*?ORDER BY/i)?.[0]).toMatch(
+      /system_purpose IS NULL/i,
+    );
+  }
+});
+
+it("accepts a private local stack on nondefault ports, but never a nonlocal target", () => {
+  const api = "http://127.0.0.1:30361";
+  const database = "postgresql://postgres@127.0.0.1:30362/postgres";
+  expect(isLocalCmsVerificationTarget(api, database)).toBe(true);
+  expect(
+    isLocalCmsVerificationTarget("https://example.invalid", database),
+  ).toBe(false);
+  expect(
+    isLocalCmsVerificationTarget(api, "postgresql://example.invalid/fixtures"),
+  ).toBe(false);
+});
 
 function readEnvValue(filePath: string, key: string) {
   const line = fs

@@ -66,8 +66,9 @@ describe.skipIf(!ADMIN_URL)(
     insert into authz.memberships (user_id, tenant_id, role, staff_role, is_active) values (:SA, :A, 'staff', 'finance', true), (:SB, :B, 'staff', 'finance', true), (:M1, :A, 'missionary', null, true),
       (:UD1, :A, 'donor', null, true), (:UD2, :A, 'donor', null, true), (:UD3, :B, 'donor', null, true), (:M2, :B, 'missionary', null, true);
     insert into public.donors (id, tenant_id, profile_id) values (:D1, :A, :UD1), (:D2, :A, :UD2), (:D3, :B, :UD3);
-    insert into public.missionaries (id, tenant_id, profile_id) values (:MA, :A, :M1), (:MB, :B, :M2), (:MN, null, :M1);
-    insert into public.funds (id, tenant_id, name) values (:FA, :A, 'acc2312 A'), (:FB, :B, 'acc2312 B'), (:FN, null, 'acc2312 N');
+    insert into public.legal_entities(id,tenant_id,name) values (:A,:A,'A'), (:B,:B,'B');
+    insert into public.missionaries (id, tenant_id, profile_id, legal_entity_id) values (:MA, :A, :M1, :A), (:MB, :B, :M2, :B);
+    insert into public.funds (id, tenant_id, name, legal_entity_id) values (:FA, :A, 'acc2312 A', :A), (:FB, :B, 'acc2312 B', :B);
     insert into public.assets (id, tenant_id, public_id, secure_url) values (:AA, :A, 'acc2312-a', 'https://x/a'), (:AB, :B, 'acc2312-b', 'https://x/b'), (:AN, null, 'acc2312-n', 'https://x/n');
     insert into public.campaigns (id, tenant_id, title, creator_donor_id, missionary_id) values (:CA, :A, 'acc2312 A', :D1, :MA), (:CB, :B, 'acc2312 B', :D3, :MB);
     insert into public.follows (id, tenant_id, donor_id, missionary_id) values (:F1, :A, :D1, :M1), (:F2, :A, :D2, :M1), (:F3, :B, :D3, :M2), (:FX, :A, :D3, :M1), (:FN2, null, :D1, :M2);`.replace(
@@ -76,8 +77,8 @@ describe.skipIf(!ADMIN_URL)(
       );
     /** Fixture row keys per table: [tenant A, tenant B, NULL tenant (if nullable)]. */
     const ROWS: Record<string, [string, string, string?]> = {
-      missionaries: ["MA", "MB", "MN"],
-      funds: ["FA", "FB", "FN"],
+      missionaries: ["MA", "MB"],
+      funds: ["FA", "FB"],
       assets: ["AA", "AB", "AN"],
       campaigns: ["CA", "CB"],
     };
@@ -209,7 +210,9 @@ describe.skipIf(!ADMIN_URL)(
         ? "tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('missionary')) AND profile_id IN (SELECT authz.caller_profile_ids())"
         : t === "follows"
           ? "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids()))))"
-          : "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')))";
+          : "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')))" +
+            // D-18 (AL-2676): the funds policy also hides the reserved fee-cover fund.
+            (t === "funds" ? " AND system_purpose IS NULL" : "");
     const keyOf = (v: unknown) =>
       Object.keys(id).find((k) => id[k] === v) ?? String(v);
     /** Fixture keys `who` can SELECT from public.<t> (restricted to fixture ids). */
@@ -435,9 +438,20 @@ describe.skipIf(!ADMIN_URL)(
             // Amended by AL-2675 (record D-18; activation review Q2): donors
             // read none of funds, assets and campaigns in this release; the
             // floor is held by staff, who read their own tenant's row and
-            // neither the other tenant's nor the NULL-tenant row. A
-            // missionary's own key read now names its tenant, so the
-            // NULL-tenant MN row is no longer the caller's under tenant A.
+            // neither the other tenant's nor the NULL-tenant row.
+            // D-18: WP3 forbids tenantless giving targets at insertion instead.
+            if (t === "funds" || t === "missionaries") {
+              const columns = t === "funds" ? ", name" : "";
+              const values = t === "funds" ? ", 'tenantless'" : "";
+              expect(
+                (
+                  await as(
+                    { role: "postgres" },
+                    `insert into public.${t} (tenant_id, legal_entity_id${columns}) values (null, ${q("A")}${values})`,
+                  )
+                ).code,
+              ).toBe("23502");
+            }
             expect(await sees(user("UD1", "A"), t, keys(t))).toEqual([]);
             expect(await sees(user("UD3", "B"), t, keys(t))).toEqual([]);
             if (serverOnlyMissionaries(t)) {

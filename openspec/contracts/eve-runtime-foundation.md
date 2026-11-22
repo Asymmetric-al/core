@@ -143,3 +143,33 @@ admin mounting, or any production action. [VERIFIED-REPO: docs/prds/eve-autonomo
 <!-- END CONTRACT -->
 
 <!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-790e1f5af63b9776e70a"></a>
+
+## Web Build Artifacts Are Separate From Eve Runtime Qualification
+
+<!-- BEGIN CONTRACT {"id":"790e1f5af63b9776e70a","name":"Web Build Artifacts Are Separate From Eve Runtime Qualification"} -->
+
+Generic web builds MUST compile their Eve dependency without provisioning a
+sandbox. Hosted preview Eve services MUST support the same explicit artifact
+mode. A hosted Vercel production service build MUST also emit unqualified
+Release-Off artifacts without sandbox prewarming ONLY when live persisted
+governance (`resolveEveSandboxNetworkDecision()`) explicitly confirms
+`release_disabled`, allowing `apps/admin` to deploy with Eve off as required by
+`eve-final-release-switch-launch-verification`. These outputs MUST be treated as
+unqualified Release-Off artifacts and MUST NOT activate Eve, change effect
+admission, or satisfy sandbox/launch evidence. Build caches MUST distinguish
+artifact mode and MUST NOT reuse a cached result as full sandbox qualification.
+Ordinary standalone builds, explicit `build:full` commands, and hosted
+production service builds whenever governance is unavailable, `emergency_off`,
+`kill_switch_active`, `policy_not_ready`, or `release_enabled` MUST retain the
+full SDK prewarm path and propagate its failures.
+Authored-source verification MUST exclude only the SDK's exact generated service
+and deployment output directories, while retaining checks on authored code and
+same-named directories outside those paths.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->

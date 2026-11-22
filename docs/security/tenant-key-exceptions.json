@@ -1,0 +1,14 @@
+{
+  "reason": "Payload owns these CMS tenant selectors. Its current migrations do not link them to public.tenants. Reviewed WP3a-1 debt, 2026-11-21; remove entries as keys are added. The CMS schema can exist without Payload's application tables during a plain replay.",
+  "tables": [
+    "cms.cms_users",
+    "cms.media",
+    "cms.ministry_updates",
+    "cms.missionary_giving_pages",
+    "cms.missionary_profiles",
+    "cms.navigation",
+    "cms.page_templates",
+    "cms.pages",
+    "cms.project_pages"
+  ]
+}

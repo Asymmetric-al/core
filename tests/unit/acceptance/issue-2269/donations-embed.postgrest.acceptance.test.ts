@@ -1,3 +1,4 @@
+// D-18, WP3: giving-target fixtures now name a legal entity owned by their tenant.
 /**
  * #2269 (P) live-PostgREST acceptance, spec r1 criteria C4-C7 (comment
  * 6385584133, approved 6385601889; OQ3: no CI step, Acceptance runs this
@@ -218,7 +219,9 @@ describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
        insert into auth.users (id) values ($2), ($3), ($4);
        insert into public.profiles (id, tenant_id, role) values ($2, $1, 'donor'), ($3, $1, 'missionary'), ($4, $1, 'missionary')
          on conflict (id) do update set tenant_id = excluded.tenant_id, role = excluded.role;
-       insert into public.missionaries (id, tenant_id, profile_id) values ($5, $1, $3), ($6, $1, $4);
+       -- D-18: the giving targets name their own tenant's entity.
+       insert into public.legal_entities(id,tenant_id,name) values ($1,$1,'A');
+       insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id) values ($5, $1, $3,$1), ($6, $1, $4,$1);
        insert into public.donors (id, tenant_id, profile_id) values ($7, $1, $2), ($8, $1, null);
        insert into public.donations (id, tenant_id, donor_id, missionary_id, amount) values ($9, $1, $7, $5, 1000), ($10, $1, $8, $5, 2000);`.replace(
         /\$(\d+)/g,
@@ -227,10 +230,13 @@ describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
     );
   });
   afterAll(async () => {
+    // D-18 (AL-2676, K9): a gift locks its missionary's legal entity and a
+    // locked target cannot be deleted, so the clean-up removes this tenant's
+    // locks after its gifts; every assertion of the suite is unchanged.
     await s.db.query(
-      `delete from public.donations where tenant_id = $1; delete from public.donors where tenant_id = $1;
+      `delete from public.donations where tenant_id = $1; delete from public.giving_target_entity_locks where tenant_id = $1; delete from public.donors where tenant_id = $1;
        delete from public.missionaries where tenant_id = $1; delete from auth.users where id in ($2, $3, $4);
-       delete from public.profiles where id in ($2, $3, $4); delete from public.tenants where id = $1;`.replace(
+       delete from public.profiles where id in ($2, $3, $4); delete from public.legal_entities where tenant_id=$1; delete from public.tenants where id = $1;`.replace(
         /\$(\d+)/g,
         (_m, i: string) => `'${[TA, PD, PM, PM2][Number(i) - 1]}'`,
       ),

@@ -100,7 +100,9 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
       insert into public.donor_merge_candidates (tenant_id, existing_donor_id, confidence) values (:A, :DA, 'low'), (:B, :DB, 'low');
       insert into public.crm_table_preference_audit_events (tenant_id,table_id) values (:A,'acc2251'),(:B,'acc2251');
       insert into public.email_templates (tenant_id, name) values (:A, 'acc2251'), (:B, 'acc2251');
-      insert into public.funds (tenant_id, name) values (:A, 'acc2251'), (:B, 'acc2251');`;
+      -- D-18: each giving target now names an entity explicitly.
+      insert into public.legal_entities(id,tenant_id,name) values (:A,:A,'A'),(:B,:B,'B');
+      insert into public.funds (tenant_id, name, legal_entity_id) values (:A, 'acc2251', :A), (:B, 'acc2251', :B);`;
     const ids: Record<string, string> = { A: TA, B: TB, U, DA, DB };
     await db.query(
       sql.replace(/:(DA|DB|A|B|U)\b/g, (_m, k: string) => `'${ids[k]}'`),
@@ -201,7 +203,7 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
         const e = exceptions();
         // AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
         // D-18: eight CRM tables now have scoped policies; the rest still need review.
-        expect(e.length).toBeGreaterThanOrEqual(76);
+        expect(e.length).toBeGreaterThanOrEqual(79);
         const bad = e
           .map((x) => [x.table, live.get(x.table)] as const)
           .filter(([, l]) => !l || !l.rls || !l.force || l.policies !== 0)

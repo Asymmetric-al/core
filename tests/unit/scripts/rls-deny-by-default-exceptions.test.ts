@@ -39,15 +39,20 @@ const fileRef = (p: string) => {
   return m ? ([m[1]!, Number(m[2])] as const) : null;
 };
 const DEFINER = /^(\w+)\.(\w+) \(SECURITY DEFINER, owner postgres\)$/;
+const WP3A_ENTITY_TABLES = new Set([
+  "giving_target_entity_locks",
+  "legal_entities",
+  "payment_account_bindings",
+]);
 
 describe(LIST, () => {
   // AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
   // D-18 (AL-2677): eight formerly exempt tables now have a scoped staff read.
-  it("has version 1, the Q5 + clash 2 ruling and at least the 76 remaining reviewed entries", () => {
+  it("has version 1, the Q5 + clash 2 ruling and at least the 79 remaining reviewed entries", () => {
     expect(Object.keys(doc)).toEqual(["version", "ruling", "entries"]);
     expect(doc.version).toBe(1);
     expect(doc.ruling).toBe("Samson Q5 + clash 2, Oct 24, 2026");
-    expect(doc.entries.length).toBeGreaterThanOrEqual(76);
+    expect(doc.entries.length).toBeGreaterThanOrEqual(79);
   });
 
   it("keeps one entry per line, sorted by table and unique", () => {
@@ -75,8 +80,13 @@ describe(LIST, () => {
         e.outcome,
       );
       expect(e.reason.trim().length, e.table).toBeGreaterThan(20);
+      // D-18 (AL-2676, WP3a part 1): the coordinator's council of 21 November
+      // reviewed the three internal entity tables WP3a adds with no policy
+      // (fix list F8); every other entry keeps Samson's review, as before.
       expect(e.reviewed_by, e.table).toMatch(
-        /^Samson \(factory lead\), \d{4}-\d{2}-\d{2}$/,
+        WP3A_ENTITY_TABLES.has(e.table)
+          ? /^Coordinator's WP3a-1 council, 2026-11-21$/
+          : /^Samson \(factory lead\), \d{4}-\d{2}-\d{2}$/,
       );
       expect(e.code_paths.length, e.table).toBeGreaterThan(0);
       expect(new Set(e.code_paths).size, e.table).toBe(e.code_paths.length);

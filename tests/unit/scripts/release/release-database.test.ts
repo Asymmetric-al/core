@@ -158,6 +158,10 @@ function fakeDatabase(state: {
         '"public"."profiles"': 3,
         '"public"."tenants"': 2,
         '"authz"."memberships"': 6,
+        '"public"."legal_entities"': 2,
+        '"public"."payment_account_bindings"': 0,
+        '"public"."funds"': 10,
+        '"public"."contribution_approval_policies"': 2,
       };
       if (sql.startsWith("SELECT count(*) FROM"))
         return counts[sql.slice("SELECT count(*) FROM ".length, -1)]!;

@@ -61,14 +61,19 @@ describe("#2260 static (17-20)", () => {
     for (const g of body.match(/\bGRANT\b[^;]*;/gi) ?? [])
       expect(g).not.toMatch(/\b(DELETE|ALL|TRUNCATE)\b/i);
   });
-  it("18: donor_feed_preferences stays outside the 76 reviewed exceptions (60 service, 16 deny), with unchanged entry bytes and order", () => {
+  it("18: the original entries stay byte-identical with only the three WP3a denials added, sorted", () => {
+    const wp3 = [
+      "giving_target_entity_locks",
+      "legal_entities",
+      "payment_account_bindings",
+    ];
     const raw = H.read(H.EXCEPTIONS);
     const e = (
       JSON.parse(raw) as { entries: { table: string; outcome: string }[] }
     ).entries;
     const n = (o: string) => e.filter((x) => x.outcome === o).length;
     expect([e.length, n("service_role_needed"), n("deny_by_default")]).toEqual([
-      76, 60, 16,
+      79, 60, 19,
     ]);
     const lines = raw
       .split("\n")
@@ -76,8 +81,13 @@ describe("#2260 static (17-20)", () => {
       .map((l) => l.trim().replace(/,$/, ""));
     const tables = lines.map((l) => (JSON.parse(l) as { table: string }).table);
     expect(tables).not.toContain(H.TABLE);
-    expect(tables).toEqual([...Object.keys(S), ...D].sort());
-    expect(sha256(lines.join("\n")), "other entries changed").toBe(OTHERS_SHA);
+    expect(tables).toEqual([...Object.keys(S), ...D, ...wp3].sort());
+    expect(
+      sha256(
+        lines.filter((_, index) => !wp3.includes(tables[index]!)).join("\n"),
+      ),
+      "other entries changed",
+    ).toBe(OTHERS_SHA);
   });
   // Rewritten by the WP2a sweep (AL-2675; plan 5.4 NX-03, WP2 exit "no route
   // reads the token claim"): the route took its tenant from the token's

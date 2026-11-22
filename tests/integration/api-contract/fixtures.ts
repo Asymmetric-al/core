@@ -17,6 +17,12 @@
  *
  * Rows are written as the database owner through only the columns that exist
  * today (upsertFixture) and removed afterwards.
+ *
+ * AL-2676 (WP3a part 1a, 20261120130004): every missionary and fund names its
+ * tenant's legal entity, so the tenant gets one; and a gift or pledge locks
+ * the missionary or fund it names, for good, so removal deletes the lock rows
+ * after the money rows and before their targets, and the entity before the
+ * tenant.
  */
 import { randomUUID } from "node:crypto";
 
@@ -39,6 +45,7 @@ export type TenantFixture = {
   draftPostId: string;
   draftLocationId: string;
   fundId: string;
+  legalEntityId: string;
 };
 
 /**
@@ -62,6 +69,7 @@ export async function createTenantFixture(
     draftPostId: randomUUID(),
     draftLocationId: randomUUID(),
     fundId: randomUUID(),
+    legalEntityId: randomUUID(),
   };
   try {
     await writeTenantFixture(db, fixture, label);
@@ -88,6 +96,11 @@ async function writeTenantFixture(
     id: fixture.tenantId,
     name: `API contract tenant ${label} ${short}`,
     slug: `api-contract-${short}`,
+  });
+  await upsertFixture(db, "public.legal_entities", {
+    id: fixture.legalEntityId,
+    tenant_id: fixture.tenantId,
+    name: `API contract tenant ${label} ${short}`,
   });
   await upsertFixture(db, "auth.users", {
     id: fixture.userId,
@@ -139,6 +152,7 @@ async function writeTenantFixture(
   await upsertFixture(db, "public.missionaries", {
     id: fixture.missionaryId,
     tenant_id: fixture.tenantId,
+    legal_entity_id: fixture.legalEntityId,
     profile_id: fixture.userId,
     mission_field: "API contract field",
     tagline: `Tenant ${label} missionary`,
@@ -196,6 +210,7 @@ async function writeTenantFixture(
   await upsertFixture(db, "public.funds", {
     id: fixture.fundId,
     tenant_id: fixture.tenantId,
+    legal_entity_id: fixture.legalEntityId,
     name: `Tenant ${label} fund`,
   });
 }
@@ -209,6 +224,7 @@ export async function removeTenantFixture(
   const steps: [string, string, unknown][] = [
     ["public.donations", "tenant_id", fixture.tenantId],
     ["public.donor_pledges", "tenant_id", fixture.tenantId],
+    ["public.giving_target_entity_locks", "tenant_id", fixture.tenantId],
     ["public.posts", "tenant_id", fixture.tenantId],
     ["public.locations", "tenant_id", fixture.tenantId],
     ["public.funds", "tenant_id", fixture.tenantId],
@@ -218,6 +234,7 @@ export async function removeTenantFixture(
     ["authz.memberships", "user_id", fixture.userId],
     ["public.profiles", "id", fixture.userId],
     ["auth.users", "id", fixture.userId],
+    ["public.legal_entities", "tenant_id", fixture.tenantId],
     ["public.tenants", "id", fixture.tenantId],
   ];
   for (const [table, column, value] of steps) {

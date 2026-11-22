@@ -136,8 +136,8 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
       [PRA, PR0, A],
     );
     await db.query(
-      "INSERT INTO public.missionaries (id, tenant_id) VALUES ($1, $2), ($3, NULL)",
-      [MA, A, M0],
+      "WITH entity AS (INSERT INTO public.legal_entities(tenant_id,name) VALUES ($2,'Fixture') RETURNING id) INSERT INTO public.missionaries (id, tenant_id, legal_entity_id) SELECT $1, $2, id FROM entity",
+      [MA, A],
     );
     await db.query(
       "INSERT INTO public.donors (id, tenant_id) VALUES ($1, $3), ($2, $3), ($4, $5)",
@@ -226,7 +226,7 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
         await one(`SELECT string_agg(contype::text || ' ' || pg_get_constraintdef(oid), '; ' ORDER BY 1) FROM pg_constraint
           WHERE conrelid = 'public.persons'::regclass AND contype IN ('p', 'f', 'u')`),
       ).toBe(
-        "f FOREIGN KEY (tenant_id) REFERENCES tenants(id); p PRIMARY KEY (tenant_id, id)",
+        "f FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT; p PRIMARY KEY (tenant_id, id)",
       );
       expect(
         await rows(
@@ -321,7 +321,7 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
     run(`UPDATE public.${t} SET person_id = $2 WHERE id = $1`, [row, to]);
 
   tx(
-    "4/5: person_id is uuid, nullable, no default; donors has none; same-tenant link ok, cross-tenant 23503, tenant-less 23514; constraints validated",
+    "4/5: nullable person_id, no donor link, same-tenant references only; tenantless missionaries fail NOT NULL; constraints validated",
     async () => {
       for (const [table, fk, ck] of SEAMS) {
         const [own, none] = table === "missionaries" ? [MA, M0] : [PRA, PR0];
@@ -341,10 +341,20 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
           code: "23503",
           constraint: fk,
         });
-        expect(await link(table, none, PA)).toMatchObject({
-          code: "23514",
-          constraint: ck,
-        });
+        // D-18: WP3 requires a tenant on every giving target, even before a person is linked.
+        if (table === "missionaries") {
+          expect(
+            await run(
+              "insert into public.missionaries(id, tenant_id, legal_entity_id, person_id) select $1, null, legal_entity_id, $2 from public.missionaries where id=$3",
+              [none, PA, MA],
+            ),
+          ).toMatchObject({ code: "23502" });
+        } else {
+          expect(await link(table, none, PA)).toMatchObject({
+            code: "23514",
+            constraint: ck,
+          });
+        }
         expect(
           await one(
             "SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid = $1::regclass AND conname = $2",
@@ -391,7 +401,7 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
       expect(
         await one(
           `SELECT data_type || ' ' || is_nullable || ' ' || (SELECT count(*) FROM pg_constraint WHERE conrelid = 'public.profiles'::regclass
-           AND pg_get_constraintdef(oid) = 'FOREIGN KEY (tenant_id) REFERENCES tenants(id)') FROM information_schema.columns
+           AND pg_get_constraintdef(oid) = 'FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT') FROM information_schema.columns
            WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'tenant_id'`,
         ),
       ).toBe("uuid YES 1");
@@ -576,6 +586,10 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
         ),
       ).toBe("normalize_email(text)");
       await db.query(body(MIGRATION));
+      // D-18: the historical migration recreates its original FK. Reapply WP3's delete rule before comparing the entire catalog.
+      await db.query(
+        "alter table public.persons drop constraint persons_in_tenant_fk, add constraint persons_in_tenant_fk foreign key (tenant_id) references public.tenants(id) on delete restrict",
+      );
       expect((await catalog()).filter((v) => !rewrittenLater(v))).toEqual(
         before.filter((v) => !rewrittenLater(v)),
       );
