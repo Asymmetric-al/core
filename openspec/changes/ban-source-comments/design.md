@@ -60,7 +60,9 @@ so a rename keeps its comments. A new file must have none.
 The gate then requires the committed baseline to equal the tree. Because the
 tree cannot gain comments and the baseline must mirror the tree, nobody can
 raise a baseline entry by hand. `--write` refuses to write while any file has
-gained comments, and refuses when it has no base to compare with.
+gained comments, and refuses when it has no base to compare with. A branch
+push whose earlier revision is unusable fails when `origin/develop` offers no
+earlier revision either, so a push is never compared with itself.
 
 Alternative considered: compare the baseline with the base branch's baseline
 and refuse widened entries. Rejected: it cannot tell a rename from a new

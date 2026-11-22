@@ -139,17 +139,28 @@ function resolveBase(root, requested, pushedFrom) {
       );
     }
   }
-  const candidates = PUSHED_REVISION.test(pushedFrom ?? "")
-    ? [pushedFrom, DEFAULT_BASE]
-    : [DEFAULT_BASE];
-  for (const candidate of candidates) {
+  if (PUSHED_REVISION.test(pushedFrom ?? "")) {
     try {
-      return mergeBase(root, candidate);
+      return mergeBase(root, pushedFrom);
     } catch {
-      continue;
+      pushedFrom = `${pushedFrom}, which is not in this checkout`;
     }
   }
-  return null;
+  let base = null;
+  try {
+    base = mergeBase(root, DEFAULT_BASE);
+  } catch {
+    base = null;
+  }
+  if (
+    pushedFrom &&
+    (base === null || base === git(root, ["rev-parse", "HEAD"]).trim())
+  ) {
+    throw new Error(
+      `Cannot check this push: the revision before it (${pushedFrom}) cannot be used, and ${DEFAULT_BASE} gives no earlier revision to compare with.`,
+    );
+  }
+  return base;
 }
 
 function countAt(root, commit, file) {
@@ -161,7 +172,7 @@ function countAt(root, commit, file) {
 function findGrowth(root, base, measured) {
   const grown = [];
   const changes = parseNameStatus(
-    git(root, ["diff", "--name-status", "-M", "-z", base, "--"]),
+    git(root, ["diff", "--name-status", "-M", "-l0", "-z", base, "--"]),
   );
   for (const change of changes) {
     const count = measured.get(change.file)?.count ?? 0;

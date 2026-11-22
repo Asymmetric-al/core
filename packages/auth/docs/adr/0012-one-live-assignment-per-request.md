@@ -35,17 +35,18 @@ passing database error must not have that effect.
 
 2. **Live rows are read again on every resolution.** `AssignmentReader` in
    `principal/types.ts` is a port over the caller's live memberships, read anew
-   on each call. `resolveActiveAssignment` in `principal/assignment.ts` calls
-   `readActiveAssignments` and then `selectAssignment` every time. It keeps no
-   cache and never falls back to a default tenant. A membership that is revoked
+   on each call. `resolveActiveAssignment` in `principal/assignment.ts` checks
+   its inputs, then calls `readActiveAssignments` every time they pass, and
+   `selectAssignment` when the read succeeds. It keeps no cache and never falls back to a default tenant. A membership that is revoked
    or deactivated therefore stops counting on the next request. Cited:
    [plan 5.1](../../../../docs/audits/core-crm-cms-database-target-architecture.md#51-authentication-and-authority).
 
 3. **One bad row fails the whole read.** `readActiveAssignments` in
    `principal/assignment.ts` parses the rows with `toActiveAssignments`. If the
    read fails or throws, if any row is malformed, or if two rows share an id,
-   the result is `reader_error`; the function itself never throws. Bad rows are
-   never dropped. `toActiveAssignment` calls a row malformed when its id or
+   the result is `reader_error`. The function catches anything the reader
+   throws, but not an exception raised while it inspects the returned rows,
+   such as one from a getter. Bad rows are never dropped. `toActiveAssignment` calls a row malformed when its id or
    tenant id is not a canonical UUID, it belongs to another user, its role or
    staff sub-role is unknown, a staff row has no sub-role or another row has one,
    its tenant-administrator flag is not a boolean or is `true` on a non-staff
@@ -69,8 +70,11 @@ passing database error must not have that effect.
    use the resolver in `principal/`, so they apply one rule. The API package's
    principal module (`packages/api/src/principal`) re-exports it beside the
    principal union. `ActiveAssignment` in `principal/types.ts` carries the row's
-   class as `membershipRole`, so no caller derives the class from a role string.
-   Cited: #2258; AL-2675.
+   class as `membershipRole`, so code that holds an assignment never derives the
+   class from a role string. Only the E2E bypass derives one: a test session
+   that lists no memberships gets a synthetic assignment whose class comes from
+   its role (`impliedE2EAuthMembership` in `e2e-auth.ts`). Cited: #2258;
+   AL-2675.
 
 6. **An assignment's revision is opaque.** `ActiveAssignment.revision` in
    `principal/types.ts` holds the row's `updated_at`, and `toActiveAssignment`
@@ -101,9 +105,11 @@ passing database error must not have that effect.
    refuses such a person on the donor portal, for the proxy check, server reads
    and the browser header alike, until WP3 resolves the portal's tenant from its
    verified host. The order matters: narrowing first would let a header make one
-   of several rows look like the only one. All three paths meet this rule,
-   because the proxy's role check (`resolve-user-role.ts`) and `getAuthContext`
-   in `context.ts` both resolve through `selectAssignment`. Cited:
+   of several rows look like the only one. For a Supabase session all three
+   paths meet this rule, because the proxy's role check (`resolve-user-role.ts`)
+   and `getAuthContext` in `context.ts` both resolve through `selectAssignment`.
+   For an E2E bypass identity the proxy checks only the signed role, and
+   `getE2EAuthBypassContext` in `context.ts` applies the rule. Cited:
    [plan section 12, WP2, "Interim rules until WP3"](../../../../docs/audits/core-crm-cms-database-target-architecture.md#wp2--membership-as-the-only-authority);
    AL-2675; JB12.
 
@@ -137,17 +143,21 @@ passing database error must not have that effect.
 11. **Choosers read every live row through a separate function that authorizes
     nothing.** `getSignedInAssignments` in `context.ts` returns every live
     membership row of the signed-in person, of every class and in every tenant,
-    validated by `readActiveAssignments`, with each organization's name from
-    `public.current_user_organizations()`. Both reads run on the person's own
-    token, so the names come only from organizations in which the person holds
-    a live row. The result is `unavailable` when `readActiveAssignments`
+    validated by `readActiveAssignments`, and, from a separate read of
+    `public.current_user_organizations()`, the names of the person's
+    organizations. Both reads run on the person's own token, so the names come
+    only from organizations in which the person holds a live row. The two reads
+    are not checked against each other, so a tenant can be missing from the
+    names, and the choosers then show a short form of its id. The result is `unavailable` when `readActiveAssignments`
     reports a failed or malformed read, or when the organization read ends in
     an `OrganizationNamesReadError`: the RPC answered with an error, with
     something that is not an array, or with a malformed row. Any other error
     from the organization read, such as a request that rejects, is thrown to
     the caller, so `unavailable` does not cover every failure. The function
     exists because a chooser must list a person's rows before any one is
-    selected, which `getAuthContext` refuses for a person in two organizations.
+    selected, while `getAuthContext` returns only the one it selects and
+    refuses with `ambiguous` when the role class, tenant and proposed assignment
+    leave several.
     It decides nothing itself: a choice in the organization chooser goes back
     through the proxy's membership decision, and Web Studio's render gate
     (`apps/admin/src/cms/web-studio-access.ts`) selects among the rows with
@@ -166,14 +176,16 @@ passing database error must not have that effect.
     proposed a tenant or an assignment and the resolver refused it for a reason
     in `SCOPE_REFUSALS`: `not_owned_or_inactive`, `role_class_mismatch`,
     `tenant_mismatch`, `ambiguous` or `no_assignment`. Such a refusal means the
-    document's scope is no longer the caller's, for example because the row was
-    revoked or another person signed in. Routes answer the flag with the
+    caller cannot act under the scope the request proposed, for example because
+    the row was revoked or another person signed in. Routes answer the flag with the
     `x-asym-scope-refused` header, and the own-API fetch wrapper in
     `packages/database/own-api.ts` retires the document's scope when a scoped
     request gets that header back. `reader_error` (a failed or thrown read, or a
-    malformed row) is not in the set, and no other 401 or 403 carries the mark:
-    marking a passing database error would retire the document and reload it.
-    Cited:
+    malformed row) is not in the set, and no other 401 or 403 from the server
+    carries the mark: marking a passing database error would retire the
+    document and reload it. The browser marks only its own answer to a request
+    from a document whose scope is already retired (`retiredScopeResponse` in
+    `packages/database/request-scope-headers.ts`). Cited:
     [plan 5.2](../../../../docs/audits/core-crm-cms-database-target-architecture.md#52-choosing-the-tenant);
     AL-2675; JB1; JR2.
 
@@ -206,9 +218,10 @@ passing database error must not have that effect.
   `authz_memberships_tenant_admin_staff_chk` requires):
   [ADR-0227](../../../../docs/adr/0227-one-policy-pattern-and-the-carried-tenant.md),
   clause 1.
-- `ActiveAssignment` in `principal/types.ts` (`membershipRole`, `staffRole` and
-  `isTenantAdmin` feed the capability registry, which authorizes; they never
-  authorize by name):
+- `ActiveAssignment` in `principal/types.ts` (`membershipRole` and `staffRole`
+  choose the role bundles through which the capability registry grants
+  authority, and `isTenantAdmin` is the tenant-administration flag on a staff
+  row):
   [ADR-0227](../../../../docs/adr/0227-one-policy-pattern-and-the-carried-tenant.md),
   clause 1.
 - `getAuthContext` in `context.ts` (the profile supplies the profile id only,
@@ -234,9 +247,11 @@ passing database error must not have that effect.
   clause 2.
 - `AuthContextOptions` in `context.ts` (the role class, the proposed assignment
   and the expected tenant fall back to the `x-asym-role-class`,
-  `x-asym-assignment` and `x-asym-tenant` headers; on a page request the proxy
-  sets the last two from the page address after its membership decision, and on
-  an API request the own-API fetch wrapper sends the page's):
+  `x-asym-assignment` and `x-asym-tenant` headers; on a tenant-addressed page of
+  Mission Control or the missionary workspace the proxy sets the last two from
+  the page address after its membership decision, it removes them from every
+  other page request, and on an API request the own-API fetch wrapper sends the
+  page's):
   [ADR-0227](../../../../docs/adr/0227-one-policy-pattern-and-the-carried-tenant.md),
   clauses 2 and 5.
 - `createBearerSupabaseClient` in `context.ts` (a public-key client that acts

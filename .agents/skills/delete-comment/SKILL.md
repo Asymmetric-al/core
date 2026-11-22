@@ -142,7 +142,9 @@ by hand and check the rendered text.
 ### 7. Lower the ratchet and verify
 
 1. `bun run verify:comments -- --write`, then `bun run verify:comments`.
-2. Lint, typecheck and the unit tests of the workspace.
+2. Lint, typecheck, the unit tests of the workspace, and
+   `bun run test:acceptance`. The default unit run leaves the acceptance tests
+   out, and they are where a requirement on a comment usually lives.
 3. A test can fail once a comment is gone. Find out which kind it is before
    you change anything:
    - **The test requires the comment itself**, such as an acceptance criterion

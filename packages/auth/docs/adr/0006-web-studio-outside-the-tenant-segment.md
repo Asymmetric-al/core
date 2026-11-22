@@ -33,15 +33,18 @@ is scoped to a document, so changing organization means loading a new one.
 
 2. **One function defines a Web Studio page, and every boundary uses it.**
    `isWebStudioPagePath` in `packages/auth/web-studio.ts` accepts a path under
-   `/web-studio` that is neither a REST route nor under the organization chooser
-   (`/web-studio/organization`). The admin app's tenant boundary
-   (`packages/auth/tenant-navigation.tsx`), Web Studio's document scope
-   (`WEB_STUDIO_SEGMENT`, read by `packages/database/document-scope.tsx`) and
-   Payload's router adapter (`apps/admin/src/cms/payload-next-router-adapter.tsx`)
-   all use it. Because they share one definition, moving into or out of Web
-   Studio's pages is always a full document load, wherever the navigation starts.
-   The chooser never renders inside a Web Studio document, and no Web Studio page
-   renders inside another document. Cited: council on the joined release, JC1.
+   `/web-studio` that is neither an API route under `/web-studio/api/` (REST or
+   GraphQL) nor under the organization chooser (`/web-studio/organization`). The
+   admin app's tenant boundary (`packages/auth/tenant-navigation.tsx`), Web
+   Studio's document scope (`WEB_STUDIO_SEGMENT`, read by
+   `packages/database/document-scope.tsx`) and Payload's router adapter
+   (`apps/admin/src/cms/payload-next-router-adapter.tsx`) all use it. Because
+   they share one definition, the tenant boundary loads a new document whenever
+   it detects a segment crossing from the loaded document's navigation entry,
+   and Payload's adapter loads a new document for any destination outside Web
+   Studio. The chooser never renders inside a Web Studio document, and no Web
+   Studio page renders inside another document. Cited: council on the joined
+   release, JC1.
 
 3. **Web Studio's document scope is a constant that client code passes.**
    `WEB_STUDIO_SEGMENT` in `packages/auth/web-studio.ts` is the segment in which
@@ -50,31 +53,34 @@ is scoped to a document, so changing organization means loading a new one.
    passes the constant itself, because its `contains` function cannot cross from
    a server component to a client component.
 
-4. **A stray address under the chooser goes to the chooser before any gate.**
-   `isStrayWebStudioChooserPath` in `packages/auth/web-studio.ts` matches an
-   address under the chooser that is not the chooser's own address: one below it
-   (`/web-studio/organization/x`), or the chooser spelled another way
-   (`/web-studio/%6Frganization`). `authMiddleware` in
-   `packages/auth/middleware.ts` redirects such an address to
+4. **An unprefixed stray address under the chooser goes to the chooser before
+   session and page gates.** `isStrayWebStudioChooserPath` in
+   `packages/auth/web-studio.ts` matches an address under the chooser that is
+   not the chooser's own address: one below it (`/web-studio/organization/x`),
+   or the chooser spelled another way (`/web-studio/%6Frganization`). After
+   mutation admission and the tenant rewrite-loop guard, `authMiddleware` in
+   `packages/auth/middleware.ts` redirects an unprefixed stray address to
    `/web-studio/organization`, keeping its query, before it reads the session or
    runs the Web Studio page gate. No page lives there, and the gate would
    otherwise take it for a Web Studio page whose document, outside its own
    segment, reloads without end. The chooser checks read the path through
    `decodedPathname`, which percent-decodes each segment the way the app's
    routes match it, because the proxy receives the path undecoded (`NextURL`
-   keeps `%6F`). A segment that does not decode stays as written. Cited: check of
-   the fix lists, JR5.
+   keeps `%6F`). A segment that does not decode stays as written. Cited: check
+   of the fix lists, JR5.
 
 ### The organization cookie
 
-5. **The cookie only narrows. The person's live staff rows decide.**
+5. **The cookie only narrows. Live staff rows decide for real sessions.**
    `WebStudioSelection` in `packages/auth/web-studio.ts` holds a tenant ID and
    the ID of the chosen membership row, and nothing else. `webStudioResolveInput`
    hands them to the principal resolver as the proposed assignment and the
    expected tenant, and `decideWebStudioAccess` judges them with
    `selectAssignment` in `packages/auth/principal/assignment.ts`, the same rule
    every other handler uses. That rule accepts the named row only if the person
-   holds it, live, as a staff row, in the named tenant. A cookie that names
+   holds it, live, as a staff row, in the named tenant. For an enabled and
+   accepted E2E bypass session (record 0007), signed synthetic assignments stand
+   in for live rows and pass through the same selector. A cookie that names
    anything else selects nothing. Authority is the live membership row
    ([ADR-0227](../../../../docs/adr/0227-one-policy-pattern-and-the-carried-tenant.md),
    clause 1), so a cookie never grants access by itself, even a validly signed
@@ -86,32 +92,40 @@ is scoped to a document, so changing organization means loading a new one.
    belongs to the caller.** `packages/auth/web-studio.ts` uses Web Crypto and no
    other runtime service, so the proxy, server code and tests share one
    implementation. Its signing and reading functions take the secret as an
-   argument. The admin app derives the key from Payload's secret in
-   `apps/admin/src/cms/web-studio-tenant-cookie.ts` and gives the proxy a reader
-   that verifies the cookie with it, through the `webStudio.readCookie` option
-   of `AuthMiddlewareOptions` in `packages/auth/middleware.ts`.
+   argument. The admin wrapper in
+   `apps/admin/src/cms/web-studio-tenant-cookie.ts` passes Payload's resolved
+   secret to `packages/auth/web-studio.ts`, where `cookieKey` derives the
+   signing key. The admin app gives the proxy a reader built on that wrapper
+   through the `webStudio.readCookie` option of `AuthMiddlewareOptions` in
+   `packages/auth/middleware.ts`.
 
 7. **The signing key is derived for this cookie only.** `cookieKey` in
    `packages/auth/web-studio.ts` derives an HMAC-SHA-256 key from the caller's
    secret with HKDF (SHA-256, empty salt) and the label `KEY_INFO`
    (`asym:web-studio-tenant-cookie:v1`). The label separates this key from every
-   other use of the secret it is derived from. In the admin app that secret is
-   `PAYLOAD_SECRET`, which Payload itself also uses. `cookieKey` throws when the
-   secret is empty.
+   other use of the secret it is derived from. In the admin app both the cookie
+   wrapper and Payload call `resolvePayloadSecret()` in
+   `apps/admin/src/cms/payload-secret.ts`, which reads `PAYLOAD_SECRET` and
+   falls back to a fixed local value in development and test. `cookieKey` throws
+   when the secret is empty.
 
 8. **A cookie that is present but unusable selects nothing, and is never read as
    absent.** `readWebStudioCookie` in `packages/auth/web-studio.ts` returns one
    of three states (`WebStudioCookieState`): absent (no value, or an empty one),
-   selected (a verified selection), or unusable. A value that is forged,
-   altered, signed with another key or malformed is unusable, and reading it
-   never throws. A missing signing key is a configuration error and still throws
-   (decision 7). The value is `v1.<tenant id>.<membership id>.<base64url HMAC>`,
-   and `signWebStudioSelection` refuses to sign IDs that are not canonical
+   selected (a verified selection), or unusable. A malformed value, an altered
+   payload, or a signature whose decoded bytes fail verification (such as one
+   that is forged or signed with another key) is unusable, and reading it never
+   throws. An empty signing key is a configuration error and throws when
+   `readWebStudioCookie` reaches `cookieKey` (decision 7), after absent or
+   structurally invalid input has already returned; the admin wrapper also
+   throws up front when `resolvePayloadSecret()` fails. The value is
+   `v1.<tenant id>.<membership id>.<base64url HMAC>`, and
+   `signWebStudioSelection` refuses to sign IDs that are not canonical
    lower-case UUIDs. `webStudioResolveInput` turns an unusable cookie into
-   `{ ok: false }`, and `decideWebStudioAccess` then sends the person to the
-   chooser. An absent cookie lets a person with one staff row through by
-   default, so reading a bad cookie as absent would let a bad value through on
-   that default.
+   `{ ok: false }`, and `decideWebStudioAccess` then sends a person with staff
+   rows to the chooser (a person with no staff row is refused first). An absent
+   cookie lets a person with one staff row through by default, so reading a bad
+   cookie as absent would let a bad value through on that default.
 
 9. **The cookie is `SameSite=Strict`.** `webStudioCookie` in
    `packages/auth/web-studio.ts` sets the cookie HttpOnly and `SameSite=Strict`,
@@ -144,8 +158,8 @@ is scoped to a document, so changing organization means loading a new one.
     - With a cookie, the resolver's rule judges the row and tenant it names. A
       row the person does not hold live, as a staff row, in that tenant selects
       nothing, and the person chooses again. It never falls back to another row,
-      even the only one left, so Web Studio never works in an organization the
-      person did not pick.
+      even the only one left, so a stale or unusable cookie never silently
+      switches Web Studio to a different organization.
 
 ### Links from Mission Control, and the chooser
 
@@ -159,8 +173,9 @@ is scoped to a document, so changing organization means loading a new one.
     `organization` and `assignment` (`WEB_STUDIO_ENTRY_TENANT_PARAM` and
     `WEB_STUDIO_ENTRY_ASSIGNMENT_PARAM`) only for a document whose address names
     its tenant. Web Studio's own pages and the donor portal name none, and add
-    nothing. `withWebStudioEntry` adds them to same-origin links that lead to a
-    Web Studio page. Cited: council on the joined release, JC3.
+    nothing. `withWebStudioEntry` adds them to root-relative links (starting
+    with a single `/`) that lead to a Web Studio page. Cited: council on the
+    joined release, JC3.
 
 13. **The proxy compares a link's names with the cookie's choice, and a link
     never sets the cookie.** `webStudioEntryRedirect` in
@@ -173,7 +188,9 @@ is scoped to a document, so changing organization means loading a new one.
       without the names. A value that is not a canonical tenant ID is never
       offered.
     - For a person with no staff row it returns `null`, and the proxy's refusal
-      stands. It also returns `null` for an address that names no organization.
+      stands. It also returns `null` when neither `organization` nor
+      `assignment` is in the query; an `assignment` parameter alone still sends
+      an eligible caller to the chooser with no `from` suggestion.
 
     Only the chooser's form sets the cookie, after its own check against the
     person's live rows (`decideWebStudioAccess` in
@@ -187,33 +204,40 @@ is scoped to a document, so changing organization means loading a new one.
     (`WEB_STUDIO_REFUSED_PARAM`) when the last choice was refused so that the
     chooser says so, and with `from` (`WEB_STUDIO_FROM_PARAM`) when a link from
     Mission Control named an organization. `webStudioChooserUrl` in
-    `packages/auth/web-studio-proxy.ts` builds the same address in the proxy
-    from `next` and `from`. `from` only decides which option the chooser offers
-    first; it selects nothing. Sign-in returns to the chooser's address too, so a
-    person who signs in again still lands on the page they were on. Cited: JC3.
+    `packages/auth/web-studio-proxy.ts` builds a `URL` to the same chooser path
+    in the proxy, copying its supplied `next` as given (without
+    `safeWebStudioNext` or `refused`) and optional `from`. A matching `from`
+    only puts that organization first and, unless a refusal is shown, names it
+    in a notice explaining where the person came from; it selects nothing.
+    Sign-in returns to the chooser's address too, so a person who signs in again
+    still lands on the page they were on. Cited: JC3.
 
 15. **A choice returns only to a Web Studio page.** `safeWebStudioNext` in
     `packages/auth/web-studio.ts` first applies `safeNextParam` from
     `packages/auth/demo-login.ts`, the check every return address passes, which
-    refuses another origin, an empty path segment and a backslash. The address
-    must then be a Web Studio page by `isWebStudioPagePath`: not a page outside
-    Web Studio, not a REST route, and not the chooser itself. Anything else
-    returns to `/web-studio`. The path and query are kept and the fragment is
-    dropped. The choice only sets the cookie that Web Studio reads, so it has no
-    other place to return to.
+    refuses another origin and any doubled slash or backslash in the parsed
+    pathname or its percent-decoded form (after `URL` parsing). The address must
+    then be a Web Studio page by `isWebStudioPagePath`: not a page outside Web
+    Studio, not an API route under `/web-studio/api/`, and not the chooser
+    itself. Anything else returns to `/web-studio`. The path and query are kept
+    and the fragment is dropped. The choice only sets the cookie that Web Studio
+    reads, so it has no other place to return to.
 
 ### Payload's REST routes
 
-16. **On Payload's REST routes the proxy only refreshes the session.** For a path
-    under `/web-studio/api/`, `authMiddleware` in `packages/auth/middleware.ts`
-    calls `refreshWebStudioApiSession` in `packages/auth/web-studio-proxy.ts`,
-    which refreshes the Supabase session cookies and passes the request on. It
-    does no role lookup and never redirects. Payload's strategy resolves the
-    caller from the session and the Web Studio cookie, and answers an expired or
-    unauthorized call with JSON, so a REST client never receives a redirect to a
-    page. Before this, nothing wrote a refreshed session back on Payload's API
-    calls. A REST path under a tenant prefix gets a 404: the REST routes are
-    never inside the tenant segment. Cited: plan
+16. **On Payload's API routes the proxy skips the page role gate and refreshes
+    the session.** After mutation admission and the rewrite-loop guard, for an
+    unprefixed path under `/web-studio/api/` (REST or GraphQL), `authMiddleware`
+    in `packages/auth/middleware.ts` calls `refreshWebStudioApiSession` in
+    `packages/auth/web-studio-proxy.ts`. That helper normalizes the forwarding
+    headers, refreshes the Supabase session cookies when Supabase public config
+    is present, and passes the request on. It does no role lookup and never
+    redirects. Payload's strategy resolves the caller from the session and the
+    Web Studio cookie, and answers an expired or unauthorized call with JSON, so
+    a REST client never receives a redirect to a page. Before this, nothing
+    wrote a refreshed session back on Payload's API calls. An API path under a
+    tenant prefix gets a 404: Payload's API routes are never inside the tenant
+    segment. Cited: plan
     [5.2](../../../../docs/audits/core-crm-cms-database-target-architecture.md#52-choosing-the-tenant);
     audit finding C09 in
     [`core-crm-cms-database-audit.md`](../../../../docs/audits/core-crm-cms-database-audit.md).
@@ -226,18 +250,19 @@ is scoped to a document, so changing organization means loading a new one.
     address-prefix and rewrite headers. It keeps the document's tenant and
     assignment headers, which Payload's strategy compares with the cookie's
     selection and never selects by. Payload's strategy reads the session and the
-    cookie itself, so a request that reached Payload without the proxy would be
-    judged the same way and an ended session would still get JSON. Only the
-    refreshed session cookie would not be written back. Cited: plan 5.2; C09.
+    cookie itself, so its session and assignment checks do not depend on proxy
+    refresh and an ended session still gets JSON. Skipping the proxy would omit
+    its session-refresh cookies and cache headers as well as its mutation
+    admission and forwarding-header normalization. Cited: plan 5.2; C09.
 
-18. **Every cache header a session write asks for survives the rebuilt
+18. **Cache headers from earlier session writes survive each rebuilt
     response.** The cookie adapter in `refreshWebStudioApiSession` in
     `packages/auth/web-studio-proxy.ts` rebuilds the response on each session
-    write. It carries the earlier cookies over, collects every cache header any
-    write asked for in `refreshHeaders`, and applies all of them to each new
-    response, as the main proxy in `authMiddleware` does. Without that, a later
-    write would drop the cache headers an earlier write set. Cited: council on
-    the joined release, JC9.
+    write. It carries the earlier cookies over, stores each cache header name in
+    `refreshHeaders` (a later write replaces an earlier value for the same
+    name), and applies those headers to each new response, as the main proxy in
+    `authMiddleware` does. Without that, a later write would drop cache headers
+    an earlier write set. Cited: council on the joined release, JC9.
 
 ## Accepted records this code implements
 

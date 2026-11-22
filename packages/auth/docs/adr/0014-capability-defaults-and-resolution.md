@@ -31,7 +31,7 @@ than why.
    four `admin.*` capabilities that every staff sub-role held under the retired
    `STAFF_SUBROLE_CAPABILITIES`; they moved into the registry because the plan
    allows one capability vocabulary. The registry therefore grants these holders
-   what they held before it. Cited:
+   at least what they held before it. Cited:
    [plan 5.1](../../../../docs/audits/core-crm-cms-database-target-architecture.md#51-authentication-and-authority);
    AL-2675.
 
@@ -44,7 +44,7 @@ than why.
    apart. Cited: B05 and A06, findings of the
    [CRM, CMS and database audit](../../../../docs/audits/core-crm-cms-database-audit.md).
 
-3. **A new staff sub-role cannot ship without a default bundle.**
+3. **A new staff sub-role cannot ship without an entry in the default bundles.**
    `GrantSubjectKey` in `capabilities/bundles.ts` is built from the membership
    vocabulary: `member:` with each non-staff `MembershipRole`, `staff:` with each
    `StaffSubrole`, and the named subject `tenant_admin`. `ROLE_DEFAULT_BUNDLES`
@@ -81,17 +81,21 @@ than why.
    default bundles into rows: one per capability, sorted by key, and one per
    unique pair of subject and capability, sorted by subject and then by
    capability. It is the one-to-one seeding shape for the Phase 12 capability
-   and role-grant tables (#671) and the read model for #497's `/minimum` page,
-   so the same code must always give the same rows. Cited: Phase 12; #671; #497.
+   and role-grant tables (#671) and is meant to be the read model for #497's
+   `/minimum` page, which no route serves yet, so the same code must always give
+   the same rows. Cited: Phase 12; #671; #497.
 
 ### Resolving within one context
 
 8. **Any inactive source fails the whole context, and nothing is combined until
    every source passes.** `resolveEffectiveCapabilities` in
    `capabilities/effective-capabilities.ts` validates the whole selected context
-   before it combines any bundle. A suspended assignment or grant is issued with
-   `AssignmentGrantSource.isActive` or `NamedGrantSource.active` set to `false`,
-   not left out of the context. Any source whose flag is not `true` fails the
+   before it combines any bundle. A caller is to pass a suspended assignment or
+   grant with `AssignmentGrantSource.isActive` or `NamedGrantSource.active` set
+   to `false`, not leave it out of the context. Today the only caller,
+   `resolveAssignmentCapabilities`, builds active sources alone, and `context.ts`
+   returns no capabilities for an inactive membership before it calls that
+   function. Any source whose flag is not `true` fails the
    context with `inactive_source`, so a missing flag fails the same way. The
    resolver never returns a partial set of capabilities: a bad source yields an
    error.
@@ -137,8 +141,9 @@ than why.
   `tenant_overrides_dormant`):
   [ADR-0210](../../../../docs/adr/0210-code-authoritative-capability-foundation.md),
   Decision ("Reserved Tenant overrides remain dormant").
-- `SelectedGrantContext` in `capabilities/effective-capabilities.ts` (at most
-  one assignment plus named grants, all in one tenant; a person's other
+- `SelectedGrantContext` and `resolveEffectiveCapabilities` in
+  `capabilities/effective-capabilities.ts` (the resolver accepts at most one
+  assignment plus named grants, all in the context's tenant; a person's other
   memberships and profile roles have no slot):
   [ADR-0210](../../../../docs/adr/0210-code-authoritative-capability-foundation.md),
   Decision ("Unrelated memberships never union implicitly").
@@ -156,12 +161,11 @@ than why.
   `platform_admin` held):
   [ADR-0210](../../../../docs/adr/0210-code-authoritative-capability-foundation.md),
   amendment of 2026-11-17, "Moves and retirements".
-- `CAPABILITY_BUNDLES.permissions_approver` in `capabilities/bundles.ts` (held
-  by no subject until Phase 12, and kept so its key stays stable for Phase 12
-  seeding):
+- `CAPABILITY_BUNDLES.permissions_approver` in `capabilities/bundles.ts`
+  (defined but held by no subject, because approving a widening of permissions
+  has no holder until Phase 12):
   [ADR-0210](../../../../docs/adr/0210-code-authoritative-capability-foundation.md),
-  amendment of 2026-11-17, "Moves and retirements", and Decision ("Preserve
-  stable keys").
+  amendment of 2026-11-17, "Moves and retirements".
 - `resolveAssignmentCapabilities` and `SelectedAssignment.isTenantAdmin` in
   `capabilities/effective-capabilities.ts` (one membership row's bundles, plus
   `tenant_admin` only when that row is a staff row with the flag; no other row
@@ -171,7 +175,7 @@ than why.
 - `CAPABILITY_BUNDLES` in `capabilities/bundles.ts` and
   `resolveAssignmentCapabilities` in `capabilities/effective-capabilities.ts`
   (the SQL function `authz.assignment_capabilities` holds the same mapping and
-  judges the same row, and
+  applies it to the live membership row it reads by id, and
   [a real-stack test](../../../../tests/unit/acceptance/issue-2675/capability-parity.realstack.acceptance.test.ts)
   compares the two for every grant subject and the tenant-administrator flag,
   so both change together):

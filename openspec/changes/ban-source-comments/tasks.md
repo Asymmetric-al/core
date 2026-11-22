@@ -50,4 +50,17 @@
 ## 6. Close-out
 
 - [x] 6.1 `bun run openspec:validate`, `bun run verify:openspec-deltas`.
-- [ ] 6.2 `bun run ci:preflight`.
+- [x] 6.2 Readiness gate. `bun run ci:preflight` on Linux passed every stage
+      through the builds, then stopped in `test:unit` on a 120-second timeout
+      in `tests/unit/scripts/own-api-lint-tree.test.ts`. That case takes 109
+      seconds in a full run on unmodified `develop` on the same machine and 16
+      seconds alone. `bun run test:acceptance` passed when run separately, and
+      required CI passed every stage on the pull request.
+
+## 7. Review
+
+- [x] 7.1 Fix the automated review's findings on the gate, the removal tool,
+      the rule, the skill and three ADRs.
+- [x] 7.2 Fact-check all 14 ADRs against the code with fresh reviewers and
+      correct what they confirm. Code gaps found on the way are tracked in
+      #2755 and #2756.

@@ -329,8 +329,31 @@ describe("the comment ratchet", () => {
     expect(pushed.status).toBe(1);
     expect(pushed.output).toContain("packages/api/src/a.ts: 2 -> 3");
 
+    git(root, "update-ref", "refs/remotes/origin/develop", before);
     const created = check("0".repeat(40));
-    expect(created.status).toBe(0);
-    expect(created.output).toContain("origin/develop is not available");
+    expect(created.status).toBe(1);
+    expect(created.output).toContain("packages/api/src/a.ts: 2 -> 3");
+  });
+
+  it("refuses a push it has no earlier revision to compare with", () => {
+    const root = repository({ "packages/api/src/a.ts": COMMENTED });
+    run(root, "--write");
+    git(root, "add", "--all");
+    git(root, "commit", "--quiet", "--message=baseline");
+    const check = (env: Record<string, string>) =>
+      runCommentRatchet({
+        root,
+        args: [],
+        env,
+        log: () => {},
+        error: () => {},
+      });
+    const unknown = { COMMENT_RATCHET_PUSHED_FROM: "0".repeat(40) };
+
+    expect(() => check(unknown)).toThrow(/revision before it/);
+
+    git(root, "update-ref", "refs/remotes/origin/develop", "HEAD");
+    expect(() => check(unknown)).toThrow(/revision before it/);
+    expect(check({})).toBe(0);
   });
 });

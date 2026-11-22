@@ -7,7 +7,7 @@ import type {
   UserRole,
 } from "@asym/database/types";
 
-/** @deprecated Prefer surface-specific names; kept for grep/docs compatibility */
+/** @deprecated Prefer the surface-specific names in `E2E_AUTH_COOKIE_NAMES`. */
 export const E2E_AUTH_COOKIE_NAME = "asym_e2e_auth";
 
 export type E2EAuthAppSurface = "donor" | "admin" | "missionary";

@@ -10,8 +10,10 @@ code as it is and ratifies no product intent. Accepted platform intent is in
 `admitApiMutation` in `mutation-admission.ts` is the first step of the proxy
 that `createAuthMiddleware` in `middleware.ts` builds. It runs before any route
 handler, the shared JSON reader or Payload sees the request. It checks writes
-(`POST`, `PUT`, `PATCH` and `DELETE`) to paths under `/api/` and
-`/web-studio/api`: first where the request came from, then its media type. It
+(`POST`, `PUT`, `PATCH` and `DELETE`). It first percent-decodes the path and
+answers 400 when that fails, whatever the path. For a path under `/api/` or
+`/web-studio/api` it then checks where the request came from, then its media
+type. It
 decides from headers alone, because Next hands the proxy a body stream for every
 write whether or not any bytes follow. Web Studio runs Payload, whose error
 responses have the shape `{ errors: [{ message }] }`, while Core's own API
@@ -22,12 +24,14 @@ routes answer `{ error }`.
 1. **A write with no media type is admitted only when its framing headers say it
    has no body.** `isEmptyWrite` in `mutation-admission.ts` calls a write empty
    when it has no `Transfer-Encoding` header and its `Content-Length` header is
-   absent or `0`. `admitApiMutation` lets such a write through without a
-   `Content-Type`. The body stream cannot decide this, because Next gives the
-   proxy a stream for every write. Next serves HTTP/1.1, where a request with
-   neither header has no body: any bytes after its headers are parsed as the
-   next request, so no route ever reads them as this request's body. Cited:
-   RFC 9112, section 6.3.
+   absent or `0`. Once its source is accepted, `admitApiMutation` lets such a
+   write through without a `Content-Type`. The body stream cannot decide this,
+   because Next gives the proxy a stream for every write. Next's Node server
+   speaks HTTP/1.1, where a request with neither header has no body: any bytes
+   after its headers are parsed as the next request, so no route on that server
+   reads them as this request's body. Over HTTP/2 or HTTP/3 a body needs no
+   length header, so the shared JSON reader checks the bytes itself (decision
+   3). Cited: RFC 9112, section 6.3.
 
 2. **Every refusal on a Web Studio API path uses Payload's error shape.**
    `admitApiMutation` in `mutation-admission.ts` answers a refused write under
@@ -46,6 +50,7 @@ routes answer `{ error }`.
    text for its own 415, which it raises when a body that is not declared as
    JSON turns out to contain bytes. The proxy judges by headers and the reader
    by the bytes it reads, so either one can be the layer that refuses a write,
-   and the client gets the same answer from both. Web Studio's GraphQL route
+   and the client gets the same status and message from both, though a route
+   may add other fields to the body. Web Studio's GraphQL route
    (`apps/admin/app/(payload)/web-studio/api/graphql/route.ts`) returns the same
    text in Payload's shape.
