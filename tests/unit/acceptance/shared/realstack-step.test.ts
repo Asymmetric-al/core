@@ -295,6 +295,7 @@ const REAL_DATABASE_FILES = [
     "issue-2675/web-studio-selection.realstack",
     // AL-2676 (WP3a part 1a): run by the same program step's glob.
     "issue-2676/giving-targets.realstack",
+    "issue-2676/money-embeds.realstack",
     "issue-2676/tenant-status-rollback.realstack",
     "issue-2676/tenant-status.realstack",
     "issue-2677/command-boundaries.realstack",
