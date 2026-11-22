@@ -189,6 +189,116 @@ describe("api/auth/cleanup-demo-users — accounts with giving history", () => {
     expect(deleteUser).not.toHaveBeenCalledWith(LOCKED);
   });
 
+  // Round M (L4): the donor branch, and a money table other than donations.
+  // This mock answers every lookup the handler makes: the account's
+  // missionary and donor rows by profile, and a count per money table and
+  // column for the ids it names.
+  function mockAccounts(spec: {
+    accounts: string[];
+    missionaries?: Record<string, string>;
+    donors?: Record<string, string>;
+    named: {
+      table: string;
+      column: "missionary_id" | "donor_id";
+      id: string;
+    }[];
+  }) {
+    const deleteUser = vi.fn(async () => ({ error: null }));
+    const from = vi.fn((table: string) => {
+      const filters: Record<string, unknown> = {};
+      const builder = {
+        select: () => builder,
+        eq: (column: string, value: unknown) => {
+          filters[column] = value;
+          return builder;
+        },
+        in: (column: string, values: string[]) => {
+          filters[column] = values;
+          return builder;
+        },
+        then: (resolve: (value: unknown) => void) => {
+          if (table === "missionaries" || table === "donors") {
+            const byProfile =
+              (table === "missionaries" ? spec.missionaries : spec.donors) ??
+              {};
+            const id = byProfile[filters.profile_id as string];
+            return resolve({ data: id ? [{ id }] : [], error: null });
+          }
+          const hit = spec.named.some(
+            (n) =>
+              n.table === table &&
+              ((filters[n.column] as string[] | undefined) ?? []).includes(
+                n.id,
+              ),
+          );
+          return resolve({ count: hit ? 1 : 0, error: null });
+        },
+      };
+      return builder;
+    });
+    getAdminClientMock.mockReturnValue({
+      client: {
+        from,
+        auth: {
+          admin: {
+            listUsers: vi.fn().mockResolvedValue({
+              data: {
+                users: spec.accounts.map((id, n) => ({
+                  id,
+                  email: `demo-${n}@x.test`,
+                  created_at: old,
+                })),
+              },
+              error: null,
+            }),
+            deleteUser,
+          },
+        },
+      },
+      error: null,
+    });
+    return { deleteUser };
+  }
+
+  it("keeps an account whose donor row a pledge names, and never deletes it", async () => {
+    const DONOR = "44444444-4444-4444-8444-444444444444";
+    const { deleteUser } = mockAccounts({
+      accounts: [PLAIN],
+      donors: { [PLAIN]: DONOR },
+      named: [{ table: "donor_pledges", column: "donor_id", id: DONOR }],
+    });
+    const res = await route.POST(req({ authorization: "Bearer s3cret" }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      success: true,
+      deletedCount: 0,
+      retained: [{ id: PLAIN, reason: "giving history" }],
+    });
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
+
+  it("keeps an account whose missionary only the saga outbox names, and never deletes it", async () => {
+    const { deleteUser } = mockAccounts({
+      accounts: [LOCKED],
+      missionaries: { [LOCKED]: MISSIONARY },
+      named: [
+        {
+          table: "donation_saga_outbox",
+          column: "missionary_id",
+          id: MISSIONARY,
+        },
+      ],
+    });
+    const res = await route.POST(req({ authorization: "Bearer s3cret" }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      success: true,
+      deletedCount: 0,
+      retained: [{ id: LOCKED, reason: "giving history" }],
+    });
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
+
   it("fails the run when an account without giving history could not be deleted", async () => {
     mockAdmin({ failPlain: true });
     const res = await route.POST(req({ authorization: "Bearer s3cret" }));

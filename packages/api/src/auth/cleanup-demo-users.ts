@@ -7,6 +7,11 @@ import { NextResponse } from "next/server";
  * good (AL-2676, WP3a). Deleting an Auth user cascades through its profile
  * to its missionary, and the database refuses to delete a missionary that
  * money named, so such an account is kept, and the answer says so.
+ *
+ * Not recognised: an account whose money rows are gone while a lock still
+ * names its missionary (the service key reads no lock row). Its delete is
+ * refused, and every run answers 500 with that account under `errors` until
+ * it is handled; that is owed (round M of WP3a part 1a), not done here.
  */
 const MONEY_TABLES = [
   "donations",
