@@ -1,0 +1,23 @@
+# 0004. The proxy sets page scope; API scope headers must match a live membership
+
+**Status:** Recorded on 2026-11-22 from code comments in `packages/auth`
+([#2751](https://github.com/Asymmetric-al/core/issues/2751)). It describes the
+code as it is and ratifies no product intent. Accepted platform intent is in
+[`docs/adr/`](../../../../docs/adr/README.md).
+
+## Context
+
+A page and its calls to the app's own API must agree on the tenant and the assignment, the membership row used for the request. The browser can supply HTTP headers, so a header name does not establish who chose its value. A tenant page also has an address that remains visible after the proxy rewrites the request. Rendering the right data under the wrong address would still mislead the person using the page.
+
+## Decisions
+
+1. **Take the membership class from the app, not the client.** `forwardedRequestHeaders` in `packages/auth/middleware.ts` sets `ROLE_CLASS_HEADER` (`x-asym-role-class`, in `packages/auth/request-headers.ts`) from `AuthMiddlewareOptions.roleClass`, or removes it when unconfigured. Mission Control and Web Studio use staff, the missionary workspace uses missionary, and the donor portal uses donor. Pages and APIs that rely on this class must run through the proxy. The matchers exclude Next.js assets, certain root-level static filenames and, in admin and donor, `/maplibre/`. Routes that answer those paths, including the public donor site's catch-all, cannot trust the client's headers as scope. Cited: [plan 5.1][authority-plan], [plan 5.2][tenant-plan], [council round 2, AR7][reviews].
+2. **Discard client-supplied page scope before stamping an admitted address.** `forwardedRequestHeaders` in `packages/auth/middleware.ts` removes the four names in `PAGE_SCOPE_HEADERS` in `packages/auth/request-headers.ts`: tenant, assignment, address prefix and rewrite marker. Only after choosing a live row for the tenant address does `authMiddleware` stamp those values on the rewritten request. This makes `ADDRESS_PREFIX_HEADER` the admitted document prefix, including a staff suffix when present, rather than a client's choice. Cited: [plan 5.2][tenant-plan], [AL-2675](https://github.com/Asymmetric-al/core/issues/2675).
+3. **Keep API tenant and assignment headers as proposals.** On the app's own API requests, `forwardedRequestHeaders` in `packages/auth/middleware.ts` preserves `TENANT_HEADER` and `ASSIGNMENT_HEADER`. `packages/auth/request-headers.ts` re-exports both names from `@asym/database` so the fetch wrapper and data clients use the same names as the resolver. `getAuthContext` in `packages/auth/context.ts` uses the tenant to narrow the search and proposes the assignment for checking against the caller's live rows and surface class. The database reads that same assignment header through `tenant_guard.request_assignment_id()`. Sending a row ID is not proof that the caller holds it. Cited: [plan 5.1][authority-plan], [plan 5.2][tenant-plan].
+4. **Pass the original pathname to the layout.** `authMiddleware` in `packages/auth/middleware.ts` sets `x-asym-pathname` to the full tenant-addressed pathname, not the shorter rewrite target. A layout redirecting to sign-in can therefore send the visitor back to the same tenant address.
+5. **Read only an exact address prefix.** `readAddressPrefix` in `packages/auth/tenant-server.ts` returns `ADDRESS_PREFIX_HEADER` only when parsing it produces precisely the same prefix: `/<tenant>` or `/<tenant>~<staff-sub-role>`, with no trailing path. Otherwise it returns `null`. Link builders and document-scope readers need the admitted prefix, not an arbitrary destination. Cited: [council round 1, A3][reviews].
+6. **Refuse to render a document whose assignment disagrees with its address.** `readDocumentScope` in `packages/auth/tenant-server.ts` returns `null` without a valid prefix. With one, it requires an authenticated user ID and a resolved assignment. Both the context and the assignment must name the address's tenant; a staff suffix must equal the assignment's staff sub-role. A mismatch throws rather than displaying one tenant's page or one staff role's data under another's address. The resulting document scope carries the resolved user, tenant, assignment ID and prefix. Cited: [council round 1, A3][reviews].
+
+[authority-plan]: ../../../../docs/audits/core-crm-cms-database-target-architecture.md#51-authentication-and-authority
+[tenant-plan]: ../../../../docs/audits/core-crm-cms-database-target-architecture.md#52-choosing-the-tenant
+[reviews]: ../../../../docs/audits/core-crm-cms-database-implementation-record.md#11-council-reviews

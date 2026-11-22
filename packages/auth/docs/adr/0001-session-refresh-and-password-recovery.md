@@ -1,0 +1,25 @@
+# 0001. The proxy refreshes sessions; the reset screen limits password recovery to one hour
+
+**Status:** Recorded on 2026-11-22 from code comments in `packages/auth`
+([#2751](https://github.com/Asymmetric-al/core/issues/2751)). It describes the
+code as it is and ratifies no product intent. Accepted platform intent is in
+[`docs/adr/`](../../../../docs/adr/README.md).
+
+## Context
+
+All three apps use Supabase Auth. A session cookie belongs to the host that set it, and a signed-in session does not by itself show that someone followed a recovery link. The session can outlive the reset form. The screens also have to report email failures without routinely telling a visitor which addresses have accounts.
+
+## Decisions
+
+1. **Validate the user at the proxy and carry refreshed cookies forward.** In the protected-page session flow, `createAuthMiddleware` in `packages/auth/middleware.ts` calls `auth.getUser()` rather than admitting a user from a cookie alone. This lets Supabase reject a revoked session. The client's `getAll` and `setAll` hooks keep the forwarded request and the response in sync, so the page and the browser both receive a refresh.
+2. **Keep login and registration for anonymous visitors.** `requireAnonymousVisitor` in `packages/auth/auth-screen.ts` checks the user on the server before rendering. It needs no tenant because it reads no tenant data. It redirects a signed-in visitor to the sanitized `next` path or the app home, and returns the sanitized path to an anonymous visitor so sign-in can continue there.
+3. **Give address-specific email refusals the same answer as success.** `answerReadsAsSent` in `packages/auth/auth-email-request.ts` treats no error, HTTP 429, and the listed email-rate, address-authorization and existing-account codes as “sent.” Otherwise repeated recovery or registration requests could reveal an account. An unrecognized mailer failure, including a 500 or 504 without a listed code, remains a failure: an outage is not a successful send. This is a screen rule; it changes neither Supabase's public endpoint nor its response times. Cited: [plan 5.4][email-plan], [plan principle PR12][principles], [council round 3][reviews].
+4. **Keep the recovery flow under the existing public path.** `PASSWORD_RECOVERY_PATHS` in `packages/auth/password-recovery.ts` puts the request at `/forgot-password`, the code exchange at `/forgot-password/callback`, and the reset form at `/forgot-password/reset`. The callback sends the visitor on to the reset screen. All three apps can use these paths without opening another public route prefix.
+5. **Return recovery and confirmation emails to the host that requested them.** `passwordRecoveryRedirectUrl` in `packages/auth/password-recovery.ts` and `signUpConfirmationRedirectUrl` in `packages/auth/sign-up-confirmation.ts` build their callback addresses on the supplied origin. Email confirmation is required: registration creates no session until the callback exchanges the code. Returning to the same host puts the session cookie where the person needs it. Each participating origin must be allowed as a redirect by the Supabase project. Cited: [`supabase/config.toml`][config].
+6. **Offer the reset form only for a recent, verified recovery.** `readPasswordRecovery` in `packages/auth/auth-screen.ts` needs no tenant data. It reads the authentication-method history (`amr`) from `auth.getClaims()`, not from a decoded cookie. `passwordRecoverySecondsLeft` in `packages/auth/password-recovery.ts` uses the newest valid recovery method with a numeric timestamp. It skips malformed or timestamp-less entries, allows up to 60 seconds of forward clock skew, and caps the time left at `PASSWORD_RECOVERY_WINDOW_SECONDS` (one hour). Without qualifying evidence the screen offers no form. Ordinary sign-ins use the change-password form, which checks the current password. The window does not expire the session or restrict direct password updates by Supabase: `secure_password_change` is off. Cited: [`supabase/config.toml`][config].
+7. **Measure the window at request time and send the form a duration.** `readPasswordRecovery` in `packages/auth/auth-screen.ts` waits for `connection()` before reading the clock. A prerender or prefetch with cookies should not decide how much time is left when the page opens. `PasswordRecovery.secondsLeft` lets the form set a local deadline and refuse a late submission without assuming the browser and server clocks agree.
+
+[email-plan]: ../../../../docs/audits/core-crm-cms-database-target-architecture.md#54-policies-and-commands
+[principles]: ../../../../docs/audits/core-crm-cms-database-target-architecture.md
+[reviews]: ../../../../docs/audits/core-crm-cms-database-implementation-record.md#11-council-reviews
+[config]: ../../../../supabase/config.toml

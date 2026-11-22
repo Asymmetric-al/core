@@ -7,7 +7,6 @@ import type { CapabilityResolutionErrorCode } from "./errors";
 import type { Capability } from "./registry";
 import type { MembershipRole, StaffSubrole } from "@asym/database/types";
 
-/** The one membership assignment selected for this context. */
 export type AssignmentGrantSource = {
   readonly kind: "assignment";
   readonly assignmentId: string;
@@ -21,7 +20,6 @@ export type AssignmentGrantSource = {
   readonly isActive: boolean;
 };
 
-/** A grant issued to a named subject (issuers: #2284 and #2281). */
 export type NamedGrantSource = {
   readonly kind: "named";
   readonly grantId: string;
@@ -36,23 +34,13 @@ export type NamedGrantSource = {
 
 export type GrantSource = AssignmentGrantSource | NamedGrantSource;
 
-/**
- * One selected context: at most one assignment plus named grants, all for
- * the same tenant. Other memberships, hats and profile roles have no slot.
- */
 export type SelectedGrantContext = {
   readonly tenantId: string;
   readonly sources: readonly GrantSource[];
 };
 
-/** Reserved for Phase 12 tenant overrides; only `undefined` is accepted. */
 export type DormantTenantOverrides = undefined;
 
-/**
- * Bundles for an assignment without a staff subrole, by membership role.
- * Staff with no subrole keep today's donor-care tier only; this is code-only
- * and deliberately not a grant subject.
- */
 const UNSPECIALIZED_ASSIGNMENT_BUNDLES: Readonly<
   Record<MembershipRole, readonly BundleKey[]>
 > = deepFreeze({
@@ -66,7 +54,6 @@ const NAMED_SUBJECTS: Readonly<Record<NamedGrantSubject, GrantSubjectKey>> =
     tenant_admin: "tenant_admin",
   });
 
-/** A source's fields, each read exactly once into a plain object. */
 type SourceSnapshot =
   | {
       readonly kind: "assignment";
@@ -86,7 +73,6 @@ function fail(code: CapabilityResolutionErrorCode): never {
   throw new CapabilityResolutionError(code);
 }
 
-/** Own-key Record lookup; prototype keys and non-strings never match. */
 function lookup<T>(table: Readonly<Record<string, T>>, key: unknown) {
   return typeof key === "string" && Object.hasOwn(table, key)
     ? table[key]
@@ -109,10 +95,6 @@ function snapshotSource(source: unknown): SourceSnapshot {
   return { kind, tenantId, active, subject };
 }
 
-/**
- * Reads the context and each source once, so accessors cannot change a value
- * between validation and the union. Malformed input is `missing_context`.
- */
 function snapshotContext(context: unknown) {
   if (!isRecord(context)) fail("missing_context");
   const { tenantId, sources } = context;
@@ -128,7 +110,6 @@ function snapshotContext(context: unknown) {
 type AssignmentSnapshot = Extract<SourceSnapshot, { kind: "assignment" }>;
 
 function assignmentBundles({ role, staffRole }: AssignmentSnapshot) {
-  // A subrole is null or a primitive string; anything else is never coerced.
   if (staffRole !== null && typeof staffRole !== "string") return undefined;
   const unspecialized = lookup(UNSPECIALIZED_ASSIGNMENT_BUNDLES, role);
   if (unspecialized === undefined || staffRole === null) return unspecialized;
@@ -143,12 +124,6 @@ function bundlesFor(source: SourceSnapshot): readonly BundleKey[] {
   return bundles ?? fail("unknown_subject");
 }
 
-/**
- * Union of the default bundles of every source in one selected context.
- * Validation runs in full before any union, so a bad source yields an error
- * and never a partial result. Foreign tenancy is checked before revocation
- * so another tenant's revocation state is never revealed.
- */
 export function resolveEffectiveCapabilities(
   context: SelectedGrantContext,
   tenantOverrides?: DormantTenantOverrides,
@@ -169,23 +144,14 @@ export function resolveEffectiveCapabilities(
   return Object.freeze([...capabilities].sort());
 }
 
-/** The fields of one selected membership row that decide its capabilities. */
 export type SelectedAssignment = {
   readonly assignmentId: string;
   readonly tenantId: string;
   readonly membershipRole: MembershipRole;
   readonly staffRole: StaffSubrole | null;
-  /** The tenant-administrator flag on a staff row (plan 5.1). */
   readonly isTenantAdmin: boolean;
 };
 
-/**
- * The capabilities one live membership row holds: its sub-role or member
- * bundles and, when a staff row carries the flag, the `tenant_admin` grant.
- * The flag lives only on a staff row (plan 5.1), so on any other row it
- * grants nothing. No other row of the person counts. The database judges the
- * same row with `authz.assignment_capabilities`.
- */
 export function resolveAssignmentCapabilities(
   assignment: SelectedAssignment,
 ): readonly Capability[] {

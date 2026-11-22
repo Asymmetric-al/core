@@ -6,6 +6,7 @@
 - Follow `docs/ai/rules/backend.md`. Session and cookie work is version-sensitive — read current `@supabase/ssr` and Next.js request-API docs, not memory.
 - Fail closed. Do not weaken auth, RLS, or service-role usage from UI or instruction-system work.
 - App auth callback routes should re-export package contracts rather than embedding a second client.
+- The reasons behind this package's rules are in `docs/adr/` (start at `docs/adr/README.md`). Read the record for a module before you change it. Source carries no comments, so a new decision goes there too.
 
 ## Triggers
 

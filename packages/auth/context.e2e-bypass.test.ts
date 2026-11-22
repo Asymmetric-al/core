@@ -106,8 +106,6 @@ describe("getAuthContext E2E bypass", () => {
     expect(ctx.isAuthenticated).toBe(true);
     expect(ctx.userId).toBe("e2e-donor-user");
     expect(ctx.role).toBe("donor");
-    // AL-2675: a bypass identity acts under a membership built from its
-    // cookie's role; the context has no profile role at all.
     expect("profileRole" in ctx).toBe(false);
     expect(ctx.memberships).toEqual([
       {
@@ -386,7 +384,6 @@ describe("getAuthContext E2E bypass", () => {
   });
 
   it("throws when bypass is enabled against a non-allowlisted datasource", async () => {
-    // Allowlist has only "example"; point config at a production-looking ref.
     mockedGetSupabasePublicConfig.mockReturnValue({
       url: "https://prodxxxx.supabase.co",
       key: "example-anon-key",
