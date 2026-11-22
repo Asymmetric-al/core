@@ -107,6 +107,8 @@ on:
       - packages/api/src/field-policies/**
       - packages/api/src/projection/**
       - tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts
+      - packages/api/src/health/app.ts
+      - tests/unit/acceptance/issue-2674/app-health.postgrest.acceptance.test.ts
 
 permissions:
   contents: read
@@ -204,14 +206,16 @@ jobs:
           export MISSIONARY_IT_SERVICE_ROLE_KEY
           MISSIONARY_IT_SERVICE_ROLE_KEY="$(bun run supabase -- status -o json | node -e 'const status = JSON.parse(require("node:fs").readFileSync(0)); if (!status.SERVICE_ROLE_KEY) process.exit(1); process.stdout.write(status.SERVICE_ROLE_KEY)')"
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
-      - name: Verify caller-token field policy reads through PostgREST
+      - name: Verify caller-token field policy reads and anonymous app health through PostgREST
         env:
           FIELD_POLICY_IT_REQUIRED: "1"
           FIELD_POLICY_IT_SUPABASE_URL: http://127.0.0.1:54321
         run: |
           export FIELD_POLICY_IT_ANON_KEY
           FIELD_POLICY_IT_ANON_KEY="$(bun run supabase -- status -o json | jq -er '.ANON_KEY')"
-          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts
+          export APP_HEALTH_IT_SUPABASE_URL="$FIELD_POLICY_IT_SUPABASE_URL"
+          export APP_HEALTH_IT_ANON_KEY="$FIELD_POLICY_IT_ANON_KEY"
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts tests/unit/acceptance/issue-2674/app-health.postgrest.acceptance.test.ts
       - name: Install Playwright Chromium
         id: chromium
         run: bunx playwright install --with-deps chromium
