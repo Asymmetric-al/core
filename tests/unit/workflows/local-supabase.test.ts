@@ -164,6 +164,8 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     for (const path of [
       "scripts/sql/hosted-default-privileges.sql",
       "scripts/verify/supabase-migrations.mjs",
+      "scripts/verify/tenant-rls-catalog.mjs",
+      "docs/security/*.json",
       "scripts/release/schema-fingerprint.mjs",
     ]) {
       expect(workflow).toContain(`      - ${path}\n`);

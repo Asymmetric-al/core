@@ -42,6 +42,8 @@ on:
       - scripts/sql/hosted-default-privileges.sql
       - scripts/sql/supabase-compat-bootstrap.sql
       - scripts/verify/supabase-migrations.mjs
+      - scripts/verify/tenant-rls-catalog.mjs
+      - docs/security/*.json
       - scripts/release/schema-fingerprint.mjs
       # The auth screens, packages, routes and proxies the round trips cover.
       - packages/ui/components/auth/**
