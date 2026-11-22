@@ -7,7 +7,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   findRuntimeConnectionStrings,
+  findSharedRuntimeConnectionStrings,
   formatRuntimeConnectionStrings,
+  main,
   projectEnvMetadata,
   readRuntimeConnectionStrings,
 } from "../../../scripts/verify/runtime-connection-strings.mjs";
@@ -76,7 +78,10 @@ describe("runtime connection-string check (WP1 exit)", () => {
   it("reads each project's and the team's shared variables through the Vercel API, names only", () => {
     const run = vi.fn((_command: string, args: string[]) =>
       args[1]?.startsWith("/v1/env")
-        ? JSON.stringify({ data: [] })
+        ? JSON.stringify({
+            data: [],
+            pagination: { count: 0, prev: null, next: null },
+          })
         : JSON.stringify({ envs: [] }),
     );
     const result = readRuntimeConnectionStrings({
@@ -501,5 +506,130 @@ process.exit(7);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it("requires explicit pagination.next === null to finish shared-variable scan and prints a BLOCKED verdict on refusal", () => {
+    const adminId = EXPECTED_PROJECTS.find(
+      (project) => project.key === "admin",
+    )!.projectId;
+
+    const badBodies: Array<[string, unknown]> = [
+      ["missing pagination", { data: [] }],
+      ["pagination without next", { data: [], pagination: { count: 0 } }],
+      ["empty string next", { data: [], pagination: { count: 0, next: "" } }],
+      ["bare array", []],
+      ["boolean next", { data: [], pagination: { count: 0, next: false } }],
+    ];
+
+    for (const [label, body] of badBodies) {
+      const run = vi.fn((_command: string, args: string[]) =>
+        args[1]?.startsWith("/v1/env")
+          ? JSON.stringify(body)
+          : JSON.stringify({ envs: [] }),
+      );
+      expect(
+        () =>
+          readRuntimeConnectionStrings({
+            scope: "asymmetric-al",
+            run,
+          }),
+        label,
+      ).toThrow(/pagination|shared variable list/i);
+    }
+
+    // Pure helper keeps accepting an array fixture directly.
+    expect(
+      findSharedRuntimeConnectionStrings({
+        listing: [
+          {
+            key: "SUPABASE_DB_URL",
+            target: ["production"],
+            projectId: [adminId],
+          },
+        ],
+        scope: "asymmetric-al",
+      }),
+    ).toEqual([
+      {
+        scope: "team-shared",
+        team: "asymmetric-al",
+        projects: ["admin"],
+        key: "SUPABASE_DB_URL",
+        environments: ["production"],
+      },
+    ]);
+
+    // Genuine last page with next: null and empty data preserves page-1 findings.
+    const twoPageRun = vi.fn((_command: string, args: string[]) => {
+      if (args[1] === "/v1/env") {
+        return JSON.stringify({
+          data: [
+            {
+              id: "env_1",
+              key: "SUPABASE_DB_URL",
+              type: "sensitive",
+              target: ["production"],
+              projectId: [adminId],
+            },
+          ],
+          pagination: { count: 1, prev: 1700000000000, next: 1700000000000 },
+        });
+      }
+      if (args[1] === "/v1/env?until=1700000000000") {
+        return JSON.stringify({
+          data: [],
+          pagination: { count: 0, prev: null, next: null },
+        });
+      }
+      return JSON.stringify({ envs: [] });
+    });
+
+    expect(
+      readRuntimeConnectionStrings({
+        scope: "asymmetric-al",
+        run: twoPageRun,
+      }),
+    ).toEqual([
+      {
+        scope: "team-shared",
+        team: "asymmetric-al",
+        projects: ["admin"],
+        key: "SUPABASE_DB_URL",
+        environments: ["production"],
+      },
+    ]);
+
+    // Refusal verdict line via main without spawning the script or leaking CLI output.
+    const secretStderr = "SECRET_CLI_STDERR_MARKER_R1";
+    const logs: string[] = [];
+    const errors: string[] = [];
+    const exitCode = main({
+      scope: "asymmetric-al",
+      run: () => {
+        const error = new Error(`Command failed: ${secretStderr}`) as Error & {
+          status?: number;
+          stderr?: string;
+        };
+        error.status = 3;
+        error.stderr = secretStderr;
+        throw error;
+      },
+      log: (line: string) => logs.push(line),
+      logError: (line: string) => errors.push(line),
+    });
+
+    expect(exitCode).toBe(1);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatch(/^runtime-connection-strings: /);
+    const sanitizedMessage = errors[0]!.replace(
+      /^runtime-connection-strings: /,
+      "",
+    );
+    expect(sanitizedMessage).toContain("exit code 3");
+    expect(sanitizedMessage).not.toContain(secretStderr);
+    expect(logs.at(-1)).toBe(
+      `Overall: BLOCKED (could not read: ${sanitizedMessage})`,
+    );
+    expect(logs.join("\n")).not.toContain(secretStderr);
   });
 });

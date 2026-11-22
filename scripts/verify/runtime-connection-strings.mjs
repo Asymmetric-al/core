@@ -200,20 +200,39 @@ function readSharedRuntimeConnectionStrings({ scope, run }) {
     } catch {
       throw new Error(`Vercel returned no shared variable list for ${scope}.`);
     }
-    const page = Array.isArray(listing)
-      ? listing
-      : Array.isArray(listing?.data)
-        ? listing.data
-        : null;
-    if (!page) {
+    if (
+      !listing ||
+      typeof listing !== "object" ||
+      Array.isArray(listing) ||
+      !Array.isArray(listing.data)
+    ) {
       throw new Error(`Vercel returned no shared variable list for ${scope}.`);
     }
-    for (const entry of page) {
+    const pagination = listing.pagination;
+    if (
+      !pagination ||
+      typeof pagination !== "object" ||
+      Array.isArray(pagination) ||
+      !Object.prototype.hasOwnProperty.call(pagination, "next")
+    ) {
+      throw new Error(
+        `Vercel returned no pagination for the shared variables of ${scope}.`,
+      );
+    }
+    for (const entry of listing.data) {
       allEnvs.push(projectEnvMetadata(entry));
     }
-    const next = listing?.pagination?.next;
-    if (next === null || next === undefined || next === "") {
+    const next = pagination.next;
+    if (next === null) {
       break;
+    }
+    const validCursor =
+      (typeof next === "number" && Number.isFinite(next)) ||
+      (typeof next === "string" && next.length > 0);
+    if (!validCursor) {
+      throw new Error(
+        `Vercel returned invalid pagination cursor for the shared variables of ${scope}.`,
+      );
     }
     const nextKey = String(next);
     if (
@@ -294,16 +313,28 @@ export function formatRuntimeConnectionStrings(found) {
   return lines.join("\n");
 }
 
+export function main({
+  scope = DEFAULT_SCOPE,
+  run = defaultRunVercel,
+  log = console.log,
+  logError = console.error,
+} = {}) {
+  try {
+    const found = readRuntimeConnectionStrings({ scope, run });
+    log(formatRuntimeConnectionStrings(found));
+    return found.length > 0 ? 1 : 0;
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unexpected verification error.";
+    logError(`runtime-connection-strings: ${message}`);
+    log(`Overall: BLOCKED (could not read: ${message})`);
+    return 1;
+  }
+}
+
 if (
   process.argv[1] &&
   fileURLToPath(import.meta.url) === path.resolve(process.argv[1])
 ) {
-  try {
-    const found = readRuntimeConnectionStrings({});
-    console.log(formatRuntimeConnectionStrings(found));
-    if (found.length > 0) process.exitCode = 1;
-  } catch (error) {
-    console.error(`runtime-connection-strings: ${error.message}`);
-    process.exitCode = 1;
-  }
+  process.exitCode = main();
 }
