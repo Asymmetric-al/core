@@ -23,6 +23,7 @@ describe("Eve generated build output", () => {
     "packages/eve-runtime/agent/sandbox.ts",
     "packages/eve-runtime/src/governance-boundary.ts",
     "packages/eve-runtime/scripts/build.mjs",
+    "packages/eve-runtime/scripts/check-production-governance.ts",
   ])("continues to lint authored source at %s", async (file) => {
     expect(await eslint.isPathIgnored(path.resolve(file))).toBe(false);
     const workspaceEslint = file.startsWith("apps/admin/")

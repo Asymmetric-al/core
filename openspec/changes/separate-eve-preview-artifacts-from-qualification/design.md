@@ -6,15 +6,24 @@ dispatcher defaults to full compilation/prewarming and rejects unknown modes.
 Explicit `build:artifacts` and `build:full` commands remain available.
 
 Admin's existing `withEve` integration uses one stable `build:service` command.
-That dispatcher selects artifact mode only when it executes on a hosted preview.
+That dispatcher selects artifact mode on a hosted preview, or on a hosted Vercel
+production build ONLY when live persisted governance
+(`resolveEveSandboxNetworkDecision()` via `scripts/check-production-governance.ts`)
+explicitly confirms `release_disabled`. This resolves the deadlock with
+`eve-final-release-switch-launch-verification` (which requires deploying
+`apps/admin` with Eve's release switch off) without enabling Eve or permitting
+sandbox egress. Whenever persisted governance is unavailable, `emergency_off`,
+`kill_switch_active`, `policy_not_ready`, or `release_enabled`, production
+service builds stay on the full SDK prewarm path and fail closed on denial.
 The SDK preserves existing generated service commands, so choosing the mode only
 when generating config could carry a preview skip into a later production build.
-Service execution ignores the generic web artifact variable; production and
-ordinary standalone commands retain the SDK's full build. A production target
-overrides a conflicting preview environment marker. The dispatcher uses the
-canonical deployment-environment helpers so case and whitespace cannot hide a
-production target. Hosted core-development and legacy staging retain artifact
-mode; an explicit local development target retains full mode.
+Service execution ignores the generic web artifact variable; ordinary standalone
+and `build:full` commands retain the SDK's full build regardless of governance.
+A production target overrides a conflicting preview environment marker. The
+dispatcher uses the canonical deployment-environment helpers so case and
+whitespace cannot hide a production target. Hosted core-development and legacy
+staging retain artifact mode; an explicit local development target retains full
+mode.
 
 Both named build commands select their explicit mode through the same dispatcher,
 overriding an inherited generic build mode. Full mode rejects the SDK's

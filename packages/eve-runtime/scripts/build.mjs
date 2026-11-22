@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,6 +16,15 @@ const EVE_BINARY = path.join(
   "bin/eve.js",
 );
 const PACKAGE_ROOT = fileURLToPath(new URL("..", import.meta.url));
+const GOVERNANCE_CHECK_SCRIPT = path.join(
+  PACKAGE_ROOT,
+  "scripts",
+  "check-production-governance.ts",
+);
+const GOVERNANCE_UNAVAILABLE = Object.freeze({
+  allowed: false,
+  reason: "governance_unavailable",
+});
 
 function isHostedArtifactServiceBuild(environment) {
   return (
@@ -25,30 +35,124 @@ function isHostedArtifactServiceBuild(environment) {
   );
 }
 
+function isHostedProductionServiceBuild(environment) {
+  return environment.VERCEL === "1" && isProductionDeployment(environment);
+}
+
+function resolveBunExecutable(environment) {
+  const execPath = environment.npm_execpath;
+  if (
+    typeof execPath === "string" &&
+    /(?:^|[/\\])bun(?:\.exe)?$/iu.test(execPath)
+  ) {
+    return execPath;
+  }
+  return "bun";
+}
+
+function defaultResolveProductionGovernance(environment) {
+  if (
+    typeof environment.NEXT_PUBLIC_SUPABASE_URL !== "string" ||
+    environment.NEXT_PUBLIC_SUPABASE_URL.trim().length === 0
+  ) {
+    return GOVERNANCE_UNAVAILABLE;
+  }
+  if (!existsSync(GOVERNANCE_CHECK_SCRIPT)) {
+    return GOVERNANCE_UNAVAILABLE;
+  }
+
+  const result = spawnSync(
+    resolveBunExecutable(environment),
+    [GOVERNANCE_CHECK_SCRIPT],
+    {
+      cwd: PACKAGE_ROOT,
+      env: environment,
+      encoding: "utf8",
+      shell: false,
+      timeout: 15_000,
+    },
+  );
+  if (result.error || result.status !== 0) {
+    return GOVERNANCE_UNAVAILABLE;
+  }
+
+  const lastLine = (result.stdout ?? "").trim().split(/\r?\n/u).at(-1);
+  if (!lastLine) {
+    return GOVERNANCE_UNAVAILABLE;
+  }
+
+  try {
+    const parsed = JSON.parse(lastLine);
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      typeof parsed.allowed === "boolean" &&
+      typeof parsed.reason === "string"
+    ) {
+      return { allowed: parsed.allowed, reason: parsed.reason };
+    }
+  } catch {
+    // Malformed output fails closed to full qualification.
+  }
+
+  return GOVERNANCE_UNAVAILABLE;
+}
+
+function isPersistedReleaseDisabled(environment, resolveProductionGovernance) {
+  try {
+    const decision = resolveProductionGovernance(environment);
+    return (
+      decision?.allowed === false && decision?.reason === "release_disabled"
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function runEveBuild({
   environment = process.env,
   args = [],
   service = false,
   mode: explicitMode,
   spawn = spawnSync,
+  resolveProductionGovernance = defaultResolveProductionGovernance,
 } = {}) {
-  // Generated Vercel service config can survive a later build in this checkout.
-  // Decide from the service's current target, never from a saved preview command
-  // or the artifact mode inherited from the generic web dependency build.
-  const mode =
-    explicitMode ??
-    (service
-      ? isHostedArtifactServiceBuild(environment)
-        ? "artifacts"
-        : "full"
-      : (environment.CORE_EVE_BUILD_MODE ?? "full"));
-  if (mode !== "full" && mode !== "artifacts") {
-    throw new Error("CORE_EVE_BUILD_MODE must be full or artifacts.");
-  }
   if (
     args.some((arg) => ["--full", "--artifacts", "--service"].includes(arg))
   ) {
     throw new Error("Eve build mode selectors cannot be combined.");
+  }
+  if (service && args.includes("--skip-sandbox-prewarm")) {
+    throw new Error(
+      "--skip-sandbox-prewarm is only supported in artifacts mode.",
+    );
+  }
+
+  // Generated Vercel service config can survive a later build in this checkout.
+  // Decide from the service's current target, never from a saved preview command
+  // or the artifact mode inherited from the generic web dependency build.
+  let releaseOffProduction = false;
+  let mode;
+  if (explicitMode !== undefined) {
+    mode = explicitMode;
+  } else if (service) {
+    if (isHostedArtifactServiceBuild(environment)) {
+      mode = "artifacts";
+    } else if (
+      isHostedProductionServiceBuild(environment) &&
+      isPersistedReleaseDisabled(environment, resolveProductionGovernance)
+    ) {
+      mode = "artifacts";
+      releaseOffProduction = true;
+    } else {
+      mode = "full";
+    }
+  } else {
+    mode = environment.CORE_EVE_BUILD_MODE ?? "full";
+  }
+
+  if (mode !== "full" && mode !== "artifacts") {
+    throw new Error("CORE_EVE_BUILD_MODE must be full or artifacts.");
   }
   if (mode === "full" && args.includes("--skip-sandbox-prewarm")) {
     throw new Error(
@@ -58,7 +162,11 @@ export function runEveBuild({
 
   const buildArgs = [EVE_BINARY, "build"];
   if (mode === "artifacts") {
-    console.log("Eve artifact build: sandbox qualification is still required.");
+    console.log(
+      releaseOffProduction
+        ? "Eve Release-Off production artifact build: persisted governance confirms release_disabled; sandbox qualification remains required before enabling Eve."
+        : "Eve artifact build: sandbox qualification is still required.",
+    );
     buildArgs.push("--skip-sandbox-prewarm");
   }
   buildArgs.push(...args);

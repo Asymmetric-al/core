@@ -28,6 +28,7 @@ function runScript(
   args: string[],
   mode: string,
   signals: Record<string, string> = {},
+  governanceProbeSource?: string,
 ) {
   const directory = mkdtempSync(path.join(tmpdir(), "core-eve-build-cli-"));
   fixtures.push(directory);
@@ -36,6 +37,12 @@ function runScript(
     "packages/eve-runtime/scripts/build.mjs",
     path.join(directory, "scripts/build.mjs"),
   );
+  if (governanceProbeSource !== undefined) {
+    writeFileSync(
+      path.join(directory, "scripts/check-production-governance.ts"),
+      governanceProbeSource,
+    );
+  }
   const pkg = JSON.parse(
     readFileSync("packages/eve-runtime/package.json", "utf8"),
   );
@@ -131,5 +138,74 @@ describe("named Eve build commands", () => {
     const result = runScript("build:artifacts", [], "full");
     expect(result.status, result.stderr).toBe(0);
     expect(result.sdkArgs).toEqual(["build", "--skip-sandbox-prewarm"]);
+  });
+
+  it("skips sandbox prewarm for hosted production build:service only when persisted governance reports release_disabled", () => {
+    const result = runScript(
+      "build:service",
+      [],
+      "full",
+      {
+        VERCEL: "1",
+        VERCEL_ENV: "production",
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      },
+      'process.stdout.write(JSON.stringify({ allowed: false, reason: "release_disabled" }) + "\\n");\n',
+    );
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.sdkArgs).toEqual(["build", "--skip-sandbox-prewarm"]);
+  });
+
+  it.each([
+    [
+      "governance_unavailable",
+      'process.stdout.write(JSON.stringify({ allowed: false, reason: "governance_unavailable" }) + "\\n");\n',
+    ],
+    [
+      "emergency_off",
+      'process.stdout.write(JSON.stringify({ allowed: false, reason: "emergency_off" }) + "\\n");\n',
+    ],
+    [
+      "governance_allowed",
+      'process.stdout.write(JSON.stringify({ allowed: true, reason: "governance_allowed" }) + "\\n");\n',
+    ],
+    ["helper crash", "process.exit(1);\n"],
+  ])(
+    "retains full prewarm for hosted production build:service when governance reports %s",
+    (_label, probeSource) => {
+      const result = runScript(
+        "build:service",
+        [],
+        "artifacts",
+        {
+          VERCEL: "1",
+          VERCEL_ENV: "production",
+          NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+        },
+        probeSource,
+      );
+      expect(result.status, result.stderr).toBe(0);
+      expect(result.sdkArgs).toEqual(["build"]);
+    },
+  );
+
+  it("real production governance helper fails closed to governance_unavailable when credentials are absent", () => {
+    const result = spawnSync(
+      "bun",
+      ["scripts/check-production-governance.ts"],
+      {
+        cwd: path.resolve("packages/eve-runtime"),
+        env: { PATH: process.env.PATH },
+        encoding: "utf8",
+        timeout: 15_000,
+      },
+    );
+    expect(result.error).toBeUndefined();
+    expect(result.status, result.stderr).toBe(0);
+    const lastLine = result.stdout.trim().split(/\r?\n/).at(-1) ?? "";
+    expect(JSON.parse(lastLine)).toEqual({
+      allowed: false,
+      reason: "governance_unavailable",
+    });
   });
 });
