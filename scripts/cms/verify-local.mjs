@@ -4,6 +4,7 @@ import path from "node:path";
 
 import nextEnv from "@next/env";
 
+import { isLocalCmsVerificationTarget } from "./lib/env.mjs";
 import {
   DEMO_ADMIN_EMAIL,
   DEMO_ADMIN_PASSWORD,
@@ -12,7 +13,6 @@ import {
   DEMO_PUBLIC_TENANT_SLUG,
   EDITORIAL_COLLECTIONS,
   LOCAL_ADMIN_URL,
-  LOCAL_DATABASE_URL,
   LOCAL_SEED_SLUGS,
   LOCAL_SUPABASE_URL,
   LOCAL_TEMPLATE_KEYS,
@@ -55,10 +55,6 @@ function assertCheck(name, condition, detail, fix) {
 
   fail(name, `${detail}${fix ? `\n  Fix: ${fix}` : ""}`);
   return false;
-}
-
-function isLocalUrl(value, expected) {
-  return value === expected || value?.startsWith("http://localhost:");
 }
 
 async function verifyHttpIfServerRunning(seed) {
@@ -272,24 +268,19 @@ async function main() {
     );
   }
 
-  assertCheck(
-    "env NEXT_PUBLIC_SUPABASE_URL local",
-    isLocalUrl(process.env.NEXT_PUBLIC_SUPABASE_URL, LOCAL_SUPABASE_URL),
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "missing",
-  );
-  assertCheck(
-    "env PAYLOAD_DATABASE_URI local",
-    process.env.PAYLOAD_DATABASE_URI === LOCAL_DATABASE_URL ||
-      process.env.PAYLOAD_DATABASE_URI?.includes("127.0.0.1:54322") ||
-      process.env.PAYLOAD_DATABASE_URI?.includes("localhost:54322"),
-    process.env.PAYLOAD_DATABASE_URI || "missing",
-  );
+  if (
+    !isLocalCmsVerificationTarget(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.PAYLOAD_DATABASE_URI,
+    )
+  ) {
+    throw new Error(
+      "Local CMS verification requires loopback Supabase and database URLs.",
+    );
+  }
 
   runPsql("select 1;");
-  pass(
-    "postgres reachable",
-    process.env.PAYLOAD_DATABASE_URI || LOCAL_DATABASE_URL,
-  );
+  pass("postgres reachable", "loopback database");
 
   const seed = queryJson(`
     WITH tenant AS (
@@ -317,6 +308,7 @@ async function main() {
     fund AS (
       SELECT id FROM public.funds
       WHERE tenant_id = '${DEMO_PUBLIC_TENANT_ID}'::uuid
+        AND system_purpose IS NULL
       ORDER BY created_at, id
       LIMIT 1
     )

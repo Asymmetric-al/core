@@ -60,7 +60,6 @@ export class Stack {
         .filter((f) => /^\d{14}_.+\.sql$/.test(f) && f < NAME)
         .sort()
         .map((f) => `${MIG}/${f}`),
-      "supabase/seed.sql",
     ]) {
       const r = spawnSync(
         process.env.PSQL_BIN?.trim() || "psql",
@@ -85,6 +84,10 @@ export class Stack {
       ).toBe(0);
     }
     await this.db.connect();
+    // D-18: this historical predecessor predates legal entities. Only the signup tenant is needed by the isolated fixture.
+    await this.db.query(
+      "insert into public.tenants(id,name,slug) values ('00000000-0000-0000-0000-000000000001','Fixture signup','fixture-signup') on conflict (id) do nothing",
+    );
     // Plain-PG bootstrap omits hosted Supabase's service-role table defaults.
     // Establish that predecessor ACL before measuring preservation; never
     // repair grants after applying the migration under test.

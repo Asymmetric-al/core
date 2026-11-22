@@ -69,6 +69,7 @@ export type OrgPostVisibility = "all_donors" | "followers_only";
 
 export interface Tenant {
   id: string;
+  status: "active" | "suspended" | "closed";
   name: string;
   slug: string;
   org_post_visibility: OrgPostVisibility;
@@ -81,6 +82,28 @@ export interface Tenant {
   locale: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface LegalEntity {
+  id: string;
+  tenant_id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface PaymentAccountBinding {
+  id: string;
+  tenant_id: string;
+  legal_entity_id: string;
+  created_at: string;
+}
+
+export interface GivingTargetEntityLock {
+  id: string;
+  tenant_id: string;
+  legal_entity_id: string;
+  fund_id: string | null;
+  missionary_id: string | null;
 }
 
 export interface DonorFeedPreferences {
@@ -100,6 +123,7 @@ export interface DonorFeedPreferences {
 
 export interface Missionary {
   id: string;
+  legal_entity_id: string;
   tenant_id: string;
   profile_id: string;
   bio: string | null;
@@ -193,6 +217,8 @@ export interface DonorWithProfile extends Donor {
 
 export interface Fund {
   id: string;
+  legal_entity_id: string;
+  system_purpose: "fee_cover" | null;
   tenant_id: string;
   name: string;
   description: string | null;

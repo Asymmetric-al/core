@@ -69,7 +69,9 @@ describeLive("tenant fixture cleanup", (stack) => {
        union all select 'public.donations', count(*)::int from public.donations where tenant_id = $1
        union all select 'public.posts', count(*)::int from public.posts where tenant_id = $1
        union all select 'public.locations', count(*)::int from public.locations where tenant_id = $1
-       union all select 'public.funds', count(*)::int from public.funds where tenant_id = $1`,
+       union all select 'public.funds', count(*)::int from public.funds where tenant_id = $1
+       union all select 'public.giving_target_entity_locks', count(*)::int from public.giving_target_entity_locks where tenant_id = $1
+       union all select 'public.legal_entities', count(*)::int from public.legal_entities where tenant_id = $1`,
       [written.tenantId, written.userId],
     );
     console.info(

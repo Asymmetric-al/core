@@ -223,7 +223,7 @@ describe("#2255 rollback", () => {
 });
 
 describe("#2255 consumers and docs", () => {
-  it("15: no code in apps/, packages/, scripts/, tooling/ names either table; database.ts byte-unchanged", () => {
+  it("15: no code in apps/, packages/, scripts/, tooling/ names either table; database.ts stays pinned", () => {
     const files = execFileSync(
       "git",
       ["ls-files", "-z", "apps", "packages", "scripts", "tooling"],
@@ -233,11 +233,12 @@ describe("#2255 consumers and docs", () => {
       .filter(Boolean);
     const re = new RegExp(`${CLAIMS}|${INVITES}`);
     expect(files.filter((f) => re.test(readFileSync(f, "utf8")))).toEqual([]);
+    // D-18: AL-2676 adds tenant status and giving-entity rows, not claim or invite consumers.
     expect(
       createHash("sha256")
         .update(readFileSync("packages/database/types/database.ts"))
         .digest("hex"),
-    ).toBe("03e9e030ec511a62d96f2461e822fe4185ca42ec56d0182964f6e26b54466934");
+    ).toBe("942e3239260618c138b91b992c6cc25531ffbf5629ea1f1e5030f3018cede907");
   });
 
   it(`16: ${DOC} covers both tables, columns, access matrix, Q15, Q16, writers and rollback order`, () => {

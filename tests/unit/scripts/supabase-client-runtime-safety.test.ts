@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -5,6 +7,12 @@ import {
   createTrackedFixtureUser,
   fixtureAuthUserCleanupOperations,
   fixtureTableCleanupOperations,
+  LEGAL_ENTITY_FIXTURE_DELETE,
+  LEGAL_ENTITY_FIXTURE_INSERT,
+  legalEntityFixtureCommand,
+  MEMBERSHIP_FIXTURE_DELETE,
+  MEMBERSHIP_FIXTURE_INSERT,
+  orderFixtureCleanup,
   runFixtureCleanup,
   verifyLocalFixtureTarget,
 } from "../../integration/supabase/client-runtime-checks.mjs";
@@ -25,6 +33,31 @@ const kong = {
 };
 
 describe("owned local SDK target", () => {
+  it("requires the project's running database before staging a legal entity", async () => {
+    const database = {
+      ...kong,
+      id: "b".repeat(64),
+      name: `/supabase_db_${projectId}`,
+      ports: {},
+    };
+    const inspect = vi.fn().mockResolvedValue({
+      endpoint: "unix:///var/run/docker.sock",
+      containers: [kong],
+    });
+    await expect(
+      verifyLocalFixtureTarget(target, { inspect, requireDatabase: true }),
+    ).rejects.toThrow(/owned local database/);
+    inspect.mockResolvedValue({
+      endpoint: "unix:///var/run/docker.sock",
+      containers: [kong, database],
+    });
+    await expect(
+      verifyLocalFixtureTarget(target, { inspect, requireDatabase: true }),
+    ).resolves.toMatchObject({
+      databaseId: database.id,
+      endpoint: "unix:///var/run/docker.sock",
+    });
+  });
   it("requires independent local daemon and published gateway evidence", async () => {
     const inspect = vi.fn().mockResolvedValue({
       endpoint: "unix:///var/run/docker.sock",
@@ -489,5 +522,125 @@ describe("ambiguous fixture user creation", () => {
     expect(fixture.auth.getUserById).toHaveBeenCalledWith(reservation.id);
     expect(fixture.users.size).toBe(0);
     expect(fixture.profiles.size).toBe(0);
+  });
+});
+
+// K7 (fix check, 21 November): the fixture's legal entity is written by psql
+// in the owned database container, with the explicit host and none of the
+// Docker client settings, and removed in key order.
+describe("the SDK fixture's legal entity", () => {
+  it("runs psql in the owned database container without inherited Docker client settings", () => {
+    const invocation = legalEntityFixtureCommand({
+      endpoint: "unix:///var/run/docker.sock",
+      databaseId: "b".repeat(64),
+      entityId: "11111111-1111-4111-8111-111111111111",
+      tenantId: "22222222-2222-4222-8222-222222222222",
+      runId: "33333333-3333-4333-8333-333333333333",
+      env: {
+        PATH: "/usr/bin",
+        DOCKER_HOST: "tcp://elsewhere:2376",
+        DOCKER_CONTEXT: "remote",
+        DOCKER_TLS_VERIFY: "1",
+        DOCKER_CERT_PATH: "/certs",
+      },
+    });
+    expect(invocation.command).toBe("docker");
+    expect(invocation.args.slice(0, 6)).toEqual([
+      "--host",
+      "unix:///var/run/docker.sock",
+      "exec",
+      "-i",
+      "b".repeat(64),
+      "psql",
+    ]);
+    expect(invocation.args).toEqual(
+      expect.arrayContaining([
+        "entity_id=11111111-1111-4111-8111-111111111111",
+        "tenant_id=22222222-2222-4222-8222-222222222222",
+        "run_id=33333333-3333-4333-8333-333333333333",
+        "ON_ERROR_STOP=1",
+      ]),
+    );
+    expect(invocation.env).toEqual({ PATH: "/usr/bin" });
+  });
+
+  it("binds the entity to the run's own tenant and removes only that row", () => {
+    expect(LEGAL_ENTITY_FIXTURE_INSERT).toMatch(
+      /WHERE id = :'tenant_id'::uuid AND name = 'SDK qualification fixture ' \|\| :'run_id'/,
+    );
+    expect(LEGAL_ENTITY_FIXTURE_DELETE).toMatch(
+      /DELETE FROM public\.legal_entities\s+WHERE id = :'entity_id'::uuid AND tenant_id = :'tenant_id'::uuid AND name = :'run_id';/,
+    );
+  });
+
+  it("removes the funds before their legal entity, and the entity and membership before the tenants", () => {
+    const step = (label: string) => ({ label, run: async () => {} });
+    expect(
+      orderFixtureCleanup({
+        channels: step("channels"),
+        funds: [step("fund")],
+        legalEntity: step("entity"),
+        membership: step("membership"),
+        users: [step("user")],
+        tenants: [step("tenant-a"), step("tenant-b")],
+        census: step("census"),
+      }).map((operation: { label: string }) => operation.label),
+    ).toEqual([
+      "channels",
+      "fund",
+      "entity",
+      "membership",
+      "user",
+      "tenant-a",
+      "tenant-b",
+      "census",
+    ]);
+  });
+
+  // L1: the fixture user reads the fund on its own token, as staff of the
+  // run's own tenant only.
+  it("gives the run's own user a staff membership in the run's own tenant, and removes only that row", () => {
+    expect(MEMBERSHIP_FIXTURE_INSERT).toMatch(/'staff', 'development', false/);
+    expect(MEMBERSHIP_FIXTURE_INSERT).toMatch(
+      /t\.name = 'SDK qualification fixture ' \|\| :'run_id'/,
+    );
+    expect(MEMBERSHIP_FIXTURE_INSERT).toMatch(
+      /raw_app_meta_data->>'sdk_qualification_run' = :'run_id'/,
+    );
+    expect(MEMBERSHIP_FIXTURE_DELETE).toMatch(
+      /WHERE id = :'membership_id'::uuid AND user_id = :'user_id'::uuid AND tenant_id = :'tenant_id'::uuid;/,
+    );
+  });
+
+  // Round M (L1's committed test): the verifier is run by hand, so its
+  // source is held here. The caller reads the fund on its own token with
+  // both request headers, never through the service key, and two refusals
+  // are checked: the member under another tenant, and a signed-in user with
+  // no membership under the fund's own tenant.
+  it("reads the fund on the caller's own token and checks both refusals", () => {
+    const verifier = readFileSync(
+      "tests/integration/supabase/client-runtime-verification.mjs",
+      "utf8",
+    );
+    expect(verifier).toMatch(/Authorization: `Bearer \$\{token\}`/);
+    expect(verifier).toMatch(/"x-asym-tenant": tenantId/);
+    expect(verifier).toMatch(/"x-asym-assignment": membershipId/);
+    expect(verifier).toMatch(
+      /asCaller\(tenantIds\[0\]\)\s*\.from\("funds"\)\s*\.select\(/,
+    );
+    expect(verifier).toMatch(
+      /asCaller\(tenantIds\[1\]\)\s*\.from\("funds"\)\s*\.select\(/,
+    );
+    expect(verifier).not.toMatch(
+      /\badmin\s*\.from\(\s*["'`]funds["'`]\s*\)\s*\.select\(/,
+    );
+    expect(verifier).toMatch(/\.signInWithPassword\(users\[1\]\)/);
+    expect(verifier).toMatch(/"x-asym-tenant": tenantIds\[0\]/);
+    for (const label of [
+      "caller-token-reads-minor-units-and-currency",
+      "caller-token-denied-under-other-tenant",
+      "caller-token-non-member-denied",
+    ])
+      expect(verifier).toContain(`"${label}"`);
   });
 });

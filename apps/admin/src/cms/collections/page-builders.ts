@@ -198,6 +198,7 @@ async function validateGivingSourceReference(
   const { data } = await supabase
     .from("funds")
     .select("id")
+    .is("system_purpose", null)
     .eq("id", value)
     .eq("tenant_id", publicTenantId)
     .maybeSingle();

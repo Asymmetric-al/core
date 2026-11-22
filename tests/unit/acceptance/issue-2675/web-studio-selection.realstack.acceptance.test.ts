@@ -243,6 +243,21 @@ describe.skipIf(!ADMIN_URL)(
         expect(await decide(await cookie("TB", "wsB"))).toBe("wsB");
       }));
 
+    it.each(["suspended", "closed"])(
+      "refuses a selected %s tenant in the strategy and in the layout",
+      (status) =>
+        tx(async () => {
+          const selected = await cookie("TB", "wsB");
+          expect(await signIn(selected)).toBe("TB");
+          await db.query("update public.tenants set status=$1 where id=$2", [
+            status,
+            id.TB,
+          ]);
+          expect(await signIn(selected)).toBe("refused: no_selection");
+          expect(await decide(selected)).toBe("choose");
+        }),
+    );
+
     it("denies the revoked row at the next resolution, and falls back to nothing", () =>
       tx(async () => {
         const selected = await cookie("TB", "wsB");

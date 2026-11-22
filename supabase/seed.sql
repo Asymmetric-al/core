@@ -1,5 +1,6 @@
 -- Deterministic demo seed for Supabase
--- - Idempotent by design (reset + deterministic inserts)
+-- - Repeatable on a disposable database containing only these fixtures. Other
+--   referencing rows can block tenant deletion under RESTRICT; reset first.
 -- - Two tenants (AL-2675): the demo organization, which holds the demo
 --   dataset, and a second organization as a fixture, so every suite and the
 --   seeded application have two tenants
@@ -14,6 +15,7 @@ SET LOCAL timezone = 'UTC';
 -- 0) Reset public app tables in dependency order.
 -- ---------------------------------------------------------------------------
 DELETE FROM authz.memberships;
+DELETE FROM public.contribution_approval_policies;
 DELETE FROM public.notification_queue;
 DELETE FROM public.pledge_charge_attempts;
 DELETE FROM public.audit_logs;
@@ -36,9 +38,14 @@ DELETE FROM public.donations;
 DELETE FROM public.campaigns;
 DELETE FROM public.posts;
 DELETE FROM public.donor_pledges;
+-- K9: a target that a lock names cannot be deleted; a reset removes the
+-- permanent locks first, as their owner, on a disposable database only.
+DELETE FROM public.giving_target_entity_locks;
 DELETE FROM public.funds;
 DELETE FROM public.donors;
 DELETE FROM public.missionaries;
+DELETE FROM public.payment_account_bindings;
+DELETE FROM public.legal_entities;
 DELETE FROM public.locations;
 DELETE FROM public.profiles;
 DELETE FROM public.tenants;
@@ -481,6 +488,12 @@ $seed$;
 -- ---------------------------------------------------------------------------
 -- 2) Missionaries, donors, funds (projects)
 -- ---------------------------------------------------------------------------
+INSERT INTO public.legal_entities(id,tenant_id,name)
+SELECT md5(id::text||':legal')::uuid,id,name FROM public.tenants;
+INSERT INTO public.funds(id,tenant_id,legal_entity_id,name,system_purpose)
+SELECT md5(tenant_id::text||':fee')::uuid,tenant_id,id,'Fee cover','fee_cover' FROM public.legal_entities;
+INSERT INTO public.contribution_approval_policies(tenant_id,ownership_mode) SELECT id,'no_approval_required' FROM public.tenants;
+
 WITH missionary_seed AS (
   SELECT
     gs,
@@ -506,6 +519,7 @@ WITH missionary_seed AS (
 INSERT INTO public.missionaries (
   id,
   tenant_id,
+  legal_entity_id,
   profile_id,
   bio,
   mission_field,
@@ -529,6 +543,7 @@ INSERT INTO public.missionaries (
 SELECT
   id,
   '00000000-0000-0000-0000-000000000001',
+  md5('00000000-0000-0000-0000-000000000001:legal')::uuid,
   -- Display-only teams have no authenticated profile. The demo identity below
   -- must resolve to exactly one missionary.
   NULL::uuid,
@@ -584,6 +599,7 @@ FROM missionary_seed;
 INSERT INTO public.missionaries (
   id,
   tenant_id,
+  legal_entity_id,
   profile_id,
   bio,
   mission_field,
@@ -607,6 +623,7 @@ INSERT INTO public.missionaries (
 VALUES (
   '11111111-1111-1111-1111-111111111111',
   '00000000-0000-0000-0000-000000000001',
+  md5('00000000-0000-0000-0000-000000000001:legal')::uuid,
   '11111111-1111-1111-1111-111111111111',
   'I train village teachers and help schools get clean water in the hills north of Chiang Mai. Our three learning centres teach reading to children who would otherwise miss school, and share the hope of Jesus with their families.',
   'Education and clean water',
@@ -769,6 +786,7 @@ WITH fund_seed AS (
 INSERT INTO public.funds (
   id,
   tenant_id,
+  legal_entity_id,
   name,
   description,
   target_amount,
@@ -785,6 +803,7 @@ INSERT INTO public.funds (
 SELECT
   id,
   '00000000-0000-0000-0000-000000000001',
+  md5('00000000-0000-0000-0000-000000000001:legal')::uuid,
   name,
   CASE
     WHEN gs = 8 THEN 'Edge case: intentionally unfunded project to verify empty-state rendering.'

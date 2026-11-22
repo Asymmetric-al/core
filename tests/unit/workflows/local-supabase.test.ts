@@ -99,6 +99,25 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     }
   });
 
+  it("requires the signed-in tenant-record proof on the local stack after fingerprinting", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2676/tenant-records.postgrest.acceptance.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(marker);
+    expect(run).toBeDefined();
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    for (const variable of [
+      "WP3_TENANT_IT_URL",
+      "WP3_TENANT_IT_DATABASE_URL",
+      "WP3_TENANT_IT_SERVICE_KEY",
+      "WP3_TENANT_IT_ANON_KEY",
+    ])
+      expect(run).toContain(variable);
+    expect(run).toContain("supabase -- status -o json");
+    expect(at(marker)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
+    expect(workflow).toContain(`      - ${suite}\n`);
+  });
+
   it("exercises the missionary handlers against the stack after fingerprinting", () => {
     const suite =
       "tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts";
@@ -145,6 +164,8 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     for (const path of [
       "scripts/sql/hosted-default-privileges.sql",
       "scripts/verify/supabase-migrations.mjs",
+      "scripts/verify/tenant-rls-catalog.mjs",
+      "docs/security/*.json",
       "scripts/release/schema-fingerprint.mjs",
     ]) {
       expect(workflow).toContain(`      - ${path}\n`);

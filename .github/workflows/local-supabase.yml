@@ -42,6 +42,8 @@ on:
       - scripts/sql/hosted-default-privileges.sql
       - scripts/sql/supabase-compat-bootstrap.sql
       - scripts/verify/supabase-migrations.mjs
+      - scripts/verify/tenant-rls-catalog.mjs
+      - docs/security/*.json
       - scripts/release/schema-fingerprint.mjs
       # The auth screens, packages, routes and proxies the round trips cover.
       - packages/ui/components/auth/**
@@ -76,6 +78,7 @@ on:
       - vitest.per-importer-alias.mts
       - vitest.pin-workspace-packages.mts
       - tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
+      - tests/unit/acceptance/issue-2676/tenant-records.postgrest.acceptance.test.ts
       - tests/unit/workflows/local-supabase.test.ts
       # The round trips themselves.
       - playwright.auth-mail.config.ts
@@ -206,6 +209,17 @@ jobs:
           export MISSIONARY_IT_SERVICE_ROLE_KEY
           MISSIONARY_IT_SERVICE_ROLE_KEY="$(bun run supabase -- status -o json | node -e 'const status = JSON.parse(require("node:fs").readFileSync(0)); if (!status.SERVICE_ROLE_KEY) process.exit(1); process.stdout.write(status.SERVICE_ROLE_KEY)')"
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
+      - name: Verify tenant records through PostgREST
+        shell: bash
+        env:
+          WP3_TENANT_IT_URL: http://127.0.0.1:54321
+          WP3_TENANT_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          WP3_TENANT_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          WP3_TENANT_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export WP3_TENANT_IT_ANON_KEY WP3_TENANT_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/tenant-records.postgrest.acceptance.test.ts
       - name: Verify caller-token field policy reads and anonymous app health through PostgREST
         env:
           FIELD_POLICY_IT_REQUIRED: "1"
