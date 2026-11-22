@@ -1,33 +1,40 @@
 /**
- * AL-2676 (WP3a part 1a), round M (M1) & round N (F1): an app embeds between
- * the five money tables and `funds`/`missionaries` — in either direction — only
- * in a form that resolves on both sides of 20261120130004.
+ * AL-2676 (WP3a part 1a), round M (M1), round N (F1) & round O (A): an app
+ * embeds between the five money tables and `funds`/`missionaries` — in either
+ * direction — only in a form that resolves on both sides of 20261120130004.
  *
  * That migration replaces each money table's single-column keys to funds and
  * missionaries with composite (tenant_id, target) keys. A column hint
  * (`missionaries!missionary_id`), a column-named embed (`fund:fund_id(...)` or
- * `missionary_id(...)`), or a reverse key hint (`donations!donations_fund_id_fkey(...)`)
- * resolves only on the single-column key, so a release built with one fails its
- * reads from the migration's commit until its replacement is promoted; a
- * key-name hint or constraint-named embed resolves only on one schema. Without
- * a hint and using the target table name, PostgREST resolves the embed in
- * either direction on both schemas, because each schema has exactly one
- * relationship per pair. That is what keeps the release already running whole
- * (plan 7.4).
+ * `missionary_id(...)`), a key-name hint (`donations!donations_fund_id_fkey(...)`),
+ * a constraint-named embed, or a hinted spread (`...funds!fund_id(...)`)
+ * resolves on one side of 20261120130004 only. Using the bare table name with
+ * no relationship hint (join modifiers `!inner` and `!left` are allowed)
+ * resolves on both schemas in either direction, because each schema has one
+ * relationship per pair (plan 7.4).
  *
- * The static half scans source under apps/ and packages/ (tracked files and
- * untracked ones that are not ignored; tests excluded) for embeds of funds,
- * missionaries, their FK columns, the five money tables, or their FK constraint
- * names, and binds each match to the actual `.from("…")` root the select
- * belongs to via the TypeScript AST (including local and imported select
- * constants). SITES is closed: every match is listed with its actual root and
- * direction, and any new match or root change fails. `!inner` and `!left`
- * choose the join, not the relationship, and are allowed. Column-named and
- * constraint-named embeds are refused outright on guarded roots. The
- * real-catalog half runs in the migrate job (TENANT_GUARD_IT_ADMIN_DATABASE_URL)
- * and resolves every guarded site's literal table name as PostgREST does, plus
- * verifies all ten money↔target pairs have one relationship and zero
- * single-column keys on fund_id/missionary_id.
+ * Refusal is root-independent: any match inside a string or template literal
+ * under apps/ and packages/ (tracked files and non-ignored untracked ones;
+ * tests excluded; comments and JSX prose ignored) that chooses a relationship
+ * among the seven tables (`funds`, `missionaries`, and the five money tables)
+ * by anything other than the bare table name is a violation wherever it sits
+ * (nested, in a helper-passed string, or spread). The only escape is the closed
+ * EXEMPTIONS list, whose entries hold only when the TypeScript AST binds the
+ * match to `.from("<parent>")` of a table 20261120130004 does not alter (today:
+ * the four `posts` selects in `packages/graphql/handler.ts`). Hint-free embeds
+ * bound to a money or target root form the closed INVENTORY list (six forward
+ * sites, zero reverse), which feeds the real-catalog half in the migrate job
+ * (`TENANT_GUARD_IT_ADMIN_DATABASE_URL`), where each listed pair and all ten
+ * money↔target pairs must have one relationship and zero single-column keys.
+ *
+ * Note: the AST root binder overlaps with
+ * `tests/integration/api-contract/select-inventory.ts`; they are not merged in
+ * this round.
+ *
+ * Limits: a select assembled at run time from parts, a hint interpolated into
+ * a template, computed relationships and views are not seen; the binding of
+ * roots follows same-file constants and named imports only and is used for the
+ * inventory and the exemptions, not for the refusal.
  */
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -55,6 +62,7 @@ const FK_COLUMNS = ["fund_id", "missionary_id"] as const;
 
 const MONEY_SET = new Set<string>(MONEY_TABLES);
 const TARGET_SET = new Set<string>(TARGET_TABLES);
+const SEVEN_TABLES = new Set<string>([...MONEY_TABLES, ...TARGET_TABLES]);
 const FK_COL_SET = new Set<string>(FK_COLUMNS);
 
 const MONEY_PREFIX_RE = MONEY_TABLES.join("|");
@@ -63,11 +71,13 @@ const FK_CONSTRAINT_RE = new RegExp(
 );
 
 /**
- * Any PostgREST embed naming funds/missionaries, their FK columns, any of the
- * five money tables, or a money-table FK constraint name.
+ * Matches an embed of one of the seven tables, `fund_id`/`missionary_id`, or a
+ * money-table FK constraint name, with optional `...` spread prefix, optional
+ * `alias:`, optional whitespace around `!` hints (which supabase-js strips),
+ * and `(`. Excludes property access (`obj.funds(`) and tokens after `!`.
  */
 const EMBED = new RegExp(
-  `(?<![A-Za-z0-9_.!$])(?:[A-Za-z_][A-Za-z0-9_]*\\s*:\\s*)?(funds|missionaries|fund_id|missionary_id|${MONEY_PREFIX_RE}|(?:${MONEY_PREFIX_RE})_[A-Za-z0-9_]*(?:fkey|fk))((?:![A-Za-z0-9_]+)*)\\s*\\(`,
+  `(?<![A-Za-z0-9_!$]|(?<!\\.\\.)\\.)(?:\\.\\.\\.\\s*)?(?:[A-Za-z_][A-Za-z0-9_]*\\s*:\\s*)?(funds|missionaries|fund_id|missionary_id|${MONEY_PREFIX_RE}|(?:${MONEY_PREFIX_RE})_[A-Za-z0-9_]*(?:fkey|fk))((?:\\s*!\\s*[A-Za-z0-9_]+)*)\\s*\\(`,
   "g",
 );
 
@@ -77,32 +87,49 @@ const JOIN_MODIFIERS = new Set(["inner", "left"]);
 const DYNAMIC_ROOT = "<dynamic>";
 const RESOLVE_EXTS = ["", ".ts", ".tsx", ".mts", ".mjs", ".js", "/index.ts"];
 
-type Direction = "money->target" | "target->money" | null;
+const VIOLATION_REMEDY =
+  "embed funds or missionaries by table name with no hint; a column or key-name hint resolves on one side of 20261120130004 only";
+const INVENTORY_REMEDY =
+  "list it with its root (and ensure it is hint-free and table-named)";
+const DYNAMIC_REMEDY = "use a literal table name";
+
+type Direction = "money->target" | "target->money";
 
 type FoundEmbed = {
   file: string;
   /**
-   * Actual `.from("…")` root table the select belongs to, `null` when not part
-   * of a `.from(…).select(…)` (e.g. a comment or GraphQL SDL), or `"<dynamic>"`
-   * when `.from(expr)` uses a non-literal table expression.
+   * `.from("…")` root bound via same-file constants and named imports (used
+   * only for the inventory and exemptions, never to waive Rule 2), `null` when
+   * unbound, or `"<dynamic>"` when non-literal or ambiguous in the file.
    */
   root: string | null;
   embed: string;
 };
 
-type Site = FoundEmbed & {
+type InventorySite = {
+  file: string;
+  root: MoneyTable | TargetTable;
   direction: Direction;
+  embed: string;
   note: string;
 };
 
-const SITES: Site[] = [
-  {
-    file: "apps/admin/app/(app)/crm/records-grid.tsx",
-    root: null,
-    direction: null,
-    embed: "donations(",
-    note: "JSDoc prose (`from donations (including ones with no…`), not a select",
-  },
+type Exemption = {
+  file: string;
+  embed: string;
+  /** Parent `.from("<parent>")` table that 20261120130004 does not alter. */
+  parent: string;
+  note: string;
+};
+
+/**
+ * Closed inventory of hint-free embeds between the five money tables and
+ * `funds`/`missionaries` bound to a money or target root. Feeds the catalog
+ * half. Unbound non-violating string tokens (e.g. the GraphQL SDL field
+ * `missionaries(limit, offset)` in `packages/graphql/handler.ts`) are governed
+ * by Rule 2 alone and need no entry here.
+ */
+const INVENTORY: InventorySite[] = [
   {
     file: "packages/api/src/donations/select.ts",
     root: "donations",
@@ -145,34 +172,26 @@ const SITES: Site[] = [
     embed: "missionary:missionaries!inner(",
     note: "a partner's pledges, scoped through the missionary's profile",
   },
-  {
-    file: "packages/database/hooks/missionary-donors-model.ts",
-    root: null,
-    direction: null,
-    embed: "missionaries(",
-    note: "a comment naming the key `missionaries(id)`, not a select",
-  },
-  {
-    file: "packages/graphql/handler.ts",
-    root: null,
-    direction: null,
-    embed: "missionaries(",
-    note: "the GraphQL schema's `missionaries(limit, offset)` field, not a select",
-  },
-  ...[1, 2, 3, 4].map((): Site => ({
-    file: "packages/graphql/handler.ts",
-    root: "posts",
-    direction: null,
-    embed: "missionary:missionaries!missionary_id(",
-    note: "reads from posts, whose key to missionaries 20261120130004 does not change",
-  })),
 ];
+
+/**
+ * Closed list of Rule-2 exemptions. An exemption holds only if the scanner
+ * binds the match to `.from("<parent>")` equal to `parent`, where `parent` is
+ * outside the seven tables altered by 20261120130004.
+ */
+const EXEMPTIONS: Exemption[] = [1, 2, 3, 4].map(() => ({
+  file: "packages/graphql/handler.ts",
+  embed: "missionary:missionaries!missionary_id(",
+  parent: "posts",
+  note: "reads from posts, whose key to missionaries 20261120130004 does not change",
+}));
 
 function resourceNameOf(embed: string): string {
   const withoutParen = embed.replace(/\($/, "");
-  const withoutAlias = withoutParen.includes(":")
-    ? withoutParen.slice(withoutParen.indexOf(":") + 1)
-    : withoutParen;
+  const withoutSpread = withoutParen.replace(/^\.\.\./, "");
+  const withoutAlias = withoutSpread.includes(":")
+    ? withoutSpread.slice(withoutSpread.indexOf(":") + 1)
+    : withoutSpread;
   const bang = withoutAlias.indexOf("!");
   return bang >= 0 ? withoutAlias.slice(0, bang) : withoutAlias;
 }
@@ -185,55 +204,79 @@ function hintsOf(embed: string): string[] {
     .filter((part) => !JOIN_MODIFIERS.has(part));
 }
 
-function directionOf(root: string | null, resource: string): Direction {
+function directionOf(root: string | null, resource: string): Direction | null {
   if (root === null || root === DYNAMIC_ROOT) return null;
-  if (
-    MONEY_SET.has(root) &&
-    (TARGET_SET.has(resource) ||
-      FK_COL_SET.has(resource) ||
-      FK_CONSTRAINT_RE.test(resource))
-  ) {
-    return "money->target";
-  }
-  if (
-    TARGET_SET.has(root) &&
-    (MONEY_SET.has(resource) || FK_CONSTRAINT_RE.test(resource))
-  ) {
-    return "target->money";
-  }
+  if (MONEY_SET.has(root) && TARGET_SET.has(resource)) return "money->target";
+  if (TARGET_SET.has(root) && MONEY_SET.has(resource)) return "target->money";
   return null;
 }
 
-function embedViolations(matches: FoundEmbed[]): string[] {
+/**
+ * Rule 2 (root-independent): true when the match chooses a relationship among
+ * the seven tables by anything other than the bare table name.
+ */
+function isRelationshipChoosingViolation(embed: string): boolean {
+  const resource = resourceNameOf(embed);
+  if (FK_COL_SET.has(resource) || FK_CONSTRAINT_RE.test(resource)) return true;
+  if (SEVEN_TABLES.has(resource) && hintsOf(embed).length > 0) return true;
+  return false;
+}
+
+type Evaluation = {
+  violations: string[];
+  usedExemptions: number;
+  unusedExemptions: Exemption[];
+  inventoryMatches: FoundEmbed[];
+};
+
+function evaluateEmbeds(
+  matches: FoundEmbed[],
+  exemptions: Exemption[] = EXEMPTIONS,
+): Evaluation {
   const violations: string[] = [];
+  const remaining = exemptions.map((ex, index) => ({ ex, index, used: false }));
+  const inventoryMatches: FoundEmbed[] = [];
+
   for (const match of matches) {
     if (match.root === DYNAMIC_ROOT) {
-      violations.push(`${match.file}: dynamic .from() root for ${match.embed}`);
+      violations.push(
+        `${match.file}: dynamic .from() root for ${match.embed} — ${DYNAMIC_REMEDY}`,
+      );
       continue;
     }
+
+    if (isRelationshipChoosingViolation(match.embed)) {
+      const hit = remaining.find(
+        (slot) =>
+          !slot.used &&
+          slot.ex.file === match.file &&
+          slot.ex.embed === match.embed &&
+          match.root !== null &&
+          !SEVEN_TABLES.has(slot.ex.parent) &&
+          slot.ex.parent === match.root,
+      );
+      if (hit) {
+        hit.used = true;
+      } else {
+        violations.push(
+          `${match.file} (root=${match.root ?? "unbound"}): ${match.embed} — ${VIOLATION_REMEDY}`,
+        );
+      }
+      continue;
+    }
+
     const resource = resourceNameOf(match.embed);
-    const direction = directionOf(match.root, resource);
-    if (direction === null) continue;
-    if (direction === "money->target" && !TARGET_SET.has(resource)) {
-      violations.push(
-        `${match.file} (${match.root}): column/constraint-named embed ${match.embed} is refused; use the target table name without a hint`,
-      );
-      continue;
-    }
-    if (direction === "target->money" && !MONEY_SET.has(resource)) {
-      violations.push(
-        `${match.file} (${match.root}): constraint-named embed ${match.embed} is refused; use the money table name without a hint`,
-      );
-      continue;
-    }
-    const hints = hintsOf(match.embed);
-    if (hints.length > 0) {
-      violations.push(
-        `${match.file} (${match.root}): ${match.embed} carries forbidden hint(s): ${hints.join(", ")}`,
-      );
+    if (directionOf(match.root, resource) !== null) {
+      inventoryMatches.push(match);
     }
   }
-  return violations;
+
+  return {
+    violations,
+    usedExemptions: remaining.filter((s) => s.used).length,
+    unusedExemptions: remaining.filter((s) => !s.used).map((s) => s.ex),
+    inventoryMatches,
+  };
 }
 
 function unwrapExpr(expr: ts.Expression): ts.Expression {
@@ -246,6 +289,12 @@ function unwrapExpr(expr: ts.Expression): ts.Expression {
     else if (ts.isAwaitExpression(cur)) cur = cur.expression;
     else return cur;
   }
+}
+
+function setOrDynamic(map: Map<string, string>, name: string, value: string) {
+  const prev = map.get(name);
+  if (prev === undefined) map.set(name, value);
+  else if (prev !== value) map.set(name, DYNAMIC_ROOT);
 }
 
 function resolveTableArg(
@@ -352,7 +401,8 @@ function indexFile(file: string, text: string): FileIndex {
   const stringConsts = new Map<string, string>();
   const varFromRoots = new Map<string, string>();
 
-  // Pass 1: string constants, imports, and variable-bound `.from(...)` builders.
+  // Pass 1: string/template spans, string constants, named imports, and
+  // variable-bound `.from(...)` builders (same name with two roots -> dynamic).
   function pass1(node: ts.Node): void {
     if (
       ts.isStringLiteral(node) ||
@@ -389,7 +439,7 @@ function indexFile(file: string, text: string): FileIndex {
         ts.isStringLiteral(init) ||
         ts.isNoSubstitutionTemplateLiteral(init)
       ) {
-        stringConsts.set(name, init.text);
+        setOrDynamic(stringConsts, name, init.text);
       }
       const entry = varDecls.get(name) ?? {
         spans: [],
@@ -408,7 +458,7 @@ function indexFile(file: string, text: string): FileIndex {
         varFromRoots,
       );
       if (fromRoot !== null) {
-        varFromRoots.set(name, fromRoot);
+        setOrDynamic(varFromRoots, name, fromRoot);
       }
     }
     ts.forEachChild(node, pass1);
@@ -457,8 +507,6 @@ function scanSources(sources: Map<string, string>): FoundEmbed[] {
     indices.set(file, indexFile(file, sources.get(file)!));
   }
 
-  // Bind variable declarations to every `.from(...)` root that selects them
-  // (directly, via imports, or via transitive string-const composition).
   const varRoots = new Map<string, Set<string>>();
   const addVarRoot = (file: string, name: string, root: string): boolean => {
     const key = `${file}\0${name}`;
@@ -526,12 +574,13 @@ function scanSources(sources: Map<string, string>): FoundEmbed[] {
     const idx = indices.get(file)!;
     for (const match of text.matchAll(EMBED)) {
       const pos = match.index;
-      const embed = match[0].replace(/\s+/g, "");
+      // Point 1: only matches inside a string or template literal count.
       const inString = idx.stringSpans.some(([s, e]) => pos >= s && pos < e);
-      if (!inString) {
-        found.push({ file, root: null, embed });
-        continue;
-      }
+      if (!inString) continue;
+      // Reject hint tokens preceded by `!` with intervening whitespace (e.g. `profiles! missionary_id(`).
+      if (/!\s*$/.test(text.slice(Math.max(0, pos - 16), pos))) continue;
+
+      const embed = match[0].replace(/\s+/g, "");
 
       // Prefer the narrowest enclosing inline `.from(...)...select(arg0)` span.
       const inlineHits = idx.inlineSelectSpans
@@ -544,14 +593,21 @@ function scanSources(sources: Map<string, string>): FoundEmbed[] {
 
       // Otherwise check variable declarations bound to `.from(...)` selects.
       const boundRoots = new Set<string>();
+      let ambiguousSameName = false;
       for (const [name, decl] of idx.varDecls.entries()) {
         if (decl.spans.some(([s, e]) => pos >= s && pos < e)) {
-          for (const root of varRoots.get(`${file}\0${name}`) ?? []) {
-            boundRoots.add(root);
+          const roots = varRoots.get(`${file}\0${name}`);
+          if (roots && roots.size > 0) {
+            if (decl.spans.length > 1 && roots.size > 1) {
+              ambiguousSameName = true;
+            }
+            for (const root of roots) boundRoots.add(root);
           }
         }
       }
-      if (boundRoots.size > 0) {
+      if (ambiguousSameName) {
+        found.push({ file, root: DYNAMIC_ROOT, embed });
+      } else if (boundRoots.size > 0) {
         for (const root of [...boundRoots].sort()) {
           found.push({ file, root, embed });
         }
@@ -589,7 +645,9 @@ function sourceFiles(): string[] {
     .filter((file) => !/\.(?:test|spec)\.[cm]?[jt]sx?$/.test(file));
 }
 
-function foundEmbeds(): FoundEmbed[] {
+let cachedRepoEvaluation: Evaluation | null = null;
+function repoEvaluation(): Evaluation {
+  if (cachedRepoEvaluation) return cachedRepoEvaluation;
   const sources = new Map<string, string>();
   for (const file of [...new Set(sourceFiles())].sort()) {
     try {
@@ -598,171 +656,241 @@ function foundEmbeds(): FoundEmbed[] {
       // Listed by Git but deleted in the working tree.
     }
   }
-  return scanSources(sources);
+  cachedRepoEvaluation = evaluateEmbeds(scanSources(sources), EXEMPTIONS);
+  return cachedRepoEvaluation;
 }
 
-const guardedSites = SITES.filter(
-  (
-    site,
-  ): site is Site & {
-    root: MoneyTable | TargetTable;
-    direction: Exclude<Direction, null>;
-  } => site.direction !== null,
-);
-
-describe("money-table embeds of funds and missionaries in both directions (round M M1, round N F1)", () => {
-  it("every embed involving funds, missionaries, money tables, or their keys in apps/ and packages/ is a listed site bound to its actual .from() root", () => {
-    expect(foundEmbeds()).toEqual(
-      SITES.map(({ file, root, embed }) => ({ file, root, embed })),
-    );
+describe("money-table embeds of funds and missionaries (round M M1, round N F1, round O A)", () => {
+  it("no string or template literal in apps/ and packages/ chooses a money/target relationship by hint, column, or constraint (outside verified exemptions)", () => {
+    const result = repoEvaluation();
+    expect(result.violations, VIOLATION_REMEDY).toEqual([]);
   });
 
-  it("each site's declared direction agrees with its root and embedded resource", () => {
-    for (const site of SITES) {
+  it("every declared exemption names an unaltered parent table and matches an actual select in apps/ and packages/", () => {
+    for (const ex of EXEMPTIONS) {
+      expect(
+        SEVEN_TABLES.has(ex.parent),
+        `${ex.file}: exempt parent ${ex.parent} must not be altered by 20261120130004`,
+      ).toBe(false);
+    }
+    const result = repoEvaluation();
+    expect(result.unusedExemptions, "remove stale exemptions").toEqual([]);
+    expect(result.usedExemptions).toBe(EXEMPTIONS.length);
+  });
+
+  it("every hint-free embed between money tables and funds/missionaries matches the closed inventory with its bound root", () => {
+    const result = repoEvaluation();
+    expect(result.inventoryMatches, INVENTORY_REMEDY).toEqual(
+      INVENTORY.map(({ file, root, embed }) => ({ file, root, embed })),
+    );
+    for (const site of INVENTORY) {
       expect(
         directionOf(site.root, resourceNameOf(site.embed)),
         `${site.file}: ${site.note}`,
       ).toBe(site.direction);
     }
-    expect(guardedSites.length).toBeGreaterThan(0);
-  });
-
-  it("no guarded site carries a column/constraint name or a column/key-name hint", () => {
-    expect(embedViolations(SITES)).toEqual([]);
-    expect(embedViolations(foundEmbeds())).toEqual([]);
+    expect(INVENTORY.length).toBeGreaterThan(0);
   });
 });
 
-describe("negative scanner cases (round N, F1)", () => {
-  it("catches a reverse key-hint embed from funds to donations", () => {
-    const matches = scanText(
-      "fixture.ts",
-      `client.from("funds").select("id, donations!donations_fund_id_fkey(id)");`,
+describe("negative scanner cases (round N F1, round O A)", () => {
+  it("refuses a hinted embed nested under an unguarded outer .from() root", () => {
+    const res = evaluateEmbeds(
+      scanText(
+        "fixture.ts",
+        `client.from("donors").select("id, donations(id, missionary:missionaries!missionary_id(*))");`,
+      ),
     );
-    expect(matches).toEqual([
-      {
-        file: "fixture.ts",
-        root: "funds",
-        embed: "donations!donations_fund_id_fkey(",
-      },
-    ]);
-    expect(embedViolations(matches)).toHaveLength(1);
+    expect(res.violations).toHaveLength(1);
+    expect(res.violations[0]).toContain(VIOLATION_REMEDY);
   });
 
-  it("catches a reverse column-hint embed from missionaries to donor_pledges", () => {
-    const matches = scanText(
-      "fixture.ts",
-      `client.from("missionaries").select("id, donor_pledges!missionary_id(id)");`,
+  it("refuses a hinted embed in a constant passed to a helper with no .from() near it", () => {
+    const res = evaluateEmbeds(
+      scanText(
+        "fixture.ts",
+        `
+        const PLEDGE_SELECT = "id, fund:funds!fund_id(id, name)";
+        selectTenantRows(supabase, "donor_pledges", tenantId, PLEDGE_SELECT);
+        `,
+      ),
     );
-    expect(matches).toEqual([
-      {
-        file: "fixture.ts",
-        root: "missionaries",
-        embed: "donor_pledges!missionary_id(",
-      },
-    ]);
-    expect(embedViolations(matches)).toHaveLength(1);
+    expect(res.violations).toHaveLength(1);
+    expect(res.violations[0]).toContain(VIOLATION_REMEDY);
   });
 
-  it("inventories an unhinted reverse embed cleanly with no violation", () => {
-    const matches = scanText(
-      "fixture.ts",
-      `client.from("funds").select("id, donations!inner(id)");`,
+  it("refuses spread embeds with hints and whitespace before ! in either direction", () => {
+    const res = evaluateEmbeds(
+      scanText(
+        "fixture.ts",
+        `
+        client.from("donations").select("id, ...funds!fund_id(name), ...missionaries!missionary_id(profile_id), funds !fund_id(id)");
+        client.from("funds").select("id, ...donations!donations_fund_id_fkey(id)");
+        `,
+      ),
     );
-    expect(matches).toEqual([
-      {
-        file: "fixture.ts",
-        root: "funds",
-        embed: "donations!inner(",
-      },
-    ]);
-    expect(embedViolations(matches)).toEqual([]);
+    expect(res.violations).toHaveLength(4);
+    for (const v of res.violations) expect(v).toContain(VIOLATION_REMEDY);
   });
 
-  it("refuses column-named embeds on a money-table root outright", () => {
-    const matches = scanText(
-      "fixture.ts",
-      `client.from("donations").select("id, fund:fund_id(id), missionary_id(id)");`,
+  it("refuses column-named embeds in a helper-passed string and on a money root", () => {
+    const helperRes = evaluateEmbeds(
+      scanText(
+        "fixture.ts",
+        `maybeFetchTenantRow({ table: "donor_pledges", select: "id, fund:fund_id(id), missionary_id(id)" });`,
+      ),
     );
-    expect(matches).toEqual([
-      { file: "fixture.ts", root: "donations", embed: "fund:fund_id(" },
-      { file: "fixture.ts", root: "donations", embed: "missionary_id(" },
-    ]);
-    expect(embedViolations(matches)).toHaveLength(2);
+    expect(helperRes.violations).toHaveLength(2);
+    for (const v of helperRes.violations) expect(v).toContain(VIOLATION_REMEDY);
+
+    const directRes = evaluateEmbeds(
+      scanText(
+        "fixture.ts",
+        `client.from("donations").select("id, fund:fund_id(id), missionary_id(id)");`,
+      ),
+    );
+    expect(directRes.violations).toHaveLength(2);
   });
 
-  it("refuses constraint-named embeds on money and target roots outright", () => {
-    const matches = scanText(
-      "fixture.ts",
-      `
-      client.from("donations").select("id, missionary:donations_missionary_id_fkey(id)");
-      client.from("funds").select("id, gifts:donations_fund_same_tenant_fk(id)");
-      `,
+  it("refuses an exempted embed text when moved off posts onto donations in the same file", () => {
+    const res = evaluateEmbeds(
+      scanText(
+        "packages/graphql/handler.ts",
+        `client.from("donations").select("*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))");`,
+      ),
+      EXEMPTIONS,
     );
-    expect(matches).toEqual([
+    expect(res.violations).toHaveLength(1);
+    expect(res.violations[0]).toContain(VIOLATION_REMEDY);
+    expect(res.usedExemptions).toBe(0);
+  });
+
+  it("refuses reverse key-hint, reverse column-hint, and constraint-named embeds", () => {
+    const res = evaluateEmbeds(
+      scanText(
+        "fixture.ts",
+        `
+        client.from("funds").select("id, donations!donations_fund_id_fkey(id)");
+        client.from("missionaries").select("id, donor_pledges!missionary_id(id)");
+        client.from("donations").select("id, missionary:donations_missionary_id_fkey(id)");
+        client.from("funds").select("id, gifts:donations_fund_same_tenant_fk(id)");
+        `,
+      ),
+    );
+    expect(res.violations).toHaveLength(4);
+    for (const v of res.violations) expect(v).toContain(VIOLATION_REMEDY);
+  });
+
+  it("fails closed as dynamic when a root is non-literal or one builder name binds to two different roots", () => {
+    const dynamicRes = evaluateEmbeds(
+      scanText(
+        "fixture.ts",
+        `
+        function read(table: string) {
+          return client.from(table).select("id, fund:funds(id)");
+        }
+        `,
+      ),
+    );
+    expect(dynamicRes.violations).toHaveLength(1);
+    expect(dynamicRes.violations[0]).toContain(DYNAMIC_REMEDY);
+
+    const reusedBuilder = evaluateEmbeds(
+      scanText(
+        "packages/graphql/handler.ts",
+        `
+        function a() {
+          const q = client.from("donations");
+          return q.select("id, missionary:missionaries!missionary_id(*)");
+        }
+        function b() {
+          const q = client.from("posts");
+          return q.select("id");
+        }
+        `,
+      ),
+      EXEMPTIONS,
+    );
+    expect(reusedBuilder.violations).toHaveLength(1);
+    expect(reusedBuilder.violations[0]).toContain(DYNAMIC_REMEDY);
+    expect(reusedBuilder.usedExemptions).toBe(0);
+  });
+});
+
+describe("positive scanner controls (round O, A)", () => {
+  it("allows hints on tables outside the seven (donor -> profiles!profile_id) while inventorying unhinted missionaries", () => {
+    const res = evaluateEmbeds(
+      scanText(
+        "fixture.ts",
+        `client.from("donations").select("*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries(*, profile:profiles!profile_id(*))");`,
+      ),
+    );
+    expect(res.violations).toEqual([]);
+    expect(res.inventoryMatches).toEqual([
       {
         file: "fixture.ts",
         root: "donations",
-        embed: "missionary:donations_missionary_id_fkey(",
-      },
-      {
-        file: "fixture.ts",
-        root: "funds",
-        embed: "gifts:donations_fund_same_tenant_fk(",
+        embed: "missionary:missionaries(",
       },
     ]);
-    expect(embedViolations(matches)).toHaveLength(2);
   });
 
-  it("binds each select in one file to its own .from() root so a guarded select cannot ride on an unguarded one", () => {
+  it("allows an unhinted spread embed and inventories it under its root", () => {
+    const res = evaluateEmbeds(
+      scanText(
+        "fixture.ts",
+        `client.from("donations").select("id, ...funds(name)");`,
+      ),
+    );
+    expect(res.violations).toEqual([]);
+    expect(res.inventoryMatches).toEqual([
+      { file: "fixture.ts", root: "donations", embed: "...funds(" },
+    ]);
+  });
+
+  it("allows an unhinted reverse embed and inventories it under its target root", () => {
+    const res = evaluateEmbeds(
+      scanText(
+        "fixture.ts",
+        `client.from("funds").select("id, donations!inner(id)");`,
+      ),
+    );
+    expect(res.violations).toEqual([]);
+    expect(res.inventoryMatches).toEqual([
+      { file: "fixture.ts", root: "funds", embed: "donations!inner(" },
+    ]);
+  });
+
+  it("allows the four posts exemptions when bound to .from('posts')", () => {
+    const res = evaluateEmbeds(
+      scanText(
+        "packages/graphql/handler.ts",
+        [1, 2, 3, 4]
+          .map(
+            () =>
+              `client.from("posts").select("*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))");`,
+          )
+          .join("\n"),
+      ),
+      EXEMPTIONS,
+    );
+    expect(res.violations).toEqual([]);
+    expect(res.usedExemptions).toBe(4);
+    expect(res.unusedExemptions).toEqual([]);
+  });
+
+  it("ignores profiles!missionary_id(...) anywhere, property access, and prose in comments/JSX", () => {
     const matches = scanText(
-      "fixture.ts",
+      "fixture.tsx",
       `
-      client.from("posts").select("id, missionary:missionaries!missionary_id(id)");
-      client.from("donations").select("id, missionary:missionaries!missionary_id(id)");
+      // The report is built from donations (including ones with no fund) and missionaries(id).
+      client.from("posts").select("id, author:profiles!missionary_id(full_name), alt:profiles! missionary_id(id)");
+      obj.funds(id);
+      export const el = <p>donations (pending)</p>;
       `,
     );
-    expect(matches).toEqual([
-      {
-        file: "fixture.ts",
-        root: "posts",
-        embed: "missionary:missionaries!missionary_id(",
-      },
-      {
-        file: "fixture.ts",
-        root: "donations",
-        embed: "missionary:missionaries!missionary_id(",
-      },
-    ]);
-    expect(embedViolations(matches)).toHaveLength(1);
-  });
-
-  it("binds a shared select constant to every .from() root that uses it and refuses dynamic roots", () => {
-    const shared = scanText(
-      "fixture.ts",
-      `
-      const SHARED = "id, fund:funds(id)";
-      client.from("donations").select(SHARED);
-      client.from("donor_pledges").select(SHARED);
-      `,
-    );
-    expect(shared).toEqual([
-      { file: "fixture.ts", root: "donations", embed: "fund:funds(" },
-      { file: "fixture.ts", root: "donor_pledges", embed: "fund:funds(" },
-    ]);
-
-    const dynamic = scanText(
-      "fixture.ts",
-      `
-      function read(table: string) {
-        return client.from(table).select("id, fund:funds(id)");
-      }
-      `,
-    );
-    expect(dynamic).toEqual([
-      { file: "fixture.ts", root: DYNAMIC_ROOT, embed: "fund:funds(" },
-    ]);
-    expect(embedViolations(dynamic)).toHaveLength(1);
+    expect(matches).toEqual([]);
+    expect(evaluateEmbeds(matches).violations).toEqual([]);
   });
 });
 
@@ -771,7 +899,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "money-table embeds resolve on the migrated catalog as PostgREST does (round M M1, round N F1)",
+  "money-table embeds resolve on the migrated catalog as PostgREST does (round M M1, round N F1, round O A)",
   () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
     beforeAll(() => db.connect());
@@ -779,7 +907,7 @@ describe.skipIf(!ADMIN_URL)(
 
     const sitePairs = [
       ...new Map(
-        guardedSites.map((site) => {
+        INVENTORY.map((site) => {
           const target = resourceNameOf(site.embed);
           return [`${site.root}>${target}`, [site.root, target] as const];
         }),
