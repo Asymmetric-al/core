@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { buildAdminCrmReport } from "../../../../packages/api/src/admin/crm/reports/service";
+import {
+  buildAdminCrmExportGroups,
+  buildAdminCrmReport,
+} from "../../../../packages/api/src/admin/crm/reports/service";
 
 import type { AdminCrmReportParams } from "../../../../packages/api/src/admin/crm/reports/query";
 
@@ -234,6 +237,27 @@ async function report(
 }
 
 describe("CRM giving report totals", () => {
+  it.each(["donors", "funds", "missionaries"] as const)(
+    "fails the export with a 500 for an unresolved %s reference",
+    async (slice) => {
+      await expect(
+        buildAdminCrmExportGroups({
+          params: params(slice, null),
+          sessionClient: createSupabaseFixture({
+            donations: [donation({})],
+            donors: [],
+            funds: [],
+            missionaries: [],
+          }) as never,
+          tenantId: "tenant-1",
+        }),
+      ).rejects.toMatchObject({
+        name: "ApiHttpError",
+        status: 500,
+        message: "A report reference could not be resolved for export.",
+      });
+    },
+  );
   it.each(["donors", "funds", "missionaries"] as const)(
     "resolves all %s dimensions across a lookup boundary and discloses a missing label",
     async (slice) => {

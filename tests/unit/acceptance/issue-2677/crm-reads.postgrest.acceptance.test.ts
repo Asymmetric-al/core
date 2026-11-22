@@ -6,6 +6,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { GET as notes } from "../../../../packages/api/src/admin/crm/notes";
+import * as exportProjection from "../../../../packages/api/src/admin/crm/reports/export-projection";
 import { GET as download } from "../../../../packages/api/src/admin/crm/reports/export";
 import { GET as report } from "../../../../packages/api/src/admin/crm/reports";
 import { GET as detail } from "../../../../packages/api/src/admin/crm/detail";
@@ -783,6 +784,27 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           expect(body.rows.map((row: { label: string }) => row.label)).toEqual([
             slice === "funds" ? "Unnamed fund" : "Unassigned",
           ]);
+          const before = await exportAuditCount();
+          using serialize = vi.spyOn(
+            exportProjection,
+            "serializeAdminCrmReportCsv",
+          );
+          const refused = await download(
+            request(
+              `/api/admin/crm/reports/export?slice=${slice}&dateFrom=2038-01-10&dateTo=2038-01-10`,
+            ),
+          );
+          expect(refused.status).toBe(500);
+          expect(refused.headers.get("content-type")).toContain(
+            "application/json",
+          );
+          expect(refused.headers.has("content-disposition")).toBe(false);
+          expect(await refused.json()).toEqual({
+            error: "Failed to export CRM report.",
+            requestId: expect.any(String),
+          });
+          expect(await exportAuditCount()).toBe(before);
+          expect(serialize).not.toHaveBeenCalled();
         }
       } finally {
         for (const [table, ids] of [
