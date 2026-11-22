@@ -126,13 +126,23 @@ export async function assertStagingEnabled({ call, app }) {
 
 const APPS_MODES = new Set(["changed", "all"]);
 
+class AncestryCheckError extends Error {}
 class DiffReadError extends Error {}
 
 function isGitAncestor(live, sha) {
   const result = spawnSync("git", ["merge-base", "--is-ancestor", live, sha], {
     stdio: "ignore",
   });
-  return !result.error && result.status === 0;
+  if (result.error) {
+    throw new AncestryCheckError(
+      `could not determine ancestry: ${result.error.message}`,
+    );
+  }
+  if (result.status === 0) return true;
+  if (result.status === 1) return false;
+  throw new AncestryCheckError(
+    `could not determine ancestry: ${result.signal ? `signal ${result.signal}` : `exit ${result.status ?? "unknown"}`}`,
+  );
 }
 
 function listGitChangedFiles(live, sha) {
@@ -176,11 +186,11 @@ export function selectReleaseApps({
       return { app, build: true, reason: "live commit unknown" };
     }
     if (isAncestor) {
-      let ancestor = false;
+      let ancestor;
       try {
         ancestor = Boolean(isAncestor(live));
       } catch {
-        ancestor = false;
+        return { app, build: true, reason: "could not determine ancestry" };
       }
       if (!ancestor) {
         return { app, build: true, reason: "live commit is not an ancestor" };

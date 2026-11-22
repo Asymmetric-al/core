@@ -867,4 +867,151 @@ describe("release job: Vercel steps", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it("reports 'could not determine ancestry' on merge-base exit 128 or spawn error while keeping exit 1 as non-ancestor", async () => {
+    vi.stubGlobal("fetch", () => {
+      throw new Error("network disabled in unit test");
+    });
+
+    const missingCommit = "d".repeat(40);
+    const divergedPlaceholder = "c".repeat(40);
+    const directPlan = selectReleaseApps({
+      liveCommits: {
+        admin: divergedPlaceholder,
+        donor: missingCommit,
+        missionary: missingCommit,
+      },
+      isAncestor: (commit: string) => {
+        if (commit === divergedPlaceholder) return false;
+        throw new Error("spawnSync git ENOENT");
+      },
+      listChangedFiles: () => [],
+    });
+    expect(directPlan).toEqual([
+      { app: "admin", build: true, reason: "live commit is not an ancestor" },
+      { app: "donor", build: true, reason: "could not determine ancestry" },
+      {
+        app: "missionary",
+        build: true,
+        reason: "could not determine ancestry",
+      },
+    ]);
+
+    const dir = mkdtempSync(
+      path.join(os.tmpdir(), "vercel-release-ancestry-plan-"),
+    );
+    const previousCwd = process.cwd();
+    const previousPath = process.env.PATH;
+    try {
+      const gitEnv: Record<string, string> = {};
+      for (const [key, value] of Object.entries(process.env)) {
+        if (value !== undefined && !key.startsWith("GIT_")) {
+          gitEnv[key] = value;
+        }
+      }
+      gitEnv.GIT_CONFIG_NOSYSTEM = "1";
+      gitEnv.GIT_CONFIG_GLOBAL = path.join(dir, "gitconfig");
+
+      const git = (args: string[], input?: string) => {
+        const result = spawnSync("git", args, {
+          cwd: dir,
+          env: gitEnv,
+          encoding: "utf8",
+          input,
+        });
+        if (result.error) throw result.error;
+        if (result.status !== 0) {
+          throw new Error(`git ${args.join(" ")}: ${result.stderr}`);
+        }
+        return result.stdout.trim();
+      };
+
+      const dataBlock = (content: string) =>
+        `data ${Buffer.byteLength(content, "utf8")}\n${content}`;
+
+      git(["init", "-q", "-b", "release"]);
+      const streamLines = [
+        "blob",
+        "mark :1",
+        dataBlock("release-content\n"),
+        "commit refs/heads/release",
+        "mark :10",
+        "committer Test <test@example.invalid> 1700000000 +0000",
+        dataBlock("release head\n"),
+        "M 100644 :1 docs/release.md",
+        "",
+        "commit refs/heads/diverged",
+        "mark :11",
+        "committer Test <test@example.invalid> 1700000001 +0000",
+        dataBlock("diverged branch\n"),
+        "M 100644 :1 docs/diverged.md",
+        "",
+        "done",
+        "",
+      ];
+      git(["fast-import", "--quiet"], streamLines.join("\n"));
+
+      const releaseHeadSha = git(["rev-parse", "refs/heads/release"]);
+      const divergedSha = git(["rev-parse", "refs/heads/diverged"]);
+
+      const outputFile = path.join(dir, "github-output");
+      const logs: string[] = [];
+      const liveByHost: Record<string, string> = {
+        [PRODUCTION_HOSTS.admin]: divergedSha,
+        [PRODUCTION_HOSTS.donor]: missingCommit,
+        [PRODUCTION_HOSTS.missionary]: releaseHeadSha,
+      };
+      const request = vi.fn(async (input: URL | string) => {
+        const host = new URL(String(input)).host;
+        return {
+          status: 200,
+          json: async () => ({
+            observability: { release: { commit: liveByHost[host] } },
+          }),
+        } as Response;
+      });
+
+      process.chdir(dir);
+      await runCli(
+        ["plan"],
+        { RELEASE_SHA: releaseHeadSha, GITHUB_OUTPUT: outputFile },
+        (line: string) => logs.push(line),
+        { request: request as unknown as typeof fetch },
+      );
+
+      expect(readFileSync(outputFile, "utf8")).toBe("apps=admin,donor\n");
+      expect(logs).toEqual([
+        "admin: build - live commit is not an ancestor",
+        "donor: build - could not determine ancestry",
+        "missionary: skip - already serving this commit",
+      ]);
+
+      const spawnErrOutput = path.join(dir, "github-output-spawn-err");
+      const spawnErrLogs: string[] = [];
+      process.env.PATH = "";
+      await runCli(
+        ["plan"],
+        { RELEASE_SHA: releaseHeadSha, GITHUB_OUTPUT: spawnErrOutput },
+        (line: string) => spawnErrLogs.push(line),
+        { request: request as unknown as typeof fetch },
+      );
+
+      expect(readFileSync(spawnErrOutput, "utf8")).toBe(
+        "apps=admin,donor,missionary\n",
+      );
+      expect(spawnErrLogs).toEqual([
+        "admin: build - could not determine ancestry",
+        "donor: build - could not determine ancestry",
+        "missionary: build - could not determine ancestry",
+      ]);
+    } finally {
+      if (previousPath === undefined) {
+        delete process.env.PATH;
+      } else {
+        process.env.PATH = previousPath;
+      }
+      process.chdir(previousCwd);
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
