@@ -20,20 +20,10 @@ vi.mock("@asym/auth/context", async (importOriginal) => ({
     userId: "user-1",
   }),
   requireTenantAdministrator: () => undefined,
-  requestScopeOf: () => ({ tenantId: "tenant-1", assignmentId: "a-1" }),
-}));
-vi.mock("../../../../packages/api/src/shared/request-session-client", () => ({
-  createRequestSessionClient: async () => ({
-    from: () => ({
-      update: (values: unknown) => {
-        h.update(values);
-        return { eq: async () => ({ error: null }) };
-      },
-    }),
-  }),
+  requireCapability: () => undefined,
 }));
 
-import { PATCH as orgSettingsPATCH } from "../../../../packages/api/src/admin/org-settings";
+import { PATCH as commentPATCH } from "../../../../packages/api/src/admin/comments/comment";
 import { POST as emailAssetPOST } from "../../../../packages/api/src/email/assets";
 import { readForm } from "../../../../packages/api/src/upload/image";
 import {
@@ -41,8 +31,8 @@ import {
   readJsonBodyOrNull,
 } from "../../../../packages/api/src/shared/http-errors";
 
-const url = "https://admin.example.test/api/admin/org-settings";
-const json = JSON.stringify({ orgPostVisibility: "followers_only" });
+const url = "https://admin.example.test/api/admin/comments/c-1";
+const json = JSON.stringify({ content: "Edited" });
 /** A request whose body carries no type: bytes, not a string. */
 const write = (method: string, body?: string, type?: string) =>
   new Request(url, {
@@ -96,7 +86,7 @@ describe("the shared JSON reader", () => {
       await ensureJsonBody(
         write("POST", json, "application/json; charset=utf-8"),
       ),
-    ).toEqual({ orgPostVisibility: "followers_only" });
+    ).toEqual({ content: "Edited" });
   });
 
   it.each(["POST", "DELETE"])(
@@ -129,8 +119,39 @@ describe("readers of multipart bodies need the type themselves", () => {
 });
 
 describe("a handler that reads through the shared reader", () => {
+  // These cases first drove the organization-settings PATCH. WP3a part 1
+  // (AL-2676) retires that route (record D-48: no page called it, and the
+  // database refused both its calls), so they drive the comment edit, which
+  // reads its body through the same shared reader before it changes anything
+  // (D-18 reason; the assertions are unchanged but for the body it sends).
+  beforeEach(() => {
+    const comments = {
+      select: () => comments,
+      eq: () => comments,
+      single: async () => ({
+        data: { id: "c-1", post: { tenant_id: "tenant-1" } },
+        error: null,
+      }),
+      update: (values: unknown) => {
+        h.update(values);
+        return {
+          eq: () => ({
+            select: () => ({
+              single: async () => ({ data: { id: "c-1" }, error: null }),
+            }),
+          }),
+        };
+      },
+    };
+    h.admin.mockReturnValue({ client: { from: () => comments }, error: null });
+  });
+  const edit = (request: Request) =>
+    commentPATCH(request as never, {
+      params: Promise.resolve({ commentId: "c-1" }),
+    });
+
   it("answers an untyped JSON body with 415 and changes nothing", async () => {
-    const response = await orgSettingsPATCH(write("PATCH", json));
+    const response = await edit(write("PATCH", json));
     expect(response.status).toBe(415);
     expect(await response.json()).toEqual({
       error: "Unsupported mutation content type.",
@@ -139,12 +160,10 @@ describe("a handler that reads through the shared reader", () => {
   });
 
   it("still applies a typed JSON body", async () => {
-    const response = await orgSettingsPATCH(
-      write("PATCH", json, "application/json"),
-    );
+    const response = await edit(write("PATCH", json, "application/json"));
     expect(response.status).toBe(200);
-    expect(h.update).toHaveBeenCalledWith({
-      org_post_visibility: "followers_only",
-    });
+    expect(h.update).toHaveBeenCalledWith(
+      expect.objectContaining({ content: "Edited" }),
+    );
   });
 });

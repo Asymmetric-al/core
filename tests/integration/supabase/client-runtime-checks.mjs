@@ -71,7 +71,7 @@ async function inspectLocalSupabaseContainers(projectId) {
 
 export async function verifyLocalFixtureTarget(
   input,
-  { inspect = inspectLocalSupabaseContainers } = {},
+  { inspect = inspectLocalSupabaseContainers, requireDatabase = false } = {},
 ) {
   const url = new URL(input.API_URL);
   assert.ok(/^asym-modernization-[a-z0-9-]+$/.test(input.projectId));
@@ -98,6 +98,26 @@ export async function verifyLocalFixtureTarget(
       ),
   );
   assert.equal(matching.length, 1, "API target is not the owned local gateway");
+  if (requireDatabase) {
+    const databases = containers.filter(
+      (container) =>
+        container?.running === true &&
+        container.name === `/supabase_db_${input.projectId}` &&
+        container.labels?.["com.supabase.cli.project"] === input.projectId &&
+        /^[a-f0-9]{64}$/.test(container.id),
+    );
+    assert.equal(
+      databases.length,
+      1,
+      "Expected exactly one owned local database",
+    );
+    return {
+      url,
+      containerId: matching[0].id,
+      endpoint,
+      databaseId: databases[0].id,
+    };
+  }
   return { url, containerId: matching[0].id };
 }
 
@@ -333,4 +353,121 @@ export function isDeniedSelfRoleUpdate(result, persistedRole) {
       Array.isArray(result.data) &&
       result.data.length === 0;
   return denied && persistedRole === "donor";
+}
+
+/** The Docker client settings an explicit `--host` must not inherit (K7). */
+const DOCKER_CLIENT_SETTINGS = [
+  "DOCKER_HOST",
+  "DOCKER_CONTEXT",
+  "DOCKER_TLS_VERIFY",
+  "DOCKER_CERT_PATH",
+];
+
+export function withoutDockerClientSettings(env = process.env) {
+  const copy = { ...env };
+  for (const key of DOCKER_CLIENT_SETTINGS) delete copy[key];
+  return copy;
+}
+
+/**
+ * The fixture fund names a legal entity of its own tenant (WP3a, AL-2676).
+ * legal_entities grants the service role nothing (deny by default), so the
+ * entity is written by psql in the owned database
+ * container, bound to the run's tenant and named after the run.
+ */
+export const LEGAL_ENTITY_FIXTURE_INSERT = `INSERT INTO public.legal_entities(id, tenant_id, name)
+SELECT :'entity_id'::uuid, id, :'run_id' FROM public.tenants
+WHERE id = :'tenant_id'::uuid AND name = 'SDK qualification fixture ' || :'run_id'
+RETURNING id;`;
+
+export const LEGAL_ENTITY_FIXTURE_DELETE = `DELETE FROM public.legal_entities
+WHERE id = :'entity_id'::uuid AND tenant_id = :'tenant_id'::uuid AND name = :'run_id';
+SELECT count(*) FROM public.legal_entities WHERE id = :'entity_id'::uuid;`;
+
+/**
+ * The fixture user's staff membership in its own tenant (L1, re-check of
+ * WP3a part 1a): the verifier reads the fund on the caller's token, which
+ * needs a live staff assignment. Bound to the run's user and tenant.
+ */
+export const MEMBERSHIP_FIXTURE_INSERT = `INSERT INTO authz.memberships(id, user_id, tenant_id, role, staff_role, is_tenant_admin)
+SELECT :'membership_id'::uuid, u.id, t.id, 'staff', 'development', false
+FROM auth.users u JOIN public.tenants t ON t.id = :'tenant_id'::uuid AND t.name = 'SDK qualification fixture ' || :'run_id'
+WHERE u.id = :'user_id'::uuid AND u.raw_app_meta_data->>'sdk_qualification_run' = :'run_id'
+RETURNING id;`;
+
+export const MEMBERSHIP_FIXTURE_DELETE = `DELETE FROM authz.memberships
+WHERE id = :'membership_id'::uuid AND user_id = :'user_id'::uuid AND tenant_id = :'tenant_id'::uuid;
+SELECT count(*) FROM authz.memberships WHERE id = :'membership_id'::uuid;`;
+
+/** psql in the owned database container, each variable passed with -v. */
+export function ownedDatabaseCommand({
+  endpoint,
+  databaseId,
+  variables,
+  env = process.env,
+}) {
+  return {
+    command: "docker",
+    args: [
+      "--host",
+      endpoint,
+      "exec",
+      "-i",
+      databaseId,
+      "psql",
+      "-XAtqw",
+      "-U",
+      "postgres",
+      "-d",
+      "postgres",
+      "-v",
+      "ON_ERROR_STOP=1",
+      ...Object.entries(variables).flatMap(([name, value]) => [
+        "-v",
+        `${name}=${value}`,
+      ]),
+    ],
+    env: withoutDockerClientSettings(env),
+  };
+}
+
+export function legalEntityFixtureCommand({
+  endpoint,
+  databaseId,
+  entityId,
+  tenantId,
+  runId,
+  env = process.env,
+}) {
+  return ownedDatabaseCommand({
+    endpoint,
+    databaseId,
+    variables: { entity_id: entityId, tenant_id: tenantId, run_id: runId },
+    env,
+  });
+}
+
+/**
+ * Clean-up in key order: the channels first; the funds, which name the legal
+ * entity; the entity and the membership, which name their tenant; the users;
+ * the tenants, which every RESTRICT key above protects; and the census last.
+ */
+export function orderFixtureCleanup({
+  channels,
+  funds,
+  legalEntity,
+  membership,
+  users,
+  tenants,
+  census,
+}) {
+  return [
+    channels,
+    ...funds,
+    legalEntity,
+    membership,
+    ...users,
+    ...tenants,
+    census,
+  ];
 }

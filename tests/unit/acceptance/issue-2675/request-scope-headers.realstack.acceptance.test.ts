@@ -1,3 +1,4 @@
+// D-18, WP3: giving-target fixtures now name a legal entity owned by their tenant.
 /**
  * AL-2675 real-stack acceptance (WP2b, first release, slice B; rewritten by
  * the second release).
@@ -164,7 +165,11 @@ const READS: Record<Role, Read[]> = {
     read.profiles,
     wholeTenant("donors"),
     wholeTenant("donations"),
-    wholeTenant("funds"),
+    {
+      // D-18 (AL-2676): staff reads leave out an entity's reserved fee-cover fund.
+      ...wholeTenant("funds"),
+      rule: "select id from public.funds where tenant_id = $1 and system_purpose is null",
+    },
     read.posts,
     read.postComments,
     read.fieldPolicies,
@@ -264,8 +269,8 @@ describe.skipIf(!ADMIN_URL)(
         rows.set(`${row.user_id}:${row.tenant_id}:${row.role}`, row.id);
       // The second organization's fixture rows, as its owner would add them.
       await db.query(
-        `insert into public.funds (id, tenant_id, name)
-         values ($1, $2, 'Second organization fund')`,
+        `insert into public.funds (id, tenant_id, name, legal_entity_id)
+         select $1, tenant_id, 'Second organization fund', id from public.legal_entities where tenant_id=$2`,
         [SECOND_FUND, SECOND],
       );
       await db.query(

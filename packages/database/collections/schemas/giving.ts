@@ -94,6 +94,8 @@ export const donationSchema = z.object({
 export const fundSchema = z.object({
   id: z.string().min(1),
   tenant_id: z.string().min(1),
+  legal_entity_id: z.string().min(1),
+  system_purpose: z.literal("fee_cover").nullable(),
   name: z.string(),
   description: z.string().nullable(),
   target_amount: z.number(),

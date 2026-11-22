@@ -808,14 +808,15 @@ async function findMissingReferenceIds(input: {
   ids: string[];
 }): Promise<string[]> {
   const queryableIds = input.ids.filter(isUuid);
-  const { data, error } =
-    queryableIds.length > 0
-      ? await input.supabaseAdmin
-          .from(input.table)
-          .select("id")
-          .eq("tenant_id", input.tenantId)
-          .in("id", queryableIds)
-      : { data: [], error: null };
+  if (!queryableIds.length) return input.ids;
+  const query = input.supabaseAdmin
+    .from(input.table)
+    .select("id")
+    .eq("tenant_id", input.tenantId)
+    .in("id", queryableIds);
+  const { data, error } = await (input.table === "funds"
+    ? query.is("system_purpose", null)
+    : query);
   if (error) {
     throw new Error(error.message);
   }

@@ -1,3 +1,4 @@
+// D-18, WP3: giving-target fixtures now name a legal entity owned by their tenant.
 import { randomUUID } from "node:crypto";
 
 import { expect, type Page } from "@playwright/test";
@@ -227,8 +228,8 @@ export async function addFixtures(
       [f.missionaryInSecond, SECOND, `Harbor field ${tag}`],
     ] as const)
       await db.query(
-        `insert into public.missionaries (id, tenant_id, profile_id, location)
-         values ($1, $2, $3, $4)`,
+        `insert into public.missionaries (id, tenant_id, profile_id, location, legal_entity_id)
+         select $1, tenant_id, $3, $4, id from public.legal_entities where tenant_id=$2`,
         [record, tenant, missionary.userId, place],
       );
     for (const [partner, tenant, name] of [
@@ -244,7 +245,7 @@ export async function addFixtures(
         [partner, tenant, name, `${partner}@example.test`, missionary.userId],
       );
     await db.query(
-      `insert into public.funds (id, tenant_id, name) values ($1, $2, $3)`,
+      `insert into public.funds (id, tenant_id, name, legal_entity_id) select $1, tenant_id, $3, id from public.legal_entities where tenant_id=$2`,
       [f.secondFund, SECOND, `Harbor wells ${tag}`],
     );
     await db.query(
@@ -285,6 +286,12 @@ export async function removeFixtures(env: AuthMailEnv, f: Fixtures | null) {
     await db.query("delete from public.donors where id = any($1::uuid[])", [
       [f.partnerInDemo, ...f.partnersInSecond, f.secondDonor],
     ]);
+    // AL-2676 (K9): the gifts above locked these targets' legal entity, and a
+    // locked target cannot be deleted; the owner removes the locks first.
+    await db.query(
+      "delete from public.giving_target_entity_locks where fund_id = $1 or missionary_id = any($2::uuid[])",
+      [f.secondFund, [f.missionaryInDemo, f.missionaryInSecond]],
+    );
     await db.query("delete from public.funds where id = $1", [f.secondFund]);
     await db.query(
       "delete from public.missionaries where id = any($1::uuid[])",

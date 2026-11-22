@@ -1,3 +1,4 @@
+// D-18, WP3: giving-target fixtures now name a legal entity owned by their tenant.
 import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -230,7 +231,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
           [row.assignment, row.tenant, profile],
         );
         await db.query(
-          "insert into public.missionaries (id,tenant_id,profile_id) values ($1,$2,$3)",
+          "with entity as (insert into public.legal_entities(id,tenant_id,name) values ($2,$2,'Fixture') returning id) insert into public.missionaries (id,tenant_id,profile_id,legal_entity_id) select $1,$2,$3,id from entity",
           [row.missionary, row.tenant, profile],
         );
         await db.query(
@@ -295,7 +296,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
       const newOwner = randomUUID();
       await db.query("insert into auth.users(id) values ($1)", [newOwner]);
       await db.query(
-        "insert into public.missionaries(tenant_id,profile_id) values ($1,$2)",
+        "insert into public.missionaries(tenant_id,profile_id,legal_entity_id) values ($1,$2,$1)",
         [first.tenant, newOwner],
       );
       await db.query("update public.donors set missionary_id=$2 where id=$1", [

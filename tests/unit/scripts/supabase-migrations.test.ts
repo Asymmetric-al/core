@@ -130,6 +130,9 @@ function runVerifier(
       ...listed.map((table: string) => tenantTable(table, 0)),
       tenantTable("donors", 2),
     ],
+    tenant_delete_violations: [],
+    tenant_keys: [],
+    tenant_update_violations: [],
     definers: [],
     // AL-2674: the gate also reads the command-schema functions, the
     // wrappers that call into them and the unadmitted table grants.
@@ -225,6 +228,7 @@ else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
     for (const rel of [
       "scripts",
       "docs/security/field-policies",
+      "docs/security/tenant-key-exceptions.json",
       "supabase/migrations",
       // #2400: the PG17 readiness probe runs before the census.
       "tests/integration/supabase/postgres17-upgrade-readiness-verification.sql",
@@ -293,8 +297,9 @@ describe("supabase migrations verifier", () => {
         `equal the manifest's ${COLUMNS} physical columns`,
       );
       // AL-2674 (D09) removed one exception entry with its dropped table.
+      // D-18 (AL-2676): WP3a lists its three policy-less entity tables.
       const gateLine = result.stdout.indexOf(
-        "PASS: tenant RLS catalog gate: 85 tenant tables enabled and forced (1 with policies, 84 listed deny-by-default, 0 stale)",
+        "PASS: tenant RLS catalog gate: 88 tenant tables enabled and forced (1 with policies, 87 listed deny-by-default, 0 stale)",
       );
       expect(
         result.stdout.indexOf(

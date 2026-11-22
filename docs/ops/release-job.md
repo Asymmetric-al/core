@@ -510,6 +510,8 @@ ends. The job holds only the preview project's credentials.
 
 ### The request-tenant policies: after the first release's apps, never below them
 
+Once WP3a's tenant-record migrations (`20261120130001` and later) are applied, the WP2b rollback cannot be run as written. Its ledger guard requires `20261119135300` to be newest. Do not edit the ledger to get around that check; use a forward fix or rebuild from the intended source chain (see [Tenant records and giving targets](#tenant-records-and-giving-targets-wp3a-part-1a-20261120130001-to-20261120130006)).
+
 `20261119135300_request_tenant_policies.sql` (WP2b's second release,
 AL-2675) makes the database read the tenant and the assignment from the
 `x-asym-tenant` and `x-asym-assignment` request headers, which only the apps
@@ -750,6 +752,217 @@ exited 0 and the check read `f` twice, the job's own `db push` then applied
 second copy with 20991231000000 recorded after the rollback, step 1 read `t`,
 `f` and `f`, and step 2 removed nothing and ended with status 1, the row of
 20261119135300 still recorded.
+
+### Tenant records and giving targets (WP3a part 1a: 20261120130001 to 20261120130006)
+
+#### Deploy order and expand prerequisite (plan 7.4)
+
+`20261120130004_giving_target_entities.sql` drops `donations_missionary_id_fkey`
+and leaves only the composite `(tenant_id, missionary_id)` key. Older app builds
+whose `DONATION_WITH_PARTIES_SELECT` embeds `missionaries!missionary_id` fail
+their donation reads (`GET` donations answers `500`, donor GraphQL donation
+queries fail, and gift `POST` read-backs fail) from `20261120130004`'s `COMMIT`
+until new builds promote, and stay down if the release stops after `db push`.
+
+- The five migrations (`20261120130001`, `20261120130003` to `20261120130006`)
+  are safe for a running release that carries the unhinted missionary embed
+  (PR #2747, commit `474c5679f`, `fix/AL-2674-health-probe-embed-expand`,
+  released and promoted on all three apps first by the coordinator) and **NOT**
+  for an older one.
+- A release that carries this part must build all three apps (`admin`, `donor`
+  and `missionary`), because the new builds read `funds.system_purpose`.
+- The labelled `preview-database` smoke
+  (`.github/workflows/qa-smoke-preview-deploy.yml`) is the first hosted proof of
+  the chain and its gates, including the tenant-key check against a hosted
+  Supabase catalog.
+
+#### Timeouts, transaction boundaries and rollback
+
+All five migrations run in separate transactions with
+`SET LOCAL lock_timeout = '5s'`. That bounds each wait for a lock, not how long
+a lock is held, and none of the five sets `statement_timeout`.
+
+Because each file is its own transaction, a stop at file N leaves the earlier
+files applied and recorded in the ledger while file N aborts and applies nothing
+of its own, and a re-run continues from file N. On a lock timeout in
+`20261120130003`, `20261120130001` stays applied and recorded; inspect
+`pg_blocking_pids`, let the blocker finish or end it, and run the release again.
+After `20261120130004` commits, an intermediate stop before app promotion would
+leave older-app donation reads broken unless the expand step above was already
+promoted on all three apps.
+
+After a release that applies all five migrations, repair is forward only
+(`20261120130003` and `20261120130004` are forward only; `20261120130005` and
+`20261120130006` can be reversed by hand from their headers).
+`supabase/migrations/rollback_20261120130001_tenant_status_membership.sql`
+serves only a push that stopped right after `20261120130001`; its ledger guard
+refuses once any later migration is recorded, and it also refuses while any
+tenant is suspended or closed.
+
+#### Hosted prerequisites: read-only checks before a release
+
+Run on preview, then production, before the release that carries this part, as
+the role the release job migrates with.
+
+**Tenant-key catalog check (all schemas).** The catalog gate inspects every
+non-temporary table with a `tenant_id` column in every schema (no schema
+filter). An unexpected table (`TENANT_KEY_MISSING`) or a listed `cms.*` table
+that is absent or already keyed (`TENANT_KEY_STALE_EXCEPTION`) stops the release
+at `gates`, after the forward-only push. Run this read-only query; it must
+return **exactly** the nine `cms.*` names in
+`docs/security/tenant-key-exceptions.json`:
+
+```sql
+SELECT n.nspname, c.relname
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+JOIN pg_attribute a ON a.attrelid = c.oid AND a.attname = 'tenant_id' AND NOT a.attisdropped
+WHERE c.relkind IN ('r', 'p') AND c.relpersistence <> 't'
+  AND NOT EXISTS (
+    SELECT 1 FROM pg_constraint fk
+    JOIN pg_attribute p ON p.attrelid = fk.confrelid AND p.attname = 'id'
+    WHERE fk.contype = 'f' AND fk.conrelid = c.oid AND fk.conkey = ARRAY[a.attnum]
+      AND fk.confrelid = 'public.tenants'::regclass AND fk.confkey = ARRAY[p.attnum]
+      AND fk.convalidated
+  )
+ORDER BY 1, 2;
+```
+
+**`20261120130001` and `20261120130003` (tenant status and deletion
+protection).** `20261120130001` holds `ACCESS EXCLUSIVE` on `public.tenants`
+across one `CHECK` scan and six function replacements; from then on every
+membership reader joins `tenants`, so any later exclusive lock on `tenants`
+blocks all signed-in requests. `20261120130003` stops on any non-`RESTRICT` key
+to `tenants` whose definition is not
+`FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)` with optional
+`ON DELETE CASCADE` or `SET NULL`, requires the migrating role to be able to
+`ALTER` every referencing table whose key it replaces, assumes all validating
+scans (146 tables on a
+seeded copy of `develop`) finish inside the role's `statement_timeout`, and
+holds `ACCESS EXCLUSIVE` on `public.tenants` and every altered referencing table
+until `COMMIT`.
+
+1. Keys `20261120130003` would refuse (expect **0 rows**):
+
+```sql
+SELECT conrelid::regclass, conname, pg_get_constraintdef(oid)
+FROM pg_constraint
+WHERE contype = 'f' AND confrelid = 'public.tenants'::regclass AND confdeltype <> 'r'
+  AND pg_get_constraintdef(oid) !~ '^FOREIGN KEY \(tenant_id\) REFERENCES (public\.)?tenants\(id\)( ON DELETE (CASCADE|SET NULL))?$';
+```
+
+2. Referencing tables the migrating role may not alter (expect **0 rows**):
+
+```sql
+SELECT c.oid::regclass, c.relowner::regrole
+FROM pg_constraint k
+JOIN pg_class c ON c.oid = k.conrelid
+WHERE k.contype = 'f' AND k.confrelid = 'public.tenants'::regclass AND k.confdeltype <> 'r'
+  AND NOT pg_has_role(current_user, c.relowner, 'USAGE');
+```
+
+3. Open transactions to drain before running (also covers `20261120130004`):
+
+```sql
+SELECT pid, usename, state, now() - xact_start AS open_for, left(query, 60)
+FROM pg_stat_activity
+WHERE xact_start IS NOT NULL AND pid <> pg_backend_pid()
+ORDER BY xact_start;
+```
+
+4. Referencing-table row estimate against `statement_timeout`:
+
+```sql
+SELECT current_setting('statement_timeout'),
+  (SELECT sum(reltuples)::bigint FROM pg_class
+   WHERE oid IN (
+     SELECT conrelid FROM pg_constraint
+     WHERE contype = 'f' AND confrelid = 'public.tenants'::regclass
+   )) AS approx_rows;
+```
+
+5. Existing foreign-key delete actions to compare against
+   `docs/security/tenant-fk-actions-before-wp3a.csv`:
+
+```sql
+SELECT n.nspname, c.relname, k.conname, k.confdeltype
+FROM pg_constraint k
+JOIN pg_class c ON c.oid = k.conrelid
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE k.contype = 'f' AND k.confrelid = 'public.tenants'::regclass
+ORDER BY 1, 2, 3;
+```
+
+**`20261120130004` (legal entities, giving targets and permanent locks).**
+Locks eight tables (`public.tenants`, `public.funds`, `public.missionaries` and
+the five money tables) in `SHARE ROW EXCLUSIVE` before its preflight (writers
+wait; readers continue), then upgrades `funds`, `missionaries` and the five
+money tables to `ACCESS EXCLUSIVE` through `COMMIT` across two updates, six
+index builds, ten key validations and ten lock backfills (`tenants` stays at
+`SHARE ROW EXCLUSIVE`). Under those locks it checks and stops before its first
+change on a fund or missionary with a `NULL` tenant, a tenant whose name is
+blank after `btrim`, or a row on any of the five money tables naming a fund or
+missionary while its own `tenant_id` is `NULL` or differs from the target's (a
+donation with a `NULL` tenant that names no target is allowed through). It
+assumes the migrating role bypasses row security (otherwise the lock backfill
+under forced RLS with no policy fails when money rows exist) and that policy
+`"tenant scoped read"` exists on `public.funds`.
+
+1. Run `scripts/sql/giving-target-preflight.sql`: both statements must return
+   **0 rows**. If `20261120130004` stops on its in-migration preflight, repair
+   the rows it names (it prints counts and blank-name tenant ids) and release
+   again.
+2. Confirm the migrating role bypasses row security (at least one of `rolsuper`
+   or `rolbypassrls` must be `true`):
+
+```sql
+SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user;
+```
+
+3. Confirm `public.funds` carries policy `"tenant scoped read"`:
+
+```sql
+SELECT polname FROM pg_policy WHERE polrelid = 'public.funds'::regclass;
+```
+
+4. Drain open transactions using query 3 of `20261120130001`/`20261120130003`
+   above.
+
+**`20261120130005` and `20261120130006` (late readers and gift tenant
+default).** `20261120130005` needs only `20261120130001`, locks no table and
+reloads PostgREST's schema cache (covering `20261120130004`'s new keys too).
+`20261120130006` takes `ACCESS EXCLUSIVE` on `public.donations` for a
+catalog-only `DROP DEFAULT`; existing `NULL`-tenant rows stay invisible to any
+tenant, an insert naming no tenant and no donor, fund or missionary is stored
+with `NULL` while one naming any of them is refused (`23514`), and gift intake
+(WP8a) owes `NOT NULL`. Record these baselines before the release:
+
+```sql
+SELECT count(*) FROM public.donations WHERE tenant_id IS NULL;
+SELECT column_default FROM information_schema.columns
+WHERE table_schema = 'public' AND table_name = 'donations' AND column_name = 'tenant_id';
+```
+
+#### Read-only verification checks after a release
+
+1. Confirm every tenant has a legal entity, every fund has one
+   (`tenants_without_entity` and `funds_without_entity` must both be **0**), and
+   record the lock count:
+
+```sql
+SELECT
+  (SELECT count(*) FROM public.tenants t
+   WHERE NOT EXISTS (SELECT 1 FROM public.legal_entities e WHERE e.tenant_id = t.id)) AS tenants_without_entity,
+  (SELECT count(*) FROM public.funds WHERE legal_entity_id IS NULL) AS funds_without_entity,
+  (SELECT count(*) FROM public.giving_target_entity_locks) AS locks;
+```
+
+2. Confirm no non-`RESTRICT` key to `public.tenants` remains (must be **0**):
+
+```sql
+SELECT count(*) FROM pg_constraint
+WHERE contype = 'f' AND confrelid = 'public.tenants'::regclass AND confdeltype <> 'r';
+```
 
 ### The database's certificate
 

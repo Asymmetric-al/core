@@ -91,7 +91,8 @@ function buildRows(asOf) {
     funds: Array.from({ length: 7 }, (_, index) => ({
       id: rowId("6", index + 1),
       tenant_id: index < 6 ? FIXTURE_TENANT_ID : OTHER_TENANT,
-      is_active: index < 4 || index === 6,
+      is_active: index < 5 || index === 6,
+      system_purpose: index === 4 ? "fee_cover" : null,
     })),
     donations,
     contribution_adjustments: [
@@ -168,7 +169,10 @@ function dashboardRows(request, url, tables, asOf) {
     add("is_active");
     if (params.get("is_active") !== "eq.true")
       reject(400, "Active funds must be filtered explicitly.");
-    rows = rows.filter((row) => row.is_active);
+    add("system_purpose");
+    if (params.get("system_purpose") !== "is.null")
+      reject(400, "System funds must be excluded explicitly.");
+    rows = rows.filter((row) => row.is_active && row.system_purpose === null);
   }
   if (table === "donations") {
     add("or");

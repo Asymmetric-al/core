@@ -2,6 +2,62 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { serverEnv } from "@asym/env";
 import { NextResponse } from "next/server";
 
+/**
+ * The five money tables whose rows fix a giving target's legal entity for
+ * good (AL-2676, WP3a). Deleting an Auth user cascades through its profile
+ * to its missionary, and the database refuses to delete a missionary that
+ * money named, so such an account is kept, and the answer says so.
+ *
+ * Not recognised: an account whose money rows are gone while a lock still
+ * names its missionary (the service key reads no lock row). Its delete is
+ * refused, and every run answers 500 with that account under `errors` until
+ * it is handled; that is owed (round M of WP3a part 1a), not done here.
+ */
+const MONEY_TABLES = [
+  "donations",
+  "donor_pledges",
+  "staged_gifts",
+  "staged_gift_allocations",
+  "donation_saga_outbox",
+] as const;
+
+type AdminClient = NonNullable<ReturnType<typeof getAdminClient>["client"]>;
+
+/** Whether money names this account's missionary or donor row. */
+async function hasGivingHistory(supabase: AdminClient, userId: string) {
+  const ids = async (table: "missionaries" | "donors") => {
+    const { data, error } = await supabase
+      .from(table)
+      .select("id")
+      .eq("profile_id", userId);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row: { id: string }) => row.id);
+  };
+  const named = async (table: string, column: string, values: string[]) => {
+    if (values.length === 0) return false;
+    const { count, error } = await supabase
+      .from(table)
+      .select("id", { count: "exact", head: true })
+      .in(column, values);
+    if (error) throw new Error(error.message);
+    return (count ?? 0) > 0;
+  };
+  const [missionaryIds, donorIds] = await Promise.all([
+    ids("missionaries"),
+    ids("donors"),
+  ]);
+  for (const table of MONEY_TABLES)
+    if (await named(table, "missionary_id", missionaryIds)) return true;
+  for (const table of [
+    "donations",
+    "donor_pledges",
+    "staged_gifts",
+    "donation_saga_outbox",
+  ])
+    if (await named(table, "donor_id", donorIds)) return true;
+  return false;
+}
+
 export async function POST(request: Request) {
   const cronSecret = serverEnv.CRON_SECRET;
   // Fail CLOSED: this endpoint deletes users via the admin (RLS-bypass) client
@@ -43,9 +99,14 @@ export async function POST(request: Request) {
     console.log(`Found ${demoUsersToDelete.length} demo users to delete`);
 
     const deletedUsers: string[] = [];
+    const retained: { id: string; reason: "giving history" }[] = [];
     const errors: { id: string; error: string }[] = [];
 
     for (const user of demoUsersToDelete) {
+      if (await hasGivingHistory(supabase, user.id)) {
+        retained.push({ id: user.id, reason: "giving history" });
+        continue;
+      }
       const { error: deleteError } = await supabase.auth.admin.deleteUser(
         user.id,
       );
@@ -57,12 +118,18 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      deletedCount: deletedUsers.length,
-      deletedIds: deletedUsers,
-      errors: errors.length > 0 ? errors : undefined,
-    });
+    // Success means every eligible account was deleted, or kept because
+    // money names it; an account that failed to delete fails the run.
+    return NextResponse.json(
+      {
+        success: errors.length === 0,
+        deletedCount: deletedUsers.length,
+        deletedIds: deletedUsers,
+        retained: retained.length > 0 ? retained : undefined,
+        errors: errors.length > 0 ? errors : undefined,
+      },
+      { status: errors.length === 0 ? 200 : 500 },
+    );
   } catch (error) {
     console.error("Cleanup internal error:", error);
     return NextResponse.json(
