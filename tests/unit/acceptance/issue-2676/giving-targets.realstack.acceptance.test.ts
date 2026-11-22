@@ -395,20 +395,48 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
     }
   });
   it("all ten gift target keys are composite, validated and replace their predecessors", async () => {
+    const sources = [
+      "donation_saga_outbox",
+      "donations",
+      "donor_pledges",
+      "staged_gift_allocations",
+      "staged_gifts",
+    ] as const;
     const { rows } = await db.query(
-      `select c.convalidated, cardinality(c.conkey) as width from pg_constraint c where c.contype='f' and c.confrelid in ('public.funds'::regclass,'public.missionaries'::regclass) and c.conrelid::regclass::text=any($1)`,
-      [
-        [
-          "donations",
-          "staged_gift_allocations",
-          "staged_gifts",
-          "donor_pledges",
-          "donation_saga_outbox",
-        ],
-      ],
+      `select
+         c.conrelid::regclass::text as source,
+         c.confrelid::regclass::text as target,
+         c.convalidated,
+         array_agg(sa.attname::text order by u.ord) as source_cols,
+         array_agg(ta.attname::text order by u.ord) as target_cols
+       from pg_constraint c
+       cross join lateral unnest(c.conkey, c.confkey) with ordinality as u(src_att, tgt_att, ord)
+       join pg_attribute sa on sa.attrelid = c.conrelid and sa.attnum = u.src_att
+       join pg_attribute ta on ta.attrelid = c.confrelid and ta.attnum = u.tgt_att
+       where c.contype = 'f'
+         and c.confrelid in ('public.funds'::regclass, 'public.missionaries'::regclass)
+         and c.conrelid::regclass::text = any($1)
+       group by c.oid, c.conrelid, c.confrelid, c.convalidated
+       order by c.conrelid::regclass::text collate "C", c.confrelid::regclass::text collate "C"`,
+      [sources],
     );
-    expect(rows).toHaveLength(10);
-    expect(rows.every((row) => row.convalidated && row.width === 2)).toBe(true);
+    const expected = sources.flatMap((source) => [
+      {
+        source,
+        target: "funds",
+        convalidated: true,
+        source_cols: ["tenant_id", "fund_id"],
+        target_cols: ["tenant_id", "id"],
+      },
+      {
+        source,
+        target: "missionaries",
+        convalidated: true,
+        source_cols: ["tenant_id", "missionary_id"],
+        target_cols: ["tenant_id", "id"],
+      },
+    ]);
+    expect(rows).toEqual(expected);
   });
   // F3 (council 21 November): on a database it cannot convert, 130004 stops
   // before it changes anything, reports counts and names the operator's query.

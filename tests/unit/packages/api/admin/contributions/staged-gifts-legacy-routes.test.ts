@@ -98,7 +98,7 @@ function resetDatabase(gift: Row = giftRow()) {
       tenant_id: TENANT,
       system_purpose: "fee_cover",
     },
-    { id: FOREIGN_FUND, tenant_id: OTHER_TENANT },
+    { id: FOREIGN_FUND, tenant_id: OTHER_TENANT, system_purpose: null },
   ]);
   tables.set("missionaries", [
     { id: MISSIONARY, tenant_id: TENANT },
