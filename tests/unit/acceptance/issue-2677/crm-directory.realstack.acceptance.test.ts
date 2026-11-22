@@ -49,8 +49,12 @@ it.skipIf(!ADMIN_URL)(
         `select * from public.tenant_member_directory(${args})`,
       );
       expect(refused.code).toBe("42501");
+      await db.query(
+        "insert into public.legal_entities (id,tenant_id,name) values ($1,$1,'Fixture A'),($2,$2,'Fixture B')",
+        [ids.TA, ids.TB],
+      );
       const workers = await db.query(
-        "insert into public.missionaries (tenant_id,profile_id) values ($1,$2),($3,$4) returning id,tenant_id",
+        "insert into public.missionaries (tenant_id,profile_id,legal_entity_id) values ($1,$2,$1),($3,$4,$3) returning id,tenant_id",
         [ids.TA, ids.UFC, ids.TB, ids.UB],
       );
       const requested = workers.rows.map((row) => `'${row.id}'`).join(",");

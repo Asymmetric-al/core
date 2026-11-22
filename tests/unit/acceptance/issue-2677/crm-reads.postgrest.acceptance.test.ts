@@ -68,6 +68,8 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
     const defaultIds = [randomUUID(), randomUUID()];
     const otherProfile = "11111111-1111-1111-1111-111111111111";
     const tableId = "crm.giftHistory";
+    let entityA: string;
+    let entityB: string;
     let db: pg.Client;
     let sole: { token: string; assignment: string };
     let dual: { token: string; assignment: string };
@@ -90,18 +92,32 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
       vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", key);
       db = new pg.Client({ connectionString: database });
       await db.connect();
+      const entities = await db.query<{ id: string; tenant_id: string }>(
+        "select id,tenant_id from public.legal_entities where tenant_id=any($1::uuid[]) order by tenant_id",
+        [[tenantA, tenantB]],
+      );
+      expect(entities.rows.map((row) => row.tenant_id)).toEqual([
+        tenantA,
+        tenantB,
+      ]);
+      [entityA, entityB] = entities.rows.map((row) => row.id) as [
+        string,
+        string,
+      ];
       await db.query(
         "insert into authz.memberships (id,user_id,tenant_id,role,staff_role,is_active,revoked_at) values ($1,$2,$3,'staff','development',false,now())",
         [revokedOwner, "33333333-3333-3333-3333-333333333333", tenantA],
       );
       await db.query(
-        "insert into public.missionaries (id,tenant_id,profile_id,location) values ($1,$3,$5,'Fixture Alpha'),($2,$4,$6,'Fixture Beta')",
+        "insert into public.missionaries (id,tenant_id,profile_id,location,legal_entity_id) values ($1,$3,$5,'Fixture Alpha',$7),($2,$4,$6,'Fixture Beta',$8)",
         [
           ...workerIds,
           tenantA,
           tenantB,
           dualUser,
           "33333333-3333-3333-3333-333333333333",
+          entityA,
+          entityB,
         ],
       );
       await db.query(
@@ -167,8 +183,8 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
         [...giftIds, tenantA, tenantB, donorIds[0], donorIds[2], ...workerIds],
       );
       await db.query(
-        "insert into public.funds (id,tenant_id,name) values ($1,$3,'Scope A fund'),($2,$4,'Scope B fund')",
-        [...fundIds, tenantA, tenantB],
+        "insert into public.funds (id,tenant_id,name,legal_entity_id) values ($1,$3,'Scope A fund',$5),($2,$4,'Scope B fund',$6)",
+        [...fundIds, tenantA, tenantB, entityA, entityB],
       );
       await db.query(
         "update public.donations set fund_id=case when tenant_id=$3 then $1::uuid else $2::uuid end where id=any($4::uuid[])",
@@ -217,6 +233,10 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           await db.query(
             "delete from public.donor_merge_candidates where id=$1",
             [candidateId],
+          );
+          await db.query(
+            "delete from public.giving_target_entity_locks where missionary_id=any($1::uuid[]) or fund_id=any($2::uuid[])",
+            [workerIds, fundIds],
           );
           await db.query(
             "delete from public.missionaries where id=any($1::uuid[])",
@@ -268,6 +288,67 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
         },
       });
     }
+
+    async function exportAuditCount() {
+      const count = await db.query<{ n: number }>(
+        "select count(*)::int as n from public.audit_logs where tenant_id=$1 and action='crm_export_created'",
+        [tenantA],
+      );
+      return count.rows[0]!.n;
+    }
+
+    it("refuses all moved reads for a suspended tenant and writes no export audit", async () => {
+      const held = await db.query<{ status: string }>(
+        "select status from public.tenants where id=$1",
+        [tenantA],
+      );
+      expect(held.rows).toEqual([{ status: "active" }]);
+      const before = await exportAuditCount();
+      try {
+        await db.query(
+          "update public.tenants set status='suspended' where id=$1",
+          [tenantA],
+        );
+        const settings = "/api/admin/crm/table-preferences";
+        for (const [name, handler, path] of [
+          ["records", records, "/api/admin/crm/records"],
+          ["tags", tags, "/api/admin/crm/tags"],
+          ["detail", detail, "/api/admin/crm/records/" + donorIds[0]],
+          ["relationships", relationships, "/api/admin/crm/relationships"],
+          ["notes", notes, "/api/admin/crm/notes"],
+          ["report", report, "/api/admin/crm/reports?slice=funds"],
+          ["export", download, "/api/admin/crm/reports/export?slice=funds"],
+          ["preferences", preferences, settings],
+          ["named views", views, settings + "/named-views"],
+          ["tenant default", setDefault, settings + "/tenant-default"],
+        ] as const) {
+          const req = request(path);
+          const res = await handler(
+            handler === setDefault
+              ? new NextRequest(req.url, {
+                  method: "PUT",
+                  headers: {
+                    ...Object.fromEntries(req.headers),
+                    "content-type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    tableId,
+                    columns: { statusLine: true },
+                  }),
+                })
+              : req,
+          );
+          expect(res.status, name).toBe(401);
+          expect(res.headers.has("x-asym-scope-refused"), name).toBe(true);
+        }
+        expect(await exportAuditCount()).toBe(before);
+      } finally {
+        await db.query("update public.tenants set status=$2 where id=$1", [
+          tenantA,
+          held.rows[0]!.status,
+        ]);
+      }
+    });
 
     it.each(["preferences", "views", "default pre-check"] as const)(
       "scopes the %s handler to the tenant and personal settings to their owner",
@@ -741,12 +822,12 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           [ids],
         );
         await db.query(
-          `insert into public.missionaries(id,tenant_id,profile_id) select f.id,$2::uuid,p.id from ${source} join public.profiles p on p.user_id=f.id`,
-          [ids, tenantA],
+          `insert into public.missionaries(id,tenant_id,profile_id,legal_entity_id) select f.id,$2::uuid,p.id,$3::uuid from ${source} join public.profiles p on p.user_id=f.id`,
+          [ids, tenantA, entityA],
         );
         await db.query(
-          `insert into public.funds(id,tenant_id,name) select id,$2::uuid,'Fund '||n from ${source}`,
-          [ids, tenantA],
+          `insert into public.funds(id,tenant_id,name,legal_entity_id) select id,$2::uuid,'Fund '||n,$3::uuid from ${source}`,
+          [ids, tenantA, entityA],
         );
         await db.query(
           `insert into public.donors(id,tenant_id,name) select id,$2::uuid,'Donor '||n from ${source}`,
@@ -784,7 +865,15 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
         }
       } finally {
         await db.query("rollback");
-        for (const table of ["donations", "donors", "funds", "missionaries"])
+        await db.query(
+          "delete from public.donations where id=any($1::uuid[])",
+          [ids],
+        );
+        await db.query(
+          "delete from public.giving_target_entity_locks where missionary_id=any($1::uuid[]) or fund_id=any($1::uuid[])",
+          [ids],
+        );
+        for (const table of ["donors", "funds", "missionaries"])
           await db.query(
             `delete from public.${table} where id=any($1::uuid[])`,
             [ids],
