@@ -103,4 +103,5 @@ CREATE INDEX crm_candidates_open_incoming_idx
   ON public.donor_merge_candidates (tenant_id, incoming_donor_id, id) WHERE status = 'open';
 CREATE INDEX crm_links_pending_parent_idx
   ON public.donation_crm_links (tenant_id, link_status) WHERE scope = 'parent' AND link_status IN ('queued','failed');
+NOTIFY pgrst, 'reload schema';
 COMMIT;

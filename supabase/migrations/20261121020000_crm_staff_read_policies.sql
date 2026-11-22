@@ -31,6 +31,17 @@ GRANT SELECT (tenant_id, table_id, pinned_action_id, schema_version, settings)
 GRANT SELECT (tenant_id, profile_id, table_id, id, name, is_default, schema_version, pinned_action_id, settings)
   ON public.crm_table_named_views TO authenticated;
 
+REVOKE SELECT ON public.staged_gifts, public.staged_gift_allocations, public.donation_crm_links FROM authenticated;
+
+GRANT SELECT (id, tenant_id, donation_id, fund_id, missionary_id, receipt_status, crm_post_status, status, twenty_record_id, posted_at, created_at)
+  ON public.staged_gifts TO authenticated;
+
+GRANT SELECT (id, tenant_id, staged_gift_id, amount, fund_id, missionary_id, memo, created_at)
+  ON public.staged_gift_allocations TO authenticated;
+
+GRANT SELECT (id, tenant_id, donation_id, staged_gift_id, scope, link_status, twenty_record_id, updated_at)
+  ON public.donation_crm_links TO authenticated;
+
 CREATE POLICY "crm staff read" ON public.missionaries
   FOR SELECT TO authenticated
   USING (

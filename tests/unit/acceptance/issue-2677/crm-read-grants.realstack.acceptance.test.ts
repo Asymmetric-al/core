@@ -8,6 +8,12 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("requires the migrate database", () =>
 );
 
 const readColumns = {
+  staged_gifts:
+    "created_at crm_post_status donation_id fund_id id missionary_id posted_at receipt_status status tenant_id twenty_record_id",
+  staged_gift_allocations:
+    "amount created_at fund_id id memo missionary_id staged_gift_id tenant_id",
+  donation_crm_links:
+    "donation_id id link_status scope staged_gift_id tenant_id twenty_record_id updated_at",
   missionaries: "created_at id location profile_id tenant_id updated_at",
   contribution_approval_policies:
     "ownership_mode stronger_approval_categories suppressed_gates tenant_id",

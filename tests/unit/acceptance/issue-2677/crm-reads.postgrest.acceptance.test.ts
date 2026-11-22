@@ -762,6 +762,36 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           expect(result.error, table).toBeNull();
           expect(result.data, table).toEqual([{ [key]: ids[0] }]);
         }
+        for (const [table, columns, withheld, id] of [
+          [
+            "staged_gifts",
+            "id,tenant_id,donation_id,fund_id,missionary_id,receipt_status,crm_post_status,status,twenty_record_id,posted_at,created_at",
+            "last_error_message",
+            staged[0],
+          ],
+          [
+            "staged_gift_allocations",
+            "id,tenant_id,staged_gift_id,amount,fund_id,missionary_id,memo,created_at",
+            "updated_at",
+            allocations[0],
+          ],
+          [
+            "donation_crm_links",
+            "id,tenant_id,donation_id,staged_gift_id,scope,link_status,twenty_record_id,updated_at",
+            "metadata",
+            syncIds[0],
+          ],
+        ] as const) {
+          const allowed = await scoped
+            .from(table)
+            .select(columns)
+            .eq("id", id)
+            .single();
+          expect(allowed.error, table).toBeNull();
+          expect(allowed.data, table).toMatchObject({ id, tenant_id: tenantA });
+          const denied = await scoped.from(table).select(withheld).limit(0);
+          expect(denied.error?.code, `${table}.${withheld}`).toBe("42501");
+        }
         const policies = await scoped
           .from("field_policies")
           .select("tenant_id");
