@@ -12,7 +12,7 @@ import { createAppHealthHandler } from "../../../../../packages/api/src/health/a
 
 type QueryResult = {
   data: Array<{ id: string }> | null;
-  error: { message: string } | null;
+  error: { code?: string; message: string } | null;
 };
 
 function createThenableQuery(result: QueryResult) {
@@ -80,6 +80,47 @@ describe("app health handler", () => {
     expect(from).toHaveBeenCalledWith("profiles");
     expect(query.select).toHaveBeenCalledWith("id");
     expect(query.limit).toHaveBeenCalledWith(1);
+  });
+
+  it("counts the database's refusal of the anonymous read as connectivity", async () => {
+    mockClientWithQuery({
+      data: null,
+      error: { code: "42501", message: "permission denied for table profiles" },
+    });
+
+    const response = await createAppHealthHandler("donor")();
+    expect(createClientMock).toHaveBeenCalledWith(null);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      status: "ok",
+      checks: { supabase: "ok" },
+    });
+  });
+
+  it.each([{ code: "PGRST301" }, {}])(
+    "does not infer connectivity from a permission message: %j",
+    async (error) => {
+      const message = "permission denied for table profiles";
+      mockClientWithQuery({ data: null, error: { ...error, message } });
+
+      const response = await createAppHealthHandler("donor")();
+      expect(response.status).toBe(503);
+      expect(await response.json()).toMatchObject({
+        status: "degraded",
+        checks: { supabase: `error: ${message}` },
+      });
+    },
+  );
+
+  it("stays degraded when the probe throws", async () => {
+    createClientMock.mockRejectedValueOnce(new Error("connection failed"));
+
+    const response = await createAppHealthHandler("donor")();
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({
+      status: "degraded",
+      checks: { supabase: "error: connection failed" },
+    });
   });
 
   it("normalizes custom target release metadata", async () => {

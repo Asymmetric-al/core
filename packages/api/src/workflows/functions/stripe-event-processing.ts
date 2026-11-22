@@ -150,7 +150,9 @@ export const stripeEventProcessing = inngest.createFunction(
 export const stripeEventRecoveryScan = inngest.createFunction(
   {
     id: "stripe-event-recovery-scan",
-    triggers: [{ cron: "*/2 * * * *" }],
+    // Pre-launch free-tier cadence (30m): keeps all three recovery scans well
+    // under Inngest's 50k/month execution cap until moving to a paid plan.
+    triggers: [{ cron: "*/30 * * * *" }],
     retries: 2,
     concurrency: [{ limit: 1 }],
   },

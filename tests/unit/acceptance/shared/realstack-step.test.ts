@@ -17,7 +17,10 @@ import {
   stepTestPaths,
 } from "./realstack-step";
 
-import type { WorkflowStep } from "../../helpers/workflow-yaml";
+import {
+  loadWorkflowJobs,
+  type WorkflowStep,
+} from "../../helpers/workflow-yaml";
 
 const A = "tests/unit/acceptance";
 const F2250 = `${A}/issue-2250/tenant-guard.realstack.acceptance.test.ts`;
@@ -459,6 +462,31 @@ describe("every real-database test file runs in a blocking migrate step (#2706)"
     expect(jobEnv?.DATABASE_URL, "migrate job sets DATABASE_URL").toEqual(
       expect.stringMatching(/\S/),
     );
+  });
+});
+
+describe("required PostgREST suites run on the local Supabase stack (#2706)", () => {
+  const job = loadWorkflowJobs(".github/workflows/local-supabase.yml")[
+    "local-supabase"
+  ];
+  it.each([
+    "issue-2674/app-health",
+    "issue-2675/missionary-handler-authority",
+    "issue-2677/field-policy-reader",
+  ])("runs %s in a blocking step", (suite) => {
+    const file = `${A}/${suite}.postgrest.acceptance.test.ts`;
+    const runs = job?.steps?.filter((step) =>
+      step.run
+        ?.split("\n")
+        .some(
+          (line) =>
+            line.startsWith("bunx vitest run --maxWorkers=1 ") &&
+            line.split(" ").includes(file),
+        ),
+    );
+    expect(runs).toHaveLength(1);
+    expect(runs![0]).not.toHaveProperty("if");
+    expect(runs![0]).not.toHaveProperty("continue-on-error");
   });
 });
 

@@ -29,10 +29,9 @@ const REST = "packages/api/src/donations/index.ts";
 const GQL = "packages/graphql/handler.ts";
 const SELECT_TS = "packages/api/src/donations/select.ts";
 const NAME = "DONATION_WITH_PARTIES_SELECT";
-/** Spec 1.1, verbatim. */
+// D-18 (22 Nov 2026): no key hint, so the embed resolves before and after WP3a's composite key (plan 7.4).
 const SPEC_SELECT =
-  // D-18: name WP3's composite missionary FK even if another relationship is added.
-  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries!donations_missionary_same_tenant_fk(*, profile:profiles!profile_id(*))";
+  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries(*, profile:profiles!profile_id(*))";
 const read = (f: string) => (existsSync(f) ? readFileSync(f, "utf8") : "");
 
 type Site = { name: string; file: string; start: RegExp; filter: Filter };

@@ -37,7 +37,9 @@ Each app exposes the shared health contract through
 
 - `GET /api/health` on `admin`, `donor`, and `missionary`.
 - `status`: `ok` or `degraded`.
-- `checks.supabase`: `ok` or a sanitized Supabase error summary.
+- `checks.supabase`: `ok` when the anonymous `profiles` read succeeds or the
+  database refuses it with `42501` (no table grant). Both prove connectivity.
+  Other errors return HTTP 503 with `status: degraded` and a sanitized summary.
 - `observability.surface`: `admin`, `donor`, or `missionary`.
 - `observability.release.commit`: first available release identifier from
   `VERCEL_GIT_COMMIT_SHA`, `SENTRY_RELEASE`, `GIT_SHA`, `GITHUB_SHA`, or

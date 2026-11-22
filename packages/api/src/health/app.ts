@@ -134,12 +134,13 @@ export function createAppHealthHandler(surface: HealthSurface) {
     const startedAt = Date.now();
 
     try {
-      // A connectivity probe: it names no tenant, and an empty result is healthy.
+      // Since WP1 anon has no table grant. Its permission denial proves both
+      // PostgREST and the database answered this connectivity probe.
       const supabase = await createClient(null);
       const { error } = await supabase.from("profiles").select("id").limit(1);
       const latencyMs = Date.now() - startedAt;
 
-      if (error) {
+      if (error && error.code !== "42501") {
         return degradedResponse(surface, error.message, latencyMs);
       }
 
