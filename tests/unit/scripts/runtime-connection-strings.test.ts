@@ -537,7 +537,6 @@ process.exit(7);
       ).toThrow(/pagination|shared variable list/i);
     }
 
-    // Pure helper keeps accepting an array fixture directly.
     expect(
       findSharedRuntimeConnectionStrings({
         listing: [
@@ -559,7 +558,6 @@ process.exit(7);
       },
     ]);
 
-    // Genuine last page with next: null and empty data preserves page-1 findings.
     const twoPageRun = vi.fn((_command: string, args: string[]) => {
       if (args[1] === "/v1/env") {
         return JSON.stringify({
@@ -599,7 +597,6 @@ process.exit(7);
       },
     ]);
 
-    // Refusal verdict line via main without spawning the script or leaking CLI output.
     const secretStderr = "SECRET_CLI_STDERR_MARKER_R1";
     const logs: string[] = [];
     const errors: string[] = [];
