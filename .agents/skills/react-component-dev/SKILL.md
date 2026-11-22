@@ -1,6 +1,6 @@
 ---
 name: react-component-dev
-description: "Build reusable, accessible React components with predictable APIs and ref forwarding. Use when creating or refactoring components or defining component APIs, favoring composition over configuration and slots/children over many boolean props. Not needed for style-only or content-only edits that do not change a component API."
+description: "Build reusable, accessible React components with predictable APIs and React 19 refs as props. Use when creating or refactoring components or defining component APIs, favoring composition over configuration and slots/children over many boolean props. Not needed for style-only or content-only edits that do not change a component API."
 ---
 
 # React component development in Core

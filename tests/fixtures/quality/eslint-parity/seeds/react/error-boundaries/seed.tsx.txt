@@ -1,0 +1,9 @@
+import { Child } from "./child";
+
+export function Safe() {
+  try {
+    return <Child />;
+  } catch {
+    return null;
+  }
+}

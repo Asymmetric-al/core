@@ -1,0 +1,13 @@
+import { first, second } from "./shared";
+
+export enum Level {
+  Low = 1,
+  High = 2,
+}
+
+export const pair = [first, second] as const;
+
+export function largest(...values: number[]) {
+  const total = Math.max(...values);
+  return total;
+}

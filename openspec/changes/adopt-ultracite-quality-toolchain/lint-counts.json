@@ -1,0 +1,8142 @@
+{
+  "command": "CORE_LINT_AUDIT_PENDING=1 node tooling/quality/lint.mts --typed --format json",
+  "revision": "eba558d5646ef82559f60529c7687756ae550979",
+  "counts": [
+    {
+      "rule": "anti-slop/no-array-filter-map",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 13
+    },
+    {
+      "rule": "anti-slop/no-array-filter-map",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "anti-slop/no-array-filter-map",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "anti-slop/no-array-filter-map",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-array-filter-map",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 15
+    },
+    {
+      "rule": "anti-slop/no-array-filter-map",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-array-filter-map",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-array-filter-map",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-array-filter-map",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 6
+    },
+    {
+      "rule": "anti-slop/no-array-filter-map",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 43
+    },
+    {
+      "rule": "anti-slop/no-chained-type-assertions",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "anti-slop/no-chained-type-assertions",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-chained-type-assertions",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 52
+    },
+    {
+      "rule": "anti-slop/no-chained-type-assertions",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 19
+    },
+    {
+      "rule": "anti-slop/no-chained-type-assertions",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "anti-slop/no-chained-type-assertions",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-chained-type-assertions",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 28
+    },
+    {
+      "rule": "anti-slop/no-chained-type-assertions",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 251
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 6
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 16
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 11
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 34
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 29
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 48
+    },
+    {
+      "rule": "anti-slop/no-conditional-empty-object-spread",
+      "workspace": "tooling/eslint-config",
+      "scope": "scripts",
+      "count": 4
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 7
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 88
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 18
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 7
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 78
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 14
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 20
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 14
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 13
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 8
+    },
+    {
+      "rule": "anti-slop/no-known-value-widening",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 393
+    },
+    {
+      "rule": "anti-slop/no-module-mocking",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 32
+    },
+    {
+      "rule": "anti-slop/no-module-mocking",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 12
+    },
+    {
+      "rule": "anti-slop/no-module-mocking",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1459
+    },
+    {
+      "rule": "anti-slop/no-object-parameters",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "anti-slop/no-object-parameters",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-object-parameters",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-object-parameters",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 18
+    },
+    {
+      "rule": "anti-slop/no-reflect-apply",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 11
+    },
+    {
+      "rule": "anti-slop/no-reflect-get",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 18
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 6
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 246
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 24
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 27
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 320
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 39
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 32
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 13
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 54
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 25
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 84
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 25
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 360
+    },
+    {
+      "rule": "anti-slop/no-runtime-typeof",
+      "workspace": "tooling/quality",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-shape-in-symbol-names",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "anti-slop/no-shape-in-symbol-names",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 35
+    },
+    {
+      "rule": "anti-slop/no-shape-in-symbol-names",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "anti-slop/no-shape-in-symbol-names",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 13
+    },
+    {
+      "rule": "anti-slop/no-shape-in-symbol-names",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "anti-slop/no-shape-in-symbol-names",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 89
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 76
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 188
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 13
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 15
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 18
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 15
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 22
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "anti-slop/no-unknown-parameters",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 38
+    },
+    {
+      "rule": "anti-slop/no-unknown-returns",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 37
+    },
+    {
+      "rule": "anti-slop/no-unknown-returns",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "anti-slop/no-unknown-returns",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "anti-slop/no-unknown-returns",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 24
+    },
+    {
+      "rule": "anti-slop/no-unknown-returns",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-unknown-returns",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-unknown-returns",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "anti-slop/no-unknown-returns",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "anti-slop/no-unknown-returns",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-unknown-returns",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 157
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 5
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 87
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 56
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 216
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 18
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 48
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 35
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 15
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "packages/mock-data",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 35
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 11
+    },
+    {
+      "rule": "anti-slop/no-unsafe-dictionary-type",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 921
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 83
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": ".oss-scanner",
+      "scope": "scripts",
+      "count": 16
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 4067
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 414
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 965
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 527
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 473
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 4438
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 278
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 490
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 42
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 29
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 395
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 100
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/env",
+      "scope": "product",
+      "count": 48
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 485
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 49
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 283
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 237
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/mock-data",
+      "scope": "product",
+      "count": 23
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1373
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 4979
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 26025
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "tooling/eslint-config",
+      "scope": "scripts",
+      "count": 276
+    },
+    {
+      "rule": "anti-slop/require-readable-spacing",
+      "workspace": "tooling/quality",
+      "scope": "scripts",
+      "count": 49
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 5
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 277
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 17
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 36
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 56
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 19
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 521
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 96
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 30
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 11
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 13
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 71
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/env",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 29
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 19
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/mock-data",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 221
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 9
+    },
+    {
+      "rule": "anti-slop/require-safety-comment-for-type-assertion",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3261
+    },
+    {
+      "rule": "eslint/accessor-pairs",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "eslint/arrow-body-style",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "eslint/arrow-body-style",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "eslint/arrow-body-style",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/arrow-body-style",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "eslint/arrow-body-style",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/arrow-body-style",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "eslint/arrow-body-style",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 26
+    },
+    {
+      "rule": "eslint/arrow-body-style",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "eslint/arrow-body-style",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 9
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 15
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 847
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 103
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 415
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 118
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 139
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 657
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 175
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 51
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "packages/env",
+      "scope": "product",
+      "count": 26
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 89
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 29
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 62
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 52
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "packages/mock-data",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 349
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1613
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3097
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "tooling/eslint-config",
+      "scope": "scripts",
+      "count": 109
+    },
+    {
+      "rule": "eslint/curly",
+      "workspace": "tooling/quality",
+      "scope": "scripts",
+      "count": 33
+    },
+    {
+      "rule": "eslint/default-case",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "eslint/default-case",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/default-case",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "eslint/default-case",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/default-case",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "eslint/default-case",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/default-case",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "eslint/default-case",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "eslint/default-case",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "eslint/default-case",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 5
+    },
+    {
+      "rule": "eslint/default-param-last",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "eslint/eqeqeq",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/func-name-matching",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/func-names",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/func-names",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 16
+    },
+    {
+      "rule": "eslint/logical-assignment-operators",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/max-classes-per-file",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/max-classes-per-file",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/max-classes-per-file",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "eslint/max-classes-per-file",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "eslint/max-classes-per-file",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/max-classes-per-file",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "eslint/max-classes-per-file",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 11
+    },
+    {
+      "rule": "eslint/no-alert",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-alert",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-case-declarations",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-constant-binary-expression",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-control-regex",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-control-regex",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-control-regex",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-control-regex",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 4
+    },
+    {
+      "rule": "eslint/no-control-regex",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 5
+    },
+    {
+      "rule": "eslint/no-div-regex",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "eslint/no-div-regex",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-div-regex",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-div-regex",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 5
+    },
+    {
+      "rule": "eslint/no-dupe-keys",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-duplicate-imports",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "eslint/no-else-return",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-empty",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-empty",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-empty",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-empty",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-empty",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-empty",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-empty",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 4
+    },
+    {
+      "rule": "eslint/no-empty-function",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "eslint/no-empty-function",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-empty-function",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "eslint/no-empty-function",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-empty-function",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-empty-function",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-empty-function",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "eslint/no-empty-function",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "eslint/no-empty-function",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "eslint/no-empty-function",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 23
+    },
+    {
+      "rule": "eslint/no-empty-function",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 45
+    },
+    {
+      "rule": "eslint/no-empty-pattern",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 5
+    },
+    {
+      "rule": "eslint/no-eq-null",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 30
+    },
+    {
+      "rule": "eslint/no-eq-null",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 41
+    },
+    {
+      "rule": "eslint/no-eq-null",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-eq-null",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-eq-null",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-eq-null",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "eslint/no-eq-null",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 17
+    },
+    {
+      "rule": "eslint/no-eq-null",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "eslint/no-eq-null",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 9
+    },
+    {
+      "rule": "eslint/no-eq-null",
+      "workspace": "tooling/eslint-config",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-inner-declarations",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 4
+    },
+    {
+      "rule": "eslint/no-inner-declarations",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "eslint/no-inner-declarations",
+      "workspace": "tooling/eslint-config",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-loop-func",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-loop-func",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 6
+    },
+    {
+      "rule": "eslint/no-loop-func",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 29
+    },
+    {
+      "rule": "eslint/no-multi-assign",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-multi-assign",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 13
+    },
+    {
+      "rule": "eslint/no-negated-condition",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 31
+    },
+    {
+      "rule": "eslint/no-negated-condition",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "eslint/no-negated-condition",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 29
+    },
+    {
+      "rule": "eslint/no-negated-condition",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "eslint/no-negated-condition",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 15
+    },
+    {
+      "rule": "eslint/no-negated-condition",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-negated-condition",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-negated-condition",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-negated-condition",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-negated-condition",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-negated-condition",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 19
+    },
+    {
+      "rule": "eslint/no-negated-condition",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 24
+    },
+    {
+      "rule": "eslint/no-negated-condition",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 15
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 141
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 28
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 63
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 29
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 19
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "packages/mock-data",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 31
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 34
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 101
+    },
+    {
+      "rule": "eslint/no-nested-ternary",
+      "workspace": "tooling/eslint-config",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-new",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-new",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-new-func",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "eslint/no-new-wrappers",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-param-reassign",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 23
+    },
+    {
+      "rule": "eslint/no-param-reassign",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-param-reassign",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-param-reassign",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-param-reassign",
+      "workspace": "tooling/eslint-config",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-promise-executor-return",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-promise-executor-return",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-promise-executor-return",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 8
+    },
+    {
+      "rule": "eslint/no-promise-executor-return",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 87
+    },
+    {
+      "rule": "eslint/no-proto",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-regex-spaces",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 4
+    },
+    {
+      "rule": "eslint/no-regex-spaces",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 21
+    },
+    {
+      "rule": "eslint/no-script-url",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-script-url",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 25
+    },
+    {
+      "rule": "eslint/no-sequences",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 32
+    },
+    {
+      "rule": "eslint/no-shadow",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-shadow",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-shadow",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-shadow",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-shadow",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-shadow",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "eslint/no-shadow",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-shadow",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-shadow",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "eslint/no-shadow",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "eslint/no-shadow",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 17
+    },
+    {
+      "rule": "eslint/no-shadow",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 117
+    },
+    {
+      "rule": "eslint/no-shadow",
+      "workspace": "tooling/quality",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-sparse-arrays",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-template-curly-in-string",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "eslint/no-template-curly-in-string",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 288
+    },
+    {
+      "rule": "eslint/no-throw-literal",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "eslint/no-unmodified-loop-condition",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-unmodified-loop-condition",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-unsafe-finally",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "eslint/no-unsafe-finally",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "eslint/no-unsafe-optional-chaining",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 6
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 321
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 23
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 129
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 28
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 187
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 20
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 16
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "packages/env",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 18
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 22
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 100
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 58
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 111
+    },
+    {
+      "rule": "eslint/no-use-before-define",
+      "workspace": "tooling/eslint-config",
+      "scope": "scripts",
+      "count": 5
+    },
+    {
+      "rule": "eslint/no-useless-concat",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "eslint/no-useless-escape",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-useless-escape",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-useless-escape",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 7
+    },
+    {
+      "rule": "eslint/no-useless-return",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/no-useless-return",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "eslint/no-void",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 86
+    },
+    {
+      "rule": "eslint/no-void",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "eslint/no-void",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 13
+    },
+    {
+      "rule": "eslint/no-void",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "eslint/no-void",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "eslint/no-void",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 10
+    },
+    {
+      "rule": "eslint/object-shorthand",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 39
+    },
+    {
+      "rule": "eslint/object-shorthand",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "eslint/object-shorthand",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/one-var",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/one-var",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 19
+    },
+    {
+      "rule": "eslint/one-var",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 22
+    },
+    {
+      "rule": "eslint/prefer-arrow-callback",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/prefer-arrow-callback",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "eslint/prefer-arrow-callback",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 14
+    },
+    {
+      "rule": "eslint/prefer-object-has-own",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "eslint/prefer-object-has-own",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/prefer-object-has-own",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "eslint/prefer-object-has-own",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "eslint/prefer-object-spread",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "eslint/prefer-regex-literals",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "eslint/prefer-template",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "eslint/prefer-template",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 32
+    },
+    {
+      "rule": "eslint/prefer-template",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "eslint/prefer-template",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "eslint/prefer-template",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/prefer-template",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 106
+    },
+    {
+      "rule": "eslint/prefer-template",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 253
+    },
+    {
+      "rule": "eslint/preserve-caught-error",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/preserve-caught-error",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/preserve-caught-error",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 18
+    },
+    {
+      "rule": "eslint/radix",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "eslint/radix",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/radix",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/sort-vars",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/sort-vars",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 14
+    },
+    {
+      "rule": "eslint/sort-vars",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 9
+    },
+    {
+      "rule": "eslint/unicode-bom",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "eslint/unicode-bom",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "eslint/unicode-bom",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 186
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 24
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 58
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 12
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 21
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 274
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 12
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 17
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 19
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 14
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 123
+    },
+    {
+      "rule": "import/consistent-type-specifier-style",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 286
+    },
+    {
+      "rule": "import/first",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "import/first",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 15
+    },
+    {
+      "rule": "import/first",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "import/first",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "import/first",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "import/first",
+      "workspace": "packages/mock-data",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "import/first",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "import/first",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 280
+    },
+    {
+      "rule": "import/namespace",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "import/namespace",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "import/namespace",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "import/newline-after-import",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 21
+    },
+    {
+      "rule": "import/newline-after-import",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "import/newline-after-import",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "import/newline-after-import",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "import/newline-after-import",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 17
+    },
+    {
+      "rule": "import/newline-after-import",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "import/newline-after-import",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 61
+    },
+    {
+      "rule": "import/no-cycle",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "import/no-empty-named-blocks",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "import/no-mutable-exports",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "import/no-named-as-default",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "import/no-named-as-default",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "import/no-named-as-default",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "import/no-named-as-default",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "import/no-named-as-default",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 35
+    },
+    {
+      "rule": "import/no-named-as-default-member",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "import/no-named-as-default-member",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 5
+    },
+    {
+      "rule": "import/no-named-as-default-member",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 71
+    },
+    {
+      "rule": "import/no-named-default",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "jsdoc/check-tag-names",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 256
+    },
+    {
+      "rule": "jsdoc/require-param-description",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 13
+    },
+    {
+      "rule": "jsdoc/require-param-description",
+      "workspace": "tooling/eslint-config",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "jsdoc/require-returns-description",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "jsdoc/require-returns-description",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "jsdoc/require-yields",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "jsx-a11y/alt-text",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "jsx-a11y/anchor-has-content",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "jsx-a11y/anchor-has-content",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "jsx-a11y/anchor-has-content",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 19
+    },
+    {
+      "rule": "jsx-a11y/click-events-have-key-events",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "jsx-a11y/click-events-have-key-events",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "jsx-a11y/control-has-associated-label",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "jsx-a11y/control-has-associated-label",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "jsx-a11y/control-has-associated-label",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "jsx-a11y/control-has-associated-label",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "jsx-a11y/control-has-associated-label",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 11
+    },
+    {
+      "rule": "jsx-a11y/heading-has-content",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "jsx-a11y/heading-has-content",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "jsx-a11y/label-has-associated-control",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "jsx-a11y/label-has-associated-control",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "jsx-a11y/label-has-associated-control",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "jsx-a11y/label-has-associated-control",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 9
+    },
+    {
+      "rule": "jsx-a11y/media-has-caption",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "jsx-a11y/no-noninteractive-element-interactions",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "jsx-a11y/no-noninteractive-element-interactions",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "jsx-a11y/no-noninteractive-element-interactions",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "jsx-a11y/no-noninteractive-tabindex",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "jsx-a11y/no-noninteractive-tabindex",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "jsx-a11y/no-redundant-roles",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "jsx-a11y/no-static-element-interactions",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "jsx-a11y/no-static-element-interactions",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "jsx-a11y/role-has-required-aria-props",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "node/callback-return",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "node/callback-return",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "node/callback-return",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 9
+    },
+    {
+      "rule": "node/callback-return",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "node/callback-return",
+      "workspace": "tooling/eslint-config",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "oxc/branches-sharing-code",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "oxc/branches-sharing-code",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "oxc/no-accumulating-spread",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "oxc/no-accumulating-spread",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "playwright/consistent-spacing-between-blocks",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 9
+    },
+    {
+      "rule": "playwright/expect-expect",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "playwright/missing-playwright-await",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 34
+    },
+    {
+      "rule": "playwright/no-conditional-expect",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 250
+    },
+    {
+      "rule": "playwright/no-conditional-in-test",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "playwright/no-conditional-in-test",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 108
+    },
+    {
+      "rule": "playwright/no-networkidle",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 16
+    },
+    {
+      "rule": "playwright/no-useless-not",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "playwright/no-useless-not",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "playwright/no-wait-for-selector",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "playwright/prefer-hooks-in-order",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "playwright/prefer-locator",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "playwright/prefer-to-have-count",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "playwright/prefer-to-have-length",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "playwright/prefer-web-first-assertions",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 6
+    },
+    {
+      "rule": "playwright/valid-describe-callback",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "playwright/valid-expect",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "promise/always-return",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "promise/always-return",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "promise/always-return",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "promise/always-return",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "promise/always-return",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "promise/always-return",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "promise/always-return",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "promise/catch-or-return",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "promise/catch-or-return",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 4
+    },
+    {
+      "rule": "promise/catch-or-return",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "promise/no-callback-in-promise",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "promise/param-names",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "promise/param-names",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "promise/param-names",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 43
+    },
+    {
+      "rule": "promise/prefer-await-to-callbacks",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "promise/prefer-await-to-callbacks",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "promise/prefer-await-to-callbacks",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "promise/prefer-await-to-callbacks",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "promise/prefer-await-to-callbacks",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "promise/prefer-await-to-callbacks",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 29
+    },
+    {
+      "rule": "promise/prefer-await-to-callbacks",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 49
+    },
+    {
+      "rule": "promise/prefer-catch",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "promise/prefer-catch",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "promise/prefer-catch",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "promise/prefer-catch",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "promise/prefer-catch",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 4
+    },
+    {
+      "rule": "promise/prefer-catch",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 36
+    },
+    {
+      "rule": "query/exhaustive-deps",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "query/exhaustive-deps",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "query/no-unstable-deps",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "react/button-has-type",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "react/button-has-type",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "react/button-has-type",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 22
+    },
+    {
+      "rule": "react/capitalized-calls",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "react/exhaustive-effect-dependencies",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "react/exhaustive-effect-dependencies",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "react/exhaustive-effect-dependencies",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "react/exhaustive-effect-dependencies",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "react/exhaustive-effect-dependencies",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "react/hook-use-state",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "react/hook-use-state",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "react/hook-use-state",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "react/hook-use-state",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "react/hook-use-state",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "react/hook-use-state",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "react/hook-use-state",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "react/hooks",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "react/iframe-missing-sandbox",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "react/incompatible-library",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "react/jsx-curly-brace-presence",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "react/jsx-no-constructed-context-values",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "react/jsx-no-constructed-context-values",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 7
+    },
+    {
+      "rule": "react/jsx-no-useless-fragment",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 16
+    },
+    {
+      "rule": "react/jsx-no-useless-fragment",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "react/jsx-no-useless-fragment",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "react/jsx-no-useless-fragment",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 22
+    },
+    {
+      "rule": "react/memo-dependencies",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "react/memo-dependencies",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "react/no-clone-element",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "react/no-clone-element",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 5
+    },
+    {
+      "rule": "react/no-danger",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "react/no-object-type-as-default-prop",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "react/no-object-type-as-default-prop",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "react/no-object-type-as-default-prop",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 8
+    },
+    {
+      "rule": "react/no-react-children",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "react/no-react-children",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "react/no-unstable-nested-components",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 17
+    },
+    {
+      "rule": "react/no-unstable-nested-components",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "react/no-unstable-nested-components",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "react/no-unstable-nested-components",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "react/no-unstable-nested-components",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "react/no-unstable-nested-components",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 5
+    },
+    {
+      "rule": "react/purity",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "react/purity",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "react/state-in-constructor",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 54
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 82
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 14
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "packages/env",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 20
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "typescript/array-type",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 326
+    },
+    {
+      "rule": "typescript/await-thenable",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/await-thenable",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "typescript/consistent-generic-constructors",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/consistent-return",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 24
+    },
+    {
+      "rule": "typescript/consistent-return",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "typescript/consistent-return",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/consistent-return",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "typescript/consistent-return",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "typescript/consistent-return",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/consistent-return",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/consistent-return",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/consistent-return",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "typescript/consistent-return",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/consistent-return",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 24
+    },
+    {
+      "rule": "typescript/consistent-return",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 6
+    },
+    {
+      "rule": "typescript/consistent-return",
+      "workspace": "tooling/quality",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "typescript/consistent-type-exports",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "typescript/consistent-type-exports",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/consistent-type-exports",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/consistent-type-exports",
+      "workspace": "packages/mock-data",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/consistent-type-imports",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "typescript/consistent-type-imports",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 145
+    },
+    {
+      "rule": "typescript/dot-notation",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "typescript/dot-notation",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/dot-notation",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 25
+    },
+    {
+      "rule": "typescript/method-signature-style",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/method-signature-style",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 103
+    },
+    {
+      "rule": "typescript/method-signature-style",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/method-signature-style",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "typescript/method-signature-style",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 11
+    },
+    {
+      "rule": "typescript/method-signature-style",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/method-signature-style",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/method-signature-style",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "typescript/method-signature-style",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "typescript/method-signature-style",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 53
+    },
+    {
+      "rule": "typescript/no-base-to-string",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 19
+    },
+    {
+      "rule": "typescript/no-base-to-string",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-base-to-string",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-base-to-string",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "typescript/no-base-to-string",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-base-to-string",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-base-to-string",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-base-to-string",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 24
+    },
+    {
+      "rule": "typescript/no-base-to-string",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 181
+    },
+    {
+      "rule": "typescript/no-confusing-void-expression",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-confusing-void-expression",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 10
+    },
+    {
+      "rule": "typescript/no-confusing-void-expression",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-confusing-void-expression",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 6
+    },
+    {
+      "rule": "typescript/no-deprecated",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 29
+    },
+    {
+      "rule": "typescript/no-deprecated",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-deprecated",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-deprecated",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-deprecated",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 165
+    },
+    {
+      "rule": "typescript/no-deprecated",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-deprecated",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-deprecated",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 7
+    },
+    {
+      "rule": "typescript/no-deprecated",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-deprecated",
+      "workspace": "packages/env",
+      "scope": "product",
+      "count": 21
+    },
+    {
+      "rule": "typescript/no-deprecated",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-deprecated",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 39
+    },
+    {
+      "rule": "typescript/no-deprecated",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 52
+    },
+    {
+      "rule": "typescript/no-duplicate-type-constituents",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-duplicate-type-constituents",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-dynamic-delete",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-dynamic-delete",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 5
+    },
+    {
+      "rule": "typescript/no-dynamic-delete",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 35
+    },
+    {
+      "rule": "typescript/no-dynamic-delete",
+      "workspace": "tooling/quality",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-floating-promises",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 61
+    },
+    {
+      "rule": "typescript/no-floating-promises",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-floating-promises",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "typescript/no-floating-promises",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 23
+    },
+    {
+      "rule": "typescript/no-floating-promises",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "typescript/no-floating-promises",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-floating-promises",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-floating-promises",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 22
+    },
+    {
+      "rule": "typescript/no-floating-promises",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 62
+    },
+    {
+      "rule": "typescript/no-generated-empty-object-type",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-generated-empty-object-type",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-implied-eval",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-import-type-side-effects",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-import-type-side-effects",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-import-type-side-effects",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 15
+    },
+    {
+      "rule": "typescript/no-import-type-side-effects",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "typescript/no-import-type-side-effects",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-import-type-side-effects",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/no-import-type-side-effects",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 10
+    },
+    {
+      "rule": "typescript/no-inferrable-types",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-inferrable-types",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-inferrable-types",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-inferrable-types",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-invalid-void-type",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "typescript/no-invalid-void-type",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-invalid-void-type",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-invalid-void-type",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "typescript/no-misused-promises",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 26
+    },
+    {
+      "rule": "typescript/no-misused-promises",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/no-misused-promises",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-misused-promises",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 11
+    },
+    {
+      "rule": "typescript/no-misused-promises",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-misused-promises",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-misused-promises",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 14
+    },
+    {
+      "rule": "typescript/no-misused-promises",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 11
+    },
+    {
+      "rule": "typescript/no-misused-spread",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-misused-spread",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-misused-spread",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-misused-spread",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 13
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 32
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 9
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 46
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 20
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-non-null-assertion",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2855
+    },
+    {
+      "rule": "typescript/no-redundant-type-constituents",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-redundant-type-constituents",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-redundant-type-constituents",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-redundant-type-constituents",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-redundant-type-constituents",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "typescript/no-redundant-type-constituents",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-redundant-type-constituents",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 9
+    },
+    {
+      "rule": "typescript/no-unnecessary-boolean-literal-compare",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "typescript/no-unnecessary-boolean-literal-compare",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unnecessary-boolean-literal-compare",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unnecessary-boolean-literal-compare",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 16
+    },
+    {
+      "rule": "typescript/no-unnecessary-boolean-literal-compare",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unnecessary-boolean-literal-compare",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "typescript/no-unnecessary-boolean-literal-compare",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unnecessary-template-expression",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-arguments",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-arguments",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-arguments",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-arguments",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-arguments",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-arguments",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-arguments",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 34
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 7
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 102
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 6
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 18
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 28
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-assertion",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 348
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-conversion",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 22
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-conversion",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-conversion",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 9
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-conversion",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-conversion",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-conversion",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-conversion",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-conversion",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-conversion",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-conversion",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-conversion",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 40
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-parameters",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-parameters",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-parameters",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-parameters",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-parameters",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/no-unnecessary-type-parameters",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 5
+    },
+    {
+      "rule": "typescript/no-unsafe-argument",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "typescript/no-unsafe-argument",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-argument",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "typescript/no-unsafe-argument",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 11
+    },
+    {
+      "rule": "typescript/no-unsafe-argument",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 13
+    },
+    {
+      "rule": "typescript/no-unsafe-argument",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-unsafe-argument",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-argument",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 329
+    },
+    {
+      "rule": "typescript/no-unsafe-argument",
+      "workspace": "tooling/quality",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 17
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 17
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 106
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 28
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 13
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-assignment",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1973
+    },
+    {
+      "rule": "typescript/no-unsafe-call",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-call",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "typescript/no-unsafe-call",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-call",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-call",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-call",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 752
+    },
+    {
+      "rule": "typescript/no-unsafe-enum-comparison",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-enum-comparison",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 20
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 16
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 15
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2431
+    },
+    {
+      "rule": "typescript/no-unsafe-member-access",
+      "workspace": "tooling/quality",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-return",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-return",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "typescript/no-unsafe-return",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-return",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-return",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-return",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-unsafe-return",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "typescript/no-unsafe-return",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-unsafe-return",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/no-unsafe-return",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-unsafe-return",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "typescript/no-unsafe-return",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 411
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 4
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 191
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 14
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 26
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 48
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 254
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 70
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 19
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 10
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 56
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/env",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 11
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/mock-data",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 138
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 9
+    },
+    {
+      "rule": "typescript/no-unsafe-type-assertion",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2330
+    },
+    {
+      "rule": "typescript/no-useless-default-assignment",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/only-throw-error",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/only-throw-error",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 9
+    },
+    {
+      "rule": "typescript/parameter-properties",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/parameter-properties",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "typescript/parameter-properties",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "typescript/parameter-properties",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 11
+    },
+    {
+      "rule": "typescript/parameter-properties",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "typescript/parameter-properties",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/parameter-properties",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/parameter-properties",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 47
+    },
+    {
+      "rule": "typescript/prefer-find",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/prefer-find",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/prefer-for-of",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/prefer-function-type",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/prefer-includes",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 39
+    },
+    {
+      "rule": "typescript/prefer-nullish-coalescing",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 11
+    },
+    {
+      "rule": "typescript/prefer-nullish-coalescing",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/prefer-nullish-coalescing",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/prefer-nullish-coalescing",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "typescript/prefer-nullish-coalescing",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "typescript/prefer-nullish-coalescing",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/prefer-nullish-coalescing",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/prefer-nullish-coalescing",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "typescript/prefer-nullish-coalescing",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/prefer-nullish-coalescing",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "typescript/prefer-nullish-coalescing",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "typescript/prefer-promise-reject-errors",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 6
+    },
+    {
+      "rule": "typescript/prefer-readonly",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/prefer-readonly",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "typescript/prefer-readonly",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "typescript/prefer-readonly",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 13
+    },
+    {
+      "rule": "typescript/prefer-reduce-type-parameter",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/prefer-regexp-exec",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/prefer-regexp-exec",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/prefer-regexp-exec",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/prefer-regexp-exec",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 86
+    },
+    {
+      "rule": "typescript/prefer-string-starts-ends-with",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/prefer-string-starts-ends-with",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 11
+    },
+    {
+      "rule": "typescript/require-array-sort-compare",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/require-array-sort-compare",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/require-array-sort-compare",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/require-array-sort-compare",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 40
+    },
+    {
+      "rule": "typescript/restrict-plus-operands",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/restrict-plus-operands",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "typescript/restrict-template-expressions",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "typescript/restrict-template-expressions",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/restrict-template-expressions",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/restrict-template-expressions",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 5
+    },
+    {
+      "rule": "typescript/restrict-template-expressions",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 25
+    },
+    {
+      "rule": "typescript/return-await",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 95
+    },
+    {
+      "rule": "typescript/return-await",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/return-await",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/return-await",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "typescript/return-await",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 123
+    },
+    {
+      "rule": "typescript/return-await",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "typescript/return-await",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 26
+    },
+    {
+      "rule": "typescript/return-await",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/return-await",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 24
+    },
+    {
+      "rule": "typescript/return-await",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "typescript/return-await",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/return-await",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/return-await",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 193
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 113
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 27
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 33
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 13
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 134
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 14
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 24
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 23
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 22
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 91
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 221
+    },
+    {
+      "rule": "typescript/strict-boolean-expressions",
+      "workspace": "tooling/quality",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "typescript/strict-void-return",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 51
+    },
+    {
+      "rule": "typescript/strict-void-return",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/strict-void-return",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/strict-void-return",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "typescript/strict-void-return",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "typescript/strict-void-return",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/strict-void-return",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/strict-void-return",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/strict-void-return",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/strict-void-return",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 31
+    },
+    {
+      "rule": "typescript/strict-void-return",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 981
+    },
+    {
+      "rule": "typescript/switch-exhaustiveness-check",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 13
+    },
+    {
+      "rule": "typescript/switch-exhaustiveness-check",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/switch-exhaustiveness-check",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/switch-exhaustiveness-check",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 16
+    },
+    {
+      "rule": "typescript/switch-exhaustiveness-check",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "typescript/switch-exhaustiveness-check",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/switch-exhaustiveness-check",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 9
+    },
+    {
+      "rule": "typescript/unbound-method",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 29
+    },
+    {
+      "rule": "typescript/unbound-method",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "typescript/unbound-method",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/unbound-method",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "typescript/unbound-method",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/unbound-method",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/unbound-method",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "typescript/unbound-method",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "typescript/unbound-method",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 82
+    },
+    {
+      "rule": "typescript/use-unknown-in-catch-callback-variable",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "typescript/use-unknown-in-catch-callback-variable",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "typescript/use-unknown-in-catch-callback-variable",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "typescript/use-unknown-in-catch-callback-variable",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "typescript/use-unknown-in-catch-callback-variable",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "typescript/use-unknown-in-catch-callback-variable",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 15
+    },
+    {
+      "rule": "unicorn/catch-error-name",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/catch-error-name",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/catch-error-name",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 17
+    },
+    {
+      "rule": "unicorn/catch-error-name",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/catch-error-name",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/catch-error-name",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/catch-error-name",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/catch-error-name",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 7
+    },
+    {
+      "rule": "unicorn/catch-error-name",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 49
+    },
+    {
+      "rule": "unicorn/consistent-assert",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 12
+    },
+    {
+      "rule": "unicorn/consistent-date-clone",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/consistent-existence-index-check",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/consistent-existence-index-check",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/consistent-existence-index-check",
+      "workspace": "packages/mock-data",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/consistent-existence-index-check",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 15
+    },
+    {
+      "rule": "unicorn/consistent-existence-index-check",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 43
+    },
+    {
+      "rule": "unicorn/custom-error-definition",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/custom-error-definition",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "unicorn/custom-error-definition",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/custom-error-definition",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/custom-error-definition",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/custom-error-definition",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 9
+    },
+    {
+      "rule": "unicorn/custom-error-definition",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 15
+    },
+    {
+      "rule": "unicorn/error-message",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/error-message",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/error-message",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 6
+    },
+    {
+      "rule": "unicorn/escape-case",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/escape-case",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/escape-case",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/escape-case",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/escape-case",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 7
+    },
+    {
+      "rule": "unicorn/escape-case",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 47
+    },
+    {
+      "rule": "unicorn/explicit-timer-delay",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/explicit-timer-delay",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/explicit-timer-delay",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/import-style",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/import-style",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/import-style",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 6
+    },
+    {
+      "rule": "unicorn/import-style",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 58
+    },
+    {
+      "rule": "unicorn/new-for-builtins",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 16
+    },
+    {
+      "rule": "unicorn/no-array-fill-with-reference-type",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-array-reduce",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "unicorn/no-array-reduce",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-array-reduce",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-array-reduce",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-array-reduce",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "unicorn/no-array-reduce",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-array-reduce",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-array-reduce",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/no-array-reduce",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 6
+    },
+    {
+      "rule": "unicorn/no-document-cookie",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-document-cookie",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 8
+    },
+    {
+      "rule": "unicorn/no-hex-escape",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 11
+    },
+    {
+      "rule": "unicorn/no-hex-escape",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 6
+    },
+    {
+      "rule": "unicorn/no-lonely-if",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-lonely-if",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-lonely-if",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/no-lonely-if",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-lonely-if",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 5
+    },
+    {
+      "rule": "unicorn/no-negated-condition",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 31
+    },
+    {
+      "rule": "unicorn/no-negated-condition",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "unicorn/no-negated-condition",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 29
+    },
+    {
+      "rule": "unicorn/no-negated-condition",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "unicorn/no-negated-condition",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 15
+    },
+    {
+      "rule": "unicorn/no-negated-condition",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-negated-condition",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-negated-condition",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-negated-condition",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-negated-condition",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-negated-condition",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 19
+    },
+    {
+      "rule": "unicorn/no-negated-condition",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 24
+    },
+    {
+      "rule": "unicorn/no-negated-condition",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 15
+    },
+    {
+      "rule": "unicorn/no-new-array",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-new-array",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-new-array",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-object-as-default-parameter",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-object-as-default-parameter",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-object-as-default-parameter",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/no-object-as-default-parameter",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 14
+    },
+    {
+      "rule": "unicorn/no-thenable",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-thenable",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 73
+    },
+    {
+      "rule": "unicorn/no-typeof-undefined",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-unreadable-array-destructuring",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-unreadable-array-destructuring",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-unreadable-array-destructuring",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/no-useless-collection-argument",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-useless-collection-argument",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-useless-collection-argument",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/no-useless-collection-argument",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-useless-fallback-in-spread",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-useless-fallback-in-spread",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 11
+    },
+    {
+      "rule": "unicorn/no-useless-fallback-in-spread",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-useless-fallback-in-spread",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-useless-fallback-in-spread",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/no-useless-fallback-in-spread",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 5
+    },
+    {
+      "rule": "unicorn/no-useless-fallback-in-spread",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 8
+    },
+    {
+      "rule": "unicorn/no-useless-promise-resolve-reject",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-useless-spread",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-useless-spread",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/no-useless-spread",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 53
+    },
+    {
+      "rule": "unicorn/no-useless-switch-case",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-useless-switch-case",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-useless-switch-case",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/no-useless-switch-case",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 18
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "packages/mock-data",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 8
+    },
+    {
+      "rule": "unicorn/no-useless-undefined",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 195
+    },
+    {
+      "rule": "unicorn/no-zero-fractions",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "unicorn/no-zero-fractions",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "unicorn/no-zero-fractions",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "unicorn/no-zero-fractions",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/no-zero-fractions",
+      "workspace": "packages/mock-data",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "unicorn/no-zero-fractions",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 36
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 69
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "packages/mock-data",
+      "scope": "product",
+      "count": 27
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 29
+    },
+    {
+      "rule": "unicorn/numeric-separators-style",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 536
+    },
+    {
+      "rule": "unicorn/prefer-add-event-listener",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-add-event-listener",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-add-event-listener",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-array-find",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-array-find",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-array-find",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 7
+    },
+    {
+      "rule": "unicorn/prefer-array-flat-map",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-array-index-of",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-array-index-of",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-array-index-of",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-at",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/prefer-at",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-at",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/prefer-at",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-at",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-at",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "unicorn/prefer-at",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-at",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/prefer-blob-reading-methods",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-code-point",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-code-point",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/prefer-code-point",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-code-point",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-code-point",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-code-point",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 25
+    },
+    {
+      "rule": "unicorn/prefer-date-now",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-default-parameters",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-default-parameters",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-dom-node-append",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/prefer-dom-node-append",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-dom-node-append",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 11
+    },
+    {
+      "rule": "unicorn/prefer-dom-node-remove",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/prefer-dom-node-remove",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-dom-node-text-content",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-dom-node-text-content",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/prefer-event-target",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 8
+    },
+    {
+      "rule": "unicorn/prefer-import-meta-properties",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-import-meta-properties",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-import-meta-properties",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-import-meta-properties",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-import-meta-properties",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 97
+    },
+    {
+      "rule": "unicorn/prefer-import-meta-properties",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 20
+    },
+    {
+      "rule": "unicorn/prefer-includes",
+      "workspace": "packages/env",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-includes",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-logical-operator-over-ternary",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-logical-operator-over-ternary",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "unicorn/prefer-logical-operator-over-ternary",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-logical-operator-over-ternary",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-logical-operator-over-ternary",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-logical-operator-over-ternary",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-module",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 6
+    },
+    {
+      "rule": "unicorn/prefer-module",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 28
+    },
+    {
+      "rule": "unicorn/prefer-native-coercion-functions",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-native-coercion-functions",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-native-coercion-functions",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-node-protocol",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-node-protocol",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-node-protocol",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-node-protocol",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/prefer-number-properties",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-number-properties",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 12
+    },
+    {
+      "rule": "unicorn/prefer-number-properties",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "unicorn/prefer-number-properties",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/prefer-number-properties",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-number-properties",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 10
+    },
+    {
+      "rule": "unicorn/prefer-number-properties",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 12
+    },
+    {
+      "rule": "unicorn/prefer-optional-catch-binding",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-optional-catch-binding",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/prefer-query-selector",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 15
+    },
+    {
+      "rule": "unicorn/prefer-query-selector",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-query-selector",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-query-selector",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 104
+    },
+    {
+      "rule": "unicorn/prefer-regexp-test",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-response-static-json",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-response-static-json",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-response-static-json",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-response-static-json",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-response-static-json",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 132
+    },
+    {
+      "rule": "unicorn/prefer-set-has",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/prefer-set-has",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "unicorn/prefer-set-has",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-set-has",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-set-has",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 12
+    },
+    {
+      "rule": "unicorn/prefer-single-call",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-single-call",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-single-call",
+      "workspace": "packages/config",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-single-call",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 35
+    },
+    {
+      "rule": "unicorn/prefer-single-call",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 7
+    },
+    {
+      "rule": "unicorn/prefer-spread",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 15
+    },
+    {
+      "rule": "unicorn/prefer-spread",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-spread",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-spread",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-spread",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 32
+    },
+    {
+      "rule": "unicorn/prefer-spread",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/prefer-spread",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-spread",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-spread",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/prefer-spread",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/prefer-spread",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 50
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 47
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 78
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 9
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 5
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "packages/email",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 6
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 70
+    },
+    {
+      "rule": "unicorn/prefer-string-replace-all",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 232
+    },
+    {
+      "rule": "unicorn/prefer-string-slice",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-string-starts-ends-with",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-string-starts-ends-with",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-string-starts-ends-with",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 10
+    },
+    {
+      "rule": "unicorn/prefer-structured-clone",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 14
+    },
+    {
+      "rule": "unicorn/prefer-ternary",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-ternary",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-ternary",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 7
+    },
+    {
+      "rule": "unicorn/prefer-ternary",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-ternary",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 7
+    },
+    {
+      "rule": "unicorn/prefer-ternary",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 13
+    },
+    {
+      "rule": "unicorn/prefer-type-error",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/prefer-type-error",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-type-error",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 4
+    },
+    {
+      "rule": "unicorn/prefer-type-error",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-type-error",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/prefer-type-error",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 15
+    },
+    {
+      "rule": "unicorn/prefer-type-error",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 17
+    },
+    {
+      "rule": "unicorn/relative-url-style",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/relative-url-style",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/relative-url-style",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 5
+    },
+    {
+      "rule": "unicorn/relative-url-style",
+      "workspace": "tooling/eslint-config",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/require-array-join-separator",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/require-array-join-separator",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 15
+    },
+    {
+      "rule": "unicorn/require-module-specifiers",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/require-module-specifiers",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/require-module-specifiers",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "apps/admin",
+      "scope": "product",
+      "count": 266
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 11
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 29
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "apps/missionary",
+      "scope": "product",
+      "count": 44
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 235
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "packages/auth",
+      "scope": "product",
+      "count": 8
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "packages/database",
+      "scope": "product",
+      "count": 72
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "packages/eve-runtime",
+      "scope": "product",
+      "count": 20
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "packages/graphql",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "packages/lib",
+      "scope": "product",
+      "count": 59
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "packages/missionary",
+      "scope": "product",
+      "count": 15
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "packages/ui",
+      "scope": "product",
+      "count": 82
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 21
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 90
+    },
+    {
+      "rule": "unicorn/switch-case-braces",
+      "workspace": "tooling/eslint-config",
+      "scope": "scripts",
+      "count": 26
+    },
+    {
+      "rule": "unicorn/text-encoding-identifier-case",
+      "workspace": "(root)",
+      "scope": "scripts",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/text-encoding-identifier-case",
+      "workspace": "apps/donor",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/text-encoding-identifier-case",
+      "workspace": "apps/factory-console",
+      "scope": "product",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/text-encoding-identifier-case",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 6
+    },
+    {
+      "rule": "unicorn/text-encoding-identifier-case",
+      "workspace": "packages/api",
+      "scope": "product",
+      "count": 11
+    },
+    {
+      "rule": "unicorn/text-encoding-identifier-case",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "unicorn/text-encoding-identifier-case",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "unicorn/text-encoding-identifier-case",
+      "workspace": "scripts",
+      "scope": "scripts",
+      "count": 303
+    },
+    {
+      "rule": "unicorn/text-encoding-identifier-case",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1684
+    },
+    {
+      "rule": "unicorn/text-encoding-identifier-case",
+      "workspace": "tooling/eslint-config",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/text-encoding-identifier-case",
+      "workspace": "tooling/quality",
+      "scope": "scripts",
+      "count": 1
+    },
+    {
+      "rule": "unicorn/throw-new-error",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 6
+    },
+    {
+      "rule": "vitest/consistent-test-it",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 5
+    },
+    {
+      "rule": "vitest/consistent-test-it",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1106
+    },
+    {
+      "rule": "vitest/expect-expect",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "vitest/expect-expect",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 151
+    },
+    {
+      "rule": "vitest/no-alias-methods",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 19
+    },
+    {
+      "rule": "vitest/no-conditional-expect",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 30
+    },
+    {
+      "rule": "vitest/no-conditional-expect",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 430
+    },
+    {
+      "rule": "vitest/no-conditional-tests",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 6
+    },
+    {
+      "rule": "vitest/no-disabled-tests",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "vitest/no-duplicate-hooks",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 4
+    },
+    {
+      "rule": "vitest/no-standalone-expect",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 443
+    },
+    {
+      "rule": "vitest/padding-around-after-all-blocks",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 72
+    },
+    {
+      "rule": "vitest/padding-around-test-blocks",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 5
+    },
+    {
+      "rule": "vitest/padding-around-test-blocks",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 28
+    },
+    {
+      "rule": "vitest/padding-around-test-blocks",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 915
+    },
+    {
+      "rule": "vitest/prefer-called-exactly-once-with",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 9
+    },
+    {
+      "rule": "vitest/prefer-called-once",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 6
+    },
+    {
+      "rule": "vitest/prefer-called-once",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 426
+    },
+    {
+      "rule": "vitest/prefer-called-with",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "vitest/prefer-called-with",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 92
+    },
+    {
+      "rule": "vitest/prefer-comparison-matcher",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 7
+    },
+    {
+      "rule": "vitest/prefer-each",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 71
+    },
+    {
+      "rule": "vitest/prefer-equality-matcher",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 8
+    },
+    {
+      "rule": "vitest/prefer-expect-resolves",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 10
+    },
+    {
+      "rule": "vitest/prefer-expect-resolves",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 29
+    },
+    {
+      "rule": "vitest/prefer-expect-resolves",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 13
+    },
+    {
+      "rule": "vitest/prefer-expect-resolves",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1424
+    },
+    {
+      "rule": "vitest/prefer-expect-type-of",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "vitest/prefer-expect-type-of",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 32
+    },
+    {
+      "rule": "vitest/prefer-hooks-in-order",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "vitest/prefer-hooks-in-order",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 25
+    },
+    {
+      "rule": "vitest/prefer-hooks-on-top",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 11
+    },
+    {
+      "rule": "vitest/prefer-mock-promise-shorthand",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "vitest/prefer-mock-promise-shorthand",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "vitest/prefer-mock-return-shorthand",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "vitest/prefer-mock-return-shorthand",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "vitest/prefer-mock-return-shorthand",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 76
+    },
+    {
+      "rule": "vitest/prefer-spy-on",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 106
+    },
+    {
+      "rule": "vitest/prefer-to-be",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 16
+    },
+    {
+      "rule": "vitest/prefer-to-be",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 19
+    },
+    {
+      "rule": "vitest/prefer-to-contain",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 3
+    },
+    {
+      "rule": "vitest/prefer-to-have-been-called-times",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 8
+    },
+    {
+      "rule": "vitest/prefer-to-have-length",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "vitest/prefer-to-have-length",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 32
+    },
+    {
+      "rule": "vitest/prefer-todo",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "vitest/require-to-throw-message",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 2
+    },
+    {
+      "rule": "vitest/require-to-throw-message",
+      "workspace": "packages/api",
+      "scope": "tests",
+      "count": 22
+    },
+    {
+      "rule": "vitest/require-to-throw-message",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 109
+    },
+    {
+      "rule": "vitest/valid-describe-callback",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "vitest/valid-expect",
+      "workspace": "apps/factory-console",
+      "scope": "tests",
+      "count": 9
+    },
+    {
+      "rule": "vitest/valid-expect",
+      "workspace": "packages/auth",
+      "scope": "tests",
+      "count": 1
+    },
+    {
+      "rule": "vitest/valid-expect",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 1176
+    },
+    {
+      "rule": "vitest/warn-todo",
+      "workspace": "tests",
+      "scope": "tests",
+      "count": 4
+    }
+  ]
+}

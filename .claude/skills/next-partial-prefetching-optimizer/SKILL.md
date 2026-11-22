@@ -8,6 +8,16 @@ description: >
   default, viewport, and intent prefetching. Requires Next.js 16.3+.
 ---
 
+<!-- CORE-OVERLAY-START -->
+## This repository (Asymmetric-al/core)
+
+Core overlay, reviewed 2026-11-18 against Next.js 16.4.5. The upstream text below is unchanged. Where it conflicts with this block, this block wins.
+
+- **Reuse the rig.** The root `instant-nav.rig.md` and `tests/e2e/instant-navigation.spec.ts` are Core's production `instant()` rig, and `@next/playwright` is pinned to the installed Next.js. Use the rig's Bun commands, not the `pnpm` examples in `rig-template.md`, and add this skill's source link, destination markers and prefetch budget to that rig instead of writing another.
+- **Local loop only.** Core's rig builds, starts and tests locally, with no push. Do not use the remote loop in `rig-template.md`: pushing to measure a deployment is not part of this skill.
+- **Scope.** Optimize only the navigations the user named. Commits, pushes and pull requests follow `docs/ai/rules/general.md`; asking the user whether to commit or open a pull request does not authorize either. Route changes follow **Instant Navigation** in `docs/ai/rules/frontend.md`.
+<!-- CORE-OVERLAY-END -->
+
 # Partial Prefetching optimizer
 
 Optimize each requested source link and destination as its own contract. Turn

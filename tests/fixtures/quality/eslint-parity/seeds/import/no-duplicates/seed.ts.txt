@@ -1,0 +1,4 @@
+import { first } from "./shared";
+import { second } from "./shared";
+
+export { first, second };

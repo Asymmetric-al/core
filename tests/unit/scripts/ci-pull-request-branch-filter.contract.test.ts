@@ -35,7 +35,7 @@ function eventBlock(workflow: string, eventName: string): string {
 }
 
 describe("CI pull_request branch filter", () => {
-  it("reuses the integrity audit for Shadscan reporting without a second PR scan", () => {
+  it("runs the single Shadscan scan in the reusable reporter without a second PR trigger", () => {
     const reporter = readFileSync(".github/workflows/shadscan.yml", "utf8");
     expect(eventBlock(reporter, "workflow_call").trim()).toBe("workflow_call:");
     expect(onBlock(reporter)).not.toContain("pull_request:");

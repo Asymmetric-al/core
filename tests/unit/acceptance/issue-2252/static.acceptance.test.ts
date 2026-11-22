@@ -10,9 +10,9 @@ import { existsSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
-  AFTER_STEPS,
   CHECK_DEF,
   CI_STEP,
+  CI_STEP_FILE,
   DOC,
   FOLLOW_UPS,
   MIGRATION,
@@ -30,10 +30,7 @@ import {
   read,
   type FkRow,
 } from "./harness";
-import {
-  loadWorkflowDocument,
-  workflowJobs,
-} from "../../helpers/workflow-yaml";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const MIG = "supabase/migrations";
 const ws = (s: string) => s.replace(/\s+/g, " ").trim();
@@ -344,18 +341,8 @@ describe("#2252 C5/C6/12: pure evaluator cases", () => {
   });
 });
 
-describe("#2252 CI step (Samson's Q7 ruling: own migrate step, relative order only)", () => {
-  it("ci-integration.yml migrate has exactly one 'Verify donor spine composite FKs (real stack)' step, with exactly this env and run, after #2250's and #2270's real-stack steps", () => {
-    const steps =
-      workflowJobs(loadWorkflowDocument(".github/workflows/ci-integration.yml"))
-        .migrate?.steps ?? [];
-    const idx = (n: string) => steps.findIndex((s) => s.name === n);
-    expect(steps.filter((s) => s.name === CI_STEP.name)).toHaveLength(1);
-    const i = idx(CI_STEP.name);
-    expect(steps[i]).toEqual(CI_STEP);
-    for (const name of AFTER_STEPS) {
-      expect(idx(name), `${name} present`).toBeGreaterThanOrEqual(0);
-      expect(i, `after ${name}`).toBeGreaterThan(idx(name));
-    }
+describe("#2252 CI step (Samson's Q7 ruling: own migrate step)", () => {
+  it("ci-integration.yml migrate has one blocking 'Verify donor spine composite FKs (real stack)' step that runs #2252's real-stack file", () => {
+    expectRealstackStep(CI_STEP.name, [CI_STEP_FILE], CI_STEP.env);
   });
 });

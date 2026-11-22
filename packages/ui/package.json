@@ -69,7 +69,8 @@
   "scripts": {
     "build": "tsc --noEmit",
     "lint": "node ../../tooling/eslint-config/lint.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:query": "node ../../node_modules/eslint/bin/eslint.js --config ../../tooling/quality/eslint-query.config.mjs --no-inline-config --exit-on-fatal-error --max-warnings 0 \"**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@asym/auth": "workspace:*",
@@ -124,7 +125,7 @@
     "eslint": "10.13.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "typescript": "7.0.2"
+    "typescript": "7.1.0-beta"
   },
   "peerDependencies": {
     "boneyard-js": "1.10.0",

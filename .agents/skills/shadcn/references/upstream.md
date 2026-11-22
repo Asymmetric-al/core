@@ -14,7 +14,7 @@ last_reviewed: 2026-10-22
 Reviewed source: https://github.com/shadcn-ui/ui/tree/25af02b1b467fcd53b63e0c6d6d324c57c16ef18/skills/shadcn
 Raw upstream `SKILL.md` SHA-256: `93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592`. License notices are preserved in `UPSTREAM-LICENSE.md`.
 
-Outcome: updated from the complete installed upstream subtree. Reviewed obsolete upstream companions are removed. Core adaptations: Preserve existing shared Sonner host and Base UI/base-maia boundaries.
+Outcome: updated from the complete installed upstream subtree. Reviewed obsolete upstream companions are removed. Core adaptations: Preserve existing shared Sonner host and Base UI/base-maia boundaries. The load-time `npx shadcn@latest info --json` injection is replaced with an instruction to run `bunx shadcn info --json` from `packages/ui`, the Key Fields and Workflow lines that said the context was injected say the same, and the package-runner note points at Core's pinned CLI (AL-2715). The `allowed-tools` line pre-approves only that pinned `bunx shadcn` command, not the upstream `@latest` runners (AL-2715 review).
 
 ## Refresh
 
@@ -22,5 +22,7 @@ Outcome: updated from the complete installed upstream subtree. Reviewed obsolete
 2. Compare the complete source tree and all support files. Preserve marked Core overlays, exact package ownership, installed-version compatibility, and documented in-place corrections. Record raw upstream hashes separately from adapted bytes.
 3. Replace the installed source directory transactionally, removing reviewed stale upstream files while retaining local provenance and legitimate Core assets. Update its lock metadata in the same transaction. Never run imported lifecycle hooks, launchers, scripts or tests as a refresh side effect.
 4. Run `bun run skills:sync`, then non-mutating `bun run skills:verify`; review canonical or ecosystem sources and generated mirrors together.
+
+The AL-2715 Core adaptation is restored by `scripts/lib/ecosystem-skill-adapters.mjs` from `scripts/refresh-overlays/ecosystem-core-guidance.json` during `bun run skills:sync`. Review it with upstream drift; it does not advance provenance.
 
 This skill remains ecosystem-owned under `.agents/skills`. Repository authority, secrets policy and installed package evidence outrank generic source recipes.

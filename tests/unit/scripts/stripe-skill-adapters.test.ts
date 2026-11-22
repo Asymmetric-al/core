@@ -28,7 +28,13 @@ async function putRaw(from: string, to: string) {
       );
   }
 }
+const credentialBoundary = [
+  "Never print, copy, commit or rotate credentials",
+  "Product provisioning, CLI/plugin installs, terms acceptance",
+  "require the corresponding explicit task scope",
+];
 async function fixture() {
+  await mkdir(path.join(repo, ".tmp"), { recursive: true });
   const root = await mkdtemp(path.join(repo, ".tmp/stripe-adapter-test-"));
   roots.push(root);
   await mkdir(path.join(root, "scripts/refresh-overlays"), { recursive: true });
@@ -38,6 +44,25 @@ async function fixture() {
   );
   await putRaw(source, path.join(root, ".agents/skills"));
   return root;
+}
+async function withSync(root: string) {
+  await cp(
+    path.join(repo, "scripts/sync-agent-skills.mjs"),
+    path.join(root, "scripts/sync-agent-skills.mjs"),
+  );
+  await cp(path.join(repo, "scripts/lib"), path.join(root, "scripts/lib"), {
+    recursive: true,
+  });
+  await mkdir(path.join(root, "docs/ai/skills/fixture"), { recursive: true });
+  await writeFile(
+    path.join(root, "docs/ai/skills/fixture/SKILL.md"),
+    "---\nname: fixture\ndescription: Fixture\n---\n",
+  );
+  return () =>
+    spawnSync(process.execPath, ["scripts/sync-agent-skills.mjs"], {
+      cwd: root,
+      encoding: "utf8",
+    });
 }
 afterEach(async () => {
   for (const root of roots.splice(0))
@@ -60,32 +85,11 @@ describe("current official Stripe bundle adapters", () => {
   });
   it("restores approved version pins, quoted gift methods, tax classification and authorization through sync in all mirrors", async () => {
     const root = await fixture();
-    await mkdir(path.join(root, "scripts"), { recursive: true });
-    await cp(
-      path.join(repo, "scripts/sync-agent-skills.mjs"),
-      path.join(root, "scripts/sync-agent-skills.mjs"),
-    );
-    await cp(path.join(repo, "scripts/lib"), path.join(root, "scripts/lib"), {
-      recursive: true,
-    });
-    await mkdir(path.join(root, "docs/ai/skills/fixture"), { recursive: true });
-    await writeFile(
-      path.join(root, "docs/ai/skills/fixture/SKILL.md"),
-      "---\nname: fixture\ndescription: Fixture\n---\n",
-    );
-    const run = () =>
-      spawnSync(process.execPath, ["scripts/sync-agent-skills.mjs"], {
-        cwd: root,
-        encoding: "utf8",
-      });
+    const run = await withSync(root);
     const result = run();
     expect(result.status, result.stdout + result.stderr).toBe(0);
     for (const runtime of [".agents", ".cursor", ".claude"]) {
-      for (const name of [
-        "stripe-best-practices",
-        "stripe-projects",
-        "upgrade-stripe",
-      ]) {
+      for (const name of ["stripe-best-practices", "upgrade-stripe"]) {
         const content = await readFile(
           path.join(root, runtime, "skills", name, "SKILL.md"),
           "utf8",
@@ -95,6 +99,8 @@ describe("current official Stripe bundle adapters", () => {
         expect(content).toContain(
           "never side effects of installing or refreshing",
         );
+        for (const sentence of credentialBoundary)
+          expect(content).toContain(sentence);
         expect(content).not.toContain(
           "Always use the latest API version and SDK",
         );
@@ -123,39 +129,21 @@ describe("current official Stripe bundle adapters", () => {
       ),
     ).toBe(before);
   });
-  it("restores the credential and provisioning boundary for a stripe-projects-only install", async () => {
+  it("restores the credential and provisioning boundary when only upgrade-stripe is installed", async () => {
     const root = await fixture();
-    for (const name of ["stripe-best-practices", "upgrade-stripe"])
-      await rm(path.join(root, ".agents/skills", name), { recursive: true });
-    await cp(
-      path.join(repo, "scripts/sync-agent-skills.mjs"),
-      path.join(root, "scripts/sync-agent-skills.mjs"),
-    );
-    await cp(path.join(repo, "scripts/lib"), path.join(root, "scripts/lib"), {
+    await rm(path.join(root, ".agents/skills/stripe-best-practices"), {
       recursive: true,
     });
-    await mkdir(path.join(root, "docs/ai/skills/fixture"), { recursive: true });
-    await writeFile(
-      path.join(root, "docs/ai/skills/fixture/SKILL.md"),
-      "---\\nname: fixture\\ndescription: Fixture\\n---\\n",
-    );
-    const result = spawnSync(
-      process.execPath,
-      ["scripts/sync-agent-skills.mjs"],
-      { cwd: root, encoding: "utf8" },
-    );
+    const result = (await withSync(root))();
     expect(result.status, result.stdout + result.stderr).toBe(0);
     for (const runtime of [".agents", ".cursor", ".claude"]) {
       const text = await readFile(
-        path.join(root, runtime, "skills/stripe-projects/SKILL.md"),
+        path.join(root, runtime, "skills/upgrade-stripe/SKILL.md"),
         "utf8",
       );
       expect(text).toContain("<!-- CORE-OVERLAY-START -->");
-      expect(text).toContain("Never print, copy, commit or rotate credentials");
-      expect(text).toContain(
-        "Product provisioning, CLI/plugin installs, terms acceptance",
-      );
-      expect(text).toContain("require the corresponding explicit task scope");
+      for (const sentence of credentialBoundary)
+        expect(text).toContain(sentence);
       await expect(
         readFile(
           path.join(root, runtime, "skills/stripe-best-practices/SKILL.md"),

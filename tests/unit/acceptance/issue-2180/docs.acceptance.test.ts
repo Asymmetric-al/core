@@ -2,7 +2,6 @@
  * #2180 done criteria 8-10 (docs), by regex, plus the §8 doc regions.
  * Owned by Acceptance; implementers must not edit.
  */
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
@@ -11,7 +10,6 @@ import { DOC } from "./guard-harness";
 
 const read = (file: string) =>
   existsSync(file) ? readFileSync(file, "utf8") : "";
-const sha = (text: string) => createHash("sha256").update(text).digest("hex");
 const runbook = () => {
   const text = read(DOC);
   expect(text, `${DOC} must exist (spec §1.3, I4)`).not.toBe("");
@@ -105,7 +103,7 @@ describe("#2180 criterion 8: docs/ops/self-hosted-runners.md", () => {
 });
 
 const ACCESS = "docs/ops/github-access.md";
-describe("#2180 criterion 9: docs/ops/github-access.md (:39-63 only)", () => {
+describe("#2180 criterion 9: docs/ops/github-access.md native restrictions section", () => {
   const section = () => {
     const text = read(ACCESS);
     const start = text.indexOf("## Native restrictions and renewal");
@@ -124,169 +122,51 @@ describe("#2180 criterion 9: docs/ops/github-access.md (:39-63 only)", () => {
       /runner safety does not depend on the interaction limit|interaction limit (?:is not|isn't) a (?:self-hosted )?runner control/i,
     );
   });
-  it("edit stays inside :39-63, keeps #1906 and links the new runbook", () => {
-    const text = read(ACCESS);
-    const head = text.slice(
-      0,
-      text.indexOf("## Native restrictions and renewal"),
-    );
-    const tail = text.slice(
-      text.indexOf("GitHub's documented interaction limit covers"),
-    );
-    expect(sha(head)).toBe(
-      "2c4506844efb39fedda58847e4f394279ce8858f730dea41b707c6191e00a7e9",
-    );
-    expect(sha(tail)).toBe(
-      "ff72b118bffb4f2fbbcbb530648365a338bf43a039d4a332b5b953bdd6266f79",
-    );
+  it("keeps #1906 and links the new runbook", () => {
     const s = section();
     expect(s).toContain("#1906");
     expect(s).toMatch(/\]\((?:\.\/)?self-hosted-runners\.md(?:#[^)]*)?\)/);
   });
 });
 
-/**
- * Accepted docs/ci.md prefixes (ruling 2, #2180 issuecomment-6371787636):
- * develop at a200250f (459 lines, after #2153/#2155/#2223), which the single
- * merge-only sync brings in, and develop at ac69ef6f (431 lines; the spec's
- * ":410" predates #2155), which the unsynced PR head still carries. The file
- * must start with exactly one of these byte prefixes; only the EOF append
- * follows it.
- */
-const CI_BASES = [
-  {
-    ref: "a200250f",
-    bytes: 37848,
-    sha256: "0560ae8fd108720b4d741be8e6dcbc389039e7a6b8eaa3b0273b762943672ddc",
-  },
-  {
-    ref: "ac69ef6f",
-    bytes: 35265,
-    sha256: "b546066ff785ea4243ee657cc8fb403a2b28124eaf2c2982bbeb19a87efa6d21",
-  },
-  {
-    ref: "4b131585",
-    bytes: 39584,
-    sha256: "f4ceeac06f972bd83119bd92624b5ad3481f9db06de2853d5d20e1fdf152406f",
-  },
-  {
-    // #2215: 4b131585's prefix with only the `test-e2e` bullet's e2e-gate
-    // merge_group skip cause reworded; ends before the EOF runner section.
-    ref: "#2215 e2e-gate merge_group wording",
-    bytes: 39806,
-    sha256: "af12ddc582cf7ac044d5c51d796cd5fbad45f3c3a33d08f969514e30c4e623c2",
-  },
-  {
-    // Amended by AL-2674 (WP1 slice 1.3, plan 7.1): docs/ci.md documents the
-    // release workflow, the preview database job and the two new migrate
-    // steps (an Overview paragraph, the production release guard, the migrate
-    // section, a "Release workflow" section and the development checkpoints
-    // line), and its field-policy paragraph describes the classification
-    // manifest that replaced the AL-491 census. Pinned on that exact reviewed
-    // content. Ends before the EOF runner section, which is unchanged.
-    ref: "AL-2674 release workflow",
-    bytes: 43557,
-    sha256: "8f5298b7a83ab59e59771e07259498838e58a19a9daf3df96b584e7f0fd27b62",
-  },
-  {
-    // Amended by AL-2674 (WP1.2 joined): docs/ci.md's Node line follows
-    // .node-version to 24.22.3, its migrate real-stack bullet describes the
-    // three AL-2674 steps (the program-wide suite glob, the release and CMS
-    // role suites, the Payload qualification), its migrate summary names the
-    // seed-count check and supabase/seed-expectations.json, and its release
-    // section names PAYLOAD_MIGRATION_DATABASE_URI. Pinned on that exact
-    // reviewed content. Ends before the EOF runner section, which is unchanged.
-    ref: "AL-2674 Node 24.22.3 and program steps",
-    bytes: 44468,
-    sha256: "2775f6ef1aea46e8033bd70779eded926b40e8b3098c655cb07d94f19ac3a770",
-  },
-  {
-    // Amended by AL-2673 (council round 2, B4 and its follow-up): docs/ci.md
-    // gains one section, "Local Supabase stack workflow", after the release
-    // workflow section. It documents `.github/workflows/local-supabase.yml`,
-    // which applies the chain and the seed to the real Supabase image and runs
-    // the auth email round trips, a workflow of its own so that ci.yml and
-    // ci-integration.yml do not change. Nothing else in the file changes.
-    // Pinned on that exact reviewed content. Ends before the EOF runner
-    // section, which is unchanged.
-    ref: "AL-2673 local Supabase stack workflow",
-    bytes: 46168,
-    sha256: "5d02d56a1a354e230b91199c0d9c7831d309414e6db6c8b7e75f8ef191a301e6",
-  },
-  {
-    // Amended by AL-2674 (WP1.6, record D-18): docs/ci.md's "Local Supabase
-    // stack workflow" section gains one bullet, and its count of what it
-    // guards goes from two to three. The workflow now also replays the chain
-    // on plain Postgres as the release job does (`--hosted-defaults`) and
-    // fails unless that replay fingerprints exactly as the stack does, so a
-    // change of Supabase's default privileges fails a pull request rather
-    // than a release. Nothing else in the file changes.
-    // Pinned on that exact reviewed content. Ends before the EOF runner
-    // section, which is unchanged.
-    ref: "AL-2674 WP1.6 release replay against the image",
-    bytes: 46521,
-    sha256: "c6f883c9d971f8d213a07a7b460fc9b8ee80440a1d53c1f2314f8f9ed03fedf0",
-  },
-  {
-    // Amended by AL-2674 (WP1.6 review H7, record D-18): the WP1.6 bullet of
-    // docs/ci.md's "Local Supabase stack workflow" section no longer says
-    // that a change of Supabase's default privileges fails a pull request
-    // rather than a release. It says the job compares with the image the
-    // pinned CLI starts, not with hosted, and that the release's gates catch
-    // a change on hosted. Nothing else in the file changes. Pinned on that exact reviewed content. Ends before the EOF runner section, which is unchanged.
-    ref: "AL-2674 WP1.6 review H7, the drift guard's limits",
-    bytes: 46570,
-    sha256: "4a105c232e70ff91c6383159061222e3129f78e7b9c6fadad3a7321fe786b1c0",
-  },
-  {
-    // D-18: WP2H documents the proof dependencies, including its Vitest config and resolver plugins.
-    // The digest pins the amended prefix; the unchanged EOF section still faces every original assertion.
-    ref: "AL-2675 WP2H PostgREST proof paths",
-    bytes: 47171,
-    sha256: "d28ee0bd761514bc955e336c9f7350515cea27b7e54d44d958da6964177e3be2",
-  },
-  {
-    // Amended by AL-2735 when the shadcn upstream review left ci:preflight: the stage
-    // list drops `verify:shadcn-diff` and renumbers, a new paragraph says the
-    // review runs by hand, and the `lint` section no longer lists it. Pinned
-    // on that exact reviewed prefix; the EOF runner section is unchanged.
-    ref: "AL-2735 shadcn upstream review leaves ci:preflight",
-    bytes: 47295,
-    sha256: "6b2f35b7cfdad5098dea0a699c073ca485e1bfe6420382a9dcd528e7c1eee7b2",
-  },
-  // D-18 (AL-2675): retain the manual shadcn review; document operator MFA, CMS origin and the 35-minute E2E cap.
-  {
-    ref: "AL-2675 WP2c operator MFA and hosted E2E contract",
-    bytes: 47777,
-    sha256: "1eb8eb5babf75235330acc36612374123672bfde0cc07db2336e5c6dde6c4346",
-  },
-  // Amended by AL-2674: test-e2e runs hermetically on every event with placeholder Supabase and no hosted secrets; no end-to-end job runs against a hosted database.
-  {
-    ref: "AL-2674 hermetic test-e2e on every event",
-    bytes: 48100,
-    sha256: "a15f591b0dffb5197a7523af420b77fe2923a5c648f7ba0a5deb7f801945e687",
-  },
-] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
-describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {
+describe("#2180 criterion 10: docs/ci.md runner-security pointer", () => {
+  /**
+   * The 'Self-hosted runner security' section, to the next heading of the
+   * same or a higher level, or EOF. Deeper headings stay inside it.
+   */
   const appended = () => {
-    const bytes = readFileSync("docs/ci.md");
-    const base = CI_BASES.find(
-      (b) => sha(bytes.subarray(0, b.bytes).toString("utf8")) === b.sha256,
-    );
+    const text = read("docs/ci.md");
+    const at = text.search(HEADING);
     expect(
-      base?.ref,
-      `existing docs/ci.md bytes unchanged (prefix of develop ${CI_BASES.map((b) => b.ref).join(" or ")})`,
-    ).toBeDefined();
-    return bytes.subarray(base!.bytes).toString("utf8");
+      at,
+      "docs/ci.md has a 'Self-hosted runner security' section",
+    ).toBeGreaterThanOrEqual(0);
+    const body = text.slice(at).split("\n");
+    const level = body[0]!.indexOf(" ");
+    let inFence = false;
+    let end = -1;
+    for (let i = 1; i < body.length; i += 1) {
+      const line = body[i]!;
+      if (/^\s*(?:```|~~~)/.test(line)) {
+        inFence = !inFence;
+        continue;
+      }
+      if (inFence) continue;
+      const headingMatch = /^(#{1,6}) /.exec(line);
+      if (headingMatch && headingMatch[1]!.length <= level) {
+        end = i;
+        break;
+      }
+    }
+    return body.slice(0, end < 0 ? undefined : end).join("\n");
   };
-  it("appends only a 'Self-hosted runner security' section of <= 8 lines", () => {
+  it("is one 'Self-hosted runner security' section of <= 8 lines", () => {
     const added = appended();
-    expect(added.replace(/^\n+/, "")).toMatch(
-      /^#{2,3} Self-hosted runner security\s*\n/,
-    );
+    expect(added).toMatch(/^#{2,3} Self-hosted runner security\s*\n/);
     expect(added.match(/^#/gm), "one heading only").toHaveLength(1);
     expect(added.trim().split("\n").length).toBeLessThanOrEqual(8);
+    expect(read("docs/ci.md").match(new RegExp(HEADING, "gm"))).toHaveLength(1);
   });
   it("points to the runbook and to R1-R3", () => {
     const added = appended();

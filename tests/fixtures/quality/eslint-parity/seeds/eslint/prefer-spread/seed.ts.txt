@@ -1,0 +1,1 @@
+export const largest = (values: number[]) => Math.max.apply(Math, values);

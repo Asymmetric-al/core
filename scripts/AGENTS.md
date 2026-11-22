@@ -20,6 +20,7 @@ Use this doc when editing or running:
 4. Validate project targeting before hosted writes.
 5. Provide a verification command with explicit row-count checks.
 6. Prefer Bun/Node with `node:path`, `node:fs`, argument arrays, and `shell: false` for new or changed maintenance tooling. Avoid Bash-only canonical workflows, hardcoded `/tmp`, `sed -i`, and symlink-only designs.
+   TypeScript (`.ts`, `.mts`) under `scripts/`, except the factory pack, compiles in `bun run typecheck` through `scripts/tsconfig.json`.
 7. `bun run skills:sync` **mutates** generated mirrors. `bun run skills:verify` **must not** change the working tree.
 
 ## Reset and reseed rule

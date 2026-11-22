@@ -23,7 +23,7 @@ Use `gh pr checks` as the source of truth. It includes all PR-attached checks, w
 
 ```bash
 # Resolve the active PR
-gh pr view --json number,url,headRefName
+gh pr view --json number,url,headRefName,baseRefName
 
 # Inspect all attached checks
 gh pr checks --json name,bucket,state,workflow,link
@@ -39,7 +39,7 @@ gh run view <run-id> --log-failed
 
 - Keep each fix scoped to a single failure cause when possible.
 - Do not bypass hooks (`--no-verify`) to force progress.
-- If the failure is clearly unrelated to the PR and appears fixed on main, merge latest main instead of bloating the PR with unrelated fixes.
+- If the failure comes from the base branch and is already fixed there, fetch and merge the PR's `baseRefName` from its base repository. Core PRs usually target `develop`; a stacked PR can target another branch.
 - If failures are flaky, retry once and report flake evidence.
 - Re-run `gh pr checks --json name,bucket,state,workflow,link` after every push; the check set can change.
 

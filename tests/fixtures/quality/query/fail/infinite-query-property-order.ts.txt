@@ -1,0 +1,8 @@
+import { infiniteQueryOptions } from "@tanstack/react-query";
+
+export const pages = infiniteQueryOptions({
+  queryKey: ["pages"],
+  initialPageParam: 1,
+  getNextPageParam: (last: number) => last + 1,
+  queryFn: ({ pageParam }) => pageParam,
+});

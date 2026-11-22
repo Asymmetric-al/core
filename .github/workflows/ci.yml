@@ -91,16 +91,6 @@ jobs:
       - run: bun run verify:phase28-spec
       - run: bun run openspec:validate
       - run: bun run verify:openspec-deltas
-      - name: Enforce complete Shadscan app floors and reviewed findings
-        run: bun run verify:shadscan -- --output "$RUNNER_TEMP/shadscan"
-      - name: Retain raw Shadscan evidence even when its gate fails
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: shadscan-audit
-          path: ${{ runner.temp }}/shadscan/
-          if-no-files-found: warn
-          retention-days: 14
       - name: Check out the Phase 24 proof candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -123,8 +113,6 @@ jobs:
           retention-days: 14
 
   shadscan-report:
-    needs: [integrity]
-    if: ${{ !cancelled() }}
     permissions:
       contents: read
       issues: write
@@ -173,6 +161,7 @@ jobs:
       - name: Check bun.lock workspace-manifest drift
         run: bun run verify:bun-lock-drift
       - run: bun run verify:eslint
+      - run: bun run verify:shadcn-config
 
   typecheck:
     runs-on: ubuntu-latest
@@ -240,11 +229,31 @@ jobs:
         env:
           CI_BUILD_APPS: ${{ needs.compilation-plan.outputs.apps }}
         run: node scripts/verify/ci-build-policy.mjs --build
+      # Diagnostics only: rebuild the app whose next build failed with
+      # --debug-prerender (server source maps, every failing route). Vercel
+      # runs the normal build command, which never carries the flag. Its own
+      # limit keeps it inside the job's budget (setup about 1.5 min, compile
+      # up to about 5), so the job ends failed with the compile error, not
+      # cancelled at 15 minutes. It runs only after a failure, so it cannot
+      # turn the job green.
+      - name: Rebuild failed apps with prerender diagnostics
+        if: failure()
+        timeout-minutes: 6
+        run: node scripts/verify/ci-build.mjs --debug-prerender
 
+  # Every unit test on every event, split across shards to cut wall time
+  # (Vitest --shard: equal file counts, assigned by path hash). Each shard
+  # repeats setup, so billed minutes rise while wall time falls. fail-fast is
+  # off so one red shard cannot cancel the others and hide their failures;
+  # needs.test-unit.result is success only when every shard succeeded.
   test-unit:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
@@ -271,12 +280,14 @@ jobs:
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
       - run: bun ci --no-cache --backend=copyfile
       - name: Run unit tests
-        run: bun run test:unit
+        run: bun run test:unit --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+      # Each shard's coverage covers only its own files. Nothing merges or
+      # reads these reports; they are kept for inspection.
       - name: Upload coverage artifact (best effort)
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: unit-test-coverage
+          name: unit-test-coverage-${{ matrix.shard }}
           path: coverage/
           if-no-files-found: ignore
           retention-days: 7

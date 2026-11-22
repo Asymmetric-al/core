@@ -1,0 +1,5 @@
+import Script from "next/script";
+
+export function Analytics() {
+  return <Script>{"window.ready = true;"}</Script>;
+}

@@ -89,9 +89,41 @@ retire the hashed ledger.
 AL-1958 set the strict acceptance and its ledger through
 `docs/guides/development/react-doctor.md`. No durable spec or active OpenSpec
 change requires React Doctor acceptance. Active changes cite it only in dated
-verification notes, which stay as history. This proposal is the governing
-intent once the owner ratifies it. Implementation SHALL NOT start before that
-ratification.
+verification notes, which stay as history.
+
+On 2026-11-18 the owner ratified this change. The program step offered to the
+owner read:
+
+> "One ruling that retires the Shadscan gate and hashes, the React Doctor
+> ledger (PR #2705) and the fingerprint comparisons. Adopt only the retirement
+> part of the Shadscan change; its jsx-a11y baseline is a new ledger."
+
+The owner replied: "Do #2". Pull request #2705 is the one that merged this
+proposal. Asked later that day whether the ratification should be passed on
+for this change, the owner replied: "sure, pass, do what you think is best."
+
+The owner's words name "the React Doctor ledger (PR #2705)". They do not name
+this change ID, design decisions D1 to D8 or AL-1958. The scope below is
+therefore the quality program's reading of the ruling, made under the
+discretion the owner gave ("do what you think is best"), and it rests on one
+fact: pull request #2705 is the pull request that merged this proposal, so a
+ruling that retires the ledger by naming it points at this change. The owner's
+confirmation of this reading is requested on the implementing pull request.
+
+Scope of that ruling for `make-react-doctor-advisory`, on that reading:
+
+- **Ratified:** the whole change, meaning this proposal, design decisions D1
+  to D8, the `react-source-audits` spec delta and every task. The limitation
+  in the offered step ("Adopt only the retirement part") concerns the Shadscan
+  change only.
+- **Superseded:** the AL-1958 strict acceptance, meaning zero unexcepted
+  warnings across the eight targets, every exception recorded in
+  `docs/qa/react-doctor/exceptions.json`, and `bun run react-doctor:check` as
+  its check. Dated evidence that records that acceptance stays as history
+  (design D6).
+
+This proposal is the governing intent for React source audits from that
+ratification on.
 
 ## Capabilities
 

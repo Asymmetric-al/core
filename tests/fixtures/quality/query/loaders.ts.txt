@@ -1,0 +1,21 @@
+import { useQuery } from "@tanstack/react-query";
+
+export function saveCount(): Promise<void> {
+  return Promise.resolve();
+}
+
+export function readCount(): Promise<number> {
+  return Promise.resolve(1);
+}
+
+export function wrapLoader<T>(load: () => Promise<T>) {
+  return () => load();
+}
+
+export function maybeCount(): number | undefined {
+  return [1].at(1);
+}
+
+export function useCount() {
+  return useQuery({ queryKey: ["count"], queryFn: readCount });
+}

@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -8,6 +9,7 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -61,35 +63,49 @@ const NON_INSTRUCTION_DOT_DIRECTORIES = new Set([
   ".vercel",
 ]);
 
+function isNonInstructionPath(relativePath: string): boolean {
+  const directories = relativePath.split("/").slice(0, -1);
+  return (
+    relativePath.startsWith("docs/ai/skills/") ||
+    directories.some(
+      (name) =>
+        NON_INSTRUCTION_DOT_DIRECTORIES.has(name) ||
+        NON_INSTRUCTION_DIRECTORIES.has(name),
+    )
+  );
+}
+
 /**
- * Every AGENTS.md that scopes repository rules to a directory. Client mirrors
- * and build output are skipped, and skill packages ship their own AGENTS.md
- * files that are not repository rules.
+ * Every AGENTS.md that scopes repository rules to a directory. The list comes
+ * from git (tracked, staged, or new and not ignored, and still on disk) rather
+ * than a walk of the disk, so fixtures that other test files write under the
+ * root while this one runs are not counted. Client mirrors and build output
+ * are skipped, and skill packages ship their own AGENTS.md files that are not
+ * repository rules.
  */
-function findScopedAgentsFiles(
-  root: string = REPO_ROOT,
-  relativeDir = "",
-): string[] {
-  const found: string[] = [];
-  for (const entry of readdirSync(join(root, relativeDir), {
-    withFileTypes: true,
-  })) {
-    const relativePath = relativeDir
-      ? `${relativeDir}/${entry.name}`
-      : entry.name;
-    if (entry.isDirectory()) {
-      if (
-        NON_INSTRUCTION_DOT_DIRECTORIES.has(entry.name) ||
-        NON_INSTRUCTION_DIRECTORIES.has(entry.name) ||
-        relativePath === "docs/ai/skills"
-      )
-        continue;
-      found.push(...findScopedAgentsFiles(root, relativePath));
-    } else if (entry.name === "AGENTS.md") {
-      found.push(relativePath);
-    }
-  }
-  return found;
+function findScopedAgentsFiles(root: string = REPO_ROOT): string[] {
+  const listed = execFileSync(
+    "git",
+    [
+      // --exclude-standard also reads the user's core.excludesFile; an empty
+      // value leaves only the repository's .gitignore files and info/exclude.
+      "-c",
+      "core.excludesFile=",
+      "ls-files",
+      "-z",
+      "--cached",
+      "--others",
+      "--exclude-standard",
+      "--",
+      ":(glob)**/AGENTS.md",
+    ],
+    { cwd: root, encoding: "utf8" },
+  );
+  return [...new Set(listed.split("\0").filter(Boolean))].filter(
+    (relativePath) =>
+      !isNonInstructionPath(relativePath) &&
+      existsSync(join(root, relativePath)),
+  );
 }
 
 /** Scoped AGENTS.md files whose sibling CLAUDE.md does not import them. */
@@ -239,6 +255,7 @@ describe("agent instruction routing fixtures", () => {
       "apps/admin/AGENTS.md",
       "apps/donor/AGENTS.md",
       "apps/missionary/AGENTS.md",
+      "apps/factory-console/AGENTS.md",
     ]);
 
     for (const relativePath of NESTED_AGENTS_PATHS) {
@@ -268,6 +285,50 @@ describe("agent instruction routing fixtures", () => {
     expect(readRepoFile("apps/missionary/AGENTS.md")).toContain("4000");
   });
 
+  // `next dev` appends the managed block to an app's AGENTS.md whenever the
+  // installed generator's text is missing or differs, so every committed copy
+  // must equal it. A Next.js upgrade that changes the text fails here, in the
+  // upgrade pull request.
+  it.each([
+    ".",
+    "apps/admin",
+    "apps/donor",
+    "apps/missionary",
+    "apps/factory-console",
+  ])(
+    "keeps the Next.js managed block in %s identical to the installed generator's",
+    (directory) => {
+      const appRequire = createRequire(
+        join(REPO_ROOT, directory, "package.json"),
+      );
+      const { hasCurrentAgentRules } = appRequire(
+        "next/dist/server/lib/generate-agent-files.js",
+      ) as { hasCurrentAgentRules: (dir: string) => boolean };
+      expect(hasCurrentAgentRules(join(REPO_ROOT, directory))).toBe(true);
+    },
+  );
+
+  it.each(["apps/admin", "apps/donor", "apps/missionary"])(
+    "tells %s agents to verify route and UI changes against the running dev server",
+    (app) => {
+      const content = readRepoFile(`${app}/AGENTS.md`);
+      const workflow = content.slice(
+        content.indexOf("## Workflow"),
+        content.indexOf("## Checklist"),
+      );
+      for (const required of [
+        "`next-dev-loop`",
+        `\`${app}/.next/dev/lock\``,
+        "`get_compilation_issues`",
+        "`compile_route`",
+        "`get_errors`",
+        "`agent-browser`",
+        "Don't run `next build` to check compilation while editing",
+      ])
+        expect(workflow, `${app}: ${required}`).toContain(required);
+    },
+  );
+
   it("imports every scoped AGENTS.md through a sibling CLAUDE.md", () => {
     // Claude Code loads CLAUDE.md, not AGENTS.md. Without the sibling import a
     // scoped instruction file is only read if the agent goes looking for it.
@@ -286,6 +347,7 @@ describe("agent instruction routing fixtures", () => {
         mkdirSync(dirname(join(root, relativePath)), { recursive: true });
         writeFileSync(join(root, relativePath), content);
       };
+      execFileSync("git", ["init", "-q"], { cwd: root, stdio: "ignore" });
       write("AGENTS.md", "# Root\n");
       write("CLAUDE.md", "@AGENTS.md\n");
       write(".github/AGENTS.md", "# Workflows\n");
@@ -296,6 +358,71 @@ describe("agent instruction routing fixtures", () => {
       expect(scoped).toEqual([".github/AGENTS.md", "AGENTS.md"]);
       expect(findAgentsFilesWithoutClaudeImport(root, scoped)).toEqual([
         ".github/AGENTS.md",
+      ]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("lists AGENTS.md files whatever the user's own git excludes say", () => {
+    // A developer's global excludes file (core.excludesFile) must not hide
+    // instruction files; the repository's .gitignore and info/exclude still
+    // apply.
+    const root = mkdtempSync(join(tmpdir(), "agents-user-excludes-"));
+    const previous = process.env.GIT_CONFIG_GLOBAL;
+    try {
+      const write = (relativePath: string, content: string) => {
+        mkdirSync(dirname(join(root, relativePath)), { recursive: true });
+        writeFileSync(join(root, relativePath), content);
+      };
+      execFileSync("git", ["init", "-q"], { cwd: root, stdio: "ignore" });
+      write("AGENTS.md", "# Root\n");
+      write("apps/example/AGENTS.md", "# New, not yet added\n");
+      write(".gitignore", "ignored-by-repo/\n");
+      write("ignored-by-repo/AGENTS.md", "# Ignored by the repository\n");
+      write(".git/info/exclude", "excluded-locally/\n");
+      write("excluded-locally/AGENTS.md", "# Excluded by info/exclude\n");
+      write("user/ignore", "AGENTS.md\nCLAUDE.md\n");
+      write(
+        "user/gitconfig",
+        `[core]\n\texcludesFile = ${join(root, "user", "ignore").replaceAll("\\", "/")}\n`,
+      );
+      process.env.GIT_CONFIG_GLOBAL = join(root, "user", "gitconfig");
+
+      expect(findScopedAgentsFiles(root).sort()).toEqual([
+        "AGENTS.md",
+        "apps/example/AGENTS.md",
+      ]);
+    } finally {
+      if (previous === undefined) delete process.env.GIT_CONFIG_GLOBAL;
+      else process.env.GIT_CONFIG_GLOBAL = previous;
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("counts only the AGENTS.md files git sees, not scratch fixtures under the root", () => {
+    // tests/unit/scripts/factory-hosted-startup.test.ts writes fixtures, each
+    // with a workspace/AGENTS.md, inside the checkout while other files run.
+    const root = mkdtempSync(join(tmpdir(), "agents-git-view-"));
+    try {
+      const write = (relativePath: string, content: string) => {
+        mkdirSync(dirname(join(root, relativePath)), { recursive: true });
+        writeFileSync(join(root, relativePath), content);
+      };
+      execFileSync("git", ["init", "-q"], { cwd: root, stdio: "ignore" });
+      write(".gitignore", readRepoFile(".gitignore"));
+      write("AGENTS.md", "# Root\n");
+      write("apps/example/AGENTS.md", "# Tracked\n");
+      write("apps/removed/AGENTS.md", "# Deleted, deletion not staged\n");
+      execFileSync("git", ["add", "-A"], { cwd: root, stdio: "ignore" });
+      rmSync(join(root, "apps/removed/AGENTS.md"));
+      write("packages/new/AGENTS.md", "# New, not yet added\n");
+      write(".factory-hosted-test-abc123/workspace/AGENTS.md", "# Fixture\n");
+
+      expect(findScopedAgentsFiles(root).sort()).toEqual([
+        "AGENTS.md",
+        "apps/example/AGENTS.md",
+        "packages/new/AGENTS.md",
       ]);
     } finally {
       rmSync(root, { recursive: true, force: true });

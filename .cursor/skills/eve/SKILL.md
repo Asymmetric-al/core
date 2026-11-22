@@ -16,12 +16,20 @@ skill for guidance — always read the bundled docs, which match the installed
 version exactly:
 
 ```
-node_modules/eve/docs/
+packages/eve-runtime/node_modules/eve/docs/
 ```
 
-Start with `node_modules/eve/docs/README.md`. It contains the full
+In Core, eve is installed in `packages/eve-runtime` (and in `apps/admin`,
+which mounts it), not at the repository root. Start with
+`packages/eve-runtime/node_modules/eve/docs/README.md`. It contains the full
 index and recommended reading order. Before writing any eve code, read the
-relevant guide there first.
+relevant guide there first, and read `packages/eve-runtime/AGENTS.md`:
+product-runtime eve stays disabled by default and gains models, tools or
+effects only through an accepted OpenSpec change.
 
-If `eve` is not installed yet, install it (`npm install eve`) or scaffold a new
-agent with `npx eve init <agent-name>`, then read the bundled docs.
+eve is already installed at the version pinned in
+`packages/eve-runtime/package.json`. Do not install it with another package
+manager or at the repository root; changing that version is a dependency
+decision made with `bun add --exact` in the owning workspace, together with
+`bun.lock`. Run the installed CLI from `packages/eve-runtime` as
+`bunx eve <command>`.

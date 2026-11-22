@@ -1,0 +1,10 @@
+import { createClient } from "@asym/database/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export { createServerClient } from "@asym/database/supabase/server";
+
+export type Client = SupabaseClient;
+
+export const connect = createClient;
+
+export const loadAdmin = () => import("@asym/database/supabase/admin/client");

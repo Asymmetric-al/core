@@ -1,0 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
+
+export function useReadCount() {
+  const query = useQuery({ queryKey: ["count"], queryFn: () => 1 });
+
+  return useCallback(() => query.data, [query]);
+}

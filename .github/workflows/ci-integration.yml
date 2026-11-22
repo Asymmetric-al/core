@@ -185,8 +185,9 @@ jobs:
           response=$(curl -sf http://127.0.0.1:3005/api/health)
           echo "$response" | grep -q '"status":"ok"'
 
+  # Starts beside migrate: it applies its own migrations and seed and starts
+  # its own servers. e2e-smoke-gate still needs and reads migrate and smoke.
   test-e2e-smoke:
-    needs: smoke
     if: >-
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
@@ -519,15 +520,17 @@ jobs:
   # verdict against a PRODUCTION build with the testing API exposed — `next dev`
   # neither prefetches nor locks reliably — so this job builds and starts donor
   # rather than reusing the dev servers the other e2e jobs run. See
-  # instant-nav.rig.md.
+  # instant-nav.rig.md. On develop pull requests it runs only when the change
+  # can affect donor or the guards (scripts/verify/instant-navigation-scope.mjs),
+  # and it is a visible, non-required check there: no develop gate needs it.
   instant-nav:
     if: >-
       (github.event_name == 'workflow_dispatch' ||
-        (github.event_name == 'pull_request' && github.base_ref == 'production') ||
+        (github.event_name == 'pull_request' &&
+          (github.base_ref == 'production' || github.base_ref == 'develop')) ||
         (github.event_name == 'push' && github.ref == 'refs/heads/production')) &&
       (github.event_name != 'pull_request' ||
         github.event.pull_request.head.repo.full_name == github.repository)
-    continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -540,21 +543,42 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
-      - name: Install system dependencies (canvas)
-        run: bash scripts/github/install-canvas-deps.sh
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      # Only a develop pull request may skip the guards, and only when this
+      # step wrote exactly run=false. The step runs only there, so production
+      # pull requests, pushes and dispatch never depend on it (a skipped
+      # step's output reads as '', which is not 'false'). On develop a missing
+      # or unexpected output runs the guards, and a failing step fails the job.
+      - name: Decide whether the change can affect the guards
+        id: scope
+        if: github.event_name == 'pull_request' && github.base_ref == 'develop'
+        env:
+          CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          CI_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/verify/instant-navigation-scope.mjs
+      - name: Install system dependencies (canvas)
+        if: github.event_name != 'pull_request' || github.base_ref != 'develop' || steps.scope.outputs.run != 'false'
+        run: bash scripts/github/install-canvas-deps.sh
+      - name: Set up Bun
+        if: github.event_name != 'pull_request' || github.base_ref != 'develop' || steps.scope.outputs.run != 'false'
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: ${{ env.BUN_VERSION }}
-      - run: bun ci --no-cache --backend=copyfile
+      - name: Install dependencies
+        if: github.event_name != 'pull_request' || github.base_ref != 'develop' || steps.scope.outputs.run != 'false'
+        run: bun ci --no-cache --backend=copyfile
       - name: Install Playwright Chromium
+        if: github.event_name != 'pull_request' || github.base_ref != 'develop' || steps.scope.outputs.run != 'false'
         run: bunx playwright install --with-deps chromium
       - name: Build donor with the testing API exposed
+        if: github.event_name != 'pull_request' || github.base_ref != 'develop' || steps.scope.outputs.run != 'false'
         run: bun run build:donor
       - name: Start donor production server
+        if: github.event_name != 'pull_request' || github.base_ref != 'develop' || steps.scope.outputs.run != 'false'
         run: |
           nohup node scripts/run-with-ci-env.mjs -- bun run --cwd apps/donor start -- --port 3006 --hostname 127.0.0.1 > /tmp/donor-prod.log 2>&1 &
           for i in $(seq 1 120); do
@@ -565,9 +589,10 @@ jobs:
             sleep 1
           done
           echo "Timed out waiting for the donor production server"
-          tail -n 100 /tmp/donor-prod.log || true
+          tail -n 100 /tmp/donor-prod.log
           exit 1
       - name: Instant navigation guards
+        if: github.event_name != 'pull_request' || github.base_ref != 'develop' || steps.scope.outputs.run != 'false'
         env:
           INSTANT_NAV_RIG: "1"
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:3006

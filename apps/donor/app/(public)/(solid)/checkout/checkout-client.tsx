@@ -2342,36 +2342,40 @@ function useCheckoutModel({
     else if (step === "payment") setStep("details");
   };
 
-  // This factory only captures refs; its returned async payment event handler reads them.
-  // eslint-disable-next-line react-hooks/refs -- AL-1958: This pure factory captures refs; only its returned payment event handler reads or writes them.
-  const { handlePayment } = createCheckoutPaymentSubmission({
-    activePaymentAttemptRef,
-    checkoutStateRef,
-    hasGivingTarget,
-    setCheckoutState,
-    paymentMethod,
-    stripeOverride,
-    checkoutMode,
-    mountedPublishableKey,
-    setRuntimeConfig,
-    currentRequestFingerprint,
-    donorInfo,
-    total,
-    worker,
-    paymentAttemptIdRef,
-    checkoutState,
-    currentRequestFingerprintRef,
-    amount,
-    coverFees,
-    missionaryId,
-    fundId,
-    isPaymentAttemptActive,
-    exitStalePaymentAttempt,
-    postalCode,
-    mountedPublishableKeyRef,
-    commitPaymentAttemptState,
-    commitSuccessfulOriginalPaymentAttempt,
-  });
+  // The submission reads and writes the payment refs, so it is built when the
+  // donor confirms, from this render's values, never during render (AL-1958).
+  const handlePayment = (
+    stripe: Stripe | null,
+    elements: StripeElements | null,
+  ) =>
+    createCheckoutPaymentSubmission({
+      activePaymentAttemptRef,
+      checkoutStateRef,
+      hasGivingTarget,
+      setCheckoutState,
+      paymentMethod,
+      stripeOverride,
+      checkoutMode,
+      mountedPublishableKey,
+      setRuntimeConfig,
+      currentRequestFingerprint,
+      donorInfo,
+      total,
+      worker,
+      paymentAttemptIdRef,
+      checkoutState,
+      currentRequestFingerprintRef,
+      amount,
+      coverFees,
+      missionaryId,
+      fundId,
+      isPaymentAttemptActive,
+      exitStalePaymentAttempt,
+      postalCode,
+      mountedPublishableKeyRef,
+      commitPaymentAttemptState,
+      commitSuccessfulOriginalPaymentAttempt,
+    }).handlePayment(stripe, elements);
 
   if (step !== "success" && !hasGivingTarget) {
     return { view: "missing_target" as const };

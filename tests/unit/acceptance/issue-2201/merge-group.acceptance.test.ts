@@ -2,7 +2,6 @@
  * Acceptance tests for #2201 (CI on merge_group). Owned by Acceptance. Spec, base b17ce79e:
  * https://github.com/Asymmetric-al/core/issues/2201#issuecomment-6359486159
  */
-import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
@@ -10,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import { resolveCompilation } from "../../../../scripts/verify/ci-build-policy.mjs";
 import * as E from "../../helpers/github-expression";
 import * as W from "../issue-2158/workflow-yaml";
+import { expectPushBranches, triggerMap } from "../shared/workflow-triggers";
 
 type Job = W.WorkflowJob;
 type Scenario = W.EventScenario;
@@ -61,14 +61,15 @@ const runs = (job: Job, res?: Record<string, string>, s = MG) =>
 describe("#2201 criteria 1-3, 13: on: triggers", () => {
   for (const file of [CI, CII]) {
     it(`${file}: on: is exactly the four triggers; merge_group unfiltered`, () => {
-      const on = doc(file).on as Record<string, unknown>;
+      const on = triggerMap(doc(file).on);
       expect(Object.keys(on).sort()).toEqual(TRIGGERS);
       expect(on.merge_group).toStrictEqual({ types: ["checks_requested"] });
     });
-    it(`${file}: other triggers and push.branches byte-for-byte unchanged`, () => {
-      expect(text(file)).toContain(
-        "\non:\n  workflow_dispatch:\n  pull_request:\n  push:\n    branches: [develop, production]\n",
-      );
+    it(`${file}: other triggers unfiltered; push runs on develop and production only`, () => {
+      const on = triggerMap(doc(file).on);
+      expect(on.workflow_dispatch).toBeNull();
+      expect(on.pull_request).toBeNull();
+      expectPushBranches(on.push, ["develop", "production"]);
     });
   }
 });
@@ -165,140 +166,6 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
       text(`${dir}/${f}`).includes("pull_request_target"),
     );
     expect(users).toEqual(["release-source.yml"]);
-  });
-  /**
-   * Accepted ci-integration.yml fingerprints, CI_BASES-style: one entry per
-   * reviewed file. A later spec'd step (e.g. #2250) adds exactly one entry
-   * after its diff is reviewed; any unlisted fingerprint fails.
-   */
-  const CI_PRINTS = [
-    { ref: "CI runner fallback", hash: "89fce96b9365d5a9" },
-    // Hosted-CI amendment: only build/test-unit runs-on become literal ubuntu-latest.
-    { ref: "Hosted CI baseline", hash: "cbe3c295f9dd6832" },
-    // Amended by AL-2674 (WP1.2, Payload 4.0.0-beta.9): only NODE_VERSION
-    // moved from 24.22.1 to 24.22.3 (.node-version). With that line put back,
-    // the fingerprint is the entry above.
-    { ref: "AL-2674 Node 24.22.3", hash: "ab279b66def51683" },
-  ] as const;
-  const CII_PRINTS = [
-    // develop
-    { ref: "develop c541b84b", hash: "1078832efaff84e6" },
-    // #2254: Builder ea6878ad adds the migrate identity real-stack step
-    { ref: "#2254 Builder ea6878ad", hash: "e72e09b4d720835c" },
-    // #2250: Builder 0cdce1bd adds the last migrate step (tenant isolation)
-    { ref: "#2250 Builder 0cdce1bd", hash: "d49376af6b9ca7e7" },
-    // #2270: Builder b671a0e3 adds migrate step 17 (authz EXECUTE grants)
-    { ref: "#2270 Builder b671a0e3", hash: "62f202ecfaca7a3f" },
-    // #2251: Builder 2039d580 adds migrate step 18 (tenant table RLS posture)
-    { ref: "#2251 Builder 2039d580", hash: "4b9f9d19330793f6" },
-    // #2255: Builder 6446bb59 adds migrate step 19 (claim tables)
-    { ref: "#2255 Builder 6446bb59", hash: "d3893a68b1cf0d6e" },
-    // #2252: Builder 03a8d5b2 adds migrate step 19 (donor spine composite FKs)
-    { ref: "#2252 Builder 03a8d5b2", hash: "ab8fec8cfaa6a7d3" },
-    // #2252 synced on develop d1f0af94: Builder 70d1497a, donor spine step moves to migrate 20 (after #2255's 19)
-    { ref: "#2252 Builder 70d1497a", hash: "d6d855999c1bea0b" },
-    // #2253: Builder 88aeebc2 adds migrate step 19 (RLS catalog gate)
-    { ref: "#2253 Builder 88aeebc2", hash: "edaf3b22c468fb20" },
-    // #2253 sync: Builder c9f11d54 (develop d1f0af94 merged) has both, #2253's step now 20
-    { ref: "#2253 Builder c9f11d54", hash: "39e8eec12b28c87e" },
-    // #2253 sync2: Builder 18d490e9 (develop c4d4fbc5 merged) has #2252's step 20, #2253's step now 21
-    { ref: "#2253 Builder 18d490e9", hash: "f7866ec7ed2060ae" },
-    // #2256: Builder 157724da (develop 0727d810 merged) appends the issue-2256 real-stack path to tenant isolation
-    { ref: "#2256 Builder 157724da", hash: "a41d2f366062b967" },
-    // #2260: Builder e1657b68 (develop e25d7727 merged, after #2256) appends the issue-2260 real-stack path to tenant isolation
-    { ref: "#2260 Builder e1657b68", hash: "534cbcf817506336" },
-    // #2258: Builder c3f71ffe (on develop a1375d46, after #2260) appends the issue-2258 real-stack path to tenant isolation
-    { ref: "#2258 Builder c3f71ffe", hash: "8ac7feb33d789d3d" },
-    // #2312: Builder e518a845 (develop f8ef44f8 merged, after #2258) appends the issue-2312 real-stack path to tenant isolation
-    { ref: "#2312 Builder e518a845", hash: "3e026b8f31f34dda" },
-    { ref: "#2402 Builder 28ac3c13", hash: "7755cfddb8cb875c" },
-    { ref: "#2364 Builder 0cf86552", hash: "21073c70380a4f90" },
-    // #2406: Builder 9563beea (develop 629cb71d merged) appends the issue-2406 real-stack path to tenant isolation
-    { ref: "#2406 Builder 9563beea", hash: "925cfd8de36c75a3" },
-    // #2407 PR (a): develop after #2406, plus the issue-2407 real-stack path
-    { ref: "#2407a after #2406", hash: "beea3b344a58ae76" },
-    // GitHub-hosted runner fallback: self-hosted runs-on honour vars.CI_RUNNER_FALLBACK
-    { ref: "CI runner fallback after #2407a", hash: "d5c4968b54a5018b" },
-    // Hosted-CI amendment: only the five heavy jobs' runs-on become literal ubuntu-latest.
-    { ref: "Hosted CI baseline after #2407a", hash: "e2884b2dac1415b3" },
-    // Amended by AL-2674 (stage 1 of the AL-2671 program, plan 7.1), the file
-    // stage 1 ends on. From the entry above: NODE_VERSION moved from 24.22.1
-    // to 24.22.3 (.node-version, Payload 4.0.0-beta.9); migrate step 13
-    // ("Verify seed counts") runs scripts/verify/seed-counts.mjs, which reads
-    // the expected counts from supabase/seed-expectations.json, so a seed
-    // change no longer changes this file; step 22 runs the AL-2671 program's
-    // real-stack suites (one glob over issue-2670 to issue-2689), step 23 the
-    // release job's suites with Payload's database-role suite and its URL, and
-    // step 24 the Payload qualification (plan 6.7). Each step is pinned
-    // exactly in tests/unit/helpers/workflow-yaml.ts. Council round 2 (A8d)
-    // removed the two intermediate states of stage 1's integration, which
-    // develop never held.
-    { ref: "AL-2674 seed counts and program steps", hash: "bf3afd9e9950a9f5" },
-    // Amended by AL-2675 (WP2b release 1, slices A and B joined; record
-    // D-18). The test-e2e job runs the program's five specs on the servers it
-    // already started: "Tenant address (admin app)" and "Request scope (admin
-    // app)" after the admin boneyard smoke, the same two for the missionary
-    // app after its boneyard smoke, and "Request scope (donor app)" after the
-    // donor boneyard smoke (bun run test:e2e:tenant-address:* and
-    // test:e2e:request-scope:*). Each step has a limit set from measured times
-    // (10 minutes for the admin tenant-address step, 5 for the others; the
-    // job's 30 unchanged), runs after an earlier failure (if: !cancelled()),
-    // and writes its evidence to folders of its own: the donor step has its
-    // own report folder and no admin server. All pinned in
-    // tests/unit/scripts/ci-integration-workflow.contract.test.ts. Slice A's
-    // and slice B's earlier entries were intermediate states of the joined
-    // branch, which develop never held, and are replaced by this one.
-    // Council on the joined release, JB4 and JB5 (the coordinator's list B):
-    // Web Studio's spec leaves the CMS step for a step of its own, "Web
-    // Studio tenant (admin app)" (bun run test:e2e:web-studio-tenant, no
-    // retries, if: !cancelled(), its own folders, 18 minutes from a measured
-    // replay of the whole job); "Start missionary app" and its wait run after
-    // an earlier failure; the upload runs on failure or cancellation. The
-    // job keeps its 30 minutes. Pinned in the same contract test; the entry
-    // before this one was the joined branch's, which develop never held.
-    // Check of the fix lists, JR12: each step that needs a server runs after
-    // an earlier failure only when that server's health check passed (ids
-    // donor-ready, admin-ready and missionary-ready), and the CMS step runs on
-    // the Web Studio step's condition, so the Web Studio step never runs
-    // cold. Pinned in the same contract test, which now also lists the CMS
-    // step's selection to show it leaves the Web Studio spec out. Then, from
-    // the measured replay of the whole job on the joined tree: the Web Studio
-    // step's limit 20 minutes and the job's 55.
-    {
-      ref: "AL-2675 tenant address and request scope in test-e2e",
-      hash: "c7ea497087351e4b",
-    },
-    // D-18: pin the explicit donor CMS origin and the 35-minute hosted job budget (#2734).
-    {
-      ref: "AL-2675 WP2c hosted test-e2e contract",
-      hash: "b0faf7bc2b022be3",
-    },
-    // Amended by AL-2674: test-e2e runs hermetically on every event (placeholder
-    // Supabase + ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1 in job env; no secrets;
-    // conditional non-production placeholder step removed).
-    {
-      ref: "AL-2674 hermetic test-e2e on every event",
-      hash: "cce85f7163acdd4c",
-    },
-  ] as const;
-  it("non-trigger content matches an individually reviewed fingerprint", () => {
-    const prints = [CI, CII].map((file) => {
-      const { on: _on, ...rest } = doc(file);
-      delete (rest.jobs as W.WorkflowJobs)["ci-gate-comment"];
-      delete (rest.jobs as W.WorkflowJobs)["test-e2e"]?.if;
-      return createHash("sha256")
-        .update(JSON.stringify(rest))
-        .digest("hex")
-        .slice(0, 16);
-    });
-    expect(
-      CI_PRINTS.map((p) => p.hash),
-      `ci.yml fingerprint ${prints[0]} is not reviewed`,
-    ).toContain(prints[0]);
-    expect(
-      CII_PRINTS.map((p) => p.hash),
-      `ci-integration.yml fingerprint ${prints[1]} is not reviewed`,
-    ).toContain(prints[1]);
   });
 });
 

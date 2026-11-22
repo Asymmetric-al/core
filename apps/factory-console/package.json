@@ -7,10 +7,11 @@
     "dev": "next dev --hostname 127.0.0.1 --port 3092",
     "build": "next build --webpack",
     "start": "next start --hostname 127.0.0.1 --port 3092",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "lint": "node ../../tooling/eslint-config/lint.mjs src tests next.config.ts playwright.config.ts vitest.config.ts",
     "test": "vitest run --config vitest.config.ts",
-    "test:e2e": "playwright test --config playwright.config.ts"
+    "test:e2e": "playwright test --config playwright.config.ts",
+    "lint:query": "node ../../node_modules/eslint/bin/eslint.js --config ../../tooling/quality/eslint-query.config.mjs --no-inline-config --exit-on-fatal-error --max-warnings 0 \"**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@asym/ui": "workspace:*",
@@ -31,7 +32,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "tailwindcss": "4.3.3",
-    "typescript": "7.0.2",
+    "typescript": "7.1.0-beta",
     "vitest": "5.0.5"
   }
 }

@@ -1,0 +1,8 @@
+export class Counter {
+  count = 0;
+
+  bind() {
+    const self = this;
+    return () => self.count;
+  }
+}

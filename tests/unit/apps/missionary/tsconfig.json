@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../../../../apps/missionary/tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "incremental": false
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": []
+}

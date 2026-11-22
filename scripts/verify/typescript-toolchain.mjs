@@ -4,13 +4,12 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
-const exactVersion = /^\d+\.\d+\.\d+$/;
+const nativeVersion = "7.1.0-beta";
 
 export function validateCompilerToolchain(snapshot) {
   const { api, native, parser, workspaces } = snapshot;
   if (
-    !exactVersion.test(api.declared) ||
-    !api.declared.startsWith("6.") ||
+    api.declared !== "6.0.3" ||
     api.installed !== api.declared ||
     !api.hasCompilerApi ||
     !api.hasEditorSdk
@@ -20,9 +19,8 @@ export function validateCompilerToolchain(snapshot) {
     );
   }
   if (
-    !exactVersion.test(native.declared) ||
-    !native.declared.startsWith("7.") ||
-    native.installed !== native.declared ||
+    native.alias !== `npm:typescript@${nativeVersion}` ||
+    native.installed !== nativeVersion ||
     !native.rootCommandMatches
   ) {
     throw new Error(
@@ -38,8 +36,8 @@ export function validateCompilerToolchain(snapshot) {
     throw new Error("No product compiler workspaces found");
   for (const workspace of workspaces) {
     if (
-      workspace.declared !== native.declared ||
-      workspace.installed !== native.declared
+      workspace.declared !== nativeVersion ||
+      workspace.installed !== nativeVersion
     ) {
       throw new Error(
         `${workspace.path} must use the pinned TypeScript 7 product compiler`,
@@ -167,7 +165,7 @@ export function verifyCompilerToolchain(root = repoRoot) {
     const manifest = readJson(file);
     const declared =
       manifest.devDependencies?.typescript ?? manifest.dependencies?.typescript;
-    if (!declared) return [];
+    if (!declared && !manifest.scripts?.typecheck) return [];
     const workspaceRequire = createRequire(file);
     return [
       {
@@ -194,10 +192,7 @@ export function verifyCompilerToolchain(root = repoRoot) {
       ),
     },
     native: {
-      declared: rootPackage.devDependencies["@typescript/native"]?.replace(
-        /^npm:typescript@/,
-        "",
-      ),
+      alias: rootPackage.devDependencies["@typescript/native"],
       installed: nativePackage.version,
       rootCommandMatches:
         resolveRootCompilerCommand(root) ===

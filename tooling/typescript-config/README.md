@@ -6,6 +6,8 @@ This package provides shared TypeScript config presets for the monorepo.
 
 ## Configs
 
+Use `ES2023.Intl` in every explicit `lib` list, including workspace overrides. It supplies `Intl.StringNumericLiteral` without raising `target` or requiring the DOM. Native `7.1.0-beta` checks these programs; the root `typescript@6.0.3` remains the classic tooling API.
+
 - `base.json`
   - Monorepo strict baseline.
   - Enforces `strict`, `verbatimModuleSyntax`, and `noUncheckedIndexedAccess`.

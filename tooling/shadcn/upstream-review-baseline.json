@@ -1925,7 +1925,7 @@
     },
     {
       "path": "packages/ui/components/primitives/motion-preset.tsx",
-      "localSha256": "4d76cb1efb99c24730cacd3ef3b1841768a0226aa5cda4707f91eb0cfb065f56",
+      "localSha256": "b2a2a83a79282d7c23d25b1a47a60ca22826554210cb32587bb2cc4db649aff1",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": [
         "packages/ui/components/primitives/motion-preset.tsx",
@@ -1952,7 +1952,7 @@
     },
     {
       "path": "packages/ui/components/primitives/ripple-button.tsx",
-      "localSha256": "54a206d94e7f40cb94c74e438bda85d8f8d815b16c49a1bdd95ca379458b4726",
+      "localSha256": "b58904319ec21f2fdd9ce8dc19075668e1086befdf8b2c8e213e614e682ee827",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": [
         "packages/ui/components/primitives/ripple-button.tsx",
@@ -2213,7 +2213,7 @@
     },
     {
       "path": "packages/ui/components/primitives/motion-preset.tsx",
-      "sha256": "4d76cb1efb99c24730cacd3ef3b1841768a0226aa5cda4707f91eb0cfb065f56"
+      "sha256": "b2a2a83a79282d7c23d25b1a47a60ca22826554210cb32587bb2cc4db649aff1"
     },
     {
       "path": "packages/ui/components/primitives/page-shell.tsx",
@@ -2225,7 +2225,7 @@
     },
     {
       "path": "packages/ui/components/primitives/ripple-button.tsx",
-      "sha256": "54a206d94e7f40cb94c74e438bda85d8f8d815b16c49a1bdd95ca379458b4726"
+      "sha256": "b58904319ec21f2fdd9ce8dc19075668e1086befdf8b2c8e213e614e682ee827"
     },
     {
       "path": "packages/ui/components/primitives/tanstack-form.tsx",
@@ -2701,7 +2701,7 @@
     },
     {
       "path": "tests/unit/scripts/shadcn-upstream-review.test.ts",
-      "sha256": "c73d2ab996e37564b75e9b76cbabf48254a5da195f326300d3ab609ffa1f066f"
+      "sha256": "7a0541ddd557ef24849ec5593d183ac7a06277b92a6f5b45ec6a34e3abb7a1dd"
     }
   ],
   "sourceMappings": [

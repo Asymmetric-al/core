@@ -1,0 +1,10 @@
+import { createClient } from "@supabase/supabase-js";
+import type { ColumnDef } from "@tanstack/react-table";
+
+export { m } from "./motion";
+
+export type Column = ColumnDef<{ id: string }>;
+
+export const connect = createClient;
+
+export const loadFormat = () => import("@asym/lib/format");

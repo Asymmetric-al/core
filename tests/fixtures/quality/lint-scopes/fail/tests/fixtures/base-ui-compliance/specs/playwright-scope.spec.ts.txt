@@ -1,0 +1,6 @@
+import { expect, test } from "@playwright/test";
+
+test("shows the title", async ({ page }) => {
+  await page.waitForTimeout(100);
+  await expect(page).toHaveTitle("Core");
+});

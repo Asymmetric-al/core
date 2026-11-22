@@ -28,7 +28,6 @@
  *   installation token). Anything else is 404.
  */
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import {
   chmodSync,
   existsSync,
@@ -62,8 +61,6 @@ export const SERVER_URL = "https://github.com";
 export const FAKE_TOKEN = "ghs_FAKE2221acceptanceTOKENnotreal000000";
 
 export const text = (file: string) => readFileSync(file, "utf8");
-export const sha256 = (value: string) =>
-  createHash("sha256").update(value).digest("hex");
 export const ciDoc = () => W.parseWorkflowSource(text(CI));
 export const ciJobs = () => W.workflowJobs(ciDoc(), CI);
 
