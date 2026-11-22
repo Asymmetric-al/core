@@ -6,7 +6,7 @@
 // exists. Values are never printed or kept.
 //
 //   bun run verify:runtime-connection-strings
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,6 +18,78 @@ import {
 
 const DEFAULT_SCOPE = "asymmetric-al";
 const MAX_SHARED_ENV_PAGES = 100;
+
+class VercelCliError extends Error {
+  constructor({ status, signal, code }) {
+    super("Vercel CLI command failed.");
+    this.status = status;
+    this.signal = signal;
+    this.code = code;
+  }
+}
+
+function defaultRunVercel(command, args) {
+  const result = spawnSync(command, args, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    env: { ...process.env, MSYS_NO_PATHCONV: "1" },
+    // The Vercel CLI is a .cmd shim on Windows; arguments here are fixed.
+    shell: process.platform === "win32",
+  });
+  if (result.error) {
+    throw new VercelCliError({
+      status: null,
+      signal: null,
+      code: result.error.code,
+    });
+  }
+  if (result.status !== 0) {
+    throw new VercelCliError({
+      status: result.status,
+      signal: result.signal,
+      code: null,
+    });
+  }
+  return result.stdout ?? "";
+}
+
+function invokeVercelApi({ run, args, targetLabel }) {
+  try {
+    return run("vercel", args);
+  } catch (error) {
+    const status =
+      typeof error?.status === "number"
+        ? `exit code ${error.status}`
+        : error?.signal
+          ? `signal ${error.signal}`
+          : error?.code
+            ? `error ${error.code}`
+            : "unknown exit status";
+    throw new Error(
+      `Vercel CLI failed while reading ${targetLabel} (${status}); command output withheld.`,
+    );
+  }
+}
+
+export function projectEnvMetadata(env) {
+  return {
+    id: typeof env?.id === "string" ? env.id : undefined,
+    key: typeof env?.key === "string" ? env.key : undefined,
+    type: typeof env?.type === "string" ? env.type : undefined,
+    target: Array.isArray(env?.target)
+      ? env.target.filter((target) => typeof target === "string" && target)
+      : [],
+    customEnvironmentIds: Array.isArray(env?.customEnvironmentIds)
+      ? env.customEnvironmentIds.filter((id) => typeof id === "string" && id)
+      : [],
+    applyToAllCustomEnvironments: env?.applyToAllCustomEnvironments === true,
+    projectId: Array.isArray(env?.projectId)
+      ? env.projectId.filter((id) => typeof id === "string" && id)
+      : typeof env?.projectId === "string" && env.projectId
+        ? [env.projectId]
+        : [],
+  };
+}
 
 function environmentsOf(env) {
   const names = [...(Array.isArray(env?.target) ? env.target : [])];
@@ -117,7 +189,11 @@ function readSharedRuntimeConnectionStrings({ scope, run }) {
       cursor === null
         ? "/v1/env"
         : `/v1/env?until=${encodeURIComponent(String(cursor))}`;
-    const raw = run("vercel", ["api", endpoint, "--scope", scope, "--raw"]);
+    const raw = invokeVercelApi({
+      run,
+      args: ["api", endpoint, "--scope", scope, "--raw"],
+      targetLabel: `shared variables for ${scope}`,
+    });
     let listing;
     try {
       listing = JSON.parse(raw);
@@ -132,7 +208,9 @@ function readSharedRuntimeConnectionStrings({ scope, run }) {
     if (!page) {
       throw new Error(`Vercel returned no shared variable list for ${scope}.`);
     }
-    allEnvs.push(...page);
+    for (const entry of page) {
+      allEnvs.push(projectEnvMetadata(entry));
+    }
     const next = listing?.pagination?.next;
     if (next === null || next === undefined || next === "") {
       break;
@@ -163,23 +241,20 @@ function readSharedRuntimeConnectionStrings({ scope, run }) {
 
 export function readRuntimeConnectionStrings({
   scope = DEFAULT_SCOPE,
-  run = (command, args) =>
-    execFileSync(command, args, {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-      env: { ...process.env, MSYS_NO_PATHCONV: "1" },
-      // The Vercel CLI is a .cmd shim on Windows; arguments here are fixed.
-      shell: process.platform === "win32",
-    }),
+  run = defaultRunVercel,
 }) {
   const projectFindings = PROJECTS.flatMap((project) => {
-    const raw = run("vercel", [
-      "api",
-      `/v10/projects/${project.project}/env`,
-      "--scope",
-      scope,
-      "--raw",
-    ]);
+    const raw = invokeVercelApi({
+      run,
+      args: [
+        "api",
+        `/v10/projects/${project.project}/env`,
+        "--scope",
+        scope,
+        "--raw",
+      ],
+      targetLabel: `variables for ${project.project}`,
+    });
     let listing;
     try {
       listing = JSON.parse(raw);
@@ -188,7 +263,13 @@ export function readRuntimeConnectionStrings({
         `Vercel returned no variable list for ${project.project}.`,
       );
     }
-    return findRuntimeConnectionStrings({ project: project.project, listing });
+    const projected = Array.isArray(listing?.envs)
+      ? listing.envs.map(projectEnvMetadata)
+      : [];
+    return findRuntimeConnectionStrings({
+      project: project.project,
+      listing: { envs: projected },
+    });
   });
   const sharedFindings = readSharedRuntimeConnectionStrings({ scope, run });
   return [...projectFindings, ...sharedFindings];

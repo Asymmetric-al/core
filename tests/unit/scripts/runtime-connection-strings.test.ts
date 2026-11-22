@@ -1,8 +1,14 @@
+import { spawnSync } from "node:child_process";
+import { chmodSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
   findRuntimeConnectionStrings,
   formatRuntimeConnectionStrings,
+  projectEnvMetadata,
   readRuntimeConnectionStrings,
 } from "../../../scripts/verify/runtime-connection-strings.mjs";
 import { EXPECTED_PROJECTS } from "../../../scripts/verify/vercel-build-controls.mjs";
@@ -297,5 +303,203 @@ describe("runtime connection-string check (WP1 exit)", () => {
         run: unboundedRun,
       }),
     ).toThrow(/page limit|exceeded/i);
+  });
+
+  it("drops value and decrypted fields from parsed pages and withholds CLI stdout/stderr on failure", () => {
+    const adminId = EXPECTED_PROJECTS.find(
+      (project) => project.key === "admin",
+    )!.projectId;
+    const rawValueMarker = "SECRET_RAW_VALUE_9f8e7d";
+    const decryptedMarker = "SECRET_DECRYPTED_VALUE_6c5b4a";
+
+    const projected = projectEnvMetadata({
+      id: "env_shared_1",
+      key: "SUPABASE_DB_URL",
+      type: "sensitive",
+      target: ["production"],
+      customEnvironmentIds: ["ce_1"],
+      projectId: [adminId],
+      value: rawValueMarker,
+      decrypted: decryptedMarker,
+      comment: "extra-field",
+    });
+    expect(projected).toEqual({
+      id: "env_shared_1",
+      key: "SUPABASE_DB_URL",
+      type: "sensitive",
+      target: ["production"],
+      customEnvironmentIds: ["ce_1"],
+      applyToAllCustomEnvironments: false,
+      projectId: [adminId],
+    });
+    expect("value" in projected).toBe(false);
+    expect("decrypted" in projected).toBe(false);
+
+    const runWithSecrets = vi.fn((_command: string, args: string[]) => {
+      if (args[1] === "/v1/env") {
+        return JSON.stringify({
+          data: [
+            {
+              id: "env_shared_1",
+              key: "SUPABASE_DB_URL",
+              type: "sensitive",
+              target: ["production"],
+              customEnvironmentIds: [],
+              projectId: [adminId],
+              value: rawValueMarker,
+              decrypted: decryptedMarker,
+            },
+            {
+              id: "env_shared_2",
+              key: "SAFE_KEY",
+              type: "encrypted",
+              target: ["production"],
+              customEnvironmentIds: [],
+              projectId: [adminId],
+              value: `${rawValueMarker}_safe`,
+              decrypted: `${decryptedMarker}_safe`,
+            },
+          ],
+          pagination: { count: 2, next: null, prev: null },
+        });
+      }
+      return JSON.stringify({
+        envs: [
+          {
+            id: "env_proj_1",
+            key: "POSTGRES_URL",
+            type: "encrypted",
+            target: ["preview"],
+            customEnvironmentIds: [],
+            value: rawValueMarker,
+            decrypted: decryptedMarker,
+          },
+        ],
+      });
+    });
+
+    const found = readRuntimeConnectionStrings({
+      scope: "asymmetric-al",
+      run: runWithSecrets,
+    });
+    const serialized = JSON.stringify(found);
+    const report = formatRuntimeConnectionStrings(found);
+    expect(serialized).not.toContain(rawValueMarker);
+    expect(serialized).not.toContain(decryptedMarker);
+    expect(report).not.toContain(rawValueMarker);
+    expect(report).not.toContain(decryptedMarker);
+
+    const runWithSecretsThenFail = vi.fn((_command: string, args: string[]) => {
+      if (args[1] === "/v1/env") {
+        return JSON.stringify({
+          data: [
+            {
+              id: "env_shared_page1",
+              key: "SUPABASE_DB_URL",
+              type: "sensitive",
+              target: ["production"],
+              projectId: [adminId],
+              value: rawValueMarker,
+              decrypted: decryptedMarker,
+            },
+          ],
+          pagination: { count: 1, next: 1700000000000, prev: null },
+        });
+      }
+      if (args[1] === "/v1/env?until=1700000000000") {
+        return "not-json";
+      }
+      return JSON.stringify({ envs: [] });
+    });
+
+    let pageError: unknown;
+    try {
+      readRuntimeConnectionStrings({
+        scope: "asymmetric-al",
+        run: runWithSecretsThenFail,
+      });
+    } catch (error) {
+      pageError = error;
+    }
+    expect(pageError).toBeInstanceOf(Error);
+    expect(String(pageError)).not.toContain(rawValueMarker);
+    expect(String(pageError)).not.toContain(decryptedMarker);
+
+    const stderrMarker = "STDERR_SECRET_TOKEN_MARKER_123";
+    const stdoutMarker = "STDOUT_SECRET_BODY_MARKER_456";
+    const failingRun = vi.fn(() => {
+      const error = new Error(
+        `Command failed: vercel api /v10/projects/admin/env\n${stderrMarker}`,
+      ) as Error & { status?: number; stderr?: string; stdout?: string };
+      error.status = 2;
+      error.stderr = stderrMarker;
+      error.stdout = stdoutMarker;
+      throw error;
+    });
+
+    let cliError: unknown;
+    try {
+      readRuntimeConnectionStrings({
+        scope: "asymmetric-al",
+        run: failingRun,
+      });
+    } catch (error) {
+      cliError = error;
+    }
+    expect(cliError).toBeInstanceOf(Error);
+    const cliErrorMessage = (cliError as Error).message;
+    expect(cliErrorMessage).toContain("exit code 2");
+    expect(cliErrorMessage).not.toContain(stderrMarker);
+    expect(cliErrorMessage).not.toContain(stdoutMarker);
+    expect(JSON.stringify(cliError)).not.toContain(stderrMarker);
+    expect(JSON.stringify(cliError)).not.toContain(stdoutMarker);
+
+    const dir = mkdtempSync(path.join(os.tmpdir(), "runtime-conn-cli-"));
+    try {
+      const fakeVercelScript = path.join(dir, "fake-vercel.mjs");
+      writeFileSync(
+        fakeVercelScript,
+        `process.stdout.write(${JSON.stringify(stdoutMarker)} + "\\n");
+process.stderr.write(${JSON.stringify(stderrMarker)} + "\\n");
+process.exit(7);
+`,
+        "utf8",
+      );
+      if (process.platform === "win32") {
+        writeFileSync(
+          path.join(dir, "vercel.cmd"),
+          `@echo off\r\n"${process.execPath}" "${fakeVercelScript}" %*\r\n`,
+          "utf8",
+        );
+      } else {
+        const fakeVercel = path.join(dir, "vercel");
+        writeFileSync(
+          fakeVercel,
+          `#!/usr/bin/env sh\nexec "${process.execPath}" "${fakeVercelScript}" "$@"\n`,
+          "utf8",
+        );
+        chmodSync(fakeVercel, 0o755);
+      }
+
+      const result = spawnSync(
+        process.execPath,
+        [path.resolve("scripts/verify/runtime-connection-strings.mjs")],
+        {
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            PATH: `${dir}${path.delimiter}${process.env.PATH ?? ""}`,
+          },
+        },
+      );
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("exit code 7");
+      expect(result.stderr).not.toContain(stderrMarker);
+      expect(result.stderr).not.toContain(stdoutMarker);
+      expect(result.stdout).not.toContain(stderrMarker);
+      expect(result.stdout).not.toContain(stdoutMarker);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
