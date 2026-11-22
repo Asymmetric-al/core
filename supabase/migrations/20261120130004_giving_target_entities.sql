@@ -18,6 +18,15 @@
 -- preflight, so no name or target changes between the test and the copy; ALTER
 -- TABLE upgrades locks to ACCESS EXCLUSIVE and holds them through COMMIT,
 -- including backfill, index builds and validation of all ten references.
+-- Deploy order (plan 7.4): dropping donations_missionary_id_fkey and leaving
+-- only the composite (tenant_id, missionary_id) key breaks any running app
+-- whose DONATION_WITH_PARTIES_SELECT embeds `missionaries!missionary_id`. Safe
+-- for a running release that carries the unhinted embed (expand PR #TBD,
+-- `fix/AL-2674-health-probe-embed-expand`, released and promoted on all three
+-- apps first by the coordinator) and NOT for an older one, whose GET donations,
+-- donor GraphQL donation queries and gift POST read-backs fail from this
+-- migration's COMMIT (and stay down if the release stops after db push). A
+-- release that carries this part must build all three apps.
 -- Forward only: dropping the locks could reassign historical money. Rebuild
 -- a disposable database from source, or repair forward preserving history.
 BEGIN;
