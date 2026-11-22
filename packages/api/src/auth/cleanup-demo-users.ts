@@ -48,7 +48,12 @@ async function hasGivingHistory(supabase: AdminClient, userId: string) {
   ]);
   for (const table of MONEY_TABLES)
     if (await named(table, "missionary_id", missionaryIds)) return true;
-  for (const table of ["donations", "donor_pledges"])
+  for (const table of [
+    "donations",
+    "donor_pledges",
+    "staged_gifts",
+    "donation_saga_outbox",
+  ])
     if (await named(table, "donor_id", donorIds)) return true;
   return false;
 }

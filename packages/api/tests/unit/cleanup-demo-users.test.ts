@@ -299,6 +299,66 @@ describe("api/auth/cleanup-demo-users — accounts with giving history", () => {
     expect(deleteUser).not.toHaveBeenCalled();
   });
 
+  // Round O (CodeRabbit #1): staged_gifts and donation_saga_outbox also name
+  // donor_id; accounts whose donor row appears only there are retained, while
+  // references belonging to another donor do not block deletion.
+  it("keeps an account whose donor row only staged_gifts names, and never deletes it", async () => {
+    const DONOR = "55555555-5555-4555-8555-555555555555";
+    const { deleteUser } = mockAccounts({
+      accounts: [PLAIN],
+      donors: { [PLAIN]: DONOR },
+      named: [{ table: "staged_gifts", column: "donor_id", id: DONOR }],
+    });
+    const res = await route.POST(req({ authorization: "Bearer s3cret" }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      success: true,
+      deletedCount: 0,
+      retained: [{ id: PLAIN, reason: "giving history" }],
+    });
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
+
+  it("keeps an account whose donor row only donation_saga_outbox names, and never deletes it", async () => {
+    const DONOR = "66666666-6666-4666-8666-666666666666";
+    const { deleteUser } = mockAccounts({
+      accounts: [PLAIN],
+      donors: { [PLAIN]: DONOR },
+      named: [{ table: "donation_saga_outbox", column: "donor_id", id: DONOR }],
+    });
+    const res = await route.POST(req({ authorization: "Bearer s3cret" }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      success: true,
+      deletedCount: 0,
+      retained: [{ id: PLAIN, reason: "giving history" }],
+    });
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
+
+  it("deletes an account when staged_gifts and donation_saga_outbox name only another donor", async () => {
+    const DONOR = "77777777-7777-4777-8777-777777777777";
+    const OTHER_DONOR = "88888888-8888-4888-8888-888888888888";
+    const { deleteUser } = mockAccounts({
+      accounts: [PLAIN],
+      donors: { [PLAIN]: DONOR },
+      named: [
+        { table: "staged_gifts", column: "donor_id", id: OTHER_DONOR },
+        { table: "donation_saga_outbox", column: "donor_id", id: OTHER_DONOR },
+      ],
+    });
+    const res = await route.POST(req({ authorization: "Bearer s3cret" }));
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body).toMatchObject({
+      success: true,
+      deletedCount: 1,
+      deletedIds: [PLAIN],
+    });
+    expect(body.retained).toBeUndefined();
+    expect(deleteUser).toHaveBeenCalledWith(PLAIN);
+  });
+
   it("fails the run when an account without giving history could not be deleted", async () => {
     mockAdmin({ failPlain: true });
     const res = await route.POST(req({ authorization: "Bearer s3cret" }));
