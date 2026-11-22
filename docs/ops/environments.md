@@ -6,17 +6,17 @@ This document is the canonical reference for how environments are defined and op
 
 ## 2. Four-Environment Matrix
 
-| Property      | Local                                | Preview                                                               | Development                                                                                                  | Production                                                                                           |
-| ------------- | ------------------------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| Trigger       | `bun run dev:*`                      | Disabled by default                                                   | Explicit checkpoint; merges to `develop` do not deploy                                                       | `bun run release:production` to `production`                                                         |
-| URL           | `localhost:3000`                     | `*.vercel.app`                                                        | `development-admin.asymmetric.al`, `development-donor.asymmetric.al`, `development-missionary.asymmetric.al` | `*.asymmetric.al`                                                                                    |
-| Supabase      | `bun run supabase -- start` (Docker) | Development; a migration PR's preview path is not set up (note below) | Dedicated development project                                                                                | Disposable preview project until the first release after switch-on step 6 (step 7); then development |
-| Stripe        | Test-mode                            | Test-mode                                                             | Test-mode                                                                                                    | Live-mode                                                                                            |
-| Sentry        | Optional (DSN may be unset)          | Optional                                                              | Configured                                                                                                   | Configured                                                                                           |
-| Safe to break | Yes - fully disposable               | No blanket reset - shares development; no migration previews (below)  | Mostly - recoverable                                                                                         | **No - real donors, real money**                                                                     |
-| Seed data     | Local seed script                    | Shared test data                                                      | Demo data (periodically refreshed)                                                                           | Real data                                                                                            |
+| Property      | Local                                | Preview                                                               | Development                                                                                                  | Production                                           |
+| ------------- | ------------------------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| Trigger       | `bun run dev:*`                      | Disabled by default                                                   | Explicit checkpoint; merges to `develop` do not deploy                                                       | `bun run release:production` to `production`         |
+| URL           | `localhost:3000`                     | `*.vercel.app`                                                        | `development-admin.asymmetric.al`, `development-donor.asymmetric.al`, `development-missionary.asymmetric.al` | `*.asymmetric.al`                                    |
+| Supabase      | `bun run supabase -- start` (Docker) | Development; a migration PR's preview path is not set up (note below) | Development project; shared with ordinary previews and, until WP11, Production                               | Rebuilt development project until WP11; no live data |
+| Stripe        | Test-mode                            | Test-mode                                                             | Test-mode                                                                                                    | Test mode until live cutover                         |
+| Sentry        | Optional (DSN may be unset)          | Optional                                                              | Configured                                                                                                   | Configured                                           |
+| Safe to break | Yes - fully disposable               | No blanket reset - shares development; no migration previews (below)  | No blanket reset: until WP11 the production domains read this database                                       | No: public production domains serve this build       |
+| Seed data     | Local seed script                    | Shared test data                                                      | Demo data (periodically refreshed)                                                                           | Disposable development demo data until WP11          |
 
-Production and the two hosted projects, as section 5.3 says: until the first release after [switch-on step 6](./release-job.md#switching-it-on), Production reads the disposable preview project, which a migration PR's preview rebuild would reset if that path were enabled. Step 6 changes the Vercel variables only; they reach users with the next deployment, which is step 7. From then on Production reads the development project, which ordinary previews write to. Neither holds live data before WP11 (D-37 and D-44 in the [implementation record](../audits/core-crm-cms-database-implementation-record.md)). There is no automatic Git preview: Git deployments are off (`apps/*/vercel.json`). An eligible pull request without a migration can get an ordinary preview, against development, through the label-gated QA workflow (section 4). A migration pull request gets none today, because neither of its path's two gates exists (D-38). The gates are separate: the rebuild of the disposable project needs only the GitHub environment `release-preview` with its release secrets, and runs before any deployment; the preview deployments that follow need a paid `preview-database` custom environment in Vercel as well. So creating `release-preview` alone would let a labelled migration pull request reset the project that Production reads today.
+Since the first [production release](./release-job.md#switching-it-on) on 22 November 2026, Production and ordinary QA previews use the rebuilt development project. Keep live data out until WP11. There are no automatic Git previews. An eligible pull request without migrations can get an ordinary preview through the label-gated QA workflow. A migration pull request gets none: its separate rebuild needs the GitHub environment `release-preview`, and its later deployments also need the Vercel custom environment `preview-database`. Neither is configured (section 4).
 
 ## 3. Local Development Setup
 
@@ -37,7 +37,7 @@ All other `.env.example` entries (Stripe, Sentry, Cloudinary, Email, PDF, etc.) 
 
 ## 4. Preview Environment Setup
 
-A pull request does not get a Preview deployment automatically: Git deployments are off (`apps/*/vercel.json`). For an eligible pull request without a migration, the label-gated QA smoke workflow (label `qa:smoke`) can deploy `admin`, `donor` and `missionary` previews that read the development project. A pull request that carries a migration gets no such deployment today. The workflow's separate `preview-database` job would rebuild the disposable `preview` project, `btewedpsxwsjczvmegby` (the production-named project until WP11; [release job](./release-job.md), step 8), as soon as the GitHub environment `release-preview` existed with its release secrets: the rebuild is its first hosted step and does not look at Vercel. Only its later steps, the preview deployments that read that project, need a `preview-database` custom Vercel environment. Neither exists: a second custom environment costs money, and it was not created (D-38). Do not create `release-preview` on its own while Production reads that project. Keep both projects to test-only data.
+A pull request does not get a Preview deployment automatically: Git deployments are off (`apps/*/vercel.json`). For an eligible pull request without a migration, the label-gated QA smoke workflow (label `qa:smoke`) can deploy `admin`, `donor` and `missionary` previews that read the development project. A pull request that carries a migration gets no such deployment today. The workflow's separate `preview-database` job would rebuild the disposable `preview` project, `btewedpsxwsjczvmegby` (the production-named project until WP11; [release job](./release-job.md), step 8), as soon as the GitHub environment `release-preview` existed with its release secrets: the rebuild is its first hosted step and does not look at Vercel. Only its later steps, the preview deployments that read that project, need a `preview-database` custom Vercel environment. Neither exists: a second custom environment costs money, and it was not created (D-38). Creating `release-preview` alone would allow the rebuild, not a preview deployment; it is not needed for production releases. Keep both projects to test-only data.
 
 - Ordinary Vercel Preview scope: use the development project, `https://pnmlrbgjiqzzsthsoikm.supabase.co`, and its matching keys.
 - Migration PRs only, once step 8 is enabled: the `preview-database` job would reset the disposable project (for which the GitHub environment `release-preview` is enough), and its preview deploys would use the separate `preview-database` custom Vercel environment and that project's URL and keys, not ordinary Preview scope. Until then a migration PR gets no preview.
@@ -107,7 +107,7 @@ The enable command captures a sanitized `/tmp/asym-vercel-affected-projects-*`
 snapshot before mutating Vercel, patches only
 `enableAffectedProjectsDeployments: true`, then re-reads the three projects.
 This affected-project operation does not change branch gates, build queue
-behavior, or prebuilt deployment flow; those controls are adjacent deployment
+behavior, or deployment source; those controls are adjacent deployment
 discipline settings and remain outside this phase.
 
 Each Vercel app also owns its install, build, and ignored-build commands in
@@ -165,13 +165,7 @@ Each app also keeps source-controlled Git deployment branch gates in
 The local release guard blocks accidental direct pushes to `production`; use
 `bun run release:production` for production.
 
-Reserve controls if spend still needs tightening:
-
-- Move to manual release-only deployment with `vercel build` and
-  `vercel deploy --prebuilt --prod` after CI passes.
-- Treat `vercel promote` as a production-domain promotion workflow, not as the
-  first-line Build CPU reducer; current production discipline stays Git-based.
-- Track deploy-related usage with `vercel usage` and the Vercel Usage dashboard.
+Track deploy-related spend with `vercel usage` and the Vercel Usage dashboard. The Release workflow asks Vercel to build the exact Git source for each selected project, checks the staged deployment, then promotes the same id without rebuilding. Vercel’s automatic Git deployments stay off.
 
 Official references:
 
@@ -186,7 +180,7 @@ Official references:
 
 ## 5. Development Environment Setup (`develop`)
 
-Development is branch-bound to `develop` using Vercel Custom Environments. Its Vercel environment is separate from Preview and Production; its Supabase project is not: ordinary previews write to it, and Production reads it from the first release after switch-on step 6.
+Development uses Vercel’s `core-development` custom environment and branch `develop`. It is separate from Preview and Production in Vercel, but ordinary QA previews and Production use the same development Supabase project until WP11. A merge does not refresh the development deployments.
 
 ### 5.1 Canonical development URLs
 
@@ -234,13 +228,13 @@ Access policy: do not recover or share existing passwords. Inventory
 admin-capable Auth users in Supabase and use Supabase invite/reset-password
 flows for development access.
 
-### 5.3 Vercel `development` custom environment (all 3 projects)
+### 5.3 Vercel `core-development` custom environment (all 3 projects)
 
 For each Vercel project (`admin`, `donor`, `missionary`):
 
-1. Create custom environment `development`.
-2. Assign branch `develop` to `development`.
-3. Set variables in **development scope only** (not Preview/Production):
+1. Select the custom environment `core-development`, not Vercel’s built-in Development scope.
+2. Assign branch `develop` to `core-development`.
+3. Set the following variables in that custom environment:
 
 | Variable                             |
 | ------------------------------------ |
@@ -251,6 +245,9 @@ For each Vercel project (`admin`, `donor`, `missionary`):
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` |
 | `STRIPE_WEBHOOK_SECRET`              |
 | `NEXT_PUBLIC_APP_URL`                |
+| `NEXT_PUBLIC_SITE_URL`               |
+| `INNGEST_EVENT_KEY`                  |
+| `INNGEST_SIGNING_KEY`                |
 | `SENTRY_DSN`                         |
 | `NEXT_PUBLIC_SENTRY_DSN`             |
 | `SENTRY_AUTH_TOKEN`                  |
@@ -265,36 +262,37 @@ For each Vercel project (`admin`, `donor`, `missionary`):
 | `CLOUDINARY_API_SECRET`              |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`  |
 
+Set `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_SITE_URL` to the HTTPS development origin of the project (section 5.1). On admin and donor set `CMS_BASE_URL` to `https://development-admin.asymmetric.al`. The donor server’s CMS client sends no Vercel bypass, so it cannot read public CMS pages from the protected admin origin on development. On admin set `DONOR_APP_URL` and `NEXT_PUBLIC_DONOR_URL` to `https://development-donor.asymmetric.al`. Use the Inngest Development event and signing keys on all three projects in `core-development`; do not copy the Production pair here.
+
 Supabase-specific development values must resolve to project ref
 `pnmlrbgjiqzzsthsoikm`:
 
-| Variable                        | Admin | Donor | Missionary | Notes                                                    |
-| ------------------------------- | ----- | ----- | ---------- | -------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Yes   | Yes   | Yes        | `https://pnmlrbgjiqzzsthsoikm.supabase.co`               |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes   | Yes   | Yes        | Client-safe key from the development Supabase project    |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Yes   | Yes   | Yes        | Server-only key from the development Supabase project    |
-| `SUPABASE_DB_URL`               | Yes   | Yes   | Yes        | Supavisor session-pooler URL for development Postgres    |
-| `PAYLOAD_DATABASE_URI`          | Yes   | No    | No         | Admin CMS database URL; same development Postgres target |
+| Variable                        | Admin | Donor | Missionary | Notes                                                                         |
+| ------------------------------- | ----- | ----- | ---------- | ----------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes   | Yes   | Yes        | `https://pnmlrbgjiqzzsthsoikm.supabase.co`                                    |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes   | Yes   | Yes        | Client-safe key from the development Supabase project                         |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Yes   | Yes   | Yes        | Server-only key from the development Supabase project                         |
+| `SUPABASE_DB_URL`               | No    | No    | No         | Release-only; remove project and team-shared entries that reach any app.      |
+| `PAYLOAD_DATABASE_URI`          | Yes   | No    | No         | Restricted `cms_runtime` role on the development session pooler; verify-full. |
+| `PAYLOAD_DATABASE_SSL_CA`       | Yes   | No    | No         | Development project CA used to verify the pooler.                             |
 
-Merges to `develop` do not deploy automatically. Development URLs stay on their
-last successful deployment until an explicit checkpoint refreshes them; see
-`docs/ci.md` (Development deployment checkpoints).
+Merges to `develop` do not deploy. To refresh the three domains, follow the [development checkpoint](./release-job.md#switching-it-on): force builds of the exact commit in `core-development`, confirm the deployment ids and aliases, check detailed health and run the hosted smoke. Before a release record the signed-in evidence against the commit actually exercised.
 
 Verify the development Supabase/Vercel map without printing secrets:
 
 ```bash
-bun run verify:vercel-env-inventory -- --environments production,development
+bun run verify:vercel-env-inventory -- --environments production,core-development
 ```
 
 Expected refs:
 
-- Production currently reads `btewedpsxwsjczvmegby`: a migration PR's preview rebuild would reset the very database Production reads, if that path were enabled (step 8 of the release job; today it is not). On 18 November 2026 the owner confirmed that nothing was using production ([implementation record](../audits/core-crm-cms-database-implementation-record.md), D-37; operating limits in D-44). Do not put live data there. With the first release after [switch-on step 6](./release-job.md#switching-it-on) (step 7; step 6 alone changes variables that reach users only with the next deployment), Production moves to development and this overlap ends; the disposable preview project remains the target of the migration PR path, once that path is enabled.
+- Production reads `pnmlrbgjiqzzsthsoikm`, marked disposable, until WP11. The separate migration-preview target is `btewedpsxwsjczvmegby`; that path remains disabled. Neither project is for live data.
 - Development is `pnmlrbgjiqzzsthsoikm`.
 - No active Vercel environment variable should reference `uarazyactrqlxzmeygmr`.
 
 ### 5.4 DNS + domains
 
-Assign these domains to each project's `development` environment and point DNS CNAME records to Vercel:
+Assign these domains to each project's `core-development` environment and point DNS CNAME records to Vercel:
 
 - `development-admin.asymmetric.al` -> `admin`
 - `development-donor.asymmetric.al` -> `donor`
@@ -328,7 +326,7 @@ Preferred protected-development setup:
 3. Do not add `x-vercel-set-bypass-cookie` to Stripe webhook URLs; Stripe
    needs a one-request server-to-server bypass, not a browser cookie.
 4. Copy the Stripe endpoint signing secret into that app's
-   `STRIPE_WEBHOOK_SECRET` in Vercel `development` scope, then redeploy if either
+   `STRIPE_WEBHOOK_SECRET` in Vercel `core-development` scope, then redeploy if either
    the webhook signing secret or the Vercel bypass secret changed.
 5. Verify without exposing secrets:
 
@@ -356,22 +354,12 @@ that exposure is acceptable.
   commit to `production`, the Vercel Production Branch.
 - The canonical repository has no `main` branch; do not create, sync, merge, or
   deploy one. Deny-only deployment configuration may still mention it.
-- To refresh development parity ahead of QA/demo cycles, realign or merge from
-  `production` into `develop`; development should start from production truth.
-- Inngest development is not integrated yet and remains a future placeholder.
+- Refresh development on the chosen commit; a merge alone leaves the existing aliases in place.
+- All three `core-development` deployments require the Inngest Development pair. Setting the keys does not sync the development app to Inngest; that sync was not observed at the first release. Do not shorten the three recovery schedules on Free: the enforced 50,000-execution monthly cap can stop all functions, including event-driven work (implementation record, D-141, for both ways of counting).
 
 ## 5.7 Production Vercel requirements
 
-After the owner [switches the release job on](./release-job.md#switching-it-on),
-production deploys only through the Release workflow (`.github/workflows/release.yml`),
-which stages, health-checks and promotes each app; custom production domains
-are not auto-assigned; and no application environment holds a Postgres
-connection string (`bun run verify:runtime-connection-strings`). Each of these
-holds only once the matching switch-on step is done. Until then, app-level
-`vercel.json` already disables Git deployments for every branch, `production`
-included (`bun run verify:deployment-discipline` enforces this), so a push to
-`production` that carries it deploys nothing, and its Release run stops at
-preflight.
+The [Release workflow](./release-job.md#switching-it-on) is on. A checked push to `production` starts the job, not a Vercel Git deployment. After its database gates the workflow stages, health-checks and promotes the selected apps. No app may receive a privileged Postgres URL, including through a team-shared variable; admin alone uses a restricted CMS login. Until WP11 all three production domains read rebuilt development. Do not load live donor or payment data.
 
 If the team later migrates Production away from `production`, change the Vercel
 project Production Branch for `admin`, `donor`, and `missionary`, ensure the
@@ -380,31 +368,35 @@ adjust app-level deployment branch gates.
 
 Set these Vercel variables in the **Production** scope before deploying:
 
-| Variable                             | Admin                    | Donor                    | Missionary               | Notes                                                                                 |
-| ------------------------------------ | ------------------------ | ------------------------ | ------------------------ | ------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`           | Yes                      | Yes                      | Yes                      | Production Supabase project URL                                                       |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | Yes                      | Yes                      | Yes                      | Client-safe production key                                                            |
-| `SUPABASE_SERVICE_ROLE_KEY`          | Yes                      | Yes                      | Yes                      | Server-only production key                                                            |
-| `STRIPE_SECRET_KEY`                  | Yes                      | Yes                      | Yes                      | Stripe key; current deployment uses test-mode `sk_test_...` until go-live             |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Yes                      | Yes                      | Yes                      | Stripe publishable key; current deployment uses test-mode `pk_test_...` until go-live |
-| `STRIPE_WEBHOOK_SECRET`              | Yes                      | Yes                      | Yes                      | Signing secret for the app-specific production endpoint                               |
-| `SENTRY_DSN`                         | Yes                      | Yes                      | Yes                      | Required by protected deployment env validation                                       |
-| `NEXT_PUBLIC_SENTRY_DSN`             | Yes                      | Yes                      | Yes                      | Public client DSN when browser reporting is enabled                                   |
-| `SENTRY_AUTH_TOKEN`                  | If uploading source maps | If uploading source maps | If uploading source maps | Build-only token; enables Sentry release creation and source map upload               |
-| `SENTRY_ORG`                         | Optional                 | Optional                 | Optional                 | Build-time Sentry org override; defaults to `asymmetrical-4w`                         |
-| `SENTRY_PROJECT`                     | Optional                 | Optional                 | Optional                 | Build-time Sentry project override; defaults to `javascript-nextjs`                   |
-| `SENTRY_RELEASE`                     | Optional                 | Optional                 | Optional                 | Manual release name override; otherwise the Vercel commit SHA is used                 |
-| `RESEND_API_KEY`                     | Yes                      | Yes                      | Yes                      | Production Resend API key; use `re_...`                                               |
-| `RESEND_WEBHOOK_SECRET`              | Yes                      | Yes                      | Yes                      | Production Resend webhook signing secret                                              |
-| `RESEND_ENCRYPTION_KEY`              | Yes                      | Yes                      | Yes                      | At least 32 characters; protects tenant email secrets                                 |
-| `NEXT_PUBLIC_APP_URL`                | Yes                      | Yes                      | Yes                      | App canonical origin                                                                  |
-| `NEXT_PUBLIC_SITE_URL`               | Yes                      | Yes                      | Yes                      | Same origin as the app unless a split site exists                                     |
-| `NEXT_PUBLIC_MAIN_DOMAIN`            | Yes                      | Yes                      | Yes                      | `asymmetric.al`                                                                       |
-| `PAYLOAD_SECRET`                     | Yes                      | No                       | No                       | Required by admin Web Studio outside local/test                                       |
-| `PAYLOAD_DATABASE_URI`               | Yes                      | No                       | No                       | Prefer Supavisor session pooler for Vercel                                            |
-| `PAYLOAD_DATABASE_POOL_MAX`          | Optional                 | No                       | No                       | Optional Payload Postgres pool override; hosted runtime defaults to `2`               |
-| `NEXT_PUBLIC_DONOR_URL`              | Yes                      | No                       | No                       | `https://donor.asymmetric.al` for Web Studio previews                                 |
-| `DONOR_APP_URL`                      | Yes                      | No                       | No                       | Server-side donor origin for Web Studio previews                                      |
+| Variable                             | Admin                    | Donor                    | Missionary               | Notes                                                                           |
+| ------------------------------------ | ------------------------ | ------------------------ | ------------------------ | ------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`           | Yes                      | Yes                      | Yes                      | Development project until WP11                                                  |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | Yes                      | Yes                      | Yes                      | Client-safe key from that same project                                          |
+| `SUPABASE_SERVICE_ROLE_KEY`          | Yes                      | Yes                      | Yes                      | Server-only key from that same project                                          |
+| `STRIPE_SECRET_KEY`                  | Yes                      | Yes                      | Yes                      | Use test mode pending live cutover; not observable from the public bundle       |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Yes                      | Yes                      | Yes                      | Use test mode; verify the delivered bundle before accepting the release         |
+| `STRIPE_WEBHOOK_SECRET`              | Yes                      | Yes                      | Yes                      | Signing secret for the app-specific production endpoint                         |
+| `SENTRY_DSN`                         | Yes                      | Yes                      | Yes                      | Required by protected deployment env validation                                 |
+| `NEXT_PUBLIC_SENTRY_DSN`             | Yes                      | Yes                      | Yes                      | Public client DSN when browser reporting is enabled                             |
+| `SENTRY_AUTH_TOKEN`                  | If uploading source maps | If uploading source maps | If uploading source maps | Build-only token; enables Sentry release creation and source map upload         |
+| `SENTRY_ORG`                         | Optional                 | Optional                 | Optional                 | Build-time Sentry org override; defaults to `asymmetrical-4w`                   |
+| `SENTRY_PROJECT`                     | Optional                 | Optional                 | Optional                 | Build-time Sentry project override; defaults to `javascript-nextjs`             |
+| `SENTRY_RELEASE`                     | Optional                 | Optional                 | Optional                 | Manual release name override; otherwise the Vercel commit SHA is used           |
+| `RESEND_API_KEY`                     | Yes                      | Yes                      | Yes                      | Production Resend API key; use `re_...`                                         |
+| `RESEND_WEBHOOK_SECRET`              | Yes                      | Yes                      | Yes                      | Production Resend webhook signing secret                                        |
+| `RESEND_ENCRYPTION_KEY`              | Yes                      | Yes                      | Yes                      | At least 32 characters; protects tenant email secrets                           |
+| `NEXT_PUBLIC_APP_URL`                | Yes                      | Yes                      | Yes                      | App canonical origin                                                            |
+| `NEXT_PUBLIC_SITE_URL`               | Yes                      | Yes                      | Yes                      | Same origin as the app unless a split site exists                               |
+| `NEXT_PUBLIC_MAIN_DOMAIN`            | Yes                      | Yes                      | Yes                      | `asymmetric.al`                                                                 |
+| `PAYLOAD_SECRET`                     | Yes                      | No                       | No                       | Required by admin Web Studio outside local/test                                 |
+| `PAYLOAD_DATABASE_URI`               | Yes                      | No                       | No                       | Restricted `cms_runtime` login via the development session pooler; verify-full. |
+| `PAYLOAD_DATABASE_SSL_CA`            | Yes                      | No                       | No                       | Development database CA.                                                        |
+| `CMS_BASE_URL`                       | Yes                      | Yes                      | No                       | Admin origin: `https://admin.asymmetric.al`.                                    |
+| `INNGEST_EVENT_KEY`                  | Yes                      | Yes                      | Yes                      | From Inngest Production; server-side event publishing.                          |
+| `INNGEST_SIGNING_KEY`                | Yes                      | Yes                      | Yes                      | From Inngest Production; verifies signed requests.                              |
+| `PAYLOAD_DATABASE_POOL_MAX`          | Optional                 | No                       | No                       | Optional Payload Postgres pool override; hosted runtime defaults to `2`         |
+| `NEXT_PUBLIC_DONOR_URL`              | Yes                      | No                       | No                       | `https://donor.asymmetric.al` for Web Studio previews                           |
+| `DONOR_APP_URL`                      | Yes                      | No                       | No                       | Server-side donor origin for Web Studio previews                                |
 
 Production Stripe webhook endpoints:
 
@@ -422,13 +414,7 @@ Configure each endpoint in the active Stripe mode for at least these events:
 - `payment_intent.processing`
 - `charge.refunded`
 
-After creating each endpoint, copy its signing secret into that app's
-`STRIPE_WEBHOOK_SECRET` in Vercel Production scope. Once
-[switch-on step 7](./release-job.md#switching-it-on) has run, dispatch
-**Release** with operation `release` and `apps: all` so the changed variables
-reach users, and check that the plan step logged `build` for admin, donor and
-missionary; before step 7, redeploy and promote by hand
-([release job](./release-job.md#switching-it-on), step 3).
+After creating each endpoint, set `STRIPE_WEBHOOK_SECRET` on its app in Vercel Production. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.
 
 Production Resend webhook endpoint:
 
@@ -456,24 +442,16 @@ Verify production readiness without printing secret values:
 bun run verify:vercel-production -- --commit <sha>
 ```
 
-The verifier checks each Vercel project for required Production env names,
-validates prefix/URL/length requirements for values Vercel exposes through
-`vercel env pull` without printing secrets, reports sensitive values that are
-present but unreadable by the CLI, confirms the live Vercel Production Branch is
-not disabled by the app-level `vercel.json`, confirms a READY Production
-deployment for the target commit, and checks `/api/health` on the production
-domain. Phase 11 release-health responses include `observability.surface`,
-`observability.release`, and Supabase probe latency; the verifier blocks when a
-non-`unknown` release-health commit does not match the target commit.
+The verifier inventories Production names, checks readable values, the branch configuration, READY deployments and `/api/health` at the requested commit. At the first release CLI 66.6.0 returned the marker `[sensitive]` for values it could not read. The verifier treated the marker as a value and exited BLOCKED (1), although the three deployments and their health matched. Record its actual result, check both Inngest names separately, and follow the independent checks in [step 7](./release-job.md#switching-it-on); do not dismiss missing names or other failures.
 
 Inventory Vercel environment variable names without values:
 
 ```bash
-bun run verify:vercel-env-inventory
+bun run verify:vercel-env-inventory -- --environments production,preview,development,core-development
 ```
 
 Use this before provider or observability work to confirm which names exist in
-Production, Preview, Development, and the `development` custom environment without
+Production, Preview, Development, and the `core-development` custom environment without
 printing secrets.
 
 After the real provider values exist as GitHub repository secrets, sync them to
@@ -558,12 +536,11 @@ sequenceDiagram
     Develop-->>Vercel: No automatic deploy; explicit checkpoint refreshes development-*.asymmetric.al
     Note over Vercel: Development Supabase project
 
-    PR->>Prod: Merge approved production release to production
-    Dev->>Prod: Or run bun run release:production from a clean release checkout
+    Dev->>Prod: Checked fast-forward push with bun run release:production
     Prod-->>Vercel: No Git deployment (apps/*/vercel.json)
     Prod->>Release: Push starts the Release workflow (release.yml)
     Release->>Vercel: After migrations and gates, stage, health-check and promote each affected app (*.asymmetric.al)
-    Note over Vercel: Disposable preview project until the first release after switch-on step 6 (step 7); then development
+    Note over Vercel: Production reads disposable development demo data until WP11
 
     Note over Prod,Develop: Optional best-effort sync for QA/demos
     Prod->>Develop: Merge/cherry-pick (best effort)
@@ -576,12 +553,7 @@ stages and promotes the apps its plan selects: an app whose own files or a
 shared input (anything under `packages/`, among others) changed since the
 commit its production domain serves, and any app whose live commit is unknown
 or is not an ancestor of the release. An app the plan skips keeps its current
-deployment, with the variables that deployment was built with; once
-[switch-on step 7](./release-job.md#switching-it-on) has run, to make changed
-Vercel variables reach users of every app, dispatch **Release** with operation
-`release` and `apps: all` and check that the plan step logged `build` for
-admin, donor and missionary (before step 7, redeploy and promote by hand;
-[release job](./release-job.md#switching-it-on), step 3).
+deployment and its old variables. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.
 
 ## 7. Playwright `baseURL` Configuration
 
@@ -589,24 +561,24 @@ E2E tests can target different environments using `PLAYWRIGHT_BASE_URL`, configu
 
 ## 8. Credential Rotation Schedule
 
-| Environment | Service            | Frequency                 | How                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ----------- | ------------------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Preview     | Supabase           | Quarterly                 | Rotate development keys in ordinary Preview scope, then redeploy existing previews (a new push or a redeploy of the preview; the Release workflow deploys Production only). No `preview-database` environment exists (section 4). Until switch-on step 6, Production scope holds the disposable project's keys: a rotation before then rotates that project's keys too, updates Production scope, and redeploys and promotes Production by hand (release job, step 3) |
-| Preview     | Stripe             | Quarterly                 | Roll test-mode keys in Stripe dashboard -> update Vercel Preview env vars -> redeploy existing previews                                                                                                                                                                                                                                                                                                                                                               |
-| Preview     | Sentry             | Quarterly                 | Regenerate DSN -> update Vercel Preview env vars -> redeploy existing previews                                                                                                                                                                                                                                                                                                                                                                                        |
-| Development | All services       | Quarterly                 | Rotate in service dashboards -> update Vercel `development` scope env vars -> refresh development deployments at the next checkpoint (section 5.3)                                                                                                                                                                                                                                                                                                                    |
-| Production  | Supabase           | Quarterly + on compromise | Rotate Supabase keys in Vercel Production scope; once switch-on step 7 has run, dispatch **Release** with operation `release` and `apps: all` and check that the plan logged `build` for admin, donor and missionary ([release job](./release-job.md#switching-it-on), step 7); before step 7, redeploy and promote by hand (release job, step 3). Coordinate with team.                                                                                              |
-| Production  | Stripe             | Quarterly + on compromise | Roll live keys -> update Vercel Production env vars -> release Production as in the Production Supabase row (rolling live keys causes brief webhook verification downtime)                                                                                                                                                                                                                                                                                            |
-| Production  | Sentry, Cloudinary | Quarterly + on compromise | Rotate in service dashboards -> update Vercel Production env vars -> release Production as in the Production Supabase row                                                                                                                                                                                                                                                                                                                                             |
-| Production  | Email, PDF         | Quarterly + on compromise | Rotate in respective service dashboards -> update Vercel Production env vars -> once switch-on step 7 has run, dispatch **Release** with operation `release` and `apps: all` and check that the plan logged `build` for all three apps (before step 7, redeploy and promote by hand, release job step 3)                                                                                                                                                              |
+| Environment | Service            | Frequency                 | How                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ----------- | ------------------ | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Preview     | Supabase           | Quarterly                 | Rotate the shared development project keys across ordinary Preview, `core-development` and Production. Refresh the preview and development deployments; migration preview is not configured. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged. |
+| Preview     | Stripe             | Quarterly                 | Roll test-mode keys in Stripe dashboard -> update Vercel Preview env vars -> redeploy existing previews                                                                                                                                                                                                                                                                                                                                                             |
+| Preview     | Sentry             | Quarterly                 | Regenerate DSN -> update Vercel Preview env vars -> redeploy existing previews                                                                                                                                                                                                                                                                                                                                                                                      |
+| Development | All services       | Quarterly                 | Rotate in service dashboards -> update Vercel `core-development` scope env vars -> refresh development deployments at the next checkpoint (section 5.3)                                                                                                                                                                                                                                                                                                             |
+| Production  | Supabase           | Quarterly + on compromise | Coordinate with team. Update all scopes that use the development project and refresh development. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.                                                                                            |
+| Production  | Stripe             | Quarterly + on compromise | Roll the keys for the active Stripe mode (test until live cutover) and update Production. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.                                                                                                    |
+| Production  | Sentry, Cloudinary | Quarterly + on compromise | Rotate in the provider dashboards and update Vercel Production. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.                                                                                                                              |
+| Production  | Email, PDF         | Quarterly + on compromise | Rotate in the provider dashboard and update Vercel Production. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.                                                                                                                               |
 
-Every rotation window must cover all six services: Supabase, Stripe, Sentry, Cloudinary, Email, and PDF generation services such as DocRaptor when configured. After changing Production Vercel variables, once [switch-on step 7](./release-job.md#switching-it-on) has run, dispatch **Release** with operation `release` and `apps: all` and check that the plan step logged `build` for admin, donor and missionary so the new values reach users of all three apps; before step 7, redeploy and promote by hand ([release job](./release-job.md#switching-it-on), step 3).
+Cover Supabase, Stripe, Sentry, Cloudinary, email and PDF services where configured. For Inngest rotate only the pair belonging to the affected environment. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.
 
 ## 9. If an Environment Is Compromised
 
 1. **Immediately rotate** all credentials for the affected environment in each service dashboard, following the schedule above.
 2. **Update Vercel environment variables** for the affected scope (preview/development/production) across all three projects: `admin`, `donor`, and `missionary`.
-3. **Redeploy** all three apps so new credentials are loaded (for Production once [switch-on step 7](./release-job.md#switching-it-on) has run, dispatch **Release** with operation `release` and `apps: all` and check that the plan step logged `build` for admin, donor and missionary; before step 7, redeploy and promote by hand, release job step 3).
+3. **Rebuild** all affected apps. Refresh the custom development environment explicitly. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.
 4. **For production compromises**, coordinate with the full team before rotating Stripe live keys (brief webhook downtime expected), and notify affected users if any data was exposed.
 5. **Audit access logs** in Supabase, Stripe, and Sentry for the affected incident window.
 6. **Document the incident** in a post-mortem.
