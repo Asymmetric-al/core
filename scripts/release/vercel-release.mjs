@@ -10,7 +10,7 @@
 //   node scripts/release/vercel-release.mjs <step> [--app <app>] ...
 //
 // Steps: plan, preflight, deploy, check (the preview workflow's), register-jobs.
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { appendFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -126,13 +126,40 @@ export async function assertStagingEnabled({ call, app }) {
 
 const APPS_MODES = new Set(["changed", "all"]);
 
+class DiffReadError extends Error {}
+
+function isGitAncestor(live, sha) {
+  const result = spawnSync("git", ["merge-base", "--is-ancestor", live, sha], {
+    stdio: "ignore",
+  });
+  return !result.error && result.status === 0;
+}
+
+function listGitChangedFiles(live, sha) {
+  const result = spawnSync(
+    "git",
+    ["diff", "--name-only", "-z", live, sha, "--"],
+    { encoding: "utf8", maxBuffer: Infinity },
+  );
+  if (result.error || result.status !== 0) {
+    const detail =
+      result.error?.message ||
+      result.stderr?.trim() ||
+      `exit ${result.status ?? "unknown"}`;
+    throw new DiffReadError(`could not read git diff: ${detail}`);
+  }
+  return (result.stdout ?? "").split("\0").filter(Boolean);
+}
+
 /**
  * Apps whose files changed since the commit each app is serving. An app whose
- * live commit is unknown, or not an ancestor of this release, is built.
- * When `buildAll` is true, every app is built regardless of its live commit.
+ * live commit is unknown, not an ancestor of this release, or whose git diff
+ * cannot be read, is built. When `buildAll` is true, every app is built
+ * regardless of its live commit.
  */
 export function selectReleaseApps({
   liveCommits,
+  isAncestor,
   listChangedFiles,
   buildAll = false,
 }) {
@@ -148,10 +175,28 @@ export function selectReleaseApps({
     if (!SHA.test(live ?? "")) {
       return { app, build: true, reason: "live commit unknown" };
     }
+    if (isAncestor) {
+      let ancestor = false;
+      try {
+        ancestor = Boolean(isAncestor(live));
+      } catch {
+        ancestor = false;
+      }
+      if (!ancestor) {
+        return { app, build: true, reason: "live commit is not an ancestor" };
+      }
+    }
     let changedFiles;
     try {
       changedFiles = listChangedFiles(live);
-    } catch {
+    } catch (error) {
+      if (isAncestor || error instanceof DiffReadError) {
+        return {
+          app,
+          build: true,
+          reason: "could not read git diff from live commit",
+        };
+      }
       return { app, build: true, reason: "live commit is not an ancestor" };
     }
     if (changedFiles.length === 0) {
@@ -583,7 +628,7 @@ export async function runCli(
   argv,
   env = process.env,
   log = console.log,
-  { request = fetch, listChangedFiles } = {},
+  { request = fetch, isAncestor, listChangedFiles } = {},
 ) {
   const [step, ...rest] = argv;
   if (!STEPS.includes(step))
@@ -599,21 +644,15 @@ export async function runCli(
         liveCommits[name] = await readLiveCommit({ app: name, request });
       }
     }
+    const useDefaultGit = !listChangedFiles;
     const plan = selectReleaseApps({
       liveCommits,
       buildAll,
+      isAncestor:
+        isAncestor ??
+        (useDefaultGit ? (live) => isGitAncestor(live, sha) : undefined),
       listChangedFiles:
-        listChangedFiles ??
-        ((live) => {
-          execFileSync("git", ["merge-base", "--is-ancestor", live, sha], {
-            stdio: "ignore",
-          });
-          return execFileSync("git", ["diff", "--name-only", live, sha], {
-            encoding: "utf8",
-          })
-            .split("\n")
-            .filter(Boolean);
-        }),
+        listChangedFiles ?? ((live) => listGitChangedFiles(live, sha)),
     });
     for (const item of plan) {
       log(`${item.app}: ${item.build ? "build" : "skip"} - ${item.reason}`);
