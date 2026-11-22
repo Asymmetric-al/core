@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { adminBaseURL } from "./base-urls";
 import { getDemoRoleMap } from "./helpers/demo-auth";
 import { installDemoSessionInBrowser } from "./helpers/install-demo-session";
-import { demoTenantPath } from "./helpers/tenant-address";
+import { demoTenantPath, TENANTS } from "./helpers/tenant-address";
 
 async function ensureAdminDemo(page: Page) {
   const availability = await page.request.get(
@@ -44,9 +44,16 @@ async function ensureSupportHubDatabase(page: Page) {
 
 /** Many admin pages use `PageShell` (no `<main>`); the shell chrome is the stable signal. */
 async function expectMissionControlChrome(page: Page) {
-  await expect(
-    page.getByRole("link", { name: /Mission Control/i }),
-  ).toBeVisible({ timeout: 120_000 });
+  // The narrow header keeps the Mission Control search button visible while
+  // the brand link lives in the closed sidebar.
+  const brand = page.getByRole("link", { name: /Mission Control/i });
+  const mobileSearch = page.getByRole("banner").getByRole("button", {
+    name: "Open Mission Control search",
+    exact: true,
+  });
+  await expect(brand.or(mobileSearch).first()).toBeVisible({
+    timeout: 120_000,
+  });
 }
 
 const TABLE_ROUTES: ReadonlyArray<{
@@ -93,24 +100,44 @@ test.describe("Admin table pages smoke", () => {
       } else {
         await ensureAdminDemo(page);
       }
-      // On a cold dev server the first compile can take over a minute.
-      const [response] = await Promise.all([
-        bypassRead
-          ? page.waitForResponse(
-              (reply) => new URL(reply.url()).pathname === crmApi,
-              { timeout: 120_000 },
-            )
-          : null,
-        page.goto(adminPath(path), { waitUntil: "domcontentloaded" }),
-      ]);
-      if (response) {
-        expect(response.status()).toBe(401);
-        expect(await response.json()).toMatchObject({
+      await page.goto(adminPath(path), { waitUntil: "domcontentloaded" });
+      if (bypassRead) {
+        const refusal = await page.request.get(
+          new URL(crmApi, adminBaseURL).href,
+          {
+            headers: { "x-asym-tenant": TENANTS.demo },
+          },
+        );
+        expect(refusal.status()).toBe(401);
+        expect(await refusal.json()).toMatchObject({
           code: "SESSION_REQUIRED",
         });
+        if (path === "/crm") {
+          // The mobile layout can cancel the first records query. Search from
+          // the mounted grid to exercise its refusal state on both viewports.
+          const search = page.getByRole("searchbox", {
+            name: "Search CRM records",
+          });
+          await expect(search).toBeVisible();
+          await page.waitForLoadState("networkidle");
+          const term = "shell-session-check";
+          const [searched] = await Promise.all([
+            page.waitForResponse(
+              (reply) => {
+                const url = new URL(reply.url());
+                return (
+                  url.pathname === crmApi && url.searchParams.get("q") === term
+                );
+              },
+              { timeout: 120_000 },
+            ),
+            search.fill(term),
+          ]);
+          expect(searched.status()).toBe(401);
+        }
         await expect(
           page.getByText("A Supabase session is required.").first(),
-        ).toBeVisible();
+        ).toBeVisible({ timeout: 120_000 });
       }
 
       await expect(page.locator("#__next_error__")).toHaveCount(0);
