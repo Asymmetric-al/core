@@ -34,7 +34,10 @@ Current workflow semantics:
   zero-config bypass, `ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1`) and the job's
   seeded local Postgres database with no hosted secrets. Non-`develop` PRs do
   **not** inherit `continue-on-error`, and production PRs and pushes keep
-  `e2e-gate`. No end-to-end job runs against a hosted database.
+  `e2e-gate`. No `ci-integration.yml` end-to-end job runs against a hosted
+  database. The label-gated preview smoke of `qa-smoke-preview-deploy.yml` is
+  the one end-to-end run that does (the disposable `preview` project), and it
+  never runs for a `production` pull request or push.
 - `test-e2e` remains informational on `develop` and is summarized by
   `e2e-gate` on `production`. Its job-level `if:` skips it in merge-queue
   (`merge_group`) runs; it still runs on the `develop` push that follows the
