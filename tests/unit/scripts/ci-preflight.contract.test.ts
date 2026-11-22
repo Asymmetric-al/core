@@ -36,6 +36,7 @@ const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
   { id: "openspec-validate", script: "openspec:validate" },
   { id: "verify-openspec-deltas", script: "verify:openspec-deltas" },
   { id: "lint", script: "lint" },
+  { id: "verify-comments", script: "verify:comments" },
   { id: "verify-data-boundary", script: "verify:data-boundary" },
   {
     id: "verify-cms-public-sole-entry",
@@ -65,6 +66,7 @@ const FAST_STAGE_IDS = [
   "openspec-validate",
   "verify-openspec-deltas",
   "lint",
+  "verify-comments",
   "verify-data-boundary",
   "verify-cms-public-sole-entry",
   "verify-workspace-contract",
@@ -82,6 +84,7 @@ const SCOPED_STAGE_IDS = [
   "verify-phase28-spec",
   "openspec-validate",
   "verify-openspec-deltas",
+  "verify-comments",
   "verify-data-boundary",
   "verify-cms-public-sole-entry",
   "verify-workspace-contract",
@@ -120,6 +123,14 @@ const STAGE_INPUT_SAMPLES: Record<string, string[]> = {
     "docs/features/files-documents/CONTEXT.md",
     "docs/ai/document-authority.md",
     "scripts/verify/phase24-authority.mjs",
+  ],
+  "verify-comments": [
+    "apps/donor/app/page.tsx",
+    "packages/auth/middleware.ts",
+    "scripts/verify/comment-ratchet.mjs",
+    "tests/unit/utils.test.ts",
+    "tooling/eslint-config/comment-baseline.json",
+    "playwright.config.ts",
   ],
   "verify-data-boundary": [
     "apps/donor/lib/cms/client.ts",

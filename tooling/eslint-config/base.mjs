@@ -3,6 +3,7 @@ import tsParser from "@typescript-eslint/parser";
 import importXPlugin from "eslint-plugin-import-x";
 import unusedImportsPlugin from "eslint-plugin-unused-imports";
 
+import { noCommentsConfig } from "./no-comments.mjs";
 import { restrictedImports } from "./restricted-imports.mjs";
 
 const tsRecommendedConfig = tsEslintPlugin.configs["flat/recommended"] ?? [];
@@ -39,6 +40,7 @@ export const baseConfig = [
     },
   },
   ...tsRecommendedConfig,
+  ...noCommentsConfig,
   {
     files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
     rules: {

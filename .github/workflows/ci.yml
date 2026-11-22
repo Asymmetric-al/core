@@ -152,6 +152,10 @@ jobs:
       - name: Run full lint on protected branch pushes
         if: github.event_name != 'pull_request'
         run: bun run lint
+      - name: Check the comment ratchet
+        env:
+          COMMENT_RATCHET_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+        run: bun run verify:comments
       - name: Check data access boundary
         run: bun run verify:data-boundary
 
