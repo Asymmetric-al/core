@@ -30,9 +30,11 @@ const APP_CONFIGS = [
 /**
  * Config lock only: asserts the three Next.js apps keep Cache Components and
  * Partial Prefetching enabled. Route-level Instant Navigation compliance is
- * guarded elsewhere - Instant Insights [stream]/[cache]/[block] errors during
- * `next build`, and tests/e2e/instant-navigation.spec.ts in the `instant-nav`
- * job.
+ * guarded elsewhere: `instant` validation runs in development (`next dev`
+ * reports violations in the overlay and terminal; with the default settings
+ * `next build` is unaffected), and tests/e2e/instant-navigation.spec.ts runs
+ * the `instant()` guards against a production build in the `instant-nav` job.
+ * `next build` itself only fails on blocking-prerender errors.
  */
 describe("Instant Navigation config (Next.js 16.3)", () => {
   for (const { app, configPath } of APP_CONFIGS) {

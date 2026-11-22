@@ -216,7 +216,7 @@ describe("reviewed security-audit refresh", () => {
       "",
       "let failed = false;",
       "async function writeFile(target, content, ...args) {",
-      '  if (!failed && String(target).includes("/.skills-lock.json.refresh-file-")) {',
+      '  if (!failed && path.basename(String(target)).startsWith(".skills-lock.json.refresh-file-")) {',
       "    failed = true;",
       '    await originalWriteFile(target, "partial lock");',
       '    console.error("REACHED_LOCK_WRITE_FAILURE");',

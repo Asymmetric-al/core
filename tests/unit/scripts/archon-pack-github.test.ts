@@ -869,3 +869,207 @@ describe("request deadline", () => {
     expect(signals[0]?.aborted).toBe(true);
   });
 });
+
+// GitHub: the REST merge endpoint "does not support ... merging with a merge
+// queue"; the GraphQL `enqueuePullRequest` mutation adds a pull request to the
+// base branch's queue. The caller says when the base branch requires one.
+describe("merge through a required merge queue", () => {
+  const NODE = "PR_kwDOAbc123";
+  const ENTRY = { id: "MQE_1", state: "QUEUED", position: 1 };
+  const enqueued = () =>
+    json({ data: { enqueuePullRequest: { mergeQueueEntry: ENTRY } } });
+  const queued = { sha: "abc123", method: "merge", title: "T (#5)" };
+
+  it("enqueues the pull request at the expected head in one GraphQL write", async () => {
+    const { github, calls } = client([enqueued()]);
+    await github.merge(5, { ...queued, mergeQueue: true, nodeId: NODE });
+    const body = JSON.parse(String(calls[0].init.body));
+    expect([
+      calls.length,
+      calls[0].url,
+      calls[0].init.method,
+      /enqueuePullRequest\(\s*input:\s*\{\s*pullRequestId:\s*\$id\s*,?\s*expectedHeadOid:\s*\$sha/.test(
+        body.query,
+      ),
+      body.variables,
+    ]).toEqual([
+      1,
+      `${API}/graphql`,
+      "POST",
+      true,
+      { id: NODE, sha: "abc123" },
+    ]);
+  });
+
+  it("reports the queue entry, never a merge", async () => {
+    const { github } = client([enqueued()]);
+    const result = await github.merge(5, {
+      ...queued,
+      mergeQueue: true,
+      nodeId: NODE,
+    });
+    expect(result).toEqual({ queued: true, mergeQueueEntry: ENTRY });
+    expect(result).not.toHaveProperty("merged");
+  });
+
+  it("keeps today's direct merge request exactly when no queue is required", async () => {
+    const { github, calls } = client([json({ merged: true, sha: "m" })]);
+    const result = await github.merge(5, {
+      ...queued,
+      mergeQueue: false,
+      nodeId: NODE,
+    });
+    expect([
+      calls.length,
+      calls[0].url,
+      calls[0].init.method,
+      calls[0].init.body,
+      result,
+    ]).toEqual([
+      1,
+      `${API}/repos/acme/core/pulls/5/merge`,
+      "PUT",
+      '{"sha":"abc123","merge_method":"merge","commit_title":"T (#5)"}',
+      { merged: true, sha: "m" },
+    ]);
+  });
+
+  it("reports an enqueue GitHub rejected in its GraphQL errors as refused", async () => {
+    const { github } = client([
+      json({
+        data: { enqueuePullRequest: null },
+        errors: [
+          {
+            type: "UNPROCESSABLE",
+            path: ["enqueuePullRequest"],
+            message: "Pull request is not mergeable",
+          },
+        ],
+      }),
+    ]);
+    const error = await rejection(
+      github.merge(5, { ...queued, mergeQueue: true, nodeId: NODE }),
+    );
+    expect([
+      error instanceof GitHubError,
+      error.outcome,
+      error.message,
+    ]).toEqual([true, "refused", "GraphQL: Pull request is not mergeable"]);
+  });
+
+  // GitHub does not document its GraphQL error types. FORBIDDEN and NOT_FOUND
+  // were seen on read-only queries; GitHub's own clients treat them, and
+  // UNPROCESSABLE on a mutation, as a rejected request.
+  it.each(["FORBIDDEN", "NOT_FOUND", "UNPROCESSABLE"])(
+    "reports an enqueue whose GraphQL errors are all %s as refused",
+    async (type) => {
+      const { github, fetchImpl } = client([
+        json({
+          data: { enqueuePullRequest: null },
+          errors: [{ type, path: ["enqueuePullRequest"], message: "no" }],
+        }),
+      ]);
+      const error = await rejection(
+        github.merge(5, { ...queued, mergeQueue: true, nodeId: NODE }),
+      );
+      expect([error.outcome, fetchImpl.mock.calls.length]).toEqual([
+        "refused",
+        1,
+      ]);
+    },
+  );
+
+  // A rate limit, a server-side failure or an error without a type does not
+  // say the mutation was rejected; it may have run, so it is never refused.
+  it.each([
+    ["a rate limit", [{ type: "RATE_LIMITED", message: "limited" }]],
+    ["an error without a type", [{ message: "Something went wrong" }]],
+    [
+      "a rejection beside another error",
+      [
+        { type: "UNPROCESSABLE", message: "no" },
+        { type: "RATE_LIMITED", message: "limited" },
+      ],
+    ],
+  ])(
+    "reports an enqueue with %s in its GraphQL errors as unknown, never retried",
+    async (_case, errors) => {
+      const { github, fetchImpl } = client([
+        json({ data: { enqueuePullRequest: null }, errors }),
+        enqueued(),
+      ]);
+      const error = await rejection(
+        github.merge(5, { ...queued, mergeQueue: true, nodeId: NODE }),
+      );
+      expect([
+        error instanceof GitHubError,
+        error.outcome,
+        fetchImpl.mock.calls.length,
+      ]).toEqual([true, "unknown", 1]);
+    },
+  );
+
+  it("reports an enqueue rejected with a client error as refused", async () => {
+    const { github, fetchImpl } = client([
+      status(403, "Resource not accessible"),
+    ]);
+    const error = await rejection(
+      github.merge(5, { ...queued, mergeQueue: true, nodeId: NODE }),
+    );
+    expect([error.outcome, error.status, fetchImpl.mock.calls.length]).toEqual([
+      "refused",
+      403,
+      1,
+    ]);
+  });
+
+  it("never retries an enqueue whose response is lost and reports it unknown", async () => {
+    const { github, fetchImpl } = client([new TypeError("reset"), enqueued()]);
+    const error = await rejection(
+      github.merge(5, { ...queued, mergeQueue: true, nodeId: NODE }),
+    );
+    expect([error.outcome, fetchImpl.mock.calls.length]).toEqual([
+      "unknown",
+      1,
+    ]);
+  });
+
+  it("never retries an enqueue that received a server error and reports it unknown", async () => {
+    const { github, fetchImpl } = client([
+      status(502, "Bad Gateway"),
+      enqueued(),
+    ]);
+    const error = await rejection(
+      github.merge(5, { ...queued, mergeQueue: true, nodeId: NODE }),
+    );
+    expect([error.outcome, error.status, fetchImpl.mock.calls.length]).toEqual([
+      "unknown",
+      502,
+      1,
+    ]);
+  });
+
+  it("reports an answer without a queue entry as unknown, not queued", async () => {
+    const { github } = client([
+      json({ data: { enqueuePullRequest: { mergeQueueEntry: null } } }),
+    ]);
+    const error = await rejection(
+      github.merge(5, { ...queued, mergeQueue: true, nodeId: NODE }),
+    );
+    expect([error instanceof GitHubError, error.outcome]).toEqual([
+      true,
+      "unknown",
+    ]);
+  });
+
+  it("refuses to enqueue without the pull request's node id, before any request", async () => {
+    const { github, fetchImpl } = client([enqueued()]);
+    const error = await rejection(
+      github.merge(5, { ...queued, mergeQueue: true }),
+    );
+    expect([error.outcome, fetchImpl.mock.calls.length]).toEqual([
+      "refused",
+      0,
+    ]);
+  });
+});

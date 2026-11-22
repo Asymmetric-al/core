@@ -114,6 +114,10 @@ export function AutomationRuleForm({
     [actions, conditions, description, enabled, name, rule, trigger],
   );
 
+  // The dry run reads no timestamps; the draft only needs valid ones, taken
+  // once when the form opens so a render stays pure.
+  const [draftedAt] = React.useState(() => new Date().toISOString());
+
   const previewRule: SupportAutomationRule = React.useMemo(
     () => ({
       id: rule?.id ?? "draft",
@@ -124,10 +128,10 @@ export function AutomationRuleForm({
       trigger,
       conditions,
       actions,
-      createdAt: rule?.createdAt ?? new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: rule?.createdAt ?? draftedAt,
+      updatedAt: draftedAt,
     }),
-    [actions, conditions, description, enabled, name, rule, trigger],
+    [actions, conditions, description, draftedAt, enabled, name, rule, trigger],
   );
 
   const handleSave = async () => {

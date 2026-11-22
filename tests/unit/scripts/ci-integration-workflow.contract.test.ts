@@ -95,7 +95,10 @@ describe("ci-integration workflow contract", () => {
     const e2eSmokeGate = jobBlock(workflow, "e2e-smoke-gate");
     const e2eGate = jobBlock(workflow, "e2e-gate");
 
-    expect(testE2eSmoke).toContain("needs: smoke");
+    // The required browser smoke applies its own migrations and seed and
+    // starts its own servers, so it starts beside migrate (#2711); the gate
+    // still needs and reads all three jobs.
+    expect(testE2eSmoke).not.toMatch(/^\s+needs:/m);
     expect(testE2e).toContain("needs: [smoke, test-e2e-smoke]");
     expect(testE2e).toContain("fetch-depth: 0");
     expect(testE2eSmoke).toContain('E2E_AUTH_BYPASS: "true"');

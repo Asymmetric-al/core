@@ -1,0 +1,10 @@
+import { readPublishedPage } from "./reader";
+import type { PublishedPage } from "./contract";
+
+export { publishedPageSchema } from "./contract";
+
+export type Page = PublishedPage;
+
+export const read = readPublishedPage;
+
+export const loadReader = () => import("./reader");

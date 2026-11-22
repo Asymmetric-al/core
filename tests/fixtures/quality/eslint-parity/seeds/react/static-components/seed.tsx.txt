@@ -1,0 +1,4 @@
+export function Outer() {
+  const Inner = () => <p>inner</p>;
+  return <Inner />;
+}

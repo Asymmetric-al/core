@@ -20,7 +20,7 @@ export async function restoreStripeCoreGuidance(repoRoot) {
   const planned = new Map();
   async function target(relative) {
     if (
-      !/^(?:stripe-best-practices|stripe-projects|upgrade-stripe)\/(?:SKILL\.md|references\/tax\.md)$/u.test(
+      !/^(?:stripe-best-practices|upgrade-stripe)\/(?:SKILL\.md|references\/tax\.md)$/u.test(
         relative,
       )
     )

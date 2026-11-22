@@ -1,0 +1,10 @@
+import { m } from "motion/react";
+import type { Transition } from "motion/react";
+
+export { AnimatePresence } from "motion/react";
+
+export type MotionTransition = Transition;
+
+export const Box = m.div;
+
+export const loadMotion = () => import("motion/react");

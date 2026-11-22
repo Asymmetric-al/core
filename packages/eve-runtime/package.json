@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "24.19.2",
-    "typescript": "7.0.2"
+    "typescript": "7.1.0-beta"
   },
   "engines": {
     "node": ">=24"

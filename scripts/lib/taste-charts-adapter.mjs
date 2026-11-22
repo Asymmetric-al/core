@@ -1,11 +1,7 @@
 import { createHash } from "node:crypto";
 import { lstat, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const repositoryPackage = fileURLToPath(
-  new URL("../../package.json", import.meta.url),
-);
+import { formatSource } from "./format-source.mts";
 const guidanceUrl = new URL(
   "../refresh-overlays/taste-charts-safety.json",
   import.meta.url,
@@ -29,12 +25,11 @@ export async function applyTasteChartCompatibility(targetRoot) {
   }
   const file = path.join(targetRoot, guidance.relativePath);
   const source = await readFile(file, "utf8");
-  const prettier = await import("prettier");
-  const options = {
-    ...(await prettier.resolveConfig(repositoryPackage)),
-    parser: "babel",
-  };
-  let content = await prettier.format(source.replaceAll("\r\n", "\n"), options);
+  let content = await formatSource(
+    file,
+    source.replaceAll("\r\n", "\n"),
+    "managed",
+  );
   if (hash(content) === guidance.coreNormalizedHash) return;
   if (hash(content) !== guidance.upstreamNormalizedHash)
     throw new Error(
@@ -45,7 +40,7 @@ export async function applyTasteChartCompatibility(targetRoot) {
       throw new Error("Reviewed Taste chart replacement no longer matches");
     content = content.replace(rule.upstream, rule.core);
   }
-  content = await prettier.format(content, options);
+  content = await formatSource(file, content, "managed");
   if (hash(content) !== guidance.coreNormalizedHash)
     throw new Error("Reviewed Taste chart repair produced unexpected content");
   await writeFile(file, content, "utf8");

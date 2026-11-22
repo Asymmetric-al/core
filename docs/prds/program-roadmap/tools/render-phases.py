@@ -65,8 +65,8 @@ def derive_inventory(roadmap):
 
 def format_local(text, path):
     result = subprocess.run(
-        ["bunx", "--no-install", "prettier", "--stdin-filepath", str(path)],
-        input=text, text=True, capture_output=True, cwd=REPO, check=True,
+        ["bunx", "--no-install", "oxfmt", "--no-error-on-unmatched-pattern", "--disable-nested-config", "--stdin-filepath", str(path)],
+        input=text, encoding="utf-8", capture_output=True, cwd=REPO, check=True,
     )
     return result.stdout
 

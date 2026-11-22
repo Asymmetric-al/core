@@ -46,3 +46,27 @@ or deploy production. Scanner findings are evidence, not product authority.
 Revert the code/tooling commit while preserving database schemas, content,
 credentials, and the original development checkout. Audit rollback must keep
 CLI execution and documented floors internally consistent.
+
+## Superseded 2026-11-18 by `make-shadscan-advisory`
+
+On 2026-11-18 the owner ratified the retirement part of `make-shadscan-advisory`
+("Do #2"). From that date:
+
+- Shadscan no longer blocks a commit, push, local preflight or required CI
+  check. It runs once per CI event in a non-required job and its scores are
+  advisory.
+- The per-application and per-category score floors, the policy file, the
+  hashed findings ledger and the "genuine 100/100" target are retired. The
+  text above that describes them, and the 2026-10-04 approval of floors and
+  of the 100/100 target, is dated history.
+- This change's delta withdraws four requirements: "Workspace UI Audits Are
+  Reproducible And Complete", "Each Application Has An Independent Score
+  Floor", "Each Application Category Has An Independent Score Floor" and
+  "Audit Classifications Preserve Evidence". Its Purpose now matches
+  `make-shadscan-advisory`'s word for word.
+- Tasks 5.2, 5.5, 5.7 and 5.8 and the finding-proof clause of task 4.9 are
+  withdrawn.
+
+The UI-repair, component-review and browser-evidence requirements, the
+forced-light policy, the signed-in palettes, and open tasks 3.5, 5.3, 5.4,
+5.6 and the rest of 4.9 are unchanged.

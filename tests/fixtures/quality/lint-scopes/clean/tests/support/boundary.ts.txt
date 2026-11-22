@@ -1,0 +1,10 @@
+import { m } from "motion/react";
+import type { AdminSession } from "../../apps/admin/session";
+
+export { DonorPage } from "../../apps/donor/page";
+
+export type Session = AdminSession;
+
+export const Box = m.div;
+
+export const loadTable = () => import("@tanstack/react-table");

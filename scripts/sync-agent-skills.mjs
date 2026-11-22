@@ -896,12 +896,7 @@ async function restoreEcosystemCoreGuidance() {
     ".agents/skills/stripe-best-practices",
   );
   const upgradeRoot = path.join(repoRoot, ".agents/skills/upgrade-stripe");
-  const projectsRoot = path.join(repoRoot, ".agents/skills/stripe-projects");
-  if (
-    (await pathExists(stripeRoot)) ||
-    (await pathExists(upgradeRoot)) ||
-    (await pathExists(projectsRoot))
-  ) {
+  if ((await pathExists(stripeRoot)) || (await pathExists(upgradeRoot))) {
     await restoreStripeCoreGuidance(repoRoot);
   }
   await rewriteEcosystemCoreFile(

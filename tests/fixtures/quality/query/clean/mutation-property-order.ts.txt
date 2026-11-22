@@ -1,0 +1,9 @@
+import { useMutation } from "@tanstack/react-query";
+
+export function useSave() {
+  return useMutation({
+    mutationFn: (id: number) => Promise.resolve(id),
+    onMutate: () => 1,
+    onSettled: () => 1,
+  });
+}

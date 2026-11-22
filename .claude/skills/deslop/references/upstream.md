@@ -3,7 +3,7 @@ source_name: cursor/plugins (deslop)
 source_url: https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/deslop
 source_type: github
 upstream_path: cursor-team-kit/skills/deslop/
-skills_lock_hash: 2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810
+skills_lock_hash: 395e35c4c66c0e83d4e9cd696572df7dca629c870cf03991459befe77cecb457
 last_reviewed: 2026-09-16
 ---
 
@@ -16,7 +16,7 @@ Canonical copy in this repo: `docs/ai/skills/deslop/` (mirrored to `.cursor/skil
 - **Commit reviewed:** `c1c0a32802223f4be824112dd83d33ad29a8b26c`
 - **Upstream path:** `cursor-team-kit/skills/deslop/`
 - **Lock skillPath:** `cursor-team-kit/skills/deslop/SKILL.md`
-- **Computed hash:** `2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810`
+- **Computed hash:** `395e35c4c66c0e83d4e9cd696572df7dca629c870cf03991459befe77cecb457`
 
 ## Refresh from upstream
 

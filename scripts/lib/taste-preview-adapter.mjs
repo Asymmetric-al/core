@@ -2,11 +2,9 @@ import { createHash } from "node:crypto";
 import { lstat, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { formatSource } from "./format-source.mts";
 const overlayRoot = fileURLToPath(
   new URL("../refresh-overlays/", import.meta.url),
-);
-const repositoryPackage = fileURLToPath(
-  new URL("../../package.json", import.meta.url),
 );
 const digest = (data) => createHash("sha256").update(data).digest("hex");
 async function regular(root, relative, optional = false) {
@@ -52,25 +50,19 @@ export async function applyTastePreviewCompatibility(targetRoot) {
   );
   if (config.version !== 2 || config.files.length !== 2)
     throw new Error("Invalid taste preview repair configuration");
-  const prettier = await import("prettier");
-  const options = {
-    ...(await prettier.resolveConfig(repositoryPackage, {
-      editorconfig: false,
-    })),
-    parser: "babel",
-  };
   const planned = [];
   for (const entry of config.files) {
     if (!["scripts/inspect.mjs", "scripts/scenes.mjs"].includes(entry.path))
       throw new Error("Unexpected taste preview tool");
     const file = await regular(targetRoot, entry.path);
     const original = await readFile(file, "utf8");
-    const normalized = await prettier.format(
+    const normalized = await formatSource(
+      file,
       original.replaceAll("\r\n", "\n"),
-      options,
+      "managed",
     );
     if (digest(normalized) === entry.coreHash) continue;
-    if (digest(normalized) !== entry.upstreamHash)
+    if (digest(normalized) !== entry.upstreamNormalizedHash)
       throw new Error("Reviewed taste preview source drifted");
     const template = await readFile(
       await regular(overlayRoot, entry.template),
@@ -92,7 +84,7 @@ export async function applyTastePreviewCompatibility(targetRoot) {
       documentPlans.set(entry.path, plan);
     }
     if (
-      plan.content.includes(entry.core) &&
+      plan.content.split(entry.core).length === 2 &&
       !plan.content.includes(entry.upstream)
     )
       continue;

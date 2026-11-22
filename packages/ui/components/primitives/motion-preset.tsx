@@ -1,12 +1,12 @@
 "use client";
 
-import { useReducedMotion } from "@asym/lib/motion";
 import {
   AnimatePresence,
   LazyMotion,
   domAnimation,
   motion as m,
   useInView,
+  useReducedMotion,
   type HTMLMotionProps,
   type UseInViewOptions,
   type Transition,

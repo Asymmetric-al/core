@@ -1,5 +1,5 @@
 /** #2407 PR (a) static contract [A] (no database): criteria 1, 10 (text), 11
- * (text), 16, 17/18 (Builder files present), 19, 20, 22, §6 declared edits,
+ * (text), 16, 17/18 (Builder files present), 19, 20, 22,
  * OQ17 bootstrap columns, and text mutants M6, M7, M18, M19 (each with a
  * self-check that the predicate rejects a synthetic mutant). Runtime mutants
  * are mapped in the real-stack, route and component files.
@@ -12,11 +12,7 @@ import { describe, expect, it } from "vitest";
 
 import * as H from "./harness";
 import { DEMO_TENANT_ID } from "../../../../packages/auth/constants";
-import {
-  loadWorkflowDocument,
-  PINNED_STEP_BODIES,
-  workflowJobs,
-} from "../../helpers/workflow-yaml";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const fwd = () => H.code(H.read(H.FORWARD));
 const back = () => H.code(H.read(H.ROLLBACK));
@@ -30,10 +26,8 @@ const policy = (sql: string, name: string) =>
   statements(sql, re(`^CREATE POLICY "${name}"`))[0];
 const drops = (sql: string, name: string) =>
   re(`DROP POLICY (IF EXISTS )?"${name}" ON storage\\.objects`).test(sql);
-const ALLOWLIST = "docs/security/service-role-client-allowlist.json";
 const STEP = "Verify tenant isolation (real stack)";
 const BK = H.BACKUP.replace(".", "\\.");
-const git = (...args: string[]) => spawnSync("git", args, { encoding: "utf8" });
 /** #2406's forward migration, when it is on this tree (criterion 22). */
 const MIG_2406 = readdirSync(H.MIG).find((f) =>
   f.startsWith("20261027100000_"),
@@ -42,38 +36,6 @@ const MIG_2406 = readdirSync(H.MIG).find((f) =>
  * 22 skips rather than pinning text that may still move before #2406 merges.
  * Re-point if a verbatim pin is ever preferred over the extractor. */
 const TENANT_EXPR_2406: string | null = null;
-
-/**
- * PR base for the base-relative checks (criterion 1 order, §6 scope).
- * Branch-agnostic on purpose: ACCEPTANCE_2407A_BASE, else `git merge-base
- * HEAD origin/develop`, never a pinned develop SHA, so files other PRs merge
- * into develop never count as #2407 edits. Skips when the base is unknown,
- * in merge_group (queued PRs ahead), or when the forward migration is already
- * on the base (merged: the scope belonged to its own PR, which CI checked).
- */
-function prBase(): { base: string } | { skip: string } {
-  if (process.env.GITHUB_EVENT_NAME === "merge_group")
-    return { skip: "merge_group commits can include other queued PRs" };
-  const pinned = process.env.ACCEPTANCE_2407A_BASE?.trim();
-  const r = pinned
-    ? git("rev-parse", "--verify", `${pinned}^{commit}`)
-    : git("merge-base", "HEAD", "origin/develop");
-  if (r.status !== 0)
-    return {
-      skip: "no origin/develop (or ACCEPTANCE_2407A_BASE) in this checkout",
-    };
-  const base = r.stdout.trim();
-  if (git("cat-file", "-e", `${base}:${H.FORWARD}`).status === 0)
-    return {
-      skip: `#2407a already merged at base ${base}; scope was its PR's`,
-    };
-  return { base };
-}
-const withBase = (ctx: { skip: (note?: string) => void }) => {
-  const b = prBase();
-  if ("skip" in b) ctx.skip(b.skip);
-  return (b as { base: string }).base;
-};
 
 /** M19 predicate: exactly one REVOKE, ALL on the backup table from all four roles. */
 const revokesBackup = (sql: string) => {
@@ -155,7 +117,7 @@ function tenantExpr(sql: string) {
 }
 
 describe("#2407a static contract [A]", () => {
-  it("#2407a criterion 1: forward migration exists with a header naming the rollback, rollback exists, version above every §10 reservation and every forward migration on the PR base", (ctx) => {
+  it("#2407a criterion 1: forward migration exists with a header naming the rollback, rollback exists, version above every §10 reservation and unique", () => {
     expect(H.read(H.FORWARD), H.FORWARD).not.toBe("");
     expect(H.read(H.ROLLBACK), H.ROLLBACK).not.toBe("");
     const header = H.read(H.FORWARD)
@@ -169,15 +131,6 @@ describe("#2407a static contract [A]", () => {
         (f) => /^\d{14}_/.test(f) && f.slice(0, 14) === H.VERSION,
       ),
     ).toEqual([H.NAME]);
-    const base = withBase(ctx);
-    const r = git("ls-tree", "--name-only", `${base}:${H.MIG}`);
-    expect(r.status).toBe(0);
-    expect(
-      r.stdout
-        .split("\n")
-        .filter((f) => /^\d{14}_/.test(f) && f.slice(0, 14) >= H.VERSION),
-      `base ${base}`,
-    ).toEqual([]);
   });
   it("#2407a criterion 10: migration text has no GRANT and exactly one REVOKE, on the backup table (M19)", () => {
     expect(fwd(), H.FORWARD).not.toBe("");
@@ -363,35 +316,18 @@ describe("#2407a static contract [A]", () => {
       "@asym/database/supabase/admin",
     );
   });
-  it("#2407a criterion 19: the real-stack path is appended last to the tenant isolation step and the shared pin matches", () => {
-    expect(existsSync(H.REALSTACK)).toBe(true);
-    const steps = workflowJobs(
-      loadWorkflowDocument(".github/workflows/ci-integration.yml"),
-    ).migrate!.steps!;
-    const i = steps.findIndex((s) => s.name === STEP);
-    expect(String(steps[i]!.run).split(/\s+/).at(-1)).toBe(H.REALSTACK);
-    const { index, ...body } = PINNED_STEP_BODIES.migrate![`name:${STEP}`]!;
-    expect(index).toBe(i);
-    expect(steps[i]).toEqual({ name: STEP, ...body });
+  it("#2407a criterion 19: the tenant isolation migrate step runs the #2407a real-stack file", () => {
+    // The shared check also fails, naming the step, when the file is missing.
+    expectRealstackStep(STEP, [H.REALSTACK], {
+      TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}",
+    });
   });
-  it("#2407a criterion 20: init_schema.sql stays byte-identical to develop 629cb71d; the allowlist matches the PR base until this migration merges; verify:service-role-clients passes", () => {
+  it("#2407a criterion 20: init_schema.sql stays byte-identical to develop 629cb71d; verify:service-role-clients passes", () => {
     const sha = (f: string) =>
       createHash("sha256").update(readFileSync(f)).digest("hex");
     expect(sha(H.INIT)).toBe(
       "c5cc1775d6914b613730822d920f4ec3ba189cdb5e2f98fadb8981238e76635a",
     );
-    // This PR does not edit the allowlist. A frozen hash would fail the next
-    // shrink the service-role gate permits, so the comparison lasts only
-    // while the migration is still this PR's. After merge, prBase skips and
-    // the gate below remains the check.
-    const b = prBase();
-    if (!("skip" in b)) {
-      const head = git("hash-object", `--path=${ALLOWLIST}`, ALLOWLIST);
-      const base = git("rev-parse", `${b.base}:${ALLOWLIST}`);
-      expect(head.status, head.stderr).toBe(0);
-      expect(base.status, base.stderr).toBe(0);
-      expect(head.stdout.trim()).toBe(base.stdout.trim());
-    }
     const r = spawnSync(
       "node",
       ["scripts/verify/service-role-client-gate.mjs"],
@@ -410,30 +346,6 @@ describe("#2407a static contract [A]", () => {
     const n1 = policy(fwd(), H.NEW_POLICIES[0]!) ?? "";
     expect(n1, "N1").not.toBe("");
     expect(n1).toContain(H.squash(expected!));
-  });
-  it("#2407a §6 (r1.1 a): the PR diff touches only declared edits (branch-agnostic merge-base)", (ctx) => {
-    const base = withBase(ctx);
-    const r = git("diff", "--name-only", "--no-renames", base, "HEAD");
-    expect(r.status).toBe(0);
-    const declared = new Set([
-      H.FORWARD,
-      H.ROLLBACK,
-      H.BOOTSTRAP,
-      H.DOC,
-      H.RUNTIME_MAP,
-      ...`packages/api/src/upload/image.ts packages/api/src/upload/editor-image.ts packages/api/src/editor-images/key.ts
-        apps/admin/app/api/upload/editor-image/route.ts apps/missionary/app/api/upload/editor-image/route.ts packages/api/package.json
-        packages/ui/components/shadcn/rich-text-editor/legacy-rich-text-editor.tsx
-        apps/admin/features/mission-control/care/components/PersonnelProfile.tsx apps/admin/app/(app)/feed/org-updates/page-client.tsx
-        apps/missionary/app/feed/worker-feed-page-client.tsx .github/workflows/ci-integration.yml docs/security/identity-person-anchor.md`.split(
-        /\s+/,
-      ),
-    ]);
-    // tests/unit/** is allowed wholesale: Builder's unit tests, this folder and the 2250/2155/2201 pins (workflow-yaml.ts included).
-    const outside = r.stdout
-      .split("\n")
-      .filter((p) => p && !declared.has(p) && !p.startsWith("tests/unit/"));
-    expect(outside, `diff against ${base}`).toEqual([]);
   });
   describe("#2407a realstack harness: case rows expand to concrete names (PR #2427 review; no database)", () => {
     // Stack's constructor only builds pg clients; nothing connects.

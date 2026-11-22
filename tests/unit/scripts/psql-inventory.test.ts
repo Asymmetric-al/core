@@ -112,6 +112,21 @@ const PSQL_NAMERS: Record<string, { reason: string; lines: string[] }> = {
       "// the runner's psql (lib/postgres.mjs drops it) or Payload.",
     ],
   },
+  "scripts/api-contract/stack.mjs": {
+    reason:
+      "imports isLoopbackDatabaseUrl and spawnPsql from scripts/lib/psql.mjs and runs psql only through spawnPsql after verifying the disposable database marker",
+    lines: [
+      "`could not ${action} the API contract database: psql exited ${result.status ?? result.signal}`,",
+      'const psqlBin = process.env.PSQL_BIN?.trim() || "psql";',
+      "const result = spawnPsql({",
+      "function runDisposablePsql(url, { action, args, input }) {",
+      'import { isLoopbackDatabaseUrl, spawnPsql } from "../lib/psql.mjs";',
+      "psqlBin,",
+      "requireDisposableDatabase({ databaseUrl, action, psqlBin });",
+      "runDisposablePsql(url, {",
+      "runDisposablePsql(url, {",
+    ],
+  },
   "scripts/cms/lib/supabase.mjs": {
     reason: "imports and calls runPsqlFile from the CMS builder",
     lines: [

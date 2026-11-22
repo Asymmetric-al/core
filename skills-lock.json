@@ -89,8 +89,8 @@
       "source": "a5c-ai/babysitter-cursor",
       "sourceType": "github",
       "skillPath": "skills/babysit/SKILL.md",
-      "computedHash": "f7f9b3f8eddef18c6ae55c3e74216f0c26ccb375de651dfac4f0877d66bd47af",
-      "treeHash": "0f7abd7ee020c906b44ab13b3716d96e4e7555f55abc73eada53a94b1843bc13"
+      "computedHash": "d787edc432d7bf2cb6d3b40805b68a9fd62243899c0e356ad8b2cf1f99cf611d",
+      "treeHash": "96d281460ab25a312b71cb08518e597db2d127c56b1cbd5c2c5c21d23b5198e4"
     },
     "bats-testing-patterns": {
       "source": "wshobson/agents",
@@ -249,12 +249,6 @@
       "skillPath": "skills/create-verification-skill/SKILL.md",
       "computedHash": "e46d85a4a1f1aab6b475aa0059231e8eb7b60d76688afa83b87e98619f75382b"
     },
-    "deploy-to-vercel": {
-      "source": "vercel-labs/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/deploy-to-vercel/SKILL.md",
-      "computedHash": "03e0eaaa9bf13ba1e7ffa387f5893de6f324c0868c627001f179395a8feaa7c9"
-    },
     "deployment-pipeline-design": {
       "source": "wshobson/agents",
       "sourceType": "github",
@@ -278,8 +272,8 @@
       "source": "cursor/plugins",
       "sourceType": "github",
       "skillPath": "cursor-team-kit/skills/deslop/SKILL.md",
-      "computedHash": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
-      "treeHash": "740038c614fc7fdef772806e59f7bd901d7b7184cf0a74022f7de8a6462d35e5"
+      "computedHash": "395e35c4c66c0e83d4e9cd696572df7dca629c870cf03991459befe77cecb457",
+      "treeHash": "44d0dcc53b81335e70b2182467e9b11fdaf566a61c3e8eb7da8cbba72528c862"
     },
     "diagnosing-bugs": {
       "source": "mattpocock/skills",
@@ -478,8 +472,8 @@
       "source": "cursor/plugins",
       "sourceType": "github",
       "skillPath": "cursor-team-kit/skills/loop-on-ci/SKILL.md",
-      "computedHash": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de",
-      "treeHash": "948910bcbc9f39e24e8c85fde2577c94f06a8808eaa361723276afef7ac7d579"
+      "computedHash": "839666f5dd10735032f5c8f3abb5bc02db09c32c4c001b718185cb609368ef94",
+      "treeHash": "d5a0336256f8081c472e4e2aaa6dc037c2161c697e69f07bf70354735165eb56"
     },
     "maintain-verification-skill": {
       "source": "uzairansaruzi/p3-stack",
@@ -523,8 +517,8 @@
       "source": "cursor/plugins",
       "sourceType": "github",
       "skillPath": "cursor-team-kit/skills/new-branch-and-pr/SKILL.md",
-      "computedHash": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
-      "treeHash": "6669b419736af5f002039b6d52268a53a97a447c83521cfa1abaae7ff4a65d51"
+      "computedHash": "02a4c8a12ef41c36894635e1ebcc9eca9a979ef5cf4e42277755d6fb6752d320",
+      "treeHash": "f9f027919006b8ed4597243f902b83188d66f1976bde8ca9788e5c24e236e981"
     },
     "next-bundle-optimizer": {
       "source": "vercel/next.js",
@@ -906,8 +900,8 @@
       "source": "cursor/plugins",
       "sourceType": "github",
       "skillPath": "cursor-team-kit/skills/review-and-ship/SKILL.md",
-      "computedHash": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
-      "treeHash": "ba1584f6cae047eb365bf1f5e2855621970de43b8b7efe3964724011c229e5af"
+      "computedHash": "985bc492e0aa356d1ca352f3bb7e2c941647aca89f0538e749226344999b06a8",
+      "treeHash": "2e9c7bf03edfe552abe55cf85ec66e4f7bf8c4361f5c94fc2391ba47ef08be20"
     },
     "review-animations": {
       "source": "emilkowalski/skills",
@@ -920,14 +914,8 @@
       "source": "cursor/plugins",
       "sourceType": "github",
       "skillPath": "cursor-team-kit/skills/run-smoke-tests/SKILL.md",
-      "computedHash": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb",
-      "treeHash": "3a309ee6563c2792792a9fbd72f0c347c8e8192c9c9d03bf750ece47536772dc"
-    },
-    "scaffold-exercises": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "skillPath": "skills/misc/scaffold-exercises/SKILL.md",
-      "computedHash": "1127f69a77b48cb855067db4c9c42e7638e6672f1cb3fafb0ffd61a1ecdfae70"
+      "computedHash": "b515fb0563602965efd04d1a8416df786788bee782b5bf6bb4ae4633fc0971bc",
+      "treeHash": "86d1da59ca63edcaf441e3fae78155f47b715f944ad774abb906e4a7268a76f4"
     },
     "security-audit": {
       "source": "cloudflare/security-audit-skill",
@@ -948,12 +936,6 @@
       "sourceType": "github",
       "skillPath": "skills/setup-p3/SKILL.md",
       "computedHash": "f5d2db156866c4f8021ec454ec3a5421f1686dff7f0431c1561067431b588bb9"
-    },
-    "setup-pre-commit": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "skillPath": "skills/misc/setup-pre-commit/SKILL.md",
-      "computedHash": "f2ce8663857d919cf7e4146cd716b0aee1757b85123b758e6e7d98fcbaf14054"
     },
     "shadcn": {
       "source": "shadcn-ui/ui",
@@ -983,17 +965,6 @@
       "source": "docs.stripe.com",
       "sourceType": "well-known",
       "computedHash": "a240f40c84c43f8c216eb159ba427d2979a40038fc9eeeab15efc02ea7ae3a40"
-    },
-    "stripe-integration": {
-      "source": "wshobson/agents",
-      "sourceType": "github",
-      "skillPath": "plugins/payment-processing/skills/stripe-integration/SKILL.md",
-      "computedHash": "32b5a60d3f6cad896b3dc468ee7b81e55afa61adf740512e95a411efdb4ae0f6"
-    },
-    "stripe-projects": {
-      "source": "docs.stripe.com",
-      "sourceType": "well-known",
-      "computedHash": "3f6f72b6fe29418f2740977f2d4bc5c6e7675562df41b94e4da4ad34fd590bd7"
     },
     "supabase": {
       "source": "supabase/agent-skills",
@@ -1132,12 +1103,6 @@
       "skillPath": "plugins/expo/skills/expo-dom/SKILL.md",
       "computedHash": "b388777e22619b24bed4b0dc76afa52e1f8c0fe23cb1e90d869d0159ba5167dd"
     },
-    "vercel-cli-with-tokens": {
-      "source": "vercel-labs/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/vercel-cli-with-tokens/SKILL.md",
-      "computedHash": "eb16b20dcbe6ce51e0372083d624e0847af1b09487ec99249227d5a8eddebfc0"
-    },
     "vercel-composition-patterns": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
@@ -1193,12 +1158,6 @@
       "sourceType": "github",
       "skillPath": "skills/web-design-guidelines/SKILL.md",
       "computedHash": "f3bc47f890f42a44db1007ab390709ec368e4b8c089baee6b0007182236ac474"
-    },
-    "webapp-testing": {
-      "source": "anthropics/skills",
-      "sourceType": "github",
-      "skillPath": "skills/webapp-testing/SKILL.md",
-      "computedHash": "3f14af7f5690695209c22fbf8c8d133769a86d64892602c09bb13f135e14e857"
     },
     "weekly-review": {
       "source": "cursor/plugins",

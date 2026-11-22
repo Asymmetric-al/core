@@ -1,0 +1,3 @@
+export function Note() {
+  return <div>// not a comment</div>;
+}

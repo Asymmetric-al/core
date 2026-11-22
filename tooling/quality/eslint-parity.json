@@ -1,0 +1,3253 @@
+{
+  "generatedBy": "node scripts/verify/eslint-parity.mts --write",
+  "eslint": "10.13.0",
+  "oxlint": "1.94.0",
+  "counts": {
+    "rules": 74,
+    "oxlint": 60,
+    "bridge": 6,
+    "gaps": 8,
+    "unexpectedGaps": 4
+  },
+  "sources": [
+    {
+      "config": "apps/admin/eslint.config.mjs",
+      "cwd": ".",
+      "configLookup": false,
+      "commands": ["apps/admin: lint"],
+      "scopes": ["apps/admin/**"],
+      "rulesAtError": 74
+    },
+    {
+      "config": "apps/donor/eslint.config.mjs",
+      "cwd": ".",
+      "configLookup": false,
+      "commands": ["apps/donor: lint"],
+      "scopes": ["apps/donor/**"],
+      "rulesAtError": 72
+    },
+    {
+      "config": "apps/factory-console/eslint.config.mjs",
+      "cwd": ".",
+      "configLookup": false,
+      "commands": ["apps/factory-console: lint"],
+      "scopes": [
+        "apps/factory-console/next.config.ts",
+        "apps/factory-console/playwright.config.ts",
+        "apps/factory-console/src/**",
+        "apps/factory-console/tests/**",
+        "apps/factory-console/vitest.config.ts"
+      ],
+      "rulesAtError": 71
+    },
+    {
+      "config": "apps/missionary/eslint.config.mjs",
+      "cwd": ".",
+      "configLookup": false,
+      "commands": ["apps/missionary: lint"],
+      "scopes": ["apps/missionary/**"],
+      "rulesAtError": 74
+    },
+    {
+      "config": "eslint.config.mjs",
+      "cwd": ".",
+      "configLookup": false,
+      "commands": [
+        "bun run lint:ui",
+        "lint-staged {apps,packages,tooling}/**/*.{ts,tsx,js,jsx,mjs,cjs}"
+      ],
+      "scopes": [
+        "apps/admin/**",
+        "apps/donor/**",
+        "apps/factory-console/**",
+        "apps/missionary/**",
+        "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+        "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+        "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+        "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+        "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+        "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+        "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+        "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+        "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+        "packages/missionary/**",
+        "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+        "packages/ui/**",
+        "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+        "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+      ],
+      "rulesAtError": 37
+    },
+    {
+      "config": "packages/api/eslint.config.mjs",
+      "cwd": "packages/api",
+      "configLookup": true,
+      "commands": ["packages/api: lint"],
+      "scopes": ["packages/api/**"],
+      "rulesAtError": 29
+    },
+    {
+      "config": "packages/auth/eslint.config.mjs",
+      "cwd": "packages/auth",
+      "configLookup": true,
+      "commands": ["packages/auth: lint"],
+      "scopes": ["packages/auth/**"],
+      "rulesAtError": 29
+    },
+    {
+      "config": "packages/config/eslint.config.mjs",
+      "cwd": "packages/config",
+      "configLookup": true,
+      "commands": ["packages/config: lint"],
+      "scopes": ["packages/config/**"],
+      "rulesAtError": 27
+    },
+    {
+      "config": "packages/database/eslint.config.mjs",
+      "cwd": "packages/database",
+      "configLookup": true,
+      "commands": ["packages/database: lint"],
+      "scopes": ["packages/database/**"],
+      "rulesAtError": 29
+    },
+    {
+      "config": "packages/email/eslint.config.mjs",
+      "cwd": "packages/email",
+      "configLookup": true,
+      "commands": ["packages/email: lint"],
+      "scopes": ["packages/email/**"],
+      "rulesAtError": 27
+    },
+    {
+      "config": "packages/env/eslint.config.mjs",
+      "cwd": "packages/env",
+      "configLookup": true,
+      "commands": ["packages/env: lint"],
+      "scopes": ["packages/env/**"],
+      "rulesAtError": 27
+    },
+    {
+      "config": "packages/eve-runtime/eslint.config.mjs",
+      "cwd": "packages/eve-runtime",
+      "configLookup": true,
+      "commands": ["packages/eve-runtime: lint"],
+      "scopes": [
+        "packages/eve-runtime/agent/**",
+        "packages/eve-runtime/evals/**",
+        "packages/eve-runtime/src/**"
+      ],
+      "rulesAtError": 27
+    },
+    {
+      "config": "packages/graphql/eslint.config.mjs",
+      "cwd": "packages/graphql",
+      "configLookup": true,
+      "commands": ["packages/graphql: lint"],
+      "scopes": ["packages/graphql/**"],
+      "rulesAtError": 27
+    },
+    {
+      "config": "packages/lib/eslint.config.mjs",
+      "cwd": "packages/lib",
+      "configLookup": true,
+      "commands": ["packages/lib: lint"],
+      "scopes": ["packages/lib/**"],
+      "rulesAtError": 30
+    },
+    {
+      "config": "packages/missionary/eslint.config.mjs",
+      "cwd": ".",
+      "configLookup": false,
+      "commands": ["packages/missionary: lint"],
+      "scopes": ["packages/missionary/**"],
+      "rulesAtError": 36
+    },
+    {
+      "config": "packages/mock-data/eslint.config.mjs",
+      "cwd": "packages/mock-data",
+      "configLookup": true,
+      "commands": ["packages/mock-data: lint"],
+      "scopes": ["packages/mock-data/**"],
+      "rulesAtError": 27
+    },
+    {
+      "config": "packages/ui/eslint.config.mjs",
+      "cwd": ".",
+      "configLookup": false,
+      "commands": ["packages/ui: lint"],
+      "scopes": ["packages/ui/**"],
+      "rulesAtError": 36
+    }
+  ],
+  "notLinted": [
+    ".agents/**",
+    ".claude/**",
+    ".cursor/**",
+    ".oss-scanner/**",
+    "docs/**",
+    "eslint.config.mjs",
+    "oxfmt.config.mts",
+    "oxlint.config.mts",
+    "playwright.admin.config.ts",
+    "playwright.auth-mail.config.ts",
+    "playwright.config.ts",
+    "playwright.development-smoke.config.ts",
+    "playwright.donor.config.ts",
+    "playwright.missionary.config.ts",
+    "scripts/**",
+    "tests/**",
+    "vendor/**",
+    "vitest.config.mts",
+    "vitest.per-importer-alias.mts",
+    "vitest.per-importer-alias.ts",
+    "vitest.pin-workspace-packages.mts",
+    "vitest.pin-workspace-packages.ts"
+  ],
+  "rules": [
+    {
+      "rule": "@next/next/inline-script-id",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "nextjs",
+        "rule": "inline-script-id",
+        "name": "nextjs/inline-script-id",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@next/next/no-assign-module-variable",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "nextjs",
+        "rule": "no-assign-module-variable",
+        "name": "nextjs/no-assign-module-variable",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@next/next/no-document-import-in-page",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "nextjs",
+        "rule": "no-document-import-in-page",
+        "name": "nextjs/no-document-import-in-page",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@next/next/no-duplicate-head",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "nextjs",
+        "rule": "no-duplicate-head",
+        "name": "nextjs/no-duplicate-head",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@next/next/no-head-import-in-document",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "nextjs",
+        "rule": "no-head-import-in-document",
+        "name": "nextjs/no-head-import-in-document",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@next/next/no-html-link-for-pages",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "nextjs",
+        "rule": "no-html-link-for-pages",
+        "name": "nextjs/no-html-link-for-pages",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@next/next/no-script-component-in-head",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "nextjs",
+        "rule": "no-script-component-in-head",
+        "name": "nextjs/no-script-component-in-head",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@next/next/no-sync-scripts",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "nextjs",
+        "rule": "no-sync-scripts",
+        "name": "nextjs/no-sync-scripts",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/ban-ts-comment",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "ban-ts-comment",
+        "name": "typescript/ban-ts-comment",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-array-constructor",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "eslint",
+        "rule": "no-array-constructor",
+        "name": "eslint/no-array-constructor",
+        "typeAware": false,
+        "note": "typescript-eslint extends the core rule no-array-constructor; Oxlint has one rule for both."
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-duplicate-enum-values",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "no-duplicate-enum-values",
+        "name": "typescript/no-duplicate-enum-values",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-empty-object-type",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "no-empty-object-type",
+        "name": "typescript/no-empty-object-type",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-explicit-any",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**/*.{cjs,js,jsx,mjs}"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**/*.{cjs,js,jsx,mjs}"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/src/**/*.{cjs,js,jsx,mjs}",
+          "apps/factory-console/tests/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "eslint.config.mjs": [
+          "apps/admin/**/*.{cjs,js,jsx,mjs}",
+          "apps/donor/**/*.{cjs,js,jsx,mjs}",
+          "apps/factory-console/**/*.{cjs,js,jsx,mjs}",
+          "apps/missionary/**/*.{cjs,js,jsx,mjs}",
+          "packages/api/**/*.{cjs,js,jsx,mjs}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs}",
+          "packages/config/**/*.{cjs,js,jsx,mjs}",
+          "packages/database/**/*.{cjs,js,jsx,mjs}",
+          "packages/email/**/*.{cjs,js,jsx,mjs}",
+          "packages/env/**/*.{cjs,js,jsx,mjs}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs}",
+          "packages/missionary/**/*.{cjs,js,jsx,mjs}",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs}",
+          "packages/ui/**/*.{cjs,js,jsx,mjs}",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/api/eslint.config.mjs": [
+          "packages/api/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/auth/eslint.config.mjs": [
+          "packages/auth/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/config/eslint.config.mjs": [
+          "packages/config/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/database/eslint.config.mjs": [
+          "packages/database/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/email/eslint.config.mjs": [
+          "packages/email/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/env/eslint.config.mjs": [
+          "packages/env/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**/*.{cjs,js,jsx,mjs}",
+          "packages/eve-runtime/evals/**/*.{cjs,js,jsx,mjs}",
+          "packages/eve-runtime/src/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/graphql/eslint.config.mjs": [
+          "packages/graphql/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/lib/eslint.config.mjs": [
+          "packages/lib/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/missionary/eslint.config.mjs": [
+          "packages/missionary/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/mock-data/eslint.config.mjs": [
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**/*.{cjs,js,jsx,mjs}"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "no-explicit-any",
+        "name": "typescript/no-explicit-any",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-extra-non-null-assertion",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "no-extra-non-null-assertion",
+        "name": "typescript/no-extra-non-null-assertion",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-misused-new",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "no-misused-new",
+        "name": "typescript/no-misused-new",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-namespace",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "no-namespace",
+        "name": "typescript/no-namespace",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-non-null-asserted-optional-chain",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "no-non-null-asserted-optional-chain",
+        "name": "typescript/no-non-null-asserted-optional-chain",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-require-imports",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "no-require-imports",
+        "name": "typescript/no-require-imports",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-this-alias",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "no-this-alias",
+        "name": "typescript/no-this-alias",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-unnecessary-type-constraint",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "no-unnecessary-type-constraint",
+        "name": "typescript/no-unnecessary-type-constraint",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-unsafe-declaration-merging",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "no-unsafe-declaration-merging",
+        "name": "typescript/no-unsafe-declaration-merging",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-unsafe-function-type",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "no-unsafe-function-type",
+        "name": "typescript/no-unsafe-function-type",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-expressions",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": [
+          "packages/missionary/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": true,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "eslint",
+        "rule": "no-unused-expressions",
+        "name": "eslint/no-unused-expressions",
+        "typeAware": false,
+        "note": "typescript-eslint extends the core rule no-unused-expressions; Oxlint has one rule for both."
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**/*.{cjs,js,jsx,mjs}"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**/*.{cjs,js,jsx,mjs}"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/src/**/*.{cjs,js,jsx,mjs}",
+          "apps/factory-console/tests/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "eslint.config.mjs": [
+          "apps/admin/**/*.{cjs,js,jsx,mjs}",
+          "apps/donor/**/*.{cjs,js,jsx,mjs}",
+          "apps/factory-console/**/*.{cjs,js,jsx,mjs}",
+          "apps/missionary/**/*.{cjs,js,jsx,mjs}",
+          "packages/api/**/*.{cjs,js,jsx,mjs}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs}",
+          "packages/config/**/*.{cjs,js,jsx,mjs}",
+          "packages/database/**/*.{cjs,js,jsx,mjs}",
+          "packages/email/**/*.{cjs,js,jsx,mjs}",
+          "packages/env/**/*.{cjs,js,jsx,mjs}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs}",
+          "packages/missionary/**/*.{cjs,js,jsx,mjs}",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs}",
+          "packages/ui/**/*.{cjs,js,jsx,mjs}",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/api/eslint.config.mjs": [
+          "packages/api/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/auth/eslint.config.mjs": [
+          "packages/auth/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/config/eslint.config.mjs": [
+          "packages/config/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/database/eslint.config.mjs": [
+          "packages/database/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/email/eslint.config.mjs": [
+          "packages/email/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/env/eslint.config.mjs": [
+          "packages/env/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**/*.{cjs,js,jsx,mjs}",
+          "packages/eve-runtime/evals/**/*.{cjs,js,jsx,mjs}",
+          "packages/eve-runtime/src/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/graphql/eslint.config.mjs": [
+          "packages/graphql/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/lib/eslint.config.mjs": [
+          "packages/lib/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/missionary/eslint.config.mjs": [
+          "packages/missionary/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/mock-data/eslint.config.mjs": [
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs}"
+        ],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**/*.{cjs,js,jsx,mjs}"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "eslint",
+        "rule": "no-unused-vars",
+        "name": "eslint/no-unused-vars",
+        "typeAware": false,
+        "note": "typescript-eslint extends the core rule no-unused-vars; Oxlint has one rule for both."
+      }
+    },
+    {
+      "rule": "@typescript-eslint/no-wrapper-object-types",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "no-wrapper-object-types",
+        "name": "typescript/no-wrapper-object-types",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/prefer-as-const",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "prefer-as-const",
+        "name": "typescript/prefer-as-const",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/prefer-namespace-keyword",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "prefer-namespace-keyword",
+        "name": "typescript/prefer-namespace-keyword",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "@typescript-eslint/triple-slash-reference",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "typescript",
+        "rule": "triple-slash-reference",
+        "name": "typescript/triple-slash-reference",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "import-x/no-duplicates",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "import",
+        "rule": "no-duplicates",
+        "name": "import/no-duplicates",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "no-restricted-imports",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": true,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "eslint",
+        "rule": "no-restricted-imports",
+        "name": "eslint/no-restricted-imports",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "no-var",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**/*.{cts,mts,ts,tsx}"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**/*.{cts,mts,ts,tsx}"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,mts,ts,tsx}"
+        ],
+        "eslint.config.mjs": [
+          "apps/admin/**/*.{cts,mts,ts,tsx}",
+          "apps/donor/**/*.{cts,mts,ts,tsx}",
+          "apps/factory-console/**/*.{cts,mts,ts,tsx}",
+          "apps/missionary/**/*.{cts,mts,ts,tsx}",
+          "packages/api/**/*.{ts,tsx}",
+          "packages/auth/**/*.{ts,tsx}",
+          "packages/config/**/*.{ts,tsx}",
+          "packages/database/**/*.{ts,tsx}",
+          "packages/email/**/*.{ts,tsx}",
+          "packages/env/**/*.{ts,tsx}",
+          "packages/eve-runtime/**/*.{ts,tsx}",
+          "packages/graphql/**/*.{ts,tsx}",
+          "packages/lib/**/*.{ts,tsx}",
+          "packages/missionary/**/*.{cts,mts,ts,tsx}",
+          "packages/mock-data/**/*.{ts,tsx}",
+          "packages/ui/**/*.{cts,mts,ts,tsx}",
+          "tooling/eslint-config/**/*.{ts,tsx}",
+          "tooling/quality/**/*.{ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": [
+          "packages/api/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/auth/eslint.config.mjs": [
+          "packages/auth/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/config/eslint.config.mjs": [
+          "packages/config/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/database/eslint.config.mjs": [
+          "packages/database/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/email/eslint.config.mjs": [
+          "packages/email/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/env/eslint.config.mjs": [
+          "packages/env/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**/*.{cts,mts,ts,tsx}",
+          "packages/eve-runtime/evals/**/*.{cts,mts,ts,tsx}",
+          "packages/eve-runtime/src/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/graphql/eslint.config.mjs": [
+          "packages/graphql/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/lib/eslint.config.mjs": [
+          "packages/lib/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/missionary/eslint.config.mjs": [
+          "packages/missionary/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/mock-data/eslint.config.mjs": [
+          "packages/mock-data/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**/*.{cts,mts,ts,tsx}"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "eslint",
+        "rule": "no-var",
+        "name": "eslint/no-var",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "own-api/no-direct-call",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/missionary/**",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/ui/**"
+        ],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "gap",
+        "expected": false,
+        "reason": "No Oxlint 1.94.0 rule matches (no Oxlint plugin ports \"own-api\"); design L5 does not expect this gap."
+      }
+    },
+    {
+      "rule": "prefer-const",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**/*.{cts,mts,ts,tsx}"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**/*.{cts,mts,ts,tsx}"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,mts,ts,tsx}"
+        ],
+        "eslint.config.mjs": [
+          "apps/admin/**/*.{cts,mts,ts,tsx}",
+          "apps/donor/**/*.{cts,mts,ts,tsx}",
+          "apps/factory-console/**/*.{cts,mts,ts,tsx}",
+          "apps/missionary/**/*.{cts,mts,ts,tsx}",
+          "packages/api/**/*.{ts,tsx}",
+          "packages/auth/**/*.{ts,tsx}",
+          "packages/config/**/*.{ts,tsx}",
+          "packages/database/**/*.{ts,tsx}",
+          "packages/email/**/*.{ts,tsx}",
+          "packages/env/**/*.{ts,tsx}",
+          "packages/eve-runtime/**/*.{ts,tsx}",
+          "packages/graphql/**/*.{ts,tsx}",
+          "packages/lib/**/*.{ts,tsx}",
+          "packages/missionary/**/*.{cts,mts,ts,tsx}",
+          "packages/mock-data/**/*.{ts,tsx}",
+          "packages/ui/**/*.{cts,mts,ts,tsx}",
+          "tooling/eslint-config/**/*.{ts,tsx}",
+          "tooling/quality/**/*.{ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": [
+          "packages/api/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/auth/eslint.config.mjs": [
+          "packages/auth/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/config/eslint.config.mjs": [
+          "packages/config/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/database/eslint.config.mjs": [
+          "packages/database/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/email/eslint.config.mjs": [
+          "packages/email/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/env/eslint.config.mjs": [
+          "packages/env/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**/*.{cts,mts,ts,tsx}",
+          "packages/eve-runtime/evals/**/*.{cts,mts,ts,tsx}",
+          "packages/eve-runtime/src/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/graphql/eslint.config.mjs": [
+          "packages/graphql/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/lib/eslint.config.mjs": [
+          "packages/lib/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/missionary/eslint.config.mjs": [
+          "packages/missionary/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/mock-data/eslint.config.mjs": [
+          "packages/mock-data/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**/*.{cts,mts,ts,tsx}"]
+      },
+      "options": true,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "eslint",
+        "rule": "prefer-const",
+        "name": "eslint/prefer-const",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "prefer-rest-params",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**/*.{cts,mts,ts,tsx}"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**/*.{cts,mts,ts,tsx}"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,mts,ts,tsx}"
+        ],
+        "eslint.config.mjs": [
+          "apps/admin/**/*.{cts,mts,ts,tsx}",
+          "apps/donor/**/*.{cts,mts,ts,tsx}",
+          "apps/factory-console/**/*.{cts,mts,ts,tsx}",
+          "apps/missionary/**/*.{cts,mts,ts,tsx}",
+          "packages/api/**/*.{ts,tsx}",
+          "packages/auth/**/*.{ts,tsx}",
+          "packages/config/**/*.{ts,tsx}",
+          "packages/database/**/*.{ts,tsx}",
+          "packages/email/**/*.{ts,tsx}",
+          "packages/env/**/*.{ts,tsx}",
+          "packages/eve-runtime/**/*.{ts,tsx}",
+          "packages/graphql/**/*.{ts,tsx}",
+          "packages/lib/**/*.{ts,tsx}",
+          "packages/missionary/**/*.{cts,mts,ts,tsx}",
+          "packages/mock-data/**/*.{ts,tsx}",
+          "packages/ui/**/*.{cts,mts,ts,tsx}",
+          "tooling/eslint-config/**/*.{ts,tsx}",
+          "tooling/quality/**/*.{ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": [
+          "packages/api/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/auth/eslint.config.mjs": [
+          "packages/auth/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/config/eslint.config.mjs": [
+          "packages/config/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/database/eslint.config.mjs": [
+          "packages/database/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/email/eslint.config.mjs": [
+          "packages/email/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/env/eslint.config.mjs": [
+          "packages/env/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**/*.{cts,mts,ts,tsx}",
+          "packages/eve-runtime/evals/**/*.{cts,mts,ts,tsx}",
+          "packages/eve-runtime/src/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/graphql/eslint.config.mjs": [
+          "packages/graphql/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/lib/eslint.config.mjs": [
+          "packages/lib/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/missionary/eslint.config.mjs": [
+          "packages/missionary/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/mock-data/eslint.config.mjs": [
+          "packages/mock-data/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**/*.{cts,mts,ts,tsx}"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "eslint",
+        "rule": "prefer-rest-params",
+        "name": "eslint/prefer-rest-params",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "prefer-spread",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**/*.{cts,mts,ts,tsx}"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**/*.{cts,mts,ts,tsx}"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,mts,ts,tsx}"
+        ],
+        "eslint.config.mjs": [
+          "apps/admin/**/*.{cts,mts,ts,tsx}",
+          "apps/donor/**/*.{cts,mts,ts,tsx}",
+          "apps/factory-console/**/*.{cts,mts,ts,tsx}",
+          "apps/missionary/**/*.{cts,mts,ts,tsx}",
+          "packages/api/**/*.{ts,tsx}",
+          "packages/auth/**/*.{ts,tsx}",
+          "packages/config/**/*.{ts,tsx}",
+          "packages/database/**/*.{ts,tsx}",
+          "packages/email/**/*.{ts,tsx}",
+          "packages/env/**/*.{ts,tsx}",
+          "packages/eve-runtime/**/*.{ts,tsx}",
+          "packages/graphql/**/*.{ts,tsx}",
+          "packages/lib/**/*.{ts,tsx}",
+          "packages/missionary/**/*.{cts,mts,ts,tsx}",
+          "packages/mock-data/**/*.{ts,tsx}",
+          "packages/ui/**/*.{cts,mts,ts,tsx}",
+          "tooling/eslint-config/**/*.{ts,tsx}",
+          "tooling/quality/**/*.{ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": [
+          "packages/api/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/auth/eslint.config.mjs": [
+          "packages/auth/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/config/eslint.config.mjs": [
+          "packages/config/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/database/eslint.config.mjs": [
+          "packages/database/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/email/eslint.config.mjs": [
+          "packages/email/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/env/eslint.config.mjs": [
+          "packages/env/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**/*.{cts,mts,ts,tsx}",
+          "packages/eve-runtime/evals/**/*.{cts,mts,ts,tsx}",
+          "packages/eve-runtime/src/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/graphql/eslint.config.mjs": [
+          "packages/graphql/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/lib/eslint.config.mjs": [
+          "packages/lib/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/missionary/eslint.config.mjs": [
+          "packages/missionary/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/mock-data/eslint.config.mjs": [
+          "packages/mock-data/**/*.{cts,mts,ts,tsx}"
+        ],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**/*.{cts,mts,ts,tsx}"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "eslint",
+        "rule": "prefer-spread",
+        "name": "eslint/prefer-spread",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react-hooks/config",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "gap",
+        "expected": true,
+        "reason": "Checks the React Compiler's configuration. Core does not run the React Compiler, so there is nothing for it to check (design L5)."
+      }
+    },
+    {
+      "rule": "react-hooks/error-boundaries",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "error-boundaries",
+        "name": "react/error-boundaries",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react-hooks/exhaustive-deps",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "exhaustive-deps",
+        "name": "react/exhaustive-deps",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react-hooks/gating",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "gap",
+        "expected": true,
+        "reason": "Checks the React Compiler's gating mode. Core does not run the React Compiler, so there is nothing for it to check (design L5)."
+      }
+    },
+    {
+      "rule": "react-hooks/globals",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "globals",
+        "name": "react/globals",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react-hooks/immutability",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "immutability",
+        "name": "react/immutability",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react-hooks/preserve-manual-memoization",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "preserve-manual-memoization",
+        "name": "react/preserve-manual-memoization",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react-hooks/purity",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "purity",
+        "name": "react/purity",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react-hooks/refs",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "refs",
+        "name": "react/refs",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react-hooks/rules-of-hooks",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/email/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/env/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/eve-runtime/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/graphql/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/mock-data/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/ui/**",
+          "tooling/eslint-config/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "tooling/quality/**/*.{cjs,js,jsx,mjs,ts,tsx}"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/config/eslint.config.mjs": ["packages/config/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/email/eslint.config.mjs": ["packages/email/**"],
+        "packages/env/eslint.config.mjs": ["packages/env/**"],
+        "packages/eve-runtime/eslint.config.mjs": [
+          "packages/eve-runtime/agent/**",
+          "packages/eve-runtime/evals/**",
+          "packages/eve-runtime/src/**"
+        ],
+        "packages/graphql/eslint.config.mjs": ["packages/graphql/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/mock-data/eslint.config.mjs": ["packages/mock-data/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "rules-of-hooks",
+        "name": "react/rules-of-hooks",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "set-state-in-effect",
+        "name": "react/set-state-in-effect",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react-hooks/set-state-in-render",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "set-state-in-render",
+        "name": "react/set-state-in-render",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react-hooks/static-components",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "static-components",
+        "name": "react/static-components",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react-hooks/use-memo",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "use-memo",
+        "name": "react/use-memo",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/display-name",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "display-name",
+        "name": "react/display-name",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/jsx-key",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "jsx-key",
+        "name": "react/jsx-key",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/jsx-no-comment-textnodes",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "jsx-no-comment-textnodes",
+        "name": "react/jsx-no-comment-textnodes",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/jsx-no-duplicate-props",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "jsx-no-duplicate-props",
+        "name": "react/jsx-no-duplicate-props",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/jsx-no-undef",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "jsx-no-undef",
+        "name": "react/jsx-no-undef",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/jsx-uses-react",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "gap",
+        "expected": true,
+        "reason": "Reports nothing: it only marks the JSX pragma variable (React) as used, for no-unused-vars under the classic JSX runtime. Without it no-unused-vars can only gain findings."
+      }
+    },
+    {
+      "rule": "react/jsx-uses-vars",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "gap",
+        "expected": true,
+        "reason": "Reports nothing: it only marks JSX element names as used, for no-unused-vars. Oxlint's no-unused-vars counts JSX references itself; the clean control relies on that."
+      }
+    },
+    {
+      "rule": "react/no-children-prop",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "no-children-prop",
+        "name": "react/no-children-prop",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/no-danger-with-children",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "no-danger-with-children",
+        "name": "react/no-danger-with-children",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/no-deprecated",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "gap",
+        "expected": false,
+        "reason": "No Oxlint 1.94.0 rule matches; design L5 does not expect this gap."
+      }
+    },
+    {
+      "rule": "react/no-direct-mutation-state",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "no-direct-mutation-state",
+        "name": "react/no-direct-mutation-state",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/no-find-dom-node",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "no-find-dom-node",
+        "name": "react/no-find-dom-node",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/no-is-mounted",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "no-is-mounted",
+        "name": "react/no-is-mounted",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/no-render-return-value",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "no-render-return-value",
+        "name": "react/no-render-return-value",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/no-string-refs",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "no-string-refs",
+        "name": "react/no-string-refs",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/no-unescaped-entities",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "no-unescaped-entities",
+        "name": "react/no-unescaped-entities",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "react/require-render-return",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": [
+          "apps/admin/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/donor/eslint.config.mjs": [
+          "apps/donor/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/tests/**/*.{cts,js,jsx,mjs,mts,ts,tsx}",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": [
+          "apps/missionary/**/*.{cts,js,jsx,mjs,mts,ts,tsx}"
+        ]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "oxlint",
+        "plugin": "react",
+        "rule": "require-render-return",
+        "name": "react/require-render-return",
+        "typeAware": false
+      }
+    },
+    {
+      "rule": "shadcn/no-arbitrary-values",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/missionary/**",
+          "packages/ui/**"
+        ],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": true,
+      "mapping": {
+        "kind": "bridge",
+        "bridge": "bun run lint:ui (tooling/eslint-config/lint.mjs)"
+      }
+    },
+    {
+      "rule": "shadcn/no-inline-styles",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/missionary/**",
+          "packages/ui/**"
+        ],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "bridge",
+        "bridge": "bun run lint:ui (tooling/eslint-config/lint.mjs)"
+      }
+    },
+    {
+      "rule": "shadcn/no-raw-colors",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/missionary/**",
+          "packages/ui/**"
+        ],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": true,
+      "mapping": {
+        "kind": "bridge",
+        "bridge": "bun run lint:ui (tooling/eslint-config/lint.mjs)"
+      }
+    },
+    {
+      "rule": "shadcn/no-restyle",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/missionary/**",
+          "packages/ui/**"
+        ],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": true,
+      "mapping": {
+        "kind": "bridge",
+        "bridge": "bun run lint:ui (tooling/eslint-config/lint.mjs)"
+      }
+    },
+    {
+      "rule": "shadcn/no-unknown-classes",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/missionary/**",
+          "packages/ui/**"
+        ],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": true,
+      "mapping": {
+        "kind": "bridge",
+        "bridge": "bun run lint:ui (tooling/eslint-config/lint.mjs)"
+      }
+    },
+    {
+      "rule": "shadcn/require-static-classes",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/donor/eslint.config.mjs": ["apps/donor/**"],
+        "apps/factory-console/eslint.config.mjs": [
+          "apps/factory-console/next.config.ts",
+          "apps/factory-console/playwright.config.ts",
+          "apps/factory-console/src/**",
+          "apps/factory-console/tests/**",
+          "apps/factory-console/vitest.config.ts"
+        ],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/donor/**",
+          "apps/factory-console/**",
+          "apps/missionary/**",
+          "packages/missionary/**",
+          "packages/ui/**"
+        ],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": false,
+      "mapping": {
+        "kind": "bridge",
+        "bridge": "bun run lint:ui (tooling/eslint-config/lint.mjs)"
+      }
+    },
+    {
+      "rule": "tenant-navigation/no-prefixless-navigation",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/auth/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/database/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/ui/**"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/auth/eslint.config.mjs": ["packages/auth/**"],
+        "packages/database/eslint.config.mjs": ["packages/database/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": true,
+      "mapping": {
+        "kind": "gap",
+        "expected": false,
+        "reason": "No Oxlint 1.94.0 rule matches (no Oxlint plugin ports \"tenant-navigation\"); design L5 does not expect this gap."
+      }
+    },
+    {
+      "rule": "tenant-navigation/no-tenantless-cache",
+      "scopes": {
+        "apps/admin/eslint.config.mjs": ["apps/admin/**"],
+        "apps/missionary/eslint.config.mjs": ["apps/missionary/**"],
+        "eslint.config.mjs": [
+          "apps/admin/**",
+          "apps/missionary/**",
+          "packages/api/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/lib/**/*.{cjs,js,jsx,mjs,ts,tsx}",
+          "packages/missionary/**",
+          "packages/ui/**"
+        ],
+        "packages/api/eslint.config.mjs": ["packages/api/**"],
+        "packages/lib/eslint.config.mjs": ["packages/lib/**"],
+        "packages/missionary/eslint.config.mjs": ["packages/missionary/**"],
+        "packages/ui/eslint.config.mjs": ["packages/ui/**"]
+      },
+      "options": true,
+      "mapping": {
+        "kind": "gap",
+        "expected": false,
+        "reason": "No Oxlint 1.94.0 rule matches (no Oxlint plugin ports \"tenant-navigation\"); design L5 does not expect this gap."
+      }
+    }
+  ]
+}

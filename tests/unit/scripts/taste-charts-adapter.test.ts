@@ -28,6 +28,7 @@ const hash = (content: string) =>
   createHash("sha256").update(content).digest("hex");
 
 async function fixture() {
+  await mkdir(path.join(repo, ".tmp"), { recursive: true });
   const root = await mkdtemp(path.join(repo, ".tmp/taste-charts-test-"));
   roots.push(root);
   await mkdir(path.join(root, "assets"));

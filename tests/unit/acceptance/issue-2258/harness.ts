@@ -7,10 +7,8 @@
  * `packages/auth/principal`, where `getAuthContext` can use it; it takes the
  * surface's role class, its rows carry the tenant-administrator flag, and the
  * staff-over-donor default is gone. `tests/unit/auth/membership-rpc-contract.test.ts`
- * leaves the unedited list: the proxies' role check moved to the assignments
- * function, which that test now pins.
+ * checks the proxies' role check against the assignments function.
  */
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 
 export const MIG = "supabase/migrations";
@@ -39,51 +37,8 @@ export const MOD = {
 export const DOC = "docs/guides/architecture/authz-memberships.md";
 export const REALSTACK =
   "tests/unit/acceptance/issue-2258/current-user-assignments.realstack.acceptance.test.ts";
-/**
- * c12 + addendum 1 item 3: tests that stay green AND unedited, pinned by git
- * blob id at develop 88eefbd9 (`git ls-tree 88eefbd9 <path>`).
- */
-export const UNEDITED: Record<string, string> = {
-  "tests/unit/packages/api/auth/get-auth-context-request-propagation.test.ts":
-    "83cc87dcfb0af9840e8bde281a62fc04a357262e",
-  // #2402 27cd6961 adds the REVOKE ALL ON SCHEMA private expectation.
-  // AL-2675 (WP2b, second release; record D-18) adds the three authz
-  // definers of the request-tenant migration, with their exact grants, and
-  // leaves the #2270 lockdown expectations as they were.
-  "tests/unit/security/authz-definer-execute-grants.test.ts":
-    "6ad236c1203f73bb2e0de2497580e99ba8a8ab09",
-  // AL-2674 (plan 5.4, NR-13) adds tenant_guard to the expected EXECUTE
-  // grantees of the two authz membership helpers, and nothing else.
-  // AL-2675 (WP2b, second release; record D-18) re-pins two files: the real
-  // stack suite sends the request's tenant and assignment, drops the five
-  // write policies its migration body no longer alters (activation review
-  // Q7, Q8: three whose grants were revoked, and the two of crm_record_links,
-  // which never had one) and checks the standing ones' new predicates
-  // exactly; the static suite lists the three authz definers the policy
-  // migration adds. Each file records its reason beside the change. The
-  // review of pull request 2737 (record D-18) re-pins the real-stack suite
-  // once more: its C8 checks the INSERT and UPDATE grants with
-  // has_any_column_privilege, so a column-level write grant fails it.
-  "tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts":
-    "1f5364818a1dc2c46f79bb7fc8b8ab681b496050",
-  "tests/unit/acceptance/issue-2270/harness.ts":
-    "e9e7201350e5d1f90f85c266f762d450ca3637d5",
-  "tests/unit/acceptance/issue-2270/static.acceptance.test.ts":
-    "15513fbf12b7a2051f6b7187b2b5fd9d62dc524e",
-  /** c2: projection/types.ts is not edited. */
-  "packages/api/src/projection/types.ts":
-    "bb325e269ee9ec18689717f7fbbdeaad9a924998",
-};
-
 export const read = (f: string) =>
   existsSync(f) ? readFileSync(f, "utf8") : "";
-/** git's blob id of a working-tree file (sha1 of "blob <len>\0" + bytes). */
-export const blobId = (f: string) => {
-  const b = readFileSync(f);
-  return createHash("sha1")
-    .update(Buffer.concat([Buffer.from(`blob ${b.length}\0`), b]))
-    .digest("hex");
-};
 /** SQL with comments removed (executable text only). */
 export const code = (sql: string) =>
   sql.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/--[^\n]*/g, " ");

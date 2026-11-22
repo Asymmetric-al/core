@@ -3,7 +3,7 @@
   "display": "Library",
   "extends": "./base.json",
   "compilerOptions": {
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "lib": ["DOM", "DOM.Iterable", "ES2022", "ES2023.Intl"],
     "allowJs": false,
     "isolatedDeclarations": true,
     "composite": true,

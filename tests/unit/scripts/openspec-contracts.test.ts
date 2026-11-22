@@ -15,6 +15,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   contractDigest,
   renderContractView,
+  renderContractViews,
   verifyContractReferences,
 } from "../../../scripts/lib/openspec-contracts.mjs";
 
@@ -33,6 +34,22 @@ afterEach(async () => {
 });
 
 describe("OpenSpec binding contract views", () => {
+  it("does not publish an earlier companion if a later projection fails", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "openspec-contract-"));
+    roots.push(root);
+    await expect(
+      renderContractViews(
+        [
+          { capability: "tenants", content: delta },
+          { capability: "../invalid", content: delta },
+        ],
+        { repoRoot: root, write: true },
+      ),
+    ).rejects.toThrow();
+    await expect(
+      access(path.join(root, "openspec/contracts/tenants.md")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+  });
   it.each([false, true])(
     "leaves companions unchanged after rejected generation (existing: %s)",
     async (existing) => {

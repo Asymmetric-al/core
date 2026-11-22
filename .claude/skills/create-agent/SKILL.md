@@ -71,7 +71,7 @@ Write `agent/EVE-BRIEF.md` using the template in [reference.md](reference.md#eve
 
 ### 0. Read eve docs (required before any implementation)
 
-After `eve` is installed, **must** read bundled docs at `node_modules/eve/docs/` before writing agent code:
+**must** read the bundled docs before writing agent code. In Core, eve is installed in `packages/eve-runtime`, so they are at `packages/eve-runtime/node_modules/eve/docs/README.md` (not the repository root). Read `packages/eve-runtime/AGENTS.md` too: product-runtime eve stays disabled by default and gains models, tools or effects only through an accepted OpenSpec change.
 
 1. Introduction and Getting Started
 2. Every surface page listed in the brief (tools, channels, connections, etc.)
@@ -83,38 +83,50 @@ After `eve` is installed, **must** read bundled docs at `node_modules/eve/docs/`
 
 Before scaffolding, inspect the repo:
 
-| Situation                      | Action                                                                                           |
-| ------------------------------ | ------------------------------------------------------------------------------------------------ |
-| No `agent/` directory anywhere | `npx eve@latest init <dir>` (standalone) or `npx eve@latest init .` (add to existing app)        |
-| One existing eve agent         | Mirror its project structure (package.json scripts, tsconfig, env pattern)                       |
-| Multiple eve agents (monorepo) | Inventory siblings; mirror naming, workspace deps, and folder conventions from the nearest agent |
+| Situation                           | Action                                                                                           |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------ |
+| No `agent/` in the selected project | Use the pinned Core CLI with the selected project as the target, as shown below.                 |
+| One existing eve agent              | Mirror its project structure (package.json scripts, tsconfig, env pattern)                       |
+| Multiple eve agents (monorepo)      | Inventory siblings; mirror naming, workspace deps, and folder conventions from the nearest agent |
 
 Do not assume a specific monorepo shape. Discover conventions from the codebase. See [reference.md](reference.md#repo-layouts).
 
 ### 2. Install / scaffold
 
-**No eve project yet:**
+Set `project_dir` to the absolute path agreed in Phase 1. From the Core repository root, locate the installed CLI:
 
 ```bash
-npx eve@latest init <agent-dir>
+eve_cli="$(pwd -P)/packages/eve-runtime/node_modules/.bin/eve"
 ```
 
-`init` installs deps and may start the dev server — run in a controllable process and **stop the server** before editing files.
-
-**Existing project, no `agent/` directory:**
+For a new project, run from its existing parent directory. `init` accepts the directory name as its argument. Eve uses the parent workspace's package manager when it finds one. The Bun user-agent gives standalone projects a Bun default.
 
 ```bash
-cd <project-root>
-npx eve@latest init .
+(
+  cd "$(dirname -- "$project_dir")" &&
+    AI_AGENT=1 npm_config_user_agent="bun/$(bun --version)" "$eve_cli" init "$(basename -- "$project_dir")"
+)
 ```
 
-**eve already present:** skip init; ensure `agent/agent.ts` and `agent/instructions.md` exist.
+For an existing project with a `package.json` and no `agent/` directory, run from that project. Eve uses the selected project's package manager.
 
-Optional: `--channel-web-nextjs` only when the user asked for Web Chat and they are using Next.js.
+```bash
+(cd "$project_dir" && AI_AGENT=1 "$eve_cli" init .)
+```
+
+`AI_AGENT=1` tells Eve to print the next steps after installation, including in shells that the CLI cannot identify as coding-agent sessions. If installation fails after `agent/agent.ts` is written, inspect the generated files and retry dependency installation from the project directory with its package manager.
+
+If the selected project already has `agent/`, skip init and locate its `agent/agent.ts` and `agent/instructions.md`.
+
+Use `--channel-web-nextjs` for new projects only, when the brief calls for the Next.js Web Chat app. In an existing project, `channels add web` also attempts to link and deploy the project on Vercel. Run it after init when the user has authorized that deployment.
+
+```bash
+(cd "$project_dir" && "$eve_cli" channels add web)
+```
 
 ### 3. Place EVE-BRIEF.md
 
-Write or move `agent/EVE-BRIEF.md` into the scaffolded `agent/` directory.
+Write or move `EVE-BRIEF.md` into the selected project’s `agent/` directory. Implement from that project directory.
 
 ### 4. Implement from the brief
 
@@ -127,7 +139,7 @@ Minimum bar for every agent:
 - `.env.example` with `AI_GATEWAY_API_KEY=` and every env var for real integrations
 - README with clone-and-run steps
 
-Implement only surfaces listed in the brief. For each surface, read the matching page in `node_modules/eve/docs/` and follow patterns from the nearest existing agent in the repo when one exists.
+Implement only surfaces listed in the brief. For each surface, read the matching page in `packages/eve-runtime/node_modules/eve/docs/` and follow patterns from the nearest existing agent in the repo when one exists.
 
 **Teaching comments (required):**
 
@@ -137,7 +149,7 @@ See [reference.md — Teaching comments](reference.md#teaching-comments) for the
 
 - **File header** on every `agent/**/*.ts` file: which eve surface this file belongs to, how eve discovers/loads it, and what role it plays in a turn.
 - **Section blocks** before each logical unit (imports, schema, handler, export): explain the eve concept (e.g. tool identity from path, `defineAgent` slots, channel request lifecycle).
-- **Inline comments** on eve-specific APIs, config keys, and conventions the user would not know from TypeScript alone — link to the matching doc page under `node_modules/eve/docs/` when helpful.
+- **Inline comments** on eve-specific APIs, config keys, and conventions the user would not know from TypeScript alone — link to the matching doc page under `packages/eve-runtime/node_modules/eve/docs/` when helpful.
 - **`instructions.md`**: short callouts above each major section explaining how system instructions shape model behavior in eve.
 - **README**: a "How this agent is structured" section that maps files → eve surfaces and points to the most-commented files to read first.
 
@@ -156,20 +168,23 @@ Do not strip comments eve `init` generated if they teach a concept. Prefer addin
 If the repo already hosts multiple eve agents under a shared parent directory:
 
 1. Update any existing agent index or catalog the repo maintains — for ship-eve, add a row to both `agents/README.md` and the root `README.md` with **Eve surfaces** and **Eve capabilities demonstrated** (use labels from the capabilities key in `agents/README.md`)
-2. Register the new package in the workspace manifest (`pnpm-workspace.yaml`, `package.json` workspaces, etc.)
+2. Register the new package in the root `package.json` workspaces (Core uses Bun workspaces)
 3. Match package naming and shared config from sibling agents
 
 Skip this step for standalone projects.
 
 ### 6. Verify
 
+For a new scaffold that uses Bun, run the generated checks from the selected project:
+
 ```bash
-pnpm install   # or npm install
-pnpm typecheck # if available
-pnpm build     # eve build
+bun run --cwd "$project_dir" typecheck
+bun run --cwd "$project_dir" build
 ```
 
-Tell the user how to run `pnpm dev`, what to ask in the TUI, and how to exercise the agent over HTTP per the eve docs. Point them to the most-commented files as the learning path. Do not commit unless asked.
+For an existing project or a scaffold that inherits another package manager, use the project's declared typecheck and build commands with that manager. If implementation changed dependencies, update the lockfile with the project's package manager before verifying.
+
+Tell the user how to run the agent with `bunx eve` from the selected project directory, what to ask in the TUI, and how to exercise the agent over HTTP per the eve docs. Point them to the most-commented files as the learning path. Do not commit unless asked.
 
 ---
 

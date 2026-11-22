@@ -34,6 +34,40 @@ import {
 
 import type { SupportReplyPayload } from "../models/editor-payload";
 
+interface SupportCollections {
+  readonly conversations: typeof supportConversationsCollection;
+  readonly labels: typeof supportLabelsCollection;
+  readonly macros: typeof supportMacrosCollection;
+  readonly cannedResponses: typeof supportCannedResponsesCollection;
+  readonly savedViews: typeof supportSavedViewsCollection;
+  readonly inboxes: typeof supportInboxesCollection;
+  readonly inboxSettings: typeof supportInboxSettingsCollection;
+  readonly teams: typeof supportTeamsCollection;
+  readonly agents: typeof supportAgentsCollection;
+  readonly businessHours: typeof supportBusinessHoursCollection;
+  readonly slaPolicies: typeof supportSlaPoliciesCollection;
+  readonly signatures: typeof supportSignaturesCollection;
+  readonly automationRules: typeof supportAutomationRulesCollection;
+  readonly notificationPreferences: typeof supportNotificationPreferencesCollection;
+}
+
+const collections: SupportCollections = {
+  conversations: supportConversationsCollection,
+  labels: supportLabelsCollection,
+  macros: supportMacrosCollection,
+  cannedResponses: supportCannedResponsesCollection,
+  savedViews: supportSavedViewsCollection,
+  inboxes: supportInboxesCollection,
+  inboxSettings: supportInboxSettingsCollection,
+  teams: supportTeamsCollection,
+  agents: supportAgentsCollection,
+  businessHours: supportBusinessHoursCollection,
+  slaPolicies: supportSlaPoliciesCollection,
+  signatures: supportSignaturesCollection,
+  automationRules: supportAutomationRulesCollection,
+  notificationPreferences: supportNotificationPreferencesCollection,
+};
+
 /**
  * Single namespaced surface for everything the hooks layer consumes.
  * `supportStore.collections` exposes optional TanStack DB read caches over the
@@ -47,22 +81,7 @@ import type { SupportReplyPayload } from "../models/editor-payload";
  * collection registry.
  */
 export const supportStore = {
-  collections: {
-    conversations: supportConversationsCollection,
-    labels: supportLabelsCollection,
-    macros: supportMacrosCollection,
-    cannedResponses: supportCannedResponsesCollection,
-    savedViews: supportSavedViewsCollection,
-    inboxes: supportInboxesCollection,
-    inboxSettings: supportInboxSettingsCollection,
-    teams: supportTeamsCollection,
-    agents: supportAgentsCollection,
-    businessHours: supportBusinessHoursCollection,
-    slaPolicies: supportSlaPoliciesCollection,
-    signatures: supportSignaturesCollection,
-    automationRules: supportAutomationRulesCollection,
-    notificationPreferences: supportNotificationPreferencesCollection,
-  },
+  collections,
   inputs: {
     assignConversation: z.object({
       conversationId: z.string().min(1),

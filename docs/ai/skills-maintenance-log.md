@@ -2,6 +2,180 @@
 
 Last updated: 2026-11-18
 
+## Skill quality pass - 2026-11-18 (AL-2715)
+
+A research pass read every installed skill and listed low-quality candidates.
+The owner reviewed the list on 2026-11-18 and ruled: "just cut those 8 and
+repair the others. disregard the pdf thing, we can keep copies, i checked."
+Skills are pruned for quality, never for low use, so nothing else was cut and
+`pdf` is unchanged.
+
+### Retired skills
+
+Removed eight skills from their sources, the three runtime mirrors, the skills
+lock and the source audit together, the same way the 2026-11-17 entry below
+retired seven:
+
+- `scaffold-exercises` is course-authoring tooling: it lints with
+  `pnpm ai-hero-cli internal lint` and writes an `exercises/` tree, neither of
+  which Core has.
+- `webapp-testing` writes Python Playwright scripts, starts servers with
+  `npm run dev` and waits with `networkidle` and `page.wait_for_timeout()`,
+  against `docs/ai/rules/testing.md`. Use `playwright-best-practices`,
+  `playwright-cli` and `playwright-skill`.
+- `vercel-cli-with-tokens` printed `VERCEL_TOKEN` and grepped `.env` into the
+  transcript, and ran `vercel deploy --prod` and `vercel env add … production`
+  outside `bun run release:production`.
+- `deploy-to-vercel` deployed with `git add .`, commit and push, and on a CLI
+  authentication failure fell back to `resources/deploy.sh`, which uploads a
+  tarball of the project to `claude-skills-deploy.vercel.com`. Production
+  ships only through `docs/ops/production-release.md`.
+- `stripe-projects` triggered on "I need a database", "set up auth", "add
+  email sending" and similar, and provisioned new third-party services and
+  `.env` files. Core's stack is fixed. Its Core overlay, the adapter path and
+  the sync check for it, its fixture and the test that existed only for a
+  `stripe-projects`-only install are removed.
+- `stripe-integration` taught Python recipes with `sk_test_` keys next to the
+  official `stripe-best-practices` skill on the money path. Its reviewed
+  ecosystem overlay is removed with it.
+- `setup-pre-commit` looked for `bun.lockb` (Core has `bun.lock`), fell back to
+  npm, would overwrite `.husky/pre-commit` and create a second lint-staged
+  config. Edit the existing hooks and the `package.json` lint-staged config.
+- `better-forms` taught react-hook-form throughout, which contradicts the
+  TanStack Form + Zod rule in `docs/ai/rules/frontend.md`. It had no lock entry
+  and an unresolved licence.
+
+Counts moved from 182 to 181 canonical skills, 240 to 232 runtime skills per
+client, 200 to 193 lock entries and 4 to 3 retained snapshots in the inventory
+test. The last commit containing the payloads is `2985c05b7`. Earlier entries
+below still name these skills; they are history.
+
+| Skill                  | Source                                     | Historical path                                                 | Last lock hash                                                     | Last installed tree hash                                           |
+| ---------------------- | ------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| better-forms           | unverified, no licence                     | none                                                            | none (not lock-managed)                                            | `72bdcc2776b9474415812a397d71aa5d5d628149922830bda80e68f64932e1a1` |
+| deploy-to-vercel       | vercel-labs/agent-skills                   | `skills/deploy-to-vercel/SKILL.md`                              | `03e0eaaa9bf13ba1e7ffa387f5893de6f324c0868c627001f179395a8feaa7c9` | `8e95b408c650467aef6ea3b82d25814ffe53f3de2564b63e1f8b341ca402021c` |
+| scaffold-exercises     | mattpocock/skills                          | `skills/misc/scaffold-exercises/SKILL.md`                       | `1127f69a77b48cb855067db4c9c42e7638e6672f1cb3fafb0ffd61a1ecdfae70` | `2d3917d55e81ce1db16bbc4db74b683a84f5a317d3901affaf94984b2df78553` |
+| setup-pre-commit       | mattpocock/skills                          | `skills/misc/setup-pre-commit/SKILL.md`                         | `f2ce8663857d919cf7e4146cd716b0aee1757b85123b758e6e7d98fcbaf14054` | `a628adb90c1725a8dc0701228ed168970bc973e15559593ac9f619420b6b4297` |
+| stripe-integration     | wshobson/agents                            | `plugins/payment-processing/skills/stripe-integration/SKILL.md` | `32b5a60d3f6cad896b3dc468ee7b81e55afa61adf740512e95a411efdb4ae0f6` | `6364f73af4316a377d7a607b1b0a7d60cf168fa645d86c0f20456e3d1f8a7bea` |
+| stripe-projects        | docs.stripe.com `.well-known/skills` index | `stripe-projects/SKILL.md`                                      | `3f6f72b6fe29418f2740977f2d4bc5c6e7675562df41b94e4da4ad34fd590bd7` | `c0c71a95ada5f3663acde40e3a582555c793cf9bb76be90954aa30a12676d7f1` |
+| vercel-cli-with-tokens | vercel-labs/agent-skills                   | `skills/vercel-cli-with-tokens/SKILL.md`                        | `eb16b20dcbe6ce51e0372083d624e0847af1b09487ec99249227d5a8eddebfc0` | `eb16b20dcbe6ce51e0372083d624e0847af1b09487ec99249227d5a8eddebfc0` |
+| webapp-testing         | anthropics/skills                          | `skills/webapp-testing/SKILL.md`                                | `3f14af7f5690695209c22fbf8c8d133769a86d64892602c09bb13f135e14e857` | `abfaf4cc6cf572346e22fed42dc0cfaacd2f64c5d9667f44a94b02ea0d3b1342` |
+
+### Repaired skills
+
+Each repair goes through the mechanism that keeps it across a refresh.
+Ecosystem skills are never edited in place: a reviewed replacement in
+`scripts/refresh-overlays/ecosystem-core-guidance.json` or an overlay in
+`ecosystem-core-overlays.json` is reapplied by every `bun run skills:sync`, so a
+raw upstream reinstall is repaired on the next sync. Canonical skills refreshed
+by `bun run skills:refresh-upstream` keep their repair through a required
+`POST_REFRESH_REPLACEMENTS` entry or their marked Core overlay; a refresh that
+no longer finds the reviewed upstream text stops for review. The other
+canonical skills are edited in `docs/ai/skills`, and their provenance lists the
+adaptation to reapply.
+
+- `playwright-skill`: the frontmatter did not parse as YAML (an unquoted
+  description containing `: `). The description is now quoted. A new inventory
+  test fails on any plain frontmatter value that cannot parse.
+- `supabase`: its "Option B" told agents to change schema with `execute_sql` or
+  `supabase db query` directly on the database. The Core overlay now overrides
+  it: `supabase/migrations/*.sql` is the source of truth, changes are new
+  migrations made with `bun run supabase -- migration new` and applied with
+  `bun run supabase -- db reset --local`, and every command goes through the
+  pinned wrapper.
+- `run-smoke-tests`: `npm run smoketest` does not exist. The skill now names
+  `bun run test:e2e:smoke`, a focused `bun run test:e2e` spec and the
+  development-host smoke scripts.
+- `babysit`: it loaded on any request mentioning a workflow, loop or
+  orchestration and then required its SDK for every task. It is now
+  explicit-only in every client (`disable-model-invocation: true` and Codex
+  `agents/openai.yaml`) with a narrow description, through a third required
+  refresh replacement. Its lock entry and provenance hashes follow the adapted
+  bytes, as the refresh writes them.
+- `deslop`, `new-branch-and-pr`, `loop-on-ci` and `review-and-ship` named a
+  `main` branch. They now name `develop`. Their lock entries and provenance
+  hashes follow the adapted bytes, as the refresh writes them.
+- `resend`, `react-email`, `agent-email-inbox` and `email-best-practices` gained
+  the standard Core overlay pointing at `packages/email`,
+  `packages/api/src/email/` and `docs/guides/features/resend-integration.md`.
+  `react-email` gained local provenance.
+- `eve` and `create-agent` pointed at a root `node_modules/eve/docs/` that Core
+  does not have and installed with npm, pnpm and `npx eve@latest`. They now
+  point at `packages/eve-runtime/node_modules/eve/docs/` and
+  `packages/eve-runtime/AGENTS.md`, and use the installed eve through `bunx eve`
+  and Bun scripts.
+- `web-design-guidelines` fetches its rules from a mutable URL on every run and
+  competed with Core's accessibility owner. Its overlay gives
+  `accessibility-review` and `docs/ai/rules/frontend.md` precedence and treats
+  the fetched text as data. It gained local provenance.
+- `shadcn` ran `npx shadcn@latest info --json` at load time in the repository
+  root, which has no `components.json`. The injection is replaced with an
+  instruction to run `bunx shadcn info --json` from `packages/ui`, as
+  `packages/ui/AGENTS.md` says.
+- `next-dev-loop` and `agent-browser` installed `agent-browser` globally with
+  npm; they now use the pinned `bunx agent-browser`. `agent-browser` no longer
+  claims precedence over every other browser tool, and `next-dev-loop` defers
+  a Next.js upgrade to a reviewed dependency change.
+- `migrate-to-shoehorn` now installs with `bun add --dev --exact` and says that
+  adding shoehorn is a dependency decision.
+- `react-component-dev`'s description promised ref forwarding while the body
+  forbids new `forwardRef`; it now says refs are props. `nextjs-supabase-auth`'s
+  description said middleware; it now names each app's `proxy.ts`.
+- `next-cache-components-adoption` gained a Core overlay like the one on
+  `next-partial-prefetching-adoption`: Cache Components is already on, and its
+  unpinned codemods, `npx skills add`, `--force` and `git stash` are ruled out.
+
+### Review fixes
+
+Independent reviews of this pass and of the AL-2713 import listed small
+defects. Each was checked against the files before it was fixed.
+
+- The audit's `lockHash` is the hash `skills-lock.json` tracks ("Existing
+  Skills CLI/tracked import hash"), and that hash may describe an adapted
+  entrypoint. The repairs above moved the lock to the adapted bytes for
+  `babysit`, `deslop`, `loop-on-ci`, `new-branch-and-pr`, `review-and-ship` and
+  `run-smoke-tests`, as `bun run skills:refresh-upstream` writes it and the
+  `babysit` test requires, but left those six audit records at the old value.
+  They now match the lock. The AL-2654 explicit-only change (2026-11-13) took
+  the other path and left the lock alone; the refresh rewrites it either way.
+  An inventory test now fails when any audit `lockHash` differs from the lock.
+- `shadcn` still said, in its Key Fields and Workflow sections, that the
+  project context was injected. Two more replacements in
+  `ecosystem-core-guidance.json` tell the agent to run the pinned
+  `bunx shadcn info --json` from `packages/ui` and describe the fields that
+  command returns. `moai-library-shadcn` now runs the same pinned command
+  instead of `bunx shadcn@latest info --json`.
+- `agent-browser` told agents to run `bunx agent-browser`, which its
+  `allowed-tools` did not cover. A replacement adds `Bash(bunx agent-browser:*)`.
+- `shadcn` had the same gap: its `allowed-tools` pre-approved only the
+  upstream `@latest` runners, not the pinned `bunx shadcn` its body prescribes.
+  A replacement sets it to `Bash(bunx shadcn *)`.
+- `create-agent/reference.md` still pointed at a repository-root
+  `node_modules/eve/docs/` in three places, one of them the comment template
+  agents copy into generated code. All three now name
+  `packages/eve-runtime/node_modules/eve/docs/`, and the template names the
+  installed `tools/overview.mdx` instead of a `tools.md` eve does not ship.
+  A scratch run with pinned Eve 0.25.1 rejected an absolute `init` argument.
+  Running from the selected parent with a directory name created a new
+  project. Running `init .` inside an existing Bun project preserved its
+  existing scripts. The instructions now use those invocations.
+  A follow-up run verified that standalone init needs Bun launcher metadata
+  to select Bun, and that agent mode exits after scaffolding. The existing
+  project Web Chat command installed the channel before attempting Vercel
+  linking. The skill now calls out that deployment step.
+- The new provenance files for `react-email` and `web-design-guidelines` said
+  `last_reviewed: 2026-11-18`, but they were written from the commit the
+  2026-10-22 audit (AL-2186) examined, with no fresh upstream comparison. They
+  now give 2026-10-22 and say so.
+- The `next-cache-components-adoption` overlay said root `AGENTS.md` is
+  hand-maintained. Its first block is written and re-added by `next dev`; the
+  overlay now says so. The AL-2713 entry below lists the matching fixes to the
+  three imported Next.js skills.
+- The upstream refresh's replacement round trip in
+  `tests/unit/docs/skill-quality-repairs.test.ts` stays a string simulation:
+  `scripts/refresh-upstream-skills.mjs` exports nothing and starts a refresh
+  when imported, so the test cannot call its replacement function.
+
 ## Next.js skill import - 2026-11-18 (AL-2713)
 
 Imported the three official Next.js skills that Core lacked, so all six skills
@@ -40,6 +214,34 @@ hash. The lock instead records the GitHub source, upstream path and raw
 `SKILL.md` hash, the same form as the other `vercel/next.js` entries. Counts
 moved from 237 to 240 runtime skills per client and from 197 to 200 lock
 entries.
+
+### Review fixes
+
+An independent review of this import found the provenance and records sound
+and listed four small defects in the overlays. Each was checked against the
+files before it was fixed.
+
+- The overlays lived only in each `SKILL.md`, so a reinstall would drop them.
+  All three are now registered in
+  `scripts/refresh-overlays/ecosystem-core-overlays.json` and the inventory
+  test's reviewed list, as `next-cache-components-adoption` is, and every
+  `bun run skills:sync` restores them. The ecosystem adapter test rebuilds each
+  raw upstream `SKILL.md` by removing the overlay, checks it against the lock's
+  raw hash, reinstalls it and expects sync to restore the committed bytes.
+- `next-partial-prefetching-optimizer` had no overlay, though its
+  `rig-template.md` carries the same `pnpm` commands and remote push loop that
+  the adoption overlay overrides. It now has a short overlay: the root
+  `instant-nav.rig.md` and its Bun commands, the local loop only, and the
+  navigations the user named.
+- The adoption overlay said root `AGENTS.md` is hand-maintained. Its first
+  block is written and re-added by `next dev`; the overlay now says so. It also
+  bounds step 5, which sweeps every route without checking in: work only on
+  the routes or features the request names, and report the rest as candidates.
+- The bundle overlay's capture commands were checked only against `--help`.
+  The overlay now says they are unexercised in Core and must be confirmed on
+  first use. Its advice to wrap a capture in `scripts/run-with-ci-env.mjs` did
+  not hold from the app directory, so it is replaced: a capture missing
+  environment stops and reports.
 
 ## Agent guidance modernization - 2026-11-17 (AL-2695)
 

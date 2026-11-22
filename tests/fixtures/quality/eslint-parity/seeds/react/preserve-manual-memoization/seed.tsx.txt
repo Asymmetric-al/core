@@ -1,0 +1,10 @@
+import { useMemo } from "react";
+
+import { makeList } from "./shared";
+
+export function Items({ item }: { item: string }) {
+  const list = makeList();
+  const size = useMemo(() => list.length, [list]);
+  list.push(item);
+  return <p>{size}</p>;
+}

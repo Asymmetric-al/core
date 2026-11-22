@@ -1,0 +1,5 @@
+import { Component } from "react";
+
+export class Empty extends Component {
+  render() {}
+}

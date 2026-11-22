@@ -5,8 +5,8 @@
   "relativePath": "assets/charts.js",
   "rawSourceHash": "89071120bd09eb276d9e568bab433ed035ea8b3a1b72750a1fa204a63e3d4ab4",
   "normalization": {
-    "parser": "babel",
-    "config": "repository"
+    "formatter": "oxfmt",
+    "profile": "managed"
   },
   "replacements": [
     {
