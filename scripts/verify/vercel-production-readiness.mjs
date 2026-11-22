@@ -180,9 +180,15 @@ export function parseVercelEnvEntries(jsonText) {
 
 function appliesToProduction(env) {
   if (env?.gitBranch) return false;
-  if (env?.target === undefined) return true;
-  if (env.target === "production") return true;
-  return Array.isArray(env.target) && env.target.includes("production");
+  if (env?.target === "production") return true;
+  if (Array.isArray(env?.target)) return env.target.includes("production");
+  if (
+    Array.isArray(env?.customEnvironmentIds) &&
+    env.customEnvironmentIds.length > 0
+  ) {
+    return false;
+  }
+  return env?.target === undefined;
 }
 
 function isSharedEnvEntry(env) {
@@ -193,7 +199,7 @@ function isSharedEnvEntry(env) {
   );
 }
 
-export function resolveProductionEnvTypes(jsonText) {
+export function resolveProductionEnv(jsonText) {
   const parsed = parseJson(jsonText, {});
   const envs = Array.isArray(parsed.envs) ? parsed.envs : [];
   const byKey = new Map();
@@ -206,8 +212,10 @@ export function resolveProductionEnvTypes(jsonText) {
     byKey.set(env.key, list);
   }
 
+  const keys = [...byKey.keys()].sort((a, b) => a.localeCompare(b));
   const types = {};
-  for (const [key, entries] of byKey.entries()) {
+  for (const key of keys) {
+    const entries = byKey.get(key);
     const projectEntries = entries.filter((env) => !isSharedEnvEntry(env));
     const effective = projectEntries.length > 0 ? projectEntries : entries;
     if (effective.every((env) => env?.type === "sensitive")) {
@@ -218,7 +226,11 @@ export function resolveProductionEnvTypes(jsonText) {
     }
   }
 
-  return types;
+  return { keys, types };
+}
+
+export function resolveProductionEnvTypes(jsonText) {
+  return resolveProductionEnv(jsonText).types;
 }
 
 export function parseVercelDeployments(jsonText) {
@@ -695,7 +707,7 @@ function readProductionEnv(project, scope) {
       ],
       { cwd },
     );
-    const envEntries = parseVercelEnvEntries(listOutput);
+    const { keys: envKeys, types: envTypes } = resolveProductionEnv(listOutput);
     const envPath = path.join(cwd, ".env.production.local");
     run(
       "vercel",
@@ -713,8 +725,8 @@ function readProductionEnv(project, scope) {
       { cwd },
     );
     return {
-      envKeys: unique(envEntries.map((env) => env.key)),
-      envTypes: resolveProductionEnvTypes(listOutput),
+      envKeys,
+      envTypes,
       envValues: parseDotEnv(readFileSync(envPath, "utf8")),
     };
   });

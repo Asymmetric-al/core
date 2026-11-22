@@ -12,6 +12,7 @@ import {
   parseVercelEnvEntries,
   parseVercelEnvKeys,
   parseVercelProjectDetails,
+  resolveProductionEnv,
   resolveProductionEnvTypes,
   summarizeProjectReadiness,
   FORBIDDEN_RUNTIME_ENV_NAMES,
@@ -882,5 +883,130 @@ PAYLOAD_SECRET="[sensitive]"
     expect(encryptedStripeKey.invalidEnv).toEqual([
       { key: "STRIPE_SECRET_KEY", reason: literalPlaceholderReason },
     ]);
+  });
+
+  it("treats a required name present only in a custom environment as missing in Production, not unreadable", () => {
+    const customOnlyProject = {
+      key: "admin",
+      project: "admin",
+      vercelConfigPath: "apps/admin/vercel.json",
+      healthUrl: "https://admin.asymmetric.al/api/health",
+      requiredEnv: [
+        {
+          key: "NEXT_PUBLIC_SUPABASE_URL",
+          reason: "must be a URL",
+          validate: (value: string) => value.startsWith("https://"),
+        },
+        {
+          key: "INNGEST_EVENT_KEY",
+          reason: "must be set",
+          validate: (value: string) => value.length > 0,
+        },
+      ],
+    };
+    const readyDeployment = [
+      {
+        url: "admin.example.vercel.app",
+        state: "READY",
+        target: "production",
+        createdAt: 1,
+        commitSha: "abc123",
+        commitRef: "production",
+      },
+    ];
+    const pulled = parseDotEnv(
+      'NEXT_PUBLIC_SUPABASE_URL="https://example.supabase.co"\n',
+    );
+
+    const customOnlyListing = JSON.stringify({
+      envs: [
+        {
+          key: "NEXT_PUBLIC_SUPABASE_URL",
+          type: "plain",
+          target: ["production"],
+        },
+        {
+          key: "INNGEST_EVENT_KEY",
+          type: "sensitive",
+          target: [],
+          customEnvironmentIds: ["env_core_dev_1"],
+        },
+      ],
+    });
+
+    const resolvedMissing = resolveProductionEnv(customOnlyListing);
+    expect(resolvedMissing.keys).toEqual(["NEXT_PUBLIC_SUPABASE_URL"]);
+    expect(resolvedMissing.types).toEqual({
+      NEXT_PUBLIC_SUPABASE_URL: "plain",
+    });
+
+    const blockedReport = summarizeProjectReadiness({
+      project: customOnlyProject,
+      envKeys: resolvedMissing.keys,
+      envTypes: resolvedMissing.types,
+      envValues: pulled,
+      deployments: readyDeployment,
+      commit: "abc123",
+      health: { url: customOnlyProject.healthUrl, status: 200 },
+      productionBranch: "production",
+      productionGitDeployments: false,
+    });
+
+    expect(blockedReport.ready).toBe(false);
+    expect(blockedReport.missingEnv).toEqual(["INNGEST_EVENT_KEY"]);
+    expect(blockedReport.unreadableEnv).toEqual([]);
+    const blockedText = formatReadinessReport({
+      commit: "abc123",
+      reports: [blockedReport],
+    });
+    expect(blockedText).toContain("Missing Production env values:");
+    expect(blockedText).toContain("- `INNGEST_EVENT_KEY`");
+    expect(blockedText).toContain("Overall: BLOCKED (admin)");
+
+    const withProductionSensitiveListing = JSON.stringify({
+      envs: [
+        {
+          key: "NEXT_PUBLIC_SUPABASE_URL",
+          type: "plain",
+          target: ["production"],
+        },
+        {
+          key: "INNGEST_EVENT_KEY",
+          type: "sensitive",
+          target: ["production"],
+        },
+      ],
+    });
+
+    const resolvedPresent = resolveProductionEnv(
+      withProductionSensitiveListing,
+    );
+    expect(resolvedPresent.keys).toEqual([
+      "INNGEST_EVENT_KEY",
+      "NEXT_PUBLIC_SUPABASE_URL",
+    ]);
+    expect(resolvedPresent.types).toEqual({
+      NEXT_PUBLIC_SUPABASE_URL: "plain",
+      INNGEST_EVENT_KEY: "sensitive",
+    });
+
+    const readyReport = summarizeProjectReadiness({
+      project: customOnlyProject,
+      envKeys: resolvedPresent.keys,
+      envTypes: resolvedPresent.types,
+      envValues: pulled,
+      deployments: readyDeployment,
+      commit: "abc123",
+      health: { url: customOnlyProject.healthUrl, status: 200 },
+      productionBranch: "production",
+      productionGitDeployments: false,
+    });
+
+    expect(readyReport.ready).toBe(true);
+    expect(readyReport.missingEnv).toEqual([]);
+    expect(readyReport.unreadableEnv).toEqual(["INNGEST_EVENT_KEY"]);
+    expect(
+      formatReadinessReport({ commit: "abc123", reports: [readyReport] }),
+    ).toContain("Overall: READY");
   });
 });
