@@ -806,7 +806,8 @@ tenant is suspended or closed.
 
 #### Hosted prerequisites: read-only checks before a release
 
-Run on preview, then production, before the release that carries this part.
+Run on preview, then production, before the release that carries this part, as
+the role the release job migrates with.
 
 **Tenant-key catalog check (all schemas).** The catalog gate inspects every
 non-temporary table with a `tenant_id` column in every schema (no schema
@@ -840,7 +841,8 @@ blocks all signed-in requests. `20261120130003` stops on any non-`RESTRICT` key
 to `tenants` whose definition is not
 `FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)` with optional
 `ON DELETE CASCADE` or `SET NULL`, requires the migrating role to be able to
-`ALTER` every referencing table, assumes all validating scans (146 tables on a
+`ALTER` every referencing table whose key it replaces, assumes all validating
+scans (146 tables on a
 seeded copy of `develop`) finish inside the role's `statement_timeout`, and
 holds `ACCESS EXCLUSIVE` on `public.tenants` and every altered referencing table
 until `COMMIT`.
