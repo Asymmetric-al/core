@@ -17,6 +17,7 @@ import {
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
 const DEFAULT_BASE = "origin/develop";
 const PUSHED_REVISION = /^(?!0{40}$)[0-9a-f]{40}$/;
+const NEW_BRANCH = /^0{40}$/;
 const MAX_BUFFER = 256 * 1024 * 1024;
 const SKILL = "docs/ai/skills/delete-comment/SKILL.md";
 const WRITE_COMMAND = "bun run verify:comments -- --write";
@@ -142,10 +143,18 @@ function resolveBase(root, requested, pushedFrom) {
   if (PUSHED_REVISION.test(pushedFrom ?? "")) {
     try {
       git(root, ["cat-file", "-e", `${pushedFrom}^{commit}`]);
-      return pushedFrom;
-    } catch {
-      pushedFrom = `${pushedFrom}, which is not in this checkout`;
+    } catch (error) {
+      throw new Error(
+        `Cannot check this push: the revision before it (${pushedFrom}) is not in this checkout.`,
+        { cause: error },
+      );
     }
+    return pushedFrom;
+  }
+  if (pushedFrom && !NEW_BRANCH.test(pushedFrom)) {
+    throw new Error(
+      `Cannot check this push: "${pushedFrom}" is not a revision.`,
+    );
   }
   let base = null;
   try {
@@ -158,7 +167,7 @@ function resolveBase(root, requested, pushedFrom) {
     (base === null || base === git(root, ["rev-parse", "HEAD"]).trim())
   ) {
     throw new Error(
-      `Cannot check this push: the revision before it (${pushedFrom}) cannot be used, and ${DEFAULT_BASE} gives no earlier revision to compare with.`,
+      `Cannot check this push: it has no revision before it, and ${DEFAULT_BASE} gives no earlier revision to compare with.`,
     );
   }
   return base;

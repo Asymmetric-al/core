@@ -368,6 +368,33 @@ describe("the comment ratchet", () => {
     expect(output.join("\n")).toContain("packages/api/src/a.ts: 1 -> 2");
   });
 
+  it("fails when the tip a push replaced is not in the checkout", () => {
+    const three = `${COMMENTED}// three\n`;
+    const root = repository({ "packages/api/src/a.ts": three });
+    run(root, "--write");
+    git(root, "add", "--all");
+    git(root, "commit", "--quiet", "--message=ancestor");
+    git(root, "update-ref", "refs/remotes/origin/develop", "HEAD");
+    write(root, "packages/api/src/a.ts", COMMENTED);
+    write(
+      root,
+      commentBaselineFile,
+      `${JSON.stringify({ "packages/api/src/a.ts": 2 }, null, 2)}\n`,
+    );
+    git(root, "commit", "--quiet", "--all", "--message=forced");
+    const check = (pushedFrom: string) =>
+      runCommentRatchet({
+        root,
+        args: [],
+        env: { COMMENT_RATCHET_PUSHED_FROM: pushedFrom },
+        log: () => {},
+        error: () => {},
+      });
+
+    expect(() => check("1".repeat(40))).toThrow(/not in this checkout/);
+    expect(() => check("not-a-revision")).toThrow(/not a revision/);
+  });
+
   it("refuses a push it has no earlier revision to compare with", () => {
     const root = repository({ "packages/api/src/a.ts": COMMENTED });
     run(root, "--write");
@@ -383,10 +410,10 @@ describe("the comment ratchet", () => {
       });
     const unknown = { COMMENT_RATCHET_PUSHED_FROM: "0".repeat(40) };
 
-    expect(() => check(unknown)).toThrow(/revision before it/);
+    expect(() => check(unknown)).toThrow(/no revision before it/);
 
     git(root, "update-ref", "refs/remotes/origin/develop", "HEAD");
-    expect(() => check(unknown)).toThrow(/revision before it/);
+    expect(() => check(unknown)).toThrow(/no revision before it/);
     expect(check({})).toBe(0);
   });
 });
