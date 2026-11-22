@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { execFile, spawnSync } from "node:child_process";
 import {
   copyFileSync,
   existsSync,
@@ -9,11 +9,15 @@ import {
   symlinkSync,
   writeFileSync,
 } from "node:fs";
+import { createServer } from "node:http";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
 
 import { afterEach, describe, expect, it } from "vitest";
+
+const execFileAsync = promisify(execFile);
 
 const require = createRequire(import.meta.url);
 const fixtures: string[] = [];
@@ -192,7 +196,7 @@ describe("named Eve build commands", () => {
   it("real production governance helper fails closed to governance_unavailable when credentials are absent", () => {
     const result = spawnSync(
       "bun",
-      ["scripts/check-production-governance.ts"],
+      ["--no-env-file", "scripts/check-production-governance.ts"],
       {
         cwd: path.resolve("packages/eve-runtime"),
         env: { PATH: process.env.PATH },
@@ -207,5 +211,141 @@ describe("named Eve build commands", () => {
       allowed: false,
       reason: "governance_unavailable",
     });
+  });
+
+  it("real production governance probe handles canonical and padded production Vercel signals end-to-end against loopback PostgREST", async () => {
+    let requests = 0;
+    let row: Record<string, unknown> = {
+      release_enabled: false,
+      emergency_off: false,
+      kill_switch_state: {
+        all_automation: true,
+        active_runs: true,
+        github_actions: true,
+        production_writes: true,
+        sandbox_networking: true,
+        dynamic_workflows: true,
+        model_policy_changes: true,
+        force_approval: true,
+      },
+      policy_status: "not_configured",
+      policy_summary: null,
+      state_version: 1,
+      updated_at: "2026-11-22T00:00:00.000Z",
+    };
+
+    const server = createServer((req, res) => {
+      requests += 1;
+      if (req.url?.startsWith("/rest/v1/eve_governance_state")) {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify(row));
+        return;
+      }
+      res.writeHead(404);
+      res.end();
+    });
+
+    await new Promise<void>((resolve) => {
+      server.listen(0, "127.0.0.1", () => resolve());
+    });
+
+    try {
+      const address = server.address();
+      if (!address || typeof address === "string") {
+        throw new Error("Expected TCP loopback address");
+      }
+      const baseEnv: Record<string, string> = {
+        PATH: process.env.PATH ?? "",
+        VERCEL: "1",
+        NEXT_PUBLIC_SUPABASE_URL: `http://127.0.0.1:${address.port}`,
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key",
+        SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key",
+        STRIPE_SECRET_KEY: "sk_test_1234567890",
+        STRIPE_WEBHOOK_SECRET: "whsec_test_1234567890",
+        INNGEST_EVENT_KEY: "test-inngest-event-key",
+        INNGEST_SIGNING_KEY: "signkey-test-1234567890",
+        RESEND_API_KEY: "re_test_1234567890",
+        RESEND_WEBHOOK_SECRET: "whsec_test_1234567890",
+        RESEND_ENCRYPTION_KEY: "a".repeat(32),
+        SENTRY_DSN: "https://public@example.ingest.sentry.io/1",
+        NEXT_PUBLIC_SENTRY_DSN: "https://public@example.ingest.sentry.io/1",
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_1234567890",
+        NEXT_PUBLIC_APP_URL: "https://admin.asymmetric.al",
+        NEXT_PUBLIC_SITE_URL: "https://admin.asymmetric.al",
+        NEXT_PUBLIC_MAIN_DOMAIN: "asymmetric.al",
+      };
+
+      const runRealDispatcher = async (extraEnv: Record<string, string>) => {
+        const harness = `
+          import { runEveBuild } from "./scripts/build.mjs";
+          let captured = null;
+          const status = runEveBuild({
+            service: true,
+            spawn: (_cmd, args) => { captured = args; return { status: 0 }; },
+          });
+          process.stdout.write("CAPTURED:" + JSON.stringify({ status, args: captured }) + "\\n");
+        `;
+        const { stdout } = await execFileAsync(
+          process.execPath,
+          ["--input-type=module", "-e", harness],
+          {
+            cwd: path.resolve("packages/eve-runtime"),
+            env: { ...baseEnv, ...extraEnv },
+            timeout: 15_000,
+          },
+        );
+        const line = stdout
+          .split(/\r?\n/u)
+          .findLast((entry) => entry.startsWith("CAPTURED:"));
+        if (!line) throw new Error(`Missing CAPTURED output: ${stdout}`);
+        return JSON.parse(line.slice("CAPTURED:".length)) as {
+          status: number;
+          args: string[];
+        };
+      };
+
+      // 1. Canonical production + release_disabled -> skips prewarm
+      requests = 0;
+      const canonical = await runRealDispatcher({ VERCEL_ENV: "production" });
+      expect(requests).toBe(1);
+      expect(canonical.status).toBe(0);
+      expect(canonical.args).toEqual([
+        expect.any(String),
+        "build",
+        "--skip-sandbox-prewarm",
+      ]);
+
+      // 2. Padded conflicting preview + production target + release_disabled -> normalizes env & skips prewarm
+      requests = 0;
+      const padded = await runRealDispatcher({
+        VERCEL_ENV: " Preview ",
+        VERCEL_TARGET_ENV: " Production ",
+      });
+      expect(requests).toBe(1);
+      expect(padded.status).toBe(0);
+      expect(padded.args).toEqual([
+        expect.any(String),
+        "build",
+        "--skip-sandbox-prewarm",
+      ]);
+
+      // 3. Emergency-off with release_disabled -> emergency_off takes precedence -> retains full prewarm
+      row = { ...row, emergency_off: true };
+      requests = 0;
+      const emergency = await runRealDispatcher({ VERCEL_ENV: "production" });
+      expect(requests).toBe(1);
+      expect(emergency.status).toBe(0);
+      expect(emergency.args).toEqual([expect.any(String), "build"]);
+
+      // 4. Release enabled -> retains full prewarm
+      row = { ...row, emergency_off: false, release_enabled: true };
+      requests = 0;
+      const enabled = await runRealDispatcher({ VERCEL_ENV: "production" });
+      expect(requests).toBe(1);
+      expect(enabled.status).toBe(0);
+      expect(enabled.args).toEqual([expect.any(String), "build"]);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
   });
 });

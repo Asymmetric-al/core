@@ -50,6 +50,21 @@ function resolveBunExecutable(environment) {
   return "bun";
 }
 
+function normalizeProbeEnvironment(environment) {
+  const normalized = { ...environment };
+  if (typeof environment.VERCEL_ENV === "string") {
+    normalized.VERCEL_ENV = normalizeDeploymentEnvironmentName(
+      environment.VERCEL_ENV,
+    );
+  }
+  if (typeof environment.VERCEL_TARGET_ENV === "string") {
+    normalized.VERCEL_TARGET_ENV = normalizeDeploymentEnvironmentName(
+      environment.VERCEL_TARGET_ENV,
+    );
+  }
+  return normalized;
+}
+
 function defaultResolveProductionGovernance(environment) {
   if (
     typeof environment.NEXT_PUBLIC_SUPABASE_URL !== "string" ||
@@ -63,10 +78,10 @@ function defaultResolveProductionGovernance(environment) {
 
   const result = spawnSync(
     resolveBunExecutable(environment),
-    [GOVERNANCE_CHECK_SCRIPT],
+    ["--no-env-file", GOVERNANCE_CHECK_SCRIPT],
     {
       cwd: PACKAGE_ROOT,
-      env: environment,
+      env: normalizeProbeEnvironment(environment),
       encoding: "utf8",
       shell: false,
       timeout: 15_000,

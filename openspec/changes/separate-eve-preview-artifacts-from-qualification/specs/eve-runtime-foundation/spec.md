@@ -35,7 +35,7 @@ Every clause in `openspec/contracts/eve-runtime-foundation.md#contract-790e1f5af
 
 - **GIVEN** a checkout generated an Eve service during a preview build
 - **WHEN** that service command executes for a production target
-- **THEN** it selects full SDK qualification using the current target
+- **THEN** it selects full SDK qualification using the current target unless live persisted governance explicitly confirms `release_disabled`
 - **AND** neither stale preview configuration nor an inherited web artifact
   variable can skip prewarming
 
@@ -50,7 +50,7 @@ Every clause in `openspec/contracts/eve-runtime-foundation.md#contract-790e1f5af
 
 - **GIVEN** the current target has production casing or whitespace accepted by the canonical environment model
 - **WHEN** the generated service dispatcher selects its build mode
-- **THEN** production still requires full prewarming even with a conflicting preview marker
+- **THEN** production still follows the production qualification rule (requiring full prewarming unless live persisted governance explicitly confirms `release_disabled`) even with a conflicting preview marker
 - **AND** local development stays full while hosted core-development and legacy staging use artifacts
 
 #### Scenario: Explicit full commands receive a conflicting skip flag
