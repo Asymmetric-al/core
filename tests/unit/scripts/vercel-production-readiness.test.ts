@@ -561,4 +561,107 @@ PAYLOAD_SECRET="[sensitive]"
       ),
     ).toBe(false);
   });
+
+  it("requires INNGEST_EVENT_KEY and signkey- prefixed INNGEST_SIGNING_KEY on all three projects", () => {
+    expect(PROJECTS.map((item) => item.key)).toEqual([
+      "admin",
+      "donor",
+      "missionary",
+    ]);
+
+    for (const item of PROJECTS) {
+      const keys = item.requiredEnv.map((r) =>
+        typeof r === "string" ? r : r.key,
+      );
+      expect(keys, `${item.key} requires INNGEST_EVENT_KEY`).toContain(
+        "INNGEST_EVENT_KEY",
+      );
+      expect(keys, `${item.key} requires INNGEST_SIGNING_KEY`).toContain(
+        "INNGEST_SIGNING_KEY",
+      );
+
+      const missingReport = summarizeProjectReadiness({
+        project: item,
+        envKeys: keys.filter(
+          (key) => key !== "INNGEST_EVENT_KEY" && key !== "INNGEST_SIGNING_KEY",
+        ),
+        envValues: {},
+        deployments: [
+          {
+            url: `${item.key}.example.vercel.app`,
+            state: "READY",
+            target: "production",
+            createdAt: 1,
+            commitSha: "abc123",
+            commitRef: "production",
+          },
+        ],
+        commit: "abc123",
+        health: { url: item.healthUrl, status: 200 },
+        productionBranch: "production",
+        productionGitDeployments: false,
+      });
+      expect(missingReport.ready).toBe(false);
+      expect(missingReport.missingEnv).toEqual(
+        expect.arrayContaining(["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"]),
+      );
+
+      expect(
+        invalidEnvValues(
+          {
+            INNGEST_EVENT_KEY: "evt-key-fixture",
+            INNGEST_SIGNING_KEY: "not-a-signing-key",
+          },
+          item.requiredEnv,
+        ),
+      ).toEqual([
+        {
+          key: "INNGEST_SIGNING_KEY",
+          reason: "must start with signkey-",
+        },
+      ]);
+
+      expect(
+        invalidEnvValues(
+          {
+            INNGEST_EVENT_KEY: "evt-key-fixture",
+            INNGEST_SIGNING_KEY: "signkey-prod-fixture",
+          },
+          item.requiredEnv,
+        ),
+      ).toEqual([]);
+
+      const sensitiveReport = summarizeProjectReadiness({
+        project: item,
+        envKeys: keys,
+        envTypes: {
+          INNGEST_EVENT_KEY: "sensitive",
+          INNGEST_SIGNING_KEY: "sensitive",
+        },
+        envValues: {
+          INNGEST_EVENT_KEY: "[sensitive]",
+          INNGEST_SIGNING_KEY: "[sensitive]",
+        },
+        deployments: [
+          {
+            url: `${item.key}.example.vercel.app`,
+            state: "READY",
+            target: "production",
+            createdAt: 1,
+            commitSha: "abc123",
+            commitRef: "production",
+          },
+        ],
+        commit: "abc123",
+        health: { url: item.healthUrl, status: 200 },
+        productionBranch: "production",
+        productionGitDeployments: false,
+      });
+      expect(sensitiveReport.invalidEnv).toEqual([]);
+      expect(sensitiveReport.missingEnv).toEqual([]);
+      expect(sensitiveReport.unreadableEnv).toEqual(
+        expect.arrayContaining(["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"]),
+      );
+    }
+  });
 });

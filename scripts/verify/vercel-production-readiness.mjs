@@ -83,6 +83,12 @@ const COMMON_REQUIRED_ENV = [
     "must start with whsec_",
     hasPrefix("whsec_"),
   ),
+  required("INNGEST_EVENT_KEY"),
+  required(
+    "INNGEST_SIGNING_KEY",
+    "must start with signkey-",
+    hasPrefix("signkey-"),
+  ),
   required("SENTRY_DSN", "must be a URL", isUrl),
   required("NEXT_PUBLIC_SENTRY_DSN", "must be a URL", isUrl),
   required("RESEND_API_KEY", "must start with re_", hasPrefix("re_")),
