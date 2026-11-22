@@ -329,17 +329,26 @@ export function missingEnvValues(envValues, requiredEnv) {
 }
 
 const SENSITIVE_PLACEHOLDER = "[sensitive]";
+const LITERAL_PLACEHOLDER_REASON =
+  "holds the Vercel CLI's placeholder text `[sensitive]`: the variable is not of type sensitive, so this is its stored value, or its type could not be confirmed";
 
 export function invalidEnvValues(envValues, requiredEnv, envTypes = {}) {
   return requiredEnv.flatMap((requirement) => {
-    if (typeof requirement === "string") return [];
+    const key = requirementKey(requirement);
+    const value = envValues[key];
+    if (!isNonEmpty(value)) return [];
+    if (isSensitivePlaceholder(key, envValues, envTypes)) return [];
 
-    const value = envValues[requirement.key];
-    if (
-      !isNonEmpty(value) ||
-      isSensitivePlaceholder(requirement.key, envValues, envTypes) ||
-      requirement.validate(value)
-    ) {
+    if (value === SENSITIVE_PLACEHOLDER) {
+      return [
+        {
+          key,
+          reason: LITERAL_PLACEHOLDER_REASON,
+        },
+      ];
+    }
+
+    if (typeof requirement === "string" || requirement.validate(value)) {
       return [];
     }
 
