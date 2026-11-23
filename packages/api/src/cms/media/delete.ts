@@ -15,7 +15,6 @@ function parseDeleteRpcPayload(data: unknown): {
   deletedAt: string;
   purgeAfter: string;
   alreadyDeleted: boolean;
-  stagingQueued: boolean;
 } {
   if (!data || typeof data !== "object") {
     throw new ApiHttpError(500, "Failed to delete media asset");
@@ -33,7 +32,6 @@ function parseDeleteRpcPayload(data: unknown): {
     deletedAt: record.deleted_at,
     purgeAfter: record.purge_after,
     alreadyDeleted: Boolean(record.already_deleted),
-    stagingQueued: Boolean(record.staging_queued),
   };
 }
 
@@ -68,7 +66,6 @@ export const POST = withOperation(
         deletedAt: deleted.deletedAt,
         purgeAfter: deleted.purgeAfter,
         alreadyDeleted: deleted.alreadyDeleted,
-        stagingQueued: deleted.stagingQueued,
       },
       { status: 200 },
     );

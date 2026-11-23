@@ -460,7 +460,6 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
         deleted_at: deletedAt,
         purge_after: purgeAfter,
         already_deleted: false,
-        staging_queued: false,
       },
       error: null,
     });
@@ -482,7 +481,6 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
       deletedAt,
       purgeAfter,
       alreadyDeleted: false,
-      stagingQueued: false,
     });
     expect(mocks.sessionRpc).toHaveBeenCalledWith("delete_media_asset", {
       p_tenant_id: tenantA,

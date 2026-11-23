@@ -440,8 +440,7 @@ BEGIN
       'status', 'deleted',
       'deleted_at', v_existing_deleted_at,
       'purge_after', v_existing_purge_after,
-      'already_deleted', true,
-      'staging_queued', false
+      'already_deleted', true
     );
   END IF;
 
@@ -462,8 +461,7 @@ BEGIN
     'status', 'deleted',
     'deleted_at', v_now,
     'purge_after', v_purge_after,
-    'already_deleted', false,
-    'staging_queued', v_existing_status = 'uploading'
+    'already_deleted', false
   );
 END;
 $$;

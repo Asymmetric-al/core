@@ -851,7 +851,7 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
-    it("runs delete_media_asset with delayed purge tombstone, idempotency, uploading-stage queueing and tenant isolation", async () => {
+    it("runs delete_media_asset with delayed purge tombstone, idempotency, uploading-stage deletion and tenant isolation", async () => {
       await inTx(async () => {
         const staffA = {
           sub: id.UStaffA,
@@ -897,7 +897,7 @@ describe.skipIf(!ADMIN_URL)(
         >;
         expect(firstPayload.status).toBe("deleted");
         expect(firstPayload.already_deleted).toBe(false);
-        expect(firstPayload.staging_queued).toBe(false);
+        expect("staging_queued" in firstPayload).toBe(false);
 
         const deletedRow = await db.query(
           `select status, deleted_at, purge_after,
@@ -928,6 +928,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(secondPayload.already_deleted).toBe(true);
         expect(secondPayload.deleted_at).toBe(firstPayload.deleted_at);
         expect(secondPayload.purge_after).toBe(firstPayload.purge_after);
+        expect("staging_queued" in secondPayload).toBe(false);
 
         const uploadDelete = await queryAs(
           "authenticated",
@@ -936,9 +937,13 @@ describe.skipIf(!ADMIN_URL)(
           [id.TA, id.assetUploadingA],
         );
         expect(uploadDelete.code, uploadDelete.message).toBeNull();
-        expect(
-          (uploadDelete.rows[0]!.res as Record<string, unknown>).staging_queued,
-        ).toBe(true);
+        const uploadPayload = uploadDelete.rows[0]!.res as Record<
+          string,
+          unknown
+        >;
+        expect(uploadPayload.status).toBe("deleted");
+        expect(uploadPayload.already_deleted).toBe(false);
+        expect("staging_queued" in uploadPayload).toBe(false);
 
         const donorDelete = await queryAs(
           "authenticated",
