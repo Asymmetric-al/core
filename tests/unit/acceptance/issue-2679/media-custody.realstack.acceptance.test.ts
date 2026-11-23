@@ -981,18 +981,306 @@ describe.skipIf(!ADMIN_URL)(
         );
         expect(donorDelete.code).toBe("42501");
 
-        await db.query(
-          `update public.tenants set status = 'suspended' where id = $1`,
-          [id.TA],
-        );
-        const suspendedDelete = await queryAs(
-          "authenticated",
-          staffA,
-          `select public.delete_media_asset($1, $2)`,
-          [id.TA, id.assetReadyA],
-        );
-        expect(suspendedDelete.code).toBe("42501");
+        for (const tenantStatus of ["suspended", "closed"] as const) {
+          await db.query(
+            `update public.tenants set status = $1 where id = $2`,
+            [tenantStatus, id.TA],
+          );
+          const refusedDelete = await queryAs(
+            "authenticated",
+            staffA,
+            `select public.delete_media_asset($1, $2)`,
+            [id.TA, id.assetReadyA],
+          );
+          expect(refusedDelete.code, `delete tenant ${tenantStatus}`).toBe(
+            "42501",
+          );
+        }
       });
+    });
+
+    it("re-checks tenant status, live assignment and capability under locks during concurrent revocation, capability loss and suspension (Finding 4)", async () => {
+      const tMain = randomUUID();
+      const tSusp = randomUUID();
+      const tStartSusp = randomUUID();
+      const uRevoke = randomUUID();
+      const uCap = randomUUID();
+      const uSusp = randomUUID();
+      const uStartSusp = randomUUID();
+      const mRevoke = randomUUID();
+      const mCap = randomUUID();
+      const mSusp = randomUUID();
+      const mStartSusp = randomUUID();
+      const aRevoke = randomUUID();
+      const aCap = randomUUID();
+      const aSusp = randomUUID();
+      const lockHash = "e".repeat(64);
+      const lockVariants = JSON.stringify({
+        w320: {
+          key: `${tMain}/${lockHash}-w320`,
+          width: 320,
+          height: 240,
+          byte_size: 2048,
+          mime_type: "image/jpeg",
+        },
+      });
+
+      const blocker = new pg.Client({ connectionString: ADMIN_URL });
+      const caller = new pg.Client({ connectionString: ADMIN_URL });
+      await blocker.connect();
+      await caller.connect();
+
+      try {
+        const callerPid = Number(
+          (await caller.query(`select pg_backend_pid() as pid`)).rows[0]!.pid,
+        );
+
+        await db.query("begin");
+        try {
+          await db.query(
+            `insert into public.tenants (id, name, slug, status)
+             values ($1::uuid, 'WP6 Lock Main', 'wp6-lm-' || $1::uuid::text, 'active'),
+                    ($2::uuid, 'WP6 Lock Susp', 'wp6-ls-' || $2::uuid::text, 'active'),
+                    ($3::uuid, 'WP6 Lock Start', 'wp6-lst-' || $3::uuid::text, 'active')`,
+            [tMain, tSusp, tStartSusp],
+          );
+          await db.query(
+            `insert into auth.users (id) select unnest($1::uuid[])`,
+            [[uRevoke, uCap, uSusp, uStartSusp]],
+          );
+          await db.query(
+            `delete from authz.memberships where user_id = any($1::uuid[])`,
+            [[uRevoke, uCap, uSusp, uStartSusp]],
+          );
+          await db.query(
+            `insert into authz.memberships (id, user_id, tenant_id, role, staff_role, is_active, revoked_at)
+             values
+               ($1, $2, $3, 'staff', 'finance', true, null),
+               ($4, $5, $3, 'staff', 'finance', true, null),
+               ($6, $7, $8, 'staff', 'finance', true, null),
+               ($9, $10, $11, 'staff', 'finance', true, null)`,
+            [
+              mRevoke,
+              uRevoke,
+              tMain,
+              mCap,
+              uCap,
+              mSusp,
+              uSusp,
+              tSusp,
+              mStartSusp,
+              uStartSusp,
+              tStartSusp,
+            ],
+          );
+          await db.query(
+            `insert into public.media_assets (
+               id, tenant_id, status, declared_byte_size, declared_mime_type,
+               mime_type, content_hash, master_key, variants, byte_size, width, height, created_by
+             ) values
+               ($1, $2, 'ready', 4096, 'image/jpeg', 'image/jpeg', $3, $4, $5::jsonb, 4096, 320, 240, $6),
+               ($7, $2, 'ready', 4096, 'image/jpeg', 'image/jpeg', $3, $4, $5::jsonb, 4096, 320, 240, $8),
+               ($9, $10, 'ready', 4096, 'image/jpeg', 'image/jpeg', $3, $11, $5::jsonb, 4096, 320, 240, $12)`,
+            [
+              aRevoke,
+              tMain,
+              lockHash,
+              `${tMain}/${lockHash}`,
+              lockVariants,
+              uRevoke,
+              aCap,
+              uCap,
+              aSusp,
+              tSusp,
+              `${tSusp}/${lockHash}`,
+              uSusp,
+            ],
+          );
+          await db.query("commit");
+        } catch (error) {
+          await db.query("rollback");
+          throw error;
+        }
+
+        const runRacedCommand = async (params: {
+          label: string;
+          blockerSql: string;
+          blockerArgs: unknown[];
+          userId: string;
+          tenantId: string;
+          membershipId: string;
+          commandSql: string;
+          commandArgs: unknown[];
+        }) => {
+          await blocker.query("begin");
+          let blockerOpen = true;
+          try {
+            await blocker.query(params.blockerSql, params.blockerArgs);
+
+            await caller.query("begin");
+            await caller.query("set local role authenticated");
+            await caller.query(
+              `select set_config('request.jwt.claims', $1, true),
+                      set_config('request.jwt.claim.sub', '', true),
+                      set_config('request.headers', $2, true)`,
+              [
+                JSON.stringify({ sub: params.userId, role: "authenticated" }),
+                JSON.stringify({
+                  "x-asym-tenant": params.tenantId,
+                  "x-asym-assignment": params.membershipId,
+                }),
+              ],
+            );
+
+            let settled = false;
+            const commandPromise = caller
+              .query(params.commandSql, params.commandArgs)
+              .then(
+                () => {
+                  settled = true;
+                  return { code: null as string | null, message: "" };
+                },
+                (err: { code?: string; message?: string }) => {
+                  settled = true;
+                  return {
+                    code: err.code ?? "?",
+                    message: err.message ?? String(err),
+                  };
+                },
+              );
+
+            let waitedOnLock = false;
+            const deadline = Date.now() + 1500;
+            while (!settled && Date.now() < deadline) {
+              const waitRes = await db.query(
+                `select wait_event_type from pg_stat_activity where pid = $1`,
+                [callerPid],
+              );
+              if (waitRes.rows[0]?.wait_event_type === "Lock") {
+                waitedOnLock = true;
+                break;
+              }
+              await new Promise((resolve) => setTimeout(resolve, 25));
+            }
+
+            await blocker.query("commit");
+            blockerOpen = false;
+
+            const outcome = await commandPromise;
+            if (outcome.code === null) {
+              await caller.query("commit");
+            } else {
+              await caller.query("rollback");
+            }
+            return { waitedOnLock, ...outcome };
+          } finally {
+            if (blockerOpen) {
+              await blocker.query("rollback").catch(() => undefined);
+            }
+          }
+        };
+
+        const revokeRace = await runRacedCommand({
+          label: "concurrent revocation",
+          blockerSql: `update authz.memberships set is_active = false, revoked_at = now() where id = $1`,
+          blockerArgs: [mRevoke],
+          userId: uRevoke,
+          tenantId: tMain,
+          membershipId: mRevoke,
+          commandSql: `select public.delete_media_asset($1, $2)`,
+          commandArgs: [tMain, aRevoke],
+        });
+        expect(revokeRace.waitedOnLock, "revoke waited on lock").toBe(true);
+        expect(revokeRace.code, revokeRace.message).toBe("42501");
+        const revokeRow = await db.query(
+          `select status, deleted_at from public.media_assets where id = $1`,
+          [aRevoke],
+        );
+        expect(revokeRow.rows[0]).toEqual({
+          status: "ready",
+          deleted_at: null,
+        });
+
+        const capLossRace = await runRacedCommand({
+          label: "concurrent capability loss",
+          blockerSql: `update authz.memberships set role = 'donor', staff_role = null where id = $1`,
+          blockerArgs: [mCap],
+          userId: uCap,
+          tenantId: tMain,
+          membershipId: mCap,
+          commandSql: `select public.delete_media_asset($1, $2)`,
+          commandArgs: [tMain, aCap],
+        });
+        expect(capLossRace.waitedOnLock, "capability loss waited on lock").toBe(
+          true,
+        );
+        expect(capLossRace.code, capLossRace.message).toBe("42501");
+        const capRow = await db.query(
+          `select status, deleted_at from public.media_assets where id = $1`,
+          [aCap],
+        );
+        expect(capRow.rows[0]).toEqual({ status: "ready", deleted_at: null });
+
+        const suspendDeleteRace = await runRacedCommand({
+          label: "concurrent tenant suspension during delete",
+          blockerSql: `update public.tenants set status = 'suspended' where id = $1`,
+          blockerArgs: [tSusp],
+          userId: uSusp,
+          tenantId: tSusp,
+          membershipId: mSusp,
+          commandSql: `select public.delete_media_asset($1, $2)`,
+          commandArgs: [tSusp, aSusp],
+        });
+        expect(
+          suspendDeleteRace.waitedOnLock,
+          "suspend delete waited on lock",
+        ).toBe(true);
+        expect(suspendDeleteRace.code, suspendDeleteRace.message).toBe("42501");
+        const suspRow = await db.query(
+          `select status, deleted_at from public.media_assets where id = $1`,
+          [aSusp],
+        );
+        expect(suspRow.rows[0]).toEqual({ status: "ready", deleted_at: null });
+
+        const suspendStartRace = await runRacedCommand({
+          label: "concurrent tenant suspension during start",
+          blockerSql: `update public.tenants set status = 'suspended' where id = $1`,
+          blockerArgs: [tStartSusp],
+          userId: uStartSusp,
+          tenantId: tStartSusp,
+          membershipId: mStartSusp,
+          commandSql: `select public.start_media_upload($1, $2, $3)`,
+          commandArgs: [tStartSusp, 1024, "image/jpeg"],
+        });
+        expect(
+          suspendStartRace.waitedOnLock,
+          "suspend start waited on lock",
+        ).toBe(true);
+        expect(suspendStartRace.code, suspendStartRace.message).toBe("42501");
+        const startCount = await db.query(
+          `select count(*)::int as c from public.media_assets where tenant_id = $1`,
+          [tStartSusp],
+        );
+        expect(startCount.rows[0]!.c).toBe(0);
+      } finally {
+        await caller.end().catch(() => undefined);
+        await blocker.end().catch(() => undefined);
+        await db.query(
+          `delete from public.media_assets where tenant_id = any($1::uuid[])`,
+          [[tMain, tSusp, tStartSusp]],
+        );
+        await db.query(
+          `delete from authz.memberships where user_id = any($1::uuid[])`,
+          [[uRevoke, uCap, uSusp, uStartSusp]],
+        );
+        await db.query(`delete from auth.users where id = any($1::uuid[])`, [
+          [uRevoke, uCap, uSusp, uStartSusp],
+        ]);
+        await db.query(
+          `delete from public.tenants where id = any($1::uuid[])`,
+          [[tMain, tSusp, tStartSusp]],
+        );
+      }
     });
 
     it("resolves staff media access in one silent SQL statement without headers or cookies", async () => {

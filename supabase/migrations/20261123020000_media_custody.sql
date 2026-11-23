@@ -23,6 +23,7 @@
 --   DROP FUNCTION tenant_guard.delete_media_asset(UUID, UUID);
 --   DROP FUNCTION public.start_media_upload(UUID, BIGINT, TEXT);
 --   DROP FUNCTION tenant_guard.start_media_upload(UUID, BIGINT, TEXT);
+--   DROP FUNCTION private.share_lock_tenant(UUID);
 --   DELETE FROM public.field_policies WHERE record_type = 'media_purge_claims' AND tenant_id IS NULL;
 --   DROP TABLE public.media_purge_claims;
 --   DELETE FROM public.field_policies WHERE record_type = 'media_assets' AND tenant_id IS NULL;
@@ -287,6 +288,26 @@ SET
   allowed_mime_types = EXCLUDED.allowed_mime_types,
   updated_at = pg_catalog.now();
 
+CREATE OR REPLACE FUNCTION private.share_lock_tenant(p_tenant_id UUID)
+RETURNS TEXT
+LANGUAGE sql
+VOLATILE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT t.status
+    FROM public.tenants AS t
+   WHERE t.id = p_tenant_id
+     FOR SHARE;
+$$;
+
+COMMENT ON FUNCTION private.share_lock_tenant(UUID) IS
+  'Share-locks a tenant row and returns its current status so tenant_guard commands serialize against concurrent tenant suspension or closure without granting SELECT on public.tenants to tenant_guard. EXECUTE for tenant_guard only.';
+
+ALTER FUNCTION private.share_lock_tenant(UUID) OWNER TO postgres;
+REVOKE ALL ON FUNCTION private.share_lock_tenant(UUID) FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
+GRANT EXECUTE ON FUNCTION private.share_lock_tenant(UUID) TO tenant_guard;
+
 CREATE OR REPLACE FUNCTION tenant_guard.start_media_upload(
   p_tenant_id UUID,
   p_byte_size BIGINT,
@@ -300,6 +321,12 @@ SET search_path = ''
 AS $$
 DECLARE
   v_ctx tenant_guard.command_context;
+  v_tenant_status TEXT;
+  v_member_user_id UUID;
+  v_member_tenant_id UUID;
+  v_member_active BOOLEAN;
+  v_member_revoked_at TIMESTAMPTZ;
+  v_member_found BOOLEAN;
   v_asset_id UUID;
   v_staging_key TEXT;
 BEGIN
@@ -313,6 +340,35 @@ BEGIN
   IF p_mime_type IS NULL OR p_mime_type NOT IN ('image/jpeg', 'image/png', 'image/webp') THEN
     RAISE EXCEPTION 'media_upload: mime type must be image/jpeg, image/png, or image/webp'
       USING ERRCODE = '22023';
+  END IF;
+
+  v_tenant_status := private.share_lock_tenant(v_ctx.tenant_id);
+
+  SELECT m.user_id, m.tenant_id, m.is_active, m.revoked_at
+    INTO v_member_user_id, v_member_tenant_id, v_member_active, v_member_revoked_at
+    FROM authz.memberships AS m
+   WHERE m.id = v_ctx.assignment_id
+     AND m.tenant_id = v_ctx.tenant_id
+     FOR SHARE;
+  v_member_found := FOUND;
+
+  IF v_tenant_status IS DISTINCT FROM 'active' THEN
+    RAISE EXCEPTION 'tenant_guard: tenant is not active'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF NOT v_member_found
+     OR v_member_user_id IS DISTINCT FROM v_ctx.actor_id
+     OR v_member_tenant_id IS DISTINCT FROM v_ctx.tenant_id
+     OR NOT COALESCE(v_member_active, false)
+     OR v_member_revoked_at IS NOT NULL THEN
+    RAISE EXCEPTION 'tenant_guard: the selected assignment is not a live assignment of the caller in this tenant'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF NOT ('web_studio.edit' = ANY (authz.assignment_capabilities(v_ctx.assignment_id))) THEN
+    RAISE EXCEPTION 'tenant_guard: the selected assignment does not hold the capability this command requires'
+      USING ERRCODE = '42501';
   END IF;
 
   v_asset_id := pg_catalog.gen_random_uuid();
@@ -388,6 +444,13 @@ SET search_path = ''
 AS $$
 DECLARE
   v_ctx tenant_guard.command_context;
+  v_tenant_status TEXT;
+  v_member_user_id UUID;
+  v_member_tenant_id UUID;
+  v_member_active BOOLEAN;
+  v_member_revoked_at TIMESTAMPTZ;
+  v_member_found BOOLEAN;
+  v_asset_found BOOLEAN;
   v_now TIMESTAMPTZ;
   v_purge_after TIMESTAMPTZ;
   v_existing_id UUID;
@@ -402,14 +465,44 @@ BEGIN
       USING ERRCODE = '22004';
   END IF;
 
+  v_tenant_status := private.share_lock_tenant(v_ctx.tenant_id);
+
+  SELECT m.user_id, m.tenant_id, m.is_active, m.revoked_at
+    INTO v_member_user_id, v_member_tenant_id, v_member_active, v_member_revoked_at
+    FROM authz.memberships AS m
+   WHERE m.id = v_ctx.assignment_id
+     AND m.tenant_id = v_ctx.tenant_id
+     FOR SHARE;
+  v_member_found := FOUND;
+
   SELECT a.id, a.status, a.deleted_at, a.purge_after
     INTO v_existing_id, v_existing_status, v_existing_deleted_at, v_existing_purge_after
     FROM public.media_assets AS a
    WHERE a.id = p_asset_id
      AND a.tenant_id = v_ctx.tenant_id
      FOR UPDATE;
+  v_asset_found := FOUND;
 
-  IF NOT FOUND THEN
+  IF v_tenant_status IS DISTINCT FROM 'active' THEN
+    RAISE EXCEPTION 'tenant_guard: tenant is not active'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF NOT v_member_found
+     OR v_member_user_id IS DISTINCT FROM v_ctx.actor_id
+     OR v_member_tenant_id IS DISTINCT FROM v_ctx.tenant_id
+     OR NOT COALESCE(v_member_active, false)
+     OR v_member_revoked_at IS NOT NULL THEN
+    RAISE EXCEPTION 'tenant_guard: the selected assignment is not a live assignment of the caller in this tenant'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF NOT ('web_studio.edit' = ANY (authz.assignment_capabilities(v_ctx.assignment_id))) THEN
+    RAISE EXCEPTION 'tenant_guard: the selected assignment does not hold the capability this command requires'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF NOT v_asset_found THEN
     RAISE EXCEPTION 'media_delete: media asset not found'
       USING ERRCODE = 'P0002';
   END IF;
@@ -944,7 +1037,12 @@ BEGIN
      OR NOT pg_catalog.has_function_privilege('service_role', 'public.claim_media_content_purge(uuid, uuid, text, uuid, integer)', 'EXECUTE')
      OR pg_catalog.has_function_privilege('authenticated', 'public.claim_media_content_purge(uuid, uuid, text, uuid, integer)', 'EXECUTE')
      OR NOT pg_catalog.has_function_privilege('service_role', 'public.release_media_content_purge(uuid, text, uuid)', 'EXECUTE')
-     OR pg_catalog.has_function_privilege('authenticated', 'public.release_media_content_purge(uuid, text, uuid)', 'EXECUTE') THEN
+     OR pg_catalog.has_function_privilege('authenticated', 'public.release_media_content_purge(uuid, text, uuid)', 'EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('tenant_guard', 'private.share_lock_tenant(uuid)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('public', 'private.share_lock_tenant(uuid)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('anon', 'private.share_lock_tenant(uuid)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('authenticated', 'private.share_lock_tenant(uuid)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('service_role', 'private.share_lock_tenant(uuid)', 'EXECUTE') THEN
     RAISE EXCEPTION 'AL-2679: media function EXECUTE privileges did not apply as expected';
   END IF;
 END $$;
