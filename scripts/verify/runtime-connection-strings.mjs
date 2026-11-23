@@ -336,12 +336,23 @@ export function readRuntimeConnectionStrings({
       listing.pagination !== undefined
     ) {
       const pagination = listing.pagination;
-      if (
-        !pagination ||
-        typeof pagination !== "object" ||
-        Array.isArray(pagination) ||
-        !Object.prototype.hasOwnProperty.call(pagination, "next")
-      ) {
+      const validPaginationObject =
+        Boolean(pagination) &&
+        typeof pagination === "object" &&
+        !Array.isArray(pagination) &&
+        Object.prototype.hasOwnProperty.call(pagination, "count") &&
+        Object.prototype.hasOwnProperty.call(pagination, "next") &&
+        Object.prototype.hasOwnProperty.call(pagination, "prev") &&
+        typeof pagination.count === "number" &&
+        Number.isInteger(pagination.count) &&
+        pagination.count >= 0 &&
+        (pagination.next === null ||
+          (typeof pagination.next === "number" &&
+            Number.isFinite(pagination.next))) &&
+        (pagination.prev === null ||
+          (typeof pagination.prev === "number" &&
+            Number.isFinite(pagination.prev)));
+      if (!validPaginationObject) {
         throw new Error(
           `Vercel returned an invalid pagination block for ${project.project}.`,
         );

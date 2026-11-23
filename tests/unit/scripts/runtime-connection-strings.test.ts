@@ -752,7 +752,53 @@ process.exit(7);
       ],
       [
         "pagination missing next",
-        { envs: [], pagination: { count: 0 } },
+        { envs: [], pagination: { count: 0, prev: null } },
+        /invalid pagination block for admin/i,
+      ],
+      [
+        "pagination missing count",
+        { envs: [], pagination: { next: null, prev: null } },
+        /invalid pagination block for admin/i,
+      ],
+      [
+        "pagination missing count and prev",
+        { envs: [], pagination: { next: null } },
+        /invalid pagination block for admin/i,
+      ],
+      [
+        "pagination count is a string",
+        { envs: [], pagination: { count: "0", next: null, prev: null } },
+        /invalid pagination block for admin/i,
+      ],
+      [
+        "pagination count is negative",
+        { envs: [], pagination: { count: -1, next: null, prev: null } },
+        /invalid pagination block for admin/i,
+      ],
+      [
+        "pagination count is not an integer",
+        { envs: [], pagination: { count: 1.5, next: null, prev: null } },
+        /invalid pagination block for admin/i,
+      ],
+      [
+        "pagination missing prev",
+        { envs: [], pagination: { count: 0, next: null } },
+        /invalid pagination block for admin/i,
+      ],
+      [
+        "pagination prev is a string",
+        {
+          envs: [],
+          pagination: { count: 0, next: null, prev: "1700000000000" },
+        },
+        /invalid pagination block for admin/i,
+      ],
+      [
+        "pagination next is a string",
+        {
+          envs: [],
+          pagination: { count: 0, next: "1700000000000", prev: null },
+        },
         /invalid pagination block for admin/i,
       ],
       [
@@ -767,21 +813,57 @@ process.exit(7);
       const run = vi.fn((_command: string, args: string[]) =>
         args[1]?.startsWith("/v1/env") ? cleanShared : JSON.stringify(body),
       );
-      expect(
-        () =>
-          readRuntimeConnectionStrings({
-            scope: "asymmetric-al",
-            run,
-          }),
-        label,
-      ).toThrow(expectedPattern);
+      expect
+        .soft(
+          () =>
+            readRuntimeConnectionStrings({
+              scope: "asymmetric-al",
+              run,
+            }),
+          label,
+        )
+        .toThrow(expectedPattern);
     }
 
     const completeProjectBodies: Array<[string, unknown]> = [
+      [
+        "live shape with entries, hiddenProductionEnvCount 0, no pagination",
+        {
+          envs: [
+            {
+              id: "env_live_1",
+              key: "NEXT_PUBLIC_SUPABASE_URL",
+              type: "plain",
+              target: ["production"],
+            },
+            {
+              id: "env_live_2",
+              key: "PAYLOAD_DATABASE_URI",
+              type: "sensitive",
+              target: ["production"],
+            },
+          ],
+          hiddenProductionEnvCount: 0,
+        },
+      ],
       ["hiddenProductionEnvCount 0", { envs: [], hiddenProductionEnvCount: 0 }],
       [
         "pagination.next null",
         { envs: [], pagination: { count: 0, next: null, prev: null } },
+      ],
+      [
+        "pagination.next null with numeric prev",
+        {
+          envs: [
+            {
+              id: "env_paged_1",
+              key: "NEXT_PUBLIC_SUPABASE_URL",
+              type: "plain",
+              target: ["production"],
+            },
+          ],
+          pagination: { count: 1, next: null, prev: 1700000000000 },
+        },
       ],
     ];
 
