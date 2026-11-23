@@ -97,7 +97,6 @@ const pairs = (r: Result) =>
 
 const NOBYPASS = "create role acc2253_nobypass nosuperuser nobypassrls;";
 const TENANT = (t: string, extra = "") =>
-  // D-18: ordinary fixtures need WP3's tenant key, so only the named fault is planted.
   `create table public.${t} (id int, tenant_id uuid references public.tenants on delete restrict)${extra};`;
 /**
  * Amended by AL-2675 (WP2b, second release; record D-18): the gate now also
@@ -242,7 +241,6 @@ async function catalogCounts() {
   return rows[0] as { n: number; pol: number };
 }
 // AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
-// D-18: WP3a's three internal entity tables admit no client or guard policy.
 const LISTED = 79;
 
 describe.skipIf(!ADMIN_URL)(

@@ -119,11 +119,6 @@ describe("readers of multipart bodies need the type themselves", () => {
 });
 
 describe("a handler that reads through the shared reader", () => {
-  // These cases first drove the organization-settings PATCH. WP3a part 1
-  // (AL-2676) retires that route (record D-48: no page called it, and the
-  // database refused both its calls), so they drive the comment edit, which
-  // reads its body through the same shared reader before it changes anything
-  // (D-18 reason; the assertions are unchanged but for the body it sends).
   beforeEach(() => {
     const comments = {
       select: () => comments,

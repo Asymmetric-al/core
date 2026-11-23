@@ -355,7 +355,6 @@ export function isDeniedSelfRoleUpdate(result, persistedRole) {
   return denied && persistedRole === "donor";
 }
 
-/** The Docker client settings an explicit `--host` must not inherit (K7). */
 const DOCKER_CLIENT_SETTINGS = [
   "DOCKER_HOST",
   "DOCKER_CONTEXT",
@@ -369,12 +368,6 @@ export function withoutDockerClientSettings(env = process.env) {
   return copy;
 }
 
-/**
- * The fixture fund names a legal entity of its own tenant (WP3a, AL-2676).
- * legal_entities grants the service role nothing (deny by default), so the
- * entity is written by psql in the owned database
- * container, bound to the run's tenant and named after the run.
- */
 export const LEGAL_ENTITY_FIXTURE_INSERT = `INSERT INTO public.legal_entities(id, tenant_id, name)
 SELECT :'entity_id'::uuid, id, :'run_id' FROM public.tenants
 WHERE id = :'tenant_id'::uuid AND name = 'SDK qualification fixture ' || :'run_id'
@@ -384,11 +377,6 @@ export const LEGAL_ENTITY_FIXTURE_DELETE = `DELETE FROM public.legal_entities
 WHERE id = :'entity_id'::uuid AND tenant_id = :'tenant_id'::uuid AND name = :'run_id';
 SELECT count(*) FROM public.legal_entities WHERE id = :'entity_id'::uuid;`;
 
-/**
- * The fixture user's staff membership in its own tenant (L1, re-check of
- * WP3a part 1a): the verifier reads the fund on the caller's token, which
- * needs a live staff assignment. Bound to the run's user and tenant.
- */
 export const MEMBERSHIP_FIXTURE_INSERT = `INSERT INTO authz.memberships(id, user_id, tenant_id, role, staff_role, is_tenant_admin)
 SELECT :'membership_id'::uuid, u.id, t.id, 'staff', 'development', false
 FROM auth.users u JOIN public.tenants t ON t.id = :'tenant_id'::uuid AND t.name = 'SDK qualification fixture ' || :'run_id'
@@ -399,7 +387,6 @@ export const MEMBERSHIP_FIXTURE_DELETE = `DELETE FROM authz.memberships
 WHERE id = :'membership_id'::uuid AND user_id = :'user_id'::uuid AND tenant_id = :'tenant_id'::uuid;
 SELECT count(*) FROM authz.memberships WHERE id = :'membership_id'::uuid;`;
 
-/** psql in the owned database container, each variable passed with -v. */
 export function ownedDatabaseCommand({
   endpoint,
   databaseId,
@@ -447,11 +434,6 @@ export function legalEntityFixtureCommand({
   });
 }
 
-/**
- * Clean-up in key order: the channels first; the funds, which name the legal
- * entity; the entity and the membership, which name their tenant; the users;
- * the tenants, which every RESTRICT key above protects; and the census last.
- */
 export function orderFixtureCleanup({
   channels,
   funds,

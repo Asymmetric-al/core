@@ -2,10 +2,6 @@ import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-// WP3a part 1a (AL-2676): the tenant records on a real token through
-// PostgREST, in the Local Supabase Stack job (fix list F5). Split out on
-// 21 November by the coordinator's ruling; the package's other PostgREST
-// cases stay on feature/AL-2676-wp3a-1b-domains.
 const url = process.env.WP3_TENANT_IT_URL;
 const database = process.env.WP3_TENANT_IT_DATABASE_URL;
 const anon = process.env.WP3_TENANT_IT_ANON_KEY;

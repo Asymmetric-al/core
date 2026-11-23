@@ -297,7 +297,6 @@ describe("supabase migrations verifier", () => {
         `equal the manifest's ${COLUMNS} physical columns`,
       );
       // AL-2674 (D09) removed one exception entry with its dropped table.
-      // D-18 (AL-2676): WP3a lists its three policy-less entity tables.
       const gateLine = result.stdout.indexOf(
         "PASS: tenant RLS catalog gate: 80 tenant tables enabled and forced (1 with policies, 79 listed deny-by-default, 0 stale)",
       );

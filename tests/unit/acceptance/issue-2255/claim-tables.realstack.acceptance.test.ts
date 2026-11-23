@@ -612,7 +612,6 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
         ),
       ).toBe(2);
       await db.query(body(MIGRATION));
-      // D-18: reapply the later tenant delete policy before comparing the full catalog.
       for (const table of TABLES) {
         await db.query(`alter table public.${table} drop constraint ${table}_tenant_id_fkey,
           add constraint ${table}_tenant_id_fkey foreign key (tenant_id) references public.tenants(id) on delete restrict`);

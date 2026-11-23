@@ -341,7 +341,6 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
           code: "23503",
           constraint: fk,
         });
-        // D-18: WP3 requires a tenant on every giving target, even before a person is linked.
         if (table === "missionaries") {
           expect(
             await run(
@@ -584,7 +583,6 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
         ),
       ).toBe("normalize_email(text)");
       await db.query(body(MIGRATION));
-      // D-18: the historical migration recreates its original FK. Reapply WP3's delete rule before comparing the entire catalog.
       await db.query(
         "alter table public.persons drop constraint persons_in_tenant_fk, add constraint persons_in_tenant_fk foreign key (tenant_id) references public.tenants(id) on delete restrict",
       );

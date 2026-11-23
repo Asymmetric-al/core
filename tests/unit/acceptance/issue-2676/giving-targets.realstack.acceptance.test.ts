@@ -269,8 +269,6 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       }
     },
   );
-  // K9 (fix check, 21 November; coordinator's ruling): a locked target cannot
-  // be deleted, so its entity's record outlives the money row that set it.
   it("refuses to delete a fund or missionary that money named, after the money row is gone, and still deletes an unnamed one", async () => {
     const [tenant, entity, fund, missionary, spareFund, spareMissionary, gift] =
       Array.from({ length: 7 }, () => randomUUID());
@@ -334,11 +332,6 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       await db.query("rollback");
     }
   });
-  // 20261120130006 (coordinator, from WP3b's handoff; L2 of the re-check):
-  // the column no longer defaults to the demo tenant. It stays nullable
-  // (WP8a owes the NOT NULL): a gift without a tenant that names nothing is
-  // stored with none, visible to no tenant; one that names a donor, fund or
-  // missionary is refused.
   it("donations.tenant_id has no default: a gift with no tenant is stored with none if it names nothing, and refused (23514) if it names a donor, fund or missionary", async () => {
     const { rows } = await db.query(
       "select column_default from information_schema.columns where table_schema='public' and table_name='donations' and column_name='tenant_id'",
@@ -438,11 +431,6 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
     ]);
     expect(rows).toEqual(expected);
   });
-  // F3 (council 21 November): on a database it cannot convert, 130004 stops
-  // before it changes anything, reports counts and names the operator's query.
-  // The shipped preflight and query run unchanged except for their schema, on
-  // scratch copies of the seven tables, because the migrated catalog itself
-  // can no longer hold the rows they refuse.
   it("130004 stops on unconvertible targets before any change and names the operator's query", async () => {
     const read = (path: string) =>
       readFileSync(new URL(`../../../../${path}`, import.meta.url), "utf8");
@@ -459,9 +447,6 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       .map((statement) => statement.trim().split(/\s+/).slice(0, 2).join(" "))
       .filter(Boolean);
     expect(opening).toEqual(["BEGIN", "SET LOCAL", "LOCK TABLE"]);
-    // L3 (re-check, 21 November): the lock taken before the preflight
-    // excludes writers on every table the preflight reads, tenants among
-    // them, so a tenant cannot be renamed blank between the test and the copy.
     const lock = migration
       .slice(0, start)
       .replace(/--.*$/gm, "")
@@ -526,8 +511,6 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
         0, 0,
       ]);
 
-      // K11 (fix check, 21 November): a blank name, which the legal entity
-      // copied from it would refuse, stops the preflight and is named.
       const blank = randomUUID();
       await db.query(`insert into ${schema}.tenants values ('${blank}','   ')`);
       await db.query(

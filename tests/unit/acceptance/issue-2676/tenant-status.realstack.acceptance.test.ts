@@ -110,9 +110,6 @@ describe.skipIf(!ADMIN_URL)("tenant status under a selected membership", () => {
     },
   );
 
-  // K3 (fix check, 21 November). The CHECK of 20261117160000:75 ties
-  // is_active to revoked_at, so a revoked row is always inactive and no data
-  // can tell the two filters apart; the reader's own text must keep both.
   it("current_user_memberships answers nothing for a revoked row, and keeps its revoked_at test", async () => {
     await db.query("begin");
     try {

@@ -708,8 +708,6 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
     it.each<[string, string]>([
       ["a profile", "insert into auth.users (id) values (gen_random_uuid())"],
       ["a donor", "insert into public.donors default values"],
-      // D-18 (AL-2676, 20261120130006): a gift no longer defaults to the demo
-      // tenant, so this one names a tenant of its own; the case is unchanged.
       [
         "a donation",
         "with t as (insert into public.tenants (id, name, slug) values (gen_random_uuid(), 'acc2674', 'acc2674-' || gen_random_uuid()) returning id) insert into public.donations (tenant_id) select id from t",

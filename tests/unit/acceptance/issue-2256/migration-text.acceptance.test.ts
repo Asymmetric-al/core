@@ -277,7 +277,6 @@ describe("#2256 seams, readers and writers", () => {
         hits.push(`${f} (${lines.length})`);
     }
     expect(hits).toEqual([]);
-    // D-18: AL-2676 adds tenant status and giving-entity rows without exposing the person anchor.
     expect(sha256("packages/database/types/database.ts")).toBe(
       "942e3239260618c138b91b992c6cc25531ffbf5629ea1f1e5030f3018cede907",
     );
