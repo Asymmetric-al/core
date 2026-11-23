@@ -574,4 +574,77 @@ describe("release job: Vercel steps", () => {
       );
     },
   );
+
+  it("distinguishes a non-ancestor live commit from an unreadable git diff, building on both", async () => {
+    const ancestorLive = "b".repeat(40);
+    const divergedLive = "c".repeat(40);
+
+    const plan = selectReleaseApps({
+      liveCommits: {
+        admin: ancestorLive,
+        donor: divergedLive,
+        missionary: ancestorLive,
+      },
+      isAncestor: (commit: string) => commit === ancestorLive,
+      listChangedFiles: () => {
+        throw new Error("git diff failed: ENOBUFS");
+      },
+    });
+
+    expect(plan).toEqual([
+      {
+        app: "admin",
+        build: true,
+        reason: "could not read git diff from live commit",
+      },
+      { app: "donor", build: true, reason: "live commit is not an ancestor" },
+      {
+        app: "missionary",
+        build: true,
+        reason: "could not read git diff from live commit",
+      },
+    ]);
+
+    const dir = mkdtempSync(path.join(os.tmpdir(), "vercel-release-diff-err-"));
+    try {
+      const outputFile = path.join(dir, "github-output");
+      const logs: string[] = [];
+      const liveByHost: Record<string, string> = {
+        [PRODUCTION_HOSTS.admin]: ancestorLive,
+        [PRODUCTION_HOSTS.donor]: divergedLive,
+        [PRODUCTION_HOSTS.missionary]: ancestorLive,
+      };
+      const request = vi.fn(async (input: URL | string) => {
+        const host = new URL(String(input)).host;
+        return {
+          status: 200,
+          json: async () => ({
+            observability: { release: { commit: liveByHost[host] } },
+          }),
+        } as Response;
+      });
+      await runCli(
+        ["plan"],
+        { RELEASE_SHA: sha, GITHUB_OUTPUT: outputFile },
+        (line: string) => logs.push(line),
+        {
+          request: request as unknown as typeof fetch,
+          isAncestor: (commit: string) => commit === ancestorLive,
+          listChangedFiles: () => {
+            throw new Error("git diff failed");
+          },
+        },
+      );
+      expect(readFileSync(outputFile, "utf8")).toBe(
+        "apps=admin,donor,missionary\n",
+      );
+      expect(logs).toEqual([
+        "admin: build - could not read git diff from live commit",
+        "donor: build - live commit is not an ancestor",
+        "missionary: build - could not read git diff from live commit",
+      ]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
