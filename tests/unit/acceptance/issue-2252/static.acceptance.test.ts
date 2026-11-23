@@ -186,7 +186,7 @@ describe("#2252 C7: docs/security/tenant-guard.md `## Composite tenant FKs`", ()
     const end = rest.findIndex((l) => /^## /.test(l));
     return rest.slice(0, end < 0 ? undefined : end).join("\n");
   };
-  it(`has the section, naming the 7 spine FKs and the 11 follow-ups; ${AL2678_D18}`, () => {
+  it(`has the section, naming the 7 spine FKs and the 12 follow-ups; ${AL2678_D18}`, () => {
     const s = section();
     expect(s, SECTION).not.toBe("");
     for (const n of [...SPINE.map(([, x]) => x), ...FOLLOW_UPS])

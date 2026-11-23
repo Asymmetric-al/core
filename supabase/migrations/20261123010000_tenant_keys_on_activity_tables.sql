@@ -14,11 +14,17 @@
 --    row of that profile name. A donorless task with no such tenant moves to
 --    private.missionary_tasks_unresolved_tenant (row security forced, no grant
 --    to anon or authenticated); the migration reports the count.
--- 3. donor_activities_donor_id_fkey and follower_requests_donor_id_fkey become
---    composite keys (tenant_id, donor_id) -> donors(tenant_id, id).
+-- 3. donor_activities_donor_id_fkey becomes the composite key
+--    (tenant_id, donor_id) -> donors(tenant_id, id).
 --    missionary_tasks_donor_id_fkey is replaced by a composite key under the
 --    same name, because the running build embeds donors through that name
---    (packages/api/src/missionary-portal/service.ts:106).
+--    (packages/api/src/missionary-portal/service.ts:106), which PostgREST
+--    resolves over the composite key. follower_requests_donor_id_fkey stays
+--    single-column here: the running build embeds donors from follower
+--    requests by the column hint donors!donor_id
+--    (packages/api/src/follower-requests/index.ts:68, request.ts:51), which
+--    cannot select a composite key, and a second key into donors would make
+--    other embeds ambiguous. Part 2 swaps it with those two handlers.
 -- 4. missionary_tasks.sort_key becomes double precision, so a key between two
 --    others keeps its midpoint (record line 594).
 -- 5. The six handler functions keep their signatures and filter on the new
@@ -171,10 +177,7 @@ ALTER TABLE public.donor_activities
 ALTER TABLE public.follower_requests
   ALTER COLUMN tenant_id SET NOT NULL,
   ADD CONSTRAINT follower_requests_tenant_id_fkey
-    FOREIGN KEY (tenant_id) REFERENCES public.tenants (id) ON DELETE RESTRICT,
-  DROP CONSTRAINT follower_requests_donor_id_fkey,
-  ADD CONSTRAINT follower_requests_donor_same_tenant_fk
-    FOREIGN KEY (tenant_id, donor_id) REFERENCES public.donors (tenant_id, id);
+    FOREIGN KEY (tenant_id) REFERENCES public.tenants (id) ON DELETE RESTRICT;
 
 ALTER TABLE public.missionary_tasks
   ALTER COLUMN tenant_id SET NOT NULL,
@@ -357,9 +360,11 @@ SET search_path = ''
 AS $$
   SELECT request.*
   FROM public.follower_requests AS request
+  JOIN public.donors AS donor
+    ON donor.id = request.donor_id
+   AND donor.tenant_id = p_tenant_id
   WHERE request.missionary_id = p_profile_id
     AND request.tenant_id = p_tenant_id
-    AND request.donor_id IS NOT NULL
     AND authz.selected_missionary(p_profile_id, p_tenant_id, p_assignment_id);
 $$;
 
@@ -392,8 +397,13 @@ BEGIN
     WHERE request.id = p_id
       AND request.missionary_id = p_profile_id
       AND request.tenant_id = p_tenant_id
-      AND request.donor_id IS NOT NULL
       AND authz.selected_missionary(p_profile_id, p_tenant_id, p_assignment_id)
+      AND EXISTS (
+        SELECT 1
+        FROM public.donors AS donor
+        WHERE donor.id = request.donor_id
+          AND donor.tenant_id = p_tenant_id
+      )
     RETURNING request.*;
 
   ELSIF p_operation = 'delete' THEN
@@ -402,8 +412,13 @@ BEGIN
     WHERE request.id = p_id
       AND request.missionary_id = p_profile_id
       AND request.tenant_id = p_tenant_id
-      AND request.donor_id IS NOT NULL
       AND authz.selected_missionary(p_profile_id, p_tenant_id, p_assignment_id)
+      AND EXISTS (
+        SELECT 1
+        FROM public.donors AS donor
+        WHERE donor.id = request.donor_id
+          AND donor.tenant_id = p_tenant_id
+      )
     RETURNING request.*;
 
   ELSE

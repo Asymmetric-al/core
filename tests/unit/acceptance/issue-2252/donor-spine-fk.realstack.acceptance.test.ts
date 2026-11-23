@@ -286,7 +286,7 @@ describe.skipIf(!ADMIN_URL)("#2252 donor spine composite FKs (R)", () => {
         ).toEqual([[cx, kind === "cross" ? "cross_tenant" : "null_tenant"]]);
       }));
 
-  it(`C5/C6: the evaluator passes: 7 spine FKs, 24 FKs into donors = 7 spine + 11 follow-ups + 6 other composite (#2255's 2, AL-2678's 4); ${AL2678_D18}`, () =>
+  it(`C5/C6: the evaluator passes: 7 spine FKs, 24 FKs into donors = 7 spine + 12 follow-ups + 5 other composite (#2255's 2, AL-2678's 3); ${AL2678_D18}`, () =>
     tx(async () => {
       const r = await rows();
       expect(evaluate(r)).toEqual([]);

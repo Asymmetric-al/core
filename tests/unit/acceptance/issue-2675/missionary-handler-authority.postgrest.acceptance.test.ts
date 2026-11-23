@@ -123,12 +123,12 @@ describe.skipIf(!configured)(
             ],
           );
           await db.query(
-            "insert into public.missionary_tasks(id,missionary_id,donor_id,title) values ($1,$2,$3,'original')",
-            [org.task, person, org.donor],
+            "insert into public.missionary_tasks(id,missionary_id,donor_id,title,tenant_id) values ($1,$2,$3,'original',$4)",
+            [org.task, person, org.donor, org.tenant],
           );
           await db.query(
-            "insert into public.follower_requests(id,missionary_id,donor_id) values ($1,$2,$3)",
-            [org.follower, person, org.donor],
+            "insert into public.follower_requests(id,missionary_id,donor_id,tenant_id) values ($1,$2,$3,$4)",
+            [org.follower, person, org.donor, org.tenant],
           );
         }
         await db.query("commit");

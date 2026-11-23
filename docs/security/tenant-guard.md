@@ -298,7 +298,7 @@ The six `donor_merge_*` FKs come from `20260704140000_donor_matching_merge_candi
 
 The real-stack test `tests/unit/acceptance/issue-2252/donor-spine-fk.realstack.acceptance.test.ts` (the `migrate` step `Verify donor spine composite FKs (real stack)`) enforces this. It fails if any spine FK is missing, `NOT VALID`, not composite on `tenant_id` or not tenant-complete, and it ratchets every FK into `donors`: each must be a spine FK, composite on `(tenant_id, x) → (tenant_id, id)`, or on the follow-up list below.
 
-**Follow-ups (shrink-only).** These 11 single-column FKs into `donors(id)` existed before this rule and are not changed yet. Remove an entry when its FK becomes composite; never add one.
+**Follow-ups (shrink-only).** These 12 single-column FKs into `donors(id)` existed before this rule and are not changed yet. Remove an entry when its FK becomes composite; never add one.
 
 - `campaigns_creator_donor_id_fkey`
 - `contribution_notification_events_recipient_donor_id_fkey`
@@ -306,6 +306,7 @@ The real-stack test `tests/unit/acceptance/issue-2252/donor-spine-fk.realstack.a
 - `donation_saga_outbox_donor_id_fkey`
 - `donor_feed_preferences_donor_id_fkey`
 - `donor_pledges_donor_id_fkey`
+- `follower_requests_donor_id_fkey`
 - `follows_donor_id_fkey`
 - `notification_queue_donor_id_fkey`
 - `notification_queue_recipient_donor_id_fkey`

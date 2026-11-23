@@ -172,8 +172,8 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         );
         await db.query(
           `insert into public.donors (id, tenant_id, party_id, profile_id, missionary_id, name, email) values
-             ($1, $3, $4, $5, $6, 'Donor', 'wp5-d-' || $1::text || '@example.test'),
-             ($2, $3, $7, null, $6, 'Claimed', 'wp5-c-' || $2::text || '@example.test')`,
+             ($1, $3, $4, $5, $6, 'Donor', $8),
+             ($2, $3, $7, null, $6, 'Claimed', $9)`,
           [
             ids.dDonor,
             ids.dClaimed,
@@ -182,6 +182,8 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
             user.donor,
             user.missionary,
             ids.pClaimed,
+            `wp5-d-${ids.dDonor}@example.test`,
+            `wp5-c-${ids.dClaimed}@example.test`,
           ],
         );
         await db.query(
@@ -204,6 +206,10 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           "insert into public.donor_activities (id, tenant_id, donor_id, type, title) values ($1, $3, $4, 'note', 'Donor note'), ($2, $3, $5, 'note', 'Claimed note')",
           [ids.aDonor, ids.aClaimed, TA, ids.dDonor, ids.dClaimed],
         );
+        await db.query(
+          "insert into public.follower_requests (tenant_id, donor_id, missionary_id) values ($1, $2, $3)",
+          [TA, ids.dDonor, user.missionary],
+        );
         await db.query("commit");
       } catch (error) {
         await db.query("rollback");
@@ -222,6 +228,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
               "delete from public.account_links where tenant_id = any($1::uuid[])",
               "delete from private.party_restricted where tenant_id = any($1::uuid[])",
               "delete from public.missionary_tasks where tenant_id = any($1::uuid[])",
+              "delete from public.follower_requests where tenant_id = any($1::uuid[])",
               "delete from public.donor_feed_preferences where tenant_id = any($1::uuid[])",
               "delete from public.donor_activities where tenant_id = any($1::uuid[])",
               "delete from public.donations where tenant_id = any($1::uuid[])",
@@ -301,6 +308,26 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       expect(
         rows.map((r: { donor: { id: string } | null }) => r.donor?.id ?? null),
       ).toEqual([null, ids.dDonor]);
+    });
+
+    it("the running build's follower-request embed by the column hint donors!donor_id still resolves, so the follower key keeps its single column in part 1", async () => {
+      const response = await api(
+        `rest/v1/rpc/missionary_follower_requests?${new URLSearchParams({ select: "id,donor_id,status,donor:donors!donor_id(id,name,avatar_url,status,total_given,last_gift_date)" })}`,
+        {
+          key: service,
+          bearer: service,
+          body: {
+            p_profile_id: user.missionary,
+            p_tenant_id: TA,
+            p_assignment_id: ids.mMissionary,
+          },
+        },
+      );
+      const rows = await body(response);
+      expect(response.status, JSON.stringify(rows)).toBe(200);
+      expect(rows.map((r: { donor: { id: string } }) => r.donor.id)).toEqual([
+        ids.dDonor,
+      ]);
     });
 
     it("the old activity read parses with the running build's schema", async () => {

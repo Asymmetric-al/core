@@ -100,10 +100,10 @@ describe.skipIf(!ADMIN_URL)(
         },
         {
           t: "follower_requests",
-          conname: "follower_requests_donor_same_tenant_fk",
+          conname: "follower_requests_donor_id_fkey",
           target: "donors",
           confdeltype: "a",
-          cols: ["tenant_id", "donor_id"],
+          cols: ["donor_id"],
         },
         {
           t: "follower_requests",
@@ -142,19 +142,29 @@ describe.skipIf(!ADMIN_URL)(
       expect(grants.rows).toEqual([{ a: false, b: false, helper: null }]);
     });
 
-    it("a row naming another tenant's donor is refused for every writer (23503)", async () => {
+    it("a row naming another tenant's donor is refused for every writer (23503), except a follower request, whose composite key waits for part 2 because the running build embeds its donor by the column hint donors!donor_id; the follower functions still read and write only a request whose donor is in the selected tenant", async () => {
       expect(
         await code(
           "insert into public.donor_activities (tenant_id, donor_id, type, title) values ($1, $2, 'note', 'x')",
           [id.TB, id.dA],
         ),
       ).toBe("23503");
-      expect(
-        await code(
-          "insert into public.follower_requests (tenant_id, donor_id, missionary_id) values ($1, $2, $3)",
-          [id.TB, id.dA, id.UM],
-        ),
-      ).toBe("23503");
+      await db.query("savepoint stray_request");
+      const stray = await db.query(
+        "insert into public.follower_requests (tenant_id, donor_id, missionary_id) values ($1, $2, $3) returning id",
+        [id.TB, id.dA, id.UM],
+      );
+      const listed = await db.query(
+        "select id from public.missionary_follower_requests($1, $2, $3)",
+        [id.UM, id.TB, id.mMB],
+      );
+      expect(listed.rows.map((r) => r.id)).not.toContain(stray.rows[0].id);
+      const written = await db.query(
+        "select id from public.missionary_follower_request_write($1, $2, $3, 'update', $4, 'approved', 'comment')",
+        [id.UM, id.TB, id.mMB, stray.rows[0].id],
+      );
+      expect(written.rows).toEqual([]);
+      await db.query("rollback to savepoint stray_request");
       expect(
         await code(
           "insert into public.missionary_tasks (tenant_id, donor_id, missionary_id, title) values ($1, $2, $3, 'x')",
