@@ -4,6 +4,7 @@ import { readAuthMailEnv, warmUpRoutes } from "./helpers/auth-mail";
 import {
   createPerson,
   deletePerson,
+  documentScopeHeaders,
   DEMO,
   SECOND,
   ORGANIZATION_NAME,
@@ -158,6 +159,63 @@ test.describe("CRM on the caller's session", () => {
       await expect(page.getByText("CRM note saved")).toBeVisible();
       await expect(page.getByRole("cell", { name: uniqueTitle })).toBeVisible();
       await expect(page.getByText("Queued for Twenty")).toHaveCount(0);
+    });
+
+    test("staff without the administrator flag are refused a restricted note and nothing is written", async ({
+      page,
+    }) => {
+      const title = "Restricted CRM note " + randomUUID();
+      const staff = await createPerson(env!, "crm-plain-staff", [
+        {
+          role: "staff",
+          tenantId: SECOND,
+          staffRole: "development",
+          admin: false,
+        },
+      ]);
+      try {
+        await signIn(page, staff.email, staff.password);
+        await page.goto(`/${SECOND}/crm/notes`);
+        await expect(
+          page.getByRole("heading", { name: "CRM Notes" }),
+        ).toBeVisible();
+        const headers = await documentScopeHeaders(page);
+        expect(headers).toEqual({
+          "x-asym-tenant": SECOND,
+          "x-asym-assignment": staff.rows[`${SECOND}:staff`],
+        });
+        const reply = await page.evaluate(
+          async ({ scope, note }) => {
+            const response = await fetch("/api/admin/crm/notes", {
+              body: JSON.stringify(note),
+              credentials: "same-origin",
+              headers: {
+                ...scope,
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "Idempotency-Key": crypto.randomUUID(),
+              },
+              method: "POST",
+            });
+            return { status: response.status, text: await response.text() };
+          },
+          {
+            scope: headers,
+            note: { title, body: "Pastoral detail.", visibility: "restricted" },
+          },
+        );
+        expect(reply.status).toBe(403);
+        expect(reply.text).toContain("tenant-administrator flag");
+        const written = await withOwner(env!, (db) =>
+          db.query(
+            "select (select count(*) from public.crm_notes where title=$1)::int as notes, (select count(*) from public.crm_command_logs where actor_user_id=$2)::int as logs",
+            [title, staff.userId],
+          ),
+        );
+        expect(written.rows).toEqual([{ notes: 0, logs: 0 }]);
+      } finally {
+        await deletePerson(env!, staff);
+      }
     });
   });
 
