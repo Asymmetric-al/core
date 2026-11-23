@@ -92,3 +92,23 @@ each old assertion replaced by one at least as strong.
     `has_any_column_privilege`, so a grant of some columns, which
     `has_table_privilege` does not see, fails it. That closes the gap the
     review of part 2b found, the one `issue-2270` closed for write grants.
+11. **The lock on the caller's assignment is proved with committed rows on
+    three connections.** The describe block "the CRM note command against a
+    membership change in flight (committed)" in
+    `tests/unit/acceptance/issue-2677/crm-note-command.realstack.acceptance.test.ts`
+    cannot run inside one rolled-back transaction, because the command, the
+    membership change and the competing submission must each hold their own
+    locks. It creates its own tenant and one administrator per case, commits
+    them, and removes the notes, log rows, memberships, tenant and logins in
+    `afterAll`. A case waits until `pg_stat_activity` shows the command waiting
+    on a lock before it ends the competing transaction, so it proves an order
+    rather than a timing. The demotion and revocation are direct updates of the
+    membership row: they take the same row lock as the role-change and revoke
+    commands, without needing a second administrator.
+12. **Two cases run between calls what a new transaction would reset.** The
+    case that keeps one key apart in two tenants clears `app.current_tenant_id`
+    between its two calls, because `tenant_guard.enter` refuses a second tenant
+    in one transaction and the suite runs every case in one transaction that is
+    rolled back. The drop suite's comment case re-creates the stand-in table
+    after the first drop succeeds, so the second definition is read against a
+    table that exists.
