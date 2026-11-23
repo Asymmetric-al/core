@@ -378,6 +378,15 @@ describe.skipIf(!ADMIN_URL)(
 
       it("changes nothing and writes nothing when the row already is what is asked", () =>
         tx(async () => {
+          const before = (
+            await db.query(
+              `select updated_at, is_active, revoked_at, is_tenant_admin, granted_by,
+                      xmin::text as xmin, ctid::text as ctid
+                 from authz.memberships
+                where id = $1`,
+              [id.mDev],
+            )
+          ).rows[0];
           const out = await change("UADM", "mDev", {
             role: "staff",
             staff: "development",
@@ -388,6 +397,16 @@ describe.skipIf(!ADMIN_URL)(
             changed: false,
             membership_id: id.mDev,
           });
+          const after = (
+            await db.query(
+              `select updated_at, is_active, revoked_at, is_tenant_admin, granted_by,
+                      xmin::text as xmin, ctid::text as ctid
+                 from authz.memberships
+                where id = $1`,
+              [id.mDev],
+            )
+          ).rows[0];
+          expect(after).toEqual(before);
           expect(await audits()).toEqual([]);
         }));
 
@@ -833,14 +852,31 @@ describe.skipIf(!ADMIN_URL)(
 
     it("leaves no function in the chain that sets profiles.role, the column that once granted access", () =>
       tx(async () => {
-        const writers = await db.query(
-          `select n.nspname || '.' || p.proname as fn
+        const writerQuery = `select n.nspname || '.' || p.proname as fn
              from pg_proc p join pg_namespace n on n.oid = p.pronamespace
             where n.nspname in ('public', 'authz', 'private', 'tenant_guard', 'platform')
-              and p.prosrc ~* 'update\\s+(public\\.)?profiles\\s+(as\\s+\\w+\\s+)?set\\s+[^;]*\\mrole\\s*='
-            order by 1`,
-        );
+              and p.prosrc ~* 'update\\s+(public\\.)?profiles\\s+(?:(?:as\\s+)?(?!set\\b)\\w+\\s+)?set\\s+[^;]*\\mrole\\s*='
+            order by 1`;
+        const writers = await db.query(writerQuery);
         expect(writers.rows).toEqual([]);
+
+        await db.query(`
+          create function private._wp3c_probe_bare_alias() returns void language plpgsql as $$
+          begin
+            update public.profiles p set role = 'admin' where false;
+          end;
+          $$;
+          create function private._wp3c_probe_as_alias() returns void language plpgsql as $$
+          begin
+            update profiles as p set role = 'admin' where false;
+          end;
+          $$;
+        `);
+        const caught = await db.query(writerQuery);
+        expect(caught.rows.map((r) => r.fn)).toEqual([
+          "private._wp3c_probe_as_alias",
+          "private._wp3c_probe_bare_alias",
+        ]);
       }));
 
     it("is reached through postgres-owned invoker wrappers, runs as the guard, and the retired function is gone", () =>
@@ -852,9 +888,9 @@ describe.skipIf(!ADMIN_URL)(
                           from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
                          where a.privilege_type = 'EXECUTE' and a.grantee <> p.proowner order by 1) as grantees
              from pg_proc p
-            where p.oid in (to_regprocedure('tenant_guard.change_membership_role(uuid,uuid,text,text,boolean,text)'),
+            where p.oid in (to_regprocedure('tenant_guard.change_membership_role(uuid,uuid,text,text,boolean,text,timestamptz)'),
                             to_regprocedure('tenant_guard.revoke_membership(uuid,uuid,text)'),
-                            to_regprocedure('public.change_membership_role(uuid,uuid,text,text,boolean,text)'),
+                            to_regprocedure('public.change_membership_role(uuid,uuid,text,text,boolean,text,timestamptz)'),
                             to_regprocedure('public.revoke_membership(uuid,uuid,text)'),
                             to_regprocedure('private.is_platform_operator(uuid)'),
                             to_regprocedure('private.is_member_elsewhere(uuid,uuid)'))
@@ -865,7 +901,7 @@ describe.skipIf(!ADMIN_URL)(
           [...fns.rows].sort((x, y) => byText(String(x.fn), String(y.fn))),
         ).toEqual([
           {
-            fn: "change_membership_role(uuid,uuid,text,text,boolean,text)",
+            fn: "change_membership_role(uuid,uuid,text,text,boolean,text,timestamp with time zone)",
             owner: "postgres",
             definer: false,
             config: ['search_path=""'],
@@ -886,7 +922,7 @@ describe.skipIf(!ADMIN_URL)(
             grantees: ["authenticated"],
           },
           {
-            fn: "tenant_guard.change_membership_role(uuid,uuid,text,text,boolean,text)",
+            fn: "tenant_guard.change_membership_role(uuid,uuid,text,text,boolean,text,timestamp with time zone)",
             owner: "tenant_guard",
             definer: true,
             config: ['search_path=""'],
@@ -942,6 +978,7 @@ describe.skipIf(!ADMIN_URL)(
           "authz.memberships.role INSERT",
           "authz.memberships.staff_role INSERT",
           "authz.memberships.tenant_id INSERT",
+          "authz.memberships.updated_at INSERT",
           "authz.memberships.updated_at UPDATE",
           "authz.memberships.user_id INSERT",
         ]);

@@ -76,6 +76,7 @@ const directoryRow = {
   role: "staff",
   staff_role: "development",
   is_tenant_admin: true,
+  updated_at: "2026-11-23T00:00:00.000Z",
 };
 
 const list = (query: string) =>
@@ -152,6 +153,7 @@ describe("the Mission Control users list (council round 1 on WP2a, F8)", () => {
         role: "admin",
         staff_role: "development",
         is_tenant_admin: true,
+        updated_at: "2026-11-23T00:00:00.000Z",
       },
     ]);
   });

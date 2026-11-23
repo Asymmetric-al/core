@@ -13,6 +13,7 @@ type DirectoryRow = {
   role: "donor" | "missionary" | "staff";
   staff_role: string | null;
   is_tenant_admin: boolean;
+  updated_at: string;
 };
 
 type DirectoryResult = {
@@ -94,6 +95,7 @@ export const GET = withOperation(
         role: row.is_tenant_admin ? "admin" : row.role,
         staff_role: row.staff_role,
         is_tenant_admin: row.is_tenant_admin,
+        updated_at: row.updated_at,
       })),
     });
   },
