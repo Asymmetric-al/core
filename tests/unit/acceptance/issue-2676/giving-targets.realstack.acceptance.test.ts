@@ -100,7 +100,10 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
           "insert into public.payment_account_bindings(tenant_id,legal_entity_id,version,status,provider_account_ref,livemode) values ($1,$2,1,'pending','acct_wrong',false)",
           [other, second],
         ),
-      ).rejects.toMatchObject({ code: "23503" });
+      ).rejects.toMatchObject({
+        code: "23503",
+        constraint: "payment_account_bindings_tenant_id_legal_entity_id_fkey",
+      });
     } finally {
       await db.query("rollback");
     }
