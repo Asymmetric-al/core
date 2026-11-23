@@ -11,6 +11,13 @@
 -- so no running release still reads it. Its pull request is merged only after
 -- part 2a's.
 --
+-- Precondition: the application build live when this migration applies must
+-- contain part 2a's read move, commit e4b7f1765 or later. Build c2c8e9173
+-- still reads this table in CRM donor detail and answers 500 once it is gone
+-- (packages/api/src/admin/crm/detail/service.ts there). So `develop` with
+-- part 2a is released to production first, and this migration's pull request
+-- is merged only after that release is verified.
+--
 -- Before it drops, it refuses while any function, view or policy other than
 -- the table's own policies still names the table, because a function body
 -- records no dependency and the drop would leave it broken. It reports, as a

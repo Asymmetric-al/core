@@ -30,6 +30,20 @@ it("is one migration that drops the table and nothing else", () => {
   expect(DROP).toMatch(/superseded for this one table by\s+-- decision D-14/);
 });
 
+it("names the build that must be live before it applies, and the one it breaks", () => {
+  const header = DROP.split("\n")
+    .filter((line) => line.startsWith("--"))
+    .map((line) => line.replace(/^--\s?/, ""))
+    .join(" ")
+    .replace(/\s+/g, " ");
+  expect(header).toContain(
+    "Precondition: the application build live when this migration applies must contain part 2a's read move, commit e4b7f1765 or later",
+  );
+  expect(header).toContain(
+    "Build c2c8e9173 still reads this table in CRM donor detail and answers 500 once it is gone",
+  );
+});
+
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("requires the migrate database", () =>
   expect(ADMIN_URL).not.toBe(""),
 );
