@@ -296,9 +296,9 @@ describe("supabase migrations verifier", () => {
       expect(result.stdout).toContain(
         `equal the manifest's ${COLUMNS} physical columns`,
       );
-      // AL-2674 (D09) and AL-2681 (WP8a-1, D-18) reduce the exception list to 73.
+      // AL-2674 (D09) and AL-2681 (WP8a-1, D-18) reduce the exception list to 74.
       const gateLine = result.stdout.indexOf(
-        "PASS: tenant RLS catalog gate: 74 tenant tables enabled and forced (1 with policies, 73 listed deny-by-default, 0 stale)",
+        "PASS: tenant RLS catalog gate: 75 tenant tables enabled and forced (1 with policies, 74 listed deny-by-default, 0 stale)",
       );
       expect(
         result.stdout.indexOf(

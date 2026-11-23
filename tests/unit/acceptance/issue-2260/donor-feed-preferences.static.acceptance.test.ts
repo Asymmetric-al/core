@@ -23,11 +23,11 @@ const sql = () => {
 /**
  * sha256 of the remaining original exceptions entry lines, trimmed, "\n"-joined.
  * AL-2674 (D09) dropped backup_notification_queue_orphans_20260214, and AL-2681
- * (WP8a part 1, D-18) removed donation_saga_outbox, mission_control_task_links,
- * mission_control_tasks, and workflow_dispatch_requests after adding policies.
+ * (WP8a part 1, D-18) removed mission_control_task_links, mission_control_tasks
+ * and workflow_dispatch_requests after adding tenant_guard policies to them.
  */
 const OTHERS_SHA =
-  "f740af77cb7b7234b5cc658b2843bca77fb2263a3729f10a711566da780a030c";
+  "13b4e54333713496b855eb93f14d90ffca7bbee00391eb376747b8772dfab2c0";
 /** Criterion 20 doc rules, " ~ "-separated regexes. */
 const DOC_RULES = String.raw`anon ~ authenticated ~ service_role ~ SELECT, INSERT, UPDATE ~ auth\.uid\(\) ~ authz\.current_tenant_id\(\) ~ cross[- ]tenant ~ default (privileges|grants) ~ DELETE ~ #2251 ~ #668 ~ Down`;
 
@@ -66,7 +66,7 @@ describe("#2260 static (17-20)", () => {
     ).entries;
     const n = (o: string) => e.filter((x) => x.outcome === o).length;
     expect([e.length, n("service_role_needed"), n("deny_by_default")]).toEqual([
-      73, 56, 17,
+      74, 57, 17,
     ]);
     const lines = raw
       .split("\n")

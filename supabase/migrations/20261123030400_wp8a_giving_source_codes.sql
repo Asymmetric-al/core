@@ -1,8 +1,11 @@
--- AL-2681 (WP8a part 1; plan 5.4, 12 WP8a):
+-- AL-2681 (WP8a part 1; plan 5.4, 12 WP8a; ruling W8-R32):
 -- 1. Create public.giving_source_codes with forced RLS, tenant_guard isolation,
 --    staff SELECT policy, explicit grants, and field_policies rows.
 -- 2. Add human commands create_giving_source_code and update_giving_source_code
---    opening with contributions.manage_settings and requiring a reason.
+--    opening with contributions.manage_settings and requiring a reason. After
+--    the preamble each takes the tenant row FOR SHARE, the caller's selected
+--    assignment FOR SHARE, then its target, and re-checks its authority under
+--    those locks before anything else.
 
 BEGIN;
 
@@ -93,6 +96,10 @@ SET search_path = ''
 AS $$
 DECLARE
   v_ctx tenant_guard.command_context;
+  v_tenant_status TEXT;
+  v_assignment RECORD;
+  v_assignment_found BOOLEAN;
+  v_capability_held BOOLEAN;
   v_reason TEXT;
   v_code TEXT;
   v_label TEXT;
@@ -100,6 +107,31 @@ DECLARE
   v_now TIMESTAMPTZ;
 BEGIN
   v_ctx := tenant_guard.begin_human_command(p_tenant_id, 'contributions.manage_settings');
+
+  v_tenant_status := private.share_lock_tenant(v_ctx.tenant_id);
+
+  SELECT m.user_id, m.tenant_id, m.is_active, m.revoked_at
+    INTO v_assignment
+    FROM authz.memberships AS m
+   WHERE m.tenant_id = v_ctx.tenant_id
+     AND m.id = v_ctx.assignment_id
+     FOR SHARE;
+  v_assignment_found := FOUND;
+
+  v_capability_held := 'contributions.manage_settings' = ANY (authz.assignment_capabilities(v_ctx.assignment_id));
+
+  IF (v_tenant_status = 'active') IS NOT TRUE
+     OR (
+       v_assignment_found
+       AND v_assignment.user_id = v_ctx.actor_id
+       AND v_assignment.tenant_id = v_ctx.tenant_id
+       AND v_assignment.is_active
+       AND v_assignment.revoked_at IS NULL
+     ) IS NOT TRUE
+     OR v_capability_held IS NOT TRUE THEN
+    RAISE EXCEPTION 'tenant_guard: the caller no longer holds the authority this command requires'
+      USING ERRCODE = '42501';
+  END IF;
 
   v_reason := pg_catalog.regexp_replace(COALESCE(p_reason, ''), '^[[:space:]]+|[[:space:]]+$', '', 'g');
   IF v_reason = '' THEN
@@ -188,18 +220,28 @@ SET search_path = ''
 AS $$
 DECLARE
   v_ctx tenant_guard.command_context;
+  v_tenant_status TEXT;
+  v_assignment RECORD;
+  v_assignment_found BOOLEAN;
+  v_capability_held BOOLEAN;
   v_reason TEXT;
   v_target RECORD;
+  v_target_found BOOLEAN;
   v_next_label TEXT;
   v_next_active BOOLEAN;
   v_now TIMESTAMPTZ;
 BEGIN
   v_ctx := tenant_guard.begin_human_command(p_tenant_id, 'contributions.manage_settings');
 
-  v_reason := pg_catalog.regexp_replace(COALESCE(p_reason, ''), '^[[:space:]]+|[[:space:]]+$', '', 'g');
-  IF v_reason = '' THEN
-    RAISE EXCEPTION 'A reason is required' USING ERRCODE = '22023';
-  END IF;
+  v_tenant_status := private.share_lock_tenant(v_ctx.tenant_id);
+
+  SELECT m.user_id, m.tenant_id, m.is_active, m.revoked_at
+    INTO v_assignment
+    FROM authz.memberships AS m
+   WHERE m.tenant_id = v_ctx.tenant_id
+     AND m.id = v_ctx.assignment_id
+     FOR SHARE;
+  v_assignment_found := FOUND;
 
   SELECT s.*
     INTO v_target
@@ -207,8 +249,29 @@ BEGIN
    WHERE s.id = p_source_code_id
      AND s.tenant_id = v_ctx.tenant_id
      FOR UPDATE;
+  v_target_found := FOUND;
 
-  IF NOT FOUND THEN
+  v_capability_held := 'contributions.manage_settings' = ANY (authz.assignment_capabilities(v_ctx.assignment_id));
+
+  IF (v_tenant_status = 'active') IS NOT TRUE
+     OR (
+       v_assignment_found
+       AND v_assignment.user_id = v_ctx.actor_id
+       AND v_assignment.tenant_id = v_ctx.tenant_id
+       AND v_assignment.is_active
+       AND v_assignment.revoked_at IS NULL
+     ) IS NOT TRUE
+     OR v_capability_held IS NOT TRUE THEN
+    RAISE EXCEPTION 'tenant_guard: the caller no longer holds the authority this command requires'
+      USING ERRCODE = '42501';
+  END IF;
+
+  v_reason := pg_catalog.regexp_replace(COALESCE(p_reason, ''), '^[[:space:]]+|[[:space:]]+$', '', 'g');
+  IF v_reason = '' THEN
+    RAISE EXCEPTION 'A reason is required' USING ERRCODE = '22023';
+  END IF;
+
+  IF NOT v_target_found THEN
     RAISE EXCEPTION 'No source code with that id in this organization'
       USING ERRCODE = 'P0002';
   END IF;
