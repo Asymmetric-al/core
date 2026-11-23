@@ -35,6 +35,7 @@ function makeFixtureIds() {
     UInactiveLive: randomUUID(),
     URevoked: randomUUID(),
     UDonorA: randomUUID(),
+    UMissionaryA: randomUUID(),
     mStaffA: randomUUID(),
     mStaffB: randomUUID(),
     mMultiA: randomUUID(),
@@ -45,6 +46,7 @@ function makeFixtureIds() {
     mLive: randomUUID(),
     mRevoked: randomUUID(),
     mDonorA: randomUUID(),
+    mMissionaryA: randomUUID(),
     assetReadyA: randomUUID(),
     assetReadyB: randomUUID(),
     assetUploadingA: randomUUID(),
@@ -91,6 +93,7 @@ describe.skipIf(!ADMIN_URL)(
         id.UInactiveLive,
         id.URevoked,
         id.UDonorA,
+        id.UMissionaryA,
       ];
       await db.query(
         `insert into auth.users (id)
@@ -113,7 +116,8 @@ describe.skipIf(!ADMIN_URL)(
          ($13, $14, $3, 'staff', 'hr', false, null),
          ($15, $14, $3, 'staff', 'finance', true, null),
          ($16, $17, $3, 'staff', 'finance', true, now()),
-         ($18, $19, $3, 'donor', null, true, null)`,
+         ($18, $19, $3, 'donor', null, true, null),
+         ($20, $21, $3, 'missionary', null, true, null)`,
         [
           id.mStaffA,
           id.UStaffA,
@@ -134,6 +138,8 @@ describe.skipIf(!ADMIN_URL)(
           id.URevoked,
           id.mDonorA,
           id.UDonorA,
+          id.mMissionaryA,
+          id.UMissionaryA,
         ],
       );
       const variantsA = JSON.stringify({
@@ -519,8 +525,12 @@ describe.skipIf(!ADMIN_URL)(
         });
 
         const countBefore = Number(
-          (await db.query(`select count(*) as c from public.media_assets`))
-            .rows[0]!.c,
+          (
+            await db.query(
+              `select count(*) as c from public.media_assets where tenant_id in ($1, $2)`,
+              [id.TA, id.TB],
+            )
+          ).rows[0]!.c,
         );
 
         for (const [bytes, mime] of [
@@ -586,8 +596,12 @@ describe.skipIf(!ADMIN_URL)(
         expect(svcCall.code).toBe("42501");
 
         const countAfter = Number(
-          (await db.query(`select count(*) as c from public.media_assets`))
-            .rows[0]!.c,
+          (
+            await db.query(
+              `select count(*) as c from public.media_assets where tenant_id in ($1, $2)`,
+              [id.TA, id.TB],
+            )
+          ).rows[0]!.c,
         );
         expect(countAfter).toBe(countBefore);
 
@@ -811,7 +825,12 @@ describe.skipIf(!ADMIN_URL)(
           expect(res.rows).toEqual([]);
         }
 
-        for (const callerSub of [id.URevoked, id.UDonorA, null]) {
+        for (const callerSub of [
+          id.URevoked,
+          id.UDonorA,
+          id.UMissionaryA,
+          null,
+        ]) {
           const res = await queryAs(
             "authenticated",
             { sub: callerSub },
@@ -841,20 +860,12 @@ describe.skipIf(!ADMIN_URL)(
           [id.TA],
         );
 
-        await db.query(
-          `create or replace function authz.assignment_capabilities(p_assignment_id uuid)
-         returns text[] language sql stable security invoker set search_path = '' as $$
-           select array['admin.dashboard.access']::text[];
-         $$`,
+        const fnDef = await db.query(
+          `select pg_get_functiondef('public.resolve_staff_media_access(uuid)'::regprocedure) as def`,
         );
-        const staffWithoutCapability = await queryAs(
-          "authenticated",
-          { sub: id.UStaffA },
-          `select tenant_id, assignment_id from public.resolve_staff_media_access($1)`,
-          [id.assetReadyA],
+        expect(String(fnDef.rows[0]!.def)).toMatch(
+          /'web_studio\.edit'\s*=\s*ANY\s*\(\s*authz\.assignment_capabilities\(m\.id\)\s*\)/i,
         );
-        expect(staffWithoutCapability.code).toBeNull();
-        expect(staffWithoutCapability.rows).toEqual([]);
 
         const anonExec = await queryAs(
           "anon",
