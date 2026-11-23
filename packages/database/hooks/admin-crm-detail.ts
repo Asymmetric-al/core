@@ -1,13 +1,12 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { ownApiFetch } from "@asym/database/own-api";
 
-import type {
-  AdminCrmNoteCreateResponse,
-  CrmDonorDetailResponse,
-} from "@asym/database/types";
+import { useCrmNoteSubmission } from "./crm-note-submission";
+
+import type { CrmDonorDetailResponse } from "@asym/database/types";
 
 export const ADMIN_CRM_RECORD_DETAIL_QUERY_KEY = [
   "admin",
@@ -59,35 +58,6 @@ async function fetchCrmRecordDetail({
   return (await response.json()) as CrmDonorDetailResponse;
 }
 
-async function createLinkedCrmNote(input: {
-  body: string;
-  linkedRecordId: string;
-  linkedRecordType: "donor_profile";
-  title: string;
-  visibility?: "standard" | "restricted";
-}) {
-  const response = await ownApiFetch("/api/admin/crm/notes", {
-    body: JSON.stringify(input),
-    credentials: "same-origin",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      await parseJsonError(
-        response,
-        `Failed to save CRM note (${response.status})`,
-      ),
-    );
-  }
-
-  return (await response.json()) as AdminCrmNoteCreateResponse;
-}
-
 /** Statuses no retry can change: no such record, or no access to it. */
 const FINAL_DETAIL_STATUSES = new Set([400, 401, 403, 404]);
 
@@ -119,8 +89,13 @@ export function useAdminCrmRecordDetail(recordId: string | null) {
 export function useCreateLinkedCrmNote(recordId: string | null) {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: createLinkedCrmNote,
+  return useCrmNoteSubmission<{
+    body: string;
+    linkedRecordId: string;
+    linkedRecordType: "donor_profile";
+    title: string;
+    visibility?: "standard" | "restricted";
+  }>({
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({

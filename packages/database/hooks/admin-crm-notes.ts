@@ -1,16 +1,13 @@
 "use client";
 
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
 import { ownApiFetch } from "@asym/database/own-api";
 
+import { useCrmNoteSubmission } from "./crm-note-submission";
+
 import type {
-  AdminCrmNoteCreateResponse,
   AdminCrmNotesListResponse,
   CrmNoteRow,
   CrmNoteSortField,
@@ -119,32 +116,6 @@ async function fetchCrmNotes({
   return (await response.json()) as AdminCrmNotesListResponse;
 }
 
-async function createCrmNote(input: {
-  body: string;
-  title: string;
-}): Promise<AdminCrmNoteCreateResponse> {
-  const response = await ownApiFetch("/api/admin/crm/notes", {
-    body: JSON.stringify(input),
-    credentials: "same-origin",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      await parseJsonError(
-        response,
-        `Failed to save CRM note (${response.status})`,
-      ),
-    );
-  }
-
-  return (await response.json()) as AdminCrmNoteCreateResponse;
-}
-
 export function useAdminCrmNotesGrid() {
   const queryClient = useQueryClient();
   const [search, setSearch] = React.useState("");
@@ -173,8 +144,10 @@ export function useAdminCrmNotesGrid() {
     staleTime: 30_000,
   });
 
-  const createMutation = useMutation({
-    mutationFn: createCrmNote,
+  const createMutation = useCrmNoteSubmission<{
+    body: string;
+    title: string;
+  }>({
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: CRM_NOTES_QUERY_KEY,
