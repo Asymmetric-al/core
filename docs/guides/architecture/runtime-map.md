@@ -237,6 +237,9 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/admin/users`                                             | Node.js (no `runtime` segment export) | Admin client (`SUPABASE_SERVICE_ROLE_KEY`)         |
 | admin      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                            |
 | admin      | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                               |
+| admin      | `/api/cms/media/delete`                                        | Node.js (no `runtime` segment export) | Staff media asset tombstone command                |
+| admin      | `/api/cms/media/finalize`                                      | Node.js (no `runtime` segment export) | Staff media sanitization and custody finalize      |
+| admin      | `/api/cms/media/start`                                         | Node.js (no `runtime` segment export) | Staff media upload-start and signed upload token   |
 | admin      | `/api/cms/public/missionary-pages/[id]`                        | Node.js (no `runtime` segment export) | CMS public missionary pages                        |
 | admin      | `/api/cms/public/navigation`                                   | Node.js (no `runtime` segment export) | CMS public navigation                              |
 | admin      | `/api/cms/public/pages/[...slug]`                              | Node.js (no `runtime` segment export) | CMS public pages                                   |
@@ -259,6 +262,7 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/health/db`                                               | Node.js (no `runtime` segment export) | Database health probe                              |
 | admin      | `/api/health/migrations`                                       | Node.js (no `runtime` segment export) | Migration-head check for the release job           |
 | admin      | `/api/inngest`                                                 | Node.js (no `runtime` segment export) | Inngest workflow function serving                  |
+| admin      | `/api/media/[assetId]`                                         | Node.js (no `runtime` segment export) | Signed-in staff bounded media variant delivery     |
 | admin      | `/api/missionaries/[id]/metrics`                               | Node.js (no `runtime` segment export) | Admin client                                       |
 | admin      | `/api/pdf-templates`                                           | Node.js (no `runtime` segment export) | PDF Studio template store                          |
 | admin      | `/api/pdf-templates/[templateId]`                              | Node.js (no `runtime` segment export) | PDF Studio template store                          |
@@ -282,6 +286,7 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | donor      | `/api/graphql`                                                 | Node.js (no `runtime` segment export) | graphql-yoga, `next/headers` cookies()             |
 | donor      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                        |
 | donor      | `/api/health/migrations`                                       | Node.js (no `runtime` segment export) | Migration-head check for the release job           |
+| donor      | `/api/media/[assetId]`                                         | Node.js (no `runtime` segment export) | Signed-in staff bounded media variant delivery     |
 | donor      | `/api/playwright-ready`                                        | Node.js (no `runtime` segment export) | DB-independent Playwright readiness probe          |
 | donor      | `/api/posts`                                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | donor      | `/api/posts/[postId]`                                          | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
@@ -298,6 +303,7 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | missionary | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | Selected missionary RPC, service-role client       |
 | missionary | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                        |
 | missionary | `/api/health/migrations`                                       | Node.js (no `runtime` segment export) | Migration-head check for the release job           |
+| missionary | `/api/media/[assetId]`                                         | Node.js (no `runtime` segment export) | Signed-in staff bounded media variant delivery     |
 | missionary | `/api/missionary/portal`                                       | Node.js (no `runtime` segment export) | Missionary workspace BFF, admin client             |
 | missionary | `/api/missionary/tasks`                                        | Node.js (no `runtime` segment export) | Missionary task CRUD, admin client                 |
 | missionary | `/api/missionary/tasks/[taskId]`                               | Node.js (no `runtime` segment export) | Missionary-owned task mutation                     |
