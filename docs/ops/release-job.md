@@ -5,7 +5,7 @@ path that deploys production. It implements section 7.4 and 7.5 of
 [the target architecture](../audits/core-crm-cms-database-target-architecture.md)
 and the release-pipeline part of WP1 (issue #2674, slice 1.3).
 
-**State.** Steps 1–7 are complete. On 22 November 2026 Release 45043933598 promoted `e7045ac55` to all three production domains. Production reads disposable development until WP11; use ordinary releases only. Step 8’s migration-preview infrastructure is deferred; step 9 registration is on.
+**State.** Steps 1–7 are complete. On 23 November 2026 the second production release, Release 45136837286, promoted `c2c8e9173` to all three production domains (`production` = `develop` = `c2c8e9173`), following the first production release on 22 November 2026 (Release 45043933598, `e7045ac55`). Production reads disposable development until WP11; use ordinary releases only. Step 8’s migration-preview infrastructure is deferred; step 9 registration is on.
 
 ## What it does
 
@@ -180,6 +180,10 @@ before the first dispatch, or go forward (fix the cause and release again) if
 the pre-release deployment's credentials no longer work — after a credential
 rotation, revoked credentials on the pre-release deployment will not work. The
 job has no rollback of its own.
+
+### If a CI check fails at "Initialize containers"
+
+When a CI or CI Integration job on the release source pull request (`smoke`, `e2e-smoke-gate` or `migrate`) fails at **Initialize containers**, check the failed step's log for `Error response from daemon: error from registry: Data limit exceeded` (for example on `public.ecr.aws/docker/library/postgres:17.11-alpine`). That is Amazon's public registry throttling anonymous pulls from GitHub-hosted runners, not a repository defect. Re-run the failed jobs (`gh run rerun <run-id> --failed`), and never treat a failed or skipped check as passed. This applies to CI runs on the source pull request or `develop`; do not use **Re-run failed jobs** on a failed `Release` workflow run (dispatch **Release** anew as above).
 
 ### Dispatched operations
 
@@ -964,6 +968,8 @@ SELECT count(*) FROM pg_constraint
 WHERE contype = 'f' AND confrelid = 'public.tenants'::regclass AND confdeltype <> 'r';
 ```
 
+On 23 November 2026 (Release 45136837286, `c2c8e9173`), the in-place upgrade of hosted development (`pnmlrbgjiqzzsthsoikm`) established the expected post-release state: 130 applied Supabase migrations (head `20261120130006`), 149 foreign keys to `public.tenants` all `ON DELETE RESTRICT` (0 other), 995 `public.field_policies` rows (190 physical columns plus 9 derived fields across five surfaces), and one legal entity per tenant (2 active tenants, 2 legal entities, 0 missing target keys, 14 giving-target locks). A database that was seeded before WP3a part 1a (#2753) and then migrated in place holds no fee-cover fund: `supabase/seed.sql` has created one for each legal entity only since that change, the seed runs only on a fresh database, and the migrations create none. A database seeded since then keeps its fee-cover funds through later migrations. WP8a must create the missing fee-cover funds on a database that has none.
+
 ### The database's certificate
 
 Every connection the job opens to a hosted database checks the server's
@@ -1184,6 +1190,7 @@ below follow those decisions.
    `production deployments are staged (custom domains not auto-assigned)`.
    Undo: turn it back on.
 4. **Ship the code.** Open a draft `develop`-to-`production` pull request for the source and required checks. Wait for all six required checks on the exact commit: `ci-gate`, `e2e-gate`, `e2e-smoke-gate`, `migrate`, `release-source-gate` and `smoke`. Require SUCCESS for `test-e2e` and `e2e-gate` on the `pull_request` run; a skipped push-run result is not a pass. Use `bun run release:production`; its fast-forward closes the draft as merged. Do not merge it by hand. Vercel’s Git integration deploys nothing. At switch-on the first push stopped in migration preflight because the database predated WP1: it had neither the health function nor the environment marker. No deployment was created; the domains continued serving their previous builds. That was the expected result before the first rebuild, not the result of an ordinary release.
+   Judge release readiness by the pull request's own `pull_request` workflow runs (CI and CI Integration) plus `release-source-gate`, never by GitHub's rolled-up status on the commit: a later `push`-event run on `develop` can overwrite a failed or skipped pull-request check with a pass (seen on 23 November 2026 on #2759 at `9a21667c9`). On a release pull request into `production`, `bun run verify:comments` compares against `origin/production`; on the release push it compares against the revision before the push, which is the previous `production` tip. Either way, any comment that reached `develop` before the source comment ban (#2754) fails `lint` on the release pull request and must be removed from `develop` first (seen in #2762).
    Check: the first push fails in the migrate step with “predates WP1”; Vercel lists no new production deployment for the commit (`vercel list admin --scope asymmetric-al`).
    Undo: release a revert of the commit.
 5. **The first rebuild of development** (WP1.7). Its input is the census

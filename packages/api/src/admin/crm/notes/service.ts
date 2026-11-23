@@ -6,15 +6,12 @@ import {
 } from "./model";
 import { encodeCrmNoteCursor, type AdminCrmNotesParams } from "./query";
 import { assertCrmTenantAccess } from "../../../crm/auth/access";
-import { logCrmCommand } from "../../../crm/commands/log";
 import { ApiHttpError } from "../../../shared/api-http-error";
 
-import type { LogCrmCommandResult } from "../../../crm/commands/log";
 import type { ActorContext } from "../../../crm/types";
 import type {
   AdminCrmNoteCreateResponse,
   AdminCrmNotesListResponse,
-  CrmNoteRow,
 } from "@asym/database/types";
 
 type JsonRecord = Record<string, unknown>;
@@ -24,23 +21,11 @@ export type NotesClient = {
     select: (columns?: string) => {
       eq: (field: string, value: unknown) => NotesFilter;
     };
-    insert: (row: JsonRecord) => {
-      select: (columns?: string) => {
-        single: () => PromiseLike<{
-          data: JsonRecord | null;
-          error: { message?: string; code?: string } | null;
-        }>;
-      };
-    };
   };
 };
 
 type NotesFilter = {
   eq: (field: string, value: unknown) => NotesFilter;
-  maybeSingle: () => PromiseLike<{
-    data: JsonRecord | null;
-    error: { message?: string; code?: string } | null;
-  }>;
   then: (
     resolve: (value: {
       data: JsonRecord[] | null;
@@ -49,7 +34,28 @@ type NotesFilter = {
   ) => unknown;
 };
 
-type CommandLogClient = Parameters<typeof logCrmCommand>[0];
+export type NoteCommandClient = {
+  rpc: (
+    fn: "create_crm_note",
+    args: CreateCrmNoteCommandArgs,
+  ) => PromiseLike<{
+    data: unknown;
+    error: { message?: string; code?: string } | null;
+  }>;
+};
+
+export type CreateCrmNoteCommandArgs = {
+  p_tenant_id: string;
+  p_idempotency_key: string;
+  p_title: string;
+  p_body: string;
+  p_visibility: "standard" | "restricted";
+  p_linked_record_id: string | null;
+  p_linked_record_type:
+    "donor_profile" | "missionary_profile" | "organization" | null;
+  p_linked_record_label: string | null;
+  p_request_id: string | null;
+};
 
 export interface ListMissionControlCrmNotesOptions {
   actor: ActorContext;
@@ -69,21 +75,58 @@ export interface CreateMissionControlCrmNoteInput {
 
 export interface CreateMissionControlCrmNoteOptions {
   actor: ActorContext;
-  supabase: NotesClient;
+  supabase: NoteCommandClient;
   input: CreateMissionControlCrmNoteInput;
-  requestId?: string;
-  now?: Date;
-  authorName?: string;
-  logCommand?: typeof logCrmCommand;
-  createId?: () => string;
+  idempotencyKey: string;
+  requestId?: string | null;
 }
 
 const ROLLBACK_CONTRACT = {
   existingCrmPath: "/crm",
 } as const;
 
-function canCreateRestrictedNotes(actor: ActorContext) {
-  return actor.isTenantAdministrator;
+const COMMAND_REFUSALS: Record<string, [number, string]> = {
+  "22023": [400, "The CRM note is not valid."],
+  "23505": [409, "This submission key was already used for another CRM note."],
+};
+
+function commandRefusal(error: { message?: string; code?: string }): Error {
+  if (error.code === "42501") {
+    return new ApiHttpError(
+      403,
+      /tenant-administrator flag/i.test(error.message ?? "")
+        ? "Restricted CRM notes require the tenant-administrator flag."
+        : "Forbidden: this assignment cannot create CRM notes.",
+    );
+  }
+  const refusal = error.code ? COMMAND_REFUSALS[error.code] : undefined;
+  if (refusal) {
+    return new ApiHttpError(refusal[0], refusal[1]);
+  }
+  return new Error(error.message ?? "Failed to save CRM note.");
+}
+
+function readCommandResult(data: unknown): {
+  note: JsonRecord;
+  commandLogId: string;
+  duplicate: boolean;
+} | null {
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+  const result = data as JsonRecord;
+  if (
+    !result.note ||
+    typeof result.note !== "object" ||
+    typeof result.commandLogId !== "string"
+  ) {
+    return null;
+  }
+  return {
+    commandLogId: result.commandLogId,
+    duplicate: result.duplicate === true,
+    note: result.note as JsonRecord,
+  };
 }
 
 async function loadTenantNotes(
@@ -100,25 +143,6 @@ async function loadTenantNotes(
   }
 
   return data ?? [];
-}
-
-async function findNoteByIdempotencyKey(
-  supabase: NotesClient,
-  tenantId: string,
-  idempotencyKey: string,
-): Promise<CrmNoteRow | null> {
-  const { data, error } = await supabase
-    .from("crm_notes")
-    .select("*")
-    .eq("tenant_id", tenantId)
-    .eq("idempotency_key", idempotencyKey)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(error.message ?? "Failed to load CRM note.");
-  }
-
-  return data ? mapCrmNoteRow(data) : null;
 }
 
 export async function listMissionControlCrmNotes(
@@ -180,96 +204,31 @@ export async function createMissionControlCrmNote(
     throw new ApiHttpError(400, "Note title and body are required.");
   }
 
-  if (visibility === "restricted" && !canCreateRestrictedNotes(options.actor)) {
-    throw new ApiHttpError(403, "Restricted CRM notes require an admin role.");
+  const { data, error } = await options.supabase.rpc("create_crm_note", {
+    p_body: body,
+    p_idempotency_key: options.idempotencyKey,
+    p_linked_record_id: linkedRecordId,
+    p_linked_record_label: linkedRecordLabel,
+    p_linked_record_type: linkedRecordType,
+    p_request_id: options.requestId ?? null,
+    p_tenant_id: options.actor.tenantId,
+    p_title: title,
+    p_visibility: visibility,
+  });
+
+  if (error) {
+    throw commandRefusal(error);
   }
 
-  const idempotencyKey = options.requestId?.trim() || null;
-  if (idempotencyKey) {
-    const existing = await findNoteByIdempotencyKey(
-      options.supabase,
-      options.actor.tenantId,
-      idempotencyKey,
-    );
-    if (existing) {
-      return {
-        commandLogId: "",
-        duplicate: true,
-        note: existing,
-        rollback: ROLLBACK_CONTRACT,
-      };
-    }
-  }
-
-  const timestamp = (options.now ?? new Date()).toISOString();
-  const insertRow = {
-    author_name: options.authorName?.trim() || "Mission Control",
-    author_profile_id: options.actor.profileId,
-    body,
-    created_at: timestamp,
-    id: options.createId?.() ?? crypto.randomUUID(),
-    idempotency_key: idempotencyKey,
-    linked_record_id: linkedRecordId,
-    linked_record_label: linkedRecordLabel,
-    linked_record_type: linkedRecordType,
-    tenant_id: options.actor.tenantId,
-    title,
-    updated_at: timestamp,
-    visibility,
-  };
-
-  const inserted = await options.supabase
-    .from("crm_notes")
-    .insert(insertRow)
-    .select()
-    .single();
-
-  const persisted = inserted.data;
-  if (inserted.error?.code === "23505" && idempotencyKey) {
-    const existing = await findNoteByIdempotencyKey(
-      options.supabase,
-      options.actor.tenantId,
-      idempotencyKey,
-    );
-    if (existing) {
-      return {
-        commandLogId: "",
-        duplicate: true,
-        note: existing,
-        rollback: ROLLBACK_CONTRACT,
-      };
-    }
-  }
-
-  if (inserted.error || !persisted) {
-    throw new Error(inserted.error?.message ?? "Failed to save CRM note.");
-  }
-
-  const note = mapCrmNoteRow(persisted);
-  if (!note) {
+  const result = readCommandResult(data);
+  const note = result ? mapCrmNoteRow(result.note) : null;
+  if (!result || !note) {
     throw new Error("Failed to save CRM note.");
   }
 
-  const logCommand = options.logCommand ?? logCrmCommand;
-  const commandLog: LogCrmCommandResult = await logCommand(
-    options.supabase as unknown as CommandLogClient,
-    {
-      action: "crm.note.create",
-      actor: options.actor,
-      idempotencyKey,
-      requestId: options.requestId,
-      resourceId: note.id,
-      resourceType: "note",
-      status: "succeeded",
-    },
-  );
-
-  if (!commandLog.ok) {
-    throw new Error(commandLog.error);
-  }
-
   return {
-    commandLogId: commandLog.id ?? "",
+    commandLogId: result.commandLogId,
+    duplicate: result.duplicate,
     note,
     rollback: ROLLBACK_CONTRACT,
   };

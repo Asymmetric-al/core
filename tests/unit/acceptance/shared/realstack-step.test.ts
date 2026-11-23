@@ -306,6 +306,8 @@ const REAL_DATABASE_FILES = [
     "issue-2677/command-boundaries.realstack",
     "issue-2677/command-log.realstack",
     "issue-2677/crm-directory.realstack",
+    "issue-2677/crm-merge-candidates-drop.realstack",
+    "issue-2677/crm-note-command.realstack",
     "issue-2677/crm-query-paths.realstack",
     "issue-2677/crm-read-grants.realstack",
     "issue-2677/export-audit.realstack",

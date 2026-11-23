@@ -5,15 +5,29 @@ import { parseAdminCrmNotesParams } from "./query";
 import {
   createMissionControlCrmNote,
   listMissionControlCrmNotes,
+  type NoteCommandClient,
   type NotesClient,
 } from "./service";
 import { requireCrmAccess } from "../../../crm/auth/access";
+import { ApiHttpError } from "../../../shared/api-http-error";
 import { revalidateAdminCrmCache } from "../../../shared/cache-tags";
 import { ensureJsonBody, toErrorResponse } from "../../../shared/http-errors";
-import {
-  withOperation,
-  withPlatformOperation,
-} from "../../../shared/with-operation";
+import { withOperation } from "../../../shared/with-operation";
+
+const SUBMISSION_KEY_HEADER = "idempotency-key";
+const SUBMISSION_KEY =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function readSubmissionKey(request: Request): string {
+  const sent = request.headers.get(SUBMISSION_KEY_HEADER)?.trim();
+  if (!sent) {
+    return crypto.randomUUID();
+  }
+  if (!SUBMISSION_KEY.test(sent)) {
+    throw new ApiHttpError(400, "Idempotency-Key must be a UUID.");
+  }
+  return sent.toLowerCase();
+}
 
 const createNoteSchema = z.object({
   body: z.string().trim().min(1, "Note body is required.").max(10_000),
@@ -52,8 +66,8 @@ export const GET = withOperation(
   },
 );
 
-export const POST = withPlatformOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
+export const POST = withOperation(
+  async ({ auth, request, requestId, sessionClient }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.note.create",
       resourceType: "note",
@@ -63,9 +77,10 @@ export const POST = withPlatformOperation(
     try {
       const response = await createMissionControlCrmNote({
         actor,
+        idempotencyKey: readSubmissionKey(request),
         input,
         requestId,
-        supabase: supabaseAdmin as unknown as NotesClient,
+        supabase: sessionClient as unknown as NoteCommandClient,
       });
 
       revalidateAdminCrmCache(actor.tenantId);
