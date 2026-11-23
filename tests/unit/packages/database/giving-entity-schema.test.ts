@@ -17,8 +17,6 @@ it("preserves giving target identity in browser collection rows", () => {
   ).toEqual({ legal_entity_id: entity });
 });
 
-// K7 (fix check, 21 November): a missionary row always names its entity in
-// the database (NOT NULL), and no caller validates rows without it.
 it("refuses a missionary row that names no legal entity", () => {
   expect(
     missionarySchema.pick({ legal_entity_id: true }).safeParse({}).success,

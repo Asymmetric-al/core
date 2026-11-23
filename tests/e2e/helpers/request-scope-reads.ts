@@ -1,4 +1,3 @@
-// D-18, WP3: giving-target fixtures now name a legal entity owned by their tenant.
 import { randomUUID } from "node:crypto";
 
 import { expect, type Page } from "@playwright/test";
@@ -286,8 +285,6 @@ export async function removeFixtures(env: AuthMailEnv, f: Fixtures | null) {
     await db.query("delete from public.donors where id = any($1::uuid[])", [
       [f.partnerInDemo, ...f.partnersInSecond, f.secondDonor],
     ]);
-    // AL-2676 (K9): the gifts above locked these targets' legal entity, and a
-    // locked target cannot be deleted; the owner removes the locks first.
     await db.query(
       "delete from public.giving_target_entity_locks where fund_id = $1 or missionary_id = any($2::uuid[])",
       [f.secondFund, [f.missionaryInDemo, f.missionaryInSecond]],

@@ -99,9 +99,6 @@ describe("api/auth/cleanup-demo-users — fail-closed auth (finding 06 Gap 1)", 
   });
 });
 
-// L4 (re-check of WP3a part 1a, 21 November): deleting a demo account
-// cascades to its missionary, which the database refuses once money names
-// it; such an account is kept and reported, and a failed delete fails the run.
 describe("api/auth/cleanup-demo-users — accounts with giving history", () => {
   const old = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
   const LOCKED = "11111111-1111-4111-8111-111111111111";
@@ -189,10 +186,6 @@ describe("api/auth/cleanup-demo-users — accounts with giving history", () => {
     expect(deleteUser).not.toHaveBeenCalledWith(LOCKED);
   });
 
-  // Round M (L4): the donor branch, and a money table other than donations.
-  // This mock answers every lookup the handler makes: the account's
-  // missionary and donor rows by profile, and a count per money table and
-  // column for the ids it names.
   function mockAccounts(spec: {
     accounts: string[];
     missionaries?: Record<string, string>;
@@ -299,9 +292,6 @@ describe("api/auth/cleanup-demo-users — accounts with giving history", () => {
     expect(deleteUser).not.toHaveBeenCalled();
   });
 
-  // Round O (CodeRabbit #1): staged_gifts and donation_saga_outbox also name
-  // donor_id; accounts whose donor row appears only there are retained, while
-  // references belonging to another donor do not block deletion.
   it("keeps an account whose donor row only staged_gifts names, and never deletes it", async () => {
     const DONOR = "55555555-5555-4555-8555-555555555555";
     const { deleteUser } = mockAccounts({

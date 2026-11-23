@@ -328,7 +328,6 @@ test.describe("Mission Control", () => {
       ).toEqual(
         await ownerIds(
           stack,
-          // D-18: the editor offers ordinary funds, never an entity's fee-cover fund.
           "select id::text from public.funds where tenant_id = $1 and system_purpose is null",
           [tenant],
         ),

@@ -249,7 +249,6 @@ describe.skipIf(!ADMIN_URL)("#2250 tenant_guard on the real stack", () => {
   });
   afterAll(async () => {
     await db.query("rollback");
-    // D-18: RESTRICT replaces the old cascade; remove this suite's claims first.
     await db.query(
       `delete from public.workflow_work_claims where tenant_id in (${a}, ${b})`,
     );

@@ -59,7 +59,6 @@ describe("#2260 static (17-20)", () => {
       expect(g).not.toMatch(/\b(DELETE|ALL|TRUNCATE)\b/i);
   });
   it("18: the original entries stay byte-identical with only the three WP3a denials added, sorted", () => {
-    // D-18: WP3a removes three unused guard policies; keep the historical 84-row digest intact.
     const wp3 = [
       "giving_target_entity_locks",
       "legal_entities",

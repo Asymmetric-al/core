@@ -169,7 +169,6 @@ const HANDLERS = [
         ),
       ),
   },
-  // D-18/D-48: WP3 removed the unused direct tenant-settings handler and its case.
 ] as const;
 
 beforeEach(() => {
