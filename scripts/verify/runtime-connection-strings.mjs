@@ -299,11 +299,62 @@ export function readRuntimeConnectionStrings({
         `Vercel returned no variable list for ${project.project}.`,
       );
     }
-    const projected = Array.isArray(listing?.envs)
-      ? listing.envs.map((entry) =>
-          projectValidatedEnvMetadata(entry, project.project),
-        )
-      : [];
+    if (
+      !listing ||
+      typeof listing !== "object" ||
+      Array.isArray(listing) ||
+      !Array.isArray(listing.envs)
+    ) {
+      throw new Error(
+        `Vercel returned no variable list for ${project.project}.`,
+      );
+    }
+    if (
+      Object.prototype.hasOwnProperty.call(
+        listing,
+        "hiddenProductionEnvCount",
+      ) &&
+      listing.hiddenProductionEnvCount !== undefined
+    ) {
+      if (
+        typeof listing.hiddenProductionEnvCount !== "number" ||
+        !Number.isInteger(listing.hiddenProductionEnvCount) ||
+        listing.hiddenProductionEnvCount < 0
+      ) {
+        throw new Error(
+          `Vercel returned an invalid hiddenProductionEnvCount for ${project.project}.`,
+        );
+      }
+      if (listing.hiddenProductionEnvCount > 0) {
+        throw new Error(
+          `Vercel hid ${listing.hiddenProductionEnvCount} production environment variable(s) for ${project.project}; token lacks read access to verify them.`,
+        );
+      }
+    }
+    if (
+      Object.prototype.hasOwnProperty.call(listing, "pagination") &&
+      listing.pagination !== undefined
+    ) {
+      const pagination = listing.pagination;
+      if (
+        !pagination ||
+        typeof pagination !== "object" ||
+        Array.isArray(pagination) ||
+        !Object.prototype.hasOwnProperty.call(pagination, "next")
+      ) {
+        throw new Error(
+          `Vercel returned an invalid pagination block for ${project.project}.`,
+        );
+      }
+      if (pagination.next !== null) {
+        throw new Error(
+          `Vercel returned truncated project variables for ${project.project}; pagination.next is not null and the endpoint documents no continuation parameter.`,
+        );
+      }
+    }
+    const projected = listing.envs.map((entry) =>
+      projectValidatedEnvMetadata(entry, project.project),
+    );
     return findRuntimeConnectionStrings({
       project: project.project,
       listing: { envs: projected },

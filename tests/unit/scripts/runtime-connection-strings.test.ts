@@ -704,4 +704,78 @@ process.exit(7);
       }),
     ).toEqual([]);
   });
+
+  it("fails closed when a project variable listing hides production entries, paginates, or omits envs", () => {
+    const cleanShared = JSON.stringify({
+      data: [],
+      pagination: { count: 0, prev: null, next: null },
+    });
+
+    const failingProjectBodies: Array<[string, unknown, RegExp]> = [
+      [
+        "hiddenProductionEnvCount > 0",
+        { envs: [], hiddenProductionEnvCount: 2 },
+        /hid 2 production environment variable\(s\) for admin/i,
+      ],
+      [
+        "invalid hiddenProductionEnvCount",
+        { envs: [], hiddenProductionEnvCount: -1 },
+        /invalid hiddenProductionEnvCount for admin/i,
+      ],
+      [
+        "non-null pagination.next",
+        {
+          envs: [],
+          pagination: { count: 20, next: 1700000000000, prev: null },
+        },
+        /truncated project variables for admin.*pagination\.next/i,
+      ],
+      [
+        "pagination missing next",
+        { envs: [], pagination: { count: 0 } },
+        /invalid pagination block for admin/i,
+      ],
+      [
+        "missing envs array",
+        { error: { code: "forbidden" } },
+        /no variable list for admin/i,
+      ],
+      ["bare array response", [], /no variable list for admin/i],
+    ];
+
+    for (const [label, body, expectedPattern] of failingProjectBodies) {
+      const run = vi.fn((_command: string, args: string[]) =>
+        args[1]?.startsWith("/v1/env") ? cleanShared : JSON.stringify(body),
+      );
+      expect(
+        () =>
+          readRuntimeConnectionStrings({
+            scope: "asymmetric-al",
+            run,
+          }),
+        label,
+      ).toThrow(expectedPattern);
+    }
+
+    const completeProjectBodies: Array<[string, unknown]> = [
+      ["hiddenProductionEnvCount 0", { envs: [], hiddenProductionEnvCount: 0 }],
+      [
+        "pagination.next null",
+        { envs: [], pagination: { count: 0, next: null, prev: null } },
+      ],
+    ];
+
+    for (const [label, body] of completeProjectBodies) {
+      const run = vi.fn((_command: string, args: string[]) =>
+        args[1]?.startsWith("/v1/env") ? cleanShared : JSON.stringify(body),
+      );
+      expect(
+        readRuntimeConnectionStrings({
+          scope: "asymmetric-al",
+          run,
+        }),
+        label,
+      ).toEqual([]);
+    }
+  });
 });
