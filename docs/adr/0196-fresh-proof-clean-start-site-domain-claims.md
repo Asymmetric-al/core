@@ -12,9 +12,7 @@ released the former current claim.
 
 ## Decision
 
-Any current authorized Tenant human with `sites.manage_domains` may start a
-private verification attempt for one exact custom hostname in one Tenant ×
-environment × Site. A verification attempt is not a hostname reservation,
+Any current authorized Tenant human with the domain-management capability may start a private verification attempt for one exact custom hostname in one Tenant × environment. A name may be claimed before any Site uses it, so the attempt and the capability are organization-scoped; for an organization with no ready name, an operator may start the first attempt, and the tenant administrator activates (amended 2026-11-24 by the owner's decision on tenant-owned domains and ruling 5 of that day). A verification attempt is not a hostname reservation,
 provider attachment, Site-domain binding, public role, or ownership claim.
 Several scopes may attempt the same hostname without learning about each other;
 the first valid proof that atomically acquires the platform-wide current claim

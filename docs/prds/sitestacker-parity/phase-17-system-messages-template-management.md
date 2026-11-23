@@ -1684,8 +1684,7 @@ Vercel-CDN-Cache-Control: no-store
 
 No protected route permits `s-maxage`, stale fallback, an optimizer, or service
 worker handling. Under the Phase 24 D57 amendment, a Tenant-scoped issuance
-resolves exactly one current verified Tenant Donor Portal Host from trusted
-product state and freezes that canonical HTTPS origin with the code-owned exact
+resolves the organization's verified name for the action's surface, with its generation, from trusted product state (amended 2026-11-24 by the owner's decision on tenant-owned domains; earlier, exactly one current verified Tenant Donor Portal Host) and freezes that canonical HTTPS origin with the code-owned exact
 `PROTECTED_ACTION_PATH`. Tenant content, Site context, request headers, and
 arbitrary configured paths never participate. The route may carry only the
 closed, random non-secret selector field. It never carries the verifier. Invalid,
