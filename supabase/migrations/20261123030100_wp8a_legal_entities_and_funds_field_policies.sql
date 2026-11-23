@@ -171,4 +171,5 @@ CROSS JOIN unnest(
   ARRAY['mission_control', 'donor', 'missionary', 'public', 'export']
 ) AS s(surface);
 
+NOTIFY pgrst, 'reload schema';
 COMMIT;

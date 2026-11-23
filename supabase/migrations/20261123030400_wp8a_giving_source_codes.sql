@@ -409,4 +409,5 @@ GRANT EXECUTE ON FUNCTION
   public.update_giving_source_code(UUID, UUID, TEXT, BOOLEAN, TEXT)
   TO authenticated;
 
+NOTIFY pgrst, 'reload schema';
 COMMIT;

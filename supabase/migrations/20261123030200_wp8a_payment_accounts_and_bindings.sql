@@ -595,4 +595,5 @@ GRANT EXECUTE ON FUNCTION
   public.list_payment_legal_entities(UUID)
   TO authenticated;
 
+NOTIFY pgrst, 'reload schema';
 COMMIT;

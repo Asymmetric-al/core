@@ -1566,4 +1566,5 @@ ALTER FUNCTION tenant_guard.complete_workflow_dispatch_request(UUID, UUID, INTEG
 ALTER FUNCTION tenant_guard.record_workflow_dispatch_failure(UUID, UUID, INTEGER, TEXT, TEXT, BOOLEAN, INTEGER) OWNER TO tenant_guard;
 REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
 
+NOTIFY pgrst, 'reload schema';
 COMMIT;
