@@ -333,7 +333,9 @@ Preferred protected-development setup:
    needs a one-request server-to-server bypass, not a browser cookie.
 4. Copy the Stripe endpoint signing secret into that app's
    `STRIPE_WEBHOOK_SECRET` in Vercel `core-development` scope, then redeploy if either
-   the webhook signing secret or the Vercel bypass secret changed.
+   the webhook signing secret or the Vercel bypass secret changed. For the
+   `/api/webhooks/stripe-connect` destination the signing secret goes in
+   `STRIPE_CONNECT_WEBHOOK_SECRET` on the admin app instead.
 5. Verify without exposing secrets:
 
    ```bash
@@ -414,7 +416,7 @@ Production Stripe webhook endpoints:
 | Donor      | `https://donor.asymmetric.al/api/webhooks/stripe`                                                                                                                                       |
 | Missionary | `https://missionary.asymmetric.al/api/webhooks/stripe`                                                                                                                                  |
 
-Configure each endpoint in the active Stripe mode for at least these events:
+Configure each `/api/webhooks/stripe` endpoint in the active Stripe mode for at least these events:
 
 - `payment_intent.succeeded`
 - `payment_intent.payment_failed`
@@ -422,7 +424,7 @@ Configure each endpoint in the active Stripe mode for at least these events:
 - `payment_intent.processing`
 - `charge.refunded`
 
-After creating each endpoint, set `STRIPE_WEBHOOK_SECRET` on its app in Vercel Production. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.
+After creating each `/api/webhooks/stripe` endpoint, set `STRIPE_WEBHOOK_SECRET` on its app in Vercel Production. The `/api/webhooks/stripe-connect` destination is separate: it takes Accounts v2 account events as thin payloads, and its signing secret goes only in `STRIPE_CONNECT_WEBHOOK_SECRET` on the admin app, never in `STRIPE_WEBHOOK_SECRET`. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.
 
 Production Resend webhook endpoint:
 
