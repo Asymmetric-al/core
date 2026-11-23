@@ -94,7 +94,7 @@ const STAFF_ONLY = [
   "pdf_template_batches",
   "pdf_template_renders",
   "pdf_template_versions",
-  "persons",
+  "external_identifiers",
   "support_contacts",
   "support_tickets",
   "support_agents",
@@ -326,6 +326,18 @@ describe.skipIf(!ADMIN_URL)(
           tenant_id: q(tenant),
           profile_id: profile ? q(profile) : "null",
         });
+      await db.query(
+        `update public.missionaries set party_id = id where id in (${q("misMG")}, ${q("misMIS")}, ${q("misB")});
+         update public.donors set party_id = id where id in (${q("dSG")}, ${q("dDON")}, ${q("dOther")}, ${q("dB")});
+         update public.donors set party_id = ${q("misMG")} where id = ${q("dMG")};
+         insert into public.parties (id, tenant_id, display_name)
+           select id, tenant_id, 'acc2675' from public.missionaries where id in (${q("misMG")}, ${q("misMIS")}, ${q("misB")})
+           union all select id, tenant_id, 'acc2675' from public.donors where id in (${q("dSG")}, ${q("dDON")}, ${q("dOther")}, ${q("dB")});
+         insert into public.account_links (tenant_id, user_id, party_id, linked_via)
+           select distinct tenant_id, profile_id, party_id, 'profile_backfill' from (
+             select tenant_id, profile_id, party_id from public.donors where id in (${q("dSG")}, ${q("dMG")}, ${q("dDON")})
+             union select tenant_id, profile_id, party_id from public.missionaries where id in (${q("misMG")}, ${q("misMIS")})) as linked;`,
+      );
       for (const [g, tenant, donor, missionary] of [
         ["g1", "TA", "dSG", "misMIS"],
         ["g2", "TA", "dMG", "misMIS"],
@@ -1143,7 +1155,7 @@ describe.skipIf(!ADMIN_URL)(
                       "account_claim_requests",
                       "crm_record_links",
                       "legacy_account_invitations",
-                      "persons",
+                      "external_identifiers",
                     ].includes(t),
                 ),
                 "field_policies",
@@ -1555,7 +1567,7 @@ describe.skipIf(!ADMIN_URL)(
       // Callers include a donor and a missionary whose own rows the sweep
       // holds, with a positive control each, so a table whose rows only their
       // subject reads can fail the sweep (fixcheck F3).
-      it("R7: no row of any tenant table without the headers, nor with the assignment header alone, outside the reviewed exceptions", () =>
+      it("R7: no row of any tenant table without the headers, nor with the assignment header alone, outside the reviewed exceptions (D-18, AL-2678: the requester's own read of account_claim_requests is gone, so its row is swept and its requester reads none of it with no header; persons is gone and external_identifiers is staff-only; the fixture donors and missionaries are linked to their Parties as the migration backfills)", () =>
         tx(async () => {
           const pinned = new Set(
             (
@@ -1586,7 +1598,6 @@ describe.skipIf(!ADMIN_URL)(
           );
           // A row of each pinned table that no caller below may read.
           const pinnedRow: Record<string, Record<string, string>> = {
-            account_claim_requests: { requested_by: q("UB") },
             locations: { status: "'draft'" },
             posts: { status: "'draft'", visibility: "'private'" },
             profiles: { user_id: "gen_random_uuid()" },
@@ -1595,6 +1606,7 @@ describe.skipIf(!ADMIN_URL)(
             [...Object.keys(pinnedRow).sort(), "field_policies"].sort(),
           );
           const subject: Record<string, Record<string, string>> = {
+            account_claim_requests: { requested_by: q("UB") },
             member_care_private_notes: { author_user_id: q("UADM") },
             donor_feed_preferences: { donor_id: q("dDON") },
           };
@@ -1667,11 +1679,9 @@ describe.skipIf(!ADMIN_URL)(
           expect(
             await count("UADM", under("mAdm"), "account_claim_requests"),
           ).toBeGreaterThan(0);
-          // And the reviewed exceptions: the requester reads their own claim
-          // with no header, and anyone a published location.
-          expect(
-            await count("UB", undefined, "account_claim_requests"),
-          ).toBeGreaterThan(0);
+          expect(await count("UB", undefined, "account_claim_requests")).toBe(
+            0,
+          );
           await db.query(
             `update public.locations set status = 'published' where id = '${only.locations}'`,
           );

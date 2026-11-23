@@ -889,7 +889,7 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
     // would lock it under the suites that run beside this one. So the step
     // runs with its one auth.users reference pointed at a temporary copy of
     // the logins that carries both columns.
-    it("skips a profile that names no login and a soft-deleted login, keeps a banned login, and runs twice to the same rows", () =>
+    it("skips a profile that names no login and a soft-deleted login, keeps a banned login, and runs twice to the same rows (D-18, AL-2678: a profile's user_id now equals its id, so the legacy row is refused today and is planted for the historical step with that check lifted inside the rolled-back transaction)", () =>
       tx(async () => {
         const STEP = DATA_STEP.replaceAll("auth.users", "pg_temp.wp2a_logins");
         expect(STEP).not.toBe(DATA_STEP);
@@ -912,6 +912,17 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
         // A legacy profile whose user_id names no login: profiles.user_id
         // has no foreign key, memberships.user_id references auth.users.
         const dangling = crypto.randomUUID();
+        await db.query("savepoint planted_profile");
+        await expect(
+          db.query(
+            "update public.profiles set user_id = $2 where user_id = $1",
+            [ids.orphan, dangling],
+          ),
+        ).rejects.toMatchObject({ code: "23514" });
+        await db.query("rollback to savepoint planted_profile");
+        await db.query(
+          "alter table public.profiles drop constraint profiles_user_id_matches_id",
+        );
         await db.query(
           "update public.profiles set user_id = $2 where user_id = $1",
           [ids.orphan, dangling],

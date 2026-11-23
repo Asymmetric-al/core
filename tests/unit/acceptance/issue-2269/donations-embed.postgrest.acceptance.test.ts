@@ -208,209 +208,216 @@ const rest = (method: "GET" | "POST", body?: object) =>
 type Row = Record<string, any>;
 const FIELDS = "id donor { id } missionary { id profile { id } }";
 
-describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
-  beforeAll(async () => {
-    s.db = new pg.Client({ connectionString: DB_URL });
-    await s.db.connect();
-    const v = [TA, PD, PM, PM2, MI, MI2, DN1, DN2, G1, G2];
-    await s.db.query(
-      `insert into public.tenants (id, name, slug) values ($1, 'acc2269 P', 'acc2269-p-' || $1);
+describe.skipIf(!LIVE)(
+  "#2269 live PostgREST (P); D-18, AL-2678: each fixture missionary names a Party, the donor and missionaries that name a profile are linked to their Parties as the migration backfills, and the cleanup removes links and Parties before the tenant",
+  () => {
+    beforeAll(async () => {
+      s.db = new pg.Client({ connectionString: DB_URL });
+      await s.db.connect();
+      const v = [TA, PD, PM, PM2, MI, MI2, DN1, DN2, G1, G2];
+      await s.db.query(
+        `insert into public.tenants (id, name, slug) values ($1, 'acc2269 P', 'acc2269-p-' || $1);
        insert into auth.users (id) values ($2), ($3), ($4);
        insert into public.profiles (id, tenant_id, role) values ($2, $1, 'donor'), ($3, $1, 'missionary'), ($4, $1, 'missionary')
          on conflict (id) do update set tenant_id = excluded.tenant_id, role = excluded.role;
        -- D-18: the giving targets name their own tenant's entity.
        insert into public.legal_entities(id,tenant_id,name) values ($1,$1,'A');
-       insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id) values ($5, $1, $3,$1), ($6, $1, $4,$1);
+       insert into public.parties (id, tenant_id, display_name) values ($5, $1, 'Fixture'), ($6, $1, 'Fixture');
+       insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id,party_id) values ($5, $1, $3,$1,$5), ($6, $1, $4,$1,$6);
        insert into public.donors (id, tenant_id, profile_id) values ($7, $1, $2), ($8, $1, null);
+       insert into public.account_links (tenant_id, user_id, party_id, linked_via) select tenant_id, profile_id, party_id, 'profile_backfill' from public.donors where id = $7 union all select tenant_id, profile_id, party_id, 'profile_backfill' from public.missionaries where id in ($5, $6);
        insert into public.donations (id, tenant_id, donor_id, missionary_id, amount) values ($9, $1, $7, $5, 1000), ($10, $1, $8, $5, 2000);`.replace(
-        /\$(\d+)/g,
-        (_m, i: string) => `'${v[Number(i) - 1]}'`,
-      ),
-    );
-  });
-  afterAll(async () => {
-    await s.db.query(
-      `delete from public.donations where tenant_id = $1; delete from public.giving_target_entity_locks where tenant_id = $1; delete from public.donors where tenant_id = $1;
-       delete from public.missionaries where tenant_id = $1; delete from auth.users where id in ($2, $3, $4);
+          /\$(\d+)/g,
+          (_m, i: string) => `'${v[Number(i) - 1]}'`,
+        ),
+      );
+    });
+    afterAll(async () => {
+      await s.db.query(
+        `delete from public.donations where tenant_id = $1; delete from public.giving_target_entity_locks where tenant_id = $1; delete from public.account_links where tenant_id = $1; delete from public.donors where tenant_id = $1;
+       delete from public.missionaries where tenant_id = $1; delete from public.parties where tenant_id = $1; delete from auth.users where id in ($2, $3, $4);
        delete from public.profiles where id in ($2, $3, $4); delete from public.legal_entities where tenant_id=$1; delete from public.tenants where id = $1;`.replace(
-        /\$(\d+)/g,
-        (_m, i: string) => `'${[TA, PD, PM, PM2][Number(i) - 1]}'`,
-      ),
-    );
-    await s.db.end();
-  });
-
-  afterEach(() => {
-    s.fail = null;
-  });
-
-  it("C7 (P): REST GET /api/donations → 200, non-empty, nested donor.profile", async () => {
-    s.auth = as(PD, "donor");
-    const res = await GET(rest("GET"));
-    const body = (await res.json()) as { donations?: Row[] };
-    expect(res.status, JSON.stringify(body)).toBe(200);
-    expect(body.donations!.map((d) => d.id)).toEqual([G1]);
-    expect(body.donations![0]!.donor).toMatchObject({
-      id: DN1,
-      profile: { id: PD },
+          /\$(\d+)/g,
+          (_m, i: string) => `'${[TA, PD, PM, PM2][Number(i) - 1]}'`,
+        ),
+      );
+      await s.db.end();
     });
-    expect(body.donations![0]!.missionary.profile.id).toBe(PM);
-  });
 
-  it("C4 (P): GraphQL myDonations → the donor's rows with donor.id = profile, no errors", async () => {
-    s.auth = as(PD, "donor");
-    const r = await gql(`{ myDonations { ${FIELDS} } }`);
-    expect(r.errors, JSON.stringify(r.errors)).toBeUndefined();
-    expect(r.data!.myDonations).toEqual([
-      {
-        id: G1,
-        donor: { id: PD },
-        missionary: { id: MI, profile: { id: PM } },
-      },
-    ]);
-  });
-
-  it("C4/C2 (P): GraphQL mySupporters → 2 rows, the guest's donor is null, no errors", async () => {
-    s.auth = as(PM, "missionary");
-    const r = await gql(`{ mySupporters { ${FIELDS} } }`);
-    expect(r.errors, JSON.stringify(r.errors)).toBeUndefined();
-    const m = { id: MI, profile: { id: PM } };
-    expect(r.data!.mySupporters).toEqual(
-      expect.arrayContaining([
-        { id: G1, donor: { id: PD }, missionary: m },
-        { id: G2, donor: null, missionary: m },
-      ]),
-    );
-    expect(r.data!.mySupporters).toHaveLength(2);
-  });
-
-  it("C5 (P): REST POST /api/donations → 201 { donation, donationId } with donor.profile, exactly +1 row", async () => {
-    s.auth = as(PD, "donor");
-    const before = await count();
-    const res = await POST(
-      rest("POST", { missionaryId: MI2, amount: 2500, currency: "usd" }),
-    );
-    const body = (await res.json()) as Row;
-    expect(await count()).toBe(before + 1);
-    expect(res.status, JSON.stringify(body)).toBe(201);
-    expect(body.donationId).toEqual(expect.any(String));
-    expect(body.donation).toMatchObject({
-      id: body.donationId,
-      amount: 2500,
-      donor: { id: DN1, profile: { id: PD } },
-      missionary: { id: MI2, profile: { id: PM2 } },
+    afterEach(() => {
+      s.fail = null;
     });
-  });
 
-  it("C6 (P): GraphQL createDonation → the created id, donor mapped, no errors, exactly +1 row", async () => {
-    s.auth = as(PD, "donor");
-    const before = await count();
-    const r = await gql(
-      `mutation { createDonation(input: { missionaryId: "${MI2}", amount: 3100 }) { ${FIELDS} amount } }`,
-    );
-    expect(await count()).toBe(before + 1);
-    expect(r.errors, JSON.stringify(r.errors)).toBeUndefined();
-    const created = r.data!.createDonation as Record<string, unknown>;
-    const { rows } = await s.db.query(
-      "select id from public.donations where tenant_id = $1 and missionary_id = $2 and amount = 3100",
-      [TA, MI2],
-    );
-    expect(created).toEqual({
-      id: rows[0].id,
-      amount: 3100,
-      donor: { id: PD },
-      missionary: { id: MI2, profile: { id: PM2 } },
-    });
-  });
-  it.each([
-    ["donations query", /\/donations\?/],
-    ["donor lookup", /\/donors\?/],
-  ])(
-    "C7 (P, injected): REST GET with a failing %s → 500, no PostgREST text",
-    async (what, re) => {
-      [s.auth, s.fail] = [as(PD, "donor"), re];
+    it("C7 (P): REST GET /api/donations → 200, non-empty, nested donor.profile", async () => {
+      s.auth = as(PD, "donor");
       const res = await GET(rest("GET"));
-      const text = await res.text();
-      expect(res.status, text).toBe(500);
-      expect(text).not.toMatch(/PGRST|relationship|schema cache/i);
-      if (what === "donations query")
-        expect(JSON.parse(text)).toEqual({ error: "Failed to load donations" });
-    },
-  );
-
-  it.each([
-    [
-      "myDonations",
-      "donations query",
-      PD,
-      "donor",
-      /\/donations\?/,
-      "DONATIONS_QUERY_FAILED",
-    ],
-    [
-      "mySupporters",
-      "donations query",
-      PM,
-      "missionary",
-      /\/donations\?/,
-      "DONATIONS_QUERY_FAILED",
-    ],
-    ["myDonations", "donor lookup", PD, "donor", /\/donors\?/, undefined],
-    [
-      "mySupporters",
-      "missionary lookup",
-      PM,
-      "missionary",
-      /\/missionaries\?/,
-      undefined,
-    ],
-  ] as const)(
-    "C4 (P, injected): GraphQL %s with a failing %s request → error, not []",
-    async (field, _what, who, role, re, code) => {
-      [s.auth, s.fail] = [as(who, role), re];
-      const r = await gql(`{ ${field} { id } }`);
-      expect(r.data?.[field] ?? null).toBeNull();
-      expect(r.errors, JSON.stringify(r)).toHaveLength(1);
-      if (code) expect(r.errors![0]!.extensions?.code).toBe(code);
-    },
-  );
-
-  it('C5 (P, injected): REST POST with a failing read-back → 201 { donation: null, donationId, readBack: "failed" }, +1 row', async () => {
-    [s.auth, s.fail] = [as(PD, "donor"), /\/donations\?/];
-    const before = await count();
-    const res = await POST(rest("POST", { missionaryId: MI2, amount: 2700 }));
-    const body = (await res.json()) as Row;
-    expect(await count()).toBe(before + 1);
-    expect(res.status, JSON.stringify(body)).toBe(201);
-    const { rows } = await s.db.query(
-      "select id from public.donations where tenant_id = $1 and amount = 2700",
-      [TA],
-    );
-    expect(body).toEqual({
-      donation: null,
-      donationId: rows[0].id,
-      readBack: "failed",
+      const body = (await res.json()) as { donations?: Row[] };
+      expect(res.status, JSON.stringify(body)).toBe(200);
+      expect(body.donations!.map((d) => d.id)).toEqual([G1]);
+      expect(body.donations![0]!.donor).toMatchObject({
+        id: DN1,
+        profile: { id: PD },
+      });
+      expect(body.donations![0]!.missionary.profile.id).toBe(PM);
     });
-  });
 
-  it("C6 (P, injected): GraphQL createDonation with a failing read-back → DONATION_READBACK_FAILED with donationId, +1 row", async () => {
-    [s.auth, s.fail] = [as(PD, "donor"), /\/donations\?/];
-    const before = await count();
-    const r = await gql(
-      `mutation { createDonation(input: { missionaryId: "${MI2}", amount: 2900 }) { id } }`,
-    );
-    expect(await count()).toBe(before + 1);
-    const { rows } = await s.db.query(
-      "select id from public.donations where tenant_id = $1 and amount = 2900",
-      [TA],
-    );
-    expect(r.errors?.[0]?.message).not.toBe("Unexpected error.");
-    expect(r.errors?.[0]?.extensions).toMatchObject({
-      code: "DONATION_READBACK_FAILED",
-      donationId: rows[0].id,
+    it("C4 (P): GraphQL myDonations → the donor's rows with donor.id = profile, no errors", async () => {
+      s.auth = as(PD, "donor");
+      const r = await gql(`{ myDonations { ${FIELDS} } }`);
+      expect(r.errors, JSON.stringify(r.errors)).toBeUndefined();
+      expect(r.data!.myDonations).toEqual([
+        {
+          id: G1,
+          donor: { id: PD },
+          missionary: { id: MI, profile: { id: PM } },
+        },
+      ]);
     });
-  });
-});
+
+    it("C4/C2 (P): GraphQL mySupporters → 2 rows, the guest's donor is null, no errors", async () => {
+      s.auth = as(PM, "missionary");
+      const r = await gql(`{ mySupporters { ${FIELDS} } }`);
+      expect(r.errors, JSON.stringify(r.errors)).toBeUndefined();
+      const m = { id: MI, profile: { id: PM } };
+      expect(r.data!.mySupporters).toEqual(
+        expect.arrayContaining([
+          { id: G1, donor: { id: PD }, missionary: m },
+          { id: G2, donor: null, missionary: m },
+        ]),
+      );
+      expect(r.data!.mySupporters).toHaveLength(2);
+    });
+
+    it("C5 (P): REST POST /api/donations → 201 { donation, donationId } with donor.profile, exactly +1 row", async () => {
+      s.auth = as(PD, "donor");
+      const before = await count();
+      const res = await POST(
+        rest("POST", { missionaryId: MI2, amount: 2500, currency: "usd" }),
+      );
+      const body = (await res.json()) as Row;
+      expect(await count()).toBe(before + 1);
+      expect(res.status, JSON.stringify(body)).toBe(201);
+      expect(body.donationId).toEqual(expect.any(String));
+      expect(body.donation).toMatchObject({
+        id: body.donationId,
+        amount: 2500,
+        donor: { id: DN1, profile: { id: PD } },
+        missionary: { id: MI2, profile: { id: PM2 } },
+      });
+    });
+
+    it("C6 (P): GraphQL createDonation → the created id, donor mapped, no errors, exactly +1 row", async () => {
+      s.auth = as(PD, "donor");
+      const before = await count();
+      const r = await gql(
+        `mutation { createDonation(input: { missionaryId: "${MI2}", amount: 3100 }) { ${FIELDS} amount } }`,
+      );
+      expect(await count()).toBe(before + 1);
+      expect(r.errors, JSON.stringify(r.errors)).toBeUndefined();
+      const created = r.data!.createDonation as Record<string, unknown>;
+      const { rows } = await s.db.query(
+        "select id from public.donations where tenant_id = $1 and missionary_id = $2 and amount = 3100",
+        [TA, MI2],
+      );
+      expect(created).toEqual({
+        id: rows[0].id,
+        amount: 3100,
+        donor: { id: PD },
+        missionary: { id: MI2, profile: { id: PM2 } },
+      });
+    });
+    it.each([
+      ["donations query", /\/donations\?/],
+      ["donor lookup", /\/donors\?/],
+    ])(
+      "C7 (P, injected): REST GET with a failing %s → 500, no PostgREST text",
+      async (what, re) => {
+        [s.auth, s.fail] = [as(PD, "donor"), re];
+        const res = await GET(rest("GET"));
+        const text = await res.text();
+        expect(res.status, text).toBe(500);
+        expect(text).not.toMatch(/PGRST|relationship|schema cache/i);
+        if (what === "donations query")
+          expect(JSON.parse(text)).toEqual({
+            error: "Failed to load donations",
+          });
+      },
+    );
+
+    it.each([
+      [
+        "myDonations",
+        "donations query",
+        PD,
+        "donor",
+        /\/donations\?/,
+        "DONATIONS_QUERY_FAILED",
+      ],
+      [
+        "mySupporters",
+        "donations query",
+        PM,
+        "missionary",
+        /\/donations\?/,
+        "DONATIONS_QUERY_FAILED",
+      ],
+      ["myDonations", "donor lookup", PD, "donor", /\/donors\?/, undefined],
+      [
+        "mySupporters",
+        "missionary lookup",
+        PM,
+        "missionary",
+        /\/missionaries\?/,
+        undefined,
+      ],
+    ] as const)(
+      "C4 (P, injected): GraphQL %s with a failing %s request → error, not []",
+      async (field, _what, who, role, re, code) => {
+        [s.auth, s.fail] = [as(who, role), re];
+        const r = await gql(`{ ${field} { id } }`);
+        expect(r.data?.[field] ?? null).toBeNull();
+        expect(r.errors, JSON.stringify(r)).toHaveLength(1);
+        if (code) expect(r.errors![0]!.extensions?.code).toBe(code);
+      },
+    );
+
+    it('C5 (P, injected): REST POST with a failing read-back → 201 { donation: null, donationId, readBack: "failed" }, +1 row', async () => {
+      [s.auth, s.fail] = [as(PD, "donor"), /\/donations\?/];
+      const before = await count();
+      const res = await POST(rest("POST", { missionaryId: MI2, amount: 2700 }));
+      const body = (await res.json()) as Row;
+      expect(await count()).toBe(before + 1);
+      expect(res.status, JSON.stringify(body)).toBe(201);
+      const { rows } = await s.db.query(
+        "select id from public.donations where tenant_id = $1 and amount = 2700",
+        [TA],
+      );
+      expect(body).toEqual({
+        donation: null,
+        donationId: rows[0].id,
+        readBack: "failed",
+      });
+    });
+
+    it("C6 (P, injected): GraphQL createDonation with a failing read-back → DONATION_READBACK_FAILED with donationId, +1 row", async () => {
+      [s.auth, s.fail] = [as(PD, "donor"), /\/donations\?/];
+      const before = await count();
+      const r = await gql(
+        `mutation { createDonation(input: { missionaryId: "${MI2}", amount: 2900 }) { id } }`,
+      );
+      expect(await count()).toBe(before + 1);
+      const { rows } = await s.db.query(
+        "select id from public.donations where tenant_id = $1 and amount = 2900",
+        [TA],
+      );
+      expect(r.errors?.[0]?.message).not.toBe("Unexpected error.");
+      expect(r.errors?.[0]?.extensions).toMatchObject({
+        code: "DONATION_READBACK_FAILED",
+        donationId: rows[0].id,
+      });
+    });
+  },
+);
 
 // A1-C8 (final C8 ruling, issue comment 6391426341): a replayed idempotency key
 // resolves to a donation that is not the caller's gift as requested. Runs in CI

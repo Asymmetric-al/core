@@ -205,143 +205,151 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   () => expect(ADMIN_URL).not.toBe(""),
 );
 
-describe.skipIf(!ADMIN_URL)("#2269 C3 real catalog (R)", () => {
-  const db = new pg.Client({ connectionString: ADMIN_URL });
-  const u = (): string => randomUUID();
-  const [TA, TB, PD, PM, MI, MB, DN1, DN2, DN3, G1, G2, GX] = [
-    u(),
-    u(),
-    u(),
-    u(),
-    u(),
-    u(),
-    u(),
-    u(),
-    u(),
-    u(),
-    u(),
-    u(),
-  ];
-  /** One statement under a savepoint, so a failing case doesn't abort the others. */
-  async function rows(sql: string, args: unknown[] = []) {
-    await db.query("savepoint q");
-    try {
-      const r = await db.query(sql, args);
-      await db.query("release savepoint q");
-      return r.rows as Record<string, string | null>[];
-    } catch (e) {
-      await db.query("rollback to savepoint q");
-      throw e;
+describe.skipIf(!ADMIN_URL)(
+  "#2269 C3 real catalog (R); D-18, AL-2678: each fixture missionary names a Party, and each donor and missionary that names a profile is linked to its Party, as the migration backfills",
+  () => {
+    const db = new pg.Client({ connectionString: ADMIN_URL });
+    const u = (): string => randomUUID();
+    const [TA, TB, PD, PM, MI, MB, DN1, DN2, DN3, G1, G2, GX] = [
+      u(),
+      u(),
+      u(),
+      u(),
+      u(),
+      u(),
+      u(),
+      u(),
+      u(),
+      u(),
+      u(),
+      u(),
+    ];
+    /** One statement under a savepoint, so a failing case doesn't abort the others. */
+    async function rows(sql: string, args: unknown[] = []) {
+      await db.query("savepoint q");
+      try {
+        const r = await db.query(sql, args);
+        await db.query("release savepoint q");
+        return r.rows as Record<string, string | null>[];
+      } catch (e) {
+        await db.query("rollback to savepoint q");
+        throw e;
+      }
     }
-  }
 
-  beforeAll(async () => {
-    await db.connect();
-    await db.query("begin");
-    await db.query(
-      `insert into public.tenants (id, name, slug) values ($1, 'acc2269 A', 'acc2269-' || $1), ($2, 'acc2269 B', 'acc2269-' || $2);
+    beforeAll(async () => {
+      await db.connect();
+      await db.query("begin");
+      await db.query(
+        `insert into public.tenants (id, name, slug) values ($1, 'acc2269 A', 'acc2269-' || $1), ($2, 'acc2269 B', 'acc2269-' || $2);
        insert into auth.users (id) values ($3), ($4);
        insert into public.profiles (id, tenant_id, role) values ($3, $1, 'donor'), ($4, $1, 'missionary') on conflict (id) do update set tenant_id = excluded.tenant_id, role = excluded.role;
        -- D-18: the giving targets name their own tenant's entity.
        insert into public.legal_entities(id,tenant_id,name) values ($1,$1,'A'),($2,$2,'B');
-       insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id) values ($5, $1, $4,$1), ($6, $2, $4,$2);
+       insert into public.parties (id, tenant_id, display_name) values ($5, $1, 'Fixture'), ($6, $2, 'Fixture');
+       insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id,party_id) values ($5, $1, $4,$1,$5), ($6, $2, $4,$2,$6);
        insert into public.donors (id, tenant_id, profile_id) values ($7, $1, $3), ($8, $1, null), ($9, $2, $3);
+       insert into public.account_links (tenant_id, user_id, party_id, linked_via) select tenant_id, profile_id, party_id, 'profile_backfill' from public.donors where id in ($7, $9) union all select tenant_id, profile_id, party_id, 'profile_backfill' from public.missionaries where id in ($5, $6);
        insert into public.donations (id, tenant_id, donor_id, missionary_id, amount) values ($10, $1, $7, $5, 1000), ($11, $1, $8, $5, 2000), ($12, $2, $9, $6, 3000);`.replace(
-        /\$(\d+)/g,
-        (_m, i: string) =>
-          `'${[TA, TB, PD, PM, MI, MB, DN1, DN2, DN3, G1, G2, GX][Number(i) - 1]}'`,
-      ),
-    );
-  });
-  afterAll(async () => {
-    await db.query("rollback").catch(() => undefined);
-    await db.end();
-  });
+          /\$(\d+)/g,
+          (_m, i: string) =>
+            `'${[TA, TB, PD, PM, MI, MB, DN1, DN2, DN3, G1, G2, GX][Number(i) - 1]}'`,
+        ),
+      );
+    });
+    afterAll(async () => {
+      await db.query("rollback").catch(() => undefined);
+      await db.end();
+    });
 
-  /** Every FK between two tables, either direction, with its columns. */
-  async function fks(src: string, tgt: string) {
-    return rows(
-      `select conname, conrelid = $1::regclass as m2o,
+    /** Every FK between two tables, either direction, with its columns. */
+    async function fks(src: string, tgt: string) {
+      return rows(
+        `select conname, conrelid = $1::regclass as m2o,
         (select string_agg(attname, ',' order by n) from unnest(conkey) with ordinality k(a, n) join pg_attribute on attrelid = conrelid and attnum = a) cols,
         (select string_agg(attname, ',' order by n) from unnest(confkey) with ordinality k(a, n) join pg_attribute on attrelid = confrelid and attnum = a) fcols
        from pg_constraint where contype = 'f' and ((conrelid = $1::regclass and confrelid = $2::regclass) or (conrelid = $2::regclass and confrelid = $1::regclass))`,
-      [`public.${src}`, `public.${tgt}`],
-    );
-  }
-  /** Joins for an embed tree; each embed must resolve to exactly one FK. */
-  async function joins(
-    src: string,
-    alias: string,
-    list: Embed[],
-    path = "",
-  ): Promise<string[]> {
-    const out: string[] = [];
-    for (const e of list) {
-      const all = await fks(src, e.table);
-      const hit = all.filter(
-        (f) =>
-          !e.hint ||
-          f.conname === e.hint ||
-          (!f.cols!.includes(",") && (f.cols === e.hint || f.fcols === e.hint)),
+        [`public.${src}`, `public.${tgt}`],
       );
-      const label = `${path}${e.alias}:${e.table}${e.hint ? `!${e.hint}` : ""} from ${src}`;
-      expect(
-        hit.map((f) => f.conname),
-        `${label} must resolve to exactly one relationship`,
-      ).toHaveLength(1);
-      const f = hit[0]!;
-      const [cols, fcols] = [f.cols!.split(","), f.fcols!.split(",")];
-      const a = `${alias}__${e.alias}`;
-      const on = cols.map((c, i) =>
-        f.m2o
-          ? `${alias}.${c} = ${a}.${fcols[i]}`
-          : `${a}.${c} = ${alias}.${fcols[i]}`,
-      );
-      out.push(`left join public.${e.table} ${a} on ${on.join(" and ")}`);
-      out.push(...(await joins(e.table, a, e.kids, `${label} > `)));
     }
-    return out;
-  }
-  /** The endpoint's query: lookup by profile + tenant (or id), donations filtered, embeds joined. */
-  async function run(
-    site: Site,
-    by: { profile?: string; donor?: string; id?: string },
-  ) {
-    const j = await joins("donations", "d", embeds(await selectOf(site)));
-    const where =
-      site.filter === "id"
-        ? `d.id = '${by.id}'`
-        : site.filter === "missionary"
-          ? `d.missionary_id = (select id from public.missionaries where profile_id = '${by.profile}' and tenant_id = '${TA}') and d.tenant_id = '${TA}'`
-          : `d.donor_id = ${by.donor ? `'${by.donor}'` : `(select id from public.donors where profile_id = '${by.profile}' and tenant_id = '${TA}')`} and d.tenant_id = '${TA}'`;
-    return rows(
-      `select d.id, d.tenant_id, d__donor.id donor, d__donor__profile.id profile, d__missionary__profile.id mprofile
-       from public.donations d ${j.join(" ")} where ${where} order by d.amount`,
-    );
-  }
-
-  it.each(SITES.map((s) => [s.name, s] as const))(
-    "C3: %s resolves every embed and returns the OQ1 donor shape (profiled + guest)",
-    async (_n, site) => {
-      const want = (id: string, donor: string, profile: string | null) => ({
-        id,
-        tenant_id: TA,
-        donor,
-        profile,
-        mprofile: PM,
-      });
-      if (site.filter === "id") {
-        expect(await run(site, { id: G1 })).toEqual([want(G1, DN1, PD)]);
-        expect(await run(site, { id: G2 })).toEqual([want(G2, DN2, null)]);
-      } else if (site.filter === "missionary") {
-        expect(await run(site, { profile: PM })).toEqual([
-          want(G1, DN1, PD),
-          want(G2, DN2, null),
-        ]);
-      } else {
-        expect(await run(site, { profile: PD })).toEqual([want(G1, DN1, PD)]);
-        expect(await run(site, { donor: DN2 })).toEqual([want(G2, DN2, null)]);
+    /** Joins for an embed tree; each embed must resolve to exactly one FK. */
+    async function joins(
+      src: string,
+      alias: string,
+      list: Embed[],
+      path = "",
+    ): Promise<string[]> {
+      const out: string[] = [];
+      for (const e of list) {
+        const all = await fks(src, e.table);
+        const hit = all.filter(
+          (f) =>
+            !e.hint ||
+            f.conname === e.hint ||
+            (!f.cols!.includes(",") &&
+              (f.cols === e.hint || f.fcols === e.hint)),
+        );
+        const label = `${path}${e.alias}:${e.table}${e.hint ? `!${e.hint}` : ""} from ${src}`;
+        expect(
+          hit.map((f) => f.conname),
+          `${label} must resolve to exactly one relationship`,
+        ).toHaveLength(1);
+        const f = hit[0]!;
+        const [cols, fcols] = [f.cols!.split(","), f.fcols!.split(",")];
+        const a = `${alias}__${e.alias}`;
+        const on = cols.map((c, i) =>
+          f.m2o
+            ? `${alias}.${c} = ${a}.${fcols[i]}`
+            : `${a}.${c} = ${alias}.${fcols[i]}`,
+        );
+        out.push(`left join public.${e.table} ${a} on ${on.join(" and ")}`);
+        out.push(...(await joins(e.table, a, e.kids, `${label} > `)));
       }
-    },
-  );
-});
+      return out;
+    }
+    /** The endpoint's query: lookup by profile + tenant (or id), donations filtered, embeds joined. */
+    async function run(
+      site: Site,
+      by: { profile?: string; donor?: string; id?: string },
+    ) {
+      const j = await joins("donations", "d", embeds(await selectOf(site)));
+      const where =
+        site.filter === "id"
+          ? `d.id = '${by.id}'`
+          : site.filter === "missionary"
+            ? `d.missionary_id = (select id from public.missionaries where profile_id = '${by.profile}' and tenant_id = '${TA}') and d.tenant_id = '${TA}'`
+            : `d.donor_id = ${by.donor ? `'${by.donor}'` : `(select id from public.donors where profile_id = '${by.profile}' and tenant_id = '${TA}')`} and d.tenant_id = '${TA}'`;
+      return rows(
+        `select d.id, d.tenant_id, d__donor.id donor, d__donor__profile.id profile, d__missionary__profile.id mprofile
+       from public.donations d ${j.join(" ")} where ${where} order by d.amount`,
+      );
+    }
+
+    it.each(SITES.map((s) => [s.name, s] as const))(
+      "C3: %s resolves every embed and returns the OQ1 donor shape (profiled + guest)",
+      async (_n, site) => {
+        const want = (id: string, donor: string, profile: string | null) => ({
+          id,
+          tenant_id: TA,
+          donor,
+          profile,
+          mprofile: PM,
+        });
+        if (site.filter === "id") {
+          expect(await run(site, { id: G1 })).toEqual([want(G1, DN1, PD)]);
+          expect(await run(site, { id: G2 })).toEqual([want(G2, DN2, null)]);
+        } else if (site.filter === "missionary") {
+          expect(await run(site, { profile: PM })).toEqual([
+            want(G1, DN1, PD),
+            want(G2, DN2, null),
+          ]);
+        } else {
+          expect(await run(site, { profile: PD })).toEqual([want(G1, DN1, PD)]);
+          expect(await run(site, { donor: DN2 })).toEqual([
+            want(G2, DN2, null),
+          ]);
+        }
+      },
+    );
+  },
+);

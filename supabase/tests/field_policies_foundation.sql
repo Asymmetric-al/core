@@ -51,14 +51,18 @@ BEGIN
     AND column_name='email_verified_at' AND data_type='timestamp with time zone' AND column_default IS NULL
     AND is_nullable='YES') THEN
     RAISE EXCEPTION 'C4: identity supplement must be nullable TIMESTAMPTZ email_verified_at'; END IF;
-  SELECT string_agg(p.record_type, ', ') INTO bad FROM (
-    SELECT DISTINCT record_type FROM public.field_policies
-    WHERE record_type IN ('missionaries','profiles') AND field_key='person_id') p
-    WHERE NOT EXISTS (SELECT 1 FROM information_schema.columns c WHERE c.table_schema='public'
-      AND c.table_name=p.record_type AND c.column_name='person_id' AND c.data_type='uuid'
-      AND c.is_nullable='YES' AND c.column_default IS NULL);
+  -- AL-2678 (WP5 part 1): the person anchor is dropped and parties replaces
+  -- it, so persons, both person_id columns and their rows must be absent, and
+  -- the Party keys present.
+  SELECT string_agg(c.table_name, ', ') INTO bad FROM information_schema.columns c
+    WHERE c.table_schema='public' AND c.column_name='person_id';
+  IF bad IS NOT NULL OR to_regclass('public.persons') IS NOT NULL
+    OR EXISTS (SELECT 1 FROM public.field_policies WHERE field_key='person_id') THEN
+    RAISE EXCEPTION 'C4: the dropped person anchor must leave no table, column or row: %', bad; END IF;
+  SELECT string_agg(k, ', ') INTO bad FROM unnest(array['donors.party_id','missionaries.party_id','parties.security_level']) k
+    WHERE NOT EXISTS (SELECT 1 FROM public.field_policies f WHERE f.record_type||'.'||f.field_key=k AND f.tenant_id IS NULL);
   IF bad IS NOT NULL THEN
-    RAISE EXCEPTION 'C4: person anchor supplement must be nullable UUID person_id: %', bad; END IF;
+    RAISE EXCEPTION 'C4: the Party keys must be classified: %', bad; END IF;
   -- AL-2677: only the reviewed report output fields have no physical column.
   -- Both physical and derived fields retain all five surface and category checks.
   SELECT string_agg(DISTINCT p.record_type||'.'||p.field_key, ', ') INTO bad
