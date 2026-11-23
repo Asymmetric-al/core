@@ -256,11 +256,11 @@ $$;
 COMMENT ON FUNCTION tenant_guard.start_media_upload(UUID, BIGINT, TEXT) IS
   'Human command (AL-2679, WP6 part 1): admits web_studio.edit in an active tenant, validates declared size and MIME type, and records a pending uploading custody row.';
 
+REVOKE ALL ON FUNCTION tenant_guard.start_media_upload(UUID, BIGINT, TEXT) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION tenant_guard.start_media_upload(UUID, BIGINT, TEXT) TO authenticated;
 GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard;
 ALTER FUNCTION tenant_guard.start_media_upload(UUID, BIGINT, TEXT) OWNER TO tenant_guard;
 REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
-REVOKE ALL ON FUNCTION tenant_guard.start_media_upload(UUID, BIGINT, TEXT) FROM PUBLIC, anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION tenant_guard.start_media_upload(UUID, BIGINT, TEXT) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.start_media_upload(
   p_tenant_id UUID,
@@ -361,11 +361,11 @@ $$;
 COMMENT ON FUNCTION tenant_guard.delete_media_asset(UUID, UUID) IS
   'Human command (AL-2679, WP6 part 1): admits web_studio.edit in an active tenant and tombstones a tenant media asset with a 35-day delayed purge window.';
 
+REVOKE ALL ON FUNCTION tenant_guard.delete_media_asset(UUID, UUID) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION tenant_guard.delete_media_asset(UUID, UUID) TO authenticated;
 GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard;
 ALTER FUNCTION tenant_guard.delete_media_asset(UUID, UUID) OWNER TO tenant_guard;
 REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
-REVOKE ALL ON FUNCTION tenant_guard.delete_media_asset(UUID, UUID) FROM PUBLIC, anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION tenant_guard.delete_media_asset(UUID, UUID) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.delete_media_asset(
   p_tenant_id UUID,
@@ -460,6 +460,26 @@ BEGIN
      OR NOT pg_catalog.has_column_privilege('tenant_guard', 'public.media_assets', 'deleted_at', 'UPDATE')
      OR pg_catalog.has_column_privilege('tenant_guard', 'public.media_assets', 'master_key', 'UPDATE') THEN
     RAISE EXCEPTION 'AL-2679: public.media_assets privileges did not apply as expected';
+  END IF;
+
+  IF NOT pg_catalog.has_function_privilege('authenticated', 'tenant_guard.start_media_upload(uuid, bigint, text)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('public', 'tenant_guard.start_media_upload(uuid, bigint, text)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('anon', 'tenant_guard.start_media_upload(uuid, bigint, text)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('service_role', 'tenant_guard.start_media_upload(uuid, bigint, text)', 'EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('authenticated', 'tenant_guard.delete_media_asset(uuid, uuid)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('public', 'tenant_guard.delete_media_asset(uuid, uuid)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('anon', 'tenant_guard.delete_media_asset(uuid, uuid)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('service_role', 'tenant_guard.delete_media_asset(uuid, uuid)', 'EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('authenticated', 'public.start_media_upload(uuid, bigint, text)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('public', 'public.start_media_upload(uuid, bigint, text)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('anon', 'public.start_media_upload(uuid, bigint, text)', 'EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('authenticated', 'public.delete_media_asset(uuid, uuid)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('public', 'public.delete_media_asset(uuid, uuid)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('anon', 'public.delete_media_asset(uuid, uuid)', 'EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('authenticated', 'public.resolve_staff_media_access(uuid)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('public', 'public.resolve_staff_media_access(uuid)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('anon', 'public.resolve_staff_media_access(uuid)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'AL-2679: media function EXECUTE privileges did not apply as expected';
   END IF;
 END $$;
 
