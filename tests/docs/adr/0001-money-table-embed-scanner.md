@@ -50,7 +50,9 @@ tables must resolve against both the pre-migration and post-migration catalogs.
    grants an exemption for it (pinned by the negative scanner test for
    non-literal roots and reused builder names). `resolveTableArg`,
    `setOrDynamic` and `scanSources` produce `DYNAMIC_ROOT` when `.from(...)`
-   takes a non-literal argument, when one string constant or `.from(...)`
+   has an argument the scanner cannot resolve to a single literal table name
+   (a `const` bound to one string literal does resolve, through
+   `stringConsts`), when one string constant or `.from(...)`
    builder variable name binds to two different roots in the same file, or when
    a repeated variable name binds to multiple roots. Without a statically known
    literal table, the scanner cannot verify whether a hint-free embed belongs in
@@ -63,7 +65,8 @@ tables must resolve against both the pre-migration and post-migration catalogs.
    declarations (`varDecls`), variable-bound `.from(...)` builders
    (`varFromRoots`), transitive helper string references and resolved relative
    or `@asym/` named imports, holding `null` when unbound or `DYNAMIC_ROOT`
-   when non-literal or ambiguous. When inline selects nest, `scanSources` sorts
+   when the root cannot be resolved to a single literal table name. When
+   inline selects nest, `scanSources` sorts
    enclosing `inlineSelectSpans` by ascending span width (`end - start`) and
    uses the narrowest enclosing select before checking variable declarations
    bound to `.from(...)` selects.
