@@ -21,6 +21,7 @@ import {
 import { confirmPlatformOperator } from "./platform-operator";
 import {
   createRequestSessionClient,
+  requestCarriesSupabaseSession,
   type RequestSessionClient,
 } from "./request-session-client";
 
@@ -254,6 +255,12 @@ export function withOperation<
         { error: "Active assignment required" },
         { status: 403 },
       );
+    if (!requestCarriesSupabaseSession(context.request)) {
+      return NextResponse.json(
+        { error: "A Supabase session is required.", code: "SESSION_REQUIRED" },
+        { status: 401 },
+      );
+    }
     const sessionClient = await createRequestSessionClient(
       context.request,
       scope,

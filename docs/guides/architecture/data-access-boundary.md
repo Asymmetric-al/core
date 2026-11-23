@@ -204,18 +204,15 @@ smoke-level jobs.
 
 ## Missionaries reads
 
-`public.missionaries` is server-only (#2364,
-`supabase/migrations/20261026105000_missionaries_server_only_reads.sql`).
-Every read goes through `packages/api/src/*` or the GraphQL handler using the
-service-role admin client: `GET /api/missionaries`, the admin directory, the
-donor and missionary portals, dashboard and metrics reads, and GraphQL
-`missionaries`/`missionary`. `anon` holds no privilege on the table. The
-`authenticated` role keeps column SELECT on `id` and `profile_id` for its own
-row only, in the request's tenant and under a missionary assignment, so the
-own-missionary branch of the `donations` and `donor_pledges` read policies
-keeps working. Those branches read no other column of `missionaries`, or every
-signed-in read of the two tables fails. No browser or user-key code reads it,
-and `missionariesCollection` must not be instantiated for browser sync.
+Mission Control's CRM reads worker IDs, profile IDs, tenant, location and
+creation/update times under the selected staff assignment. Names come from the
+tenant member directory. The own-missionary policy admits the same six columns
+for the caller's own row, including the two keys that gift and pledge policies
+use. Care fields remain server-only and `anon` holds no grant.
+
+`GET /api/missionaries`, the admin directory, portal, dashboard and metrics
+reads, and GraphQL `missionaries`/`missionary` still use the service-role
+client. The browser must not instantiate `missionariesCollection` for sync.
 
 ## Reads on the caller's token
 

@@ -92,13 +92,7 @@ packages/api/src/admin/contributions/reconcile.ts operation_admin_context 1
 packages/api/src/admin/contributions/replay.ts operation_admin_context 1
 packages/api/src/admin/contributions/staged-gifts.ts operation_admin_context 4
 packages/api/src/admin/contributions/summary.ts admin_client 1
-packages/api/src/admin/crm/detail/index.ts operation_admin_context 1
-packages/api/src/admin/crm/index.ts admin_client 1
-packages/api/src/admin/crm/notes/index.ts operation_admin_context 2
-packages/api/src/admin/crm/relationships/index.ts operation_admin_context 1
-packages/api/src/admin/crm/reports/export.ts operation_admin_context 1
-packages/api/src/admin/crm/reports/index.ts operation_admin_context 1
-packages/api/src/admin/crm/table-preferences/route.ts operation_admin_context 3
+packages/api/src/admin/crm/notes/index.ts operation_admin_context 1
 packages/api/src/admin/fund-directory.ts operation_admin_context 1
 packages/api/src/admin/locations/index.ts admin_client 1
 packages/api/src/admin/member-care/mutations.ts admin_client 1

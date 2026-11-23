@@ -546,8 +546,8 @@ the secrets it needs by name and the owner's steps to switch it on, is
 
 Starts a local Supabase stack from source and runs the Supabase Auth email
 round trips against it. A workflow of its own, so `ci.yml` and
-`ci-integration.yml` do not change. Not a required check. It guards five
-things:
+`ci-integration.yml` do not change. This optional job checks the following
+contracts.
 
 - _The migration chain and the seed on the real Supabase image._ It is the
   only job that applies them with Supabase's roles and grants and a `postgres`
@@ -577,6 +577,11 @@ things:
   those handler directories, their listed shared API helpers, the database's
   Supabase admin and config modules, the proof and its fixtures, or the root
   Vitest configuration and its two local resolver plugins.
+- _Mission Control CRM reads (WP4a)._ Signed-in staff call each CRM read
+  through Auth and PostgREST. The suite checks tenant isolation, personal
+  preference ownership, worker names, and the governed export's anonymous
+  donors and audit rows. The auth-mail browser job signs in to search CRM
+  records in each organization, read relationships, and create and read a note.
 - _Platform operator second factor (WP2c):_ `node scripts/e2e/run-operator-mfa.mjs`
   tests TOTP enrolment and challenge against local Auth, the caller's operator
   check through PostgREST, and the operator CLI against the same database.

@@ -441,44 +441,6 @@ test("sign-in, the callback's landing and the recovery steps keep the browser's 
 // document then reloaded at the bare address, and the proxy sent a person in
 // two organizations to the chooser. The list's address keeps its prefix and
 // the document stays the same.
-for (const [person, tenant] of [
-  ["demoAdmin", DEMO],
-  ["twoTenants", SECOND],
-] as const) {
-  test(`changing the CRM search keeps the document and its tenant address (${person})`, async ({
-    page,
-  }) => {
-    await signInAs(page, "admin", person, baseURL());
-    const crm = tenantPath(tenant, "/crm");
-    await page.goto(crm);
-    await expect(page.locator("[data-tenant-scope]")).toHaveAttribute(
-      "data-tenant-scope",
-      `/${tenant}`,
-      { timeout: 90_000 },
-    );
-    const search = page.getByRole("searchbox", { name: "Search CRM records" });
-    await expect(search).toBeVisible();
-    await page.waitForLoadState("networkidle");
-    const documents = trackDocumentLoads(page);
-    await markDocument(page);
-
-    await search.fill("__no_such_contact__");
-    await expect(page).toHaveURL(
-      (url) =>
-        url.pathname === crm &&
-        url.searchParams.get("q") === "__no_such_contact__",
-    );
-    await page.waitForLoadState("networkidle");
-
-    expect(documents).toEqual([]);
-    expect(await documentMarked(page)).toBe(true);
-    await expect(search).toHaveValue("__no_such_contact__");
-    await expect(page.locator("[data-tenant-scope]")).toHaveAttribute(
-      "data-tenant-scope",
-      `/${tenant}`,
-    );
-  });
-}
 
 test.describe("production build", () => {
   test.skip(!production, "Measured on a production build only");

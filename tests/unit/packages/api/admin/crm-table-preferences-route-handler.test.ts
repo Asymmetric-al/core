@@ -130,7 +130,11 @@ function putRequest(
 ): NextRequest {
   return new NextRequest("http://localhost/api/admin/crm/table-preferences", {
     method: "PUT",
-    headers: { "content-type": "application/json", ...headers },
+    headers: {
+      "content-type": "application/json",
+      cookie: "sb-local-auth-token=session",
+      ...headers,
+    },
     body: JSON.stringify(body),
   });
 }

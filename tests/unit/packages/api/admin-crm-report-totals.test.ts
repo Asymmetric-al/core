@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { buildAdminCrmReport } from "../../../../packages/api/src/admin/crm/reports/service";
+import {
+  buildAdminCrmExportGroups,
+  buildAdminCrmReport,
+} from "../../../../packages/api/src/admin/crm/reports/service";
 
 import type { AdminCrmReportParams } from "../../../../packages/api/src/admin/crm/reports/query";
 
@@ -63,6 +66,8 @@ class QueryBuilder implements PromiseLike<{ data: Row[]; error: null }> {
   }
 
   in(column: string, values: unknown[]) {
+    if (values.length > 150)
+      throw new Error("Report lookup exceeded its 150-ID budget");
     this.filters.push((row) => values.includes(row[column]));
     return this;
   }
@@ -147,6 +152,25 @@ class QueryBuilder implements PromiseLike<{ data: Row[]; error: null }> {
 
 function createSupabaseFixture(tables: Record<string, Row[]>) {
   return {
+    async rpc(name: string, args: { p_ids: string[]; p_tenant_id: string }) {
+      if (name !== "crm_missionary_labels" || args.p_ids.length > 150)
+        throw new Error("Unexpected worker label request");
+      return {
+        error: null,
+        data: (tables.missionaries ?? [])
+          .filter(
+            (row) =>
+              row.tenant_id === args.p_tenant_id &&
+              args.p_ids.includes(String(row.id)),
+          )
+          .map((row) => ({
+            id: row.id,
+            profile_id: row.id,
+            member_profile_id: row.id,
+            ...(row.profile as Row),
+          })),
+      };
+    },
     from(table: string) {
       return new QueryBuilder(tables[table] ?? []);
     },
@@ -203,7 +227,7 @@ async function report(
   return buildAdminCrmReport({
     maxDonations: options.maxDonations,
     params: params(slice, options.search ?? null),
-    supabaseAdmin: createSupabaseFixture({
+    sessionClient: createSupabaseFixture({
       funds,
       missionaries,
       ...tables,
@@ -213,6 +237,52 @@ async function report(
 }
 
 describe("CRM giving report totals", () => {
+  it.each(["donors", "funds", "missionaries"] as const)(
+    "fails the export with a 500 for an unresolved %s reference",
+    async (slice) => {
+      await expect(
+        buildAdminCrmExportGroups({
+          params: params(slice, null),
+          sessionClient: createSupabaseFixture({
+            donations: [donation({})],
+            donors: [],
+            funds: [],
+            missionaries: [],
+          }) as never,
+          tenantId: "tenant-1",
+        }),
+      ).rejects.toMatchObject({
+        name: "ApiHttpError",
+        status: 500,
+        message: "A report reference could not be resolved for export.",
+      });
+    },
+  );
+  it.each(["donors", "funds", "missionaries"] as const)(
+    "resolves all %s dimensions across a lookup boundary and discloses a missing label",
+    async (slice) => {
+      const entries = Array.from({ length: 151 }, (_, i) => ({
+        id: `id-${i}`,
+        name: `Label ${i}`,
+        profile: { display_name: `Label ${i}` },
+        tenant_id: "tenant-1",
+      }));
+      const donations = entries.map(({ id }) =>
+        donation({ donor_id: id, fund_id: id, missionary_id: id }),
+      );
+      const rows = await report(slice, { donations, [slice]: entries });
+      expect(rows.completeness.complete).toBe(true);
+      expect(rows.rows.map((row) => row.label).sort()).toEqual(
+        entries.map((row) => row.name).sort(),
+      );
+      const partial = await report(slice, {
+        donations,
+        [slice]: entries.slice(1),
+      });
+      expect(partial.completeness.complete).toBe(false);
+      expect(partial.totals.giftCount).toBe(151);
+    },
+  );
   it("reads every gift past the server's 1,000-row page and says the total is complete", async () => {
     const donations = Array.from({ length: 2500 }, () => donation({}));
 
@@ -488,7 +558,7 @@ describe("CRM report period", () => {
         filters: { dateFrom: "2026-01-01", dateTo: null, search: null },
         slice: "funds",
       },
-      supabaseAdmin: createSupabaseFixture({
+      sessionClient: createSupabaseFixture({
         funds,
         missionaries,
         donations: [

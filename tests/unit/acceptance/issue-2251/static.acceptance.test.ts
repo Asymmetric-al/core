@@ -164,7 +164,7 @@ describe("#2251 In 2: docs/security/rls-deny-by-default-exceptions.json", () => 
   });
 
   // AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry: 18 D tables became 17.
-  it("contains the 67 §3 S tables (with a §3 code path) and the 17 D tables, and no F table", () => {
+  it("contains the remaining §3 S tables (with a §3 code path) and D tables, and no F table", () => {
     const by = new Map(exceptions().map((x) => [x.table, x]));
     const wrong: string[] = [];
     for (const [t, files] of Object.entries(S)) {
