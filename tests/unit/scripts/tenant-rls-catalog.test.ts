@@ -1884,3 +1884,143 @@ describe("tenant keys", () => {
     expect(judge([], false)).toEqual([]);
   });
 });
+
+describe("WP8a worker wrapper rules (TP2 section 11)", () => {
+  const lanes = [
+    command(
+      "tenant_guard.apply_account_event(p_tenant_id uuid, p_event_id uuid, p_attempt integer)",
+    ),
+    command(
+      "tenant_guard.acquire_workflow_work_claim(p_tenant_id uuid, p_subject_type text, p_subject_id text, p_claimed_by text, p_ttl_seconds integer)",
+    ),
+    command(
+      "tenant_guard.release_workflow_work_claim(p_tenant_id uuid, p_claim_id uuid, p_status text)",
+    ),
+  ];
+  const judge = (wrappers: object[]) =>
+    evaluate([], listed(), [], lanes, allow(), { wrappers });
+
+  it("passes a compliant worker wrapper that derives the tenant from a stored anchor and performs no writes", () => {
+    const body = `
+      DECLARE v_tenant uuid;
+      BEGIN
+        SELECT a.tenant_id INTO v_tenant
+          FROM public.stripe_raw_events AS e
+          JOIN public.payment_provider_accounts AS a
+            ON a.provider_account_id = e.stripe_account AND a.livemode = e.livemode
+         WHERE e.id = p_event_id;
+        IF v_tenant IS NULL THEN
+          RETURN pg_catalog.jsonb_build_object('event_id', p_event_id, 'outcome', 'unknown_anchor');
+        END IF;
+        RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt);
+      END;
+    `;
+    const result = judge([
+      wrapper(
+        "public.apply_account_event(p_event_id uuid, p_attempt integer)",
+        body,
+        { service_role: true },
+      ),
+    ]);
+    expect(result.failures).toEqual([]);
+  });
+
+  it("allows only the listed P1 workflow claim wrappers to pass a tenant argument", () => {
+    const result = judge([
+      wrapper(
+        "public.acquire_workflow_work_claim(p_tenant_id uuid, p_subject_type text, p_subject_id text, p_claimed_by text, p_ttl_seconds integer)",
+        "BEGIN RETURN tenant_guard.acquire_workflow_work_claim(p_tenant_id, p_subject_type, p_subject_id, p_claimed_by, p_ttl_seconds); END;",
+        { service_role: true },
+      ),
+      wrapper(
+        "public.release_workflow_work_claim(p_tenant_id uuid, p_claim_id uuid, p_status text)",
+        "BEGIN RETURN tenant_guard.release_workflow_work_claim(p_tenant_id, p_claim_id, p_status); END;",
+        { service_role: true },
+      ),
+    ]);
+    expect(result.failures).toEqual([]);
+  });
+
+  it.each<[string, string, string]>([
+    [
+      "passes a named p_tenant_id parameter as first argument",
+      "public.bad_named(p_tenant_id uuid, p_event_id uuid, p_attempt integer)",
+      "BEGIN RETURN tenant_guard.apply_account_event(p_tenant_id, p_event_id, p_attempt); END;",
+    ],
+    [
+      "passes a differently named parameter as first argument",
+      "public.bad_alias(p_org uuid, p_event_id uuid, p_attempt integer)",
+      "BEGIN RETURN tenant_guard.apply_account_event(p_org, p_event_id, p_attempt); END;",
+    ],
+    [
+      "passes positional parameter $1 as first argument",
+      "public.bad_positional(uuid, uuid, integer)",
+      "SELECT tenant_guard.apply_account_event($1, $2, $3);",
+    ],
+    [
+      "declares a tenant parameter copied through a local variable",
+      "public.bad_copy(p_tenant_id uuid, p_event_id uuid, p_attempt integer)",
+      "DECLARE v_t uuid; BEGIN v_t := p_tenant_id; RETURN tenant_guard.apply_account_event(v_t, p_event_id, p_attempt); END;",
+    ],
+    [
+      "mimics workflow claim under another wrapper name",
+      "public.bad_claim_copy(p_tenant_id uuid)",
+      "SELECT tenant_guard.acquire_workflow_work_claim(p_tenant_id, 'a', 'b', 'c', 60);",
+    ],
+  ])(
+    "fails WORKER_WRAPPER_TENANT_ARGUMENT when wrapper %s",
+    (_label, fn, body) => {
+      const result = judge([wrapper(fn, body, { service_role: true })]);
+      expect(codes(result)).toEqual([`WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`]);
+    },
+  );
+
+  it.each<[string, string]>([
+    [
+      "INSERT INTO",
+      "DECLARE v_tenant uuid; BEGIN INSERT INTO public.audit_logs(tenant_id) VALUES (v_tenant); RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+    ],
+    [
+      "UPDATE ... SET",
+      "DECLARE v_tenant uuid; BEGIN UPDATE public.stripe_raw_events SET processing_status = 'processing' WHERE id = p_event_id; RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+    ],
+    [
+      "DELETE FROM",
+      "DECLARE v_tenant uuid; BEGIN DELETE FROM public.stripe_raw_events WHERE id = p_event_id; RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+    ],
+    [
+      "MERGE INTO",
+      "DECLARE v_tenant uuid; BEGIN MERGE INTO public.stripe_raw_events t USING (SELECT p_event_id id) s ON t.id = s.id WHEN MATCHED THEN DO NOTHING; RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+    ],
+    [
+      "dynamic EXECUTE UPDATE",
+      "DECLARE v_tenant uuid; BEGIN EXECUTE 'UPDATE public.stripe_raw_events SET processing_status = ''x'' WHERE id = $1' USING p_event_id; RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+    ],
+  ])("fails WORKER_WRAPPER_WRITES when wrapper contains %s", (_label, body) => {
+    const fn = "public.writing_wrapper(p_event_id uuid, p_attempt integer)";
+    const result = judge([wrapper(fn, body, { service_role: true })]);
+    expect(codes(result)).toEqual([`WORKER_WRAPPER_WRITES ${fn}`]);
+  });
+
+  it("does not false-positive WORKER_WRAPPER_WRITES on FOR NO KEY UPDATE or prose error literals", () => {
+    const fn =
+      "public.readonly_lock_wrapper(p_event_id uuid, p_attempt integer)";
+    const body = `
+      DECLARE v_tenant uuid;
+      BEGIN
+        SELECT a.tenant_id INTO v_tenant
+          FROM public.stripe_raw_events AS e
+          JOIN public.payment_provider_accounts AS a
+            ON a.provider_account_id = e.stripe_account AND a.livemode = e.livemode
+         WHERE e.id = p_event_id
+           FOR NO KEY UPDATE;
+        IF v_tenant IS NULL THEN
+          RAISE EXCEPTION 'cannot update or delete unknown anchor';
+        END IF;
+        RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt);
+      END;
+    `;
+    const result = judge([wrapper(fn, body, { service_role: true })]);
+    expect(result.failures).toEqual([]);
+  });
+});

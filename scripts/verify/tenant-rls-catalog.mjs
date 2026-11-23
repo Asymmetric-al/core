@@ -34,6 +34,8 @@ import {
   isAssignmentReader,
   preMembershipExceptions,
   protectedEntry,
+  workerWrapperHasWrite,
+  workerWrapperPassesTenantArg,
 } from "./command-entry-boundaries.mjs";
 import keyExceptions from "../../docs/security/tenant-key-exceptions.json" with { type: "json" };
 
@@ -1135,6 +1137,23 @@ export function evaluateTenantRlsCatalog(
         w.function,
         `authenticated may execute it, but ${workers.join(", ")} is not a human entry point or a platform command`,
       );
+    const guardWorkers = workers.filter((target) =>
+      target.startsWith(`${COMMAND_OWNER}.`),
+    );
+    if (w.service_role && guardWorkers.length) {
+      if (workerWrapperPassesTenantArg(w.function, w.body, stripComments))
+        failFn(
+          "WORKER_WRAPPER_TENANT_ARGUMENT",
+          w.function,
+          "A service_role wrapper calling a tenant_guard worker entry point derives its tenant from a stored anchor and takes no tenant argument",
+        );
+      if (workerWrapperHasWrite(w.body, stripComments))
+        failFn(
+          "WORKER_WRAPPER_WRITES",
+          w.function,
+          "A service_role wrapper calling a tenant_guard worker entry point must not perform INSERT, UPDATE, DELETE or MERGE itself",
+        );
+    }
   }
 
   for (const g of snapshot.grants ?? []) {
