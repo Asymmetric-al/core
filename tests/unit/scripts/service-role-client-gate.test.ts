@@ -76,9 +76,9 @@ describe("frozen ceiling", () => {
   // D-18: the ceiling falls with the allowlist. It rose once, by the coordinator's ruling of
   // 21 November 2026 (F3, F4): by exactly the eight platform-wrapper sites that reached the key
   // uncounted, each named for WP4b. Any other growth needs a new ruling.
-  it("pins the reviewed service-role sites after each CRM read moves", () => {
+  it("pins the reviewed service-role sites after each CRM read and Member Care path moves (D-18: WP4b part 1 removes 3 sites)", () => {
     expect(ceilingDigest()).toBe(
-      "29f9eb80e58bf035938ab88d316c7a5d4fe491e0142e744809bb3da18ea5d87b",
+      "91035f59d090358214da335b82959e0f3a9dbe5f88ff61bb5f9c0484496c9de1",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -86,15 +86,15 @@ describe("frozen ceiling", () => {
       totals[kind] = (totals[kind] ?? 0) + count;
     }
     expect(totals).toEqual({
-      admin_client: 77,
+      admin_client: 75,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
-      operation_admin_context: 65,
+      operation_admin_context: 64,
     });
-    expect(CEILING.size).toBe(115);
+    expect(CEILING.size).toBe(112);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(109);
+    ).toBe(106);
   });
 });
 

@@ -1,9 +1,8 @@
-import { getAdminClient } from "@asym/database/supabase/admin";
-import { cacheLife, cacheTag } from "next/cache";
+import { z } from "zod";
 
-import { MEMBER_CARE_CACHE_TAGS } from "../shared/cache-tags";
+import type { RequestSessionClient } from "../shared/request-session-client";
 
-type QueryError = { message?: string } | null;
+type QueryError = { message?: string; code?: string } | null;
 
 export const MEMBER_CARE_THREAD_POST_TITLE = "Care thread update";
 export const MEMBER_CARE_DIRECTORY_LIMIT = 250;
@@ -125,34 +124,38 @@ export type MemberCarePersonDetail = {
   requirements: MemberCareRequirement[];
 };
 
-type MissionaryDirectoryRow = {
-  id: string;
-  location: string | null;
-  timezone: string;
-  health_status: string;
-  last_check_in: string | null;
-  manual_attention: boolean;
-  region: MemberCarePersonnel["region"];
-  mission_field: string | null;
-  health_signals: unknown;
-  birth_date: string | null;
-  profile:
-    | {
-        first_name: string | null;
-        last_name: string | null;
-        full_name: string | null;
-        display_name: string | null;
-        avatar_url: string | null;
-      }
-    | null
-    | Array<{
-        first_name: string | null;
-        last_name: string | null;
-        full_name: string | null;
-        display_name: string | null;
-        avatar_url: string | null;
-      }>;
-};
+const regionSchema = z.enum([
+  "Africa",
+  "SE Asia",
+  "Europe",
+  "Latin America",
+  "Middle East",
+  "North America",
+]);
+
+const PG_UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const directoryRpcRowSchema = z.object({
+  id: z.string().regex(PG_UUID_REGEX),
+  location: z.string().nullable(),
+  timezone: z.string().nullable(),
+  health_status: z.string().nullable(),
+  last_check_in: z.string().nullable(),
+  manual_attention: z.boolean().nullable(),
+  region: regionSchema,
+  mission_field: z.string().nullable(),
+  health_signals: z.unknown(),
+  birth_date: z.string().nullable(),
+  first_name: z.string().nullable(),
+  last_name: z.string().nullable(),
+  full_name: z.string().nullable(),
+  display_name: z.string().nullable(),
+  avatar_url: z.string().nullable(),
+  total_count: z.coerce.number().int().nonnegative(),
+});
+
+type DirectoryRpcRow = z.infer<typeof directoryRpcRowSchema>;
 
 type ActivityRow = {
   id: string;
@@ -190,19 +193,17 @@ type PrivateNoteRow = {
   created_at: string;
 };
 
-function toErrorMessage(error: QueryError, fallback: string): string {
-  return error?.message || fallback;
-}
-
-function applyCache(tags: string[]): void {
-  try {
-    cacheLife("minutes");
-    for (const tag of tags) {
-      cacheTag(tag);
-    }
-  } catch {
-    // noop outside Next cache runtime
+function toQueryError(
+  error: QueryError,
+  fallback: string,
+): Error & { code?: string } {
+  const err = new Error(error?.message || fallback) as Error & {
+    code?: string;
+  };
+  if (typeof error?.code === "string") {
+    err.code = error.code;
   }
+  return err;
 }
 
 function toPriority(value: string | null | undefined): MemberCarePriority {
@@ -223,27 +224,19 @@ function initialsFor(name: string): string {
   return `${parts[0]?.[0] ?? "?"}${parts[1]?.[0] ?? ""}`.toUpperCase();
 }
 
-function getProfileRecord(row: MissionaryDirectoryRow) {
-  return Array.isArray(row.profile) ? (row.profile[0] ?? null) : row.profile;
-}
-
-function displayNameFor(row: MissionaryDirectoryRow): string {
-  const profile = getProfileRecord(row);
-  const explicit =
-    profile?.display_name?.trim() || profile?.full_name?.trim() || "";
+function displayNameFor(row: DirectoryRpcRow): string {
+  const explicit = row.display_name?.trim() || row.full_name?.trim() || "";
 
   if (explicit) {
     return explicit;
   }
 
-  const composed = [profile?.first_name, profile?.last_name]
+  return [row.first_name, row.last_name]
     .filter(
       (part): part is string => typeof part === "string" && part.length > 0,
     )
     .join(" ")
     .trim();
-
-  return composed;
 }
 
 function toSignal(value: unknown): MemberCareSignal {
@@ -289,12 +282,7 @@ function toActivityType(
   }
 }
 
-function toActivityTypeValue(type: string): MemberCareActivityType {
-  return toActivityType(type);
-}
-
-function toPersonnel(row: MissionaryDirectoryRow): MemberCarePersonnel {
-  const profile = getProfileRecord(row);
+function toPersonnel(row: DirectoryRpcRow): MemberCarePersonnel {
   const name = displayNameFor(row);
 
   return {
@@ -306,12 +294,12 @@ function toPersonnel(row: MissionaryDirectoryRow): MemberCarePersonnel {
     status: toPriority(row.health_status),
     lastCheckIn: row.last_check_in ?? null,
     initials: name ? initialsFor(name) : "",
-    avatarUrl: profile?.avatar_url ?? undefined,
+    avatarUrl: row.avatar_url ?? undefined,
     role: row.mission_field?.trim() || "Missionary",
     region: row.region,
     healthSignals: toHealthSignals(row.health_signals),
     careGaps: [],
-    manualAttention: row.manual_attention,
+    manualAttention: row.manual_attention ?? false,
     birthDate: row.birth_date ?? undefined,
   };
 }
@@ -344,7 +332,7 @@ function toRequirement(row: RequirementRow): MemberCareRequirement {
   return {
     id: row.id,
     personnelId: row.missionary_id,
-    activityType: toActivityTypeValue(row.activity_type),
+    activityType: toActivityType(row.activity_type),
     intervalDays: row.interval_days,
     notes: row.notes ?? undefined,
   };
@@ -361,63 +349,57 @@ function toPrivateNote(row: PrivateNoteRow): MemberCarePrivateNote {
   };
 }
 
-async function getMemberCareClient() {
-  const { client, error } = getAdminClient();
-  if (!client) {
-    throw new Error(error || "Admin client unavailable.");
-  }
-  return client;
-}
-
-async function readDirectoryRows(tenantId: string) {
-  const client = await getMemberCareClient();
-  const { data, error, count } = await client
-    .from("missionaries")
-    .select(
-      "id, location, timezone, health_status, last_check_in, manual_attention, region, mission_field, health_signals, birth_date, profile:profiles!profile_id(first_name, last_name, full_name, display_name, avatar_url)",
-      { count: "exact" },
-    )
-    .eq("tenant_id", tenantId)
-    .order("created_at", { ascending: false })
-    .order("id", { ascending: false })
-    .limit(MEMBER_CARE_DIRECTORY_LIMIT);
+async function readDirectoryRows(
+  sessionClient: RequestSessionClient,
+  tenantId: string,
+) {
+  const { data, error } = await sessionClient.rpc(
+    "member_care_directory_rows",
+    {
+      p_tenant_id: tenantId,
+      p_personnel_id: null,
+      p_limit: MEMBER_CARE_DIRECTORY_LIMIT,
+    },
+  );
 
   if (error) {
-    throw new Error(
-      toErrorMessage(error, "Failed to read member care directory."),
-    );
+    throw toQueryError(error, "Failed to read member care directory.");
   }
 
-  const rows = (data ?? []) as MissionaryDirectoryRow[];
-  return { rows, total: Math.max(count ?? rows.length, rows.length) };
+  const rows = z.array(directoryRpcRowSchema).parse(data ?? []);
+  const total =
+    rows.length === 0 ? 0 : Math.max(rows[0]!.total_count, rows.length);
+  return { rows, total };
 }
 
 async function readDirectoryRowById(
+  sessionClient: RequestSessionClient,
   tenantId: string,
   personnelId: string,
-): Promise<MissionaryDirectoryRow | null> {
-  const client = await getMemberCareClient();
-  const { data, error } = await client
-    .from("missionaries")
-    .select(
-      "id, location, timezone, health_status, last_check_in, manual_attention, region, mission_field, health_signals, birth_date, profile:profiles!profile_id(first_name, last_name, full_name, display_name, avatar_url)",
-    )
-    .eq("tenant_id", tenantId)
-    .eq("id", personnelId)
-    .maybeSingle();
+): Promise<DirectoryRpcRow | null> {
+  const { data, error } = await sessionClient.rpc(
+    "member_care_directory_rows",
+    {
+      p_tenant_id: tenantId,
+      p_personnel_id: personnelId,
+      p_limit: 1,
+    },
+  );
 
   if (error) {
-    throw new Error(
-      toErrorMessage(error, "Failed to read member care profile."),
-    );
+    throw toQueryError(error, "Failed to read member care profile.");
   }
 
-  return (data as MissionaryDirectoryRow | null) ?? null;
+  const rows = z.array(directoryRpcRowSchema).parse(data ?? []);
+  return rows[0] ?? null;
 }
 
-async function readActivityRows(tenantId: string, missionaryId?: string) {
-  const client = await getMemberCareClient();
-  let query = client
+async function readActivityRows(
+  sessionClient: RequestSessionClient,
+  tenantId: string,
+  missionaryId?: string,
+) {
+  let query = sessionClient
     .from("member_care_activities")
     .select(
       "id, missionary_id, author_user_id, author_name_snapshot, type, title, description, occurred_at",
@@ -433,17 +415,18 @@ async function readActivityRows(tenantId: string, missionaryId?: string) {
   const { data, error } = await query;
 
   if (error) {
-    throw new Error(
-      toErrorMessage(error, "Failed to read member care activities."),
-    );
+    throw toQueryError(error, "Failed to read member care activities.");
   }
 
   return (data ?? []) as ActivityRow[];
 }
 
-async function readGoalRows(tenantId: string, missionaryId?: string) {
-  const client = await getMemberCareClient();
-  let query = client
+async function readGoalRows(
+  sessionClient: RequestSessionClient,
+  tenantId: string,
+  missionaryId?: string,
+) {
+  let query = sessionClient
     .from("member_care_goals")
     .select("id, missionary_id, title, status, target_date")
     .eq("tenant_id", tenantId)
@@ -457,7 +440,7 @@ async function readGoalRows(tenantId: string, missionaryId?: string) {
   const { data, error } = await query;
 
   if (error) {
-    throw new Error(toErrorMessage(error, "Failed to read member care goals."));
+    throw toQueryError(error, "Failed to read member care goals.");
   }
 
   const rows = (data ?? []) as GoalRow[];
@@ -469,9 +452,12 @@ async function readGoalRows(tenantId: string, missionaryId?: string) {
   return rows;
 }
 
-async function readRequirementRows(tenantId: string, missionaryId?: string) {
-  const client = await getMemberCareClient();
-  let query = client
+async function readRequirementRows(
+  sessionClient: RequestSessionClient,
+  tenantId: string,
+  missionaryId?: string,
+) {
+  let query = sessionClient
     .from("member_care_requirements")
     .select("id, missionary_id, activity_type, interval_days, notes")
     .eq("tenant_id", tenantId)
@@ -485,9 +471,7 @@ async function readRequirementRows(tenantId: string, missionaryId?: string) {
   const { data, error } = await query;
 
   if (error) {
-    throw new Error(
-      toErrorMessage(error, "Failed to read member care requirements."),
-    );
+    throw toQueryError(error, "Failed to read member care requirements.");
   }
 
   const rows = (data ?? []) as RequirementRow[];
@@ -500,24 +484,20 @@ async function readRequirementRows(tenantId: string, missionaryId?: string) {
 }
 
 async function readPrivateNoteRows(
+  sessionClient: RequestSessionClient,
   tenantId: string,
   actorUserId: string,
   missionaryId?: string,
-  actorIsSuperAdmin = false,
 ) {
-  const client = await getMemberCareClient();
-  let query = client
+  let query = sessionClient
     .from("member_care_private_notes")
     .select(
       "id, missionary_id, author_user_id, author_name_snapshot, content, created_at",
     )
     .eq("tenant_id", tenantId)
+    .eq("author_user_id", actorUserId)
     .order("created_at", { ascending: false })
     .limit(500);
-
-  if (!actorIsSuperAdmin) {
-    query = query.eq("author_user_id", actorUserId);
-  }
 
   if (missionaryId) {
     query = query.eq("missionary_id", missionaryId);
@@ -526,9 +506,7 @@ async function readPrivateNoteRows(
   const { data, error } = await query;
 
   if (error) {
-    throw new Error(
-      toErrorMessage(error, "Failed to read member care private notes."),
-    );
+    throw toQueryError(error, "Failed to read member care private notes.");
   }
 
   const rows = (data ?? []) as PrivateNoteRow[];
@@ -582,20 +560,13 @@ function applyGoalsAndRequirements(
 }
 
 export async function readMemberCareDirectorySnapshot(
+  sessionClient: RequestSessionClient,
   tenantId: string,
 ): Promise<{ personnel: MemberCarePersonnel[]; total: number }> {
-  "use cache";
-
-  applyCache([
-    MEMBER_CARE_CACHE_TAGS.base,
-    MEMBER_CARE_CACHE_TAGS.tenant(tenantId),
-    MEMBER_CARE_CACHE_TAGS.directory,
-  ]);
-
   const [directoryRows, goalRows, requirementRows] = await Promise.all([
-    readDirectoryRows(tenantId),
-    readGoalRows(tenantId),
-    readRequirementRows(tenantId),
+    readDirectoryRows(sessionClient, tenantId),
+    readGoalRows(sessionClient, tenantId),
+    readRequirementRows(sessionClient, tenantId),
   ]);
 
   return {
@@ -609,41 +580,33 @@ export async function readMemberCareDirectorySnapshot(
 }
 
 export async function readMemberCareDirectory(
+  sessionClient: RequestSessionClient,
   tenantId: string,
 ): Promise<MemberCarePersonnel[]> {
-  return (await readMemberCareDirectorySnapshot(tenantId)).personnel;
+  return (await readMemberCareDirectorySnapshot(sessionClient, tenantId))
+    .personnel;
 }
 
 export async function readMemberCareActivities(
+  sessionClient: RequestSessionClient,
   tenantId: string,
   missionaryId?: string,
 ): Promise<MemberCareActivity[]> {
-  "use cache";
-
-  applyCache([
-    MEMBER_CARE_CACHE_TAGS.base,
-    MEMBER_CARE_CACHE_TAGS.tenant(tenantId),
-    MEMBER_CARE_CACHE_TAGS.activity,
-    ...(missionaryId
-      ? [MEMBER_CARE_CACHE_TAGS.activityForMissionary(missionaryId)]
-      : []),
-  ]);
-
-  const rows = await readActivityRows(tenantId, missionaryId);
+  const rows = await readActivityRows(sessionClient, tenantId, missionaryId);
   return rows.map(toActivity);
 }
 
 async function readLastContacts(
+  sessionClient: RequestSessionClient,
   tenantId: string,
 ): Promise<MemberCareLastContacts> {
-  const client = await getMemberCareClient();
   const select = [
     "id",
     ...ACTIVITY_DB_TYPES.map(
       (type) => `${type}:member_care_activities(occurred_at)`,
     ),
   ].join(", ");
-  let query = client
+  let query = sessionClient
     .from("missionaries")
     .select(select)
     .eq("tenant_id", tenantId)
@@ -662,9 +625,7 @@ async function readLastContacts(
     { referencedTable: "pastoral_note" },
   );
   if (error) {
-    throw new Error(
-      toErrorMessage(error, "Failed to read member care last contacts."),
-    );
+    throw toQueryError(error, "Failed to read member care last contacts.");
   }
   return Object.fromEntries(
     ((data ?? []) as unknown as LastContactRow[]).map((row) => [
@@ -680,23 +641,16 @@ async function readLastContacts(
 }
 
 export async function readMemberCareDashboardSnapshot(
+  sessionClient: RequestSessionClient,
   tenantId: string,
 ): Promise<MemberCareDashboardSnapshot> {
-  "use cache";
-
-  applyCache([
-    MEMBER_CARE_CACHE_TAGS.base,
-    MEMBER_CARE_CACHE_TAGS.tenant(tenantId),
-    MEMBER_CARE_CACHE_TAGS.dashboard,
-  ]);
-
   const [directoryRows, activityRows, goalRows, requirementRows, lastContacts] =
     await Promise.all([
-      readDirectoryRows(tenantId),
-      readActivityRows(tenantId),
-      readGoalRows(tenantId),
-      readRequirementRows(tenantId),
-      readLastContacts(tenantId),
+      readDirectoryRows(sessionClient, tenantId),
+      readActivityRows(sessionClient, tenantId),
+      readGoalRows(sessionClient, tenantId),
+      readRequirementRows(sessionClient, tenantId),
+      readLastContacts(sessionClient, tenantId),
     ]);
 
   const goals = goalRows.map(toGoal);
@@ -717,10 +671,10 @@ export async function readMemberCareDashboardSnapshot(
 }
 
 export async function readMemberCarePersonDetail(
+  sessionClient: RequestSessionClient,
   tenantId: string,
   personnelId: string,
   actorUserId: string,
-  actorIsSuperAdmin = false,
 ): Promise<MemberCarePersonDetail> {
   const [
     personnelRow,
@@ -729,11 +683,11 @@ export async function readMemberCarePersonDetail(
     goalRows,
     requirementRows,
   ] = await Promise.all([
-    readDirectoryRowById(tenantId, personnelId),
-    readActivityRows(tenantId, personnelId),
-    readPrivateNoteRows(tenantId, actorUserId, personnelId, actorIsSuperAdmin),
-    readGoalRows(tenantId, personnelId),
-    readRequirementRows(tenantId, personnelId),
+    readDirectoryRowById(sessionClient, tenantId, personnelId),
+    readActivityRows(sessionClient, tenantId, personnelId),
+    readPrivateNoteRows(sessionClient, tenantId, actorUserId, personnelId),
+    readGoalRows(sessionClient, tenantId, personnelId),
+    readRequirementRows(sessionClient, tenantId, personnelId),
   ]);
 
   const goals = goalRows.map(toGoal);

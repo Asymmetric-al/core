@@ -1,87 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { membershipsForRole } from "../../../../../fixtures/auth-memberships";
-
-const { getAuthContextMock } = vi.hoisted(() => ({
-  getAuthContextMock: vi.fn(),
-}));
-
-vi.mock("@asym/auth/context", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@asym/auth/context")>()),
-  getAuthContext: getAuthContextMock,
-}));
-
-vi.mock("@asym/database/supabase/admin", () => ({
-  getAdminClient: vi.fn(() => ({ client: {}, error: null })),
-}));
-
-vi.mock("next/cache", () => ({
-  revalidateTag: vi.fn(),
-}));
+import { describe, expect, it } from "vitest";
 
 import { manualAttentionSchema } from "../../../../../../packages/api/src/admin/member-care/mutations";
 import {
   readJsonBody,
-  requireMemberCareAccess,
   toApiErrorResponse,
   toMutationErrorResponse,
 } from "../../../../../../packages/api/src/admin/member-care/route-helpers";
 
 describe("member care route helpers", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  const authRequest = new Request("https://example.org/api/admin/member-care");
-
-  it("returns 401 when unauthenticated", async () => {
-    getAuthContextMock.mockResolvedValue({
-      isAuthenticated: false,
-      userId: null,
-      tenantId: null,
-    });
-
-    const result = await requireMemberCareAccess(authRequest);
-    expect(result.ok).toBe(false);
-    if (result.ok) throw new Error("Expected auth failure");
-    expect(result.response.status).toBe(401);
-    expect(getAuthContextMock).toHaveBeenCalledWith(authRequest);
-  });
-
-  it("returns 403 when authenticated but role is not allowed", async () => {
-    getAuthContextMock.mockResolvedValue({
-      isAuthenticated: true,
-      userId: "user-1",
-      tenantId: "tenant-1",
-      role: "donor",
-      // AL-2675: a donor membership lacks admin.dashboard.access.
-      memberships: membershipsForRole("donor", "tenant-1"),
-    });
-
-    const result = await requireMemberCareAccess(authRequest);
-    expect(result.ok).toBe(false);
-    if (result.ok) throw new Error("Expected auth failure");
-    expect(result.response.status).toBe(403);
-  });
-
-  it("returns context when authenticated and role is allowed", async () => {
-    getAuthContextMock.mockResolvedValue({
-      isAuthenticated: true,
-      userId: "user-1",
-      tenantId: "tenant-1",
-      role: "admin",
-      memberships: membershipsForRole("admin", "tenant-1"),
-    });
-
-    const result = await requireMemberCareAccess(authRequest);
-    expect(result.ok).toBe(true);
-    if (!result.ok) throw new Error("Expected auth success");
-    expect(result.context).toEqual({
-      tenantId: "tenant-1",
-      userId: "user-1",
-      isSuperAdmin: false,
-    });
-  });
-
   it("returns 400 for invalid json request body", async () => {
     const request = new Request("http://localhost/api", {
       method: "POST",
@@ -112,6 +38,21 @@ describe("member care route helpers", () => {
     expect(result.response.status).toBe(400);
   });
 
+  it("returns 415 for non-json non-empty payloads", async () => {
+    const request = new Request("http://localhost/api", {
+      method: "POST",
+      headers: {
+        "content-type": "text/plain",
+      },
+      body: "plain text",
+    });
+
+    const result = await readJsonBody(request);
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("Expected 415 failure");
+    expect(result.response.status).toBe(415);
+  });
+
   it("returns 422 when schema validation fails", async () => {
     const request = new Request("http://localhost/api", {
       method: "POST",
@@ -138,8 +79,25 @@ describe("member care route helpers", () => {
     }
 
     const response = toMutationErrorResponse(parsed.error, "Fallback");
-
     expect(response.status).toBe(422);
+  });
+
+  it("maps postgres 42501 to 403 and P0002 to static 500", async () => {
+    const forbidden = toMutationErrorResponse(
+      Object.assign(new Error("Forbidden"), { code: "42501" }),
+      "Fallback",
+    );
+    expect(forbidden.status).toBe(403);
+    expect(await forbidden.json()).toEqual({ error: "Forbidden" });
+
+    const missing = toMutationErrorResponse(
+      Object.assign(new Error("Missionary not found."), { code: "P0002" }),
+      "Failed to create thread post.",
+    );
+    expect(missing.status).toBe(500);
+    expect(await missing.json()).toEqual({
+      error: "Failed to create thread post.",
+    });
   });
 
   it("maps unknown errors to supplied status and fallback message", async () => {

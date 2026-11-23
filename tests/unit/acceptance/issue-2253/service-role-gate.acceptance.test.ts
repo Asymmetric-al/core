@@ -334,7 +334,7 @@ type Allow = {
 };
 const doc = () => JSON.parse(read(ALLOWLIST) || "null") as Allow | null;
 // D-18: count the platform wrapper instead of the caller lane, including eight already-privileged member-care and portal sites under the 21 November ruling.
-const CEILING_TOTALS = [177, 115, 109] as const;
+const CEILING_TOTALS = [174, 112, 106] as const;
 const live = (d: Allow) => [
   d.entries.reduce((a, x) => a + x.count, 0),
   d.entries.length,
@@ -362,7 +362,7 @@ describe("#2253 service-role gate on the real tree (9, 11)", () => {
     for (const k of KINDS) {
       const xs = d!.entries.filter((x) => x.kind === k);
       const got = [xs.reduce((n, x) => n + x.count, 0), xs.length];
-      const limit = k === "operation_admin_context" ? [65, 38] : TOTALS[k];
+      const limit = k === "operation_admin_context" ? [64, 37] : TOTALS[k];
       const ok = got.every((n, i) => n <= limit[i]!);
       expect(ok, `${k} ${got.join("/")} <= ${limit.join("/")}`).toBe(true);
     }

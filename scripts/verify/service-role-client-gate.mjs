@@ -95,8 +95,6 @@ packages/api/src/admin/contributions/summary.ts admin_client 1
 packages/api/src/admin/crm/notes/index.ts operation_admin_context 1
 packages/api/src/admin/fund-directory.ts operation_admin_context 1
 packages/api/src/admin/locations/index.ts admin_client 1
-packages/api/src/admin/member-care/mutations.ts admin_client 1
-packages/api/src/admin/member-care/private-notes.ts operation_admin_context 1
 packages/api/src/admin/mission-control-automations/route.ts operation_admin_context 2
 packages/api/src/admin/mission-control-tasks/route.ts operation_admin_context 1
 packages/api/src/admin/missionary-directory.ts operation_admin_context 1
@@ -160,7 +158,6 @@ packages/api/src/posts/reaction-route-handlers.ts admin_client 1
 packages/api/src/profile/index.ts admin_client 2
 packages/api/src/reads/dashboard-stats.ts admin_client 1
 packages/api/src/reads/donor-history.ts admin_client 2
-packages/api/src/reads/member-care.ts admin_client 1
 packages/api/src/reads/missionary-metrics.ts admin_client 1
 packages/api/src/shared/with-operation.ts admin_client 1
 packages/api/src/stripe/webhooks.ts admin_client 1
