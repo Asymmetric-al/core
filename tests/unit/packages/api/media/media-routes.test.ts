@@ -62,13 +62,17 @@ vi.mock("../../../../../packages/api/src/storage/media-store", () => ({
   readMediaVariant: mocks.readMediaVariant,
 }));
 
+const assignmentCapabilities = new Map<string, readonly string[]>();
+
 function makeStaffAuth(
   tenantId: string,
   assignmentId: string,
   capabilities: readonly string[] = ["web_studio.edit"],
 ): AuthenticatedContext {
+  const userId = randomUUID();
+  assignmentCapabilities.set(assignmentId, capabilities);
   return {
-    userId: randomUUID(),
+    userId,
     email: "staff@example.test",
     tenantId,
     role: "admin",
@@ -85,16 +89,12 @@ function makeStaffAuth(
     ],
     assignment: {
       assignmentId,
+      userId,
       tenantId,
-      roleClass: "staff",
+      revision: "rev-1",
       membershipRole: "staff",
       staffRole: "development",
       isTenantAdmin: false,
-      capabilities: capabilities as AuthenticatedContext["assignment"] extends {
-        capabilities: infer C;
-      }
-        ? C
-        : never,
     },
   };
 }
@@ -112,7 +112,10 @@ describe("signed-in media GET route (/api/media/[assetId])", () => {
     });
     mocks.requireCapability.mockImplementation(
       (ctx: AuthContext, capability: string) => {
-        if (!ctx.assignment?.capabilities?.includes(capability as never)) {
+        const caps = ctx.assignment
+          ? (assignmentCapabilities.get(ctx.assignment.assignmentId) ?? [])
+          : [];
+        if (!caps.includes(capability)) {
           throw new Error(`Forbidden: missing capability ${capability}`);
         }
       },
@@ -294,7 +297,10 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
     });
     mocks.requireCapability.mockImplementation(
       (ctx: AuthContext, capability: string) => {
-        if (!ctx.assignment?.capabilities?.includes(capability as never)) {
+        const caps = ctx.assignment
+          ? (assignmentCapabilities.get(ctx.assignment.assignmentId) ?? [])
+          : [];
+        if (!caps.includes(capability)) {
           throw new Error(`Forbidden: missing capability ${capability}`);
         }
       },
