@@ -201,8 +201,8 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
       tx(async () => {
         const live = new Map((await targets()).map((x) => [x.t, x]));
         const e = exceptions();
-        // AL-2674 (D09), AL-2677 (WP4a-2a), and AL-2681 (WP8a-1, D-18) add policies on reviewed exception tables, leaving 73 listed.
-        expect(e.length).toBeGreaterThanOrEqual(73);
+        // AL-2674 (D09), AL-2677 (WP4a-2a), and AL-2681 (WP8a-1, D-18) add policies on reviewed exception tables, leaving 74 listed (ruling W8-R34 keeps donation_saga_outbox).
+        expect(e.length).toBeGreaterThanOrEqual(74);
         const bad = e
           .map((x) => [x.table, live.get(x.table)] as const)
           .filter(([, l]) => !l || !l.rls || !l.force || l.policies !== 0)
