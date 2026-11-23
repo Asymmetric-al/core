@@ -1627,8 +1627,12 @@ describe.skipIf(!ADMIN_URL)(
 
         await c1.query("begin");
         await c1.query(
-          "select 1 from authz.memberships where id = $1 for update",
-          [i.mAdminA],
+          `select 1 from authz.memberships
+            where tenant_id = $1
+              and ((is_tenant_admin and is_active) or id = $2 or id = $3)
+            order by id
+              for update`,
+          [i.tenantA, i.mAdminA2, i.mStaffA],
         );
         const order1Invite = runCommittedAs(
           c2,
@@ -1698,8 +1702,8 @@ describe.skipIf(!ADMIN_URL)(
         await c2.query("begin");
         await c2.query("set local lock_timeout = '1000ms'");
         await c2.query(
-          "insert into public.audit_logs (tenant_id, user_id, action, resource_type, resource_id, details) values ($1, $2, 'r17_fk_probe', 'tenant', $1::text, '{}'::jsonb)",
-          [i.tenantA, i.adminA2],
+          "insert into public.audit_logs (tenant_id, user_id, action, resource_type, resource_id, details) values ($1::uuid, $2::uuid, 'r17_fk_probe', 'tenant', $3::text, '{}'::jsonb)",
+          [i.tenantA, i.adminA2, i.tenantA],
         );
         await c2.query("commit");
         await c1.query("commit");
@@ -1719,8 +1723,8 @@ describe.skipIf(!ADMIN_URL)(
         await c2.query("begin");
         await c2.query("set local lock_timeout = '1000ms'");
         await c2.query(
-          "insert into public.audit_logs (tenant_id, user_id, action, resource_type, resource_id, details) values ($1, $2, 'r17_fk_probe_op', 'tenant', $1::text, '{}'::jsonb)",
-          [i.tenantNoAdmin, i.operatorUser],
+          "insert into public.audit_logs (tenant_id, user_id, action, resource_type, resource_id, details) values ($1::uuid, $2::uuid, 'r17_fk_probe_op', 'tenant', $3::text, '{}'::jsonb)",
+          [i.tenantNoAdmin, i.operatorUser, i.tenantNoAdmin],
         );
         await c2.query("commit");
         await c1.query("commit");

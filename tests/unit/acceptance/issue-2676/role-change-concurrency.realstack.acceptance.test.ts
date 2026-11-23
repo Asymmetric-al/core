@@ -853,8 +853,12 @@ describe.skipIf(!ADMIN_URL)(
 
         await c1.query("begin");
         await c1.query(
-          "select 1 from authz.memberships where id = $1 for update",
-          [i.mAdmin1],
+          `select 1 from authz.memberships
+            where tenant_id = $1
+              and ((is_tenant_admin and is_active) or id = $2 or id = $3)
+            order by id
+              for update`,
+          [i.tenant, i.mAdmin2, i.mTargetFin],
         );
         const order1Role = runCommittedAs(
           c2,
