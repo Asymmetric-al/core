@@ -307,6 +307,7 @@ const REAL_DATABASE_FILES = [
     "issue-2677/crm-read-grants.realstack",
     "issue-2677/export-audit.realstack",
     "issue-2677/field-policy-reader.realstack",
+    "issue-2679/media-custody.realstack",
   ].map((f) => `${A}/${f}.acceptance.test.ts`),
   // #2714: the release job's database suites and Payload's CMS roles.
   "tests/unit/cms/cms-database-roles.realstack.test.ts",
@@ -477,6 +478,7 @@ describe("required PostgREST suites run on the local Supabase stack (#2706)", ()
     "issue-2676/tenant-records",
     "issue-2677/crm-reads",
     "issue-2677/field-policy-reader",
+    "issue-2679/media-storage",
   ])("runs %s in a blocking step", (suite) => {
     const file = `${A}/${suite}.postgrest.acceptance.test.ts`;
     const runs = job?.steps?.filter((step) =>
