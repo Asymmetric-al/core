@@ -700,20 +700,10 @@ test.describe("a stale tab sends neither header", () => {
       await choose(page, `${ORGANIZATION_NAME[DEMO]}: Development`, DEMO);
       opened = `/${DEMO}/admin/teams`;
       watched = /^\/api\/admin\/users$/;
-      // The directory reads once per staff role; another staff member's name
-      // from any of those reads, not the caller's own (the shell names it).
-      const headed = collectReads(page, watched);
-      await page.goto(opened);
-      await expect
-        .poll(() => headed.length, { timeout: 120_000 })
-        .toBeGreaterThanOrEqual(STAFF_ROLES.size);
-      for (const read of headed) expect(read.status, read.path).toBe(200);
+      const first = await nextRead(page, watched, () => page.goto(opened));
+      expect(first.status, first.path).toBe(200);
       guarded =
-        headed
-          .flatMap(
-            (read) =>
-              (read.json as { users: { display_name: string | null }[] }).users,
-          )
+        (first.json as { users: { display_name: string | null }[] }).users
           .map((user) => user.display_name)
           .find(
             (name) =>

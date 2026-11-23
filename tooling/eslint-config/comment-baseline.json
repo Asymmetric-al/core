@@ -1362,7 +1362,7 @@
   "tests/e2e/auth-demo-missionary.spec.ts": 1,
   "tests/e2e/auth-password-recovery.spec.ts": 18,
   "tests/e2e/auth-registration-policy.spec.ts": 1,
-  "tests/e2e/auth-request-scope-reads.spec.ts": 50,
+  "tests/e2e/auth-request-scope-reads.spec.ts": 48,
   "tests/e2e/auth-signup-confirmation.spec.ts": 6,
   "tests/e2e/auth-two-organizations.spec.ts": 8,
   "tests/e2e/base-ui-behavior-qa.spec.ts": 2,
