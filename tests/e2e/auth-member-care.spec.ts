@@ -18,8 +18,7 @@ import {
 const env = readAuthMailEnv();
 const runTag = randomUUID().slice(0, 6);
 const subjectId = randomUUID();
-const subjectLastName = `CareSubject ${runTag}`;
-const subjectFullName = `Scope ${subjectLastName}`;
+let subjectFullName = "";
 let subjectPerson: Person | null = null;
 let careWorker: Person | null = null;
 let dualStaff: Person | null = null;
@@ -39,11 +38,8 @@ test.describe("Member Care on the caller's session", () => {
     subjectPerson = await createPerson(env, `mc-subject-${runTag}`, [
       { role: "missionary", tenantId: DEMO },
     ]);
+    subjectFullName = subjectPerson.name;
     await withOwner(env, async (db) => {
-      await db.query(
-        "update public.profiles set first_name = $1, last_name = $2 where user_id = $3",
-        ["Scope", subjectLastName, subjectPerson!.userId],
-      );
       await db.query(
         `insert into public.missionaries (id, tenant_id, profile_id, location, legal_entity_id, health_status, manual_attention)
          select $1, tenant_id, $2, $3, id, 'healthy', false
