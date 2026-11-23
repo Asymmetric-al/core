@@ -32,20 +32,11 @@ function safeErrorCode(error: unknown) {
         : undefined;
     return SAFE_ERROR_CODES.find((allowed) => allowed === code) ?? "other";
   } catch {
-    // Even an unreadable error property must not affect access resolution.
     return "other";
   }
 }
 
-/**
- * The database codes a failed membership read logs as they are, each with
- * its class. Any other code is logged as `other`; nothing else of the error
- * is read for the log but its code and, when it has none, its name and
- * message, compared with the fixed strings the client and the runtime use.
- */
 const READ_FAILURE_CLASSES: Readonly<Record<string, ReadFailureClass>> = {
-  // PostgREST cannot reach the database, or the database refuses the
-  // connection.
   PGRST000: "connection",
   PGRST001: "connection",
   PGRST003: "connection",
@@ -57,22 +48,17 @@ const READ_FAILURE_CLASSES: Readonly<Record<string, ReadFailureClass>> = {
   "53300": "connection",
   "57P01": "connection",
   "57P03": "connection",
-  // The schema cache: still loading, or without the function or schema.
   PGRST002: "schema_cache",
   PGRST106: "schema_cache",
   PGRST202: "schema_cache",
-  // A statement timeout.
   "57014": "timeout",
-  // The session's grants and token.
   "42501": "permission",
   PGRST300: "jwt",
   PGRST301: "jwt",
   PGRST302: "jwt",
   PGRST303: "jwt",
-  // A table or function the read needs is missing.
   "42P01": "missing_object",
   "42883": "missing_object",
-  // The result's shape.
   PGRST116: "result",
 };
 
@@ -86,12 +72,6 @@ type ReadFailureClass =
   | "result"
   | "other";
 
-/**
- * The class of a failure with no database code, from the fixed names the
- * runtime gives a failed or aborted fetch: thrown (`TypeError: fetch
- * failed`, `AbortError`, `TimeoutError`), or as the Supabase client reports
- * it, with the name at the start of the message and an empty code.
- */
 function uncodedFailureClass(error: object): ReadFailureClass {
   const name = "name" in error ? error.name : undefined;
   const message = "message" in error ? error.message : undefined;
@@ -107,14 +87,6 @@ function uncodedFailureClass(error: object): ReadFailureClass {
   return message === "TypeError: fetch failed" ? "connection" : "other";
 }
 
-/**
- * One server line for a failed membership read, in every environment: the
- * person is refused and lands on /no-access, and this is the cause (council
- * round 2, AR6). Literal fields only: the reason, the database's own code
- * when it is one of the known codes above (`other` for any other code,
- * `null` for none) and its class. No message, no identity, no row; the error
- * is never serialized.
- */
 function reportMembershipReadFailure(error: unknown): void {
   let code: string | null = "other";
   let errorClass: ReadFailureClass = "other";
@@ -137,7 +109,6 @@ function reportMembershipReadFailure(error: unknown): void {
       errorClass = READ_FAILURE_CLASSES[raw]!;
     }
   } catch {
-    // An unreadable error is logged as `other`.
     code = "other";
     errorClass = "other";
   }
@@ -148,16 +119,9 @@ function reportMembershipReadFailure(error: unknown): void {
       code,
       class: errorClass,
     });
-  } catch {
-    // A failing log sink must preserve the caller's original auth result.
-  }
+  } catch {}
 }
 
-/**
- * Fixed preview metadata only; diagnostics never participate in
- * authorization. A failed membership read is also logged in every
- * environment (`reportMembershipReadFailure`).
- */
 export function reportAccessDiagnostic(
   kind: keyof typeof DIAGNOSTICS,
   error?: unknown,
@@ -187,7 +151,5 @@ export function reportAccessDiagnostic(
           ? safeErrorCode(error)
           : null,
     });
-  } catch {
-    // A failing log sink must preserve the caller's original auth result.
-  }
+  } catch {}
 }

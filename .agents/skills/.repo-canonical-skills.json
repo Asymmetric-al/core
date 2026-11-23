@@ -38,6 +38,7 @@
     "council",
     "create-agent",
     "create-verification-skill",
+    "delete-comment",
     "design-taste-frontend",
     "deslop",
     "diagnosing-bugs",
@@ -436,6 +437,10 @@
       "references/feature-map-example/create-note.md",
       "references/feature-map-example/search.md",
       "references/upstream.md"
+    ],
+    "delete-comment": [
+      "SKILL.md",
+      "references/classifier-brief.md"
     ],
     "design-taste-frontend": [
       "README.md",

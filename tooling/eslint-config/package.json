@@ -14,6 +14,7 @@
     "./own-api.mjs": "./own-api.mjs",
     "./restricted-imports.mjs": "./restricted-imports.mjs",
     "./tenant-navigation.mjs": "./tenant-navigation.mjs",
+    "./no-comments.mjs": "./no-comments.mjs",
     "./reui-data-grid-exceptions.mjs": "./reui-data-grid-exceptions.mjs"
   },
   "files": [
@@ -24,6 +25,8 @@
     "health.mjs",
     "lint.mjs",
     "suppressions.json",
+    "comment-baseline.json",
+    "no-comments.mjs",
     "design-system.mjs",
     "turbo.json",
     "base.mjs",

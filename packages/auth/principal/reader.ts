@@ -1,6 +1,5 @@
 import type { AssignmentReader, AssignmentRow } from "./types";
 
-/** The one call this reader makes; a user-JWT Supabase client satisfies it. */
 export interface AssignmentRpcClient {
   rpc(
     fn: "current_user_assignments",
@@ -14,11 +13,6 @@ export class AssignmentReaderError extends Error {
   }
 }
 
-/**
- * `AssignmentReader` over `public.current_user_assignments()`. The RPC scopes
- * rows to `auth.uid()`, so the client must carry the caller's own JWT. Rows
- * come back unchanged; the resolver validates every one of them.
- */
 export function createRpcAssignmentReader(
   client: AssignmentRpcClient,
 ): AssignmentReader {
@@ -40,13 +34,6 @@ export function createRpcAssignmentReader(
   };
 }
 
-/**
- * `reader`, keeping the cause of a failed read for the
- * `membership_query_failed` diagnostic (access-diagnostics.ts), which logs
- * only its safe error code. The resolver and the proxy's membership read both
- * say only `reader_error`; without this the cause is lost (council round 1,
- * A5). The read and its result are unchanged.
- */
 export function withReadErrorCause(reader: AssignmentReader): {
   readonly reader: AssignmentReader;
   readonly readError: () => unknown;
