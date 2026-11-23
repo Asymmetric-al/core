@@ -233,7 +233,6 @@ describe("#2255 consumers and docs", () => {
       .filter(Boolean);
     const re = new RegExp(`${CLAIMS}|${INVITES}`);
     expect(files.filter((f) => re.test(readFileSync(f, "utf8")))).toEqual([]);
-    // D-18: AL-2676 adds tenant status and giving-entity rows, not claim or invite consumers.
     expect(
       createHash("sha256")
         .update(readFileSync("packages/database/types/database.ts"))

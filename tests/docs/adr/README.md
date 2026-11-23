@@ -1,0 +1,29 @@
+# `tests/` decision records
+
+These records hold the reasons behind non-obvious test harnesses, scanners and
+verifiers in `tests/`. They were taken from code comments removed under AL-2676
+([#2751](https://github.com/Asymmetric-al/core/issues/2751)), when comments were
+banned in source. Each decision was checked against the code before it was
+written down.
+
+A record here describes what the code does and why. It ratifies no product
+intent. Accepted platform decisions are in
+[`docs/adr/`](../../../docs/adr/README.md); where test code carries out a
+decision already recorded there or in an accepted work-package record, it is
+referenced and not restated.
+
+## Records
+
+| No.                                                               | Decision                                                                                                                 | Code                                                                                                                                                                                                                                                                                                                                                                     |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [0001](0001-money-table-embed-scanner.md)                         | Scan money-table embeds independently of the query root                                                                  | `tests/unit/acceptance/issue-2676/money-embeds.realstack.acceptance.test.ts`                                                                                                                                                                                                                                                                                             |
+| [0002](0002-sdk-runtime-verifier-checks-and-cleanup.md)           | Strip ambient Docker settings, enforce FK cleanup order and prove non-member refusal in the SDK verifier                 | `tests/integration/supabase/client-runtime-checks.mjs`, `tests/integration/supabase/client-runtime-verification.mjs`                                                                                                                                                                                                                                                     |
+| [0003](0003-wp3a-realstack-isolation-and-historical-harnesses.md) | Isolate preflight and rollback suites, omit demo seed in historical replays and trigger local-stack replay on gate edits | `tests/unit/acceptance/issue-2676/giving-targets.realstack.acceptance.test.ts`, `tests/unit/acceptance/issue-2676/tenant-status-rollback.realstack.acceptance.test.ts`, `tests/unit/acceptance/issue-2364/harness.ts`, `tests/unit/acceptance/issue-2406/harness.ts`, `tests/unit/acceptance/issue-2407/harness.ts`, `tests/unit/workflows/local-supabase-paths.test.ts` |
+
+## Keeping them true
+
+- Change the record in the same pull request as the code it describes.
+- A new decision about `tests/` gets the next free number here, one record per
+  topic a reader would look up.
+- Platform-wide intent does not start here. It goes through OpenSpec and
+  `docs/adr/`.

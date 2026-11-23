@@ -1,4 +1,3 @@
-// D-18, WP3: giving-target fixtures now name a legal entity owned by their tenant.
 /**
  * AL-2675 real-stack acceptance (WP2b, first release, slice B; rewritten by
  * the second release).
@@ -166,7 +165,6 @@ const READS: Record<Role, Read[]> = {
     wholeTenant("donors"),
     wholeTenant("donations"),
     {
-      // D-18 (AL-2676): staff reads leave out an entity's reserved fee-cover fund.
       ...wholeTenant("funds"),
       rule: "select id from public.funds where tenant_id = $1 and system_purpose is null",
     },

@@ -1833,9 +1833,6 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   });
 });
 
-// F9 (council 21 November): a tenant_id with no validated key to tenants fails
-// unless the reviewed CMS list names it, and a listed table that gains its key
-// fails until its entry is removed, once Payload's tables exist to judge.
 describe("tenant keys", () => {
   const judge = (
     tenant_keys: { table: string; keyed: boolean }[],

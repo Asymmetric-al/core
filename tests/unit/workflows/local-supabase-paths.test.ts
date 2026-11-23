@@ -41,9 +41,6 @@ describe("the local Supabase workflow's path filter", () => {
     expect(paths).toContain("apps/missionary/app/choose-organization/**");
   });
 
-  // AL-2676 (WP3a part 1a, round M, M4): the replay step runs
-  // supabase-migrations.mjs, which imports tenant-rls-catalog.mjs and its
-  // reviewed security exception lists.
   it("starts the replay when the catalog gate or its security exception lists change", () => {
     expect(paths).toContain("scripts/verify/tenant-rls-catalog.mjs");
     expect(paths).toContain("docs/security/*.json");

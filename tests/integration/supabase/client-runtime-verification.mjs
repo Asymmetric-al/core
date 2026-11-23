@@ -20,9 +20,6 @@ import {
 } from "./client-runtime-checks.mjs";
 
 // Feed credentials from an owned local CLI status response through stdin only.
-// The Realtime broadcast round trip proves only that the signed-in socket
-// delivers: no application table is in the publication at this head, so it
-// proves nothing about authorization; the fund read on the caller's token does.
 // Never invoke this fixture against a shared or hosted project.
 const checks = [];
 let step = "validate-local-target";
@@ -309,13 +306,6 @@ async function verify(input) {
       "self-role-escalation-denied",
     );
 
-    // K10 (fix check, 21 November): WP2b's request-tenant release took funds
-    // and the six other tables out of supabase_realtime
-    // (20261119135300_request_tenant_policies.sql, section 5), the catalog
-    // gate refuses a published tenant table, and no table is published at
-    // the tip, so no database change can be delivered. The signed-in
-    // session's Realtime is proved by a broadcast round trip, and the money
-    // contract by a tenant-scoped read of the fund.
     step = "authenticated-realtime-and-money-contract";
     let acceptChange;
     const changed = new Promise((resolve) => {
@@ -350,7 +340,6 @@ async function verify(input) {
     successful(
       await createTrackedFixtureRows(admin, tableJournal, "funds", fundRows),
     );
-    // L1: the caller's own token, scoped by both request headers.
     const token = successful(await browser.auth.getSession()).session
       .access_token;
     const asCaller = (tenantId) =>
@@ -389,9 +378,6 @@ async function verify(input) {
         : elsewhere.data.length === 0,
       "caller-token-denied-under-other-tenant",
     );
-    // Round M: a signed-in user with no membership, under the fund's own
-    // tenant, is refused too. (The check above alone would also pass a policy
-    // that trusted the tenant header without a membership.)
     const outsider = createClient(url.href, input.PUBLIC_KEY, options);
     const outsiderToken = successful(
       await outsider.auth.signInWithPassword(users[1]),
