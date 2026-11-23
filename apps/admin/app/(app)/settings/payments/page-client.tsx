@@ -28,7 +28,7 @@ import {
   Loader2,
   RefreshCw,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 import { fetchWithSupabaseAuth } from "@/lib/authenticated-fetch";
@@ -73,6 +73,48 @@ const STATUS_LABELS: Record<BindingStatus, string> = {
   disconnected: "Disconnected",
 };
 
+function subscribeLocationSearch(callback: () => void): () => void {
+  window.addEventListener("popstate", callback);
+  return () => window.removeEventListener("popstate", callback);
+}
+
+function getOnboardingNoticeSnapshot(): "return" | "refresh" | null {
+  const state = new URLSearchParams(window.location.search).get("onboarding");
+  return state === "return" || state === "refresh" ? state : null;
+}
+
+function getServerOnboardingNoticeSnapshot(): "return" | "refresh" | null {
+  return null;
+}
+
+type FetchPaymentAccountsResult =
+  { ok: true; data: PaymentAccountsResponse } | { ok: false; error: string };
+
+async function fetchPaymentAccounts(): Promise<FetchPaymentAccountsResult> {
+  try {
+    const response = await fetchWithSupabaseAuth(
+      "/api/admin/payment-accounts",
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+    const data = (await response.json()) as PaymentAccountsResponse;
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: data.error ?? "Unable to load payment accounts.",
+      };
+    }
+    return { ok: true, data };
+  } catch {
+    return {
+      ok: false,
+      error: "Network error while loading payment accounts.",
+    };
+  }
+}
+
 function statusBadgeVariant(
   status: BindingStatus | null,
 ): "default" | "secondary" | "destructive" | "outline" {
@@ -92,44 +134,42 @@ export default function PaymentAccountsPage() {
   const [entities, setEntities] = useState<LegalEntityPaymentAccount[]>([]);
   const [reasons, setReasons] = useState<Record<string, string>>({});
   const [submittingId, setSubmittingId] = useState<string | null>(null);
-  const [onboardingNotice, setOnboardingNotice] = useState<
-    "return" | "refresh" | null
-  >(null);
+  const onboardingNotice = useSyncExternalStore(
+    subscribeLocationSearch,
+    getOnboardingNoticeSnapshot,
+    getServerOnboardingNoticeSnapshot,
+  );
 
-  const loadAccounts = useCallback(async () => {
-    setLoading(true);
-    setLoadError(null);
-    try {
-      const response = await fetchWithSupabaseAuth(
-        "/api/admin/payment-accounts",
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-      const data = (await response.json()) as PaymentAccountsResponse;
-      if (!response.ok) {
-        setLoadError(data.error ?? "Unable to load payment accounts.");
-        return;
-      }
-      setConfigured(Boolean(data.configured));
-      setLivemode(Boolean(data.livemode));
-      setEntities(data.legalEntities ?? []);
-    } catch {
-      setLoadError("Network error while loading payment accounts.");
-    } finally {
+  const applyAccountsResult = (result: FetchPaymentAccountsResult) => {
+    if (!result.ok) {
+      setLoadError(result.error);
       setLoading(false);
+      return;
     }
-  }, []);
+    setConfigured(Boolean(result.data.configured));
+    setLivemode(Boolean(result.data.livemode));
+    setEntities(result.data.legalEntities ?? []);
+    setLoadError(null);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const state = params.get("onboarding");
-    if (state === "return" || state === "refresh") {
-      setOnboardingNotice(state);
-    }
-    void loadAccounts();
-  }, [loadAccounts]);
+    let active = true;
+    void fetchPaymentAccounts().then((result) => {
+      if (!active) return;
+      applyAccountsResult(result);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    setLoadError(null);
+    const result = await fetchPaymentAccounts();
+    applyAccountsResult(result);
+  };
 
   const handleStartOnboarding = async (entity: LegalEntityPaymentAccount) => {
     const reason = (reasons[entity.id] ?? "").trim();
@@ -239,7 +279,7 @@ export default function PaymentAccountsPage() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => void loadAccounts()}
+                onClick={() => void handleRefresh()}
               >
                 <RefreshCw aria-hidden="true" className="size-3.5" />
                 Refresh
