@@ -282,9 +282,13 @@ rather than a cautious, reversible, production-safe migration.
   (Payload in schema `cms`, app data in `public`; the Payload DB URL falls back to the Supabase DB
   URL). So a site is represented by `public.sites` (operational source of truth: identity, tenant
   FK, currency/money facets, and default flag — the row that gifts' `site_id` points at) and a
-  `cms.sites` Payload collection (presentation: branding, content scoping) sharing the **same UUID**.
+  `site-presentations` Payload collection (presentation: branding, content scoping) sharing the **same UUID**.
   Fields are **disjoint** and it is one database, so there is **no cross-database sync engine** — it
   mirrors the existing tenant dual-representation (Supabase-authoritative, Payload aligned on login).
+  _(Amended 2026-11-17 by ADR-0207: the collection is `site-presentations`, not `cms.sites`, because
+  Payload cannot repeat the table name `sites` across schemas. The shared UUID is a soft reference
+  with no cross-schema key; provisioning creates the presentation, and authentication never creates
+  or repairs it.)_
 - **A4. Domains are operational Site facets, not CMS fields.** The resolver is a boundary-safe
   Supabase query in `packages/api` shared by both the public site and the giving path, never
   importing Payload (which the data-access boundary forbids in the giving code). Web Studio shows
@@ -541,7 +545,8 @@ Assembles a gift's four attribution axes and hardens the user-controlled input.
 creation of the default site and conformance of existing (mock) data.
 
 - Interface (shape): `ensureDefaultSite(tenant) → site` (idempotent), plus a migration/seed routine.
-- Seeds `public.sites` (operational) and aligns the `cms.sites` Payload document on the same UUID.
+- Seeds `public.sites` (operational) and creates the `site-presentations` Payload document under the
+  same UUID through Payload's service port, with no cross-schema key (ADR-0207, amended 2026-11-17).
   Seeds the default site from the tenant's existing primary domain + locale + settlement currency.
 - Backfills existing CMS content to the tenant's default site. There is no production gift data and
   no legacy-gift runtime to preserve: historical `donations.source` values are migration/removal
@@ -665,7 +670,8 @@ independent identity, lifecycle, uniqueness, and history require relations._
   list, Site setting, fallback, publication proof, or repeated locale relation.
   Enabling a Site Locale never qualifies content or fabricates qualification
   evidence.
-- **`cms.sites`** (Payload collection): same `id`, `tenant` relationship, content scoping, and the
+- **`site-presentations`** (Payload collection; `cms.sites` before the 2026-11-17 ADR-0207
+  amendment): same `id` as a soft reference with no cross-schema key, `tenant` relationship, content scoping, and the
   CMS-owned Site Brand Version lifecycle (complete drafts, immutable versions, approved same-Tenant
   assets, and source provenance). Presentation only; disjoint from the operational columns. The
   applicable public-Site release authority pins the exact qualified brand version into public
@@ -762,7 +768,7 @@ gift's legal tax year answer different questions and may legitimately differ.
   5. Change page slug uniqueness from per-tenant to per-**site** (composite unique).
   6. Make the create-from-template endpoint accept `siteId`; Web Studio auto-assigns new content to
      the tenant's default site (the multi-site picker is deferred).
-- **Admin surfaces:** Web Studio exposes `cms.sites` with **branding editable**, domains/locale/
+- **Admin surfaces:** Web Studio exposes `site-presentations` with **branding editable**, domains/locale/
   currency **read-only**, and **create/delete gated**. Mission Control gets a **read-only** Sites
   list. Permissions and audit reuse Payload's tenant-scoped access hooks and versioning — no new
   permission surface.
@@ -922,7 +928,7 @@ write-up.
 Tracked as epic **#477** + children (created via `/to-issues`). Ticket shape:
 
 1. OpenSpec change + parity-matrix update (platform-surfaces singular → multi-site; Site entity).
-2. `public.sites` + `cms.sites` data model + default-site provisioning + demo seed (Module 4).
+2. `public.sites` + `site-presentations` data model + default-site provisioning + demo seed (Module 4).
 3. Currency module: `currency_metadata` (TS constant + seed) + money helpers + ISO-4217 validation
    (Module 1); replace the donate-path cents assumption.
 4. Site context resolver in `packages/api` — host→site→tenant (Module 2).
@@ -933,7 +939,7 @@ Tracked as epic **#477** + children (created via `/to-issues`). Ticket shape:
    (Module 5); dedicated semantic brand roles; production-faithful preview;
    checkout presentation; footer templating; no arbitrary code or live
    inheritance.
-8. Web Studio `cms.sites` (branding editable, rest read-only, create/delete gated) + Mission Control
+8. Web Studio `site-presentations` (branding editable, rest read-only, create/delete gated) + Mission Control
    read-only Sites list.
 9. Two ADRs (site-before-ledger; currency-aware minor units).
 10. Phase 2 evidence file.
