@@ -39,6 +39,7 @@
     "./donor-portal/settings-patch": "./src/donor-portal/settings-patch.ts",
     "./donor-portal/pledge-view": "./src/donor-portal/pledge-view.ts",
     "./stripe/connect": "./src/stripe/connect.ts",
+    "./stripe/connect-webhook": "./src/stripe/connect-webhook.ts",
     "./stripe/webhooks": "./src/stripe/webhooks.ts",
     "./profile": "./src/profile/index.ts",
     "./upload/image": "./src/upload/image.ts",

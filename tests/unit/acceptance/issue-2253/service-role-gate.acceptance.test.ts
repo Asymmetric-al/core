@@ -333,8 +333,8 @@ type Allow = {
   })[];
 };
 const doc = () => JSON.parse(read(ALLOWLIST) || "null") as Allow | null;
-// D-18: count the platform wrapper instead of the caller lane, including eight already-privileged member-care and portal sites under the 21 November ruling.
-const CEILING_TOTALS = [186, 121, 115] as const;
+// D-18: count the platform wrapper (21 November ruling) plus one temporary admin_client site in packages/api/src/stripe/connect-webhook.ts approved under W8-R10 (23 November 2026) until Part 2 retires webhooks.ts.
+const CEILING_TOTALS = [187, 122, 116] as const;
 const live = (d: Allow) => [
   d.entries.reduce((a, x) => a + x.count, 0),
   d.entries.length,

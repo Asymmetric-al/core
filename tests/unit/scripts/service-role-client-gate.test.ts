@@ -73,12 +73,12 @@ describe("frozen ceiling", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
-  // D-18: the ceiling falls with the allowlist. It rose once, by the coordinator's ruling of
-  // 21 November 2026 (F3, F4): by exactly the eight platform-wrapper sites that reached the key
-  // uncounted, each named for WP4b. Any other growth needs a new ruling.
-  it("pins the 121 entries, including the eight previously uncounted calls", () => {
+  // D-18: the ceiling falls with the allowlist. It rose under the 21 November 2026 ruling (F3, F4:
+  // eight uncounted platform-wrapper sites) and under coordinator ruling W8-R10 of 23 November 2026
+  // (one temporary admin_client site in packages/api/src/stripe/connect-webhook.ts until Part 2 retires webhooks.ts).
+  it("pins the 122 entries, including the W8-R10 temporary connect webhook site", () => {
     expect(ceilingDigest()).toBe(
-      "e25de42921ceb99b0be9b8c0242f8e8100f158dd910207645c07aa16ebed9e47",
+      "c2e4e96171cb93b9aad6b958922053d14787e3dd7a7e95a9b497c2ad45644337",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -86,15 +86,15 @@ describe("frozen ceiling", () => {
       totals[kind] = (totals[kind] ?? 0) + count;
     }
     expect(totals).toEqual({
-      admin_client: 78,
+      admin_client: 79,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
       operation_admin_context: 73,
     });
-    expect(CEILING.size).toBe(121);
+    expect(CEILING.size).toBe(122);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(115);
+    ).toBe(116);
   });
 });
 
