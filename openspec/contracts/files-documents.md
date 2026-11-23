@@ -3164,6 +3164,58 @@ Story: US29-C31. Source: organization-and-review-tools.md. Decision basis: Q45 p
 
 <!-- prettier-ignore-start -->
 
+<a id="contract-b0b7e4996d84398f4090"></a>
+
+## REQ29-A01 — Confirm recipients for external private document requests
+
+<!-- BEGIN CONTRACT {"id":"b0b7e4996d84398f4090","name":"REQ29-A01 — Confirm recipients for external private document requests"} -->
+
+The system SHALL satisfy this complete contract and REQ29-P01–P18 common safeguards.
+
+**Scope.** Apply this floor to external private-document collection requests. A request is one source-owned requirement and its relevant recipient/instruction revision, not an HTTP request. Preserve unrelated giving, receipts, newsletter and collaboration contracts unless expressly amended.
+
+**Identity meaning.** Record the method and actual proof established. Label ordinary email proof **Email confirmed**, never **Identity verified**. A mailbox, native principal, person described, acting representative and business recipient are distinct. No first/last/newest matching Party inference or alias guessing.
+
+**Shared admission.** Extend the existing Phase 4/native Auth and Phase 12 authenticated-human admission path narrowly for this exact request purpose without organization enrollment. The source grant constrains the authenticated principal and does not create a generic fifth role/context, anonymous private access, NHI impersonation or alternate JWT issuer. Existing member/public/NHI/operator semantics remain intact.
+
+**Recipient authority.** Adopt a closed document-request-recipient authority for legitimate recipients without a Party. Bind tenant/environment, requesting source, request/revision, intended recipient/address revision and allowed purpose/actions. Use only this named producer branch; do not borrow Phase 28's newsletter-only exception or manufacture constituent records.
+
+**Proof and reuse.** Invitation is insufficient. Fresh proof is delivered only to the fixed current source-approved address after deliberate eligible action. Reuse existing proof only under an explicit qualified request-purpose rule proving principal, exact address/revision, method, age, request binding and current source policy. Contact/provider email equality alone grants nothing. Stronger source assurance cannot be downgraded to email.
+
+**Doorway and session.** Reuse ADR-0025/0037 selector-plus-fragment transport and deliberate protected POST. GET/HEAD, passive scanner visits and prefetch create no authorized session or send. The doorway is scanner-resistant, not scanner-proof: an advanced scanner can submit forms, and an exchange never proves a human actor. Initial landing state is non-authorizing. Preserve the exact frozen qualified origin of the organization's verified name for that surface (amended 2026-11-24) and existing private headers; use only an explicitly qualified same-tenant continuation to the existing participant surface. No credential-bearing redirect or cross-host Domain cookie.
+
+**Action separation.** Authorize instructions, initiate transfer, finalize, see status, preview, original download, replace and review separately. Upload permission supplies no directory, previous-submission, other-recipient, CRM, count/search or broader file read. A clean scan or confirmed recipient cannot accept evidence, complete a business requirement or sign anything.
+
+**Recipient correction.** The source alone changes intended recipient or materially changes request instructions through a versioned successor. Fence obsolete proofs/grants and pending promotion, preserve attribution and accepted evidence. Do not transfer previous-submission access to a replacement recipient by default. Same address after a change is not the same revision.
+
+**Recovery and representation.** Offer wrong-account switch, governed resend and source-owned correction/recovery. A user cannot type a replacement destination into the verification screen. Staff cannot set a verified flag or request the recipient's secret. Authorized helpers/representatives require existing source authority and separate actor attribution; Q01 neither universally permits nor bans shared mailboxes. A source without a qualified recipient/assurance policy cannot activate that purpose.
+
+**Persistence and authorization.** Derive actor, tenant, source and admission from trusted server context and current authoritative records. Use opaque identities, non-null required scope, same-tenant/source foreign-key relationships, unique logical operations, and immutable recipient/request/byte references where issued. Prevent changing authority-bearing columns through general updates. RLS/grants/command validation must agree on old and new row states and actual execution roles; privileged workers re-prove their narrowly delegated source authority.
+
+**Retry and races.** Consume the exact request-bound proof application/redemption and create/recover its one admitted result through an atomic authoritative command or equivalently proved recoverable owner protocol. Separately qualified reuse of parent native proof still requires a new independently authorized request binding. Scope idempotency to the intended effect and semantic fingerprint; same key/different intent conflicts. Co-commit local facts and required outbox work. Handle provider success/response loss as unknown until reconciled; never manufacture a fresh-key resend to hide uncertainty. Link/code siblings cannot both independently redeem.
+
+**Currentness and clocks.** Recheck current actor/service identity and operation-appropriate source authority at every protected operation. Participant actions and reads additionally require their current exact recipient/request admission; independently admitted worker processing re-proves its own source/worker authorization and withdrawal fences, not the former browser session. Apply these checks to finalization, promotion, full/range/conditional reads and recovered results as appropriate. Keep request due date, invitation expiry, proof expiry, session expiry, upload-grant expiry and byte retention distinct. Use server time and exact qualified profiles; neither reads nor resend renew the business deadline. Define the atomic admission point for revocation races.
+
+**Private custody.** Transfer only into server-reserved private staging through a finite purpose-bound grant. Verify exact object identity, type/size/integrity and current authority independently of browser/provider success. No overwrite, public URL or old bucket fallback. Transfers not durably received before their admission ends stay unavailable and follow owner cleanup/hold policy; late scan success cannot revive revoked source authority. Durably received intake can continue independently authorized source processing after browser-session expiry, without granting new participant access.
+
+**Communication.** P4/request producer owns proof and occurrence; P17 prepares exact meaning-specific content; P6 alone dispatches and records outcomes. Qualify initial invitation, user-requested confirmation, resend, correction and any required security notice separately. Preserve consent/contact/provider restrictions; do not treat marketing unsubscribe, do-not-contact, hard bounce and complaint as one Boolean. No direct provider/SMTP or alternate-channel bypass when delivery is blocked.
+
+**Abuse and privacy.** Bound guesses, sends, outstanding reservations, bytes and processing with shared qualified controls at request/recipient/tenant and suitable network/global scopes. Resend cannot reset attempt budgets. Avoid attacker-triggered permanent account/request lockout. Pre-confirmation errors and metadata remain non-enumerating; secrets/private filenames/addresses/bodies stay out of ordinary URLs, logs, analytics, queues, search and replay. Rate-limiter outage cannot silently remove protections.
+
+**Usability.** One logical code input with full paste, autofill and leading-zero support; shared safe-link alternative where qualified. No forced password creation or profile completion merely to respond, default CAPTCHA puzzle, unnecessary repeated confirmation or staff File Manager shell. Preserve source-required stronger authentication or step-up. Preserve exact authorized return and accepted results across delay/retry. Use clear pending/received/processing/review labels, keyboard/screen-reader/mobile and low-bandwidth recovery, safe localization and non-lossy address handling.
+
+**Audit and lifecycle.** Keep request creation, proof delivery, confirmation, admission, transfer, processing, review and business acceptance as separate evidence. Distinguish provider accepted from delivered, granted from bytes served, and served from human reading. Record opaque correlation, actual actor/proof provenance, source/recipient revisions, result and correction lineage under appropriate restricted retention; auth secrets are not file records. Restore applies revocation/disposal history before serving anything.
+
+**Qualification and rollout.** Expand schema/readers first, fence incompatible writers, then qualify exact purpose/host/provider and enable a bounded cohort. Unknown versions fail closed. Imported or historical verified flags/links grant no new authority. Rollback may disable new admission while preserving evidence and denial fences; it must not return new recipients to old donor/signup/public-storage behavior. No whole Phase 34/41 dependency and no activation from mocked tests or configuration alone.
+
+Story: US29-A01. Source: request-access.md. Decision basis: Q01, complete incorporated source clauses and current explicit later refinements; REQ29-P01–P18. Exact paragraph, clause, proof and journey locators are mapped individually.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
 <a id="contract-b151681de81da8a18522"></a>
 
 ## REQ29-C19 — Execute a shared definition under each viewer's authority

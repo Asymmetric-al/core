@@ -161,7 +161,7 @@ avoidable timing distinction. D71's presentation kill switch changes no access
 or qualification result.
 
 **Phase 24 D72 Site-domain amendment (2026-08-30; ADR-0193).** Phase 24
-registers two Site-scoped capability atoms. `sites.manage_domains` may create or
+registers two Site-scoped capability atoms (organization-scoped from 2026-11-24, since a domain may exist without a Site; owner's decision on tenant-owned domains). `sites.manage_domains` may create or
 remove never-public candidates, read protected setup/verification details, and
 request or retry provider proof. It cannot activate, deactivate, redirect, or
 change a public origin. `sites.activate_domains` may participate in D6 first Go

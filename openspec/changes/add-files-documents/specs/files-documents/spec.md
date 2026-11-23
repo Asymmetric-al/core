@@ -613,7 +613,7 @@ Every clause in `openspec/contracts/files-documents.md#contract-27d0931ca6be5d1c
 
 The system SHALL satisfy this complete contract and REQ29-P01–P18 common safeguards.
 
-Every clause in `openspec/contracts/files-documents.md#contract-e29509bdbd95fe704332` MUST apply without exception.
+Every clause in `openspec/contracts/files-documents.md#contract-b0b7e4996d84398f4090` MUST apply without exception.
 
 #### Scenario: AC29-A01-01
 

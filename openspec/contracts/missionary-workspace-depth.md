@@ -3086,6 +3086,39 @@ Story: US28-R01. Source: relationships.md. Decision basis: completeness C01/C02/
 
 <!-- prettier-ignore-start -->
 
+<a id="contract-aba7d87f05738a13f122"></a>
+
+## REQ28-M07 — Confirm through one protected deliberate action
+
+<!-- BEGIN CONTRACT {"id":"aba7d87f05738a13f122","name":"REQ28-M07 — Confirm through one protected deliberate action"} -->
+
+The system SHALL satisfy this contract and the common safeguards in the canonical specification.
+
+The following behavior is required.
+
+- Use P17's verified frozen origin/path on the organization's verified name for that surface (amended 2026-11-24), nonsecret HTTP
+  selector and independent 256-bit fragment verifier. Minimal first-party script
+  removes the fragment from browser history and deliberate same-origin POST
+  establishes the bounded non-authorizing landing session; qualified review then
+  exposes the exact Confirm subscription action under current source proof.
+- GET/HEAD/prefetch/preview/scanner opening neither subscribes nor consumes proof.
+  Selector-only responses reveal no organization/action/recipient/deadline/state.
+  No automatic submit or stripped-fragment alternate protocol.
+- Apply existing CSP/cache/referrer/cookie/HMAC/origin/CSRF/key-rotation contracts.
+  Missing script leaves proof unconsumed with safe help. Retired/reassigned host
+  fails safely, not a redirect guessing new authority. Original Page/device is
+  unnecessary.
+- Confirmation is not Auth email verification/OTP sign-in, CRM claiming, protected
+  reading or identity merge. Do not substitute Auth sign-in or verification operations.
+
+Story: US28-M07. Source: communications.md. Decision basis: D43 C06/C13; Phase 17 protected-action protocol with the bounded native-newsletter non-constituent descriptor amendment.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
 <a id="contract-ad05da12ad4da46f59f9"></a>
 
 ## REQ28-M30 — Understand personal-mail uncertainty without unsafe retry

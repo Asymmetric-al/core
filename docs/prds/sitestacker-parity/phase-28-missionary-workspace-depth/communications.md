@@ -280,7 +280,7 @@ The following behavior is required.
 
 The following behavior is required.
 
-- Use P17's verified frozen Tenant Donor Portal origin/path, nonsecret HTTP
+- Use P17's verified frozen origin/path on the organization's verified name for that surface (amended 2026-11-24), nonsecret HTTP
   selector and independent 256-bit fragment verifier. Minimal first-party script
   removes the fragment from browser history and deliberate same-origin POST
   establishes the bounded non-authorizing landing session; qualified review then
