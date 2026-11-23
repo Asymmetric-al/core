@@ -1355,7 +1355,7 @@
   "scripts/verify/unit-tests.mjs": 7,
   "scripts/verify/vercel-build-controls.mjs": 1,
   "scripts/verify/vercel-production-readiness.mjs": 8,
-  "tests/e2e/admin-request-scope.spec.ts": 21,
+  "tests/e2e/admin-request-scope.spec.ts": 19,
   "tests/e2e/admin-table-pages-smoke.spec.ts": 2,
   "tests/e2e/admin-tenant-address.spec.ts": 87,
   "tests/e2e/auth-demo-admin.spec.ts": 3,

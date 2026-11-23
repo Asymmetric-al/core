@@ -120,6 +120,13 @@ on:
       - tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts
       - packages/api/src/health/app.ts
       - tests/unit/acceptance/issue-2674/app-health.postgrest.acceptance.test.ts
+      - packages/api/src/reads/member-care.ts
+      - packages/api/src/admin/member-care/**
+      - apps/admin/app/api/admin/member-care/**
+      - apps/admin/app/(app)/care/**
+      - apps/admin/features/mission-control/care/**
+      - tests/unit/acceptance/issue-2677/member-care.postgrest.acceptance.test.ts
+      - tests/e2e/auth-member-care.spec.ts
 
 permissions:
   contents: read
@@ -249,6 +256,18 @@ jobs:
           CRM_READ_IT_AUDIT_KEY="$(bun run supabase -- status -o json | jq -er '.SERVICE_ROLE_KEY')"
           CRM_READ_IT_ANON_KEY="$(bun run supabase -- status -o json | jq -er '.ANON_KEY')"
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts tests/unit/acceptance/issue-2677/crm-directory.realstack.acceptance.test.ts
+      - name: Verify Member Care handlers and R11 projections through PostgREST
+        shell: bash
+        env:
+          MEMBER_CARE_IT_REQUIRED: "1"
+          MEMBER_CARE_IT_SUPABASE_URL: http://127.0.0.1:54321
+          MEMBER_CARE_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          MEMBER_CARE_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          MEMBER_CARE_IT_SERVICE_ROLE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export MEMBER_CARE_IT_ANON_KEY MEMBER_CARE_IT_SERVICE_ROLE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/member-care.postgrest.acceptance.test.ts
       - name: Install Playwright Chromium
         id: chromium
         run: bunx playwright install --with-deps chromium

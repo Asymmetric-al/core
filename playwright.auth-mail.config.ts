@@ -100,6 +100,7 @@ export default defineConfig({
     "**/auth-two-organizations.spec.ts",
     "**/auth-request-scope-reads.spec.ts",
     "**/auth-crm-reads.spec.ts",
+    "**/auth-member-care.spec.ts",
   ],
   outputDir: "test-results/auth-mail",
   fullyParallel: false,
