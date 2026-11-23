@@ -23,6 +23,18 @@
 --    insert policy on `crm_notes` does, so a staff member who calls the
 --    command directly is refused it too.
 --
+--    Right after the preamble the command locks the selected assignment
+--    `FOR SHARE` and checks it again under the lock, before any write or any
+--    return of a stored note: the row is found, is the caller's, in this
+--    tenant and live, still holds `admin.crm.manage`, and, for a restricted
+--    note, still has the administrator flag. Anything not true refuses with
+--    42501. A demotion or revocation therefore either commits before the
+--    command's lock, and the command refuses, or waits until the command
+--    ends: no note is written or returned on authority already withdrawn,
+--    also while the command waits for another submission with the same key.
+--    The role-change and revoke commands lock the row `FOR UPDATE` and touch
+--    no CRM table, so the two never wait on each other in a cycle.
+--
 --    The log row holds actor, action, references and outcome only (WP4a
 --    part 1, F10): tenant, actor, request ID, action, resource type and ID,
 --    idempotency key and status. No title, body, visibility or linked record
@@ -163,10 +175,36 @@ DECLARE
   v_profile_id UUID;
   v_note public.crm_notes%ROWTYPE;
   v_log_id UUID;
+  v_live BOOLEAN;
+  v_admin BOOLEAN;
+  v_capable BOOLEAN;
 BEGIN
   v_ctx := tenant_guard.begin_human_command(p_tenant_id, 'admin.crm.manage');
 
-  IF p_visibility = 'restricted' AND v_ctx.is_tenant_admin IS NOT TRUE THEN
+  SELECT m.is_tenant_admin
+    INTO v_admin
+    FROM authz.memberships AS m
+   WHERE m.id = v_ctx.assignment_id
+     AND m.user_id = v_ctx.actor_id
+     AND m.tenant_id = v_ctx.tenant_id
+     AND m.is_active
+     AND m.revoked_at IS NULL
+     FOR SHARE;
+  v_live := FOUND;
+
+  IF v_live IS NOT TRUE THEN
+    RAISE EXCEPTION 'tenant_guard: the selected assignment is no longer a live assignment of the caller in this tenant'
+      USING ERRCODE = '42501';
+  END IF;
+
+  v_capable := 'admin.crm.manage' = ANY (authz.assignment_capabilities(v_ctx.assignment_id));
+
+  IF v_capable IS NOT TRUE THEN
+    RAISE EXCEPTION 'tenant_guard: the selected assignment no longer holds admin.crm.manage'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF p_visibility = 'restricted' AND v_admin IS NOT TRUE THEN
     RAISE EXCEPTION 'tenant_guard: a restricted CRM note needs the tenant-administrator flag'
       USING ERRCODE = '42501';
   END IF;
@@ -262,6 +300,7 @@ BEGIN
      AND n.title = v_title
      AND n.body = v_body
      AND n.visibility = p_visibility
+     AND (n.visibility <> 'restricted' OR v_admin IS TRUE)
      AND n.linked_record_id IS NOT DISTINCT FROM v_linked_id
      AND n.linked_record_type IS NOT DISTINCT FROM p_linked_record_type
      AND n.linked_record_label IS NOT DISTINCT FROM v_linked_label;

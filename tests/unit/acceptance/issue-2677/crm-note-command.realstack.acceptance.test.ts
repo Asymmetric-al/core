@@ -2,7 +2,15 @@ import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 import pg from "pg";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from "vitest";
 
 import {
   ADMIN_URL,
@@ -477,3 +485,207 @@ describe.skipIf(!ADMIN_URL)("the CRM note command", () => {
     );
   });
 });
+
+describe.skipIf(!ADMIN_URL)(
+  "the CRM note command against a membership change in flight (committed)",
+  () => {
+    const admin = new pg.Client({ connectionString: ADMIN_URL });
+    const one = new pg.Client({ connectionString: ADMIN_URL });
+    const two = new pg.Client({ connectionString: ADMIN_URL });
+    const tenant = randomUUID();
+    const users: string[] = [];
+    let twoPid = 0;
+
+    const CHANGES = {
+      demotion:
+        "update authz.memberships set is_tenant_admin = false where id = $1",
+      revocation:
+        "update authz.memberships set is_active = false, revoked_at = now() where id = $1",
+    } as const;
+
+    beforeAll(async () => {
+      await Promise.all([admin.connect(), one.connect(), two.connect()]);
+      twoPid = (await two.query("select pg_backend_pid() as p")).rows[0]!.p;
+      await admin.query(
+        "insert into public.tenants (id, name, slug) values ($1, 'wp4a2b race', $2)",
+        [tenant, `wp4a2b-race-${tenant}`],
+      );
+    });
+
+    afterAll(async () => {
+      try {
+        await admin.query("rollback");
+        await one.query("rollback");
+        await two.query("rollback");
+        await admin.query("begin");
+        await admin.query(
+          "delete from public.crm_command_logs where tenant_id = $1",
+          [tenant],
+        );
+        await admin.query("delete from public.crm_notes where tenant_id = $1", [
+          tenant,
+        ]);
+        await admin.query(
+          "delete from authz.memberships where tenant_id = $1 or user_id = any($2::uuid[])",
+          [tenant, users],
+        );
+        await admin.query("delete from public.tenants where id = $1", [tenant]);
+        await admin.query("delete from auth.users where id = any($1::uuid[])", [
+          users,
+        ]);
+        await admin.query("commit");
+      } finally {
+        await Promise.all([admin.end(), one.end(), two.end()]);
+      }
+    });
+
+    beforeEach(async () => {
+      await admin.query("rollback");
+      await one.query("rollback");
+      await two.query("rollback");
+    });
+
+    async function administrator() {
+      const user = randomUUID();
+      const assignment = randomUUID();
+      users.push(user);
+      await admin.query("insert into auth.users (id) values ($1)", [user]);
+      await admin.query("delete from authz.memberships where user_id = $1", [
+        user,
+      ]);
+      await admin.query(
+        "insert into authz.memberships (id, user_id, tenant_id, role, staff_role, is_tenant_admin) values ($1, $2, $3, 'staff', 'development', true)",
+        [assignment, user, tenant],
+      );
+      return { user, assignment };
+    }
+
+    async function begin(
+      client: pg.Client,
+      person: { user: string; assignment: string },
+    ) {
+      await client.query("begin");
+      await client.query("set local role authenticated");
+      await client.query(
+        "select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', '', true), set_config('request.headers', $2, true)",
+        [
+          JSON.stringify({ sub: person.user, role: "authenticated" }),
+          JSON.stringify({ "x-asym-assignment": person.assignment }),
+        ],
+      );
+    }
+
+    function create(client: pg.Client, key: string) {
+      return client
+        .query(
+          "select public.create_crm_note($1, $2, 'Pastoral', 'Sensitive detail', 'restricted', null, null, null, null) as result",
+          [tenant, key],
+        )
+        .then(
+          (r) => ({
+            code: null as string | null,
+            result: r.rows[0].result as {
+              duplicate: boolean;
+              note: { id: string; body: string };
+            } | null,
+          }),
+          (e: { code?: string }) => ({ code: e.code ?? "?", result: null }),
+        );
+    }
+
+    async function waitsOnLock() {
+      for (let i = 0; i < 100; i += 1) {
+        const r = await admin.query(
+          "select wait_event_type from pg_stat_activity where pid = $1",
+          [twoPid],
+        );
+        if (r.rows[0]?.wait_event_type === "Lock") return true;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      return false;
+    }
+
+    async function stored(key: string) {
+      const r = await admin.query(
+        "select (select count(*)::int from public.crm_notes where tenant_id = $1 and idempotency_key = $2) as notes, (select count(*)::int from public.crm_command_logs where tenant_id = $1 and idempotency_key = $2) as logs",
+        [tenant, key],
+      );
+      return r.rows[0];
+    }
+
+    it.each([
+      ["demotion", "commits", "fresh"],
+      ["demotion", "commits", "retry"],
+      ["revocation", "commits", "fresh"],
+      ["revocation", "commits", "retry"],
+      ["demotion", "rolls back", "fresh"],
+      ["demotion", "rolls back", "retry"],
+      ["revocation", "rolls back", "fresh"],
+      ["revocation", "rolls back", "retry"],
+    ] as const)(
+      "waits for a %s that holds the caller's assignment; when it %s, a %s restricted note is refused or proceeds on the committed row",
+      async (change, outcome, kind) => {
+        const person = await administrator();
+        const key = randomUUID();
+        if (kind === "retry") {
+          await begin(one, person);
+          expect((await create(one, key)).code).toBeNull();
+          await one.query("commit");
+        }
+        await admin.query("begin");
+        await admin.query(CHANGES[change], [person.assignment]);
+        await begin(two, person);
+        const pending = create(two, key);
+        expect(await waitsOnLock()).toBe(true);
+        await admin.query(outcome === "commits" ? "commit" : "rollback");
+        const reply = await pending;
+        const before = kind === "retry" ? 1 : 0;
+        if (outcome === "commits") {
+          expect(reply).toEqual({ code: "42501", result: null });
+          await two.query("rollback");
+          expect(await stored(key)).toEqual({ notes: before, logs: before });
+        } else {
+          expect(reply.code).toBeNull();
+          expect(reply.result?.duplicate).toBe(kind === "retry");
+          await two.query("commit");
+          expect(await stored(key)).toEqual({ notes: 1, logs: 1 });
+        }
+      },
+    );
+
+    it.each([
+      ["demotion", "rolls back"],
+      ["demotion", "commits"],
+      ["revocation", "rolls back"],
+      ["revocation", "commits"],
+    ] as const)(
+      "lets no %s take the assignment while a retry waits on the first submission; when that %s, the retry acts on the authority it holds",
+      async (change, outcome) => {
+        const person = await administrator();
+        const key = randomUUID();
+        await begin(one, person);
+        expect((await create(one, key)).code).toBeNull();
+        await begin(two, person);
+        const pending = create(two, key);
+        expect(await waitsOnLock()).toBe(true);
+        await admin.query("begin");
+        await admin.query("set local lock_timeout = '300ms'");
+        const attempt = await admin
+          .query(CHANGES[change], [person.assignment])
+          .then(
+            () => null,
+            (e: { code?: string }) => e.code ?? "?",
+          );
+        await admin.query("rollback");
+        expect(attempt).toBe("55P03");
+        await one.query(outcome === "commits" ? "commit" : "rollback");
+        const reply = await pending;
+        expect(reply.code).toBeNull();
+        expect(reply.result?.duplicate).toBe(outcome === "commits");
+        await two.query("commit");
+        expect(await stored(key)).toEqual({ notes: 1, logs: 1 });
+        await admin.query(CHANGES[change], [person.assignment]);
+      },
+    );
+  },
+);
