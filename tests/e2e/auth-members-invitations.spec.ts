@@ -290,7 +290,7 @@ test.describe("AL-2676 WP3c: Members screen, invitations, doorway, and role chan
     ];
 
     const mailpitRes = await fetch(
-      `${stack.mailpitUrl.replace(/\/$/, "")}/api/v1/messages`,
+      `${stack.mailUrl.replace(/\/$/, "")}/api/v1/messages`,
     );
     expect(mailpitRes.status).toBe(200);
     const mailpitBody = (await mailpitRes.json()) as {
