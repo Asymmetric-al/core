@@ -71,6 +71,10 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
     const defaultIds = [randomUUID(), randomUUID()];
     const otherProfile = "11111111-1111-1111-1111-111111111111";
     const tableId = "crm.giftHistory";
+    const fieldPolicyRecordType = "crm_report_groups";
+    const fieldPolicyKey = `sentinel_${randomUUID().replaceAll("-", "_")}`;
+    const noteKeys: string[] = [];
+    const noteTitles: string[] = [];
     let entityA: string;
     let entityB: string;
     let db: pg.Client;
@@ -197,6 +201,10 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
         "insert into public.donation_crm_links (id,tenant_id,donation_id,scope,link_status) values ($1,$3,$5,'parent','failed'),($2,$4,$6,'parent','failed')",
         [...syncIds, tenantA, tenantB, ...giftIds],
       );
+      await db.query(
+        "insert into public.field_policies (record_type,field_key,surface,tenant_id,visible,editable,exportable,sensitivity_category) values ($1,$2,'mission_control',$3,true,false,false,'internal')",
+        [fieldPolicyRecordType, fieldPolicyKey, tenantB],
+      );
       async function signIn(email: string) {
         const client = createClient(url!, key!, {
           auth: { persistSession: false, autoRefreshToken: false },
@@ -224,59 +232,78 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
     afterAll(async () => {
       vi.unstubAllEnvs();
       if (db) {
-        try {
-          await db.query(
-            "delete from public.donation_crm_links where id=any($1::uuid[])",
-            [syncIds],
-          );
-          await db.query(
-            "delete from public.donations where id=any($1::uuid[])",
-            [giftIds],
-          );
-          await db.query(
-            "delete from public.donor_merge_candidates where id=$1",
-            [candidateId],
-          );
-          await db.query(
-            "delete from public.giving_target_entity_locks where missionary_id=any($1::uuid[]) or fund_id=any($2::uuid[])",
+        const failedTables: string[] = [];
+        const trackedDeletes: readonly [string, string, unknown[]][] = [
+          ["public.donation_crm_links", "id=any($1::uuid[])", [syncIds]],
+          ["public.donations", "id=any($1::uuid[])", [giftIds]],
+          ["public.donor_merge_candidates", "id=$1", [candidateId]],
+          [
+            "public.giving_target_entity_locks",
+            "missionary_id=any($1::uuid[]) or fund_id=any($2::uuid[])",
             [workerIds, fundIds],
-          );
-          await db.query(
-            "delete from public.missionaries where id=any($1::uuid[])",
-            [workerIds],
-          );
-          await db.query("delete from public.funds where id=any($1::uuid[])", [
-            fundIds,
-          ]);
-          await db.query("delete from public.donors where id=any($1::uuid[])", [
-            donorIds,
-          ]);
-          await db.query(
-            "delete from public.crm_table_preference_audit_events where id=any($1::uuid[])",
+          ],
+          ["public.missionaries", "id=any($1::uuid[])", [workerIds]],
+          ["public.funds", "id=any($1::uuid[])", [fundIds]],
+          ["public.donors", "id=any($1::uuid[])", [donorIds]],
+          [
+            "public.crm_table_preference_audit_events",
+            "id=any($1::uuid[])",
             [auditIds],
-          );
-          await db.query(
-            "delete from public.crm_table_user_preferences where id=any($1::uuid[])",
+          ],
+          [
+            "public.crm_table_user_preferences",
+            "id=any($1::uuid[])",
             [preferenceIds],
-          );
-          await db.query(
-            "delete from public.crm_table_named_views where id=any($1::uuid[])",
-            [viewIds],
-          );
-          await db.query(
-            "delete from public.crm_table_tenant_defaults where id=any($1::uuid[])",
+          ],
+          ["public.crm_table_named_views", "id=any($1::uuid[])", [viewIds]],
+          [
+            "public.crm_table_tenant_defaults",
+            "id=any($1::uuid[])",
             [defaultIds],
-          );
-          await db.query(
-            "delete from public.crm_notes where id = any($1::uuid[])",
+          ],
+          [
+            "public.crm_command_logs",
+            "idempotency_key=any($1::text[]) or resource_id in (select id::text from public.crm_notes where idempotency_key=any($1::text[]) or title=any($2::text[]))",
+            [noteKeys, noteTitles],
+          ],
+          [
+            "public.crm_notes",
+            "idempotency_key=any($1::text[]) or title=any($2::text[])",
+            [noteKeys, noteTitles],
+          ],
+          [
+            "public.crm_notes",
+            "id = any($1::uuid[])",
             [[noteA, noteB, restrictedA]],
-          );
-          await db.query(
-            "delete from authz.memberships where id = any($1::uuid[])",
+          ],
+          [
+            "authz.memberships",
+            "id = any($1::uuid[])",
             [[dualA, dualB, revokedOwner]],
-          );
+          ],
+          [
+            "public.field_policies",
+            "record_type=$1 and field_key=$2 and surface='mission_control' and tenant_id=$3",
+            [fieldPolicyRecordType, fieldPolicyKey, tenantB],
+          ],
+        ];
+        try {
+          for (const [table, predicate, params] of trackedDeletes) {
+            try {
+              await db.query(`delete from ${table} where ${predicate}`, params);
+            } catch (error) {
+              const reason =
+                error instanceof Error ? error.message : String(error);
+              failedTables.push(`${table}: ${reason}`);
+            }
+          }
         } finally {
           await db.end();
+        }
+        if (failedTables.length > 0) {
+          throw new Error(
+            `Fixture cleanup failed for tables: ${failedTables.join("; ")}`,
+          );
         }
       }
     });
@@ -293,8 +320,8 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
     }
 
     describe("creating a note through the command on the caller's token", () => {
-      const keys: string[] = [];
-      const titles: string[] = [];
+      const keys = noteKeys;
+      const titles = noteTitles;
       const title = "Private call " + randomUUID();
       const body = "Private follow-up " + randomUUID();
 
@@ -331,17 +358,6 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
         );
         return { notes: notes.rows, logs: logs.rows };
       }
-
-      afterAll(async () => {
-        await db.query(
-          "delete from public.crm_command_logs where idempotency_key=any($1::text[]) or resource_id in (select id::text from public.crm_notes where title=any($2::text[]))",
-          [keys, titles],
-        );
-        await db.query(
-          "delete from public.crm_notes where idempotency_key=any($1::text[]) or title=any($2::text[])",
-          [keys, titles],
-        );
-      });
 
       it("refuses a tenant the caller holds no row in and writes nothing in either tenant", async () => {
         const key = randomUUID();
@@ -843,15 +859,25 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           expect(csv).not.toMatch(
             /giving_preferences|defaultAnonymousToPublic/,
           );
-          expect((await audit()).at(-1)).toMatchObject({
+          const exportAudit = (await audit()).at(-1);
+          expect(exportAudit).toMatchObject({
             tenant_id: tenantA,
             user_id: dualUser,
             details: { anonymousGroups: 1, rowCount: 3 },
           });
-          const details = (await audit()).at(-1).details;
+          const details = exportAudit.details;
           expect(details.groupIds.sort()).toEqual(
             [ids[0], ids[2]].map((id) => "donors:" + id).sort(),
           );
+          const serializedDetails = JSON.stringify(details);
+          expect(serializedDetails).not.toContain(ids[1]);
+          expect(serializedDetails).not.toContain(names[1]);
+          expect(details).toEqual({
+            filters: ["dateFrom", "dateTo"],
+            groupIds: details.groupIds,
+            anonymousGroups: 1,
+            rowCount: 3,
+          });
           const searched = await run(
             person,
             tenantA,
@@ -859,7 +885,25 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           );
           expect(searched.status).toBe(200);
           expect((await searched.text()).includes(names[1])).toBe(finance);
-          expect((await audit()).at(-1).details.rowCount).toBe(finance ? 1 : 0);
+          const searchedDetails = (await audit()).at(-1).details;
+          expect(searchedDetails.rowCount).toBe(finance ? 1 : 0);
+          const serializedSearchedDetails = JSON.stringify(searchedDetails);
+          expect(serializedSearchedDetails).not.toContain(ids[1]);
+          expect(serializedSearchedDetails).not.toContain(names[1]);
+          expect(searchedDetails).toEqual(
+            finance
+              ? {
+                  filters: ["dateFrom", "dateTo", "search"],
+                  groupIds: [],
+                  anonymousGroups: 1,
+                  rowCount: 1,
+                }
+              : {
+                  filters: ["dateFrom", "dateTo", "search"],
+                  groupIds: [],
+                  rowCount: 0,
+                },
+          );
         }
         expect(getAdminClient).not.toHaveBeenCalled();
       } finally {
@@ -998,7 +1042,7 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
         }
         const policies = await scoped
           .from("field_policies")
-          .select("tenant_id");
+          .select("tenant_id,field_key");
         expect(policies.error).toBeNull();
         expect(policies.data?.length).toBeGreaterThan(0);
         expect(
@@ -1006,6 +1050,17 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
             (row) => row.tenant_id === null || row.tenant_id === tenantA,
           ),
         ).toBe(true);
+        expect(
+          policies.data?.some((row) => row.field_key === fieldPolicyKey),
+        ).toBe(false);
+        const sentinelPolicy = await scoped
+          .from("field_policies")
+          .select("tenant_id,field_key")
+          .eq("record_type", fieldPolicyRecordType)
+          .eq("field_key", fieldPolicyKey)
+          .eq("surface", "mission_control");
+        expect(sentinelPolicy.error).toBeNull();
+        expect(sentinelPolicy.data).toEqual([]);
         for (const slice of ["funds", "missionaries"]) {
           const res = await report(
             request(
