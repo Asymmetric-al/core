@@ -48,8 +48,9 @@ export function scrubInviteFragmentsDeep<T>(
     return value;
   }
   if (isPlainRecord(value)) {
-    for (const key of Object.keys(value)) {
-      value[key] = scrubInviteFragmentsDeep(value[key], depth + 1, seen);
+    const record: Record<string, unknown> = value;
+    for (const key of Object.keys(record)) {
+      record[key] = scrubInviteFragmentsDeep(record[key], depth + 1, seen);
     }
   }
   return value;
