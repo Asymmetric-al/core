@@ -110,7 +110,7 @@ CREATE INDEX media_assets_pending_purge_idx
 
 CREATE INDEX media_assets_pending_staging_sweep_idx
   ON public.media_assets (upload_token_expires_at)
-  WHERE status IN ('ready', 'failed')
+  WHERE status IN ('ready', 'failed', 'deleted')
     AND staging_swept_at IS NULL
     AND upload_token_expires_at IS NOT NULL;
 

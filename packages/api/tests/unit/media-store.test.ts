@@ -1931,6 +1931,35 @@ describe("media-store custody and Sharp sanitization", () => {
       now: new Date("2027-01-10T03:00:00.000Z"),
     });
     expect(secondSweep.removedStagingObjects).toBe(0);
+
+    const delAssetId = randomUUID();
+    const delStagingKey = buildMediaStagingKey(tenantA, delAssetId);
+    fakeState.rows.set(
+      delAssetId,
+      makeRow({ id: delAssetId, tenant_id: tenantA }),
+    );
+    await issueSignedUpload(authA, { assetId: delAssetId });
+    fakeState.rows.set(delAssetId, {
+      ...fakeState.rows.get(delAssetId)!,
+      status: "deleted",
+      deleted_at: "2027-01-10T00:05:00.000Z",
+      purge_after: "2027-02-14T00:05:00.000Z",
+    });
+    fakeState.objects.set(delStagingKey, {
+      bytes: Buffer.from("late-first-use-after-delete"),
+      contentType: "image/jpeg",
+      version: 1,
+    });
+
+    const delSweepAfterTokenExpiry = await purgeExpiredMedia({
+      now: new Date("2027-01-10T02:05:00.000Z"),
+    });
+    expect(delSweepAfterTokenExpiry.removedStagingObjects).toBe(1);
+    expect(fakeState.objects.has(delStagingKey)).toBe(false);
+    expect(fakeState.rows.get(delAssetId)!.staging_swept_at).toBe(
+      "2027-01-10T02:05:00.000Z",
+    );
+    expect(fakeState.rows.get(delAssetId)!.purged_at).toBeNull();
   });
 
   it("scopes purgeExpiredMedia strictly to options.tenantIds across both deleted purges and staging sweeps (Finding 3)", async () => {

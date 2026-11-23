@@ -1250,7 +1250,7 @@ export async function purgeExpiredMedia(
   let sweepQuery = admin
     .from("media_assets")
     .select("*")
-    .in("status", ["ready", "failed"])
+    .in("status", ["ready", "failed", "deleted"])
     .is("staging_swept_at", null)
     .not("upload_token_expires_at", "is", null)
     .lte("upload_token_expires_at", nowIso);
