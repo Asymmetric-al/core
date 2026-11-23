@@ -1,5 +1,11 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -346,9 +352,9 @@ describe("frozen ceiling", () => {
     }
   });
 
-  it("pins the 116 reviewed entries after WP4a part 2a plus the media-store site under W6-R3 amended", () => {
+  it("pins the 115 reviewed entries after WP4a part 2b plus the media-store site under W6-R3 amended", () => {
     expect(ceilingDigest()).toBe(
-      "777429dcc78233540ca206a59037a9d986d376050cc06184271a8b5acc554201",
+      "d4222d1c014b2fd23fb4e7d0caf31a260aa69b8c2900fb7de8ce87f25a83e2e9",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -359,12 +365,23 @@ describe("frozen ceiling", () => {
       admin_client: 78,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
-      operation_admin_context: 65,
+      operation_admin_context: 64,
     });
-    expect(CEILING.size).toBe(116);
+    expect(CEILING.size).toBe(115);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(110);
+    ).toBe(109);
+  });
+
+  it("holds no CRM handler in the allowlist or the ceiling once note creation moves", () => {
+    const crm = "packages/api/src/admin/crm/";
+    const { entries } = JSON.parse(
+      readFileSync("docs/security/service-role-client-allowlist.json", "utf8"),
+    ) as { entries: { file: string }[] };
+    expect(entries.filter((entry) => entry.file.startsWith(crm))).toEqual([]);
+    expect([...CEILING.keys()].filter((key) => key.startsWith(crm))).toEqual(
+      [],
+    );
   });
 });
 

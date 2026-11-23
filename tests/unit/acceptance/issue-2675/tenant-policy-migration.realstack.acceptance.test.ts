@@ -82,7 +82,6 @@ const STAFF_ONLY = [
   "account_claim_requests",
   "audit_logs",
   "crm_command_logs",
-  "crm_merge_candidates",
   "crm_notes",
   "crm_record_links",
   "legacy_account_invitations",
@@ -1141,7 +1140,7 @@ describe.skipIf(!ADMIN_URL)(
           }
         }));
 
-      it("Q7, Q8: no signed-in write policy remains on a table whose write grants went, and a staff member's direct insert or update of crm_merge_candidates is refused", () =>
+      it("Q7, Q8: no signed-in write policy remains on a table whose write grants went, and a staff member's direct insert or update of crm_command_logs is refused", () =>
         tx(async () => {
           const left = await rows(
             `select c.relname::text t, p.polname::text p from pg_policy p join pg_class c on c.oid = p.polrelid
@@ -1167,8 +1166,8 @@ describe.skipIf(!ADMIN_URL)(
           );
           expect(left).toEqual([]);
           for (const sql of [
-            `insert into public.crm_merge_candidates (tenant_id) values (${q("TA")})`,
-            `update public.crm_merge_candidates set tenant_id = tenant_id where tenant_id = ${q("TA")}`,
+            `insert into public.crm_command_logs (tenant_id) values (${q("TA")})`,
+            `update public.crm_command_logs set tenant_id = tenant_id where tenant_id = ${q("TA")}`,
           ]) {
             const r = await as(
               "authenticated",
@@ -1177,7 +1176,7 @@ describe.skipIf(!ADMIN_URL)(
             );
             expect(r.code, sql).toBe("42501");
             expect(r.message, sql).toMatch(
-              /permission denied for table crm_merge_candidates/,
+              /permission denied for table crm_command_logs/,
             );
           }
         }));
