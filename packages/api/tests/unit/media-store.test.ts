@@ -22,7 +22,6 @@ import {
 import {
   finalizeMediaUpload,
   issueSignedUpload,
-  purgeExpiredMedia,
   readMediaVariant,
 } from "../../src/storage/media-store";
 
@@ -55,9 +54,6 @@ type AssetRow = {
   updated_at: string;
   deleted_at: string | null;
   purge_after: string | null;
-  purged_at: string | null;
-  upload_token_expires_at: string | null;
-  staging_swept_at: string | null;
 };
 
 type StoredObject = {
@@ -69,7 +65,6 @@ type StoredObject = {
 const fakeState = vi.hoisted(() => ({
   rows: new Map<string, AssetRow>(),
   objects: new Map<string, StoredObject>(),
-  claims: new Map<string, { claimToken: string; expiresAtMs: number }>(),
   uploadCalls: [] as string[],
   removeCalls: [] as string[][],
   signedUploadCalls: [] as string[],
@@ -79,13 +74,10 @@ const fakeState = vi.hoisted(() => ({
   onBeforeStagingDownload: null as
     null | ((path: string) => void | Promise<void>),
   onAfterUpload: null as null | ((path: string) => void),
-  onBeforeRemove: null as null | ((paths: string[]) => void | Promise<void>),
   nextDownloadError: null as null | { message: string; statusCode: string },
   nextStreamError: null as null | { message: string; statusCode: string },
   nextUploadError: null as null | { message: string; statusCode: string },
-  nextRemoveError: null as null | { message: string; statusCode: string },
   nextUpdateError: null as null | { message: string; code?: string },
-  nextSignedUploadToken: null as null | string,
 }));
 
 function matchesFilters(
@@ -117,20 +109,10 @@ function matchesFilters(
 function createFakeAdminClient() {
   return {
     async rpc(fnName: string, params: Record<string, unknown>) {
-      const wallNowMs = Date.now();
-      const pruneClaim = (tenantId: string, hash: string) => {
-        const key = `${tenantId}:${hash}`;
-        const existing = fakeState.claims.get(key);
-        if (existing && existing.expiresAtMs <= wallNowMs) {
-          fakeState.claims.delete(key);
-        }
-      };
-
       if (fnName === "declare_media_finalize") {
         const tenantId = String(params.p_tenant_id);
         const assetId = String(params.p_asset_id);
         const contentHash = String(params.p_content_hash);
-        pruneClaim(tenantId, contentHash);
         const row = fakeState.rows.get(assetId);
         if (!row || row.tenant_id !== tenantId) {
           return { data: { outcome: "missing" }, error: null };
@@ -144,12 +126,6 @@ function createFakeAdminClient() {
         if (row.status !== "uploading") {
           return {
             data: { outcome: "terminal", status: row.status },
-            error: null,
-          };
-        }
-        if (fakeState.claims.has(`${tenantId}:${contentHash}`)) {
-          return {
-            data: { outcome: "claim_active", status: row.status },
             error: null,
           };
         }
@@ -181,7 +157,6 @@ function createFakeAdminClient() {
           fakeState.nextUpdateError = null;
           return { data: null, error: err };
         }
-        pruneClaim(tenantId, contentHash);
         const row = fakeState.rows.get(assetId);
         if (!row || row.tenant_id !== tenantId) {
           return { data: { outcome: "missing" }, error: null };
@@ -195,12 +170,6 @@ function createFakeAdminClient() {
         if (row.status !== "uploading") {
           return {
             data: { outcome: "terminal", status: row.status },
-            error: null,
-          };
-        }
-        if (fakeState.claims.has(`${tenantId}:${contentHash}`)) {
-          return {
-            data: { outcome: "claim_active", status: row.status },
             error: null,
           };
         }
@@ -220,55 +189,6 @@ function createFakeAdminClient() {
           data: { outcome: "published", row: structuredClone(updated) },
           error: null,
         };
-      }
-
-      if (fnName === "claim_media_content_purge") {
-        const tenantId = String(params.p_tenant_id);
-        const assetId = String(params.p_asset_id);
-        const contentHash = String(params.p_content_hash);
-        const claimToken = String(params.p_claim_token);
-        const leaseSeconds = Math.max(1, Number(params.p_lease_seconds ?? 120));
-        pruneClaim(tenantId, contentHash);
-        const key = `${tenantId}:${contentHash}`;
-        if (fakeState.claims.has(key)) {
-          return { data: "busy", error: null };
-        }
-        const siblingRows = [...fakeState.rows.values()].filter(
-          (r) => r.tenant_id === tenantId && r.content_hash === contentHash,
-        );
-        if (
-          siblingRows.some(
-            (r) =>
-              r.status === "ready" ||
-              (r.status === "deleted" &&
-                r.purged_at === null &&
-                r.id !== assetId),
-          )
-        ) {
-          return { data: "in_use_durable", error: null };
-        }
-        if (
-          siblingRows.some((r) => r.status === "uploading" && r.id !== assetId)
-        ) {
-          return { data: "in_use_uploading", error: null };
-        }
-        fakeState.claims.set(key, {
-          claimToken,
-          expiresAtMs: wallNowMs + leaseSeconds * 1000,
-        });
-        return { data: "claimed", error: null };
-      }
-
-      if (fnName === "release_media_content_purge") {
-        const tenantId = String(params.p_tenant_id);
-        const contentHash = String(params.p_content_hash);
-        const claimToken = String(params.p_claim_token);
-        const key = `${tenantId}:${contentHash}`;
-        const existing = fakeState.claims.get(key);
-        if (existing && existing.claimToken === claimToken) {
-          fakeState.claims.delete(key);
-        }
-        return { data: null, error: null };
       }
 
       throw new Error(`Unexpected RPC: ${fnName}`);
@@ -387,9 +307,7 @@ function createFakeAdminClient() {
         return {
           async createSignedUploadUrl(objectPath: string) {
             fakeState.signedUploadCalls.push(objectPath);
-            const token =
-              fakeState.nextSignedUploadToken ?? `tok-${objectPath}`;
-            fakeState.nextSignedUploadToken = null;
+            const token = `tok-${objectPath}`;
             return {
               data: {
                 signedUrl: `http://127.0.0.1:54321/storage/v1/upload/sign/${bucket}/${objectPath}?token=${token}`,
@@ -517,12 +435,6 @@ function createFakeAdminClient() {
           },
           async remove(paths: string[]) {
             fakeState.removeCalls.push([...paths]);
-            await fakeState.onBeforeRemove?.(paths);
-            if (fakeState.nextRemoveError) {
-              const err = fakeState.nextRemoveError;
-              fakeState.nextRemoveError = null;
-              return { data: null, error: err };
-            }
             const removed: Array<{ name: string }> = [];
             for (const p of paths) {
               if (fakeState.objects.delete(p)) {
@@ -584,9 +496,6 @@ function makeRow(
     updated_at: now,
     deleted_at: null,
     purge_after: null,
-    purged_at: null,
-    upload_token_expires_at: null,
-    staging_swept_at: null,
     ...overrides,
   };
 }
@@ -748,7 +657,6 @@ describe("media-store custody and Sharp sanitization", () => {
   beforeEach(() => {
     fakeState.rows.clear();
     fakeState.objects.clear();
-    fakeState.claims.clear();
     fakeState.uploadCalls = [];
     fakeState.removeCalls = [];
     fakeState.signedUploadCalls = [];
@@ -757,13 +665,10 @@ describe("media-store custody and Sharp sanitization", () => {
     fakeState.onBeforeCasUpdate = null;
     fakeState.onBeforeStagingDownload = null;
     fakeState.onAfterUpload = null;
-    fakeState.onBeforeRemove = null;
     fakeState.nextDownloadError = null;
     fakeState.nextStreamError = null;
     fakeState.nextUploadError = null;
-    fakeState.nextRemoveError = null;
     fakeState.nextUpdateError = null;
-    fakeState.nextSignedUploadToken = null;
   });
 
   it("binds issueSignedUpload, finalizeMediaUpload and readMediaVariant to auth.tenantId and refuses foreign tenant assets", async () => {
@@ -1522,7 +1427,40 @@ describe("media-store custody and Sharp sanitization", () => {
     ).rejects.toMatchObject({ status: 499 });
   });
 
-  it("purges only past purge_after, preserves shared content_hash objects, cleans uploading staging, and honors live-use hook", async () => {
+  it("contains no canonical object removal path anywhere in the media storage module (W6-R15)", () => {
+    const mediaStoreSource = readFileSync(
+      path.resolve(__dirname, "../../src/storage/media-store.ts"),
+      "utf8",
+    );
+    const mediaConstantsSource = readFileSync(
+      path.resolve(__dirname, "../../src/storage/media-constants.ts"),
+      "utf8",
+    );
+
+    expect(mediaStoreSource).not.toMatch(/\bpurgeExpiredMedia\b/);
+    expect(mediaStoreSource).not.toMatch(/\bclaim_media_content_purge\b/);
+    expect(mediaStoreSource).not.toMatch(/\brelease_media_content_purge\b/);
+    expect(mediaStoreSource).not.toMatch(/\bmedia_purge_claims\b/);
+
+    const removeCalls = [
+      ...mediaStoreSource.matchAll(/\.remove\s*\(([^)]*)\)/g),
+    ];
+    expect(removeCalls).toHaveLength(1);
+    expect(removeCalls[0]![1]!.trim()).toBe("[stagingPath]");
+
+    const stagingPathAssignments = [
+      ...mediaStoreSource.matchAll(/\bstagingPath\s*=\s*([^\n;]+)/g),
+    ].map((m) => m[1]!.trim());
+    expect(stagingPathAssignments.length).toBeGreaterThanOrEqual(1);
+    for (const rhs of stagingPathAssignments) {
+      expect(rhs).toMatch(/^buildMediaStagingKey\(/);
+    }
+    expect(mediaConstantsSource).toMatch(
+      /function buildMediaStagingKey[\s\S]*?return `tmp\/\$\{tenantId\}\/\$\{assetId\}`/,
+    );
+  });
+
+  it("keeps shared canonical bytes intact when one of two identical-content assets is deleted and preserves canonical keys on mid-finalize tombstones (W6-R15)", async () => {
     const img = await createDirtyJpeg(500, 400);
     const a1 = randomUUID();
     const a2 = randomUUID();
@@ -1538,80 +1476,88 @@ describe("media-store custody and Sharp sanitization", () => {
       contentType: "image/jpeg",
       version: 1,
     });
-    const r1 = await finalizeMediaUpload(authA, { assetId: a1 });
-    await finalizeMediaUpload(authA, { assetId: a2 });
 
-    const now = new Date("2027-01-01T00:00:00.000Z");
-    const futurePurge = new Date("2027-02-05T00:00:00.000Z");
-    const pastPurge = new Date("2026-12-31T00:00:00.000Z");
+    const r1 = await finalizeMediaUpload(authA, { assetId: a1 });
+    const r2 = await finalizeMediaUpload(authA, { assetId: a2 });
+    expect(r1.masterKey).toBe(r2.masterKey);
+    expect(r1.contentHash).toBe(r2.contentHash);
+
+    for (const removedBatch of fakeState.removeCalls) {
+      for (const removedKey of removedBatch) {
+        expect(removedKey.startsWith("tmp/")).toBe(true);
+      }
+    }
 
     const row1 = fakeState.rows.get(a1)!;
+    const deletedAt = "2026-11-24T00:00:00.000Z";
+    const purgeAfter = "2026-12-29T00:00:00.000Z";
     fakeState.rows.set(a1, {
       ...row1,
       status: "deleted",
-      deleted_at: "2026-11-23T00:00:00.000Z",
-      purge_after: futurePurge.toISOString(),
+      deleted_at: deletedAt,
+      purge_after: purgeAfter,
     });
-    const beforeDelay = await purgeExpiredMedia({ now });
-    expect(beforeDelay.purgedRows).toBe(0);
-    expect(beforeDelay.removedObjects).toBe(0);
-    expect(fakeState.objects.has(r1.masterKey!)).toBe(true);
 
-    fakeState.rows.set(a1, {
-      ...fakeState.rows.get(a1)!,
-      purge_after: pastPurge.toISOString(),
-    });
-    const sharedResult = await purgeExpiredMedia({ now });
-    expect(sharedResult.purgedRows).toBe(1);
-    expect(sharedResult.keptSharedObjects).toBe(1);
-    expect(sharedResult.removedObjects).toBe(0);
     expect(fakeState.objects.has(r1.masterKey!)).toBe(true);
     expect(fakeState.objects.has(r1.variants.w320!.key)).toBe(true);
+    await expect(
+      readMediaVariant(authA, { assetId: a1 }),
+    ).rejects.toMatchObject({ status: 404 });
 
-    const row2 = fakeState.rows.get(a2)!;
-    fakeState.rows.set(a2, {
-      ...row2,
-      status: "deleted",
-      deleted_at: "2026-11-23T00:00:00.000Z",
-      purge_after: pastPurge.toISOString(),
-    });
-    const blockedByLiveUse = await purgeExpiredMedia({
-      now,
-      hasLiveUse: async (_t, id) => id === a2,
-    });
-    expect(blockedByLiveUse.skippedLiveUse).toBe(1);
-    expect(blockedByLiveUse.removedObjects).toBe(0);
-    expect(fakeState.objects.has(r1.masterKey!)).toBe(true);
+    const surviving = await readMediaVariant(authA, { assetId: a2 });
+    expect(surviving.notModified).toBe(false);
+    if (!surviving.notModified) {
+      const streamed = Buffer.from(
+        await new Response(surviving.stream).arrayBuffer(),
+      );
+      expect(
+        streamed.equals(fakeState.objects.get(r2.variants.w320!.key)!.bytes),
+      ).toBe(true);
+    }
 
-    const finalPurge = await purgeExpiredMedia({ now });
-    expect(finalPurge.purgedRows).toBe(1);
-    expect(finalPurge.removedObjects).toBeGreaterThanOrEqual(2);
-    expect(fakeState.objects.has(r1.masterKey!)).toBe(false);
-    expect(fakeState.objects.has(r1.variants.w320!.key)).toBe(false);
-
-    const uploadingDeleted = randomUUID();
-    const stagingKey = buildMediaStagingKey(tenantA, uploadingDeleted);
+    const midAssetId = randomUUID();
+    const midStagingKey = buildMediaStagingKey(tenantA, midAssetId);
     fakeState.rows.set(
-      uploadingDeleted,
-      makeRow({
-        id: uploadingDeleted,
-        tenant_id: tenantA,
-        status: "deleted",
-        deleted_at: "2026-11-23T00:00:00.000Z",
-        purge_after: pastPurge.toISOString(),
-      }),
+      midAssetId,
+      makeRow({ id: midAssetId, tenant_id: tenantA }),
     );
-    fakeState.objects.set(stagingKey, {
-      bytes: Buffer.from("partial"),
+    fakeState.objects.set(midStagingKey, {
+      bytes: img,
       contentType: "image/jpeg",
       version: 1,
     });
-    const stagingPurge = await purgeExpiredMedia({ now });
-    expect(stagingPurge.removedStagingObjects).toBe(1);
-    expect(fakeState.objects.has(stagingKey)).toBe(false);
+
+    fakeState.onBeforeCasUpdate = (targetId) => {
+      if (targetId === midAssetId) {
+        const cur = fakeState.rows.get(midAssetId)!;
+        fakeState.rows.set(midAssetId, {
+          ...cur,
+          status: "deleted",
+          deleted_at: deletedAt,
+          purge_after: purgeAfter,
+        });
+      }
+    };
+
+    await expect(
+      finalizeMediaUpload(authA, { assetId: midAssetId }),
+    ).rejects.toMatchObject({ status: 404 });
+
+    const tomb = fakeState.rows.get(midAssetId)!;
+    expect(tomb.status).toBe("deleted");
+    expect(tomb.content_hash).toBe(r1.contentHash);
+    expect(tomb.master_key).toBe(r1.masterKey);
+    expect(tomb.variants.w320?.key).toBe(r1.variants.w320!.key);
+    expect(fakeState.objects.has(r1.masterKey!)).toBe(true);
+    expect(fakeState.objects.has(r1.variants.w320!.key)).toBe(true);
+    for (const removedBatch of fakeState.removeCalls) {
+      for (const removedKey of removedBatch) {
+        expect(removedKey.startsWith("tmp/")).toBe(true);
+      }
+    }
   });
 
-  it("preserves staging and uploading state across transient Storage/DB errors and refuses to mark purged on staging remove failure", async () => {
+  it("preserves staging and uploading state across transient Storage and database errors", async () => {
     const jpg = await createDirtyJpeg(480, 320);
 
     const transientDlId = randomUUID();
@@ -1711,473 +1657,5 @@ describe("media-store custody and Sharp sanitization", () => {
     await expect(
       readMediaVariant(authA, { assetId: transientDlId }),
     ).rejects.toMatchObject({ status: 502 });
-
-    const failedPurgeId = randomUUID();
-    const failedPurgeKey = buildMediaStagingKey(tenantA, failedPurgeId);
-    const now = new Date("2027-01-01T00:00:00.000Z");
-    fakeState.rows.set(
-      failedPurgeId,
-      makeRow({
-        id: failedPurgeId,
-        tenant_id: tenantA,
-        status: "deleted",
-        deleted_at: "2026-11-23T00:00:00.000Z",
-        purge_after: "2026-12-31T00:00:00.000Z",
-      }),
-    );
-    fakeState.objects.set(failedPurgeKey, {
-      bytes: Buffer.from("staged"),
-      contentType: "image/jpeg",
-      version: 1,
-    });
-    fakeState.nextRemoveError = {
-      message: "Storage delete outage",
-      statusCode: "503",
-    };
-    await expect(purgeExpiredMedia({ now })).rejects.toMatchObject({
-      status: 502,
-    });
-    expect(fakeState.rows.get(failedPurgeId)!.purged_at).toBeNull();
-    expect(fakeState.objects.has(failedPurgeKey)).toBe(true);
-    const retryPurge = await purgeExpiredMedia({ now });
-    expect(retryPurge.purgedRows).toBe(1);
-    expect(retryPurge.removedStagingObjects).toBe(1);
-    expect(fakeState.rows.get(failedPurgeId)!.purged_at).not.toBeNull();
-  });
-
-  it("protects shared canonical bytes while another deleted row still has an unexpired purge window (Finding 2)", async () => {
-    const img = await createDirtyJpeg(480, 320);
-    const assetOld = randomUUID();
-    const assetFresh = randomUUID();
-    fakeState.rows.set(assetOld, makeRow({ id: assetOld, tenant_id: tenantA }));
-    fakeState.rows.set(
-      assetFresh,
-      makeRow({ id: assetFresh, tenant_id: tenantA }),
-    );
-    fakeState.objects.set(buildMediaStagingKey(tenantA, assetOld), {
-      bytes: img,
-      contentType: "image/jpeg",
-      version: 1,
-    });
-    fakeState.objects.set(buildMediaStagingKey(tenantA, assetFresh), {
-      bytes: img,
-      contentType: "image/jpeg",
-      version: 1,
-    });
-    const readyOld = await finalizeMediaUpload(authA, { assetId: assetOld });
-    await finalizeMediaUpload(authA, { assetId: assetFresh });
-
-    const today = new Date("2027-01-10T00:00:00.000Z");
-    fakeState.rows.set(assetOld, {
-      ...fakeState.rows.get(assetOld)!,
-      status: "deleted",
-      deleted_at: "2026-12-05T00:00:00.000Z",
-      purge_after: "2027-01-09T00:00:00.000Z",
-    });
-    fakeState.rows.set(assetFresh, {
-      ...fakeState.rows.get(assetFresh)!,
-      status: "deleted",
-      deleted_at: "2027-01-09T00:00:00.000Z",
-      purge_after: "2027-02-13T00:00:00.000Z",
-    });
-
-    const firstPurge = await purgeExpiredMedia({ now: today });
-    expect(firstPurge.purgedRows).toBe(1);
-    expect(firstPurge.keptSharedObjects).toBe(1);
-    expect(firstPurge.removedObjects).toBe(0);
-    expect(fakeState.objects.has(readyOld.masterKey!)).toBe(true);
-    expect(fakeState.objects.has(readyOld.variants.w320!.key)).toBe(true);
-
-    const later = new Date("2027-02-14T00:00:00.000Z");
-    const secondPurge = await purgeExpiredMedia({ now: later });
-    expect(secondPurge.purgedRows).toBe(1);
-    expect(secondPurge.removedObjects).toBeGreaterThanOrEqual(2);
-    expect(fakeState.objects.has(readyOld.masterKey!)).toBe(false);
-    expect(fakeState.objects.has(readyOld.variants.w320!.key)).toBe(false);
-  });
-
-  it("prevents purge from deleting shared bytes between finalize verify and publish — barrier order 1 (Finding 1)", async () => {
-    const img = await createDirtyJpeg(480, 320);
-    const expiredId = randomUUID();
-    const uploadingId = randomUUID();
-    fakeState.rows.set(
-      expiredId,
-      makeRow({ id: expiredId, tenant_id: tenantA }),
-    );
-    fakeState.objects.set(buildMediaStagingKey(tenantA, expiredId), {
-      bytes: img,
-      contentType: "image/jpeg",
-      version: 1,
-    });
-    const first = await finalizeMediaUpload(authA, { assetId: expiredId });
-
-    const now = new Date("2027-01-10T00:00:00.000Z");
-    fakeState.rows.set(expiredId, {
-      ...fakeState.rows.get(expiredId)!,
-      status: "deleted",
-      deleted_at: "2026-12-01T00:00:00.000Z",
-      purge_after: "2027-01-05T00:00:00.000Z",
-    });
-
-    fakeState.rows.set(
-      uploadingId,
-      makeRow({ id: uploadingId, tenant_id: tenantA }),
-    );
-    fakeState.objects.set(buildMediaStagingKey(tenantA, uploadingId), {
-      bytes: img,
-      contentType: "image/jpeg",
-      version: 1,
-    });
-
-    let barrierPurgeResult: Awaited<
-      ReturnType<typeof purgeExpiredMedia>
-    > | null = null;
-    fakeState.onBeforeCasUpdate = async (targetId) => {
-      if (targetId === uploadingId && !barrierPurgeResult) {
-        barrierPurgeResult = await purgeExpiredMedia({ now });
-      }
-    };
-
-    const published = await finalizeMediaUpload(authA, {
-      assetId: uploadingId,
-    });
-    expect(published.status).toBe("ready");
-    expect(barrierPurgeResult).not.toBeNull();
-    expect(barrierPurgeResult!.removedObjects).toBe(0);
-    expect(fakeState.objects.has(first.masterKey!)).toBe(true);
-    expect(fakeState.objects.has(first.variants.w320!.key)).toBe(true);
-
-    const read = await readMediaVariant(authA, { assetId: uploadingId });
-    expect(read.notModified).toBe(false);
-    if (!read.notModified) {
-      const bytes = Buffer.from(await new Response(read.stream).arrayBuffer());
-      expect(bytes.byteLength).toBeGreaterThan(0);
-    }
-  });
-
-  it("coordinates purge claiming bytes with concurrent finalize — barrier order 2 (Finding 1)", async () => {
-    const img = await createDirtyJpeg(480, 320);
-    const expiredId = randomUUID();
-    const uploadingId = randomUUID();
-    fakeState.rows.set(
-      expiredId,
-      makeRow({ id: expiredId, tenant_id: tenantA }),
-    );
-    fakeState.objects.set(buildMediaStagingKey(tenantA, expiredId), {
-      bytes: img,
-      contentType: "image/jpeg",
-      version: 1,
-    });
-    const first = await finalizeMediaUpload(authA, { assetId: expiredId });
-
-    const now = new Date("2027-01-10T00:00:00.000Z");
-    fakeState.rows.set(expiredId, {
-      ...fakeState.rows.get(expiredId)!,
-      status: "deleted",
-      deleted_at: "2026-12-01T00:00:00.000Z",
-      purge_after: "2027-01-05T00:00:00.000Z",
-    });
-    fakeState.rows.set(
-      uploadingId,
-      makeRow({ id: uploadingId, tenant_id: tenantA }),
-    );
-    fakeState.objects.set(buildMediaStagingKey(tenantA, uploadingId), {
-      bytes: img,
-      contentType: "image/jpeg",
-      version: 1,
-    });
-
-    let releasePurgeRemove!: () => void;
-    let purgeEnteredRemove!: () => void;
-    const purgeAtBarrier = new Promise<void>((resolve) => {
-      purgeEnteredRemove = resolve;
-    });
-    const holdRemove = new Promise<void>((resolve) => {
-      releasePurgeRemove = resolve;
-    });
-
-    let intercepted = false;
-    fakeState.onBeforeRemove = async (paths) => {
-      if (!intercepted && paths.includes(first.masterKey!)) {
-        intercepted = true;
-        purgeEnteredRemove();
-        await holdRemove;
-      }
-    };
-
-    const purgePromise = purgeExpiredMedia({ now });
-    await purgeAtBarrier;
-
-    const finalizePromise = finalizeMediaUpload(authA, {
-      assetId: uploadingId,
-    });
-    await new Promise((r) => setTimeout(r, 40));
-    releasePurgeRemove();
-
-    const [purgeResult, published] = await Promise.all([
-      purgePromise,
-      finalizePromise,
-    ]);
-    expect(purgeResult.purgedRows).toBe(1);
-    expect(published.status).toBe("ready");
-    expect(fakeState.objects.has(published.masterKey!)).toBe(true);
-    expect(fakeState.objects.has(published.variants.w320!.key)).toBe(true);
-
-    const read = await readMediaVariant(authA, { assetId: uploadingId });
-    expect(read.notModified).toBe(false);
-    if (!read.notModified) {
-      const bytes = Buffer.from(await new Response(read.stream).arrayBuffer());
-      expect(bytes.byteLength).toBeGreaterThan(0);
-    }
-  });
-
-  it("cleans canonical and staging objects after mid-finalize deletion with zero orphans (Finding 5)", async () => {
-    const img = await createDirtyJpeg(480, 320);
-    const assetId = randomUUID();
-    const stagingKey = buildMediaStagingKey(tenantA, assetId);
-    fakeState.rows.set(assetId, makeRow({ id: assetId, tenant_id: tenantA }));
-    fakeState.objects.set(stagingKey, {
-      bytes: img,
-      contentType: "image/jpeg",
-      version: 1,
-    });
-
-    fakeState.onBeforeCasUpdate = (targetId) => {
-      if (targetId === assetId) {
-        const cur = fakeState.rows.get(assetId)!;
-        fakeState.rows.set(assetId, {
-          ...cur,
-          status: "deleted",
-          deleted_at: "2026-12-01T00:00:00.000Z",
-          purge_after: "2027-01-05T00:00:00.000Z",
-        });
-      }
-    };
-
-    await expect(finalizeMediaUpload(authA, { assetId })).rejects.toMatchObject(
-      { status: 404 },
-    );
-
-    const tomb = fakeState.rows.get(assetId)!;
-    expect(tomb.status).toBe("deleted");
-    expect(tomb.master_key).toBeTruthy();
-    expect(tomb.content_hash).toBeTruthy();
-
-    const afterWindow = new Date("2027-01-10T00:00:00.000Z");
-    const purged = await purgeExpiredMedia({ now: afterWindow });
-    expect(purged.purgedRows).toBe(1);
-    expect(fakeState.objects.size).toBe(0);
-  });
-
-  it("records upload_token_expires_at on issueSignedUpload and sweeps replayed staging objects after token expiry (Finding 7)", async () => {
-    const img = await createDirtyJpeg(480, 320);
-    const assetId = randomUUID();
-    const stagingKey = buildMediaStagingKey(tenantA, assetId);
-    fakeState.rows.set(assetId, makeRow({ id: assetId, tenant_id: tenantA }));
-
-    const expiryIso = "2027-01-10T02:00:00.000Z";
-    const expSec = Math.floor(Date.parse(expiryIso) / 1000);
-    const jwtHeader = Buffer.from(JSON.stringify({ alg: "HS256" })).toString(
-      "base64url",
-    );
-    const jwtPayload = Buffer.from(JSON.stringify({ exp: expSec })).toString(
-      "base64url",
-    );
-    fakeState.nextSignedUploadToken = `${jwtHeader}.${jwtPayload}.sig`;
-
-    await issueSignedUpload(authA, { assetId });
-    expect(fakeState.rows.get(assetId)!.upload_token_expires_at).toBe(
-      expiryIso,
-    );
-    expect(fakeState.rows.get(assetId)!.staging_swept_at).toBeNull();
-
-    fakeState.objects.set(stagingKey, {
-      bytes: img,
-      contentType: "image/jpeg",
-      version: 1,
-    });
-    await finalizeMediaUpload(authA, { assetId });
-    expect(fakeState.objects.has(stagingKey)).toBe(false);
-
-    fakeState.objects.set(stagingKey, {
-      bytes: Buffer.from("replayed-after-finalize"),
-      contentType: "image/jpeg",
-      version: 2,
-    });
-
-    const beforeExpiry = await purgeExpiredMedia({
-      now: new Date("2027-01-10T01:30:00.000Z"),
-    });
-    expect(beforeExpiry.removedStagingObjects).toBe(0);
-    expect(fakeState.rows.get(assetId)!.staging_swept_at).toBeNull();
-
-    fakeState.nextRemoveError = {
-      message: "Transient sweep error",
-      statusCode: "503",
-    };
-    await expect(
-      purgeExpiredMedia({ now: new Date("2027-01-10T02:00:01.000Z") }),
-    ).rejects.toMatchObject({ status: 502 });
-    expect(fakeState.rows.get(assetId)!.staging_swept_at).toBeNull();
-
-    const afterExpiry = await purgeExpiredMedia({
-      now: new Date("2027-01-10T02:00:01.000Z"),
-    });
-    expect(afterExpiry.removedStagingObjects).toBe(1);
-    expect(fakeState.objects.has(stagingKey)).toBe(false);
-    expect(fakeState.rows.get(assetId)!.staging_swept_at).toBe(
-      "2027-01-10T02:00:01.000Z",
-    );
-
-    const secondSweep = await purgeExpiredMedia({
-      now: new Date("2027-01-10T03:00:00.000Z"),
-    });
-    expect(secondSweep.removedStagingObjects).toBe(0);
-
-    const delAssetId = randomUUID();
-    const delStagingKey = buildMediaStagingKey(tenantA, delAssetId);
-    fakeState.rows.set(
-      delAssetId,
-      makeRow({ id: delAssetId, tenant_id: tenantA }),
-    );
-    await issueSignedUpload(authA, { assetId: delAssetId });
-    fakeState.rows.set(delAssetId, {
-      ...fakeState.rows.get(delAssetId)!,
-      status: "deleted",
-      deleted_at: "2027-01-10T00:05:00.000Z",
-      purge_after: "2027-02-14T00:05:00.000Z",
-    });
-    fakeState.objects.set(delStagingKey, {
-      bytes: Buffer.from("late-first-use-after-delete"),
-      contentType: "image/jpeg",
-      version: 1,
-    });
-
-    const delSweepAfterTokenExpiry = await purgeExpiredMedia({
-      now: new Date("2027-01-10T02:05:00.000Z"),
-    });
-    expect(delSweepAfterTokenExpiry.removedStagingObjects).toBe(1);
-    expect(fakeState.objects.has(delStagingKey)).toBe(false);
-    expect(fakeState.rows.get(delAssetId)!.staging_swept_at).toBe(
-      "2027-01-10T02:05:00.000Z",
-    );
-    expect(fakeState.rows.get(delAssetId)!.purged_at).toBeNull();
-  });
-
-  it("scopes purgeExpiredMedia strictly to options.tenantIds across both deleted purges and staging sweeps (Finding 3)", async () => {
-    const imgA = await createDirtyJpeg(440, 300);
-    const imgB = await createDirtyJpeg(460, 320);
-
-    const delA = randomUUID();
-    const delB = randomUUID();
-    const sweepA = randomUUID();
-    const sweepB = randomUUID();
-
-    fakeState.rows.set(delA, makeRow({ id: delA, tenant_id: tenantA }));
-    fakeState.rows.set(delB, makeRow({ id: delB, tenant_id: tenantB }));
-    fakeState.rows.set(sweepA, makeRow({ id: sweepA, tenant_id: tenantA }));
-    fakeState.rows.set(sweepB, makeRow({ id: sweepB, tenant_id: tenantB }));
-
-    fakeState.objects.set(buildMediaStagingKey(tenantA, delA), {
-      bytes: imgA,
-      contentType: "image/jpeg",
-      version: 1,
-    });
-    fakeState.objects.set(buildMediaStagingKey(tenantB, delB), {
-      bytes: imgB,
-      contentType: "image/jpeg",
-      version: 1,
-    });
-    fakeState.objects.set(buildMediaStagingKey(tenantA, sweepA), {
-      bytes: imgA,
-      contentType: "image/jpeg",
-      version: 1,
-    });
-    fakeState.objects.set(buildMediaStagingKey(tenantB, sweepB), {
-      bytes: imgB,
-      contentType: "image/jpeg",
-      version: 1,
-    });
-
-    const readyDelA = await finalizeMediaUpload(authA, { assetId: delA });
-    const readyDelB = await finalizeMediaUpload(authB, { assetId: delB });
-    await finalizeMediaUpload(authA, { assetId: sweepA });
-    await finalizeMediaUpload(authB, { assetId: sweepB });
-
-    const now = new Date("2027-01-10T00:00:00.000Z");
-    const pastIso = "2027-01-01T00:00:00.000Z";
-
-    fakeState.rows.set(delA, {
-      ...fakeState.rows.get(delA)!,
-      status: "deleted",
-      deleted_at: "2026-11-25T00:00:00.000Z",
-      purge_after: pastIso,
-    });
-    fakeState.rows.set(delB, {
-      ...fakeState.rows.get(delB)!,
-      status: "deleted",
-      deleted_at: "2026-11-25T00:00:00.000Z",
-      purge_after: pastIso,
-    });
-    fakeState.rows.set(sweepA, {
-      ...fakeState.rows.get(sweepA)!,
-      upload_token_expires_at: pastIso,
-      staging_swept_at: null,
-    });
-    fakeState.rows.set(sweepB, {
-      ...fakeState.rows.get(sweepB)!,
-      upload_token_expires_at: pastIso,
-      staging_swept_at: null,
-    });
-    fakeState.objects.set(buildMediaStagingKey(tenantA, sweepA), {
-      bytes: Buffer.from("replay-a"),
-      contentType: "image/jpeg",
-      version: 2,
-    });
-    fakeState.objects.set(buildMediaStagingKey(tenantB, sweepB), {
-      bytes: Buffer.from("replay-b"),
-      contentType: "image/jpeg",
-      version: 2,
-    });
-
-    const emptyScope = await purgeExpiredMedia({
-      now,
-      tenantIds: [],
-    });
-    expect(emptyScope.scanned).toBe(0);
-    expect(emptyScope.purgedRows).toBe(0);
-    expect(emptyScope.removedStagingObjects).toBe(0);
-
-    const onlyA = await purgeExpiredMedia({
-      now,
-      tenantIds: [tenantA],
-    });
-    expect(onlyA.purgedRows).toBe(1);
-    expect(onlyA.removedStagingObjects).toBe(1);
-    expect(fakeState.rows.get(delA)!.purged_at).not.toBeNull();
-    expect(fakeState.rows.get(sweepA)!.staging_swept_at).not.toBeNull();
-    expect(fakeState.objects.has(readyDelA.masterKey!)).toBe(true);
-    expect(fakeState.objects.has(buildMediaStagingKey(tenantA, sweepA))).toBe(
-      false,
-    );
-
-    expect(fakeState.rows.get(delB)!.purged_at).toBeNull();
-    expect(fakeState.rows.get(sweepB)!.staging_swept_at).toBeNull();
-    expect(fakeState.objects.has(readyDelB.masterKey!)).toBe(true);
-    expect(fakeState.objects.has(buildMediaStagingKey(tenantB, sweepB))).toBe(
-      true,
-    );
-
-    const onlyB = await purgeExpiredMedia({
-      now,
-      tenantIds: [tenantB],
-    });
-    expect(onlyB.purgedRows).toBe(1);
-    expect(onlyB.removedStagingObjects).toBe(1);
-    expect(fakeState.rows.get(delB)!.purged_at).not.toBeNull();
-    expect(fakeState.rows.get(sweepB)!.staging_swept_at).not.toBeNull();
-    expect(fakeState.objects.has(buildMediaStagingKey(tenantB, sweepB))).toBe(
-      false,
-    );
   });
 });

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHash, randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 
 import { getAdminClient } from "@asym/database/supabase/admin";
 import sharp, { type Metadata, type Sharp } from "sharp";
@@ -191,9 +191,6 @@ type MediaAssetRow = {
   updated_at: string;
   deleted_at: string | null;
   purge_after: string | null;
-  purged_at: string | null;
-  upload_token_expires_at: string | null;
-  staging_swept_at: string | null;
 };
 
 export interface MediaVariantMetadata {
@@ -222,7 +219,6 @@ export interface MediaAssetRecord {
   updatedAt: string;
   deletedAt: string | null;
   purgeAfter: string | null;
-  purgedAt: string | null;
 }
 
 export interface SignedMediaUploadResult {
@@ -247,23 +243,6 @@ export type ReadMediaVariantResult =
       mimeType: MediaMimeType;
       variant: MediaVariantName;
     };
-
-export interface PurgeExpiredMediaOptions {
-  now?: Date;
-  batchSize?: number;
-  tenantIds?: readonly string[];
-  hasLiveUse?: (tenantId: string, assetId: string) => Promise<boolean>;
-}
-
-export interface PurgeExpiredMediaResult {
-  scanned: number;
-  purgedRows: number;
-  removedObjects: number;
-  removedStagingObjects: number;
-  keptSharedObjects: number;
-  skippedLiveUse: number;
-  deferredInUse: number;
-}
 
 function requireAdmittedTenantId(auth: AuthenticatedContext): string {
   if (
@@ -345,7 +324,6 @@ function toMediaAssetRecord(row: MediaAssetRow): MediaAssetRecord {
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
     purgeAfter: row.purge_after,
-    purgedAt: row.purged_at,
   };
 }
 
@@ -703,31 +681,6 @@ async function verifyStoredObjectMetadata(
   await assertZeroMetadata(bytes);
 }
 
-const DEFAULT_SIGNED_UPLOAD_TTL_MS = 2 * 60 * 60 * 1000;
-
-function parseSignedUploadTokenExpiry(token: string, now: Date): string {
-  const parts = token.split(".");
-  if (parts.length === 3 && parts[1]) {
-    try {
-      const decoded = JSON.parse(
-        Buffer.from(parts[1], "base64url").toString("utf8"),
-      ) as { exp?: unknown };
-      if (
-        typeof decoded.exp === "number" &&
-        Number.isFinite(decoded.exp) &&
-        decoded.exp > 0
-      ) {
-        return new Date(decoded.exp * 1000).toISOString();
-      }
-    } catch {
-      return new Date(
-        now.getTime() + DEFAULT_SIGNED_UPLOAD_TTL_MS,
-      ).toISOString();
-    }
-  }
-  return new Date(now.getTime() + DEFAULT_SIGNED_UPLOAD_TTL_MS).toISOString();
-}
-
 export async function issueSignedUpload(
   auth: AuthenticatedContext,
   input: { assetId: string },
@@ -749,22 +702,18 @@ export async function issueSignedUpload(
     throw new ApiHttpError(502, "Failed to issue signed media upload");
   }
 
-  const now = new Date();
-  const uploadTokenExpiresAt = parseSignedUploadTokenExpiry(data.token, now);
-  const { data: confirmedRow, error: expiryUpdateError } = await admin
+  const { data: confirmedRow, error: confirmError } = await admin
     .from("media_assets")
     .update({
-      upload_token_expires_at: uploadTokenExpiresAt,
-      staging_swept_at: null,
-      updated_at: now.toISOString(),
+      updated_at: new Date().toISOString(),
     })
     .eq("id", assetId)
     .eq("tenant_id", tenantId)
     .eq("status", "uploading")
     .select("id")
     .maybeSingle();
-  if (expiryUpdateError) {
-    throw new ApiHttpError(500, "Failed to record signed media upload expiry");
+  if (confirmError) {
+    throw new ApiHttpError(500, "Failed to confirm signed media upload");
   }
   if (!confirmedRow) {
     throw new ApiHttpError(404, "Media upload not found");
@@ -777,9 +726,6 @@ export async function issueSignedUpload(
     signedUrl: data.signedUrl,
   };
 }
-
-const PURGE_CLAIM_LEASE_SECONDS = 120;
-const MAX_PURGE_CLAIM_WAIT_ATTEMPTS = 25;
 
 type FinalizeRpcResult = {
   outcome: string;
@@ -800,12 +746,6 @@ function parseFinalizeRpcResult(data: unknown): FinalizeRpcResult {
         ? (record.row as MediaAssetRow)
         : undefined,
   };
-}
-
-function waitMs(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
 }
 
 export async function finalizeMediaUpload(
@@ -936,65 +876,45 @@ export async function finalizeMediaUpload(
         };
       }
 
-      let declared = false;
-      for (
-        let attempt = 0;
-        attempt < MAX_PURGE_CLAIM_WAIT_ATTEMPTS;
-        attempt += 1
-      ) {
-        const { data: declareData, error: declareError } = await admin.rpc(
-          "declare_media_finalize",
-          {
-            p_tenant_id: tenantId,
-            p_asset_id: assetId,
-            p_content_hash: sanitizedMaster.contentHash,
-            p_master_key: masterKey,
-            p_variants: variantsJson,
-            p_mime_type: sanitizedMaster.mimeType,
-            p_byte_size: sanitizedMaster.bytes.byteLength,
-            p_width: sanitizedMaster.width,
-            p_height: sanitizedMaster.height,
-            p_now: new Date().toISOString(),
-          },
+      const { data: declareData, error: declareError } = await admin.rpc(
+        "declare_media_finalize",
+        {
+          p_tenant_id: tenantId,
+          p_asset_id: assetId,
+          p_content_hash: sanitizedMaster.contentHash,
+          p_master_key: masterKey,
+          p_variants: variantsJson,
+          p_mime_type: sanitizedMaster.mimeType,
+          p_byte_size: sanitizedMaster.bytes.byteLength,
+          p_width: sanitizedMaster.width,
+          p_height: sanitizedMaster.height,
+          p_now: new Date().toISOString(),
+        },
+      );
+      if (declareError) {
+        throw new ApiHttpError(
+          500,
+          "Failed to declare media asset finalization",
         );
-        if (declareError) {
-          throw new ApiHttpError(
-            500,
-            "Failed to declare media asset finalization",
-          );
-        }
-        const parsedDeclare = parseFinalizeRpcResult(declareData);
-        if (parsedDeclare.outcome === "ready" && parsedDeclare.row) {
+      }
+      const parsedDeclare = parseFinalizeRpcResult(declareData);
+      if (parsedDeclare.outcome === "ready" && parsedDeclare.row) {
+        shouldCleanStaging = true;
+        return toMediaAssetRecord(parsedDeclare.row);
+      }
+      if (
+        parsedDeclare.outcome === "missing" ||
+        parsedDeclare.outcome === "terminal"
+      ) {
+        if (parsedDeclare.status === "failed") {
           shouldCleanStaging = true;
-          return toMediaAssetRecord(parsedDeclare.row);
         }
-        if (
-          parsedDeclare.outcome === "missing" ||
-          parsedDeclare.outcome === "terminal"
-        ) {
-          if (parsedDeclare.status === "failed") {
-            shouldCleanStaging = true;
-          }
-          throw new ApiHttpError(404, "Media asset not found");
-        }
-        if (parsedDeclare.outcome === "declared") {
-          declared = true;
-          break;
-        }
-        if (parsedDeclare.outcome === "claim_active") {
-          await waitMs(Math.min(150, 25 + attempt * 15));
-          continue;
-        }
+        throw new ApiHttpError(404, "Media asset not found");
+      }
+      if (parsedDeclare.outcome !== "declared") {
         throw new ApiHttpError(
           500,
           "Unexpected media finalization declaration state",
-        );
-      }
-
-      if (!declared) {
-        throw new ApiHttpError(
-          503,
-          "Media content purge in progress; retry finalize",
         );
       }
 
@@ -1040,12 +960,6 @@ export async function finalizeMediaUpload(
       ) {
         shouldCleanStaging = true;
         return toMediaAssetRecord(parsedPublish.row);
-      }
-      if (parsedPublish.outcome === "claim_active") {
-        throw new ApiHttpError(
-          503,
-          "Media content purge in progress; retry finalize",
-        );
       }
       if (parsedPublish.status === "failed") {
         shouldCleanStaging = true;
@@ -1150,209 +1064,4 @@ export async function readMediaVariant(
     mimeType: selectedEntry.mimeType,
     variant: selectedName,
   };
-}
-
-export async function purgeExpiredMedia(
-  options: PurgeExpiredMediaOptions = {},
-): Promise<PurgeExpiredMediaResult> {
-  const scopedTenantIds =
-    options.tenantIds !== undefined ? [...options.tenantIds] : null;
-  if (scopedTenantIds !== null && scopedTenantIds.length === 0) {
-    return {
-      scanned: 0,
-      purgedRows: 0,
-      removedObjects: 0,
-      removedStagingObjects: 0,
-      keptSharedObjects: 0,
-      skippedLiveUse: 0,
-      deferredInUse: 0,
-    };
-  }
-
-  const admin = requireMediaAdminClient();
-  const nowIso = (options.now ?? new Date()).toISOString();
-  const batchSize = options.batchSize ?? 100;
-
-  let expiredQuery = admin
-    .from("media_assets")
-    .select("*")
-    .eq("status", "deleted")
-    .not("deleted_at", "is", null)
-    .is("purged_at", null)
-    .lte("purge_after", nowIso);
-  if (scopedTenantIds !== null) {
-    expiredQuery = expiredQuery.in("tenant_id", scopedTenantIds);
-  }
-  const { data, error } = await expiredQuery.limit(batchSize);
-
-  if (error) {
-    throw new ApiHttpError(500, "Failed to query expired media assets");
-  }
-
-  const candidates = (data as MediaAssetRow[] | null) ?? [];
-  const summary: PurgeExpiredMediaResult = {
-    scanned: candidates.length,
-    purgedRows: 0,
-    removedObjects: 0,
-    removedStagingObjects: 0,
-    keptSharedObjects: 0,
-    skippedLiveUse: 0,
-    deferredInUse: 0,
-  };
-
-  for (const row of candidates) {
-    if (
-      options.hasLiveUse &&
-      (await options.hasLiveUse(row.tenant_id, row.id))
-    ) {
-      summary.skippedLiveUse += 1;
-      continue;
-    }
-
-    if (row.master_key && row.content_hash) {
-      const claimToken = randomUUID();
-      const { data: claimVerdict, error: claimError } = await admin.rpc(
-        "claim_media_content_purge",
-        {
-          p_tenant_id: row.tenant_id,
-          p_asset_id: row.id,
-          p_content_hash: row.content_hash,
-          p_claim_token: claimToken,
-          p_lease_seconds: PURGE_CLAIM_LEASE_SECONDS,
-        },
-      );
-
-      if (claimError) {
-        throw new ApiHttpError(500, "Failed to claim media content purge");
-      }
-
-      if (claimVerdict === "in_use_uploading" || claimVerdict === "busy") {
-        summary.deferredInUse += 1;
-        continue;
-      }
-
-      if (claimVerdict === "in_use_durable") {
-        summary.keptSharedObjects += 1;
-      } else if (claimVerdict === "claimed") {
-        try {
-          const variantKeys = Object.values(
-            normalizeVariants(row.variants),
-          ).map((v) => v.key);
-          const keysToRemove = [...new Set([row.master_key, ...variantKeys])];
-          if (keysToRemove.length > 0) {
-            const { data: removedData, error: removeError } =
-              await admin.storage.from(MEDIA_BUCKET).remove(keysToRemove);
-            if (removeError && !isNotFoundStorageError(removeError)) {
-              throw new ApiHttpError(
-                502,
-                "Failed to purge media Storage objects",
-              );
-            }
-            if (!removeError) {
-              summary.removedObjects += Array.isArray(removedData)
-                ? removedData.length
-                : keysToRemove.length;
-            }
-          }
-        } finally {
-          await Promise.resolve(
-            admin.rpc("release_media_content_purge", {
-              p_tenant_id: row.tenant_id,
-              p_content_hash: row.content_hash,
-              p_claim_token: claimToken,
-            }),
-          ).catch(() => undefined);
-        }
-      } else {
-        throw new ApiHttpError(500, "Unexpected media purge claim verdict");
-      }
-    }
-
-    const stagingKey = buildMediaStagingKey(row.tenant_id, row.id);
-    const { data: removedStagingData, error: removeStagingError } =
-      await admin.storage.from(MEDIA_BUCKET).remove([stagingKey]);
-    if (removeStagingError && !isNotFoundStorageError(removeStagingError)) {
-      throw new ApiHttpError(502, "Failed to purge staged media object");
-    }
-    if (
-      !removeStagingError &&
-      Array.isArray(removedStagingData) &&
-      removedStagingData.length > 0
-    ) {
-      summary.removedStagingObjects += removedStagingData.length;
-    }
-
-    const { error: markPurgedError } = await admin
-      .from("media_assets")
-      .update({
-        purged_at: nowIso,
-        staging_swept_at: row.staging_swept_at ?? nowIso,
-        updated_at: nowIso,
-      })
-      .eq("id", row.id)
-      .eq("tenant_id", row.tenant_id)
-      .not("deleted_at", "is", null)
-      .is("purged_at", null);
-
-    if (markPurgedError) {
-      throw new ApiHttpError(500, "Failed to mark media asset purged");
-    }
-    summary.purgedRows += 1;
-  }
-
-  let sweepQuery = admin
-    .from("media_assets")
-    .select("*")
-    .in("status", ["ready", "failed", "deleted"])
-    .is("staging_swept_at", null)
-    .not("upload_token_expires_at", "is", null)
-    .lte("upload_token_expires_at", nowIso);
-  if (scopedTenantIds !== null) {
-    sweepQuery = sweepQuery.in("tenant_id", scopedTenantIds);
-  }
-  const { data: sweepData, error: sweepQueryError } =
-    await sweepQuery.limit(batchSize);
-
-  if (sweepQueryError) {
-    throw new ApiHttpError(
-      500,
-      "Failed to query media assets pending staging sweep",
-    );
-  }
-
-  const sweepCandidates = (sweepData as MediaAssetRow[] | null) ?? [];
-  for (const row of sweepCandidates) {
-    const stagingKey = buildMediaStagingKey(row.tenant_id, row.id);
-    const { data: removedStagingData, error: removeStagingError } =
-      await admin.storage.from(MEDIA_BUCKET).remove([stagingKey]);
-    if (removeStagingError && !isNotFoundStorageError(removeStagingError)) {
-      throw new ApiHttpError(
-        502,
-        "Failed to sweep expired staged media object",
-      );
-    }
-    if (
-      !removeStagingError &&
-      Array.isArray(removedStagingData) &&
-      removedStagingData.length > 0
-    ) {
-      summary.removedStagingObjects += removedStagingData.length;
-    }
-
-    const { error: markSweptError } = await admin
-      .from("media_assets")
-      .update({
-        staging_swept_at: nowIso,
-        updated_at: nowIso,
-      })
-      .eq("id", row.id)
-      .eq("tenant_id", row.tenant_id)
-      .is("staging_swept_at", null);
-
-    if (markSweptError) {
-      throw new ApiHttpError(500, "Failed to record media staging sweep");
-    }
-  }
-
-  return summary;
 }

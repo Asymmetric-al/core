@@ -252,7 +252,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     }
 
-    it("creates public.media_assets and public.media_purge_claims with forced RLS, tenant RESTRICT FK, indexes, column-scoped grants and field_policies rows", async () => {
+    it("creates public.media_assets with forced RLS, tenant RESTRICT FK, indexes, column-scoped grants, field_policies rows, and no purge-claim objects", async () => {
       const tableInfo = await db.query(
         `select c.relrowsecurity, c.relforcerowsecurity, c.relowner::regrole::text as owner
          from pg_class c
@@ -267,6 +267,18 @@ describe.skipIf(!ADMIN_URL)(
         },
       ]);
 
+      const removedPurgeObjects = await db.query(
+        `select
+         to_regclass('public.media_purge_claims') as claims_table,
+         to_regprocedure('public.claim_media_content_purge(uuid,uuid,text,uuid,integer)') as claim_fn,
+         to_regprocedure('public.release_media_content_purge(uuid,text,uuid)') as release_fn`,
+      );
+      expect(removedPurgeObjects.rows[0]).toEqual({
+        claims_table: null,
+        claim_fn: null,
+        release_fn: null,
+      });
+
       const fkInfo = await db.query(
         `select con.confdeltype
          from pg_constraint con
@@ -280,22 +292,21 @@ describe.skipIf(!ADMIN_URL)(
       expect(fkInfo.rows).toEqual([{ confdeltype: "r" }]);
 
       const indexDefs = await db.query(
-        `select indexdef from pg_indexes where schemaname = 'public' and tablename = 'media_assets'`,
+        `select indexname, indexdef from pg_indexes where schemaname = 'public' and tablename = 'media_assets'`,
       );
       const defs = indexDefs.rows.map((r) => String(r.indexdef));
+      const indexNames = indexDefs.rows.map((r) => String(r.indexname));
       expect(defs.some((d) => /UNIQUE INDEX.*\(tenant_id, id\)/.test(d))).toBe(
         true,
       );
       expect(
         defs.some((d) => /\(tenant_id, status, created_at DESC\)/.test(d)),
       ).toBe(true);
-      expect(
-        defs.some((d) =>
-          /\(tenant_id, content_hash\).*WHERE.*content_hash IS NOT NULL/.test(
-            d,
-          ),
-        ),
-      ).toBe(true);
+      expect(indexNames).not.toContain("media_assets_pending_purge_idx");
+      expect(indexNames).not.toContain(
+        "media_assets_pending_staging_sweep_idx",
+      );
+      expect(indexNames).not.toContain("media_assets_tenant_content_hash_idx");
 
       const grants = await db.query(
         `select
@@ -337,9 +348,6 @@ describe.skipIf(!ADMIN_URL)(
         "width",
         "height",
         "updated_at",
-        "purged_at",
-        "upload_token_expires_at",
-        "staging_swept_at",
       ];
       const forbiddenServiceUpdateColumns = [
         "id",
@@ -378,7 +386,6 @@ describe.skipIf(!ADMIN_URL)(
         "width",
         "height",
         "mime_type",
-        "purged_at",
       ];
       for (const column of forbiddenGuardColumns) {
         const colPriv = await db.query(
@@ -397,7 +404,8 @@ describe.skipIf(!ADMIN_URL)(
       const mediaColumns = Object.keys(
         manifest.record_types.media_assets ?? {},
       );
-      expect(mediaColumns.length).toBeGreaterThanOrEqual(17);
+      expect(mediaColumns).toHaveLength(17);
+      expect(manifest.record_types.media_purge_claims).toBeUndefined();
 
       const policyRows = await db.query(
         `select field_key, surface, visible, editable, exportable, sensitivity_category
@@ -419,31 +427,26 @@ describe.skipIf(!ADMIN_URL)(
       }
 
       const claimPolicyRows = await db.query(
-        `select field_key, surface, visible, editable, exportable, sensitivity_category
+        `select field_key
          from public.field_policies
         where record_type = 'media_purge_claims' and tenant_id is null`,
       );
-      expect(claimPolicyRows.rows).toHaveLength(25);
-      for (const row of claimPolicyRows.rows) {
-        expect(row.sensitivity_category).toBe("internal");
-        expect(row.visible).toBe(false);
-        expect(row.editable).toBe(false);
-        expect(row.exportable).toBe(false);
-      }
+      expect(claimPolicyRows.rows).toHaveLength(0);
 
       await inTx(async () => {
-        const allowTokenExpiry = await queryAs(
+        const allowConfirmUploading = await queryAs(
           "service_role",
           {},
           `update public.media_assets
-              set upload_token_expires_at = now() + interval '2 hours',
-                  staging_swept_at = null,
-                  updated_at = now()
-            where id = $1 and tenant_id = $2`,
+              set updated_at = now()
+            where id = $1 and tenant_id = $2 and status = 'uploading'`,
           [id.assetUploadingA, id.TA],
           { keepWrite: true },
         );
-        expect(allowTokenExpiry.code, allowTokenExpiry.message).toBeNull();
+        expect(
+          allowConfirmUploading.code,
+          allowConfirmUploading.message,
+        ).toBeNull();
 
         const hashC = "c".repeat(64);
         const allowDeclare = await queryAs(
@@ -483,36 +486,6 @@ describe.skipIf(!ADMIN_URL)(
         expect((allowPublish.rows[0]!.res as { outcome: string }).outcome).toBe(
           "published",
         );
-
-        const claimToken = randomUUID();
-        const allowClaim = await queryAs(
-          "service_role",
-          {},
-          `select public.claim_media_content_purge($1, $2, $3, $4, 60) as v`,
-          [id.TA, id.assetDeletedA, "d".repeat(64), claimToken],
-          { keepWrite: true },
-        );
-        expect(allowClaim.code, allowClaim.message).toBeNull();
-        expect(allowClaim.rows[0]!.v).toBe("claimed");
-
-        const allowRelease = await queryAs(
-          "service_role",
-          {},
-          `select public.release_media_content_purge($1, $2, $3)`,
-          [id.TA, "d".repeat(64), claimToken],
-          { keepWrite: true },
-        );
-        expect(allowRelease.code, allowRelease.message).toBeNull();
-
-        const allowPurged = await queryAs(
-          "service_role",
-          {},
-          `update public.media_assets
-              set purged_at = now(), staging_swept_at = now(), updated_at = now()
-            where id = $1 and tenant_id = $2`,
-          [id.assetDeletedA, id.TA],
-        );
-        expect(allowPurged.code, allowPurged.message).toBeNull();
 
         const forbiddenStatements: Array<[string, string, unknown[]]> = [
           [

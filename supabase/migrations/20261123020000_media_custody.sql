@@ -1,21 +1,31 @@
 -- AL-2679 (WP6 part 1; plan 4, 5.4, 6.6, 7.1, 12 WP6; rulings W6-R1, W6-R2,
--- W6-R4): Core media custody table (`public.media_assets`), purge claim lease
--- table (`public.media_purge_claims`), field-policy classification (20 columns
--- x 5 surfaces = 100 rows for media_assets; 5 columns x 5 surfaces = 25 rows
--- for media_purge_claims), private Storage bucket `cms-media`, `tenant_guard`
--- upload-start and delete human commands, and the silent staff media-access
--- lookup for `/api/media/[assetId]`.
+-- W6-R4, W6-R15, W6-R16): Core media custody table (`public.media_assets`),
+-- field-policy classification (17 columns x 5 surfaces = 85 rows), private
+-- Storage bucket `cms-media`, `tenant_guard` upload-start and delete human
+-- commands, platform-lane finalize declaration/publish helpers, and the silent
+-- staff media-access lookup for `/api/media/[assetId]`.
 --
 -- Purge delay: `35 days` (`INTERVAL '35 days'`), strictly longer than
 -- Supabase's 7-day daily backup window and maximum 30-day point-in-time
--- recovery window, so restored databases never reference purged media keys.
+-- recovery window, recorded on tombstones (`purge_after`).
+-- No code removes canonical media bytes. A deleted asset keeps its bytes in the
+-- private bucket. The delayed purge and the sweep of abandoned staging objects
+-- are owed to WP7, which adds the live-use check (plan lines 1059, 1097),
+-- scheduled by WP10 (plan line 554); their requirements are in
+-- `briefs\stage4-draft\wp6-purge-requirements.md`.
+--
+-- Storage policy assertion limit (W6-R16): the `DO` block below is a one-time
+-- apply-time check against the `storage.objects` policies present at migration
+-- apply time. It cannot prove a role that inherits from `authenticated`, and a
+-- harmless nested `OR` in an unrelated policy would stop it. The standing guard
+-- is the real-stack test of zero effective policy coverage for `cms-media`
+-- (`tests/unit/acceptance/issue-2679/media-custody.realstack.acceptance.test.ts`
+-- and `media-storage.postgrest.acceptance.test.ts`).
 --
 -- Down (disposable, verified-empty database ONLY — NEVER run on shared or
 -- production databases; production rollback leaves media custody in place and
 -- uses a forward recovery migration so live references and delayed-purge
 -- tombstones are never lost):
---   DROP FUNCTION public.release_media_content_purge(UUID, TEXT, UUID);
---   DROP FUNCTION public.claim_media_content_purge(UUID, UUID, TEXT, UUID, INTEGER);
 --   DROP FUNCTION public.publish_media_finalize(UUID, UUID, TEXT, TIMESTAMPTZ);
 --   DROP FUNCTION public.declare_media_finalize(UUID, UUID, TEXT, TEXT, JSONB, TEXT, BIGINT, INTEGER, INTEGER, TIMESTAMPTZ);
 --   DROP FUNCTION public.resolve_staff_media_access(UUID);
@@ -24,8 +34,6 @@
 --   DROP FUNCTION public.start_media_upload(UUID, BIGINT, TEXT);
 --   DROP FUNCTION tenant_guard.start_media_upload(UUID, BIGINT, TEXT);
 --   DROP FUNCTION private.share_lock_tenant(UUID);
---   DELETE FROM public.field_policies WHERE record_type = 'media_purge_claims' AND tenant_id IS NULL;
---   DROP TABLE public.media_purge_claims;
 --   DELETE FROM public.field_policies WHERE record_type = 'media_assets' AND tenant_id IS NULL;
 --   DROP TABLE public.media_assets;
 --   DELETE FROM storage.buckets WHERE id = 'cms-media';
@@ -70,9 +78,6 @@ CREATE TABLE public.media_assets (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT pg_catalog.now(),
   deleted_at TIMESTAMPTZ,
   purge_after TIMESTAMPTZ,
-  purged_at TIMESTAMPTZ,
-  upload_token_expires_at TIMESTAMPTZ,
-  staging_swept_at TIMESTAMPTZ,
   CONSTRAINT media_assets_tenant_id_id_key UNIQUE (tenant_id, id),
   CONSTRAINT media_assets_ready_fields_check CHECK (
     status <> 'ready'
@@ -96,24 +101,10 @@ CREATE TABLE public.media_assets (
 );
 
 COMMENT ON TABLE public.media_assets IS
-  'Core media custody records (AL-2679, WP6 part 1). Signed-in staff hold SELECT only; upload start and delete run via tenant_guard commands; finished-upload metadata and delayed purge are written exclusively by packages/api/src/storage/media-store.ts.';
+  'Core media custody records (AL-2679, WP6 part 1). Signed-in staff hold SELECT only; upload start and delete tombstones run via tenant_guard commands; finished-upload metadata is written exclusively by packages/api/src/storage/media-store.ts.';
 
 CREATE INDEX media_assets_tenant_status_created_idx
   ON public.media_assets (tenant_id, status, created_at DESC);
-
-CREATE INDEX media_assets_tenant_content_hash_idx
-  ON public.media_assets (tenant_id, content_hash)
-  WHERE content_hash IS NOT NULL;
-
-CREATE INDEX media_assets_pending_purge_idx
-  ON public.media_assets (purge_after)
-  WHERE deleted_at IS NOT NULL AND purged_at IS NULL;
-
-CREATE INDEX media_assets_pending_staging_sweep_idx
-  ON public.media_assets (upload_token_expires_at)
-  WHERE status IN ('ready', 'failed', 'deleted')
-    AND staging_swept_at IS NULL
-    AND upload_token_expires_at IS NOT NULL;
 
 ALTER TABLE public.media_assets OWNER TO postgres;
 ALTER TABLE public.media_assets ENABLE ROW LEVEL SECURITY;
@@ -148,10 +139,7 @@ GRANT UPDATE (
   byte_size,
   width,
   height,
-  updated_at,
-  purged_at,
-  upload_token_expires_at,
-  staging_swept_at
+  updated_at
 ) ON TABLE public.media_assets TO service_role;
 
 CREATE POLICY media_assets_staff_select
@@ -169,35 +157,6 @@ CREATE POLICY tenant_guard_isolation
   TO tenant_guard
   USING (tenant_id = tenant_guard.current_tenant_id())
   WITH CHECK (tenant_id = tenant_guard.current_tenant_id());
-
-CREATE TABLE public.media_purge_claims (
-  tenant_id UUID NOT NULL REFERENCES public.tenants (id) ON DELETE RESTRICT,
-  content_hash TEXT NOT NULL
-    CONSTRAINT media_purge_claims_content_hash_check
-      CHECK (content_hash ~ '^[0-9a-f]{64}$'),
-  claim_token UUID NOT NULL,
-  claimed_at TIMESTAMPTZ NOT NULL DEFAULT pg_catalog.now(),
-  expires_at TIMESTAMPTZ NOT NULL,
-  PRIMARY KEY (tenant_id, content_hash),
-  CONSTRAINT media_purge_claims_expiry_check CHECK (expires_at > claimed_at)
-);
-
-COMMENT ON TABLE public.media_purge_claims IS
-  'Short-lived per-(tenant_id, content_hash) purge leases (AL-2679, WP6 part 1) serializing canonical Storage object removal against concurrent media finalization. Accessible to service_role only.';
-
-ALTER TABLE public.media_purge_claims OWNER TO postgres;
-ALTER TABLE public.media_purge_claims ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.media_purge_claims FORCE ROW LEVEL SECURITY;
-
-REVOKE ALL ON TABLE public.media_purge_claims FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.media_purge_claims TO service_role;
-
-CREATE POLICY media_purge_claims_service_role
-  ON public.media_purge_claims
-  FOR ALL
-  TO service_role
-  USING (true)
-  WITH CHECK (true);
 
 INSERT INTO public.field_policies (
   record_type,
@@ -234,39 +193,7 @@ FROM (
     ('media_assets', 'created_at', 'internal'),
     ('media_assets', 'updated_at', 'internal'),
     ('media_assets', 'deleted_at', 'internal'),
-    ('media_assets', 'purge_after', 'internal'),
-    ('media_assets', 'purged_at', 'internal'),
-    ('media_assets', 'upload_token_expires_at', 'internal'),
-    ('media_assets', 'staging_swept_at', 'internal')
-) AS fields (record_type, field_key, category)
-CROSS JOIN pg_catalog.unnest(
-  ARRAY['mission_control', 'donor', 'missionary', 'public', 'export']
-) AS surface;
-
-INSERT INTO public.field_policies (
-  record_type,
-  field_key,
-  surface,
-  visible,
-  editable,
-  exportable,
-  sensitivity_category
-)
-SELECT
-  fields.record_type,
-  fields.field_key,
-  surface,
-  false,
-  false,
-  false,
-  fields.category::public.field_sensitivity_category
-FROM (
-  VALUES
-    ('media_purge_claims', 'tenant_id', 'internal'),
-    ('media_purge_claims', 'content_hash', 'internal'),
-    ('media_purge_claims', 'claim_token', 'internal'),
-    ('media_purge_claims', 'claimed_at', 'internal'),
-    ('media_purge_claims', 'expires_at', 'internal')
+    ('media_assets', 'purge_after', 'internal')
 ) AS fields (record_type, field_key, category)
 CROSS JOIN pg_catalog.unnest(
   ARRAY['mission_control', 'donor', 'missionary', 'public', 'export']
@@ -507,8 +434,6 @@ BEGIN
       USING ERRCODE = 'P0002';
   END IF;
 
-  -- WP7 hook: refuse deletion here when a live published reference names (v_ctx.tenant_id, p_asset_id).
-
   IF v_existing_status = 'deleted' THEN
     RETURN pg_catalog.jsonb_build_object(
       'asset_id', v_existing_id,
@@ -629,22 +554,12 @@ SET search_path = ''
 AS $$
 DECLARE
   v_row public.media_assets%ROWTYPE;
-  v_wall_now TIMESTAMPTZ := pg_catalog.now();
-  v_effective_now TIMESTAMPTZ := COALESCE(p_now, v_wall_now);
+  v_effective_now TIMESTAMPTZ := COALESCE(p_now, pg_catalog.now());
 BEGIN
   IF p_tenant_id IS NULL OR p_asset_id IS NULL OR p_content_hash IS NULL THEN
     RAISE EXCEPTION 'media_finalize: tenant, asset and content_hash are required'
       USING ERRCODE = '22004';
   END IF;
-
-  PERFORM pg_catalog.pg_advisory_xact_lock(
-    pg_catalog.hashtextextended(p_tenant_id::TEXT || ':' || p_content_hash, 0)
-  );
-
-  DELETE FROM public.media_purge_claims AS c
-   WHERE c.tenant_id = p_tenant_id
-     AND c.content_hash = p_content_hash
-     AND c.expires_at <= v_wall_now;
 
   SELECT *
     INTO v_row
@@ -667,19 +582,6 @@ BEGIN
   IF v_row.status <> 'uploading' THEN
     RETURN pg_catalog.jsonb_build_object(
       'outcome', 'terminal',
-      'status', v_row.status
-    );
-  END IF;
-
-  IF EXISTS (
-    SELECT 1
-      FROM public.media_purge_claims AS c
-     WHERE c.tenant_id = p_tenant_id
-       AND c.content_hash = p_content_hash
-       AND c.expires_at > v_wall_now
-  ) THEN
-    RETURN pg_catalog.jsonb_build_object(
-      'outcome', 'claim_active',
       'status', v_row.status
     );
   END IF;
@@ -706,7 +608,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION public.declare_media_finalize(UUID, UUID, TEXT, TEXT, JSONB, TEXT, BIGINT, INTEGER, INTEGER, TIMESTAMPTZ) IS
-  'Platform-lane helper (AL-2679, WP6 part 1): serializes on (tenant_id, content_hash), checks live purge claims, and durably records content_hash/master_key/variants on an uploading row before Storage writes. EXECUTE for service_role only.';
+  'Platform-lane helper (AL-2679, WP6 part 1): row-locks an uploading media asset and durably records content_hash/master_key/variants before Storage writes so mid-finalize tombstones retain canonical keys. EXECUTE for service_role only.';
 
 ALTER FUNCTION public.declare_media_finalize(UUID, UUID, TEXT, TEXT, JSONB, TEXT, BIGINT, INTEGER, INTEGER, TIMESTAMPTZ) OWNER TO postgres;
 REVOKE ALL ON FUNCTION public.declare_media_finalize(UUID, UUID, TEXT, TEXT, JSONB, TEXT, BIGINT, INTEGER, INTEGER, TIMESTAMPTZ) FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
@@ -726,22 +628,12 @@ SET search_path = ''
 AS $$
 DECLARE
   v_row public.media_assets%ROWTYPE;
-  v_wall_now TIMESTAMPTZ := pg_catalog.now();
-  v_effective_now TIMESTAMPTZ := COALESCE(p_now, v_wall_now);
+  v_effective_now TIMESTAMPTZ := COALESCE(p_now, pg_catalog.now());
 BEGIN
   IF p_tenant_id IS NULL OR p_asset_id IS NULL OR p_content_hash IS NULL THEN
     RAISE EXCEPTION 'media_finalize: tenant, asset and content_hash are required'
       USING ERRCODE = '22004';
   END IF;
-
-  PERFORM pg_catalog.pg_advisory_xact_lock(
-    pg_catalog.hashtextextended(p_tenant_id::TEXT || ':' || p_content_hash, 0)
-  );
-
-  DELETE FROM public.media_purge_claims AS c
-   WHERE c.tenant_id = p_tenant_id
-     AND c.content_hash = p_content_hash
-     AND c.expires_at <= v_wall_now;
 
   SELECT *
     INTO v_row
@@ -764,19 +656,6 @@ BEGIN
   IF v_row.status <> 'uploading' THEN
     RETURN pg_catalog.jsonb_build_object(
       'outcome', 'terminal',
-      'status', v_row.status
-    );
-  END IF;
-
-  IF EXISTS (
-    SELECT 1
-      FROM public.media_purge_claims AS c
-     WHERE c.tenant_id = p_tenant_id
-       AND c.content_hash = p_content_hash
-       AND c.expires_at > v_wall_now
-  ) THEN
-    RETURN pg_catalog.jsonb_build_object(
-      'outcome', 'claim_active',
       'status', v_row.status
     );
   END IF;
@@ -805,136 +684,11 @@ END;
 $$;
 
 COMMENT ON FUNCTION public.publish_media_finalize(UUID, UUID, TEXT, TIMESTAMPTZ) IS
-  'Platform-lane helper (AL-2679, WP6 part 1): atomically transitions a declared uploading row to ready under the per-(tenant_id, content_hash) advisory lock after confirming no live purge claim. EXECUTE for service_role only.';
+  'Platform-lane helper (AL-2679, WP6 part 1): atomically transitions a declared uploading row to ready under FOR UPDATE row lock after verified canonical Storage writes. EXECUTE for service_role only.';
 
 ALTER FUNCTION public.publish_media_finalize(UUID, UUID, TEXT, TIMESTAMPTZ) OWNER TO postgres;
 REVOKE ALL ON FUNCTION public.publish_media_finalize(UUID, UUID, TEXT, TIMESTAMPTZ) FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
 GRANT EXECUTE ON FUNCTION public.publish_media_finalize(UUID, UUID, TEXT, TIMESTAMPTZ) TO service_role;
-
-CREATE OR REPLACE FUNCTION public.claim_media_content_purge(
-  p_tenant_id UUID,
-  p_asset_id UUID,
-  p_content_hash TEXT,
-  p_claim_token UUID,
-  p_lease_seconds INTEGER DEFAULT 120
-)
-RETURNS TEXT
-LANGUAGE plpgsql
-VOLATILE
-SECURITY INVOKER
-SET search_path = ''
-AS $$
-DECLARE
-  v_wall_now TIMESTAMPTZ := pg_catalog.now();
-  v_lease_secs INTEGER := GREATEST(1, COALESCE(p_lease_seconds, 120));
-BEGIN
-  IF p_tenant_id IS NULL OR p_asset_id IS NULL OR p_content_hash IS NULL OR p_claim_token IS NULL THEN
-    RAISE EXCEPTION 'media_purge: tenant, asset, content_hash and claim_token are required'
-      USING ERRCODE = '22004';
-  END IF;
-
-  PERFORM pg_catalog.pg_advisory_xact_lock(
-    pg_catalog.hashtextextended(p_tenant_id::TEXT || ':' || p_content_hash, 0)
-  );
-
-  DELETE FROM public.media_purge_claims AS c
-   WHERE c.tenant_id = p_tenant_id
-     AND c.content_hash = p_content_hash
-     AND c.expires_at <= v_wall_now;
-
-  IF EXISTS (
-    SELECT 1
-      FROM public.media_purge_claims AS c
-     WHERE c.tenant_id = p_tenant_id
-       AND c.content_hash = p_content_hash
-       AND c.expires_at > v_wall_now
-  ) THEN
-    RETURN 'busy';
-  END IF;
-
-  IF EXISTS (
-    SELECT 1
-      FROM public.media_assets AS a
-     WHERE a.tenant_id = p_tenant_id
-       AND a.content_hash = p_content_hash
-       AND (
-         a.status = 'ready'
-         OR (a.status = 'deleted' AND a.purged_at IS NULL AND a.id <> p_asset_id)
-       )
-  ) THEN
-    RETURN 'in_use_durable';
-  END IF;
-
-  IF EXISTS (
-    SELECT 1
-      FROM public.media_assets AS a
-     WHERE a.tenant_id = p_tenant_id
-       AND a.content_hash = p_content_hash
-       AND a.status = 'uploading'
-       AND a.id <> p_asset_id
-  ) THEN
-    RETURN 'in_use_uploading';
-  END IF;
-
-  INSERT INTO public.media_purge_claims (
-    tenant_id,
-    content_hash,
-    claim_token,
-    claimed_at,
-    expires_at
-  )
-  VALUES (
-    p_tenant_id,
-    p_content_hash,
-    p_claim_token,
-    v_wall_now,
-    v_wall_now + pg_catalog.make_interval(secs => v_lease_secs)
-  );
-
-  RETURN 'claimed';
-END;
-$$;
-
-COMMENT ON FUNCTION public.claim_media_content_purge(UUID, UUID, TEXT, UUID, INTEGER) IS
-  'Platform-lane helper (AL-2679, WP6 part 1): atomically verifies no live ready, unpurged sibling deleted, or declared uploading row references (tenant_id, content_hash) and records a short-lived purge lease before Storage removal. EXECUTE for service_role only.';
-
-ALTER FUNCTION public.claim_media_content_purge(UUID, UUID, TEXT, UUID, INTEGER) OWNER TO postgres;
-REVOKE ALL ON FUNCTION public.claim_media_content_purge(UUID, UUID, TEXT, UUID, INTEGER) FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
-GRANT EXECUTE ON FUNCTION public.claim_media_content_purge(UUID, UUID, TEXT, UUID, INTEGER) TO service_role;
-
-CREATE OR REPLACE FUNCTION public.release_media_content_purge(
-  p_tenant_id UUID,
-  p_content_hash TEXT,
-  p_claim_token UUID
-)
-RETURNS VOID
-LANGUAGE plpgsql
-VOLATILE
-SECURITY INVOKER
-SET search_path = ''
-AS $$
-BEGIN
-  IF p_tenant_id IS NULL OR p_content_hash IS NULL OR p_claim_token IS NULL THEN
-    RETURN;
-  END IF;
-
-  PERFORM pg_catalog.pg_advisory_xact_lock(
-    pg_catalog.hashtextextended(p_tenant_id::TEXT || ':' || p_content_hash, 0)
-  );
-
-  DELETE FROM public.media_purge_claims AS c
-   WHERE c.tenant_id = p_tenant_id
-     AND c.content_hash = p_content_hash
-     AND c.claim_token = p_claim_token;
-END;
-$$;
-
-COMMENT ON FUNCTION public.release_media_content_purge(UUID, TEXT, UUID) IS
-  'Platform-lane helper (AL-2679, WP6 part 1): releases a held per-(tenant_id, content_hash) purge lease matching claim_token. EXECUTE for service_role only.';
-
-ALTER FUNCTION public.release_media_content_purge(UUID, TEXT, UUID) OWNER TO postgres;
-REVOKE ALL ON FUNCTION public.release_media_content_purge(UUID, TEXT, UUID) FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
-GRANT EXECUTE ON FUNCTION public.release_media_content_purge(UUID, TEXT, UUID) TO service_role;
 
 DO $$
 DECLARE
@@ -1000,9 +754,12 @@ BEGIN
      OR NOT pg_catalog.has_table_privilege('service_role', 'public.media_assets', 'SELECT')
      OR pg_catalog.has_table_privilege('service_role', 'public.media_assets', 'UPDATE')
      OR NOT pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'status', 'UPDATE')
-     OR NOT pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'purged_at', 'UPDATE')
+     OR NOT pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'master_key', 'UPDATE')
+     OR NOT pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'updated_at', 'UPDATE')
+     OR pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'id', 'UPDATE')
      OR pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'tenant_id', 'UPDATE')
      OR pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'created_by', 'UPDATE')
+     OR pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'created_at', 'UPDATE')
      OR pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'purge_after', 'UPDATE')
      OR pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'deleted_at', 'UPDATE')
      OR pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'declared_byte_size', 'UPDATE')
@@ -1027,17 +784,10 @@ BEGIN
      OR NOT pg_catalog.has_function_privilege('authenticated', 'public.resolve_staff_media_access(uuid)', 'EXECUTE')
      OR pg_catalog.has_function_privilege('public', 'public.resolve_staff_media_access(uuid)', 'EXECUTE')
      OR pg_catalog.has_function_privilege('anon', 'public.resolve_staff_media_access(uuid)', 'EXECUTE')
-     OR pg_catalog.has_table_privilege('authenticated', 'public.media_purge_claims', 'SELECT')
-     OR pg_catalog.has_table_privilege('anon', 'public.media_purge_claims', 'SELECT')
-     OR pg_catalog.has_table_privilege('tenant_guard', 'public.media_purge_claims', 'SELECT')
      OR NOT pg_catalog.has_function_privilege('service_role', 'public.declare_media_finalize(uuid, uuid, text, text, jsonb, text, bigint, integer, integer, timestamptz)', 'EXECUTE')
      OR pg_catalog.has_function_privilege('authenticated', 'public.declare_media_finalize(uuid, uuid, text, text, jsonb, text, bigint, integer, integer, timestamptz)', 'EXECUTE')
      OR NOT pg_catalog.has_function_privilege('service_role', 'public.publish_media_finalize(uuid, uuid, text, timestamptz)', 'EXECUTE')
      OR pg_catalog.has_function_privilege('authenticated', 'public.publish_media_finalize(uuid, uuid, text, timestamptz)', 'EXECUTE')
-     OR NOT pg_catalog.has_function_privilege('service_role', 'public.claim_media_content_purge(uuid, uuid, text, uuid, integer)', 'EXECUTE')
-     OR pg_catalog.has_function_privilege('authenticated', 'public.claim_media_content_purge(uuid, uuid, text, uuid, integer)', 'EXECUTE')
-     OR NOT pg_catalog.has_function_privilege('service_role', 'public.release_media_content_purge(uuid, text, uuid)', 'EXECUTE')
-     OR pg_catalog.has_function_privilege('authenticated', 'public.release_media_content_purge(uuid, text, uuid)', 'EXECUTE')
      OR NOT pg_catalog.has_function_privilege('tenant_guard', 'private.share_lock_tenant(uuid)', 'EXECUTE')
      OR pg_catalog.has_function_privilege('public', 'private.share_lock_tenant(uuid)', 'EXECUTE')
      OR pg_catalog.has_function_privilege('anon', 'private.share_lock_tenant(uuid)', 'EXECUTE')

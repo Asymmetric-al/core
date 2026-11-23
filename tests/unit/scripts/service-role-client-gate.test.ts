@@ -153,15 +153,15 @@ describe("frozen ceiling", () => {
     expect(Object.isFrozen(CALLER_MEDIA_STORE_ALLOWED_EXPORTS)).toBe(true);
   });
 
-  it("rejects withOperation imports of purgeExpiredMedia, namespace imports, or dynamic imports from media-store", () => {
+  it("rejects withOperation imports of unlisted exports, namespace imports, or dynamic imports from media-store", () => {
     const cases: Array<[string, string]> = [
       [
-        "purgeExpiredMedia named import",
-        'import {withOperation} from "../../shared/with-operation";\nimport {purgeExpiredMedia} from "../../storage/media-store";\nexport const POST = withOperation(async () => purgeExpiredMedia());',
+        "unlisted named import",
+        'import {withOperation} from "../../shared/with-operation";\nimport {unlistedHelper} from "../../storage/media-store";\nexport const POST = withOperation(async () => unlistedHelper());',
       ],
       [
-        "aliased purgeExpiredMedia import",
-        'import {withOperation} from "../../shared/with-operation";\nimport {purgeExpiredMedia as clean} from "../../storage/media-store";\nexport const POST = withOperation(async () => clean());',
+        "aliased unlisted import",
+        'import {withOperation} from "../../shared/with-operation";\nimport {unlistedHelper as helper} from "../../storage/media-store";\nexport const POST = withOperation(async () => helper());',
       ],
       [
         "namespace import",
@@ -169,13 +169,13 @@ describe("frozen ceiling", () => {
       ],
       [
         "dynamic import",
-        'import {withOperation} from "../../shared/with-operation";\nexport const POST = withOperation(async () => (await import("../../storage/media-store")).purgeExpiredMedia());',
+        'import {withOperation} from "../../shared/with-operation";\nexport const POST = withOperation(async () => (await import("../../storage/media-store")).unlistedHelper());',
       ],
     ];
     for (const [label, badSource] of cases) {
       const root = mkdtempSync(path.join(tmpdir(), "caller-media-export-"));
       const files = {
-        "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; const admin = () => getAdminClient(); export const issueSignedUpload = () => admin(); export const purgeExpiredMedia = () => admin();`,
+        "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; const admin = () => getAdminClient(); export const issueSignedUpload = () => admin(); export const unlistedHelper = () => admin();`,
         "packages/api/src/cms/media/bad.ts": badSource,
         "docs/security/service-role-client-allowlist.json": JSON.stringify({
           version: 1,
@@ -219,13 +219,13 @@ describe("frozen ceiling", () => {
       ["star re-export", 'export * from "../storage/media-store";'],
       [
         "local re-export",
-        'import { purgeExpiredMedia } from "../storage/media-store";\nexport { purgeExpiredMedia };',
+        'import { unlistedHelper } from "../storage/media-store";\nexport { unlistedHelper };',
       ],
     ];
     for (const [label, wrapperSource] of reexportCases) {
       const root = mkdtempSync(path.join(tmpdir(), "media-reexport-"));
       const files = {
-        "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; const admin = () => getAdminClient(); export const finalizeMediaUpload = () => admin(); export const purgeExpiredMedia = () => admin();`,
+        "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; const admin = () => getAdminClient(); export const finalizeMediaUpload = () => admin(); export const unlistedHelper = () => admin();`,
         "packages/api/src/cms/barrel.ts": wrapperSource,
         "docs/security/service-role-client-allowlist.json": JSON.stringify({
           version: 1,
@@ -261,9 +261,9 @@ describe("frozen ceiling", () => {
 
     const root = mkdtempSync(path.join(tmpdir(), "media-forward-"));
     const files = {
-      "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; export const purgeExpiredMedia = () => getAdminClient();`,
+      "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; export const unlistedHelper = () => getAdminClient();`,
       "packages/api/src/cms/hop1.ts":
-        'import { purgeExpiredMedia } from "../storage/media-store";\nexport const runHop1 = () => purgeExpiredMedia();',
+        'import { unlistedHelper } from "../storage/media-store";\nexport const runHop1 = () => unlistedHelper();',
       "packages/api/src/cms/hop2.ts":
         'import { runHop1 } from "./hop1";\nexport const runHop2 = () => runHop1();',
       "packages/api/src/cms/media/bad.ts":

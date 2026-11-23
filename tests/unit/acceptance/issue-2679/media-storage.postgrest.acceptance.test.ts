@@ -12,10 +12,7 @@ import {
   MEDIA_MAX_BYTES,
   MEDIA_MAX_VARIANT_BYTES,
 } from "@asym/api/storage/media-constants";
-import {
-  finalizeMediaUpload,
-  purgeExpiredMedia,
-} from "@asym/api/storage/media-store";
+import { finalizeMediaUpload } from "@asym/api/storage/media-store";
 import { createServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { NextRequest } from "next/server";
@@ -476,10 +473,6 @@ describe.skipIf(!required && !configured)(
           await db.query("begin");
           try {
             await db.query(
-              `delete from public.media_purge_claims where tenant_id in ($1, $2)`,
-              [tenantA, tenantB],
-            );
-            await db.query(
               `delete from public.media_assets where tenant_id in ($1, $2)`,
               [tenantA, tenantB],
             );
@@ -513,7 +506,7 @@ describe.skipIf(!required && !configured)(
       }
     });
 
-    it("proves signed upload, per-format EXIF/GPS/ICC/XMP stripping on master and all variants, token scope/replay/sweep, and tenant isolation (1024, 1026, F7)", async () => {
+    it("proves signed upload, per-format EXIF/GPS/ICC/XMP stripping on master and all variants, token scope, and tenant isolation (1024, 1026)", async () => {
       const dirtyJpeg = await createDirtyJpeg(2000, 1700);
       const jpegInMeta = await sharp(dirtyJpeg).metadata();
       expect(jpegInMeta.orientation).toBe(6);
@@ -538,13 +531,6 @@ describe.skipIf(!required && !configured)(
         buildMediaStagingKey(tenantA, started.assetId),
       );
       createdStorageKeys.add(started.stagingPath);
-
-      const expiryRow = await db!.query(
-        `select upload_token_expires_at, staging_swept_at from public.media_assets where id = $1`,
-        [started.assetId],
-      );
-      expect(expiryRow.rows[0]!.upload_token_expires_at).not.toBeNull();
-      expect(expiryRow.rows[0]!.staging_swept_at).toBeNull();
 
       const userClient = createClient(url!, anonKey!, {
         auth: { persistSession: false, autoRefreshToken: false },
@@ -612,69 +598,6 @@ describe.skipIf(!required && !configured)(
         .from(MEDIA_BUCKET)
         .download(started.stagingPath);
       expect(stagedAfter.error).not.toBeNull();
-
-      const replayAfterFinalize = await userClient.storage
-        .from(MEDIA_BUCKET)
-        .uploadToSignedUrl(started.stagingPath, started.token, dirtyJpeg, {
-          contentType: "image/jpeg",
-        });
-      if (!replayAfterFinalize.error) {
-        const afterTokenExpiry = new Date(Date.now() + 3 * 60 * 60 * 1000);
-        const swept = await purgeExpiredMedia({
-          now: afterTokenExpiry,
-          tenantIds: [tenantA, tenantB],
-        });
-        expect(swept.removedStagingObjects).toBeGreaterThanOrEqual(1);
-        const replayedGone = await realAdminClient!.storage
-          .from(MEDIA_BUCKET)
-          .download(started.stagingPath);
-        expect(replayedGone.error).not.toBeNull();
-        const sweptRow = await db!.query(
-          `select staging_swept_at from public.media_assets where id = $1`,
-          [started.assetId],
-        );
-        expect(sweptRow.rows[0]!.staging_swept_at).not.toBeNull();
-      }
-
-      const deletedBeforeUploadStart = await startMediaPost(
-        staffRequest("/api/cms/media/start", staffA, tenantA, mStaffA, {
-          byteSize: dirtyJpeg.byteLength,
-          mimeType: "image/jpeg",
-        }),
-      );
-      expect(deletedBeforeUploadStart.status).toBe(201);
-      const delStartJson = (await deletedBeforeUploadStart.json()) as {
-        assetId: string;
-        stagingPath: string;
-        token: string;
-      };
-      createdStorageKeys.add(delStartJson.stagingPath);
-      const delBeforeUpload = await deleteMediaPost(
-        staffRequest("/api/cms/media/delete", staffA, tenantA, mStaffA, {
-          assetId: delStartJson.assetId,
-        }),
-      );
-      expect(delBeforeUpload.status).toBe(200);
-      const lateUploadAfterDelete = await userClient.storage
-        .from(MEDIA_BUCKET)
-        .uploadToSignedUrl(
-          delStartJson.stagingPath,
-          delStartJson.token,
-          dirtyJpeg,
-          { contentType: "image/jpeg" },
-        );
-      if (!lateUploadAfterDelete.error) {
-        const afterDelWindow = new Date(Date.now() + 36 * 24 * 60 * 60 * 1000);
-        const sweptDeleted = await purgeExpiredMedia({
-          now: afterDelWindow,
-          tenantIds: [tenantA, tenantB],
-        });
-        expect(sweptDeleted.removedStagingObjects).toBeGreaterThanOrEqual(1);
-        const lateGone = await realAdminClient!.storage
-          .from(MEDIA_BUCKET)
-          .download(delStartJson.stagingPath);
-        expect(lateGone.error).not.toBeNull();
-      }
 
       for (const [outLabel, key] of [
         ["master", asset.masterKey],
@@ -1416,7 +1339,7 @@ describe.skipIf(!required && !configured)(
       }
     });
 
-    it("proves idempotent finalize across all objects, brand-new concurrent finalize, staggered delete, both purge/finalize barriers, and mid-finalize delete cleanup (1031, F1, F2, F4, F5)", async () => {
+    it("proves idempotent finalize across all objects, brand-new concurrent finalize, surviving shared bytes on delete, and mid-finalize tombstone key retention (1031, W6-R15)", async () => {
       const jpg = await createDirtyJpeg(800, 600, { r: 30, g: 90, b: 170 });
       const anonStorage = createClient(url!, anonKey!, {
         auth: { persistSession: false, autoRefreshToken: false },
@@ -1555,6 +1478,15 @@ describe.skipIf(!required && !configured)(
         }),
       );
       expect(del1.status).toBe(200);
+      const del1Body = (await del1.json()) as {
+        status: string;
+        deletedAt: string;
+        purgeAfter: string;
+      };
+      expect(del1Body.status).toBe("deleted");
+      expect(
+        Date.parse(del1Body.purgeAfter) - Date.parse(del1Body.deletedAt),
+      ).toBe(35 * 24 * 60 * 60 * 1000);
 
       const finalizeDeleted = await finalizeMediaPost(
         staffRequest("/api/cms/media/finalize", staffA, tenantA, mStaffA, {
@@ -1563,169 +1495,31 @@ describe.skipIf(!required && !configured)(
       );
       expect(finalizeDeleted.status).toBe(404);
 
-      const delDup = await deleteMediaPost(
-        staffRequest("/api/cms/media/delete", staffA, tenantA, mStaffA, {
-          assetId: startDuplicate.assetId,
+      const deletedGet = await mediaGet(
+        new NextRequest(`http://127.0.0.1:3000/api/media/${start1.assetId}`, {
+          headers: { cookie: staffA.cookieHeader },
         }),
+        { params: Promise.resolve({ assetId: start1.assetId }) },
       );
-      expect(delDup.status).toBe(200);
-      await db!.query(
-        `update public.media_assets
-            set deleted_at = now() - interval '36 days',
-                purge_after = now() - interval '1 day'
-          where id = $1`,
-        [start1.assetId],
+      expect(deletedGet.status).toBe(404);
+
+      const objsAfterDelete = await db!.query(
+        `select id, name, created_at from storage.objects
+          where bucket_id = $1 and name = any($2::text[])
+          order by name`,
+        [MEDIA_BUCKET, allFin1Keys],
       );
-      await db!.query(
-        `update public.media_assets
-            set deleted_at = now() - interval '1 day',
-                purge_after = now() + interval '34 days'
-          where id = $1`,
-        [startDuplicate.assetId],
-      );
+      expect(objsAfterDelete.rows).toEqual(objsBefore.rows);
 
-      const staggeredToday = await purgeExpiredMedia({
-        now: new Date(),
-        tenantIds: [tenantA, tenantB],
-      });
-      expect(staggeredToday.keptSharedObjects).toBeGreaterThanOrEqual(1);
-      expect(staggeredToday.removedObjects).toBe(0);
-      const keptAfterFirst = await realAdminClient!.storage
-        .from(MEDIA_BUCKET)
-        .download(fin1.asset.masterKey);
-      expect(keptAfterFirst.error).toBeNull();
-
-      const startBarrier1 = (await (
-        await startMediaPost(
-          staffRequest("/api/cms/media/start", staffA, tenantA, mStaffA, {
-            byteSize: jpg.byteLength,
-            mimeType: "image/jpeg",
-          }),
-        )
-      ).json()) as { assetId: string; stagingPath: string; token: string };
-      createdStorageKeys.add(startBarrier1.stagingPath);
-      const declare1 = await realAdminClient!.rpc("declare_media_finalize", {
-        p_tenant_id: tenantA,
-        p_asset_id: startBarrier1.assetId,
-        p_content_hash: fin1.asset.contentHash,
-        p_master_key: fin1.asset.masterKey,
-        p_variants: {
-          w320: {
-            key: fin1.asset.variants.w320!.key,
-            width: 320,
-            height: 427,
-            byte_size: 4096,
-            mime_type: "image/jpeg",
-          },
-        },
-        p_mime_type: "image/jpeg",
-        p_byte_size: 8192,
-        p_width: 600,
-        p_height: 800,
-        p_now: new Date().toISOString(),
-      });
-      expect(declare1.error).toBeNull();
-      expect((declare1.data as { outcome: string }).outcome).toBe("declared");
-
-      const afterDupWindow = new Date(Date.now() + 36 * 24 * 60 * 60 * 1000);
-      const barrier1Purge = await purgeExpiredMedia({
-        now: afterDupWindow,
-        tenantIds: [tenantA, tenantB],
-      });
-      expect(barrier1Purge.deferredInUse).toBeGreaterThanOrEqual(1);
-      expect(barrier1Purge.removedObjects).toBe(0);
-
-      const publish1 = await realAdminClient!.rpc("publish_media_finalize", {
-        p_tenant_id: tenantA,
-        p_asset_id: startBarrier1.assetId,
-        p_content_hash: fin1.asset.contentHash,
-        p_now: new Date().toISOString(),
-      });
-      expect(publish1.error).toBeNull();
-      expect((publish1.data as { outcome: string }).outcome).toBe("published");
-      const barrier1Get = await mediaGet(
+      const survivingGet = await mediaGet(
         new NextRequest(
-          `http://127.0.0.1:3000/api/media/${startBarrier1.assetId}`,
+          `http://127.0.0.1:3000/api/media/${startDuplicate.assetId}`,
           { headers: { cookie: staffA.cookieHeader } },
         ),
-        { params: Promise.resolve({ assetId: startBarrier1.assetId }) },
+        { params: Promise.resolve({ assetId: startDuplicate.assetId }) },
       );
-      expect(barrier1Get.status).toBe(200);
-
-      await deleteMediaPost(
-        staffRequest("/api/cms/media/delete", staffA, tenantA, mStaffA, {
-          assetId: startBarrier1.assetId,
-        }),
-      );
-      await db!.query(
-        `update public.media_assets
-            set purged_at = now()
-          where id = $1`,
-        [startDuplicate.assetId],
-      );
-      await db!.query(
-        `update public.media_assets
-            set deleted_at = now() - interval '36 days',
-                purge_after = now() - interval '1 day'
-          where id = $1`,
-        [startBarrier1.assetId],
-      );
-
-      const barrier2ClaimToken = randomUUID();
-      const claim2 = await realAdminClient!.rpc("claim_media_content_purge", {
-        p_tenant_id: tenantA,
-        p_asset_id: startBarrier1.assetId,
-        p_content_hash: fin1.asset.contentHash,
-        p_claim_token: barrier2ClaimToken,
-        p_lease_seconds: 120,
-      });
-      expect(claim2.error).toBeNull();
-      expect(claim2.data).toBe("claimed");
-
-      const startBarrier2 = (await (
-        await startMediaPost(
-          staffRequest("/api/cms/media/start", staffA, tenantA, mStaffA, {
-            byteSize: jpg.byteLength,
-            mimeType: "image/jpeg",
-          }),
-        )
-      ).json()) as { assetId: string; stagingPath: string; token: string };
-      createdStorageKeys.add(startBarrier2.stagingPath);
-      await anonStorage.storage
-        .from(MEDIA_BUCKET)
-        .uploadToSignedUrl(
-          startBarrier2.stagingPath,
-          startBarrier2.token,
-          jpg,
-          { contentType: "image/jpeg" },
-        );
-
-      const barrier2FinalizePromise = finalizeMediaUpload(authA, {
-        assetId: startBarrier2.assetId,
-      });
-      await new Promise((r) => setTimeout(r, 150));
-      await realAdminClient!.storage.from(MEDIA_BUCKET).remove(allFin1Keys);
-      await db!.query(
-        `update public.media_assets set purged_at = now() where id = $1`,
-        [startBarrier1.assetId],
-      );
-      await realAdminClient!.rpc("release_media_content_purge", {
-        p_tenant_id: tenantA,
-        p_content_hash: fin1.asset.contentHash,
-        p_claim_token: barrier2ClaimToken,
-      });
-
-      const barrier2Ready = await barrier2FinalizePromise;
-      expect(barrier2Ready.status).toBe("ready");
-      const barrier2Get = await mediaGet(
-        new NextRequest(
-          `http://127.0.0.1:3000/api/media/${startBarrier2.assetId}`,
-          { headers: { cookie: staffA.cookieHeader } },
-        ),
-        { params: Promise.resolve({ assetId: startBarrier2.assetId }) },
-      );
-      expect(barrier2Get.status).toBe(200);
-      expect((await barrier2Get.arrayBuffer()).byteLength).toBeGreaterThan(0);
+      expect(survivingGet.status).toBe(200);
+      expect((await survivingGet.arrayBuffer()).byteLength).toBeGreaterThan(0);
 
       const midDelJpg = await createDirtyJpeg(440, 320, {
         r: 92,
@@ -1806,17 +1600,33 @@ describe.skipIf(!required && !configured)(
         status: "deleted",
       });
 
-      const midPurge = await purgeExpiredMedia({
-        now: afterDupWindow,
-        tenantIds: [tenantA, tenantB],
-      });
-      expect(midPurge.removedObjects).toBeGreaterThanOrEqual(2);
-      const remainingMidObjs = await db!.query(
-        `select name from storage.objects
-          where bucket_id = $1 and name = any($2::text[])`,
-        [MEDIA_BUCKET, [midMasterKey, midVariantKey, midDelStart.stagingPath]],
+      const midTombRow = await db!.query(
+        `select status, content_hash, master_key, variants, deleted_at, purge_after
+           from public.media_assets
+          where id = $1`,
+        [midDelStart.assetId],
       );
-      expect(remainingMidObjs.rows).toEqual([]);
+      expect(midTombRow.rows[0]).toMatchObject({
+        status: "deleted",
+        content_hash: midHash,
+        master_key: midMasterKey,
+      });
+      expect(midTombRow.rows[0]!.deleted_at).not.toBeNull();
+      expect(midTombRow.rows[0]!.purge_after).not.toBeNull();
+      expect(
+        (midTombRow.rows[0]!.variants as Record<string, { key: string }>).w320
+          ?.key,
+      ).toBe(midVariantKey);
+
+      const keptMidObjs = await db!.query(
+        `select name from storage.objects
+          where bucket_id = $1 and name = any($2::text[])
+          order by name`,
+        [MEDIA_BUCKET, [midMasterKey, midVariantKey]],
+      );
+      expect(keptMidObjs.rows.map((r) => r.name)).toEqual(
+        [midMasterKey, midVariantKey].sort(),
+      );
     });
   },
 );

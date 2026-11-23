@@ -412,7 +412,6 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
       updatedAt: new Date().toISOString(),
       deletedAt: null,
       purgeAfter: null,
-      purgedAt: null,
     });
 
     const response = await finalizeMediaPost(
