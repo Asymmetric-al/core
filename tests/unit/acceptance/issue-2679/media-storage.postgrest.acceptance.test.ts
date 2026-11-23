@@ -106,7 +106,7 @@ it.runIf(required && !configured)(
 );
 
 describe.skipIf(!required && !configured)(
-  "AL-2679 WP6 part 1 media custody on real Auth, PostgREST and Storage",
+  "AL-2679 WP6 part 1 media custody on disposable local Auth, PostgREST and Storage stack only",
   () => {
     const tenantA = randomUUID();
     const tenantB = randomUUID();
@@ -257,6 +257,21 @@ describe.skipIf(!required && !configured)(
         );
       }
 
+      db = new pg.Client({ connectionString: database });
+      await db.connect();
+
+      const envMarker = await db.query(`select kind from platform.environment`);
+      if (
+        envMarker.rows.length !== 1 ||
+        envMarker.rows[0]?.kind !== "disposable"
+      ) {
+        await db.end();
+        db = undefined;
+        throw new Error(
+          `Refusing to run WP6_MEDIA_IT against non-disposable database (platform.environment.kind=${String(envMarker.rows[0]?.kind ?? "missing")})`,
+        );
+      }
+
       vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", url);
       vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", anonKey);
       vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", anonKey);
@@ -272,8 +287,6 @@ describe.skipIf(!required && !configured)(
       inactiveLiveUser = await createSignedInUser("inactivelive");
       donorA = await createSignedInUser("donor-a");
 
-      db = new pg.Client({ connectionString: database });
-      await db.connect();
       await db.query("begin");
       try {
         await db.query(
@@ -1130,12 +1143,18 @@ describe.skipIf(!required && !configured)(
       );
       expect(finalizeDeleted.status).toBe(404);
 
-      const earlyPurge = await purgeExpiredMedia({ now: new Date() });
+      const earlyPurge = await purgeExpiredMedia({
+        now: new Date(),
+        tenantIds: [tenantA, tenantB],
+      });
       expect(earlyPurge.purgedRows).toBe(0);
       expect(earlyPurge.removedObjects).toBe(0);
 
       const afterWindow = new Date(Date.now() + 36 * 24 * 60 * 60 * 1000);
-      const sharedPurge = await purgeExpiredMedia({ now: afterWindow });
+      const sharedPurge = await purgeExpiredMedia({
+        now: afterWindow,
+        tenantIds: [tenantA, tenantB],
+      });
       expect(sharedPurge.keptSharedObjects).toBeGreaterThanOrEqual(1);
       expect(sharedPurge.removedObjects).toBe(0);
 
@@ -1169,7 +1188,10 @@ describe.skipIf(!required && !configured)(
         }),
       );
       expect(delStaging.status).toBe(200);
-      const stagingPurge = await purgeExpiredMedia({ now: afterWindow });
+      const stagingPurge = await purgeExpiredMedia({
+        now: afterWindow,
+        tenantIds: [tenantA, tenantB],
+      });
       expect(stagingPurge.removedStagingObjects).toBeGreaterThanOrEqual(1);
       const stagingGone = await realAdminClient!.storage
         .from(MEDIA_BUCKET)

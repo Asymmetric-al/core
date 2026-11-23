@@ -206,6 +206,7 @@ export type ReadMediaVariantResult =
 export interface PurgeExpiredMediaOptions {
   now?: Date;
   batchSize?: number;
+  tenantIds?: readonly string[];
   hasLiveUse?: (tenantId: string, assetId: string) => Promise<boolean>;
 }
 
@@ -1101,18 +1102,35 @@ export async function readMediaVariant(
 export async function purgeExpiredMedia(
   options: PurgeExpiredMediaOptions = {},
 ): Promise<PurgeExpiredMediaResult> {
+  const scopedTenantIds =
+    options.tenantIds !== undefined ? [...options.tenantIds] : null;
+  if (scopedTenantIds !== null && scopedTenantIds.length === 0) {
+    return {
+      scanned: 0,
+      purgedRows: 0,
+      removedObjects: 0,
+      removedStagingObjects: 0,
+      keptSharedObjects: 0,
+      skippedLiveUse: 0,
+      deferredInUse: 0,
+    };
+  }
+
   const admin = requireMediaAdminClient();
   const nowIso = (options.now ?? new Date()).toISOString();
   const batchSize = options.batchSize ?? 100;
 
-  const { data, error } = await admin
+  let expiredQuery = admin
     .from("media_assets")
     .select("*")
     .eq("status", "deleted")
     .not("deleted_at", "is", null)
     .is("purged_at", null)
-    .lte("purge_after", nowIso)
-    .limit(batchSize);
+    .lte("purge_after", nowIso);
+  if (scopedTenantIds !== null) {
+    expiredQuery = expiredQuery.in("tenant_id", scopedTenantIds);
+  }
+  const { data, error } = await expiredQuery.limit(batchSize);
 
   if (error) {
     throw new ApiHttpError(500, "Failed to query expired media assets");
@@ -1229,14 +1247,18 @@ export async function purgeExpiredMedia(
     summary.purgedRows += 1;
   }
 
-  const { data: sweepData, error: sweepQueryError } = await admin
+  let sweepQuery = admin
     .from("media_assets")
     .select("*")
     .in("status", ["ready", "failed"])
     .is("staging_swept_at", null)
     .not("upload_token_expires_at", "is", null)
-    .lte("upload_token_expires_at", nowIso)
-    .limit(batchSize);
+    .lte("upload_token_expires_at", nowIso);
+  if (scopedTenantIds !== null) {
+    sweepQuery = sweepQuery.in("tenant_id", scopedTenantIds);
+  }
+  const { data: sweepData, error: sweepQueryError } =
+    await sweepQuery.limit(batchSize);
 
   if (sweepQueryError) {
     throw new ApiHttpError(

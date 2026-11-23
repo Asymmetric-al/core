@@ -1795,4 +1795,121 @@ describe("media-store custody and Sharp sanitization", () => {
     });
     expect(secondSweep.removedStagingObjects).toBe(0);
   });
+
+  it("scopes purgeExpiredMedia strictly to options.tenantIds across both deleted purges and staging sweeps (Finding 3)", async () => {
+    const imgA = await createDirtyJpeg(440, 300);
+    const imgB = await createDirtyJpeg(460, 320);
+
+    const delA = randomUUID();
+    const delB = randomUUID();
+    const sweepA = randomUUID();
+    const sweepB = randomUUID();
+
+    fakeState.rows.set(delA, makeRow({ id: delA, tenant_id: tenantA }));
+    fakeState.rows.set(delB, makeRow({ id: delB, tenant_id: tenantB }));
+    fakeState.rows.set(sweepA, makeRow({ id: sweepA, tenant_id: tenantA }));
+    fakeState.rows.set(sweepB, makeRow({ id: sweepB, tenant_id: tenantB }));
+
+    fakeState.objects.set(buildMediaStagingKey(tenantA, delA), {
+      bytes: imgA,
+      contentType: "image/jpeg",
+      version: 1,
+    });
+    fakeState.objects.set(buildMediaStagingKey(tenantB, delB), {
+      bytes: imgB,
+      contentType: "image/jpeg",
+      version: 1,
+    });
+    fakeState.objects.set(buildMediaStagingKey(tenantA, sweepA), {
+      bytes: imgA,
+      contentType: "image/jpeg",
+      version: 1,
+    });
+    fakeState.objects.set(buildMediaStagingKey(tenantB, sweepB), {
+      bytes: imgB,
+      contentType: "image/jpeg",
+      version: 1,
+    });
+
+    const readyDelA = await finalizeMediaUpload(authA, { assetId: delA });
+    const readyDelB = await finalizeMediaUpload(authB, { assetId: delB });
+    await finalizeMediaUpload(authA, { assetId: sweepA });
+    await finalizeMediaUpload(authB, { assetId: sweepB });
+
+    const now = new Date("2027-01-10T00:00:00.000Z");
+    const pastIso = "2027-01-01T00:00:00.000Z";
+
+    fakeState.rows.set(delA, {
+      ...fakeState.rows.get(delA)!,
+      status: "deleted",
+      deleted_at: "2026-11-25T00:00:00.000Z",
+      purge_after: pastIso,
+    });
+    fakeState.rows.set(delB, {
+      ...fakeState.rows.get(delB)!,
+      status: "deleted",
+      deleted_at: "2026-11-25T00:00:00.000Z",
+      purge_after: pastIso,
+    });
+    fakeState.rows.set(sweepA, {
+      ...fakeState.rows.get(sweepA)!,
+      upload_token_expires_at: pastIso,
+      staging_swept_at: null,
+    });
+    fakeState.rows.set(sweepB, {
+      ...fakeState.rows.get(sweepB)!,
+      upload_token_expires_at: pastIso,
+      staging_swept_at: null,
+    });
+    fakeState.objects.set(buildMediaStagingKey(tenantA, sweepA), {
+      bytes: Buffer.from("replay-a"),
+      contentType: "image/jpeg",
+      version: 2,
+    });
+    fakeState.objects.set(buildMediaStagingKey(tenantB, sweepB), {
+      bytes: Buffer.from("replay-b"),
+      contentType: "image/jpeg",
+      version: 2,
+    });
+
+    const emptyScope = await purgeExpiredMedia({
+      now,
+      tenantIds: [],
+    });
+    expect(emptyScope.scanned).toBe(0);
+    expect(emptyScope.purgedRows).toBe(0);
+    expect(emptyScope.removedStagingObjects).toBe(0);
+
+    const onlyA = await purgeExpiredMedia({
+      now,
+      tenantIds: [tenantA],
+    });
+    expect(onlyA.purgedRows).toBe(1);
+    expect(onlyA.removedStagingObjects).toBe(1);
+    expect(fakeState.rows.get(delA)!.purged_at).not.toBeNull();
+    expect(fakeState.rows.get(sweepA)!.staging_swept_at).not.toBeNull();
+    expect(fakeState.objects.has(readyDelA.masterKey!)).toBe(true);
+    expect(fakeState.objects.has(buildMediaStagingKey(tenantA, sweepA))).toBe(
+      false,
+    );
+
+    expect(fakeState.rows.get(delB)!.purged_at).toBeNull();
+    expect(fakeState.rows.get(sweepB)!.staging_swept_at).toBeNull();
+    expect(fakeState.objects.has(readyDelB.masterKey!)).toBe(true);
+    expect(fakeState.objects.has(buildMediaStagingKey(tenantB, sweepB))).toBe(
+      true,
+    );
+
+    const onlyB = await purgeExpiredMedia({
+      now,
+      tenantIds: [tenantB],
+    });
+    expect(onlyB.purgedRows).toBe(1);
+    expect(onlyB.removedStagingObjects).toBe(1);
+    expect(fakeState.rows.get(delB)!.purged_at).not.toBeNull();
+    expect(fakeState.rows.get(sweepB)!.staging_swept_at).not.toBeNull();
+    expect(fakeState.objects.has(buildMediaStagingKey(tenantB, sweepB))).toBe(
+      false,
+    );
+  });
 });
