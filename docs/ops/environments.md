@@ -276,6 +276,8 @@ Supabase-specific development values must resolve to project ref
 | `PAYLOAD_DATABASE_URI`          | Yes   | No    | No         | Restricted `cms_runtime` role on the development session pooler; verify-full. |
 | `PAYLOAD_DATABASE_SSL_CA`       | Yes   | No    | No         | Development project CA used to verify the pooler.                             |
 
+On admin also set `PAYLOAD_SECRET`. Payload and the Web Studio tenant cookie take their signing key from it, and the admin app refuses to resolve it outside local development and tests (`apps/admin/src/cms/payload-secret.ts`). Donor and missionary do not use it.
+
 Merges to `develop` do not deploy. To refresh the three domains, follow the [development checkpoint](./release-job.md#switching-it-on): force builds of the exact commit in `core-development`, confirm the deployment ids and aliases, check detailed health and run the hosted smoke. Before a release record the signed-in evidence against the commit actually exercised.
 
 Verify the development Supabase/Vercel map without printing secrets:
@@ -576,7 +578,7 @@ Cover Supabase, Stripe, Sentry, Cloudinary, email and PDF services where configu
 
 ## 9. If an Environment Is Compromised
 
-1. **Immediately rotate** all credentials for the affected environment in each service dashboard, following the schedule above.
+1. **Immediately rotate** all credentials for the affected environment in each service dashboard, following the schedule above. `RESEND_ENCRYPTION_KEY` is the exception to “rotate, update, rebuild”: it protects each tenant’s stored Resend API key, and a rebuild with a new value alone leaves every stored key unreadable. Rotate it with the [re-encryption procedure](../guides/features/resend-integration.md#rotate-resend_encryption_key-critical), which re-encrypts the stored keys before the new value is deployed.
 2. **Update Vercel environment variables** for the affected scope (preview/development/production) across all three projects: `admin`, `donor`, and `missionary`.
 3. **Rebuild** all affected apps. Refresh the custom development environment explicitly. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.
 4. **For production compromises**, coordinate with the full team before rotating Stripe live keys (brief webhook downtime expected), and notify affected users if any data was exposed.
