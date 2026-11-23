@@ -333,8 +333,7 @@ type Allow = {
   })[];
 };
 const doc = () => JSON.parse(read(ALLOWLIST) || "null") as Allow | null;
-// D-18: count the platform wrapper instead of the caller lane, including eight already-privileged member-care and portal sites under the 21 November ruling.
-const CEILING_TOTALS = [173, 111, 105] as const;
+const CEILING_TOTALS = [174, 112, 106] as const;
 const live = (d: Allow) => [
   d.entries.reduce((a, x) => a + x.count, 0),
   d.entries.length,

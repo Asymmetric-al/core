@@ -127,6 +127,12 @@ on:
       - apps/admin/features/mission-control/care/**
       - tests/unit/acceptance/issue-2677/member-care.postgrest.acceptance.test.ts
       - tests/e2e/auth-member-care.spec.ts
+      - packages/api/src/storage/**
+      - packages/api/src/media/**
+      - packages/api/src/cms/media/**
+      - apps/*/app/api/media/**
+      - apps/admin/app/api/cms/media/**
+      - tests/unit/acceptance/issue-2679/media-storage.postgrest.acceptance.test.ts
 
 permissions:
   contents: read
@@ -268,6 +274,17 @@ jobs:
           MEMBER_CARE_IT_SERVICE_ROLE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
           export MEMBER_CARE_IT_ANON_KEY MEMBER_CARE_IT_SERVICE_ROLE_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/member-care.postgrest.acceptance.test.ts
+      - name: Verify media custody, Storage refusal and signed-in delivery through PostgREST and Storage (AL-2679)
+        shell: bash
+        env:
+          WP6_MEDIA_IT_URL: http://127.0.0.1:54321
+          WP6_MEDIA_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          WP6_MEDIA_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          WP6_MEDIA_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export WP6_MEDIA_IT_ANON_KEY WP6_MEDIA_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2679/media-storage.postgrest.acceptance.test.ts
       - name: Install Playwright Chromium
         id: chromium
         run: bunx playwright install --with-deps chromium

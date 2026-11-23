@@ -28,8 +28,10 @@
 --     tenant_guard.log_care_activity(UUID, UUID, TEXT, TEXT),
 --     tenant_guard.upsert_care_requirement(UUID, UUID, TEXT, INTEGER, TEXT, UUID),
 --     tenant_guard.set_manual_attention_flag(UUID, UUID, BOOLEAN),
---     private.share_lock_tenant(UUID),
 --     private.profile_display_name(UUID);
+--   -- Note: private.share_lock_tenant(UUID) is also created identically by
+--   -- 20261123020000_media_custody.sql; do not drop it while media custody
+--   -- remains applied.
 --   REVOKE EXECUTE ON FUNCTION authz.request_tenant_id() FROM tenant_guard;
 --   DROP POLICY IF EXISTS tenant_guard_isolation ON public.member_care_activities;
 --   DROP POLICY IF EXISTS tenant_guard_isolation ON public.member_care_private_notes;
@@ -97,36 +99,22 @@ GRANT EXECUTE ON FUNCTION authz.request_tenant_id() TO tenant_guard;
 
 CREATE OR REPLACE FUNCTION private.share_lock_tenant(p_tenant_id UUID)
 RETURNS TEXT
-LANGUAGE plpgsql
+LANGUAGE sql
 VOLATILE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-DECLARE
-  v_status TEXT;
-BEGIN
-  IF p_tenant_id IS NULL THEN
-    RETURN NULL;
-  END IF;
-
   SELECT t.status
-    INTO v_status
     FROM public.tenants AS t
    WHERE t.id = p_tenant_id
      FOR SHARE;
-
-  RETURN v_status;
-END;
 $$;
 
 COMMENT ON FUNCTION private.share_lock_tenant(UUID) IS
-  'Takes FOR SHARE on one tenant row and returns its status for tenant_guard '
-  'care commands without granting tenant_guard SELECT on public.tenants '
-  '(AL-2677 WP4b part 1; W4b-R12).';
+  'Share-locks a tenant row and returns its current status so tenant_guard commands serialize against concurrent tenant suspension or closure without granting SELECT on public.tenants to tenant_guard. EXECUTE for tenant_guard only.';
 
 ALTER FUNCTION private.share_lock_tenant(UUID) OWNER TO postgres;
-REVOKE ALL ON FUNCTION private.share_lock_tenant(UUID)
-  FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION private.share_lock_tenant(UUID) FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
 GRANT EXECUTE ON FUNCTION private.share_lock_tenant(UUID) TO tenant_guard;
 
 CREATE OR REPLACE FUNCTION private.profile_display_name(p_user_id UUID)
