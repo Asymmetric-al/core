@@ -138,7 +138,7 @@ const CLEAN: Record<string, string> = {
   "scripts/verify-money-units.ts": `process.env.${K};`,
   "packages/api/src/workflows/functions/stripe-event-processing.ts":
     'import { requireWorkflowAdminClient } from "../admin-client";\nrequireWorkflowAdminClient("x");',
-  "packages/api/src/admin/crm/table-preferences/route.ts": `${OP.replace("../", "../../../")}\nexport const a = withPlatformOperation(async ({ supabaseAdmin }) => supabaseAdmin);`,
+  "packages/api/src/admin/contribution-operations/route.ts": `${OP.replace("../", "../../")}\nexport const a = withPlatformOperation(async ({ supabaseAdmin }) => supabaseAdmin);`,
   "packages/api/src/admin/fx-neg.ts": `${OP.replaceAll("withPlatformOperation", "withOperation")}\nexport const g = withOperation(async ({ auth, request }) => auth);\nfunction getAdminClient() {}\ngetAdminClient();\nimport type { AdminSupabaseClient } from "${FACTORY}";`,
   ...Object.fromEntries(
     [
@@ -176,7 +176,7 @@ const CLEAN_LIST: Entry[] = [
     1,
   ),
   e(
-    "packages/api/src/admin/crm/table-preferences/route.ts",
+    "packages/api/src/admin/contribution-operations/route.ts",
     "operation_admin_context",
     1,
   ),
@@ -333,8 +333,8 @@ type Allow = {
   })[];
 };
 const doc = () => JSON.parse(read(ALLOWLIST) || "null") as Allow | null;
-// D-18: platform wrapper + 21 Nov ruling (8 sites) + 23 Nov ruling W6-R3 amended (1 site: packages/api/src/storage/media-store.ts).
-const CEILING_TOTALS = [187, 122, 116] as const;
+// D-18: platform wrapper + 21 Nov ruling (8 sites) + 23 Nov ruling W6-R3 amended (1 site: packages/api/src/storage/media-store.ts) on develop after WP4a part 2a.
+const CEILING_TOTALS = [178, 116, 110] as const;
 const live = (d: Allow) => [
   d.entries.reduce((a, x) => a + x.count, 0),
   d.entries.length,
@@ -362,7 +362,7 @@ describe("#2253 service-role gate on the real tree (9, 11)", () => {
     for (const k of KINDS) {
       const xs = d!.entries.filter((x) => x.kind === k);
       const got = [xs.reduce((n, x) => n + x.count, 0), xs.length];
-      const limit = k === "operation_admin_context" ? [73, 43] : TOTALS[k];
+      const limit = k === "operation_admin_context" ? [65, 38] : TOTALS[k];
       const ok = got.every((n, i) => n <= limit[i]!);
       expect(ok, `${k} ${got.join("/")} <= ${limit.join("/")}`).toBe(true);
     }

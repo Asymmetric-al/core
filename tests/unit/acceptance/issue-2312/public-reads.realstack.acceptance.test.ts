@@ -307,43 +307,43 @@ describe.skipIf(!ADMIN_URL)(
 
     describe("criterion 1: post-state", () => {
       it.each(H.TABLES)(
-        "1: public.%s has exactly one PERMISSIVE SELECT {authenticated} policy with the §1.1 name and deparsed qual",
+        "1: public.%s has the exact authorized PERMISSIVE SELECT policies and deparsed quals",
         (t) =>
           tx(async () => {
             const p = await policies(t);
-            expect(
-              p.map((x) => [
-                x.policyname,
-                x.permissive,
-                x.cmd,
-                x.roles,
-                x.with_check,
-              ]),
-            ).toEqual([
-              [
-                serverOnlyMissionaries(t)
-                  ? "missionaries own row key read"
-                  : H.policyName(t),
-                "PERMISSIVE",
-                "SELECT",
-                ["authenticated"],
-                null,
-              ],
-            ]);
-            await db.query(
-              `create policy acc2312_ref on public.${t} as permissive for select to authenticated using (${currentQual(
-                t,
-              )})`,
+            const expected = serverOnlyMissionaries(t)
+              ? [
+                  [
+                    "crm staff read",
+                    "tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff'))",
+                  ],
+                  ["missionaries own row key read", currentQual(t)],
+                ]
+              : [[H.policyName(t), currentQual(t)]];
+            expect(p.map((x) => x.policyname)).toEqual(
+              expected.map(([name]) => name),
             );
-            const ref = (await policies(t)).find(
-              (x) => x.policyname === "acc2312_ref",
-            );
-            expect(p[0]!.qual).toBe(ref!.qual);
+            for (const [index, [, qual]] of expected.entries()) {
+              await db.query(
+                `create policy acc2312_ref on public.${t} as permissive for select to authenticated using (${qual})`,
+              );
+              const ref = (await policies(t)).find(
+                (x) => x.policyname === "acc2312_ref",
+              );
+              expect(p[index]).toMatchObject({
+                permissive: "PERMISSIVE",
+                cmd: "SELECT",
+                roles: ["authenticated"],
+                with_check: null,
+                qual: ref!.qual,
+              });
+              await db.query(`drop policy acc2312_ref on public.${t}`);
+            }
           }),
       );
 
       it.each(H.TABLES)(
-        "1: public.%s grants match the owning contract (#2364 join keys supersede missionaries SELECT)",
+        "1: public.%s grants match the owning contract (including the scoped CRM worker projection)",
         (t) =>
           tx(async () => {
             const a = await acl(t);
@@ -358,7 +358,14 @@ describe.skipIf(!ADMIN_URL)(
               );
               expect(
                 keys.rows.map((r: { attname: string }) => r.attname),
-              ).toEqual(["id", "profile_id"]);
+              ).toEqual([
+                "created_at",
+                "id",
+                "location",
+                "profile_id",
+                "tenant_id",
+                "updated_at",
+              ]);
             }
             const col = await db.query(
               `select has_any_column_privilege('anon', $1, 'SELECT, INSERT, UPDATE, REFERENCES') as anon,

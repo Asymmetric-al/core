@@ -80,6 +80,30 @@ class MemoryCrmRelationshipsSupabase {
     private readonly tables: Record<string, Record<string, unknown>[]>,
   ) {}
 
+  async rpc(
+    name: string,
+    args: { p_tenant_id: string; p_profile_ids: string[] },
+  ) {
+    expect(name).toBe("tenant_member_directory");
+    this.calls.push({ table: name, filters: { tenant_id: args.p_tenant_id } });
+    return {
+      data: (this.tables.profiles ?? [])
+        .filter(
+          (row) =>
+            args.p_profile_ids.includes(String(row.id)) &&
+            row.tenant_id === args.p_tenant_id,
+        )
+        .map((row) => ({
+          profile_id: row.id,
+          display_name:
+            [row.first_name, row.last_name].filter(Boolean).join(" ") ||
+            row.display_name,
+          email: row.email,
+        })),
+      error: null,
+    };
+  }
+
   from(table: string) {
     return new MemoryQuery(this.tables[table] ?? [], table, this.calls);
   }

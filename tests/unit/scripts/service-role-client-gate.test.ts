@@ -146,11 +146,11 @@ describe("frozen ceiling", () => {
     expect(Object.isFrozen(CALLER_PRIVILEGED_IMPORT_EXCEPTIONS)).toBe(true);
   });
   // D-18: the ceiling falls with the allowlist. Raised by the 21 November 2026 ruling (F3, F4:
-  // eight uncounted platform-wrapper sites for WP4b) and the 23 November 2026 ruling W6-R3 amended
+  // eight uncounted platform-wrapper sites for WP4b) and 23 November 2026 ruling W6-R3 amended
   // (one admin_client site for packages/api/src/storage/media-store.ts). Any other growth needs a new ruling.
-  it("pins the 122 entries, including the media-store platform-lane site under W6-R3 amended", () => {
+  it("pins the 116 reviewed entries after WP4a part 2a plus the media-store site under W6-R3 amended", () => {
     expect(ceilingDigest()).toBe(
-      "3328c4a09c7a15c900804e148cf8e1c4aaf620bc8f9971d2c2ead30b24481069",
+      "777429dcc78233540ca206a59037a9d986d376050cc06184271a8b5acc554201",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -158,15 +158,15 @@ describe("frozen ceiling", () => {
       totals[kind] = (totals[kind] ?? 0) + count;
     }
     expect(totals).toEqual({
-      admin_client: 79,
+      admin_client: 78,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
-      operation_admin_context: 73,
+      operation_admin_context: 65,
     });
-    expect(CEILING.size).toBe(122);
+    expect(CEILING.size).toBe(116);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(116);
+    ).toBe(110);
   });
 });
 

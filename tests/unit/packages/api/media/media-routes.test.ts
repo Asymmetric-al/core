@@ -329,7 +329,10 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
     const response = await startMediaPost(
       new NextRequest("http://localhost:3001/api/cms/media/start", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          authorization: "Bearer test-jwt-token",
+          "content-type": "application/json",
+        },
         body: JSON.stringify({ byteSize: 4096, mimeType: "image/jpeg" }),
       }),
     );
@@ -357,7 +360,10 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
     const nonJson = await startMediaPost(
       new NextRequest("http://localhost:3001/api/cms/media/start", {
         method: "POST",
-        headers: { "content-type": "multipart/form-data; boundary=x" },
+        headers: {
+          authorization: "Bearer test-jwt-token",
+          "content-type": "multipart/form-data; boundary=x",
+        },
         body: "--x--",
       }),
     );
@@ -366,7 +372,10 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
     const forgedTenant = await startMediaPost(
       new NextRequest("http://localhost:3001/api/cms/media/start", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          authorization: "Bearer test-jwt-token",
+          "content-type": "application/json",
+        },
         body: JSON.stringify({
           byteSize: 4096,
           mimeType: "image/jpeg",
@@ -403,7 +412,10 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
     const response = await finalizeMediaPost(
       new NextRequest("http://localhost:3001/api/cms/media/finalize", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          authorization: "Bearer test-jwt-token",
+          "content-type": "application/json",
+        },
         body: JSON.stringify({ assetId }),
       }),
     );
@@ -422,7 +434,10 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
     const notFound = await finalizeMediaPost(
       new NextRequest("http://localhost:3001/api/cms/media/finalize", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          authorization: "Bearer test-jwt-token",
+          "content-type": "application/json",
+        },
         body: JSON.stringify({ assetId }),
       }),
     );
@@ -448,7 +463,10 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
     const response = await deleteMediaPost(
       new NextRequest("http://localhost:3001/api/cms/media/delete", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          authorization: "Bearer test-jwt-token",
+          "content-type": "application/json",
+        },
         body: JSON.stringify({ assetId }),
       }),
     );
@@ -473,11 +491,31 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
     const missing = await deleteMediaPost(
       new NextRequest("http://localhost:3001/api/cms/media/delete", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          authorization: "Bearer test-jwt-token",
+          "content-type": "application/json",
+        },
         body: JSON.stringify({ assetId }),
       }),
     );
     expect(missing.status).toBe(404);
+  });
+
+  it("refuses requests carrying no Supabase session with 401 across start, finalize and delete", async () => {
+    for (const [handler, body] of [
+      [startMediaPost, { byteSize: 1024, mimeType: "image/jpeg" }],
+      [finalizeMediaPost, { assetId }],
+      [deleteMediaPost, { assetId }],
+    ] as const) {
+      const res = await handler(
+        new NextRequest("http://localhost:3001/api/cms/media/op", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        }),
+      );
+      expect(res.status).toBe(401);
+    }
   });
 
   it("refuses unauthenticated requests with 401 across start, finalize and delete", async () => {
