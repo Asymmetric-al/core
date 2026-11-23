@@ -19,37 +19,50 @@ replays runnable.
 1. **Run `20261120130004`'s preflight and operator query on scratch schema
    copies.** In
    `tests/unit/acceptance/issue-2676/giving-targets.realstack.acceptance.test.ts`,
-   the preflight case executes the shipped preflight block from
+   the preflight case executes the shipped `DO $$` preflight block from
    `supabase/migrations/20261120130004_giving_target_entities.sql` and
    `scripts/sql/giving-target-preflight.sql` unchanged except for schema name
-   against scratch copies of the seven tables (`funds`, `missionaries` and the
-   five money tables). The already-migrated catalog can no longer hold the
-   unconvertible rows (tenantless targets, cross-tenant money rows and blank
-   tenant names) that the preflight refuses. Cited: AL-2676 council F3.
+   against scratch copies of all eight tables the migration locks (`tenants`,
+   `funds`, `missionaries` and the five money tables `donations`,
+   `donor_pledges`, `staged_gifts`, `staged_gift_allocations` and
+   `donation_saga_outbox`). The already-migrated catalog can no longer hold
+   tenantless targets (`funds.tenant_id` and `missionaries.tenant_id` are
+   `NOT NULL`) or cross-tenant money rows (blocked by the composite same-tenant
+   foreign keys and target-requires-tenant checks). Migration
+   `20261120130004_giving_target_entities.sql` constrains `public.legal_entities.name`
+   (`CHECK (length(btrim(name)) > 0)`), not `public.tenants.name`: its preflight
+   refuses a tenant whose name is blank because the backfill copies
+   `tenants.name` into the new `public.legal_entities` row. Cited: AL-2676
+   council F3.
 2. **Isolate the `20261120130001` rollback suite on a throwaway database and
    never echo `psql` stderr.** In
    `tests/unit/acceptance/issue-2676/tenant-status-rollback.realstack.acceptance.test.ts`,
    the suite creates a throwaway database from `template0` and replays the
-   migration chain up to `20261120130001` (with guard refusals proved inside
-   rolled-back transactions) rather than running against the shared `migrate`
-   database, because rolling back `20261120130001` on the shared database would
-   hold `public.tenants` exclusively while parallel program suites run. Its
-   `psql` helper passes the connection URL as the whole target argument and
-   returns only the process exit status without echoing `stderr`, avoiding
-   credential exposure in test output. Cited: AL-2676 fix checks K1 and K12;
-   modelled on `issue-2675/tenant-policy-migration`.
+   compatibility bootstrap and migration chain through `20261120130001` (with
+   guard refusals proved inside rolled-back transactions by `refusal`) rather
+   than running against the shared `migrate` database, because rolling back
+   `20261120130001` (`ALTER TABLE public.tenants DROP COLUMN status`) on the
+   shared database would hold `public.tenants` exclusively while parallel
+   program suites run. Its `psql` helper passes the connection URL as the whole
+   target argument and returns only the process exit status without echoing
+   `stderr`, avoiding credential exposure in test output. Cited: AL-2676 fix
+   checks K1 and K12; modelled on `issue-2675/tenant-policy-migration`.
 3. **Seed only the signup trigger's tenant in historical predecessor replay
-   harnesses.** `Stack` in `tests/unit/acceptance/issue-2364/harness.ts`,
-   `tests/unit/acceptance/issue-2406/harness.ts` and
-   `tests/unit/acceptance/issue-2407/harness.ts` replays migrations without
-   running `supabase/seed.sql` and instead inserts only the signup trigger's
-   tenant (`00000000-0000-0000-0000-000000000001`). The demo seed's giving
-   targets require `public.legal_entities`, which does not exist at historical
-   predecessor snapshots such as `#2364`.
+   harnesses.** `Stack` in `tests/unit/acceptance/issue-2364/harness.ts` (which
+   stops before `20261026105000`), `tests/unit/acceptance/issue-2406/harness.ts`
+   (which stops after `20261027100000`) and
+   `tests/unit/acceptance/issue-2407/harness.ts` (which stops after
+   `20261028100000`) replays migrations without running `supabase/seed.sql` and
+   instead inserts only the signup trigger's tenant
+   (`00000000-0000-0000-0000-000000000001`). None of those three historical
+   replay windows reaches `20261120130004_giving_target_entities.sql`, so
+   `public.legal_entities` does not exist in their throwaway databases, whereas
+   `supabase/seed.sql` deletes from and inserts into `public.legal_entities`.
 4. **Trigger the Local Supabase Stack workflow when the catalog gate or security
    exception lists change.** `tests/unit/workflows/local-supabase-paths.test.ts`
    pins `scripts/verify/tenant-rls-catalog.mjs` and `docs/security/*.json` in
-   `.github/workflows/local-supabase.yml`'s path filter because the workflow's
-   replay step runs `scripts/verify/supabase-migrations.mjs`, which imports
+   `.github/workflows/local-supabase.yml`'s `on.pull_request.paths` filter
+   because the workflow's replay step runs
+   `scripts/verify/supabase-migrations.mjs`, which imports
    `scripts/verify/tenant-rls-catalog.mjs` and reads its reviewed security
    exception lists. Cited: AL-2676 round M, M4.

@@ -10,8 +10,9 @@ intent is in [`docs/adr/`](../../../docs/adr/README.md).
 The local Supabase SDK runtime verifier
 (`tests/integration/supabase/client-runtime-verification.mjs` and its helpers in
 `tests/integration/supabase/client-runtime-checks.mjs`) stages tenant, legal
-entity, membership, user and fund rows against an owned local Supabase container
-and proves caller-token authorization before cleaning up every fixture row.
+entity, membership, user and fund rows against an owned local Supabase stack
+(gateway and database containers) and proves caller-token authorization before
+cleaning up every fixture row.
 
 ## Accepted records this code implements
 
@@ -19,10 +20,11 @@ PR #2753 (AL-2676, WP3a part 1a) records why `LEGAL_ENTITY_FIXTURE_INSERT` and
 `MEMBERSHIP_FIXTURE_INSERT` run via `psql` in the owned database container
 (`legal_entities` grants `service_role` nothing under deny-by-default), why
 Realtime is verified by a broadcast round trip rather than `postgres_changes`
-(`20261119135300_request_tenant_policies.sql` section 5 removed all application
-tables from `supabase_realtime`), and why
-`tests/unit/scripts/supabase-client-runtime-safety.test.ts` statically pins the
-hand-run verifier's source.
+(`20261119135300_request_tenant_policies.sql` section 5 removed `funds`,
+`locations`, `posts`, `post_comments`, `post_fires`, `post_likes` and
+`post_prayers` from `supabase_realtime`, leaving no application table
+published), and why `tests/unit/scripts/supabase-client-runtime-safety.test.ts`
+statically pins the hand-run verifier's source.
 
 ## Decisions
 
