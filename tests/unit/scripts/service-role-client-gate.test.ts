@@ -6,6 +6,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  CALLER_MEDIA_STORE_ALLOWED_EXPORTS,
   CALLER_PRIVILEGED_IMPORT_EXCEPTIONS,
   CEILING,
   ceilingDigest,
@@ -139,11 +140,164 @@ describe("frozen ceiling", () => {
     }
   });
 
-  it("pins CALLER_PRIVILEGED_IMPORT_EXCEPTIONS to the single reviewed media-store path", () => {
+  it("pins CALLER_PRIVILEGED_IMPORT_EXCEPTIONS and CALLER_MEDIA_STORE_ALLOWED_EXPORTS", () => {
     expect(CALLER_PRIVILEGED_IMPORT_EXCEPTIONS).toEqual([
       "packages/api/src/storage/media-store",
     ]);
     expect(Object.isFrozen(CALLER_PRIVILEGED_IMPORT_EXCEPTIONS)).toBe(true);
+    expect(CALLER_MEDIA_STORE_ALLOWED_EXPORTS).toEqual([
+      "issueSignedUpload",
+      "finalizeMediaUpload",
+      "readMediaVariant",
+    ]);
+    expect(Object.isFrozen(CALLER_MEDIA_STORE_ALLOWED_EXPORTS)).toBe(true);
+  });
+
+  it("rejects withOperation imports of purgeExpiredMedia, namespace imports, or dynamic imports from media-store", () => {
+    const cases: Array<[string, string]> = [
+      [
+        "purgeExpiredMedia named import",
+        'import {withOperation} from "../../shared/with-operation";\nimport {purgeExpiredMedia} from "../../storage/media-store";\nexport const POST = withOperation(async () => purgeExpiredMedia());',
+      ],
+      [
+        "aliased purgeExpiredMedia import",
+        'import {withOperation} from "../../shared/with-operation";\nimport {purgeExpiredMedia as clean} from "../../storage/media-store";\nexport const POST = withOperation(async () => clean());',
+      ],
+      [
+        "namespace import",
+        'import {withOperation} from "../../shared/with-operation";\nimport * as store from "../../storage/media-store";\nexport const POST = withOperation(async () => store.issueSignedUpload());',
+      ],
+      [
+        "dynamic import",
+        'import {withOperation} from "../../shared/with-operation";\nexport const POST = withOperation(async () => (await import("../../storage/media-store")).purgeExpiredMedia());',
+      ],
+    ];
+    for (const [label, badSource] of cases) {
+      const root = mkdtempSync(path.join(tmpdir(), "caller-media-export-"));
+      const files = {
+        "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; const admin = () => getAdminClient(); export const issueSignedUpload = () => admin(); export const purgeExpiredMedia = () => admin();`,
+        "packages/api/src/cms/media/bad.ts": badSource,
+        "docs/security/service-role-client-allowlist.json": JSON.stringify({
+          version: 1,
+          entries: [
+            {
+              file: "packages/api/src/storage/media-store.ts",
+              kind: "admin_client",
+              count: 1,
+              lines: [1],
+              reason: "W6-R3 amended fixture",
+              path_ref: "P media storage",
+              follow_up: "#2679",
+            },
+          ],
+        }),
+      };
+      try {
+        for (const [file, content] of Object.entries(files)) {
+          mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+          writeFileSync(path.join(root, file), content);
+        }
+        spawnSync("git", ["init", "-q"], { cwd: root });
+        const result = runServiceRoleClientGate({ root });
+        expect(result.failures, label).toContainEqual(
+          expect.stringMatching(
+            /^CALLER_PRIVILEGED_IMPORT packages\/api\/src\/cms\/media\/bad\.ts:/,
+          ),
+        );
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    }
+  });
+
+  it("rejects re-exporting media-store or forwarding media-store transitively into a withOperation file", () => {
+    const reexportCases: Array<[string, string]> = [
+      [
+        "named re-export",
+        'export { finalizeMediaUpload } from "../storage/media-store";',
+      ],
+      ["star re-export", 'export * from "../storage/media-store";'],
+      [
+        "local re-export",
+        'import { purgeExpiredMedia } from "../storage/media-store";\nexport { purgeExpiredMedia };',
+      ],
+    ];
+    for (const [label, wrapperSource] of reexportCases) {
+      const root = mkdtempSync(path.join(tmpdir(), "media-reexport-"));
+      const files = {
+        "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; const admin = () => getAdminClient(); export const finalizeMediaUpload = () => admin(); export const purgeExpiredMedia = () => admin();`,
+        "packages/api/src/cms/barrel.ts": wrapperSource,
+        "docs/security/service-role-client-allowlist.json": JSON.stringify({
+          version: 1,
+          entries: [
+            {
+              file: "packages/api/src/storage/media-store.ts",
+              kind: "admin_client",
+              count: 1,
+              lines: [1],
+              reason: "W6-R3 amended fixture",
+              path_ref: "P media storage",
+              follow_up: "#2679",
+            },
+          ],
+        }),
+      };
+      try {
+        for (const [file, content] of Object.entries(files)) {
+          mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+          writeFileSync(path.join(root, file), content);
+        }
+        spawnSync("git", ["init", "-q"], { cwd: root });
+        const result = runServiceRoleClientGate({ root });
+        expect(result.failures, label).toContainEqual(
+          expect.stringMatching(
+            /^REEXPORT media_store packages\/api\/src\/cms\/barrel\.ts:/,
+          ),
+        );
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    }
+
+    const root = mkdtempSync(path.join(tmpdir(), "media-forward-"));
+    const files = {
+      "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; export const purgeExpiredMedia = () => getAdminClient();`,
+      "packages/api/src/cms/hop1.ts":
+        'import { purgeExpiredMedia } from "../storage/media-store";\nexport const runHop1 = () => purgeExpiredMedia();',
+      "packages/api/src/cms/hop2.ts":
+        'import { runHop1 } from "./hop1";\nexport const runHop2 = () => runHop1();',
+      "packages/api/src/cms/media/bad.ts":
+        'import {withOperation} from "../../shared/with-operation";\nimport {runHop2} from "../hop2";\nexport const POST = withOperation(async () => runHop2());',
+      "docs/security/service-role-client-allowlist.json": JSON.stringify({
+        version: 1,
+        entries: [
+          {
+            file: "packages/api/src/storage/media-store.ts",
+            kind: "admin_client",
+            count: 1,
+            lines: [1],
+            reason: "W6-R3 amended fixture",
+            path_ref: "P media storage",
+            follow_up: "#2679",
+          },
+        ],
+      }),
+    };
+    try {
+      for (const [file, content] of Object.entries(files)) {
+        mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+        writeFileSync(path.join(root, file), content);
+      }
+      spawnSync("git", ["init", "-q"], { cwd: root });
+      const result = runServiceRoleClientGate({ root });
+      expect(result.failures).toContainEqual(
+        expect.stringMatching(
+          /^CALLER_PRIVILEGED_IMPORT packages\/api\/src\/cms\/media\/bad\.ts:2/,
+        ),
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   it("pins the 116 reviewed entries after WP4a part 2a plus the media-store site under W6-R3 amended", () => {

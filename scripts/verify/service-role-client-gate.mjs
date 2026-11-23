@@ -250,8 +250,10 @@ const unwrap = (node) => {
 export function scanSource(file, text) {
   const sites = [];
   const imports = [];
+  const fileImports = [];
   const callerNames = new Set();
   const callerNamespaces = new Set();
+  const mediaStoreLocalBindings = new Set();
   let callsCaller = false;
   const reexports = [];
   const lineAt = (offset) => text.slice(0, offset).split("\n").length;
@@ -282,8 +284,15 @@ export function scanSource(file, text) {
         named.elements.some((s) => !s.isTypeOnly)
       ) {
         const target = importTarget(file, node.moduleSpecifier.text);
+        const names =
+          !clause || clause.name || !named || ts.isNamespaceImport(named)
+            ? null
+            : named.elements
+                .filter((s) => !s.isTypeOnly)
+                .map((s) => (s.propertyName ?? s.name).text);
+        fileImports.push({ target, line: at(node), names });
         if (target !== "packages/api/src/shared/with-operation")
-          imports.push({ target, line: at(node) });
+          imports.push({ target, line: at(node), names });
         else if (named && ts.isNamespaceImport(named))
           callerNamespaces.add(named.name.text);
         else
@@ -294,6 +303,14 @@ export function scanSource(file, text) {
             )
               callerNames.add(binding.name.text);
           }
+        if (target === "packages/api/src/storage/media-store" && clause) {
+          if (clause.name) mediaStoreLocalBindings.add(clause.name.text);
+          if (named && ts.isNamespaceImport(named))
+            mediaStoreLocalBindings.add(named.name.text);
+          else
+            for (const s of named?.elements ?? [])
+              if (!s.isTypeOnly) mediaStoreLocalBindings.add(s.name.text);
+        }
       }
       if (module && clause) {
         if (clause.name) bind(clause.name, module, true);
@@ -314,7 +331,17 @@ export function scanSource(file, text) {
       !node.isTypeOnly
     ) {
       const module = moduleKind(file, node.moduleSpecifier.text);
+      const target = importTarget(file, node.moduleSpecifier.text);
       const clause = node.exportClause;
+      const hasValueExport =
+        !clause ||
+        ts.isNamespaceExport(clause) ||
+        clause.elements.some((s) => !s.isTypeOnly);
+      if (hasValueExport) {
+        fileImports.push({ target, line: at(node), names: null });
+        if (target === "packages/api/src/storage/media-store")
+          reexports.push({ kind: "media_store", line: at(node) });
+      }
       if (
         module &&
         (!clause ||
@@ -336,8 +363,9 @@ export function scanSource(file, text) {
     ) {
       const module = moduleKind(file, node.arguments[0].text);
       const target = importTarget(file, node.arguments[0].text);
+      fileImports.push({ target, line: at(node), names: null });
       if (target !== "packages/api/src/shared/with-operation")
-        imports.push({ target, line: at(node) });
+        imports.push({ target, line: at(node), names: null });
       else {
         const declaration = unwrap(node).parent;
         if (
@@ -361,6 +389,22 @@ export function scanSource(file, text) {
           memberName(declaration) === "withOperation"
         )
           callsCaller = true;
+      }
+      if (target === "packages/api/src/storage/media-store") {
+        const declaration = unwrap(node).parent;
+        if (
+          ts.isVariableDeclaration(declaration) &&
+          ts.isIdentifier(declaration.name)
+        )
+          mediaStoreLocalBindings.add(declaration.name.text);
+        else if (
+          ts.isVariableDeclaration(declaration) &&
+          ts.isObjectBindingPattern(declaration.name)
+        ) {
+          for (const element of declaration.name.elements)
+            if (ts.isIdentifier(element.name))
+              mediaStoreLocalBindings.add(element.name.text);
+        }
       }
       if (module) {
         const outer = unwrap(node);
@@ -410,6 +454,23 @@ export function scanSource(file, text) {
     }
     if (
       ts.isIdentifier(node) &&
+      mediaStoreLocalBindings.has(node.text) &&
+      !declarations.has(node)
+    ) {
+      const p = node.parent;
+      if (ts.isExportSpecifier(p)) {
+        const declaration = p.parent.parent;
+        if (
+          !declaration.moduleSpecifier &&
+          !declaration.isTypeOnly &&
+          !p.isTypeOnly
+        )
+          reexports.push({ kind: "media_store", line: at(node) });
+      } else if (ts.isExportAssignment(p))
+        reexports.push({ kind: "media_store", line: at(node) });
+    }
+    if (
+      ts.isIdentifier(node) &&
       bindings.has(node.text) &&
       !declarations.has(node)
     ) {
@@ -448,7 +509,12 @@ export function scanSource(file, text) {
 
   collect(source);
   references(source);
-  return { sites, reexports, callerImports: callsCaller ? imports : [] };
+  return {
+    sites,
+    reexports,
+    callerImports: callsCaller ? imports : [],
+    fileImports,
+  };
 }
 
 /** Tracked source files under the scan roots, repo-relative, minus tests, build output and exempt paths. */
@@ -587,18 +653,29 @@ export const CALLER_PRIVILEGED_IMPORT_EXCEPTIONS = Object.freeze([
   "packages/api/src/storage/media-store",
 ]);
 
+export const CALLER_MEDIA_STORE_ALLOWED_EXPORTS = Object.freeze([
+  "issueSignedUpload",
+  "finalizeMediaUpload",
+  "readMediaVariant",
+]);
+
 /** Scans `root` and evaluates it against its allowlist. */
 export function runServiceRoleClientGate({ root = repoRoot } = {}) {
   const found = { sites: [], reexports: [] };
   const imports = [];
+  const moduleEdges = new Map();
   for (const file of listScannedFiles(root)) {
-    const { sites, reexports, callerImports } = scanSource(
+    const { sites, reexports, callerImports, fileImports } = scanSource(
       file,
       readFileSync(path.join(root, file), "utf8"),
     );
     for (const s of sites) found.sites.push({ file, ...s });
     for (const r of reexports) found.reexports.push({ file, ...r });
     for (const entry of callerImports) imports.push({ file, ...entry });
+    moduleEdges.set(
+      file.replace(SOURCE_RE, ""),
+      fileImports.map((entry) => entry.target),
+    );
   }
   let allowlist;
   try {
@@ -616,15 +693,52 @@ export function runServiceRoleClientGate({ root = repoRoot } = {}) {
   );
   privileged.add("packages/database/supabase/admin");
   const callerImportExceptions = new Set(CALLER_PRIVILEGED_IMPORT_EXCEPTIONS);
-  for (const { file, target, line } of imports)
+  const allowedMediaStoreExports = new Set(CALLER_MEDIA_STORE_ALLOWED_EXPORTS);
+  const reachesMediaStore = new Set(CALLER_PRIVILEGED_IMPORT_EXCEPTIONS);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const [mod, targets] of moduleEdges) {
+      if (reachesMediaStore.has(mod)) continue;
+      if (
+        targets.some(
+          (target) =>
+            reachesMediaStore.has(target) ||
+            reachesMediaStore.has(`${target}/index`),
+        )
+      ) {
+        reachesMediaStore.add(mod);
+        grew = true;
+      }
+    }
+  }
+  const mediaStoreForwarders = new Set(
+    [...reachesMediaStore].filter((mod) => !callerImportExceptions.has(mod)),
+  );
+  for (const { file, target, line, names } of imports) {
+    if (callerImportExceptions.has(target)) {
+      const validNamedOnly =
+        Array.isArray(names) &&
+        names.length > 0 &&
+        names.every((name) => allowedMediaStoreExports.has(name));
+      if (!validNamedOnly) {
+        result.failures.push(
+          `CALLER_PRIVILEGED_IMPORT ${file}:${line}: caller operation imports disallowed binding from ${target} (allowed named exports: ${CALLER_MEDIA_STORE_ALLOWED_EXPORTS.join(", ")})`,
+        );
+      }
+      continue;
+    }
     if (
-      !callerImportExceptions.has(target) &&
-      (privileged.has(target) || privileged.has(`${target}/index`))
+      privileged.has(target) ||
+      privileged.has(`${target}/index`) ||
+      mediaStoreForwarders.has(target) ||
+      mediaStoreForwarders.has(`${target}/index`)
     ) {
       result.failures.push(
-        `CALLER_PRIVILEGED_IMPORT ${file}:${line}: caller operation imports ${target}, which supplies a privileged client`,
+        `CALLER_PRIVILEGED_IMPORT ${file}:${line}: caller operation imports ${target}, which supplies or forwards a privileged client`,
       );
     }
+  }
   return { ...result, ok: !result.failures.length, found };
 }
 
