@@ -181,6 +181,16 @@ the pre-release deployment's credentials no longer work — after a credential
 rotation, revoked credentials on the pre-release deployment will not work. The
 job has no rollback of its own.
 
+### Rollback note after WP4b part 1 (Member Care)
+
+After WP4b part 1 (Member Care) is live, rolling the admin application back past
+it re-admits all dashboard staff to care data via the old service-key handlers;
+roll forward instead; if a rollback is unavoidable, the operator must recognize
+that exposure and record it in the release note. Rolling the missionary
+application back past it restores the old missionary directory response, and
+rolling the donor or the missionary application back restores the old
+own-profile response; both then carry the care fields again.
+
 ### If a CI check fails at "Initialize containers"
 
 When a CI or CI Integration job on the release source pull request (`smoke`, `e2e-smoke-gate` or `migrate`) fails at **Initialize containers**, check the failed step's log for `Error response from daemon: error from registry: Data limit exceeded` (for example on `public.ecr.aws/docker/library/postgres:17.11-alpine`). That is Amazon's public registry throttling anonymous pulls from GitHub-hosted runners, not a repository defect. Re-run the failed jobs (`gh run rerun <run-id> --failed`), and never treat a failed or skipped check as passed. This applies to CI runs on the source pull request or `develop`; do not use **Re-run failed jobs** on a failed `Release` workflow run (dispatch **Release** anew as above).
