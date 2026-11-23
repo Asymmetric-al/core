@@ -1423,6 +1423,29 @@ describe("media-store custody and Sharp sanitization", () => {
     expect(maxActiveDownloads).toBe(1);
   });
 
+  it("refuses to return a signed upload token when concurrent deletion transitions the row out of uploading before confirmation (W6-R16 point 7)", async () => {
+    const assetId = randomUUID();
+    fakeState.rows.set(
+      assetId,
+      makeRow({ id: assetId, tenant_id: tenantA, status: "uploading" }),
+    );
+    fakeState.onBeforeCasUpdate = (id) => {
+      if (id === assetId) {
+        const cur = fakeState.rows.get(assetId)!;
+        fakeState.rows.set(assetId, {
+          ...cur,
+          status: "deleted",
+          deleted_at: new Date().toISOString(),
+          purge_after: new Date(Date.now() + 35 * 86_400_000).toISOString(),
+        });
+      }
+    };
+
+    await expect(issueSignedUpload(authA, { assetId })).rejects.toMatchObject({
+      status: 404,
+    });
+  });
+
   it("purges only past purge_after, preserves shared content_hash objects, cleans uploading staging, and honors live-use hook", async () => {
     const img = await createDirtyJpeg(500, 400);
     const a1 = randomUUID();

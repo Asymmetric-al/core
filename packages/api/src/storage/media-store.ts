@@ -706,7 +706,7 @@ export async function issueSignedUpload(
 
   const now = new Date();
   const uploadTokenExpiresAt = parseSignedUploadTokenExpiry(data.token, now);
-  const { error: expiryUpdateError } = await admin
+  const { data: confirmedRow, error: expiryUpdateError } = await admin
     .from("media_assets")
     .update({
       upload_token_expires_at: uploadTokenExpiresAt,
@@ -715,9 +715,14 @@ export async function issueSignedUpload(
     })
     .eq("id", assetId)
     .eq("tenant_id", tenantId)
-    .eq("status", "uploading");
+    .eq("status", "uploading")
+    .select("id")
+    .maybeSingle();
   if (expiryUpdateError) {
     throw new ApiHttpError(500, "Failed to record signed media upload expiry");
+  }
+  if (!confirmedRow) {
+    throw new ApiHttpError(404, "Media upload not found");
   }
 
   return {
