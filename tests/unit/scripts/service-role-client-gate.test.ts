@@ -1,5 +1,11 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -73,12 +79,12 @@ describe("frozen ceiling", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
-  // D-18: WP4a-2a lowered develop to 115 entries / 177 sites; W8-R10 (23 November 2026) approves
+  // D-18: WP4a-2b lowered develop to 114 entries / 176 sites; W8-R10 (23 November 2026) approves
   // one temporary admin_client site in packages/api/src/stripe/connect-webhook.ts until Part 2
-  // retires webhooks.ts (116 entries / 178 sites).
-  it("pins the 116 reviewed service-role entries including the W8-R10 temporary connect webhook site", () => {
+  // retires webhooks.ts (115 entries / 177 sites).
+  it("pins the 115 reviewed service-role entries including the W8-R10 temporary connect webhook site, after each CRM read moves", () => {
     expect(ceilingDigest()).toBe(
-      "ec2ab5ae99c9074aef4f8cb8ab66db9a1c0e18764d9b2ea434c74ba4333e119c",
+      "7b2455eae314d5909a380d9e2b0b8da49948d3e2fea360cd4b4f366d4ecaa797",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -89,12 +95,23 @@ describe("frozen ceiling", () => {
       admin_client: 78,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
-      operation_admin_context: 65,
+      operation_admin_context: 64,
     });
-    expect(CEILING.size).toBe(116);
+    expect(CEILING.size).toBe(115);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(110);
+    ).toBe(109);
+  });
+
+  it("holds no CRM handler in the allowlist or the ceiling once note creation moves", () => {
+    const crm = "packages/api/src/admin/crm/";
+    const { entries } = JSON.parse(
+      readFileSync("docs/security/service-role-client-allowlist.json", "utf8"),
+    ) as { entries: { file: string }[] };
+    expect(entries.filter((entry) => entry.file.startsWith(crm))).toEqual([]);
+    expect([...CEILING.keys()].filter((key) => key.startsWith(crm))).toEqual(
+      [],
+    );
   });
 });
 
