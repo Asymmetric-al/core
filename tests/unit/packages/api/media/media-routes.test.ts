@@ -447,6 +447,20 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
       }),
     );
     expect(notFound.status).toBe(404);
+
+    mocks.finalizeMediaUpload.mockClear();
+    const nonJson = await finalizeMediaPost(
+      new NextRequest("http://localhost:3001/api/cms/media/finalize", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer test-jwt-token",
+          "content-type": "text/plain",
+        },
+        body: JSON.stringify({ assetId }),
+      }),
+    );
+    expect(nonJson.status).toBe(415);
+    expect(mocks.finalizeMediaUpload).not.toHaveBeenCalled();
   });
 
   it("delete route calls delete_media_asset on sessionClient with auth.tenantId and maps P0002 to 404", async () => {
