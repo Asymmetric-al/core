@@ -323,7 +323,9 @@ describe.skipIf(!ADMIN_URL)(
           `policy readers of profiles.tenant_id changed; ${POINTER}`,
         ).toEqual(READER_POLICIES.filter(() => false));
         const fns = await rows(
-          `SELECT p.proname, p.prosecdef FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+          `SELECT CASE WHEN p.proname = 'tenant_member_directory'
+          THEN p.proname || '(' || oidvectortypes(p.proargtypes) || ')'
+          ELSE p.proname END AS proname, p.prosecdef FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
        WHERE n.nspname IN ('public', 'authz', 'private') AND p.prosrc ~* '\\mprofiles\\M' AND p.prosrc ~ '\\mtenant_id\\M'`,
         );
         expect(
@@ -334,7 +336,14 @@ describe.skipIf(!ADMIN_URL)(
           `function readers of profiles.tenant_id changed; ${POINTER}`,
         ).toEqual(
           Object.entries(READER_FUNCTIONS)
-            .map(([n, d]) => `${n} ${d}`)
+            .flatMap(([name, definer]) =>
+              name === "tenant_member_directory"
+                ? [
+                    `${name}(uuid) ${definer}`,
+                    `${name}(uuid, uuid[]) ${definer}`,
+                  ]
+                : [`${name} ${definer}`],
+            )
             .sort(),
         );
         const trigger = String(

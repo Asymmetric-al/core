@@ -16,7 +16,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("requires the migrate database", () =>
 );
 
 it.skipIf(!ADMIN_URL)(
-  "returns only requested live profiles, once per person, with the directory's same labels",
+  "returns only requested live profiles, once per person, with the directory's same labels (D-18, AL-2678: each fixture missionary names a Party)",
   async () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
     await db.connect();
@@ -57,7 +57,7 @@ it.skipIf(!ADMIN_URL)(
         [ids.TA, ids.TB],
       );
       const workers = await db.query(
-        "insert into public.missionaries (tenant_id,profile_id,legal_entity_id) values ($1,$2,$1),($3,$4,$3) returning id,tenant_id",
+        "with party as (insert into public.parties (tenant_id,display_name) values ($1::uuid,'Fixture A'),($3::uuid,'Fixture B') returning id,tenant_id) insert into public.missionaries (tenant_id,profile_id,legal_entity_id,party_id) select party.tenant_id, case when party.tenant_id = $1::uuid then $2::uuid else $4::uuid end, party.tenant_id, party.id from party returning id,tenant_id",
         [ids.TA, ids.UFC, ids.TB, ids.UB],
       );
       const requested = workers.rows.map((row) => `'${row.id}'`).join(",");

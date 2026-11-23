@@ -75,6 +75,11 @@ const ROWS: [
  * or missionary assignment reads no row of them. The deny-all finance tables
  * admit no one; pdf_templates has no grant for signed-in users at all.
  */
+const EXTERNAL_TARGET = {
+  target_type: "'party'",
+  target_id: "'00000000-0000-4000-8000-000000002678'",
+  party_id: "'00000000-0000-4000-8000-000000002678'",
+};
 const STAFF_ONLY = [
   "donation_crm_links",
   "staged_gift_allocations",
@@ -694,7 +699,7 @@ describe.skipIf(!ADMIN_URL)(
             }
         }));
 
-      it("a donor-class or missionary-class member reads no row of a staff-only table, which a staff member of the tenant does read", () =>
+      it("a donor-class or missionary-class member reads no row of a staff-only table, which a staff member of the tenant does read (D-18, AL-2678: external_identifiers joins the staff-only tables with a typed target)", () =>
         tx(async () => {
           await db.query("set local session_replication_role = replica");
           for (const t of [...STAFF_ONLY, ...NOBODY, ...NO_GRANT])
@@ -703,6 +708,7 @@ describe.skipIf(!ADMIN_URL)(
               ...(t === "member_care_private_notes"
                 ? { author_user_id: q("UADM") }
                 : {}),
+              ...(t === "external_identifiers" ? EXTERNAL_TARGET : {}),
             });
           await db.query("set local session_replication_role = origin");
           for (const t of [...STAFF_ONLY, ...NOBODY, ...NO_GRANT]) {
@@ -1611,13 +1617,15 @@ describe.skipIf(!ADMIN_URL)(
           const pinnedRow: Record<string, Record<string, string>> = {
             locations: { status: "'draft'" },
             posts: { status: "'draft'", visibility: "'private'" },
-            profiles: { user_id: "gen_random_uuid()" },
+            profiles: {},
           };
           expect(candidates.filter((t) => pinned.has(t))).toEqual(
             [...Object.keys(pinnedRow).sort(), "field_policies"].sort(),
           );
           const subject: Record<string, Record<string, string>> = {
             account_claim_requests: { requested_by: q("UB") },
+            account_links: { linked_via: "'account_claim'" },
+            external_identifiers: EXTERNAL_TARGET,
             member_care_private_notes: { author_user_id: q("UADM") },
             donor_feed_preferences: { donor_id: q("dDON") },
           };
@@ -1631,6 +1639,7 @@ describe.skipIf(!ADMIN_URL)(
               id: `'${only[t]}'`,
               tenant_id: q("TA"),
               ...given,
+              ...(t === "profiles" ? { user_id: `'${only[t]}'` } : {}),
             });
           }
           await replica(false);
@@ -1745,7 +1754,7 @@ describe.skipIf(!ADMIN_URL)(
       // R11: an own-row sub-select carries the request's tenant itself, so a
       // super administrator who is a donor in two organizations cannot link a
       // row of one to their donor record in the other.
-      it("R11: a super administrator who is a donor in both tenants cannot set feed preferences in one tenant for their donor record in the other", () =>
+      it("R11: a super administrator who is a donor in both tenants cannot set feed preferences in one tenant for their donor record in the other (D-18, AL-2678: each donor record is linked to its Party, as the migration backfills)", () =>
         tx(async () => {
           const user = randomUUID();
           const row = randomUUID();
@@ -1775,6 +1784,11 @@ describe.skipIf(!ADMIN_URL)(
               profile_id: `'${user}'`,
               email: `'${donor}@example.org'`,
             });
+          await db.query(
+            `update public.donors set party_id = id where id in ('${mine}', '${theirs}');
+             insert into public.parties (id, tenant_id, display_name) select id, tenant_id, 'acc2675' from public.donors where id in ('${mine}', '${theirs}');
+             insert into public.account_links (tenant_id, user_id, party_id, linked_via) select tenant_id, profile_id, party_id, 'profile_backfill' from public.donors where id in ('${mine}', '${theirs}');`,
+          );
           await replica(false);
           const headers = { "x-asym-tenant": id.TA!, "x-asym-assignment": row };
           // Without RETURNING, so the INSERT policy alone judges it: with it,

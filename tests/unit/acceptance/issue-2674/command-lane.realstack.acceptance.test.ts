@@ -32,6 +32,7 @@ import {
   callsIntoCommandSchemas,
   laneCheckProblem,
 } from "../../../../scripts/verify/tenant-rls-catalog.mjs";
+import { preMembershipEntries } from "../../../../scripts/verify/command-entry-boundaries.mjs";
 import {
   ADMIN_URL,
   COMMAND_LANE_MIGRATION,
@@ -279,11 +280,20 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
   });
 
   describe("proof 2: a signed-in caller can execute nothing else in the command schema", () => {
-    it("authenticated may execute exactly the human entry points in tenant_guard, derived from the convention", () =>
+    it("authenticated may execute exactly the human entry points in tenant_guard, derived from the convention, and the reviewed pre-membership entries (D-18, AL-2678: the two account-claim commands, pinned in scripts/verify/command-entry-boundaries.mjs)", () =>
       tx(async () => {
         const rows = await laneRows(db, "tenant_guard");
         const humans = byConvention(rows, "tenant_guard");
-        expect(signedIn(rows)).toEqual(humans);
+        const name = (fn: string) => fn.slice(0, fn.indexOf("("));
+        const reviewed = preMembershipEntries.map((entry) =>
+          name(entry.function),
+        );
+        expect(reviewed.filter((fn) => humans.map(name).includes(fn))).toEqual(
+          [],
+        );
+        expect(signedIn(rows).map(name).sort()).toEqual(
+          [...humans.map(name), ...reviewed].sort(),
+        );
         // WP1's proof command is one of them, so the comparison is not vacuous.
         expect(humans).toContain(
           "tenant_guard.resolve_command_assignment(uuid)",
@@ -299,9 +309,16 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
       tx(async () => {
         const rows = await laneRows(db, "tenant_guard");
         const humans = byConvention(rows, "tenant_guard");
+        const reviewed = preMembershipEntries.map((entry) =>
+          entry.function.slice(0, entry.function.indexOf("(")),
+        );
         const others = rows
           .map((row) => row.fn)
-          .filter((fn) => !humans.includes(fn));
+          .filter(
+            (fn) =>
+              !humans.includes(fn) &&
+              !reviewed.includes(fn.slice(0, fn.indexOf("("))),
+          );
         // By name: a later package may change a helper's arguments.
         expect(others.map((fn) => fn.slice(0, fn.indexOf("(")))).toEqual(
           expect.arrayContaining([
@@ -326,10 +343,10 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
      * call named only in a comment.
      */
     async function publicWorkers() {
-      const humans = byConvention(
-        await laneRows(db, "tenant_guard"),
-        "tenant_guard",
-      ).map((fn) => fn.slice(0, fn.indexOf("(")));
+      const humans = [
+        ...byConvention(await laneRows(db, "tenant_guard"), "tenant_guard"),
+        ...preMembershipEntries.map((entry) => entry.function),
+      ].map((fn) => fn.slice(0, fn.indexOf("(")));
       const r = await db.query(
         `select 'public.' || regexp_replace(p.oid::regprocedure::text, '^public\\.', '') fn,
                 p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), '') body
@@ -361,7 +378,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
         expect(workers).toContain("public.acc2674_calls_worker(uuid)");
       }));
 
-    it("the public worker wrappers refuse a signed-in caller too", () =>
+    it("the public worker wrappers refuse a signed-in caller too (D-18, AL-2678: the wrappers of the two reviewed pre-membership entries are human wrappers, not worker wrappers)", () =>
       tx(async () => {
         const workers = await publicWorkers();
         expect(workers).toEqual(

@@ -300,7 +300,7 @@ const CATALOG = `SELECT json_build_object(
   'donor_cons', ${agg("conname::text", "pg_constraint WHERE conrelid = 'public.donors'::regclass")},
   'policies', ${agg("row_to_json(p)::text", "pg_policies p")},
   'triggers', ${agg("tgrelid::regclass::text || '.' || tgname", "pg_trigger WHERE NOT tgisinternal")});`;
-const CLEAN = `DELETE FROM public.donors WHERE tenant_id = '${TA}'; DELETE FROM public.parties WHERE tenant_id IN ('${TA}','${TB}'); DELETE FROM public.tenants WHERE id IN ('${TA}','${TB}');
+const CLEAN = `DELETE FROM public.donors WHERE tenant_id = '${TA}'; DO $$ BEGIN IF to_regclass('public.parties') IS NOT NULL THEN DELETE FROM public.parties WHERE tenant_id IN ('${TA}','${TB}'); END IF; END $$; DELETE FROM public.tenants WHERE id IN ('${TA}','${TB}');
 DELETE FROM public.profiles WHERE id = '${P}'; DELETE FROM auth.users WHERE id = '${P}';`;
 const snapshot = (url: string) => JSON.parse(q(CATALOG, url));
 const rows = (url: string, t: string) =>

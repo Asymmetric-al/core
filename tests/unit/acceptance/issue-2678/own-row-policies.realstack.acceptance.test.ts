@@ -165,8 +165,8 @@ describe.skipIf(!ADMIN_URL)(
         missionary2: ["m2"],
         missionaryInB: ["mB"],
         donorA: [],
-        staff: [],
-        staffB: [],
+        staff: ["m2", "mA"],
+        staffB: ["mB"],
       },
       follows: {
         donorA: ["fA"],

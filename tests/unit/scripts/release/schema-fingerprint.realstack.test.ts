@@ -624,7 +624,7 @@ describe.skipIf(!adminDatabaseUrl)(
     }, 300_000);
 
     it.each([false, true])(
-      "recovers 0/1/0 fixtures with open defaults=%s and records both heads",
+      "recovers 0/1/0 fixtures with open defaults=%s and records both heads (D-18, AL-2678: the seed adds the fixture worker Sam Ortiz, one profile and a missionary membership in each organization, so 4 profiles, 2 tenants, 8 memberships)",
       async (open) => {
         const url = replay("first_recovery", ["--hosted-defaults"]);
         installLedger(url);
@@ -713,7 +713,7 @@ describe.skipIf(!adminDatabaseUrl)(
           seedEnabled = true;
         }
         await retry();
-        expect(fixtures(url)).toBe("3|2|6");
+        expect(fixtures(url)).toBe("4|2|8");
         expect(() => preflight({ settings, log: silent })).toThrow(
           /no recorded head.*first-rebuild/s,
         );

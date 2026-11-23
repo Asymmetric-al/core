@@ -209,9 +209,9 @@ describe.skipIf(!ADMIN_URL)(
      */
     const currentQual = (t: string) =>
       t === "missionaries"
-        ? "tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('missionary')) AND profile_id IN (SELECT authz.caller_profile_ids())"
+        ? "tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('missionary')) AND party_id IN (SELECT al.party_id FROM public.account_links AS al WHERE al.tenant_id = (SELECT authz.current_tenant_id()) AND al.user_id = (SELECT authz.current_user_id()))"
         : t === "follows"
-          ? "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids()))))"
+          ? "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.party_id IN (SELECT al.party_id FROM public.account_links AS al WHERE al.tenant_id = (SELECT authz.current_tenant_id()) AND al.user_id = (SELECT authz.current_user_id())))))"
           : "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')))" +
             // D-18 (AL-2676): the funds policy also hides the reserved fee-cover fund.
             (t === "funds" ? " AND system_purpose IS NULL" : "");

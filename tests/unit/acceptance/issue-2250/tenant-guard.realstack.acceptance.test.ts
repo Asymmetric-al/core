@@ -142,12 +142,12 @@ select (select count(*) from (
   || ' ' || (select string_agg(a.privilege_type, ',' order by a.privilege_type) from aclexplode((select relacl from pg_class where oid = '${CLAIMS}'::regclass)) a where a.grantee = ${TG}) v
 => 0 INSERT,SELECT,UPDATE
 
-17: everything else granted to tenant_guard (schemas, functions it does not own, databases) equals the inventory
+17: everything else granted to tenant_guard (schemas, functions it does not own, databases) equals the inventory (D-18, AL-2678: the claim commands read the tenant's status, the caller's confirmed email, the claimable donor and the token lifetime through five postgres-owned functions in private)
 select string_agg(e, ', ' order by e) v from (
   select 'schema ' || nspname || ' ' || a.privilege_type e from pg_namespace, aclexplode(nspacl) a where a.grantee = ${TG}
   union all select p.oid::regprocedure || ' ' || a.privilege_type from pg_proc p, aclexplode(p.proacl) a where a.grantee = ${TG} and p.proowner <> a.grantee
   union all select 'database ' || datname from pg_database, aclexplode(datacl) a where a.grantee = ${TG}) s
-=> authz.assignment_capabilities(uuid) EXECUTE, authz.caller_tenant_ids() EXECUTE, authz.has_membership(uuid,authz.membership_role[]) EXECUTE, authz.has_staff_membership(uuid,authz.staff_role[]) EXECUTE, private.is_platform_operator(uuid) EXECUTE, schema authz USAGE, schema private USAGE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.begin_human_command(uuid,text) EXECUTE, tenant_guard.caller_id() EXECUTE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE, tenant_guard.request_assignment_id() EXECUTE, tenant_guard.request_claims() EXECUTE
+=> authz.assignment_capabilities(uuid) EXECUTE, authz.caller_tenant_ids() EXECUTE, authz.has_membership(uuid,authz.membership_role[]) EXECUTE, authz.has_staff_membership(uuid,authz.staff_role[]) EXECUTE, private.account_claim_donor(uuid,text) EXECUTE, private.account_claim_donor_by_id(uuid,uuid) EXECUTE, private.account_claim_token_lifetime() EXECUTE, private.is_platform_operator(uuid) EXECUTE, private.login_confirmed_email(uuid) EXECUTE, private.tenant_is_active(uuid) EXECUTE, schema authz USAGE, schema private USAGE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.begin_human_command(uuid,text) EXECUTE, tenant_guard.caller_id() EXECUTE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE, tenant_guard.request_assignment_id() EXECUTE, tenant_guard.request_claims() EXECUTE
 
 17: no DELETE/TRUNCATE on claims; no SELECT on tenants, profiles, donation_saga_outbox
 select concat_ws(',', has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'DELETE'), has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'TRUNCATE'),

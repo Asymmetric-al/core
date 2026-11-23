@@ -22,6 +22,7 @@ import {
   MIGRATION,
   POLICIES,
   ROLLBACK,
+  AL2678_D18,
   TABLES,
   body,
   read,
@@ -192,10 +193,31 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
   );
 
   tx(
-    "2: a requester sees exactly their own claim requests; INSERT fails with 42501",
+    `2: a requester reads none of the claim rows directly and exactly the status and three dates of their own requests through the status function; INSERT fails with 42501 (${AL2678_D18})`,
     async () => {
-      expect(await ids("r1", CLAIMS)).toEqual([cA1]);
-      expect(await ids("r2", CLAIMS)).toEqual([cA2]);
+      expect(await ids("r1", CLAIMS)).toEqual([]);
+      expect(await ids("r2", CLAIMS)).toEqual([]);
+      for (const who of ["r1", "r2"] as const) {
+        const own = await as(
+          who,
+          "SELECT * FROM public.account_claim_status($1)",
+          [A],
+        );
+        expect(own.rows).toHaveLength(1);
+        expect(Object.keys(own.rows[0]!).sort()).toEqual([
+          "created_at",
+          "resolved_at",
+          "status",
+          "updated_at",
+        ]);
+      }
+      expect(
+        (
+          await as("staffA", "SELECT * FROM public.account_claim_status($1)", [
+            A,
+          ])
+        ).rows,
+      ).toEqual([]);
       const ins = await as(
         "r1",
         `INSERT INTO public.account_claim_requests (tenant_id, email, requested_by) VALUES ($1, 'me@x.com', $2)`,
@@ -417,9 +439,22 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
          AND a.attname ~* '(token|otp|link|secret|url)' ORDER BY 1`,
       );
       expect(named.map((r) => r.col)).toEqual([
+        `${CLAIMS}.token_expires_at`,
+        `${CLAIMS}.token_redeemed_at`,
+        `${CLAIMS}.token_sha256`,
         `${INVITES}.link_token_expires_at`,
         `${INVITES}.link_token_sha256`,
       ]);
+      for (const raw of ["convert_to('123456', 'UTF8')", "sha224('t'::bytea)"])
+        expect(
+          (
+            await run(
+              `UPDATE public.${CLAIMS} SET token_sha256 = ${raw}, token_expires_at = now() WHERE id = $1`,
+              [cA1],
+            )
+          ).code,
+          raw,
+        ).toBe("23514");
       const comment = await one(
         `SELECT col_description('public.${INVITES}'::regclass, (SELECT attnum FROM pg_attribute WHERE attrelid = 'public.${INVITES}'::regclass AND attname = 'link_token_sha256'))`,
       );
@@ -429,7 +464,7 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
   );
 
   tx(
-    "10: RLS enabled + forced, exactly the 3 SELECT policies to authenticated, owner super/bypassrls, not an exception",
+    `10: RLS enabled + forced, exactly the 2 SELECT policies to authenticated and the guard's isolation policy, owner super/bypassrls, not an exception (${AL2678_D18})`,
     async () => {
       const flags = await rows(
         `SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity, r.rolsuper OR r.rolbypassrls AS owner_ok
@@ -446,9 +481,24 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
       const pols = await rows(
         `SELECT tablename, policyname, cmd, roles::text[] AS roles, permissive, with_check,
               qual FROM pg_policies
-       WHERE schemaname = 'public' AND tablename = ANY($1) ORDER BY 1, 2`,
+       WHERE schemaname = 'public' AND tablename = ANY($1) AND 'authenticated' = ANY(roles) ORDER BY 1, 2`,
         [TABLES],
       );
+      expect(
+        await rows(
+          `SELECT tablename, cmd, roles::text[] AS roles, qual, with_check FROM pg_policies
+           WHERE schemaname = 'public' AND tablename = ANY($1) AND NOT ('authenticated' = ANY(roles))`,
+          [TABLES],
+        ),
+      ).toEqual([
+        {
+          tablename: CLAIMS,
+          cmd: "ALL",
+          roles: ["tenant_guard"],
+          qual: "(tenant_id = tenant_guard.current_tenant_id())",
+          with_check: "(tenant_id = tenant_guard.current_tenant_id())",
+        },
+      ]);
       const REQ =
         /^\(requested_by = \( SELECT auth\.uid\(\) AS uid\)\)$|^\(\( SELECT auth\.uid\(\) AS uid\) = requested_by\)$/;
       for (const p of pols) p.qual = String(p.qual).replace(REQ, "requester");
@@ -553,12 +603,15 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
   const STAFF_NOW =
     "((tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)) AND ( SELECT authz.assignment_is('staff'::authz.membership_role) AS assignment_is))";
   const rewrittenLater = (v: string) =>
-    /^pol public\.(account_claim_requests account_claim_requests_staff_select|legacy_account_invitations legacy_account_invitations_staff_select) /.test(
+    /^pol public\.(account_claim_requests account_claim_requests_staff_select|legacy_account_invitations legacy_account_invitations_staff_select|account_claim_requests account_claim_requests_requester_select) /.test(
+      v,
+    ) ||
+    /token_sha256|token_expires_at|token_redeemed_at|donor_email_at_issue|account_claim_requests tenant_guard_isolation/.test(
       v,
     );
 
   tx(
-    "12: re-applying the forward file succeeds twice; the second changes nothing, the first only restores its own text of the two staff policies a later migration rewrote",
+    `12: re-applying the forward file succeeds twice; the second changes nothing, the first only restores its own text of the two staff policies a later migration rewrote and the requester policy a later one dropped (${AL2678_D18})`,
     async () => {
       const before = await catalog();
       await db.query(body(MIGRATION));
@@ -571,6 +624,7 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
           .map((v) => v.split(" ").slice(0, 3).join(" "))
           .sort(),
       ).toEqual([
+        "pol public.account_claim_requests account_claim_requests_requester_select",
         "pol public.account_claim_requests account_claim_requests_staff_select",
         "pol public.legacy_account_invitations legacy_account_invitations_staff_select",
       ]);
@@ -581,7 +635,7 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
   );
 
   tx(
-    "13: rollback removes both tables and nothing else; #2254 survives; forward re-creates them (the two staff policies in this file text)",
+    `13: rollback removes both tables and nothing else; #2254 survives; forward re-creates them (the two staff policies in this file text) (${AL2678_D18}; the later claim columns, constraints, index, guard policy and guard grants are not this file's)`,
     async () => {
       await db.query(
         "DELETE FROM public.legacy_account_invitations; DELETE FROM public.account_claim_requests",
@@ -616,8 +670,14 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
         await db.query(`alter table public.${table} drop constraint ${table}_tenant_id_fkey,
           add constraint ${table}_tenant_id_fkey foreign key (tenant_id) references public.tenants(id) on delete restrict`);
       }
-      expect((await catalog()).filter((v) => !rewrittenLater(v))).toEqual(
-        before.filter((v) => !rewrittenLater(v)),
+      const withoutGuardGrants = (v: string) =>
+        v.replace(/,?tenant_guard:(INSERT|SELECT|UPDATE)/g, "");
+      expect(
+        (await catalog())
+          .filter((v) => !rewrittenLater(v))
+          .map(withoutGuardGrants),
+      ).toEqual(
+        before.filter((v) => !rewrittenLater(v)).map(withoutGuardGrants),
       );
     },
   );
