@@ -124,8 +124,6 @@ const S_PATHS: Record<string, string> = {
   crm_table_named_views: "admin/crm/table-preferences/named-views.ts",
   crm_table_tenant_defaults: "admin/crm/table-preferences/service.ts",
   crm_table_user_preferences: "admin/crm/table-preferences/service.ts",
-  donation_saga_outbox:
-    "workflows/adapters/donations.ts workflows/summaries.ts",
   email_events: "email/webhooks/resend.ts",
   email_inbound_messages:
     "workflows/adapters/inbound-routing.ts workflows/summaries.ts",
@@ -171,17 +169,12 @@ const S_PATHS: Record<string, string> = {
     "admin/mission-control-automations/store.ts",
   mission_control_queues: "admin/mission-control-tasks/store.ts",
   mission_control_task_events: "admin/mission-control-tasks/store.ts",
-  mission_control_task_links:
-    "admin/contribution-operations/notifications/store.ts admin/mission-control-tasks/store.ts",
-  mission_control_tasks:
-    "admin/contribution-operations/approval-notifications.ts admin/mission-control-tasks/store.ts",
   support_bulk_move_operations: "admin/support-hub/move-service.ts",
   support_inbound_routes: "workflows/adapters/inbound-routing.ts",
   support_inbound_routing_reviews:
     "workflows/adapters/inbound-routing.ts workflows/summaries.ts",
   tenant_email_settings:
     "email/webhooks/resend.ts eve/notifications/delivery.ts",
-  workflow_dispatch_requests: "workflows/summaries.ts",
   workflow_notification_policies:
     "admin/workflows/notification-policy.ts admin/workflows/summaries.ts",
 };
@@ -201,11 +194,12 @@ export const D = words(`
 `);
 export const F = words(`
   assets audit_logs campaigns crm_command_logs crm_merge_candidates crm_notes
-  crm_record_links donation_crm_links donations donor_feed_preferences
-  donor_pledges donors
+  crm_record_links donation_crm_links donation_saga_outbox donations
+  donor_feed_preferences donor_pledges donors
   field_policies follows funds giving_reconciliation_runs locations
   member_care_activities member_care_goals member_care_private_notes
-  member_care_requirements missionaries notification_queue
+  member_care_requirements mission_control_task_links mission_control_tasks
+  missionaries notification_queue
   pdf_template_artifacts pdf_template_audit_events pdf_template_batch_jobs
   pdf_template_batches pdf_template_renders pdf_template_versions
   pdf_templates posts profiles staged_gift_allocations
@@ -216,5 +210,5 @@ export const F = words(`
   support_inboxes support_labels support_macros support_message_attachments
   support_messages support_notification_preferences support_saved_views
   support_signatures support_sla_policies support_teams support_tickets
-  workflow_work_claims
+  workflow_dispatch_requests workflow_work_claims
 `);

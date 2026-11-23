@@ -53,6 +53,11 @@
  * D-18 (AL-2676, WP3a part 1): the guard also gains EXECUTE on
  * authz.caller_tenant_ids(), for active-tenant admission before entry;
  * criterion 17 lists it.
+ *
+ * D-18 (AL-2681, WP8a part 1): apply_account_event parks queued rows in
+ * public.donation_saga_outbox behind tenant_guard_isolation on account
+ * disconnect; criterion 17 asserts SELECT and UPDATE (no INSERT/DELETE) on
+ * donation_saga_outbox while tenants and profiles remain denied.
  */
 import { randomUUID } from "node:crypto";
 
@@ -149,10 +154,11 @@ select string_agg(e, ', ' order by e) v from (
   union all select 'database ' || datname from pg_database, aclexplode(datacl) a where a.grantee = ${TG}) s
 => authz.assignment_capabilities(uuid) EXECUTE, authz.caller_tenant_ids() EXECUTE, authz.has_membership(uuid,authz.membership_role[]) EXECUTE, authz.has_staff_membership(uuid,authz.staff_role[]) EXECUTE, private.is_platform_operator(uuid) EXECUTE, schema authz USAGE, schema private USAGE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.begin_human_command(uuid,text) EXECUTE, tenant_guard.caller_id() EXECUTE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE, tenant_guard.request_assignment_id() EXECUTE, tenant_guard.request_claims() EXECUTE
 
-17: no DELETE/TRUNCATE on claims; no SELECT on tenants, profiles, donation_saga_outbox
+17: no DELETE/TRUNCATE on claims; no SELECT on tenants or profiles; no INSERT/DELETE on donation_saga_outbox
 select concat_ws(',', has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'DELETE'), has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'TRUNCATE'),
-  has_table_privilege('tenant_guard', 'public.tenants', 'SELECT'), has_table_privilege('tenant_guard', 'public.profiles', 'SELECT'), has_table_privilege('tenant_guard', 'public.donation_saga_outbox', 'SELECT')) v
-=> f,f,f,f,f
+  has_table_privilege('tenant_guard', 'public.tenants', 'SELECT'), has_table_privilege('tenant_guard', 'public.profiles', 'SELECT'),
+  has_table_privilege('tenant_guard', 'public.donation_saga_outbox', 'INSERT'), has_table_privilege('tenant_guard', 'public.donation_saga_outbox', 'DELETE')) v
+=> f,f,f,f,f,f
 
 15: old release(uuid, text) is gone; release(uuid, uuid, text) and acquire return jsonb
 select concat_ws(' ', coalesce(to_regprocedure('public.release_workflow_work_claim(uuid,text)')::text, 'gone'),

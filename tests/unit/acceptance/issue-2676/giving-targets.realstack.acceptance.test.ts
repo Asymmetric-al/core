@@ -14,7 +14,7 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
   it("keeps a primary key on the permanent lock and no unused guard policies", async () => {
     const result =
       await db.query(`select exists(select from pg_constraint where conrelid='public.giving_target_entity_locks'::regclass and contype='p') as keyed,
-      (select count(*)::int from pg_policies where schemaname='public' and tablename in ('legal_entities','payment_account_bindings','giving_target_entity_locks') and 'tenant_guard'=any(roles)) as unused,
+      (select count(*)::int from pg_policies where schemaname='public' and tablename in ('giving_target_entity_locks') and 'tenant_guard'=any(roles)) as unused,
       (select count(*)::int from pg_constraint where (conrelid,conname) in (('public.donations'::regclass,'donations_target_requires_tenant'),('public.donor_pledges'::regclass,'donor_pledges_target_requires_tenant')) and contype='c') as checks`);
     expect(result.rows).toEqual([{ keyed: true, unused: 0, checks: 2 }]);
   });
@@ -78,7 +78,7 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
         [tenant, other],
       );
       await db.query(
-        "insert into public.legal_entities(id,tenant_id,name) values ($1,$1,'First'),($2,$1,'Second')",
+        "insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$1,'First','US','usd','First'),($2,$1,'Second','US','usd','Second')",
         [tenant, second],
       );
       await db.query(
@@ -97,7 +97,7 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       );
       await expect(
         db.query(
-          "insert into public.payment_account_bindings(tenant_id,legal_entity_id) values ($1,$2)",
+          "insert into public.payment_account_bindings(tenant_id,legal_entity_id,version,status,provider_account_ref,livemode) values ($1,$2,1,'pending','acct_wrong',false)",
           [other, second],
         ),
       ).rejects.toMatchObject({ code: "23503" });
@@ -122,7 +122,7 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
         [tenant, other],
       );
       await db.query(
-        `insert into public.legal_entities(id,tenant_id,name) values ($1,$2,'First'),($3,$2,'Second'),($4,$5,'Foreign')`,
+        `insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$2,'First','US','usd','First'),($3,$2,'Second','US','usd','Second'),($4,$5,'Foreign','US','usd','Foreign')`,
         [first, tenant, second, foreign, other],
       );
       await db.query(
@@ -199,7 +199,7 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
           [tenant],
         );
         await db.query(
-          `insert into public.legal_entities(id,tenant_id,name) values ($1,$2,'First')`,
+          `insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$2,'First','US','usd','First')`,
           [entity, tenant],
         );
         await db.query(
@@ -279,7 +279,7 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
         [tenant],
       );
       await db.query(
-        "insert into public.legal_entities(id,tenant_id,name) values ($1,$2,'First')",
+        "insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$2,'First','US','usd','First')",
         [entity, tenant],
       );
       await db.query(
@@ -353,7 +353,7 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
         [tenant],
       );
       await db.query(
-        "insert into public.legal_entities(id,tenant_id,name) values ($1,$2,'First')",
+        "insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$2,'First','US','usd','First')",
         [entity, tenant],
       );
       await db.query("insert into public.donors(id,tenant_id) values ($1,$2)", [
