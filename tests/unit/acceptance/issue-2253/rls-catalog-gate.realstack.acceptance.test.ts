@@ -240,8 +240,8 @@ async function catalogCounts() {
   await db.end();
   return rows[0] as { n: number; pol: number };
 }
-// AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
-const LISTED = 87;
+// AL-2674 (D09) drops backup_notification_queue_orphans_20260214; AL-2681 (WP8a part 1, D-18) adds RLS policies on 6 exception tables.
+const LISTED = 81;
 
 describe.skipIf(!ADMIN_URL)(
   "#2253 tenant RLS catalog gate (real stack)",

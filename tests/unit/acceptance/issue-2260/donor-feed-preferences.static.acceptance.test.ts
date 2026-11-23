@@ -21,13 +21,13 @@ const sql = () => {
   return H.code(H.read(H.MIGRATION));
 };
 /**
- * sha256 of the other exceptions entry lines, trimmed, "\n"-joined. It was
- * 9b004012... for the 85 lines at develop 0727d810; AL-2674 (D09) drops the
- * backup_notification_queue_orphans_20260214 table and its entry, and this is
- * the digest of those same lines without that one.
+ * sha256 of the remaining original exceptions entry lines, trimmed, "\n"-joined.
+ * AL-2674 (D09) dropped backup_notification_queue_orphans_20260214, and AL-2681
+ * (WP8a part 1, D-18) removed donation_saga_outbox, mission_control_task_links,
+ * mission_control_tasks, and workflow_dispatch_requests after adding policies.
  */
 const OTHERS_SHA =
-  "866842f870309fb9a6e47f9d9a138c3ba4a612c0b08cca3ce49b335dee76d1f9";
+  "b164727804521bbac864e1fcaf78af18ad00cd004cd739d1e59382969e6bc2e8";
 /** Criterion 20 doc rules, " ~ "-separated regexes. */
 const DOC_RULES = String.raw`anon ~ authenticated ~ service_role ~ SELECT, INSERT, UPDATE ~ auth\.uid\(\) ~ authz\.current_tenant_id\(\) ~ cross[- ]tenant ~ default (privileges|grants) ~ DELETE ~ #2251 ~ #668 ~ Down`;
 
@@ -58,19 +58,15 @@ describe("#2260 static (17-20)", () => {
     for (const g of body.match(/\bGRANT\b[^;]*;/gi) ?? [])
       expect(g).not.toMatch(/\b(DELETE|ALL|TRUNCATE)\b/i);
   });
-  it("18: the original entries stay byte-identical with only the three WP3a denials added, sorted", () => {
-    const wp3 = [
-      "giving_target_entity_locks",
-      "legal_entities",
-      "payment_account_bindings",
-    ];
+  it("18: the remaining original entries stay byte-identical with only the remaining WP3a denial added, sorted", () => {
+    const wp3 = ["giving_target_entity_locks"];
     const raw = H.read(H.EXCEPTIONS);
     const e = (
       JSON.parse(raw) as { entries: { table: string; outcome: string }[] }
     ).entries;
     const n = (o: string) => e.filter((x) => x.outcome === o).length;
     expect([e.length, n("service_role_needed"), n("deny_by_default")]).toEqual([
-      87, 67, 20,
+      81, 63, 18,
     ]);
     const lines = raw
       .split("\n")
@@ -108,10 +104,19 @@ describe("#2260 static (17-20)", () => {
         entries: { file: string; follow_up: string }[];
       }
     ).entries;
-    // D-18: WP4a counts six existing bypass paths for WP4b; the original pool shrank to 115.
+    // D-18: WP4a counts six existing bypass paths for WP4b, and AL-2681 (W8-R10) holds one temporary connected-accounts webhook intake row until Part 2 retires legacy webhooks.
     expect(
-      a.filter((entry) => entry.follow_up !== "WP4b").length,
+      a.filter(
+        (entry) =>
+          entry.follow_up !== "WP4b" &&
+          entry.file !== "packages/api/src/stripe/connect-webhook.ts",
+      ).length,
     ).toBeLessThanOrEqual(115);
+    expect(
+      a.filter(
+        (entry) => entry.file === "packages/api/src/stripe/connect-webhook.ts",
+      ).length,
+    ).toBeLessThanOrEqual(1);
     expect(
       a.filter((entry) => entry.follow_up === "WP4b").length,
     ).toBeLessThanOrEqual(6);
