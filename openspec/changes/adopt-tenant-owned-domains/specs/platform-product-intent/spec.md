@@ -19,7 +19,7 @@ Every tenant-facing surface SHALL be served only on names the Tenant owns and Co
 
 - GIVEN a provisioned Tenant whose own names have not passed Core's verification
 - WHEN anyone tries to reach that Tenant's website or dashboards
-- THEN nothing of that Tenant is served on any address
+- THEN nothing tenant-facing of that Tenant is served on any address
 - AND no Asym-domain address is offered as a stand-in
 
 #### Scenario: A Tenant loses its domain

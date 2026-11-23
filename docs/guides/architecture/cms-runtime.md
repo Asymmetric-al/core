@@ -70,7 +70,7 @@ do not wrap Web Studio views in the Mission Control shell a second time.
 
 - Shared tenant context is derived from authenticated CMS user data.
 - Collection access is deny-by-default and tenant-scoped for non-super-admin users.
-- Public endpoints resolve tenant from:
+- Public endpoints resolve tenant from the list below. This is current behaviour: under the owner's decision of 21 November 2026 (OpenSpec change `adopt-tenant-owned-domains`) no platform subdomain names a tenant, and this resolver, its subdomain slug fallback included, leaves the read path with WP7. The order today:
   1. host / forwarded host primary-domain match
   2. subdomain slug fallback when the host is not `www` or `localhost`
   3. `?tenant=<slug>` fallback only when host resolution fails and the

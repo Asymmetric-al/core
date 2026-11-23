@@ -505,8 +505,7 @@ Supabase query; no Payload import), shared by the CMS public API and the giving 
 
 - Interface (shape): `resolveSiteFromHost(host) → { site, tenant } | null`,
   `defaultSiteForTenant(tenantId) → site`.
-- Resolution order after D72: exact normalized current Domain binding → explicit bounded private-
-  preview subdomain binding → environment-gated dev/local override. A Primary Site Domain may resolve
+- Resolution order after D72: exact normalized current Domain binding → explicit bounded private-preview subdomain binding (Asym-internal previews only, never a tenant; amended 2026-11-24) → environment-gated dev/local override. A Primary Site Domain may resolve
   favorable Site context; a Redirect Site Domain returns a distinct route-owner-qualified redirect
   decision and never resolves as a serving alias. Unknown production hosts never fall back to a
   Tenant Default Site. Current custom host uniqueness is platform-wide.

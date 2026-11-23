@@ -139,8 +139,7 @@ database with committed migrations.
 
 ## Tenant resolution locally
 
-Public CMS endpoints still resolve tenants by primary domain, then subdomain,
-then explicit `?tenant=<slug>`. In development/test only, loopback hosts
+Public CMS endpoints still resolve tenants by primary domain, then subdomain, then explicit `?tenant=<slug>`. This is current behaviour: under the owner's decision of 21 November 2026 (OpenSpec change `adopt-tenant-owned-domains`) no platform subdomain names a tenant, and this resolver, its subdomain slug fallback included, leaves the read path with WP7. In development/test only, loopback hosts
 (`localhost`, `127.0.0.1`, `[::1]`) can fall back to:
 
 ```bash
