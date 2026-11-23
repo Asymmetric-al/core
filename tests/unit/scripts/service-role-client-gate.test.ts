@@ -12,6 +12,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  CALLER_MEDIA_STORE_ALLOWED_EXPORTS,
+  CALLER_PRIVILEGED_IMPORT_EXCEPTIONS,
   CEILING,
   ceilingDigest,
   evaluateServiceRoleClientGate,
@@ -79,12 +81,280 @@ describe("frozen ceiling", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
-  // D-18: the ceiling falls with the allowlist. It rose once, by the coordinator's ruling of
-  // 21 November 2026 (F3, F4): by exactly the eight platform-wrapper sites that reached the key
-  // uncounted, each named for WP4b. Any other growth needs a new ruling.
-  it("pins the reviewed service-role sites after each CRM read moves", () => {
+
+  it("allows a withOperation file to import packages/api/src/storage/media-store (W6-R3 amended)", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "caller-media-ok-"));
+    const files = {
+      "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; export const issueSignedUpload = () => getAdminClient();`,
+      "packages/api/src/cms/media/start.ts":
+        'import {withOperation} from "../../shared/with-operation";\nimport {issueSignedUpload} from "../../storage/media-store";\nexport const POST = withOperation(async () => issueSignedUpload());',
+      "packages/api/src/cms/media/finalize.ts":
+        'import {withOperation} from "../../shared/with-operation";\nimport {issueSignedUpload} from "@asym/api/storage/media-store";\nexport const POST = withOperation(async () => issueSignedUpload());',
+      "docs/security/service-role-client-allowlist.json": JSON.stringify({
+        version: 1,
+        entries: [
+          {
+            file: "packages/api/src/storage/media-store.ts",
+            kind: "admin_client",
+            count: 1,
+            lines: [1],
+            reason: "W6-R3 amended fixture",
+            path_ref: "P media storage",
+            follow_up: "#2679",
+          },
+        ],
+      }),
+    };
+    try {
+      for (const [file, content] of Object.entries(files)) {
+        mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+        writeFileSync(path.join(root, file), content);
+      }
+      spawnSync("git", ["init", "-q"], { cwd: root });
+      const result = runServiceRoleClientGate({ root });
+      expect(result.failures).toEqual([]);
+      expect(result.ok).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("still rejects a withOperation file importing any other admin-client module beside media-store", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "caller-media-deny-"));
+    const files = {
+      "packages/api/src/storage/other-store.ts": `import {getAdminClient} from "${FACTORY}"; export const readOther = () => getAdminClient();`,
+      "packages/api/src/cms/media/bad.ts":
+        'import {withOperation} from "../../shared/with-operation";\nimport {readOther} from "../../storage/other-store";\nexport const POST = withOperation(async () => readOther());',
+      "docs/security/service-role-client-allowlist.json": JSON.stringify({
+        version: 1,
+        entries: [],
+      }),
+    };
+    try {
+      for (const [file, content] of Object.entries(files)) {
+        mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+        writeFileSync(path.join(root, file), content);
+      }
+      spawnSync("git", ["init", "-q"], { cwd: root });
+      expect(runServiceRoleClientGate({ root }).failures).toContainEqual(
+        expect.stringMatching(
+          /^CALLER_PRIVILEGED_IMPORT packages\/api\/src\/cms\/media\/bad\.ts:2/,
+        ),
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("pins CALLER_PRIVILEGED_IMPORT_EXCEPTIONS and CALLER_MEDIA_STORE_ALLOWED_EXPORTS", () => {
+    expect(CALLER_PRIVILEGED_IMPORT_EXCEPTIONS).toEqual([
+      "packages/api/src/storage/media-store",
+    ]);
+    expect(Object.isFrozen(CALLER_PRIVILEGED_IMPORT_EXCEPTIONS)).toBe(true);
+    expect(CALLER_MEDIA_STORE_ALLOWED_EXPORTS).toEqual([
+      "issueSignedUpload",
+      "finalizeMediaUpload",
+      "readMediaVariant",
+    ]);
+    expect(Object.isFrozen(CALLER_MEDIA_STORE_ALLOWED_EXPORTS)).toBe(true);
+  });
+
+  it("rejects withOperation imports of unlisted exports, namespace imports, or dynamic imports from media-store", () => {
+    const cases: Array<[string, string]> = [
+      [
+        "unlisted named import",
+        'import {withOperation} from "../../shared/with-operation";\nimport {unlistedHelper} from "../../storage/media-store";\nexport const POST = withOperation(async () => unlistedHelper());',
+      ],
+      [
+        "aliased unlisted import",
+        'import {withOperation} from "../../shared/with-operation";\nimport {unlistedHelper as helper} from "../../storage/media-store";\nexport const POST = withOperation(async () => helper());',
+      ],
+      [
+        "namespace import",
+        'import {withOperation} from "../../shared/with-operation";\nimport * as store from "../../storage/media-store";\nexport const POST = withOperation(async () => store.issueSignedUpload());',
+      ],
+      [
+        "dynamic import",
+        'import {withOperation} from "../../shared/with-operation";\nexport const POST = withOperation(async () => (await import("../../storage/media-store")).unlistedHelper());',
+      ],
+    ];
+    for (const [label, badSource] of cases) {
+      const root = mkdtempSync(path.join(tmpdir(), "caller-media-export-"));
+      const files = {
+        "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; const admin = () => getAdminClient(); export const issueSignedUpload = () => admin(); export const unlistedHelper = () => admin();`,
+        "packages/api/src/cms/media/bad.ts": badSource,
+        "docs/security/service-role-client-allowlist.json": JSON.stringify({
+          version: 1,
+          entries: [
+            {
+              file: "packages/api/src/storage/media-store.ts",
+              kind: "admin_client",
+              count: 1,
+              lines: [1],
+              reason: "W6-R3 amended fixture",
+              path_ref: "P media storage",
+              follow_up: "#2679",
+            },
+          ],
+        }),
+      };
+      try {
+        for (const [file, content] of Object.entries(files)) {
+          mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+          writeFileSync(path.join(root, file), content);
+        }
+        spawnSync("git", ["init", "-q"], { cwd: root });
+        const result = runServiceRoleClientGate({ root });
+        expect(result.failures, label).toContainEqual(
+          expect.stringMatching(
+            /^CALLER_PRIVILEGED_IMPORT packages\/api\/src\/cms\/media\/bad\.ts:/,
+          ),
+        );
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    }
+  });
+
+  it("rejects re-exporting media-store or forwarding media-store transitively into a withOperation file", () => {
+    const reexportCases: Array<[string, string]> = [
+      [
+        "named re-export",
+        'export { finalizeMediaUpload } from "../storage/media-store";',
+      ],
+      ["star re-export", 'export * from "../storage/media-store";'],
+      [
+        "local re-export",
+        'import { unlistedHelper } from "../storage/media-store";\nexport { unlistedHelper };',
+      ],
+    ];
+    for (const [label, wrapperSource] of reexportCases) {
+      const root = mkdtempSync(path.join(tmpdir(), "media-reexport-"));
+      const files = {
+        "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; const admin = () => getAdminClient(); export const finalizeMediaUpload = () => admin(); export const unlistedHelper = () => admin();`,
+        "packages/api/src/cms/barrel.ts": wrapperSource,
+        "docs/security/service-role-client-allowlist.json": JSON.stringify({
+          version: 1,
+          entries: [
+            {
+              file: "packages/api/src/storage/media-store.ts",
+              kind: "admin_client",
+              count: 1,
+              lines: [1],
+              reason: "W6-R3 amended fixture",
+              path_ref: "P media storage",
+              follow_up: "#2679",
+            },
+          ],
+        }),
+      };
+      try {
+        for (const [file, content] of Object.entries(files)) {
+          mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+          writeFileSync(path.join(root, file), content);
+        }
+        spawnSync("git", ["init", "-q"], { cwd: root });
+        const result = runServiceRoleClientGate({ root });
+        expect(result.failures, label).toContainEqual(
+          expect.stringMatching(
+            /^REEXPORT media_store packages\/api\/src\/cms\/barrel\.ts:/,
+          ),
+        );
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    }
+
+    const root = mkdtempSync(path.join(tmpdir(), "media-forward-"));
+    const files = {
+      "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; export const unlistedHelper = () => getAdminClient();`,
+      "packages/api/src/cms/hop1.ts":
+        'import { unlistedHelper } from "../storage/media-store";\nexport const runHop1 = () => unlistedHelper();',
+      "packages/api/src/cms/hop2.ts":
+        'import { runHop1 } from "./hop1";\nexport const runHop2 = () => runHop1();',
+      "packages/api/src/cms/media/bad.ts":
+        'import {withOperation} from "../../shared/with-operation";\nimport {runHop2} from "../hop2";\nexport const POST = withOperation(async () => runHop2());',
+      "docs/security/service-role-client-allowlist.json": JSON.stringify({
+        version: 1,
+        entries: [
+          {
+            file: "packages/api/src/storage/media-store.ts",
+            kind: "admin_client",
+            count: 1,
+            lines: [1],
+            reason: "W6-R3 amended fixture",
+            path_ref: "P media storage",
+            follow_up: "#2679",
+          },
+        ],
+      }),
+    };
+    try {
+      for (const [file, content] of Object.entries(files)) {
+        mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+        writeFileSync(path.join(root, file), content);
+      }
+      spawnSync("git", ["init", "-q"], { cwd: root });
+      const result = runServiceRoleClientGate({ root });
+      expect(result.failures).toContainEqual(
+        expect.stringMatching(
+          /^CALLER_PRIVILEGED_IMPORT packages\/api\/src\/cms\/media\/bad\.ts:2/,
+        ),
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects unresolvable dynamic import or require in a caller-lane module (W6-R16)", () => {
+    const cases: Array<[string, string]> = [
+      [
+        "identifier dynamic import",
+        'import {withOperation} from "../../shared/with-operation";\nexport const POST = withOperation(async () => { const p = "../../storage/media-store"; return import(p); });',
+      ],
+      [
+        "template expression dynamic import",
+        'import {withOperation} from "../../shared/with-operation";\nexport const POST = withOperation(async () => { const mod = "media-store"; return import(`../../storage/${mod}`); });',
+      ],
+      [
+        "concatenated dynamic import",
+        'import {withOperation} from "../../shared/with-operation";\nexport const POST = withOperation(async () => import("../../storage/" + "media-store"));',
+      ],
+      [
+        "dynamic require",
+        'import {withOperation} from "../../shared/with-operation";\nexport const POST = withOperation(async () => { const p = "../../storage/media-store"; return require(p); });',
+      ],
+    ];
+    for (const [label, badSource] of cases) {
+      const root = mkdtempSync(path.join(tmpdir(), "caller-dyn-import-"));
+      const files = {
+        "packages/api/src/cms/media/bad.ts": badSource,
+        "docs/security/service-role-client-allowlist.json": JSON.stringify({
+          version: 1,
+          entries: [],
+        }),
+      };
+      try {
+        for (const [file, content] of Object.entries(files)) {
+          mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+          writeFileSync(path.join(root, file), content);
+        }
+        spawnSync("git", ["init", "-q"], { cwd: root });
+        const result = runServiceRoleClientGate({ root });
+        expect(result.failures, label).toContainEqual(
+          expect.stringMatching(
+            /^CALLER_PRIVILEGED_IMPORT packages\/api\/src\/cms\/media\/bad\.ts:2/,
+          ),
+        );
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    }
+  });
+
+  it("pins the 115 reviewed entries after WP4a part 2b plus the media-store site under W6-R3 amended", () => {
     expect(ceilingDigest()).toBe(
-      "5376b6633a6995246e7da8ac10d58ee547986270497aca8d44bb514f4cdc2d80",
+      "d4222d1c014b2fd23fb4e7d0caf31a260aa69b8c2900fb7de8ce87f25a83e2e9",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -92,15 +362,15 @@ describe("frozen ceiling", () => {
       totals[kind] = (totals[kind] ?? 0) + count;
     }
     expect(totals).toEqual({
-      admin_client: 77,
+      admin_client: 78,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
       operation_admin_context: 64,
     });
-    expect(CEILING.size).toBe(114);
+    expect(CEILING.size).toBe(115);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(108);
+    ).toBe(109);
   });
 
   it("holds no CRM handler in the allowlist or the ceiling once note creation moves", () => {

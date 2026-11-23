@@ -46,6 +46,11 @@ const EXT = [".ts", ".tsx", ".js", ".mjs"];
  */
 const LEFT_UNTIL_WP2C = new Set(["apps/donor/app/api/graphql/route.ts"]);
 
+const CROSS_SURFACE_MEDIA_ROUTES = new Set([
+  "apps/donor/app/api/media/[assetId]/route.ts",
+  "apps/missionary/app/api/media/[assetId]/route.ts",
+]);
+
 function proxyClass(app: App): RoleClass {
   const text = readFileSync(join(root, `apps/${app}/proxy.ts`), "utf8");
   const match = text.match(/roleClass:\s*["'](staff|donor|missionary)["']/);
@@ -199,6 +204,13 @@ function unreachableChecks() {
       const { capabilities, administrator } = requirements(
         handlerSources(route),
       );
+      if (
+        CROSS_SURFACE_MEDIA_ROUTES.has(route) &&
+        !administrator &&
+        capabilities.size === 1 &&
+        capabilities.has("web_studio.edit")
+      )
+        continue;
       const beyond = [...capabilities].filter((c) => !canHold.has(c));
       if (beyond.length > 0)
         findings.push(
@@ -292,6 +304,30 @@ describe("staff handlers are mounted on the staff surface (AL-2675 F9)", () => {
       const { capabilities } = requirements(handlerSources(route));
       expect([...capabilities].sort()).toEqual(["admin.dashboard.access"]);
       expect(capabilities.has("people.manage_members")).toBe(false);
+    }
+  });
+
+  it("pins the cross-surface signed-in media mounts in donor and missionary to web_studio.edit with explicit staff context (AL-2679, plan 6.6 line 359, W6-R4)", () => {
+    expect([...CROSS_SURFACE_MEDIA_ROUTES].sort()).toEqual([
+      "apps/donor/app/api/media/[assetId]/route.ts",
+      "apps/missionary/app/api/media/[assetId]/route.ts",
+    ]);
+    expect(
+      existsSync(join(root, "apps/admin/app/api/media/[assetId]/route.ts")),
+    ).toBe(true);
+    for (const route of CROSS_SURFACE_MEDIA_ROUTES) {
+      expect(existsSync(join(root, route))).toBe(true);
+      const sources = handlerSources(route);
+      const { capabilities, administrator } = requirements(sources);
+      expect([...capabilities].sort()).toEqual(["web_studio.edit"]);
+      expect(administrator).toBe(false);
+      expect(
+        sources.some((file) =>
+          /getAuthContext\([\s\S]*?roleClass:\s*["']staff["']/.test(
+            readFileSync(join(root, file), "utf8"),
+          ),
+        ),
+      ).toBe(true);
     }
   });
 });
