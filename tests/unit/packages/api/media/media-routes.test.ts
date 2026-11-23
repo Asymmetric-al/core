@@ -431,7 +431,7 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
     expect(body.asset.status).toBe("ready");
     expect(mocks.finalizeMediaUpload).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: tenantA }),
-      { assetId },
+      { assetId, signal: expect.any(AbortSignal) },
     );
 
     mocks.finalizeMediaUpload.mockRejectedValueOnce(

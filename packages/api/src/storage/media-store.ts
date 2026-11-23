@@ -31,23 +31,68 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 sharp.cache(false);
 
 let activeMediaTransforms = 0;
-const mediaTransformWaiters: Array<() => void> = [];
+const mediaTransformWaiters: Array<{
+  grant: () => void;
+  cancelled: boolean;
+}> = [];
 
-async function withMediaTransformSlot<T>(fn: () => Promise<T>): Promise<T> {
-  if (activeMediaTransforms >= MEDIA_MAX_CONCURRENT_TRANSFORMS) {
-    await new Promise<void>((resolve) => {
-      mediaTransformWaiters.push(resolve);
-    });
+function createCancelledTransformError(): ApiHttpError {
+  return new ApiHttpError(499, "Media finalization cancelled");
+}
+
+function releaseMediaTransformSlot(): void {
+  while (mediaTransformWaiters.length > 0) {
+    const next = mediaTransformWaiters.shift();
+    if (next && !next.cancelled) {
+      next.grant();
+      return;
+    }
   }
-  activeMediaTransforms += 1;
+  activeMediaTransforms -= 1;
+}
+
+async function withMediaTransformSlot<T>(
+  fn: () => Promise<T>,
+  signal?: AbortSignal,
+): Promise<T> {
+  if (signal?.aborted) {
+    throw createCancelledTransformError();
+  }
+
+  if (activeMediaTransforms >= MEDIA_MAX_CONCURRENT_TRANSFORMS) {
+    await new Promise<void>((resolve, reject) => {
+      const waiter = {
+        cancelled: false,
+        grant: () => {
+          signal?.removeEventListener("abort", onAbort);
+          resolve();
+        },
+      };
+      const onAbort = () => {
+        if (waiter.cancelled) {
+          return;
+        }
+        waiter.cancelled = true;
+        const idx = mediaTransformWaiters.indexOf(waiter);
+        if (idx >= 0) {
+          mediaTransformWaiters.splice(idx, 1);
+        }
+        reject(createCancelledTransformError());
+      };
+      mediaTransformWaiters.push(waiter);
+      signal?.addEventListener("abort", onAbort, { once: true });
+    });
+  } else {
+    activeMediaTransforms += 1;
+  }
+
   try {
+    if (signal?.aborted) {
+      throw createCancelledTransformError();
+    }
     return await fn();
   } finally {
-    activeMediaTransforms -= 1;
-    const next = mediaTransformWaiters.shift();
-    if (next) {
-      next();
-    }
+    releaseMediaTransformSlot();
   }
 }
 
@@ -765,10 +810,13 @@ function waitMs(ms: number): Promise<void> {
 
 export async function finalizeMediaUpload(
   auth: AuthenticatedContext,
-  input: { assetId: string },
+  input: { assetId: string; signal?: AbortSignal },
 ): Promise<MediaAssetRecord> {
   const tenantId = requireAdmittedTenantId(auth);
   const assetId = requireValidUuid(input.assetId);
+  if (input.signal?.aborted) {
+    throw createCancelledTransformError();
+  }
   const admin = requireMediaAdminClient();
 
   const existing = await fetchMediaAssetRow(admin, tenantId, assetId);
@@ -1011,7 +1059,7 @@ export async function finalizeMediaUpload(
           .catch(() => undefined);
       }
     }
-  });
+  }, input.signal);
 }
 
 export async function readMediaVariant(

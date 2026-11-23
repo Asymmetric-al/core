@@ -16,7 +16,10 @@ export const POST = withOperation(
     const rawBody = await ensureJsonBody(request);
     const parsed = finalizeMediaUploadBodySchema.parse(rawBody);
 
-    const asset = await finalizeMediaUpload(auth, { assetId: parsed.assetId });
+    const asset = await finalizeMediaUpload(auth, {
+      assetId: parsed.assetId,
+      signal: request.signal,
+    });
 
     return NextResponse.json({ asset }, { status: 200 });
   },

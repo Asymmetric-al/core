@@ -1446,6 +1446,82 @@ describe("media-store custody and Sharp sanitization", () => {
     });
   });
 
+  it("drops an aborted waiter from the transform slot queue without running work and lets the next waiter proceed (W6-R16 point 9)", async () => {
+    const img1 = await createDirtyJpeg(400, 300);
+    const img2 = await createDirtyJpeg(410, 305);
+    const img3 = await createDirtyJpeg(420, 310);
+    const id1 = randomUUID();
+    const id2 = randomUUID();
+    const id3 = randomUUID();
+    for (const [id, img] of [
+      [id1, img1],
+      [id2, img2],
+      [id3, img3],
+    ] as const) {
+      fakeState.rows.set(id, makeRow({ id, tenant_id: tenantA }));
+      fakeState.objects.set(buildMediaStagingKey(tenantA, id), {
+        bytes: img,
+        contentType: "image/jpeg",
+        version: 1,
+      });
+    }
+
+    let releaseFirst!: () => void;
+    const firstEntered = new Promise<void>((resolve) => {
+      fakeState.onBeforeStagingDownload = async (objectPath) => {
+        if (objectPath === buildMediaStagingKey(tenantA, id1)) {
+          resolve();
+          await new Promise<void>((r) => {
+            releaseFirst = r;
+          });
+        }
+      };
+    });
+
+    const ac2 = new AbortController();
+    const ac3 = new AbortController();
+    const p1 = finalizeMediaUpload(authA, { assetId: id1 });
+    await firstEntered;
+
+    const p2 = finalizeMediaUpload(authA, {
+      assetId: id2,
+      signal: ac2.signal,
+    });
+    const p3 = finalizeMediaUpload(authA, {
+      assetId: id3,
+      signal: ac3.signal,
+    });
+    await new Promise((r) => setTimeout(r, 30));
+
+    ac2.abort();
+    const cancelledOutcome = await Promise.race([
+      p2.then(
+        () => "resolved" as const,
+        (err: { status?: number }) => err.status ?? -1,
+      ),
+      new Promise<"timed_out">((r) => setTimeout(() => r("timed_out"), 200)),
+    ]);
+    releaseFirst();
+
+    const [r1, r3] = await Promise.all([p1, p3]);
+    expect(cancelledOutcome).toBe(499);
+    expect(r1.status).toBe("ready");
+    expect(r3.status).toBe("ready");
+    expect(fakeState.downloadCalls).not.toContain(
+      buildMediaStagingKey(tenantA, id2),
+    );
+    expect(fakeState.rows.get(id2)!.status).toBe("uploading");
+
+    const preAborted = new AbortController();
+    preAborted.abort();
+    await expect(
+      finalizeMediaUpload(authA, {
+        assetId: id2,
+        signal: preAborted.signal,
+      }),
+    ).rejects.toMatchObject({ status: 499 });
+  });
+
   it("purges only past purge_after, preserves shared content_hash objects, cleans uploading staging, and honors live-use hook", async () => {
     const img = await createDirtyJpeg(500, 400);
     const a1 = randomUUID();
