@@ -36,7 +36,9 @@ describe("api/profile/queries", () => {
     expect(response).toEqual(result);
     expect(mock.rpc).not.toHaveBeenCalled();
     expect(mock.from).toHaveBeenCalledWith("profiles");
-    expect(mock.select).toHaveBeenCalledWith("*");
+    expect(mock.select).toHaveBeenCalledWith(
+      "id, email, first_name, last_name, avatar_url",
+    );
     expect(mock.eq.mock.calls).toEqual([["id", "profile-1"]]);
   });
 

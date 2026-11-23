@@ -46,6 +46,74 @@ function fullNameFromProfilePatch(input: z.infer<typeof profilePatchSchema>) {
   return parts.length > 0 ? parts.join(" ") : undefined;
 }
 
+type OwnSocialLinks = {
+  facebook: string | null;
+  instagram: string | null;
+  twitter: string | null;
+  youtube: string | null;
+  website: string | null;
+};
+
+type OwnMissionaryRow = {
+  id: string;
+  phone: string | null;
+  location: string | null;
+  tagline: string | null;
+  bio: string | null;
+  cover_url: string | null;
+  social_links: unknown;
+};
+
+type OwnProfileRow = {
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  avatar_url: string | null;
+};
+
+function serializeSocialLinks(raw: unknown): OwnSocialLinks | null {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+    return null;
+  }
+  const record = raw as Record<string, unknown>;
+  return {
+    facebook: typeof record.facebook === "string" ? record.facebook : null,
+    instagram: typeof record.instagram === "string" ? record.instagram : null,
+    twitter: typeof record.twitter === "string" ? record.twitter : null,
+    youtube: typeof record.youtube === "string" ? record.youtube : null,
+    website: typeof record.website === "string" ? record.website : null,
+  };
+}
+
+function serializeProfileResponse(
+  profile: OwnProfileRow,
+  missionary: OwnMissionaryRow | null,
+) {
+  const base = {
+    first_name: profile.first_name ?? null,
+    last_name: profile.last_name ?? null,
+    email: profile.email ?? null,
+    avatar_url: profile.avatar_url ?? null,
+  };
+
+  if (!missionary) {
+    return base;
+  }
+
+  return {
+    ...base,
+    missionary: {
+      id: missionary.id,
+      phone: missionary.phone ?? null,
+      location: missionary.location ?? null,
+      tagline: missionary.tagline ?? null,
+      bio: missionary.bio ?? null,
+      cover_url: missionary.cover_url ?? null,
+      social_links: serializeSocialLinks(missionary.social_links),
+    },
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { client: supabaseAdmin, error: adminError } = getAdminClient();
@@ -67,7 +135,7 @@ export async function GET(request: NextRequest) {
 
     if (profileError) throw toApiHttpError(profileError, profileError.message);
 
-    let profileData = { ...profile };
+    let missionaryRow: OwnMissionaryRow | null = null;
 
     if (scope) {
       const { data: missionary, error } = await findMissionaryByProfileId(
@@ -77,11 +145,13 @@ export async function GET(request: NextRequest) {
       if (error) throw toApiHttpError(error, error.message);
 
       if (missionary) {
-        profileData = { ...profileData, missionary };
+        missionaryRow = missionary;
       }
     }
 
-    return NextResponse.json({ profile: profileData });
+    return NextResponse.json({
+      profile: serializeProfileResponse(profile, missionaryRow),
+    });
   } catch (e) {
     return toErrorResponse(e);
   }
@@ -207,17 +277,15 @@ export async function PATCH(request: NextRequest) {
       if (error) throw toApiHttpError(error, error.message);
     }
 
-    // Reload by the caller's profile id; a profile's tenant column is no
-    // authority (AL-2675).
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
-      .select("*")
+      .select("id, email, first_name, last_name, avatar_url")
       .eq("id", ctx.profileId)
       .single();
 
     if (profileError) throw toApiHttpError(profileError, profileError.message);
 
-    let profileData = { ...profile };
+    let missionaryRow: OwnMissionaryRow | null = null;
 
     if (scope) {
       const { data: missionary, error } = await findMissionaryByProfileId(
@@ -227,11 +295,13 @@ export async function PATCH(request: NextRequest) {
       if (error) throw toApiHttpError(error, error.message);
 
       if (missionary) {
-        profileData = { ...profileData, missionary };
+        missionaryRow = missionary;
       }
     }
 
-    return NextResponse.json({ profile: profileData });
+    return NextResponse.json({
+      profile: serializeProfileResponse(profile, missionaryRow),
+    });
   } catch (e) {
     return toErrorResponse(e);
   }

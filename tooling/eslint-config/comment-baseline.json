@@ -768,7 +768,7 @@
   "packages/api/src/principal/projection.ts": 1,
   "packages/api/src/principal/types.ts": 4,
   "packages/api/src/profile/image-url.ts": 3,
-  "packages/api/src/profile/index.ts": 7,
+  "packages/api/src/profile/index.ts": 5,
   "packages/api/src/profile/queries.ts": 1,
   "packages/api/src/projection/policy.ts": 1,
   "packages/api/src/projection/resolver.ts": 1,
