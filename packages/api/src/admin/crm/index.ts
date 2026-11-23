@@ -1,58 +1,33 @@
-import {
-  getAuthContext,
-  requireCapability,
-  type AuthenticatedContext,
-} from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase/admin";
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { parseAdminCrmParams } from "./query";
 import { listAdminCrmRecords } from "./service";
 import { listAdminCrmTagOptions } from "./tags";
 import { toErrorResponse } from "../../shared/http-errors";
+import { withOperation } from "../../shared/with-operation";
 
-function requireAdminSupabase() {
-  const { client, error } = getAdminClient();
-  if (!client) {
-    throw new Error(error || "Admin client unavailable");
-  }
+export const GET = withOperation(
+  async ({ auth, request, requestId, sessionClient }) => {
+    try {
+      const params = parseAdminCrmParams(new URL(request.url).searchParams);
+      return NextResponse.json(
+        await listAdminCrmRecords(sessionClient, auth.tenantId, params),
+      );
+    } catch (error) {
+      return toErrorResponse(error, "Failed to load CRM records.", requestId);
+    }
+  },
+  { capability: "admin.crm.manage" },
+);
 
-  return client;
-}
-
-export async function GET(request: NextRequest) {
-  try {
-    const supabaseAdmin = requireAdminSupabase();
-    const auth = await getAuthContext(request);
-    requireCapability(auth, "admin.crm.manage");
-    const ctx = auth as AuthenticatedContext;
-
-    const params = parseAdminCrmParams(new URL(request.url).searchParams);
-    const result = await listAdminCrmRecords(
-      supabaseAdmin,
-      ctx.tenantId,
-      params,
-    );
-
-    return NextResponse.json(result);
-  } catch (error) {
-    return toErrorResponse(error, "Failed to load CRM records.");
-  }
-}
-
-/**
- * GET /api/admin/crm/tags — the tenant's CRM tag options. It lives beside the
- * records read so both share this file's one service-role client site.
- */
-export async function GET_TAG_OPTIONS(request: NextRequest) {
-  try {
-    const supabaseAdmin = requireAdminSupabase();
-    const auth = await getAuthContext(request);
-    requireCapability(auth, "admin.crm.manage");
-    const ctx = auth as AuthenticatedContext;
-    const tags = await listAdminCrmTagOptions(supabaseAdmin, ctx.tenantId);
-    return NextResponse.json({ tags });
-  } catch (error) {
-    return toErrorResponse(error, "Failed to load CRM tags.");
-  }
-}
+export const GET_TAG_OPTIONS = withOperation(
+  async ({ auth, requestId, sessionClient }) => {
+    try {
+      const tags = await listAdminCrmTagOptions(sessionClient, auth.tenantId);
+      return NextResponse.json({ tags });
+    } catch (error) {
+      return toErrorResponse(error, "Failed to load CRM tags.", requestId);
+    }
+  },
+  { capability: "admin.crm.manage" },
+);

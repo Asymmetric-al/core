@@ -259,6 +259,23 @@ After this migration a donor or missionary assignment reads no row of these tabl
 
 What a donor assignment reads: its own `donors` row, the gifts, pledges, activities, feed preferences and follows of that record, `field_policies`, its own profile, and the public posts and locations. A missionary assignment reads its own `missionaries` keys, the gifts and pledges given to it, `field_policies` and its own profile. Neither reads `funds`, `campaigns` or `assets` in this release. Whether a donor-class member ever reads fund or campaign rows directly is not decided here, because no screen needs it: a later package that needs it brings the column list to the owner (plan 15.1, row 1448; record D-06).
 
+### Subsequent CRM read activation (AL-2677)
+
+Mission Control uses the current tenant and staff assignment for reads of
+`staged_gifts`, `staged_gift_allocations` and `donation_crm_links`. Their
+existing false policies still refuse writes. A staff assignment can also
+read the IDs, sides and status of a duplicate candidate, correction and
+request statuses by gift, the effective adjustment values and their order,
+and the tenant's approval settings. The database grants only the columns
+used for these lookups. Adjustment reasons and actor references stay private.
+
+The staff policy on `missionaries` exposes ID, tenant, profile, location and
+creation/update times. The missionary assignment's own-row policy also
+admits those columns on its own row. Care fields have no signed-in grant.
+Tenant defaults are readable by the tenant's staff. Personal preferences
+and named views also require the caller's own profile. Their existing
+command functions continue to govern writes.
+
 ## 6. Storage and Realtime
 
 - **Profile and editor-image buckets.** Every policy of `profiles` (`avatars|covers/<tenant>/<user>/<file>`) and of the editor images in `document-uploads` (`editor/<tenant>/<user>/<file>`) that a signed-in user reaches moves to live membership in the tenant the object path names: the upload and replace checks, which compared the path's tenant with `profiles.tenant_id` and admitted one tenant per person, and the owner-only reads and deletes, which named no tenant (plan 5.2, "check live membership in the tenant named in the object path"; Q10). The test takes no assignment, because Storage cannot carry the header: any live row of the caller in that tenant. A replace (update) tests it on the object as it stands as well as on the object as it will be, so a person revoked in one tenant and live in another cannot update or move an object under the first, however the Storage server phrases its statement; no code path moves an object out of a legacy folder (council R5). So a person whose membership has ended can no longer delete or read through the API their images in that tenant's folder. That does not withdraw an image: both buckets are public, the upload routes return a public URL (`packages/api/src/upload/editor-image.ts`, `packages/api/src/upload/image.ts`), and anyone who already has it, a former member included, can still fetch the image. Do not rely on ending a membership to withdraw a published image; only deleting the object, by its owner while still a member or by the server, does. The no-legacy ruling covers files outside the owner-folder layout.

@@ -11,28 +11,16 @@ import {
 } from "./query";
 import { assertCrmTenantAccess } from "../../../crm/auth/access";
 import { ApiHttpError } from "../../../shared/api-http-error";
+import { isRecord } from "../../../shared/json-coerce";
+import { loadCrmMemberLabels } from "../member-labels";
 
 import type { ActorContext } from "../../../crm/types";
+import type { RequestSessionClient } from "../../../shared/request-session-client";
 import type { AdminCrmRelationshipsListResponse } from "@asym/database/types";
 
 type JsonRecord = Record<string, unknown>;
 
-type RelationshipsFilter = {
-  eq: (field: string, value: unknown) => RelationshipsFilter;
-  in: (field: string, values: readonly unknown[]) => RelationshipsFilter;
-  then: (
-    resolve: (value: {
-      data: JsonRecord[] | null;
-      error: { message?: string } | null;
-    }) => unknown,
-  ) => unknown;
-};
-
-export type RelationshipsClient = {
-  from: (table: string) => {
-    select: (columns?: string) => RelationshipsFilter;
-  };
-};
+export type RelationshipsClient = Pick<RequestSessionClient, "from" | "rpc">;
 
 const PLEDGE_SELECT =
   "id, tenant_id, donor_id, amount, frequency, currency, status, start_date, created_at";
@@ -54,18 +42,37 @@ export async function listMissionControlCrmRelationships(options: {
   const tenantId = actor.tenantId;
 
   const [donors, missionaries, pledges, activities] = await Promise.all([
-    selectTenantRows(supabase, "donors", tenantId),
-    selectTenantRows(supabase, "missionaries", tenantId),
+    selectTenantRows(
+      supabase,
+      "donors",
+      tenantId,
+      "id,name,organization,type,spouse,status,location,created_at,updated_at",
+    ),
+    selectTenantRows(
+      supabase,
+      "missionaries",
+      tenantId,
+      "id,profile_id,location,created_at,updated_at",
+    ),
     selectTenantRows(supabase, "donor_pledges", tenantId, PLEDGE_SELECT),
-    selectTenantRows(supabase, "member_care_activities", tenantId),
+    selectTenantRows(
+      supabase,
+      "member_care_activities",
+      tenantId,
+      "id,type,title,description,occurred_at,created_at",
+    ),
   ]);
-  // AL-2675 (NR-68): the profiles shown are those this tenant's own rows
-  // reference, read by id; never a filter on the profile's tenant column, which would
-  // miss a person whose profile names another organization.
-  const profiles = await selectProfilesById(
+  const names = await loadCrmMemberLabels(
     supabase,
-    [...donors, ...missionaries].map((row) => row.profile_id),
+    tenantId,
+    missionaries
+      .map((row) => row.profile_id)
+      .filter((id): id is string => typeof id === "string"),
   );
+  const profiles = Array.from(names, ([id, display_name]) => ({
+    id,
+    display_name,
+  }));
 
   const mapped = mapLocalCrmRelationshipRows({
     activities,
@@ -114,34 +121,20 @@ export async function listMissionControlCrmRelationships(options: {
   };
 }
 
-async function selectProfilesById(
-  supabase: RelationshipsClient,
-  ids: unknown[],
-): Promise<JsonRecord[]> {
-  const profileIds = [
-    ...new Set(ids.filter((id): id is string => typeof id === "string")),
-  ];
-  if (profileIds.length === 0) return [];
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .in("id", profileIds);
-  if (error) {
-    throw new ApiHttpError(500, `Failed to load profiles: ${error.message}`);
-  }
-  return Array.isArray(data) ? data : [];
-}
-
 async function selectTenantRows(
   supabase: RelationshipsClient,
   table: string,
   tenantId: string,
-  columns = "*",
+  columns: string,
 ): Promise<JsonRecord[]> {
   const query = supabase.from(table).select(columns).eq("tenant_id", tenantId);
   const { data, error } = await query;
   if (error) {
     throw new ApiHttpError(500, `Failed to load ${table}: ${error.message}`);
   }
-  return Array.isArray(data) ? data : [];
+  const rows: unknown = data ?? [];
+  if (!Array.isArray(rows) || !rows.every(isRecord)) {
+    throw new ApiHttpError(500, `Invalid ${table} row data.`);
+  }
+  return rows;
 }

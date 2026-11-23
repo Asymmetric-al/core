@@ -248,7 +248,9 @@ function member(
   };
 }
 const url = (path: string) =>
-  new NextRequest(`https://app.example.test${path}`);
+  new NextRequest(`https://app.example.test${path}`, {
+    headers: { cookie: "sb-local-auth-token=session" },
+  });
 const post = (path: string, body: unknown) =>
   new NextRequest(`https://app.example.test${path}`, {
     method: "POST",

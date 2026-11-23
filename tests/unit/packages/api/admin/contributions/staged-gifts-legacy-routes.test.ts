@@ -30,7 +30,12 @@ vi.mock("@asym/lib/audit/logger", () => ({ createAuditLogger: () => ({}) }));
 vi.mock("next/cache", () => ({ revalidateTag: vi.fn() }));
 vi.mock(
   "../../../../../../packages/api/src/shared/request-session-client",
-  () => ({ createRequestSessionClient: vi.fn(async () => ({})) }),
+  async (original) => ({
+    ...(await original<
+      typeof import("../../../../../../packages/api/src/shared/request-session-client")
+    >()),
+    createRequestSessionClient: vi.fn(async () => ({})),
+  }),
 );
 vi.mock("../../../../../../packages/api/src/giving/receipts", () => ({
   sendStagedGiftReceipt: seams.sendStagedGiftReceipt,
@@ -287,7 +292,10 @@ function request(pathSuffix: string, method: string, body?: unknown) {
     `https://admin.example.test/api/admin/contributions/staged-gifts${pathSuffix}`,
     {
       method,
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        cookie: "sb-local-auth-token=session",
+      },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     },
   ) as NextRequest;

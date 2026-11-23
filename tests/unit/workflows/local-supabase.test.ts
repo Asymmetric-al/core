@@ -18,6 +18,30 @@ const step = (marker: string) => steps.find((s) => s.includes(marker));
 const at = (marker: string) => workflow.indexOf(marker);
 
 describe("Local Supabase Stack workflow: the replay matches the platform's image", () => {
+  it("runs CRM data journeys in the real Auth job", () => {
+    const config = readFileSync("playwright.auth-mail.config.ts", "utf8");
+    expect(config).toContain('"**/auth-crm-reads.spec.ts"');
+    expect(workflow).toContain("- tests/e2e/auth-crm-reads.spec.ts");
+    expect(step("Run the auth email round trips")).toContain(
+      "bun run test:e2e:auth-mail",
+    );
+  });
+  it("requires the CRM caller-token suite on the seeded stack", () => {
+    const run = step("Verify CRM reads through scoped PostgREST sessions");
+    expect(run).toContain('CRM_READ_IT_REQUIRED: "1"');
+    expect(run).toContain("CRM_READ_IT_SUPABASE_URL: http://127.0.0.1:54321");
+    expect(run).toContain(
+      "CRM_READ_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    );
+    expect(run).toContain("jq -er '.ANON_KEY'");
+    expect(run).toContain(
+      "bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts",
+    );
+    expect(run).toContain(
+      "tests/unit/acceptance/issue-2677/crm-directory.realstack.acceptance.test.ts",
+    );
+    expect(run).not.toMatch(/^\s*(?:if|continue-on-error):/m);
+  });
   it("requires the governed projection round trip after fingerprinting", () => {
     const command =
       "bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts";

@@ -1,6 +1,6 @@
 name: Local Supabase Stack
 
-# Five guards share a local Supabase stack (docs/ci.md, "Local Supabase stack workflow"):
+# These checks share a local Supabase stack (docs/ci.md, "Local Supabase stack workflow").
 #
 # - The migration chain and the seed on the real Supabase image. This is the
 #   only job that applies them there, with Supabase's roles and grants and a
@@ -9,6 +9,8 @@ name: Local Supabase Stack
 #   (council round 2). So every pull request that changes the chain, the seed,
 #   the stack's configuration or the CLI pin starts the stack.
 # - Missionary handler authority through PostgREST, with release policies in force.
+# - Mission Control CRM reads and exports with real staff sessions, including
+#   the browser journeys that read those rows and retain the selected tenant.
 # - The email round trips of WP0b and WP1.4: password recovery in all three
 #   apps and sign-up confirmation on two hosts of the donor portal, through
 #   the stack's Auth server and mail catcher (council round 2, B4).
@@ -99,6 +101,7 @@ on:
       - tests/unit/acceptance/issue-2675/operator-mfa.localstack.test.ts
       # The first release's reads against the second release's policies
       # (AL-2675): the journeys, and the request scope they prove.
+      - tests/e2e/auth-crm-reads.spec.ts
       - tests/e2e/auth-request-scope-reads.spec.ts
       - tests/e2e/helpers/request-scope-reads.ts
       - packages/database/document-scope.tsx
@@ -108,6 +111,11 @@ on:
       - packages/database/supabase/server.ts
       - packages/api/src/shared/request-session-client.ts
       - packages/api/src/field-policies/**
+      - packages/api/src/admin/crm/**
+      - packages/api/src/admin/contribution-shared/**
+      - packages/api/src/admin/contribution-operations/correction-requests.ts
+      - tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts
+      - tests/unit/acceptance/issue-2677/crm-directory.realstack.acceptance.test.ts
       - packages/api/src/projection/**
       - tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts
       - packages/api/src/health/app.ts
@@ -255,6 +263,17 @@ jobs:
           export APP_HEALTH_IT_SUPABASE_URL="$FIELD_POLICY_IT_SUPABASE_URL"
           export APP_HEALTH_IT_ANON_KEY="$FIELD_POLICY_IT_ANON_KEY"
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts tests/unit/acceptance/issue-2674/app-health.postgrest.acceptance.test.ts
+      - name: Verify CRM reads through scoped PostgREST sessions
+        env:
+          CRM_READ_IT_REQUIRED: "1"
+          CRM_READ_IT_SUPABASE_URL: http://127.0.0.1:54321
+          CRM_READ_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          export CRM_READ_IT_ANON_KEY
+          export CRM_READ_IT_AUDIT_KEY
+          CRM_READ_IT_AUDIT_KEY="$(bun run supabase -- status -o json | jq -er '.SERVICE_ROLE_KEY')"
+          CRM_READ_IT_ANON_KEY="$(bun run supabase -- status -o json | jq -er '.ANON_KEY')"
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts tests/unit/acceptance/issue-2677/crm-directory.realstack.acceptance.test.ts
       - name: Install Playwright Chromium
         id: chromium
         run: bunx playwright install --with-deps chromium

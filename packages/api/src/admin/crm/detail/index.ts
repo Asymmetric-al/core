@@ -4,7 +4,7 @@ import { getAdminCrmDonorDetail } from "./service";
 import { requireCrmAccess } from "../../../crm/auth/access";
 import { ApiHttpError, toErrorResponse } from "../../../shared/http-errors";
 import { requireRouteUuid } from "../../../shared/route-uuid";
-import { withPlatformOperation } from "../../../shared/with-operation";
+import { withOperation } from "../../../shared/with-operation";
 import { resolveContributionCapabilities } from "../../contribution-operations/permissions";
 
 function getRecordIdFromPath(request: Request) {
@@ -20,8 +20,8 @@ function getRecordIdFromPath(request: Request) {
   return requireRouteUuid(recordId);
 }
 
-export const GET = withPlatformOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
+export const GET = withOperation(
+  async ({ auth, request, requestId, sessionClient }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.record.read",
       resourceType: "record",
@@ -32,7 +32,7 @@ export const GET = withPlatformOperation(
         crmWritesEnabled: true,
         donorId: getRecordIdFromPath(request),
         isTenantAdministrator: actor.isTenantAdministrator,
-        supabaseAdmin,
+        sessionClient,
         tenantId: actor.tenantId,
         viewerCapabilities: resolveContributionCapabilities(auth),
       });

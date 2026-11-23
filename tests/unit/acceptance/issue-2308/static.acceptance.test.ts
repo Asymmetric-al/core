@@ -127,7 +127,7 @@ describe("#2308 static contracts (A)", () => {
     ).toBeLessThanOrEqual(65);
     for (const entry of originals)
       expect(entry.reason).toContain("withPlatformOperation");
-    expect(rows.length).toBeLessThanOrEqual(121);
-    expect(rows.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(186);
+    expect(rows.length).toBeLessThanOrEqual(115);
+    expect(rows.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(177);
   });
 });

@@ -12,11 +12,10 @@ import { buildAdminCrmExportGroups } from "./service";
 import { requireCrmAccess } from "../../../crm/auth/access";
 import { loadFieldPolicies } from "../../../field-policies/reader";
 import { reportOperationFailure } from "../../../shared/http-errors";
-import { createRequestSessionClient } from "../../../shared/request-session-client";
-import { withPlatformOperation } from "../../../shared/with-operation";
+import { withOperation } from "../../../shared/with-operation";
 
-export const GET = withPlatformOperation(
-  async ({ audit, auth, request, requestId, supabaseAdmin }) => {
+export const GET = withOperation(
+  async ({ audit, auth, request, requestId, sessionClient }) => {
     if (!isSameOriginDownload(request))
       return NextResponse.json(
         { error: "Same-origin download required" },
@@ -49,7 +48,6 @@ export const GET = withPlatformOperation(
       );
 
     try {
-      const sessionClient = await createRequestSessionClient(request, scope);
       const policies = await loadFieldPolicies({
         sessionClient,
         surface: "mission_control",
@@ -57,7 +55,7 @@ export const GET = withPlatformOperation(
       });
       const report = await buildAdminCrmExportGroups({
         params,
-        supabaseAdmin,
+        sessionClient,
         tenantId: actor.tenantId,
       });
       const exportedAt = new Date().toISOString();

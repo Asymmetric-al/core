@@ -42,7 +42,12 @@ vi.mock("@asym/lib/audit/logger", () => ({
 
 vi.mock(
   "../../../../../packages/api/src/shared/request-session-client",
-  () => ({ createRequestSessionClient: h.session }),
+  async (original) => ({
+    ...(await original<
+      typeof import("../../../../../packages/api/src/shared/request-session-client")
+    >()),
+    createRequestSessionClient: h.session,
+  }),
 );
 
 import {
@@ -97,7 +102,10 @@ function makeAuth(
 function jsonRequest(path: string, body: unknown) {
   return new NextRequest(`https://admin.example.test${path}`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      authorization: "Bearer member-command-fixture",
+    },
     body: JSON.stringify(body),
   });
 }
@@ -119,14 +127,18 @@ describe("AL-2676 WP3c item 7: member directory access and member management com
 
     h.auth.mockResolvedValue(makeAuth("staff", { isTenantAdmin: false }));
     const staffRes = await usersGET(
-      new NextRequest("https://admin.example.test/api/admin/users?limit=50"),
+      new NextRequest("https://admin.example.test/api/admin/users?limit=50", {
+        headers: { authorization: "Bearer member-command-fixture" },
+      }),
     );
     expect(staffRes.status).toBe(200);
 
     for (const deniedRole of ["missionary", "donor"] as const) {
       h.auth.mockResolvedValue(makeAuth(deniedRole));
       const deniedRes = await usersGET(
-        new NextRequest("https://admin.example.test/api/admin/users?limit=50"),
+        new NextRequest("https://admin.example.test/api/admin/users?limit=50", {
+          headers: { authorization: "Bearer member-command-fixture" },
+        }),
       );
       expect(deniedRes.status, deniedRole).toBe(403);
     }
@@ -143,6 +155,7 @@ describe("AL-2676 WP3c item 7: member directory access and member management com
         await invitationsGET(
           new NextRequest(
             "https://admin.example.test/api/admin/members/invitations",
+            { headers: { authorization: "Bearer member-command-fixture" } },
           ),
         )
       ).status,
@@ -281,6 +294,7 @@ describe("AL-2676 WP3c item 7: member directory access and member management com
     const listRes = await invitationsGET(
       new NextRequest(
         "https://admin.example.test/api/admin/members/invitations",
+        { headers: { authorization: "Bearer member-command-fixture" } },
       ),
     );
     expect(listRes.status).toBe(200);

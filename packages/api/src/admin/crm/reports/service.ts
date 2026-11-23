@@ -1,3 +1,7 @@
+import {
+  CRM_LOOKUP_CHUNK_SIZE,
+  loadCrmMissionaryLabels,
+} from "../member-labels";
 import { reportGroupRevision } from "./report-revision";
 import { ApiHttpError } from "../../../shared/http-errors";
 import {
@@ -5,19 +9,16 @@ import {
   mapContributionAdjustmentRow,
   type ContributionAdjustmentRecord,
 } from "../../contribution-shared/effective-values";
-import { resolveContributionProfileLabel } from "../../contribution-shared/profile-label";
 import { normalizeSharedPaymentStatus } from "../../contribution-shared/row-contract";
 import { toContributionCents } from "../../contribution-shared/row-inputs";
 
 import type { AdminCrmReportParams } from "./query";
-import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
+import type { RequestSessionClient } from "../../../shared/request-session-client";
 import type {
   AdminCrmReportCompleteness,
   AdminCrmReportResponse,
   CrmReportRow,
 } from "@asym/database/types";
-
-type SupabaseAdmin = AdminSupabaseClient;
 
 /**
  * PostgREST answers at most `max_rows` (1,000, supabase/config.toml) rows per
@@ -32,7 +33,6 @@ const REPORT_PAGE_SIZE = 1000;
 export const CRM_REPORT_DONATION_LIMIT = 50_000;
 
 /** Donation ids per adjustments request, keeping the request URL short. */
-const ADJUSTMENT_ID_CHUNK = 150;
 
 interface DonationRow {
   id: string;
@@ -57,13 +57,6 @@ interface DonorRow {
 interface LabelRow {
   id: string;
   name?: string | null;
-  profile?: {
-    display_name?: string | null;
-    full_name?: string | null;
-    first_name?: string | null;
-    last_name?: string | null;
-    email?: string | null;
-  } | null;
 }
 
 /** One designation of a settled gift, net of refunds, after corrections. */
@@ -99,13 +92,6 @@ function uniq(values: Array<string | null | undefined>) {
 
 function matchesSearch(label: string, search: string | null) {
   return !search || label.toLowerCase().includes(search.toLowerCase());
-}
-
-function profileName(row: LabelRow): string {
-  return (
-    resolveContributionProfileLabel(row.profile, row.name ?? null) ??
-    "Unassigned"
-  );
 }
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
@@ -147,7 +133,7 @@ export function giftDatePeriodFilter(
 }
 
 async function fetchDonations(
-  supabaseAdmin: SupabaseAdmin,
+  sessionClient: RequestSessionClient,
   tenantId: string,
   params: AdminCrmReportParams,
   maxDonations: number,
@@ -159,7 +145,7 @@ async function fetchDonations(
   while (donations.length < wanted) {
     const from = donations.length;
     const to = Math.min(from + REPORT_PAGE_SIZE, wanted) - 1;
-    let query = supabaseAdmin
+    let query = sessionClient
       .from("donations")
       .select(
         "id, donor_id, missionary_id, fund_id, amount, refund_amount, status, gift_date, created_at",
@@ -200,7 +186,7 @@ async function fetchDonations(
 }
 
 async function fetchAppliedAdjustments(
-  supabaseAdmin: SupabaseAdmin,
+  sessionClient: RequestSessionClient,
   tenantId: string,
   donationIds: string[],
 ): Promise<Map<string, ContributionAdjustmentRecord[]>> {
@@ -209,15 +195,13 @@ async function fetchAppliedAdjustments(
   for (
     let start = 0;
     start < donationIds.length;
-    start += ADJUSTMENT_ID_CHUNK
+    start += CRM_LOOKUP_CHUNK_SIZE
   ) {
-    const ids = donationIds.slice(start, start + ADJUSTMENT_ID_CHUNK);
+    const ids = donationIds.slice(start, start + CRM_LOOKUP_CHUNK_SIZE);
     for (let from = 0; ; from += REPORT_PAGE_SIZE) {
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await sessionClient
         .from("contribution_adjustments")
-        .select(
-          "id, donation_id, adjustment_type, status, effective_values, reason, actor_profile_id, source_surface, created_at",
-        )
+        .select("id, donation_id, status, effective_values, created_at")
         .eq("tenant_id", tenantId)
         .eq("status", "applied")
         .in("donation_id", ids)
@@ -243,8 +227,22 @@ async function fetchAppliedAdjustments(
   return byDonationId;
 }
 
+async function loadReportLabels<T>(
+  ids: string[],
+  read: (chunk: string[]) => Promise<Map<string, T>>,
+) {
+  const labels = new Map<string, T>();
+  for (let start = 0; start < ids.length; start += CRM_LOOKUP_CHUNK_SIZE) {
+    for (const [id, row] of await read(
+      ids.slice(start, start + CRM_LOOKUP_CHUNK_SIZE),
+    ))
+      labels.set(id, row);
+  }
+  return labels;
+}
+
 async function fetchFundLabels(
-  supabaseAdmin: SupabaseAdmin,
+  sessionClient: RequestSessionClient,
   tenantId: string,
   ids: string[],
 ): Promise<Map<string, LabelRow>> {
@@ -252,7 +250,7 @@ async function fetchFundLabels(
     return new Map();
   }
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await sessionClient
     .from("funds")
     .select("id, name")
     .eq("tenant_id", tenantId)
@@ -261,28 +259,8 @@ async function fetchFundLabels(
   return new Map(((data ?? []) as LabelRow[]).map((row) => [row.id, row]));
 }
 
-async function fetchMissionaryLabels(
-  supabaseAdmin: SupabaseAdmin,
-  tenantId: string,
-  ids: string[],
-): Promise<Map<string, LabelRow>> {
-  if (ids.length === 0) {
-    return new Map();
-  }
-
-  const { data, error } = await supabaseAdmin
-    .from("missionaries")
-    .select(
-      "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name, email)",
-    )
-    .eq("tenant_id", tenantId)
-    .in("id", ids);
-  assertNoError(error, "Failed to load missionary labels.");
-  return new Map(((data ?? []) as LabelRow[]).map((row) => [row.id, row]));
-}
-
 async function fetchDonors(
-  supabaseAdmin: SupabaseAdmin,
+  sessionClient: RequestSessionClient,
   tenantId: string,
   ids: string[],
   exporting: boolean,
@@ -291,7 +269,7 @@ async function fetchDonors(
     return new Map();
   }
 
-  const donors = supabaseAdmin.from("donors");
+  const donors = sessionClient.from("donors");
   const query = exporting
     ? donors.select("id, name, organization, status, giving_preferences")
     : donors.select("id, name, organization, status");
@@ -471,11 +449,11 @@ function aggregateGifts(input: {
 }
 
 async function buildSyncFailureRows(
-  supabaseAdmin: SupabaseAdmin,
+  sessionClient: RequestSessionClient,
   tenantId: string,
   params: AdminCrmReportParams,
 ): Promise<CrmReportRow[]> {
-  const linksResult = await supabaseAdmin
+  const linksResult = await sessionClient
     .from("donation_crm_links")
     .select("id, link_status, updated_at")
     .eq("tenant_id", tenantId)
@@ -507,7 +485,7 @@ async function buildSyncFailureRows(
 }
 
 interface ReportInput {
-  supabaseAdmin: SupabaseAdmin;
+  sessionClient: RequestSessionClient;
   tenantId: string;
   params: AdminCrmReportParams;
   /** Read bound; defaults to {@link CRM_REPORT_DONATION_LIMIT}. */
@@ -552,7 +530,7 @@ async function buildReport(
 ): Promise<AdminCrmReportResponse> {
   if (input.params.slice === "sync-failures") {
     const rows = await buildSyncFailureRows(
-      input.supabaseAdmin,
+      input.sessionClient,
       input.tenantId,
       input.params,
     );
@@ -561,13 +539,13 @@ async function buildReport(
 
   const donationLimit = input.maxDonations ?? CRM_REPORT_DONATION_LIMIT;
   const { complete, donations } = await fetchDonations(
-    input.supabaseAdmin,
+    input.sessionClient,
     input.tenantId,
     input.params,
     donationLimit,
   );
   const adjustments = await fetchAppliedAdjustments(
-    input.supabaseAdmin,
+    input.sessionClient,
     input.tenantId,
     donations.map((donation) => donation.id),
   );
@@ -585,12 +563,24 @@ async function buildReport(
     });
   const lines = gifts.flatMap((gift) => gift.lines);
 
+  function recordLookupCompleteness(
+    ids: string[],
+    labels: ReadonlyMap<string, unknown>,
+  ) {
+    if (ids.every((id) => labels.has(id))) return;
+    if (anonymousDonors)
+      throw new ApiHttpError(
+        500,
+        "A report reference could not be resolved for export.",
+      );
+    completeness.complete = false;
+  }
   if (input.params.slice === "funds") {
-    const labels = await fetchFundLabels(
-      input.supabaseAdmin,
-      input.tenantId,
-      uniq(lines.map((line) => line.fundId)),
+    const ids = uniq(lines.map((line) => line.fundId));
+    const labels = await loadReportLabels(ids, (chunk) =>
+      fetchFundLabels(input.sessionClient, input.tenantId, chunk),
     );
+    recordLookupCompleteness(ids, labels);
     return respond(
       aggregateGifts({
         getLabel: (id) =>
@@ -603,15 +593,17 @@ async function buildReport(
   }
 
   if (input.params.slice === "missionaries") {
-    const labels = await fetchMissionaryLabels(
-      input.supabaseAdmin,
+    const ids = uniq(lines.map((line) => line.missionaryId));
+    const labels = await loadCrmMissionaryLabels(
+      input.sessionClient,
       input.tenantId,
-      uniq(lines.map((line) => line.missionaryId)),
+      ids,
     );
+    recordLookupCompleteness(ids, labels);
     return respond(
       aggregateGifts({
         getLabel: (id) =>
-          id ? profileName(labels.get(id) ?? { id }) : "Unassigned missionary",
+          id ? (labels.get(id) ?? "Unassigned") : "Unassigned missionary",
         getLineGroupId: (line) => line.missionaryId,
         gifts,
         search: input.params.filters.search,
@@ -619,12 +611,16 @@ async function buildReport(
     );
   }
 
-  const donors = await fetchDonors(
-    input.supabaseAdmin,
-    input.tenantId,
-    uniq(gifts.map((gift) => gift.donorId)),
-    anonymousDonors !== undefined,
+  const ids = uniq(gifts.map((gift) => gift.donorId));
+  const donors = await loadReportLabels(ids, (chunk) =>
+    fetchDonors(
+      input.sessionClient,
+      input.tenantId,
+      chunk,
+      anonymousDonors !== undefined,
+    ),
   );
+  recordLookupCompleteness(ids, donors);
   if (anonymousDonors) {
     for (const donor of donors.values()) {
       const prefs = donor.giving_preferences;
