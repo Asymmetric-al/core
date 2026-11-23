@@ -412,7 +412,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
     expect(own.wrappers).toBeGreaterThanOrEqual(4);
   });
 
-  /* Council round 3, lens 1 A4: the counts match code, not comments. Amended under D-18 (AL-2681, TP2 section 11): acc2674_calls_worker takes no tenant parameter so it tests comment-dot wrapper counting without violating WORKER_WRAPPER_TENANT_ARGUMENT. */
+  /* Council round 3, lens 1 A4: the counts match code, not comments. Amended under D-18 (AL-2681, TP2 section 11, ruling W8-R36): acc2674_calls_worker takes no tenant parameter and forwards the tenant it reads from a stored row, the one shape the worker-wrapper checks accept, so it still tests comment-dot wrapper counting. */
   it("counts a function that calls into a command schema as a wrapper, and not one that names it only in a comment", async () => {
     await db.query("begin");
     try {
@@ -422,10 +422,10 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
            as $$ begin -- tenant_guard.acquire_workflow_work_claim(...) is not called here
            return 1; end $$;
          revoke all on function public.acc2674_comment_only() from public, anon, authenticated, service_role;
-         create function public.acc2674_calls_worker() returns jsonb language sql set search_path = ''
-           as $$ select tenant_guard/**/.acquire_workflow_work_claim('00000000-0000-0000-0000-000000000001'::uuid, 'x', 'y', 'z', 60) $$;
-         revoke all on function public.acc2674_calls_worker() from public, anon, authenticated, service_role;
-         grant execute on function public.acc2674_calls_worker() to service_role;`,
+         create function public.acc2674_calls_worker(p_claim_id uuid) returns jsonb language sql set search_path = ''
+           as $$ select tenant_guard/**/.acquire_workflow_work_claim((select c.tenant_id from public.workflow_work_claims as c where c.id = p_claim_id), 'x', 'y', 'z', 60) $$;
+         revoke all on function public.acc2674_calls_worker(uuid) from public, anon, authenticated, service_role;
+         grant execute on function public.acc2674_calls_worker(uuid) to service_role;`,
       );
       const after = await ownCounts();
       expect(after.wrappers).toBe(before.wrappers + 1);
