@@ -22,7 +22,9 @@
 --    another login than its id is refused, not rewritten; a NULL user_id is
 --    filled from id; a BEFORE INSERT trigger fills it for any writer that
 --    omits it; then NOT NULL and CHECK (user_id = id). The own-profile
---    exception and authz.caller_profile_ids() match by user_id only.
+--    exception matches by user_id only. authz.caller_profile_ids() stays as
+--    AL-2675 wrote it (crm_notes_tenant_insert reads it, and WP4a owns
+--    crm_notes); under the CHECK its id branch names the same rows.
 -- 6. A temporary AFTER INSERT trigger on donors (W5-R2, amended) gives each
 --    inserted donor with a tenant and no Party its own Party. It fires only
 --    for a row actually inserted, so an ON CONFLICT DO NOTHING that discards
@@ -200,19 +202,6 @@ ALTER TABLE public.profiles
 
 ALTER POLICY "profiles select own authenticated" ON public.profiles
   USING (user_id = (SELECT auth.uid()));
-
-CREATE OR REPLACE FUNCTION authz.caller_profile_ids()
-RETURNS SETOF UUID
-LANGUAGE sql
-STABLE
-PARALLEL SAFE
-SECURITY INVOKER
-SET search_path = ''
-AS $$
-  SELECT p.id
-    FROM public.profiles AS p
-   WHERE p.user_id = auth.uid();
-$$;
 
 -- 4. Account links.
 CREATE TABLE public.account_links (

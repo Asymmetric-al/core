@@ -456,7 +456,7 @@ describe.skipIf(!ADMIN_URL)(
           ).toBe("23514");
         }));
 
-      it("the own-profile policy admits its owner by user_id only; another login reads nothing of it", () =>
+      it("the own-profile policy admits its owner by user_id only, and authz.caller_profile_ids() stays as AL-2675 wrote it, its id branch naming the same row under the CHECK; another login reads nothing of it", () =>
         tx(db, async () => {
           await db.query(fixtureSql(id));
           const policy = await db.query(
@@ -468,7 +468,15 @@ describe.skipIf(!ADMIN_URL)(
           const helper = await db.query(
             "select prosrc from pg_proc where oid = 'authz.caller_profile_ids()'::regprocedure",
           );
-          expect(helper.rows[0].prosrc).not.toMatch(/p\.id = auth\.uid\(\)/);
+          expect(helper.rows[0].prosrc).toMatch(
+            /p\.user_id = auth\.uid\(\) OR p\.id = auth\.uid\(\)/,
+          );
+          const helperRows = await queryAs(
+            "authenticated",
+            { sub: "UDA" },
+            "select x::text as id from authz.caller_profile_ids() as x",
+          );
+          expect(helperRows.rows).toEqual([{ id: id.UDA }]);
           for (const column of ["id", "user_id"]) {
             const own = await queryAs(
               "authenticated",
