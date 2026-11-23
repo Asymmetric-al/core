@@ -20,12 +20,19 @@
 --
 -- Before it drops, it refuses while any function, view or policy other than
 -- the table's own policies still names the table, because a function body
--- records no dependency and the drop would leave it broken. A function's
--- comments are removed before its text is read, so a comment that mentions
--- the table refuses nothing, and the system schemas are not read. It reports,
--- as a notice, the number of rows it removes, and tells PostgREST to reload
--- its schema. No CASCADE: an unexpected dependent object fails the migration
--- instead of being dropped with it.
+-- records no dependency and the drop would leave it broken. The refusal names
+-- each object. A function's text is read as it is stored, comments and string
+-- literals included, and any mention of the table as a whole word refuses: a
+-- longer identifier that only contains the name does not. This fails closed
+-- on purpose. Removing comments with regular expressions, without a lexer,
+-- can hide a real reference (a `--` inside a string before the name on one
+-- line, or a `/*` inside a line comment with a later `*/`), and a hidden
+-- reference lets the drop break that function at run time; a mention in a
+-- comment only stops the migration before it changes anything, and is
+-- removed by hand. The system schemas are not read. It reports, as a notice,
+-- the number of rows it removes, and tells PostgREST to reload its schema.
+-- No CASCADE: an unexpected dependent object fails the migration instead of
+-- being dropped with it.
 --
 -- Its types `crm_merge_candidate_status` and `crm_duplicate_confidence` and
 -- `crm_link_entity_type`, which `crm_record_links` also uses, are left as they
@@ -52,11 +59,7 @@ BEGIN
         FROM pg_catalog.pg_proc AS p
         JOIN pg_catalog.pg_namespace AS pn ON pn.oid = p.pronamespace
        WHERE pn.nspname NOT IN ('pg_catalog', 'information_schema')
-         AND pg_catalog.regexp_replace(
-               pg_catalog.regexp_replace(
-                 p.prosrc || ' ' || COALESCE(pg_catalog.pg_get_function_sqlbody(p.oid), ''),
-                 '/\*.*?\*/', ' ', 'g'),
-               '--[^' || pg_catalog.chr(10) || ']*', ' ', 'g')
+         AND (p.prosrc || ' ' || COALESCE(pg_catalog.pg_get_function_sqlbody(p.oid), ''))
              ~* '\mcrm_merge_candidates\M'
       UNION ALL
       SELECT 'view ' || cn.nspname || '.' || c.relname

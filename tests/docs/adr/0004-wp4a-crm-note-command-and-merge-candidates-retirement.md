@@ -106,9 +106,27 @@ each old assertion replaced by one at least as strong.
     membership row: they take the same row lock as the role-change and revoke
     commands, without needing a second administrator.
 12. **Two cases run between calls what a new transaction would reset.** The
-    case that keeps one key apart in two tenants clears `app.current_tenant_id`
-    between its two calls, because `tenant_guard.enter` refuses a second tenant
-    in one transaction and the suite runs every case in one transaction that is
-    rolled back. The drop suite's comment case re-creates the stand-in table
-    after the first drop succeeds, so the second definition is read against a
-    table that exists.
+    case that keeps one key apart in two tenants, and the case of a profile
+    linked to another user, clear `app.current_tenant_id` between their two
+    calls, because `tenant_guard.enter` refuses a second tenant in one
+    transaction and the suite runs every case in one transaction that is
+    rolled back.
+13. **The drop's reference check reads raw text, and a comment refuses.** The
+    first review of part 2b asked that a function naming the table only in a
+    comment not stop the release, so its fix removed comments with two regular
+    expressions before the check. The confirmation of that fix showed the
+    removal can also hide a real reference: a `--` inside a string or
+    dollar-quoted literal before the name on one line, or a `/*` inside a line
+    comment with a later `*/`. A hidden reference lets `DROP TABLE` break the
+    function at run time; a comment that refuses only stops the migration
+    before it changes anything. A lexer inside a one-time migration is more
+    code to get wrong than what it guards, so that half of the first review's
+    finding 5 is reversed on purpose: the check reads the stored text, and any
+    whole-word mention of the table, in code or in a comment, refuses with
+    `2BP01` and the object's name. The drop suite's case "refuses on any
+    mention of the table in a function's raw text, comments and literals
+    included" proves the comment-only function, both shapes the confirmation
+    named and a `--` inside a dollar-quoted literal refused, and a longer
+    identifier that only contains the name (`crm_merge_candidates_archive`)
+    not refused. The `NOTIFY` and the skip of `pg_catalog` and
+    `information_schema` stay.

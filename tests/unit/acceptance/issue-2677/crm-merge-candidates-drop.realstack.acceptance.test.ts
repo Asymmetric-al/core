@@ -127,29 +127,51 @@ describe.skipIf(!ADMIN_URL)("crm_merge_candidates is retired", () => {
     expect(rows).toEqual([{ retired: null }]);
   });
 
-  it("is not stopped by a function that names the table only in comments", async () => {
-    const suffix = randomUUID().replaceAll("-", "");
-    const quiet = `public.wp4a2b_comments_${suffix}`;
+  it("refuses on any mention of the table in a function's raw text, comments and literals included", async () => {
+    const suffix = randomUUID().replaceAll("-", "").slice(0, 12);
     await db.query("create table public.crm_merge_candidates (id integer)");
-    await db.query(
-      `create function ${quiet}() returns integer language plpgsql as $f$
-       begin
-         -- once read public.crm_merge_candidates
+    for (const [shape, body] of [
+      [
+        "comments",
+        `-- once read public.crm_merge_candidates
          /* and crm_merge_candidates
             over two lines */
-         return 1;
+         return 1;`,
+      ],
+      [
+        "dashes_in_literal",
+        `perform 'a -- b'; return (select count(*)::integer from public.crm_merge_candidates);`,
+      ],
+      [
+        "dashes_in_dollar_literal",
+        `perform $q$ -- $q$; return (select count(*)::integer from public.crm_merge_candidates);`,
+      ],
+      [
+        "block_opened_in_line_comment",
+        `-- see /* the old notes
+         return (select count(*)::integer from public.crm_merge_candidates);
+         -- */`,
+      ],
+    ] as const) {
+      const name = `public.wp4a2b_${shape}_${suffix}`;
+      await db.query(
+        `create function ${name}() returns integer language plpgsql as $f$
+         begin
+           ${body}
+         end $f$`,
+      );
+      const refused = await attempt();
+      expect(refused.code, shape).toBe("2BP01");
+      expect(refused.message, shape).toContain(`function ${name}()`);
+      await db.query(`drop function ${name}()`);
+    }
+    const longer = `public.wp4a2b_longer_${suffix}`;
+    await db.query(
+      `create function ${longer}() returns integer language plpgsql as $f$
+       begin
+         return (select count(*)::integer from public.crm_merge_candidates_archive);
        end $f$`,
     );
     expect(await attempt()).toEqual({ code: null, message: "" });
-    await db.query("create table public.crm_merge_candidates (id integer)");
-    await db.query(
-      `create or replace function ${quiet}() returns integer language plpgsql as $f$
-       begin
-         /* a comment */ return (select count(*)::integer from public.crm_merge_candidates);
-       end $f$`,
-    );
-    const refused = await attempt();
-    expect(refused.code).toBe("2BP01");
-    expect(refused.message).toContain(`function ${quiet}()`);
   });
 });
