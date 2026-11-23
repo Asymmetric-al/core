@@ -296,7 +296,10 @@ function createFakeAdminClient() {
             return { data: null, error: err };
           }
           const matched: AssetRow[] = [];
-          const idFilter = filters.find((f) => f.op === "eq" && f.col === "id");
+          const idFilter = filters.find(
+            (f): f is { op: "eq"; col: string; val: unknown } =>
+              f.op === "eq" && f.col === "id",
+          );
           if (idFilter && typeof idFilter.val === "string") {
             await fakeState.onBeforeCasUpdate?.(idFilter.val);
           }
