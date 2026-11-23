@@ -3,7 +3,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 import { getAdminClient } from "@asym/database/supabase/admin";
-import sharp from "sharp";
+import sharp, { type Metadata, type Sharp } from "sharp";
 
 import {
   buildMediaMasterKey,
@@ -321,7 +321,7 @@ async function assertZeroMetadata(bytes: Buffer): Promise<{
 }
 
 async function encodeImageFormat(
-  pipeline: sharp.Sharp,
+  pipeline: Sharp,
   mimeType: MediaMimeType,
   quality: number,
 ): Promise<Buffer> {
@@ -348,7 +348,7 @@ async function sanitizeMasterImage(rawBytes: Buffer): Promise<{
     throw new ApiHttpError(413, "Uploaded media exceeds maximum byte limit");
   }
 
-  let probe: sharp.Metadata;
+  let probe: Metadata;
   try {
     probe = await sharp(rawBytes, {
       limitInputPixels: false,
