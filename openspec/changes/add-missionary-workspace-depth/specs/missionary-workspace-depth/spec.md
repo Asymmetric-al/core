@@ -2865,7 +2865,7 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-7a24e
 
 The system SHALL satisfy this contract and the common safeguards in the canonical specification.
 
-Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-1694bfedd62b7c303584` MUST apply without exception.
+Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-aba7d87f05738a13f122` MUST apply without exception.
 
 #### Scenario: AC28-M07-01
 

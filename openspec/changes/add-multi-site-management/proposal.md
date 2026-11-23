@@ -29,8 +29,7 @@ and cross-Tenant isolation through concurrency and provider uncertainty.
   Contract and a separate small Domain Critical Owner-Family Registry; ordinary
   untranslated content does not block and never falls back at runtime.
 - Add complete immutable Site Brand Versions, one stable Tenant Donor Account
-  Brand, exactly one verified Tenant-controlled Donor Portal host per activated
-  Tenant/environment, and one read-only Phase 17-owned message-readiness
+  Brand, exactly one designated verified Tenant home domain carrying the Donor Portal per activated Tenant/environment (amended 2026-11-24 by `adopt-tenant-owned-domains`), and one read-only Phase 17-owned message-readiness
   projection.
 - Add proof-qualified donor presentment currencies, exponent-safe Money,
   versioned native suggested amounts, and explicit donor transitions: currency

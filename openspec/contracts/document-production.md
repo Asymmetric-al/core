@@ -901,3 +901,57 @@ viewer remains currently authorized; grant expiry MUST NOT expire the document.
 <!-- END CONTRACT -->
 
 <!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-efdd8befd00d95272426"></a>
+
+## Document Access Is Calm Role-safe And Recoverable
+
+<!-- BEGIN CONTRACT {"id":"efdd8befd00d95272426","name":"Document Access Is Calm Role-safe And Recoverable"} -->
+
+The code-owned starting policy MUST disclose a fourteen-day guest grant and an
+absolute thirty-minute document-only session, subject to the frozen production
+usability/security evidence. Expiry MUST end only the ability to begin a new
+guest retrieval; it MUST NOT erase the document, close bytes already fetched,
+or remove lawful authenticated-portal availability. Expired, used, revoked,
+unknown, and denied states MUST be non-enumerating and offer only fixed-
+destination **Send new secure link**, ordinary portal, verified help, and
+paper/assisted access. No public email-address field or tenant TTL/password/link-
+policy builder is permitted.
+
+The notice MUST show the exact link-expiry date and explain that the document
+does not expire with the link. It MUST use one recognizable issuer, one
+descriptive action on the fixed reviewed origin of the organization's verified name for that surface (amended 2026-11-24 by the owner's decision on tenant-owned domains), no shortener or tracking
+redirect, and no amount, address, serial, or tax detail in subject or preheader.
+The protected surface MUST show one current-document card with **Download
+official PDF**, **Print**, precise corrected/cancelled/unavailable language, and
+consistent help. It MUST NOT present accessible, email, portal, archive,
+historical, or storage copies as peer files.
+
+Authorized staff MUST receive one masked fixed-destination panel with **Send new
+secure link**, permissioned exact download/print, and a separate security-revoke
+action. They MUST NOT see a bearer verifier or arbitrary-address shortcut. Joint
+donors and authorized organization contacts MUST receive independent grants to
+the same exact artifact; one recipient's bounce, redemption, resend, or routine
+revocation MUST NOT consume another recipient's authority. Missionaries MUST
+receive no donor address, grant, provider/access detail, PDF, resend, or revoke
+control unless a separate purpose and capability explicitly authorizes a passive
+artifact state.
+
+One issuer-scoped containment command MUST stop new guest grants and revoke
+active guest access without changing artifacts, serials, receipt validity,
+evidence, or lawful portal/paper recovery. One platform emergency command MUST
+contain a proven cross-tenant access flaw. The product MUST NOT add custom link
+domains, tenant cryptography, CAPTCHA by default, device fingerprinting, folders,
+sharing permissions, download-prevention claims, DLP, a bespoke viewer, shipping
+suite, second operations dashboard, or new identity platform.
+
+The complete notice, doorway, fixed recovery paths, current-document view, staff
+panel, and recipient-role behavior MUST meet WCAG 2.2 AA and pass keyboard,
+screen-reader, 400% reflow, forced-color/high-contrast, reduced-motion, mobile-
+webview, older-donor, and supported real-mail-client proof.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->

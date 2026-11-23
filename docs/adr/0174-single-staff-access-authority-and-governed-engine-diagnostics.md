@@ -97,8 +97,7 @@ remains an independently authorized typed Asym command.
 >    Studio tabs in different organizations are not supported; each Web Studio
 >    page carries the organization it was rendered for, and a save, upload or
 >    Publish whose organization differs from the cookie is refused with a
->    prompt to reload. Mission Control and the Missionary Workspace keep the
->    rule above by carrying the organization in the page address._
+>    prompt to reload. Mission Control and the Missionary Workspace keep the rule above by carrying the organization in the page address. Amended 2026-11-24 (see Amendments): the verified domain now names the organization, only a staff role suffix stays in the address, and Web Studio's cookie is refused when its organization differs from the domain's._
 > 8. **Capabilities enforce; labels and visibility only explain.** Phase 12
 >    capabilities—not `staff`, `admin`, `super_admin`, collection membership,
 >    route visibility, record ownership, or possession of an ID—authorize each
@@ -464,7 +463,7 @@ production access, diagnostic activation, D1 activation, or release.
   `/web-studio/api` so the cookie never reaches Mission Control's own API.
   Choosing one organization per Web Studio session departs from clause 7's
   two-tab rule for Web Studio only.
-- **How the other staff surfaces carry the organization.** Mission Control and
+- **How the other staff surfaces carry the organization** (superseded on 2026-11-24, below). Mission Control and
   the Missionary Workspace carry the organization as the first path segment, the
   tenant's ID, optionally followed by a staff sub-role for a person with several
   staff rows; every signed-in request also names its one selected membership in
@@ -474,3 +473,23 @@ production access, diagnostic activation, D1 activation, or release.
   first release reads the live per-page releases of
   [ADR-0229](0229-per-page-releases-and-two-publish-commands.md) (ADR-0145
   amendment of 2026-11-17).
+
+### 2026-11-24: The organization comes from the verified domain (AL-2671)
+
+- **Authority.** The owner's decision of 21 November 2026 that every
+  organization's website and dashboards use domains the organization owns, with
+  paths for the dashboards, and the ruling of 24 November 2026 that settled its
+  open questions (OpenSpec change `adopt-tenant-owned-domains`). This amendment
+  records intent, not implementation.
+- **Clause 7 still holds, through the domain.** Every surface takes the
+  organization from the verified domain it is served on. Mission Control and the
+  Missionary Workspace are served under `/admin` and `/missionary` on the
+  organization's home domain. Only the staff role suffix `~<sub-role>` stays in
+  the address, for a person with several staff rows; the organization ID leaves
+  it. A request on the domain of an organization the person does not belong to is
+  refused and never switches organization.
+- **Web Studio.** Its path-scoped signed cookie carries the chosen membership
+  and is refused when its organization differs from the domain's.
+- **Superseded.** The 2026-11-17 bullet on how the other staff surfaces carry the
+  organization, and the page-address default it rests on (implementation record
+  D-06).

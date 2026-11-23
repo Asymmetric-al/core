@@ -231,7 +231,7 @@ and records/access state on every request.
 
 Phase 18 amends the shared Phase 17 protected-action primitive once for every
 producer; it does not fork a document token system. Every protected action uses
-one trusted Asym URL with a non-secret selector in the HTTP URL and an independent
+one trusted URL on the organization's verified name for that surface (amended 2026-11-24 by the owner's decision on tenant-owned domains) with a non-secret selector in the HTTP URL and an independent
 256-bit verifier in the fragment. A minimal first-party, third-party-free landing
 script immediately removes the fragment from browser history and submits it only
 on one deliberate same-origin CSRF-protected POST. The server stores only a

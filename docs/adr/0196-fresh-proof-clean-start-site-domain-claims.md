@@ -12,9 +12,7 @@ released the former current claim.
 
 ## Decision
 
-Any current authorized Tenant human with `sites.manage_domains` may start a
-private verification attempt for one exact custom hostname in one Tenant ×
-environment × Site. A verification attempt is not a hostname reservation,
+Any current authorized Tenant human with the domain-management capability may start a private verification attempt for one exact custom hostname in one Tenant × environment. A name may be claimed before any Site uses it, so the attempt and the capability are organization-scoped; for an organization with no ready name, an operator may start the first attempt, and the tenant administrator activates (amended 2026-11-24 by the owner's decision on tenant-owned domains and ruling 5 of that day). A verification attempt is not a hostname reservation,
 provider attachment, Site-domain binding, public role, or ownership claim.
 Several scopes may attempt the same hostname without learning about each other;
 the first valid proof that atomically acquires the platform-wide current claim
@@ -32,7 +30,7 @@ The Core challenge is:
 - generated server-side with 256 bits of cryptographic entropy;
 - opaque and free of Tenant, Site, actor, provider, or historical identifiers;
 - bound to one immutable verification-attempt ID, exact canonical ASCII
-  hostname, Tenant, environment, Site, challenge generation, and purpose;
+  hostname, Tenant, environment, optional Site, challenge generation, and purpose;
 - published as one exact-host DNS TXT record and observed only by a trusted
   server-side DNS verifier;
 - valid for seven calendar days, with an absolute expiry time and timezone shown
@@ -62,7 +60,7 @@ DNS cannot participate in a database transaction. Immediately after a current
 trusted DNS lookup observes the exact unexpired challenge, one short stable-
 order PostgreSQL transaction must:
 
-1. reauthorize the current human and exact Tenant/environment/Site;
+1. reauthorize the current human (or operator, for a first name) and exact Tenant/environment (and Site, if bound);
 2. lock/reload the immutable canonical hostname identity and attempt;
 3. prove the challenge is current, unexpired, unconsumed, and bound to the
    requested exact scope;

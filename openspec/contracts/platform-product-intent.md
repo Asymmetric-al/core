@@ -321,6 +321,31 @@ sponsorship is out of scope.
 
 <!-- prettier-ignore-start -->
 
+<a id="contract-538f5d414ec38099b1ee"></a>
+
+## Phase 4 Identity Experiences Use The Verified Tenant Host And Account Brand
+
+<!-- BEGIN CONTRACT {"id":"538f5d414ec38099b1ee","name":"Phase 4 Identity Experiences Use The Verified Tenant Host And Account Brand"} -->
+
+Auth email, login, claim, verification, recovery and portal experiences MUST use
+the organization's designated verified home domain (which may also be a Site's Primary Site Domain) and Tenant Donor Account Brand (amended 2026-11-24 by the owner's decision on tenant-owned domains).
+Default or entry Site and untrusted context MUST NOT reskin identity or select
+Tenant, membership or authorization. Donors MUST see no platform chrome or
+cross-Tenant portal surface; required legal, merchant, processor, payment,
+security and accessibility disclosures MUST remain truthful. Host and brand
+MUST NOT grant access. Identity communications MUST retain the identity producer
+and purpose authority → Phase 17 immutable preparation and bounded sender →
+Phase 6 sole dispatch and history contract. Missing or wrong trusted context
+MUST fail closed with no default brand, default sender or direct-send fallback.
+Provider-owned consent MAY retain only IC05's qualified provider/application
+identity exception; it MUST NOT replace the Tenant identity experience.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
 <a id="contract-649d3bf8e15cdfd22875"></a>
 
 ## Non-Goals And Scope Discipline

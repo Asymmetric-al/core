@@ -3,8 +3,7 @@
 **Status:** Accepted on 2026-11-17 by the owner's instruction to implement the
 CRM, CMS and database plan ([AL-2688](https://github.com/Asymmetric-al/core/issues/2688)).
 Two choices inside it are plan section 15.1 defaults taken under the
-implementation record (D-06, D-08), not fresh owner rulings: the tenant travels
-in the page address, and the capability names are as proposed.
+implementation record (D-06, D-08), not fresh owner rulings: the tenant travels in the page address (superseded on 2026-11-24 by the owner's decision of 21 November 2026: the domain carries the tenant; see Amendments), and the capability names are as proposed.
 
 This records target intent. It does not say that anything is built; see the
 [implementation record](../audits/core-crm-cms-database-implementation-record.md).
@@ -47,21 +46,14 @@ request ("Capability Aggregation Uses One Validated Context").
    repointed, an activation review lists each policy that would start admitting
    people, and write grants on audit and governed tables are revoked in the same
    migration.
-5. **How each surface carries the tenant.** The public website resolves it from
-   the request host through a verified Site domain; the donor portal from its
-   verified host. Mission Control and the missionary workspace carry it as the
-   first path segment, the tenant's ID in canonical lower-case UUID form,
-   optionally followed by `~` and a staff sub-role for a person with several staff
-   rows; the proxy strips it and passes it to the render in a header. Page code
+5. **How each surface carries the tenant.** The public website resolves it from the request host through a verified Site domain. The donor portal, Mission Control and the missionary workspace take it from the organization's verified home domain, on which they are served under paths (`/donor-dashboard`, `/admin`, `/missionary`); the address carries only an optional `~` and a staff sub-role for a person with several staff rows (amended 2026-11-24; earlier, the first path segment carried the tenant's ID). Page code
    calls the app's own API through one shared fetch wrapper that sends both
    headers. The browser data layer is scoped per document to the person, the
    tenant and the assignment; changing organization is a full document load.
    Jobs and webhooks derive the tenant from stored rows (ADR-0224).
 6. **Web Studio is the one stated exception.** Payload's screens and REST calls
-   cannot carry an argument, so the tenant and the chosen membership travel in a
-   signed, HttpOnly cookie scoped to `/web-studio`, with Payload's REST routes
-   mounted under `/web-studio/api`. Two tabs in different organizations are not
-   supported inside Web Studio. Each page carries the tenant it was rendered for,
+   cannot carry an argument, so the chosen membership travels in a signed, HttpOnly cookie scoped to `/web-studio` and refused when its organization differs from the domain's (amended 2026-11-24), with Payload's REST routes
+   mounted under `/web-studio/api`. Each organization's Web Studio is on its own domain, so its cookie never reaches another organization (amended 2026-11-24). Each page carries the tenant it was rendered for,
    and a save, upload or publish whose tenant differs from the cookie is refused
    with a prompt to reload. ADR-0174 clause 7 is amended to record this.
 7. **What the database does not check, stated plainly.** Row isolation inside
@@ -80,11 +72,10 @@ request ("Capability Aggregation Uses One Validated Context").
 - A requested tenant only narrows. The database repeats the membership check, so
   a forged request can at most select a tenant where the caller already holds a
   membership or, from WP10, a live support grant (ADR-0228).
-- Every signed-in page of the two staff apps moves under the tenant segment. The
+- Superseded on 2026-11-24: the staff pages move under `/admin` and `/missionary` on the home domain (package N2 removes the organization ID, N3 adds the paths). Earlier: every signed-in page of the two staff apps moves under the tenant segment. The
   fallback, moving the pages under a dynamic segment, is taken only if the thin
   proof TP5 shows the proxy rewrite breaks navigation or prefetching.
-- The cheaper alternative, one signed cookie for every staff surface, remains an
-  owner option that would need a further amendment to ADR-0174.
+- The earlier alternative, one signed cookie for every staff surface, is moot since the domain carries the tenant (2026-11-24).
 - An omitted condition in Payload access code could expose one tenant's CMS rows
   to another tenant's staff. Role confinement does not prevent that. The
   mitigations are the factory, the two ports, the override inventory, two-tenant
@@ -102,3 +93,13 @@ request ("Capability Aggregation Uses One Validated Context").
   [ADR-0210](0210-code-authoritative-capability-foundation.md),
   [ADR-0214](0214-path2-tenant-isolation-with-shared-native-credential.md),
   [ADR-0224](0224-caller-token-server-lanes-and-sql-commands.md)
+
+## Amendments
+
+### 2026-11-24: The domain carries the tenant (AL-2671)
+
+The owner's decision of 21 November 2026 on tenant-owned domains, and the ruling
+of 24 November 2026 that settled its open questions, replace the page-address
+default (implementation record D-06). Decisions 5 and 6 and the consequences
+above are edited at the clause. OpenSpec change `adopt-tenant-owned-domains`
+records the decision; this amendment records intent, not implementation.

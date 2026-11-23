@@ -20,11 +20,11 @@ store count down: no new service is added for either control.
 
 1. **A rate limit kept in Postgres.** One system-entry SQL function keeps a
    counter in a fixed window, keyed on the Site and a hash of the caller's
-   address, or on the signed-in person for giving on the donor-portal host. It
+   address, or on the signed-in person for giving on the organization's home domain (amended 2026-11-24). It
    needs no new store.
 2. **One bot challenge, verified on the server,** with its secret kept
    server-side and its script allowed in the donor app's content-security policy.
-   The challenge is verified again on the donor-portal host for a signed-in gift
+   The challenge is verified again on the home domain for a signed-in gift
    handed over from a Site.
 3. **The donor server applies both before it calls the intake command.** Intake
    accepts only the inputs the plan lists and derives the tenant, the Legal Entity

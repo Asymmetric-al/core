@@ -158,9 +158,8 @@ Underneath, the contract is written **at the Asym boundary** (serialized output,
 - **A2 — Public Website is a product surface in `apps/donor`, `apps/web` reserved.** The public tenant website is a surface, not (yet) a separate app; it lives at the `(public)` route group in the donor app, per the platform-surfaces intent. No `apps/web` is created now; the contract is written so a future extraction is a re-import.
   **Phase 24 D57 clarification (2026-08-30):** physical co-location never
   merges public-Site and authenticated-portal authority. Site hosts serve only
-  admitted public context; protected donor routes use the one Tenant Donor
-  Portal Host, private/no-store reads, and independently proved Tenant
-  authorization. A Site host cannot expose portal routes merely because both
+  admitted public context; protected donor routes use the account path of the one designated verified home domain, which may also serve a Site (amended 2026-11-24), private/no-store reads, and independently proved Tenant
+  authorization. A Site's domain that is not home cannot expose portal routes merely because both
   surfaces share `apps/donor`.
   **Phase 24 D58 clarification (2026-08-30):** that same physical co-location
   also cannot leak the public Site brand, navigation, footer, metadata, cache,

@@ -50,7 +50,7 @@ The system SHALL support the following observable outcome for the recipient of a
 
 - **GIVEN** the story's admitted actor/context and specified positive, negative or failure fixture
 - **WHEN** the actor attempts the described task at its qualified application or owner boundary
-- **THEN** Shared link is on the current verified Tenant portal host and contains no donor/session/access credential.
+- **THEN** Shared link is on the current verified Tenant home domain and contains no donor/session/access credential.
 - **AND** Different authorized openers see their own current content.
 - **AND** Wrong/unverified host or unavailable access has an honest safe result without another-Tenant/public fallback.
 

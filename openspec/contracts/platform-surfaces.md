@@ -208,6 +208,32 @@ revealed.
 
 <!-- prettier-ignore-start -->
 
+<a id="contract-3ed4631633d0038ce9ac"></a>
+
+## Multi-Site Management Lives In Staff Surfaces While Donor Accounts Stay Tenant-Wide
+
+<!-- BEGIN CONTRACT {"id":"3ed4631633d0038ce9ac","name":"Multi-Site Management Lives In Staff Surfaces While Donor Accounts Stay Tenant-Wide"} -->
+
+Mission Control and Web Studio MUST present one connected Site-management
+experience: Mission Control owns operational Site, domain, locale, currency,
+availability, and owner-status work; Web Studio owns Site presentation and
+content authoring through Payload. Cross-surface links MUST preserve exact
+Tenant/Site context and authorization without duplicating source-owned settings,
+readiness, lifecycle, or audit truth.
+
+The authenticated Donor Portal MUST remain Tenant-wide with one Tenant Donor
+Account Brand and, for each activated Tenant/environment, exactly one designated verified Tenant home domain carrying the account path: a name the Tenant owns, which MAY also be a Site's Primary Site Domain (amended 2026-11-24 by the owner's decision on tenant-owned domains). Entry Site MAY provide validated secondary attribution
+or a return action but MUST NOT create a Site-specific account, fragmented
+history, or authorization boundary. Public Site and Giving surfaces MAY use
+exact Site Brand and locale context while preserving one shared Tenant-wide
+checkout product structure.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
 <a id="contract-3f1e7f6c75254139dc09"></a>
 
 ## Navigation And Dynamic Discovery Remain Plain-Language And Link-Native
@@ -249,6 +275,41 @@ fifth surface.
 Communications that reach donors, missionaries, or the public MUST use shared
 product language, honest states, and tenant-controlled templates and policy,
 and they MUST reflect the same underlying truth as the surfaces they reference.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-55420748c0d4a6018d5a"></a>
+
+## Donor Portal As The Donor Self-Service Surface
+
+<!-- BEGIN CONTRACT {"id":"55420748c0d4a6018d5a","name":"Donor Portal As The Donor Self-Service Surface"} -->
+
+The donor portal SHALL be the donor self-service surface. It MUST let donors
+control their giving, recurring gifts, payment methods, receipts, statements,
+and related self-service actions without exposing staff-style complexity.
+
+The donor portal SHALL feel calm, clear, confidence-building, and easy to use.
+It MUST highlight the most common donor actions clearly and MUST NOT bury them
+inside staff workflows, internal terminology, or operational detours.
+
+The Donor Portal MUST NOT be modeled as a Site. Donor accounts and authorized
+giving history SHALL remain Tenant-wide across all Sites. Per Phase 24 D57/D58,
+as amended on 2026-11-24 by the owner's decision on tenant-owned domains, each
+activated Tenant/environment SHALL serve the Donor Portal under the account path
+of exactly one designated verified Tenant home domain, which MAY also be a
+Site's Primary Site Domain, with one stable Tenant Donor Account Brand. The
+home domain is a name the Tenant owns; no Asym address serves or backs the
+Donor Portal. Neither the Default Site nor the entry Site SHALL fragment or
+reskin that account experience; source-Site attribution MAY remain visible on
+authorized gift records.
+
+The donor portal MUST NOT become a staff operations surface. It SHALL present
+only the depth needed for a donor to manage their relationship to giving with
+clarity and confidence.
 
 <!-- END CONTRACT -->
 

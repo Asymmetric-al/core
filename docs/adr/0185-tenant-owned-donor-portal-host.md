@@ -2,9 +2,7 @@
 
 **Status:** Accepted (founder rulings, Phase 24 D57-D58 — 2026-08-30)
 
-Each Tenant and environment has exactly one current verified Tenant-controlled
-HTTPS host for its Tenant-wide authenticated Donor Portal. Every Site links to
-that same portal host, but Site, host, and branding never establish identity or
+Each Tenant and environment has exactly one designated verified home domain, a Tenant-owned HTTPS name under whose account path the Tenant-wide authenticated Donor Portal is served; it may also be a Site's Primary Site Domain (amended 2026-11-24, see Amendments). Every Site links to that same home domain, but Site, host, and branding never establish identity or
 authorization; protected access still intersects the exact current host
 binding, validated session, same-Tenant donor relationship, application
 authorization, and database isolation.
@@ -17,7 +15,7 @@ loss therefore causes honest unavailability rather than platform fallback;
 replacement is successor-first and never rewrites donor, gift, document,
 commitment, financial, or audit history.
 
-The one host presents exactly one current Tenant Donor Account Brand across
+The home domain's account path presents exactly one current Tenant Donor Account Brand across
 sign-in, claim, recovery, errors, navigation, account settings, and cross-Site
 history. The Default Site, entry Site, locale, referrer, return destination,
 last gift, and Site retirement never reskin that account surface. Verified
@@ -39,3 +37,16 @@ This decision amends only the global donor-visible origin clauses in
 [ADR-0025 — producer-owned protected actions](./0025-producer-owned-protected-actions.md)/[ADR-0037 — exact-artifact access](./0037-scanner-safe-exact-artifact-access.md) and their Phase 17/D12 records. It preserves their scanner-
 resistant transport, producer ownership, no-store behavior, authorization,
 idempotency, and financial-truth invariants.
+
+## Amendments
+
+### 2026-11-24: The portal host is the organization's home domain (AL-2671)
+
+Under the owner's decision of 21 November 2026 that every organization's website
+and dashboards use domains it owns, with paths for the dashboards, the one
+Donor Portal host is the organization's designated verified home domain. It may
+also serve a Site; the Donor Portal lives under its account path and the
+dashboards under paths of the same domain. Everything else here stands: one
+Tenant-wide account, Tenant-brand-native surfaces, no `asymmetric.al` fallback,
+and a host that never establishes identity or authorization. OpenSpec change
+`adopt-tenant-owned-domains` records the decision.
