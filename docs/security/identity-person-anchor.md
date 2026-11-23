@@ -236,8 +236,9 @@ the Asym donor-pair store (Q8, clash 3). This slice changes no schema there.
   `donors (tenant_id, id)`. A pair across tenants fails with 23503.
 - A new pair starts `status = 'open'`, and no trigger moves it; nothing
   auto-merges. Merge execution is #512, dedupe scans are #513.
-- The legacy `crm_merge_candidates` (Twenty era) is untouched and stays
-  dormant (ADR-0001).
+- The legacy `crm_merge_candidates` (Twenty era) was left untouched here
+  (ADR-0001). WP4a's second part (AL-2677) dropped it once CRM detail read
+  `donor_merge_candidates` (`20261121030001_drop_crm_merge_candidates.sql`).
 
 ## Rollback and order
 

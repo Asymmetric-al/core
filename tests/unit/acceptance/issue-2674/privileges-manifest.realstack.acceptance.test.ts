@@ -214,7 +214,7 @@ describe.skipIf(!ADMIN_URL)(
             "select count(*) from public.donations",
             "select count(*) from public.crm_record_links",
             "select count(*) from public.crm_command_logs",
-            "select count(*) from public.crm_merge_candidates",
+            "select count(*) from public.donor_merge_candidates",
             "select id, profile_id from public.missionaries",
             "select count(*) from public.field_policies",
           ])
@@ -366,7 +366,14 @@ describe.skipIf(!ADMIN_URL)(
             await r.rows(
               `select c.relname as g from pg_class c join pg_namespace n on n.oid = c.relnamespace
            where n.nspname = 'public' and c.relname = any($1) order by 1`,
-              [[...H.BACKUP_TABLES, ...H.TWENTY_TABLES, ...H.KEPT_CRM_TABLES]],
+              [
+                [
+                  ...H.BACKUP_TABLES,
+                  ...H.TWENTY_TABLES,
+                  ...H.RETIRED_CRM_TABLES,
+                  ...H.KEPT_CRM_TABLES,
+                ],
+              ],
             ),
           );
           expect(present).toEqual([...H.KEPT_CRM_TABLES].sort());

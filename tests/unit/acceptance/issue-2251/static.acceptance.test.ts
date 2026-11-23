@@ -179,7 +179,7 @@ describe("#2251 In 2: docs/security/rls-deny-by-default-exceptions.json", () => 
       if (by.get(t)?.outcome !== "deny_by_default")
         wrong.push(`${t}: not deny_by_default`);
     for (const t of F) if (by.has(t)) wrong.push(`${t}: F table listed`);
-    expect(Object.keys(S).length + D.length + F.length).toBe(142);
+    expect(Object.keys(S).length + D.length + F.length).toBe(141);
     expect(wrong).toEqual([]);
   });
 });

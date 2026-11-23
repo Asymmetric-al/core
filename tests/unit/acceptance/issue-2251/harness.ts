@@ -191,7 +191,7 @@ export const D = words(`
 export const F = words(`
   contribution_adjustments contribution_approval_policies contribution_correction_requests contribution_corrections
   crm_table_named_views crm_table_tenant_defaults crm_table_user_preferences donor_merge_candidates
-  assets audit_logs campaigns crm_command_logs crm_merge_candidates crm_notes
+  assets audit_logs campaigns crm_command_logs crm_notes
   crm_record_links donation_crm_links donations donor_feed_preferences
   donor_pledges donors
   field_policies follows funds giving_reconciliation_runs locations

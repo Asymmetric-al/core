@@ -15,6 +15,7 @@ const TENANT_B = "22222222-2222-4222-8222-222222222222";
 const STAFF_ID = "33333333-3333-4333-8333-333333333333";
 const ADMIN_ID = "44444444-4444-4444-8444-444444444444";
 const NOTE_ID = "55555555-5555-4555-8555-555555555555";
+const SUBMISSION_KEY = "88888888-8888-4888-8888-888888888888";
 
 type NoteRow = {
   id: string;
@@ -36,6 +37,58 @@ type CommandLogRow = Record<string, unknown>;
 class MemoryCrmNotesSupabase {
   notes: NoteRow[] = [];
   commandLogs: CommandLogRow[] = [];
+  commandCalls: Record<string, unknown>[] = [];
+  refusal: string | null = null;
+  refusalMessage = "refused";
+
+  async rpc(fn: "create_crm_note", args: Record<string, unknown>) {
+    this.commandCalls.push(args);
+    if (this.refusal) {
+      return {
+        data: null,
+        error: { code: this.refusal, message: this.refusalMessage },
+      };
+    }
+    const existing = this.notes.find(
+      (note) =>
+        note.tenant_id === args.p_tenant_id &&
+        note.idempotency_key === args.p_idempotency_key,
+    );
+    if (existing) {
+      return {
+        data: { note: existing, commandLogId: "log-1", duplicate: true },
+        error: null,
+      };
+    }
+    const note: NoteRow = {
+      author_name: "Mission Control",
+      author_profile_id: STAFF_ID,
+      body: String(args.p_body),
+      created_at: "2026-08-18T12:00:00.000Z",
+      id: NOTE_ID,
+      idempotency_key: String(args.p_idempotency_key),
+      linked_record_id: (args.p_linked_record_id as string | null) ?? null,
+      linked_record_type: (args.p_linked_record_type as string | null) ?? null,
+      tenant_id: String(args.p_tenant_id),
+      title: String(args.p_title),
+      updated_at: "2026-08-18T12:00:00.000Z",
+      visibility: args.p_visibility as NoteRow["visibility"],
+    };
+    this.notes.push(note);
+    this.commandLogs.push({
+      action: "crm.note.create",
+      status: "succeeded",
+      tenant_id: note.tenant_id,
+    });
+    return {
+      data: {
+        note,
+        commandLogId: `log-${this.commandLogs.length}`,
+        duplicate: false,
+      },
+      error: null,
+    };
+  }
 
   from(table: string) {
     if (table === "crm_notes") {
@@ -280,24 +333,30 @@ describe("createMissionControlCrmNote", () => {
 
     const response = await createMissionControlCrmNote({
       actor: staffActor({ action: "crm.note.create" }),
-      authorName: "Staff Member",
-      createId: () => NOTE_ID,
+      idempotencyKey: SUBMISSION_KEY,
       input: {
         body: "Family is doing well.",
         linkedRecordId: "donor-1",
         linkedRecordType: "donor_profile",
         title: "Visit notes",
       },
-      now: new Date("2026-08-18T12:00:00.000Z"),
       supabase: store,
     });
 
     expect(response.note.source).toBe("local");
     expect(response.note.title).toBe("Visit notes");
     expect(response.note.body).toBe("Family is doing well.");
-    expect(response.note.authorName).toBe("Staff Member");
+    expect(response.note.authorName).toBe("Mission Control");
     expect(response).not.toHaveProperty("outboundJobId");
     expect(response).not.toHaveProperty("replay");
+    expect(store.commandCalls).toEqual([
+      expect.objectContaining({
+        p_idempotency_key: SUBMISSION_KEY,
+        p_tenant_id: TENANT_A,
+        p_visibility: "standard",
+      }),
+    ]);
+    expect(store.commandCalls[0]).not.toHaveProperty("p_author_profile_id");
     expect(store.notes).toHaveLength(1);
     expect(store.notes[0]?.tenant_id).toBe(TENANT_A);
     expect(store.commandLogs).toEqual([
@@ -314,9 +373,8 @@ describe("createMissionControlCrmNote", () => {
 
     await createMissionControlCrmNote({
       actor: staffActor({ action: "crm.note.create" }),
-      authorName: "Staff Member",
+      idempotencyKey: SUBMISSION_KEY,
       input: { body: "Read after write.", title: "Immediate" },
-      now: new Date("2026-08-18T12:00:00.000Z"),
       supabase: store,
     });
 
@@ -331,10 +389,14 @@ describe("createMissionControlCrmNote", () => {
 
   it("rejects restricted note creation for non-admin staff", async () => {
     const store = new MemoryCrmNotesSupabase();
+    store.refusal = "42501";
+    store.refusalMessage =
+      "tenant_guard: a restricted CRM note needs the tenant-administrator flag";
 
     await expect(
       createMissionControlCrmNote({
         actor: staffActor({ action: "crm.note.create" }),
+        idempotencyKey: SUBMISSION_KEY,
         input: {
           body: "Pastoral detail",
           title: "Restricted",
@@ -344,7 +406,7 @@ describe("createMissionControlCrmNote", () => {
       }),
     ).rejects.toEqual(
       expect.objectContaining({
-        message: "Restricted CRM notes require an admin role.",
+        message: "Restricted CRM notes require the tenant-administrator flag.",
         status: 403,
       }),
     );
@@ -352,7 +414,7 @@ describe("createMissionControlCrmNote", () => {
     expect(() => {
       throw new ApiHttpError(
         403,
-        "Restricted CRM notes require an admin role.",
+        "Restricted CRM notes require the tenant-administrator flag.",
       );
     }).toThrow(ApiHttpError);
   });
@@ -361,25 +423,26 @@ describe("createMissionControlCrmNote", () => {
     const store = new MemoryCrmNotesSupabase();
     const first = await createMissionControlCrmNote({
       actor: staffActor({ action: "crm.note.create" }),
-      authorName: "Staff Member",
-      createId: () => NOTE_ID,
+      idempotencyKey: SUBMISSION_KEY,
       input: { body: "Body", title: "Same" },
-      now: new Date("2026-08-18T12:00:00.000Z"),
-      requestId: "idem-1",
+      requestId: "request-1",
       supabase: store,
     });
     const second = await createMissionControlCrmNote({
       actor: staffActor({ action: "crm.note.create" }),
-      authorName: "Staff Member",
+      idempotencyKey: SUBMISSION_KEY,
       input: { body: "Body", title: "Same" },
-      now: new Date("2026-08-18T12:05:00.000Z"),
-      requestId: "idem-1",
+      requestId: "request-2",
       supabase: store,
     });
 
     expect(store.notes).toHaveLength(1);
     expect(second.note.id).toBe(first.note.id);
     expect(second.duplicate).toBe(true);
+    expect(store.commandCalls.map((call) => call.p_idempotency_key)).toEqual([
+      SUBMISSION_KEY,
+      SUBMISSION_KEY,
+    ]);
   });
 
   it("does not create a Twenty outbound job", async () => {
@@ -387,6 +450,7 @@ describe("createMissionControlCrmNote", () => {
 
     const response = await createMissionControlCrmNote({
       actor: staffActor({ action: "crm.note.create" }),
+      idempotencyKey: SUBMISSION_KEY,
       input: { body: "No vendor job.", title: "Local only" },
       supabase: store,
     });
