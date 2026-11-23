@@ -121,7 +121,7 @@ describe("vercel production readiness env resolver", () => {
     });
 
     const literalPlaceholderReason =
-      "holds the Vercel CLI's placeholder text `[sensitive]`: the variable is not of type sensitive, so this is its stored value, or its type could not be confirmed";
+      "holds the Vercel CLI's placeholder text `[SENSITIVE]`: the variable is not of type sensitive, so this is its stored value, or its type could not be confirmed";
 
     expect(report.ready).toBe(false);
     expect(report.unreadableEnv).toEqual(["RESEND_API_KEY"]);
