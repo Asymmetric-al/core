@@ -307,34 +307,62 @@ describe.skipIf(!ADMIN_URL)(
 
     describe("criterion 1: post-state", () => {
       it.each(H.TABLES)(
-        "1: public.%s has the exact authorized PERMISSIVE SELECT policies and deparsed quals",
+        "1: public.%s has the exact authorized PERMISSIVE policies and deparsed quals (D-18: WP4b part 1 adds tenant_guard_isolation on missionaries)",
         (t) =>
           tx(async () => {
             const p = await policies(t);
             const expected = serverOnlyMissionaries(t)
               ? [
-                  [
-                    "crm staff read",
-                    "tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff'))",
-                  ],
-                  ["missionaries own row key read", currentQual(t)],
+                  {
+                    name: "crm staff read",
+                    cmd: "SELECT",
+                    role: "authenticated",
+                    qual: "tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff'))",
+                    withCheck: null,
+                  },
+                  {
+                    name: "missionaries own row key read",
+                    cmd: "SELECT",
+                    role: "authenticated",
+                    qual: currentQual(t),
+                    withCheck: null,
+                  },
+                  {
+                    name: "tenant_guard_isolation",
+                    cmd: "ALL",
+                    role: "tenant_guard",
+                    qual: "tenant_id = (SELECT tenant_guard.current_tenant_id())",
+                    withCheck:
+                      "tenant_id = (SELECT tenant_guard.current_tenant_id())",
+                  },
                 ]
-              : [[H.policyName(t), currentQual(t)]];
+              : [
+                  {
+                    name: H.policyName(t),
+                    cmd: "SELECT",
+                    role: "authenticated",
+                    qual: currentQual(t),
+                    withCheck: null,
+                  },
+                ];
             expect(p.map((x) => x.policyname)).toEqual(
-              expected.map(([name]) => name),
+              expected.map((row) => row.name),
             );
-            for (const [index, [, qual]] of expected.entries()) {
+            for (const [index, row] of expected.entries()) {
+              const withCheckSql = row.withCheck
+                ? ` with check (${row.withCheck})`
+                : "";
               await db.query(
-                `create policy acc2312_ref on public.${t} as permissive for select to authenticated using (${qual})`,
+                `create policy acc2312_ref on public.${t} as permissive for ${row.cmd.toLowerCase()} to ${row.role} using (${row.qual})${withCheckSql}`,
               );
               const ref = (await policies(t)).find(
                 (x) => x.policyname === "acc2312_ref",
               );
               expect(p[index]).toMatchObject({
                 permissive: "PERMISSIVE",
-                cmd: "SELECT",
-                roles: ["authenticated"],
-                with_check: null,
+                cmd: row.cmd,
+                roles: [row.role],
+                with_check: row.withCheck ? ref!.with_check : null,
                 qual: ref!.qual,
               });
               await db.query(`drop policy acc2312_ref on public.${t}`);
