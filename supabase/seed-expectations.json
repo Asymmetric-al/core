@@ -1,12 +1,15 @@
 {
   "description": "Row counts that supabase/seed.sql must produce. CI's migrate job checks them after seeding (scripts/verify/seed-counts.mjs). A change to the seed updates these counts in the same change; the workflow does not change.",
   "counts": {
-    "public.profiles": 3,
+    "public.profiles": 4,
     "public.tenants": 2,
-    "authz.memberships": 6,
+    "authz.memberships": 8,
     "public.legal_entities": 2,
     "public.payment_account_bindings": 0,
     "public.funds": 10,
-    "public.contribution_approval_policies": 2
+    "public.contribution_approval_policies": 2,
+    "public.parties": 24,
+    "public.account_links": 4,
+    "private.party_restricted": 1
   }
 }
