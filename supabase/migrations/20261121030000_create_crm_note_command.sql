@@ -56,7 +56,10 @@
 --    (42501); a missing key, a title of more than 160 or a body of more than
 --    10,000 characters, either blank, an unknown visibility or linked record
 --    type, or a linked record ID or label of more than 160 characters
---    (22023); a reused key (23505).
+--    (22023); a reused key (23505). Title, body and the linked record's ID and
+--    label are trimmed of every leading and trailing whitespace character,
+--    tabs and line breaks included, as the role-change command trims its
+--    reason, so a note of whitespace alone is blank.
 --
 -- 2. What the guard may now do, in the tenant it entered only
 --    (`tenant_guard_isolation`): read and insert `crm_notes` (insert by
@@ -210,10 +213,10 @@ BEGIN
   END IF;
 
   v_key := p_idempotency_key::TEXT;
-  v_title := pg_catalog.btrim(p_title);
-  v_body := pg_catalog.btrim(p_body);
-  v_linked_id := NULLIF(pg_catalog.btrim(p_linked_record_id), '');
-  v_linked_label := NULLIF(pg_catalog.btrim(p_linked_record_label), '');
+  v_title := pg_catalog.regexp_replace(p_title, '^[[:space:]]+|[[:space:]]+$', '', 'g');
+  v_body := pg_catalog.regexp_replace(p_body, '^[[:space:]]+|[[:space:]]+$', '', 'g');
+  v_linked_id := NULLIF(pg_catalog.regexp_replace(p_linked_record_id, '^[[:space:]]+|[[:space:]]+$', '', 'g'), '');
+  v_linked_label := NULLIF(pg_catalog.regexp_replace(p_linked_record_label, '^[[:space:]]+|[[:space:]]+$', '', 'g'), '');
 
   IF v_key IS NULL
      OR COALESCE(pg_catalog.char_length(v_title), 0) NOT BETWEEN 1 AND 160

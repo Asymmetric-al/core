@@ -288,12 +288,38 @@ describe.skipIf(!ADMIN_URL)("the CRM note command", () => {
     expect(rows.logs).toHaveLength(1);
   });
 
+  it("trims tabs, newlines and other whitespace from what it stores", async () => {
+    const key = randomUUID();
+    expect(
+      (
+        await create("UDEV", "mDev", {
+          key,
+          title: "\t Meeting\n",
+          body: "\r\n Summary \t",
+          linkedId: "\t",
+          linkedType: "donor_profile",
+          linkedLabel: "\n Donor \t",
+        })
+      ).code,
+    ).toBeNull();
+    expect((await written(key)).notes).toEqual([
+      expect.objectContaining({
+        title: "Meeting",
+        body: "Summary",
+        linked_record_id: null,
+        linked_record_label: "Donor",
+      }),
+    ]);
+  });
+
   it("refuses an invalid note before it writes", async () => {
     for (const note of [
       { key: null },
       { title: "  " },
+      { title: "\t\n" },
       { title: "x".repeat(161) },
       { body: "" },
+      { body: "\n\t \r" },
       { body: "x".repeat(10_001) },
       { visibility: null },
       { visibility: "private" },
