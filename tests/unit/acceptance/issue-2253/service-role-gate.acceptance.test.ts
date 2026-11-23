@@ -333,7 +333,6 @@ type Allow = {
   })[];
 };
 const doc = () => JSON.parse(read(ALLOWLIST) || "null") as Allow | null;
-// D-18: platform wrapper + 21 Nov ruling (8 sites) + 23 Nov ruling W6-R3 amended (1 site: packages/api/src/storage/media-store.ts) on develop after WP4a part 2a.
 const CEILING_TOTALS = [178, 116, 110] as const;
 const live = (d: Allow) => [
   d.entries.reduce((a, x) => a + x.count, 0),

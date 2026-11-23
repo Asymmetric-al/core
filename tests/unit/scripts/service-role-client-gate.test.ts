@@ -145,9 +145,7 @@ describe("frozen ceiling", () => {
     ]);
     expect(Object.isFrozen(CALLER_PRIVILEGED_IMPORT_EXCEPTIONS)).toBe(true);
   });
-  // D-18: the ceiling falls with the allowlist. Raised by the 21 November 2026 ruling (F3, F4:
-  // eight uncounted platform-wrapper sites for WP4b) and 23 November 2026 ruling W6-R3 amended
-  // (one admin_client site for packages/api/src/storage/media-store.ts). Any other growth needs a new ruling.
+
   it("pins the 116 reviewed entries after WP4a part 2a plus the media-store site under W6-R3 amended", () => {
     expect(ceilingDigest()).toBe(
       "777429dcc78233540ca206a59037a9d986d376050cc06184271a8b5acc554201",
