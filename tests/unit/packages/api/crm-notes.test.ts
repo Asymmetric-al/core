@@ -39,11 +39,15 @@ class MemoryCrmNotesSupabase {
   commandLogs: CommandLogRow[] = [];
   commandCalls: Record<string, unknown>[] = [];
   refusal: string | null = null;
+  refusalMessage = "refused";
 
   async rpc(fn: "create_crm_note", args: Record<string, unknown>) {
     this.commandCalls.push(args);
     if (this.refusal) {
-      return { data: null, error: { code: this.refusal, message: "refused" } };
+      return {
+        data: null,
+        error: { code: this.refusal, message: this.refusalMessage },
+      };
     }
     const existing = this.notes.find(
       (note) =>
@@ -386,6 +390,8 @@ describe("createMissionControlCrmNote", () => {
   it("rejects restricted note creation for non-admin staff", async () => {
     const store = new MemoryCrmNotesSupabase();
     store.refusal = "42501";
+    store.refusalMessage =
+      "tenant_guard: a restricted CRM note needs the tenant-administrator flag";
 
     await expect(
       createMissionControlCrmNote({

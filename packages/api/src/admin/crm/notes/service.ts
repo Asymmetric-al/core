@@ -90,14 +90,11 @@ const COMMAND_REFUSALS: Record<string, [number, string]> = {
   "23505": [409, "This submission key was already used for another CRM note."],
 };
 
-function commandRefusal(
-  error: { message?: string; code?: string },
-  visibility: "standard" | "restricted",
-): Error {
+function commandRefusal(error: { message?: string; code?: string }): Error {
   if (error.code === "42501") {
     return new ApiHttpError(
       403,
-      visibility === "restricted"
+      /tenant-administrator flag/i.test(error.message ?? "")
         ? "Restricted CRM notes require the tenant-administrator flag."
         : "Forbidden: this assignment cannot create CRM notes.",
     );
@@ -220,7 +217,7 @@ export async function createMissionControlCrmNote(
   });
 
   if (error) {
-    throw commandRefusal(error, visibility);
+    throw commandRefusal(error);
   }
 
   const result = readCommandResult(data);

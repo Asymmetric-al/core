@@ -103,7 +103,13 @@ describe("createMissionControlCrmNote", () => {
   });
 
   it("leaves the restricted rule to the database and explains its refusal", async () => {
-    const supabase = client({ error: { code: "42501", message: "refused" } });
+    const supabase = client({
+      error: {
+        code: "42501",
+        message:
+          "tenant_guard: a restricted CRM note needs the tenant-administrator flag",
+      },
+    });
     await expect(
       createMissionControlCrmNote({
         actor,
@@ -117,6 +123,30 @@ describe("createMissionControlCrmNote", () => {
     });
     expect(supabase.rpc).toHaveBeenCalledOnce();
   });
+
+  it.each([
+    "tenant_guard: the selected assignment is no longer a live assignment of the caller in this tenant",
+    "tenant_guard: the caller has no profile",
+  ])(
+    "gives a restricted note's other refusal the plain forbidden message: %s",
+    async (message) => {
+      await expect(
+        createMissionControlCrmNote({
+          actor,
+          idempotencyKey: KEY,
+          input: {
+            body: "Summary",
+            title: "Meeting",
+            visibility: "restricted",
+          },
+          supabase: client({ error: { code: "42501", message } }),
+        }),
+      ).rejects.toMatchObject({
+        status: 403,
+        message: "Forbidden: this assignment cannot create CRM notes.",
+      });
+    },
+  );
 
   it.each([
     ["42501", 403],
