@@ -127,8 +127,13 @@ describe.skipIf(!ADMIN_URL)(
           `insert into public.legal_entities(id,tenant_id,name) values ($1,$2,'First'),($3,$2,'Second'),($4,$5,'Foreign')`,
           [first, tenant, second, foreign, other],
         );
+        if (table === "missionaries")
+          await db.query(
+            "insert into public.parties(id,tenant_id,display_name) values ($1,$2,'Fixture')",
+            [target, tenant],
+          );
         await db.query(
-          `insert into public.${table}(id,tenant_id,legal_entity_id${table === "funds" ? ",name" : ""}) values ($1,$2,$3${table === "funds" ? ",'Target'" : ""})`,
+          `insert into public.${table}(id,tenant_id,legal_entity_id${table === "funds" ? ",name" : ",party_id"}) values ($1,$2,$3${table === "funds" ? ",'Target'" : ",$1"})`,
           [target, tenant, first],
         );
         await db.query(

@@ -261,6 +261,73 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
+    it("for every seeded membership, each own-row table reads the same rows under the base's policy and the new one, except the seeded donor record linked without a profile, which only its own login gains", async () => {
+      const seeded = {
+        owner: "11111111-1111-1111-1111-111111111111",
+        morgan: "33333333-3333-3333-3333-333333333333",
+        riley: "44444444-4444-4444-4444-444444444444",
+        sam: "55555555-5555-5555-5555-555555555555",
+      };
+      const linkOnlyDonor = "30000000-0000-0000-0000-000000000016";
+      const seededAs = asRole(db, seeded);
+      const rows = await db.query(
+        "select user_id, tenant_id, id from authz.memberships where user_id = any($1::uuid[]) and is_active order by user_id, tenant_id, role",
+        [Object.values(seeded)],
+      );
+      expect(rows.rows.length).toBeGreaterThanOrEqual(8);
+      const byUser = Object.fromEntries(
+        Object.entries(seeded).map(([k, v]) => [v, k]),
+      );
+      const read = async (table: string) => {
+        const out: Record<string, string[]> = {};
+        for (const m of rows.rows as {
+          user_id: string;
+          tenant_id: string;
+          id: string;
+        }[]) {
+          const result = await seededAs(
+            "authenticated",
+            {
+              sub: byUser[m.user_id],
+              headers: {
+                "x-asym-tenant": m.tenant_id,
+                "x-asym-assignment": m.id,
+              },
+            },
+            `select id from public.${table} order by id`,
+          );
+          expect(result.code, result.message).toBeNull();
+          out[m.id] = result.rows.map((r) => r.id as string);
+        }
+        return out;
+      };
+      for (const [table, [policy, using]] of Object.entries(OLD_POLICIES)) {
+        const now = await read(table);
+        await db.query("savepoint seeded_old_policy");
+        let before: Record<string, string[]> = {};
+        try {
+          await db.query(
+            `alter policy "${policy}" on public.${table} using (${using})`,
+          );
+          before = await read(table);
+        } finally {
+          await db.query("rollback to savepoint seeded_old_policy");
+        }
+        for (const m of rows.rows as { user_id: string; id: string }[]) {
+          const gained = now[m.id]!.filter((r) => !before[m.id]!.includes(r));
+          const lost = before[m.id]!.filter((r) => !now[m.id]!.includes(r));
+          expect(lost, `${table} ${byUser[m.user_id]} lost`).toEqual([]);
+          expect(gained, `${table} ${byUser[m.user_id]} gained`).toEqual(
+            table === "donors" &&
+              m.user_id === seeded.riley &&
+              now[m.id]!.includes(linkOnlyDonor)
+              ? [linkOnlyDonor]
+              : [],
+          );
+        }
+      }
+    });
+
     it("donor_feed_preferences writes: the owner inserts and updates their own row; another donor's, another tenant's and a staff member's are refused", async () => {
       const write = (person: Who, sql: string) =>
         queryAs("authenticated", who[person], sql);
