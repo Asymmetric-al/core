@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 
 import { parseAdminCrmRelationshipsParams } from "./query";
-import {
-  listMissionControlCrmRelationships,
-  type RelationshipsClient,
-} from "./service";
+import { listMissionControlCrmRelationships } from "./service";
 import { requireCrmAccess } from "../../../crm/auth/access";
 import { toErrorResponse } from "../../../shared/http-errors";
-import { withPlatformOperation } from "../../../shared/with-operation";
+import { withOperation } from "../../../shared/with-operation";
 
-export const GET = withPlatformOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
+export const GET = withOperation(
+  async ({ auth, request, requestId, sessionClient }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.relationship.read",
       resourceType: "relationship",
@@ -23,7 +20,7 @@ export const GET = withPlatformOperation(
       const response = await listMissionControlCrmRelationships({
         actor,
         params,
-        supabase: supabaseAdmin as unknown as RelationshipsClient,
+        supabase: sessionClient,
       });
 
       return NextResponse.json({ ...response, requestId });

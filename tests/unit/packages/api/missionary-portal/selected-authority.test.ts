@@ -27,6 +27,20 @@ const fake = vi.hoisted(() => ({
 const tenant = "00000000-0000-4000-8000-000000000001";
 const id = "00000000-0000-4000-8000-000000000002";
 const assignment = "00000000-0000-4000-8000-000000000003";
+vi.mock(
+  "../../../../../packages/api/src/shared/request-session-client",
+  async (original) => ({
+    ...(await original<
+      typeof import("../../../../../packages/api/src/shared/request-session-client")
+    >()),
+    createRequestSessionClient: async () => fake,
+  }),
+);
+function crmRequest(record: string) {
+  return new NextRequest("https://app.test/api/admin/crm/records/" + record, {
+    headers: { authorization: "Bearer staff-fixture" },
+  });
+}
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: () => ({ client: fake, error: null }),
 }));
@@ -62,6 +76,8 @@ function query(data: unknown, error: unknown = null) {
     },
     in: () => chain,
     eq: () => chain,
+    not: () => chain,
+    or: () => chain,
     order: () => chain,
     range: () => chain,
     limit: () => chain,
@@ -267,9 +283,7 @@ describe("missionary handler delegation", () => {
       const response =
         table === "missionaries"
           ? await adminDirectory.GET(request("GET"))
-          : await crm.GET(
-              new NextRequest("https://app.test/api/admin/crm/records/" + id),
-            );
+          : await crm.GET(crmRequest(id));
       expect(fake.from).toHaveBeenCalledWith(table);
       expect(response.status).toBe(403);
       expect(await response.json()).toMatchObject({
@@ -282,9 +296,7 @@ describe("missionary handler delegation", () => {
     async (role) => {
       fake.role = role;
       fake.from.mockReturnValue(query(null));
-      const response = await crm.GET(
-        new NextRequest("https://app.test/api/admin/crm/records/" + id),
-      );
+      const response = await crm.GET(crmRequest(id));
       expect(response.status).toBe(role === "staff" ? 404 : 403);
       expect(fake.from.mock.calls.map(([table]) => table)).toEqual(
         role === "staff" ? ["donors"] : [],
@@ -449,9 +461,7 @@ describe("missionary handler delegation", () => {
   };
   it("rejects a malformed CRM donor id before its lookup", async () => {
     fake.role = "staff";
-    const response = await crm.GET(
-      new NextRequest("https://app.test/api/admin/crm/records/invalid"),
-    );
+    const response = await crm.GET(crmRequest("invalid"));
     expect(response.status).toBe(404);
     expect(fake.from).not.toHaveBeenCalled();
   });

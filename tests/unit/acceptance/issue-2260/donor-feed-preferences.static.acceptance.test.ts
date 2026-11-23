@@ -27,7 +27,7 @@ const sql = () => {
  * the digest of those same lines without that one.
  */
 const OTHERS_SHA =
-  "866842f870309fb9a6e47f9d9a138c3ba4a612c0b08cca3ce49b335dee76d1f9";
+  "279470bb593c1da283b50a201076f158d9a8b986c7a3ff88c5b83c49e1cbbde5";
 /** Criterion 20 doc rules, " ~ "-separated regexes. */
 const DOC_RULES = String.raw`anon ~ authenticated ~ service_role ~ SELECT, INSERT, UPDATE ~ auth\.uid\(\) ~ authz\.current_tenant_id\(\) ~ cross[- ]tenant ~ default (privileges|grants) ~ DELETE ~ #2251 ~ #668 ~ Down`;
 
@@ -70,7 +70,7 @@ describe("#2260 static (17-20)", () => {
     ).entries;
     const n = (o: string) => e.filter((x) => x.outcome === o).length;
     expect([e.length, n("service_role_needed"), n("deny_by_default")]).toEqual([
-      87, 67, 20,
+      79, 60, 19,
     ]);
     const lines = raw
       .split("\n")

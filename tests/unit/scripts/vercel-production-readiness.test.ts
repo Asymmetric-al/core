@@ -12,6 +12,7 @@ import {
   parseVercelEnvEntries,
   parseVercelEnvKeys,
   parseVercelProjectDetails,
+  resolveProductionEnv,
   summarizeProjectReadiness,
   FORBIDDEN_RUNTIME_ENV_NAMES,
   PROJECTS,
@@ -254,6 +255,139 @@ export RESEND_API_KEY='re_hidden'
     expect(report.unreadableEnv).toEqual(["STRIPE_SECRET_KEY"]);
   });
 
+  it("treats the Vercel CLI literal [sensitive] placeholder as unreadable, never invalid", () => {
+    const validatedProject = {
+      key: "admin",
+      project: "admin",
+      vercelConfigPath: "apps/admin/vercel.json",
+      healthUrl: "https://admin.asymmetric.al/api/health",
+      requiredEnv: [
+        {
+          key: "NEXT_PUBLIC_SUPABASE_URL",
+          reason: "must be a URL",
+          validate: (value: string) => value.startsWith("https://"),
+        },
+        {
+          key: "STRIPE_SECRET_KEY",
+          reason: "must start with sk_",
+          validate: (value: string) => value.startsWith("sk_"),
+        },
+        {
+          key: "RESEND_API_KEY",
+          reason: "must start with re_",
+          validate: (value: string) => value.startsWith("re_"),
+        },
+        {
+          key: "PAYLOAD_SECRET",
+          reason: "must be set",
+          validate: (value: string) => value.length > 0,
+        },
+      ],
+    };
+
+    const report = summarizeProjectReadiness({
+      project: validatedProject,
+      envKeys: [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "STRIPE_SECRET_KEY",
+        "RESEND_API_KEY",
+        "PAYLOAD_SECRET",
+      ],
+      envTypes: {
+        NEXT_PUBLIC_SUPABASE_URL: "plain",
+        STRIPE_SECRET_KEY: "sensitive",
+        RESEND_API_KEY: "sensitive",
+        PAYLOAD_SECRET: "sensitive",
+      },
+      envValues: parseDotEnv(`
+NEXT_PUBLIC_SUPABASE_URL="https://example.supabase.co"
+STRIPE_SECRET_KEY="[sensitive]"
+RESEND_API_KEY=[sensitive]
+PAYLOAD_SECRET="[sensitive]"
+      `),
+      deployments: [
+        {
+          url: "admin.example.vercel.app",
+          state: "READY",
+          target: "production",
+          createdAt: 123,
+          commitSha: "abc123",
+          commitRef: "production",
+        },
+      ],
+      commit: "abc123",
+      health: { url: validatedProject.healthUrl, status: 200 },
+      productionBranch: "production",
+      productionGitDeployments: false,
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.missingEnv).toEqual([]);
+    expect(report.invalidEnv).toEqual([]);
+    expect(report.unreadableEnv).toEqual([
+      "STRIPE_SECRET_KEY",
+      "RESEND_API_KEY",
+      "PAYLOAD_SECRET",
+    ]);
+
+    const formatted = formatReadinessReport({
+      commit: "abc123",
+      reports: [report],
+    });
+    expect(formatted).toContain("Invalid Production env values: none");
+    expect(formatted).toContain("Present but unreadable by Vercel CLI:");
+    expect(formatted).toContain("- `STRIPE_SECRET_KEY`");
+    expect(formatted).toContain("- `RESEND_API_KEY`");
+    expect(formatted).toContain("- `PAYLOAD_SECRET`");
+    expect(formatted).toContain("Overall: READY");
+
+    const plainLiteral = summarizeProjectReadiness({
+      project: validatedProject,
+      envKeys: [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "STRIPE_SECRET_KEY",
+        "RESEND_API_KEY",
+        "PAYLOAD_SECRET",
+      ],
+      envTypes: {
+        NEXT_PUBLIC_SUPABASE_URL: "plain",
+        STRIPE_SECRET_KEY: "encrypted",
+        RESEND_API_KEY: "plain",
+        PAYLOAD_SECRET: "sensitive",
+      },
+      envValues: {
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+        STRIPE_SECRET_KEY: "[sensitive]",
+        RESEND_API_KEY: "[sensitive]",
+        PAYLOAD_SECRET: "[sensitive]",
+      },
+      deployments: [
+        {
+          url: "admin.example.vercel.app",
+          state: "READY",
+          target: "production",
+          createdAt: 123,
+          commitSha: "abc123",
+          commitRef: "production",
+        },
+      ],
+      commit: "abc123",
+      health: { url: validatedProject.healthUrl, status: 200 },
+      productionBranch: "production",
+      productionGitDeployments: false,
+    });
+
+    const literalPlaceholderReason =
+      "holds the Vercel CLI's placeholder text `[SENSITIVE]`: the variable is not of type sensitive, so this is its stored value, or its type could not be confirmed";
+
+    expect(plainLiteral.ready).toBe(false);
+    expect(plainLiteral.invalidEnv).toEqual([
+      { key: "STRIPE_SECRET_KEY", reason: literalPlaceholderReason },
+      { key: "RESEND_API_KEY", reason: literalPlaceholderReason },
+    ]);
+    expect(plainLiteral.unreadableEnv).toEqual(["PAYLOAD_SECRET"]);
+  });
+
   it("marks a project ready only when env, deployment, and health all pass", () => {
     const report = summarizeProjectReadiness({
       project,
@@ -430,5 +564,368 @@ export RESEND_API_KEY='re_hidden'
         `postgresql://cms_owner:x@db.${ref}.supabase.co:5432/postgres`,
       ),
     ).toBe(false);
+  });
+
+  it("requires INNGEST_EVENT_KEY and signkey- prefixed INNGEST_SIGNING_KEY on all three projects", () => {
+    expect(PROJECTS.map((item) => item.key)).toEqual([
+      "admin",
+      "donor",
+      "missionary",
+    ]);
+
+    for (const item of PROJECTS) {
+      const keys = item.requiredEnv.map((r) =>
+        typeof r === "string" ? r : r.key,
+      );
+      expect(keys, `${item.key} requires INNGEST_EVENT_KEY`).toContain(
+        "INNGEST_EVENT_KEY",
+      );
+      expect(keys, `${item.key} requires INNGEST_SIGNING_KEY`).toContain(
+        "INNGEST_SIGNING_KEY",
+      );
+
+      const missingReport = summarizeProjectReadiness({
+        project: item,
+        envKeys: keys.filter(
+          (key) => key !== "INNGEST_EVENT_KEY" && key !== "INNGEST_SIGNING_KEY",
+        ),
+        envValues: {},
+        deployments: [
+          {
+            url: `${item.key}.example.vercel.app`,
+            state: "READY",
+            target: "production",
+            createdAt: 1,
+            commitSha: "abc123",
+            commitRef: "production",
+          },
+        ],
+        commit: "abc123",
+        health: { url: item.healthUrl, status: 200 },
+        productionBranch: "production",
+        productionGitDeployments: false,
+      });
+      expect(missingReport.ready).toBe(false);
+      expect(missingReport.missingEnv).toEqual(
+        expect.arrayContaining(["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"]),
+      );
+
+      expect(
+        invalidEnvValues(
+          {
+            INNGEST_EVENT_KEY: "evt-key-fixture",
+            INNGEST_SIGNING_KEY: "not-a-signing-key",
+          },
+          item.requiredEnv,
+        ),
+      ).toEqual([
+        {
+          key: "INNGEST_SIGNING_KEY",
+          reason: "must start with signkey-",
+        },
+      ]);
+
+      expect(
+        invalidEnvValues(
+          {
+            INNGEST_EVENT_KEY: "evt-key-fixture",
+            INNGEST_SIGNING_KEY: "signkey-prod-fixture",
+          },
+          item.requiredEnv,
+        ),
+      ).toEqual([]);
+
+      const sensitiveReport = summarizeProjectReadiness({
+        project: item,
+        envKeys: keys,
+        envTypes: {
+          INNGEST_EVENT_KEY: "sensitive",
+          INNGEST_SIGNING_KEY: "sensitive",
+        },
+        envValues: {
+          INNGEST_EVENT_KEY: "[sensitive]",
+          INNGEST_SIGNING_KEY: "[sensitive]",
+        },
+        deployments: [
+          {
+            url: `${item.key}.example.vercel.app`,
+            state: "READY",
+            target: "production",
+            createdAt: 1,
+            commitSha: "abc123",
+            commitRef: "production",
+          },
+        ],
+        commit: "abc123",
+        health: { url: item.healthUrl, status: 200 },
+        productionBranch: "production",
+        productionGitDeployments: false,
+      });
+      expect(sensitiveReport.invalidEnv).toEqual([]);
+      expect(sensitiveReport.missingEnv).toEqual([]);
+      expect(sensitiveReport.unreadableEnv).toEqual(
+        expect.arrayContaining(["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"]),
+      );
+    }
+  });
+
+  it("rejects literal [sensitive] on every non-sensitive required variable with its own reason", () => {
+    const literalPlaceholderReason =
+      "holds the Vercel CLI's placeholder text `[SENSITIVE]`: the variable is not of type sensitive, so this is its stored value, or its type could not be confirmed";
+    const missionary = PROJECTS.find((item) => item.key === "missionary")!;
+    const requiredKeys = missionary.requiredEnv.map((r) =>
+      typeof r === "string" ? r : r.key,
+    );
+    const validBaseValues: Record<string, string> = {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key",
+      SUPABASE_SERVICE_ROLE_KEY: "service-role-key",
+      NEXT_PUBLIC_APP_URL: "https://missionary.asymmetric.al",
+      NEXT_PUBLIC_SITE_URL: "https://donor.asymmetric.al",
+      NEXT_PUBLIC_MAIN_DOMAIN: "asymmetric.al",
+      NEXT_PUBLIC_CLOUDINARY_ENABLED: "false",
+      STRIPE_SECRET_KEY: "sk_live_fixture",
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_live_fixture",
+      STRIPE_WEBHOOK_SECRET: "whsec_stripe_fixture",
+      INNGEST_EVENT_KEY: "evt-key-fixture",
+      INNGEST_SIGNING_KEY: "signkey-prod-fixture",
+      SENTRY_DSN: "https://key@sentry.example/1",
+      NEXT_PUBLIC_SENTRY_DSN: "https://key@sentry.example/2",
+      RESEND_API_KEY: "re_fixture",
+      RESEND_WEBHOOK_SECRET: "whsec_resend_fixture",
+      RESEND_ENCRYPTION_KEY: "a".repeat(32),
+    };
+    const readyDeployment = [
+      {
+        url: "missionary.example.vercel.app",
+        state: "READY",
+        target: "production",
+        createdAt: 1,
+        commitSha: "abc123",
+        commitRef: "production",
+      },
+    ];
+
+    const encryptedEventKey = summarizeProjectReadiness({
+      project: missionary,
+      envKeys: requiredKeys,
+      envTypes: { INNGEST_EVENT_KEY: "encrypted" },
+      envValues: { ...validBaseValues, INNGEST_EVENT_KEY: "[sensitive]" },
+      deployments: readyDeployment,
+      commit: "abc123",
+      health: { url: missionary.healthUrl, status: 200 },
+      productionBranch: "production",
+      productionGitDeployments: false,
+    });
+    expect(encryptedEventKey.ready).toBe(false);
+    expect(encryptedEventKey.unreadableEnv).toEqual([]);
+    expect(encryptedEventKey.invalidEnv).toEqual([
+      { key: "INNGEST_EVENT_KEY", reason: literalPlaceholderReason },
+    ]);
+    expect(
+      formatReadinessReport({ commit: "abc123", reports: [encryptedEventKey] }),
+    ).toContain("Overall: BLOCKED (missionary)");
+
+    const sensitiveEventKey = summarizeProjectReadiness({
+      project: missionary,
+      envKeys: requiredKeys,
+      envTypes: { INNGEST_EVENT_KEY: "sensitive" },
+      envValues: { ...validBaseValues, INNGEST_EVENT_KEY: "[sensitive]" },
+      deployments: readyDeployment,
+      commit: "abc123",
+      health: { url: missionary.healthUrl, status: 200 },
+      productionBranch: "production",
+      productionGitDeployments: false,
+    });
+    expect(sensitiveEventKey.ready).toBe(true);
+    expect(sensitiveEventKey.invalidEnv).toEqual([]);
+    expect(sensitiveEventKey.unreadableEnv).toEqual(["INNGEST_EVENT_KEY"]);
+    expect(
+      formatReadinessReport({ commit: "abc123", reports: [sensitiveEventKey] }),
+    ).toContain("Overall: READY");
+
+    const encryptedStripeKey = summarizeProjectReadiness({
+      project: missionary,
+      envKeys: requiredKeys,
+      envTypes: { STRIPE_SECRET_KEY: "encrypted" },
+      envValues: { ...validBaseValues, STRIPE_SECRET_KEY: "[sensitive]" },
+      deployments: readyDeployment,
+      commit: "abc123",
+      health: { url: missionary.healthUrl, status: 200 },
+      productionBranch: "production",
+      productionGitDeployments: false,
+    });
+    expect(encryptedStripeKey.ready).toBe(false);
+    expect(encryptedStripeKey.invalidEnv).toEqual([
+      { key: "STRIPE_SECRET_KEY", reason: literalPlaceholderReason },
+    ]);
+  });
+
+  it("handles real Vercel CLI 66.6.0 env ls shape and quoted uppercase [SENSITIVE] pull lines", () => {
+    const literalPlaceholderReason =
+      "holds the Vercel CLI's placeholder text `[SENSITIVE]`: the variable is not of type sensitive, so this is its stored value, or its type could not be confirmed";
+    const admin = PROJECTS.find((item) => item.key === "admin")!;
+    const realEntry = (key: string, type: "sensitive" | "encrypted") =>
+      type === "sensitive"
+        ? {
+            configurationId: null,
+            createdAt: 1700000000000,
+            key,
+            target: ["production"],
+            type,
+            updatedAt: 1700000000000,
+            visibility: "sensitive",
+          }
+        : {
+            configurationId: null,
+            createdAt: 1700000000000,
+            key,
+            target: ["production"],
+            type,
+            updatedAt: 1700000000000,
+            value: `enc_${key.toLowerCase()}`,
+            visibility: "public",
+          };
+    const realEnvLsJson = JSON.stringify({
+      envs: [
+        realEntry("NEXT_PUBLIC_SUPABASE_URL", "encrypted"),
+        realEntry("NEXT_PUBLIC_SUPABASE_ANON_KEY", "encrypted"),
+        realEntry("SUPABASE_SERVICE_ROLE_KEY", "sensitive"),
+        realEntry("NEXT_PUBLIC_APP_URL", "encrypted"),
+        realEntry("NEXT_PUBLIC_SITE_URL", "encrypted"),
+        realEntry("NEXT_PUBLIC_MAIN_DOMAIN", "encrypted"),
+        realEntry("NEXT_PUBLIC_CLOUDINARY_ENABLED", "encrypted"),
+        realEntry("STRIPE_SECRET_KEY", "sensitive"),
+        realEntry("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", "encrypted"),
+        realEntry("STRIPE_WEBHOOK_SECRET", "sensitive"),
+        realEntry("INNGEST_EVENT_KEY", "sensitive"),
+        realEntry("INNGEST_SIGNING_KEY", "sensitive"),
+        realEntry("SENTRY_DSN", "encrypted"),
+        realEntry("NEXT_PUBLIC_SENTRY_DSN", "encrypted"),
+        realEntry("RESEND_API_KEY", "sensitive"),
+        realEntry("RESEND_WEBHOOK_SECRET", "sensitive"),
+        realEntry("RESEND_ENCRYPTION_KEY", "sensitive"),
+        realEntry("PAYLOAD_DATABASE_URI", "sensitive"),
+        realEntry("PAYLOAD_SECRET", "sensitive"),
+        realEntry("NEXT_PUBLIC_DONOR_URL", "encrypted"),
+        realEntry("DONOR_APP_URL", "encrypted"),
+        realEntry("CMS_BASE_URL", "encrypted"),
+      ],
+    });
+
+    const { keys: envKeys, types: envTypes } =
+      resolveProductionEnv(realEnvLsJson);
+    const pulled = parseDotEnv(`
+NEXT_PUBLIC_SUPABASE_URL="https://example.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="anon-key"
+SUPABASE_SERVICE_ROLE_KEY="[SENSITIVE]"
+NEXT_PUBLIC_APP_URL="https://admin.asymmetric.al"
+NEXT_PUBLIC_SITE_URL="https://donor.asymmetric.al"
+NEXT_PUBLIC_MAIN_DOMAIN="asymmetric.al"
+NEXT_PUBLIC_CLOUDINARY_ENABLED="false"
+STRIPE_SECRET_KEY="[SENSITIVE]"
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_fixture"
+STRIPE_WEBHOOK_SECRET="[SENSITIVE]"
+INNGEST_EVENT_KEY="[SENSITIVE]"
+INNGEST_SIGNING_KEY="[SENSITIVE]"
+SENTRY_DSN="https://key@sentry.example/1"
+NEXT_PUBLIC_SENTRY_DSN="https://key@sentry.example/2"
+RESEND_API_KEY="[SENSITIVE]"
+RESEND_WEBHOOK_SECRET="[SENSITIVE]"
+RESEND_ENCRYPTION_KEY="[SENSITIVE]"
+PAYLOAD_DATABASE_URI="[SENSITIVE]"
+PAYLOAD_SECRET="[SENSITIVE]"
+NEXT_PUBLIC_DONOR_URL="https://donor.asymmetric.al"
+DONOR_APP_URL="https://donor.asymmetric.al"
+CMS_BASE_URL="https://admin.asymmetric.al"
+`);
+    const readyDeployment = [
+      {
+        url: "admin.example.vercel.app",
+        state: "READY",
+        target: "production",
+        createdAt: 1,
+        commitSha: "abc123",
+        commitRef: "production",
+      },
+    ];
+
+    const readyReport = summarizeProjectReadiness({
+      project: admin,
+      envKeys,
+      envTypes,
+      envValues: pulled,
+      deployments: readyDeployment,
+      commit: "abc123",
+      health: { url: admin.healthUrl, status: 200 },
+      productionBranch: "production",
+      productionGitDeployments: false,
+    });
+    expect(readyReport.ready).toBe(true);
+    expect(readyReport.missingEnv).toEqual([]);
+    expect(readyReport.invalidEnv).toEqual([]);
+    expect(readyReport.unreadableEnv).toEqual([
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "STRIPE_SECRET_KEY",
+      "STRIPE_WEBHOOK_SECRET",
+      "INNGEST_EVENT_KEY",
+      "INNGEST_SIGNING_KEY",
+      "RESEND_API_KEY",
+      "RESEND_WEBHOOK_SECRET",
+      "RESEND_ENCRYPTION_KEY",
+      "PAYLOAD_DATABASE_URI",
+      "PAYLOAD_SECRET",
+    ]);
+
+    const readyText = formatReadinessReport({
+      commit: "abc123",
+      reports: [readyReport],
+    });
+    expect(readyText).toContain("Invalid Production env values: none");
+    expect(readyText).toContain("Present but unreadable by Vercel CLI:");
+    expect(readyText).toContain("- `STRIPE_SECRET_KEY`");
+    expect(readyText).toContain("- `INNGEST_SIGNING_KEY`");
+    expect(readyText).toContain("Overall: READY");
+
+    const encryptedLiteralReport = summarizeProjectReadiness({
+      project: admin,
+      envKeys,
+      envTypes,
+      envValues: {
+        ...pulled,
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "[SENSITIVE]",
+        CMS_BASE_URL: "[sensitive]",
+        STRIPE_SECRET_KEY: "[SENSITIVE] ",
+      },
+      deployments: readyDeployment,
+      commit: "abc123",
+      health: { url: admin.healthUrl, status: 200 },
+      productionBranch: "production",
+      productionGitDeployments: false,
+    });
+    expect(encryptedLiteralReport.ready).toBe(false);
+    expect(encryptedLiteralReport.invalidEnv).toEqual([
+      { key: "STRIPE_SECRET_KEY", reason: "must start with sk_" },
+      {
+        key: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+        reason: literalPlaceholderReason,
+      },
+      { key: "CMS_BASE_URL", reason: literalPlaceholderReason },
+    ]);
+    expect(encryptedLiteralReport.unreadableEnv).not.toContain(
+      "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    );
+    expect(encryptedLiteralReport.unreadableEnv).not.toContain("CMS_BASE_URL");
+    expect(encryptedLiteralReport.unreadableEnv).not.toContain(
+      "STRIPE_SECRET_KEY",
+    );
+    const blockedText = formatReadinessReport({
+      commit: "abc123",
+      reports: [encryptedLiteralReport],
+    });
+    expect(blockedText).toContain(
+      `- \`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY\`: ${literalPlaceholderReason}`,
+    );
+    expect(blockedText).toContain("Overall: BLOCKED (admin)");
   });
 });

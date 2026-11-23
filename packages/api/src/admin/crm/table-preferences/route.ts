@@ -1,4 +1,3 @@
-import { requestScopeOf } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -22,10 +21,8 @@ import {
   ensureJsonBody,
   toErrorResponse,
 } from "../../../shared/http-errors";
-import { createRequestSessionClient } from "../../../shared/request-session-client";
 import {
   withOperation,
-  withPlatformOperation,
   type OperationRouteContext,
 } from "../../../shared/with-operation";
 import { resolveContributionCapabilities } from "../../contribution-operations/permissions";
@@ -169,8 +166,8 @@ function resolveTableId(request: Request): string {
   return parsed.data;
 }
 
-export const GET = withPlatformOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
+export const GET = withOperation(
+  async ({ auth, request, requestId, sessionClient }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.read",
       resourceType: "record",
@@ -179,7 +176,7 @@ export const GET = withPlatformOperation(
     try {
       const profileId = requireProfileId(actor.profileId);
       const preferences = await getCrmTablePreferences({
-        supabaseAdmin,
+        sessionClient,
         tenantId: actor.tenantId,
         profileId,
         tableId: resolveTableId(request),
@@ -243,8 +240,8 @@ export const PUT = withOperation(
   },
 );
 
-export const PUT_TENANT_DEFAULT = withPlatformOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
+export const PUT_TENANT_DEFAULT = withOperation(
+  async ({ auth, request, requestId, sessionClient }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.manage_defaults",
       resourceType: "record",
@@ -263,7 +260,7 @@ export const PUT_TENANT_DEFAULT = withPlatformOperation(
         "crm.gift_history.manage_view_defaults",
       );
       const current = await getCrmTablePreferences({
-        supabaseAdmin,
+        sessionClient,
         tenantId: actor.tenantId,
         profileId,
         tableId: body.tableId,
@@ -295,10 +292,7 @@ export const PUT_TENANT_DEFAULT = withPlatformOperation(
       // These pre-checks shape the HTTP error; the RPC re-derives the actor
       // and its authority from the session and has the final say.
       const tenantDefault = await saveCrmTenantTableDefault({
-        sessionClient: await createRequestSessionClient(
-          request,
-          requestScopeOf(auth),
-        ),
+        sessionClient,
         tenantId: actor.tenantId,
         tableId: body.tableId,
         pinnedActionId: body.pinnedActionId,
@@ -319,8 +313,8 @@ export const PUT_TENANT_DEFAULT = withPlatformOperation(
   },
 );
 
-export const GET_NAMED_VIEWS = withPlatformOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
+export const GET_NAMED_VIEWS = withOperation(
+  async ({ auth, request, requestId, sessionClient }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.read",
       resourceType: "record",
@@ -329,7 +323,7 @@ export const GET_NAMED_VIEWS = withPlatformOperation(
     try {
       const tableId = resolveTableId(request);
       const views = await listCrmNamedViews({
-        supabaseAdmin,
+        sessionClient,
         tenantId: actor.tenantId,
         profileId: requireProfileId(actor.profileId),
         tableId,

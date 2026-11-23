@@ -311,17 +311,47 @@ type AllocationRow = {
   memo: string | null;
 };
 
+async function loadContributionMissionaryLabels(
+  client: Pick<AdminSupabaseClient, "from">,
+  tenantId: string,
+  missionaryLookupIds: string[],
+) {
+  const missionariesResult =
+    missionaryLookupIds.length > 0
+      ? await client
+          .from("missionaries")
+          .select(
+            "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name, email)",
+          )
+          .eq("tenant_id", tenantId)
+          .in("id", missionaryLookupIds)
+      : { data: [], error: null };
+  assertNoRowInputError(
+    missionariesResult.error,
+    "Failed to load missionary labels.",
+  );
+
+  return new Map<string, string | null>(
+    ((missionariesResult.data ?? []) as unknown as MissionaryLabelRow[]).map(
+      (row) => [row.id, resolveContributionProfileLabel(row.profile, null)],
+    ),
+  );
+}
+
 /**
  * Loads and assembles every shared row input for one page of donations. Both
  * the Contributions Hub list and CRM donor gift history call this, so the
  * same gift always derives the same shared fields regardless of surface.
  */
 export async function loadSharedContributionRowInputs(
-  supabaseAdmin: AdminSupabaseClient,
+  client: Pick<AdminSupabaseClient, "from">,
   input: {
     tenantId: string;
     donations: SharedRowDonationSource[];
     stagedGifts: SharedRowStagedGiftSource[];
+    readMissionaryLabels?: (
+      ids: string[],
+    ) => Promise<Map<string, string | null>>;
     extraFundIds?: Array<string | null | undefined>;
     extraMissionaryIds?: Array<string | null | undefined>;
   },
@@ -340,14 +370,14 @@ export async function loadSharedContributionRowInputs(
     allocationsResult,
   ] = await Promise.all([
     donationIds.length > 0
-      ? supabaseAdmin
+      ? client
           .from("contribution_corrections")
           .select("donation_id, status")
           .eq("tenant_id", input.tenantId)
           .in("donation_id", donationIds)
       : Promise.resolve({ data: [], error: null }),
     donationIds.length > 0
-      ? supabaseAdmin
+      ? client
           .from("contribution_correction_requests")
           .select("donation_id, status")
           .eq("tenant_id", input.tenantId)
@@ -355,17 +385,15 @@ export async function loadSharedContributionRowInputs(
           .eq("status", "pending")
       : Promise.resolve({ data: [], error: null }),
     donationIds.length > 0
-      ? supabaseAdmin
+      ? client
           .from("contribution_adjustments")
-          .select(
-            "id, donation_id, adjustment_type, status, effective_values, reason, actor_profile_id, source_surface, created_at",
-          )
+          .select("id, donation_id, status, effective_values, created_at")
           .eq("tenant_id", input.tenantId)
           .in("donation_id", donationIds)
           .order("created_at", { ascending: true })
       : Promise.resolve({ data: [], error: null }),
     stagedGiftIds.length > 0
-      ? supabaseAdmin
+      ? client
           .from("staged_gift_allocations")
           .select("id, staged_gift_id, amount, fund_id, missionary_id, memo")
           .eq("tenant_id", input.tenantId)
@@ -428,7 +456,7 @@ export async function loadSharedContributionRowInputs(
   // a foreign id (matches contribution-operations/operations.ts).
   const fundsResult =
     fundIds.length > 0
-      ? await supabaseAdmin
+      ? await client
           .from("funds")
           .select("id, name, missionary_id, goal_amount, start_date, end_date")
           .eq("tenant_id", input.tenantId)
@@ -463,26 +491,13 @@ export async function loadSharedContributionRowInputs(
     ...missionaryIds,
     ...Array.from(fundsById.values()).map((fund) => fund.missionary_id),
   ]);
-  const missionariesResult =
-    missionaryLookupIds.length > 0
-      ? await supabaseAdmin
-          .from("missionaries")
-          .select(
-            "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name, email)",
-          )
-          .eq("tenant_id", input.tenantId)
-          .in("id", missionaryLookupIds)
-      : { data: [], error: null };
-  assertNoRowInputError(
-    missionariesResult.error,
-    "Failed to load missionary labels.",
-  );
-
-  const missionaryLabelsById = new Map<string, string | null>(
-    ((missionariesResult.data ?? []) as unknown as MissionaryLabelRow[]).map(
-      (row) => [row.id, resolveContributionProfileLabel(row.profile, null)],
-    ),
-  );
+  const missionaryLabelsById = input.readMissionaryLabels
+    ? await input.readMissionaryLabels(missionaryLookupIds)
+    : await loadContributionMissionaryLabels(
+        client,
+        input.tenantId,
+        missionaryLookupIds,
+      );
 
   const allocationsByStagedGiftId = new Map<
     string,
