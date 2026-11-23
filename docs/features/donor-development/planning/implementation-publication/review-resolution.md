@@ -24,10 +24,11 @@ The publication receipt retains its qualified #702 recovery evidence: known
 prewrite metadata is proved, but no prewrite native-blocker snapshot was
 retained. No later verifier change upgrades that limitation into stronger proof.
 
-All 68 implementation issues remain blocked. The specification-integration,
-E7, C-01 and exact Phase 6 outbound-owner qualification gates remain in force.
-The original 68-ticket approval, 139-edge receipt and 15 scoped predecessor
-amendments are preserved; the correction proposal does not silently replace them.
+On 2026-10-11 all 68 implementation issues remained blocked, and the
+specification-integration, E7, C-01 and exact Phase 6 outbound-owner
+qualification gates remained in force. The original 68-ticket approval,
+139-edge receipt and 15 scoped predecessor amendments are preserved; the
+correction proposal does not silently replace them.
 
 The new verification script changes only root package scripts. All eight Shadscan
 root-library applicability findings were re-reviewed: dependency declarations,
@@ -35,3 +36,20 @@ workspace classification and application ownership are unchanged. Their exact
 manifest proof hashes were refreshed; classifications, evidence fingerprints,
 app floors and unrelated proof hashes were preserved. The normal hook rechecks
 the complete staged audit.
+
+## Current status amendment (2026-11-24)
+
+Everything above records the October 11 state. Since then PR #1993 has merged
+(2026-10-11, merge commit `9cada8f3d8ab59db391d3fd20df77fcadeb09813`), and
+Phase 28 D48 (C-01) and D49/D50 (E7) settled the two owner choices on
+2026-10-18. Each organization chooses its posted-gift correction approval
+policy, with the light default for new organizations, preservation of an
+existing stronger policy and a different human as approver wherever
+independence is required. Earlier gifts keep their accepted campaign
+attribution, changes go through append-only correction, and recurring origin
+survives ordinary edits. Adapter, Phase 6 outbound, and source, RLS and
+concurrency qualification gates remain; affected received-toward-appeal results
+stay Unavailable until the association adapter is qualified. The
+[publication record's current status](README.md#current-status-2026-11-24)
+gives the exact sources, the correction packet's application to GitHub and the
+tracker comments that conflict with D48.
