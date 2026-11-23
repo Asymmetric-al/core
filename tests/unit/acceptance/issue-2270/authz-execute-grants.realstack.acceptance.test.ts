@@ -73,9 +73,13 @@ const DROPPED_LATER = [
   "authz staff tenant insert crm_record_links",
   "authz staff tenant update crm_record_links",
 ];
+const RETIRED = ["crm_merge_candidates"];
+const LIVE_CRM_TABLES = CRM_TABLES.filter((t) => !RETIRED.includes(t));
 /** The policies of POLICIES that stand on this chain. */
 const STANDING = POLICIES.filter(
-  ([t, c]) => !DROPPED_LATER.includes(`authz staff tenant ${c} ${t}`),
+  ([t, c]) =>
+    !RETIRED.includes(t) &&
+    !DROPPED_LATER.includes(`authz staff tenant ${c} ${t}`),
 );
 
 /**
@@ -91,7 +95,8 @@ function migrationBody() {
     .split("\n")
     .filter(
       (line) =>
-        !DROPPED_LATER.some((p) => line.includes(`ALTER POLICY "${p}"`)),
+        !DROPPED_LATER.some((p) => line.includes(`ALTER POLICY "${p}"`)) &&
+        !RETIRED.some((t) => line.includes(` ON public.${t} `)),
     )
     .join("\n");
 }
@@ -180,7 +185,7 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
       await db.query(
         `grant execute on function ${f.startsWith("authz.") ? f : `public.${f}`} to public, anon, service_role`,
       );
-    for (const t of CRM_TABLES)
+    for (const t of LIVE_CRM_TABLES)
       await db.query(`grant select on public.${t} to anon`);
     if (reapply) await db.query(body);
   }
@@ -293,7 +298,7 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
         expect(
           await as("authenticated", U, "select authz.is_super_admin() ok"),
         ).toEqual({ code: null, rows: [{ ok: false }] });
-        for (const t of CRM_TABLES)
+        for (const t of LIVE_CRM_TABLES)
           expect(
             await as(
               "authenticated",
@@ -307,11 +312,11 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
           });
       }));
 
-  it("C8: hosted simulation: anon counts 0 rows on the 3 CRM tables without error", () =>
+  it("C8: hosted simulation: anon counts 0 rows on the CRM tables that stand, without error", () =>
     tx(async () => {
       await hosted();
       for (const sub of [null, U])
-        for (const t of CRM_TABLES)
+        for (const t of LIVE_CRM_TABLES)
           expect(
             await as("anon", sub, `select count(*)::int n from public.${t}`),
             `anon ${t}`,
@@ -331,10 +336,16 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
         [DROPPED_LATER],
       );
       expect(gone.rows).toEqual([]);
+      expect(
+        (
+          await db.query(
+            "select t, to_regclass('public.' || t) is null as dropped, (select count(*)::int from pg_policies where schemaname = 'public' and tablename = t) as policies from unnest($1::text[]) as t",
+            [RETIRED],
+          )
+        ).rows,
+      ).toEqual(RETIRED.map((t) => ({ t, dropped: true, policies: 0 })));
       for (const [t, privilege] of [
         ["crm_command_logs", "INSERT"],
-        ["crm_merge_candidates", "INSERT"],
-        ["crm_merge_candidates", "UPDATE"],
         ["crm_record_links", "INSERT"],
         ["crm_record_links", "UPDATE"],
       ])

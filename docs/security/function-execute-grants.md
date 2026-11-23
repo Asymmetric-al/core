@@ -97,7 +97,10 @@ After the migration, on any database whatever its default privileges:
   `crm_merge_candidates` with their write grants, and the insert and update of
   `crm_record_links`, where signed-in users never held a write grant. The
   three read policies that stand carry the request's tenant
-  (`tenant-policy-activation-review.md`, Q7 and Q8).
+  (`tenant-policy-activation-review.md`, Q7 and Q8). WP4a's second part (AL-2677) drops
+  `crm_merge_candidates` with its read policy
+  (`20261121030001_drop_crm_merge_candidates.sql`), so two stand, and the
+  rollback below no longer applies to that table's three lines.
 
 `tests/unit/security/authz-definer-execute-grants.test.ts` fails the build if
 a forward migration defines an `authz` SECURITY DEFINER function that is not in
