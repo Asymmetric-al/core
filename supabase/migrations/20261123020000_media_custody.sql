@@ -8,7 +8,10 @@
 -- Supabase's 7-day daily backup window and maximum 30-day point-in-time
 -- recovery window, so restored databases never reference purged media keys.
 --
--- Down (run by hand, in one transaction):
+-- Down (disposable, verified-empty database ONLY — NEVER run on shared or
+-- production databases; production rollback leaves media custody in place and
+-- uses a forward recovery migration so live references and delayed-purge
+-- tombstones are never lost):
 --   DROP FUNCTION public.release_media_content_purge(UUID, TEXT, UUID);
 --   DROP FUNCTION public.claim_media_content_purge(UUID, UUID, TEXT, UUID, INTEGER);
 --   DROP FUNCTION public.publish_media_finalize(UUID, UUID, TEXT, TIMESTAMPTZ);
