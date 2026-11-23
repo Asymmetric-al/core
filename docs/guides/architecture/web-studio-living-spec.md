@@ -160,7 +160,7 @@ flowchart LR
 | GET    | `/api/cms/public/missionary-pages/[id]` | `missionary-pages/[id]/route.ts`                         |
 | GET    | `/api/cms/public/project-pages/[slug]`  | `project-pages/[slug]/route.ts`                          |
 
-Tenant order: `resolveTenantFromRequest` — **forwarded host / host primary-domain match → subdomain slug fallback → query `?tenant=` only when the host does not resolve a tenant** (see `apps/admin/src/cms/public/resolve-tenant.ts`).
+Tenant order: `resolveTenantFromRequest` — **forwarded host / host primary-domain match → subdomain slug fallback → query `?tenant=` only when the host does not resolve a tenant** (see `apps/admin/src/cms/public/resolve-tenant.ts`). This is current behaviour: under the owner's decision of 21 November 2026 (OpenSpec change `adopt-tenant-owned-domains`) no platform subdomain names a tenant, and this resolver, its subdomain slug fallback included, leaves the read path with WP7.
 
 ### Staff Next API (Mission Control auth, not Payload)
 

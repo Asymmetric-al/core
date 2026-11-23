@@ -6,7 +6,7 @@
 
 Mission Control and Web Studio MUST present one connected Site-management experience: Mission Control owns operational Site, domain, locale, currency, availability, and owner-status work; Web Studio owns Site presentation and content authoring through Payload.
 
-Every clause in `openspec/contracts/platform-surfaces.md#contract-dcc8f4ecc746abb36547` MUST apply without exception.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-3ed4631633d0038ce9ac` MUST apply without exception.
 
 #### Scenario: Staff moves from Site readiness to content repair
 
@@ -18,6 +18,5 @@ Every clause in `openspec/contracts/platform-surfaces.md#contract-dcc8f4ecc746ab
 #### Scenario: A donor enters account history from a regional Site
 
 - WHEN a donor follows the validated account action
-- THEN that environment's one Tenant portal host and the Tenant Donor Account
-  Brand render all authorized cross-Site history
+- THEN that environment's one designated Tenant home domain and the Tenant Donor Account Brand render all authorized cross-Site history
 - AND the regional Site does not reskin, partition, or authorize the account

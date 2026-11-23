@@ -245,7 +245,7 @@ Every clause in `openspec/contracts/outbound-communications.md#contract-d3dc1377
 
 Protected actions MUST be tenant-scope-only in this generation and MUST bind one exact qualified recipient authority.
 
-Every clause in `openspec/contracts/outbound-communications.md#contract-6df1d820fc807bf9a32f` MUST apply without exception.
+Every clause in `openspec/contracts/outbound-communications.md#contract-3f7d90089a4afa760f74` MUST apply without exception.
 
 #### Scenario: An email scanner opens a protected link
 

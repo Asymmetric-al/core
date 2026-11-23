@@ -34,8 +34,7 @@ evidence, jurisdictional delivery determination, and records evidence as
 separate authorities. An expired grant never expires the document, and issuing a
 new grant never rerenders, renumbers, replaces, or redelivers it by itself.
 
-For every Tenant-scoped protected action, the fixed trusted code-owned URL on
-the Tenant Donor Portal Host frozen at issuance carries a non-secret selector
+For every Tenant-scoped protected action, the fixed trusted code-owned URL on the organization's verified name for that surface, frozen at issuance with its generation (amended 2026-11-24), carries a non-secret selector
 in the HTTP URL and an independent 256-bit verifier in the URL fragment. The
 server stores only a versioned HMAC/digest of the verifier. The
 fragment is never sent in an HTTP request, stored in communication history, or

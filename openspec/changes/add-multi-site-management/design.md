@@ -85,7 +85,7 @@ accounting lane.
 
 One current complete Tenant Donor Account Brand governs the Tenant-wide
 authenticated donor experience. A Tenant/environment portal remains unavailable
-until one exact verified Tenant Donor Portal Host is active there. Host
+until one exact designated verified home domain (the Tenant Donor Portal Host, amended 2026-11-24 by change `adopt-tenant-owned-domains`) is active there. Host
 activation proves DNS/TLS/platform binding, exact callbacks/recovery/sign-out,
 host-only secure sessions, complete Tenant brand, legal/support destinations,
 and production-shaped recovery; replacement is successor-first and host loss
