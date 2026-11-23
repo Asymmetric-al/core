@@ -91,6 +91,21 @@ export function projectEnvMetadata(env) {
   };
 }
 
+function projectValidatedEnvMetadata(entry, targetLabel) {
+  if (
+    !entry ||
+    typeof entry !== "object" ||
+    Array.isArray(entry) ||
+    typeof entry.key !== "string" ||
+    entry.key.trim().length === 0
+  ) {
+    throw new Error(
+      `Vercel returned an unreadable variable entry for ${targetLabel}.`,
+    );
+  }
+  return projectEnvMetadata(entry);
+}
+
 function environmentsOf(env) {
   const names = [...(Array.isArray(env?.target) ? env.target : [])];
   if (
@@ -220,7 +235,9 @@ function readSharedRuntimeConnectionStrings({ scope, run }) {
       );
     }
     for (const entry of listing.data) {
-      allEnvs.push(projectEnvMetadata(entry));
+      allEnvs.push(
+        projectValidatedEnvMetadata(entry, `shared variables of ${scope}`),
+      );
     }
     const next = pagination.next;
     if (next === null) {
@@ -283,7 +300,9 @@ export function readRuntimeConnectionStrings({
       );
     }
     const projected = Array.isArray(listing?.envs)
-      ? listing.envs.map(projectEnvMetadata)
+      ? listing.envs.map((entry) =>
+          projectValidatedEnvMetadata(entry, project.project),
+        )
       : [];
     return findRuntimeConnectionStrings({
       project: project.project,

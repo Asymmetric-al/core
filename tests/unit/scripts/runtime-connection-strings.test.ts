@@ -629,4 +629,79 @@ process.exit(7);
     );
     expect(logs.join("\n")).not.toContain(secretStderr);
   });
+
+  it("fails closed when a shared or project variable entry has no non-empty string key", () => {
+    const secretMarker = "SECRET_UNREADABLE_ENTRY_VALUE_F1";
+    const badEntries: Array<[string, unknown]> = [
+      ["null entry", null],
+      ["missing key", { id: "env_missing_key", value: secretMarker }],
+      ["empty key", { id: "env_empty_key", key: "", value: secretMarker }],
+      ["non-string key", { id: "env_num_key", key: 42, value: secretMarker }],
+    ];
+
+    for (const [label, badEntry] of badEntries) {
+      const sharedBadRun = vi.fn((_command: string, args: string[]) =>
+        args[1]?.startsWith("/v1/env")
+          ? JSON.stringify({
+              data: [badEntry],
+              pagination: { count: 1, prev: null, next: null },
+            })
+          : JSON.stringify({ envs: [] }),
+      );
+      let sharedErr: unknown;
+      try {
+        readRuntimeConnectionStrings({
+          scope: "asymmetric-al",
+          run: sharedBadRun,
+        });
+      } catch (error) {
+        sharedErr = error;
+      }
+      expect(sharedErr, `shared: ${label}`).toBeInstanceOf(Error);
+      expect((sharedErr as Error).message, `shared: ${label}`).toMatch(
+        /unreadable variable entry/i,
+      );
+      expect(String(sharedErr), `shared: ${label}`).not.toContain(secretMarker);
+
+      const projectBadRun = vi.fn((_command: string, args: string[]) =>
+        args[1]?.startsWith("/v1/env")
+          ? JSON.stringify({
+              data: [],
+              pagination: { count: 0, prev: null, next: null },
+            })
+          : JSON.stringify({ envs: [badEntry] }),
+      );
+      let projectErr: unknown;
+      try {
+        readRuntimeConnectionStrings({
+          scope: "asymmetric-al",
+          run: projectBadRun,
+        });
+      } catch (error) {
+        projectErr = error;
+      }
+      expect(projectErr, `project: ${label}`).toBeInstanceOf(Error);
+      expect((projectErr as Error).message, `project: ${label}`).toMatch(
+        /unreadable variable entry/i,
+      );
+      expect(String(projectErr), `project: ${label}`).not.toContain(
+        secretMarker,
+      );
+    }
+
+    const emptyValidRun = vi.fn((_command: string, args: string[]) =>
+      args[1]?.startsWith("/v1/env")
+        ? JSON.stringify({
+            data: [],
+            pagination: { count: 0, prev: null, next: null },
+          })
+        : JSON.stringify({ envs: [] }),
+    );
+    expect(
+      readRuntimeConnectionStrings({
+        scope: "asymmetric-al",
+        run: emptyValidRun,
+      }),
+    ).toEqual([]);
+  });
 });
