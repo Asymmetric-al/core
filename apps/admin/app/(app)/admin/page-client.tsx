@@ -14,6 +14,7 @@ import {
 import {
   Bot,
   ChevronRight,
+  CreditCard,
   Globe,
   Mail,
   Users,
@@ -60,6 +61,14 @@ const SECTIONS: Array<{ title: string; items: AdminDestination[] }> = [
           "Connect Resend, set the sender and check domain authentication.",
         href: "/settings/integrations/resend",
         icon: Mail,
+      },
+      {
+        title: "Payment accounts",
+        description:
+          "Connect Stripe accounts per legal entity and inspect binding status.",
+        href: "/settings/payments",
+        icon: CreditCard,
+        roles: ["admin"],
       },
       {
         title: "Eve",
