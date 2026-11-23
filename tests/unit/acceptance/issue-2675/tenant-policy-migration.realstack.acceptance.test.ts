@@ -179,6 +179,10 @@ const OVERRIDES: Record<string, Record<string, string>> = {
     run_type: "'stripe_raw_events_vs_donations'",
     status: "'running'",
   },
+  media_assets: {
+    status: "'uploading'",
+    declared_mime_type: "'image/jpeg'",
+  },
 };
 
 /**
