@@ -1,5 +1,4 @@
 export { requireCrmAccess } from "./auth/access";
-export { logCrmCommand } from "./commands/log";
 export {
   CRM_IDENTITY_CONCEPTS,
   getCrmIdentityConcept,

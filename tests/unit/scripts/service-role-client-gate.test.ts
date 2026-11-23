@@ -1,5 +1,11 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -78,7 +84,7 @@ describe("frozen ceiling", () => {
   // uncounted, each named for WP4b. Any other growth needs a new ruling.
   it("pins the reviewed service-role sites after each CRM read moves", () => {
     expect(ceilingDigest()).toBe(
-      "29f9eb80e58bf035938ab88d316c7a5d4fe491e0142e744809bb3da18ea5d87b",
+      "5376b6633a6995246e7da8ac10d58ee547986270497aca8d44bb514f4cdc2d80",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -89,12 +95,23 @@ describe("frozen ceiling", () => {
       admin_client: 77,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
-      operation_admin_context: 65,
+      operation_admin_context: 64,
     });
-    expect(CEILING.size).toBe(115);
+    expect(CEILING.size).toBe(114);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(109);
+    ).toBe(108);
+  });
+
+  it("holds no CRM handler in the allowlist or the ceiling once note creation moves", () => {
+    const crm = "packages/api/src/admin/crm/";
+    const { entries } = JSON.parse(
+      readFileSync("docs/security/service-role-client-allowlist.json", "utf8"),
+    ) as { entries: { file: string }[] };
+    expect(entries.filter((entry) => entry.file.startsWith(crm))).toEqual([]);
+    expect([...CEILING.keys()].filter((key) => key.startsWith(crm))).toEqual(
+      [],
+    );
   });
 });
 
