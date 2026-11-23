@@ -128,6 +128,8 @@ implementation task.
 
 ### The tenant in the page address
 
+This is current behaviour. Under the owner's decision of 21 November 2026 (OpenSpec change `adopt-tenant-owned-domains`), packages N2 and N3 replace it: the organization comes from its verified home domain, and Mission Control and the missionary workspace move under `/admin` and `/missionary`; `~<sub-role>` stays.
+
 - Signed-in pages of Mission Control and the missionary workspace live under `/<tenant>[~<sub-role>]` (plan 5.2). The proxy decides membership for that address before the page shell and rewrites it onto the page files, so a page's route params never hold the tenant.
 - Build every link, redirect and active-navigation check through the helpers: `TenantLink`, `useTenantRouter`, `useRoutePathname` (`@asym/auth/tenant-navigation`), `redirectInTenant`, `permanentRedirectInTenant` (`@asym/auth/tenant-server`) and `loadDocument` (`@asym/database/document-reload`). Outside the segment they act as the Next.js originals, so use them everywhere. ESLint enforces this across both apps and the shared packages (`tenant-navigation/no-prefixless-navigation` in `tooling/eslint-config/tenant-navigation.mjs`).
 - A navigation that crosses the segment's boundary (into it, out of it, between tenants or sub-roles) is a document load, and the helpers make it one; inside one tenant's segment navigation stays soft. Outside the segment `useDocumentScope()` and `getDocumentScope()` return `null` (`packages/database/document-scope.tsx`).

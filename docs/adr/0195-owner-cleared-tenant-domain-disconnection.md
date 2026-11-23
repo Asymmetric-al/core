@@ -32,7 +32,7 @@ The action applies only when the hostname:
 - has no pending Primary change, activation, disconnection, provider move, or
   unresolved ownership/safety operation;
 - is an exact custom hostname, not a Core-owned handle, platform wildcard,
-  preview host, provider-generated hostname, Donor Portal host, or other
+  preview host, provider-generated hostname, home domain carrying the Donor Portal (governed by ADR-0185 as amended 2026-11-24), or other
   independently governed origin; and
 - has complete, current, compatible clearance evidence from every registered
   finite owner.
