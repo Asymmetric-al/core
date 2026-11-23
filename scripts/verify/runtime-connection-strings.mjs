@@ -375,8 +375,12 @@ export function formatRuntimeConnectionStrings(found) {
       row.scope === "team-shared"
         ? `team ${row.team} (shared; projects: ${row.projects.join(", ")})`
         : row.project;
+    const action =
+      row.scope === "team-shared"
+        ? `unlink it from ${row.projects.join(", ")}`
+        : "remove it";
     lines.push(
-      `- ${location}: \`${row.key}\` in ${row.environments.join(", ")} (remove it; only the release job migrates)`,
+      `- ${location}: \`${row.key}\` in ${row.environments.join(", ")} (${action}; only the release job migrates)`,
     );
   }
   lines.push("", `Overall: BLOCKED (${found.length})`, "");

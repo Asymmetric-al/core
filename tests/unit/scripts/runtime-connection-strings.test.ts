@@ -778,4 +778,73 @@ process.exit(7);
       ).toEqual([]);
     }
   });
+
+  it("instructs operators to unlink team-shared variables from listed projects while keeping remove it for project-level entries", () => {
+    const [adminId, donorId, missionaryId] = EXPECTED_PROJECTS.map(
+      (project) => project.projectId,
+    );
+    const run = vi.fn((_command: string, args: string[]) => {
+      if (args[1] === "/v1/env") {
+        return JSON.stringify({
+          data: [
+            {
+              key: "POSTGRES_URL",
+              target: ["preview", "development"],
+              projectId: [donorId, "prj_unrelated"],
+              customEnvironmentIds: [],
+              type: "encrypted",
+            },
+            {
+              key: "SUPABASE_DB_URL",
+              target: ["production"],
+              projectId: [adminId, donorId, missionaryId],
+              customEnvironmentIds: [],
+              type: "sensitive",
+            },
+          ],
+          pagination: { count: 2, next: null, prev: null },
+        });
+      }
+      if (args[1] === "/v10/projects/admin/env") {
+        return JSON.stringify({
+          envs: [
+            {
+              key: "DATABASE_URL",
+              target: ["production"],
+              type: "sensitive",
+            },
+          ],
+        });
+      }
+      return JSON.stringify({ envs: [] });
+    });
+
+    const found = readRuntimeConnectionStrings({
+      scope: "asymmetric-al",
+      run,
+    });
+    const report = formatRuntimeConnectionStrings(found);
+    const lines = report.split("\n");
+
+    const sharedDonorLine = lines.find((line) =>
+      line.includes("`POSTGRES_URL`"),
+    );
+    expect(sharedDonorLine).toBe(
+      "- team asymmetric-al (shared; projects: donor): `POSTGRES_URL` in preview, development (unlink it from donor; only the release job migrates)",
+    );
+    expect(sharedDonorLine).not.toContain("remove it");
+
+    const sharedAllLine = lines.find((line) =>
+      line.includes("`SUPABASE_DB_URL`"),
+    );
+    expect(sharedAllLine).toBe(
+      "- team asymmetric-al (shared; projects: admin, donor, missionary): `SUPABASE_DB_URL` in production (unlink it from admin, donor, missionary; only the release job migrates)",
+    );
+    expect(sharedAllLine).not.toContain("remove it");
+
+    const projectLine = lines.find((line) => line.includes("`DATABASE_URL`"));
+    expect(projectLine).toBe(
+      "- admin: `DATABASE_URL` in production (remove it; only the release job migrates)",
+    );
+  });
 });
