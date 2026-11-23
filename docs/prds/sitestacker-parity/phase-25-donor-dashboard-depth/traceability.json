@@ -48,7 +48,7 @@
       "want": "to open my own permitted Updates",
       "benefit": "a forwarded link is useful without exposing its sender's feed",
       "acceptance": [
-        "Shared link is on the current verified Tenant portal host and contains no donor/session/access credential.",
+        "Shared link is on the current verified Tenant home domain and contains no donor/session/access credential.",
         "Different authorized openers see their own current content.",
         "Wrong/unverified host or unavailable access has an honest safe result without another-Tenant/public fallback."
       ],

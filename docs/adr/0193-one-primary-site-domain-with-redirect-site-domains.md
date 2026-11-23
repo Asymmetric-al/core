@@ -65,9 +65,7 @@ controlled public roles are production-only. A second environment cannot
 activate one until a single platform-wide current-host claim authority exists;
 Vercel assignment plus per-environment indexes are insufficient.
 Core supports exact custom hostnames in D72. A custom wildcard domain requires a
-separate decision and proof; the platform's own bounded tenant-subdomain
-provisioning is private preview infrastructure and does not grant wildcard
-Tenant authority or a public role.
+separate decision and proof; platform subdomains serve only Asym-internal previews, never a tenant, and grant no wildcard Tenant authority or public role (amended 2026-11-24 by the owner's decision on tenant-owned domains). Account and dashboard paths served on the organization's home domain create no second website role, and a claimed name may have no website role at all.
 
 The public resolver accepts only the hostname normalized by a proved platform
 edge/proxy contract. A request-controlled `Host`, `Forwarded`, or

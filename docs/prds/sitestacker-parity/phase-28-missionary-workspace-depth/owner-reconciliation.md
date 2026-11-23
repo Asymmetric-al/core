@@ -228,8 +228,7 @@ acceptance. Resend/retry does not extend it. Protected-action GET is inert and
 final acceptance is deliberate. D43 narrowly amends P17's former required
 Party/contact recipient: only the qualified P28 native-confirmation producer may
 bind its exact same-Tenant non-constituent recipient-authority revision and
-source occurrence through the existing protected-action protocol and fixed
-verified Tenant Donor Portal origin. Preparation, dispatch, history and recovery
+source occurrence through the existing protected-action protocol and the fixed origin of the organization's verified name for that surface (amended 2026-11-24). Preparation, dispatch, history and recovery
 retain that exact branch. It creates no Party, contact, Auth user, account claim,
 workforce assignment or generalized private-access grant, and does not admit
 arbitrary recipients or other producers. This replaces the old proposed 72-hour window;

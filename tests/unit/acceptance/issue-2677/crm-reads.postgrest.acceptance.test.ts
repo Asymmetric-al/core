@@ -5,7 +5,10 @@ import { NextRequest } from "next/server";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { GET as notes } from "../../../../packages/api/src/admin/crm/notes";
+import {
+  GET as notes,
+  POST as createNote,
+} from "../../../../packages/api/src/admin/crm/notes";
 import * as exportProjection from "../../../../packages/api/src/admin/crm/reports/export-projection";
 import { GET as download } from "../../../../packages/api/src/admin/crm/reports/export";
 import { GET as report } from "../../../../packages/api/src/admin/crm/reports";
@@ -71,6 +74,8 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
     const tableId = "crm.giftHistory";
     const fieldPolicyRecordType = "crm_report_groups";
     const fieldPolicyKey = `sentinel_${randomUUID().replaceAll("-", "_")}`;
+    const noteKeys: string[] = [];
+    const noteTitles: string[] = [];
     let entityA: string;
     let entityB: string;
     let db: pg.Client;
@@ -269,6 +274,16 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
             [defaultIds],
           ],
           [
+            "public.crm_command_logs",
+            "idempotency_key=any($1::text[]) or resource_id in (select id::text from public.crm_notes where idempotency_key=any($1::text[]) or title=any($2::text[]))",
+            [noteKeys, noteTitles],
+          ],
+          [
+            "public.crm_notes",
+            "idempotency_key=any($1::text[]) or title=any($2::text[])",
+            [noteKeys, noteTitles],
+          ],
+          [
             "public.crm_notes",
             "id = any($1::uuid[])",
             [[noteA, noteB, restrictedA]],
@@ -315,6 +330,198 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
         },
       });
     }
+
+    describe("creating a note through the command on the caller's token", () => {
+      const keys = noteKeys;
+      const titles = noteTitles;
+      const title = "Private call " + randomUUID();
+      const body = "Private follow-up " + randomUUID();
+
+      function post(
+        key: string | null,
+        input: Record<string, unknown> = {},
+        person = dual,
+        tenant = tenantA,
+      ) {
+        const req = request("/api/admin/crm/notes", person, tenant);
+        const headers = new Headers(req.headers);
+        headers.set("content-type", "application/json");
+        if (key !== null) {
+          keys.push(key);
+          headers.set("idempotency-key", key);
+        }
+        return createNote(
+          new NextRequest(req.url, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ title, body, ...input }),
+          }),
+        );
+      }
+
+      async function persisted(key: string) {
+        const notes = await db.query(
+          "select * from public.crm_notes where idempotency_key=$1",
+          [key],
+        );
+        const logs = await db.query(
+          "select * from public.crm_command_logs where idempotency_key=$1",
+          [key],
+        );
+        return { notes: notes.rows, logs: logs.rows };
+      }
+
+      it("refuses a tenant the caller holds no row in and writes nothing in either tenant", async () => {
+        const key = randomUUID();
+        const denied = await post(key, {}, sole, tenantB);
+        expect(denied.status).toBe(401);
+        expect(denied.headers.has("x-asym-scope-refused")).toBe(true);
+        expect(await persisted(key)).toEqual({ notes: [], logs: [] });
+        expect((await post(key, {}, sole)).status).toBe(201);
+        expect((await persisted(key)).notes).toEqual([
+          expect.objectContaining({ tenant_id: tenantA }),
+        ]);
+        expect(getAdminClient).not.toHaveBeenCalled();
+      });
+
+      it("writes in the selected tenant only, by the session's person, whatever the body names", async () => {
+        const key = randomUUID();
+        const res = await post(key, {
+          title: `About ${tenantB}`,
+          body: `Tenant ${tenantB}`,
+          linkedRecordId: tenantB,
+          linkedRecordLabel: tenantB,
+          linkedRecordType: "organization",
+          tenantId: tenantB,
+          tenant_id: tenantB,
+          authorProfileId: otherProfile,
+          author_profile_id: otherProfile,
+          actor_user_id: otherProfile,
+          actor_profile_id: otherProfile,
+        });
+        expect(res.status).toBe(201);
+        const reply = await res.json();
+        const rows = await persisted(key);
+        expect(rows.notes).toEqual([
+          expect.objectContaining({
+            id: reply.note.id,
+            tenant_id: tenantA,
+            author_profile_id: dualUser,
+            linked_record_id: tenantB,
+          }),
+        ]);
+        expect(rows.logs).toEqual([
+          expect.objectContaining({
+            id: reply.commandLogId,
+            tenant_id: tenantA,
+            actor_user_id: dualUser,
+            actor_profile_id: dualUser,
+            resource_id: reply.note.id,
+          }),
+        ]);
+        expect(getAdminClient).not.toHaveBeenCalled();
+      });
+
+      it("refuses a restricted note without the administrator flag and keeps request content out of the log", async () => {
+        const key = randomUUID();
+        const refused = await post(key, { visibility: "restricted" });
+        expect(refused.status).toBe(403);
+        expect(await persisted(key)).toEqual({ notes: [], logs: [] });
+        expect(
+          (await post(key, { visibility: "restricted" }, sole)).status,
+        ).toBe(201);
+        const { notes, logs } = await persisted(key);
+        expect(notes).toEqual([
+          expect.objectContaining({ visibility: "restricted" }),
+        ]);
+        expect(logs).toHaveLength(1);
+        expect(logs[0]).toMatchObject({
+          action: "crm.note.create",
+          resource_type: "note",
+          status: "succeeded",
+          command_payload: {},
+          result_summary: {},
+          error_message: null,
+        });
+        for (const value of [title, body, "restricted"])
+          expect(JSON.stringify(logs)).not.toContain(value);
+        expect(getAdminClient).not.toHaveBeenCalled();
+      });
+
+      it("refuses a suspended tenant before it writes", async () => {
+        const key = randomUUID();
+        await db.query(
+          "update public.tenants set status='suspended' where id=$1",
+          [tenantA],
+        );
+        try {
+          const refused = await post(key);
+          expect(refused.status).toBe(401);
+          expect(refused.headers.has("x-asym-scope-refused")).toBe(true);
+          expect(await persisted(key)).toEqual({ notes: [], logs: [] });
+        } finally {
+          await db.query(
+            "update public.tenants set status='active' where id=$1",
+            [tenantA],
+          );
+        }
+        expect((await post(key)).status).toBe(201);
+        expect(getAdminClient).not.toHaveBeenCalled();
+      });
+
+      it("stores one note and one log row for retries of one submission", async () => {
+        const key = randomUUID();
+        const responses = await Promise.all([post(key), post(key)]);
+        expect(responses.map((res) => res.status)).toEqual([201, 201]);
+        const replies = await Promise.all(responses.map((res) => res.json()));
+        expect(replies[0].note.id).toBe(replies[1].note.id);
+        expect(replies[0].commandLogId).toBe(replies[1].commandLogId);
+        expect(
+          replies
+            .map((reply: { duplicate: boolean }) => reply.duplicate)
+            .sort(),
+        ).toEqual([false, true]);
+        expect(replies[0].requestId).not.toBe(replies[1].requestId);
+        const rows = await persisted(key);
+        expect(rows.notes).toHaveLength(1);
+        expect(rows.logs).toHaveLength(1);
+        expect((await post(key, { body: "Another submission" })).status).toBe(
+          409,
+        );
+        expect((await post(key, {}, sole)).status).toBe(409);
+        expect(await persisted(key)).toEqual(rows);
+        expect(getAdminClient).not.toHaveBeenCalled();
+      });
+
+      it("mints a key for a request that sends none and refuses one that is not a UUID", async () => {
+        const minted = "Unkeyed " + randomUUID();
+        const malformed = "Malformed " + randomUUID();
+        titles.push(minted, malformed);
+        const saved = await post(null, { title: minted });
+        expect(saved.status).toBe(201);
+        const stored = await db.query(
+          "select idempotency_key from public.crm_notes where title=$1",
+          [minted],
+        );
+        expect(stored.rows).toEqual([
+          {
+            idempotency_key: expect.stringMatching(
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+            ),
+          },
+        ]);
+        const refused = await post("not-a-uuid", { title: malformed });
+        expect(refused.status).toBe(400);
+        expect(
+          (
+            await db.query("select id from public.crm_notes where title=$1", [
+              malformed,
+            ])
+          ).rows,
+        ).toEqual([]);
+        expect(getAdminClient).not.toHaveBeenCalled();
+      });
+    });
 
     async function exportAuditCount() {
       const count = await db.query<{ n: number }>(

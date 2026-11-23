@@ -68,8 +68,7 @@ Concretely, Phase 2:
    render, editable through the existing Web Studio (Payload) shell.
 6. Keeps the **checkout flow unchanged** — per-site difference is a theming layer — and leaves the
    **donor portal** Tenant-scoped rather than Site-scoped. Phase 24 D57 gives
-   that portal exactly one current verified Tenant Donor Portal Host per
-   environment; every Site enters the same Tenant account experience, and no
+   that portal exactly one current designated verified home domain per environment, which may also serve a Site (amended 2026-11-24); every Site enters the same Tenant account experience, and no
    Site host becomes authenticated authority. Phase 24 D58 gives that account
    experience one stable Tenant Donor Account Brand; the Default Site and entry
    Site never reskin it. Phase 24 D59 gives each public Site complete immutable
@@ -506,8 +505,7 @@ Supabase query; no Payload import), shared by the CMS public API and the giving 
 
 - Interface (shape): `resolveSiteFromHost(host) → { site, tenant } | null`,
   `defaultSiteForTenant(tenantId) → site`.
-- Resolution order after D72: exact normalized current Domain binding → explicit bounded private-
-  preview subdomain binding → environment-gated dev/local override. A Primary Site Domain may resolve
+- Resolution order after D72: exact normalized current Domain binding → explicit bounded private-preview subdomain binding (Asym-internal previews only, never a tenant; amended 2026-11-24) → environment-gated dev/local override. A Primary Site Domain may resolve
   favorable Site context; a Redirect Site Domain returns a distinct route-owner-qualified redirect
   decision and never resolves as a serving alias. Unknown production hosts never fall back to a
   Tenant Default Site. Current custom host uniqueness is platform-wide.
@@ -803,7 +801,7 @@ convention, from the tombstoned phase-01 operating-foundation PRD):
    - _Transactability:_ `assertTransactable` rejects every non-settlement currency in Phase 2, and
      ISO-4217 validation rejects unknown codes.
 2. **Site context resolver** — host resolution by Primary Site Domain, distinct route-qualified
-   Redirect Site Domain result, bounded platform subdomain, and dev-only override; platform-wide
+   Redirect Site Domain result, bounded platform subdomain (Asym-internal previews only, never a tenant; amended 2026-11-24), and dev-only override; platform-wide
    host uniqueness; unknown production host without Default-Site fallback; the authenticated
    donate-path default-site path remains separately derived from auth context.
 3. **Attribution builder** — entry-method vocabulary enforcement and the caller→entry_method mapping;
@@ -825,8 +823,7 @@ convention, from the tombstoned phase-01 operating-foundation PRD):
 - **The headline acceptance test:** two sites on two hosts under one tenant render two distinct
   brands, and a gift on each is stored with the correct `site_id`, currency, and (if present)
   `source_code`.
-- Donor portal shows a donor's gifts across **both** sites through the one
-  Tenant Donor Portal Host (multi-site does not fragment history or create a
+- Donor portal shows a donor's gifts across **both** sites through the one designated home domain (multi-site does not fragment history or create a
   per-Site account origin). Both Sites enter the same Tenant Donor Account
   Brand; authorized gift rows may retain their source-Site attribution without
   reskinning the surrounding account shell.

@@ -336,3 +336,14 @@ never restores mutable latest reads or provider redirect authority.
 - [Supabase - Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
 - [PostgreSQL - Row security policies](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
 - [PostgreSQL - Constraints](https://www.postgresql.org/docs/current/ddl-constraints.html)
+
+## Amendments
+
+### 2026-11-24: Tenant-owned domains (AL-2671)
+
+This decision stands. Under the owner's decision of 21 November 2026 that every
+organization's website and dashboards use domains it owns, the affected route
+owners also include the dashboards, sign-in, mail links and payment returns
+served on the organization's names, and a name is never detached from the
+hosting project while its DNS still points there (OpenSpec change
+`adopt-tenant-owned-domains`).

@@ -11556,6 +11556,8 @@ Record this corrected decision:
 > support and recurring-gift cancellation because the portal domain may be
 > unavailable.
 >
+> **Amended 2026-11-24 (AL-2671).** Under the owner's decision of 21 November 2026 on tenant-owned domains, the one Tenant Donor Portal host is the organization's designated verified home domain. It may also be a Site's Primary Site Domain; the Donor Portal is served under its account path and the dashboards under paths of the same domain. Everything else in D57 stands. OpenSpec change `adopt-tenant-owned-domains` records the decision.
+
 > D57 is documentation and domain intent only. It creates no runtime row,
 > provider call, DNS record, callback, cookie policy, passkey support, setting,
 > migration, or OpenSpec change. Exact persistence, provider APIs, supported

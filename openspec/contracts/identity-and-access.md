@@ -567,3 +567,58 @@ of defense.
 <!-- END CONTRACT -->
 
 <!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-32ed29fc05d46209d189"></a>
+
+## The Database Enforces The Tenant Boundary For Every Caller With A User Identity
+
+<!-- BEGIN CONTRACT {"id":"32ed29fc05d46209d189","name":"The Database Enforces The Tenant Boundary For Every Caller With A User Identity"} -->
+
+The database MUST enforce the tenant boundary, independently of application checks, for every caller that carries a user identity.
+
+A browser on its own token, a server handler acting for a signed-in person and an
+AI assistant acting for a person MUST reach tenant tables on that person's own
+token, under row-level security that requires the row's tenant to equal the
+request's active tenant and requires the request's one selected assignment to be
+a live membership of the role class the policy asks for. A request that names no
+tenant MUST read nothing, and a person's other memberships MUST add nothing to
+the request.
+
+A command function called by a person MUST take its actor from the session,
+re-check in the database that person's membership, role class and the capability
+the action requires for the tenant it is given, require a reason where the
+contract says so, write every row under that tenant and commit atomically.
+Governed tables, meaning money, memberships, audit, care, consent and Support Hub
+audit, MUST grant no insert, update or delete to signed-in users.
+
+A worker command MUST be executable only by the service key, MUST take no tenant
+from its caller, and MUST derive the tenant from a stored anchor that the
+guard-owned function reads again and confirms. Publish fulfilment MUST act only on
+an unexpired, unused intent that the publisher's own token recorded, and MUST
+check again that the publisher still holds the membership and capability. Gift
+intake from the public site MUST derive the tenant from the Site row or the home record (the donor-portal host record, whose ID now means the Tenant's designated home domain) and MUST accept no tenant argument. A platform command
+MUST check the operator list and the session's MFA assurance level inside the
+function. An operator reading under a support grant MUST be admitted only by
+staff-wide read policies, only while the grant is the caller's, unexpired and
+unended and the caller is on the operator list, and MUST NOT be admitted by any
+write policy or governed command. The direct service-key lane MUST be a frozen
+allowlist that only shrinks.
+
+The following are the stated application-enforced exceptions, and no other
+caller with a user identity relies on application checks alone: row isolation
+inside the `cms` schema, which Payload's access functions enforce through one
+tenant-scoped collection factory, an actor port and a service port, while the
+database confines Payload's runtime role to `cms` and gives signed-in and
+anonymous roles no grant there; which Site a public gift arrived on or that it started in the account area on the home domain, the signed-in giver's verified user ID and the
+fee-cover amount within a bound, which the intake command takes from the donor
+server; that publish-fulfilment content is the serialized form of the versions
+its intent names; and that an AI assistant's prepared effect waited for the
+person's approval. Application-layer checks at the data-access boundary remain
+required alongside the database checks, so that neither layer is the only line
+of defense.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->

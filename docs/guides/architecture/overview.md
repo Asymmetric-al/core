@@ -24,8 +24,9 @@ Payload engine routes live under `apps/admin/app/(payload)`. The donor portal
 lives under `apps/donor/app/(dashboard)/donor-dashboard` and the public site
 under `apps/donor/app/(public)`.
 
-Signed-in pages of Mission Control and the missionary workspace are served
-under the tenant in the page address, `/<tenant>[~<sub-role>]` (plan 5.2;
+Under the owner's decision of 21 November 2026 (OpenSpec change `adopt-tenant-owned-domains`) this changes: packages N2 and N3 serve every surface on the organization's own home domain, Mission Control under `/admin` and the missionary workspace under `/missionary`, and take the organization from the domain. Until they merge, the following describes current behaviour.
+
+Signed-in pages of Mission Control and the missionary workspace are served under the tenant in the page address, `/<tenant>[~<sub-role>]` (plan 5.2;
 AL-2675): each app's proxy decides the person's membership in that tenant
 before the page shell and rewrites the address onto the page files above. A
 bare address such as `/crm` is sent to the person's one organization or to
