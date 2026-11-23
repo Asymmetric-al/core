@@ -300,6 +300,52 @@ describe("frozen ceiling", () => {
     }
   });
 
+  it("rejects unresolvable dynamic import or require in a caller-lane module (W6-R16)", () => {
+    const cases: Array<[string, string]> = [
+      [
+        "identifier dynamic import",
+        'import {withOperation} from "../../shared/with-operation";\nexport const POST = withOperation(async () => { const p = "../../storage/media-store"; return import(p); });',
+      ],
+      [
+        "template expression dynamic import",
+        'import {withOperation} from "../../shared/with-operation";\nexport const POST = withOperation(async () => { const mod = "media-store"; return import(`../../storage/${mod}`); });',
+      ],
+      [
+        "concatenated dynamic import",
+        'import {withOperation} from "../../shared/with-operation";\nexport const POST = withOperation(async () => import("../../storage/" + "media-store"));',
+      ],
+      [
+        "dynamic require",
+        'import {withOperation} from "../../shared/with-operation";\nexport const POST = withOperation(async () => { const p = "../../storage/media-store"; return require(p); });',
+      ],
+    ];
+    for (const [label, badSource] of cases) {
+      const root = mkdtempSync(path.join(tmpdir(), "caller-dyn-import-"));
+      const files = {
+        "packages/api/src/cms/media/bad.ts": badSource,
+        "docs/security/service-role-client-allowlist.json": JSON.stringify({
+          version: 1,
+          entries: [],
+        }),
+      };
+      try {
+        for (const [file, content] of Object.entries(files)) {
+          mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+          writeFileSync(path.join(root, file), content);
+        }
+        spawnSync("git", ["init", "-q"], { cwd: root });
+        const result = runServiceRoleClientGate({ root });
+        expect(result.failures, label).toContainEqual(
+          expect.stringMatching(
+            /^CALLER_PRIVILEGED_IMPORT packages\/api\/src\/cms\/media\/bad\.ts:2/,
+          ),
+        );
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    }
+  });
+
   it("pins the 116 reviewed entries after WP4a part 2a plus the media-store site under W6-R3 amended", () => {
     expect(ceilingDigest()).toBe(
       "777429dcc78233540ca206a59037a9d986d376050cc06184271a8b5acc554201",

@@ -435,6 +435,18 @@ export function scanSource(file, text) {
             site(module, p);
         } else site(module, outer);
       }
+    } else if (
+      ts.isCallExpression(node) &&
+      (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
+        (ts.isIdentifier(node.expression) &&
+          node.expression.text === "require"))
+    ) {
+      imports.push({
+        target: null,
+        line: at(node),
+        names: null,
+        unresolvedDynamic: true,
+      });
     }
     ts.forEachChild(node, collect);
   };
@@ -715,7 +727,13 @@ export function runServiceRoleClientGate({ root = repoRoot } = {}) {
   const mediaStoreForwarders = new Set(
     [...reachesMediaStore].filter((mod) => !callerImportExceptions.has(mod)),
   );
-  for (const { file, target, line, names } of imports) {
+  for (const { file, target, line, names, unresolvedDynamic } of imports) {
+    if (unresolvedDynamic) {
+      result.failures.push(
+        `CALLER_PRIVILEGED_IMPORT ${file}:${line}: caller operation uses an unresolvable dynamic import or require; use a static specifier so the gate can verify it`,
+      );
+      continue;
+    }
     if (callerImportExceptions.has(target)) {
       const validNamedOnly =
         Array.isArray(names) &&
