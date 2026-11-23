@@ -37,6 +37,21 @@ export const nextConfig: NextConfig & {
   allowedDevOrigins: ["127.0.0.1"],
   cacheComponents: true,
   partialPrefetching: true,
+  async headers() {
+    const protectedActionHeaders = [
+      {
+        key: "Cache-Control",
+        value: "private, no-store, no-transform, max-age=0",
+      },
+      { key: "CDN-Cache-Control", value: "no-store" },
+      { key: "Vercel-CDN-Cache-Control", value: "no-store" },
+      { key: "Referrer-Policy", value: "no-referrer" },
+    ];
+    return [
+      { source: "/invite", headers: protectedActionHeaders },
+      { source: "/invite/:path*", headers: protectedActionHeaders },
+    ];
+  },
   async redirects() {
     return [
       { source: "/mc", destination: "/", permanent: false },

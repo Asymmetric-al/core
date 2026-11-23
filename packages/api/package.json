@@ -21,6 +21,7 @@
     "./auth/organization-choices": "./src/auth/organization-choices.ts",
     "./auth/signout": "./src/auth/signout.ts",
     "./auth/cleanup-demo-users": "./src/auth/cleanup-demo-users.ts",
+    "./invitations/accept": "./src/invitations/accept.ts",
     "./document-cutover": "./src/document-cutover/index.ts",
     "./donate": "./src/donate/index.ts",
     "./donate/begin-gift-intake": "./src/donate/begin-gift-intake.ts",
