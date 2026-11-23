@@ -303,8 +303,15 @@ describe("runtime connection-string check (WP1 exit)", () => {
     ).toThrow(/repeated cursor|did not advance/i);
 
     let counter = 1700000000000;
+    let sharedCalls = 0;
     const unboundedRun = vi.fn((_command: string, args: string[]) => {
       if (args[1]?.startsWith("/v1/env")) {
+        sharedCalls += 1;
+        if (sharedCalls > 100) {
+          throw Object.assign(new Error("fixture shared request 101 guard"), {
+            code: "FIXTURE_SHARED_PAGE_101",
+          });
+        }
         counter -= 1;
         return JSON.stringify({
           data: [],
@@ -319,7 +326,8 @@ describe("runtime connection-string check (WP1 exit)", () => {
         scope: "asymmetric-al",
         run: unboundedRun,
       }),
-    ).toThrow(/page limit|exceeded/i);
+    ).toThrow(/exceeded 100 pages/i);
+    expect(sharedCalls).toBe(100);
   });
 
   it("drops value and decrypted fields from parsed pages and withholds CLI stdout/stderr on failure", () => {
