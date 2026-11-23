@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import sharp, { type Metadata, type Sharp } from "sharp";
 
+import { validateStrictImageContainer } from "./image-container";
 import {
   buildMediaMasterKey,
   buildMediaStagingKey,
@@ -348,18 +349,24 @@ async function sanitizeMasterImage(rawBytes: Buffer): Promise<{
     throw new ApiHttpError(413, "Uploaded media exceeds maximum byte limit");
   }
 
+  const container = validateStrictImageContainer(rawBytes);
+
   let probe: Metadata;
   try {
     probe = await sharp(rawBytes, {
-      limitInputPixels: false,
+      limitInputPixels: MEDIA_MAX_PIXELS,
       failOn: "error",
     }).metadata();
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (/pixel limit/i.test(message)) {
+      throw new ApiHttpError(422, "Image exceeds 25 megapixel limit");
+    }
     throw new ApiHttpError(415, "Unsupported or corrupted image file");
   }
 
   const mimeType = probe.format ? FORMAT_TO_MIME[probe.format] : undefined;
-  if (!mimeType) {
+  if (!mimeType || mimeType !== container.mimeType) {
     throw new ApiHttpError(
       415,
       "Unsupported image format; only JPEG, PNG, and WebP are allowed",

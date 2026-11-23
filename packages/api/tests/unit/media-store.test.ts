@@ -1,4 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 
 import sharp from "sharp";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -621,6 +623,128 @@ describe("media-store custody and Sharp sanitization", () => {
     expect(fakeState.objects.has(buildMediaStagingKey(tenantA, bombId))).toBe(
       false,
     );
+  });
+
+  it("rejects trailing content appended after valid JPEG, PNG, and WebP containers and never disables Sharp limitInputPixels", async () => {
+    const mediaStoreSource = readFileSync(
+      path.resolve(__dirname, "../../src/storage/media-store.ts"),
+      "utf8",
+    );
+    expect(mediaStoreSource).not.toMatch(/limitInputPixels\s*:\s*false/);
+
+    const validJpeg = await sharp({
+      create: {
+        width: 120,
+        height: 80,
+        channels: 3,
+        background: { r: 100, g: 120, b: 140 },
+      },
+    })
+      .jpeg({ quality: 85 })
+      .toBuffer();
+    const validPng = await sharp({
+      create: {
+        width: 120,
+        height: 80,
+        channels: 4,
+        background: { r: 100, g: 120, b: 140, alpha: 1 },
+      },
+    })
+      .png()
+      .toBuffer();
+    const validWebp = await sharp({
+      create: {
+        width: 120,
+        height: 80,
+        channels: 3,
+        background: { r: 100, g: 120, b: 140 },
+      },
+    })
+      .webp({ quality: 85 })
+      .toBuffer();
+
+    const trailingPayload = Buffer.from("BENIGN_TRAILING_BYTES_AFTER_EOF");
+    for (const [label, mimeType, bytes] of [
+      [
+        "jpeg+trailing",
+        "image/jpeg",
+        Buffer.concat([validJpeg, trailingPayload]),
+      ],
+      ["png+trailing", "image/png", Buffer.concat([validPng, trailingPayload])],
+      [
+        "webp+trailing",
+        "image/webp",
+        Buffer.concat([validWebp, trailingPayload]),
+      ],
+    ] as const) {
+      const assetId = randomUUID();
+      fakeState.rows.set(
+        assetId,
+        makeRow({
+          id: assetId,
+          tenant_id: tenantA,
+          declared_mime_type: mimeType,
+        }),
+      );
+      fakeState.objects.set(buildMediaStagingKey(tenantA, assetId), {
+        bytes,
+        contentType: mimeType,
+        version: 1,
+      });
+
+      await expect(
+        finalizeMediaUpload(authA, { assetId }),
+        label,
+      ).rejects.toMatchObject({ status: 415 });
+      expect(fakeState.rows.get(assetId)!.status, label).toBe("failed");
+      expect(
+        fakeState.objects.has(buildMediaStagingKey(tenantA, assetId)),
+        label,
+      ).toBe(false);
+    }
+
+    const progressiveJpeg = await sharp({
+      create: {
+        width: 160,
+        height: 120,
+        channels: 3,
+        background: { r: 30, g: 90, b: 150 },
+      },
+    })
+      .jpeg({ quality: 85, progressive: true })
+      .toBuffer();
+    const losslessWebp = await sharp({
+      create: {
+        width: 160,
+        height: 120,
+        channels: 4,
+        background: { r: 30, g: 90, b: 150, alpha: 1 },
+      },
+    })
+      .webp({ lossless: true })
+      .toBuffer();
+
+    for (const [label, mimeType, bytes] of [
+      ["progressive-jpeg", "image/jpeg", progressiveJpeg],
+      ["lossless-webp", "image/webp", losslessWebp],
+    ] as const) {
+      const assetId = randomUUID();
+      fakeState.rows.set(
+        assetId,
+        makeRow({
+          id: assetId,
+          tenant_id: tenantA,
+          declared_mime_type: mimeType,
+        }),
+      );
+      fakeState.objects.set(buildMediaStagingKey(tenantA, assetId), {
+        bytes,
+        contentType: mimeType,
+        version: 1,
+      });
+      const ready = await finalizeMediaUpload(authA, { assetId });
+      expect(ready.status, label).toBe("ready");
+    }
   });
 
   it("keeps largest bounded variant under 4.5 MB even for a 25 MP ceiling image", async () => {
