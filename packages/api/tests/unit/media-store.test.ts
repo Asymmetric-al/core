@@ -588,13 +588,13 @@ function makeRow(
   };
 }
 
+const SAMPLE_XMP_XML =
+  '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description exif:GPSLatitude="37,46.5N" xmlns:exif="http://ns.adobe.com/exif/1.0/"/></rdf:RDF></x:xmpmeta>';
+
 function injectJpegXmpSegment(jpeg: Buffer): Buffer {
   const xmpPayload = Buffer.concat([
     Buffer.from("http://ns.adobe.com/xap/1.0/\0", "utf8"),
-    Buffer.from(
-      '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description exif:GPSLatitude="37,46.5N" xmlns:exif="http://ns.adobe.com/exif/1.0/"/></rdf:RDF></x:xmpmeta>',
-      "utf8",
-    ),
+    Buffer.from(SAMPLE_XMP_XML, "utf8"),
   ]);
   const length = xmpPayload.byteLength + 2;
   const header = Buffer.from([0xff, 0xe1, (length >> 8) & 0xff, length & 0xff]);
@@ -604,6 +604,23 @@ function injectJpegXmpSegment(jpeg: Buffer): Buffer {
     xmpPayload,
     jpeg.subarray(2),
   ]);
+}
+
+function injectWebpXmpChunk(webp: Buffer): Buffer {
+  const xmpBuf = Buffer.from(SAMPLE_XMP_XML, "utf8");
+  const pad = xmpBuf.byteLength & 1;
+  const header = Buffer.alloc(8);
+  header.write("XMP ", 0, "ascii");
+  header.writeUInt32LE(xmpBuf.byteLength, 4);
+  const xmpChunk = pad
+    ? Buffer.concat([header, xmpBuf, Buffer.from([0])])
+    : Buffer.concat([header, xmpBuf]);
+  const out = Buffer.concat([webp, xmpChunk]);
+  out.writeUInt32LE(out.byteLength - 8, 4);
+  if (out.toString("ascii", 12, 16) === "VP8X") {
+    out[20] = out[20]! | 0x04;
+  }
+  return out;
 }
 
 async function createDirtyJpeg(width = 1800, height = 1200): Promise<Buffer> {
@@ -629,6 +646,70 @@ async function createDirtyJpeg(width = 1800, height = 1200): Promise<Buffer> {
     .jpeg({ quality: 92 })
     .toBuffer();
   return injectJpegXmpSegment(base);
+}
+
+async function createDirtyPng(width = 2000, height = 1700): Promise<Buffer> {
+  return sharp({
+    create: {
+      width,
+      height,
+      channels: 4,
+      background: { r: 44, g: 156, b: 92, alpha: 1 },
+    },
+  })
+    .withMetadata({ orientation: 6 })
+    .withExifMerge({
+      IFD0: { Make: "WP6PngCamera", Software: "LocationTag" },
+      IFD3: {
+        GPSLatitudeRef: "N",
+        GPSLatitude: "37/1 46/1 30/1",
+        GPSLongitudeRef: "W",
+        GPSLongitude: "122/1 25/1 10/1",
+      },
+    })
+    .withIccProfile("p3")
+    .png()
+    .toBuffer();
+}
+
+async function createDirtyWebp(width = 2000, height = 1700): Promise<Buffer> {
+  const base = await sharp({
+    create: {
+      width,
+      height,
+      channels: 3,
+      background: { r: 196, g: 112, b: 48 },
+    },
+  })
+    .withMetadata({ orientation: 6 })
+    .withExifMerge({
+      IFD0: { Make: "WP6WebpCamera", Software: "LocationTag" },
+      IFD3: {
+        GPSLatitudeRef: "N",
+        GPSLatitude: "37/1 46/1 30/1",
+        GPSLongitudeRef: "W",
+        GPSLongitude: "122/1 25/1 10/1",
+      },
+    })
+    .withIccProfile("p3")
+    .webp({ quality: 90 })
+    .toBuffer();
+  return injectWebpXmpChunk(base);
+}
+
+async function createTextured25MpJpeg(): Promise<Buffer> {
+  const tileW = 250;
+  const tileH = 250;
+  const tile = Buffer.alloc(tileW * tileH * 3);
+  let state = 0x13572468;
+  for (let i = 0; i < tile.byteLength; i += 1) {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    tile[i] = (state >>> 24) & 0xff;
+  }
+  return sharp(tile, { raw: { width: tileW, height: tileH, channels: 3 } })
+    .resize(5000, 5000, { kernel: "lanczos3" })
+    .jpeg({ quality: 88 })
+    .toBuffer();
 }
 
 describe("media constants single source of truth", () => {
@@ -808,6 +889,67 @@ describe("media-store custody and Sharp sanitization", () => {
     expect(Object.keys(tinyReady.variants)).toEqual(["w320"]);
     expect(tinyReady.variants.w320!.width).toBe(180);
     expect(tinyReady.variants.w320!.height).toBe(120);
+
+    for (const [label, mimeType, bytes, expectInputXmp] of [
+      [
+        "jpeg-all-variants",
+        "image/jpeg",
+        await createDirtyJpeg(2000, 1700),
+        true,
+      ],
+      [
+        "png-all-variants",
+        "image/png",
+        await createDirtyPng(2000, 1700),
+        false,
+      ],
+      [
+        "webp-all-variants",
+        "image/webp",
+        await createDirtyWebp(2000, 1700),
+        true,
+      ],
+    ] as const) {
+      const inMeta = await sharp(bytes).metadata();
+      expect(inMeta.orientation, label).toBe(6);
+      expect(inMeta.exif, label).toBeDefined();
+      expect(inMeta.icc, label).toBeDefined();
+      if (expectInputXmp) {
+        expect(inMeta.xmp, label).toBeDefined();
+      }
+      const id = randomUUID();
+      fakeState.rows.set(
+        id,
+        makeRow({ id, tenant_id: tenantA, declared_mime_type: mimeType }),
+      );
+      fakeState.objects.set(buildMediaStagingKey(tenantA, id), {
+        bytes,
+        contentType: mimeType,
+        version: 1,
+      });
+      const ready = await finalizeMediaUpload(authA, { assetId: id });
+      expect(ready.width, label).toBe(1700);
+      expect(ready.height, label).toBe(2000);
+      expect(Object.keys(ready.variants).sort(), label).toEqual([
+        "w1600",
+        "w320",
+        "w960",
+      ]);
+      for (const [outLabel, key] of [
+        ["master", ready.masterKey!],
+        ["w320", ready.variants.w320!.key],
+        ["w960", ready.variants.w960!.key],
+        ["w1600", ready.variants.w1600!.key],
+      ] as const) {
+        const stored = fakeState.objects.get(key)!;
+        const outMeta = await sharp(stored.bytes).metadata();
+        expect(outMeta.orientation, `${label}:${outLabel}`).toBeUndefined();
+        expect(outMeta.exif, `${label}:${outLabel}`).toBeUndefined();
+        expect(outMeta.icc, `${label}:${outLabel}`).toBeUndefined();
+        expect(outMeta.xmp, `${label}:${outLabel}`).toBeUndefined();
+        expect(outMeta.iptc, `${label}:${outLabel}`).toBeUndefined();
+      }
+    }
   });
 
   it("refuses oversize bytes, >25 MP images, and disguised GIF/SVG while cleaning staging and marking failed", async () => {
@@ -1027,32 +1169,27 @@ describe("media-store custody and Sharp sanitization", () => {
     }
   });
 
-  it("keeps largest bounded variant under 4.5 MB even for a 25 MP ceiling image", async () => {
+  it("keeps largest bounded variant under 4.5 MB even for a high-entropy textured 25 MP ceiling image", async () => {
     const ceilingId = randomUUID();
-    const ceilingPng = await sharp({
-      create: {
-        width: 5000,
-        height: 5000,
-        channels: 3,
-        background: { r: 90, g: 130, b: 170 },
-      },
-    })
-      .png({ compressionLevel: 9 })
-      .toBuffer();
+    const ceilingJpeg = await createTextured25MpJpeg();
+    expect(ceilingJpeg.byteLength).toBeGreaterThan(1_000_000);
+    expect(ceilingJpeg.byteLength).toBeLessThanOrEqual(MEDIA_MAX_BYTES);
     fakeState.rows.set(
       ceilingId,
       makeRow({
         id: ceilingId,
         tenant_id: tenantA,
-        declared_mime_type: "image/png",
+        declared_mime_type: "image/jpeg",
       }),
     );
     fakeState.objects.set(buildMediaStagingKey(tenantA, ceilingId), {
-      bytes: ceilingPng,
-      contentType: "image/png",
+      bytes: ceilingJpeg,
+      contentType: "image/jpeg",
       version: 1,
     });
     const ready = await finalizeMediaUpload(authA, { assetId: ceilingId });
+    expect(ready.width).toBe(5000);
+    expect(ready.height).toBe(5000);
     expect(Object.keys(ready.variants).sort()).toEqual([
       "w1600",
       "w320",

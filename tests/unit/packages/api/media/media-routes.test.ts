@@ -11,6 +11,13 @@ import { POST as startMediaPost } from "@asym/api/cms/media/start";
 import { GET as mediaGet } from "@asym/api/media/route";
 import { ApiHttpError } from "@asym/api/shared/http-errors";
 
+import { GET as adminMediaMount } from "../../../../../apps/admin/app/api/media/[assetId]/route";
+import { proxy as adminProxy } from "../../../../../apps/admin/proxy";
+import { GET as donorMediaMount } from "../../../../../apps/donor/app/api/media/[assetId]/route";
+import { proxy as donorProxy } from "../../../../../apps/donor/proxy";
+import { GET as missionaryMediaMount } from "../../../../../apps/missionary/app/api/media/[assetId]/route";
+import { proxy as missionaryProxy } from "../../../../../apps/missionary/proxy";
+
 const mocks = vi.hoisted(() => ({
   getAuthContext: vi.fn(),
   createRequestSessionClient: vi.fn(),
@@ -549,6 +556,171 @@ describe("JSON media command routes (/api/cms/media/{start,finalize,delete})", (
         }),
       );
       expect(res.status).toBe(401);
+    }
+  });
+});
+
+function applyProxyForwardedHeaders(
+  originalRequest: NextRequest,
+  proxyResponse: Response,
+): NextRequest {
+  const forwarded = new Headers(originalRequest.headers);
+  const overrideList = proxyResponse.headers.get(
+    "x-middleware-override-headers",
+  );
+  if (overrideList) {
+    for (const name of overrideList.split(",")) {
+      const trimmed = name.trim();
+      if (!trimmed) continue;
+      const value = proxyResponse.headers.get(
+        `x-middleware-request-${trimmed}`,
+      );
+      if (value === null) {
+        forwarded.delete(trimmed);
+      } else {
+        forwarded.set(trimmed, value);
+      }
+    }
+  }
+  return new NextRequest(originalRequest.url, {
+    method: originalRequest.method,
+    headers: forwarded,
+  });
+}
+
+describe("surface proxy + /api/media/[assetId] route mount end-to-end", () => {
+  const tenantA = randomUUID();
+  const assignmentA = randomUUID();
+  const assetId = randomUUID();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.createRequestSessionClient.mockResolvedValue({
+      auth: { getUser: mocks.sessionGetUser },
+      rpc: mocks.sessionRpc,
+    });
+    mocks.requireCapability.mockImplementation(
+      (ctx: AuthContext, capability: string) => {
+        const caps = ctx.assignment
+          ? (assignmentCapabilities.get(ctx.assignment.assignmentId) ?? [])
+          : [];
+        if (!caps.includes(capability)) {
+          throw new Error(`Forbidden: missing capability ${capability}`);
+        }
+      },
+    );
+  });
+
+  it("runs missionary, donor and admin proxies before their mounted /api/media/[assetId] handlers, denying missionary/donor sessions with 404 and admitting staff with 200", async () => {
+    const surfaces = [
+      {
+        name: "missionary",
+        origin: "http://localhost:3002",
+        proxy: missionaryProxy,
+        mount: missionaryMediaMount,
+        expectedRoleHeader: "missionary",
+      },
+      {
+        name: "donor",
+        origin: "http://localhost:3000",
+        proxy: donorProxy,
+        mount: donorMediaMount,
+        expectedRoleHeader: "donor",
+      },
+      {
+        name: "admin",
+        origin: "http://localhost:3001",
+        proxy: adminProxy,
+        mount: adminMediaMount,
+        expectedRoleHeader: "staff",
+      },
+    ] as const;
+
+    for (const surface of surfaces) {
+      mocks.sessionGetUser.mockResolvedValueOnce({
+        data: { user: null },
+        error: null,
+      });
+      const anonIncoming = new NextRequest(
+        `${surface.origin}/api/media/${assetId}`,
+      );
+      const anonProxyRes = await surface.proxy(anonIncoming);
+      expect(anonProxyRes.headers.get("x-middleware-next"), surface.name).toBe(
+        "1",
+      );
+      expect(
+        anonProxyRes.headers.get("x-middleware-request-x-asym-role-class"),
+        surface.name,
+      ).toBe(surface.expectedRoleHeader);
+      const anonMountRes = await surface.mount(
+        applyProxyForwardedHeaders(anonIncoming, anonProxyRes),
+        { params: Promise.resolve({ assetId }) },
+      );
+      expect(anonMountRes.status, `${surface.name}:anon`).toBe(401);
+      expect(await anonMountRes.arrayBuffer()).toHaveProperty("byteLength", 0);
+
+      mocks.sessionGetUser.mockResolvedValueOnce({
+        data: { user: { id: randomUUID() } },
+        error: null,
+      });
+      mocks.sessionRpc.mockResolvedValueOnce({ data: [], error: null });
+      const nonStaffIncoming = new NextRequest(
+        `${surface.origin}/api/media/${assetId}`,
+        { headers: { authorization: "Bearer non-staff-jwt" } },
+      );
+      const nonStaffProxyRes = await surface.proxy(nonStaffIncoming);
+      const nonStaffMountRes = await surface.mount(
+        applyProxyForwardedHeaders(nonStaffIncoming, nonStaffProxyRes),
+        { params: Promise.resolve({ assetId }) },
+      );
+      expect(nonStaffMountRes.status, `${surface.name}:non-staff`).toBe(404);
+      expect(await nonStaffMountRes.arrayBuffer()).toHaveProperty(
+        "byteLength",
+        0,
+      );
+
+      const staffAuth = makeStaffAuth(tenantA, assignmentA);
+      const payload = Buffer.from([7, 8, 9, 10]);
+      mocks.sessionGetUser.mockResolvedValueOnce({
+        data: { user: { id: staffAuth.userId } },
+        error: null,
+      });
+      mocks.sessionRpc.mockResolvedValueOnce({
+        data: [{ tenant_id: tenantA, assignment_id: assignmentA }],
+        error: null,
+      });
+      mocks.getAuthContext.mockResolvedValueOnce(staffAuth);
+      mocks.readMediaVariant.mockResolvedValueOnce({
+        notModified: false,
+        stream: new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(new Uint8Array(payload));
+            controller.close();
+          },
+        }),
+        byteSize: payload.byteLength,
+        etag: '"staff-ok-w960"',
+        mimeType: "image/jpeg",
+        variant: "w960",
+      });
+      const staffIncoming = new NextRequest(
+        `${surface.origin}/api/media/${assetId}`,
+        { headers: { authorization: "Bearer staff-jwt" } },
+      );
+      const staffProxyRes = await surface.proxy(staffIncoming);
+      const forwardedStaffReq = applyProxyForwardedHeaders(
+        staffIncoming,
+        staffProxyRes,
+      );
+      expect(
+        forwardedStaffReq.headers.get("x-asym-role-class"),
+        surface.name,
+      ).toBe(surface.expectedRoleHeader);
+      const staffMountRes = await surface.mount(forwardedStaffReq, {
+        params: Promise.resolve({ assetId }),
+      });
+      expect(staffMountRes.status, `${surface.name}:staff`).toBe(200);
+      expect(Buffer.from(await staffMountRes.arrayBuffer())).toEqual(payload);
     }
   });
 });
