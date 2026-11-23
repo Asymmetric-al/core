@@ -228,7 +228,7 @@ Every clause in `openspec/contracts/multi-site-management.md#contract-94d79d00c7
 
 Each Tenant MUST have exactly one current complete Tenant Donor Account Brand for its authenticated donor experience.
 
-Every clause in `openspec/contracts/multi-site-management.md#contract-566265669770b70dc275` MUST apply without exception.
+Every clause in `openspec/contracts/multi-site-management.md#contract-e86a996f2239e74c8a4b` MUST apply without exception.
 
 #### Scenario: A donor enters the portal from two Sites
 
