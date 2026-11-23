@@ -338,10 +338,18 @@ test.describe("Member Care on the caller's session", () => {
         .first(),
     ).toBeVisible();
 
-    await page.goto(`/${DEMO}~finance/care/directory`);
+    await page.goto(`/${DEMO}~finance`);
     await page.waitForLoadState("domcontentloaded");
     await expect(
       page.getByRole("link", { name: "Member Care", exact: true }),
+    ).toHaveCount(0);
+
+    await page.goto(`/${DEMO}~finance/care/directory`);
+    await page.waitForLoadState("domcontentloaded");
+    await expect(
+      page
+        .locator('[data-slot="sidebar"]')
+        .getByRole("link", { name: "Member Care", exact: true }),
     ).toHaveCount(0);
     await expect(page.getByRole("note")).toBeVisible();
     await expect(page.getByRole("note")).toContainText(
@@ -358,7 +366,10 @@ test.describe("Member Care on the caller's session", () => {
 
     await page.goto(`/${DEMO}~member_care/care/directory`);
     await expect(
-      page.getByRole("link", { name: "Member Care", exact: true }).first(),
+      page
+        .locator('[data-slot="sidebar"]')
+        .getByRole("link", { name: "Member Care", exact: true })
+        .first(),
     ).toBeVisible();
     await expect(
       page
