@@ -10,8 +10,10 @@
 -- recovery window, recorded on tombstones (`purge_after`).
 -- No code removes canonical media bytes. A deleted asset keeps its bytes in the
 -- private bucket. The delayed purge and the sweep of abandoned staging objects
--- are owed to WP7, which adds the live-use check (plan lines 1059, 1097),
--- scheduled by WP10 (plan line 554); their requirements are in issue #2769.
+-- are owed to WP7, which adds the live-use check (plan section 12, "WP7 —
+-- Publishing and the public site", Behaviour and Acceptance evidence),
+-- scheduled by WP10 (plan section 9.6, "Continuing burden this design adds");
+-- their requirements are in issue #2769.
 --
 -- Storage policy assertion limit (W6-R16): the `DO` block below is a one-time
 -- apply-time check against the `storage.objects` policies present at migration
