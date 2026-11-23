@@ -175,8 +175,15 @@ describe("#2255 forward migration text", () => {
     expect(c).toMatch(/raw/i);
   });
 
-  it("no other forward migration creates or alters these tables (redefinition scan, all forward files)", () => {
+  it("no other forward migration creates or alters these tables (redefinition scan, all forward files) (D-18, AL-2678: the account claim migration of WP5, which builds the claim, adds the token's proof columns and the claim commands to account_claim_requests and ends its requester read; it creates and drops neither table and leaves legacy_account_invitations alone)", () => {
     const re = new RegExp(`\\b(${TABLES.join("|")})\\b`, "i");
+    const CLAIM_MIGRATION = /^\d{14}_account_claim_commands\.sql$/;
+    const claimMigration = readdirSync(DIR).find((f) =>
+      CLAIM_MIGRATION.test(f),
+    );
+    const claim = code(readFileSync(path.join(DIR, claimMigration!), "utf8"));
+    expect(claim).not.toMatch(/\b(CREATE|DROP)\s+TABLE\b/i);
+    expect(claim).not.toMatch(/\blegacy_account_invitations\b/i);
     // Amended by AL-2675 (WP2b, second release; record D-18): the policy
     // migration rewrites the two staff policies in place, by ALTER POLICY,
     // and touches nothing else of these tables. Any other statement there,
@@ -184,7 +191,7 @@ describe("#2255 forward migration text", () => {
     const POLICY_MIGRATION = /^\d{14}_request_tenant_policies\.sql$/;
     const hits = readdirSync(DIR)
       .filter((f) => /^\d{14}_.*\.sql$/.test(f) && f !== OWN)
-      .filter((f) => !POLICY_MIGRATION.test(f))
+      .filter((f) => !POLICY_MIGRATION.test(f) && !CLAIM_MIGRATION.test(f))
       .filter((f) => re.test(code(readFileSync(path.join(DIR, f), "utf8"))));
     expect(hits).toEqual([]);
     const policyMigration = readdirSync(DIR).find((f) =>

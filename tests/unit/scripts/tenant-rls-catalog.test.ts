@@ -39,6 +39,7 @@ import {
   stripParens,
   tenantBound,
 } from "../../../scripts/verify/tenant-rls-catalog.mjs";
+import { preMembershipCommandRows } from "../../fixtures/pre-membership-commands";
 
 const table = (name: string, over: Record<string, unknown> = {}) => ({
   ...{ table: name, tenant: true, rls: true, force: true, policies: 1 },
@@ -288,7 +289,38 @@ describe("WP4 command boundaries", () => {
       ).toContain("WRAPPER_GRANTS_HUMAN public.block(uuid)");
     },
   );
+  it("judges the repository's reviewed pre-membership list unless told otherwise (D-18, AL-2678: the list is no longer empty, so the synthetic catalogs of this file judge an empty one, and this case judges the real one)", () => {
+    const empty = {
+      tables: [],
+      definers: [],
+      wrappers: [],
+      grants: [],
+      policies: [],
+      published: [],
+    };
+    expect(
+      codes(evaluateTenantRlsCatalog({ ...empty, commands: [] }, listed())),
+    ).toEqual(
+      preMembershipEntries.map(
+        (entry) => `COMMAND_EXCEPTION_UNREVIEWED ${entry.function}`,
+      ),
+    );
+    expect(
+      evaluateTenantRlsCatalog(
+        { ...empty, commands: preMembershipCommandRows() },
+        listed(),
+      ).failures,
+    ).toEqual([]);
+    expect(
+      codes(
+        evaluate([], listed(), [], [], allow(), {
+          preMembership: { entries: [], reviewed: {} },
+        }),
+      ),
+    ).toEqual([]);
+  });
 });
+const NO_PRE_MEMBERSHIP = { entries: [], reviewed: {} };
 const evaluate = (
   tables: object[],
   exceptions: unknown = listed(),
@@ -302,6 +334,7 @@ const evaluate = (
     tenant_helpers?: object[];
     published?: string[];
     policyExceptions?: unknown;
+    preMembership?: { entries: unknown[]; reviewed: unknown };
   } = {},
 ) =>
   evaluateTenantRlsCatalog(
@@ -318,6 +351,7 @@ const evaluate = (
     exceptions,
     anonAllowlist,
     more.policyExceptions ?? { entries: [] },
+    more.preMembership ?? NO_PRE_MEMBERSHIP,
   );
 const codes = (result: ReturnType<typeof evaluate>) =>
   result.failures.map(
@@ -1693,7 +1727,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   // Council R3: the tables with no tenant column whose rows reach their
   // tenant through a parent row. Postgres ORs every permissive policy, so a
   // second one beside the pin would widen it unseen.
-  it("on a table that reaches its tenant through a parent, fails every signed-in policy that is not pinned and a pin with a per-row lookup", () => {
+  it("on a table that reaches its tenant through a parent, fails every signed-in policy that is not pinned and a pin with a per-row lookup (D-18, AL-2678: donor_activities carries its own tenant now and left the parent-scoped list)", () => {
     const comments = policy(
       "post_comments",
       "(EXISTS ( SELECT 1 FROM posts p WHERE (p.id = post_comments.post_id)))",
@@ -1706,12 +1740,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     expect(
       codes(run([comments, second], { policyExceptions: pin(comments) })),
     ).toEqual(["PARENT_SCOPED_POLICY_NOT_PINNED post_comments"]);
-    for (const parentScoped of [
-      "post_fires",
-      "post_likes",
-      "post_prayers",
-      "donor_activities",
-    ])
+    for (const parentScoped of ["post_fires", "post_likes", "post_prayers"])
       expect(codes(run([policy(parentScoped, "true")])), parentScoped).toEqual([
         `PARENT_SCOPED_POLICY_NOT_PINNED ${parentScoped}`,
       ]);
@@ -1871,6 +1900,9 @@ describe("tenant keys", () => {
           payload_installed,
         },
         listed(),
+        allow(),
+        { entries: [] },
+        NO_PRE_MEMBERSHIP,
       ),
     );
   const cms = (keyed: (table: string) => boolean) =>

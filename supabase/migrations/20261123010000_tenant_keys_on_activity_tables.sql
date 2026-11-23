@@ -21,7 +21,7 @@
 --    (packages/api/src/missionary-portal/service.ts:106), which PostgREST
 --    resolves over the composite key. follower_requests_donor_id_fkey stays
 --    single-column here: the running build embeds donors from follower
---    requests by the column hint donors!donor_id
+--    requests by a column hint on donor_id
 --    (packages/api/src/follower-requests/index.ts:68, request.ts:51), which
 --    cannot select a composite key, and a second key into donors would make
 --    other embeds ambiguous. Part 2 swaps it with those two handlers.

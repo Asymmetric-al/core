@@ -310,7 +310,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       ).toEqual([null, ids.dDonor]);
     });
 
-    it("the running build's follower-request embed by the column hint donors!donor_id still resolves, so the follower key keeps its single column in part 1", async () => {
+    it("the running build's follower-request embed by a column hint on donor_id still resolves, so the follower key keeps its single column in part 1", async () => {
       const response = await api(
         `rest/v1/rpc/missionary_follower_requests?${new URLSearchParams({ select: "id,donor_id,status,donor:donors!donor_id(id,name,avatar_url,status,total_given,last_gift_date)" })}`,
         {

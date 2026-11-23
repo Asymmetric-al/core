@@ -55,7 +55,7 @@ export const FOLLOW_UPS = `campaigns_creator_donor_id_fkey
   .split(/\s+/)
   .filter(Boolean);
 export const AL2678_D18 =
-  "D-18, AL-2678 (WP5 part 1): donor_activities_donor_id_fkey and missionary_tasks_donor_id_fkey became same-tenant composite keys, so they left the shrink-only follow-up list (14 to 12) for OTHER_COMPOSITE, beside the new external_identifiers_donor_same_tenant_fk; follower_requests_donor_id_fkey stays on the list until part 2 moves the running build's donors!donor_id embed";
+  "D-18, AL-2678 (WP5 part 1): donor_activities_donor_id_fkey and missionary_tasks_donor_id_fkey became same-tenant composite keys, so they left the shrink-only follow-up list (14 to 12) for OTHER_COMPOSITE, beside the new external_identifiers_donor_same_tenant_fk; follower_requests_donor_id_fkey stays on the list until part 2 moves the running build's embed of donors by a column hint on donor_id";
 /**
  * Composite donor FKs added by other issues: tenant-safe already, so neither
  * spine nor follow-up. #2255's claim tables (20261025090000, develop d1f0af94).

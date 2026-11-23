@@ -142,7 +142,7 @@ describe.skipIf(!ADMIN_URL)(
       expect(grants.rows).toEqual([{ a: false, b: false, helper: null }]);
     });
 
-    it("a row naming another tenant's donor is refused for every writer (23503), except a follower request, whose composite key waits for part 2 because the running build embeds its donor by the column hint donors!donor_id; the follower functions still read and write only a request whose donor is in the selected tenant", async () => {
+    it("a row naming another tenant's donor is refused for every writer (23503), except a follower request, whose composite key waits for part 2 because the running build embeds its donor by a column hint on donor_id; the follower functions still read and write only a request whose donor is in the selected tenant", async () => {
       expect(
         await code(
           "insert into public.donor_activities (tenant_id, donor_id, type, title) values ($1, $2, 'note', 'x')",

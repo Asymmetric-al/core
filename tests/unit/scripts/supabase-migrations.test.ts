@@ -15,6 +15,7 @@ import { fileURLToPath } from "node:url";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { preMembershipCommandRows } from "../../fixtures/pre-membership-commands";
 import { MIGRATION } from "../acceptance/issue-2256/harness";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
@@ -136,7 +137,7 @@ function runVerifier(
     definers: [],
     // AL-2674: the gate also reads the command-schema functions, the
     // wrappers that call into them and the unadmitted table grants.
-    commands: [],
+    commands: preMembershipCommandRows(),
     wrappers: [],
     grants: [],
     // AL-2675 (WP2b, second release; record D-18): the gate also reads every
@@ -208,14 +209,14 @@ if (sql.startsWith("-- tenant-rls-catalog-gate:v1"))
   console.log(mode === "rls-gate-malformed" ? "{" : JSON.stringify(data.gate));
 else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
   const c = data.catalog;
-  const v3 = (row, table, surface) => row.record_type === table && row.field_key === "person_id" && row.surface === surface;
+  const v3 = (row, table, surface) => row.record_type === table && row.field_key === "party_id" && row.surface === surface;
   const column = (record_type, field_key, type) => ({ record_type, field_key, type, nullable: true, generated: null, default: null });
   if (mode === "policy-drift") c.rows.find(row => row.record_type === "donations" && row.field_key === "stripe_refund_ids" && row.surface !== "mission_control").exportable = true;
-  if (mode === "v3-row-missing") c.rows = c.rows.filter(row => !v3(row, "profiles", "export"));
+  if (mode === "v3-row-missing") c.rows = c.rows.filter(row => !v3(row, "donors", "export"));
   if (mode === "v3-row-drift") c.rows.find(row => v3(row, "missionaries", "public")).visible = true;
   if (mode === "column-drift") c.columns.push(column("donors", "uncensused_test_column", "text"));
-  if (mode === "v3-third-column") c.columns.push(column("donors", "person_id", "uuid"));
-  if (mode === "v3-column-missing") c.columns = c.columns.filter(col => !(col.record_type === "profiles" && col.field_key === "person_id"));
+  if (mode === "v3-third-column") c.columns.push(column("profiles", "party_id", "uuid"));
+  if (mode === "v3-column-missing") c.columns = c.columns.filter(col => !(col.record_type === "donors" && col.field_key === "party_id"));
   console.log(JSON.stringify(c));
 }
 `,
@@ -283,7 +284,7 @@ else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
 
 describe("supabase migrations verifier", () => {
   itPosix(
-    "requires the reviewed census after applying the complete migration sequence",
+    "requires the reviewed census after applying the complete migration sequence (D-18, AL-2678: the fake catalog carries the two reviewed pre-membership claim commands, which the gate now requires)",
     () => {
       const result = runVerifier("clean");
       expect(result.status).toBe(0);
@@ -375,20 +376,23 @@ describe("supabase migrations verifier", () => {
     "v3-column-missing",
     "v3-third-column",
     "v3-source-edited",
-  ])("fails the #2256 v3 census for %s", (mode) => {
-    const clean = runVerifier("clean");
-    expect(clean.status, "clean baseline must pass first").toBe(0);
-    const result = runVerifier(mode);
-    expect(result.status).not.toBe(0);
-    expect(result.stdout).not.toContain("forward Supabase migrations");
-    // #2400 criterion 7: the failure is the source-hash check itself, now the
-    // manifest gate's pinned-source check (AL-2674).
-    if (mode === "v3-source-edited") {
-      const mismatch = `PINNED ${MIGRATION} changed`;
-      expect(clean.stderr).not.toContain(mismatch);
-      expect(result.stderr).toContain(mismatch);
-    }
-  });
+  ])(
+    "fails the #2256 v3 census for %s (D-18, AL-2678: person_id is dropped, so each drift case now drifts party_id, the identity key that replaced it; the source case still edits the pinned person-anchor migration)",
+    (mode) => {
+      const clean = runVerifier("clean");
+      expect(clean.status, "clean baseline must pass first").toBe(0);
+      const result = runVerifier(mode);
+      expect(result.status).not.toBe(0);
+      expect(result.stdout).not.toContain("forward Supabase migrations");
+      // #2400 criterion 7: the failure is the source-hash check itself, now the
+      // manifest gate's pinned-source check (AL-2674).
+      if (mode === "v3-source-edited") {
+        const mismatch = `PINNED ${MIGRATION} changed`;
+        expect(clean.stderr).not.toContain(mismatch);
+        expect(result.stderr).toContain(mismatch);
+      }
+    },
+  );
 
   itPosix(
     "refuses unsupported nonlocal targets before any SQL even with the old override",

@@ -177,7 +177,7 @@ describe("AL-2674 manifest: the committed file", () => {
     expect(m.surfaces).toEqual(gate.SURFACES);
   });
 
-  it("keeps every AL-491 census and supplement classification exactly (fidelity of the conversion)", () => {
+  it("keeps every AL-491 census and supplement classification exactly (fidelity of the conversion) (D-18, AL-2678: profiles.user_id became NOT NULL under W5-R3, as missionaries.tenant_id did before)", () => {
     const census = JSON.parse(H.read(`${H.FP}/census-v1.json`));
     const supplements = census.repository_supplements.map(
       (ref: { artifact: string }) =>
@@ -226,7 +226,8 @@ describe("AL-2674 manifest: the committed file", () => {
       const want = {
         type: c.type,
         nullable:
-          c.recordType === "missionaries" && c.name === "tenant_id"
+          (c.recordType === "missionaries" && c.name === "tenant_id") ||
+          (c.recordType === "profiles" && c.name === "user_id")
             ? false
             : c.nullable,
         category: c.category,
@@ -340,27 +341,27 @@ describe("AL-2674 manifest: the gate fails on each kind of drift", () => {
       "ROW_DRIFT donors|email_verified_at|missionary|",
     ],
     [
-      "a category drifted in the database",
+      "a category drifted in the database (D-18, AL-2678: on party_id, as person_id is dropped)",
       (_m, c) => {
         c.rows.find(
-          (x) => x.field_key === "person_id" && x.surface === "export",
-        )!.sensitivity_category = "internal";
+          (x) => x.field_key === "party_id" && x.surface === "export",
+        )!.sensitivity_category = "security";
       },
       "ROW_DRIFT",
     ],
     [
-      "a missing seed row",
+      "a missing seed row (D-18, AL-2678: of donors.party_id, as person_id is dropped)",
       (_m, c) => {
         c.rows = c.rows.filter(
           (x) =>
             !(
-              x.field_key === "person_id" &&
-              x.record_type === "profiles" &&
+              x.field_key === "party_id" &&
+              x.record_type === "donors" &&
               x.surface === "export"
             ),
         );
       },
-      "ROW_MISSING profiles|person_id|export|",
+      "ROW_MISSING donors|party_id|export|",
     ],
     [
       "a tenant override row",

@@ -487,7 +487,7 @@ describe.skipIf(!ADMIN_URL)(
     });
 
     describe("persons is gone (plan line 1011)", () => {
-      it("no persons table, no person_id column and no person_id field policy remain, in the catalog or the manifest", async () => {
+      it("no persons table, no person_id column and no person_id field policy remain, in the catalog or the manifest, which still pins the merged person-anchor file", async () => {
         const r = await db.query(`select to_regclass('public.persons') persons,
           (select count(*) from information_schema.columns where table_schema = 'public' and column_name = 'person_id') columns,
           (select count(*) from public.field_policies where field_key = 'person_id') policies`);
@@ -499,7 +499,14 @@ describe.skipIf(!ADMIN_URL)(
           "utf8",
         );
         expect(manifest).not.toContain("person_id");
-        expect(manifest).not.toContain("20261025110000_person_anchor.sql");
+        const parsed = JSON.parse(manifest) as {
+          record_types: Record<string, unknown>;
+          pinned_sources: { path: string }[];
+        };
+        expect(parsed.record_types).not.toHaveProperty("persons");
+        expect(parsed.pinned_sources.map((pin) => pin.path)).toContain(
+          "supabase/migrations/20261025110000_person_anchor.sql",
+        );
       });
 
       it("the old statements on profiles and missionaries still run", () =>

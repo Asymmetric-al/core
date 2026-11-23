@@ -40,7 +40,7 @@ describe("#2270 C9: the new migration is exactly spec §1.4", () => {
 });
 
 describe("#2270 C6/C7: authz grant-list guard across every forward migration", () => {
-  it("C6: the authz SECURITY DEFINER functions are exactly the three §1.2 helpers", () => {
+  it("C6: the authz SECURITY DEFINER functions are exactly the three §1.2 helpers (D-18, AL-2678: and caller_missionary_ids, which the identity-key migration adds with the same owner, search path and grants as AL-2675's three)", () => {
     const definers = new Set<string>();
     for (const f of forward()) {
       // Dollar-quoted bodies are blanked so each CREATE FUNCTION is one statement.
@@ -67,6 +67,7 @@ describe("#2270 C6/C7: authz grant-list guard across every forward migration", (
           .filter((k) => k.startsWith("authz."))
           .map((k) => k.slice(6, k.indexOf("("))),
         "assignment_holds",
+        "caller_missionary_ids",
         "caller_tenant_ids",
         "request_assignment",
       ].sort(),

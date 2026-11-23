@@ -44,6 +44,11 @@
       "path": "supabase/migrations/20261024140000_identity_email_normalizer_and_donor_keys.sql",
       "sha256": "36190ece4a2ad17d24dddbddb0db579f9511c77fda2feed90ce0bf07b16efbfa",
       "reason": "Defines donors.email_normalized and donors.email_verified_at and seeds their rows (census supplement v2, #2254)."
+    },
+    {
+      "path": "supabase/migrations/20261025110000_person_anchor.sql",
+      "sha256": "f97ea5de4d44be60fcdecb64274e0cd749d18c1d17aa81b34e5531becd00c558",
+      "reason": "The merged person-anchor migration of #2256 (census supplement v3). AL-2678 drops the table and the two columns it defined; the pin keeps the merged file as it was merged."
     }
   ],
   "derived_record_types": {

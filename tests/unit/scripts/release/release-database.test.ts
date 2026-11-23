@@ -155,13 +155,16 @@ function fakeDatabase(state: {
   const query = vi.fn(
     ({ sql, databaseUrl }: { sql: string; databaseUrl: string }) => {
       const counts: Record<string, number> = {
-        '"public"."profiles"': 3,
+        '"public"."profiles"': 4,
         '"public"."tenants"': 2,
-        '"authz"."memberships"': 6,
+        '"authz"."memberships"': 8,
         '"public"."legal_entities"': 2,
         '"public"."payment_account_bindings"': 0,
         '"public"."funds"': 10,
         '"public"."contribution_approval_policies"': 2,
+        '"public"."parties"': 24,
+        '"public"."account_links"': 4,
+        '"private"."party_restricted"': 1,
       };
       if (sql.startsWith("SELECT count(*) FROM"))
         return counts[sql.slice("SELECT count(*) FROM ".length, -1)]!;
@@ -347,7 +350,7 @@ describe("release database steps", () => {
     expect(runCommand).not.toHaveBeenCalled();
   });
 
-  it("lets the preview environment rebuild the preview project, and still keeps the production environment off it", async () => {
+  it("lets the preview environment rebuild the preview project, and still keeps the production environment off it (D-18, AL-2678: the fake database answers the seed's new counts, among them Parties, account links and the restricted worker)", async () => {
     // Two hosted projects and no third (hosted plan 3.1): the production-named
     // project is the disposable preview project until WP11.
     const previewRef = "btewedpsxwsjczvmegby";

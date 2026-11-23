@@ -847,6 +847,7 @@ export function evaluateTenantRlsCatalog(
   exceptions,
   anonAllowlist = { entries: [] },
   policyExceptionList = { entries: [] },
+  preMembershipList = {},
 ) {
   const { listed, failures, usable } = readExceptions(exceptions);
   const fail = (code, table, detail) => failures.push({ code, table, detail });
@@ -994,7 +995,11 @@ export function evaluateTenantRlsCatalog(
     );
     return false;
   });
-  const preMembership = preMembershipExceptions(commands);
+  const preMembership = preMembershipExceptions(
+    commands,
+    preMembershipList.entries,
+    preMembershipList.reviewed,
+  );
   failures.push(...preMembership.failures);
   for (const c of commands) {
     if (c.public_execute || c.anon)

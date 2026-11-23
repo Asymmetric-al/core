@@ -41,6 +41,11 @@ const REQUEST_TENANT_DEFINERS: Record<string, string> = {
   assignment_holds: "TEXT",
   caller_tenant_ids: "",
 };
+const IDENTITY_KEYS_MIGRATION =
+  /^\d{14}_parties_account_links_and_own_rows\.sql$/;
+const IDENTITY_KEYS_DEFINERS: Record<string, string> = {
+  caller_missionary_ids: "",
+};
 
 const POLICIES = [
   ["select", "crm_command_logs"],
@@ -95,7 +100,7 @@ function statements(sql: string) {
 }
 
 describe("authz SECURITY DEFINER EXECUTE grants (#2270)", () => {
-  it("lists every authz SECURITY DEFINER helper defined by any forward migration", () => {
+  it("lists every authz SECURITY DEFINER helper defined by any forward migration (D-18, AL-2678: the identity-key migration adds caller_missionary_ids)", () => {
     const definers = new Set<string>();
     for (const { sql } of forwardMigrations()) {
       for (const statement of statements(sql)) {
@@ -111,8 +116,30 @@ describe("authz SECURITY DEFINER EXECUTE grants (#2270)", () => {
       [
         ...Object.keys(AUTHZ_DEFINER_GRANTS),
         ...Object.keys(REQUEST_TENANT_DEFINERS),
+        ...Object.keys(IDENTITY_KEYS_DEFINERS),
       ].sort(),
     );
+  });
+
+  it("grants the missionary own-row definer to authenticated and service_role only, revoked by name first (AL-2678)", () => {
+    const migration = forwardMigrations().find(({ filename }) =>
+      IDENTITY_KEYS_MIGRATION.test(filename),
+    );
+    expect(migration).toBeDefined();
+    const all = statements(migration!.sql);
+    for (const [name, args] of Object.entries(IDENTITY_KEYS_DEFINERS)) {
+      const fn = `authz.${name}(${args})`;
+      expect(all).toContain(`ALTER FUNCTION ${fn} OWNER TO postgres`);
+      expect(all).toContain(
+        `REVOKE ALL ON FUNCTION ${fn} FROM PUBLIC, anon, authenticated, service_role`,
+      );
+      expect(all).toContain(
+        `GRANT EXECUTE ON FUNCTION ${fn} TO authenticated, service_role`,
+      );
+      expect(
+        all.filter((s) => s.startsWith("GRANT") && s.includes(`${fn} `)),
+      ).toHaveLength(1);
+    }
   });
 
   it("grants the request-tenant definers to authenticated and service_role only, revoked by name first (AL-2675)", () => {
