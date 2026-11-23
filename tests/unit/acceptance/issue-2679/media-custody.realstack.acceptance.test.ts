@@ -252,7 +252,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     }
 
-    it("creates public.media_assets with forced RLS, tenant RESTRICT FK, indexes, grants and 90 field_policies rows", async () => {
+    it("creates public.media_assets and public.media_purge_claims with forced RLS, tenant RESTRICT FK, indexes, column-scoped grants and field_policies rows", async () => {
       const tableInfo = await db.query(
         `select c.relrowsecurity, c.relforcerowsecurity, c.relowner::regrole::text as owner
          from pg_class c
@@ -308,7 +308,9 @@ describe.skipIf(!ADMIN_URL)(
          has_table_privilege('tenant_guard', 'public.media_assets', 'SELECT') as guard_sel,
          has_table_privilege('tenant_guard', 'public.media_assets', 'DELETE') as guard_del,
          has_table_privilege('service_role', 'public.media_assets', 'SELECT') as svc_sel,
-         has_table_privilege('service_role', 'public.media_assets', 'UPDATE') as svc_upd`,
+         has_table_privilege('service_role', 'public.media_assets', 'INSERT') as svc_ins,
+         has_table_privilege('service_role', 'public.media_assets', 'UPDATE') as svc_upd,
+         has_table_privilege('service_role', 'public.media_assets', 'DELETE') as svc_del`,
       );
       expect(grants.rows[0]).toEqual({
         auth_sel: true,
@@ -320,8 +322,53 @@ describe.skipIf(!ADMIN_URL)(
         guard_sel: true,
         guard_del: false,
         svc_sel: true,
-        svc_upd: true,
+        svc_ins: false,
+        svc_upd: false,
+        svc_del: false,
       });
+
+      const allowedServiceUpdateColumns = [
+        "status",
+        "mime_type",
+        "content_hash",
+        "master_key",
+        "variants",
+        "byte_size",
+        "width",
+        "height",
+        "updated_at",
+        "purged_at",
+        "upload_token_expires_at",
+        "staging_swept_at",
+      ];
+      const forbiddenServiceUpdateColumns = [
+        "id",
+        "tenant_id",
+        "declared_byte_size",
+        "declared_mime_type",
+        "created_by",
+        "created_at",
+        "deleted_at",
+        "purge_after",
+      ];
+      for (const column of allowedServiceUpdateColumns) {
+        const colPriv = await db.query(
+          `select has_column_privilege('service_role', 'public.media_assets', $1, 'UPDATE') as upd`,
+          [column],
+        );
+        expect(colPriv.rows[0], `service_role UPDATE on ${column}`).toEqual({
+          upd: true,
+        });
+      }
+      for (const column of forbiddenServiceUpdateColumns) {
+        const colPriv = await db.query(
+          `select has_column_privilege('service_role', 'public.media_assets', $1, 'UPDATE') as upd`,
+          [column],
+        );
+        expect(colPriv.rows[0], `service_role UPDATE on ${column}`).toEqual({
+          upd: false,
+        });
+      }
 
       const forbiddenGuardColumns = [
         "content_hash",
@@ -370,6 +417,150 @@ describe.skipIf(!ADMIN_URL)(
         expect(row.editable).toBe(false);
         expect(row.exportable).toBe(false);
       }
+
+      const claimPolicyRows = await db.query(
+        `select field_key, surface, visible, editable, exportable, sensitivity_category
+         from public.field_policies
+        where record_type = 'media_purge_claims' and tenant_id is null`,
+      );
+      expect(claimPolicyRows.rows).toHaveLength(25);
+      for (const row of claimPolicyRows.rows) {
+        expect(row.sensitivity_category).toBe("internal");
+        expect(row.visible).toBe(false);
+        expect(row.editable).toBe(false);
+        expect(row.exportable).toBe(false);
+      }
+
+      await inTx(async () => {
+        const allowTokenExpiry = await queryAs(
+          "service_role",
+          {},
+          `update public.media_assets
+              set upload_token_expires_at = now() + interval '2 hours',
+                  staging_swept_at = null,
+                  updated_at = now()
+            where id = $1 and tenant_id = $2`,
+          [id.assetUploadingA, id.TA],
+          { keepWrite: true },
+        );
+        expect(allowTokenExpiry.code, allowTokenExpiry.message).toBeNull();
+
+        const hashC = "c".repeat(64);
+        const allowDeclare = await queryAs(
+          "service_role",
+          {},
+          `select public.declare_media_finalize($1, $2, $3, $4, $5::jsonb, 'image/png', 1024, 320, 240, now()) as res`,
+          [
+            id.TA,
+            id.assetUploadingA,
+            hashC,
+            `${id.TA}/${hashC}`,
+            JSON.stringify({
+              w320: {
+                key: `${id.TA}/${hashC}-w320`,
+                width: 320,
+                height: 240,
+                byte_size: 1024,
+                mime_type: "image/png",
+              },
+            }),
+          ],
+          { keepWrite: true },
+        );
+        expect(allowDeclare.code, allowDeclare.message).toBeNull();
+        expect((allowDeclare.rows[0]!.res as { outcome: string }).outcome).toBe(
+          "declared",
+        );
+
+        const allowPublish = await queryAs(
+          "service_role",
+          {},
+          `select public.publish_media_finalize($1, $2, $3, now()) as res`,
+          [id.TA, id.assetUploadingA, hashC],
+          { keepWrite: true },
+        );
+        expect(allowPublish.code, allowPublish.message).toBeNull();
+        expect((allowPublish.rows[0]!.res as { outcome: string }).outcome).toBe(
+          "published",
+        );
+
+        const claimToken = randomUUID();
+        const allowClaim = await queryAs(
+          "service_role",
+          {},
+          `select public.claim_media_content_purge($1, $2, $3, $4, 60) as v`,
+          [id.TA, id.assetDeletedA, "d".repeat(64), claimToken],
+          { keepWrite: true },
+        );
+        expect(allowClaim.code, allowClaim.message).toBeNull();
+        expect(allowClaim.rows[0]!.v).toBe("claimed");
+
+        const allowRelease = await queryAs(
+          "service_role",
+          {},
+          `select public.release_media_content_purge($1, $2, $3)`,
+          [id.TA, "d".repeat(64), claimToken],
+          { keepWrite: true },
+        );
+        expect(allowRelease.code, allowRelease.message).toBeNull();
+
+        const allowPurged = await queryAs(
+          "service_role",
+          {},
+          `update public.media_assets
+              set purged_at = now(), staging_swept_at = now(), updated_at = now()
+            where id = $1 and tenant_id = $2`,
+          [id.assetDeletedA, id.TA],
+        );
+        expect(allowPurged.code, allowPurged.message).toBeNull();
+
+        const forbiddenStatements: Array<[string, string, unknown[]]> = [
+          [
+            "tenant_id",
+            `update public.media_assets set tenant_id = $1 where id = $2`,
+            [id.TB, id.assetReadyA],
+          ],
+          [
+            "created_by",
+            `update public.media_assets set created_by = $1 where id = $2`,
+            [id.UStaffB, id.assetReadyA],
+          ],
+          [
+            "purge_after",
+            `update public.media_assets set purge_after = now() - interval '1 day' where id = $1`,
+            [id.assetDeletedA],
+          ],
+          [
+            "deleted_at",
+            `update public.media_assets set deleted_at = now() where id = $1`,
+            [id.assetReadyA],
+          ],
+          [
+            "declared_byte_size",
+            `update public.media_assets set declared_byte_size = 1 where id = $1`,
+            [id.assetReadyA],
+          ],
+          [
+            "declared_mime_type",
+            `update public.media_assets set declared_mime_type = 'image/png' where id = $1`,
+            [id.assetReadyA],
+          ],
+          [
+            "id",
+            `update public.media_assets set id = $1 where id = $2`,
+            [randomUUID(), id.assetReadyA],
+          ],
+          [
+            "created_at",
+            `update public.media_assets set created_at = now() where id = $1`,
+            [id.assetReadyA],
+          ],
+        ];
+        for (const [col, sql, params] of forbiddenStatements) {
+          const denied = await queryAs("service_role", {}, sql, params);
+          expect(denied.code, `service_role UPDATE ${col}`).toBe("42501");
+        }
+      });
     });
 
     it("provisions private cms-media bucket with 15 MB limit, three MIME types, and zero storage.objects policies", async () => {

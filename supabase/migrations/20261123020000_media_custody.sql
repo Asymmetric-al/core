@@ -137,7 +137,21 @@ GRANT UPDATE (
   purge_after,
   updated_at
 ) ON TABLE public.media_assets TO tenant_guard;
-GRANT SELECT, UPDATE ON TABLE public.media_assets TO service_role;
+GRANT SELECT ON TABLE public.media_assets TO service_role;
+GRANT UPDATE (
+  status,
+  mime_type,
+  content_hash,
+  master_key,
+  variants,
+  byte_size,
+  width,
+  height,
+  updated_at,
+  purged_at,
+  upload_token_expires_at,
+  staging_swept_at
+) ON TABLE public.media_assets TO service_role;
 
 CREATE POLICY media_assets_staff_select
   ON public.media_assets
@@ -889,7 +903,17 @@ BEGIN
      OR NOT pg_catalog.has_table_privilege('tenant_guard', 'public.media_assets', 'SELECT')
      OR NOT pg_catalog.has_column_privilege('tenant_guard', 'public.media_assets', 'declared_byte_size', 'INSERT')
      OR NOT pg_catalog.has_column_privilege('tenant_guard', 'public.media_assets', 'deleted_at', 'UPDATE')
-     OR pg_catalog.has_column_privilege('tenant_guard', 'public.media_assets', 'master_key', 'UPDATE') THEN
+     OR pg_catalog.has_column_privilege('tenant_guard', 'public.media_assets', 'master_key', 'UPDATE')
+     OR NOT pg_catalog.has_table_privilege('service_role', 'public.media_assets', 'SELECT')
+     OR pg_catalog.has_table_privilege('service_role', 'public.media_assets', 'UPDATE')
+     OR NOT pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'status', 'UPDATE')
+     OR NOT pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'purged_at', 'UPDATE')
+     OR pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'tenant_id', 'UPDATE')
+     OR pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'created_by', 'UPDATE')
+     OR pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'purge_after', 'UPDATE')
+     OR pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'deleted_at', 'UPDATE')
+     OR pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'declared_byte_size', 'UPDATE')
+     OR pg_catalog.has_column_privilege('service_role', 'public.media_assets', 'declared_mime_type', 'UPDATE') THEN
     RAISE EXCEPTION 'AL-2679: public.media_assets privileges did not apply as expected';
   END IF;
 
