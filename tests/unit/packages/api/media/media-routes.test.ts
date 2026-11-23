@@ -1,22 +1,14 @@
 import { randomUUID } from "node:crypto";
 
-import { NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import type { AuthContext, AuthenticatedContext } from "@asym/auth/context";
-
 import { POST as deleteMediaPost } from "@asym/api/cms/media/delete";
 import { POST as finalizeMediaPost } from "@asym/api/cms/media/finalize";
 import { POST as startMediaPost } from "@asym/api/cms/media/start";
 import { GET as mediaGet } from "@asym/api/media/route";
 import { ApiHttpError } from "@asym/api/shared/http-errors";
+import { NextRequest } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GET as adminMediaMount } from "../../../../../apps/admin/app/api/media/[assetId]/route";
-import { proxy as adminProxy } from "../../../../../apps/admin/proxy";
-import { GET as donorMediaMount } from "../../../../../apps/donor/app/api/media/[assetId]/route";
-import { proxy as donorProxy } from "../../../../../apps/donor/proxy";
-import { GET as missionaryMediaMount } from "../../../../../apps/missionary/app/api/media/[assetId]/route";
-import { proxy as missionaryProxy } from "../../../../../apps/missionary/proxy";
+import type { AuthContext, AuthenticatedContext } from "@asym/auth/context";
 
 const mocks = vi.hoisted(() => ({
   getAuthContext: vi.fn(),
@@ -612,6 +604,22 @@ describe("surface proxy + /api/media/[assetId] route mount end-to-end", () => {
   });
 
   it("runs missionary, donor and admin proxies before their mounted /api/media/[assetId] handlers, denying missionary/donor sessions with 404 and admitting staff with 200", async () => {
+    const [
+      { proxy: missionaryProxy },
+      { GET: missionaryMediaMount },
+      { proxy: donorProxy },
+      { GET: donorMediaMount },
+      { proxy: adminProxy },
+      { GET: adminMediaMount },
+    ] = await Promise.all([
+      import("../../../../../apps/missionary/proxy"),
+      import("../../../../../apps/missionary/app/api/media/[assetId]/route"),
+      import("../../../../../apps/donor/proxy"),
+      import("../../../../../apps/donor/app/api/media/[assetId]/route"),
+      import("../../../../../apps/admin/proxy"),
+      import("../../../../../apps/admin/app/api/media/[assetId]/route"),
+    ]);
+
     const surfaces = [
       {
         name: "missionary",

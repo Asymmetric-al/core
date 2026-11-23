@@ -1,12 +1,5 @@
 import { randomUUID } from "node:crypto";
 
-import { createServerClient } from "@supabase/ssr";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { NextRequest } from "next/server";
-import pg from "pg";
-import sharp from "sharp";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-
 import { POST as deleteMediaPost } from "@asym/api/cms/media/delete";
 import { POST as finalizeMediaPost } from "@asym/api/cms/media/finalize";
 import { POST as startMediaPost } from "@asym/api/cms/media/start";
@@ -23,11 +16,12 @@ import {
   finalizeMediaUpload,
   purgeExpiredMedia,
 } from "@asym/api/storage/media-store";
-
-import { GET as donorMediaMount } from "../../../../apps/donor/app/api/media/[assetId]/route";
-import { proxy as donorProxy } from "../../../../apps/donor/proxy";
-import { GET as missionaryMediaMount } from "../../../../apps/missionary/app/api/media/[assetId]/route";
-import { proxy as missionaryProxy } from "../../../../apps/missionary/proxy";
+import { createServerClient } from "@supabase/ssr";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { NextRequest } from "next/server";
+import pg from "pg";
+import sharp from "sharp";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { AuthenticatedContext } from "@asym/auth/context";
 
@@ -1081,6 +1075,18 @@ describe.skipIf(!required && !configured)(
         { params: Promise.resolve({ assetId: assetA.id }) },
       );
       expect(originalRefused.status).toBe(404);
+
+      const [
+        { proxy: missionaryProxy },
+        { GET: missionaryMediaMount },
+        { proxy: donorProxy },
+        { GET: donorMediaMount },
+      ] = await Promise.all([
+        import("../../../../apps/missionary/proxy"),
+        import("../../../../apps/missionary/app/api/media/[assetId]/route"),
+        import("../../../../apps/donor/proxy"),
+        import("../../../../apps/donor/app/api/media/[assetId]/route"),
+      ]);
 
       const missionaryIncoming = new NextRequest(
         `http://127.0.0.1:3002/api/media/${assetA.id}`,
