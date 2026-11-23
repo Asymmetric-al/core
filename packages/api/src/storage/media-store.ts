@@ -14,6 +14,7 @@ import {
   isMediaVariantName,
   MEDIA_BUCKET,
   MEDIA_MAX_BYTES,
+  MEDIA_MAX_CONCURRENT_TRANSFORMS,
   MEDIA_MAX_PIXELS,
   MEDIA_MAX_VARIANT_BYTES,
   MEDIA_VARIANT_DESCENDING_ORDER,
@@ -26,6 +27,89 @@ import {
 import { ApiHttpError } from "../shared/api-http-error";
 
 import type { AuthenticatedContext } from "@asym/auth/context";
+
+sharp.cache(false);
+
+let activeMediaTransforms = 0;
+const mediaTransformWaiters: Array<() => void> = [];
+
+async function withMediaTransformSlot<T>(fn: () => Promise<T>): Promise<T> {
+  if (activeMediaTransforms >= MEDIA_MAX_CONCURRENT_TRANSFORMS) {
+    await new Promise<void>((resolve) => {
+      mediaTransformWaiters.push(resolve);
+    });
+  }
+  activeMediaTransforms += 1;
+  try {
+    return await fn();
+  } finally {
+    activeMediaTransforms -= 1;
+    const next = mediaTransformWaiters.shift();
+    if (next) {
+      next();
+    }
+  }
+}
+
+function createBoundedMediaStream(
+  upstream: ReadableStream<Uint8Array>,
+  maxBytes: number,
+): ReadableStream<Uint8Array> {
+  let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
+  let totalBytes = 0;
+  return new ReadableStream<Uint8Array>({
+    start() {
+      reader = upstream.getReader();
+    },
+    async pull(controller) {
+      if (!reader) {
+        controller.close();
+        return;
+      }
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          controller.close();
+          reader.releaseLock();
+          reader = null;
+          return;
+        }
+        if (value) {
+          totalBytes += value.byteLength;
+          if (totalBytes > maxBytes) {
+            await reader
+              .cancel("Media variant exceeded maximum byte ceiling")
+              .catch(() => undefined);
+            reader.releaseLock();
+            reader = null;
+            controller.error(
+              new ApiHttpError(
+                502,
+                "Media variant exceeded maximum byte ceiling",
+              ),
+            );
+            return;
+          }
+          controller.enqueue(value);
+        }
+      } catch (error) {
+        if (reader) {
+          await reader.cancel(error).catch(() => undefined);
+          reader.releaseLock();
+          reader = null;
+        }
+        controller.error(error);
+      }
+    },
+    async cancel(reason) {
+      if (reader) {
+        await reader.cancel(reason).catch(() => undefined);
+        reader.releaseLock();
+        reader = null;
+      }
+    },
+  });
+}
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -110,7 +194,7 @@ export type ReadMediaVariantResult =
     }
   | {
       notModified: false;
-      bytes: Buffer;
+      stream: ReadableStream<Uint8Array>;
       byteSize: number;
       etag: string;
       mimeType: MediaMimeType;
@@ -583,150 +667,164 @@ export async function finalizeMediaUpload(
   }
 
   const stagingPath = buildMediaStagingKey(tenantId, assetId);
-  let shouldCleanStaging = false;
 
-  try {
-    const { data: stagedBlob, error: downloadError } = await admin.storage
-      .from(MEDIA_BUCKET)
-      .download(stagingPath);
-
-    if (downloadError || !stagedBlob) {
-      const reread = await fetchMediaAssetRow(admin, tenantId, assetId);
-      if (reread?.status === "ready") {
-        return toMediaAssetRecord(reread);
-      }
-      if (!reread || reread.status !== "uploading") {
-        throw new ApiHttpError(404, "Media asset not found");
-      }
-      await markFailedIfUploading(admin, tenantId, assetId);
-      const afterFail = await fetchMediaAssetRow(admin, tenantId, assetId);
-      if (afterFail?.status === "ready") {
-        return toMediaAssetRecord(afterFail);
-      }
-      throw new ApiHttpError(400, "Uploaded media object is missing");
+  return withMediaTransformSlot(async () => {
+    const current = await fetchMediaAssetRow(admin, tenantId, assetId);
+    if (!current) {
+      throw new ApiHttpError(404, "Media asset not found");
+    }
+    if (current.status === "ready") {
+      return toMediaAssetRecord(current);
+    }
+    if (current.status !== "uploading") {
+      throw new ApiHttpError(404, "Media asset not found");
     }
 
-    shouldCleanStaging = true;
-    const rawBytes = Buffer.from(await stagedBlob.arrayBuffer());
-
-    let sanitizedMaster: Awaited<ReturnType<typeof sanitizeMasterImage>>;
-    try {
-      sanitizedMaster = await sanitizeMasterImage(rawBytes);
-    } catch (error) {
-      await markFailedIfUploading(admin, tenantId, assetId);
-      throw error;
-    }
-
-    const masterKey = buildMediaMasterKey(
-      tenantId,
-      sanitizedMaster.contentHash,
-    );
-    const variantNames = selectBoundedVariantWidths(sanitizedMaster.width);
-    const encodedVariants: Array<{
-      name: MediaVariantName;
-      key: string;
-      bytes: Buffer;
-      width: number;
-      height: number;
-      mimeType: MediaMimeType;
-    }> = [];
+    let shouldCleanStaging = false;
 
     try {
-      for (const name of variantNames) {
-        const encoded = await encodeBoundedVariant(
-          sanitizedMaster.bytes,
-          sanitizedMaster.mimeType,
-          MEDIA_VARIANT_WIDTHS[name],
-        );
-        encodedVariants.push({
-          name,
-          key: buildMediaVariantKey(
-            tenantId,
-            sanitizedMaster.contentHash,
+      const { data: stagedBlob, error: downloadError } = await admin.storage
+        .from(MEDIA_BUCKET)
+        .download(stagingPath);
+
+      if (downloadError || !stagedBlob) {
+        const reread = await fetchMediaAssetRow(admin, tenantId, assetId);
+        if (reread?.status === "ready") {
+          return toMediaAssetRecord(reread);
+        }
+        if (!reread || reread.status !== "uploading") {
+          throw new ApiHttpError(404, "Media asset not found");
+        }
+        await markFailedIfUploading(admin, tenantId, assetId);
+        const afterFail = await fetchMediaAssetRow(admin, tenantId, assetId);
+        if (afterFail?.status === "ready") {
+          return toMediaAssetRecord(afterFail);
+        }
+        throw new ApiHttpError(400, "Uploaded media object is missing");
+      }
+
+      shouldCleanStaging = true;
+      const rawBytes = Buffer.from(await stagedBlob.arrayBuffer());
+
+      let sanitizedMaster: Awaited<ReturnType<typeof sanitizeMasterImage>>;
+      try {
+        sanitizedMaster = await sanitizeMasterImage(rawBytes);
+      } catch (error) {
+        await markFailedIfUploading(admin, tenantId, assetId);
+        throw error;
+      }
+
+      const masterKey = buildMediaMasterKey(
+        tenantId,
+        sanitizedMaster.contentHash,
+      );
+      const variantNames = selectBoundedVariantWidths(sanitizedMaster.width);
+      const encodedVariants: Array<{
+        name: MediaVariantName;
+        key: string;
+        bytes: Buffer;
+        width: number;
+        height: number;
+        mimeType: MediaMimeType;
+      }> = [];
+
+      try {
+        for (const name of variantNames) {
+          const encoded = await encodeBoundedVariant(
+            sanitizedMaster.bytes,
+            sanitizedMaster.mimeType,
+            MEDIA_VARIANT_WIDTHS[name],
+          );
+          encodedVariants.push({
             name,
-          ),
-          bytes: encoded.bytes,
-          width: encoded.width,
-          height: encoded.height,
-          mimeType: encoded.mimeType,
-        });
+            key: buildMediaVariantKey(
+              tenantId,
+              sanitizedMaster.contentHash,
+              name,
+            ),
+            bytes: encoded.bytes,
+            width: encoded.width,
+            height: encoded.height,
+            mimeType: encoded.mimeType,
+          });
+        }
+      } catch (error) {
+        await markFailedIfUploading(admin, tenantId, assetId);
+        throw error;
       }
-    } catch (error) {
-      await markFailedIfUploading(admin, tenantId, assetId);
-      throw error;
-    }
 
-    await uploadObjectIfAbsent(
-      admin,
-      masterKey,
-      sanitizedMaster.bytes,
-      sanitizedMaster.mimeType,
-    );
-    for (const variant of encodedVariants) {
       await uploadObjectIfAbsent(
         admin,
-        variant.key,
-        variant.bytes,
-        variant.mimeType,
+        masterKey,
+        sanitizedMaster.bytes,
+        sanitizedMaster.mimeType,
       );
-    }
+      for (const variant of encodedVariants) {
+        await uploadObjectIfAbsent(
+          admin,
+          variant.key,
+          variant.bytes,
+          variant.mimeType,
+        );
+      }
 
-    await verifyStoredObjectMetadata(admin, masterKey);
-    for (const variant of encodedVariants) {
-      await verifyStoredObjectMetadata(admin, variant.key);
-    }
+      await verifyStoredObjectMetadata(admin, masterKey);
+      for (const variant of encodedVariants) {
+        await verifyStoredObjectMetadata(admin, variant.key);
+      }
 
-    const variantsJson: Record<string, StoredVariantJson> = {};
-    for (const variant of encodedVariants) {
-      variantsJson[variant.name] = {
-        key: variant.key,
-        width: variant.width,
-        height: variant.height,
-        byte_size: variant.bytes.byteLength,
-        mime_type: variant.mimeType,
-      };
-    }
+      const variantsJson: Record<string, StoredVariantJson> = {};
+      for (const variant of encodedVariants) {
+        variantsJson[variant.name] = {
+          key: variant.key,
+          width: variant.width,
+          height: variant.height,
+          byte_size: variant.bytes.byteLength,
+          mime_type: variant.mimeType,
+        };
+      }
 
-    const { data: updated, error: updateError } = await admin
-      .from("media_assets")
-      .update({
-        status: "ready",
-        mime_type: sanitizedMaster.mimeType,
-        content_hash: sanitizedMaster.contentHash,
-        master_key: masterKey,
-        variants: variantsJson,
-        byte_size: sanitizedMaster.bytes.byteLength,
-        width: sanitizedMaster.width,
-        height: sanitizedMaster.height,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", assetId)
-      .eq("tenant_id", tenantId)
-      .eq("status", "uploading")
-      .select("*")
-      .maybeSingle();
+      const { data: updated, error: updateError } = await admin
+        .from("media_assets")
+        .update({
+          status: "ready",
+          mime_type: sanitizedMaster.mimeType,
+          content_hash: sanitizedMaster.contentHash,
+          master_key: masterKey,
+          variants: variantsJson,
+          byte_size: sanitizedMaster.bytes.byteLength,
+          width: sanitizedMaster.width,
+          height: sanitizedMaster.height,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", assetId)
+        .eq("tenant_id", tenantId)
+        .eq("status", "uploading")
+        .select("*")
+        .maybeSingle();
 
-    if (updateError) {
-      throw new ApiHttpError(500, "Failed to finalize media asset custody");
-    }
+      if (updateError) {
+        throw new ApiHttpError(500, "Failed to finalize media asset custody");
+      }
 
-    if (updated) {
-      return toMediaAssetRecord(updated as MediaAssetRow);
-    }
+      if (updated) {
+        return toMediaAssetRecord(updated as MediaAssetRow);
+      }
 
-    const raced = await fetchMediaAssetRow(admin, tenantId, assetId);
-    if (raced?.status === "ready") {
-      return toMediaAssetRecord(raced);
+      const raced = await fetchMediaAssetRow(admin, tenantId, assetId);
+      if (raced?.status === "ready") {
+        return toMediaAssetRecord(raced);
+      }
+      throw new ApiHttpError(404, "Media asset not found");
+    } finally {
+      if (shouldCleanStaging) {
+        await admin.storage
+          .from(MEDIA_BUCKET)
+          .remove([stagingPath])
+          .catch(() => undefined);
+      }
     }
-    throw new ApiHttpError(404, "Media asset not found");
-  } finally {
-    if (shouldCleanStaging) {
-      await admin.storage
-        .from(MEDIA_BUCKET)
-        .remove([stagingPath])
-        .catch(() => undefined);
-    }
-  }
+  });
 }
 
 export async function readMediaVariant(
@@ -794,18 +892,22 @@ export async function readMediaVariant(
     };
   }
 
-  const { data: blob, error } = await admin.storage
+  if (selectedEntry.byteSize > MEDIA_MAX_VARIANT_BYTES) {
+    throw new ApiHttpError(502, "Media variant exceeds maximum byte ceiling");
+  }
+
+  const { data: upstream, error } = await admin.storage
     .from(MEDIA_BUCKET)
-    .download(selectedEntry.key);
-  if (error || !blob) {
+    .download(selectedEntry.key)
+    .asStream();
+  if (error || !upstream) {
     throw new ApiHttpError(404, "Media variant not found");
   }
 
-  const bytes = Buffer.from(await blob.arrayBuffer());
   return {
     notModified: false,
-    bytes,
-    byteSize: bytes.byteLength,
+    stream: createBoundedMediaStream(upstream, MEDIA_MAX_VARIANT_BYTES),
+    byteSize: selectedEntry.byteSize,
     etag,
     mimeType: selectedEntry.mimeType,
     variant: selectedName,

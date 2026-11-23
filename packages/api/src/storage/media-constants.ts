@@ -6,6 +6,8 @@ export const MEDIA_MAX_PIXELS = 25_000_000;
 
 export const MEDIA_MAX_VARIANT_BYTES = 4 * 1024 * 1024;
 
+export const MEDIA_MAX_CONCURRENT_TRANSFORMS = 1;
+
 export const MEDIA_PURGE_DELAY_DAYS = 35;
 
 export const MEDIA_ALLOWED_MIME_TYPES = [

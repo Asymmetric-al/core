@@ -173,9 +173,16 @@ describe("signed-in media GET route (/api/media/[assetId])", () => {
     });
     mocks.getAuthContext.mockResolvedValue(authA);
     const bytes = Buffer.from([1, 2, 3, 4]);
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array(bytes.subarray(0, 2)));
+        controller.enqueue(new Uint8Array(bytes.subarray(2)));
+        controller.close();
+      },
+    });
     mocks.readMediaVariant.mockResolvedValue({
       notModified: false,
-      bytes,
+      stream,
       byteSize: bytes.byteLength,
       etag: '"abc123-w960"',
       mimeType: "image/webp",

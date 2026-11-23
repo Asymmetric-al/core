@@ -186,7 +186,7 @@ export async function GET(
       });
     }
 
-    return new NextResponse(new Uint8Array(result.bytes), {
+    return new NextResponse(result.stream, {
       status: 200,
       headers: {
         ...PRIVATE_NO_CACHE_HEADERS,

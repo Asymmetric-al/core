@@ -71,8 +71,11 @@ const fakeState = vi.hoisted(() => ({
   removeCalls: [] as string[][],
   signedUploadCalls: [] as string[],
   downloadCalls: [] as string[],
+  streamDownloadCalls: [] as string[],
   onBeforeCasUpdate: null as null | ((id: string) => void),
-  onBeforeStagingDownload: null as null | ((path: string) => void),
+  onBeforeStagingDownload: null as
+    null | ((path: string) => void | Promise<void>),
+  onAfterUpload: null as null | ((path: string) => void),
 }));
 
 function matchesFilters(
@@ -211,23 +214,81 @@ function createFakeAdminClient() {
               error: null,
             };
           },
-          async download(objectPath: string) {
-            fakeState.downloadCalls.push(objectPath);
-            if (objectPath.startsWith("tmp/")) {
-              fakeState.onBeforeStagingDownload?.(objectPath);
-            }
-            const stored = fakeState.objects.get(objectPath);
-            if (!stored) {
+          download(objectPath: string) {
+            const executeBlob = async () => {
+              fakeState.downloadCalls.push(objectPath);
+              if (objectPath.startsWith("tmp/")) {
+                await fakeState.onBeforeStagingDownload?.(objectPath);
+              }
+              const stored = fakeState.objects.get(objectPath);
+              if (!stored) {
+                return {
+                  data: null,
+                  error: { message: "Object not found", statusCode: "404" },
+                };
+              }
               return {
-                data: null,
-                error: { message: "Object not found", statusCode: "404" },
+                data: new Blob([new Uint8Array(stored.bytes)], {
+                  type: stored.contentType,
+                }),
+                error: null,
               };
-            }
+            };
+            const executeStream = async () => {
+              fakeState.streamDownloadCalls.push(objectPath);
+              const stored = fakeState.objects.get(objectPath);
+              if (!stored) {
+                return {
+                  data: null,
+                  error: { message: "Object not found", statusCode: "404" },
+                };
+              }
+              const chunkSize = Math.max(
+                1,
+                Math.ceil(stored.bytes.byteLength / 3),
+              );
+              const stream = new ReadableStream<Uint8Array>({
+                start(controller) {
+                  for (
+                    let offset = 0;
+                    offset < stored.bytes.byteLength;
+                    offset += chunkSize
+                  ) {
+                    controller.enqueue(
+                      new Uint8Array(
+                        stored.bytes.subarray(
+                          offset,
+                          Math.min(offset + chunkSize, stored.bytes.byteLength),
+                        ),
+                      ),
+                    );
+                  }
+                  controller.close();
+                },
+              });
+              return { data: stream, error: null };
+            };
+            let blobPromise: ReturnType<typeof executeBlob> | null = null;
+            const getBlobPromise = () => {
+              blobPromise ??= executeBlob();
+              return blobPromise;
+            };
             return {
-              data: new Blob([new Uint8Array(stored.bytes)], {
-                type: stored.contentType,
-              }),
-              error: null,
+              asStream() {
+                return executeStream();
+              },
+              then<TResult1 = unknown, TResult2 = never>(
+                onfulfilled?:
+                  | ((
+                      value: Awaited<ReturnType<typeof executeBlob>>,
+                    ) => TResult1 | PromiseLike<TResult1>)
+                  | null,
+                onrejected?:
+                  | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
+                  | null,
+              ) {
+                return getBlobPromise().then(onfulfilled, onrejected);
+              },
             };
           },
           async upload(
@@ -251,6 +312,7 @@ function createFakeAdminClient() {
               contentType: options?.contentType ?? "application/octet-stream",
               version: (prev?.version ?? 0) + 1,
             });
+            fakeState.onAfterUpload?.(objectPath);
             return { data: { path: objectPath }, error: null };
           },
           async remove(paths: string[]) {
@@ -398,8 +460,10 @@ describe("media-store custody and Sharp sanitization", () => {
     fakeState.removeCalls = [];
     fakeState.signedUploadCalls = [];
     fakeState.downloadCalls = [];
+    fakeState.streamDownloadCalls = [];
     fakeState.onBeforeCasUpdate = null;
     fakeState.onBeforeStagingDownload = null;
+    fakeState.onAfterUpload = null;
   });
 
   it("binds issueSignedUpload, finalizeMediaUpload and readMediaVariant to auth.tenantId and refuses foreign tenant assets", async () => {
@@ -894,29 +958,51 @@ describe("media-store custody and Sharp sanitization", () => {
     });
     const ready = await finalizeMediaUpload(authA, { assetId });
 
+    const blobDownloadsBeforeRead = fakeState.downloadCalls.length;
     const defaultRead = await readMediaVariant(authA, { assetId });
     expect(defaultRead.notModified).toBe(false);
     expect(defaultRead.variant).toBe("w960");
     if (!defaultRead.notModified) {
+      expect(fakeState.streamDownloadCalls).toContain(ready.variants.w960!.key);
+      expect(fakeState.downloadCalls.length).toBe(blobDownloadsBeforeRead);
+      const streamed = Buffer.from(
+        await new Response(defaultRead.stream).arrayBuffer(),
+      );
       expect(
-        defaultRead.bytes.equals(
-          fakeState.objects.get(ready.variants.w960!.key)!.bytes,
-        ),
+        streamed.equals(fakeState.objects.get(ready.variants.w960!.key)!.bytes),
       ).toBe(true);
       expect(
-        defaultRead.bytes.equals(
-          fakeState.objects.get(ready.masterKey!)!.bytes,
-        ),
+        streamed.equals(fakeState.objects.get(ready.masterKey!)!.bytes),
       ).toBe(false);
     }
 
-    const downloadsBefore304 = fakeState.downloadCalls.length;
+    const oversizedKey = ready.variants.w320!.key;
+    fakeState.objects.set(oversizedKey, {
+      bytes: Buffer.alloc(MEDIA_MAX_VARIANT_BYTES + 1024, 0x11),
+      contentType: "image/webp",
+      version: 2,
+    });
+    const oversizedRead = await readMediaVariant(authA, {
+      assetId,
+      variant: "w320",
+    });
+    expect(oversizedRead.notModified).toBe(false);
+    if (!oversizedRead.notModified) {
+      await expect(
+        new Response(oversizedRead.stream).arrayBuffer(),
+      ).rejects.toThrow();
+    }
+
+    const downloadsBefore304 =
+      fakeState.downloadCalls.length + fakeState.streamDownloadCalls.length;
     const cached = await readMediaVariant(authA, {
       assetId,
       ifNoneMatch: defaultRead.etag,
     });
     expect(cached.notModified).toBe(true);
-    expect(fakeState.downloadCalls.length).toBe(downloadsBefore304);
+    expect(
+      fakeState.downloadCalls.length + fakeState.streamDownloadCalls.length,
+    ).toBe(downloadsBefore304);
 
     const smallRead = await readMediaVariant(authA, {
       assetId,
@@ -929,6 +1015,56 @@ describe("media-store custody and Sharp sanitization", () => {
         readMediaVariant(authA, { assetId, variant: invalidVariant }),
       ).rejects.toMatchObject({ status: 404 });
     }
+  });
+
+  it("serializes overlapping Sharp finalizes per instance so at most one transform runs at a time", async () => {
+    const img1 = await createDirtyJpeg(400, 300);
+    const img2 = await createDirtyJpeg(420, 310);
+    const id1 = randomUUID();
+    const id2 = randomUUID();
+    fakeState.rows.set(id1, makeRow({ id: id1, tenant_id: tenantA }));
+    fakeState.rows.set(id2, makeRow({ id: id2, tenant_id: tenantA }));
+    fakeState.objects.set(buildMediaStagingKey(tenantA, id1), {
+      bytes: img1,
+      contentType: "image/jpeg",
+      version: 1,
+    });
+    fakeState.objects.set(buildMediaStagingKey(tenantA, id2), {
+      bytes: img2,
+      contentType: "image/jpeg",
+      version: 1,
+    });
+
+    let activeDownloads = 0;
+    let maxActiveDownloads = 0;
+    let releaseFirst!: () => void;
+    const firstEntered = new Promise<void>((resolve) => {
+      let seen = 0;
+      fakeState.onBeforeStagingDownload = async () => {
+        seen += 1;
+        activeDownloads += 1;
+        maxActiveDownloads = Math.max(maxActiveDownloads, activeDownloads);
+        if (seen === 1) {
+          resolve();
+          await new Promise<void>((r) => {
+            releaseFirst = r;
+          });
+        }
+        activeDownloads -= 1;
+      };
+    });
+
+    const p1 = finalizeMediaUpload(authA, { assetId: id1 });
+    await firstEntered;
+    const p2 = finalizeMediaUpload(authA, { assetId: id2 });
+    await new Promise((r) => setTimeout(r, 40));
+    expect(maxActiveDownloads).toBe(1);
+    releaseFirst();
+
+    const [r1, r2] = await Promise.all([p1, p2]);
+    expect(r1.status).toBe("ready");
+    expect(r2.status).toBe("ready");
+    expect(maxActiveDownloads).toBe(1);
   });
 
   it("purges only past purge_after, preserves shared content_hash objects, cleans uploading staging, and honors live-use hook", async () => {
