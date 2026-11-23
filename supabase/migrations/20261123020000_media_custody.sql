@@ -1,8 +1,10 @@
 -- AL-2679 (WP6 part 1; plan 4, 5.4, 6.6, 7.1, 12 WP6; rulings W6-R1, W6-R2,
--- W6-R4): Core media custody table (`public.media_assets`), field-policy
--- classification (20 columns x 5 surfaces = 100 rows), private Storage bucket
--- `cms-media`, `tenant_guard` upload-start and delete human commands, and the
--- silent staff media-access lookup for `/api/media/[assetId]`.
+-- W6-R4): Core media custody table (`public.media_assets`), purge claim lease
+-- table (`public.media_purge_claims`), field-policy classification (20 columns
+-- x 5 surfaces = 100 rows for media_assets; 5 columns x 5 surfaces = 25 rows
+-- for media_purge_claims), private Storage bucket `cms-media`, `tenant_guard`
+-- upload-start and delete human commands, and the silent staff media-access
+-- lookup for `/api/media/[assetId]`.
 --
 -- Purge delay: `35 days` (`INTERVAL '35 days'`), strictly longer than
 -- Supabase's 7-day daily backup window and maximum 30-day point-in-time
@@ -21,6 +23,7 @@
 --   DROP FUNCTION tenant_guard.delete_media_asset(UUID, UUID);
 --   DROP FUNCTION public.start_media_upload(UUID, BIGINT, TEXT);
 --   DROP FUNCTION tenant_guard.start_media_upload(UUID, BIGINT, TEXT);
+--   DELETE FROM public.field_policies WHERE record_type = 'media_purge_claims' AND tenant_id IS NULL;
 --   DROP TABLE public.media_purge_claims;
 --   DELETE FROM public.field_policies WHERE record_type = 'media_assets' AND tenant_id IS NULL;
 --   DROP TABLE public.media_assets;
@@ -220,6 +223,35 @@ FROM (
     ('media_assets', 'purged_at', 'internal'),
     ('media_assets', 'upload_token_expires_at', 'internal'),
     ('media_assets', 'staging_swept_at', 'internal')
+) AS fields (record_type, field_key, category)
+CROSS JOIN pg_catalog.unnest(
+  ARRAY['mission_control', 'donor', 'missionary', 'public', 'export']
+) AS surface;
+
+INSERT INTO public.field_policies (
+  record_type,
+  field_key,
+  surface,
+  visible,
+  editable,
+  exportable,
+  sensitivity_category
+)
+SELECT
+  fields.record_type,
+  fields.field_key,
+  surface,
+  false,
+  false,
+  false,
+  fields.category::public.field_sensitivity_category
+FROM (
+  VALUES
+    ('media_purge_claims', 'tenant_id', 'internal'),
+    ('media_purge_claims', 'content_hash', 'internal'),
+    ('media_purge_claims', 'claim_token', 'internal'),
+    ('media_purge_claims', 'claimed_at', 'internal'),
+    ('media_purge_claims', 'expires_at', 'internal')
 ) AS fields (record_type, field_key, category)
 CROSS JOIN pg_catalog.unnest(
   ARRAY['mission_control', 'donor', 'missionary', 'public', 'export']
