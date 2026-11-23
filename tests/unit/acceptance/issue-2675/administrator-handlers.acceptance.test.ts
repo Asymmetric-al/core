@@ -290,11 +290,11 @@ const FAMILIES: Family[] = [
     member("staff", "finance", true),
   ],
   [
-    "member list (plan 5.4: manage members)",
-    "requires people.manage_members",
+    "member list (plan 5.1, R3: read-only directory for all live staff)",
+    "requires a staff membership",
     () => usersGET(url("/api/admin/users?limit=10")),
+    member("missionary"),
     member("staff", "development"),
-    member("staff", "development", true),
   ],
   [
     "CRM",

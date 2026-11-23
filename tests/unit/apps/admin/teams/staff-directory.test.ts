@@ -1,19 +1,22 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-  STAFF_ROLE_LABELS,
+  STAFF_SUBROLE_OPTIONS,
+  loadStaffAccounts,
+  memberRowKey,
   staffRoleLabel,
 } from "../../../../../apps/admin/app/(app)/admin/teams/staff-directory";
 
-describe("staffRoleLabel", () => {
-  it("labels staff accounts by their staff sub-role, in Mission Control's own words", () => {
-    // The `development` sub-role is what Mission Control calls Fundraising,
-    // and `mobilizer` is Mobilizers (`packages/lib/mission-control/roles.ts`;
-    // the users list files them under its `fundraising` and `mobilizers`
-    // labels). The directory does not add a second word for either.
+describe("staff-directory", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("labels staff accounts by their sub-role, administrators as Administrator, and missionaries as Missionary", () => {
     expect(
       staffRoleLabel({
         id: "staff-1",
+        membership_id: "m-1",
         role: "staff",
         staff_role: "development",
       }),
@@ -21,35 +24,91 @@ describe("staffRoleLabel", () => {
     expect(
       staffRoleLabel({
         id: "staff-2",
+        membership_id: "m-2",
         role: "staff",
         staff_role: "mobilizer",
       }),
     ).toBe("Mobilizers");
-  });
-
-  it("keeps the list's filter labels apart from the sub-roles it shows", () => {
-    // One request goes out for each key of STAFF_ROLE_LABELS, so a sub-role's
-    // name must not become a key: it would ask the list for the same people
-    // twice.
-    expect(Object.keys(STAFF_ROLE_LABELS).sort()).toEqual([
-      "admin",
-      "events",
-      "finance",
-      "fundraising",
-      "member_care",
-      "mobilizers",
-      "staff",
-      "super_admin",
-    ]);
-  });
-
-  it("keeps tenant administrators labelled as administrators", () => {
+    expect(
+      staffRoleLabel({
+        id: "staff-3",
+        membership_id: "m-3",
+        role: "staff",
+        staff_role: "hr",
+      }),
+    ).toBe("HR");
     expect(
       staffRoleLabel({
         id: "admin-1",
+        membership_id: "m-4",
         role: "admin",
         staff_role: "finance",
+        is_tenant_admin: true,
       }),
     ).toBe("Administrator");
+    expect(
+      staffRoleLabel({
+        id: "miss-1",
+        membership_id: "m-5",
+        role: "missionary",
+        staff_role: null,
+      }),
+    ).toBe("Missionary");
+  });
+
+  it("exposes all five staff sub-role options", () => {
+    expect(STAFF_SUBROLE_OPTIONS.map((option) => option.value).sort()).toEqual([
+      "development",
+      "finance",
+      "hr",
+      "member_care",
+      "mobilizer",
+    ]);
+  });
+
+  it("keys rows by membership_id so one person with two memberships is never collapsed", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        users: [
+          {
+            id: "person-1",
+            membership_id: "mem-staff",
+            display_name: "Alex Dual",
+            email: "alex@example.org",
+            role: "staff",
+            staff_role: "finance",
+            is_tenant_admin: false,
+            updated_at: "2026-11-23T09:00:00.000Z",
+          },
+          {
+            id: "person-1",
+            membership_id: "mem-missionary",
+            display_name: "Alex Dual",
+            email: "alex@example.org",
+            role: "missionary",
+            staff_role: null,
+            is_tenant_admin: false,
+            updated_at: "2026-11-23T09:00:01.000Z",
+          },
+          {
+            id: "donor-1",
+            membership_id: "mem-donor",
+            display_name: "Dana Donor",
+            email: "dana@example.org",
+            role: "donor",
+            staff_role: null,
+            is_tenant_admin: false,
+            updated_at: "2026-11-23T09:00:02.000Z",
+          },
+        ],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const rows = await loadStaffAccounts(new AbortController().signal);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(rows.map(memberRowKey)).toEqual(["mem-staff", "mem-missionary"]);
+    expect(rows.map(staffRoleLabel)).toEqual(["Finance", "Missionary"]);
   });
 });

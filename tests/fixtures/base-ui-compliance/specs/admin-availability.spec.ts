@@ -10,9 +10,10 @@ test("Administration lists only working settings and fits narrow screens", async
 
   for (const width of [320, 1440]) {
     await page.setViewportSize({ width, height: 900 });
-    await expect(
-      scope.getByRole("link", { name: /^Staff directory/ }),
-    ).toHaveAttribute("href", "/admin/teams");
+    await expect(scope.getByRole("link", { name: /^Members/ })).toHaveAttribute(
+      "href",
+      "/admin/teams",
+    );
     await expect(
       scope.getByRole("link", { name: /^Email delivery/ }),
     ).toHaveAttribute("href", "/settings/integrations/resend");

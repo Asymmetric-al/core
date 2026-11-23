@@ -26,6 +26,8 @@ interface MCContextValue {
   user: User | null;
   tenant: Tenant | null;
   role: Role;
+  canManageMembers: boolean;
+  currentMembershipId: string | null;
   setRole: (role: Role) => void;
   isDevMode: boolean;
   sidebarCollapsed: boolean;
@@ -38,6 +40,8 @@ type MCState = {
   user: User | null;
   tenant: Tenant | null;
   role: Role;
+  canManageMembers: boolean;
+  currentMembershipId: string | null;
   sidebarCollapsed: boolean;
   loading: boolean;
 };
@@ -50,6 +54,8 @@ const INITIAL_MC_STATE: MCState = {
   // id that could be sent to Eve as the signed-in organization.
   tenant: null,
   role: "admin",
+  canManageMembers: true,
+  currentMembershipId: null,
   sidebarCollapsed: false,
   loading: false,
 };
@@ -69,6 +75,9 @@ function createInitialMCState(initialState?: MCBootstrapState | null): MCState {
     user: initialState.user,
     tenant: initialState.tenant ?? null,
     role: initialState.role,
+    canManageMembers:
+      initialState.canManageMembers ?? initialState.role === "admin",
+    currentMembershipId: initialState.currentMembershipId ?? null,
     sidebarCollapsed: false,
     loading: false,
   };
@@ -77,7 +86,11 @@ function createInitialMCState(initialState?: MCBootstrapState | null): MCState {
 function mcReducer(state: MCState, action: MCAction): MCState {
   switch (action.type) {
     case "setRole":
-      return { ...state, role: action.role };
+      return {
+        ...state,
+        role: action.role,
+        canManageMembers: action.role === "admin",
+      };
     case "setSidebarCollapsed":
       return { ...state, sidebarCollapsed: action.collapsed };
     case "setSignedOut":
@@ -85,6 +98,8 @@ function mcReducer(state: MCState, action: MCAction): MCState {
         ...state,
         user: null,
         role: "admin",
+        canManageMembers: false,
+        currentMembershipId: null,
         loading: false,
       };
     case "setLoadingComplete":
@@ -106,7 +121,15 @@ export function MCProvider({
     initialState,
     createInitialMCState,
   );
-  const { user, tenant, role, sidebarCollapsed, loading } = state;
+  const {
+    user,
+    tenant,
+    role,
+    canManageMembers,
+    currentMembershipId,
+    sidebarCollapsed,
+    loading,
+  } = state;
   const isDevMode = runtimeEnvFlags.NODE_ENV === "development";
   const currentUserRef = useRef(user);
 
@@ -165,6 +188,8 @@ export function MCProvider({
       user,
       tenant,
       role,
+      canManageMembers,
+      currentMembershipId,
       setRole,
       isDevMode,
       sidebarCollapsed,
@@ -176,6 +201,8 @@ export function MCProvider({
       user,
       tenant,
       role,
+      canManageMembers,
+      currentMembershipId,
       setRole,
       isDevMode,
       sidebarCollapsed,

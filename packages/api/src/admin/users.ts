@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { adminUsersListQuerySchema } from "../schemas/admin";
 import { withOperation } from "../shared/with-operation";
@@ -99,14 +99,8 @@ export const GET = withOperation(
       })),
     });
   },
-  // Plan 5.4: managing members is the tenant administrator's.
-  { capability: "people.manage_members" },
+  { roleClasses: ["staff"] },
 );
-
-/** Read-only demo: user updates disabled. */
-export async function PATCH(_request: NextRequest) {
-  return NextResponse.json({ error: "Read-only demo" }, { status: 403 });
-}
 
 const STAFF_SUBROLE_LABELS: Record<string, string> = {
   finance: "finance",

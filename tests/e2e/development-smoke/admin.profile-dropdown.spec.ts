@@ -96,7 +96,7 @@ test.describe("development-admin profile dropdown", () => {
       name: /^administration$/i,
     });
     const staffDirectory = page.getByRole("menuitem", {
-      name: /^staff directory$/i,
+      name: /^members$/i,
     });
     const about = page.getByRole("menuitem", { name: /^about$/i });
     const logout = page.getByRole("menuitem", { name: /^sign out$/i });
