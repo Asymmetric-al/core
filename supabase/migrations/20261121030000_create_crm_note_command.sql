@@ -13,10 +13,12 @@
 --
 --    The author of the note and the actor of the log row are the session's:
 --    the caller from the preamble and the caller's own profile, which
---    `private.caller_profile_id()` finds as `authz.caller_profile_ids()`
---    matches it: the profile whose `user_id` is the caller, or else the one
---    whose `id` is. No argument names an author, an actor or a tenant other
---    than the one the preamble entered.
+--    `private.caller_profile_id()` finds: the profile whose `user_id` is the
+--    caller, or else a profile with no `user_id` whose `id` is the caller. A
+--    profile linked to another user never answers for the user whose ID it
+--    carries, because nothing in the schema makes `user_id` equal `id`. No
+--    argument names an author, an actor or a tenant other than the one the
+--    preamble entered.
 --
 --    A restricted note needs the tenant-administrator flag of the selected
 --    assignment (plan 5.4, 5.5): the command checks it, as the signed-in
@@ -137,14 +139,15 @@ SET search_path = ''
 AS $$
   SELECT p.id
     FROM public.profiles AS p
-   WHERE p.user_id = auth.uid() OR p.id = auth.uid()
+   WHERE p.user_id = auth.uid() OR (p.user_id IS NULL AND p.id = auth.uid())
    ORDER BY (p.user_id IS NOT DISTINCT FROM auth.uid()) DESC, p.id
    LIMIT 1;
 $$;
 
 COMMENT ON FUNCTION private.caller_profile_id() IS
-  'The session caller''s own profile ID, matched as authz.caller_profile_ids() '
-  'matches it, user_id first (AL-2677 WP4a part 2b). For tenant_guard only.';
+  'The session caller''s own profile ID: the profile linked to the caller by '
+  'user_id, or else an unlinked profile whose id is the caller; never a '
+  'profile linked to another user (AL-2677 WP4a part 2b). For tenant_guard only.';
 
 ALTER FUNCTION private.caller_profile_id() OWNER TO postgres;
 REVOKE ALL ON FUNCTION private.caller_profile_id()

@@ -469,12 +469,41 @@ describe.skipIf(!ADMIN_URL)("the CRM note command", () => {
       id.UB,
     ]);
     expect((await ask("UDEV")).rows).toEqual([{ profile: id.UB }]);
+    expect((await ask("UB")).rows).toEqual([{ profile: null }]);
     for (const role of ["authenticated", "anon", "service_role"])
       expect(
         (await act(role, "UDEV", null, "select private.caller_profile_id()"))
           .code,
         role,
       ).toBe("42501");
+  });
+
+  it("never takes a profile linked to another user as the caller's own", async () => {
+    await db.query("update public.profiles set user_id = null where id = $1", [
+      id.UDEV,
+    ]);
+    await db.query("update public.profiles set user_id = $1 where id = $2", [
+      id.UDEV,
+      id.UB,
+    ]);
+    const refused = randomUUID();
+    expect(
+      (await create("UB", "mB", { key: refused, tenant: id.TB })).code,
+    ).toBe("42501");
+    expect(await written(refused)).toEqual({ notes: [], logs: [] });
+    await db.query("select set_config('app.current_tenant_id', '', true)");
+    const linked = randomUUID();
+    expect((await create("UDEV", "mDev", { key: linked })).code).toBeNull();
+    const rows = await written(linked);
+    expect(rows.notes).toEqual([
+      expect.objectContaining({ author_profile_id: id.UB }),
+    ]);
+    expect(rows.logs).toEqual([
+      expect.objectContaining({
+        actor_profile_id: id.UB,
+        actor_user_id: id.UDEV,
+      }),
+    ]);
   });
 
   it("is callable only by signed-in users, through a guard-owned definer and a postgres-owned invoker", async () => {
