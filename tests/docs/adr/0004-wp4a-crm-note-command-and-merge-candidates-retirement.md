@@ -80,3 +80,15 @@ each old assertion replaced by one at least as strong.
    notes page's and the record drawer's hooks against a stubbed `fetch`: a
    retry after a failure sends the same key, and a success or a change of
    content starts a new one.
+10. **`issue-2250`: the guard's reach names the profile helper, and no
+    column-only grant can pass the table check.** In
+    `tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts`,
+    criterion 17's inventory of what the guard may use outside its tables
+    gains `private.caller_profile_id() EXECUTE`, beside
+    `private.is_platform_operator(uuid)`: the note command finds the caller's
+    profile through that `postgres`-owned definer instead of reading
+    `public.profiles`. The criterion that the guard holds no `SELECT` on
+    `tenants`, `profiles` or `donation_saga_outbox` now also checks
+    `has_any_column_privilege`, so a grant of some columns, which
+    `has_table_privilege` does not see, fails it. That closes the gap the
+    review of part 2b found, the one `issue-2270` closed for write grants.

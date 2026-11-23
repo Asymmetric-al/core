@@ -306,6 +306,66 @@ describe.skipIf(!ADMIN_URL)("the CRM note command", () => {
     expect(counted.rows).toEqual([{ n: 0 }]);
   });
 
+  it("takes the author from a profile whose id is the caller and whose user_id is empty", async () => {
+    await db.query("update public.profiles set user_id = null where id = $1", [
+      id.UDEV,
+    ]);
+    const key = randomUUID();
+    expect((await create("UDEV", "mDev", { key })).code).toBeNull();
+    const rows = await written(key);
+    expect(rows.notes).toEqual([
+      expect.objectContaining({ author_profile_id: id.UDEV }),
+    ]);
+    expect(rows.logs).toEqual([
+      expect.objectContaining({
+        actor_profile_id: id.UDEV,
+        actor_user_id: id.UDEV,
+      }),
+    ]);
+  });
+
+  it("finds the caller's profile through a private helper that only the guard may execute", async () => {
+    const helper = await db.query(
+      "select r.rolname as owner, p.prosecdef as definer, p.proconfig as config, array(select coalesce(nullif(a.grantee, 0)::regrole::text, 'PUBLIC') from aclexplode(p.proacl) as a where a.privilege_type = 'EXECUTE' order by 1) as execute from pg_proc as p join pg_roles as r on r.oid = p.proowner where p.oid = 'private.caller_profile_id()'::regprocedure",
+    );
+    expect(helper.rows).toEqual([
+      {
+        owner: "postgres",
+        definer: true,
+        config: ['search_path=""'],
+        execute: ["postgres", "tenant_guard"],
+      },
+    ]);
+    const profiles = await db.query(
+      "select has_any_column_privilege('tenant_guard', 'public.profiles', 'SELECT') as reads, (select count(*)::int from pg_policy where polrelid = 'public.profiles'::regclass and 'tenant_guard'::regrole = any(polroles)) as policies",
+    );
+    expect(profiles.rows).toEqual([{ reads: false, policies: 0 }]);
+    const ask = (user: string | null) =>
+      act(
+        "tenant_guard",
+        user,
+        null,
+        "select private.caller_profile_id() as profile",
+      );
+    expect((await ask("UDEV")).rows).toEqual([{ profile: id.UDEV }]);
+    expect((await ask(null)).rows).toEqual([{ profile: null }]);
+    await db.query("update public.profiles set user_id = null where id = $1", [
+      id.UDEV,
+    ]);
+    expect((await ask("UDEV")).rows).toEqual([{ profile: id.UDEV }]);
+    await db.query("update public.profiles set user_id = $1 where id = $2", [
+      id.UDEV,
+      id.UB,
+    ]);
+    expect((await ask("UDEV")).rows).toEqual([{ profile: id.UB }]);
+    for (const role of ["authenticated", "anon", "service_role"])
+      expect(
+        (await act(role, "UDEV", null, "select private.caller_profile_id()"))
+          .code,
+        role,
+      ).toBe("42501");
+  });
+
   it("is callable only by signed-in users, through a guard-owned definer and a postgres-owned invoker", async () => {
     for (const role of ["anon", "service_role"]) {
       const key = randomUUID();

@@ -12,10 +12,11 @@
 --    transaction of the call: both rows or neither.
 --
 --    The author of the note and the actor of the log row are the session's:
---    the caller from the preamble and the caller's own profile, the profile
---    whose `user_id` is the caller, as the application's auth context reads
---    it. No argument names an author, an actor or a tenant other than the one
---    the preamble entered.
+--    the caller from the preamble and the caller's own profile, which
+--    `private.caller_profile_id()` finds as `authz.caller_profile_ids()`
+--    matches it: the profile whose `user_id` is the caller, or else the one
+--    whose `id` is. No argument names an author, an actor or a tenant other
+--    than the one the preamble entered.
 --
 --    A restricted note needs the tenant-administrator flag of the selected
 --    assignment (plan 5.4, 5.5): the command checks it, as the signed-in
@@ -49,19 +50,21 @@
 --    (`tenant_guard_isolation`): read and insert `crm_notes` (insert by
 --    column grant: no ID, author name or time from the caller), and read and
 --    insert `crm_command_logs` by column grants that leave out
---    `command_payload`, `result_summary` and `error_message`. It may read the
---    `id` and `user_id` of one profile, the session caller's
---    (`tenant_guard_own_profile`); a worker call, with no session caller,
---    sees none.
+--    `command_payload`, `result_summary` and `error_message`. It reads no
+--    column of `profiles`: it may execute `private.caller_profile_id()`, a
+--    `postgres`-owned definer with an empty search path and no argument,
+--    which returns the session caller's own profile ID and nothing else (NULL
+--    for a call with no session caller). EXECUTE on it is revoked from
+--    PUBLIC, anon, authenticated and service_role and granted to
+--    `tenant_guard` alone.
 --
 -- Down (run by hand, in one transaction): DROP FUNCTION
 -- public.create_crm_note(UUID, UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, UUID),
 -- tenant_guard.create_crm_note(UUID, UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT,
 -- UUID); DROP POLICY tenant_guard_isolation ON public.crm_notes; DROP POLICY
--- tenant_guard_isolation ON public.crm_command_logs; DROP POLICY
--- tenant_guard_own_profile ON public.profiles; REVOKE ALL ON public.crm_notes,
--- public.crm_command_logs, public.profiles FROM tenant_guard. The notes and
--- log rows stay.
+-- tenant_guard_isolation ON public.crm_command_logs; DROP FUNCTION
+-- private.caller_profile_id(); REVOKE ALL ON public.crm_notes,
+-- public.crm_command_logs FROM tenant_guard. The notes and log rows stay.
 
 BEGIN;
 
@@ -110,14 +113,28 @@ CREATE POLICY tenant_guard_isolation
   USING (tenant_id = tenant_guard.current_tenant_id())
   WITH CHECK (tenant_id = tenant_guard.current_tenant_id());
 
-GRANT SELECT (id, user_id) ON TABLE public.profiles TO tenant_guard;
+CREATE OR REPLACE FUNCTION private.caller_profile_id()
+RETURNS UUID
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT p.id
+    FROM public.profiles AS p
+   WHERE p.user_id = auth.uid() OR p.id = auth.uid()
+   ORDER BY (p.user_id IS NOT DISTINCT FROM auth.uid()) DESC, p.id
+   LIMIT 1;
+$$;
 
-DROP POLICY IF EXISTS tenant_guard_own_profile ON public.profiles;
-CREATE POLICY tenant_guard_own_profile
-  ON public.profiles
-  FOR SELECT
-  TO tenant_guard
-  USING (user_id = (SELECT tenant_guard.caller_id()));
+COMMENT ON FUNCTION private.caller_profile_id() IS
+  'The session caller''s own profile ID, matched as authz.caller_profile_ids() '
+  'matches it, user_id first (AL-2677 WP4a part 2b). For tenant_guard only.';
+
+ALTER FUNCTION private.caller_profile_id() OWNER TO postgres;
+REVOKE ALL ON FUNCTION private.caller_profile_id()
+  FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION private.caller_profile_id() TO tenant_guard;
 
 CREATE OR REPLACE FUNCTION tenant_guard.create_crm_note(
   p_tenant_id UUID,
@@ -172,10 +189,7 @@ BEGIN
       USING ERRCODE = '22023';
   END IF;
 
-  SELECT p.id
-    INTO v_profile_id
-    FROM public.profiles AS p
-   WHERE p.user_id = v_ctx.actor_id;
+  v_profile_id := private.caller_profile_id();
 
   IF v_profile_id IS NULL THEN
     RAISE EXCEPTION 'tenant_guard: the caller has no profile'
