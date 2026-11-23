@@ -6,7 +6,7 @@
 
 The database MUST enforce the tenant boundary, independently of application checks, for every caller that carries a user identity.
 
-Every clause in `openspec/contracts/identity-and-access.md#contract-d184265e6097d92d003d` MUST apply without exception.
+Every clause in `openspec/contracts/identity-and-access.md#contract-32ed29fc05d46209d189` MUST apply without exception.
 
 #### Scenario: A server handler reads on the caller's token
 

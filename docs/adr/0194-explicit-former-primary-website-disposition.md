@@ -259,3 +259,14 @@ JavaScript-off, and weak-network conditions.
 - [RFC 9111 — HTTP caching](https://www.rfc-editor.org/rfc/rfc9111.html)
 - [GOV.UK — Radio guidance](https://design-system.service.gov.uk/components/radios/)
 - [W3C APG — Radio Group](https://www.w3.org/WAI/ARIA/apg/patterns/radio/)
+
+## Amendments
+
+### 2026-11-24: Tenant-owned domains (AL-2671)
+
+This decision stands. Under the owner's decision of 21 November 2026 that every
+organization's website and dashboards use domains it owns, the affected route
+owners also include the dashboards, sign-in, mail links and payment returns
+served on the organization's names, and a name is never detached from the
+hosting project while its DNS still points there (OpenSpec change
+`adopt-tenant-owned-domains`).

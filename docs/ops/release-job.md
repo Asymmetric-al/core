@@ -7,6 +7,8 @@ and the release-pipeline part of WP1 (issue #2674, slice 1.3).
 
 **State.** Steps 1–7 are complete. On 23 November 2026 the second production release, Release 45136837286, promoted `c2c8e9173` to all three production domains (`production` = `develop` = `c2c8e9173`), following the first production release on 22 November 2026 (Release 45043933598, `e7045ac55`). Production reads disposable development until WP11; use ordinary releases only. Step 8’s migration-preview infrastructure is deferred; step 9 registration is on.
 
+> **Tenant-owned domains (2026-11-24).** The three production domains are Asym's operations hosts. Under the owner's decision of 21 November 2026 (OpenSpec change `adopt-tenant-owned-domains`) no tenant is served on them, and package N8 adds a release check through a test tenant domain beside the three project health checks.
+
 ## What it does
 
 `.github/workflows/release.yml` runs on every push to `production` and on

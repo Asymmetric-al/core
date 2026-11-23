@@ -24,8 +24,7 @@ current source through Phase 12 and the Phase 3 projection boundary. Record-only
 or document grants do not expose history, wallet or lists; neither a profile
 role nor an unrelated active hat supplies fallback authority.
 
-Identity surfaces use the current verified Tenant Donor Portal Host and Tenant
-Donor Account Brand. Site/default/referrer context cannot select identity or
+Identity surfaces use the organization's designated verified home domain (amended 2026-11-24 by the owner's decision on tenant-owned domains) and Tenant Donor Account Brand. Site/default/referrer context cannot select identity or
 access, and no donor portal enumerates other Tenants. Shared credential changes
 retain the existing Phase 12 security/currentness owner without propagating
 contacts or revealing other organizations. Native G01 and exact provider gates

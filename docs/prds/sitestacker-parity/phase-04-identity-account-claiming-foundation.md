@@ -166,7 +166,7 @@ The foundation separates native authentication, exact claim/possession proof, cu
 - **A8 — Experiential separation is mandatory.** Every identity surface is per-tenant branded. For auth email, Phase 4/Supabase Auth is only the producer and purpose authority: its **Send Email Hook emits a typed auth-purpose request → Phase 17 resolves immutable prepared content and the bounded sender profile → Phase 6 creates the sole communication event, schedules/dispatches, and records provider outcome/history → Resend transports the message**. Phase 4 never renders or sends directly. Login/claim UI stays on the tenant's own domain with `base-maia`/zinc tokens; **no cross-tenant surface** appears in the donor portal. This is an acceptance criterion _and_ a test (unbranded chrome = failing build).
   **Phase 24 D57 amendment (2026-08-30):** “the tenant's own domain” means
   exactly one current verified Tenant Donor Portal Host per Tenant and
-  environment, not a Site host or arbitrary alias. Sign-in, registration,
+  environment, not an arbitrary alias. Since 2026-11-24 (the owner's decision on tenant-owned domains) that host is the designated verified home domain, which may also be a Site's Primary Site Domain, with the account under its account path. Sign-in, registration,
   claim, verification, recovery, protected Tenant action, portal, and sign-out
   remain on that Tenant-controlled host with no donor-visible Asym branding or
   `asymmetric.al` fallback. The host is presentation/routing only: every action
@@ -400,8 +400,7 @@ Good tests here assert **external behavior and safety invariants**, not implemen
 - [ ] A scheduled self-healing dedupe scan surfaces within-tenant candidates without auto-merging.
 - [ ] **Cross-tenant negative tests are green**; every tenant table has `FORCE` RLS + a policy; the tenant-guard and branding CI gates pass.
 - [ ] Every identity surface (auth emails, login, claim, protected Tenant
-      action, recovery, portal, and sign-out) is Tenant-brand-native on the one
-      current Tenant Donor Portal Host; no cross-tenant or donor-visible Asym
+      action, recovery, portal, and sign-out) is Tenant-brand-native on the one current designated home domain (amended 2026-11-24); no cross-tenant or donor-visible Asym
       surface appears, and branding/host never substitutes for authorization.
 - [ ] Direct, email, recovery, bookmarked, and every same-Tenant Site entry
       render the same Tenant Donor Account Brand. Changing the Default Site,

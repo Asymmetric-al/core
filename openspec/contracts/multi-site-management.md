@@ -877,3 +877,38 @@ qualification, provider global support, or location MUST NOT authorize currency.
 <!-- END CONTRACT -->
 
 <!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-e86a996f2239e74c8a4b"></a>
+
+## Tenant Account And Site Brands Remain Separate
+
+<!-- BEGIN CONTRACT {"id":"e86a996f2239e74c8a4b","name":"Tenant Account And Site Brands Remain Separate"} -->
+
+Each Tenant MUST have exactly one current complete Tenant Donor Account Brand
+for its authenticated donor experience. The authenticated Donor Portal for a
+Tenant/environment MUST remain unavailable until exactly one current designated verified home domain (which may also be a Site's Primary Site Domain) is active for that environment and the current Tenant
+brand is complete. Neither host nor brand establishes authorization, and
+neither is required for unrelated Tenant or Site work. There MUST be no donor-
+visible Asym/platform-host fallback.
+
+Home-domain activation (amended 2026-11-24 by the owner's decision on tenant-owned domains) MUST prove ownership, DNS, TLS, platform binding, exact
+callback/recovery/sign-out registration, host-only secure session behavior,
+Tenant branding, legal/support destinations, and production-shaped auth
+recovery. Replacement MUST prove a successor before expected-head cutover.
+Host loss MUST never redirect credentials or donors to Asym, another Tenant, a
+Site homepage, or a provider; separately governed support and recurring-
+cancellation access MUST remain available.
+
+Each Site MUST own complete immutable Site Brand Versions for website and
+public-Giving presentation. A Site MAY remain private without a published
+version, but first public activation and every favorable public generation MUST
+pin exactly one current qualified complete Site Brand Version. Starting from
+compatible account-brand inputs MUST create one independent draft, never
+inheritance. Site Brand MUST NOT own content, Navigation, account, message,
+legal, merchant, payment, or authorization truth.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
