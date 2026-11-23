@@ -524,7 +524,7 @@ The coordinator ruled on 19 November 2026 (`wp2b-r2-rulings.md`), after three re
 
 ## Amendment: AL-2678 (WP5 part 1), own-row branches through account links
 
-WP5's first part (`supabase/migrations/20261123010000`-`20261123010500`) moves every own-row branch that WP2b's second release wrote from `profile_id` to the account link, and keeps each branch's class condition, tenant term and super-admin branch:
+WP5's first part (`supabase/migrations/20261123050000`-`20261123050500`) moves every own-row branch that WP2b's second release wrote from `profile_id` to the account link, and keeps each branch's class condition, tenant term and super-admin branch:
 
 | Table                    | Policy                                 | Own-row branch now                                                                                                                                                                                       |
 | ------------------------ | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
