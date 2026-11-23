@@ -147,6 +147,8 @@ type MediaAssetRow = {
   deleted_at: string | null;
   purge_after: string | null;
   purged_at: string | null;
+  upload_token_expires_at: string | null;
+  staging_swept_at: string | null;
 };
 
 export interface MediaVariantMetadata {
@@ -655,6 +657,31 @@ async function verifyStoredObjectMetadata(
   await assertZeroMetadata(bytes);
 }
 
+const DEFAULT_SIGNED_UPLOAD_TTL_MS = 2 * 60 * 60 * 1000;
+
+function parseSignedUploadTokenExpiry(token: string, now: Date): string {
+  const parts = token.split(".");
+  if (parts.length === 3 && parts[1]) {
+    try {
+      const decoded = JSON.parse(
+        Buffer.from(parts[1], "base64url").toString("utf8"),
+      ) as { exp?: unknown };
+      if (
+        typeof decoded.exp === "number" &&
+        Number.isFinite(decoded.exp) &&
+        decoded.exp > 0
+      ) {
+        return new Date(decoded.exp * 1000).toISOString();
+      }
+    } catch {
+      return new Date(
+        now.getTime() + DEFAULT_SIGNED_UPLOAD_TTL_MS,
+      ).toISOString();
+    }
+  }
+  return new Date(now.getTime() + DEFAULT_SIGNED_UPLOAD_TTL_MS).toISOString();
+}
+
 export async function issueSignedUpload(
   auth: AuthenticatedContext,
   input: { assetId: string },
@@ -674,6 +701,22 @@ export async function issueSignedUpload(
     .createSignedUploadUrl(stagingPath);
   if (error || !data?.token || !data?.signedUrl) {
     throw new ApiHttpError(502, "Failed to issue signed media upload");
+  }
+
+  const now = new Date();
+  const uploadTokenExpiresAt = parseSignedUploadTokenExpiry(data.token, now);
+  const { error: expiryUpdateError } = await admin
+    .from("media_assets")
+    .update({
+      upload_token_expires_at: uploadTokenExpiresAt,
+      staging_swept_at: null,
+      updated_at: now.toISOString(),
+    })
+    .eq("id", assetId)
+    .eq("tenant_id", tenantId)
+    .eq("status", "uploading");
+  if (expiryUpdateError) {
+    throw new ApiHttpError(500, "Failed to record signed media upload expiry");
   }
 
   return {
@@ -1172,6 +1215,7 @@ export async function purgeExpiredMedia(
       .from("media_assets")
       .update({
         purged_at: nowIso,
+        staging_swept_at: row.staging_swept_at ?? nowIso,
         updated_at: nowIso,
       })
       .eq("id", row.id)
@@ -1183,6 +1227,56 @@ export async function purgeExpiredMedia(
       throw new ApiHttpError(500, "Failed to mark media asset purged");
     }
     summary.purgedRows += 1;
+  }
+
+  const { data: sweepData, error: sweepQueryError } = await admin
+    .from("media_assets")
+    .select("*")
+    .in("status", ["ready", "failed"])
+    .is("staging_swept_at", null)
+    .not("upload_token_expires_at", "is", null)
+    .lte("upload_token_expires_at", nowIso)
+    .limit(batchSize);
+
+  if (sweepQueryError) {
+    throw new ApiHttpError(
+      500,
+      "Failed to query media assets pending staging sweep",
+    );
+  }
+
+  const sweepCandidates = (sweepData as MediaAssetRow[] | null) ?? [];
+  for (const row of sweepCandidates) {
+    const stagingKey = buildMediaStagingKey(row.tenant_id, row.id);
+    const { data: removedStagingData, error: removeStagingError } =
+      await admin.storage.from(MEDIA_BUCKET).remove([stagingKey]);
+    if (removeStagingError && !isNotFoundStorageError(removeStagingError)) {
+      throw new ApiHttpError(
+        502,
+        "Failed to sweep expired staged media object",
+      );
+    }
+    if (
+      !removeStagingError &&
+      Array.isArray(removedStagingData) &&
+      removedStagingData.length > 0
+    ) {
+      summary.removedStagingObjects += removedStagingData.length;
+    }
+
+    const { error: markSweptError } = await admin
+      .from("media_assets")
+      .update({
+        staging_swept_at: nowIso,
+        updated_at: nowIso,
+      })
+      .eq("id", row.id)
+      .eq("tenant_id", row.tenant_id)
+      .is("staging_swept_at", null);
+
+    if (markSweptError) {
+      throw new ApiHttpError(500, "Failed to record media staging sweep");
+    }
   }
 
   return summary;

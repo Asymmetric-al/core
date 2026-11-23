@@ -1,6 +1,6 @@
 -- AL-2679 (WP6 part 1; plan 4, 5.4, 6.6, 7.1, 12 WP6; rulings W6-R1, W6-R2,
 -- W6-R4): Core media custody table (`public.media_assets`), field-policy
--- classification (18 columns x 5 surfaces = 90 rows), private Storage bucket
+-- classification (20 columns x 5 surfaces = 100 rows), private Storage bucket
 -- `cms-media`, `tenant_guard` upload-start and delete human commands, and the
 -- silent staff media-access lookup for `/api/media/[assetId]`.
 --
@@ -64,6 +64,8 @@ CREATE TABLE public.media_assets (
   deleted_at TIMESTAMPTZ,
   purge_after TIMESTAMPTZ,
   purged_at TIMESTAMPTZ,
+  upload_token_expires_at TIMESTAMPTZ,
+  staging_swept_at TIMESTAMPTZ,
   CONSTRAINT media_assets_tenant_id_id_key UNIQUE (tenant_id, id),
   CONSTRAINT media_assets_ready_fields_check CHECK (
     status <> 'ready'
@@ -99,6 +101,12 @@ CREATE INDEX media_assets_tenant_content_hash_idx
 CREATE INDEX media_assets_pending_purge_idx
   ON public.media_assets (purge_after)
   WHERE deleted_at IS NOT NULL AND purged_at IS NULL;
+
+CREATE INDEX media_assets_pending_staging_sweep_idx
+  ON public.media_assets (upload_token_expires_at)
+  WHERE status IN ('ready', 'failed')
+    AND staging_swept_at IS NULL
+    AND upload_token_expires_at IS NOT NULL;
 
 ALTER TABLE public.media_assets OWNER TO postgres;
 ALTER TABLE public.media_assets ENABLE ROW LEVEL SECURITY;
@@ -206,7 +214,9 @@ FROM (
     ('media_assets', 'updated_at', 'internal'),
     ('media_assets', 'deleted_at', 'internal'),
     ('media_assets', 'purge_after', 'internal'),
-    ('media_assets', 'purged_at', 'internal')
+    ('media_assets', 'purged_at', 'internal'),
+    ('media_assets', 'upload_token_expires_at', 'internal'),
+    ('media_assets', 'staging_swept_at', 'internal')
 ) AS fields (record_type, field_key, category)
 CROSS JOIN pg_catalog.unnest(
   ARRAY['mission_control', 'donor', 'missionary', 'public', 'export']

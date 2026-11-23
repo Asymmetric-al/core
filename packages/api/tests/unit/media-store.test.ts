@@ -56,6 +56,8 @@ type AssetRow = {
   deleted_at: string | null;
   purge_after: string | null;
   purged_at: string | null;
+  upload_token_expires_at: string | null;
+  staging_swept_at: string | null;
 };
 
 type StoredObject = {
@@ -83,6 +85,7 @@ const fakeState = vi.hoisted(() => ({
   nextUploadError: null as null | { message: string; statusCode: string },
   nextRemoveError: null as null | { message: string; statusCode: string },
   nextUpdateError: null as null | { message: string; code?: string },
+  nextSignedUploadToken: null as null | string,
 }));
 
 function matchesFilters(
@@ -90,6 +93,7 @@ function matchesFilters(
   filters: Array<
     | { op: "eq"; col: string; val: unknown }
     | { op: "neq"; col: string; val: unknown }
+    | { op: "in"; col: string; vals: unknown[] }
     | { op: "is"; col: string; val: unknown }
     | { op: "notIs"; col: string; val: unknown }
     | { op: "lte"; col: string; val: unknown }
@@ -99,6 +103,7 @@ function matchesFilters(
     const actual = (row as Record<string, unknown>)[f.col];
     if (f.op === "eq" && actual !== f.val) return false;
     if (f.op === "neq" && actual === f.val) return false;
+    if (f.op === "in" && !f.vals.includes(actual)) return false;
     if (f.op === "is" && actual !== f.val) return false;
     if (f.op === "notIs" && actual === f.val) return false;
     if (f.op === "lte") {
@@ -275,6 +280,7 @@ function createFakeAdminClient() {
       const filters: Array<
         | { op: "eq"; col: string; val: unknown }
         | { op: "neq"; col: string; val: unknown }
+        | { op: "in"; col: string; vals: unknown[] }
         | { op: "is"; col: string; val: unknown }
         | { op: "notIs"; col: string; val: unknown }
         | { op: "lte"; col: string; val: unknown }
@@ -335,6 +341,10 @@ function createFakeAdminClient() {
           filters.push({ op: "neq", col, val });
           return builder;
         },
+        in(col: string, vals: unknown[]) {
+          filters.push({ op: "in", col, vals });
+          return builder;
+        },
         is(col: string, val: unknown) {
           filters.push({ op: "is", col, val });
           return builder;
@@ -374,11 +384,14 @@ function createFakeAdminClient() {
         return {
           async createSignedUploadUrl(objectPath: string) {
             fakeState.signedUploadCalls.push(objectPath);
+            const token =
+              fakeState.nextSignedUploadToken ?? `tok-${objectPath}`;
+            fakeState.nextSignedUploadToken = null;
             return {
               data: {
-                signedUrl: `http://127.0.0.1:54321/storage/v1/upload/sign/${bucket}/${objectPath}?token=tok-${objectPath}`,
+                signedUrl: `http://127.0.0.1:54321/storage/v1/upload/sign/${bucket}/${objectPath}?token=${token}`,
                 path: objectPath,
-                token: `tok-${objectPath}`,
+                token,
               },
               error: null,
             };
@@ -569,6 +582,8 @@ function makeRow(
     deleted_at: null,
     purge_after: null,
     purged_at: null,
+    upload_token_expires_at: null,
+    staging_swept_at: null,
     ...overrides,
   };
 }
@@ -664,6 +679,7 @@ describe("media-store custody and Sharp sanitization", () => {
     fakeState.nextUploadError = null;
     fakeState.nextRemoveError = null;
     fakeState.nextUpdateError = null;
+    fakeState.nextSignedUploadToken = null;
   });
 
   it("binds issueSignedUpload, finalizeMediaUpload and readMediaVariant to auth.tenantId and refuses foreign tenant assets", async () => {
@@ -1712,5 +1728,71 @@ describe("media-store custody and Sharp sanitization", () => {
     const purged = await purgeExpiredMedia({ now: afterWindow });
     expect(purged.purgedRows).toBe(1);
     expect(fakeState.objects.size).toBe(0);
+  });
+
+  it("records upload_token_expires_at on issueSignedUpload and sweeps replayed staging objects after token expiry (Finding 7)", async () => {
+    const img = await createDirtyJpeg(480, 320);
+    const assetId = randomUUID();
+    const stagingKey = buildMediaStagingKey(tenantA, assetId);
+    fakeState.rows.set(assetId, makeRow({ id: assetId, tenant_id: tenantA }));
+
+    const expiryIso = "2027-01-10T02:00:00.000Z";
+    const expSec = Math.floor(Date.parse(expiryIso) / 1000);
+    const jwtHeader = Buffer.from(JSON.stringify({ alg: "HS256" })).toString(
+      "base64url",
+    );
+    const jwtPayload = Buffer.from(JSON.stringify({ exp: expSec })).toString(
+      "base64url",
+    );
+    fakeState.nextSignedUploadToken = `${jwtHeader}.${jwtPayload}.sig`;
+
+    await issueSignedUpload(authA, { assetId });
+    expect(fakeState.rows.get(assetId)!.upload_token_expires_at).toBe(
+      expiryIso,
+    );
+    expect(fakeState.rows.get(assetId)!.staging_swept_at).toBeNull();
+
+    fakeState.objects.set(stagingKey, {
+      bytes: img,
+      contentType: "image/jpeg",
+      version: 1,
+    });
+    await finalizeMediaUpload(authA, { assetId });
+    expect(fakeState.objects.has(stagingKey)).toBe(false);
+
+    fakeState.objects.set(stagingKey, {
+      bytes: Buffer.from("replayed-after-finalize"),
+      contentType: "image/jpeg",
+      version: 2,
+    });
+
+    const beforeExpiry = await purgeExpiredMedia({
+      now: new Date("2027-01-10T01:30:00.000Z"),
+    });
+    expect(beforeExpiry.removedStagingObjects).toBe(0);
+    expect(fakeState.rows.get(assetId)!.staging_swept_at).toBeNull();
+
+    fakeState.nextRemoveError = {
+      message: "Transient sweep error",
+      statusCode: "503",
+    };
+    await expect(
+      purgeExpiredMedia({ now: new Date("2027-01-10T02:00:01.000Z") }),
+    ).rejects.toMatchObject({ status: 502 });
+    expect(fakeState.rows.get(assetId)!.staging_swept_at).toBeNull();
+
+    const afterExpiry = await purgeExpiredMedia({
+      now: new Date("2027-01-10T02:00:01.000Z"),
+    });
+    expect(afterExpiry.removedStagingObjects).toBe(1);
+    expect(fakeState.objects.has(stagingKey)).toBe(false);
+    expect(fakeState.rows.get(assetId)!.staging_swept_at).toBe(
+      "2027-01-10T02:00:01.000Z",
+    );
+
+    const secondSweep = await purgeExpiredMedia({
+      now: new Date("2027-01-10T03:00:00.000Z"),
+    });
+    expect(secondSweep.removedStagingObjects).toBe(0);
   });
 });
