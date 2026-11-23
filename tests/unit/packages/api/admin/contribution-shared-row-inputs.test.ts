@@ -430,6 +430,133 @@ describe("admin/contribution-shared/row-inputs", () => {
     );
     expect(missionaryInIds).toContain("missionary-9");
   });
+
+  it("labels reserved fee-cover funds as Fee cover and behaves cleanly when no fee-cover fund exists", async () => {
+    const createLoaderStub = (
+      fundRows: Array<Record<string, unknown>>,
+      allocationRows: Array<Record<string, unknown>>,
+    ) => {
+      const selectedByTable = new Map<string, string[]>();
+      const makeBuilder = (table: string) => {
+        const builder = {
+          select: (cols: string) => {
+            const list = selectedByTable.get(table) ?? [];
+            list.push(cols);
+            selectedByTable.set(table, list);
+            return builder;
+          },
+          eq: () => builder,
+          in: () => builder,
+          order: () => builder,
+          then: (
+            resolve: (value: { data: unknown[]; error: null }) => unknown,
+            reject?: (reason: unknown) => unknown,
+          ) => {
+            const data =
+              table === "funds"
+                ? fundRows
+                : table === "staged_gift_allocations"
+                  ? allocationRows
+                  : [];
+            return Promise.resolve({ data, error: null }).then(resolve, reject);
+          },
+        };
+        return builder;
+      };
+      return {
+        selectedByTable,
+        client: {
+          from: (table: string) => makeBuilder(table),
+        } as unknown as Parameters<typeof loadSharedContributionRowInputs>[0],
+      };
+    };
+
+    const withFeeCover = createLoaderStub(
+      [
+        {
+          id: "fund-1",
+          name: "Clean Water Initiative",
+          missionary_id: null,
+          goal_amount: 100_000,
+          start_date: null,
+          end_date: null,
+          system_purpose: null,
+        },
+        {
+          id: "fund-fee-cover",
+          name: null,
+          missionary_id: null,
+          goal_amount: null,
+          start_date: null,
+          end_date: null,
+          system_purpose: "fee_cover",
+        },
+      ],
+      [
+        {
+          id: "alloc-1",
+          staged_gift_id: "staged-1",
+          amount: 24_000,
+          fund_id: "fund-1",
+          missionary_id: null,
+          memo: null,
+        },
+        {
+          id: "alloc-2",
+          staged_gift_id: "staged-1",
+          amount: 1_000,
+          fund_id: "fund-fee-cover",
+          missionary_id: null,
+          memo: null,
+        },
+      ],
+    );
+
+    const loaded = await loadSharedContributionRowInputs(withFeeCover.client, {
+      tenantId: "tenant-1",
+      donations: [donation],
+      stagedGifts: [{ id: "staged-1", donation_id: "donation-1" }],
+    });
+
+    expect(withFeeCover.selectedByTable.get("funds")?.[0]).toContain(
+      "system_purpose",
+    );
+    expect(loaded.fundNamesById.get("fund-fee-cover")).toBe("Fee cover");
+    expect(
+      loaded.designationSetByDonationId.get("donation-1")?.lines[1]?.fundName,
+    ).toBe("Fee cover");
+
+    const withoutFeeCover = createLoaderStub(
+      [
+        {
+          id: "fund-1",
+          name: "Clean Water Initiative",
+          missionary_id: null,
+          goal_amount: 100_000,
+          start_date: null,
+          end_date: null,
+          system_purpose: null,
+        },
+      ],
+      [],
+    );
+
+    const unseededLoaded = await loadSharedContributionRowInputs(
+      withoutFeeCover.client,
+      {
+        tenantId: "tenant-1",
+        donations: [donation],
+        stagedGifts: [],
+      },
+    );
+    expect(unseededLoaded.fundNamesById.get("fund-1")).toBe(
+      "Clean Water Initiative",
+    );
+    expect(
+      unseededLoaded.designationSetByDonationId.get("donation-1")?.lines[0]
+        ?.fundName,
+    ).toBe("Clean Water Initiative");
+  });
 });
 
 describe("CRM and Hub display parity through the shared assembly path (#256)", () => {
