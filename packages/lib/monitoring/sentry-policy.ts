@@ -56,6 +56,23 @@ export function scrubInviteFragmentsDeep<T>(
   return value;
 }
 
+type BrowserWindowLike = {
+  location: {
+    origin: string;
+    pathname: string;
+    search: string;
+    hash: string;
+  };
+  history: {
+    state: unknown;
+    replaceState: (data: unknown, unused: string, url?: string | null) => void;
+  };
+};
+
+function getBrowserWindow(): BrowserWindowLike | undefined {
+  return (globalThis as { window?: BrowserWindowLike }).window;
+}
+
 export function clearPendingInviteFragment(nextHref?: string): void {
   if (!pendingInviteFragment) return;
   if (!nextHref) {
@@ -63,10 +80,8 @@ export function clearPendingInviteFragment(nextHref?: string): void {
     return;
   }
   try {
-    const base =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "https://invalid.local";
+    const win = getBrowserWindow();
+    const base = win ? win.location.origin : "https://invalid.local";
     const nextPathname = normalizeInvitePathname(
       new URL(nextHref, base).pathname,
     );
@@ -79,8 +94,9 @@ export function clearPendingInviteFragment(nextHref?: string): void {
 }
 
 export function captureAndStripInviteFragment(): string | null {
-  if (typeof window === "undefined") return null;
-  const { pathname, search, hash } = window.location;
+  const win = getBrowserWindow();
+  if (!win) return null;
+  const { pathname, search, hash } = win.location;
   const normalizedPathname = normalizeInvitePathname(pathname);
   if (!INVITE_PATH_PATTERN.test(pathname) || !hash) {
     if (
@@ -92,7 +108,7 @@ export function captureAndStripInviteFragment(): string | null {
     return null;
   }
   const verifier = hash.startsWith("#") ? hash.slice(1).trim() : hash.trim();
-  window.history.replaceState(window.history.state, "", `${pathname}${search}`);
+  win.history.replaceState(win.history.state, "", `${pathname}${search}`);
   if (verifier) {
     pendingInviteFragment = { pathname: normalizedPathname, verifier };
     return verifier;
