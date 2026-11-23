@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
 
     if (error) throw toApiHttpError(error, error.message);
 
-    const missionaries = (data ?? []).map((row) => {
+    const rows: unknown[] = Array.isArray(data) ? data : [];
+    const missionaries = rows.map((row) => {
       const record = row as {
         id: string;
         profile?: { id: string } | Array<{ id: string }> | null;
