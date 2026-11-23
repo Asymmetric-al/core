@@ -2,6 +2,10 @@
 
 import { loadDocument } from "@asym/database/document-reload";
 import { ownApiFetch } from "@asym/database/own-api";
+import {
+  captureAndStripInviteFragment,
+  consumeInviteFragment,
+} from "@asym/lib/monitoring/sentry-policy";
 import { MailCheck } from "lucide-react";
 import * as React from "react";
 
@@ -47,17 +51,8 @@ export function InvitationDoorway({
   const selectorRef = React.useRef(selector);
 
   const readHashVerifier = React.useCallback(() => {
-    const rawHash = window.location.hash;
-    const extracted = rawHash.startsWith("#")
-      ? rawHash.slice(1).trim()
-      : rawHash.trim();
-    if (rawHash) {
-      window.history.replaceState(
-        null,
-        "",
-        `${window.location.pathname}${window.location.search}`,
-      );
-    }
+    captureAndStripInviteFragment();
+    const extracted = consumeInviteFragment(window.location.pathname);
     if (extracted) {
       setVerifier(extracted);
     }

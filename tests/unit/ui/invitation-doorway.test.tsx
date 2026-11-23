@@ -9,6 +9,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { captureAndStripInviteFragment } from "../../../packages/lib/monitoring/sentry-policy";
 import { InvitationDoorway } from "../../../packages/ui/components/auth/InvitationDoorway";
 
 const SELECTOR = "abcdefghijklmnopqrstuvwxyz012345";
@@ -194,5 +195,58 @@ describe("InvitationDoorway", () => {
       expect((secondBtn as HTMLButtonElement).disabled).toBe(false),
     );
     expect(window.location.hash).toBe("");
+  });
+
+  it("R16: consumes a verifier stripped before hydration under StrictMode and does not restore it on reload", async () => {
+    window.history.replaceState(null, "", `/invite/${SELECTOR}#${VERIFIER}`);
+    expect(captureAndStripInviteFragment()).toBe(VERIFIER);
+    expect(window.location.hash).toBe("");
+
+    const navigateSpy = vi.fn();
+    fetchSpy.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          tenant_id: TENANT,
+          redirectPath: `/${TENANT}`,
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    const first = render(
+      <StrictMode>
+        <InvitationDoorway
+          selector={SELECTOR}
+          surfaceName="Mission Control"
+          onNavigate={navigateSpy}
+        />
+      </StrictMode>,
+    );
+
+    const button = first.getByRole("button", { name: "Accept invitation" });
+    await waitFor(() =>
+      expect((button as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(button);
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(init.body).toBe(
+      JSON.stringify({ selector: SELECTOR, verifier: VERIFIER }),
+    );
+    first.unmount();
+
+    const reloaded = render(
+      <InvitationDoorway selector={SELECTOR} surfaceName="Mission Control" />,
+    );
+    await waitFor(() => {
+      expect(reloaded.getByText(/invitation link is incomplete/i)).toBeTruthy();
+    });
+    expect(
+      (
+        reloaded.getByRole("button", {
+          name: "Accept invitation",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
   });
 });

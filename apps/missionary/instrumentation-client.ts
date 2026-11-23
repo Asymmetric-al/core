@@ -1,5 +1,13 @@
-import { getSentryCompatibilityOptions } from "@asym/lib/monitoring/sentry-policy";
+import {
+  captureAndStripInviteFragment,
+  clearPendingInviteFragment,
+  getInviteSafeReplayOptions,
+  getSentryCompatibilityOptions,
+  scrubInviteFragmentFromUrl,
+} from "@asym/lib/monitoring/sentry-policy";
 import * as Sentry from "@sentry/nextjs";
+
+captureAndStripInviteFragment();
 
 if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
   Sentry.init({
@@ -7,7 +15,7 @@ if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
     dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
     environment: process.env.NODE_ENV,
     integrations: [
-      Sentry.replayIntegration(),
+      Sentry.replayIntegration(getInviteSafeReplayOptions()),
       Sentry.browserSessionIntegration({ lifecycle: "route" }),
     ],
     replaysOnErrorSampleRate: 1.0,
@@ -16,4 +24,11 @@ if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
   });
 }
 
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+export const onRouterTransitionStart: typeof Sentry.captureRouterTransitionStart =
+  (href, navigationType) => {
+    clearPendingInviteFragment(href);
+    return Sentry.captureRouterTransitionStart(
+      scrubInviteFragmentFromUrl(href),
+      navigationType,
+    );
+  };
