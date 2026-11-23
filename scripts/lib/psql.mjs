@@ -5,7 +5,7 @@
 // here, is the only test that an address names this machine (127.0.0.1,
 // localhost or [::1]), and it calls that check.
 //
-// Five files under scripts/ start psql. Three build the connection from an
+// Four files under scripts/ start psql. Three build the connection from an
 // address, refuse what the check refuses, and keep no ambient PG* setting but
 // the shared list KEPT_AMBIENT_LIBPQ_ENV (PGPASSWORD, PGSSLROOTCERT), of
 // which this file keeps PGPASSWORD alone (review N5):
@@ -24,12 +24,9 @@
 // runs psql --version through requirePsqlHonoursRequireAuth here, and stops
 // below version 16 (reviews M3 and N6); the release job also calls that at
 // the start of every hosted step.
-// The other two are outside this seam:
+// The other is outside this seam:
 // - scripts/verify/backup-restore-proof.mjs runs psql, pg_dump and pg_restore
-//   inside a Docker container it starts, with no address;
-// - scripts/verify/stripe-data-pipeline.mjs runs psql on a hosted
-//   SUPABASE_DB_URL with a check and a builder of its own (left as it is by
-//   review M4).
+//   inside a Docker container it starts, with no address.
 // scripts/document-cutover/assess-document-cutover.ts starts no psql: it
 // judges its address with a check of its own and connects through
 // node-postgres.
@@ -141,9 +138,7 @@ export const MIN_PSQL_MAJOR = 16;
  * without a word. Each of the three builders calls this before it starts
  * psql on an environment that carries PGREQUIREAUTH, so the floor holds
  * wherever one of them starts psql on a hosted address: the release job's
- * steps, the CMS runner and the reset guard alike. It does not hold for
- * scripts/verify/stripe-data-pipeline.mjs, which starts psql on a hosted
- * address with a builder of its own. `env` should carry no PG* setting: the
+ * steps, the CMS runner and the reset guard alike. `env` should carry no PG* setting: the
  * check connects to nothing.
  */
 export function requirePsqlHonoursRequireAuth({
