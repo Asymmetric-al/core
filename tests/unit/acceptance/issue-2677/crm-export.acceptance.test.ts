@@ -16,7 +16,7 @@ vi.mock("@asym/database/supabase/admin", () => ({
   createAdminClient: () => ({ from: () => ({ insert }) }),
 }));
 vi.mock("../../../../packages/api/src/shared/with-operation", () => ({
-  withPlatformOperation: (handler: unknown) => handler,
+  withOperation: (handler: unknown) => handler,
 }));
 vi.mock("../../../../packages/api/src/shared/request-session-client", () => ({
   createRequestSessionClient: session,
@@ -32,6 +32,7 @@ vi.mock("../../../../packages/api/src/crm/auth/access", () => ({
   requireCrmAccess: () => ({ tenantId: "tenant-1", userId: "user-1" }),
 }));
 
+const caller = { kind: "caller" };
 function run(
   query: string,
   headers: Record<string, string> = { "sec-fetch-site": "same-origin" },
@@ -59,7 +60,7 @@ function run(
     request,
     audit: createAuditLogger(auth as never),
     requestId: "request-1",
-    supabaseAdmin: {},
+    sessionClient: caller,
   } as never);
 }
 
@@ -86,7 +87,7 @@ describe("governed CRM report export", () => {
   );
   it("audits only session identity and safe metadata; withholds the CSV if audit fails", async () => {
     read.mockResolvedValue({ slice: "donors", rows: [], revision: "1" });
-    session.mockResolvedValue({});
+
     policy.mockResolvedValue(
       policies("mission_control", "crm_report_groups", [{ fieldKey: "label" }]),
     );
@@ -96,6 +97,13 @@ describe("governed CRM report export", () => {
     const query = "actorId=forged&q=sensitive-filter";
     const success = await run(query, { referer: "http://localhost/reports" });
     expect(success.status).toBe(200);
+    expect(policy).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionClient: caller }),
+    );
+    expect(read).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionClient: caller }),
+    );
+    expect(session).not.toHaveBeenCalled();
     expect(await success.text()).toContain('"label"');
     expect(insert.mock.calls.at(-1)?.[0]).toMatchObject({
       user_id: "user-1",
@@ -168,7 +176,7 @@ describe("governed CRM report export", () => {
           group("donor-named-1", "Ada Donor", false),
         ],
       });
-      session.mockResolvedValue({});
+
       policy.mockResolvedValue(
         policies("mission_control", "crm_report_groups", [
           { fieldKey: "label" },
@@ -228,7 +236,7 @@ describe("governed CRM report export", () => {
         },
       ],
     });
-    session.mockResolvedValue({});
+
     policy.mockResolvedValue(
       policies("mission_control", "crm_report_groups", [{ fieldKey: "label" }]),
     );

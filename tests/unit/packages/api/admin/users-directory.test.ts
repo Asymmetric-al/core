@@ -42,7 +42,12 @@ vi.mock("@asym/lib/audit/logger", () => ({
 }));
 vi.mock(
   "../../../../../packages/api/src/shared/request-session-client",
-  () => ({ createRequestSessionClient: h.session }),
+  async (original) => ({
+    ...(await original<
+      typeof import("../../../../../packages/api/src/shared/request-session-client")
+    >()),
+    createRequestSessionClient: h.session,
+  }),
 );
 
 import { GET } from "../../../../../packages/api/src/admin/users";
@@ -79,7 +84,11 @@ const directoryRow = {
 };
 
 const list = (query: string) =>
-  GET(new NextRequest(`https://admin.example.test/api/admin/users?${query}`));
+  GET(
+    new NextRequest(`https://admin.example.test/api/admin/users?${query}`, {
+      headers: { authorization: "Bearer directory-fixture" },
+    }),
+  );
 
 beforeEach(() => {
   h.auth.mockResolvedValue({

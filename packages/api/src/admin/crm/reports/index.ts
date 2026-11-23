@@ -4,10 +4,10 @@ import { parseAdminCrmReportParams } from "./query";
 import { buildAdminCrmReport } from "./service";
 import { requireCrmAccess } from "../../../crm/auth/access";
 import { toErrorResponse } from "../../../shared/http-errors";
-import { withPlatformOperation } from "../../../shared/with-operation";
+import { withOperation } from "../../../shared/with-operation";
 
-export const GET = withPlatformOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
+export const GET = withOperation(
+  async ({ auth, request, requestId, sessionClient }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.report.read",
       resourceType: "report",
@@ -16,7 +16,7 @@ export const GET = withPlatformOperation(
     try {
       const report = await buildAdminCrmReport({
         params: parseAdminCrmReportParams(new URL(request.url).searchParams),
-        supabaseAdmin,
+        sessionClient,
         tenantId: actor.tenantId,
       });
 

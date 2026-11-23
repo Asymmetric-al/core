@@ -25,7 +25,10 @@ vi.mock("@asym/lib/audit/logger", () => ({
   createAuditLogger: vi.fn(() => ({})),
 }));
 
-vi.mock("../../src/shared/request-session-client", () => ({
+vi.mock("../../src/shared/request-session-client", async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import("../../src/shared/request-session-client")
+  >()),
   createRequestSessionClient: vi.fn(async () => ({})),
 }));
 
@@ -69,7 +72,10 @@ function context(membership: Partial<AuthMembership> | null): AuthContext {
   };
 }
 
-const request = () => new NextRequest("https://admin.example.test/api/x");
+const request = () =>
+  new NextRequest("https://admin.example.test/api/x", {
+    headers: { cookie: "sb-local-auth-token=test-session" },
+  });
 const ok = vi.fn(async () => NextResponse.json({ ok: true }));
 
 async function status(

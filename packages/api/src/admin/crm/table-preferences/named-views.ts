@@ -9,14 +9,11 @@ import { ApiHttpError } from "../../../shared/http-errors";
 import { isRecord } from "../../../shared/json-coerce";
 
 import type { RequestSessionClient } from "../../../shared/request-session-client";
-import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type {
   CrmNamedView,
   CrmViewSettingsLayer,
   CrmViewSettingsPatch,
 } from "@asym/database/types";
-
-type SupabaseAdmin = AdminSupabaseClient;
 
 /**
  * Named personal CRM views (issue #273, ADR-CD-021).
@@ -83,7 +80,7 @@ function mapViewRow(row: NamedViewRow): CrmNamedView {
 }
 
 interface ViewScope {
-  supabaseAdmin: SupabaseAdmin;
+  sessionClient: RequestSessionClient;
   tenantId: string;
   profileId: string;
   tableId: string;
@@ -102,7 +99,7 @@ interface ViewWriteScope {
 export async function listCrmNamedViews(
   input: ViewScope,
 ): Promise<CrmNamedView[]> {
-  const { data, error } = await input.supabaseAdmin
+  const { data, error } = await input.sessionClient
     .from("crm_table_named_views")
     .select(VIEW_COLUMNS)
     .eq("tenant_id", input.tenantId)
