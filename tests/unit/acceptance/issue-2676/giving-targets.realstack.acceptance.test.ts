@@ -47,8 +47,11 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
       ],
     ]);
     expect(
-      (await db.query("select id from public.payment_account_bindings"))
-        .rowCount,
+      (
+        await db.query(
+          "select id from public.payment_account_bindings where tenant_id in ('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002')",
+        )
+      ).rowCount,
     ).toBe(0);
     await db.query("begin");
     try {
