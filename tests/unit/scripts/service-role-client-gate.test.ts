@@ -1,5 +1,11 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -76,9 +82,9 @@ describe("frozen ceiling", () => {
   // D-18: the ceiling falls with the allowlist. It rose once, by the coordinator's ruling of
   // 21 November 2026 (F3, F4): by exactly the eight platform-wrapper sites that reached the key
   // uncounted, each named for WP4b. Any other growth needs a new ruling.
-  it("pins the reviewed service-role sites after each CRM read and Member Care path moves (D-18: WP4b part 1 removes 3 sites)", () => {
+  it("pins the reviewed service-role sites after each CRM and Member Care path moves (D-18: WP4b part 1 removes 3 sites)", () => {
     expect(ceilingDigest()).toBe(
-      "91035f59d090358214da335b82959e0f3a9dbe5f88ff61bb5f9c0484496c9de1",
+      "dc35cb9830ccf59edd3d278e397e1d678121fad16c13acf118f091999d53ab36",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -89,12 +95,36 @@ describe("frozen ceiling", () => {
       admin_client: 75,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
-      operation_admin_context: 64,
+      operation_admin_context: 63,
     });
-    expect(CEILING.size).toBe(112);
+    expect(CEILING.size).toBe(111);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(106);
+    ).toBe(105);
+  });
+
+  it("holds no CRM handler in the allowlist or the ceiling once note creation moves", () => {
+    const crm = "packages/api/src/admin/crm/";
+    const { entries } = JSON.parse(
+      readFileSync("docs/security/service-role-client-allowlist.json", "utf8"),
+    ) as { entries: { file: string }[] };
+    expect(entries.filter((entry) => entry.file.startsWith(crm))).toEqual([]);
+    expect([...CEILING.keys()].filter((key) => key.startsWith(crm))).toEqual(
+      [],
+    );
+  });
+
+  it("holds no Member Care handler or read module in the allowlist or the ceiling once WP4b part 1 moves", () => {
+    const isCare = (file: string) =>
+      file.startsWith("packages/api/src/admin/member-care/") ||
+      file === "packages/api/src/reads/member-care.ts";
+    const { entries } = JSON.parse(
+      readFileSync("docs/security/service-role-client-allowlist.json", "utf8"),
+    ) as { entries: { file: string }[] };
+    expect(entries.filter((entry) => isCare(entry.file))).toEqual([]);
+    expect(
+      [...CEILING.keys()].filter((key) => isCare(key.split(" ")[0]!)),
+    ).toEqual([]);
   });
 });
 

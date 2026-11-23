@@ -124,9 +124,9 @@ export const TWENTY_TABLES = [
 export const KEPT_CRM_TABLES = [
   "crm_command_logs",
   "crm_record_links",
-  "crm_merge_candidates",
   "donation_crm_links",
 ];
+export const RETIRED_CRM_TABLES = ["crm_merge_candidates"];
 export const IMAGE_TYPES = [
   "image/gif",
   "image/jpeg",
