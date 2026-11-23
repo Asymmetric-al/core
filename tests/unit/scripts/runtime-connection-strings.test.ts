@@ -89,14 +89,26 @@ describe("runtime connection-string check (WP1 exit)", () => {
       run,
     });
     expect(result).toEqual([]);
-    expect(run).toHaveBeenCalledTimes(4);
-    expect(run.mock.calls[0]).toEqual([
-      "vercel",
-      ["api", "/v10/projects/admin/env", "--scope", "asymmetric-al", "--raw"],
-    ]);
-    expect(run.mock.calls[3]).toEqual([
-      "vercel",
-      ["api", "/v1/env", "--scope", "asymmetric-al", "--raw"],
+    expect(run.mock.calls).toEqual([
+      [
+        "vercel",
+        ["api", "/v10/projects/admin/env", "--scope", "asymmetric-al", "--raw"],
+      ],
+      [
+        "vercel",
+        ["api", "/v10/projects/donor/env", "--scope", "asymmetric-al", "--raw"],
+      ],
+      [
+        "vercel",
+        [
+          "api",
+          "/v10/projects/missionary/env",
+          "--scope",
+          "asymmetric-al",
+          "--raw",
+        ],
+      ],
+      ["vercel", ["api", "/v1/env", "--scope", "asymmetric-al", "--raw"]],
     ]);
     expect(formatRuntimeConnectionStrings(result)).toContain("READY");
   });
