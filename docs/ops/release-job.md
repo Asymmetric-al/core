@@ -1179,7 +1179,7 @@ below follow those decisions.
    Domains_ for admin, donor and missionary (Vercel, Project Settings,
    Environments, Production). This comes before the code ships, because
    `bun run release:production` runs `verify:deployment-discipline`, which
-   requires staged deployments. Before step 7, manual promotion was the emergency path. After switch-on, release through the Release workflow, not by promoting in the dashboard; the one dashboard action left is the Instant Rollback named in the Undo of step 7.
+   requires staged deployments. Before step 7, manual promotion was the emergency path. After switch-on, release through the Release workflow, not by promoting in the dashboard; the one dashboard deployment action left is the Instant Rollback named in the Undo of step 7.
    Check: `bun run verify:deployment-discipline` passes
    `production deployments are staged (custom domains not auto-assigned)`.
    Undo: turn it back on.
@@ -1246,7 +1246,7 @@ below follow those decisions.
    8. When registration is enabled, check the production Inngest app, sync, functions and schedules from Inngest itself. At switch-on: seven declared plus two SDK failure handlers; three half-hour recovery schedules. An unsigned serve request answers 401.
    9. While Production reads disposable demo data, check Stripe’s **test** publishable mode in its delivered bundles. That does not reveal the secret key’s mode.
 
-   Undo: there is no safe return to the pre-rebuild June build for this first release. Fix forward. For later releases, the Release workflow cannot return an app to an earlier deployment: it always builds the head of `production`. Return each app to the deployment ID you noted before the release with Vercel _Instant Rollback_ on that deployment, following the [partial-promotion recovery procedure](#if-a-promotion-fails-part-way), only when that build is compatible with the current database (plan 7.4) and never below the first release named under the request-tenant policies above; otherwise fix forward. Instant Rollback has not yet been exercised on these projects under the release job.
+   Undo: there is no safe return to the pre-rebuild June build for this first release. Fix forward. For later releases, the Release workflow cannot return an app to an earlier deployment: it always builds the head of `production`. Return each app to the deployment ID you noted before the release with Vercel _Instant Rollback_ on that deployment, following the [partial-promotion recovery procedure](#if-a-promotion-fails-part-way), only when that build is compatible with the current database (plan 7.4) and never below the first release named under the request-tenant policies above; otherwise fix forward. Instant Rollback has not yet been exercised on these projects under the release job. Do not undo a rollback from the dashboard’s _Manage_ or with `vercel promote`: Vercel documents that both promote a deployment and re-enable auto-assignment of production domains, which the release job requires off. Leave the rollback in place and release the fix through the Release workflow. That release’s promotion may re-enable auto-assignment as well, so run `bun run verify:deployment-discipline` after it and turn auto-assignment off again if the check reports it on; the next release’s preflight stops while it is on.
 
 8. **The `preview` Supabase project.** No project is created: a third
    project would raise the Supabase bill. The preview project is the
