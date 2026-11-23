@@ -61,7 +61,7 @@ const INITIAL_MC_STATE: MCState = {
 type MCAction =
   | { type: "setRole"; role: Role }
   | { type: "setSidebarCollapsed"; collapsed: boolean }
-  | { type: "setSignedOut" }
+  | { type: "setSignedOut"; clearCapabilities: boolean }
   | { type: "setLoadingComplete" };
 
 function createInitialMCState(initialState?: MCBootstrapState | null): MCState {
@@ -92,7 +92,7 @@ function mcReducer(state: MCState, action: MCAction): MCState {
         ...state,
         user: null,
         role: "admin",
-        capabilities: [],
+        capabilities: action.clearCapabilities ? [] : state.capabilities,
         loading: false,
       };
     case "setLoadingComplete":
@@ -117,6 +117,7 @@ export function MCProvider({
   const { user, tenant, role, capabilities, sidebarCollapsed, loading } = state;
   const isDevMode = runtimeEnvFlags.NODE_ENV === "development";
   const currentUserRef = useRef(user);
+  const hadBrowserSessionRef = useRef(false);
 
   const hasCapability = useCallback(
     (capability: string) => capabilities.includes(capability),
@@ -135,8 +136,8 @@ export function MCProvider({
     dispatch({ type: "setSidebarCollapsed", collapsed });
   }, []);
 
-  const applySignedOutState = useCallback(() => {
-    dispatch({ type: "setSignedOut" });
+  const applySignedOutState = useCallback((clearCapabilities: boolean) => {
+    dispatch({ type: "setSignedOut", clearCapabilities });
   }, []);
 
   const markLoadingComplete = useCallback(() => {
@@ -147,16 +148,18 @@ export function MCProvider({
     return subscribeToClientAuthState(
       ({ user: sessionUser }) => {
         if (!sessionUser) {
-          applySignedOutState();
+          applySignedOutState(hadBrowserSessionRef.current);
           return;
         }
+
+        hadBrowserSessionRef.current = true;
 
         // Another person's session in this document: never show the first
         // person as signed in. The document's scope retires and the page
         // reloads once, where the proxy decides (plan 5.2; AL-2675, JB1).
         const bootstrapUser = currentUserRef.current;
         if (bootstrapUser && bootstrapUser.id !== sessionUser.id) {
-          applySignedOutState();
+          applySignedOutState(true);
           retireDocumentScope();
           return;
         }
