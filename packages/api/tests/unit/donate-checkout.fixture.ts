@@ -53,9 +53,9 @@ export function createDonationsFromMock(
   const expectedTenantId = expected.tenantId ?? authenticatedDonor.tenantId;
   return vi.fn((table: string) => {
     expect(table).toBe("donations");
-    const filters = new Map<string, string>();
+    const filters = new Map<string, string | null>();
     const query = {
-      eq(column: string, value: string) {
+      eq(column: string, value: string | null) {
         filters.set(column, value);
         return query;
       },
@@ -68,6 +68,6 @@ export function createDonationsFromMock(
         return { data: storedGift(storedAmount), error: null };
       },
     };
-    return { select: () => query };
+    return { select: (_columns?: string) => query };
   });
 }
