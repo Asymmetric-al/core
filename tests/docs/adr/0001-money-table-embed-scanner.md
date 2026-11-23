@@ -59,7 +59,7 @@ tables must resolve against both the pre-migration and post-migration catalogs.
    `INVENTORY` or whether an `EXEMPTIONS` entry actually sits on an unaltered
    parent table rather than one of the seven altered tables.
 4. **Bind `.from("…")` roots using the narrowest enclosing select for
-   `DYNAMIC_ROOT`, `INVENTORY` and `EXEMPTIONS`, never to waive Rule 2.**
+   `DYNAMIC_ROOT`, `INVENTORY` and `EXEMPTIONS`, never to waive Decision 1.**
    `indexFile` and `scanSources` bind `FoundEmbed.root` from inline
    `.from(...)...select(arg0)` spans (`inlineSelectSpans`), same-file variable
    declarations (`varDecls`), variable-bound `.from(...)` builders
@@ -77,9 +77,9 @@ tables must resolve against both the pre-migration and post-migration catalogs.
      pair and all ten money-to-target pairs must have one relationship and zero
      single-column keys. Unbound non-violating string tokens (such as the
      GraphQL SDL field `missionaries(limit, offset)` in
-     `packages/graphql/handler.ts`) are governed by Rule 2 alone and need no
+     `packages/graphql/handler.ts`) are governed by Decision 1 alone and need no
      entry in `INVENTORY`.
-   - `EXEMPTIONS` is the closed escape from Rule 2 (currently the four `posts`
+   - `EXEMPTIONS` is the closed escape from Decision 1 (currently the four `posts`
      selects in `packages/graphql/handler.ts`) and holds only when `evaluateEmbeds`
      matches `FoundEmbed.root` to `parent`, where `parent` is outside the seven
      tables altered by `20261120130004`.
