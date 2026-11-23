@@ -195,6 +195,7 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
       expect(workflow).toContain(`      - ${path}\n`);
     }
   });
+
   it("runs the WP8a part 1 real-stack suite on the seeded stack after fingerprinting (finding 17)", () => {
     const suite =
       "tests/unit/acceptance/issue-2681/wp8a-part1.realstack.acceptance.test.ts";
@@ -209,5 +210,34 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     expect(at(marker)).toBeLessThan(at("name: Install Playwright Chromium"));
     expect(workflow).toContain(`      - ${suite}\n`);
     expect(workflow).not.toContain("supabase/seed-expectations.json");
+  });
+
+  it("verifies media custody, Storage refusal and signed-in delivery on the local stack after fingerprinting (AL-2679, D-18)", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2679/media-storage.postgrest.acceptance.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(marker);
+    expect(run).toBeDefined();
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    for (const variable of [
+      "WP6_MEDIA_IT_URL",
+      "WP6_MEDIA_IT_DATABASE_URL",
+      "WP6_MEDIA_IT_ANON_KEY",
+      "WP6_MEDIA_IT_SERVICE_KEY",
+    ]) {
+      expect(run).toContain(variable);
+    }
+    expect(run).toContain("supabase -- status -o json");
+    expect(at(marker)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
+    for (const path of [
+      "packages/api/src/storage/**",
+      "packages/api/src/media/**",
+      "packages/api/src/cms/media/**",
+      "apps/*/app/api/media/**",
+      "apps/admin/app/api/cms/media/**",
+      suite,
+    ]) {
+      expect(workflow).toContain(`      - ${path}\n`);
+    }
   });
 });

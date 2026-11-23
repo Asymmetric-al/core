@@ -333,7 +333,6 @@ type Allow = {
   })[];
 };
 const doc = () => JSON.parse(read(ALLOWLIST) || "null") as Allow | null;
-// D-18: WP4a-2a lowered develop to [177, 115, 109]; AL-2681 (W8-R10) adds one temporary admin_client site in packages/api/src/stripe/connect-webhook.ts until Part 2 retires webhooks.ts.
 const CEILING_TOTALS = [178, 116, 110] as const;
 const live = (d: Allow) => [
   d.entries.reduce((a, x) => a + x.count, 0),
