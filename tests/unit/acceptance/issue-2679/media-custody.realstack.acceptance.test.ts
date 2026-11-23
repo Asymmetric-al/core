@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -387,14 +389,78 @@ describe.skipIf(!ADMIN_URL)(
         [...(bucket.rows[0]!.allowed_mime_types as string[])].sort(),
       ).toEqual(["image/jpeg", "image/png", "image/webp"]);
 
-      const policies = await db.query(
+      const migrationSql = readFileSync(
+        path.resolve(
+          __dirname,
+          "../../../../supabase/migrations/20261123020000_media_custody.sql",
+        ),
+        "utf8",
+      );
+      const doBlockMatch = /DO \$\$[\s\S]*?END \$\$;/m.exec(migrationSql);
+      expect(doBlockMatch).not.toBeNull();
+      const postAssertBlock = doBlockMatch![0];
+
+      const effectivePolicies = await db.query(
         `select policyname
          from pg_policies
         where schemaname = 'storage'
           and tablename = 'objects'
-          and (qual like '%cms-media%' or with_check like '%cms-media%')`,
+          and (
+            coalesce(qual, '') ilike '%cms-media%'
+            or coalesce(with_check, '') ilike '%cms-media%'
+            or (
+              permissive = 'PERMISSIVE'
+              and roles && array['public', 'anon', 'authenticated']::name[]
+              and (
+                (
+                  cmd in ('SELECT', 'UPDATE', 'DELETE', 'ALL')
+                  and (
+                    qual is null
+                    or qual !~* '^\\(*\\s*bucket_id\\s*=\\s*''[^'']+''(::text)?(\\s|\\)|$)'
+                    or qual ~* '\\yOR\\y'
+                  )
+                )
+                or (
+                  cmd in ('INSERT', 'UPDATE', 'ALL')
+                  and (
+                    coalesce(with_check, qual) is null
+                    or coalesce(with_check, qual) !~* '^\\(*\\s*bucket_id\\s*=\\s*''[^'']+''(::text)?(\\s|\\)|$)'
+                    or coalesce(with_check, qual) ~* '\\yOR\\y'
+                  )
+                )
+              )
+            )
+          )`,
       );
-      expect(policies.rows).toEqual([]);
+      expect(effectivePolicies.rows).toEqual([]);
+
+      for (const [label, policySql] of [
+        [
+          "bucket-agnostic authenticated SELECT",
+          `create policy wp6_test_bucket_agnostic on storage.objects for select to authenticated using (true)`,
+        ],
+        [
+          "OR-bypass authenticated SELECT",
+          `create policy wp6_test_or_bypass on storage.objects for select to authenticated using (bucket_id = 'profiles' or owner is not null)`,
+        ],
+      ] as const) {
+        await db.query("begin");
+        try {
+          await db.query(policySql);
+          let caught: unknown = null;
+          try {
+            await db.query(postAssertBlock);
+          } catch (error) {
+            caught = error;
+          }
+          expect(caught, label).not.toBeNull();
+          expect(String((caught as Error).message), label).toMatch(
+            /cms-media|storage\.objects/i,
+          );
+        } finally {
+          await db.query("rollback");
+        }
+      }
     });
 
     it("enforces staff-only tenant-scoped SELECT and denies all signed-in or anonymous writes on public.media_assets", async () => {

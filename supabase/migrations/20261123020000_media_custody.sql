@@ -838,10 +838,35 @@ BEGIN
     FROM pg_catalog.pg_policies
    WHERE schemaname = 'storage'
      AND tablename = 'objects'
-     AND (qual LIKE '%cms-media%' OR with_check LIKE '%cms-media%');
+     AND (
+       COALESCE(qual, '') ILIKE '%cms-media%'
+       OR COALESCE(with_check, '') ILIKE '%cms-media%'
+       OR (
+         permissive = 'PERMISSIVE'
+         AND roles && ARRAY['public', 'anon', 'authenticated']::NAME[]
+         AND (
+           (
+             cmd IN ('SELECT', 'UPDATE', 'DELETE', 'ALL')
+             AND (
+               qual IS NULL
+               OR qual !~* '^\(*\s*bucket_id\s*=\s*''[^'']+''(::text)?(\s|\)|$)'
+               OR qual ~* '\yOR\y'
+             )
+           )
+           OR (
+             cmd IN ('INSERT', 'UPDATE', 'ALL')
+             AND (
+               COALESCE(with_check, qual) IS NULL
+               OR COALESCE(with_check, qual) !~* '^\(*\s*bucket_id\s*=\s*''[^'']+''(::text)?(\s|\)|$)'
+               OR COALESCE(with_check, qual) ~* '\yOR\y'
+             )
+           )
+         )
+       )
+     );
 
   IF v_problem IS NOT NULL THEN
-    RAISE EXCEPTION 'AL-2679: cms-media bucket must have zero storage.objects policies, found: %', v_problem;
+    RAISE EXCEPTION 'AL-2679: cms-media bucket must have zero effective storage.objects policies, found: %', v_problem;
   END IF;
 
   IF NOT EXISTS (
