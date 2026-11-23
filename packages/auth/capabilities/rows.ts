@@ -16,15 +16,9 @@ export type CapabilityRegistryRows = {
   readonly roleGrants: readonly RoleGrantRow[];
 };
 
-/** Keys of a closed, literal-keyed Record, in code-unit order. */
 const sortedKeys = <K extends string>(record: Readonly<Record<K, unknown>>) =>
   (Object.keys(record) as K[]).sort();
 
-/**
- * Pure, deterministic 1:1 seeding shape for the Phase 12 capability and
- * role-grant tables (#671), and the read model for #497's `/minimum`.
- * Capabilities sort by key; grants by subject, then capability, unique.
- */
 export function capabilityRegistryRows(): CapabilityRegistryRows {
   const capabilities = sortedKeys(CAPABILITY_REGISTRY).map((key) => {
     const { label, description, domain, source } = CAPABILITY_REGISTRY[key];

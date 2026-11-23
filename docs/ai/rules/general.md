@@ -74,6 +74,12 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 - Keep changes minimal and localized to the task.
 - Prefer small, atomic PRs.
 - Do not manually edit generated files unless necessary.
+- Write no comments in TypeScript or JavaScript source. The lint rule
+  `core/no-comments` and `bun run verify:comments` enforce it; a directive
+  that a tool reads is the only exception. Put a decision in the workspace's
+  `docs/adr/` and a workaround in an issue. A file that already has comments
+  may keep them but never gain one. To clear a section, use
+  `docs/ai/skills/delete-comment/SKILL.md`.
 
 ### Documentation rule
 

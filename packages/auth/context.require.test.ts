@@ -101,10 +101,6 @@ describe("requireRole", () => {
   });
 });
 
-/**
- * AL-2675 (WP2a sweep): handlers ask for a capability, the
- * tenant-administrator flag or a membership class, never a role name.
- */
 describe("requireCapability", () => {
   it("admits a staff row whose bundle holds the capability", () => {
     expect(() =>

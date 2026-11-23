@@ -106,6 +106,7 @@
     "ops:vercel-enable-affected-projects": "node scripts/vercel/affected-projects.mjs --enable",
     "configure:resend-production-webhook": "node scripts/configure-resend-production-webhook.mjs",
     "verify:eslint": "node scripts/verify-eslint-config.mjs",
+    "verify:comments": "node scripts/verify/comment-ratchet.mjs",
     "verify:backup-restore": "node scripts/verify/backup-restore-proof.mjs",
     "verify:sentry-release": "node scripts/verify/sentry-release-sourcemaps.mjs",
     "verify:vercel-env-inventory": "node scripts/verify/vercel-env-inventory.mjs",

@@ -1,4 +1,3 @@
-/** Listed routes (public, auth): `"/"` means the homepage only, not every path. */
 export function matchesListedRoute(pathname: string, route: string) {
   if (route === "/") {
     return pathname === "/";
@@ -6,10 +5,6 @@ export function matchesListedRoute(pathname: string, route: string) {
   return pathname === route || pathname.startsWith(`${route}/`);
 }
 
-/**
- * Protected prefixes: `"/"` means the whole app (every path starts with `/`).
- * Non-root: exact match or nested segment (`/dash` matches `/dash/settings`).
- */
 export function matchesProtectedPrefix(pathname: string, prefix: string) {
   if (prefix === "/") {
     return pathname.startsWith("/");

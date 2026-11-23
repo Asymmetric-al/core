@@ -16,10 +16,6 @@ function normalizeSignOutMessage(payload: unknown) {
   return "Unable to sign out. Please try again.";
 }
 
-/**
- * Attempts server-side sign-out first so auth cookies are invalidated safely.
- * Returns `{ ok: false }` when server sign-out cannot be confirmed.
- */
 export async function signOutOnServer(): Promise<ServerSignOutResult> {
   try {
     const response = await ownApiFetch("/api/auth/signout", { method: "POST" });

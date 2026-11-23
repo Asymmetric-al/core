@@ -6,7 +6,6 @@ export { libraryConfig };
 
 export default [
   ...libraryConfig,
-  // Page code calls the app's own API only through ownApiFetch (plan 5.2).
   ...ownApiConfig,
   ...tenantNavigationConfig({ workspace: "packages/auth" }),
 ];

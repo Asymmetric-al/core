@@ -120,7 +120,7 @@ implementation task.
 - Every server `await` in a page/layout is an explicit Stream / Cache / Block decision:
   - Stream request-time data with `<Suspense fallback={...}>`.
   - Cache request-reusable data with `'use cache'`.
-  - Block only deliberately with `export const instant = false` plus a one-line reason comment.
+  - Block only deliberately with `export const instant = false`, and record the reason in the app's `docs/adr/` (comments are banned in source; see `docs/ai/rules/general.md`).
 - Read the labeled fix links from Instant Insights errors (`nextjs.org/docs/messages/...`) before editing; apply the canonical pattern, not an improvised variation.
 - Keep `<Suspense>` boundaries close to the dynamic read; an empty shell (boundary around the whole page body) is a regression, not a fix. A segment `loading.tsx` is right only when the whole segment is the loading unit; otherwise put the boundary inside the page. For skeletons that must match the loaded layout, see `docs/guides/ui-design/boneyard.md`.
 - Deeper per-link prefetching is opt-in: `<Link prefetch={true}>` + `'use cache'`. The `prefetch` segment export accepts only `'auto'` (default), `'partial'` (redundant here: every app sets `partialPrefetching: true`) and `'force-disabled'`; Next.js 16.4 rejects any other value at build time.
