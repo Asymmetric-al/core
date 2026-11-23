@@ -33,8 +33,7 @@ protected-action node. A template cannot create, inspect, rewrite, duplicate,
 relabel, track, or widen an action.
 
 Every Tenant-scoped protected action uses one fixed scanner-resistant,
-code-owned doorway on the exact Tenant Donor Portal Host frozen when the action
-is issued. The origin comes only from the current authoritative host binding;
+code-owned doorway on the organization's verified name for the action's surface, frozen with its generation when the action is issued (amended 2026-11-24 by the owner's decision on tenant-owned domains; earlier, the Tenant Donor Portal Host). The origin comes only from the current authoritative name binding;
 request headers, Tenant content, Site context, and return input never select it.
 The producer contract may require an authenticated portal session,
 reauthentication, step-up, producer OTP, or explicit confirmation after the
@@ -50,8 +49,7 @@ communication/prepared-message identity; an old prepared message is never
 mutated to carry it.
 
 The protected handoff is a no-store, no-referrer, third-party-free,
-Tenant-brand-native flow. The fixed code-owned URL on the frozen Tenant Donor
-Portal Host carries only a random **non-secret selector** in the HTTP URL and an
+Tenant-brand-native flow. The fixed code-owned URL on that frozen name carries only a random **non-secret selector** in the HTTP URL and an
 independent 256-bit verifier in the URL fragment. The server
 stores only a versioned HMAC/digest of that verifier. The fragment is not sent
 in an HTTP request and MUST NOT enter a path, query, redirect, provider tracking

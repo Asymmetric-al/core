@@ -113,7 +113,7 @@ The resolver lives in `packages/auth/principal` (`@asym/auth/principal`), and `p
 | one                               | `ok`, `selection: "sole"` |
 | two or more, in any tenants       | `ambiguous`               |
 
-There is no default between classes: a staff row is never preferred over a donor or missionary row, because the surface fixes the class. Nor does the resolver rank staff sub-roles or pick a tenant: two candidates or more are `ambiguous` until something narrows or proposes one. Since WP2b that is the surface's own: Mission Control and the missionary workspace take the tenant, and for a person with several staff rows there the sub-role, from the page address (`/<tenant-id>[~<sub-role>]/…`, `packages/auth/tenant-address.ts`), which their organization chooser links to; Web Studio takes both from its signed selection ([Web Studio's organization](#web-studios-organization)). The donor portal still refuses a person with donor memberships in two tenants until WP3 resolves the portal host.
+There is no default between classes: a staff row is never preferred over a donor or missionary row, because the surface fixes the class. Nor does the resolver rank staff sub-roles or pick a tenant: two candidates or more are `ambiguous` until something narrows or proposes one. Since WP2b that is the surface's own: Mission Control and the missionary workspace take the tenant, and for a person with several staff rows there the sub-role, from the page address (`/<tenant-id>[~<sub-role>]/…`, `packages/auth/tenant-address.ts`), which their organization chooser links to; Web Studio takes both from its signed selection ([Web Studio's organization](#web-studios-organization)). The donor portal still refuses a person with donor memberships in two tenants until WP3 resolves the verified home domain (amended 2026-11-24).
 
 `resolveActivePrincipal(session, roleClass, proposedAssignmentId, reader)` wraps the resolver. It returns a `HumanPrincipal` or throws `PrincipalDeniedError` with the deny `reason`.
 
@@ -146,7 +146,7 @@ Payload's screens and REST calls cannot carry a tenant in their address, so Web 
 
 - **No persisted assignment.** No table or column stores the active assignment; it is validated per request. Web Studio's cookie stores only a proposal, which the resolver accepts while the person holds that row, live.
 - **No fire-time re-check.** Re-validating a deferred member action's assignment when it fires is #2259.
-- **No tenant for the donor portal.** Until WP3 resolves it from the portal host, a person with donor memberships in two tenants is refused there.
+- **No tenant for the donor portal.** Until WP3 resolves it from the verified home domain, a person with donor memberships in two tenants is refused there.
 
 ## Key files
 

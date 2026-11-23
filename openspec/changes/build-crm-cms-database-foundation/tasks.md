@@ -95,7 +95,7 @@ current-behaviour documents its code changes, and states its rollback.
 - [ ] 4.1 WP2a membership and resolver: `granted_by`, `revoked_at` and the
       tenant-administrator flag; the one-assignment rule with the surface's role
       class as input; capability bundles per sub-role; the assignment chooser.
-- [ ] 4.2 WP2b first release: the tenant on every request (page segment, the
+- [ ] 4.2 WP2b first release: the tenant on every request (page segment, removed again by `adopt-tenant-owned-domains` N2, the
       shared fetch wrapper with its lint rule, both headers from session clients
       and browser collections, the scoped browser data layer) while the database
       still ignores it; Payload's REST routes under `/web-studio/api` with the
@@ -117,8 +117,7 @@ current-behaviour documents its code changes, and states its rollback.
 
 ## 5. WP3 — Tenants, Sites and legal entities (#2676)
 
-- [ ] 5.1 Provisioning, tenant-status and Site commands; verified Site domains
-      and the host resolver; legal entities with their reserved fee-cover fund;
+- [ ] 5.1 Provisioning, tenant-status and Site commands; verified Site domains and the host resolver, with names claimed through the six proofs of `adopt-tenant-owned-domains` and no platform subdomain; legal entities with their reserved fee-cover fund;
       the approval-policy row written explicitly; the members screen.
 - [ ] 5.2 Foreign keys to `tenants` become `RESTRICT`; demo-tenant constants
       removed from non-test code. Acceptance per plan WP3.

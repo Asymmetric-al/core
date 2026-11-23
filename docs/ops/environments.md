@@ -4,6 +4,8 @@
 
 This document is the canonical reference for how environments are defined and operated across the Asymmetric.al platform. Production is where real donor data and live Stripe transactions will live, so strict environment discipline is required for every release and operational action. Today neither hosted Supabase project holds real donor data: the [database census](../audits/core-crm-cms-database-census.md) of 17 November 2026 found demo data, test personas and a few team members' logins in both, and the owner has classed all of it as fixtures (decision D-15 in the [implementation record](../audits/core-crm-cms-database-implementation-record.md)). For companion procedures that are out of scope here, see [production release controls](./production-release.md) and the [deploy checklist](./deploy-checklist.md). Each deployment needs its own reviewed rollback/forward-fix plan; this repository does not supply a universal database rollback procedure.
 
+> **Tenant-owned domains (2026-11-24).** Under the owner's decision of 21 November 2026 (OpenSpec change `adopt-tenant-owned-domains`), the `asymmetric.al` hosts below serve only Asym's operations checks and Asym's own demonstration organization, never a tenant. Every tenant is served on names it owns, and release checks will also run through a test tenant domain (package N8).
+
 ## 2. Four-Environment Matrix
 
 | Property      | Local                                | Preview                                                               | Development                                                                                                  | Production                                           |

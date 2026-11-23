@@ -541,7 +541,7 @@ Every clause in `openspec/contracts/document-production.md#contract-d93f7463af53
 
 The code-owned starting policy MUST disclose a fourteen-day guest grant and an absolute thirty-minute document-only session, subject to the frozen production usability/security evidence.
 
-Every clause in `openspec/contracts/document-production.md#contract-fdaafd2135cb9a2f0449` MUST apply without exception.
+Every clause in `openspec/contracts/document-production.md#contract-efdd8befd00d95272426` MUST apply without exception.
 
 #### Scenario: An expired guest grant is opened
 

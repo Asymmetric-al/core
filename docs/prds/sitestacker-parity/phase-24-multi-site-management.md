@@ -55,7 +55,7 @@ Web Studio while preserving strict domain ownership:
    at runtime.
 4. Give each Site complete immutable Brand Versions, while keeping one stable
    Tenant Donor Account Brand and, for each activated environment, exactly one
-   verified Tenant Donor Portal host.
+   designated verified home domain, which may also be a Site's Primary Site Domain (amended 2026-11-24).
 5. Let staff enable only proof-qualified presentment currencies and reviewed
    native suggested amounts. Let donors retain explicit currency control; a
    currency change preserves a target-valid schedule while clearing affected
@@ -132,7 +132,7 @@ Web Studio while preserving strict domain ownership:
 54. As a Site editor, I want a bounded Website appearance workspace with identity, semantic colors, compatible type, and finite style choices, so that I can create a strong brand without code or unrestricted CSS.
 55. As a Site editor, I want to copy compatible account-brand inputs into a Site draft once without live inheritance, so that starting quickly does not couple future brands.
 56. As a visitor or donor, I want optional image failure to fall back to trusted Site text and required brand corruption to block release, so that the platform never leaks another brand or a platform placeholder.
-57. As a donor, I want one current verified Tenant-owned portal host in each activated environment and one stable Tenant Donor Account Brand across sign-in, recovery, history, documents, and recurring controls, so that entering from different Sites never fragments my account.
+57. As a donor, I want one current designated verified home domain, which may also serve a Site, in each activated environment and one stable Tenant Donor Account Brand across sign-in, recovery, history, documents, and recurring controls, so that entering from different Sites never fragments my account.
 58. As a donor, I want the entry Site shown only as validated secondary context or a safe return action, so that Site branding never becomes account authorization.
 59. As Site staff, I want one compact read-only Messages readiness summary derived from the message owner, so that I can see exact exceptions without duplicating message configuration.
 60. As Site staff, I want message status to distinguish Ready, Uses compatible fallback, Needs attention, Checking, and Status unavailable, so that provider uncertainty is not presented as tenant misconfiguration.
@@ -346,8 +346,7 @@ Web Studio while preserving strict domain ownership:
   axis is incompatible with the target, the command writes nothing and explains
   the incompatibility rather than clearing or substituting it.
 - Each Tenant has one complete Tenant Donor Account Brand. Authenticated account
-  experiences for a Tenant/environment remain unavailable until exactly one
-  verified Tenant-controlled portal host is active there; host replacement is
+  experiences for a Tenant/environment remain unavailable until exactly one designated verified home domain, which may also be a Site's Primary Site Domain, is active there (amended 2026-11-24); host replacement is
   successor-first and host loss never redirects credentials or donors to a Site,
   provider, Asym, or another Tenant. Neither host nor brand is required for
   unrelated Site work. Site brand and entry Site may orient but never authorize
