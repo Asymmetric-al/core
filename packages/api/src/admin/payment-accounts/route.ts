@@ -6,10 +6,15 @@ import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
 import { createStripeClient } from "../../stripe/client";
 import {
-  createConnectedAccountOnboarding,
-  isStripeSecretKeyLivemode,
+  ConnectedAccountMismatchError,
+  ONBOARDING_INTENT_PROVIDER_WINDOW_DAYS,
+  StripeLiveModeRefusedError,
+  assertStripeTestModeKey,
+  ensureConnectedAccountForIntent,
+  issueConnectedAccountLink,
   resolveAdminConfiguredOrigin,
-  type StripeConnectOnboardingClient,
+  verifyConnectedAccountForIntent,
+  type StripeConnectClient,
 } from "../../stripe/connect";
 
 type LegalEntityRow = {
@@ -38,14 +43,26 @@ type PaymentAccountBindingRow = {
   updated_at: string;
 };
 
-type OnboardingRpcResult = {
-  binding_id: string;
-  tenant_id: string;
+type OnboardingIntentRow = {
+  id: string;
   legal_entity_id: string;
-  provider_account_id: string;
   livemode: boolean;
   version: number;
-  status: string;
+  status: "open" | "confirmed";
+  created_at: string;
+};
+
+type OnboardingIntentResult = {
+  intent_id: string;
+  tenant_id: string;
+  legal_entity_id: string;
+  livemode: boolean;
+  version: number;
+  status: "open" | "confirmed";
+  provider_account_id: string | null;
+  binding_id: string | null;
+  binding_status: PaymentAccountBindingRow["status"] | null;
+  created_at: string | null;
   replayed: boolean;
 };
 
@@ -58,22 +75,24 @@ interface TableQuery<T> extends PromiseLike<{
   select(columns: string): TableQuery<T>;
   eq(column: string, value: string | boolean): TableQuery<T>;
   order(column: string, options?: { ascending?: boolean }): TableQuery<T>;
-  maybeSingle(): Promise<{ data: T | null; error: QueryError }>;
 }
 
 interface PaymentAccountsSessionClient {
-  from(table: "legal_entities"): TableQuery<LegalEntityRow>;
   from(table: "payment_account_bindings"): TableQuery<PaymentAccountBindingRow>;
+  from(table: "payment_onboarding_intents"): TableQuery<OnboardingIntentRow>;
+  rpc(
+    fn: "list_payment_legal_entities",
+    args: { p_tenant_id: string },
+  ): Promise<{ data: LegalEntityRow[] | null; error: QueryError }>;
   rpc(
     fn: "begin_payment_account_onboarding",
     args: {
       p_tenant_id: string;
       p_legal_entity_id: string;
-      p_provider_account_id: string;
       p_livemode: boolean;
       p_reason: string;
     },
-  ): Promise<{ data: OnboardingRpcResult | null; error: QueryError }>;
+  ): Promise<{ data: OnboardingIntentResult | null; error: QueryError }>;
 }
 
 const UUID_PATTERN =
@@ -84,8 +103,12 @@ const beginOnboardingBodySchema = z.object({
     .string()
     .regex(UUID_PATTERN, "Valid legal_entity_id is required."),
   reason: z.string().trim().min(1, "A non-blank reason is required.").max(500),
-  idempotency_key: z.string().trim().min(1).max(128).optional(),
 });
+
+const PROGRAM_LIVEMODE = false;
+
+const BINDING_COLUMNS =
+  "id, tenant_id, legal_entity_id, version, status, provider_account_ref, livemode, activated_at, restricted_at, disconnected_at, created_at, updated_at";
 
 function mapDatabaseErrorStatus(code: string | undefined): number {
   if (code === "42501") return 403;
@@ -95,10 +118,38 @@ function mapDatabaseErrorStatus(code: string | undefined): number {
   return 500;
 }
 
+function intentOutsideProviderWindow(createdAt: string | null): boolean {
+  if (!createdAt) return false;
+  const ageMs = Date.now() - new Date(createdAt).getTime();
+  return ageMs > ONBOARDING_INTENT_PROVIDER_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+}
+
+type KeyState =
+  | { kind: "missing" }
+  | { kind: "live_refused" }
+  | { kind: "invalid"; message: string }
+  | { kind: "test"; key: string };
+
+function readKeyState(raw: string | undefined): KeyState {
+  const trimmed = raw?.trim() ?? "";
+  if (!trimmed) return { kind: "missing" };
+  try {
+    return { kind: "test", key: assertStripeTestModeKey(trimmed) };
+  } catch (error) {
+    if (error instanceof StripeLiveModeRefusedError) {
+      return { kind: "live_refused" };
+    }
+    return {
+      kind: "invalid",
+      message: error instanceof Error ? error.message : "Invalid Stripe key.",
+    };
+  }
+}
+
 export interface PaymentAccountsHandlerDeps {
   getSecretKey?: () => string | undefined;
   getConfiguredOrigin?: () => string;
-  createStripe?: (secretKey: string) => StripeConnectOnboardingClient;
+  createStripe?: (secretKey: string) => StripeConnectClient;
 }
 
 export function createPaymentAccountsHandlers(
@@ -108,46 +159,42 @@ export function createPaymentAccountsHandlers(
   const getConfiguredOrigin =
     deps.getConfiguredOrigin ?? (() => resolveAdminConfiguredOrigin());
   const createStripe =
-    deps.createStripe ?? ((key: string) => createStripeClient(key));
+    deps.createStripe ??
+    ((key: string) =>
+      createStripeClient(key) as unknown as StripeConnectClient);
 
   const GET = withOperation(
     async ({ auth, sessionClient, requestId }) => {
       try {
         const session =
           sessionClient as unknown as PaymentAccountsSessionClient;
-        const secretKey = getSecretKey()?.trim() || "";
-        const configured = secretKey.length > 0;
-        const livemode = configured
-          ? isStripeSecretKeyLivemode(secretKey)
-          : false;
+        const keyState = readKeyState(getSecretKey());
 
-        const [entitiesRes, bindingsRes] = await Promise.all([
-          session
-            .from("legal_entities")
-            .select(
-              "id, tenant_id, name, legal_name, country_code, currency, tax_id, created_at",
-            )
-            .order("created_at", { ascending: true }),
+        const [entitiesRes, bindingsRes, intentsRes] = await Promise.all([
+          session.rpc("list_payment_legal_entities", {
+            p_tenant_id: auth.tenantId,
+          }),
           session
             .from("payment_account_bindings")
-            .select(
-              "id, tenant_id, legal_entity_id, version, status, provider_account_ref, livemode, activated_at, restricted_at, disconnected_at, created_at, updated_at",
-            )
-            .eq("livemode", livemode)
+            .select(BINDING_COLUMNS)
+            .eq("livemode", PROGRAM_LIVEMODE)
             .order("version", { ascending: false }),
+          session
+            .from("payment_onboarding_intents")
+            .select(
+              "id, legal_entity_id, livemode, version, status, created_at",
+            )
+            .eq("livemode", PROGRAM_LIVEMODE)
+            .eq("status", "open"),
         ]);
 
-        if (entitiesRes.error) {
-          return NextResponse.json(
-            { error: entitiesRes.error.message, requestId },
-            { status: mapDatabaseErrorStatus(entitiesRes.error.code) },
-          );
-        }
-        if (bindingsRes.error) {
-          return NextResponse.json(
-            { error: bindingsRes.error.message, requestId },
-            { status: mapDatabaseErrorStatus(bindingsRes.error.code) },
-          );
+        for (const res of [entitiesRes, bindingsRes, intentsRes]) {
+          if (res.error) {
+            return NextResponse.json(
+              { error: res.error.message, requestId },
+              { status: mapDatabaseErrorStatus(res.error.code) },
+            );
+          }
         }
 
         const bindingsByEntity = new Map<string, PaymentAccountBindingRow[]>();
@@ -155,6 +202,10 @@ export function createPaymentAccountsHandlers(
           const list = bindingsByEntity.get(binding.legal_entity_id) ?? [];
           list.push(binding);
           bindingsByEntity.set(binding.legal_entity_id, list);
+        }
+        const openIntentByEntity = new Map<string, OnboardingIntentRow>();
+        for (const intent of intentsRes.data ?? []) {
+          openIntentByEntity.set(intent.legal_entity_id, intent);
         }
 
         const legalEntities = (entitiesRes.data ?? []).map((entity) => {
@@ -167,13 +218,15 @@ export function createPaymentAccountsHandlers(
             ...entity,
             currentBinding,
             bindings,
+            openIntent: openIntentByEntity.get(entity.id) ?? null,
           };
         });
 
         return NextResponse.json({
           tenantId: auth.tenantId,
-          livemode,
-          configured,
+          livemode: PROGRAM_LIVEMODE,
+          configured: keyState.kind === "test",
+          liveModeRefused: keyState.kind === "live_refused",
           legalEntities,
           requestId,
         });
@@ -203,11 +256,16 @@ export function createPaymentAccountsHandlers(
           );
         }
 
-        const secretKey = getSecretKey()?.trim() || "";
-        if (!secretKey) {
+        const keyState = readKeyState(getSecretKey());
+        if (keyState.kind !== "test") {
           return NextResponse.json(
             {
-              error: "Stripe Connect is not configured for this environment.",
+              error:
+                keyState.kind === "live_refused"
+                  ? "Live Stripe keys are refused: Stripe Connect onboarding runs in test mode only."
+                  : keyState.kind === "missing"
+                    ? "Stripe Connect is not configured for this environment."
+                    : keyState.message,
               requestId,
             },
             { status: 503 },
@@ -230,119 +288,128 @@ export function createPaymentAccountsHandlers(
           );
         }
 
-        const livemode = isStripeSecretKeyLivemode(secretKey);
         const session =
           sessionClient as unknown as PaymentAccountsSessionClient;
 
-        const entityRes = await session
-          .from("legal_entities")
-          .select(
-            "id, tenant_id, name, legal_name, country_code, currency, tax_id, created_at",
-          )
-          .eq("id", parsed.data.legal_entity_id)
-          .maybeSingle();
-
-        if (entityRes.error) {
-          return NextResponse.json(
-            { error: entityRes.error.message, requestId },
-            { status: mapDatabaseErrorStatus(entityRes.error.code) },
-          );
-        }
-        if (!entityRes.data) {
-          return NextResponse.json(
-            {
-              error: "No legal entity with that id in this organization.",
-              requestId,
-            },
-            { status: 404 },
-          );
-        }
-
-        const bindingsRes = await session
-          .from("payment_account_bindings")
-          .select(
-            "id, tenant_id, legal_entity_id, version, status, provider_account_ref, livemode, activated_at, restricted_at, disconnected_at, created_at, updated_at",
-          )
-          .eq("legal_entity_id", entityRes.data.id)
-          .eq("livemode", livemode)
-          .order("version", { ascending: false });
-
-        if (bindingsRes.error) {
-          return NextResponse.json(
-            { error: bindingsRes.error.message, requestId },
-            { status: mapDatabaseErrorStatus(bindingsRes.error.code) },
-          );
-        }
-
-        const existingBindings = bindingsRes.data ?? [];
-        const liveBinding = existingBindings.find(
-          (b) => b.status !== "disconnected",
+        const intentRes = await session.rpc(
+          "begin_payment_account_onboarding",
+          {
+            p_tenant_id: auth.tenantId,
+            p_legal_entity_id: parsed.data.legal_entity_id,
+            p_livemode: PROGRAM_LIVEMODE,
+            p_reason: parsed.data.reason,
+          },
         );
 
-        if (liveBinding && liveBinding.status !== "pending") {
-          return NextResponse.json(
-            {
-              error:
-                "Legal entity already holds an active or restricted payment account binding in this mode.",
-              requestId,
-            },
-            { status: 409 },
-          );
-        }
-
-        const maxVersion = existingBindings.reduce(
-          (acc, b) => Math.max(acc, b.version),
-          0,
-        );
-        const nextVersion = maxVersion + 1;
-        const idempotencyKey =
-          parsed.data.idempotency_key ??
-          `wp8a-onboard:${auth.tenantId}:${entityRes.data.id}:${livemode ? "live" : "test"}:v${nextVersion}`;
-
-        const stripe = createStripe(secretKey);
-        const onboarding = await createConnectedAccountOnboarding(stripe, {
-          countryCode: entityRes.data.country_code,
-          tenantId: auth.tenantId,
-          legalEntityId: entityRes.data.id,
-          legalName: entityRes.data.legal_name,
-          origin,
-          idempotencyKey,
-          existingAccountId: liveBinding?.provider_account_ref ?? null,
-        });
-
-        const rpcRes = await session.rpc("begin_payment_account_onboarding", {
-          p_tenant_id: auth.tenantId,
-          p_legal_entity_id: entityRes.data.id,
-          p_provider_account_id: onboarding.providerAccountId,
-          p_livemode: livemode,
-          p_reason: parsed.data.reason,
-        });
-
-        if (rpcRes.error || !rpcRes.data) {
-          const status = mapDatabaseErrorStatus(rpcRes.error?.code);
+        if (intentRes.error || !intentRes.data) {
+          const status = mapDatabaseErrorStatus(intentRes.error?.code);
           return NextResponse.json(
             {
               error:
                 status >= 500
-                  ? "Failed to record payment account onboarding."
-                  : (rpcRes.error?.message ??
-                    "Failed to record payment account onboarding."),
+                  ? "Failed to record the payment account onboarding intent."
+                  : (intentRes.error?.message ??
+                    "Failed to record the payment account onboarding intent."),
               requestId,
             },
             { status },
           );
         }
 
+        const intent = intentRes.data;
+
+        if (
+          intent.status === "confirmed" &&
+          intent.binding_status === "active"
+        ) {
+          return NextResponse.json(
+            {
+              error:
+                "This legal entity already holds an active payment account binding in this mode.",
+              intent,
+              requestId,
+            },
+            { status: 409 },
+          );
+        }
+
+        if (
+          intent.status === "open" &&
+          intentOutsideProviderWindow(intent.created_at)
+        ) {
+          return NextResponse.json(
+            {
+              error:
+                "This onboarding intent is older than the provider's idempotency window and was never confirmed. Ask support to reconcile it before starting again.",
+              intent,
+              requestId,
+            },
+            { status: 409 },
+          );
+        }
+
+        const entitiesRes = await session.rpc("list_payment_legal_entities", {
+          p_tenant_id: auth.tenantId,
+        });
+        const entity = (entitiesRes.data ?? []).find(
+          (row) => row.id === intent.legal_entity_id,
+        );
+        if (entitiesRes.error || !entity) {
+          return NextResponse.json(
+            {
+              error: "No legal entity with that id in this organization.",
+              requestId,
+            },
+            { status: entitiesRes.error ? 500 : 404 },
+          );
+        }
+
+        const stripe = createStripe(keyState.key);
+        const intentRef = {
+          intentId: intent.intent_id,
+          livemode: intent.livemode,
+        };
+
+        const account =
+          intent.status === "confirmed" && intent.provider_account_id
+            ? await verifyConnectedAccountForIntent(
+                stripe,
+                intent.provider_account_id,
+                intentRef,
+              )
+            : await ensureConnectedAccountForIntent(stripe, {
+                ...intentRef,
+                countryCode: entity.country_code,
+                currency: entity.currency,
+                legalName: entity.legal_name,
+              });
+
+        const link = await issueConnectedAccountLink(stripe, {
+          accountId: account.id,
+          origin,
+          useCase:
+            intent.binding_status === "restricted"
+              ? "account_update"
+              : "account_onboarding",
+        });
+
         return NextResponse.json(
           {
-            binding: rpcRes.data,
-            onboardingUrl: onboarding.onboardingUrl,
-            expiresAt: onboarding.expiresAt,
+            intent,
+            providerAccountId: account.id,
+            onboardingUrl: link.url,
+            expiresAt: link.expiresAt,
             requestId,
           },
-          { status: rpcRes.data.replayed ? 200 : 201 },
+          { status: intent.replayed ? 200 : 201 },
         );
       } catch (error) {
+        if (error instanceof ConnectedAccountMismatchError) {
+          return NextResponse.json(
+            { error: error.message, requestId },
+            { status: 409 },
+          );
+        }
         return toErrorResponse(
           error,
           "Failed to begin payment account onboarding.",
