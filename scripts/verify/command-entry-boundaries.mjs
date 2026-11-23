@@ -7,8 +7,22 @@ const assignmentReader =
 const assignmentReaderDigest =
   "f5f2272e554bfaa1cfce3ca9dd566804fc05151bfba5df0ca832bc4a992a8101";
 const digest = (body) => createHash("sha256").update(body.trim()).digest("hex");
-export const reviewedPreMembership = Object.freeze({});
-export const preMembershipEntries = Object.freeze([]);
+const acceptInvitationFunction =
+  "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)";
+const acceptInvitationReason =
+  "AL-2676 WP3c R1: invitation acceptance admits a caller who holds no membership yet after verifying selector, constant-time verifier digest, live status, expiry, and confirmed non-deleted email via private.resolve_invitation_for_caller before tenant_guard.enter or any lock";
+export const reviewedPreMembership = Object.freeze({
+  [acceptInvitationFunction]: Object.freeze({
+    reason: acceptInvitationReason,
+    digest: "a1338095bf9a1021c97822ba269f00d2c8b7c3dc4fa5b3c2f85d70102bec2e1a",
+  }),
+});
+export const preMembershipEntries = Object.freeze([
+  Object.freeze({
+    function: acceptInvitationFunction,
+    reason: acceptInvitationReason,
+  }),
+]);
 
 export const isAssignmentReader = (command) =>
   command.function === assignmentReader &&
