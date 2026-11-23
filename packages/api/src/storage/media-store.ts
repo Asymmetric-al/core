@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import { getAdminClient } from "@asym/database/supabase/admin";
 import sharp, { type Metadata, type Sharp } from "sharp";
@@ -214,6 +214,7 @@ export interface PurgeExpiredMediaResult {
   removedStagingObjects: number;
   keptSharedObjects: number;
   skippedLiveUse: number;
+  deferredInUse: number;
 }
 
 function requireAdmittedTenantId(auth: AuthenticatedContext): string {
@@ -683,6 +684,36 @@ export async function issueSignedUpload(
   };
 }
 
+const PURGE_CLAIM_LEASE_SECONDS = 120;
+const MAX_PURGE_CLAIM_WAIT_ATTEMPTS = 25;
+
+type FinalizeRpcResult = {
+  outcome: string;
+  status?: string;
+  row?: MediaAssetRow;
+};
+
+function parseFinalizeRpcResult(data: unknown): FinalizeRpcResult {
+  if (!data || typeof data !== "object" || !("outcome" in data)) {
+    throw new ApiHttpError(500, "Unexpected media finalize RPC response");
+  }
+  const record = data as Record<string, unknown>;
+  return {
+    outcome: String(record.outcome),
+    status: typeof record.status === "string" ? record.status : undefined,
+    row:
+      record.row && typeof record.row === "object"
+        ? (record.row as MediaAssetRow)
+        : undefined,
+  };
+}
+
+function waitMs(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 export async function finalizeMediaUpload(
   auth: AuthenticatedContext,
   input: { assetId: string },
@@ -797,6 +828,79 @@ export async function finalizeMediaUpload(
         throw error;
       }
 
+      const variantsJson: Record<string, StoredVariantJson> = {};
+      for (const variant of encodedVariants) {
+        variantsJson[variant.name] = {
+          key: variant.key,
+          width: variant.width,
+          height: variant.height,
+          byte_size: variant.bytes.byteLength,
+          mime_type: variant.mimeType,
+        };
+      }
+
+      let declared = false;
+      for (
+        let attempt = 0;
+        attempt < MAX_PURGE_CLAIM_WAIT_ATTEMPTS;
+        attempt += 1
+      ) {
+        const { data: declareData, error: declareError } = await admin.rpc(
+          "declare_media_finalize",
+          {
+            p_tenant_id: tenantId,
+            p_asset_id: assetId,
+            p_content_hash: sanitizedMaster.contentHash,
+            p_master_key: masterKey,
+            p_variants: variantsJson,
+            p_mime_type: sanitizedMaster.mimeType,
+            p_byte_size: sanitizedMaster.bytes.byteLength,
+            p_width: sanitizedMaster.width,
+            p_height: sanitizedMaster.height,
+            p_now: new Date().toISOString(),
+          },
+        );
+        if (declareError) {
+          throw new ApiHttpError(
+            500,
+            "Failed to declare media asset finalization",
+          );
+        }
+        const parsedDeclare = parseFinalizeRpcResult(declareData);
+        if (parsedDeclare.outcome === "ready" && parsedDeclare.row) {
+          shouldCleanStaging = true;
+          return toMediaAssetRecord(parsedDeclare.row);
+        }
+        if (
+          parsedDeclare.outcome === "missing" ||
+          parsedDeclare.outcome === "terminal"
+        ) {
+          if (parsedDeclare.status === "failed") {
+            shouldCleanStaging = true;
+          }
+          throw new ApiHttpError(404, "Media asset not found");
+        }
+        if (parsedDeclare.outcome === "declared") {
+          declared = true;
+          break;
+        }
+        if (parsedDeclare.outcome === "claim_active") {
+          await waitMs(Math.min(150, 25 + attempt * 15));
+          continue;
+        }
+        throw new ApiHttpError(
+          500,
+          "Unexpected media finalization declaration state",
+        );
+      }
+
+      if (!declared) {
+        throw new ApiHttpError(
+          503,
+          "Media content purge in progress; retry finalize",
+        );
+      }
+
       await uploadObjectIfAbsent(
         admin,
         masterKey,
@@ -817,51 +921,36 @@ export async function finalizeMediaUpload(
         await verifyStoredObjectMetadata(admin, variant.key);
       }
 
-      const variantsJson: Record<string, StoredVariantJson> = {};
-      for (const variant of encodedVariants) {
-        variantsJson[variant.name] = {
-          key: variant.key,
-          width: variant.width,
-          height: variant.height,
-          byte_size: variant.bytes.byteLength,
-          mime_type: variant.mimeType,
-        };
-      }
+      const { data: publishData, error: publishError } = await admin.rpc(
+        "publish_media_finalize",
+        {
+          p_tenant_id: tenantId,
+          p_asset_id: assetId,
+          p_content_hash: sanitizedMaster.contentHash,
+          p_now: new Date().toISOString(),
+        },
+      );
 
-      const { data: updated, error: updateError } = await admin
-        .from("media_assets")
-        .update({
-          status: "ready",
-          mime_type: sanitizedMaster.mimeType,
-          content_hash: sanitizedMaster.contentHash,
-          master_key: masterKey,
-          variants: variantsJson,
-          byte_size: sanitizedMaster.bytes.byteLength,
-          width: sanitizedMaster.width,
-          height: sanitizedMaster.height,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", assetId)
-        .eq("tenant_id", tenantId)
-        .eq("status", "uploading")
-        .select("*")
-        .maybeSingle();
-
-      if (updateError) {
+      if (publishError) {
         throw new ApiHttpError(500, "Failed to finalize media asset custody");
       }
 
-      if (updated) {
+      const parsedPublish = parseFinalizeRpcResult(publishData);
+      if (
+        (parsedPublish.outcome === "published" ||
+          parsedPublish.outcome === "ready") &&
+        parsedPublish.row
+      ) {
         shouldCleanStaging = true;
-        return toMediaAssetRecord(updated as MediaAssetRow);
+        return toMediaAssetRecord(parsedPublish.row);
       }
-
-      const raced = await fetchMediaAssetRow(admin, tenantId, assetId);
-      if (raced?.status === "ready") {
-        shouldCleanStaging = true;
-        return toMediaAssetRecord(raced);
+      if (parsedPublish.outcome === "claim_active") {
+        throw new ApiHttpError(
+          503,
+          "Media content purge in progress; retry finalize",
+        );
       }
-      if (raced?.status === "failed") {
+      if (parsedPublish.status === "failed") {
         shouldCleanStaging = true;
       }
       throw new ApiHttpError(404, "Media asset not found");
@@ -994,6 +1083,7 @@ export async function purgeExpiredMedia(
     removedStagingObjects: 0,
     keptSharedObjects: 0,
     skippedLiveUse: 0,
+    deferredInUse: 0,
   };
 
   for (const row of candidates) {
@@ -1005,55 +1095,77 @@ export async function purgeExpiredMedia(
       continue;
     }
 
-    if (!row.master_key) {
-      const stagingKey = buildMediaStagingKey(row.tenant_id, row.id);
-      const { error: removeStagingError } = await admin.storage
-        .from(MEDIA_BUCKET)
-        .remove([stagingKey]);
-      if (removeStagingError && !isNotFoundStorageError(removeStagingError)) {
-        throw new ApiHttpError(502, "Failed to purge staged media object");
-      }
-      if (!removeStagingError) {
-        summary.removedStagingObjects += 1;
-      }
-    } else if (row.content_hash) {
-      const { count, error: countError } = await admin
-        .from("media_assets")
-        .select("id", { count: "exact", head: true })
-        .eq("tenant_id", row.tenant_id)
-        .eq("content_hash", row.content_hash)
-        .neq("status", "deleted")
-        .is("deleted_at", null);
+    if (row.master_key && row.content_hash) {
+      const claimToken = randomUUID();
+      const { data: claimVerdict, error: claimError } = await admin.rpc(
+        "claim_media_content_purge",
+        {
+          p_tenant_id: row.tenant_id,
+          p_asset_id: row.id,
+          p_content_hash: row.content_hash,
+          p_claim_token: claimToken,
+          p_lease_seconds: PURGE_CLAIM_LEASE_SECONDS,
+        },
+      );
 
-      if (countError) {
-        throw new ApiHttpError(
-          500,
-          "Failed to check shared media content hash",
-        );
+      if (claimError) {
+        throw new ApiHttpError(500, "Failed to claim media content purge");
       }
 
-      if ((count ?? 0) > 0) {
+      if (claimVerdict === "in_use_uploading" || claimVerdict === "busy") {
+        summary.deferredInUse += 1;
+        continue;
+      }
+
+      if (claimVerdict === "in_use_durable") {
         summary.keptSharedObjects += 1;
-      } else {
-        const variantKeys = Object.values(normalizeVariants(row.variants)).map(
-          (v) => v.key,
-        );
-        const keysToRemove = [...new Set([row.master_key, ...variantKeys])];
-        if (keysToRemove.length > 0) {
-          const { error: removeError } = await admin.storage
-            .from(MEDIA_BUCKET)
-            .remove(keysToRemove);
-          if (removeError && !isNotFoundStorageError(removeError)) {
-            throw new ApiHttpError(
-              502,
-              "Failed to purge media Storage objects",
-            );
+      } else if (claimVerdict === "claimed") {
+        try {
+          const variantKeys = Object.values(
+            normalizeVariants(row.variants),
+          ).map((v) => v.key);
+          const keysToRemove = [...new Set([row.master_key, ...variantKeys])];
+          if (keysToRemove.length > 0) {
+            const { data: removedData, error: removeError } =
+              await admin.storage.from(MEDIA_BUCKET).remove(keysToRemove);
+            if (removeError && !isNotFoundStorageError(removeError)) {
+              throw new ApiHttpError(
+                502,
+                "Failed to purge media Storage objects",
+              );
+            }
+            if (!removeError) {
+              summary.removedObjects += Array.isArray(removedData)
+                ? removedData.length
+                : keysToRemove.length;
+            }
           }
-          if (!removeError) {
-            summary.removedObjects += keysToRemove.length;
-          }
+        } finally {
+          await Promise.resolve(
+            admin.rpc("release_media_content_purge", {
+              p_tenant_id: row.tenant_id,
+              p_content_hash: row.content_hash,
+              p_claim_token: claimToken,
+            }),
+          ).catch(() => undefined);
         }
+      } else {
+        throw new ApiHttpError(500, "Unexpected media purge claim verdict");
       }
+    }
+
+    const stagingKey = buildMediaStagingKey(row.tenant_id, row.id);
+    const { data: removedStagingData, error: removeStagingError } =
+      await admin.storage.from(MEDIA_BUCKET).remove([stagingKey]);
+    if (removeStagingError && !isNotFoundStorageError(removeStagingError)) {
+      throw new ApiHttpError(502, "Failed to purge staged media object");
+    }
+    if (
+      !removeStagingError &&
+      Array.isArray(removedStagingData) &&
+      removedStagingData.length > 0
+    ) {
+      summary.removedStagingObjects += removedStagingData.length;
     }
 
     const { error: markPurgedError } = await admin

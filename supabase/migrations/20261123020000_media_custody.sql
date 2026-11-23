@@ -9,11 +9,16 @@
 -- recovery window, so restored databases never reference purged media keys.
 --
 -- Down (run by hand, in one transaction):
+--   DROP FUNCTION public.release_media_content_purge(UUID, TEXT, UUID);
+--   DROP FUNCTION public.claim_media_content_purge(UUID, UUID, TEXT, UUID, INTEGER);
+--   DROP FUNCTION public.publish_media_finalize(UUID, UUID, TEXT, TIMESTAMPTZ);
+--   DROP FUNCTION public.declare_media_finalize(UUID, UUID, TEXT, TEXT, JSONB, TEXT, BIGINT, INTEGER, INTEGER, TIMESTAMPTZ);
 --   DROP FUNCTION public.resolve_staff_media_access(UUID);
 --   DROP FUNCTION public.delete_media_asset(UUID, UUID);
 --   DROP FUNCTION tenant_guard.delete_media_asset(UUID, UUID);
 --   DROP FUNCTION public.start_media_upload(UUID, BIGINT, TEXT);
 --   DROP FUNCTION tenant_guard.start_media_upload(UUID, BIGINT, TEXT);
+--   DROP TABLE public.media_purge_claims;
 --   DELETE FROM public.field_policies WHERE record_type = 'media_assets' AND tenant_id IS NULL;
 --   DROP TABLE public.media_assets;
 --   DELETE FROM storage.buckets WHERE id = 'cms-media';
@@ -135,6 +140,35 @@ CREATE POLICY tenant_guard_isolation
   TO tenant_guard
   USING (tenant_id = tenant_guard.current_tenant_id())
   WITH CHECK (tenant_id = tenant_guard.current_tenant_id());
+
+CREATE TABLE public.media_purge_claims (
+  tenant_id UUID NOT NULL REFERENCES public.tenants (id) ON DELETE RESTRICT,
+  content_hash TEXT NOT NULL
+    CONSTRAINT media_purge_claims_content_hash_check
+      CHECK (content_hash ~ '^[0-9a-f]{64}$'),
+  claim_token UUID NOT NULL,
+  claimed_at TIMESTAMPTZ NOT NULL DEFAULT pg_catalog.now(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  PRIMARY KEY (tenant_id, content_hash),
+  CONSTRAINT media_purge_claims_expiry_check CHECK (expires_at > claimed_at)
+);
+
+COMMENT ON TABLE public.media_purge_claims IS
+  'Short-lived per-(tenant_id, content_hash) purge leases (AL-2679, WP6 part 1) serializing canonical Storage object removal against concurrent media finalization. Accessible to service_role only.';
+
+ALTER TABLE public.media_purge_claims OWNER TO postgres;
+ALTER TABLE public.media_purge_claims ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.media_purge_claims FORCE ROW LEVEL SECURITY;
+
+REVOKE ALL ON TABLE public.media_purge_claims FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.media_purge_claims TO service_role;
+
+CREATE POLICY media_purge_claims_service_role
+  ON public.media_purge_claims
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
 
 INSERT INTO public.field_policies (
   record_type,
@@ -423,6 +457,333 @@ ALTER FUNCTION public.resolve_staff_media_access(UUID) OWNER TO postgres;
 REVOKE ALL ON FUNCTION public.resolve_staff_media_access(UUID) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.resolve_staff_media_access(UUID) TO authenticated;
 
+CREATE OR REPLACE FUNCTION public.declare_media_finalize(
+  p_tenant_id UUID,
+  p_asset_id UUID,
+  p_content_hash TEXT,
+  p_master_key TEXT,
+  p_variants JSONB,
+  p_mime_type TEXT,
+  p_byte_size BIGINT,
+  p_width INTEGER,
+  p_height INTEGER,
+  p_now TIMESTAMPTZ DEFAULT pg_catalog.now()
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+VOLATILE
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+DECLARE
+  v_row public.media_assets%ROWTYPE;
+  v_wall_now TIMESTAMPTZ := pg_catalog.now();
+  v_effective_now TIMESTAMPTZ := COALESCE(p_now, v_wall_now);
+BEGIN
+  IF p_tenant_id IS NULL OR p_asset_id IS NULL OR p_content_hash IS NULL THEN
+    RAISE EXCEPTION 'media_finalize: tenant, asset and content_hash are required'
+      USING ERRCODE = '22004';
+  END IF;
+
+  PERFORM pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(p_tenant_id::TEXT || ':' || p_content_hash, 0)
+  );
+
+  DELETE FROM public.media_purge_claims AS c
+   WHERE c.tenant_id = p_tenant_id
+     AND c.content_hash = p_content_hash
+     AND c.expires_at <= v_wall_now;
+
+  SELECT *
+    INTO v_row
+    FROM public.media_assets AS a
+   WHERE a.id = p_asset_id
+     AND a.tenant_id = p_tenant_id
+     FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RETURN pg_catalog.jsonb_build_object('outcome', 'missing');
+  END IF;
+
+  IF v_row.status = 'ready' THEN
+    RETURN pg_catalog.jsonb_build_object(
+      'outcome', 'ready',
+      'row', pg_catalog.to_jsonb(v_row)
+    );
+  END IF;
+
+  IF v_row.status <> 'uploading' THEN
+    RETURN pg_catalog.jsonb_build_object(
+      'outcome', 'terminal',
+      'status', v_row.status
+    );
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+      FROM public.media_purge_claims AS c
+     WHERE c.tenant_id = p_tenant_id
+       AND c.content_hash = p_content_hash
+       AND c.expires_at > v_wall_now
+  ) THEN
+    RETURN pg_catalog.jsonb_build_object(
+      'outcome', 'claim_active',
+      'status', v_row.status
+    );
+  END IF;
+
+  UPDATE public.media_assets AS a
+     SET mime_type = p_mime_type,
+         content_hash = p_content_hash,
+         master_key = p_master_key,
+         variants = p_variants,
+         byte_size = p_byte_size,
+         width = p_width,
+         height = p_height,
+         updated_at = v_effective_now
+   WHERE a.id = p_asset_id
+     AND a.tenant_id = p_tenant_id
+     AND a.status = 'uploading'
+  RETURNING * INTO v_row;
+
+  RETURN pg_catalog.jsonb_build_object(
+    'outcome', 'declared',
+    'row', pg_catalog.to_jsonb(v_row)
+  );
+END;
+$$;
+
+COMMENT ON FUNCTION public.declare_media_finalize(UUID, UUID, TEXT, TEXT, JSONB, TEXT, BIGINT, INTEGER, INTEGER, TIMESTAMPTZ) IS
+  'Platform-lane helper (AL-2679, WP6 part 1): serializes on (tenant_id, content_hash), checks live purge claims, and durably records content_hash/master_key/variants on an uploading row before Storage writes. EXECUTE for service_role only.';
+
+ALTER FUNCTION public.declare_media_finalize(UUID, UUID, TEXT, TEXT, JSONB, TEXT, BIGINT, INTEGER, INTEGER, TIMESTAMPTZ) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.declare_media_finalize(UUID, UUID, TEXT, TEXT, JSONB, TEXT, BIGINT, INTEGER, INTEGER, TIMESTAMPTZ) FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
+GRANT EXECUTE ON FUNCTION public.declare_media_finalize(UUID, UUID, TEXT, TEXT, JSONB, TEXT, BIGINT, INTEGER, INTEGER, TIMESTAMPTZ) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.publish_media_finalize(
+  p_tenant_id UUID,
+  p_asset_id UUID,
+  p_content_hash TEXT,
+  p_now TIMESTAMPTZ DEFAULT pg_catalog.now()
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+VOLATILE
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+DECLARE
+  v_row public.media_assets%ROWTYPE;
+  v_wall_now TIMESTAMPTZ := pg_catalog.now();
+  v_effective_now TIMESTAMPTZ := COALESCE(p_now, v_wall_now);
+BEGIN
+  IF p_tenant_id IS NULL OR p_asset_id IS NULL OR p_content_hash IS NULL THEN
+    RAISE EXCEPTION 'media_finalize: tenant, asset and content_hash are required'
+      USING ERRCODE = '22004';
+  END IF;
+
+  PERFORM pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(p_tenant_id::TEXT || ':' || p_content_hash, 0)
+  );
+
+  DELETE FROM public.media_purge_claims AS c
+   WHERE c.tenant_id = p_tenant_id
+     AND c.content_hash = p_content_hash
+     AND c.expires_at <= v_wall_now;
+
+  SELECT *
+    INTO v_row
+    FROM public.media_assets AS a
+   WHERE a.id = p_asset_id
+     AND a.tenant_id = p_tenant_id
+     FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RETURN pg_catalog.jsonb_build_object('outcome', 'missing');
+  END IF;
+
+  IF v_row.status = 'ready' THEN
+    RETURN pg_catalog.jsonb_build_object(
+      'outcome', 'ready',
+      'row', pg_catalog.to_jsonb(v_row)
+    );
+  END IF;
+
+  IF v_row.status <> 'uploading' THEN
+    RETURN pg_catalog.jsonb_build_object(
+      'outcome', 'terminal',
+      'status', v_row.status
+    );
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+      FROM public.media_purge_claims AS c
+     WHERE c.tenant_id = p_tenant_id
+       AND c.content_hash = p_content_hash
+       AND c.expires_at > v_wall_now
+  ) THEN
+    RETURN pg_catalog.jsonb_build_object(
+      'outcome', 'claim_active',
+      'status', v_row.status
+    );
+  END IF;
+
+  IF v_row.content_hash IS DISTINCT FROM p_content_hash THEN
+    RETURN pg_catalog.jsonb_build_object(
+      'outcome', 'mismatch',
+      'status', v_row.status
+    );
+  END IF;
+
+  UPDATE public.media_assets AS a
+     SET status = 'ready',
+         updated_at = v_effective_now
+   WHERE a.id = p_asset_id
+     AND a.tenant_id = p_tenant_id
+     AND a.status = 'uploading'
+     AND a.content_hash = p_content_hash
+  RETURNING * INTO v_row;
+
+  RETURN pg_catalog.jsonb_build_object(
+    'outcome', 'published',
+    'row', pg_catalog.to_jsonb(v_row)
+  );
+END;
+$$;
+
+COMMENT ON FUNCTION public.publish_media_finalize(UUID, UUID, TEXT, TIMESTAMPTZ) IS
+  'Platform-lane helper (AL-2679, WP6 part 1): atomically transitions a declared uploading row to ready under the per-(tenant_id, content_hash) advisory lock after confirming no live purge claim. EXECUTE for service_role only.';
+
+ALTER FUNCTION public.publish_media_finalize(UUID, UUID, TEXT, TIMESTAMPTZ) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.publish_media_finalize(UUID, UUID, TEXT, TIMESTAMPTZ) FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
+GRANT EXECUTE ON FUNCTION public.publish_media_finalize(UUID, UUID, TEXT, TIMESTAMPTZ) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.claim_media_content_purge(
+  p_tenant_id UUID,
+  p_asset_id UUID,
+  p_content_hash TEXT,
+  p_claim_token UUID,
+  p_lease_seconds INTEGER DEFAULT 120
+)
+RETURNS TEXT
+LANGUAGE plpgsql
+VOLATILE
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+DECLARE
+  v_wall_now TIMESTAMPTZ := pg_catalog.now();
+  v_lease_secs INTEGER := GREATEST(1, COALESCE(p_lease_seconds, 120));
+BEGIN
+  IF p_tenant_id IS NULL OR p_asset_id IS NULL OR p_content_hash IS NULL OR p_claim_token IS NULL THEN
+    RAISE EXCEPTION 'media_purge: tenant, asset, content_hash and claim_token are required'
+      USING ERRCODE = '22004';
+  END IF;
+
+  PERFORM pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(p_tenant_id::TEXT || ':' || p_content_hash, 0)
+  );
+
+  DELETE FROM public.media_purge_claims AS c
+   WHERE c.tenant_id = p_tenant_id
+     AND c.content_hash = p_content_hash
+     AND c.expires_at <= v_wall_now;
+
+  IF EXISTS (
+    SELECT 1
+      FROM public.media_purge_claims AS c
+     WHERE c.tenant_id = p_tenant_id
+       AND c.content_hash = p_content_hash
+       AND c.expires_at > v_wall_now
+  ) THEN
+    RETURN 'busy';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+      FROM public.media_assets AS a
+     WHERE a.tenant_id = p_tenant_id
+       AND a.content_hash = p_content_hash
+       AND (
+         a.status = 'ready'
+         OR (a.status = 'deleted' AND a.purged_at IS NULL AND a.id <> p_asset_id)
+       )
+  ) THEN
+    RETURN 'in_use_durable';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+      FROM public.media_assets AS a
+     WHERE a.tenant_id = p_tenant_id
+       AND a.content_hash = p_content_hash
+       AND a.status = 'uploading'
+       AND a.id <> p_asset_id
+  ) THEN
+    RETURN 'in_use_uploading';
+  END IF;
+
+  INSERT INTO public.media_purge_claims (
+    tenant_id,
+    content_hash,
+    claim_token,
+    claimed_at,
+    expires_at
+  )
+  VALUES (
+    p_tenant_id,
+    p_content_hash,
+    p_claim_token,
+    v_wall_now,
+    v_wall_now + pg_catalog.make_interval(secs => v_lease_secs)
+  );
+
+  RETURN 'claimed';
+END;
+$$;
+
+COMMENT ON FUNCTION public.claim_media_content_purge(UUID, UUID, TEXT, UUID, INTEGER) IS
+  'Platform-lane helper (AL-2679, WP6 part 1): atomically verifies no live ready, unpurged sibling deleted, or declared uploading row references (tenant_id, content_hash) and records a short-lived purge lease before Storage removal. EXECUTE for service_role only.';
+
+ALTER FUNCTION public.claim_media_content_purge(UUID, UUID, TEXT, UUID, INTEGER) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.claim_media_content_purge(UUID, UUID, TEXT, UUID, INTEGER) FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
+GRANT EXECUTE ON FUNCTION public.claim_media_content_purge(UUID, UUID, TEXT, UUID, INTEGER) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.release_media_content_purge(
+  p_tenant_id UUID,
+  p_content_hash TEXT,
+  p_claim_token UUID
+)
+RETURNS VOID
+LANGUAGE plpgsql
+VOLATILE
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+BEGIN
+  IF p_tenant_id IS NULL OR p_content_hash IS NULL OR p_claim_token IS NULL THEN
+    RETURN;
+  END IF;
+
+  PERFORM pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(p_tenant_id::TEXT || ':' || p_content_hash, 0)
+  );
+
+  DELETE FROM public.media_purge_claims AS c
+   WHERE c.tenant_id = p_tenant_id
+     AND c.content_hash = p_content_hash
+     AND c.claim_token = p_claim_token;
+END;
+$$;
+
+COMMENT ON FUNCTION public.release_media_content_purge(UUID, TEXT, UUID) IS
+  'Platform-lane helper (AL-2679, WP6 part 1): releases a held per-(tenant_id, content_hash) purge lease matching claim_token. EXECUTE for service_role only.';
+
+ALTER FUNCTION public.release_media_content_purge(UUID, TEXT, UUID) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.release_media_content_purge(UUID, TEXT, UUID) FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
+GRANT EXECUTE ON FUNCTION public.release_media_content_purge(UUID, TEXT, UUID) TO service_role;
+
 DO $$
 DECLARE
   v_problem TEXT;
@@ -478,7 +839,18 @@ BEGIN
      OR pg_catalog.has_function_privilege('anon', 'public.delete_media_asset(uuid, uuid)', 'EXECUTE')
      OR NOT pg_catalog.has_function_privilege('authenticated', 'public.resolve_staff_media_access(uuid)', 'EXECUTE')
      OR pg_catalog.has_function_privilege('public', 'public.resolve_staff_media_access(uuid)', 'EXECUTE')
-     OR pg_catalog.has_function_privilege('anon', 'public.resolve_staff_media_access(uuid)', 'EXECUTE') THEN
+     OR pg_catalog.has_function_privilege('anon', 'public.resolve_staff_media_access(uuid)', 'EXECUTE')
+     OR pg_catalog.has_table_privilege('authenticated', 'public.media_purge_claims', 'SELECT')
+     OR pg_catalog.has_table_privilege('anon', 'public.media_purge_claims', 'SELECT')
+     OR pg_catalog.has_table_privilege('tenant_guard', 'public.media_purge_claims', 'SELECT')
+     OR NOT pg_catalog.has_function_privilege('service_role', 'public.declare_media_finalize(uuid, uuid, text, text, jsonb, text, bigint, integer, integer, timestamptz)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('authenticated', 'public.declare_media_finalize(uuid, uuid, text, text, jsonb, text, bigint, integer, integer, timestamptz)', 'EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('service_role', 'public.publish_media_finalize(uuid, uuid, text, timestamptz)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('authenticated', 'public.publish_media_finalize(uuid, uuid, text, timestamptz)', 'EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('service_role', 'public.claim_media_content_purge(uuid, uuid, text, uuid, integer)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('authenticated', 'public.claim_media_content_purge(uuid, uuid, text, uuid, integer)', 'EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('service_role', 'public.release_media_content_purge(uuid, text, uuid)', 'EXECUTE')
+     OR pg_catalog.has_function_privilege('authenticated', 'public.release_media_content_purge(uuid, text, uuid)', 'EXECUTE') THEN
     RAISE EXCEPTION 'AL-2679: media function EXECUTE privileges did not apply as expected';
   END IF;
 END $$;
