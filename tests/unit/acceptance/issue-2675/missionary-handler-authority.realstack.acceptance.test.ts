@@ -1,4 +1,3 @@
-// D-18, WP3: giving-target fixtures now name a legal entity owned by their tenant.
 import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";

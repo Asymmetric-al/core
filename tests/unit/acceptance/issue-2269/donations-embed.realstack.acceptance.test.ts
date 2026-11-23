@@ -1,4 +1,3 @@
-// D-18, WP3: giving-target fixtures now name a legal entity owned by their tenant.
 /**
  * #2269 acceptance (spec r1 = issue comment 6385584133, approved with all
  * defaults in 6385601889). Static C1, C2 (SDL), C8, then the (R) real-catalog

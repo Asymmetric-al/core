@@ -1,41 +1,3 @@
-/**
- * AL-2676 (WP3a part 1a), round M (M1), round N (F1) & round O (A): an app
- * embeds between the five money tables and `funds`/`missionaries` — in either
- * direction — only in a form that resolves on both sides of 20261120130004.
- *
- * That migration replaces each money table's single-column keys to funds and
- * missionaries with composite (tenant_id, target) keys. A column hint
- * (`missionaries!missionary_id`), a column-named embed (`fund:fund_id(...)` or
- * `missionary_id(...)`), a key-name hint (`donations!donations_fund_id_fkey(...)`),
- * a constraint-named embed, or a hinted spread (`...funds!fund_id(...)`)
- * resolves on one side of 20261120130004 only. Using the bare table name with
- * no relationship hint (join modifiers `!inner` and `!left` are allowed)
- * resolves on both schemas in either direction, because each schema has one
- * relationship per pair (plan 7.4).
- *
- * Refusal is root-independent: any match inside a string or template literal
- * under apps/ and packages/ (tracked files and non-ignored untracked ones;
- * tests excluded; comments and JSX prose ignored) that chooses a relationship
- * among the seven tables (`funds`, `missionaries`, and the five money tables)
- * by anything other than the bare table name is a violation wherever it sits
- * (nested, in a helper-passed string, or spread). The only escape is the closed
- * EXEMPTIONS list, whose entries hold only when the TypeScript AST binds the
- * match to `.from("<parent>")` of a table 20261120130004 does not alter (today:
- * the four `posts` selects in `packages/graphql/handler.ts`). Hint-free embeds
- * bound to a money or target root form the closed INVENTORY list (six forward
- * sites, zero reverse), which feeds the real-catalog half in the migrate job
- * (`TENANT_GUARD_IT_ADMIN_DATABASE_URL`), where each listed pair and all ten
- * money↔target pairs must have one relationship and zero single-column keys.
- *
- * Note: the AST root binder overlaps with
- * `tests/integration/api-contract/select-inventory.ts`; they are not merged in
- * this round.
- *
- * Limits: a select assembled at run time from parts, a hint interpolated into
- * a template, computed relationships and views are not seen; the binding of
- * roots follows same-file constants and named imports only and is used for the
- * inventory and the exemptions, not for the refusal.
- */
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -70,18 +32,11 @@ const FK_CONSTRAINT_RE = new RegExp(
   `^(?:${MONEY_PREFIX_RE})_[A-Za-z0-9_]*(?:fkey|fk)$`,
 );
 
-/**
- * Matches an embed of one of the seven tables, `fund_id`/`missionary_id`, or a
- * money-table FK constraint name, with optional `...` spread prefix, optional
- * `alias:`, optional whitespace around `!` hints (which supabase-js strips),
- * and `(`. Excludes property access (`obj.funds(`) and tokens after `!`.
- */
 const EMBED = new RegExp(
   `(?<![A-Za-z0-9_!$]|(?<!\\.\\.)\\.)(?:\\.\\.\\.\\s*)?(?:[A-Za-z_][A-Za-z0-9_]*\\s*:\\s*)?(funds|missionaries|fund_id|missionary_id|${MONEY_PREFIX_RE}|(?:${MONEY_PREFIX_RE})_[A-Za-z0-9_]*(?:fkey|fk))((?:\\s*!\\s*[A-Za-z0-9_]+)*)\\s*\\(`,
   "g",
 );
 
-/** Join modifiers, which do not pick a relationship. */
 const JOIN_MODIFIERS = new Set(["inner", "left"]);
 
 const DYNAMIC_ROOT = "<dynamic>";
@@ -97,11 +52,6 @@ type Direction = "money->target" | "target->money";
 
 type FoundEmbed = {
   file: string;
-  /**
-   * `.from("…")` root bound via same-file constants and named imports (used
-   * only for the inventory and exemptions, never to waive Rule 2), `null` when
-   * unbound, or `"<dynamic>"` when non-literal or ambiguous in the file.
-   */
   root: string | null;
   embed: string;
 };
@@ -117,18 +67,10 @@ type InventorySite = {
 type Exemption = {
   file: string;
   embed: string;
-  /** Parent `.from("<parent>")` table that 20261120130004 does not alter. */
   parent: string;
   note: string;
 };
 
-/**
- * Closed inventory of hint-free embeds between the five money tables and
- * `funds`/`missionaries` bound to a money or target root. Feeds the catalog
- * half. Unbound non-violating string tokens (e.g. the GraphQL SDL field
- * `missionaries(limit, offset)` in `packages/graphql/handler.ts`) are governed
- * by Rule 2 alone and need no entry here.
- */
 const INVENTORY: InventorySite[] = [
   {
     file: "packages/api/src/donations/select.ts",
@@ -174,11 +116,6 @@ const INVENTORY: InventorySite[] = [
   },
 ];
 
-/**
- * Closed list of Rule-2 exemptions. An exemption holds only if the scanner
- * binds the match to `.from("<parent>")` equal to `parent`, where `parent` is
- * outside the seven tables altered by 20261120130004.
- */
 const EXEMPTIONS: Exemption[] = [1, 2, 3, 4].map(() => ({
   file: "packages/graphql/handler.ts",
   embed: "missionary:missionaries!missionary_id(",
@@ -211,10 +148,6 @@ function directionOf(root: string | null, resource: string): Direction | null {
   return null;
 }
 
-/**
- * Rule 2 (root-independent): true when the match chooses a relationship among
- * the seven tables by anything other than the bare table name.
- */
 function isRelationshipChoosingViolation(embed: string): boolean {
   const resource = resourceNameOf(embed);
   if (FK_COL_SET.has(resource) || FK_CONSTRAINT_RE.test(resource)) return true;
@@ -401,8 +334,6 @@ function indexFile(file: string, text: string): FileIndex {
   const stringConsts = new Map<string, string>();
   const varFromRoots = new Map<string, string>();
 
-  // Pass 1: string/template spans, string constants, named imports, and
-  // variable-bound `.from(...)` builders (same name with two roots -> dynamic).
   function pass1(node: ts.Node): void {
     if (
       ts.isStringLiteral(node) ||
@@ -465,7 +396,6 @@ function indexFile(file: string, text: string): FileIndex {
   }
   pass1(sf);
 
-  // Pass 2: `.from(...)...select(arg0)` calls.
   function pass2(node: ts.Node): void {
     if (ts.isCallExpression(node) && node.arguments.length >= 1) {
       const callee = unwrapExpr(node.expression);
@@ -549,7 +479,6 @@ function scanSources(sources: Map<string, string>): FoundEmbed[] {
     }
   }
 
-  // Transitive propagation through helper string constants (`const B = `${A}, id``).
   let changed = true;
   while (changed) {
     changed = false;
@@ -574,15 +503,12 @@ function scanSources(sources: Map<string, string>): FoundEmbed[] {
     const idx = indices.get(file)!;
     for (const match of text.matchAll(EMBED)) {
       const pos = match.index;
-      // Point 1: only matches inside a string or template literal count.
       const inString = idx.stringSpans.some(([s, e]) => pos >= s && pos < e);
       if (!inString) continue;
-      // Reject hint tokens preceded by `!` with intervening whitespace (e.g. `profiles! missionary_id(`).
       if (/!\s*$/.test(text.slice(Math.max(0, pos - 16), pos))) continue;
 
       const embed = match[0].replace(/\s+/g, "");
 
-      // Prefer the narrowest enclosing inline `.from(...)...select(arg0)` span.
       const inlineHits = idx.inlineSelectSpans
         .filter((s) => pos >= s.start && pos < s.end)
         .sort((a, b) => a.end - a.start - (b.end - b.start));
@@ -591,7 +517,6 @@ function scanSources(sources: Map<string, string>): FoundEmbed[] {
         continue;
       }
 
-      // Otherwise check variable declarations bound to `.from(...)` selects.
       const boundRoots = new Set<string>();
       let ambiguousSameName = false;
       for (const [name, decl] of idx.varDecls.entries()) {
@@ -652,9 +577,7 @@ function repoEvaluation(): Evaluation {
   for (const file of [...new Set(sourceFiles())].sort()) {
     try {
       sources.set(file, readFileSync(file, "utf8"));
-    } catch {
-      // Listed by Git but deleted in the working tree.
-    }
+    } catch {}
   }
   cachedRepoEvaluation = evaluateEmbeds(scanSources(sources), EXEMPTIONS);
   return cachedRepoEvaluation;

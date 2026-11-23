@@ -2,17 +2,6 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { serverEnv } from "@asym/env";
 import { NextResponse } from "next/server";
 
-/**
- * The five money tables whose rows fix a giving target's legal entity for
- * good (AL-2676, WP3a). Deleting an Auth user cascades through its profile
- * to its missionary, and the database refuses to delete a missionary that
- * money named, so such an account is kept, and the answer says so.
- *
- * Not recognised: an account whose money rows are gone while a lock still
- * names its missionary (the service key reads no lock row). Its delete is
- * refused, and every run answers 500 with that account under `errors` until
- * it is handled; that is owed (round M of WP3a part 1a), not done here.
- */
 const MONEY_TABLES = [
   "donations",
   "donor_pledges",
@@ -23,7 +12,6 @@ const MONEY_TABLES = [
 
 type AdminClient = NonNullable<ReturnType<typeof getAdminClient>["client"]>;
 
-/** Whether money names this account's missionary or donor row. */
 async function hasGivingHistory(supabase: AdminClient, userId: string) {
   const ids = async (table: "missionaries" | "donors") => {
     const { data, error } = await supabase
@@ -118,8 +106,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // Success means every eligible account was deleted, or kept because
-    // money names it; an account that failed to delete fails the run.
     return NextResponse.json(
       {
         success: errors.length === 0,

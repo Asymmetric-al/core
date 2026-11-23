@@ -79,9 +79,6 @@ describe(LIST, () => {
         e.outcome,
       );
       expect(e.reason.trim().length, e.table).toBeGreaterThan(20);
-      // D-18 (AL-2676, WP3a part 1): the coordinator's council of 21 November
-      // reviewed the three internal entity tables WP3a adds with no policy
-      // (fix list F8); every other entry keeps Samson's review, as before.
       expect(e.reviewed_by, e.table).toMatch(
         WP3A_ENTITY_TABLES.has(e.table)
           ? /^Coordinator's WP3a-1 council, 2026-11-21$/

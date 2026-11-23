@@ -1,4 +1,3 @@
-// D-18, WP3: giving-target fixtures now name a legal entity owned by their tenant.
 /**
  * #2269 (P) live-PostgREST acceptance, spec r1 criteria C4-C7 (comment
  * 6385584133, approved 6385601889; OQ3: no CI step, Acceptance runs this
@@ -230,9 +229,6 @@ describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
     );
   });
   afterAll(async () => {
-    // D-18 (AL-2676, K9): a gift locks its missionary's legal entity and a
-    // locked target cannot be deleted, so the clean-up removes this tenant's
-    // locks after its gifts; every assertion of the suite is unchanged.
     await s.db.query(
       `delete from public.donations where tenant_id = $1; delete from public.giving_target_entity_locks where tenant_id = $1; delete from public.donors where tenant_id = $1;
        delete from public.missionaries where tenant_id = $1; delete from auth.users where id in ($2, $3, $4);

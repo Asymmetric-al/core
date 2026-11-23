@@ -525,9 +525,6 @@ describe("ambiguous fixture user creation", () => {
   });
 });
 
-// K7 (fix check, 21 November): the fixture's legal entity is written by psql
-// in the owned database container, with the explicit host and none of the
-// Docker client settings, and removed in key order.
 describe("the SDK fixture's legal entity", () => {
   it("runs psql in the owned database container without inherited Docker client settings", () => {
     const invocation = legalEntityFixtureCommand({
@@ -597,8 +594,6 @@ describe("the SDK fixture's legal entity", () => {
     ]);
   });
 
-  // L1: the fixture user reads the fund on its own token, as staff of the
-  // run's own tenant only.
   it("gives the run's own user a staff membership in the run's own tenant, and removes only that row", () => {
     expect(MEMBERSHIP_FIXTURE_INSERT).toMatch(/'staff', 'development', false/);
     expect(MEMBERSHIP_FIXTURE_INSERT).toMatch(
@@ -612,11 +607,6 @@ describe("the SDK fixture's legal entity", () => {
     );
   });
 
-  // Round M (L1's committed test): the verifier is run by hand, so its
-  // source is held here. The caller reads the fund on its own token with
-  // both request headers, never through the service key, and two refusals
-  // are checked: the member under another tenant, and a signed-in user with
-  // no membership under the fund's own tenant.
   it("reads the fund on the caller's own token and checks both refusals", () => {
     const verifier = readFileSync(
       "tests/integration/supabase/client-runtime-verification.mjs",

@@ -5,11 +5,7 @@ path that deploys production. It implements section 7.4 and 7.5 of
 [the target architecture](../audits/core-crm-cms-database-target-architecture.md)
 and the release-pipeline part of WP1 (issue #2674, slice 1.3).
 
-**State.** The code is in the repository. It does nothing until the owner
-completes [the steps to switch it on](#switching-it-on). Until then the
-first push to `production` that carries this change runs the job, which stops
-at its preflight (the development database has no release health function and
-no environment marker) and deploys nothing.
+**State.** Steps 1–7 are complete. On 22 November 2026 Release 45043933598 promoted `e7045ac55` to all three production domains. Production reads disposable development until WP11; use ordinary releases only. Step 8’s migration-preview infrastructure is deferred; step 9 registration is on.
 
 ## What it does
 
@@ -171,8 +167,7 @@ deployment ID the failed run logged for it, and that its
 `/api/health/migrations` response (with that project's
 `x-vercel-protection-bypass` header) is `ok` with the expected Supabase project
 ref and commit; if that check cannot be made, fix the cause and dispatch with
-`apps: all`, which builds, promotes and live-checks every app. Before the first
-dispatch of a release that carries changed Vercel variables,
+`apps: all`, which builds, promotes and live-checks every app. Before every release,
 note for each app the deployment ID its production domain currently serves
 (read it from `https://<domain>/api/health/migrations` with that project's
 `x-vercel-protection-bypass` header, or from the project's **Deployments**
@@ -1068,12 +1063,7 @@ new CA has a new fingerprint, so the recorded one cannot confirm it. Then:
    `openssl s_client -starttls postgres -connect <pooler host>:5432 -servername <pooler host> -CAfile <file> -verify_hostname <pooler host> -verify_return_error </dev/null`
    must print `Verification: OK` in the middle of its output, after the
    certificate chain, and `Verify return code: 0 (ok)` near its end.
-3. Set it as `RELEASE_DATABASE_SSL_CA` in both `release-production` and
-   `release-preview`, and as `PAYLOAD_DATABASE_SSL_CA` on the admin app; once
-   switch-on step 7 has run, dispatch **Release** anew with operation `release`
-   and `apps: all` so the changed variable reaches users, and check that the
-   plan step logged `build` for admin, donor and missionary (before step 7,
-   redeploy and promote by hand; see step 3 below).
+3. Set the matching project CA in `RELEASE_DATABASE_SSL_CA` in each configured release environment and in `PAYLOAD_DATABASE_SSL_CA` on admin wherever it reads that project. Refresh non-production deployments where the CA changed. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.
 4. In the same pull request as a document change, record the new CA's name,
    dates and fingerprint here and in step 2 of
    [Switching it on](#switching-it-on). No code changes: the job pins no
@@ -1137,10 +1127,7 @@ stub of the same shape (`tests/unit/scripts/release/support/test-database.ts`).
 
 ## Switching it on
 
-Do the steps in order. Each says how to check it and how to undo it. Steps
-1 to 4 leave production serving what it serves today; steps 5 and 6 change
-development and the Vercel variables; step 7 is the first release through the
-job. Nothing here is done by the code.
+Steps 1–7 describe the first switch-on. Each says how to check it and how to undo it. Steps 1–4 left the June deployments serving; steps 5–6 rebuilt development and changed settings. The production push in step 7 released the new apps. Do not repeat the first rebuild. Use the checkpoint and step 7 checks for later releases; a compatible rollback is not guaranteed.
 
 **Preconditions.** WP1.1 (the health function, marker, reset rule and CMS
 roles) and WP1.2 (Payload as `cms_runtime`, migrating as `cms_owner`) are
@@ -1192,20 +1179,12 @@ below follow those decisions.
    Domains_ for admin, donor and missionary (Vercel, Project Settings,
    Environments, Production). This comes before the code ships, because
    `bun run release:production` runs `verify:deployment-discipline`, which
-   now requires it. From now on nothing reaches the production domains except
-   by promotion; until step 7 has run once, promote an urgent fix by hand in
-   the Vercel dashboard.
+   requires staged deployments. Before step 7, manual promotion was the emergency path. After switch-on, release through the Release workflow, not by promoting in the dashboard; the one dashboard deployment action left is the Instant Rollback named in the Undo of step 7.
    Check: `bun run verify:deployment-discipline` passes
    `production deployments are staged (custom domains not auto-assigned)`.
    Undo: turn it back on.
-4. **Ship the code.** Merge this change through `develop` and release it with
-   `bun run release:production`. From this push on, Vercel's Git integration
-   deploys nothing (`apps/*/vercel.json`), and the Release run that the push
-   starts stops at preflight, because the development database has no health
-   function and no marker. Production keeps serving its current deployment.
-   Check: the run fails in its migrate step with "predates WP1"; Vercel lists
-   no new production deployment for the commit
-   (`vercel list admin --scope asymmetric-al`).
+4. **Ship the code.** Open a draft `develop`-to-`production` pull request for the source and required checks. Wait for all six required checks on the exact commit: `ci-gate`, `e2e-gate`, `e2e-smoke-gate`, `migrate`, `release-source-gate` and `smoke`. Require SUCCESS for `test-e2e` and `e2e-gate` on the `pull_request` run; a skipped push-run result is not a pass. Use `bun run release:production`; its fast-forward closes the draft as merged. Do not merge it by hand. Vercel’s Git integration deploys nothing. At switch-on the first push stopped in migration preflight because the database predated WP1: it had neither the health function nor the environment marker. No deployment was created; the domains continued serving their previous builds. That was the expected result before the first rebuild, not the result of an ordinary release.
+   Check: the first push fails in the migrate step with “predates WP1”; Vercel lists no new production deployment for the commit (`vercel list admin --scope asymmetric-al`).
    Undo: release a revert of the commit.
 5. **The first rebuild of development** (WP1.7). Its input is the census
    sign-off, decision D-15 (all hosted data are fixtures). Dispatch
@@ -1240,67 +1219,35 @@ below follow those decisions.
    succeeds.
    Undo: none after the reset (forward only, plan 7.5); before it, cancel
    the run.
-6. **Point the applications at that database, without a `postgres` login.**
-   In each Vercel project (admin, donor, missionary):
-   - Production `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-     and `SUPABASE_SERVICE_ROLE_KEY` belong to `RELEASE_SUPABASE_PROJECT_REF`
-     (the development project until WP11; D-15). The job checks this on every
-     staged deployment and refuses to promote a mismatch.
-   - Delete `SUPABASE_DB_URL` everywhere. Names read on 17 November 2026:
-     admin Production, and the `core-development` custom environment of
-     admin, donor and missionary (dashboard, or `vercel env rm` from a
-     directory linked to the project).
-   - Replace the admin app's `PAYLOAD_DATABASE_URI` in Production, in
-     `core-development` and in its branch-scoped Preview entry with a
-     `cms_runtime` login on the session pooler:
-     `postgresql://cms_runtime.<ref>:<RELEASE_CMS_RUNTIME_PASSWORD>@<pooler host>:5432/postgres?sslmode=verify-full`
-     (development's pooler host is `aws-1-us-east-1.pooler.supabase.com`),
-     with no other SSL option, and set `PAYLOAD_DATABASE_SSL_CA` beside it to
-     the project's CA certificate (the PEM from its Database settings). A
-     protected deployment refuses a pooler URL without that pair, and refuses
-     to start Web Studio while `PAYLOAD_MIGRATION_DATABASE_URI` is set
-     (`apps/admin/src/cms/payload-database-config.ts`); never add that
-     variable to an application environment.
+6. **Point the applications at rebuilt development.** Change the Production Supabase URL, anon key and service role key together on admin, donor and missionary. The release checks the project ref in `NEXT_PUBLIC_SUPABASE_URL` directly and proves `SUPABASE_SERVICE_ROLE_KEY` by effect through `platform_health` on each staged deployment; it refuses to promote a mismatch. It verifies neither `NEXT_PUBLIC_SUPABASE_ANON_KEY` nor the admin Payload URI/CA pair before promotion. After deployment, sign in on each domain and open Web Studio by hand. Settings do not reach an existing deployment.
 
-   Check: `bun run verify:runtime-connection-strings` prints
-   `Overall: READY`. Undo: restore the previous values (re-adding
-   `SUPABASE_DB_URL` reopens NA-04). They reach users only through a release
-   dispatched with `apps: all` (step 7).
+   - Inspect project entries **and team shared variables**, by name, linked project, target, branch and custom-environment id. Remove project-level `SUPABASE_DB_URL` entries in the dashboard or with `vercel env rm` from a directory linked to the project. Separately unlink any team-shared entry from every application environment it reaches; deleting a project entry does not remove a team link. Four project entries and one shared entry were found at switch-on. An empty `target` does not cancel a custom-environment link. Until the verifier reads team links, the project-only `bun run verify:runtime-connection-strings` must report READY but is not sufficient; read back both inventories without values.
+   - In admin Production and `core-development` set `PAYLOAD_DATABASE_URI` to `postgresql://cms_runtime.<ref>:<RELEASE_CMS_RUNTIME_PASSWORD>@<pooler host>:5432/postgres?sslmode=verify-full` (development pooler: `aws-1-us-east-1.pooler.supabase.com`), with no other SSL option. Set `PAYLOAD_DATABASE_SSL_CA` beside it to the project CA certificate, the PEM from its Database settings. A protected deployment refuses a pooler URL without that pair; Web Studio refuses to start while `PAYLOAD_MIGRATION_DATABASE_URI` is set (`apps/admin/src/cms/payload-database-config.ts`). Test one login first. Never put `PAYLOAD_MIGRATION_DATABASE_URI` in the application. For a branch-scoped Preview entry that refuses replacement, verify that the Git branch is gone and has no open PR; remove that entry’s URI and CA rather than leaving the old privileged login. Leave unrelated variables alone.
+   - Set `INNGEST_EVENT_KEY` and `INNGEST_SIGNING_KEY` on all three projects in each environment: Inngest Production for Vercel Production, Inngest Development for `core-development`. Keys alone do not register functions. Set donor’s `CMS_BASE_URL` to that environment’s admin origin. Check the app, site and donor origins against the [development addresses](./environments.md#51-canonical-development-urls); no staging aliases.
+   - Set the three GitHub `VERCEL_{ADMIN,DONOR,MISSIONARY}_AUTOMATION_BYPASS_SECRET` entries from the corresponding bypass Vercel exposes to the deployment (`isEnvVar`), not another protection bypass. Separate credential lookup from the input supplying the value. A secret list date, a 200 without detail or a successful probe using a local copy does not verify GitHub’s copy. GitHub secrets cannot be read back. Prove its copies by a workflow that consumes them: the release job checks `status: "ok"`, deployment ID, commit and project ref on each project. In the operator’s detailed health read-back, inspect the disposable marker and both migration heads. Never log the header or its value.
+   - After the rebuild, update the preferred `QA_PREVIEW_TEST_EMAIL` and `QA_PREVIEW_TEST_PASSWORD` pair for hosted smoke. Do not assume the old fallback login survived the reset. Before deployment correct a bad setting in its original scope; never restore a privileged application login. After promotion use step 7’s recovery boundary.
 
-7. **Release.** First note each app's current live deployment ID (from
-   `/api/health/migrations` with the project's bypass header or the project's
-   **Deployments** page, as in
-   [If a promotion fails part way](#if-a-promotion-fails-part-way)), then
-   dispatch **Release** anew from branch `production` with operation `release`
-   and `apps` set to `all`. This release must build all
-   three apps, because the variables of step 6 reach an app only through a new
-   production deployment, and with the default `apps: changed` the job skips an
-   app whose files and shared inputs did not change since the commit its
-   production domain serves. With `apps: all`, the plan step selects admin,
-   donor and missionary regardless of their live commits and logs `build` for
-   each, with the reason: read it. If the plan logged `skip` for any app, stop:
-   `apps` was left at `changed`, and that app still serves a deployment built
-   with the old variables. Dispatch **Release** anew with operation `release`
-   and `apps: all` (never re-run an earlier run, and do not redeploy a skipped
-   app from Vercel's dashboard: that rebuilds the commit the app serves and not
-   the release, the project's Ignored Build Step can cancel it, and its ID is
-   not one the run logged). Whenever changed Vercel variables must reach users,
-   dispatch **Release** anew with operation `release` and `apps: all` and check
-   that the plan step logged `build` for admin, donor and missionary.
-   Check: the run is green; the plan step logged `build` for admin, donor and
-   missionary; the run's last log line for each app names the deployment ID its
-   production domain serves (the job compared that deployment ID, the commit
-   and the project ref with each project's bypass secret on the staged
-   deployment and again on the production domain); `bun run verify:vercel-production -- --commit <sha>`
-   is READY; `curl https://admin.asymmetric.al/api/health/migrations` answers
-   `"status":"ok"`, and so does the same path on the donor and the missionary
-   production domains (a plain request is not shown the project ref or
-   deployment ID); each production domain serves the ID the run logged for that
-   app, and no deployment of the commit was created outside the IDs the runs
-   logged in the release's window (earlier deployments of the same commit from
-   before the release may still appear in Vercel's list).
-   Undo: Vercel _Instant Rollback_ to the previous production deployment; it
-   stays healthy, because a database that is ahead passes.
+   **Development checkpoint — before the production push.** For each project request `POST /v13/deployments?teamId=<team-id>&forceNew=1` using the team ID in `TEAM` in `scripts/release/vercel-release.mjs`. Supply the project name and ID, `gitSource` of type `github`, repository id, ref `develop` and exact candidate SHA, `customEnvironmentSlugOrId: core-development` and `build.env.CORE_QA_FORCE_BUILD_SHA` equal to that SHA. Include `gitMetadata` with `commitRef`, `commitSha` and `remoteUrl`; request `buildMachine: "turbo"` for admin. Omit `target` and never call the promote endpoint for a development checkpoint. Wait for READY and read back target null, custom environment, git ref/SHA and deployment id; verify the corresponding `development-<app>.asymmetric.al` alias actually serves that id. Read ordinary health and migration health with detail: require the candidate, project, id, disposable marker and both expected heads. Run the three-app hosted smoke and the signed-in checks on rebuilt development. Record evidence with its commit and exceptions; do not pass a rehearsal or a later smoke off as a new full signed-in run. At the first release the full run was at `474c5679f`; the final candidate `e7045ac55` had a separate exact-SHA checkpoint and smoke.
+
+   Check: require `Overall: READY` from `bun run verify:runtime-connection-strings`. Inspect both inventories by name: each project entry and each team-shared entry, all linked projects and every environment each entry reaches. Require the development checkpoint’s detailed migration health to identify the deployment, commit, project ref, disposable marker and both heads; a status-only response is not proof.
+   Undo: before release, the previous Production Supabase trio can be restored from the preview project. The old privileged Postgres connection strings are gone for good; do not recreate them. Settings change what users see only after a new deployment. After promotion follow step 7’s recovery boundary.
+
+7. **Release.** Note each production domain’s live deployment id first. The checked fast-forward push to `production` **is** the release: it starts the workflow in changed mode. Read the plan. Step 6’s changes must reach all three apps; if any required app would be skipped, use a fresh `release` dispatch at the release commit with `apps: all` and check all three build decisions. Do not rerun an old attempt or use a dashboard redeploy. A second dispatch is unnecessary when the push already builds all three. At switch-on, the June build’s diff overflowed the plan’s buffer: “live commit is not an ancestor” was a misleading reason, although building all three was correct. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.
+
+   Check and record all nine results:
+
+   1. Release succeeded and the plan logged a build for each required app.
+   2. Each production domain’s detailed migration health matches the run’s staged and promoted id, SHA, environment, database ref, marker and both heads.
+   3. Plain migration health returns only status; ordinary health returns 200 and identifies the healthy Supabase connection and build.
+   4. In the release window, Vercel shows no other deployment of the candidate. Distinguish any earlier development checkpoint of the same SHA.
+   5. Run `bun run verify:vercel-production -- --commit <sha>`. Keep its actual exit status. At switch-on it returned BLOCKED (1): CLI 66.6.0 wrote `[sensitive]` and the verifier checked that literal as a value. Until fixed, distinguish that specific false finding from missing or genuinely invalid values: require matching READY deployments, normal and detailed health and protected runtime validation, and check both Inngest names separately. Never waive another failure or report the verifier as READY.
+   6. Sign in on all three production domains and check the expected landing and tenant scope.
+   7. In Web Studio choose the organization and read its pages and media lists; an empty list can be a successful scoped read.
+   8. When registration is enabled, check the production Inngest app, sync, functions and schedules from Inngest itself. At switch-on: seven declared plus two SDK failure handlers; three half-hour recovery schedules. An unsigned serve request answers 401.
+   9. While Production reads disposable demo data, check Stripe’s **test** publishable mode in its delivered bundles. That does not reveal the secret key’s mode.
+
+   Undo: there is no safe return to the pre-rebuild June build for this first release. Fix forward. For later releases, the Release workflow cannot return an app to an earlier deployment: it always builds the head of `production`. Return each app to the deployment ID you noted before the release with Vercel _Instant Rollback_ on that deployment, following the [partial-promotion recovery procedure](#if-a-promotion-fails-part-way), only when that build is compatible with the current database (plan 7.4) and never below the first release named under the request-tenant policies above; otherwise fix forward. Instant Rollback has not yet been exercised on these projects under the release job. Do not undo a rollback from the dashboard’s _Manage_ or with `vercel promote`: Vercel documents that both promote a deployment and re-enable auto-assignment of production domains, which the release job requires off. Leave the rollback in place and release the fix through the Release workflow. That release’s promotion may re-enable auto-assignment as well, so run `bun run verify:deployment-discipline` after it and turn auto-assignment off again if the check reports it on; the next release’s preflight stops while it is on.
+
 8. **The `preview` Supabase project.** No project is created: a third
    project would raise the Supabase bill. The preview project is the
    production-named project, `btewedpsxwsjczvmegby` (us-west-2, pooler host
@@ -1344,8 +1291,7 @@ below follow those decisions.
    (`platform_health()`) are unchanged.
    Undo: delete the custom environments and the GitHub environment. The
    rebuild of the project has no undo.
-9. **Optional.** Set `RELEASE_REGISTER_JOB_FUNCTIONS=true` once Inngest is
-   configured for production.
+9. **Optional Inngest registration (on).** `RELEASE_REGISTER_JOB_FUNCTIONS=true` was enabled for the first production release after the recovery schedules were slowed to every 30 minutes. Check the sync in Inngest Production; the presence of the two Vercel keys does not establish registration. Do not shorten the three schedules on Free: the enforced 50,000-execution monthly cap can stop every function, including event-driven ones. D-141 in the implementation record gives the arithmetic.
 
 **Turning the whole job off.** Disable the workflow
 (`gh workflow disable release.yml`), set `production: true` again in each
@@ -1394,16 +1340,9 @@ password change can be refused (above, "The CMS role passwords"). Seen on the
 second rebuild of the preview project, and the reason the password step now
 changes a password only when its secret is refused.
 
-Not yet run against a hosted service: Vercel creating a staged production
-deployment through the API and promoting it; a gitSource deployment into the
-`preview-database` custom environment (the job fails closed if Vercel ignores
-the environment); `supabase db push` on a hosted project; fingerprint equality
-with development after its first rebuild; and the preview group's queueing
-under GitHub's `queue: max` (documented for `jobs.<job_id>.concurrency` and
-for the workflow-level `concurrency` the release workflow now uses too).
+Seen on 22 November: first rebuild of development, fingerprint equality with CI, and Vercel staging, health checks and promotion without a rebuild. On development the full signed-in run showed routing, refusal, admin shell equality, caller-token reads, Web Studio origin checks, editor save, Secure cookie and session renewal. Only one missionary tenant was available; the media refresh renewed the session but missed the scorer’s expected status. No Blob upload, hosted rollback, private-schema inspection or operator enrolment/script test ran. See the [implementation record](../audits/core-crm-cms-database-implementation-record.md), D-145.
 
-Added by council round 2. The first four are now seen on hosted Supabase
-(18 November 2026, above); the last two are still to be seen:
+Still unobserved here: a deployment into the `preview-database` custom environment, a hosted ordinary push with pending SQL migrations (the ordinary release had zero), and preview queue contention under GitHub’s `queue: max`. Distinguish those from the following hosted proofs:
 
 - Seen: the CMS role migration applied by hosted `postgres`, which holds
   CREATEROLE but is not a superuser. Proved first on Supabase's own Postgres
@@ -1416,23 +1355,11 @@ Added by council round 2. The first four are now seen on hosted Supabase
   Intermediate 2021 CA to Supabase Root 2021 CA.
 - Seen: `preflight`, `gates` and `record-heads` with `RELEASE_DATABASE_URL` at
   `sslmode=verify-full` and the CA from `RELEASE_DATABASE_SSL_CA` (review L6).
-  `db push` and `db reset` under `verify-full` were seen only on the
-  operator's own Postgres with TLS (`wp16-hosted-proofs.md`, section 22).
+  A hosted reset under verify-full ran in 44991163443; the ordinary release had no pending SQL. The operator’s local TLS proof is separate (`wp16-hosted-proofs.md`, section 22).
 - Seen: the pinned CLI reading the password from `PGPASSWORD` against the
   hosted pooler.
 - Seen: signing in as a seeded login with `RELEASE_SEED_LOGIN_PASSWORD` after a
   rebuild. Supabase Auth accepts the Argon2id verifier and refuses the
   published password.
-- The detail of `/api/health/migrations`: that Vercel passes the
-  `x-vercel-protection-bypass` header through to the route, on staged
-  deployments and on the production domains, and sets
-  `VERCEL_AUTOMATION_BYPASS_SECRET` and `VERCEL_DEPLOYMENT_ID` at run time
-  (System Environment Variables enabled). If either is missing, the staged
-  check fails closed ("answered without its detail" or "expected deployment
-  <id>, saw unknown") and nothing is promoted.
-- The `owner-approval` job: that a dispatched marker change or first rebuild
-  waits for the required reviewer, that a rejection skips the work, that
-  **Re-run failed jobs** skips it too (the approval output names the earlier
-  run attempt), and that a push still runs the database and deploy jobs
-  although the approval job is skipped (both carry a status function for that
-  reason).
+- Seen: detailed migration health on staged deployments and production domains returned the expected deployment ids, commit, project ref and heads. Without the bypass the public response contained status only.
+- Seen: the dispatched first rebuild waited for approval and skipped deploy; the ordinary push skipped approval and ran both database and deploy. Rejection, fresh approval on an all-jobs rerun, refusal of an earlier attempt’s approval on a failed-jobs rerun, and the marker-change path were not exercised here.

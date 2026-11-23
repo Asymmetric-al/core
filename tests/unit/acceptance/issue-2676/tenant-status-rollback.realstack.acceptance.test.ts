@@ -1,9 +1,3 @@
-// K1 and K12 (fix check, 21 November): the rollback of 20261120130001 on the
-// model of WP2b's rollback cases (issue-2675/tenant-policy-migration). Its
-// guard is proved inside rolled-back transactions; the whole file runs on a
-// throwaway database of its own (from template0, the chain replayed up to
-// the migration), because on the shared database it would hold tenants
-// exclusively while the program's other suites run.
 import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
@@ -39,7 +33,6 @@ describe.skipIf(!ADMIN_URL)("the rollback of 20261120130001", () => {
     file.indexOf("\nBEGIN;\n") + "\nBEGIN;\n".length,
     file.lastIndexOf("\nCOMMIT;"),
   );
-  /** psql with the URL as its whole target; stderr is never echoed. */
   const psql = (path: string) =>
     spawnSync(
       process.env.PSQL_BIN?.trim() || "psql",
@@ -57,7 +50,6 @@ describe.skipIf(!ADMIN_URL)("the rollback of 20261120130001", () => {
       ],
       { encoding: "utf8", timeout: 120_000 },
     ).status;
-  /** Runs the guard and body in a transaction that is always rolled back. */
   const refusal = async (setup: string) => {
     await db.query("begin");
     try {
