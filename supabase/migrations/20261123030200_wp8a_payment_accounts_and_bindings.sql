@@ -36,19 +36,25 @@ BEGIN
   END IF;
 END $$;
 
-CREATE OR REPLACE FUNCTION private.share_lock_tenant(p_tenant_id uuid)
-RETURNS text
+CREATE OR REPLACE FUNCTION private.share_lock_tenant(p_tenant_id UUID)
+RETURNS TEXT
 LANGUAGE sql
 VOLATILE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-  SELECT t.status FROM public.tenants AS t WHERE t.id = p_tenant_id FOR SHARE
+  SELECT t.status
+    FROM public.tenants AS t
+   WHERE t.id = p_tenant_id
+     FOR SHARE;
 $$;
 
-ALTER FUNCTION private.share_lock_tenant(uuid) OWNER TO postgres;
-REVOKE ALL ON FUNCTION private.share_lock_tenant(uuid) FROM PUBLIC, anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION private.share_lock_tenant(uuid) TO tenant_guard;
+COMMENT ON FUNCTION private.share_lock_tenant(UUID) IS
+  'Share-locks a tenant row and returns its current status so tenant_guard commands serialize against concurrent tenant suspension or closure without granting SELECT on public.tenants to tenant_guard. EXECUTE for tenant_guard only.';
+
+ALTER FUNCTION private.share_lock_tenant(UUID) OWNER TO postgres;
+REVOKE ALL ON FUNCTION private.share_lock_tenant(UUID) FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
+GRANT EXECUTE ON FUNCTION private.share_lock_tenant(UUID) TO tenant_guard;
 
 CREATE TABLE public.payment_onboarding_intents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
