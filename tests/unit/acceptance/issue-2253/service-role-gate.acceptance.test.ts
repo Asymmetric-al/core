@@ -138,7 +138,7 @@ const CLEAN: Record<string, string> = {
   "scripts/verify-money-units.ts": `process.env.${K};`,
   "packages/api/src/workflows/functions/stripe-event-processing.ts":
     'import { requireWorkflowAdminClient } from "../admin-client";\nrequireWorkflowAdminClient("x");',
-  "packages/api/src/admin/crm/table-preferences/route.ts": `${OP.replace("../", "../../../")}\nexport const a = withPlatformOperation(async ({ supabaseAdmin }) => supabaseAdmin);`,
+  "packages/api/src/admin/contribution-operations/route.ts": `${OP.replace("../", "../../")}\nexport const a = withPlatformOperation(async ({ supabaseAdmin }) => supabaseAdmin);`,
   "packages/api/src/admin/fx-neg.ts": `${OP.replaceAll("withPlatformOperation", "withOperation")}\nexport const g = withOperation(async ({ auth, request }) => auth);\nfunction getAdminClient() {}\ngetAdminClient();\nimport type { AdminSupabaseClient } from "${FACTORY}";`,
   ...Object.fromEntries(
     [
@@ -176,7 +176,7 @@ const CLEAN_LIST: Entry[] = [
     1,
   ),
   e(
-    "packages/api/src/admin/crm/table-preferences/route.ts",
+    "packages/api/src/admin/contribution-operations/route.ts",
     "operation_admin_context",
     1,
   ),
@@ -333,8 +333,8 @@ type Allow = {
   })[];
 };
 const doc = () => JSON.parse(read(ALLOWLIST) || "null") as Allow | null;
-// D-18: count the platform wrapper (21 November ruling) plus one temporary admin_client site in packages/api/src/stripe/connect-webhook.ts approved under W8-R10 (23 November 2026) until Part 2 retires webhooks.ts.
-const CEILING_TOTALS = [187, 122, 116] as const;
+// D-18: WP4a-2a lowered develop to [177, 115, 109]; AL-2681 (W8-R10) adds one temporary admin_client site in packages/api/src/stripe/connect-webhook.ts until Part 2 retires webhooks.ts.
+const CEILING_TOTALS = [178, 116, 110] as const;
 const live = (d: Allow) => [
   d.entries.reduce((a, x) => a + x.count, 0),
   d.entries.length,
@@ -362,7 +362,7 @@ describe("#2253 service-role gate on the real tree (9, 11)", () => {
     for (const k of KINDS) {
       const xs = d!.entries.filter((x) => x.kind === k);
       const got = [xs.reduce((n, x) => n + x.count, 0), xs.length];
-      const limit = k === "operation_admin_context" ? [73, 43] : TOTALS[k];
+      const limit = k === "operation_admin_context" ? [65, 38] : TOTALS[k];
       const ok = got.every((n, i) => n <= limit[i]!);
       expect(ok, `${k} ${got.join("/")} <= ${limit.join("/")}`).toBe(true);
     }

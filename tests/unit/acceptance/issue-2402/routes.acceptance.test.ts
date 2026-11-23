@@ -9,7 +9,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 const m = vi.hoisted(() => ({
   admin: { rpc: vi.fn(), from: vi.fn() },
-  session: { rpc: vi.fn() },
+  session: { rpc: vi.fn(), from: vi.fn() },
   auth: {
     isAuthenticated: true,
     userId: "user",
@@ -82,7 +82,7 @@ beforeEach(() => {
     eq: () => q,
     maybeSingle: async () => ({ data: null, error: null }),
   };
-  m.admin.from.mockReturnValue(q);
+  m.session.from.mockReturnValue(q);
 });
 const routes = [
   R.PUT,
@@ -105,7 +105,9 @@ function run(i: number, body: unknown = { name: "View" }, bearer = true) {
       method: i === 4 ? "DELETE" : i === 2 ? "POST" : "PUT",
       headers: {
         "content-type": "application/json",
-        ...(bearer ? { authorization: "Bearer acceptance-token" } : {}),
+        ...(bearer
+          ? { authorization: "Bearer acceptance-token" }
+          : { cookie: "sb-local-auth-token=session" }),
       },
       ...(i === 4 ? {} : { body: JSON.stringify(body) }),
     },
@@ -115,6 +117,7 @@ function run(i: number, body: unknown = { name: "View" }, bearer = true) {
 it.each(names)("13: session-only %s; no actor arguments", async (name) => {
   expect((await run(names.indexOf(name))).status).toBe(200);
   expect(m.admin.rpc).not.toHaveBeenCalled();
+  expect(m.admin.from).not.toHaveBeenCalled();
   expect(m.session.rpc).toHaveBeenCalledTimes(1);
   const [fn, params] = m.session.rpc.mock.calls[0]!;
   expect(fn).toBe(name);
@@ -128,6 +131,7 @@ it.each(names)("13: session-only %s; no actor arguments", async (name) => {
 it("13: cookie-only request uses session RPC", async () => {
   expect((await run(0, {}, false)).status).toBe(200);
   expect(m.admin.rpc).not.toHaveBeenCalled();
+  expect(m.admin.from).not.toHaveBeenCalled();
   expect(m.session.rpc).toHaveBeenCalledTimes(1);
 });
 it.each([400, 403, 404, 409, 500])("13: retains HTTP %i", async (status) => {

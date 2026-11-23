@@ -1,8 +1,6 @@
 import { ApiHttpError } from "../../shared/http-errors";
 
-import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
-
-type AdminSupabase = AdminSupabaseClient;
+import type { RequestSessionClient } from "../../shared/request-session-client";
 
 /** PostgREST returns at most this many rows per request. */
 export const CRM_TAG_SCAN_PAGE_SIZE = 1000;
@@ -15,13 +13,13 @@ const CRM_TAG_SCAN_MAX_PAGES = 50;
  * of only the tags on the records loaded so far.
  */
 export async function listAdminCrmTagOptions(
-  supabaseAdmin: AdminSupabase,
+  sessionClient: RequestSessionClient,
   tenantId: string,
 ): Promise<string[]> {
   const tags = new Set<string>();
   for (let page = 0; page < CRM_TAG_SCAN_MAX_PAGES; page += 1) {
     const from = page * CRM_TAG_SCAN_PAGE_SIZE;
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await sessionClient
       .from("donors")
       .select("tags")
       .eq("tenant_id", tenantId)

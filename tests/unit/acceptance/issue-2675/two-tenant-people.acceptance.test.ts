@@ -35,9 +35,15 @@ vi.mock("@asym/database/supabase/admin", () => ({
 vi.mock("@asym/lib/audit/logger", () => ({
   createAuditLogger: vi.fn(() => ({})),
 }));
-vi.mock("../../../../packages/api/src/shared/request-session-client", () => ({
-  createRequestSessionClient: async () => h.client,
-}));
+vi.mock(
+  "../../../../packages/api/src/shared/request-session-client",
+  async (original) => ({
+    ...(await original<
+      typeof import("../../../../packages/api/src/shared/request-session-client")
+    >()),
+    createRequestSessionClient: async () => h.client,
+  }),
+);
 
 import { listEligibleApprovers } from "../../../../packages/api/src/admin/contribution-operations/approval-notifications";
 import { getSupportTicket } from "../../../../packages/api/src/admin/support/service";
@@ -189,6 +195,7 @@ describe("AL-2675 sweep: each tenant's people come from that tenant's membership
       const response = await usersGET(
         new NextRequest(
           `https://admin.example.test/api/admin/users?limit=50${role}`,
+          { headers: { cookie: "sb-local-auth-token=session" } },
         ),
       );
       expect(response.status).toBe(200);

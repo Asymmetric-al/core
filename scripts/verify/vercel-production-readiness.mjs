@@ -83,6 +83,12 @@ const COMMON_REQUIRED_ENV = [
     "must start with whsec_",
     hasPrefix("whsec_"),
   ),
+  required("INNGEST_EVENT_KEY"),
+  required(
+    "INNGEST_SIGNING_KEY",
+    "must start with signkey-",
+    hasPrefix("signkey-"),
+  ),
   required("SENTRY_DSN", "must be a URL", isUrl),
   required("NEXT_PUBLIC_SENTRY_DSN", "must be a URL", isUrl),
   required("RESEND_API_KEY", "must start with re_", hasPrefix("re_")),
@@ -170,6 +176,61 @@ export function parseVercelEnvEntries(jsonText) {
     }))
     .filter((env) => typeof env.key === "string" && env.key.length > 0)
     .sort((a, b) => a.key.localeCompare(b.key));
+}
+
+function appliesToProduction(env) {
+  if (env?.gitBranch) return false;
+  if (env?.target === "production") return true;
+  if (Array.isArray(env?.target)) return env.target.includes("production");
+  if (
+    Array.isArray(env?.customEnvironmentIds) &&
+    env.customEnvironmentIds.length > 0
+  ) {
+    return false;
+  }
+  return env?.target === undefined;
+}
+
+function isSharedEnvEntry(env) {
+  return (
+    Array.isArray(env?.projectId) ||
+    env?.shared === true ||
+    env?.source === "shared"
+  );
+}
+
+export function resolveProductionEnv(jsonText) {
+  const parsed = parseJson(jsonText, {});
+  const envs = Array.isArray(parsed.envs) ? parsed.envs : [];
+  const byKey = new Map();
+
+  for (const env of envs) {
+    if (typeof env?.key !== "string" || env.key.length === 0) continue;
+    if (!appliesToProduction(env)) continue;
+    const list = byKey.get(env.key) ?? [];
+    list.push(env);
+    byKey.set(env.key, list);
+  }
+
+  const keys = [...byKey.keys()].sort((a, b) => a.localeCompare(b));
+  const types = {};
+  for (const key of keys) {
+    const entries = byKey.get(key);
+    const projectEntries = entries.filter((env) => !isSharedEnvEntry(env));
+    const effective = projectEntries.length > 0 ? projectEntries : entries;
+    if (effective.every((env) => env?.type === "sensitive")) {
+      types[key] = "sensitive";
+    } else {
+      const nonSensitive = effective.find((env) => env?.type !== "sensitive");
+      types[key] = nonSensitive?.type;
+    }
+  }
+
+  return { keys, types };
+}
+
+export function resolveProductionEnvTypes(jsonText) {
+  return resolveProductionEnv(jsonText).types;
 }
 
 export function parseVercelDeployments(jsonText) {
@@ -279,12 +340,36 @@ export function missingEnvValues(envValues, requiredEnv) {
     .filter((key) => !isNonEmpty(envValues[key]));
 }
 
-export function invalidEnvValues(envValues, requiredEnv) {
-  return requiredEnv.flatMap((requirement) => {
-    if (typeof requirement === "string") return [];
+const SENSITIVE_PLACEHOLDER = "[SENSITIVE]";
+const LITERAL_PLACEHOLDER_REASON =
+  "holds the Vercel CLI's placeholder text `[SENSITIVE]`: the variable is not of type sensitive, so this is its stored value, or its type could not be confirmed";
 
-    const value = envValues[requirement.key];
-    if (!isNonEmpty(value) || requirement.validate(value)) return [];
+function isSensitivePlaceholderText(value) {
+  return (
+    typeof value === "string" &&
+    value.toLowerCase() === SENSITIVE_PLACEHOLDER.toLowerCase()
+  );
+}
+
+export function invalidEnvValues(envValues, requiredEnv, envTypes = {}) {
+  return requiredEnv.flatMap((requirement) => {
+    const key = requirementKey(requirement);
+    const value = envValues[key];
+    if (!isNonEmpty(value)) return [];
+    if (isSensitivePlaceholder(key, envValues, envTypes)) return [];
+
+    if (isSensitivePlaceholderText(value)) {
+      return [
+        {
+          key,
+          reason: LITERAL_PLACEHOLDER_REASON,
+        },
+      ];
+    }
+
+    if (typeof requirement === "string" || requirement.validate(value)) {
+      return [];
+    }
 
     return [
       {
@@ -296,7 +381,11 @@ export function invalidEnvValues(envValues, requiredEnv) {
 }
 
 function isSensitivePlaceholder(key, envValues, envTypes) {
-  return envTypes[key] === "sensitive" && !isNonEmpty(envValues[key]);
+  const value = envValues[key];
+  return (
+    envTypes?.[key] === "sensitive" &&
+    (!isNonEmpty(value) || isSensitivePlaceholderText(value))
+  );
 }
 
 function hiddenEnvValues(envKeys, envValues, envTypes, requiredEnv) {
@@ -353,7 +442,11 @@ export function summarizeProjectReadiness({
       project.requiredEnv,
     ),
   ]);
-  const invalidEnv = invalidEnvValues(resolvedEnvValues, project.requiredEnv);
+  const invalidEnv = invalidEnvValues(
+    resolvedEnvValues,
+    project.requiredEnv,
+    resolvedEnvTypes,
+  );
   const unreadableEnv = hiddenEnvValues(
     resolvedEnvKeys,
     resolvedEnvValues,
@@ -621,7 +714,7 @@ function readProductionEnv(project, scope) {
       ],
       { cwd },
     );
-    const envEntries = parseVercelEnvEntries(listOutput);
+    const { keys: envKeys, types: envTypes } = resolveProductionEnv(listOutput);
     const envPath = path.join(cwd, ".env.production.local");
     run(
       "vercel",
@@ -639,10 +732,8 @@ function readProductionEnv(project, scope) {
       { cwd },
     );
     return {
-      envKeys: envEntries.map((env) => env.key),
-      envTypes: Object.fromEntries(
-        envEntries.map((env) => [env.key, env.type]),
-      ),
+      envKeys,
+      envTypes,
       envValues: parseDotEnv(readFileSync(envPath, "utf8")),
     };
   });

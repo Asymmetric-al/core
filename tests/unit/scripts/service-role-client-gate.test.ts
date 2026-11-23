@@ -73,12 +73,12 @@ describe("frozen ceiling", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
-  // D-18: the ceiling falls with the allowlist. It rose under the 21 November 2026 ruling (F3, F4:
-  // eight uncounted platform-wrapper sites) and under coordinator ruling W8-R10 of 23 November 2026
-  // (one temporary admin_client site in packages/api/src/stripe/connect-webhook.ts until Part 2 retires webhooks.ts).
-  it("pins the 122 entries, including the W8-R10 temporary connect webhook site", () => {
+  // D-18: WP4a-2a lowered develop to 115 entries / 177 sites; W8-R10 (23 November 2026) approves
+  // one temporary admin_client site in packages/api/src/stripe/connect-webhook.ts until Part 2
+  // retires webhooks.ts (116 entries / 178 sites).
+  it("pins the 116 reviewed service-role entries including the W8-R10 temporary connect webhook site", () => {
     expect(ceilingDigest()).toBe(
-      "c2e4e96171cb93b9aad6b958922053d14787e3dd7a7e95a9b497c2ad45644337",
+      "ec2ab5ae99c9074aef4f8cb8ab66db9a1c0e18764d9b2ea434c74ba4333e119c",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -86,15 +86,15 @@ describe("frozen ceiling", () => {
       totals[kind] = (totals[kind] ?? 0) + count;
     }
     expect(totals).toEqual({
-      admin_client: 79,
+      admin_client: 78,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
-      operation_admin_context: 73,
+      operation_admin_context: 65,
     });
-    expect(CEILING.size).toBe(122);
+    expect(CEILING.size).toBe(116);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(116);
+    ).toBe(110);
   });
 });
 

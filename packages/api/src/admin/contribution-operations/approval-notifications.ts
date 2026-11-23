@@ -478,7 +478,7 @@ export async function ensureCorrectionApprovalWorkflow(input: {
 
   const [settings, policy, allEligibleApprovers] = await Promise.all([
     loadApprovalNotificationSettings(input.supabaseAdmin, input.tenantId),
-    loadCorrectionApprovalPolicy(input),
+    loadCorrectionApprovalPolicy(input.supabaseAdmin, input.tenantId),
     listEligibleApprovers(input.supabaseAdmin, input.tenantId),
   ]);
   const eligibleApprovers = filterEligibleApproversForRequest({
@@ -768,7 +768,7 @@ export async function processCorrectionApprovalSla(input: {
 
   const [settings, policy, allEligibleApprovers] = await Promise.all([
     loadApprovalNotificationSettings(input.supabaseAdmin, input.tenantId),
-    loadCorrectionApprovalPolicy(input),
+    loadCorrectionApprovalPolicy(input.supabaseAdmin, input.tenantId),
     listEligibleApprovers(input.supabaseAdmin, input.tenantId),
   ]);
 

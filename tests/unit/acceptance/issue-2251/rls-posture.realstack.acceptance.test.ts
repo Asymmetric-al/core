@@ -45,6 +45,7 @@ const PARITY = [
   "donation_saga_outbox",
   "email_templates",
   "donor_merge_candidates",
+  "crm_table_preference_audit_events",
 ];
 type Target = {
   t: string;
@@ -97,6 +98,7 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
       insert into public.donation_saga_outbox (tenant_id, donation_id, donor_id, amount, idempotency_key)
         select tenant_id, id, donor_id, 100, 'acc2251-' || id from public.donations where tenant_id in (:A, :B);
       insert into public.donor_merge_candidates (tenant_id, existing_donor_id, confidence) values (:A, :DA, 'low'), (:B, :DB, 'low');
+      insert into public.crm_table_preference_audit_events (tenant_id,table_id) values (:A,'acc2251'),(:B,'acc2251');
       insert into public.email_templates (tenant_id, name) values (:A, 'acc2251'), (:B, 'acc2251');
       -- D-18: each giving target names an entity with explicit country, currency, and legal_name (W8-R1).
       insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values (:A,:A,'A','US','usd','A'),(:B,:B,'B','US','usd','B');
@@ -199,8 +201,8 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
       tx(async () => {
         const live = new Map((await targets()).map((x) => [x.t, x]));
         const e = exceptions();
-        // AL-2674 (D09) drops backup_notification_queue_orphans_20260214; AL-2681 (WP8a part 1, D-18) adds RLS policies on legal_entities, payment_account_bindings, mission_control_tasks, mission_control_task_links, workflow_dispatch_requests, and donation_saga_outbox.
-        expect(e.length).toBeGreaterThanOrEqual(81);
+        // AL-2674 (D09), AL-2677 (WP4a-2a), and AL-2681 (WP8a-1, D-18) add policies on reviewed exception tables, leaving 73 listed.
+        expect(e.length).toBeGreaterThanOrEqual(73);
         const bad = e
           .map((x) => [x.table, live.get(x.table)] as const)
           .filter(([, l]) => !l || !l.rls || !l.force || l.policies !== 0)
@@ -215,9 +217,14 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
   it("criterion 2: an owner without BYPASSRLS is bound by RLS on an F and a D table", () =>
     tx(async () => {
       await ownerless();
-      for (const t of ["donors", "donor_merge_candidates"])
+      const tables = [
+        "donors",
+        "donor_merge_candidates",
+        "crm_table_preference_audit_events",
+      ];
+      for (const t of tables)
         await db.query(`alter table public.${t} owner to it_owner`);
-      for (const t of ["donors", "donor_merge_candidates"]) {
+      for (const t of tables) {
         const sel = await as(
           "it_owner",
           null,
@@ -237,8 +244,8 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
       const ins = await as(
         "it_owner",
         null,
-        "insert into public.donor_merge_candidates (tenant_id, existing_donor_id, confidence) values ($1, $2, 'low')",
-        [TA, DA],
+        "insert into public.crm_table_preference_audit_events (tenant_id,table_id) values ($1,'acc2251')",
+        [TA],
       );
       expect(ins.code, "D-table insert").toBe("42501");
     }, true));

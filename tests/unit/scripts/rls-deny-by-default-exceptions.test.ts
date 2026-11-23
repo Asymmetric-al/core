@@ -42,12 +42,12 @@ const DEFINER = /^(\w+)\.(\w+) \(SECURITY DEFINER, owner postgres\)$/;
 const WP3A_ENTITY_TABLES = new Set(["giving_target_entity_locks"]);
 
 describe(LIST, () => {
-  // AL-2674 (D09) drops backup_notification_queue_orphans_20260214; AL-2681 (WP8a part 1, D-18) removes six tables that gained RLS policies.
-  it("has version 1, the Q5 + clash 2 ruling and at least the 81 reviewed entries", () => {
+  // AL-2674 (D09), AL-2677 (WP4a-2a), and AL-2681 (WP8a-1, D-18) reduce the exception list to 73 reviewed entries.
+  it("has version 1, the Q5 + clash 2 ruling and at least the 73 remaining reviewed entries", () => {
     expect(Object.keys(doc)).toEqual(["version", "ruling", "entries"]);
     expect(doc.version).toBe(1);
     expect(doc.ruling).toBe("Samson Q5 + clash 2, Oct 24, 2026");
-    expect(doc.entries.length).toBeGreaterThanOrEqual(81);
+    expect(doc.entries.length).toBeGreaterThanOrEqual(73);
   });
 
   it("keeps one entry per line, sorted by table and unique", () => {

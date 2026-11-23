@@ -158,9 +158,9 @@ const CASES: [string, string, string[][]][] = [
   ],
   [
     "stale exceptions: gained a policy, dropped, lost tenant_id (3)",
-    "create policy acc2253 on public.donor_merge_candidates using (false); drop table public.contribution_operation_user_preferences; alter table public.currency_rate_snapshots drop column tenant_id cascade;",
+    "create policy acc2253 on public.contribution_operation_prompt_settings using (false); drop table public.contribution_operation_user_preferences; alter table public.currency_rate_snapshots drop column tenant_id cascade;",
     [
-      ["STALE_HAS_POLICY", "donor_merge_candidates"],
+      ["STALE_HAS_POLICY", "contribution_operation_prompt_settings"],
       // AL-2674 (D09) dropped the backup table this probe used to drop.
       ["STALE_MISSING_TABLE", "contribution_operation_user_preferences"],
       ["STALE_NOT_TENANT", "currency_rate_snapshots"],
@@ -240,8 +240,8 @@ async function catalogCounts() {
   await db.end();
   return rows[0] as { n: number; pol: number };
 }
-// AL-2674 (D09) drops backup_notification_queue_orphans_20260214; AL-2681 (WP8a part 1, D-18) adds RLS policies on 6 exception tables.
-const LISTED = 81;
+// AL-2674 (D09), AL-2677 (WP4a-2a), and AL-2681 (WP8a-1, D-18) reduce the deny-by-default exception list to 73.
+const LISTED = 73;
 
 describe.skipIf(!ADMIN_URL)(
   "#2253 tenant RLS catalog gate (real stack)",

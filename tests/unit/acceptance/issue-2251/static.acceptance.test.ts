@@ -163,8 +163,8 @@ describe("#2251 In 2: docs/security/rls-deny-by-default-exceptions.json", () => 
         expect(existsSync(codePathFile(p)), `${x.table}: ${p}`).toBe(true);
   });
 
-  // AL-2674 (D09) drops backup_notification_queue_orphans_20260214 (17 D); AL-2681 (WP8a part 1, D-18) adds tenant_guard RLS policies on 4 S tables (63 S).
-  it("contains the 63 §3 S tables (with a §3 code path) and the 17 D tables, and no F table", () => {
+  // AL-2674 (D09), AL-2677 (WP4a-2a), and AL-2681 (WP8a-1, D-18) move tables with policies out of S/D into F.
+  it("contains the remaining §3 S tables (with a §3 code path) and D tables, and no F table", () => {
     const by = new Map(exceptions().map((x) => [x.table, x]));
     const wrong: string[] = [];
     for (const [t, files] of Object.entries(S)) {

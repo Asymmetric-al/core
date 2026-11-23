@@ -27,7 +27,7 @@ const sql = () => {
  * mission_control_tasks, and workflow_dispatch_requests after adding policies.
  */
 const OTHERS_SHA =
-  "b164727804521bbac864e1fcaf78af18ad00cd004cd739d1e59382969e6bc2e8";
+  "f740af77cb7b7234b5cc658b2843bca77fb2263a3729f10a711566da780a030c";
 /** Criterion 20 doc rules, " ~ "-separated regexes. */
 const DOC_RULES = String.raw`anon ~ authenticated ~ service_role ~ SELECT, INSERT, UPDATE ~ auth\.uid\(\) ~ authz\.current_tenant_id\(\) ~ cross[- ]tenant ~ default (privileges|grants) ~ DELETE ~ #2251 ~ #668 ~ Down`;
 
@@ -66,7 +66,7 @@ describe("#2260 static (17-20)", () => {
     ).entries;
     const n = (o: string) => e.filter((x) => x.outcome === o).length;
     expect([e.length, n("service_role_needed"), n("deny_by_default")]).toEqual([
-      81, 63, 18,
+      73, 56, 17,
     ]);
     const lines = raw
       .split("\n")

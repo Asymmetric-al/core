@@ -1,4 +1,5 @@
 import { expandStoredValueSpellings } from "./filter-variants";
+import { loadCrmMemberLabels } from "./member-labels";
 import { buildCrmGridRow } from "./model";
 import {
   encodeCrmCursor,
@@ -6,17 +7,14 @@ import {
   type CrmSortField,
 } from "./query";
 import { ApiHttpError } from "../../shared/http-errors";
-import { resolveContributionProfileLabel } from "../contribution-shared/profile-label";
 
 import type { AdminCrmListResponse } from "./types";
+import type { RequestSessionClient } from "../../shared/request-session-client";
 import type {
   AdminSupabaseFluentFilterBuilder,
   SupabaseColumn,
 } from "../shared/supabase-filter-builder";
-import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type { Donor } from "@asym/database/types";
-
-type AdminSupabase = AdminSupabaseClient;
 
 type DonorRow = Parameters<typeof buildCrmGridRow>[0];
 type DonorColumn = SupabaseColumn<Donor>;
@@ -32,7 +30,7 @@ const SORT_COLUMN_BY_FIELD = {
 } satisfies Record<CrmSortField, DonorColumn>;
 
 function escapeSearchValue(value: string) {
-  return value.replace(/[%(),]/g, " ");
+  return value.replace(/[%(),]/g, " ").replaceAll("*", "%");
 }
 
 function normalizeIds(ids: Iterable<string>) {
@@ -48,7 +46,7 @@ function applyBaseFilters<TQuery extends DonorQueryBuilder<TQuery>>(
   query: TQuery,
   params: AdminCrmParams,
 ): TQuery {
-  const { filters, search } = params;
+  const { filters } = params;
 
   // Writers stored these columns in several spellings (`at_risk`, `At Risk`),
   // so each filter value matches all of them.
@@ -71,13 +69,6 @@ function applyBaseFilters<TQuery extends DonorQueryBuilder<TQuery>>(
     query = query.not("profile_id", "is", null);
   } else if (filters.hasPortal === false) {
     query = query.is("profile_id", null);
-  }
-
-  if (search) {
-    const term = escapeSearchValue(search);
-    query = query.or(
-      `name.ilike.%${term}%,email.ilike.%${term}%,organization.ilike.%${term}%,phone.ilike.%${term}%`,
-    );
   }
 
   return query;
@@ -132,53 +123,38 @@ function getCursorValue(donor: DonorRow, field: CrmSortField) {
   }
 }
 
-/**
- * Owner names for CRM records. `donors.missionary_id` is a profile id, so
- * owners are named from profiles (shared by the list and the detail read).
- */
-export async function fetchMissionaryNames(
-  supabaseAdmin: AdminSupabase,
-  missionaryProfileIds: string[],
-) {
-  if (missionaryProfileIds.length === 0) {
-    return new Map<string, string>();
-  }
-
-  const { data, error } = await supabaseAdmin
-    .from("profiles")
-    .select("id, display_name, full_name, first_name, last_name, email")
-    .in("id", missionaryProfileIds);
-
-  if (error) {
-    throw new ApiHttpError(500, error.message);
-  }
-
-  const map = new Map<string, string>();
-  for (const row of data ?? []) {
-    const r = row as {
-      id: string;
-      display_name: string | null;
-      full_name: string | null;
-      first_name: string | null;
-      last_name: string | null;
-      email: string | null;
-    };
-    const name = resolveContributionProfileLabel(r);
-    if (name) {
-      map.set(r.id, name);
-    }
-  }
-  return map;
-}
-
 async function fetchFilteredDonorRows(
-  supabaseAdmin: AdminSupabase,
+  sessionClient: RequestSessionClient,
   tenantId: string,
   params: AdminCrmParams,
   limit: number,
 ) {
-  let query = supabaseAdmin
-    .from("donors")
+  const sortColumn = SORT_COLUMN_BY_FIELD[params.sort.field];
+  const { filters } = params;
+  const firstUnfilteredTextPage =
+    ["name", "type", "status"].includes(sortColumn) &&
+    !params.cursor &&
+    !filters.recordTypes.length &&
+    !filters.lifecycleStatuses.length &&
+    !filters.tags.length &&
+    filters.hasPortal === null;
+  let donors;
+  if (params.search) {
+    donors = sessionClient.rpc("search_crm_donors", {
+      p_tenant_id: tenantId,
+      p_term: escapeSearchValue(params.search),
+    });
+  } else if (firstUnfilteredTextPage) {
+    donors = sessionClient.rpc("crm_donor_text_page", {
+      p_column: sortColumn,
+      p_descending: params.sort.direction === "desc",
+      p_limit: limit,
+      p_tenant_id: tenantId,
+    });
+  } else {
+    donors = sessionClient.from("donors");
+  }
+  let query = donors
     .select(
       "id, profile_id, missionary_id, name, email, phone, avatar_url, location, type, status, total_given, last_gift_date, tags, organization, title, notes, created_at, updated_at",
     )
@@ -186,7 +162,6 @@ async function fetchFilteredDonorRows(
 
   query = applyBaseFilters(query, params);
 
-  const sortColumn = SORT_COLUMN_BY_FIELD[params.sort.field];
   const nullsFirst =
     params.sort.field === "lastGiftAt"
       ? params.sort.direction === "asc"
@@ -210,12 +185,12 @@ async function fetchFilteredDonorRows(
 }
 
 export async function listAdminCrmRecords(
-  supabaseAdmin: AdminSupabase,
+  sessionClient: RequestSessionClient,
   tenantId: string,
   params: AdminCrmParams,
 ): Promise<AdminCrmListResponse> {
   const rows = await fetchFilteredDonorRows(
-    supabaseAdmin,
+    sessionClient,
     tenantId,
     params,
     params.limit + 1,
@@ -227,8 +202,9 @@ export async function listAdminCrmRecords(
   const missionaryIds = normalizeIds(
     pageRows.map((d) => d.missionary_id || ""),
   );
-  const missionaryNames = await fetchMissionaryNames(
-    supabaseAdmin,
+  const missionaryNames = await loadCrmMemberLabels(
+    sessionClient,
+    tenantId,
     missionaryIds,
   );
 

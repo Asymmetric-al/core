@@ -10,7 +10,10 @@ import {
 import { requireCrmAccess } from "../../../crm/auth/access";
 import { revalidateAdminCrmCache } from "../../../shared/cache-tags";
 import { ensureJsonBody, toErrorResponse } from "../../../shared/http-errors";
-import { withPlatformOperation } from "../../../shared/with-operation";
+import {
+  withOperation,
+  withPlatformOperation,
+} from "../../../shared/with-operation";
 
 const createNoteSchema = z.object({
   body: z.string().trim().min(1, "Note body is required.").max(10_000),
@@ -24,8 +27,8 @@ const createNoteSchema = z.object({
   visibility: z.enum(["standard", "restricted"]).default("standard"),
 });
 
-export const GET = withPlatformOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
+export const GET = withOperation(
+  async ({ auth, request, requestId, sessionClient }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.note.read",
       resourceType: "note",
@@ -36,7 +39,7 @@ export const GET = withPlatformOperation(
       const response = await listMissionControlCrmNotes({
         actor,
         params,
-        supabase: supabaseAdmin as unknown as NotesClient,
+        supabase: sessionClient as unknown as NotesClient,
       });
 
       return NextResponse.json({ ...response, requestId });

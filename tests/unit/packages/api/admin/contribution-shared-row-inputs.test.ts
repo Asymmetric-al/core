@@ -321,10 +321,14 @@ describe("admin/contribution-shared/row-inputs", () => {
     expect(set?.reconcilesToGiftAmount).toBe(true);
   });
 
-  it("tenant-scopes every loader query and resolves fund-owned missionary labels", async () => {
+  it("keeps the Contributions Hub service-client queries and embedded worker names tenant-scoped", async () => {
     type ChainCall = [method: string, args: unknown[]];
     const chainsByTable = new Map<string, ChainCall[][]>();
     const resultsByTable = new Map<string, unknown[]>([
+      [
+        "missionaries",
+        [{ id: "missionary-9", profile: { display_name: "Hub worker" } }],
+      ],
       [
         "funds",
         [
@@ -379,12 +383,13 @@ describe("admin/contribution-shared/row-inputs", () => {
       from: (table: string) => createQueryStub(table),
     } as unknown as Parameters<typeof loadSharedContributionRowInputs>[0];
 
-    await loadSharedContributionRowInputs(supabaseStub, {
+    const hub = await loadSharedContributionRowInputs(supabaseStub, {
       tenantId: "tenant-1",
       donations: [donation],
       stagedGifts: [{ id: "staged-1", donation_id: "donation-1" }],
     });
 
+    expect(hub.missionaryLabelsById.get("missionary-9")).toBe("Hub worker");
     const expectTenantScoped = (table: string) => {
       const chains = chainsByTable.get(table);
       expect(chains, `expected a query against ${table}`).toBeDefined();

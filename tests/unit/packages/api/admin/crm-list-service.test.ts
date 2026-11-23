@@ -34,7 +34,13 @@ function createRecordingSupabase() {
   builder.limit = async () => ({ data: [], error: null });
   return {
     calls,
-    client: { from: () => builder },
+    client: {
+      from: () => builder,
+      rpc(method: string, args: unknown) {
+        calls.push({ method, args: [args] });
+        return builder;
+      },
+    },
   };
 }
 
@@ -69,6 +75,70 @@ describe("CRM stored-value spellings", () => {
 });
 
 describe("CRM records list filters", () => {
+  it("passes the same substring wildcards and punctuation to the scoped search", async () => {
+    const { calls, client } = createRecordingSupabase();
+    await listAdminCrmRecords(
+      client as never,
+      "tenant-1",
+      parseAdminCrmParams(new URLSearchParams({ q: "A*d_a,(b)%" })),
+    );
+    expect(calls).toContainEqual({
+      method: "search_crm_donors",
+      args: [{ p_tenant_id: "tenant-1", p_term: "A%d_a  b  " }],
+    });
+  });
+
+  it("bounds a first text page before merging the indexed and long-key ranges", async () => {
+    const { calls, client } = createRecordingSupabase();
+    await listAdminCrmRecords(
+      client as never,
+      "tenant-1",
+      parseAdminCrmParams(
+        new URLSearchParams({ sort: "name", dir: "asc", limit: "20" }),
+      ),
+    );
+    expect(calls).toContainEqual({
+      method: "crm_donor_text_page",
+      args: [
+        {
+          p_tenant_id: "tenant-1",
+          p_column: "name",
+          p_descending: false,
+          p_limit: 21,
+        },
+      ],
+    });
+  });
+
+  it("applies filters and cursors to all records before limiting a text page", async () => {
+    for (const query of [
+      "sort=name&status=active",
+      "sort=recordType&tag=partner",
+      "sort=lifecycleStatus&hasPortal=false",
+      "sort=name&recordType=church",
+    ]) {
+      const { calls, client } = createRecordingSupabase();
+      await listAdminCrmRecords(
+        client as never,
+        "tenant-1",
+        parseAdminCrmParams(new URLSearchParams(query)),
+      );
+      expect(calls.some((call) => call.method === "crm_donor_text_page")).toBe(
+        false,
+      );
+    }
+    const { calls, client } = createRecordingSupabase();
+    const params = parseAdminCrmParams(new URLSearchParams("sort=name"));
+    await listAdminCrmRecords(client as never, "tenant-1", {
+      ...params,
+      cursor: { direction: "desc", field: "name", id: "last", value: "Smith" },
+    });
+    expect(calls.some((call) => call.method === "crm_donor_text_page")).toBe(
+      false,
+    );
+    expect(calls.some((call) => call.method === "or")).toBe(true);
+  });
+
   it("matches every stored spelling of a type and status filter", async () => {
     const searchParams = new URLSearchParams();
     searchParams.append("recordType", "church");

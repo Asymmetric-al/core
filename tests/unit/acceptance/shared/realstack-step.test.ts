@@ -302,6 +302,9 @@ const REAL_DATABASE_FILES = [
     "issue-2676/tenant-status.realstack",
     "issue-2677/command-boundaries.realstack",
     "issue-2677/command-log.realstack",
+    "issue-2677/crm-directory.realstack",
+    "issue-2677/crm-query-paths.realstack",
+    "issue-2677/crm-read-grants.realstack",
     "issue-2677/export-audit.realstack",
     "issue-2677/field-policy-reader.realstack",
   ].map((f) => `${A}/${f}.acceptance.test.ts`),
@@ -472,6 +475,7 @@ describe("required PostgREST suites run on the local Supabase stack (#2706)", ()
     "issue-2674/app-health",
     "issue-2675/missionary-handler-authority",
     "issue-2676/tenant-records",
+    "issue-2677/crm-reads",
     "issue-2677/field-policy-reader",
   ])("runs %s in a blocking step", (suite) => {
     const file = `${A}/${suite}.postgrest.acceptance.test.ts`;
