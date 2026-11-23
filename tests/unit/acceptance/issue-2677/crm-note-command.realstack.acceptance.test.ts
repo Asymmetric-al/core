@@ -47,6 +47,25 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("requires the migrate database", () =>
   expect(ADMIN_URL).not.toBe(""),
 );
 
+it("documents the server-minted key as this release's exception", () => {
+  const doc = readFileSync("docs/security/tenant-guard.md", "utf8").replace(
+    /\s+/g,
+    " ",
+  );
+  expect(doc).toContain(
+    "A request that sends no `Idempotency-Key` gets a key the server mints for it, so a retry of that request is not idempotent: this is kept for this release only, for browser tabs still on the previous build, and refusing a request without the header is owed to a later release.",
+  );
+  expect(
+    readFileSync("docs/security/tenant-guard.md", "utf8")
+      .split("\n")
+      .filter(
+        (line) =>
+          line.startsWith("5. ") &&
+          line.includes("The one platform command so far"),
+      ),
+  ).toEqual([]);
+});
+
 describe.skipIf(!ADMIN_URL)("the CRM note command", () => {
   let db: pg.Client;
   let id: Record<string, string>;
@@ -241,6 +260,64 @@ describe.skipIf(!ADMIN_URL)("the CRM note command", () => {
     expect((await written(key)).notes).toEqual([
       expect.objectContaining({ tenant_id: id.TB, author_profile_id: id.UDEV }),
     ]);
+  });
+
+  it("keeps one key apart in two tenants", async () => {
+    const key = randomUUID();
+    expect((await create("UDEV", "mDev", { key })).code).toBeNull();
+    await db.query("select set_config('app.current_tenant_id', '', true)");
+    expect(
+      (await create("UDEV", "mDevB", { key, tenant: id.TB })).code,
+    ).toBeNull();
+    const rows = await written(key);
+    expect(rows.notes.map((note) => note.tenant_id).sort()).toEqual(
+      [id.TA, id.TB].sort(),
+    );
+    expect(rows.logs.map((log) => log.tenant_id).sort()).toEqual(
+      [id.TA, id.TB].sort(),
+    );
+    for (const tenant of [id.TA, id.TB]) {
+      const note = rows.notes.find((row) => row.tenant_id === tenant);
+      expect(rows.logs.find((row) => row.tenant_id === tenant)).toMatchObject({
+        resource_id: note.id,
+      });
+    }
+  });
+
+  it("applies the same rules when the inner command is called directly", async () => {
+    const call = (
+      user: string,
+      assignment: string,
+      tenant: string,
+      key: string,
+    ) =>
+      act(
+        "authenticated",
+        user,
+        assignment,
+        "select tenant_guard.create_crm_note($1, $2, 'Meeting', 'Summary', 'standard', null, null, null, null) as result",
+        [tenant, key],
+      );
+    const refused = randomUUID();
+    expect((await call("UB", "mB", id.TA, refused)).code).toBe("42501");
+    expect((await call("UDEV", "mDev", id.TB, refused)).code).toBe("42501");
+    expect(await written(refused)).toEqual({ notes: [], logs: [] });
+    const key = randomUUID();
+    expect((await call("UDEV", "mDev", id.TA, key)).code).toBeNull();
+    expect((await written(key)).notes).toEqual([
+      expect.objectContaining({ tenant_id: id.TA, author_profile_id: id.UDEV }),
+    ]);
+    expect(
+      (
+        await act(
+          "authenticated",
+          "UDEV",
+          "mDev",
+          "select tenant_guard.create_crm_note($1, $2, 'Meeting', 'Summary', 'restricted', null, null, null, null)",
+          [id.TA, randomUUID()],
+        )
+      ).code,
+    ).toBe("42501");
   });
 
   it("refuses a suspended tenant before it writes", async () => {
