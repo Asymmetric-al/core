@@ -1442,6 +1442,21 @@ describe("media-store custody and Sharp sanitization", () => {
     expect(mediaStoreSource).not.toMatch(/\brelease_media_content_purge\b/);
     expect(mediaStoreSource).not.toMatch(/\bmedia_purge_claims\b/);
 
+    const forbiddenCanonicalMutation =
+      /upsert\s*:\s*true|\.move\s*\(|\.copy\s*\(|\bemptyBucket\b|\bdeleteBucket\b|\.remove\b(?!\s*\(\s*\[stagingPath\]\s*\))/;
+    expect(mediaStoreSource).not.toMatch(forbiddenCanonicalMutation);
+    for (const negativeControl of [
+      mediaStoreSource.replace("upsert: false", "upsert: true"),
+      `${mediaStoreSource}\nawait bucket.move(a, b);`,
+      `${mediaStoreSource}\nawait bucket.copy(a, b);`,
+      `${mediaStoreSource}\nawait storage.emptyBucket("cms-media");`,
+      `${mediaStoreSource}\nawait storage.deleteBucket("cms-media");`,
+      `${mediaStoreSource}\nawait bucket.remove([masterKey]);`,
+      `${mediaStoreSource}\nconst rm = bucket.remove.bind(bucket);`,
+    ]) {
+      expect(negativeControl).toMatch(forbiddenCanonicalMutation);
+    }
+
     const removeCalls = [
       ...mediaStoreSource.matchAll(/\.remove\s*\(([^)]*)\)/g),
     ];
