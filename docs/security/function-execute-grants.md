@@ -322,3 +322,22 @@ reads them there, never by filtering `profiles` on `tenant_id` or `role`
 approval and history work. Mission Control's users list reads the member
 directory instead, on the caller's own token (council round 1 on WP2a, F8). `begin_human_command` replaces the one-argument function of
 AL-2674; its second argument, the capability, defaults to NULL.
+
+## Member Care functions added by AL-2677 (WP4b part 1)
+
+| Function                                                          | Security | EXECUTE grantees (exact)            |
+| ----------------------------------------------------------------- | -------- | ----------------------------------- |
+| `public.member_care_directory_rows(uuid, uuid, integer)`          | DEFINER  | `postgres` (owner), `authenticated` |
+| `public.create_care_thread_post(uuid, text)`                      | INVOKER  | `postgres` (owner), `authenticated` |
+| `public.create_care_private_note(uuid, text)`                     | INVOKER  | `postgres` (owner), `authenticated` |
+| `public.upsert_care_goal(uuid, text, text, date, uuid)`           | INVOKER  | `postgres` (owner), `authenticated` |
+| `public.log_care_activity(uuid, text, text)`                      | INVOKER  | `postgres` (owner), `authenticated` |
+| `public.upsert_care_requirement(uuid, text, integer, text, uuid)` | INVOKER  | `postgres` (owner), `authenticated` |
+| `public.set_manual_attention_flag(uuid, boolean)`                 | INVOKER  | `postgres` (owner), `authenticated` |
+| `private.share_lock_tenant(uuid)`                                 | DEFINER  | `postgres` (owner), `tenant_guard`  |
+| `private.profile_display_name(uuid)`                              | DEFINER  | `postgres` (owner), `tenant_guard`  |
+
+Each revokes `PUBLIC`, `anon`, `authenticated`, and `service_role` by name
+before granting. `authz.request_tenant_id()` additionally grants `EXECUTE` to
+`tenant_guard` (alongside `authenticated` and `service_role`) so the six care
+commands enforce non-null request-tenant binding on direct calls.

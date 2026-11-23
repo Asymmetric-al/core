@@ -86,10 +86,6 @@ const STAFF_ONLY = [
   "crm_notes",
   "crm_record_links",
   "legacy_account_invitations",
-  "member_care_activities",
-  "member_care_goals",
-  "member_care_private_notes",
-  "member_care_requirements",
   "notification_queue",
   "pdf_template_artifacts",
   "pdf_template_audit_events",
@@ -119,6 +115,12 @@ const STAFF_ONLY = [
   "support_signatures",
   "support_sla_policies",
   "support_teams",
+];
+const CARE_ONLY = [
+  "member_care_activities",
+  "member_care_goals",
+  "member_care_private_notes",
+  "member_care_requirements",
 ];
 const NOBODY = [
   "giving_reconciliation_runs",
@@ -682,18 +684,23 @@ describe.skipIf(!ADMIN_URL)(
             }
         }));
 
-      it("a donor-class or missionary-class member reads no row of a staff-only table, which a staff member of the tenant does read", () =>
+      it("a donor-class or missionary-class member reads no row of a staff-only table, which a staff member of the tenant does read; care-only tables admit member_care only (AL-2677 WP4b part 1, D-18)", () =>
         tx(async () => {
           await db.query("set local session_replication_role = replica");
-          for (const t of [...STAFF_ONLY, ...NOBODY, ...NO_GRANT])
+          for (const t of [...STAFF_ONLY, ...CARE_ONLY, ...NOBODY, ...NO_GRANT])
             await insertRow(t, {
               tenant_id: q("TA"),
               ...(t === "member_care_private_notes"
-                ? { author_user_id: q("UADM") }
+                ? { author_user_id: q("UFC") }
                 : {}),
             });
           await db.query("set local session_replication_role = origin");
-          for (const t of [...STAFF_ONLY, ...NOBODY, ...NO_GRANT]) {
+          for (const t of [
+            ...STAFF_ONLY,
+            ...CARE_ONLY,
+            ...NOBODY,
+            ...NO_GRANT,
+          ]) {
             for (const [u, m] of [
               ["UDON", "mDon"],
               ["UMIS", "mMis"],
@@ -718,7 +725,24 @@ describe.skipIf(!ADMIN_URL)(
               `select count(*)::int n from public.${t}`,
             );
             if (NO_GRANT.includes(t)) expect(staff.code, t).toBe("42501");
-            else {
+            else if (CARE_ONLY.includes(t)) {
+              expect(staff.code, `${t}: ${staff.message}`).toBeNull();
+              expect(staff.rows[0]!.n, `${t} UADM`).toBe(0);
+              const finance = await as(
+                "authenticated",
+                { sub: "UFC", headers: under("mFin") },
+                `select count(*)::int n from public.${t}`,
+              );
+              expect(finance.code, `${t} mFin`).toBeNull();
+              expect(finance.rows[0]!.n, `${t} mFin`).toBe(0);
+              const care = await as(
+                "authenticated",
+                { sub: "UFC", headers: under("mCare") },
+                `select count(*)::int n from public.${t}`,
+              );
+              expect(care.code, `${t} mCare`).toBeNull();
+              expect(care.rows[0]!.n, `${t} mCare`).toBe(1);
+            } else {
               expect(staff.code, `${t}: ${staff.message}`).toBeNull();
               expect(staff.rows[0]!.n, t).toBe(NOBODY.includes(t) ? 0 : 1);
             }
