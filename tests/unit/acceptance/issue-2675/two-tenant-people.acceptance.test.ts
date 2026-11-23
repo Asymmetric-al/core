@@ -35,7 +35,6 @@ vi.mock("@asym/database/supabase/admin", () => ({
 vi.mock("@asym/lib/audit/logger", () => ({
   createAuditLogger: vi.fn(() => ({})),
 }));
-// D-18: the authenticated fixture supplies a session to the directory route.
 vi.mock(
   "../../../../packages/api/src/shared/request-session-client",
   async (original) => ({

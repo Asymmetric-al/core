@@ -78,8 +78,6 @@ const savedEnv = Object.fromEntries(
 );
 
 /** Every request that left for Supabase's Data API, with its headers. */
-// D-18: the read uses a bearer accepted by the Auth fixture. The recorder
-// counts business reads after identity and live membership resolution.
 let sessionRows: E2EAuthMembership[] = [];
 const dataApi: Array<{ url: string; headers: Headers }> = [];
 

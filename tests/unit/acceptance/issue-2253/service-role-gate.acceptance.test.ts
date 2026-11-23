@@ -138,7 +138,6 @@ const CLEAN: Record<string, string> = {
   "scripts/verify-money-units.ts": `process.env.${K};`,
   "packages/api/src/workflows/functions/stripe-event-processing.ts":
     'import { requireWorkflowAdminClient } from "../admin-client";\nrequireWorkflowAdminClient("x");',
-  // D-18: use a remaining platform file to prove its positive count may shrink.
   "packages/api/src/admin/contribution-operations/route.ts": `${OP.replace("../", "../../")}\nexport const a = withPlatformOperation(async ({ supabaseAdmin }) => supabaseAdmin);`,
   "packages/api/src/admin/fx-neg.ts": `${OP.replaceAll("withPlatformOperation", "withOperation")}\nexport const g = withOperation(async ({ auth, request }) => auth);\nfunction getAdminClient() {}\ngetAdminClient();\nimport type { AdminSupabaseClient } from "${FACTORY}";`,
   ...Object.fromEntries(
@@ -334,7 +333,7 @@ type Allow = {
   })[];
 };
 const doc = () => JSON.parse(read(ALLOWLIST) || "null") as Allow | null;
-// D-18 (AL-2677): each CRM read proven on a scoped session loses its platform site; only the reviewed privileged callers can remain.
+// D-18: count the platform wrapper instead of the caller lane, including eight already-privileged member-care and portal sites under the 21 November ruling.
 const CEILING_TOTALS = [177, 115, 109] as const;
 const live = (d: Allow) => [
   d.entries.reduce((a, x) => a + x.count, 0),

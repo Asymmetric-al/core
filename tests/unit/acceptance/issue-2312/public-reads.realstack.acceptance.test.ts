@@ -311,8 +311,6 @@ describe.skipIf(!ADMIN_URL)(
         (t) =>
           tx(async () => {
             const p = await policies(t);
-            // D-18 (AL-2677): scoped staff can read the CRM worker projection.
-            // Keep the missionary's own-row policy and compare both full quals.
             const expected = serverOnlyMissionaries(t)
               ? [
                   [

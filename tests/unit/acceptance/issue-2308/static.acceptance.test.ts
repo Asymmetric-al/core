@@ -127,8 +127,6 @@ describe("#2308 static contracts (A)", () => {
     ).toBeLessThanOrEqual(65);
     for (const entry of originals)
       expect(entry.reason).toContain("withPlatformOperation");
-    // D-18 (AL-2677): the six retired CRM entries and nine sites reduce
-    // both of the inventory ceilings. Preserve the semantic checks above.
     expect(rows.length).toBeLessThanOrEqual(115);
     expect(rows.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(177);
   });

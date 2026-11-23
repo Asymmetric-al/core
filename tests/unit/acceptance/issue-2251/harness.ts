@@ -188,7 +188,6 @@ export const D = words(`
   mission_control_automation_test_runs mission_control_task_comments
   mission_control_task_reminders pledge_charge_attempts
 `);
-// D-18 (AL-2677): scoped CRM SELECT policies replace eight deny-by-default exceptions.
 export const F = words(`
   contribution_adjustments contribution_approval_policies contribution_correction_requests contribution_corrections
   crm_table_named_views crm_table_tenant_defaults crm_table_user_preferences donor_merge_candidates

@@ -44,8 +44,6 @@ async function ensureSupportHubDatabase(page: Page) {
 
 /** Many admin pages use `PageShell` (no `<main>`); the shell chrome is the stable signal. */
 async function expectMissionControlChrome(page: Page) {
-  // The narrow header keeps the Mission Control search button visible while
-  // the brand link lives in the closed sidebar.
   const brand = page.getByRole("link", { name: /Mission Control/i });
   const mobileSearch = page.getByRole("banner").getByRole("button", {
     name: "Open Mission Control search",
@@ -100,8 +98,6 @@ test.describe("Admin table pages smoke", () => {
       } else {
         await ensureAdminDemo(page);
       }
-      // The search input is visible in the server HTML. The grid requests its
-      // tag options after mounting, when React can handle input on either layout.
       const [tagOptions] = await Promise.all([
         bypassRead && path === "/crm"
           ? page.waitForResponse(

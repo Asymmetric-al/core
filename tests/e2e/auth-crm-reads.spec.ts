@@ -15,7 +15,6 @@ import {
 } from "./helpers/request-scope-reads";
 import { trackDocumentLoads } from "./helpers/tenant-address";
 
-// D-18: data-dependent CRM journeys sign in on the isolated local stack.
 const env = readAuthMailEnv();
 const donors = [randomUUID(), randomUUID()];
 const noteTitle = "Local CRM note " + randomUUID();
@@ -129,8 +128,6 @@ test.describe("CRM on the caller's session", () => {
         await expect(page.getByText(emptyState).first()).toBeVisible({
           timeout: 120_000,
         });
-        // The configured Notes screen suppresses its provenance footer. The
-        // response above proves the local store there, even for an empty list.
         if (path === "/crm/relationships")
           await expect(
             page
@@ -222,7 +219,6 @@ test.describe("CRM on the caller's session", () => {
       await expect(
         records.getByRole("button", { name: /Alice Johnson/i }).first(),
       ).toBeVisible();
-      // The ReUI grid renders loaded pages in one scroll body (no 10-row page).
       await expect(page.getByText(/^Page \d+ of \d+$/)).toHaveCount(0);
       await expect(
         records.getByRole("button", { name: /Frank Miller/i }).first(),

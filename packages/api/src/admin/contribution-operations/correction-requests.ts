@@ -185,7 +185,6 @@ export async function loadCorrectionApprovalPolicy(
     throw new Error(error.message);
   }
 
-  // An invisible or absent row uses the same strictest policy.
   return resolveCorrectionApprovalPolicy(
     (data as CorrectionApprovalPolicyRow | null) ?? null,
   );

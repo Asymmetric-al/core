@@ -441,7 +441,6 @@ test("sign-in, the callback's landing and the recovery steps keep the browser's 
 // document then reloaded at the bare address, and the proxy sent a person in
 // two organizations to the chooser. The list's address keeps its prefix and
 // the document stays the same.
-// D-18: both CRM search navigation cases now run with real sessions in auth-crm-reads.
 
 test.describe("production build", () => {
   test.skip(!production, "Measured on a production build only");

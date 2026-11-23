@@ -94,8 +94,6 @@ export async function getCrmTablePreferences(input: {
   }
 
   return {
-    // RLS makes an invisible personal setting indistinguishable from an unset one.
-    // A null layer selects the system default and confers no write authority.
     tableId: input.tableId,
     schemaVersion: CRM_ROW_ACTION_SCHEMA_VERSION,
     user: mapPreferenceRow(userResult.data as PreferenceRow | null),

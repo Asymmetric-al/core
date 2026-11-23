@@ -47,7 +47,6 @@ const WP3A_ENTITY_TABLES = new Set([
 
 describe(LIST, () => {
   // AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
-  // D-18 (AL-2677): eight formerly exempt tables now have a scoped staff read.
   it("has version 1, the Q5 + clash 2 ruling and at least the 79 remaining reviewed entries", () => {
     expect(Object.keys(doc)).toEqual(["version", "ruling", "entries"]);
     expect(doc.version).toBe(1);

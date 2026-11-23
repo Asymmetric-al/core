@@ -202,7 +202,6 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
         const live = new Map((await targets()).map((x) => [x.t, x]));
         const e = exceptions();
         // AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
-        // D-18: eight CRM tables now have scoped policies; the rest still need review.
         expect(e.length).toBeGreaterThanOrEqual(79);
         const bad = e
           .map((x) => [x.table, live.get(x.table)] as const)
@@ -218,7 +217,6 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
   it("criterion 2: an owner without BYPASSRLS is bound by RLS on an F and a D table", () =>
     tx(async () => {
       await ownerless();
-      // D-18: keep both a populated deny-by-default table and the now-scoped candidates.
       const tables = [
         "donors",
         "donor_merge_candidates",

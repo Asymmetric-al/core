@@ -76,7 +76,6 @@ const ROWS: [
  * admit no one; pdf_templates has no grant for signed-in users at all.
  */
 const STAFF_ONLY = [
-  // D-18 (AL-2677): CRM staff may read staging rows for their selected tenant.
   "donation_crm_links",
   "staged_gift_allocations",
   "staged_gifts",
@@ -130,7 +129,6 @@ const NO_GRANT = ["pdf_templates"];
 
 /** Values a generated row needs where a column's check constraint asks for one. */
 const OVERRIDES: Record<string, Record<string, string>> = {
-  // D-18: exercise every newly readable CRM relation in the no-scope sweep.
   contribution_adjustments: { source_surface: "'api'", status: "'applied'" },
   contribution_corrections: {
     correction_type: "'metadata_update'",

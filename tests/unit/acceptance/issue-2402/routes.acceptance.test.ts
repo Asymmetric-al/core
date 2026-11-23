@@ -82,7 +82,6 @@ beforeEach(() => {
     eq: () => q,
     maybeSingle: async () => ({ data: null, error: null }),
   };
-  // D-18: both the default pre-check and write use the caller client.
   m.session.from.mockReturnValue(q);
 });
 const routes = [

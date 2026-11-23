@@ -23,7 +23,6 @@ import {
 import { createRequestSessionClient } from "../../../../packages/api/src/shared/request-session-client";
 
 vi.mock("@asym/database/supabase/admin", () => ({
-  // The accepted audit exception exposes only an insert, through the local Data API.
   createAdminClient: () => ({
     from(table: string) {
       if (table !== "audit_logs")
@@ -718,7 +717,6 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
             "insert into public.contribution_correction_requests(id,tenant_id,donation_id,action_type,reason,source_surface) values ($1,$2,$3,'metadata_update','test','api')",
             [requests[i], tenant, gift],
           );
-          // A legacy adjustment in A can name B's targets. Neither label may appear.
           await db.query(
             "insert into public.contribution_adjustments(id,tenant_id,donation_id,adjustment_type,reason,source_surface,effective_values) values ($1,$2,$3,'fund_correction','test','api',$4)",
             [

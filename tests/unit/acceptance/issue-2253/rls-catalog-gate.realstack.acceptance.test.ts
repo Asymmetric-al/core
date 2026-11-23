@@ -158,7 +158,6 @@ const CASES: [string, string, string[][]][] = [
     [],
   ],
   [
-    // D-18 (AL-2677): merge candidates now have a staff policy. Exercise the same stale-entry failure on a dormant table.
     "stale exceptions: gained a policy, dropped, lost tenant_id (3)",
     "create policy acc2253 on public.contribution_operation_prompt_settings using (false); drop table public.contribution_operation_user_preferences; alter table public.currency_rate_snapshots drop column tenant_id cascade;",
     [

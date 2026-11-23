@@ -272,8 +272,6 @@ export async function getAdminCrmDonorDetail(input: {
     .eq("id", input.donorId)
     .maybeSingle();
 
-  // Row security makes an invisible record indistinguishable from an absent one.
-  // The same 404 for both keeps the other tenant's records private.
   // Only a missing row (or an id that cannot be one: 22P02, invalid uuid) is
   // "not found"; any other failure is a server error the page can retry.
   if (donorResult.error && donorResult.error.code !== "22P02") {

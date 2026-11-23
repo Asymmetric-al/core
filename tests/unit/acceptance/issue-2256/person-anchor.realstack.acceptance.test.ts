@@ -432,8 +432,6 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
         READER_POLICIES.filter(() => false),
       );
       // The WP2a sweep (AL-2675) adds `private` to the scanned schemas.
-      // D-18 (AL-2677): both directory overloads read profile names beside
-      // memberships. Compare their exact signatures as well as their definer flags.
       const fns = await rows(
         `SELECT CASE WHEN p.proname = 'tenant_member_directory'
           THEN p.proname || '(' || oidvectortypes(p.proargtypes) || ')'

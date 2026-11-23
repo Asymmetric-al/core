@@ -32,7 +32,6 @@ vi.mock("../../../../packages/api/src/crm/auth/access", () => ({
   requireCrmAccess: () => ({ tenantId: "tenant-1", userId: "user-1" }),
 }));
 
-// D-18: the operation supplies a single caller client for policies and rows.
 const caller = { kind: "caller" };
 function run(
   query: string,

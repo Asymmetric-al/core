@@ -248,7 +248,6 @@ function member(
     isAuthenticated: true,
   };
 }
-// D-18: the authenticated fixture carries the session used by caller-token handlers.
 const url = (path: string) =>
   new NextRequest(`https://app.example.test${path}`, {
     headers: { cookie: "sb-local-auth-token=session" },

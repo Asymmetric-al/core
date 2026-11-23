@@ -24,10 +24,7 @@ const sql = () => {
  * sha256 of the other exceptions entry lines, trimmed, "\n"-joined. It was
  * 9b004012... for the 85 lines at develop 0727d810; AL-2674 (D09) drops the
  * backup_notification_queue_orphans_20260214 table and its entry, and this is
- * the digest of those same lines without that one. D-18 (AL-2677): the
- * four contribution settings/history tables, three CRM preference tables,
- * and donor_merge_candidates now admit scoped staff reads. The remaining
- * 76 entry lines match their prior bytes and order.
+ * the digest of those same lines without that one.
  */
 const OTHERS_SHA =
   "279470bb593c1da283b50a201076f158d9a8b986c7a3ff88c5b83c49e1cbbde5";
