@@ -276,7 +276,7 @@ Supabase-specific development values must resolve to project ref
 | `PAYLOAD_DATABASE_URI`          | Yes   | No    | No         | Restricted `cms_runtime` role on the development session pooler; verify-full. |
 | `PAYLOAD_DATABASE_SSL_CA`       | Yes   | No    | No         | Development project CA used to verify the pooler.                             |
 
-On admin also set `PAYLOAD_SECRET`. Payload and the Web Studio tenant cookie take their signing key from it, and the admin app refuses to resolve it outside local development and tests (`apps/admin/src/cms/payload-secret.ts`). Donor and missionary do not use it.
+On admin also set `PAYLOAD_SECRET`. Payload and the Web Studio tenant cookie take their signing key from it; if it is unset, the admin app throws outside local development and tests (`apps/admin/src/cms/payload-secret.ts`). Donor and missionary do not use it.
 
 Merges to `develop` do not deploy. To refresh the three domains, follow the [development checkpoint](./release-job.md#switching-it-on): force builds of the exact commit in `core-development`, confirm the deployment ids and aliases, check detailed health and run the hosted smoke. Before a release record the signed-in evidence against the commit actually exercised.
 
