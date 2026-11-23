@@ -514,7 +514,7 @@ export const PINNED_STEP_BODIES: Record<
     },
     "name:Verify AL-2671 program suites, issues 2670-2689 (real stack)": {
       index: 22,
-      run: "bun x vitest run tests/unit/acceptance/issue-26[78][0-9]/*.realstack.acceptance.test.ts",
+      run: "bun x vitest run --no-file-parallelism tests/unit/acceptance/issue-26[78][0-9]/*.realstack.acceptance.test.ts",
       env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
     },
     "name:Verify release job database steps, schema fingerprint and CMS roles (real stack)":

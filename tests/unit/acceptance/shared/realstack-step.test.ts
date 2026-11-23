@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   expectRealstackStep,
+  ONE_FILE_AT_A_TIME,
   migrateJob,
   migrateSteps,
   realstackStepProblems,
@@ -249,6 +250,46 @@ describe("realstackStepProblems (fixtures)", () => {
 
     it("finds no test paths in a step that does not run vitest", () => {
       expect(stepTestPaths({ run: `node scripts/x.mjs ${F2250}` })).toEqual([]);
+    });
+  });
+
+  describe("a step that runs its files one at a time", () => {
+    const SERIAL = `bun x vitest run ${ONE_FILE_AT_A_TIME} ${F2250} ${F2364}`;
+    const serialProblems = (run: string, extra?: Partial<WorkflowStep>) =>
+      realstackStepProblems(stepsWith(run, extra), STEP, [F2364], ENV, {
+        oneFileAtATime: true,
+      });
+
+    it("accepts the flag right after the command and counts the paths after it", () => {
+      expect(serialProblems(SERIAL)).toEqual([]);
+      expect(problems(SERIAL)).toEqual([]);
+      expect(stepTestPaths({ run: SERIAL })).toEqual([F2250, F2364]);
+    });
+
+    it("rejects a step that went back to running its files in parallel", () => {
+      expect(serialProblems(RUN)).toEqual([
+        expect.stringMatching(
+          /does not start with 'bun x vitest run --no-file-parallelism', so its files run in parallel/,
+        ),
+      ]);
+    });
+
+    it.each([
+      `${RUN} ${ONE_FILE_AT_A_TIME}`,
+      `bun x vitest run ${ONE_FILE_AT_A_TIME} ${ONE_FILE_AT_A_TIME} ${F2364}`,
+      `bun x vitest run ${ONE_FILE_AT_A_TIME} --file-parallelism ${F2364}`,
+      `bun x vitest run ${ONE_FILE_AT_A_TIME} --maxWorkers=4 ${F2364}`,
+      `bun x vitest run --maxWorkers=1 ${F2250} ${F2364}`,
+    ])("rejects %j", (run) => {
+      expect(serialProblems(run)).toContainEqual(
+        expect.stringMatching(/not a plain test path/),
+      );
+    });
+
+    it("rejects VITEST_MAX_WORKERS on the step, which overrides the flag", () => {
+      expect(
+        serialProblems(SERIAL, { env: { ...ENV, VITEST_MAX_WORKERS: "4" } }),
+      ).toEqual([expect.stringMatching(/sets VITEST_MAX_WORKERS/)]);
     });
   });
 });
@@ -501,11 +542,12 @@ describe("required PostgREST suites run on the local Supabase stack (#2706)", ()
 
 describe("#2714's real-stack steps (AL-2671 stage 1)", () => {
   const MIGRATED = "${{ env.DATABASE_URL }}";
-  it("the program step runs every issue-2670..2689 real-stack suite", () => {
+  it("the program step runs every issue-2670..2689 real-stack suite, one file at a time", () => {
     expectRealstackStep(
       "Verify AL-2671 program suites, issues 2670-2689 (real stack)",
       REAL_DATABASE_FILES.filter((f) => /\/issue-26[78]\d\//.test(f)),
       { TENANT_GUARD_IT_ADMIN_DATABASE_URL: MIGRATED },
+      { oneFileAtATime: true },
     );
   });
   it("the release step runs the release database and CMS role suites", () => {
