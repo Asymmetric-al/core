@@ -1421,6 +1421,317 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
+    it("R14: refuses issuer self-acceptance for both member and operator invitations with generic 42501", () =>
+      tx(async (i) => {
+        const tag = i.tenantA.slice(0, 8);
+        const adminEmail = `admin-a-${tag}@example.org`;
+        const opEmail = `op-${tag}@example.org`;
+        const secondOpEmail = `nonop-${tag}@example.org`;
+
+        const selfMemberRes = await runAs(
+          db,
+          "authenticated",
+          i.adminA,
+          "select public.invite_member($1, $2, 'staff', 'member_care', false, 'Admin invites self') as r",
+          {
+            headers: { "x-asym-assignment": i.mAdminA },
+            params: [i.tenantA, adminEmail],
+          },
+        );
+        expect(selfMemberRes.code, selfMemberRes.message ?? "").toBeNull();
+        const selfMemberInv = selfMemberRes.rows[0]!.r as Record<
+          string,
+          string
+        >;
+
+        const selfMemberAccept = await runAs(
+          db,
+          "authenticated",
+          i.adminA,
+          "select public.accept_membership_invitation($1, $2) as r",
+          { params: [selfMemberInv.selector, selfMemberInv.verifier] },
+        );
+        expect(selfMemberAccept.code).toBe("42501");
+        expect(selfMemberAccept.message).toBe(GENERIC_ACCEPT_REFUSAL);
+        const selfCareCount = await db.query<{ c: number }>(
+          "select count(*)::int as c from authz.memberships where tenant_id = $1 and user_id = $2 and staff_role = 'member_care'",
+          [i.tenantA, i.adminA],
+        );
+        expect(selfCareCount.rows[0]!.c).toBe(0);
+        const selfMemberStatus = await db.query<{ status: string }>(
+          "select status from public.membership_invitations where id = $1",
+          [selfMemberInv.invitation_id],
+        );
+        expect(selfMemberStatus.rows[0]!.status).toBe("issued");
+
+        const selfOpRes = await runAs(
+          db,
+          "authenticated",
+          i.operatorUser,
+          "select public.issue_admin_invitation($1, $2, 'development', 'Operator invites self') as r",
+          { aal: "aal2", params: [i.tenantNoAdmin, opEmail] },
+        );
+        expect(selfOpRes.code, selfOpRes.message ?? "").toBeNull();
+        const selfOpInv = selfOpRes.rows[0]!.r as Record<string, string>;
+
+        const selfOpAccept = await runAs(
+          db,
+          "authenticated",
+          i.operatorUser,
+          "select public.accept_membership_invitation($1, $2) as r",
+          { params: [selfOpInv.selector, selfOpInv.verifier] },
+        );
+        expect(selfOpAccept.code).toBe("42501");
+        expect(selfOpAccept.message).toBe(GENERIC_ACCEPT_REFUSAL);
+        const opNoAdminRows = await db.query<{ c: number }>(
+          "select count(*)::int as c from authz.memberships where tenant_id = $1 and user_id = $2",
+          [i.tenantNoAdmin, i.operatorUser],
+        );
+        expect(opNoAdminRows.rows[0]!.c).toBe(0);
+        const selfOpStatus = await db.query<{ status: string }>(
+          "select status from public.membership_invitations where id = $1",
+          [selfOpInv.invitation_id],
+        );
+        expect(selfOpStatus.rows[0]!.status).toBe("issued");
+
+        await db.query(
+          "insert into authz.platform_operators (user_id, added_by, reason) values ($1, 'test-runner', 'Temporary operator for R14')",
+          [i.nonOperatorUser],
+        );
+        const exOpSelfRes = await runAs(
+          db,
+          "authenticated",
+          i.nonOperatorUser,
+          "select public.issue_admin_invitation($1, $2, 'hr', 'Temporary operator invites self') as r",
+          { aal: "aal2", params: [i.tenantNoAdmin, secondOpEmail] },
+        );
+        expect(exOpSelfRes.code, exOpSelfRes.message ?? "").toBeNull();
+        const exOpSelfInv = exOpSelfRes.rows[0]!.r as Record<string, string>;
+
+        await db.query(
+          "delete from authz.platform_operators where user_id = $1",
+          [i.nonOperatorUser],
+        );
+        const exOpSelfAccept = await runAs(
+          db,
+          "authenticated",
+          i.nonOperatorUser,
+          "select public.accept_membership_invitation($1, $2) as r",
+          { params: [exOpSelfInv.selector, exOpSelfInv.verifier] },
+        );
+        expect(exOpSelfAccept.code).toBe("42501");
+        expect(exOpSelfAccept.message).toBe(GENERIC_ACCEPT_REFUSAL);
+        const exOpRows = await db.query<{ c: number }>(
+          "select count(*)::int as c from authz.memberships where tenant_id = $1 and user_id = $2",
+          [i.tenantNoAdmin, i.nonOperatorUser],
+        );
+        expect(exOpRows.rows[0]!.c).toBe(0);
+      }));
+
+    it("R15: refuses platform-operator callers in accept_membership_invitation with generic 42501 independently of issuer", () =>
+      tx(async (i) => {
+        const tag = i.tenantA.slice(0, 8);
+        const opEmail = `op-${tag}@example.org`;
+        const secondOpEmail = `nonop-${tag}@example.org`;
+
+        const opByAdminRes = await runAs(
+          db,
+          "authenticated",
+          i.adminA,
+          "select public.invite_member($1, $2, 'staff', 'finance', false, 'Admin invites operator') as r",
+          {
+            headers: { "x-asym-assignment": i.mAdminA },
+            params: [i.tenantA, opEmail],
+          },
+        );
+        expect(opByAdminRes.code, opByAdminRes.message ?? "").toBeNull();
+        const opByAdminInv = opByAdminRes.rows[0]!.r as Record<string, string>;
+
+        const opByAdminAccept = await runAs(
+          db,
+          "authenticated",
+          i.operatorUser,
+          "select public.accept_membership_invitation($1, $2) as r",
+          { params: [opByAdminInv.selector, opByAdminInv.verifier] },
+        );
+        expect(opByAdminAccept.code).toBe("42501");
+        expect(opByAdminAccept.message).toBe(GENERIC_ACCEPT_REFUSAL);
+        const opTenantARows = await db.query<{ c: number }>(
+          "select count(*)::int as c from authz.memberships where tenant_id = $1 and user_id = $2",
+          [i.tenantA, i.operatorUser],
+        );
+        expect(opTenantARows.rows[0]!.c).toBe(0);
+        const opByAdminStatus = await db.query<{ status: string }>(
+          "select status from public.membership_invitations where id = $1",
+          [opByAdminInv.invitation_id],
+        );
+        expect(opByAdminStatus.rows[0]!.status).toBe("issued");
+
+        await db.query(
+          "insert into authz.platform_operators (user_id, added_by, reason) values ($1, 'test-runner', 'Second operator for R15')",
+          [i.nonOperatorUser],
+        );
+        const opToOpRes = await runAs(
+          db,
+          "authenticated",
+          i.operatorUser,
+          "select public.issue_admin_invitation($1, $2, 'finance', 'Operator invites other operator') as r",
+          { aal: "aal2", params: [i.tenantNoAdmin, secondOpEmail] },
+        );
+        expect(opToOpRes.code, opToOpRes.message ?? "").toBeNull();
+        const opToOpInv = opToOpRes.rows[0]!.r as Record<string, string>;
+
+        const opToOpAccept = await runAs(
+          db,
+          "authenticated",
+          i.nonOperatorUser,
+          "select public.accept_membership_invitation($1, $2) as r",
+          { params: [opToOpInv.selector, opToOpInv.verifier] },
+        );
+        expect(opToOpAccept.code).toBe("42501");
+        expect(opToOpAccept.message).toBe(GENERIC_ACCEPT_REFUSAL);
+        const secondOpRows = await db.query<{ c: number }>(
+          "select count(*)::int as c from authz.memberships where tenant_id = $1 and user_id = $2",
+          [i.tenantNoAdmin, i.nonOperatorUser],
+        );
+        expect(secondOpRows.rows[0]!.c).toBe(0);
+      }));
+
+    it("R17: revoke_membership against invite_member (both orders) never deadlocks (40P01) and tenant-referencing inserts are not blocked while tenant locks are held", async () => {
+      const i = makeIds();
+      const observer = new pg.Client({ connectionString: ADMIN_URL });
+      const c1 = new pg.Client({ connectionString: ADMIN_URL });
+      const c2 = new pg.Client({ connectionString: ADMIN_URL });
+      await Promise.all([observer.connect(), c1.connect(), c2.connect()]);
+      const waitForLock = async (pid: number) => {
+        for (let attempt = 0; attempt < 150; attempt += 1) {
+          const res = await observer.query<{ wait_event_type: string | null }>(
+            "select wait_event_type from pg_stat_activity where pid = $1",
+            [pid],
+          );
+          if (res.rows[0]?.wait_event_type === "Lock") return;
+          await new Promise((r) => setTimeout(r, 20));
+        }
+        throw new Error("Timed out waiting for concurrent session lock wait");
+      };
+      try {
+        await observer.query("begin");
+        await observer.query(seedFixtureSql(i));
+        await observer.query("commit");
+
+        const tag = i.tenantA.slice(0, 8);
+        const c2Pid = Number(
+          (await c2.query<{ pid: number }>("select pg_backend_pid() as pid"))
+            .rows[0]!.pid,
+        );
+
+        await c1.query("begin");
+        await c1.query(
+          "select 1 from authz.memberships where id = $1 for update",
+          [i.mAdminA],
+        );
+        const order1Invite = runCommittedAs(
+          c2,
+          "authenticated",
+          i.adminA,
+          "select public.invite_member($1, $2, 'staff', 'finance', false, 'R17 order 1') as r",
+          {
+            headers: { "x-asym-assignment": i.mAdminA },
+            params: [i.tenantA, `r17-o1-${tag}@example.org`],
+          },
+        );
+        await waitForLock(c2Pid);
+        const order1Revoke = await runAs(
+          c1,
+          "authenticated",
+          i.adminA2,
+          "select public.revoke_membership($1, $2, 'R17 revoke vs invite order 1') as r",
+          {
+            headers: { "x-asym-assignment": i.mAdminA2 },
+            params: [i.tenantA, i.mStaffA],
+          },
+        );
+        await c1.query("commit");
+        const order1InviteOut = await order1Invite;
+        expect(order1Revoke.code, order1Revoke.message ?? "").toBeNull();
+        expect(order1InviteOut.code, order1InviteOut.message ?? "").toBeNull();
+
+        await c1.query("begin");
+        const order2Invite = await runAs(
+          c1,
+          "authenticated",
+          i.adminA,
+          "select public.invite_member($1, $2, 'staff', 'hr', false, 'R17 order 2') as r",
+          {
+            headers: { "x-asym-assignment": i.mAdminA },
+            params: [i.tenantA, `r17-o2-${tag}@example.org`],
+          },
+        );
+        expect(order2Invite.code, order2Invite.message ?? "").toBeNull();
+        const order2Revoke = runCommittedAs(
+          c2,
+          "authenticated",
+          i.adminA2,
+          "select public.revoke_membership($1, $2, 'R17 revoke vs invite order 2') as r",
+          {
+            headers: { "x-asym-assignment": i.mAdminA2 },
+            params: [i.tenantA, i.mMissionaryA],
+          },
+        );
+        await waitForLock(c2Pid);
+        await c1.query("commit");
+        const order2RevokeOut = await order2Revoke;
+        expect(order2RevokeOut.code, order2RevokeOut.message ?? "").toBeNull();
+
+        await c1.query("begin");
+        const lockInvite = await runAs(
+          c1,
+          "authenticated",
+          i.adminA,
+          "select public.invite_member($1, $2, 'missionary', null, false, 'R17 fk probe invite') as r",
+          {
+            headers: { "x-asym-assignment": i.mAdminA },
+            params: [i.tenantA, `r17-fk1-${tag}@example.org`],
+          },
+        );
+        expect(lockInvite.code, lockInvite.message ?? "").toBeNull();
+        await c2.query("begin");
+        await c2.query("set local lock_timeout = '1000ms'");
+        await c2.query(
+          "insert into public.audit_logs (tenant_id, user_id, action, resource_type, resource_id, details) values ($1, $2, 'r17_fk_probe', 'tenant', $1::text, '{}'::jsonb)",
+          [i.tenantA, i.adminA2],
+        );
+        await c2.query("commit");
+        await c1.query("commit");
+
+        await c1.query("begin");
+        const lockOp = await runAs(
+          c1,
+          "authenticated",
+          i.operatorUser,
+          "select public.issue_admin_invitation($1, $2, 'development', 'R17 fk probe operator') as r",
+          {
+            aal: "aal2",
+            params: [i.tenantNoAdmin, `r17-fk2-${tag}@example.org`],
+          },
+        );
+        expect(lockOp.code, lockOp.message ?? "").toBeNull();
+        await c2.query("begin");
+        await c2.query("set local lock_timeout = '1000ms'");
+        await c2.query(
+          "insert into public.audit_logs (tenant_id, user_id, action, resource_type, resource_id, details) values ($1, $2, 'r17_fk_probe_op', 'tenant', $1::text, '{}'::jsonb)",
+          [i.tenantNoAdmin, i.operatorUser],
+        );
+        await c2.query("commit");
+        await c1.query("commit");
+      } finally {
+        await c1.query("rollback").catch(() => undefined);
+        await c2.query("rollback").catch(() => undefined);
+        await cleanupCommittedFixture(observer, i).catch(() => undefined);
+        await Promise.all([observer.end(), c1.end(), c2.end()]);
+      }
+    });
+
     it("catalog: ownership, SECURITY DEFINER/INVOKER, search_path, EXECUTE grants, and no auth reference in tenant_guard", () =>
       tx(async (i) => {
         const res = await db.query(

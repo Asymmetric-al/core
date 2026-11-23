@@ -129,13 +129,13 @@ describe("WP4 command boundaries", () => {
     const fn =
       "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)";
     const reason =
-      "AL-2676 WP3c R1: invitation acceptance admits a caller who holds no membership yet after verifying selector, constant-time verifier digest, live status, expiry, and confirmed non-deleted email via private.resolve_invitation_for_caller before tenant_guard.enter or any lock";
+      "AL-2676 WP3c R1/R14/R15: invitation acceptance admits a non-operator caller who holds no membership yet after refusing platform operators and issuer self-acceptance and verifying selector, constant-time verifier digest, live status, expiry, and confirmed non-deleted email via private.resolve_invitation_for_caller before tenant_guard.enter or any lock";
     expect(preMembershipEntries).toEqual([{ function: fn, reason }]);
     expect(reviewedPreMembership).toEqual({
       [fn]: {
         reason,
         digest:
-          "a1338095bf9a1021c97822ba269f00d2c8b7c3dc4fa5b3c2f85d70102bec2e1a",
+          "8e1cd0bb1438913861f3dfda3f72866e20c6ccbe0abb1513e489e41cf9f9cbb2",
       },
     });
   });

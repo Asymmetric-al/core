@@ -815,5 +815,106 @@ describe.skipIf(!ADMIN_URL)(
         await Promise.all([barrier.end(), c1.end(), c2.end()]);
       }
     });
+
+    it("R17: revoke_membership against change_membership_role (both orders) never deadlocks (40P01)", async () => {
+      const i = makeIds();
+      const observer = new pg.Client({ connectionString: ADMIN_URL });
+      const c1 = new pg.Client({ connectionString: ADMIN_URL });
+      const c2 = new pg.Client({ connectionString: ADMIN_URL });
+      await Promise.all([observer.connect(), c1.connect(), c2.connect()]);
+      const waitForLock = async (pid: number) => {
+        for (let attempt = 0; attempt < 150; attempt += 1) {
+          const res = await observer.query<{ wait_event_type: string | null }>(
+            "select wait_event_type from pg_stat_activity where pid = $1",
+            [pid],
+          );
+          if (res.rows[0]?.wait_event_type === "Lock") return;
+          await new Promise((r) => setTimeout(r, 20));
+        }
+        throw new Error("Timed out waiting for concurrent session lock wait");
+      };
+      try {
+        await observer.query("begin");
+        await observer.query(seedFixtureSql(i));
+        await observer.query("commit");
+
+        const tsTargetDev = String(
+          (
+            await observer.query(
+              "select updated_at::text as updated_at from authz.memberships where id = $1",
+              [i.mTargetDev],
+            )
+          ).rows[0]!.updated_at,
+        );
+        const c2Pid = Number(
+          (await c2.query<{ pid: number }>("select pg_backend_pid() as pid"))
+            .rows[0]!.pid,
+        );
+
+        await c1.query("begin");
+        await c1.query(
+          "select 1 from authz.memberships where id = $1 for update",
+          [i.mAdmin1],
+        );
+        const order1Role = runCommittedAs(
+          c2,
+          "authenticated",
+          i.admin1,
+          "select public.change_membership_role($1, $2, 'staff', 'member_care', false, 'R17 role vs revoke order 1', $3::timestamptz) as r",
+          {
+            headers: { "x-asym-assignment": i.mAdmin1 },
+            params: [i.tenant, i.mTargetDev, tsTargetDev],
+          },
+        );
+        await waitForLock(c2Pid);
+        const order1Revoke = await runAs(
+          c1,
+          "authenticated",
+          i.admin2,
+          "select public.revoke_membership($1, $2, 'R17 revoke vs role order 1') as r",
+          {
+            headers: { "x-asym-assignment": i.mAdmin2 },
+            params: [i.tenant, i.mTargetFin],
+          },
+        );
+        await c1.query("commit");
+        const order1RoleOut = await order1Role;
+        expect(order1Revoke.code, order1Revoke.message ?? "").toBeNull();
+        expect(order1RoleOut.code, order1RoleOut.message ?? "").toBeNull();
+
+        const updatedDev = order1RoleOut.rows[0]!.r as Record<string, string>;
+        await c1.query("begin");
+        const order2Role = await runAs(
+          c1,
+          "authenticated",
+          i.admin1,
+          "select public.change_membership_role($1, $2, 'staff', 'mobilizer', false, 'R17 role vs revoke order 2', $3::timestamptz) as r",
+          {
+            headers: { "x-asym-assignment": i.mAdmin1 },
+            params: [i.tenant, updatedDev.membership_id, updatedDev.updated_at],
+          },
+        );
+        expect(order2Role.code, order2Role.message ?? "").toBeNull();
+        const order2Revoke = runCommittedAs(
+          c2,
+          "authenticated",
+          i.admin2,
+          "select public.revoke_membership($1, $2, 'R17 revoke vs role order 2') as r",
+          {
+            headers: { "x-asym-assignment": i.mAdmin2 },
+            params: [i.tenant, i.mAdmin1Second],
+          },
+        );
+        await waitForLock(c2Pid);
+        await c1.query("commit");
+        const order2RevokeOut = await order2Revoke;
+        expect(order2RevokeOut.code, order2RevokeOut.message ?? "").toBeNull();
+      } finally {
+        await c1.query("rollback").catch(() => undefined);
+        await c2.query("rollback").catch(() => undefined);
+        await cleanupFixture(observer, i).catch(() => undefined);
+        await Promise.all([observer.end(), c1.end(), c2.end()]);
+      }
+    });
   },
 );

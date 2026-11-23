@@ -6,9 +6,11 @@
 -- invoker wrappers.
 --
 -- Global deadlock-free lock order across all invitation and membership
--- commands (F1, F4, R6):
---   1. public.tenants (id) FOR UPDATE (via private.lock_tenant or directly in
---      platform.issue_admin_invitation)
+-- commands (F1, F4, R6, R17):
+--   1. public.tenants (id) FOR NO KEY UPDATE (via private.lock_tenant or
+--      directly in platform.issue_admin_invitation; serializes against other
+--      FOR NO KEY UPDATE / FOR UPDATE callers while allowing concurrent
+--      FOR KEY SHARE foreign-key checks such as public.audit_logs inserts)
 --   2. authz.platform_operators (user_id) FOR SHARE (platform command only)
 --   3. authz.memberships ORDER BY id FOR UPDATE
 --   4. public.membership_invitations ORDER BY id FOR UPDATE
@@ -41,13 +43,14 @@ AS $$
   SELECT t.status
     FROM public.tenants AS t
    WHERE t.id = p_tenant_id
-     FOR UPDATE;
+     FOR NO KEY UPDATE;
 $$;
 
 COMMENT ON FUNCTION private.lock_tenant(UUID) IS
-  'Shared tenant-row serialization lock (AL-2676 WP3c, F1). Locks public.tenants '
-  'FOR UPDATE and returns its status so tenant_guard commands serialize with '
-  'platform.issue_admin_invitation without granting tenant_guard SELECT on public.tenants.';
+  'Shared tenant-row serialization lock (AL-2676 WP3c, F1, R17). Locks public.tenants '
+  'FOR NO KEY UPDATE and returns its status so tenant_guard commands serialize with '
+  'platform.issue_admin_invitation without blocking concurrent FOR KEY SHARE foreign-key '
+  'inserts or granting tenant_guard SELECT on public.tenants.';
 
 ALTER FUNCTION private.lock_tenant(UUID) OWNER TO postgres;
 REVOKE ALL ON FUNCTION private.lock_tenant(UUID)
@@ -91,6 +94,7 @@ BEGIN
     i.email_normalized,
     i.verifier_digest_version,
     i.verifier_digest,
+    i.invited_by,
     i.status,
     i.expires_at
   INTO v_inv
@@ -124,7 +128,8 @@ BEGIN
      OR v_inv.verifier_digest_version <> 1
      OR v_diff <> 0
      OR v_inv.status <> 'issued'
-     OR v_inv.expires_at <= pg_catalog.now() THEN
+     OR v_inv.expires_at <= pg_catalog.now()
+     OR (v_inv.invited_by IS NOT NULL AND v_inv.invited_by = p_caller_id) THEN
     RETURN;
   END IF;
 
@@ -148,9 +153,9 @@ END;
 $$;
 
 COMMENT ON FUNCTION private.resolve_invitation_for_caller(TEXT, TEXT, UUID) IS
-  'Pre-entry verifier for accept_membership_invitation (AL-2676 WP3c, R1, F2, F3). '
+  'Pre-entry verifier for accept_membership_invitation (AL-2676 WP3c, R1, R14, F2, F3). '
   'Verifies selector, constant-time SHA-256 verifier digest, live status, expiry, '
-  'and caller confirmed non-deleted email without setting tenant context or taking any lock.';
+  'non-self issuer, and caller confirmed non-deleted email without setting tenant context or taking any lock.';
 
 ALTER FUNCTION private.resolve_invitation_for_caller(TEXT, TEXT, UUID) OWNER TO postgres;
 REVOKE ALL ON FUNCTION private.resolve_invitation_for_caller(TEXT, TEXT, UUID)
@@ -437,7 +442,7 @@ DECLARE
   v_now TIMESTAMPTZ;
 BEGIN
   v_actor := tenant_guard.caller_id();
-  IF v_actor IS NULL THEN
+  IF v_actor IS NULL OR private.is_platform_operator(v_actor) THEN
     RAISE EXCEPTION 'Invitation is invalid or no longer available'
       USING ERRCODE = '42501';
   END IF;
@@ -484,7 +489,9 @@ BEGIN
 
   IF NOT FOUND
      OR v_inv.status <> 'issued'
-     OR v_inv.expires_at <= pg_catalog.now() THEN
+     OR v_inv.expires_at <= pg_catalog.now()
+     OR (v_inv.invited_by IS NOT NULL AND v_inv.invited_by = v_actor)
+     OR private.is_platform_operator(v_actor) THEN
     RAISE EXCEPTION 'Invitation is invalid or no longer available'
       USING ERRCODE = '42501';
   END IF;
@@ -625,9 +632,10 @@ END;
 $$;
 
 COMMENT ON FUNCTION tenant_guard.accept_membership_invitation(TEXT, TEXT) IS
-  'Pre-membership human command (plan 5.4 line 260, AL-2676 WP3c, R1, F1, F2, F3): '
-  'verifies selector, verifier digest, live status, expiry, and caller confirmed email '
-  'before entering the tenant or locking any row; revives revoked same-role rows cleanly.';
+  'Pre-membership human command (plan 5.4 line 260, AL-2676 WP3c, R1, R14, R15, F1, F2, F3): '
+  'refuses platform operators and issuer self-acceptance, verifies selector, verifier digest, '
+  'live status, expiry, and caller confirmed email before entering the tenant or locking any row; '
+  'revives revoked same-role rows cleanly.';
 
 REVOKE ALL ON FUNCTION tenant_guard.invite_member(UUID, TEXT, TEXT, TEXT, BOOLEAN, TEXT)
   FROM PUBLIC, anon, authenticated, service_role;
@@ -705,7 +713,7 @@ BEGIN
     INTO v_tenant_status
     FROM public.tenants AS t
    WHERE t.id = p_tenant_id
-     FOR UPDATE;
+     FOR NO KEY UPDATE;
   v_tenant_found := FOUND;
 
   PERFORM 1

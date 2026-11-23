@@ -2,7 +2,7 @@
 -- F5; record D-113, lines 632, 640):
 -- replaces change_membership_role with a single 7-argument function carrying
 -- p_expected_updated_at TIMESTAMPTZ DEFAULT NULL (no overload), shared
--- public.tenants FOR UPDATE serialization lock, self-demotion narrowing
+-- public.tenants FOR NO KEY UPDATE serialization lock, self-demotion narrowing
 -- (D-113), clock_timestamp() on every write, and revocation of any live
 -- operator_admin_invite when setting is_tenant_admin = true.
 -- Also recreates public.tenant_member_directory(uuid) adding updated_at.
