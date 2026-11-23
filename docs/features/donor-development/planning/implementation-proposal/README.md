@@ -1,6 +1,6 @@
 # Phase 27 implementation proposal — approved review snapshot
 
-Current publication status: the user approved this exact breakdown. The [published issue index, dependency graph and verification record](../implementation-publication/README.md) contain the actual GitHub issues and completed scoped amendments. The proposal text below is preserved as the review snapshot from `057a1dc43832eeeca2a8856716d6be1d5422e96f`; its unpublished/awaiting-approval statements describe that earlier capture.
+Current publication status: the user approved this exact breakdown. The [published issue index, dependency graph and verification record](../implementation-publication/README.md) contain the actual GitHub issues and completed scoped amendments. The proposal text below is preserved as the review snapshot from `057a1dc43832eeeca2a8856716d6be1d5422e96f`; its unpublished/awaiting-approval statements describe that earlier capture. Likewise, its E7 and C-01 gates describe the state before Phase 28 D48–D50 settled those owner choices on 2026-10-18, and PR #1993 has since merged; the publication record's [current status](../implementation-publication/README.md#current-status-2026-11-24) lists the qualification gates that remain.
 
 Documentation PR: https://github.com/Asymmetric-al/core/pull/1993. Specification revision: `b5a65b3f2da880fcbfa4b3cae189d216d06542be`. Current inspected develop: `71b81fae2ce1f9b615bcfee8606cd2c978a70e71`.
 
