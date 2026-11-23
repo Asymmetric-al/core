@@ -300,6 +300,39 @@ function toMediaAssetRecord(row: MediaAssetRow): MediaAssetRecord {
   };
 }
 
+function isNotFoundStorageError(error: unknown): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+  const statusCode =
+    "statusCode" in error
+      ? String((error as { statusCode?: unknown }).statusCode)
+      : "";
+  const status =
+    "status" in error ? Number((error as { status?: unknown }).status) : 0;
+  const message =
+    "message" in error ? String((error as { message?: unknown }).message) : "";
+  const originalStatus =
+    "originalError" in error &&
+    error.originalError &&
+    typeof error.originalError === "object" &&
+    "status" in error.originalError
+      ? Number((error.originalError as { status?: unknown }).status)
+      : 0;
+  return (
+    statusCode === "404" ||
+    status === 404 ||
+    originalStatus === 404 ||
+    /not\s*found|no such (key|object)/i.test(message)
+  );
+}
+
+function isClientValidationError(error: unknown): boolean {
+  return (
+    error instanceof ApiHttpError && error.status >= 400 && error.status < 500
+  );
+}
+
 function isAlreadyExistsStorageError(error: unknown): boolean {
   if (!error || typeof error !== "object") {
     return false;
@@ -360,7 +393,7 @@ async function markFailedIfUploading(
   tenantId: string,
   assetId: string,
 ): Promise<void> {
-  await admin
+  const { error } = await admin
     .from("media_assets")
     .update({
       status: "failed",
@@ -369,6 +402,9 @@ async function markFailedIfUploading(
     .eq("id", assetId)
     .eq("tenant_id", tenantId)
     .eq("status", "uploading");
+  if (error) {
+    throw new ApiHttpError(500, "Failed to record failed media asset state");
+  }
 }
 
 async function assertZeroMetadata(bytes: Buffer): Promise<{
@@ -688,6 +724,9 @@ export async function finalizeMediaUpload(
         .download(stagingPath);
 
       if (downloadError || !stagedBlob) {
+        if (downloadError && !isNotFoundStorageError(downloadError)) {
+          throw new ApiHttpError(502, "Failed to read staged media upload");
+        }
         const reread = await fetchMediaAssetRow(admin, tenantId, assetId);
         if (reread?.status === "ready") {
           return toMediaAssetRecord(reread);
@@ -703,14 +742,16 @@ export async function finalizeMediaUpload(
         throw new ApiHttpError(400, "Uploaded media object is missing");
       }
 
-      shouldCleanStaging = true;
       const rawBytes = Buffer.from(await stagedBlob.arrayBuffer());
 
       let sanitizedMaster: Awaited<ReturnType<typeof sanitizeMasterImage>>;
       try {
         sanitizedMaster = await sanitizeMasterImage(rawBytes);
       } catch (error) {
-        await markFailedIfUploading(admin, tenantId, assetId);
+        if (isClientValidationError(error)) {
+          await markFailedIfUploading(admin, tenantId, assetId);
+          shouldCleanStaging = true;
+        }
         throw error;
       }
 
@@ -749,7 +790,10 @@ export async function finalizeMediaUpload(
           });
         }
       } catch (error) {
-        await markFailedIfUploading(admin, tenantId, assetId);
+        if (isClientValidationError(error)) {
+          await markFailedIfUploading(admin, tenantId, assetId);
+          shouldCleanStaging = true;
+        }
         throw error;
       }
 
@@ -808,12 +852,17 @@ export async function finalizeMediaUpload(
       }
 
       if (updated) {
+        shouldCleanStaging = true;
         return toMediaAssetRecord(updated as MediaAssetRow);
       }
 
       const raced = await fetchMediaAssetRow(admin, tenantId, assetId);
       if (raced?.status === "ready") {
+        shouldCleanStaging = true;
         return toMediaAssetRecord(raced);
+      }
+      if (raced?.status === "failed") {
+        shouldCleanStaging = true;
       }
       throw new ApiHttpError(404, "Media asset not found");
     } finally {
@@ -901,6 +950,9 @@ export async function readMediaVariant(
     .download(selectedEntry.key)
     .asStream();
   if (error || !upstream) {
+    if (error && !isNotFoundStorageError(error)) {
+      throw new ApiHttpError(502, "Failed to read media variant");
+    }
     throw new ApiHttpError(404, "Media variant not found");
   }
 
@@ -958,6 +1010,9 @@ export async function purgeExpiredMedia(
       const { error: removeStagingError } = await admin.storage
         .from(MEDIA_BUCKET)
         .remove([stagingKey]);
+      if (removeStagingError && !isNotFoundStorageError(removeStagingError)) {
+        throw new ApiHttpError(502, "Failed to purge staged media object");
+      }
       if (!removeStagingError) {
         summary.removedStagingObjects += 1;
       }
@@ -988,13 +1043,15 @@ export async function purgeExpiredMedia(
           const { error: removeError } = await admin.storage
             .from(MEDIA_BUCKET)
             .remove(keysToRemove);
-          if (removeError) {
+          if (removeError && !isNotFoundStorageError(removeError)) {
             throw new ApiHttpError(
               502,
               "Failed to purge media Storage objects",
             );
           }
-          summary.removedObjects += keysToRemove.length;
+          if (!removeError) {
+            summary.removedObjects += keysToRemove.length;
+          }
         }
       }
     }

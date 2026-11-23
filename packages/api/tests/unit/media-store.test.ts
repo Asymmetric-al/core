@@ -76,6 +76,11 @@ const fakeState = vi.hoisted(() => ({
   onBeforeStagingDownload: null as
     null | ((path: string) => void | Promise<void>),
   onAfterUpload: null as null | ((path: string) => void),
+  nextDownloadError: null as null | { message: string; statusCode: string },
+  nextStreamError: null as null | { message: string; statusCode: string },
+  nextUploadError: null as null | { message: string; statusCode: string },
+  nextRemoveError: null as null | { message: string; statusCode: string },
+  nextUpdateError: null as null | { message: string; code?: string },
 }));
 
 function matchesFilters(
@@ -120,6 +125,11 @@ function createFakeAdminClient() {
 
       const execute = (singleMode: "many" | "maybeSingle") => {
         if (pendingUpdate) {
+          if (fakeState.nextUpdateError) {
+            const err = fakeState.nextUpdateError;
+            fakeState.nextUpdateError = null;
+            return { data: null, error: err };
+          }
           const matched: AssetRow[] = [];
           const idFilter = filters.find((f) => f.op === "eq" && f.col === "id");
           if (idFilter && typeof idFilter.val === "string") {
@@ -220,6 +230,11 @@ function createFakeAdminClient() {
               if (objectPath.startsWith("tmp/")) {
                 await fakeState.onBeforeStagingDownload?.(objectPath);
               }
+              if (fakeState.nextDownloadError) {
+                const err = fakeState.nextDownloadError;
+                fakeState.nextDownloadError = null;
+                return { data: null, error: err };
+              }
               const stored = fakeState.objects.get(objectPath);
               if (!stored) {
                 return {
@@ -236,6 +251,11 @@ function createFakeAdminClient() {
             };
             const executeStream = async () => {
               fakeState.streamDownloadCalls.push(objectPath);
+              if (fakeState.nextStreamError) {
+                const err = fakeState.nextStreamError;
+                fakeState.nextStreamError = null;
+                return { data: null, error: err };
+              }
               const stored = fakeState.objects.get(objectPath);
               if (!stored) {
                 return {
@@ -297,6 +317,11 @@ function createFakeAdminClient() {
             options?: { contentType?: string; upsert?: boolean },
           ) {
             fakeState.uploadCalls.push(objectPath);
+            if (fakeState.nextUploadError) {
+              const err = fakeState.nextUploadError;
+              fakeState.nextUploadError = null;
+              return { data: null, error: err };
+            }
             if (fakeState.objects.has(objectPath) && !options?.upsert) {
               return {
                 data: null,
@@ -317,6 +342,11 @@ function createFakeAdminClient() {
           },
           async remove(paths: string[]) {
             fakeState.removeCalls.push([...paths]);
+            if (fakeState.nextRemoveError) {
+              const err = fakeState.nextRemoveError;
+              fakeState.nextRemoveError = null;
+              return { data: null, error: err };
+            }
             for (const p of paths) {
               fakeState.objects.delete(p);
             }
@@ -464,6 +494,11 @@ describe("media-store custody and Sharp sanitization", () => {
     fakeState.onBeforeCasUpdate = null;
     fakeState.onBeforeStagingDownload = null;
     fakeState.onAfterUpload = null;
+    fakeState.nextDownloadError = null;
+    fakeState.nextStreamError = null;
+    fakeState.nextUploadError = null;
+    fakeState.nextRemoveError = null;
+    fakeState.nextUpdateError = null;
   });
 
   it("binds issueSignedUpload, finalizeMediaUpload and readMediaVariant to auth.tenantId and refuses foreign tenant assets", async () => {
@@ -1154,5 +1189,139 @@ describe("media-store custody and Sharp sanitization", () => {
     const stagingPurge = await purgeExpiredMedia({ now });
     expect(stagingPurge.removedStagingObjects).toBe(1);
     expect(fakeState.objects.has(stagingKey)).toBe(false);
+  });
+
+  it("preserves staging and uploading state across transient Storage/DB errors and refuses to mark purged on staging remove failure", async () => {
+    const jpg = await createDirtyJpeg(480, 320);
+
+    const transientDlId = randomUUID();
+    const transientDlKey = buildMediaStagingKey(tenantA, transientDlId);
+    fakeState.rows.set(
+      transientDlId,
+      makeRow({ id: transientDlId, tenant_id: tenantA }),
+    );
+    fakeState.objects.set(transientDlKey, {
+      bytes: jpg,
+      contentType: "image/jpeg",
+      version: 1,
+    });
+    fakeState.nextDownloadError = {
+      message: "Storage upstream unavailable",
+      statusCode: "503",
+    };
+    await expect(
+      finalizeMediaUpload(authA, { assetId: transientDlId }),
+    ).rejects.toMatchObject({ status: 502 });
+    expect(fakeState.rows.get(transientDlId)!.status).toBe("uploading");
+    expect(fakeState.objects.has(transientDlKey)).toBe(true);
+    const retriedAfterDl = await finalizeMediaUpload(authA, {
+      assetId: transientDlId,
+    });
+    expect(retriedAfterDl.status).toBe("ready");
+
+    const transientUploadId = randomUUID();
+    const transientUploadKey = buildMediaStagingKey(tenantA, transientUploadId);
+    fakeState.rows.set(
+      transientUploadId,
+      makeRow({ id: transientUploadId, tenant_id: tenantA }),
+    );
+    fakeState.objects.set(transientUploadKey, {
+      bytes: jpg,
+      contentType: "image/jpeg",
+      version: 1,
+    });
+    fakeState.nextUploadError = {
+      message: "Temporary write failure",
+      statusCode: "503",
+    };
+    await expect(
+      finalizeMediaUpload(authA, { assetId: transientUploadId }),
+    ).rejects.toMatchObject({ status: 502 });
+    expect(fakeState.rows.get(transientUploadId)!.status).toBe("uploading");
+    expect(fakeState.objects.has(transientUploadKey)).toBe(true);
+    const retriedAfterUpload = await finalizeMediaUpload(authA, {
+      assetId: transientUploadId,
+    });
+    expect(retriedAfterUpload.status).toBe("ready");
+
+    const transientDbId = randomUUID();
+    const transientDbKey = buildMediaStagingKey(tenantA, transientDbId);
+    fakeState.rows.set(
+      transientDbId,
+      makeRow({ id: transientDbId, tenant_id: tenantA }),
+    );
+    fakeState.objects.set(transientDbKey, {
+      bytes: jpg,
+      contentType: "image/jpeg",
+      version: 1,
+    });
+    fakeState.nextUpdateError = { message: "connection reset" };
+    await expect(
+      finalizeMediaUpload(authA, { assetId: transientDbId }),
+    ).rejects.toMatchObject({ status: 500 });
+    expect(fakeState.rows.get(transientDbId)!.status).toBe("uploading");
+    expect(fakeState.objects.has(transientDbKey)).toBe(true);
+    const retriedAfterDb = await finalizeMediaUpload(authA, {
+      assetId: transientDbId,
+    });
+    expect(retriedAfterDb.status).toBe("ready");
+
+    const failWriteErrId = randomUUID();
+    const failWriteErrKey = buildMediaStagingKey(tenantA, failWriteErrId);
+    fakeState.rows.set(
+      failWriteErrId,
+      makeRow({ id: failWriteErrId, tenant_id: tenantA }),
+    );
+    fakeState.objects.set(failWriteErrKey, {
+      bytes: Buffer.from("not-an-image"),
+      contentType: "image/jpeg",
+      version: 1,
+    });
+    fakeState.nextUpdateError = { message: "db write unavailable" };
+    await expect(
+      finalizeMediaUpload(authA, { assetId: failWriteErrId }),
+    ).rejects.toMatchObject({ status: 500 });
+    expect(fakeState.rows.get(failWriteErrId)!.status).toBe("uploading");
+    expect(fakeState.objects.has(failWriteErrKey)).toBe(true);
+
+    fakeState.nextStreamError = {
+      message: "Storage gateway timeout",
+      statusCode: "503",
+    };
+    await expect(
+      readMediaVariant(authA, { assetId: transientDlId }),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const failedPurgeId = randomUUID();
+    const failedPurgeKey = buildMediaStagingKey(tenantA, failedPurgeId);
+    const now = new Date("2027-01-01T00:00:00.000Z");
+    fakeState.rows.set(
+      failedPurgeId,
+      makeRow({
+        id: failedPurgeId,
+        tenant_id: tenantA,
+        status: "deleted",
+        deleted_at: "2026-11-23T00:00:00.000Z",
+        purge_after: "2026-12-31T00:00:00.000Z",
+      }),
+    );
+    fakeState.objects.set(failedPurgeKey, {
+      bytes: Buffer.from("staged"),
+      contentType: "image/jpeg",
+      version: 1,
+    });
+    fakeState.nextRemoveError = {
+      message: "Storage delete outage",
+      statusCode: "503",
+    };
+    await expect(purgeExpiredMedia({ now })).rejects.toMatchObject({
+      status: 502,
+    });
+    expect(fakeState.rows.get(failedPurgeId)!.purged_at).toBeNull();
+    expect(fakeState.objects.has(failedPurgeKey)).toBe(true);
+    const retryPurge = await purgeExpiredMedia({ now });
+    expect(retryPurge.purgedRows).toBe(1);
+    expect(retryPurge.removedStagingObjects).toBe(1);
+    expect(fakeState.rows.get(failedPurgeId)!.purged_at).not.toBeNull();
   });
 });
