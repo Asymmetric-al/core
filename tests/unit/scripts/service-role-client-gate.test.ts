@@ -6,6 +6,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  CALLER_PRIVILEGED_IMPORT_EXCEPTIONS,
   CEILING,
   ceilingDigest,
   evaluateServiceRoleClientGate,
@@ -73,12 +74,83 @@ describe("frozen ceiling", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
-  // D-18: the ceiling falls with the allowlist. It rose once, by the coordinator's ruling of
-  // 21 November 2026 (F3, F4): by exactly the eight platform-wrapper sites that reached the key
-  // uncounted, each named for WP4b. Any other growth needs a new ruling.
-  it("pins the 121 entries, including the eight previously uncounted calls", () => {
+
+  it("allows a withOperation file to import packages/api/src/storage/media-store (W6-R3 amended)", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "caller-media-ok-"));
+    const files = {
+      "packages/api/src/storage/media-store.ts": `import {getAdminClient} from "${FACTORY}"; export const issueSignedUpload = () => getAdminClient();`,
+      "packages/api/src/cms/media/start.ts":
+        'import {withOperation} from "../../shared/with-operation";\nimport {issueSignedUpload} from "../../storage/media-store";\nexport const POST = withOperation(async () => issueSignedUpload());',
+      "packages/api/src/cms/media/finalize.ts":
+        'import {withOperation} from "../../shared/with-operation";\nimport {issueSignedUpload} from "@asym/api/storage/media-store";\nexport const POST = withOperation(async () => issueSignedUpload());',
+      "docs/security/service-role-client-allowlist.json": JSON.stringify({
+        version: 1,
+        entries: [
+          {
+            file: "packages/api/src/storage/media-store.ts",
+            kind: "admin_client",
+            count: 1,
+            lines: [1],
+            reason: "W6-R3 amended fixture",
+            path_ref: "P media storage",
+            follow_up: "#2679",
+          },
+        ],
+      }),
+    };
+    try {
+      for (const [file, content] of Object.entries(files)) {
+        mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+        writeFileSync(path.join(root, file), content);
+      }
+      spawnSync("git", ["init", "-q"], { cwd: root });
+      const result = runServiceRoleClientGate({ root });
+      expect(result.failures).toEqual([]);
+      expect(result.ok).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("still rejects a withOperation file importing any other admin-client module beside media-store", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "caller-media-deny-"));
+    const files = {
+      "packages/api/src/storage/other-store.ts": `import {getAdminClient} from "${FACTORY}"; export const readOther = () => getAdminClient();`,
+      "packages/api/src/cms/media/bad.ts":
+        'import {withOperation} from "../../shared/with-operation";\nimport {readOther} from "../../storage/other-store";\nexport const POST = withOperation(async () => readOther());',
+      "docs/security/service-role-client-allowlist.json": JSON.stringify({
+        version: 1,
+        entries: [],
+      }),
+    };
+    try {
+      for (const [file, content] of Object.entries(files)) {
+        mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+        writeFileSync(path.join(root, file), content);
+      }
+      spawnSync("git", ["init", "-q"], { cwd: root });
+      expect(runServiceRoleClientGate({ root }).failures).toContainEqual(
+        expect.stringMatching(
+          /^CALLER_PRIVILEGED_IMPORT packages\/api\/src\/cms\/media\/bad\.ts:2/,
+        ),
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("pins CALLER_PRIVILEGED_IMPORT_EXCEPTIONS to the single reviewed media-store path", () => {
+    expect(CALLER_PRIVILEGED_IMPORT_EXCEPTIONS).toEqual([
+      "packages/api/src/storage/media-store",
+    ]);
+    expect(Object.isFrozen(CALLER_PRIVILEGED_IMPORT_EXCEPTIONS)).toBe(true);
+  });
+  // D-18: the ceiling falls with the allowlist. Raised by the 21 November 2026 ruling (F3, F4:
+  // eight uncounted platform-wrapper sites for WP4b) and the 23 November 2026 ruling W6-R3 amended
+  // (one admin_client site for packages/api/src/storage/media-store.ts). Any other growth needs a new ruling.
+  it("pins the 122 entries, including the media-store platform-lane site under W6-R3 amended", () => {
     expect(ceilingDigest()).toBe(
-      "e25de42921ceb99b0be9b8c0242f8e8100f158dd910207645c07aa16ebed9e47",
+      "3328c4a09c7a15c900804e148cf8e1c4aaf620bc8f9971d2c2ead30b24481069",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -86,15 +158,15 @@ describe("frozen ceiling", () => {
       totals[kind] = (totals[kind] ?? 0) + count;
     }
     expect(totals).toEqual({
-      admin_client: 78,
+      admin_client: 79,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
       operation_admin_context: 73,
     });
-    expect(CEILING.size).toBe(121);
+    expect(CEILING.size).toBe(122);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(115);
+    ).toBe(116);
   });
 });
 

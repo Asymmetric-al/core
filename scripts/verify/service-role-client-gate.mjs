@@ -169,6 +169,7 @@ packages/api/src/reads/donor-history.ts admin_client 2
 packages/api/src/reads/member-care.ts admin_client 1
 packages/api/src/reads/missionary-metrics.ts admin_client 1
 packages/api/src/shared/with-operation.ts admin_client 1
+packages/api/src/storage/media-store.ts admin_client 1
 packages/api/src/stripe/webhooks.ts admin_client 1
 packages/api/src/workflows/admin-client.ts admin_client 1
 packages/api/src/workflows/functions/dispatch-recovery-scan.ts workflow_admin_wrapper 1
@@ -588,6 +589,10 @@ export function evaluateServiceRoleClientGate(
   };
 }
 
+export const CALLER_PRIVILEGED_IMPORT_EXCEPTIONS = Object.freeze([
+  "packages/api/src/storage/media-store",
+]);
+
 /** Scans `root` and evaluates it against its allowlist. */
 export function runServiceRoleClientGate({ root = repoRoot } = {}) {
   const found = { sites: [], reexports: [] };
@@ -616,8 +621,12 @@ export function runServiceRoleClientGate({ root = repoRoot } = {}) {
       .map((site) => site.file.replace(SOURCE_RE, "")),
   );
   privileged.add("packages/database/supabase/admin");
+  const callerImportExceptions = new Set(CALLER_PRIVILEGED_IMPORT_EXCEPTIONS);
   for (const { file, target, line } of imports)
-    if (privileged.has(target) || privileged.has(`${target}/index`)) {
+    if (
+      !callerImportExceptions.has(target) &&
+      (privileged.has(target) || privileged.has(`${target}/index`))
+    ) {
       result.failures.push(
         `CALLER_PRIVILEGED_IMPORT ${file}:${line}: caller operation imports ${target}, which supplies a privileged client`,
       );

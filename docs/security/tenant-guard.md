@@ -397,7 +397,7 @@ It counts four kinds of site:
 - `workflow_admin_wrapper`: a call to, or value use of, `requireWorkflowAdminClient` from `packages/api/src/workflows/admin-client.ts`.
 - `operation_admin_context`: every call to or value use of `withPlatformOperation` from `packages/api/src/shared/with-operation.ts`. The ordinary `withOperation` authenticates the request and supplies only the caller-token client bound to the resolved tenant and assignment. It is not a service-role site.
 
-The gate also counts `runDonorPortalOperation` and `runMissionaryPortalOperation` as platform context sites. A caller-lane file must not import a module with an admin-client site: this check sees direct imports only, not arbitrary transitive dependencies. The caller context's audit writer is the one accepted exception: it inserts behind the logger with a privileged client until WP4b moves it.
+The gate also counts `runDonorPortalOperation` and `runMissionaryPortalOperation` as platform context sites. A caller-lane file must not import a module with an admin-client site: this check sees direct imports only, not arbitrary transitive dependencies. Two reviewed exceptions stand: the caller context's audit writer (which inserts behind the logger with a privileged client until WP4b moves it), and `packages/api/src/storage/media-store` (plan 6.6, 7.2; coordinator ruling W6-R3 amended, 23 November 2026), the single platform-lane media storage module whose every request-reachable export takes the admitted `AuthenticatedContext` and derives `auth.tenantId` from it rather than a caller-supplied tenant argument.
 
 Re-exporting a tracked factory or privileged wrapper from any other file always fails and cannot be allowlisted.
 
