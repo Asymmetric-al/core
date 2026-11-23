@@ -15,7 +15,6 @@ import type { MembershipRole, StaffSubrole } from "@asym/database/types";
 const CANONICAL_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-/** Whether a membership class must carry a staff sub-role (and no other may). */
 const STAFF_ROLE_REQUIRED: Readonly<Record<MembershipRole, boolean>> = {
   donor: false,
   missionary: false,
@@ -37,7 +36,6 @@ function isStaffSubrole(value: unknown): value is StaffSubrole {
   );
 }
 
-/** One reader row as an `ActiveAssignment`, or `null` when any field is malformed. */
 function toActiveAssignment(
   raw: unknown,
   userId: string,
@@ -63,7 +61,6 @@ function toActiveAssignment(
         : undefined;
   if (staffRole === undefined) return null;
   if (STAFF_ROLE_REQUIRED[membershipRole] !== (staffRole !== null)) return null;
-  // The flag exists only on a staff row (authz_memberships_tenant_admin_staff_chk).
   if (typeof isTenantAdmin !== "boolean") return null;
   if (isTenantAdmin && staffRole === null) return null;
   if (typeof revision !== "string" || revision.length === 0) return null;
@@ -78,7 +75,6 @@ function toActiveAssignment(
   });
 }
 
-/** Every row parsed, or `null` if any row is malformed or an id repeats. Bad rows are never dropped. */
 function toActiveAssignments(
   rows: unknown,
   userId: string,
@@ -100,16 +96,10 @@ function deny(reason: AssignmentDenyReason): ResolveAssignmentResult {
   return { ok: false, reason };
 }
 
-/** The caller's live rows, every one validated, or `reader_error`. */
 export type ReadAssignmentsResult =
   | { readonly ok: true; readonly assignments: readonly ActiveAssignment[] }
   | { readonly ok: false; readonly reason: "reader_error" };
 
-/**
- * Reads and validates the caller's live membership rows once. Never throws:
- * a reader failure, a malformed row or a repeated id is `reader_error`, and
- * bad rows are never dropped.
- */
 export async function readActiveAssignments(
   userId: string,
   reader: AssignmentReader,
@@ -127,24 +117,12 @@ export async function readActiveAssignments(
     : { ok: false, reason: "reader_error" };
 }
 
-/**
- * The resolver's rule over rows already read and validated (plan 5.1). The
- * surface's role class comes first: only rows of that class are candidates. A
- * proposed row must be one of them and, when a tenant is expected, in that
- * tenant. With no proposal, the one candidate is the assignment; several are
- * refused: it never guesses.
- */
 export function selectAssignment(
   assignments: readonly ActiveAssignment[],
   input: Omit<ResolveAssignmentInput, "userId">,
 ): ResolveAssignmentResult {
   const { roleClass, proposedAssignmentId, expectedTenantId } = input;
   if (!isMembershipRole(roleClass)) return deny("no_assignment");
-  // Plan 12, WP2, "Interim rules until WP3": on the donor portal a person
-  // with donor memberships in two organizations is refused, for the proxy
-  // check, server reads and the browser header alike, until WP3 resolves the
-  // portal's host. So there must be exactly one live donor row before either
-  // header is matched: a proposal never picks one of several (AL-2675, JB12).
   if (
     roleClass === "donor" &&
     assignments.filter((a) => a.membershipRole === "donor").length > 1
@@ -181,15 +159,6 @@ export function selectAssignment(
   return { ok: true, assignment: candidates[0]!, selection: "sole" };
 }
 
-/**
- * Selects and validates the acting assignment from live membership rows on
- * every call (plan 5.1): `readActiveAssignments`, then `selectAssignment`.
- * A proposed row (the chosen assignment) must be the caller's, live, of the
- * surface's class and, when a tenant is expected, in that tenant. Never
- * throws, never caches, and never falls back to a default tenant: a forged,
- * foreign or inactive proposal, a missing or ambiguous assignment, and any
- * reader failure or malformed row all deny.
- */
 export async function resolveActiveAssignment(
   input: ResolveAssignmentInput,
   reader: AssignmentReader,
@@ -209,7 +178,6 @@ export async function resolveActiveAssignment(
   return selectAssignment(read.assignments, input);
 }
 
-/** Thrown by `resolveActivePrincipal` when no assignment validates. */
 export class PrincipalDeniedError extends Error {
   readonly reason: AssignmentDenyReason;
 
@@ -220,7 +188,6 @@ export class PrincipalDeniedError extends Error {
   }
 }
 
-/** A `HumanPrincipal` for the surface's role class, or `PrincipalDeniedError`. */
 export async function resolveActivePrincipal(
   session: SessionIdentity,
   roleClass: RoleClass,

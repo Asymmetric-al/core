@@ -1,10 +1,3 @@
-/**
- * Code-authoritative capability vocabulary (ADR-0210, Phase 3 D12).
- *
- * Every capability the platform can grant is an atom here. There is no
- * capability table: Phase 12 (#671) seeds its generated tables 1:1 from
- * `capabilityRegistryRows()`. #667(a) extends `CapabilityMeta` additively.
- */
 import { deepFreeze } from "./freeze";
 
 export type CapabilityMeta = {
@@ -14,7 +7,6 @@ export type CapabilityMeta = {
   readonly source: "code";
 };
 
-/** Lowercase dotted segments, at least two: `domain.action` or deeper. */
 export const CAPABILITY_KEY_PATTERN = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/;
 
 export const CAPABILITY_REGISTRY = deepFreeze({

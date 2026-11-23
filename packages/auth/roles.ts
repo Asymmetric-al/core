@@ -1,9 +1,3 @@
-/**
- * Canonical role identifiers used by portal routing.
- *
- * Keep this list centralized so route decisions are deterministic across apps,
- * middleware, and route handlers.
- */
 export const APP_ROLES = [
   "admin",
   "missionary",
@@ -15,12 +9,6 @@ export const APP_ROLES = [
 
 export type AppRole = (typeof APP_ROLES)[number];
 
-/**
- * Role -> default in-app home route mapping.
- *
- * Security note: routing decisions based on this map are UX-only. Access
- * control is enforced server-side by middleware/layout checks + database RLS.
- */
 export const ROLE_HOME: Record<AppRole, string> = {
   admin: "/",
   missionary: "/",
@@ -49,12 +37,6 @@ export function defaultRouteForRole(role: AppRole): string {
   return ROLE_HOME[role];
 }
 
-/**
- * Resolve a role or membership-class name to a known portal home route.
- * UX only: access is enforced by the proxies, layouts and RLS. Since AL-2675
- * the sign-in callback passes the class of a live membership, never
- * `profiles.role`.
- */
 export function routeForRole(role: string | null | undefined): string | null {
   if (!role) return null;
   const normalized = role.trim().toLowerCase();

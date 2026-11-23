@@ -163,7 +163,7 @@ describe("parseE2EAuthCookieValue", () => {
 
   it("rejects malformed base64 / JSON", async () => {
     expect(await parseE2EAuthCookieValue("not-valid-base64!!!")).toBe(null);
-    expect(await parseE2EAuthCookieValue("e30")).toBe(null); // {} — missing required fields
+    expect(await parseE2EAuthCookieValue("e30")).toBe(null);
   });
 
   it("rejects an unsigned single-segment token", async () => {
@@ -202,7 +202,6 @@ describe("parseE2EAuthCookieValue", () => {
   });
 
   it("rejects an expired token", async () => {
-    // Mint two hours in the past so exp (mint time + TTL) is already elapsed.
     const nowMs = Date.now();
     const nowSpy = vi.spyOn(Date, "now").mockReturnValue(nowMs - 7200 * 1000);
     const expired = await createE2EAuthCookieValue({
@@ -222,7 +221,6 @@ describe("parseE2EAuthCookieValue", () => {
       tenantId: null,
     });
     delete process.env.E2E_AUTH_SECRET;
-    // A real remote datasource must NOT fall back to the public key.
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://realproj12345.supabase.co";
     try {
       expect(await parseE2EAuthCookieValue(raw)).toBe(null);
@@ -249,7 +247,6 @@ describe("E2E_AUTH_SECRET zero-config dev fallback", () => {
   const originalUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   beforeEach(() => {
-    // Exercise the fallback path: no explicit secret configured.
     delete process.env.E2E_AUTH_SECRET;
   });
 
@@ -330,8 +327,6 @@ describe("Supabase datasource binding for E2E bypass", () => {
   });
 
   it("does not extract a ref from a Supabase lookalike host", () => {
-    // `myref.supabase.evil.com` must NOT resolve to ref `myref`, or an attacker
-    // who owns evil.com could satisfy an allowlist that lists `myref`.
     process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = "myref";
     expect(extractSupabaseProjectRef("https://myref.supabase.evil.com")).toBe(
       null,
@@ -351,7 +346,6 @@ describe("Supabase datasource binding for E2E bypass", () => {
     expect(
       isSupabaseDatasourceAllowedForE2EBypass("http://localhost:54321"),
     ).toBe(true);
-    // example.supabase.co is a non-resolving placeholder → implicitly allowed.
     expect(
       isSupabaseDatasourceAllowedForE2EBypass("https://example.supabase.co"),
     ).toBe(true);

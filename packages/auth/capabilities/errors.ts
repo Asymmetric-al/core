@@ -6,10 +6,6 @@ export type CapabilityResolutionErrorCode =
   | "unknown_subject"
   | "tenant_overrides_dormant";
 
-/**
- * Thrown when a grant context cannot be resolved. The message is the code
- * alone: no capability key, tenant, assignment, grant or subject is disclosed.
- */
 export class CapabilityResolutionError extends Error {
   override readonly name = "CapabilityResolutionError";
   readonly code: CapabilityResolutionErrorCode;
