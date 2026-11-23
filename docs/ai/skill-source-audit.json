@@ -3,11 +3,11 @@
   "reviewedAt": "2026-10-22",
   "baselineCommit": "c4d36cb029121641b8882237632d0d6da434049e",
   "counts": {
-    "canonical": 181,
-    "runtimePerClient": 232,
+    "canonical": 182,
+    "runtimePerClient": 233,
     "lockEntries": 193,
     "outcomes": {
-      "current": 84,
+      "current": 85,
       "excluded": 1,
       "retained-snapshot": 5,
       "unresolved": 7,
@@ -2165,6 +2165,42 @@
           "rawSkillSha256": "527975b6a53b736cd382c30512faf7913e42e667988ef3c975cc4ee352f73bdd",
           "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
           "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "delete-comment",
+      "status": "current",
+      "ownership": "canonical",
+      "authorship": "Core-authored adapter or router",
+      "source": "Asymmetric-al/core",
+      "importedRef": null,
+      "examinedRef": null,
+      "sourcePath": "docs/ai/skills/delete-comment/SKILL.md",
+      "rawSkillHash": null,
+      "lockHash": null,
+      "entrypointHash": "583a533d47de5ff26f165eb59bb8552e26a69dce85cde3bcd76e94f80e1722a2",
+      "treeHash": "99108c7a2460157d35b8548aad8dfb17dd25becdf3fff55e32b093f74344d61e",
+      "license": {
+        "identifier": null,
+        "status": "not-established-in-this-review",
+        "noticeFiles": []
+      },
+      "adaptations": [
+        "Core-authored workflow for the source comment ban; no upstream source."
+      ],
+      "evidence": "docs/ai/skills/delete-comment/SKILL.md",
+      "reviewEvidence": [
+        {
+          "kind": "Core-source-owned-contract",
+          "path": "docs/ai/skills/delete-comment/SKILL.md",
+          "entrypointSha256": "583a533d47de5ff26f165eb59bb8552e26a69dce85cde3bcd76e94f80e1722a2",
+          "authority": [
+            "AGENTS.md",
+            "docs/ai/rules/general.md",
+            "tooling/eslint-config/no-comments.mjs"
+          ],
+          "claim": "Source ownership and installed-contract retention; no external freshness claim."
         }
       ]
     },

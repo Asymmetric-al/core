@@ -40,7 +40,8 @@ const AFFECTED_FILTERS = [
 /**
  * Full profile (`bun run ci:preflight`). Mirrors blocking GitHub CI checks:
  * runtime -> format -> skills:verify -> verify:phase25-spec -> verify:phase27-spec -> verify:phase28-spec
- * -> openspec:validate -> verify:openspec-deltas -> lint -> verify:data-boundary
+ * -> openspec:validate -> verify:openspec-deltas -> lint -> verify:comments
+ * -> verify:data-boundary
  * -> verify:cms-public-sole-entry
  * -> verify:workspace-contract -> verify:bun-lock-drift
  * -> verify:eslint -> verify:shadcn-config
@@ -87,6 +88,10 @@ const stages = [
   {
     id: "lint",
     script: "lint",
+  },
+  {
+    id: "verify-comments",
+    script: "verify:comments",
   },
   {
     id: "verify-data-boundary",
@@ -205,6 +210,14 @@ const STAGE_INPUTS = {
     "scripts/lib/openspec-contracts.mjs",
     "scripts/verify/openspec-delta-compatibility.mjs",
     "scripts/verify/phase24-authority.mjs",
+  ],
+  "verify-comments": [
+    "apps/",
+    "packages/",
+    "scripts/",
+    "tests/",
+    "tooling/",
+    /^[^/]+\.(?:[cm]?[jt]s|[jt]sx)$/,
   ],
   "verify-data-boundary": ["apps/", "packages/", "scripts/", ".env.example"],
   "verify-cms-public-sole-entry": [

@@ -1,11 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-/**
- * AL-2675 (WP2a; plan 5.1, 5.2 and WP2 "Interim rules"): `getAuthContext`
- * resolves the one live membership of the surface's role class through the
- * principal resolver. The profile supplies the profile id and nothing else:
- * no tenant, no role, no fallback.
- */
 const USER = "00000000-0000-4000-8000-0000000000a1";
 const TA = "00000000-0000-4000-8000-00000000000a";
 const TB = "00000000-0000-4000-8000-00000000000b";
@@ -225,9 +219,6 @@ describe("getAuthContext: the one assignment of the surface's role class", () =>
     expect(hasContextRole(context, "staff")).toBe(true);
   });
 
-  // The profile-role fallback is removed (plan WP2 "Exit"): a profile that
-  // says admin, with no live staff membership, is not authenticated on a staff
-  // surface and holds no role.
   it("denies a profile role admin with no membership instead of falling back to it", async () => {
     mocks.headers.set("x-asym-role-class", "staff");
     mocks.profile.mockResolvedValue({
@@ -402,12 +393,6 @@ describe("getAuthContext: the one assignment of the surface's role class", () =>
   });
 });
 
-/**
- * AL-2675 (WP2b; plan 5.2): the tenant in the page address reaches the
- * resolver as the expected tenant, so a person in two organizations is
- * resolved in the one the address names, and a person with several staff
- * rows acts under the row they chose.
- */
 describe("getAuthContext: the tenant and assignment the request names", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -468,10 +453,6 @@ describe("getAuthContext: the tenant and assignment the request names", () => {
     expect((await getAuthContext()).assignmentDenial).toBe("tenant_mismatch");
   });
 
-  // Check of the fix lists, JR2: the browser retires its document on the
-  // mark, so only the resolver's own refusal of the row a request proposed
-  // carries it, never a failed read (council's rule for JB1: "the resolver's
-  // own refusal, never any other 401 or 403").
   describe("the scope-refused mark", () => {
     const NOT_THEIRS = "00000000-0000-4000-8000-0000000000ff";
 
@@ -563,11 +544,6 @@ describe("getAuthContext: the tenant and assignment the request names", () => {
   });
 });
 
-/**
- * AL-2675 (WP2b): the organization chooser lists every live row of a
- * signed-in person before any one is selected, which `getAuthContext`
- * cannot do for a person in two organizations.
- */
 describe("getSignedInAssignments", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -578,7 +554,6 @@ describe("getSignedInAssignments", () => {
     });
   });
 
-  /** Each RPC answers its own function: the rows, and the organizations' names. */
   function rpcs(
     assignments: ReturnType<typeof row>[],
     organizations: { data: unknown; error: unknown } = {
@@ -612,8 +587,6 @@ describe("getSignedInAssignments", () => {
         { assignmentId: inB.id, tenantId: TB, membershipRole: "missionary" },
       ],
     });
-    // D-26 as the coordinator's ruling amends it: the names come from the
-    // caller's own organizations, on the caller's token.
     expect(mocks.rpc).toHaveBeenCalledWith("current_user_organizations");
     expect(
       result.kind === "signed_in" && [...result.organizationNames],

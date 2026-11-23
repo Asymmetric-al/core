@@ -92,6 +92,29 @@ Unacceptable:
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ```
 
+## Comment Ban
+
+`core/no-comments` (`no-comments.mjs`, part of `base.mjs`) bans comments in
+TypeScript and JavaScript under `apps/`, `packages/`, `scripts/`, `tests/`,
+`tooling/` and the repository root. Directives that a tool reads stay legal;
+`inCommentBanScope` and the directive lists in `no-comments.mjs` are the
+exact definition.
+
+`comment-baseline.json` records how many comments each file held when the
+ban began. The rule allows a file that many and reports every comment in a
+file that has more. `bun run verify:comments` checks every banned tree,
+including the ones ESLint does not lint: no file may hold more comments than
+its version on the base branch, and the baseline must match the tree.
+
+- After deleting comments: `bun run verify:comments -- --write`, and commit
+  the baseline.
+- Progress by area: `bun run verify:comments -- --report`.
+- To clear a section: `docs/ai/skills/delete-comment/SKILL.md`.
+
+No flag raises a count. A new directive form needs a pattern in
+`no-comments.mjs` and a case in
+`tests/unit/scripts/no-comments-lint-rule.test.ts`.
+
 ## Import Boundary Rules
 
 The `no-restricted-imports` boundary knowledge (cross-app import bans, the

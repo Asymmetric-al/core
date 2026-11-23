@@ -147,7 +147,6 @@ export function subscribeToClientAuthState(
   const includeProfile = options.includeProfile ?? true;
   const logger = options.logger ?? console;
   let active = true;
-  // Async profile loads can resolve after newer auth events; only publish the latest request.
   let authStateLoadVersion = 0;
   let publishedUserId: string | null | undefined;
 
