@@ -233,7 +233,7 @@ Every clause in `openspec/contracts/multi-site-management.md#contract-5662656697
 #### Scenario: A donor enters the portal from two Sites
 
 - WHEN the donor follows validated account actions from Site A and Site B
-- THEN both journeys use the same Tenant portal host and Account Brand
+- THEN both journeys use the same designated Tenant home domain and Account Brand
 - AND entry Site appears only as safe secondary context
 
 #### Scenario: A Site logo fails

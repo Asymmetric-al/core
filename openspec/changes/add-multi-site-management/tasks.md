@@ -59,7 +59,7 @@
 
 ## 4. Tenant donor account and message projection
 
-- [ ] 4.1 Build one verified Tenant Donor Portal Host per Tenant/environment,
+- [ ] 4.1 Build one designated verified home domain (the Tenant Donor Portal Host; change `adopt-tenant-owned-domains`) per Tenant/environment,
       host-only secure session/callback behavior, synthetic auth/recovery proof,
       complete DNS/TLS/platform/callback/legal/support qualification,
       successor-first replacement, neutral no-fallback host-loss behavior, and

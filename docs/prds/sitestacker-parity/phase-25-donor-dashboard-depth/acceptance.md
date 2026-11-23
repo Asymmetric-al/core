@@ -28,7 +28,7 @@ All shared and referenced domain contracts apply. These are future proof obligat
 ## US25-U04 — As a recipient of an organization-shared Updates link, I want to open my own permitted Updates, so that a forwarded link is useful without exposing its sender's feed.
 
 - Source: Q01, Q02, P25.FINAL.F03, P25.FINAL.F12; normative contract: EX02, EX03.
-- **AC01:** Shared link is on the current verified Tenant portal host and contains no donor/session/access credential.
+- **AC01:** Shared link is on the current verified Tenant home domain and contains no donor/session/access credential.
 - **AC02:** Different authorized openers see their own current content.
 - **AC03:** Wrong/unverified host or unavailable access has an honest safe result without another-Tenant/public fallback.
 

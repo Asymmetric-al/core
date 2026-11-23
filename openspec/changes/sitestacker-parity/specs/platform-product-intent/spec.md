@@ -38,7 +38,7 @@ Every clause in `openspec/contracts/platform-product-intent.md#contract-30b63ab3
 
 ### Requirement: Phase 4 Identity Experiences Use The Verified Tenant Host And Account Brand
 
-Auth email, login, claim, verification, recovery and portal experiences MUST use the current verified Tenant Donor Portal Host and Tenant Donor Account Brand.
+Auth email, login, claim, verification, recovery and portal experiences MUST use the organization's designated verified home domain and Tenant Donor Account Brand.
 
 Every clause in `openspec/contracts/platform-product-intent.md#contract-1903dbb11d79aa80df76` MUST apply without exception.
 
