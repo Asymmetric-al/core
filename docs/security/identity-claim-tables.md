@@ -160,3 +160,29 @@ The forward file runs `SET LOCAL lock_timeout = '5s'` right after `BEGIN;`.
   nothing is applied. Re-run it in a quiet window.
 - `lock_timeout` bounds only the wait to acquire a lock, not the time spent
   once the lock is held.
+
+## Since WP5 (AL-2678)
+
+WP5's first part (`20261123010500_account_claim_commands.sql`, rulings W5-R4
+and W5-R5) changes `account_claim_requests`:
+
+- The requester's own read, `account_claim_requests_requester_select`, is
+  dropped with its pin in `docs/security/tenant-policy-exceptions.json`. A
+  signed-in claimant reads no row of the table; `public.account_claim_status(tenant)`
+  returns the status, `created_at`, `updated_at` and `resolved_at` of the
+  caller's own requests in that tenant and nothing else. The staff policy and
+  `SELECT` for `authenticated` stay.
+- The claim's proof: `token_sha256` (the SHA-256 of the UTF-8 bytes of the
+  claim token, exactly 32 bytes, unique where set; the raw token is never
+  stored), `token_expires_at` (set with the digest, 24 hours after issue,
+  `private.account_claim_token_lifetime()`), `token_redeemed_at` and
+  `donor_email_at_issue`. These are the only columns of the table that name a
+  token; the rule above for invitations is unchanged.
+- Writers: `tenant_guard.start_account_claim(tenant)` and
+  `tenant_guard.redeem_account_claim(tenant, token)`, on the signed-in
+  caller's token through their `public` wrappers, and the worker step
+  `tenant_guard.issue_account_claim_token(tenant, claim, digest)` on the
+  service key through `public.issue_account_claim_token(claim, digest)`, all
+  under the guard's `tenant_guard_isolation` policy. Starting a claim answers
+  `{"status":"received"}` whatever the outcome; every failed redemption
+  answers `{"status":"refused"}`; the outcome is written to `audit_logs` only.

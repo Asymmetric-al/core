@@ -9,6 +9,8 @@ name: Local Supabase Stack
 #   (council round 2). So every pull request that changes the chain, the seed,
 #   the stack's configuration or the CLI pin starts the stack.
 # - Missionary handler authority through PostgREST, with release policies in force.
+# - Identity keys through PostgREST (AL-2678): the running build's task embed
+#   and own-row reads on the new keys, the worker safety room and the claim.
 # - Mission Control CRM reads and exports with real staff sessions, including
 #   the browser journeys that read those rows and retain the selected tenant.
 # - The email round trips of WP0b and WP1.4: password recovery in all three
@@ -81,6 +83,8 @@ on:
       - vitest.pin-workspace-packages.mts
       - tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
       - tests/unit/acceptance/issue-2676/tenant-records.postgrest.acceptance.test.ts
+      - tests/unit/acceptance/issue-2678/identity-keys.postgrest.acceptance.test.ts
+      - packages/database/collections/schemas/giving.ts
       - tests/unit/workflows/local-supabase.test.ts
       # The round trips themselves.
       - playwright.auth-mail.config.ts
@@ -228,6 +232,17 @@ jobs:
           WP3_TENANT_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
           export WP3_TENANT_IT_ANON_KEY WP3_TENANT_IT_SERVICE_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/tenant-records.postgrest.acceptance.test.ts
+      - name: Verify identity keys through PostgREST
+        shell: bash
+        env:
+          WP5_IDENTITY_IT_URL: http://127.0.0.1:54321
+          WP5_IDENTITY_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          WP5_IDENTITY_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          WP5_IDENTITY_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export WP5_IDENTITY_IT_ANON_KEY WP5_IDENTITY_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/identity-keys.postgrest.acceptance.test.ts
       - name: Verify caller-token field policy reads and anonymous app health through PostgREST
         env:
           FIELD_POLICY_IT_REQUIRED: "1"
