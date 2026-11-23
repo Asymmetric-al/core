@@ -1,3 +1,4 @@
+import { StrictMode } from "react";
 /** @vitest-environment jsdom */
 import {
   cleanup,
@@ -154,5 +155,44 @@ describe("InvitationDoorway", () => {
         screen.getByText(/invitation is invalid or no longer available/i),
       ).toBeTruthy();
     });
+  });
+
+  it("preserves the stripped verifier under React.StrictMode and accepts a verifier added via hashchange", async () => {
+    window.history.replaceState(null, "", "/invite/sel-strict#ver-strict");
+    const first = render(
+      <StrictMode>
+        <InvitationDoorway
+          selector="sel-strict"
+          surfaceName="Mission Control"
+        />
+      </StrictMode>,
+    );
+
+    const button = screen.getByRole("button", { name: "Accept invitation" });
+    await waitFor(() =>
+      expect((button as HTMLButtonElement).disabled).toBe(false),
+    );
+    expect(window.location.hash).toBe("");
+    first.unmount();
+
+    window.history.replaceState(null, "", "/invite/sel-hash");
+    const view = render(
+      <StrictMode>
+        <InvitationDoorway
+          selector="sel-hash"
+          surfaceName="Missionary Workspace"
+        />
+      </StrictMode>,
+    );
+    const secondBtn = view.getByRole("button", {
+      name: "Accept invitation",
+    });
+    expect((secondBtn as HTMLButtonElement).disabled).toBe(true);
+    window.location.hash = "#ver-from-hashchange";
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    await waitFor(() =>
+      expect((secondBtn as HTMLButtonElement).disabled).toBe(false),
+    );
+    expect(window.location.hash).toBe("");
   });
 });

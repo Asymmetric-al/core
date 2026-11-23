@@ -44,8 +44,9 @@ export function InvitationDoorway({
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [needsSignIn, setNeedsSignIn] = React.useState(false);
   const submissionRef = React.useRef(false);
+  const selectorRef = React.useRef(selector);
 
-  React.useEffect(() => {
+  const readHashVerifier = React.useCallback(() => {
     const rawHash = window.location.hash;
     const extracted = rawHash.startsWith("#")
       ? rawHash.slice(1).trim()
@@ -57,9 +58,23 @@ export function InvitationDoorway({
         `${window.location.pathname}${window.location.search}`,
       );
     }
-    setVerifier(extracted || null);
+    if (extracted) {
+      setVerifier(extracted);
+    }
     setCheckedHash(true);
-  }, [selector]);
+  }, []);
+
+  React.useEffect(() => {
+    if (selectorRef.current !== selector) {
+      selectorRef.current = selector;
+      setVerifier(null);
+    }
+    readHashVerifier();
+    window.addEventListener("hashchange", readHashVerifier);
+    return () => {
+      window.removeEventListener("hashchange", readHashVerifier);
+    };
+  }, [readHashVerifier, selector]);
 
   const signInTarget = `${loginHref}?next=${encodeURIComponent(`/invite/${selector}`)}`;
 

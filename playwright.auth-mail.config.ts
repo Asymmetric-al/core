@@ -99,6 +99,7 @@ export default defineConfig({
     "**/auth-signup-confirmation.spec.ts",
     "**/auth-two-organizations.spec.ts",
     "**/auth-request-scope-reads.spec.ts",
+    "**/auth-members-invitations.spec.ts",
   ],
   outputDir: "test-results/auth-mail",
   fullyParallel: false,

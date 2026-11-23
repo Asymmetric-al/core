@@ -3,6 +3,8 @@ import { Suspense } from "react";
 
 import type { Metadata } from "next";
 
+export const instant = false;
+
 export const metadata: Metadata = {
   title: "Accept invitation",
   description: "Accept your organization invitation to Mission Control.",
