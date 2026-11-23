@@ -132,13 +132,20 @@ function countCallersMissingExpectedUpdatedAt(source: string): number {
 describe("AL-2676 WP3c F5: every change_membership_role caller passes p_expected_updated_at", () => {
   const files = ls(["apps", "packages"]);
 
-  it("finds zero non-test callers in apps/ and packages/ omitting p_expected_updated_at", () => {
+  it("finds zero non-test callers in apps/ and packages/ omitting p_expected_updated_at and finds the known caller", () => {
     expect(files.length).toBeGreaterThan(200);
+    const foundCallers: string[] = [];
     const offending: Record<string, number> = {};
     for (const f of files) {
-      const n = countCallersMissingExpectedUpdatedAt(readFileSync(f, "utf8"));
+      const source = readFileSync(f, "utf8");
+      if (RPC_CALL.test(source)) {
+        foundCallers.push(f);
+      }
+      RPC_CALL.lastIndex = 0;
+      const n = countCallersMissingExpectedUpdatedAt(source);
       if (n > 0) offending[f] = n;
     }
+    expect(foundCallers).toContain("packages/api/src/admin/members/role.ts");
     expect(offending).toEqual({});
   });
 

@@ -242,9 +242,11 @@ describe("Members screen", () => {
     fireEvent.click(view.getByRole("button", { name: /create invitation/i }));
 
     const linkInput = (await view.findByLabelText(
-      "Invitation link path",
+      "Invitation link",
     )) as HTMLInputElement;
-    expect(linkInput.value).toBe("/invite/selector123#verifier456");
+    expect(linkInput.value).toBe(
+      `${window.location.origin}/invite/selector123#verifier456`,
+    );
     expect(linkInput.closest("[data-sentry-block]")).not.toBeNull();
     expect(
       view.getByText(
@@ -254,15 +256,17 @@ describe("Members screen", () => {
 
     fireEvent.click(view.getByRole("button", { name: /copy link/i }));
     await waitFor(() => {
-      expect(writeText).toHaveBeenCalledWith("/invite/selector123#verifier456");
+      expect(writeText).toHaveBeenCalledWith(
+        `${window.location.origin}/invite/selector123#verifier456`,
+      );
     });
 
     fireEvent.click(view.getByRole("button", { name: /^done$/i }));
     await waitFor(() => {
-      expect(view.queryByLabelText("Invitation link path")).toBeNull();
+      expect(view.queryByLabelText("Invitation link")).toBeNull();
     });
     fireEvent.click(view.getByRole("button", { name: /invite member/i }));
-    expect(view.queryByLabelText("Invitation link path")).toBeNull();
+    expect(view.queryByLabelText("Invitation link")).toBeNull();
 
     fireEvent.change(view.getByLabelText("Email address"), {
       target: { value: "nav-clear@example.org" },
@@ -271,7 +275,7 @@ describe("Members screen", () => {
       target: { value: "Navigation clear proof" },
     });
     fireEvent.click(view.getByRole("button", { name: /create invitation/i }));
-    await view.findByLabelText("Invitation link path");
+    await view.findByLabelText("Invitation link");
 
     workspace.pathname = "/00000000-0000-4000-8000-000000000001/crm";
     view.rerender(
@@ -280,14 +284,14 @@ describe("Members screen", () => {
       </QueryClientProvider>,
     );
     await waitFor(() => {
-      expect(view.queryByLabelText("Invitation link path")).toBeNull();
+      expect(view.queryByLabelText("Invitation link")).toBeNull();
     });
 
     view.unmount();
     workspace.pathname = "/00000000-0000-4000-8000-000000000001/admin/teams";
     const reloaded = show();
     await reloaded.findByText("new-staff@example.org");
-    expect(reloaded.queryByLabelText("Invitation link path")).toBeNull();
+    expect(reloaded.queryByLabelText("Invitation link")).toBeNull();
     expect(reloaded.container.textContent).not.toContain("verifier456");
     expect(reloaded.container.textContent).not.toContain("selector123");
 
@@ -302,6 +306,68 @@ describe("Members screen", () => {
     });
     expect(storageDump).not.toContain("verifier456");
     expect(storageDump).not.toContain("selector123");
+  });
+
+  it("R18a: labels a missionary invitation as the path on the missionary workspace address and copies only the path", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (
+        String(url) === "/api/admin/members/invitations" &&
+        init?.method === "POST"
+      ) {
+        return {
+          ok: true,
+          json: async () => ({
+            invitation: {
+              invitation_id: "inv-miss-1",
+              expires_at: "2026-11-30T00:00:00.000Z",
+              role: "missionary",
+              staff_role: null,
+              is_tenant_admin: false,
+            },
+            invitePath: "/invite/miss-selector#miss-verifier",
+          }),
+        };
+      }
+      if (String(url).startsWith("/api/admin/members/invitations")) {
+        return { ok: true, json: async () => ({ invitations: [] }) };
+      }
+      return { ok: true, json: async () => ({ users: [] }) };
+    });
+
+    const view = show();
+    await view.findByText("No members found");
+    fireEvent.click(view.getByRole("button", { name: /invite member/i }));
+
+    fireEvent.change(view.getByLabelText("Email address"), {
+      target: { value: "missionary@example.org" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Missionary onboarding" },
+    });
+    fireEvent.click(view.getByRole("button", { name: /create invitation/i }));
+
+    const pathInput = (await view.findByLabelText(
+      "Missionary workspace invitation path",
+    )) as HTMLInputElement;
+    expect(pathInput.value).toBe("/invite/miss-selector#miss-verifier");
+    expect(pathInput.value).not.toContain(window.location.origin);
+    expect(pathInput.closest("[data-sentry-block]")).not.toBeNull();
+    expect(
+      view.getByText(/open this path on your missionary workspace address/i),
+    ).toBeTruthy();
+
+    fireEvent.click(view.getByRole("button", { name: /copy path/i }));
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith(
+        "/invite/miss-selector#miss-verifier",
+      );
+    });
   });
 
   it("lists pending invitations for admins, revokes one with a reason, and sends expectedUpdatedAt on role changes", async () => {

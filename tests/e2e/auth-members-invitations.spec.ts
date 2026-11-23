@@ -122,23 +122,45 @@ async function createInviteFromMembersScreen(
       "No email was sent. Copy this link now; it cannot be shown again.",
     ),
   ).toBeVisible();
-  await expect(dialog.getByRole("button", { name: "Copy link" })).toBeVisible();
+  const isMissionary = input.role === "missionary";
+  await expect(
+    dialog.getByRole("button", {
+      name: isMissionary ? "Copy path" : "Copy link",
+    }),
+  ).toBeVisible();
 
-  const linkInput = dialog.getByLabel("Invitation link path");
+  const linkInput = dialog.getByLabel(
+    isMissionary ? "Missionary workspace invitation path" : "Invitation link",
+  );
   await expect(linkInput).toBeVisible({ timeout: 60_000 });
+  if (isMissionary) {
+    await expect(
+      dialog.getByText(
+        "Open this path on your missionary workspace address. Opening it on Mission Control will land in the wrong app.",
+      ),
+    ).toBeVisible();
+  }
   const hasReplayBlock = await linkInput.evaluate(
     (el) => el.closest("[data-sentry-block]") !== null,
   );
   expect(hasReplayBlock).toBe(true);
-  const invitePath = await linkInput.inputValue();
-  const match = /^\/invite\/([^#]+)#(.+)$/.exec(invitePath);
-  expect(match, "unexpected invite path format").toBeTruthy();
+  const rawAddress = await linkInput.inputValue();
+  const escapedAdminOrigin = ADMIN_ORIGIN.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&",
+  );
+  const match = isMissionary
+    ? /^\/invite\/([^#]+)#(.+)$/.exec(rawAddress)
+    : new RegExp(`^${escapedAdminOrigin}(\\/invite\\/([^#]+)#(.+))$`).exec(
+        rawAddress,
+      );
+  expect(match, "unexpected invite address format").toBeTruthy();
   await dialog.getByRole("button", { name: "Done" }).click();
   await expect(dialog).toBeHidden();
   return {
-    invitePath,
-    selector: match![1]!,
-    verifier: match![2]!,
+    invitePath: isMissionary ? rawAddress : match![1]!,
+    selector: isMissionary ? match![1]! : match![2]!,
+    verifier: isMissionary ? match![2]! : match![3]!,
   };
 }
 

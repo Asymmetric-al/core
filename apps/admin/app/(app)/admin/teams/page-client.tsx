@@ -696,10 +696,20 @@ function InviteMemberDialog({
     }
   };
 
+  const invitationAddress = created
+    ? created.role === "staff"
+      ? typeof window !== "undefined"
+        ? `${window.location.origin}${created.invitePath}`
+        : created.invitePath
+      : created.invitePath
+    : "";
+
+  const isMissionaryInvitation = created?.role === "missionary";
+
   const handleCopy = async () => {
-    if (!created) return;
+    if (!created || !invitationAddress) return;
     try {
-      await navigator.clipboard.writeText(created.invitePath);
+      await navigator.clipboard.writeText(invitationAddress);
       setCopied(true);
     } catch {
       setCopied(false);
@@ -729,15 +739,23 @@ function InviteMemberDialog({
               </AlertDescription>
             </Alert>
             <div data-sentry-block="" className="flex flex-col gap-1.5">
-              <Label htmlFor={linkId}>Invitation link path</Label>
+              <Label htmlFor={linkId}>
+                {isMissionaryInvitation
+                  ? "Missionary workspace invitation path"
+                  : "Invitation link"}
+              </Label>
               <div className="flex gap-2">
                 <Input
                   id={linkId}
                   readOnly
                   autoComplete="off"
                   data-sentry-mask="true"
-                  value={created.invitePath}
-                  aria-label="Invitation link path"
+                  value={invitationAddress}
+                  aria-label={
+                    isMissionaryInvitation
+                      ? "Missionary workspace invitation path"
+                      : "Invitation link"
+                  }
                 />
                 <Button
                   type="button"
@@ -749,9 +767,19 @@ function InviteMemberDialog({
                   ) : (
                     <Copy aria-hidden="true" className="size-4" />
                   )}
-                  {copied ? "Copied" : "Copy link"}
+                  {copied
+                    ? "Copied"
+                    : isMissionaryInvitation
+                      ? "Copy path"
+                      : "Copy link"}
                 </Button>
               </div>
+              {isMissionaryInvitation ? (
+                <p className="text-xs text-muted-foreground">
+                  Open this path on your missionary workspace address. Opening
+                  it on Mission Control will land in the wrong app.
+                </p>
+              ) : null}
             </div>
             <DialogFooter>
               <Button type="button" onClick={() => handleOpenChange(false)}>
