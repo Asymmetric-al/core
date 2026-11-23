@@ -28,6 +28,9 @@ it("is one migration that drops the table and nothing else", () => {
     ),
   ).toEqual([]);
   expect(DROP).toMatch(/superseded for this one table by\s+-- decision D-14/);
+  expect(DROP).toMatch(
+    /^DROP TABLE public\.crm_merge_candidates;\n+NOTIFY pgrst, 'reload schema';\n+COMMIT;$/m,
+  );
 });
 
 it("names the build that must be live before it applies, and the one it breaks", () => {
@@ -122,5 +125,31 @@ describe.skipIf(!ADMIN_URL)("crm_merge_candidates is retired", () => {
       "select to_regclass('public.crm_merge_candidates') as retired",
     );
     expect(rows).toEqual([{ retired: null }]);
+  });
+
+  it("is not stopped by a function that names the table only in comments", async () => {
+    const suffix = randomUUID().replaceAll("-", "");
+    const quiet = `public.wp4a2b_comments_${suffix}`;
+    await db.query("create table public.crm_merge_candidates (id integer)");
+    await db.query(
+      `create function ${quiet}() returns integer language plpgsql as $f$
+       begin
+         -- once read public.crm_merge_candidates
+         /* and crm_merge_candidates
+            over two lines */
+         return 1;
+       end $f$`,
+    );
+    expect(await attempt()).toEqual({ code: null, message: "" });
+    await db.query("create table public.crm_merge_candidates (id integer)");
+    await db.query(
+      `create or replace function ${quiet}() returns integer language plpgsql as $f$
+       begin
+         /* a comment */ return (select count(*)::integer from public.crm_merge_candidates);
+       end $f$`,
+    );
+    const refused = await attempt();
+    expect(refused.code).toBe("2BP01");
+    expect(refused.message).toContain(`function ${quiet}()`);
   });
 });

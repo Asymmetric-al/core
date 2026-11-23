@@ -20,9 +20,12 @@
 --
 -- Before it drops, it refuses while any function, view or policy other than
 -- the table's own policies still names the table, because a function body
--- records no dependency and the drop would leave it broken. It reports, as a
--- notice, the number of rows it removes. No CASCADE: an unexpected dependent
--- object fails the migration instead of being dropped with it.
+-- records no dependency and the drop would leave it broken. A function's
+-- comments are removed before its text is read, so a comment that mentions
+-- the table refuses nothing, and the system schemas are not read. It reports,
+-- as a notice, the number of rows it removes, and tells PostgREST to reload
+-- its schema. No CASCADE: an unexpected dependent object fails the migration
+-- instead of being dropped with it.
 --
 -- Its types `crm_merge_candidate_status` and `crm_duplicate_confidence` and
 -- `crm_link_entity_type`, which `crm_record_links` also uses, are left as they
@@ -48,13 +51,19 @@ BEGIN
              || '(' || pg_catalog.pg_get_function_identity_arguments(p.oid) || ')' AS name
         FROM pg_catalog.pg_proc AS p
         JOIN pg_catalog.pg_namespace AS pn ON pn.oid = p.pronamespace
-       WHERE (p.prosrc || COALESCE(pg_catalog.pg_get_function_sqlbody(p.oid), ''))
+       WHERE pn.nspname NOT IN ('pg_catalog', 'information_schema')
+         AND pg_catalog.regexp_replace(
+               pg_catalog.regexp_replace(
+                 p.prosrc || ' ' || COALESCE(pg_catalog.pg_get_function_sqlbody(p.oid), ''),
+                 '/\*.*?\*/', ' ', 'g'),
+               '--[^' || pg_catalog.chr(10) || ']*', ' ', 'g')
              ~* '\mcrm_merge_candidates\M'
       UNION ALL
       SELECT 'view ' || cn.nspname || '.' || c.relname
         FROM pg_catalog.pg_class AS c
         JOIN pg_catalog.pg_namespace AS cn ON cn.oid = c.relnamespace
        WHERE c.relkind IN ('v', 'm')
+         AND cn.nspname NOT IN ('pg_catalog', 'information_schema')
          AND pg_catalog.pg_get_viewdef(c.oid) ~* '\mcrm_merge_candidates\M'
       UNION ALL
       SELECT 'policy ' || pol.polname || ' on ' || tn.nspname || '.' || t.relname
@@ -79,5 +88,7 @@ END;
 $$;
 
 DROP TABLE public.crm_merge_candidates;
+
+NOTIFY pgrst, 'reload schema';
 
 COMMIT;
