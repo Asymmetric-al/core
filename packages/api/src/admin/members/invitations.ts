@@ -101,7 +101,12 @@ interface InvitationsRpcClient {
   }>;
 }
 
-const NO_STORE_HEADERS = { "Cache-Control": "no-store" } as const;
+const INVITATION_RESPONSE_HEADERS = {
+  "Cache-Control": "private, no-store, no-transform, max-age=0",
+  "CDN-Cache-Control": "no-store",
+  "Vercel-CDN-Cache-Control": "no-store",
+  "Referrer-Policy": "no-referrer",
+} as const;
 
 export const GET = withOperation(
   async ({ auth: ctx, sessionClient }) => {
@@ -110,17 +115,23 @@ export const GET = withOperation(
       p_tenant_id: ctx.tenantId,
     });
     if (error) {
+      const status = error.code === "42501" ? 403 : 500;
       return NextResponse.json(
-        { error: error.message || "Could not load invitations" },
         {
-          status: error.code === "42501" ? 403 : 500,
-          headers: NO_STORE_HEADERS,
+          error:
+            status === 403
+              ? error.message || "Forbidden"
+              : "Could not load invitations",
+        },
+        {
+          status,
+          headers: INVITATION_RESPONSE_HEADERS,
         },
       );
     }
     return NextResponse.json(
       { invitations: data ?? [] },
-      { status: 200, headers: NO_STORE_HEADERS },
+      { status: 200, headers: INVITATION_RESPONSE_HEADERS },
     );
   },
   { capability: "people.manage_members" },
@@ -135,12 +146,12 @@ export const POST = withOperation(
       if (error instanceof ApiHttpError) {
         return NextResponse.json(
           { error: error.message },
-          { status: error.status, headers: NO_STORE_HEADERS },
+          { status: error.status, headers: INVITATION_RESPONSE_HEADERS },
         );
       }
       return NextResponse.json(
         { error: "Invalid JSON body" },
-        { status: 400, headers: NO_STORE_HEADERS },
+        { status: 400, headers: INVITATION_RESPONSE_HEADERS },
       );
     }
 
@@ -151,7 +162,7 @@ export const POST = withOperation(
           error:
             parsed.error.issues[0]?.message ?? "Invalid invitation details",
         },
-        { status: 400, headers: NO_STORE_HEADERS },
+        { status: 400, headers: INVITATION_RESPONSE_HEADERS },
       );
     }
 
@@ -175,8 +186,13 @@ export const POST = withOperation(
             ? 400
             : 500;
       return NextResponse.json(
-        { error: error?.message || "Could not create invitation" },
-        { status, headers: NO_STORE_HEADERS },
+        {
+          error:
+            status >= 500
+              ? "Could not create invitation"
+              : error?.message || "Could not create invitation",
+        },
+        { status, headers: INVITATION_RESPONSE_HEADERS },
       );
     }
 
@@ -185,7 +201,7 @@ export const POST = withOperation(
         invitation: data,
         invitePath: `/invite/${data.selector}#${data.verifier}`,
       },
-      { status: 201, headers: NO_STORE_HEADERS },
+      { status: 201, headers: INVITATION_RESPONSE_HEADERS },
     );
   },
   { capability: "people.manage_members" },

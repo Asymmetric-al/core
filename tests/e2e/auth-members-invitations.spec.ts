@@ -100,12 +100,39 @@ async function createInviteFromMembersScreen(
     await page.getByRole("option", { name: "Missionary" }).click();
   }
   await dialog.getByLabel("Reason").fill(input.reason);
-  await dialog.getByRole("button", { name: "Create invitation" }).click();
+  const [inviteResponse] = await Promise.all([
+    page.waitForResponse(
+      (res) =>
+        res.request().method() === "POST" &&
+        res.url().includes("/api/admin/members/invitations"),
+      { timeout: 60_000 },
+    ),
+    dialog.getByRole("button", { name: "Create invitation" }).click(),
+  ]);
+  expect(inviteResponse.status()).toBe(201);
+  const cacheControl = inviteResponse.headers()["cache-control"] ?? "";
+  expect(cacheControl).toContain("private");
+  expect(cacheControl).toContain("no-store");
+  expect(inviteResponse.headers()["cdn-cache-control"]).toBe("no-store");
+  expect(inviteResponse.headers()["vercel-cdn-cache-control"]).toBe("no-store");
+  expect(inviteResponse.headers()["referrer-policy"]).toBe("no-referrer");
+
+  await expect(
+    dialog.getByText(
+      "No email was sent. Copy this link now; it cannot be shown again.",
+    ),
+  ).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Copy link" })).toBeVisible();
+
   const linkInput = dialog.getByLabel("Invitation link path");
   await expect(linkInput).toBeVisible({ timeout: 60_000 });
+  const hasReplayBlock = await linkInput.evaluate(
+    (el) => el.closest("[data-sentry-block]") !== null,
+  );
+  expect(hasReplayBlock).toBe(true);
   const invitePath = await linkInput.inputValue();
   const match = /^\/invite\/([^#]+)#(.+)$/.exec(invitePath);
-  expect(match, `unexpected invite path: ${invitePath}`).toBeTruthy();
+  expect(match, "unexpected invite path format").toBeTruthy();
   await dialog.getByRole("button", { name: "Done" }).click();
   await expect(dialog).toBeHidden();
   return {
@@ -217,6 +244,11 @@ test.describe("AL-2676 WP3c: Members screen, invitations, doorway, and role chan
     );
     const stack = env!;
 
+    const adminConsoleLogs: string[] = [];
+    page.on("console", (msg) => {
+      adminConsoleLogs.push(msg.text());
+    });
+
     await signInOnOrigin(
       page,
       ADMIN_ORIGIN,
@@ -247,6 +279,141 @@ test.describe("AL-2676 WP3c: Members screen, invitations, doorway, and role chan
       role: "staff",
       reason: "Browser revocation proof",
     });
+
+    const issuedSecrets = [
+      staffInvite.verifier,
+      staffInvite.invitePath,
+      missionaryInvite.verifier,
+      missionaryInvite.invitePath,
+      revokedInvite.verifier,
+      revokedInvite.invitePath,
+    ];
+
+    const mailpitRes = await fetch(
+      `${stack.mailpitUrl.replace(/\/$/, "")}/api/v1/messages`,
+    );
+    expect(mailpitRes.status).toBe(200);
+    const mailpitBody = (await mailpitRes.json()) as {
+      messages?: Array<{ To?: Array<{ Address?: string }> }>;
+    };
+    const inviteeEmails = new Set([
+      staffInvitee!.email.toLowerCase(),
+      missionaryInvitee!.email.toLowerCase(),
+      revokedInvitee!.email.toLowerCase(),
+    ]);
+    const sentToInvitees = (mailpitBody.messages ?? []).filter((m) =>
+      (m.To ?? []).some((to) =>
+        inviteeEmails.has((to.Address ?? "").toLowerCase()),
+      ),
+    );
+    expect(sentToInvitees).toHaveLength(0);
+
+    const dbChecks = await withOwner(stack, async (db) => {
+      const dispatchCount = await db.query<{ c: number }>(
+        "select count(*)::int as c from public.workflow_dispatch_requests where tenant_id = $1",
+        [tenantId],
+      );
+      const audits = await db.query<{ text: string }>(
+        "select details::text as text from public.audit_logs where tenant_id = $1",
+        [tenantId],
+      );
+      const invites = await db.query<{ text: string }>(
+        "select to_jsonb(i)::text as text from public.membership_invitations as i where i.tenant_id = $1",
+        [tenantId],
+      );
+      return {
+        dispatchCount: dispatchCount.rows[0]?.c ?? -1,
+        auditBlob: audits.rows.map((r) => r.text).join("\n"),
+        inviteBlob: invites.rows.map((r) => r.text).join("\n"),
+      };
+    });
+    expect(dbChecks.dispatchCount).toBe(0);
+    for (const secret of issuedSecrets) {
+      expect(dbChecks.auditBlob).not.toContain(secret);
+      expect(dbChecks.inviteBlob).not.toContain(secret);
+    }
+
+    await page.reload();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Members" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", {
+        name: `Revoke invitation for ${revokedInvitee!.email}`,
+      }),
+    ).toBeVisible();
+    const reloadedHtml = await page.content();
+    const clientStorage = await page.evaluate(async () => {
+      const localEntries: Array<[string, string | null]> = [];
+      for (let i = 0; i < window.localStorage.length; i += 1) {
+        const key = window.localStorage.key(i);
+        if (key !== null)
+          localEntries.push([key, window.localStorage.getItem(key)]);
+      }
+      const sessionEntries: Array<[string, string | null]> = [];
+      for (let i = 0; i < window.sessionStorage.length; i += 1) {
+        const key = window.sessionStorage.key(i);
+        if (key !== null)
+          sessionEntries.push([key, window.sessionStorage.getItem(key)]);
+      }
+      const idbDump: unknown[] = [];
+      if (
+        typeof indexedDB !== "undefined" &&
+        typeof indexedDB.databases === "function"
+      ) {
+        const dbs = await indexedDB.databases();
+        for (const info of dbs) {
+          if (!info.name) continue;
+          const entries = await new Promise<unknown>((resolve) => {
+            const req = indexedDB.open(info.name!);
+            req.onerror = () => resolve({ name: info.name, error: true });
+            req.onsuccess = () => {
+              const db = req.result;
+              const stores = Array.from(db.objectStoreNames);
+              if (stores.length === 0) {
+                db.close();
+                resolve({ name: info.name, stores: [] });
+                return;
+              }
+              const tx = db.transaction(stores, "readonly");
+              const result: Record<string, unknown> = {};
+              let remaining = stores.length;
+              for (const storeName of stores) {
+                const getAll = tx.objectStore(storeName).getAll();
+                getAll.onsuccess = () => {
+                  result[storeName] = getAll.result;
+                  remaining -= 1;
+                  if (remaining === 0) {
+                    db.close();
+                    resolve({ name: info.name, result });
+                  }
+                };
+                getAll.onerror = () => {
+                  remaining -= 1;
+                  if (remaining === 0) {
+                    db.close();
+                    resolve({ name: info.name, result });
+                  }
+                };
+              }
+            };
+          });
+          idbDump.push(entries);
+        }
+      }
+      return JSON.stringify({
+        localEntries,
+        sessionEntries,
+        cookies: document.cookie,
+        idbDump,
+      });
+    });
+    const consoleBlob = adminConsoleLogs.join("\n");
+    for (const secret of issuedSecrets) {
+      expect(reloadedHtml).not.toContain(secret);
+      expect(clientStorage).not.toContain(secret);
+      expect(consoleBlob).not.toContain(secret);
+    }
 
     for (const [origin, selector] of [
       [ADMIN_ORIGIN, staffInvite.selector],
@@ -295,6 +462,31 @@ test.describe("AL-2676 WP3c: Members screen, invitations, doorway, and role chan
       .getByRole("button", { name: "Revoke invitation" })
       .click();
     await expect(revokeInvDialog).toBeHidden();
+
+    const wrongAccountCtx = await browser.newContext({ baseURL: ADMIN_ORIGIN });
+    try {
+      const wrongPage = await wrongAccountCtx.newPage();
+      await signInOnOrigin(
+        wrongPage,
+        ADMIN_ORIGIN,
+        regularStaff!.email,
+        regularStaff!.password,
+        `/invite/${staffInvite.selector}`,
+      );
+      await wrongPage.goto(
+        `${ADMIN_ORIGIN}/invite/${staffInvite.selector}#${staffInvite.verifier}`,
+      );
+      const acceptBtn = wrongPage.getByRole("button", {
+        name: "Accept invitation",
+      });
+      await expect(acceptBtn).toBeEnabled();
+      await acceptBtn.click();
+      await expect(
+        wrongPage.getByText(/invitation is invalid or no longer available/i),
+      ).toBeVisible();
+    } finally {
+      await wrongAccountCtx.close();
+    }
 
     const staffCtx = await browser.newContext({ baseURL: ADMIN_ORIGIN });
     try {

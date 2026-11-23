@@ -13,6 +13,12 @@ const workspace = vi.hoisted(() => ({
   canManageMembers: true as boolean | undefined,
   currentMembershipId: "m-self" as string | null,
   userId: "u-self" as string | null,
+  pathname: "/00000000-0000-4000-8000-000000000001/admin/teams",
+}));
+
+vi.mock("@asym/auth/tenant-navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/tenant-navigation")>()),
+  useRoutePathname: () => workspace.pathname,
 }));
 
 vi.mock("@asym/lib/mission-control/context", () => ({
@@ -55,10 +61,13 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   client.clear();
+  window.localStorage.clear();
+  window.sessionStorage.clear();
   workspace.role = "admin";
   workspace.canManageMembers = true;
   workspace.currentMembershipId = "m-self";
   workspace.userId = "u-self";
+  workspace.pathname = "/00000000-0000-4000-8000-000000000001/admin/teams";
   vi.unstubAllGlobals();
 });
 
@@ -169,7 +178,13 @@ describe("Members screen", () => {
     expect(view.getByRole("note").textContent).toContain("Read-only directory");
   });
 
-  it("lets an administrator invite a member and displays the one-time protected-action link path", async () => {
+  it("R13: shows exact one-time notice with Copy control, marks replay block, clears on dismiss/navigation/reload, and stores nothing in browser storage or query cache", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
     fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
       if (
         String(url) === "/api/admin/members/invitations" &&
@@ -190,7 +205,26 @@ describe("Members screen", () => {
         };
       }
       if (String(url).startsWith("/api/admin/members/invitations")) {
-        return { ok: true, json: async () => ({ invitations: [] }) };
+        return {
+          ok: true,
+          json: async () => ({
+            invitations: [
+              {
+                id: "inv-1",
+                tenant_id: "t-1",
+                email: "new-staff@example.org",
+                role: "staff",
+                staff_role: "finance",
+                is_tenant_admin: false,
+                purpose: "member_invite",
+                delivery_mode: "email",
+                status: "issued",
+                expires_at: "2099-01-01T00:00:00.000Z",
+                created_at: "2026-11-23T09:00:00.000Z",
+              },
+            ],
+          }),
+        };
       }
       return { ok: true, json: async () => ({ users: [] }) };
     });
@@ -211,7 +245,63 @@ describe("Members screen", () => {
       "Invitation link path",
     )) as HTMLInputElement;
     expect(linkInput.value).toBe("/invite/selector123#verifier456");
-    expect(view.getByText("Shown once")).toBeTruthy();
+    expect(linkInput.closest("[data-sentry-block]")).not.toBeNull();
+    expect(
+      view.getByText(
+        "No email was sent. Copy this link now; it cannot be shown again.",
+      ),
+    ).toBeTruthy();
+
+    fireEvent.click(view.getByRole("button", { name: /copy link/i }));
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith("/invite/selector123#verifier456");
+    });
+
+    fireEvent.click(view.getByRole("button", { name: /^done$/i }));
+    await waitFor(() => {
+      expect(view.queryByLabelText("Invitation link path")).toBeNull();
+    });
+    fireEvent.click(view.getByRole("button", { name: /invite member/i }));
+    expect(view.queryByLabelText("Invitation link path")).toBeNull();
+
+    fireEvent.change(view.getByLabelText("Email address"), {
+      target: { value: "nav-clear@example.org" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Navigation clear proof" },
+    });
+    fireEvent.click(view.getByRole("button", { name: /create invitation/i }));
+    await view.findByLabelText("Invitation link path");
+
+    workspace.pathname = "/00000000-0000-4000-8000-000000000001/crm";
+    view.rerender(
+      <QueryClientProvider client={client}>
+        <TeamsPage />
+      </QueryClientProvider>,
+    );
+    await waitFor(() => {
+      expect(view.queryByLabelText("Invitation link path")).toBeNull();
+    });
+
+    view.unmount();
+    workspace.pathname = "/00000000-0000-4000-8000-000000000001/admin/teams";
+    const reloaded = show();
+    await reloaded.findByText("new-staff@example.org");
+    expect(reloaded.queryByLabelText("Invitation link path")).toBeNull();
+    expect(reloaded.container.textContent).not.toContain("verifier456");
+    expect(reloaded.container.textContent).not.toContain("selector123");
+
+    const storageDump = JSON.stringify({
+      local: Object.entries(window.localStorage),
+      session: Object.entries(window.sessionStorage),
+      cookies: document.cookie,
+      queries: client
+        .getQueryCache()
+        .getAll()
+        .map((q) => q.state.data),
+    });
+    expect(storageDump).not.toContain("verifier456");
+    expect(storageDump).not.toContain("selector123");
   });
 
   it("lists pending invitations for admins, revokes one with a reason, and sends expectedUpdatedAt on role changes", async () => {

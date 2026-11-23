@@ -1,6 +1,9 @@
 "use client";
 
-import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import {
+  TenantLink as Link,
+  useRoutePathname,
+} from "@asym/auth/tenant-navigation";
 import { ownApiFetch } from "@asym/database/own-api";
 import { useMC } from "@asym/lib/mission-control/context";
 import {
@@ -55,7 +58,14 @@ import {
 } from "@asym/ui/components/shadcn/select";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Copy, UserPlus } from "lucide-react";
-import { useCallback, useId, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   STAFF_SUBROLE_OPTIONS,
@@ -603,8 +613,10 @@ function InviteMemberDialog({
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedInviteBanner | null>(null);
   const [copied, setCopied] = useState(false);
+  const pathname = useRoutePathname();
+  const initialPathnameRef = useRef(pathname);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setEmail("");
     setRole("staff");
     setStaffRole("development");
@@ -613,7 +625,21 @@ function InviteMemberDialog({
     setError(null);
     setCreated(null);
     setCopied(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (initialPathnameRef.current !== pathname) {
+      initialPathnameRef.current = pathname;
+      resetForm();
+      onOpenChange(false);
+    }
+  }, [onOpenChange, pathname, resetForm]);
+
+  useEffect(() => {
+    return () => {
+      setCreated(null);
+    };
+  }, []);
 
   const handleOpenChange = (next: boolean) => {
     if (!next) resetForm();
@@ -699,16 +725,17 @@ function InviteMemberDialog({
             <Alert role="status">
               <AlertTitle>Shown once</AlertTitle>
               <AlertDescription>
-                Copy this link now. Email delivery is not active yet, and the
-                secret verifier is never stored or displayed again.
+                No email was sent. Copy this link now; it cannot be shown again.
               </AlertDescription>
             </Alert>
-            <div className="flex flex-col gap-1.5">
+            <div data-sentry-block="" className="flex flex-col gap-1.5">
               <Label htmlFor={linkId}>Invitation link path</Label>
               <div className="flex gap-2">
                 <Input
                   id={linkId}
                   readOnly
+                  autoComplete="off"
+                  data-sentry-mask="true"
                   value={created.invitePath}
                   aria-label="Invitation link path"
                 />

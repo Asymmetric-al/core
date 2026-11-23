@@ -14,6 +14,8 @@ const h = vi.hoisted(() => ({
   auth: vi.fn(),
   session: vi.fn(),
   serviceKeyUsed: vi.fn(),
+  captureError: vi.fn(),
+  auditLog: vi.fn(),
 }));
 
 vi.mock("@asym/auth/context", async (importOriginal) => ({
@@ -37,7 +39,13 @@ vi.mock("@asym/database/supabase/admin", () => ({
 }));
 
 vi.mock("@asym/lib/audit/logger", () => ({
-  createAuditLogger: vi.fn(() => ({})),
+  createAuditLogger: vi.fn(() => ({
+    log: h.auditLog,
+  })),
+}));
+
+vi.mock("@asym/lib/monitoring/sentry", () => ({
+  captureError: h.captureError,
 }));
 
 vi.mock(
@@ -115,6 +123,8 @@ describe("AL-2676 WP3c item 7: member directory access and member management com
     h.auth.mockReset();
     h.session.mockReset();
     h.serviceKeyUsed.mockReset();
+    h.captureError.mockReset();
+    h.auditLog.mockReset();
   });
 
   it("R3: opens GET /api/admin/users to all live staff assignments and refuses missionary and donor sessions", async () => {
@@ -310,7 +320,12 @@ describe("AL-2676 WP3c item 7: member directory access and member management com
       }),
     );
     expect(inviteRes.status).toBe(201);
-    expect(inviteRes.headers.get("cache-control")).toBe("no-store");
+    expect(inviteRes.headers.get("cache-control")).toBe(
+      "private, no-store, no-transform, max-age=0",
+    );
+    expect(inviteRes.headers.get("cdn-cache-control")).toBe("no-store");
+    expect(inviteRes.headers.get("vercel-cdn-cache-control")).toBe("no-store");
+    expect(inviteRes.headers.get("referrer-policy")).toBe("no-referrer");
     expect(await inviteRes.json()).toMatchObject({
       invitePath: `/invite/${"a".repeat(32)}#${"b".repeat(43)}`,
     });
@@ -392,5 +407,123 @@ describe("AL-2676 WP3c item 7: member directory access and member management com
     expect(await conflict.json()).toMatchObject({
       code: "CONCURRENT_MODIFICATION",
     });
+  });
+
+  it("R13: marks invite responses private/no-store for browser and CDN and never writes raw verifier or link to logs, Sentry, or error bodies", async () => {
+    const sentinelSelector = "r13sel" + "a".repeat(26);
+    const sentinelVerifier = "r13ver" + "b".repeat(37);
+    const sentinelLink = `/invite/${sentinelSelector}#${sentinelVerifier}`;
+    const consoleSpies = [
+      vi.spyOn(console, "log").mockImplementation(() => {}),
+      vi.spyOn(console, "info").mockImplementation(() => {}),
+      vi.spyOn(console, "warn").mockImplementation(() => {}),
+      vi.spyOn(console, "error").mockImplementation(() => {}),
+      vi.spyOn(console, "debug").mockImplementation(() => {}),
+    ];
+
+    try {
+      h.auth.mockResolvedValue(makeAuth("staff", { isTenantAdmin: true }));
+      h.session.mockResolvedValue({
+        rpc: vi.fn().mockResolvedValue({
+          data: {
+            invitation_id: INV_ID,
+            tenant_id: TENANT,
+            selector: sentinelSelector,
+            verifier: sentinelVerifier,
+            expires_at: "2026-11-30T00:00:00.000Z",
+            role: "staff",
+            staff_role: "finance",
+            is_tenant_admin: false,
+          },
+          error: null,
+        }),
+      });
+
+      const okRes = await invitationsPOST(
+        jsonRequest("/api/admin/members/invitations", {
+          email: "r13@example.org",
+          role: "staff",
+          staffRole: "finance",
+          isTenantAdmin: false,
+          reason: "R13 privacy proof",
+        }),
+      );
+      expect(okRes.status).toBe(201);
+      expect(okRes.headers.get("cache-control")).toBe(
+        "private, no-store, no-transform, max-age=0",
+      );
+      expect(okRes.headers.get("cdn-cache-control")).toBe("no-store");
+      expect(okRes.headers.get("vercel-cdn-cache-control")).toBe("no-store");
+      expect(okRes.headers.get("referrer-policy")).toBe("no-referrer");
+      const okPayload = await okRes.json();
+      expect(okPayload.invitePath).toBe(sentinelLink);
+
+      h.session.mockResolvedValue({
+        rpc: vi
+          .fn()
+          .mockRejectedValue(
+            new Error(
+              `unexpected rpc crash with ${sentinelVerifier} and ${sentinelLink}`,
+            ),
+          ),
+      });
+      const thrownRes = await invitationsPOST(
+        jsonRequest("/api/admin/members/invitations", {
+          email: "r13@example.org",
+          role: "staff",
+          staffRole: "finance",
+          isTenantAdmin: false,
+          reason: "R13 thrown crash proof",
+        }),
+      );
+      expect(thrownRes.status).toBe(500);
+      const thrownText = await thrownRes.text();
+      expect(thrownText).not.toContain(sentinelVerifier);
+      expect(thrownText).not.toContain(sentinelLink);
+
+      h.session.mockResolvedValue({
+        rpc: vi.fn().mockResolvedValue({
+          data: null,
+          error: {
+            code: "XX000",
+            message: `db failure echoing ${sentinelVerifier} and ${sentinelLink}`,
+          },
+        }),
+      });
+      const rpcErrRes = await invitationsPOST(
+        jsonRequest("/api/admin/members/invitations", {
+          email: "r13@example.org",
+          role: "staff",
+          staffRole: "finance",
+          isTenantAdmin: false,
+          reason: "R13 rpc 500 proof",
+        }),
+      );
+      expect(rpcErrRes.status).toBe(500);
+      expect(rpcErrRes.headers.get("cache-control")).toBe(
+        "private, no-store, no-transform, max-age=0",
+      );
+      expect(rpcErrRes.headers.get("cdn-cache-control")).toBe("no-store");
+      const rpcErrText = await rpcErrRes.text();
+      expect(rpcErrText).not.toContain(sentinelVerifier);
+      expect(rpcErrText).not.toContain(sentinelLink);
+
+      const serializedDiagnostics = JSON.stringify([
+        ...consoleSpies.flatMap((spy) => spy.mock.calls),
+        ...h.captureError.mock.calls.map(([err, ctx, tags]) => ({
+          name: err instanceof Error ? err.name : null,
+          message: err instanceof Error ? err.message : String(err),
+          stack: err instanceof Error ? err.stack : null,
+          ctx,
+          tags,
+        })),
+        ...h.auditLog.mock.calls,
+      ]);
+      expect(serializedDiagnostics).not.toContain(sentinelVerifier);
+      expect(serializedDiagnostics).not.toContain(sentinelLink);
+      expect(h.captureError).toHaveBeenCalledTimes(1);
+    } finally {
+      for (const spy of consoleSpies) spy.mockRestore();
+    }
   });
 });
