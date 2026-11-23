@@ -30,7 +30,7 @@ The Core challenge is:
 - generated server-side with 256 bits of cryptographic entropy;
 - opaque and free of Tenant, Site, actor, provider, or historical identifiers;
 - bound to one immutable verification-attempt ID, exact canonical ASCII
-  hostname, Tenant, environment, Site, challenge generation, and purpose;
+  hostname, Tenant, environment, optional Site, challenge generation, and purpose;
 - published as one exact-host DNS TXT record and observed only by a trusted
   server-side DNS verifier;
 - valid for seven calendar days, with an absolute expiry time and timezone shown
@@ -60,7 +60,7 @@ DNS cannot participate in a database transaction. Immediately after a current
 trusted DNS lookup observes the exact unexpired challenge, one short stable-
 order PostgreSQL transaction must:
 
-1. reauthorize the current human and exact Tenant/environment/Site;
+1. reauthorize the current human (or operator, for a first name) and exact Tenant/environment (and Site, if bound);
 2. lock/reload the immutable canonical hostname identity and attempt;
 3. prove the challenge is current, unexpired, unconsumed, and bound to the
    requested exact scope;

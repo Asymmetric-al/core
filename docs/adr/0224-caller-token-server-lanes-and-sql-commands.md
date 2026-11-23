@@ -41,13 +41,13 @@ caller's own token with SQL command functions. It chose the third (plan, decisio
    executable only by the service key, takes no tenant from its caller, and is
    reached through a wrapper that derives the tenant from a stored anchor (a
    provider event's account, a gift, a publish intent, an import batch, or the
-   Site or home record, the donor-portal host record's ID now meaning the organization's home domain, for intake). The guard-owned function reads
+   Site or home record, the donor-portal host record's ID now meaning the organization's home domain (amended 2026-11-24), for intake). The guard-owned function reads
    the anchor again under its own policy and refuses if the two disagree.
    Deferred work whose writes were not decided when the person acted stores that
    person's assignment and resolves it again before it writes.
 5. **Two named system entries complete a person's or a visitor's request.** Gift
    intake from the public site derives the tenant from the Site row or the
-   home record (the donor-portal host record) and accepts no tenant argument (ADR-0236 adds its
+   home record (the donor-portal host record; amended 2026-11-24) and accepts no tenant argument (ADR-0236 adds its
    abuse controls). Publish fulfilment acts only on an intent that the
    publisher's own token recorded (ADR-0229).
 6. **Commands that cross tenants live in a `platform` schema.** Provisioning,

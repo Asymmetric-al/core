@@ -1612,8 +1612,7 @@ must bind one exact qualified recipient authority through the rules below. The
 ordinary branch is Party/contact authority. Phase 28 D43 admits one narrow
 exception: its qualified native newsletter confirmation producer may bind the
 exact same-Tenant non-constituent recipient-authority revision and P28 source
-occurrence instead. It uses the same protected-action protocol, fixed verified
-Tenant Donor Portal origin, assurance and current source checks. It creates no
+occurrence instead. It uses the same protected-action protocol, the fixed origin of the organization's verified name for that surface (amended 2026-11-24), assurance and current source checks. It creates no
 Party, contact, Auth user, account claim, workforce assignment or generalized
 private-access grant; it admits no arbitrary recipient or other producer. Every
 platform-scoped contract must declare `action: none`; the compiler rejects any

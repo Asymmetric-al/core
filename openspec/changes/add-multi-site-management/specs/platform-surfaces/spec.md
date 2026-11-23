@@ -18,6 +18,5 @@ Every clause in `openspec/contracts/platform-surfaces.md#contract-3ed4631633d003
 #### Scenario: A donor enters account history from a regional Site
 
 - WHEN a donor follows the validated account action
-- THEN that environment's one Tenant portal host and the Tenant Donor Account
-  Brand render all authorized cross-Site history
+- THEN that environment's one designated Tenant home domain and the Tenant Donor Account Brand render all authorized cross-Site history
 - AND the regional Site does not reskin, partition, or authorize the account

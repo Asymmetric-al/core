@@ -400,8 +400,7 @@ Good tests here assert **external behavior and safety invariants**, not implemen
 - [ ] A scheduled self-healing dedupe scan surfaces within-tenant candidates without auto-merging.
 - [ ] **Cross-tenant negative tests are green**; every tenant table has `FORCE` RLS + a policy; the tenant-guard and branding CI gates pass.
 - [ ] Every identity surface (auth emails, login, claim, protected Tenant
-      action, recovery, portal, and sign-out) is Tenant-brand-native on the one
-      current Tenant Donor Portal Host; no cross-tenant or donor-visible Asym
+      action, recovery, portal, and sign-out) is Tenant-brand-native on the one current designated home domain (amended 2026-11-24); no cross-tenant or donor-visible Asym
       surface appears, and branding/host never substitutes for authorization.
 - [ ] Direct, email, recovery, bookmarked, and every same-Tenant Site entry
       render the same Tenant Donor Account Brand. Changing the Default Site,

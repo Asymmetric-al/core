@@ -94,7 +94,7 @@ recommendation, and the smallest test for each, is plan section 11.4.
 
 - Apps: `apps/admin` (Mission Control, Web Studio, operator area, preview),
   `apps/donor` (public site proxy admission, checkout, donor portal),
-  `apps/missionary` (workspace under a tenant segment).
+  `apps/missionary` (workspace under `/missionary` on the home domain; amended 2026-11-24).
 - Packages: `packages/api` (principal resolver, projection resolver,
   `withOperation`, public reader, storage module, Auth admin module, money
   commands' callers), `packages/auth` (capability registry, proxy role check),

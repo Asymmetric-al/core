@@ -1534,7 +1534,7 @@ Present guides as clear links, with a concise visible/screen-reader indication t
 
 Applies to **US26-D29-03**, acceptance **AC26-D29-03-01–03**.
 
-The public adapter derives scope from trusted public host/route/current P23 generation and exact released form. The app adapter derives current portal/app tenant/principal, approved entry and exact purpose/route binding through its owner. Qualify both against one common Contact purpose/occurrence/Support handoff contract; no second submissions ledger. A portal host is not a public Site; a browser-supplied Site/tenant/form ID cannot establish scope. App guidance references use qualified published public content without personalizing CMS body/list output. Public and app releases have their own receipts/readiness; do not claim a cross-owner atomic publish or silently read an unreleased mutable “latest” configuration.
+The public adapter derives scope from trusted public host/route/current P23 generation and exact released form. The app adapter derives current portal/app tenant/principal, approved entry and exact purpose/route binding through its owner. Qualify both against one common Contact purpose/occurrence/Support handoff contract; no second submissions ledger. The donor account surface is not a public Site; a browser-supplied Site/tenant/form ID cannot establish scope. App guidance references use qualified published public content without personalizing CMS body/list output. Public and app releases have their own receipts/readiness; do not claim a cross-owner atomic publish or silently read an unreleased mutable “latest” configuration.
 
 ### REQ26-D29-R11 — D29-R11 Prefill and shared-device safety
 
