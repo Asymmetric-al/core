@@ -102,4 +102,42 @@ describe("admin shell identity", () => {
       tenant: { id: "tenant-1", name: "", slug: "" },
     });
   });
+
+  it("forwards selected assignment capabilities without granting care.access to non-care admins", async () => {
+    profileQuery.mockResolvedValue({ data: null });
+    tenantQuery.mockResolvedValue({ data: null });
+    Object.assign(auth, {
+      role: "admin",
+      memberships: [
+        {
+          tenantId: "tenant-1",
+          role: "staff",
+          staffRole: "development",
+          isTenantAdmin: true,
+          isActive: true,
+        },
+      ],
+    });
+    const adminShell = (await getTenantShell("/")).shellState as unknown as {
+      capabilities: string[];
+    };
+    expect(adminShell.capabilities).not.toContain("care.access");
+
+    Object.assign(auth, {
+      role: "staff",
+      memberships: [
+        {
+          tenantId: "tenant-1",
+          role: "staff",
+          staffRole: "member_care",
+          isTenantAdmin: false,
+          isActive: true,
+        },
+      ],
+    });
+    const careShell = (await getTenantShell("/")).shellState as unknown as {
+      capabilities: string[];
+    };
+    expect(careShell.capabilities).toContain("care.access");
+  });
 });

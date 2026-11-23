@@ -26,6 +26,8 @@ interface MCContextValue {
   user: User | null;
   tenant: Tenant | null;
   role: Role;
+  capabilities: readonly string[];
+  hasCapability: (capability: string) => boolean;
   setRole: (role: Role) => void;
   isDevMode: boolean;
   sidebarCollapsed: boolean;
@@ -38,6 +40,7 @@ type MCState = {
   user: User | null;
   tenant: Tenant | null;
   role: Role;
+  capabilities: readonly string[];
   sidebarCollapsed: boolean;
   loading: boolean;
 };
@@ -50,6 +53,7 @@ const INITIAL_MC_STATE: MCState = {
   // id that could be sent to Eve as the signed-in organization.
   tenant: null,
   role: "admin",
+  capabilities: [],
   sidebarCollapsed: false,
   loading: false,
 };
@@ -69,6 +73,9 @@ function createInitialMCState(initialState?: MCBootstrapState | null): MCState {
     user: initialState.user,
     tenant: initialState.tenant ?? null,
     role: initialState.role,
+    capabilities: initialState.capabilities
+      ? [...initialState.capabilities]
+      : [],
     sidebarCollapsed: false,
     loading: false,
   };
@@ -85,6 +92,7 @@ function mcReducer(state: MCState, action: MCAction): MCState {
         ...state,
         user: null,
         role: "admin",
+        capabilities: [],
         loading: false,
       };
     case "setLoadingComplete":
@@ -106,9 +114,14 @@ export function MCProvider({
     initialState,
     createInitialMCState,
   );
-  const { user, tenant, role, sidebarCollapsed, loading } = state;
+  const { user, tenant, role, capabilities, sidebarCollapsed, loading } = state;
   const isDevMode = runtimeEnvFlags.NODE_ENV === "development";
   const currentUserRef = useRef(user);
+
+  const hasCapability = useCallback(
+    (capability: string) => capabilities.includes(capability),
+    [capabilities],
+  );
 
   useEffect(() => {
     currentUserRef.current = user;
@@ -165,6 +178,8 @@ export function MCProvider({
       user,
       tenant,
       role,
+      capabilities,
+      hasCapability,
       setRole,
       isDevMode,
       sidebarCollapsed,
@@ -176,6 +191,8 @@ export function MCProvider({
       user,
       tenant,
       role,
+      capabilities,
+      hasCapability,
       setRole,
       isDevMode,
       sidebarCollapsed,

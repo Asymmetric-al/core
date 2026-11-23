@@ -4,10 +4,12 @@ export interface MCBootstrapState {
   user: User | null;
   tenant: Tenant | null;
   role: Role;
+  capabilities: readonly string[];
 }
 
 interface CreateMCBootstrapStateInput {
   avatarUrl?: string | null;
+  capabilities?: readonly string[] | null;
   email?: string | null;
   firstName?: string | null;
   lastName?: string | null;
@@ -58,6 +60,7 @@ export function createMCBootstrapState(
 
   return {
     role,
+    capabilities: input.capabilities ? [...input.capabilities] : [],
     tenant,
     user:
       input.userId && input.tenantId

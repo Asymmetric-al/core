@@ -6,6 +6,7 @@ import {
   useTenantRouter as useRouter,
 } from "@asym/auth/tenant-navigation";
 import { navigation } from "@asym/config/navigation";
+import { isTileAllowed } from "@asym/config/tiles";
 import { useMC } from "@asym/lib/mission-control/context";
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
 import { TILES } from "@asym/lib/mission-control/tiles";
@@ -102,8 +103,10 @@ function buildOverviewMetrics(stats: DashboardStats): OverviewMetric[] {
   ];
 }
 
-function moduleCountSummary(role: Role) {
-  const inRole = TILES.filter((tile) => tile.roles.includes(role));
+function moduleCountSummary(role: Role, capabilities: readonly string[]) {
+  const inRole = TILES.filter((tile) =>
+    isTileAllowed(tile, role, capabilities),
+  );
   const notSetUp = inRole.filter((tile) => tile.unavailableReason).length;
   const outsideRole = TILES.length - inRole.length;
   const parts = [
@@ -127,9 +130,10 @@ function moduleCountSummary(role: Role) {
 }
 
 export function MissionControlHome({ stats = null }: MissionControlHomeProps) {
-  const { role } = useMC();
+  const { role, capabilities = [] } = useMC();
   const canOpenContributions = TILES.some(
-    (tile) => tile.id === "contributions" && tile.roles.includes(role),
+    (tile) =>
+      tile.id === "contributions" && isTileAllowed(tile, role, capabilities),
   );
   const [showAllTools, setShowAllTools] = useState(false);
   const [modulesExpanded, setModulesExpanded] = useState(false);
@@ -138,12 +142,17 @@ export function MissionControlHome({ stats = null }: MissionControlHomeProps) {
   const modulesListId = useId();
 
   const visibleTiles = TILES.filter(
-    (tile) => tile.roles.includes(role) && !tile.unavailableReason,
+    (tile) =>
+      isTileAllowed(tile, role, capabilities) && !tile.unavailableReason,
   );
   const allTiles = [...TILES].sort(
     (a, b) =>
-      Number(Boolean(a.unavailableReason) || !a.roles.includes(role)) -
-      Number(Boolean(b.unavailableReason) || !b.roles.includes(role)),
+      Number(
+        Boolean(a.unavailableReason) || !isTileAllowed(a, role, capabilities),
+      ) -
+      Number(
+        Boolean(b.unavailableReason) || !isTileAllowed(b, role, capabilities),
+      ),
   );
   const workspaceTiles = [...visibleTiles].sort(
     (first, second) => sidebarRank(first.id) - sidebarRank(second.id),
@@ -207,6 +216,7 @@ export function MissionControlHome({ stats = null }: MissionControlHomeProps) {
           onOpenChange={setShowAllTools}
           allTiles={allTiles}
           role={role}
+          capabilities={capabilities}
         >
           <section
             aria-labelledby={modulesHeadingId}
@@ -226,7 +236,7 @@ export function MissionControlHome({ stats = null }: MissionControlHomeProps) {
               </div>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <p className="text-xs text-muted-foreground">
-                  {moduleCountSummary(role)}
+                  {moduleCountSummary(role, capabilities)}
                 </p>
                 <ModuleCatalogTrigger />
               </div>
@@ -291,12 +301,14 @@ function ModuleCatalogDialog({
   onOpenChange,
   allTiles,
   role,
+  capabilities,
   children,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   allTiles: Tile[];
   role: Role;
+  capabilities: readonly string[];
   children: ReactNode;
 }) {
   return (
@@ -312,7 +324,7 @@ function ModuleCatalogDialog({
         <div className="grid gap-3 py-4 sm:grid-cols-2 lg:grid-cols-3">
           {allTiles.map((tile) => {
             const Icon = getIcon(tile.icon);
-            const hasAccess = tile.roles.includes(role);
+            const hasAccess = isTileAllowed(tile, role, capabilities);
             const available = hasAccess && !tile.unavailableReason;
             return (
               <div

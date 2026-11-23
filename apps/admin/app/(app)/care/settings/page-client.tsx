@@ -1,11 +1,13 @@
 "use client";
 
 import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import { useMC } from "@asym/lib/mission-control/context";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { useId } from "react";
 
 import { CHECK_IN_INTERVAL_DAYS } from "@/features/mission-control/care/components/care-display";
+import { CareNoAccessState } from "@/features/mission-control/care/components/care-no-access-state";
 import {
   RECENT_CHECK_IN_WINDOW_DAYS,
   UPCOMING_BIRTHDAY_WINDOW_DAYS,
@@ -35,6 +37,17 @@ function RuleSection({
 }
 
 export default function CareSettingsPage() {
+  const { capabilities = [] } = useMC();
+
+  if (!capabilities.includes("care.access")) {
+    return (
+      <CareNoAccessState
+        title="Care rules"
+        description="How contact schedules and care status decide who needs follow-up."
+      />
+    );
+  }
+
   return (
     <PageShell
       title="Care rules"

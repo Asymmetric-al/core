@@ -1,4 +1,5 @@
 import {
+  contextCapabilities,
   getAuthContext,
   hasAnyContextRole,
   requestScopeOf,
@@ -132,6 +133,9 @@ async function loadShellState(
     lastName: profile?.last_name,
     avatarUrl: profile?.avatar_url,
     role: auth.role,
+    capabilities: Array.isArray(auth.memberships)
+      ? [...contextCapabilities(auth)]
+      : [],
     tenantId,
     tenant: normalizeTenant(tenant ?? null, tenantId),
   });
