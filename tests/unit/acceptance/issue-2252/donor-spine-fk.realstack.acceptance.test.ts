@@ -21,6 +21,7 @@ import {
   NEW_FK,
   OLD_FK,
   OTHER_COMPOSITE,
+  AL2678_D18,
   PREFLIGHT_QUERY,
   ROLLBACK,
   SPINE,
@@ -285,7 +286,7 @@ describe.skipIf(!ADMIN_URL)("#2252 donor spine composite FKs (R)", () => {
         ).toEqual([[cx, kind === "cross" ? "cross_tenant" : "null_tenant"]]);
       }));
 
-  it("C5/C6: the evaluator passes: 7 spine FKs, 23 FKs into donors = 7 spine + 14 follow-ups + #2255's 2 composite", () =>
+  it(`C5/C6: the evaluator passes: 7 spine FKs, 24 FKs into donors = 7 spine + 11 follow-ups + 6 other composite (#2255's 2, AL-2678's 4); ${AL2678_D18}`, () =>
     tx(async () => {
       const r = await rows();
       expect(evaluate(r)).toEqual([]);
@@ -296,7 +297,7 @@ describe.skipIf(!ADMIN_URL)("#2252 donor spine composite FKs (R)", () => {
       expect(into).toEqual(
         [...SPINE.map(([, n]) => n), ...FOLLOW_UPS, ...OTHER_COMPOSITE].sort(),
       );
-      expect(into).toHaveLength(23);
+      expect(into).toHaveLength(24);
       for (const n of OTHER_COMPOSITE) {
         const x = r.find((y) => y.name === n)!;
         expect([x.cols, x.refCols, x.validated], n).toEqual([

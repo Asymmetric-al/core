@@ -2,30 +2,6 @@
   "description": "Signed-in policies in public that carry no request-tenant condition, or that reach their tenant through a parent row, each reviewed, pinned to its deparsed text, its command, its sorted roles and whether it is permissive, and named with the package that ends it. The catalog gate (scripts/verify/tenant-rls-catalog.mjs) fails any other signed-in policy of a tenant table without the condition, any signed-in policy that is not listed here on a table that reaches its tenant through a parent (PARENT_SCOPED_POLICY_NOT_PINNED), a listed policy whose text, command, roles or kind changes (POLICY_EXCEPTION_CHANGED) and a listed policy that is gone (POLICY_EXCEPTION_STALE). See docs/security/tenant-policy-activation-review.md, section 3, the coordinator's rulings of 19 November 2026 on its questions 3 and 4, and the council's R3.",
   "entries": [
     {
-      "table": "account_claim_requests",
-      "policy": "account_claim_requests_requester_select",
-      "cmd": "SELECT",
-      "roles": ["authenticated"],
-      "permissive": true,
-      "using": "(requested_by = ( SELECT auth.uid() AS uid))",
-      "check": null,
-      "reason": "The requester's own claim rows. A claimant may hold no membership in the tenant yet, so a tenant condition would hide their own claim from them. An accepted earlier decision gave the requester this read and the frozen suite of issue 2255 pins it. The row shows the claimant donor_id, match_type, match_confidence and resolved_by. Nothing reads it on a signed-in token today.",
-      "ends": "WP5, which builds account claims and decides what a claimant sees",
-      "ruling": "activation review Q4"
-    },
-    {
-      "table": "donor_activities",
-      "policy": "donor activities owner or staff select",
-      "cmd": "SELECT",
-      "roles": ["authenticated"],
-      "permissive": true,
-      "using": "(( SELECT authz.is_super_admin() AS is_super_admin) OR (EXISTS ( SELECT 1\n   FROM donors d\n  WHERE ((d.id = donor_activities.donor_id) AND (d.tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)) AND (( SELECT authz.assignment_is('staff'::authz.membership_role) AS assignment_is) OR (( SELECT authz.assignment_is('donor'::authz.membership_role) AS assignment_is) AND (d.profile_id IN ( SELECT authz.caller_profile_ids() AS caller_profile_ids))))))))",
-      "check": null,
-      "reason": "No tenant column: an activity reaches its tenant through its donor. The policy carries the request's tenant on the donor row (d.tenant_id = the current tenant), and the staff class or the caller's own donor record under a donor assignment, beside the super-admin branch. Pinned so that a second permissive policy on the table, which Postgres would OR with it, fails the gate (council R3).",
-      "ends": "WP2c removes its super-admin branch; the parent-scoped form is permanent",
-      "ruling": "council R3"
-    },
-    {
       "table": "field_policies",
       "policy": "field_policies_read",
       "cmd": "SELECT",
@@ -115,9 +91,9 @@
       "cmd": "SELECT",
       "roles": ["authenticated"],
       "permissive": true,
-      "using": "((user_id = ( SELECT auth.uid() AS uid)) OR (id = ( SELECT auth.uid() AS uid)))",
+      "using": "(user_id = ( SELECT auth.uid() AS uid))",
       "check": null,
-      "reason": "The caller's own profile, read with no tenant header by sign-in, the session helpers and the health probe. The row is the person's, not a tenant's (plan 5.1: a profile is readable by its owner only).",
+      "reason": "The caller's own profile, read with no tenant header by sign-in, the session helpers and the health probe. The row is the person's, not a tenant's (plan 5.1: a profile is readable by its owner only). Since AL-2678 (WP5 part 1, D-76, W5-R3) a profile's user_id equals its id, by NOT NULL and a check, so the policy matches user_id alone.",
       "ends": "WP5, which drops profiles.tenant_id, after which profiles is no longer a tenant table",
       "ruling": "plan 5.1"
     }

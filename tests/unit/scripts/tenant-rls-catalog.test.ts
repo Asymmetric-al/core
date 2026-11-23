@@ -126,8 +126,25 @@ const allow = (...fns: string[]) => ({
 
 describe("WP4 command boundaries", () => {
   it("pins the complete pre-membership list and its independent review", () => {
-    expect(preMembershipEntries).toEqual([]);
-    expect(reviewedPreMembership).toEqual({});
+    expect(preMembershipEntries.map((entry) => entry.function)).toEqual([
+      "tenant_guard.start_account_claim(p_tenant_id uuid)",
+      "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)",
+    ]);
+    expect(
+      Object.fromEntries(
+        Object.entries(reviewedPreMembership).map(([name, pin]) => [
+          name,
+          pin.digest,
+        ]),
+      ),
+    ).toEqual({
+      "tenant_guard.start_account_claim(p_tenant_id uuid)":
+        "0eb7f34bea12adec6e5528d2d3175861f93d05a1e59af6d26598d7215aa0c540",
+      "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)":
+        "8e62b609fc3e4088c4283f7fcda6df9c78f1fa9b34536b36e7129439630cf849",
+    });
+    for (const entry of preMembershipEntries)
+      expect(reviewedPreMembership[entry.function]?.reason).toBe(entry.reason);
   });
   it("uses exactly the capability registry's sorted keys", () =>
     expect(keys).toEqual(Object.keys(CAPABILITY_REGISTRY).sort()));

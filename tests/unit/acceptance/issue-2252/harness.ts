@@ -42,18 +42,19 @@ export const SPINE: [string, string][] = [
   ["donor_merge_audit", "donor_merge_audit_surviving_donor_same_tenant_fk"],
   ["donor_merge_audit", "donor_merge_audit_merged_donor_same_tenant_fk"],
 ];
-/** Spec §3 / OQ4: the frozen, shrink-only follow-up list of 14. */
+/** Spec §3 / OQ4: the frozen, shrink-only follow-up list. */
 export const FOLLOW_UPS = `campaigns_creator_donor_id_fkey
   contribution_notification_events_recipient_donor_id_fkey
   contribution_operation_audit_events_donor_id_fkey
-  donation_saga_outbox_donor_id_fkey donor_activities_donor_id_fkey
+  donation_saga_outbox_donor_id_fkey
   donor_feed_preferences_donor_id_fkey donor_pledges_donor_id_fkey
-  follower_requests_donor_id_fkey follows_donor_id_fkey
-  missionary_tasks_donor_id_fkey notification_queue_donor_id_fkey
+  follows_donor_id_fkey notification_queue_donor_id_fkey
   notification_queue_recipient_donor_id_fkey
   pledge_charge_attempts_donor_id_fkey staged_gifts_donor_id_fkey`
   .split(/\s+/)
   .filter(Boolean);
+export const AL2678_D18 =
+  "D-18, AL-2678 (WP5 part 1): donor_activities_donor_id_fkey, follower_requests_donor_id_fkey and missionary_tasks_donor_id_fkey became same-tenant composite keys, so they left the shrink-only follow-up list (14 to 11) for OTHER_COMPOSITE, beside the new external_identifiers_donor_same_tenant_fk";
 /**
  * Composite donor FKs added by other issues: tenant-safe already, so neither
  * spine nor follow-up. #2255's claim tables (20261025090000, develop d1f0af94).
@@ -62,6 +63,10 @@ export const FOLLOW_UPS = `campaigns_creator_donor_id_fkey
 export const OTHER_COMPOSITE = [
   "account_claim_requests_donor_same_tenant_fk",
   "legacy_account_invitations_donor_same_tenant_fk",
+  "donor_activities_donor_same_tenant_fk",
+  "follower_requests_donor_same_tenant_fk",
+  "missionary_tasks_donor_id_fkey",
+  "external_identifiers_donor_same_tenant_fk",
 ];
 
 /** Spec §2 In 3, verbatim: the read-only operator preflight query. */
