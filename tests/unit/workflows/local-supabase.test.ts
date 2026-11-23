@@ -195,4 +195,19 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
       expect(workflow).toContain(`      - ${path}\n`);
     }
   });
+  it("runs the WP8a part 1 real-stack suite on the seeded stack after fingerprinting (finding 17)", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2681/wp8a-part1.realstack.acceptance.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(marker);
+    expect(run).toBeDefined();
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    expect(run).toContain(
+      "TENANT_GUARD_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    );
+    expect(at(marker)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
+    expect(at(marker)).toBeLessThan(at("name: Install Playwright Chromium"));
+    expect(workflow).toContain(`      - ${suite}\n`);
+    expect(workflow).not.toContain("supabase/seed-expectations.json");
+  });
 });
