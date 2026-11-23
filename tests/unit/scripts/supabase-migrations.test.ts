@@ -128,7 +128,7 @@ function runVerifier(
   const acceptInvitationMigrationSql = readFileSync(
     path.join(
       root,
-      "supabase/migrations/20261121040100_wp3c_invitation_and_operator_commands.sql",
+      "supabase/migrations/20261123040100_wp3c_invitation_and_operator_commands.sql",
     ),
     "utf8",
   );
@@ -138,7 +138,7 @@ function runVerifier(
     );
   if (!acceptInvitationBodyMatch?.[1]) {
     throw new Error(
-      "Could not extract tenant_guard.accept_membership_invitation body from 20261121040100 migration",
+      "Could not extract tenant_guard.accept_membership_invitation body from 20261123040100 migration",
     );
   }
   const gate = {
