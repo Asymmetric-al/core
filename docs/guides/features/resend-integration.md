@@ -338,9 +338,22 @@ Rotating it without migration will make existing tenant keys unreadable.
 1. Export all connected tenant rows from `tenant_email_settings`.
 2. Decrypt each stored key using the current `RESEND_ENCRYPTION_KEY`.
 3. Re-encrypt each key using the new `RESEND_ENCRYPTION_KEY`.
-4. Update encrypted values atomically (maintenance window recommended).
-5. Deploy with the new `RESEND_ENCRYPTION_KEY`.
-6. Verify tenants can still hydrate integration state and send test email.
+4. Update encrypted values atomically, each only where
+   `resend_api_key_encrypted` still matches the export of step 1, so that a key
+   a tenant saved since is not overwritten (maintenance window recommended).
+5. Deploy with the new `RESEND_ENCRYPTION_KEY` on every deployment that reads
+   this database, together. Until WP11, Production, `core-development` and
+   ordinary previews share one database
+   ([environments](../../ops/environments.md)); a deployment left on the old
+   value cannot decrypt the re-encrypted keys.
+6. Re-encrypt late writes. No setting pauses saves, so select the rows that
+   hold a key and whose `updated_at` is later than the export of step 1. Try
+   the new value first and skip every row it decrypts: a key saved after the
+   deployment is already encrypted with it. A row that decrypts only with the
+   old value was saved during the rotation: re-encrypt it and update it only if
+   its stored value has not changed since you read it. Keep the old value until
+   every row that holds a key decrypts with the new one.
+7. Verify tenants can still hydrate integration state and send test email.
 
 Rollback: restore prior encrypted values and prior `RESEND_ENCRYPTION_KEY`.
 
