@@ -115,11 +115,14 @@ describe("Item 6b: server redirects (Server Component, JS action, no-JS MPA acti
     );
   });
 
-  it("prefixes Web Studio organization action redirects ONLY for no-JS MPA POSTs when on, never doubling JS fetch actions", async () => {
+  it("prefixes Web Studio organization action redirects ONLY for no-JS MPA POSTs when on, never doubling JS fetch actions (D-18, N2 part 1: on, the proxy sets the verified name the action now reads)", async () => {
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
     vi.stubEnv("CORE_APP_BASE_PATH", "/admin");
 
-    state.requestHeaders = new Headers({ "next-action": "action-hash-123" });
+    state.requestHeaders = new Headers({
+      "next-action": "action-hash-123",
+      "x-asym-name-tenant": TA,
+    });
     const jsTarget = await catchRedirect(() =>
       chooseWebStudioOrganization(
         form({
@@ -133,7 +136,7 @@ describe("Item 6b: server redirects (Server Component, JS action, no-JS MPA acti
     expect(state.setCookies[0]?.path).toBe("/admin/web-studio");
 
     state.setCookies = [];
-    state.requestHeaders = new Headers();
+    state.requestHeaders = new Headers({ "x-asym-name-tenant": TA });
     const mpaTarget = await catchRedirect(() =>
       chooseWebStudioOrganization(
         form({

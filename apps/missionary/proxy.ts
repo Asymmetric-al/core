@@ -2,6 +2,7 @@ import {
   admitExemptRequest,
   admitFromFront,
   asStampedRequest,
+  frontNotFound,
   frontRefusal,
   MISSIONARY_EXEMPT_PATHS,
   rebaseLocation,
@@ -9,6 +10,10 @@ import {
 } from "@asym/auth/front";
 import { createAuthMiddleware } from "@asym/auth/middleware";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
+import {
+  lookUpVerifiedName,
+  verifiedNameUnavailable,
+} from "@asym/auth/verified-name";
 import {
   APP_BASE_PATHS,
   isServeUnderPathsEnabled,
@@ -55,7 +60,16 @@ export async function proxy(request: NextRequest) {
   if (admission.kind === "exempt") {
     return admitExemptRequest(request, admission.pathname, "missionary");
   }
-  const response = await authProxy(asStampedRequest(request, admission.origin));
+  const name = await lookUpVerifiedName(
+    new URL(admission.origin).host,
+    "missionary",
+  );
+  if (name.kind === "refused") return frontNotFound();
+  if (name.kind === "unavailable") return verifiedNameUnavailable();
+  const response = await authProxy(
+    asStampedRequest(request, admission.origin),
+    { nameTenantId: name.tenantId },
+  );
   return rebaseLocation(response, request.nextUrl.origin, admission.origin);
 }
 

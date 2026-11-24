@@ -134,6 +134,7 @@ export type {
   LegalEntity,
   PaymentAccountBinding,
   Follow,
+  SiteFunctions,
 } from "./database";
 
 export type {

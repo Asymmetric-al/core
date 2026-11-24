@@ -49,7 +49,7 @@ describe("Eve admin cookie authentication", () => {
     });
   });
 
-  it("authenticates Request cookies without a Next request scope", async () => {
+  it('authenticates Request cookies without a Next request scope (D-18, N2 part 1: the unproxied assistant also passes nameTenant: "ignore")', async () => {
     getAuthContextMock.mockImplementation(async (request: Request) => {
       if (
         request.headers.get("authorization") !== "Bearer cookie-access-token"
@@ -107,10 +107,11 @@ describe("Eve admin cookie authentication", () => {
     // surface's role class itself: Eve admin sessions act on a staff row.
     expect(getAuthContextMock.mock.calls[0]?.[1]).toEqual({
       roleClass: "staff",
+      nameTenant: "ignore",
     });
   });
 
-  it("names the staff role class for a bearer request too", async () => {
+  it('names the staff role class for a bearer request too (D-18, N2 part 1: and never reads the verified-name header, nameTenant: "ignore")', async () => {
     getAuthContextMock.mockResolvedValue(verifiedAdmin);
     await resolveAdminEveSessionIdentity(
       new Request("https://eve.test/eve/v1/session", {
@@ -120,6 +121,7 @@ describe("Eve admin cookie authentication", () => {
     );
     expect(getAuthContextMock).toHaveBeenCalledWith(expect.any(Request), {
       roleClass: "staff",
+      nameTenant: "ignore",
     });
   });
 });

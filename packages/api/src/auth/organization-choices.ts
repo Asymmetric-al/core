@@ -3,12 +3,17 @@ import "server-only";
 import { getSignedInAssignments } from "@asym/auth/context";
 import { safeNextParam } from "@asym/auth/demo-login";
 import {
+  isNameTenantRefused,
+  nameTenantIdOf,
+} from "@asym/auth/request-headers";
+import {
   CHOOSER_PATH,
   isOutsideTenantSegment,
   stripTenantAddress,
   withTenantAddress,
 } from "@asym/auth/tenant-address";
 import { listAddressChoices } from "@asym/auth/tenant-address-decisions";
+import { readServerNameTenantState } from "@asym/auth/tenant-server";
 
 import type { MembershipRole, StaffSubrole } from "@asym/database/types";
 
@@ -101,13 +106,21 @@ export type WebStudioOrganizationChoices =
  * address, so an option names the membership row; the server action that
  * sets the cookie checks it against the person's live rows again.
  */
+async function readNameTenant(): Promise<string | null | "refused"> {
+  const name = await readServerNameTenantState();
+  return isNameTenantRefused(name) ? "refused" : nameTenantIdOf(name);
+}
+
 export async function loadWebStudioOrganizationChoices(): Promise<WebStudioOrganizationChoices> {
+  const nameTenantId = await readNameTenant();
+  if (nameTenantId === "refused") return { kind: "ok", organizations: [] };
   const signedIn = await getSignedInAssignments();
   if (signedIn.kind !== "signed_in") return { kind: signedIn.kind };
 
   const choices = listAddressChoices({
     assignments: signedIn.assignments,
     roleClass: "staff",
+    ...(nameTenantId ? { tenantId: nameTenantId } : {}),
   });
   const tenantIds = [...new Set(choices.map((choice) => choice.tenantId))];
   return {
@@ -132,16 +145,19 @@ export async function loadOrganizationChoices(input: {
   tenantId?: string | null;
   next?: string | null;
 }): Promise<OrganizationChoices> {
+  const nameTenantId = await readNameTenant();
+  if (nameTenantId === "refused") return { kind: "ok", organizations: [] };
   const signedIn = await getSignedInAssignments();
   if (signedIn.kind === "unavailable") {
     return { kind: "unavailable", retryHref: chooserRetryHref(input) };
   }
   if (signedIn.kind !== "signed_in") return { kind: signedIn.kind };
 
+  const tenantId = nameTenantId ?? input.tenantId;
   const choices = listAddressChoices({
     assignments: signedIn.assignments,
     roleClass: input.roleClass,
-    ...(input.tenantId ? { tenantId: input.tenantId } : {}),
+    ...(tenantId ? { tenantId } : {}),
   });
   const tenantIds = [...new Set(choices.map((choice) => choice.tenantId))];
   const names = signedIn.organizationNames;

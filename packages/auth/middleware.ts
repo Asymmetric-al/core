@@ -15,6 +15,7 @@ import {
   parseE2EAuthCookieValue,
   type E2EAuthSession,
 } from "./e2e-auth";
+import { frontNotFound } from "./front";
 import { admitApiMutation } from "./mutation-admission";
 import { hasAnyRole, type RoleSnapshot } from "./permissions";
 import { readActiveAssignments } from "./principal/assignment";
@@ -26,6 +27,7 @@ import {
 import {
   ADDRESS_PREFIX_HEADER,
   ASSIGNMENT_HEADER,
+  NAME_TENANT_HEADER,
   PAGE_SCOPE_HEADERS,
   ROLE_CLASS_HEADER,
   TENANT_HEADER,
@@ -77,6 +79,7 @@ export interface AuthMiddlewareOptions {
     supabase: SupabaseUserRoleReader;
     request: NextRequest;
     roleClass: RoleClass | null;
+    nameTenantId?: string;
   }) => Promise<RoleSnapshot | null>;
   tenantAddress?: boolean;
   webStudio?: {
@@ -129,6 +132,7 @@ function forwardedRequestHeaders(
   pathname: string,
   roleClass: RoleClass | null,
   isApiRequest: boolean,
+  nameTenantId?: string,
 ) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-asym-pathname", pathname);
@@ -139,6 +143,7 @@ function forwardedRequestHeaders(
       continue;
     requestHeaders.delete(name);
   }
+  if (nameTenantId) requestHeaders.set(NAME_TENANT_HEADER, nameTenantId);
   return requestHeaders;
 }
 
@@ -146,6 +151,7 @@ function withPathHeader(
   request: NextRequest,
   pathname: string,
   roleClass: RoleClass | null,
+  nameTenantId?: string,
 ) {
   return NextResponse.next({
     request: {
@@ -154,6 +160,7 @@ function withPathHeader(
         pathname,
         roleClass,
         pathname.startsWith("/api/"),
+        nameTenantId,
       ),
     },
   });
@@ -341,7 +348,10 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     );
   }
 
-  return async function authMiddleware(request: NextRequest) {
+  return async function authMiddleware(
+    request: NextRequest,
+    { nameTenantId }: { nameTenantId?: string } = {},
+  ) {
     const addressPathname = request.nextUrl.pathname;
     const refusal = await admitApiMutation(request, addressPathname);
     if (refusal) return refusal;
@@ -355,15 +365,25 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
 
     const address = tenantAddress ? parseTenantAddress(addressPathname) : null;
     const pathname = address ? address.innerPathname : addressPathname;
+    if (nameTenantId && address && address.tenantId !== nameTenantId) {
+      return frontNotFound();
+    }
+    const inName = <Row extends { tenantId: string }>(rows: readonly Row[]) =>
+      nameTenantId ? rows.filter((row) => row.tenantId === nameTenantId) : rows;
 
     if (allowApi && pathname.startsWith("/api/")) {
       if (address) return new NextResponse(null, { status: 404 });
-      return withPathHeader(request, pathname, roleClass);
+      return withPathHeader(request, pathname, roleClass, nameTenantId);
     }
 
     if (webStudio && isWebStudioApiPath(pathname)) {
       if (address) return refusedAddress();
-      return refreshWebStudioApiSession(request, pathname, roleClass);
+      return refreshWebStudioApiSession(
+        request,
+        pathname,
+        roleClass,
+        nameTenantId,
+      );
     }
 
     if (webStudio && !address && isStrayWebStudioChooserPath(pathname)) {
@@ -392,7 +412,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       isProtectedActionDoorwayPath(pathname)
     ) {
       return applyProtectedActionHeaders(
-        withPathHeader(request, pathname, roleClass),
+        withPathHeader(request, pathname, roleClass, nameTenantId),
       );
     }
 
@@ -416,7 +436,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         return NextResponse.redirect(redirectUrl);
       }
 
-      return withPathHeader(request, pathname, roleClass);
+      return withPathHeader(request, pathname, roleClass, nameTenantId);
     }
 
     const requestHeaders = forwardedRequestHeaders(
@@ -424,6 +444,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       addressPathname,
       roleClass,
       false,
+      nameTenantId,
     );
     let supabaseResponse = NextResponse.next({
       request: { headers: requestHeaders },
@@ -523,6 +544,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
                 supabase,
                 request,
                 roleClass,
+                ...(nameTenantId ? { nameTenantId } : {}),
               })
             : null;
 
@@ -573,9 +595,15 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
             cookie: await webStudio.readCookie(
               request.cookies.get(WEB_STUDIO_TENANT_COOKIE)?.value,
             ),
+            nameTenantId: nameTenantId ?? null,
           })
         : ({ kind: "refuse" } as const);
-      const entry = webStudioEntryRedirect(request, pathname, decision);
+      const entry = webStudioEntryRedirect(
+        request,
+        pathname,
+        decision,
+        nameTenantId,
+      );
       if (entry) return redirectWithCookies(entry, supabaseResponse);
       if (decision.kind === "allow") return supabaseResponse;
       if (decision.kind === "refuse" && assignments) {
@@ -583,7 +611,12 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       }
       return redirectWithCookies(
         decision.kind === "choose"
-          ? webStudioChooserUrl(request, withSearch(request, pathname))
+          ? webStudioChooserUrl(
+              request,
+              withSearch(request, pathname),
+              null,
+              decision.refused === true,
+            )
           : buildRedirectUrl(request, unauthorizedRedirectTo),
         supabaseResponse,
       );
@@ -609,7 +642,10 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       }
 
       if (!address) {
-        const landing = decideLanding({ assignments, roleClass });
+        const landing = decideLanding({
+          assignments: inName(assignments),
+          roleClass,
+        });
         if (landing.kind === "refuse") {
           reportAccessDiagnostic("no_assignment");
           return redirectWithCookies(
@@ -636,7 +672,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       }
 
       const decision = decideTenantAddress({
-        assignments,
+        assignments: inName(assignments),
         roleClass,
         tenantId: address.tenantId,
         subRole: address.subRole,
@@ -701,6 +737,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
             supabase,
             request,
             roleClass,
+            ...(nameTenantId ? { nameTenantId } : {}),
           })
         : null;
 
