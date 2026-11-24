@@ -30,6 +30,27 @@ const testState = vi.hoisted(() => ({
     role: "admin";
     tenantId: string;
   } | null,
+  agentOptions: [] as Array<{ headers?: unknown }>,
+  scopeForSend: { kind: "unscoped" } as
+    | {
+        kind: "scoped";
+        scope: {
+          userId: string;
+          tenantId: string;
+          assignmentId: string;
+          addressPrefix: string;
+        };
+      }
+    | { kind: "unscoped" }
+    | { kind: "retired" },
+  scopeReads: 0,
+}));
+
+vi.mock("@asym/database/document-scope", () => ({
+  readDocumentScopeForSend: () => {
+    testState.scopeReads += 1;
+    return testState.scopeForSend;
+  },
 }));
 
 function setStatus(next: string) {
@@ -58,13 +79,16 @@ vi.mock(
     };
     const getStatus = () => testState.status;
     return {
-      useEveAgent: () => ({
-        status: useSyncExternalStore(subscribe, getStatus, getStatus),
-        data: { messages: [] },
-        send: testState.send,
-        reset: vi.fn(),
-        stop: testState.stop,
-      }),
+      useEveAgent: (options: { headers?: unknown }) => {
+        testState.agentOptions.push(options);
+        return {
+          status: useSyncExternalStore(subscribe, getStatus, getStatus),
+          data: { messages: [] },
+          send: testState.send,
+          reset: vi.fn(),
+          stop: testState.stop,
+        };
+      },
     };
   },
 );
@@ -129,6 +153,9 @@ describe("EveGlobalPanel", () => {
     setPlatform("other");
     testState.status = "ready";
     testState.statusListeners.clear();
+    testState.agentOptions = [];
+    testState.scopeForSend = { kind: "unscoped" };
+    testState.scopeReads = 0;
     testState.role = "admin";
     testState.user = {
       id: "user-1",
@@ -382,5 +409,117 @@ describe("EveGlobalPanel", () => {
       expect(document.activeElement).toBe(outside);
       outside.remove();
     });
+  });
+});
+
+describe("EveGlobalPanel requests name the document's selected staff row", () => {
+  const SELECTED = {
+    userId: "user-1",
+    tenantId: "00000000-0000-4000-8000-00000000000a",
+    assignmentId: "00000000-0000-4000-8000-000000000201",
+    addressPrefix: "/00000000-0000-4000-8000-00000000000a~development",
+  };
+
+  function headersOption(placement: "header" | "floating") {
+    render(<EveGlobalPanel placement={placement} />);
+    const option = testState.agentOptions.at(-1)?.headers;
+    expect(typeof option).toBe("function");
+    return option as () => Record<string, string>;
+  }
+
+  beforeEach(() => {
+    testState.agentOptions = [];
+    testState.scopeForSend = { kind: "unscoped" };
+    testState.scopeReads = 0;
+    testState.role = "admin";
+    testState.user = {
+      id: "user-1",
+      email: "admin@example.com",
+      name: "Admin",
+      role: "admin",
+      tenantId: "tenant-1",
+    };
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  it.each([
+    ["Mission Control", "header"],
+    ["Web Studio", "floating"],
+  ] as const)(
+    "in %s, names the selected row and organization, read when each request is made",
+    (_surface, placement) => {
+      const headers = headersOption(placement);
+      expect(testState.scopeReads).toBe(0);
+
+      testState.scopeForSend = { kind: "scoped", scope: SELECTED };
+      expect(headers()).toEqual({
+        "x-asym-tenant": SELECTED.tenantId,
+        "x-asym-assignment": SELECTED.assignmentId,
+      });
+
+      testState.scopeForSend = {
+        kind: "scoped",
+        scope: {
+          ...SELECTED,
+          assignmentId: "00000000-0000-4000-8000-000000000202",
+        },
+      };
+      expect(headers()).toEqual({
+        "x-asym-tenant": SELECTED.tenantId,
+        "x-asym-assignment": "00000000-0000-4000-8000-000000000202",
+      });
+      expect(testState.scopeReads).toBe(2);
+    },
+  );
+
+  it("names nothing from a document with no scope", () => {
+    const headers = headersOption("header");
+
+    expect(headers()).toEqual({});
+  });
+
+  it("sends nothing from a document whose scope is retired", async () => {
+    const headers = headersOption("header");
+    testState.scopeForSend = { kind: "retired" };
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const { Client } =
+      await import("../../../apps/admin/node_modules/eve/dist/src/client/index.js");
+
+    await expect(
+      new Client({ headers, host: "" }).session().send("Explain this page"),
+    ).rejects.toThrow(/retired/i);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("puts both headers on the request the Eve client sends", async () => {
+    const headers = headersOption("floating");
+    testState.scopeForSend = { kind: "scoped", scope: SELECTED };
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ sessionId: "session-1" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { Client } =
+      await import("../../../apps/admin/node_modules/eve/dist/src/client/index.js");
+
+    await new Client({ headers, host: "" }).session().send("Explain this page");
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe("/eve/v1/session");
+    const sent = new Headers(init.headers);
+    expect(sent.get("x-asym-tenant")).toBe(SELECTED.tenantId);
+    expect(sent.get("x-asym-assignment")).toBe(SELECTED.assignmentId);
   });
 });
