@@ -138,7 +138,14 @@ export function getInviteSafeReplayOptions(): ReplayIntegrationOptions {
 
 /** Preserve v10 collection and trace behavior while the SDK runs on v11. */
 export function getSentryCompatibilityOptions() {
-  const sensitiveKeys = ["forwarded", "-ip", "remote-", "via", "-user"];
+  const sensitiveKeys = [
+    "forwarded",
+    "-ip",
+    "remote-",
+    "via",
+    "-user",
+    "x-asym-front-",
+  ];
 
   return {
     dataCollection: {

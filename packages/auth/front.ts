@@ -1,4 +1,8 @@
 import { APP_BASE_PATHS } from "@asym/database/document-reload";
+import {
+  canonicalOrigin,
+  canonicalUpstreamOrigin,
+} from "@asym/env/front-origin";
 import { NextRequest, NextResponse } from "next/server";
 
 import { admitApiMutation } from "./mutation-admission";
@@ -110,17 +114,23 @@ function stampPayload(
   return encoder.encode(`${STAMP_VERSION}\n${origin}\n${prefix}\n${issuedAt}`);
 }
 
-export function canonicalOrigin(
-  value: string | null | undefined,
-): string | null {
-  if (!value) return null;
-  try {
-    const url = new URL(value);
-    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
-    return url.origin === value ? url.origin : null;
-  } catch {
-    return null;
-  }
+export { canonicalOrigin, canonicalUpstreamOrigin };
+
+const loggedFrontConfigIssues = new Set<string>();
+
+export function resetFrontConfigLogForTests(): void {
+  loggedFrontConfigIssues.clear();
+}
+
+function logFrontConfigIssueOnce(
+  variable: string,
+  reason: "missing" | "invalid",
+): void {
+  if (loggedFrontConfigIssues.has(variable)) return;
+  loggedFrontConfigIssues.add(variable);
+  console.error(
+    `[front] ${variable} is ${reason}; refusing request while CORE_SERVE_UNDER_PATHS=1.`,
+  );
 }
 
 export async function signFrontStamp(
@@ -247,11 +257,38 @@ export function frontNamesFromEnv(
 
 export function dashboardsFromEnv(
   env: Record<string, string | undefined>,
+  options: { log?: boolean } = {},
 ): readonly FrontDashboard[] | null {
-  const adminOrigin = canonicalOrigin(env.FRONT_ADMIN_ORIGIN);
-  const missionaryOrigin = canonicalOrigin(env.FRONT_MISSIONARY_ORIGIN);
+  const adminOrigin = canonicalUpstreamOrigin(env.FRONT_ADMIN_ORIGIN);
+  const missionaryOrigin = canonicalUpstreamOrigin(env.FRONT_MISSIONARY_ORIGIN);
   const adminKey = env.FRONT_STAMP_KEY_ADMIN;
   const missionaryKey = env.FRONT_STAMP_KEY_MISSIONARY;
+  if (options.log) {
+    if (!adminOrigin) {
+      logFrontConfigIssueOnce(
+        "FRONT_ADMIN_ORIGIN",
+        env.FRONT_ADMIN_ORIGIN ? "invalid" : "missing",
+      );
+    }
+    if (!missionaryOrigin) {
+      logFrontConfigIssueOnce(
+        "FRONT_MISSIONARY_ORIGIN",
+        env.FRONT_MISSIONARY_ORIGIN ? "invalid" : "missing",
+      );
+    }
+    if (!hasValidStampKey(adminKey)) {
+      logFrontConfigIssueOnce(
+        "FRONT_STAMP_KEY_ADMIN",
+        adminKey ? "invalid" : "missing",
+      );
+    }
+    if (!hasValidStampKey(missionaryKey)) {
+      logFrontConfigIssueOnce(
+        "FRONT_STAMP_KEY_MISSIONARY",
+        missionaryKey ? "invalid" : "missing",
+      );
+    }
+  }
   if (
     !adminOrigin ||
     !missionaryOrigin ||
@@ -295,9 +332,13 @@ export async function routeToDashboard(
   const prefix = matchesDashboardPrefix(pathname);
   if (!prefix) return null;
 
-  const dashboards = dashboardsFromEnv(env);
+  const dashboards = dashboardsFromEnv(env, { log: true });
   const dashboard = dashboards?.find((entry) => entry.prefix === prefix);
-  const origin = frontOrigin(request, frontNamesFromEnv(env));
+  const names = frontNamesFromEnv(env);
+  if (names.length === 0) {
+    logFrontConfigIssueOnce("FRONT_NAMES", "missing");
+  }
+  const origin = frontOrigin(request, names);
   if (!dashboard || !origin) {
     return frontNotFound();
   }
@@ -385,6 +426,13 @@ export async function admitFromFront(
     )
   ) {
     return { kind: "exempt", pathname: normalized };
+  }
+
+  if (!hasValidStampKey(options.key)) {
+    logFrontConfigIssueOnce(
+      "FRONT_STAMP_KEY",
+      options.key ? "invalid" : "missing",
+    );
   }
 
   return { kind: "refused" };

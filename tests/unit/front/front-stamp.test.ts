@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   canonicalOrigin,
@@ -184,6 +184,28 @@ describe("front stamp signing and verification", () => {
 });
 
 describe("front runtime variables in @asym/env schema", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+    vi.resetModules();
+  });
+
+  async function parseEnvWith(overrides: Record<string, string>) {
+    vi.resetModules();
+    vi.stubEnv("SKIP_ENV_VALIDATION", "");
+    vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("VERCEL_ENV", "");
+    vi.stubEnv("VERCEL_TARGET_ENV", "");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-key");
+    vi.stubEnv("FRONT_ADMIN_ORIGIN", "");
+    vi.stubEnv("FRONT_MISSIONARY_ORIGIN", "");
+    for (const [key, value] of Object.entries(overrides)) {
+      vi.stubEnv(key, value);
+    }
+    return import("../../../packages/env/src/schema");
+  }
+
   it("declares all seven server variables as optional and never NEXT_PUBLIC_", async () => {
     const { readFileSync } = await import("node:fs");
     const path = await import("node:path");
@@ -210,4 +232,41 @@ describe("front runtime variables in @asym/env schema", () => {
       expect(source).not.toContain(`NEXT_PUBLIC_${name}`);
     }
   });
+
+  it("accepts canonical https and loopback http upstream origins in the env schema", async () => {
+    for (const [adminOrigin, missionaryOrigin] of [
+      ["https://admin.example.test", "https://missionary.example.test"],
+      ["http://localhost:25051", "http://127.0.0.1:25052"],
+      ["http://[::1]:25051", "https://missionary.example.test:8443"],
+    ] as const) {
+      const mod = await parseEnvWith({
+        FRONT_ADMIN_ORIGIN: adminOrigin,
+        FRONT_MISSIONARY_ORIGIN: missionaryOrigin,
+      });
+      expect(mod.serverEnv.FRONT_ADMIN_ORIGIN).toBe(adminOrigin);
+      expect(mod.serverEnv.FRONT_MISSIONARY_ORIGIN).toBe(missionaryOrigin);
+    }
+  });
+
+  it.each([
+    "https://admin.example.test/",
+    "HTTPS://ADMIN.EXAMPLE.TEST",
+    "https://Admin.Example.Test",
+    "https://admin.example.test/admin",
+    "https://admin.example.test:443",
+    "http://core-admin.vercel.app",
+    "http://localhost.evil.test:25051",
+    "http://127.0.0.1.evil.test:25051",
+  ])(
+    "refuses non-canonical or non-loopback http upstream origin %s at schema start-up",
+    async (badOrigin) => {
+      vi.spyOn(console, "error").mockImplementation(() => undefined);
+      await expect(
+        parseEnvWith({ FRONT_ADMIN_ORIGIN: badOrigin }),
+      ).rejects.toThrow();
+      await expect(
+        parseEnvWith({ FRONT_MISSIONARY_ORIGIN: badOrigin }),
+      ).rejects.toThrow();
+    },
+  );
 });

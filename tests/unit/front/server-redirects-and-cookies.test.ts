@@ -50,6 +50,8 @@ const { POST: sharedSignOut } =
 const { POST: adminSignOut } = await import("../../../apps/admin/lib/sign-out");
 const { webStudioCookie, clearedWebStudioCookie, WEB_STUDIO_TENANT_COOKIE } =
   await import("../../../packages/auth/web-studio");
+const { requestOrigin, trustedMutationSource } =
+  await import("../../../packages/auth/request-headers");
 
 const ORIGINAL_FETCH = global.fetch;
 
@@ -188,9 +190,9 @@ describe("Item 6b: server redirects (Server Component, JS action, no-JS MPA acti
 });
 
 describe("Item 6h: Web Studio API and sign-out origin checks use requestOrigin without request.url fallback", () => {
-  it("judges Web Studio writes against the stamped/Host origin and refuses foreign or invalid Host", async () => {
+  it("judges Web Studio writes against the Host-derived origin and refuses foreign or invalid Host", async () => {
     const stampedSame = new Request(
-      "http://localhost:25051/admin/web-studio/api/pages",
+      "https://admin-internal.example.test/admin/web-studio/api/pages",
       {
         method: "POST",
         headers: {
@@ -202,8 +204,20 @@ describe("Item 6h: Web Studio API and sign-out origin checks use requestOrigin w
     );
     expect(isSameOriginWrite(stampedSame)).toBe(true);
 
-    const stampedForeign = new Request(
+    const localHttpSame = new Request(
       "http://localhost:25051/admin/web-studio/api/pages",
+      {
+        method: "POST",
+        headers: {
+          host: "one.n3.test:25050",
+          origin: "http://one.n3.test:25050",
+        },
+      },
+    );
+    expect(isSameOriginWrite(localHttpSame)).toBe(true);
+
+    const stampedForeign = new Request(
+      "https://admin-internal.example.test/admin/web-studio/api/pages",
       {
         method: "POST",
         headers: {
@@ -237,26 +251,32 @@ describe("Item 6h: Web Studio API and sign-out origin checks use requestOrigin w
 
   it("judges sign-out against requestOrigin and refuses foreign or invalid Host", async () => {
     const stampedOk = await sharedSignOut(
-      new Request("http://localhost:25051/admin/api/auth/signout", {
-        method: "POST",
-        headers: {
-          host: "one.example.test",
-          "x-asym-front-origin": "https://one.example.test",
-          origin: "https://one.example.test",
+      new Request(
+        "https://admin-internal.example.test/admin/api/auth/signout",
+        {
+          method: "POST",
+          headers: {
+            host: "one.example.test",
+            "x-asym-front-origin": "https://one.example.test",
+            origin: "https://one.example.test",
+          },
         },
-      }),
+      ),
     );
     expect(stampedOk.status).toBe(200);
 
     const stampedForeign = await sharedSignOut(
-      new Request("http://localhost:25051/admin/api/auth/signout", {
-        method: "POST",
-        headers: {
-          host: "one.example.test",
-          "x-asym-front-origin": "https://one.example.test",
-          origin: "https://two.example.test",
+      new Request(
+        "https://admin-internal.example.test/admin/api/auth/signout",
+        {
+          method: "POST",
+          headers: {
+            host: "one.example.test",
+            "x-asym-front-origin": "https://one.example.test",
+            origin: "https://two.example.test",
+          },
         },
-      }),
+      ),
     );
     expect(stampedForeign.status).toBe(403);
 
@@ -270,6 +290,22 @@ describe("Item 6h: Web Studio API and sign-out origin checks use requestOrigin w
       }),
     );
     expect(invalidHost.status).toBe(403);
+  });
+
+  it("ignores a forged x-asym-front-origin header when switch is OFF and derives origin from Host", async () => {
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "0");
+    const forged = new Request("https://admin.example.test/api/auth/signout", {
+      method: "POST",
+      headers: {
+        host: "admin.example.test",
+        origin: "https://evil.example",
+        "x-asym-front-origin": "https://evil.example",
+      },
+    });
+    expect(requestOrigin(forged)).toBe("https://admin.example.test");
+    expect(trustedMutationSource(forged)).toBe(false);
+    expect(isSameOriginWrite(forged)).toBe(false);
+    expect((await sharedSignOut(forged)).status).toBe(403);
   });
 });
 
@@ -305,14 +341,17 @@ describe("Item 7: Web Studio cookie path and clearing across all three sign-outs
 
     vi.stubEnv("CORE_APP_BASE_PATH", "/admin");
     const adminRes = await adminSignOut(
-      new Request("http://localhost:25051/admin/api/auth/signout", {
-        method: "POST",
-        headers: {
-          host: "one.example.test",
-          "x-asym-front-origin": "https://one.example.test",
-          origin: "https://one.example.test",
+      new Request(
+        "https://admin-internal.example.test/admin/api/auth/signout",
+        {
+          method: "POST",
+          headers: {
+            host: "one.example.test",
+            "x-asym-front-origin": "https://one.example.test",
+            origin: "https://one.example.test",
+          },
         },
-      }),
+      ),
     );
     expect(adminRes.status).toBe(200);
     const adminCleared = adminRes.headers

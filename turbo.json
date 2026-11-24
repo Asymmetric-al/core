@@ -52,6 +52,7 @@
         ".env",
         ".env.*",
         "$TURBO_ROOT$/scripts/load-workspace-env.mjs",
+        "$TURBO_ROOT$/scripts/release/serve-under-paths.mjs",
         "$TURBO_ROOT$/.env",
         "$TURBO_ROOT$/.env.*"
       ]

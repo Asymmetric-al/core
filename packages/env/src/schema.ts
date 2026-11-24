@@ -1,6 +1,7 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+import { canonicalUpstreamOrigin } from "./front-origin";
 import {
   isProtectedDeployment,
   resolveDeploymentEnvironment,
@@ -253,8 +254,20 @@ export const env = createEnv({
     FRONT_STAMP_KEY_MISSIONARY: z.string().optional(),
     FRONT_STAMP_KEY: z.string().optional(),
     FRONT_STAMP_KEY_PREVIOUS: z.string().optional(),
-    FRONT_ADMIN_ORIGIN: z.string().url().optional(),
-    FRONT_MISSIONARY_ORIGIN: z.string().url().optional(),
+    FRONT_ADMIN_ORIGIN: z
+      .string()
+      .refine(
+        (value) => canonicalUpstreamOrigin(value) !== null,
+        "FRONT_ADMIN_ORIGIN must be a canonical https:// origin or a loopback http:// origin.",
+      )
+      .optional(),
+    FRONT_MISSIONARY_ORIGIN: z
+      .string()
+      .refine(
+        (value) => canonicalUpstreamOrigin(value) !== null,
+        "FRONT_MISSIONARY_ORIGIN must be a canonical https:// origin or a loopback http:// origin.",
+      )
+      .optional(),
     FRONT_NAMES: z.string().optional(),
   },
   client: {

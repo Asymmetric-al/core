@@ -66,10 +66,10 @@ When enabled, `packages/auth/front.ts` stamps proxied requests from the donor
 front with HMAC-SHA256 (`x-asym-front-stamp`, `x-asym-front-origin`) using a
 distinct >=32-byte key per dashboard (`FRONT_STAMP_KEY_ADMIN`,
 `FRONT_STAMP_KEY_MISSIONARY` on the front; `FRONT_STAMP_KEY` and optional
-verify-only `FRONT_STAMP_KEY_PREVIOUS` on each dashboard). Every app strips
-client-sent `x-asym-front-*` headers in both modes. With the switch on, each
-dashboard refuses unstamped or mis-stamped requests with `403` (`no-store`)
-except on its own explicit decoded path allowlist:
+verify-only `FRONT_STAMP_KEY_PREVIOUS` on each dashboard). Every proxy strips
+client-sent `x-asym-front-*` headers on every path it runs in both modes. With
+the switch on, each dashboard proxy refuses unstamped or mis-stamped requests
+with `403` (`no-store`) except on its own explicit decoded path allowlist:
 
 - Staff (`apps/admin`): `/api/health/migrations`, `/api/webhooks/stripe`,
   `/api/webhooks/stripe-connect`, `/api/email/webhooks/resend`, `/api/inngest`,
@@ -80,6 +80,13 @@ except on its own explicit decoded path allowlist:
   staff origin until WP6 part 2 removes them.
 - Missionary (`apps/missionary`): `/api/health/migrations`,
   `/api/webhooks/stripe`.
+
+Paths outside the dashboard proxy matchers still answer without a stamp while
+the switch is on: `/_next/*` (including `/_next/image`, accepted by ruling Q2
+until part 3), the static files the matchers skip (`/maplibre/*` on admin and
+single root files with static extensions such as `/icon.svg`,
+`/manifest.webmanifest`, and `/favicon.ico`), and the assistant's `/eve/v1/*`
+routes (owned by part 3).
 
 With the switch unset (today's default everywhere), no `basePath` is set, the
 donor app proxies nothing to the dashboards, and the dashboards admit direct

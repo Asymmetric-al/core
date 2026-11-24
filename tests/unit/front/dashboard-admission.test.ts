@@ -8,6 +8,7 @@ import {
   admitFromFront,
   FRONT_ORIGIN_HEADER,
   FRONT_STAMP_HEADER,
+  resetFrontConfigLogForTests,
   signFrontStamp,
   STAFF_EXEMPT_PATHS,
   STAFF_READ_ONLY_EXEMPT_PREFIXES,
@@ -52,13 +53,14 @@ function freshKey(): string {
 
 const FRONT_ORIGIN = "https://one.example.test";
 const OTHER_ORIGIN = "https://two.example.test";
-const ADMIN_HOST = "http://admin-internal.example.test";
-const MISSIONARY_HOST = "http://missionary-internal.example.test";
+const ADMIN_HOST = "https://admin-internal.example.test";
+const MISSIONARY_HOST = "https://missionary-internal.example.test";
 
 let adminKey: string;
 let missionaryKey: string;
 
 beforeEach(() => {
+  resetFrontConfigLogForTests();
   adminKey = freshKey();
   missionaryKey = freshKey();
   state.userId = null;
@@ -102,16 +104,41 @@ function missionaryRequest(
 }
 
 describe("dashboard matchers include the bare base path", () => {
-  it("matches / on both admin and missionary matchers", () => {
+  it("matches bare /admin and /missionary with basePath and fails when / is removed", () => {
     expect(
-      unstable_doesMiddlewareMatch({ config: adminModule.config, url: "/" }),
+      unstable_doesMiddlewareMatch({
+        config: adminModule.config,
+        nextConfig: { basePath: "/admin" },
+        url: "/admin",
+      }),
     ).toBe(true);
     expect(
       unstable_doesMiddlewareMatch({
+        config: {
+          matcher: adminModule.config.matcher.filter((entry) => entry !== "/"),
+        },
+        nextConfig: { basePath: "/admin" },
+        url: "/admin",
+      }),
+    ).toBe(false);
+    expect(
+      unstable_doesMiddlewareMatch({
         config: missionaryModule.config,
-        url: "/",
+        nextConfig: { basePath: "/missionary" },
+        url: "/missionary",
       }),
     ).toBe(true);
+    expect(
+      unstable_doesMiddlewareMatch({
+        config: {
+          matcher: missionaryModule.config.matcher.filter(
+            (entry) => entry !== "/",
+          ),
+        },
+        nextConfig: { basePath: "/missionary" },
+        url: "/missionary",
+      }),
+    ).toBe(false);
   });
 });
 
@@ -537,6 +564,26 @@ describe("dashboard admission when switch is ON", () => {
         },
       ],
     });
+  });
+
+  it("logs FRONT_STAMP_KEY once per process without its value when switch is ON and the key is invalid", async () => {
+    const errorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const shortSecret = `short-${randomBytes(6).toString("hex")}`;
+    vi.stubEnv("FRONT_STAMP_KEY", shortSecret);
+
+    const first = await adminModule.proxy(adminRequest("/donors"));
+    expect(first.status).toBe(403);
+    const logged = errorSpy.mock.calls.map((args) => args.join(" ")).join("\n");
+    expect(logged).toContain("FRONT_STAMP_KEY");
+    expect(logged).not.toContain(shortSecret);
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+
+    const second = await adminModule.proxy(adminRequest("/donors"));
+    expect(second.status).toBe(403);
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    errorSpy.mockRestore();
   });
 });
 

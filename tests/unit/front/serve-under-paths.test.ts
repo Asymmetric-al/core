@@ -7,7 +7,10 @@ vi.mock("../../../scripts/load-workspace-env.mjs", () => ({
   loadWorkspaceEnvironment: () => ({}),
 }));
 
+import { APP_BASE_PATHS as PACKAGE_APP_BASE_PATHS } from "../../../packages/database/app-base-path";
+import { APP_BASE_PATHS as REEXPORTED_APP_BASE_PATHS } from "../../../packages/database/document-reload";
 import {
+  APP_BASE_PATHS as SCRIPT_APP_BASE_PATHS,
   CORE_SERVE_UNDER_PATHS_ENV,
   isProductionBuildTarget,
   resolveServeUnderPaths,
@@ -122,11 +125,19 @@ describe("CORE_SERVE_UNDER_PATHS build switch", () => {
     });
   });
 
-  it("lists CORE_SERVE_UNDER_PATHS in turbo.json build env", () => {
+  it("lists CORE_SERVE_UNDER_PATHS in turbo.json build env and serve-under-paths.mjs in build inputs", () => {
     const turbo = JSON.parse(
       readFileSync(path.join(process.cwd(), "turbo.json"), "utf8"),
-    ) as { tasks: { build: { env: string[] } } };
+    ) as { tasks: { build: { env: string[]; inputs: string[] } } };
     expect(turbo.tasks.build.env).toContain(CORE_SERVE_UNDER_PATHS_ENV);
+    expect(turbo.tasks.build.inputs).toContain(
+      "$TURBO_ROOT$/scripts/release/serve-under-paths.mjs",
+    );
+  });
+
+  it("keeps the prefix tables in serve-under-paths.mjs and app-base-path.ts equal", () => {
+    expect(SCRIPT_APP_BASE_PATHS).toEqual(PACKAGE_APP_BASE_PATHS);
+    expect(REEXPORTED_APP_BASE_PATHS).toBe(PACKAGE_APP_BASE_PATHS);
   });
 });
 
