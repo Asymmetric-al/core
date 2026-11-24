@@ -190,18 +190,6 @@ describe.skipIf(!ADMIN_URL)(
         await db.query("rollback to savepoint s");
       }
     }
-    async function failure(sql: string, params: unknown[] = []) {
-      await db.query("savepoint failure");
-      try {
-        await db.query(sql, params);
-        return null;
-      } catch (e) {
-        return (e as { code?: string }).code ?? "?";
-      } finally {
-        await db.query("rollback to savepoint failure");
-      }
-    }
-
     it("starting a claim answers the same for a match, no match, an unconfirmed email and an already linked donor; only the match opens a claim, and none links or grants anything", async () => {
       const answers = [];
       for (const who of [claimant, other, inTenant("UUN"), inTenant("ULK")]) {
