@@ -49,6 +49,18 @@
 -- (private.share_lock_tenant), the caller's membership rows FOR UPDATE in id
 -- order, the donor's Party FOR UPDATE, the claim row FOR UPDATE; and it
 -- re-checks under those locks before it writes.
+--
+-- Locks, all held to COMMIT. ACCESS EXCLUSIVE on account_claim_requests (its
+-- new columns, constraints and policies; its two new indexes take SHARE
+-- under that lock), and on account_links, which gains the guard's policy and
+-- is new in this release. No other table is locked. lock_timeout stops a run
+-- rather than queue it behind live traffic.
+--
+-- Recovery. Nothing here is written to run twice: a run lost between its
+-- COMMIT and its ledger row stops on the next run at its first statement,
+-- the ALTER TABLE that adds token_sha256 (42701), and
+-- docs/ops/release-job.md, "If the migration committed but its ledger row is
+-- missing", applies.
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';

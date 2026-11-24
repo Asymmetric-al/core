@@ -42,11 +42,15 @@
 --    users may not select missionaries.tenant_id or party_id.
 -- 8. Field-policy rows for every new column of a classified table (7.1).
 --
--- Locks. The tables are altered in the order a gift takes them
--- (begin_donation_saga: missionaries, funds, donors), then profiles; each
--- ALTER TABLE holds ACCESS EXCLUSIVE to COMMIT, and the new keys hold SHARE
--- ROW EXCLUSIVE on tenants and auth.users. lock_timeout stops a run rather
--- than queue it behind live traffic.
+-- Locks, all held to COMMIT. ACCESS EXCLUSIVE on the four live tables
+-- altered, in the order a gift takes them (begin_donation_saga:
+-- missionaries, funds, donors), then profiles; on the five live tables whose
+-- own-row policies move by ALTER POLICY: donations, donor_pledges,
+-- donor_activities, follows and donor_feed_preferences; and on the two new
+-- tables, parties and account_links. SHARE ROW EXCLUSIVE on tenants and
+-- auth.users for the new keys, and ROW EXCLUSIVE on field_policies for its
+-- new rows. lock_timeout stops a run rather than queue it behind live
+-- traffic.
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
 -- COMMIT and its ledger row stops on the next run at its first CREATE

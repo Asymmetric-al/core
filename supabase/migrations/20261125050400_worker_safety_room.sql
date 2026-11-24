@@ -46,6 +46,18 @@
 --    lock order: the organization FOR SHARE (private.share_lock_tenant), the
 --    caller's assignment FOR SHARE, a re-check of the active organization,
 --    the live assignment and the capability, and only then its targets.
+--
+-- Locks, all held to COMMIT. ACCESS EXCLUSIVE on the new
+-- private.party_restricted, and on public.parties, which gains the guard's
+-- policy and a constraint trigger here; parties is new in this release and
+-- the live build reads neither table. SHARE ROW EXCLUSIVE on tenants for the
+-- new table's key. No table the live build reads is locked. lock_timeout
+-- stops a run rather than queue it behind live traffic.
+--
+-- Recovery. Nothing here is written to run twice: a run lost between its
+-- COMMIT and its ledger row stops on the next run at its first CREATE
+-- (private.party_restricted, 42P07), and docs/ops/release-job.md, "If the
+-- migration committed but its ledger row is missing", applies.
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
