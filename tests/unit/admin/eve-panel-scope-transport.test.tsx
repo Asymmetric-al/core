@@ -118,7 +118,7 @@ interface SentRequest {
 
 type StreamAnswer = (
   signal: AbortSignal | null | undefined,
-) => ReadableStream<Uint8Array>;
+) => ReadableStream<Uint8Array> | Response;
 
 const encoder = new TextEncoder();
 
@@ -170,10 +170,13 @@ function fakeService(streams: StreamAnswer[]) {
       });
       if (method === "POST" && url.pathname === "/eve/v1/session") {
         sessions += 1;
-        return Response.json({
-          sessionId: `session-${sessions}`,
-          continuationToken: `token-${sessions}`,
-        });
+        return Response.json(
+          {
+            sessionId: `session-${sessions}`,
+            continuationToken: `token-${sessions}`,
+          },
+          { status: 202 },
+        );
       }
       if (method === "POST" && url.pathname.endsWith("/cancel")) {
         return Response.json({
@@ -190,7 +193,11 @@ function fakeService(streams: StreamAnswer[]) {
       }
       const stream = streams.shift();
       if (!stream) throw new Error(`no stream answer for ${url.pathname}`);
-      return new Response(stream(init.signal), {
+      const answer = stream(init.signal);
+      if (answer instanceof Response) {
+        return answer;
+      }
+      return new Response(answer, {
         status: 200,
         headers: { "content-type": "application/x-ndjson" },
       });
@@ -317,6 +324,39 @@ describe("the Eve panel's requests through the real eve client", () => {
         assignment: ROW,
       },
     ]);
+  });
+
+  it("shows the fail-closed alert without retrying when its own new session stream answers 403", async () => {
+    const { sent } = fakeService([
+      () =>
+        Response.json(
+          {
+            code: "forbidden",
+            error: "The current admin does not own this Eve session.",
+            ok: false,
+          },
+          { status: 403 },
+        ),
+    ]);
+    openPanel();
+
+    sendMessage("First message");
+    await waitFor(() =>
+      expect(screen.getByRole("alert").textContent).toBe(
+        "Eve could not complete that request. The runtime failed closed; try again or contact an administrator.",
+      ),
+    );
+    await turnEnds();
+
+    expect(sent.map(({ method, path }) => `${method} ${path}`)).toEqual([
+      "POST /eve/v1/session",
+      "GET /eve/v1/session/session-1/stream",
+    ]);
+    const resetButton = screen.getByRole("button", {
+      name: "Start a new Eve session",
+    }) as HTMLButtonElement;
+    expect(resetButton.disabled).toBe(false);
+    expect(unhandled).toEqual([]);
   });
 });
 

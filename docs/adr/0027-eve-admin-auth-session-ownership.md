@@ -1,6 +1,6 @@
 # ADR-0027: Bind Eve sessions to verified admin or service identity
 
-**Status:** Accepted
+**Status:** Accepted (amended 2026-11-25 for AL-2796)
 
 **Date:** 2026-07-17
 
@@ -35,10 +35,13 @@ initiator. Eve/Workflow continues to own the continuation token, messages,
 turns, stream, and workflow durability; none of that content is copied into the
 ACL table.
 
-The channel claims ownership on the first `turn.started` event. Repeated claims
-are idempotent only for the exact same identity. Route auth checks the binding
-before every continuation, cancel, or stream attachment. A different user,
-profile, tenant, identity mode, service actor, or service initiator is denied.
+The channel claims ownership in the request that creates the session (and on
+the follow-up route for a session it returns under another id), before the
+session id is returned; `turn.started` repeats the claim idempotently. Repeated
+claims are idempotent only for the exact same identity. Route auth checks the
+binding before every continuation, cancel, or stream attachment. A different
+user, profile, tenant, identity mode, service actor, or service initiator is
+denied.
 
 Background work uses a distinct service identity and must name a non-empty
 accountable admin, schedule, or system trigger. It cannot silently impersonate
@@ -53,9 +56,17 @@ ownership before the permissioned decision RPC.
 
 Missing verification returns unauthenticated. Insufficient admin authority,
 missing ownership, and any ownership mismatch are denied without disclosing
-session content. Storage unavailability fails closed. A first-turn ownership
-write failure fails the channel event path rather than leaving an unowned
-production session.
+session content. Storage unavailability fails closed. A failed claim at
+creation fails that HTTP request (500) and never returns the session id or
+continuation token. Because eve starts the workflow before `send` returns, and
+swallows exceptions thrown by channel event handlers
+(`eve/dist/src/channel/adapter.js`, `callAdapterEventHandler`,
+`"adapter event handler threw — event swallowed"`), the background turn may
+still run with no HTTP consumer. Every session route and every
+ownership-checked governance RPC refuses it while it has no row. A failed
+repeat claim at `turn.started` fails that event handler. Eve logs and swallows
+it. It cannot break a session already claimed at creation, and it does not stop
+an unowned run.
 
 ## Boundary with adjacent slices
 
@@ -87,3 +98,33 @@ production session.
 - Migration tests for RLS, browser-role revocation, and minimal metadata.
 - Real `eve info`, `eve build`, and strict offline eval.
 - Strict OpenSpec validation and repository CI gates.
+
+## Amendments
+
+### 2026-11-25: ownership is claimed at creation (AL-2796)
+
+- **Authority.** The program ruling under D-16 (25 November 2026,
+  `ruling-eve-first-message.md` in the implementation scratchpad, reconciled
+  with installed Eve 0.25.1 `eve/dist/src/channel/adapter.js`
+  `callAdapterEventHandler`).
+- **Kept.** Route authentication, the `eve_session_ownership` schema,
+  insert-only `23505` same-identity claiming (never an upsert), fail-closed
+  denial for missing or mismatched ownership on every session route and
+  ownership-checked governance RPC, distinct service identity rules, and the
+  loopback-only deterministic eval path. The OpenSpec specification and its
+  normative contract are unchanged because they require user and tenant
+  ownership enforced on session create and are neutral on mechanism
+  (`openspec/specs/eve-admin-auth-session-ownership/spec.md:72`;
+  `openspec/contracts/eve-admin-auth-session-ownership.md:92-95`).
+- **Changed.** The channel wraps `POST /eve/v1/session`'s `send` so ownership
+  is claimed in the creating HTTP request before the 202 returns the session
+  id, and wraps `POST /eve/v1/session/:sessionId`'s `send` to claim whenever it
+  returns a session under a different id than the path parameter.
+  `turn.started` keeps its claim as an idempotent repeat. Failure behavior is
+  updated for both creation-time HTTP 500 rejection and installed Eve 0.25.1's
+  swallowing of channel event handler exceptions.
+- **Dated history (2026-07-17, issue #426).** The original Decision (`:38`)
+  stated: "The channel claims ownership on the first `turn.started` event."
+  The original Failure behavior (`:56-58`) stated: "A first-turn ownership
+  write failure fails the channel event path rather than leaving an unowned
+  production session."
