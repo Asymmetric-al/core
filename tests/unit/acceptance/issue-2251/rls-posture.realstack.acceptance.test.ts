@@ -100,8 +100,8 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
       insert into public.donor_merge_candidates (tenant_id, existing_donor_id, confidence) values (:A, :DA, 'low'), (:B, :DB, 'low');
       insert into public.crm_table_preference_audit_events (tenant_id,table_id) values (:A,'acc2251'),(:B,'acc2251');
       insert into public.email_templates (tenant_id, name) values (:A, 'acc2251'), (:B, 'acc2251');
-      -- D-18: each giving target now names an entity explicitly.
-      insert into public.legal_entities(id,tenant_id,name) values (:A,:A,'A'),(:B,:B,'B');
+      -- D-18: each giving target names an entity with explicit country, currency, and legal_name (W8-R1).
+      insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values (:A,:A,'A','US','usd','A'),(:B,:B,'B','US','usd','B');
       insert into public.funds (tenant_id, name, legal_entity_id) values (:A, 'acc2251', :A), (:B, 'acc2251', :B);`;
     const ids: Record<string, string> = { A: TA, B: TB, U, DA, DB };
     await db.query(
@@ -201,8 +201,8 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
       tx(async () => {
         const live = new Map((await targets()).map((x) => [x.t, x]));
         const e = exceptions();
-        // AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
-        expect(e.length).toBeGreaterThanOrEqual(79);
+        // AL-2674 (D09), AL-2677 (WP4a-2a), and AL-2681 (WP8a-1, D-18) add policies on reviewed exception tables, leaving 74 listed (ruling W8-R34 keeps donation_saga_outbox).
+        expect(e.length).toBeGreaterThanOrEqual(74);
         const bad = e
           .map((x) => [x.table, live.get(x.table)] as const)
           .filter(([, l]) => !l || !l.rls || !l.force || l.policies !== 0)

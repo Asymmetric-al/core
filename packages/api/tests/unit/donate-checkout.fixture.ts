@@ -45,20 +45,29 @@ export function storedGift(amount: number) {
   };
 }
 
-export function createDonationsFromMock(storedAmount: number | null) {
+export function createDonationsFromMock(
+  storedAmount: number | null,
+  expected: { donationId?: string; tenantId?: string } = {},
+) {
+  const expectedDonationId = expected.donationId ?? beginRpcResult.donation_id;
+  const expectedTenantId = expected.tenantId ?? authenticatedDonor.tenantId;
   return vi.fn((table: string) => {
     expect(table).toBe("donations");
-    return {
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            single: async () =>
-              storedAmount == null
-                ? { data: null, error: { message: "Donation not found" } }
-                : { data: storedGift(storedAmount), error: null },
-          }),
-        }),
-      }),
+    const filters = new Map<string, string | null>();
+    const query = {
+      eq(column: string, value: string | null) {
+        filters.set(column, value);
+        return query;
+      },
+      single: async () => {
+        const matchesId = filters.get("id") === expectedDonationId;
+        const matchesTenant = filters.get("tenant_id") === expectedTenantId;
+        if (!matchesId || !matchesTenant || storedAmount == null) {
+          return { data: null, error: { message: "Donation not found" } };
+        }
+        return { data: storedGift(storedAmount), error: null };
+      },
     };
+    return { select: (_columns?: string) => query };
   });
 }

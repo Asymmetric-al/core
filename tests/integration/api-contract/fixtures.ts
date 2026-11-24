@@ -101,6 +101,9 @@ async function writeTenantFixture(
     id: fixture.legalEntityId,
     tenant_id: fixture.tenantId,
     name: `API contract tenant ${label} ${short}`,
+    country_code: "US",
+    currency: "usd",
+    legal_name: `API contract tenant ${label} ${short}`,
   });
   await upsertFixture(db, "auth.users", {
     id: fixture.userId,

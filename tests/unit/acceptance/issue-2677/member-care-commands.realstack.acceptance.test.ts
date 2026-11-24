@@ -201,7 +201,7 @@ describe.skipIf(!ADMIN_URL)(
         [[extra.UBACKSTAFF, extra.UBACKADM, extra.USUPER]],
       );
       await db.query(
-        `insert into public.legal_entities (id, tenant_id, name) values ($1, $1, 'Entity A'), ($2, $2, 'Entity B')`,
+        `insert into public.legal_entities (id, tenant_id, name, country_code, currency, legal_name) values ($1, $1, 'Entity A', 'US', 'usd', 'Entity A'), ($2, $2, 'Entity B', 'US', 'usd', 'Entity B')`,
         [id.TA, id.TB],
       );
       await db.query(
@@ -940,7 +940,7 @@ describe.skipIf(!ADMIN_URL)(
           [membershipId, userId, tenantId],
         );
         await connA.query(
-          `insert into public.legal_entities (id, tenant_id, name) values ($1, $1, 'Lock Entity')`,
+          `insert into public.legal_entities (id, tenant_id, name, country_code, currency, legal_name) values ($1, $1, 'Lock Entity', 'US', 'usd', 'Lock Entity')`,
           [tenantId],
         );
         await connA.query(

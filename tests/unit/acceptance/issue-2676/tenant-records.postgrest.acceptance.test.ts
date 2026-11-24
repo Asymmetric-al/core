@@ -77,7 +77,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           [membership, user, tenant],
         );
         await db.query(
-          "insert into public.legal_entities(id,tenant_id,name) values ($1,$1,'Fixture')",
+          "insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$1,'Fixture','US','usd','Fixture')",
           [tenant],
         );
         await db.query(

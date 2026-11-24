@@ -1884,3 +1884,230 @@ describe("tenant keys", () => {
     expect(judge([], false)).toEqual([]);
   });
 });
+
+describe("WP8a worker wrapper rules (TP2 section 11)", () => {
+  const lanes = [
+    command(
+      "tenant_guard.apply_account_event(p_tenant_id uuid, p_event_id uuid, p_attempt integer)",
+    ),
+    command(
+      "tenant_guard.acquire_workflow_work_claim(p_tenant_id uuid, p_subject_type text, p_subject_id text, p_claimed_by text, p_ttl_seconds integer)",
+    ),
+    command(
+      "tenant_guard.release_workflow_work_claim(p_tenant_id uuid, p_claim_id uuid, p_status text)",
+    ),
+  ];
+  const judge = (wrappers: object[]) =>
+    evaluate([], listed(), [], lanes, allow(), { wrappers });
+
+  it("passes a compliant worker wrapper that derives the tenant from a stored anchor and performs no writes", () => {
+    const body = `
+      DECLARE v_tenant uuid;
+      BEGIN
+        SELECT a.tenant_id INTO v_tenant
+          FROM public.stripe_raw_events AS e
+          JOIN public.payment_provider_accounts AS a
+            ON a.provider_account_id = e.stripe_account AND a.livemode = e.livemode
+         WHERE e.id = p_event_id;
+        IF v_tenant IS NULL THEN
+          RETURN pg_catalog.jsonb_build_object('event_id', p_event_id, 'outcome', 'unknown_anchor');
+        END IF;
+        RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt);
+      END;
+    `;
+    const result = judge([
+      wrapper(
+        "public.apply_account_event(p_event_id uuid, p_attempt integer)",
+        body,
+        { service_role: true },
+      ),
+    ]);
+    expect(result.failures).toEqual([]);
+  });
+
+  it("allows only the listed P1 workflow claim wrappers to pass a tenant argument", () => {
+    const result = judge([
+      wrapper(
+        "public.acquire_workflow_work_claim(p_tenant_id uuid, p_subject_type text, p_subject_id text, p_claimed_by text, p_ttl_seconds integer)",
+        "BEGIN RETURN tenant_guard.acquire_workflow_work_claim(p_tenant_id, p_subject_type, p_subject_id, p_claimed_by, p_ttl_seconds); END;",
+        { service_role: true },
+      ),
+      wrapper(
+        "public.release_workflow_work_claim(p_tenant_id uuid, p_claim_id uuid, p_status text)",
+        "BEGIN RETURN tenant_guard.release_workflow_work_claim(p_tenant_id, p_claim_id, p_status); END;",
+        { service_role: true },
+      ),
+    ]);
+    expect(result.failures).toEqual([]);
+  });
+
+  it.each<[string, string, string]>([
+    [
+      "passes a named p_tenant_id parameter as first argument",
+      "public.bad_named(p_tenant_id uuid, p_event_id uuid, p_attempt integer)",
+      "BEGIN RETURN tenant_guard.apply_account_event(p_tenant_id, p_event_id, p_attempt); END;",
+    ],
+    [
+      "passes a differently named parameter as first argument",
+      "public.bad_alias(p_org uuid, p_event_id uuid, p_attempt integer)",
+      "BEGIN RETURN tenant_guard.apply_account_event(p_org, p_event_id, p_attempt); END;",
+    ],
+    [
+      "passes positional parameter $1 as first argument",
+      "public.bad_positional(uuid, uuid, integer)",
+      "SELECT tenant_guard.apply_account_event($1, $2, $3);",
+    ],
+    [
+      "declares a tenant parameter copied through a local variable",
+      "public.bad_copy(p_tenant_id uuid, p_event_id uuid, p_attempt integer)",
+      "DECLARE v_t uuid; BEGIN v_t := p_tenant_id; RETURN tenant_guard.apply_account_event(v_t, p_event_id, p_attempt); END;",
+    ],
+    [
+      "mimics workflow claim under another wrapper name",
+      "public.bad_claim_copy(p_tenant_id uuid)",
+      "SELECT tenant_guard.acquire_workflow_work_claim(p_tenant_id, 'a', 'b', 'c', 60);",
+    ],
+  ])(
+    "fails WORKER_WRAPPER_TENANT_ARGUMENT when wrapper %s",
+    (_label, fn, body) => {
+      const result = judge([wrapper(fn, body, { service_role: true })]);
+      expect(codes(result)).toEqual([`WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`]);
+    },
+  );
+
+  it.each<[string, string]>([
+    [
+      "INSERT INTO",
+      "DECLARE v_tenant uuid; BEGIN SELECT e.tenant_id INTO v_tenant FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; INSERT INTO public.audit_logs(tenant_id) VALUES (v_tenant); RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+    ],
+    [
+      "UPDATE ... SET",
+      "DECLARE v_tenant uuid; BEGIN SELECT e.tenant_id INTO v_tenant FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; UPDATE public.stripe_raw_events SET processing_status = 'processing' WHERE id = p_event_id; RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+    ],
+    [
+      "DELETE FROM",
+      "DECLARE v_tenant uuid; BEGIN SELECT e.tenant_id INTO v_tenant FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; DELETE FROM public.stripe_raw_events WHERE id = p_event_id; RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+    ],
+    [
+      "MERGE INTO",
+      "DECLARE v_tenant uuid; BEGIN SELECT e.tenant_id INTO v_tenant FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; MERGE INTO public.stripe_raw_events t USING (SELECT p_event_id id) s ON t.id = s.id WHEN MATCHED THEN DO NOTHING; RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+    ],
+    [
+      "dynamic EXECUTE UPDATE",
+      "DECLARE v_tenant uuid; BEGIN SELECT e.tenant_id INTO v_tenant FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; EXECUTE 'UPDATE public.stripe_raw_events SET processing_status = ''x'' WHERE id = $1' USING p_event_id; RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+    ],
+  ])("fails WORKER_WRAPPER_WRITES when wrapper contains %s", (_label, body) => {
+    const fn = "public.writing_wrapper(p_event_id uuid, p_attempt integer)";
+    const result = judge([wrapper(fn, body, { service_role: true })]);
+    expect(codes(result)).toEqual([`WORKER_WRAPPER_WRITES ${fn}`]);
+  });
+
+  it("does not false-positive WORKER_WRAPPER_WRITES on FOR NO KEY UPDATE or prose error literals", () => {
+    const fn =
+      "public.readonly_lock_wrapper(p_event_id uuid, p_attempt integer)";
+    const body = `
+      DECLARE v_tenant uuid;
+      BEGIN
+        SELECT a.tenant_id INTO v_tenant
+          FROM public.stripe_raw_events AS e
+          JOIN public.payment_provider_accounts AS a
+            ON a.provider_account_id = e.stripe_account AND a.livemode = e.livemode
+         WHERE e.id = p_event_id
+           FOR NO KEY UPDATE;
+        IF v_tenant IS NULL THEN
+          RAISE EXCEPTION 'cannot update or delete unknown anchor';
+        END IF;
+        RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt);
+      END;
+    `;
+    const result = judge([wrapper(fn, body, { service_role: true })]);
+    expect(result.failures).toEqual([]);
+  });
+  it.each<[string, string, string]>([
+    [
+      "passes a caller value through a SELECT that reads no stored row",
+      "public.bad_select(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      "SELECT tenant_guard.apply_account_event((SELECT p_owner), p_event_id, p_attempt);",
+    ],
+    [
+      "copies a caller value into the variable it passes",
+      "public.bad_assign(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      "DECLARE v_t uuid; BEGIN v_t := p_owner; RETURN tenant_guard.apply_account_event(v_t, p_event_id, p_attempt); END;",
+    ],
+    [
+      "selects a caller value into the variable without reading a table",
+      "public.bad_select_into(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      "DECLARE v_t uuid; BEGIN SELECT p_owner INTO v_t; RETURN tenant_guard.apply_account_event(v_t, p_event_id, p_attempt); END;",
+    ],
+    [
+      "overwrites the stored read with a caller value",
+      "public.bad_overwrite(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      "DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; v_t := p_owner; RETURN tenant_guard.apply_account_event(v_t, p_event_id, p_attempt); END;",
+    ],
+    [
+      "reads the tenant through a function the gate cannot see into",
+      "public.bad_lookup(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      "SELECT tenant_guard.apply_account_event((SELECT public.lookup_owner(p_owner)), p_event_id, p_attempt);",
+    ],
+  ])(
+    "fails WORKER_WRAPPER_TENANT_ARGUMENT when the first argument is not a verifiable read of a stored anchor: %s",
+    (_label, fn, body) => {
+      const result = judge([wrapper(fn, body, { service_role: true })]);
+      expect(codes(result)).toContain(`WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`);
+    },
+  );
+
+  it("accepts the stored-anchor read as a scalar subquery and through a variable read once from a table", () => {
+    const result = judge([
+      wrapper(
+        "public.scalar_anchor(p_event_id uuid, p_attempt integer)",
+        "SELECT tenant_guard.apply_account_event((SELECT e.tenant_id FROM public.stripe_connect_events AS e WHERE e.id = p_event_id), p_event_id, p_attempt);",
+        { service_role: true, language: "sql" },
+      ),
+      wrapper(
+        "public.variable_anchor(p_event_id uuid, p_attempt integer)",
+        "DECLARE v_tenant uuid; BEGIN SELECT e.tenant_id INTO v_tenant FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; IF v_tenant IS NULL THEN RETURN pg_catalog.jsonb_build_object('outcome', 'unknown_anchor'); END IF; RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+        { service_role: true, language: "plpgsql" },
+      ),
+    ]);
+    expect(result.failures).toEqual([]);
+  });
+
+  it.each<[string, string, string | undefined]>([
+    [
+      "TRUNCATE",
+      "DECLARE v_tenant uuid; BEGIN SELECT e.tenant_id INTO v_tenant FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; TRUNCATE public.fixture_rows; RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+      "plpgsql",
+    ],
+    [
+      "a call to a function that may write",
+      "DECLARE v_tenant uuid; BEGIN SELECT e.tenant_id INTO v_tenant FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; PERFORM public.rebuild_fixture(p_event_id); RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+      "plpgsql",
+    ],
+    [
+      "a session setting change",
+      "DECLARE v_tenant uuid; BEGIN SELECT e.tenant_id INTO v_tenant FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; PERFORM pg_catalog.set_config('app.flag', 'on', true); RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+      "plpgsql",
+    ],
+    [
+      "dynamic SQL whose text the gate cannot read",
+      "DECLARE v_tenant uuid; BEGIN SELECT e.tenant_id INTO v_tenant FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; EXECUTE pg_catalog.format('SELECT %s', 1); RETURN tenant_guard.apply_account_event(v_tenant, p_event_id, p_attempt); END;",
+      "plpgsql",
+    ],
+    [
+      "a SQL-language SELECT INTO, which creates a table",
+      "SELECT e.* INTO public.event_copy FROM public.stripe_connect_events AS e; SELECT tenant_guard.apply_account_event((SELECT e.tenant_id FROM public.stripe_connect_events AS e WHERE e.id = p_event_id), p_event_id, p_attempt);",
+      "sql",
+    ],
+  ])(
+    "fails WORKER_WRAPPER_WRITES on a write the detector does not model: %s",
+    (_label, body, language) => {
+      const fn =
+        "public.unmodelled_wrapper(p_event_id uuid, p_attempt integer)";
+      const result = judge([
+        wrapper(fn, body, { service_role: true, language }),
+      ]);
+      expect(codes(result)).toContain(`WORKER_WRAPPER_WRITES ${fn}`);
+    },
+  );
+});

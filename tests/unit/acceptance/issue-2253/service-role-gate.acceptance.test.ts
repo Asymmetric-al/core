@@ -333,7 +333,7 @@ type Allow = {
   })[];
 };
 const doc = () => JSON.parse(read(ALLOWLIST) || "null") as Allow | null;
-const CEILING_TOTALS = [174, 112, 106] as const;
+const CEILING_TOTALS = [175, 113, 107] as const;
 const live = (d: Allow) => [
   d.entries.reduce((a, x) => a + x.count, 0),
   d.entries.length,

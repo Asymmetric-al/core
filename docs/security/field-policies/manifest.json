@@ -411,6 +411,107 @@
         "missionary": "---",
         "public": "---",
         "export": "---"
+      },
+      "version": {
+        "type": "integer",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "status": {
+        "type": "text",
+        "nullable": false,
+        "category": "care",
+        "semantic_category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "provider_account_ref": {
+        "type": "text",
+        "nullable": false,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "livemode": {
+        "type": "boolean",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "onboarding_intent_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "created_by": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "activated_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "restricted_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "disconnected_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
       }
     },
     "legal_entities": {
@@ -449,6 +550,46 @@
         "nullable": false,
         "category": "internal",
         "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "country_code": {
+        "type": "text",
+        "nullable": false,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "currency": {
+        "type": "text",
+        "nullable": false,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "legal_name": {
+        "type": "text",
+        "nullable": false,
+        "category": "contact",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "tax_id": {
+        "type": "text",
+        "nullable": true,
+        "category": "financial",
+        "mission_control": "ve-",
         "donor": "---",
         "missionary": "---",
         "public": "---",
@@ -2255,6 +2396,505 @@
         "default": null,
         "category": "security",
         "mission_control": "---",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      }
+    },
+    "funds": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "tenant_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "name": {
+        "type": "text",
+        "nullable": false,
+        "category": "contact",
+        "mission_control": "ve-",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "description": {
+        "type": "text",
+        "nullable": true,
+        "category": "care",
+        "mission_control": "ve-",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "target_amount": {
+        "type": "bigint",
+        "nullable": false,
+        "category": "financial",
+        "mission_control": "ve-",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "goal_amount": {
+        "type": "bigint",
+        "nullable": false,
+        "category": "financial",
+        "mission_control": "ve-",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "current_amount": {
+        "type": "bigint",
+        "nullable": false,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "currency": {
+        "type": "text",
+        "nullable": true,
+        "category": "financial",
+        "mission_control": "ve-",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "missionary_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "is_active": {
+        "type": "boolean",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "ve-",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "start_date": {
+        "type": "date",
+        "nullable": true,
+        "category": "financial",
+        "mission_control": "ve-",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "end_date": {
+        "type": "date",
+        "nullable": true,
+        "category": "financial",
+        "mission_control": "ve-",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "legal_entity_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "system_purpose": {
+        "type": "text",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      }
+    },
+    "payment_onboarding_intents": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "tenant_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "legal_entity_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "livemode": {
+        "type": "boolean",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "version": {
+        "type": "integer",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "status": {
+        "type": "text",
+        "nullable": false,
+        "category": "care",
+        "semantic_category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "reason": {
+        "type": "text",
+        "nullable": false,
+        "category": "care",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "created_by": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "assignment_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "provider_account_id": {
+        "type": "text",
+        "nullable": true,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "confirmed_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "confirmed_by_event": {
+        "type": "text",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      }
+    },
+    "payment_provider_accounts": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "tenant_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "legal_entity_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "provider_account_id": {
+        "type": "text",
+        "nullable": false,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "livemode": {
+        "type": "boolean",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "onboarding_intent_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "confirmed_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "sync_lease_event_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "sync_lease_expires_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "state_synced_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      }
+    },
+    "giving_source_codes": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "tenant_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "code": {
+        "type": "text",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "ve-",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "label": {
+        "type": "text",
+        "nullable": false,
+        "category": "contact",
+        "mission_control": "ve-",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "is_active": {
+        "type": "boolean",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "ve-",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
         "donor": "---",
         "missionary": "---",
         "public": "---",

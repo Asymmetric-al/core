@@ -60,7 +60,7 @@ Set the following values in Vercel **Preview** scope for all three projects:
 | `NEXT_PUBLIC_SENTRY_DSN`             | Preview Sentry DSN                    | Optional in preview                        |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`  | Preview/shared Cloudinary cloud name  | Non-secret identifier                      |
 
-`STRIPE_WEBHOOK_SECRET` is intentionally not set for preview. Preview URLs are ephemeral and do not receive Stripe webhooks; `@asym/env` allows this variable to be omitted when `VERCEL_ENV === "preview"`.
+`STRIPE_WEBHOOK_SECRET` is intentionally not set for preview. Preview URLs are ephemeral and do not receive Stripe webhooks; `@asym/env` allows this variable to be omitted when `VERCEL_ENV === "preview"`. `STRIPE_CONNECT_WEBHOOK_SECRET` is likewise unset in local and preview environments; while unset, `apps/admin` `/api/webhooks/stripe-connect` answers `503` without touching the database. The connected-accounts endpoint is a Stripe event destination on the platform's own account ("Events from: Your account"), payload style **thin**, subscribed to the Accounts v2 account events `v2.core.account.created`, `v2.core.account.updated`, `v2.core.account.closed`, `v2.core.account[requirements].updated` and `v2.core.account[configuration.merchant].capability_status_updated`; `STRIPE_CONNECT_WEBHOOK_SECRET` is that destination's own signing secret. A thin event names the account but carries no state, so the endpoint reads the account from Stripe with `STRIPE_SECRET_KEY` before it changes a binding. In this program that key must be a test key (`sk_test_` or `rk_test_`): onboarding and the endpoint refuse a live key.
 
 ### 4.2 Layered monorepo build controls
 
@@ -264,6 +264,8 @@ For each Vercel project (`admin`, `donor`, `missionary`):
 | `CLOUDINARY_API_SECRET`              |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`  |
 
+On the `admin` project only, also set `STRIPE_CONNECT_WEBHOOK_SECRET` once the Connect event destination exists (section 5.5). `donor` and `missionary` do not host that endpoint and must not hold its signing secret.
+
 Set `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_SITE_URL` to the HTTPS development origin of the project (section 5.1). On admin and donor set `CMS_BASE_URL` to `https://development-admin.asymmetric.al`. The donor server’s CMS client sends no Vercel bypass, so it cannot read public CMS pages from the protected admin origin on development. On admin set `DONOR_APP_URL` and `NEXT_PUBLIC_DONOR_URL` to `https://development-donor.asymmetric.al`. Use the Inngest Development event and signing keys on all three projects in `core-development`; do not copy the Production pair here.
 
 Supabase-specific development values must resolve to project ref
@@ -306,11 +308,12 @@ Assign these domains to each project's `core-development` environment and point 
 
 Use Stripe test-mode endpoints per development app:
 
-| App        | Endpoint URL                                                       |
-| ---------- | ------------------------------------------------------------------ |
-| Admin      | `https://development-admin.asymmetric.al/api/webhooks/stripe`      |
-| Donor      | `https://development-donor.asymmetric.al/api/webhooks/stripe`      |
-| Missionary | `https://development-missionary.asymmetric.al/api/webhooks/stripe` |
+| App        | Endpoint URL                                                                                                                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Admin      | `https://development-admin.asymmetric.al/api/webhooks/stripe`                                                                                                                                                                  |
+| Admin      | `https://development-admin.asymmetric.al/api/webhooks/stripe-connect` (event destination: events from your account, thin payload, Accounts v2 account events; uses `STRIPE_CONNECT_WEBHOOK_SECRET`, optional until configured) |
+| Donor      | `https://development-donor.asymmetric.al/api/webhooks/stripe`                                                                                                                                                                  |
+| Missionary | `https://development-missionary.asymmetric.al/api/webhooks/stripe`                                                                                                                                                             |
 
 If the development domain is protected by Vercel Authentication, Stripe cannot
 reach the endpoint directly. A protected endpoint returns Vercel `401`
@@ -331,7 +334,11 @@ Preferred protected-development setup:
    needs a one-request server-to-server bypass, not a browser cookie.
 4. Copy the Stripe endpoint signing secret into that app's
    `STRIPE_WEBHOOK_SECRET` in Vercel `core-development` scope, then redeploy if either
-   the webhook signing secret or the Vercel bypass secret changed.
+   the webhook signing secret or the Vercel bypass secret changed. For the
+   `/api/webhooks/stripe-connect` destination the signing secret goes in
+   `STRIPE_CONNECT_WEBHOOK_SECRET` on the admin app instead. Give that
+   destination's URL the same `x-vercel-protection-bypass` query parameter,
+   and run step 5's check against its path as well.
 5. Verify without exposing secrets:
 
    ```bash
@@ -372,45 +379,47 @@ adjust app-level deployment branch gates.
 
 Set these Vercel variables in the **Production** scope before deploying:
 
-| Variable                             | Admin                    | Donor                    | Missionary               | Notes                                                                           |
-| ------------------------------------ | ------------------------ | ------------------------ | ------------------------ | ------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`           | Yes                      | Yes                      | Yes                      | Development project until WP11                                                  |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | Yes                      | Yes                      | Yes                      | Client-safe key from that same project                                          |
-| `SUPABASE_SERVICE_ROLE_KEY`          | Yes                      | Yes                      | Yes                      | Server-only key from that same project                                          |
-| `STRIPE_SECRET_KEY`                  | Yes                      | Yes                      | Yes                      | Use test mode pending live cutover; not observable from the public bundle       |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Yes                      | Yes                      | Yes                      | Use test mode; verify the delivered bundle before accepting the release         |
-| `STRIPE_WEBHOOK_SECRET`              | Yes                      | Yes                      | Yes                      | Signing secret for the app-specific production endpoint                         |
-| `SENTRY_DSN`                         | Yes                      | Yes                      | Yes                      | Required by protected deployment env validation                                 |
-| `NEXT_PUBLIC_SENTRY_DSN`             | Yes                      | Yes                      | Yes                      | Public client DSN when browser reporting is enabled                             |
-| `SENTRY_AUTH_TOKEN`                  | If uploading source maps | If uploading source maps | If uploading source maps | Build-only token; enables Sentry release creation and source map upload         |
-| `SENTRY_ORG`                         | Optional                 | Optional                 | Optional                 | Build-time Sentry org override; defaults to `asymmetrical-4w`                   |
-| `SENTRY_PROJECT`                     | Optional                 | Optional                 | Optional                 | Build-time Sentry project override; defaults to `javascript-nextjs`             |
-| `SENTRY_RELEASE`                     | Optional                 | Optional                 | Optional                 | Manual release name override; otherwise the Vercel commit SHA is used           |
-| `RESEND_API_KEY`                     | Yes                      | Yes                      | Yes                      | Production Resend API key; use `re_...`                                         |
-| `RESEND_WEBHOOK_SECRET`              | Yes                      | Yes                      | Yes                      | Production Resend webhook signing secret                                        |
-| `RESEND_ENCRYPTION_KEY`              | Yes                      | Yes                      | Yes                      | At least 32 characters; protects tenant email secrets                           |
-| `NEXT_PUBLIC_APP_URL`                | Yes                      | Yes                      | Yes                      | App canonical origin                                                            |
-| `NEXT_PUBLIC_SITE_URL`               | Yes                      | Yes                      | Yes                      | Same origin as the app unless a split site exists                               |
-| `NEXT_PUBLIC_MAIN_DOMAIN`            | Yes                      | Yes                      | Yes                      | `asymmetric.al`                                                                 |
-| `PAYLOAD_SECRET`                     | Yes                      | No                       | No                       | Required by admin Web Studio outside local/test                                 |
-| `PAYLOAD_DATABASE_URI`               | Yes                      | No                       | No                       | Restricted `cms_runtime` login via the development session pooler; verify-full. |
-| `PAYLOAD_DATABASE_SSL_CA`            | Yes                      | No                       | No                       | Development database CA.                                                        |
-| `CMS_BASE_URL`                       | Yes                      | Yes                      | No                       | Admin origin: `https://admin.asymmetric.al`.                                    |
-| `INNGEST_EVENT_KEY`                  | Yes                      | Yes                      | Yes                      | From Inngest Production; server-side event publishing.                          |
-| `INNGEST_SIGNING_KEY`                | Yes                      | Yes                      | Yes                      | From Inngest Production; verifies signed requests.                              |
-| `PAYLOAD_DATABASE_POOL_MAX`          | Optional                 | No                       | No                       | Optional Payload Postgres pool override; hosted runtime defaults to `2`         |
-| `NEXT_PUBLIC_DONOR_URL`              | Yes                      | No                       | No                       | `https://donor.asymmetric.al` for Web Studio previews                           |
-| `DONOR_APP_URL`                      | Yes                      | No                       | No                       | Server-side donor origin for Web Studio previews                                |
+| Variable                             | Admin                     | Donor                    | Missionary               | Notes                                                                                                                                                  |
+| ------------------------------------ | ------------------------- | ------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`           | Yes                       | Yes                      | Yes                      | Development project until WP11                                                                                                                         |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | Yes                       | Yes                      | Yes                      | Client-safe key from that same project                                                                                                                 |
+| `SUPABASE_SERVICE_ROLE_KEY`          | Yes                       | Yes                      | Yes                      | Server-only key from that same project                                                                                                                 |
+| `STRIPE_SECRET_KEY`                  | Yes                       | Yes                      | Yes                      | Use test mode pending live cutover; not observable from the public bundle                                                                              |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Yes                       | Yes                      | Yes                      | Use test mode; verify the delivered bundle before accepting the release                                                                                |
+| `STRIPE_WEBHOOK_SECRET`              | Yes                       | Yes                      | Yes                      | Signing secret for the app-specific production endpoint                                                                                                |
+| `STRIPE_CONNECT_WEBHOOK_SECRET`      | Optional until configured | No                       | No                       | Signing secret (`whsec_...`) of the thin event destination for Accounts v2 account events at `/api/webhooks/stripe-connect`; returns `503` while unset |
+| `SENTRY_DSN`                         | Yes                       | Yes                      | Yes                      | Required by protected deployment env validation                                                                                                        |
+| `NEXT_PUBLIC_SENTRY_DSN`             | Yes                       | Yes                      | Yes                      | Public client DSN when browser reporting is enabled                                                                                                    |
+| `SENTRY_AUTH_TOKEN`                  | If uploading source maps  | If uploading source maps | If uploading source maps | Build-only token; enables Sentry release creation and source map upload                                                                                |
+| `SENTRY_ORG`                         | Optional                  | Optional                 | Optional                 | Build-time Sentry org override; defaults to `asymmetrical-4w`                                                                                          |
+| `SENTRY_PROJECT`                     | Optional                  | Optional                 | Optional                 | Build-time Sentry project override; defaults to `javascript-nextjs`                                                                                    |
+| `SENTRY_RELEASE`                     | Optional                  | Optional                 | Optional                 | Manual release name override; otherwise the Vercel commit SHA is used                                                                                  |
+| `RESEND_API_KEY`                     | Yes                       | Yes                      | Yes                      | Production Resend API key; use `re_...`                                                                                                                |
+| `RESEND_WEBHOOK_SECRET`              | Yes                       | Yes                      | Yes                      | Production Resend webhook signing secret                                                                                                               |
+| `RESEND_ENCRYPTION_KEY`              | Yes                       | Yes                      | Yes                      | At least 32 characters; protects tenant email secrets                                                                                                  |
+| `NEXT_PUBLIC_APP_URL`                | Yes                       | Yes                      | Yes                      | App canonical origin                                                                                                                                   |
+| `NEXT_PUBLIC_SITE_URL`               | Yes                       | Yes                      | Yes                      | Same origin as the app unless a split site exists                                                                                                      |
+| `NEXT_PUBLIC_MAIN_DOMAIN`            | Yes                       | Yes                      | Yes                      | `asymmetric.al`                                                                                                                                        |
+| `PAYLOAD_SECRET`                     | Yes                       | No                       | No                       | Required by admin Web Studio outside local/test                                                                                                        |
+| `PAYLOAD_DATABASE_URI`               | Yes                       | No                       | No                       | Restricted `cms_runtime` login via the development session pooler; verify-full.                                                                        |
+| `PAYLOAD_DATABASE_SSL_CA`            | Yes                       | No                       | No                       | Development database CA.                                                                                                                               |
+| `CMS_BASE_URL`                       | Yes                       | Yes                      | No                       | Admin origin: `https://admin.asymmetric.al`.                                                                                                           |
+| `INNGEST_EVENT_KEY`                  | Yes                       | Yes                      | Yes                      | From Inngest Production; server-side event publishing.                                                                                                 |
+| `INNGEST_SIGNING_KEY`                | Yes                       | Yes                      | Yes                      | From Inngest Production; verifies signed requests.                                                                                                     |
+| `PAYLOAD_DATABASE_POOL_MAX`          | Optional                  | No                       | No                       | Optional Payload Postgres pool override; hosted runtime defaults to `2`                                                                                |
+| `NEXT_PUBLIC_DONOR_URL`              | Yes                       | No                       | No                       | `https://donor.asymmetric.al` for Web Studio previews                                                                                                  |
+| `DONOR_APP_URL`                      | Yes                       | No                       | No                       | Server-side donor origin for Web Studio previews                                                                                                       |
 
 Production Stripe webhook endpoints:
 
-| App        | Endpoint URL                                           |
-| ---------- | ------------------------------------------------------ |
-| Admin      | `https://admin.asymmetric.al/api/webhooks/stripe`      |
-| Donor      | `https://donor.asymmetric.al/api/webhooks/stripe`      |
-| Missionary | `https://missionary.asymmetric.al/api/webhooks/stripe` |
+| App        | Endpoint URL                                                                                                                                                                            |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Admin      | `https://admin.asymmetric.al/api/webhooks/stripe`                                                                                                                                       |
+| Admin      | `https://admin.asymmetric.al/api/webhooks/stripe-connect` (event destination: events from your account, thin payload, Accounts v2 account events; uses `STRIPE_CONNECT_WEBHOOK_SECRET`) |
+| Donor      | `https://donor.asymmetric.al/api/webhooks/stripe`                                                                                                                                       |
+| Missionary | `https://missionary.asymmetric.al/api/webhooks/stripe`                                                                                                                                  |
 
-Configure each endpoint in the active Stripe mode for at least these events:
+Configure each `/api/webhooks/stripe` endpoint in the active Stripe mode for at least these events:
 
 - `payment_intent.succeeded`
 - `payment_intent.payment_failed`
@@ -418,7 +427,7 @@ Configure each endpoint in the active Stripe mode for at least these events:
 - `payment_intent.processing`
 - `charge.refunded`
 
-After creating each endpoint, set `STRIPE_WEBHOOK_SECRET` on its app in Vercel Production. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.
+After creating each `/api/webhooks/stripe` endpoint, set `STRIPE_WEBHOOK_SECRET` on its app in Vercel Production. The `/api/webhooks/stripe-connect` destination is separate: it takes Accounts v2 account events as thin payloads, and its signing secret goes only in `STRIPE_CONNECT_WEBHOOK_SECRET` on the admin app, never in `STRIPE_WEBHOOK_SECRET`. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.
 
 Production Resend webhook endpoint:
 

@@ -1010,9 +1010,7 @@ also stops unless its `psql` is version 16 or later, because an older libpq
 ignores `PGREQUIREAUTH` without a word. The same floor holds wherever one of
 the three builders that start `psql` from an address connects to a hosted
 one: the job's own SQL, the CMS runner, and `scripts/lib/psql.mjs`, which the
-reset guard uses (review N6). It does not hold for
-`scripts/verify/stripe-data-pipeline.mjs`, which starts `psql` on a hosted
-address with a builder of its own. The workflow installs Ubuntu's
+reset guard uses (review N6). The workflow installs Ubuntu's
 `postgresql-client` on `ubuntu-latest`, whose image carries PostgreSQL 16.
 Each client checks the chain to that CA and the host name:
 

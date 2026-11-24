@@ -255,4 +255,58 @@ describe("admin/contribution-shared/designation-set", () => {
       missionaryName: "John Martinez",
     });
   });
+
+  it("labels reserved fee-cover fund lines as Fee cover even when fund name is blank", () => {
+    const fundsWithFeeCover = new Map([
+      ...funds,
+      [
+        "fund-fee-cover",
+        {
+          id: "fund-fee-cover",
+          name: null,
+          missionary_id: null,
+          goal_amount: null,
+          start_date: null,
+          end_date: null,
+          system_purpose: "fee_cover",
+        },
+      ],
+    ]);
+
+    const set = buildContributionDesignationSet({
+      donation,
+      effectiveAmountCents: 31_000,
+      allocations: [
+        {
+          id: "alloc-gift",
+          amount: 30_000,
+          fund_id: "fund-1",
+          missionary_id: null,
+          memo: null,
+        },
+        {
+          id: "alloc-fee",
+          amount: 1_000,
+          fund_id: "fund-fee-cover",
+          missionary_id: null,
+          memo: null,
+        },
+      ],
+      funds: fundsWithFeeCover,
+      missionaries,
+    });
+
+    expect(set.lines).toHaveLength(2);
+    expect(set.lines[0]).toMatchObject({
+      fundId: "fund-1",
+      fundName: "Clean Water Initiative",
+    });
+    expect(set.lines[1]).toMatchObject({
+      fundId: "fund-fee-cover",
+      fundName: "Fee cover",
+      fundType: "general",
+    });
+    expect(set.reconcilesToGiftAmount).toBe(true);
+    expect(set.issues).toEqual([]);
+  });
 });

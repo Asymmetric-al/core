@@ -142,6 +142,12 @@ const OVERRIDES: Record<string, Record<string, string>> = {
   },
   donor_merge_candidates: { confidence: "'possible'", status: "'open'" },
   crm_command_logs: { status: "'queued'" },
+  legal_entities: { country_code: "'US'", currency: "'usd'" },
+  payment_account_bindings: {
+    status: "'pending'",
+    provider_account_ref: "'acct_acc2675'",
+  },
+  payment_provider_accounts: { provider_account_id: "'acct_acc2675'" },
   crm_notes: { visibility: "'standard'", title: "'t'", body: "'b'" },
   member_care_activities: { type: "'check_in'" },
   member_care_requirements: {

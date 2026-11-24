@@ -291,10 +291,19 @@ describe("#2312 unchanged (criterion 8)", () => {
         entries: { file: string; follow_up: string }[];
       }
     ).entries;
-    // D-18: WP4a counts six existing bypass paths for WP4b; the original pool shrank to 115.
+    // D-18: WP4a counts six existing bypass paths for WP4b, and AL-2681 (W8-R10) holds one temporary connected-accounts webhook intake row until Part 2 retires legacy webhooks.
     expect(
-      a.filter((entry) => entry.follow_up !== "WP4b").length,
+      a.filter(
+        (entry) =>
+          entry.follow_up !== "WP4b" &&
+          entry.file !== "packages/api/src/stripe/connect-webhook.ts",
+      ).length,
     ).toBeLessThanOrEqual(115);
+    expect(
+      a.filter(
+        (entry) => entry.file === "packages/api/src/stripe/connect-webhook.ts",
+      ).length,
+    ).toBeLessThanOrEqual(1);
     expect(
       a.filter((entry) => entry.follow_up === "WP4b").length,
     ).toBeLessThanOrEqual(6);

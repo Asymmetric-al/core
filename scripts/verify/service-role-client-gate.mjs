@@ -160,6 +160,7 @@ packages/api/src/reads/donor-history.ts admin_client 2
 packages/api/src/reads/missionary-metrics.ts admin_client 1
 packages/api/src/shared/with-operation.ts admin_client 1
 packages/api/src/storage/media-store.ts admin_client 1
+packages/api/src/stripe/connect-webhook.ts admin_client 1
 packages/api/src/stripe/webhooks.ts admin_client 1
 packages/api/src/workflows/admin-client.ts admin_client 1
 packages/api/src/workflows/functions/dispatch-recovery-scan.ts workflow_admin_wrapper 1

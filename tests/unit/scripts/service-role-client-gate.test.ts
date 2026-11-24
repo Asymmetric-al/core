@@ -351,9 +351,9 @@ describe("frozen ceiling", () => {
     }
   });
 
-  it("pins the 112 reviewed entries after WP4a part 2b, WP6 part 1, and WP4b part 1", () => {
+  it("pins the 113 reviewed entries after WP4a part 2b, WP6 part 1, WP8a part 1, and WP4b part 1", () => {
     expect(ceilingDigest()).toBe(
-      "d3df179b449762d3ff98623e4cbf41394f7eacefd8b15af98ec95252f345293b",
+      "c012bff4dcfe65a99f7726d222ab0230c9339078eebf1db9d84d7f9919c9af29",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -361,15 +361,15 @@ describe("frozen ceiling", () => {
       totals[kind] = (totals[kind] ?? 0) + count;
     }
     expect(totals).toEqual({
-      admin_client: 76,
+      admin_client: 77,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
       operation_admin_context: 63,
     });
-    expect(CEILING.size).toBe(112);
+    expect(CEILING.size).toBe(113);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(106);
+    ).toBe(107);
   });
 
   it("holds no CRM handler in the allowlist or the ceiling once note creation moves", () => {
