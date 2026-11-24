@@ -68,7 +68,10 @@ it("documents the server-minted key as this release's exception", () => {
 
 const LEGACY_PROFILE_ROWS =
   "alter table public.profiles drop constraint profiles_user_id_matches_id, alter column user_id drop not null";
-describe.skipIf(!ADMIN_URL)("the CRM note command", () => {
+const SUITE_TITLE =
+  "the CRM note command (D-18: AL-2676: human commands require x-asym-tenant)";
+
+describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
   let db: pg.Client;
   let id: Record<string, string>;
 
@@ -78,17 +81,19 @@ describe.skipIf(!ADMIN_URL)("the CRM note command", () => {
     assignment: string | null,
     sql: string,
     params: unknown[] = [],
+    tenant?: string,
   ) {
     await db.query("savepoint act");
     try {
       await db.query(`set local role ${role}`);
+      const headers: Record<string, string> = {};
+      if (tenant) headers["x-asym-tenant"] = tenant;
+      if (assignment) headers["x-asym-assignment"] = id[assignment]!;
       await db.query(
         "select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', '', true), set_config('request.headers', $2, true)",
         [
           user ? JSON.stringify({ sub: id[user], role }) : "",
-          JSON.stringify(
-            assignment ? { "x-asym-assignment": id[assignment] } : {},
-          ),
+          JSON.stringify(headers),
         ],
       );
       const result = await db.query(sql, params);
@@ -105,13 +110,14 @@ describe.skipIf(!ADMIN_URL)("the CRM note command", () => {
   }
 
   function create(user: string, assignment: string | null, note: Note = {}) {
+    const tenant = note.tenant ?? id.TA;
     return act(
       "authenticated",
       user,
       assignment,
       "select public.create_crm_note($1, $2, $3, $4, $5, $6, $7, $8, $9) as result",
       [
-        note.tenant ?? id.TA,
+        tenant,
         note.key === undefined ? randomUUID() : note.key,
         note.title ?? "Meeting",
         note.body ?? "Summary",
@@ -121,6 +127,7 @@ describe.skipIf(!ADMIN_URL)("the CRM note command", () => {
         note.linkedLabel ?? null,
         randomUUID(),
       ],
+      tenant,
     );
   }
 
@@ -299,6 +306,7 @@ describe.skipIf(!ADMIN_URL)("the CRM note command", () => {
         assignment,
         "select tenant_guard.create_crm_note($1, $2, 'Meeting', 'Summary', 'standard', null, null, null, null) as result",
         [tenant, key],
+        tenant,
       );
     const refused = randomUUID();
     expect((await call("UB", "mB", id.TA, refused)).code).toBe("42501");
@@ -317,6 +325,7 @@ describe.skipIf(!ADMIN_URL)("the CRM note command", () => {
           "mDev",
           "select tenant_guard.create_crm_note($1, $2, 'Meeting', 'Summary', 'restricted', null, null, null, null)",
           [id.TA, randomUUID()],
+          id.TA,
         )
       ).code,
     ).toBe("42501");
@@ -624,7 +633,7 @@ describe.skipIf(!ADMIN_URL)("the CRM note command", () => {
 });
 
 describe.skipIf(!ADMIN_URL)(
-  "the CRM note command against a membership change in flight (committed)",
+  "the CRM note command against a membership change in flight (committed) (D-18: AL-2676: human commands require x-asym-tenant)",
   () => {
     const admin = new pg.Client({ connectionString: ADMIN_URL });
     const one = new pg.Client({ connectionString: ADMIN_URL });
@@ -707,7 +716,10 @@ describe.skipIf(!ADMIN_URL)(
         "select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', '', true), set_config('request.headers', $2, true)",
         [
           JSON.stringify({ sub: person.user, role: "authenticated" }),
-          JSON.stringify({ "x-asym-assignment": person.assignment }),
+          JSON.stringify({
+            "x-asym-tenant": tenant,
+            "x-asym-assignment": person.assignment,
+          }),
         ],
       );
     }

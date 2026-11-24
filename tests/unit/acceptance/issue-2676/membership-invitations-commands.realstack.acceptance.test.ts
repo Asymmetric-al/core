@@ -20,6 +20,7 @@ async function runAs(
   sql: string,
   opts?: {
     aal?: string;
+    tenant?: string;
     headers?: Record<string, string>;
     params?: unknown[];
     lockTimeoutMs?: number;
@@ -43,8 +44,12 @@ async function runAs(
     await client.query("select set_config('request.jwt.claim.sub', $1, true)", [
       sub ?? "",
     ]);
+    const headers = {
+      ...(opts?.tenant ? { "x-asym-tenant": opts.tenant } : {}),
+      ...(opts?.headers ?? {}),
+    };
     await client.query("select set_config('request.headers', $1, true)", [
-      JSON.stringify(opts?.headers ?? {}),
+      JSON.stringify(headers),
     ]);
     await client.query(`set local role ${role}`);
     const res = await client.query(sql, opts?.params ?? []);
@@ -74,6 +79,7 @@ async function runCommittedAs(
   sql: string,
   opts?: {
     aal?: string;
+    tenant?: string;
     headers?: Record<string, string>;
     params?: unknown[];
     lockTimeoutMs?: number;
@@ -97,8 +103,12 @@ async function runCommittedAs(
     await client.query("select set_config('request.jwt.claim.sub', $1, true)", [
       sub ?? "",
     ]);
+    const headers = {
+      ...(opts?.tenant ? { "x-asym-tenant": opts.tenant } : {}),
+      ...(opts?.headers ?? {}),
+    };
     await client.query("select set_config('request.headers', $1, true)", [
-      JSON.stringify(opts?.headers ?? {}),
+      JSON.stringify(headers),
     ]);
     await client.query(`set local role ${role}`);
     const res = await client.query(sql, opts?.params ?? []);
@@ -248,7 +258,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2676 WP3c part 1: invite, revoke, operator admin invite, and accept commands (real stack)",
+  "AL-2676 WP3c part 1: invite, revoke, operator admin invite, and accept commands (real stack) (D-18: AL-2676: human commands require x-asym-tenant)",
   () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
 
@@ -279,6 +289,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.invite_member($1, $2, $3, $4, $5, $6) as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [
               i.tenantA,
@@ -307,6 +318,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.invite_member($1, $2, $3, $4, $5, $6) as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [
               i.tenantA,
@@ -362,6 +374,7 @@ describe.skipIf(!ADMIN_URL)(
             sub,
             "select public.invite_member($1, $2, 'staff', 'finance', false, 'Reason')",
             {
+              tenant: i.tenantA,
               headers: header as Record<string, string>,
               params: [i.tenantA, staffEmail],
             },
@@ -384,6 +397,7 @@ describe.skipIf(!ADMIN_URL)(
             i.adminA,
             "select public.invite_member($1, $2, $3, $4, $5, $6)",
             {
+              tenant: String(badParams[0]),
               headers: { "x-asym-assignment": i.mAdminA },
               params: badParams,
             },
@@ -402,6 +416,7 @@ describe.skipIf(!ADMIN_URL)(
             i.adminA,
             "select public.invite_member($1, $2, 'staff', 'finance', false, 'Reason')",
             {
+              tenant: i.tenantA,
               headers: { "x-asym-assignment": i.mAdminA },
               params: [i.tenantA, staffEmail],
             },
@@ -419,6 +434,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.invite_member($1, $2, 'staff', 'finance', false, 'Initial invite') as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [i.tenantA, staffEmail],
           },
@@ -432,6 +448,7 @@ describe.skipIf(!ADMIN_URL)(
           i.staffA,
           "select public.revoke_membership_invitation($1, $2, 'Not allowed')",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mStaffA },
             params: [i.tenantA, issued.invitation_id],
           },
@@ -444,6 +461,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.revoke_membership_invitation($1, $2, ' \n\t ')",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [i.tenantA, issued.invitation_id],
           },
@@ -456,6 +474,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.revoke_membership_invitation($1, $2, 'Missing')",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [i.tenantA, randomUUID()],
           },
@@ -468,6 +487,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.revoke_membership_invitation($1, $2, '  Wrong email address  ') as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [i.tenantA, issued.invitation_id],
           },
@@ -485,6 +505,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.revoke_membership_invitation($1, $2, 'Already revoked')",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [i.tenantA, issued.invitation_id],
           },
@@ -675,6 +696,7 @@ describe.skipIf(!ADMIN_URL)(
             i.adminA,
             "select public.invite_member($1, $2, 'staff', 'mobilizer', false, 'New mobilizer') as r",
             {
+              tenant: i.tenantA,
               headers: { "x-asym-assignment": i.mAdminA },
               params: [i.tenantA, staffEmail],
             },
@@ -713,6 +735,7 @@ describe.skipIf(!ADMIN_URL)(
             i.adminA,
             "select public.invite_member($1, $2, 'staff', 'hr', false, 'Unconfirmed email') as r",
             {
+              tenant: i.tenantA,
               headers: { "x-asym-assignment": i.mAdminA },
               params: [i.tenantA, unconfirmedEmail],
             },
@@ -788,6 +811,7 @@ describe.skipIf(!ADMIN_URL)(
             i.adminA,
             "select public.invite_member($1, $2, 'staff', 'mobilizer', true, 'Duplicate same sub-role') as r",
             {
+              tenant: i.tenantA,
               headers: { "x-asym-assignment": i.mAdminA },
               params: [i.tenantA, staffEmail],
             },
@@ -814,6 +838,7 @@ describe.skipIf(!ADMIN_URL)(
             i.adminA,
             "select public.invite_member($1, $2, 'missionary', null, false, 'Will expire') as r",
             {
+              tenant: i.tenantA,
               headers: { "x-asym-assignment": i.mAdminA },
               params: [i.tenantA, staffEmail],
             },
@@ -840,6 +865,7 @@ describe.skipIf(!ADMIN_URL)(
             i.adminA2,
             "select public.invite_member($1, $2, 'staff', 'finance', true, 'Returning finance staff') as r",
             {
+              tenant: i.tenantA,
               headers: { "x-asym-assignment": i.mAdminA2 },
               params: [i.tenantA, revokedEmail],
             },
@@ -882,6 +908,7 @@ describe.skipIf(!ADMIN_URL)(
             i.adminA,
             "select public.invite_member($1, $2, 'staff', 'member_care', false, 'Donor joining staff') as r",
             {
+              tenant: i.tenantA,
               headers: { "x-asym-assignment": i.mAdminA },
               params: [i.tenantA, donorEmail],
             },
@@ -925,6 +952,7 @@ describe.skipIf(!ADMIN_URL)(
               i.adminA,
               "select public.invite_member($1, $2, 'staff', 'hr', false, 'Soft-deleted test') as r",
               {
+                tenant: i.tenantA,
                 headers: { "x-asym-assignment": i.mAdminA },
                 params: [
                   i.tenantA,
@@ -967,6 +995,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA2,
           "select public.invite_member($1, $2, 'staff', 'development', false, 'Cross-tenant unflagged staff') as r",
           {
+            tenant: i.tenantB,
             headers: { "x-asym-assignment": mAdminB },
             params: [i.tenantB, adminAEmail],
           },
@@ -1075,6 +1104,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.invite_member($1, $2, 'staff', 'finance', false, 'F2 lock test') as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [i.tenantA, staffEmail],
           },
@@ -1175,6 +1205,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.invite_member($1, $2, 'staff', 'finance', false, 'For F4 revoke race') as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [i.tenantA, staffEmail],
           },
@@ -1199,6 +1230,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA2,
           "select public.invite_member($1, $2, 'staff', 'hr', false, 'Race invite')",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA2 },
             params: [i.tenantA, staffEmail],
           },
@@ -1227,6 +1259,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA2,
           "select public.revoke_membership_invitation($1, $2, 'Race revoke')",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA2 },
             params: [i.tenantA, pendingId],
           },
@@ -1287,6 +1320,7 @@ describe.skipIf(!ADMIN_URL)(
             i.adminA,
             "select public.invite_member($1, $2, 'staff', 'finance', false, 'Double accept race') as r",
             {
+              tenant: i.tenantA,
               headers: { "x-asym-assignment": i.mAdminA },
               params: [i.tenantA, staffEmail],
             },
@@ -1329,6 +1363,7 @@ describe.skipIf(!ADMIN_URL)(
             i.adminA,
             "select public.invite_member($1, $2, 'missionary', null, false, 'Revoke vs accept') as r",
             {
+              tenant: i.tenantA,
               headers: { "x-asym-assignment": i.mAdminA },
               params: [i.tenantA, missEmail],
             },
@@ -1346,6 +1381,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.revoke_membership_invitation($1, $2, 'Racing revoke') as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [i.tenantA, revInv.invitation_id],
           },
@@ -1434,6 +1470,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.invite_member($1, $2, 'staff', 'member_care', false, 'Admin invites self') as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [i.tenantA, adminEmail],
           },
@@ -1540,6 +1577,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.invite_member($1, $2, 'staff', 'finance', false, 'Admin invites operator') as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [i.tenantA, opEmail],
           },
@@ -1640,6 +1678,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.invite_member($1, $2, 'staff', 'finance', false, 'R17 order 1') as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [i.tenantA, `r17-o1-${tag}@example.org`],
           },
@@ -1651,6 +1690,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA2,
           "select public.revoke_membership($1, $2, 'R17 revoke vs invite order 1') as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA2 },
             params: [i.tenantA, i.mStaffA],
           },
@@ -1667,6 +1707,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.invite_member($1, $2, 'staff', 'hr', false, 'R17 order 2') as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [i.tenantA, `r17-o2-${tag}@example.org`],
           },
@@ -1678,6 +1719,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA2,
           "select public.revoke_membership($1, $2, 'R17 revoke vs invite order 2') as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA2 },
             params: [i.tenantA, i.mMissionaryA],
           },
@@ -1694,6 +1736,7 @@ describe.skipIf(!ADMIN_URL)(
           i.adminA,
           "select public.invite_member($1, $2, 'missionary', null, false, 'R17 fk probe invite') as r",
           {
+            tenant: i.tenantA,
             headers: { "x-asym-assignment": i.mAdminA },
             params: [i.tenantA, `r17-fk1-${tag}@example.org`],
           },
