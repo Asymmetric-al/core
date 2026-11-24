@@ -241,14 +241,17 @@ BEGIN
       USING ERRCODE = '23505';
   END IF;
 
-  IF EXISTS (SELECT 1 FROM public.tenants AS t WHERE t.slug = p_slug) THEN
-    RAISE EXCEPTION 'platform: the slug is taken' USING ERRCODE = '23505';
-  END IF;
-
   -- Every other column at its default: the organization is active at commit.
+  -- One statement on the slug's unique key (tenants_slug_key): a call that
+  -- meets another's uncommitted organization with the same slug waits for it,
+  -- and either way a taken slug gets this command's own refusal.
   INSERT INTO public.tenants (name, slug)
   VALUES (p_name, p_slug)
+  ON CONFLICT (slug) DO NOTHING
   RETURNING id INTO v_tenant;
+  IF v_tenant IS NULL THEN
+    RAISE EXCEPTION 'platform: the slug is taken' USING ERRCODE = '23505';
+  END IF;
 
   INSERT INTO public.legal_entities (tenant_id, name, country_code, currency, legal_name)
   VALUES (v_tenant, p_name, 'US', 'usd', p_name)
