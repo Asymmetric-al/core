@@ -339,7 +339,11 @@ describe("on: the E2E bypass refuses the same conflicts", () => {
 
   it("refuses a claim of B on name A, with or without a role class", async () => {
     mocks.bypassRows = P.map(asAssignment);
-    for (const roleClass of [{ "x-asym-role-class": "staff" }, {}]) {
+    const roleClasses: Record<string, string>[] = [
+      { "x-asym-role-class": "staff" },
+      {},
+    ];
+    for (const roleClass of roleClasses) {
       const context = await getAuthContext(
         bypassRequest({ [NAME]: TA, "x-asym-tenant": TB, ...roleClass }),
       );
