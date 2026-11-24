@@ -301,6 +301,23 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     expect(workflow).toContain(`      - ${suite}\n`);
   });
 
+  it("D-18 (AL-2676 WP3a part 2a adds provisioning's own second-factor proof): proves provisioning's second factor after the operator admin invitation proof", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2676/tenant-provisioning.localstack.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(marker);
+    expect(run).toBeDefined();
+    expect(run).toContain('OPERATOR_MFA_REQUIRED: "1"');
+    expect(run).toContain("!cancelled() && steps.stack.outcome == 'success'");
+    expect(run).not.toMatch(/continue-on-error/);
+    expect(at(marker)).toBeGreaterThan(
+      at(
+        "bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/operator-admin-invite.localstack.test.ts",
+      ),
+    );
+    expect(workflow).toContain(`      - ${suite}\n`);
+  });
+
   it("runs when the defaults, the replay or the fingerprint change", () => {
     for (const path of [
       "scripts/sql/hosted-default-privileges.sql",

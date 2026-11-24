@@ -149,6 +149,8 @@ on:
       - tests/e2e/auth-members-invitations.spec.ts
       - tests/unit/acceptance/issue-2676/membership-invitations.postgrest.acceptance.test.ts
       - tests/unit/acceptance/issue-2676/operator-admin-invite.localstack.test.ts
+      # Provisioning's second factor (AL-2676, WP3a part 2a).
+      - tests/unit/acceptance/issue-2676/tenant-provisioning.localstack.test.ts
       # Media custody, Storage refusal and signed-in delivery (AL-2679, WP6 part 1).
       - packages/api/src/storage/**
       - packages/api/src/media/**
@@ -380,6 +382,21 @@ jobs:
           OPERATOR_MFA_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
           export OPERATOR_MFA_ANON_KEY OPERATOR_MFA_SERVICE_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/operator-admin-invite.localstack.test.ts
+      - name: Prove provisioning's second factor (WP3a part 2a)
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
+        timeout-minutes: 10
+        shell: bash
+        env:
+          OPERATOR_MFA_REQUIRED: "1"
+          OPERATOR_MFA_API_URL: http://127.0.0.1:54321
+          OPERATOR_MFA_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          OPERATOR_MFA_MAIL_URL: http://127.0.0.1:54324
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          OPERATOR_MFA_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          OPERATOR_MFA_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export OPERATOR_MFA_ANON_KEY OPERATOR_MFA_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/tenant-provisioning.localstack.test.ts
       - name: Show Auth logs on failure
         if: failure()
         run: docker logs --tail 200 "$(docker ps --filter name=supabase_auth_ --format '{{.Names}}' | head -n 1)" || true
