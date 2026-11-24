@@ -447,14 +447,20 @@ $$;
 
 CREATE FUNCTION public.issue_account_claim_token(p_claim_id UUID, p_token_sha256 BYTEA)
 RETURNS JSONB
-LANGUAGE sql
+LANGUAGE plpgsql
 VOLATILE
 SECURITY INVOKER
 SET search_path = ''
 AS $$
-  SELECT tenant_guard.issue_account_claim_token(c.tenant_id, c.id, p_token_sha256)
-    FROM public.account_claim_requests AS c
-   WHERE c.id = p_claim_id;
+DECLARE
+  v_claim_tenant UUID;
+BEGIN
+  SELECT c.tenant_id INTO v_claim_tenant FROM public.account_claim_requests AS c WHERE c.id = p_claim_id;
+  IF v_claim_tenant IS NULL THEN
+    RETURN jsonb_build_object('issued', false);
+  END IF;
+  RETURN tenant_guard.issue_account_claim_token(v_claim_tenant, p_claim_id, p_token_sha256);
+END;
 $$;
 
 COMMENT ON FUNCTION public.start_account_claim(UUID) IS
