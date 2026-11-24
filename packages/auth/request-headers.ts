@@ -8,6 +8,21 @@ import type { RoleClass } from "./principal/types";
 
 export function requestOrigin(request: Request): string | null {
   const { headers } = request;
+  const stamped = headers.get("x-asym-front-origin");
+  if (stamped !== null) {
+    try {
+      const parsed = new URL(stamped);
+      if (
+        (parsed.protocol === "http:" || parsed.protocol === "https:") &&
+        parsed.origin === stamped
+      ) {
+        return parsed.origin;
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
   const nextUrl = new URL(request.url);
   const authority = headers.get("host") ?? nextUrl.host;
   if (

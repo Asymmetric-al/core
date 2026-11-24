@@ -1,7 +1,11 @@
+import { routeToDashboard, withoutFrontHeaders } from "@asym/auth/front";
 import { createAuthMiddleware } from "@asym/auth/middleware";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
+import { isServeUnderPathsEnabled } from "@asym/database/document-reload";
 
-export const proxy = createAuthMiddleware({
+import type { NextRequest } from "next/server";
+
+const authProxy = createAuthMiddleware({
   publicRoutes: [
     "/",
     "/about",
@@ -33,6 +37,15 @@ export const proxy = createAuthMiddleware({
   allowedRoles: ["donor"],
   resolveUserRole: resolveUserRoleFromDatabase,
 });
+
+export async function proxy(request: NextRequest) {
+  if (!isServeUnderPathsEnabled()) {
+    return authProxy(withoutFrontHeaders(request));
+  }
+  const routed = await routeToDashboard(request, process.env);
+  if (routed) return routed;
+  return authProxy(withoutFrontHeaders(request, { stripForwardedHost: true }));
+}
 
 export const config = {
   matcher: [

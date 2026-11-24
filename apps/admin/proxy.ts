@@ -1,9 +1,25 @@
+import {
+  admitExemptRequest,
+  admitFromFront,
+  asStampedRequest,
+  frontRefusal,
+  rebaseLocation,
+  STAFF_EXEMPT_PATHS,
+  STAFF_READ_ONLY_EXEMPT_PREFIXES,
+  withoutFrontHeaders,
+} from "@asym/auth/front";
 import { createAuthMiddleware } from "@asym/auth/middleware";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
+import {
+  APP_BASE_PATHS,
+  isServeUnderPathsEnabled,
+} from "@asym/database/document-reload";
 
 import { readWebStudioTenantCookie } from "./src/cms/web-studio-tenant-cookie";
 
-export const proxy = createAuthMiddleware({
+import type { NextRequest } from "next/server";
+
+const authProxy = createAuthMiddleware({
   // Each lies outside the tenant segment (OUTSIDE_TENANT_SEGMENT_ROOTS, the
   // one list; the proxy refuses to build otherwise). Mission Control has no
   // giving, worker or checkout pages, and the matcher never runs on a root
@@ -38,8 +54,28 @@ export const proxy = createAuthMiddleware({
   webStudio: { readCookie: readWebStudioTenantCookie },
 });
 
+export async function proxy(request: NextRequest) {
+  if (!isServeUnderPathsEnabled()) {
+    return authProxy(withoutFrontHeaders(request));
+  }
+  const admission = await admitFromFront(request, {
+    prefix: APP_BASE_PATHS.admin,
+    key: process.env.FRONT_STAMP_KEY,
+    previousKey: process.env.FRONT_STAMP_KEY_PREVIOUS,
+    exempt: STAFF_EXEMPT_PATHS,
+    readOnlyPrefixes: STAFF_READ_ONLY_EXEMPT_PREFIXES,
+  });
+  if (admission.kind === "refused") return frontRefusal();
+  if (admission.kind === "exempt") {
+    return admitExemptRequest(request, admission.pathname, "staff");
+  }
+  const response = await authProxy(asStampedRequest(request, admission.origin));
+  return rebaseLocation(response, request.nextUrl.origin, admission.origin);
+}
+
 export const config = {
   matcher: [
+    "/",
     // Every path the app can answer runs the proxy, pages and API routes
     // alike, whatever the path ends in: a dynamic route answers
     // `/contributions/x.json` and `/api/x/y.json` too, and a request that
