@@ -32,7 +32,7 @@ export async function resolveUserRoleFromDatabase({
     );
     const result = await resolveActiveAssignment(
       nameTenantId
-        ? { userId, roleClass, expectedTenantId: nameTenantId }
+        ? { userId, roleClass, expectedTenantId: nameTenantId, nameTenantId }
         : { userId, roleClass },
       reader,
     );
