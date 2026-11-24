@@ -14,7 +14,12 @@ import {
   type AuthFn,
 } from "eve/channels/auth";
 
-import type { EveChannelEvents } from "eve/channels/eve";
+import type {
+  HttpRouteDefinition,
+  RouteDefinition,
+  SendFn,
+} from "eve/channels";
+import type { EveChannel, EveChannelEvents } from "eve/channels/eve";
 
 function isLoopbackVerificationRequest(request: Request): boolean {
   if (process.argv[2] !== "eval") {
@@ -86,3 +91,53 @@ export const adminEveSessionEvents: EveChannelEvents = {
     });
   },
 };
+
+const SESSION_CREATE_ROUTE_PATH = "/eve/v1/session";
+const SESSION_CONTINUE_ROUTE_PATH = "/eve/v1/session/:sessionId";
+
+function wrapRouteForSessionClaim(
+  route: HttpRouteDefinition,
+  claimAlways: boolean,
+): HttpRouteDefinition {
+  const originalHandler = route.handler;
+  return {
+    ...route,
+    handler(request, args) {
+      const originalSend = args.send;
+      const send: SendFn = async (input, options) => {
+        const session = await originalSend(input, options);
+        if (claimAlways || session.id !== args.params.sessionId) {
+          await claimEveSessionFromAuthSnapshot({
+            auth: options.auth,
+            sessionId: session.id,
+          });
+        }
+        return session;
+      };
+      return originalHandler(request, {
+        ...args,
+        send,
+      });
+    },
+  };
+}
+
+export function withAdminSessionCreationClaim(channel: EveChannel): EveChannel {
+  const routes: readonly RouteDefinition[] = channel.routes.map((route) => {
+    if (route.transport === "websocket" || route.method !== "POST") {
+      return route;
+    }
+    if (route.path === SESSION_CREATE_ROUTE_PATH) {
+      return wrapRouteForSessionClaim(route, true);
+    }
+    if (route.path === SESSION_CONTINUE_ROUTE_PATH) {
+      return wrapRouteForSessionClaim(route, false);
+    }
+    return route;
+  });
+
+  return {
+    ...channel,
+    routes,
+  };
+}
