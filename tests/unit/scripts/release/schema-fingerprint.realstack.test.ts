@@ -713,7 +713,7 @@ describe.skipIf(!adminDatabaseUrl)(
           seedEnabled = true;
         }
         await retry();
-        expect(fixtures(url)).toBe("3|2|6");
+        expect(fixtures(url)).toBe("4|2|7");
         expect(() => preflight({ settings, log: silent })).toThrow(
           /no recorded head.*first-rebuild/s,
         );
