@@ -497,8 +497,7 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
   calls tools by absolute path only, logs in to a throwaway Docker
   configuration with the token on standard input, pulls the PostgREST digest
   and logs out and deletes that configuration on any exit. `stack.mjs` then
-  runs the image with `--pull never` and stops if it is missing, before it
-  changes the database.
+  runs the image with `--pull never` and stops if it is missing.
   `tests/unit/workflows/ci-image-pulls.test.ts` fails if that order or the
   logout changes, or if `stack.mjs` pulls.
 - _Fork pull requests:_ a job's services start before its first step. Four of

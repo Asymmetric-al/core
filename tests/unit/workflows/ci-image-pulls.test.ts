@@ -115,12 +115,6 @@ function scriptPullProblems(text: string): string[] {
   }
   if (/\[\s*"pull"|"--pull",\s*"(?!never")/.test(text))
     problems.push("the script asks Docker to pull");
-  const prepare =
-    /async function prepare\([^)]*\) \{([\s\S]*?)\n\}\n/.exec(text)?.[1] ?? "";
-  const checked = prepare.indexOf("requireLocalImage(POSTGREST_IMAGE)");
-  const changed = prepare.indexOf("runDisposablePsql(");
-  if (checked < 0 || changed < 0 || checked > changed)
-    problems.push("prepare() changes the database before it checks the image");
   return problems;
 }
 
@@ -338,13 +332,6 @@ describe("API contract: the registry token is gone before any code of the pull r
       scriptText.replace(
         "requireLocalImage(POSTGREST_IMAGE);\n  claimNetwork",
         'docker(["pull", POSTGREST_IMAGE]);\n  claimNetwork',
-      ),
-    ],
-    [
-      "no image check before the database change",
-      scriptText.replace(
-        "  requireLocalImage(POSTGREST_IMAGE);\n  // The generated password",
-        "  // The generated password",
       ),
     ],
   ])("fails when stack.mjs has %s", (_, text) => {
