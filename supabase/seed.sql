@@ -48,6 +48,12 @@ DELETE FROM public.payment_account_bindings;
 DELETE FROM public.legal_entities;
 DELETE FROM public.locations;
 DELETE FROM public.profiles;
+-- A brand names its home record, and a home record names a claimed name
+-- (RESTRICT); a Site's primary domain is checked at commit.
+DELETE FROM public.donor_account_brands;
+DELETE FROM public.donor_portal_hosts;
+DELETE FROM public.site_domains;
+DELETE FROM public.sites;
 DELETE FROM public.tenants;
 
 -- Remove prior fixture auth users so the seed always lands on the same profiles.
@@ -493,6 +499,24 @@ SELECT md5(id::text||':legal')::uuid,id,name,'US','usd',name FROM public.tenants
 INSERT INTO public.funds(id,tenant_id,legal_entity_id,name,system_purpose)
 SELECT md5(tenant_id::text||':fee')::uuid,tenant_id,id,'Fee cover','fee_cover' FROM public.legal_entities;
 INSERT INTO public.contribution_approval_policies(tenant_id,ownership_mode) SELECT id,'no_approval_required' FROM public.tenants;
+
+-- Sites, claimed names and the home record (AL-2676, WP3a part 1b). The seed
+-- writes as owner and stands for a passed challenge: each organization's one
+-- claimed name, <slug>.localhost (local and CI only), serves all four surfaces,
+-- is bound to its default Site, carries all six proofs (so it is active) and is
+-- designated home. The second organization also has a Site with no domain.
+INSERT INTO public.sites(id,tenant_id,name,is_default)
+SELECT md5(id::text||':site')::uuid,id,name,true FROM public.tenants;
+INSERT INTO public.site_domains(host,tenant_id,site_id,surfaces,expected_project,control_proved_at,attached_at,routing_proved_at,https_proved_at,sign_in_ready_at,activation_proved_at)
+SELECT slug||'.localhost',id,md5(id::text||':site')::uuid,ARRAY['website','donor_account','staff','missionary'],'donor',
+       '2026-01-01T00:00:00Z','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z'
+FROM public.tenants;
+UPDATE public.sites SET primary_domain=t.slug||'.localhost' FROM public.tenants t WHERE t.id=sites.tenant_id AND sites.is_default;
+INSERT INTO public.donor_portal_hosts(id,tenant_id,primary_domain)
+SELECT md5(id::text||':home')::uuid,id,slug||'.localhost' FROM public.tenants;
+INSERT INTO public.donor_account_brands(tenant_id,display_name) SELECT id,name FROM public.tenants;
+INSERT INTO public.sites(id,tenant_id,name)
+VALUES (md5('00000000-0000-0000-0000-000000000002:second-site')::uuid,'00000000-0000-0000-0000-000000000002','Harbor Light Partners');
 
 WITH missionary_seed AS (
   SELECT

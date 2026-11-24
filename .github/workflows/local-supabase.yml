@@ -80,6 +80,7 @@ on:
       - vitest.per-importer-alias.mts
       - vitest.pin-workspace-packages.mts
       - tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts
+      - tests/unit/acceptance/issue-2676/sites.postgrest.acceptance.test.ts
       - tests/unit/acceptance/issue-2676/tenant-records.postgrest.acceptance.test.ts
       - tests/unit/workflows/local-supabase.test.ts
       # The round trips themselves.
@@ -258,6 +259,17 @@ jobs:
           WP3_TENANT_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
           export WP3_TENANT_IT_ANON_KEY WP3_TENANT_IT_SERVICE_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/tenant-records.postgrest.acceptance.test.ts
+      - name: Verify Sites, claimed names and the home record through PostgREST
+        shell: bash
+        env:
+          WP3_TENANT_IT_URL: http://127.0.0.1:54321
+          WP3_TENANT_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          WP3_TENANT_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          WP3_TENANT_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export WP3_TENANT_IT_ANON_KEY WP3_TENANT_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/sites.postgrest.acceptance.test.ts
       - name: Verify invitations, directory and role concurrency through PostgREST
         shell: bash
         env:
