@@ -594,6 +594,52 @@ contracts.
   the real image refuses fails the "Start the local Supabase stack" step.
 - _Run it locally:_ `tests/e2e/README.md`, "Auth email round trips".
 
+## Mirror CI images workflow (`mirror-ci-images.yml`)
+
+Keeps a copy of each pinned CI service image in the organization's GitHub
+Container Registry, so a job can pull it with the workflow's own token instead
+of anonymously from a public registry.
+
+- _The list:_ `.github/ci-images.json` is the one place that names each
+  mirrored image: its public `source` (registry, repository and tag), its
+  `digest`, and its `mirror` under `ghcr.io/asymmetric-al/`. Today it holds
+  Postgres `17.11-alpine` (package `core-ci-postgres`) and PostgREST `v16.4`
+  (package `core-ci-postgrest`).
+- _What it does:_ `node scripts/github/mirror-ci-images.mjs .github/ci-images.json`
+  copies each image from its source digest with
+  `skopeo copy --all --preserve-digests`, which fails rather than change a
+  digest, then reads the manifest back from `ghcr.io` and fails unless its
+  digest is the listed one. An image whose digest and tag are both already
+  there is not copied again, so a second run changes nothing and does not ask
+  the public registry. A digest that is there without its tag is copied again
+  to restore the tag, and that copy does ask the public registry. The token
+  goes to `skopeo login` on standard input only.
+- _When it runs:_ manual dispatch and a daily schedule, from `develop` only:
+  its first step fails on any other ref. It never runs on a pull request.
+- _What that step cannot stop:_ `workflow_dispatch` runs the workflow file of
+  the ref it is dispatched from, so a person with write access to this
+  repository can dispatch a changed copy from their own branch, with
+  `packages: write` on the organization's packages. They cannot change what
+  `develop`'s jobs pull, since those pin a digest, and a fork or an outsider
+  cannot dispatch at all. Such a run shows as a package version whose digest
+  is not in `.github/ci-images.json` (compare
+  `gh api /orgs/Asymmetric-al/packages/container/<package>/versions` with the
+  list), and in the workflow's run history as a run on a ref other than
+  `develop`.
+- _Permissions:_ it is the only workflow with `packages: write`
+  (`tests/unit/workflows/mirror-ci-images.test.ts` fails if another workflow
+  asks for it).
+- _First run:_ a package that a workflow publishes with its `GITHUB_TOKEN` is
+  linked to that workflow's repository, and the repository gets admin access
+  to it, so the first run creates both packages and links them to this
+  repository. If a package of the same name already exists without that link,
+  the push is refused: an organization owner opens the package's settings and,
+  under "Manage Actions access", adds this repository with the Write role.
+- _Bump:_ a pull request cannot pull a digest the mirror does not hold yet, and
+  the mirror runs only from `develop`. So a bump is two pull requests: first
+  add the new digest to the list beside the old one, merge it and dispatch this
+  workflow; then switch the `image:` lines and drop the old entry.
+
 ## Branch protection
 
 Workflow YAML is the source of truth for the jobs Core emits. GitHub's
