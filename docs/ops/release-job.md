@@ -815,9 +815,19 @@ files applied and recorded in the ledger. If the run stopped before file N's
 dispatch from branch `production` (operation `release`; never Re-run on the
 stopped run) continues from file N. If file N's `COMMIT` completed but its
 ledger row is missing (a run cancelled or lost between the two), do not
-dispatch yet: confirm in the catalog that the file's objects are present, record
-its version as "If the migration committed but its ledger row is missing" does
-for `20261119135300`, check the ledger, and only then dispatch **Release** anew.
+dispatch yet. First establish which of the two cases it is, with a catalog read
+that answers differently before and after that file's `COMMIT`. For a file that
+creates objects (`20261120130004`), that is an object it creates. For a file
+that only changes existing objects, it is the changed property itself: the
+`status` column of `tenants` for `20261120130001`, the delete action of a
+tenant foreign key for `20261120130003`, a replaced function's body for
+`20261120130005`, the default of `donations.tenant_id` for `20261120130006`.
+That the file's objects exist proves nothing for such a file, and recording a
+file that did not commit makes every later dispatch skip it. Only when the read
+shows the committed state, record the version as "If the migration committed
+but its ledger row is missing" does for `20261119135300`, check the ledger, and
+then dispatch **Release** anew. When it shows the state before the file, record
+nothing and dispatch.
 On a lock timeout in `20261120130003`, `20261120130001` stays applied and
 recorded; inspect `pg_blocking_pids`, let the blocker finish or end it, and
 dispatch **Release** anew.
