@@ -1,6 +1,7 @@
 import {
   getAuthContext,
   hasAnyContextRole,
+  hasContextCapability,
   requestScopeOf,
   type AuthContext,
 } from "@asym/auth/context";
@@ -132,6 +133,8 @@ async function loadShellState(
     lastName: profile?.last_name,
     avatarUrl: profile?.avatar_url,
     role: auth.role,
+    canManageMembers: hasContextCapability(auth, "people.manage_members"),
+    currentMembershipId: auth.assignment?.assignmentId ?? null,
     tenantId,
     tenant: normalizeTenant(tenant ?? null, tenantId),
   });

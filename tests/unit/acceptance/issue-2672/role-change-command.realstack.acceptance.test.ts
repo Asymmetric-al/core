@@ -668,9 +668,9 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
     );
     expect(gone.rows).toEqual([{ fn: null }]);
     for (const signature of [
-      "public.change_membership_role(uuid,uuid,text,text,boolean,text)",
+      "public.change_membership_role(uuid,uuid,text,text,boolean,text,timestamptz)",
       "public.revoke_membership(uuid,uuid,text)",
-      "tenant_guard.change_membership_role(uuid,uuid,text,text,boolean,text)",
+      "tenant_guard.change_membership_role(uuid,uuid,text,text,boolean,text,timestamptz)",
       "tenant_guard.revoke_membership(uuid,uuid,text)",
     ]) {
       const r = await db.query(
