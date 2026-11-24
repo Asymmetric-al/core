@@ -47,8 +47,9 @@ each old assertion replaced by one at least as strong.
 4. **`issue-2251`: the dropped table leaves the posture lists.**
    `tests/unit/acceptance/issue-2251/harness.ts` takes
    `crm_merge_candidates` out of `F`, and
-   `tests/unit/acceptance/issue-2251/static.acceptance.test.ts` pins the
-   classified total at 141, down from 142. Every listed table must still be a
+   `tests/unit/acceptance/issue-2251/static.acceptance.test.ts` pinned the
+   classified total at 141, down from 142 (retired by
+   [0005](0005-pins-read-their-source.md)). Every listed table must still be a
    live tenant table with its posture.
 5. **`issue-2270`: the retired table is asserted gone.**
    `tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts`
@@ -71,8 +72,8 @@ each old assertion replaced by one at least as strong.
    write grants went in the same migration and which only the note command
    writes now.
 8. **The service-key ceiling falls by the note handler's site.**
-   `tests/unit/scripts/service-role-client-gate.test.ts` pins the ceiling's new
-   digest and totals (114 rows, 108 files, 64 platform-wrapper sites) and
+   `tests/unit/scripts/service-role-client-gate.test.ts`
+   (digest and totals retired by [0005](0005-pins-read-their-source.md))
    asserts that no file under `packages/api/src/admin/crm` is in the allowlist
    or the ceiling.
 9. **The screen's submission key is proved through both hooks.**

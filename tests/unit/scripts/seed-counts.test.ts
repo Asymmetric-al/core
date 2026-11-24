@@ -42,13 +42,35 @@ describe("the tracked expectation file", () => {
     expect(Number.isSafeInteger(expectations["public.profiles"])).toBe(true);
   });
 
-  it("is what the local seed verifier prints and checks: the counts and one fixture id per seeded profile", () => {
+  it("is what the local seed verifier prints and checks: the counts and one fixture id per seeded profile (D-18: AL-2671 ruling-pin-tax Q3: the script reads the file)", () => {
     const expectations = readSeedExpectations();
     const script = readFileSync("scripts/seed-demo.sh", "utf8");
     const seed = readFileSync("supabase/seed.sql", "utf8");
     expect(script).toContain(
-      `expected: ${expectations["public.profiles"]} profiles, ${expectations["public.tenants"]} tenants, ${expectations["authz.memberships"]} live memberships`,
+      '"$SCRIPT_DIR/../supabase/seed-expectations.json"',
     );
+    const snippet = /\bnode -e '([^']+)'/.exec(script)?.[1];
+    expect(snippet, "seed-demo.sh reads the counts with node -e").toBeTruthy();
+    const printed = (file: string) => {
+      const r = spawnSync(process.execPath, ["-e", snippet!, file], {
+        encoding: "utf8",
+      });
+      expect(r.status, r.stderr).toBe(0);
+      return r.stdout.trim();
+    };
+    const line = (c: Record<string, number>) =>
+      `${c["public.profiles"]} profiles, ${c["public.tenants"]} tenants, ${c["authz.memberships"]} live memberships`;
+    expect(printed(EXPECTATIONS_PATH)).toBe(line(expectations));
+    const changed = {
+      ...expectations,
+      "public.profiles": 9,
+      "public.tenants": 3,
+      "authz.memberships": 11,
+    };
+    const root = rootWith(
+      JSON.stringify({ description: "changed", counts: changed }),
+    );
+    expect(printed(path.join(root, EXPECTATIONS_PATH))).toBe(line(changed));
     const list = /WHERE id IN \(([^)]*)\)\) AS fixture_profile_rows/.exec(
       script,
     )?.[1];
@@ -57,6 +79,52 @@ describe("the tracked expectation file", () => {
     );
     expect(ids).toHaveLength(expectations["public.profiles"]!);
     for (const id of ids) expect(seed).toContain(`('${id}', '`);
+  });
+
+  it("stops the local seed verifier, naming the key, when an expected count is missing or not a count (D-18: AL-2671 pin-tax review finding 1)", () => {
+    const script = readFileSync("scripts/seed-demo.sh", "utf8");
+    const snippet = /\bnode -e '([^']+)'/.exec(script)?.[1];
+    expect(snippet, "seed-demo.sh reads the counts with node -e").toBeTruthy();
+    const run = (content: string) => {
+      const file = path.join(rootWith(content), EXPECTATIONS_PATH);
+      return spawnSync(process.execPath, ["-e", snippet!, file], {
+        encoding: "utf8",
+      });
+    };
+    const counts = readSeedExpectations();
+    const without = Object.fromEntries(
+      Object.entries(counts).filter(([key]) => key !== "authz.memberships"),
+    );
+    for (const [label, content, key] of [
+      ["missing", JSON.stringify({ counts: without }), "authz.memberships"],
+      [
+        "null",
+        JSON.stringify({ counts: { ...counts, "authz.memberships": null } }),
+        "authz.memberships",
+      ],
+      [
+        "a string",
+        JSON.stringify({ counts: { ...counts, "authz.memberships": "7" } }),
+        "authz.memberships",
+      ],
+      [
+        "a fraction",
+        JSON.stringify({ counts: { ...counts, "public.tenants": 1.5 } }),
+        "public.tenants",
+      ],
+      [
+        "negative",
+        JSON.stringify({ counts: { ...counts, "public.profiles": -1 } }),
+        "public.profiles",
+      ],
+      ["no counts object", JSON.stringify({ counts: [] }), "counts"],
+      ["malformed JSON", '{"counts": {', null],
+    ] as const) {
+      const r = run(content);
+      expect(r.status, `${label}: ${r.stdout}${r.stderr}`).not.toBe(0);
+      expect(r.stdout, label).toBe("");
+      if (key) expect(r.stderr, label).toContain(key);
+    }
   });
 
   it("is the step's only expectation: the workflow names the script, not a number", () => {

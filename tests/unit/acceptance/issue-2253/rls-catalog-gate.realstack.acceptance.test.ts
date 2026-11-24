@@ -240,25 +240,22 @@ async function catalogCounts() {
   await db.end();
   return rows[0] as { n: number; pol: number };
 }
-// AL-2674 (D09), AL-2677 (WP4a-2a), and AL-2681 (WP8a-1, D-18) reduce the deny-by-default exception list to 74; WP8a-1 keeps donation_saga_outbox listed (ruling W8-R34).
-const LISTED = 74;
+const LISTED = (JSON.parse(read(EXCEPTIONS)) as { entries: unknown[] }).entries
+  .length;
 
 describe.skipIf(!ADMIN_URL)(
   "#2253 tenant RLS catalog gate (real stack)",
   () => {
-    it(`6: the clean catalog is green: every tenant table has a policy or is one of the ${LISTED} listed, 0 stale`, async () => {
+    it(`6: the clean catalog is green: every tenant table has a policy or is one of the ${LISTED} listed, 0 stale (D-18: AL-2671: LISTED read from the exceptions file)`, async () => {
       const r = run(shim(""));
       expect(r, JSON.stringify(r)).toMatchObject({ ok: true });
       expect(r.failures).toEqual([]);
       const { n, pol } = await catalogCounts();
-      const listed = (JSON.parse(read(EXCEPTIONS)) as { entries: unknown[] })
-        .entries.length;
-      expect(listed).toBe(LISTED);
       expect(pol).toBeGreaterThan(0);
       expect(
         n,
-        `${n} tenant tables = ${pol} with policies + ${listed} listed`,
-      ).toBe(pol + listed);
+        `${n} tenant tables = ${pol} with policies + ${LISTED} listed`,
+      ).toBe(pol + LISTED);
     });
 
     it.each(CASES)("2-6: %s", (_name, sql, expected) => {
