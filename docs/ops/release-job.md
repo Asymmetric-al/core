@@ -816,8 +816,9 @@ dispatch from branch `production` (operation `release`; never Re-run on the
 stopped run) continues from file N. If file N's `COMMIT` completed but its
 ledger row is missing (a run cancelled or lost between the two), do not
 dispatch yet, and let no other release start: cancel any **Release** run that
-is queued or waiting (`gh run list --workflow release.yml --status queued`; a
-queued run has changed nothing, so cancelling it is safe), and do not push to
+is queued or waiting (`gh run list --workflow release.yml --status queued`,
+and again with `--status waiting`; such a run has changed nothing, so
+cancelling it is safe), and do not push to
 `production` until the version is recorded. Then establish which of the two
 cases it is, with a catalog read
 that answers differently before and after that file's `COMMIT`. For a file that
