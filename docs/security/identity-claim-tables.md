@@ -163,7 +163,7 @@ The forward file runs `SET LOCAL lock_timeout = '5s'` right after `BEGIN;`.
 
 ## Since WP5 (AL-2678)
 
-WP5's first part (`20261123050500_account_claim_commands.sql`, rulings W5-R4
+WP5's first part (`20261124030500_account_claim_commands.sql`, rulings W5-R4
 and W5-R5) changes `account_claim_requests`:
 
 - The requester's own read, `account_claim_requests_requester_select`, is
