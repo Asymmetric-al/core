@@ -4,10 +4,13 @@ import { eveChannel } from "eve/channels/eve";
 import {
   adminEveRouteAuth,
   adminEveSessionEvents,
+  withAdminSessionCreationClaim,
 } from "../../src/admin-session-auth";
 
-export default eveChannel({
-  auth: [adminEveRouteAuth, localDev()],
-  events: adminEveSessionEvents,
-  uploadPolicy: "disabled",
-});
+export default withAdminSessionCreationClaim(
+  eveChannel({
+    auth: [adminEveRouteAuth, localDev()],
+    events: adminEveSessionEvents,
+    uploadPolicy: "disabled",
+  }),
+);
