@@ -5,6 +5,7 @@ export type StaffSubroleValue =
 
 export interface StaffAccount {
   id: string;
+  user_id?: string;
   membership_id?: string;
   display_name?: string | null;
   full_name?: string | null;

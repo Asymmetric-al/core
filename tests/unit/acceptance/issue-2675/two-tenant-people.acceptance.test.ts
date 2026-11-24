@@ -220,6 +220,7 @@ describe("AL-2675 sweep: each tenant's people come from that tenant's membership
     expect(lastUsers).toEqual([
       {
         id: P.riley,
+        user_id: userId("riley"),
         membership_id: "m7",
         display_name: "riley",
         email: "riley@example.test",
