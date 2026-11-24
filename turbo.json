@@ -24,6 +24,7 @@
       "env": [
         "NODE_ENV",
         "CORE_EVE_BUILD_MODE",
+        "CORE_SERVE_UNDER_PATHS",
         "NEXT_PUBLIC_*",
         "GOOGLE_SITE_VERIFICATION",
         "BING_SITE_VERIFICATION",
@@ -51,6 +52,7 @@
         ".env",
         ".env.*",
         "$TURBO_ROOT$/scripts/load-workspace-env.mjs",
+        "$TURBO_ROOT$/scripts/release/serve-under-paths.mjs",
         "$TURBO_ROOT$/.env",
         "$TURBO_ROOT$/.env.*"
       ]

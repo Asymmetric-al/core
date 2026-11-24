@@ -9,6 +9,7 @@ import {
   type ComponentType,
 } from "react";
 
+import { withAppBasePath } from "./document-reload";
 import {
   requestDocumentReload,
   type DocumentReloadCause,
@@ -81,7 +82,7 @@ export function ScopeReloadNotice({
     <View
       stuck={stuck}
       reload={() => window.location.reload()}
-      homeHref={homeHref}
+      homeHref={withAppBasePath(homeHref)}
     />
   );
 }

@@ -4,6 +4,10 @@ import { buildPublicCmsImageRemotePatterns } from "../../scripts/cms/public-medi
 import { copyMaplibreWorkerAssetsForApp } from "../../scripts/copy-maplibre-worker-assets.mjs";
 import { loadWorkspaceEnvironment } from "../../scripts/load-workspace-env.mjs";
 import { migrationHeadsBuildEnv } from "../../scripts/release/migration-heads.mjs";
+import {
+  serveUnderPathsDonorHeaders,
+  serveUnderPathsNextConfig,
+} from "../../scripts/release/serve-under-paths.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
 
@@ -29,6 +33,8 @@ const BONEYARD_JS_REACT_ALIAS = `${BONEYARD_JS_ALIAS}/dist/react.js`;
  * in the literal: dropping either one, or flipping it to false, then fails
  * this app's typecheck instead of silently un-instanting every route.
  */
+const underPaths = serveUnderPathsNextConfig("donor");
+
 const nextConfig: NextConfig & {
   cacheComponents: true;
   partialPrefetching: true;
@@ -36,7 +42,10 @@ const nextConfig: NextConfig & {
   reactStrictMode: true,
   // Each build carries the migration heads it was built against, for
   // /api/health/migrations (scripts/release/migration-heads.mjs).
-  env: migrationHeadsBuildEnv(WORKSPACE_ROOT),
+  env: {
+    ...migrationHeadsBuildEnv(WORKSPACE_ROOT),
+    ...underPaths.env,
+  },
   cacheComponents: true,
   partialPrefetching: true,
   reactCompiler: {
@@ -116,83 +125,86 @@ const nextConfig: NextConfig & {
   compress: true,
   poweredByHeader: false,
   async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: [
-          {
-            key: "X-DNS-Prefetch-Control",
-            value: "on",
-          },
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
-          {
-            key: "X-Frame-Options",
-            value: "SAMEORIGIN",
-          },
-          {
-            key: "X-XSS-Protection",
-            value: "1; mode=block",
-          },
-          {
-            key: "Permissions-Policy",
-            value:
-              "camera=(), microphone=(), geolocation=(), interest-cohort=()",
-          },
-        ],
-      },
-      {
-        source: "/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/:all*(js|css)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/:all*(woff|woff2|ttf|otf|eot)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/sitemap.xml",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=86400, stale-while-revalidate=43200",
-          },
-        ],
-      },
-      {
-        source: "/robots.txt",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=86400, stale-while-revalidate=43200",
-          },
-        ],
-      },
-    ];
+    return serveUnderPathsDonorHeaders(
+      [
+        {
+          source: "/(.*)",
+          headers: [
+            {
+              key: "X-DNS-Prefetch-Control",
+              value: "on",
+            },
+            {
+              key: "X-Content-Type-Options",
+              value: "nosniff",
+            },
+            {
+              key: "Referrer-Policy",
+              value: "strict-origin-when-cross-origin",
+            },
+            {
+              key: "X-Frame-Options",
+              value: "SAMEORIGIN",
+            },
+            {
+              key: "X-XSS-Protection",
+              value: "1; mode=block",
+            },
+            {
+              key: "Permissions-Policy",
+              value:
+                "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+            },
+          ],
+        },
+        {
+          source: "/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)",
+          headers: [
+            {
+              key: "Cache-Control",
+              value: "public, max-age=31536000, immutable",
+            },
+          ],
+        },
+        {
+          source: "/:all*(js|css)",
+          headers: [
+            {
+              key: "Cache-Control",
+              value: "public, max-age=31536000, immutable",
+            },
+          ],
+        },
+        {
+          source: "/:all*(woff|woff2|ttf|otf|eot)",
+          headers: [
+            {
+              key: "Cache-Control",
+              value: "public, max-age=31536000, immutable",
+            },
+          ],
+        },
+        {
+          source: "/sitemap.xml",
+          headers: [
+            {
+              key: "Cache-Control",
+              value: "public, max-age=86400, stale-while-revalidate=43200",
+            },
+          ],
+        },
+        {
+          source: "/robots.txt",
+          headers: [
+            {
+              key: "Cache-Control",
+              value: "public, max-age=86400, stale-while-revalidate=43200",
+            },
+          ],
+        },
+      ],
+      underPaths.env,
+    );
   },
   async redirects() {
     return [

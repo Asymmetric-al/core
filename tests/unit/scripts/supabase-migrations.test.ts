@@ -157,7 +157,18 @@ function runVerifier(
     tenant_delete_violations: [],
     tenant_keys: [],
     tenant_update_violations: [],
-    definers: [],
+    definers: [
+      {
+        function: "public.resolve_verified_host(p_host text)",
+        schema: "public",
+        owner: "postgres",
+        owner_bypass: true,
+        search_path: '""',
+        volatility: "s",
+        public_execute: false,
+        anon_execute: true,
+      },
+    ],
     // AL-2674: the gate also reads the command-schema functions, the
     // wrappers that call into them and the unadmitted table grants.
     commands: [

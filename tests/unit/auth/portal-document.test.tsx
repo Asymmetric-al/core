@@ -17,8 +17,17 @@ vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
 
 // jsdom cannot load a new document; the reload is observed instead.
 const reload = vi.hoisted(() => ({ reloadDocument: vi.fn() }));
-vi.mock("@asym/database/document-reload", () => reload);
-vi.mock("../../../packages/database/document-reload", () => reload);
+vi.mock("@asym/database/document-reload", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return { ...actual, ...reload };
+});
+vi.mock(
+  "../../../packages/database/document-reload",
+  async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>();
+    return { ...actual, ...reload };
+  },
+);
 
 const TENANT = "00000000-0000-0000-0000-000000000001";
 const ASSIGNMENT = "00000000-0000-4000-8000-0000000000d1";

@@ -64,6 +64,10 @@
       "types": "./document-scope.tsx",
       "default": "./document-scope.tsx"
     },
+    "./app-base-path": {
+      "types": "./app-base-path.ts",
+      "default": "./app-base-path.ts"
+    },
     "./document-reload": {
       "types": "./document-reload.ts",
       "default": "./document-reload.ts"

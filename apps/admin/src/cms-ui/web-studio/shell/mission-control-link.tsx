@@ -1,5 +1,7 @@
 "use client";
 
+import { withAppBasePath } from "@asym/database/document-reload";
+
 import { useWebStudioOrganization } from "./web-studio-document";
 
 import type { ComponentProps } from "react";
@@ -22,7 +24,9 @@ export function MissionControlLink(props: Omit<ComponentProps<"a">, "href">) {
   return (
     <a
       {...props}
-      href={organization?.missionControlHref ?? MISSION_CONTROL_HREF}
+      href={withAppBasePath(
+        organization?.missionControlHref ?? MISSION_CONTROL_HREF,
+      )}
     />
   );
 }

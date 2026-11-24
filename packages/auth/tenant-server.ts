@@ -1,3 +1,4 @@
+import { withAppBasePath } from "@asym/database/document-reload";
 import { headers } from "next/headers";
 import { permanentRedirect, redirect } from "next/navigation";
 
@@ -72,4 +73,12 @@ export async function redirectInTenant(path: string): Promise<never> {
 
 export async function permanentRedirectInTenant(path: string): Promise<never> {
   permanentRedirect(await tenantHref(path));
+}
+
+export async function redirectFromActionInTenant(path: string): Promise<never> {
+  const target = await tenantHref(path);
+  const requestHeaders = await headers();
+  redirect(
+    requestHeaders.has("next-action") ? target : withAppBasePath(target),
+  );
 }

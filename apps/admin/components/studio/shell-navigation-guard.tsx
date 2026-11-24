@@ -2,6 +2,11 @@
 
 import { useTenantRouter as useRouter } from "@asym/auth/tenant-navigation";
 import {
+  appBasePath,
+  appPathname,
+  loadDocument,
+} from "@asym/database/document-reload";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -122,11 +127,24 @@ export function ShellNavigationProvider({ children }: { children: ReactNode }) {
         return;
       event.preventDefault();
       event.stopPropagation();
-      requestAction(() =>
-        router.push(
+      requestAction(() => {
+        const base = appBasePath();
+        const sameApp =
+          !base ||
+          destination.pathname === base ||
+          destination.pathname.startsWith(`${base}/`);
+        if (sameApp) {
+          router.push(
+            appPathname(destination.pathname) +
+              destination.search +
+              destination.hash,
+          );
+          return;
+        }
+        loadDocument(
           destination.pathname + destination.search + destination.hash,
-        ),
-      );
+        );
+      });
     };
     // Capture covers shell links rendered into sheets, flyouts and profile portals.
     document.addEventListener("click", onClick, true);

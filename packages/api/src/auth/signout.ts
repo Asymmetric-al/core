@@ -3,6 +3,9 @@ import {
   getE2EAuthCookieNameForRequest,
   isE2EAuthBypassEnabled,
 } from "@asym/auth";
+import { requestOrigin } from "@asym/auth/request-headers";
+import { clearedWebStudioCookie } from "@asym/auth/web-studio";
+import { isServeUnderPathsEnabled } from "@asym/database/document-reload";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
@@ -130,26 +133,34 @@ function isEquivalentLoopbackOrigin(
 }
 
 function isAllowedSignoutRequest(request: Request) {
-  const requestOrigin = new URL(request.url).origin;
+  const expectedOrigin = requestOrigin(request);
+  if (!expectedOrigin) return false;
   const originHeader = parseOrigin(request.headers.get("origin"));
   if (originHeader) {
     return (
-      originHeader === requestOrigin ||
-      isEquivalentLoopbackOrigin(requestOrigin, originHeader)
+      originHeader === expectedOrigin ||
+      isEquivalentLoopbackOrigin(expectedOrigin, originHeader)
     );
   }
 
   const refererHeader = parseOrigin(request.headers.get("referer"));
   if (refererHeader) {
     return (
-      refererHeader === requestOrigin ||
-      isEquivalentLoopbackOrigin(requestOrigin, refererHeader)
+      refererHeader === expectedOrigin ||
+      isEquivalentLoopbackOrigin(expectedOrigin, refererHeader)
     );
   }
 
   // Some same-origin browser requests may omit origin/referer in strict contexts.
   // If no origin context is available, continue and rely on same-site cookie policy.
   return true;
+}
+
+function clearSharedWebStudioCookieWhenUnderPaths(response: NextResponse) {
+  if (!isServeUnderPathsEnabled()) return;
+  response.cookies.set(
+    clearedWebStudioCookie({ secure: process.env.NODE_ENV === "production" }),
+  );
 }
 
 function noStoreJson(body: unknown, init?: ResponseInit) {
@@ -184,6 +195,7 @@ export async function POST(request: Request) {
         sameSite: "lax",
       });
     }
+    clearSharedWebStudioCookieWhenUnderPaths(response);
     return response;
   }
 
@@ -212,5 +224,6 @@ export async function POST(request: Request) {
       normalizeCookieOptions(cookie.options),
     );
   });
+  clearSharedWebStudioCookieWhenUnderPaths(response);
   return response;
 }

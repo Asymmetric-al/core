@@ -1,5 +1,11 @@
 {
   "version": 1,
   "rule": "Plan 5.4 (AL-2674): anon may execute a SECURITY DEFINER function only when it is listed here. Each listed function is a public read function: STABLE or IMMUTABLE, SET search_path = '', an explicit projection, no dynamic SQL, and its own host, Site, tenant and subject admission; anon still holds no grant on any table or view beneath it. Each entry names the function as the catalog gate prints it (schema.name(identity arguments)), with a reason and its reviewer. scripts/verify/tenant-rls-catalog.mjs enforces the list both ways.",
-  "entries": []
+  "entries": [
+    {
+      "function": "public.resolve_verified_host(p_host text)",
+      "reason": "WP3a part 1b (AL-2676): the anonymous verified-host lookup. For a claimed name in state ready or active it returns six outputs, tenant_id, site_id, generation, surfaces, state and is_home, and nothing for any other host; it normalises HTTP spelling only. There is no client grant on the tables beneath it (sites, site_domains, donor_portal_hosts, donor_account_brands).",
+      "reviewed_by": "Coordinator's WP3a-1b ruling, 2026-11-24"
+    }
+  ]
 }

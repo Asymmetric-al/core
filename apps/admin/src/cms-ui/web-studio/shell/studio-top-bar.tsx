@@ -3,6 +3,7 @@
 import { signOutClientSession } from "@asym/auth/client-session";
 import { useRoutePathname } from "@asym/auth/tenant-navigation";
 import { WEB_STUDIO_CHOOSER_PATH } from "@asym/auth/web-studio";
+import { withAppBasePath } from "@asym/database/document-reload";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   Breadcrumb,
@@ -87,7 +88,9 @@ function StudioUserMenu() {
   // Web Studio, switched through the Web Studio chooser.
   const organization = useWebStudioOrganization();
   const pathname = useRoutePathname();
-  const switchHref = `${WEB_STUDIO_CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`;
+  const switchHref = withAppBasePath(
+    `${WEB_STUDIO_CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`,
+  );
   const accountHref = formatAdminURL({ adminRoute, path: routes.account });
 
   return (

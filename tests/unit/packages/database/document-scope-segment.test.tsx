@@ -12,9 +12,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  */
 
 const reloadDocument = vi.hoisted(() => vi.fn());
-vi.mock("../../../../packages/database/document-reload", () => ({
-  reloadDocument,
-}));
+vi.mock(
+  "../../../../packages/database/document-reload",
+  async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>();
+    return {
+      ...actual,
+      reloadDocument,
+    };
+  },
+);
 
 /** A scope whose address names no tenant, as the portal's is. */
 const PORTAL = {

@@ -118,6 +118,7 @@ const GUARD_REACH = [
   "private.lock_tenant(uuid) EXECUTE",
   "private.profile_display_name(uuid) EXECUTE",
   "private.resolve_invitation_for_caller(text,text,uuid) EXECUTE",
+  "private.share_lock_site_domain(uuid,text) EXECUTE",
   "private.share_lock_tenant(uuid) EXECUTE",
   "schema authz USAGE",
   "schema private USAGE",

@@ -443,8 +443,13 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
     }
   });
 
-  it("the anon allowlist ships empty: no SECURITY DEFINER function is open to anon", () => {
-    expect(json(ANON_DEFINER_ALLOWLIST_PATH)).toMatchObject({ entries: [] });
+  it("only the verified-host lookup is on the anonymous definer allowlist", () => {
+    expect(json(ANON_DEFINER_ALLOWLIST_PATH)).toMatchObject({
+      entries: [{ function: "public.resolve_verified_host(p_host text)" }],
+    });
+    expect(
+      (json(ANON_DEFINER_ALLOWLIST_PATH) as { entries: unknown[] }).entries,
+    ).toHaveLength(1);
   });
 
   it.each(CASES)(
@@ -452,7 +457,15 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
     async (_name, sql, expected, allowlist) => {
       const r = await judge(
         sql,
-        allowlist ?? json(ANON_DEFINER_ALLOWLIST_PATH),
+        allowlist
+          ? {
+              entries: [
+                ...(json(ANON_DEFINER_ALLOWLIST_PATH) as { entries: unknown[] })
+                  .entries,
+                ...(allowlist as { entries: unknown[] }).entries,
+              ],
+            }
+          : json(ANON_DEFINER_ALLOWLIST_PATH),
       );
       if (expected.length) expect(planted(r.failures)).toEqual(expected);
       else
@@ -470,9 +483,15 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
     const r = await judge(
       `create function public.acc2674_ok() returns int language sql stable security definer set search_path = '' as 'select 1';
        ${REVOKE("public.acc2674_ok()")} grant execute on function public.acc2674_ok() to anon;`,
-      { entries: [{ function: "public.acc2674_ok()", reason: "fixture" }] },
+      {
+        entries: [
+          ...(json(ANON_DEFINER_ALLOWLIST_PATH) as { entries: unknown[] })
+            .entries,
+          { function: "public.acc2674_ok()", reason: "fixture" },
+        ],
+      },
     );
     expect(r.failures).toEqual([]);
-    expect(r.counts.anonAllowed).toBe(1);
+    expect(r.counts.anonAllowed).toBe(2);
   });
 });

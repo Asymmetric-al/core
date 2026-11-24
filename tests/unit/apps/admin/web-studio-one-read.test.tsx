@@ -27,10 +27,17 @@ vi.mock(
     };
   },
 );
-vi.mock("../../../../packages/database/document-reload", () => ({
-  reloadDocument: vi.fn(),
-  loadDocument: vi.fn(),
-}));
+vi.mock(
+  "../../../../packages/database/document-reload",
+  async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>();
+    return {
+      ...actual,
+      reloadDocument: vi.fn(),
+      loadDocument: vi.fn(),
+    };
+  },
+);
 
 const PERSON_A = "00000000-0000-4000-8000-0000000000c1";
 const PERSON_B = "00000000-0000-4000-8000-0000000000c2";

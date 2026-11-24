@@ -11,6 +11,7 @@ describe("Sentry request collection with Core's compatibility policy", () => {
   // also appear as literals in that source or its assertion expressions.
   const hookSecret = randomUUID();
   const refererSecret = randomUUID();
+  const stampSecret = `v1.1800000000.${randomUUID().replaceAll("-", "")}`;
 
   beforeEach(() => {
     envelopes.length = 0;
@@ -133,4 +134,45 @@ describe("Sentry request collection with Core's compatibility policy", () => {
       expect(fetch).not.toHaveBeenCalled();
     },
   );
+
+  it("filters x-asym-front-* headers so stamps never reach Sentry error events", async () => {
+    const request = await captureRequest({
+      "x-asym-front-stamp": stampSecret,
+      "x-asym-front-origin": "https://one.example.test",
+      "x-asym-front-custom": stampSecret,
+      "content-type": "application/json",
+    });
+    expect(request?.headers).toEqual({
+      "x-asym-front-stamp": "[Filtered]",
+      "x-asym-front-origin": "[Filtered]",
+      "x-asym-front-custom": "[Filtered]",
+      "content-type": "application/json",
+    });
+    expect(JSON.stringify(envelopes)).not.toContain(stampSecret);
+
+    envelopes.length = 0;
+    Sentry.captureRequestError(
+      new Error("local front-stamp privacy fixture"),
+      {
+        method: "POST",
+        path: "/admin/api/admin/funds",
+        headers: {
+          "x-asym-front-stamp": stampSecret,
+          "X-Asym-Front-Origin": "https://one.example.test",
+          "content-type": "application/json",
+        },
+      },
+      {
+        routerKind: "App Router",
+        routePath: "/api/admin/funds",
+        routeType: "route",
+      },
+    );
+    await Sentry.flush(1_000);
+
+    const serialized = JSON.stringify(envelopes);
+    expect(serialized).not.toContain(stampSecret);
+    expect(serialized).toContain("application/json");
+    expect(fetch).not.toHaveBeenCalled();
+  });
 });

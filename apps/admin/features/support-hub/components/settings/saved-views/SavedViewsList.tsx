@@ -4,6 +4,7 @@ import {
   TenantLink as Link,
   useTenantHref,
 } from "@asym/auth/tenant-navigation";
+import { withAppBasePath } from "@asym/database/document-reload";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { DropdownMenuItem } from "@asym/ui/components/shadcn/dropdown-menu";
@@ -34,6 +35,10 @@ import { SettingsPanel } from "../SettingsPanel";
 import { SettingsActionsMenu, SettingsIconButton } from "../SettingsRowActions";
 
 import type { SupportSavedView } from "../../../types";
+
+export function savedViewCopyUrl(tenantPath: string, origin: string): string {
+  return new URL(withAppBasePath(tenantPath), origin).toString();
+}
 
 export function SavedViewsList() {
   const query = useSupportSavedViews();
@@ -68,11 +73,12 @@ export function SavedViewsList() {
 
   const copyLink = async (view: SupportSavedView) => {
     try {
-      const url = new URL(
-        tenantHref(savedViewHref(view.filter)),
-        window.location.origin,
+      await navigator.clipboard.writeText(
+        savedViewCopyUrl(
+          tenantHref(savedViewHref(view.filter)),
+          window.location.origin,
+        ),
       );
-      await navigator.clipboard.writeText(url.toString());
       toast.success("Link copied.");
     } catch {
       toast.error(
