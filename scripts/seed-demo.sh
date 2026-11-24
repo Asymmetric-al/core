@@ -99,7 +99,17 @@ run_verify() {
   "
 
   echo
-  echo "Fixture identity check (expected: 5 profiles, 2 tenants, 9 live memberships):"
+  local expected
+  expected="$(node -e '
+const { counts } = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"));
+if (!counts || typeof counts !== "object" || Array.isArray(counts))
+  throw new Error("supabase/seed-expectations.json needs a counts object");
+for (const key of ["public.profiles", "public.tenants", "authz.memberships"])
+  if (!Number.isSafeInteger(counts[key]) || counts[key] < 0)
+    throw new Error(`supabase/seed-expectations.json: the count for ${key} must be a whole number of rows`);
+console.log(`${counts["public.profiles"]} profiles, ${counts["public.tenants"]} tenants, ${counts["authz.memberships"]} live memberships`);
+' "$SCRIPT_DIR/../supabase/seed-expectations.json")"
+  echo "Fixture identity check (expected: ${expected}):"
   local_psql -v ON_ERROR_STOP=1 -P pager=off -c "
     SELECT (SELECT COUNT(*)::bigint FROM public.profiles) AS profile_rows,
            (SELECT COUNT(*)::bigint FROM public.profiles

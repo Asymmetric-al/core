@@ -42,6 +42,14 @@ const DERIVED_FIELDS = Object.values(MANIFEST.derived_record_types).reduce(
   0,
 );
 const ROWS = (COLUMNS + DERIVED_FIELDS) * MANIFEST.surfaces.length;
+const LISTED = (
+  JSON.parse(
+    readFileSync(
+      path.join(root, "docs/security/rls-deny-by-default-exceptions.json"),
+      "utf8",
+    ),
+  ) as { entries: unknown[] }
+).entries.length;
 const roots: string[] = [];
 const itPosix = process.platform === "win32" ? it.skip : it;
 afterEach(() => {
@@ -308,9 +316,8 @@ describe("supabase migrations verifier", () => {
       expect(result.stdout).toContain(
         `equal the manifest's ${COLUMNS} physical columns`,
       );
-      // AL-2674 (D09) and AL-2681 (WP8a-1, D-18) reduce the exception list to 74.
       const gateLine = result.stdout.indexOf(
-        "PASS: tenant RLS catalog gate: 75 tenant tables enabled and forced (1 with policies, 74 listed deny-by-default, 0 stale)",
+        `PASS: tenant RLS catalog gate: ${LISTED + 1} tenant tables enabled and forced (1 with policies, ${LISTED} listed deny-by-default, 0 stale)`,
       );
       expect(
         result.stdout.indexOf(

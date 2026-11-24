@@ -37,7 +37,14 @@ import {
   setEnvironmentMarker,
   withDatabaseCaFile,
 } from "../../../../scripts/release/release-database.mjs";
+import { readSeedExpectations } from "../../../../scripts/verify/seed-counts.mjs";
 
+const SEED_COUNTS: Record<string, number> = Object.fromEntries(
+  Object.entries(readSeedExpectations()).map(([table, count]) => {
+    const [schema, name] = table.split(".");
+    return [`"${schema}"."${name}"`, count];
+  }),
+);
 const ref = "abcdefghijklmnopqrst";
 const databaseUrl = `postgresql://postgres.${ref}:pw@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full`;
 const source = listSourceMigrations({ root: process.cwd() });
@@ -154,24 +161,8 @@ function fakeDatabase(state: {
   const events: string[] = [];
   const query = vi.fn(
     ({ sql, databaseUrl }: { sql: string; databaseUrl: string }) => {
-      const counts: Record<string, number> = {
-        '"public"."profiles"': 5,
-        '"public"."tenants"': 2,
-        '"authz"."memberships"': 9,
-        '"public"."legal_entities"': 2,
-        '"public"."payment_account_bindings"': 0,
-        '"public"."funds"': 10,
-        '"public"."contribution_approval_policies"': 2,
-        '"public"."parties"': 24,
-        '"public"."account_links"': 4,
-        '"private"."party_restricted"': 1,
-        '"public"."sites"': 3,
-        '"public"."site_domains"': 2,
-        '"public"."donor_portal_hosts"': 2,
-        '"public"."donor_account_brands"': 2,
-      };
       if (sql.startsWith("SELECT count(*) FROM"))
-        return counts[sql.slice("SELECT count(*) FROM ".length, -1)]!;
+        return SEED_COUNTS[sql.slice("SELECT count(*) FROM ".length, -1)]!;
       if (sql.includes("to_regprocedure")) return { exists: db.healthFunction };
       // Review K3: the read after a failed reset, and preflight's check.
       if (sql.includes("query_to_xml"))
@@ -1188,6 +1179,38 @@ describe("release database steps", () => {
           query: (input: Parameters<typeof fake.query>[0]) =>
             input.sql.startsWith("SELECT count(*) FROM")
               ? 0
+              : fake.query(input),
+          runCommand,
+          requireDisposable: () => ({ ok: true }),
+          log: silent,
+        }),
+      ).rejects.toThrow(/seed.*before Payload/i);
+    },
+  );
+
+  it.each(["first", "disposable"] as const)(
+    "%s rebuild stops before Payload when the seed holds one profile more than supabase/seed-expectations.json (D-18: AL-2671: counts read from the file)",
+    async (mode) => {
+      const fake = fakeDatabase({
+        environment: mode === "first" ? null : "disposable",
+      });
+      const runCommand = withPinnedCli((command) => {
+        fake.db.environment = "disposable";
+        expect(command).not.toBe("bun");
+        return { status: 0 };
+      });
+      const profiles = '"public"."profiles"';
+      await expect(
+        rebuild({
+          settings: settings("preview"),
+          mode,
+          signoff: "https://github.com/Asymmetric-al/core/issues/1",
+          confirmation: `rebuild ${ref}`,
+          env: passwords,
+          run: fake.run,
+          query: (input: Parameters<typeof fake.query>[0]) =>
+            input.sql === `SELECT count(*) FROM ${profiles};`
+              ? SEED_COUNTS[profiles]! + 1
               : fake.query(input),
           runCommand,
           requireDisposable: () => ({ ok: true }),

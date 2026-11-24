@@ -4,7 +4,6 @@
  * Acceptance; implementers must not edit.
  */
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -230,7 +229,7 @@ describe("#2255 rollback", () => {
 });
 
 describe("#2255 consumers and docs", () => {
-  it("15: no code in apps/, packages/, scripts/, tooling/ names either table; database.ts stays pinned", () => {
+  it("15: no code in apps/, packages/, scripts/, tooling/ names either table (D-18: AL-2671 ruling-pin-tax Q2)", () => {
     const files = execFileSync(
       "git",
       ["ls-files", "-z", "apps", "packages", "scripts", "tooling"],
@@ -240,11 +239,6 @@ describe("#2255 consumers and docs", () => {
       .filter(Boolean);
     const re = new RegExp(`${CLAIMS}|${INVITES}`);
     expect(files.filter((f) => re.test(readFileSync(f, "utf8")))).toEqual([]);
-    expect(
-      createHash("sha256")
-        .update(readFileSync("packages/database/types/database.ts"))
-        .digest("hex"),
-    ).toBe("eed11b5e929ce6d28d374d4f06296e0a5f6c35bba5c614a603a4e1110f1ea171");
   });
 
   it(`16: ${DOC} covers both tables, columns, access matrix, Q15, Q16, writers and rollback order`, () => {

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { CAPABILITY_REGISTRY } from "../../../packages/auth/capabilities/registry";
 import keys from "../../../scripts/verify/command-capabilities.json";
 import {
@@ -445,6 +446,18 @@ describe("evaluateTenantRlsCatalog", () => {
     expect(formatTenantRlsCatalogSummary(result)).toBe(
       "PASS: tenant RLS catalog gate: 2 tenant tables enabled and forced (1 with policies, 1 listed deny-by-default, 0 stale), 1 SECURITY DEFINER functions with RLS-bypassing owners, a fixed search path and no PUBLIC EXECUTE (0 anon-allowlisted); command lanes: 1 human entry points, 0 platform commands, 2 wrappers; no table grant in public outside a policy; 0 signed-in policies of tenant tables carry the request's tenant with each lookup once a statement (0 reviewed exceptions), none reads the token claim, no signed-in write policy stands without the grant for its command, and no tenant table is published.",
     );
+  });
+
+  it("names a forced zero-policy tenant table whose entry is removed from the real exceptions file (D-18: AL-2671 ruling-pin-tax Q2: the unlisted check replaces the list's floor)", () => {
+    const real = JSON.parse(
+      readFileSync("docs/security/rls-deny-by-default-exceptions.json", "utf8"),
+    ) as { entries: { table: string }[] };
+    const removed = real.entries[0]!.table;
+    const result = evaluate(
+      real.entries.map((entry) => table(entry.table, { policies: 0 })),
+      { ...real, entries: real.entries.slice(1) },
+    );
+    expect(codes(result)).toContain(`NO_POLICY_UNLISTED ${removed}`);
   });
 
   it("reports every violated rule of one table with its own code", () => {

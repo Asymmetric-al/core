@@ -157,6 +157,11 @@ jobs:
           COMMENT_RATCHET_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
           COMMENT_RATCHET_PUSHED_FROM: ${{ github.event_name == 'push' && github.event.before || '' }}
         run: bun run verify:comments
+      - name: Check the service-key ceiling against the base
+        env:
+          SERVICE_ROLE_CEILING_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+          SERVICE_ROLE_CEILING_PUSHED_FROM: ${{ github.event_name == 'push' && github.event.before || '' }}
+        run: bun run verify:service-role-clients -- --require-base
       - name: Check data access boundary
         run: bun run verify:data-boundary
 
