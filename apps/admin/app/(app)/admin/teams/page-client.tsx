@@ -615,17 +615,26 @@ function InviteMemberDialog({
   const [copied, setCopied] = useState(false);
   const pathname = useRoutePathname();
   const initialPathnameRef = useRef(pathname);
+  const requestIdRef = useRef(0);
 
   const resetForm = useCallback(() => {
+    requestIdRef.current += 1;
     setEmail("");
     setRole("staff");
     setStaffRole("development");
     setIsTenantAdmin(false);
     setReason("");
+    setSubmitting(false);
     setError(null);
     setCreated(null);
     setCopied(false);
   }, []);
+
+  useEffect(() => {
+    if (!open) {
+      resetForm();
+    }
+  }, [open, resetForm]);
 
   useEffect(() => {
     if (initialPathnameRef.current !== pathname) {
@@ -637,6 +646,7 @@ function InviteMemberDialog({
 
   useEffect(() => {
     return () => {
+      requestIdRef.current += 1;
       setCreated(null);
     };
   }, []);
@@ -648,6 +658,7 @@ function InviteMemberDialog({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const requestId = ++requestIdRef.current;
     setError(null);
     setSubmitting(true);
     try {
@@ -666,6 +677,7 @@ function InviteMemberDialog({
           reason,
         }),
       });
+      if (requestIdRef.current !== requestId) return;
       const payload = (await response.json().catch(() => ({}))) as {
         error?: string;
         invitePath?: string;
@@ -676,6 +688,7 @@ function InviteMemberDialog({
           is_tenant_admin: boolean;
         };
       };
+      if (requestIdRef.current !== requestId) return;
       if (!response.ok || !payload.invitePath || !payload.invitation) {
         setError(payload.error || "Could not create invitation.");
         return;
@@ -690,9 +703,13 @@ function InviteMemberDialog({
       });
       onInvited();
     } catch {
-      setError("Could not reach the server. Try again.");
+      if (requestIdRef.current === requestId) {
+        setError("Could not reach the server. Try again.");
+      }
     } finally {
-      setSubmitting(false);
+      if (requestIdRef.current === requestId) {
+        setSubmitting(false);
+      }
     }
   };
 

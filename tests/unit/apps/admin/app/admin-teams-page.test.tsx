@@ -308,6 +308,76 @@ describe("Members screen", () => {
     expect(storageDump).not.toContain("selector123");
   });
 
+  it("ignores an invitation response that resolves after Cancel during Creating and never shows its link on reopen", async () => {
+    let resolveInvite!: (value: unknown) => void;
+    const pendingInvite = new Promise((resolve) => {
+      resolveInvite = resolve;
+    });
+
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (
+        String(url) === "/api/admin/members/invitations" &&
+        init?.method === "POST"
+      ) {
+        return pendingInvite;
+      }
+      if (String(url).startsWith("/api/admin/members/invitations")) {
+        return { ok: true, json: async () => ({ invitations: [] }) };
+      }
+      return { ok: true, json: async () => ({ users: [] }) };
+    });
+
+    const view = show();
+    await view.findByText("No members found");
+    fireEvent.click(view.getByRole("button", { name: /invite member/i }));
+
+    fireEvent.change(view.getByLabelText("Email address"), {
+      target: { value: "late-response@example.org" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Dismissed before response" },
+    });
+    fireEvent.click(view.getByRole("button", { name: /create invitation/i }));
+
+    await view.findByRole("button", { name: /creating/i });
+    fireEvent.click(view.getByRole("button", { name: /^cancel$/i }));
+
+    resolveInvite({
+      ok: true,
+      json: async () => ({
+        invitation: {
+          invitation_id: "inv-late-1",
+          expires_at: "2026-11-30T00:00:00.000Z",
+          role: "staff",
+          staff_role: "development",
+          is_tenant_admin: false,
+        },
+        invitePath: "/invite/late-selector#late-verifier",
+      }),
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    fireEvent.click(view.getByRole("button", { name: /invite member/i }));
+    const emailInput = (await view.findByLabelText(
+      "Email address",
+    )) as HTMLInputElement;
+    expect(emailInput.value).toBe("");
+    expect(view.queryByLabelText("Invitation link")).toBeNull();
+    expect(
+      view.queryByLabelText("Missionary workspace invitation path"),
+    ).toBeNull();
+    expect(
+      view.queryByText(
+        "No email was sent. Copy this link now; it cannot be shown again.",
+      ),
+    ).toBeNull();
+    expect(
+      view.queryByRole("button", { name: /copy link|copy path/i }),
+    ).toBeNull();
+    expect(document.body.textContent ?? "").not.toContain("late-selector");
+    expect(document.body.textContent ?? "").not.toContain("late-verifier");
+  });
+
   it("R18a: labels a missionary invitation as the path on the missionary workspace address and copies only the path", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", {
