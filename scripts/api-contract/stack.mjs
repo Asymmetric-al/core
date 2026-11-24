@@ -389,6 +389,14 @@ function docker(args, { env, allowFailure } = {}) {
   return result;
 }
 
+function requireLocalImage(image) {
+  const result = docker(["image", "inspect", image], { allowFailure: true });
+  if (result.status !== 0)
+    throw new Error(
+      `${image} is not on this machine, and this script never pulls. Run docker pull ${image} first (after docker login ghcr.io while the package is private). docker image inspect said: ${result.stderr.trim().slice(0, 500)}`,
+    );
+}
+
 /** The id of the container or network called `name`, or null when none exists. */
 function currentId(kind, name) {
   const result = docker([kind, "inspect", "--format", "{{.Id}}", name], {
@@ -529,8 +537,9 @@ async function prepare({ databaseUrl, restDbHost, restDbPort, network }) {
     serverHost: binding.serverHost,
     serverPort: binding.serverPort,
   });
+  requireLocalImage(POSTGREST_IMAGE);
   claimContainer(restName, state, opts.stateFile);
-  const args = ["run", "-d", "--name", restName];
+  const args = ["run", "-d", "--pull", "never", "--name", restName];
   if (hostNetwork) args.push("--network", "host");
   else args.push("--network", network, "-p", binding.publish);
   // `-e NAME` takes the value from this process's environment, so no secret
@@ -568,6 +577,8 @@ async function up() {
   const password = secret();
   const database = "asymmetrical_test";
 
+  requireLocalImage(POSTGRES_IMAGE);
+  requireLocalImage(POSTGREST_IMAGE);
   claimNetwork(network, state, opts.stateFile);
   claimContainer(pgName, state, opts.stateFile);
   startContainer(
@@ -575,6 +586,8 @@ async function up() {
     [
       "run",
       "-d",
+      "--pull",
+      "never",
       "--name",
       pgName,
       "--network",

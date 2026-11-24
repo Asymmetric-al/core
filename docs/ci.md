@@ -486,18 +486,31 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
   `public.ecr.aws/supabase/postgrest:v16.4`.
 - The pull uses the workflow's own token: each service sets `credentials:` to
   `github.actor` and `github.token`, and each of the five workflows grants
-  `packages: read`. `api-contract` logs Docker in to `ghcr.io` with the same
-  token, on standard input, before `stack.mjs` starts PostgREST. No repository
-  secret is needed. There is no fallback to a public registry: a digest the
-  mirror does not hold fails the job at "Initialize containers".
-- _Fork pull requests:_ services start before the "Reject fork pull requests"
-  step, so a fork's `migrate` and `smoke` runs pull too. GitHub turns every
-  write permission of a fork's pull request run into read, so such a run can
-  at most read these two packages and cannot write anything; the only
-  `packages: write` is in `mirror-ci-images.yml`, which never runs on a pull
-  request. Whether the pull succeeds or not, the fork's run fails: at the
-  reject step, or at "Initialize containers". The workflow-token
-  `credentials:` is the one job-level token use the fork model in
+  `packages: read`. The runner uses those credentials itself, before the first
+  step, and no step sees them. No repository secret is needed. There is no
+  fallback to a public registry: a digest the mirror does not hold fails the
+  job at "Initialize containers".
+- _`api-contract` and PostgREST:_ the registry token is never on disk, in the
+  environment or on a command line while code from the pull request runs. Its
+  first step rejects a fork's pull request; its second, before checkout,
+  calls tools by absolute path only, logs in to a throwaway Docker
+  configuration with the token on standard input, pulls the PostgREST digest
+  and logs out and deletes that configuration on any exit. `stack.mjs` then
+  runs the image with `--pull never` and stops if it is missing.
+  `tests/unit/workflows/ci-image-pulls.test.ts` fails if that order or the
+  logout changes, or if `stack.mjs` pulls.
+- _Fork pull requests:_ a job's services start before its first step. Four of
+  the eight jobs can start for a fork's pull request: `migrate`, `smoke`,
+  `local-supabase` and `api-contract`. Each pulls its service image and then
+  fails at its first step, "Reject fork pull requests". `test-e2e-smoke` and
+  `test-e2e` skip forks in their job condition; `preview-database` needs the
+  preview `deploy` job, which skips a fork's pull request; `release-database`
+  never runs on a pull request. GitHub turns every write permission of a
+  fork's run into read, so such a run can at most read these two packages and
+  cannot write anything; the only `packages: write` is in
+  `mirror-ci-images.yml`, which never runs on a pull request. Whether the pull
+  succeeds or not, the fork's run fails. The workflow-token `credentials:` is
+  the one job-level token use the fork model in
   `tests/unit/helpers/workflow-yaml.ts` accepts; a repository secret there
   still fails it.
 - The digest pins the reviewed bytes even when the tag moves.
@@ -507,9 +520,9 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 - _Bump:_ add the new digest to `.github/ci-images.json`, merge, and dispatch
   the mirror (§ Mirror CI images workflow); then update the eight `image:`
   lines and `POSTGRES_IMAGE` (or `POSTGREST_IMAGE`) in `stack.mjs` together.
-- _Local runs:_ `bun run test:api-contract:up` pulls the two mirrored images.
-  While their packages are private, run `docker login ghcr.io` first with a
-  token that can read packages.
+- _Local runs:_ `bun run test:api-contract:up` does not pull. Run
+  `docker pull` for the two mirrored images first, after `docker login ghcr.io`
+  with a token that can read packages while the packages are private.
 
 ---
 

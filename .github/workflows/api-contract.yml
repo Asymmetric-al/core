@@ -121,6 +121,29 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
+      - name: Reject fork pull requests
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "fork PRs need a maintainer to run CI"
+          exit 1
+      # Rule: the registry token is never on disk, in the environment or on a
+      # command line while code from the pull request runs. So this step comes
+      # before checkout, runs no repository code, calls tools by absolute path,
+      # logs in to a throwaway Docker config, pulls the digest stack.mjs runs,
+      # and logs out and deletes that config on any exit. stack.mjs then finds
+      # the image locally and never pulls.
+      - name: Pull the mirrored PostgREST image
+        env:
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_TOKEN: ${{ github.token }}
+          POSTGREST_IMAGE: ghcr.io/asymmetric-al/core-ci-postgrest:v16.4@sha256:d155c6718ed9a9f990d159a2ab7c0a3f16944dbb6d0a0344557421042acfe0df
+        run: |
+          export DOCKER_CONFIG="$(/usr/bin/mktemp -d)"
+          trap '/usr/bin/docker logout ghcr.io; /usr/bin/rm -rf "$DOCKER_CONFIG"' EXIT
+          printf '%s' "$REGISTRY_TOKEN" | /usr/bin/docker login ghcr.io --username "$REGISTRY_USER" --password-stdin
+          /usr/bin/docker pull "$POSTGREST_IMAGE"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Full history, as the migrate job: the field-policy census in
@@ -143,13 +166,6 @@ jobs:
         run: node scripts/verify/supabase-migrations.mjs
       - name: Apply demo seed
         run: node scripts/api-contract/stack.mjs seed
-      # stack.mjs starts the mirrored PostgREST image with docker run, which
-      # reads this login. The token reaches docker on standard input only.
-      - name: Log in to the organization's registry
-        env:
-          REGISTRY_USER: ${{ github.actor }}
-          REGISTRY_TOKEN: ${{ github.token }}
-        run: printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io --username "$REGISTRY_USER" --password-stdin
       - name: Start PostgREST on the migrated database
         run: node scripts/api-contract/stack.mjs prepare
       - name: Run the API contract tests
