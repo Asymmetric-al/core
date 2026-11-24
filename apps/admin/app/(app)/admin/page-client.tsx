@@ -37,12 +37,11 @@ const SECTIONS: Array<{ title: string; items: AdminDestination[] }> = [
     title: "People and access",
     items: [
       {
-        title: "Staff directory",
-        description: "Staff accounts in this organization and their roles.",
+        title: "Members",
+        description:
+          "Staff and missionaries in this organization, their roles and invitations.",
         href: "/admin/teams",
         icon: Users,
-        // Reads the admin-only users endpoint.
-        roles: ["admin"],
       },
       {
         title: "Web Studio editors",

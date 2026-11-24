@@ -26,6 +26,21 @@ const nextConfig: NextConfig & {
   env: migrationHeadsBuildEnv(WORKSPACE_ROOT),
   cacheComponents: true,
   partialPrefetching: true,
+  async headers() {
+    const protectedActionHeaders = [
+      {
+        key: "Cache-Control",
+        value: "private, no-store, no-transform, max-age=0",
+      },
+      { key: "CDN-Cache-Control", value: "no-store" },
+      { key: "Vercel-CDN-Cache-Control", value: "no-store" },
+      { key: "Referrer-Policy", value: "no-referrer" },
+    ];
+    return [
+      { source: "/invite", headers: protectedActionHeaders },
+      { source: "/invite/:path*", headers: protectedActionHeaders },
+    ];
+  },
   // Retired addresses answer a real 308 before the proxy runs (council
   // round 1, A11; lib/legacy-redirects.ts).
   async redirects() {

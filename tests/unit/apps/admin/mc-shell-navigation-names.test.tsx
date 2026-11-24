@@ -250,9 +250,8 @@ describe("Mission Control composed navigation names", () => {
   });
 
   it.each([
-    ["admin", ["Administration", "Staff directory", "About"]],
-    // The staff directory reads admin-only accounts.
-    ["finance", ["Administration", "About"]],
+    ["admin", ["Administration", "Members", "About"]],
+    ["finance", ["Administration", "Members", "About"]],
     ["staff", ["About"]],
   ])(
     "offers %s only the profile shortcuts their sidebar shows",

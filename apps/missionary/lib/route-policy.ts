@@ -10,6 +10,7 @@ export const MISSIONARY_PUBLIC_ROUTES = [
   "/auth/callback",
   "/register",
   "/forgot-password",
+  "/invite",
   "/api/auth/demo-account",
   "/no-access",
   "/boneyard",
@@ -22,6 +23,7 @@ const MISSIONARY_ROLE_GATE_PUBLIC_PREFIXES = [
   "/register",
   "/auth/callback",
   "/forgot-password",
+  "/invite",
   "/no-access",
   // The chooser lists the person's own rows before one is selected, so the
   // role gate, which needs a selected row, does not apply there (AL-2675).

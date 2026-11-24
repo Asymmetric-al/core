@@ -183,6 +183,10 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/admin/member-care/private-notes`                         | Node.js (no `runtime` segment export) | Admin client                                               |
 | admin      | `/api/admin/member-care/requirements`                          | Node.js (no `runtime` segment export) | Admin client                                               |
 | admin      | `/api/admin/member-care/thread`                                | Node.js (no `runtime` segment export) | Admin client                                               |
+| admin      | `/api/admin/members/invitations`                               | Node.js (no `runtime` segment export) | Request-scoped member invitation commands                  |
+| admin      | `/api/admin/members/invitations/[invitationId]/revoke`         | Node.js (no `runtime` segment export) | Request-scoped invitation revocation                       |
+| admin      | `/api/admin/members/revoke`                                    | Node.js (no `runtime` segment export) | Request-scoped membership revocation                       |
+| admin      | `/api/admin/members/role`                                      | Node.js (no `runtime` segment export) | Request-scoped membership role change                      |
 | admin      | `/api/admin/mission-control/automations`                       | Node.js (no `runtime` segment export) | Mission Control automations, admin client                  |
 | admin      | `/api/admin/mission-control/needs-attention`                   | Node.js (no `runtime` segment export) | Mission Control task attention dashboard                   |
 | admin      | `/api/admin/missionaries`                                      | Node.js (no `runtime` segment export) | Admin client                                               |
@@ -236,7 +240,7 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/admin/support-hub/inbound/routes/[routeId]`              | Node.js (no `runtime` segment export) | Tenant route management, audit                             |
 | admin      | `/api/admin/workflows/notification-policy`                     | Node.js (no `runtime` segment export) | Tenant notification overrides                              |
 | admin      | `/api/admin/workflows/summaries`                               | Node.js (no `runtime` segment export) | Workflow run summaries, notification policy                |
-| admin      | `/api/admin/users`                                             | Node.js (no `runtime` segment export) | Admin client (`SUPABASE_SERVICE_ROLE_KEY`)                 |
+| admin      | `/api/admin/users`                                             | Node.js (no `runtime` segment export) | Request-scoped member directory RPC                        |
 | admin      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                                    |
 | admin      | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                                       |
 | admin      | `/api/cms/media/delete`                                        | Node.js (no `runtime` segment export) | Staff media asset tombstone command                        |
@@ -264,6 +268,7 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/health/db`                                               | Node.js (no `runtime` segment export) | Database health probe                                      |
 | admin      | `/api/health/migrations`                                       | Node.js (no `runtime` segment export) | Migration-head check for the release job                   |
 | admin      | `/api/inngest`                                                 | Node.js (no `runtime` segment export) | Inngest workflow function serving                          |
+| admin      | `/api/invitations/accept`                                      | Node.js (no `runtime` segment export) | Caller-token pre-membership invitation accept              |
 | admin      | `/api/media/[assetId]`                                         | Node.js (no `runtime` segment export) | Signed-in staff bounded media variant delivery             |
 | admin      | `/api/missionaries/[id]/metrics`                               | Node.js (no `runtime` segment export) | Admin client                                               |
 | admin      | `/api/pdf-templates`                                           | Node.js (no `runtime` segment export) | PDF Studio template store                                  |
@@ -306,6 +311,7 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | missionary | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | Selected missionary RPC, service-role client               |
 | missionary | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                                |
 | missionary | `/api/health/migrations`                                       | Node.js (no `runtime` segment export) | Migration-head check for the release job                   |
+| missionary | `/api/invitations/accept`                                      | Node.js (no `runtime` segment export) | Caller-token pre-membership invitation accept              |
 | missionary | `/api/media/[assetId]`                                         | Node.js (no `runtime` segment export) | Signed-in staff bounded media variant delivery             |
 | missionary | `/api/missionary/portal`                                       | Node.js (no `runtime` segment export) | Missionary workspace BFF, admin client                     |
 | missionary | `/api/missionary/tasks`                                        | Node.js (no `runtime` segment export) | Missionary task CRUD, admin client                         |

@@ -62,7 +62,7 @@ it("links only to administration pages that exist", () => {
     expect(routeExists(href), href).toBe(true);
   }
   expect(
-    screen.getByRole("link", { name: /staff directory/i }).getAttribute("href"),
+    screen.getByRole("link", { name: /^members/i }).getAttribute("href"),
   ).toBe("/admin/teams");
   expect(screen.getByRole("link", { name: /^eve/i }).getAttribute("href")).toBe(
     "/admin/eve",
@@ -80,12 +80,13 @@ it("shows no unavailable controls or invented service health", () => {
   expect(screen.queryByText(/Postmark/)).toBeNull();
 });
 
-it("lists Eve and the staff directory only for roles their pages admit", () => {
+it("lists Eve only for admins while offering Members read-only to all live staff", () => {
   workspace.role = "finance";
   render(<AdminPage />);
   expect(screen.queryByRole("link", { name: /^eve/i })).toBeNull();
-  // The account directory is read through an admin-only endpoint.
-  expect(screen.queryByRole("link", { name: /staff directory/i })).toBeNull();
+  expect(
+    screen.getByRole("link", { name: /^members/i }).getAttribute("href"),
+  ).toBe("/admin/teams");
   expect(screen.getByRole("link", { name: /email delivery/i })).toBeTruthy();
 });
 
