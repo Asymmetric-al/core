@@ -47,10 +47,14 @@ summary as a replacement for it.
   the auth walk has no match. Route auth does not supply a per-session ACL;
   applications serving multiple users or tenants must add that ownership
   check themselves.
-- `eveChannel({ events })` can observe `turn.started`, whose runtime context
-  includes the durable session id and current verified caller. The current
-  admin binding is recorded there, while continuation, cancel, and stream
-  requests check the app-owned binding during route auth.
+- `eveChannel({ events })` exposes the built-in `/eve/v1/session*` routes and
+  can observe `turn.started`, whose runtime context includes the durable
+  session id and current verified caller. The current admin binding is claimed
+  in the wrapped `POST /eve/v1/session` request (and on
+  `POST /eve/v1/session/:sessionId` when `send` returns another session id)
+  before the id is returned, and repeated idempotently on `turn.started`, while
+  continuation, cancel, and stream requests check the app-owned binding during
+  route auth.
 - The default harness can expose shell, file, network, todo, question, and
   delegation tools. A same-slug `disableTool()` authored file removes a
   framework tool and fails discovery on an unknown slug.
