@@ -36,7 +36,7 @@ Data: an isolated local Supabase stack with the repository seed. Local-only fixt
 
 Exactly two independent reviewers through T3 orchestration, both read-only by instruction with no editing or delegation (an enforced sandbox was not available; this is the run-specific override of the council skill):
 
-- Claude Opus `claude-opus-5-5`, provider `claudeAgent_claude_luke_004`, effort `high`.
+- Claude Opus `claude-opus-5-5`, provider `claudeAgent_seat_c`, effort `high`.
 - GPT `gpt-5.6-sol` via Codex, provider `codex_3b390d41-…`, reasoning effort `high`.
 
 Briefs used neutral, counterbalanced Version 1 / Version 2 labels, fixed references (ReUI dashboard-5 and solution-crm-9 previews) and a fixed five-category rubric (task clarity, information hierarchy, readability, consistency and finish, responsive usability; anchors 6/8/9/10).
