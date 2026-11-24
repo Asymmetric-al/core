@@ -250,6 +250,50 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
+    it("each safety command refuses a request whose organization header is missing or names another organization than the one it enters (42501), and changes nothing, as the Member Care and Sites commands do until begin_human_command checks it itself", async () => {
+      await db.query("savepoint s");
+      try {
+        const before = await db.query(
+          "select id, security_level, public_alias, do_not_publish from public.parties where tenant_id = $1 order by id",
+          [id.TA],
+        );
+        const restrictedBefore = await db.query(
+          "select party_id, legal_name from private.party_restricted where tenant_id = $1 order by party_id",
+          [id.TA],
+        );
+        for (const who of [
+          { sub: "US", headers: { "x-asym-assignment": id.mS } },
+          {
+            sub: "US",
+            headers: { "x-asym-tenant": id.TB, "x-asym-assignment": id.mS },
+          },
+        ])
+          for (const sql of [
+            `select public.restrict_worker_publication('${id.TA}', '${id.pMA}', 'high_risk', 'Shepherd', true, 'r')`,
+            `select public.lift_worker_restriction('${id.TA}', '${id.pMA}', 'standard', true, 'r')`,
+            `select public.set_worker_identity('${id.TA}', '${id.pM2}', 'Legal', null, null, null, null, null, 'r')`,
+          ]) {
+            const refused = await run(who, sql);
+            expect(refused.code, sql).toBe("42501");
+            expect(refused.message, sql).toContain(
+              "request tenant scope is required and must match command tenant",
+            );
+          }
+        const after = await db.query(
+          "select id, security_level, public_alias, do_not_publish from public.parties where tenant_id = $1 order by id",
+          [id.TA],
+        );
+        expect(after.rows).toEqual(before.rows);
+        const restrictedAfter = await db.query(
+          "select party_id, legal_name from private.party_restricted where tenant_id = $1 order by party_id",
+          [id.TA],
+        );
+        expect(restrictedAfter.rows).toEqual(restrictedBefore.rows);
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
     it("a restricted or high-risk level without an alias, or with the legal name as alias, is refused from either table for every role", async () => {
       await db.query("savepoint s");
       try {
@@ -388,7 +432,7 @@ describe.skipIf(!ADMIN_URL)(
       for (const row of seeded.rows) expect(row.n).not.toBe(row.legal_name);
     });
 
-    it("each guard command of this package share-locks its organization before its targets, and the three safety commands lock the caller's assignment and re-check the active organization, the live assignment and the capability under those locks before any validation", async () => {
+    it("each guard command of this package share-locks its organization before its targets, and the three safety commands check the request's organization first, then lock the caller's assignment and re-check the active organization, the live assignment and the capability under those locks before any validation", async () => {
       const safety = [
         "set_worker_identity",
         "restrict_worker_publication",
@@ -415,6 +459,13 @@ describe.skipIf(!ADMIN_URL)(
         expect(lock, name).toBeGreaterThan(-1);
         expect(lock, name).toBeLessThan(target);
         if (!safety.includes(name)) continue;
+        const scope = body.indexOf(
+          "v_request_tenant_id := authz.request_tenant_id()",
+        );
+        expect(scope, name).toBeGreaterThan(
+          body.indexOf("tenant_guard.begin_human_command("),
+        );
+        expect(scope, name).toBeLessThan(lock);
         const recheck = body.indexOf(
           "the caller no longer holds the authority this command requires",
         );

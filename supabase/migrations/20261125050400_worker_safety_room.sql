@@ -30,6 +30,13 @@
 --    lift_worker_restriction (lowers the level, clears do-not-publish). Each
 --    one that sets a level marks its source manual. Nothing here writes
 --    country_default (WP14). The audit row never carries the legal name.
+--    Each command first refuses (42501) a request whose organization header
+--    (authz.request_tenant_id()) is missing or names another organization
+--    than the one it enters, as the Member Care and Sites commands do until
+--    begin_human_command checks it itself. Then it takes the repository's
+--    lock order: the organization FOR SHARE (private.share_lock_tenant), the
+--    caller's assignment FOR SHARE, a re-check of the active organization,
+--    the live assignment and the capability, and only then its targets.
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
@@ -238,6 +245,7 @@ SET search_path = ''
 AS $$
 DECLARE
   v_ctx tenant_guard.command_context;
+  v_request_tenant_id UUID;
   v_tenant_status TEXT;
   v_assignment RECORD;
   v_assignment_found BOOLEAN;
@@ -249,6 +257,16 @@ DECLARE
   v_source TEXT;
 BEGIN
   v_ctx := tenant_guard.begin_human_command(p_tenant_id, 'safety.restrict_publication');
+
+  BEGIN
+    v_request_tenant_id := authz.request_tenant_id();
+  EXCEPTION WHEN invalid_text_representation THEN
+    v_request_tenant_id := NULL;
+  END;
+  IF v_request_tenant_id IS NULL OR v_request_tenant_id IS DISTINCT FROM v_ctx.tenant_id THEN
+    RAISE EXCEPTION 'tenant_guard: request tenant scope is required and must match command tenant'
+      USING ERRCODE = '42501';
+  END IF;
 
   v_tenant_status := private.share_lock_tenant(v_ctx.tenant_id);
   SELECT m.user_id, m.tenant_id, m.is_active, m.revoked_at
@@ -372,6 +390,7 @@ SET search_path = ''
 AS $$
 DECLARE
   v_ctx tenant_guard.command_context;
+  v_request_tenant_id UUID;
   v_tenant_status TEXT;
   v_assignment RECORD;
   v_assignment_found BOOLEAN;
@@ -381,6 +400,16 @@ DECLARE
   v_after RECORD;
 BEGIN
   v_ctx := tenant_guard.begin_human_command(p_tenant_id, 'safety.restrict_publication');
+
+  BEGIN
+    v_request_tenant_id := authz.request_tenant_id();
+  EXCEPTION WHEN invalid_text_representation THEN
+    v_request_tenant_id := NULL;
+  END;
+  IF v_request_tenant_id IS NULL OR v_request_tenant_id IS DISTINCT FROM v_ctx.tenant_id THEN
+    RAISE EXCEPTION 'tenant_guard: request tenant scope is required and must match command tenant'
+      USING ERRCODE = '42501';
+  END IF;
 
   v_tenant_status := private.share_lock_tenant(v_ctx.tenant_id);
   SELECT m.user_id, m.tenant_id, m.is_active, m.revoked_at
@@ -490,6 +519,7 @@ SET search_path = ''
 AS $$
 DECLARE
   v_ctx tenant_guard.command_context;
+  v_request_tenant_id UUID;
   v_tenant_status TEXT;
   v_assignment RECORD;
   v_assignment_found BOOLEAN;
@@ -499,6 +529,16 @@ DECLARE
   v_after RECORD;
 BEGIN
   v_ctx := tenant_guard.begin_human_command(p_tenant_id, 'safety.restrict_publication');
+
+  BEGIN
+    v_request_tenant_id := authz.request_tenant_id();
+  EXCEPTION WHEN invalid_text_representation THEN
+    v_request_tenant_id := NULL;
+  END;
+  IF v_request_tenant_id IS NULL OR v_request_tenant_id IS DISTINCT FROM v_ctx.tenant_id THEN
+    RAISE EXCEPTION 'tenant_guard: request tenant scope is required and must match command tenant'
+      USING ERRCODE = '42501';
+  END IF;
 
   v_tenant_status := private.share_lock_tenant(v_ctx.tenant_id);
   SELECT m.user_id, m.tenant_id, m.is_active, m.revoked_at
