@@ -15,7 +15,7 @@ const startAccountClaim = "tenant_guard.start_account_claim(p_tenant_id uuid)";
 const redeemAccountClaim =
   "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)";
 const startAccountClaimReason =
-  "AL-2678 W5-R5, findings B2, B3 and B5, ruling on B4: a signed-in person with no membership in the tenant starts a donor account claim; the caller is the session's login, the request's x-asym-tenant must name the tenant (42501), the tenant must be active, a platform operator never matches, the confirmed non-deleted Auth email is the only match key, locks run tenant, the caller's memberships, the Party, then the claim, nothing is linked or granted, and every outcome answers the same";
+  "AL-2678 W5-R5, findings B2, B3 and B5, ruling on B4: a signed-in person with no membership in the tenant starts a donor account claim; the caller is the session's login, the request's x-asym-tenant must name the tenant (42501), the tenant must be active, a platform operator never matches, the confirmed non-deleted Auth email is the only match key, locks run tenant, the caller's memberships, then the Party without waiting (a Party another caller holds is recorded as claim_already_open), then the claim, nothing is linked or granted, and every outcome answers the same at once";
 const redeemAccountClaimReason =
   "AL-2678 W5-R5, findings B2, B3 and B5: a signed-in person with no membership in the tenant redeems a mailed claim token; the request's x-asym-tenant must name the tenant (42501), the token's SHA-256 under the tenant, membership, Party and claim locks is the authority, it is single-use, expires, is bound to the requester and the donor's email at issue, a platform operator or a login without a confirmed address is refused, the link insert cannot raise a unique violation, and every failure answers the same";
 export const reviewedPreMembership = Object.freeze({
@@ -25,7 +25,7 @@ export const reviewedPreMembership = Object.freeze({
   }),
   [startAccountClaim]: Object.freeze({
     reason: startAccountClaimReason,
-    digest: "db6df9519bea34bd003c4ae018eb57258a619f574e87a0ca76c650be81f581af",
+    digest: "bca3eaeb1cf4059144d502daf37a9050eee2918085fd8494438651d7b064544c",
   }),
   [redeemAccountClaim]: Object.freeze({
     reason: redeemAccountClaimReason,

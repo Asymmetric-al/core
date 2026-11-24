@@ -20,9 +20,12 @@
 --    on the unclaimed donor of that tenant with the same normalized email. A
 --    platform operator never does. It never links or grants anything. Every
 --    outcome, a match or none, answers {"status":"received"}; the outcome is
---    written to the audit log only, and a conflict on the matched branch
---    (a lock timeout, or a duplicate) is recorded as claim_already_open,
---    never answered differently.
+--    written to the audit log only. The matched branch never waits on
+--    another caller: it takes the donor's Party FOR UPDATE NOWAIT, and a
+--    Party another transaction holds (55P03), like a duplicate, is recorded
+--    as claim_already_open at once and answered the same (confirmation of
+--    the fix round, half B, new problem 2). Such a start opens no claim; the
+--    person can start again. A statement timeout (57014) is not caught.
 -- 4. tenant_guard.issue_account_claim_token(tenant, claim, digest): the worker
 --    step that sets the token's digest and its 24-hour expiry
 --    (private.account_claim_token_lifetime) on an open claim whose requester
@@ -47,8 +50,8 @@
 -- for an inactive organization before entering it, and then takes its locks
 -- in the repository's order: the organization FOR SHARE
 -- (private.share_lock_tenant), the caller's membership rows FOR UPDATE in id
--- order, the donor's Party FOR UPDATE, the claim row FOR UPDATE; and it
--- re-checks under those locks before it writes.
+-- order, the donor's Party FOR UPDATE (NOWAIT in start), the claim row FOR
+-- UPDATE (redeem); and it re-checks under those locks before it writes.
 --
 -- Locks, all held to COMMIT. ACCESS EXCLUSIVE on account_claim_requests (its
 -- new columns, constraints and policies; its two new indexes take SHARE
@@ -280,7 +283,7 @@ BEGIN
            FROM public.parties AS p
           WHERE p.tenant_id = p_tenant_id
             AND p.id = v_donor.party_id
-            FOR UPDATE;
+            FOR UPDATE NOWAIT;
         SELECT * INTO v_donor FROM private.account_claim_donor_by_id(p_tenant_id, v_donor.donor_id);
         IF NOT FOUND THEN
           v_outcome := 'no_matching_donor';
