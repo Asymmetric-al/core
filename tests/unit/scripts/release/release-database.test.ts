@@ -155,9 +155,9 @@ function fakeDatabase(state: {
   const query = vi.fn(
     ({ sql, databaseUrl }: { sql: string; databaseUrl: string }) => {
       const counts: Record<string, number> = {
-        '"public"."profiles"': 3,
+        '"public"."profiles"': 4,
         '"public"."tenants"': 2,
-        '"authz"."memberships"': 6,
+        '"authz"."memberships"': 7,
         '"public"."legal_entities"': 2,
         '"public"."payment_account_bindings"': 0,
         '"public"."funds"': 10,

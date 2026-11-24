@@ -109,6 +109,39 @@
           "isTenantAdmin": true
         }
       ]
+    },
+    "demoCare": {
+      "userId": "00000000-0000-4000-8000-0000000e2e80",
+      "role": "staff",
+      "memberships": [
+        {
+          "id": "00000000-0000-4000-8000-0000000e2e81",
+          "tenantId": "00000000-0000-0000-0000-000000000001",
+          "role": "staff",
+          "staffRole": "member_care",
+          "isTenantAdmin": false
+        }
+      ]
+    },
+    "twoTenantsCare": {
+      "userId": "00000000-0000-4000-8000-0000000e2e90",
+      "role": "staff",
+      "memberships": [
+        {
+          "id": "00000000-0000-4000-8000-0000000e2e91",
+          "tenantId": "00000000-0000-0000-0000-000000000001",
+          "role": "staff",
+          "staffRole": "member_care",
+          "isTenantAdmin": false
+        },
+        {
+          "id": "00000000-0000-4000-8000-0000000e2e92",
+          "tenantId": "00000000-0000-0000-0000-000000000002",
+          "role": "staff",
+          "staffRole": "member_care",
+          "isTenantAdmin": false
+        }
+      ]
     }
   }
 }

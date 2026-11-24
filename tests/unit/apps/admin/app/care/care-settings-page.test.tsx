@@ -1,7 +1,11 @@
 /** @vitest-environment jsdom */
 
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@asym/lib/mission-control/context", () => ({
+  useMC: () => ({ role: "staff", capabilities: ["care.access"] }),
+}));
 
 // eslint-disable-next-line no-restricted-imports -- AL-1894: Exercise the page at its public UI boundary.
 import CareSettingsPage from "../../../../../../apps/admin/app/(app)/care/settings/page-client";

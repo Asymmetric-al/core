@@ -173,13 +173,22 @@ function MembersDirectory({
   const invitationsHeadingId = useId();
 
   const isOwnRow = useCallback(
-    (account: StaffAccount): boolean => {
-      if (currentMembershipId && account.membership_id) {
-        return account.membership_id === currentMembershipId;
-      }
-      return Boolean(currentUserId && account.id === currentUserId);
-    },
+    (account: StaffAccount): boolean =>
+      Boolean(
+        (currentMembershipId &&
+          account.membership_id === currentMembershipId) ||
+        (currentUserId &&
+          (account.user_id === currentUserId || account.id === currentUserId)),
+      ),
     [currentMembershipId, currentUserId],
+  );
+
+  const isCurrentRow = useCallback(
+    (account: StaffAccount): boolean =>
+      currentMembershipId
+        ? account.membership_id === currentMembershipId
+        : isOwnRow(account),
+    [currentMembershipId, isOwnRow],
   );
 
   const refreshAll = async () => {
@@ -276,7 +285,7 @@ function MembersDirectory({
                   Change role
                 </Button>
               ) : null}
-              {isStaff && self && isAdmin ? (
+              {isStaff && isCurrentRow(account) && isAdmin ? (
                 <Button
                   type="button"
                   variant="outline"
@@ -303,7 +312,7 @@ function MembersDirectory({
         meta: { headerTitle: "Actions" },
       },
     ];
-  }, [canManage, isOwnRow]);
+  }, [canManage, isCurrentRow, isOwnRow]);
 
   const rows = (people.data ?? []).filter((account) =>
     `${staffName(account)} ${account.email ?? ""} ${staffRoleLabel(account)} ${account.staff_role ? staffSubroleLabel(account.staff_role) : ""}`
@@ -437,7 +446,7 @@ function MembersDirectory({
                             Change role
                           </Button>
                         ) : null}
-                        {isStaff && self && isAdmin ? (
+                        {isStaff && isCurrentRow(original) && isAdmin ? (
                           <Button
                             type="button"
                             variant="outline"

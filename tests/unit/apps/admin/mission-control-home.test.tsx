@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { navigation } from "@asym/config/navigation";
-import { quickActionsForRole, tiles } from "@asym/config/tiles";
+import { isTileAllowed, quickActionsForRole, tiles } from "@asym/config/tiles";
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
 import { WORKFLOWS } from "@asym/lib/mission-control/tiles";
 import {
@@ -36,7 +36,7 @@ function givingTrend(netCents = 0): GivingTrend {
 }
 
 const { workspace, refresh } = vi.hoisted(() => ({
-  workspace: { role: "admin" },
+  workspace: { role: "admin", capabilities: ["care.access"] as string[] },
   refresh: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
@@ -72,6 +72,7 @@ vi.mock("@asym/lib/mission-control/context", () => ({
 afterEach(() => {
   cleanup();
   workspace.role = "admin";
+  workspace.capabilities = ["care.access"];
   attention.data = undefined;
   attention.isError = false;
   attention.isLoading = false;
@@ -214,6 +215,7 @@ describe("Mission Control overview", () => {
     "admin",
   ])("keeps four working role shortcuts for %s", (role) => {
     workspace.role = role;
+    workspace.capabilities = role === "member_care" ? ["care.access"] : [];
     render(<MissionControlHome />);
     const section = screen
       .getByRole("heading", { name: "Quick actions" })
@@ -224,7 +226,7 @@ describe("Mission Control overview", () => {
       tiles
         .filter(
           (tile) =>
-            tile.roles.some((allowedRole) => allowedRole === role) &&
+            isTileAllowed(tile, role as never, workspace.capabilities) &&
             !tile.unavailableReason,
         )
         .flatMap((tile) => tile.quickActions.map((action) => action.href)),
@@ -443,6 +445,7 @@ describe("Mission Control overview", () => {
     "reaches every configured destination of each enabled module once for %s",
     (role) => {
       workspace.role = role;
+      workspace.capabilities = role === "member_care" ? ["care.access"] : [];
       render(<MissionControlHome />);
       fireEvent.click(
         screen.getByRole("button", { name: /Show all .* modules/ }),
@@ -452,7 +455,8 @@ describe("Mission Control overview", () => {
         tiles
           .filter(
             (tile) =>
-              tile.roles.some((r) => r === role) && !tile.unavailableReason,
+              isTileAllowed(tile, role as never, workspace.capabilities) &&
+              !tile.unavailableReason,
           )
           .flatMap((tile) => [
             tile.route,
@@ -550,11 +554,14 @@ describe("Mission Control overview", () => {
 
   it("names role limits only for modules the role cannot open", () => {
     workspace.role = "finance";
+    workspace.capabilities = [];
     const outsideRole = tiles.filter(
-      (tile) => !tile.roles.includes("finance"),
+      (tile) => !isTileAllowed(tile, "finance", workspace.capabilities),
     ).length;
     const notSetUp = tiles.filter(
-      (tile) => tile.roles.includes("finance") && tile.unavailableReason,
+      (tile) =>
+        isTileAllowed(tile, "finance", workspace.capabilities) &&
+        tile.unavailableReason,
     ).length;
     expect(outsideRole).toBeGreaterThan(1);
     render(<MissionControlHome />);
@@ -645,12 +652,14 @@ describe("Mission Control overview", () => {
     "admin",
   ])("only suggests eligible workflows for %s", (role) => {
     workspace.role = role;
+    workspace.capabilities = role === "member_care" ? ["care.access"] : [];
     render(<MissionControlHome />);
     const allowed = new Set(
       tiles
         .filter(
           (tile) =>
-            tile.roles.some((r) => r === role) && !tile.unavailableReason,
+            isTileAllowed(tile, role as never, workspace.capabilities) &&
+            !tile.unavailableReason,
         )
         .map((tile) => tile.id),
     );

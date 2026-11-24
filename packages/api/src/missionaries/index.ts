@@ -27,11 +27,30 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabaseAdmin
       .rpc("missionary_directory", missionaryArgs(missionaryScope(auth)))
-      .select("*, profile:profiles!profile_id(*)")
+      .select("id, profile:profiles!profile_id(id)")
       .range(offset, offset + limit - 1);
 
     if (error) throw toApiHttpError(error, error.message);
-    return NextResponse.json({ missionaries: data });
+
+    const rows: unknown[] = Array.isArray(data) ? data : [];
+    const missionaries = rows.map((row) => {
+      const record = row as {
+        id: string;
+        profile?: { id: string } | Array<{ id: string }> | null;
+      };
+      const rawProfile = Array.isArray(record.profile)
+        ? record.profile[0]
+        : record.profile;
+      return {
+        id: record.id,
+        profile:
+          rawProfile && typeof rawProfile === "object" && "id" in rawProfile
+            ? { id: rawProfile.id }
+            : null,
+      };
+    });
+
+    return NextResponse.json({ missionaries });
   } catch (e) {
     return toErrorResponse(e);
   }

@@ -155,6 +155,63 @@ const routes = [
     () => profile.PATCH(request("PATCH", { bio: "changed" })),
   ],
 ] as const;
+const expectedProfile = {
+  first_name: "Ada",
+  last_name: "Lovelace",
+  email: "worker@example.test",
+  avatar_url: null,
+};
+const expectedMissionary = {
+  id,
+  phone: null,
+  location: null,
+  tagline: null,
+  bio: null,
+  cover_url: null,
+  social_links: null,
+};
+const careFields = [
+  "health_status",
+  "health_signals",
+  "manual_attention",
+  "care_notes",
+  "last_check_in",
+] as const;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function expectProjectedProfile(
+  payload: unknown,
+  withMissionary: boolean,
+): void {
+  const expected = withMissionary
+    ? { ...expectedProfile, missionary: expectedMissionary }
+    : expectedProfile;
+  expect(payload).toStrictEqual({ profile: expected });
+  if (!isRecord(payload) || !isRecord(payload.profile)) {
+    throw new Error("expected profile object");
+  }
+  expect(Object.keys(payload.profile).sort()).toEqual(
+    Object.keys(expected).sort(),
+  );
+  for (const field of careFields) {
+    expect(payload.profile).not.toHaveProperty(field);
+  }
+  if (withMissionary) {
+    if (!isRecord(payload.profile.missionary)) {
+      throw new Error("expected missionary object");
+    }
+    expect(Object.keys(payload.profile.missionary).sort()).toEqual(
+      Object.keys(expectedMissionary).sort(),
+    );
+    for (const field of careFields) {
+      expect(payload.profile.missionary).not.toHaveProperty(field);
+    }
+  }
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   fake.role = "missionary";
@@ -163,7 +220,7 @@ beforeEach(() => {
     if (table === "donors") return query([{ id, missionary_id: id }]);
     if (table === "donor_pledges") return query([]);
     if (table !== "profiles") throw Error("unscoped access");
-    return query({ id });
+    return query({ id, ...expectedProfile });
   });
   fake.rpc.mockImplementation((fn: string) =>
     query(
@@ -217,11 +274,15 @@ describe("missionary handler delegation", () => {
         donors: { donors: [{ id }], hasMore: false },
         "task list": { tasks: [] },
         "follower list": { requests: [] },
-        "missionary profile": { profile: { id } },
+        "missionary profile": { profile: expectedProfile },
       };
-      expect(await response.json()).toMatchObject(
+      const payload = await response.json();
+      expect(payload).toMatchObject(
         bodies[_name] ?? { error: expect.any(String) },
       );
+      if (_name === "missionary profile") {
+        expectProjectedProfile(payload, false);
+      }
       expect(response.status).toBe(
         [
           "directory",
@@ -242,11 +303,15 @@ describe("missionary handler delegation", () => {
         fake.role = role;
         const response = await invoke();
         expect(response.status).toBe(name === "missionary profile" ? 200 : 403);
-        expect(await response.json()).toMatchObject(
+        const payload = await response.json();
+        expect(payload).toMatchObject(
           name === "missionary profile"
-            ? { profile: { id } }
+            ? { profile: expectedProfile }
             : { error: expect.any(String) },
         );
+        if (name === "missionary profile") {
+          expectProjectedProfile(payload, false);
+        }
         expect(fake.rpc).not.toHaveBeenCalled();
       },
     );
@@ -395,9 +460,15 @@ describe("missionary handler delegation", () => {
       "follower update": { request: { id } },
       "follower delete": { success: true },
       "activity create": { ok: true },
-      "missionary profile update": { profile: { id } },
+      "missionary profile update": {
+        profile: { ...expectedProfile, missionary: expectedMissionary },
+      },
     };
-    expect(await response.json()).toMatchObject(bodies[name]!);
+    const payload = await response.json();
+    expect(payload).toMatchObject(bodies[name]!);
+    if (name === "missionary profile update") {
+      expectProjectedProfile(payload, true);
+    }
   });
   it.each([false, true])(
     "missing missionary record, missionary-only field %s",

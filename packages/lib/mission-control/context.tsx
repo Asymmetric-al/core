@@ -26,6 +26,8 @@ interface MCContextValue {
   user: User | null;
   tenant: Tenant | null;
   role: Role;
+  capabilities: readonly string[];
+  hasCapability: (capability: string) => boolean;
   canManageMembers: boolean;
   currentMembershipId: string | null;
   setRole: (role: Role) => void;
@@ -40,6 +42,7 @@ type MCState = {
   user: User | null;
   tenant: Tenant | null;
   role: Role;
+  capabilities: readonly string[];
   canManageMembers: boolean;
   currentMembershipId: string | null;
   sidebarCollapsed: boolean;
@@ -54,6 +57,7 @@ const INITIAL_MC_STATE: MCState = {
   // id that could be sent to Eve as the signed-in organization.
   tenant: null,
   role: "admin",
+  capabilities: [],
   canManageMembers: true,
   currentMembershipId: null,
   sidebarCollapsed: false,
@@ -63,7 +67,7 @@ const INITIAL_MC_STATE: MCState = {
 type MCAction =
   | { type: "setRole"; role: Role }
   | { type: "setSidebarCollapsed"; collapsed: boolean }
-  | { type: "setSignedOut" }
+  | { type: "setSignedOut"; clearCapabilities: boolean }
   | { type: "setLoadingComplete" };
 
 function createInitialMCState(initialState?: MCBootstrapState | null): MCState {
@@ -75,6 +79,9 @@ function createInitialMCState(initialState?: MCBootstrapState | null): MCState {
     user: initialState.user,
     tenant: initialState.tenant ?? null,
     role: initialState.role,
+    capabilities: initialState.capabilities
+      ? [...initialState.capabilities]
+      : [],
     canManageMembers:
       initialState.canManageMembers ?? initialState.role === "admin",
     currentMembershipId: initialState.currentMembershipId ?? null,
@@ -98,8 +105,13 @@ function mcReducer(state: MCState, action: MCAction): MCState {
         ...state,
         user: null,
         role: "admin",
-        canManageMembers: false,
-        currentMembershipId: null,
+        capabilities: action.clearCapabilities ? [] : state.capabilities,
+        canManageMembers: action.clearCapabilities
+          ? false
+          : state.canManageMembers,
+        currentMembershipId: action.clearCapabilities
+          ? null
+          : state.currentMembershipId,
         loading: false,
       };
     case "setLoadingComplete":
@@ -125,6 +137,7 @@ export function MCProvider({
     user,
     tenant,
     role,
+    capabilities,
     canManageMembers,
     currentMembershipId,
     sidebarCollapsed,
@@ -132,6 +145,12 @@ export function MCProvider({
   } = state;
   const isDevMode = runtimeEnvFlags.NODE_ENV === "development";
   const currentUserRef = useRef(user);
+  const hadBrowserSessionRef = useRef(false);
+
+  const hasCapability = useCallback(
+    (capability: string) => capabilities.includes(capability),
+    [capabilities],
+  );
 
   useEffect(() => {
     currentUserRef.current = user;
@@ -145,8 +164,8 @@ export function MCProvider({
     dispatch({ type: "setSidebarCollapsed", collapsed });
   }, []);
 
-  const applySignedOutState = useCallback(() => {
-    dispatch({ type: "setSignedOut" });
+  const applySignedOutState = useCallback((clearCapabilities: boolean) => {
+    dispatch({ type: "setSignedOut", clearCapabilities });
   }, []);
 
   const markLoadingComplete = useCallback(() => {
@@ -157,16 +176,18 @@ export function MCProvider({
     return subscribeToClientAuthState(
       ({ user: sessionUser }) => {
         if (!sessionUser) {
-          applySignedOutState();
+          applySignedOutState(hadBrowserSessionRef.current);
           return;
         }
+
+        hadBrowserSessionRef.current = true;
 
         // Another person's session in this document: never show the first
         // person as signed in. The document's scope retires and the page
         // reloads once, where the proxy decides (plan 5.2; AL-2675, JB1).
         const bootstrapUser = currentUserRef.current;
         if (bootstrapUser && bootstrapUser.id !== sessionUser.id) {
-          applySignedOutState();
+          applySignedOutState(true);
           retireDocumentScope();
           return;
         }
@@ -188,6 +209,8 @@ export function MCProvider({
       user,
       tenant,
       role,
+      capabilities,
+      hasCapability,
       canManageMembers,
       currentMembershipId,
       setRole,
@@ -201,6 +224,8 @@ export function MCProvider({
       user,
       tenant,
       role,
+      capabilities,
+      hasCapability,
       canManageMembers,
       currentMembershipId,
       setRole,

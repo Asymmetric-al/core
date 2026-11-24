@@ -40,6 +40,7 @@ export interface NavSubItem {
    * from offering a page that would answer "No access").
    */
   roles?: Role[];
+  requiredCapability?: string;
   /** Other words staff use for this page, matched by search only. */
   keywords?: readonly string[];
 }
@@ -55,6 +56,7 @@ export interface NavItem {
   href: string;
   icon: LucideIcon;
   roles: Role[];
+  requiredCapability?: string;
   section: NavSection;
   /** Pages inside the module, first one the module's own home. */
   items?: NavSubItem[];
@@ -178,7 +180,8 @@ export const navigation: NavItem[] = [
     title: "Member Care",
     href: "/care",
     icon: Heart,
-    roles: ["member_care", "admin"],
+    roles: EVERY_ROLE,
+    requiredCapability: "care.access",
     section: "modules",
     keywords: ["pastoral care", "missionary care", "follow-up", "check-ins"],
     items: [
@@ -403,15 +406,32 @@ export const navigation: NavItem[] = [
   },
 ];
 
-export function getNavItemsByRole(role: Role): NavItem[] {
+export function isNavItemAllowed(
+  item: Pick<NavItem, "roles" | "requiredCapability">,
+  role: Role,
+  capabilities?: readonly string[],
+): boolean {
+  if (item.requiredCapability) {
+    return Boolean(capabilities?.includes(item.requiredCapability));
+  }
+  return item.roles.includes(role);
+}
+
+export function getNavItemsByRole(
+  role: Role,
+  capabilities?: readonly string[],
+): NavItem[] {
   return navigation
-    .filter((item) => item.roles.includes(role))
+    .filter((item) => isNavItemAllowed(item, role, capabilities))
     .map((item) =>
-      item.items?.some((sub) => sub.roles)
+      item.items?.some((sub) => sub.roles || sub.requiredCapability)
         ? {
             ...item,
             items: item.items.filter(
-              (sub) => !sub.roles || sub.roles.includes(role),
+              (sub) =>
+                (!sub.roles || sub.roles.includes(role)) &&
+                (!sub.requiredCapability ||
+                  Boolean(capabilities?.includes(sub.requiredCapability))),
             ),
           }
         : item,
@@ -421,8 +441,9 @@ export function getNavItemsByRole(role: Role): NavItem[] {
 /** The role's destinations grouped by sidebar section, in display order. */
 export function getNavSectionsByRole(
   role: Role,
+  capabilities?: readonly string[],
 ): Array<{ section: NavSection; label: string | null; items: NavItem[] }> {
-  const items = getNavItemsByRole(role);
+  const items = getNavItemsByRole(role, capabilities);
   return (Object.keys(NAV_SECTION_LABELS) as NavSection[])
     .map((section) => ({
       section,

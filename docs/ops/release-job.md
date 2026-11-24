@@ -183,6 +183,16 @@ the pre-release deployment's credentials no longer work — after a credential
 rotation, revoked credentials on the pre-release deployment will not work. The
 job has no rollback of its own.
 
+### Rollback note after WP4b part 1 (Member Care)
+
+After WP4b part 1 (Member Care) is live, rolling the admin application back past
+it re-admits all dashboard staff to care data via the old service-key handlers;
+roll forward instead; if a rollback is unavoidable, the operator must recognize
+that exposure and record it in the release note. Rolling the missionary
+application back past it restores the old missionary directory response, and
+rolling the donor or the missionary application back restores the old
+own-profile response; both then carry the care fields again.
+
 ### If a CI check fails at "Initialize containers"
 
 When a CI or CI Integration job on the release source pull request (`migrate`, `smoke`, `test-e2e-smoke` or `test-e2e`; the required checks `e2e-smoke-gate` and `e2e-gate` only summarize them) fails at **Initialize containers**, check the failed step's log. These jobs pull their Postgres image from the organization's mirror, `ghcr.io/asymmetric-al/core-ci-postgres`, with the workflow's own token, not from a public registry. `manifest unknown` means the mirror does not hold that digest: dispatch **Mirror CI images** from `develop` (see `docs/ci.md`, "Mirror CI images workflow"), then re-run. `denied` means the repository has lost read access to the package; an organization owner restores it under the package's settings, "Manage Actions access". For a transient registry error, re-run the failed jobs (`gh run rerun <run-id> --failed`), and never treat a failed or skipped check as passed. This applies to CI runs on the source pull request or `develop`; do not use **Re-run failed jobs** on a failed `Release` workflow run (dispatch **Release** anew as above).

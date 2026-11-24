@@ -106,9 +106,12 @@ const ABOUT_MENU_ITEM: ProfileDropdownMenuItem = {
   icon: Info,
 };
 
-function profileMenuItems(role: Role): ProfileDropdownMenuItem[] {
+function profileMenuItems(
+  role: Role,
+  capabilities: readonly string[],
+): ProfileDropdownMenuItem[] {
   // Mirror the sidebar: the shortcuts are its Administration pages.
-  const administration = getNavItemsByRole(role).find(
+  const administration = getNavItemsByRole(role, capabilities).find(
     (item) => item.id === "admin",
   );
   if (!administration) return [ABOUT_MENU_ITEM];
@@ -272,7 +275,7 @@ function organizationInitial(name: string) {
 
 function AppSidebar() {
   const pathname = usePathname();
-  const { role, tenant } = useMC();
+  const { role, tenant, capabilities = [] } = useMC();
   const current = findNavDestination(pathname);
   const tenantName = tenant?.name?.trim();
   const organization = tenantName || "Mission Control";
@@ -311,7 +314,7 @@ function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        {getNavSectionsByRole(role).map((group) => (
+        {getNavSectionsByRole(role, capabilities).map((group) => (
           <SidebarGroup key={group.section} className="p-0">
             {group.label ? (
               <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
@@ -407,7 +410,7 @@ function HeaderBreadcrumbs() {
 }
 
 function AppHeader() {
-  const { user, signOut, role, tenant } = useMC();
+  const { user, signOut, role, tenant, capabilities = [] } = useMC();
   const router = useRouter();
   const roleLabel = ROLE_LABELS[role];
   const { requestAction } = useShellNavigation();
@@ -421,6 +424,7 @@ function AppHeader() {
         <div className="ml-auto flex items-center gap-1">
           <MissionControlNavigationSearch
             role={role}
+            capabilities={capabilities}
             onNavigate={(href) => requestAction(() => router.push(href))}
           />
           <EveGlobalPanel placement="header" />
@@ -447,7 +451,7 @@ function AppHeader() {
             }
             user={user}
             detail={[roleLabel, tenant?.name].filter(Boolean).join(" · ")}
-            menuItems={profileMenuItems(role)}
+            menuItems={profileMenuItems(role, capabilities)}
             onSignOut={() => {
               requestAction(() => {
                 void signOut();

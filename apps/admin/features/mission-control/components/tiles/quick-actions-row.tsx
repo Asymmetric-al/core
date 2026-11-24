@@ -1,6 +1,7 @@
 "use client";
 
 import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import { isTileAllowed } from "@asym/config/tiles";
 import { useMC } from "@asym/lib/mission-control/context";
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
 import { TILES } from "@asym/lib/mission-control/tiles";
@@ -58,13 +59,24 @@ const ROLE_QUICK_ACTIONS: Record<
 };
 
 export function QuickActionsRow() {
-  const { role } = useMC();
-  const actionRefs = ROLE_QUICK_ACTIONS[role] ?? ROLE_QUICK_ACTIONS.staff ?? [];
+  const { role, capabilities = [] } = useMC();
+  const actionRefs =
+    role === "staff" && capabilities.includes("care.access")
+      ? [
+          { tileId: "care", actionIndex: 0 },
+          { tileId: "care", actionIndex: 1 },
+          ...(ROLE_QUICK_ACTIONS.staff ?? []),
+        ]
+      : (ROLE_QUICK_ACTIONS[role] ?? ROLE_QUICK_ACTIONS.staff ?? []);
 
   const actions = actionRefs
     .flatMap(({ tileId, actionIndex }) => {
       const tile = TILES.find((t) => t.id === tileId);
-      if (!tile || tile.unavailableReason || !tile.roles.includes(role))
+      if (
+        !tile ||
+        tile.unavailableReason ||
+        !isTileAllowed(tile, role, capabilities)
+      )
         return [];
       const action = tile.quickActions[actionIndex];
       if (!action || (action.roles && !action.roles.includes(role))) return [];

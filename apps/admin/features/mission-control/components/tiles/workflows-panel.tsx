@@ -1,6 +1,7 @@
 "use client";
 
 import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import { isTileAllowed } from "@asym/config/tiles";
 import { useMC } from "@asym/lib/mission-control/context";
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
 import { TILES, WORKFLOWS } from "@asym/lib/mission-control/tiles";
@@ -16,11 +17,12 @@ import { useId } from "react";
 import { ChevronRight } from "../icons";
 
 export function WorkflowsPanel() {
-  const { role } = useMC();
+  const { role, capabilities = [] } = useMC();
   const headingId = useId();
   const permittedTiles = new Set(
     TILES.filter(
-      (tile) => tile.roles.includes(role) && !tile.unavailableReason,
+      (tile) =>
+        isTileAllowed(tile, role, capabilities) && !tile.unavailableReason,
     ).map((tile) => tile.id),
   );
   const workflows = WORKFLOWS.filter((workflow) =>

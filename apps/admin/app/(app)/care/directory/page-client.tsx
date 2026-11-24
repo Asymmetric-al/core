@@ -1,13 +1,27 @@
 "use client";
 
+import { useMC } from "@asym/lib/mission-control/context";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 
 import { CareDirectoryLimitNote } from "@/features/mission-control/care/components/care-directory-limit-note";
+import {
+  CareNoAccessState,
+  isCareAccessDeniedError,
+} from "@/features/mission-control/care/components/care-no-access-state";
 import { CarePersonnelGrid } from "@/features/mission-control/care/components/care-personnel-grid";
 import { useCarePersonnel } from "@/features/mission-control/care/hooks/use-care";
 
-export default function CareDirectoryPage() {
+function CareDirectoryContent() {
   const personnel = useCarePersonnel();
+
+  if (personnel.isError && isCareAccessDeniedError(personnel.error)) {
+    return (
+      <CareNoAccessState
+        title="Care directory"
+        description="Members in care, with their status and last contact."
+      />
+    );
+  }
 
   return (
     <PageShell
@@ -39,4 +53,19 @@ export default function CareDirectoryPage() {
       />
     </PageShell>
   );
+}
+
+export default function CareDirectoryPage() {
+  const { capabilities = [] } = useMC();
+
+  if (!capabilities.includes("care.access")) {
+    return (
+      <CareNoAccessState
+        title="Care directory"
+        description="Members in care, with their status and last contact."
+      />
+    );
+  }
+
+  return <CareDirectoryContent />;
 }

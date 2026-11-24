@@ -43,7 +43,7 @@ export function findMissionaryByProfileId(
 ) {
   return supabase
     .rpc("missionary_own_record", missionaryArgs(scope))
-    .select("*")
+    .select("id, bio, tagline, location, phone, cover_url, social_links")
     .maybeSingle();
 }
 

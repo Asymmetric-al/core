@@ -155,6 +155,7 @@ describe("the Mission Control users list (council round 1 on WP2a, F8)", () => {
     expect(body.users).toEqual([
       {
         id: directoryRow.profile_id,
+        user_id: directoryRow.user_id,
         membership_id: ROW,
         display_name: "Blair Admin",
         email: "blair@example.org",

@@ -46,10 +46,10 @@ export const ADMIN_CACHE_TAGS = {
 } as const;
 
 /**
- * Member-care read models and mutations share this tag family. The cached
- * reads in `reads/member-care.ts` attach these tags; the mutation helper
- * `revalidateMemberCareCache` must revalidate the same set, or directory /
- * activity / private-note lists go stale after a staff write.
+ * Legacy member-care cache tag family kept for one release after WP4b part 1
+ * removed read caching from `reads/member-care.ts`. Mutations still call
+ * `revalidateMemberCareCache` during the release window while older builds
+ * may serve cached reads.
  */
 export const MEMBER_CARE_CACHE_TAGS = {
   base: "member-care",
@@ -127,10 +127,11 @@ export function revalidateAdminContributionsCache(
 }
 
 /**
- * Invalidate cached member-care reads after a member-care mutation (thread
- * post, private note, care goal/requirement upsert, activity log, manual
- * attention flag). Mirrors the tag set attached by the cached reads in
- * `reads/member-care.ts`.
+ * Invalidate legacy member-care cache tags after a member-care mutation
+ * (thread post, private note, care goal/requirement upsert, activity log,
+ * manual attention flag). `reads/member-care.ts` no longer caches reads;
+ * this invalidation stays for one release while older builds may still serve
+ * cached reads.
  */
 export function revalidateMemberCareCache(tenantId: string): void {
   const memberCare = MEMBER_CARE_CACHE_TAGS;

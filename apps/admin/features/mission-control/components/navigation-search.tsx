@@ -27,9 +27,11 @@ const SEARCH_SHORTCUT = "mod+k";
 
 export function MissionControlNavigationSearch({
   role,
+  capabilities,
   onNavigate,
 }: {
   role: Role;
+  capabilities?: readonly string[];
   onNavigate: (href: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -37,7 +39,7 @@ export function MissionControlNavigationSearch({
   const returnFocus = useRef<HTMLElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const items: (NavItem & { keywords?: readonly string[] })[] =
-    getNavItemsByRole(role);
+    getNavItemsByRole(role, capabilities);
   const shortcut = useShortcutHint(SEARCH_SHORTCUT);
 
   const openSearch = useCallback((origin: HTMLElement | null) => {

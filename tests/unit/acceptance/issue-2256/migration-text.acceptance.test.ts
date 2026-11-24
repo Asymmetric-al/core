@@ -301,9 +301,7 @@ describe("#2256 seams, readers and writers", () => {
         }
       }
     }
-    expect(sites.sort()).toEqual([
-      "packages/api/src/admin/member-care/mutations.ts",
-    ]);
+    expect(sites.sort()).toEqual([]);
     const profile = readFileSync("packages/api/src/profile/index.ts", "utf8");
     const keys = new Set(
       [...profile.matchAll(/\bmissionaryUpdate\.(\w+)\s*=/g)].map((m) => m[1]),
@@ -328,11 +326,22 @@ describe("#2256 seams, readers and writers", () => {
       /UPDATE public\.missionaries AS missionary\s+SET \(phone, bio, tagline, mission_field, location, cover_url, social_links\) =/i,
     );
     expect(writer).not.toMatch(/\bperson_id\b/i);
-    expect(
-      readFileSync("packages/api/src/admin/member-care/mutations.ts", "utf8"),
-    ).toMatch(
-      /\.from\("missionaries"\)\s*\.update\(\{ manual_attention: payload\.manualAttention \}\)/,
+    const careCommandFiles = readdirSync(DIR).filter((name) =>
+      name.endsWith("_member_care_commands.sql"),
     );
+    expect(careCommandFiles).toHaveLength(1);
+    const careCommands = readFileSync(
+      path.join(DIR, careCommandFiles[0]!),
+      "utf8",
+    );
+    const attentionWriter =
+      /CREATE (?:OR REPLACE )?FUNCTION tenant_guard\.set_manual_attention_flag\([\s\S]*?AS \$\$([\s\S]*?)\$\$;/i.exec(
+        careCommands,
+      )?.[1];
+    expect(attentionWriter).toMatch(
+      /UPDATE public\.missionaries(?:\s+AS\s+\w+)?\s+SET manual_attention = p_manual_attention/i,
+    );
+    expect(attentionWriter).not.toMatch(/\bperson_id\b/i);
   });
 
   it("16 (S): no INSERT/UPDATE/COPY statement on missionaries in seed.sql or any migration names person_id", () => {
