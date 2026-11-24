@@ -18,6 +18,7 @@ async function runAs(
   sql: string,
   opts?: {
     aal?: string;
+    tenant?: string;
     headers?: Record<string, string>;
     params?: unknown[];
   },
@@ -35,8 +36,12 @@ async function runAs(
     await client.query("select set_config('request.jwt.claim.sub', $1, true)", [
       sub ?? "",
     ]);
+    const headers = {
+      ...(opts?.tenant ? { "x-asym-tenant": opts.tenant } : {}),
+      ...(opts?.headers ?? {}),
+    };
     await client.query("select set_config('request.headers', $1, true)", [
-      JSON.stringify(opts?.headers ?? {}),
+      JSON.stringify(headers),
     ]);
     await client.query(`set local role ${role}`);
     const res = await client.query(sql, opts?.params ?? []);
@@ -66,6 +71,7 @@ async function runCommittedAs(
   sql: string,
   opts?: {
     aal?: string;
+    tenant?: string;
     headers?: Record<string, string>;
     params?: unknown[];
   },
@@ -83,8 +89,12 @@ async function runCommittedAs(
     await client.query("select set_config('request.jwt.claim.sub', $1, true)", [
       sub ?? "",
     ]);
+    const headers = {
+      ...(opts?.tenant ? { "x-asym-tenant": opts.tenant } : {}),
+      ...(opts?.headers ?? {}),
+    };
     await client.query("select set_config('request.headers', $1, true)", [
-      JSON.stringify(opts?.headers ?? {}),
+      JSON.stringify(headers),
     ]);
     await client.query(`set local role ${role}`);
     const res = await client.query(sql, opts?.params ?? []);
@@ -183,7 +193,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2676 WP3c part 1: role-change self-demotion, optimistic concurrency, F1 admin-lock and old-build compatibility (real stack)",
+  "AL-2676 WP3c part 1: role-change self-demotion, optimistic concurrency, F1 admin-lock and old-build compatibility (real stack) (D-18: AL-2676: human commands require x-asym-tenant)",
   () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
 
@@ -258,6 +268,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin1,
           "select public.change_membership_role($1, $2, 'staff', 'development', true, 'Old-build 6-arg call') as r",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin1 },
             params: [i.tenant, i.mTargetDev],
           },
@@ -280,6 +291,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin1,
           "select public.change_membership_role($1, $2, 'staff', 'development', false, 'Stale update', $3::timestamptz) as r",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin1 },
             params: [i.tenant, i.mTargetDev, initialUpdatedAt],
           },
@@ -292,6 +304,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin1,
           "select public.change_membership_role($1, $2, 'staff', 'development', false, 'Fresh update', $3::timestamptz) as r",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin1 },
             params: [i.tenant, i.mTargetDev, afterFirst],
           },
@@ -312,6 +325,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin1,
           "select public.change_membership_role($1, $2, 'staff', 'development', false, 'No-op with matching timestamp', $3::timestamptz) as r",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin1 },
             params: [i.tenant, i.mTargetDev, afterSecond.updated_at],
           },
@@ -352,6 +366,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin1,
           "select public.change_membership_role($1, $2, 'staff', 'mobilizer', false, 'Own sub-role', $3::timestamptz)",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin1 },
             params: [i.tenant, i.mAdmin1, ts1],
           },
@@ -364,6 +379,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin1,
           "select public.change_membership_role($1, $2, 'staff', 'finance', true, 'Self promote', $3::timestamptz)",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin1 },
             params: [i.tenant, i.mAdmin1Second, ts1Second],
           },
@@ -376,6 +392,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin1,
           "select public.revoke_membership($1, $2, 'Self revoke')",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin1 },
             params: [i.tenant, i.mAdmin1],
           },
@@ -388,6 +405,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin1,
           "select public.change_membership_role($1, $2, 'staff', 'development', false, 'Stepping down as admin', $3::timestamptz) as r",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin1 },
             params: [i.tenant, i.mAdmin1, ts1],
           },
@@ -413,6 +431,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin2,
           "select public.change_membership_role($1, $2, 'staff', 'hr', false, 'Last admin step down', $3::timestamptz)",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin2 },
             params: [i.tenant, i.mAdmin2, ts2],
           },
@@ -477,6 +496,7 @@ describe.skipIf(!ADMIN_URL)(
               i.admin1,
               "select public.change_membership_role($1, $2, 'staff', $3, $4, 'Concurrent A', $5::timestamptz) as r",
               {
+                tenant: i.tenant,
                 headers: { "x-asym-assignment": i.mAdmin1 },
                 params: [
                   i.tenant,
@@ -493,6 +513,7 @@ describe.skipIf(!ADMIN_URL)(
               i.admin2,
               "select public.change_membership_role($1, $2, 'staff', $3, $4, 'Concurrent B', $5::timestamptz) as r",
               {
+                tenant: i.tenant,
                 headers: { "x-asym-assignment": i.mAdmin2 },
                 params: [
                   i.tenant,
@@ -565,6 +586,7 @@ describe.skipIf(!ADMIN_URL)(
             iOld.admin1,
             "select public.change_membership_role($1, $2, 'staff', 'development', true, 'New build with expected_updated_at', $3::timestamptz) as r",
             {
+              tenant: iOld.tenant,
               headers: { "x-asym-assignment": iOld.mAdmin1 },
               params: [iOld.tenant, iOld.mTargetDev, initialTs],
             },
@@ -575,6 +597,7 @@ describe.skipIf(!ADMIN_URL)(
             iOld.admin2,
             "select public.change_membership_role($1, $2, 'staff', 'development', false, 'Old build during release window omitting expected_updated_at') as r",
             {
+              tenant: iOld.tenant,
               headers: { "x-asym-assignment": iOld.mAdmin2 },
               params: [iOld.tenant, iOld.mTargetDev],
             },
@@ -636,6 +659,7 @@ describe.skipIf(!ADMIN_URL)(
             i640.admin1,
             "select public.change_membership_role($1, $2, 'staff', 'hr', false, 'Move dev to hr', $3::timestamptz) as r",
             {
+              tenant: i640.tenant,
               headers: { "x-asym-assignment": i640.mAdmin1 },
               params: [i640.tenant, i640.mTargetDev, tsDev],
             },
@@ -646,6 +670,7 @@ describe.skipIf(!ADMIN_URL)(
             i640.admin2,
             "select public.change_membership_role($1, $2, 'staff', 'hr', false, 'Move fin to hr', $3::timestamptz) as r",
             {
+              tenant: i640.tenant,
               headers: { "x-asym-assignment": i640.mAdmin2 },
               params: [i640.tenant, i640.mTargetFin, tsFin],
             },
@@ -697,6 +722,7 @@ describe.skipIf(!ADMIN_URL)(
             iSelf.admin1,
             "select public.change_membership_role($1, $2, 'staff', 'development', false, 'Self demote 1', $3::timestamptz) as r",
             {
+              tenant: iSelf.tenant,
               headers: { "x-asym-assignment": iSelf.mAdmin1 },
               params: [iSelf.tenant, iSelf.mAdmin1, ts1],
             },
@@ -707,6 +733,7 @@ describe.skipIf(!ADMIN_URL)(
             iSelf.admin2,
             "select public.change_membership_role($1, $2, 'staff', 'hr', false, 'Self demote 2', $3::timestamptz) as r",
             {
+              tenant: iSelf.tenant,
               headers: { "x-asym-assignment": iSelf.mAdmin2 },
               params: [iSelf.tenant, iSelf.mAdmin2, ts2],
             },
@@ -767,6 +794,7 @@ describe.skipIf(!ADMIN_URL)(
             iF1.admin1,
             "select public.change_membership_role($1, $2, 'staff', 'development', true, 'Promote target to admin', $3::timestamptz) as r",
             {
+              tenant: iF1.tenant,
               headers: { "x-asym-assignment": iF1.mAdmin1 },
               params: [iF1.tenant, iF1.mTargetDev, tsTarget],
             },
@@ -866,6 +894,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin1,
           "select public.change_membership_role($1, $2, 'staff', 'member_care', false, 'R17 role vs revoke order 1', $3::timestamptz) as r",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin1 },
             params: [i.tenant, i.mTargetDev, tsTargetDev],
           },
@@ -877,6 +906,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin2,
           "select public.revoke_membership($1, $2, 'R17 revoke vs role order 1') as r",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin2 },
             params: [i.tenant, i.mTargetFin],
           },
@@ -894,6 +924,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin1,
           "select public.change_membership_role($1, $2, 'staff', 'mobilizer', false, 'R17 role vs revoke order 2', $3::timestamptz) as r",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin1 },
             params: [i.tenant, updatedDev.membership_id, updatedDev.updated_at],
           },
@@ -905,6 +936,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin2,
           "select public.revoke_membership($1, $2, 'R17 revoke vs role order 2') as r",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin2 },
             params: [i.tenant, i.mAdmin1Second],
           },

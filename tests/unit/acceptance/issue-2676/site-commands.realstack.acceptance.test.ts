@@ -605,4 +605,202 @@ describe.skipIf(!ADMIN_URL)("Site commands", () => {
       });
     }
   });
+
+  it("records the first writer's display name as the audit before-value when two first-time set_account_brand calls race", async () => {
+    const tenant = randomUUID();
+    const user = randomUUID();
+    const assignment = randomUUID();
+    const home = randomUUID();
+    const observer = new pg.Client({ connectionString: ADMIN_URL });
+    await observer.connect();
+
+    const claims = JSON.stringify({ sub: user, role: "authenticated" });
+    const headers = JSON.stringify({
+      "x-asym-tenant": tenant,
+      "x-asym-assignment": assignment,
+    });
+
+    let testError: unknown;
+    let secondSettled = false;
+    let secondResult: pg.QueryResult | undefined;
+    let secondError: unknown;
+    let secondPromise: Promise<void> | undefined;
+    try {
+      await db.query("begin");
+      await db.query(
+        "insert into public.tenants(id,name,slug,status) values ($1,'Brand Race Org',$2,'active')",
+        [tenant, `brand-race-${tenant.slice(0, 8)}`],
+      );
+      await db.query("insert into auth.users(id) values ($1)", [user]);
+      await db.query("delete from authz.memberships where user_id=$1", [user]);
+      await db.query(
+        "insert into authz.memberships(id,user_id,tenant_id,role,staff_role,is_tenant_admin,is_active) values ($1,$2,$3,'staff','development',true,true)",
+        [assignment, user, tenant],
+      );
+      await db.query(
+        "insert into public.donor_portal_hosts(id,tenant_id,primary_domain) values ($1,$2,null)",
+        [home, tenant],
+      );
+      await db.query("commit");
+
+      const rawPid2: unknown = (
+        await db2.query<{ pid: unknown }>("select pg_backend_pid() as pid")
+      ).rows[0]?.pid;
+      if (typeof rawPid2 !== "number") {
+        throw new Error(
+          `expected numeric pg_backend_pid(), got ${String(rawPid2)}`,
+        );
+      }
+      const pid2 = rawPid2;
+
+      await db.query("begin");
+      await db.query("set local role authenticated");
+      await db.query(
+        "select set_config('request.jwt.claims',$1,true), set_config('request.jwt.claim.sub','',true), set_config('request.headers',$2,true)",
+        [claims, headers],
+      );
+      const first = await db.query(
+        "select public.set_account_brand($1,'Alpha') as result",
+        [tenant],
+      );
+      expect(first.rows[0]!.result).toEqual({
+        tenant_id: tenant,
+        display_name: "Alpha",
+      });
+
+      await db2.query("begin");
+      await db2.query("set local role authenticated");
+      await db2.query(
+        "select set_config('request.jwt.claims',$1,true), set_config('request.jwt.claim.sub','',true), set_config('request.headers',$2,true)",
+        [claims, headers],
+      );
+      secondPromise = db2
+        .query("select public.set_account_brand($1,'Beta') as result", [tenant])
+        .then(
+          (result) => {
+            secondSettled = true;
+            secondResult = result;
+          },
+          (error: unknown) => {
+            secondSettled = true;
+            secondError = error;
+          },
+        );
+
+      let waiting = false;
+      const deadline = Date.now() + 10_000;
+      while (!secondSettled && Date.now() < deadline) {
+        const state = await observer.query(
+          "select wait_event_type from pg_stat_activity where pid=$1",
+          [pid2],
+        );
+        if (state.rows[0]?.wait_event_type === "Lock") {
+          waiting = true;
+          break;
+        }
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          await Promise.race([
+            secondPromise,
+            new Promise<void>((resolve) => {
+              timer = setTimeout(resolve, 25);
+            }),
+          ]);
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+      if (secondError !== undefined) {
+        throw secondError;
+      }
+      if (!waiting) {
+        if (secondSettled) {
+          throw new Error(
+            "second set_account_brand call resolved without waiting on the first writer",
+          );
+        }
+        expect(waiting).toBe(true);
+      }
+
+      await db.query("commit");
+      await secondPromise;
+      if (secondError !== undefined) {
+        throw secondError;
+      }
+      if (!secondResult) {
+        throw new Error("second set_account_brand call returned no result");
+      }
+      expect(secondResult.rows[0]?.result).toEqual({
+        tenant_id: tenant,
+        display_name: "Beta",
+      });
+      await db2.query("commit");
+
+      const stored = await db.query(
+        "select display_name from public.donor_account_brands where tenant_id=$1",
+        [tenant],
+      );
+      expect(stored.rows).toEqual([{ display_name: "Beta" }]);
+
+      const auditRows = await db.query(
+        `select details
+           from public.audit_logs
+          where tenant_id=$1 and action='account_brand_set'
+          order by created_at, id`,
+        [tenant],
+      );
+      expect(auditRows.rows).toHaveLength(2);
+      const alphaAudit = auditRows.rows.find(
+        (row) => row.details?.to?.display_name === "Alpha",
+      );
+      const betaAudit = auditRows.rows.find(
+        (row) => row.details?.to?.display_name === "Beta",
+      );
+      expect(alphaAudit?.details).toMatchObject({
+        assignment_id: assignment,
+        from: { display_name: null },
+        to: { display_name: "Alpha" },
+      });
+      expect(betaAudit?.details).toMatchObject({
+        assignment_id: assignment,
+        from: { display_name: "Alpha" },
+        to: { display_name: "Beta" },
+      });
+    } catch (error) {
+      testError = error;
+      throw error;
+    } finally {
+      await db.query("rollback").catch(() => {});
+      if (secondPromise) {
+        await secondPromise;
+      }
+      await db2.query("rollback").catch(() => {});
+      await observer.end().catch(() => {});
+      try {
+        await db.query("begin");
+        await db.query("delete from public.audit_logs where tenant_id=$1", [
+          tenant,
+        ]);
+        await db.query(
+          "delete from public.donor_account_brands where tenant_id=$1",
+          [tenant],
+        );
+        await db.query(
+          "delete from public.donor_portal_hosts where tenant_id=$1",
+          [tenant],
+        );
+        await db.query(
+          "delete from authz.memberships where tenant_id=$1 or user_id=$2",
+          [tenant, user],
+        );
+        await db.query("delete from public.profiles where user_id=$1", [user]);
+        await db.query("delete from public.tenants where id=$1", [tenant]);
+        await db.query("delete from auth.users where id=$1", [user]);
+        await db.query("commit");
+      } catch (cleanupError) {
+        await db.query("rollback").catch(() => {});
+        if (!testError) throw cleanupError;
+      }
+    }
+  });
 });

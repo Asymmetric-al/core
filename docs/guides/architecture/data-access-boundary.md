@@ -91,16 +91,20 @@ document has no scope. A file an own-API route serves is downloaded with
 or opened as a page, because a page load carries no header.
 
 The server treats both headers as proposals: `getAuthContext` passes them to
-the resolver, which checks them against the caller's own live rows. The
-database already reads `x-asym-assignment` in one place,
-`tenant_guard.request_assignment_id()`. The human command lane
-(`tenant_guard.begin_human_command`, `public.resolve_command_assignment`) and
-`authz.caller_assignment`, which the member directory
-(`public.tenant_member_directory`) uses, call it. Each of them accepts only a
-live membership row the caller holds, and refuses a value that is not a UUID.
-The value the browser client sends reaches these functions, as the session
-clients' value does. The rest of the database ignores both headers until the
-second release of WP2b repoints its helper to them.
+the resolver, which checks them against the caller's own live rows. The human
+command lane (`tenant_guard.begin_human_command`,
+`public.resolve_command_assignment`) reads `x-asym-assignment` through
+`tenant_guard.request_assignment_id()` (accepting only a live membership row
+the caller holds and refusing a value that is not a UUID) and reads
+`x-asym-tenant` through `authz.request_tenant_id()`, refusing with `42501`
+when `x-asym-tenant` is missing, malformed or differs from the command's
+tenant. `authz.caller_assignment`, which the member directory
+(`public.tenant_member_directory`) uses, also reads `x-asym-assignment`
+through `tenant_guard.request_assignment_id()`, refuses an `x-asym-tenant`
+header that names another organization, and still admits a request with no
+`x-asym-tenant` header (closed by the next package under D-16 ruling Q6). The
+values the browser client sends reach these functions, as the session clients'
+values do.
 
 The server's session clients send the result, not the proposal:
 `createClient(scope)` from `@asym/database/supabase/server` and
