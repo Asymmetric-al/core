@@ -37,6 +37,24 @@
 --
 -- The running build at the base calls only the six functions on these tables
 -- (service key), all replaced here in the same transaction.
+--
+-- Preflight, also: a profile whose user_id names another login than its id
+-- is refused here, before anything is written, because the task evidence of
+-- step 2 joins memberships to profiles by login; a profile whose user_id is
+-- still NULL (filled by the next migration) counts by its id.
+--
+-- Locks. ACCESS EXCLUSIVE on donor_activities, follower_requests and
+-- missionary_tasks (the sort_key retype rewrites missionary_tasks), SHARE ROW
+-- EXCLUSIVE on tenants for the new tenant keys, all held to COMMIT. The two
+-- statements that change the keys into donors come last, so the lock they
+-- take on donors (ACCESS EXCLUSIVE while the single-column keys are dropped)
+-- is held only from there to COMMIT. lock_timeout stops a run rather than
+-- queue it behind live traffic.
+--
+-- Recovery. Nothing here is written to run twice: a run lost between its
+-- COMMIT and its ledger row stops on the next run at its first CREATE (the
+-- set-aside table, 42P07), and docs/ops/release-job.md, "If the migration
+-- committed but its ledger row is missing", applies.
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
@@ -44,10 +62,20 @@ SET LOCAL lock_timeout = '5s';
 DO $$
 -- preflight: activity-tenants
 DECLARE
+  v_divergent BIGINT;
   v_activities BIGINT;
   v_requests BIGINT;
   v_tasks BIGINT;
 BEGIN
+  SELECT pg_catalog.count(*) INTO v_divergent
+    FROM public.profiles AS p
+   WHERE p.user_id IS NOT NULL
+     AND p.user_id <> p.id;
+  IF v_divergent > 0 THEN
+    RAISE EXCEPTION 'preflight failed: % profiles name another login in user_id than their id; nothing was changed', v_divergent
+      USING ERRCODE = '23514';
+  END IF;
+
   SELECT pg_catalog.count(*) INTO v_activities
     FROM public.donor_activities AS a
     LEFT JOIN public.donors AS d ON d.id = a.donor_id
@@ -89,7 +117,7 @@ COMMENT ON TABLE private.missionary_tasks_unresolved_tenant IS
   'Donorless tasks whose organization no evidence names (AL-2678, record line 593). Kept, not deleted; no signed-in or anonymous access.';
 ALTER TABLE private.missionary_tasks_unresolved_tenant ENABLE ROW LEVEL SECURITY;
 ALTER TABLE private.missionary_tasks_unresolved_tenant FORCE ROW LEVEL SECURITY;
-REVOKE ALL ON TABLE private.missionary_tasks_unresolved_tenant FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE private.missionary_tasks_unresolved_tenant FROM PUBLIC, anon, authenticated, service_role, tenant_guard;
 
 ALTER TABLE public.donor_activities ADD COLUMN tenant_id UUID;
 ALTER TABLE public.follower_requests ADD COLUMN tenant_id UUID;
@@ -125,7 +153,7 @@ WITH evidence AS (
              FROM (
                SELECT m.tenant_id
                  FROM authz.memberships AS m
-                 JOIN public.profiles AS p ON p.user_id = m.user_id
+                 JOIN public.profiles AS p ON COALESCE(p.user_id, p.id) = m.user_id
                 WHERE p.id = t.missionary_id
                UNION
                SELECT mi.tenant_id
@@ -165,14 +193,12 @@ BEGIN
 END
 $$;
 
--- Keys, in one transaction with the backfill.
+-- Tenant keys and the sort_key rewrite, in one transaction with the
+-- backfill; the keys into donors come last (see "Locks" above).
 ALTER TABLE public.donor_activities
   ALTER COLUMN tenant_id SET NOT NULL,
   ADD CONSTRAINT donor_activities_tenant_id_fkey
-    FOREIGN KEY (tenant_id) REFERENCES public.tenants (id) ON DELETE RESTRICT,
-  DROP CONSTRAINT donor_activities_donor_id_fkey,
-  ADD CONSTRAINT donor_activities_donor_same_tenant_fk
-    FOREIGN KEY (tenant_id, donor_id) REFERENCES public.donors (tenant_id, id);
+    FOREIGN KEY (tenant_id) REFERENCES public.tenants (id) ON DELETE RESTRICT;
 
 ALTER TABLE public.follower_requests
   ALTER COLUMN tenant_id SET NOT NULL,
@@ -183,9 +209,6 @@ ALTER TABLE public.missionary_tasks
   ALTER COLUMN tenant_id SET NOT NULL,
   ADD CONSTRAINT missionary_tasks_tenant_id_fkey
     FOREIGN KEY (tenant_id) REFERENCES public.tenants (id) ON DELETE RESTRICT,
-  DROP CONSTRAINT missionary_tasks_donor_id_fkey,
-  ADD CONSTRAINT missionary_tasks_donor_id_fkey
-    FOREIGN KEY (tenant_id, donor_id) REFERENCES public.donors (tenant_id, id),
   ALTER COLUMN sort_key TYPE DOUBLE PRECISION USING sort_key::DOUBLE PRECISION;
 
 CREATE INDEX donor_activities_tenant_donor_date_idx
@@ -495,6 +518,18 @@ GRANT EXECUTE ON FUNCTION
   public.missionary_activities(uuid, uuid, uuid, uuid[]),
   public.missionary_activity_create(uuid, uuid, uuid, uuid, text, text, text, timestamptz)
 TO service_role;
+
+-- Last: the keys into donors. Dropping the single-column keys takes
+-- ACCESS EXCLUSIVE on donors, held from here to COMMIT only.
+ALTER TABLE public.donor_activities
+  DROP CONSTRAINT donor_activities_donor_id_fkey,
+  ADD CONSTRAINT donor_activities_donor_same_tenant_fk
+    FOREIGN KEY (tenant_id, donor_id) REFERENCES public.donors (tenant_id, id);
+
+ALTER TABLE public.missionary_tasks
+  DROP CONSTRAINT missionary_tasks_donor_id_fkey,
+  ADD CONSTRAINT missionary_tasks_donor_id_fkey
+    FOREIGN KEY (tenant_id, donor_id) REFERENCES public.donors (tenant_id, id);
 
 COMMIT;
 

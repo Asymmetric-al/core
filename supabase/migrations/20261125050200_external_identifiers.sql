@@ -9,6 +9,16 @@
 -- tenant read the table on their token; public.resolve_external_identifier
 -- answers a (source, external_id) inside the request's tenant only. The
 -- import (WP13) writes it with the service key; signed-in users hold no write.
+--
+-- Locks. The new table's keys take SHARE ROW EXCLUSIVE on tenants, parties,
+-- donors, missionaries and funds, held to COMMIT; nothing is rewritten and
+-- no row of those tables is read. lock_timeout stops a run rather than queue
+-- it behind live traffic.
+--
+-- Recovery. Nothing here is written to run twice: a run lost between its
+-- COMMIT and its ledger row stops on the next run at its first CREATE
+-- (public.external_identifiers, 42P07), and docs/ops/release-job.md, "If the
+-- migration committed but its ledger row is missing", applies.
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';

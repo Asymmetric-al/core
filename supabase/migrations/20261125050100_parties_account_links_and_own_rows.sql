@@ -28,7 +28,9 @@
 --    AL-2675 wrote it (crm_notes_tenant_insert reads it, and WP4a owns
 --    crm_notes); under the CHECK its id branch names the same rows.
 -- 6. A temporary AFTER INSERT trigger on donors (W5-R2, amended) gives each
---    inserted donor with a tenant and no Party its own Party. It fires only
+--    inserted donor with a tenant and no Party the Party its person already
+--    has in that tenant (through account_links, else through their
+--    missionary row), and a new Party only when there is none. It fires only
 --    for a row actually inserted, so an ON CONFLICT DO NOTHING that discards
 --    a row creates nothing, and it never writes an account link (ADR-0215).
 --    Part 2 retires it when every writer names the Party itself.
@@ -39,6 +41,17 @@
 --    definer that answers for the request's tenant only, because signed-in
 --    users may not select missionaries.tenant_id or party_id.
 -- 8. Field-policy rows for every new column of a classified table (7.1).
+--
+-- Locks. The tables are altered in the order a gift takes them
+-- (begin_donation_saga: missionaries, funds, donors), then profiles; each
+-- ALTER TABLE holds ACCESS EXCLUSIVE to COMMIT, and the new keys hold SHARE
+-- ROW EXCLUSIVE on tenants and auth.users. lock_timeout stops a run rather
+-- than queue it behind live traffic.
+--
+-- Recovery. Nothing here is written to run twice: a run lost between its
+-- COMMIT and its ledger row stops on the next run at its first CREATE
+-- (public.parties, 42P07), and docs/ops/release-job.md, "If the migration
+-- committed but its ledger row is missing", applies.
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
@@ -100,14 +113,15 @@ COMMENT ON COLUMN public.parties.security_level_source IS
 ALTER TABLE public.parties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.parties FORCE ROW LEVEL SECURITY;
 
--- 2. Party keys on donors and missionaries, and import batches.
-ALTER TABLE public.donors
-  ADD COLUMN party_id UUID,
-  ADD COLUMN import_batch_id UUID;
+-- 2. Party keys on donors and missionaries, and import batches, in the order
+--    a gift locks these tables.
 ALTER TABLE public.missionaries
   ADD COLUMN party_id UUID,
   ADD COLUMN import_batch_id UUID;
 ALTER TABLE public.funds
+  ADD COLUMN import_batch_id UUID;
+ALTER TABLE public.donors
+  ADD COLUMN party_id UUID,
   ADD COLUMN import_batch_id UUID;
 
 -- 3. Backfill, from evidence.
@@ -221,7 +235,6 @@ CREATE TABLE public.account_links (
   CONSTRAINT account_links_linked_via_check
     CHECK (linked_via IN ('profile_backfill', 'account_claim', 'invitation'))
 );
-CREATE INDEX account_links_tenant_party_idx ON public.account_links (tenant_id, party_id);
 CREATE INDEX account_links_user_idx ON public.account_links (user_id);
 
 COMMENT ON TABLE public.account_links IS
@@ -301,6 +314,28 @@ BEGIN
     RETURN NULL;
   END IF;
 
+  IF NEW.profile_id IS NOT NULL THEN
+    SELECT al.party_id INTO v_party_id
+      FROM public.account_links AS al
+     WHERE al.tenant_id = NEW.tenant_id
+       AND al.user_id = NEW.profile_id;
+    IF v_party_id IS NULL THEN
+      SELECT m.party_id INTO v_party_id
+        FROM public.missionaries AS m
+       WHERE m.tenant_id = NEW.tenant_id
+         AND m.profile_id = NEW.profile_id;
+    END IF;
+  END IF;
+
+  IF v_party_id IS NOT NULL THEN
+    UPDATE public.donors
+       SET party_id = v_party_id
+     WHERE id = NEW.id
+       AND tenant_id = NEW.tenant_id
+       AND party_id IS NULL;
+    RETURN NULL;
+  END IF;
+
   SELECT COALESCE(
            NULLIF(pg_catalog.btrim(NEW.name), ''),
            NULLIF(pg_catalog.btrim(p.display_name), ''),
@@ -326,7 +361,7 @@ BEGIN
 END;
 $$;
 COMMENT ON FUNCTION public.donors_fill_party_after_insert_temp() IS
-  'Temporary (AL-2678, W5-R2): gives an inserted donor with a tenant and no Party its own Party. Never links an account. Part 2 retires it with donors.party_id NOT NULL.';
+  'Temporary (AL-2678, W5-R2): gives an inserted donor with a tenant and no Party the Party its person already has in that tenant (account link, else missionary row), else a new one. Never links an account. Part 2 retires it with donors.party_id NOT NULL.';
 ALTER FUNCTION public.donors_fill_party_after_insert_temp() OWNER TO postgres;
 REVOKE ALL ON FUNCTION public.donors_fill_party_after_insert_temp() FROM PUBLIC, anon, authenticated, service_role;
 
