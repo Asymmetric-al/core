@@ -71,7 +71,7 @@ type SignedInActor = {
 };
 
 describe.skipIf(!url && process.env.MEMBER_CARE_IT_REQUIRED !== "1")(
-  "AL-2677 WP4b part 1: Member Care caller-token handlers, privacy, and R11 projections (PostgREST)",
+  "AL-2677 WP4b part 1: Member Care caller-token handlers, privacy, and R11 projections (PostgREST) (D-18, AL-2678: each fixture missionary names its own Party, the two with a profile are linked to their logins as the migration's backfill links them, and the links and Parties are removed before the logins)",
   () => {
     const runTag = randomUUID().slice(0, 8);
     const createdUserIds: string[] = [];
@@ -440,28 +440,33 @@ describe.skipIf(!url && process.env.MEMBER_CARE_IT_REQUIRED !== "1")(
       ).rows[0]!.id;
 
       await db.query(
+        `insert into public.parties (id, tenant_id, display_name) values
+         ($1, $5, 'Care Mina'), ($2, $5, 'Care Peer'), ($3, $5, 'Care Unlinked'), ($4, $6, 'Care Tenant B')`,
+        [mA1, mA2, mANoProfile, mB1, tenantA, tenantB],
+      );
+      await db.query(
         `insert into public.missionaries (
            id, tenant_id, profile_id, legal_entity_id,
            location, timezone, health_status, last_check_in, manual_attention,
            region, mission_field, health_signals, birth_date, phone, bio, tagline, cover_url, social_links,
-           funding_goal, current_funding, created_at
+           funding_goal, current_funding, created_at, party_id
          ) values
          ($1, $5, $7, $9, 'Chiang Mai', 'Asia/Bangkok', 'at_risk', '2026-11-10T10:00:00Z', true,
           'SE Asia', 'Initial Field', '{"emotional":40,"spiritual":55,"physical":60,"financial":70}'::jsonb,
           '1991-05-10', '+6611111111', 'Own bio text', 'Serving north', 'https://example.test/cover.webp',
           '{"facebook":"https://fb.me/mina","instagram":"https://ig.me/mina","twitter":"https://x.com/mina","youtube":"https://yt.be/mina","website":"https://mina.example.test","secret_key":"never-leak"}'::jsonb,
-          5000, 3200, '2039-01-03T00:00:00Z'),
+          5000, 3200, '2039-01-03T00:00:00Z', $1),
          ($2, $5, $8, $9, 'Bangkok', 'Asia/Bangkok', 'crisis', '2026-11-11T10:00:00Z', true,
           'SE Asia', 'Peer Field', '{"emotional":25,"spiritual":50,"physical":45,"financial":35}'::jsonb,
           '1992-06-15', '+6622222222', 'Peer bio', 'Peer tagline', 'https://example.test/peer.webp',
           '{"facebook":"https://fb.me/peer","secret_peer":"never-leak"}'::jsonb,
-          4000, 2100, '2039-01-02T00:00:00Z'),
+          4000, 2100, '2039-01-02T00:00:00Z', $2),
          ($3, $5, null, $9, 'Unlinked Place', 'UTC', 'needs_attention', null, false,
           'Africa', 'No Profile Role', '{}'::jsonb, null, null, null, null, null, null,
-          null, null, '2039-01-01T00:00:00Z'),
+          null, null, '2039-01-01T00:00:00Z', $3),
          ($4, $6, null, $10, 'Tenant B City', 'UTC', 'crisis', '2026-11-12T10:00:00Z', true,
           'Europe', 'Tenant B Field', '{"emotional":10}'::jsonb, null, null, null, null, null, null,
-          null, null, '2039-01-04T00:00:00Z')`,
+          null, null, '2039-01-04T00:00:00Z', $4)`,
         [
           mA1,
           mA2,
@@ -476,6 +481,11 @@ describe.skipIf(!url && process.env.MEMBER_CARE_IT_REQUIRED !== "1")(
         ],
       );
       createdMissionaryIds.push(mA1, mA2, mANoProfile, mB1);
+      await db.query(
+        `insert into public.account_links (tenant_id, user_id, party_id, linked_via) values
+         ($1, $2, $3, 'profile_backfill'), ($1, $4, $5, 'profile_backfill')`,
+        [tenantA, uMis.userId, mA1, uPeer.userId, mA2],
+      );
 
       await db.query(
         `insert into public.donors (id, tenant_id, name, email)
@@ -571,12 +581,29 @@ describe.skipIf(!url && process.env.MEMBER_CARE_IT_REQUIRED !== "1")(
             [createdPledgeIds],
           );
           await db.query(
+            "delete from public.account_links where party_id = any($1::uuid[])",
+            [createdMissionaryIds],
+          );
+          const donorParties = await db.query<{ party_id: string }>(
+            "select party_id from public.donors where id = any($1::uuid[]) and party_id is not null",
+            [createdDonorIds],
+          );
+          await db.query(
             "delete from public.donors where id = any($1::uuid[])",
             [createdDonorIds],
           );
           await db.query(
             "delete from public.missionaries where id = any($1::uuid[])",
             [createdMissionaryIds],
+          );
+          await db.query(
+            "delete from public.parties where id = any($1::uuid[])",
+            [
+              [
+                ...createdMissionaryIds,
+                ...donorParties.rows.map((row) => row.party_id),
+              ],
+            ],
           );
           await db.query(
             "delete from authz.memberships where user_id = any($1::uuid[])",

@@ -220,8 +220,10 @@ describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
          on conflict (id) do update set tenant_id = excluded.tenant_id, role = excluded.role;
        -- D-18: the giving targets name their own tenant's entity.
        insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$1,'A','US','usd','A');
-       insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id) values ($5, $1, $3,$1), ($6, $1, $4,$1);
+       insert into public.parties (id, tenant_id, display_name) values ($5, $1, 'Fixture'), ($6, $1, 'Fixture');
+       insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id,party_id) values ($5, $1, $3,$1,$5), ($6, $1, $4,$1,$6);
        insert into public.donors (id, tenant_id, profile_id) values ($7, $1, $2), ($8, $1, null);
+       insert into public.account_links (tenant_id, user_id, party_id, linked_via) select tenant_id, profile_id, party_id, 'profile_backfill' from public.donors where id = $7 union all select tenant_id, profile_id, party_id, 'profile_backfill' from public.missionaries where id in ($5, $6);
        insert into public.donations (id, tenant_id, donor_id, missionary_id, amount) values ($9, $1, $7, $5, 1000), ($10, $1, $8, $5, 2000);`.replace(
         /\$(\d+)/g,
         (_m, i: string) => `'${v[Number(i) - 1]}'`,
@@ -230,8 +232,8 @@ describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
   });
   afterAll(async () => {
     await s.db.query(
-      `delete from public.donations where tenant_id = $1; delete from public.giving_target_entity_locks where tenant_id = $1; delete from public.donors where tenant_id = $1;
-       delete from public.missionaries where tenant_id = $1; delete from auth.users where id in ($2, $3, $4);
+      `delete from public.donations where tenant_id = $1; delete from public.giving_target_entity_locks where tenant_id = $1; delete from public.account_links where tenant_id = $1; delete from public.donors where tenant_id = $1;
+       delete from public.missionaries where tenant_id = $1; delete from public.parties where tenant_id = $1; delete from auth.users where id in ($2, $3, $4);
        delete from public.profiles where id in ($2, $3, $4); delete from public.legal_entities where tenant_id=$1; delete from public.tenants where id = $1;`.replace(
         /\$(\d+)/g,
         (_m, i: string) => `'${[TA, PD, PM, PM2][Number(i) - 1]}'`,
@@ -244,7 +246,7 @@ describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
     s.fail = null;
   });
 
-  it("C7 (P): REST GET /api/donations → 200, non-empty, nested donor.profile", async () => {
+  it("C7 (P): REST GET /api/donations → 200, non-empty, nested donor.profile (D-18, AL-2678: each fixture missionary names a Party, the donor and missionaries that name a profile are linked to their Parties as the migration backfills, and the cleanup removes links and Parties before the tenant)", async () => {
     s.auth = as(PD, "donor");
     const res = await GET(rest("GET"));
     const body = (await res.json()) as { donations?: Row[] };
@@ -334,7 +336,9 @@ describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
       expect(res.status, text).toBe(500);
       expect(text).not.toMatch(/PGRST|relationship|schema cache/i);
       if (what === "donations query")
-        expect(JSON.parse(text)).toEqual({ error: "Failed to load donations" });
+        expect(JSON.parse(text)).toEqual({
+          error: "Failed to load donations",
+        });
     },
   );
 

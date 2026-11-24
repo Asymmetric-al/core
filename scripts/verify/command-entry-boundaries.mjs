@@ -11,16 +11,39 @@ const acceptInvitationFunction =
   "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)";
 const acceptInvitationReason =
   "AL-2676 WP3c R1/R14/R15: invitation acceptance admits a non-operator caller who holds no membership yet after refusing platform operators and issuer self-acceptance and verifying selector, constant-time verifier digest, live status, expiry, and confirmed non-deleted email via private.resolve_invitation_for_caller before tenant_guard.enter or any lock";
+const startAccountClaim = "tenant_guard.start_account_claim(p_tenant_id uuid)";
+const redeemAccountClaim =
+  "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)";
+const startAccountClaimReason =
+  "AL-2678 W5-R5, findings B2, B3 and B5, ruling on B4: a signed-in person with no membership in the tenant starts a donor account claim; the caller is the session's login, the request's x-asym-tenant must name the tenant (42501), the tenant must be active, a platform operator never matches, the confirmed non-deleted Auth email is the only match key, locks run tenant, the caller's memberships, then the Party without waiting (a Party another caller holds is recorded as claim_already_open), then the claim, nothing is linked or granted, and every outcome answers the same at once";
+const redeemAccountClaimReason =
+  "AL-2678 W5-R5, findings B2, B3 and B5: a signed-in person with no membership in the tenant redeems a mailed claim token; the request's x-asym-tenant must name the tenant (42501), the token's SHA-256 under the tenant, membership, Party and claim locks is the authority, it is single-use, expires, is bound to the requester and the donor's email at issue, a platform operator or a login without a confirmed address is refused, the link insert cannot raise a unique violation, and every failure answers the same";
 export const reviewedPreMembership = Object.freeze({
   [acceptInvitationFunction]: Object.freeze({
     reason: acceptInvitationReason,
     digest: "8e1cd0bb1438913861f3dfda3f72866e20c6ccbe0abb1513e489e41cf9f9cbb2",
+  }),
+  [startAccountClaim]: Object.freeze({
+    reason: startAccountClaimReason,
+    digest: "bca3eaeb1cf4059144d502daf37a9050eee2918085fd8494438651d7b064544c",
+  }),
+  [redeemAccountClaim]: Object.freeze({
+    reason: redeemAccountClaimReason,
+    digest: "acc80384cc7e474a3053e7aac23f70d166c285396dd2633401efa4850dcc45c7",
   }),
 });
 export const preMembershipEntries = Object.freeze([
   Object.freeze({
     function: acceptInvitationFunction,
     reason: acceptInvitationReason,
+  }),
+  Object.freeze({
+    function: startAccountClaim,
+    reason: startAccountClaimReason,
+  }),
+  Object.freeze({
+    function: redeemAccountClaim,
+    reason: redeemAccountClaimReason,
   }),
 ]);
 

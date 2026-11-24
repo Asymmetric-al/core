@@ -300,7 +300,7 @@ const CATALOG = `SELECT json_build_object(
   'donor_cons', ${agg("conname::text", "pg_constraint WHERE conrelid = 'public.donors'::regclass")},
   'policies', ${agg("row_to_json(p)::text", "pg_policies p")},
   'triggers', ${agg("tgrelid::regclass::text || '.' || tgname", "pg_trigger WHERE NOT tgisinternal")});`;
-const CLEAN = `DELETE FROM public.donors WHERE tenant_id = '${TA}'; DELETE FROM public.tenants WHERE id IN ('${TA}','${TB}');
+const CLEAN = `DELETE FROM public.donors WHERE tenant_id = '${TA}'; DO $$ BEGIN IF to_regclass('public.parties') IS NOT NULL THEN DELETE FROM public.parties WHERE tenant_id IN ('${TA}','${TB}'); END IF; END $$; DELETE FROM public.tenants WHERE id IN ('${TA}','${TB}');
 DELETE FROM public.profiles WHERE id = '${P}'; DELETE FROM auth.users WHERE id = '${P}';`;
 const snapshot = (url: string) => JSON.parse(q(CATALOG, url));
 const rows = (url: string, t: string) =>
@@ -394,7 +394,7 @@ const pid = (n: number) =>
   `22540000-0000-4000-8000-${(0xc00 + n).toString(16).padStart(12, "0")}`;
 const CLEAN_C = `DELETE FROM public.donation_saga_outbox WHERE tenant_id = '${TC}';
 DELETE FROM public.audit_logs WHERE tenant_id = '${TC}'; DELETE FROM public.donations WHERE tenant_id = '${TC}';
-DELETE FROM public.donors WHERE tenant_id = '${TC}'; DELETE FROM public.tenants WHERE id = '${TC}';
+DELETE FROM public.donors WHERE tenant_id = '${TC}'; DELETE FROM public.parties WHERE tenant_id = '${TC}'; DELETE FROM public.tenants WHERE id = '${TC}';
 DELETE FROM public.profiles WHERE id::text LIKE '22540000-0000-4000-8000-000000000c%';
 DELETE FROM auth.users WHERE id::text LIKE '22540000-0000-4000-8000-000000000c%';`;
 
@@ -462,7 +462,7 @@ describe.skipIf(!local)(
     afterAll(() => {
       q(CLEAN_C);
     });
-    it(`criterion 15: two overlapping first gifts for one profile, different idempotency keys, both succeed on one donor (x${ROUNDS})`, async () => {
+    it(`criterion 15: two overlapping first gifts for one profile, different idempotency keys, both succeed on one donor (x${ROUNDS}); D-18, AL-2678: the donor's Party, which the temporary donor trigger adds, is removed with it before its tenant`, async () => {
       q(
         `${CLEAN_C} INSERT INTO public.tenants(id,name,slug) VALUES ('${TC}','acc2254 c','acc2254-c');
         INSERT INTO auth.users(id) SELECT ('22540000-0000-4000-8000-' || lpad(to_hex(3072 + n), 12, '0'))::uuid FROM generate_series(1, ${ROUNDS}) n;`,

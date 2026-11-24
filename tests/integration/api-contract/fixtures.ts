@@ -46,6 +46,7 @@ export type TenantFixture = {
   draftLocationId: string;
   fundId: string;
   legalEntityId: string;
+  partyId: string;
 };
 
 /**
@@ -70,6 +71,7 @@ export async function createTenantFixture(
     draftLocationId: randomUUID(),
     fundId: randomUUID(),
     legalEntityId: randomUUID(),
+    partyId: randomUUID(),
   };
   try {
     await writeTenantFixture(db, fixture, label);
@@ -152,11 +154,28 @@ async function writeTenantFixture(
       ["user_id", "tenant_id", "role", "staff_role"],
     );
   }
+  await upsertFixture(db, "public.parties", {
+    id: fixture.partyId,
+    tenant_id: fixture.tenantId,
+    display_name: `Tenant ${label}`,
+  });
+  await upsertFixture(
+    db,
+    "public.account_links",
+    {
+      tenant_id: fixture.tenantId,
+      user_id: fixture.userId,
+      party_id: fixture.partyId,
+      linked_via: "profile_backfill",
+    },
+    ["tenant_id", "user_id"],
+  );
   await upsertFixture(db, "public.missionaries", {
     id: fixture.missionaryId,
     tenant_id: fixture.tenantId,
     legal_entity_id: fixture.legalEntityId,
     profile_id: fixture.userId,
+    party_id: fixture.partyId,
     mission_field: "API contract field",
     tagline: `Tenant ${label} missionary`,
   });
@@ -169,6 +188,7 @@ async function writeTenantFixture(
   });
   await upsertFixture(db, "public.missionary_tasks", {
     id: fixture.taskId,
+    tenant_id: fixture.tenantId,
     missionary_id: fixture.userId,
     donor_id: fixture.donorId,
     title: `Tenant ${label} task`,
@@ -234,6 +254,8 @@ export async function removeTenantFixture(
     ["public.missionary_tasks", "missionary_id", fixture.userId],
     ["public.donors", "tenant_id", fixture.tenantId],
     ["public.missionaries", "tenant_id", fixture.tenantId],
+    ["public.account_links", "tenant_id", fixture.tenantId],
+    ["public.parties", "tenant_id", fixture.tenantId],
     ["authz.memberships", "user_id", fixture.userId],
     ["public.profiles", "id", fixture.userId],
     ["auth.users", "id", fixture.userId],

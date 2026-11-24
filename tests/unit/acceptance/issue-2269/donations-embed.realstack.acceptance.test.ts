@@ -205,7 +205,9 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   () => expect(ADMIN_URL).not.toBe(""),
 );
 
-describe.skipIf(!ADMIN_URL)("#2269 C3 real catalog (R)", () => {
+const D18 =
+  "D-18, AL-2678: each fixture missionary names a Party, and each donor and missionary that names a profile is linked to its Party, as the migration backfills";
+describe.skipIf(!ADMIN_URL)(`#2269 C3 real catalog (R) (${D18})`, () => {
   const db = new pg.Client({ connectionString: ADMIN_URL });
   const u = (): string => randomUUID();
   const [TA, TB, PD, PM, MI, MB, DN1, DN2, DN3, G1, G2, GX] = [
@@ -244,8 +246,10 @@ describe.skipIf(!ADMIN_URL)("#2269 C3 real catalog (R)", () => {
        insert into public.profiles (id, tenant_id, role) values ($3, $1, 'donor'), ($4, $1, 'missionary') on conflict (id) do update set tenant_id = excluded.tenant_id, role = excluded.role;
        -- D-18: the giving targets name their own tenant's entity.
        insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$1,'A','US','usd','A'),($2,$2,'B','US','usd','B');
-       insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id) values ($5, $1, $4,$1), ($6, $2, $4,$2);
+       insert into public.parties (id, tenant_id, display_name) values ($5, $1, 'Fixture'), ($6, $2, 'Fixture');
+       insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id,party_id) values ($5, $1, $4,$1,$5), ($6, $2, $4,$2,$6);
        insert into public.donors (id, tenant_id, profile_id) values ($7, $1, $3), ($8, $1, null), ($9, $2, $3);
+       insert into public.account_links (tenant_id, user_id, party_id, linked_via) select tenant_id, profile_id, party_id, 'profile_backfill' from public.donors where id in ($7, $9) union all select tenant_id, profile_id, party_id, 'profile_backfill' from public.missionaries where id in ($5, $6);
        insert into public.donations (id, tenant_id, donor_id, missionary_id, amount) values ($10, $1, $7, $5, 1000), ($11, $1, $8, $5, 2000), ($12, $2, $9, $6, 3000);`.replace(
         /\$(\d+)/g,
         (_m, i: string) =>

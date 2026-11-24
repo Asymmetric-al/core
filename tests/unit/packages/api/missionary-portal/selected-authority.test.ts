@@ -485,17 +485,17 @@ describe("missionary handler delegation", () => {
     },
   );
   it.each(["POST", "PATCH"])(
-    "%s rounds the stored sort key",
+    "%s keeps a fractional sort key, the midpoint between two cards (AL-2678, record line 594)",
     async (method) => {
       fake.rpc.mockReturnValue(query({ id }));
-      const req = request(method, { title: "task", sort_key: 1.7 });
+      const req = request(method, { title: "task", sort_key: 15.5 });
       const response =
         method === "POST" ? await tasks.POST(req) : await task.PATCH(req, args);
       expect(response.status).toBe(method === "POST" ? 201 : 200);
       expect(fake.rpc).toHaveBeenCalledWith(
         "missionary_task_write",
         expect.objectContaining({
-          p_patch: expect.objectContaining({ sort_key: 2 }),
+          p_patch: expect.objectContaining({ sort_key: 15.5 }),
         }),
       );
     },

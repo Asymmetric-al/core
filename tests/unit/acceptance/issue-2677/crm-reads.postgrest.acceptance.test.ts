@@ -50,7 +50,7 @@ const tenantB = "00000000-0000-0000-0000-000000000002";
 const dualUser = "44444444-4444-4444-4444-444444444444";
 
 describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
-  "Mission Control reads as the selected staff assignment",
+  "Mission Control reads as the selected staff assignment (D-18, AL-2678: fixture missionaries name a Party, activities carry their tenant, and the Parties the donor trigger adds are removed with their donors)",
   () => {
     const dualA = randomUUID();
     const dualB = randomUUID();
@@ -60,6 +60,7 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
     const restrictedA = randomUUID();
     const workerIds = [randomUUID(), randomUUID()];
     const donorIds = [randomUUID(), randomUUID(), randomUUID()];
+    let donorPartyIds: string[] = [];
     const candidateId = randomUUID();
     const giftIds = [randomUUID(), randomUUID()];
     const fundIds = [randomUUID(), randomUUID()];
@@ -116,7 +117,7 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
         [revokedOwner, "33333333-3333-3333-3333-333333333333", tenantA],
       );
       await db.query(
-        "insert into public.missionaries (id,tenant_id,profile_id,location,legal_entity_id) values ($1,$3,$5,'Fixture Alpha',$7),($2,$4,$6,'Fixture Beta',$8)",
+        "with party as (insert into public.parties (id,tenant_id,display_name) values ($1,$3,'Fixture Alpha'),($2,$4,'Fixture Beta') returning id) insert into public.missionaries (id,tenant_id,profile_id,location,legal_entity_id,party_id) values ($1,$3,$5,'Fixture Alpha',$7,$1),($2,$4,$6,'Fixture Beta',$8,$2)",
         [
           ...workerIds,
           tenantA,
@@ -139,6 +140,12 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           marker + "-B",
         ],
       );
+      donorPartyIds = (
+        await db.query(
+          "select party_id from public.donors where id=any($1::uuid[])",
+          [donorIds],
+        )
+      ).rows.map((row) => row.party_id as string);
       await db.query(
         "insert into authz.memberships (id,user_id,tenant_id,role,staff_role) values ($1,$3,$4,'staff','development'),($2,$3,$5,'staff','development')",
         [dualA, dualB, dualUser, tenantA, tenantB],
@@ -245,6 +252,11 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           ["public.missionaries", "id=any($1::uuid[])", [workerIds]],
           ["public.funds", "id=any($1::uuid[])", [fundIds]],
           ["public.donors", "id=any($1::uuid[])", [donorIds]],
+          [
+            "public.parties",
+            "id=any($1::uuid[]) or id=any($2::uuid[])",
+            [workerIds, donorPartyIds],
+          ],
           [
             "public.crm_table_preference_audit_events",
             "id=any($1::uuid[])",
@@ -914,8 +926,17 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           "delete from public.donations where id=any($1::uuid[])",
           [gifts],
         );
+        const reportParties = (
+          await db.query(
+            "select party_id from public.donors where id=any($1::uuid[])",
+            [ids],
+          )
+        ).rows.map((row) => row.party_id as string);
         await db.query("delete from public.donors where id=any($1::uuid[])", [
           ids,
+        ]);
+        await db.query("delete from public.parties where id=any($1::uuid[])", [
+          reportParties,
         ]);
         await db.query("delete from authz.memberships where id=$1", [
           assignment,
@@ -952,8 +973,8 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
             [commitments[i], tenant, donor],
           );
           await db.query(
-            "insert into public.donor_activities(id,donor_id,type,title) values ($1,$2,'call','Fixture call')",
-            [activities[i], donor],
+            "insert into public.donor_activities(id,tenant_id,donor_id,type,title) values ($1,$3,$2,'call','Fixture call')",
+            [activities[i], donor, tenant],
           );
           await db.query(
             "insert into public.member_care_activities(id,tenant_id,missionary_id,author_user_id,type,description) values ($1,$2,$3,$4,'video_call','Fixture call')",
@@ -1163,7 +1184,7 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
       }
     });
 
-    it("resolves every label across two lookup chunks through PostgREST", async () => {
+    it("resolves every label across two lookup chunks through PostgREST (D-18, AL-2678: each fixture missionary names a Party)", async () => {
       const ids = Array.from({ length: 151 }, () => randomUUID());
       const source = "unnest($1::uuid[]) with ordinality as f(id,n)";
       try {
@@ -1177,7 +1198,11 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           [ids],
         );
         await db.query(
-          `insert into public.missionaries(id,tenant_id,profile_id,legal_entity_id) select f.id,$2::uuid,p.id,$3::uuid from ${source} join public.profiles p on p.user_id=f.id`,
+          `insert into public.parties(id,tenant_id,display_name) select id,$2::uuid,'Worker '||n from ${source}`,
+          [ids, tenantA],
+        );
+        await db.query(
+          `insert into public.missionaries(id,tenant_id,profile_id,legal_entity_id,party_id) select f.id,$2::uuid,p.id,$3::uuid,f.id from ${source} join public.profiles p on p.user_id=f.id`,
           [ids, tenantA, entityA],
         );
         await db.query(
@@ -1228,11 +1253,21 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           "delete from public.giving_target_entity_locks where missionary_id=any($1::uuid[]) or fund_id=any($1::uuid[])",
           [ids],
         );
+        const bulkParties = (
+          await db.query(
+            "select party_id from public.donors where id=any($1::uuid[])",
+            [ids],
+          )
+        ).rows.map((row) => row.party_id as string);
         for (const table of ["donors", "funds", "missionaries"])
           await db.query(
             `delete from public.${table} where id=any($1::uuid[])`,
             [ids],
           );
+        await db.query(
+          "delete from public.parties where id=any($1::uuid[]) or id=any($2::uuid[])",
+          [ids, bulkParties],
+        );
         await db.query("delete from auth.users where id=any($1::uuid[])", [
           ids,
         ]);

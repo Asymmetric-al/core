@@ -177,6 +177,7 @@ export class Stack {
       .query(`insert into public.tenants(id,name,slug) values (${q(id.A)},'acc2402 A',${q(id.A)}),(${q(id.B)},'acc2402 B',${q(id.B)});
       insert into auth.users(id) select unnest(array[${[...Object.values(id), ...Object.values(p)].map(q)}]::uuid[]);
       delete from public.profiles where id=any(array[${[...Object.values(id), ...Object.values(p)].map(q)}]::uuid[]);
+      alter table public.profiles drop constraint if exists profiles_user_id_matches_id;
       delete from authz.memberships where user_id=any(array[${Object.values(id).map(q)}]::uuid[]);`);
     const roles: Record<string, string> = {
       staff: "staff",

@@ -231,9 +231,18 @@ export async function addFixtures(
       [f.missionaryInSecond, SECOND, `Harbor field ${tag}`],
     ] as const)
       await db.query(
-        `insert into public.missionaries (id, tenant_id, profile_id, location, legal_entity_id)
-         select $1, tenant_id, $3, $4, id from public.legal_entities where tenant_id=$2`,
+        `with party as (insert into public.parties (id, tenant_id, display_name) values ($1, $2, $4) returning id)
+         insert into public.missionaries (id, tenant_id, profile_id, location, legal_entity_id, party_id)
+         select $1, tenant_id, $3, $4, id, (select id from party) from public.legal_entities where tenant_id=$2`,
         [record, tenant, missionary.userId, place],
+      );
+    for (const [record, tenant] of [
+      [f.missionaryInDemo, DEMO],
+      [f.missionaryInSecond, SECOND],
+    ] as const)
+      await db.query(
+        `insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($2, $3, $1, 'profile_backfill')`,
+        [record, tenant, missionary.userId],
       );
     for (const [partner, tenant, name] of [
       [f.partnerInDemo, DEMO, `Demo partner ${tag}`],
@@ -255,6 +264,11 @@ export async function addFixtures(
       `insert into public.donors (id, tenant_id, name, email, profile_id)
        values ($1, $2, $3, $4, $5)`,
       [f.secondDonor, SECOND, donor.name, donor.email, donor.userId],
+    );
+    await db.query(
+      `insert into public.account_links (tenant_id, user_id, party_id, linked_via)
+       select tenant_id, profile_id, party_id, 'profile_backfill' from public.donors where id = $1`,
+      [f.secondDonor],
     );
     for (const [gift, amount] of [
       [f.secondGifts[0]!, 40],
@@ -280,6 +294,20 @@ export async function addFixtures(
 export async function removeFixtures(env: AuthMailEnv, f: Fixtures | null) {
   if (!f) return;
   await withOwner(env, async (db) => {
+    const donorIds = [f.partnerInDemo, ...f.partnersInSecond, f.secondDonor];
+    const { rows: donorParties } = await db.query<{ party_id: string }>(
+      "select party_id from public.donors where id = any($1::uuid[]) and party_id is not null",
+      [donorIds],
+    );
+    const partyIds = [
+      ...donorParties.map((row) => row.party_id),
+      f.missionaryInDemo,
+      f.missionaryInSecond,
+    ];
+    await db.query(
+      "delete from public.account_links where party_id = any($1::uuid[])",
+      [partyIds],
+    );
     await db.query("delete from public.donor_feed_preferences where id = $1", [
       f.secondFeedPreferences,
     ]);
@@ -298,6 +326,9 @@ export async function removeFixtures(env: AuthMailEnv, f: Fixtures | null) {
       "delete from public.missionaries where id = any($1::uuid[])",
       [[f.missionaryInDemo, f.missionaryInSecond]],
     );
+    await db.query("delete from public.parties where id = any($1::uuid[])", [
+      partyIds,
+    ]);
   });
 }
 

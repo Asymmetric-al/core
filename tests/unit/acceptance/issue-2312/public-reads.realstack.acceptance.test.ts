@@ -43,7 +43,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "#2312 public reads closed, tenant floor (R)",
+  "#2312 public reads closed, tenant floor (R); D-18, AL-2678: each fixture missionary names a Party, and each donor and missionary that names a profile is linked to its Party, as the migration backfills",
   () => {
     let db: pg.Client;
     const id: Record<string, string> = {};
@@ -67,7 +67,9 @@ describe.skipIf(!ADMIN_URL)(
       (:UD1, :A, 'donor', null, true), (:UD2, :A, 'donor', null, true), (:UD3, :B, 'donor', null, true), (:M2, :B, 'missionary', null, true);
     insert into public.donors (id, tenant_id, profile_id) values (:D1, :A, :UD1), (:D2, :A, :UD2), (:D3, :B, :UD3);
     insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values (:A,:A,'A','US','usd','A'), (:B,:B,'B','US','usd','B');
-    insert into public.missionaries (id, tenant_id, profile_id, legal_entity_id) values (:MA, :A, :M1, :A), (:MB, :B, :M2, :B);
+    insert into public.parties (id, tenant_id, display_name) values (:MA, :A, 'Fixture'), (:MB, :B, 'Fixture');
+    insert into public.missionaries (id, tenant_id, profile_id, legal_entity_id, party_id) values (:MA, :A, :M1, :A, :MA), (:MB, :B, :M2, :B, :MB);
+    insert into public.account_links (tenant_id, user_id, party_id, linked_via) select tenant_id, profile_id, party_id, 'profile_backfill' from public.donors where id in (:D1, :D2, :D3) union all select tenant_id, profile_id, party_id, 'profile_backfill' from public.missionaries where id in (:MA, :MB);
     insert into public.funds (id, tenant_id, name, legal_entity_id) values (:FA, :A, 'acc2312 A', :A), (:FB, :B, 'acc2312 B', :B);
     insert into public.assets (id, tenant_id, public_id, secure_url) values (:AA, :A, 'acc2312-a', 'https://x/a'), (:AB, :B, 'acc2312-b', 'https://x/b'), (:AN, null, 'acc2312-n', 'https://x/n');
     insert into public.campaigns (id, tenant_id, title, creator_donor_id, missionary_id) values (:CA, :A, 'acc2312 A', :D1, :MA), (:CB, :B, 'acc2312 B', :D3, :MB);
@@ -207,9 +209,9 @@ describe.skipIf(!ADMIN_URL)(
      */
     const currentQual = (t: string) =>
       t === "missionaries"
-        ? "tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('missionary')) AND profile_id IN (SELECT authz.caller_profile_ids())"
+        ? "tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('missionary')) AND party_id IN (SELECT al.party_id FROM public.account_links AS al WHERE al.tenant_id = (SELECT authz.current_tenant_id()) AND al.user_id = (SELECT authz.current_user_id()))"
         : t === "follows"
-          ? "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.profile_id IN (SELECT authz.caller_profile_ids()))))"
+          ? "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.party_id IN (SELECT al.party_id FROM public.account_links AS al WHERE al.tenant_id = (SELECT authz.current_tenant_id()) AND al.user_id = (SELECT authz.current_user_id())))))"
           : "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')))" +
             // D-18 (AL-2676): the funds policy also hides the reserved fee-cover fund.
             (t === "funds" ? " AND system_purpose IS NULL" : "");
