@@ -5,10 +5,15 @@
 -- 1. private.party_restricted: a worker's legal name, real country, precise
 --    location and real photo reference (empty until WP14), in the schema the
 --    Data API does not expose, row security forced, with the guard's
---    isolation policy and no privilege for PUBLIC, anon or authenticated.
+--    isolation policy and no privilege for PUBLIC, anon, authenticated or
+--    service_role. The command role selects it, inserts its five named
+--    columns and updates the three it edits; nothing else.
 -- 2. One constraint trigger on each of parties and party_restricted refuses,
 --    for every role, a restricted or high-risk level whose public alias is
 --    blank or equals the legal name: the two names sit in different tables.
+--    The party_restricted trigger share-locks the Party first, so a direct
+--    write of a level and alias and a concurrent write of the legal name
+--    serialize on the Party, and the later one sees the earlier.
 -- 3. Signed-in users hold no insert or update privilege on parties at all
 --    (the parties migration grants SELECT only), so the security level, its
 --    source, the alias and do-not-publish change only through the commands.
@@ -24,8 +29,12 @@
 --    missionaries.tenant_id or party_id.
 -- 7. Three human commands needing safety.restrict_publication, each with a
 --    reason and one audit row, behind invoker wrappers for authenticated:
---    set_worker_identity (creates or edits the private row; at creation it
---    sets the level, its source and the alias), restrict_worker_publication
+--    set_worker_identity (creates or edits the private row; it sets the
+--    level, its source and the alias only while the Party is still standard,
+--    unreviewed_default and without an alias, and otherwise keeps them and
+--    refuses a level or alias argument, 22023; its audit row carries the
+--    Party's level, source, alias and do-not-publish before and after),
+--    restrict_worker_publication
 --    (raises or confirms the level, sets the alias, sets do-not-publish) and
 --    lift_worker_restriction (lowers the level, clears do-not-publish). Each
 --    one that sets a level marks its source manual. Nothing here writes
@@ -60,13 +69,17 @@ COMMENT ON TABLE private.party_restricted IS
 
 ALTER TABLE private.party_restricted ENABLE ROW LEVEL SECURITY;
 ALTER TABLE private.party_restricted FORCE ROW LEVEL SECURITY;
-REVOKE ALL ON TABLE private.party_restricted FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE private.party_restricted FROM PUBLIC, anon, authenticated, service_role;
 
 CREATE POLICY tenant_guard_isolation ON private.party_restricted
   FOR ALL TO tenant_guard
   USING (tenant_id = tenant_guard.current_tenant_id())
   WITH CHECK (tenant_id = tenant_guard.current_tenant_id());
-GRANT SELECT, INSERT, UPDATE ON TABLE private.party_restricted TO tenant_guard;
+GRANT SELECT ON TABLE private.party_restricted TO tenant_guard;
+GRANT INSERT (party_id, tenant_id, legal_name, real_country, precise_location)
+  ON TABLE private.party_restricted TO tenant_guard;
+GRANT UPDATE (legal_name, real_country, precise_location, updated_at)
+  ON TABLE private.party_restricted TO tenant_guard;
 
 CREATE POLICY tenant_guard_isolation ON public.parties
   FOR ALL TO tenant_guard
@@ -126,6 +139,7 @@ AS $$
 DECLARE
   v_problem TEXT;
 BEGIN
+  PERFORM 1 FROM public.parties AS p WHERE p.id = NEW.party_id FOR SHARE;
   v_problem := private.party_alias_problem(NEW.party_id);
   IF v_problem IS NOT NULL THEN
     RAISE EXCEPTION '%', v_problem USING ERRCODE = '23514';
@@ -252,7 +266,9 @@ DECLARE
   v_reason TEXT;
   v_legal TEXT;
   v_party RECORD;
+  v_after RECORD;
   v_created BOOLEAN;
+  v_fresh BOOLEAN;
   v_level TEXT;
   v_source TEXT;
 BEGIN
@@ -298,7 +314,7 @@ BEGIN
     RAISE EXCEPTION 'A legal name is required' USING ERRCODE = '22023';
   END IF;
 
-  SELECT p.id, p.security_level, p.security_level_source
+  SELECT p.id, p.security_level, p.security_level_source, p.public_alias, p.do_not_publish
     INTO v_party
     FROM public.parties AS p
    WHERE p.id = p_party_id
@@ -310,8 +326,11 @@ BEGIN
 
   PERFORM 1 FROM private.party_restricted AS r WHERE r.party_id = v_party.id FOR UPDATE;
   v_created := NOT FOUND;
+  v_fresh := v_party.security_level = 'standard'
+             AND v_party.security_level_source = 'unreviewed_default'
+             AND v_party.public_alias IS NULL;
 
-  IF v_created THEN
+  IF v_created AND v_fresh THEN
     v_level := COALESCE(p_security_level, 'standard');
     v_source := CASE WHEN p_security_level IS NULL THEN 'unreviewed_default' ELSE 'manual' END;
     IF v_level NOT IN ('standard', 'sensitive', 'restricted', 'high_risk') THEN
@@ -324,22 +343,11 @@ BEGIN
            display_name = COALESCE(NULLIF(pg_catalog.btrim(p_display_name), ''), p.display_name),
            updated_at = pg_catalog.now()
      WHERE p.id = v_party.id;
-    INSERT INTO private.party_restricted (party_id, tenant_id, legal_name, real_country, precise_location)
-    VALUES (v_party.id, v_ctx.tenant_id, v_legal,
-            NULLIF(pg_catalog.btrim(p_real_country), ''), NULLIF(pg_catalog.btrim(p_precise_location), ''));
   ELSE
     IF p_security_level IS NOT NULL OR p_public_alias IS NOT NULL THEN
       RAISE EXCEPTION 'A worker''s level and alias change through restrict_worker_publication and lift_worker_restriction'
         USING ERRCODE = '22023';
     END IF;
-    v_level := v_party.security_level;
-    v_source := v_party.security_level_source;
-    UPDATE private.party_restricted AS r
-       SET legal_name = v_legal,
-           real_country = NULLIF(pg_catalog.btrim(p_real_country), ''),
-           precise_location = NULLIF(pg_catalog.btrim(p_precise_location), ''),
-           updated_at = pg_catalog.now()
-     WHERE r.party_id = v_party.id;
     IF NULLIF(pg_catalog.btrim(p_display_name), '') IS NOT NULL THEN
       UPDATE public.parties AS p
          SET display_name = pg_catalog.btrim(p_display_name),
@@ -347,6 +355,24 @@ BEGIN
        WHERE p.id = v_party.id;
     END IF;
   END IF;
+
+  IF v_created THEN
+    INSERT INTO private.party_restricted (party_id, tenant_id, legal_name, real_country, precise_location)
+    VALUES (v_party.id, v_ctx.tenant_id, v_legal,
+            NULLIF(pg_catalog.btrim(p_real_country), ''), NULLIF(pg_catalog.btrim(p_precise_location), ''));
+  ELSE
+    UPDATE private.party_restricted AS r
+       SET legal_name = v_legal,
+           real_country = NULLIF(pg_catalog.btrim(p_real_country), ''),
+           precise_location = NULLIF(pg_catalog.btrim(p_precise_location), ''),
+           updated_at = pg_catalog.now()
+     WHERE r.party_id = v_party.id;
+  END IF;
+
+  SELECT p.security_level, p.security_level_source, p.public_alias, p.do_not_publish
+    INTO v_after
+    FROM public.parties AS p
+   WHERE p.id = v_party.id;
 
   INSERT INTO public.audit_logs (tenant_id, user_id, action, resource_type, resource_id, details)
   VALUES (
@@ -359,8 +385,20 @@ BEGIN
       'reason', v_reason,
       'assignment_id', v_ctx.assignment_id,
       'created', v_created,
-      'security_level', v_level,
-      'security_level_source', v_source
+      'security_level', v_after.security_level,
+      'security_level_source', v_after.security_level_source,
+      'before', pg_catalog.jsonb_build_object(
+        'security_level', v_party.security_level,
+        'security_level_source', v_party.security_level_source,
+        'public_alias', v_party.public_alias,
+        'do_not_publish', v_party.do_not_publish
+      ),
+      'after', pg_catalog.jsonb_build_object(
+        'security_level', v_after.security_level,
+        'security_level_source', v_after.security_level_source,
+        'public_alias', v_after.public_alias,
+        'do_not_publish', v_after.do_not_publish
+      )
     )
   );
 
@@ -368,8 +406,8 @@ BEGIN
     'tenant_id', tenant_guard.current_tenant_id(),
     'party_id', v_party.id,
     'created', v_created,
-    'security_level', v_level,
-    'security_level_source', v_source
+    'security_level', v_after.security_level,
+    'security_level_source', v_after.security_level_source
   );
 END;
 $$;
