@@ -63,7 +63,7 @@ export interface VerifiedNameClient {
   ): { abortSignal(signal: AbortSignal): PromiseLike<LookupAnswer> };
 }
 
-const UNAVAILABLE: VerifiedNameLookup = { kind: "unavailable" };
+const UNAVAILABLE = { kind: "unavailable" } as const;
 
 const CANONICAL_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;

@@ -325,7 +325,11 @@ describe("on: which organization a donor acts in", () => {
     async (_label, userId, rows) => {
       mocks.user = { id: userId };
       mocks.rows = [...rows];
-      for (const headers of [{}, { [NAME]: "not-a-uuid" }] as const) {
+      const headerCases: Record<string, string>[] = [
+        {},
+        { [NAME]: "not-a-uuid" },
+      ];
+      for (const headers of headerCases) {
         mocks.rpcCalls = 0;
         const context = await getAuthContext(donorRequest(headers));
         expect(context.isAuthenticated).toBe(false);
@@ -501,10 +505,11 @@ describe("on: E2E bypass for donor follows the same rules", () => {
   });
 
   it("refuses tenant and foreign assignment conflicts on home-a with scopeRefused", async () => {
-    for (const headers of [
+    const headerCases: Record<string, string>[] = [
       { [NAME]: TA, "x-asym-tenant": TB },
       { [NAME]: TA, "x-asym-assignment": D_B.id },
-    ]) {
+    ];
+    for (const headers of headerCases) {
       const context = await getAuthContext(bypassDonor(headers));
       expect(context.isAuthenticated).toBe(false);
       expect(context.assignmentDenial).toBe("tenant_mismatch");
@@ -513,7 +518,11 @@ describe("on: E2E bypass for donor follows the same rules", () => {
   });
 
   it("gives no bypass identity when the name is absent or invalid", async () => {
-    for (const headers of [{}, { [NAME]: "not-a-uuid" }]) {
+    const headerCases: Record<string, string>[] = [
+      {},
+      { [NAME]: "not-a-uuid" },
+    ];
+    for (const headers of headerCases) {
       const context = await getAuthContext(bypassDonor(headers));
       expect(context.isAuthenticated).toBe(false);
       expect(context.userId).toBeNull();
