@@ -7,7 +7,8 @@ import { ADMIN_URL, IN_MIGRATE_JOB } from "../issue-2675/harness";
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
   expect(ADMIN_URL).toBeTruthy(),
 );
-describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
+const D18 = "D-18, AL-2678: each fixture missionary names a Party";
+describe.skipIf(!ADMIN_URL)(`giving target integrity (${D18})`, () => {
   const db = new pg.Client({ connectionString: ADMIN_URL });
   beforeAll(() => db.connect());
   afterAll(() => db.end());
@@ -131,8 +132,13 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
         `insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$2,'First','US','usd','First'),($3,$2,'Second','US','usd','Second'),($4,$5,'Foreign','US','usd','Foreign')`,
         [first, tenant, second, foreign, other],
       );
+      if (table === "missionaries")
+        await db.query(
+          "insert into public.parties(id,tenant_id,display_name) values ($1,$2,'Fixture')",
+          [target, tenant],
+        );
       await db.query(
-        `insert into public.${table}(id,tenant_id,legal_entity_id${table === "funds" ? ",name" : ""}) values ($1,$2,$3${table === "funds" ? ",'Target'" : ""})`,
+        `insert into public.${table}(id,tenant_id,legal_entity_id${table === "funds" ? ",name" : ",party_id"}) values ($1,$2,$3${table === "funds" ? ",'Target'" : ",$1"})`,
         [target, tenant, first],
       );
       await db.query(
@@ -213,7 +219,7 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
           [fund, tenant, entity],
         );
         await db.query(
-          `insert into public.missionaries(id,tenant_id,legal_entity_id) values ($1,$2,$3)`,
+          `with party as (insert into public.parties(id,tenant_id,display_name) values ($1,$2,'Fixture') returning id) insert into public.missionaries(id,tenant_id,legal_entity_id,party_id) select $1,$2,$3,id from party`,
           [missionary, tenant, entity],
         );
         await db.query(
@@ -253,7 +259,11 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
           ).rows;
         const expected = [
           { fund_id: fund, missionary_id: null, legal_entity_id: entity },
-          { fund_id: null, missionary_id: missionary, legal_entity_id: entity },
+          {
+            fund_id: null,
+            missionary_id: missionary,
+            legal_entity_id: entity,
+          },
         ];
         expect(await locks()).toEqual(expected);
         await db.query(
@@ -293,7 +303,7 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
         [fund, spareFund, tenant, entity],
       );
       await db.query(
-        "insert into public.missionaries(id,tenant_id,legal_entity_id) values ($1,$3,$4),($2,$3,$4)",
+        "with party as (insert into public.parties(id,tenant_id,display_name) values ($1,$3,'Fixture'),($2,$3,'Fixture') returning id) insert into public.missionaries(id,tenant_id,legal_entity_id,party_id) select id,$3,$4,id from party",
         [missionary, spareMissionary, tenant, entity],
       );
       await db.query(
@@ -371,7 +381,7 @@ describe.skipIf(!ADMIN_URL)("giving target integrity", () => {
         [fund, tenant, entity],
       );
       await db.query(
-        "insert into public.missionaries(id,tenant_id,legal_entity_id) values ($1,$2,$3)",
+        "with party as (insert into public.parties(id,tenant_id,display_name) values ($1,$2,'Fixture') returning id) insert into public.missionaries(id,tenant_id,legal_entity_id,party_id) select $1,$2,$3,id from party",
         [missionary, tenant, entity],
       );
       for (const [column, id] of [

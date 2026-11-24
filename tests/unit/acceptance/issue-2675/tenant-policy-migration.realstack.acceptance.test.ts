@@ -75,6 +75,11 @@ const ROWS: [
  * or missionary assignment reads no row of them. The deny-all finance tables
  * admit no one; pdf_templates has no grant for signed-in users at all.
  */
+const EXTERNAL_TARGET = {
+  target_type: "'party'",
+  target_id: "'00000000-0000-4000-8000-000000002678'",
+  party_id: "'00000000-0000-4000-8000-000000002678'",
+};
 const STAFF_ONLY = [
   "donation_crm_links",
   "staged_gift_allocations",
@@ -92,7 +97,7 @@ const STAFF_ONLY = [
   "pdf_template_batches",
   "pdf_template_renders",
   "pdf_template_versions",
-  "persons",
+  "external_identifiers",
   "support_contacts",
   "support_tickets",
   "support_agents",
@@ -348,6 +353,18 @@ describe.skipIf(!ADMIN_URL)(
           tenant_id: q(tenant),
           profile_id: profile ? q(profile) : "null",
         });
+      await db.query(
+        `update public.missionaries set party_id = id where id in (${q("misMG")}, ${q("misMIS")}, ${q("misB")});
+         update public.donors set party_id = id where id in (${q("dSG")}, ${q("dDON")}, ${q("dOther")}, ${q("dB")});
+         update public.donors set party_id = ${q("misMG")} where id = ${q("dMG")};
+         insert into public.parties (id, tenant_id, display_name)
+           select id, tenant_id, 'acc2675' from public.missionaries where id in (${q("misMG")}, ${q("misMIS")}, ${q("misB")})
+           union all select id, tenant_id, 'acc2675' from public.donors where id in (${q("dSG")}, ${q("dDON")}, ${q("dOther")}, ${q("dB")});
+         insert into public.account_links (tenant_id, user_id, party_id, linked_via)
+           select distinct tenant_id, profile_id, party_id, 'profile_backfill' from (
+             select tenant_id, profile_id, party_id from public.donors where id in (${q("dSG")}, ${q("dMG")}, ${q("dDON")})
+             union select tenant_id, profile_id, party_id from public.missionaries where id in (${q("misMG")}, ${q("misMIS")})) as linked;`,
+      );
       for (const [g, tenant, donor, missionary] of [
         ["g1", "TA", "dSG", "misMIS"],
         ["g2", "TA", "dMG", "misMIS"],
@@ -693,7 +710,7 @@ describe.skipIf(!ADMIN_URL)(
             }
         }));
 
-      it("a donor-class or missionary-class member reads no row of a staff-only table, which a staff member of the tenant does read; care-only tables admit member_care only (AL-2677 WP4b part 1, D-18)", () =>
+      it("a donor-class or missionary-class member reads no row of a staff-only table, which a staff member of the tenant does read; care-only tables admit member_care only (AL-2677 WP4b part 1, D-18) (D-18, AL-2678: external_identifiers joins the staff-only tables with a typed target)", () =>
         tx(async () => {
           await db.query("set local session_replication_role = replica");
           for (const t of [...STAFF_ONLY, ...CARE_ONLY, ...NOBODY, ...NO_GRANT])
@@ -702,6 +719,7 @@ describe.skipIf(!ADMIN_URL)(
               ...(t === "member_care_private_notes"
                 ? { author_user_id: q("UFC") }
                 : {}),
+              ...(t === "external_identifiers" ? EXTERNAL_TARGET : {}),
             });
           await db.query("set local session_replication_role = origin");
           for (const t of [
@@ -1187,7 +1205,7 @@ describe.skipIf(!ADMIN_URL)(
                       "account_claim_requests",
                       "crm_record_links",
                       "legacy_account_invitations",
-                      "persons",
+                      "external_identifiers",
                     ].includes(t),
                 ),
                 "field_policies",
@@ -1599,7 +1617,7 @@ describe.skipIf(!ADMIN_URL)(
       // Callers include a donor and a missionary whose own rows the sweep
       // holds, with a positive control each, so a table whose rows only their
       // subject reads can fail the sweep (fixcheck F3).
-      it("R7: no row of any tenant table without the headers, nor with the assignment header alone, outside the reviewed exceptions", () =>
+      it("R7: no row of any tenant table without the headers, nor with the assignment header alone, outside the reviewed exceptions (D-18, AL-2678: the requester's own read of account_claim_requests is gone, so its row is swept and its requester reads none of it with no header; persons is gone and external_identifiers is staff-only; the fixture donors and missionaries are linked to their Parties as the migration backfills)", () =>
         tx(async () => {
           const pinned = new Set(
             (
@@ -1630,15 +1648,17 @@ describe.skipIf(!ADMIN_URL)(
           );
           // A row of each pinned table that no caller below may read.
           const pinnedRow: Record<string, Record<string, string>> = {
-            account_claim_requests: { requested_by: q("UB") },
             locations: { status: "'draft'" },
             posts: { status: "'draft'", visibility: "'private'" },
-            profiles: { user_id: "gen_random_uuid()" },
+            profiles: {},
           };
           expect(candidates.filter((t) => pinned.has(t))).toEqual(
             [...Object.keys(pinnedRow).sort(), "field_policies"].sort(),
           );
           const subject: Record<string, Record<string, string>> = {
+            account_claim_requests: { requested_by: q("UB") },
+            account_links: { linked_via: "'account_claim'" },
+            external_identifiers: EXTERNAL_TARGET,
             member_care_private_notes: { author_user_id: q("UADM") },
             donor_feed_preferences: { donor_id: q("dDON") },
           };
@@ -1652,6 +1672,7 @@ describe.skipIf(!ADMIN_URL)(
               id: `'${only[t]}'`,
               tenant_id: q("TA"),
               ...given,
+              ...(t === "profiles" ? { user_id: `'${only[t]}'` } : {}),
             });
           }
           await replica(false);
@@ -1711,11 +1732,9 @@ describe.skipIf(!ADMIN_URL)(
           expect(
             await count("UADM", under("mAdm"), "account_claim_requests"),
           ).toBeGreaterThan(0);
-          // And the reviewed exceptions: the requester reads their own claim
-          // with no header, and anyone a published location.
-          expect(
-            await count("UB", undefined, "account_claim_requests"),
-          ).toBeGreaterThan(0);
+          expect(await count("UB", undefined, "account_claim_requests")).toBe(
+            0,
+          );
           await db.query(
             `update public.locations set status = 'published' where id = '${only.locations}'`,
           );
@@ -1768,7 +1787,7 @@ describe.skipIf(!ADMIN_URL)(
       // R11: an own-row sub-select carries the request's tenant itself, so a
       // super administrator who is a donor in two organizations cannot link a
       // row of one to their donor record in the other.
-      it("R11: a super administrator who is a donor in both tenants cannot set feed preferences in one tenant for their donor record in the other", () =>
+      it("R11: a super administrator who is a donor in both tenants cannot set feed preferences in one tenant for their donor record in the other (D-18, AL-2678: each donor record is linked to its Party, as the migration backfills)", () =>
         tx(async () => {
           const user = randomUUID();
           const row = randomUUID();
@@ -1798,6 +1817,11 @@ describe.skipIf(!ADMIN_URL)(
               profile_id: `'${user}'`,
               email: `'${donor}@example.org'`,
             });
+          await db.query(
+            `update public.donors set party_id = id where id in ('${mine}', '${theirs}');
+             insert into public.parties (id, tenant_id, display_name) select id, tenant_id, 'acc2675' from public.donors where id in ('${mine}', '${theirs}');
+             insert into public.account_links (tenant_id, user_id, party_id, linked_via) select tenant_id, profile_id, party_id, 'profile_backfill' from public.donors where id in ('${mine}', '${theirs}');`,
+          );
           await replica(false);
           const headers = { "x-asym-tenant": id.TA!, "x-asym-assignment": row };
           // Without RETURNING, so the INSERT policy alone judges it: with it,

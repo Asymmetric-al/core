@@ -41,6 +41,8 @@ export const DONORS_EMBED_ALLOW_LIST: Readonly<Record<string, string>> = {
     "Follower-request update read-back embeds the requesting donor via follower_requests.donor_id on purpose (#2269 ruling 6391056825).",
   "tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts":
     "The #2269 acceptance test names the string in its C1 check; it is not a read.",
+  "tests/unit/acceptance/issue-2678/identity-keys.postgrest.acceptance.test.ts":
+    "AL-2678 (WP5 part 1, D-18) sends the running build's follower-request read, hint included, to a real PostgREST to prove it still resolves while follower_requests_donor_id_fkey stays single-column; it is that old statement under test, not a new read.",
 };
 
 /** The intentional reads. Each must still hit, so the allow-list can't go stale unnoticed. */

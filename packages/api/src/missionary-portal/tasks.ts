@@ -34,7 +34,7 @@ const createTaskSchema = z
     priority: taskPrioritySchema.default("none"),
     due_date: z.string().datetime().nullable().optional(),
     donor_id: z.string().uuid().nullable().optional(),
-    sort_key: z.number().finite().transform(Math.round).optional(),
+    sort_key: z.number().finite().optional(),
   })
   .strict();
 

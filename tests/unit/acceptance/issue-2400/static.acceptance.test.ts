@@ -25,7 +25,6 @@ const CENSUS = "scripts/verify/field-policy-census.mjs";
 const F2260 = `${A}/issue-2260/donor-feed-preferences.realstack.acceptance.test.ts`;
 /** §0 table: the tenant-isolation files that replay migration or rollback text. */
 const REPLAYERS = [
-  "issue-2256/person-anchor",
   "issue-2260/donor-feed-preferences",
   "issue-2258/current-user-assignments",
   "issue-2312/public-reads",
@@ -34,6 +33,7 @@ const REPLAYERS = [
 const NON_REPLAYERS = [
   "issue-2250/tenant-guard",
   "issue-2269/donations-embed",
+  "issue-2256/person-anchor",
 ].map((f) => `${A}/${f}.realstack.acceptance.test.ts`);
 /** File + sibling harness.ts, as the guard reads them. */
 const withHarness = (f: string, own = H.read(f)): string =>
@@ -45,7 +45,7 @@ const runs = () =>
 const TENANT_RUN = () => runs().find((r) => r.includes(F2260)) ?? "";
 
 describe("#2400 criteria 1-2: parallel real-stack isolation", () => {
-  it("#2400 criterion 1: every multi-file migrate step replays DDL only on private template0 databases", () => {
+  it("#2400 criterion 1: every multi-file migrate step replays DDL only on private template0 databases (D-18, AL-2678: the person-anchor suite proves the dropped anchor absent and replays no migration now, so it is listed with the suites that do not)", () => {
     expect(runs().length, "tenant-isolation step found").toBeGreaterThan(0);
     for (const run of runs())
       expect(H.guard(run, withHarness).problems).toEqual([]);

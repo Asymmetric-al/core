@@ -345,7 +345,7 @@ describe("release database steps", () => {
     expect(runCommand).not.toHaveBeenCalled();
   });
 
-  it("lets the preview environment rebuild the preview project, and still keeps the production environment off it", async () => {
+  it("lets the preview environment rebuild the preview project, and still keeps the production environment off it (D-18, AL-2678: the fake database answers the seed's new counts, among them Parties, account links and the restricted worker)", async () => {
     // Two hosted projects and no third (hosted plan 3.1): the production-named
     // project is the disposable preview project until WP11.
     const previewRef = "btewedpsxwsjczvmegby";

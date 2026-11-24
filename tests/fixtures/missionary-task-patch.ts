@@ -46,8 +46,8 @@ export async function exerciseMovedDonorPatch(
       ],
     );
     await db.query(
-      "insert into public.missionary_tasks(id,donor_id,missionary_id,title) values ($1,$2,$3,'original')",
-      [task, moved, person],
+      "insert into public.missionary_tasks(id,donor_id,missionary_id,title,tenant_id) values ($1,$2,$3,'original',$4)",
+      [task, moved, person, tenant],
     );
     await db.query("update public.donors set missionary_id=$1 where id=$2", [
       owner,
@@ -79,14 +79,21 @@ export async function exerciseMovedDonorPatch(
     await check({ title: "edited" }, "edited", null, moved);
     await check({ title: "echoed", donor_id: null }, "echoed", null, moved);
     await check({ donor_id: replacement }, "echoed", replacement, replacement);
-    if (!elsewhere) await check({ donor_id: null }, "echoed", null, null);
+    await check({ donor_id: null }, "echoed", null, null);
   } finally {
     if (transport === "sql") await db.query("rollback");
     else {
       await db.query("delete from public.missionary_tasks where id=$1", [task]);
+      const parties = await db.query(
+        "select party_id from public.donors where id in ($1,$2)",
+        [moved, replacement],
+      );
       await db.query("delete from public.donors where id in ($1,$2)", [
         moved,
         replacement,
+      ]);
+      await db.query("delete from public.parties where id = any($1::uuid[])", [
+        parties.rows.map((row) => row.party_id),
       ]);
       await db.query("delete from auth.users where id in ($1,$2)", [
         person,

@@ -12,7 +12,13 @@ import {
   type ActiveAssignment,
   type AssignmentRpcClient,
 } from "@asym/auth/principal";
-import { ASSIGNMENT_HEADER, TENANT_HEADER } from "@asym/auth/request-headers";
+import {
+  ASSIGNMENT_HEADER,
+  isNameTenantRefused,
+  nameTenantIdOf,
+  readNameTenantState,
+  TENANT_HEADER,
+} from "@asym/auth/request-headers";
 import {
   decideWebStudioAccess,
   WEB_STUDIO_TENANT_COOKIE,
@@ -360,9 +366,14 @@ async function authenticateE2EBypass({
     return refused(null);
   }
 
+  const name = readNameTenantState(headers);
+  if (isNameTenantRefused(name)) {
+    return refused("no_selection");
+  }
   const decision = decideWebStudioAccess({
     assignments: listE2EAuthAssignments(e2eSession),
     cookie,
+    nameTenantId: nameTenantIdOf(name),
   });
   if (decision.kind !== "allow") {
     return refused("no_selection");
@@ -485,7 +496,11 @@ export function createSupabaseAuthStrategy(
     // choice. A forged, foreign or revoked selection, or several rows and no
     // choice, resolve nothing: there is no fallback to a first membership or
     // a profile. Its flag makes the CMS user an admin.
-    const resolveInput = webStudioResolveInput(cookie);
+    const name = readNameTenantState(headers);
+    if (isNameTenantRefused(name)) {
+      return refused("no_selection");
+    }
+    const resolveInput = webStudioResolveInput(cookie, nameTenantIdOf(name));
     if (!resolveInput.ok) {
       return refused("no_selection");
     }

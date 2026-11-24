@@ -51,7 +51,7 @@ describeLive("tenant fixture cleanup", (stack) => {
     });
   }
 
-  it("removes every row it wrote when a later write fails, then rethrows", async () => {
+  it("removes every row it wrote when a later write fails, then rethrows (D-18, AL-2678: the fixture's missionary names a Party, its login is linked to that Party as the migration's backfill links it, and its task carries the tenant, so the Parties and the link are removed and counted too)", async () => {
     await expect(
       createTenantFixture(failingAt('"public"."funds"'), "Cleanup"),
     ).rejects.toThrow(/injected failure at "public"."funds"/);
@@ -63,6 +63,8 @@ describeLive("tenant fixture cleanup", (stack) => {
        union all select 'public.profiles', count(*)::int from public.profiles where id = $2
        union all select 'authz.memberships', count(*)::int from authz.memberships where user_id = $2
        union all select 'public.missionaries', count(*)::int from public.missionaries where tenant_id = $1
+       union all select 'public.parties', count(*)::int from public.parties where tenant_id = $1
+       union all select 'public.account_links', count(*)::int from public.account_links where tenant_id = $1
        union all select 'public.donors', count(*)::int from public.donors where tenant_id = $1
        union all select 'public.missionary_tasks', count(*)::int from public.missionary_tasks where missionary_id = $2
        union all select 'public.donor_pledges', count(*)::int from public.donor_pledges where tenant_id = $1

@@ -106,7 +106,6 @@ const WRITE_COMMANDS = ["INSERT", "UPDATE", "DELETE"];
  * reviewed pin, and none of them may be published.
  */
 export const PARENT_SCOPED_TABLES = [
-  "donor_activities",
   "post_comments",
   "post_fires",
   "post_likes",

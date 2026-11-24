@@ -23,7 +23,7 @@ let subjectPerson: Person | null = null;
 let careWorker: Person | null = null;
 let dualStaff: Person | null = null;
 
-test.describe("Member Care on the caller's session", () => {
+test.describe("Member Care on the caller's session (D-18, AL-2678: the subject missionary names its own Party, its login is linked to it as the migration's backfill links it, and the link and Party are removed before the login)", () => {
   test.beforeAll(async () => {
     test.skip(
       test.info().project.name !== "auth-mail-admin",
@@ -41,11 +41,19 @@ test.describe("Member Care on the caller's session", () => {
     subjectFullName = subjectPerson.name;
     await withOwner(env, async (db) => {
       await db.query(
-        `insert into public.missionaries (id, tenant_id, profile_id, location, legal_entity_id, health_status, manual_attention)
-         select $1, tenant_id, $2, $3, id, 'healthy', false
+        "insert into public.parties (id, tenant_id, display_name) values ($1, $2, $3)",
+        [subjectId, DEMO, subjectFullName],
+      );
+      await db.query(
+        `insert into public.missionaries (id, tenant_id, profile_id, location, legal_entity_id, health_status, manual_attention, party_id)
+         select $1, tenant_id, $2, $3, id, 'healthy', false, $1
            from public.legal_entities
           where tenant_id = $4`,
         [subjectId, subjectPerson!.userId, `Nairobi ${runTag}`, DEMO],
+      );
+      await db.query(
+        "insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($1, $2, $3, 'profile_backfill')",
+        [DEMO, subjectPerson!.userId, subjectId],
       );
     });
 
@@ -109,9 +117,13 @@ test.describe("Member Care on the caller's session", () => {
         "delete from public.giving_target_entity_locks where missionary_id = $1",
         [subjectId],
       );
+      await db.query("delete from public.account_links where party_id = $1", [
+        subjectId,
+      ]);
       await db.query("delete from public.missionaries where id = $1", [
         subjectId,
       ]);
+      await db.query("delete from public.parties where id = $1", [subjectId]);
     });
     await deletePerson(env, careWorker);
     await deletePerson(env, dualStaff);

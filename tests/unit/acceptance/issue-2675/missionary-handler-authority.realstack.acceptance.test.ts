@@ -14,7 +14,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
   afterAll(() => db.end());
 
   it.each([false, true])(
-    "edits a moved donor's task without echoing away its link (other tenant: %s)",
+    "edits a moved donor's task without echoing away its link (other tenant: %s; D-18, AL-2678: each fixture missionary names a Party; record line 593: the task carries its tenant, so clearing its donor no longer depends on memberships elsewhere)",
     async (elsewhere) => {
       await exerciseMovedDonorPatch(
         db,
@@ -40,7 +40,6 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
   it("exposes the statement guards to the service role only, without definer rights", async () => {
     const guards = [
       "authz.selected_missionary",
-      "authz.missionary_task_single_tenant",
       "public.missionary_owned_tasks",
       "public.missionary_task_write",
       "public.missionary_follower_requests",
@@ -74,7 +73,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
   });
 
   it.each(["none", "live", "revoked"] as const)(
-    "places general tasks with a live selected missionary row and %s elsewhere",
+    "places general tasks with a live selected missionary row and %s elsewhere (D-18, AL-2678, record line 593: the task's own tenant column places it, so a membership in another organization no longer closes general tasks)",
     async (elsewhere) => {
       const user = randomUUID();
       const tenant = randomUUID();
@@ -119,8 +118,8 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
           [donor, tenant, user],
         );
         await db.query(
-          "insert into public.missionary_tasks (id,missionary_id,title) values ($1,$2,'Original')",
-          [original, user],
+          "insert into public.missionary_tasks (id,missionary_id,title,tenant_id) values ($1,$2,'Original',$3)",
+          [original, user, tenant],
         );
         if (elsewhere !== "none") {
           await db.query(
@@ -138,8 +137,12 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
           "grant insert,update,delete on public.missionary_tasks to service_role",
         );
         await db.query("set local role service_role");
-        const originalRow = { id: original, title: "Original", donor_id: null };
-        if (elsewhere === "none") {
+        const originalRow = {
+          id: original,
+          title: "Original",
+          donor_id: null,
+        };
+        {
           const [created] = await write("create", null, { title: "General" });
           expect(
             (
@@ -202,7 +205,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
     },
   );
 
-  it("applies the selected live missionary row to reads, both sides of reassignment, and every mutation", async () => {
+  it("applies the selected live missionary row to reads, both sides of reassignment, and every mutation (D-18, AL-2678, record line 593: a two-tenant missionary creates general tasks and clears a task's donor in each tenant, and a task of a third tenant stays closed)", async () => {
     const profile = randomUUID();
     const org = () => ({
       tenant: randomUUID(),
@@ -230,7 +233,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
           [row.assignment, row.tenant, profile],
         );
         await db.query(
-          "with entity as (insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($2,$2,'Fixture','US','usd','Fixture') returning id) insert into public.missionaries (id,tenant_id,profile_id,legal_entity_id) select $1,$2,$3,id from entity",
+          "with entity as (insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($2,$2,'Fixture','US','usd','Fixture') returning id), party as (insert into public.parties(id,tenant_id,display_name) values ($1,$2,'Fixture') returning id) insert into public.missionaries (id,tenant_id,profile_id,legal_entity_id,party_id) select $1,$2,$3,entity.id,party.id from entity, party",
           [row.missionary, row.tenant, profile],
         );
         await db.query(
@@ -238,12 +241,12 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
           [row.donor, row.tenant, profile],
         );
         await db.query(
-          "insert into public.missionary_tasks (id,donor_id,missionary_id,title) values ($1,$2,$3,'original')",
-          [row.task, row.donor, profile],
+          "insert into public.missionary_tasks (id,donor_id,missionary_id,title,tenant_id) values ($1,$2,$3,'original',$4)",
+          [row.task, row.donor, profile, row.tenant],
         );
         await db.query(
-          "insert into public.follower_requests (id,donor_id,missionary_id) values ($1,$2,$3)",
-          [row.request, row.donor, profile],
+          "insert into public.follower_requests (id,donor_id,missionary_id,tenant_id) values ($1,$2,$3,$4)",
+          [row.request, row.donor, profile, row.tenant],
         );
       }
       await db.query(
@@ -254,9 +257,14 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         "insert into public.donors (id,tenant_id,missionary_id) values ($1,$2,$3)",
         [otherDonor, first.tenant, profile],
       );
+      const thirdTenant = randomUUID();
       await db.query(
-        "insert into public.missionary_tasks (id,missionary_id,title) values ($1,$2,'unplaced')",
-        [orphan, profile],
+        "insert into public.tenants (id,name,slug) values ($1::uuid,'WP2H',$1::uuid::text)",
+        [thirdTenant],
+      );
+      await db.query(
+        "insert into public.missionary_tasks (id,missionary_id,title,tenant_id) values ($1,$2,'unplaced',$3)",
+        [orphan, profile, thirdTenant],
       );
       await db.query(
         "grant insert,update,delete on public.missionary_tasks,public.follower_requests,public.missionaries,public.donor_activities to service_role",
@@ -295,7 +303,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
       const newOwner = randomUUID();
       await db.query("insert into auth.users(id) values ($1)", [newOwner]);
       await db.query(
-        "insert into public.missionaries(tenant_id,profile_id,legal_entity_id) values ($1,$2,$1)",
+        "with party as (insert into public.parties(tenant_id,display_name) values ($1,'Fixture') returning id) insert into public.missionaries(tenant_id,profile_id,legal_entity_id,party_id) select $1,$2,$1,id from party",
         [first.tenant, newOwner],
       );
       await db.query("update public.donors set missionary_id=$2 where id=$1", [
@@ -404,7 +412,18 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         expect(await task(first, "update", id, { title: "wrong" })).toEqual([]);
         expect(await task(first, "delete", id)).toEqual([]);
       }
-      for (const donor_id of [null, second.donor]) {
+      await db.query("savepoint donorless");
+      expect(
+        await task(first, "create", null, {
+          title: "general",
+          donor_id: null,
+        }),
+      ).toHaveLength(1);
+      expect(
+        await task(first, "update", first.task, { donor_id: null }),
+      ).toEqual([first.task]);
+      await db.query("rollback to savepoint donorless");
+      for (const donor_id of [second.donor]) {
         expect(
           await task(first, "create", null, { title: "wrong", donor_id }),
         ).toEqual([]);

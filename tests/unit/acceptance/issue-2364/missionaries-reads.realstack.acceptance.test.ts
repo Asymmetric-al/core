@@ -8,7 +8,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import * as H from "./harness";
 
 const URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
-describe.skipIf(!URL)("#2364 [A] realstack", () => {
+const D18 =
+  "D-18, AL-2678: each fixture missionary names a Party and each donor and missionary that names a profile is linked to it, as the migration backfills, where the chain has parties";
+describe.skipIf(!URL)(`#2364 [A] realstack (${D18})`, () => {
   let s: H.Stack;
   beforeAll(async () => {
     s = new H.Stack(URL);

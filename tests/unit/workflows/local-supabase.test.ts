@@ -165,6 +165,25 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     expect(workflow).toContain(`      - ${suite}\n`);
   });
 
+  it("requires the identity-key proof through PostgREST after fingerprinting (AL-2678)", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2678/identity-keys.postgrest.acceptance.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(marker);
+    expect(run).toBeDefined();
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    for (const variable of [
+      "WP5_IDENTITY_IT_URL",
+      "WP5_IDENTITY_IT_DATABASE_URL",
+      "WP5_IDENTITY_IT_SERVICE_KEY",
+      "WP5_IDENTITY_IT_ANON_KEY",
+    ])
+      expect(run).toContain(variable);
+    expect(run).toContain("supabase -- status -o json");
+    expect(at(marker)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
+    expect(workflow).toContain(`      - ${suite}\n`);
+  });
+
   it("exercises the missionary handlers against the stack after fingerprinting", () => {
     const suite =
       "tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts";

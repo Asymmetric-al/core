@@ -131,9 +131,28 @@ export class Stack {
       .query(`insert into authz.memberships(user_id,tenant_id,role,staff_role,is_active) values
       (${q("staff")},${q("A")},'staff','finance',true),(${q("missionary")},${q("A")},'missionary',null,true);
       insert into public.donors(id,tenant_id,profile_id) values
-      (${q("dD")},${q("A")},${q("pD")}),(${q("dO")},${q("A")},${q("pO")}),(${q("dB")},${q("B")},${q("pB")});
-      insert into public.missionaries(id,tenant_id,profile_id) values
+      (${q("dD")},${q("A")},${q("pD")}),(${q("dO")},${q("A")},${q("pO")}),(${q("dB")},${q("B")},${q("pB")});`);
+    const spine = (
+      await this.db.query(
+        "select to_regclass('public.parties') is not null as present",
+      )
+    ).rows[0].present as boolean;
+    if (!spine)
+      await this.db
+        .query(`insert into public.missionaries(id,tenant_id,profile_id) values
       (${q("mA")},${q("A")},${q("pM")}),(${q("mOther")},${q("A")},${q("pO")}),(${q("mB")},${q("B")},${q("pB")});`);
+    else
+      await this.db
+        .query(`insert into public.parties(id,tenant_id,display_name) values
+      (${q("mA")},${q("A")},'Fixture'),(${q("mOther")},${q("A")},'Fixture'),(${q("mB")},${q("B")},'Fixture');
+      insert into public.missionaries(id,tenant_id,profile_id,party_id) values
+      (${q("mA")},${q("A")},${q("pM")},${q("mA")}),(${q("mOther")},${q("A")},${q("pO")},${q("mOther")}),(${q("mB")},${q("B")},${q("pB")},${q("mB")});
+      update public.donors d set party_id = m.party_id from public.missionaries m
+       where m.tenant_id = d.tenant_id and m.profile_id = d.profile_id and d.id in (${q("dD")},${q("dO")},${q("dB")});
+      insert into public.account_links(tenant_id,user_id,party_id,linked_via)
+      select distinct tenant_id, profile_id, party_id, 'profile_backfill' from (
+        select tenant_id, profile_id, party_id from public.donors where id in (${q("dD")},${q("dO")},${q("dB")})
+        union select tenant_id, profile_id, party_id from public.missionaries where id in (${q("mA")},${q("mOther")},${q("mB")})) as linked;`);
     for (const table of ["donations", "donor_pledges"])
       for (const [gift, donor, missionary, tenant] of [
         ["giftD", "dD", "mOther", "A"],
