@@ -1,0 +1,830 @@
+import { randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+import { NextRequest } from "next/server";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { resetFrontConfigLogForTests } from "../../../packages/auth/front";
+
+const USER_D = "44444444-4444-4444-4444-444444444444";
+const USER_E = "11111111-1111-1111-1111-111111111111";
+const TA = "00000000-0000-0000-0000-000000000001";
+const TB = "00000000-0000-0000-0000-000000000002";
+const NAME = "x-asym-name-tenant";
+
+const D_A = {
+  id: "00000000-0000-4000-8000-000000000901",
+  user_id: USER_D,
+  tenant_id: TA,
+  role: "donor",
+  staff_role: null,
+  is_tenant_admin: false,
+  updated_at: "2026-11-25T09:00:00.000000+00:00",
+};
+const D_B = {
+  id: "00000000-0000-4000-8000-000000000902",
+  user_id: USER_D,
+  tenant_id: TB,
+  role: "donor",
+  staff_role: null,
+  is_tenant_admin: false,
+  updated_at: "2026-11-25T09:00:00.000000+00:00",
+};
+const E_A = {
+  id: "00000000-0000-4000-8000-000000000903",
+  user_id: USER_E,
+  tenant_id: TA,
+  role: "donor",
+  staff_role: null,
+  is_tenant_admin: false,
+  updated_at: "2026-11-25T09:00:00.000000+00:00",
+};
+
+type Answer = { data: unknown; error: unknown };
+
+const state = vi.hoisted(() => ({
+  userId: null as string | null,
+  rows: [] as unknown[],
+  refreshCookie: true,
+  sessionReads: 0,
+  lookups: [] as string[],
+  lookupClients: 0,
+  offMode: false,
+  answer: (() => ({ data: [], error: null })) as (
+    host: string,
+    callIndex: number,
+  ) => Answer,
+}));
+
+vi.mock("@asym/database/supabase/config", () => ({
+  getSupabasePublicConfig: () => ({
+    url: "https://example.supabase.co",
+    key: "anon-key",
+    keyType: "anon",
+  }),
+}));
+
+vi.mock("@supabase/ssr", () => ({
+  createServerClient: (
+    _url: string,
+    _key: string,
+    options: {
+      cookies: {
+        setAll: (
+          cookies: Array<{ name: string; value: string }>,
+          headers: Record<string, string>,
+        ) => void;
+      };
+    },
+  ) => ({
+    auth: {
+      getUser: async () => {
+        state.sessionReads += 1;
+        if (state.refreshCookie) {
+          options.cookies.setAll([{ name: "sb-refreshed", value: "fresh" }], {
+            "Cache-Control": "private, no-store",
+          });
+        }
+        return { data: { user: state.userId ? { id: state.userId } : null } };
+      },
+    },
+    rpc: async (fn: string) => {
+      if (fn !== "current_user_assignments") throw new Error(fn);
+      return { data: state.rows, error: null };
+    },
+  }),
+}));
+
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => {
+    if (state.offMode) {
+      throw new Error("no lookup client when the switch is off");
+    }
+    state.lookupClients += 1;
+    return {
+      rpc: (fn: string, args: { p_host: string }) => {
+        if (fn !== "resolve_verified_host") throw new Error(fn);
+        state.lookups.push(args.p_host);
+        const answer = state.answer(args.p_host, state.lookups.length);
+        return { abortSignal: () => Promise.resolve(answer) };
+      },
+    };
+  },
+}));
+
+const donorModule = await import("../../../apps/donor/proxy");
+const { classifyDonorPath, isDonorExemptPath, normalizeDonorPath } =
+  await import("../../../apps/donor/lib/route-policy");
+
+function hostRow(
+  tenantId: string,
+  overrides: Record<string, unknown> = {},
+): Answer {
+  return {
+    data: [
+      {
+        tenant_id: tenantId,
+        site_id: null,
+        generation: 3,
+        surfaces: ["website", "donor_account", "staff", "missionary"],
+        state: "active",
+        is_home: true,
+        ...overrides,
+      },
+    ],
+    error: null,
+  };
+}
+
+const HOME_A = "home-a.localhost:25160";
+const HOME_B = "home-b.localhost:25160";
+const SITE_A = "site-a.localhost:25160";
+const SECOND_A = "second-a.localhost:25160";
+const BARE_B = "bare-b.localhost:25160";
+const READY_B = "ready-b.localhost:25160";
+const UNKNOWN = "unknown.localhost:25160";
+
+const FIXTURES: Record<string, Answer> = {
+  [HOME_A]: hostRow(TA),
+  [HOME_B]: hostRow(TB),
+  [SITE_A]: hostRow(TA, { is_home: false, surfaces: ["website"] }),
+  [SECOND_A]: hostRow(TA, {
+    is_home: false,
+    surfaces: ["website", "donor_account"],
+  }),
+  [BARE_B]: hostRow(TB, { is_home: true, surfaces: ["donor_account"] }),
+  [READY_B]: hostRow(TB, { state: "ready" }),
+  [UNKNOWN]: { data: [], error: null },
+};
+
+function freshKey() {
+  return randomBytes(32).toString("hex").slice(0, 32);
+}
+
+type Init = {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string;
+};
+
+function donorRequest(host: string | null, path: string, init: Init = {}) {
+  const origin = `http://${host && host.trim() ? host.trim() : "placeholder.localhost:25160"}`;
+  const headers: Record<string, string> = { ...(init.headers ?? {}) };
+  if (host !== null && !("host" in headers)) {
+    headers.host = host;
+  }
+  return new NextRequest(`${origin}${path}`, { ...init, headers });
+}
+
+function rawPathRequest(host: string, rawPathname: string) {
+  const req = donorRequest(host, "/");
+  Object.defineProperty(req.nextUrl, "pathname", {
+    value: rawPathname,
+    configurable: true,
+  });
+  return req;
+}
+
+function forwarded(response: Response, name: string) {
+  return response.headers.get(`x-middleware-request-${name}`);
+}
+
+async function expectRefused(response: Response, label: string, status = 404) {
+  expect(response.status, label).toBe(status);
+  expect(response.headers.get("cache-control"), label).toBe("no-store");
+  expect(await response.text(), label).toBe("");
+  expect(response.headers.get("set-cookie"), label).toBeNull();
+  expect(response.headers.get("x-middleware-next"), label).toBeNull();
+  expect(response.headers.get("x-middleware-rewrite"), label).toBeNull();
+  expect(response.headers.get("location"), label).toBeNull();
+}
+
+let adminKey: string;
+let missionaryKey: string;
+
+beforeEach(() => {
+  resetFrontConfigLogForTests();
+  adminKey = freshKey();
+  missionaryKey = freshKey();
+  state.userId = null;
+  state.rows = [];
+  state.refreshCookie = true;
+  state.sessionReads = 0;
+  state.lookups = [];
+  state.lookupClients = 0;
+  state.offMode = false;
+  state.answer = (host) => FIXTURES[host] ?? { data: [], error: null };
+  vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
+  vi.stubEnv("CORE_APP_BASE_PATH", "");
+  vi.stubEnv("FRONT_ADMIN_ORIGIN", "http://localhost:25161");
+  vi.stubEnv("FRONT_MISSIONARY_ORIGIN", "http://localhost:25162");
+  vi.stubEnv("FRONT_STAMP_KEY_ADMIN", adminKey);
+  vi.stubEnv("FRONT_STAMP_KEY_MISSIONARY", missionaryKey);
+  vi.stubEnv("FRONT_NAMES", `${HOME_A},${HOME_B}`);
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+const REFUSED_PROBES: Array<[string, string, Init]> = [
+  ["a page", "/", {}],
+  ["an RSC request", "/", { headers: { rsc: "1" } }],
+  [
+    "a prefetch",
+    "/workers",
+    { headers: { "next-router-prefetch": "1", purpose: "prefetch" } },
+  ],
+  ["an API GET", "/api/profile", {}],
+  [
+    "an API POST",
+    "/api/profile",
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: `http://${UNKNOWN}`,
+      },
+      body: "{}",
+    },
+  ],
+  ["/login", "/login", {}],
+  ["/register", "/register", {}],
+  ["/donor-dashboard", "/donor-dashboard", {}],
+];
+
+describe("on: refused names return 404 no-store with empty body, no Set-Cookie and zero session reads", () => {
+  for (const host of [UNKNOWN, READY_B]) {
+    it.each(REFUSED_PROBES)(`${host}: %s`, async (label, path, init) => {
+      state.userId = USER_D;
+      state.rows = [D_A, D_B];
+      const response = await donorModule.proxy(donorRequest(host, path, init));
+      await expectRefused(response, `${host} ${label}`);
+      expect(state.sessionReads).toBe(0);
+      expect(state.lookups).toEqual([host]);
+    });
+  }
+});
+
+describe("on: per-surface path admission across bare-b, site-a, second-a and ready-b", () => {
+  it("bare-b refuses website paths and forwards account and both paths with B", async () => {
+    for (const path of ["/", "/workers"]) {
+      state.lookups = [];
+      state.sessionReads = 0;
+      await expectRefused(
+        await donorModule.proxy(donorRequest(BARE_B, path)),
+        path,
+      );
+      expect(state.sessionReads).toBe(0);
+      expect(state.lookups).toEqual([BARE_B]);
+    }
+
+    state.userId = USER_D;
+    state.rows = [D_A, D_B];
+    for (const path of ["/login", "/donor-dashboard", "/privacy"]) {
+      state.lookups = [];
+      const req = donorRequest(BARE_B, path, { headers: { [NAME]: TA } });
+      const res = await donorModule.proxy(req);
+      if (path === "/login") {
+        expect(res.status, path).toBe(307);
+        expect(new URL(res.headers.get("location")!).pathname).toBe(
+          "/donor-dashboard",
+        );
+      } else {
+        expect(res.headers.get("x-middleware-next"), path).toBe("1");
+        expect(forwarded(res, NAME), path).toBe(TB);
+      }
+      expect(state.lookups).toEqual([BARE_B]);
+    }
+
+    state.userId = null;
+    for (const path of [
+      "/login",
+      "/privacy",
+      "/terms",
+      "/cookies",
+      "/help/about",
+    ]) {
+      const res = await donorModule.proxy(
+        donorRequest(BARE_B, path, { headers: { [NAME]: TA } }),
+      );
+      expect(res.headers.get("x-middleware-next"), path).toBe("1");
+      expect(forwarded(res, NAME), path).toBe(TB);
+    }
+  });
+
+  it("site-a forwards website and both paths with A and refuses every account path", async () => {
+    for (const path of [
+      "/",
+      "/workers",
+      "/privacy",
+      "/terms",
+      "/cookies",
+      "/help/about",
+    ]) {
+      const res = await donorModule.proxy(
+        donorRequest(SITE_A, path, { headers: { [NAME]: TB } }),
+      );
+      expect(res.headers.get("x-middleware-next"), path).toBe("1");
+      expect(forwarded(res, NAME), path).toBe(TA);
+    }
+
+    const accountPaths = [
+      "/login",
+      "/register",
+      "/forgot-password",
+      "/forgot-password/callback",
+      "/auth/callback",
+      "/checkout",
+      "/no-access",
+      "/donor-dashboard",
+      "/donor-dashboard/settings",
+      "/api/profile",
+    ];
+    state.userId = USER_D;
+    state.rows = [D_A, D_B];
+    for (const path of accountPaths) {
+      state.lookups = [];
+      state.sessionReads = 0;
+      await expectRefused(
+        await donorModule.proxy(donorRequest(SITE_A, path)),
+        path,
+      );
+      expect(state.sessionReads).toBe(0);
+      expect(state.lookups).toEqual([SITE_A]);
+    }
+  });
+
+  it("second-a forwards website paths with A and refuses every account path", async () => {
+    const home = await donorModule.proxy(donorRequest(SECOND_A, "/"));
+    expect(home.headers.get("x-middleware-next")).toBe("1");
+    expect(forwarded(home, NAME)).toBe(TA);
+
+    state.userId = USER_D;
+    state.rows = [D_A, D_B];
+    for (const path of [
+      "/login",
+      "/register",
+      "/forgot-password",
+      "/auth/callback",
+      "/checkout",
+      "/no-access",
+      "/donor-dashboard",
+      "/api/profile",
+    ]) {
+      state.lookups = [];
+      state.sessionReads = 0;
+      await expectRefused(
+        await donorModule.proxy(donorRequest(SECOND_A, path)),
+        path,
+      );
+      expect(state.sessionReads).toBe(0);
+      expect(state.lookups).toEqual([SECOND_A]);
+    }
+  });
+});
+
+describe("on: hostile paths", () => {
+  const PRE_LOOKUP_NEXT_REQUEST = [
+    "/a%5clogin",
+    "//login",
+    "/%252e%252e/login",
+    "/%E0%A4%A",
+    "/%61dmin/x",
+  ];
+  const PRE_LOOKUP_RAW_DOTS = [
+    "/a/../login",
+    "/a/./login",
+    "/a/%2e%2e/login",
+    "/a/%2e/login",
+    "/api/webhooks/stripe/../profile",
+    "/api/webhooks/stripe/%2e%2e/profile",
+  ];
+
+  it("normalizes and classifies donor paths directly", () => {
+    for (const bad of [
+      ...PRE_LOOKUP_NEXT_REQUEST,
+      ...PRE_LOOKUP_RAW_DOTS,
+      "/%2fprivacy",
+      "/%6dissionary/x",
+      "/login//",
+    ]) {
+      expect(normalizeDonorPath(bad), bad).toBeNull();
+    }
+    expect(normalizeDonorPath("/")).toBe("/");
+    expect(normalizeDonorPath("/login/")).toBe("/login");
+    expect(normalizeDonorPath("/%6c%6f%67%69%6e")).toBe("/login");
+    expect(normalizeDonorPath("/%61pi/profile")).toBe("/api/profile");
+    expect(normalizeDonorPath("/privacy/")).toBe("/privacy");
+    expect(isDonorExemptPath("/api/health")).toBe(true);
+    expect(isDonorExemptPath("/api/health/x")).toBe(false);
+    expect(classifyDonorPath("/donor-dashboard")).toBe("account");
+    expect(classifyDonorPath("/donor-dashboard/settings")).toBe("account");
+    expect(classifyDonorPath("/login")).toBe("account");
+    expect(classifyDonorPath("/register")).toBe("account");
+    expect(classifyDonorPath("/forgot-password/callback")).toBe("account");
+    expect(classifyDonorPath("/auth/callback")).toBe("account");
+    expect(classifyDonorPath("/checkout")).toBe("account");
+    expect(classifyDonorPath("/no-access")).toBe("account");
+    expect(classifyDonorPath("/api")).toBe("account");
+    expect(classifyDonorPath("/api/profile")).toBe("account");
+    expect(classifyDonorPath("/privacy")).toBe("both");
+    expect(classifyDonorPath("/terms")).toBe("both");
+    expect(classifyDonorPath("/cookies")).toBe("both");
+    expect(classifyDonorPath("/help/about")).toBe("both");
+    expect(classifyDonorPath("/")).toBe("website");
+    expect(classifyDonorPath("/LOGIN")).toBe("website");
+    expect(classifyDonorPath("/loginx")).toBe("website");
+  });
+
+  it.each([SITE_A, BARE_B])(
+    "refuses malformed, traversal, double-encoded and encoded-dashboard paths on %s with 404 and zero lookups",
+    async (host) => {
+      state.userId = USER_D;
+      state.rows = [D_A, D_B];
+      for (const path of PRE_LOOKUP_NEXT_REQUEST) {
+        state.lookups = [];
+        state.lookupClients = 0;
+        state.sessionReads = 0;
+        await expectRefused(
+          await donorModule.proxy(donorRequest(host, path)),
+          `${host} ${path}`,
+        );
+        expect(state.lookups, path).toEqual([]);
+        expect(state.lookupClients, path).toBe(0);
+        expect(state.sessionReads, path).toBe(0);
+      }
+      for (const rawPath of PRE_LOOKUP_RAW_DOTS) {
+        state.lookups = [];
+        state.lookupClients = 0;
+        state.sessionReads = 0;
+        await expectRefused(
+          await donorModule.proxy(rawPathRequest(host, rawPath)),
+          `${host} raw ${rawPath}`,
+        );
+        expect(state.lookups, rawPath).toEqual([]);
+        expect(state.lookupClients, rawPath).toBe(0);
+        expect(state.sessionReads, rawPath).toBe(0);
+      }
+    },
+  );
+
+  it("refuses percent-encoded and trailing-slash account paths on site-a, while admitting /LOGIN and /loginx as website", async () => {
+    state.userId = USER_D;
+    state.rows = [D_A, D_B];
+    for (const path of [
+      "/%6c%6f%67%69%6e",
+      "/%61pi/profile",
+      "/login/",
+      "/checkout/",
+      "/api/",
+    ]) {
+      state.lookups = [];
+      state.sessionReads = 0;
+      await expectRefused(
+        await donorModule.proxy(donorRequest(SITE_A, path)),
+        path,
+      );
+      expect(state.sessionReads, path).toBe(0);
+      expect(state.lookups, path).toEqual([SITE_A]);
+    }
+
+    for (const path of ["/LOGIN", "/loginx"]) {
+      const res = await donorModule.proxy(donorRequest(SITE_A, path));
+      expect(res.headers.get("x-middleware-next"), path).toBe("1");
+      expect(forwarded(res, NAME), path).toBe(TA);
+    }
+  });
+
+  it("on bare-b refuses /%2fprivacy with zero lookups, refuses website bypasses, and forwards /privacy/", async () => {
+    state.lookups = [];
+    state.sessionReads = 0;
+    await expectRefused(
+      await donorModule.proxy(donorRequest(BARE_B, "/%2fprivacy")),
+      "/%2fprivacy",
+    );
+    expect(state.lookups).toEqual([]);
+    expect(state.sessionReads).toBe(0);
+
+    for (const path of ["/%77orkers", "/workers/"]) {
+      state.lookups = [];
+      state.sessionReads = 0;
+      await expectRefused(
+        await donorModule.proxy(donorRequest(BARE_B, path)),
+        path,
+      );
+      expect(state.lookups, path).toEqual([BARE_B]);
+      expect(state.sessionReads, path).toBe(0);
+    }
+
+    const privacy = await donorModule.proxy(donorRequest(BARE_B, "/privacy/"));
+    expect(privacy.headers.get("x-middleware-next")).toBe("1");
+    expect(forwarded(privacy, NAME)).toBe(TB);
+  });
+});
+
+describe("on: exact exempt paths and playwright-ready source pin", () => {
+  const EXEMPT = [
+    "/api/webhooks/stripe",
+    "/api/health",
+    "/api/health/migrations",
+    "/api/playwright-ready",
+  ];
+
+  it("makes no lookup and strips x-asym-name-tenant, x-asym-front-* and x-forwarded-host on each exempt path and with a trailing slash", async () => {
+    for (const base of EXEMPT) {
+      for (const path of [base, `${base}/`]) {
+        state.lookups = [];
+        state.lookupClients = 0;
+        const res = await donorModule.proxy(
+          donorRequest(UNKNOWN, path, {
+            headers: {
+              [NAME]: TB,
+              "x-forwarded-host": "evil.example.test",
+              "x-asym-front-origin": "https://evil.example.test",
+              "x-asym-front-stamp": "v1.1.forged",
+              "x-asym-front-extra": "forged",
+            },
+          }),
+        );
+        expect(res.headers.get("x-middleware-next"), path).toBe("1");
+        expect(forwarded(res, NAME), path).toBeNull();
+        expect(forwarded(res, "x-forwarded-host"), path).toBeNull();
+        expect(forwarded(res, "x-asym-front-origin"), path).toBeNull();
+        expect(forwarded(res, "x-asym-front-stamp"), path).toBeNull();
+        expect(forwarded(res, "x-asym-front-extra"), path).toBeNull();
+        expect(state.lookups, path).toEqual([]);
+        expect(state.lookupClients, path).toBe(0);
+      }
+    }
+  });
+
+  it("never treats prefixes of exempt paths as exempt: runs lookup and account rules", async () => {
+    for (const path of [
+      "/api/health/x",
+      "/api/webhooks/stripe/x",
+      "/api/playwright-ready/x",
+    ]) {
+      state.lookups = [];
+      state.sessionReads = 0;
+      await expectRefused(
+        await donorModule.proxy(donorRequest(SITE_A, path)),
+        `${SITE_A} ${path}`,
+      );
+      expect(state.lookups, path).toEqual([SITE_A]);
+      expect(state.sessionReads, path).toBe(0);
+
+      state.lookups = [];
+      const admitted = await donorModule.proxy(donorRequest(HOME_A, path));
+      expect(admitted.headers.get("x-middleware-next"), path).toBe("1");
+      expect(forwarded(admitted, NAME), path).toBe(TA);
+      expect(state.lookups, path).toEqual([HOME_A]);
+    }
+  });
+
+  it("pins apps/donor/app/api/playwright-ready/route.ts to GET returning only { status: 'ok' } and reading nothing", () => {
+    const source = readFileSync(
+      fileURLToPath(
+        new URL(
+          "../../../apps/donor/app/api/playwright-ready/route.ts",
+          import.meta.url,
+        ),
+      ),
+      "utf8",
+    ).trim();
+    expect(source).toBe(
+      'export function GET() {\n  return Response.json({ status: "ok" });\n}',
+    );
+  });
+});
+
+describe("on: host handling, lookup unavailability, dashboard handoff and no cross-request cache", () => {
+  it("refuses absent or blank host with 404 no-store and zero lookups", async () => {
+    for (const host of [null, "", "   "]) {
+      state.lookups = [];
+      state.lookupClients = 0;
+      state.sessionReads = 0;
+      await expectRefused(
+        await donorModule.proxy(donorRequest(host, "/")),
+        `host=${String(host)}`,
+      );
+      expect(state.lookups).toEqual([]);
+      expect(state.lookupClients).toBe(0);
+      expect(state.sessionReads).toBe(0);
+    }
+  });
+
+  it("returns 503 no-store with empty body on every path class when lookup is unavailable", async () => {
+    state.answer = () => ({ data: null, error: { message: "down" } });
+    for (const path of [
+      "/",
+      "/privacy",
+      "/login",
+      "/donor-dashboard",
+      "/api/profile",
+    ]) {
+      state.sessionReads = 0;
+      await expectRefused(
+        await donorModule.proxy(donorRequest(HOME_A, path)),
+        path,
+        503,
+      );
+      expect(state.sessionReads, path).toBe(0);
+    }
+  });
+
+  it("asks for the host header only, never x-forwarded-host or request.url", async () => {
+    const req = new NextRequest("http://url-host.localhost:9999/", {
+      headers: {
+        host: HOME_A,
+        "x-forwarded-host": HOME_B,
+      },
+    });
+    const res = await donorModule.proxy(req);
+    expect(res.headers.get("x-middleware-next")).toBe("1");
+    expect(forwarded(res, NAME)).toBe(TA);
+    expect(forwarded(res, "x-forwarded-host")).toBeNull();
+    expect(state.lookups).toEqual([HOME_A]);
+  });
+
+  it("routes /admin/... and /missionary/... through routeToDashboard with zero donor lookups", async () => {
+    for (const [path, upstream] of [
+      ["/admin/donors", "http://localhost:25161/admin/donors"],
+      ["/missionary/donors", "http://localhost:25162/missionary/donors"],
+    ] as const) {
+      state.lookups = [];
+      state.lookupClients = 0;
+      const res = await donorModule.proxy(donorRequest(HOME_A, path));
+      expect(res.headers.get("x-middleware-rewrite"), path).toBe(upstream);
+      expect(state.lookups, path).toEqual([]);
+      expect(state.lookupClients, path).toBe(0);
+    }
+  });
+
+  it("remembers nothing across requests: one lookup each, second request takes B", async () => {
+    const flipping = "flip.localhost:25160";
+    state.answer = (_host, n) => (n === 1 ? hostRow(TA) : hostRow(TB));
+
+    const first = await donorModule.proxy(donorRequest(flipping, "/"));
+    expect(first.headers.get("x-middleware-next")).toBe("1");
+    expect(forwarded(first, NAME)).toBe(TA);
+    expect(state.lookups).toEqual([flipping]);
+
+    const second = await donorModule.proxy(donorRequest(flipping, "/"));
+    expect(second.headers.get("x-middleware-next")).toBe("1");
+    expect(forwarded(second, NAME)).toBe(TB);
+    expect(state.lookups).toEqual([flipping, flipping]);
+  });
+});
+
+describe("on: donor dashboard role check and status through membership", () => {
+  it("admits D on both home-a and home-b, and redirects E on home-b to /", async () => {
+    state.userId = USER_D;
+    state.rows = [D_A, D_B];
+    const onA = await donorModule.proxy(
+      donorRequest(HOME_A, "/donor-dashboard"),
+    );
+    expect(onA.headers.get("x-middleware-next")).toBe("1");
+    expect(forwarded(onA, NAME)).toBe(TA);
+
+    const onB = await donorModule.proxy(
+      donorRequest(HOME_B, "/donor-dashboard"),
+    );
+    expect(onB.headers.get("x-middleware-next")).toBe("1");
+    expect(forwarded(onB, NAME)).toBe(TB);
+
+    state.userId = USER_E;
+    state.rows = [E_A];
+    const eOnB = await donorModule.proxy(
+      donorRequest(HOME_B, "/donor-dashboard"),
+    );
+    expect(eOnB.status).toBe(307);
+    expect(new URL(eOnB.headers.get("location")!).pathname).toBe("/");
+  });
+
+  it("when B is suspended or D's row in B is revoked: signed-out /login 200, signed-in /donor-dashboard redirects to /", async () => {
+    state.rows = [D_A];
+    state.userId = null;
+    const signedOutLogin = await donorModule.proxy(
+      donorRequest(HOME_B, "/login"),
+    );
+    expect(signedOutLogin.status).toBe(200);
+    expect(signedOutLogin.headers.get("x-middleware-next")).toBe("1");
+    expect(forwarded(signedOutLogin, NAME)).toBe(TB);
+
+    state.userId = USER_D;
+    const signedInDashboard = await donorModule.proxy(
+      donorRequest(HOME_B, "/donor-dashboard"),
+    );
+    expect(signedInDashboard.status).toBe(307);
+    expect(new URL(signedInDashboard.headers.get("location")!).pathname).toBe(
+      "/",
+    );
+  });
+});
+
+describe.each([
+  ["unset", undefined],
+  ["0", "0"],
+] as const)(
+  "off (switch %s): donor proxy is byte-for-byte today with no lookup client",
+  (_label, value) => {
+    beforeEach(() => {
+      state.offMode = true;
+      vi.stubEnv("CORE_SERVE_UNDER_PATHS", value);
+      vi.stubEnv("CORE_APP_BASE_PATH", "");
+    });
+
+    it("gives the same concrete answers with or without client x-asym-name-tenant and host: home-b", async () => {
+      const withHeaders = { [NAME]: TB, host: HOME_B };
+      const withoutHeaders = { host: "localhost:3000" };
+
+      const homeWith = await donorModule.proxy(
+        donorRequest(HOME_B, "/", { headers: withHeaders }),
+      );
+      const homeWithout = await donorModule.proxy(
+        donorRequest("localhost:3000", "/", { headers: withoutHeaders }),
+      );
+      expect(homeWith.status).toBe(200);
+      expect(homeWith.headers.get("x-middleware-next")).toBe("1");
+      expect(homeWithout.headers.get("x-middleware-next")).toBe("1");
+      expect(forwarded(homeWith, NAME)).toBeNull();
+      expect(homeWith.headers.get("set-cookie")).toBe(
+        homeWithout.headers.get("set-cookie"),
+      );
+
+      state.userId = null;
+      const anonWith = await donorModule.proxy(
+        donorRequest(HOME_B, "/donor-dashboard", { headers: withHeaders }),
+      );
+      const anonWithout = await donorModule.proxy(
+        donorRequest("localhost:3000", "/donor-dashboard", {
+          headers: withoutHeaders,
+        }),
+      );
+      expect(anonWith.status).toBe(307);
+      expect(anonWithout.status).toBe(307);
+      expect(
+        new URL(anonWith.headers.get("location")!).pathname +
+          new URL(anonWith.headers.get("location")!).search,
+      ).toBe("/login?next=%2Fdonor-dashboard");
+      expect(
+        new URL(anonWithout.headers.get("location")!).pathname +
+          new URL(anonWithout.headers.get("location")!).search,
+      ).toBe("/login?next=%2Fdonor-dashboard");
+
+      state.userId = USER_E;
+      state.rows = [E_A];
+      const eWith = await donorModule.proxy(
+        donorRequest(HOME_B, "/donor-dashboard", { headers: withHeaders }),
+      );
+      const eWithout = await donorModule.proxy(
+        donorRequest("localhost:3000", "/donor-dashboard", {
+          headers: withoutHeaders,
+        }),
+      );
+      expect(eWith.status).toBe(200);
+      expect(eWith.headers.get("x-middleware-next")).toBe("1");
+      expect(eWithout.headers.get("x-middleware-next")).toBe("1");
+      expect(forwarded(eWith, NAME)).toBeNull();
+      expect(eWith.headers.get("set-cookie")).toContain("sb-refreshed=fresh");
+      expect(eWith.headers.get("set-cookie")).toBe(
+        eWithout.headers.get("set-cookie"),
+      );
+
+      state.userId = USER_D;
+      state.rows = [D_A, D_B];
+      const dWith = await donorModule.proxy(
+        donorRequest(HOME_B, "/donor-dashboard", { headers: withHeaders }),
+      );
+      const dWithout = await donorModule.proxy(
+        donorRequest("localhost:3000", "/donor-dashboard", {
+          headers: withoutHeaders,
+        }),
+      );
+      expect(dWith.status).toBe(307);
+      expect(dWithout.status).toBe(307);
+      expect(new URL(dWith.headers.get("location")!).pathname).toBe("/");
+      expect(new URL(dWithout.headers.get("location")!).pathname).toBe("/");
+
+      const apiWith = await donorModule.proxy(
+        donorRequest(HOME_B, "/api/profile", { headers: withHeaders }),
+      );
+      const apiWithout = await donorModule.proxy(
+        donorRequest("localhost:3000", "/api/profile", {
+          headers: withoutHeaders,
+        }),
+      );
+      expect(apiWith.status).toBe(200);
+      expect(apiWith.headers.get("x-middleware-next")).toBe("1");
+      expect(apiWithout.headers.get("x-middleware-next")).toBe("1");
+      expect(forwarded(apiWith, "x-asym-role-class")).toBe("donor");
+      expect(forwarded(apiWithout, "x-asym-role-class")).toBe("donor");
+      expect(forwarded(apiWith, NAME)).toBeNull();
+      expect(forwarded(apiWithout, NAME)).toBeNull();
+      expect(state.lookupClients).toBe(0);
+      expect(state.lookups).toEqual([]);
+    });
+  },
+);
