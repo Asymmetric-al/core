@@ -270,7 +270,7 @@ transaction is atomic, so nothing is applied; re-run it in a quiet window.
 
 ## Dropped in WP5 (AL-2678)
 
-`20261124030300_drop_persons_scaffold.sql` drops `public.persons`,
+`20261125050300_drop_persons_scaffold.sql` drops `public.persons`,
 `missionaries.person_id`, `profiles.person_id`, their four constraints and
 their ten field-policy rows, after a preflight that refuses, with counts only,
 when any of them holds a value. `public.parties`, `donors.party_id` and
