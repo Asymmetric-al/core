@@ -196,8 +196,8 @@ const COUNT_RE = /^[1-9]\d*$/;
 function ceilingRowProblem(fields) {
   if (fields.length < 3 || fields.length > 4)
     return "expected 3 or 4 fields: <file> <kind> <count> [ruling:<ID>]";
-  if (fields.some((field) => field === ""))
-    return "fields must be separated by single spaces";
+  if (fields.some((field) => field === "" || /\s/.test(field)))
+    return "fields must be separated by single spaces and hold no other whitespace";
   const [, kind, count, token] = fields;
   if (!KINDS.includes(kind)) return `kind must be one of ${KINDS.join(", ")}`;
   if (!COUNT_RE.test(count))

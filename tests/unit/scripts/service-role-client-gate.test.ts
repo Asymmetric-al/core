@@ -661,6 +661,8 @@ describe("ceiling growth against the base (D-18: AL-2671 ruling-pin-tax Q1)", ()
       "apps/a.ts admin 1",
       `${A} 1 ruling:W8-R10 extra`,
       ` ${A} 1`,
+      `\t${A} 1`,
+      "apps/a\tb.ts admin_client 1",
     ]) {
       const { problems } = parseCeilingRows(row);
       expect(problems, row).toHaveLength(1);

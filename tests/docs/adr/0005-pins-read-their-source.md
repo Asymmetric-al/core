@@ -83,11 +83,15 @@ Record D-18 lets the change update the frozen suites in the same change.
    counts from `readSeedExpectations()` instead of literals, and a new case
    shows a rebuild stops before Payload when a count differs.
    `scripts/seed-demo.sh` prints the expected counts by reading the file with
-   `node`, and `tests/unit/scripts/seed-counts.test.ts` runs that snippet on
-   the tracked file and on changed counts instead of matching literal text.
+   `node`, and stops, naming the key, when one of them is missing or not a
+   whole number; `tests/unit/scripts/seed-counts.test.ts` runs that snippet on
+   the tracked file, on changed counts and on broken files instead of matching
+   literal text.
 
 ## What stays
 
 The ceiling's rows and counts, the allowlist, the exception list and the
 other reviewed lists are unchanged. Package 2 (the privileged-function list,
-the allowlist's `lines`) is not part of this record.
+the allowlist's `lines`) is not part of this record. On a merge queue the
+`lint` step, like the comment ratchet, compares with `origin/develop`; if
+`production` ever gets a merge queue, the step must be given the queue's base.

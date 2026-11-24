@@ -81,6 +81,52 @@ describe("the tracked expectation file", () => {
     for (const id of ids) expect(seed).toContain(`('${id}', '`);
   });
 
+  it("stops the local seed verifier, naming the key, when an expected count is missing or not a count (D-18: AL-2671 pin-tax review finding 1)", () => {
+    const script = readFileSync("scripts/seed-demo.sh", "utf8");
+    const snippet = /\bnode -e '([^']+)'/.exec(script)?.[1];
+    expect(snippet, "seed-demo.sh reads the counts with node -e").toBeTruthy();
+    const run = (content: string) => {
+      const file = path.join(rootWith(content), EXPECTATIONS_PATH);
+      return spawnSync(process.execPath, ["-e", snippet!, file], {
+        encoding: "utf8",
+      });
+    };
+    const counts = readSeedExpectations();
+    const without = Object.fromEntries(
+      Object.entries(counts).filter(([key]) => key !== "authz.memberships"),
+    );
+    for (const [label, content, key] of [
+      ["missing", JSON.stringify({ counts: without }), "authz.memberships"],
+      [
+        "null",
+        JSON.stringify({ counts: { ...counts, "authz.memberships": null } }),
+        "authz.memberships",
+      ],
+      [
+        "a string",
+        JSON.stringify({ counts: { ...counts, "authz.memberships": "7" } }),
+        "authz.memberships",
+      ],
+      [
+        "a fraction",
+        JSON.stringify({ counts: { ...counts, "public.tenants": 1.5 } }),
+        "public.tenants",
+      ],
+      [
+        "negative",
+        JSON.stringify({ counts: { ...counts, "public.profiles": -1 } }),
+        "public.profiles",
+      ],
+      ["no counts object", JSON.stringify({ counts: [] }), "counts"],
+      ["malformed JSON", '{"counts": {', null],
+    ] as const) {
+      const r = run(content);
+      expect(r.status, `${label}: ${r.stdout}${r.stderr}`).not.toBe(0);
+      expect(r.stdout, label).toBe("");
+      if (key) expect(r.stderr, label).toContain(key);
+    }
+  });
+
   it("is the step's only expectation: the workflow names the script, not a number", () => {
     const workflow = readFileSync(
       ".github/workflows/ci-integration.yml",
