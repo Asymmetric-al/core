@@ -810,9 +810,14 @@ All five migrations run in separate transactions with
 a lock is held, and none of the five sets `statement_timeout`.
 
 Because each file is its own transaction, a stop at file N leaves the earlier
-files applied and recorded in the ledger while file N aborts and applies nothing
-of its own, and a fresh **Release** dispatch from branch `production`
-(operation `release`; never Re-run on the stopped run) continues from file N.
+files applied and recorded in the ledger. If the run stopped before file N's
+`COMMIT`, file N aborts and applies nothing of its own, and a fresh **Release**
+dispatch from branch `production` (operation `release`; never Re-run on the
+stopped run) continues from file N. If file N's `COMMIT` completed but its
+ledger row is missing (a run cancelled or lost between the two), do not
+dispatch yet: confirm in the catalog that the file's objects are present, record
+its version as "If the migration committed but its ledger row is missing" does
+for `20261119135300`, check the ledger, and only then dispatch **Release** anew.
 On a lock timeout in `20261120130003`, `20261120130001` stays applied and
 recorded; inspect `pg_blocking_pids`, let the blocker finish or end it, and
 dispatch **Release** anew.
