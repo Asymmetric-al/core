@@ -5,7 +5,7 @@ path that deploys production. It implements section 7.4 and 7.5 of
 [the target architecture](../audits/core-crm-cms-database-target-architecture.md)
 and the release-pipeline part of WP1 (issue #2674, slice 1.3).
 
-**State.** Steps 1–7 are complete. On 23 November 2026 the second production release, Release 45136837286, promoted `c2c8e9173` to all three production domains (`production` = `develop` = `c2c8e9173`), following the first production release on 22 November 2026 (Release 45043933598, `e7045ac55`). Production reads disposable development until WP11; use ordinary releases only. Step 8’s migration-preview infrastructure is deferred; step 9 registration is on.
+**State.** Steps 1–7 are complete. On 23 November 2026 the second production release, Release 45136837286, promoted `c2c8e9173` to all three production domains (`production` = `develop` = `c2c8e9173`), following the first production release on 22 November 2026 (Release 45043933598, `e7045ac55`). Later releases are listed in the [implementation record](../audits/core-crm-cms-database-implementation-record.md). Production reads disposable development until WP11; use ordinary releases only. Step 8’s migration-preview infrastructure is deferred; step 9 registration is on.
 
 > **Tenant-owned domains (2026-11-24).** The three production domains are Asym's operations hosts. Under the owner's decision of 21 November 2026 (OpenSpec change `adopt-tenant-owned-domains`) no tenant is served on them, and package N8 adds a release check through a test tenant domain beside the three project health checks.
 
@@ -14,6 +14,13 @@ and the release-pipeline part of WP1 (issue #2674, slice 1.3).
 `.github/workflows/release.yml` runs on every push to `production` and on
 manual dispatch from `production`. One release runs at a time per database
 and none is ever cancelled.
+
+Do not cancel a run by hand while its step **Migrate** runs. A migration file
+that commits its own transaction with `COMMIT` (at the end of the file or
+before a trailing `pg_notify`) is recorded in the ledger by the CLI only
+afterwards, so a run that is cancelled or lost between the two leaves that
+file applied and not recorded, and the next run applies it again (see
+[If the migration committed but its ledger row is missing](#if-the-migration-committed-but-its-ledger-row-is-missing)).
 
 1. **Replay.** The workflow sets `REPLAY_DATABASE_URL` explicitly to the job's empty local `release_replay` database. Both migration runners and the fingerprint capture use that address. If any of these steps fails, the workflow skips the first rebuild; do not run it separately after a failed replay.
    Every migration is applied to an empty Postgres in the job
@@ -287,8 +294,9 @@ next. In every case, wait two minutes first, and never retry in a loop.
 
 - **`set-cms-role-passwords`:** dispatch it again.
 - **A release (`migrate`):** Supabase migrations may already be applied. It stopped before Payload's migrations, the
-  gates, the heads and the deployment, so nothing was deployed. Re-run the
-  release.
+  gates, the heads and the deployment, so nothing was deployed. Dispatch
+  **Release** anew from branch `production` (operation `release`); do not use
+  Re-run on the stopped run.
 - **The preview rebuild:** it stopped after the reset and the seed, before
   Payload's migrations, the gates and the heads. Rebuild again.
 - **`first-rebuild`:** fix the refusal, then dispatch `first-rebuild` again with the census link, typed confirmation and fresh owner approval. It is allowed only before either head is recorded, on an unmarked or `disposable` database.
@@ -357,7 +365,9 @@ repository".
    - Unfinished first rebuild, no recorded head: dispatch `first-rebuild` again
      with the census link, typed confirmation and fresh owner approval. The
      password repair did not complete the reset, migrations or gates.
-   - Ordinary release with recorded heads: rerun `release` after the repair.
+   - Ordinary release with recorded heads: after the repair, dispatch
+     **Release** anew from branch `production` (operation `release`); do not
+     use Re-run on the stopped run.
    - Ordinary disposable preview rebuild: rerun the preview workflow, which
      repeats the replacement.
 
@@ -495,8 +505,9 @@ whether those defaults are still open, and its stop names the case:
 Preflight also stops if `postgres` grants default privileges to `anon`,
 `authenticated`, or `PUBLIC`, globally or in schema `public`. This does not
 mean a rebuild failed. In `psql`, use `\ddp` to find the object type, grantee
-and scope. Revoke the offending grant at the same scope, then rerun the
-release. For example, for a global table grant use
+and scope. Revoke the offending grant at the same scope, then dispatch
+**Release** anew from branch `production` (operation `release`); do not use
+Re-run on the stopped run. For example, for a global table grant use
 `ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE SELECT ON TABLES FROM PUBLIC;`.
 For a schema grant add `IN SCHEMA public` before `REVOKE`. Use the privileges,
 object type and grantee actually listed. A revoke changes defaults for future
@@ -799,10 +810,32 @@ All five migrations run in separate transactions with
 a lock is held, and none of the five sets `statement_timeout`.
 
 Because each file is its own transaction, a stop at file N leaves the earlier
-files applied and recorded in the ledger while file N aborts and applies nothing
-of its own, and a re-run continues from file N. On a lock timeout in
-`20261120130003`, `20261120130001` stays applied and recorded; inspect
-`pg_blocking_pids`, let the blocker finish or end it, and run the release again.
+files applied and recorded in the ledger. If the run stopped before file N's
+`COMMIT`, file N aborts and applies nothing of its own, and a fresh **Release**
+dispatch from branch `production` (operation `release`; never Re-run on the
+stopped run) continues from file N. If file N's `COMMIT` completed but its
+ledger row is missing (a run cancelled or lost between the two), do not
+dispatch yet, and let no other release start: cancel any **Release** run that
+is queued or waiting (`gh run list --workflow release.yml --status queued`,
+and again with `--status waiting`; such a run has changed nothing, so
+cancelling it is safe), and do not push to
+`production` until the version is recorded. Then establish which of the two
+cases it is, with a catalog read
+that answers differently before and after that file's `COMMIT`. For a file that
+creates objects (`20261120130004`), that is an object it creates. For a file
+that only changes existing objects, it is the changed property itself: the
+`status` column of `tenants` for `20261120130001`, the delete action of a
+tenant foreign key for `20261120130003`, a replaced function's body for
+`20261120130005`, the default of `donations.tenant_id` for `20261120130006`.
+That the file's objects exist proves nothing for such a file, and recording a
+file that did not commit makes every later dispatch skip it. Only when the read
+shows the committed state, record the version as "If the migration committed
+but its ledger row is missing" does for `20261119135300`, check the ledger, and
+then dispatch **Release** anew. When it shows the state before the file, record
+nothing and dispatch.
+On a lock timeout in `20261120130003`, `20261120130001` stays applied and
+recorded; inspect `pg_blocking_pids`, let the blocker finish or end it, and
+dispatch **Release** anew.
 After `20261120130004` commits, an intermediate stop before app promotion would
 leave older-app donation reads broken unless the expand step above was already
 promoted on all three apps.
