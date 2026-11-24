@@ -106,6 +106,73 @@ export interface GivingTargetEntityLock {
   missionary_id: string | null;
 }
 
+export interface Site {
+  id: string;
+  tenant_id: string;
+  name: string;
+  is_default: boolean;
+  status: "active" | "inactive";
+  primary_domain: string | null;
+}
+
+export interface SiteDomain {
+  host: string;
+  tenant_id: string;
+  generation: number;
+  surfaces: ("website" | "donor_account" | "staff" | "missionary")[];
+  site_id: string | null;
+  expected_project: "donor" | "admin" | "missionary";
+  control_proved_at: string;
+  attached_at: string | null;
+  attached_by: string | null;
+  routing_proved_at: string | null;
+  https_proved_at: string | null;
+  sign_in_ready_at: string | null;
+  activation_proved_at: string | null;
+  activation_proved_by: string | null;
+  state: "claimed" | "ready" | "active";
+}
+
+export interface DonorPortalHost {
+  id: string;
+  tenant_id: string;
+  primary_domain: string | null;
+}
+
+export interface DonorAccountBrand {
+  tenant_id: string;
+  display_name: string;
+}
+
+export interface SiteFunctions {
+  resolve_verified_host: {
+    Args: { p_host: string };
+    Returns: (Pick<
+      SiteDomain,
+      "tenant_id" | "site_id" | "generation" | "surfaces"
+    > & {
+      state: Exclude<SiteDomain["state"], "claimed">;
+      is_home: boolean;
+    })[];
+  };
+  create_site: {
+    Args: { p_tenant_id: string; p_name: string };
+    Returns: Site;
+  };
+  set_site_status: {
+    Args: { p_tenant_id: string; p_site_id: string; p_status: Site["status"] };
+    Returns: Site;
+  };
+  set_account_brand: {
+    Args: { p_tenant_id: string; p_display_name: string };
+    Returns: DonorAccountBrand;
+  };
+  designate_home: {
+    Args: { p_tenant_id: string; p_host: string };
+    Returns: DonorPortalHost;
+  };
+}
+
 export interface DonorFeedPreferences {
   id: string;
   donor_id: string;

@@ -10,6 +10,10 @@
     "public.contribution_approval_policies": 2,
     "public.parties": 24,
     "public.account_links": 4,
-    "private.party_restricted": 1
+    "private.party_restricted": 1,
+    "public.sites": 3,
+    "public.site_domains": 2,
+    "public.donor_portal_hosts": 2,
+    "public.donor_account_brands": 2
   }
 }

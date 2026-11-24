@@ -244,7 +244,7 @@ describe("#2255 consumers and docs", () => {
       createHash("sha256")
         .update(readFileSync("packages/database/types/database.ts"))
         .digest("hex"),
-    ).toBe("942e3239260618c138b91b992c6cc25531ffbf5629ea1f1e5030f3018cede907");
+    ).toBe("eed11b5e929ce6d28d374d4f06296e0a5f6c35bba5c614a603a4e1110f1ea171");
   });
 
   it(`16: ${DOC} covers both tables, columns, access matrix, Q15, Q16, writers and rollback order`, () => {

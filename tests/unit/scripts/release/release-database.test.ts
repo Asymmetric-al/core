@@ -165,6 +165,10 @@ function fakeDatabase(state: {
         '"public"."parties"': 24,
         '"public"."account_links"': 4,
         '"private"."party_restricted"': 1,
+        '"public"."sites"': 3,
+        '"public"."site_domains"': 2,
+        '"public"."donor_portal_hosts"': 2,
+        '"public"."donor_account_brands"': 2,
       };
       if (sql.startsWith("SELECT count(*) FROM"))
         return counts[sql.slice("SELECT count(*) FROM ".length, -1)]!;

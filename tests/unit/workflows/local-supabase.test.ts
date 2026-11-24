@@ -142,6 +142,25 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     expect(workflow).toContain(`      - ${suite}\n`);
   });
 
+  it("requires the Sites and claimed-name PostgREST proof after fingerprinting", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2676/sites.postgrest.acceptance.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(marker);
+    expect(run).toBeDefined();
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    for (const variable of [
+      "WP3_TENANT_IT_URL",
+      "WP3_TENANT_IT_DATABASE_URL",
+      "WP3_TENANT_IT_SERVICE_KEY",
+      "WP3_TENANT_IT_ANON_KEY",
+    ])
+      expect(run).toContain(variable);
+    expect(run).toContain("supabase -- status -o json");
+    expect(at(marker)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
+    expect(workflow).toContain(`      - ${suite}\n`);
+  });
+
   it("requires the identity-key proof through PostgREST after fingerprinting (AL-2678)", () => {
     const suite =
       "tests/unit/acceptance/issue-2678/identity-keys.postgrest.acceptance.test.ts";

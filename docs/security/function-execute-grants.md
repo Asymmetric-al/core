@@ -351,3 +351,23 @@ Each revokes `PUBLIC`, `anon`, `authenticated`, and `service_role` by name
 before granting. `authz.request_tenant_id()` additionally grants `EXECUTE` to
 `tenant_guard` (alongside `authenticated` and `service_role`) so the six care
 commands enforce non-null request-tenant binding on direct calls.
+
+## Site functions added by AL-2676 (WP3a part 1b)
+
+| Function                                         | Security | EXECUTE grantees (exact)                                    |
+| ------------------------------------------------ | -------- | ----------------------------------------------------------- |
+| `public.resolve_verified_host(text)`             | DEFINER  | `postgres` (owner), `anon`, `authenticated`, `service_role` |
+| `public.create_site(uuid, text)`                 | INVOKER  | `postgres` (owner), `authenticated`                         |
+| `public.set_site_status(uuid, uuid, text)`       | INVOKER  | `postgres` (owner), `authenticated`                         |
+| `public.set_account_brand(uuid, text)`           | INVOKER  | `postgres` (owner), `authenticated`                         |
+| `public.designate_home(uuid, text)`              | INVOKER  | `postgres` (owner), `authenticated`                         |
+| `tenant_guard.create_site(uuid, text)`           | DEFINER  | `tenant_guard` (owner), `authenticated`                     |
+| `tenant_guard.set_site_status(uuid, uuid, text)` | DEFINER  | `tenant_guard` (owner), `authenticated`                     |
+| `tenant_guard.set_account_brand(uuid, text)`     | DEFINER  | `tenant_guard` (owner), `authenticated`                     |
+| `tenant_guard.designate_home(uuid, text)`        | DEFINER  | `tenant_guard` (owner), `authenticated`                     |
+| `private.share_lock_site_domain(uuid, text)`     | DEFINER  | `postgres` (owner), `tenant_guard`                          |
+
+Each revokes `PUBLIC`, `anon`, `authenticated`, and `service_role` by name
+before granting (`private.share_lock_site_domain` also revokes `tenant_guard`
+before its one grant). `resolve_verified_host` is the one entry on
+`docs/security/anon-definer-allowlist.json`.

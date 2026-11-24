@@ -291,7 +291,7 @@ describe("#2256 seams, readers and writers", () => {
     }
     expect(hits).toEqual([]);
     expect(sha256("packages/database/types/database.ts")).toBe(
-      "942e3239260618c138b91b992c6cc25531ffbf5629ea1f1e5030f3018cede907",
+      "eed11b5e929ce6d28d374d4f06296e0a5f6c35bba5c614a603a4e1110f1ea171",
     );
   });
 
