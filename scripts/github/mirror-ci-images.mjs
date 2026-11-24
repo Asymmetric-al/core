@@ -24,6 +24,9 @@ export function readImageList(file) {
     if (keys !== KEYS)
       throw new Error(`${where} has keys ${keys}; expected ${KEYS}`);
     const { source, digest, mirror } = entry;
+    for (const [key, value] of Object.entries({ source, digest, mirror }))
+      if (typeof value !== "string")
+        throw new Error(`${where}: ${key} must be a string`);
     if (!TAGGED_REFERENCE.test(source))
       throw new Error(
         `${where}: source must be a registry/repository:tag, not ${source}`,

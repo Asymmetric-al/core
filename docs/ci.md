@@ -609,9 +609,11 @@ of anonymously from a public registry.
   copies each image from its source digest with
   `skopeo copy --all --preserve-digests`, which fails rather than change a
   digest, then reads the manifest back from `ghcr.io` and fails unless its
-  digest is the listed one. An image whose digest is already there is not
-  copied again, so a second run changes nothing and does not ask the public
-  registry. The token goes to `skopeo login` on standard input only.
+  digest is the listed one. An image whose digest and tag are both already
+  there is not copied again, so a second run changes nothing and does not ask
+  the public registry. A digest that is there without its tag is copied again
+  to restore the tag, and that copy does ask the public registry. The token
+  goes to `skopeo login` on standard input only.
 - _When it runs:_ manual dispatch and a daily schedule, from `develop` only:
   its first step fails on any other ref. It never runs on a pull request.
 - _What that step cannot stop:_ `workflow_dispatch` runs the workflow file of
