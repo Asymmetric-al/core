@@ -50,10 +50,15 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
    missionary workspace waits for activation. A missionary invited before
    activation cannot land until the name is `active`; N4 owes that invitation.
 
-4. **On-mode only.** With the switch off no dashboard admits unstamped page
-   traffic on any name (N3's ruling Q14), so there is no trustworthy name to look
-   up. The proxies make no lookup and no lookup client then; production cannot
-   be on until N3 part 4.
+4. **On-mode only.** The name is trustworthy only on a stamped request: with
+   the switch on, each dashboard refuses unstamped or mis-stamped page traffic
+   with `403` before any lookup (`admitFromFront` in `front.ts`; N3's ruling
+   Q14), apart from its own exempt paths, which make no lookup and carry no
+   name; and only the front stamps, with the host the visitor used. With the
+   switch off, each proxy hands the request to the auth middleware on today's
+   direct path, with no stamp, so no name proves anything there: the proxies
+   make no lookup and build no lookup client, and the dashboards admit direct
+   requests as before. Production cannot be on until N3 part 4.
 
 ### The name's organization on the request
 
@@ -113,6 +118,15 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
     removes them. The dashboards' configuration redirects
     (`apps/admin/next.config.ts`, `apps/missionary/next.config.ts`) run before
     the proxy, so on a refused name they still redirect before the follow-up
-    gets the `404`; N2 part 2 moves them behind admission. The donor app's
-    organization from the name is WP3b's; the front's own lookup, replacing
-    `FRONT_NAMES`, is N3 part 4's.
+    gets the `404`; N2 part 2 moves them behind admission, and also takes the
+    organization ID and the chooser out of the address, the browser's guard,
+    the name's generation and the invitation and callback redirects. N2 parts 3
+    to 5 own page identity, cache keys and the donor's cache rules (with WP7),
+    addresses built outside a request, and deleting the off-mode path. WP3b owns
+    the donor app's organization from the name, its single-organization
+    fallback, donor sign-in on names that are not home, `/` on a home with no
+    website and active-only donor admission. N3 part 4 owns the front's own
+    lookup, replacing `FRONT_NAMES`; WP7 the donor redirects behind admission;
+    N6 framing and the browser's direct Data API calls; N3 part 3 the
+    assistant's routes under the switch; N4 invitations, including a
+    missionary invited before activation; N5 the first designation of home.
