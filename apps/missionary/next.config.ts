@@ -3,6 +3,7 @@ import { withSentryConfig } from "@sentry/nextjs/config";
 import { legacyRedirects } from "./lib/legacy-redirects";
 import { loadWorkspaceEnvironment } from "../../scripts/load-workspace-env.mjs";
 import { migrationHeadsBuildEnv } from "../../scripts/release/migration-heads.mjs";
+import { serveUnderPathsNextConfig } from "../../scripts/release/serve-under-paths.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
 
@@ -16,14 +17,20 @@ loadWorkspaceEnvironment(WORKSPACE_ROOT);
  * in the literal: dropping either one, or flipping it to false, then fails
  * this app's typecheck instead of silently un-instanting every route.
  */
+const underPaths = serveUnderPathsNextConfig("missionary");
+
 const nextConfig: NextConfig & {
   cacheComponents: true;
   partialPrefetching: true;
 } = {
   reactStrictMode: true,
+  ...(underPaths.basePath ? { basePath: underPaths.basePath } : {}),
   // Each build carries the migration heads it was built against, for
   // /api/health/migrations (scripts/release/migration-heads.mjs).
-  env: migrationHeadsBuildEnv(WORKSPACE_ROOT),
+  env: {
+    ...migrationHeadsBuildEnv(WORKSPACE_ROOT),
+    ...underPaths.env,
+  },
   cacheComponents: true,
   partialPrefetching: true,
   async headers() {

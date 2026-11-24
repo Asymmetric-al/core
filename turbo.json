@@ -24,6 +24,7 @@
       "env": [
         "NODE_ENV",
         "CORE_EVE_BUILD_MODE",
+        "CORE_SERVE_UNDER_PATHS",
         "NEXT_PUBLIC_*",
         "GOOGLE_SITE_VERIFICATION",
         "BING_SITE_VERIFICATION",

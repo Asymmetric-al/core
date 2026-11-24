@@ -6,6 +6,7 @@ import { normalizeEveVercelEnvironment } from "./eve-runtime-environment";
 import { copyMaplibreWorkerAssetsForApp } from "../../scripts/copy-maplibre-worker-assets.mjs";
 import { loadWorkspaceEnvironment } from "../../scripts/load-workspace-env.mjs";
 import { migrationHeadsBuildEnv } from "../../scripts/release/migration-heads.mjs";
+import { serveUnderPathsNextConfig } from "../../scripts/release/serve-under-paths.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
 
@@ -25,14 +26,20 @@ copyMaplibreWorkerAssetsForApp({
  * in the literal: dropping either one, or flipping it to false, then fails
  * this app's typecheck instead of silently un-instanting every route.
  */
+const underPaths = serveUnderPathsNextConfig("admin");
+
 export const nextConfig: NextConfig & {
   cacheComponents: true;
   partialPrefetching: true;
 } = {
   reactStrictMode: true,
+  ...(underPaths.basePath ? { basePath: underPaths.basePath } : {}),
   // Each build carries the migration heads it was built against, for
   // /api/health/migrations (scripts/release/migration-heads.mjs).
-  env: migrationHeadsBuildEnv(WORKSPACE_ROOT),
+  env: {
+    ...migrationHeadsBuildEnv(WORKSPACE_ROOT),
+    ...underPaths.env,
+  },
   /** Dev HMR when opening the app via `http://127.0.0.1:3030` instead of `localhost`. */
   allowedDevOrigins: ["127.0.0.1"],
   cacheComponents: true,
