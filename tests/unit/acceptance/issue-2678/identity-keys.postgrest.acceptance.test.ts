@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 
 import { createClient } from "@supabase/supabase-js";
 import pg from "pg";
@@ -504,6 +504,9 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           403,
         );
         expect(error.code).toBe("42501");
+        expect(error.message, `${method} ${JSON.stringify(payload)}`).toBe(
+          "permission denied for table parties",
+        );
       }
       const restricted = await as(
         "admin",
@@ -566,8 +569,36 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       expect(await body(status)).toEqual([]);
     });
 
-    it("each claim entry binds the organization it names to the request's header through the Data API (finding B3): start and redeem answer 403 (42501) to a missing or other organization's header, and the status read answers no rows", async () => {
-      for (const headers of [{}, { "x-asym-tenant": TB }]) {
+    it("each claim entry binds the organization it names to the request's header through the Data API (finding B3; confirmation half B: the lane's exact message, blank and malformed headers, and a caller who holds a redeemed request): start and redeem answer 403 (42501) to a missing, blank, malformed or other organization's header, and the status read answers the redeemed request only under the right header", async () => {
+      const mail = `wp5-c-${ids.dClaimed}@example.test`;
+      await db!.query(
+        `insert into public.account_claim_requests (tenant_id, donor_id, email, requested_by, status, token_sha256, token_expires_at, token_redeemed_at, donor_email_at_issue, resolved_at)
+         values ($1, $2, $3, $4, 'verified', $5, now() + interval '1 hour', now(), $3, now())`,
+        [TA, ids.dClaimed, mail, user.claimed, randomBytes(32)],
+      );
+      const statusAs = (headers: Record<string, string>) =>
+        api("rest/v1/rpc/account_claim_status", {
+          bearer: token.claimed,
+          body: { p_tenant_id: TA },
+          headers,
+        });
+      const right = await statusAs({ "x-asym-tenant": TA });
+      expect(right.status).toBe(200);
+      const rows = await body(right);
+      expect(rows).toHaveLength(1);
+      expect(Object.keys(rows[0]).sort()).toEqual([
+        "created_at",
+        "resolved_at",
+        "status",
+        "updated_at",
+      ]);
+      expect(rows[0].status).toBe("verified");
+      for (const headers of [
+        {},
+        { "x-asym-tenant": "" },
+        { "x-asym-tenant": "not-a-uuid" },
+        { "x-asym-tenant": TB },
+      ]) {
         for (const [path, payload] of [
           ["rest/v1/rpc/start_account_claim", { p_tenant_id: TA }],
           [
@@ -583,15 +614,15 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           expect(refused.status, `${path} ${JSON.stringify(headers)}`).toBe(
             403,
           );
-          expect((await body(refused)).code).toBe("42501");
+          const error = await body(refused);
+          expect(error.code).toBe("42501");
+          expect(error.message, `${path} ${JSON.stringify(headers)}`).toBe(
+            "tenant_guard: request tenant scope is required and must match command tenant",
+          );
         }
-        const status = await api("rest/v1/rpc/account_claim_status", {
-          bearer: token.staffB,
-          body: { p_tenant_id: TA },
-          headers,
-        });
-        expect(status.status).toBe(200);
-        expect(await body(status)).toEqual([]);
+        const status = await statusAs(headers);
+        expect(status.status, JSON.stringify(headers)).toBe(200);
+        expect(await body(status), JSON.stringify(headers)).toEqual([]);
       }
     });
   },

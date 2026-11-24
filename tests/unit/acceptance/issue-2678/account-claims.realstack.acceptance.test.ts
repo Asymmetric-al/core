@@ -414,9 +414,11 @@ describe.skipIf(!ADMIN_URL)(
       ]);
     });
 
-    it("each claim entry binds the organization it names to the request (finding B3): start and redeem refuse a missing, malformed or other organization's header (42501, the lane's message), and the status read returns no rows", async () => {
+    it("each claim entry binds the organization it names to the request (finding B3): start and redeem refuse a missing, blank, spaces-only, malformed or other organization's header (42501, the lane's message), and the status read returns no rows", async () => {
       for (const headers of [
         undefined,
+        { "x-asym-tenant": "" },
+        { "x-asym-tenant": "   " },
         { "x-asym-tenant": "not-a-uuid" },
         { "x-asym-tenant": id.TB },
       ]) {
@@ -524,11 +526,10 @@ describe.skipIf(!ADMIN_URL)(
         ]);
       }));
 
-    it("a suspended organization opens no claim and redeems none (finding B6)", () =>
+    it("a suspended organization opens no claim and redeems none, though the same start opens one once the organization is active again (finding B6, confirmation half B: the start is checked with no claim planted)", () =>
       inSavepoint(async () => {
         await login("USU");
         await unclaimedDonor("dSU", "USU");
-        const planted = await plantedClaim("USU", "dSU");
         await db.query(
           "update public.tenants set status = 'suspended' where id = $1",
           [id.TA],
@@ -536,7 +537,19 @@ describe.skipIf(!ADMIN_URL)(
         expect((await start(inTenant("USU"))).rows).toEqual([
           { r: { status: "received" } },
         ]);
-        expect(await claimOf(id.USU)).toHaveLength(1);
+        expect(await claimOf(id.USU)).toEqual([]);
+        await db.query("savepoint active_again");
+        await db.query(
+          "update public.tenants set status = 'active' where id = $1",
+          [id.TA],
+        );
+        expect((await start(inTenant("USU"))).rows).toEqual([
+          { r: { status: "received" } },
+        ]);
+        expect(await claimOf(id.USU), "the same start, active").toHaveLength(1);
+        await db.query("rollback to savepoint active_again");
+        expect(await claimOf(id.USU)).toEqual([]);
+        const planted = await plantedClaim("USU", "dSU");
         expect((await redeem(inTenant("USU"), planted.t)).rows).toEqual([
           { r: { status: "refused" } },
         ]);
@@ -570,13 +583,22 @@ describe.skipIf(!ADMIN_URL)(
       inSavepoint(async () => {
         await login("UY");
         await unclaimedDonor("dY", "UY");
-        expect(
-          await failure(
+        await db.query("savepoint no_address");
+        const noAddress = await db
+          .query(
             `insert into public.account_claim_requests (tenant_id, donor_id, email, requested_by, token_sha256, token_expires_at)
              values ($1, $2, $3, $4, $5, now() + interval '1 hour')`,
             [id.TA, id.dY, email("UY"), id.UY, digest(token())],
-          ),
-        ).toBe("23514");
+          )
+          .then(
+            () => null,
+            (e: { code?: string; message?: string }) =>
+              `${e.code} ${e.message}`,
+          );
+        await db.query("rollback to savepoint no_address");
+        expect(noAddress).toBe(
+          '23514 new row for relation "account_claim_requests" violates check constraint "account_claim_requests_token_pair_check"',
+        );
         const gone = await db.query(
           "insert into public.account_claim_requests (tenant_id, donor_id, email, requested_by) values ($1, $2, $3, null) returning id",
           [id.TA, id.dY, email("UY")],
@@ -677,6 +699,13 @@ describe.skipIf(!ADMIN_URL)(
           "claim_opened",
           "claim_already_open",
         ]);
+        expect(
+          await claimOf(id.UQ5, id.TS),
+          "inactive organization: no claim",
+        ).toEqual([]);
+        expect(await claimOf(id.UQ1), "matched: one claim").toHaveLength(1);
+        for (const user of ["UQ2", "ULK", "UQ4", "UUN"] as const)
+          expect(await claimOf(id[user]), `${user}: no claim`).toEqual([]);
         const [matched] = await claimOf(id.UQ1);
         for (const hidden of ["expired", "denied", "approved"]) {
           await db.query(
@@ -917,6 +946,158 @@ describe.skipIf(!ADMIN_URL)(
             expect(state.rows).toEqual([{ links: "1", memberships: "1" }]);
           },
         };
+      }));
+  },
+);
+
+describe.skipIf(!ADMIN_URL)(
+  "AL-2678 a matched claim start never waits on another caller (ruling D-16; confirmation half B, new problem 2)",
+  () => {
+    type Fixture = { admin: pg.Client; tenant: string; user: string };
+    async function withMatchedDonor(
+      fn: (f: Fixture & { party: string }) => Promise<void>,
+    ) {
+      const admin = new pg.Client({ connectionString: ADMIN_URL });
+      const tenant = randomUUID();
+      const user = randomUUID();
+      const donor = randomUUID();
+      const mail = `acc2678-start-${randomUUID()}@example.test`;
+      await admin.connect();
+      try {
+        await admin.query(
+          "insert into public.tenants (id, name, slug) values ($1::uuid, 'acc2678 start race', 'acc2678-start-' || $1::text)",
+          [tenant],
+        );
+        await admin.query(
+          "insert into auth.users (id, email, email_confirmed_at) values ($1, $2, now())",
+          [user, mail],
+        );
+        await admin.query("delete from authz.memberships where user_id = $1", [
+          user,
+        ]);
+        await admin.query(
+          "insert into public.donors (id, tenant_id, name, email) values ($1, $2, 'Start race', $3)",
+          [donor, tenant, mail],
+        );
+        const party = (
+          await admin.query(
+            "select party_id from public.donors where id = $1",
+            [donor],
+          )
+        ).rows[0].party_id as string;
+        expect(party).toBeTruthy();
+        await fn({ admin, tenant, user, party });
+      } finally {
+        await admin.query(
+          "delete from public.audit_logs where tenant_id = $1",
+          [tenant],
+        );
+        await admin.query(
+          "delete from public.account_claim_requests where tenant_id = $1",
+          [tenant],
+        );
+        await admin.query(
+          "delete from authz.memberships where tenant_id = $1 or user_id = $2",
+          [tenant, user],
+        );
+        await admin.query("delete from public.donors where tenant_id = $1", [
+          tenant,
+        ]);
+        await admin.query("delete from public.parties where tenant_id = $1", [
+          tenant,
+        ]);
+        await admin.query("delete from auth.users where id = $1", [user]);
+        await admin.query("delete from public.tenants where id = $1", [tenant]);
+        await admin.end();
+      }
+    }
+
+    async function startCall(user: string, tenant: string) {
+      const c = new pg.Client({ connectionString: ADMIN_URL });
+      await c.connect();
+      try {
+        await c.query(
+          `begin; set local role authenticated;
+           select set_config('request.jwt.claims', '${JSON.stringify({ sub: user, role: "authenticated" })}', true),
+                  set_config('request.jwt.claim.sub', '', true),
+                  set_config('request.headers', '${JSON.stringify({ "x-asym-tenant": tenant })}', true);`,
+        );
+        const r = await c.query("select public.start_account_claim($1) as r", [
+          tenant,
+        ]);
+        await c.query("commit");
+        return r.rows[0].r as Record<string, unknown>;
+      } catch (e) {
+        await c.query("rollback").catch(() => undefined);
+        return { error: (e as { code?: string }).code ?? "?" };
+      } finally {
+        await c.end().catch(() => undefined);
+      }
+    }
+
+    const outcomes = async (admin: pg.Client, tenant: string, user: string) =>
+      (
+        await admin.query(
+          "select details->>'outcome' o from public.audit_logs where tenant_id = $1 and user_id = $2 and action = 'account_claim_started' order by o",
+          [tenant, user],
+        )
+      ).rows.map((r) => r.o as string);
+    const openClaims = async (admin: pg.Client, tenant: string) =>
+      (
+        await admin.query(
+          "select count(*)::int n from public.account_claim_requests where tenant_id = $1 and status = 'pending'",
+          [tenant],
+        )
+      ).rows[0].n as number;
+
+    it("while another transaction holds the donor's Party, a matched start answers received at once, opens no claim and records claim_already_open", () =>
+      withMatchedDonor(async ({ admin, tenant, user, party }) => {
+        const holder = new pg.Client({ connectionString: ADMIN_URL });
+        await holder.connect();
+        let settled = false;
+        let call: Promise<Record<string, unknown>> | undefined;
+        let settledWhileHeld = false;
+        try {
+          await holder.query("begin");
+          await holder.query(
+            "select 1 from public.parties where id = $1 for update",
+            [party],
+          );
+          call = startCall(user, tenant).then((r) => {
+            settled = true;
+            return r;
+          });
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+          settledWhileHeld = settled;
+        } finally {
+          await holder.query("rollback").catch(() => undefined);
+          await holder.end().catch(() => undefined);
+        }
+        const answer = await call;
+        expect(
+          settledWhileHeld,
+          "the start settles while the Party is still held",
+        ).toBe(true);
+        expect(answer).toEqual({ status: "received" });
+        expect(await openClaims(admin, tenant)).toBe(0);
+        expect(await outcomes(admin, tenant, user)).toEqual([
+          "claim_already_open",
+        ]);
+      }));
+
+    it("a burst of six concurrent matched starts by one login: every answer is received, exactly one claim is open, one start opened it and five found it already open", () =>
+      withMatchedDonor(async ({ admin, tenant, user }) => {
+        const answers = await Promise.all(
+          Array.from({ length: 6 }, () => startCall(user, tenant)),
+        );
+        expect(answers).toEqual(
+          Array.from({ length: 6 }, () => ({ status: "received" })),
+        );
+        expect(await openClaims(admin, tenant)).toBe(1);
+        expect(await outcomes(admin, tenant, user)).toEqual([
+          ...Array.from({ length: 5 }, () => "claim_already_open"),
+          "claim_opened",
+        ]);
       }));
   },
 );

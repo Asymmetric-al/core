@@ -17,6 +17,16 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
   expect(ADMIN_URL).toBeTruthy(),
 );
 
+const ALIAS_NEEDED = "a restricted or high-risk worker needs a public alias";
+const ALIAS_DIFFERS =
+  "a restricted or high-risk worker's public alias must differ from the legal name";
+const LEVELS_MOVE =
+  "A worker's level and alias change through restrict_worker_publication and lift_worker_restriction";
+const NO_CAPABILITY =
+  "tenant_guard: the selected assignment does not hold the capability this command requires";
+const NOT_LIVE =
+  "tenant_guard: the selected assignment is not a live assignment of the caller in this tenant";
+
 describe.skipIf(!ADMIN_URL)(
   "AL-2678 worker safety room (plan WP5 lines 984 and 1003-1007, Phase 10, W5-R7)",
   () => {
@@ -165,8 +175,13 @@ describe.skipIf(!ADMIN_URL)(
           `update public.parties set do_not_publish = true where id = '${id.pMA}'`,
           `update public.parties set security_level_source = 'manual' where id = '${id.pMA}'`,
           `insert into public.parties (tenant_id, display_name, security_level, public_alias, do_not_publish) values ('${id.TA}', 'x', 'restricted', 'y', true)`,
-        ])
-          expect((await run(admin, sql)).code, sql).toBe("42501");
+        ]) {
+          const refused = await run(admin, sql);
+          expect(refused.code, sql).toBe("42501");
+          expect(refused.message, sql).toBe(
+            "permission denied for table parties",
+          );
+        }
         expect(
           (await setIdentity(admin, id.pMA, "restricted", "Shepherd")).code,
         ).toBeNull();
@@ -184,15 +199,14 @@ describe.skipIf(!ADMIN_URL)(
           [id.pMA],
         );
         expect(row.rows).toEqual([{ public_alias: "Shepherd Two" }]);
-        expect(
-          (
-            await act(
-              admin,
-              `select public.restrict_worker_publication('${id.TA}', '${id.pMA}', 'sensitive', null, null, 'lower')`,
-            )
-          ).code,
-          "restrict never lowers",
-        ).toBe("22023");
+        const lowered = await act(
+          admin,
+          `select public.restrict_worker_publication('${id.TA}', '${id.pMA}', 'sensitive', null, null, 'lower')`,
+        );
+        expect(lowered.code, "restrict never lowers").toBe("22023");
+        expect(lowered.message).toBe(
+          "Lowering a level is lift_worker_restriction's",
+        );
         const lifted = await act(
           admin,
           `select public.lift_worker_restriction('${id.TA}', '${id.pMA}', 'standard', true, 'Returned home') as r`,
@@ -202,40 +216,46 @@ describe.skipIf(!ADMIN_URL)(
           security_level_source: "manual",
           do_not_publish: false,
         });
+        const raised = await act(
+          admin,
+          `select public.lift_worker_restriction('${id.TA}', '${id.pMA}', 'restricted', null, 'raise')`,
+        );
+        expect(raised.code, "lift never raises").toBe("22023");
+        expect(raised.message).toBe(
+          "Raising a level is restrict_worker_publication's",
+        );
+        for (const reason of ["", "   "]) {
+          const unreasoned = await act(
+            admin,
+            `select public.restrict_worker_publication('${id.TA}', '${id.pMA}', 'restricted', null, null, '${reason}')`,
+          );
+          expect(unreasoned.code).toBe("22023");
+          expect(unreasoned.message).toBe("A reason is required");
+        }
+        const edited = await run(
+          admin,
+          `select public.set_worker_identity('${id.TA}', '${id.pMA}', 'Legal', null, null, null, 'restricted', null, 'edit')`,
+        );
         expect(
-          (
-            await act(
-              admin,
-              `select public.lift_worker_restriction('${id.TA}', '${id.pMA}', 'restricted', null, 'raise')`,
-            )
-          ).code,
-          "lift never raises",
-        ).toBe("22023");
-        for (const reason of ["", "   "])
-          expect(
-            (
-              await act(
-                admin,
-                `select public.restrict_worker_publication('${id.TA}', '${id.pMA}', 'restricted', null, null, '${reason}')`,
-              )
-            ).code,
-          ).toBe("22023");
-        expect(
-          (
-            await run(
-              admin,
-              `select public.set_worker_identity('${id.TA}', '${id.pMA}', 'Legal', null, null, null, 'restricted', null, 'edit')`,
-            )
-          ).code,
+          edited.code,
           "after creation the level moves only through restrict and lift",
         ).toBe("22023");
-        for (const who of [plainStaff, donor, missionary, staffBforgedA])
+        expect(edited.message).toBe(LEVELS_MOVE);
+        for (const [who, message] of [
+          [plainStaff, NO_CAPABILITY],
+          [donor, NO_CAPABILITY],
+          [missionary, NO_CAPABILITY],
+          [staffBforgedA, NOT_LIVE],
+        ] as const)
           for (const sql of [
             `select public.restrict_worker_publication('${id.TA}', '${id.pMA}', 'restricted', 'A', null, 'r')`,
             `select public.lift_worker_restriction('${id.TA}', '${id.pMA}', 'standard', true, 'r')`,
             `select public.set_worker_identity('${id.TA}', '${id.pM2}', 'Legal', null, null, null, null, null, 'r')`,
-          ])
-            expect((await run(who, sql)).code, sql).toBe("42501");
+          ]) {
+            const refused = await run(who, sql);
+            expect(refused.code, sql).toBe("42501");
+            expect(refused.message, sql).toBe(message);
+          }
         const audit = await db.query(
           "select action from public.audit_logs where tenant_id = $1 and resource_id = $2 order by created_at",
           [id.TA, id.pMA],
@@ -310,19 +330,20 @@ describe.skipIf(!ADMIN_URL)(
             await db.query(sql);
             return null;
           } catch (e) {
-            return (e as { code?: string }).code ?? "?";
+            const err = e as { code?: string; message?: string };
+            return `${err.code ?? "?"} ${err.message ?? ""}`;
           } finally {
             await db.query("rollback to savepoint attempt");
           }
         };
         for (const level of ["restricted", "high_risk"]) {
           for (const role of ["postgres", "tenant_guard", "service_role"]) {
-            for (const alias of [
-              "null",
-              "''",
-              "'  '",
-              "'legal name'",
-              "' Legal Name '",
+            for (const [alias, problem] of [
+              ["null", ALIAS_NEEDED],
+              ["''", ALIAS_NEEDED],
+              ["'  '", ALIAS_NEEDED],
+              ["'legal name'", ALIAS_DIFFERS],
+              ["' Legal Name '", ALIAS_DIFFERS],
             ])
               expect(
                 await attempt(
@@ -330,7 +351,7 @@ describe.skipIf(!ADMIN_URL)(
                   `update public.parties set security_level = '${level}', public_alias = ${alias} where id = '${id.pMA}'`,
                 ),
                 `${role} ${level} ${alias}`,
-              ).toBe("23514");
+              ).toBe(`23514 ${problem}`);
             expect(
               await attempt(
                 role,
@@ -350,19 +371,18 @@ describe.skipIf(!ADMIN_URL)(
                 `update private.party_restricted set legal_name = 'SHEPHERD' where party_id = '${id.pMA}'`,
               ),
               `${role} renames the legal name to the alias`,
-            ).toBe("23514");
+            ).toBe(`23514 ${ALIAS_DIFFERS}`);
           expect(
             await attempt(
               "postgres",
               `insert into public.parties (tenant_id, display_name, security_level) values ('${id.TA}', 'New', '${level}')`,
             ),
-          ).toBe("23514");
+          ).toBe(`23514 ${ALIAS_NEEDED}`);
           await db.query("rollback to savepoint level");
         }
-        expect(
-          (await setIdentity(admin, id.pM2, "restricted", null)).code,
-          "the command meets the same rule",
-        ).toBe("23514");
+        const ruled = await setIdentity(admin, id.pM2, "restricted", null);
+        expect(ruled.code, "the command meets the same rule").toBe("23514");
+        expect(ruled.message).toBe(ALIAS_NEEDED);
       } finally {
         await db.query("rollback to savepoint s");
       }
@@ -374,10 +394,14 @@ describe.skipIf(!ADMIN_URL)(
         expect(
           (await setIdentity(admin, id.pMA, "restricted", "Shepherd")).code,
         ).toBeNull();
-        for (const who of [admin, donor, missionary, staffB])
-          expect(
-            (await run(who, "select * from private.party_restricted")).code,
-          ).toBe("42501");
+        for (const who of [admin, donor, missionary, staffB]) {
+          const direct = await run(
+            who,
+            "select * from private.party_restricted",
+          );
+          expect(direct.code).toBe("42501");
+          expect(direct.message).toBe("permission denied for schema private");
+        }
         const read = (who: object) =>
           run(
             who,
@@ -491,14 +515,14 @@ describe.skipIf(!ADMIN_URL)(
             )
           ).code,
         ).toBeNull();
-        expect(
-          (await setIdentity(admin, id.pM2, "standard", null)).code,
-          "a lower level",
-        ).toBe("22023");
-        expect(
-          (await setIdentity(admin, id.pM2, null, "Other alias")).code,
-          "another alias",
-        ).toBe("22023");
+        for (const [label, level, alias] of [
+          ["a lower level", "standard", null],
+          ["another alias", null, "Other alias"],
+        ] as const) {
+          const refused = await setIdentity(admin, id.pM2, level, alias);
+          expect(refused.code, label).toBe("22023");
+          expect(refused.message, label).toBe(LEVELS_MOVE);
+        }
         expect(
           (
             await db.query(
@@ -549,8 +573,13 @@ describe.skipIf(!ADMIN_URL)(
           `select public.set_worker_identity('${id.TA}', '${id.pMB}', 'Legal', null, null, null, null, null, 'r')`,
           `select public.restrict_worker_publication('${id.TA}', '${id.pMB}', 'high_risk', 'Cedar', true, 'r')`,
           `select public.lift_worker_restriction('${id.TA}', '${id.pMB}', 'standard', true, 'r')`,
-        ])
-          expect((await act(admin, sql)).code, sql).toBe("P0002");
+        ]) {
+          const missing = await act(admin, sql);
+          expect(missing.code, sql).toBe("P0002");
+          expect(missing.message, sql).toBe(
+            "No Party with that id in this organization",
+          );
+        }
         expect((await party()).rows).toEqual(before);
         expect(
           (
@@ -741,7 +770,10 @@ describe.skipIf(!ADMIN_URL)(
           )
           .then(
             () => "done",
-            (e) => (e as { code?: string }).code ?? "?",
+            (e) => {
+              const err = e as { code?: string; message?: string };
+              return `${err.code ?? "?"} ${err.message ?? ""}`;
+            },
           )
           .finally(() => {
             settled = true;
@@ -751,7 +783,9 @@ describe.skipIf(!ADMIN_URL)(
           false,
         );
         await revoker.query("commit");
-        expect(await outcome).toBe("42501");
+        expect(await outcome).toBe(
+          "42501 tenant_guard: the caller no longer holds the authority this command requires",
+        );
         await command.query("rollback");
         const party = await revoker.query(
           "select security_level, public_alias, do_not_publish from public.parties where id = $1",
@@ -782,7 +816,10 @@ describe.skipIf(!ADMIN_URL)(
           )
           .then(
             () => "done",
-            (e) => (e as { code?: string }).code ?? "?",
+            (e) => {
+              const err = e as { code?: string; message?: string };
+              return `${err.code ?? "?"} ${err.message ?? ""}`;
+            },
           )
           .finally(() => {
             settled = true;
@@ -790,7 +827,7 @@ describe.skipIf(!ADMIN_URL)(
         await pause();
         expect(settled, "the second writer waits for the first").toBe(false);
         await levelWriter.query("commit");
-        expect(await outcome).toBe("23514");
+        expect(await outcome).toBe(`23514 ${ALIAS_DIFFERS}`);
         await nameWriter.query("rollback");
         const state = await levelWriter.query(
           `select (select count(*) from private.party_restricted where party_id = $1) restricted,

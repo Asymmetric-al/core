@@ -263,6 +263,22 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
       ]);
       expect(own.rows[0]!.status).toBe("verified");
       expect(own.rows[0]!.resolved_at).not.toBeNull();
+      for (const [label, header] of [
+        ["redeemed, no header", undefined],
+        ["redeemed, the other organization's header", B],
+      ] as const)
+        expect(
+          (
+            await run(
+              "SELECT * FROM public.account_claim_status($1)",
+              [A],
+              "authenticated",
+              U.r1,
+              header,
+            )
+          ).rows,
+          label,
+        ).toEqual([]);
       expect((await status("r2")).rows, "another person's request").toEqual([]);
       expect(await ids("r1", CLAIMS)).toEqual([]);
       expect(await ids("r2", CLAIMS)).toEqual([]);
