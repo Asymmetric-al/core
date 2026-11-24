@@ -136,7 +136,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           [TA, TB],
         );
         await db.query(
-          "insert into public.legal_entities (id, tenant_id, name) values ($1, $1, 'A'), ($2, $2, 'B')",
+          "insert into public.legal_entities (id, tenant_id, name, country_code, currency, legal_name) values ($1, $1, 'A', 'US', 'usd', 'A'), ($2, $2, 'B', 'US', 'usd', 'B')",
           [TA, TB],
         );
         await db.query(

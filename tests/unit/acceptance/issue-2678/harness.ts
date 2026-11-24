@@ -98,7 +98,7 @@ export function fixtureSql(id: Ids) {
   const q = (k: keyof Ids) => `'${id[k]}'`;
   const users = USERS.map(q).join(", ");
   return `insert into public.tenants (id, name, slug) values (${q("TA")}, 'acc2678 A', 'acc2678-' || ${q("TA")}), (${q("TB")}, 'acc2678 B', 'acc2678-' || ${q("TB")});
-    insert into public.legal_entities (id, tenant_id, name) values (${q("TA")}, ${q("TA")}, 'A'), (${q("TB")}, ${q("TB")}, 'B');
+    insert into public.legal_entities (id, tenant_id, name, country_code, currency, legal_name) values (${q("TA")}, ${q("TA")}, 'A', 'US', 'usd', 'A'), (${q("TB")}, ${q("TB")}, 'B', 'US', 'usd', 'B');
     insert into auth.users (id, email, email_confirmed_at) select u, 'acc2678-' || u || '@example.test', now() from unnest(array[${users}]::uuid[]) u;
     delete from authz.memberships where user_id = any(array[${users}]::uuid[]);
     insert into authz.memberships (id, user_id, tenant_id, role, staff_role, is_active) values
