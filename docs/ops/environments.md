@@ -246,7 +246,6 @@ For each Vercel project (`admin`, `donor`, `missionary`):
 | `STRIPE_SECRET_KEY`                  |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` |
 | `STRIPE_WEBHOOK_SECRET`              |
-| `STRIPE_CONNECT_WEBHOOK_SECRET`      |
 | `NEXT_PUBLIC_APP_URL`                |
 | `NEXT_PUBLIC_SITE_URL`               |
 | `INNGEST_EVENT_KEY`                  |
@@ -264,6 +263,8 @@ For each Vercel project (`admin`, `donor`, `missionary`):
 | `CLOUDINARY_API_KEY`                 |
 | `CLOUDINARY_API_SECRET`              |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`  |
+
+On the `admin` project only, also set `STRIPE_CONNECT_WEBHOOK_SECRET` once the Connect event destination exists (section 5.5). `donor` and `missionary` do not host that endpoint and must not hold its signing secret.
 
 Set `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_SITE_URL` to the HTTPS development origin of the project (section 5.1). On admin and donor set `CMS_BASE_URL` to `https://development-admin.asymmetric.al`. The donor server’s CMS client sends no Vercel bypass, so it cannot read public CMS pages from the protected admin origin on development. On admin set `DONOR_APP_URL` and `NEXT_PUBLIC_DONOR_URL` to `https://development-donor.asymmetric.al`. Use the Inngest Development event and signing keys on all three projects in `core-development`; do not copy the Production pair here.
 
@@ -335,7 +336,9 @@ Preferred protected-development setup:
    `STRIPE_WEBHOOK_SECRET` in Vercel `core-development` scope, then redeploy if either
    the webhook signing secret or the Vercel bypass secret changed. For the
    `/api/webhooks/stripe-connect` destination the signing secret goes in
-   `STRIPE_CONNECT_WEBHOOK_SECRET` on the admin app instead.
+   `STRIPE_CONNECT_WEBHOOK_SECRET` on the admin app instead. Give that
+   destination's URL the same `x-vercel-protection-bypass` query parameter,
+   and run step 5's check against its path as well.
 5. Verify without exposing secrets:
 
    ```bash
