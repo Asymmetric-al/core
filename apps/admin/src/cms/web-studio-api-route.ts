@@ -13,7 +13,10 @@
  * preflights pass to Payload unchanged.
  */
 
-import { STUDIO_ORIGIN_REFUSAL } from "@asym/auth/request-headers";
+import {
+  requestOrigin,
+  STUDIO_ORIGIN_REFUSAL,
+} from "@asym/auth/request-headers";
 
 type RouteHandler<Args> = (request: Request, args: Args) => Promise<Response>;
 
@@ -52,12 +55,13 @@ function isSameOrigin(
 }
 
 export function isSameOriginWrite(request: Request): boolean {
-  const requestOrigin = new URL(request.url).origin;
+  const expectedOrigin = requestOrigin(request);
+  if (!expectedOrigin) return false;
   const origin = request.headers.get("origin");
-  if (origin !== null) return isSameOrigin(requestOrigin, originOf(origin));
+  if (origin !== null) return isSameOrigin(expectedOrigin, originOf(origin));
   const site = request.headers.get("sec-fetch-site");
   if (site !== null) return site === "same-origin";
-  return isSameOrigin(requestOrigin, originOf(request.headers.get("referer")));
+  return isSameOrigin(expectedOrigin, originOf(request.headers.get("referer")));
 }
 
 /** Wraps one of Payload's route handlers: a cross-origin write never reaches it. */

@@ -1,5 +1,18 @@
+import {
+  admitExemptRequest,
+  admitFromFront,
+  asStampedRequest,
+  frontRefusal,
+  MISSIONARY_EXEMPT_PATHS,
+  rebaseLocation,
+  withoutFrontHeaders,
+} from "@asym/auth/front";
 import { createAuthMiddleware } from "@asym/auth/middleware";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
+import {
+  APP_BASE_PATHS,
+  isServeUnderPathsEnabled,
+} from "@asym/database/document-reload";
 
 import { MISSIONARY_ALLOWED_ROLES } from "./app/access";
 import { MISSIONARY_PUBLIC_ROUTES } from "./lib/route-policy";
@@ -28,12 +41,27 @@ const authProxy = createAuthMiddleware({
   tenantAddress: true,
 });
 
-export function proxy(request: NextRequest) {
-  return authProxy(request);
+export async function proxy(request: NextRequest) {
+  if (!isServeUnderPathsEnabled()) {
+    return authProxy(withoutFrontHeaders(request));
+  }
+  const admission = await admitFromFront(request, {
+    prefix: APP_BASE_PATHS.missionary,
+    key: process.env.FRONT_STAMP_KEY,
+    previousKey: process.env.FRONT_STAMP_KEY_PREVIOUS,
+    exempt: MISSIONARY_EXEMPT_PATHS,
+  });
+  if (admission.kind === "refused") return frontRefusal();
+  if (admission.kind === "exempt") {
+    return admitExemptRequest(request, admission.pathname, "missionary");
+  }
+  const response = await authProxy(asStampedRequest(request, admission.origin));
+  return rebaseLocation(response, request.nextUrl.origin, admission.origin);
 }
 
 export const config = {
   matcher: [
+    "/",
     // Every path the app can answer runs the proxy, pages and API routes
     // alike, whatever the path ends in: a dynamic route answers
     // `/donors/x.json` and `/api/x/y.json` too, and a request that skipped

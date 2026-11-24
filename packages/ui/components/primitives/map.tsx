@@ -1,6 +1,7 @@
 "use client";
 
 // maplibre-gl 6 ships ESM only and no default export.
+import { withAppBasePath } from "@asym/database/document-reload";
 import { AlertCircle } from "lucide-react";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -52,6 +53,10 @@ const STYLES = {
 
 const MAPLIBRE_PUBLIC_WORKER_URL = "/maplibre/maplibre-gl-worker.mjs";
 
+export function resolveMaplibreWorkerUrl() {
+  return withAppBasePath(MAPLIBRE_PUBLIC_WORKER_URL);
+}
+
 function ensureMaplibreWorkerUrl() {
   if (typeof window === "undefined") {
     return;
@@ -59,7 +64,7 @@ function ensureMaplibreWorkerUrl() {
   if (maplibregl.getWorkerUrl()) {
     return;
   }
-  maplibregl.setWorkerUrl(MAPLIBRE_PUBLIC_WORKER_URL);
+  maplibregl.setWorkerUrl(resolveMaplibreWorkerUrl());
 }
 
 type InitialViewState = {

@@ -8,6 +8,7 @@ import {
   useSyncExternalStore,
 } from "react";
 
+import { appPathname } from "./document-reload";
 import {
   forgetDocumentReload,
   requestDocumentReload,
@@ -305,7 +306,7 @@ function loadedOutside(segment: DocumentSegment): boolean {
   try {
     const [entry] = performance.getEntriesByType("navigation");
     if (!entry) return false;
-    return !segment.contains(new URL(entry.name).pathname);
+    return !segment.contains(appPathname(new URL(entry.name).pathname));
   } catch {
     return false;
   }
@@ -391,7 +392,7 @@ export function DocumentScopeProvider({
       // Next writes the new address in an insertion effect, before this
       // clean-up runs, so a soft navigation that unmounts the provider is
       // read at its target (council on the joined release, JC11).
-      if (!validIn.contains(window.location.pathname)) {
+      if (!validIn.contains(appPathname(window.location.pathname))) {
         requestDocumentReload();
       }
     };
@@ -452,7 +453,7 @@ export function readDocumentScopeForSend(): DocumentScopeForSend {
   }
   checkSessionPerson();
   if (retired) return { kind: "retired" };
-  return fixedSegment?.contains(window.location.pathname)
+  return fixedSegment?.contains(appPathname(window.location.pathname))
     ? { kind: "scoped", scope: fixedScope }
     : { kind: "unscoped" };
 }

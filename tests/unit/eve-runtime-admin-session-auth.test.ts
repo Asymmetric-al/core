@@ -20,12 +20,18 @@ const sessionOwnership = vi.hoisted(() => {
 
 vi.mock("@asym/api/eve/session-ownership", () => sessionOwnership);
 
+import {
+  requestOrigin,
+  trustedMutationSource,
+} from "../../packages/auth/request-headers";
 import { adminEveRouteAuth } from "../../packages/eve-runtime/src/admin-session-auth";
 
 const originalArgv = process.argv;
 
 afterEach(() => {
   process.argv = originalArgv;
+  vi.clearAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe("Eve runtime admin session auth", () => {
@@ -123,6 +129,30 @@ describe("Eve runtime admin session auth", () => {
         }),
       ),
     ).resolves.toBeNull();
+    expect(
+      sessionOwnership.authorizeEveAdminRouteRequest,
+    ).not.toHaveBeenCalled();
+  });
+
+  it("ignores a forged x-asym-front-origin header when the switch is OFF and refuses foreign Origin writes", async () => {
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "0");
+
+    const request = new Request("https://admin.example.test/eve/v1/session", {
+      method: "POST",
+      headers: {
+        host: "admin.example.test",
+        cookie: "session=fixture",
+        "content-type": "application/json",
+        origin: "https://evil.example",
+        "x-asym-front-origin": "https://evil.example",
+      },
+    });
+
+    expect(requestOrigin(request)).toBe("https://admin.example.test");
+    expect(trustedMutationSource(request)).toBe(false);
+    await expect(adminEveRouteAuth(request)).rejects.toMatchObject({
+      name: "ForbiddenError",
+    });
     expect(
       sessionOwnership.authorizeEveAdminRouteRequest,
     ).not.toHaveBeenCalled();

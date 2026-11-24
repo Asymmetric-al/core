@@ -62,7 +62,7 @@
 // - HTTP clients other than axios, ky and ofetch, and routers other than
 //   Next.js's and the tenant router.
 
-const OWN_API_PATH = /^\/api(?:[/?#]|$)/;
+const OWN_API_PATH = /^\/(?:(?:admin|missionary)\/)?api(?:[/?#]|$)/;
 const GLOBAL_OBJECTS = new Set(["window", "globalThis", "self"]);
 const HTTP_METHODS = new Set([
   "GET",

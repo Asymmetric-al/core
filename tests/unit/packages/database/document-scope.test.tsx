@@ -10,9 +10,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  */
 
 const reloadDocument = vi.hoisted(() => vi.fn());
-vi.mock("../../../../packages/database/document-reload", () => ({
-  reloadDocument,
-}));
+vi.mock(
+  "../../../../packages/database/document-reload",
+  async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>();
+    return {
+      ...actual,
+      reloadDocument,
+    };
+  },
+);
 
 const A = {
   userId: "00000000-0000-4000-8000-0000000000a1",

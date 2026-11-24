@@ -1,3 +1,4 @@
+import { withAppBasePath } from "@asym/database/document-reload";
 import { CircleAlert } from "lucide-react";
 
 import { OrganizationChoiceSubmit } from "./organization-choice-submit";
@@ -169,7 +170,7 @@ export function OrganizationChooser(props: OrganizationChooserProps) {
                     ).options.map((option) => (
                       <li key={option.href}>
                         <ButtonLink
-                          href={option.href}
+                          href={withAppBasePath(option.href)}
                           variant="outline"
                           className="w-full"
                         >
@@ -207,7 +208,7 @@ export function OrganizationChooserUnavailable({
         <AlertDescription>
           <p>This is usually brief. Try again in a moment.</p>
           <ButtonLink
-            href={retryHref}
+            href={withAppBasePath(retryHref)}
             variant="outline"
             size="sm"
             className="mt-2"

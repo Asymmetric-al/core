@@ -75,7 +75,11 @@ export function webStudioChooserUrl(
   next: string,
   from?: string | null,
 ): URL {
-  const url = new URL(WEB_STUDIO_CHOOSER_PATH, request.nextUrl.origin);
+  const base = request.nextUrl.basePath || "";
+  const url = new URL(
+    `${base}${WEB_STUDIO_CHOOSER_PATH}`,
+    request.nextUrl.origin,
+  );
   url.searchParams.set("next", next);
   if (from) url.searchParams.set(WEB_STUDIO_FROM_PARAM, from);
   return url;
@@ -108,7 +112,8 @@ export function webStudioEntryRedirect(
     decision.assignment.tenantId === tenantId &&
     decision.assignment.assignmentId === assignmentId
   ) {
-    return new URL(address, request.nextUrl.origin);
+    const base = request.nextUrl.basePath || "";
+    return new URL(`${base}${address}`, request.nextUrl.origin);
   }
   return webStudioChooserUrl(
     request,

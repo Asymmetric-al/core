@@ -1,6 +1,7 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+import { canonicalUpstreamOrigin } from "./front-origin";
 import {
   isProtectedDeployment,
   resolveDeploymentEnvironment,
@@ -249,6 +250,25 @@ export const env = createEnv({
     PAYOUTS_STRIPE_GLOBAL_PAYOUTS_ENABLED: optionalBoolean,
     PAYOUTS_EXECUTION_ENABLED: optionalBoolean,
     PAYOUTS_SANDBOX_ONLY: optionalBoolean,
+    FRONT_STAMP_KEY_ADMIN: z.string().optional(),
+    FRONT_STAMP_KEY_MISSIONARY: z.string().optional(),
+    FRONT_STAMP_KEY: z.string().optional(),
+    FRONT_STAMP_KEY_PREVIOUS: z.string().optional(),
+    FRONT_ADMIN_ORIGIN: z
+      .string()
+      .refine(
+        (value) => canonicalUpstreamOrigin(value) !== null,
+        "FRONT_ADMIN_ORIGIN must be a canonical https:// origin or a loopback http:// origin.",
+      )
+      .optional(),
+    FRONT_MISSIONARY_ORIGIN: z
+      .string()
+      .refine(
+        (value) => canonicalUpstreamOrigin(value) !== null,
+        "FRONT_MISSIONARY_ORIGIN must be a canonical https:// origin or a loopback http:// origin.",
+      )
+      .optional(),
+    FRONT_NAMES: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
@@ -383,6 +403,13 @@ export const env = createEnv({
       process.env.PAYOUTS_STRIPE_GLOBAL_PAYOUTS_ENABLED,
     PAYOUTS_EXECUTION_ENABLED: process.env.PAYOUTS_EXECUTION_ENABLED,
     PAYOUTS_SANDBOX_ONLY: process.env.PAYOUTS_SANDBOX_ONLY,
+    FRONT_STAMP_KEY_ADMIN: process.env.FRONT_STAMP_KEY_ADMIN,
+    FRONT_STAMP_KEY_MISSIONARY: process.env.FRONT_STAMP_KEY_MISSIONARY,
+    FRONT_STAMP_KEY: process.env.FRONT_STAMP_KEY,
+    FRONT_STAMP_KEY_PREVIOUS: process.env.FRONT_STAMP_KEY_PREVIOUS,
+    FRONT_ADMIN_ORIGIN: process.env.FRONT_ADMIN_ORIGIN,
+    FRONT_MISSIONARY_ORIGIN: process.env.FRONT_MISSIONARY_ORIGIN,
+    FRONT_NAMES: process.env.FRONT_NAMES,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_MAIN_DOMAIN: process.env.NEXT_PUBLIC_MAIN_DOMAIN,

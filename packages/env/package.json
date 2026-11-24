@@ -6,6 +6,7 @@
   "exports": {
     ".": "./index.ts",
     "./database-url": "./src/database-url.mjs",
+    "./front-origin": "./src/front-origin.ts",
     "./target-env": "./src/target-env.ts"
   },
   "scripts": {

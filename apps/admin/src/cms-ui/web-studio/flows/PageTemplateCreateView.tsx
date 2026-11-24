@@ -1,5 +1,6 @@
 "use client";
 
+import { appPathname } from "@asym/database/document-reload";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import {
   Field,
@@ -142,10 +143,12 @@ function PageTemplateCreateViewContent() {
       }
 
       push(
-        formatAdminURL({
-          adminRoute: routes.admin,
-          path: `/collections/${PAGE_TEMPLATES_SLUG}/${id}`,
-        }),
+        appPathname(
+          formatAdminURL({
+            adminRoute: routes.admin,
+            path: `/collections/${PAGE_TEMPLATES_SLUG}/${id}`,
+          }),
+        ),
       );
     },
   });
