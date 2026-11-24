@@ -168,10 +168,13 @@ and W5-R5) changes `account_claim_requests`:
 
 - The requester's own read, `account_claim_requests_requester_select`, is
   dropped with its pin in `docs/security/tenant-policy-exceptions.json`. A
-  signed-in claimant reads no row of the table; `public.account_claim_status(tenant)`
+  signed-in claimant reads no row of the table. The claimant sees a request
+  only after proving the address: `public.account_claim_status(tenant)`
   returns the status, `created_at`, `updated_at` and `resolved_at` of the
-  caller's own requests in that tenant and nothing else. It returns no row
-  when the request's `x-asym-tenant` is missing,
+  caller's own requests in that tenant whose token the caller redeemed, and
+  nothing else (ruling on review finding B4: an unproven request would tell
+  whether the organization holds an unclaimed donor with the caller's
+  address). It returns no row when the request's `x-asym-tenant` is missing,
   malformed or names another tenant. The staff policy and `SELECT` for
   `authenticated` stay.
 - The claim's proof: `token_sha256` (the SHA-256 of the UTF-8 bytes of the

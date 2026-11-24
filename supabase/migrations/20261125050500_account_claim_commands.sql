@@ -8,11 +8,13 @@
 --    expiry, its redemption time and the donor's normalized email when the
 --    token was issued, which a token cannot lack. An index on id serves the
 --    worker wrapper, which looks a claim up by id alone.
--- 2. The requester's own read of the table ends (W5-R4): a claimant sees only
---    status and three dates of their own requests, through
---    public.account_claim_status(tenant), and nothing unless the request's
---    x-asym-tenant names that tenant. SELECT for authenticated stays for the
---    staff policy.
+-- 2. The requester's own read of the table ends (W5-R4). A claimant sees a
+--    request only after proving the address: public.account_claim_status
+--    (tenant) returns status and three dates of the caller's own requests
+--    whose token the caller redeemed (ruling on finding B4: an unproven row
+--    would tell whether an organization holds an unclaimed donor with the
+--    caller's address), and nothing unless the request's x-asym-tenant
+--    names that tenant. SELECT for authenticated stays for the staff policy.
 -- 3. tenant_guard.start_account_claim(tenant): a signed-in person whose Auth
 --    email is confirmed (and whose login is not soft-deleted) opens a claim
 --    on the unclaimed donor of that tenant with the same normalized email. A
@@ -101,11 +103,12 @@ BEGIN
     FROM public.account_claim_requests AS c
    WHERE c.tenant_id = p_tenant_id
      AND c.requested_by = auth.uid()
+     AND c.token_redeemed_at IS NOT NULL
    ORDER BY c.created_at DESC, c.id;
 END;
 $$;
 COMMENT ON FUNCTION public.account_claim_status(UUID) IS
-  'The caller''s own claim requests in the request''s tenant: status and three dates, nothing else (W5-R4, AL-2678).';
+  'The caller''s own claim requests in the request''s tenant whose token they redeemed: status and three dates, nothing else (W5-R4, ruling on review finding B4, AL-2678).';
 ALTER FUNCTION public.account_claim_status(UUID) OWNER TO postgres;
 REVOKE ALL ON FUNCTION public.account_claim_status(UUID) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.account_claim_status(UUID) TO authenticated;
