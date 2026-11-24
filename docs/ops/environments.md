@@ -527,6 +527,23 @@ bun run sync:vercel-production-env -- --keys SENTRY_AUTH_TOKEN
 Do not include `SENTRY_AUTH_TOKEN` in evidence output; record only that the name
 exists and whether `bun run verify:sentry-release` passed.
 
+### 5.8 Dashboards under paths (`CORE_SERVE_UNDER_PATHS`)
+
+The build switch and front-routing runtime variables remain **unset everywhere**
+(Local, Preview, `core-development`, and Production) until later parts of N3
+turn them on. Never expose any of these with a `NEXT_PUBLIC_` prefix.
+
+| Variable                     | Scope   | Admin                     | Donor | Missionary                | Notes                                                                                                                                                   |
+| ---------------------------- | ------- | ------------------------- | ----- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CORE_SERVE_UNDER_PATHS`     | Build   | Unset everywhere          | Unset | Unset                     | `0` or unset off; `1` enables `/admin` and `/missionary` base paths and front routing; any other value or `1` on Vercel `production` fails the build.   |
+| `FRONT_STAMP_KEY_ADMIN`      | Runtime | No                        | Unset | No                        | Server-only >=32 UTF-8 byte HMAC signing key used by the donor front when stamping requests to `apps/admin`.                                            |
+| `FRONT_STAMP_KEY_MISSIONARY` | Runtime | No                        | Unset | No                        | Server-only >=32 UTF-8 byte HMAC signing key used by the donor front when stamping requests to `apps/missionary`.                                       |
+| `FRONT_STAMP_KEY`            | Runtime | Unset                     | No    | Unset                     | Server-only >=32 UTF-8 byte HMAC verification key on each dashboard matching its front signing key; absent or short refuses all stamped traffic.        |
+| `FRONT_STAMP_KEY_PREVIOUS`   | Runtime | Unset (optional rotation) | No    | Unset (optional rotation) | Server-only >=32 UTF-8 byte previous verification key for rotation; verifies only, never signs, and never rescues an absent or short `FRONT_STAMP_KEY`. |
+| `FRONT_ADMIN_ORIGIN`         | Runtime | No                        | Unset | No                        | Server-only canonical upstream origin of the staff dashboard (`https://...` or local `http://localhost:...`).                                           |
+| `FRONT_MISSIONARY_ORIGIN`    | Runtime | No                        | Unset | No                        | Server-only canonical upstream origin of the missionary dashboard.                                                                                      |
+| `FRONT_NAMES`                | Runtime | No                        | Unset | No                        | Server-only comma-separated lower-case `host[:port]` list accepted by the donor front when `CORE_SERVE_UNDER_PATHS=1`; unlisted hosts receive `404`.    |
+
 ## 6. Deploy Flows
 
 Production is branch-triggered; preview and development deploys are explicit.

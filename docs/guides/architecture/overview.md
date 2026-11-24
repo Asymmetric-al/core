@@ -51,6 +51,47 @@ page address.
 factory (`scripts/archon-factory`). It runs only on the factory VM and is not
 a product surface.
 
+### Serving Dashboards Under Paths (`CORE_SERVE_UNDER_PATHS`)
+
+When built with `CORE_SERVE_UNDER_PATHS=1` (resolved by
+`scripts/release/serve-under-paths.mjs`), `apps/admin` runs under
+`basePath: "/admin"`, `apps/missionary` runs under `basePath: "/missionary"`,
+and `apps/donor` (the front) rewrites exact `/admin` and `/missionary` path
+prefixes to those dashboards for hosts listed in `FRONT_NAMES`. Any value
+other than unset, `0`, or `1` fails the build, and `CORE_SERVE_UNDER_PATHS=1`
+fails the build when `VERCEL_TARGET_ENV` or `VERCEL_ENV` is `production`
+(case-insensitive).
+
+When enabled, `packages/auth/front.ts` stamps proxied requests from the donor
+front with HMAC-SHA256 (`x-asym-front-stamp`, `x-asym-front-origin`) using a
+distinct >=32-byte key per dashboard (`FRONT_STAMP_KEY_ADMIN`,
+`FRONT_STAMP_KEY_MISSIONARY` on the front; `FRONT_STAMP_KEY` and optional
+verify-only `FRONT_STAMP_KEY_PREVIOUS` on each dashboard). Every app strips
+client-sent `x-asym-front-*` headers in both modes. With the switch on, each
+dashboard refuses unstamped or mis-stamped requests with `403` (`no-store`)
+except on its own explicit decoded path allowlist:
+
+- Staff (`apps/admin`): `/api/health/migrations`, `/api/webhooks/stripe`,
+  `/api/webhooks/stripe-connect`, `/api/email/webhooks/resend`, `/api/inngest`,
+  `/eve/v1/github`, plus a read-only `GET`/`HEAD` exception under
+  `/api/cms/public/` (refusing decoded `.` or `..` segments or `\`). Those five
+  public CMS routes resolve the tenant from `x-forwarded-host` or `host` and
+  return published content only, matching their existing public reach on the
+  staff origin until WP6 part 2 removes them.
+- Missionary (`apps/missionary`): `/api/health/migrations`,
+  `/api/webhooks/stripe`.
+
+With the switch unset (today's default everywhere), no `basePath` is set, the
+donor app proxies nothing to the dashboards, and the dashboards admit direct
+requests as before. Reserved paths, the `(app)/admin/*` rename, assistant
+proxying, provider-address cutover, release tooling, and real-domain host lists
+remain off until later parts of N3 and N2/N6.
+
+Build memory note (implementation record line 822): `apps/admin` builds on
+Vercel's larger build machine in releases (`scripts/release/vercel-release.mjs:269`);
+a standard-machine preview build ran out of memory with TypeScript checking on.
+TypeScript checking stays on with no build-time switch to bypass it.
+
 ## Directory Structure
 
 | Path                                          | Purpose                                                                                                         |
