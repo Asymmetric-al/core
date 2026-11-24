@@ -203,6 +203,7 @@ describe.skipIf(!READY)(
     }
 
     let operatorAal1 = "";
+    let connected = false;
 
     beforeAll(async () => {
       assertLoopbackHttp(API);
@@ -212,6 +213,7 @@ describe.skipIf(!READY)(
       }
 
       await db.connect();
+      connected = true;
       await createLogin(operator);
       await createLogin(outsider);
 
@@ -249,46 +251,51 @@ describe.skipIf(!READY)(
         }
       }
 
-      await attempt(async () => {
-        const { rows } = await db.query(
-          "select id from public.tenants where slug = $1",
-          [request.p_slug],
-        );
-        const tenants = rows.map((row) => row.id as string);
-        for (const table of [
-          "platform.tenant_provisioning",
-          "public.membership_invitations",
-          "public.donor_account_brands",
-          "public.donor_portal_hosts",
-          "public.sites",
-          "public.contribution_approval_policies",
-          "public.funds",
-          "public.legal_entities",
-          "public.audit_logs",
-        ])
+      if (connected)
+        await attempt(async () => {
+          const { rows } = await db.query(
+            "select id from public.tenants where slug = $1 union select tenant_id from platform.tenant_provisioning where provisioning_key = $2",
+            [request.p_slug, request.p_provisioning_key],
+          );
+          const tenants = rows.map((row) => row.id as string);
+          for (const table of [
+            "platform.tenant_provisioning",
+            "public.membership_invitations",
+            "public.donor_account_brands",
+            "public.donor_portal_hosts",
+            "public.sites",
+            "public.contribution_approval_policies",
+            "public.funds",
+            "public.legal_entities",
+            "public.audit_logs",
+          ])
+            await db.query(
+              `delete from ${table} where tenant_id = any($1::uuid[])`,
+              [tenants],
+            );
           await db.query(
-            `delete from ${table} where tenant_id = any($1::uuid[])`,
+            "delete from public.tenants where id = any($1::uuid[])",
             [tenants],
           );
-        await db.query(
-          "delete from public.tenants where id = any($1::uuid[])",
-          [tenants],
-        );
-        await db.query(
-          "delete from public.audit_logs where resource_type = 'platform_operator' and resource_id = any($1::text[])",
-          [ids],
-        );
-        if (ids.length > 0) {
+        });
+
+      if (connected)
+        await attempt(async () => {
           await db.query(
-            "delete from authz.platform_operators where user_id = any($1::uuid[])",
+            "delete from public.audit_logs where resource_type = 'platform_operator' and resource_id = any($1::text[])",
             [ids],
           );
-          await db.query(
-            "delete from authz.memberships where user_id = any($1::uuid[])",
-            [ids],
-          );
-        }
-      });
+          if (ids.length > 0) {
+            await db.query(
+              "delete from authz.platform_operators where user_id = any($1::uuid[])",
+              [ids],
+            );
+            await db.query(
+              "delete from authz.memberships where user_id = any($1::uuid[])",
+              [ids],
+            );
+          }
+        });
 
       for (const id of ids) {
         await attempt(async () => {
@@ -304,7 +311,7 @@ describe.skipIf(!READY)(
         });
       }
 
-      await attempt(() => db.end());
+      if (connected) await attempt(() => db.end());
       if (errors.length > 0) {
         throw new AggregateError(errors, "provisioning proof cleanup failed");
       }

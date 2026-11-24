@@ -730,9 +730,15 @@ describe.skipIf(!ADMIN_URL)(
           [{ email: "a b@example.org" }, BAD_EMAIL],
           [{ email: "two@@example.org" }, BAD_EMAIL],
           [{ email: "no-dot@example" }, BAD_EMAIL],
+          [{ email: "a b@example.org" }, BAD_EMAIL],
+          [{ email: "a\tb@example.org" }, BAD_EMAIL],
+          [{ email: " \t\n" }, BAD_EMAIL],
           [{ staffRole: "bogus" }, BAD_STAFF_ROLE],
           [{ staffRole: "staff" }, BAD_STAFF_ROLE],
           [{ staffRole: "Finance" }, BAD_STAFF_ROLE],
+          [{ staffRole: "finance\t" }, BAD_STAFF_ROLE],
+          [{ staffRole: " finance" }, BAD_STAFF_ROLE],
+          [{ staffRole: "\n" }, BAD_STAFF_ROLE],
         ];
         for (const [change, message] of cases)
           for (const fn of FUNCTIONS)
@@ -772,6 +778,14 @@ describe.skipIf(!ADMIN_URL)(
           { staffRole: "finance" },
         ])
           await refused(OPERATOR, { ...r, ...other }, "23505", KEY_REUSED);
+        for (const [bad, message] of [
+          [{ email: null }, BAD_EMAIL],
+          [{ email: "bad" }, BAD_EMAIL],
+          [{ email: "re-run@example.org x" }, BAD_EMAIL],
+          [{ staffRole: "bogus" }, BAD_STAFF_ROLE],
+          [{ staffRole: "development\t" }, BAD_STAFF_ROLE],
+        ] as [Partial<Request>, string][])
+          await refused(OPERATOR, { ...r, ...bad }, "22023", message);
         for (const slug of [r.slug, `acc2675-${id.TA}`])
           await refused(OPERATOR, request({ slug }), "23505", SLUG_TAKEN);
       }));
@@ -901,6 +915,18 @@ describe.skipIf(!ADMIN_URL)(
         );
         const suspended = await plant("acc2676 suspended", "suspended");
         const closed = await plant("acc2676 closed", "closed");
+        const secondOnly = await plant("acc2676 second Site only");
+        const secondSite = randomUUID();
+        await db.query(
+          "insert into public.sites (id, tenant_id, name, is_default, status) values ($1, $2, 'Inactive Second Site', false, 'inactive')",
+          [secondSite, secondOnly.tenant],
+        );
+        const secondSiteBefore = (
+          await db.query(
+            "select to_jsonb(s) as v from public.sites s where s.id = $1",
+            [secondSite],
+          )
+        ).rows;
         const host = `www.${id.TA}.example.org`;
         const siteA = randomUUID();
         await db.query(
@@ -984,6 +1010,22 @@ describe.skipIf(!ADMIN_URL)(
           expect(rows.homes![0]).toMatchObject({ primary_domain: null });
           expect(rows.brands).toEqual([await name(tenant)]);
         }
+        const secondOnlyAfter = await after(secondOnly.tenant);
+        expect(secondOnlyAfter.sites![0]).toMatchObject({
+          name: await name(secondOnly.tenant),
+          status: "active",
+          primary_domain: null,
+        });
+        expect(secondOnlyAfter.sites![0]!.id).not.toBe(secondSite);
+        expect(secondOnlyAfter.brands).toEqual([await name(secondOnly.tenant)]);
+        expect(
+          (
+            await db.query(
+              "select to_jsonb(s) as v from public.sites s where s.tenant_id = $1 and not s.is_default",
+              [secondOnly.tenant],
+            )
+          ).rows,
+        ).toEqual(secondSiteBefore);
         expect(await homeRows(id.TA!)).toEqual(planted.full);
         expect(planted.full.brands).toEqual(["Renamed By Command"]);
         expect(planted.full.sites![0]).toMatchObject({
@@ -1001,6 +1043,7 @@ describe.skipIf(!ADMIN_URL)(
                 homeNoBrand.tenant,
                 suspended.tenant,
                 closed.tenant,
+                secondOnly.tenant,
               ],
             ],
           )
@@ -1013,6 +1056,7 @@ describe.skipIf(!ADMIN_URL)(
           homeNoBrand.tenant,
           suspended.tenant,
           closed.tenant,
+          secondOnly.tenant,
           id.TA!,
           id.TB!,
           ...SEED,
@@ -1027,6 +1071,7 @@ describe.skipIf(!ADMIN_URL)(
             homeNoBrand.tenant,
             suspended.tenant,
             closed.tenant,
+            secondOnly.tenant,
             id.TA!,
             id.TB!,
             ...SEED,
@@ -1121,5 +1166,205 @@ describe.skipIf(!ADMIN_URL)(
         await runBackfill();
         expect(await rowsOf(SEED)).toEqual(before);
       }));
+
+    it("test 4 (two connections): a call with another key and the same slug waits for the first and gets the slug refusal; two calls with one key and one request end as one organization, created once", async () => {
+      const a = new pg.Client({ connectionString: ADMIN_URL });
+      const b = new pg.Client({ connectionString: ADMIN_URL });
+      const operator = randomUUID();
+      const slugs: string[] = [];
+      let failure: unknown = null;
+      const cleanupErrors: unknown[] = [];
+      const connected = new Set<pg.Client>();
+
+      const pidOf = async (c: pg.Client) =>
+        (await c.query("select pg_backend_pid() as p")).rows[0].p as number;
+      const begin = async (c: pg.Client) => {
+        await c.query("begin");
+        await c.query("set local role authenticated");
+        await c.query(
+          `select set_config('request.jwt.claims', $1, true),
+                  set_config('request.jwt.claim.sub', '', true),
+                  set_config('request.headers', '', true)`,
+          [
+            JSON.stringify({
+              role: "authenticated",
+              sub: operator,
+              aal: "aal2",
+            }),
+          ],
+        );
+      };
+      const call = (c: pg.Client, r: Request) =>
+        c.query("select public.provision_tenant($1, $2, $3, $4, $5, $6) as r", [
+          r.key,
+          r.name,
+          r.slug,
+          r.email,
+          r.staffRole,
+          r.reason,
+        ]);
+      const waitsOn = async (waiter: number, holder: number) => {
+        const deadline = Date.now() + 15_000;
+        while (Date.now() < deadline) {
+          const { rows } = await db.query(
+            "select $2::int = any(pg_blocking_pids($1)) as waiting",
+            [waiter, holder],
+          );
+          if (rows[0].waiting) return true;
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        return false;
+      };
+      const counts = async (slug: string) =>
+        (
+          await db.query(
+            `select (select count(*)::int from public.tenants t where t.slug = $1) as organizations,
+                    (select count(*)::int from platform.tenant_provisioning p join public.tenants t on t.id = p.tenant_id where t.slug = $1) as steps,
+                    (select count(*)::int from public.membership_invitations i join public.tenants t on t.id = i.tenant_id where t.slug = $1) as invitations`,
+            [slug],
+          )
+        ).rows[0];
+
+      try {
+        await a.connect();
+        connected.add(a);
+        await b.connect();
+        connected.add(b);
+        await db.query("insert into auth.users (id) values ($1)", [operator]);
+        await db.query("delete from authz.memberships where user_id = $1", [
+          operator,
+        ]);
+        await db.query(
+          "insert into authz.platform_operators (user_id, added_by, reason) values ($1, 'acc2676 provisioning', 'WP3a part 2a two-connection operator')",
+          [operator],
+        );
+        const pidA = await pidOf(a);
+        const pidB = await pidOf(b);
+
+        const first = request();
+        const sameSlug = request({ slug: first.slug });
+        slugs.push(first.slug!);
+        await begin(a);
+        expect((await call(a, first)).rows[0].r.created).toBe(true);
+        await begin(b);
+        const raced = call(b, sameSlug).then(
+          () => null,
+          (e: { code?: string; message?: string }) => e,
+        );
+        expect(await waitsOn(pidB, pidA)).toBe(true);
+        await a.query("commit");
+        const refusal = await raced;
+        await b.query("rollback");
+        expect([refusal?.code, refusal?.message]).toEqual([
+          "23505",
+          SLUG_TAKEN,
+        ]);
+        expect(await counts(first.slug!)).toEqual({
+          organizations: 1,
+          steps: 1,
+          invitations: 1,
+        });
+        expect(
+          (
+            await db.query(
+              "select count(*)::int as n from platform.tenant_provisioning where provisioning_key = $1",
+              [sameSlug.key],
+            )
+          ).rows[0].n,
+        ).toBe(0);
+
+        const once = request();
+        slugs.push(once.slug!);
+        await begin(a);
+        const created = (await call(a, once)).rows[0].r as {
+          tenant_id: string;
+          created: boolean;
+        };
+        expect(created.created).toBe(true);
+        await begin(b);
+        const repeated = call(b, once);
+        expect(await waitsOn(pidB, pidA)).toBe(true);
+        await a.query("commit");
+        const again = (await repeated).rows[0].r;
+        await b.query("commit");
+        expect(again).toEqual({ tenant_id: created.tenant_id, created: false });
+        expect(await counts(once.slug!)).toEqual({
+          organizations: 1,
+          steps: 1,
+          invitations: 1,
+        });
+      } catch (e) {
+        failure = e;
+      }
+
+      for (const c of connected)
+        try {
+          await c.query("rollback");
+        } catch (e) {
+          cleanupErrors.push(e);
+        }
+      try {
+        const tenants = (
+          await db.query(
+            "select id from public.tenants where slug = any($1::text[])",
+            [slugs],
+          )
+        ).rows.map((row) => row.id as string);
+        for (const table of [
+          "platform.tenant_provisioning",
+          "public.membership_invitations",
+          "public.donor_account_brands",
+          "public.donor_portal_hosts",
+          "public.sites",
+          "public.contribution_approval_policies",
+          "public.funds",
+          "public.legal_entities",
+          "public.audit_logs",
+        ])
+          await db.query(
+            `delete from ${table} where tenant_id = any($1::uuid[])`,
+            [tenants],
+          );
+        await db.query(
+          "delete from public.tenants where id = any($1::uuid[])",
+          [tenants],
+        );
+      } catch (e) {
+        cleanupErrors.push(e);
+      }
+      try {
+        await db.query(
+          "delete from authz.platform_operators where user_id = $1",
+          [operator],
+        );
+        await db.query("delete from authz.memberships where user_id = $1", [
+          operator,
+        ]);
+        await db.query("delete from public.profiles where user_id = $1", [
+          operator,
+        ]);
+        await db.query("delete from auth.users where id = $1", [operator]);
+      } catch (e) {
+        cleanupErrors.push(e);
+      }
+      for (const c of connected)
+        try {
+          await c.end();
+        } catch (e) {
+          cleanupErrors.push(e);
+        }
+
+      if (failure && cleanupErrors.length > 0)
+        throw new AggregateError(
+          [failure, ...cleanupErrors],
+          "the two-connection case failed, and so did its cleanup",
+        );
+      if (failure) throw failure;
+      if (cleanupErrors.length > 0)
+        throw new AggregateError(
+          cleanupErrors,
+          "the two-connection case's cleanup failed",
+        );
+    });
   },
 );
