@@ -474,19 +474,56 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 
 ### Service container images
 
-- `migrate`, `smoke`, `test-e2e-smoke`, `test-e2e`, and `api-contract` each run
-  one `postgres` service from
-  `public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24`.
-  ECR Public mirrors the Docker official image, which avoids anonymous Docker
-  Hub pull limits on the shared runner egress IP.
-- The pull is anonymous: no secret or `credentials:` key is required. The
-  fork-reachable `migrate` and `smoke` jobs must not reference secrets anyway.
-- The digest pins the reviewed bytes even when the `17.11-alpine` tag moves.
-- _Bump:_ confirm the digest exists on the mirror with
-  `docker manifest inspect public.ecr.aws/docker/library/postgres@sha256:<digest>`.
-  Update the five workflow `image:` references, including
-  `.github/workflows/api-contract.yml`, and `POSTGRES_IMAGE` in
-  `scripts/api-contract/stack.mjs` together.
+- Eight jobs run one `postgres` service: `migrate`, `smoke`, `test-e2e-smoke`
+  and `test-e2e` here, `api-contract` (`api-contract.yml`), `local-supabase`
+  (`local-supabase.yml`), `preview-database` (`qa-smoke-preview-deploy.yml`)
+  and `release-database` (`release.yml`). Each pulls
+  `ghcr.io/asymmetric-al/core-ci-postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24`,
+  the organization's copy of `public.ecr.aws/docker/library/postgres:17.11-alpine`
+  at the same digest (§ Mirror CI images workflow). `POSTGRES_IMAGE` and
+  `POSTGREST_IMAGE` in `scripts/api-contract/stack.mjs` name the same Postgres
+  digest and `ghcr.io/asymmetric-al/core-ci-postgrest:v16.4` at the digest of
+  `public.ecr.aws/supabase/postgrest:v16.4`.
+- The pull uses the workflow's own token: each service sets `credentials:` to
+  `github.actor` and `github.token`, and each of the five workflows grants
+  `packages: read`. The runner uses those credentials itself, before the first
+  step, and hands them to no step (the `api-contract` job's own login step,
+  below, is given the token separately). No repository secret is needed. There is no
+  fallback to a public registry: a digest the mirror does not hold fails the
+  job at "Initialize containers".
+- _`api-contract` and PostgREST:_ the registry token is never on disk, in the
+  environment or on a command line while code from the pull request runs. Its
+  first step rejects a fork's pull request; its second, before checkout,
+  calls tools by absolute path only, logs in to a throwaway Docker
+  configuration with the token on standard input, pulls the PostgREST digest
+  and logs out and deletes that configuration on any exit. `stack.mjs` then
+  runs the image with `--pull never` and stops if it is missing.
+  `tests/unit/workflows/ci-image-pulls.test.ts` fails if that order or the
+  logout changes, or if `stack.mjs` pulls.
+- _Fork pull requests:_ a job's services start before its first step. Four of
+  the eight jobs can start for a fork's pull request: `migrate`, `smoke`,
+  `local-supabase` and `api-contract`. Each pulls its service image and then
+  fails at its first step, "Reject fork pull requests". `test-e2e-smoke` and
+  `test-e2e` skip forks in their job condition; `preview-database` needs the
+  preview `deploy` job, which skips a fork's pull request; `release-database`
+  never runs on a pull request. GitHub turns every write permission of a
+  fork's run into read, so such a run can at most read these two packages and
+  cannot write anything; the only `packages: write` is in
+  `mirror-ci-images.yml`, which never runs on a pull request. Whether the pull
+  succeeds or not, the fork's run fails. The workflow-token `credentials:` is
+  the one job-level token use the fork model in
+  `tests/unit/helpers/workflow-yaml.ts` accepts; a repository secret there
+  still fails it.
+- The digest pins the reviewed bytes even when the tag moves.
+  `tests/unit/workflows/ci-image-pulls.test.ts` fails if an `image:` line of a
+  workflow, or an image of `stack.mjs`, names a digest that
+  `.github/ci-images.json` does not list, or names the public registry again.
+- _Bump:_ add the new digest to `.github/ci-images.json`, merge, and dispatch
+  the mirror (§ Mirror CI images workflow); then update the eight `image:`
+  lines and `POSTGRES_IMAGE` (or `POSTGREST_IMAGE`) in `stack.mjs` together.
+- _Local runs:_ `bun run test:api-contract:up` does not pull. Run
+  `docker pull` for the two mirrored images first, after `docker login ghcr.io`
+  with a token that can read packages while the packages are private.
 
 ---
 

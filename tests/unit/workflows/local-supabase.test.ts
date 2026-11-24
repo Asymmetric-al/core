@@ -56,7 +56,7 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
   });
   it("replays the chain on plain Postgres with the hosted defaults, as the release job does", () => {
     expect(workflow).toMatch(
-      /services:\n\s+postgres:\n\s+image: public\.ecr\.aws\/docker\/library\/postgres:17\.11-alpine@sha256:[0-9a-f]{64}/,
+      /services:\n\s+postgres:\n\s+image: ghcr\.io\/asymmetric-al\/core-ci-postgres:17\.11-alpine@sha256:[0-9a-f]{64}\n\s+credentials:\n\s+username: \$\{\{ github\.actor \}\}\n\s+password: \$\{\{ github\.token \}\}/,
     );
     const replay = step("node scripts/verify/supabase-migrations.mjs");
     expect(replay).toContain(
