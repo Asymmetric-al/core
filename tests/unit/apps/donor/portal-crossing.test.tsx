@@ -60,10 +60,17 @@ vi.mock("next/link", () => ({
     </a>
   ),
 }));
-vi.mock("../../../../packages/database/document-reload", () => ({
-  reloadDocument,
-  loadDocument,
-}));
+vi.mock(
+  "../../../../packages/database/document-reload",
+  async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>();
+    return {
+      ...actual,
+      reloadDocument,
+      loadDocument,
+    };
+  },
+);
 
 /** A new donor app document, loaded at `pathname`. */
 async function documentLoadedAt(pathname: string) {

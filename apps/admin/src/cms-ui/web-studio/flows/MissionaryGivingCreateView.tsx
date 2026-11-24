@@ -1,5 +1,6 @@
 "use client";
 
+import { appPathname } from "@asym/database/document-reload";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { FieldDescription } from "@asym/ui/components/shadcn/field";
 import { useConfig } from "@payloadcms/ui";
@@ -148,10 +149,12 @@ function MissionaryGivingCreateViewContent() {
 
       if (status === 409 && body?.existingId) {
         toast.info("This giving page already exists, so we opened it.");
-        const editPath = formatAdminURL({
-          adminRoute: routes.admin,
-          path: `/collections/missionary-giving-pages/${body.existingId}`,
-        });
+        const editPath = appPathname(
+          formatAdminURL({
+            adminRoute: routes.admin,
+            path: `/collections/missionary-giving-pages/${body.existingId}`,
+          }),
+        );
         push(editPath);
         return;
       }
@@ -162,10 +165,12 @@ function MissionaryGivingCreateViewContent() {
       }
 
       if (body?.id && body.collectionSlug) {
-        const editPath = formatAdminURL({
-          adminRoute: routes.admin,
-          path: `/collections/${body.collectionSlug}/${body.id}`,
-        });
+        const editPath = appPathname(
+          formatAdminURL({
+            adminRoute: routes.admin,
+            path: `/collections/${body.collectionSlug}/${body.id}`,
+          }),
+        );
         push(editPath);
       }
     },

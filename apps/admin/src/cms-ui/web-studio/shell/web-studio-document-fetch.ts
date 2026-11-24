@@ -1,5 +1,6 @@
 import { ASSIGNMENT_HEADER, TENANT_HEADER } from "@asym/auth/request-headers";
 import { isWebStudioApiPath, isWebStudioPagePath } from "@asym/auth/web-studio";
+import { appPathname } from "@asym/database/document-reload";
 import { readDocumentScopeForSend } from "@asym/database/document-scope";
 import { retiredScopeResponse } from "@asym/database/request-scope-headers";
 
@@ -121,14 +122,15 @@ export function installWebStudioDocumentFetch(
     const headers = new Headers(
       init?.headers ?? (input instanceof Request ? input.headers : undefined),
     );
+    const pathname = appPathname(url.pathname);
     // A server function of Payload's, posted from a Web Studio page (JC2).
     const serverFunction =
-      isWebStudioPagePath(url.pathname) &&
+      isWebStudioPagePath(pathname) &&
       requestMethod(input, init) === "POST" &&
       headers.has("next-action");
     if (!scope) {
       // Retired (JR1): a call that would carry the claims is not sent.
-      return serverFunction || isWebStudioApiPath(url.pathname)
+      return serverFunction || isWebStudioApiPath(pathname)
         ? Promise.resolve(
             retiredScopeResponse({ errors: [{ message: "Unauthorized" }] }),
           )
@@ -142,7 +144,7 @@ export function installWebStudioDocumentFetch(
         return response;
       });
     }
-    if (!isWebStudioApiPath(url.pathname)) return original(input, init);
+    if (!isWebStudioApiPath(pathname)) return original(input, init);
     headers.set(TENANT_HEADER, scope.tenantId);
     headers.set(ASSIGNMENT_HEADER, scope.assignmentId);
     return original(input, { ...init, headers }).then((response) => {

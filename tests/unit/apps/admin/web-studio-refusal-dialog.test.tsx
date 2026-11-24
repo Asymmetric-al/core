@@ -22,9 +22,16 @@ import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
  */
 
 const reload = vi.hoisted(() => vi.fn());
-vi.mock("../../../../packages/database/document-reload", () => ({
-  reloadDocument: reload,
-}));
+vi.mock(
+  "../../../../packages/database/document-reload",
+  async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>();
+    return {
+      ...actual,
+      reloadDocument: reload,
+    };
+  },
+);
 
 const SCOPE = {
   userId: "00000000-0000-4000-8000-0000000000c1",

@@ -1,3 +1,5 @@
+import { withAppBasePath } from "@asym/database/document-reload";
+
 export const PASSWORD_RECOVERY_PATHS = {
   request: "/forgot-password",
   callback: "/forgot-password/callback",
@@ -9,7 +11,10 @@ export const PASSWORD_RECOVERY_WINDOW_SECONDS = 60 * 60;
 const CLOCK_SKEW_SECONDS = 60;
 
 export function passwordRecoveryRedirectUrl(origin: string): string {
-  return new URL(PASSWORD_RECOVERY_PATHS.callback, origin).toString();
+  return new URL(
+    withAppBasePath(PASSWORD_RECOVERY_PATHS.callback),
+    origin,
+  ).toString();
 }
 
 export function passwordRecoverySecondsLeft(

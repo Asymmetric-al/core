@@ -1,6 +1,10 @@
 "use client";
 
-import { loadDocument } from "@asym/database/document-reload";
+import {
+  appPathname,
+  loadDocument,
+  withAppBasePath,
+} from "@asym/database/document-reload";
 import {
   forgetDocumentReload,
   requestDocumentReload,
@@ -50,7 +54,7 @@ function loadedPathname(): string | undefined {
   try {
     const [entry] = performance.getEntriesByType("navigation");
     if (!entry) return undefined;
-    return new URL(entry.name).pathname;
+    return appPathname(new URL(entry.name).pathname);
   } catch {
     return undefined;
   }
@@ -382,12 +386,12 @@ export function useTenantRouter(): AppRouter {
       ...router,
       push: (href, ...options) => {
         const target = toHref(href);
-        if (crosses(target)) loadCrossing(target, false);
+        if (crosses(target)) loadCrossing(withAppBasePath(target), false);
         else router.push(target, ...options);
       },
       replace: (href, ...options) => {
         const target = toHref(href);
-        if (crosses(target)) loadCrossing(target, true);
+        if (crosses(target)) loadCrossing(withAppBasePath(target), true);
         else router.replace(target, ...options);
       },
       prefetch: (href, ...options) => {

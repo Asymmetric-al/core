@@ -6,6 +6,11 @@ import {
   useTenantRouter,
 } from "@asym/auth/tenant-navigation";
 import { isWebStudioPagePath } from "@asym/auth/web-studio";
+import {
+  appBasePath,
+  appPathname,
+  withAppBasePath,
+} from "@asym/database/document-reload";
 import { RouterAdapterContext } from "@payloadcms/ui";
 import {
   useParams as useNextParams,
@@ -34,6 +39,68 @@ import type { LinkAdapterProps } from "payload";
  * boundary and the document's scope use too (council on the joined release,
  * JC1).
  */
+function hasBasePrefix(pathname: string, base: string): boolean {
+  return (
+    Boolean(base) && (pathname === base || pathname.startsWith(`${base}/`))
+  );
+}
+
+function isWebStudioSegmentPath(pathname: string): boolean {
+  return pathname === "/web-studio" || pathname.startsWith("/web-studio/");
+}
+
+function stripStudioBasePath(href: string): string {
+  const base = appBasePath();
+  if (!base || !href) return href;
+  if (href.startsWith("/") && !href.startsWith("//")) {
+    const pathEnd = href.search(/[?#]/);
+    const pathname = pathEnd === -1 ? href : href.slice(0, pathEnd);
+    if (
+      hasBasePrefix(pathname, base) &&
+      isWebStudioSegmentPath(appPathname(pathname))
+    ) {
+      return `${appPathname(pathname)}${pathEnd === -1 ? "" : href.slice(pathEnd)}`;
+    }
+    return href;
+  }
+  if (typeof window !== "undefined") {
+    try {
+      const url = new URL(href);
+      if (
+        url.origin === window.location.origin &&
+        hasBasePrefix(url.pathname, base) &&
+        isWebStudioSegmentPath(appPathname(url.pathname))
+      ) {
+        return `${appPathname(url.pathname)}${url.search}${url.hash}`;
+      }
+    } catch {
+      return href;
+    }
+  }
+  return href;
+}
+
+function isPayloadRouterStudioTarget(href: string, current: string): boolean {
+  if (isWebStudioPageAddress(href, current)) return true;
+  const base = appBasePath();
+  if (!base || !href.startsWith("/") || href.startsWith("//")) return false;
+  return isWebStudioPageAddress(withAppBasePath(href), current);
+}
+
+function documentLoadHref(href: string): string {
+  const base = appBasePath();
+  if (!base || !href.startsWith("/") || href.startsWith("//")) return href;
+  const pathEnd = href.search(/[?#]/);
+  const pathname = pathEnd === -1 ? href : href.slice(0, pathEnd);
+  if (
+    hasBasePrefix(pathname, base) &&
+    isWebStudioSegmentPath(appPathname(pathname))
+  ) {
+    return href;
+  }
+  return withAppBasePath(href);
+}
+
 export function isWebStudioPageAddress(href: string, current: string): boolean {
   let url: URL;
   let here: URL;
@@ -43,7 +110,10 @@ export function isWebStudioPageAddress(href: string, current: string): boolean {
   } catch {
     return false;
   }
-  return url.origin === here.origin && isWebStudioPagePath(url.pathname);
+  if (url.origin !== here.origin) return false;
+  const base = appBasePath();
+  if (base && !hasBasePrefix(url.pathname, base)) return false;
+  return isWebStudioPagePath(appPathname(url.pathname));
 }
 
 /**
@@ -83,7 +153,7 @@ const NextLinkAdapter: React.FC<LinkAdapterProps> = ({
 }) => {
   return (
     <TenantLink
-      href={href}
+      href={stripStudioBasePath(href)}
       prefetch={prefetch}
       ref={ref}
       replace={replace}
@@ -133,14 +203,14 @@ function NextRouterAdapterProvider({
     () => ({
       back: nextRouter.back,
       push: (href, options) =>
-        isWebStudioPageAddress(href, window.location.href)
-          ? nextRouter.push(href, options)
-          : loadDocument(href, { replace: false }),
+        isPayloadRouterStudioTarget(href, window.location.href)
+          ? nextRouter.push(stripStudioBasePath(href), options)
+          : loadDocument(documentLoadHref(href), { replace: false }),
       refresh: nextRouter.refresh,
       replace: (href, options) =>
-        isWebStudioPageAddress(href, window.location.href)
-          ? nextRouter.replace(href, options)
-          : loadDocument(href, { replace: true }),
+        isPayloadRouterStudioTarget(href, window.location.href)
+          ? nextRouter.replace(stripStudioBasePath(href), options)
+          : loadDocument(documentLoadHref(href), { replace: true }),
     }),
     [nextRouter],
   );

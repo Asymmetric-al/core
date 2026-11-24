@@ -10,10 +10,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  */
 
 const reloadDocument = vi.hoisted(() => vi.fn());
-vi.mock("../../../../packages/database/document-reload", () => ({
-  reloadDocument,
-  loadDocument: vi.fn(),
-}));
+vi.mock(
+  "../../../../packages/database/document-reload",
+  async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>();
+    return {
+      ...actual,
+      reloadDocument,
+      loadDocument: vi.fn(),
+    };
+  },
+);
 
 const { ScopeReloadNotices } =
   await import("../../../../packages/ui/components/scope-reload-notices");

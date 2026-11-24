@@ -1,6 +1,10 @@
 "use client";
 
-import { loadDocument } from "@asym/database/document-reload";
+import {
+  appPathname,
+  loadDocument,
+  withAppBasePath,
+} from "@asym/database/document-reload";
 import { ownApiFetch } from "@asym/database/own-api";
 import {
   captureAndStripInviteFragment,
@@ -52,7 +56,9 @@ export function InvitationDoorway({
 
   const readHashVerifier = React.useCallback(() => {
     captureAndStripInviteFragment();
-    const extracted = consumeInviteFragment(window.location.pathname);
+    const extracted = consumeInviteFragment(
+      appPathname(window.location.pathname),
+    );
     if (extracted) {
       setVerifier(extracted);
     }
@@ -71,7 +77,7 @@ export function InvitationDoorway({
     };
   }, [readHashVerifier, selector]);
 
-  const signInTarget = `${loginHref}?next=${encodeURIComponent(`/invite/${selector}`)}`;
+  const signInTarget = `${withAppBasePath(loginHref)}?next=${encodeURIComponent(`/invite/${selector}`)}`;
 
   const handleAccept = React.useCallback(async () => {
     if (!verifier || submissionRef.current) return;
@@ -116,7 +122,7 @@ export function InvitationDoorway({
       if (onNavigate) {
         onNavigate(destination);
       } else {
-        loadDocument(destination);
+        loadDocument(withAppBasePath(destination));
       }
     } catch {
       setErrorMessage("Could not reach the server. Try again.");

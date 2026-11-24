@@ -1,3 +1,5 @@
+import { appPathname } from "@asym/database/document-reload";
+
 import type { init, replayIntegration } from "@sentry/nextjs";
 
 type SentryOptions = Parameters<typeof init>[0];
@@ -12,9 +14,10 @@ const INVITE_URL_FRAGMENT_PATTERN =
 let pendingInviteFragment: { pathname: string; verifier: string } | null = null;
 
 function normalizeInvitePathname(pathname: string): string {
-  return pathname.length > 1 && pathname.endsWith("/")
-    ? pathname.slice(0, -1)
-    : pathname;
+  const stripped = appPathname(pathname);
+  return stripped.length > 1 && stripped.endsWith("/")
+    ? stripped.slice(0, -1)
+    : stripped;
 }
 
 export function scrubInviteFragmentFromUrl(value: string): string {
@@ -98,7 +101,7 @@ export function captureAndStripInviteFragment(): string | null {
   if (!win) return null;
   const { pathname, search, hash } = win.location;
   const normalizedPathname = normalizeInvitePathname(pathname);
-  if (!INVITE_PATH_PATTERN.test(pathname) || !hash) {
+  if (!INVITE_PATH_PATTERN.test(normalizedPathname) || !hash) {
     if (
       pendingInviteFragment &&
       pendingInviteFragment.pathname !== normalizedPathname

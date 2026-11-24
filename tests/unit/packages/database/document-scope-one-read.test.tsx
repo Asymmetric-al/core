@@ -34,10 +34,17 @@ vi.mock(
   },
 );
 const reloadDocument = vi.hoisted(() => vi.fn());
-vi.mock("../../../../packages/database/document-reload", () => ({
-  reloadDocument,
-  loadDocument: vi.fn(),
-}));
+vi.mock(
+  "../../../../packages/database/document-reload",
+  async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>();
+    return {
+      ...actual,
+      reloadDocument,
+      loadDocument: vi.fn(),
+    };
+  },
+);
 
 const TENANT = "00000000-0000-0000-0000-000000000001";
 const PERSON_A = "00000000-0000-4000-8000-0000000000a1";

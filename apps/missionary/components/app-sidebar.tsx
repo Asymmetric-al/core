@@ -5,6 +5,7 @@ import {
   useRoutePathname as usePathname,
 } from "@asym/auth/tenant-navigation";
 import { siteConfig } from "@asym/config/site-client";
+import { crossAppHref } from "@asym/database/document-reload";
 import {
   useMissionaryPortalSnapshot,
   usePendingFollowRequestCount,
@@ -138,14 +139,25 @@ export function AppSidebar({
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton
                         render={
-                          <Link
-                            href={item.href}
-                            aria-current={isActive ? "page" : undefined}
-                            aria-label={
-                              cue ? `${item.title}, ${cue.spoken}` : undefined
-                            }
-                            onClick={closeOnMobile}
-                          />
+                          item.targetApp ? (
+                            <a
+                              href={crossAppHref(item.targetApp, item.href)}
+                              aria-current={isActive ? "page" : undefined}
+                              aria-label={
+                                cue ? `${item.title}, ${cue.spoken}` : undefined
+                              }
+                              onClick={closeOnMobile}
+                            />
+                          ) : (
+                            <Link
+                              href={item.href}
+                              aria-current={isActive ? "page" : undefined}
+                              aria-label={
+                                cue ? `${item.title}, ${cue.spoken}` : undefined
+                              }
+                              onClick={closeOnMobile}
+                            />
+                          )
                         }
                         isActive={isActive}
                         tooltip={

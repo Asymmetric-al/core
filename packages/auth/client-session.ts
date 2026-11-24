@@ -1,6 +1,6 @@
 "use client";
 
-import { loadDocument } from "@asym/database/document-reload";
+import { loadDocument, withAppBasePath } from "@asym/database/document-reload";
 import { getQueryClient } from "@asym/database/providers";
 import { createBrowserClient } from "@asym/database/supabase";
 
@@ -211,7 +211,7 @@ function defaultNotify(message: string) {
 
 function defaultRedirect(href: string) {
   if (typeof window !== "undefined") {
-    loadDocument(href);
+    loadDocument(withAppBasePath(href));
   }
 }
 

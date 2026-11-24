@@ -4,6 +4,10 @@ import {
   TenantLink as Link,
   useRoutePathname,
 } from "@asym/auth/tenant-navigation";
+import {
+  crossAppHref,
+  isServeUnderPathsEnabled,
+} from "@asym/database/document-reload";
 import { ownApiFetch } from "@asym/database/own-api";
 import { useMC } from "@asym/lib/mission-control/context";
 import {
@@ -597,6 +601,21 @@ function MembersDirectory({
   );
 }
 
+export function formatInvitationAddress(
+  created: { role: "staff" | "missionary"; invitePath: string },
+  origin: string,
+): string {
+  if (isServeUnderPathsEnabled()) {
+    const targetApp = created.role === "staff" ? "admin" : "missionary";
+    const prefixed = crossAppHref(targetApp, created.invitePath);
+    return origin ? `${origin}${prefixed}` : prefixed;
+  }
+  if (created.role === "staff") {
+    return origin ? `${origin}${created.invitePath}` : created.invitePath;
+  }
+  return created.invitePath;
+}
+
 function InviteMemberDialog({
   open,
   onOpenChange,
@@ -723,11 +742,10 @@ function InviteMemberDialog({
   };
 
   const invitationAddress = created
-    ? created.role === "staff"
-      ? typeof window !== "undefined"
-        ? `${window.location.origin}${created.invitePath}`
-        : created.invitePath
-      : created.invitePath
+    ? formatInvitationAddress(
+        created,
+        typeof window !== "undefined" ? window.location.origin : "",
+      )
     : "";
 
   const isMissionaryInvitation = created?.role === "missionary";

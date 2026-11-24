@@ -1,3 +1,5 @@
+import { withAppBasePath } from "@asym/database/document-reload";
+
 import { resolveDonorOrigin } from "./resolve-donor-origin";
 
 import type { GeneratePreviewURL } from "payload";
@@ -41,9 +43,11 @@ export function buildWebStudioAuthenticatedPreviewPath({
   collectionSlug: PreviewCollectionSlug;
   id: string | number;
 }): string {
-  return `/web-studio/preview/${encodeURIComponent(collectionSlug)}/${encodeURIComponent(
-    String(id),
-  )}`;
+  return withAppBasePath(
+    `/web-studio/preview/${encodeURIComponent(collectionSlug)}/${encodeURIComponent(
+      String(id),
+    )}`,
+  );
 }
 
 export function createWebStudioAuthenticatedPreviewURL(
@@ -52,7 +56,9 @@ export function createWebStudioAuthenticatedPreviewURL(
   return (doc) => {
     const id = readDocumentId(doc as Record<string, unknown>);
     if (!id) {
-      return `/web-studio/collections/${encodeURIComponent(collectionSlug)}`;
+      return withAppBasePath(
+        `/web-studio/collections/${encodeURIComponent(collectionSlug)}`,
+      );
     }
 
     return buildWebStudioAuthenticatedPreviewPath({ collectionSlug, id });
