@@ -9,8 +9,10 @@
 --    commands of the worker safety room write the Phase 10 fields.
 -- 2. donors.party_id (nullable until part 2), missionaries.party_id (NOT NULL,
 --    unique per tenant), same-tenant keys to parties, and nullable
---    import_batch_id on donors, missionaries and funds. funds.import_batch_id
---    stays unclassified here (W5-R6).
+--    import_batch_id on donors, missionaries and funds. WP8a part 1 classified
+--    funds before this migration, so funds.import_batch_id is classified here
+--    too, like the other two (W5-R6: whichever merges second carries the
+--    other's column).
 -- 3. Backfill from evidence only, never by name or email: a donor and a
 --    missionary that name the same (tenant, profile) share one Party; every
 --    other donor and missionary gets its own. The display name is the
@@ -448,7 +450,8 @@ SELECT f.record_type, f.field_key, s.surface, NULL, s.surface = 'mission_control
     ('donors', 'party_id', 'internal'),
     ('donors', 'import_batch_id', 'internal'),
     ('missionaries', 'party_id', 'internal'),
-    ('missionaries', 'import_batch_id', 'internal')
+    ('missionaries', 'import_batch_id', 'internal'),
+    ('funds', 'import_batch_id', 'internal')
   ) AS f (record_type, field_key, category)
   CROSS JOIN (VALUES ('mission_control'), ('donor'), ('missionary'), ('public'), ('export')) AS s (surface)
 ON CONFLICT ON CONSTRAINT field_policies_lookup_key DO NOTHING;

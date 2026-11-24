@@ -2889,6 +2889,16 @@
         "missionary": "---",
         "public": "---",
         "export": "---"
+      },
+      "import_batch_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
       }
     },
     "payment_onboarding_intents": {
