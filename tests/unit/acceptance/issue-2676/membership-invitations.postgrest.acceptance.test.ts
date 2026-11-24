@@ -14,7 +14,7 @@ const required = process.env.GITHUB_JOB === "local-supabase";
 const GENERIC_REFUSAL = "Invitation is invalid or no longer available";
 
 describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
-  "AL-2676 WP3c: invitations, acceptance, directory updated_at, and role-change concurrency through PostgREST",
+  "AL-2676 WP3c: invitations, acceptance, directory updated_at, and role-change concurrency through PostgREST (D-18: AL-2676, D-16 ruling on caller_assignment Q3: api() sends empty-string scope headers instead of dropping them)",
   () => {
     const tenantId = randomUUID();
     const adminMembershipId = randomUUID();
@@ -51,8 +51,9 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         Authorization: `Bearer ${bearer}`,
         "Content-Type": "application/json",
       };
-      if (options?.tenant) headers["x-asym-tenant"] = options.tenant;
-      if (options?.assignment)
+      if (options?.tenant !== undefined)
+        headers["x-asym-tenant"] = options.tenant;
+      if (options?.assignment !== undefined)
         headers["x-asym-assignment"] = options.assignment;
       return fetch(`${url}/${path}`, {
         method: options?.method ?? (options?.body ? "POST" : "GET"),
@@ -390,6 +391,297 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       } finally {
         try {
           await db!.query("begin");
+          await db!.query(
+            "delete from public.membership_invitations where tenant_id = $1",
+            [tenantB],
+          );
+          await db!.query(
+            "delete from authz.memberships where tenant_id = $1",
+            [tenantB],
+          );
+          await db!.query(
+            "delete from public.audit_logs where tenant_id = $1",
+            [tenantB],
+          );
+          await db!.query("delete from public.tenants where id = $1", [
+            tenantB,
+          ]);
+          await db!.query("commit");
+        } catch (cleanupError) {
+          await db!.query("rollback").catch(() => {});
+          if (!testError) throw cleanupError;
+        }
+      }
+    });
+
+    it("refuses tenant_member_directory, tenant_membership_invitations, and the five CRM table-preference writers for a second organization unless x-asym-tenant names that organization", async () => {
+      const tenantB = randomUUID();
+      const adminBMembershipId = randomUUID();
+      const plantedViewId = randomUUID();
+      let plantedInvitationId = "";
+
+      const profileRes = await db!.query<{ id: string }>(
+        "select id from public.profiles where user_id = $1",
+        [adminUserId],
+      );
+      expect(profileRes.rows).toHaveLength(1);
+      const adminProfileId = profileRes.rows[0]!.id;
+
+      await db!.query("begin");
+      try {
+        await db!.query(
+          "insert into public.tenants (id, name, slug, status) values ($1, 'WP3c CallerOrg B', $2, 'active')",
+          [tenantB, `wp3c-callerorg-b-${tenantB.slice(0, 8)}`],
+        );
+        await db!.query(
+          "insert into authz.memberships (id, user_id, tenant_id, role, staff_role, is_tenant_admin, is_active) values ($1, $2, $3, 'staff', 'development', true, true)",
+          [adminBMembershipId, adminUserId, tenantB],
+        );
+        const issued = await db!.query<{ invitation_id: string }>(
+          `select invitation_id from tenant_guard.issue_membership_invitation(
+             $1::uuid, $2::text, 'missionary'::authz.membership_role,
+             null, false, 'member_invite', 'email', $3::uuid, 'CallerOrg PostgREST fixture'
+           )`,
+          [
+            tenantB,
+            `callerorg-pg-inv-${tenantB.slice(0, 8)}@example.test`,
+            adminUserId,
+          ],
+        );
+        plantedInvitationId = issued.rows[0]!.invitation_id;
+        await db!.query(
+          `insert into public.crm_table_named_views (
+             id, tenant_id, profile_id, table_id, name, is_default,
+             schema_version, pinned_action_id, settings
+           ) values (
+             $1, $2, $3, 'crm.giftHistory', 'Planted PostgREST View B', false,
+             1, null, '{}'::jsonb
+           )`,
+          [plantedViewId, tenantB, adminProfileId],
+        );
+        await db!.query("commit");
+      } catch (error) {
+        await db!.query("rollback");
+        throw error;
+      }
+
+      const CRM_MSG =
+        "Forbidden: CRM table preferences require a CRM role in this tenant.";
+      const calls: ReadonlyArray<{
+        rpc: string;
+        message: string;
+        body: (tag: string) => Record<string, unknown>;
+      }> = [
+        {
+          rpc: "tenant_member_directory",
+          message:
+            "Forbidden: the member directory requires a live staff membership in this tenant.",
+          body: () => ({ p_tenant_id: tenantB }),
+        },
+        {
+          rpc: "tenant_membership_invitations",
+          message:
+            "Forbidden: listing invitations requires people.manage_members in this tenant.",
+          body: () => ({ p_tenant_id: tenantB }),
+        },
+        {
+          rpc: "create_crm_table_named_view",
+          message: CRM_MSG,
+          body: (tag) => ({
+            p_tenant_id: tenantB,
+            p_table_id: "crm.giftHistory",
+            p_name: `PgView-${tag}`,
+            p_is_default: false,
+            p_schema_version: 1,
+            p_pinned_action_id: null,
+            p_settings: {},
+          }),
+        },
+        {
+          rpc: "update_crm_table_named_view",
+          message: CRM_MSG,
+          body: () => ({
+            p_tenant_id: tenantB,
+            p_table_id: "crm.giftHistory",
+            p_view_id: plantedViewId,
+            p_name: "Renamed PostgREST View B",
+            p_name_is_set: true,
+            p_is_default: true,
+            p_is_default_is_set: true,
+            p_schema_version: 1,
+            p_pinned_action_id: "resend_receipt",
+            p_pinned_action_id_is_set: true,
+            p_settings: {},
+            p_settings_is_set: true,
+          }),
+        },
+        {
+          rpc: "save_crm_user_table_preference",
+          message: CRM_MSG,
+          body: () => ({
+            p_tenant_id: tenantB,
+            p_table_id: "crm.giftHistory",
+            p_pinned_action_id: "resend_receipt",
+            p_pinned_action_id_is_set: true,
+            p_schema_version: 1,
+            p_settings_patch: {},
+          }),
+        },
+        {
+          rpc: "save_crm_tenant_table_default",
+          message: CRM_MSG,
+          body: () => ({
+            p_tenant_id: tenantB,
+            p_table_id: "crm.giftHistory",
+            p_pinned_action_id: "resend_receipt",
+            p_pinned_action_id_is_set: true,
+            p_schema_version: 1,
+            p_settings_patch: {},
+          }),
+        },
+        {
+          rpc: "delete_crm_table_named_view",
+          message: CRM_MSG,
+          body: () => ({
+            p_tenant_id: tenantB,
+            p_table_id: "crm.giftHistory",
+            p_view_id: plantedViewId,
+            p_next_default_view_id: null,
+          }),
+        },
+      ];
+
+      let testError: unknown;
+      try {
+        const beforeView = (
+          await db!.query(
+            `select id, name, is_default, pinned_action_id, settings, updated_at
+               from public.crm_table_named_views where id = $1`,
+            [plantedViewId],
+          )
+        ).rows[0];
+
+        const refusalVariants: ReadonlyArray<{
+          label: string;
+          tenant?: string;
+          assignment?: string;
+        }> = [
+          {
+            label: "wrong-tenant-named",
+            tenant: tenantId,
+            assignment: adminBMembershipId,
+          },
+          { label: "wrong-tenant-none", tenant: tenantId },
+          { label: "no-headers" },
+          { label: "blank-tenant", tenant: "" },
+          { label: "spaces-tenant", tenant: "   " },
+        ];
+
+        for (const call of calls) {
+          for (const variant of refusalVariants) {
+            const res = await api(
+              `rest/v1/rpc/${call.rpc}`,
+              anon!,
+              adminToken,
+              {
+                tenant: variant.tenant,
+                assignment: variant.assignment,
+                body: call.body(`${call.rpc}-${variant.label}`),
+              },
+            );
+            expect(res.status, `${call.rpc} ${variant.label}`).toBe(403);
+            expect(
+              await res.json(),
+              `${call.rpc} ${variant.label}`,
+            ).toMatchObject({
+              code: "42501",
+              message: call.message,
+            });
+          }
+
+          const bad = await api(`rest/v1/rpc/${call.rpc}`, anon!, adminToken, {
+            tenant: "not-a-uuid",
+            body: call.body(`${call.rpc}-malformed`),
+          });
+          expect(bad.status, `${call.rpc} malformed`).toBe(400);
+          expect(await bad.json(), `${call.rpc} malformed`).toMatchObject({
+            code: "22P02",
+            message: "authz: the tenant header is not a UUID",
+          });
+        }
+
+        const afterRefusalsView = (
+          await db!.query(
+            `select id, name, is_default, pinned_action_id, settings, updated_at
+               from public.crm_table_named_views where id = $1`,
+            [plantedViewId],
+          )
+        ).rows[0];
+        expect(afterRefusalsView).toEqual(beforeView);
+
+        const afterRefusalsCounts = (
+          await db!.query(
+            `select
+               (select count(*)::int from public.crm_table_named_views where tenant_id = $1) as named_views,
+               (select count(*)::int from public.crm_table_user_preferences where tenant_id = $1) as user_prefs,
+               (select count(*)::int from public.crm_table_tenant_defaults where tenant_id = $1) as tenant_defaults,
+               (select count(*)::int from public.crm_table_preference_audit_events where tenant_id = $1) as pref_audit`,
+            [tenantB],
+          )
+        ).rows[0];
+        expect(afterRefusalsCounts).toEqual({
+          named_views: 1,
+          user_prefs: 0,
+          tenant_defaults: 0,
+          pref_audit: 0,
+        });
+
+        for (const call of calls) {
+          const ok = await api(`rest/v1/rpc/${call.rpc}`, anon!, adminToken, {
+            tenant: tenantB,
+            assignment: adminBMembershipId,
+            body: call.body(`${call.rpc}-ok`),
+          });
+          expect(ok.status, `${call.rpc} matching tenant`).toBe(200);
+          const payload = (await ok.json()) as unknown;
+          if (call.rpc === "tenant_member_directory") {
+            expect(
+              (payload as Array<{ membership_id: string }>).map(
+                (r) => r.membership_id,
+              ),
+            ).toContain(adminBMembershipId);
+          } else if (call.rpc === "tenant_membership_invitations") {
+            expect(
+              (payload as Array<{ id: string }>).map((r) => r.id),
+            ).toContain(plantedInvitationId);
+          } else if (call.rpc === "delete_crm_table_named_view") {
+            expect(payload).toMatchObject({ deleted: true });
+          } else {
+            expect(payload).toMatchObject({ tenant_id: tenantB });
+          }
+        }
+      } catch (error) {
+        testError = error;
+        throw error;
+      } finally {
+        try {
+          await db!.query("begin");
+          await db!.query(
+            "delete from public.crm_table_preference_audit_events where tenant_id = $1",
+            [tenantB],
+          );
+          await db!.query(
+            "delete from public.crm_table_tenant_defaults where tenant_id = $1",
+            [tenantB],
+          );
+          await db!.query(
+            "delete from public.crm_table_user_preferences where tenant_id = $1",
+            [tenantB],
+          );
+          await db!.query(
+            "delete from public.crm_table_named_views where tenant_id = $1",
+            [tenantB],
+          );
           await db!.query(
             "delete from public.membership_invitations where tenant_id = $1",
             [tenantB],
