@@ -131,9 +131,11 @@ on:
       - apps/missionary/app/api/invitations/**
       - apps/missionary/app/invite/**
       - apps/admin/lib/admin-access.ts
+      - apps/*/instrumentation-client.ts
       - packages/api/src/admin/members/**
       - packages/api/src/admin/users.ts
       - packages/api/src/invitations/**
+      - packages/lib/monitoring/**
       - tests/e2e/auth-members-invitations.spec.ts
       - tests/unit/acceptance/issue-2676/membership-invitations.postgrest.acceptance.test.ts
       - tests/unit/acceptance/issue-2676/operator-admin-invite.localstack.test.ts

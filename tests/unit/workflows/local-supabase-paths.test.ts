@@ -30,6 +30,8 @@ describe("the local Supabase workflow's path filter", () => {
     "packages/api/src/admin/members/**",
     "packages/api/src/invitations/**",
     "apps/admin/app/(app)/admin/teams/**",
+    "packages/lib/monitoring/**",
+    "apps/*/instrumentation-client.ts",
     "tests/e2e/helpers/request-scope-reads.ts",
     "packages/database/document-scope.tsx",
     "packages/database/own-api.ts",
