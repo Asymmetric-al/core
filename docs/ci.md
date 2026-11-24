@@ -614,6 +614,16 @@ of anonymously from a public registry.
   registry. The token goes to `skopeo login` on standard input only.
 - _When it runs:_ manual dispatch and a daily schedule, from `develop` only:
   its first step fails on any other ref. It never runs on a pull request.
+- _What that step cannot stop:_ `workflow_dispatch` runs the workflow file of
+  the ref it is dispatched from, so a person with write access to this
+  repository can dispatch a changed copy from their own branch, with
+  `packages: write` on the organization's packages. They cannot change what
+  `develop`'s jobs pull, since those pin a digest, and a fork or an outsider
+  cannot dispatch at all. Such a run shows as a package version whose digest
+  is not in `.github/ci-images.json` (compare
+  `gh api /orgs/Asymmetric-al/packages/container/<package>/versions` with the
+  list), and in the workflow's run history as a run on a ref other than
+  `develop`.
 - _Permissions:_ it is the only workflow with `packages: write`
   (`tests/unit/workflows/mirror-ci-images.test.ts` fails if another workflow
   asks for it).

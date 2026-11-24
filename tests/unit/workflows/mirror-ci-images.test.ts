@@ -46,13 +46,70 @@ describe("the list of mirrored CI images (.github/ci-images.json)", () => {
   });
 });
 
+const grantsPackageWrite = (permissions: unknown) => {
+  if (typeof permissions === "string") return /write/.test(permissions);
+  if (!permissions || typeof permissions !== "object") return false;
+  return /write/.test(
+    String((permissions as Record<string, unknown>).packages ?? ""),
+  );
+};
+
+function mayWritePackages(text: string): boolean {
+  const parsed = parseWorkflowSource(text) as unknown as {
+    permissions?: unknown;
+    jobs?: Record<string, { permissions?: unknown }>;
+  };
+  const jobPermissions = Object.values(parsed.jobs ?? {}).map(
+    (job) => job.permissions,
+  );
+  if (
+    parsed.permissions === undefined &&
+    jobPermissions.some((permissions) => permissions === undefined)
+  )
+    return true;
+  return [parsed.permissions, ...jobPermissions].some(grantsPackageWrite);
+}
+
+const READ_ONLY = [
+  "name: Probe",
+  "on: push",
+  "permissions:",
+  "  contents: read",
+  "jobs:",
+  "  probe:",
+  "    runs-on: ubuntu-latest",
+  "    steps:",
+  "      - run: echo ok",
+  "",
+].join("\n");
+
 describe("Mirror CI images workflow: the only writer of the organization's packages", () => {
-  it("runs on dispatch and on a schedule only, never on a pull request", () => {
+  it("runs on dispatch, with no inputs, and on a schedule only, never on a pull request", () => {
     expect(Object.keys(doc.on).sort()).toEqual([
       "schedule",
       "workflow_dispatch",
     ]);
+    expect(doc.on.workflow_dispatch ?? null).toBeNull();
     expect(source).not.toMatch(/pull_request|merge_group|workflow_run/);
+  });
+
+  it("counts every way a workflow can grant packages: write", () => {
+    expect(mayWritePackages(READ_ONLY)).toBe(false);
+    for (const writer of [
+      READ_ONLY.replace("  contents: read", "  packages: write"),
+      READ_ONLY.replace("  contents: read", '  packages: "write"'),
+      READ_ONLY.replace("  contents: read", "  packages: 'write'"),
+      READ_ONLY.replace(
+        "permissions:\n  contents: read",
+        "permissions: write-all",
+      ),
+      READ_ONLY.replace("permissions:\n  contents: read\n", ""),
+      READ_ONLY.replace(
+        "    runs-on: ubuntu-latest",
+        "    permissions:\n      packages: write\n    runs-on: ubuntu-latest",
+      ),
+    ])
+      expect(mayWritePackages(writer), writer).toBe(true);
   });
 
   it("holds packages: write at the workflow level, with nothing else to write and no job override", () => {
@@ -67,9 +124,7 @@ describe("Mirror CI images workflow: the only writer of the organization's packa
     const writers = readdirSync(".github/workflows")
       .filter((file) => /\.ya?ml$/.test(file))
       .filter((file) =>
-        /packages:\s*write|write-all/.test(
-          readFileSync(`.github/workflows/${file}`, "utf8"),
-        ),
+        mayWritePackages(readFileSync(`.github/workflows/${file}`, "utf8")),
       );
     expect(writers).toEqual(["mirror-ci-images.yml"]);
   });

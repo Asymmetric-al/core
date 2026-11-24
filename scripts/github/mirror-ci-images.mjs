@@ -60,7 +60,12 @@ function skopeo(args, input) {
 }
 
 function readDigest(reference) {
-  const result = skopeo(["inspect", "--raw", `docker://${reference}`]);
+  const result = skopeo([
+    "inspect",
+    "--raw",
+    ...RETRIES,
+    `docker://${reference}`,
+  ]);
   if (result.status !== 0) return { found: false, detail: result.stderr };
   const hex = createHash("sha256").update(result.stdout).digest("hex");
   return { found: true, digest: `sha256:${hex}` };
@@ -69,7 +74,8 @@ function readDigest(reference) {
 export function mirrorImage(image) {
   const target = `${repositoryOf(image.mirror)}@${image.digest}`;
   const present = readDigest(target);
-  if (present.found && present.digest === image.digest)
+  const tagged = readDigest(image.mirror).found;
+  if (present.found && present.digest === image.digest && tagged)
     return `${target} is already in the organization's registry`;
 
   const from = `${repositoryOf(image.source)}@${image.digest}`;

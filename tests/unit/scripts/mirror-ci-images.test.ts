@@ -41,6 +41,7 @@ if (args[0] === "copy") {
   if (bytes === undefined) { save(); process.stderr.write("Rate exceeded"); process.exit(1); }
   const digest = source.slice(source.indexOf("@") + 1);
   state.manifests[repoOf(target) + "@" + digest] = state.corrupt ? Buffer.from("other bytes").toString("base64") : bytes;
+  state.manifests[target] = bytes;
   save();
   process.exit(0);
 }
@@ -173,7 +174,7 @@ describe("mirror-ci-images: copies each listed image by digest into the organiza
         (call) => call.startsWith("copy") && call.includes(repository),
       );
       const readBack = calls.lastIndexOf(
-        `inspect --raw docker://${repository}@${digest}`,
+        `inspect --raw --retry-times 3 docker://${repository}@${digest}`,
       );
       expect(copy).toBeGreaterThanOrEqual(0);
       expect(readBack).toBeGreaterThan(copy);
@@ -220,6 +221,7 @@ describe("mirror-ci-images: copies each listed image by digest into the organiza
           Buffer.from("stale").toString("base64"),
         [`ghcr.io/asymmetric-al/core-ci-postgrest@${POSTGREST.digest}`]:
           POSTGREST.base64,
+        "ghcr.io/asymmetric-al/core-ci-postgrest:v16.4": POSTGREST.base64,
       },
     });
     const result = box.run();
@@ -227,6 +229,35 @@ describe("mirror-ci-images: copies each listed image by digest into the organiza
     expect(copies(box.read().calls).map((args) => args.at(-1))).toEqual([
       "docker://ghcr.io/asymmetric-al/core-ci-postgres:17.11-alpine",
     ]);
+  });
+
+  it("copies again, to restore the tag, a digest that is present but untagged", () => {
+    const box = sandbox({
+      manifests: {
+        [`ghcr.io/asymmetric-al/core-ci-postgres@${POSTGRES.digest}`]:
+          POSTGRES.base64,
+        [`ghcr.io/asymmetric-al/core-ci-postgrest@${POSTGREST.digest}`]:
+          POSTGREST.base64,
+        "ghcr.io/asymmetric-al/core-ci-postgrest:v16.4": POSTGREST.base64,
+      },
+    });
+    const result = box.run();
+    expect(result.status, result.output).toBe(0);
+    const state = box.read();
+    expect(copies(state.calls).map((args) => args.at(-1))).toEqual([
+      "docker://ghcr.io/asymmetric-al/core-ci-postgres:17.11-alpine",
+    ]);
+    expect(
+      state.manifests["ghcr.io/asymmetric-al/core-ci-postgres:17.11-alpine"],
+    ).toBe(POSTGRES.base64);
+  });
+
+  it("asks every registry with retries", () => {
+    const box = sandbox();
+    expect(box.run().status).toBe(0);
+    for (const call of box.read().calls)
+      if (call.args[0] === "inspect" || call.args[0] === "copy")
+        expect(call.args.join(" ")).toContain("--retry-times 3");
   });
 });
 
