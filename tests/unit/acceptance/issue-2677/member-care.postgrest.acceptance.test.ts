@@ -190,13 +190,38 @@ describe.skipIf(!url && process.env.MEMBER_CARE_IT_REQUIRED !== "1")(
       return data.session.access_token;
     }
 
-    async function auditCounts() {
+    async function scopedAuditCounts(since: string) {
+      const resourceIds = [
+        ...createdMissionaryIds,
+        ...createdActivityIds,
+        ...createdNoteIds,
+        ...createdGoalIds,
+        ...createdRequirementIds,
+      ];
+      const sentinelPattern = `%${runTag}%`;
       const [audit, crm] = await Promise.all([
         db.query<{ c: string }>(
-          "select count(*)::text as c from public.audit_logs",
+          `select count(*)::text as c
+             from public.audit_logs
+            where (created_at is null or created_at >= $4::timestamptz)
+              and (
+                user_id = any($1::uuid[])
+                or resource_id = any($2::text[])
+                or details::text like $3::text
+              )`,
+          [createdUserIds, resourceIds, sentinelPattern, since],
         ),
         db.query<{ c: string }>(
-          "select count(*)::text as c from public.crm_command_logs",
+          `select count(*)::text as c
+             from public.crm_command_logs
+            where created_at >= $4::timestamptz
+              and (
+                actor_user_id = any($1::uuid[])
+                or resource_id = any($2::text[])
+                or command_payload::text like $3::text
+                or result_summary::text like $3::text
+              )`,
+          [createdUserIds, resourceIds, sentinelPattern, since],
         ),
       ]);
       return {
@@ -653,7 +678,13 @@ describe.skipIf(!url && process.env.MEMBER_CARE_IT_REQUIRED !== "1")(
         expect(detailMiss.status).toBe(404);
       }
 
-      const beforeCounts = await auditCounts();
+      const auditMarker = (
+        await db.query<{ ts: string }>("select now()::text as ts")
+      ).rows[0]!.ts;
+      expect(await scopedAuditCounts(auditMarker)).toEqual({
+        audit: 0,
+        crm: 0,
+      });
       const consoleErrorSpy = vi
         .spyOn(console, "error")
         .mockImplementation(() => undefined);
@@ -915,8 +946,10 @@ describe.skipIf(!url && process.env.MEMBER_CARE_IT_REQUIRED !== "1")(
         consoleErrorSpy.mockRestore();
       }
 
-      const afterCounts = await auditCounts();
-      expect(afterCounts).toEqual(beforeCounts);
+      expect(await scopedAuditCounts(auditMarker)).toEqual({
+        audit: 0,
+        crm: 0,
+      });
       expect(adminGuard.revalidateTag).toHaveBeenCalledWith(
         `member-care:${tenantA}`,
         "max",

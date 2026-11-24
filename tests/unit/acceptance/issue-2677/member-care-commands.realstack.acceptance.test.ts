@@ -313,12 +313,54 @@ describe.skipIf(!ADMIN_URL)(
       };
     }
 
-    async function auditCounts() {
-      const r = await db.query(
-        `select (select count(*)::int from public.audit_logs) as audit_count,
-                (select count(*)::int from public.crm_command_logs) as cmd_count`,
+    async function scopedAuditCounts(
+      client: pg.Client,
+      scopeFilter: {
+        tenantIds: readonly string[];
+        actorIds: readonly string[];
+        resourceIds: readonly string[];
+        since: string;
+        sentinelPrefix?: string;
+      },
+    ) {
+      const sentinelPattern = scopeFilter.sentinelPrefix
+        ? `%${scopeFilter.sentinelPrefix}%`
+        : null;
+      const r = await client.query<{ audit_count: number; cmd_count: number }>(
+        `select
+           (select count(*)::int
+              from public.audit_logs
+             where (created_at is null or created_at >= $4::timestamptz)
+               and (
+                 tenant_id = any($1::uuid[])
+                 or user_id = any($2::uuid[])
+                 or resource_id = any($3::text[])
+                 or ($5::text is not null and details::text like $5::text)
+               )) as audit_count,
+           (select count(*)::int
+              from public.crm_command_logs
+             where created_at >= $4::timestamptz
+               and (
+                 tenant_id = any($1::uuid[])
+                 or actor_user_id = any($2::uuid[])
+                 or resource_id = any($3::text[])
+                 or (
+                   $5::text is not null
+                   and (
+                     command_payload::text like $5::text
+                     or result_summary::text like $5::text
+                   )
+                 )
+               )) as cmd_count`,
+        [
+          [...scopeFilter.tenantIds],
+          [...scopeFilter.actorIds],
+          [...scopeFilter.resourceIds],
+          scopeFilter.since,
+          sentinelPattern,
+        ],
       );
-      return r.rows[0] as { audit_count: number; cmd_count: number };
+      return r.rows[0]!;
     }
 
     it("narrows all four member_care_* SELECT policies to member_care, drops is_super_admin, and keeps init-plan parallel-safe form", () =>
@@ -590,7 +632,34 @@ describe.skipIf(!ADMIN_URL)(
 
     it("executes all six care commands via public wrappers, enforces validation/authorship/no-forged-title, writes zero audit/command logs, and refuses direct inner calls without request tenant", () =>
       tx(async () => {
-        const beforeLogs = await auditCounts();
+        const auditMarker = (
+          await db.query<{ ts: string }>(
+            "select transaction_timestamp()::text as ts",
+          )
+        ).rows[0]!.ts;
+        const case4TenantIds = [id.TA!, id.TB!];
+        const case4ActorIds = [id.UFC!, extra.UCARE2, extra.UEMPTYNAME];
+        const case4ResourceIds: string[] = [
+          extra.mA1,
+          extra.mA2,
+          extra.mANoProfile,
+          extra.mB1,
+          extra.goalA1,
+          extra.goalA2,
+          extra.goalB1,
+          extra.reqA1,
+          extra.reqA2,
+          extra.reqB1,
+        ];
+        expect(
+          await scopedAuditCounts(db, {
+            tenantIds: case4TenantIds,
+            actorIds: case4ActorIds,
+            resourceIds: case4ResourceIds,
+            since: auditMarker,
+            sentinelPrefix: "SENTINEL_",
+          }),
+        ).toEqual({ audit_count: 0, cmd_count: 0 });
         const careHeaders = scope("TA", id.mCare!);
 
         const threadRes = await asPersist(
@@ -599,6 +668,7 @@ describe.skipIf(!ADMIN_URL)(
           `select id from public.create_care_thread_post('${extra.mA1}', 'SENTINEL_THREAD_SECRET')`,
         );
         expect(threadRes.code, threadRes.message).toBeNull();
+        case4ResourceIds.push(String(threadRes.rows[0]!.id));
         const threadRow = (
           await db.query(
             `select type, title, description, author_user_id, author_name_snapshot from public.member_care_activities where id = $1`,
@@ -638,6 +708,7 @@ describe.skipIf(!ADMIN_URL)(
             `select id from public.log_care_activity('${extra.mA1}', '${dbType}', 'SENTINEL_ACT_${dbType}')`,
           );
           expect(actRes.code, `${dbType}: ${actRes.message}`).toBeNull();
+          case4ResourceIds.push(String(actRes.rows[0]!.id));
           const actRow = (
             await db.query(
               `select type, title, description, author_user_id, author_name_snapshot from public.member_care_activities where id = $1`,
@@ -811,8 +882,20 @@ describe.skipIf(!ADMIN_URL)(
           expect(r.code, role).toBe("42501");
         }
 
-        const afterLogs = await auditCounts();
-        expect(afterLogs).toEqual(beforeLogs);
+        case4ResourceIds.push(
+          String(fallbackAuthorRes.rows[0]!.id),
+          String(goalInsert.rows[0]!.id),
+          String(reqInsert.rows[0]!.id),
+          missingId,
+        );
+        const afterLogs = await scopedAuditCounts(db, {
+          tenantIds: case4TenantIds,
+          actorIds: case4ActorIds,
+          resourceIds: case4ResourceIds,
+          since: auditMarker,
+          sentinelPrefix: "SENTINEL_",
+        });
+        expect(afterLogs).toEqual({ audit_count: 0, cmd_count: 0 });
 
         const privs = (
           await db.query(
@@ -985,7 +1068,19 @@ describe.skipIf(!ADMIN_URL)(
         for (const [cmdName, cmdSql] of commands) {
           for (const [raceName, raceSql] of races) {
             await resetState();
-            const beforeLogs = await auditCounts();
+            const raceMarker = (
+              await connA.query<{ ts: string }>("select now()::text as ts")
+            ).rows[0]!.ts;
+            const raceAuditScope = {
+              tenantIds: [tenantId],
+              actorIds: [userId],
+              resourceIds: [missionaryId, goalId],
+              since: raceMarker,
+            };
+            expect(
+              await scopedAuditCounts(connA, raceAuditScope),
+              `${cmdName} vs ${raceName} baseline logs`,
+            ).toEqual({ audit_count: 0, cmd_count: 0 });
 
             await connA.query("begin");
             await connA.query(raceSql);
@@ -1080,7 +1175,10 @@ describe.skipIf(!ADMIN_URL)(
               "Initial Goal",
             );
 
-            expect(await auditCounts()).toEqual(beforeLogs);
+            expect(
+              await scopedAuditCounts(connA, raceAuditScope),
+              `${cmdName} vs ${raceName} audit logs`,
+            ).toEqual({ audit_count: 0, cmd_count: 0 });
           }
         }
       } finally {
