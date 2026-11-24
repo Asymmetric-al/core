@@ -140,6 +140,15 @@ describe.skipIf(!ADMIN_URL)(
         has_table_privilege('anon', 'private.missionary_tasks_unresolved_tenant', 'SELECT') b,
         to_regprocedure('authz.missionary_task_single_tenant(uuid, uuid)') helper`);
       expect(grants.rows).toEqual([{ a: false, b: false, helper: null }]);
+      const acl = await db.query(
+        `select coalesce(string_agg(distinct a.grantee::regrole::text, ',' order by a.grantee::regrole::text), '') grantees
+           from pg_class c, aclexplode(coalesce(c.relacl, acldefault('r', c.relowner))) a
+          where c.oid = 'private.missionary_tasks_unresolved_tenant'::regclass and a.grantee <> c.relowner`,
+      );
+      expect(
+        acl.rows,
+        "no role but the owner holds a privilege on the set-aside tasks, service_role and tenant_guard named in the revoke",
+      ).toEqual([{ grantees: "" }]);
     });
 
     it("a row naming another tenant's donor is refused for every writer (23503), except a follower request, whose composite key waits for part 2 because the running build embeds its donor by a column hint on donor_id; the follower functions still read and write only a request whose donor is in the selected tenant", async () => {

@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -19,11 +21,17 @@ describe.skipIf(!ADMIN_URL)(
   () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
     const id = fixtureIds();
+    const fundA = randomUUID();
+    const fundB = randomUUID();
     const queryAs = asRole(db, id);
     beforeAll(async () => {
       await db.connect();
       await db.query("begin");
       await db.query(fixtureSql(id));
+      await db.query(
+        "insert into public.funds (id, tenant_id, legal_entity_id, name) values ($1, $3, $3, 'Fund A'), ($2, $4, $4, 'Fund B')",
+        [fundA, fundB, id.TA, id.TB],
+      );
       await db.query(
         `insert into public.external_identifiers (tenant_id, source, external_id, target_type, target_id, donor_id) values
            ($1, 'legacy_crm', 'D-1', 'donor', $2, $2),
@@ -88,6 +96,38 @@ describe.skipIf(!ADMIN_URL)(
       ).toEqual([]);
     });
 
+    it("a Party or a fund of the identifier's own organization is accepted and resolves for that organization's staff only", async () => {
+      await db.query("savepoint same_org");
+      try {
+        await db.query(
+          `insert into public.external_identifiers (tenant_id, source, external_id, target_type, target_id, party_id) values ($1, 'legacy_crm', 'P-1', 'party', $2, $2)`,
+          [id.TA, id.pDA],
+        );
+        await db.query(
+          `insert into public.external_identifiers (tenant_id, source, external_id, target_type, target_id, fund_id) values ($1, 'legacy_crm', 'F-1', 'fund', $2, $2)`,
+          [id.TA, fundA],
+        );
+        const resolve = (who: ReturnType<typeof caller>, ext: string) =>
+          queryAs(
+            "authenticated",
+            who,
+            `select target_type, target_id from public.resolve_external_identifier('legacy_crm', '${ext}')`,
+          );
+        expect(
+          (await resolve(caller(id, "US", "mS", "TA"), "P-1")).rows,
+        ).toEqual([{ target_type: "party", target_id: id.pDA }]);
+        expect(
+          (await resolve(caller(id, "US", "mS", "TA"), "F-1")).rows,
+        ).toEqual([{ target_type: "fund", target_id: fundA }]);
+        for (const ext of ["P-1", "F-1"])
+          expect(
+            (await resolve(caller(id, "UBS", "mBS", "TB"), ext)).rows,
+          ).toEqual([]);
+      } finally {
+        await db.query("rollback to savepoint same_org");
+      }
+    });
+
     it("a cross-tenant, dangling or mistyped target is refused for every role, the service key included", async () => {
       for (const role of ["postgres", "service_role"]) {
         expect(
@@ -101,7 +141,7 @@ describe.skipIf(!ADMIN_URL)(
         for (const [type, column, target] of [
           ["party", "party_id", id.pDAB],
           ["missionary", "missionary_id", id.mB],
-          ["fund", "fund_id", id.gB],
+          ["fund", "fund_id", fundB],
           ["donor", "donor_id", id.gA],
         ] as const)
           expect(

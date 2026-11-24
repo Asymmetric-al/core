@@ -432,6 +432,170 @@ describe.skipIf(!ADMIN_URL)(
       for (const row of seeded.rows) expect(row.n).not.toBe(row.legal_name);
     });
 
+    it("set_worker_identity on a worker restricted first keeps the level, its source, the alias and do-not-publish, still records the legal identity, and its audit row carries before and after (finding B1)", async () => {
+      await db.query("savepoint s");
+      try {
+        const restricted = await act(
+          admin,
+          `select public.restrict_worker_publication('${id.TA}', '${id.pM2}', 'high_risk', 'Cedar', true, 'Urgent threat') as r`,
+        );
+        expect(restricted.code, restricted.message).toBeNull();
+        const identified = await act(
+          admin,
+          `select public.set_worker_identity('${id.TA}', '${id.pM2}', 'Real Legal Name', 'Closed Country', 'Exact City', null, null, null, 'Record legal identity') as r`,
+        );
+        expect(identified.code, identified.message).toBeNull();
+        const state = {
+          security_level: "high_risk",
+          security_level_source: "manual",
+          public_alias: "Cedar",
+          do_not_publish: true,
+        };
+        expect(
+          (
+            await db.query(
+              "select security_level, security_level_source, public_alias, do_not_publish from public.parties where id = $1",
+              [id.pM2],
+            )
+          ).rows,
+        ).toEqual([state]);
+        expect(
+          (
+            await db.query(
+              "select legal_name from private.party_restricted where party_id = $1",
+              [id.pM2],
+            )
+          ).rows,
+        ).toEqual([{ legal_name: "Real Legal Name" }]);
+        expect(
+          (
+            await db.query(
+              "select details->'before' as before, details->'after' as after from public.audit_logs where tenant_id = $1 and resource_id = $2 and action = 'worker_identity_set'",
+              [id.TA, id.pM2],
+            )
+          ).rows,
+        ).toEqual([{ before: state, after: state }]);
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
+    it("set_worker_identity refuses a level or an alias argument (22023) once a worker's level was set or reviewed, and a worker confirmed standard keeps its manual source (finding B1)", async () => {
+      await db.query("savepoint s");
+      try {
+        expect(
+          (
+            await act(
+              admin,
+              `select public.restrict_worker_publication('${id.TA}', '${id.pM2}', 'high_risk', 'Cedar', true, 'Urgent threat')`,
+            )
+          ).code,
+        ).toBeNull();
+        expect(
+          (await setIdentity(admin, id.pM2, "standard", null)).code,
+          "a lower level",
+        ).toBe("22023");
+        expect(
+          (await setIdentity(admin, id.pM2, null, "Other alias")).code,
+          "another alias",
+        ).toBe("22023");
+        expect(
+          (
+            await db.query(
+              "select security_level, public_alias from public.parties where id = $1",
+              [id.pM2],
+            )
+          ).rows,
+        ).toEqual([{ security_level: "high_risk", public_alias: "Cedar" }]);
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+      await db.query("savepoint s");
+      try {
+        expect(
+          (
+            await act(
+              admin,
+              `select public.restrict_worker_publication('${id.TA}', '${id.pM2}', 'standard', null, null, 'Reviewed with the field director')`,
+            )
+          ).code,
+        ).toBeNull();
+        expect((await setIdentity(admin, id.pM2, null, null)).code).toBeNull();
+        expect(
+          (
+            await db.query(
+              "select security_level, security_level_source from public.parties where id = $1",
+              [id.pM2],
+            )
+          ).rows,
+        ).toEqual([
+          { security_level: "standard", security_level_source: "manual" },
+        ]);
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
+    it("an administrator of A naming a Party of B in any of the three commands is answered P0002 and nothing changes in B (finding B6)", async () => {
+      await db.query("savepoint s");
+      try {
+        const party = () =>
+          db.query(
+            "select security_level, security_level_source, public_alias, do_not_publish, updated_at from public.parties where id = $1",
+            [id.pMB],
+          );
+        const before = (await party()).rows;
+        for (const sql of [
+          `select public.set_worker_identity('${id.TA}', '${id.pMB}', 'Legal', null, null, null, null, null, 'r')`,
+          `select public.restrict_worker_publication('${id.TA}', '${id.pMB}', 'high_risk', 'Cedar', true, 'r')`,
+          `select public.lift_worker_restriction('${id.TA}', '${id.pMB}', 'standard', true, 'r')`,
+        ])
+          expect((await act(admin, sql)).code, sql).toBe("P0002");
+        expect((await party()).rows).toEqual(before);
+        expect(
+          (
+            await db.query(
+              `select (select count(*) from private.party_restricted where party_id = $1) restricted,
+                      (select count(*) from public.audit_logs where resource_id = $1::text) audits`,
+              [id.pMB],
+            )
+          ).rows,
+        ).toEqual([{ restricted: "0", audits: "0" }]);
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
+    it("the unreviewed signal answers B's own staff with B's workers only (finding B6)", async () => {
+      const signal = await run(
+        staffB,
+        "select party_id from public.unreviewed_worker_security_levels()",
+      );
+      expect(signal.code, signal.message).toBeNull();
+      expect(signal.rows.map((r) => r.party_id)).toEqual([id.pMB]);
+    });
+
+    it("the command role writes party_restricted through its named columns only, and the service key holds nothing on it (finding B8)", async () => {
+      const grants = await db.query(
+        `select has_column_privilege('tenant_guard', 'private.party_restricted', 'legal_name', 'UPDATE') legal_update,
+                has_column_privilege('tenant_guard', 'private.party_restricted', 'real_photo_ref', 'UPDATE') photo_update,
+                has_column_privilege('tenant_guard', 'private.party_restricted', 'real_photo_ref', 'INSERT') photo_insert,
+                has_column_privilege('tenant_guard', 'private.party_restricted', 'party_id', 'UPDATE') key_update,
+                has_column_privilege('tenant_guard', 'private.party_restricted', 'party_id', 'INSERT') key_insert,
+                has_table_privilege('service_role', 'private.party_restricted', 'SELECT') service_read`,
+      );
+      expect(grants.rows).toEqual([
+        {
+          legal_update: true,
+          photo_update: false,
+          photo_insert: false,
+          key_update: false,
+          key_insert: true,
+          service_read: false,
+        },
+      ]);
+    });
+
     it("each guard command of this package share-locks its organization before its targets, and the three safety commands check the request's organization first, then lock the caller's assignment and re-check the active organization, the live assignment and the capability under those locks before any validation", async () => {
       const safety = [
         "set_worker_identity",
@@ -481,5 +645,159 @@ describe.skipIf(!ADMIN_URL)(
         expect(recheck, name).toBeLessThan(target);
       }
     });
+  },
+);
+
+describe.skipIf(!ADMIN_URL)(
+  "AL-2678 worker safety under concurrency (findings B6 and B10)",
+  () => {
+    async function withFixture(
+      run: (
+        f: { tenant: string; user: string; membership: string; party: string },
+        connections: [pg.Client, pg.Client],
+      ) => Promise<void>,
+    ) {
+      const admin = new pg.Client({ connectionString: ADMIN_URL });
+      const first = new pg.Client({ connectionString: ADMIN_URL });
+      const second = new pg.Client({ connectionString: ADMIN_URL });
+      const f = {
+        tenant: randomUUID(),
+        user: randomUUID(),
+        membership: randomUUID(),
+        party: randomUUID(),
+      };
+      await admin.connect();
+      try {
+        await admin.query(
+          "insert into public.tenants (id, name, slug) values ($1::uuid, 'acc2678 safety race', 'acc2678-safety-' || $1::text)",
+          [f.tenant],
+        );
+        await admin.query(
+          "insert into public.legal_entities (id, tenant_id, name, country_code, currency, legal_name) values ($1, $1, 'R', 'US', 'usd', 'R')",
+          [f.tenant],
+        );
+        await admin.query(
+          "insert into auth.users (id, email, email_confirmed_at) values ($1::uuid, 'acc2678-safety-' || $1::text || '@example.test', now())",
+          [f.user],
+        );
+        await admin.query("delete from authz.memberships where user_id = $1", [
+          f.user,
+        ]);
+        await admin.query(
+          "insert into authz.memberships (id, user_id, tenant_id, role, staff_role, is_active, is_tenant_admin) values ($1, $2, $3, 'staff', 'development', true, true)",
+          [f.membership, f.user, f.tenant],
+        );
+        await admin.query(
+          "insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Race worker')",
+          [f.party, f.tenant],
+        );
+        await admin.query(
+          "insert into public.missionaries (tenant_id, party_id, legal_entity_id) values ($1, $2, $1)",
+          [f.tenant, f.party],
+        );
+        await first.connect();
+        await second.connect();
+        await run(f, [first, second]);
+      } finally {
+        await first.end().catch(() => undefined);
+        await second.end().catch(() => undefined);
+        for (const sql of [
+          "delete from public.audit_logs where tenant_id = $1",
+          "delete from private.party_restricted where tenant_id = $1",
+          "delete from public.missionaries where tenant_id = $1",
+          "delete from public.parties where tenant_id = $1",
+          "delete from authz.memberships where tenant_id = $1",
+          "delete from public.legal_entities where tenant_id = $1",
+        ])
+          await admin.query(sql, [f.tenant]);
+        await admin.query("delete from auth.users where id = $1", [f.user]);
+        await admin.query("delete from public.tenants where id = $1", [
+          f.tenant,
+        ]);
+        await admin.end();
+      }
+    }
+
+    const pause = () => new Promise((resolve) => setTimeout(resolve, 300));
+
+    it("an assignment revoked after a safety command's preamble and before its lock is refused (42501) and the command changes nothing", () =>
+      withFixture(async (f, [command, revoker]) => {
+        await revoker.query("begin");
+        await revoker.query(
+          "update authz.memberships set is_active = false, is_tenant_admin = false where id = $1",
+          [f.membership],
+        );
+        await command.query(
+          `begin; set local role authenticated;
+           select set_config('request.jwt.claims', '${JSON.stringify({ sub: f.user, role: "authenticated" })}', true),
+                  set_config('request.jwt.claim.sub', '', true),
+                  set_config('request.headers', '${JSON.stringify({ "x-asym-tenant": f.tenant, "x-asym-assignment": f.membership })}', true);`,
+        );
+        let settled = false;
+        const outcome = command
+          .query(
+            "select public.restrict_worker_publication($1, $2, 'high_risk', 'Cedar', true, 'Urgent threat') as r",
+            [f.tenant, f.party],
+          )
+          .then(
+            () => "done",
+            (e) => (e as { code?: string }).code ?? "?",
+          )
+          .finally(() => {
+            settled = true;
+          });
+        await pause();
+        expect(settled, "the command waits on the assignment's row lock").toBe(
+          false,
+        );
+        await revoker.query("commit");
+        expect(await outcome).toBe("42501");
+        await command.query("rollback");
+        const party = await revoker.query(
+          "select security_level, public_alias, do_not_publish from public.parties where id = $1",
+          [f.party],
+        );
+        expect(party.rows).toEqual([
+          {
+            security_level: "standard",
+            public_alias: null,
+            do_not_publish: false,
+          },
+        ]);
+      }));
+
+    it("a direct write of a restricted level with an alias and a concurrent direct write of the same legal name serialize on the Party, and the second is refused (23514)", () =>
+      withFixture(async (f, [levelWriter, nameWriter]) => {
+        await levelWriter.query("begin");
+        await levelWriter.query(
+          "update public.parties set security_level = 'restricted', security_level_source = 'manual', public_alias = 'Alice' where id = $1",
+          [f.party],
+        );
+        await nameWriter.query("begin");
+        let settled = false;
+        const outcome = nameWriter
+          .query(
+            "insert into private.party_restricted (party_id, tenant_id, legal_name) values ($1, $2, 'Alice')",
+            [f.party, f.tenant],
+          )
+          .then(
+            () => "done",
+            (e) => (e as { code?: string }).code ?? "?",
+          )
+          .finally(() => {
+            settled = true;
+          });
+        await pause();
+        expect(settled, "the second writer waits for the first").toBe(false);
+        await levelWriter.query("commit");
+        expect(await outcome).toBe("23514");
+        await nameWriter.query("rollback");
+        const state = await levelWriter.query(
+          `select (select count(*) from private.party_restricted where party_id = $1) restricted,
+                  (select public_alias from public.parties where id = $1) alias`,
+          [f.party],
+        );
+        expect(state.rows).toEqual([{ restricted: "0", alias: "Alice" }]);
+      }));
   },
 );

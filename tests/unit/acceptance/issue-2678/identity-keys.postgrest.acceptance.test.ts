@@ -539,26 +539,60 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
     });
 
     it("a claim through the Data API answers the same whether or not a donor matches, and the claimant reads only their request's status and dates", async () => {
+      const inA = { "x-asym-tenant": TA };
       const started = await api("rest/v1/rpc/start_account_claim", {
         bearer: token.staffB,
         body: { p_tenant_id: TA },
+        headers: inA,
       });
       expect(started.status).toBe(200);
       expect(await body(started)).toEqual({ status: "received" });
       const redeemed = await api("rest/v1/rpc/redeem_account_claim", {
         bearer: token.staffB,
         body: { p_tenant_id: TA, p_token: randomUUID() },
+        headers: inA,
       });
       expect(await body(redeemed)).toEqual({ status: "refused" });
       const direct = await api(`rest/v1/account_claim_requests?select=*`, {
         bearer: token.staffB,
+        headers: inA,
       });
       expect(await body(direct)).toEqual([]);
       const status = await api("rest/v1/rpc/account_claim_status", {
         bearer: token.staffB,
         body: { p_tenant_id: TA },
+        headers: inA,
       });
       expect(await body(status)).toEqual([]);
+    });
+
+    it("each claim entry binds the organization it names to the request's header through the Data API (finding B3): start and redeem answer 403 (42501) to a missing or other organization's header, and the status read answers no rows", async () => {
+      for (const headers of [{}, { "x-asym-tenant": TB }]) {
+        for (const [path, payload] of [
+          ["rest/v1/rpc/start_account_claim", { p_tenant_id: TA }],
+          [
+            "rest/v1/rpc/redeem_account_claim",
+            { p_tenant_id: TA, p_token: randomUUID() },
+          ],
+        ] as const) {
+          const refused = await api(path, {
+            bearer: token.staffB,
+            body: payload,
+            headers,
+          });
+          expect(refused.status, `${path} ${JSON.stringify(headers)}`).toBe(
+            403,
+          );
+          expect((await body(refused)).code).toBe("42501");
+        }
+        const status = await api("rest/v1/rpc/account_claim_status", {
+          bearer: token.staffB,
+          body: { p_tenant_id: TA },
+          headers,
+        });
+        expect(status.status).toBe(200);
+        expect(await body(status)).toEqual([]);
+      }
     });
   },
 );

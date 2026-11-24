@@ -19,6 +19,8 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
 
 const token = () => randomBytes(32).toString("base64url");
 const digest = (t: string) => createHash("sha256").update(t, "utf8").digest();
+const LANE =
+  "tenant_guard: request tenant scope is required and must match command tenant";
 
 describe.skipIf(!ADMIN_URL)(
   "AL-2678 account claims (plan WP5 lines 1000-1001, rulings W5-R4 and W5-R5, record line 582)",
@@ -32,14 +34,69 @@ describe.skipIf(!ADMIN_URL)(
       ULK: randomUUID(),
       dCL: randomUUID(),
       dUN: randomUUID(),
+      TS: randomUUID(),
+      UX: randomUUID(),
+      dX: randomUUID(),
+      UOP: randomUUID(),
+      dOP: randomUUID(),
+      UGO: randomUUID(),
+      dGO: randomUUID(),
+      URV: randomUUID(),
+      dRV: randomUUID(),
+      mRV: randomUUID(),
+      USU: randomUUID(),
+      dSU: randomUUID(),
+      UQ1: randomUUID(),
+      dQ1: randomUUID(),
+      UQ2: randomUUID(),
+      UQ4: randomUUID(),
+      dQ4: randomUUID(),
+      pQ4: randomUUID(),
+      UQ5: randomUUID(),
+      dQ5: randomUUID(),
+      UQ6: randomUUID(),
+      dQ6: randomUUID(),
+      UY: randomUUID(),
+      dY: randomUUID(),
     };
-    const email = (k: string) =>
-      `acc2678-claim-${id[k as keyof typeof id]}@example.test`;
+    type Key = keyof typeof id;
+    const email = (k: Key) => `acc2678-claim-${id[k]}@example.test`;
     const queryAs = asRole(db, id);
     const act = keepAs(db, id);
-    const claimant = { sub: "UCL" };
-    const other = { sub: "UOT" };
+    const inTenant = (sub: Key, tenant: Key = "TA") => ({
+      sub,
+      headers: { "x-asym-tenant": id[tenant] },
+    });
+    const claimant = inTenant("UCL");
+    const other = inTenant("UOT");
     const staff = caller(id, "US", "mS", "TA");
+
+    async function login(user: Key, confirmed = true) {
+      await db.query(
+        `insert into auth.users (id, email, email_confirmed_at) values ($1, $2, ${confirmed ? "now()" : "null"})`,
+        [id[user], email(user)],
+      );
+      await db.query("delete from authz.memberships where user_id = $1", [
+        id[user],
+      ]);
+    }
+
+    async function unclaimedDonor(donor: Key, user: Key, tenant: Key = "TA") {
+      await db.query(
+        "insert into public.donors (id, tenant_id, name, email) values ($1, $2, 'Claimable', $3)",
+        [id[donor], id[tenant], email(user)],
+      );
+    }
+
+    async function plantedClaim(user: Key, donor: Key, tenant: Key = "TA") {
+      const t = token();
+      const claim = await db.query(
+        `insert into public.account_claim_requests (tenant_id, donor_id, email, requested_by, token_sha256, token_expires_at, donor_email_at_issue)
+         values ($1, $2, $3, $4, $5, now() + interval '1 hour', $3) returning id`,
+        [id[tenant], id[donor], email(user), id[user], digest(t)],
+      );
+      return { claim: claim.rows[0].id as string, t };
+    }
 
     beforeAll(async () => {
       await db.connect();
@@ -77,32 +134,39 @@ describe.skipIf(!ADMIN_URL)(
       await db.end();
     });
 
-    const start = (who: object) =>
+    const start = (who: object, tenant: Key = "TA") =>
       act(
         "authenticated",
         who as never,
-        `select public.start_account_claim('${id.TA}') as r`,
+        `select public.start_account_claim('${id[tenant]}') as r`,
       );
-    const redeem = (who: object, t: string) =>
+    const redeem = (who: object, t: string, tenant: Key = "TA") =>
       act(
         "authenticated",
         who as never,
-        `select public.redeem_account_claim('${id.TA}', '${t}') as r`,
+        `select public.redeem_account_claim('${id[tenant]}', '${t}') as r`,
       );
-    const claimOf = async (user: string) =>
+    const status = (who: object, tenant: Key = "TA") =>
+      queryAs(
+        "authenticated",
+        who as never,
+        `select * from public.account_claim_status('${id[tenant]}')`,
+      );
+    const claimOf = async (user: string, tenant: string = id.TA) =>
       (
         await db.query(
           "select * from public.account_claim_requests where tenant_id = $1 and requested_by = $2",
-          [id.TA, user],
+          [tenant, user],
         )
       ).rows;
-    const issue = async (claim: string, t: string) =>
-      (
-        await db.query("select public.issue_account_claim_token($1, $2) as r", [
-          claim,
-          digest(t),
-        ])
-      ).rows[0].r;
+    const issue = async (claim: string, t: string) => {
+      const issued = await db.query(
+        "select public.issue_account_claim_token($1, $2) as r",
+        [claim, digest(t)],
+      );
+      await db.query("select set_config('app.current_tenant_id', '', true)");
+      return issued.rows[0].r;
+    };
     const audit = async (action: string, user: string) =>
       (
         await db.query(
@@ -110,18 +174,37 @@ describe.skipIf(!ADMIN_URL)(
           [id.TA, action, user],
         )
       ).rows.map((r) => r.why);
-    const linked = async (user: string) =>
+    const linked = async (user: string, tenant: string = id.TA) =>
       (
         await db.query(
           `select (select count(*) from public.account_links where tenant_id = $1 and user_id = $2) links,
                   (select count(*) from authz.memberships where tenant_id = $1 and user_id = $2 and is_active) memberships`,
-          [id.TA, user],
+          [tenant, user],
         )
       ).rows[0];
+    async function inSavepoint(fn: () => Promise<void>) {
+      await db.query("savepoint s");
+      try {
+        await fn();
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    }
+    async function failure(sql: string, params: unknown[] = []) {
+      await db.query("savepoint failure");
+      try {
+        await db.query(sql, params);
+        return null;
+      } catch (e) {
+        return (e as { code?: string }).code ?? "?";
+      } finally {
+        await db.query("rollback to savepoint failure");
+      }
+    }
 
     it("starting a claim answers the same for a match, no match, an unconfirmed email and an already linked donor; only the match opens a claim, and none links or grants anything", async () => {
       const answers = [];
-      for (const who of [claimant, other, { sub: "UUN" }, { sub: "ULK" }]) {
+      for (const who of [claimant, other, inTenant("UUN"), inTenant("ULK")]) {
         const result = await start(who);
         expect(result.code, result.message).toBeNull();
         answers.push(result.rows);
@@ -250,7 +333,7 @@ describe.skipIf(!ADMIN_URL)(
       expect(after.token_redeemed_at).not.toBeNull();
     });
 
-    it("the claimant reads only status and three dates of their own requests; the direct read returns nothing to them and tenant staff still read the table", async () => {
+    it("the claimant sees a request only after proving the address: one verified row of their own, with status and three dates; the direct read returns nothing to them and tenant staff still read the table", async () => {
       const policies = await db.query(
         "select policyname from pg_policies where schemaname = 'public' and tablename = 'account_claim_requests' and 'authenticated' = any(roles) order by 1",
       );
@@ -273,28 +356,17 @@ describe.skipIf(!ADMIN_URL)(
           )
         ).rows,
       ).toEqual([]);
-      const own = await queryAs(
-        "authenticated",
-        claimant,
-        `select * from public.account_claim_status('${id.TA}')`,
-      );
-      expect(own.rows.length).toBeGreaterThan(0);
-      for (const row of own.rows)
-        expect(Object.keys(row).sort()).toEqual([
-          "created_at",
-          "resolved_at",
-          "status",
-          "updated_at",
-        ]);
-      expect(
-        (
-          await queryAs(
-            "authenticated",
-            other,
-            `select * from public.account_claim_status('${id.TA}')`,
-          )
-        ).rows,
-      ).toEqual([]);
+      const own = await status(claimant);
+      expect(own.code, own.message).toBeNull();
+      expect(own.rows).toHaveLength(1);
+      expect(own.rows[0]!.status).toBe("verified");
+      expect(Object.keys(own.rows[0]!).sort()).toEqual([
+        "created_at",
+        "resolved_at",
+        "status",
+        "updated_at",
+      ]);
+      expect((await status(other)).rows).toEqual([]);
       expect(
         (
           await queryAs(
@@ -341,84 +413,357 @@ describe.skipIf(!ADMIN_URL)(
         },
       ]);
     });
+
+    it("each claim entry binds the organization it names to the request (finding B3): start and redeem refuse a missing, malformed or other organization's header (42501, the lane's message), and the status read returns no rows", async () => {
+      for (const headers of [
+        undefined,
+        { "x-asym-tenant": "not-a-uuid" },
+        { "x-asym-tenant": id.TB },
+      ]) {
+        const who = headers ? { sub: "UCL", headers } : { sub: "UCL" };
+        for (const call of [() => start(who), () => redeem(who, token())]) {
+          const refused = await call();
+          expect(refused.code, JSON.stringify(headers)).toBe("42501");
+          expect(refused.message).toContain(LANE);
+        }
+        const read = await status(who);
+        expect(read.code, read.message).toBeNull();
+        expect(read.rows, JSON.stringify(headers)).toEqual([]);
+      }
+    });
+
+    it("a platform operator is never linked or given a membership by a claim, and a soft-deleted login has no confirmed address and cannot redeem (finding B5)", () =>
+      inSavepoint(async () => {
+        await login("UOP");
+        await login("UGO");
+        await db.query(
+          "insert into authz.platform_operators (user_id, added_by, reason) values ($1, 'acc2678', 'fixture operator')",
+          [id.UOP],
+        );
+        await unclaimedDonor("dOP", "UOP");
+        await unclaimedDonor("dGO", "UGO");
+        await db.query(
+          "alter table auth.users add column if not exists deleted_at timestamptz",
+        );
+        await db.query(
+          "update auth.users set deleted_at = now() where id = $1",
+          [id.UGO],
+        );
+        for (const user of ["UOP", "UGO"] as const)
+          expect((await start(inTenant(user))).rows).toEqual([
+            { r: { status: "received" } },
+          ]);
+        expect(await claimOf(id.UOP)).toEqual([]);
+        expect(await claimOf(id.UGO)).toEqual([]);
+        expect(await audit("account_claim_started", id.UOP)).toEqual([
+          "platform_operator",
+        ]);
+        expect(await audit("account_claim_started", id.UGO)).toEqual([
+          "email_not_confirmed",
+        ]);
+        const operatorClaim = await plantedClaim("UOP", "dOP");
+        const goneClaim = await plantedClaim("UGO", "dGO");
+        expect((await redeem(inTenant("UOP"), operatorClaim.t)).rows).toEqual([
+          { r: { status: "refused" } },
+        ]);
+        expect((await redeem(inTenant("UGO"), goneClaim.t)).rows).toEqual([
+          { r: { status: "refused" } },
+        ]);
+        expect(await audit("account_claim_refused", id.UOP)).toEqual([
+          "platform_operator",
+        ]);
+        expect(await audit("account_claim_refused", id.UGO)).toEqual([
+          "login_not_confirmed",
+        ]);
+        for (const user of [id.UOP, id.UGO])
+          expect(await linked(user)).toEqual({ links: "0", memberships: "0" });
+      }));
+
+    it("a start, a token step, a redemption and a status read that name organization B for a claim of A change nothing in either; the claim then redeems in A (finding B6)", () =>
+      inSavepoint(async () => {
+        await login("UX");
+        await unclaimedDonor("dX", "UX");
+        const inA = inTenant("UX");
+        const inB = inTenant("UX", "TB");
+        expect((await start(inA)).rows).toEqual([
+          { r: { status: "received" } },
+        ]);
+        const [claim] = await claimOf(id.UX);
+        expect((await start(inB, "TB")).rows).toEqual([
+          { r: { status: "received" } },
+        ]);
+        expect(await claimOf(id.UX, id.TB)).toEqual([]);
+        expect(await claimOf(id.UX)).toHaveLength(1);
+        const t = token();
+        const crossIssue = await db.query(
+          "select tenant_guard.issue_account_claim_token($1, $2, $3) as r",
+          [id.TB, claim.id, digest(t)],
+        );
+        expect(crossIssue.rows[0].r).toMatchObject({ issued: false });
+        await db.query("select set_config('app.current_tenant_id', '', true)");
+        expect((await claimOf(id.UX))[0].token_sha256).toBeNull();
+        expect(await issue(claim.id, t)).toMatchObject({ issued: true });
+        expect((await redeem(inB, t, "TB")).rows).toEqual([
+          { r: { status: "refused" } },
+        ]);
+        expect(await linked(id.UX, id.TB)).toEqual({
+          links: "0",
+          memberships: "0",
+        });
+        expect(await linked(id.UX)).toEqual({ links: "0", memberships: "0" });
+        expect((await claimOf(id.UX))[0]).toMatchObject({
+          status: "pending",
+          token_redeemed_at: null,
+        });
+        expect((await redeem(inA, t)).rows).toEqual([
+          { r: { status: "linked" } },
+        ]);
+        expect((await status(inB, "TB")).rows).toEqual([]);
+        expect((await status(inA)).rows.map((r) => r.status)).toEqual([
+          "verified",
+        ]);
+      }));
+
+    it("a suspended organization opens no claim and redeems none (finding B6)", () =>
+      inSavepoint(async () => {
+        await login("USU");
+        await unclaimedDonor("dSU", "USU");
+        const planted = await plantedClaim("USU", "dSU");
+        await db.query(
+          "update public.tenants set status = 'suspended' where id = $1",
+          [id.TA],
+        );
+        expect((await start(inTenant("USU"))).rows).toEqual([
+          { r: { status: "received" } },
+        ]);
+        expect(await claimOf(id.USU)).toHaveLength(1);
+        expect((await redeem(inTenant("USU"), planted.t)).rows).toEqual([
+          { r: { status: "refused" } },
+        ]);
+        expect(await linked(id.USU)).toEqual({ links: "0", memberships: "0" });
+        expect((await claimOf(id.USU))[0].token_redeemed_at).toBeNull();
+      }));
+
+    it("a redemption revives the claimant's revoked donor membership in that organization instead of adding a second (finding B6)", () =>
+      inSavepoint(async () => {
+        await login("URV");
+        await unclaimedDonor("dRV", "URV");
+        await db.query(
+          "insert into authz.memberships (id, user_id, tenant_id, role, is_active) values ($1, $2, $3, 'donor', false)",
+          [id.mRV, id.URV, id.TA],
+        );
+        const planted = await plantedClaim("URV", "dRV");
+        expect((await redeem(inTenant("URV"), planted.t)).rows).toEqual([
+          { r: { status: "linked" } },
+        ]);
+        expect(
+          (
+            await db.query(
+              "select id, is_active, revoked_at from authz.memberships where tenant_id = $1 and user_id = $2",
+              [id.TA, id.URV],
+            )
+          ).rows,
+        ).toEqual([{ id: id.mRV, is_active: true, revoked_at: null }]);
+      }));
+
+    it("a token needs the donor's address at issue; the token step refuses a claim whose requester is gone or already linked; the claim table has an index on id; the command role updates only a claim's state columns; private.tenant_is_active is gone (findings B7, B8, B9)", () =>
+      inSavepoint(async () => {
+        await login("UY");
+        await unclaimedDonor("dY", "UY");
+        expect(
+          await failure(
+            `insert into public.account_claim_requests (tenant_id, donor_id, email, requested_by, token_sha256, token_expires_at)
+             values ($1, $2, $3, $4, $5, now() + interval '1 hour')`,
+            [id.TA, id.dY, email("UY"), id.UY, digest(token())],
+          ),
+        ).toBe("23514");
+        const gone = await db.query(
+          "insert into public.account_claim_requests (tenant_id, donor_id, email, requested_by) values ($1, $2, $3, null) returning id",
+          [id.TA, id.dY, email("UY")],
+        );
+        expect(await issue(gone.rows[0].id, token())).toMatchObject({
+          issued: false,
+        });
+        const linkedRequester = await db.query(
+          "insert into public.account_claim_requests (tenant_id, donor_id, email, requested_by) values ($1, $2, $3, $4) returning id",
+          [id.TA, id.dY, email("UY"), id.UDA],
+        );
+        expect(await issue(linkedRequester.rows[0].id, token())).toMatchObject({
+          issued: false,
+        });
+        const catalog = await db.query(
+          `select exists (select 1 from pg_index i where i.indrelid = 'public.account_claim_requests'::regclass
+                    and pg_get_indexdef(i.indexrelid) ~ '\\(id\\)$') id_index,
+                  has_column_privilege('tenant_guard', 'public.account_claim_requests', 'status', 'UPDATE') status_update,
+                  has_column_privilege('tenant_guard', 'public.account_claim_requests', 'requested_by', 'UPDATE') requester_update,
+                  has_column_privilege('tenant_guard', 'public.account_claim_requests', 'donor_id', 'UPDATE') donor_update,
+                  to_regprocedure('private.tenant_is_active(uuid)') is null helper_gone`,
+        );
+        expect(catalog.rows).toEqual([
+          {
+            id_index: true,
+            status_update: true,
+            requester_update: false,
+            donor_update: false,
+            helper_gone: true,
+          },
+        ]);
+      }));
+
+    it("starting a claim tells nothing (ruling on finding B4): for a match and each unmatched outcome, start answers the same, the status read is empty straight after the start and after the token step, a direct read returns nothing and a random token is refused; an unredeemed row stays hidden whatever its status, and a redemption shows exactly one verified row", () =>
+      inSavepoint(async () => {
+        await login("UQ1");
+        await unclaimedDonor("dQ1", "UQ1");
+        await login("UQ2");
+        await login("UQ4");
+        await unclaimedDonor("dQ4", "UQ4");
+        await db.query(
+          "insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Linked caller')",
+          [id.pQ4, id.TA],
+        );
+        await db.query(
+          "insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($1, $2, $3, 'account_claim')",
+          [id.TA, id.UQ4, id.pQ4],
+        );
+        await db.query(
+          "insert into public.tenants (id, name, slug, status) values ($1::uuid, 'acc2678 suspended', 'acc2678-s-' || $1::text, 'suspended')",
+          [id.TS],
+        );
+        await db.query(
+          "insert into public.legal_entities (id, tenant_id, name, country_code, currency, legal_name) values ($1, $1, 'S', 'US', 'usd', 'S')",
+          [id.TS],
+        );
+        await login("UQ5");
+        await unclaimedDonor("dQ5", "UQ5", "TS");
+        await login("UQ6");
+        await unclaimedDonor("dQ6", "UQ6");
+        expect((await start(inTenant("UQ6"))).rows).toEqual([
+          { r: { status: "received" } },
+        ]);
+        const cases: [string, Key, Key][] = [
+          ["matched", "UQ1", "TA"],
+          ["no donor", "UQ2", "TA"],
+          ["donor already linked", "ULK", "TA"],
+          ["caller already linked", "UQ4", "TA"],
+          ["address unconfirmed", "UUN", "TA"],
+          ["inactive organization", "UQ5", "TS"],
+          ["claim already open", "UQ6", "TA"],
+        ];
+        for (const [label, user, tenant] of cases) {
+          const who = inTenant(user, tenant);
+          const started = await start(who, tenant);
+          expect(started.code, `${label}: ${started.message}`).toBeNull();
+          expect(started.rows, label).toEqual([{ r: { status: "received" } }]);
+          expect((await status(who, tenant)).rows, label).toEqual([]);
+          for (const claim of await claimOf(id[user], id[tenant]))
+            if (claim.token_sha256 === null)
+              await issue(claim.id as string, token());
+          expect((await status(who, tenant)).rows, label).toEqual([]);
+          expect(
+            (
+              await queryAs(
+                "authenticated",
+                who as never,
+                "select * from public.account_claim_requests",
+              )
+            ).rows,
+            label,
+          ).toEqual([]);
+          expect((await redeem(who, token(), tenant)).rows, label).toEqual([
+            { r: { status: "refused" } },
+          ]);
+        }
+        expect(await audit("account_claim_started", id.UQ6)).toEqual([
+          "claim_opened",
+          "claim_already_open",
+        ]);
+        const [matched] = await claimOf(id.UQ1);
+        for (const hidden of ["expired", "denied", "approved"]) {
+          await db.query(
+            "update public.account_claim_requests set status = $2 where id = $1",
+            [matched.id, hidden],
+          );
+          expect((await status(inTenant("UQ1"))).rows, hidden).toEqual([]);
+        }
+        const t = token();
+        await db.query(
+          "update public.account_claim_requests set status = 'pending', token_sha256 = $2 where id = $1",
+          [matched.id, digest(t)],
+        );
+        expect((await redeem(inTenant("UQ1"), t)).rows).toEqual([
+          { r: { status: "linked" } },
+        ]);
+        expect(
+          (await status(inTenant("UQ1"))).rows.map((r) => r.status),
+        ).toEqual(["verified"]);
+      }));
   },
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2678 claim redemption under concurrency (W5-R5)",
+  "AL-2678 claim redemption under concurrency (W5-R5, finding B2)",
   () => {
-    it("two simultaneous redemptions of one valid token: exactly one wins, one link, one redeemed time", async () => {
+    async function race(
+      plant: (
+        admin: pg.Client,
+        tenant: string,
+      ) => Promise<{
+        calls: [string, string][];
+        check: (admin: pg.Client) => Promise<void>;
+      }>,
+    ) {
       const admin = new pg.Client({ connectionString: ADMIN_URL });
       const first = new pg.Client({ connectionString: ADMIN_URL });
       const second = new pg.Client({ connectionString: ADMIN_URL });
       const tenant = randomUUID();
-      const user = randomUUID();
-      const donor = randomUUID();
-      const mail = `acc2678-race-${user}@example.test`;
-      const t = token();
+      const users: string[] = [];
       await admin.connect();
       try {
         await admin.query(
           "insert into public.tenants (id, name, slug) values ($1::uuid, 'acc2678 claim race', 'acc2678-claim-' || $1::text)",
           [tenant],
         );
-        await admin.query(
-          "insert into auth.users (id, email, email_confirmed_at) values ($1, $2, now())",
-          [user, mail],
-        );
-        await admin.query("delete from authz.memberships where user_id = $1", [
-          user,
-        ]);
-        await admin.query(
-          "insert into public.donors (id, tenant_id, name, email) values ($1, $2, 'Race', $3)",
-          [donor, tenant, mail],
-        );
-        const claim = await admin.query(
-          `insert into public.account_claim_requests (tenant_id, donor_id, email, requested_by, token_sha256, token_expires_at, donor_email_at_issue)
-         values ($1, $2, $3, $4, $5, now() + interval '1 hour', $3) returning id`,
-          [tenant, donor, mail, user, digest(t)],
-        );
-        expect(claim.rows).toHaveLength(1);
+        const { calls, check } = await plant(admin, tenant);
+        for (const [user] of calls) if (!users.includes(user)) users.push(user);
         await first.connect();
         await second.connect();
-        const prepare = (c: pg.Client) =>
+        const prepare = (c: pg.Client, user: string) =>
           c.query(
             `begin; set local role authenticated;
            select set_config('request.jwt.claims', '${JSON.stringify({ sub: user, role: "authenticated" })}', true),
-                  set_config('request.jwt.claim.sub', '', true), set_config('request.headers', '', true);`,
+                  set_config('request.jwt.claim.sub', '', true),
+                  set_config('request.headers', '${JSON.stringify({ "x-asym-tenant": tenant })}', true);`,
           );
-        const redeemOn = (c: pg.Client) =>
+        const redeemOn = (c: pg.Client, t: string) =>
           c
             .query("select public.redeem_account_claim($1, $2) as r", [
               tenant,
               t,
             ])
-            .then((r) => r.rows[0].r);
-        await prepare(first);
-        await prepare(second);
-        const one = await redeemOn(first);
+            .then(
+              (r) => r.rows[0].r,
+              (e) => ({ error: (e as { code?: string }).code }),
+            );
+        await prepare(first, calls[0]![0]);
+        await prepare(second, calls[1]![0]);
+        const one = await redeemOn(first, calls[0]![1]);
         let settled = false;
-        const two = redeemOn(second).then((r) => {
+        const two = redeemOn(second, calls[1]![1]).then((r) => {
           settled = true;
           return r;
         });
         await new Promise((resolve) => setTimeout(resolve, 300));
-        expect(settled, "the second redemption waits on the row lock").toBe(
+        expect(settled, "the second redemption waits for the first").toBe(
           false,
         );
         await first.query("commit");
         const answers = [one, await two];
-        await second.query("commit");
-        expect(answers.map((a) => a.status).sort()).toEqual([
+        await second.query("commit").catch(() => second.query("rollback"));
+        expect(answers.map((a) => a.status ?? a.error).sort()).toEqual([
           "linked",
           "refused",
         ]);
-        const state = await admin.query(
-          `select (select count(*) from public.account_links where tenant_id = $1) links,
-                (select count(*) from public.account_claim_requests where tenant_id = $1 and token_redeemed_at is not null) redeemed`,
-          [tenant],
-        );
-        expect(state.rows).toEqual([{ links: "1", redeemed: "1" }]);
+        await check(admin);
       } finally {
         await first.end().catch(() => undefined);
         await second.end().catch(() => undefined);
@@ -435,8 +780,8 @@ describe.skipIf(!ADMIN_URL)(
           [tenant],
         );
         await admin.query(
-          "delete from authz.memberships where tenant_id = $1 or user_id = $2",
-          [tenant, user],
+          "delete from authz.memberships where tenant_id = $1 or user_id = any($2::uuid[])",
+          [tenant, users],
         );
         await admin.query("delete from public.donors where tenant_id = $1", [
           tenant,
@@ -444,10 +789,134 @@ describe.skipIf(!ADMIN_URL)(
         await admin.query("delete from public.parties where tenant_id = $1", [
           tenant,
         ]);
-        await admin.query("delete from auth.users where id = $1", [user]);
+        await admin.query("delete from auth.users where id = any($1::uuid[])", [
+          users,
+        ]);
         await admin.query("delete from public.tenants where id = $1", [tenant]);
         await admin.end();
       }
-    });
+    }
+
+    async function claimFor(
+      admin: pg.Client,
+      tenant: string,
+      user: string,
+      donor: string,
+      mail: string,
+    ) {
+      const t = token();
+      await admin.query(
+        `insert into public.account_claim_requests (tenant_id, donor_id, email, requested_by, token_sha256, token_expires_at, donor_email_at_issue)
+         values ($1, $2, $3, $4, $5, now() + interval '1 hour', $3)`,
+        [tenant, donor, mail, user, digest(t)],
+      );
+      return t;
+    }
+
+    async function newUser(admin: pg.Client, mail: string) {
+      const user = randomUUID();
+      await admin.query(
+        "insert into auth.users (id, email, email_confirmed_at) values ($1, $2, now())",
+        [user, mail],
+      );
+      await admin.query("delete from authz.memberships where user_id = $1", [
+        user,
+      ]);
+      return user;
+    }
+
+    it("two simultaneous redemptions of one valid token: exactly one wins, one link, one redeemed time", () =>
+      race(async (admin, tenant) => {
+        const mail = `acc2678-race-${randomUUID()}@example.test`;
+        const user = await newUser(admin, mail);
+        const donor = randomUUID();
+        await admin.query(
+          "insert into public.donors (id, tenant_id, name, email) values ($1, $2, 'Race', $3)",
+          [donor, tenant, mail],
+        );
+        const t = await claimFor(admin, tenant, user, donor, mail);
+        return {
+          calls: [
+            [user, t],
+            [user, t],
+          ],
+          check: async (a) => {
+            const state = await a.query(
+              `select (select count(*) from public.account_links where tenant_id = $1) links,
+                    (select count(*) from public.account_claim_requests where tenant_id = $1 and token_redeemed_at is not null) redeemed`,
+              [tenant],
+            );
+            expect(state.rows).toEqual([{ links: "1", redeemed: "1" }]);
+          },
+        };
+      }));
+
+    it("two logins with two valid tokens on one donor at once: exactly one link and one donor membership, the other refused", () =>
+      race(async (admin, tenant) => {
+        const mail = `acc2678-race-donor-${randomUUID()}@example.test`;
+        const one = await newUser(
+          admin,
+          `acc2678-race-one-${randomUUID()}@example.test`,
+        );
+        const two = await newUser(
+          admin,
+          `acc2678-race-two-${randomUUID()}@example.test`,
+        );
+        const donor = randomUUID();
+        await admin.query(
+          "insert into public.donors (id, tenant_id, name, email) values ($1, $2, 'Race', $3)",
+          [donor, tenant, mail],
+        );
+        const t1 = await claimFor(admin, tenant, one, donor, mail);
+        const t2 = await claimFor(admin, tenant, two, donor, mail);
+        return {
+          calls: [
+            [one, t1],
+            [two, t2],
+          ],
+          check: async (a) => {
+            const state = await a.query(
+              `select (select count(*) from public.account_links al join public.donors d on d.party_id = al.party_id where d.id = $2) links,
+                    (select count(*) from authz.memberships where tenant_id = $1 and role = 'donor' and is_active and user_id = any($3::uuid[])) memberships`,
+              [tenant, donor, [one, two]],
+            );
+            expect(state.rows).toEqual([{ links: "1", memberships: "1" }]);
+          },
+        };
+      }));
+
+    it("one login redeeming two tokens at once: one served, one refused, never 23505", () =>
+      race(async (admin, tenant) => {
+        const user = await newUser(
+          admin,
+          `acc2678-race-same-${randomUUID()}@example.test`,
+        );
+        const mails = [
+          `acc2678-race-d1-${randomUUID()}@example.test`,
+          `acc2678-race-d2-${randomUUID()}@example.test`,
+        ];
+        const donors = [randomUUID(), randomUUID()];
+        for (const i of [0, 1])
+          await admin.query(
+            "insert into public.donors (id, tenant_id, name, email) values ($1, $2, 'Race', $3)",
+            [donors[i], tenant, mails[i]],
+          );
+        const t1 = await claimFor(admin, tenant, user, donors[0]!, mails[0]!);
+        const t2 = await claimFor(admin, tenant, user, donors[1]!, mails[1]!);
+        return {
+          calls: [
+            [user, t1],
+            [user, t2],
+          ],
+          check: async (a) => {
+            const state = await a.query(
+              `select (select count(*) from public.account_links where tenant_id = $1 and user_id = $2) links,
+                    (select count(*) from authz.memberships where tenant_id = $1 and user_id = $2 and is_active) memberships`,
+              [tenant, user],
+            );
+            expect(state.rows).toEqual([{ links: "1", memberships: "1" }]);
+          },
+        };
+      }));
   },
 );

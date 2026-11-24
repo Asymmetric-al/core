@@ -275,6 +275,82 @@ describe.skipIf(!ADMIN_URL)(
           expect(orphans.rows).toEqual([{ n: "0" }]);
         }));
 
+      it("reuses the Party a person already has in the organization: a linked missionary's first gift through begin_donation_saga makes no second Party and the person reads the new donor record as their own; a missionary with no link reuses the missionary row's Party", () =>
+        tx(db, async () => {
+          await db.query(fixtureSql(id));
+          const donorMembership = randomUUID();
+          await db.query(
+            "insert into authz.memberships (id, user_id, tenant_id, role, is_active) values ($1, $2, $3, 'donor', true)",
+            [donorMembership, id.UM2, id.TA],
+          );
+          const count = async (table: string) =>
+            Number(
+              (
+                await db.query(
+                  `select count(*) n from public.${table} where tenant_id = $1`,
+                  [id.TA],
+                )
+              ).rows[0].n,
+            );
+          const parties = await count("parties");
+          const links = await count("account_links");
+          await db.query(
+            "select public.begin_donation_saga(p_tenant_id => $1, p_profile_id => $2, p_actor_user_id => $2, p_amount => 100, p_idempotency_key => $3)",
+            [id.TA, id.UM2, randomUUID()],
+          );
+          const linkedDonor = await db.query(
+            "select id, party_id from public.donors where tenant_id = $1 and profile_id = $2",
+            [id.TA, id.UM2],
+          );
+          expect(linkedDonor.rows).toEqual([
+            { id: expect.any(String), party_id: id.pM2 },
+          ]);
+          expect(await count("parties")).toBe(parties);
+          expect(await count("account_links")).toBe(links);
+          const own = await queryAs(
+            "authenticated",
+            {
+              sub: "UM2",
+              headers: {
+                "x-asym-tenant": id.TA,
+                "x-asym-assignment": donorMembership,
+              },
+            },
+            `select id from public.donors where id = '${linkedDonor.rows[0].id}'`,
+          );
+          expect(own.code, own.message).toBeNull();
+          expect(own.rows).toEqual([{ id: linkedDonor.rows[0].id }]);
+
+          const unlinked = randomUUID();
+          const unlinkedParty = randomUUID();
+          await db.query(
+            "insert into auth.users (id, email) values ($1::uuid, 'acc2678-unlinked-' || $1::text || '@example.test')",
+            [unlinked],
+          );
+          await db.query(
+            "insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Unlinked worker')",
+            [unlinkedParty, id.TA],
+          );
+          await db.query(
+            "insert into public.missionaries (tenant_id, party_id, profile_id, legal_entity_id) values ($1, $2, $3, $1)",
+            [id.TA, unlinkedParty, unlinked],
+          );
+          await db.query(
+            "select public.begin_donation_saga(p_tenant_id => $1, p_profile_id => $2, p_actor_user_id => $2, p_amount => 100, p_idempotency_key => $3)",
+            [id.TA, unlinked, randomUUID()],
+          );
+          expect(
+            (
+              await db.query(
+                "select party_id from public.donors where tenant_id = $1 and profile_id = $2",
+                [id.TA, unlinked],
+              )
+            ).rows,
+          ).toEqual([{ party_id: unlinkedParty }]);
+          expect(await count("parties")).toBe(parties + 1);
+          expect(await count("account_links")).toBe(links);
+        }));
+
       it("leaves the Add Partner browser insert refused (42501): signed-in users still hold no insert on donors", () =>
         tx(db, async () => {
           await db.query(fixtureSql(id));

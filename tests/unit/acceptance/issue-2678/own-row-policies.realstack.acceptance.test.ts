@@ -66,6 +66,7 @@ const FIXTURE_ROWS: Record<string, (keyof Ids)[]> = {
   missionaries: ["mA", "mB", "m2"],
   follows: ["fA", "fC", "f2", "fB"],
   donor_feed_preferences: ["pfA", "pfC", "pf2", "pfB"],
+  parties: ["pDA", "pDAB", "pDC", "pD2", "pMA", "pMB", "pM2"],
 };
 
 describe.skipIf(!ADMIN_URL)(
@@ -188,7 +189,46 @@ describe.skipIf(!ADMIN_URL)(
         staff: [],
         staffB: [],
       },
+      parties: {
+        donorA: ["pDA"],
+        claimed: ["pDC"],
+        donor2: ["pD2"],
+        donorAinB: ["pDAB"],
+        donorAforgedB: [],
+        missionary: ["pMA"],
+        missionary2: ["pM2"],
+        missionaryInB: ["pMB"],
+        staff: ["pD2", "pDA", "pDC", "pM2", "pMA"],
+        staffB: ["pDAB", "pMB"],
+      },
     };
+
+    it("account_links: the owner reads their own link (claimed and backfilled), another user of the tenant and the same user in another tenant read none of it, a forged header reads nothing, and staff read every link of their own tenant only", async () => {
+      const cells: Partial<Record<Who, string[]>> = {
+        donorA: ["pDA"],
+        claimed: ["pDC"],
+        donor2: ["pD2"],
+        donorAinB: ["pDAB"],
+        donorAforgedB: [],
+        missionary: ["pMA"],
+        missionary2: ["pM2"],
+        missionaryInB: ["pMB"],
+        staff: ["pD2", "pDA", "pDC", "pM2", "pMA"],
+        staffB: ["pDAB", "pMB"],
+      };
+      for (const [person, rows] of Object.entries(cells)) {
+        const result = await queryAs(
+          "authenticated",
+          who[person as Who],
+          `select party_id from public.account_links where tenant_id in ('${id.TA}', '${id.TB}')`,
+        );
+        expect(result.code, `${person}: ${result.message}`).toBeNull();
+        expect(
+          result.rows.map((r) => name[r.party_id as string]).sort(),
+          person,
+        ).toEqual(rows);
+      }
+    });
 
     for (const [table, cells] of Object.entries(expected))
       it(`${table}: the owner reads their row (claimed with profile_id empty, and backfilled), another user of the tenant and the same user in another tenant read none of it, and the staff branch keeps its tenant`, async () => {
