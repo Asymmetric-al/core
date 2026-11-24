@@ -21,7 +21,7 @@ describe.skipIf(!ADMIN_URL)("tenant status under a selected membership", () => {
   afterAll(() => db.end());
 
   it.each(["active", "suspended", "closed"])(
-    "applies %s across assignment, Storage, chooser, Web Studio and preamble",
+    "applies %s across assignment, Storage, chooser, Web Studio and preamble (D-18, AL-2678: the donor is linked to its Party as the migration backfills a donor that names a profile)",
     async (status) => {
       await db.query("begin");
       try {
@@ -29,6 +29,7 @@ describe.skipIf(!ADMIN_URL)("tenant status under a selected membership", () => {
         await db.query(`insert into public.posts(id,tenant_id,content,status,visibility) values ('${id.TA}','${id.TA}','Fixture','published','public');
           insert into public.post_comments(post_id,user_id,content) values ('${id.TA}','${id.UADM}','Fixture');
           insert into public.donors(id,tenant_id,profile_id) select '${id.TA}','${id.TA}',id from public.profiles where user_id='${id.UDON}';
+          insert into public.account_links(tenant_id,user_id,party_id,linked_via) select tenant_id,profile_id,party_id,'profile_backfill' from public.donors where id='${id.TA}';
           insert into public.donations(id,tenant_id,donor_id,amount) values ('${id.TA}','${id.TA}','${id.TA}',10)`);
         await db.query("update public.tenants set status=$1 where id=$2", [
           status,

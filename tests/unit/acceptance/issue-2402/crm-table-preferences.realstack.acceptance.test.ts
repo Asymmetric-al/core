@@ -19,7 +19,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import * as H from "./harness";
 
 const URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
-describe.skipIf(!URL)("#2402 real-stack", () => {
+const D18 =
+  "D-18, AL-2678: since D-76 a profile's user_id equals its id; the fixture keeps its profiles distinct from their logins, as legacy rows were, so each assertion still tells a profile id from a login id, and lifts that check inside its own private, rolled-back transaction";
+describe.skipIf(!URL)(`#2402 real-stack (${D18})`, () => {
   let s: H.Stack;
   beforeAll(async () => {
     s = new H.Stack(URL);

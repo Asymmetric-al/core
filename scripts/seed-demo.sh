@@ -116,7 +116,8 @@ console.log(`${counts["public.profiles"]} profiles, ${counts["public.tenants"]} 
              WHERE id IN ('11111111-1111-1111-1111-111111111111',
                           '33333333-3333-3333-3333-333333333333',
                           '44444444-4444-4444-4444-444444444444',
-                          '55555555-5555-5555-5555-555555555555')) AS fixture_profile_rows,
+                          '55555555-5555-5555-5555-555555555555',
+                          '57000000-0000-4000-8000-000000000001')) AS fixture_profile_rows,
            (SELECT COUNT(*)::bigint FROM public.tenants) AS tenant_rows,
            (SELECT COUNT(*)::bigint FROM authz.memberships WHERE is_active) AS live_membership_rows;
   "

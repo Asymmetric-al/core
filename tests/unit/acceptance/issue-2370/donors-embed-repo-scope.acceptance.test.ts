@@ -34,6 +34,8 @@ const FR_INDEX = "packages/api/src/follower-requests/index.ts";
 const FR_REQUEST = "packages/api/src/follower-requests/request.ts";
 const T2269 =
   "tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts";
+const T2678 =
+  "tests/unit/acceptance/issue-2678/identity-keys.postgrest.acceptance.test.ts";
 /** The #2269 narrowed scope that #2370 replaces. */
 const NARROWED = [
   "packages/api/src/donations/index.ts",
@@ -105,9 +107,9 @@ function verdict(root: string) {
 const PASS = { violations: [], missing: [] };
 
 describe("#2370 allow-list", () => {
-  it("C2: allow-lists exactly the two follower-requests reads and the #2269 acceptance test", () =>
+  it("C2: allow-lists exactly the two follower-requests reads and the #2269 acceptance test (D-18, AL-2678: and the WP5 PostgREST suite that sends the running build's follower-request read unchanged, to prove it still resolves)", () =>
     expect(Object.keys(DONORS_EMBED_ALLOW_LIST).sort()).toEqual(
-      [FR_INDEX, FR_REQUEST, T2269].sort(),
+      [FR_INDEX, FR_REQUEST, T2269, T2678].sort(),
     ));
   it("C2: each allow-list entry has a one-line reason", () =>
     expect(

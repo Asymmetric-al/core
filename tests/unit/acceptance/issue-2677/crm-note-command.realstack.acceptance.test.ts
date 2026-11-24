@@ -66,6 +66,8 @@ it("documents the server-minted key as this release's exception", () => {
   ).toEqual([]);
 });
 
+const LEGACY_PROFILE_ROWS =
+  "alter table public.profiles drop constraint profiles_user_id_matches_id, alter column user_id drop not null";
 const SUITE_TITLE =
   "the CRM note command (D-18: AL-2676: human commands require x-asym-tenant)";
 
@@ -426,7 +428,8 @@ describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
     expect(counted.rows).toEqual([{ n: 0 }]);
   });
 
-  it("takes the author from a profile whose id is the caller and whose user_id is empty", async () => {
+  it("takes the author from a profile whose id is the caller and whose user_id is empty (D-18, AL-2678: since W5-R3 a profile's user_id equals its id, so the legacy row is planted with that check lifted inside the test's rolled-back transaction)", async () => {
+    await db.query(LEGACY_PROFILE_ROWS);
     await db.query("update public.profiles set user_id = null where id = $1", [
       id.UDEV,
     ]);
@@ -444,7 +447,8 @@ describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
     ]);
   });
 
-  it("finds the caller's profile through a private helper that only the guard may execute", async () => {
+  it("finds the caller's profile through a private helper that only the guard may execute (D-18, AL-2678: since W5-R3 a profile's user_id equals its id, so the legacy row is planted with that check lifted inside the test's rolled-back transaction)", async () => {
+    await db.query(LEGACY_PROFILE_ROWS);
     const helper = await db.query(
       "select r.rolname as owner, p.prosecdef as definer, p.proconfig as config, array(select coalesce(nullif(a.grantee, 0)::regrole::text, 'PUBLIC') from aclexplode(p.proacl) as a where a.privilege_type = 'EXECUTE' order by 1) as execute from pg_proc as p join pg_roles as r on r.oid = p.proowner where p.oid = 'private.caller_profile_id()'::regprocedure",
     );
@@ -487,7 +491,8 @@ describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
       ).toBe("42501");
   });
 
-  it("never takes a profile linked to another user as the caller's own", async () => {
+  it("never takes a profile linked to another user as the caller's own (D-18, AL-2678: since W5-R3 a profile's user_id equals its id, so the legacy row is planted with that check lifted inside the test's rolled-back transaction)", async () => {
+    await db.query(LEGACY_PROFILE_ROWS);
     await db.query("update public.profiles set user_id = null where id = $1", [
       id.UDEV,
     ]);

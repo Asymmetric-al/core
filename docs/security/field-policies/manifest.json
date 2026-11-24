@@ -48,7 +48,7 @@
     {
       "path": "supabase/migrations/20261025110000_person_anchor.sql",
       "sha256": "f97ea5de4d44be60fcdecb64274e0cd749d18c1d17aa81b34e5531becd00c558",
-      "reason": "Defines missionaries.person_id and profiles.person_id and seeds their rows (census supplement v3, #2256)."
+      "reason": "The merged person-anchor migration of #2256 (census supplement v3). AL-2678 drops the table and the two columns it defined; the pin keeps the merged file as it was merged."
     }
   ],
   "derived_record_types": {
@@ -1646,6 +1646,26 @@
         "missionary": "---",
         "public": "---",
         "export": "---"
+      },
+      "party_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "import_batch_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
       }
     },
     "member_care_activities": {
@@ -2247,12 +2267,21 @@
         "public": "---",
         "export": "---"
       },
-      "person_id": {
+      "party_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "import_batch_id": {
         "type": "uuid",
         "nullable": true,
-        "default": null,
-        "category": "security",
-        "mission_control": "---",
+        "category": "internal",
+        "mission_control": "v--",
         "donor": "---",
         "missionary": "---",
         "public": "---",
@@ -2272,7 +2301,7 @@
       },
       "user_id": {
         "type": "uuid",
-        "nullable": true,
+        "nullable": false,
         "category": "security",
         "mission_control": "ve-",
         "donor": "---",
@@ -2389,13 +2418,311 @@
         "missionary": "---",
         "public": "---",
         "export": "---"
+      }
+    },
+    "parties": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
       },
-      "person_id": {
+      "tenant_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "display_name": {
+        "type": "text",
+        "nullable": false,
+        "category": "contact",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "security_level": {
+        "type": "text",
+        "nullable": false,
+        "default": "'standard'::text",
+        "category": "security",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "security_level_source": {
+        "type": "text",
+        "nullable": false,
+        "default": "'unreviewed_default'::text",
+        "category": "security",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "public_alias": {
+        "type": "text",
+        "nullable": true,
+        "category": "security",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "do_not_publish": {
+        "type": "boolean",
+        "nullable": false,
+        "default": "false",
+        "category": "security",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "import_batch_id": {
         "type": "uuid",
         "nullable": true,
-        "default": null,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      }
+    },
+    "account_links": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "tenant_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "user_id": {
+        "type": "uuid",
+        "nullable": false,
         "category": "security",
-        "mission_control": "---",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "party_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "linked_via": {
+        "type": "text",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      }
+    },
+    "external_identifiers": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "tenant_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "source": {
+        "type": "text",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "external_id": {
+        "type": "text",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "target_type": {
+        "type": "text",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "target_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "party_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "donor_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "missionary_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "fund_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "import_batch_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
         "donor": "---",
         "missionary": "---",
         "public": "---",
@@ -2555,6 +2882,16 @@
       },
       "system_purpose": {
         "type": "text",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "import_batch_id": {
+        "type": "uuid",
         "nullable": true,
         "category": "internal",
         "mission_control": "v--",
