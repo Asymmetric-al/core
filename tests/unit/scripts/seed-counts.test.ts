@@ -42,6 +42,23 @@ describe("the tracked expectation file", () => {
     expect(Number.isSafeInteger(expectations["public.profiles"])).toBe(true);
   });
 
+  it("is what the local seed verifier prints and checks: the counts and one fixture id per seeded profile", () => {
+    const expectations = readSeedExpectations();
+    const script = readFileSync("scripts/seed-demo.sh", "utf8");
+    const seed = readFileSync("supabase/seed.sql", "utf8");
+    expect(script).toContain(
+      `expected: ${expectations["public.profiles"]} profiles, ${expectations["public.tenants"]} tenants, ${expectations["authz.memberships"]} live memberships`,
+    );
+    const list = /WHERE id IN \(([^)]*)\)\) AS fixture_profile_rows/.exec(
+      script,
+    )?.[1];
+    const ids = [...(list ?? "").matchAll(/'([0-9a-f-]{36})'/g)].map(
+      ([, id]) => id!,
+    );
+    expect(ids).toHaveLength(expectations["public.profiles"]!);
+    for (const id of ids) expect(seed).toContain(`('${id}', '`);
+  });
+
   it("is the step's only expectation: the workflow names the script, not a number", () => {
     const workflow = readFileSync(
       ".github/workflows/ci-integration.yml",
