@@ -42,13 +42,35 @@ describe("the tracked expectation file", () => {
     expect(Number.isSafeInteger(expectations["public.profiles"])).toBe(true);
   });
 
-  it("is what the local seed verifier prints and checks: the counts and one fixture id per seeded profile", () => {
+  it("is what the local seed verifier prints and checks: the counts and one fixture id per seeded profile (D-18: AL-2671 ruling-pin-tax Q3: the script reads the file)", () => {
     const expectations = readSeedExpectations();
     const script = readFileSync("scripts/seed-demo.sh", "utf8");
     const seed = readFileSync("supabase/seed.sql", "utf8");
     expect(script).toContain(
-      `expected: ${expectations["public.profiles"]} profiles, ${expectations["public.tenants"]} tenants, ${expectations["authz.memberships"]} live memberships`,
+      '"$SCRIPT_DIR/../supabase/seed-expectations.json"',
     );
+    const snippet = /\bnode -e '([^']+)'/.exec(script)?.[1];
+    expect(snippet, "seed-demo.sh reads the counts with node -e").toBeTruthy();
+    const printed = (file: string) => {
+      const r = spawnSync(process.execPath, ["-e", snippet!, file], {
+        encoding: "utf8",
+      });
+      expect(r.status, r.stderr).toBe(0);
+      return r.stdout.trim();
+    };
+    const line = (c: Record<string, number>) =>
+      `${c["public.profiles"]} profiles, ${c["public.tenants"]} tenants, ${c["authz.memberships"]} live memberships`;
+    expect(printed(EXPECTATIONS_PATH)).toBe(line(expectations));
+    const changed = {
+      ...expectations,
+      "public.profiles": 9,
+      "public.tenants": 3,
+      "authz.memberships": 11,
+    };
+    const root = rootWith(
+      JSON.stringify({ description: "changed", counts: changed }),
+    );
+    expect(printed(path.join(root, EXPECTATIONS_PATH))).toBe(line(changed));
     const list = /WHERE id IN \(([^)]*)\)\) AS fixture_profile_rows/.exec(
       script,
     )?.[1];

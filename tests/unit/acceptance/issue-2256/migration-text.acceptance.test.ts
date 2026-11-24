@@ -257,7 +257,7 @@ describe("#2256 seams, readers and writers", () => {
       expect(profileQueryFilterHits("clean.ts", text), text).toEqual([]);
   });
 
-  it("7: no app/script/tooling code names person_id or persons; database.ts stays pinned", () => {
+  it("7: no app/script/tooling code names person_id or persons (D-18: AL-2671 ruling-pin-tax Q2)", () => {
     // Pre-existing prose on develop (#2257, Phase 9 concept docs): two string lines naming `persons`, no reads.
     const PROSE = new Map([["packages/api/src/crm/identity/concepts.ts", 2]]);
     const re = /\b(person_id|persons)\b/;
@@ -277,9 +277,6 @@ describe("#2256 seams, readers and writers", () => {
         hits.push(`${f} (${lines.length})`);
     }
     expect(hits).toEqual([]);
-    expect(sha256("packages/database/types/database.ts")).toBe(
-      "942e3239260618c138b91b992c6cc25531ffbf5629ea1f1e5030f3018cede907",
-    );
   });
 
   it("16 (S): the direct and scoped missionary writers never update person_id (see #2268, AL-2675)", () => {

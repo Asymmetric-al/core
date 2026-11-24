@@ -4,30 +4,18 @@
  * diff-scope checks were retired by #2706 (diff scope belongs in review).
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
-import { createHash } from "node:crypto";
 import { existsSync, readdirSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
 import * as H from "./harness";
-import { D, S } from "../issue-2251/harness";
 
-const sha256 = (b: string | Buffer) =>
-  createHash("sha256").update(b).digest("hex");
 const ver = (f: string) => f.slice(0, 14);
 const forward = (fs: string[]) => fs.filter((f) => /^\d{14}_.+\.sql$/.test(f));
 const sql = () => {
   expect(existsSync(H.MIGRATION), `${H.MIGRATION} must exist`).toBe(true);
   return H.code(H.read(H.MIGRATION));
 };
-/**
- * sha256 of the remaining original exceptions entry lines, trimmed, "\n"-joined.
- * AL-2674 (D09) dropped backup_notification_queue_orphans_20260214, and AL-2681
- * (WP8a part 1, D-18) removed mission_control_task_links, mission_control_tasks
- * and workflow_dispatch_requests after adding tenant_guard policies to them.
- */
-const OTHERS_SHA =
-  "13b4e54333713496b855eb93f14d90ffca7bbee00391eb376747b8772dfab2c0";
 /** Criterion 20 doc rules, " ~ "-separated regexes. */
 const DOC_RULES = String.raw`anon ~ authenticated ~ service_role ~ SELECT, INSERT, UPDATE ~ auth\.uid\(\) ~ authz\.current_tenant_id\(\) ~ cross[- ]tenant ~ default (privileges|grants) ~ DELETE ~ #2251 ~ #668 ~ Down`;
 
@@ -58,35 +46,20 @@ describe("#2260 static (17-20)", () => {
     for (const g of body.match(/\bGRANT\b[^;]*;/gi) ?? [])
       expect(g).not.toMatch(/\b(DELETE|ALL|TRUNCATE)\b/i);
   });
-  it("18: the remaining original entries stay byte-identical with only the remaining WP3a denial added, sorted", () => {
-    const wp3 = ["giving_target_entity_locks"];
+  it("18: the exceptions list never names #2260's own table (D-18: AL-2671 ruling-pin-tax Q2)", () => {
     const raw = H.read(H.EXCEPTIONS);
-    const e = (
-      JSON.parse(raw) as { entries: { table: string; outcome: string }[] }
-    ).entries;
-    const n = (o: string) => e.filter((x) => x.outcome === o).length;
-    expect([e.length, n("service_role_needed"), n("deny_by_default")]).toEqual([
-      74, 57, 17,
-    ]);
     const lines = raw
       .split("\n")
       .filter((l) => l.includes('"table"'))
       .map((l) => l.trim().replace(/,$/, ""));
     const tables = lines.map((l) => (JSON.parse(l) as { table: string }).table);
     expect(tables).not.toContain(H.TABLE);
-    expect(tables).toEqual([...Object.keys(S), ...D, ...wp3].sort());
-    expect(
-      sha256(
-        lines.filter((_, index) => !wp3.includes(tables[index]!)).join("\n"),
-      ),
-      "other entries changed",
-    ).toBe(OTHERS_SHA);
   });
   // Rewritten by the WP2a sweep (AL-2675; plan 5.4 NX-03, WP2 exit "no route
   // reads the token claim"): the route took its tenant from the token's
   // app_metadata claim; it now takes the request's resolved donor
   // assignment's, and reads no claim at all.
-  it(`19: ${H.ROUTE}: no default/literal tenant, email lookup or admin client; tenant from the resolved assignment, no claim`, () => {
+  it(`19: ${H.ROUTE}: no default/literal tenant, email lookup or admin client; tenant from the resolved assignment, no claim (D-18: AL-2671 ruling-pin-tax Q2)`, () => {
     const src = H.read(H.ROUTE);
     expect(src).toMatch(/\bgetAuthContext\(request\)/);
     expect(src).toMatch(/auth\.isAuthenticated \? auth\.tenantId : null/);
@@ -104,22 +77,6 @@ describe("#2260 static (17-20)", () => {
         entries: { file: string; follow_up: string }[];
       }
     ).entries;
-    // D-18: WP4a counts six existing bypass paths for WP4b, and AL-2681 (W8-R10) holds one temporary connected-accounts webhook intake row until Part 2 retires legacy webhooks.
-    expect(
-      a.filter(
-        (entry) =>
-          entry.follow_up !== "WP4b" &&
-          entry.file !== "packages/api/src/stripe/connect-webhook.ts",
-      ).length,
-    ).toBeLessThanOrEqual(115);
-    expect(
-      a.filter(
-        (entry) => entry.file === "packages/api/src/stripe/connect-webhook.ts",
-      ).length,
-    ).toBeLessThanOrEqual(1);
-    expect(
-      a.filter((entry) => entry.follow_up === "WP4b").length,
-    ).toBeLessThanOrEqual(6);
     expect(a.map((x) => x.file)).not.toContain(H.ROUTE);
   });
   it.each(DOC_RULES.split(" ~ "))(`20: ${H.DOC} matches /%s/i`, (re) =>

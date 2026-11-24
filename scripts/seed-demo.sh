@@ -99,7 +99,12 @@ run_verify() {
   "
 
   echo
-  echo "Fixture identity check (expected: 4 profiles, 2 tenants, 7 live memberships):"
+  local expected
+  expected="$(node -e '
+const { counts } = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"));
+console.log(`${counts["public.profiles"]} profiles, ${counts["public.tenants"]} tenants, ${counts["authz.memberships"]} live memberships`);
+' "$SCRIPT_DIR/../supabase/seed-expectations.json")"
+  echo "Fixture identity check (expected: ${expected}):"
   local_psql -v ON_ERROR_STOP=1 -P pager=off -c "
     SELECT (SELECT COUNT(*)::bigint FROM public.profiles) AS profile_rows,
            (SELECT COUNT(*)::bigint FROM public.profiles
