@@ -141,12 +141,19 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
     (await db.query(sql, params)).rows[0] as Record<string, unknown>;
   const RESOLVE = (t: string) =>
     `select public.resolve_command_assignment('${id[t]}') r`;
-  const header = (m: string) => ({ "x-asym-assignment": id[m] ?? m });
+  const header = (m: string) => ({
+    "x-asym-tenant": id.TA!,
+    "x-asym-assignment": id[m] ?? m,
+  });
 
-  describe("proof 1: a human command on a signed-in token", () => {
+  describe("proof 1: a human command on a signed-in token (D-18: AL-2676: human commands require x-asym-tenant)", () => {
     it("succeeds for a caller with one live row, and runs inside the guard for that tenant", () =>
       tx(async () => {
-        const r = await as("authenticated", { sub: "U1" }, RESOLVE("TA"));
+        const r = await as(
+          "authenticated",
+          { sub: "U1", headers: { "x-asym-tenant": id.TA! } },
+          RESOLVE("TA"),
+        );
         expect(r.code, r.message).toBeNull();
         const out = r.rows[0]!.r as Record<string, unknown>;
         expect({
@@ -163,7 +170,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
         });
         const direct = await as(
           "authenticated",
-          { sub: "U1" },
+          { sub: "U1", headers: { "x-asym-tenant": id.TA! } },
           `select tenant_guard.resolve_command_assignment('${id.TA}') r`,
         );
         expect(direct.code, direct.message).toBeNull();
@@ -292,7 +299,11 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
 
     it("leaves no guard tenant behind for the next transaction", async () => {
       await tx(async () => {
-        const r = await as("authenticated", { sub: "U1" }, RESOLVE("TA"));
+        const r = await as(
+          "authenticated",
+          { sub: "U1", headers: { "x-asym-tenant": id.TA! } },
+          RESOLVE("TA"),
+        );
         expect(r.code, r.message).toBeNull();
       });
       const after = await one(
@@ -974,7 +985,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
         }),
     );
 
-    it("a human command resolves the caller from either claims setting alone, as authenticated, with no grant on auth", () =>
+    it("a human command resolves the caller from either claims setting alone, as authenticated, with no grant on auth (D-18: AL-2676: human commands require x-asym-tenant)", () =>
       tx(async () => {
         await db.query("savepoint acc2674_lane");
         try {
@@ -984,6 +995,9 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
           ] as const) {
             await db.query("set local role authenticated");
             await setClaims(sub, claims);
+            await db.query("select set_config('request.headers', $1, true)", [
+              JSON.stringify({ "x-asym-tenant": id.TA! }),
+            ]);
             const r = await db.query(
               `select public.resolve_command_assignment('${id.TA}') r`,
             );

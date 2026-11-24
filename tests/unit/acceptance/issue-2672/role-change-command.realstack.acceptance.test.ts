@@ -63,7 +63,10 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   () => expect(ADMIN_URL).not.toBe(""),
 );
 
-describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
+const SUITE_TITLE =
+  "WP0 role-change command (A01) (D-18: AL-2676: human commands require x-asym-tenant)";
+
+describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
   const db = new pg.Client({ connectionString: ADMIN_URL });
   const tenantA = randomUUID();
   const tenantB = randomUUID();
@@ -174,7 +177,12 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
           caller
             ? JSON.stringify({ sub: people[caller], role: "authenticated" })
             : "",
-          assignment ? JSON.stringify({ "x-asym-assignment": assignment }) : "",
+          assignment
+            ? JSON.stringify({
+                "x-asym-tenant": tenant,
+                "x-asym-assignment": assignment,
+              })
+            : "",
         ],
       );
       const result = await db.query(sql);

@@ -64,7 +64,7 @@ type Outcome = {
 };
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2675 WP2c: the role-change and revoke commands (real stack)",
+  "AL-2675 WP2c: the role-change and revoke commands (real stack) (D-18: AL-2676: human commands require x-asym-tenant)",
   () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
     let id: Record<string, string> = {};
@@ -156,9 +156,11 @@ describe.skipIf(!ADMIN_URL)(
     ) {
       const reason =
         opts.reason === undefined ? "Organization change" : opts.reason;
+      const tenant = id[opts.tenant ?? "TA"]!;
       return call(
         who,
-        `select public.change_membership_role('${id[opts.tenant ?? "TA"]}', '${id[row] ?? row}', ${lit(to.role)}, ${lit(to.staff ?? null)}, ${to.admin ?? false}, ${lit(reason)}) as r`,
+        `select public.change_membership_role('${tenant}', '${id[row] ?? row}', ${lit(to.role)}, ${lit(to.staff ?? null)}, ${to.admin ?? false}, ${lit(reason)}) as r`,
+        { "x-asym-tenant": tenant },
       );
     }
 
@@ -169,9 +171,11 @@ describe.skipIf(!ADMIN_URL)(
     ) {
       const reason =
         opts.reason === undefined ? "Left the organization" : opts.reason;
+      const tenant = id[opts.tenant ?? "TA"]!;
       return call(
         who,
-        `select public.revoke_membership('${id[opts.tenant ?? "TA"]}', '${id[row] ?? row}', ${lit(reason)}) as r`,
+        `select public.revoke_membership('${tenant}', '${id[row] ?? row}', ${lit(reason)}) as r`,
+        { "x-asym-tenant": tenant },
       );
     }
 
@@ -445,6 +449,7 @@ describe.skipIf(!ADMIN_URL)(
           const before = await call(
             "ADM2",
             `select public.resolve_command_assignment('${id.TA}') as r`,
+            { "x-asym-tenant": id.TA! },
           );
           expect(before.code, before.message).toBeNull();
           const out = await revoke("UADM", "mAdm2", {
@@ -1020,7 +1025,7 @@ describe.skipIf(!ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2675 WP2c: two administrators demoting each other at once (real stack, committed)",
+  "AL-2675 WP2c: two administrators demoting each other at once (real stack, committed) (D-18: AL-2676: human commands require x-asym-tenant)",
   () => {
     const admin = new pg.Client({ connectionString: ADMIN_URL });
     const one = new pg.Client({ connectionString: ADMIN_URL });
@@ -1070,8 +1075,11 @@ describe.skipIf(!ADMIN_URL)(
       await client.query("begin");
       await client.query("set local role authenticated");
       await client.query(
-        "select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', '', true), set_config('request.headers', '', true)",
-        [JSON.stringify({ sub: user, role: "authenticated", aal: "aal1" })],
+        "select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', '', true), set_config('request.headers', $2, true)",
+        [
+          JSON.stringify({ sub: user, role: "authenticated", aal: "aal1" }),
+          JSON.stringify({ "x-asym-tenant": t }),
+        ],
       );
     }
 

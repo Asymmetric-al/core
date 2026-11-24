@@ -28,13 +28,19 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   () => expect(ADMIN_URL).not.toBe(""),
 );
 
-describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
+const SUITE_TITLE =
+  "AL-2675 membership core (real stack) (D-18: AL-2676: human commands require x-asym-tenant)";
+
+describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
   const db = new pg.Client({ connectionString: ADMIN_URL });
   const id = fixtureIds();
   const as = asRole(db, id);
   const keyOf = (v: unknown) =>
     Object.keys(id).find((k) => id[k] === v) ?? String(v);
-  const header = (m: string) => ({ "x-asym-assignment": id[m] ?? m });
+  const header = (m: string) => ({
+    "x-asym-tenant": id.TA!,
+    "x-asym-assignment": id[m] ?? m,
+  });
 
   beforeAll(() => db.connect());
   afterAll(() => db.end());
@@ -325,7 +331,7 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
       tx(async () => {
         const ok = await as(
           "tenant_guard",
-          { sub: "UADM" },
+          { sub: "UADM", headers: { "x-asym-tenant": id.TA! } },
           begin("TA", "people.manage_members"),
         );
         expect(ok.code, ok.message).toBeNull();
@@ -421,7 +427,7 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
 
         const before = await as(
           "tenant_guard",
-          { sub: "UDEV" },
+          { sub: "UDEV", headers: { "x-asym-tenant": id.TA! } },
           begin("TA", "web_studio.publish"),
         );
         expect(before.code, before.message).toBeNull();
@@ -447,14 +453,14 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
         expect(empty.code).toBe("22023");
         const plain = await as(
           "tenant_guard",
-          { sub: "UDON" },
+          { sub: "UDON", headers: { "x-asym-tenant": id.TA! } },
           begin("TA", null),
         );
         expect(plain.code, plain.message).toBeNull();
         expect(keyOf(plain.rows[0]!.assignment_id)).toBe("mDonA");
         const wrapper = await as(
           "authenticated",
-          { sub: "UADM" },
+          { sub: "UADM", headers: { "x-asym-tenant": id.TA! } },
           `select public.resolve_command_assignment('${id.TA}') r`,
         );
         expect(wrapper.code, wrapper.message).toBeNull();
