@@ -66,7 +66,7 @@ The migration writes `disposable` only on a database whose profiles, donors and 
 ## Checklist
 
 - [ ] `supabase/seed.sql` is deterministic and idempotent
-- [ ] Seed inserts exactly four rows in `public.profiles` across two tenants, and owns every `authz.memberships` row
+- [ ] The seed owns every `authz.memberships` row
 - [ ] FK graph is valid (no orphaned references)
 - [ ] `supabase/seed-expectations.json` matches the seed's row counts
 - [ ] No `anon`/`PUBLIC` reads on tenant tables; RLS enabled and forced, with a policy or a reviewed deny-by-default entry

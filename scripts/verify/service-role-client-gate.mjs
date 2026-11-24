@@ -5,10 +5,10 @@
 // docs/security/service-role-client-allowlist.json. Run by test:unit and by
 // `bun run verify:service-role-clients`. See docs/security/tenant-guard.md.
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { parseArgs } from "node:util";
 
 import ts from "typescript";
 
@@ -74,10 +74,7 @@ export const isExempt = (file) =>
   file === "packages/database/supabase/admin.ts" ||
   file.startsWith("packages/api/src/identity/");
 
-// Frozen at develop c541b84b. Shrink-only: lower a count or delete a row in
-// the same PR that removes sites. Raising or adding a row needs a new ruling;
-// the unit test pins this block's SHA-256 and totals.
-const CEILING_ROWS = `
+export const CEILING_ROWS = `
 apps/admin/lib/admin-access.ts admin_client 1
 apps/admin/src/cms/auth/supabase-strategy.ts service_role_key 1
 apps/admin/src/cms/collections/page-builders.ts admin_client 2
@@ -193,14 +190,87 @@ scripts/verify-money-units.ts service_role_key 1
 scripts/verify/vercel-production-readiness.mjs service_role_key 1
 `;
 
+const RULING_TOKEN_RE = /^ruling:(?:W\d+[a-z]?-R\d+|D-\d+(?:-Q\d+)?)$/;
+const COUNT_RE = /^[1-9]\d*$/;
+
+function ceilingRowProblem(fields) {
+  if (fields.length < 3 || fields.length > 4)
+    return "expected 3 or 4 fields: <file> <kind> <count> [ruling:<ID>]";
+  if (fields.some((field) => field === "" || /\s/.test(field)))
+    return "fields must be separated by single spaces and hold no other whitespace";
+  const [, kind, count, token] = fields;
+  if (!KINDS.includes(kind)) return `kind must be one of ${KINDS.join(", ")}`;
+  if (!COUNT_RE.test(count))
+    return "count must be a positive integer without a leading zero";
+  if (token !== undefined && !RULING_TOKEN_RE.test(token))
+    return "a fourth field must be ruling:<ID>, <ID> in the form W8-R10 or D-16-Q1";
+  return null;
+}
+
+export function parseCeilingRows(text) {
+  const rows = [];
+  const problems = [];
+  const seen = new Set();
+  let previous = null;
+  for (const line of text.replace(/\r\n/g, "\n").split("\n")) {
+    if (line === "") continue;
+    const fields = line.split(" ");
+    const problem = ceilingRowProblem(fields);
+    if (problem) {
+      problems.push(`CEILING_MALFORMED ${line}: ${problem}`);
+      continue;
+    }
+    const [file, kind, count, token] = fields;
+    const key = `${file} ${kind}`;
+    if (seen.has(key)) {
+      problems.push(`CEILING_DUPLICATE ${key}`);
+      continue;
+    }
+    seen.add(key);
+    if (
+      previous !== null &&
+      Buffer.compare(Buffer.from(key), Buffer.from(previous)) < 0
+    )
+      problems.push(`CEILING_UNSORTED ${key}: after ${previous}`);
+    previous = key;
+    rows.push({
+      file,
+      kind,
+      count: Number(count),
+      ruling: token === undefined ? null : token.slice("ruling:".length),
+    });
+  }
+  return { rows, problems };
+}
+
 export const CEILING = new Map(
-  CEILING_ROWS.trim()
-    .split("\n")
-    .map((row) => row.split(" "))
-    .map(([file, kind, count]) => [`${file} ${kind}`, Number(count)]),
+  parseCeilingRows(CEILING_ROWS).rows.map((row) => [
+    `${row.file} ${row.kind}`,
+    row.count,
+  ]),
 );
-export const ceilingDigest = () =>
-  createHash("sha256").update(CEILING_ROWS.trim()).digest("hex");
+
+export function ceilingGrowth(baseRows, headRows) {
+  const base = new Map(baseRows.map((row) => [`${row.file} ${row.kind}`, row]));
+  const failures = [];
+  for (const row of headRows) {
+    const key = `${row.file} ${row.kind}`;
+    const before = base.get(key);
+    if (!before) {
+      if (row.ruling === null)
+        failures.push(
+          `CEILING_GROWTH ${key}: added at ${row.count} without a ruling token`,
+        );
+    } else if (
+      row.count > before.count &&
+      (row.ruling === null || row.ruling === before.ruling)
+    )
+      failures.push(
+        `CEILING_GROWTH ${key}: raised from ${before.count} to ${row.count} without a new ruling token`,
+      );
+  }
+  return failures;
+}
 
 function importTarget(file, specifier) {
   return specifier.startsWith(".")
@@ -695,6 +765,7 @@ export function runServiceRoleClientGate({ root = repoRoot } = {}) {
     allowlist = new Error(error.message);
   }
   const result = evaluateServiceRoleClientGate(found, allowlist);
+  result.failures.push(...parseCeilingRows(CEILING_ROWS).problems);
   const privileged = new Set(
     found.sites
       .filter((site) => site.kind === "admin_client")
@@ -757,15 +828,121 @@ export function runServiceRoleClientGate({ root = repoRoot } = {}) {
   return { ...result, ok: !result.failures.length, found };
 }
 
+const GATE_PATH = "scripts/verify/service-role-client-gate.mjs";
+const DEFAULT_CEILING_BASE = "origin/develop";
+const PUSHED_REVISION = /^(?!0{40}$)[0-9a-f]{40}$/;
+const NEW_BRANCH = /^0{40}$/;
+const CEILING_BLOCK_RE =
+  /(?:^|\n)(?:export\s+)?const CEILING_ROWS = `([\s\S]*?)`/;
+const USAGE =
+  "Usage: node scripts/verify/service-role-client-gate.mjs [--base <git ref>] [--require-base]";
+
+const gitAt = (root, args) =>
+  spawnSync("git", args, { cwd: root, encoding: "utf8" });
+const gitError = (r) =>
+  String(r.stderr || r.error?.message || `git exited ${r.status}`).trim();
+const unresolved = (subject, reason) => ({
+  base: null,
+  failure: `CEILING_BASE_UNRESOLVED ${subject}: ${reason}`,
+});
+
+function resolveCeilingBase(root, { requested, pushedFrom, requireBase }) {
+  if (requested !== undefined) {
+    const r = gitAt(root, ["merge-base", requested, "HEAD"]);
+    return r.status === 0
+      ? { base: r.stdout.trim(), failure: null }
+      : unresolved(requested, `no merge base with HEAD (${gitError(r)})`);
+  }
+  if (PUSHED_REVISION.test(pushedFrom)) {
+    const r = gitAt(root, ["cat-file", "-e", `${pushedFrom}^{commit}`]);
+    return r.status === 0
+      ? { base: pushedFrom, failure: null }
+      : unresolved(
+          pushedFrom,
+          "the revision before this push is not in this checkout",
+        );
+  }
+  if (pushedFrom && !NEW_BRANCH.test(pushedFrom))
+    return unresolved(pushedFrom, "not a revision");
+  const r = gitAt(root, ["merge-base", DEFAULT_CEILING_BASE, "HEAD"]);
+  const base = r.status === 0 ? r.stdout.trim() : null;
+  if (pushedFrom) {
+    const head = gitAt(root, ["rev-parse", "HEAD"]).stdout.trim();
+    return base === null || base === head
+      ? unresolved(
+          pushedFrom,
+          `this push has no revision before it, and ${DEFAULT_CEILING_BASE} gives no earlier revision to compare with`,
+        )
+      : { base, failure: null };
+  }
+  if (base !== null) return { base, failure: null };
+  return requireBase
+    ? unresolved(
+        DEFAULT_CEILING_BASE,
+        `no merge base with HEAD (${gitError(r)}), and --require-base is set`,
+      )
+    : { base: null, failure: null };
+}
+
+function ceilingFailuresSince(root, base) {
+  const shown = gitAt(root, ["show", `${base}:${GATE_PATH}`]);
+  if (shown.status !== 0)
+    return [
+      `CEILING_BASE_UNRESOLVED ${base}: cannot read ${GATE_PATH} at the base (${gitError(shown)})`,
+    ];
+  const block = shown.stdout.replace(/\r\n/g, "\n").match(CEILING_BLOCK_RE);
+  if (!block)
+    return [
+      `CEILING_BASE_UNRESOLVED ${base}: ${GATE_PATH} at the base holds no CEILING_ROWS block`,
+    ];
+  const parsed = parseCeilingRows(block[1]);
+  if (parsed.problems.length)
+    return [
+      `CEILING_BASE_UNRESOLVED ${base}: the base ceiling does not parse (${parsed.problems.join("; ")})`,
+    ];
+  return ceilingGrowth(parsed.rows, parseCeilingRows(CEILING_ROWS).rows);
+}
+
 if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href
 ) {
+  let options;
+  try {
+    options = parseArgs({
+      args: process.argv.slice(2),
+      options: {
+        base: { type: "string" },
+        "require-base": { type: "boolean", default: false },
+      },
+    }).values;
+  } catch (error) {
+    console.error(`error: ${error.message}\n${USAGE}`);
+    process.exit(1);
+  }
   const result = runServiceRoleClientGate();
-  if (!result.ok) {
-    for (const failure of result.failures) console.error(failure);
+  const { base, failure } = resolveCeilingBase(repoRoot, {
+    requested:
+      options.base ?? (process.env.SERVICE_ROLE_CEILING_BASE || undefined),
+    pushedFrom: process.env.SERVICE_ROLE_CEILING_PUSHED_FROM ?? "",
+    requireBase: options["require-base"],
+  });
+  if (!failure && base === null)
+    console.log(
+      "service-role client gate: no base, so ceiling growth was not checked",
+    );
+  const failures = [
+    ...result.failures,
+    ...(failure
+      ? [failure]
+      : base === null
+        ? []
+        : ceilingFailuresSince(repoRoot, base)),
+  ];
+  if (failures.length) {
+    for (const line of failures) console.error(line);
     console.error(
-      `error: service-role client gate failed with ${result.failures.length} problem(s). See docs/security/tenant-guard.md#ci-gates.`,
+      `error: service-role client gate failed with ${failures.length} problem(s). See docs/security/tenant-guard.md#ci-gates.`,
     );
     process.exit(1);
   }

@@ -1,9 +1,9 @@
-# 0005. Every human command requires the request's organization
+# 0006. Every human command requires the request's organization
 
 **Status:** Recorded on 2026-11-24 with AL-2676. Source comments are banned
 since AL-2676 ([#2751](https://github.com/Asymmetric-al/core/issues/2751)), so
 the reasons that record D-18 of the implementation record would have put in
-each frozen file are written here. It describes the code as it is and ratifies
+each frozen file are written here and in each edited test's title. It describes the code as it is and ratifies
 no product intent. Accepted platform intent is in
 [`docs/adr/`](../../../docs/adr/README.md).
 

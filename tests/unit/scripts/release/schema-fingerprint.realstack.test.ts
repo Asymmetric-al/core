@@ -40,6 +40,7 @@ import {
   diffFingerprints,
   formatFingerprintDiff,
 } from "../../../../scripts/release/schema-fingerprint.mjs";
+import { readSeedExpectations } from "../../../../scripts/verify/seed-counts.mjs";
 import { Replay } from "../../acceptance/issue-2674/privileges-harness";
 import { queryJson } from "../../../../scripts/release/lib/postgres.mjs";
 import { listSourceMigrations } from "../../../../scripts/release/migration-heads.mjs";
@@ -713,7 +714,10 @@ describe.skipIf(!adminDatabaseUrl)(
           seedEnabled = true;
         }
         await retry();
-        expect(fixtures(url)).toBe("4|2|7");
+        const e = readSeedExpectations();
+        expect(fixtures(url)).toBe(
+          `${e["public.profiles"]}|${e["public.tenants"]}|${e["authz.memberships"]}`,
+        );
         expect(() => preflight({ settings, log: silent })).toThrow(
           /no recorded head.*first-rebuild/s,
         );

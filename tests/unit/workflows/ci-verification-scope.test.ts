@@ -87,6 +87,30 @@ describe("lint enforces the design-system configuration", () => {
     expect(step?.if).toBeUndefined();
     expect(step?.["continue-on-error"]).toBeUndefined();
   });
+
+  it("checks the service-key ceiling against the base right after the comment ratchet (D-18: AL-2671 ruling-pin-tax Q1)", () => {
+    const steps = stepsOf(CI.lint);
+    const run = "bun run verify:service-role-clients -- --require-base";
+    const matching = steps.filter((s) =>
+      s.run?.includes("verify:service-role-clients"),
+    );
+    expect(matching).toHaveLength(1);
+    const step = matching[0]!;
+    expect(step.run).toBe(run);
+    expect(step.if).toBeUndefined();
+    expect(step["continue-on-error"]).toBeUndefined();
+    expect(step.env).toEqual({
+      SERVICE_ROLE_CEILING_BASE:
+        "${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}",
+      SERVICE_ROLE_CEILING_PUSHED_FROM:
+        "${{ github.event_name == 'push' && github.event.before || '' }}",
+    });
+    const ratchet = steps.findIndex(
+      (s) => s.name === "Check the comment ratchet",
+    );
+    expect(ratchet).toBeGreaterThanOrEqual(0);
+    expect(steps.indexOf(step)).toBe(ratchet + 1);
+  });
 });
 
 describe("a failed build prints prerender diagnostics", () => {

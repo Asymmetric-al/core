@@ -197,12 +197,10 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
         expect(bad.map((x) => x.t)).toEqual([]);
       }));
 
-    it("no stale entry: each listed table is a public tenant table, ENABLE+FORCE, with 0 policies", () =>
+    it("no stale entry: each listed table is a public tenant table, ENABLE+FORCE, with 0 policies (D-18: AL-2671 ruling-pin-tax Q2: no floor; the stale check below covers every entry)", () =>
       tx(async () => {
         const live = new Map((await targets()).map((x) => [x.t, x]));
         const e = exceptions();
-        // AL-2674 (D09), AL-2677 (WP4a-2a), and AL-2681 (WP8a-1, D-18) add policies on reviewed exception tables, leaving 74 listed (ruling W8-R34 keeps donation_saga_outbox).
-        expect(e.length).toBeGreaterThanOrEqual(74);
         const bad = e
           .map((x) => [x.table, live.get(x.table)] as const)
           .filter(([, l]) => !l || !l.rls || !l.force || l.policies !== 0)
