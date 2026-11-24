@@ -1,0 +1,51 @@
+name: Mirror CI images
+
+# Copies each image that .github/ci-images.json lists, by digest, from its
+# public registry into the organization's GitHub Container Registry
+# (ghcr.io/asymmetric-al), and reads the digest back (docs/ci.md, "Mirror CI
+# images workflow"). CI and the release job pull those digests from there.
+#
+# Rules: this is the only workflow that holds packages: write. It never runs
+# on a pull request, and it refuses any ref but develop. It copies with
+# skopeo --all --preserve-digests, never with a tool that rewrites the
+# manifest, and a second run with nothing new copies nothing.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "41 4 * * *"
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  NODE_VERSION: "24.22.3"
+
+concurrency:
+  group: mirror-ci-images
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Refuse any ref but develop
+        if: github.ref != 'refs/heads/develop'
+        env:
+          RUN_REF: ${{ github.ref }}
+        run: |
+          echo "Mirror CI images runs only from develop, not ${RUN_REF}"
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Mirror by digest and read each digest back
+        env:
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_TOKEN: ${{ github.token }}
+        run: node scripts/github/mirror-ci-images.mjs .github/ci-images.json

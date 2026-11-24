@@ -1451,8 +1451,39 @@ export function referencesSecrets(value: unknown): boolean {
 const JOB_LEVEL_KEYS_EXCLUDING_STEPS = (job: WorkflowJob) =>
   Object.fromEntries(Object.entries(job).filter(([key]) => key !== "steps"));
 
+export const PINNED_SERVICE_CREDENTIALS = {
+  username: "${{ github.actor }}",
+  password: "${{ github.token }}",
+} as const;
+
+export function isPinnedServiceCredentials(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const entries = value as Record<string, unknown>;
+  return (
+    Object.keys(entries).sort().join(",") === "password,username" &&
+    entries.username === PINNED_SERVICE_CREDENTIALS.username &&
+    entries.password === PINNED_SERVICE_CREDENTIALS.password
+  );
+}
+
+function withoutPinnedServiceCredentials(services: unknown): unknown {
+  if (!services || typeof services !== "object" || Array.isArray(services))
+    return services;
+  return Object.fromEntries(
+    Object.entries(services).map(([id, service]) => {
+      if (!service || typeof service !== "object" || Array.isArray(service))
+        return [id, service];
+      const { credentials, ...rest } = service as Record<string, unknown>;
+      return [id, isPinnedServiceCredentials(credentials) ? rest : service];
+    }),
+  );
+}
+
 export function jobLevelReferencesSecrets(job: WorkflowJob): boolean {
-  return referencesSecrets(JOB_LEVEL_KEYS_EXCLUDING_STEPS(job));
+  const keys = JOB_LEVEL_KEYS_EXCLUDING_STEPS(job);
+  if ("services" in keys)
+    keys.services = withoutPinnedServiceCredentials(keys.services);
+  return referencesSecrets(keys);
 }
 
 export function firstSecretStepIndex(job: WorkflowJob): number {
