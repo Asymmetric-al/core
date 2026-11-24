@@ -120,6 +120,7 @@ const GUARD_REACH = [
   "private.is_platform_operator(uuid) EXECUTE",
   "private.lock_tenant(uuid) EXECUTE",
   "private.login_confirmed_email(uuid) EXECUTE",
+  "private.normalize_safety_text(text) EXECUTE",
   "private.profile_display_name(uuid) EXECUTE",
   "private.resolve_invitation_for_caller(text,text,uuid) EXECUTE",
   "private.share_lock_site_domain(uuid,text) EXECUTE",
@@ -176,7 +177,7 @@ select (select count(*) from (
   || ' ' || (select string_agg(a.privilege_type, ',' order by a.privilege_type) from aclexplode((select relacl from pg_class where oid = '${CLAIMS}'::regclass)) a where a.grantee = ${TG}) v
 => 0 INSERT,SELECT,UPDATE
 
-17: everything else granted to tenant_guard (schemas, functions it does not own, databases) equals the inventory (D-18: AL-2671: one item per line; D-18, AL-2678: the claim commands read the tenant's status through private.share_lock_tenant, and the caller's confirmed email, the claimable donor and the token lifetime through four postgres-owned functions in private)
+17: everything else granted to tenant_guard (schemas, functions it does not own, databases) equals the inventory (D-18: AL-2671: one item per line; D-18, AL-2678: the claim commands read the tenant's status through private.share_lock_tenant, and the caller's confirmed email, the claimable donor and the token lifetime through four postgres-owned functions in private; D-18, AL-2678 bot review #2: the worker-safety commands normalize names and reasons through private.normalize_safety_text)
 select string_agg(e, ', ' order by e) v from (
   select 'schema ' || nspname || ' ' || a.privilege_type e from pg_namespace, aclexplode(nspacl) a where a.grantee = ${TG}
   union all select p.oid::regprocedure || ' ' || a.privilege_type from pg_proc p, aclexplode(p.proacl) a where a.grantee = ${TG} and p.proowner <> a.grantee

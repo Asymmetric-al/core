@@ -13,7 +13,26 @@
 --    blank or equals the legal name: the two names sit in different tables.
 --    The party_restricted trigger share-locks the Party first, so a direct
 --    write of a level and alias and a concurrent write of the legal name
---    serialize on the Party, and the later one sees the earlier.
+--    serialize on the Party, and the later one sees the earlier at READ
+--    COMMITTED, the level every caller of this system runs at (nothing in
+--    the repository sets REPEATABLE READ or SERIALIZABLE; under REPEATABLE
+--    READ a writer that waited would keep its earlier snapshot).
+--    The alias and the legal name are compared, checked for presence and
+--    stored in one normalized form, private.normalize_safety_text: the
+--    invisible characters a paste can carry (zero-width space U+200B,
+--    zero-width non-joiner U+200C, zero-width joiner U+200D, word joiner
+--    U+2060, byte-order mark U+FEFF) are removed, since they render as
+--    nothing; every run of whitespace (the ASCII tab, line feed, vertical
+--    tab, form feed, carriage return and space, next line U+0085, no-break
+--    space U+00A0, and the Unicode space separators U+1680, U+2000-U+200A,
+--    U+2028, U+2029, U+202F, U+205F, U+3000) becomes one space; leading and
+--    trailing spaces go; an empty result is no name. The comparison is
+--    case-insensitive on that form. The pattern names each character; it
+--    does not rely on what \s means under the database's locale. The
+--    rule does not catch look-alike letters of another script (a Cyrillic
+--    letter for a Latin one); that is not attempted here. Each command's
+--    reason is normalized the same way, and a reason with nothing left is
+--    refused (22023).
 -- 3. Signed-in users hold no insert or update privilege on parties at all
 --    (the parties migration grants SELECT only), so the security level, its
 --    source, the alias and do-not-publish change only through the commands.
@@ -38,7 +57,9 @@
 --    (raises or confirms the level, sets the alias, sets do-not-publish) and
 --    lift_worker_restriction (lowers the level, clears do-not-publish). Each
 --    one that sets a level marks its source manual. Nothing here writes
---    country_default (WP14). The audit row never carries the legal name.
+--    country_default (WP14). No audit row carries the legal name, a place
+--    or an alias: set_worker_identity's records whether an alias was set
+--    before and after and whether it changed (bot review #28).
 --    Each command first refuses (42501) a request whose organization header
 --    (authz.request_tenant_id()) is missing or names another organization
 --    than the one it enters, as the Member Care and Sites commands do until
@@ -56,11 +77,31 @@
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
 -- COMMIT and its ledger row stops on the next run at its first CREATE
--- (private.party_restricted, 42P07), and docs/ops/release-job.md, "If the
--- migration committed but its ledger row is missing", applies.
+-- (private.normalize_safety_text, 42723), and docs/ops/release-job.md, "If
+-- the migration committed but its ledger row is missing", applies.
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
+
+-- The one normalized form of a worker's names and of a command's reason
+-- (bot review of PR 2798, triage #2 and #4). The name projection below
+-- repeats the same expression, because signed-in callers may not use the
+-- private schema; the worker-safety suite fails if the two differ.
+CREATE FUNCTION private.normalize_safety_text(p_value TEXT)
+RETURNS TEXT
+LANGUAGE sql
+IMMUTABLE
+PARALLEL SAFE
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+  SELECT NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.regexp_replace(p_value, '[\u200B\u200C\u200D\u2060\uFEFF]', '', 'g'), '[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+', ' ', 'g')), '');
+$$;
+COMMENT ON FUNCTION private.normalize_safety_text(TEXT) IS
+  'A worker''s alias, legal name or a safety command''s reason in one form: zero-width and byte-order characters removed, every run of ASCII or Unicode whitespace one space, trimmed; NULL when nothing is left (AL-2678).';
+ALTER FUNCTION private.normalize_safety_text(TEXT) OWNER TO postgres;
+REVOKE ALL ON FUNCTION private.normalize_safety_text(TEXT) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION private.normalize_safety_text(TEXT) TO tenant_guard;
 
 -- 1. The private row.
 CREATE TABLE private.party_restricted (
@@ -72,7 +113,7 @@ CREATE TABLE private.party_restricted (
   real_photo_ref TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT pg_catalog.now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT pg_catalog.now(),
-  CONSTRAINT party_restricted_legal_name_check CHECK (pg_catalog.btrim(legal_name) <> ''),
+  CONSTRAINT party_restricted_legal_name_check CHECK (private.normalize_safety_text(legal_name) IS NOT NULL),
   CONSTRAINT party_restricted_party_same_tenant_fk
     FOREIGN KEY (tenant_id, party_id) REFERENCES public.parties (tenant_id, id) ON DELETE RESTRICT
 );
@@ -111,9 +152,9 @@ SET search_path = ''
 AS $$
   SELECT CASE
            WHEN p.security_level NOT IN ('restricted', 'high_risk') THEN NULL
-           WHEN NULLIF(pg_catalog.btrim(p.public_alias), '') IS NULL THEN 'a restricted or high-risk worker needs a public alias'
+           WHEN private.normalize_safety_text(p.public_alias) IS NULL THEN 'a restricted or high-risk worker needs a public alias'
            WHEN r.legal_name IS NOT NULL
-            AND pg_catalog.lower(pg_catalog.btrim(p.public_alias)) = pg_catalog.lower(pg_catalog.btrim(r.legal_name))
+            AND pg_catalog.lower(private.normalize_safety_text(p.public_alias)) = pg_catalog.lower(private.normalize_safety_text(r.legal_name))
              THEN 'a restricted or high-risk worker''s public alias must differ from the legal name'
          END
     FROM public.parties AS p
@@ -210,8 +251,12 @@ SECURITY INVOKER
 SET search_path = ''
 AS $$
   SELECT COALESCE(
-    NULLIF(pg_catalog.btrim(p_public_alias), ''),
-    NULLIF(pg_catalog.btrim(p_approved_profile_display_name), ''),
+    (SELECT n.name
+       FROM (SELECT t.slot, NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.regexp_replace(t.v, '[\u200B\u200C\u200D\u2060\uFEFF]', '', 'g'), '[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+', ' ', 'g')), '') AS name
+               FROM (VALUES (1, p_public_alias), (2, p_approved_profile_display_name)) AS t (slot, v)) AS n
+      WHERE n.name IS NOT NULL
+      ORDER BY n.slot
+      LIMIT 1),
     p_party_display_name
   );
 $$;
@@ -317,12 +362,12 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
-  v_reason := pg_catalog.btrim(COALESCE(p_reason, ''));
-  IF v_reason = '' THEN
+  v_reason := private.normalize_safety_text(p_reason);
+  IF v_reason IS NULL THEN
     RAISE EXCEPTION 'A reason is required' USING ERRCODE = '22023';
   END IF;
-  v_legal := pg_catalog.btrim(COALESCE(p_legal_name, ''));
-  IF v_legal = '' THEN
+  v_legal := private.normalize_safety_text(p_legal_name);
+  IF v_legal IS NULL THEN
     RAISE EXCEPTION 'A legal name is required' USING ERRCODE = '22023';
   END IF;
 
@@ -351,7 +396,7 @@ BEGIN
     UPDATE public.parties AS p
        SET security_level = v_level,
            security_level_source = v_source,
-           public_alias = NULLIF(pg_catalog.btrim(p_public_alias), ''),
+           public_alias = private.normalize_safety_text(p_public_alias),
            display_name = COALESCE(NULLIF(pg_catalog.btrim(p_display_name), ''), p.display_name),
            updated_at = pg_catalog.now()
      WHERE p.id = v_party.id;
@@ -402,15 +447,17 @@ BEGIN
       'before', pg_catalog.jsonb_build_object(
         'security_level', v_party.security_level,
         'security_level_source', v_party.security_level_source,
-        'public_alias', v_party.public_alias,
+        'alias_set', v_party.public_alias IS NOT NULL,
         'do_not_publish', v_party.do_not_publish
       ),
       'after', pg_catalog.jsonb_build_object(
         'security_level', v_after.security_level,
         'security_level_source', v_after.security_level_source,
-        'public_alias', v_after.public_alias,
+        'alias_set', v_after.public_alias IS NOT NULL,
         'do_not_publish', v_after.do_not_publish
-      )
+      ),
+      'alias_changed', private.normalize_safety_text(v_party.public_alias)
+                       IS DISTINCT FROM private.normalize_safety_text(v_after.public_alias)
     )
   );
 
@@ -482,8 +529,8 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
-  v_reason := pg_catalog.btrim(COALESCE(p_reason, ''));
-  IF v_reason = '' THEN
+  v_reason := private.normalize_safety_text(p_reason);
+  IF v_reason IS NULL THEN
     RAISE EXCEPTION 'A reason is required' USING ERRCODE = '22023';
   END IF;
   v_levels := ARRAY['standard', 'sensitive', 'restricted', 'high_risk'];
@@ -514,7 +561,7 @@ BEGIN
   UPDATE public.parties AS p
      SET security_level = COALESCE(p_security_level, p.security_level),
          security_level_source = CASE WHEN p_security_level IS NULL THEN p.security_level_source ELSE 'manual' END,
-         public_alias = CASE WHEN p_public_alias IS NULL THEN p.public_alias ELSE NULLIF(pg_catalog.btrim(p_public_alias), '') END,
+         public_alias = CASE WHEN p_public_alias IS NULL THEN p.public_alias ELSE private.normalize_safety_text(p_public_alias) END,
          do_not_publish = COALESCE(p_do_not_publish, p.do_not_publish),
          updated_at = pg_catalog.now()
    WHERE p.id = v_party.id
@@ -611,8 +658,8 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
-  v_reason := pg_catalog.btrim(COALESCE(p_reason, ''));
-  IF v_reason = '' THEN
+  v_reason := private.normalize_safety_text(p_reason);
+  IF v_reason IS NULL THEN
     RAISE EXCEPTION 'A reason is required' USING ERRCODE = '22023';
   END IF;
   v_levels := ARRAY['standard', 'sensitive', 'restricted', 'high_risk'];
