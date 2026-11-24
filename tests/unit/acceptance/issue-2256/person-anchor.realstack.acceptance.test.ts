@@ -106,7 +106,7 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
       [A, PA, B, PB],
     );
     await db.query(
-      "WITH entity AS (INSERT INTO public.legal_entities(tenant_id,name) VALUES ($2,'Fixture') RETURNING id) INSERT INTO public.missionaries (id, tenant_id, legal_entity_id, party_id) SELECT $1, $2, id, $3 FROM entity",
+      "WITH entity AS (INSERT INTO public.legal_entities(tenant_id,name,country_code,currency,legal_name) VALUES ($2,'Fixture','US','usd','Fixture') RETURNING id) INSERT INTO public.missionaries (id, tenant_id, legal_entity_id, party_id) SELECT $1, $2, id, $3 FROM entity",
       [MA, A, PA],
     );
     await db.query(

@@ -9,6 +9,7 @@ import {
   type EffectiveContributionResult,
 } from "./effective-values";
 import { resolveContributionProfileLabel } from "./profile-label";
+import { SHARED_FEE_COVER_FUND_NAME } from "./row-contract";
 import { ApiHttpError } from "../../shared/api-http-error";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -300,6 +301,7 @@ type FundMetaRow = {
   goal_amount: number | string | null;
   start_date: string | null;
   end_date: string | null;
+  system_purpose?: string | null;
 };
 
 type AllocationRow = {
@@ -458,7 +460,9 @@ export async function loadSharedContributionRowInputs(
     fundIds.length > 0
       ? await client
           .from("funds")
-          .select("id, name, missionary_id, goal_amount, start_date, end_date")
+          .select(
+            "id, name, missionary_id, goal_amount, start_date, end_date, system_purpose",
+          )
           .eq("tenant_id", input.tenantId)
           .in("id", fundIds)
       : { data: [], error: null };
@@ -477,11 +481,17 @@ export async function loadSharedContributionRowInputs(
             : toContributionCents(fund.goal_amount),
         start_date: fund.start_date,
         end_date: fund.end_date,
+        system_purpose: fund.system_purpose ?? null,
       },
     ]),
   );
   const fundNamesById = new Map<string, string | null>(
-    Array.from(fundsById.values()).map((fund) => [fund.id, fund.name]),
+    Array.from(fundsById.values()).map((fund) => [
+      fund.id,
+      fund.system_purpose === "fee_cover"
+        ? SHARED_FEE_COVER_FUND_NAME
+        : fund.name,
+    ]),
   );
 
   // Designation lines fall back to fund.missionary_id when an allocation

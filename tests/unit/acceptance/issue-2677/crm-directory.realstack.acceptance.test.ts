@@ -53,7 +53,7 @@ it.skipIf(!ADMIN_URL)(
       );
       expect(refused.code).toBe("42501");
       await db.query(
-        "insert into public.legal_entities (id,tenant_id,name) values ($1,$1,'Fixture A'),($2,$2,'Fixture B')",
+        "insert into public.legal_entities (id,tenant_id,name,country_code,currency,legal_name) values ($1,$1,'Fixture A','US','usd','Fixture A'),($2,$2,'Fixture B','US','usd','Fixture B')",
         [ids.TA, ids.TB],
       );
       const workers = await db.query(

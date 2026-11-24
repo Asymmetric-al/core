@@ -399,6 +399,38 @@ describe("POST /api/donate saga replay", () => {
       expect(createPaymentIntent.mock.calls[1]).toEqual(
         createPaymentIntent.mock.calls[0],
       );
+      for (const call of createPaymentIntent.mock.calls) {
+        expect(call[1]).toEqual({
+          idempotencyKey: "guest-giving-fee-policy-test:payment_intent",
+        });
+      }
     },
   );
+
+  it("fails donation fixture lookup when donation id or tenant id does not match", async () => {
+    const from = createDonationsFromMock(10000);
+    const matched = await from("donations")
+      .select("amount")
+      .eq("id", beginRpcResult.donation_id)
+      .eq("tenant_id", authenticatedDonor.tenantId)
+      .single();
+    expect(matched.error).toBeNull();
+    expect(matched.data?.amount).toBe(10000);
+
+    const wrongDonation = await from("donations")
+      .select("amount")
+      .eq("id", "donation-other")
+      .eq("tenant_id", authenticatedDonor.tenantId)
+      .single();
+    expect(wrongDonation.data).toBeNull();
+    expect(wrongDonation.error).toEqual({ message: "Donation not found" });
+
+    const wrongTenant = await from("donations")
+      .select("amount")
+      .eq("id", beginRpcResult.donation_id)
+      .eq("tenant_id", "tenant-other")
+      .single();
+    expect(wrongTenant.data).toBeNull();
+    expect(wrongTenant.error).toEqual({ message: "Donation not found" });
+  });
 });

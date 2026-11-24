@@ -245,7 +245,7 @@ describe.skipIf(!ADMIN_URL)(`#2269 C3 real catalog (R) (${D18})`, () => {
        insert into auth.users (id) values ($3), ($4);
        insert into public.profiles (id, tenant_id, role) values ($3, $1, 'donor'), ($4, $1, 'missionary') on conflict (id) do update set tenant_id = excluded.tenant_id, role = excluded.role;
        -- D-18: the giving targets name their own tenant's entity.
-       insert into public.legal_entities(id,tenant_id,name) values ($1,$1,'A'),($2,$2,'B');
+       insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$1,'A','US','usd','A'),($2,$2,'B','US','usd','B');
        insert into public.parties (id, tenant_id, display_name) values ($5, $1, 'Fixture'), ($6, $2, 'Fixture');
        insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id,party_id) values ($5, $1, $4,$1,$5), ($6, $2, $4,$2,$6);
        insert into public.donors (id, tenant_id, profile_id) values ($7, $1, $3), ($8, $1, null), ($9, $2, $3);

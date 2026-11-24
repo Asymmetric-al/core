@@ -66,7 +66,7 @@ describe.skipIf(!ADMIN_URL)(
     insert into authz.memberships (user_id, tenant_id, role, staff_role, is_active) values (:SA, :A, 'staff', 'finance', true), (:SB, :B, 'staff', 'finance', true), (:M1, :A, 'missionary', null, true),
       (:UD1, :A, 'donor', null, true), (:UD2, :A, 'donor', null, true), (:UD3, :B, 'donor', null, true), (:M2, :B, 'missionary', null, true);
     insert into public.donors (id, tenant_id, profile_id) values (:D1, :A, :UD1), (:D2, :A, :UD2), (:D3, :B, :UD3);
-    insert into public.legal_entities(id,tenant_id,name) values (:A,:A,'A'), (:B,:B,'B');
+    insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values (:A,:A,'A','US','usd','A'), (:B,:B,'B','US','usd','B');
     insert into public.parties (id, tenant_id, display_name) values (:MA, :A, 'Fixture'), (:MB, :B, 'Fixture');
     insert into public.missionaries (id, tenant_id, profile_id, legal_entity_id, party_id) values (:MA, :A, :M1, :A, :MA), (:MB, :B, :M2, :B, :MB);
     insert into public.account_links (tenant_id, user_id, party_id, linked_via) select tenant_id, profile_id, party_id, 'profile_backfill' from public.donors where id in (:D1, :D2, :D3) union all select tenant_id, profile_id, party_id, 'profile_backfill' from public.missionaries where id in (:MA, :MB);

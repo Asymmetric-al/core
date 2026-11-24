@@ -3371,9 +3371,9 @@ describe.each([
     name: "Verify AL-2671 program suites, issues 2670-2689 (real stack)",
     position: 22,
     keys: ["TENANT_GUARD_IT_ADMIN_DATABASE_URL"],
-    run: "bun x vitest run tests/unit/acceptance/issue-26[78][0-9]/*.realstack.acceptance.test.ts",
+    run: "bun x vitest run --no-file-parallelism tests/unit/acceptance/issue-26[78][0-9]/*.realstack.acceptance.test.ts",
     narrower:
-      "bun x vitest run tests/unit/acceptance/issue-2674/*.realstack.acceptance.test.ts",
+      "bun x vitest run --no-file-parallelism tests/unit/acceptance/issue-2674/*.realstack.acceptance.test.ts",
   },
   {
     name: "Verify release job database steps, schema fingerprint and CMS roles (real stack)",
@@ -3481,6 +3481,20 @@ describe("AL-2674: step 22 fails, and never passes empty, when its glob matches 
     PINNED_STEP_BODIES.migrate![
       "name:Verify AL-2671 program suites, issues 2670-2689 (real stack)"
     ]!.run;
+
+  it("the same glob run in parallel is not modelled", () => {
+    const parallel = RUN.replace(" --no-file-parallelism ", " ");
+    expect(parallel).not.toBe(RUN);
+    const job = jobsOf(
+      mutateJob(source(CI_INTEGRATION), "migrate", (block) =>
+        mutate(block, `run: ${RUN}\n`, `run: ${parallel}\n`, 1),
+      ),
+      "AL-2674",
+    ).migrate!;
+    expect(modelledKeyProblems(job, "reject").join("\n")).toContain(
+      `Step 22 (reject) "name:Verify AL-2671 program suites, issues 2670-2689 (real stack)" of job 'migrate' is not modelled (run differs from the pinned body`,
+    );
+  });
 
   it("neither the step nor the Vitest config lets an empty run pass", () => {
     expect(RUN + readFileSync("vitest.config.mts", "utf8")).not.toMatch(

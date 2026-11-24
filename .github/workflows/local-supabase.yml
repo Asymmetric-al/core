@@ -120,6 +120,9 @@ on:
       - packages/api/src/admin/contribution-operations/correction-requests.ts
       - tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts
       - tests/unit/acceptance/issue-2677/crm-directory.realstack.acceptance.test.ts
+      # WP8a part 1: payment accounts, connected-account events and leases
+      # (AL-2681), on Supabase's own image.
+      - tests/unit/acceptance/issue-2681/wp8a-part1.realstack.acceptance.test.ts
       - packages/api/src/projection/**
       - tests/unit/acceptance/issue-2677/field-policy-reader.postgrest.acceptance.test.ts
       - packages/api/src/health/app.ts
@@ -270,6 +273,10 @@ jobs:
           CRM_READ_IT_AUDIT_KEY="$(bun run supabase -- status -o json | jq -er '.SERVICE_ROLE_KEY')"
           CRM_READ_IT_ANON_KEY="$(bun run supabase -- status -o json | jq -er '.ANON_KEY')"
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2677/crm-reads.postgrest.acceptance.test.ts tests/unit/acceptance/issue-2677/crm-directory.realstack.acceptance.test.ts
+      - name: Verify WP8a part 1 payment accounts and connected-account events (real stack)
+        env:
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2681/wp8a-part1.realstack.acceptance.test.ts
       - name: Verify media custody, Storage refusal and signed-in delivery through PostgREST and Storage (AL-2679)
         shell: bash
         env:

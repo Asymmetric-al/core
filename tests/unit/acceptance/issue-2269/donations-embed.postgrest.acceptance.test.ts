@@ -219,7 +219,7 @@ describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
        insert into public.profiles (id, tenant_id, role) values ($2, $1, 'donor'), ($3, $1, 'missionary'), ($4, $1, 'missionary')
          on conflict (id) do update set tenant_id = excluded.tenant_id, role = excluded.role;
        -- D-18: the giving targets name their own tenant's entity.
-       insert into public.legal_entities(id,tenant_id,name) values ($1,$1,'A');
+       insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$1,'A','US','usd','A');
        insert into public.parties (id, tenant_id, display_name) values ($5, $1, 'Fixture'), ($6, $1, 'Fixture');
        insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id,party_id) values ($5, $1, $3,$1,$5), ($6, $1, $4,$1,$6);
        insert into public.donors (id, tenant_id, profile_id) values ($7, $1, $2), ($8, $1, null);

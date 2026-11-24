@@ -510,8 +510,8 @@ $seed$;
 -- ---------------------------------------------------------------------------
 -- 2) Missionaries, donors, funds (projects)
 -- ---------------------------------------------------------------------------
-INSERT INTO public.legal_entities(id,tenant_id,name)
-SELECT md5(id::text||':legal')::uuid,id,name FROM public.tenants;
+INSERT INTO public.legal_entities(id,tenant_id,name,country_code,currency,legal_name)
+SELECT md5(id::text||':legal')::uuid,id,name,'US','usd',name FROM public.tenants;
 INSERT INTO public.funds(id,tenant_id,legal_entity_id,name,system_purpose)
 SELECT md5(tenant_id::text||':fee')::uuid,tenant_id,id,'Fee cover','fee_cover' FROM public.legal_entities;
 INSERT INTO public.contribution_approval_policies(tenant_id,ownership_mode) SELECT id,'no_approval_required' FROM public.tenants;

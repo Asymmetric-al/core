@@ -240,8 +240,8 @@ async function catalogCounts() {
   await db.end();
   return rows[0] as { n: number; pol: number };
 }
-// AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
-const LISTED = 79;
+// AL-2674 (D09), AL-2677 (WP4a-2a), and AL-2681 (WP8a-1, D-18) reduce the deny-by-default exception list to 74; WP8a-1 keeps donation_saga_outbox listed (ruling W8-R34).
+const LISTED = 74;
 
 describe.skipIf(!ADMIN_URL)(
   "#2253 tenant RLS catalog gate (real stack)",

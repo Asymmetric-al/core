@@ -233,7 +233,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
           [row.assignment, row.tenant, profile],
         );
         await db.query(
-          "with entity as (insert into public.legal_entities(id,tenant_id,name) values ($2,$2,'Fixture') returning id), party as (insert into public.parties(id,tenant_id,display_name) values ($1,$2,'Fixture') returning id) insert into public.missionaries (id,tenant_id,profile_id,legal_entity_id,party_id) select $1,$2,$3,entity.id,party.id from entity, party",
+          "with entity as (insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($2,$2,'Fixture','US','usd','Fixture') returning id), party as (insert into public.parties(id,tenant_id,display_name) values ($1,$2,'Fixture') returning id) insert into public.missionaries (id,tenant_id,profile_id,legal_entity_id,party_id) select $1,$2,$3,entity.id,party.id from entity, party",
           [row.missionary, row.tenant, profile],
         );
         await db.query(
