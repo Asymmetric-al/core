@@ -4,19 +4,22 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 
 import {
   CALLER_MEDIA_STORE_ALLOWED_EXPORTS,
   CALLER_PRIVILEGED_IMPORT_EXCEPTIONS,
   CEILING,
-  ceilingDigest,
+  CEILING_ROWS,
+  ceilingGrowth,
   evaluateServiceRoleClientGate,
+  parseCeilingRows,
   runServiceRoleClientGate,
   scanSource,
 } from "../../../scripts/verify/service-role-client-gate.mjs";
@@ -351,25 +354,9 @@ describe("frozen ceiling", () => {
     }
   });
 
-  it("pins the 113 reviewed entries after WP4a part 2b, WP6 part 1, WP8a part 1, and WP4b part 1", () => {
-    expect(ceilingDigest()).toBe(
-      "c012bff4dcfe65a99f7726d222ab0230c9339078eebf1db9d84d7f9919c9af29",
-    );
-    const totals: Record<string, number> = {};
-    for (const [key, count] of CEILING) {
-      const kind = key.split(" ")[1]!;
-      totals[kind] = (totals[kind] ?? 0) + count;
-    }
-    expect(totals).toEqual({
-      admin_client: 77,
-      service_role_key: 27,
-      workflow_admin_wrapper: 8,
-      operation_admin_context: 63,
-    });
-    expect(CEILING.size).toBe(113);
-    expect(
-      new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(107);
+  it("the ceiling parses strictly: rows sorted, keys unique, fields and tokens well formed (D-18: AL-2671 ruling-pin-tax Q1)", () => {
+    expect(parseCeilingRows(CEILING_ROWS).problems).toEqual([]);
+    expect(CEILING.size).toBe(parseCeilingRows(CEILING_ROWS).rows.length);
   });
 
   it("holds no CRM handler in the allowlist or the ceiling once note creation moves", () => {
@@ -613,5 +600,263 @@ describe("type-only re-exports are not sites (review F3)", () => {
     expect(scanSource("packages/api/src/x.ts", text).reexports).toHaveLength(
       count,
     );
+  });
+});
+
+const ceilingRows = (text: string) => {
+  const parsed = parseCeilingRows(text);
+  expect(parsed.problems).toEqual([]);
+  return parsed.rows;
+};
+const growth = (base: string, head: string) =>
+  ceilingGrowth(ceilingRows(base), ceilingRows(head));
+const A = "apps/a.ts admin_client";
+const B = "packages/b.ts service_role_key";
+
+describe("ceiling growth against the base (D-18: AL-2671 ruling-pin-tax Q1)", () => {
+  it("fixture 1: an added row without a ruling token fails, naming file and kind", () => {
+    expect(growth(`${A} 1`, `${A} 1\n${B} 2`)).toEqual([
+      "CEILING_GROWTH packages/b.ts service_role_key: added at 2 without a ruling token",
+    ]);
+  });
+
+  it("fixture 2: a raised count needs a ruling token other than the base row's", () => {
+    expect(growth(`${A} 1`, `${A} 3`)).toEqual([
+      "CEILING_GROWTH apps/a.ts admin_client: raised from 1 to 3 without a new ruling token",
+    ]);
+    expect(growth(`${A} 1 ruling:W8-R10`, `${A} 2 ruling:W8-R10`)).toEqual([
+      "CEILING_GROWTH apps/a.ts admin_client: raised from 1 to 2 without a new ruling token",
+    ]);
+    expect(growth(`${A} 1 ruling:W8-R10`, `${A} 2`)).toEqual([
+      "CEILING_GROWTH apps/a.ts admin_client: raised from 1 to 2 without a new ruling token",
+    ]);
+    expect(growth(`${A} 1 ruling:W8-R10`, `${A} 2 ruling:W8-R11`)).toEqual([]);
+  });
+
+  it("fixture 3: an added or raised row with a well-formed token passes; malformed tokens fail", () => {
+    expect(growth(`${A} 1`, `${A} 1\n${B} 2 ruling:W8-R10`)).toEqual([]);
+    expect(growth(`${A} 1`, `${A} 4 ruling:W8-R10`)).toEqual([]);
+    expect(growth(`${A} 1`, `${A} 4 ruling:D-16-Q1`)).toEqual([]);
+    for (const token of [
+      "ruling:W8R10",
+      "ruling:",
+      "ruling:D-16-Q",
+      "W8-R10",
+    ]) {
+      const { problems } = parseCeilingRows(`${A} 1 ${token}`);
+      expect(problems, token).toHaveLength(1);
+      expect(problems[0], token).toMatch(
+        new RegExp(`^CEILING_MALFORMED ${A} 1 ${token}: `),
+      );
+    }
+  });
+
+  it("fixture 3: rows with the wrong shape fail CEILING_MALFORMED", () => {
+    for (const row of [
+      `${A}`,
+      `${A}  1`,
+      `${A} 0`,
+      `${A} 01`,
+      `${A} 1.5`,
+      "apps/a.ts admin 1",
+      `${A} 1 ruling:W8-R10 extra`,
+      ` ${A} 1`,
+      `\t${A} 1`,
+      "apps/a\tb.ts admin_client 1",
+    ]) {
+      const { problems } = parseCeilingRows(row);
+      expect(problems, row).toHaveLength(1);
+      expect(problems[0], row).toMatch(/^CEILING_MALFORMED /);
+    }
+    expect(parseCeilingRows(`\r\n${A} 1\r\n${B} 2\r\n`)).toEqual({
+      rows: [
+        { file: "apps/a.ts", kind: "admin_client", count: 1, ruling: null },
+        {
+          file: "packages/b.ts",
+          kind: "service_role_key",
+          count: 2,
+          ruling: null,
+        },
+      ],
+      problems: [],
+    });
+  });
+
+  it("fixture 4: a duplicate key fails CEILING_DUPLICATE", () => {
+    expect(parseCeilingRows(`${A} 1\n${A} 2`).problems).toEqual([
+      "CEILING_DUPLICATE apps/a.ts admin_client",
+    ]);
+  });
+
+  it("fixture 5: two keys out of order fail CEILING_UNSORTED", () => {
+    expect(parseCeilingRows(`${B} 1\n${A} 2`).problems).toEqual([
+      `CEILING_UNSORTED apps/a.ts admin_client: after ${B}`,
+    ]);
+    expect(
+      parseCeilingRows("apps/a.ts service_role_key 1\napps/a.ts admin_client 1")
+        .problems,
+    ).toEqual([
+      "CEILING_UNSORTED apps/a.ts admin_client: after apps/a.ts service_role_key",
+    ]);
+  });
+
+  it("fixture 6: a shrink, a deleted row and an unchanged list pass", () => {
+    expect(growth(`${A} 3\n${B} 2`, `${A} 1\n${B} 2`)).toEqual([]);
+    expect(growth(`${A} 3\n${B} 2`, `${B} 2`)).toEqual([]);
+    expect(growth(`${A} 3 ruling:W8-R10\n${B} 2`, `${A} 3\n${B} 2`)).toEqual(
+      [],
+    );
+    expect(growth(CEILING_ROWS, CEILING_ROWS)).toEqual([]);
+  });
+});
+
+const GATE_FILE = "scripts/verify/service-role-client-gate.mjs";
+const IDENTITY = [
+  "-c",
+  "user.name=Ceiling Gate",
+  "-c",
+  "user.email=ceiling-gate@example.org",
+  "-c",
+  "commit.gpgsign=false",
+  "-c",
+  "core.autocrlf=false",
+];
+const ceilingRepos: string[] = [];
+const cleanEnv = () =>
+  Object.fromEntries(
+    Object.entries(process.env).filter(
+      ([name]) =>
+        !name.startsWith("GIT_") && !name.startsWith("SERVICE_ROLE_CEILING_"),
+    ),
+  ) as Record<string, string>;
+const repoGit = (root: string, ...args: string[]) => {
+  const r = spawnSync("git", [...IDENTITY, ...args], {
+    cwd: root,
+    encoding: "utf8",
+    env: cleanEnv(),
+  });
+  expect(r.status, `git ${args.join(" ")}: ${r.stderr}`).toBe(0);
+  return r.stdout.trim();
+};
+const gateRepo = () => {
+  const root = mkdtempSync(path.join(tmpdir(), "ceiling-gate-"));
+  ceilingRepos.push(root);
+  mkdirSync(path.join(root, "scripts/verify"), { recursive: true });
+  mkdirSync(path.join(root, "docs/security"), { recursive: true });
+  writeFileSync(path.join(root, GATE_FILE), readFileSync(GATE_FILE, "utf8"));
+  writeFileSync(
+    path.join(root, "docs/security/service-role-client-allowlist.json"),
+    JSON.stringify({ version: 1, entries: [] }),
+  );
+  symlinkSync(path.resolve("node_modules"), path.join(root, "node_modules"));
+  writeFileSync(path.join(root, ".gitignore"), "node_modules\n");
+  repoGit(root, "init", "--quiet", "--initial-branch=feature");
+  repoGit(root, "add", "--all");
+  repoGit(root, "commit", "--quiet", "--message=base");
+  return root;
+};
+const addCeilingRow = (root: string, row: string) => {
+  const file = path.join(root, GATE_FILE);
+  writeFileSync(
+    file,
+    readFileSync(file, "utf8").replace(
+      /(const CEILING_ROWS = `[\s\S]*?)`/,
+      (_, rows: string) => `${rows}${row}\n\``,
+    ),
+  );
+  repoGit(root, "commit", "--quiet", "--all", `--message=add ${row}`);
+};
+const runGate = (
+  root: string,
+  args: string[] = [],
+  env: Record<string, string> = {},
+) => {
+  const r = spawnSync(process.execPath, [GATE_FILE, ...args], {
+    cwd: root,
+    encoding: "utf8",
+    env: { ...cleanEnv(), ...env },
+  });
+  return { status: r.status, out: `${r.stdout}${r.stderr}` };
+};
+
+describe("ceiling gate CLI base resolution (D-18: AL-2671 ruling-pin-tax Q1)", () => {
+  afterAll(() => {
+    for (const root of ceilingRepos.splice(0))
+      rmSync(root, { recursive: true, force: true });
+  });
+
+  it("fixture 7a: --require-base with no base exits 1 with CEILING_BASE_UNRESOLVED", () => {
+    const r = runGate(gateRepo(), ["--require-base"]);
+    expect(r.status, r.out).toBe(1);
+    expect(r.out).toMatch(/^CEILING_BASE_UNRESOLVED origin\/develop: /m);
+  });
+
+  it("fixture 7b: no flag and no variables prints the not-checked line and exits 0", () => {
+    const r = runGate(gateRepo());
+    expect(r.status, r.out).toBe(0);
+    expect(r.out).toContain(
+      "service-role client gate: no base, so ceiling growth was not checked",
+    );
+  });
+
+  it("fixture 7c: an unresolvable SERVICE_ROLE_CEILING_BASE fails with or without --require-base", () => {
+    const root = gateRepo();
+    for (const args of [[], ["--require-base"]]) {
+      const r = runGate(root, args, {
+        SERVICE_ROLE_CEILING_BASE: "origin/none",
+      });
+      expect(r.status, r.out).toBe(1);
+      expect(r.out).toMatch(/^CEILING_BASE_UNRESOLVED origin\/none: /m);
+    }
+    const r = runGate(root, ["--base", "origin/none"]);
+    expect(r.status, r.out).toBe(1);
+    expect(r.out).toMatch(/^CEILING_BASE_UNRESOLVED origin\/none: /m);
+  });
+
+  it("fixture 7d: a missing, invalid or new-branch push revision with no earlier base exits 1", () => {
+    const root = gateRepo();
+    for (const value of ["1".repeat(40), "not-a-revision"]) {
+      const r = runGate(root, [], { SERVICE_ROLE_CEILING_PUSHED_FROM: value });
+      expect(r.status, `${value}: ${r.out}`).toBe(1);
+      expect(r.out).toMatch(
+        new RegExp(`^CEILING_BASE_UNRESOLVED ${value}: `, "m"),
+      );
+    }
+    repoGit(root, "update-ref", "refs/remotes/origin/develop", "HEAD");
+    const r = runGate(root, [], {
+      SERVICE_ROLE_CEILING_PUSHED_FROM: "0".repeat(40),
+    });
+    expect(r.status, r.out).toBe(1);
+    expect(r.out).toMatch(/^CEILING_BASE_UNRESOLVED 0{40}: /m);
+  });
+
+  it("fixture 7d (control): a push revision present in the checkout is the base", () => {
+    const root = gateRepo();
+    const before = repoGit(root, "rev-parse", "HEAD");
+    addCeilingRow(root, "zzz/new.ts admin_client 1");
+    const r = runGate(root, [], { SERVICE_ROLE_CEILING_PUSHED_FROM: before });
+    expect(r.status, r.out).toBe(1);
+    expect(r.out).toMatch(
+      /^CEILING_GROWTH zzz\/new\.ts admin_client: added at 1 without a ruling token$/m,
+    );
+  });
+
+  it("fixture 8: a base commit plus a token-less row fails CEILING_GROWTH only; a row with ruling:W8-R10 passes", () => {
+    const root = gateRepo();
+    addCeilingRow(root, "zzz/new.ts admin_client 1");
+    const r = runGate(root, ["--base", "HEAD~1", "--require-base"]);
+    expect(r.status, r.out).toBe(1);
+    expect(r.out).toMatch(
+      /^CEILING_GROWTH zzz\/new\.ts admin_client: added at 1 without a ruling token$/m,
+    );
+    expect(r.out).not.toMatch(
+      /NEW_SITE|ALLOWLIST_GROWTH|CEILING_BASE_UNRESOLVED/,
+    );
+
+    const control = gateRepo();
+    addCeilingRow(control, "zzz/new.ts admin_client 1 ruling:W8-R10");
+    const ok = runGate(control, ["--base", "HEAD~1", "--require-base"]);
+    expect(ok.status, ok.out).toBe(0);
+    expect(ok.out).toContain("PASS: service-role client gate:");
   });
 });

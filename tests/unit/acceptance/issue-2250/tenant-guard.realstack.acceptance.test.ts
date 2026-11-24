@@ -107,6 +107,31 @@ const CLAIM_FNS = `'${TG_ACQ}', '${TG_REL}', 'public.acquire_workflow_work_claim
 /** EXECUTE grantees besides the owner, or '-' for none. */
 const GRANTEES = `(select coalesce(string_agg(distinct case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end, '+'), '-')
    from aclexplode(proacl) a where a.privilege_type = 'EXECUTE' and a.grantee <> proowner)`;
+const GUARD_REACH = [
+  "authz.assignment_capabilities(uuid) EXECUTE",
+  "authz.caller_tenant_ids() EXECUTE",
+  "authz.has_membership(uuid,authz.membership_role[]) EXECUTE",
+  "authz.has_staff_membership(uuid,authz.staff_role[]) EXECUTE",
+  "authz.request_tenant_id() EXECUTE",
+  "private.caller_profile_id() EXECUTE",
+  "private.is_platform_operator(uuid) EXECUTE",
+  "private.lock_tenant(uuid) EXECUTE",
+  "private.profile_display_name(uuid) EXECUTE",
+  "private.resolve_invitation_for_caller(text,text,uuid) EXECUTE",
+  "private.share_lock_site_domain(uuid,text) EXECUTE",
+  "private.share_lock_tenant(uuid) EXECUTE",
+  "schema authz USAGE",
+  "schema private USAGE",
+  "schema public USAGE",
+  "schema tenant_guard USAGE",
+  "tenant_guard.begin_human_command(uuid,text) EXECUTE",
+  "tenant_guard.caller_id() EXECUTE",
+  "tenant_guard.current_tenant_id() EXECUTE",
+  "tenant_guard.enter(uuid) EXECUTE",
+  "tenant_guard.issue_membership_invitation(uuid,text,authz.membership_role,authz.staff_role,boolean,text,text,uuid,text,interval) EXECUTE",
+  "tenant_guard.request_assignment_id() EXECUTE",
+  "tenant_guard.request_claims() EXECUTE",
+];
 
 /**
  * Catalog checks, one block each: "title" line, SQL returning one column `v`,
@@ -147,12 +172,12 @@ select (select count(*) from (
   || ' ' || (select string_agg(a.privilege_type, ',' order by a.privilege_type) from aclexplode((select relacl from pg_class where oid = '${CLAIMS}'::regclass)) a where a.grantee = ${TG}) v
 => 0 INSERT,SELECT,UPDATE
 
-17: everything else granted to tenant_guard (schemas, functions it does not own, databases) equals the inventory
+17: everything else granted to tenant_guard (schemas, functions it does not own, databases) equals the inventory (D-18: AL-2671: one item per line)
 select string_agg(e, ', ' order by e) v from (
   select 'schema ' || nspname || ' ' || a.privilege_type e from pg_namespace, aclexplode(nspacl) a where a.grantee = ${TG}
   union all select p.oid::regprocedure || ' ' || a.privilege_type from pg_proc p, aclexplode(p.proacl) a where a.grantee = ${TG} and p.proowner <> a.grantee
   union all select 'database ' || datname from pg_database, aclexplode(datacl) a where a.grantee = ${TG}) s
-=> authz.assignment_capabilities(uuid) EXECUTE, authz.caller_tenant_ids() EXECUTE, authz.has_membership(uuid,authz.membership_role[]) EXECUTE, authz.has_staff_membership(uuid,authz.staff_role[]) EXECUTE, authz.request_tenant_id() EXECUTE, private.caller_profile_id() EXECUTE, private.is_platform_operator(uuid) EXECUTE, private.lock_tenant(uuid) EXECUTE, private.profile_display_name(uuid) EXECUTE, private.resolve_invitation_for_caller(text,text,uuid) EXECUTE, private.share_lock_site_domain(uuid,text) EXECUTE, private.share_lock_tenant(uuid) EXECUTE, schema authz USAGE, schema private USAGE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.begin_human_command(uuid,text) EXECUTE, tenant_guard.caller_id() EXECUTE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE, tenant_guard.issue_membership_invitation(uuid,text,authz.membership_role,authz.staff_role,boolean,text,text,uuid,text,interval) EXECUTE, tenant_guard.request_assignment_id() EXECUTE, tenant_guard.request_claims() EXECUTE
+=> ${GUARD_REACH.join(", ")}
 
 17: no DELETE/TRUNCATE on claims; no SELECT on tenants, profiles, donation_saga_outbox, on the table or on any column
 select concat_ws(',', has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'DELETE'), has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'TRUNCATE'),
@@ -265,6 +290,27 @@ describe.skipIf(!ADMIN_URL)("#2250 tenant_guard on the real stack", () => {
   it.each(CATALOG)("%s", async (_title, sql, want) =>
     expect(await v(sql)).toBe(want),
   );
+
+  it("17: an EXECUTE grant to tenant_guard outside the inventory changes the value (D-18: AL-2671: criterion 17 fires on an unreviewed grant)", async () => {
+    const block = CATALOG.find(([title]) =>
+      title.startsWith("17: everything else granted to tenant_guard"),
+    );
+    expect(block).toBeDefined();
+    const [, sql, want] = block!;
+    expect(want).toBe(GUARD_REACH.join(", "));
+    let got: unknown;
+    try {
+      await db.query("begin");
+      await db.query(
+        "grant execute on function authz.is_super_admin() to tenant_guard",
+      );
+      got = await v(sql);
+    } finally {
+      await db.query("rollback");
+    }
+    expect(got).not.toBe(GUARD_REACH.join(", "));
+    expect(String(got)).toContain("authz.is_super_admin() EXECUTE");
+  });
 
   /**
    * Each function of criteria 14/15 that does not keep the invariants of its
