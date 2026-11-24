@@ -25,7 +25,10 @@ const membershipRolesSchema = z.array(z.enum(["donor", "missionary", "staff"]));
  * (AL-2675). The Eve runtime has no proxy in front of it to name the surface's
  * role class, so it names it here.
  */
-const EVE_ADMIN_AUTH_OPTIONS = { roleClass: "staff" } as const;
+const EVE_ADMIN_AUTH_OPTIONS = {
+  roleClass: "staff",
+  nameTenant: "ignore",
+} as const;
 
 /** Snapshot attribute that keeps the selected staff row's flag (AL-2675). */
 const TENANT_ADMIN_ATTRIBUTE = "tenantAdmin";

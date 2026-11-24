@@ -14,10 +14,12 @@ export async function resolveUserRoleFromDatabase({
   userId,
   supabase,
   roleClass,
+  nameTenantId,
 }: {
   userId: string;
   supabase: SupabaseUserRoleReader;
   roleClass: RoleClass | null;
+  nameTenantId?: string;
 }): Promise<RoleSnapshot | null> {
   if (!roleClass) {
     reportAccessDiagnostic("no_role_class");
@@ -28,7 +30,12 @@ export async function resolveUserRoleFromDatabase({
     const { reader, readError } = withReadErrorCause(
       createRpcAssignmentReader(supabase as unknown as AssignmentRpcClient),
     );
-    const result = await resolveActiveAssignment({ userId, roleClass }, reader);
+    const result = await resolveActiveAssignment(
+      nameTenantId
+        ? { userId, roleClass, expectedTenantId: nameTenantId }
+        : { userId, roleClass },
+      reader,
+    );
 
     if (!result.ok) {
       if (result.reason === "reader_error") {

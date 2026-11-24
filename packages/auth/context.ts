@@ -1,3 +1,4 @@
+import { isServeUnderPathsEnabled } from "@asym/database/app-base-path";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
@@ -38,10 +39,15 @@ import { listE2EAuthAssignments } from "./principal/e2e-assignments";
 import { createRpcAssignmentReader } from "./principal/reader";
 import {
   ASSIGNMENT_HEADER,
+  isNameTenantRefused,
+  NAME_TENANT_HEADER,
+  nameTenantIdOf,
   parseRoleClass,
+  readNameTenantState,
   ROLE_CLASS_HEADER,
   SCOPE_REFUSED_HEADER,
   TENANT_HEADER,
+  type NameTenantState,
 } from "./request-headers";
 
 import type { Capability } from "./capabilities/registry";
@@ -82,6 +88,7 @@ export interface AuthContextOptions {
   roleClass?: RoleClass;
   proposedAssignmentId?: string;
   expectedTenantId?: string;
+  nameTenant?: "ignore";
 }
 
 function getBearerToken(request?: Request): string | null {
@@ -233,20 +240,35 @@ async function getE2EAuthBypassContext(
   request: Request | undefined,
   narrowing: AssignmentNarrowing,
 ): Promise<AuthContext | null> {
+  if (narrowing.nameRefused) return null;
   const e2eSession = await readE2EBypassSession(request);
   if (!e2eSession) {
     return null;
+  }
+  if (narrowing.tenantConflict) {
+    return {
+      ...createUnauthenticatedContext(),
+      assignmentDenial: "tenant_mismatch",
+      scopeRefused: true,
+    };
   }
   const assignments = listE2EAuthAssignments(e2eSession);
   const { roleClass } = narrowing;
   let selected: ActiveAssignment | null;
   let denial: AssignmentDenyReason = "no_assignment";
   if (roleClass) {
-    const result = selectAssignment(assignments, { ...narrowing, roleClass });
+    const result = selectAssignment(
+      assignments,
+      selection(narrowing, roleClass),
+    );
     selected = result.ok ? result.assignment : null;
     if (!result.ok) denial = result.reason;
   } else {
-    selected = assignments.length === 1 ? assignments[0]! : null;
+    const pool =
+      narrowing.nameTenantId === null
+        ? assignments
+        : assignments.filter((a) => a.tenantId === narrowing.nameTenantId);
+    selected = pool.length === 1 ? pool[0]! : null;
   }
   if (!selected) {
     return proposesScope(narrowing)
@@ -304,13 +326,39 @@ interface AssignmentNarrowing {
   roleClass: RoleClass | null;
   proposedAssignmentId?: string;
   expectedTenantId?: string;
+  claimsTenant: boolean;
+  tenantConflict: boolean;
+  nameRefused: boolean;
+  nameTenantId: string | null;
+}
+
+function selection(narrowing: AssignmentNarrowing, roleClass: RoleClass) {
+  return {
+    roleClass,
+    ...(narrowing.proposedAssignmentId !== undefined
+      ? { proposedAssignmentId: narrowing.proposedAssignmentId }
+      : {}),
+    ...(narrowing.expectedTenantId !== undefined
+      ? { expectedTenantId: narrowing.expectedTenantId }
+      : {}),
+  };
 }
 
 function proposesScope(narrowing: AssignmentNarrowing): boolean {
-  return (
-    narrowing.proposedAssignmentId !== undefined ||
-    narrowing.expectedTenantId !== undefined
-  );
+  return narrowing.proposedAssignmentId !== undefined || narrowing.claimsTenant;
+}
+
+async function readNameTenant(
+  request: Request | undefined,
+  options: AuthContextOptions,
+): Promise<NameTenantState> {
+  if (options.nameTenant === "ignore" || !isServeUnderPathsEnabled()) {
+    return { kind: "off" };
+  }
+  const value = await readRequestHeader(request, NAME_TENANT_HEADER);
+  return readNameTenantState({
+    get: (name) => (name === NAME_TENANT_HEADER ? value : null),
+  });
 }
 
 const SCOPE_REFUSALS: ReadonlySet<AssignmentDenyReason> = new Set([
@@ -338,13 +386,35 @@ async function readAssignmentNarrowing(
   const proposedAssignmentId =
     options.proposedAssignmentId ??
     (await readRequestHeader(request, ASSIGNMENT_HEADER))?.trim();
-  const expectedTenantId =
-    options.expectedTenantId ??
-    (await readRequestHeader(request, TENANT_HEADER))?.trim();
+  const headerTenantId = (
+    await readRequestHeader(request, TENANT_HEADER)
+  )?.trim();
+  const name = await readNameTenant(request, options);
+  const nameTenantId = nameTenantIdOf(name);
+  const proposed = proposedAssignmentId ? { proposedAssignmentId } : {};
+  if (nameTenantId === null) {
+    const expectedTenantId = options.expectedTenantId ?? headerTenantId;
+    return {
+      roleClass,
+      ...proposed,
+      ...(expectedTenantId ? { expectedTenantId } : {}),
+      claimsTenant: Boolean(expectedTenantId),
+      tenantConflict: false,
+      nameRefused: isNameTenantRefused(name),
+      nameTenantId: null,
+    };
+  }
+  const claims = [options.expectedTenantId, headerTenantId || undefined].filter(
+    (claim): claim is string => claim !== undefined,
+  );
   return {
     roleClass,
-    ...(proposedAssignmentId ? { proposedAssignmentId } : {}),
-    ...(expectedTenantId ? { expectedTenantId } : {}),
+    ...proposed,
+    expectedTenantId: nameTenantId,
+    claimsTenant: claims.length > 0,
+    tenantConflict: claims.some((claim) => claim !== nameTenantId),
+    nameRefused: false,
+    nameTenantId,
   };
 }
 
@@ -407,8 +477,16 @@ export async function getAuthContext(
     return denied(profile.id, "no_role_class");
   }
 
+  if (narrowing.nameRefused) {
+    return denied(profile.id, "no_assignment");
+  }
+
+  if (narrowing.tenantConflict) {
+    return { ...denied(profile.id, "tenant_mismatch"), scopeRefused: true };
+  }
+
   const result = await resolveActiveAssignment(
-    { ...narrowing, userId: user.id, roleClass },
+    { ...selection(narrowing, roleClass), userId: user.id },
     createRpcAssignmentReader(supabase),
   );
 

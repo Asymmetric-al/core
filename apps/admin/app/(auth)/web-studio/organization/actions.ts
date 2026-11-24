@@ -1,7 +1,14 @@
 "use server";
 
 import { getSignedInAssignments } from "@asym/auth/context";
-import { redirectFromActionInTenant } from "@asym/auth/tenant-server";
+import {
+  isNameTenantRefused,
+  nameTenantIdOf,
+} from "@asym/auth/request-headers";
+import {
+  readServerNameTenantState,
+  redirectFromActionInTenant,
+} from "@asym/auth/tenant-server";
 import {
   decideWebStudioAccess,
   safeWebStudioNext,
@@ -31,11 +38,13 @@ export async function chooseWebStudioOrganization(
       `/login?next=${encodeURIComponent(webStudioChooserAddress(next))}`,
     );
   }
-  if (signedIn.kind === "unavailable") {
+  const name = await readServerNameTenantState();
+  if (signedIn.kind === "unavailable" || isNameTenantRefused(name)) {
     return redirectFromActionInTenant("/no-access");
   }
 
   const decision = decideWebStudioAccess({
+    nameTenantId: nameTenantIdOf(name),
     assignments: signedIn.assignments,
     cookie: {
       kind: "selected",

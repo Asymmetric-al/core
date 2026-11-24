@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import {
   ADDRESS_PREFIX_HEADER,
+  NAME_TENANT_HEADER,
   ROLE_CLASS_HEADER,
   TENANT_REWRITE_HEADER,
 } from "./request-headers";
@@ -12,6 +13,7 @@ import {
   WEB_STUDIO_ENTRY_ASSIGNMENT_PARAM,
   WEB_STUDIO_ENTRY_TENANT_PARAM,
   WEB_STUDIO_FROM_PARAM,
+  WEB_STUDIO_REFUSED_PARAM,
   type WebStudioDecision,
 } from "./web-studio";
 
@@ -19,6 +21,7 @@ export async function refreshWebStudioApiSession(
   request: NextRequest,
   pathname: string,
   roleClass: string | null,
+  nameTenantId?: string,
 ): Promise<NextResponse> {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-asym-pathname", pathname);
@@ -26,6 +29,8 @@ export async function refreshWebStudioApiSession(
   else requestHeaders.delete(ROLE_CLASS_HEADER);
   requestHeaders.delete(ADDRESS_PREFIX_HEADER);
   requestHeaders.delete(TENANT_REWRITE_HEADER);
+  requestHeaders.delete(NAME_TENANT_HEADER);
+  if (nameTenantId) requestHeaders.set(NAME_TENANT_HEADER, nameTenantId);
 
   let response = NextResponse.next({ request: { headers: requestHeaders } });
   const refreshHeaders = new Headers();
@@ -74,6 +79,7 @@ export function webStudioChooserUrl(
   request: NextRequest,
   next: string,
   from?: string | null,
+  refused = false,
 ): URL {
   const base = request.nextUrl.basePath || "";
   const url = new URL(
@@ -81,6 +87,7 @@ export function webStudioChooserUrl(
     request.nextUrl.origin,
   );
   url.searchParams.set("next", next);
+  if (refused) url.searchParams.set(WEB_STUDIO_REFUSED_PARAM, "1");
   if (from) url.searchParams.set(WEB_STUDIO_FROM_PARAM, from);
   return url;
 }
@@ -92,6 +99,7 @@ export function webStudioEntryRedirect(
   request: NextRequest,
   pathname: string,
   decision: WebStudioDecision,
+  nameTenantId?: string,
 ): URL | null {
   const search = new URLSearchParams(request.nextUrl.search);
   if (
@@ -118,6 +126,9 @@ export function webStudioEntryRedirect(
   return webStudioChooserUrl(
     request,
     address,
-    CANONICAL_ID.test(tenantId) ? tenantId : null,
+    CANONICAL_ID.test(tenantId) &&
+      (nameTenantId === undefined || tenantId === nameTenantId)
+      ? tenantId
+      : null,
   );
 }

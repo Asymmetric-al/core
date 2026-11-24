@@ -1,8 +1,17 @@
-import { withAppBasePath } from "@asym/database/document-reload";
+import {
+  isServeUnderPathsEnabled,
+  withAppBasePath,
+} from "@asym/database/document-reload";
 import { headers } from "next/headers";
-import { permanentRedirect, redirect } from "next/navigation";
+import { permanentRedirect, redirect, unstable_rethrow } from "next/navigation";
 
-import { ADDRESS_PREFIX_HEADER } from "./request-headers";
+import {
+  ADDRESS_PREFIX_HEADER,
+  isNameTenantRefused,
+  nameTenantIdOf,
+  readNameTenantState,
+  type NameTenantState,
+} from "./request-headers";
 import { parseTenantAddress, withTenantAddress } from "./tenant-address";
 
 import type { AuthContext } from "./context";
@@ -15,19 +24,35 @@ export async function readAddressPrefix(): Promise<string | null> {
     : null;
 }
 
+export async function readServerNameTenantState(): Promise<NameTenantState> {
+  if (!isServeUnderPathsEnabled()) return { kind: "off" };
+  try {
+    return readNameTenantState(await headers());
+  } catch (error) {
+    unstable_rethrow(error);
+    return { kind: "absent" };
+  }
+}
+
 export async function readDocumentScope(
   auth: AuthContext,
 ): Promise<DocumentScope | null> {
+  const name = await readServerNameTenantState();
+  if (isNameTenantRefused(name)) {
+    throw new Error("The request carries no verified name for this dashboard.");
+  }
   const addressPrefix = await readAddressPrefix();
   if (!addressPrefix) return null;
   const { tenantId, subRole } = parseTenantAddress(addressPrefix)!;
   const { assignment } = auth;
+  const nameTenantId = nameTenantIdOf(name);
   if (
     !auth.isAuthenticated ||
     !auth.userId ||
     !assignment ||
     assignment.tenantId !== tenantId ||
     auth.tenantId !== tenantId ||
+    (nameTenantId !== null && nameTenantId !== tenantId) ||
     (subRole !== null && assignment.staffRole !== subRole)
   ) {
     throw new Error(

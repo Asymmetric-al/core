@@ -44,6 +44,29 @@ vi.mock("@supabase/ssr", () => ({
   }),
 }));
 
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => ({
+    rpc: (fn: string) => {
+      if (fn !== "resolve_verified_host") throw new Error(fn);
+      return {
+        abortSignal: async () => ({
+          data: [
+            {
+              tenant_id: "00000000-0000-0000-0000-000000000001",
+              site_id: null,
+              generation: 1,
+              surfaces: ["website", "donor_account", "staff", "missionary"],
+              state: "active",
+              is_home: true,
+            },
+          ],
+          error: null,
+        }),
+      };
+    },
+  }),
+}));
+
 const adminModule = await import("../../../apps/admin/proxy");
 const missionaryModule = await import("../../../apps/missionary/proxy");
 
