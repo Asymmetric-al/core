@@ -858,7 +858,7 @@ describe.skipIf(!ADMIN_URL)(
         }
       }));
 
-    it("serializes concurrent care insert and update commands behind revocation, role change, and tenant suspension across two connections", async () => {
+    it("serializes concurrent care insert and update commands behind raw UPDATE races (membership revocation, role change, tenant suspension) across two connections", async () => {
       const connA = new pg.Client({ connectionString: ADMIN_URL });
       const connB = new pg.Client({ connectionString: ADMIN_URL });
       const tenantId = randomUUID();
@@ -868,6 +868,9 @@ describe.skipIf(!ADMIN_URL)(
       const goalId = randomUUID();
       await connA.connect();
       await connB.connect();
+      const pidB = (
+        await connB.query<{ pid: number }>("select pg_backend_pid() as pid")
+      ).rows[0]!.pid;
 
       const cleanup = async () => {
         await connA.query("rollback").catch(() => {});
@@ -1018,10 +1021,29 @@ describe.skipIf(!ADMIN_URL)(
                 };
               });
 
-            await new Promise((resolve) => setTimeout(resolve, 150));
-            expect(settled, `${cmdName} vs ${raceName} must wait on lock`).toBe(
-              false,
-            );
+            const lockDeadline = Date.now() + 5_000;
+            let waitEventType: string | null = null;
+            while (Date.now() < lockDeadline && !settled) {
+              const activity = await db.query<{
+                wait_event_type: string | null;
+              }>(
+                `select wait_event_type from pg_stat_activity where pid = $1`,
+                [pidB],
+              );
+              waitEventType = activity.rows[0]?.wait_event_type ?? null;
+              if (waitEventType === "Lock") {
+                break;
+              }
+              await new Promise((resolve) => setTimeout(resolve, 25));
+            }
+            expect(
+              waitEventType,
+              `${cmdName} vs raw UPDATE (${raceName}) must block with pg_stat_activity.wait_event_type = Lock`,
+            ).toBe("Lock");
+            expect(
+              settled,
+              `${cmdName} vs raw UPDATE (${raceName}) must wait on lock`,
+            ).toBe(false);
 
             await connA.query("commit");
             const outcomeB = await pendingB;
