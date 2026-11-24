@@ -455,7 +455,7 @@ Verify production readiness without printing secret values:
 bun run verify:vercel-production -- --commit <sha>
 ```
 
-The verifier inventories Production names, checks readable values, the branch configuration, READY deployments and `/api/health` at the requested commit. At the first release CLI 66.6.0 returned the marker `[sensitive]` for values it could not read. The verifier treated the marker as a value and exited BLOCKED (1), although the three deployments and their health matched. Record its actual result, check both Inngest names separately, and follow the independent checks in [step 7](./release-job.md#switching-it-on); do not dismiss missing names or other failures.
+The verifier inventories Production names, checks readable values, the branch configuration, READY deployments and `/api/health` at the requested commit. At the first release CLI 66.6.0 returned the marker `[SENSITIVE]` for values it could not read. The verifier treated the marker as a value and exited BLOCKED (1), although the three deployments and their health matched. Since #2758 it accepts the marker, in either letter case, for a variable whose type is sensitive, and reports it only where the type is not sensitive or cannot be confirmed. Record its actual result, check both Inngest names separately, and follow the independent checks in [step 7](./release-job.md#switching-it-on); do not dismiss missing names or other failures.
 
 Inventory Vercel environment variable names without values:
 
