@@ -35,7 +35,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2677 WP4b part 1: member care RLS, directory reader, care commands, and locks (real stack)",
+  "AL-2677 WP4b part 1: member care RLS, directory reader, care commands, and locks (real stack) (D-18, AL-2678: each fixture missionary names its own Party, as the identity-key migration requires, and the lock fixture removes its Party with its tenant)",
   () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
     const id = fixtureIds();
@@ -205,11 +205,15 @@ describe.skipIf(!ADMIN_URL)(
         [id.TA, id.TB],
       );
       await db.query(
-        `insert into public.missionaries (id, tenant_id, profile_id, legal_entity_id, location, timezone, health_status, manual_attention, region, mission_field, health_signals, created_at) values
-          ($1, $2, $3, $2, 'Chiang Mai', 'Asia/Bangkok', 'at_risk', true, 'SE Asia', 'Church Planting', '{"emotional":40,"spiritual":70,"physical":60,"financial":50}'::jsonb, '2026-10-03T00:00:00Z'),
-          ($4, $2, $5, $2, 'Nairobi', 'Africa/Nairobi', 'healthy', false, 'Africa', 'Education', '{"emotional":80,"spiritual":80,"physical":80,"financial":80}'::jsonb, '2026-10-02T00:00:00Z'),
-          ($6, $2, null, $2, 'Lima', 'America/Lima', 'needs_attention', false, 'Latin America', 'Medical', '{"emotional":55,"spiritual":65,"physical":60,"financial":45}'::jsonb, '2026-10-01T00:00:00Z'),
-          ($7, $8, $9, $8, 'Lisbon', 'Europe/Lisbon', 'crisis', true, 'Europe', 'Youth', '{"emotional":20,"spiritual":30,"physical":40,"financial":50}'::jsonb, '2026-10-04T00:00:00Z')`,
+        "insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Fixture'), ($3, $2, 'Fixture'), ($4, $2, 'Fixture'), ($5, $6, 'Fixture')",
+        [extra.mA1, id.TA, extra.mA2, extra.mANoProfile, extra.mB1, id.TB],
+      );
+      await db.query(
+        `insert into public.missionaries (id, tenant_id, profile_id, legal_entity_id, location, timezone, health_status, manual_attention, region, mission_field, health_signals, created_at, party_id) values
+          ($1, $2, $3, $2, 'Chiang Mai', 'Asia/Bangkok', 'at_risk', true, 'SE Asia', 'Church Planting', '{"emotional":40,"spiritual":70,"physical":60,"financial":50}'::jsonb, '2026-10-03T00:00:00Z', $1),
+          ($4, $2, $5, $2, 'Nairobi', 'Africa/Nairobi', 'healthy', false, 'Africa', 'Education', '{"emotional":80,"spiritual":80,"physical":80,"financial":80}'::jsonb, '2026-10-02T00:00:00Z', $4),
+          ($6, $2, null, $2, 'Lima', 'America/Lima', 'needs_attention', false, 'Latin America', 'Medical', '{"emotional":55,"spiritual":65,"physical":60,"financial":45}'::jsonb, '2026-10-01T00:00:00Z', $6),
+          ($7, $8, $9, $8, 'Lisbon', 'Europe/Lisbon', 'crisis', true, 'Europe', 'Youth', '{"emotional":20,"spiritual":30,"physical":40,"financial":50}'::jsonb, '2026-10-04T00:00:00Z', $7)`,
         [
           extra.mA1,
           id.TA,
@@ -970,6 +974,9 @@ describe.skipIf(!ADMIN_URL)(
           `delete from public.missionaries where tenant_id = $1`,
           [tenantId],
         );
+        await connA.query(`delete from public.parties where tenant_id = $1`, [
+          tenantId,
+        ]);
         await connA.query(
           `delete from public.legal_entities where tenant_id = $1`,
           [tenantId],
@@ -1027,7 +1034,7 @@ describe.skipIf(!ADMIN_URL)(
           [tenantId],
         );
         await connA.query(
-          `insert into public.missionaries (id, tenant_id, legal_entity_id, manual_attention) values ($1, $2, $2, false)`,
+          `with party as (insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Fixture') returning id) insert into public.missionaries (id, tenant_id, legal_entity_id, manual_attention, party_id) select $1, $2, $2, false, id from party`,
           [missionaryId, tenantId],
         );
         await connA.query(
