@@ -223,7 +223,19 @@ describe.skipIf(!url && process.env.DEMO_CARE_IT_REQUIRED !== "1")(
         }),
       });
       expect(created.status, await created.clone().text()).toBe(200);
-      dualUserId = ((await created.json()) as { id: string }).id;
+      const createdBody: unknown = await created.json();
+      const createdId =
+        typeof createdBody === "object" &&
+        createdBody !== null &&
+        "id" in createdBody
+          ? createdBody.id
+          : undefined;
+      if (
+        typeof createdId !== "string" ||
+        !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(createdId)
+      )
+        throw new Error("the Auth admin API returned no user id");
+      dualUserId = createdId;
       await db.query("delete from authz.memberships where user_id = $1", [
         dualUserId,
       ]);

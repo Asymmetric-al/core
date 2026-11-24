@@ -36,10 +36,16 @@
 -- grantor and carries the new row, the shape the membership commands of
 -- 20261119135500 use for a grant; it is written only when the row is.
 --
--- Down (run by hand, in one transaction): DELETE FROM authz.memberships WHERE
--- user_id = '11111111-1111-1111-1111-111111111111' AND tenant_id =
--- '00000000-0000-0000-0000-000000000001' AND role = 'staff' AND staff_role =
--- 'member_care' AND granted_by IS NULL; the audit row stays as the record.
+-- Down (run by hand, in one transaction). Delete only the row this migration
+-- created, which its audit entry names:
+--   DELETE FROM authz.memberships AS m USING public.audit_logs AS a
+--    WHERE a.action = 'membership_granted' AND a.resource_type = 'membership'
+--      AND a.details ->> 'granted_by_migration' =
+--          '20261124020000_demo_member_care_assignment'
+--      AND m.id::TEXT = a.resource_id;
+-- Where this migration changed nothing there is no such entry, so a row that
+-- existed before it, live or revoked, is left alone. The audit row stays as
+-- the record.
 
 BEGIN;
 
