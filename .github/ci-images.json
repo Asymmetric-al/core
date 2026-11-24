@@ -1,0 +1,14 @@
+{
+  "images": [
+    {
+      "source": "public.ecr.aws/docker/library/postgres:17.11-alpine",
+      "digest": "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+      "mirror": "ghcr.io/asymmetric-al/core-ci-postgres:17.11-alpine"
+    },
+    {
+      "source": "public.ecr.aws/supabase/postgrest:v16.4",
+      "digest": "sha256:d155c6718ed9a9f990d159a2ab7c0a3f16944dbb6d0a0344557421042acfe0df",
+      "mirror": "ghcr.io/asymmetric-al/core-ci-postgrest:v16.4"
+    }
+  ]
+}
