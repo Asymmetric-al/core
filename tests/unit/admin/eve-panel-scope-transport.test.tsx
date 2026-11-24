@@ -336,9 +336,13 @@ describe("the Eve panel from a document whose scope is retired", () => {
     process.off("unhandledRejection", recordUnhandled);
   });
 
+  function fakeClockFromHere() {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+  }
+
   async function quietMinute() {
     const reads = testState.scopeReads;
-    vi.useFakeTimers();
+    expect(vi.isFakeTimers()).toBe(true);
     await act(async () => {
       await vi.advanceTimersByTimeAsync(60_000);
     });
@@ -351,6 +355,7 @@ describe("the Eve panel from a document whose scope is retired", () => {
     const { fetchMock } = fakeService([]);
     openPanel();
 
+    fakeClockFromHere();
     sendMessage("Anyone there?");
     await waitFor(() => expect(screen.getByRole("alert")).toBeTruthy());
     await quietMinute();
@@ -373,6 +378,7 @@ describe("the Eve panel from a document whose scope is retired", () => {
     const callsBefore = fetchMock.mock.calls.length;
 
     testState.scopeForSend = { kind: "retired" };
+    fakeClockFromHere();
     fireEvent.click(screen.getByRole("button", { name: "Detach" }));
     await turnEnds();
     await quietMinute();
@@ -395,6 +401,7 @@ describe("the Eve panel from a document whose scope is retired", () => {
     const readsBefore = testState.scopeReads;
 
     testState.scopeForSend = { kind: "retired" };
+    fakeClockFromHere();
     act(() => {
       stream.enqueue(
         encoder.encode(lines({ type: "session.started", data: {} })),
