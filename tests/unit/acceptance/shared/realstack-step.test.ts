@@ -338,6 +338,7 @@ const REAL_DATABASE_FILES = [
     "issue-2675/web-studio-document-locks.realstack",
     "issue-2675/web-studio-selection.realstack",
     "issue-2676/claimed-names.realstack",
+    "issue-2676/command-request-organization.realstack",
     "issue-2676/giving-targets.realstack",
     "issue-2676/membership-invitations-commands.realstack",
     "issue-2676/membership-invitations-table.realstack",

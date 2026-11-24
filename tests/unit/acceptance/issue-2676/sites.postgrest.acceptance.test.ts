@@ -185,7 +185,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       }
     });
 
-    it("gives service_role no command and PUBLIC no lookup", async () => {
+    it("gives service_role no command and PUBLIC no lookup (D-18: AL-2676: the grantee list is sorted by name)", async () => {
       for (const [name, body] of Object.entries(args())) {
         const response = await rpc(name, service!, service!, body);
         expect(response.status, name).not.toBe(200);
@@ -203,7 +203,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         ),
       ).toEqual([]);
       const lookupAcl = await db!.query(
-        `select coalesce(array_agg(case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end order by 1), '{}') as grantees
+        `select coalesce(array_agg(case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end order by case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end), '{}') as grantees
            from pg_proc p, aclexplode(p.proacl) a
           where p.oid = 'public.resolve_verified_host(text)'::regprocedure and a.privilege_type = 'EXECUTE' and a.grantee <> p.proowner`,
       );

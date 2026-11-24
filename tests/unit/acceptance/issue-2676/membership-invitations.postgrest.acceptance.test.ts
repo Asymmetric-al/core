@@ -25,6 +25,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
     const createdUserIds: string[] = [];
 
     let adminToken = "";
+    let adminUserId = "";
     let staffToken = "";
     let missionaryToken = "";
     let donorInviteeToken = "";
@@ -102,6 +103,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       const softDeleted = await createUserAndSignIn("soft-deleted");
 
       adminToken = admin.token;
+      adminUserId = admin.id;
       staffToken = staff.token;
       missionaryToken = missionary.token;
       donorInviteeToken = donorInvitee.token;
@@ -294,6 +296,121 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         code: "42501",
         message: GENERIC_REFUSAL,
       });
+    });
+
+    it("refuses invite_member for a second organization unless x-asym-tenant names that organization", async () => {
+      const tenantB = randomUUID();
+      const adminBMembershipId = randomUUID();
+      const inviteEmail = `cmdorg-pg-${tenantB.slice(0, 8)}@example.test`;
+
+      await db!.query("begin");
+      try {
+        await db!.query(
+          "insert into public.tenants (id, name, slug, status) values ($1, 'WP3c PostgREST Org B', $2, 'active')",
+          [tenantB, `wp3c-pg-b-${tenantB.slice(0, 8)}`],
+        );
+        await db!.query(
+          "insert into authz.memberships (id, user_id, tenant_id, role, staff_role, is_tenant_admin, is_active) values ($1, $2, $3, 'staff', 'development', true, true)",
+          [adminBMembershipId, adminUserId, tenantB],
+        );
+        await db!.query("commit");
+      } catch (error) {
+        await db!.query("rollback");
+        throw error;
+      }
+
+      let testError: unknown;
+      try {
+        const body = {
+          p_tenant_id: tenantB,
+          p_email: inviteEmail,
+          p_role: "staff",
+          p_staff_role: "finance",
+          p_is_tenant_admin: false,
+          p_reason: "Cross-tenant scope check",
+        };
+
+        const wrongTenantNoAssignment = await api(
+          "rest/v1/rpc/invite_member",
+          anon!,
+          adminToken,
+          { tenant: tenantId, body },
+        );
+        expect(wrongTenantNoAssignment.status).toBe(403);
+        expect(await wrongTenantNoAssignment.json()).toMatchObject({
+          code: "42501",
+          message:
+            "tenant_guard: request tenant scope is required and must match command tenant",
+        });
+
+        const wrongTenantWithBAssignment = await api(
+          "rest/v1/rpc/invite_member",
+          anon!,
+          adminToken,
+          { tenant: tenantId, assignment: adminBMembershipId, body },
+        );
+        expect(wrongTenantWithBAssignment.status).toBe(403);
+        expect(await wrongTenantWithBAssignment.json()).toMatchObject({
+          code: "42501",
+          message:
+            "tenant_guard: request tenant scope is required and must match command tenant",
+        });
+
+        const noHeaders = await api(
+          "rest/v1/rpc/invite_member",
+          anon!,
+          adminToken,
+          { body },
+        );
+        expect(noHeaders.status).toBe(403);
+        expect(await noHeaders.json()).toMatchObject({
+          code: "42501",
+          message:
+            "tenant_guard: request tenant scope is required and must match command tenant",
+        });
+
+        const matchingTenant = await api(
+          "rest/v1/rpc/invite_member",
+          anon!,
+          adminToken,
+          { tenant: tenantB, body },
+        );
+        expect(matchingTenant.status).toBe(200);
+        const created = (await matchingTenant.json()) as {
+          invitation_id: string;
+          selector: string;
+          verifier: string;
+        };
+        expect(created.invitation_id).toBeTruthy();
+        expect(created.selector).toBeTruthy();
+        expect(created.verifier).toBeTruthy();
+      } catch (error) {
+        testError = error;
+        throw error;
+      } finally {
+        try {
+          await db!.query("begin");
+          await db!.query(
+            "delete from public.membership_invitations where tenant_id = $1",
+            [tenantB],
+          );
+          await db!.query(
+            "delete from authz.memberships where tenant_id = $1",
+            [tenantB],
+          );
+          await db!.query(
+            "delete from public.audit_logs where tenant_id = $1",
+            [tenantB],
+          );
+          await db!.query("delete from public.tenants where id = $1", [
+            tenantB,
+          ]);
+          await db!.query("commit");
+        } catch (cleanupError) {
+          await db!.query("rollback").catch(() => {});
+          if (!testError) throw cleanupError;
+        }
+      }
     });
 
     it("refuses soft-deleted GoTrue auth.users on acceptance (F3) and admits existing donor as staff keeping donor row intact (D-80)", async () => {
