@@ -53,8 +53,11 @@
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
 -- COMMIT and its ledger row stops on the next run at its first CREATE (the
--- set-aside table, 42P07), and docs/ops/release-job.md, "If the migration
--- committed but its ledger row is missing", applies.
+-- set-aside table, 42P07). This file has committed when this read-only check
+-- is true: SELECT to_regclass('private.missionary_tasks_unresolved_tenant')
+-- IS NOT NULL. Then follow the steps of docs/ops/release-job.md, "If the
+-- migration committed but its ledger row is missing", with this check and
+-- this file's version, 20261125050000, in place of the section's own.
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';

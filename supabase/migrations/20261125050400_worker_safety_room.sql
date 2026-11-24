@@ -17,22 +17,37 @@
 --    COMMITTED, the level every caller of this system runs at (nothing in
 --    the repository sets REPEATABLE READ or SERIALIZABLE; under REPEATABLE
 --    READ a writer that waited would keep its earlier snapshot).
---    The alias and the legal name are compared, checked for presence and
---    stored in one normalized form, private.normalize_safety_text: the
---    invisible characters a paste can carry (zero-width space U+200B,
---    zero-width non-joiner U+200C, zero-width joiner U+200D, word joiner
---    U+2060, byte-order mark U+FEFF) are removed, since they render as
---    nothing; every run of whitespace (the ASCII tab, line feed, vertical
---    tab, form feed, carriage return and space, next line U+0085, no-break
---    space U+00A0, and the Unicode space separators U+1680, U+2000-U+200A,
---    U+2028, U+2029, U+202F, U+205F, U+3000) becomes one space; leading and
---    trailing spaces go; an empty result is no name. The comparison is
---    case-insensitive on that form. The pattern names each character; it
---    does not rely on what \s means under the database's locale. The
---    rule does not catch look-alike letters of another script (a Cyrillic
---    letter for a Latin one); that is not attempted here. Each command's
---    reason is normalized the same way, and a reason with nothing left is
---    refused (22023).
+--    The alias and the legal name are checked for presence and stored in
+--    one form, private.normalize_safety_text: the characters a paste can
+--    carry that render as nothing are removed (soft hyphen U+00AD, combining
+--    grapheme joiner U+034F, Arabic letter mark U+061C, Mongolian vowel
+--    separator U+180E, zero-width space, non-joiner and joiner and the
+--    left-to-right and right-to-left marks U+200B-U+200F, the embeddings and
+--    overrides U+202A-U+202E, word joiner and the invisible operators
+--    U+2060-U+2064, the isolates U+2066-U+2069 and the deprecated format
+--    characters U+206A-U+206F, byte-order mark U+FEFF); then the text is
+--    composed (Unicode NFC), so a letter typed with a combining accent is
+--    the same as the precomposed letter; then every run of whitespace (the
+--    ASCII tab, line feed, vertical tab, form feed, carriage return and
+--    space, next line U+0085, no-break space U+00A0, and the Unicode space
+--    separators U+1680, U+2000-U+200A, U+2028, U+2029, U+202F, U+205F,
+--    U+3000) becomes one space; leading and trailing spaces go; an empty
+--    result is no name. The removal comes before the composition, because
+--    a combining grapheme joiner between a letter and its accent blocks
+--    NFC. They are compared on a key: lower() of that form of the text's
+--    compatibility normalization (Unicode NFKC), so fullwidth letters and
+--    ligatures compare equal to plain ones, on both sides. lower() depends
+--    on the database collation, as for e-mail addresses
+--    (docs/security/identity-email-normalization.md): characters whose
+--    lowercase depends on the locale, such as dotted capital I (U+0130),
+--    sharp s (U+00DF) and final sigma (U+03C2), are out of contract, and
+--    their key is whatever the database collation gives. The pattern names
+--    each character; it does not rely on what \s means under the
+--    database's locale. NFC and NFKC need a UTF8 database, which
+--    20261024140000 asserts on this same database. The rule does not catch
+--    look-alike letters of another script (a Cyrillic letter for a Latin
+--    one); that is not attempted here. Each command's reason is normalized
+--    the same way, and a reason with nothing left is refused (22023).
 -- 3. Signed-in users hold no insert or update privilege on parties at all
 --    (the parties migration grants SELECT only), so the security level, its
 --    source, the alias and do-not-publish change only through the commands.
@@ -77,8 +92,13 @@
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
 -- COMMIT and its ledger row stops on the next run at its first CREATE
--- (private.normalize_safety_text, 42723), and docs/ops/release-job.md, "If
--- the migration committed but its ledger row is missing", applies.
+-- (private.normalize_safety_text, 42723). This file has committed when this
+-- read-only check is true: SELECT
+-- to_regprocedure('private.normalize_safety_text(text)') IS NOT NULL AND
+-- to_regclass('private.party_restricted') IS NOT NULL. Then follow the steps
+-- of docs/ops/release-job.md, "If the migration committed but its ledger row
+-- is missing", with this check and this file's version, 20261125050400, in
+-- place of the section's own.
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
@@ -95,10 +115,10 @@ PARALLEL SAFE
 SECURITY INVOKER
 SET search_path = ''
 AS $$
-  SELECT NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.regexp_replace(p_value, '[\u200B\u200C\u200D\u2060\uFEFF]', '', 'g'), '[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+', ' ', 'g')), '');
+  SELECT NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.normalize(pg_catalog.regexp_replace(p_value, '[\u00AD\u034F\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF]', '', 'g'), 'NFC'), '[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+', ' ', 'g')), '');
 $$;
 COMMENT ON FUNCTION private.normalize_safety_text(TEXT) IS
-  'A worker''s alias, legal name or a safety command''s reason in one form: zero-width and byte-order characters removed, every run of ASCII or Unicode whitespace one space, trimmed; NULL when nothing is left (AL-2678).';
+  'A worker''s alias, legal name or a safety command''s reason in one form: invisible format characters removed, composed (NFC), every run of ASCII or Unicode whitespace one space, trimmed; NULL when nothing is left (AL-2678).';
 ALTER FUNCTION private.normalize_safety_text(TEXT) OWNER TO postgres;
 REVOKE ALL ON FUNCTION private.normalize_safety_text(TEXT) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION private.normalize_safety_text(TEXT) TO tenant_guard;
@@ -154,7 +174,8 @@ AS $$
            WHEN p.security_level NOT IN ('restricted', 'high_risk') THEN NULL
            WHEN private.normalize_safety_text(p.public_alias) IS NULL THEN 'a restricted or high-risk worker needs a public alias'
            WHEN r.legal_name IS NOT NULL
-            AND pg_catalog.lower(private.normalize_safety_text(p.public_alias)) = pg_catalog.lower(private.normalize_safety_text(r.legal_name))
+            AND pg_catalog.lower(private.normalize_safety_text(pg_catalog.normalize(p.public_alias, 'NFKC')))
+              = pg_catalog.lower(private.normalize_safety_text(pg_catalog.normalize(r.legal_name, 'NFKC')))
              THEN 'a restricted or high-risk worker''s public alias must differ from the legal name'
          END
     FROM public.parties AS p
@@ -252,7 +273,7 @@ SET search_path = ''
 AS $$
   SELECT COALESCE(
     (SELECT n.name
-       FROM (SELECT t.slot, NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.regexp_replace(t.v, '[\u200B\u200C\u200D\u2060\uFEFF]', '', 'g'), '[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+', ' ', 'g')), '') AS name
+       FROM (SELECT t.slot, NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.normalize(pg_catalog.regexp_replace(t.v, '[\u00AD\u034F\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF]', '', 'g'), 'NFC'), '[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+', ' ', 'g')), '') AS name
                FROM (VALUES (1, p_public_alias), (2, p_approved_profile_display_name)) AS t (slot, v)) AS n
       WHERE n.name IS NOT NULL
       ORDER BY n.slot
@@ -565,7 +586,7 @@ BEGIN
          do_not_publish = COALESCE(p_do_not_publish, p.do_not_publish),
          updated_at = pg_catalog.now()
    WHERE p.id = v_party.id
-  RETURNING p.security_level, p.security_level_source, p.do_not_publish INTO v_after;
+  RETURNING p.security_level, p.security_level_source, p.public_alias, p.do_not_publish INTO v_after;
 
   INSERT INTO public.audit_logs (tenant_id, user_id, action, resource_type, resource_id, details)
   VALUES (
@@ -587,7 +608,8 @@ BEGIN
         'security_level_source', v_after.security_level_source,
         'do_not_publish', v_after.do_not_publish
       ),
-      'alias_changed', p_public_alias IS NOT NULL
+      'alias_changed', private.normalize_safety_text(v_party.public_alias)
+                       IS DISTINCT FROM private.normalize_safety_text(v_after.public_alias)
     )
   );
 

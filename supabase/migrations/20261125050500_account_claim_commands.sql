@@ -61,9 +61,13 @@
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
 -- COMMIT and its ledger row stops on the next run at its first statement,
--- the ALTER TABLE that adds token_sha256 (42701), and
--- docs/ops/release-job.md, "If the migration committed but its ledger row is
--- missing", applies.
+-- the ALTER TABLE that adds token_sha256 (42701). This file has committed
+-- when this read-only check is true: SELECT EXISTS (SELECT 1 FROM
+-- pg_catalog.pg_attribute WHERE attrelid =
+-- 'public.account_claim_requests'::regclass AND attname = 'token_sha256' AND
+-- NOT attisdropped). Then follow the steps of docs/ops/release-job.md, "If
+-- the migration committed but its ledger row is missing", with this check
+-- and this file's version, 20261125050500, in place of the section's own.
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
