@@ -101,4 +101,24 @@ describe("the verified-name lookup reads the anonymous lookup it was written for
     expect(source).toMatch(/from "@supabase\/supabase-js"/);
     expect(source).toMatch(/getSupabasePublicConfig\(\)/);
   });
+
+  it("keeps one resolve_verified_host rpc call site for the multi-surface lookup and exactly four SURFACE_ADMISSION rows", async () => {
+    const source = read("packages/auth/verified-name.ts");
+    const rpcCalls = [...source.matchAll(/\.rpc\s*\(/g)];
+    expect(rpcCalls).toHaveLength(1);
+    expect(source).toMatch(
+      /export async function lookUpVerifiedNameSurfaces\b/,
+    );
+    expect(source).toMatch(
+      /\.rpc\(\s*"resolve_verified_host",\s*\{\s*p_host:\s*host\s*\}\s*\)/,
+    );
+    const { SURFACE_ADMISSION } =
+      await import("../../../packages/auth/verified-name");
+    expect(Object.keys(SURFACE_ADMISSION).sort()).toEqual([
+      "donor_account",
+      "missionary",
+      "staff",
+      "website",
+    ]);
+  });
 });
