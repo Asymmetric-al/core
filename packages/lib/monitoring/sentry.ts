@@ -1,7 +1,10 @@
 import { clientEnv, runtimeEnvFlags } from "@asym/env";
 import * as Sentry from "@sentry/nextjs";
 
-import { getSentryCompatibilityOptions } from "./sentry-policy";
+import {
+  getSentryCompatibilityOptions,
+  scrubInviteFragmentsDeep,
+} from "./sentry-policy";
 
 export function initSentry() {
   if (!clientEnv.NEXT_PUBLIC_SENTRY_DSN) {
@@ -19,7 +22,7 @@ export function initSentry() {
       if (event.exception) {
         console.error("Sentry captured exception:", hint.originalException);
       }
-      return event;
+      return scrubInviteFragmentsDeep(event);
     },
   });
 }

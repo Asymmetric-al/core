@@ -28,6 +28,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { preMembershipExceptions } from "../../../../scripts/verify/command-entry-boundaries.mjs";
 import {
   callsIntoCommandSchemas,
   laneCheckProblem,
@@ -48,19 +49,24 @@ import {
 
 type LaneRow = {
   fn: string;
+  signature: string;
   owner: string;
   definer: boolean;
   language: string;
   body: string;
   authenticated: boolean;
+  service_role: boolean;
 };
 
 /** Every function in a command schema, with what the lane rules read. */
 async function laneRows(db: pg.Client, schema: "tenant_guard" | "platform") {
   const r = await db.query(
-    `select p.oid::regprocedure::text fn, p.proowner::regrole::text owner, p.prosecdef definer,
+    `select p.oid::regprocedure::text fn,
+            format('%I.%I(%s)', n.nspname, p.proname, pg_get_function_identity_arguments(p.oid)) signature,
+            p.proowner::regrole::text owner, p.prosecdef definer,
             l.lanname language, p.prosrc body,
-            has_function_privilege('authenticated', p.oid, 'EXECUTE') authenticated
+            has_function_privilege('authenticated', p.oid, 'EXECUTE') authenticated,
+            has_function_privilege('service_role', p.oid, 'EXECUTE') service_role
        from pg_proc p join pg_namespace n on n.oid = p.pronamespace join pg_language l on l.oid = p.prolang
       where n.nspname = $1 order by 1`,
     [schema],
@@ -70,18 +76,36 @@ async function laneRows(db: pg.Client, schema: "tenant_guard" | "platform") {
 
 /**
  * The entry points the convention defines in a schema: in tenant_guard a
- * guard-owned definer whose first statement is the human preamble; in
- * platform a postgres-owned definer that starts with the operator check.
+ * guard-owned definer whose first statement is the human preamble (or a
+ * reviewed pre-membership exception pinned by body digest); in platform a
+ * postgres-owned definer that starts with the operator check.
  */
 function byConvention(rows: LaneRow[], schema: "tenant_guard" | "platform") {
   const owner = schema === "tenant_guard" ? "tenant_guard" : "postgres";
+  const pre =
+    schema === "tenant_guard"
+      ? preMembershipExceptions(
+          rows.map((row) => ({
+            function: row.signature,
+            schema,
+            body: row.body,
+            authenticated: row.authenticated,
+            service_role: row.service_role,
+          })),
+        )
+      : { allowed: new Set<string>(), failures: [] };
+  expect(pre.failures).toEqual([]);
   return rows
     .filter(
       (row) =>
         row.owner === owner &&
         row.definer &&
-        laneCheckProblem({ schema, language: row.language, body: row.body }) ===
-          null,
+        (pre.allowed.has(row.signature) ||
+          laneCheckProblem({
+            schema,
+            language: row.language,
+            body: row.body,
+          }) === null),
     )
     .map((row) => row.fn);
 }

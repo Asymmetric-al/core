@@ -46,7 +46,9 @@ function renderMissionControl() {
     firstName: "First",
     lastName: "Person",
     role: "admin",
-    capabilities: ["care.access"],
+    capabilities: ["care.access", "people.manage_members"],
+    canManageMembers: true,
+    currentMembershipId: "00000000-0000-4000-9000-0000000000m1",
     tenant: null,
   } as Parameters<typeof createMCBootstrapState>[0]);
   const wrapper = ({ children }: PropsWithChildren) => (
@@ -67,7 +69,14 @@ describe("Mission Control when the session's person changes", () => {
     act(() => h.onState!({ user: { id: FIRST }, loading: false }));
 
     expect(result.current.user?.id).toBe(FIRST);
-    expect(result.current.capabilities).toEqual(["care.access"]);
+    expect(result.current.capabilities).toEqual([
+      "care.access",
+      "people.manage_members",
+    ]);
+    expect(result.current.canManageMembers).toBe(true);
+    expect(result.current.currentMembershipId).toBe(
+      "00000000-0000-4000-9000-0000000000m1",
+    );
     expect(h.retireDocumentScope).not.toHaveBeenCalled();
   });
 
@@ -79,6 +88,8 @@ describe("Mission Control when the session's person changes", () => {
 
     expect(result.current.user).toBeNull();
     expect(result.current.capabilities).toEqual([]);
+    expect(result.current.canManageMembers).toBe(false);
+    expect(result.current.currentMembershipId).toBeNull();
     expect(h.retireDocumentScope).toHaveBeenCalledTimes(1);
   });
 
@@ -86,12 +97,17 @@ describe("Mission Control when the session's person changes", () => {
     const { result } = renderMissionControl();
 
     act(() => h.onState!({ user: { id: FIRST }, loading: false }));
-    expect(result.current.capabilities).toEqual(["care.access"]);
+    expect(result.current.capabilities).toEqual([
+      "care.access",
+      "people.manage_members",
+    ]);
 
     act(() => h.onState!({ user: null, loading: false }));
 
     expect(result.current.user).toBeNull();
     expect(result.current.capabilities).toEqual([]);
+    expect(result.current.canManageMembers).toBe(false);
+    expect(result.current.currentMembershipId).toBeNull();
   });
 
   it("preserves server-bootstrapped capabilities when no browser session existed (httpOnly E2E bypass)", () => {
@@ -100,6 +116,13 @@ describe("Mission Control when the session's person changes", () => {
     act(() => h.onState!({ user: null, loading: false }));
 
     expect(result.current.user).toBeNull();
-    expect(result.current.capabilities).toEqual(["care.access"]);
+    expect(result.current.capabilities).toEqual([
+      "care.access",
+      "people.manage_members",
+    ]);
+    expect(result.current.canManageMembers).toBe(true);
+    expect(result.current.currentMembershipId).toBe(
+      "00000000-0000-4000-9000-0000000000m1",
+    );
   });
 });

@@ -44,7 +44,32 @@ const PROFILE_WRITE =
   /\.from\(\s*["'`]profiles["'`]\s*\)\s*\.(?:insert|update|upsert)\(\s*\{/g;
 
 /** A `role` key, bare or quoted, then its value, the next property or the end. */
-const ROLE_KEY = /(?:(["'])role\1|role(?![\w$]))\s*[:,}]/y;
+const ROLE_KEY = /(?:(["'])role\1|role(?![\w$]))/y;
+
+function skipSpacesAndComments(source: string, index: number): number {
+  let i = index;
+  while (i < source.length) {
+    const c = source[i]!;
+    if (/\s/.test(c)) {
+      i += 1;
+      continue;
+    }
+    if (c === "/" && source[i + 1] === "/") {
+      const end = source.indexOf("\n", i + 2);
+      return end === -1
+        ? source.length
+        : skipSpacesAndComments(source, end + 1);
+    }
+    if (c === "/" && source[i + 1] === "*") {
+      const end = source.indexOf("*/", i + 2);
+      if (end === -1) return source.length;
+      i = end + 2;
+      continue;
+    }
+    break;
+  }
+  return i;
+}
 
 /**
  * The inline writes of `profiles` whose object names `role` at its top level:
@@ -76,7 +101,12 @@ function namesTopLevelRole(source: string, start: number): boolean {
     }
     if (depth === 0 && atKey) {
       ROLE_KEY.lastIndex = i;
-      if (ROLE_KEY.test(source)) return true;
+      if (ROLE_KEY.test(source)) {
+        const after = skipSpacesAndComments(source, ROLE_KEY.lastIndex);
+        if (after < source.length && ":,}".includes(source[after]!)) {
+          return true;
+        }
+      }
       atKey = false;
     }
     if (c === '"' || c === "'" || c === "`") i = endOfString(source, i);
@@ -162,6 +192,10 @@ describe("AL-2675 WP2c: no code path writes profiles.role to grant access", () =
       'db.from("profiles").update({ "role": "admin" })',
       "db.from('profiles').upsert({ id, 'role': input.role })",
       'db.from("profiles").update({ note: `a}b`, tags: ["x", "y"], role })',
+      'db.from("profiles").update({ role /* c */ : "admin" })',
+      'db.from("profiles").update({ "role" /* c */ : "admin" })',
+      'db.from("profiles").update({ role // c\n , email })',
+      'db.from("profiles").update({ role /* c */ })',
     ])
       expect(countProfileRoleWrites(planted), planted).toBe(1);
     for (const clean of [

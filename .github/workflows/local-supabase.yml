@@ -130,6 +130,23 @@ on:
       - apps/admin/features/mission-control/care/**
       - tests/unit/acceptance/issue-2677/member-care.postgrest.acceptance.test.ts
       - tests/e2e/auth-member-care.spec.ts
+      # Membership invitations, doorway and Members screen (AL-2676, WP3c part 1).
+      - apps/admin/app/(app)/admin/teams/**
+      - apps/admin/app/api/admin/members/**
+      - apps/admin/app/api/admin/users/route.ts
+      - apps/admin/app/api/invitations/**
+      - apps/missionary/app/api/invitations/**
+      - apps/missionary/app/invite/**
+      - apps/admin/lib/admin-access.ts
+      - apps/*/instrumentation-client.ts
+      - packages/api/src/admin/members/**
+      - packages/api/src/admin/users.ts
+      - packages/api/src/invitations/**
+      - packages/lib/monitoring/**
+      - tests/e2e/auth-members-invitations.spec.ts
+      - tests/unit/acceptance/issue-2676/membership-invitations.postgrest.acceptance.test.ts
+      - tests/unit/acceptance/issue-2676/operator-admin-invite.localstack.test.ts
+      # Media custody, Storage refusal and signed-in delivery (AL-2679, WP6 part 1).
       - packages/api/src/storage/**
       - packages/api/src/media/**
       - packages/api/src/cms/media/**
@@ -244,6 +261,17 @@ jobs:
           WP3_TENANT_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
           export WP3_TENANT_IT_ANON_KEY WP3_TENANT_IT_SERVICE_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/tenant-records.postgrest.acceptance.test.ts
+      - name: Verify invitations, directory and role concurrency through PostgREST
+        shell: bash
+        env:
+          WP3_TENANT_IT_URL: http://127.0.0.1:54321
+          WP3_TENANT_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          WP3_TENANT_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          WP3_TENANT_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export WP3_TENANT_IT_ANON_KEY WP3_TENANT_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/membership-invitations.postgrest.acceptance.test.ts
       - name: Verify caller-token field policy reads and anonymous app health through PostgREST
         env:
           FIELD_POLICY_IT_REQUIRED: "1"
@@ -307,6 +335,21 @@ jobs:
         if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
         timeout-minutes: 10
         run: node scripts/e2e/run-operator-mfa.mjs
+      - name: Prove operator admin invitation second factor (WP3c)
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
+        timeout-minutes: 10
+        shell: bash
+        env:
+          OPERATOR_MFA_REQUIRED: "1"
+          OPERATOR_MFA_API_URL: http://127.0.0.1:54321
+          OPERATOR_MFA_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          OPERATOR_MFA_MAIL_URL: http://127.0.0.1:54324
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          OPERATOR_MFA_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          OPERATOR_MFA_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export OPERATOR_MFA_ANON_KEY OPERATOR_MFA_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/operator-admin-invite.localstack.test.ts
       - name: Show Auth logs on failure
         if: failure()
         run: docker logs --tail 200 "$(docker ps --filter name=supabase_auth_ --format '{{.Names}}' | head -n 1)" || true

@@ -198,14 +198,14 @@ describe("Mission Control destinations by role", () => {
     expect(labels("finance")).toContain("/admin");
   });
 
-  it("offers the staff directory, which reads admin-only accounts, only to admins", () => {
+  it("offers Members in navigation and shortcuts to both admins and non-admin staff", () => {
     const admin = tiles.find((tile) => tile.id === "admin")!;
     const shortcuts = (role: Parameters<typeof quickActionsForRole>[1]) =>
       quickActionsForRole(admin, role).map((action) => action.href);
     expect(hrefs("admin")).toContain("/admin/teams");
-    expect(hrefs("finance")).not.toContain("/admin/teams");
+    expect(hrefs("finance")).toContain("/admin/teams");
     expect(shortcuts("admin")).toContain("/admin/teams");
-    expect(shortcuts("finance")).not.toContain("/admin/teams");
+    expect(shortcuts("finance")).toContain("/admin/teams");
   });
 
   it("offers Member Care only when the active assignment holds care.access", () => {

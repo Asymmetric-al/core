@@ -126,8 +126,59 @@ const allow = (...fns: string[]) => ({
 
 describe("WP4 command boundaries", () => {
   it("pins the complete pre-membership list and its independent review", () => {
-    expect(preMembershipEntries).toEqual([]);
-    expect(reviewedPreMembership).toEqual({});
+    const fn =
+      "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)";
+    const reason =
+      "AL-2676 WP3c R1/R14/R15: invitation acceptance admits a non-operator caller who holds no membership yet after refusing platform operators and issuer self-acceptance and verifying selector, constant-time verifier digest, live status, expiry, and confirmed non-deleted email via private.resolve_invitation_for_caller before tenant_guard.enter or any lock";
+    expect(preMembershipEntries).toEqual([{ function: fn, reason }]);
+    expect(reviewedPreMembership).toEqual({
+      [fn]: {
+        reason,
+        digest:
+          "8e1cd0bb1438913861f3dfda3f72866e20c6ccbe0abb1513e489e41cf9f9cbb2",
+      },
+    });
+  });
+  it("fails the gate when an unreviewed pre-membership entry is planted", () => {
+    const plantedName = "tenant_guard.unreviewed_pre_member(p_token text)";
+    const plantedRow = human(plantedName, {
+      body: "BEGIN PERFORM tenant_guard.enter(p_tenant_id); RETURN NULL; END;",
+    });
+    const plantedEntry = {
+      function: plantedName,
+      reason: "planted unreviewed entry",
+    };
+    const res = preMembershipExceptions(
+      [plantedRow],
+      [...preMembershipEntries, plantedEntry],
+      reviewedPreMembership,
+    );
+    expect(res.allowed.has(plantedName)).toBe(false);
+    expect(
+      res.failures.some(
+        (f) =>
+          f.code === "COMMAND_EXCEPTION_UNREVIEWED" &&
+          f.function === plantedName,
+      ),
+    ).toBe(true);
+    expect(
+      codes(
+        evaluateTenantRlsCatalog(
+          {
+            tables: [],
+            definers: [],
+            commands: [plantedRow],
+            wrappers: [],
+            grants: [],
+            policies: [],
+            published: [],
+          },
+          listed(),
+          allow(),
+          { entries: [] },
+        ),
+      ),
+    ).toContain(`COMMAND_HUMAN_NO_PREAMBLE ${plantedName}`);
   });
   it("uses exactly the capability registry's sorted keys", () =>
     expect(keys).toEqual(Object.keys(CAPABILITY_REGISTRY).sort()));
@@ -301,6 +352,7 @@ const evaluate = (
     exceptions,
     anonAllowlist,
     more.policyExceptions ?? { entries: [] },
+    [],
   );
 const codes = (result: ReturnType<typeof evaluate>) =>
   result.failures.map(
@@ -1854,6 +1906,9 @@ describe("tenant keys", () => {
           payload_installed,
         },
         listed(),
+        allow(),
+        { entries: [] },
+        [],
       ),
     );
   const cms = (keyed: (table: string) => boolean) =>

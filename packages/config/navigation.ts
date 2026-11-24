@@ -358,13 +358,20 @@ export const navigation: NavItem[] = [
         href: "/admin",
         keywords: ["administration"],
       },
-      // Reads the admin-only users endpoint, so only admins are offered it.
       {
         id: "admin-teams",
-        title: "Staff directory",
+        title: "Members",
         href: "/admin/teams",
-        roles: ["admin"],
-        keywords: ["staff", "users", "roles", "teams", "people"],
+        keywords: [
+          "members",
+          "staff",
+          "missionaries",
+          "users",
+          "roles",
+          "teams",
+          "people",
+          "invitations",
+        ],
       },
       {
         id: "admin-web-studio-editors",

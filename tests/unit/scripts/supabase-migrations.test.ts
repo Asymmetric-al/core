@@ -125,6 +125,22 @@ function runVerifier(
     owner: "postgres",
     owner_bypass: true,
   });
+  const acceptInvitationMigrationSql = readFileSync(
+    path.join(
+      root,
+      "supabase/migrations/20261123040100_wp3c_invitation_and_operator_commands.sql",
+    ),
+    "utf8",
+  );
+  const acceptInvitationBodyMatch =
+    /CREATE FUNCTION tenant_guard\.accept_membership_invitation\([\s\S]*?AS \$\$([\s\S]*?)\$\$;/m.exec(
+      acceptInvitationMigrationSql,
+    );
+  if (!acceptInvitationBodyMatch?.[1]) {
+    throw new Error(
+      "Could not extract tenant_guard.accept_membership_invitation body from 20261123040100 migration",
+    );
+  }
   const gate = {
     tables: [
       ...listed.map((table: string) => tenantTable(table, 0)),
@@ -136,7 +152,21 @@ function runVerifier(
     definers: [],
     // AL-2674: the gate also reads the command-schema functions, the
     // wrappers that call into them and the unadmitted table grants.
-    commands: [],
+    commands: [
+      {
+        function:
+          "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)",
+        schema: "tenant_guard",
+        owner: "tenant_guard",
+        definer: true,
+        language: "plpgsql",
+        body: acceptInvitationBodyMatch[1],
+        authenticated: true,
+        service_role: false,
+        anon: false,
+        public_execute: false,
+      },
+    ],
     wrappers: [],
     grants: [],
     // AL-2675 (WP2b, second release; record D-18): the gate also reads every

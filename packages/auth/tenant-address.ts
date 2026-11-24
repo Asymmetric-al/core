@@ -14,6 +14,7 @@ export const OUTSIDE_TENANT_SEGMENT_ROOTS = [
   "/login",
   "/register",
   "/forgot-password",
+  "/invite",
   "/no-access",
   "/choose-organization",
   "/web-studio",

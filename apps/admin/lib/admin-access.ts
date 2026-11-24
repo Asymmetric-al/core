@@ -2,6 +2,7 @@ import {
   contextCapabilities,
   getAuthContext,
   hasAnyContextRole,
+  hasContextCapability,
   requestScopeOf,
   type AuthContext,
 } from "@asym/auth/context";
@@ -136,6 +137,8 @@ async function loadShellState(
     capabilities: Array.isArray(auth.memberships)
       ? [...contextCapabilities(auth)]
       : [],
+    canManageMembers: hasContextCapability(auth, "people.manage_members"),
+    currentMembershipId: auth.assignment?.assignmentId ?? null,
     tenantId,
     tenant: normalizeTenant(tenant ?? null, tenantId),
   });
