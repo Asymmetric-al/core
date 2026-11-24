@@ -35,7 +35,7 @@ const inventoryRaw = readFileSync(INVENTORY, "utf8");
 
 const DIGEST =
   "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24";
-const ECR_IMAGE = `public.ecr.aws/docker/library/postgres:17.11-alpine@${DIGEST}`;
+const CI_IMAGE = `ghcr.io/asymmetric-al/core-ci-postgres:17.11-alpine@${DIGEST}`;
 const ECR_UPSTREAM = "https://gallery.ecr.aws/docker/library/postgres";
 const HUB_IMAGE = `postgres:17.11-alpine@${DIGEST}`;
 const HUB_UPSTREAM = "https://hub.docker.com/_/postgres";
@@ -150,15 +150,15 @@ describe("#2233 C4: the inventory stays valid JSON with the same shape", () => {
   });
 });
 
-describe("#2233 C5: the four ci-integration.yml postgres items name ECR Public", () => {
+describe("#2233 C5, amended by AL-2671 (ruling D-16): the four ci-integration.yml postgres items name the organization's mirror, upstream ECR Public", () => {
   it("exactly four ci-integration.yml container-image items exist", () => {
     expect(parseInventory().items.filter(isCiPostgres)).toHaveLength(4);
   });
-  it("each selector is the pinned ECR Public image", () => {
+  it("each selector is the pinned mirrored image", () => {
     const selectors = parseInventory()
       .items.filter(isCiPostgres)
       .map((i) => i.selector);
-    expect(selectors).toEqual(Array(4).fill(ECR_IMAGE));
+    expect(selectors).toEqual(Array(4).fill(CI_IMAGE));
   });
   it("each upstream is the ECR Public gallery page", () => {
     const upstreams = parseInventory()
@@ -176,7 +176,7 @@ describe("#2233 C5: the four ci-integration.yml postgres items name ECR Public",
       .items.filter(isCiPostgres)
       .map((i) => i.selector);
     expect(new Set([...selectors, ...workflowImages])).toEqual(
-      new Set([ECR_IMAGE]),
+      new Set([CI_IMAGE]),
     );
   });
   it("no ci-integration.yml item mentions Docker Hub", () => {

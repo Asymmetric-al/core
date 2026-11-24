@@ -3530,3 +3530,64 @@ describe("AL-2674: step 22 fails, and never passes empty, when its glob matches 
     150_000,
   );
 });
+
+describe("AL-2671: a fork-reachable job holds the workflow token only as the pinned service pull credentials", () => {
+  const PASSWORD = "          password: ${{ github.token }}\n";
+  const USERNAME = "          username: ${{ github.actor }}\n";
+  const SECRET_FINDING =
+    "job-level keys reference secrets in a fork-reachable job";
+  const problemsAfter = (text: string) => {
+    const jobs = jobsOf(text, "mutated ci-integration.yml");
+    return ["migrate", "smoke"].map((id) => forkRejectProblems(jobs[id]!));
+  };
+
+  it("accepts the real migrate and smoke jobs with the pinned credentials", () => {
+    expect(problemsAfter(source(CI_INTEGRATION))).toEqual([[], []]);
+  });
+
+  it.each([
+    [
+      "a repository secret as the password",
+      (text: string) =>
+        mutate(
+          text,
+          PASSWORD,
+          "          password: ${{ secrets.GHCR_TOKEN }}\n",
+          4,
+        ),
+    ],
+    [
+      "a repository secret as the username",
+      (text: string) =>
+        mutate(
+          text,
+          USERNAME,
+          "          username: ${{ secrets.GHCR_USER }}\n",
+          4,
+        ),
+    ],
+    [
+      "a third credentials key",
+      (text: string) =>
+        mutate(
+          text,
+          PASSWORD,
+          `${PASSWORD}          registry: \${{ github.token }}\n`,
+          4,
+        ),
+    ],
+    [
+      "the token in the service's environment",
+      (text: string) =>
+        mutate(
+          text,
+          "          POSTGRES_DB: asymmetrical_test\n",
+          "          POSTGRES_DB: asymmetrical_test\n          GHCR_TOKEN: ${{ github.token }}\n",
+          4,
+        ),
+    ],
+  ])("rejects %s", (_, edit) => {
+    for (const problems of problemsAfter(edit(source(CI_INTEGRATION))))
+      expect(problems).toContain(SECRET_FINDING);
+  });
+});

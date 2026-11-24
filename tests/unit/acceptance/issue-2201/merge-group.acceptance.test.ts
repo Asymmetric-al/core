@@ -130,7 +130,7 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
   it("permissions, secret users and environment unchanged", () => {
     expect([CI, CII].map((f) => doc(f).permissions)).toStrictEqual([
       { contents: "read", "pull-requests": "read" },
-      { contents: "read" },
+      { contents: "read", packages: "read" },
     ]);
     expect(ids((j) => j.permissions)).toBe("shadscan-report ci-gate-comment");
     expect(ids((j) => j.environment)).toBe("");

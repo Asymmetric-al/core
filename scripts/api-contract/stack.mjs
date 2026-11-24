@@ -58,10 +58,10 @@ const repoRoot = path.resolve(
 
 /** The image the repository's pinned Supabase CLI runs for its REST service. */
 export const POSTGREST_IMAGE =
-  "public.ecr.aws/supabase/postgrest:v16.4@sha256:d155c6718ed9a9f990d159a2ab7c0a3f16944dbb6d0a0344557421042acfe0df";
+  "ghcr.io/asymmetric-al/core-ci-postgrest:v16.4@sha256:d155c6718ed9a9f990d159a2ab7c0a3f16944dbb6d0a0344557421042acfe0df";
 /** The migrate job's Postgres service image (.github/workflows/ci-integration.yml). */
 export const POSTGRES_IMAGE =
-  "public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24";
+  "ghcr.io/asymmetric-al/core-ci-postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24";
 
 export function assertLoopbackDatabaseUrl(value) {
   let url;

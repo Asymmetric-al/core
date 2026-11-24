@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
   issues: write
   pull-requests: write
 
@@ -673,7 +674,10 @@ jobs:
         ${{ needs.deploy.outputs.database_missionary == 'true' && 'missionary' || '' }}
     services:
       postgres:
-        image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        image: ghcr.io/asymmetric-al/core-ci-postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres # pragma: allowlist secret
