@@ -48,7 +48,7 @@ In one forward migration:
 3. Add `CREATE POLICY tenant_guard_isolation ON public.<table> FOR ALL TO tenant_guard USING (tenant_id = tenant_guard.current_tenant_id()) WITH CHECK (tenant_id = tenant_guard.current_tenant_id())`, and make sure RLS is enabled on the table.
 4. `REVOKE ALL … FROM PUBLIC, anon, authenticated, service_role`, then `GRANT EXECUTE … TO service_role`. Move ownership with `GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard`, `ALTER FUNCTION … OWNER TO tenant_guard`, `REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard`. On hosted Supabase this relies on the grant `GRANT tenant_guard TO postgres WITH INHERIT FALSE, SET TRUE` from the first guard migration.
 5. Expose it as a `public` SECURITY INVOKER wrapper with `SET search_path = ''`, owned by `postgres`, EXECUTE for `service_role` only. Drop any unguarded overload in the same migration.
-6. Add the RPC name to the allow-list in `tenant-guard.ts` and call it through `withTenant`.
+6. Only the P1 workflow claim pair is called through `withTenant`. Its allow-list in `tenant-guard.ts` holds those two RPCs and takes no new name: `withTenant` always sends `p_tenant_id`, and a new `service_role` wrapper may not take a tenant argument ("Worker entry points", steps 6 and 7). A request path calls a human entry point on the caller-token `sessionClient` that `withOperation` supplies ("Adding a human entry point"); a no-JWT path adds a worker entry point whose wrapper takes a stored anchor ("Worker entry points").
 
 Grant matrix (EXECUTE besides the owner):
 
@@ -448,7 +448,7 @@ Re-exporting a tracked factory or privileged wrapper from any other file always 
 - an entry whose count is above the real count, or whose file has none left (`STALE`: shrink or delete it);
 - an entry with an unknown kind, a non-positive count, an empty reason or a duplicate key (`ALLOWLIST_MALFORMED`).
 
-To comply, reach tenant data through `withTenant` (see "Adding a guarded function" above), not a new service-role site. A PR that removes sites lowers or deletes the matching allowlist entry and ceiling row in the same change. Adding an entry or raising a count means editing the pinned ceiling, which needs a new security ruling from Samson. Entries are reviewed like the deny-by-default list: each one needs a specific `reason` and its follow-up. Moving a site within an allowlisted file passes, which is acceptable for a shrink-only ceiling.
+To comply, reach tenant data without a new service-role site: a request path through the caller-token `sessionClient` that `withOperation` supplies, calling a human entry point to write ("Adding a human entry point"), and a no-JWT path through a worker entry point whose wrapper takes a stored anchor and no tenant argument ("Worker entry points"). `withTenant` serves only the P1 workflow claim pair. A PR that removes sites lowers or deletes the matching allowlist entry and ceiling row in the same change. Adding an entry or raising a count means editing the pinned ceiling, which needs a new security ruling from Samson. Entries are reviewed like the deny-by-default list: each one needs a specific `reason` and its follow-up. Moving a site within an allowlisted file passes, which is acceptable for a shrink-only ceiling.
 
 ### HTTP mutation admission and audit (AL-2677)
 
