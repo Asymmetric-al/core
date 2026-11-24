@@ -10,7 +10,6 @@ import {
   beginRpcResult,
   createDonateRequest,
   createDonationsFromMock,
-  storedGift,
 } from "./donate-checkout.fixture";
 import { POST } from "../../src/donate";
 import {
@@ -36,18 +35,7 @@ function createReplayFromMock(options: {
 }) {
   return vi.fn((table: string) => {
     if (table === "donations") {
-      return {
-        select: () => ({
-          eq: () => ({
-            eq: () => ({
-              single: async () =>
-                options.storedAmount == null
-                  ? { data: null, error: { message: "Donation not found" } }
-                  : { data: storedGift(options.storedAmount), error: null },
-            }),
-          }),
-        }),
-      };
+      return createDonationsFromMock(options.storedAmount)(table);
     }
 
     expect(table).toBe("donation_saga_outbox");

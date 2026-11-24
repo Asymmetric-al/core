@@ -138,6 +138,13 @@ export const env = createEnv({
       (value) => !value || value.startsWith("whsec_"),
       "STRIPE_WEBHOOK_SECRET must start with whsec_",
     ),
+    STRIPE_CONNECT_WEBHOOK_SECRET: z
+      .string()
+      .optional()
+      .refine(
+        (value) => !value || value.startsWith("whsec_"),
+        "STRIPE_CONNECT_WEBHOOK_SECRET must start with whsec_",
+      ),
     // Required in protected deployments: a keyless deploy would store and
     // ACK provider events whose workflow dispatch can never succeed.
     INNGEST_EVENT_KEY: requireInProtectedDeployments("INNGEST_EVENT_KEY"),
@@ -310,6 +317,7 @@ export const env = createEnv({
     CRON_SECRET: process.env.CRON_SECRET,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    STRIPE_CONNECT_WEBHOOK_SECRET: process.env.STRIPE_CONNECT_WEBHOOK_SECRET,
     DOCRAPTOR_API_KEY: process.env.DOCRAPTOR_API_KEY,
     PDF_STUDIO_NATIVE_BUILDER_ENABLED:
       process.env.PDF_STUDIO_NATIVE_BUILDER_ENABLED,

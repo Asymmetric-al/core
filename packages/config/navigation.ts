@@ -384,6 +384,13 @@ export const navigation: NavItem[] = [
         href: "/settings/integrations/resend",
         keywords: ["resend", "sending domain", "email settings"],
       },
+      {
+        id: "admin-payments",
+        title: "Payment accounts",
+        href: "/settings/payments",
+        roles: ["admin"],
+        keywords: ["stripe", "connect", "onboarding", "payouts", "giving"],
+      },
       // The Eve page admits admins only (eve/workspace-access.ts).
       {
         id: "admin-eve",

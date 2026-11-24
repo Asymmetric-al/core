@@ -34,6 +34,8 @@ import {
   isAssignmentReader,
   preMembershipExceptions,
   protectedEntry,
+  workerWrapperHasWrite,
+  workerWrapperPassesTenantArg,
 } from "./command-entry-boundaries.mjs";
 import keyExceptions from "../../docs/security/tenant-key-exceptions.json" with { type: "json" };
 
@@ -256,6 +258,7 @@ select jsonb_build_object(
     select jsonb_agg(jsonb_build_object(
       'function', ${SIGNATURE},
       'schema', n.nspname,
+      'language', (select l.lanname from pg_language l where l.oid = p.prolang),
       'definer', p.prosecdef,
       'search_path', ${SEARCH_PATH},
       'body', ${BODY},
@@ -1139,6 +1142,30 @@ export function evaluateTenantRlsCatalog(
         w.function,
         `authenticated may execute it, but ${workers.join(", ")} is not a human entry point or a platform command`,
       );
+    const guardWorkers = workers.filter((target) =>
+      target.startsWith(`${COMMAND_OWNER}.`),
+    );
+    if (w.service_role && guardWorkers.length) {
+      if (
+        workerWrapperPassesTenantArg(
+          w.function,
+          w.body,
+          stripComments,
+          w.language,
+        )
+      )
+        failFn(
+          "WORKER_WRAPPER_TENANT_ARGUMENT",
+          w.function,
+          "A service_role wrapper calling a tenant_guard worker entry point takes no tenant argument and passes, as the tenant, only a value it read from a stored row (SELECT <column> INTO <variable> FROM <schema>.<table>, or that SELECT as a scalar subquery); anything the gate cannot verify fails",
+        );
+      if (workerWrapperHasWrite(w.body, stripComments, w.language))
+        failFn(
+          "WORKER_WRAPPER_WRITES",
+          w.function,
+          "A service_role wrapper calling a tenant_guard worker entry point only reads and forwards: no write, dynamic SQL, transaction or session statement, and no call to a function other than a tenant_guard entry point or a listed read-only built-in",
+        );
+    }
   }
 
   for (const g of snapshot.grants ?? []) {
