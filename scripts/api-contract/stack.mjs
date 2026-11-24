@@ -516,6 +516,7 @@ async function prepare({ databaseUrl, restDbHost, restDbPort, network }) {
   const authenticatorPassword = secret();
   const jwtSecret = secret();
 
+  requireLocalImage(POSTGREST_IMAGE);
   // The generated password contains only hexadecimal digits. Pass it over
   // stdin and commit the setup together with the role change.
   runDisposablePsql(url, {
@@ -537,7 +538,6 @@ async function prepare({ databaseUrl, restDbHost, restDbPort, network }) {
     serverHost: binding.serverHost,
     serverPort: binding.serverPort,
   });
-  requireLocalImage(POSTGREST_IMAGE);
   claimContainer(restName, state, opts.stateFile);
   const args = ["run", "-d", "--pull", "never", "--name", restName];
   if (hostNetwork) args.push("--network", "host");

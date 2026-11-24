@@ -487,7 +487,8 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 - The pull uses the workflow's own token: each service sets `credentials:` to
   `github.actor` and `github.token`, and each of the five workflows grants
   `packages: read`. The runner uses those credentials itself, before the first
-  step, and no step sees them. No repository secret is needed. There is no
+  step, and hands them to no step (the `api-contract` job's own login step,
+  below, is given the token separately). No repository secret is needed. There is no
   fallback to a public registry: a digest the mirror does not hold fails the
   job at "Initialize containers".
 - _`api-contract` and PostgREST:_ the registry token is never on disk, in the
@@ -496,7 +497,8 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
   calls tools by absolute path only, logs in to a throwaway Docker
   configuration with the token on standard input, pulls the PostgREST digest
   and logs out and deletes that configuration on any exit. `stack.mjs` then
-  runs the image with `--pull never` and stops if it is missing.
+  runs the image with `--pull never` and stops if it is missing, before it
+  changes the database.
   `tests/unit/workflows/ci-image-pulls.test.ts` fails if that order or the
   logout changes, or if `stack.mjs` pulls.
 - _Fork pull requests:_ a job's services start before its first step. Four of

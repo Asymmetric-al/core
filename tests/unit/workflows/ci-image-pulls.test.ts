@@ -115,6 +115,12 @@ function scriptPullProblems(text: string): string[] {
   }
   if (/\[\s*"pull"|"--pull",\s*"(?!never")/.test(text))
     problems.push("the script asks Docker to pull");
+  const prepare =
+    /async function prepare\([^)]*\) \{([\s\S]*?)\n\}\n/.exec(text)?.[1] ?? "";
+  const checked = prepare.indexOf("requireLocalImage(POSTGREST_IMAGE)");
+  const changed = prepare.indexOf("runDisposablePsql(");
+  if (checked < 0 || changed < 0 || checked > changed)
+    problems.push("prepare() changes the database before it checks the image");
   return problems;
 }
 
@@ -172,6 +178,11 @@ function registryLoginProblems(job: Job, script: string): string[] {
   if (login < 0) problems.push("no login with the token on standard input");
   if (!(config < trap && trap < login))
     problems.push("the logout trap is not set before the login");
+  const pull = lines.findIndex((line) =>
+    /^\/usr\/bin\/docker pull "\$POSTGREST_IMAGE"$/.test(line),
+  );
+  if (pull < 0) problems.push("no pull of the PostgREST image");
+  else if (pull < login) problems.push("the image is pulled before the login");
   const pulled = String(step.env?.POSTGREST_IMAGE);
   if (!pullReferences.includes(pulled))
     problems.push(`it pulls ${pulled}, which the list does not mirror`);
@@ -305,6 +316,7 @@ describe("API contract: the registry token is gone before any code of the pull r
       "repository code in the login step",
       editRun(/$/, "\nnode scripts/api-contract/stack.mjs prepare"),
     ],
+    ["no pull of the image", editRun(/^\/usr\/bin\/docker pull .*\n?/m, "")],
     [
       "a token in a later step",
       editStep(
@@ -324,8 +336,15 @@ describe("API contract: the registry token is gone before any code of the pull r
     [
       "an explicit docker pull",
       scriptText.replace(
-        "requireLocalImage(POSTGREST_IMAGE);\n  claimContainer",
-        'docker(["pull", POSTGREST_IMAGE]);\n  claimContainer',
+        "requireLocalImage(POSTGREST_IMAGE);\n  claimNetwork",
+        'docker(["pull", POSTGREST_IMAGE]);\n  claimNetwork',
+      ),
+    ],
+    [
+      "no image check before the database change",
+      scriptText.replace(
+        "  requireLocalImage(POSTGREST_IMAGE);\n  // The generated password",
+        "  // The generated password",
       ),
     ],
   ])("fails when stack.mjs has %s", (_, text) => {
