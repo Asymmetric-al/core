@@ -406,7 +406,7 @@ FROM (
     ('verifier_digest_version', 'security', false),
     ('verifier_digest', 'security', false),
     ('invited_by', 'internal', true),
-    ('reason', 'internal', true),
+    ('reason', 'care', true),
     ('expires_at', 'internal', true),
     ('status', 'care', true),
     ('accepted_at', 'internal', true),

@@ -3036,7 +3036,8 @@
       "reason": {
         "type": "text",
         "nullable": false,
-        "category": "internal",
+        "category": "care",
+        "semantic_category": "internal",
         "mission_control": "v--",
         "donor": "---",
         "missionary": "---",
