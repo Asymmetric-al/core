@@ -81,7 +81,6 @@ describe("frozen ceiling", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
-
   it("allows a withOperation file to import packages/api/src/storage/media-store (W6-R3 amended)", () => {
     const root = mkdtempSync(path.join(tmpdir(), "caller-media-ok-"));
     const files = {
@@ -352,9 +351,9 @@ describe("frozen ceiling", () => {
     }
   });
 
-  it("pins the 116 reviewed entries after WP4a part 2b plus the media-store site under W6-R3 amended and the W8-R10 temporary connect webhook site", () => {
+  it("pins the 113 reviewed entries after WP4a part 2b, WP6 part 1, WP8a part 1, and WP4b part 1", () => {
     expect(ceilingDigest()).toBe(
-      "9ab08f0ff88606829e9114209eb5a0b4987f75957b342b130938719ddb62eeaf",
+      "c012bff4dcfe65a99f7726d222ab0230c9339078eebf1db9d84d7f9919c9af29",
     );
     const totals: Record<string, number> = {};
     for (const [key, count] of CEILING) {
@@ -362,15 +361,15 @@ describe("frozen ceiling", () => {
       totals[kind] = (totals[kind] ?? 0) + count;
     }
     expect(totals).toEqual({
-      admin_client: 79,
+      admin_client: 77,
       service_role_key: 27,
       workflow_admin_wrapper: 8,
-      operation_admin_context: 64,
+      operation_admin_context: 63,
     });
-    expect(CEILING.size).toBe(116);
+    expect(CEILING.size).toBe(113);
     expect(
       new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
-    ).toBe(110);
+    ).toBe(107);
   });
 
   it("holds no CRM handler in the allowlist or the ceiling once note creation moves", () => {
@@ -382,6 +381,19 @@ describe("frozen ceiling", () => {
     expect([...CEILING.keys()].filter((key) => key.startsWith(crm))).toEqual(
       [],
     );
+  });
+
+  it("holds no Member Care handler or read module in the allowlist or the ceiling once WP4b part 1 moves", () => {
+    const isCare = (file: string) =>
+      file.startsWith("packages/api/src/admin/member-care/") ||
+      file === "packages/api/src/reads/member-care.ts";
+    const { entries } = JSON.parse(
+      readFileSync("docs/security/service-role-client-allowlist.json", "utf8"),
+    ) as { entries: { file: string }[] };
+    expect(entries.filter((entry) => isCare(entry.file))).toEqual([]);
+    expect(
+      [...CEILING.keys()].filter((key) => isCare(key.split(" ")[0]!)),
+    ).toEqual([]);
   });
 });
 

@@ -34,7 +34,7 @@ One check judges every address that the shared `psql` builders take (review L2),
 - `scripts/seed-demo.sh`
   - `local`: runs `bun run supabase -- db reset --local` (migrations + seed).
   - `hosted`: retired (WP0, audit finding NA-03). It always refuses and touches no database: `supabase/seed.sql` deletes every organization's rows before it reseeds. A hosted database is seeded only by the release job's one-off first rebuild (`docs/ops/release-job.md`).
-  - `verify`: runs table row-count checks and the fixture identity check (three profiles, two tenants, their live memberships) via SQL against a `SUPABASE_DB_URL` that `isLoopbackDatabaseUrl` admits, through the shared psql runner.
+  - `verify`: runs table row-count checks and the fixture identity check (five profiles, two tenants, their live memberships) via SQL against a `SUPABASE_DB_URL` that `isLoopbackDatabaseUrl` admits, through the shared psql runner.
 
 ## Agent skill maintenance
 

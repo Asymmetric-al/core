@@ -347,6 +347,11 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
         ),
       );
       expect(trigger).not.toMatch(/\bp\.tenant_id\b|profiles\.tenant_id/);
+      const directorySrc = await one(
+        "SELECT prosrc FROM pg_proc WHERE oid = 'public.member_care_directory_rows(uuid,uuid,integer)'::regprocedure",
+      );
+      expect(String(directorySrc)).toMatch(/\bm\.tenant_id\b/);
+      expect(String(directorySrc)).not.toMatch(/\b(?:p|profiles)\.tenant_id\b/);
     },
   );
 

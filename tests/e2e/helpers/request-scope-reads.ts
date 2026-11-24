@@ -85,7 +85,7 @@ export type Row =
   | {
       role: "staff";
       tenantId: string;
-      staffRole: "development" | "finance";
+      staffRole: "development" | "finance" | "member_care";
       admin: boolean;
     }
   | { role: "missionary" | "donor"; tenantId: string };
@@ -147,6 +147,10 @@ export async function createPerson(
         ],
       );
       created[`${row.tenantId}:${row.role}`] = inserted[0]!.id;
+      if (row.role === "staff") {
+        created[`${row.tenantId}:${row.role}:${row.staffRole}`] =
+          inserted[0]!.id;
+      }
     }
     return created;
   });

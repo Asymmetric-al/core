@@ -35,6 +35,9 @@ vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "p-1" }),
   useRouter: () => ({ push: vi.fn() }),
 }));
+vi.mock("@asym/lib/mission-control/context", () => ({
+  useMC: () => ({ role: "staff", capabilities: ["care.access"] }),
+}));
 
 vi.mock("@asym/database/hooks", () => {
   const mutation = () => ({ isPending: false, mutateAsync: vi.fn() });

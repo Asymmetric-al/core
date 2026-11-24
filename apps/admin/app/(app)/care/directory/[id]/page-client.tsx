@@ -1,6 +1,7 @@
 "use client";
 
 import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import { useMC } from "@asym/lib/mission-control/context";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Alert,
@@ -42,6 +43,10 @@ import {
   ACTIVITY_TYPE_LABELS,
   formatLastContact,
 } from "@/features/mission-control/care/components/care-display";
+import {
+  CareNoAccessState,
+  isCareAccessDeniedError,
+} from "@/features/mission-control/care/components/care-no-access-state";
 import {
   PersonnelProfile,
   PersonnelProfileActions,
@@ -196,8 +201,7 @@ function CareAssignmentCard({ personnel }: { personnel: CarePersonnel }) {
   );
 }
 
-export default function CareProfilePage() {
-  const { id } = useParams<{ id: string }>();
+function CareProfileContent({ id }: { id: string }) {
   const profile = useMemberCareDetailQuery(id);
   const personnel = profile.data?.personnel;
   const activities = profile.data?.activities ?? [];
@@ -215,6 +219,10 @@ export default function CareProfilePage() {
   }
 
   if (profile.isError) {
+    if (isCareAccessDeniedError(profile.error)) {
+      return <CareNoAccessState title="Care profile" />;
+    }
+
     return (
       <PageShell title="Care profile" density="compact">
         <Alert variant="destructive">
@@ -294,4 +302,15 @@ export default function CareProfilePage() {
       </div>
     </PageShell>
   );
+}
+
+export default function CareProfilePage() {
+  const { id } = useParams<{ id: string }>();
+  const { capabilities = [] } = useMC();
+
+  if (!capabilities.includes("care.access")) {
+    return <CareNoAccessState title="Care profile" />;
+  }
+
+  return <CareProfileContent id={id} />;
 }

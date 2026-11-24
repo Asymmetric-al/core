@@ -21,7 +21,7 @@ const docs = readFileSync("docs/ci.md", "utf8");
 
 const DIGEST =
   "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24";
-const IMAGE = `public.ecr.aws/docker/library/postgres:17.11-alpine@${DIGEST}`;
+const IMAGE = `ghcr.io/asymmetric-al/core-ci-postgres:17.11-alpine@${DIGEST}`;
 const SERVICE_JOBS = ["migrate", "smoke", "test-e2e-smoke", "test-e2e"];
 const RESULTS = ["success", "failure", "cancelled", "skipped"] as const;
 /** §1.2 own-condition wording; used only by the rootCauses self-check (#2234). */
@@ -92,8 +92,8 @@ describe("#2234 oracle self-check: rootCauses counts every Root cause line", () 
   });
 });
 
-describe("#2155 criterion 1: every postgres image comes from ECR Public, pinned", () => {
-  it("exactly the four service jobs pull the one pinned ECR Public image", () => {
+describe("#2155 criterion 1, amended by AL-2671 (ruling D-16): every postgres image comes from the organization's mirror, pinned", () => {
+  it("exactly the four service jobs pull the one pinned mirrored image", () => {
     const images = Object.entries(containers()).map(([k, c]) => [k, c.image]);
     expect(images).toEqual(SERVICE_JOBS.map((id) => [`${id}/postgres`, IMAGE]));
   });
@@ -107,13 +107,15 @@ describe("#2155 criterion 1: every postgres image comes from ECR Public, pinned"
   });
 });
 
-describe("#2155 criterion 2: no credentials anywhere; fork jobs stay safe", () => {
+describe("#2155 criterion 2, amended by AL-2671 (ruling D-16): only the workflow's own token, no secret; fork jobs stay safe", () => {
   it.each(Object.entries(containers()))(
-    "%s has no credentials or secret",
+    "%s pulls with github.actor and github.token and references no secret",
     (_, c) => {
-      expect(Object.keys(c)).not.toContain("credentials");
-      expect(W.referencesSecrets(c)).toBe(false);
-      expect(JSON.stringify(c)).not.toMatch(/secrets|github\.token|\$\{\{/);
+      const { credentials, ...rest } = c;
+      expect(credentials).toStrictEqual(W.PINNED_SERVICE_CREDENTIALS);
+      expect(W.referencesSecrets(rest)).toBe(false);
+      expect(JSON.stringify(rest)).not.toMatch(/secrets|github\.token|\$\{\{/);
+      expect(JSON.stringify(c)).not.toMatch(/secrets/);
     },
   );
   it.each(["migrate", "smoke"])(
@@ -130,7 +132,7 @@ describe("#2155 criterion 3: docs/ci.md documents the image source", () => {
   const section =
     /\n## Integration workflow[\s\S]*?(?=\n## )/.exec(docs)?.[0] ?? "";
   it("names registry, tag and digest; drops the stale postgres:15 text", () => {
-    expect(section).toContain("public.ecr.aws/docker/library/postgres");
+    expect(section).toContain("ghcr.io/asymmetric-al/core-ci-postgres");
     expect(section).toContain("17.11-alpine");
     expect(section).toContain(DIGEST);
     expect(docs).not.toContain("postgres:15");

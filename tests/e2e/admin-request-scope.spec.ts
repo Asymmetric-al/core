@@ -160,15 +160,15 @@ function careRegion(page: Page) {
   return page.getByRole("region", { name: /Member Care personnel/i });
 }
 
-test("a person in two organizations calls the app's own API in each, under that page's scope", async ({
+test("a person in two organizations calls the app's own API in each, under that page's scope (D-18: Member Care requires care.access)", async ({
   page,
 }) => {
-  const [inDemo, inSecond] = fixturePerson("twoTenants").memberships;
+  const [inDemo, inSecond] = fixturePerson("twoTenantsCare").memberships;
   const seen = await serveScopedMemberCare(page, {
     [inDemo!.id]: { tenant: DEMO, rows: personnel("Demo") },
     [inSecond!.id]: { tenant: SECOND, rows: personnel("Second") },
   });
-  await signInAs(page, "admin", "twoTenants", baseURL());
+  await signInAs(page, "admin", "twoTenantsCare", baseURL());
 
   await page.goto(tenantPath(DEMO, "/care/directory"));
   await expect(careRegion(page).getByText("Demo Person 01")).toBeVisible();
@@ -186,15 +186,15 @@ test("a person in two organizations calls the app's own API in each, under that 
   }
 });
 
-test("switching organization shows no row cached from the previous one", async ({
+test("switching organization shows no row cached from the previous one (D-18: Member Care requires care.access)", async ({
   page,
 }) => {
-  const [inDemo, inSecond] = fixturePerson("twoTenants").memberships;
+  const [inDemo, inSecond] = fixturePerson("twoTenantsCare").memberships;
   await serveScopedMemberCare(page, {
     [inDemo!.id]: { tenant: DEMO, rows: personnel("Demo") },
     [inSecond!.id]: { tenant: SECOND, rows: personnel("Second") },
   });
-  await signInAs(page, "admin", "twoTenants", baseURL());
+  await signInAs(page, "admin", "twoTenantsCare", baseURL());
 
   await page.goto(tenantPath(DEMO, "/care/directory"));
   await expect(careRegion(page).getByText("Demo Person 01")).toBeVisible();
@@ -274,20 +274,12 @@ test("care data loaded, a switch to the finance assignment, then a late care res
   expect(seen.heldSettled, "the care record request was held").toBeDefined();
   await seen.heldSettled;
 
-  // The finance document's own requests name the finance assignment, which
-  // reads no care, and nothing from the care document shows.
-  await expect
-    .poll(() =>
-      seen.some(
-        (call) =>
-          call.assignment === finance!.id && call.path.endsWith("/dashboard"),
-      ),
-    )
-    .toBe(true);
+  await expect(page.getByRole("note")).toBeVisible();
+  await expect(page.getByRole("note")).toContainText(
+    /No access to Member Care/i,
+  );
   await expect(page.getByText(/Care Person/)).toHaveCount(0);
-  for (const call of seen.filter((call) => call.assignment === finance!.id)) {
-    expect(call.tenant).toBe(DEMO);
-  }
+  expect(seen.filter((call) => call.assignment === finance!.id)).toEqual([]);
 });
 
 /*
@@ -310,10 +302,10 @@ test("care data loaded, a switch to the finance assignment, then a late care res
  * proxy refuses the first organization's address to the second person, and
  * shows nothing of the first person's.
  */
-test("two tabs: the second signs in as a person of the other organization, and no request of the first tab's document reaches the server without its scope, and the tab reloads", async ({
+test("two tabs: the second signs in as a person of the other organization, and no request of the first tab's document reaches the server without its scope, and the tab reloads (D-18: Member Care requires care.access)", async ({
   page,
 }) => {
-  const [first] = fixturePerson("demoAdmin").memberships;
+  const [first] = fixturePerson("demoCare").memberships;
   const [second] = fixturePerson("secondAdmin").memberships;
   expect(first!.tenantId).toBe(DEMO);
   expect(second!.tenantId).toBe(SECOND);
@@ -321,7 +313,7 @@ test("two tabs: the second signs in as a person of the other organization, and n
     [first!.id]: { tenant: DEMO, rows: personnel("Demo") },
   };
   const seen = await serveScopedMemberCare(page, scopes);
-  await signInAs(page, "admin", "demoAdmin", baseURL());
+  await signInAs(page, "admin", "demoCare", baseURL());
   await page.goto(tenantPath(DEMO, "/care/directory"));
   await expect(careRegion(page).getByText("Demo Person 01")).toBeVisible();
   expect(seen.at(-1)).toMatchObject({ tenant: DEMO, assignment: first!.id });

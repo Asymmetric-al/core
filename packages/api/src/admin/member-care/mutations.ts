@@ -1,8 +1,8 @@
-import { getAdminClient } from "@asym/database/supabase/admin";
 import { z } from "zod";
 
-import { MEMBER_CARE_THREAD_POST_TITLE } from "../../reads/member-care";
 import { revalidateMemberCareCache } from "../../shared/cache-tags";
+
+import type { RequestSessionClient } from "../../shared/request-session-client";
 
 export const threadPostSchema = z.object({
   personnelId: z.string().min(1),
@@ -94,16 +94,6 @@ const MEMBER_CARE_ACTIVITY_TYPE_TO_DB = {
   "Prayer Request": "prayer_request",
 } as const;
 
-const MEMBER_CARE_ACTIVITY_TYPE_FROM_DB = Object.fromEntries(
-  Object.entries(MEMBER_CARE_ACTIVITY_TYPE_TO_DB).map(([label, dbValue]) => [
-    dbValue,
-    label,
-  ]),
-) as Record<
-  (typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB)[keyof typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB],
-  keyof typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB
->;
-
 type MemberCareUiActivityType = keyof typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB;
 type MemberCareDbActivityType =
   (typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB)[MemberCareUiActivityType];
@@ -117,264 +107,158 @@ function toDbActivityType(
   );
 }
 
-function toActivityLabel(
-  value: z.infer<typeof activitySchema.shape.type>,
-): MemberCareUiActivityType {
-  return (
-    MEMBER_CARE_ACTIVITY_TYPE_FROM_DB[value as MemberCareDbActivityType] ??
-    (value as MemberCareUiActivityType)
-  );
+const PG_UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const careCommandResultSchema = z.object({
+  id: z.string().regex(PG_UUID_REGEX),
+});
+
+function parseCareCommandResult(data: unknown): { id: string } {
+  const row = Array.isArray(data) ? data[0] : data;
+  return careCommandResultSchema.parse(row);
 }
 
-function getClient() {
-  const { client, error } = getAdminClient();
-  if (!client) throw new Error(error || "Admin client unavailable.");
-  return client;
-}
-
-async function getActorNameSnapshot(
-  client: ReturnType<typeof getClient>,
-  actorId: string,
-) {
-  const { data, error } = await client
-    .from("profiles")
-    .select("display_name, full_name, first_name, last_name")
-    .eq("user_id", actorId)
-    .maybeSingle<{
-      display_name: string | null;
-      full_name: string | null;
-      first_name: string | null;
-      last_name: string | null;
-    }>();
-
-  if (error) {
-    throw new Error(error.message || "Failed to resolve actor profile.");
+function createCareCommandError(
+  error: { code?: string } | null | undefined,
+  fallbackMessage: string,
+): Error & { code?: string } {
+  const err = new Error(fallbackMessage) as Error & { code?: string };
+  if (typeof error?.code === "string") {
+    err.code = error.code;
   }
-
-  return (
-    data?.display_name?.trim() ||
-    data?.full_name?.trim() ||
-    [data?.first_name, data?.last_name].filter(Boolean).join(" ").trim() ||
-    actorId
-  );
-}
-
-async function assertMissionaryOwnership(
-  client: ReturnType<typeof getClient>,
-  tenantId: string,
-  missionaryId: string,
-) {
-  const { data, error } = await client
-    .from("missionaries")
-    .select("id")
-    .eq("tenant_id", tenantId)
-    .eq("id", missionaryId)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(error.message || "Failed to validate missionary.");
-  }
-
-  if (!data?.id) {
-    throw new Error("Missionary not found.");
-  }
+  return err;
 }
 
 export type CreateCareThreadPostInput = z.infer<typeof threadPostSchema>;
 export async function createCareThreadPost(
+  sessionClient: RequestSessionClient,
   tenantId: string,
-  actorId: string,
   input: CreateCareThreadPostInput,
 ) {
   const payload = threadPostSchema.parse(input);
-  const client = getClient();
-  await assertMissionaryOwnership(client, tenantId, payload.personnelId);
-  const actorNameSnapshot = await getActorNameSnapshot(client, actorId);
+  const { data, error } = await sessionClient.rpc("create_care_thread_post", {
+    p_personnel_id: payload.personnelId,
+    p_content: payload.content,
+  });
 
-  const { data, error } = await client
-    .from("member_care_activities")
-    .insert({
-      tenant_id: tenantId,
-      missionary_id: payload.personnelId,
-      type: "pastoral_note",
-      title: MEMBER_CARE_THREAD_POST_TITLE,
-      description: payload.content,
-      author_user_id: actorId,
-      author_name_snapshot: actorNameSnapshot,
-      occurred_at: new Date().toISOString(),
-    })
-    .select("id")
-    .single();
+  if (error) {
+    throw createCareCommandError(error, "Failed to create thread post.");
+  }
 
-  if (error) throw new Error(error.message || "Failed to create thread post.");
+  const result = parseCareCommandResult(data);
   revalidateMemberCareCache(tenantId);
-  return data;
+  return result;
 }
 
 export type CreateCarePrivateNoteInput = z.infer<typeof privateNoteSchema>;
 export async function createCarePrivateNote(
+  sessionClient: RequestSessionClient,
   tenantId: string,
-  actorId: string,
   input: CreateCarePrivateNoteInput,
 ) {
   const payload = privateNoteSchema.parse(input);
-  const client = getClient();
-  await assertMissionaryOwnership(client, tenantId, payload.personnelId);
-  const actorNameSnapshot = await getActorNameSnapshot(client, actorId);
-
-  const { data, error } = await client
-    .from("member_care_private_notes")
-    .insert({
-      tenant_id: tenantId,
-      missionary_id: payload.personnelId,
-      author_user_id: actorId,
-      author_name_snapshot: actorNameSnapshot,
-      content: payload.content,
-    })
-    .select("id")
-    .single();
+  const { data, error } = await sessionClient.rpc("create_care_private_note", {
+    p_personnel_id: payload.personnelId,
+    p_content: payload.content,
+  });
 
   if (error) {
-    throw new Error(error.message || "Failed to create private note.");
+    throw createCareCommandError(error, "Failed to create private note.");
   }
 
+  const result = parseCareCommandResult(data);
   revalidateMemberCareCache(tenantId);
-  return data;
+  return result;
 }
 
 export type UpsertCareGoalInput = z.infer<typeof careGoalSchema>;
 export async function upsertCareGoal(
+  sessionClient: RequestSessionClient,
   tenantId: string,
-  actorId: string,
   input: UpsertCareGoalInput,
 ) {
   const payload = careGoalSchema.parse(input);
-  const client = getClient();
-  await assertMissionaryOwnership(client, tenantId, payload.personnelId);
+  const { data, error } = await sessionClient.rpc("upsert_care_goal", {
+    p_personnel_id: payload.personnelId,
+    p_title: payload.title,
+    p_status: payload.status,
+    p_target_date: payload.targetDate || null,
+    p_goal_id: payload.id ?? null,
+  });
 
-  const goalRecord = {
-    tenant_id: tenantId,
-    missionary_id: payload.personnelId,
-    title: payload.title,
-    status: payload.status,
-    target_date: payload.targetDate ?? null,
-    updated_by: actorId,
-  };
+  if (error) {
+    throw createCareCommandError(error, "Failed to upsert care goal.");
+  }
 
-  const query = payload.id
-    ? client
-        .from("member_care_goals")
-        .update(goalRecord)
-        .eq("tenant_id", tenantId)
-        .eq("id", payload.id)
-        .select("id")
-        .single()
-    : client.from("member_care_goals").insert(goalRecord).select("id").single();
-
-  const { data, error } = await query;
-
-  if (error) throw new Error(error.message || "Failed to upsert care goal.");
+  const result = parseCareCommandResult(data);
   revalidateMemberCareCache(tenantId);
-  return data;
+  return result;
 }
 
 export type LogCareActivityInput = z.infer<typeof activitySchema>;
 export async function logCareActivity(
+  sessionClient: RequestSessionClient,
   tenantId: string,
-  actorId: string,
   input: LogCareActivityInput,
 ) {
   const payload = activitySchema.parse(input);
-  const dbActivityType = toDbActivityType(payload.type);
-  const activityLabel = toActivityLabel(payload.type);
-  const client = getClient();
-  await assertMissionaryOwnership(client, tenantId, payload.personnelId);
-  const actorNameSnapshot = await getActorNameSnapshot(client, actorId);
+  const { data, error } = await sessionClient.rpc("log_care_activity", {
+    p_personnel_id: payload.personnelId,
+    p_type: toDbActivityType(payload.type),
+    p_content: payload.content,
+  });
 
-  const { data, error } = await client
-    .from("member_care_activities")
-    .insert({
-      tenant_id: tenantId,
-      missionary_id: payload.personnelId,
-      type: dbActivityType,
-      title: activityLabel,
-      description: payload.content,
-      author_user_id: actorId,
-      author_name_snapshot: actorNameSnapshot,
-      occurred_at: new Date().toISOString(),
-    })
-    .select("id")
-    .single();
+  if (error) {
+    throw createCareCommandError(error, "Failed to log care activity.");
+  }
 
-  if (error) throw new Error(error.message || "Failed to log care activity.");
+  const result = parseCareCommandResult(data);
   revalidateMemberCareCache(tenantId);
-  return data;
+  return result;
 }
 
 export type UpsertCareRequirementInput = z.infer<typeof careRequirementSchema>;
 export async function upsertCareRequirement(
+  sessionClient: RequestSessionClient,
   tenantId: string,
-  actorId: string,
   input: UpsertCareRequirementInput,
 ) {
   const payload = careRequirementSchema.parse(input);
-  const dbActivityType = toDbActivityType(payload.activityType);
-  const client = getClient();
-  await assertMissionaryOwnership(client, tenantId, payload.personnelId);
-
-  const requirementRecord = {
-    tenant_id: tenantId,
-    missionary_id: payload.personnelId,
-    activity_type: dbActivityType,
-    interval_days: payload.intervalDays,
-    notes: payload.notes ?? null,
-    updated_by: actorId,
-  };
-
-  const query = payload.id
-    ? client
-        .from("member_care_requirements")
-        .update(requirementRecord)
-        .eq("tenant_id", tenantId)
-        .eq("id", payload.id)
-        .select("id")
-        .single()
-    : client
-        .from("member_care_requirements")
-        .insert(requirementRecord)
-        .select("id")
-        .single();
-
-  const { data, error } = await query;
+  const { data, error } = await sessionClient.rpc("upsert_care_requirement", {
+    p_personnel_id: payload.personnelId,
+    p_activity_type: toDbActivityType(payload.activityType),
+    p_interval_days: payload.intervalDays,
+    p_notes: payload.notes ?? null,
+    p_requirement_id: payload.id ?? null,
+  });
 
   if (error) {
-    throw new Error(error.message || "Failed to upsert care requirement.");
+    throw createCareCommandError(error, "Failed to upsert care requirement.");
   }
 
+  const result = parseCareCommandResult(data);
   revalidateMemberCareCache(tenantId);
-  return data;
+  return result;
 }
 
 export type SetManualAttentionInput = z.infer<typeof manualAttentionSchema>;
 export async function setManualAttentionFlag(
+  sessionClient: RequestSessionClient,
   tenantId: string,
   input: SetManualAttentionInput,
 ) {
   const payload = manualAttentionSchema.parse(input);
-  const client = getClient();
-
-  const { data, error } = await client
-    .from("missionaries")
-    .update({ manual_attention: payload.manualAttention })
-    .eq("tenant_id", tenantId)
-    .eq("id", payload.personnelId)
-    .select("id")
-    .single();
+  const { data, error } = await sessionClient.rpc("set_manual_attention_flag", {
+    p_personnel_id: payload.personnelId,
+    p_manual_attention: payload.manualAttention,
+  });
 
   if (error) {
-    throw new Error(error.message || "Failed to set manual attention flag.");
+    throw createCareCommandError(error, "Failed to set manual attention flag.");
   }
 
+  const result = parseCareCommandResult(data);
   revalidateMemberCareCache(tenantId);
-  return data;
+  return result;
 }

@@ -88,6 +88,7 @@ export const GET = withOperation(
       users: (data ?? []).map((row) => ({
         // A login with no profile is listed under its login id.
         id: row.profile_id ?? row.user_id,
+        user_id: row.user_id,
         membership_id: row.membership_id,
         display_name: row.display_name,
         email: row.email,

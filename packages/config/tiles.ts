@@ -30,6 +30,7 @@ export interface Tile {
   roleInside?: RoleFeature[];
   quickActions: QuickAction[];
   roles: Role[];
+  requiredCapability?: string;
 }
 
 export const tiles: Tile[] = [
@@ -212,7 +213,8 @@ export const tiles: Tile[] = [
       { label: "Open Member Care", href: "/care", icon: "Heart" },
       { label: "View care directory", href: "/care/directory", icon: "Users" },
     ],
-    roles: ["member_care", "admin"],
+    roles: EVERY_ROLE,
+    requiredCapability: "care.access",
   },
   {
     id: "events",
@@ -253,6 +255,17 @@ export const tiles: Tile[] = [
     roles: EVERY_ROLE,
   },
 ];
+
+export function isTileAllowed(
+  tile: Pick<Tile, "roles" | "requiredCapability">,
+  role: Role,
+  capabilities?: readonly string[],
+): boolean {
+  if (tile.requiredCapability) {
+    return Boolean(capabilities?.includes(tile.requiredCapability));
+  }
+  return tile.roles.includes(role);
+}
 
 export function getTileById(id: string): Tile | undefined {
   return tiles.find((tile) => tile.id === id);

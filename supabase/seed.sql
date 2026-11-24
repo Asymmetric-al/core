@@ -4,8 +4,9 @@
 -- - Two tenants (AL-2675): the demo organization, which holds the demo
 --   dataset, and a second organization as a fixture, so every suite and the
 --   seeded application have two tenants
--- - Three profile identities: the demo owner, the second organization's
---   administrator, and one donor who gives to both organizations
+-- - Four profile identities: the demo owner, the demo organization's member
+--   care worker, the second organization's administrator, and one donor who
+--   gives to both organizations
 -- - Relationally valid across all public app tables
 
 BEGIN;
@@ -250,8 +251,10 @@ SET
 -- 1b) Second tenant (AL-2675): a fixture organization with its administrator
 --     and one donor who gives to both organizations. It holds no business
 --     data; it exists so tenant isolation and membership rules are exercised
---     against the seeded application. Logins use the demo password, like the
---     demo owner, and exist only in seeded local and disposable databases.
+--     against the seeded application. The demo organization's member care
+--     worker (AL-2677, WP4b part 1b) is created here too. Logins use the demo
+--     password, like the demo owner, and exist only in seeded local and
+--     disposable databases.
 -- ---------------------------------------------------------------------------
 INSERT INTO public.tenants (
   id,
@@ -343,6 +346,7 @@ FROM (
   VALUES
     ('33333333-3333-3333-3333-333333333333'::uuid, 'admin@harborlight.test', '00000000-0000-0000-0000-000000000002', 'Morgan', 'Reyes'),
     ('44444444-4444-4444-4444-444444444444'::uuid, 'two-organizations@donors.test', '00000000-0000-0000-0000-000000000001', 'Riley', 'Okafor'),
+    ('55555555-5555-5555-5555-555555555555'::uuid, 'member-care@givehope.test', '00000000-0000-0000-0000-000000000001', 'Naomi', 'Adeyemi'),
     ('57000000-0000-4000-8000-000000000001'::uuid, 'field-worker@partners.test', '00000000-0000-0000-0000-000000000001', 'Sam', 'Ortiz')
 ) AS fixture (id, email, tenant_id, first_name, last_name)
 ON CONFLICT (id) DO UPDATE
@@ -377,6 +381,7 @@ FROM (
   VALUES
     ('33333333-3333-3333-3333-333333333334'::uuid, '33333333-3333-3333-3333-333333333333'::uuid, 'admin@harborlight.test'),
     ('44444444-4444-4444-4444-444444444445'::uuid, '44444444-4444-4444-4444-444444444444'::uuid, 'two-organizations@donors.test'),
+    ('55555555-5555-5555-5555-555555555556'::uuid, '55555555-5555-5555-5555-555555555555'::uuid, 'member-care@givehope.test'),
     ('57000000-0000-4000-8000-000000000002'::uuid, '57000000-0000-4000-8000-000000000001'::uuid, 'field-worker@partners.test')
 ) AS fixture (identity_id, user_id, email)
 ON CONFLICT (provider_id, provider) DO UPDATE
@@ -429,6 +434,19 @@ VALUES
     '2026-11-17T09:00:00Z'::timestamptz
   ),
   (
+    '55555555-5555-5555-5555-555555555555',
+    '55555555-5555-5555-5555-555555555555',
+    'member-care@givehope.test',
+    'Naomi',
+    'Adeyemi',
+    'Naomi Adeyemi',
+    'Naomi Adeyemi',
+    'staff',
+    '00000000-0000-0000-0000-000000000001',
+    '2026-11-17T09:00:00Z'::timestamptz,
+    '2026-11-17T09:00:00Z'::timestamptz
+  ),
+  (
     '57000000-0000-4000-8000-000000000001',
     '57000000-0000-4000-8000-000000000001',
     'field-worker@partners.test',
@@ -457,9 +475,14 @@ SET
 --     it first clears the donor rows the sign-up trigger added for the users
 --     above. The demo owner is the demo organization's tenant administrator
 --     on a development staff row (no staff row keeps member care by default),
---     and also a donor and a missionary there. Morgan Reyes administers the
---     second organization. Riley Okafor is a donor in both, so the donor
---     portal refuses them until WP3 resolves the portal host.
+--     and also a donor and a missionary there; they hold no member care row,
+--     so Member Care refuses them (WP4b part 1) and the browser suites that
+--     sign in as them meet no sub-role chooser. Naomi Adeyemi is the demo
+--     organization's member care worker: one staff row, member_care, not an
+--     administrator, and nothing else, so the seeded application keeps one
+--     person who opens Member Care (AL-2677, WP4b part 1b). Morgan Reyes
+--     administers the second organization. Riley Okafor is a donor in both,
+--     so the donor portal refuses them until WP3 resolves the portal host.
 -- ---------------------------------------------------------------------------
 DELETE FROM authz.memberships;
 
@@ -479,6 +502,7 @@ VALUES
   ('33333333-3333-3333-3333-333333333333', '00000000-0000-0000-0000-000000000002', 'staff', 'development', true, TIMESTAMPTZ '2026-11-17T09:00:00Z', TIMESTAMPTZ '2026-11-17T09:00:00Z'),
   ('44444444-4444-4444-4444-444444444444', '00000000-0000-0000-0000-000000000001', 'donor', NULL, true, TIMESTAMPTZ '2026-11-17T09:00:00Z', TIMESTAMPTZ '2026-11-17T09:00:00Z'),
   ('44444444-4444-4444-4444-444444444444', '00000000-0000-0000-0000-000000000002', 'donor', NULL, true, TIMESTAMPTZ '2026-11-17T09:00:00Z', TIMESTAMPTZ '2026-11-17T09:00:00Z'),
+  ('55555555-5555-5555-5555-555555555555', '00000000-0000-0000-0000-000000000001', 'staff', 'member_care', true, TIMESTAMPTZ '2026-11-17T09:00:00Z', TIMESTAMPTZ '2026-11-17T09:00:00Z'),
   ('57000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000001', 'missionary', NULL, true, TIMESTAMPTZ '2026-11-23T09:00:00Z', TIMESTAMPTZ '2026-11-23T09:00:00Z'),
   ('57000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000002', 'missionary', NULL, true, TIMESTAMPTZ '2026-11-23T09:00:00Z', TIMESTAMPTZ '2026-11-23T09:00:00Z');
 

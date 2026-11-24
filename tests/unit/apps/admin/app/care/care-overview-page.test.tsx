@@ -8,6 +8,9 @@ const { dashboard } = vi.hoisted(() => ({ dashboard: vi.fn() }));
 vi.mock("@asym/database/hooks", () => ({
   useCareDashboard: dashboard,
 }));
+vi.mock("@asym/lib/mission-control/context", () => ({
+  useMC: () => ({ role: "staff", capabilities: ["care.access"] }),
+}));
 afterEach(cleanup);
 
 it("offers one retry for the shared overview and chart request", () => {

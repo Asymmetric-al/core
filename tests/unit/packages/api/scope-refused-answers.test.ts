@@ -82,13 +82,9 @@ const answers: Array<[string, Answer]> = [
   [
     "Member Care's gate",
     async () => {
-      const { requireMemberCareAccess } =
-        await import("../../../../packages/api/src/admin/member-care/route-helpers");
-      const result = await requireMemberCareAccess(
-        request("/api/admin/member-care/dashboard"),
-      );
-      if (result.ok) throw new Error("expected a refusal");
-      return result.response;
+      const { GET } =
+        await import("../../../../packages/api/src/admin/member-care/dashboard");
+      return GET(request("/api/admin/member-care/dashboard"));
     },
   ],
   [

@@ -195,6 +195,11 @@ below record the set as #2256 froze it, not current authorization:
     tenant. It names profiles beside `posts.tenant_id` and
     `authz.memberships.tenant_id`, so the lexical scan keeps it, and reads no
     profile's tenant.
+  - `member_care_directory_rows` (AL-2677, WP4b part 1; W4b-R4): the Member
+    Care directory and detail reader, gated on active tenant scope and
+    `care.access`. It `LEFT JOIN`s `public.missionaries` to `public.profiles`
+    on `profile_id` and filters only `missionaries.tenant_id`, never
+    `profiles.tenant_id`; the lexical scan keeps it.
 - App code that uses `profile.tenant_id` to pick or check the tenant: none.
   AL-2675 moved `packages/auth/context.ts`, `packages/auth/resolve-user-role.ts`
   and `apps/admin/src/cms/auth/supabase-strategy.ts` to the caller's

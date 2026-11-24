@@ -17,8 +17,11 @@ vi.mock("@asym/config/navigation", async (importOriginal) => {
     await importOriginal<typeof import("@asym/config/navigation")>();
   return {
     ...actual,
-    getNavItemsByRole: (role: Parameters<typeof actual.getNavItemsByRole>[0]) =>
-      actual.getNavItemsByRole(role).map((item) => ({
+    getNavItemsByRole: (
+      role: Parameters<typeof actual.getNavItemsByRole>[0],
+      capabilities?: Parameters<typeof actual.getNavItemsByRole>[1],
+    ) =>
+      actual.getNavItemsByRole(role, capabilities).map((item) => ({
         ...item,
         keywords: item.id === "contributions" ? ["donations"] : [],
         items: item.items?.map((sub) => ({

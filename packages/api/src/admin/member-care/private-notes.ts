@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { createCarePrivateNote, privateNoteSchema } from "./mutations";
-import { readJsonBodyOrNull, toErrorResponse } from "../../shared/http-errors";
-import { withPlatformOperation } from "../../shared/with-operation";
+import { toMutationErrorResponse } from "./route-helpers";
+import { readJsonBodyOrNull } from "../../shared/http-errors";
+import { withOperation } from "../../shared/with-operation";
 
-export const POST = withPlatformOperation(
-  async ({ auth, request }) => {
+export const POST = withOperation(
+  async ({ auth, request, sessionClient }) => {
     const body = await readJsonBodyOrNull(request);
     const parsed = privateNoteSchema.safeParse(body);
 
@@ -21,14 +22,14 @@ export const POST = withPlatformOperation(
 
     try {
       const result = await createCarePrivateNote(
+        sessionClient,
         auth.tenantId,
-        auth.userId,
         parsed.data,
       );
       return NextResponse.json(result, { status: 201 });
     } catch (error) {
-      return toErrorResponse(error, "Failed to create private note.");
+      return toMutationErrorResponse(error, "Internal error");
     }
   },
-  { capability: "admin.dashboard.access" },
+  { capability: "care.access" },
 );

@@ -56,7 +56,7 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
   });
   it("replays the chain on plain Postgres with the hosted defaults, as the release job does", () => {
     expect(workflow).toMatch(
-      /services:\n\s+postgres:\n\s+image: public\.ecr\.aws\/docker\/library\/postgres:17\.11-alpine@sha256:[0-9a-f]{64}/,
+      /services:\n\s+postgres:\n\s+image: ghcr\.io\/asymmetric-al\/core-ci-postgres:17\.11-alpine@sha256:[0-9a-f]{64}\n\s+credentials:\n\s+username: \$\{\{ github\.actor \}\}\n\s+password: \$\{\{ github\.token \}\}/,
     );
     const replay = step("node scripts/verify/supabase-migrations.mjs");
     expect(replay).toContain(
@@ -201,6 +201,72 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
       expect(workflow).toContain(`      - ${path}\n`);
     for (const glob of ["packages/api/src/shared/**", "packages/database/**"])
       expect(workflow).not.toContain(`      - ${glob}\n`);
+  });
+
+  it("runs Member Care journeys in the real Auth job (D-18: WP4b part 1)", () => {
+    const config = readFileSync("playwright.auth-mail.config.ts", "utf8");
+    expect(config).toContain('"**/auth-member-care.spec.ts"');
+    expect(workflow).toContain("- tests/e2e/auth-member-care.spec.ts");
+    expect(step("Run the auth email round trips")).toContain(
+      "bun run test:e2e:auth-mail",
+    );
+  });
+
+  it("requires the Member Care caller-token suite on the seeded stack after fingerprinting (D-18: WP4b part 1)", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2677/member-care.postgrest.acceptance.test.ts";
+    const command = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(
+      "Verify Member Care handlers and R11 projections through PostgREST",
+    );
+    expect(run).toBeDefined();
+    expect(run).toContain('MEMBER_CARE_IT_REQUIRED: "1"');
+    expect(run).toContain(
+      "MEMBER_CARE_IT_SUPABASE_URL: http://127.0.0.1:54321",
+    );
+    expect(run).toContain(
+      "MEMBER_CARE_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    );
+    expect(run).toContain("jq -er '.ANON_KEY | select(length > 0)'");
+    expect(run).toContain("jq -er '.SERVICE_ROLE_KEY | select(length > 0)'");
+    expect(run).toContain(command);
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    expect(at(command)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
+    for (const path of [
+      "packages/api/src/reads/member-care.ts",
+      "packages/api/src/admin/member-care/**",
+      "apps/admin/app/api/admin/member-care/**",
+      "apps/admin/app/(app)/care/**",
+      "apps/admin/features/mission-control/care/**",
+      suite,
+      "tests/e2e/auth-member-care.spec.ts",
+    ]) {
+      expect(workflow).toContain(`      - ${path}\n`);
+    }
+  });
+
+  it("requires the demonstration care person suite on the seeded stack after fingerprinting (D-18: WP4b part 1b)", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2677/demo-care-person.postgrest.acceptance.test.ts";
+    const command = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(
+      "Verify the demonstration Member Care person through PostgREST",
+    );
+    expect(run).toBeDefined();
+    expect(run).toContain('DEMO_CARE_IT_REQUIRED: "1"');
+    expect(run).toContain("DEMO_CARE_IT_SUPABASE_URL: http://127.0.0.1:54321");
+    expect(run).toContain(
+      "DEMO_CARE_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    );
+    expect(run).toContain("jq -er '.ANON_KEY | select(length > 0)'");
+    expect(run).toContain("jq -er '.SERVICE_ROLE_KEY | select(length > 0)'");
+    expect(run).toContain(command);
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    expect(at(command)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
+    expect(at(command)).toBeLessThan(at("bun run test:e2e:auth-mail"));
+    for (const path of [suite, "supabase/seed.sql", "supabase/migrations/**"]) {
+      expect(workflow).toContain(`      - ${path}\n`);
+    }
   });
 
   it("requires the WP3c invitations PostgREST proof after fingerprinting", () => {
