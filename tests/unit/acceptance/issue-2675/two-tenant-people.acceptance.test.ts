@@ -227,6 +227,7 @@ describe("AL-2675 sweep: each tenant's people come from that tenant's membership
         role: "donor",
         staff_role: null,
         is_tenant_admin: false,
+        updated_at: "2026-11-23T00:00:00.000Z",
       },
     ]);
     expect(client.calls).not.toContain("from:profiles");

@@ -24,6 +24,7 @@ export interface FakeMembership {
   staff_role: string | null;
   is_tenant_admin: boolean;
   is_active: boolean;
+  updated_at?: string;
 }
 
 export interface FakeServiceData {
@@ -234,6 +235,7 @@ function directoryRows(data: FakeServiceData, tenantId: string) {
         role: m.role,
         staff_role: m.staff_role,
         is_tenant_admin: m.is_tenant_admin,
+        updated_at: m.updated_at ?? "2026-11-23T00:00:00.000Z",
       } as Row;
     });
 }

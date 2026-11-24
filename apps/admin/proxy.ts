@@ -13,6 +13,7 @@ export const proxy = createAuthMiddleware({
     "/login",
     "/register",
     "/forgot-password",
+    "/invite",
     "/api/auth/demo-account",
     "/api/cms/public",
     "/no-access",

@@ -1,25 +1,47 @@
 /** @vitest-environment jsdom */
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import TeamsPage from "../../../../../apps/admin/app/(app)/admin/teams/page-client";
 import {
   QueryClient,
   QueryClientProvider,
 } from "../../../../../apps/admin/node_modules/@tanstack/react-query/build/modern/index.js";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import TeamsPage from "../../../../../apps/admin/app/(app)/admin/teams/page-client";
 
-const workspace = vi.hoisted(() => ({ role: "admin" as string }));
+const workspace = vi.hoisted(() => ({
+  role: "admin" as string,
+  canManageMembers: true as boolean | undefined,
+  currentMembershipId: "m-self" as string | null,
+  userId: "u-self" as string | null,
+  pathname: "/00000000-0000-4000-8000-000000000001/admin/teams",
+}));
+
+vi.mock("@asym/auth/tenant-navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/tenant-navigation")>()),
+  useRoutePathname: () => workspace.pathname,
+}));
+
 vi.mock("@asym/lib/mission-control/context", () => ({
-  useMC: () => ({ role: workspace.role }),
+  useMC: () => ({
+    role: workspace.role,
+    canManageMembers: workspace.canManageMembers,
+    currentMembershipId: workspace.currentMembershipId,
+    user: workspace.userId ? { id: workspace.userId } : null,
+  }),
 }));
 
 const fetchMock = vi.fn();
 let client: QueryClient;
+
 beforeEach(() => {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   vi.stubGlobal("fetch", fetchMock);
-  fetchMock
-    .mockReset()
-    .mockResolvedValue({ ok: true, json: async () => ({ users: [] }) });
+  fetchMock.mockReset().mockImplementation(async (url: string) => {
+    if (String(url).startsWith("/api/admin/members/invitations")) {
+      return { ok: true, json: async () => ({ invitations: [] }) };
+    }
+    return { ok: true, json: async () => ({ users: [] }) };
+  });
   vi.stubGlobal(
     "ResizeObserver",
     class {
@@ -35,12 +57,20 @@ beforeEach(() => {
     removeEventListener() {},
   }));
 });
+
 afterEach(() => {
   cleanup();
   client.clear();
+  window.localStorage.clear();
+  window.sessionStorage.clear();
   workspace.role = "admin";
+  workspace.canManageMembers = true;
+  workspace.currentMembershipId = "m-self";
+  workspace.userId = "u-self";
+  workspace.pathname = "/00000000-0000-4000-8000-000000000001/admin/teams";
   vi.unstubAllGlobals();
 });
+
 function show() {
   return render(
     <QueryClientProvider client={client}>
@@ -49,271 +79,523 @@ function show() {
   );
 }
 
-describe("Staff directory and real staff", () => {
-  it("names the page for what it holds, without simulated team controls", async () => {
-    const view = show();
-    expect(
-      view.getByRole("heading", { level: 1, name: "Staff directory" }),
-    ).toBeTruthy();
-    expect(view.queryByText("Teams are not available yet")).toBeNull();
-    expect(view.queryByText("Sample teams")).toBeNull();
-    expect(view.queryByRole("button", { name: "New team" })).toBeNull();
-    expect(await view.findByText("No staff accounts found")).toBeTruthy();
-  });
-
-  it("tells the administrator where access is managed instead of sending them to themselves", async () => {
-    const view = show();
-    await view.findByText("No staff accounts found");
-    const note = view.getByRole("note");
-    expect(note.textContent).toContain("Roles are read-only here");
-    expect(note.textContent).toContain("Review synced website editor accounts");
-    expect(note.textContent).not.toContain(
-      "Website editing access is managed in",
-    );
-    expect(note.textContent).toContain("Mission Control has no teams yet");
-    expect(view.container.textContent).not.toMatch(
-      /Ask your Mission Control administrator/,
-    );
-    expect(
-      view
-        .getByRole("link", { name: "Web Studio editors" })
-        .getAttribute("href"),
-    ).toBe("/web-studio/collections/cms-users");
-    // A compact note after the directory, so the people come first.
-    const people = view.getByRole("heading", { level: 2, name: "People" });
-    expect(
-      people.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-  });
-
-  it("names the platform administrators who can change a role", async () => {
-    fetchMock.mockImplementation(async (url: string) => ({
-      ok: true,
-      json: async () => ({
-        users: url.includes("role=super_admin")
-          ? [{ id: "p1", full_name: "Pat Platform", role: "super_admin" }]
-          : [],
-      }),
-    }));
-    const view = show();
-    await view.findAllByText("Pat Platform");
-    expect(view.getByRole("note").textContent).toContain(
-      "Ask a platform administrator (Pat Platform) to change a role.",
-    );
-  });
-
-  it("explains the directory is for administrators instead of failing for other roles", () => {
-    workspace.role = "finance";
-    const view = show();
-    expect(
-      view.getByText("Only administrators can see staff accounts."),
-    ).toBeTruthy();
-    expect(view.queryByText("Could not load staff")).toBeNull();
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-  it("shows staff names, email and actual roles from the admin users API", async () => {
-    fetchMock.mockImplementation(async (url: string) => ({
-      ok: true,
-      json: async () => ({
-        users: url.includes("role=staff")
-          ? [
-              {
-                id: "staff-1",
-                full_name: "Zoe Actual",
-                email: "zoe@example.com",
-                role: "staff",
-              },
-            ]
-          : [],
-      }),
-    }));
-    const view = show();
-    expect(await view.findByText("Zoe Actual")).toBeTruthy();
-    expect(view.getByText("zoe@example.com")).toBeTruthy();
-    expect(view.getByText("Staff")).toBeTruthy();
-    expect(
-      fetchMock.mock.calls.every(([url]) =>
-        String(url).startsWith("/api/admin/users?"),
-      ),
-    ).toBe(true);
-  });
-  it("names each person's sub-role, which the member directory returns beside the membership class", async () => {
-    // The users list answers `role: "staff"` (or `"admin"` for the flagged
-    // row) with the sub-role in `staff_role` (pull request #2720 review).
-    fetchMock.mockImplementation(async (url: string) => ({
-      ok: true,
-      json: async () => ({
-        users: url.includes("role=staff")
-          ? [
-              {
-                id: "s-fin",
-                display_name: "Fin Ance",
-                role: "staff",
-                staff_role: "finance",
-              },
-              {
-                id: "s-care",
-                display_name: "Cara Care",
-                role: "staff",
-                staff_role: "member_care",
-              },
-              {
-                id: "s-dev",
-                display_name: "Dev Elop",
-                role: "staff",
-                staff_role: "development",
-              },
-              {
-                id: "s-mob",
-                display_name: "Mo Bilizer",
-                role: "staff",
-                staff_role: "mobilizer",
-              },
-              {
-                id: "s-hr",
-                display_name: "Hana Resources",
-                role: "staff",
-                staff_role: "hr",
-              },
-              {
-                id: "s-plain",
-                display_name: "Pat Plain",
-                role: "staff",
-                staff_role: null,
-              },
-            ]
-          : url.includes("role=admin")
-            ? [
-                {
-                  id: "a-1",
-                  display_name: "Ada Admin",
-                  role: "admin",
-                  staff_role: "finance",
-                  is_tenant_admin: true,
-                },
-              ]
-            : [],
-      }),
-    }));
-    const view = show();
-    const roleBeside = async (name: string) => {
-      const cell = await view.findByText(name);
-      return cell.closest('tr,[role="row"]')?.textContent ?? "";
-    };
-    expect(await roleBeside("Fin Ance")).toContain("Finance");
-    expect(await roleBeside("Cara Care")).toContain("Member care");
-    expect(await roleBeside("Dev Elop")).toContain("Fundraising");
-    expect(await roleBeside("Mo Bilizer")).toContain("Mobilizers");
-    expect(await roleBeside("Hana Resources")).toContain("HR");
-    // A staff member with no sub-role is Staff, and an administrator is named
-    // as one whatever their sub-role.
-    expect(await roleBeside("Pat Plain")).toMatch(/Staff$/);
-    expect(await roleBeside("Ada Admin")).toContain("Administrator");
-    expect(await roleBeside("Ada Admin")).not.toContain("Finance");
-  });
-  it("finds people by the sub-role the directory shows", async () => {
-    fetchMock.mockImplementation(async (url: string) => ({
-      ok: true,
-      json: async () => ({
-        users: url.includes("role=staff")
-          ? [
-              {
-                id: "s-fin",
-                display_name: "Fin Ance",
-                role: "staff",
-                staff_role: "finance",
-              },
-              {
-                id: "s-care",
-                display_name: "Cara Care",
-                role: "staff",
-                staff_role: "member_care",
-              },
-            ]
-          : [],
-      }),
-    }));
-    const view = show();
-    await view.findByText("Fin Ance");
-    fireEvent.change(view.getByLabelText("Search people"), {
-      target: { value: "member care" },
+describe("Members screen", () => {
+  it("renders the Members heading, lists staff and missionaries keyed by membership_id, and never collapses multi-row people", async () => {
+    fetchMock.mockImplementation(async (url: string) => {
+      if (String(url).startsWith("/api/admin/members/invitations")) {
+        return { ok: true, json: async () => ({ invitations: [] }) };
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          users: [
+            {
+              id: "u-dual",
+              membership_id: "m-dual-fin",
+              display_name: "Alex Dual",
+              email: "alex@example.org",
+              role: "staff",
+              staff_role: "finance",
+              is_tenant_admin: false,
+              updated_at: "2026-11-23T09:00:00.000Z",
+            },
+            {
+              id: "u-dual",
+              membership_id: "m-dual-miss",
+              display_name: "Alex Dual",
+              email: "alex@example.org",
+              role: "missionary",
+              staff_role: null,
+              is_tenant_admin: false,
+              updated_at: "2026-11-23T09:00:01.000Z",
+            },
+            {
+              id: "u-self",
+              membership_id: "m-self",
+              display_name: "Ada Admin",
+              email: "ada@example.org",
+              role: "admin",
+              staff_role: "development",
+              is_tenant_admin: true,
+              updated_at: "2026-11-23T09:00:02.000Z",
+            },
+          ],
+        }),
+      };
     });
-    await waitFor(() => expect(view.queryByText("Fin Ance")).toBeNull());
-    expect(view.getByText("Cara Care")).toBeTruthy();
+
+    const view = show();
+    expect(
+      view.getByRole("heading", { level: 1, name: "Members" }),
+    ).toBeTruthy();
+
+    const dualCells = await view.findAllByText("Alex Dual");
+    expect(dualCells.length).toBe(2);
+    expect(view.getByText("Finance")).toBeTruthy();
+    expect(view.getByText("Missionary")).toBeTruthy();
+    expect(view.getByText("Administrator")).toBeTruthy();
+    expect(view.getByText("Fundraising")).toBeTruthy();
+    expect(view.getByRole("button", { name: /invite member/i })).toBeTruthy();
+    expect(view.getByRole("button", { name: /give up admin/i })).toBeTruthy();
   });
-  it("distinguishes a failed staff load from no accounts and retries", async () => {
+
+  it("R3: lets a non-administrator staff member view the Members list read-only with zero management controls and zero invitation fetches", async () => {
+    workspace.role = "finance";
+    workspace.canManageMembers = false;
+    workspace.currentMembershipId = "m-fin";
+
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        users: [
+          {
+            id: "u-1",
+            membership_id: "m-1",
+            display_name: "Zoe Staff",
+            email: "zoe@example.org",
+            role: "staff",
+            staff_role: "development",
+            is_tenant_admin: false,
+            updated_at: "2026-11-23T09:00:00.000Z",
+          },
+        ],
+      }),
+    });
+
+    const view = show();
+    expect(await view.findByText("Zoe Staff")).toBeTruthy();
+    expect(view.queryByRole("button", { name: /invite member/i })).toBeNull();
+    expect(view.queryByRole("button", { name: /change role/i })).toBeNull();
+    expect(view.queryByRole("button", { name: /revoke/i })).toBeNull();
+    expect(
+      view.queryByRole("heading", { name: "Pending invitations" }),
+    ).toBeNull();
+    expect(
+      fetchMock.mock.calls.some(([url]) =>
+        String(url).includes("/api/admin/members/invitations"),
+      ),
+    ).toBe(false);
+    expect(view.getByRole("note").textContent).toContain("Read-only directory");
+  });
+
+  it("R13: shows exact one-time notice with Copy control, marks replay block, clears on dismiss/navigation/reload, and stores nothing in browser storage or query cache", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (
+        String(url) === "/api/admin/members/invitations" &&
+        init?.method === "POST"
+      ) {
+        return {
+          ok: true,
+          json: async () => ({
+            invitation: {
+              invitation_id: "inv-1",
+              expires_at: "2026-11-30T00:00:00.000Z",
+              role: "staff",
+              staff_role: "finance",
+              is_tenant_admin: false,
+            },
+            invitePath: "/invite/selector123#verifier456",
+          }),
+        };
+      }
+      if (String(url).startsWith("/api/admin/members/invitations")) {
+        return {
+          ok: true,
+          json: async () => ({
+            invitations: [
+              {
+                id: "inv-1",
+                tenant_id: "t-1",
+                email: "new-staff@example.org",
+                role: "staff",
+                staff_role: "finance",
+                is_tenant_admin: false,
+                purpose: "member_invite",
+                delivery_mode: "email",
+                status: "issued",
+                expires_at: "2099-01-01T00:00:00.000Z",
+                created_at: "2026-11-23T09:00:00.000Z",
+              },
+            ],
+          }),
+        };
+      }
+      return { ok: true, json: async () => ({ users: [] }) };
+    });
+
+    const view = show();
+    await view.findByText("No members found");
+    fireEvent.click(view.getByRole("button", { name: /invite member/i }));
+
+    fireEvent.change(view.getByLabelText("Email address"), {
+      target: { value: "new-staff@example.org" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "New staff hire" },
+    });
+    fireEvent.click(view.getByRole("button", { name: /create invitation/i }));
+
+    const linkInput = (await view.findByLabelText(
+      "Invitation link",
+    )) as HTMLInputElement;
+    expect(linkInput.value).toBe(
+      `${window.location.origin}/invite/selector123#verifier456`,
+    );
+    expect(linkInput.closest("[data-sentry-block]")).not.toBeNull();
+    expect(
+      view.getByText(
+        "No email was sent. Copy this link now; it cannot be shown again.",
+      ),
+    ).toBeTruthy();
+
+    fireEvent.click(view.getByRole("button", { name: /copy link/i }));
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith(
+        `${window.location.origin}/invite/selector123#verifier456`,
+      );
+    });
+
+    fireEvent.click(view.getByRole("button", { name: /^done$/i }));
+    await waitFor(() => {
+      expect(view.queryByLabelText("Invitation link")).toBeNull();
+    });
+    fireEvent.click(view.getByRole("button", { name: /invite member/i }));
+    expect(view.queryByLabelText("Invitation link")).toBeNull();
+
+    fireEvent.change(view.getByLabelText("Email address"), {
+      target: { value: "nav-clear@example.org" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Navigation clear proof" },
+    });
+    fireEvent.click(view.getByRole("button", { name: /create invitation/i }));
+    await view.findByLabelText("Invitation link");
+
+    workspace.pathname = "/00000000-0000-4000-8000-000000000001/crm";
+    view.rerender(
+      <QueryClientProvider client={client}>
+        <TeamsPage />
+      </QueryClientProvider>,
+    );
+    await waitFor(() => {
+      expect(view.queryByLabelText("Invitation link")).toBeNull();
+    });
+
+    view.unmount();
+    workspace.pathname = "/00000000-0000-4000-8000-000000000001/admin/teams";
+    const reloaded = show();
+    await reloaded.findByText("new-staff@example.org");
+    expect(reloaded.queryByLabelText("Invitation link")).toBeNull();
+    expect(reloaded.container.textContent).not.toContain("verifier456");
+    expect(reloaded.container.textContent).not.toContain("selector123");
+
+    const storageDump = JSON.stringify({
+      local: Object.entries(window.localStorage),
+      session: Object.entries(window.sessionStorage),
+      cookies: document.cookie,
+      queries: client
+        .getQueryCache()
+        .getAll()
+        .map((q) => q.state.data),
+    });
+    expect(storageDump).not.toContain("verifier456");
+    expect(storageDump).not.toContain("selector123");
+  });
+
+  it("ignores an invitation response that resolves after Cancel during Creating and never shows its link on reopen", async () => {
+    let resolveInvite!: (value: unknown) => void;
+    const pendingInvite = new Promise((resolve) => {
+      resolveInvite = resolve;
+    });
+
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (
+        String(url) === "/api/admin/members/invitations" &&
+        init?.method === "POST"
+      ) {
+        return pendingInvite;
+      }
+      if (String(url).startsWith("/api/admin/members/invitations")) {
+        return { ok: true, json: async () => ({ invitations: [] }) };
+      }
+      return { ok: true, json: async () => ({ users: [] }) };
+    });
+
+    const view = show();
+    await view.findByText("No members found");
+    fireEvent.click(view.getByRole("button", { name: /invite member/i }));
+
+    fireEvent.change(view.getByLabelText("Email address"), {
+      target: { value: "late-response@example.org" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Dismissed before response" },
+    });
+    fireEvent.click(view.getByRole("button", { name: /create invitation/i }));
+
+    await view.findByRole("button", { name: /creating/i });
+    fireEvent.click(view.getByRole("button", { name: /^cancel$/i }));
+
+    resolveInvite({
+      ok: true,
+      json: async () => ({
+        invitation: {
+          invitation_id: "inv-late-1",
+          expires_at: "2026-11-30T00:00:00.000Z",
+          role: "staff",
+          staff_role: "development",
+          is_tenant_admin: false,
+        },
+        invitePath: "/invite/late-selector#late-verifier",
+      }),
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    fireEvent.click(view.getByRole("button", { name: /invite member/i }));
+    const emailInput = (await view.findByLabelText(
+      "Email address",
+    )) as HTMLInputElement;
+    expect(emailInput.value).toBe("");
+    expect(view.queryByLabelText("Invitation link")).toBeNull();
+    expect(
+      view.queryByLabelText("Missionary workspace invitation path"),
+    ).toBeNull();
+    expect(
+      view.queryByText(
+        "No email was sent. Copy this link now; it cannot be shown again.",
+      ),
+    ).toBeNull();
+    expect(
+      view.queryByRole("button", { name: /copy link|copy path/i }),
+    ).toBeNull();
+    expect(document.body.textContent ?? "").not.toContain("late-selector");
+    expect(document.body.textContent ?? "").not.toContain("late-verifier");
+  });
+
+  it("R18a: labels a missionary invitation as the path on the missionary workspace address and copies only the path", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (
+        String(url) === "/api/admin/members/invitations" &&
+        init?.method === "POST"
+      ) {
+        return {
+          ok: true,
+          json: async () => ({
+            invitation: {
+              invitation_id: "inv-miss-1",
+              expires_at: "2026-11-30T00:00:00.000Z",
+              role: "missionary",
+              staff_role: null,
+              is_tenant_admin: false,
+            },
+            invitePath: "/invite/miss-selector#miss-verifier",
+          }),
+        };
+      }
+      if (String(url).startsWith("/api/admin/members/invitations")) {
+        return { ok: true, json: async () => ({ invitations: [] }) };
+      }
+      return { ok: true, json: async () => ({ users: [] }) };
+    });
+
+    const view = show();
+    await view.findByText("No members found");
+    fireEvent.click(view.getByRole("button", { name: /invite member/i }));
+
+    fireEvent.change(view.getByLabelText("Email address"), {
+      target: { value: "missionary@example.org" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Missionary onboarding" },
+    });
+    fireEvent.click(view.getByRole("button", { name: /create invitation/i }));
+
+    const pathInput = (await view.findByLabelText(
+      "Missionary workspace invitation path",
+    )) as HTMLInputElement;
+    expect(pathInput.value).toBe("/invite/miss-selector#miss-verifier");
+    expect(pathInput.value).not.toContain(window.location.origin);
+    expect(pathInput.closest("[data-sentry-block]")).not.toBeNull();
+    expect(
+      view.getByText(/open this path on your missionary workspace address/i),
+    ).toBeTruthy();
+
+    fireEvent.click(view.getByRole("button", { name: /copy path/i }));
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith(
+        "/invite/miss-selector#miss-verifier",
+      );
+    });
+  });
+
+  it("lists pending invitations for admins, revokes one with a reason, and sends expectedUpdatedAt on role changes", async () => {
+    const calls: Array<{ url: string; method: string; body: unknown }> = [];
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+      const method = init?.method ?? "GET";
+      calls.push({
+        url: String(url),
+        method,
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+      });
+      if (
+        String(url) === "/api/admin/members/invitations" &&
+        method === "GET"
+      ) {
+        return {
+          ok: true,
+          json: async () => ({
+            invitations: [
+              {
+                id: "inv-pending-1",
+                tenant_id: "t-1",
+                email: "pending@example.org",
+                role: "missionary",
+                staff_role: null,
+                is_tenant_admin: false,
+                purpose: "member_invite",
+                delivery_mode: "email",
+                status: "issued",
+                expires_at: "2099-01-01T00:00:00.000Z",
+                created_at: "2026-11-23T09:00:00.000Z",
+              },
+            ],
+          }),
+        };
+      }
+      if (
+        String(url) === "/api/admin/members/invitations/inv-pending-1/revoke" &&
+        method === "POST"
+      ) {
+        return {
+          ok: true,
+          json: async () => ({ result: { status: "revoked" } }),
+        };
+      }
+      if (String(url) === "/api/admin/members/role" && method === "POST") {
+        return { ok: true, json: async () => ({ result: { changed: true } }) };
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          users: [
+            {
+              id: "u-other",
+              membership_id: "00000000-0000-4000-8000-00000000a0a3",
+              display_name: "Sam Staff",
+              email: "sam@example.org",
+              role: "staff",
+              staff_role: "finance",
+              is_tenant_admin: false,
+              updated_at: "2026-11-23T09:12:34.567890+00:00",
+            },
+          ],
+        }),
+      };
+    });
+
+    const view = show();
+    expect(await view.findByText("pending@example.org")).toBeTruthy();
+
+    fireEvent.click(
+      view.getByRole("button", {
+        name: "Revoke invitation for pending@example.org",
+      }),
+    );
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Mistyped address" },
+    });
+    fireEvent.click(view.getByRole("button", { name: /^revoke invitation$/i }));
+    await waitFor(() => {
+      expect(
+        calls.some(
+          (c) =>
+            c.url === "/api/admin/members/invitations/inv-pending-1/revoke" &&
+            c.method === "POST",
+        ),
+      ).toBe(true);
+    });
+    await waitFor(() => {
+      expect(view.queryByRole("dialog")).toBeNull();
+    });
+
+    fireEvent.click(
+      view.getByRole("button", { name: "Change role for Sam Staff" }),
+    );
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Promote Sam" },
+    });
+    fireEvent.click(view.getByRole("button", { name: /save role/i }));
+
+    await waitFor(() => {
+      const roleCall = calls.find(
+        (c) => c.url === "/api/admin/members/role" && c.method === "POST",
+      );
+      expect(roleCall?.body).toMatchObject({
+        membershipId: "00000000-0000-4000-8000-00000000a0a3",
+        expectedUpdatedAt: "2026-11-23T09:12:34.567890+00:00",
+        reason: "Promote Sam",
+      });
+    });
+  });
+
+  it("distinguishes a failed load from no members and retries", async () => {
     fetchMock.mockResolvedValue({ ok: false });
     const view = show();
-    expect(await view.findByText("Could not load staff")).toBeTruthy();
-    expect(view.queryByText("No staff accounts found")).toBeNull();
+    expect(await view.findByText("Could not load members")).toBeTruthy();
+    expect(view.queryByText("No members found")).toBeNull();
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({ users: [] }),
     });
-    fireEvent.click(view.getByRole("button", { name: "Retry" }));
-    await view.findByText("No staff accounts found");
+    fireEvent.click(view.getAllByRole("button", { name: "Retry" })[0]!);
+    await view.findByText("No members found");
   });
-  it("offers phone sorting for the real People directory", async () => {
-    vi.stubGlobal("innerWidth", 390);
-    fetchMock.mockImplementation(async (url: string) => ({
-      ok: true,
-      json: async () => ({
-        users: url.includes("role=staff")
-          ? [{ id: "s1", full_name: "Zoe", role: "staff" }]
-          : [],
-      }),
-    }));
-    const view = show();
-    await view.findByText("Zoe");
-    expect(view.getByRole("combobox", { name: "Sort people" })).toBeTruthy();
-  });
-  it("keeps the phone card list valid: one list item per person, no nested list item", async () => {
-    vi.stubGlobal("innerWidth", 390);
-    fetchMock.mockImplementation(async (url: string) => ({
-      ok: true,
-      json: async () => ({
-        users: url.includes("role=staff")
-          ? [
-              { id: "s1", full_name: "Zoe", role: "staff" },
-              { id: "s2", full_name: "Ana", role: "staff" },
-            ]
-          : [],
-      }),
-    }));
-    const view = show();
-    await view.findByText("Zoe");
-    const rows = view.container.querySelectorAll(
-      '[data-slot="data-grid-panel-row"]',
-    );
-    expect(rows.length).toBe(2);
-    // The panel's <li> is the list item; a card inside it must not claim
-    // role="listitem" too (axe aria-required-parent).
-    for (const row of rows) {
-      expect(row.querySelector('[role="listitem"]')).toBeNull();
-    }
-  });
-  it("reads beyond the first staff page", async () => {
-    fetchMock.mockImplementation(async (url: string) => ({
-      ok: true,
-      json: async () => ({
-        users: url.includes("role=staff")
-          ? url.includes("offset=0")
+
+  it("reads beyond the first 100-member page", async () => {
+    fetchMock.mockImplementation(async (url: string) => {
+      if (String(url).startsWith("/api/admin/members/invitations")) {
+        return { ok: true, json: async () => ({ invitations: [] }) };
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          users: String(url).includes("offset=0")
             ? Array.from({ length: 100 }, (_, i) => ({
                 id: `s${i}`,
+                membership_id: `m${i}`,
                 full_name: `Staff ${i}`,
                 role: "staff",
+                staff_role: "development",
               }))
-            : [{ id: "last", full_name: "Last staff", role: "staff" }]
-          : [],
-      }),
-    }));
+            : [
+                {
+                  id: "last",
+                  membership_id: "m-last",
+                  full_name: "Last staff",
+                  role: "staff",
+                  staff_role: "finance",
+                },
+              ],
+        }),
+      };
+    });
     show();
     await waitFor(() =>
       expect(
-        fetchMock.mock.calls.some(
-          ([url]) =>
-            String(url).includes("role=staff") &&
-            String(url).includes("offset=100"),
+        fetchMock.mock.calls.some(([url]) =>
+          String(url).includes("offset=100"),
         ),
       ).toBe(true),
     );

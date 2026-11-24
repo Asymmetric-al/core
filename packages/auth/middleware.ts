@@ -96,6 +96,26 @@ const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
 
 const TENANT_REWRITE_MARKER = crypto.randomUUID();
 
+const PROTECTED_ACTION_PATH_PREFIX = "/invite";
+
+function isProtectedActionDoorwayPath(pathname: string): boolean {
+  return (
+    pathname === PROTECTED_ACTION_PATH_PREFIX ||
+    pathname.startsWith(`${PROTECTED_ACTION_PATH_PREFIX}/`)
+  );
+}
+
+function applyProtectedActionHeaders(response: NextResponse): NextResponse {
+  response.headers.set(
+    "Cache-Control",
+    "private, no-store, no-transform, max-age=0",
+  );
+  response.headers.set("CDN-Cache-Control", "no-store");
+  response.headers.set("Vercel-CDN-Cache-Control", "no-store");
+  response.headers.set("Referrer-Policy", "no-referrer");
+  return response;
+}
+
 function isPublicRoute(pathname: string, publicRoutes: string[]) {
   return isListedRouteMatch(pathname, publicRoutes, matchesListedRoute);
 }
@@ -352,6 +372,15 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     if (address && (isExplicitlyPublic || isOutsideTenantSegment(pathname))) {
       const target = ownOriginUrl(request, withSearch(request, pathname));
       return target ? NextResponse.redirect(target) : refusedAddress();
+    }
+
+    if (
+      isPublicRoute(pathname, publicRoutes) &&
+      isProtectedActionDoorwayPath(pathname)
+    ) {
+      return applyProtectedActionHeaders(
+        withPathHeader(request, pathname, roleClass),
+      );
     }
 
     const isProtectedPath =

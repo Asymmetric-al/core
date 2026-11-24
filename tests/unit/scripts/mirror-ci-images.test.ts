@@ -321,6 +321,21 @@ describe("mirror-ci-images: the list is checked before anything is copied", () =
       { images: [{ ...entry, fallback: "public.ecr.aws" }] },
       "has keys",
     ],
+    [
+      "a digest given as a list that holds a valid digest",
+      { images: [{ ...entry, digest: [entry.digest] }] },
+      "digest must be a string",
+    ],
+    [
+      "a source given as a list",
+      { images: [{ ...entry, source: [entry.source] }] },
+      "source must be a string",
+    ],
+    [
+      "a mirror given as a list",
+      { images: [{ ...entry, mirror: [entry.mirror] }] },
+      "mirror must be a string",
+    ],
   ])("refuses %s", (_, list, message) => {
     const box = sandbox({}, list);
     const result = box.run();

@@ -1,1 +1,1 @@
-export { GET, PATCH } from "@asym/api/admin/users";
+export { GET } from "@asym/api/admin/users";

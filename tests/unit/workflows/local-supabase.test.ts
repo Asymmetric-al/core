@@ -184,6 +184,38 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
       expect(workflow).not.toContain(`      - ${glob}\n`);
   });
 
+  it("requires the WP3c invitations PostgREST proof after fingerprinting", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2676/membership-invitations.postgrest.acceptance.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(marker);
+    expect(run).toBeDefined();
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    for (const variable of [
+      "WP3_TENANT_IT_URL",
+      "WP3_TENANT_IT_DATABASE_URL",
+      "WP3_TENANT_IT_SERVICE_KEY",
+      "WP3_TENANT_IT_ANON_KEY",
+    ])
+      expect(run).toContain(variable);
+    expect(at(marker)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
+    expect(workflow).toContain(`      - ${suite}\n`);
+  });
+
+  it("proves operator admin invitation second factor after the stack starts", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2676/operator-admin-invite.localstack.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(marker);
+    expect(run).toBeDefined();
+    expect(run).toContain('OPERATOR_MFA_REQUIRED: "1"');
+    expect(run).toContain("!cancelled() && steps.stack.outcome == 'success'");
+    expect(at(marker)).toBeGreaterThan(
+      at("run: node scripts/e2e/run-operator-mfa.mjs"),
+    );
+    expect(workflow).toContain(`      - ${suite}\n`);
+  });
+
   it("runs when the defaults, the replay or the fingerprint change", () => {
     for (const path of [
       "scripts/sql/hosted-default-privileges.sql",

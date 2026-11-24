@@ -218,24 +218,24 @@ describe("hosted smoke dashboard surface contracts", () => {
     }: { adminHref?: string; staffHref?: string } = {},
     hosted: Hosted = {},
   ) {
-    const staffDirectory = getNavItemsByRole("admin")
+    const members = getNavItemsByRole("admin")
       .find((item) => item.id === "admin")
       ?.items?.find((item) => item.id === "admin-teams");
-    expect(staffDirectory?.title).toBe("Staff directory");
+    expect(members?.title).toBe("Members");
     return fixturePage(
       "admin",
-      `<button>Open profile menu</button><div role="menu" hidden><a role="menuitem" href="${adminHref}">Administration</a><a role="menuitem" href="${staffHref}">${staffDirectory?.title}</a><a role="menuitem" href="/help/about">About</a><button role="menuitem">Sign out</button></div>`,
+      `<button>Open profile menu</button><div role="menu" hidden><a role="menuitem" href="${adminHref}">Administration</a><a role="menuitem" href="${staffHref}">${members?.title}</a><a role="menuitem" href="/help/about">About</a><button role="menuitem">Sign out</button></div>`,
       hosted,
     );
   }
 
-  it("accepts the Staff directory profile shortcut from current admin navigation", async () => {
+  it("accepts the Members profile shortcut from current admin navigation", async () => {
     const page = adminPage();
     await flowFor("admin")({ page });
     expect(page.url()).toBe(`https://preview.example${TENANT_PREFIX}/admin`);
   });
 
-  it("rejects a Staff directory shortcut with the wrong destination", async () => {
+  it("rejects a Members shortcut with the wrong destination", async () => {
     await expect(
       flowFor("admin")({
         page: adminPage({ staffHref: `${TENANT_PREFIX}/admin/wrong` }),
@@ -246,7 +246,7 @@ describe("hosted smoke dashboard surface contracts", () => {
   // Council round 2, AR8: Mission Control's hosted flow carries the three
   // checks of the missionary workspace's (one scope, no internal header in a
   // response, the `//` form refused).
-  it("rejects Administration and Staff directory links without the tenant prefix", async () => {
+  it("rejects Administration and Members links without the tenant prefix", async () => {
     await expect(
       flowFor("admin")({ page: adminPage({ adminHref: "/admin" }) }),
     ).rejects.toThrow();
