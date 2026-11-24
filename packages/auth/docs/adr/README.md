@@ -30,6 +30,7 @@ does not restate it.
 | [0012](0012-one-live-assignment-per-request.md)         | Each request resolves one live assignment under the caller's own session                            | `context.ts`, `principal/assignment.ts`, `principal/reader.ts`, `principal/types.ts`                              |
 | [0013](0013-request-cookies-and-nextjs-caching.md)      | Prefer the Next.js cookie store and preserve its rendering control flow                             | `context.ts`                                                                                                      |
 | [0014](0014-capability-defaults-and-resolution.md)      | Capability defaults live in code, and grants resolve within one selected context                    | `capabilities/`                                                                                                   |
+| [0015](0015-organization-from-the-verified-name.md)     | The dashboards take their organization from the verified name                                       | `verified-name.ts`, `request-headers.ts`, `middleware.ts`, `context.ts`, `tenant-server.ts`, `web-studio.ts`      |
 
 ## Keeping them true
 

@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { admitApiMutation } from "./mutation-admission";
 import {
   ADDRESS_PREFIX_HEADER,
+  NAME_TENANT_HEADER,
   PAGE_SCOPE_HEADERS,
   ROLE_CLASS_HEADER,
   TENANT_REWRITE_HEADER,
@@ -346,6 +347,7 @@ export async function routeToDashboard(
   const headers = new Headers(request.headers);
   stripFrontHeaders(headers);
   headers.delete("x-forwarded-host");
+  headers.delete(NAME_TENANT_HEADER);
   for (const name of PROTECTION_BYPASS_HEADERS) {
     headers.delete(name);
   }
@@ -491,6 +493,7 @@ export async function admitExemptRequest(
   const refusal = await admitApiMutation(cleaned, pathname);
   if (refusal) return refusal;
   const headers = new Headers(cleaned.headers);
+  headers.delete(NAME_TENANT_HEADER);
   if (pathname.startsWith("/api/")) {
     headers.set("x-asym-pathname", pathname);
     if (roleClass) headers.set(ROLE_CLASS_HEADER, roleClass);

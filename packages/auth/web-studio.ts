@@ -303,18 +303,29 @@ export function clearedWebStudioCookie({
 
 export type WebStudioDecision =
   | { readonly kind: "allow"; readonly assignment: ActiveAssignment }
-  | { readonly kind: "choose" }
+  | { readonly kind: "choose"; readonly refused?: true }
   | { readonly kind: "refuse" };
 
 export function decideWebStudioAccess(input: {
   assignments: readonly ActiveAssignment[];
   cookie: WebStudioCookieState;
+  nameTenantId?: string | null;
 }): WebStudioDecision {
+  const nameTenantId = input.nameTenantId ?? null;
   const staffRows = input.assignments.filter(
-    (a) => a.membershipRole === WEB_STUDIO_ROLE_CLASS,
+    (a) =>
+      a.membershipRole === WEB_STUDIO_ROLE_CLASS &&
+      (nameTenantId === null || a.tenantId === nameTenantId),
   );
   if (staffRows.length === 0) return { kind: "refuse" };
-  const resolveInput = webStudioResolveInput(input.cookie);
+  if (
+    nameTenantId !== null &&
+    input.cookie.kind === "selected" &&
+    input.cookie.selection.tenantId !== nameTenantId
+  ) {
+    return { kind: "choose", refused: true };
+  }
+  const resolveInput = webStudioResolveInput(input.cookie, nameTenantId);
   if (!resolveInput.ok) return { kind: "choose" };
   const { ok: _ok, ...narrowing } = resolveInput;
   const result = selectAssignment(input.assignments, narrowing);
@@ -334,11 +345,21 @@ export type WebStudioResolveInput =
 
 export function webStudioResolveInput(
   cookie: WebStudioCookieState,
+  nameTenantId: string | null = null,
 ): WebStudioResolveInput {
   switch (cookie.kind) {
     case "absent":
-      return { ok: true, roleClass: WEB_STUDIO_ROLE_CLASS };
+      return nameTenantId === null
+        ? { ok: true, roleClass: WEB_STUDIO_ROLE_CLASS }
+        : {
+            ok: true,
+            roleClass: WEB_STUDIO_ROLE_CLASS,
+            expectedTenantId: nameTenantId,
+          };
     case "selected":
+      if (nameTenantId !== null && cookie.selection.tenantId !== nameTenantId) {
+        return { ok: false };
+      }
       return {
         ok: true,
         roleClass: WEB_STUDIO_ROLE_CLASS,

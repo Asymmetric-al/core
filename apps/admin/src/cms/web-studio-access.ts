@@ -1,10 +1,18 @@
 import { getSignedInAssignments } from "@asym/auth/context";
+import {
+  isNameTenantRefused,
+  nameTenantIdOf,
+} from "@asym/auth/request-headers";
 import { buildTenantPrefix } from "@asym/auth/tenant-address";
 import { listAddressChoices } from "@asym/auth/tenant-address-decisions";
-import { redirectInTenant } from "@asym/auth/tenant-server";
+import {
+  readServerNameTenantState,
+  redirectInTenant,
+} from "@asym/auth/tenant-server";
 import {
   decideWebStudioAccess,
   WEB_STUDIO_CHOOSER_PATH,
+  WEB_STUDIO_REFUSED_PARAM,
   WEB_STUDIO_ROLE_CLASS,
   WEB_STUDIO_TENANT_COOKIE,
 } from "@asym/auth/web-studio";
@@ -59,15 +67,23 @@ function fallbackName(tenantId: string) {
  */
 const decideWebStudioRequest = cache(async () => {
   const signedIn = await getSignedInAssignments();
-  if (signedIn.kind !== "signed_in") return { signedIn, decision: null };
+  if (signedIn.kind !== "signed_in") {
+    return { signedIn, decision: null, nameTenantId: null };
+  }
+  const name = await readServerNameTenantState();
+  const nameTenantId = nameTenantIdOf(name);
+  if (isNameTenantRefused(name)) {
+    return { signedIn, decision: { kind: "refuse" } as const, nameTenantId };
+  }
   const cookie = await readWebStudioTenantCookie(
     (await cookies()).get(WEB_STUDIO_TENANT_COOKIE)?.value,
   );
   const decision = decideWebStudioAccess({
     assignments: signedIn.assignments,
     cookie,
+    nameTenantId,
   });
-  return { signedIn, decision };
+  return { signedIn, decision, nameTenantId };
 });
 
 /**
@@ -89,7 +105,7 @@ const decideWebStudioRequest = cache(async () => {
 export async function requireWebStudioAccess(
   pathname: string,
 ): Promise<WebStudioAccess> {
-  const { signedIn, decision } = await decideWebStudioRequest();
+  const { signedIn, decision, nameTenantId } = await decideWebStudioRequest();
   // Slice A's tenant-safe redirect: Web Studio's addresses carry no tenant
   // prefix, so each one is sent unchanged.
   if (signedIn.kind === "signed_out") {
@@ -101,7 +117,9 @@ export async function requireWebStudioAccess(
 
   if (decision.kind === "choose") {
     return redirectInTenant(
-      `${WEB_STUDIO_CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`,
+      `${WEB_STUDIO_CHOOSER_PATH}?next=${encodeURIComponent(pathname)}${
+        decision.refused ? `&${WEB_STUDIO_REFUSED_PARAM}=1` : ""
+      }`,
     );
   }
   if (decision.kind === "refuse") {
@@ -110,7 +128,9 @@ export async function requireWebStudioAccess(
 
   const { assignment } = decision;
   const staffRows = signedIn.assignments.filter(
-    (row) => row.membershipRole === WEB_STUDIO_ROLE_CLASS,
+    (row) =>
+      row.membershipRole === WEB_STUDIO_ROLE_CLASS &&
+      (nameTenantId === null || row.tenantId === nameTenantId),
   );
   // The address Mission Control's chooser would give this row.
   const home =
