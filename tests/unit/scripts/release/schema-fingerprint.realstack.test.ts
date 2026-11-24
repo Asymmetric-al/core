@@ -40,10 +40,10 @@ import {
   diffFingerprints,
   formatFingerprintDiff,
 } from "../../../../scripts/release/schema-fingerprint.mjs";
+import { readSeedExpectations } from "../../../../scripts/verify/seed-counts.mjs";
 import { Replay } from "../../acceptance/issue-2674/privileges-harness";
 import { queryJson } from "../../../../scripts/release/lib/postgres.mjs";
 import { listSourceMigrations } from "../../../../scripts/release/migration-heads.mjs";
-import { readSeedExpectations } from "../../../../scripts/verify/seed-counts.mjs";
 
 const created: string[] = [];
 /** A throwaway role of review L4's cases; dropped once its databases are. */

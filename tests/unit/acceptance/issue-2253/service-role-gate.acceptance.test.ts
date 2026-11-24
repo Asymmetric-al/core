@@ -10,7 +10,6 @@ import path from "node:path";
 
 import { afterAll, describe, expect, it } from "vitest";
 
-import { CEILING } from "../../../../scripts/verify/service-role-client-gate.mjs";
 import {
   ALLOWLIST,
   FACTORY,
@@ -23,6 +22,7 @@ import {
   read,
   removeTempDirs,
 } from "./harness";
+import { CEILING } from "../../../../scripts/verify/service-role-client-gate.mjs";
 
 afterAll(removeTempDirs);
 
