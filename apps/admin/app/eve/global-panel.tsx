@@ -40,6 +40,7 @@ import {
 } from "react";
 
 import { buildEvePageContext, prepareEveSend } from "./page-context";
+import { eveRequestScopeHeaders } from "./request-scope";
 
 const MAX_MESSAGE_LENGTH = 2_000;
 const SEND_SHORTCUT = "mod+enter";
@@ -67,6 +68,7 @@ function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
     tenant,
   });
   const agent = useEveAgent({
+    headers: eveRequestScopeHeaders,
     prepareSend: prepareEveSend(pageContext),
   });
   const busy = agent.status === "streaming" || agent.status === "submitted";
