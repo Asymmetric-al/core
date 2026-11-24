@@ -620,6 +620,7 @@ describe.skipIf(!ADMIN_URL)("Site commands", () => {
       "x-asym-assignment": assignment,
     });
 
+    let testError: unknown;
     try {
       await db.query("begin");
       await db.query(
@@ -721,12 +722,15 @@ describe.skipIf(!ADMIN_URL)("Site commands", () => {
         from: { display_name: "Alpha" },
         to: { display_name: "Beta" },
       });
+    } catch (error) {
+      testError = error;
+      throw error;
     } finally {
       await db.query("rollback").catch(() => {});
       await db2.query("rollback").catch(() => {});
       await observer.end().catch(() => {});
-      await db.query("begin");
       try {
+        await db.query("begin");
         await db.query("delete from public.audit_logs where tenant_id=$1", [
           tenant,
         ]);
@@ -746,8 +750,9 @@ describe.skipIf(!ADMIN_URL)("Site commands", () => {
         await db.query("delete from public.tenants where id=$1", [tenant]);
         await db.query("delete from auth.users where id=$1", [user]);
         await db.query("commit");
-      } catch {
+      } catch (cleanupError) {
         await db.query("rollback").catch(() => {});
+        if (!testError) throw cleanupError;
       }
     }
   });

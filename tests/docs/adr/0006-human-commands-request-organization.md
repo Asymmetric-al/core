@@ -39,19 +39,26 @@ moves a seam, keeping every assertion at least as strong.
    `tenant_guard.enter`), every existing assignment, capability and status
    refusal message is unchanged:
    - `tests/unit/acceptance/issue-2672/role-change-command.realstack.acceptance.test.ts`:
-     `asCaller` sends `"x-asym-tenant": tenant` alongside `"x-asym-assignment"`
-     when `assignment` is set.
+     `asCaller` always sends `"x-asym-tenant": tenant` (with
+     `"x-asym-assignment"` when an assignment row exists), and the foreign-admin
+     and no-identity refusal cases assert their exact `42501` messages.
    - `tests/unit/acceptance/issue-2674/command-lane.realstack.acceptance.test.ts`:
      `header()` sends `"x-asym-tenant": id.TA` alongside `"x-asym-assignment"`,
-     the no-header success calls pass `"x-asym-tenant": id.TA`, and the
-     claims-setting loop sets `request.headers` to `{"x-asym-tenant": id.TA}`.
+     the no-header success calls and blank-assignment refusal (`empty`) pass
+     `"x-asym-tenant": id.TA` (`empty` also asserts the several-assignments
+     message), and the claims-setting loop sets `request.headers` to
+     `{"x-asym-tenant": id.TA}`.
    - `tests/unit/acceptance/issue-2675/membership-core.realstack.acceptance.test.ts`:
-     `header()` and the four no-header success calls in the preamble block pass
-     `"x-asym-tenant": id.TA`.
+     `header()`, the four no-header success calls, and the revoked-row
+     refusals (`sole`, `after`) in the preamble block pass
+     `"x-asym-tenant": id.TA`, with `sole` and `after` asserting the exact
+     no-live-assignment message.
    - `tests/unit/acceptance/issue-2675/membership-role-commands.realstack.acceptance.test.ts`:
      `change()` and `revoke()` pass `"x-asym-tenant": id[opts.tenant ?? "TA"]`,
-     the pre-revocation `resolve_command_assignment` check passes
-     `"x-asym-tenant": id.TA`, and the committed race block's `begin()` sets
+     the pre-revocation `resolve_command_assignment` check, the no-caller
+     refusal (`a`), and the wrong-assignment refusal (`named`) pass
+     `"x-asym-tenant": id.TA` (with `a` and `named` asserting their exact
+     `42501` messages), and the committed race block's `begin()` sets
      `"x-asym-tenant": t`.
    - `tests/unit/acceptance/issue-2676/membership-invitations-commands.realstack.acceptance.test.ts`:
      `runAs` and `runCommittedAs` accept an optional `tenant` option that sets
@@ -73,20 +80,25 @@ moves a seam, keeping every assertion at least as strong.
    `tests/unit/acceptance/shared/realstack-step.test.ts`) exercises a dual-org
    administrator holding all five command capabilities across all twelve entry
    points (both `public` wrappers and `tenant_guard` inner functions) for wrong
-   tenant, missing tenant, malformed tenant and matching tenant, asserting zero
-   writes and unchanged target rows on every refusal. It also exercises
-   `tenant_guard.begin_human_command` directly as `tenant_guard`, confirms the
-   one-row rule still holds when `x-asym-tenant` matches, and confirms
-   `accept_membership_invitation` remains unaffected.
+   tenant, missing or blank (`""`, `"   "`) tenant, malformed tenant and
+   matching tenant, asserting zero writes and unchanged target rows on every
+   refusal. It also exercises `tenant_guard.begin_human_command` directly as
+   `tenant_guard`, proves refusal occurs before `tenant_guard.enter` both
+   behaviorally (entering tenant A first so `enter(B)` would raise its
+   second-tenant error if reached) and via `pg_get_functiondef` ordering,
+   confirms the one-row rule still holds when `x-asym-tenant` matches, and
+   confirms `accept_membership_invitation` remains unaffected.
    `tests/unit/acceptance/issue-2676/membership-invitations.postgrest.acceptance.test.ts`
-   adds a PostgREST proof of `invite_member` against a second active tenant.
+   adds a PostgREST proof of `invite_member` against a second active tenant
+   whose cleanup surfaces any delete failure without hiding a test failure.
 3. **The concurrent first-time brand-write audit fix is proved on two
    connections.**
    `tests/unit/acceptance/issue-2676/site-commands.realstack.acceptance.test.ts`
    adds a committed two-connection race (observed via `pg_stat_activity`
    `wait_event_type = 'Lock'` on a third connection) proving that two
    first-time `set_account_brand` calls record `from: null -> to: Alpha` and
-   `from: Alpha -> to: Beta` in `public.audit_logs`.
+   `from: Alpha -> to: Beta` in `public.audit_logs`, with cleanup surfacing
+   any delete failure without hiding a test failure.
 4. **The `resolve_verified_host` ACL assertion sorts by grantee expression.**
    `tests/unit/acceptance/issue-2676/sites.postgrest.acceptance.test.ts`
    replaces `array_agg(... order by 1)` (which ordered by a constant integer

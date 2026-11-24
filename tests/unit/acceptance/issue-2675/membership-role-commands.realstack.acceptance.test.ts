@@ -776,8 +776,12 @@ describe.skipIf(!ADMIN_URL)(
           const a = await call(
             null,
             `select public.change_membership_role('${id.TA}', '${id.mD1}', 'missionary', null, false, 'x') as r`,
+            { "x-asym-tenant": id.TA! },
           );
-          expect(a.code).toBe("42501");
+          expect([a.code, a.message]).toEqual([
+            "42501",
+            "tenant_guard: a human command needs a signed-in caller",
+          ]);
           for (const role of ["anon", "service_role"]) {
             const b = await call(
               "UADM",
@@ -796,9 +800,12 @@ describe.skipIf(!ADMIN_URL)(
           const named = await call(
             "UADM",
             `select public.revoke_membership('${id.TA}', '${id.mD1}', 'x') as r`,
-            { "x-asym-assignment": id.mDev },
+            { "x-asym-tenant": id.TA!, "x-asym-assignment": id.mDev! },
           );
-          expect(named.code).toBe("42501");
+          expect([named.code, named.message]).toEqual([
+            "42501",
+            "tenant_guard: the selected assignment is not a live assignment of the caller in this tenant",
+          ]);
           await unchanged();
         }));
     });

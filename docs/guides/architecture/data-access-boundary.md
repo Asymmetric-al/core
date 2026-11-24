@@ -100,9 +100,11 @@ the caller holds and refusing a value that is not a UUID) and reads
 when `x-asym-tenant` is missing, malformed or differs from the command's
 tenant. `authz.caller_assignment`, which the member directory
 (`public.tenant_member_directory`) uses, also reads `x-asym-assignment`
-through `tenant_guard.request_assignment_id()` and refuses a mismatched
-`x-asym-tenant`. The values the browser client sends reach these functions,
-as the session clients' values do.
+through `tenant_guard.request_assignment_id()`, refuses an `x-asym-tenant`
+header that names another organization, and still admits a request with no
+`x-asym-tenant` header (closed by the next package under D-16 ruling Q6). The
+values the browser client sends reach these functions, as the session clients'
+values do.
 
 The server's session clients send the result, not the proposal:
 `createClient(scope)` from `@asym/database/supabase/server` and

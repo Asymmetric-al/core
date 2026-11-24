@@ -177,12 +177,14 @@ describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
           caller
             ? JSON.stringify({ sub: people[caller], role: "authenticated" })
             : "",
-          assignment
-            ? JSON.stringify({
-                "x-asym-tenant": tenant,
-                "x-asym-assignment": assignment,
-              })
-            : "",
+          JSON.stringify(
+            assignment
+              ? {
+                  "x-asym-tenant": tenant,
+                  "x-asym-assignment": assignment,
+                }
+              : { "x-asym-tenant": tenant },
+          ),
         ],
       );
       const result = await db.query(sql);
@@ -333,7 +335,10 @@ describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
         tenantA,
         `select public.change_membership_role('${tenantA}', '${await rowOf("staffA", "staff")}', 'staff', 'development', true, 'x') as result`,
       );
-      expect(outcome.code).toBe("42501");
+      expect([outcome.code, outcome.message]).toEqual([
+        "42501",
+        "tenant_guard: the caller has no live assignment in this tenant",
+      ]);
       expect(await rolesOf("staffA")).toEqual(["donor", "staff"]);
     }));
 
@@ -345,7 +350,10 @@ describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
         tenant: tenantA,
         role: "admin",
       });
-      expect(outcome.code).toBe("42501");
+      expect([outcome.code, outcome.message]).toEqual([
+        "42501",
+        "tenant_guard: a human command needs a signed-in caller",
+      ]);
       expect(await rolesOf("staffA")).toEqual(["donor", "staff"]);
     }));
 

@@ -215,10 +215,16 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
         ]);
         const empty = await as(
           "authenticated",
-          { sub: "U2", headers: { "x-asym-assignment": " " } },
+          {
+            sub: "U2",
+            headers: { "x-asym-tenant": id.TA!, "x-asym-assignment": " " },
+          },
           RESOLVE("TA"),
         );
-        expect(empty.code).toBe("42501");
+        expect([empty.code, empty.message]).toEqual([
+          "42501",
+          "tenant_guard: the caller has several live assignments in this tenant and the request names none",
+        ]);
         for (const m of ["m2a", "m2b"]) {
           const r = await as(
             "authenticated",

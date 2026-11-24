@@ -446,11 +446,15 @@ describe.skipIf(!ADMIN_URL)(
           expectRefusedBothSchemas(f, "b", [{ "x-asym-tenant": f.tenantA }]),
         ));
 
-      it("(c) refuses missing x-asym-tenant with B's assignment named and with none through public and tenant_guard and writes nothing", () =>
+      it("(c) refuses missing or blank x-asym-tenant with B's assignment named and with none through public and tenant_guard and writes nothing", () =>
         withFixture((f) =>
           expectRefusedBothSchemas(f, "c", [
             { "x-asym-assignment": f.mDualB },
             {},
+            { "x-asym-tenant": "", "x-asym-assignment": f.mDualB },
+            { "x-asym-tenant": "" },
+            { "x-asym-tenant": "   ", "x-asym-assignment": f.mDualB },
+            { "x-asym-tenant": "   " },
           ]),
         ));
 
@@ -488,7 +492,7 @@ describe.skipIf(!ADMIN_URL)(
         }));
     });
 
-    it("refuses the preamble itself for (a)-(d) without entering the tenant and serves (e) as tenant_guard", () =>
+    it("refuses the preamble itself for (a)-(d) including blank headers before tenant_guard.enter and serves (e) as tenant_guard", () =>
       withFixture(async (f) => {
         const preambleSql =
           "select (r).actor_id, (r).tenant_id, (r).assignment_id, tenant_guard.current_tenant_id() as entered from tenant_guard.begin_human_command($1::uuid, null) as r";
@@ -498,6 +502,16 @@ describe.skipIf(!ADMIN_URL)(
           ["b", { "x-asym-tenant": f.tenantA }],
           ["c-named", { "x-asym-assignment": f.mDualB }],
           ["c-none", {}],
+          [
+            "c-empty-named",
+            { "x-asym-tenant": "", "x-asym-assignment": f.mDualB },
+          ],
+          ["c-empty-none", { "x-asym-tenant": "" }],
+          [
+            "c-spaces-named",
+            { "x-asym-tenant": "   ", "x-asym-assignment": f.mDualB },
+          ],
+          ["c-spaces-none", { "x-asym-tenant": "   " }],
           [
             "d-named",
             { "x-asym-tenant": "not-a-uuid", "x-asym-assignment": f.mDualB },
@@ -516,11 +530,43 @@ describe.skipIf(!ADMIN_URL)(
           );
           expect(outcome.code, `${label}: ${outcome.message}`).toBe("42501");
           expect(outcome.message, label).toBe(REFUSAL_MESSAGE);
-          const current = await db.query(
-            "select tenant_guard.current_tenant_id() as current",
-          );
-          expect(current.rows[0]!.current, label).toBeNull();
         }
+
+        await db.query("savepoint pre_enter_order");
+        try {
+          await db.query("set local role tenant_guard");
+          await db.query("select tenant_guard.enter($1::uuid)", [f.tenantA]);
+          await db.query("reset role");
+          for (const [label, headers] of refusalCases) {
+            const outcome = await invoke(
+              "tenant_guard",
+              f.uDual,
+              headers,
+              preambleSql,
+              [f.tenantB],
+              true,
+            );
+            expect(outcome.code, `pre-enter ${label}: ${outcome.message}`).toBe(
+              "42501",
+            );
+            expect(outcome.message, `pre-enter ${label}`).toBe(REFUSAL_MESSAGE);
+          }
+        } finally {
+          await db.query("rollback to savepoint pre_enter_order");
+          await db.query("release savepoint pre_enter_order");
+        }
+
+        const defResult = await db.query<{ def: string }>(
+          "select pg_get_functiondef('tenant_guard.begin_human_command(uuid,text)'::regprocedure) as def",
+        );
+        const def = defResult.rows[0]!.def;
+        const refusalIdx = def.indexOf(REFUSAL_MESSAGE);
+        const enterMarker = "PERFORM tenant_guard.enter(v_ctx.tenant_id);";
+        const enterIdx = def.indexOf(enterMarker);
+        expect(refusalIdx).toBeGreaterThan(-1);
+        expect(enterIdx).toBeGreaterThan(refusalIdx);
+        const afterEnter = def.slice(enterIdx + enterMarker.length);
+        expect(afterEnter).not.toMatch(/request_tenant_id|raise\b/i);
 
         for (const [label, headers] of [
           [

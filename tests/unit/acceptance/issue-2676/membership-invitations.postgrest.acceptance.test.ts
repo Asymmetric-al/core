@@ -319,6 +319,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         throw error;
       }
 
+      let testError: unknown;
       try {
         const body = {
           p_tenant_id: tenantB,
@@ -383,9 +384,12 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         expect(created.invitation_id).toBeTruthy();
         expect(created.selector).toBeTruthy();
         expect(created.verifier).toBeTruthy();
+      } catch (error) {
+        testError = error;
+        throw error;
       } finally {
-        await db!.query("begin");
         try {
+          await db!.query("begin");
           await db!.query(
             "delete from public.membership_invitations where tenant_id = $1",
             [tenantB],
@@ -402,8 +406,9 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
             tenantB,
           ]);
           await db!.query("commit");
-        } catch {
+        } catch (cleanupError) {
           await db!.query("rollback").catch(() => {});
+          if (!testError) throw cleanupError;
         }
       }
     });

@@ -420,10 +420,13 @@ describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
         expect(named.code).toBe("42501");
         const sole = await as(
           "tenant_guard",
-          { sub: "UREV" },
+          { sub: "UREV", headers: { "x-asym-tenant": id.TA! } },
           begin("TA", null),
         );
-        expect(sole.code).toBe("42501");
+        expect([sole.code, sole.message]).toEqual([
+          "42501",
+          "tenant_guard: the caller has no live assignment in this tenant",
+        ]);
 
         const before = await as(
           "tenant_guard",
@@ -437,10 +440,13 @@ describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
         );
         const after = await as(
           "tenant_guard",
-          { sub: "UDEV" },
+          { sub: "UDEV", headers: { "x-asym-tenant": id.TA! } },
           begin("TA", "web_studio.publish"),
         );
-        expect(after.code).toBe("42501");
+        expect([after.code, after.message]).toEqual([
+          "42501",
+          "tenant_guard: the caller has no live assignment in this tenant",
+        ]);
       }));
 
     it("refuses an empty capability name, and the one-argument form still checks membership only", () =>
