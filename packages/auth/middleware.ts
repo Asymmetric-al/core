@@ -159,12 +159,25 @@ function withPathHeader(
   });
 }
 
+export function appUrl(request: NextRequest, path: string): URL {
+  const base = request.nextUrl.basePath || "";
+  const full =
+    !base || !path.startsWith("/") || path.startsWith("//")
+      ? path
+      : path === "/"
+        ? base
+        : path.startsWith("/?") || path.startsWith("/#")
+          ? `${base}${path.slice(1)}`
+          : `${base}${path}`;
+  return new URL(full, request.nextUrl.origin);
+}
+
 function buildRedirectUrl(
   request: NextRequest,
   path: string,
   next?: string | null,
 ) {
-  const url = new URL(path, request.nextUrl.origin);
+  const url = appUrl(request, path);
   if (next) {
     url.searchParams.set("next", next);
   }
@@ -251,7 +264,7 @@ function withSearch(request: NextRequest, pathname: string) {
 
 function ownOriginUrl(request: NextRequest, path: string): URL | null {
   if (!path.startsWith("/")) return null;
-  const url = new URL(path, request.nextUrl.origin);
+  const url = appUrl(request, path);
   return url.origin === request.nextUrl.origin && !url.pathname.startsWith("//")
     ? url
     : null;
@@ -266,7 +279,7 @@ function chooserUrl(
   tenantId: string | null,
   next: string,
 ) {
-  const url = new URL(CHOOSER_PATH, request.nextUrl.origin);
+  const url = appUrl(request, CHOOSER_PATH);
   if (tenantId) url.searchParams.set("tenant", tenantId);
   url.searchParams.set("next", next);
   return url;
