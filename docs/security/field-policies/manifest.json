@@ -3125,6 +3125,275 @@
         "public": "---",
         "export": "---"
       }
+    },
+    "sites": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "tenant_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "name": {
+        "type": "text",
+        "nullable": false,
+        "category": "contact",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "is_default": {
+        "type": "boolean",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "status": {
+        "type": "text",
+        "nullable": false,
+        "category": "care",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "primary_domain": {
+        "type": "text",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      }
+    },
+    "site_domains": {
+      "host": {
+        "type": "text",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "tenant_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "public",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "v--",
+        "export": "---"
+      },
+      "generation": {
+        "type": "bigint",
+        "nullable": false,
+        "category": "public",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "v--",
+        "export": "---"
+      },
+      "surfaces": {
+        "type": "text[]",
+        "nullable": false,
+        "category": "public",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "v--",
+        "export": "---"
+      },
+      "site_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "public",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "v--",
+        "export": "---"
+      },
+      "expected_project": {
+        "type": "text",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "control_proved_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "category": "security",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "attached_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "security",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "attached_by": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "security",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "routing_proved_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "security",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "https_proved_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "security",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "sign_in_ready_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "security",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "activation_proved_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "security",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "activation_proved_by": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "security",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "state": {
+        "type": "text",
+        "nullable": false,
+        "generated": "\nCASE\n    WHEN (activation_proved_at IS NOT NULL) THEN 'active'::text\n    WHEN (sign_in_ready_at IS NOT NULL) THEN 'ready'::text\n    ELSE 'claimed'::text\nEND",
+        "category": "public",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "v--",
+        "export": "---"
+      }
+    },
+    "donor_portal_hosts": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "tenant_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "primary_domain": {
+        "type": "text",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      }
+    },
+    "donor_account_brands": {
+      "tenant_id": {
+        "type": "uuid",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "display_name": {
+        "type": "text",
+        "nullable": false,
+        "category": "contact",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      }
     }
   }
 }
