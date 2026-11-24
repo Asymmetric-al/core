@@ -1,4 +1,4 @@
-import { appPathname } from "@asym/database/document-reload";
+import { appPathname } from "@asym/database/app-base-path";
 
 import type { init, replayIntegration } from "@sentry/nextjs";
 
