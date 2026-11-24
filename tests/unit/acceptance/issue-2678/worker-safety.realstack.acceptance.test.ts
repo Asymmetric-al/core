@@ -535,6 +535,11 @@ describe.skipIf(!ADMIN_URL)(
           "''",
           "null",
           "' Shepherd' || chr(12288) || chr(65279)",
+          "'Jose' || chr(769)",
+          "'Jose' || chr(847) || chr(769)",
+          "'Ali' || chr(173) || 'ce'",
+          "chr(65313) || 'lice'",
+          "chr(8295) || 'Alice' || chr(8297)",
         ];
         for (const s of samples) {
           const agree = await db.query(
@@ -545,6 +550,162 @@ describe.skipIf(!ADMIN_URL)(
             { alias_slot: true, approved_slot: true },
           ]);
         }
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
+    it("the alias rule compares text that renders the same as the same (bot review #35, the coordinator's L1): a decomposed accent, a fullwidth name, a soft hyphen, a direction mark, a directional isolate, an accented capital, a second accented sample and a combining grapheme joiner between a letter and its accent are refused in both directions; a decomposed alias is stored and projected composed", async () => {
+      await db.query("savepoint s");
+      const refusal = async (sql: string) => {
+        const r = await run(admin, sql);
+        return r.code === null ? null : `${r.code} ${r.message}`;
+      };
+      const direct = async (sql: string) => {
+        await db.query("savepoint direct");
+        try {
+          await db.query(sql);
+          return null;
+        } catch (e) {
+          const err = e as { code?: string; message?: string };
+          return `${err.code ?? "?"} ${err.message ?? ""}`;
+        } finally {
+          await db.query("rollback to savepoint direct");
+        }
+      };
+      try {
+        const pairs = [
+          [
+            "a decomposed alias against a composed legal name",
+            "'Jos' || chr(233)",
+            "'Jose' || chr(769)",
+          ],
+          [
+            "a fullwidth alias against a plain legal name",
+            "'Alice'",
+            "chr(65313) || chr(65356) || chr(65353) || chr(65347) || chr(65349)",
+          ],
+          ["a soft hyphen inside", "'Alice'", "'Ali' || chr(173) || 'ce'"],
+          [
+            "a left-to-right mark at the end",
+            "'Alice'",
+            "'Alice' || chr(8206)",
+          ],
+          [
+            "a right-to-left isolate around the name",
+            "'Alice'",
+            "chr(8295) || 'Alice' || chr(8297)",
+          ],
+          [
+            "an accented capital against its small letter",
+            "chr(201) || 'lodie'",
+            "chr(233) || 'lodie'",
+          ],
+          [
+            "a second accented sample, decomposed",
+            "'Fran' || chr(231) || 'ois'",
+            "'Franc' || chr(807) || 'ois'",
+          ],
+          [
+            "a combining grapheme joiner between a letter and its accent",
+            "'Jos' || chr(233)",
+            "'Jose' || chr(847) || chr(769)",
+          ],
+        ] as const;
+        for (const [label, legal, alias] of pairs) {
+          await db.query("savepoint pair");
+          const made = await act(
+            admin,
+            `select public.set_worker_identity('${id.TA}', '${id.pMA}', ${legal}, null, null, null, null, null, 'fixture')`,
+          );
+          expect(made.code, `${label}: ${made.message}`).toBeNull();
+          expect(
+            await refusal(
+              `select public.restrict_worker_publication('${id.TA}', '${id.pMA}', 'restricted', ${alias}, null, 'r')`,
+            ),
+            label,
+          ).toBe(`23514 ${ALIAS_DIFFERS}`);
+          await db.query("rollback to savepoint pair");
+        }
+        const made = await act(
+          admin,
+          `select public.set_worker_identity('${id.TA}', '${id.pMA}', 'Joseph', null, null, null, null, null, 'fixture')`,
+        );
+        expect(made.code, made.message).toBeNull();
+        const restricted = await act(
+          admin,
+          `select public.restrict_worker_publication('${id.TA}', '${id.pMA}', 'restricted', 'Rene' || chr(769), null, 'r')`,
+        );
+        expect(restricted.code, restricted.message).toBeNull();
+        expect(
+          (
+            await db.query(
+              "select public_alias = 'Ren' || chr(233) as composed from public.parties where id = $1",
+              [id.pMA],
+            )
+          ).rows,
+          "a decomposed alias is stored composed",
+        ).toEqual([{ composed: true }]);
+        expect(
+          await direct(
+            `update private.party_restricted set legal_name = 'Rene' || chr(769) where party_id = '${id.pMA}'`,
+          ),
+          "the reverse: a decomposed legal name against a stored composed alias",
+        ).toBe(`23514 ${ALIAS_DIFFERS}`);
+        expect(
+          await direct(
+            `update private.party_restricted set legal_name = 'Ren' || chr(233) where party_id = '${id.pMA}'`,
+          ),
+          "the composed legal name, the same",
+        ).toBe(`23514 ${ALIAS_DIFFERS}`);
+        expect(
+          await direct(
+            `update private.party_restricted set legal_name = 'Joseph Cedar' where party_id = '${id.pMA}'`,
+          ),
+          "the green case",
+        ).toBeNull();
+        expect(
+          (
+            await db.query(
+              "select public.worker_public_display_name('Jose' || chr(769), null, null) = 'Jos' || chr(233) as composed",
+            )
+          ).rows,
+          "the projection returns the composed form",
+        ).toEqual([{ composed: true }]);
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
+    it("restrict's audit row says alias_changed only when the normalized alias changed (bot review #39, the coordinator's L2)", async () => {
+      await db.query("savepoint s");
+      try {
+        for (const [alias, reason] of [
+          ["'Cedar'", "first"],
+          ["'Cedar' || chr(160)", "confirm"],
+          ["'Birch'", "change"],
+        ] as const) {
+          const restricted = await act(
+            admin,
+            `select public.restrict_worker_publication('${id.TA}', '${id.pM2}', 'restricted', ${alias}, null, '${reason}')`,
+          );
+          expect(
+            restricted.code,
+            `${reason}: ${restricted.message}`,
+          ).toBeNull();
+        }
+        expect(
+          (
+            await db.query(
+              "select details->>'reason' as reason, details->>'alias_changed' as changed from public.audit_logs where resource_id = $1 and action = 'worker_publication_restricted' order by created_at, details->>'reason'",
+              [id.pM2],
+            )
+          ).rows,
+        ).toEqual([
+          { reason: "change", changed: "true" },
+          { reason: "confirm", changed: "false" },
+          { reason: "first", changed: "true" },
+        ]);
       } finally {
         await db.query("rollback to savepoint s");
       }

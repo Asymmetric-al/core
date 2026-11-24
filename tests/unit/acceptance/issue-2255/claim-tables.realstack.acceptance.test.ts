@@ -111,10 +111,14 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
   };
   const as = (who: keyof typeof U, sql: string, p: unknown[] = []) =>
     run(sql, p, "authenticated", U[who], TENANT_OF[who]);
-  const ids = async (who: keyof typeof U, table: string) =>
-    (await as(who, `SELECT id FROM public.${table} ORDER BY id`)).rows.map(
-      (r) => r.id as string,
-    );
+  const ids = async (who: keyof typeof U, table: string) => {
+    const read = await as(who, `SELECT id FROM public.${table} ORDER BY id`);
+    expect(
+      read.code,
+      `${who} reads ${table} without an error (D-18, AL-2678 bot review #41): ${String(read.e ?? "")}`,
+    ).toBeUndefined();
+    return read.rows.map((r) => r.id as string);
+  };
   const sorted = (...xs: string[]) => [...xs].sort();
   const snap = (t: string) =>
     one(
@@ -199,19 +203,28 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
     async () => {
       expect(await ids("r1", CLAIMS)).toEqual([]);
       expect(await ids("r2", CLAIMS)).toEqual([]);
-      const status = (who: keyof typeof U) =>
-        run(
+      const statusAs = async (
+        who: keyof typeof U,
+        header: string | undefined,
+      ) => {
+        const read = await run(
           "SELECT * FROM public.account_claim_status($1)",
           [A],
           "authenticated",
           U[who],
-          A,
+          header,
         );
+        expect(
+          read.code,
+          `${who}'s status read answers without an error (D-16): ${String(read.e ?? "")}`,
+        ).toBeUndefined();
+        return read;
+      };
+      const status = (who: keyof typeof U) => statusAs(who, A);
       for (const who of ["r1", "r2"] as const) {
         expect((await status(who)).rows, `${who}: unredeemed`).toEqual([]);
         expect(
-          (await as(who, "SELECT * FROM public.account_claim_status($1)", [A]))
-            .rows,
+          (await statusAs(who, TENANT_OF[who])).rows,
           `${who}: unredeemed, as the fixture sends it`,
         ).toEqual([]);
       }
@@ -267,28 +280,11 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
         ["redeemed, no header", undefined],
         ["redeemed, the other organization's header", B],
       ] as const)
-        expect(
-          (
-            await run(
-              "SELECT * FROM public.account_claim_status($1)",
-              [A],
-              "authenticated",
-              U.r1,
-              header,
-            )
-          ).rows,
-          label,
-        ).toEqual([]);
+        expect((await statusAs("r1", header)).rows, label).toEqual([]);
       expect((await status("r2")).rows, "another person's request").toEqual([]);
       expect(await ids("r1", CLAIMS)).toEqual([]);
       expect(await ids("r2", CLAIMS)).toEqual([]);
-      expect(
-        (
-          await as("staffA", "SELECT * FROM public.account_claim_status($1)", [
-            A,
-          ])
-        ).rows,
-      ).toEqual([]);
+      expect((await statusAs("staffA", A)).rows).toEqual([]);
       const ins = await as(
         "r1",
         `INSERT INTO public.account_claim_requests (tenant_id, email, requested_by) VALUES ($1, 'me@x.com', $2)`,
@@ -742,7 +738,9 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
           add constraint ${table}_tenant_id_fkey foreign key (tenant_id) references public.tenants(id) on delete restrict`);
       }
       const withoutGuardGrants = (v: string) =>
-        v.replace(/,?tenant_guard:(INSERT|SELECT|UPDATE)/g, "");
+        v.startsWith("rel public.account_claim_requests ")
+          ? v.replace(/,?tenant_guard:(INSERT|SELECT|UPDATE)/g, "")
+          : v;
       const notThisFile = (v: string) =>
         rewrittenLater(v) || /account_claim_requests_id_idx/.test(v);
       expect(
