@@ -170,19 +170,29 @@ and W5-R5) changes `account_claim_requests`:
   dropped with its pin in `docs/security/tenant-policy-exceptions.json`. A
   signed-in claimant reads no row of the table; `public.account_claim_status(tenant)`
   returns the status, `created_at`, `updated_at` and `resolved_at` of the
-  caller's own requests in that tenant and nothing else. The staff policy and
-  `SELECT` for `authenticated` stay.
+  caller's own requests in that tenant and nothing else. It returns no row
+  when the request's `x-asym-tenant` is missing,
+  malformed or names another tenant. The staff policy and `SELECT` for
+  `authenticated` stay.
 - The claim's proof: `token_sha256` (the SHA-256 of the UTF-8 bytes of the
   claim token, exactly 32 bytes, unique where set; the raw token is never
   stored), `token_expires_at` (set with the digest, 24 hours after issue,
   `private.account_claim_token_lifetime()`), `token_redeemed_at` and
-  `donor_email_at_issue`. These are the only columns of the table that name a
-  token; the rule above for invitations is unchanged.
+  `donor_email_at_issue`, which a token cannot lack. These are the only
+  columns of the table that name a token; the rule above for invitations is
+  unchanged. The command role may update only `status`, the four token
+  columns, `resolved_at` and `updated_at`.
 - Writers: `tenant_guard.start_account_claim(tenant)` and
   `tenant_guard.redeem_account_claim(tenant, token)`, on the signed-in
   caller's token through their `public` wrappers, and the worker step
   `tenant_guard.issue_account_claim_token(tenant, claim, digest)` on the
   service key through `public.issue_account_claim_token(claim, digest)`, all
-  under the guard's `tenant_guard_isolation` policy. Starting a claim answers
-  `{"status":"received"}` whatever the outcome; every failed redemption
-  answers `{"status":"refused"}`; the outcome is written to `audit_logs` only.
+  under the guard's `tenant_guard_isolation` policy. Start and redeem refuse
+  (`42501`) a request whose `x-asym-tenant` is missing, malformed or names
+  another tenant than the argument. Starting a claim answers
+  `{"status":"received"}` whatever the outcome, a conflict between two starts
+  included; every failed redemption answers `{"status":"refused"}`, a race
+  lost on the link included; the outcome is written to `audit_logs` only. A
+  platform operator is never linked or given a membership, and a soft-deleted
+  login has no confirmed address. At most one open claim of one login on one
+  donor exists at a time.
