@@ -11,5 +11,9 @@ export async function findFullProfileById(
   supabase: AdminSupabaseClient,
   profileId: string,
 ) {
-  return supabase.from("profiles").select("*").eq("id", profileId).single();
+  return supabase
+    .from("profiles")
+    .select("id, email, first_name, last_name, avatar_url")
+    .eq("id", profileId)
+    .single();
 }

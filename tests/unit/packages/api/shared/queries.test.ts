@@ -126,6 +126,8 @@ describe("api/shared/queries", () => {
       p_tenant_id: "tenant-1",
       p_assignment_id: "assignment-1",
     });
-    expect(mock.select).toHaveBeenCalledWith("*");
+    expect(mock.select).toHaveBeenCalledWith(
+      "id, bio, tagline, location, phone, cover_url, social_links",
+    );
   });
 });

@@ -1,4 +1,5 @@
 import {
+  contextCapabilities,
   getAuthContext,
   hasAnyContextRole,
   hasContextCapability,
@@ -133,6 +134,9 @@ async function loadShellState(
     lastName: profile?.last_name,
     avatarUrl: profile?.avatar_url,
     role: auth.role,
+    capabilities: Array.isArray(auth.memberships)
+      ? [...contextCapabilities(auth)]
+      : [],
     canManageMembers: hasContextCapability(auth, "people.manage_members"),
     currentMembershipId: auth.assignment?.assignmentId ?? null,
     tenantId,

@@ -298,7 +298,7 @@ test("an address whose tenant segment or suffix differs from the document's scop
   const documents = trackDocumentLoads(page);
 
   // Another organization.
-  await signInAs(page, "admin", "twoTenants", baseURL());
+  await signInAs(page, "admin", "twoTenantsCare", baseURL());
   await page.goto(tenantPath(DEMO, "/care/directory"));
   await expect(personLink(page, "Person 01")).toBeVisible();
   await markDocument(page);
@@ -312,7 +312,8 @@ test("an address whose tenant segment or suffix differs from the document's scop
   // Another assignment in the same organization.
   await signInAs(page, "admin", "twoRows", baseURL());
   await page.goto(tenantPath(DEMO, "/care/directory", "finance"));
-  await expect(personLink(page, "Person 01")).toBeVisible();
+  await expect(page.getByRole("note")).toBeVisible();
+  await expect(page.getByText("Person 01")).toHaveCount(0);
   await markDocument(page);
   before = documents.length;
   await softNavigate(page, tenantPath(DEMO, "/care/directory", "member_care"));
@@ -329,11 +330,11 @@ test("an address whose tenant segment or suffix differs from the document's scop
   await expect(page.locator("[data-tenant-scope]")).toHaveCount(0);
 });
 
-test("navigation between the list and a detail page stays soft, with every address prefixed", async ({
+test("navigation between the list and a detail page stays soft, with every address prefixed (D-18: Member Care requires care.access)", async ({
   page,
 }) => {
   await serveMemberCareFixtures(page);
-  await signInAs(page, "admin", "demoAdmin", baseURL());
+  await signInAs(page, "admin", "demoCare", baseURL());
   const documents = trackDocumentLoads(page);
   const prefix = `/${DEMO}`;
 
@@ -573,10 +574,10 @@ test.describe("production build", () => {
   // the person's only row, click. No row of the organization may render from
   // anything cached or prerendered, and the navigation ends on the refusal
   // page.
-  test("a link prefetched before the person's row is revoked renders no row of the organization, and the click ends on the refusal page", async ({
+  test("a link prefetched before the person's row is revoked renders no row of the organization, and the click ends on the refusal page (D-18: Member Care requires care.access)", async ({
     page,
   }) => {
-    const [only] = fixturePerson("demoAdmin").memberships;
+    const [only] = fixturePerson("demoCare").memberships;
     let revoked = false;
     // Member care answers as the resolver does: the rows while the row is
     // live, the scope's refusal once it is revoked.
@@ -607,7 +608,7 @@ test.describe("production build", () => {
         body: response.text().catch(() => ""),
       });
     });
-    await signInAs(page, "admin", "demoAdmin", baseURL());
+    await signInAs(page, "admin", "demoCare", baseURL());
     try {
       await page.goto(tenantPath(DEMO, "/"));
       const memberCare = page
@@ -644,7 +645,7 @@ test.describe("production build", () => {
       };
       await page.addInitScript(watchCareRows);
       await page.evaluate(watchCareRows);
-      await revokeMembership(page, "admin", "demoAdmin", only!.id, baseURL());
+      await revokeMembership(page, "admin", "demoCare", only!.id, baseURL());
       revoked = true;
 
       await memberCare.click();
@@ -701,7 +702,7 @@ test.describe("production build", () => {
         body: response.text().catch(() => ""),
       });
     });
-    await signInAs(page, "admin", "demoAdmin", baseURL());
+    await signInAs(page, "admin", "demoCare", baseURL());
     await page.goto(tenantPath(DEMO, "/care/directory"));
     await expect(personLink(page, "Person 01")).toBeVisible();
     await expect
@@ -752,7 +753,7 @@ test.describe("production build", () => {
       "Requires the testing API (EXPOSE_TESTING_API=1)",
     );
     await serveMemberCareFixtures(page);
-    await signInAs(page, "admin", "demoAdmin", baseURL());
+    await signInAs(page, "admin", "demoCare", baseURL());
     await page.goto(tenantPath(DEMO, "/care/directory"));
     await expect(personLink(page, "Person 01")).toBeVisible();
 

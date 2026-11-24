@@ -998,7 +998,6 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           ["staged_gift_allocations", "id", allocations],
           ["donor_pledges", "id", commitments],
           ["donor_activities", "id", activities],
-          ["member_care_activities", "id", care],
           ["contribution_corrections", "donation_id", giftIds],
           ["contribution_correction_requests", "donation_id", giftIds],
           ["contribution_adjustments", "id", adjustments],
@@ -1009,6 +1008,51 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           const result = await scoped.from(table).select(key).in(key, ids);
           expect(result.error, table).toBeNull();
           expect(result.data, table).toEqual([{ [key]: ids[0] }]);
+        }
+        const careAsDevelopment = await scoped
+          .from("member_care_activities")
+          .select("id")
+          .in("id", care);
+        expect(
+          careAsDevelopment.error,
+          "member_care_activities development",
+        ).toBeNull();
+        expect(
+          careAsDevelopment.data,
+          "member_care_activities development",
+        ).toEqual([]);
+        const careAssignmentId = randomUUID();
+        await db.query(
+          "insert into authz.memberships (id,user_id,tenant_id,role,staff_role) values ($1,$2,$3,'staff','member_care')",
+          [careAssignmentId, dualUser, tenantA],
+        );
+        try {
+          const careScoped = await createRequestSessionClient(
+            new NextRequest(new URL("/", url), {
+              headers: {
+                authorization: `Bearer ${dual.token}`,
+                "x-asym-tenant": tenantA,
+                "x-asym-assignment": careAssignmentId,
+              },
+            }),
+            { tenantId: tenantA, assignmentId: careAssignmentId },
+          );
+          const careAsMemberCare = await careScoped
+            .from("member_care_activities")
+            .select("id")
+            .in("id", care);
+          expect(
+            careAsMemberCare.error,
+            "member_care_activities member_care",
+          ).toBeNull();
+          expect(
+            careAsMemberCare.data,
+            "member_care_activities member_care",
+          ).toEqual([{ id: care[0] }]);
+        } finally {
+          await db.query("delete from authz.memberships where id = $1", [
+            careAssignmentId,
+          ]);
         }
         for (const [table, columns, withheld, id] of [
           [

@@ -67,10 +67,6 @@ const ALLOWED: Record<string, [number, string]> = {
     1,
     "WP2c: the super_admin cross-tenant directory",
   ],
-  "packages/api/src/admin/member-care/route-helpers.ts": [
-    1,
-    "WP2c: isSuperAdmin on the member-care context",
-  ],
   "packages/api/src/admin/support-hub/route-helpers.ts": [
     1,
     "WP2c: isSuperAdmin on the Support Hub context",

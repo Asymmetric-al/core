@@ -3,7 +3,12 @@ import { expect, test, type Page } from "@playwright/test";
 import { adminBaseURL } from "./base-urls";
 import { getDemoRoleMap } from "./helpers/demo-auth";
 import { installDemoSessionInBrowser } from "./helpers/install-demo-session";
-import { demoTenantPath, TENANTS } from "./helpers/tenant-address";
+import {
+  demoTenantPath,
+  fixturePerson,
+  signInAs,
+  TENANTS,
+} from "./helpers/tenant-address";
 
 async function ensureAdminDemo(page: Page) {
   const availability = await page.request.get(
@@ -148,8 +153,50 @@ test.describe("Admin table pages smoke", () => {
 
       await expect(page.locator("#__next_error__")).toHaveCount(0);
       await expectMissionControlChrome(page);
+      if (path === "/care" && process.env.E2E_AUTH_BYPASS === "true") {
+        const careRefusal = await page.request.get(
+          new URL("/api/admin/member-care/dashboard", adminBaseURL).href,
+          {
+            headers: { "x-asym-tenant": TENANTS.demo },
+          },
+        );
+        expect(careRefusal.status()).toBe(403);
+        const note = page.getByRole("note");
+        await expect(note).toBeVisible({ timeout: 120_000 });
+        await expect(note).toContainText(/No access to Member Care/i);
+        await expect(page.getByText(/Check your connection/i)).toHaveCount(0);
+        await page.getByRole("link", { name: "Go to home" }).click();
+        await expect(page).toHaveURL(new RegExp(`/${TENANTS.demo}/?$`));
+      }
     });
   }
+
+  test("Care API refuses a sessionless member_care bypass fixture with 401 SESSION_REQUIRED", async ({
+    page,
+  }) => {
+    test.skip(
+      process.env.E2E_AUTH_BYPASS !== "true",
+      "E2E bypass session check only",
+    );
+    const careAssignment = fixturePerson("twoRows").memberships.find(
+      (membership) => membership.staffRole === "member_care",
+    );
+    expect(careAssignment).toBeDefined();
+    await signInAs(page, "admin", "twoRows", adminBaseURL);
+    const refusal = await page.request.get(
+      new URL("/api/admin/member-care/dashboard", adminBaseURL).href,
+      {
+        headers: {
+          "x-asym-tenant": TENANTS.demo,
+          "x-asym-assignment": careAssignment!.id,
+        },
+      },
+    );
+    expect(refusal.status()).toBe(401);
+    expect(await refusal.json()).toMatchObject({
+      code: "SESSION_REQUIRED",
+    });
+  });
 
   test.describe("Support Hub smoke", () => {
     for (const { path, heading } of SUPPORT_ROUTES) {

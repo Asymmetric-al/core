@@ -188,20 +188,24 @@ async function requestMutation<TInput>(
   return parseJsonResponse<MutationResponse>(response);
 }
 
-export function useMemberCareDashboardQuery() {
+export function useMemberCareDashboardQuery(options?: { enabled?: boolean }) {
   return useQuery({
+    enabled: options?.enabled ?? true,
     queryKey: getAdminSurfaceQueryKey("memberCareDashboard"),
     queryFn: fetchMemberCareDashboard,
   });
 }
 
-export function useCareDashboard() {
-  return useMemberCareDashboardQuery();
+export function useCareDashboard(options?: { enabled?: boolean }) {
+  return useMemberCareDashboardQuery(options);
 }
 
-export function useMemberCareDetailQuery(personnelId: string | undefined) {
+export function useMemberCareDetailQuery(
+  personnelId: string | undefined,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
-    enabled: Boolean(personnelId),
+    enabled: Boolean(personnelId) && (options?.enabled ?? true),
     queryKey: getAdminSurfaceQueryKey("memberCareDetail").concat(
       personnelId ?? "missing",
     ),
@@ -209,8 +213,8 @@ export function useMemberCareDetailQuery(personnelId: string | undefined) {
   });
 }
 
-export function useCarePersonnel() {
-  const query = useMemberCareDashboardQuery();
+export function useCarePersonnel(options?: { enabled?: boolean }) {
+  const query = useMemberCareDashboardQuery(options);
 
   return {
     ...query,

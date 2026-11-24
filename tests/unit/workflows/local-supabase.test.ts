@@ -184,6 +184,48 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
       expect(workflow).not.toContain(`      - ${glob}\n`);
   });
 
+  it("runs Member Care journeys in the real Auth job (D-18: WP4b part 1)", () => {
+    const config = readFileSync("playwright.auth-mail.config.ts", "utf8");
+    expect(config).toContain('"**/auth-member-care.spec.ts"');
+    expect(workflow).toContain("- tests/e2e/auth-member-care.spec.ts");
+    expect(step("Run the auth email round trips")).toContain(
+      "bun run test:e2e:auth-mail",
+    );
+  });
+
+  it("requires the Member Care caller-token suite on the seeded stack after fingerprinting (D-18: WP4b part 1)", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2677/member-care.postgrest.acceptance.test.ts";
+    const command = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(
+      "Verify Member Care handlers and R11 projections through PostgREST",
+    );
+    expect(run).toBeDefined();
+    expect(run).toContain('MEMBER_CARE_IT_REQUIRED: "1"');
+    expect(run).toContain(
+      "MEMBER_CARE_IT_SUPABASE_URL: http://127.0.0.1:54321",
+    );
+    expect(run).toContain(
+      "MEMBER_CARE_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    );
+    expect(run).toContain("jq -er '.ANON_KEY | select(length > 0)'");
+    expect(run).toContain("jq -er '.SERVICE_ROLE_KEY | select(length > 0)'");
+    expect(run).toContain(command);
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    expect(at(command)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
+    for (const path of [
+      "packages/api/src/reads/member-care.ts",
+      "packages/api/src/admin/member-care/**",
+      "apps/admin/app/api/admin/member-care/**",
+      "apps/admin/app/(app)/care/**",
+      "apps/admin/features/mission-control/care/**",
+      suite,
+      "tests/e2e/auth-member-care.spec.ts",
+    ]) {
+      expect(workflow).toContain(`      - ${path}\n`);
+    }
+  });
+
   it("requires the WP3c invitations PostgREST proof after fingerprinting", () => {
     const suite =
       "tests/unit/acceptance/issue-2676/membership-invitations.postgrest.acceptance.test.ts";

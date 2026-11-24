@@ -49,7 +49,7 @@ describe("Mission Control navigation", () => {
       { label: null, ids: ["home"] },
       {
         label: "Modules",
-        ids: ["crm", "contributions", "reports", "feed", "care", "mobilize"],
+        ids: ["crm", "contributions", "reports", "feed", "mobilize"],
       },
       {
         label: "Tools",
@@ -206,5 +206,18 @@ describe("Mission Control destinations by role", () => {
     expect(hrefs("finance")).toContain("/admin/teams");
     expect(shortcuts("admin")).toContain("/admin/teams");
     expect(shortcuts("finance")).toContain("/admin/teams");
+  });
+
+  it("offers Member Care only when the active assignment holds care.access", () => {
+    expect(
+      getNavItemsByRole("admin", ["admin.dashboard.access"]).map(
+        (item) => item.id,
+      ),
+    ).not.toContain("care");
+    expect(
+      getNavItemsByRole("staff", ["admin.dashboard.access", "care.access"]).map(
+        (item) => item.id,
+      ),
+    ).toContain("care");
   });
 });

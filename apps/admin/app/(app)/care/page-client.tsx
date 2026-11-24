@@ -1,6 +1,7 @@
 "use client";
 
 import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import { useMC } from "@asym/lib/mission-control/context";
 import { MetricGrid } from "@asym/ui/components/primitives/metric-card";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
@@ -13,6 +14,10 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { AlertCircle, Users } from "lucide-react";
 
 import { CareContactTrend } from "@/features/mission-control/care/components/care-contact-trend";
+import {
+  CareNoAccessState,
+  isCareAccessDeniedError,
+} from "@/features/mission-control/care/components/care-no-access-state";
 import { CareOverview } from "@/features/mission-control/care/components/CareDashboard";
 import { useCareDashboard } from "@/features/mission-control/care/hooks/use-care";
 
@@ -33,8 +38,17 @@ function CareOverviewSkeleton() {
   );
 }
 
-export default function MemberCareDashboardPage() {
+function MemberCareDashboardContent() {
   const dashboard = useCareDashboard();
+
+  if (dashboard.isError && isCareAccessDeniedError(dashboard.error)) {
+    return (
+      <CareNoAccessState
+        title="Member Care"
+        description="See how field staff are doing and follow up on care needs."
+      />
+    );
+  }
 
   return (
     <PageShell
@@ -79,4 +93,19 @@ export default function MemberCareDashboardPage() {
       )}
     </PageShell>
   );
+}
+
+export default function MemberCareDashboardPage() {
+  const { capabilities = [] } = useMC();
+
+  if (!capabilities.includes("care.access")) {
+    return (
+      <CareNoAccessState
+        title="Member Care"
+        description="See how field staff are doing and follow up on care needs."
+      />
+    );
+  }
+
+  return <MemberCareDashboardContent />;
 }
