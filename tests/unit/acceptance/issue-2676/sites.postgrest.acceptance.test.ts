@@ -129,6 +129,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           await db.query("begin");
           try {
             for (const table of [
+              "public.audit_logs",
               "public.donor_account_brands",
               "public.donor_portal_hosts",
               "public.site_domains",
