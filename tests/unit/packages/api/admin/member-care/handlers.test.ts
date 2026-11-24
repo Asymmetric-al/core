@@ -237,7 +237,7 @@ describe("Member Care handlers contract, Zod validation, and static 500 error is
     expect(state.adminCalls).toBe(0);
   });
 
-  it("maps P0002 to returned static 500 without logging and 42501 to 403 across all 6 write routes", async () => {
+  it("maps P0002 to static 500, 22023 to plain 422, and 42501 to 403 without logging across all 6 write routes", async () => {
     const [thread, notes, goals, activity, reqs, attention] = await Promise.all(
       [
         import("../../../../../../apps/admin/app/api/admin/member-care/thread/route"),
@@ -362,6 +362,22 @@ describe("Member Care handlers contract, Zod validation, and static 500 error is
           error: c.expected500,
           requestId: expect.any(String),
         });
+      }
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      state.rpcMock.mockResolvedValue({
+        data: null,
+        error: { code: "22023", message: "SENSITIVE_FIELD_VALUE invalid" },
+      });
+      for (const c of cases) {
+        const res = await c.call();
+        expect(res.status, `${c.name} 22023`).toBe(422);
+        const body = await res.json();
+        expect(body, `${c.name} 22023 body`).toEqual({
+          error: "Invalid request payload.",
+          requestId: expect.any(String),
+        });
+        expect(JSON.stringify(body)).not.toContain("SENSITIVE");
       }
       expect(consoleSpy).not.toHaveBeenCalled();
 

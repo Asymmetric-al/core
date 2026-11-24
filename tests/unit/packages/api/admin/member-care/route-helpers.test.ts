@@ -82,7 +82,14 @@ describe("member care route helpers", () => {
     expect(response.status).toBe(422);
   });
 
-  it("maps postgres 42501 to 403 and P0002 to static 500", async () => {
+  it("maps postgres 22023 to 422, 42501 to 403, and P0002 to static 500", async () => {
+    const invalid = toMutationErrorResponse(
+      Object.assign(new Error("SENSITIVE_VALUE invalid"), { code: "22023" }),
+      "Fallback",
+    );
+    expect(invalid.status).toBe(422);
+    expect(await invalid.json()).toEqual({ error: "Invalid request payload." });
+
     const forbidden = toMutationErrorResponse(
       Object.assign(new Error("Forbidden"), { code: "42501" }),
       "Fallback",

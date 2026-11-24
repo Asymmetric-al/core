@@ -96,5 +96,11 @@ export function toMutationErrorResponse(
   error: unknown,
   fallbackMessage: string,
 ): NextResponse {
+  if (getPgErrorCode(error) === "22023") {
+    return NextResponse.json(
+      { error: "Invalid request payload." },
+      { status: 422 },
+    );
+  }
   return toApiErrorResponse(error, fallbackMessage, 500);
 }
