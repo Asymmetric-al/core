@@ -550,6 +550,81 @@ describe("Members screen", () => {
     });
   });
 
+  it("offers no Change role or Revoke on any row of the signed-in person, and Give up admin only on the current administrator row", async () => {
+    fetchMock.mockImplementation(async (url: string) => {
+      if (String(url).startsWith("/api/admin/members/invitations")) {
+        return { ok: true, json: async () => ({ invitations: [] }) };
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          users: [
+            {
+              id: "p-self",
+              user_id: "u-self",
+              membership_id: "m-self",
+              display_name: "Ada Admin",
+              email: "ada@example.org",
+              role: "admin",
+              staff_role: "development",
+              is_tenant_admin: true,
+              updated_at: "2026-11-24T09:00:00.000Z",
+            },
+            {
+              id: "p-self",
+              user_id: "u-self",
+              membership_id: "m-self-care",
+              display_name: "Ada Admin",
+              email: "ada@example.org",
+              role: "staff",
+              staff_role: "member_care",
+              is_tenant_admin: false,
+              updated_at: "2026-11-24T09:00:01.000Z",
+            },
+            {
+              id: "p-self",
+              user_id: "u-self",
+              membership_id: "m-self-miss",
+              display_name: "Ada Admin",
+              email: "ada@example.org",
+              role: "missionary",
+              staff_role: null,
+              is_tenant_admin: false,
+              updated_at: "2026-11-24T09:00:02.000Z",
+            },
+            {
+              id: "p-other",
+              user_id: "u-other",
+              membership_id: "m-other",
+              display_name: "Sam Staff",
+              email: "sam@example.org",
+              role: "staff",
+              staff_role: "finance",
+              is_tenant_admin: false,
+              updated_at: "2026-11-24T09:00:03.000Z",
+            },
+          ],
+        }),
+      };
+    });
+
+    const view = show();
+    expect(await view.findAllByText("Ada Admin")).toHaveLength(3);
+    expect(
+      view.getByRole("button", { name: "Change role for Sam Staff" }),
+    ).toBeTruthy();
+    expect(view.getByRole("button", { name: "Revoke Sam Staff" })).toBeTruthy();
+    expect(
+      view.queryAllByRole("button", { name: "Change role for Ada Admin" }),
+    ).toHaveLength(0);
+    expect(
+      view.queryAllByRole("button", { name: "Revoke Ada Admin" }),
+    ).toHaveLength(0);
+    expect(
+      view.getAllByRole("button", { name: /give up admin/i }),
+    ).toHaveLength(1);
+  });
+
   it("distinguishes a failed load from no members and retries", async () => {
     fetchMock.mockResolvedValue({ ok: false });
     const view = show();

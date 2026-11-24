@@ -223,6 +223,11 @@ describe.skipIf(!ADMIN_URL)(
         null,
       ],
       [
+        "the organization is not active",
+        (block) => block,
+        "update public.tenants set status = 'suspended' where id = $2 and $1::uuid is not null",
+      ],
+      [
         "the person is absent",
         (block) => block.replaceAll(OWNER, randomUUID()),
         null,

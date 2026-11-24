@@ -15,11 +15,13 @@
 -- only when that person holds a live, administrator staff:development row
 -- there: the demonstration rows identified by their own identity, as WP8a
 -- part 1 identified the demonstration issuers (20261123030100). Where the
--- organization, the person (or their login) or that row is absent, it raises a
--- NOTICE and changes nothing, never an exception: fresh and CI databases run
--- every migration before the seed, so there the organization does not exist
--- yet. A local database gets its care person from the seed instead, which
--- rewrites every membership after the migrations.
+-- organization is absent or not active, or the person's login or that row is
+-- absent, it raises a NOTICE and changes nothing, never an exception. Fresh and
+-- CI databases run every migration before the seed: there the organization row
+-- exists already (20250101000000 creates it) but the owner's login does not,
+-- so the login check makes the migration a no-op. A local database gets its
+-- care person from the seed instead, which rewrites every membership after the
+-- migrations.
 --
 -- Idempotent: on conflict with authz_memberships_user_tenant_role_uq
 -- (user_id, tenant_id, role, staff_role) it does nothing, so a second run adds
@@ -50,8 +52,13 @@ DECLARE
   v_migration CONSTANT TEXT := '20261124020000_demo_member_care_assignment';
   v_id UUID;
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM public.tenants AS t WHERE t.id = v_tenant) THEN
-    RAISE NOTICE 'Demonstration Member Care grant: the demonstration organization is absent; nothing changed.';
+  IF NOT EXISTS (
+    SELECT 1
+      FROM public.tenants AS t
+     WHERE t.id = v_tenant
+       AND t.status = 'active'
+  ) THEN
+    RAISE NOTICE 'Demonstration Member Care grant: the demonstration organization is absent or not active; nothing changed.';
     RETURN;
   END IF;
 

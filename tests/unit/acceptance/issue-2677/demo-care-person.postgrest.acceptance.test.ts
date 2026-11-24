@@ -140,8 +140,8 @@ describe.skipIf(!url && process.env.DEMO_CARE_IT_REQUIRED !== "1")(
         try {
           if (dualUserId) {
             await db.query(
-              "delete from public.audit_logs where resource_type = 'membership' and resource_id = any($1::text[])",
-              [dualMembershipIds],
+              "delete from public.audit_logs where resource_type = 'membership' and (resource_id = any($1::text[]) or details ->> 'target_user_id' = $2::text)",
+              [dualMembershipIds, dualUserId],
             );
             await db.query("delete from authz.memberships where user_id = $1", [
               dualUserId,
