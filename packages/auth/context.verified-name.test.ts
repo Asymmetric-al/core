@@ -117,7 +117,7 @@ vi.mock("@supabase/supabase-js", () => ({
   createClient: () => client(),
 }));
 vi.mock("./e2e-auth", async (original) => ({
-  ...(await original<typeof import("./e2e-auth")>()),
+  ...(await original<Record<string, unknown>>()),
   isE2EAuthBypassEnabled: () => mocks.bypass,
   assertSupabaseDatasourceAllowedForE2EBypass: () => undefined,
   getE2EAuthCookieNameForRequest: () => "asym_e2e_auth",

@@ -88,6 +88,17 @@ single root files with static extensions such as `/icon.svg`,
 `/manifest.webmanifest`, and `/favicon.ico`), and the assistant's `/eve/v1/*`
 routes (owned by part 3).
 
+A stamped request is then looked up by its stamped host through
+`public.resolve_verified_host` (`packages/auth/verified-name.ts`), once per
+request and never cached. Mission Control and Web Studio admit a `ready` or
+`active` home name; the missionary workspace admits an `active` home name only.
+Any other name gets `404` (`no-store`) before a session is read, and a lookup
+that fails gets `503` (`no-store`). The admitted name's organization travels to
+the app as `x-asym-name-tenant`, set only by the proxy: an address segment, a
+tenant header or option, the role check, the choosers and Web Studio's cookie
+may only narrow to it (`packages/auth/docs/adr/0015-organization-from-the-verified-name.md`).
+The assistant's `/eve/v1/*` routes never read it.
+
 With the switch unset (today's default everywhere), no `basePath` is set, the
 donor app proxies nothing to the dashboards, and the dashboards admit direct
 requests as before. Reserved paths, the `(app)/admin/*` rename, assistant

@@ -161,6 +161,19 @@ is scoped to a document, so changing organization means loading a new one.
       even the only one left, so a stale or unusable cookie never silently
       switches Web Studio to a different organization.
 
+12. **With the switch on, the cookie narrows to the verified name.**
+    `decideWebStudioAccess` and `webStudioResolveInput` take the name's
+    organization as an argument and stay pure, because the file is bundled for
+    the browser. Staff rows are counted in that organization only: none there
+    is `refuse`, never the chooser. A cookie naming another organization, from a
+    person with a staff row in the name's, is `{ kind: "choose", refused: true }`,
+    and both gates add `refused=1` to the chooser's address only then. No cookie
+    narrows to the name's organization. The strategy reads the name from the
+    `headers` Payload passes, `canSwitch` and both choosers count the name's rows
+    only, and the entry redirect drops a `from` naming another organization. The
+    cookie's name, form, path and signature do not change. See
+    [0015](0015-organization-from-the-verified-name.md).
+
 ### Links from Mission Control, and the chooser
 
 12. **A link into Web Studio from a tenant's page names that page's tenant and
