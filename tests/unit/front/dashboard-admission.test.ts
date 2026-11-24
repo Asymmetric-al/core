@@ -165,7 +165,7 @@ describe("dashboard matchers include the bare base path", () => {
   });
 });
 
-describe("dashboard admission when switch is ON", () => {
+describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped requests look up the verified name, so the file doubles the lookup client)", () => {
   it.each([
     ["bare base path", "", {}],
     ["a page", "/donors", {}],

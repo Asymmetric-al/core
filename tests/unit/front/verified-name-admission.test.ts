@@ -502,6 +502,10 @@ describe.each([
     );
     expect(forwarded(withName, "x-asym-tenant")).toBe(TA);
     expect(forwarded(withName, NAME)).toBeNull();
+    expect(without.headers.get("set-cookie")).toContain("sb-refreshed=fresh");
+    expect(withName.headers.get("set-cookie")).toBe(
+      without.headers.get("set-cookie"),
+    );
     expect(state.lookupClients).toBe(0);
   });
 
@@ -520,8 +524,18 @@ describe.each([
   });
 
   it("the missionary workspace lands as without the header", async () => {
+    const without = await missionaryModule.proxy(
+      new NextRequest(`${MISSIONARY_INTERNAL}/`),
+    );
     const response = await missionaryModule.proxy(
       new NextRequest(`${MISSIONARY_INTERNAL}/`, { headers: { [NAME]: TB } }),
+    );
+    expect(response.headers.get("location")).toBe(
+      without.headers.get("location"),
+    );
+    expect(without.headers.get("set-cookie")).toContain("sb-refreshed=fresh");
+    expect(response.headers.get("set-cookie")).toBe(
+      without.headers.get("set-cookie"),
     );
     expect(response.status).toBe(307);
     expect(new URL(response.headers.get("location")!).pathname).toBe(

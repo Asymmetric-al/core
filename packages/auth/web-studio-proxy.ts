@@ -130,5 +130,6 @@ export function webStudioEntryRedirect(
       (nameTenantId === undefined || tenantId === nameTenantId)
       ? tenantId
       : null,
+    decision.kind === "choose" && decision.refused === true,
   );
 }

@@ -124,17 +124,16 @@ const P_DEV_B = row(TB);
 const P = [P_DEV_A, P_DEV_B];
 
 beforeEach(() => {
-  process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key";
-  process.env.PAYLOAD_SECRET = SECRET;
-  delete process.env.E2E_AUTH_BYPASS;
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-key");
+  vi.stubEnv("PAYLOAD_SECRET", SECRET);
+  vi.stubEnv("E2E_AUTH_BYPASS", undefined);
   vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
   vi.stubEnv("CORE_APP_BASE_PATH", "/admin");
 });
 
 afterEach(() => {
   vi.unstubAllEnvs();
-  delete process.env.E2E_AUTH_BYPASS;
 });
 
 describe("on: Payload's strategy reads the name from its own headers", () => {
@@ -200,31 +199,7 @@ describe("on: Payload's strategy reads the name from its own headers", () => {
   });
 
   it("refuses the E2E bypass identity's cookie for B on name A too", async () => {
-    process.env.E2E_AUTH_BYPASS = "true";
-    process.env.E2E_AUTH_SECRET = "cms-strategy-name-secret";
-    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = "example";
-    const memberships = [
-      {
-        id: P_DEV_A.id,
-        tenantId: TA,
-        role: "staff" as const,
-        staffRole: "development" as const,
-        isTenantAdmin: false,
-      },
-      {
-        id: P_DEV_B.id,
-        tenantId: TB,
-        role: "staff" as const,
-        staffRole: "development" as const,
-        isTenantAdmin: false,
-      },
-    ];
-    const e2e = `asym_e2e_auth_admin=${await createE2EAuthCookieValue({
-      userId: USER,
-      role: "staff",
-      tenantId: TA,
-      memberships,
-    })}`;
+    const e2e = await bypassCookie();
     const { strategy, payload } = fakes([], false);
     const request = req("GET");
     const { user } = await strategy.authenticate({
@@ -239,7 +214,51 @@ describe("on: Payload's strategy reads the name from its own headers", () => {
     expect(user).toBeNull();
     expect(readWebStudioRefusal(request)).toBe("no_selection");
   });
+
+  it.each([
+    ["absent", {}],
+    ["invalid", { [NAME]: "not-a-uuid" }],
+  ] as const)(
+    "refuses the E2E bypass identity when the name is %s (no_selection), and admits it on name A",
+    async (_l, headers) => {
+      const e2e = await bypassCookie();
+      const cookie = `${e2e}; ${await studioCookie(TA, P_DEV_A.id)}`;
+      const { strategy, payload } = fakes([], false);
+      const request = req("GET");
+      const refusedUser = await strategy.authenticate({
+        headers: new Headers({ cookie, host: "localhost:3030", ...headers }),
+        payload,
+        req: request,
+      });
+      expect(refusedUser.user).toBeNull();
+      expect(readWebStudioRefusal(request)).toBe("no_selection");
+      const admitted = await strategy.authenticate({
+        headers: new Headers({ cookie, host: "localhost:3030", [NAME]: TA }),
+        payload,
+      });
+      expect(admitted.user).toMatchObject({ publicTenantId: TA });
+    },
+  );
 });
+
+async function bypassCookie() {
+  vi.stubEnv("E2E_AUTH_BYPASS", "true");
+  vi.stubEnv("E2E_AUTH_SECRET", "cms-strategy-name-secret");
+  vi.stubEnv("E2E_AUTH_ALLOWED_SUPABASE_REFS", "example");
+  const memberships = [P_DEV_A, P_DEV_B].map((assignment) => ({
+    id: assignment.id,
+    tenantId: assignment.tenant_id,
+    role: "staff" as const,
+    staffRole: "development" as const,
+    isTenantAdmin: false,
+  }));
+  return `asym_e2e_auth_admin=${await createE2EAuthCookieValue({
+    userId: USER,
+    role: "staff",
+    tenantId: TA,
+    memberships,
+  })}`;
+}
 
 describe.each([
   ["unset", undefined],

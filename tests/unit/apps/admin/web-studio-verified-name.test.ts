@@ -228,8 +228,12 @@ describe("on: the choice action takes the name", () => {
     ["invalid", "not-a-uuid"],
   ] as const)("signs nothing when the name is %s", async (_l, name) => {
     onName(null);
-    if (name) state.headers = new Headers({ [NAME]: name });
-    await redirectOf(() => choose(TA, P_FIN_A.assignmentId));
+    if (name) {
+      state.headers = new Headers({ [NAME]: name, "next-action": "choose" });
+    }
+    expect(await redirectOf(() => choose(TA, P_FIN_A.assignmentId))).toBe(
+      "/no-access",
+    );
     expect(state.set).toEqual([]);
   });
 });

@@ -261,7 +261,11 @@ describe("on: a name header that cannot be trusted fails closed", () => {
       mocks.rows = R;
       const context = await getAuthContext(apiRequest(headers));
       expect(context.isAuthenticated).toBe(false);
+      expect(context.userId).toBe(USER);
+      expect(context.profileId).toBe("profile-p");
+      expect(context.assignmentDenial).toBe("no_assignment");
       expect(context.scopeRefused).toBeFalsy();
+      expect(mocks.rpcCalls).toBe(0);
       for (const [name, value] of Object.entries(headers)) {
         mocks.headers.set(name, value);
       }
@@ -280,6 +284,32 @@ describe("on: a name header that cannot be trusted fails closed", () => {
       ).rejects.toThrow();
     },
   );
+
+  it.each(["staff", "missionary"])(
+    "refuses a %s API call on name B when the person's live rows are all in A (B suspended, or the row in B revoked): no_assignment, no scope refusal",
+    async (roleClass) => {
+      mocks.rows = [P_DEV_A, P_FIN_A, P_MISS_A];
+      const context = await getAuthContext(
+        apiRequest({ [NAME]: TB, "x-asym-role-class": roleClass }),
+      );
+      expect(context.isAuthenticated).toBe(false);
+      expect(context.tenantId).toBeNull();
+      expect(context.assignmentDenial).toBe("no_assignment");
+      expect(context.scopeRefused).toBeFalsy();
+      expect(mocks.rpcCalls).toBe(1);
+    },
+  );
+
+  it("refuses the same call with no role class before any row is read, as today", async () => {
+    mocks.rows = [P_DEV_A, P_FIN_A, P_MISS_A];
+    const context = await getAuthContext(
+      new Request("http://localhost/api/x", { headers: { [NAME]: TB } }),
+    );
+    expect(context.isAuthenticated).toBe(false);
+    expect(context.assignmentDenial).toBe("no_role_class");
+    expect(context.scopeRefused).toBeFalsy();
+    expect(mocks.rpcCalls).toBe(0);
+  });
 
   it("treats an absent header in the donor app (base path empty) as today", async () => {
     on("");
@@ -360,6 +390,21 @@ describe("on: the E2E bypass refuses the same conflicts", () => {
     );
     const context = await getAuthContext(bypassRequest({ [NAME]: TB }));
     expect(context.tenantId).toBe(TB);
+  });
+
+  it("never picks the sole row of another organization", async () => {
+    mocks.bypassRows = [R_A].map(asAssignment);
+    expect((await getAuthContext(bypassRequest({ [NAME]: TA }))).tenantId).toBe(
+      TA,
+    );
+    const foreign = await getAuthContext(bypassRequest({ [NAME]: TB }));
+    expect(foreign.isAuthenticated).toBe(false);
+    expect(foreign.tenantId).toBeNull();
+    const staff = await getAuthContext(
+      bypassRequest({ [NAME]: TB, "x-asym-role-class": "staff" }),
+    );
+    expect(staff.isAuthenticated).toBe(false);
+    expect(staff.tenantId).toBeNull();
   });
 
   it("gives no bypass identity when the name fails closed", async () => {

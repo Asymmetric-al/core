@@ -264,6 +264,41 @@ describe("on: Web Studio's gate takes the name", () => {
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 
+  it("keeps refused=1 on an entry link when the cookie names another organization", async () => {
+    const cookie = await studioCookie(TB, P_DEV_B.id);
+    expect(
+      location(
+        await adminProxy(
+          request(`/web-studio?organization=${TA}&assignment=${P_DEV_A.id}`, {
+            cookie,
+          }),
+          { nameTenantId: TA },
+        ),
+      ),
+    ).toBe(`/web-studio/organization?next=%2Fweb-studio&refused=1&from=${TA}`);
+    expect(
+      location(
+        await adminProxy(
+          request(`/web-studio?organization=${TB}&assignment=${P_DEV_B.id}`, {
+            cookie,
+          }),
+          { nameTenantId: TA },
+        ),
+      ),
+    ).toBe("/web-studio/organization?next=%2Fweb-studio&refused=1");
+  });
+
+  it("adds no refused=1 to an entry link without a cookie", async () => {
+    expect(
+      location(
+        await adminProxy(
+          request(`/web-studio?organization=${TA}&assignment=${P_DEV_A.id}`),
+          { nameTenantId: TA },
+        ),
+      ),
+    ).toBe(`/web-studio/organization?next=%2Fweb-studio&from=${TA}`);
+  });
+
   it("drops a from that names another organization from the entry redirect", async () => {
     const response = await adminProxy(
       request(`/web-studio?organization=${TB}&assignment=${P_DEV_B.id}`),
@@ -272,6 +307,38 @@ describe("on: Web Studio's gate takes the name", () => {
     expect(location(response)).toBe(
       "/web-studio/organization?next=%2Fweb-studio",
     );
+  });
+});
+
+describe("on: a middleware without the tenant address scopes its sign-in role check to the name", () => {
+  const plainProxy = createAuthMiddleware({
+    publicRoutes: ["/no-access"],
+    protectedRoutePrefixes: ["/"],
+    loginPath: "/login",
+    redirectAuthenticatedTo: "/home",
+    unauthorizedRedirectTo: "/no-access",
+    roleClass: "staff",
+    allowedRoles: ["staff", "admin"],
+    resolveUserRole: resolveUserRoleFromDatabase,
+    tenantAddress: false,
+  });
+
+  it("refuses Q on name B and admits R on name B at a signed-in /login", async () => {
+    state.rows = Q;
+    expect(
+      location(await plainProxy(request("/login"), { nameTenantId: TB })),
+    ).toBe("/no-access");
+    state.rows = R;
+    expect(
+      location(await plainProxy(request("/login"), { nameTenantId: TB })),
+    ).toBe("/home");
+  });
+
+  it("decides as today without a name", async () => {
+    state.rows = Q;
+    expect(location(await plainProxy(request("/login")))).toBe("/home");
+    state.rows = R;
+    expect(location(await plainProxy(request("/login")))).toBe("/no-access");
   });
 });
 
@@ -315,8 +382,39 @@ describe("off: a client's name header changes no decision and is never forwarded
         expect(forwarded(withName, "x-asym-tenant"), path).toBe(
           forwarded(without, "x-asym-tenant"),
         );
+        expect(without.headers.get("set-cookie"), path).toContain(
+          "sb-refreshed=fresh",
+        );
+        expect(withName.headers.get("set-cookie"), path).toBe(
+          without.headers.get("set-cookie"),
+        );
       }
     }
+  });
+
+  it("keeps today's entry-link chooser address, with no refused=1, whatever cookie is carried", async () => {
+    const cookie = await studioCookie(TB, P_DEV_B.id);
+    for (const headers of [{ cookie }, { cookie, [NAME]: TA }]) {
+      expect(
+        location(
+          await adminProxy(
+            request(
+              `/web-studio?organization=${TA}&assignment=${P_DEV_A.id}`,
+              headers,
+            ),
+          ),
+        ),
+      ).toBe(`/web-studio/organization?next=%2Fweb-studio&from=${TA}`);
+    }
+    expect(
+      location(
+        await adminProxy(
+          request(`/web-studio?organization=${TA}&assignment=${P_DEV_A.id}`, {
+            cookie: `${WEB_STUDIO_TENANT_COOKIE}=v1.x.y.z`,
+          }),
+        ),
+      ),
+    ).toBe(`/web-studio/organization?next=%2Fweb-studio&from=${TA}`);
   });
 
   it("decides Web Studio as without it, with today's chooser address", async () => {

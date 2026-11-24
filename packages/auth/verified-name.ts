@@ -57,9 +57,10 @@ const CANONICAL_ID =
 export function createVerifiedNameClient(): VerifiedNameClient | null {
   const { url, key } = getSupabasePublicConfig();
   if (!url || !key) return null;
-  return createClient(url, key, {
+  const client: VerifiedNameClient = createClient(url, key, {
     auth: { autoRefreshToken: false, persistSession: false },
-  }) as unknown as VerifiedNameClient;
+  });
+  return client;
 }
 
 interface WellFormedRow {

@@ -544,6 +544,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
                 supabase,
                 request,
                 roleClass,
+                ...(nameTenantId ? { nameTenantId } : {}),
               })
             : null;
 
