@@ -103,10 +103,16 @@ an unowned run.
 
 ### 2026-11-25: ownership is claimed at creation (AL-2796)
 
-- **Authority.** The program ruling under D-16 (25 November 2026,
-  `ruling-eve-first-message.md` in the implementation scratchpad, reconciled
-  with installed Eve 0.25.1 `eve/dist/src/channel/adapter.js`
-  `callAdapterEventHandler`).
+- **Authority.** The program's ruling under D-16 (the procedure recorded in
+  `docs/audits/core-crm-cms-database-implementation-record.md`) of 25 November
+  2026 on issue #2796, four questions, carried by pull request #2801
+  (reconciled with installed Eve 0.25.1 `eve/dist/src/channel/adapter.js`
+  `callAdapterEventHandler`):
+  - **Q1:** amend ADR-0027 in this change; no OpenSpec change.
+  - **Q2:** wrap the follow-up route as well.
+  - **Q3:** delivery by continuation token is a separate change (issue #2799),
+    to be fixed before any live model or tool runs from the panel.
+  - **Q4:** keep the panel's existing line on a refused new session and pin it.
 - **Kept.** Route authentication, the `eve_session_ownership` schema,
   insert-only `23505` same-identity claiming (never an upsert), fail-closed
   denial for missing or mismatched ownership on every session route and
@@ -119,10 +125,14 @@ an unowned run.
 - **Changed.** The channel wraps `POST /eve/v1/session`'s `send` so ownership
   is claimed in the creating HTTP request before the 202 returns the session
   id, and wraps `POST /eve/v1/session/:sessionId`'s `send` to claim whenever it
-  returns a session under a different id than the path parameter.
-  `turn.started` keeps its claim as an idempotent repeat. Failure behavior is
-  updated for both creation-time HTTP 500 rejection and installed Eve 0.25.1's
-  swallowing of channel event handler exceptions.
+  returns a session under a different id than the path parameter. A delivery
+  that lands in an existing session with no owner row makes the poster its
+  owner before the 200, as `turn.started` already did a turn later; sessions
+  created by this build always have an owner before their id is returned, so
+  this reaches only sessions that were already without a row; closing it is
+  part of issue #2799. `turn.started` keeps its claim as an idempotent repeat.
+  Failure behavior is updated for both creation-time HTTP 500 rejection and
+  installed Eve 0.25.1's swallowing of channel event handler exceptions.
 - **Dated history (2026-07-17, issue #426).** The original Decision (`:38`)
   stated: "The channel claims ownership on the first `turn.started` event."
   The original Failure behavior (`:56-58`) stated: "A first-turn ownership

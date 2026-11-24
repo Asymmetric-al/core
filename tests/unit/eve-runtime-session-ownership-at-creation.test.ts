@@ -671,7 +671,6 @@ describe("Eve session ownership at creation (AL-2796)", () => {
         );
         const followUpJson = (await followUpRes.json()) as { error: string };
         expect(followUpFake.send).not.toHaveBeenCalled();
-        expect(followUpFake.getEventStreamMock).not.toHaveBeenCalled();
         expect(followUpRes.status, `${caller.label} follow-up`).toBe(
           caller.expectedStatus,
         );
@@ -688,12 +687,14 @@ describe("Eve session ownership at creation (AL-2796)", () => {
         const cancelFake = createFakeArgs({
           params: { sessionId: "session-1" },
         });
-        const cancelRes = await cancelRoute.handler(
-          cancelRequest("session-1", caller.token, caller.scope),
-          cancelFake.args,
+        const cancelReq = cancelRequest(
+          "session-1",
+          caller.token,
+          caller.scope,
         );
+        const cancelRes = await cancelRoute.handler(cancelReq, cancelFake.args);
         const cancelJson = (await cancelRes.json()) as { error: string };
-        expect(cancelFake.getEventStreamMock).not.toHaveBeenCalled();
+        expect(cancelReq.bodyUsed).toBe(false);
         expect(cancelRes.status, `${caller.label} cancel`).toBe(
           caller.expectedStatus,
         );
@@ -796,13 +797,19 @@ describe("Eve session ownership at creation (AL-2796)", () => {
         sessionId: "session-1",
       }),
     ).rejects.toSatisfy(
-      (error: unknown) => error instanceof ApiHttpError && error.status === 403,
+      (error: unknown) =>
+        error instanceof ApiHttpError &&
+        error.status === 403 &&
+        error.message === "Eve session ownership could not be verified.",
     );
 
     await expect(
       invokeTurnStarted("session-1", snapshotFor("Q")),
     ).rejects.toSatisfy(
-      (error: unknown) => error instanceof ApiHttpError && error.status === 403,
+      (error: unknown) =>
+        error instanceof ApiHttpError &&
+        error.status === 403 &&
+        error.message === "Eve session ownership could not be verified.",
     );
 
     expect(storeState.rows.get("session-1")).toEqual(rowBefore);
@@ -902,7 +909,9 @@ describe("Eve session ownership at creation (AL-2796)", () => {
         ),
       ).rejects.toSatisfy(
         (error: unknown) =>
-          error instanceof EveRouteAuthError && error.status === 503,
+          error instanceof EveRouteAuthError &&
+          error.status === 503 &&
+          error.reason === "service_unavailable",
       );
       expect(storeState.rows.size).toBe(0);
 
@@ -938,7 +947,9 @@ describe("Eve session ownership at creation (AL-2796)", () => {
         ),
       ).rejects.toSatisfy(
         (error: unknown) =>
-          error instanceof ApiHttpError && error.status === 403,
+          error instanceof ApiHttpError &&
+          error.status === 403 &&
+          error.message === "Eve session ownership could not be verified.",
       );
 
       expect(storeState.rows.get("session-1")).toEqual(qRowBefore);
@@ -1181,7 +1192,11 @@ describe("Eve session ownership at creation (AL-2796)", () => {
         }),
         qStreamFake.args,
       );
+      const qStreamJson = (await qStreamRes.json()) as { error: string };
       expect(qStreamRes.status).toBe(403);
+      expect(qStreamJson.error).toBe(
+        "The current admin does not own this Eve session.",
+      );
       expect(qStreamFake.getEventStreamMock).not.toHaveBeenCalled();
     });
 
@@ -1212,7 +1227,9 @@ describe("Eve session ownership at creation (AL-2796)", () => {
         ),
       ).rejects.toSatisfy(
         (error: unknown) =>
-          error instanceof ApiHttpError && error.status === 403,
+          error instanceof ApiHttpError &&
+          error.status === 403 &&
+          error.message === "Eve session ownership could not be verified.",
       );
       expect(storeState.rows.get("session-3")).toEqual(rRowBefore);
     });
@@ -1266,7 +1283,9 @@ describe("Eve session ownership at creation (AL-2796)", () => {
         ),
       ).rejects.toSatisfy(
         (error: unknown) =>
-          error instanceof EveRouteAuthError && error.status === 503,
+          error instanceof EveRouteAuthError &&
+          error.status === 503 &&
+          error.reason === "service_unavailable",
       );
       expect(storeState.rows.has("session-2")).toBe(false);
     });
