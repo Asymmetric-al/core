@@ -12,12 +12,15 @@ import {
   Users,
 } from "lucide-react";
 
+import type { AppSurface } from "@asym/database/document-reload";
+
 export type UserRole = "donor" | "missionary" | "admin";
 
 export interface NavItem {
   title: string;
   href: string;
   icon: typeof Home;
+  targetApp?: AppSurface;
 }
 
 export interface NavGroup {
@@ -27,12 +30,42 @@ export interface NavGroup {
 }
 
 const donorNavItems: NavItem[] = [
-  { title: "Dashboard", href: "/donor-dashboard", icon: Home },
-  { title: "Ministry Updates", href: "/donor-dashboard/feed", icon: Newspaper },
-  { title: "My Giving", href: "/donor-dashboard/pledges", icon: Heart },
-  { title: "Wallet", href: "/donor-dashboard/wallet", icon: CreditCard },
-  { title: "History", href: "/donor-dashboard/history", icon: FileText },
-  { title: "Settings", href: "/donor-dashboard/settings", icon: Settings },
+  {
+    title: "Dashboard",
+    href: "/donor-dashboard",
+    icon: Home,
+    targetApp: "donor",
+  },
+  {
+    title: "Ministry Updates",
+    href: "/donor-dashboard/feed",
+    icon: Newspaper,
+    targetApp: "donor",
+  },
+  {
+    title: "My Giving",
+    href: "/donor-dashboard/pledges",
+    icon: Heart,
+    targetApp: "donor",
+  },
+  {
+    title: "Wallet",
+    href: "/donor-dashboard/wallet",
+    icon: CreditCard,
+    targetApp: "donor",
+  },
+  {
+    title: "History",
+    href: "/donor-dashboard/history",
+    icon: FileText,
+    targetApp: "donor",
+  },
+  {
+    title: "Settings",
+    href: "/donor-dashboard/settings",
+    icon: Settings,
+    targetApp: "donor",
+  },
 ];
 
 /**

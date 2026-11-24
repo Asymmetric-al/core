@@ -1,7 +1,8 @@
 import { safeNextParam } from "@asym/auth/demo-login";
 import { createRpcAssignmentReader } from "@asym/auth/principal";
 import { parseRoleClass, ROLE_CLASS_HEADER } from "@asym/auth/request-headers";
-import { routeForRole } from "@asym/auth/roles";
+import { ROLE_HOME, routeForRole } from "@asym/auth/roles";
+import { withAppBasePath } from "@asym/database/document-reload";
 import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
 
@@ -14,17 +15,21 @@ import { NextResponse } from "next/server";
  * a request to 127.0.0.1 as localhost, and an absolute redirect built from it
  * left a just-confirmed person signed out on the other host.
  */
-export function callbackRedirect(path: string) {
+export function callbackRedirect(
+  path: string,
+  options: { sameApp?: boolean } = {},
+) {
   if (!path.startsWith("/") || path.startsWith("//")) {
     throw new Error("callbackRedirect takes a same-host path");
   }
+  const location = options.sameApp === false ? path : withAppBasePath(path);
   // The server cookie store persists the exchange, but cannot apply the SSR
   // SDK's response headers. Keep every callback outcome private, including
   // redirects that carry newly issued or cleared auth cookies.
   return new NextResponse(null, {
     status: 307,
     headers: {
-      Location: path,
+      Location: location,
       "Cache-Control":
         "private, no-cache, no-store, must-revalidate, max-age=0",
       Expires: "0",
@@ -88,7 +93,9 @@ export async function GET(request: Request) {
           await homeMembershipClass(supabase, request),
         );
         if (roleRoute) {
-          return callbackRedirect(roleRoute);
+          return callbackRedirect(roleRoute, {
+            sameApp: roleRoute !== ROLE_HOME.donor,
+          });
         }
       }
 

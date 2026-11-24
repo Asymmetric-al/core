@@ -2,6 +2,7 @@
 
 import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
 import { useTenantHref } from "@asym/auth/tenant-navigation";
+import { withAppBasePath } from "@asym/database/document-reload";
 import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { getInitials } from "@asym/lib/utils";
 import {
@@ -200,6 +201,13 @@ function copyToClipboard(value: string, copiedMessage: string) {
   );
 }
 
+export function contributionCopyUrl(
+  tenantPath: string,
+  origin: string,
+): string {
+  return new URL(withAppBasePath(tenantPath), origin).href;
+}
+
 function ContributionRowActions({
   contribution,
   onViewContribution,
@@ -248,12 +256,12 @@ function ContributionRowActions({
           <DropdownMenuItem
             onClick={() =>
               copyToClipboard(
-                new URL(
+                contributionCopyUrl(
                   tenantHref(
                     `/contributions/${encodeURIComponent(contribution.id)}`,
                   ),
                   window.location.origin,
-                ).href,
+                ),
                 "Contribution link copied",
               )
             }

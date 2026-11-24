@@ -1,7 +1,7 @@
 "use server";
 
 import { getSignedInAssignments } from "@asym/auth/context";
-import { redirectInTenant } from "@asym/auth/tenant-server";
+import { redirectFromActionInTenant } from "@asym/auth/tenant-server";
 import {
   decideWebStudioAccess,
   safeWebStudioNext,
@@ -27,12 +27,12 @@ export async function chooseWebStudioOrganization(
   const signedIn = await getSignedInAssignments();
   if (signedIn.kind === "signed_out") {
     // Back to this choice, and then to the page, once signed in.
-    return redirectInTenant(
+    return redirectFromActionInTenant(
       `/login?next=${encodeURIComponent(webStudioChooserAddress(next))}`,
     );
   }
   if (signedIn.kind === "unavailable") {
-    return redirectInTenant("/no-access");
+    return redirectFromActionInTenant("/no-access");
   }
 
   const decision = decideWebStudioAccess({
@@ -46,7 +46,9 @@ export async function chooseWebStudioOrganization(
     },
   });
   if (decision.kind !== "allow") {
-    return redirectInTenant(webStudioChooserAddress(next, { refused: true }));
+    return redirectFromActionInTenant(
+      webStudioChooserAddress(next, { refused: true }),
+    );
   }
 
   (await cookies()).set(
@@ -55,5 +57,5 @@ export async function chooseWebStudioOrganization(
       assignmentId: decision.assignment.assignmentId,
     }),
   );
-  return redirectInTenant(next);
+  return redirectFromActionInTenant(next);
 }

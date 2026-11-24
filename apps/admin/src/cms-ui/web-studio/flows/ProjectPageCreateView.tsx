@@ -1,5 +1,6 @@
 "use client";
 
+import { appPathname } from "@asym/database/document-reload";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { FieldDescription } from "@asym/ui/components/shadcn/field";
 import { useAuth, useConfig } from "@payloadcms/ui";
@@ -140,10 +141,12 @@ function ProjectPageCreateViewContent() {
 
       if (status === 409 && body?.existingId) {
         toast.info("This project page already exists, so we opened it.");
-        const editPath = formatAdminURL({
-          adminRoute: routes.admin,
-          path: `/collections/project-pages/${body.existingId}`,
-        });
+        const editPath = appPathname(
+          formatAdminURL({
+            adminRoute: routes.admin,
+            path: `/collections/project-pages/${body.existingId}`,
+          }),
+        );
         push(editPath);
         return;
       }
@@ -154,10 +157,12 @@ function ProjectPageCreateViewContent() {
       }
 
       if (body?.id && body.collectionSlug) {
-        const editPath = formatAdminURL({
-          adminRoute: routes.admin,
-          path: `/collections/${body.collectionSlug}/${body.id}`,
-        });
+        const editPath = appPathname(
+          formatAdminURL({
+            adminRoute: routes.admin,
+            path: `/collections/${body.collectionSlug}/${body.id}`,
+          }),
+        );
         push(editPath);
       }
     },

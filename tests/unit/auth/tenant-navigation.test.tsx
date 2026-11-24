@@ -59,10 +59,17 @@ vi.mock("next/link", async () => {
     ),
   };
 });
-vi.mock("../../../packages/database/document-reload", () => ({
-  reloadDocument,
-  loadDocument,
-}));
+vi.mock(
+  "../../../packages/database/document-reload",
+  async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>();
+    return {
+      ...actual,
+      reloadDocument,
+      loadDocument,
+    };
+  },
+);
 
 const TA = "00000000-0000-0000-0000-000000000001";
 const TB = "00000000-0000-0000-0000-000000000002";

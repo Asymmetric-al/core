@@ -1,3 +1,4 @@
+import { withAppBasePath } from "./document-reload";
 import {
   readDocumentScopeForSend,
   retireDocumentScope,
@@ -83,7 +84,7 @@ export function ownApiFetch(
   }
   const scope = state.kind === "scoped" ? state.scope : null;
   const headers = applyRequestScopeHeaders(new Headers(init.headers), scope);
-  const sent = fetch(path, {
+  const sent = fetch(withAppBasePath(path), {
     credentials: "same-origin",
     ...init,
     headers,

@@ -1,5 +1,6 @@
 "use client";
 
+import { appPathname } from "@asym/database/document-reload";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import {
   Field,
@@ -177,10 +178,12 @@ function MinistryUpdateCreateViewContent() {
       }
 
       if (body?.id && body.collectionSlug) {
-        const editPath = formatAdminURL({
-          adminRoute: routes.admin,
-          path: `/collections/${body.collectionSlug}/${body.id}`,
-        });
+        const editPath = appPathname(
+          formatAdminURL({
+            adminRoute: routes.admin,
+            path: `/collections/${body.collectionSlug}/${body.id}`,
+          }),
+        );
         push(editPath);
       }
     },

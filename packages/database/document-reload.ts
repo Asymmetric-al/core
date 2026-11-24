@@ -20,3 +20,13 @@ export function loadDocument(
   if (options.replace) window.location.replace(href);
   else window.location.assign(href);
 }
+
+export {
+  APP_BASE_PATHS,
+  appBasePath,
+  appPathname,
+  crossAppHref,
+  isServeUnderPathsEnabled,
+  withAppBasePath,
+  type AppSurface,
+} from "./app-base-path";

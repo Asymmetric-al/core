@@ -1,3 +1,5 @@
+import { crossAppHref } from "@asym/database/document-reload";
+
 import { safeNextParam } from "./demo-login";
 import { selectAssignment } from "./principal/assignment";
 
@@ -259,9 +261,13 @@ export interface WebStudioCookie {
   maxAge: number;
 }
 
+export function webStudioCookiePath(): string {
+  return crossAppHref("admin", WEB_STUDIO_PATH);
+}
+
 export function webStudioCookie(
   value: string,
-  { secure }: { secure: boolean },
+  { secure, path = webStudioCookiePath() }: { secure: boolean; path?: string },
 ): WebStudioCookie {
   return {
     name: WEB_STUDIO_TENANT_COOKIE,
@@ -269,7 +275,7 @@ export function webStudioCookie(
     httpOnly: true,
     sameSite: "strict",
     secure,
-    path: WEB_STUDIO_PATH,
+    path,
     maxAge: COOKIE_MAX_AGE_SECONDS,
   };
 }
@@ -287,10 +293,12 @@ export function serializeWebStudioCookie(cookie: WebStudioCookie): string {
 
 export function clearedWebStudioCookie({
   secure,
+  path = webStudioCookiePath(),
 }: {
   secure: boolean;
+  path?: string;
 }): WebStudioCookie {
-  return { ...webStudioCookie("", { secure }), maxAge: 0 };
+  return { ...webStudioCookie("", { secure, path }), maxAge: 0 };
 }
 
 export type WebStudioDecision =
