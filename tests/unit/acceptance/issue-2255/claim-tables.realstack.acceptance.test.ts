@@ -6,7 +6,7 @@
  * Fails (never skips) in the `migrate` job without the URL (OQ12); skips
  * everywhere else. Owned by Acceptance; implementers must not edit.
  */
-import { randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 
 import pg from "pg";
@@ -23,6 +23,8 @@ import {
   POLICIES,
   ROLLBACK,
   AL2678_D18,
+  AL2678_ID_INDEX_D18,
+  AL2678_STATUS_D18,
   TABLES,
   body,
   read,
@@ -193,24 +195,77 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
   );
 
   tx(
-    `2: a requester reads none of the claim rows directly and exactly the status and three dates of their own requests through the status function; INSERT fails with 42501 (${AL2678_D18})`,
+    `2: a requester reads none of the claim rows directly; through the status function nothing of a request whose token they have not redeemed, and after a valid redemption exactly the status and three dates of that one request; another person's request is never visible; INSERT fails with 42501 (${AL2678_D18}; ${AL2678_STATUS_D18})`,
     async () => {
       expect(await ids("r1", CLAIMS)).toEqual([]);
       expect(await ids("r2", CLAIMS)).toEqual([]);
-      for (const who of ["r1", "r2"] as const) {
-        const own = await as(
-          who,
+      const status = (who: keyof typeof U) =>
+        run(
           "SELECT * FROM public.account_claim_status($1)",
           [A],
+          "authenticated",
+          U[who],
+          A,
         );
-        expect(own.rows).toHaveLength(1);
-        expect(Object.keys(own.rows[0]!).sort()).toEqual([
-          "created_at",
-          "resolved_at",
-          "status",
-          "updated_at",
-        ]);
+      for (const who of ["r1", "r2"] as const) {
+        expect((await status(who)).rows, `${who}: unredeemed`).toEqual([]);
+        expect(
+          (await as(who, "SELECT * FROM public.account_claim_status($1)", [A]))
+            .rows,
+          `${who}: unredeemed, as the fixture sends it`,
+        ).toEqual([]);
       }
+      await db.query(
+        "UPDATE auth.users SET email = 'a1@x.com', email_confirmed_at = now() WHERE id = $1",
+        [U.r1],
+      );
+      await db.query(
+        "UPDATE public.donors SET email = 'a1@x.com' WHERE id = $1",
+        [DA],
+      );
+      const token = randomBytes(32).toString("base64url");
+      expect(
+        await one(
+          "SELECT public.issue_account_claim_token($1, $2) ->> 'issued'",
+          [cA1, createHash("sha256").update(token, "utf8").digest()],
+        ),
+      ).toBe("true");
+      await db.query("SELECT set_config('app.current_tenant_id', '', true)");
+      for (const who of ["r1", "r2"] as const)
+        expect((await status(who)).rows, `${who}: token issued`).toEqual([]);
+      await db.query("SAVEPOINT redeem");
+      await db.query("SET LOCAL ROLE authenticated");
+      await db.query(
+        "SELECT set_config('request.jwt.claim.sub', $1, true), set_config('request.jwt.claims', $2, true), set_config('request.headers', $3, true)",
+        [
+          U.r1,
+          JSON.stringify({ sub: U.r1, role: "authenticated" }),
+          JSON.stringify({ "x-asym-tenant": A }),
+        ],
+      );
+      const redeemed = await one(
+        "SELECT public.redeem_account_claim($1, $2) ->> 'status'",
+        [A, token],
+      );
+      await db.query("RESET ROLE");
+      await db.query(
+        "SELECT set_config('request.jwt.claim.sub', '', true), set_config('request.jwt.claims', '', true), set_config('request.headers', '', true), set_config('app.current_tenant_id', '', true)",
+      );
+      await db.query("RELEASE SAVEPOINT redeem");
+      expect(redeemed).toBe("linked");
+      const own = await status("r1");
+      expect(own.rows).toHaveLength(1);
+      expect(Object.keys(own.rows[0]!).sort()).toEqual([
+        "created_at",
+        "resolved_at",
+        "status",
+        "updated_at",
+      ]);
+      expect(own.rows[0]!.status).toBe("verified");
+      expect(own.rows[0]!.resolved_at).not.toBeNull();
+      expect((await status("r2")).rows, "another person's request").toEqual([]);
+      expect(await ids("r1", CLAIMS)).toEqual([]);
+      expect(await ids("r2", CLAIMS)).toEqual([]);
       expect(
         (
           await as("staffA", "SELECT * FROM public.account_claim_status($1)", [
@@ -524,7 +579,7 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
   );
 
   tx(
-    "11: PKs (tenant_id, id), tenant FK, composite donor FKs, user FKs ON DELETE SET NULL, exact columns and indexes",
+    `11: PKs (tenant_id, id), tenant FK, composite donor FKs, user FKs ON DELETE SET NULL, exact columns and indexes (${AL2678_ID_INDEX_D18})`,
     async () => {
       for (const t of TABLES) {
         const cons = (
@@ -635,7 +690,7 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
   );
 
   tx(
-    `13: rollback removes both tables and nothing else; #2254 survives; forward re-creates them (the two staff policies in this file text) (${AL2678_D18}; the later claim columns, constraints, index, guard policy and guard grants are not this file's)`,
+    `13: rollback removes both tables and nothing else; #2254 survives; forward re-creates them (the two staff policies in this file text) (${AL2678_D18}; the later claim columns, constraints, index, guard policy and guard grants are not this file's; ${AL2678_ID_INDEX_D18})`,
     async () => {
       await db.query(
         "DELETE FROM public.legacy_account_invitations; DELETE FROM public.account_claim_requests",
@@ -672,13 +727,16 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
       }
       const withoutGuardGrants = (v: string) =>
         v.replace(/,?tenant_guard:(INSERT|SELECT|UPDATE)/g, "");
+      const notThisFile = (v: string) =>
+        rewrittenLater(v) || /account_claim_requests_id_idx/.test(v);
+      expect(
+        before.filter((v) => /account_claim_requests_id_idx/.test(v)),
+      ).toHaveLength(3);
       expect(
         (await catalog())
-          .filter((v) => !rewrittenLater(v))
+          .filter((v) => !notThisFile(v))
           .map(withoutGuardGrants),
-      ).toEqual(
-        before.filter((v) => !rewrittenLater(v)).map(withoutGuardGrants),
-      );
+      ).toEqual(before.filter((v) => !notThisFile(v)).map(withoutGuardGrants));
     },
   );
 });
