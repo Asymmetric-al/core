@@ -387,5 +387,48 @@ describe.skipIf(!ADMIN_URL)(
       );
       for (const row of seeded.rows) expect(row.n).not.toBe(row.legal_name);
     });
+
+    it("each guard command of this package share-locks its organization before its targets, and the three safety commands lock the caller's assignment and re-check the active organization, the live assignment and the capability under those locks before any validation", async () => {
+      const safety = [
+        "set_worker_identity",
+        "restrict_worker_publication",
+        "lift_worker_restriction",
+      ];
+      const claims = [
+        "start_account_claim",
+        "issue_account_claim_token",
+        "redeem_account_claim",
+      ];
+      const bodies = await db.query(
+        "select p.proname as name, p.prosrc as body from pg_proc as p join pg_namespace as n on n.oid = p.pronamespace where n.nspname = 'tenant_guard' and p.proname = any($1::text[]) order by 1",
+        [[...safety, ...claims]],
+      );
+      expect(bodies.rows).toHaveLength(6);
+      for (const { name, body } of bodies.rows as {
+        name: string;
+        body: string;
+      }[]) {
+        const lock = body.indexOf("private.share_lock_tenant(");
+        const target = body.search(
+          /FOR UPDATE|INSERT INTO|UPDATE public\.|UPDATE private\./,
+        );
+        expect(lock, name).toBeGreaterThan(-1);
+        expect(lock, name).toBeLessThan(target);
+        if (!safety.includes(name)) continue;
+        const recheck = body.indexOf(
+          "the caller no longer holds the authority this command requires",
+        );
+        expect(body.slice(lock, recheck), name).toMatch(
+          /FROM authz\.memberships AS m[\s\S]*FOR SHARE/,
+        );
+        expect(body.slice(lock, recheck), name).toContain(
+          "'safety.restrict_publication' = ANY (authz.assignment_capabilities(v_ctx.assignment_id))",
+        );
+        expect(recheck, name).toBeLessThan(
+          body.indexOf("A reason is required"),
+        );
+        expect(recheck, name).toBeLessThan(target);
+      }
+    });
   },
 );

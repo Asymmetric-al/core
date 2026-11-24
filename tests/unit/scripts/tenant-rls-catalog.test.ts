@@ -143,9 +143,9 @@ describe("WP4 command boundaries", () => {
       "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)":
         "8e1cd0bb1438913861f3dfda3f72866e20c6ccbe0abb1513e489e41cf9f9cbb2",
       "tenant_guard.start_account_claim(p_tenant_id uuid)":
-        "0eb7f34bea12adec6e5528d2d3175861f93d05a1e59af6d26598d7215aa0c540",
+        "d2e0f5f1194acbb7bf917f72246ce5e26f040f4169cfd8ace79843fdd97a8df1",
       "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)":
-        "8e62b609fc3e4088c4283f7fcda6df9c78f1fa9b34536b36e7129439630cf849",
+        "6f7c70f9ba356226cb8ecc5ae28be341db9e323575930fa50aa7ef186420e0aa",
     });
     expect(
       reviewedPreMembership[

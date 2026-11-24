@@ -201,6 +201,9 @@ BEGIN
     RETURN pg_catalog.jsonb_build_object('status', 'received');
   END IF;
   PERFORM tenant_guard.enter(p_tenant_id);
+  IF (private.share_lock_tenant(p_tenant_id) = 'active') IS NOT TRUE THEN
+    RETURN pg_catalog.jsonb_build_object('status', 'received');
+  END IF;
 
   v_email := private.login_confirmed_email(v_user);
   IF v_email IS NULL THEN
@@ -264,6 +267,9 @@ DECLARE
   v_expires TIMESTAMPTZ;
 BEGIN
   PERFORM tenant_guard.enter(p_tenant_id);
+  IF (private.share_lock_tenant(p_tenant_id) = 'active') IS NOT TRUE THEN
+    RETURN pg_catalog.jsonb_build_object('issued', false, 'tenant_id', tenant_guard.current_tenant_id());
+  END IF;
 
   SELECT c.id, c.donor_id, c.email_normalized, c.status, c.token_sha256
     INTO v_claim
@@ -323,6 +329,9 @@ BEGIN
     RETURN pg_catalog.jsonb_build_object('status', 'refused');
   END IF;
   PERFORM tenant_guard.enter(p_tenant_id);
+  IF (private.share_lock_tenant(p_tenant_id) = 'active') IS NOT TRUE THEN
+    RETURN pg_catalog.jsonb_build_object('status', 'refused');
+  END IF;
 
   SELECT c.id, c.donor_id, c.requested_by, c.status, c.token_expires_at,
          c.token_redeemed_at, c.donor_email_at_issue
