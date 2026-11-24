@@ -34,8 +34,12 @@ describe.skipIf(!ADMIN_URL)("Site commands", () => {
     "siteB2",
     "homeA",
     "homeB",
+    "UDUAL",
+    "mDualA",
+    "mDualB",
   ])
     id[key] = randomUUID();
+  id.USEED = "33333333-3333-3333-3333-333333333333";
   const host = {
     readyA: `ready.${id.TA}.example.org`,
     homeOnlyA: `home.${id.TA}.example.org`,
@@ -56,8 +60,15 @@ describe.skipIf(!ADMIN_URL)("Site commands", () => {
     sub: "UBADM",
     headers: { "x-asym-tenant": id.TB!, "x-asym-assignment": id.mBAdm! },
   };
-  beforeAll(() => db.connect());
-  afterAll(() => db.end());
+  const db2 = new pg.Client({ connectionString: ADMIN_URL });
+  beforeAll(async () => {
+    await db.connect();
+    await db2.connect();
+  });
+  afterAll(async () => {
+    await db.end();
+    await db2.end();
+  });
 
   async function fixture(test: () => Promise<void>) {
     await db.query("begin");
@@ -319,4 +330,279 @@ describe.skipIf(!ADMIN_URL)("Site commands", () => {
         display_name: "First name",
       });
     }));
+
+  const SITE_ACTIONS = [
+    "site_created",
+    "site_status_changed",
+    "account_brand_set",
+    "home_designated",
+  ];
+  const audits = async () =>
+    (
+      await db.query(
+        "select action, user_id, resource_type, resource_id, details from public.audit_logs where tenant_id=$1 and action=any($2::text[]) order by created_at, action",
+        [id.TA, SITE_ACTIONS],
+      )
+    ).rows;
+
+  it("writes one audit row for each successful command and none for a refusal, unreadable from another organization", () =>
+    fixture(async () => {
+      const second = randomUUID();
+      await db.query(
+        "insert into public.sites(id,tenant_id,name) values ($1,$2,'Second A')",
+        [second, id.TA],
+      );
+      await refused(DEV, `select public.create_site('${id.TA}','X')`, "42501");
+      await refused(
+        ADM,
+        `select public.set_site_status('${id.TA}','${id.siteA}','inactive')`,
+        "23514",
+      );
+      await refused(
+        ADM,
+        `select public.designate_home('${id.TA}','${host.claimedA}')`,
+        "23514",
+      );
+      await refused(
+        ADM,
+        `select public.set_account_brand('${id.TA}','\t')`,
+        "23514",
+      );
+      expect(await audits()).toEqual([]);
+      const site = await changesOnlyA(
+        ADM,
+        `select public.create_site('${id.TA}','Audited') as result`,
+      );
+      await changesOnlyA(
+        ADM,
+        `select public.set_site_status('${id.TA}','${second}','inactive') as result`,
+      );
+      await changesOnlyA(
+        ADM,
+        `select public.set_account_brand('${id.TA}','Renamed') as result`,
+      );
+      await changesOnlyA(
+        ADM,
+        `select public.designate_home('${id.TA}','${host.readyA}') as result`,
+      );
+      const rows = await audits();
+      expect(rows).toHaveLength(4);
+      const byAction = Object.fromEntries(rows.map((row) => [row.action, row]));
+      for (const row of rows) {
+        expect(row.user_id).toBe(id.UADM);
+        expect(row.details.assignment_id).toBe(id.mAdm);
+      }
+      expect(byAction.site_created).toMatchObject({
+        resource_type: "site",
+        resource_id: site.id,
+        details: {
+          to: { name: "Audited", status: "active", is_default: false },
+        },
+      });
+      expect(byAction.site_status_changed).toMatchObject({
+        resource_type: "site",
+        resource_id: second,
+        details: { from: { status: "active" }, to: { status: "inactive" } },
+      });
+      expect(byAction.account_brand_set).toMatchObject({
+        resource_type: "donor_account_brand",
+        resource_id: id.TA,
+        details: {
+          from: { display_name: "Brand A" },
+          to: { display_name: "Renamed" },
+        },
+      });
+      expect(byAction.home_designated).toMatchObject({
+        resource_type: "donor_portal_host",
+        resource_id: id.homeA,
+        details: {
+          from: { primary_domain: null },
+          to: { primary_domain: host.readyA },
+        },
+      });
+      const fromB = await run(
+        "authenticated",
+        {
+          sub: "UB",
+          headers: { "x-asym-tenant": id.TB!, "x-asym-assignment": id.mB! },
+        },
+        `select id from public.audit_logs where tenant_id='${id.TA}'`,
+      );
+      expect(fromB.code, fromB.message).toBeNull();
+      expect(fromB.rows).toEqual([]);
+    }));
+
+  it("refuses an administrator whose assignment was demoted or revoked before the command", () =>
+    fixture(async () => {
+      const second = randomUUID();
+      await db.query(
+        "insert into public.sites(id,tenant_id,name) values ($1,$2,'Second A')",
+        [second, id.TA],
+      );
+      const commands = [
+        `select public.create_site('${id.TA}','X')`,
+        `select public.set_site_status('${id.TA}','${second}','inactive')`,
+        `select public.set_account_brand('${id.TA}','X')`,
+        `select public.designate_home('${id.TA}','${host.readyA}')`,
+      ];
+      for (const change of [
+        "update authz.memberships set is_tenant_admin=false where id=$1",
+        "update authz.memberships set is_active=false, revoked_at=now() where id=$1",
+      ]) {
+        await db.query("savepoint lost_authority");
+        await db.query(change, [id.mAdm]);
+        for (const command of commands) await refused(ADM, command, "42501");
+        await db.query("rollback to savepoint lost_authority");
+      }
+      expect(await audits()).toEqual([]);
+    }));
+
+  it("acts only in the organization the request names, for a person who administers two", () =>
+    fixture(async () => {
+      await db.query("insert into auth.users(id) values ($1)", [id.UDUAL]);
+      await db.query("delete from authz.memberships where user_id=$1", [
+        id.UDUAL,
+      ]);
+      await db.query(
+        "insert into authz.memberships(id,user_id,tenant_id,role,staff_role,is_tenant_admin,is_active) values ($1,$2,$3,'staff','development',true,true),($4,$2,$5,'staff','development',true,true)",
+        [id.mDualA, id.UDUAL, id.TA, id.mDualB, id.TB],
+      );
+      const fromA: Caller = {
+        sub: "UDUAL",
+        headers: { "x-asym-tenant": id.TA! },
+      };
+      for (const command of [
+        `select public.create_site('${id.TB}','X')`,
+        `select public.set_site_status('${id.TB}','${id.siteB2}','inactive')`,
+        `select public.set_account_brand('${id.TB}','X')`,
+        `select public.designate_home('${id.TB}','${host.hostB}')`,
+      ])
+        await refused(fromA, command, "42501");
+      await refused(
+        { sub: "UDUAL", headers: {} },
+        `select public.create_site('${id.TA}','X')`,
+        "42501",
+      );
+      await refused(
+        {
+          sub: "UDUAL",
+          headers: { "x-asym-tenant": id.TA!, "x-asym-assignment": id.mDualA! },
+        },
+        `select public.create_site('${id.TB}','X')`,
+        "42501",
+      );
+      const inB = await run(
+        "authenticated",
+        { sub: "UDUAL", headers: { "x-asym-tenant": id.TB! } },
+        `select public.set_account_brand('${id.TB}','Named in B') as result`,
+      );
+      expect(inB.code, inB.message).toBeNull();
+      expect(inB.rows[0]?.result).toEqual({
+        tenant_id: id.TB,
+        display_name: "Named in B",
+      });
+    }));
+
+  it("holds the organization, the caller's assignment and its targets until the command's transaction ends", async () => {
+    const tenant = "00000000-0000-0000-0000-000000000002";
+    const assignment = (
+      await db.query(
+        "select id from authz.memberships where user_id=$1 and tenant_id=$2 and role='staff' and is_active",
+        [id.USEED, tenant],
+      )
+    ).rows[0]?.id as string;
+    expect(assignment).toBeTruthy();
+    const seeded = (
+      await db.query(
+        "select s.id as site, h.id as home, h.primary_domain as host from public.sites s join public.donor_portal_hosts h on h.tenant_id=s.tenant_id where s.tenant_id=$1 and not s.is_default",
+        [tenant],
+      )
+    ).rows[0] as { site: string; home: string; host: string };
+    const who: Caller = {
+      sub: "USEED",
+      headers: { "x-asym-tenant": tenant, "x-asym-assignment": assignment },
+    };
+    const blocked = async (sql: string, params: unknown[]) => {
+      try {
+        await db2.query(sql, params);
+        return null;
+      } catch (e) {
+        return (e as { code?: string }).code ?? "?";
+      }
+    };
+    const held = async () => ({
+      tenant: await blocked(
+        "select 1 from public.tenants where id=$1 for no key update nowait",
+        [tenant],
+      ),
+      assignment: await blocked(
+        "select 1 from authz.memberships where id=$1 for no key update nowait",
+        [assignment],
+      ),
+    });
+    for (const [label, prepare, sql, targets] of [
+      [
+        "create_site",
+        null,
+        `select public.create_site('${tenant}','Held') as result`,
+        [],
+      ],
+      [
+        "set_site_status",
+        null,
+        `select public.set_site_status('${tenant}','${seeded.site}','inactive') as result`,
+        [
+          [
+            "select 1 from public.sites where id=$1 for key share nowait",
+            seeded.site,
+          ],
+        ],
+      ],
+      [
+        "set_account_brand",
+        null,
+        `select public.set_account_brand('${tenant}','Held') as result`,
+        [
+          [
+            "select 1 from public.donor_portal_hosts where id=$1 for no key update nowait",
+            seeded.home,
+          ],
+        ],
+      ],
+      [
+        "designate_home",
+        "update public.donor_portal_hosts set primary_domain=null where tenant_id='" +
+          tenant +
+          "'",
+        `select public.designate_home('${tenant}','${seeded.host}') as result`,
+        [
+          [
+            "select 1 from public.site_domains where host=$1 for no key update nowait",
+            seeded.host,
+          ],
+        ],
+      ],
+    ] as [string, string | null, string, [string, string][]][]) {
+      await db.query("begin");
+      try {
+        if (prepare) await db.query(prepare);
+        const result = await run("authenticated", who, sql, true);
+        expect(result.code, `${label}: ${result.message}`).toBeNull();
+        expect(await held(), label).toEqual({
+          tenant: "55P03",
+          assignment: "55P03",
+        });
+        for (const [lock, value] of targets)
+          expect(await blocked(lock, [value]), `${label}: ${lock}`).toBe(
+            "55P03",
+          );
+      } finally {
+        await db.query("rollback");
+      }
+      expect(await held(), `${label} after rollback`).toEqual({
+        tenant: null,
+        assignment: null,
+      });
+    }
+  });
 });

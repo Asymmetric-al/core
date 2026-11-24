@@ -28,6 +28,7 @@ describe("the local Supabase workflow's path filter", () => {
     "tests/unit/acceptance/issue-2676/membership-invitations.postgrest.acceptance.test.ts",
     "tests/unit/acceptance/issue-2676/operator-admin-invite.localstack.test.ts",
     "tests/unit/acceptance/issue-2676/sites.postgrest.acceptance.test.ts",
+    "tests/unit/acceptance/issue-2676/site-fixture.ts",
     "packages/api/src/admin/members/**",
     "packages/api/src/invitations/**",
     "apps/admin/app/(app)/admin/teams/**",

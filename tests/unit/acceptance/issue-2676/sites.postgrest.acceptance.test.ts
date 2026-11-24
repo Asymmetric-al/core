@@ -213,6 +213,38 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       ]);
     });
 
+    it("gives no role any privilege on the generation sequence on the Supabase image", async () => {
+      const granted = await db!.query(
+        `select role_name, privilege from unnest(array['public','anon','authenticated','service_role','tenant_guard']) role_name
+           cross join unnest(array['USAGE','SELECT','UPDATE']) privilege
+          where has_sequence_privilege(role_name,'public.site_domains_generation_seq',privilege)`,
+      );
+      expect(granted.rows).toEqual([]);
+    });
+
+    it("refuses direct reads of the four tables to anon, a signed-in administrator and service_role", async () => {
+      for (const table of [
+        "sites",
+        "site_domains",
+        "donor_portal_hosts",
+        "donor_account_brands",
+      ])
+        for (const [label, key, bearer] of [
+          ["anon", anon!, anon!],
+          ["administrator", anon!, token],
+          ["service_role", service!, service!],
+        ] as [string, string, string][]) {
+          const response = await api(
+            `rest/v1/${table}?select=tenant_id&tenant_id=eq.${tenant}`,
+            key,
+            bearer,
+          );
+          const body = await response.json();
+          expect(response.status, `${label} ${table}`).not.toBe(200);
+          expect(body.code, `${label} ${table}`).toBe("42501");
+        }
+    });
+
     it("runs each command for the administrator through PostgREST with both request headers", async () => {
       const call = async (name: string) => {
         const response = await rpc(name, anon!, token, args()[name]!);

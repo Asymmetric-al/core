@@ -630,4 +630,128 @@ describe.skipIf(!ADMIN_URL)("the claimed-name record", () => {
         .sort(),
     );
   });
+
+  it("refuses a proof recorded before the one it follows", () =>
+    fixture(async (f) => {
+      const tbBefore = await snapshot(db, [f.tb]);
+      for (const [label, columns, values] of [
+        ["attached before control", "attached_at", "now() - interval '1 hour'"],
+        [
+          "routing before attached",
+          "attached_at,routing_proved_at",
+          "now(),now() - interval '1 hour'",
+        ],
+        [
+          "https before routing",
+          "attached_at,routing_proved_at,https_proved_at",
+          "now(),now(),now() - interval '1 hour'",
+        ],
+        [
+          "sign-in ready before https",
+          "attached_at,routing_proved_at,https_proved_at,sign_in_ready_at",
+          "now(),now(),now(),now() - interval '1 hour'",
+        ],
+        [
+          "activation before sign-in ready",
+          "attached_at,routing_proved_at,https_proved_at,sign_in_ready_at,activation_proved_at",
+          "now(),now(),now(),now(),now() - interval '1 hour'",
+        ],
+      ] as [string, string, string][])
+        expect(
+          await expectCode(
+            db,
+            `insert into public.site_domains(host,tenant_id,site_id,surfaces,expected_project,control_proved_at,${columns}) values ($1,$2,$3,array['website'],'donor',now(),${values})`,
+            [f.hostA, f.ta, f.siteA],
+          ),
+          label,
+        ).toBe("23514");
+      await db.query(
+        claimSql({ host: f.hostA, tenant: f.ta, site: f.siteA, proofs: 6 }),
+      );
+      expect(
+        await expectCode(
+          db,
+          "update public.site_domains set routing_proved_at = attached_at - interval '1 second' where host=$1",
+          [f.hostA],
+        ),
+      ).toBe("23514");
+      await db.query("set constraints all immediate");
+      expect(await snapshot(db, [f.tb])).toEqual(tbBefore);
+    }));
+
+  it("gives no role any privilege on the generation sequence or any other sequence of the four tables", async () => {
+    const sequences = await db.query(
+      `select s.oid::regclass::text as name
+         from pg_class s
+         join pg_depend d on d.objid = s.oid and d.classid = 'pg_class'::regclass and d.refclassid = 'pg_class'::regclass
+        where s.relkind = 'S' and d.refobjid = any(array['public.sites','public.site_domains','public.donor_portal_hosts','public.donor_account_brands']::regclass[])
+        order by 1`,
+    );
+    expect(sequences.rows.map((row) => row.name)).toEqual([
+      "site_domains_generation_seq",
+    ]);
+    const granted = await db.query(
+      `select role_name, privilege from unnest(array['public','anon','authenticated','service_role','tenant_guard']) role_name
+         cross join unnest(array['USAGE','SELECT','UPDATE']) privilege
+        where has_sequence_privilege(role_name,'public.site_domains_generation_seq',privilege)`,
+    );
+    expect(granted.rows).toEqual([]);
+  });
+
+  it("resolves nothing for a null, empty or overlong host, even one that would normalise to a ready name", () =>
+    fixture(async (f) => {
+      await db.query(
+        claimSql({ host: f.hostA, tenant: f.ta, site: f.siteA, proofs: 5 }),
+      );
+      await db.query("set constraints all immediate");
+      expect(await resolveAsAnon(db, `${f.hostA}:443`)).toHaveLength(1);
+      await db.query("savepoint null_lookup");
+      await db.query("set local role anon");
+      expect(
+        (await db.query("select * from public.resolve_verified_host(null)"))
+          .rows,
+      ).toEqual([]);
+      await db.query("rollback to savepoint null_lookup");
+      expect(await resolveAsAnon(db, "")).toEqual([]);
+      expect(await resolveAsAnon(db, `${f.hostA}:${"4".repeat(300)}`)).toEqual(
+        [],
+      );
+      expect(await resolveAsAnon(db, "a".repeat(100000))).toEqual([]);
+    }));
+
+  it("still resolves a closed tenant's ready name: status is the request path's", () =>
+    fixture(async (f) => {
+      await db.query(
+        claimSql({ host: f.hostA, tenant: f.ta, site: f.siteA, proofs: 5 }),
+      );
+      await db.query("update public.tenants set status='closed' where id=$1", [
+        f.ta,
+      ]);
+      await db.query("set constraints all immediate");
+      expect(await resolveAsAnon(db, f.hostA)).toMatchObject([
+        { tenant_id: f.ta, state: "ready" },
+      ]);
+    }));
+
+  it("refuses a Site name or display name with leading or trailing whitespace of any kind", () =>
+    fixture(async (f) => {
+      for (const name of ["\t", "\n", "\tSite", "Site\r", " Site"])
+        expect(
+          await expectCode(
+            db,
+            "insert into public.sites(tenant_id,name) values ($1,$2)",
+            [f.ta, name],
+          ),
+          JSON.stringify(name),
+        ).toBe("23514");
+      for (const name of ["\t", "Brand\n"])
+        expect(
+          await expectCode(
+            db,
+            "insert into public.donor_account_brands(tenant_id,display_name) values ($1,$2)",
+            [f.ta, name],
+          ),
+          JSON.stringify(name),
+        ).toBe("23514");
+    }));
 });
