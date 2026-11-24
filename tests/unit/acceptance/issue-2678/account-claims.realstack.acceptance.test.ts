@@ -7,10 +7,13 @@ import {
   ADMIN_URL,
   IN_MIGRATE_JOB,
   asRole,
+  backendPid,
   caller,
   fixtureIds,
   fixtureSql,
   keepAs,
+  settlesWithoutWaiting,
+  waitsOn,
 } from "./harness";
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
@@ -146,12 +149,30 @@ describe.skipIf(!ADMIN_URL)(
         who as never,
         `select public.redeem_account_claim('${id[tenant]}', '${t}') as r`,
       );
-    const status = (who: object, tenant: Key = "TA") =>
-      queryAs(
+    const status = async (who: object, tenant: Key = "TA") => {
+      const read = await queryAs(
         "authenticated",
         who as never,
         `select * from public.account_claim_status('${id[tenant]}')`,
       );
+      expect(
+        read.code,
+        `the status read answers without an error (D-16): ${read.message}`,
+      ).toBeNull();
+      return read;
+    };
+    const directRead = async (who: object) => {
+      const read = await queryAs(
+        "authenticated",
+        who as never,
+        "select * from public.account_claim_requests",
+      );
+      expect(
+        read.code,
+        `the direct read answers without an error: ${read.message}`,
+      ).toBeNull();
+      return read.rows;
+    };
     const claimOf = async (user: string, tenant: string = id.TA) =>
       (
         await db.query(
@@ -170,7 +191,7 @@ describe.skipIf(!ADMIN_URL)(
     const audit = async (action: string, user: string) =>
       (
         await db.query(
-          "select coalesce(details->>'reason', details->>'outcome') why from public.audit_logs where tenant_id = $1 and action = $2 and user_id = $3 order by created_at",
+          "select coalesce(details->>'reason', details->>'outcome') why from public.audit_logs where tenant_id = $1 and action = $2 and user_id = $3 order by created_at, why",
           [id.TA, action, user],
         )
       ).rows.map((r) => r.why);
@@ -335,15 +356,7 @@ describe.skipIf(!ADMIN_URL)(
           )
         ).rows,
       ).toEqual([{ s: true }]);
-      expect(
-        (
-          await queryAs(
-            "authenticated",
-            claimant,
-            "select * from public.account_claim_requests",
-          )
-        ).rows,
-      ).toEqual([]);
+      expect(await directRead(claimant)).toEqual([]);
       const own = await status(claimant);
       expect(own.code, own.message).toBeNull();
       expect(own.rows).toHaveLength(1);
@@ -669,23 +682,14 @@ describe.skipIf(!ADMIN_URL)(
             if (claim.token_sha256 === null)
               await issue(claim.id as string, token());
           expect((await status(who, tenant)).rows, label).toEqual([]);
-          expect(
-            (
-              await queryAs(
-                "authenticated",
-                who as never,
-                "select * from public.account_claim_requests",
-              )
-            ).rows,
-            label,
-          ).toEqual([]);
+          expect(await directRead(who), label).toEqual([]);
           expect((await redeem(who, token(), tenant)).rows, label).toEqual([
             { r: { status: "refused" } },
           ]);
         }
         expect(await audit("account_claim_started", id.UQ6)).toEqual([
-          "claim_opened",
           "claim_already_open",
+          "claim_opened",
         ]);
         expect(
           await claimOf(id.UQ5, id.TS),
@@ -761,18 +765,13 @@ describe.skipIf(!ADMIN_URL)(
               (r) => r.rows[0].r,
               (e) => ({ error: (e as { code?: string }).code }),
             );
+        const firstPid = await backendPid(first);
+        const secondPid = await backendPid(second);
         await prepare(first, calls[0]![0]);
         await prepare(second, calls[1]![0]);
         const one = await redeemOn(first, calls[0]![1]);
-        let settled = false;
-        const two = redeemOn(second, calls[1]![1]).then((r) => {
-          settled = true;
-          return r;
-        });
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        expect(settled, "the second redemption waits for the first").toBe(
-          false,
-        );
+        const two = redeemOn(second, calls[1]![1]);
+        await waitsOn(admin, secondPid, firstPid);
         await first.query("commit");
         const answers = [one, await two];
         await second.query("commit").catch(() => second.query("rollback"));
@@ -1000,9 +999,14 @@ describe.skipIf(!ADMIN_URL)(
       }
     }
 
-    async function startCall(user: string, tenant: string) {
+    async function startCaller(user: string, tenant: string) {
       const c = new pg.Client({ connectionString: ADMIN_URL });
       await c.connect();
+      const pid = await backendPid(c);
+      return { pid, call: () => startOn(c, user, tenant) };
+    }
+
+    async function startOn(c: pg.Client, user: string, tenant: string) {
       try {
         await c.query(
           `begin; set local role authenticated;
@@ -1042,30 +1046,29 @@ describe.skipIf(!ADMIN_URL)(
       withMatchedDonor(async ({ admin, tenant, user, party }) => {
         const holder = new pg.Client({ connectionString: ADMIN_URL });
         await holder.connect();
-        let settled = false;
-        let call: Promise<Record<string, unknown>> | undefined;
-        let settledWhileHeld = false;
+        let pending: Promise<unknown> | undefined;
+        let answer: unknown;
         try {
+          const holderPid = await backendPid(holder);
           await holder.query("begin");
           await holder.query(
             "select 1 from public.parties where id = $1 for update",
             [party],
           );
-          call = startCall(user, tenant).then((r) => {
-            settled = true;
-            return r;
-          });
-          await new Promise((resolve) => setTimeout(resolve, 3000));
-          settledWhileHeld = settled;
+          const starter = await startCaller(user, tenant);
+          const call = starter.call();
+          pending = call;
+          answer = await settlesWithoutWaiting(
+            admin,
+            call,
+            starter.pid,
+            holderPid,
+          );
         } finally {
           await holder.query("rollback").catch(() => undefined);
           await holder.end().catch(() => undefined);
+          await pending?.catch(() => undefined);
         }
-        const answer = await call;
-        expect(
-          settledWhileHeld,
-          "the start settles while the Party is still held",
-        ).toBe(true);
         expect(answer).toEqual({ status: "received" });
         expect(await openClaims(admin, tenant)).toBe(0);
         expect(await outcomes(admin, tenant, user)).toEqual([
@@ -1075,9 +1078,27 @@ describe.skipIf(!ADMIN_URL)(
 
     it("a burst of six concurrent matched starts by one login: every answer is received, exactly one claim is open, one start opened it and five found it already open", () =>
       withMatchedDonor(async ({ admin, tenant, user }) => {
-        const answers = await Promise.all(
-          Array.from({ length: 6 }, () => startCall(user, tenant)),
+        const starters = await Promise.all(
+          Array.from({ length: 6 }, () => startCaller(user, tenant)),
         );
+        const pids = starters.map((s) => s.pid);
+        let settled = 0;
+        const calls = starters.map((s) =>
+          s.call().finally(() => {
+            settled += 1;
+          }),
+        );
+        const end = Date.now() + 10_000;
+        while (settled < calls.length) {
+          const waiting = await admin.query(
+            "select count(*)::int as n from unnest($1::int[]) as w (pid) where pg_catalog.pg_blocking_pids(w.pid) && $1::int[]",
+            [pids],
+          );
+          expect(waiting.rows[0].n, "no start waits on another").toBe(0);
+          expect(Date.now() < end, "the burst settles").toBe(true);
+          await new Promise((resolve) => setTimeout(resolve, 25));
+        }
+        const answers = await Promise.all(calls);
         expect(answers).toEqual(
           Array.from({ length: 6 }, () => ({ status: "received" })),
         );

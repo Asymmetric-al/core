@@ -414,16 +414,20 @@ describe.skipIf(!ADMIN_URL)(
           "staff",
           "missionary",
           "donorAinB",
-        ] as Who[])
+        ] as Who[]) {
+          const updated = await write(
+            person,
+            `update public.donor_feed_preferences set updated_at = now() where id = '${id.pf2}' returning id`,
+          );
           expect(
-            (
-              await write(
-                person,
-                `update public.donor_feed_preferences set updated_at = now() where id = '${id.pf2}' returning id`,
-              )
-            ).rows,
+            updated.code,
+            `${person} updates the second donor's row: ${updated.message}`,
+          ).toBeNull();
+          expect(
+            updated.rows,
             `${person} updates the second donor's row`,
           ).toEqual([]);
+        }
         for (const set of [
           `donor_id = '${id.dC}'`,
           `tenant_id = '${id.TB}'`,

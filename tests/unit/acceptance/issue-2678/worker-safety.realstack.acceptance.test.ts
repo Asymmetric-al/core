@@ -7,10 +7,12 @@ import {
   ADMIN_URL,
   IN_MIGRATE_JOB,
   asRole,
+  backendPid,
   caller,
   fixtureIds,
   fixtureSql,
   keepAs,
+  waitsOn,
 } from "./harness";
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
@@ -141,15 +143,14 @@ describe.skipIf(!ADMIN_URL)(
             )
           ).rows.map((r) => r.party_id),
         ).toContain(id.pMA);
-        for (const who of [donor, missionary, staffBforgedA, operator])
-          expect(
-            (
-              await run(
-                who,
-                "select * from public.unreviewed_worker_security_levels()",
-              )
-            ).rows,
-          ).toEqual([]);
+        for (const who of [donor, missionary, staffBforgedA, operator]) {
+          const signalRead = await run(
+            who,
+            "select * from public.unreviewed_worker_security_levels()",
+          );
+          expect(signalRead.code, signalRead.message).toBeNull();
+          expect(signalRead.rows).toEqual([]);
+        }
         const audit = await db.query(
           "select action, details->>'reason' reason from public.audit_logs where tenant_id = $1 and resource_id = $2 order by created_at, action",
           [id.TA, id.pM2],
@@ -257,7 +258,7 @@ describe.skipIf(!ADMIN_URL)(
             expect(refused.message, sql).toBe(message);
           }
         const audit = await db.query(
-          "select action from public.audit_logs where tenant_id = $1 and resource_id = $2 order by created_at",
+          "select action from public.audit_logs where tenant_id = $1 and resource_id = $2 order by created_at, action",
           [id.TA, id.pMA],
         );
         expect(audit.rows.map((r) => r.action)).toEqual([
@@ -388,6 +389,167 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
+    it("the alias rule and every stored name use one normalized form (bot triage #2 and #4): an alias that differs from the legal name only by a tab, a line break, a no-break space, a zero-width space or a no-break space inside a two-word name is refused through every entry; an alias of one tab is refused; a reason of tabs and line breaks is refused; names and reasons are stored normalized; the projection and the CHECK agree with the shared form", async () => {
+      await db.query("savepoint s");
+      const direct = async (sql: string) => {
+        await db.query("savepoint direct");
+        try {
+          await db.query(sql);
+          return null;
+        } catch (e) {
+          const err = e as { code?: string; message?: string };
+          return `${err.code ?? "?"} ${err.message ?? ""}`;
+        } finally {
+          await db.query("rollback to savepoint direct");
+        }
+      };
+      const refusal = async (sql: string) => {
+        const r = await run(admin, sql);
+        return r.code === null ? null : `${r.code} ${r.message}`;
+      };
+      try {
+        const legal = "'Alice Smith'";
+        const sameName = [
+          ["a trailing tab", "'Alice Smith' || chr(9)"],
+          ["a trailing line break", "'Alice Smith' || chr(10)"],
+          ["a trailing no-break space", "'Alice Smith' || chr(160)"],
+          ["a trailing zero-width space", "'Alice Smith' || chr(8203)"],
+          ["a no-break space inside", "'Alice' || chr(160) || 'Smith'"],
+          [
+            "a zero-width space inside a word",
+            "'Alice Sm' || chr(8203) || 'ith'",
+          ],
+          ["case and doubled spaces", "'  alice   SMITH '"],
+        ] as const;
+        const blank = [
+          ["one tab", "chr(9)"],
+          ["a line break and a no-break space", "chr(10) || chr(160)"],
+          ["a zero-width space", "chr(8203)"],
+        ] as const;
+        for (const [label, alias] of [...sameName, ...blank]) {
+          const problem = blank.some(([b]) => b === label)
+            ? ALIAS_NEEDED
+            : ALIAS_DIFFERS;
+          expect(
+            await refusal(
+              `select public.set_worker_identity('${id.TA}', '${id.pMA}', ${legal}, null, null, null, 'restricted', ${alias}, 'r')`,
+            ),
+            `set_worker_identity at creation: ${label}`,
+          ).toBe(`23514 ${problem}`);
+        }
+        const created = await act(
+          admin,
+          `select public.set_worker_identity('${id.TA}', '${id.pM2}', 'Alice' || chr(160) || ' Smith' || chr(9), null, null, null, null, null, 'fixture')`,
+        );
+        expect(created.code, created.message).toBeNull();
+        expect(
+          (
+            await db.query(
+              "select legal_name from private.party_restricted where party_id = $1",
+              [id.pM2],
+            )
+          ).rows,
+        ).toEqual([{ legal_name: "Alice Smith" }]);
+        for (const [label, alias] of [...sameName, ...blank]) {
+          const problem = blank.some(([b]) => b === label)
+            ? ALIAS_NEEDED
+            : ALIAS_DIFFERS;
+          expect(
+            await refusal(
+              `select public.restrict_worker_publication('${id.TA}', '${id.pM2}', 'restricted', ${alias}, null, 'r')`,
+            ),
+            `restrict_worker_publication: ${label}`,
+          ).toBe(`23514 ${problem}`);
+          expect(
+            await direct(
+              `update public.parties set security_level = 'restricted', security_level_source = 'manual', public_alias = ${alias} where id = '${id.pM2}'`,
+            ),
+            `a direct write of parties: ${label}`,
+          ).toBe(`23514 ${problem}`);
+        }
+        const restricted = await act(
+          admin,
+          `select public.restrict_worker_publication('${id.TA}', '${id.pM2}', 'restricted', '  Cedar' || chr(9), null, 'Reviewed' || chr(9) || chr(160) || 'twice ') as r`,
+        );
+        expect(restricted.code, restricted.message).toBeNull();
+        expect(
+          (
+            await db.query(
+              "select public_alias from public.parties where id = $1",
+              [id.pM2],
+            )
+          ).rows,
+        ).toEqual([{ public_alias: "Cedar" }]);
+        expect(
+          (
+            await db.query(
+              "select details->>'reason' reason from public.audit_logs where resource_id = $1 and action = 'worker_publication_restricted'",
+              [id.pM2],
+            )
+          ).rows,
+        ).toEqual([{ reason: "Reviewed twice" }]);
+        for (const [label, name] of [
+          ["a trailing line break", "'Cedar' || chr(10)"],
+          ["a trailing no-break space", "'Cedar' || chr(160)"],
+          ["a zero-width space inside", "'Ced' || chr(8203) || 'ar'"],
+        ] as const) {
+          expect(
+            await direct(
+              `update private.party_restricted set legal_name = ${name} where party_id = '${id.pM2}'`,
+            ),
+            `a direct write of the legal name: ${label}`,
+          ).toBe(`23514 ${ALIAS_DIFFERS}`);
+          expect(
+            await refusal(
+              `select public.set_worker_identity('${id.TA}', '${id.pM2}', ${name}, null, null, null, null, null, 'r')`,
+            ),
+            `set_worker_identity editing the legal name: ${label}`,
+          ).toBe(`23514 ${ALIAS_DIFFERS}`);
+        }
+        expect(
+          await direct(
+            `insert into private.party_restricted (party_id, tenant_id, legal_name) values ('${id.pMA}', '${id.TA}', chr(9) || chr(160) || chr(8203))`,
+          ),
+          "the CHECK refuses a legal name of whitespace and invisible characters",
+        ).toBe(
+          '23514 new row for relation "party_restricted" violates check constraint "party_restricted_legal_name_check"',
+        );
+        for (const sql of [
+          `select public.set_worker_identity('${id.TA}', '${id.pMA}', 'Legal', null, null, null, null, null, REASON)`,
+          `select public.restrict_worker_publication('${id.TA}', '${id.pM2}', 'high_risk', null, null, REASON)`,
+          `select public.lift_worker_restriction('${id.TA}', '${id.pM2}', 'standard', true, REASON)`,
+        ])
+          for (const reason of [
+            "chr(9)",
+            "chr(10)",
+            "chr(9) || chr(10) || chr(160) || chr(8203)",
+          ])
+            expect(
+              await refusal(sql.replace("REASON", reason)),
+              `${sql.slice(14, 40)} with reason ${reason}`,
+            ).toBe("22023 A reason is required");
+        const samples = [
+          ...sameName.map(([, s]) => s),
+          ...blank.map(([, s]) => s),
+          "'Cedar'",
+          "''",
+          "null",
+          "' Shepherd' || chr(12288) || chr(65279)",
+        ];
+        for (const s of samples) {
+          const agree = await db.query(
+            `select public.worker_public_display_name(${s}, null, null) is not distinct from private.normalize_safety_text(${s}) as alias_slot,
+                    public.worker_public_display_name(null, ${s}, null) is not distinct from private.normalize_safety_text(${s}) as approved_slot`,
+          );
+          expect(agree.rows, s).toEqual([
+            { alias_slot: true, approved_slot: true },
+          ]);
+        }
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
     it("a signed-in user reads nothing of party_restricted directly; tenant staff read a worker's legal name through the read function; a donor, a missionary, another tenant's staff and an operator without a staff membership do not", async () => {
       await db.query("savepoint s");
       try {
@@ -491,14 +653,80 @@ describe.skipIf(!ADMIN_URL)(
             )
           ).rows,
         ).toEqual([{ legal_name: "Real Legal Name" }]);
-        expect(
-          (
-            await db.query(
-              "select details->'before' as before, details->'after' as after from public.audit_logs where tenant_id = $1 and resource_id = $2 and action = 'worker_identity_set'",
-              [id.TA, id.pM2],
-            )
-          ).rows,
-        ).toEqual([{ before: state, after: state }]);
+        const audited = {
+          security_level: "high_risk",
+          security_level_source: "manual",
+          alias_set: true,
+          do_not_publish: true,
+        };
+        const row = (
+          await db.query(
+            "select details->'before' as before, details->'after' as after, details->'alias_changed' as alias_changed, details::text as text from public.audit_logs where tenant_id = $1 and resource_id = $2 and action = 'worker_identity_set'",
+            [id.TA, id.pM2],
+          )
+        ).rows;
+        expect(row).toHaveLength(1);
+        expect(row[0]).toMatchObject({
+          before: audited,
+          after: audited,
+          alias_changed: false,
+        });
+        for (const text of [
+          "Cedar",
+          "Real Legal Name",
+          "Closed Country",
+          "Exact City",
+        ])
+          expect(row[0]!.text, text).not.toContain(text);
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
+    it("set_worker_identity's audit row holds whether an alias was set before and after and whether it changed, never its text, the legal name or a place, even for a standard worker whose alias equals the legal name (bot review #28, coordinator's BF10)", async () => {
+      await db.query("savepoint s");
+      try {
+        const created = await act(
+          admin,
+          `select public.set_worker_identity('${id.TA}', '${id.pMA}', 'Legal Name', 'Real Country', 'Precise Place', 'Shown Name', null, 'Legal Name', 'fixture')`,
+        );
+        expect(created.code, created.message).toBeNull();
+        const row = (
+          await db.query(
+            "select details->'before' as before, details->'after' as after, details->'alias_changed' as alias_changed, details::text as text from public.audit_logs where tenant_id = $1 and resource_id = $2 and action = 'worker_identity_set'",
+            [id.TA, id.pMA],
+          )
+        ).rows;
+        expect(row).toHaveLength(1);
+        expect(row[0]).toMatchObject({
+          before: {
+            security_level: "standard",
+            security_level_source: "unreviewed_default",
+            alias_set: false,
+            do_not_publish: false,
+          },
+          after: {
+            security_level: "standard",
+            security_level_source: "unreviewed_default",
+            alias_set: true,
+            do_not_publish: false,
+          },
+          alias_changed: true,
+        });
+        for (const text of [
+          "Legal Name",
+          "Real Country",
+          "Precise Place",
+          "Shown Name",
+        ])
+          expect(row[0]!.text, text).not.toContain(text);
+        const others = await db.query(
+          "select action, details::text as text from public.audit_logs where tenant_id = $1 and action like 'worker_%'",
+          [id.TA],
+        );
+        for (const other of others.rows)
+          for (const text of ["Legal Name", "Real Country", "Precise Place"])
+            expect(other.text, `${other.action}: ${text}`).not.toContain(text);
       } finally {
         await db.query("rollback to savepoint s");
       }
@@ -683,7 +911,7 @@ describe.skipIf(!ADMIN_URL)(
     async function withFixture(
       run: (
         f: { tenant: string; user: string; membership: string; party: string },
-        connections: [pg.Client, pg.Client],
+        connections: [pg.Client, pg.Client, pg.Client],
       ) => Promise<void>,
     ) {
       const admin = new pg.Client({ connectionString: ADMIN_URL });
@@ -726,7 +954,7 @@ describe.skipIf(!ADMIN_URL)(
         );
         await first.connect();
         await second.connect();
-        await run(f, [first, second]);
+        await run(f, [first, second, admin]);
       } finally {
         await first.end().catch(() => undefined);
         await second.end().catch(() => undefined);
@@ -747,10 +975,10 @@ describe.skipIf(!ADMIN_URL)(
       }
     }
 
-    const pause = () => new Promise((resolve) => setTimeout(resolve, 300));
-
     it("an assignment revoked after a safety command's preamble and before its lock is refused (42501) and the command changes nothing", () =>
-      withFixture(async (f, [command, revoker]) => {
+      withFixture(async (f, [command, revoker, observer]) => {
+        const commandPid = await backendPid(command);
+        const revokerPid = await backendPid(revoker);
         await revoker.query("begin");
         await revoker.query(
           "update authz.memberships set is_active = false, is_tenant_admin = false where id = $1",
@@ -762,7 +990,6 @@ describe.skipIf(!ADMIN_URL)(
                   set_config('request.jwt.claim.sub', '', true),
                   set_config('request.headers', '${JSON.stringify({ "x-asym-tenant": f.tenant, "x-asym-assignment": f.membership })}', true);`,
         );
-        let settled = false;
         const outcome = command
           .query(
             "select public.restrict_worker_publication($1, $2, 'high_risk', 'Cedar', true, 'Urgent threat') as r",
@@ -774,14 +1001,8 @@ describe.skipIf(!ADMIN_URL)(
               const err = e as { code?: string; message?: string };
               return `${err.code ?? "?"} ${err.message ?? ""}`;
             },
-          )
-          .finally(() => {
-            settled = true;
-          });
-        await pause();
-        expect(settled, "the command waits on the assignment's row lock").toBe(
-          false,
-        );
+          );
+        await waitsOn(observer, commandPid, revokerPid);
         await revoker.query("commit");
         expect(await outcome).toBe(
           "42501 tenant_guard: the caller no longer holds the authority this command requires",
@@ -801,14 +1022,15 @@ describe.skipIf(!ADMIN_URL)(
       }));
 
     it("a direct write of a restricted level with an alias and a concurrent direct write of the same legal name serialize on the Party, and the second is refused (23514)", () =>
-      withFixture(async (f, [levelWriter, nameWriter]) => {
+      withFixture(async (f, [levelWriter, nameWriter, observer]) => {
+        const levelPid = await backendPid(levelWriter);
+        const namePid = await backendPid(nameWriter);
         await levelWriter.query("begin");
         await levelWriter.query(
           "update public.parties set security_level = 'restricted', security_level_source = 'manual', public_alias = 'Alice' where id = $1",
           [f.party],
         );
         await nameWriter.query("begin");
-        let settled = false;
         const outcome = nameWriter
           .query(
             "insert into private.party_restricted (party_id, tenant_id, legal_name) values ($1, $2, 'Alice')",
@@ -820,12 +1042,8 @@ describe.skipIf(!ADMIN_URL)(
               const err = e as { code?: string; message?: string };
               return `${err.code ?? "?"} ${err.message ?? ""}`;
             },
-          )
-          .finally(() => {
-            settled = true;
-          });
-        await pause();
-        expect(settled, "the second writer waits for the first").toBe(false);
+          );
+        await waitsOn(observer, namePid, levelPid);
         await levelWriter.query("commit");
         expect(await outcome).toBe(`23514 ${ALIAS_DIFFERS}`);
         await nameWriter.query("rollback");

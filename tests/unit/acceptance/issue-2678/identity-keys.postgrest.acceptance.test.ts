@@ -541,7 +541,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       expect(await body(projected)).toBe("Shepherd");
     });
 
-    it("a claim through the Data API answers the same whether or not a donor matches, and the claimant reads only their request's status and dates", async () => {
+    it("an unmatched claim start, a random-token redemption, a direct read and a status read through the Data API: the wiring of the claim entries (the four-way equality of matched and unmatched starts is proved in account-claims.realstack)", async () => {
       const inA = { "x-asym-tenant": TA };
       const started = await api("rest/v1/rpc/start_account_claim", {
         bearer: token.staffB,

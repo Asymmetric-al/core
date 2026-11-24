@@ -310,11 +310,12 @@ describe.skipIf(!ADMIN_URL)(
           "select id, party_id from public.donors where id = any($1::uuid[])",
           [[dup1, dup2, own, orphan]],
         );
+        expect(donors.rows, "all four donor rows remain").toHaveLength(4);
         const party = Object.fromEntries(
           donors.rows.map((r) => [r.id, r.party_id]),
         );
-        expect(party[dup1]).not.toBeNull();
-        expect(party[dup2]).not.toBeNull();
+        expect(typeof party[dup1]).toBe("string");
+        expect(typeof party[dup2]).toBe("string");
         expect(party[dup1]).not.toBe(party[dup2]);
         expect(party[orphan]).toBeNull();
         const missionary = await q(

@@ -407,12 +407,12 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
     );
   });
 
-  it("10: parties is not an RLS exception; its owner is superuser or BYPASSRLS", async () => {
-    expect(
-      JSON.parse(read(EXCEPTIONS)).entries.map(
-        (e: { table: string }) => e.table,
-      ),
-    ).not.toEqual(expect.arrayContaining(["persons", "parties"]));
+  it("10: parties is not an RLS exception; its owner is superuser or BYPASSRLS (D-18, AL-2678 bot review #9: persons and parties are each checked on their own)", async () => {
+    const exceptionTables = JSON.parse(read(EXCEPTIONS)).entries.map(
+      (e: { table: string }) => e.table,
+    );
+    expect(exceptionTables).not.toContain("parties");
+    expect(exceptionTables).not.toContain("persons");
     expect(
       await one(
         "SELECT r.rolsuper OR r.rolbypassrls FROM pg_class c JOIN pg_roles r ON r.oid = c.relowner WHERE c.oid = 'public.parties'::regclass",

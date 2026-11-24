@@ -218,3 +218,54 @@ export function keepAs(db: pg.Client, id: Record<string, string>) {
     }
   };
 }
+
+const BLOCKED =
+  "select $2::int = any(pg_catalog.pg_blocking_pids($1::int)) as blocked";
+const tick = () => new Promise((resolve) => setTimeout(resolve, 25));
+
+export async function backendPid(client: pg.Client) {
+  return (await client.query("select pg_catalog.pg_backend_pid() as pid"))
+    .rows[0].pid as number;
+}
+
+export async function waitsOn(
+  observer: pg.Client,
+  waiter: number,
+  holder: number,
+  ms = 10_000,
+) {
+  const end = Date.now() + ms;
+  for (;;) {
+    const r = await observer.query(BLOCKED, [waiter, holder]);
+    if (r.rows[0].blocked) return;
+    if (Date.now() > end)
+      throw new Error(
+        `backend ${waiter} was never seen waiting on backend ${holder} within ${ms} ms`,
+      );
+    await tick();
+  }
+}
+
+export async function settlesWithoutWaiting<T>(
+  observer: pg.Client,
+  call: Promise<T>,
+  waiter: number,
+  holder: number,
+  ms = 10_000,
+) {
+  let settled = false;
+  const tracked = call.finally(() => {
+    settled = true;
+  });
+  tracked.catch(() => undefined);
+  const end = Date.now() + ms;
+  for (;;) {
+    if (settled) return tracked;
+    const r = await observer.query(BLOCKED, [waiter, holder]);
+    if (r.rows[0].blocked)
+      throw new Error(`backend ${waiter} waited on backend ${holder}`);
+    if (Date.now() > end)
+      throw new Error(`backend ${waiter} did not settle within ${ms} ms`);
+    await tick();
+  }
+}

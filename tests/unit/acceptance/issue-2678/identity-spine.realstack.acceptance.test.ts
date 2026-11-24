@@ -8,11 +8,13 @@ import {
   ADMIN_URL,
   IN_MIGRATE_JOB,
   asRole,
+  backendPid,
   caller,
   fixtureIds,
   fixtureSql,
   migration,
   preflight,
+  waitsOn,
 } from "./harness";
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
@@ -388,18 +390,13 @@ describe.skipIf(!ADMIN_URL)(
               "select public.begin_donation_saga(p_tenant_id => $1, p_profile_id => $2, p_actor_user_id => $2, p_amount => 100, p_idempotency_key => $3)",
               [tenant, person, randomUUID()],
             );
+          const firstPid = await backendPid(first);
+          const secondPid = await backendPid(second);
           await first.query("begin");
           await second.query("begin");
           await gift(first);
-          let settled = false;
-          const racing = gift(second).then((result) => {
-            settled = true;
-            return result;
-          });
-          await new Promise((resolve) => setTimeout(resolve, 300));
-          expect(settled, "the second gift waits on the first donor row").toBe(
-            false,
-          );
+          const racing = gift(second);
+          await waitsOn(db, secondPid, firstPid);
           await first.query("commit");
           await racing;
           await second.query("commit");
@@ -565,6 +562,7 @@ describe.skipIf(!ADMIN_URL)(
               { sub: "UD2" },
               `select id from public.profiles where ${column} = '${id.UDA}'`,
             );
+            expect(other.code, `${column}: ${other.message}`).toBeNull();
             expect(other.rows, column).toEqual([]);
           }
         }));
@@ -619,8 +617,18 @@ describe.skipIf(!ADMIN_URL)(
           alter table public.missionaries add column person_id uuid;
           alter table public.profiles add column person_id uuid;
           insert into public.persons values (null, gen_random_uuid());`);
-          const code = await failure(db, preflight(PERSONS, "persons-empty"));
-          expect(code).toBe("55000");
+          await db.query("savepoint persons_preflight");
+          const refused = await db
+            .query(preflight(PERSONS, "persons-empty"))
+            .then(
+              () => null,
+              (e: { code?: string; message?: string }) =>
+                `${e.code} ${e.message}`,
+            );
+          await db.query("rollback to savepoint persons_preflight");
+          expect(refused).toBe(
+            "55000 preflight failed: 1 persons rows, 0 missionaries and 0 profiles name a person; nothing was dropped",
+          );
         }));
     });
   },

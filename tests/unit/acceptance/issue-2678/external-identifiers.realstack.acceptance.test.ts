@@ -62,12 +62,15 @@ describe.skipIf(!ADMIN_URL)(
     }
 
     it("resolves to its typed target inside the request's tenant only", async () => {
-      const resolve = (who: ReturnType<typeof caller>, ext: string) =>
-        queryAs(
+      const resolve = async (who: ReturnType<typeof caller>, ext: string) => {
+        const read = await queryAs(
           "authenticated",
           who,
           `select target_type, target_id from public.resolve_external_identifier('legacy_crm', '${ext}')`,
         );
+        expect(read.code, `${ext}: ${read.message}`).toBeNull();
+        return read;
+      };
       expect((await resolve(caller(id, "US", "mS", "TA"), "D-1")).rows).toEqual(
         [{ target_type: "donor", target_id: id.dA }],
       );
@@ -107,12 +110,15 @@ describe.skipIf(!ADMIN_URL)(
           `insert into public.external_identifiers (tenant_id, source, external_id, target_type, target_id, fund_id) values ($1, 'legacy_crm', 'F-1', 'fund', $2, $2)`,
           [id.TA, fundA],
         );
-        const resolve = (who: ReturnType<typeof caller>, ext: string) =>
-          queryAs(
+        const resolve = async (who: ReturnType<typeof caller>, ext: string) => {
+          const read = await queryAs(
             "authenticated",
             who,
             `select target_type, target_id from public.resolve_external_identifier('legacy_crm', '${ext}')`,
           );
+          expect(read.code, `${ext}: ${read.message}`).toBeNull();
+          return read;
+        };
         expect(
           (await resolve(caller(id, "US", "mS", "TA"), "P-1")).rows,
         ).toEqual([{ target_type: "party", target_id: id.pDA }]);
