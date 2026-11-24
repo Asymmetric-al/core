@@ -756,6 +756,9 @@ describe.skipIf(!ADMIN_URL)(
         const r = request({ email: "Re-Run@Example.org" });
         const first = await provisioned(r);
         const before = await totals();
+        const rowsBefore = await rowsOf([first.tenant_id]);
+        expect(rowsBefore["platform.tenant_provisioning"]).toHaveLength(1);
+        expect(rowsBefore["public.membership_invitations"]).toHaveLength(1);
         for (const same of [
           r,
           { ...r, reason: "Asked again later" },
@@ -770,6 +773,7 @@ describe.skipIf(!ADMIN_URL)(
             created: false,
           });
           expect(await totals()).toEqual(before);
+          expect(await rowsOf([first.tenant_id])).toEqual(rowsBefore);
         }
         for (const other of [
           { name: `${r.name} Two` },
@@ -1171,7 +1175,8 @@ describe.skipIf(!ADMIN_URL)(
       const a = new pg.Client({ connectionString: ADMIN_URL });
       const b = new pg.Client({ connectionString: ADMIN_URL });
       const operator = randomUUID();
-      const slugs: string[] = [];
+      const keys: string[] = [];
+      const pending: Promise<unknown>[] = [];
       let failure: unknown = null;
       const cleanupErrors: unknown[] = [];
       const connected = new Set<pg.Client>();
@@ -1203,17 +1208,46 @@ describe.skipIf(!ADMIN_URL)(
           r.staffRole,
           r.reason,
         ]);
-      const waitsOn = async (waiter: number, holder: number) => {
+      type Settled = {
+        error: { code?: string; message?: string } | null;
+        rows: Record<string, unknown>[];
+      };
+      const start = (c: pg.Client, r: Request) => {
+        keys.push(r.key!);
+        const state: { done: Settled | null } = { done: null };
+        const settled = call(c, r).then(
+          (res): Settled =>
+            (state.done = {
+              error: null,
+              rows: res.rows as Record<string, unknown>[],
+            }),
+          (e: { code?: string; message?: string }): Settled =>
+            (state.done = { error: e, rows: [] }),
+        );
+        pending.push(settled);
+        return { settled, state };
+      };
+      const waitsOn = async (
+        waiter: number,
+        holder: number,
+        state: { done: Settled | null },
+      ) => {
         const deadline = Date.now() + 15_000;
         while (Date.now() < deadline) {
+          if (state.done)
+            return `settled without waiting: ${
+              state.done.error
+                ? `${state.done.error.code} ${state.done.error.message}`
+                : JSON.stringify(state.done.rows)
+            }`;
           const { rows } = await db.query(
             "select $2::int = any(pg_blocking_pids($1)) as waiting",
             [waiter, holder],
           );
-          if (rows[0].waiting) return true;
+          if (rows[0].waiting) return "waiting";
           await new Promise((resolve) => setTimeout(resolve, 50));
         }
-        return false;
+        return "timed out";
       };
       const counts = async (slug: string) =>
         (
@@ -1243,17 +1277,14 @@ describe.skipIf(!ADMIN_URL)(
 
         const first = request();
         const sameSlug = request({ slug: first.slug });
-        slugs.push(first.slug!);
+        keys.push(first.key!);
         await begin(a);
         expect((await call(a, first)).rows[0].r.created).toBe(true);
         await begin(b);
-        const raced = call(b, sameSlug).then(
-          () => null,
-          (e: { code?: string; message?: string }) => e,
-        );
-        expect(await waitsOn(pidB, pidA)).toBe(true);
+        const raced = start(b, sameSlug);
+        expect(await waitsOn(pidB, pidA, raced.state)).toBe("waiting");
         await a.query("commit");
-        const refusal = await raced;
+        const refusal = (await raced.settled).error;
         await b.query("rollback");
         expect([refusal?.code, refusal?.message]).toEqual([
           "23505",
@@ -1274,7 +1305,7 @@ describe.skipIf(!ADMIN_URL)(
         ).toBe(0);
 
         const once = request();
-        slugs.push(once.slug!);
+        keys.push(once.key!);
         await begin(a);
         const created = (await call(a, once)).rows[0].r as {
           tenant_id: string;
@@ -1282,10 +1313,12 @@ describe.skipIf(!ADMIN_URL)(
         };
         expect(created.created).toBe(true);
         await begin(b);
-        const repeated = call(b, once);
-        expect(await waitsOn(pidB, pidA)).toBe(true);
+        const repeated = start(b, once);
+        expect(await waitsOn(pidB, pidA, repeated.state)).toBe("waiting");
         await a.query("commit");
-        const again = (await repeated).rows[0].r;
+        const settled = await repeated.settled;
+        expect(settled.error).toBeNull();
+        const again = settled.rows[0]!.r;
         await b.query("commit");
         expect(again).toEqual({ tenant_id: created.tenant_id, created: false });
         expect(await counts(once.slug!)).toEqual({
@@ -1297,19 +1330,22 @@ describe.skipIf(!ADMIN_URL)(
         failure = e;
       }
 
-      for (const c of connected)
-        try {
-          await c.query("rollback");
-        } catch (e) {
-          cleanupErrors.push(e);
-        }
+      for (const c of [a, b]) {
+        if (connected.has(c))
+          try {
+            await c.query("rollback");
+          } catch (e) {
+            cleanupErrors.push(e);
+          }
+        await Promise.allSettled(pending);
+      }
       try {
         const tenants = (
           await db.query(
-            "select id from public.tenants where slug = any($1::text[])",
-            [slugs],
+            "select tenant_id from platform.tenant_provisioning where provisioning_key = any($1::text[])",
+            [keys],
           )
-        ).rows.map((row) => row.id as string);
+        ).rows.map((row) => row.tenant_id as string);
         for (const table of [
           "platform.tenant_provisioning",
           "public.membership_invitations",

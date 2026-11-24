@@ -11,7 +11,7 @@ const ANON = process.env.OPERATOR_MFA_ANON_KEY ?? "";
 const SERVICE = process.env.OPERATOR_MFA_SERVICE_KEY ?? "";
 const DB_URL = process.env.OPERATOR_MFA_DB_URL ?? "";
 const MAIL_URL = process.env.OPERATOR_MFA_MAIL_URL ?? "";
-const READY = Boolean(API && ANON && SERVICE && DB_URL);
+const READY = Boolean(API && ANON && SERVICE && DB_URL && MAIL_URL);
 const REQUIRED =
   process.env.OPERATOR_MFA_REQUIRED === "1" ||
   process.env.GITHUB_JOB === "local-supabase";
@@ -69,6 +69,7 @@ type Reply = { status: number; json: Record<string, unknown> | null };
 async function call(url: string, init: RequestInit): Promise<Reply> {
   const response = await fetch(url, {
     ...init,
+    redirect: "error",
     signal: AbortSignal.timeout(15_000),
   });
   const text = await response.text();
@@ -183,14 +184,18 @@ describe.skipIf(!READY)(
     }
 
     async function mailCountFor(email: string): Promise<number> {
-      if (!MAIL_URL) return 0;
       const res = await fetch(
         `${MAIL_URL}/api/v1/search?query=${encodeURIComponent(`to:"${email}"`)}`,
-        { signal: AbortSignal.timeout(10_000) },
+        { redirect: "error", signal: AbortSignal.timeout(10_000) },
       );
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { messages?: unknown[] };
-      return data.messages?.length ?? 0;
+      const data = (await res.json()) as unknown;
+      const messages =
+        data !== null && typeof data === "object" && "messages" in data
+          ? data.messages
+          : undefined;
+      expect(Array.isArray(messages), JSON.stringify(data)).toBe(true);
+      return (messages as unknown[]).length;
     }
 
     async function nothingProvisioned() {
@@ -207,7 +212,7 @@ describe.skipIf(!READY)(
 
     beforeAll(async () => {
       assertLoopbackHttp(API);
-      if (MAIL_URL) assertLoopbackHttp(MAIL_URL);
+      assertLoopbackHttp(MAIL_URL);
       if (!isLoopbackDatabaseUrl(DB_URL)) {
         throw new Error("DB_URL must point to a local database");
       }
@@ -254,8 +259,8 @@ describe.skipIf(!READY)(
       if (connected)
         await attempt(async () => {
           const { rows } = await db.query(
-            "select id from public.tenants where slug = $1 union select tenant_id from platform.tenant_provisioning where provisioning_key = $2",
-            [request.p_slug, request.p_provisioning_key],
+            "select tenant_id as id from platform.tenant_provisioning where provisioning_key = $1",
+            [request.p_provisioning_key],
           );
           const tenants = rows.map((row) => row.id as string);
           for (const table of [

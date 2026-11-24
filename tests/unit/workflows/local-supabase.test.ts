@@ -15,7 +15,11 @@ import { describe, expect, it } from "vitest";
 const workflow = readFileSync(".github/workflows/local-supabase.yml", "utf8");
 const steps = workflow.split("\n      - ");
 const step = (marker: string) => steps.find((s) => s.includes(marker));
-const at = (marker: string) => workflow.indexOf(marker);
+const at = (marker: string) => {
+  const offset = workflow.indexOf(marker);
+  expect(offset, `the workflow names ${marker}`).toBeGreaterThanOrEqual(0);
+  return offset;
+};
 
 describe("Local Supabase Stack workflow: the replay matches the platform's image", () => {
   it("runs CRM data journeys in the real Auth job", () => {
