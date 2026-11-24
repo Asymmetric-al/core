@@ -4,6 +4,17 @@
 -- their ten field-policy rows. parties replaces it. Nothing reads or writes
 -- them. The preflight refuses, with counts only, when the table holds a row
 -- or either column holds a value; nothing is dropped then.
+--
+-- Locks, all held to COMMIT. ACCESS EXCLUSIVE on missionaries and profiles
+-- (their person_id columns and constraints are dropped) and on persons
+-- (its keys and then the table are dropped); ROW EXCLUSIVE on field_policies
+-- for the ten rows deleted. lock_timeout stops a run rather than queue it
+-- behind live traffic.
+--
+-- Recovery. Nothing here is written to run twice: a run lost between its
+-- COMMIT and its ledger row stops on the next run at its preflight, which
+-- reads the dropped public.persons (42P01), and docs/ops/release-job.md, "If
+-- the migration committed but its ledger row is missing", applies.
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
