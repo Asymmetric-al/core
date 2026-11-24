@@ -4,8 +4,8 @@
  * strings and relative-order pins: the step exists once, cannot be skipped or
  * made non-blocking, carries no key but `name`, `env` and `run`, runs after
  * the database is migrated, and runs the named files with vitest, on one line
- * with nothing but plain test paths after the command. A path may be a Bash
- * glob (`*`, `?`, `[...]`), which counts as the files it matches.
+ * with nothing but `--no-file-parallelism` and plain test paths. A path may be
+ * a Bash glob (`*`, `?`, `[...]`), which counts as the files it matches.
  * Which other files share the `run:` line and the step's position among
  * sibling verification steps are not asserted.
  */
@@ -25,6 +25,13 @@ export const CII = ".github/workflows/ci-integration.yml";
 
 /** The command every real-stack step runs, word by word. */
 export const VITEST_RUN = ["bun", "x", "vitest", "run"] as const;
+
+export const ONE_FILE_AT_A_TIME = "--no-file-parallelism";
+
+const runArguments = (words: readonly string[]): string[] => {
+  const args = words.slice(VITEST_RUN.length);
+  return args[0] === ONE_FILE_AT_A_TIME ? args.slice(1) : args;
+};
 
 /** A repository-relative test file path and nothing else. */
 const TEST_PATH = /^[\w./-]+\.test\.tsx?$/;
@@ -119,13 +126,11 @@ export function stepTestPaths(step: WorkflowStep): string[] {
   if (words.slice(0, VITEST_RUN.length).join(" ") !== VITEST_RUN.join(" ")) {
     return [];
   }
-  return words
-    .slice(VITEST_RUN.length)
-    .flatMap((word) =>
-      TEST_PATH.test(word)
-        ? [word]
-        : (expandGlob(word) ?? []).filter((f) => TEST_PATH.test(f)),
-    );
+  return runArguments(words).flatMap((word) =>
+    TEST_PATH.test(word)
+      ? [word]
+      : (expandGlob(word) ?? []).filter((f) => TEST_PATH.test(f)),
+  );
 }
 
 /**
@@ -139,6 +144,7 @@ export function realstackStepProblems(
   name: string,
   files: readonly string[],
   env?: Record<string, string>,
+  { oneFileAtATime = false }: { oneFileAtATime?: boolean } = {},
 ): string[] {
   const matches = steps.filter((s) => s.name === name);
   if (matches.length !== 1) {
@@ -198,9 +204,21 @@ export function realstackStepProblems(
   }
   // Everything after the command must be a plain test path or a glob of them.
   // That rejects any shell operator, comment, quote, variable, redirect or
-  // flag, so the step's exit status is vitest's own: nothing on the line can
+  // other flag, so the step's exit status is vitest's own: nothing can
   // swallow a failure.
-  const args = words.slice(VITEST_RUN.length);
+  if (oneFileAtATime) {
+    if (words[VITEST_RUN.length] !== ONE_FILE_AT_A_TIME) {
+      problems.push(
+        `${name}: run does not start with '${[...VITEST_RUN, ONE_FILE_AT_A_TIME].join(" ")}', so its files run in parallel`,
+      );
+    }
+    if (step.env && "VITEST_MAX_WORKERS" in step.env) {
+      problems.push(
+        `${name}: sets VITEST_MAX_WORKERS, which overrides ${ONE_FILE_AT_A_TIME}`,
+      );
+    }
+  }
+  const args = runArguments(words);
   const paths: string[] = [];
   if (args.length === 0) problems.push(`${name}: names no test file`);
   for (const word of args) {
@@ -253,8 +271,9 @@ export function expectRealstackStep(
   name: string,
   files: readonly string[],
   env?: Record<string, string>,
+  options?: { oneFileAtATime?: boolean },
 ): WorkflowStep {
   const steps = migrateSteps();
-  expect(realstackStepProblems(steps, name, files, env)).toEqual([]);
+  expect(realstackStepProblems(steps, name, files, env, options)).toEqual([]);
   return steps.find((s) => s.name === name)!;
 }

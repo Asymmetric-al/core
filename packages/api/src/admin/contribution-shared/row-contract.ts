@@ -85,6 +85,7 @@ export interface BuildSharedContributionRowFieldsInput {
     name: string | null;
     missionary_id?: string | null;
     missionary_name?: string | null;
+    system_purpose?: string | null;
   } | null;
   missionary: { id: string; display_name: string | null } | null;
   stagedGift: SharedContributionStagedGiftInput | null;
@@ -118,6 +119,16 @@ export function isSharedReceiptSuppressed(
 }
 
 export const SHARED_GENERAL_FUND_NAME = "General Fund";
+export const SHARED_FEE_COVER_FUND_NAME = "Fee cover";
+
+export function resolveSharedFundDisplayName(
+  fund: { name: string | null; system_purpose?: string | null } | null,
+): string {
+  if (fund?.system_purpose === "fee_cover") {
+    return SHARED_FEE_COVER_FUND_NAME;
+  }
+  return fund?.name?.trim() || SHARED_GENERAL_FUND_NAME;
+}
 
 export const SHARED_PAYMENT_STATUS_LABELS: Record<
   SharedContributionPaymentStatus,
@@ -362,7 +373,7 @@ function buildFallbackDesignationSummary(input: {
 
   return {
     fundId: fund?.id ?? donation.fund_id,
-    fundName: fund?.name?.trim() || SHARED_GENERAL_FUND_NAME,
+    fundName: resolveSharedFundDisplayName(fund),
     missionaryId,
     missionaryName,
     lineCount: 1,

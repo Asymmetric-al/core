@@ -53,6 +53,11 @@
  * D-18 (AL-2676, WP3a part 1): the guard also gains EXECUTE on
  * authz.caller_tenant_ids(), for active-tenant admission before entry;
  * criterion 17 lists it.
+ *
+ * D-18 (AL-2681, WP8a part 1, ruling W8-R32): the guard gains EXECUTE on
+ * private.share_lock_tenant(uuid), which takes the tenant row FOR SHARE so a
+ * command re-checks its authority under that lock; the guard still holds no
+ * SELECT on public.tenants. Criterion 17 lists it.
  */
 import { randomUUID } from "node:crypto";
 

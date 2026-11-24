@@ -368,8 +368,8 @@ export function withoutDockerClientSettings(env = process.env) {
   return copy;
 }
 
-export const LEGAL_ENTITY_FIXTURE_INSERT = `INSERT INTO public.legal_entities(id, tenant_id, name)
-SELECT :'entity_id'::uuid, id, :'run_id' FROM public.tenants
+export const LEGAL_ENTITY_FIXTURE_INSERT = `INSERT INTO public.legal_entities(id, tenant_id, name, country_code, currency, legal_name)
+SELECT :'entity_id'::uuid, id, :'run_id', 'US', 'usd', :'run_id' FROM public.tenants
 WHERE id = :'tenant_id'::uuid AND name = 'SDK qualification fixture ' || :'run_id'
 RETURNING id;`;
 

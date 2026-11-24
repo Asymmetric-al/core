@@ -1,5 +1,6 @@
 import {
   normalizeSharedCurrencyCode,
+  resolveSharedFundDisplayName,
   SHARED_GENERAL_FUND_NAME,
 } from "./row-contract";
 
@@ -27,6 +28,7 @@ export interface DesignationFundInput {
   goal_amount: number | null;
   start_date: string | null;
   end_date: string | null;
+  system_purpose?: string | null;
 }
 
 export interface DesignationAllocationInput {
@@ -101,7 +103,7 @@ function buildLine(input: {
     amountCents: input.amountCents,
     currencyCode: input.currencyCode,
     fundId: fund?.id ?? input.fundId,
-    fundName: fund?.name?.trim() || SHARED_GENERAL_FUND_NAME,
+    fundName: resolveSharedFundDisplayName(fund),
     fundType: deriveFundType(fund),
     missionaryId: input.missionaryId,
     missionaryName: input.missionaryName,

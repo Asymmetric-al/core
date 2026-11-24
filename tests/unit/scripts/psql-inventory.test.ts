@@ -40,6 +40,11 @@ afterEach(() => {
  *   script, or a file git does not track, which the walk skips;
  * - what a listed starter does: the tests of the three shared builders and
  *   the starters' own tests judge that.
+ *
+ * Amended under D-18 (AL-2681, ruling W8-R6 / D-15 O-4): retired
+ * scripts/verify/stripe-data-pipeline.mjs, its unit test, and
+ * docs/guides/operations/stripe-data-pipeline.md. Remaining psql starter and
+ * outlier-doc pins stay unchanged.
  */
 const PSQL_STARTERS = [
   // The three builders of a psql connection from an address: the shared
@@ -49,8 +54,6 @@ const PSQL_STARTERS = [
   "scripts/cms/lib/postgres.mjs",
   // psql, pg_dump and pg_restore inside a Docker container it starts.
   "scripts/verify/backup-restore-proof.mjs",
-  // A check and a builder of its own, left as they are (review M4).
-  "scripts/verify/stripe-data-pipeline.mjs",
 ];
 const SHARED_BUILDERS = PSQL_STARTERS.slice(0, 3);
 
@@ -621,9 +624,13 @@ describe("the files under scripts/ that start psql (review M4)", () => {
       expect(source, file).toMatch(/\bdatabaseUrlProblem\(/);
       expect(source, file).toMatch(/\bkeptAmbientLibpqEnv\(/);
     }
-    expect(
-      readFileSync("scripts/verify/stripe-data-pipeline.mjs", "utf8"),
-    ).not.toMatch(/databaseUrlProblem|keptAmbientLibpqEnv/);
+    expect(existsSync("scripts/verify/stripe-data-pipeline.mjs")).toBe(false);
+    expect(existsSync("tests/unit/scripts/stripe-data-pipeline.test.ts")).toBe(
+      false,
+    );
+    expect(existsSync("docs/guides/operations/stripe-data-pipeline.md")).toBe(
+      false,
+    );
   });
 
   it.each(["scripts/AGENTS.md", "scripts/lib/psql.mjs"])(
@@ -641,12 +648,11 @@ describe("the files under scripts/ that start psql (review M4)", () => {
   );
 });
 
-// Review N2: the two outliers keep their own checks for now, so the documents
+// Review N2: the remaining outlier keeps its own check for now, so the documents
 // an operator reads say the check is weaker than the release job's and what
 // to set by hand on a hosted address.
 describe("the outliers' operator documents (review N2)", () => {
   it.each([
-    ["docs/guides/operations/stripe-data-pipeline.md", /sslrootcert=/],
     ["docs/ops/document-cutover/reset-rebuild.md", /NODE_EXTRA_CA_CERTS/],
     [
       "docs/ops/document-cutover/rollback-before-first-canonical-write.md",

@@ -68,3 +68,288 @@ export function protectedEntry(command, frame, outerBlockHasHandler) {
     )?.[1];
   return capabilities.has(capability);
 }
+
+export const WORKER_WRAPPER_TENANT_ARG_EXCEPTIONS = Object.freeze([
+  "public.acquire_workflow_work_claim(p_tenant_id uuid, p_subject_type text, p_subject_id text, p_claimed_by text, p_ttl_seconds integer)",
+  "public.release_workflow_work_claim(p_tenant_id uuid, p_claim_id uuid, p_status text)",
+]);
+
+const MULTI_WORD_SQL_TYPE =
+  /^(?:double\s+precision|character\s+varying|character|timestamp(?:\s*\(\s*\d+\s*\))?\s+(?:with|without)\s+time\s+zone|time(?:\s*\(\s*\d+\s*\))?\s+(?:with|without)\s+time\s+zone|bit\s+varying)\b/i;
+
+function splitTopLevelArgs(text) {
+  const parts = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"') {
+      const close = text.indexOf(ch, i + 1);
+      i = close < 0 ? text.length : close;
+      while (text[i + 1] === ch) {
+        const next = text.indexOf(ch, i + 2);
+        i = next < 0 ? text.length : next;
+      }
+      continue;
+    }
+    if (ch === "(") depth += 1;
+    else if (ch === ")") depth -= 1;
+    else if (ch === "," && depth === 0) {
+      parts.push(text.slice(start, i));
+      start = i + 1;
+    }
+  }
+  const tail = text.slice(start);
+  if (tail.trim()) parts.push(tail);
+  return parts;
+}
+
+function unquoteIdentifier(raw) {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith('"') && trimmed.endsWith('"'))
+    return trimmed.slice(1, -1).replaceAll('""', '"').toLowerCase();
+  return trimmed.toLowerCase();
+}
+
+export function parseWrapperParameters(signature) {
+  const open = signature.indexOf("(");
+  const close = signature.lastIndexOf(")");
+  const head = open < 0 ? signature : signature.slice(0, open);
+  const dot = head.lastIndexOf(".");
+  const wrapperShortName = unquoteIdentifier(
+    dot < 0 ? head : head.slice(dot + 1),
+  );
+  if (open < 0 || close <= open)
+    return { namedParams: new Set(), paramCount: 0, wrapperShortName };
+  const inner = signature.slice(open + 1, close).trim();
+  if (!inner)
+    return { namedParams: new Set(), paramCount: 0, wrapperShortName };
+  const namedParams = new Set();
+  let paramCount = 0;
+  for (const rawPart of splitTopLevelArgs(inner)) {
+    const part = rawPart
+      .trim()
+      .replace(/^(?:INOUT|IN|OUT|VARIADIC)\s+/i, "")
+      .replace(/\s+(?:DEFAULT|=)\s+[\s\S]*$/i, "")
+      .trim();
+    if (!part) continue;
+    paramCount += 1;
+    if (part.startsWith('"')) {
+      const m = /^("(?:[^"]|"")+")\s+\S/.exec(part);
+      if (m) namedParams.add(unquoteIdentifier(m[1]));
+      continue;
+    }
+    if (MULTI_WORD_SQL_TYPE.test(part)) continue;
+    const m = /^([A-Za-z_][A-Za-z0-9_$]*)\s+\S/.exec(part);
+    if (m) namedParams.add(m[1].toLowerCase());
+  }
+  return { namedParams, paramCount, wrapperShortName };
+}
+
+function firstCallArgument(text, openIndex) {
+  let depth = 0;
+  for (let i = openIndex + 1; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"') {
+      const close = text.indexOf(ch, i + 1);
+      i = close < 0 ? text.length : close;
+      while (text[i + 1] === ch) {
+        const next = text.indexOf(ch, i + 2);
+        i = next < 0 ? text.length : next;
+      }
+      continue;
+    }
+    if (ch === "(") depth += 1;
+    else if (ch === ")") {
+      if (depth === 0) return text.slice(openIndex + 1, i).trim();
+      depth -= 1;
+    } else if (ch === "," && depth === 0) {
+      return text.slice(openIndex + 1, i).trim();
+    }
+  }
+  return null;
+}
+
+const IDENT = "[A-Za-z_][A-Za-z0-9_$]*";
+const QUALIFIED_RELATION = `${IDENT}\\s*\\.\\s*${IDENT}\\b(?!\\s*[.(])`;
+
+function normalizedBody(body, stripComments) {
+  return stripComments(String(body ?? ""), { blankStrings: true }).replace(
+    /"((?:[^"]|"")+)"/g,
+    (_quoted, name) =>
+      /^[A-Za-z_][A-Za-z0-9_$]*$/.test(name)
+        ? name.toLowerCase()
+        : "_".repeat(name.length + 2),
+  );
+}
+
+function isPlpgsqlBody(text, language) {
+  if (language) return String(language).toLowerCase() === "plpgsql";
+  return /^\s*(?:<<\s*\w+\s*>>\s*)?(?:DECLARE|BEGIN)\b/i.test(text);
+}
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function isAnchorColumn(columnRef, namedParams) {
+  const match = new RegExp(`^(?:${IDENT}\\s*\\.\\s*)?(${IDENT})$`).exec(
+    columnRef.trim(),
+  );
+  if (!match) return false;
+  const column = match[1].toLowerCase();
+  if (["null", "true", "false"].includes(column)) return false;
+  return !namedParams.has(column);
+}
+
+function isScalarAnchorRead(argument, namedParams) {
+  let inner = argument.trim();
+  while (inner.startsWith("(") && inner.endsWith(")"))
+    inner = inner.slice(1, -1).trim();
+  const match = new RegExp(
+    `^SELECT\\s+(${IDENT}(?:\\s*\\.\\s*${IDENT})?)\\s+FROM\\s+${QUALIFIED_RELATION}`,
+    "i",
+  ).exec(inner);
+  return Boolean(match) && isAnchorColumn(match[1], namedParams);
+}
+
+function isVariableAnchorRead(variable, text, namedParams) {
+  const v = escapeRegExp(variable);
+  const assignment = new RegExp(`\\b${v}\\s*:=`, "i");
+  const statementAssignment = new RegExp(
+    `(?:^|;|\\bBEGIN|\\bTHEN|\\bELSE|\\bLOOP)\\s*${v}\\s*=(?!=)`,
+    "i",
+  );
+  const declaredDefault = new RegExp(
+    `\\b${v}\\s+[A-Za-z_][^;]*?(?::=|\\bDEFAULT\\b)`,
+    "i",
+  );
+  const otherWrites = new RegExp(
+    `(?:\\bDIAGNOSTICS\\b[^;]*\\b${v}\\b|\\bFOR\\s+${v}\\s+IN\\b)`,
+    "i",
+  );
+  if (
+    assignment.test(text) ||
+    statementAssignment.test(text) ||
+    declaredDefault.test(text) ||
+    otherWrites.test(text)
+  )
+    return false;
+  const intoTargets = [
+    ...text.matchAll(
+      new RegExp(
+        `\\bINTO\\s+(?:STRICT\\s+)?(?:${IDENT}\\s*,\\s*)*${v}\\b(?!\\s*[.(])`,
+        "gi",
+      ),
+    ),
+  ];
+  if (intoTargets.length !== 1) return false;
+  const permitted = [
+    ...text.matchAll(
+      new RegExp(
+        `\\bSELECT\\s+(${IDENT}(?:\\s*\\.\\s*${IDENT})?)\\s+INTO\\s+(?:STRICT\\s+)?${v}\\s+FROM\\s+${QUALIFIED_RELATION}`,
+        "gi",
+      ),
+    ),
+  ];
+  return permitted.length === 1 && isAnchorColumn(permitted[0][1], namedParams);
+}
+
+export function workerWrapperPassesTenantArg(
+  signature,
+  body,
+  stripComments,
+  language,
+) {
+  if (WORKER_WRAPPER_TENANT_ARG_EXCEPTIONS.includes(signature)) return false;
+  const { namedParams } = parseWrapperParameters(signature);
+  for (const name of namedParams) {
+    if (name.includes("tenant")) return true;
+  }
+  const text = normalizedBody(body, stripComments);
+  const callRe =
+    /(?:^|[^A-Za-z0-9_$."])tenant_guard\s*\.\s*[A-Za-z_][A-Za-z0-9_$]*\s*\(/gi;
+  const calls = [...text.matchAll(callRe)];
+  if (calls.length === 0) return true;
+  const plpgsql = isPlpgsqlBody(text, language);
+  for (const match of calls) {
+    const openIndex = match.index + match[0].length - 1;
+    const firstArg = firstCallArgument(text, openIndex);
+    if (!firstArg) return true;
+    if (isScalarAnchorRead(firstArg, namedParams)) continue;
+    const variable = new RegExp(`^${IDENT}$`).test(firstArg)
+      ? firstArg.toLowerCase()
+      : null;
+    if (
+      !plpgsql ||
+      !variable ||
+      namedParams.has(variable) ||
+      !isVariableAnchorRead(variable, text, namedParams)
+    )
+      return true;
+  }
+  return false;
+}
+
+const WRAPPER_STATEMENT_RE =
+  /\b(?:INSERT|UPDATE|DELETE|MERGE|TRUNCATE|COPY|EXECUTE|CALL|CREATE|DROP|ALTER|GRANT|REVOKE|LOCK|NOTIFY|LISTEN|UNLISTEN|VACUUM|ANALY[SZ]E|REFRESH|CLUSTER|REINDEX|COMMENT|IMPORT|DISCARD|RESET|SET|PREPARE|DEALLOCATE|SECURITY\s+LABEL|DO|COMMIT|ROLLBACK|SAVEPOINT)\b/i;
+
+const WRAPPER_NON_CALL_WORDS = new Set(
+  `if elsif in any all some exists and or not values select from where on using as return when then
+   else case end array row cast over filter within into join lateral by having limit offset union except
+   intersect distinct is null between like ilike similar coalesce nullif greatest least exception raise
+   varchar char character numeric decimal timestamp time interval bit varbit float double precision
+   with recursive group order`
+    .split(/\s+/)
+    .filter(Boolean),
+);
+
+const WRAPPER_READ_ONLY_FUNCTIONS = new Set([
+  "jsonb_build_object",
+  "json_build_object",
+  "jsonb_build_array",
+  "to_jsonb",
+  "jsonb_typeof",
+  "btrim",
+  "lower",
+  "upper",
+  "length",
+  "char_length",
+  "concat",
+  "concat_ws",
+  "format",
+  "now",
+  "clock_timestamp",
+  "make_interval",
+  "count",
+  "max",
+  "min",
+  "cardinality",
+  "array_length",
+]);
+
+export function workerWrapperHasWrite(body, stripComments, language) {
+  const text = normalizedBody(body, stripComments).replace(
+    /\bFOR\s+(?:NO\s+KEY\s+UPDATE|UPDATE|KEY\s+SHARE|SHARE)\b(?:\s+OF\s+[\w\s,]+?)?(?:\s+(?:NOWAIT|SKIP\s+LOCKED))?/gi,
+    " ",
+  );
+  if (WRAPPER_STATEMENT_RE.test(text)) return true;
+  if (!isPlpgsqlBody(text, language) && /\bINTO\b/i.test(text)) return true;
+  const callRe =
+    /(?<![A-Za-z0-9_$.:])(?:([A-Za-z_][A-Za-z0-9_$]*)\s*\.\s*)?([A-Za-z_][A-Za-z0-9_$]*)\s*\(/g;
+  for (const match of text.matchAll(callRe)) {
+    const before = text.slice(0, match.index).trimEnd();
+    if (before.endsWith("::")) continue;
+    const schema = match[1]?.toLowerCase() ?? null;
+    const name = match[2].toLowerCase();
+    if (schema === "tenant_guard") continue;
+    if (schema === null && WRAPPER_NON_CALL_WORDS.has(name)) continue;
+    if (
+      (schema === null || schema === "pg_catalog") &&
+      WRAPPER_READ_ONLY_FUNCTIONS.has(name)
+    )
+      continue;
+    return true;
+  }
+  return false;
+}

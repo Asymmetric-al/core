@@ -10,6 +10,7 @@ import {
 const writes = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const signedRoutes = new Set([
   "/api/webhooks/stripe",
+  "/api/webhooks/stripe-connect",
   "/api/email/webhooks/resend",
   "/api/inngest",
 ]);
