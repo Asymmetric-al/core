@@ -338,7 +338,10 @@ const REAL_DATABASE_FILES = [
     "issue-2675/web-studio-document-locks.realstack",
     "issue-2675/web-studio-selection.realstack",
     "issue-2676/giving-targets.realstack",
+    "issue-2676/membership-invitations-commands.realstack",
+    "issue-2676/membership-invitations-table.realstack",
     "issue-2676/money-embeds.realstack",
+    "issue-2676/role-change-concurrency.realstack",
     "issue-2676/tenant-status-rollback.realstack",
     "issue-2676/tenant-status.realstack",
     "issue-2677/command-boundaries.realstack",
@@ -525,6 +528,7 @@ describe("required PostgREST suites run on the local Supabase stack (#2706)", ()
   it.each([
     "issue-2674/app-health",
     "issue-2675/missionary-handler-authority",
+    "issue-2676/membership-invitations",
     "issue-2676/tenant-records",
     "issue-2677/crm-reads",
     "issue-2677/field-policy-reader",

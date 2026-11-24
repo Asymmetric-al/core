@@ -19,6 +19,7 @@ const ACCOUNT_ROUTES = [
   "/login",
   "/register",
   PASSWORD_RECOVERY_PATHS.request,
+  "/invite",
   "/no-access",
   "/choose-organization",
 ];

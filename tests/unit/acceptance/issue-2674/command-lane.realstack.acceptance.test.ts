@@ -28,11 +28,11 @@ import { randomBytes, randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { preMembershipExceptions } from "../../../../scripts/verify/command-entry-boundaries.mjs";
 import {
   callsIntoCommandSchemas,
   laneCheckProblem,
 } from "../../../../scripts/verify/tenant-rls-catalog.mjs";
-import { preMembershipEntries } from "../../../../scripts/verify/command-entry-boundaries.mjs";
 import {
   ADMIN_URL,
   COMMAND_LANE_MIGRATION,
@@ -49,19 +49,24 @@ import {
 
 type LaneRow = {
   fn: string;
+  signature: string;
   owner: string;
   definer: boolean;
   language: string;
   body: string;
   authenticated: boolean;
+  service_role: boolean;
 };
 
 /** Every function in a command schema, with what the lane rules read. */
 async function laneRows(db: pg.Client, schema: "tenant_guard" | "platform") {
   const r = await db.query(
-    `select p.oid::regprocedure::text fn, p.proowner::regrole::text owner, p.prosecdef definer,
+    `select p.oid::regprocedure::text fn,
+            format('%I.%I(%s)', n.nspname, p.proname, pg_get_function_identity_arguments(p.oid)) signature,
+            p.proowner::regrole::text owner, p.prosecdef definer,
             l.lanname language, p.prosrc body,
-            has_function_privilege('authenticated', p.oid, 'EXECUTE') authenticated
+            has_function_privilege('authenticated', p.oid, 'EXECUTE') authenticated,
+            has_function_privilege('service_role', p.oid, 'EXECUTE') service_role
        from pg_proc p join pg_namespace n on n.oid = p.pronamespace join pg_language l on l.oid = p.prolang
       where n.nspname = $1 order by 1`,
     [schema],
@@ -71,18 +76,36 @@ async function laneRows(db: pg.Client, schema: "tenant_guard" | "platform") {
 
 /**
  * The entry points the convention defines in a schema: in tenant_guard a
- * guard-owned definer whose first statement is the human preamble; in
- * platform a postgres-owned definer that starts with the operator check.
+ * guard-owned definer whose first statement is the human preamble (or a
+ * reviewed pre-membership exception pinned by body digest); in platform a
+ * postgres-owned definer that starts with the operator check.
  */
 function byConvention(rows: LaneRow[], schema: "tenant_guard" | "platform") {
   const owner = schema === "tenant_guard" ? "tenant_guard" : "postgres";
+  const pre =
+    schema === "tenant_guard"
+      ? preMembershipExceptions(
+          rows.map((row) => ({
+            function: row.signature,
+            schema,
+            body: row.body,
+            authenticated: row.authenticated,
+            service_role: row.service_role,
+          })),
+        )
+      : { allowed: new Set<string>(), failures: [] };
+  expect(pre.failures).toEqual([]);
   return rows
     .filter(
       (row) =>
         row.owner === owner &&
         row.definer &&
-        laneCheckProblem({ schema, language: row.language, body: row.body }) ===
-          null,
+        (pre.allowed.has(row.signature) ||
+          laneCheckProblem({
+            schema,
+            language: row.language,
+            body: row.body,
+          }) === null),
     )
     .map((row) => row.fn);
 }
@@ -280,20 +303,11 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
   });
 
   describe("proof 2: a signed-in caller can execute nothing else in the command schema", () => {
-    it("authenticated may execute exactly the human entry points in tenant_guard, derived from the convention, and the reviewed pre-membership entries (D-18, AL-2678: the two account-claim commands, pinned in scripts/verify/command-entry-boundaries.mjs)", () =>
+    it("authenticated may execute exactly the human entry points in tenant_guard, derived from the convention", () =>
       tx(async () => {
         const rows = await laneRows(db, "tenant_guard");
         const humans = byConvention(rows, "tenant_guard");
-        const name = (fn: string) => fn.slice(0, fn.indexOf("("));
-        const reviewed = preMembershipEntries.map((entry) =>
-          name(entry.function),
-        );
-        expect(reviewed.filter((fn) => humans.map(name).includes(fn))).toEqual(
-          [],
-        );
-        expect(signedIn(rows).map(name).sort()).toEqual(
-          [...humans.map(name), ...reviewed].sort(),
-        );
+        expect(signedIn(rows)).toEqual(humans);
         // WP1's proof command is one of them, so the comparison is not vacuous.
         expect(humans).toContain(
           "tenant_guard.resolve_command_assignment(uuid)",
@@ -309,16 +323,9 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
       tx(async () => {
         const rows = await laneRows(db, "tenant_guard");
         const humans = byConvention(rows, "tenant_guard");
-        const reviewed = preMembershipEntries.map((entry) =>
-          entry.function.slice(0, entry.function.indexOf("(")),
-        );
         const others = rows
           .map((row) => row.fn)
-          .filter(
-            (fn) =>
-              !humans.includes(fn) &&
-              !reviewed.includes(fn.slice(0, fn.indexOf("("))),
-          );
+          .filter((fn) => !humans.includes(fn));
         // By name: a later package may change a helper's arguments.
         expect(others.map((fn) => fn.slice(0, fn.indexOf("(")))).toEqual(
           expect.arrayContaining([
@@ -343,10 +350,10 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
      * call named only in a comment.
      */
     async function publicWorkers() {
-      const humans = [
-        ...byConvention(await laneRows(db, "tenant_guard"), "tenant_guard"),
-        ...preMembershipEntries.map((entry) => entry.function),
-      ].map((fn) => fn.slice(0, fn.indexOf("(")));
+      const humans = byConvention(
+        await laneRows(db, "tenant_guard"),
+        "tenant_guard",
+      ).map((fn) => fn.slice(0, fn.indexOf("(")));
       const r = await db.query(
         `select 'public.' || regexp_replace(p.oid::regprocedure::text, '^public\\.', '') fn,
                 p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), '') body
@@ -378,7 +385,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
         expect(workers).toContain("public.acc2674_calls_worker(uuid)");
       }));
 
-    it("the public worker wrappers refuse a signed-in caller too (D-18, AL-2678: the wrappers of the two reviewed pre-membership entries are human wrappers, not worker wrappers)", () =>
+    it("the public worker wrappers refuse a signed-in caller too", () =>
       tx(async () => {
         const workers = await publicWorkers();
         expect(workers).toEqual(

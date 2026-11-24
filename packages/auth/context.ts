@@ -499,7 +499,10 @@ export async function getSignedInAssignments(): Promise<SignedInAssignments> {
 export function contextCapabilities(
   context: AuthContext,
 ): readonly Capability[] {
-  const [membership, ...others] = context.memberships;
+  const memberships = Array.isArray(context.memberships)
+    ? context.memberships
+    : [];
+  const [membership, ...others] = memberships;
   if (
     !context.isAuthenticated ||
     !membership ||

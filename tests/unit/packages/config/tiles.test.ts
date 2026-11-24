@@ -14,13 +14,9 @@ const features = (line: string) => line.split(" · ");
 describe("Administration tile feature line", () => {
   // The Eve page admits admins only (eve/workspace-access.ts), so the
   // "inside" line follows the same role rule as the Eve shortcut.
-  it("does not list Eve or the staff directory to finance", () => {
-    // Both pages read admin-only data (eve/workspace-access.ts and the
-    // admin users endpoint).
+  it("does not list Eve to finance while listing Members to finance", () => {
     expect(features(insideForRole(adminTile, "finance"))).not.toContain("Eve");
-    expect(features(insideForRole(adminTile, "finance"))).not.toContain(
-      "Staff directory",
-    );
+    expect(features(insideForRole(adminTile, "finance"))).toContain("Members");
     expect(features(insideForRole(adminTile, "finance"))).toContain(
       "Email delivery",
     );
@@ -28,9 +24,9 @@ describe("Administration tile feature line", () => {
 
   it("lists Eve to admins after the shared features", () => {
     expect(features(insideForRole(adminTile, "admin"))).toEqual([
+      "Members",
       "Web Studio editors",
       "Email delivery",
-      "Staff directory",
       "Eve",
     ]);
   });

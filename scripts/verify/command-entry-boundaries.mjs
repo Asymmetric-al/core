@@ -7,6 +7,10 @@ const assignmentReader =
 const assignmentReaderDigest =
   "f5f2272e554bfaa1cfce3ca9dd566804fc05151bfba5df0ca832bc4a992a8101";
 const digest = (body) => createHash("sha256").update(body.trim()).digest("hex");
+const acceptInvitationFunction =
+  "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)";
+const acceptInvitationReason =
+  "AL-2676 WP3c R1/R14/R15: invitation acceptance admits a non-operator caller who holds no membership yet after refusing platform operators and issuer self-acceptance and verifying selector, constant-time verifier digest, live status, expiry, and confirmed non-deleted email via private.resolve_invitation_for_caller before tenant_guard.enter or any lock";
 const startAccountClaim = "tenant_guard.start_account_claim(p_tenant_id uuid)";
 const redeemAccountClaim =
   "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)";
@@ -15,6 +19,10 @@ const startAccountClaimReason =
 const redeemAccountClaimReason =
   "AL-2678 W5-R5: a signed-in person with no membership in the tenant redeems a mailed claim token; the token's SHA-256 under a row lock is the authority, it is single-use, expires, is bound to the requester and the donor's email at issue, and every failure answers the same";
 export const reviewedPreMembership = Object.freeze({
+  [acceptInvitationFunction]: Object.freeze({
+    reason: acceptInvitationReason,
+    digest: "8e1cd0bb1438913861f3dfda3f72866e20c6ccbe0abb1513e489e41cf9f9cbb2",
+  }),
   [startAccountClaim]: Object.freeze({
     reason: startAccountClaimReason,
     digest: "0eb7f34bea12adec6e5528d2d3175861f93d05a1e59af6d26598d7215aa0c540",
@@ -25,6 +33,10 @@ export const reviewedPreMembership = Object.freeze({
   }),
 });
 export const preMembershipEntries = Object.freeze([
+  Object.freeze({
+    function: acceptInvitationFunction,
+    reason: acceptInvitationReason,
+  }),
   Object.freeze({
     function: startAccountClaim,
     reason: startAccountClaimReason,

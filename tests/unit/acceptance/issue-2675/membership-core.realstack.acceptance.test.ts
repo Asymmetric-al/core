@@ -594,6 +594,7 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
           "profile_id",
           "role",
           "staff_role",
+          "updated_at",
           "user_id",
         ]);
         const profile = await one(
@@ -610,6 +611,7 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
             role: "donor",
             staff_role: null,
             is_tenant_admin: false,
+            updated_at: expect.any(Date),
           },
         ]);
       }));

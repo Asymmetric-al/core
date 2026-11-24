@@ -128,6 +128,7 @@ const allow = (...fns: string[]) => ({
 describe("WP4 command boundaries", () => {
   it("pins the complete pre-membership list and its independent review", () => {
     expect(preMembershipEntries.map((entry) => entry.function)).toEqual([
+      "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)",
       "tenant_guard.start_account_claim(p_tenant_id uuid)",
       "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)",
     ]);
@@ -139,13 +140,63 @@ describe("WP4 command boundaries", () => {
         ]),
       ),
     ).toEqual({
+      "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)":
+        "8e1cd0bb1438913861f3dfda3f72866e20c6ccbe0abb1513e489e41cf9f9cbb2",
       "tenant_guard.start_account_claim(p_tenant_id uuid)":
         "0eb7f34bea12adec6e5528d2d3175861f93d05a1e59af6d26598d7215aa0c540",
       "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)":
         "8e62b609fc3e4088c4283f7fcda6df9c78f1fa9b34536b36e7129439630cf849",
     });
+    expect(
+      reviewedPreMembership[
+        "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)"
+      ]?.reason,
+    ).toBe(
+      "AL-2676 WP3c R1/R14/R15: invitation acceptance admits a non-operator caller who holds no membership yet after refusing platform operators and issuer self-acceptance and verifying selector, constant-time verifier digest, live status, expiry, and confirmed non-deleted email via private.resolve_invitation_for_caller before tenant_guard.enter or any lock",
+    );
     for (const entry of preMembershipEntries)
       expect(reviewedPreMembership[entry.function]?.reason).toBe(entry.reason);
+  });
+  it("fails the gate when an unreviewed pre-membership entry is planted", () => {
+    const plantedName = "tenant_guard.unreviewed_pre_member(p_token text)";
+    const plantedRow = human(plantedName, {
+      body: "BEGIN PERFORM tenant_guard.enter(p_tenant_id); RETURN NULL; END;",
+    });
+    const plantedEntry = {
+      function: plantedName,
+      reason: "planted unreviewed entry",
+    };
+    const res = preMembershipExceptions(
+      [plantedRow],
+      [...preMembershipEntries, plantedEntry],
+      reviewedPreMembership,
+    );
+    expect(res.allowed.has(plantedName)).toBe(false);
+    expect(
+      res.failures.some(
+        (f) =>
+          f.code === "COMMAND_EXCEPTION_UNREVIEWED" &&
+          f.function === plantedName,
+      ),
+    ).toBe(true);
+    expect(
+      codes(
+        evaluateTenantRlsCatalog(
+          {
+            tables: [],
+            definers: [],
+            commands: [plantedRow],
+            wrappers: [],
+            grants: [],
+            policies: [],
+            published: [],
+          },
+          listed(),
+          allow(),
+          { entries: [] },
+        ),
+      ),
+    ).toContain(`COMMAND_HUMAN_NO_PREAMBLE ${plantedName}`);
   });
   it("uses exactly the capability registry's sorted keys", () =>
     expect(keys).toEqual(Object.keys(CAPABILITY_REGISTRY).sort()));
@@ -311,16 +362,9 @@ describe("WP4 command boundaries", () => {
         listed(),
       ).failures,
     ).toEqual([]);
-    expect(
-      codes(
-        evaluate([], listed(), [], [], allow(), {
-          preMembership: { entries: [], reviewed: {} },
-        }),
-      ),
-    ).toEqual([]);
+    expect(codes(evaluate([]))).toEqual([]);
   });
 });
-const NO_PRE_MEMBERSHIP = { entries: [], reviewed: {} };
 const evaluate = (
   tables: object[],
   exceptions: unknown = listed(),
@@ -334,7 +378,6 @@ const evaluate = (
     tenant_helpers?: object[];
     published?: string[];
     policyExceptions?: unknown;
-    preMembership?: { entries: unknown[]; reviewed: unknown };
   } = {},
 ) =>
   evaluateTenantRlsCatalog(
@@ -351,7 +394,7 @@ const evaluate = (
     exceptions,
     anonAllowlist,
     more.policyExceptions ?? { entries: [] },
-    more.preMembership ?? NO_PRE_MEMBERSHIP,
+    [],
   );
 const codes = (result: ReturnType<typeof evaluate>) =>
   result.failures.map(
@@ -1902,7 +1945,7 @@ describe("tenant keys", () => {
         listed(),
         allow(),
         { entries: [] },
-        NO_PRE_MEMBERSHIP,
+        [],
       ),
     );
   const cms = (keyed: (table: string) => boolean) =>

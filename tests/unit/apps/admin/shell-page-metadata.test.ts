@@ -14,7 +14,7 @@ describe("shell-owned page metadata", () => {
   it.each([
     ["(app)/page.tsx", "Home"],
     ["(app)/admin/page.tsx", "Administration"],
-    ["(app)/admin/teams/page.tsx", "Staff directory"],
+    ["(app)/admin/teams/page.tsx", "Members"],
     ["(app)/reports/page.tsx", "Reports"],
     ["(app)/settings/integrations/resend/page.tsx", "Email delivery"],
     ["(app)/help/about/page.tsx", "About"],

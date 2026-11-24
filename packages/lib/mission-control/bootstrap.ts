@@ -4,10 +4,14 @@ export interface MCBootstrapState {
   user: User | null;
   tenant: Tenant | null;
   role: Role;
+  canManageMembers?: boolean;
+  currentMembershipId?: string | null;
 }
 
 interface CreateMCBootstrapStateInput {
   avatarUrl?: string | null;
+  canManageMembers?: boolean;
+  currentMembershipId?: string | null;
   email?: string | null;
   firstName?: string | null;
   lastName?: string | null;
@@ -58,6 +62,8 @@ export function createMCBootstrapState(
 
   return {
     role,
+    canManageMembers: input.canManageMembers ?? role === "admin",
+    currentMembershipId: input.currentMembershipId ?? null,
     tenant,
     user:
       input.userId && input.tenantId
