@@ -226,6 +226,30 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     }
   });
 
+  it("requires the demonstration care person suite on the seeded stack after fingerprinting (D-18: WP4b part 1b)", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2677/demo-care-person.postgrest.acceptance.test.ts";
+    const command = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(
+      "Verify the demonstration Member Care person through PostgREST",
+    );
+    expect(run).toBeDefined();
+    expect(run).toContain('DEMO_CARE_IT_REQUIRED: "1"');
+    expect(run).toContain("DEMO_CARE_IT_SUPABASE_URL: http://127.0.0.1:54321");
+    expect(run).toContain(
+      "DEMO_CARE_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    );
+    expect(run).toContain("jq -er '.ANON_KEY | select(length > 0)'");
+    expect(run).toContain("jq -er '.SERVICE_ROLE_KEY | select(length > 0)'");
+    expect(run).toContain(command);
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    expect(at(command)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
+    expect(at(command)).toBeLessThan(at("bun run test:e2e:auth-mail"));
+    for (const path of [suite, "supabase/seed.sql", "supabase/migrations/**"]) {
+      expect(workflow).toContain(`      - ${path}\n`);
+    }
+  });
+
   it("requires the WP3c invitations PostgREST proof after fingerprinting", () => {
     const suite =
       "tests/unit/acceptance/issue-2676/membership-invitations.postgrest.acceptance.test.ts";
