@@ -632,9 +632,9 @@ function InviteMemberDialog({
 
   useEffect(() => {
     if (!open) {
-      resetForm();
+      requestIdRef.current += 1;
     }
-  }, [open, resetForm]);
+  }, [open]);
 
   useEffect(() => {
     if (initialPathnameRef.current !== pathname) {
