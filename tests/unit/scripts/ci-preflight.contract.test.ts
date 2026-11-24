@@ -37,6 +37,7 @@ const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
   { id: "verify-openspec-deltas", script: "verify:openspec-deltas" },
   { id: "lint", script: "lint" },
   { id: "verify-comments", script: "verify:comments" },
+  { id: "verify-service-role-clients", script: "verify:service-role-clients" },
   { id: "verify-data-boundary", script: "verify:data-boundary" },
   {
     id: "verify-cms-public-sole-entry",
@@ -67,6 +68,7 @@ const FAST_STAGE_IDS = [
   "verify-openspec-deltas",
   "lint",
   "verify-comments",
+  "verify-service-role-clients",
   "verify-data-boundary",
   "verify-cms-public-sole-entry",
   "verify-workspace-contract",
@@ -85,6 +87,7 @@ const SCOPED_STAGE_IDS = [
   "openspec-validate",
   "verify-openspec-deltas",
   "verify-comments",
+  "verify-service-role-clients",
   "verify-data-boundary",
   "verify-cms-public-sole-entry",
   "verify-workspace-contract",
@@ -131,6 +134,13 @@ const STAGE_INPUT_SAMPLES: Record<string, string[]> = {
     "tests/unit/utils.test.ts",
     "tooling/eslint-config/comment-baseline.json",
     "playwright.config.ts",
+  ],
+  "verify-service-role-clients": [
+    "apps/admin/lib/admin-access.ts",
+    "packages/api/src/donate/index.ts",
+    "scripts/verify/service-role-client-gate.mjs",
+    "tooling/eslint-config/no-comments.mjs",
+    "docs/security/service-role-client-allowlist.json",
   ],
   "verify-data-boundary": [
     "apps/donor/lib/cms/client.ts",

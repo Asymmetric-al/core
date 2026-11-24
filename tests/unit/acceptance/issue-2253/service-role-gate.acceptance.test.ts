@@ -10,13 +10,13 @@ import path from "node:path";
 
 import { afterAll, describe, expect, it } from "vitest";
 
+import { CEILING } from "../../../../scripts/verify/service-role-client-gate.mjs";
 import {
   ALLOWLIST,
   FACTORY,
   GATE,
   KEY_RE,
   KINDS,
-  TOTALS,
   type Entry,
   gate,
   names,
@@ -333,7 +333,11 @@ type Allow = {
   })[];
 };
 const doc = () => JSON.parse(read(ALLOWLIST) || "null") as Allow | null;
-const CEILING_TOTALS = [175, 113, 107] as const;
+const CEILING_TOTALS = [
+  [...CEILING.values()].reduce((a, n) => a + n, 0),
+  CEILING.size,
+  new Set([...CEILING.keys()].map((key) => key.split(" ")[0])).size,
+] as const;
 const live = (d: Allow) => [
   d.entries.reduce((a, x) => a + x.count, 0),
   d.entries.length,
@@ -341,7 +345,7 @@ const live = (d: Allow) => [
 ];
 
 describe("#2253 service-role gate on the real tree (9, 11)", () => {
-  it("9: the allowlist is the frozen v1 list, at or under the reviewed ceiling (removals pass)", () => {
+  it("9: the allowlist is the frozen v1 list, at or under the reviewed ceiling (removals pass) (D-18: AL-2671 ruling-pin-tax Q1: limits read from the gate's ceiling)", () => {
     const d = doc();
     expect(d, `${ALLOWLIST} exists and is JSON`).not.toBeNull();
     expect([d!.version, d!.ruling, d!.frozen_at]).toEqual([
@@ -361,7 +365,8 @@ describe("#2253 service-role gate on the real tree (9, 11)", () => {
     for (const k of KINDS) {
       const xs = d!.entries.filter((x) => x.kind === k);
       const got = [xs.reduce((n, x) => n + x.count, 0), xs.length];
-      const limit = k === "operation_admin_context" ? [63, 36] : TOTALS[k];
+      const rows = [...CEILING].filter(([key]) => key.split(" ")[1] === k);
+      const limit = [rows.reduce((a, [, n]) => a + n, 0), rows.length];
       const ok = got.every((n, i) => n <= limit[i]!);
       expect(ok, `${k} ${got.join("/")} <= ${limit.join("/")}`).toBe(true);
     }

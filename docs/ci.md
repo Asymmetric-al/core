@@ -113,16 +113,17 @@ production-targeting push always select full mode:
 8. `verify:openspec-deltas` (includes `verify:phase24-authority`)
 9. `lint`
 10. `verify:comments` (the comment ratchet: no source file gains a comment, and `tooling/eslint-config/comment-baseline.json` matches the tree)
-11. `verify:data-boundary`
-12. `verify:cms-public-sole-entry`
-13. `verify:workspace-contract`
-14. `verify:bun-lock-drift`
-15. `verify:eslint`
-16. `verify:shadcn-config`
-17. `typecheck`
-18. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
-19. `test:unit` (excludes `tests/unit/acceptance/` in the full profile)
-20. `test:acceptance` (`node scripts/verify/acceptance-tests.mjs`), as its own stage
+11. `verify:service-role-clients` (the service-role client gate, with its ceiling compared to `origin/develop` when that ref is present)
+12. `verify:data-boundary`
+13. `verify:cms-public-sole-entry`
+14. `verify:workspace-contract`
+15. `verify:bun-lock-drift`
+16. `verify:eslint`
+17. `verify:shadcn-config`
+18. `typecheck`
+19. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
+20. `test:unit` (excludes `tests/unit/acceptance/` in the full profile)
+21. `test:acceptance` (`node scripts/verify/acceptance-tests.mjs`), as its own stage
 
 The shadcn upstream review (`bun run verify:shadcn-diff`) is not a preflight
 stage or a GitHub check. It compares every installed component with the public
@@ -149,7 +150,7 @@ without the network:
 4. `openspec:validate`, `verify:openspec-deltas` (scoped)
 5. Lint of the affected workspaces (`turbo run lint --affected` with
    `TURBO_SCM_BASE=origin/develop`, as pull-request CI runs it)
-6. `verify:comments`, `verify:data-boundary`,
+6. `verify:comments`, `verify:service-role-clients`, `verify:data-boundary`,
    `verify:cms-public-sole-entry`, `verify:workspace-contract` (scoped);
    `verify:bun-lock-drift`, `verify:shadcn-config`
 7. Typecheck of the affected workspaces (`turbo run typecheck --affected`)
@@ -330,9 +331,9 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `lint`
 
-- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:comments` (the comment ratchet: comments are banned in first-party TypeScript and JavaScript, so no file under `apps/`, `packages/`, `scripts/`, `tests/`, `tooling/` or the repository root may hold more comments than it does on the base branch, and `tooling/eslint-config/comment-baseline.json` must match the tree), then `bun run verify:data-boundary` (architecture/data-access boundary contract over live source; gitignored Eve `.eve`, `.nitro`, and `.output` generated trees are excluded), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails).
+- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:comments` (the comment ratchet: comments are banned in first-party TypeScript and JavaScript, so no file under `apps/`, `packages/`, `scripts/`, `tests/`, `tooling/` or the repository root may hold more comments than it does on the base branch, and `tooling/eslint-config/comment-baseline.json` must match the tree), then `bun run verify:service-role-clients -- --require-base` (the service-role client gate; its ceiling is compared with the base branch, and a row added, or a count raised, without a new `ruling:<ID>` token fails, as does a base that cannot be resolved; see `docs/security/tenant-guard.md`), then `bun run verify:data-boundary` (architecture/data-access boundary contract over live source; gitignored Eve `.eve`, `.nitro`, and `.output` generated trees are excluded), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails).
 - _Why it exists:_ Enforces consistent code quality and prevents architecture, workspace, and ESLint config drift.
-- _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:comments` (after deleting comments, `bun run verify:comments -- --write` lowers the baseline), `bun run verify:data-boundary`, `bun run verify:cms-public-sole-entry`, `bun run verify:workspace-contract`, `bun run verify:bun-lock-drift`, `bun run verify:eslint`, and `bun run verify:shadcn-config`.
+- _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:comments` (after deleting comments, `bun run verify:comments -- --write` lowers the baseline), `bun run verify:service-role-clients -- --require-base` (on a branch without `origin/develop`, pass `--base <ref>`), `bun run verify:data-boundary`, `bun run verify:cms-public-sole-entry`, `bun run verify:workspace-contract`, `bun run verify:bun-lock-drift`, `bun run verify:eslint`, and `bun run verify:shadcn-config`.
 
 ### `typecheck`
 
