@@ -113,9 +113,9 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
 
 ### Not here
 
-11. **Owned elsewhere.** The five `/api/cms/public/*` reads never make the
-    lookup and keep resolving their tenant from the host until WP6 part 2
-    removes them. The dashboards' configuration redirects
+11. **Owned elsewhere.** The prototype `/api/cms/public/*` reads and their
+    front exemption were retired in WP6 part 2a (AL-2679). The dashboards'
+    configuration redirects
     (`apps/admin/next.config.ts`, `apps/missionary/next.config.ts`) run before
     the proxy, so on a refused name they still redirect before the follow-up
     gets the `404`; N2 part 2 moves them behind admission, and also takes the

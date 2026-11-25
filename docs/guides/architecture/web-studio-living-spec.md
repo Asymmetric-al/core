@@ -24,17 +24,17 @@
 
 ## 2. Technical system summary
 
-| Concern                  | Implementation                                                                                                                                                                                                                         |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Runtime**              | Single Payload instance in `apps/admin`; Postgres `cms` schema via `@payloadcms/db-postgres`.                                                                                                                                          |
-| **Admin route**          | `routes.admin: /web-studio` in `apps/admin/payload.config.ts`; Next catch-all `apps/admin/app/(payload)/web-studio/[[...segments]]/page.tsx`.                                                                                          |
-| **Admin provider shell** | `apps/admin/app/(payload)/layout.tsx` embeds public Payload `RootProviders` using `getRootLayoutData` inside the existing Mission Control document shell; it does not render another `<html>` / `<body>`.                              |
-| **Payload REST/GraphQL** | `routes.api: /web-studio/api`; `apps/admin/app/(payload)/web-studio/api/[...slug]/route.ts`, `.../graphql/route.ts` — same origin, writes must be same-origin, organization from the Web Studio tenant cookie (plan 5.2).              |
-| **Public read API**      | `apps/admin/app/api/cms/public/**` — **not** the `(payload)` group; tenant resolution + published-only queries.                                                                                                                        |
-| **Custom views**         | `buildConfig.admin.components.views` for top-level flows; per-collection `admin.components.views` for list/edit overrides.                                                                                                             |
-| **Custom endpoint**      | `POST /web-studio/api/web-studio/create-from-template` via `config.endpoints` → `apps/admin/src/cms/create-from-template-endpoint.ts`.                                                                                                 |
-| **Access**               | `apps/admin/src/cms/access/*` + tenant hooks on collections; public content reads use the sole `PublishedContentReader` with `overrideAccess: false` and the independent public-read policy; tenant lookup is a non-content exception. |
-| **Preferences**          | Payload preferences API; keys in `apps/admin/src/cms-ui/web-studio/preferences/keys.ts`.                                                                                                                                               |
+| Concern                  | Implementation                                                                                                                                                                                                                                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Runtime**              | Single Payload instance in `apps/admin`; Postgres `cms` schema via `@payloadcms/db-postgres`.                                                                                                                                                                                                                            |
+| **Admin route**          | `routes.admin: /web-studio` in `apps/admin/payload.config.ts`; Next catch-all `apps/admin/app/(payload)/web-studio/[[...segments]]/page.tsx`.                                                                                                                                                                            |
+| **Admin provider shell** | `apps/admin/app/(payload)/layout.tsx` embeds public Payload `RootProviders` using `getRootLayoutData` inside the existing Mission Control document shell; it does not render another `<html>` / `<body>`.                                                                                                                |
+| **Payload REST**         | `routes.api: /web-studio/api`; `apps/admin/app/(payload)/web-studio/api/[...slug]/route.ts` — same origin, writes must be same-origin and refuse `overrideLock`, organization from the Web Studio tenant cookie (plan 5.2). GraphQL is disabled (`graphQL: { disable: true }`) and its route was retired in WP6 part 2a. |
+| **Public read API**      | Prototype `apps/admin/app/api/cms/public/**` routes were retired in WP6 part 2a (AL-2679) ahead of WP7's public reader under `packages/api/src/cms/public`.                                                                                                                                                              |
+| **Custom views**         | `buildConfig.admin.components.views` for top-level flows; per-collection `admin.components.views` for list/edit overrides.                                                                                                                                                                                               |
+| **Custom endpoint**      | `POST /web-studio/api/web-studio/create-from-template` via `config.endpoints` → `apps/admin/src/cms/create-from-template-endpoint.ts`.                                                                                                                                                                                   |
+| **Access**               | `apps/admin/src/cms/access/*` + tenant hooks on collections; public content reads use the sole `PublishedContentReader` with `overrideAccess: false` and the independent public-read policy; tenant lookup is a non-content exception.                                                                                   |
+| **Preferences**          | Payload preferences API; keys in `apps/admin/src/cms-ui/web-studio/preferences/keys.ts`.                                                                                                                                                                                                                                 |
 
 ### Public Payload v4 checkpoint
 
@@ -67,23 +67,23 @@ The following is a source inventory at `7abd2c11`, rechecked 2026-09-16.
 end-to-end qualification or Phase 22–24 acceptance claim. Partial and deferred
 entries retain their stated limitations.
 
-| Area                                                                                                  | State           | Notes                                                                                                                                       |
-| ----------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Shell, nav, recent docs, prefs                                                                        | **implemented** | `apps/admin/src/cms-ui/web-studio/shell/*`                                                                                                  |
-| Native list + default edit: `pages`, `navigation`, `missionary-profiles`, `ministry-updates`, `media` | **implemented** | Env can disable per collection → **fallback-backed**                                                                                        |
-| Native list + edit: `page-templates`, `missionary-giving-pages`, `project-pages`                      | **implemented** | Same flags: `CMS_WEB_STUDIO_NATIVE_*`                                                                                                       |
-| Template gallery `/web-studio/templates`                                                              | **implemented** | Draft templates included in gallery fetch (`draft=true` query)                                                                              |
-| Wizards: standard / give / project / ministry update starter                                          | **implemented** | `apps/admin/src/cms-ui/web-studio/flows/*`                                                                                                  |
-| `create-from-template` endpoint                                                                       | **implemented** | Staff auth + tenant checks; Supabase validation for missionary/fund                                                                         |
-| Staff directory APIs                                                                                  | **implemented** | Thin routes → `@asym/api/admin/missionary-directory`, `fund-directory` (data boundary)                                                      |
-| Public: pages, navigation, updates                                                                    | **implemented** | Existing contracts                                                                                                                          |
-| Public: missionary-pages, project-pages                                                               | **implemented** | Additive routes                                                                                                                             |
-| Serialized `pages` public JSON                                                                        | **implemented** | `serializePublishedPageLike` — extra fields, backward compatible                                                                            |
-| Nested Payload subviews (versions, live preview UI)                                                   | **partial**     | Stock Payload; links from native chrome                                                                                                     |
-| Donor consumption of new public routes                                                                | **partial**     | `fetchPublishedMissionaryGivingPage` / `fetchPublishedProjectPage` in `client.ts`; checkout accepts CMS `missionary_id` / `fund_id` targets |
-| E2E coverage for every Phase 3 click path                                                             | **partial**     | Unit tests extended; full Playwright needs DB + ports (Phase 4 notes)                                                                       |
-| TipTap inside Web Studio CMS fields                                                                   | **not started** | Payload editor is Lexical                                                                                                                   |
-| TanStack DB in Web Studio                                                                             | **not started** | **Confirmed:** `@tanstack/db` not imported under `cms-ui/web-studio/`; used elsewhere (e.g. contributions live query)                       |
+| Area                                                                                                  | State                | Notes                                                                                                                                  |
+| ----------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Shell, nav, recent docs, prefs                                                                        | **implemented**      | `apps/admin/src/cms-ui/web-studio/shell/*`                                                                                             |
+| Native list + default edit: `pages`, `navigation`, `missionary-profiles`, `ministry-updates`, `media` | **implemented**      | Env can disable per collection → **fallback-backed**                                                                                   |
+| Native list + edit: `page-templates`, `missionary-giving-pages`, `project-pages`                      | **implemented**      | Same flags: `CMS_WEB_STUDIO_NATIVE_*`                                                                                                  |
+| Template gallery `/web-studio/templates`                                                              | **implemented**      | Draft templates included in gallery fetch (`draft=true` query)                                                                         |
+| Wizards: standard / give / project / ministry update starter                                          | **implemented**      | `apps/admin/src/cms-ui/web-studio/flows/*`                                                                                             |
+| `create-from-template` endpoint                                                                       | **implemented**      | Staff auth + tenant checks; Supabase validation for missionary/fund                                                                    |
+| Staff directory APIs                                                                                  | **implemented**      | Thin routes → `@asym/api/admin/missionary-directory`, `fund-directory` (data boundary)                                                 |
+| Public: pages, navigation, updates                                                                    | **retired (WP6 2a)** | Prototype `/api/cms/public/*` routes retired in WP6 part 2a (AL-2679) ahead of WP7's public reader under `packages/api/src/cms/public` |
+| Public: missionary-pages, project-pages                                                               | **retired (WP6 2a)** | Prototype routes retired in WP6 part 2a (AL-2679); answer `404`                                                                        |
+| Serialized `pages` preview shape                                                                      | **implemented**      | `apps/admin/src/cms/preview/serialize-published-page.ts` (`serializePublishedPageLike`), kept for authenticated draft preview          |
+| Nested Payload subviews (versions, live preview UI)                                                   | **partial**          | Stock Payload; links from native chrome                                                                                                |
+| Donor consumption of public CMS reads                                                                 | **retired (WP6 2a)** | `apps/donor/lib/cms/client.ts` is an empty reader until WP7; checkout still accepts `missionary_id` / `fund_id` targets                |
+| E2E coverage for every Phase 3 click path                                                             | **partial**          | Unit tests extended; full Playwright needs DB + ports (Phase 4 notes)                                                                  |
+| TipTap inside Web Studio CMS fields                                                                   | **not started**      | Payload editor is Lexical                                                                                                              |
+| TanStack DB in Web Studio                                                                             | **not started**      | **Confirmed:** `@tanstack/db` not imported under `cms-ui/web-studio/`; used elsewhere (e.g. contributions live query)                  |
 
 ---
 
@@ -116,17 +116,17 @@ flowchart LR
   admin --> API
 ```
 
-| Location            | Role                                                                                                    |
-| ------------------- | ------------------------------------------------------------------------------------------------------- |
-| `apps/admin`        | Payload config, collections, Web Studio UI, public `/api/cms/public/*`, staff `/api/admin/*` re-exports |
-| `apps/donor`        | `lib/cms/client.ts` — consumer of public CMS; `CMS_BASE_URL`, forwarded host, result classification     |
-| `apps/missionary`   | No direct Web Studio; may share `@asym/*` packages                                                      |
-| `packages/lib`      | Public CMS page descriptors, read cache policy, response/result types, and server-side Lexical renderer |
-| `packages/ui`       | shadcn (Base UI Maia + Zinc); `useAsymForm`, shared components                                          |
-| `packages/api`      | Business DB logic; `admin/missionary-directory`, `admin/fund-directory`                                 |
-| `packages/auth`     | `getAuthContext`, roles for staff routes / CMS users                                                    |
-| `packages/database` | Supabase clients; Payload uses `PAYLOAD_DATABASE_URI` / pool                                            |
-| `packages/env`      | `NEXT_PUBLIC_DONOR_URL` etc.                                                                            |
+| Location            | Role                                                                                                                               |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/admin`        | Payload config, collections, Web Studio UI, staff `/api/admin/*` re-exports (prototype `/api/cms/public/*` retired in WP6 part 2a) |
+| `apps/donor`        | `lib/cms/client.ts` — empty reader until WP7 (`CMS_BASE_URL` retained for media remote patterns)                                   |
+| `apps/missionary`   | No direct Web Studio; may share `@asym/*` packages                                                                                 |
+| `packages/lib`      | Public CMS page descriptors, read cache policy, response/result types, and server-side Lexical renderer                            |
+| `packages/ui`       | shadcn (Base UI Maia + Zinc); `useAsymForm`, shared components                                                                     |
+| `packages/api`      | Business DB logic; `admin/missionary-directory`, `admin/fund-directory`                                                            |
+| `packages/auth`     | `getAuthContext`, roles for staff routes / CMS users                                                                               |
+| `packages/database` | Supabase clients; Payload uses `PAYLOAD_DATABASE_URI` / pool                                                                       |
+| `packages/env`      | `NEXT_PUBLIC_DONOR_URL` etc.                                                                                                       |
 
 ---
 
@@ -146,21 +146,12 @@ flowchart LR
 | `/web-studio/pages/new-from-template`                  | Custom view          | same                                         |
 | `/web-studio/ministry-updates/new`                     | Custom view          | same                                         |
 | `/web-studio/api/*` (Payload)                          | Payload REST         | `(payload)/web-studio/api/[...slug]`         |
-| `/web-studio/api/graphql`                              | Payload              | `(payload)/web-studio/api/graphql`           |
 | `POST /web-studio/api/web-studio/create-from-template` | Custom               | `config.endpoints`                           |
 | `/web-studio/organization`                             | Organization choice  | `(auth)/web-studio/organization`             |
 
-### Public (unauthenticated, tenant-scoped)
+### Public (retired in WP6 part 2a)
 
-| Method | Path                                    | Handler                                                  |
-| ------ | --------------------------------------- | -------------------------------------------------------- |
-| GET    | `/api/cms/public/pages/[...slug]`       | `apps/admin/app/api/cms/public/pages/[...slug]/route.ts` |
-| GET    | `/api/cms/public/navigation`            | `navigation/route.ts`                                    |
-| GET    | `/api/cms/public/updates`               | `updates/route.ts`                                       |
-| GET    | `/api/cms/public/missionary-pages/[id]` | `missionary-pages/[id]/route.ts`                         |
-| GET    | `/api/cms/public/project-pages/[slug]`  | `project-pages/[slug]/route.ts`                          |
-
-Tenant order: `resolveTenantFromRequest` — **forwarded host / host primary-domain match → subdomain slug fallback → query `?tenant=` only when the host does not resolve a tenant** (see `apps/admin/src/cms/public/resolve-tenant.ts`). This is current behaviour: under the owner's decision of 21 November 2026 (OpenSpec change `adopt-tenant-owned-domains`) no platform subdomain names a tenant, and this resolver, its subdomain slug fallback included, leaves the read path with WP7.
+The five prototype `/api/cms/public/*` routes (`pages`, `navigation`, `updates`, `missionary-pages`, `project-pages`) and `apps/admin/src/cms/public/resolve-tenant.ts` were retired in WP6 part 2a (AL-2679) and return `404`. Public CMS serving will be introduced by WP7 behind `packages/api/src/cms/public`.
 
 ### Staff Next API (Mission Control auth, not Payload)
 
@@ -1117,7 +1108,7 @@ progress, permissions, or release eligibility.
 ## 10. Public API and consumer contract
 
 - **Versioning:** Public JSON is **not** URL-versioned (`/v1/...`); contract evolves by **additive** fields and careful consumer updates. **Document versions** are a Payload CMS feature, not HTTP API versioning.
-- **Consumers:** `apps/donor/lib/cms/client.ts` — forward `x-forwarded-host` for tenant resolution on admin origin, apply public CMS cache tags, and distinguish `found` / `not-found` / `tenant-not-found` / `bad-request` / `unavailable`.
+- **Consumers:** `apps/donor/lib/cms/client.ts` — empty reader since WP6 part 2a (AL-2679), returning retired not-found / empty updates with zero network calls until WP7 implements `packages/api/src/cms/public`.
 - **Backward compatibility:** `pages` response shape preserved; serializer **adds** fields.
 - **Public serialization:** CTA hrefs are sanitized. Missionary/project page CTAs resolve to `/checkout?missionary_id=...` or `/checkout?fund_id=...`; media relationship objects are reduced to public id/alt/url/size fields before leaving the admin API. This is current-state behavior only: the raw URL and original-filename-bearing media seam, global metadata helpers, fictional Update share URL, and inert Share controls do not satisfy D9/D14. The target public serializer emits only the exact release-bound manifest and opaque D9-certified delivery references.
 
@@ -1135,23 +1126,19 @@ progress, permissions, or release eligibility.
 | Editor state adapter   | `.../collections/shared/document-workspace/editor-state.ts`                                                                     |
 | Auth preview model     | `apps/admin/src/cms/preview/authenticated-preview.ts`, `apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx` |
 | Template instantiate   | `apps/admin/src/cms/create-from-template-endpoint.ts`                                                                           |
-| Public page shape      | `apps/admin/src/cms/public/serialize-published-page.ts`                                                                         |
-| Tenant resolution      | `apps/admin/src/cms/public/resolve-tenant.ts`                                                                                   |
+| Preview page shape     | `apps/admin/src/cms/preview/serialize-published-page.ts`                                                                        |
 | Import map postprocess | `scripts/dev/postprocess-payload-importmap.mjs`                                                                                 |
 
 ---
 
 ## 12. Multi-tenant model
 
-**Plain language:** Every editorial document belongs to a **tenant**. Staff see only their tenant; super-admins see more. Public readers never authenticate; the server uses the current host/subdomain resolver and only returns **published** rows for that tenant. Query and loopback helpers are limited to development/preview by `resolve-tenant.ts`; they are unavailable in production. This current Tenant-only adapter remains migration evidence for the adopted Site/domain authority.
+**Plain language:** Every editorial document belongs to a **tenant**. Staff see only their tenant; super-admins see more. The prototype admin public CMS routes and `resolve-tenant.ts` were retired in WP6 part 2a (AL-2679) ahead of WP7's target Site/domain public reader.
 
 **Technical:** `tenant` relationship on collections; `applyTenantFromContext`
-hooks; access in `tenant-access.ts`; public content handlers resolve the request
-context and read only through `PublishedContentReader` with
-`overrideAccess: false`. Its explicit tenant-and-published predicates are
-defense in depth. `apps/admin/src/cms/public/resolve-tenant.ts` is the sole
-allowlisted non-content exception: it may resolve the tenant document required
-to construct the context, but it must not read or serialize public content.
+hooks; access in `tenant-access.ts`. The sole-entry gate (`scripts/verify/cms-public-sole-entry.mjs`)
+now has an empty allowlist so no raw Payload read or `overrideAccess: true` may
+re-enter public code paths before WP7 implements `packages/api/src/cms/public`.
 
 **Do not break:** bypassing `PublishedContentReader`; widening
 `overrideAccess` on public-content reads; skipping the tenant-and-published
@@ -1396,22 +1383,22 @@ remain explicit in the adopted Phase 23 contract.
 1. Read **this doc** + `docs/guides/development/web-studio-runbook.md`.
 2. Run `NODE_ENV=test bun run cms:importmap`, `bun run typecheck:admin`, `bun run test:unit:cms`.
 3. Open `apps/admin/payload.config.ts` and `apps/admin/src/cms-ui/web-studio/collections/config.ts`.
-4. Do **not** break `resolveTenantFromRequest`, public `published-only` queries, or data-boundary thin routes.
+4. Do **not** re-introduce raw Payload reads into public paths, enable GraphQL, allow `overrideLock`, or bypass data-boundary thin routes.
 
 ---
 
 ## 24. Glossary
 
-| Term                 | Meaning                                                         |
-| -------------------- | --------------------------------------------------------------- |
-| **Web Studio**       | Mission Control native UI + Payload runtime under `/web-studio` |
-| **Payload runtime**  | Schema, access, Local API, REST, GraphQL, document forms        |
-| **Document view**    | Payload screen for one document (`edit`, `versions`, …)         |
-| **Live preview**     | Payload feature: iframe / URL sync with draft data              |
-| **Tenant**           | Organization scope for content; FK on documents                 |
-| **Public CMS route** | Unauthenticated GET on `apps/admin` used by donor               |
-| **Template**         | `page-templates` document with `defaultLayout` + `pageType`     |
-| **Published-only**   | Public routes exclude drafts (`_status: published`)             |
+| Term                 | Meaning                                                            |
+| -------------------- | ------------------------------------------------------------------ |
+| **Web Studio**       | Mission Control native UI + Payload runtime under `/web-studio`    |
+| **Payload runtime**  | Schema, access, Local API, REST (GraphQL disabled), document forms |
+| **Document view**    | Payload screen for one document (`edit`, `versions`, …)            |
+| **Live preview**     | Payload feature: iframe / URL sync with draft data                 |
+| **Tenant**           | Organization scope for content; FK on documents                    |
+| **Public CMS route** | Retired in WP6 part 2a; replaced by WP7's public reader            |
+| **Template**         | `page-templates` document with `defaultLayout` + `pageType`        |
+| **Published-only**   | Public routes exclude drafts (`_status: published`)                |
 
 ---
 

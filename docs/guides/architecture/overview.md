@@ -73,11 +73,8 @@ with `403` (`no-store`) except on its own explicit decoded path allowlist:
 
 - Staff (`apps/admin`): `/api/health/migrations`, `/api/webhooks/stripe`,
   `/api/webhooks/stripe-connect`, `/api/email/webhooks/resend`, `/api/inngest`,
-  `/eve/v1/github`, plus a read-only `GET`/`HEAD` exception under
-  `/api/cms/public/` (refusing decoded `.` or `..` segments or `\`). Those five
-  public CMS routes resolve the tenant from `x-forwarded-host` or `host` and
-  return published content only, matching their existing public reach on the
-  staff origin until WP6 part 2 removes them.
+  `/eve/v1/github` (`STAFF_READ_ONLY_EXEMPT_PREFIXES` is empty after WP6 part
+  2a retired `/api/cms/public/*`).
 - Missionary (`apps/missionary`): `/api/health/migrations`,
   `/api/webhooks/stripe`.
 
@@ -159,17 +156,14 @@ is recorded separately in the owning retirement change.
 4. The app renders a permitted projection; caches and optimistic UI remain
    representations of source state, not alternative write authority.
 
-For current public CMS reads, the donor HTTP/cache adapter calls admin's
-`/api/cms/public/*` routes. Public content passes through the provider-neutral
-contract in `packages/api/src/cms/public` and the sole Payload adapter in
-`apps/admin/src/cms/public/published-content-reader.ts`. That adapter requires
-tenant context, published-only predicates and `overrideAccess: false` under
-the public-read policy. Tenant lookup is an explicit non-content exception.
+The prototype admin `/api/cms/public/*` routes and public reader adapters were
+retired in WP6 part 2a (AL-2679). `apps/donor/lib/cms/client.ts` is an empty
+reader returning not-found / empty updates with no network call until WP7
+implements the target public reader behind `packages/api/src/cms/public`.
 
-This current Tenant-only transport is not the completed Phase 22–24
-Site/domain/locale serving architecture. The adopted specifications require
-their exact owner admission, immutable generation and qualification rules.
-Read the [CMS runtime guide](./cms-runtime.md) and
+The adopted Phase 22–24 Site/domain/locale serving specifications require their
+exact owner admission, immutable generation and qualification rules. Read the
+[CMS runtime guide](./cms-runtime.md) and
 [Web Studio implementation guide](./web-studio-living-spec.md) for the
 implementation-to-target boundary.
 

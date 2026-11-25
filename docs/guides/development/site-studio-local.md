@@ -137,54 +137,24 @@ committed migrations the only local schema path. If `bun run cms:migrate`
 reports a `dev` marker, run `bun run cms:local:reset` to realign the local
 database with committed migrations.
 
-## Tenant resolution locally
+## Retired prototype public CMS endpoints
 
-Public CMS endpoints still resolve tenants by primary domain, then subdomain, then explicit `?tenant=<slug>`. This is current behaviour: under the owner's decision of 21 November 2026 (OpenSpec change `adopt-tenant-owned-domains`) no platform subdomain names a tenant, and this resolver, its subdomain slug fallback included, leaves the read path with WP7. In development/test only, loopback hosts
-(`localhost`, `127.0.0.1`, `[::1]`) can fall back to:
-
-```bash
-CMS_LOCAL_DEFAULT_TENANT_SLUG=give-hope-demo
-```
-
-The fallback is ignored in production. This allows donor requests from
-`localhost:3000`, `localhost:3005`, or `127.0.0.1:*` to consume local CMS
-content without manual query parameters.
-
-## Public endpoint checks
-
-With `bun run dev:admin` running:
-
-```bash
-curl -H 'x-forwarded-host: localhost:3000' \
-  http://127.0.0.1:3030/api/cms/public/pages/local-cms-home
-
-curl -H 'x-forwarded-host: localhost:3000' \
-  http://127.0.0.1:3030/api/cms/public/navigation
-
-curl -H 'x-forwarded-host: localhost:3000' \
-  'http://127.0.0.1:3030/api/cms/public/updates?limit=5'
-
-curl -H 'x-forwarded-host: localhost:3000' \
-  http://127.0.0.1:3030/api/cms/public/project-pages/local-project
-
-curl -H 'x-forwarded-host: localhost:3000' \
-  http://127.0.0.1:3030/api/cms/public/missionary-pages/11111111-1111-1111-1111-111111111111
-```
+The prototype `/api/cms/public/*` routes were retired in WP6 part 2a (AL-2679) ahead of WP7's public reader. Both `bun run cms:local:seed` and `bun run cms:local:verify` refuse non-loopback database URLs before connecting, and `cms:local:verify` asserts that the five retired public CMS paths answer `404` when `dev:admin` is running.
 
 ## Common failures
 
-| Symptom                                                  | Fix                                                                                                           |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Docker is not running                                    | Start Docker, then rerun `bun run cms:local:reset`.                                                           |
-| Supabase ports are occupied                              | Stop the conflicting process or Supabase project, then rerun setup.                                           |
-| `.env.local` still points to hosted DB                   | Run `bun run cms:local:reset -- --force-env` to rewrite local CMS values.                                     |
-| Payload cannot connect to Postgres                       | Run `bun run cms:local:reset`; verify `PAYLOAD_DATABASE_URI` points to `127.0.0.1:54322`.                     |
-| `Tenant not found` from local public endpoints           | Ensure `CMS_LOCAL_DEFAULT_TENANT_SLUG=give-hope-demo`, rerun `bun run cms:local:seed`, and restart admin dev. |
-| Web Studio redirects to login after demo click           | Run `bun run cms:local:verify`; confirm demo profile and staff membership exist.                              |
-| Payload login screen appears instead of Web Studio shell | Run `bun run cms:local:seed`; the CMS user/tenant mirror is missing or stale.                                 |
-| Import map errors                                        | Run `bun run cms:importmap`.                                                                                  |
-| Media upload/list errors                                 | Ensure `apps/admin/media` exists; `cms:local:bootstrap` creates it.                                           |
-| Payload migration status dirty                           | Run `bun run cms:migrate`, then `bun run cms:migrate:status`.                                                 |
+| Symptom                                                  | Fix                                                                                       |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Docker is not running                                    | Start Docker, then rerun `bun run cms:local:reset`.                                       |
+| Supabase ports are occupied                              | Stop the conflicting process or Supabase project, then rerun setup.                       |
+| `.env.local` still points to hosted DB                   | Run `bun run cms:local:reset -- --force-env` to rewrite local CMS values.                 |
+| Payload cannot connect to Postgres                       | Run `bun run cms:local:reset`; verify `PAYLOAD_DATABASE_URI` points to `127.0.0.1:54322`. |
+| Retired `/api/cms/public/*` route returns non-404        | Restart `bun run dev:admin` so the current app build is serving.                          |
+| Web Studio redirects to login after demo click           | Run `bun run cms:local:verify`; confirm demo profile and staff membership exist.          |
+| Payload login screen appears instead of Web Studio shell | Run `bun run cms:local:seed`; the CMS user/tenant mirror is missing or stale.             |
+| Import map errors                                        | Run `bun run cms:importmap`.                                                              |
+| Media upload/list errors                                 | Ensure `apps/admin/media` exists; `cms:local:bootstrap` creates it.                       |
+| Payload migration status dirty                           | Run `bun run cms:migrate`, then `bun run cms:migrate:status`.                             |
 
 ## Final proof set
 

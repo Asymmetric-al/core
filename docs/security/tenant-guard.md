@@ -482,7 +482,7 @@ The proxy decides by headers alone, and over HTTP/2 or HTTP/3 a body needs no le
 - Multipart, whose parser needs the request's type and refuses without one: the image uploads (`readForm`) and the email asset upload, both 400 before any storage call.
 - Payload's REST handler under `/web-studio/api` parses a body only for `application/json` or multipart (`addDataAndFileToRequest`, Payload 4.0.0-beta.9), so an untyped body never becomes data; the picker form is admitted only with the GET override.
 - The donor portal's GraphQL route: graphql-yoga (5.24.6) has no parser for an untyped `POST` and answers 415 itself.
-- Web Studio's GraphQL route (`/web-studio/api/graphql`): Payload's handler builds its request and parses a multipart body before graphql-http (1.22.4) refuses anything that is not JSON, so the route itself requires `application/json` and refuses anything else with 415 in the Studio envelope before Payload runs. No Web Studio screen calls it; WP6 removes it.
+- Web Studio's GraphQL route (`/web-studio/api/graphql`): retired in WP6 part 2a (AL-2679); Payload GraphQL is disabled (`graphQL: { disable: true }`) and `/web-studio/api/graphql` falls through to Payload's REST 404.
 - The assistant's channel routes parse JSON only after `adminEveRouteAuth`, which requires JSON on a cookie-carrying write.
 
 Eve's cookie-authenticated session POSTs run outside Next's API proxy. Its channel authenticator uses the same source check and requires JSON before resolving ownership. In Eve 0.25.1 the session handler calls route auth before JSON parsing. Session stream reads are not writes; GitHub callbacks keep their separate signature verifier.

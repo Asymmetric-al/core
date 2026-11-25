@@ -7,8 +7,8 @@
 Payload runs in `apps/admin` and is exposed through:
 
 - Admin UI: `/web-studio`
-- REST/GraphQL routes under `(payload)` route group
-- Public CMS routes: `/api/cms/public/*`
+- REST routes under `(payload)` route group (`/web-studio/api/*`; Payload GraphQL is disabled and its route was retired in WP6 part 2a)
+- Prototype public CMS routes (`/api/cms/public/*`) were retired in WP6 part 2a (AL-2679) ahead of WP7's public reader
 
 This keeps CMS management inside Mission Control and avoids running multiple Payload runtimes.
 
@@ -64,47 +64,32 @@ do not wrap Web Studio views in the Mission Control shell a second time.
 
 - Supabase remains the identity provider.
 - Payload auth uses a custom Supabase session strategy (`supabase-strategy`).
-- The admin proxy (`apps/admin/proxy.ts`, `createAuthMiddleware`) admits only `staff`, `admin` and `super_admin` roles to every non-public route, including `/web-studio`; `/api/cms/public` is a public route.
+- The admin proxy (`apps/admin/proxy.ts`, `createAuthMiddleware`) admits only `staff`, `admin` and `super_admin` roles to every non-public route, including `/web-studio`.
 
 ## Tenant isolation model
 
 - Shared tenant context is derived from authenticated CMS user data.
 - Collection access is deny-by-default and tenant-scoped for non-super-admin users.
-- Public endpoints resolve tenant from the list below. This is current behaviour: under the owner's decision of 21 November 2026 (OpenSpec change `adopt-tenant-owned-domains`) no platform subdomain names a tenant, and this resolver, its subdomain slug fallback included, leaves the read path with WP7. The order today:
-  1. host / forwarded host primary-domain match
-  2. subdomain slug fallback when the host is not `www` or `localhost`
-  3. `?tenant=<slug>` fallback only when host resolution fails and the
-     deployment helper permits development or preview tenant selection
-  4. loopback-only development/preview fallback from
-     `CMS_LOCAL_DEFAULT_TENANT_SLUG`, then the sole active tenant when exactly
-     one exists
-- Public content reads use the sole `PublishedContentReader` with required
-  tenant context, published-only predicates, `overrideAccess: false` and the
-  public-read access policy. Only tenant lookup is an allowlisted non-content
-  exception. The current Tenant-only resolver is migration evidence; it does
-  not satisfy the adopted P24 domain-binding or P22 release-admission contract.
+- The prototype admin `/api/cms/public/*` routes, `resolve-tenant.ts`, and `published-content-reader.ts` were retired in WP6 part 2a (AL-2679). The sole-entry gate allowlist (`scripts/verify/cms-public-sole-entry.mjs`) is empty until WP7 implements the target public reader under `packages/api/src/cms/public`.
 
 ## Public rendering flow
 
-1. Donor app requests CMS data from `apps/admin` public CMS endpoints.
-2. Admin endpoint resolves tenant context and applies published-only filters.
-3. Donor app classifies public CMS read results before routing: content misses become `notFound()`, while CMS outages remain unavailable errors.
-4. Donor app renders fallback content for unmatched routes from returned CMS page data.
+1. The prototype admin `/api/cms/public/*` endpoints were retired in WP6 part 2a (AL-2679) and now return `404`.
+2. `apps/donor/lib/cms/client.ts` is an empty reader making no HTTP requests and no `headers()` calls until WP7 ships the target public reader: page reads return `{ status: "not-found", statusCode: 404, error: "Public CMS reads are retired until WP7." }`, and updates return empty results.
+3. Donor app maps not-found page reads to `notFound()` and omits the home updates section when updates are empty.
 
 ### Published page-like content module
 
 Published page-like content has one conceptual module with runtime-owned adapters:
 
 - `packages/api/src/cms/public` owns the provider-neutral reader interface,
-  allowlist serialization, request context and public-content rules.
-- `packages/lib/cms/public-page.ts` retains legacy donor transport descriptors,
+  allowlist serialization, request context and public-content rules (implemented by WP7).
+- `packages/lib/cms/public-page.ts` retains donor transport descriptors,
   response/result types, path normalization and cache policy; it is an adapter
   shape, not a competing content-rule owner.
 - `packages/lib/cms/public-page-renderer.tsx` owns the supported server-side Lexical renderer and URL sanitization for public page content.
-- `apps/admin/src/cms/public/published-content-reader.ts` is the sole Payload
-  public-content adapter; `published-page-read.ts` delegates to it and shapes
-  endpoint responses.
-- `apps/donor/lib/cms/client.ts` owns the donor HTTP/cache adapter: `CMS_BASE_URL`, forwarded host, `fetch` cache policy, and result classification.
+- `apps/admin/src/cms/preview/serialize-published-page.ts` owns the page-like serializer kept for authenticated Web Studio draft previews.
+- `apps/donor/lib/cms/client.ts` is currently an empty reader preserving donor exports (`CMS_BASE_URL` remains for media remote patterns) until WP7 connects it to the target public reader.
 
 Payload runtime access stays in `apps/admin`; donor and shared packages must not import the Payload client directly.
 
@@ -119,26 +104,17 @@ Payload's REST routes answer under `/web-studio/api` (`routes.api`; plan 5.2, AL
 - A Web Studio tab left open across the deploy still calls `/api/...`; those calls get 404 until the tab is reloaded, and nothing is saved meanwhile.
 - Public pages show CMS images through the donor, which admits only the admin's media route. For this release the donor admits both `/web-studio/api/media/file/` and the old `/api/media/file/` (`packages/lib/cms/public-media.ts`, `scripts/cms/public-media-remote-pattern.mjs`): that covers a donor promoted ahead of its admin, as after an admin rollback. The admin app sends the old address on to the new one with a temporary redirect (`apps/admin/next.config.ts`), so a link that still holds it, pasted into a page or in a donor response cached before the release, keeps working the moment the admin is promoted. The next release removes the old prefix from both files and the redirect. Before that release, find and rewrite any stored text that still holds `/api/media/file/` (rich text and link fields in hosted content; Payload rebuilds the media rows' own addresses on every read), because from then on those links break.
 
-| Method                              | Endpoint                                    | Auth                    | Source file                                                  | Notes                                                                                                                                                       |
-| ----------------------------------- | ------------------------------------------- | ----------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET/POST/PATCH/PUT/DELETE/OPTIONS` | `/web-studio/api/*` (Payload REST handlers) | Staff/Admin/Super Admin | `apps/admin/app/(payload)/web-studio/api/[...slug]/route.ts` | Includes collection CRUD and upload operations from Payload REST API. Writes must be same-origin; the organization comes from the Web Studio tenant cookie. |
-| `POST/OPTIONS`                      | `/web-studio/api/graphql`                   | Staff/Admin/Super Admin | `apps/admin/app/(payload)/web-studio/api/graphql/route.ts`   | Payload GraphQL endpoint for admin-authorized queries and mutations; WP6 removes it.                                                                        |
+| Method                              | Endpoint                                    | Auth                    | Source file                                                  | Notes                                                                                                                                                                                               |
+| ----------------------------------- | ------------------------------------------- | ----------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET/POST/PATCH/PUT/DELETE/OPTIONS` | `/web-studio/api/*` (Payload REST handlers) | Staff/Admin/Super Admin | `apps/admin/app/(payload)/web-studio/api/[...slug]/route.ts` | Includes collection CRUD and upload operations from Payload REST API. Writes must be same-origin and may not pass `overrideLock` (other than exact `false`). GraphQL is disabled and returns `404`. |
 
 ### Public, tenant-scoped read APIs
 
-| Method | Endpoint                               | Tenant resolution                                         | Source file                                                    | Response contract                                                                    |
-| ------ | -------------------------------------- | --------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `GET`  | `/api/cms/public/pages/:slug*`         | host/subdomain match; development/preview-only `?tenant=` | `apps/admin/app/api/cms/public/pages/[...slug]/route.ts`       | `{ tenant: { slug }, page }` on success, `404` with `{ error }` otherwise            |
-| `GET`  | `/api/cms/public/missionary-pages/:id` | same                                                      | `apps/admin/app/api/cms/public/missionary-pages/[id]/route.ts` | `{ tenant, page }` for published `missionary-giving-pages` matched by `missionaryId` |
-| `GET`  | `/api/cms/public/project-pages/:slug`  | same                                                      | `apps/admin/app/api/cms/public/project-pages/[slug]/route.ts`  | `{ tenant, page }` for published `project-pages` matched by `slug`                   |
-| `GET`  | `/api/cms/public/navigation`           | host/subdomain match; development/preview-only `?tenant=` | `apps/admin/app/api/cms/public/navigation/route.ts`            | `{ tenant: { slug }, navigation }` where `navigation` can be `null`                  |
-| `GET`  | `/api/cms/public/updates?limit=5`      | host/subdomain match; development/preview-only `?tenant=` | `apps/admin/app/api/cms/public/updates/route.ts`               | `{ tenant: { slug }, updates: [] }` with `limit` clamped to `1..20`                  |
+The five prototype `/api/cms/public/*` routes (`pages`, `missionary-pages`, `project-pages`, `navigation`, `updates`) were retired in WP6 part 2a (AL-2679) and return `404`. Public CMS serving will be introduced by WP7 behind `packages/api/src/cms/public`.
 
 ### Consumer contract in donor app
 
-`apps/donor/lib/cms/client.ts` is the existing donor transport/cache adapter.
-Other apps consume the shared public-content contract and their qualified
-transport; they do not acquire an app-to-app source dependency on donor code. It forwards `x-forwarded-host` and normalizes CMS responses into app-safe helpers:
+`apps/donor/lib/cms/client.ts` is currently an empty reader (WP6 part 2a, AL-2679) that preserves the donor exports without calling `fetch` or `headers()` until WP7 implements the target public reader:
 
 - `fetchPublishedCmsPageResult(slugSegments, hostOverride?)` and
   `resolvePublishedCmsPageRouteState(...)`
@@ -146,10 +122,6 @@ transport; they do not acquire an app-to-app source dependency on donor code. It
 - `fetchPublishedProjectPageResult(slug, hostOverride?)`
 - `fetchPublishedCmsUpdates(limit?, hostOverride?)` and
   `fetchPublishedCmsUpdatesResult(limit?, hostOverride?)`
-
-Its response classification can inform a thin adapter, but current host-forwarding
-and Tenant-only behavior must not be copied as authority for the adopted
-Site/domain/locale contracts.
 
 ## Operational guarantees
 
