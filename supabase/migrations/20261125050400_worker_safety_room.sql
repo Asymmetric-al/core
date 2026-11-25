@@ -7,7 +7,7 @@
 --    Data API does not expose, row security forced, with the guard's
 --    isolation policy and no privilege for PUBLIC, anon, authenticated or
 --    service_role. The command role selects it, inserts its five named
---    columns and updates the three it edits; nothing else.
+--    columns and updates the three it edits and updated_at; nothing else.
 -- 2. One constraint trigger on each of parties and party_restricted refuses,
 --    for every role, a restricted or high-risk level whose public alias is
 --    blank or equals the legal name: the two names sit in different tables.
@@ -60,14 +60,16 @@
 -- 6. public.unreviewed_worker_security_levels(): the workers of the
 --    request's tenant whose level still has the unreviewed default, for the
 --    tenant's staff (W5-R7). A definer, because signed-in users may not read
---    missionaries.tenant_id or party_id.
+--    missionaries.party_id.
 -- 7. Three human commands needing safety.restrict_publication, each with a
 --    reason and one audit row, behind invoker wrappers for authenticated:
 --    set_worker_identity (creates or edits the private row; it sets the
---    level, its source and the alias only while the Party is still standard,
---    unreviewed_default and without an alias, and otherwise keeps them and
+--    level, its source and the alias only when it creates the private row
+--    while the Party is still standard, unreviewed_default and without an
+--    alias, and otherwise keeps them and
 --    refuses a level or alias argument, 22023; its audit row carries the
---    Party's level, source, alias and do-not-publish before and after),
+--    Party's level, source and do-not-publish before and after, and whether
+--    an alias was set before and after and whether it changed),
 --    restrict_worker_publication
 --    (raises or confirms the level, sets the alias, sets do-not-publish) and
 --    lift_worker_restriction (lowers the level, clears do-not-publish). Each
@@ -75,20 +77,22 @@
 --    country_default (WP14). No audit row carries the legal name, a place
 --    or an alias: set_worker_identity's records whether an alias was set
 --    before and after and whether it changed (bot review #28).
---    Each command first refuses (42501) a request whose organization header
---    (authz.request_tenant_id()) is missing or names another organization
---    than the one it enters, as the Member Care and Sites commands do until
---    begin_human_command checks it itself. Then it takes the repository's
+--    begin_human_command has refused (42501) a request whose organization
+--    header (authz.request_tenant_id()) is missing or names another
+--    organization than the one it enters since 20261125040000; each command
+--    calls it first and then repeats that check. Then it takes the repository's
 --    lock order: the organization FOR SHARE (private.share_lock_tenant), the
 --    caller's assignment FOR SHARE, a re-check of the active organization,
 --    the live assignment and the capability, and only then its targets.
 --
--- Locks, all held to COMMIT. ACCESS EXCLUSIVE on the new
--- private.party_restricted, and on public.parties, which gains the guard's
--- policy and a constraint trigger here; parties is new in this release and
--- the live build reads neither table. SHARE ROW EXCLUSIVE on tenants for the
--- new table's key. No table the live build reads is locked. lock_timeout
--- stops a run rather than queue it behind live traffic.
+-- Locks, all held to COMMIT, as pg_locks shows them just before it. ACCESS
+-- EXCLUSIVE on the new private.party_restricted, and on public.parties, which
+-- gains the guard's policy and a constraint trigger here; parties is new in
+-- this release and the live build reads neither table. SHARE ROW EXCLUSIVE
+-- on tenants for the new table's key. ACCESS SHARE on tenants, and on
+-- missionaries, which the unreviewed signal's body reads (creating a SQL
+-- function checks its body). No other table that exists before this file is
+-- locked. lock_timeout stops a run rather than queue it behind live traffic.
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
 -- COMMIT and its ledger row stops on the next run at its first CREATE

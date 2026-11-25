@@ -5,11 +5,13 @@
 -- them. The preflight refuses, with counts only, when the table holds a row
 -- or either column holds a value; nothing is dropped then.
 --
--- Locks, all held to COMMIT. ACCESS EXCLUSIVE on missionaries and profiles
--- (their person_id columns and constraints are dropped) and on persons
--- (its keys and then the table are dropped); ROW EXCLUSIVE on field_policies
--- for the ten rows deleted. lock_timeout stops a run rather than queue it
--- behind live traffic.
+-- Locks, all held to COMMIT, as pg_locks shows them just before it. ACCESS
+-- EXCLUSIVE on missionaries and profiles (their person_id columns and
+-- constraints are dropped), on persons (its keys and then the table are
+-- dropped) and on tenants (DROP TABLE public.persons drops its key to
+-- tenants, persons_in_tenant_fk); ACCESS SHARE as well on missionaries,
+-- profiles and persons; ROW EXCLUSIVE on field_policies for the ten rows
+-- deleted. lock_timeout stops a run rather than queue it behind live traffic.
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
 -- COMMIT and its ledger row stops on the next run at its preflight, which

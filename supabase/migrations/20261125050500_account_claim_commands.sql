@@ -53,11 +53,13 @@
 -- order, the donor's Party FOR UPDATE (NOWAIT in start), the claim row FOR
 -- UPDATE (redeem); and it re-checks under those locks before it writes.
 --
--- Locks, all held to COMMIT. ACCESS EXCLUSIVE on account_claim_requests (its
--- new columns, constraints and policies; its two new indexes take SHARE
--- under that lock), and on account_links, which gains the guard's policy and
--- is new in this release. No other table is locked. lock_timeout stops a run
--- rather than queue it behind live traffic.
+-- Locks, all held to COMMIT, as pg_locks shows them just before it. ACCESS
+-- EXCLUSIVE on account_claim_requests (its new columns, constraints and
+-- policies; its two new indexes take SHARE under that lock), and on
+-- account_links, which gains the guard's policy and is new in this release.
+-- ACCESS SHARE on auth.users and public.donors. No other table that exists
+-- before this file is locked. lock_timeout stops a run rather than queue it
+-- behind live traffic.
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
 -- COMMIT and its ledger row stops on the next run at its first statement,
