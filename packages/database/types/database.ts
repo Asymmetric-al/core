@@ -155,6 +155,10 @@ export interface SiteFunctions {
       is_home: boolean;
     })[];
   };
+  resolve_home_host: {
+    Args: { p_host: string };
+    Returns: { primary_domain: string }[];
+  };
   create_site: {
     Args: { p_tenant_id: string; p_name: string };
     Returns: Site;

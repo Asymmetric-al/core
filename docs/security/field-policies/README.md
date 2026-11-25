@@ -171,10 +171,25 @@ Thus `notes`, `status`, `title`, and `type` are **care** across this baseline,
 including financial status and donor workflow/job-title columns. This deliberate
 restriction avoids weakening care meanings; it may reduce future positive
 projections until an owner reviews the underlying model. Email/phone remain
-contact and avatar URLs public consistently across records. The sole reviewed
-exception is `site_domains.tenant_id`: the anonymous verified-host resolver
+contact and avatar URLs public consistently across records. The two reviewed
+exceptions are `site_domains.tenant_id` and `donor_portal_hosts.primary_domain`.
+The first: the anonymous verified-host resolver
 returns this public identifier (plan §5.4, coordinator ruling 2026-11-21).
 Other `tenant_id` columns stay internal. The census rejects stale exceptions.
+
+The second is `donor_portal_hosts.primary_domain` (WP3b part 2, AL-2676):
+(1) the column is category `public`, visible on the `public` surface only,
+never editable or exportable (Mission Control keeps `v--`); (2) its one reader
+is `public.resolve_home_host(p_host text)`, which returns it only when the
+asked name is active, serves `website` and is not home, and the home name is
+active and serves `donor_account`; (3) it is public because it is where a
+person is sent: the donor proxy writes it into the `Location` of every
+redirect of a Site name's account paths to home; (4) the floor stays
+`internal`: `sites.primary_domain` and `site_domains.host` stay internal, and
+no other column follows without its own review; (5) the reviewer is the
+coordinator's ruling on WP3b part 2 under D-16 (Q1), 2026-11-25; (6) the
+census (`HOST_PROJECTION_FLOORS` in `scripts/verify/field-policy-census.mjs`)
+refuses the exception once it is stale.
 
 Structural identifiers, timestamps and workflow metadata are explicitly internal,
 not implicit fallbacks. Gift/pledge money and processor identifiers are financial;

@@ -3,6 +3,7 @@ import {
   routeToDashboard,
   withoutFrontHeaders,
 } from "@asym/auth/front";
+import { lookUpHomeName } from "@asym/auth/home-name";
 import { createAuthMiddleware } from "@asym/auth/middleware";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
 import {
@@ -11,15 +12,18 @@ import {
 } from "@asym/auth/verified-name";
 import { isServeUnderPathsEnabled } from "@asym/database/document-reload";
 
+import { homeRedirect } from "./lib/home-redirect";
 import {
   classifyDonorPath,
   isDonorExemptPath,
+  isHomeRedirectPath,
   resolveDonorPath,
 } from "./lib/route-policy";
 
+import type { AuthMiddlewareOptions } from "@asym/auth/middleware";
 import type { NextRequest } from "next/server";
 
-const authProxy = createAuthMiddleware({
+const authOptions: AuthMiddlewareOptions = {
   publicRoutes: [
     "/",
     "/about",
@@ -49,6 +53,13 @@ const authProxy = createAuthMiddleware({
   roleClass: "donor",
   allowedRoles: ["donor"],
   resolveUserRole: resolveUserRoleFromDatabase,
+};
+
+const authProxy = createAuthMiddleware(authOptions);
+
+const namedAuthProxy = createAuthMiddleware({
+  ...authOptions,
+  unauthorizedRedirectTo: "/no-access",
 });
 
 export async function proxy(request: NextRequest) {
@@ -62,7 +73,7 @@ export async function proxy(request: NextRequest) {
   const resolved = resolveDonorPath(request.nextUrl.pathname);
   if (resolved === null) return frontNotFound();
   if (resolved.transport === "none" && isDonorExemptPath(resolved.pathname)) {
-    return authProxy(cleaned);
+    return namedAuthProxy(cleaned);
   }
 
   const host = request.headers.get("host")?.trim();
@@ -73,6 +84,21 @@ export async function proxy(request: NextRequest) {
     "website",
   ]);
   if (lookup.kind === "unavailable") return verifiedNameUnavailable();
+
+  const { donor_account: asked, website: site } = lookup.decisions;
+  if (
+    site.kind === "admitted" &&
+    asked.kind === "refused" &&
+    asked.reason === "not_home" &&
+    resolved.transport === "none" &&
+    (request.method === "GET" || request.method === "HEAD") &&
+    isHomeRedirectPath(resolved.pathname)
+  ) {
+    const home = await lookUpHomeName(host);
+    if (home.kind === "unavailable") return verifiedNameUnavailable();
+    if (home.kind === "none") return frontNotFound();
+    return homeRedirect(home.host, request.nextUrl, resolved.pathname);
+  }
 
   const pathClass = classifyDonorPath(resolved.pathname);
   const { donor_account: account, website } = lookup.decisions;
@@ -86,7 +112,7 @@ export async function proxy(request: NextRequest) {
           : website;
 
   if (admitted.kind !== "admitted") return frontNotFound();
-  return authProxy(cleaned, { nameTenantId: admitted.tenantId });
+  return namedAuthProxy(cleaned, { nameTenantId: admitted.tenantId });
 }
 
 export const config = {
