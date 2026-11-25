@@ -593,22 +593,34 @@ on either outcome. Dispatch the release again only after a repair that exited
 
 #### If the migration committed but its ledger row is missing
 
-The migration sets `lock_timeout` to 5s. If a long reader holds one of the
+A file that commits its own transaction can commit while the job stops
+before the ledger records it. A second push then runs the file again, and the
+file fails at a statement that cannot run twice. Do not edit the file
+(council R9). The steps need three things: where the file's second run
+fails, a read-only check that is true only once its transaction has
+committed, and its version. This section gives them for `20261119135300`,
+the worked example below. Each of `20261125050000` to `20261125050500`
+(WP5 part 1) gives its own three in its header, under "Recovery."; use them
+in place of the example's.
+
+`20261119135300` sets `lock_timeout` to 5s. If a long reader holds one of the
 fifty tables it alters, it fails fast with `55P03` and nothing is applied;
 dispatch the release again when the database is quiet. If its SQL committed
 but the job stopped before the migration ledger recorded it, a second push
 runs the file again and fails at its first `DROP POLICY` (the policy is
-already gone). Do not edit the file (council R9):
+already gone). For any such file:
 
-1. Connect as above, and confirm that the SQL committed. Both columns must
-   read `t`; if either reads `f`, nothing was applied: stop here and dispatch
-   the release again, which applies the file.
+1. Connect as above, and run the file's committed-check from its header. For
+   `20261119135300` it is the query below, and both columns must read `t`. If
+   the check reads `f`, nothing was applied: stop here and dispatch the
+   release again, which applies the file.
 
    ```sh
    psql "$DB" -X -c "select to_regprocedure('authz.request_assignment()') is not null as helper_present, not exists (select 1 from pg_policy where polrelid = 'public.profiles'::regclass and polname = 'profiles staff tenant select') as old_policy_gone"
    ```
 
-2. Record the version. Go on only if the status reads 0 and the count 1:
+2. Record the file's version (here `20261119135300`) in both places below.
+   Go on only if the status reads 0 and the count 1:
 
    ```sh
    SUPABASE_CLI_FORCE_PINNED=1 bun run supabase -- migration repair --status applied 20261119135300 --db-url "$DB" --yes
@@ -618,7 +630,44 @@ already gone). Do not edit the file (council R9):
    echo "repair exit status: $status"
    ```
 
-3. Dispatch **Release**, branch `production`, operation `release`, with
+3. Reload PostgREST's schema cache, then check it. A file that ends with
+   `COMMIT;` and then, as a separate statement,
+   `SELECT pg_notify('pgrst', 'reload schema');` can commit and stop before
+   the reload. `20261119135300` and each of `20261125050000` to
+   `20261125050500` end so. A later migration's reload covers it; for the
+   last migration of a release nothing does, and the API keeps the schema
+   from before the file. Send the reload once; a second one does no harm.
+   Then make the one read-only call the table below names for the file, with
+   the project's URL and its publishable key and nothing else. No call reads
+   a person's data: the publishable key's role holds no privilege on what it
+   names, and a table call asks for no rows. Go on only when the call gives
+   the answer of a loaded schema. For `20261125050500`:
+
+   ```sh
+   read -rs PGPASSWORD && export PGPASSWORD
+   export PGREQUIREAUTH=scram-sha-256
+   psql "$DB" -X -tA -c "select pg_notify('pgrst', 'reload schema')"
+   unset PGPASSWORD PGREQUIREAUTH
+   curl -s -w '\nHTTP %{http_code}\n' -H 'apikey: <publishable key>' '<project URL>/rest/v1/rpc/account_claim_status?p_tenant_id=00000000-0000-0000-0000-000000000000'
+   ```
+
+   Each call is a `GET` of `<project URL>/rest/v1` followed by its path:
+
+   | File             | Path                                                                                                        | Stale cache                                                  | Schema loaded                                                      |
+   | ---------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------ |
+   | `20261125050000` | `/follower_requests?select=id,tenants(id)&limit=0`                                                          | `400`, `PGRST200`: no relationship to `tenants` in the cache | `401`, `42501`: permission denied for table `follower_requests`    |
+   | `20261125050100` | `/parties?select=id&limit=0`                                                                                | `404`, `PGRST205`: table not in the cache                    | `401`, `42501`: permission denied for table `parties`              |
+   | `20261125050200` | `/external_identifiers?select=id&limit=0`                                                                   | `404`, `PGRST205`: table not in the cache                    | `401`, `42501`: permission denied for table `external_identifiers` |
+   | `20261125050300` | `/persons?select=id&limit=0`                                                                                | `404`, `42P01`: relation `public.persons` does not exist     | `404`, `PGRST205`: table not in the cache                          |
+   | `20261125050400` | `/rpc/worker_public_display_name?p_public_alias=x&p_approved_profile_display_name=x&p_party_display_name=x` | `404`, `PGRST202`: function not in the cache                 | `401`, `42501`: permission denied for function                     |
+   | `20261125050500` | `/rpc/account_claim_status?p_tenant_id=00000000-0000-0000-0000-000000000000`                                | `404`, `PGRST202`: function not in the cache                 | `401`, `42501`: permission denied for function                     |
+
+   `20261125050000` adds no table or function the API shows; its call shows
+   whether the cache holds the file's new key from `follower_requests` to
+   `tenants`. No call was worked out for `20261119135300`: send its reload
+   and go on.
+
+4. Dispatch **Release**, branch `production`, operation `release`, with
    `environment` set to the environment whose database `$DB` is
    (`production` or `preview`; the form's default is `production`). Its
    `gates` step (`node scripts/release/release-database.mjs gates`) runs the
@@ -637,6 +686,37 @@ certificate a test CA signed and held the objects the query reads but not the
 ledger row. With that CA as `sslrootcert` the query read `t` twice and the
 repair recorded the version. With another CA, `psql` and the CLI both refused
 the server's certificate, and nothing was recorded.
+
+On 25 November 2026 the whole procedure was run for `20261125050500` against
+a local stack (`supabase start` through the repository's wrapper, which
+fetched the pinned CLI 2.121.0; Postgres 17.11.0.004, PostgREST v16.4). For
+each push and the repair the pinned CLI was first on the `PATH` and
+`SUPABASE_CLI_FORCE_PINNED=1` was set; the stack's database took a plain
+local connection, so `sslmode=verify-full` and `PGREQUIREAUTH` were not used.
+The stack started with the chain up to `20261125050400`. The file was pushed
+with `db push --db-url`, without its trailing `pg_notify`, and its ledger row
+was deleted. A second `db push` stopped where the header says, with
+`column "token_sha256" of relation "account_claim_requests" already exists
+(SQLSTATE 42701)`, and exited 1. The header's check read `t`. Step 2's repair
+exited 0 and the count read 1. The call in the table answered `404`
+`PGRST202` until the reload and `401` `42501` after it, and a later
+`db push` reported the database up to date. For the other five files, the
+stale and the loaded answers in the table were read from the same PostgREST
+image against a plain Postgres replay: each file was applied without its
+trailing `pg_notify`, the calls were made, the reload was sent, and the
+calls were made again. The loaded answers were read again through the local
+stack's API with its publishable key.
+
+The local stack's Postgres has two event triggers, `pgrst_ddl_watch`
+(`ddl_command_end`) and `pgrst_drop_watch` (`sql_drop`). Each sends
+`NOTIFY pgrst, 'reload schema'` for the DDL commands it lists outside the
+`auth`, `realtime`, `_realtime`, `storage` and temporary schemas, and a
+function created there with no `pg_notify` was served by the API three
+seconds later. So on the local stack a file's trailing `pg_notify` repeats a
+reload its DDL has already queued, and the stale answer above was produced
+with both triggers disabled (they were enabled again after). The plain
+Postgres replay has no event trigger. Whether a hosted database has them was
+not read; step 3 does not depend on it.
 
 #### Rolling it back by hand
 
