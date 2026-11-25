@@ -239,6 +239,13 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/admin/support-hub/inbound/retry`                         | Node.js (no `runtime` segment export) | Inbound email retry, work claims, ledger                   |
 | admin      | `/api/admin/support-hub/inbound/routes`                        | Node.js (no `runtime` segment export) | Saved inbound routes, save-and-continue                    |
 | admin      | `/api/admin/support-hub/inbound/routes/[routeId]`              | Node.js (no `runtime` segment export) | Tenant route management, audit                             |
+| admin      | `/api/admin/workers`                                           | Node.js (no `runtime` segment export) | Request-scoped worker directory (staff)                    |
+| admin      | `/api/admin/workers/[assignmentId]`                            | Node.js (no `runtime` segment export) | Request-scoped worker record (staff)                       |
+| admin      | `/api/admin/workers/[assignmentId]/confirm`                    | Node.js (no `runtime` segment export) | Request-scoped worker safety command                       |
+| admin      | `/api/admin/workers/[assignmentId]/lift`                       | Node.js (no `runtime` segment export) | Request-scoped worker safety command                       |
+| admin      | `/api/admin/workers/[assignmentId]/restrict`                   | Node.js (no `runtime` segment export) | Request-scoped worker safety command                       |
+| admin      | `/api/admin/workers/[assignmentId]/reveal`                     | Node.js (no `runtime` segment export) | Request-scoped audited legal-identity reveal               |
+| admin      | `/api/admin/workers/unreviewed-count`                          | Node.js (no `runtime` segment export) | Request-scoped unreviewed worker count (staff)             |
 | admin      | `/api/admin/workflows/notification-policy`                     | Node.js (no `runtime` segment export) | Tenant notification overrides                              |
 | admin      | `/api/admin/workflows/summaries`                               | Node.js (no `runtime` segment export) | Workflow run summaries, notification policy                |
 | admin      | `/api/admin/users`                                             | Node.js (no `runtime` segment export) | Request-scoped member directory RPC                        |
