@@ -21,7 +21,7 @@ Nothing live calls them, and the live build's rows are untouched.
 
 ## Decisions
 
-1. **The four suites under `tests/unit/acceptance/issue-2681/wp8a-p2r1a-*`**
+1. **The nine suites under `tests/unit/acceptance/issue-2681/wp8a-p2r1a-*`**
    read only `TENANT_GUARD_IT_ADMIN_DATABASE_URL` and run in the `migrate`
    job's program step (one file at a time). Every test but the two-session
    races runs in one transaction that is always rolled back.
@@ -46,6 +46,16 @@ Nothing live calls them, and the live build's rows are untouched.
    `SET TRUE`); no other login role reaches it, directly or through another
    role. Read literally ("no login role is a member"), the brief's line is
    false on every database, because `postgres` is a login role.
+6. **R1b split the two long suites, moving each test unchanged.** The
+   machine suite (1,605 lines) became `machine-claims` (D14 to D19),
+   `machine-reports` (D21 to D24), `machine-guards` (F1.1 to F1.5 and F5) and
+   `machine-sessions` (D20 and F2, the two-session tests, with the session
+   helpers they share); the record suite (1,339 lines) became `record-checks`
+   (C8, C9 and its expression assertion), `record-params` (C10, C13, C14) and
+   `record-fence` (C11, C12, C15, C16, F1.6). Every `it` keeps its title and
+   body byte for byte; a describe-local helper two parts need is copied
+   verbatim into each, and each part keeps the test that fails, never skips,
+   without its database URL in `migrate`. No part is longer than 700 lines.
 
 ## Pins moved (D-18), each with the reason in the edited title
 
@@ -56,5 +66,5 @@ Nothing live calls them, and the live build's rows are untouched.
 | `issue-2681/wp8a-part1.realstack…`, R30                                                   | Part 1 pinned that the outbox was untouched. Its status check now holds the provider statuses (`parked` among them) and it has a `lease_expires_at`; `guard_outbox` (`has_table_privilege`) stays false                                                                                                                                                                      |
 | `docs/security/rls-deny-by-default-exceptions.json`, the outbox entry                     | The outbox gains a policy, so it leaves the zero-policy list                                                                                                                                                                                                                                                                                                                 |
 | `issue-2251/harness.ts` and `static.acceptance`                                           | The same table moves from S (service role needed) to F (forced, with policies), as WP8a part 1's tables did                                                                                                                                                                                                                                                                  |
-| `shared/realstack-step.test.ts`, `REAL_DATABASE_FILES`                                    | Four new real-stack files                                                                                                                                                                                                                                                                                                                                                    |
+| `shared/realstack-step.test.ts`, `REAL_DATABASE_FILES`                                    | Four new real-stack files; R1b replaced the machine and record entries by their seven parts (decision 6)                                                                                                                                                                                                                                                                     |
 | `issue-2675/tenant-policy-migration.realstack…`, `OVERRIDES` (not in the brief's list)    | Its fixture inserts `donations` rows under replica mode, where the stamp trigger does not run, and fills every NOT NULL column that has no default by its type. `intake_format` has no default by design (an insert that names none is stamped by role), so the fixture now names `legacy_header`, the value every live writer is stamped with. Every assertion is unchanged |
