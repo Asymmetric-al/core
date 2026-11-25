@@ -1,8 +1,10 @@
 import {
   expect as baseExpect,
   test,
+  type Locator,
   type Page,
   type Request,
+  type Response as PlaywrightResponse,
   type Route,
 } from "@playwright/test";
 
@@ -262,6 +264,101 @@ async function holdOwnCalls(page: Page) {
   );
 }
 
+function excerptAround(text: string, title: string) {
+  const at = text.indexOf(title);
+  return at === -1
+    ? ""
+    : text.slice(Math.max(0, at - 80), at + title.length + 80);
+}
+
+async function expectAbsent(
+  scope: Page | Locator,
+  title: string,
+  where: string,
+) {
+  const html =
+    "content" in scope
+      ? await scope.content()
+      : await scope.evaluate((element) => element.outerHTML);
+  expect
+    .soft(excerptAround(html, title), `${where}: the DOM holds the title`)
+    .toBe("");
+  expect
+    .soft(
+      await scope.getByText(title, { exact: true }).count(),
+      `${where}: elements whose text is the title`,
+    )
+    .toBe(0);
+}
+
+function recentLink(page: Page, title: string) {
+  return page
+    .getByRole("list", { name: "Recent", exact: true })
+    .getByRole("link", { name: title, exact: true });
+}
+
+async function pinOpenDocument(page: Page) {
+  const pin = page.getByRole("button", { name: "Pin to Studio home" });
+  await expect(pin).toBeEnabled();
+  await expect(pin).toHaveAttribute("aria-pressed", "false");
+  await pin.click();
+  await expect(pin).toHaveAttribute("aria-pressed", "true");
+}
+
+async function expectNoStoredTitle(page: Page, stamp: string, where: string) {
+  const response = await page.request.get(
+    `${base}/web-studio/api/payload-preferences?limit=100&depth=0`,
+  );
+  expect.soft(response.status(), `${where}: status`).toBe(200);
+  const body = (await response.json()) as {
+    docs?: Array<{ key?: unknown; value?: unknown }>;
+    hasNextPage?: unknown;
+  };
+  expect.soft(body.hasNextPage, `${where}: a further page`).toBe(false);
+  const holding = (body.docs ?? []).flatMap((row) => {
+    const value = JSON.stringify(row.value) ?? "";
+    return [`Alpha ${stamp}`, `Bravo ${stamp}`]
+      .filter((title) => value.includes(title))
+      .map((title) => ({
+        key: row.key,
+        title,
+        value: excerptAround(value, title),
+      }));
+  });
+  expect.soft(holding, `${where}: rows that hold a title`).toEqual([]);
+}
+
+async function switchRecordingResponses(page: Page, tenant: string) {
+  await page.goto(`${base}/web-studio/organization?next=%2Fweb-studio`);
+  const origin = new URL(base).origin;
+  const bodies: Array<Promise<{ url: string; text: string }>> = [];
+  const onResponse = (response: PlaywrightResponse) => {
+    const url = new URL(response.url());
+    if (url.origin !== origin || url.pathname.startsWith("/_next/")) return;
+    const label = `${response.request().method()} ${url.pathname}${url.search}`;
+    bodies.push(
+      Promise.race([
+        response.text().catch(() => ""),
+        new Promise<string>((resolve) => setTimeout(() => resolve(""), 15_000)),
+      ]).then((text) => ({ url: label, text })),
+    );
+  };
+  page.on("response", onResponse);
+  await chooseOrganization(page, tenant);
+  await page.waitForURL((url) => url.pathname === "/web-studio");
+  return {
+    holding: async (title: string) => {
+      page.off("response", onResponse);
+      return (await Promise.all(bodies))
+        .filter((body) => body.text.includes(title))
+        .map((body) => ({
+          url: body.url,
+          excerpt: excerptAround(body.text, title),
+        }));
+    },
+  };
+}
+
 test("@cms a person in two organizations sees each one's pages, documents and media only while it is selected", async ({
   page,
 }) => {
@@ -310,11 +407,12 @@ test("@cms a person in two organizations sees each one's pages, documents and me
       [SECOND, "Bravo", "Alpha", secondPage, demoPage],
       [DEMO, "Alpha", "Bravo", demoPage, secondPage],
     ] as const) {
-      await switchOrganization(page, base, tenant);
+      const ownTitle = `${own} ${stamp}`;
+      const otherTitle = `${other} ${stamp}`;
+      const where = (place: string) => `${place}, ${own}'s organization`;
+      const received = await switchRecordingResponses(page, tenant);
       // What a REST call returns.
-      expect(await restTitles(page, base, "pages", stamp)).toEqual([
-        `${own} ${stamp}`,
-      ]);
+      expect(await restTitles(page, base, "pages", stamp)).toEqual([ownTitle]);
       expect(await restTitles(page, base, "media", stamp)).toEqual([
         `${own.toLowerCase()} ${stamp}`,
       ]);
@@ -325,14 +423,69 @@ test("@cms a person in two organizations sees each one's pages, documents and me
           )
         ).status(),
       ).toBe(404);
-      // The list and the document.
-      await page.goto(`${base}/web-studio/collections/pages`);
-      await expect(page.getByText(`${own} ${stamp}`).first()).toBeVisible();
-      await expect(page.getByText(`${other} ${stamp}`)).toHaveCount(0);
+      await expectNoStoredTitle(page, stamp, where("stored preferences"));
+
+      const titleField = page.getByRole("textbox", { name: /^Title/ }).first();
       await page.goto(`${base}/web-studio/collections/pages/${ownPage}`);
+      await expect(titleField).toHaveValue(ownTitle);
+      await pinOpenDocument(page);
+
+      let attempt = 0;
+      await expect(async () => {
+        if (attempt++ > 0) {
+          await page.goto(`${base}/web-studio/collections/pages/${ownPage}`);
+          await expect(titleField).toHaveValue(ownTitle, { timeout: 30_000 });
+        }
+        await page.goto(`${base}/web-studio/collections/pages`);
+        await expect(recentLink(page, ownTitle)).toBeVisible({
+          timeout: 5_000,
+        });
+      }).toPass({ timeout: 90_000 });
+
+      await expect(recentLink(page, ownTitle)).toBeVisible();
       await expect(
-        page.getByRole("textbox", { name: /^Title/ }).first(),
-      ).toHaveValue(`${own} ${stamp}`);
+        page.getByRole("main").getByText(ownTitle).first(),
+      ).toBeVisible();
+      expect
+        .soft(
+          await page.getByText(otherTitle).count(),
+          where("the pages list, text containing the other title"),
+        )
+        .toBe(0);
+      await expectAbsent(page, otherTitle, where("the pages list"));
+
+      await page.goto(`${base}/web-studio`);
+      await expect(recentLink(page, ownTitle)).toBeVisible();
+      const card = page.getByRole("region", { name: "Your documents" });
+      await expect(
+        card
+          .getByRole("list", { name: "Pinned documents" })
+          .getByRole("link", { name: ownTitle, exact: true }),
+      ).toBeVisible();
+      await expectAbsent(card, otherTitle, where("Your documents, Pinned"));
+      await expectAbsent(page, otherTitle, where("the Studio home, Pinned"));
+      await card.getByRole("tab", { name: "Recently viewed" }).click();
+      await expect(
+        card
+          .getByRole("list", { name: "Recently viewed documents" })
+          .getByRole("link", { name: new RegExp(`^${ownTitle}`) }),
+      ).toBeVisible();
+      await expectAbsent(
+        card,
+        otherTitle,
+        where("Your documents, Recently viewed"),
+      );
+      await expectAbsent(
+        page,
+        otherTitle,
+        where("the Studio home, Recently viewed"),
+      );
+      expect
+        .soft(
+          await received.holding(otherTitle),
+          where("responses received since the switch"),
+        )
+        .toEqual([]);
     }
   } finally {
     for (const tenant of [DEMO, SECOND]) {
