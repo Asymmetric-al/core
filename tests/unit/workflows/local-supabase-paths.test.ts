@@ -45,6 +45,12 @@ describe("the local Supabase workflow's path filter", () => {
     expect(paths).toContain(file);
   });
 
+  it("D-18 (AL-2676 WP3a part 2a adds provisioning's second-factor proof to the stack): starts the stack when that proof changes", () => {
+    expect(paths).toContain(
+      "tests/unit/acceptance/issue-2676/tenant-provisioning.localstack.test.ts",
+    );
+  });
+
   it("starts them when either app's chooser changes", () => {
     // Mission Control's chooser lives in (auth), which the filter names.
     expect(paths).toContain("apps/*/app/(auth)/**");

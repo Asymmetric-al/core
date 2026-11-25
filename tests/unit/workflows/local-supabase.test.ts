@@ -15,7 +15,11 @@ import { describe, expect, it } from "vitest";
 const workflow = readFileSync(".github/workflows/local-supabase.yml", "utf8");
 const steps = workflow.split("\n      - ");
 const step = (marker: string) => steps.find((s) => s.includes(marker));
-const at = (marker: string) => workflow.indexOf(marker);
+const at = (marker: string) => {
+  const offset = workflow.indexOf(marker);
+  expect(offset, `the workflow names ${marker}`).toBeGreaterThanOrEqual(0);
+  return offset;
+};
 
 describe("Local Supabase Stack workflow: the replay matches the platform's image", () => {
   it("runs CRM data journeys in the real Auth job", () => {
@@ -316,6 +320,23 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     expect(run).toContain("!cancelled() && steps.stack.outcome == 'success'");
     expect(at(marker)).toBeGreaterThan(
       at("run: node scripts/e2e/run-operator-mfa.mjs"),
+    );
+    expect(workflow).toContain(`      - ${suite}\n`);
+  });
+
+  it("D-18 (AL-2676 WP3a part 2a adds provisioning's own second-factor proof): proves provisioning's second factor after the operator admin invitation proof", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2676/tenant-provisioning.localstack.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(marker);
+    expect(run).toBeDefined();
+    expect(run).toContain('OPERATOR_MFA_REQUIRED: "1"');
+    expect(run).toContain("!cancelled() && steps.stack.outcome == 'success'");
+    expect(run).not.toMatch(/continue-on-error/);
+    expect(at(marker)).toBeGreaterThan(
+      at(
+        "bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/operator-admin-invite.localstack.test.ts",
+      ),
     );
     expect(workflow).toContain(`      - ${suite}\n`);
   });
