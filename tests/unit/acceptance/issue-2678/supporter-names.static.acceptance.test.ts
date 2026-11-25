@@ -550,6 +550,136 @@ const PLANTED: [string, Record<string, string>, Rule][] = [
     },
     "S1",
   ],
+  [
+    "P13 an embed named by its foreign-key column",
+    {
+      [`${MP}/p13.ts`]:
+        'export const f = (db) => db.from("follower_requests").select("id, donor:donor_id(id, name, avatar_url)");',
+    },
+    "S1",
+  ],
+  [
+    "P14 an embed named by its default constraint",
+    {
+      [`${MP}/p14.ts`]:
+        'export const f = (db) => db.from("missionary_tasks").select("id, missionary_tasks_donor_id_fkey(id, name)");',
+    },
+    "S1",
+  ],
+  [
+    "P15 an embed named by its same-tenant constraint",
+    {
+      [`${MP}/p15.ts`]:
+        'export const f = (db) => db.from("donations").select("id, amount, donations_donor_same_tenant_fk(id, email)");',
+    },
+    "S1",
+  ],
+  [
+    "P16 an embed named by another column that refers to donors",
+    {
+      [`${MP}/p16.ts`]:
+        'export const f = (db) => db.from("notification_queue").select("id, recipient:recipient_donor_id(id, name)");',
+    },
+    "S1",
+  ],
+  ...[
+    "donations",
+    "donor_pledges",
+    "donor_activities",
+    "missionary_tasks",
+    "follower_requests",
+    "follows",
+  ].map((table): [string, Record<string, string>, Rule] => [
+    `P17 a select it cannot resolve on ${table}, in a file that never spells the donors table`,
+    {
+      [`${MP}/p17.ts`]: `import * as sel from "./sel"; export const f = (db) => db.from("${table}").select(sel.COLUMNS);`,
+    },
+    "S1",
+  ]),
+  [
+    "P18 a select it cannot resolve on an rpc, in a file that never spells the donors table",
+    {
+      [`${MP}/p18.ts`]:
+        'import * as sel from "./sel"; export const f = (db, a) => db.rpc("missionary_owned_tasks", a).select(sel.TASKS);',
+    },
+    "S1",
+  ],
+  [
+    "P19 a type-only import of the file that calls the seam",
+    {
+      [`${MP}/p19.ts`]:
+        'import type { Row } from "./seamed"; export const f = (db): Promise<Row[]> => db.from("donors").select("id, name, giving_preferences, donor_is_restricted_party");',
+      [`${MP}/seamed.ts`]:
+        "export type Row = { id: string }; export const g = (r) => isAnonymousToRecipient({ givingPreferences: r.giving_preferences, restrictedParty: r.donor_is_restricted_party });",
+    },
+    "S2",
+  ],
+  [
+    "P20 an import whose every binding is type-only",
+    {
+      [`${MP}/p20.ts`]:
+        'import { type Row } from "./seamed"; export const f = (db): Promise<Row[]> => db.from("donors").select("id, name, giving_preferences, donor_is_restricted_party");',
+      [`${MP}/seamed.ts`]:
+        "export type Row = { id: string }; export const g = (r) => isAnonymousToRecipient({ givingPreferences: r.giving_preferences, restrictedParty: r.donor_is_restricted_party });",
+    },
+    "S2",
+  ],
+  [
+    "P21 a fact coerced with ?? false",
+    {
+      "packages/api/src/p21.ts":
+        "isAnonymousToRecipient({ givingPreferences: p, restrictedParty: r.donor_is_restricted_party ?? false });",
+    },
+    "S3",
+  ],
+  [
+    "P22 a fact coerced with || false",
+    {
+      "packages/api/src/p22.ts":
+        "isAnonymousToRecipient({ givingPreferences: p, restrictedParty: r.donor_is_restricted_party || false });",
+    },
+    "S3",
+  ],
+  [
+    "P23 a fact coerced with Boolean()",
+    {
+      "packages/api/src/p23.ts":
+        "isAnonymousToRecipient({ givingPreferences: p, restrictedParty: Boolean(r.donor_is_restricted_party) });",
+    },
+    "S3",
+  ],
+  [
+    "P24 a fact coerced with !",
+    {
+      "packages/api/src/p24.ts":
+        "isAnonymousToRecipient({ givingPreferences: p, restrictedParty: !r.donor_is_restricted_party });",
+    },
+    "S3",
+  ],
+  [
+    "P25 the own-donations select in an object inside another resolver",
+    {
+      [GRAPHQL_HANDLER]:
+        'import { DONATION_WITH_PARTIES_SELECT } from "@asym/api/donations/select";\nconst resolvers = { Query: { mySupporters: () => ({ myDonations: () => db.from("donations").select(DONATION_WITH_PARTIES_SELECT) }).myDonations() } };',
+    },
+    "S4",
+  ],
+  [
+    "P26 myDonations under Mutation",
+    {
+      [GRAPHQL_HANDLER]:
+        'import { DONATION_WITH_PARTIES_SELECT } from "@asym/api/donations/select";\nconst resolvers = { Mutation: { myDonations: () => db.from("donations").select(DONATION_WITH_PARTIES_SELECT) } };',
+    },
+    "S4",
+  ],
+  [
+    "P27 Query.myDonations built inside a function, not the resolvers",
+    {
+      [GRAPHQL_HANDLER]:
+        'import { DONATION_WITH_PARTIES_SELECT } from "@asym/api/donations/select";\nexport function make() { return { Query: { myDonations: () => db.from("donations").select(DONATION_WITH_PARTIES_SELECT) } }; }',
+    },
+    "S4",
+  ],
 ];
 
 const CONTROLS: [string, Record<string, string>][] = [
@@ -579,6 +709,45 @@ const CONTROLS: [string, Record<string, string>][] = [
     {
       "packages/api/src/donor-portal/x.ts":
         'export const f = (db) => db.from("donors").select("id, name, email");',
+    },
+  ],
+  [
+    "K5 a donor_id column, and a donor_id embed of keys only",
+    {
+      [`${MP}/k5.ts`]:
+        'export const f = (db) => db.from("donations").select("id, amount, donor_id, donor:donor_id(id, tenant_id)");',
+    },
+  ],
+  [
+    "K6 a select it cannot resolve on a table that does not refer to donors",
+    {
+      [`${MP}/k6.ts`]:
+        'import * as sel from "./sel"; export const f = (db) => db.from("posts").select(sel.COLUMNS);',
+    },
+  ],
+  [
+    "K7 a value import of the file that calls the seam, alone and beside a type-only binding",
+    {
+      [`${MP}/k7a.ts`]:
+        'import { g } from "./seamed"; export const f = (db) => db.from("donors").select("id, name, giving_preferences, donor_is_restricted_party").then(g);',
+      [`${MP}/k7b.ts`]:
+        'import { type Row, g } from "./seamed"; export const f = (db): Promise<Row[]> => db.from("donors").select("id, name, giving_preferences, donor_is_restricted_party").then(g);',
+      [`${MP}/seamed.ts`]:
+        "export type Row = { id: string }; export const g = (r) => isAnonymousToRecipient({ givingPreferences: r.giving_preferences, restrictedParty: r.donor_is_restricted_party });",
+    },
+  ],
+  [
+    "K8 a fact passed as a variable, by name and in shorthand",
+    {
+      "packages/api/src/k8.ts":
+        "const restrictedParty = r.donor_is_restricted_party; isAnonymousToRecipient({ givingPreferences: p, restrictedParty }); isAnonymousToRecipient({ givingPreferences: p, restrictedParty: restrictedParty });",
+    },
+  ],
+  [
+    "K9 the own-donations select in Query.myDonations and Mutation.createDonation of the resolvers",
+    {
+      [GRAPHQL_HANDLER]:
+        'import { DONATION_WITH_PARTIES_SELECT } from "@asym/api/donations/select";\nconst resolvers = { Query: { myDonations: () => db.from("donations").select(DONATION_WITH_PARTIES_SELECT) }, Mutation: { createDonation: async () => db.from("donations").insert({}).select(DONATION_WITH_PARTIES_SELECT).single() } };',
     },
   ],
 ];
