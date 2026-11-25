@@ -241,6 +241,10 @@ describe("admin/contribution-operations/receipt-delivery", () => {
   });
 });
 
+const WORKER_PUBLIC_NAMES: ReadonlyMap<string, string | null> = new Map([
+  ["missionary-1", "Riley Worker"],
+]);
+
 function snapshotSourceDetail(): ReceiptSnapshotSourceDetail {
   return {
     shared: {
@@ -284,6 +288,7 @@ describe("receipt snapshot content (V1)", () => {
   it("captures versioned, self-contained render input with every designation line", () => {
     const content = buildReceiptSnapshotContent({
       detail: snapshotSourceDetail(),
+      workerPublicNames: WORKER_PUBLIC_NAMES,
       affectedFields: ["amount", "designation"],
       adjustmentId: "adj-1",
       now: new Date("2026-06-01T12:00:00.000Z"),
@@ -330,6 +335,7 @@ describe("receipt snapshot content (V1)", () => {
   it("round-trips built content through JSON storage and the parser", () => {
     const content = buildReceiptSnapshotContent({
       detail: snapshotSourceDetail(),
+      workerPublicNames: WORKER_PUBLIC_NAMES,
       affectedFields: ["amount"],
       adjustmentId: "adj-1",
       now: new Date("2026-06-01T12:00:00.000Z"),
@@ -364,6 +370,7 @@ describe("receipt snapshot content (V1)", () => {
       JSON.stringify(
         buildReceiptSnapshotContent({
           detail: snapshotSourceDetail(),
+          workerPublicNames: WORKER_PUBLIC_NAMES,
           affectedFields: ["amount"],
           adjustmentId: null,
           now: new Date("2026-06-01T12:00:00.000Z"),
@@ -412,6 +419,7 @@ describe("receipt snapshot content (V1)", () => {
       JSON.stringify(
         buildReceiptSnapshotContent({
           detail: snapshotSourceDetail(),
+          workerPublicNames: WORKER_PUBLIC_NAMES,
           affectedFields: ["amount"],
           adjustmentId: null,
           now: new Date("2026-06-01T12:00:00.000Z"),
