@@ -35,6 +35,9 @@ const W = "0d8f6a52-4f0e-4a77-9a55-1f3f2b6c0a01";
 const V = "0d8f6a52-4f0e-4a77-9a55-1f3f2b6c0a02";
 const X = "0d8f6a52-4f0e-4a77-9a55-1f3f2b6c0a03";
 const GONE = "0d8f6a52-4f0e-4a77-9a55-1f3f2b6c0a04";
+const OTHER_WORKER = "0d8f6a52-4f0e-4a77-9a55-1f3f2b6c0a05";
+const FUND_W = "0d8f6a52-4f0e-4a77-9a55-1f3f2b6c0f01";
+const FUND_OTHER = "0d8f6a52-4f0e-4a77-9a55-1f3f2b6c0f02";
 const FORBIDDEN =
   /Profile Rowan|Profile Vale|Profile Xu|Profile Gone|Party Xu|Legal Rowan/;
 
@@ -59,7 +62,23 @@ const WORKER_ROWS: Record<string, Row> = {
   },
   [X]: { id: X, worker_public_name: null, profile: profile("Profile", "Xu") },
   [GONE]: { id: GONE, profile: profile("Profile", "Gone") },
+  [OTHER_WORKER]: {
+    id: OTHER_WORKER,
+    tenant_id: "tenant-2",
+    worker_public_name: "Other Worker",
+    profile: profile("Other", "Worker"),
+  },
 };
+
+const fundRow = (id: string, tenantId: string, missionaryId: string) => ({
+  id,
+  tenant_id: tenantId,
+  name: `Fund of ${missionaryId.slice(-4)}`,
+  missionary_id: missionaryId,
+  goal_amount: null,
+  start_date: null,
+  end_date: null,
+});
 
 const EMBEDDED = new Set(["profile"]);
 
@@ -131,6 +150,10 @@ interface State {
   emailSendLogs: Row[];
   selects: Array<[string, string]>;
   failWorkerNames?: number;
+  donationFundId?: string | null;
+  funds?: Row[];
+  failFundWorkers?: number;
+  ops?: string[];
 }
 
 class QueryBuilder {
@@ -139,6 +162,7 @@ class QueryBuilder {
   private columns = "*";
   private wantsSingle = false;
   private inValues: unknown[] = [];
+  private eqs: Array<[string, unknown]> = [];
 
   constructor(
     private readonly table: string,
@@ -162,7 +186,8 @@ class QueryBuilder {
     this.payload = payload;
     return this;
   }
-  eq() {
+  eq(column: string, value: unknown) {
+    this.eqs.push([column, value]);
     return this;
   }
   ilike() {
@@ -195,6 +220,11 @@ class QueryBuilder {
     error: { code?: string; message: string } | null;
   } {
     const { state } = this;
+    state.ops?.push(
+      this.operation === "select"
+        ? `select ${this.table} ${this.columns}`
+        : `${this.operation} ${this.table}`,
+    );
     switch (this.table) {
       case "donations":
         return {
@@ -203,7 +233,7 @@ class QueryBuilder {
             tenant_id: TENANT_ID,
             donor_id: "donor-1",
             missionary_id: state.donationMissionaryId,
-            fund_id: null,
+            fund_id: state.donationFundId ?? null,
             amount: 25_000,
             currency: "usd",
             status: "completed",
@@ -246,10 +276,33 @@ class QueryBuilder {
         return {
           data: this.inValues.flatMap((id) => {
             const row = WORKER_ROWS[id as string];
-            if (!row || (wantsPublicName && !("worker_public_name" in row)))
+            if (
+              !row ||
+              (wantsPublicName && !("worker_public_name" in row)) ||
+              !this.eqs.every(([column, value]) =>
+                column in row ? row[column] === value : true,
+              )
+            )
               return [];
             return [project(row, this.columns)];
           }),
+          error: null,
+        };
+      }
+      case "funds": {
+        if (
+          this.columns === "id, missionary_id" &&
+          (state.failFundWorkers ?? 0) > 0
+        ) {
+          state.failFundWorkers! -= 1;
+          return { data: null, error: { message: "funds are unavailable" } };
+        }
+        return {
+          data: (state.funds ?? []).filter(
+            (row) =>
+              this.inValues.includes(row.id) &&
+              this.eqs.every(([column, value]) => row[column] === value),
+          ),
           error: null,
         };
       }
@@ -512,5 +565,97 @@ describe("AL-2678 r2a B1: a failed worker-name lookup cannot lose the updated re
     expect(result.receiptOutcome).toMatchObject({ status: "deferred" });
     expect(state.snapshots).toEqual([]);
     expect(workerNameLookups(state)).toBe(0);
+  });
+});
+
+async function correctFund(
+  state: State,
+  fundId: string,
+  idempotencyKey?: string,
+) {
+  return applyContributionCorrection({
+    supabaseAdmin: stub(state),
+    tenantId: TENANT_ID,
+    contributionId: DONATION_ID,
+    actionType: "fund_correction",
+    payload: { fundId, receiptDelivery: { choice: "pdf" } },
+    reason: "the gift went to the wrong fund",
+    actorProfileId: "profile-1",
+    sourceSurface: "contribution_hub",
+    actorCapabilities: ["contributions.manage_receipts"],
+    idempotencyKey,
+  });
+}
+
+function fundState(extra: Partial<State> = {}): State {
+  return {
+    ...freshState(false),
+    donationMissionaryId: null,
+    funds: [
+      fundRow(FUND_W, TENANT_ID, W),
+      fundRow(FUND_OTHER, "tenant-2", OTHER_WORKER),
+    ],
+    ops: [],
+    ...extra,
+  };
+}
+
+describe("AL-2678 r2a last round L2: the worker a receipt names through a fund is resolved before the adjustment", () => {
+  it("a fund correction naming a fund of the organization whose worker has a public name: the receipt line names that worker, and the fund and the name were read before the adjustment was inserted", async () => {
+    const state = fundState();
+    const result = await correctFund(state, FUND_W);
+    expect(result.receiptOutcome).toMatchObject({ status: "pdf_generated" });
+    expect(namesOf(state.snapshots[0]!.content)).toEqual([[W, "Cedar"]]);
+    const ops = state.ops!;
+    const insertAt = ops.indexOf("insert contribution_adjustments");
+    const fundsAt = ops.indexOf("select funds id, missionary_id");
+    const namesAt = ops.indexOf("select missionaries id, worker_public_name");
+    expect([insertAt > -1, fundsAt > -1, namesAt > -1]).toEqual([
+      true,
+      true,
+      true,
+    ]);
+    expect(fundsAt).toBeLessThan(insertAt);
+    expect(namesAt).toBeLessThan(insertAt);
+    expect(
+      ops.slice(insertAt).filter((op) => op.includes("worker_public_name")),
+    ).toEqual([]);
+  });
+
+  it("the funds read fails once: the command fails before any write; the retry with the same key applies the adjustment and names the worker through the fund", async () => {
+    const state = fundState({ failFundWorkers: 1 });
+    await expect(correctFund(state, FUND_W, "key-l2")).rejects.toThrow(
+      "funds are unavailable",
+    );
+    expect(state.adjustments).toEqual([]);
+    expect(state.snapshots).toEqual([]);
+    const retried = await correctFund(state, FUND_W, "key-l2");
+    expect(retried.idempotentReplay).toBe(false);
+    expect(retried.receiptOutcome).toMatchObject({ status: "pdf_generated" });
+    expect(state.adjustments).toHaveLength(1);
+    expect(namesOf(state.snapshots[0]!.content)).toEqual([[W, "Cedar"]]);
+  });
+
+  it("a correction naming another organization's fund, or a fund id that is not a UUID, is refused with 400 before any write and makes no worker-name lookup", async () => {
+    for (const fundId of [FUND_OTHER, "fund-not-a-uuid"]) {
+      const state = fundState();
+      await expect(correctFund(state, fundId)).rejects.toMatchObject({
+        status: 400,
+        message: `Unknown fund for this organization: ${fundId}.`,
+      });
+      expect(state.adjustments).toEqual([]);
+      expect(workerNameLookups(state)).toBe(0);
+    }
+  });
+
+  it("a gift whose stored fund is another organization's, or not a UUID, is corrected and its receipt names no worker: the fund read is tenant-scoped and skips a non-UUID id, and no other organization's worker is looked up", async () => {
+    for (const donationFundId of [FUND_OTHER, "legacy-fund"]) {
+      const state = fundState({ donationFundId });
+      const result = await correct(state, "pdf");
+      expect(result.receiptOutcome).toMatchObject({ status: "pdf_generated" });
+      expect(namesOf(state.snapshots[0]!.content)).toEqual([[null, null]]);
+      expect(workerNameLookups(state)).toBe(0);
+      expect(JSON.stringify(state.snapshots)).not.toContain("Other Worker");
+    }
   });
 });

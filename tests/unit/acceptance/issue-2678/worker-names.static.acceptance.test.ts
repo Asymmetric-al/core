@@ -1111,6 +1111,11 @@ const R2A_FAILS: [string, string, string | null][] = [
     null,
   ],
   [
+    "P33 (last round L1): a cached function calling an imported helper that reads post_author_public_name, while an unrelated nested function of the same name exists",
+    'import { loadFeed } from "./t";\nfunction unrelated() {\n  function loadFeed() { return null; }\n  return loadFeed();\n}\nexport async function cachedFeed(db) {\n  "use cache";\n  return loadFeed(db);\n}',
+    'export function loadFeed(db) { return db.from("posts").select("id, post_author_public_name"); }',
+  ],
+  [
     "P26 (F3.4): a file whose use cache directive follows use strict",
     '"use strict";\n"use cache";\n' +
       FEED_IMPORT +
@@ -1174,6 +1179,11 @@ const R2A_PASSES: [string, string, string | null][] = [
     "K14 (B4, a red control): a fetch whose next option sets revalidate: 0, which Next.js does not cache",
     "export const r = (url) => fetch(url, { next: { revalidate: 0 } });",
     null,
+  ],
+  [
+    "K17 (L1, guard): P33's file where the imported helper reads no worker name",
+    'import { loadFeed } from "./t";\nfunction unrelated() {\n  function loadFeed() { return null; }\n  return loadFeed();\n}\nexport async function cachedFeed(db) {\n  "use cache";\n  return loadFeed(db);\n}',
+    'export function loadFeed(db) { return db.from("posts").select("id, title"); }',
   ],
   [
     "K9 (F3.4, guard): use strict alone, and a use cache string that is not a directive",
