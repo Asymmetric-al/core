@@ -612,12 +612,29 @@ already gone). For any such file:
 
 1. Connect as above, and run the file's committed-check from its header. For
    `20261119135300` it is the query below, and both columns must read `t`. If
-   the check reads `f`, nothing was applied: stop here and dispatch the
-   release again, which applies the file.
+   the check reads `f`, nothing was applied: stop here, and read the failed
+   attempt's error in the release job's log. If the migration raised an error
+   of its own, a dispatch meets the same error until its cause is gone:
+   resolve the cause it names (for `55P03`, wait until the database is
+   quiet), then dispatch the release again. Only an attempt that shows no migration error, one that was
+   cut off, is dispatched again as it is.
 
    ```sh
    psql "$DB" -X -c "select to_regprocedure('authz.request_assignment()') is not null as helper_present, not exists (select 1 from pg_policy where polrelid = 'public.profiles'::regclass and polname = 'profiles staff tenant select') as old_policy_gone"
    ```
+
+   Besides `55P03`, these files refuse on their own before `COMMIT`:
+   - `20261119135300`: its post-assert raises `AL-2675: …` when a policy,
+     grant, helper or publication is not as the file leaves it.
+   - `20261125050000`: `23514` for profiles whose `user_id` names another
+     login; `23502` for activities, follower requests and tasks no evidence
+     places in a tenant (counts only).
+   - `20261125050100`: `23514` for the same profiles; `23505` for a
+     (tenant, profile) pair with more than one missionary row.
+   - `20261125050300`: `55000` when `persons` holds a row or a missionary or
+     profile names a person.
+   - `20261125050200`, `20261125050400` and `20261125050500` have no
+     preflight or post-assert of their own.
 
 2. Record the file's version (here `20261119135300`) in both places below.
    Go on only if the status reads 0 and the count 1:
