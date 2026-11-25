@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 
@@ -292,7 +293,8 @@ describe("writes to /web-studio/api", () => {
 
   it("refuses every query where Payload's installed qs-esm yields a top-level overrideLock other than false", async () => {
     const adminRequire = createRequire(path.resolve("apps/admin/package.json"));
-    const payloadRequire = createRequire(adminRequire.resolve("payload"));
+    const payloadEntry = adminRequire.resolve("payload");
+    const payloadRequire = createRequire(payloadEntry);
     const qs = payloadRequire("qs-esm") as {
       parse: (
         query: string,
@@ -304,21 +306,41 @@ describe("writes to /web-studio/api", () => {
         },
       ) => Record<string, unknown>;
     };
+    const requestParserPath = path.join(
+      path.dirname(payloadEntry),
+      "utilities",
+      "createPayloadRequestFromWebRequest.js",
+    );
+    const requestParserSource = readFileSync(requestParserPath, "utf8");
+    const optionsMatch =
+      /qs\.parse\(\s*queryToParse\s*,\s*(\{[\s\S]*?\})\s*\)/.exec(
+        requestParserSource,
+      );
+    expect(optionsMatch, requestParserPath).not.toBeNull();
+    const installedOptions = JSON.parse(
+      optionsMatch![1]!.replace(/([a-zA-Z0-9_]+)\s*:/g, '"$1":'),
+    ) as {
+      allowEmptyArrays: boolean;
+      arrayLimit: number;
+      depth: number;
+      ignoreQueryPrefix: boolean;
+    };
     const payloadQsOptions = {
       allowEmptyArrays: true,
       arrayLimit: 1000,
       depth: 10,
       ignoreQueryPrefix: true,
     };
+    expect(installedOptions).toEqual(payloadQsOptions);
 
     expect(
-      qs.parse("?[overrideLock]=true", payloadQsOptions).overrideLock,
+      qs.parse("?[overrideLock]=true", installedOptions).overrideLock,
     ).toBe("true");
     expect(
-      qs.parse("?%5BoverrideLock%5D=true", payloadQsOptions).overrideLock,
+      qs.parse("?%5BoverrideLock%5D=true", installedOptions).overrideLock,
     ).toBe("true");
     expect(
-      qs.parse("?%5BoverrideLock]=true", payloadQsOptions).overrideLock,
+      qs.parse("?%5BoverrideLock]=true", installedOptions).overrideLock,
     ).toBe("true");
 
     const prefixes = ["", "[", "%5B", "[[", "a", "%20", "a["];
@@ -333,6 +355,40 @@ describe("writes to /web-studio/api", () => {
       }
     }
 
+    const encodeUpper = (ch: string) =>
+      `%${ch.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")}`;
+    const encodeLower = (ch: string) =>
+      `%${ch.charCodeAt(0).toString(16).toLowerCase().padStart(2, "0")}`;
+    const keyName = "overrideLock";
+    const encodedVariants = new Set<string>([
+      Array.from(keyName, encodeUpper).join(""),
+      Array.from(keyName, encodeLower).join(""),
+      ...Array.from(
+        keyName,
+        (ch, index) =>
+          `${keyName.slice(0, index)}${encodeUpper(ch)}${keyName.slice(index + 1)}`,
+      ),
+      ...Array.from(
+        keyName,
+        (ch, index) =>
+          `${keyName.slice(0, index)}${encodeLower(ch)}${keyName.slice(index + 1)}`,
+      ),
+    ]);
+    for (const variant of encodedVariants) {
+      for (const value of values) {
+        generated.push(`?${variant}=${value}`);
+      }
+      for (const [open, close] of [
+        ["[", "]"],
+        ["%5B", "%5D"],
+        ["%5B", "]"],
+        ["[", "%5D"],
+      ] as const) {
+        generated.push(`?${open}${variant}${close}=true`);
+        generated.push(`?${open}${variant}${close}=false`);
+      }
+    }
+
     const allQueries = [
       ...OVERRIDE_LOCK_SPELLING_TABLE.map(([query]) => query),
       ...generated,
@@ -340,7 +396,7 @@ describe("writes to /web-studio/api", () => {
     let checkedTopLevelOverrides = 0;
 
     for (const query of allQueries) {
-      const parsed = qs.parse(query, payloadQsOptions);
+      const parsed = qs.parse(query, installedOptions);
       if (
         !Object.prototype.hasOwnProperty.call(parsed, "overrideLock") ||
         parsed.overrideLock === "false"
@@ -372,7 +428,7 @@ describe("writes to /web-studio/api", () => {
       expect(request.bodyUsed, `qs-esm pin for ${query}`).toBe(false);
     }
 
-    expect(checkedTopLevelOverrides).toBeGreaterThan(20);
+    expect(checkedTopLevelOverrides).toBeGreaterThan(150);
   });
 });
 

@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { LOOPBACK_DATABASE_HOSTS } from "@asym/env/database-url";
 import { isProtectedDeployment } from "@asym/env/target-env";
 import {
   assertPayloadDatabaseConfiguration,
@@ -296,6 +297,7 @@ describe("resolvePayloadDatabaseConfig", () => {
         expect(config.isSupavisorPoolerHost, uri).toBe(false);
         expect(config.isDirectSupabaseHost, uri).toBe(false);
         expect(config.issue?.code, uri).toBe("supavisor-ssl-mode");
+        expect(config.issue?.message, uri).toContain("non-loopback");
         expect(config.issue?.message, uri).toContain("a protected deployment");
         expect(config.issue?.message, uri).not.toContain("super-secret");
       }
@@ -305,6 +307,7 @@ describe("resolvePayloadDatabaseConfig", () => {
         ...targetEnv,
       });
       expect(missingCa.issue?.code).toBe("supavisor-ssl-mode");
+      expect(missingCa.issue?.message).toContain("non-loopback");
       expect(missingCa.issue?.message).toContain("a protected deployment");
 
       const valid = resolvePayloadDatabaseConfig({
@@ -314,6 +317,44 @@ describe("resolvePayloadDatabaseConfig", () => {
       });
       expect(valid.issue).toBeNull();
       expect(assertPayloadDatabaseConfiguration(valid)).toBe(valid);
+    },
+  );
+
+  it.each([
+    ["production", { VERCEL_ENV: "production" }],
+    [
+      "core-development",
+      { VERCEL_ENV: "preview", VERCEL_TARGET_ENV: "core-development" },
+    ],
+  ])(
+    "exempts loopback hosts from protected TLS on %s while still enforcing cms_runtime and routing overrides",
+    (_target, targetEnv) => {
+      for (const host of LOOPBACK_DATABASE_HOSTS) {
+        const loopbackRuntime = resolvePayloadDatabaseConfig({
+          PAYLOAD_DATABASE_URI: `postgresql://cms_runtime:super-secret@${host}:5432/postgres`,
+          ...targetEnv,
+        });
+        expect(loopbackRuntime.issue, host).toBeNull();
+        expect(assertPayloadDatabaseConfiguration(loopbackRuntime)).toBe(
+          loopbackRuntime,
+        );
+
+        const loopbackNonRuntime = resolvePayloadDatabaseConfig({
+          PAYLOAD_DATABASE_URI: `postgresql://postgres:super-secret@${host}:5432/postgres`,
+          ...targetEnv,
+        });
+        expect(loopbackNonRuntime.issue?.code, host).toBe(
+          "non-runtime-database-role",
+        );
+
+        const loopbackOverride = resolvePayloadDatabaseConfig({
+          PAYLOAD_DATABASE_URI: `postgresql://cms_runtime:super-secret@${host}:5432/postgres?host=evil.example`,
+          ...targetEnv,
+        });
+        expect(loopbackOverride.issue?.code, host).toBe(
+          "database-url-routing-override",
+        );
+      }
     },
   );
 
@@ -663,6 +704,18 @@ describe("admin build step for protected Payload database TLS (WP6 part 2a, Q4)"
       },
     });
     expect(otherHostVerified.status).toBe(0);
+
+    const loopbackRuntimeBuild = spawnSync(process.execPath, [checkScript], {
+      cwd: adminDir,
+      encoding: "utf8",
+      env: {
+        PATH: process.env.PATH,
+        PAYLOAD_DATABASE_URI:
+          "postgresql://cms_runtime:super-secret@localhost:5432/postgres",
+        VERCEL_ENV: "production",
+      },
+    });
+    expect(loopbackRuntimeBuild.status).toBe(0);
   });
 
   it("lists PAYLOAD_DATABASE_SSL_CA and PAYLOAD_MIGRATION_DATABASE_URI in turbo.json build env and the check script in apps/admin/turbo.json inputs so Turbo cache hits cannot skip the TLS check", () => {
