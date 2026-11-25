@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import ts from "typescript";
@@ -12,7 +12,14 @@ const ROOTS = [
   /^packages\/graphql\//,
 ];
 const GRAPHQL_HANDLER = "packages/graphql/handler.ts";
-const OWN_DONATIONS = new Set(["myDonations", "createDonation"]);
+const OWN_DONATIONS = new Map([
+  ["myDonations", "Query"],
+  ["createDonation", "Mutation"],
+]);
+const DONOR_EMBED =
+  /^donors$|(?:^|_)donor_id(?:_f?key)?$|_donor_same_tenant_fk$/i;
+const RPC_ROOT = "(rpc)";
+const MIGRATIONS = "supabase/migrations";
 const KEY_COLUMNS = new Set([
   "id",
   "tenant_id",
@@ -168,8 +175,17 @@ function factsOf(file: string, text: string): FileFacts {
     )
       continue;
     const specifier = node.moduleSpecifier.text;
-    if (specifier.startsWith(".")) relativeImports.push(specifier);
-    const bindings = node.importClause?.namedBindings;
+    const clause = node.importClause;
+    const bindings = clause?.namedBindings;
+    const importsValue =
+      !!clause &&
+      !clause.isTypeOnly &&
+      (!!clause.name ||
+        (!!bindings &&
+          (ts.isNamespaceImport(bindings) ||
+            bindings.elements.some((el) => !el.isTypeOnly))));
+    if (specifier.startsWith(".") && importsValue)
+      relativeImports.push(specifier);
     if (bindings && ts.isNamedImports(bindings))
       for (const el of bindings.elements)
         imports.set(el.name.text, {
@@ -206,6 +222,25 @@ function resolveModule(
       if (files.has(base + ext)) return base + ext;
   return null;
 }
+
+function tablesReferringToDonors(): Set<string> {
+  const tables = new Set<string>();
+  for (const file of readdirSync(MIGRATIONS).filter((f) => f.endsWith(".sql")))
+    for (const statement of readFileSync(path.join(MIGRATIONS, file), "utf8")
+      .replace(/--[^\n]*/g, "")
+      .split(";")) {
+      if (!/\breferences\s+(?:public\.)?"?donors"?(?![\w.])/i.test(statement))
+        continue;
+      const table =
+        /\b(?:create|alter)\s+table\s+(?:if\s+(?:not\s+)?exists\s+)?(?:only\s+)?(?:public\.)?"?(\w+)"?/i.exec(
+          statement,
+        );
+      if (table) tables.add(table[1]!.toLowerCase());
+    }
+  return tables;
+}
+
+const DONOR_TABLES = tablesReferringToDonors();
 
 function scanSources(sources: Map<string, string>): Violation[] {
   const files = new Set(sources.keys());
@@ -295,7 +330,7 @@ function scanSources(sources: Map<string, string>): Violation[] {
     const lists: Item[][] = root ? [items] : [];
     for (const item of items)
       if (item.children) {
-        if (item.name === "donors") lists.push(item.children);
+        if (DONOR_EMBED.test(item.name)) lists.push(item.children);
         lists.push(...donorLists(item.children, false));
       }
     return lists;
@@ -310,20 +345,42 @@ function scanSources(sources: Map<string, string>): Violation[] {
         return cur.arguments[0]
           ? (resolveExpr(file, cur.arguments[0], new Set()) ?? ["?"])
           : ["?"];
-      if (callee.name.text === "rpc") return [];
+      if (callee.name.text === "rpc") return [RPC_ROOT];
       cur = unwrap(callee.expression);
     }
     return null;
   };
 
-  const enclosingProperty = (node: ts.Node): string | null => {
-    for (let cur = node.parent; cur; cur = cur.parent)
-      if (
-        (ts.isPropertyAssignment(cur) || ts.isMethodDeclaration(cur)) &&
-        propertyName(cur.name)
+  const inOwnDonationsResolver = (node: ts.Node): boolean => {
+    let resolver: ts.Node | undefined = node.parent;
+    while (
+      resolver &&
+      !(
+        (ts.isPropertyAssignment(resolver) ||
+          ts.isMethodDeclaration(resolver)) &&
+        propertyName(resolver.name)
       )
-        return propertyName(cur.name);
-    return null;
+    )
+      resolver = resolver.parent;
+    if (!resolver) return false;
+    const field = resolver as ts.PropertyAssignment | ts.MethodDeclaration;
+    const type = OWN_DONATIONS.get(propertyName(field.name)!);
+    const typeObject = field.parent;
+    if (!type || !ts.isObjectLiteralExpression(typeObject)) return false;
+    const typeField = typeObject.parent;
+    if (
+      !ts.isPropertyAssignment(typeField) ||
+      propertyName(typeField.name) !== type
+    )
+      return false;
+    const resolvers = typeField.parent;
+    if (!ts.isObjectLiteralExpression(resolvers)) return false;
+    const declaration = resolvers.parent;
+    return (
+      ts.isVariableDeclaration(declaration) &&
+      ts.isVariableStatement(declaration.parent.parent) &&
+      ts.isSourceFile(declaration.parent.parent.parent)
+    );
   };
 
   for (const [file, fact] of facts) {
@@ -333,7 +390,8 @@ function scanSources(sources: Map<string, string>): Violation[] {
       if (
         ts.isPropertyAssignment(node) &&
         propertyName(node.name) === "restrictedParty" &&
-        unwrap(node.initializer).kind === ts.SyntaxKind.FalseKeyword
+        !ts.isIdentifier(unwrap(node.initializer)) &&
+        !ts.isPropertyAccessExpression(unwrap(node.initializer))
       )
         report(file, node, "S3", node.getText(fact.sf));
       if (
@@ -351,18 +409,26 @@ function scanSources(sources: Map<string, string>): Violation[] {
           ts.isIdentifier(arg) &&
           arg.text === "DONATION_WITH_PARTIES_SELECT"
         ) {
-          if (!OWN_DONATIONS.has(enclosingProperty(node) ?? ""))
+          if (!inOwnDonationsResolver(node))
             report(file, callee.name, "S4", arg.getText(fact.sf));
         } else {
           const roots = rootOf(file, callee.expression) ?? [];
           const onDonors = roots.includes("donors");
+          const blind =
+            fact.namesDonors ||
+            roots.some(
+              (root) =>
+                root === "donors" ||
+                root === RPC_ROOT ||
+                DONOR_TABLES.has(root),
+            );
           const values = arg
             ? resolveExpr(file, arg, new Set())
             : onDonors
               ? ["*"]
               : [];
           if (!values) {
-            if (fact.namesDonors || onDonors)
+            if (blind)
               report(
                 file,
                 callee.name,
@@ -373,7 +439,7 @@ function scanSources(sources: Map<string, string>): Violation[] {
             for (const value of values) {
               const items = parseSelect(value);
               if (!items) {
-                if (fact.namesDonors || onDonors)
+                if (blind)
                   report(file, callee.name, "S1", `unparsable: ${value}`);
                 continue;
               }
@@ -406,7 +472,7 @@ function scanSources(sources: Map<string, string>): Violation[] {
         file,
         fact.sf,
         "S2",
-        `reads donors but neither it nor a relative import calls ${SEAM} with restrictedParty`,
+        `reads donors but neither it nor a relative value import calls ${SEAM} with restrictedParty`,
       );
   }
   return violations;

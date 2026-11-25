@@ -278,25 +278,43 @@ NULL` on `public.parties`) and the fourth
       variable of that name (every value kept) or a constant imported by a
       relative or `@asym/*` specifier; a `.select()` with no argument on a
       `donors` root is `*`, and `.from(T)` resolves `T` the same way. S1: a
-      `donors` read (a root, or an embed at any depth, any alias or hint)
-      holding anything but `id`, `tenant_id`, `profile_id`, `missionary_id`,
-      `party_id` and the fact names `donor_is_restricted_party`; an
-      unresolvable argument in a file whose strings name `donors` fails. S2:
-      its file, or a file it imports by a relative path, calls
-      `isAnonymousToRecipient` with an object literal holding
-      `restrictedParty`. S3: no `restrictedParty: false` literal in non-test
-      source under `apps/` or `packages/`. S4, the one allowlist entry:
-      `DONATION_WITH_PARTIES_SELECT` is selected in
-      `packages/graphql/handler.ts` only inside `myDonations` and
-      `createDonation`, the caller's own gifts. Twelve planted cases are
-      reported and four controls are not.
+      `donors` read (a root, or an embed at any depth, any alias or hint,
+      named by the table, by a column that refers to donors, `donor_id` or
+      `…_donor_id`, or by a foreign-key constraint to donors,
+      `…donor_id_fkey` or `…_donor_same_tenant_fk`) holding anything but
+      `id`, `tenant_id`, `profile_id`, `missionary_id`, `party_id` and the
+      fact names `donor_is_restricted_party`. A select it cannot resolve or
+      parse fails when its file's strings name `donors`, when it is chained on
+      `.rpc(…)`, or when its table is `donors` or a table that a migration
+      gives a foreign key to donors (read from `supabase/migrations` on every
+      run). S2: its file, or a file it imports a value from by a relative path
+      (a type-only import does not count), calls `isAnonymousToRecipient`
+      with an object literal holding `restrictedParty`. S3: in non-test source
+      under `apps/` or `packages/`, every `restrictedParty:` is given a name
+      or a property read (`row.donor_is_restricted_party`); a literal,
+      `?? false`, `|| false`, `Boolean(…)`, `!…` or any other expression
+      fails. S4, the one allowlist entry: `DONATION_WITH_PARTIES_SELECT` is
+      selected in `packages/graphql/handler.ts` only directly inside
+      `Query.myDonations` or `Mutation.createDonation` of the resolvers
+      object declared at the top of the file, the caller's own gifts.
+      Thirty-two planted cases are reported and nine controls are not.
     - **What the contract cannot see**, each a review item: a table name
       computed at run time or passed as a parameter; a query builder held in
       a variable before `.select`; a reader outside the roots; a SQL function
       that returns donor columns; a mapper that passes the wrong field (the
-      unit tests hold that); a `false` that is not a literal
-      (`const f = false; isAnonymousToRecipient({ restrictedParty: f })`);
-      and free text a colleague wrote earlier, such as a task's title.
+      unit tests hold that); a `restrictedParty` given a name or a property
+      whose value was made elsewhere (`const f = false`, or
+      `const f = row.fact ?? false`, then `restrictedParty: f`); S2 counts by
+      file, not by read: one call of the seam in a file, or in any file it
+      imports a value from by a relative path, stands for every donors read
+      in it, even a read whose rows never reach that call; an embed through a
+      column or constraint to donors whose name follows none of the patterns
+      above (every one in the schema today follows them); a select it cannot
+      resolve, in a file that never spells `donors`, on a table whose foreign
+      key to donors the migration reader misses (it reads each statement that
+      says `REFERENCES public.donors` inside a `CREATE TABLE` or
+      `ALTER TABLE`); and free text a colleague wrote earlier, such as a
+      task's title.
 
 ## Readers closed by WP5 part 2-r2a
 
