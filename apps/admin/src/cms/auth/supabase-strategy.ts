@@ -26,77 +26,39 @@ import {
   type WebStudioCookieState,
 } from "@asym/auth/web-studio";
 import { createServerClient } from "@supabase/ssr";
-import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 
-import { CMS_USERS_SLUG } from "../constants";
+import { PRINCIPAL_LINKS_SLUG } from "../access/tenant-context";
+import {
+  ensurePrincipalLink,
+  type PrincipalLinkRow,
+} from "../ports/service-port";
 import { readWebStudioTenantCookie } from "../web-studio-tenant-cookie";
 import {
   markWebStudioRefusal,
   type WebStudioRefusal,
 } from "./web-studio-refusal";
 
+import type { StaffSubrole } from "@asym/database/types";
 import type { AuthStrategy, BasePayload, PayloadRequest } from "payload";
 
 const STRATEGY_NAME = "supabase-session";
-type CmsStaffRole = "staff" | "admin" | "super_admin";
-type CmsUserDoc = {
-  id: number;
-  email: string;
-  role?: CmsStaffRole | null;
-  supabaseUserId?: string | null;
-  tenantId?: string | null;
-  updatedAt: string;
-  createdAt: string;
-};
-type CmsUserSyncData = Pick<
-  CmsUserDoc,
-  "email" | "role" | "supabaseUserId" | "tenantId"
+type PayloadAuthStore = Pick<
+  BasePayload,
+  "create" | "delete" | "find" | "findByID" | "update"
 >;
-type PublicTenantRow = {
-  id?: string | null;
-  name?: string | null;
-  slug?: string | null;
-};
-type CmsTenantDoc = {
-  id: string | number;
-  name?: string | null;
-  slug?: string | null;
-};
-type PayloadAuthStore = Pick<BasePayload, "create" | "find" | "update">;
-type CmsAuthUser = CmsUserDoc & {
-  publicTenantId: string;
+type CmsAuthUser = PrincipalLinkRow & {
   _strategy: string;
-  collection: typeof CMS_USERS_SLUG;
+  collection: typeof PRINCIPAL_LINKS_SLUG;
+  tenantId: string;
+  assignmentId: string;
+  staffRole: StaffSubrole | null;
+  isTenantAdmin: boolean;
 };
 
 type SupabaseStrategyDependencies = {
   createSupabaseClient?: typeof createServerClient;
-  createSupabaseDataClient?: () => Pick<
-    ReturnType<typeof createServerClient>,
-    "from"
-  > | null;
-  /** Reads the Web Studio cookie; the admin app's key by default. */
   readWebStudioCookie?: (value: string | null) => Promise<WebStudioCookieState>;
 };
-
-function createTrustedSupabaseDataClient(): Pick<
-  ReturnType<typeof createServerClient>,
-  "from"
-> | null {
-  const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseURL || !serviceRoleKey) {
-    return null;
-  }
-
-  return createSupabaseJsClient(supabaseURL, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-}
 
 function parseCookieHeader(cookieHeader: string | null) {
   if (!cookieHeader) {
@@ -120,37 +82,6 @@ function parseCookieHeader(cookieHeader: string | null) {
     );
 }
 
-function normalizeSlug(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
-
-function readPublicTenant(
-  value: PublicTenantRow | null | undefined,
-): { id: string; name: string; slug: string } | null {
-  if (!value || typeof value.id !== "string" || value.id.length === 0) {
-    return null;
-  }
-
-  const rawSlug = typeof value.slug === "string" ? value.slug : "";
-  const slug = normalizeSlug(rawSlug) || normalizeSlug(value.id);
-  if (!slug) {
-    return null;
-  }
-
-  const rawName = typeof value.name === "string" ? value.name.trim() : "";
-
-  return {
-    id: value.id,
-    name: rawName || slug,
-    slug,
-  };
-}
-
 function readCookieValue(
   cookies: Array<{ name: string; value: string }>,
   name: string | null,
@@ -162,110 +93,35 @@ function readCookieValue(
   return cookies.find((cookie) => cookie.name === name)?.value ?? null;
 }
 
-function readE2ECmsRole(role: string): CmsStaffRole | null {
-  if (role === "super_admin" || role === "admin" || role === "staff") {
-    return role;
-  }
-
-  return null;
+function isE2EStaffRole(role: string) {
+  return role === "super_admin" || role === "admin" || role === "staff";
 }
 
-async function findOrCreateCmsTenant({
+async function signInPrincipal({
   payload,
-  publicTenant,
+  userId,
+  email,
+  assignment,
+  strategy,
 }: {
   payload: PayloadAuthStore;
-  publicTenant: { name: string; slug: string };
-}) {
-  const existingTenants = await payload.find({
-    collection: "tenants",
-    limit: 1,
-    overrideAccess: true,
-    pagination: false,
-    where: {
-      slug: {
-        equals: publicTenant.slug,
-      },
+  userId: string;
+  email: string | null;
+  assignment: ActiveAssignment;
+  strategy: string;
+}): Promise<{ user: CmsAuthUser }> {
+  const row = await ensurePrincipalLink(payload, { userId, email });
+  return {
+    user: {
+      ...row,
+      _strategy: strategy,
+      collection: PRINCIPAL_LINKS_SLUG,
+      tenantId: assignment.tenantId,
+      assignmentId: assignment.assignmentId,
+      staffRole: assignment.staffRole,
+      isTenantAdmin: assignment.isTenantAdmin,
     },
-  });
-
-  const existingTenant = existingTenants.docs?.[0] as CmsTenantDoc | undefined;
-  if (existingTenant?.id !== undefined && existingTenant.id !== null) {
-    const existingName =
-      typeof existingTenant.name === "string" ? existingTenant.name : null;
-    if (existingName !== publicTenant.name) {
-      const syncedTenant = await payload.update({
-        id: existingTenant.id,
-        collection: "tenants",
-        data: {
-          name: publicTenant.name,
-          slug: publicTenant.slug,
-          isActive: true,
-        },
-        overrideAccess: true,
-      });
-      return String((syncedTenant as CmsTenantDoc).id);
-    }
-
-    return String(existingTenant.id);
-  }
-
-  const createdTenant = await payload.create({
-    collection: "tenants",
-    data: {
-      name: publicTenant.name,
-      slug: publicTenant.slug,
-      isActive: true,
-    },
-    overrideAccess: true,
-  });
-
-  return String((createdTenant as CmsTenantDoc).id);
-}
-
-async function findOrSyncCmsUser({
-  payload,
-  desiredData,
-}: {
-  payload: PayloadAuthStore;
-  desiredData: CmsUserSyncData;
-}) {
-  const existingUsers = await payload.find({
-    collection: CMS_USERS_SLUG,
-    limit: 1,
-    overrideAccess: true,
-    pagination: false,
-    where: {
-      supabaseUserId: {
-        equals: desiredData.supabaseUserId,
-      },
-    },
-  });
-
-  const existingUser = existingUsers.docs[0] as CmsUserDoc | undefined;
-  const userNeedsSync =
-    !existingUser ||
-    existingUser.email !== desiredData.email ||
-    existingUser.role !== desiredData.role ||
-    existingUser.supabaseUserId !== desiredData.supabaseUserId ||
-    existingUser.tenantId !== desiredData.tenantId;
-
-  const syncedUser = existingUser
-    ? userNeedsSync
-      ? await payload.update({
-          id: existingUser.id,
-          collection: CMS_USERS_SLUG,
-          data: desiredData,
-          overrideAccess: true,
-        })
-      : existingUser
-    : await payload.create({
-        collection: CMS_USERS_SLUG,
-        data: desiredData,
-        overrideAccess: true,
-      });
-
-  return syncedUser as CmsUserDoc;
+  };
 }
 
 /** The methods that change data. */
@@ -362,7 +218,7 @@ async function authenticateE2EBypass({
     return null;
   }
 
-  if (!readE2ECmsRole(e2eSession.role)) {
+  if (!isE2EStaffRole(e2eSession.role)) {
     return refused(null);
   }
 
@@ -383,39 +239,13 @@ async function authenticateE2EBypass({
     return refused("scope_mismatch");
   }
 
-  const role: CmsStaffRole =
-    e2eSession.role === "super_admin"
-      ? "super_admin"
-      : assignment.isTenantAdmin
-        ? "admin"
-        : "staff";
-  const publicTenantId = assignment.tenantId;
-  const publicTenant = {
-    id: publicTenantId,
-    name: "E2E Tenant",
-    slug: normalizeSlug(publicTenantId) || "e2e-tenant",
-  };
-  const cmsTenantId = await findOrCreateCmsTenant({
+  return signInPrincipal({
     payload,
-    publicTenant,
-  });
-
-  const desiredData: CmsUserSyncData = {
+    userId: e2eSession.userId,
     email: `${e2eSession.userId}@e2e.asym.local`,
-    role,
-    supabaseUserId: e2eSession.userId,
-    tenantId: cmsTenantId,
-  };
-  const userRecord = await findOrSyncCmsUser({ payload, desiredData });
-
-  return {
-    user: {
-      ...userRecord,
-      publicTenantId,
-      _strategy: `${CMS_USERS_SLUG}-${STRATEGY_NAME}-e2e`,
-      collection: CMS_USERS_SLUG,
-    },
-  };
+    assignment,
+    strategy: `${PRINCIPAL_LINKS_SLUG}-${STRATEGY_NAME}-e2e`,
+  });
 }
 
 export function createSupabaseAuthStrategy(
@@ -423,8 +253,6 @@ export function createSupabaseAuthStrategy(
 ): AuthStrategy {
   const createSupabaseClient =
     dependencies.createSupabaseClient ?? createServerClient;
-  const createSupabaseDataClient =
-    dependencies.createSupabaseDataClient ?? createTrustedSupabaseDataClient;
   const readCookie =
     dependencies.readWebStudioCookie ?? readWebStudioTenantCookie;
 
@@ -522,43 +350,14 @@ export function createSupabaseAuthStrategy(
     if (!isFromCurrentDocument({ headers, req, isGraphQL }, assignment)) {
       return refused("scope_mismatch");
     }
-    const publicTenantId = assignment.tenantId;
-    const role: CmsStaffRole = assignment.isTenantAdmin ? "admin" : "staff";
 
-    const supabaseDataClient = createSupabaseDataClient() ?? supabase;
-
-    const { data: publicTenantData } = await supabaseDataClient
-      .from("tenants")
-      .select("id, name, slug")
-      .eq("id", publicTenantId)
-      .maybeSingle();
-    const publicTenant = readPublicTenant(publicTenantData);
-
-    if (!publicTenant) {
-      return refused(null);
-    }
-
-    const cmsTenantId = await findOrCreateCmsTenant({
+    return signInPrincipal({
       payload,
-      publicTenant,
+      userId: supabaseUser.id,
+      email: supabaseUser.email ?? null,
+      assignment,
+      strategy: `${PRINCIPAL_LINKS_SLUG}-${STRATEGY_NAME}`,
     });
-
-    const desiredData: CmsUserSyncData = {
-      email: supabaseUser.email ?? `${supabaseUser.id}@asym.local`,
-      role,
-      supabaseUserId: supabaseUser.id,
-      tenantId: cmsTenantId,
-    };
-    const userRecord = await findOrSyncCmsUser({ payload, desiredData });
-
-    return {
-      user: {
-        ...userRecord,
-        publicTenantId,
-        _strategy: `${CMS_USERS_SLUG}-${STRATEGY_NAME}`,
-        collection: CMS_USERS_SLUG,
-      },
-    };
   }
 
   return {

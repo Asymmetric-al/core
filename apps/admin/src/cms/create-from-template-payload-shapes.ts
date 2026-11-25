@@ -1,16 +1,5 @@
-/**
- * Structural types for `create-from-template-endpoint.ts`.
- *
- * Payload writes the full definitions to `apps/admin/payload-types.ts` via
- * `payload generate:types` (file is gitignored). These committed structural
- * shapes must stay aligned with the subset this endpoint reads and writes so
- * `tsc` works in CI and fresh clones without codegen.
- */
+export type CmsPageFamily = "standard" | "missionary" | "project";
 
-type CmsRelationship = string | number | { id: string | number } | null;
-export type CmsPageType =
-  "standard" | "missionary_giving" | "project" | "ministry_update";
-type PayloadPageType = Exclude<CmsPageType, "ministry_update">;
 export type CmsRichTextDocument = {
   root: {
     type: string;
@@ -26,12 +15,13 @@ export type CmsRichTextDocument = {
   };
   [key: string]: unknown;
 };
+
 export type CmsLayoutBlock =
   | {
       eyebrow?: string | null;
       headline: string;
       subheading?: string | null;
-      backgroundImage?: number | null;
+      backgroundImage?: string | null;
       primaryCtaLabel?: string | null;
       primaryCtaHref?: string | null;
       id?: string | null;
@@ -48,7 +38,7 @@ export type CmsLayoutBlock =
   | {
       title?: string | null;
       body?: string | null;
-      media: number;
+      media: string;
       mediaCaption?: string | null;
       id?: string | null;
       blockName?: string | null;
@@ -99,56 +89,16 @@ export type CmsLayoutBlock =
 export type CmsLayoutBlocks = CmsLayoutBlock[];
 export type CmsRichTextValue = CmsRichTextDocument;
 
-export type PageTemplateForCreate = {
-  tenant?: CmsRelationship;
-  pageType?: CmsPageType;
-  defaultLayout?: CmsLayoutBlocks | null;
-  templateKey?: string;
-  defaultSummary?: string | null;
-};
-
 export type PageCreateFields = {
-  tenant: number;
+  site: string;
+  family: CmsPageFamily;
   title: string;
   slug: string;
   summary?: string | null;
-  pageType: PayloadPageType;
-  template: number;
+  templateKey: string;
+  missionaryId?: string | null;
+  fundId?: string | null;
   layout: CmsLayoutBlocks;
   content: CmsRichTextValue;
   legacyContentFallback: boolean;
-};
-
-export type MissionaryGivingPageCreateFields = {
-  tenant: number;
-  missionaryId: string;
-  missionaryProfile?: number;
-  templateKey: string;
-  template: number;
-  title: string;
-  slug: string;
-  summary?: string | null;
-  pageType: "missionary_giving";
-  layout: CmsLayoutBlocks;
-};
-
-export type ProjectPageCreateFields = {
-  tenant: number;
-  fundId: string;
-  templateKey: string;
-  template: number;
-  title: string;
-  slug: string;
-  summary?: string | null;
-  pageType: "project";
-  layout: CmsLayoutBlocks;
-};
-
-export type MinistryUpdateCreateFields = {
-  tenant: number;
-  missionary: number;
-  title: string;
-  slug: string;
-  excerpt?: string | null;
-  content: CmsRichTextValue;
 };

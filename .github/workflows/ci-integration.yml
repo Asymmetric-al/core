@@ -364,6 +364,8 @@ jobs:
         run: bun run cms:migrate:status
       - name: Apply demo seed
         run: psql "$DATABASE_URL" -f supabase/seed.sql -v ON_ERROR_STOP=1
+      - name: Seed CMS fixtures (loopback)
+        run: bun run cms:fixtures
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
       - name: Start donor app

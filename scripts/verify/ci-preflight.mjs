@@ -42,7 +42,7 @@ const AFFECTED_FILTERS = [
  * runtime -> format -> skills:verify -> verify:phase25-spec -> verify:phase27-spec -> verify:phase28-spec
  * -> openspec:validate -> verify:openspec-deltas -> lint -> verify:comments
  * -> verify:service-role-clients -> verify:data-boundary
- * -> verify:cms-public-sole-entry
+ * -> verify:cms-public-sole-entry -> verify:cms-override-inventory
  * -> verify:workspace-contract -> verify:bun-lock-drift
  * -> verify:eslint -> verify:shadcn-config
  * -> typecheck -> build -> test-unit -> acceptance
@@ -104,6 +104,10 @@ const stages = [
   {
     id: "verify-cms-public-sole-entry",
     script: "verify:cms-public-sole-entry",
+  },
+  {
+    id: "verify-cms-override-inventory",
+    script: "verify:cms-override-inventory",
   },
   {
     id: "verify-workspace-contract",
@@ -236,6 +240,12 @@ const STAGE_INPUTS = {
     "apps/donor/",
     "packages/",
     "scripts/verify/cms-public-sole-entry.mjs",
+  ],
+  "verify-cms-override-inventory": [
+    "apps/",
+    "packages/",
+    "scripts/cms/",
+    "scripts/verify/cms-override-inventory.mjs",
   ],
   // Workspace manifests are shared inputs; the App Router trees are where it
   // finds route handlers, segment config and private capture routes.

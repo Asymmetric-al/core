@@ -2,7 +2,6 @@ import {
   getEnabledWebStudioCollections,
   getGroupedWebStudioCollections,
 } from "../collections/config";
-import { readableAdminCollections } from "../shell/admin-collections";
 
 import type { WebStudioCollectionSlug } from "../collections/config";
 import type { Payload, PayloadRequest, SanitizedPermissions } from "payload";
@@ -31,15 +30,6 @@ export type WebStudioDashboardRecent = {
   updatedAt: string;
 };
 
-export type WebStudioDashboardAdminLink = {
-  slug: string;
-  title: string;
-  description: string;
-  href: string;
-  /** Records the signed-in user can read; null when the count failed. */
-  total: number | null;
-};
-
 export type WebStudioDashboardData = {
   groups: Array<{
     id: string;
@@ -48,7 +38,6 @@ export type WebStudioDashboardData = {
   }>;
   recent: WebStudioDashboardRecent[];
   recentFailedCollections: number;
-  admin: WebStudioDashboardAdminLink[];
 };
 
 const RECENT_LIMIT = 6;
@@ -215,9 +204,8 @@ async function loadRecent({
 export async function loadWebStudioDashboardData({
   payload,
   req,
-  permissions,
 }: LoadArgs): Promise<WebStudioDashboardData> {
-  const [groups, recent, admin] = await Promise.all([
+  const [groups, recent] = await Promise.all([
     Promise.all(
       getGroupedWebStudioCollections().map(async (group) => ({
         id: group.id,
@@ -257,25 +245,11 @@ export async function loadWebStudioDashboardData({
       })),
     ),
     loadRecent({ payload, req }),
-    Promise.all(
-      readableAdminCollections(permissions).map(
-        async ({ slug, title, description, href }) => ({
-          slug,
-          title,
-          description,
-          href,
-          total: await countOrNull(() =>
-            payload.count({ collection: slug, overrideAccess: false, req }),
-          ),
-        }),
-      ),
-    ),
   ]);
 
   return {
     groups,
     recent: recent.items,
     recentFailedCollections: recent.failedCollections,
-    admin,
   };
 }

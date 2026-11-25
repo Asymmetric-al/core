@@ -1,26 +1,10 @@
-import {
-  FileText,
-  Globe2,
-  ImageIcon,
-  LayoutList,
-  Newspaper,
-  Target,
-  UserRound,
-} from "lucide-react";
+import { FileText, ImageIcon, LayoutList } from "lucide-react";
 
 import { buildDonorPreviewPathForPageSlug } from "../adapters/preview-url";
 import { isNativeCollectionWebStudioEnabled } from "../feature-flags";
 import { WEB_STUDIO_COLLECTION_PREFERENCE_MAP } from "../preferences/keys";
 
-export type WebStudioCollectionSlug =
-  | "media"
-  | "missionary-giving-pages"
-  | "missionary-profiles"
-  | "ministry-updates"
-  | "navigation"
-  | "page-templates"
-  | "pages"
-  | "project-pages";
+export type WebStudioCollectionSlug = "media" | "navigation" | "pages";
 
 export type WebStudioCollectionConfig = {
   createLabel: string;
@@ -47,10 +31,11 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
   WebStudioCollectionConfig
 > = {
   media: {
-    createLabel: "Upload media",
-    description: "Images and files used across the public site.",
+    createLabel: "New media record",
+    description:
+      "Alt text, credit and folder for the images used across the public site.",
     editDescription:
-      "Upload metadata and asset preview stay Payload-owned; Mission Control owns the surrounding workspace.",
+      "Media records hold editorial details only; images are added through Core.",
     hasDrafts: false,
     hasVersions: false,
     icon: ImageIcon,
@@ -61,57 +46,6 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     slug: "media",
     titlePlural: "Media",
     titleSingular: "Media asset",
-  },
-  "missionary-giving-pages": {
-    createLabel: "New giving page",
-    createHref: "/web-studio/pages/give",
-    description: "Giving pages for each missionary's supporters.",
-    editDescription:
-      "Missionary giving pages keep Payload draft, publish, and block editing behavior while the shared document shell owns framing.",
-    hasDrafts: true,
-    hasVersions: true,
-    icon: Globe2,
-    listPath: "/web-studio/collections/missionary-giving-pages",
-    previewMode: "public-link",
-    preferences:
-      WEB_STUDIO_COLLECTION_PREFERENCE_MAP["missionary-giving-pages"],
-    sectionLabel: "Giving pages",
-    slug: "missionary-giving-pages",
-    titlePlural: "Giving pages",
-    titleSingular: "Giving page",
-  },
-  "missionary-profiles": {
-    createLabel: "New profile",
-    description: "Public bios, portraits and locations for missionaries.",
-    editDescription:
-      "Profiles keep Payload relationship/upload field behavior while using the shared document workspace.",
-    hasDrafts: false,
-    hasVersions: false,
-    icon: UserRound,
-    listPath: "/web-studio/collections/missionary-profiles",
-    previewMode: "none",
-    preferences: WEB_STUDIO_COLLECTION_PREFERENCE_MAP["missionary-profiles"],
-    sectionLabel: "Missionary profiles",
-    slug: "missionary-profiles",
-    titlePlural: "Missionary profiles",
-    titleSingular: "Missionary profile",
-  },
-  "ministry-updates": {
-    createLabel: "New update",
-    createHref: "/web-studio/ministry-updates/new",
-    description: "News from the field for donor homepages.",
-    editDescription:
-      "Updates keep Payload draft and publish semantics while using a shared Mission Control frame.",
-    hasDrafts: true,
-    hasVersions: true,
-    icon: Newspaper,
-    listPath: "/web-studio/collections/ministry-updates",
-    previewMode: "public-link",
-    preferences: WEB_STUDIO_COLLECTION_PREFERENCE_MAP["ministry-updates"],
-    sectionLabel: "Ministry updates",
-    slug: "ministry-updates",
-    titlePlural: "Ministry updates",
-    titleSingular: "Ministry update",
   },
   navigation: {
     createLabel: "New navigation",
@@ -129,22 +63,6 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     titlePlural: "Navigation",
     titleSingular: "Navigation",
   },
-  "page-templates": {
-    createLabel: "New template",
-    description: "Starting layouts for every new page.",
-    editDescription:
-      "Templates store default layout blocks and metadata while remaining ordinary Payload editorial assets.",
-    hasDrafts: true,
-    hasVersions: true,
-    icon: FileText,
-    listPath: "/web-studio/collections/page-templates",
-    previewMode: "none",
-    preferences: WEB_STUDIO_COLLECTION_PREFERENCE_MAP["page-templates"],
-    sectionLabel: "Page templates",
-    slug: "page-templates",
-    titlePlural: "Page templates",
-    titleSingular: "Page template",
-  },
   pages: {
     createLabel: "New page",
     createHref: "/web-studio/pages/new-from-template",
@@ -158,6 +76,9 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     previewMode: "public-link",
     preferences: WEB_STUDIO_COLLECTION_PREFERENCE_MAP.pages,
     previewPathForData: (data) => {
+      if (data?.family !== undefined && data.family !== "standard") {
+        return null;
+      }
       const slug = typeof data?.slug === "string" ? data.slug : "";
       return buildDonorPreviewPathForPageSlug(slug);
     },
@@ -165,23 +86,6 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     slug: "pages",
     titlePlural: "Pages",
     titleSingular: "Page",
-  },
-  "project-pages": {
-    createLabel: "New project page",
-    createHref: "/web-studio/projects/new",
-    description: "Fund-backed project pages with giving context.",
-    editDescription:
-      "Project pages keep Payload draft, publish, and block editing behavior while the shared document shell owns framing.",
-    hasDrafts: true,
-    hasVersions: true,
-    icon: Target,
-    listPath: "/web-studio/collections/project-pages",
-    previewMode: "public-link",
-    preferences: WEB_STUDIO_COLLECTION_PREFERENCE_MAP["project-pages"],
-    sectionLabel: "Project pages",
-    slug: "project-pages",
-    titlePlural: "Project pages",
-    titleSingular: "Project page",
   },
 };
 
@@ -199,18 +103,12 @@ export const WEB_STUDIO_COLLECTION_GROUPS: ReadonlyArray<{
   {
     id: "content",
     label: "Content",
-    slugs: [
-      "pages",
-      "missionary-giving-pages",
-      "project-pages",
-      "ministry-updates",
-      "missionary-profiles",
-    ],
+    slugs: ["pages"],
   },
   {
     id: "site",
     label: "Site",
-    slugs: ["navigation", "page-templates", "media"],
+    slugs: ["navigation", "media"],
   },
 ];
 

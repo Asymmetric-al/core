@@ -29,12 +29,7 @@ const bannedBrowserSupabaseAppImports = [
 // Each allowlist scopes an approved exception to the specific banned pattern
 // it was approved for, so an allowlisted file cannot silently pick up the
 // other class of banned import later.
-//
-// Server-side Payload auth strategy: verifies Supabase sessions with the raw
-// SDK (service-role, server only).
-const appRawSupabaseImportAllowlist = new Set([
-  "apps/admin/src/cms/auth/supabase-strategy.ts",
-]);
+const appRawSupabaseImportAllowlist = new Set([]);
 // Browser Supabase AUTH helper (@asym/database/supabase*) for attaching the
 // session token to fetches; not a table read path.
 const appBrowserSupabaseImportAllowlist = new Set([

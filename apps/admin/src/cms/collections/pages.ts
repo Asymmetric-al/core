@@ -1,25 +1,16 @@
 import {
   createLegacyRichTextField,
   createPageLayoutField,
-  createPageTypeField,
-  createTemplateRelationshipField,
+  PAGE_FAMILY_OPTIONS,
+  sameTenantOptions,
   webStudioCreateFlowView,
 } from "./page-builders";
 import { pagesGeneratePreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
 import { isNativePagesWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import { studioDocumentEditViews } from "../../cms-ui/web-studio/shell/document-tabs";
-import {
-  PUBLIC_COLLECTION_CAPABILITIES,
-  publishedPublicReadAccess,
-} from "../access/public-read";
-import {
-  tenantScopedCreateAccess,
-  tenantScopedDeleteAccess,
-  tenantScopedUpdateAccess,
-} from "../access/tenant-access";
-import { logCmsChangeAudit, logCmsDeleteAudit } from "../hooks/audit";
-import { applyTenantFromContext } from "../hooks/tenant";
 import { coreRichTextDocumentSchema } from "../rich-text-document-schema";
+import { pageFamilyRule, refusePublishedStatus } from "../tenancy/page-rules";
+import { tenantScoped } from "../tenancy/tenant-scoped";
 
 import type { CollectionConfig } from "payload";
 
@@ -42,76 +33,120 @@ const nativePagesAdmin = isNativePagesWebStudioEnabled()
     }
   : {};
 
-export const Pages: CollectionConfig = {
-  slug: "pages",
-  authorship: false,
-  admin: {
-    defaultColumns: ["title", "slug", "tenant", "updatedAt"],
-    useAsTitle: "title",
-    preview: pagesGeneratePreviewURL,
-    ...nativePagesAdmin,
-  },
-  access: {
-    read: publishedPublicReadAccess(
-      "tenant",
-      PUBLIC_COLLECTION_CAPABILITIES["pages"],
-    ),
-    create: tenantScopedCreateAccess("tenant"),
-    update: tenantScopedUpdateAccess("tenant"),
-    delete: tenantScopedDeleteAccess("tenant"),
-  },
-  hooks: {
-    beforeValidate: [applyTenantFromContext("tenant")],
-    afterChange: [logCmsChangeAudit],
-    afterDelete: [logCmsDeleteAudit],
-  },
-  versions: {
-    drafts: {
-      autosave: {
-        interval: 300,
-        showSaveDraftButton: true,
+export const Pages: CollectionConfig = tenantScoped(
+  {
+    slug: "pages",
+    authorship: true,
+    admin: {
+      defaultColumns: ["title", "slug", "family", "updatedAt"],
+      useAsTitle: "title",
+      preview: pagesGeneratePreviewURL,
+      enableRichTextRelationship: false,
+      ...nativePagesAdmin,
+    },
+    versions: {
+      maxPerDoc: 50,
+      drafts: {
+        autosave: {
+          interval: 2000,
+          showSaveDraftButton: true,
+        },
+        validate: true,
       },
     },
-  },
-  fields: [
-    {
-      name: "tenant",
-      label: "Organization",
-      type: "relationship",
-      relationTo: "tenants",
-      required: true,
-      index: true,
-    },
-    {
-      name: "title",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "slug",
-      type: "text",
-      required: true,
-      index: true,
-    },
-    {
-      name: "summary",
-      type: "textarea",
-    },
-    createPageTypeField(),
-    createTemplateRelationshipField(),
-    createPageLayoutField(),
-    {
-      name: "content",
-      type: "richText",
-      required: true,
-      jsonSchema: [coreRichTextDocumentSchema],
-      label: "Body text",
-      admin: {
-        description:
-          "Shown on the public page only when it has no layout sections.",
-        disabled: { column: true, filter: true, groupBy: true },
+    fields: [
+      {
+        name: "site",
+        label: "Site",
+        type: "relationship",
+        relationTo: "site-presentations",
+        required: true,
+        filterOptions: sameTenantOptions,
       },
-    },
-    createLegacyRichTextField(),
-  ],
-};
+      {
+        name: "family",
+        type: "select",
+        required: true,
+        defaultValue: "standard",
+        admin: { isClearable: false },
+        options: [...PAGE_FAMILY_OPTIONS],
+      },
+      {
+        name: "title",
+        type: "text",
+        required: true,
+      },
+      {
+        name: "slug",
+        type: "text",
+        required: true,
+        index: true,
+      },
+      {
+        name: "summary",
+        type: "textarea",
+      },
+      {
+        name: "seoDescription",
+        type: "textarea",
+        label: "Search description",
+        admin: {
+          description: "Shown under the page title in search results.",
+        },
+      },
+      {
+        name: "templateKey",
+        type: "text",
+        label: "Starter",
+        index: true,
+        admin: {
+          readOnly: true,
+          position: "sidebar",
+          description: "The starter this page began from.",
+        },
+      },
+      {
+        name: "missionaryId",
+        type: "text",
+        label: "Missionary ID",
+        index: true,
+        admin: {
+          readOnly: true,
+          position: "sidebar",
+          condition: (data) => data?.family === "missionary",
+        },
+      },
+      {
+        name: "fundId",
+        type: "text",
+        label: "Fund ID",
+        index: true,
+        admin: {
+          readOnly: true,
+          position: "sidebar",
+          condition: (data) => data?.family === "project",
+        },
+      },
+      createPageLayoutField(),
+      {
+        name: "content",
+        type: "richText",
+        jsonSchema: [coreRichTextDocumentSchema],
+        label: "Body text",
+        admin: {
+          description:
+            "Shown on the public page only when it has no layout sections.",
+          disabled: { column: true, filter: true, groupBy: true },
+        },
+      },
+      createLegacyRichTextField(),
+    ],
+  },
+  {
+    actorCreate: true,
+    actorUpdate: true,
+    actorDelete: true,
+    keepsServiceId: false,
+    rules: [refusePublishedStatus, pageFamilyRule],
+  },
+);

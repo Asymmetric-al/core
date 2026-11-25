@@ -105,21 +105,6 @@ export type NativeCollectionEditViewProps = DocumentViewClientProps & {
 
 type InspectorItem = { label: string; value: string };
 
-function resolveAuthenticatedPreviewCollection(
-  studioCollection: WebStudioCollectionSlug,
-): "ministry-updates" | "missionary-giving-pages" | "project-pages" | "pages" {
-  if (studioCollection === "ministry-updates") {
-    return "ministry-updates";
-  }
-  if (studioCollection === "missionary-giving-pages") {
-    return "missionary-giving-pages";
-  }
-  if (studioCollection === "project-pages") {
-    return "project-pages";
-  }
-  return "pages";
-}
-
 function documentIdFromData(
   data: { id?: unknown } | null | undefined,
 ): string | null {
@@ -177,25 +162,10 @@ function buildNativeInspectorItems({
     });
   }
 
-  if (studioCollection === "missionary-profiles") {
-    inspectorItems.push({
-      label: "Portrait",
-      value: data?.portrait ? "Linked" : "Missing",
-    });
-  }
-
-  if (studioCollection === "ministry-updates") {
-    inspectorItems.push({
-      label: "Missionary",
-      value: data?.missionary ? "Linked" : "Missing",
-    });
-  }
-
   if (studioCollection === "media") {
     inspectorItems.push({
-      label: "File",
-      value:
-        typeof data?.filename === "string" ? data.filename : "Upload pending",
+      label: "Image",
+      value: "Added through Core",
     });
   }
 
@@ -243,8 +213,7 @@ function resolveNativeCollectionEditModel({
   const authenticatedPreviewURL =
     previewSupported && documentId
       ? buildWebStudioAuthenticatedPreviewPath({
-          collectionSlug:
-            resolveAuthenticatedPreviewCollection(studioCollection),
+          collectionSlug: "pages",
           id: documentId,
         })
       : null;

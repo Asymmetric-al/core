@@ -1,42 +1,14 @@
-import { findMissionaryById } from "@asym/api/missionaries/queries";
-import { getAdminClient } from "@asym/database/supabase/admin";
-
-import {
-  tenantScopedCreateAccess,
-  tenantScopedDeleteAccess,
-  tenantScopedReadAccess,
-  tenantScopedUpdateAccess,
-} from "../access/tenant-access";
-import {
-  getTenantContext,
-  isStaffRole,
-  isSuperAdmin,
-} from "../access/tenant-context";
-import { PAGE_TEMPLATES_SLUG } from "../constants";
-import { logCmsChangeAudit, logCmsDeleteAudit } from "../hooks/audit";
-import { applyTenantFromContext } from "../hooks/tenant";
+import { readEditingActor } from "../access/tenant-context";
 import { coreRichTextDocumentSchema } from "../rich-text-document-schema";
+import { idOf } from "../tenancy/reference-guard";
 
-import type { Block, Field, PayloadRequest, Validate } from "payload";
-
-export const STANDARD_PAGE_TYPE = "standard";
-export const MISSIONARY_GIVING_PAGE_TYPE = "missionary_giving";
-export const PROJECT_PAGE_TYPE = "project";
-export const MINISTRY_UPDATE_TEMPLATE_PAGE_TYPE = "ministry_update";
-
-export const PAGE_TYPE_OPTIONS = [
-  { label: "Standard page", value: STANDARD_PAGE_TYPE },
-  { label: "Missionary giving page", value: MISSIONARY_GIVING_PAGE_TYPE },
-  { label: "Project page", value: PROJECT_PAGE_TYPE },
-] as const;
-
-export const PAGE_TEMPLATE_PAGE_TYPES = [
-  ...PAGE_TYPE_OPTIONS,
-  {
-    label: "Ministry update starter",
-    value: MINISTRY_UPDATE_TEMPLATE_PAGE_TYPE,
-  },
-] as const;
+import type {
+  Block,
+  Field,
+  FilterOptions,
+  PayloadRequest,
+  Where,
+} from "payload";
 
 export const PAGE_LAYOUT_BLOCK_SLUGS = {
   callToAction: "call-to-action",
@@ -47,6 +19,12 @@ export const PAGE_LAYOUT_BLOCK_SLUGS = {
   richText: "rich-text",
   testimonial: "testimonial",
 } as const;
+
+export const PAGE_FAMILY_OPTIONS = [
+  { label: "Standard page", value: "standard" },
+  { label: "Missionary page", value: "missionary" },
+  { label: "Project page", value: "project" },
+] as const;
 
 const UUID_REFERENCE_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -59,158 +37,26 @@ export function validateUuidReference(value: unknown) {
   return "Must be a valid UUID reference.";
 }
 
-function readRelationshipId(value: unknown) {
-  if (typeof value === "string" || typeof value === "number") {
-    return String(value);
-  }
-
-  if (value && typeof value === "object" && "id" in value) {
-    const id = (value as { id?: unknown }).id;
-    if (typeof id === "string" || typeof id === "number") {
-      return String(id);
-    }
-  }
-
-  return null;
+function documentTenant(data: unknown, req: PayloadRequest) {
+  const tenant = (data as { tenant?: unknown } | undefined)?.tenant;
+  if (typeof tenant === "string" && tenant.length > 0) return tenant;
+  return readEditingActor(req)?.tenantId ?? null;
 }
 
-async function resolvePublicTenantIdFromCmsTenant({
-  cmsTenantId,
-  req,
-}: {
-  cmsTenantId: string | null;
-  req: PayloadRequest;
-}) {
-  if (!cmsTenantId) {
-    return null;
-  }
+export const sameTenantOptions: FilterOptions = ({ data, req }) => {
+  const tenant = documentTenant(data, req);
+  return tenant ? { tenant: { equals: tenant } } : false;
+};
 
-  const tenant = await req.payload.findByID({
-    collection: "tenants",
-    depth: 0,
-    disableErrors: true,
-    id: cmsTenantId,
-    overrideAccess: true,
-    req,
-  });
-
-  const slug =
-    tenant && typeof tenant === "object" && "slug" in tenant
-      ? tenant.slug
-      : null;
-  if (typeof slug !== "string" || !slug.trim()) {
-    return null;
-  }
-
-  const { client: supabase } = getAdminClient();
-  if (!supabase) {
-    return null;
-  }
-
-  const { data } = await supabase
-    .from("tenants")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  return data && typeof data.id === "string" ? data.id : null;
-}
-
-async function resolvePublicTenantIdForValidation(options: {
-  data?: Partial<Record<string, unknown>>;
-  req: PayloadRequest;
-  siblingData?: Partial<Record<string, unknown>>;
-}) {
-  const context = getTenantContext(options.req);
-  if (context.publicTenantId) {
-    return context.publicTenantId;
-  }
-
-  const cmsTenantId =
-    readRelationshipId(options.siblingData?.tenant) ??
-    readRelationshipId(options.data?.tenant) ??
-    context.tenantId;
-
-  return resolvePublicTenantIdFromCmsTenant({
-    cmsTenantId,
-    req: options.req,
-  });
-}
-
-async function validateGivingSourceReference(
-  value: unknown,
-  options:
-    | {
-        data?: Partial<Record<string, unknown>>;
-        req?: PayloadRequest;
-        siblingData?: Partial<Record<string, unknown>>;
-      }
-    | undefined,
-  source: "fund" | "missionary",
-) {
-  const uuidResult = validateUuidReference(value);
-  if (uuidResult !== true) {
-    return uuidResult;
-  }
-
-  if (!options?.req || typeof value !== "string") {
-    return true;
-  }
-
-  if (
-    typeof options.req.context === "object" &&
-    options.req.context !== null &&
-    "cmsLocalSeed" in options.req.context &&
-    options.req.context.cmsLocalSeed === true
-  ) {
-    return true;
-  }
-
-  const context = getTenantContext(options.req);
-  if (!context.isAuthenticated || !isStaffRole(context)) {
-    return "Staff access required to validate this reference.";
-  }
-
-  const { client: supabase, error } = getAdminClient();
-  if (!supabase || error) {
-    return "Unable to validate this reference right now.";
-  }
-
-  const publicTenantId = await resolvePublicTenantIdForValidation({
-    data: options.data,
-    req: options.req,
-    siblingData: options.siblingData,
-  });
-
-  if (!publicTenantId && !isSuperAdmin(context)) {
-    return "This organization is not linked to giving data.";
-  }
-
-  if (!publicTenantId) {
-    return "Choose an organization before checking this reference.";
-  }
-
-  if (source === "missionary") {
-    const { data } = await findMissionaryById(supabase, value, publicTenantId);
-    return data?.id ? true : "Missionary not found in this organization.";
-  }
-
-  const { data } = await supabase
-    .from("funds")
-    .select("id")
-    .is("system_purpose", null)
-    .eq("id", value)
-    .eq("tenant_id", publicTenantId)
-    .maybeSingle();
-
-  return data?.id ? true : "Fund not found in this organization.";
-}
-
-const validateMissionarySourceReference: Validate = (value, options) =>
-  validateGivingSourceReference(value, options, "missionary");
-
-const validateFundSourceReference: Validate = (value, options) =>
-  validateGivingSourceReference(value, options, "fund");
+export const sameSitePageOptions: FilterOptions = ({ data, req }) => {
+  const tenant = documentTenant(data, req);
+  const site = idOf((data as { site?: unknown } | undefined)?.site);
+  if (!tenant || !site) return false;
+  const where: Where = {
+    and: [{ tenant: { equals: tenant } }, { site: { equals: site } }],
+  };
+  return where;
+};
 
 const pageLayoutBlocks: Block[] = [
   {
@@ -237,6 +83,7 @@ const pageLayoutBlocks: Block[] = [
         name: "backgroundImage",
         type: "relationship",
         relationTo: "media",
+        filterOptions: sameTenantOptions,
       },
       {
         name: "primaryCtaLabel",
@@ -287,6 +134,7 @@ const pageLayoutBlocks: Block[] = [
         type: "relationship",
         relationTo: "media",
         required: true,
+        filterOptions: sameTenantOptions,
       },
       {
         name: "mediaCaption",
@@ -425,54 +273,8 @@ export function createPageLayoutField(name = "layout"): Field {
       singular: "Layout section",
       plural: "Layout sections",
     },
-    // Sections are edited in the page, not listed, filtered or grouped.
     admin: { disabled: { column: true, filter: true, groupBy: true } },
   };
-}
-
-export function createTenantField(): Field {
-  return {
-    name: "tenant",
-    label: "Organization",
-    type: "relationship",
-    relationTo: "tenants",
-    required: true,
-    index: true,
-  };
-}
-
-export function createPageTypeField(
-  defaultValue:
-    | typeof STANDARD_PAGE_TYPE
-    | typeof MISSIONARY_GIVING_PAGE_TYPE
-    | typeof PROJECT_PAGE_TYPE = STANDARD_PAGE_TYPE,
-): Field {
-  return {
-    name: "pageType",
-    type: "select",
-    required: true,
-    defaultValue,
-    admin: {
-      isClearable: false,
-    },
-    options: [...PAGE_TYPE_OPTIONS],
-  };
-}
-
-export function createTemplateRelationshipField(
-  name = "template",
-  label = "Template",
-): Field {
-  return {
-    name,
-    label,
-    type: "relationship",
-    relationTo: PAGE_TEMPLATES_SLUG,
-  };
-}
-
-export function createTemplateLayoutField(name = "defaultLayout"): Field {
-  return createPageLayoutField(name);
 }
 
 export function createLegacyRichTextField(
@@ -486,148 +288,13 @@ export function createLegacyRichTextField(
     admin: {
       description:
         "When the page has no layout sections, the public page shows the body text instead.",
-      // A rendering switch, not something staff sort lists by.
       disabled: { column: true, filter: true, groupBy: true },
     },
   };
 }
 
-export function buildPageBuilderCollectionFields(
-  pageType: "missionary-giving" | "project",
-): Field[] {
-  const sourceField =
-    pageType === "missionary-giving"
-      ? ({
-          name: "missionaryId",
-          type: "text",
-          required: true,
-          index: true,
-          validate: validateMissionarySourceReference,
-          label: "Missionary ID",
-          admin: {
-            description:
-              "The missionary this page raises support for. Set when the page is created.",
-            readOnly: true,
-            // The editor header names the record; the raw ID is a detail.
-            position: "sidebar",
-          },
-        } satisfies Field)
-      : ({
-          name: "fundId",
-          type: "text",
-          required: true,
-          index: true,
-          validate: validateFundSourceReference,
-          label: "Fund ID",
-          admin: {
-            description:
-              "The fund this page raises money for. Set when the page is created.",
-            readOnly: true,
-            // The editor header names the record; the raw ID is a detail.
-            position: "sidebar",
-          },
-        } satisfies Field);
-
-  const pageTypeValue =
-    pageType === "missionary-giving"
-      ? MISSIONARY_GIVING_PAGE_TYPE
-      : PROJECT_PAGE_TYPE;
-
-  return [
-    createTenantField(),
-    sourceField,
-    ...(pageType === "missionary-giving"
-      ? ([
-          {
-            name: "missionaryProfile",
-            type: "relationship",
-            relationTo: "missionary-profiles",
-            admin: {
-              description:
-                "Optional: the missionary profile this page links to, for their ministry updates.",
-            },
-          },
-        ] satisfies Field[])
-      : []),
-    createPageTypeField(pageTypeValue),
-    {
-      name: "templateKey",
-      type: "text",
-      label: "Template key",
-      required: true,
-      index: true,
-      admin: {
-        description: "The template this page started from.",
-      },
-    },
-    createTemplateRelationshipField(),
-    {
-      name: "title",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "slug",
-      type: "text",
-      required: true,
-      index: true,
-    },
-    {
-      name: "summary",
-      type: "textarea",
-    },
-    {
-      name: "seoDescription",
-      type: "textarea",
-      label: "Search description",
-      admin: {
-        description: "Shown under the page title in search results.",
-      },
-    },
-    createPageLayoutField(),
-  ];
-}
-
-/**
- * Serves a Core create flow on a collection's `/create` route. Payload's
- * stock create view saves an empty draft as soon as it renders for an
- * autosave collection (so every visit left an "Untitled (N)" draft); the
- * Core flow saves nothing until the editor submits it. Pass a flow already
- * registered as a root admin view, so the import map holds it.
- */
 export function webStudioCreateFlowView(Component: string) {
   return {
     webStudioCreate: { Component, path: "/create", exact: true },
-  };
-}
-
-export function buildPageBuilderVersions() {
-  return {
-    drafts: {
-      autosave: {
-        interval: 300,
-        showSaveDraftButton: true,
-      },
-    },
-  };
-}
-
-export function buildPageBuilderHooks() {
-  return {
-    beforeValidate: [applyTenantFromContext("tenant")],
-    afterChange: [logCmsChangeAudit],
-    afterDelete: [logCmsDeleteAudit],
-  };
-}
-
-export function withTenantAccessAndHooks() {
-  return {
-    access: {
-      read: tenantScopedReadAccess("tenant"),
-      create: tenantScopedCreateAccess("tenant"),
-      update: tenantScopedUpdateAccess("tenant"),
-      delete: tenantScopedDeleteAccess("tenant"),
-    },
-    hooks: buildPageBuilderHooks(),
   };
 }
