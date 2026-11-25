@@ -90,14 +90,11 @@ describe("Eve sandbox file guardrails", () => {
     "packages/eve-runtime/agent/agent.ts",
     "packages/api/src/eve/sandbox/guardrails.ts",
     "packages/api/src/eve/governance/control.ts",
-    // Tenant resolution and admin access control gate who sees whose data
-    "apps/admin/src/cms/public/resolve-tenant.ts",
+    "apps/admin/src/cms/access/tenant-access.ts",
     "apps/admin/app/admin/users/page.tsx",
     "packages/api/src/cms/public/reader.ts",
     "docs/guides/architecture/data-access-boundary.md",
-    // Exact directory roots, not just descendants
     "apps/admin/app/admin/users",
-    "apps/admin/src/cms/public",
     "apps/admin/src/cms/access",
     "packages/api/src/cms/public",
     "supabase/migrations/20260717000000_change.sql",
@@ -109,6 +106,20 @@ describe("Eve sandbox file guardrails", () => {
     expect(result.requiresApproval).toBe(true);
     expect(hasBlockingSandboxFinding(result)).toBe(false);
   });
+
+  it.each([
+    "apps/admin/src/cms/public",
+    "apps/admin/src/cms/public/resolve-tenant.ts",
+  ])(
+    "pauses retired public CMS path %s for durable approval even after WP6 part 2a removes it",
+    (path) => {
+      const result = scanEveSandboxPath(path);
+
+      expect(result.safe).toBe(false);
+      expect(result.requiresApproval).toBe(true);
+      expect(hasBlockingSandboxFinding(result)).toBe(false);
+    },
+  );
 
   it("detects protected paths in shell commands", () => {
     const result = scanEveSandboxCommand(

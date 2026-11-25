@@ -52,19 +52,16 @@ describe("public code path scoping", () => {
     ).toEqual([]);
   });
 
-  it("documents the allowlist as exactly the reader and the tenant-resolver seam", () => {
-    expect(SOLE_ENTRY_ALLOWLIST).toEqual([
-      "apps/admin/src/cms/public/published-content-reader.ts",
-      "apps/admin/src/cms/public/resolve-tenant.ts",
-    ]);
-    expect(isSoleEntryAllowlisted(READER_FILE)).toBe(true);
-    expect(isSoleEntryAllowlisted(RESOLVER_FILE)).toBe(true);
+  it("empties the allowlist after WP6 part 2a retires the prototype public reader and tenant resolver", () => {
+    expect(SOLE_ENTRY_ALLOWLIST).toEqual([]);
+    expect(isSoleEntryAllowlisted(READER_FILE)).toBe(false);
+    expect(isSoleEntryAllowlisted(RESOLVER_FILE)).toBe(false);
     expect(isSoleEntryAllowlisted(PUBLIC_MODULE_FILE)).toBe(false);
   });
 });
 
 describe("raw Payload reads in public paths fail the lint", () => {
-  it("flags payload.find in a public route", () => {
+  it("flags payload.find in a public route and points to packages/api/src/cms/public after WP6 part 2a", () => {
     const violations = collectCmsPublicSoleEntryViolationsFromSource(
       PUBLIC_ROUTE_FILE,
       [
@@ -77,7 +74,7 @@ describe("raw Payload reads in public paths fail the lint", () => {
 
     expect(violations).toHaveLength(1);
     expect(violations[0]).toContain(`${PUBLIC_ROUTE_FILE}:2`);
-    expect(violations[0]).toContain("published-content-reader");
+    expect(violations[0]).toContain("packages/api/src/cms/public");
   });
 
   it("flags payload.findByID, payload.db escapes, and aliased collection reads", () => {
@@ -241,38 +238,33 @@ describe("imports reachable from public code paths", () => {
   });
 });
 
-describe("the allowlisted construction sites pass with their real source", () => {
-  it("passes the choke-point reader itself", () => {
-    expect(
-      collectCmsPublicSoleEntryViolationsFromSource(
-        READER_FILE,
-        repoFile(READER_FILE),
-      ),
-    ).toEqual([]);
-  });
-
-  it("passes the tenant-resolver seam", () => {
-    expect(
-      collectCmsPublicSoleEntryViolationsFromSource(
-        RESOLVER_FILE,
-        repoFile(RESOLVER_FILE),
-      ),
-    ).toEqual([]);
-  });
-
-  it("keeps every real public-path route free of raw reads (live regression)", () => {
-    for (const file of [
-      "apps/admin/app/api/cms/public/navigation/route.ts",
-      "apps/admin/app/api/cms/public/updates/route.ts",
-      "apps/admin/app/api/cms/public/pages/[...slug]/route.ts",
-      "apps/admin/app/api/cms/public/missionary-pages/[id]/route.ts",
-      "apps/admin/app/api/cms/public/project-pages/[slug]/route.ts",
-      "apps/admin/src/cms/public/published-page-read.ts",
-    ]) {
-      expect(
-        collectCmsPublicSoleEntryViolationsFromSource(file, repoFile(file)),
+describe("retired allowlist paths fail the gate after WP6 part 2a removes them", () => {
+  it.each([READER_FILE, RESOLVER_FILE])(
+    "flags a raw Payload read and overrideAccess: true planted at %s",
+    (file) => {
+      const readViolations = collectCmsPublicSoleEntryViolationsFromSource(
         file,
-      ).toEqual([]);
-    }
+        'export const read = () => payload.find({ collection: "pages" });\n',
+      );
+      expect(readViolations).toHaveLength(1);
+      expect(readViolations[0]).toContain("[payload-local-api-read]");
+
+      const overrideViolations = collectCmsPublicSoleEntryViolationsFromSource(
+        file,
+        "export const options = { overrideAccess: true };\n",
+      );
+      expect(overrideViolations).toHaveLength(1);
+      expect(overrideViolations[0]).toContain("[override-access-true]");
+    },
+  );
+
+  it("keeps the donor empty-reader client free of raw Payload reads", () => {
+    const clientFile = "apps/donor/lib/cms/client.ts";
+    expect(
+      collectCmsPublicSoleEntryViolationsFromSource(
+        clientFile,
+        repoFile(clientFile),
+      ),
+    ).toEqual([]);
   });
 });

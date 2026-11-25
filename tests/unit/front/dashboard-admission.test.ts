@@ -359,7 +359,7 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
     );
   });
 
-  it("admits only staff listed paths and GET/HEAD /api/cms/public/, stripping client x-asym-front-* and keeping bypass", async () => {
+  it("admits only staff listed paths, refusing unstamped GET/HEAD /api/cms/public/ after WP6 part 2a retires those routes, stripping client x-asym-front-* and keeping bypass", async () => {
     const staffListed: Array<[string, string]> = [
       ["GET", "/api/health/migrations"],
       ["GET", "/api/health/migrations/"],
@@ -369,8 +369,6 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
       ["POST", "/api/email/webhooks/resend"],
       ["POST", "/api/inngest"],
       ["POST", "/eve/v1/github"],
-      ["GET", "/api/cms/public/pages/home"],
-      ["HEAD", "/api/cms/public/navigation"],
     ];
 
     for (const [method, path] of staffListed) {
@@ -405,6 +403,9 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
     }
 
     const staffRefused: Array<[string, string]> = [
+      ["GET", "/api/cms/public/pages/home"],
+      ["HEAD", "/api/cms/public/navigation"],
+      ["GET", "/api/cms/public/x"],
       ["POST", "/api/cms/public/x"],
       ["PUT", "/api/cms/public/x"],
       ["GET", "/api/cms/publicx"],
