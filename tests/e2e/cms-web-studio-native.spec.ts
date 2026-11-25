@@ -5,13 +5,19 @@ import {
   attachPayloadDbConsoleListener,
   waitForWebStudioShellOrSkip,
 } from "./cms-skip-if-no-payload";
-import { siteOf, writeHeaders } from "./helpers/web-studio";
+import {
+  fixturePerson,
+  signInAs,
+  siteOf,
+  switchOrganization,
+  writeHeaders,
+} from "./helpers/web-studio";
 
 const nativePagesUiDisabled =
   process.env.CMS_WEB_STUDIO_NATIVE_PAGES === "false" ||
   process.env.CMS_WEB_STUDIO_NATIVE_PAGES === "0";
 
-test.describe("@cms Web Studio native shell", () => {
+test.describe("@cms Web Studio native shell (D-18: WP6 part 2b keys a Web Studio login by its UUID, so the shell signs in a fixture person with a staff row, not Demo access's e2e-admin-user)", () => {
   test.beforeEach(({}, testInfo) => {
     if (nativePagesUiDisabled) {
       testInfo.skip(
@@ -23,24 +29,13 @@ test.describe("@cms Web Studio native shell", () => {
 
   async function signInAsAdmin(page: Page) {
     const sawPayloadDbFailure = attachPayloadDbConsoleListener(page);
-
-    const availability = await page.request.get(
-      `${adminBaseURL}/api/auth/demo-account`,
+    await signInAs(page, "admin", "demoAdmin", adminBaseURL);
+    await switchOrganization(
+      page,
+      adminBaseURL,
+      fixturePerson("demoAdmin").memberships[0]!.tenantId,
+      "/web-studio/collections/pages",
     );
-    test.skip(!availability.ok(), "Demo availability endpoint is unavailable.");
-
-    const payload = (await availability.json()) as {
-      roles?: Record<string, boolean>;
-      availableRoles?: Record<string, boolean>;
-    };
-    const roles = payload.roles ?? payload.availableRoles ?? {};
-    test.skip(!roles.admin, "Admin demo account is not configured.");
-
-    await page.goto(
-      `${adminBaseURL}/login?next=${encodeURIComponent("/web-studio/collections/pages")}`,
-    );
-    await page.getByRole("button", { name: "Demo Access" }).click();
-    await page.waitForURL(/\/web-studio\/collections\/pages/);
     await waitForWebStudioShellOrSkip(page, sawPayloadDbFailure);
   }
 

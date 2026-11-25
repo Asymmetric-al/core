@@ -239,8 +239,13 @@ describe("test 8: the Web Studio strategy reads Core once and links the login th
         memberships: [membership],
       })}`;
       const payload = payloadFake([null]);
+      const signedOut = {
+        auth: { getUser: vi.fn(async () => ({ data: { user: null } })) },
+        rpc: vi.fn(),
+        from: vi.fn(),
+      };
       const { user } = await createSupabaseAuthStrategy({
-        createSupabaseClient: supabaseFakes().createSupabaseClient,
+        createSupabaseClient: vi.fn(() => signedOut),
       }).authenticate({
         headers: new Headers({
           cookie: `${e2e}; ${selection}`,
