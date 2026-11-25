@@ -73,7 +73,7 @@ describe("readPortalDocumentScope", () => {
   it("scopes a donor portal document to the person's resolved donor membership", async () => {
     const { readPortalDocumentScope } =
       await import("../../../packages/auth/tenant-server");
-    expect(readPortalDocumentScope(donorContext())).toEqual({
+    expect(await readPortalDocumentScope(donorContext())).toEqual({
       userId: USER,
       tenantId: TENANT,
       assignmentId: ASSIGNMENT,
@@ -109,7 +109,7 @@ describe("readPortalDocumentScope", () => {
   ])("gives no scope for %s", async (_label, overrides) => {
     const { readPortalDocumentScope } =
       await import("../../../packages/auth/tenant-server");
-    expect(readPortalDocumentScope(donorContext(overrides))).toBeNull();
+    expect(await readPortalDocumentScope(donorContext(overrides))).toBeNull();
   });
 });
 

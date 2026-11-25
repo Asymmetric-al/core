@@ -455,26 +455,38 @@ describe.skipIf(!ADMIN_URL)(
         expect(lines(outcome.rows)).toEqual(want);
       });
 
-      it("refuses the demo owner without the assignment header, who holds three live rows there (review defect 9)", async () => {
-        for (const headers of [undefined, { "x-asym-tenant": DEMO }]) {
-          const outcome = await as(
-            "authenticated",
-            headers ? { sub: "OWNER", headers } : { sub: "OWNER" },
-            directory(DEMO),
-          );
-          expect(outcome.code, JSON.stringify(headers)).toBe("42501");
-          expect(outcome.rows).toEqual([]);
-        }
+      it("refuses the demo owner without the assignment header, who holds three live rows there (review defect 9) (D-18: AL-2676, D-16 ruling on caller_assignment Q3: drops undefined-header variant now proved in the next test and asserts exact message under x-asym-tenant)", async () => {
+        const outcome = await as(
+          "authenticated",
+          { sub: "OWNER", headers: { "x-asym-tenant": DEMO } },
+          directory(DEMO),
+        );
+        expect(outcome.code).toBe("42501");
+        expect(outcome.message).toBe(
+          "Forbidden: the member directory requires a live staff membership in this tenant.",
+        );
+        expect(outcome.rows).toEqual([]);
       });
 
-      it("admits a caller with one live row in the tenant without the header", async () => {
-        const outcome = await as(
+      it("admits a caller with one live row when x-asym-tenant names that tenant alone and refuses with no headers (D-18: AL-2676, D-16 ruling on caller_assignment Q3: no-header fallback removed; one-row fallback holds only when x-asym-tenant names that tenant)", async () => {
+        const served = await as(
+          "authenticated",
+          { sub: "MORGAN", headers: { "x-asym-tenant": SECOND } },
+          directory(SECOND),
+        );
+        expect(served.code, served.message).toBeNull();
+        expect(lines(served.rows)).toEqual(await members(SECOND));
+
+        const refused = await as(
           "authenticated",
           { sub: "MORGAN" },
           directory(SECOND),
         );
-        expect(outcome.code, outcome.message).toBeNull();
-        expect(lines(outcome.rows)).toEqual(await members(SECOND));
+        expect(refused.code).toBe("42501");
+        expect(refused.message).toBe(
+          "Forbidden: the member directory requires a live staff membership in this tenant.",
+        );
+        expect(refused.rows).toEqual([]);
       });
     });
 

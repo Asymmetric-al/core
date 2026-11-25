@@ -25,6 +25,28 @@ vi.mock("@supabase/ssr", () => ({
   }),
 }));
 
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => ({
+    rpc: (fn: string, args: { p_host: string }) => {
+      if (fn !== "resolve_verified_host") throw new Error(fn);
+      const data =
+        args.p_host === "one.example.test"
+          ? [
+              {
+                tenant_id: "00000000-0000-0000-0000-000000000001",
+                site_id: "00000000-0000-4000-8000-000000000011",
+                generation: 1,
+                surfaces: ["website", "donor_account", "staff", "missionary"],
+                state: "active",
+                is_home: true,
+              },
+            ]
+          : [];
+      return { abortSignal: async () => ({ data, error: null }) };
+    },
+  }),
+}));
+
 const donorModule = await import("../../../apps/donor/proxy");
 
 function freshKey(): string {
@@ -140,7 +162,7 @@ describe("front routing in apps/donor/proxy.ts when switch is ON", () => {
     "/missionary-stories",
     "/admin.json",
   ])(
-    "keeps non-dashboard path %s on the front and strips client x-asym-front-* and x-forwarded-host",
+    "keeps non-dashboard path %s on the front and strips client x-asym-front-* and x-forwarded-host (D-18, WP3b part 1: on-mode donor paths look up the verified name, so this file doubles the lookup client)",
     async (path) => {
       const res = await donorModule.proxy(
         new NextRequest(`${FRONT_ONE}${path}`, {

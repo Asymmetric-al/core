@@ -16,11 +16,14 @@ export const VERIFIED_HOST_FIELDS = [
   "is_home",
 ] as const satisfies readonly (keyof VerifiedHostRow)[];
 
-export type VerifiedNameSurface = "staff" | "missionary";
+export type VerifiedNameSurface =
+  "staff" | "missionary" | "website" | "donor_account";
 
 export const SURFACE_ADMISSION = {
   staff: { states: ["ready", "active"], home: true },
   missionary: { states: ["active"], home: true },
+  donor_account: { states: ["active"], home: true },
+  website: { states: ["active"], home: false },
 } as const satisfies Record<
   VerifiedNameSurface,
   { states: readonly VerifiedHostRow["state"][]; home: boolean }
@@ -31,14 +34,25 @@ export const VERIFIED_NAME_TIMEOUT_MS = 3000;
 export type VerifiedNameRefusal =
   "unknown" | "not_ready" | "not_home" | "not_for_surface";
 
-export type VerifiedNameLookup =
+export type VerifiedNameDecision =
   | {
       readonly kind: "admitted";
       readonly tenantId: string;
       readonly generation: number;
     }
-  | { readonly kind: "refused"; readonly reason: VerifiedNameRefusal }
-  | { readonly kind: "unavailable" };
+  | { readonly kind: "refused"; readonly reason: VerifiedNameRefusal };
+
+export type VerifiedNameLookup =
+  VerifiedNameDecision | { readonly kind: "unavailable" };
+
+export type VerifiedNameSurfacesLookup<
+  S extends VerifiedNameSurface = VerifiedNameSurface,
+> =
+  | { readonly kind: "unavailable" }
+  | {
+      readonly kind: "resolved";
+      readonly decisions: Readonly<Record<S, VerifiedNameDecision>>;
+    };
 
 type LookupAnswer = { data: unknown; error: unknown };
 
@@ -49,7 +63,7 @@ export interface VerifiedNameClient {
   ): { abortSignal(signal: AbortSignal): PromiseLike<LookupAnswer> };
 }
 
-const UNAVAILABLE: VerifiedNameLookup = { kind: "unavailable" };
+const UNAVAILABLE = { kind: "unavailable" } as const;
 
 const CANONICAL_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -102,7 +116,7 @@ function wellFormed(raw: unknown): WellFormedRow | null {
 function decide(
   row: WellFormedRow,
   surface: VerifiedNameSurface,
-): VerifiedNameLookup {
+): VerifiedNameDecision {
   const rule = SURFACE_ADMISSION[surface];
   if (!(rule.states as readonly string[]).includes(row.state)) {
     return { kind: "refused", reason: "not_ready" };
@@ -142,11 +156,13 @@ async function askWithin(
   }
 }
 
-export async function lookUpVerifiedName(
+export async function lookUpVerifiedNameSurfaces<
+  const S extends VerifiedNameSurface,
+>(
   host: string,
-  surface: VerifiedNameSurface,
+  surfaces: readonly S[],
   client?: VerifiedNameClient,
-): Promise<VerifiedNameLookup> {
+): Promise<VerifiedNameSurfacesLookup<S>> {
   let answer: LookupAnswer | null;
   try {
     const lookupClient = client ?? createVerifiedNameClient();
@@ -158,10 +174,33 @@ export async function lookUpVerifiedName(
   if (!answer || answer.error || !Array.isArray(answer.data)) {
     return UNAVAILABLE;
   }
-  if (answer.data.length === 0) return { kind: "refused", reason: "unknown" };
+  if (answer.data.length === 0) {
+    const decisions = Object.fromEntries(
+      surfaces.map((surface) => [
+        surface,
+        { kind: "refused", reason: "unknown" } as const,
+      ]),
+    ) as Record<S, VerifiedNameDecision>;
+    return { kind: "resolved", decisions };
+  }
   if (answer.data.length > 1) return UNAVAILABLE;
   const row = wellFormed(answer.data[0]);
-  return row ? decide(row, surface) : UNAVAILABLE;
+  if (!row) return UNAVAILABLE;
+  const decisions = Object.fromEntries(
+    surfaces.map((surface) => [surface, decide(row, surface)]),
+  ) as Record<S, VerifiedNameDecision>;
+  return { kind: "resolved", decisions };
+}
+
+export async function lookUpVerifiedName(
+  host: string,
+  surface: VerifiedNameSurface,
+  client?: VerifiedNameClient,
+): Promise<VerifiedNameLookup> {
+  const result = await lookUpVerifiedNameSurfaces(host, [surface], client);
+  return result.kind === "unavailable"
+    ? UNAVAILABLE
+    : result.decisions[surface];
 }
 
 export function verifiedNameUnavailable(): NextResponse {
