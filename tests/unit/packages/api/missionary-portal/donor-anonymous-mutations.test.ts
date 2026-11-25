@@ -16,7 +16,10 @@ type DonorRow = {
   tags: string[];
 };
 
-function database(preferences: unknown, restricted: unknown = false) {
+const MISSING = Symbol("the column is not read");
+
+function database(preferences: unknown, ...fact: unknown[]) {
+  const restricted = fact.length === 0 ? false : fact[0];
   const row: DonorRow = {
     id: "donor-1",
     tenant_id: "tenant-1",
@@ -68,6 +71,7 @@ function database(preferences: unknown, restricted: unknown = false) {
             .split(",")
             .map((column) => column.trim())
             .filter(Boolean)
+            .filter((column) => Reflect.get(row, column) !== MISSING)
             .map((column) => [column, Reflect.get(row, column)]),
         );
         return { data: picked, error: null };
@@ -186,8 +190,8 @@ describe.each(["tags", "profile"] as const)(
 describe.each(["tags", "profile", "activity"] as const)(
   "AL-2678 WP5 part 2-r2s: a %s write on a hidden donor answers 404, as for an anonymous partner (Q2)",
   (kind) => {
-    it.each([true, null, undefined, "false", 0])(
-      "a donor who chose to be named but whose restriction fact is %j is refused",
+    it.each([true, null, undefined, "false", 0, MISSING])(
+      "a donor who chose to be named but whose restriction fact is %s is refused",
       async (fact) => {
         const fixture = database({ defaultAnonymousToRecipient: false }, fact);
         await expect(save(kind, fixture)).rejects.toMatchObject({
