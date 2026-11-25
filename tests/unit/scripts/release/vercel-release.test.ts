@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   PRODUCTION_HOSTS,
@@ -31,10 +31,6 @@ const NO_NETWORK_PRELOAD =
   "data:text/javascript,globalThis.fetch=()=>{throw new Error('network disabled in unit test')}";
 
 describe("release job: Vercel steps", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("refuses to deploy while production domains are assigned on deploy", async () => {
     const { call } = fakeVercel({ autoAssign: true });
     await expect(assertStagingEnabled({ call, app: "admin" })).rejects.toThrow(
@@ -327,9 +323,6 @@ describe("release job: Vercel steps", () => {
   });
 
   it("plan CLI reads RELEASE_APPS_MODE=all and writes all three apps to GITHUB_OUTPUT without reading live commits", async () => {
-    vi.stubGlobal("fetch", () => {
-      throw new Error("network disabled in unit test");
-    });
     const dir = mkdtempSync(path.join(os.tmpdir(), "vercel-release-plan-"));
     try {
       const outputFile = path.join(dir, "github-output");
@@ -404,9 +397,6 @@ describe("release job: Vercel steps", () => {
   ])(
     "plan CLI keeps changed-only behaviour when RELEASE_APPS_MODE is %s",
     async (_label, mode) => {
-      vi.stubGlobal("fetch", () => {
-        throw new Error("network disabled in unit test");
-      });
       const dir = mkdtempSync(path.join(os.tmpdir(), "vercel-release-plan-"));
       try {
         const live = "b".repeat(40);
@@ -453,9 +443,6 @@ describe("release job: Vercel steps", () => {
   it.each(["", " ", "ALL", "admin", "everything"])(
     "plan CLI refuses invalid RELEASE_APPS_MODE %j with exit code 1 and writes no output",
     async (badValue) => {
-      vi.stubGlobal("fetch", () => {
-        throw new Error("network disabled in unit test");
-      });
       const dir = mkdtempSync(path.join(os.tmpdir(), "vercel-release-bad-"));
       try {
         const outputFile = path.join(dir, "github-output");

@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { forbidNetwork } from "./support/vercel-release-fixtures";
 import {
@@ -15,14 +15,7 @@ import {
 forbidNetwork();
 
 describe("release job: Vercel steps", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("plan CLI reads git file lists larger than 1 MiB and non-ASCII paths without misreporting ancestry", async () => {
-    vi.stubGlobal("fetch", () => {
-      throw new Error("network disabled in unit test");
-    });
     const dir = mkdtempSync(
       path.join(os.tmpdir(), "vercel-release-large-plan-"),
     );
@@ -147,9 +140,6 @@ describe("release job: Vercel steps", () => {
   });
 
   it("plan CLI selects an app when a file is moved out of its directory into docs", async () => {
-    vi.stubGlobal("fetch", () => {
-      throw new Error("network disabled in unit test");
-    });
     const dir = mkdtempSync(
       path.join(os.tmpdir(), "vercel-release-rename-plan-"),
     );
@@ -240,10 +230,6 @@ describe("release job: Vercel steps", () => {
   });
 
   it("reports 'could not determine ancestry' on merge-base exit 128 or spawn error while keeping exit 1 as non-ancestor", async () => {
-    vi.stubGlobal("fetch", () => {
-      throw new Error("network disabled in unit test");
-    });
-
     const missingCommit = "d".repeat(40);
     const divergedPlaceholder = "c".repeat(40);
     const directPlan = selectReleaseApps({
