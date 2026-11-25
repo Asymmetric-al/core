@@ -22,7 +22,7 @@ function fresh(): Ids {
 
 const q = (value: string) => `'${value}'`;
 const party = (v: Ids, key: string, tenant: string, level: string) =>
-  `insert into public.parties (id, tenant_id, display_name, security_level, security_level_source) values (${q(v[key]!)}, ${q(v[tenant]!)}, 'r2s ${key}', '${level}', 'manual');`;
+  `insert into public.parties (id, tenant_id, display_name, security_level, security_level_source, public_alias) values (${q(v[key]!)}, ${q(v[tenant]!)}, 'r2s ${key}', '${level}', 'manual', ${["standard", "sensitive"].includes(level) ? "null" : `'Alias ${key}'`});`;
 const donor = (
   v: Ids,
   key: string,
@@ -236,7 +236,7 @@ const TRUTH: Case[] = [
       {
         sql: `alter table public.parties drop constraint parties_security_level_check;
               alter table public.parties alter column security_level drop not null;
-              update public.parties set security_level = 'unknown' where id = ${q(v.P!)};`,
+              update public.parties set security_level = 'unknown', public_alias = 'Alias P' where id = ${q(v.P!)};`,
         expected: true,
       },
       {
@@ -319,11 +319,13 @@ describe.skipIf(!ADMIN_URL)(
                 p.prorettype::regtype::text as returns,
                 p.prosrc ~* '\\mprofiles\\M' as names_profiles,
                 p.prosrc ~ '--' as has_comment,
-                (select coalesce(array_agg(distinct case when a.grantee = 0 then 'PUBLIC' else pg_catalog.pg_get_userbyid(a.grantee) end order by 1), '{}')
-                   from pg_catalog.aclexplode(p.proacl) as a) as grantees,
-                (select coalesce(array_agg(distinct a.privilege_type order by 1), '{}')
-                   from pg_catalog.aclexplode(p.proacl) as a
-                  where a.grantee = 'service_role'::regrole) as service_role_privileges,
+                (select coalesce(array_agg(g.name order by g.name), '{}')
+                   from (select distinct case when a.grantee = 0 then 'PUBLIC' else pg_catalog.pg_get_userbyid(a.grantee)::text end as name
+                           from pg_catalog.aclexplode(p.proacl) as a) as g) as grantees,
+                (select coalesce(array_agg(g.privilege order by g.privilege), '{}')
+                   from (select distinct a.privilege_type as privilege
+                           from pg_catalog.aclexplode(p.proacl) as a
+                          where a.grantee = 'service_role'::regrole) as g) as service_role_privileges,
                 pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE') as anon_executes,
                 pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE') as authenticated_executes,
                 pg_catalog.has_function_privilege('service_role', p.oid, 'EXECUTE') as service_role_executes
