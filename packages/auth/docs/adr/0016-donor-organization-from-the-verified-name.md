@@ -73,15 +73,26 @@ organizations (the interim single-organization fallback until WP3).
      `normalized`.
 
 4. **Exact exempt paths and three path classes.**
-   - **Exempt** (`DONOR_EXEMPT_PATHS`, exact equality on `normalized` for
-     non-transport paths only, never a prefix, `%2F` spelling, or transport form;
-     `ruling-wp3b-part1.md` Q3): `/api/webhooks/stripe`, `/api/health`,
-     `/api/health/migrations`, and `/api/playwright-ready` (pinned to a
-     constant `{ status: "ok" }` with no data read). Next.js's adapter emits no
-     `.segments/` output for Route Handlers and already strips a single `.rsc`
-     before `proxy()` runs, so transport forms of exempt paths are never exempt.
-     Exempt requests make no lookup and enter `authProxy(cleaned)` with no
-     `nameTenantId`, removing any client `x-asym-name-tenant`.
+   - **Exempt** (`DONOR_EXEMPT_PATHS`, exact equality on `normalized` when
+     `transport === "none"`, never a prefix, `%2F` spelling, `.segments/` path,
+     or leftover `.rsc` seen by the proxy; `ruling-wp3b-part1.md` Q3):
+     `/api/webhooks/stripe`, `/api/health`, `/api/health/migrations`, and
+     `/api/playwright-ready` (pinned to a constant `{ status: "ok" }` with no
+     data read). Next.js's adapter emits no `.segments/` output for Route
+     Handlers, so `.segments/` paths for exempt routes reach `proxy()` with
+     `transport === "segment"` and are never exempt; a leftover `.rsc` still
+     present when `proxy()` runs (such as raw `/api/health.rsc.rsc` after Next
+     strips one `.rsc`) carries `transport === "rsc"` and is not exempt either.
+     By contrast, `server/web/adapter.js` strips a single trailing `.rsc` before
+     `proxy()` runs, so a raw `/api/health.rsc` reaches `proxy()` as
+     `/api/health`, is exempt, and makes no lookup: on an adapter build Next.js
+     answers it with the same Route Handler (`build-complete.js` emits
+     `<route>.rsc` for `APP_ROUTE`), while on self-hosted `next start`
+     (non-minimal mode) the router does not strip `.rsc` (`filesystem.js`) and
+     `(public)/(solid)/[...cmsSlug]` answers with website content only on any
+     name, which is WP7's (the matcher and the catch-all). Exempt requests make
+     no lookup and enter `authProxy(cleaned)` with no `nameTenantId`, removing
+     any client `x-asym-name-tenant`.
    - **Host:** `request.headers.get("host")?.trim()` (port kept, never
      `x-forwarded-host` or `request.url`). Absent or blank returns
      `frontNotFound()` with no lookup.

@@ -896,7 +896,7 @@ describe("on: Next.js App Router transport paths", () => {
     }
   });
 
-  it("never exempts segment prefetch or leftover .rsc forms of exempt paths", async () => {
+  it("never exempts proxy-received segment prefetch forms or leftover .rsc paths (such as raw /api/health.rsc.rsc after Next strips one .rsc)", async () => {
     const exemptTransports = [
       segPath("/api/health"),
       segPath("/api/webhooks/stripe"),
@@ -918,6 +918,33 @@ describe("on: Next.js App Router transport paths", () => {
         expect(state.lookups, `${host} ${p}`).toEqual([host]);
       }
     }
+  });
+
+  it("refuses /login carrying next-router-segment-prefetch header on site-a and forwards it on home-a", async () => {
+    const headers = {
+      rsc: "1",
+      "next-router-prefetch": "1",
+      "next-router-segment-prefetch": "/_tree",
+    };
+    state.userId = USER_D;
+    state.rows = [D_A, D_B];
+    state.lookups = [];
+    state.sessionReads = 0;
+    await expectRefused(
+      await donorModule.proxy(donorRequest(SITE_A, "/login", { headers })),
+      "site-a /login segment-prefetch header",
+    );
+    expect(state.sessionReads).toBe(0);
+    expect(state.lookups).toEqual([SITE_A]);
+
+    state.userId = null;
+    state.lookups = [];
+    const admitted = await donorModule.proxy(
+      donorRequest(HOME_A, "/login", { headers: { ...headers, [NAME]: TB } }),
+    );
+    expect(admitted.headers.get("x-middleware-next")).toBe("1");
+    expect(forwarded(admitted, NAME)).toBe(TA);
+    expect(state.lookups).toEqual([HOME_A]);
   });
 
   it("maps leftover .rsc transport paths to their page class and refuses malformed .rsc forms with zero lookups", async () => {
