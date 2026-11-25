@@ -919,7 +919,8 @@ function mapDonation(data: Record<string, unknown>) {
 }
 
 function mapSupporterDonation(data: Record<string, unknown>) {
-  const donor = data.donor as {
+  const donor = ((Array.isArray(data.donor) ? data.donor[0] : data.donor) ??
+    null) as {
     giving_preferences?: unknown;
     donor_is_restricted_party?: unknown;
     profile?: Record<string, unknown> | null;
