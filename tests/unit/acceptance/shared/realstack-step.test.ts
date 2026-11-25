@@ -369,6 +369,10 @@ const REAL_DATABASE_FILES = [
     "issue-2677/member-care-commands.realstack",
     "issue-2679/media-custody.realstack",
     "issue-2681/wp8a-part1.realstack",
+    "issue-2681/wp8a-p2r1a-intake.realstack",
+    "issue-2681/wp8a-p2r1a-legacy.realstack",
+    "issue-2681/wp8a-p2r1a-machine.realstack",
+    "issue-2681/wp8a-p2r1a-record.realstack",
   ].map((f) => `${A}/${f}.acceptance.test.ts`),
   // #2714: the release job's database suites and Payload's CMS roles.
   "tests/unit/cms/cms-database-roles.realstack.test.ts",
