@@ -208,14 +208,36 @@ function firstCallArgument(text, openIndex) {
 }
 
 const IDENT = "[A-Za-z_][A-Za-z0-9_$]*";
+const QUOTED_NAME_SENTINEL = "§";
+
+const QUOTED_KEYWORDS = new Set(
+  `absolute alias all alter analyse analyze and any array as asc assert asymmetric backward begin between both by
+   call case cast chain check close cluster collate column column_name comment commit constant constraint
+   constraint_name continue copy create cross current current_catalog current_date current_role current_time
+   current_timestamp current_user cursor datatype deallocate debug declare default deferrable delete desc detail
+   diagnostics discard distinct do drop dump else elseif elsif end error except exception execute exit false fetch
+   filter first for foreach foreign forward from full get grant group having hint if ilike import in info
+   initially inner insert intersect into is join key label last lateral leading left like limit listen localtime
+   localtimestamp lock locked log loop merge message message_text move natural next no not notice notify nowait
+   null of offset on only open option or order over perform pg_context pg_datatype_name pg_exception_context
+   pg_exception_detail pg_exception_hint pg_routine_oid placing prepare primary print_strict_params prior query
+   raise recursive references refresh reindex relative reset return returned_sqlstate returning reverse revoke
+   right rollback row_count rowtype savepoint schema schema_name scroll security select session_user set share
+   similar skip slice some sqlstate stacked strict symmetric system_user table table_name then to trailing true
+   truncate type union unique unlisten update use_column use_variable user using vacuum variable_conflict variadic
+   warning when where while window with within`
+    .split(/\s+/)
+    .filter(Boolean),
+);
 
 function normalizedBody(body, stripComments) {
   return stripComments(String(body ?? ""), { blankStrings: true }).replace(
     /"((?:[^"]|"")+)"/g,
     (_quoted, name) =>
-      /^[A-Za-z_][A-Za-z0-9_$]*$/.test(name)
+      /^[A-Za-z_][A-Za-z0-9_$]*$/.test(name) &&
+      !QUOTED_KEYWORDS.has(name.toLowerCase())
         ? name.toLowerCase()
-        : "_".repeat(name.length + 2),
+        : QUOTED_NAME_SENTINEL.repeat(name.length + 2),
   );
 }
 
@@ -313,7 +335,8 @@ function isAnchorStatement(statement, variable, scope) {
   if (
     ["null", "true", "false"].includes(column) ||
     scope.namedParams.has(column) ||
-    scope.locals.has(column)
+    scope.locals.has(column) ||
+    column === scope.functionName
   )
     return false;
   return isPlainPredicate(predicate);
@@ -359,10 +382,20 @@ function isVariableAnchorRead(variable, text, scope) {
     `(?:\\bDIAGNOSTICS\\b[^;]*\\b${v}\\b|\\bFOR\\s+${v}\\s+IN\\b)`,
     "i",
   );
+  const initialisedDeclaration = new RegExp(
+    `^\\s*${v}\\s[\\s\\S]*?(?::=|=|\\bDEFAULT\\b)`,
+    "i",
+  );
+  const declaredWithValue = [
+    ...text.matchAll(/\bDECLARE\b([\s\S]*?)\bBEGIN\b/gi),
+  ].some((block) =>
+    block[1].split(";").some((part) => initialisedDeclaration.test(part)),
+  );
   if (
     assignment.test(text) ||
     statementAssignment.test(text) ||
     declaredDefault.test(text) ||
+    declaredWithValue ||
     otherWrites.test(text)
   )
     return false;
@@ -397,6 +430,11 @@ export function workerWrapperPassesTenantArg(
     if (name.includes("tenant")) return true;
   }
   const text = normalizedBody(body, stripComments);
+  if (/#\s*variable_conflict\b/i.test(text)) return true;
+  if (
+    new RegExp(`tenant_guard\\s*\\.\\s*${QUOTED_NAME_SENTINEL}`, "i").test(text)
+  )
+    return true;
   const callRe =
     /(?:^|[^A-Za-z0-9_$."])tenant_guard\s*\.\s*[A-Za-z_][A-Za-z0-9_$]*\s*\(/gi;
   const calls = [...text.matchAll(callRe)];
@@ -474,6 +512,12 @@ export function workerWrapperHasWrite(
     " ",
   );
   if (WRAPPER_STATEMENT_RE.test(text)) return true;
+  if (
+    new RegExp(`${QUOTED_NAME_SENTINEL}+\\s*(?:\\.\\s*${IDENT}\\s*)?\\(`).test(
+      text,
+    )
+  )
+    return true;
   if (!isPlpgsqlBody(text, language) && /\bINTO\b/i.test(text)) return true;
   const callRe =
     /(?<![A-Za-z0-9_$.:])(?:([A-Za-z_][A-Za-z0-9_$]*)\s*\.\s*)?([A-Za-z_][A-Za-z0-9_$]*)\s*\(/g;
