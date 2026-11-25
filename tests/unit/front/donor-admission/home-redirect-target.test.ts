@@ -205,6 +205,26 @@ describe("on: only the home read decides the target (ruling 1 Q6, ruling Q2)", (
     );
   });
 
+  it("refuses with 404 a listener port of 65536, which passes the digit pattern and fails the range (guard)", () => {
+    const refused = homeRedirect(
+      "home-a.localhost",
+      { port: "65536", searchParams: new URLSearchParams() },
+      "/register",
+    );
+    expect(refused.status).toBe(404);
+    expect(refused.headers.get("cache-control")).toBe("no-store");
+    expect(refused.headers.get("location")).toBeNull();
+    const highest = homeRedirect(
+      "home-a.localhost",
+      { port: "65535", searchParams: new URLSearchParams() },
+      "/register",
+    );
+    expect(highest.status).toBe(307);
+    expect(highest.headers.get("location")).toBe(
+      "http://home-a.localhost:65535/register",
+    );
+  });
+
   it("refuses with 404 when the listener port is not 1 to 65535", async () => {
     await expectRefused(
       await donorModule.proxy(
@@ -241,6 +261,10 @@ describe("on: only the home read decides the target (ruling 1 Q6, ruling Q2)", (
     ["evil.example:80", [{ primary_domain: "evil.example:80" }]],
     ["HOME-A.localhost", [{ primary_domain: "HOME-A.localhost" }]],
     ["home-a.localhost/x", [{ primary_domain: "home-a.localhost/x" }]],
+    [
+      "xn--a---.example.org, a label ending in a hyphen, refused before the last check (guard)",
+      [{ primary_domain: "xn--a---.example.org" }],
+    ],
     [
       "two rows",
       [

@@ -149,6 +149,28 @@ describe.skipIf(!ADMIN_URL)(
           expect(await homeAsAnon(db, asked), String(asked)).toEqual([]);
       }));
 
+    it("gives nothing for an empty name or a Unicode name, even the Unicode spelling of a name stored in its ASCII form (guard)", () =>
+      fixture(async (f) => {
+        const ascii = `xn--bcher-kva.${f.ta}.example.org`;
+        await db.query(
+          claimSql({
+            host: ascii,
+            tenant: f.ta,
+            site: f.siteA,
+            surfaces: ["website"],
+          }),
+        );
+        expect(await homeAsAnon(db, ascii)).toEqual(home(f.homeA));
+        for (const asked of [
+          "",
+          "bücher.example.org",
+          ascii.replace("xn--bcher-kva", "bücher"),
+        ])
+          expect(await homeAsAnon(db, asked), JSON.stringify(asked)).toEqual(
+            [],
+          );
+      }));
+
     it("gives nothing when the home record names no host, the home is ready, or the home lacks donor_account", async () => {
       await fixture(async (f) => {
         await db.query(

@@ -174,6 +174,25 @@ describe("on: index table 6.2, next on GET /register (every row the redirect bra
     );
   });
 
+  it("keeps the stored home as the destination's host with @ in the path or in next, keeping next=/@evil.example and dropping next=user@evil.example (guard)", async () => {
+    const cases: Array<[string, string]> = [
+      ["/register/@evil.example", homeLocation("/register/@evil.example")],
+      [
+        "/register?next=/@evil.example",
+        homeLocation("/register", "?next=%2F%40evil.example"),
+      ],
+      ["/register?next=user@evil.example", homeLocation("/register")],
+    ];
+    for (const [path, location] of cases) {
+      const response = await donorModule.proxy(siteRequest(SITE_A, path));
+      await expectHomeRedirect(response, location, path);
+      const target = new URL(response.headers.get("location")!);
+      expect(target.hostname, path).toBe("home-a.localhost");
+      expect(target.username, path).toBe("");
+      expect(target.password, path).toBe("");
+    }
+  });
+
   it("drops every other key, code included", async () => {
     const others =
       "code=x&type=recovery&token_hash=t&error=e&utm_source=s&tenant=00000000-0000-0000-0000-000000000002&host=evil.example";

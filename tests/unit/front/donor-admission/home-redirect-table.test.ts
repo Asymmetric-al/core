@@ -269,6 +269,22 @@ describe("on: index table 6.1, the path forms on a Site name and the branch that
     }
   });
 
+  it("keeps part 1's 404 with zero home reads for DELETE /register and PATCH /donor-dashboard: only GET and HEAD redirect, every other method keeps the account refusal (guard)", async () => {
+    for (const [method, path] of [
+      ["DELETE", "/register"],
+      ["PATCH", "/donor-dashboard"],
+    ] as const) {
+      fresh();
+      await expectRefused(
+        await donorModule.proxy(siteRequest(SITE_A, path, { method })),
+        `${method} ${path}`,
+      );
+      expect(state.lookups, `${method} ${path}`).toEqual([SITE_A]);
+      expect(state.homeReads, `${method} ${path}`).toEqual([]);
+      expect(state.sessionReads, `${method} ${path}`).toBe(0);
+    }
+  });
+
   it("in a direct proxy() call keeps 404 with zero home reads for a .rsc or .segments/ form (a server strips one .rsc first, so live /register.rsc arrives as /register and gets the 307)", async () => {
     for (const path of [
       "/register.rsc",
