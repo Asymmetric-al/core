@@ -86,7 +86,8 @@ const DONOR_RELATIONSHIP_SELECT = `
   frequency,
   tags,
   has_active_pledge,
-  giving_preferences
+  giving_preferences,
+  donor_is_restricted_party
 `;
 
 const TASK_SELECT = `
@@ -103,7 +104,7 @@ const TASK_SELECT = `
   completed_at,
   created_at,
   updated_at,
-  donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url, giving_preferences)
+  donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url, giving_preferences, donor_is_restricted_party)
 `;
 
 const POST_SELECT = `

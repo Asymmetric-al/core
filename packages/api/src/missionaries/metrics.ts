@@ -121,20 +121,26 @@ const MAX_HISTORY_MONTHS = 25;
  */
 export function redactAnonymousGiftDonors<
   T extends { donor_id: string | null },
->(gifts: T[], donors: { id: string; giving_preferences: unknown }[]): T[] {
-  const preferences = new Map(
-    donors.map((donor) => [donor.id, donor.giving_preferences]),
-  );
+>(gifts: T[], donors: GiftDonorRow[]): T[] {
+  const byId = new Map(donors.map((donor) => [donor.id, donor]));
   return gifts.map((gift) => {
     if (!gift.donor_id) return gift;
+    const donor = byId.get(gift.donor_id);
     const named =
-      preferences.has(gift.donor_id) &&
+      donor !== undefined &&
       !isAnonymousToRecipient({
-        givingPreferences: preferences.get(gift.donor_id),
+        givingPreferences: donor.giving_preferences,
+        restrictedParty: donor.donor_is_restricted_party,
       });
     return named ? gift : { ...gift, donor_id: null };
   });
 }
+
+type GiftDonorRow = {
+  id: string;
+  giving_preferences: unknown;
+  donor_is_restricted_party?: unknown;
+};
 
 export function historyMonthsParam(request: { url: string }): number {
   const raw = new URL(request.url).searchParams.get("months");
@@ -433,14 +439,14 @@ export async function GET(
         gifts.flatMap((gift) => (gift.donor_id ? [gift.donor_id] : [])),
       ),
     ];
-    let donors: { id: string; giving_preferences: unknown }[] = [];
+    let donors: GiftDonorRow[] = [];
     if (donorIds.length > 0) {
       const donorRead = await dataReader
         .from("donors")
-        .select("id, giving_preferences")
+        .select("id, giving_preferences, donor_is_restricted_party")
         .in("id", donorIds);
       // Without preferences every gift stays anonymous (fail closed).
-      donors = donorRead.data ?? [];
+      donors = (donorRead.data ?? []) as unknown as GiftDonorRow[];
     }
 
     return jsonWithCookies(
