@@ -10,8 +10,8 @@ let next = 0x800;
 function makeRow(
   userId: string,
   tenant: string,
-  role: "donor" | "missionary" | "staff",
-  staffRole: string | null = null,
+  role: MembershipRole,
+  staffRole: StaffSubrole | null = null,
 ) {
   next += 1;
   return {
@@ -34,7 +34,7 @@ const STAFF_B = makeRow(USER_D, TB, "staff", "development");
 const MISS_A = makeRow(USER_D, TA, "missionary");
 const MISS_B = makeRow(USER_D, TB, "missionary");
 
-function asAssignment(r: ReturnType<typeof makeRow>) {
+function asAssignment(r: ReturnType<typeof makeRow>): ActiveAssignment {
   return {
     assignmentId: r.id,
     userId: r.user_id,
@@ -146,6 +146,9 @@ import {
   readServerNameTenantState,
 } from "./tenant-server";
 
+import type { ActiveAssignment } from "./principal/types";
+import type { MembershipRole, StaffSubrole } from "@asym/database/types";
+
 function donorRequest(headers: Record<string, string>) {
   return new Request("http://localhost/api/donor/portal", {
     headers: { "x-asym-role-class": "donor", ...headers },
@@ -172,7 +175,7 @@ function authenticatedDonor(r: ReturnType<typeof makeRow>): AuthContext {
         isTenantAdmin: false,
       },
     ],
-    assignment: asAssignment(r) as never,
+    assignment: asAssignment(r),
     assignmentDenial: null,
     profileId: "profile-donor",
     isAuthenticated: true,
@@ -376,7 +379,7 @@ describe("on: which organization a donor acts in", () => {
           tenantId: TA,
           role: "staff",
           memberships: [],
-          assignment: asAssignment(STAFF_A) as never,
+          assignment: asAssignment(STAFF_A),
           profileId: "profile-donor",
           isAuthenticated: true,
         }),
@@ -399,10 +402,10 @@ describe("on: which organization a donor acts in", () => {
 });
 
 describe("selectAssignment directly with nameTenantId", () => {
-  const donorRows = [asAssignment(D_A), asAssignment(D_B)] as never;
-  const twoDonorA = [asAssignment(D_A), asAssignment(D_A2)] as never;
-  const staffRows = [asAssignment(STAFF_A), asAssignment(STAFF_B)] as never;
-  const missionaryRows = [asAssignment(MISS_A), asAssignment(MISS_B)] as never;
+  const donorRows = [asAssignment(D_A), asAssignment(D_B)];
+  const twoDonorA = [asAssignment(D_A), asAssignment(D_A2)];
+  const staffRows = [asAssignment(STAFF_A), asAssignment(STAFF_B)];
+  const missionaryRows = [asAssignment(MISS_A), asAssignment(MISS_B)];
 
   it("refuses donor with nameTenantId and absent or different expectedTenantId as tenant_mismatch", () => {
     expect(
