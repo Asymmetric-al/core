@@ -1,7 +1,21 @@
-import { routeToDashboard, withoutFrontHeaders } from "@asym/auth/front";
+import {
+  frontNotFound,
+  routeToDashboard,
+  withoutFrontHeaders,
+} from "@asym/auth/front";
 import { createAuthMiddleware } from "@asym/auth/middleware";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
+import {
+  lookUpVerifiedNameSurfaces,
+  verifiedNameUnavailable,
+} from "@asym/auth/verified-name";
 import { isServeUnderPathsEnabled } from "@asym/database/document-reload";
+
+import {
+  classifyDonorPath,
+  isDonorExemptPath,
+  resolveDonorPath,
+} from "./lib/route-policy";
 
 import type { NextRequest } from "next/server";
 
@@ -44,7 +58,36 @@ export async function proxy(request: NextRequest) {
   }
   const routed = await routeToDashboard(request, process.env);
   if (routed) return routed;
-  return authProxy(withoutFrontHeaders(request, { stripForwardedHost: true }));
+
+  const cleaned = withoutFrontHeaders(request, { stripForwardedHost: true });
+  const resolved = resolveDonorPath(request.nextUrl.pathname);
+  if (resolved === null) return frontNotFound();
+  if (resolved.transport === "none" && isDonorExemptPath(resolved.pathname)) {
+    return authProxy(cleaned);
+  }
+
+  const host = request.headers.get("host")?.trim();
+  if (!host) return frontNotFound();
+
+  const lookup = await lookUpVerifiedNameSurfaces(host, [
+    "donor_account",
+    "website",
+  ]);
+  if (lookup.kind === "unavailable") return verifiedNameUnavailable();
+
+  const pathClass = classifyDonorPath(resolved.pathname);
+  const { donor_account: account, website } = lookup.decisions;
+  const admitted =
+    pathClass === "account"
+      ? account
+      : pathClass === "website"
+        ? website
+        : account.kind === "admitted"
+          ? account
+          : website;
+
+  if (admitted.kind !== "admitted") return frontNotFound();
+  return authProxy(cleaned, { nameTenantId: admitted.tenantId });
 }
 
 export const config = {

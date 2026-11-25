@@ -341,6 +341,9 @@ function selection(narrowing: AssignmentNarrowing, roleClass: RoleClass) {
     ...(narrowing.expectedTenantId !== undefined
       ? { expectedTenantId: narrowing.expectedTenantId }
       : {}),
+    ...(narrowing.nameTenantId !== null
+      ? { nameTenantId: narrowing.nameTenantId }
+      : {}),
   };
 }
 

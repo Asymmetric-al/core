@@ -116,7 +116,7 @@ async function DonorPortalDocument({
     redirect("/no-access");
   }
 
-  const scope = readPortalDocumentScope(authContext);
+  const scope = await readPortalDocumentScope(authContext);
   if (!scope) {
     redirect("/no-access");
   }

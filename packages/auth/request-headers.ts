@@ -1,7 +1,4 @@
-import {
-  appBasePath,
-  isServeUnderPathsEnabled,
-} from "@asym/database/app-base-path";
+import { isServeUnderPathsEnabled } from "@asym/database/app-base-path";
 import {
   ASSIGNMENT_HEADER,
   SCOPE_REFUSED_HEADER,
@@ -116,10 +113,7 @@ export function readNameTenantState(headers: {
 }
 
 export function isNameTenantRefused(state: NameTenantState): boolean {
-  return (
-    state.kind === "invalid" ||
-    (state.kind === "absent" && appBasePath() !== "")
-  );
+  return state.kind === "invalid" || state.kind === "absent";
 }
 
 export function nameTenantIdOf(state: NameTenantState): string | null {

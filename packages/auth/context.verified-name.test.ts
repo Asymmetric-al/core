@@ -311,10 +311,15 @@ describe("on: a name header that cannot be trusted fails closed", () => {
     expect(mocks.rpcCalls).toBe(0);
   });
 
-  it("treats an absent header in the donor app (base path empty) as today", async () => {
+  it("refuses an absent header in the donor app (base path empty) with no_assignment and no scope refusal (D-18, WP3b part 1: on-mode refuses absent names in every app)", async () => {
     on("");
     mocks.rows = [R_A];
-    expect((await getAuthContext(apiRequest({}))).tenantId).toBe(TA);
+    const context = await getAuthContext(apiRequest({}));
+    expect(context.isAuthenticated).toBe(false);
+    expect(context.tenantId).toBeNull();
+    expect(context.assignmentDenial).toBe("no_assignment");
+    expect(context.scopeRefused).toBeFalsy();
+    expect(mocks.rpcCalls).toBe(0);
   });
 });
 
