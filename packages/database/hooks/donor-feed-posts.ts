@@ -249,14 +249,18 @@ export function formatPostRelativeTime(
 
 /** Author display name, with a neutral fallback. */
 export function postAuthorName(post: PostWithAuthor): string {
-  const name = `${post.author.first_name} ${post.author.last_name}`.trim();
-  return name.length > 0 ? name : "Ministry Partner";
+  const name = post.post_author_public_name?.trim() ?? "";
+  return name.length > 0 ? name : "Missionary";
 }
 
 /** Two-letter author initials (empty string when no name is present). */
 export function postInitials(post: PostWithAuthor): string {
-  const first = post.author.first_name?.charAt(0) ?? "";
-  const last = post.author.last_name?.charAt(0) ?? "";
+  const words = (post.post_author_public_name ?? "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const first = words[0]?.charAt(0) ?? "";
+  const last = words.length > 1 ? (words.at(-1)?.charAt(0) ?? "") : "";
   return `${first}${last}`.toUpperCase();
 }
 

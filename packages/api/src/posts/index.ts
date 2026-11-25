@@ -14,6 +14,7 @@ import { cacheLife, cacheTag, revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createMissionaryPost } from "./create";
+import { FEED_POST_SELECT } from "./select";
 import { postsQuerySchema, postWriteSchema } from "../schemas/posts";
 import { CACHE_TAGS } from "../shared/cache-tags";
 import { readJsonBodyOrNull, toErrorResponse } from "../shared/http-errors";
@@ -54,12 +55,7 @@ async function getCachedFeedPosts({
 
   let query = supabaseAdmin
     .from("posts")
-    .select(
-      `
-        *,
-        author:profiles!missionary_id(id, first_name, last_name, avatar_url)
-      `,
-    )
+    .select(FEED_POST_SELECT)
     .eq("tenant_id", tenantId)
     .eq("status", status)
     .order("created_at", { ascending: false })
