@@ -207,8 +207,9 @@ organizations (the interim single-organization fallback until WP3).
    - **Location** (`apps/donor/lib/home-redirect.ts`). Scheme and port come
      from the stored name only (ruling Q2): a home ending with the bytes
      `.localhost` gets `http:` and `:` plus `request.nextUrl.port` when that
-     is not empty (under `next start` Next.js builds the proxy's URL from its
-     own listener, `next/dist/server/next-server.js:1157-1166,1302-1305`);
+     is neither empty nor `80`, http's default, which the URL parser would
+     drop (under `next start` Next.js builds the proxy's URL from its own
+     listener, `next/dist/server/next-server.js:1157-1166,1302-1305`);
      any other home gets `https:` and no port, since `active` needs the
      HTTPS proof. Never `request.nextUrl.protocol` (it follows
      `x-forwarded-proto`, `resolve-routes.js:116-119`), `x-forwarded-*`,

@@ -47,7 +47,9 @@ export function keptNextParam(searchParams: URLSearchParams): string | null {
 
 function homeOrigin(home: string, listenerPort: string): Origin | null {
   if (!home.endsWith(LOOPBACK_SUFFIX)) return { scheme: "https:", port: "" };
-  if (listenerPort === "") return { scheme: "http:", port: "" };
+  if (listenerPort === "" || listenerPort === "80") {
+    return { scheme: "http:", port: "" };
+  }
   if (!LISTENER_PORT.test(listenerPort) || Number(listenerPort) > MAX_PORT) {
     return null;
   }
