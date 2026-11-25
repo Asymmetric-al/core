@@ -576,6 +576,148 @@ describe("on: hostile paths", () => {
       expect(state.sessionReads, `${host} ${encoded}`).toBe(0);
     }
   });
+
+  it("pins matrix parameter, NUL, control characters and F1 transport forms through proxy against Next router matching", async () => {
+    const donorDir = fileURLToPath(
+      new URL("../../../apps/donor", import.meta.url),
+    );
+    const repoRoot = fileURLToPath(new URL("../../..", import.meta.url));
+    const req = createRequire(import.meta.url);
+    const nextDir = path.dirname(
+      req.resolve("next/package.json", { paths: [donorDir, repoRoot] }),
+    );
+    const { getRouteRegex } = req(
+      path.join(nextDir, "dist/shared/lib/router/utils/route-regex.js"),
+    ) as { getRouteRegex: (route: string) => { re: RegExp } };
+    const filesystemSource = readFileSync(
+      path.join(nextDir, "dist/server/lib/router-utils/filesystem.js"),
+      "utf8",
+    );
+    expect(filesystemSource).toContain("items.has(curItemPath)");
+    expect(filesystemSource).toContain("items.has(curDecodedItemPath)");
+
+    const loginRegex = getRouteRegex("/login").re;
+    expect(loginRegex.test("/login")).toBe(true);
+    for (const candidate of [
+      "/login;x",
+      "/login%00",
+      "/login\u0000",
+      "/login%0a",
+      "/login\n",
+      "/login%1f",
+      "/login\u001f",
+    ]) {
+      expect(loginRegex.test(candidate), candidate).toBe(false);
+    }
+
+    const hostileTable: ReadonlyArray<{
+      path: string;
+      expectedClass: "account" | "website";
+      reason: string;
+    }> = [
+      {
+        path: "/login;x",
+        expectedClass: "website",
+        reason:
+          "matrix parameter does not match static /login and hits catch-all",
+      },
+      {
+        path: "/login%00",
+        expectedClass: "website",
+        reason: "encoded NUL does not match static /login and hits catch-all",
+      },
+      {
+        path: "/login%0a",
+        expectedClass: "website",
+        reason:
+          "encoded LF control char does not match static /login and hits catch-all",
+      },
+      {
+        path: "/login%1f",
+        expectedClass: "website",
+        reason:
+          "encoded US control char does not match static /login and hits catch-all",
+      },
+      {
+        path: "/login.rsc",
+        expectedClass: "account",
+        reason: "leftover RSC payload suffix maps to /login",
+      },
+      {
+        path: "/donor-dashboard.rsc",
+        expectedClass: "account",
+        reason: "leftover RSC payload suffix maps to /donor-dashboard",
+      },
+      {
+        path: "/index.rsc",
+        expectedClass: "website",
+        reason: "root RSC payload suffix maps to /",
+      },
+      {
+        path: "/login.segments/_tree.segment",
+        expectedClass: "account",
+        reason: "adapter-stripped segment prefetch path maps to /login",
+      },
+      {
+        path: "/login.segments/_tree.segment.rsc",
+        expectedClass: "account",
+        reason: "raw segment prefetch path maps to /login",
+      },
+      {
+        path: "/index.segments/_tree.segment",
+        expectedClass: "website",
+        reason: "root segment prefetch path maps to /",
+      },
+    ];
+
+    for (const { path: hostilePath, expectedClass, reason } of hostileTable) {
+      const normalized = normalizeDonorPath(hostilePath);
+      expect(normalized, reason).not.toBeNull();
+      expect(classifyDonorPath(normalized!), reason).toBe(expectedClass);
+
+      state.userId = null;
+      if (expectedClass === "website") {
+        const onSite = await donorModule.proxy(
+          donorRequest(SITE_A, hostilePath),
+        );
+        expect(
+          onSite.headers.get("x-middleware-next"),
+          `${hostilePath}: ${reason}`,
+        ).toBe("1");
+        expect(forwarded(onSite, NAME), hostilePath).toBe(TA);
+
+        state.lookups = [];
+        state.sessionReads = 0;
+        await expectRefused(
+          await donorModule.proxy(donorRequest(BARE_B, hostilePath)),
+          `bare-b ${hostilePath}: ${reason}`,
+        );
+        expect(state.lookups, hostilePath).toEqual([BARE_B]);
+        expect(state.sessionReads, hostilePath).toBe(0);
+      } else {
+        state.userId = USER_D;
+        state.rows = [D_A, D_B];
+        state.lookups = [];
+        state.sessionReads = 0;
+        await expectRefused(
+          await donorModule.proxy(donorRequest(SITE_A, hostilePath)),
+          `site-a ${hostilePath}: ${reason}`,
+        );
+        expect(state.lookups, hostilePath).toEqual([SITE_A]);
+        expect(state.sessionReads, hostilePath).toBe(0);
+
+        state.userId = null;
+        const onBareB = await donorModule.proxy(
+          donorRequest(BARE_B, hostilePath, { headers: { [NAME]: TA } }),
+        );
+        expect(
+          onBareB.headers.get("x-middleware-next"),
+          `${hostilePath}: ${reason}`,
+        ).toBe("1");
+        expect(forwarded(onBareB, NAME), hostilePath).toBe(TB);
+      }
+    }
+  });
 });
 
 function readInstalledNextTransport() {
