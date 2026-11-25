@@ -221,6 +221,38 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
       expect(workflow).toContain(`      - ${file}\n`);
   });
 
+  it("requires the supporter-name proof through PostgREST after fingerprinting, started by every reader it drives (AL-2678 r2s)", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2678/supporter-names.postgrest.acceptance.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(marker);
+    expect(run).toBeDefined();
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    for (const variable of [
+      "WP5_IDENTITY_IT_URL",
+      "WP5_IDENTITY_IT_DATABASE_URL",
+      "WP5_IDENTITY_IT_SERVICE_KEY",
+      "WP5_IDENTITY_IT_ANON_KEY",
+    ])
+      expect(run).toContain(variable);
+    expect(run).toContain("supabase -- status -o json");
+    expect(
+      run!.split("\n").map((line) => line.trim()),
+      "the Vitest run is a command of its own, so its exit status fails the step",
+    ).toContain(marker);
+    expect(run).not.toMatch(/\|\||;\s*true\b|\bset \+e\b|continue-on-error/);
+    expect(at(marker)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
+    for (const file of [
+      suite,
+      "packages/api/src/missionary-portal/**",
+      "packages/api/src/follower-requests/**",
+      "packages/api/src/missionaries/**",
+      "packages/api/src/donations/**",
+      "packages/graphql/**",
+    ])
+      expect(workflow).toContain(`      - ${file}\n`);
+  });
+
   it("exercises the missionary handlers against the stack after fingerprinting", () => {
     const suite =
       "tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts";

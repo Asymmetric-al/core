@@ -124,6 +124,7 @@ describe("missionary currency projections", () => {
           total_given: 50000,
           last_gift_amount: 1000,
           giving_preferences: { defaultAnonymousToRecipient: false },
+          donor_is_restricted_party: false,
         },
       ],
       activities: [],
