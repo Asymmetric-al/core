@@ -265,20 +265,65 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
-    it("2. re-derives on every change of T, P or A: T to TB gives MB, P to R gives NULL, and an A set or cleared by hand returns to the derived one without an error (Q-r3-4; a donor keeps its tenant, which its Party pins; red: 42703)", async () => {
+    const INSERT_WITH_KEY: Record<Table, string> = {
+      donors:
+        "insert into public.donors (id, tenant_id, missionary_id, ministry_assignment_id, name) values ($1, $2, $3, $4, 'acc2678r3')",
+      posts:
+        "insert into public.posts (id, tenant_id, missionary_id, ministry_assignment_id, content) values ($1, $2, $3, $4, 'acc2678r3')",
+      follows:
+        "insert into public.follows (id, tenant_id, missionary_id, ministry_assignment_id) values ($1, $2, $3, $4)",
+      follower_requests:
+        "insert into public.follower_requests (id, tenant_id, missionary_id, ministry_assignment_id) values ($1, $2, $3, $4)",
+      missionary_tasks:
+        "insert into public.missionary_tasks (id, tenant_id, missionary_id, ministry_assignment_id, title) values ($1, $2, $3, $4, 'acc2678r3')",
+    };
+
+    it("1b. an insert that supplies the key gets the derived one instead, without an error, on every table: MB supplied for (TA, P) gives MA, MA supplied for (TA, R) gives NULL, MA supplied with no profile gives NULL (Q-r3-4; red: 42703)", async () => {
       await within(async () => {
+        const cases: [string | null, string, string | null][] = [
+          [id.UM, id.mB, id.mA],
+          [x.UR, id.mA, null],
+          [null, id.mA, null],
+        ];
+        for (const table of TABLES)
+          for (const [profile, supplied, derived] of cases) {
+            const row = randomUUID();
+            await db.query(INSERT_WITH_KEY[table], [
+              row,
+              id.TA,
+              profile,
+              supplied,
+            ]);
+            expect(
+              await keyOf(table, row),
+              `${table}: profile ${profile}, supplied ${supplied}`,
+            ).toBe(derived);
+          }
+      });
+    });
+
+    it("2. re-derives on every change of T, P or A: T to TB gives MB (a donor moves with a Party of TB, which its key to parties requires), P to R gives NULL, and an A set or cleared by hand returns to the derived one without an error (Q-r3-4; red: 42703)", async () => {
+      await within(async () => {
+        const partyB = randomUUID();
+        await db.query(
+          "insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Donor moved to B')",
+          [partyB, id.TB],
+        );
         for (const table of TABLES) {
           const row = await child(table, id.TA, id.UM);
           expect(await keyOf(table, row), `${table} insert`).toBe(id.mA);
-          let derived = id.mA;
-          if (table !== "donors") {
+          if (table === "donors")
+            await db.query(
+              "update public.donors set tenant_id = $2, party_id = $3 where id = $1",
+              [row, id.TB, partyB],
+            );
+          else
             await db.query(
               `update public.${table} set tenant_id = $2 where id = $1`,
               [row, id.TB],
             );
-            derived = id.mB;
-            expect(await keyOf(table, row), `${table} T to TB`).toBe(derived);
-          }
+          const derived = id.mB;
+          expect(await keyOf(table, row), `${table} T to TB`).toBe(derived);
           await db.query(
             `update public.${table} set missionary_id = $2 where id = $1`,
             [row, x.UR],
@@ -597,6 +642,41 @@ describe.skipIf(!ADMIN_URL)(
             await db.query("rollback to savepoint refused");
           }
         }
+      });
+    });
+
+    it("6b. the repair reports, on every table, the key its UPDATE actually stored after the triggers: when the derivation cannot read (its owner a role without the private schema), it stores NULL and the repair says NULL, not the key the repair computed (red: the computed MA)", async () => {
+      await within(async () => {
+        const planted = {} as Record<Table, string>;
+        for (const table of TABLES) {
+          planted[table] = await child(table, id.TA, id.UM);
+          await plant(table, planted[table], id.mB);
+        }
+        const fresh = `acc2678r3_${randomUUID().replaceAll("-", "")}`;
+        await db.query(`create role ${fresh} nologin`);
+        await db.query(
+          `alter function private.derive_ministry_assignment_id() owner to ${fresh}`,
+        );
+        const repaired = await db.query(
+          "select * from private.repair_ministry_assignment_ids()",
+        );
+        const stored: Record<string, unknown>[] = [];
+        for (const table of TABLES)
+          stored.push({
+            table_name: table,
+            row_id: planted[table],
+            tenant_id: id.TA,
+            old_assignment_id: id.mB,
+            new_assignment_id: await keyOf(table, planted[table]),
+          });
+        const order = (rows: Record<string, unknown>[]) =>
+          [...rows].sort((a, b) =>
+            String(a.table_name).localeCompare(String(b.table_name)),
+          );
+        expect(order(repaired.rows)).toEqual(order(stored));
+        expect(stored.map((row) => row.new_assignment_id)).toEqual(
+          TABLES.map(() => null),
+        );
       });
     });
 
@@ -944,6 +1024,15 @@ describe.skipIf(!ADMIN_URL)(
       ).rows;
     const committed = async () =>
       (await db.query(COMMITTED)).rows[0].committed as boolean;
+    const policies = async () =>
+      (
+        await db.query(
+          `select count(*) filter (where p.record_type = 'donors' and p.field_key = 'ministry_assignment_id')::int as key_rows,
+                  count(*)::int as total,
+                  md5(string_agg(p::text, E'\\n' order by p::text)) as digest
+             from public.field_policies p`,
+        )
+      ).rows[0] as { key_rows: number; total: number; digest: string };
 
     beforeAll(async () => {
       file = migration(SUFFIX);
@@ -980,15 +1069,21 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte and the catalog gate passes", async () => {
+    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes", async () => {
       const sources = await definitions();
       const base = captureFingerprint({ databaseUrl: url });
+      const basePolicies = await policies();
+      expect(basePolicies.key_rows, "no key rows before the file").toBe(0);
       expect(await committed(), "before the file").toBe(false);
 
       const first = psql(file);
       expect(first.status, first.stderr).toBe(0);
       expect(await committed(), "after the file").toBe(true);
       const applied = captureFingerprint({ databaseUrl: url });
+      expect(await policies()).toMatchObject({
+        key_rows: 5,
+        total: basePolicies.total + 5,
+      });
 
       const again = await db.query(readFileSync(file, "utf8")).then(
         () => null,
@@ -1007,6 +1102,9 @@ describe.skipIf(!ADMIN_URL)(
       await db.query(downSql(file));
       expect(await committed(), "after the Down").toBe(false);
       expect(await definitions()).toEqual(sources);
+      expect(await policies(), "field_policies after the Down").toEqual(
+        basePolicies,
+      );
       expect(
         diffFingerprints(base, captureFingerprint({ databaseUrl: url })),
       ).toMatchObject({
