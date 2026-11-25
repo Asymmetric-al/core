@@ -309,7 +309,7 @@ describe("on: index table 6.1, the path forms on a Site name and the branch that
   });
 
   it("reads no request header to decide: /register with rsc: 1 or next-router-prefetch: 1 gets the same 307", async () => {
-    for (const headers of [
+    const headerCases: Array<Record<string, string>> = [
       { rsc: "1" },
       { "next-router-prefetch": "1" },
       {
@@ -317,7 +317,8 @@ describe("on: index table 6.1, the path forms on a Site name and the branch that
         "next-router-prefetch": "1",
         "next-router-segment-prefetch": "/_tree",
       },
-    ]) {
+    ];
+    for (const headers of headerCases) {
       fresh();
       await expectHomeRedirect(
         await donorModule.proxy(siteRequest(SITE_A, "/register", { headers })),
