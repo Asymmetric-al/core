@@ -82,16 +82,21 @@ describe("deploymentPathPrefix: the path prefix of an app's deployment, read as 
     }
   });
 
-  it.each(["eve", "factory-console", "", "Admin"])(
-    "throws for the unknown app %j, whatever the switch",
-    (app) => {
-      for (const value of [undefined, "0", "1"]) {
-        expect(() =>
-          deploymentPathPrefix(app, { CORE_SERVE_UNDER_PATHS: value }),
-        ).toThrow(`Unknown app for serveUnderPathsBuildEnv: ${app}`);
-      }
-    },
-  );
+  it.each([
+    "eve",
+    "factory-console",
+    "",
+    "Admin",
+    "constructor",
+    "toString",
+    "__proto__",
+  ])("throws for the unknown app %j, whatever the switch", (app) => {
+    for (const value of [undefined, "0", "1"]) {
+      expect(() =>
+        deploymentPathPrefix(app, { CORE_SERVE_UNDER_PATHS: value }),
+      ).toThrow(`Unknown app for serveUnderPathsBuildEnv: ${app}`);
+    }
+  });
 
   it("reads the process environment when no environment is given", () => {
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");

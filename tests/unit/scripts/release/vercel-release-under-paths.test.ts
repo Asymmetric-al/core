@@ -15,6 +15,7 @@ import {
 } from "./support/vercel-release-fixtures";
 import {
   PRODUCTION_HOSTS,
+  TEAM,
   checkDeploymentHealth,
   deployRelease,
   readLiveCommit,
@@ -22,6 +23,7 @@ import {
   runCli,
   verifyLive,
 } from "../../../../scripts/release/vercel-release.mjs";
+import { EXPECTED_PROJECTS } from "../../../../scripts/verify/vercel-build-controls.mjs";
 
 forbidNetwork();
 
@@ -59,12 +61,13 @@ function answersAt(answers: Record<string, Answer | Answer[]>) {
   });
 }
 
-function vercelApi(call: ReturnType<typeof fakeVercel>["call"]) {
+function vercelThen(
+  call: ReturnType<typeof fakeVercel>["call"],
+  deployments: ReturnType<typeof answersAt>,
+) {
   return vi.fn(async (input: URL | RequestInfo, init?: RequestInit) => {
     const url = new URL(String(input));
-    if (url.host !== "api.vercel.com") {
-      throw new Error("a test reached the network");
-    }
+    if (url.host !== "api.vercel.com") return deployments(input, init);
     const body = await call(
       `${url.pathname}${url.search}`,
       init?.method ?? "GET",
@@ -105,19 +108,19 @@ describe("runCli hands its request and sleep to every step that calls out", () =
     expect(sleep).toHaveBeenCalledTimes(5);
   });
 
-  it("deploy checks the staged and live deployments with the given request and sleep", async () => {
-    const { call } = fakeVercel();
-    vi.stubGlobal("fetch", vercelApi(call));
+  it("deploy calls Vercel and checks the staged and live deployments with the given request and sleep", async () => {
+    const { call, calls } = fakeVercel();
     const identified = healthy({
       release: { commit: sha, deploymentId: "dpl_1" },
     });
-    const request = answersAt({
+    const health = answersAt({
       "https://admin-1.vercel.app/api/health/migrations": [
         { status: 503, body: { status: "error" } },
         identified,
       ],
       "https://admin.asymmetric.al/api/health/migrations": identified,
     });
+    const request = vercelThen(call, health);
     const sleep = vi.fn(noSleep);
     await runCli(
       ["deploy"],
@@ -131,13 +134,60 @@ describe("runCli hands its request and sleep to every step that calls out", () =
       silent,
       { request: asFetch(request), sleep },
     );
-    expect(request.mock.calls.map(([input]) => String(input))).toEqual([
+    expect(health.mock.calls.map(([input]) => String(input))).toEqual([
       "https://admin-1.vercel.app/api/health/migrations",
       "https://admin-1.vercel.app/api/health/migrations",
       `https://${PRODUCTION_HOSTS.admin}/api/health/migrations`,
     ]);
+    expect(calls.filter((c) => c.path.includes("/promote/"))).toHaveLength(1);
     expect(sleep).toHaveBeenCalledTimes(1);
   });
+
+  it.each([
+    ["unset", {}],
+    ["empty", { CORE_SERVE_UNDER_PATHS: "" }],
+    ["0", { CORE_SERVE_UNDER_PATHS: "0" }],
+  ])(
+    "preflight reads each project through the given request, as before, with the switch %s",
+    async (_label, switchEnv) => {
+      const { call } = fakeVercel();
+      const health = answersAt({});
+      const request = vercelThen(call, health);
+      const logs: string[] = [];
+      await runCli(
+        ["preflight"],
+        { VERCEL_TOKEN: "token-fixture", ...switchEnv },
+        (line: string) => logs.push(line),
+        { request: asFetch(request) },
+      );
+      expect(
+        request.mock.calls.map(([input, init]) => [
+          init?.method,
+          String(input),
+          init?.redirect,
+          init?.headers,
+          init?.body,
+        ]),
+      ).toEqual(
+        ["admin", "donor", "missionary"].map((app) => [
+          "GET",
+          `https://api.vercel.com/v9/projects/${
+            EXPECTED_PROJECTS.find((project) => project.key === app)!.projectId
+          }?teamId=${TEAM}`,
+          "error",
+          {
+            Authorization: "Bearer token-fixture",
+            "Content-Type": "application/json",
+          },
+          undefined,
+        ]),
+      );
+      expect(health).not.toHaveBeenCalled();
+      expect(logs).toEqual([
+        "Every project stages production deployments until promotion.",
+      ]);
+    },
+  );
 });
 
 const urlsOf = (request: ReturnType<typeof answersAt>) =>
@@ -420,9 +470,7 @@ describe("the release job's production steps refuse CORE_SERVE_UNDER_PATHS=1 bef
     "deploy with %s stops with the build's refusal before any Vercel or HTTP call",
     async (_label, releaseApps) => {
       const { call } = fakeVercel();
-      const vercel = vercelApi(call);
-      vi.stubGlobal("fetch", vercel);
-      const request = answersAt({});
+      const request = vercelThen(call, answersAt({}));
       const logs: string[] = [];
       await expect(
         runCli(
@@ -438,9 +486,57 @@ describe("the release job's production steps refuse CORE_SERVE_UNDER_PATHS=1 bef
           { request: asFetch(request), sleep: noSleep },
         ),
       ).rejects.toThrow(REFUSAL);
-      expect(vercel).not.toHaveBeenCalled();
+      expect(call).not.toHaveBeenCalled();
       expect(request).not.toHaveBeenCalled();
       expect(logs).toEqual([]);
+    },
+  );
+
+  it.each([
+    ["1", REFUSAL],
+    ["true", 'Invalid CORE_SERVE_UNDER_PATHS value "true"'],
+    [" 1", 'Invalid CORE_SERVE_UNDER_PATHS value " 1"'],
+  ])(
+    "preflight with CORE_SERVE_UNDER_PATHS=%j stops before any Vercel call",
+    async (value, message) => {
+      const { call } = fakeVercel();
+      const request = vercelThen(call, answersAt({}));
+      const logs: string[] = [];
+      await expect(
+        runCli(
+          ["preflight"],
+          { VERCEL_TOKEN: "token-fixture", CORE_SERVE_UNDER_PATHS: value },
+          (line: string) => logs.push(line),
+          { request: asFetch(request) },
+        ),
+      ).rejects.toThrow(message);
+      expect(call).not.toHaveBeenCalled();
+      expect(request).not.toHaveBeenCalled();
+      expect(logs).toEqual([]);
+    },
+  );
+
+  it.each(["preflight", "deploy"])(
+    "%s refuses CORE_SERVE_UNDER_PATHS=1 before it makes the Vercel client",
+    async (step) => {
+      const request = answersAt({});
+      await expect(
+        runCli([step], { CORE_SERVE_UNDER_PATHS: "1" }, silent, {
+          request: asFetch(request),
+        }),
+      ).rejects.toThrow(REFUSAL);
+      expect(request).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["preflight", "deploy"])(
+    "%s without a token still stops on the token when the switch is unset",
+    async (step) => {
+      const request = answersAt({});
+      await expect(
+        runCli([step], {}, silent, { request: asFetch(request) }),
+      ).rejects.toThrow("VERCEL_TOKEN is not set.");
+      expect(request).not.toHaveBeenCalled();
     },
   );
 });
