@@ -42,15 +42,20 @@
 -- rows. lock_timeout stops a run rather than queue it behind live traffic.
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
--- COMMIT and its ledger row stops on the next run at its first ADD COLUMN
--- (42701). This file has committed when this read-only check is true:
+-- COMMIT and its ledger row stops on the next run at its first statement
+-- after the locks, ADD CONSTRAINT payment_account_bindings_frozen_key
+-- (42P07, the key's index already exists; observed on a second run of the
+-- applied file). This file has committed when this read-only check is true:
 -- SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_attribute WHERE attrelid =
 -- 'public.donations'::regclass AND attname = 'intake_format' AND NOT
 -- attisdropped). Then follow docs/ops/release-job.md, "If the migration
 -- committed but its ledger row is missing", with this check and this file's
 -- version, 20261126020000. It has no preflight or post-assert of its own.
 --
--- Down (in one transaction, after 20261126020100 is reverted):
+-- Down, an operator's last resort, for a database that holds no line-based
+-- intake (SELECT count(*) FROM public.donations WHERE intake_format =
+-- 'line_based' reads 0); in one transaction, after 20261126020100 is
+-- reverted:
 --   DELETE FROM public.field_policies WHERE record_type = 'donations' AND
 --     field_key IN ('intake_format', 'legal_entity_id',
 --     'payment_account_binding_id', 'provider_account_ref', 'livemode');
@@ -58,9 +63,14 @@
 --   REVOKE ALL ON TABLE public.donations FROM tenant_guard;
 --   DROP TRIGGER donations_intake_generation ON public.donations;
 --   DROP FUNCTION private.donations_intake_generation();
---   ALTER TABLE public.donations DROP CONSTRAINT donations_frozen_binding_fk,
+--   DROP INDEX public.donations_line_payment_reference_key;
+--   ALTER TABLE public.donations
+--     DROP CONSTRAINT donations_frozen_binding_fk,
 --     DROP CONSTRAINT donations_entity_currency_fk,
 --     DROP CONSTRAINT donations_account_key,
+--     DROP CONSTRAINT donations_intake_format_check,
+--     DROP CONSTRAINT donations_line_based_check,
+--     DROP CONSTRAINT donations_legacy_header_check,
 --     DROP COLUMN intake_format, DROP COLUMN legal_entity_id,
 --     DROP COLUMN payment_account_binding_id,
 --     DROP COLUMN provider_account_ref, DROP COLUMN livemode;

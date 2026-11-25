@@ -32,17 +32,24 @@
 -- outcome, operation_id and tenant_id; times are JSON strings.
 --
 -- Locks: none at migration time (functions only). At run time each command
--- locks one request row, as its steps say.
+-- locks its request row FOR NO KEY UPDATE first; a succeeded report then
+-- locks the intake row FOR NO KEY UPDATE, always in that order (request,
+-- then intake), the order every later writer of both keeps.
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
 -- COMMIT and its ledger row stops on the next run at its first CREATE
--- FUNCTION (42723). This file has committed when this read-only check is
+-- FUNCTION (42723, tenant_guard.money_park_operation already exists;
+-- observed on a second run of the applied file). This file has committed
+-- when this read-only check is
 -- true: SELECT to_regprocedure('public.record_provider_operation_result(uuid,integer,jsonb)')
 -- IS NOT NULL. Then follow docs/ops/release-job.md, "If the migration
 -- committed but its ledger row is missing", with this check and this file's
 -- version, 20261126020200. It has no preflight or post-assert of its own.
 --
--- Down (in one transaction):
+-- Down, an operator's last resort, for a database that holds no provider
+-- request (SELECT count(*) FROM public.donation_saga_outbox WHERE kind =
+-- 'provider_request' reads 0); in one transaction, before 20261126020100
+-- and 20261126020000:
 --   DROP FUNCTION public.record_provider_operation_result(uuid, integer, jsonb),
 --     public.claim_provider_operation(uuid, integer),
 --     tenant_guard.record_provider_operation_result(uuid, uuid, integer, jsonb),
@@ -112,11 +119,20 @@ BEGIN
   VALUES (
     v_op.tenant_id,
     'Payment request outcome unknown',
-    pg_catalog.format(
-      'Provider request %s (key %s, account %s, livemode %s) was parked after attempt %s of %s (%s); repair case %s needs a decision before the send deadline %s.',
-      v_op.id, v_op.idempotency_key, v_op.provider_account_ref, v_op.livemode,
-      v_op.attempt_count, v_op.max_attempts, p_reason, v_case_id, v_op.send_deadline
-    ),
+    CASE
+      WHEN p_reason = 'window_passed' THEN
+        pg_catalog.format(
+          'Provider request %s (key %s, account %s, livemode %s) was parked after attempt %s of %s (%s); the send deadline %s has passed or leaves no room for a retry, so the request can only be adopted or abandoned (repair case %s).',
+          v_op.id, v_op.idempotency_key, v_op.provider_account_ref, v_op.livemode,
+          v_op.attempt_count, v_op.max_attempts, p_reason, v_op.send_deadline, v_case_id
+        )
+      ELSE
+        pg_catalog.format(
+          'Provider request %s (key %s, account %s, livemode %s) was parked after attempt %s of %s (%s); repair case %s needs a decision before the send deadline %s.',
+          v_op.id, v_op.idempotency_key, v_op.provider_account_ref, v_op.livemode,
+          v_op.attempt_count, v_op.max_attempts, p_reason, v_case_id, v_op.send_deadline
+        )
+    END,
     'open',
     'high',
     'payments',
@@ -500,7 +516,8 @@ BEGIN
     SELECT d.stripe_payment_intent_id
       INTO v_intake_ref
       FROM public.donations AS d
-     WHERE d.id = v_op.donation_id;
+     WHERE d.id = v_op.donation_id
+       FOR NO KEY UPDATE;
 
     IF (v_intake_ref IS NULL OR v_intake_ref = v_object) IS NOT TRUE THEN
       RAISE EXCEPTION 'intake_names_another_object'

@@ -55,14 +55,18 @@
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
 -- COMMIT and its ledger row stops on the next run at its first ADD COLUMN
--- (42701). This file has committed when this read-only check is true:
+-- (42701, column "kind" already exists; observed on a second run of the
+-- applied file). This file has committed when this read-only check is true:
 -- SELECT to_regclass('public.payment_repair_cases') IS NOT NULL. Then follow
 -- docs/ops/release-job.md, "If the migration committed but its ledger row is
 -- missing", with this check and this file's version, 20261126020100. It has
 -- no preflight or post-assert of its own.
 --
--- Down (in one transaction, after 20261126020200 is reverted; refused while
--- a provider_request row exists, which nothing creates before a later part):
+-- Down, an operator's last resort, for a database that holds no provider
+-- request (SELECT count(*) FROM public.donation_saga_outbox WHERE kind =
+-- 'provider_request' reads 0; with one, the restored status check and
+-- donor_id's NOT NULL refuse it and nothing is reverted); in one
+-- transaction, after 20261126020200 is reverted and before 20261126020000:
 --   DROP INDEX public.mission_control_task_links_provider_request_key;
 --   DROP TABLE public.payment_repair_cases;
 --   DROP FUNCTION private.payment_repair_cases_rules();
@@ -72,12 +76,35 @@
 --   DROP TRIGGER donation_saga_outbox_kind ON public.donation_saga_outbox;
 --   DROP FUNCTION private.donation_saga_outbox_provider_rules(),
 --     private.donation_saga_outbox_kind();
+--   DROP INDEX public.donation_saga_outbox_one_request_per_intake;
 --   ALTER TABLE public.donation_saga_outbox
---     DROP CONSTRAINT donation_saga_outbox_status_check, then re-add it as
---       CHECK (status IN ('pending', 'processing', 'failed', 'completed',
---       'dead_letter')),
---     DROP every constraint and index this file adds, DROP its twelve new
---     columns and kind, and ALTER COLUMN donor_id SET NOT NULL.
+--     DROP CONSTRAINT donation_saga_outbox_account_fk,
+--     DROP CONSTRAINT donation_saga_outbox_tenant_operation_key,
+--     DROP CONSTRAINT donation_saga_outbox_request_params_check,
+--     DROP CONSTRAINT donation_saga_outbox_request_check,
+--     DROP CONSTRAINT donation_saga_outbox_attempts_check,
+--     DROP CONSTRAINT donation_saga_outbox_retry_window_check,
+--     DROP CONSTRAINT donation_saga_outbox_unknown_check,
+--     DROP CONSTRAINT donation_saga_outbox_parked_at_check,
+--     DROP CONSTRAINT donation_saga_outbox_object_check,
+--     DROP CONSTRAINT donation_saga_outbox_lease_check,
+--     DROP CONSTRAINT donation_saga_outbox_window_check,
+--     DROP CONSTRAINT donation_saga_outbox_unsent_check,
+--     DROP CONSTRAINT donation_saga_outbox_sent_check,
+--     DROP CONSTRAINT donation_saga_outbox_legacy_check,
+--     DROP CONSTRAINT donation_saga_outbox_status_check,
+--     DROP CONSTRAINT donation_saga_outbox_kind_check;
+--   ALTER TABLE public.donation_saga_outbox
+--     DROP COLUMN kind, DROP COLUMN request_kind,
+--     DROP COLUMN provider_account_ref, DROP COLUMN livemode,
+--     DROP COLUMN request_params, DROP COLUMN request_digest,
+--     DROP COLUMN first_sent_at, DROP COLUMN send_deadline,
+--     DROP COLUMN lease_expires_at, DROP COLUMN parked_at,
+--     DROP COLUMN provider_object_id, DROP COLUMN outcome_unknown,
+--     DROP COLUMN max_attempts,
+--     ADD CONSTRAINT donation_saga_outbox_status_check
+--       CHECK (status IN ('pending', 'processing', 'failed', 'completed', 'dead_letter')),
+--     ALTER COLUMN donor_id SET NOT NULL;
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
