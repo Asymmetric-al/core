@@ -126,6 +126,7 @@ export interface MissionaryDonorSourceRow {
   score?: number | null;
   has_active_pledge?: boolean | null;
   giving_preferences?: GivingPreferences | null;
+  donor_is_restricted_party?: boolean | null;
 }
 
 export interface DonorActivitySourceRow {
@@ -393,6 +394,7 @@ export function buildMissionaryDonorRows(input: {
     .map((donor) => {
       const anonymous = isAnonymousToRecipient({
         givingPreferences: donor.giving_preferences,
+        restrictedParty: donor.donor_is_restricted_party,
       });
       const pledges = pledgesByDonor.get(donor.id) ?? [];
 
@@ -483,7 +485,7 @@ const DONOR_SELECT = `
   avatar_url, location, address, work_address, website, organization, title,
   type, status, total_given, last_gift_date, last_gift_amount, frequency,
   joined_date, created_at, birthday, anniversary, spouse, notes, tags, score,
-  has_active_pledge, giving_preferences
+  has_active_pledge, giving_preferences, donor_is_restricted_party
 `;
 
 export interface MissionaryDonorRowsPage {

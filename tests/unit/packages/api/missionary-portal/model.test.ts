@@ -78,6 +78,7 @@ describe("missionary portal model", () => {
           tags: ["church"],
           has_active_pledge: true,
           giving_preferences: { defaultAnonymousToRecipient: false },
+          donor_is_restricted_party: false,
         },
         {
           id: "donor-2",
@@ -97,6 +98,7 @@ describe("missionary portal model", () => {
           tags: [],
           has_active_pledge: true,
           giving_preferences: { defaultAnonymousToRecipient: false },
+          donor_is_restricted_party: false,
         },
       ],
       // Monthly support counts each partner's active commitment once,
@@ -153,6 +155,7 @@ describe("missionary portal model", () => {
             email: "partner@example.com",
             avatar_url: null,
             giving_preferences: { defaultAnonymousToRecipient: false },
+            donor_is_restricted_party: false,
           },
         },
       ],

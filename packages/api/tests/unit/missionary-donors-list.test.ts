@@ -48,6 +48,7 @@ const namedDonor = {
   location: "Paris",
   tags: ["monthly"],
   giving_preferences: { defaultAnonymousToRecipient: false },
+  donor_is_restricted_party: false,
 };
 
 const emptyPrefsDonor = {

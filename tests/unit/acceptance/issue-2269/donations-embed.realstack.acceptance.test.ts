@@ -33,7 +33,14 @@ const SPEC_SELECT =
   "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))";
 const read = (f: string) => (existsSync(f) ? readFileSync(f, "utf8") : "");
 
-type Site = { name: string; file: string; start: RegExp; filter: Filter };
+const SUPPORTER = "SUPPORTER_DONATION_SELECT";
+type Site = {
+  name: string;
+  file: string;
+  start: RegExp;
+  filter: Filter;
+  select?: string;
+};
 type Filter = "donor" | "missionary" | "id";
 const SITES: Site[] = [
   {
@@ -59,6 +66,7 @@ const SITES: Site[] = [
     file: GQL,
     start: /^ {4}mySupporters: async \(/m,
     filter: "missionary",
+    select: SUPPORTER,
   },
   {
     name: "5 GraphQL createDonation",
@@ -86,19 +94,19 @@ function selectArg(site: Site) {
   expect(all, `${site.name}: one donations select`).toHaveLength(1);
   return all[0]!;
 }
-async function constant(): Promise<string> {
+async function constant(name = NAME): Promise<string> {
   expect(existsSync(SELECT_TS), `${SELECT_TS} must exist (In 1)`).toBe(true);
   const mod = (await import(/* @vite-ignore */ resolve(SELECT_TS))) as Record<
     string,
     unknown
   >;
-  expect(typeof mod[NAME], `${SELECT_TS} exports ${NAME}`).toBe("string");
-  return mod[NAME] as string;
+  expect(typeof mod[name], `${SELECT_TS} exports ${name}`).toBe("string");
+  return mod[name] as string;
 }
 /** The select string a site actually sends. */
 async function selectOf(site: Site) {
   const arg = selectArg(site);
-  if (arg === NAME) return constant();
+  if (arg === NAME || arg === SUPPORTER) return constant(arg);
   expect(arg, `${site.name}: select is ${NAME} or a literal`).toMatch(/^["`]/);
   return arg.slice(1, -1);
 }
@@ -152,11 +160,14 @@ describe("#2269 static (C1, C2, C8)", () => {
       SPEC_SELECT.replace(/\s+/g, ""),
     ));
   it.each(SITES.map((s) => [s.name, s] as const))(
-    "C1: site %s selects DONATION_WITH_PARTIES_SELECT, imported from ./donations/select",
+    "C1: site %s selects DONATION_WITH_PARTIES_SELECT, imported from ./donations/select (D-18, AL-2678 WP5 part 2-r2s: site 4, mySupporters, selects SUPPORTER_DONATION_SELECT from the same file, which adds the donor's preferences and restriction fact)",
     (_n, site) => {
-      expect(selectArg(site)).toBe(NAME);
+      const name = site.select ?? NAME;
+      expect(selectArg(site)).toBe(name);
       expect(read(site.file)).toMatch(
-        /import\s*\{[^}]*\bDONATION_WITH_PARTIES_SELECT\b[^}]*\}\s*from\s*"(\.\/select|@asym\/api\/donations\/select)"/,
+        new RegExp(
+          `import\\s*\\{[^}]*\\b${name}\\b[^}]*\\}\\s*from\\s*"(\\./select|@asym/api/donations/select)"`,
+        ),
       );
     },
   );

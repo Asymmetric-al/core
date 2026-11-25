@@ -2,11 +2,15 @@ import { getAuthContext, requireRoleClass } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { requesterOf } from "./requester";
+import { ANONYMOUS_DONOR_LABEL } from "../missionary-portal/redaction";
 import { toErrorResponse, toApiHttpError } from "../shared/http-errors";
 import {
   missionaryArgs,
   missionaryScope,
 } from "../shared/missionary-authority";
+
+import type { FollowerRequestDonor } from "./requester";
 
 interface FollowerRequestRow {
   id: string;
@@ -14,29 +18,7 @@ interface FollowerRequestRow {
   status: string;
   access_level: string | null;
   created_at: string;
-  donor:
-    | {
-        name?: string | null;
-        avatar_url?: string | null;
-        total_given?: number | null;
-      }[]
-    | {
-        name?: string | null;
-        avatar_url?: string | null;
-        total_given?: number | null;
-      }
-    | null;
-}
-
-function resolveDonor(donor: FollowerRequestRow["donor"]): {
-  name?: string | null;
-  avatar_url?: string | null;
-  total_given?: number | null;
-} | null {
-  if (Array.isArray(donor)) {
-    return donor[0] ?? null;
-  }
-  return donor ?? null;
+  donor: FollowerRequestDonor[] | FollowerRequestDonor | null;
 }
 
 export async function GET(request: NextRequest) {
@@ -71,7 +53,9 @@ export async function GET(request: NextRequest) {
           avatar_url,
           status,
           total_given,
-          last_gift_date
+          last_gift_date,
+          giving_preferences,
+          donor_is_restricted_party
         )
       `,
       )
@@ -82,15 +66,17 @@ export async function GET(request: NextRequest) {
 
     const requestRows = (requests || []) as FollowerRequestRow[];
     const formattedRequests = requestRows.map((req) => {
-      const donor = resolveDonor(req.donor);
-      const donorName = donor?.name || "Unknown Donor";
+      const requester = requesterOf(req.donor);
+      const donorName = requester.shown
+        ? requester.donor?.name || "Unknown Donor"
+        : ANONYMOUS_DONOR_LABEL;
 
       return {
         id: req.id,
-        donor_id: req.donor_id,
+        donor_id: requester.shown ? req.donor_id : null,
         name: donorName,
-        avatar_url: donor?.avatar_url,
-        is_donor: (donor?.total_given || 0) > 0,
+        avatar_url: requester.shown ? requester.donor?.avatar_url : null,
+        is_donor: (requester.donor?.total_given || 0) > 0,
         access_level: req.access_level,
         status: req.status,
         created_at: req.created_at,

@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { requesterOf } from "./requester";
+import { ANONYMOUS_DONOR_LABEL } from "../missionary-portal/redaction";
 import { runMissionaryPortalOperation } from "../missionary-portal/route-helpers";
 import {
   ApiHttpError,
@@ -12,6 +14,8 @@ import {
   missionaryScope,
 } from "../shared/missionary-authority";
 import { requireRouteUuid } from "../shared/route-uuid";
+
+import type { FollowerRequestDonor } from "./requester";
 
 type RequestParams = { params: Promise<{ requestId: string }> };
 const decision = z.object({
@@ -48,22 +52,44 @@ function decide(
             ? "id"
             : `
       id, donor_id, status, access_level, created_at, updated_at,
-      donor:donors!donor_id(id, name, avatar_url)
+      donor:donors!donor_id(id, name, avatar_url, giving_preferences, donor_is_restricted_party)
     `,
         )
         .maybeSingle();
       if (error) throw toApiHttpError(error, error.message);
       if (!data) throw new ApiHttpError(404, "Request not found");
       if (operation === "delete") return NextResponse.json({ success: true });
-      const row = data as unknown as { donor: { name?: string | null } | null };
-      const name = row.donor?.name || "Unknown Donor";
+      const row = data as unknown as {
+        donor_id: string | null;
+        donor: FollowerRequestDonor[] | FollowerRequestDonor | null;
+      };
+      const requester = requesterOf(row.donor);
+      const donor =
+        requester.shown && requester.donor
+          ? {
+              id: requester.donor.id ?? null,
+              name: requester.donor.name ?? null,
+              avatar_url: requester.donor.avatar_url ?? null,
+            }
+          : null;
+      const name = donor
+        ? donor.name || "Unknown Donor"
+        : ANONYMOUS_DONOR_LABEL;
       const initials = name
         .split(" ")
         .map((word) => word[0])
         .join("")
         .toUpperCase()
         .slice(0, 2);
-      return NextResponse.json({ request: { ...row, name, initials } });
+      return NextResponse.json({
+        request: {
+          ...row,
+          donor_id: donor ? row.donor_id : null,
+          donor,
+          name,
+          initials,
+        },
+      });
     },
   );
 }
