@@ -55,6 +55,8 @@
     "./admin/members/invitations": "./src/admin/members/invitations.ts",
     "./admin/members/revoke-invitation": "./src/admin/members/revoke-invitation.ts",
     "./admin/members/role": "./src/admin/members/role.ts",
+    "./admin/workers/commands": "./src/admin/workers/commands.ts",
+    "./admin/workers/read": "./src/admin/workers/read.ts",
     "./admin/members/revoke": "./src/admin/members/revoke.ts",
     "./admin/contribution-shared": "./src/admin/contribution-shared/index.ts",
     "./admin/contribution-operations": "./src/admin/contribution-operations/index.ts",
