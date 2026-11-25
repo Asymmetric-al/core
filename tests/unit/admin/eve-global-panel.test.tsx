@@ -9,7 +9,25 @@ import {
 } from "@testing-library/react";
 import { setPlatform } from "@ui-sdk/core/testing";
 import React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+const network = vi.hoisted(() => {
+  const reached: string[] = [];
+  const fetchSpy = vi.fn(async (input: unknown) => {
+    reached.push(String(input));
+    throw new Error("a test reached the network");
+  });
+  vi.stubGlobal("fetch", fetchSpy);
+  return { reached, fetchSpy };
+});
 
 const testState = vi.hoisted(() => ({
   send: vi.fn().mockResolvedValue(undefined),
@@ -147,6 +165,18 @@ vi.mock("@asym/ui/components/shadcn/sheet", async () => {
 
 import { EveGlobalPanel } from "../../../apps/admin/app/eve/global-panel";
 import { listShortcuts } from "../../../packages/ui/components/primitives/shortcut";
+
+beforeEach(() => {
+  vi.stubGlobal("fetch", network.fetchSpy);
+});
+
+afterEach(() => {
+  expect(network.reached).toEqual([]);
+});
+
+afterAll(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("EveGlobalPanel", () => {
   beforeEach(() => {

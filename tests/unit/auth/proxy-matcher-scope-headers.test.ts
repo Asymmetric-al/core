@@ -3,7 +3,15 @@ import { readFileSync } from "node:fs";
 
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 import { NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import {
   ADDRESS_PREFIX_HEADER,
@@ -31,10 +39,32 @@ const TB = "00000000-0000-0000-0000-000000000002";
 const FORGED_ROW = "00000000-0000-4000-8000-0000000000ff";
 const PATHNAME_HEADER = "x-asym-pathname";
 
+const network = vi.hoisted(() => {
+  const reached: string[] = [];
+  const fetchSpy = vi.fn(async (input: unknown) => {
+    reached.push(String(input));
+    throw new Error("a test reached the network");
+  });
+  vi.stubGlobal("fetch", fetchSpy);
+  return { reached, fetchSpy };
+});
+
 const state = vi.hoisted(() => ({
   userId: null as string | null,
   rows: [] as unknown[],
 }));
+
+beforeEach(() => {
+  vi.stubGlobal("fetch", network.fetchSpy);
+});
+
+afterEach(() => {
+  expect(network.reached).toEqual([]);
+});
+
+afterAll(() => {
+  vi.unstubAllGlobals();
+});
 
 vi.mock("@asym/database/supabase/config", () => ({
   getSupabasePublicConfig: () => ({

@@ -1,7 +1,25 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+const network = vi.hoisted(() => {
+  const reached: string[] = [];
+  const fetchSpy = vi.fn(async (input: unknown) => {
+    reached.push(String(input));
+    throw new Error("a test reached the network");
+  });
+  vi.stubGlobal("fetch", fetchSpy);
+  return { reached, fetchSpy };
+});
 
 vi.mock("../../../scripts/load-workspace-env.mjs", () => ({
   loadWorkspaceEnvironment: () => ({}),
@@ -19,9 +37,18 @@ import {
   serveUnderPathsNextConfig,
 } from "../../../scripts/release/serve-under-paths.mjs";
 
+beforeEach(() => {
+  vi.stubGlobal("fetch", network.fetchSpy);
+});
+
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.resetModules();
+  expect(network.reached).toEqual([]);
+});
+
+afterAll(() => {
+  vi.unstubAllGlobals();
 });
 
 describe("CORE_SERVE_UNDER_PATHS build switch", () => {

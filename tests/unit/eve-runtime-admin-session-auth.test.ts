@@ -1,4 +1,22 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+const network = vi.hoisted(() => {
+  const reached: string[] = [];
+  const fetchSpy = vi.fn(async (input: unknown) => {
+    reached.push(String(input));
+    throw new Error("a test reached the network");
+  });
+  vi.stubGlobal("fetch", fetchSpy);
+  return { reached, fetchSpy };
+});
 
 const sessionOwnership = vi.hoisted(() => {
   class EveRouteAuthError extends Error {
@@ -28,10 +46,19 @@ import { adminEveRouteAuth } from "../../packages/eve-runtime/src/admin-session-
 
 const originalArgv = process.argv;
 
+beforeEach(() => {
+  vi.stubGlobal("fetch", network.fetchSpy);
+});
+
 afterEach(() => {
   process.argv = originalArgv;
   vi.clearAllMocks();
   vi.unstubAllEnvs();
+  expect(network.reached).toEqual([]);
+});
+
+afterAll(() => {
+  vi.unstubAllGlobals();
 });
 
 describe("Eve runtime admin session auth", () => {
