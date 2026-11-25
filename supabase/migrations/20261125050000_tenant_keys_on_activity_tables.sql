@@ -2,7 +2,9 @@
 -- forced row security on three tables"; audit NR-12; record section 9, lines
 -- 593 and 594, D-73). donor_activities, follower_requests and missionary_tasks
 -- gain a tenant column, filled from evidence, a key to tenants that restricts
--- deletion, a same-tenant key to donors, and forced row security.
+-- deletion, and forced row security; donor_activities and missionary_tasks
+-- also gain a same-tenant key to donors (follower_requests keeps its
+-- single-column key, step 3).
 --
 -- 1. Preflight. A row whose tenant the evidence cannot name is refused, with
 --    counts only, and nothing is rewritten: an activity that names no donor
@@ -35,8 +37,13 @@
 --    so the catalog gate's tenant-table rule sees that no signed-in read is
 --    admitted. donor_activities' policy carries the request's tenant directly.
 --
--- The running build at the base calls only the six functions on these tables
--- (service key), all replaced here in the same transaction.
+-- The running build at the base reaches these tables through the six
+-- functions (service key), all replaced here in the same transaction, with
+-- one exception: Mission Control's donor detail reads donor_activities on the
+-- caller's token (packages/api/src/admin/crm/detail/service.ts:329), which
+-- the altered select policy of donor_activities still admits for the
+-- tenant's staff. Nothing in packages/ or apps/ reads or writes the other two
+-- tables, or writes donor_activities, directly.
 --
 -- Preflight, also: a profile whose user_id names another login than its id
 -- is refused here, before anything is written, because the task evidence of

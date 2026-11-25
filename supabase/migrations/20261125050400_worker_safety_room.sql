@@ -64,8 +64,9 @@
 -- 7. Three human commands needing safety.restrict_publication, each with a
 --    reason and one audit row, behind invoker wrappers for authenticated:
 --    set_worker_identity (creates or edits the private row; it sets the
---    level, its source and the alias only while the Party is still standard,
---    unreviewed_default and without an alias, and otherwise keeps them and
+--    level, its source and the alias only when it creates the private row
+--    while the Party is still standard, unreviewed_default and without an
+--    alias, and otherwise keeps them and
 --    refuses a level or alias argument, 22023; its audit row carries the
 --    Party's level, source and do-not-publish before and after, and whether
 --    an alias was set before and after and whether it changed),
@@ -76,10 +77,10 @@
 --    country_default (WP14). No audit row carries the legal name, a place
 --    or an alias: set_worker_identity's records whether an alias was set
 --    before and after and whether it changed (bot review #28).
---    Each command first refuses (42501) a request whose organization header
---    (authz.request_tenant_id()) is missing or names another organization
---    than the one it enters, as the Member Care and Sites commands do until
---    begin_human_command checks it itself. Then it takes the repository's
+--    begin_human_command has refused (42501) a request whose organization
+--    header (authz.request_tenant_id()) is missing or names another
+--    organization than the one it enters since 20261125040000; each command
+--    calls it first and then repeats that check. Then it takes the repository's
 --    lock order: the organization FOR SHARE (private.share_lock_tenant), the
 --    caller's assignment FOR SHARE, a re-check of the active organization,
 --    the live assignment and the capability, and only then its targets.

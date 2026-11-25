@@ -639,18 +639,23 @@ already gone). For any such file:
    from before the file. The local stack reloads PostgREST by itself, through
    two event triggers (see below); whether a hosted database has them was not
    read, so the reload is sent in every recovery. Send it once; a second one
-   does no harm. Then make the one read-only call the table below names for the file, with
-   the project's URL and its publishable key and nothing else. No call reads
-   a person's data: the publishable key's role holds no privilege on what it
-   names, and a table call asks for no rows. Go on only when the call gives
+   does no harm. Go on only if the reload's status reads 0. Then make the one
+   read-only call the table below names for the file, with the project's URL
+   and its publishable key and nothing else. No call reads a person's data:
+   the publishable key's role holds no privilege on what it names, and a
+   table call asks for no rows. The reload is asynchronous: PostgREST reloads
+   after the notice reaches it, so if the call still gives the stale answer,
+   wait a few seconds and repeat the `curl`. Go on only when the call gives
    the answer of a loaded schema. For `20261125050500`:
 
    ```sh
    read -rs PGPASSWORD && export PGPASSWORD
    export PGREQUIREAUTH=scram-sha-256
    psql "$DB" -X -tA -c "select pg_notify('pgrst', 'reload schema')"
+   status=$?
    unset PGPASSWORD PGREQUIREAUTH
-   curl -s -w '\nHTTP %{http_code}\n' -H 'apikey: <publishable key>' '<project URL>/rest/v1/rpc/account_claim_status?p_tenant_id=00000000-0000-0000-0000-000000000000'
+   echo "reload exit status: $status"
+   curl -sS -w '\nHTTP %{http_code}\n' -H 'apikey: <publishable key>' '<project URL>/rest/v1/rpc/account_claim_status?p_tenant_id=00000000-0000-0000-0000-000000000000'
    ```
 
    Each call is a `GET` of `<project URL>/rest/v1` followed by its path:
@@ -718,7 +723,12 @@ seconds later. So on the local stack a file's trailing `pg_notify` repeats a
 reload its DDL has already queued, and the stale answer above was produced
 with both triggers disabled (they were enabled again after). The plain
 Postgres replay has no event trigger. Whether a hosted database has them was
-not read; step 3 does not depend on it.
+not read; step 3 does not depend on it. The hosted PostgREST's version was
+not read either. PostgREST's error reference lists `PGRST205` (a table not
+in the schema cache) for v13.0.8 and not for v12.2.12, and what an older
+PostgREST answers for such a table was not observed. On an older PostgREST
+the codes in the table may differ, so compare the answer before the reload
+with the answer after it, not the code alone.
 
 #### Rolling it back by hand
 
