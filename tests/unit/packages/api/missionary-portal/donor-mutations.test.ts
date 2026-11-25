@@ -30,6 +30,17 @@ const SHOWN_DONOR = {
   donor_is_restricted_party: false,
 };
 
+function createGuardQuery() {
+  const query = {
+    select: vi.fn(() => query),
+    eq: vi.fn(() => query),
+    maybeSingle: vi.fn(() =>
+      Promise.resolve({ data: SHOWN_DONOR, error: null }),
+    ),
+  };
+  return query;
+}
+
 function createUpdateQuery<T>(result: QueryResult<T>) {
   const query = {
     update: vi.fn(() => query),
@@ -37,11 +48,23 @@ function createUpdateQuery<T>(result: QueryResult<T>) {
     contains: vi.fn(() => query),
     select: vi.fn(() => query),
     single: vi.fn(() => Promise.resolve(result)),
-    maybeSingle: vi.fn(() =>
-      Promise.resolve({ data: SHOWN_DONOR, error: null }),
-    ),
   };
   return query;
+}
+
+function donorTables(update: ReturnType<typeof createUpdateQuery>) {
+  const guard = createGuardQuery();
+  const from = vi.fn().mockReturnValueOnce(guard).mockReturnValueOnce(update);
+  return { guard, from };
+}
+
+function expectOwnedBy(query: { eq: ReturnType<typeof vi.fn> }) {
+  expect(query.eq).toHaveBeenCalledWith("id", "donor-1");
+  expect(query.eq).toHaveBeenCalledWith("tenant_id", "tenant-1");
+  expect(query.eq).toHaveBeenCalledWith(
+    "missionary_id",
+    "missionary-profile-1",
+  );
 }
 
 describe("missionary donor mutations", () => {
@@ -73,12 +96,12 @@ describe("missionary donor mutations", () => {
     expect(apiError.message).not.toBe("Invalid input");
   });
 
-  it("records donor activity only after proving missionary-owned donor access (D-18, AL-2678 WP5 part 2-r2s: the stub also answers the guard read on donors)", async () => {
+  it("records donor activity only after proving missionary-owned donor access (D-18, AL-2678 WP5 part 2-r2s: the stub also answers the guard read on donors, scoped by donor, tenant and missionary)", async () => {
     const accessQuery = createSelectQuery({
       data: { id: "donor-1" },
       error: null,
     });
-    const guardQuery = createUpdateQuery({ data: null, error: null });
+    const guardQuery = createGuardQuery();
     const supabase = {
       rpc: vi.fn(() => accessQuery),
       from: vi.fn(() => guardQuery),
@@ -105,14 +128,16 @@ describe("missionary donor mutations", () => {
       p_note: "Left voicemail",
       p_date: "2026-05-21T12:00:00.000Z",
     });
+    expectOwnedBy(guardQuery);
   });
 
-  it("scopes donor tag updates by donor, tenant, and missionary", async () => {
+  it("scopes donor tag updates by donor, tenant, and missionary (D-18, AL-2678 WP5 part 2-r2s: the guard read and the UPDATE each have their own builder, and the UPDATE's carries the three filters)", async () => {
     const updateQuery = createUpdateQuery({
       data: { id: "donor-1" },
       error: null,
     });
-    const supabase = { from: vi.fn(() => updateQuery) };
+    const { guard, from } = donorTables(updateQuery);
+    const supabase = { from };
 
     await updateMissionaryDonorTags({
       supabaseAdmin: supabase as never,
@@ -123,25 +148,23 @@ describe("missionary donor mutations", () => {
       now: new Date("2026-05-21T12:00:00.000Z"),
     });
 
-    expect(supabase.from).toHaveBeenCalledWith("donors");
+    expect(supabase.from).toHaveBeenNthCalledWith(1, "donors");
+    expect(supabase.from).toHaveBeenNthCalledWith(2, "donors");
     expect(updateQuery.update).toHaveBeenCalledWith({
       tags: ["monthly-partner", "newsletter"],
       updated_at: "2026-05-21T12:00:00.000Z",
     });
-    expect(updateQuery.eq).toHaveBeenCalledWith("id", "donor-1");
-    expect(updateQuery.eq).toHaveBeenCalledWith("tenant_id", "tenant-1");
-    expect(updateQuery.eq).toHaveBeenCalledWith(
-      "missionary_id",
-      "missionary-profile-1",
-    );
+    expectOwnedBy(updateQuery);
+    expectOwnedBy(guard);
   });
 
-  it("builds donor profile updates server-side and ignores client-supplied timestamps", async () => {
+  it("builds donor profile updates server-side and ignores client-supplied timestamps (AL-2678 WP5 part 2-r2s: the UPDATE, on its own builder, is scoped by donor, tenant and missionary)", async () => {
     const updateQuery = createUpdateQuery({
       data: { id: "donor-1" },
       error: null,
     });
-    const supabase = { from: vi.fn(() => updateQuery) };
+    const { guard, from } = donorTables(updateQuery);
+    const supabase = { from };
 
     await updateMissionaryDonor({
       supabaseAdmin: supabase as never,
@@ -191,5 +214,7 @@ describe("missionary donor mutations", () => {
         },
       }),
     );
+    expectOwnedBy(updateQuery);
+    expectOwnedBy(guard);
   });
 });
