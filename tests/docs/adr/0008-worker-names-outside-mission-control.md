@@ -298,11 +298,16 @@ NULL` on `public.parties`) and the fourth
       under `apps/` or `packages/`, every `restrictedParty:` is given a name
       or a property read (`row.donor_is_restricted_party`); a literal,
       `?? false`, `|| false`, `Boolean(…)`, `!…` or any other expression
-      fails. S4, the one allowlist entry: `DONATION_WITH_PARTIES_SELECT` is
-      selected in `packages/graphql/handler.ts` only directly inside
-      `Query.myDonations` or `Mutation.createDonation` of an object declared
-      at the top of the file, the caller's own gifts. Thirty-two planted cases
-      are reported and nine controls are not; the migration reader has five
+      fails. S4, the one allowlist entry: `DONATION_WITH_PARTIES_SELECT`,
+      recognised by its module (`@asym/api/donations/select`) and exported
+      name however it is imported (under another name, or through a
+      namespace), is selected in the roots only directly inside
+      `Query.myDonations` or `Mutation.createDonation` of the resolvers object
+      that the same file gives to `createSchema` (the object itself, or a
+      variable given exactly one object), the caller's own gifts; a local
+      variable of the same name is not the constant. Thirty-five planted cases
+      are reported and ten controls are not, and the real handler with its
+      select module is reported for nothing; the migration reader has five
       planted texts (R1-R5) and one guard, that the tree still gives its
       twenty tables.
     - **What the contract cannot see**, each a review item: a table name
@@ -323,10 +328,10 @@ NULL` on `public.parties`) and the fourth
       text a colleague wrote earlier, such as a task's title. S3 checks every
       `restrictedParty:` property in non-test source under `apps/` and
       `packages/`, not only one inside a call of `isAnonymousToRecipient`, so
-      it is stricter than the seam needs. S4 does not check the name of the
-      variable that holds the resolvers: any object declared at the top of
-      `packages/graphql/handler.ts` whose `Query.myDonations` or
-      `Mutation.createDonation` selects `DONATION_WITH_PARTIES_SELECT` passes.
+      it is stricter than the seam needs. S4 trusts the two fields it allows:
+      that the select inside `Query.myDonations` or `Mutation.createDonation`
+      reads only the caller's own gifts is the resolver's own filter, held by
+      its unit tests, not by the contract.
 
 ## Readers closed by WP5 part 2-r2a
 

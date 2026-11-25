@@ -16,6 +16,8 @@ const OWN_DONATIONS = new Map([
   ["myDonations", "Query"],
   ["createDonation", "Mutation"],
 ]);
+const OWN_SELECT_MODULE = "packages/api/src/donations/select";
+const OWN_SELECT_NAME = "DONATION_WITH_PARTIES_SELECT";
 const DONOR_EMBED =
   /^donors$|(?:^|_)donor_id(?:_f?key)?$|_donor_same_tenant_fk$/i;
 const RPC_ROOT = "(rpc)";
@@ -41,6 +43,7 @@ type FileFacts = {
   sf: ts.SourceFile;
   values: Map<string, ts.Expression[]>;
   imports: Imports;
+  namespaces: Map<string, string>;
   relativeImports: string[];
   namesDonors: boolean;
   callsSeam: boolean;
@@ -117,6 +120,7 @@ function factsOf(file: string, text: string): FileFacts {
   const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
   const values = new Map<string, ts.Expression[]>();
   const imports: Imports = new Map();
+  const namespaces = new Map<string, string>();
   const relativeImports: string[] = [];
   let namesDonors = false;
   let callsSeam = false;
@@ -192,8 +196,27 @@ function factsOf(file: string, text: string): FileFacts {
           specifier,
           importedName: el.propertyName?.text ?? el.name.text,
         });
+    if (bindings && ts.isNamespaceImport(bindings))
+      namespaces.set(bindings.name.text, specifier);
   }
-  return { sf, values, imports, relativeImports, namesDonors, callsSeam };
+  return {
+    sf,
+    values,
+    imports,
+    namespaces,
+    relativeImports,
+    namesDonors,
+    callsSeam,
+  };
+}
+
+function moduleBase(from: string, specifier: string): string | null {
+  const base = specifier.startsWith(".")
+    ? path.posix.normalize(path.posix.join(path.posix.dirname(from), specifier))
+    : specifier.startsWith("@asym/api/")
+      ? `packages/api/src/${specifier.slice("@asym/api/".length)}`
+      : null;
+  return base?.replace(/\.[cm]?[jt]sx?$/, "").replace(/\/index$/, "") ?? null;
 }
 
 function resolveModule(
@@ -423,7 +446,108 @@ function scanSources(sources: Map<string, string>): Violation[] {
     return null;
   };
 
-  const inOwnDonationsResolver = (node: ts.Node): boolean => {
+  const isOwnSelect = (
+    file: string,
+    fact: FileFacts,
+    arg: ts.Expression | undefined,
+  ): boolean => {
+    if (arg && ts.isIdentifier(arg)) {
+      const imported = fact.imports.get(arg.text);
+      return (
+        !!imported &&
+        !fact.values.has(arg.text) &&
+        imported.importedName === OWN_SELECT_NAME &&
+        moduleBase(file, imported.specifier) === OWN_SELECT_MODULE
+      );
+    }
+    if (
+      arg &&
+      ts.isPropertyAccessExpression(arg) &&
+      ts.isIdentifier(arg.expression)
+    ) {
+      const specifier = fact.namespaces.get(arg.expression.text);
+      return (
+        !!specifier &&
+        arg.name.text === OWN_SELECT_NAME &&
+        moduleBase(file, specifier) === OWN_SELECT_MODULE
+      );
+    }
+    return false;
+  };
+
+  const memberOf = (object: ts.ObjectLiteralExpression, name: string) => {
+    const found = object.properties.filter(
+      (p): p is ts.PropertyAssignment | ts.MethodDeclaration =>
+        (ts.isPropertyAssignment(p) || ts.isMethodDeclaration(p)) &&
+        propertyName(p.name) === name,
+    );
+    return found.length === 1 ? found[0]! : null;
+  };
+
+  const schemaFields = new Map<string, Set<ts.Node>>();
+  const ownDonationsFields = (fact: FileFacts): Set<ts.Node> => {
+    const cachedFields = schemaFields.get(fact.sf.fileName);
+    if (cachedFields) return cachedFields;
+    const fields = new Set<ts.Node>();
+    const declaredObject = (name: string) => {
+      const declared = fact.values.get(name) ?? [];
+      const value = declared.length === 1 ? unwrap(declared[0]!) : null;
+      return value && ts.isObjectLiteralExpression(value) ? value : null;
+    };
+    const visit = (node: ts.Node) => {
+      if (ts.isCallExpression(node)) {
+        const callee = unwrap(node.expression);
+        const name = ts.isIdentifier(callee)
+          ? callee.text
+          : ts.isPropertyAccessExpression(callee)
+            ? callee.name.text
+            : null;
+        const options = node.arguments[0] && unwrap(node.arguments[0]);
+        if (
+          name === "createSchema" &&
+          options &&
+          ts.isObjectLiteralExpression(options)
+        )
+          for (const property of options.properties) {
+            if (
+              !(
+                ts.isShorthandPropertyAssignment(property) ||
+                ts.isPropertyAssignment(property)
+              ) ||
+              propertyName(property.name) !== "resolvers"
+            )
+              continue;
+            const value = ts.isShorthandPropertyAssignment(property)
+              ? property.name
+              : unwrap(property.initializer);
+            const resolvers = ts.isIdentifier(value)
+              ? declaredObject(value.text)
+              : ts.isObjectLiteralExpression(value)
+                ? value
+                : null;
+            if (!resolvers) continue;
+            for (const [field, type] of OWN_DONATIONS) {
+              const typeField = memberOf(resolvers, type);
+              const typeObject =
+                typeField && ts.isPropertyAssignment(typeField)
+                  ? unwrap(typeField.initializer)
+                  : null;
+              const resolver =
+                typeObject && ts.isObjectLiteralExpression(typeObject)
+                  ? memberOf(typeObject, field)
+                  : null;
+              if (resolver) fields.add(resolver);
+            }
+          }
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(fact.sf);
+    schemaFields.set(fact.sf.fileName, fields);
+    return fields;
+  };
+
+  const inOwnDonationsResolver = (fact: FileFacts, node: ts.Node) => {
     let resolver: ts.Node | undefined = node.parent;
     while (
       resolver &&
@@ -434,25 +558,7 @@ function scanSources(sources: Map<string, string>): Violation[] {
       )
     )
       resolver = resolver.parent;
-    if (!resolver) return false;
-    const field = resolver as ts.PropertyAssignment | ts.MethodDeclaration;
-    const type = OWN_DONATIONS.get(propertyName(field.name)!);
-    const typeObject = field.parent;
-    if (!type || !ts.isObjectLiteralExpression(typeObject)) return false;
-    const typeField = typeObject.parent;
-    if (
-      !ts.isPropertyAssignment(typeField) ||
-      propertyName(typeField.name) !== type
-    )
-      return false;
-    const resolvers = typeField.parent;
-    if (!ts.isObjectLiteralExpression(resolvers)) return false;
-    const declaration = resolvers.parent;
-    return (
-      ts.isVariableDeclaration(declaration) &&
-      ts.isVariableStatement(declaration.parent.parent) &&
-      ts.isSourceFile(declaration.parent.parent.parent)
-    );
+    return !!resolver && ownDonationsFields(fact).has(resolver);
   };
 
   for (const [file, fact] of facts) {
@@ -475,13 +581,8 @@ function scanSources(sources: Map<string, string>): Violation[] {
       ) {
         const callee = unwrap(node.expression) as ts.PropertyAccessExpression;
         const arg = node.arguments[0] && unwrap(node.arguments[0]);
-        if (
-          file === GRAPHQL_HANDLER &&
-          arg &&
-          ts.isIdentifier(arg) &&
-          arg.text === "DONATION_WITH_PARTIES_SELECT"
-        ) {
-          if (!inOwnDonationsResolver(node))
+        if (arg && isOwnSelect(file, fact, arg)) {
+          if (!inOwnDonationsResolver(fact, node))
             report(file, callee.name, "S4", arg.getText(fact.sf));
         } else {
           const roots = rootOf(file, callee.expression) ?? [];
