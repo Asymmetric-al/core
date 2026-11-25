@@ -196,22 +196,50 @@ person.
     list when `E2EAuthSession.memberships` is present, even an empty one. When it
     is absent, it returns the one membership that `impliedE2EAuthMembership`
     derives from the session's role: ID `E2E_BYPASS_ASSIGNMENT_ID`, in the
-    session's tenant or the demo tenant, and for `staff`, `admin` and
-    `super_admin` a staff row with the `development` sub-role. It sets
-    `isTenantAdmin` for `admin` and `super_admin`, because tenant administration
-    is a flag on a staff membership
+    session's tenant, and for `staff`, `admin` and `super_admin` a staff row
+    with the `development` sub-role. It sets `isTenantAdmin` for `admin` and
+    `super_admin`, because tenant administration is a flag on a staff
+    membership
     ([ADR-0227](../../../../docs/adr/0227-one-policy-pattern-and-the-carried-tenant.md),
-    clause 1). Cited: AL-2675.
+    clause 1). The session's tenant must be a canonical UUID byte for byte
+    (`isCanonicalE2EAuthTenantId`: lowercase hex and hyphens in the
+    8-4-4-4-12 form, nothing trimmed or folded). A cookie that names no such
+    tenant and no memberships has none: `listE2EAuthMemberships` returns `[]`,
+    as it does for `memberships: []`, so the request context is signed out and
+    a tenant-addressed proxy sends the identity to its no-access page. No code
+    that ships picks an organization for it. Cited: AL-2675; AL-2676.
 
-13. **The demo IDs match the seed.** `DEMO_TENANT_ID` and `DEMO_PROFILE_ID` in
-    `packages/auth/constants.ts` are the demo organization and the demo owner's
-    profile that `supabase/seed.sql` inserts. A bypass identity whose cookie
-    names no tenant gets its implied membership in `DEMO_TENANT_ID`, and one
-    whose cookie names no profile gets `DEMO_PROFILE_ID` as its profile
-    (`getE2EAuthBypassContext` in `packages/auth/context.ts`). Its viewer
-    context's default tenant and profile then point at rows a seeded database
-    holds; the bypass user ID and implied assignment ID are synthetic and need
-    not exist in the database.
+13. **The bypass takes its organization from the harness; the demo profile
+    matches the seed.** `POST /api/auth/demo-account` under the bypass mints a
+    cookie whose tenant is `E2E_AUTH_TENANT_ID`, read from `process.env` once,
+    as the third check of `getE2EBypassReadiness` in
+    `packages/api/src/auth/demo-account.ts`, after the signing key and the
+    datasource allowlist. A value that is missing or not canonical (decision
+    12's rule) makes the bypass misconfigured: `POST` answers `503`
+    `DEMO_E2E_BYPASS_MISCONFIGURED` with no cookie, before the role mapping,
+    and `GET` reports every role unavailable with a reason that names
+    `E2E_AUTH_TENANT_ID`. A missing key or a refused datasource is still
+    reported first, as itself. Every launcher that turns the bypass on
+    (`scripts/run-with-ci-env.mjs`, `playwright.config.ts`,
+    `tests/e2e/playwright-shared.ts`, the two end-to-end jobs of
+    `.github/workflows/ci-integration.yml`,
+    `scripts/dev/setup-mission-control-cloud.mjs` and the demo profile of
+    `.oss-scanner/run-local.sh`) sets it to the seed's demo organization as a
+    default that keeps a value the caller set. The demo donor portal snapshot
+    (`getDemoDonorPortalSnapshot(tenantId)`) takes the synthetic context's
+    selected tenant. D-113 ruling 4's refusal of a tenant that is not the
+    seed's demo organization, found by the seed's slug, does not apply under
+    the bypass: its end-to-end jobs have no database to read the slug from.
+    The bypass's own refusals stand in for it (production, the signing key,
+    the datasource allowlist), and the snapshot is fixture data that names no
+    stored record. `DEMO_TENANT_ID` in `packages/auth/constants.ts` remains,
+    for tests only (`tests/unit/acceptance/issue-2676/demo-tenant-constants.acceptance.test.ts`
+    pins that no shipped file names it). `DEMO_PROFILE_ID` is unchanged: a
+    bypass identity whose cookie names no profile gets it as its profile
+    (`getE2EAuthBypassContext` in `packages/auth/context.ts`), the demo
+    owner's profile that `supabase/seed.sql` inserts. The bypass user ID and
+    implied assignment ID are synthetic and need not exist in the database.
+    Cited: AL-2676.
 
 14. **Each explicit signed membership must obey the per-row membership rules,
     and one bad entry rejects the whole cookie.** `parseE2EAuthMembership` in
