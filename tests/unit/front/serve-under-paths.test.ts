@@ -99,6 +99,15 @@ const UPSTREAM_PARITY_VALUES = [
   "http://[::1]:3032",
   "http://127.1:3030",
   "ftp://a.example.test",
+  "http://localhost",
+  "http://127.0.0.1",
+  "http://[::1]",
+  "http://127.0.0.2:3030",
+  "http://localhost:80",
+  "http://127.0.0.1:80",
+  "https://a.example.test?q=1",
+  "https://a.example.test#h",
+  "https://a.example.test ",
   ...INVALID_UPSTREAMS,
 ];
 

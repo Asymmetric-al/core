@@ -172,6 +172,7 @@ beforeEach(() => {
 
 afterEach(() => {
   expect(network.reached.splice(0)).toEqual([]);
+  expect(globalThis.fetch).toBe(network.fetchSpy);
 });
 
 afterAll(() => {

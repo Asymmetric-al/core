@@ -374,6 +374,7 @@ describe("Eve session writes through the front's /admin stamp", () => {
 
   it.each([
     ["FRONT_STAMP_KEY unset", undefined],
+    ["FRONT_STAMP_KEY empty", ""],
     ["FRONT_STAMP_KEY under 32 bytes", "a".repeat(31)],
   ])(
     "refuses a valid stamp with %s, even with FRONT_STAMP_KEY_PREVIOUS valid",
