@@ -157,7 +157,6 @@ async function json(response: APIResponse) {
   return response.json();
 }
 
-/** A Site presentation of the selected organization, as the seed fixtures make them. */
 export async function siteOf(page: Page, baseURL: string) {
   const body = (await json(
     await page.request.get(
@@ -192,10 +191,6 @@ export async function createDraftPage(
   return String(created.doc.id);
 }
 
-/**
- * Gives the selected organization's seeded media record a new alt text, as
- * an editor may: staff neither upload nor delete media before WP6 part 2c.
- */
 export async function labelSeededMedia(
   page: Page,
   baseURL: string,
@@ -218,7 +213,6 @@ export async function labelSeededMedia(
   return { id: String(record.id), previousAlt: record.alt };
 }
 
-/** Puts a seeded media record's alt text back. */
 export async function restoreMediaAlt(
   page: Page,
   baseURL: string,
