@@ -724,7 +724,7 @@
   "packages/api/src/missionaries/metrics.ts": 22,
   "packages/api/src/missionary-portal/donor.ts": 2,
   "packages/api/src/missionary-portal/donors.ts": 15,
-  "packages/api/src/missionary-portal/model.ts": 19,
+  "packages/api/src/missionary-portal/model.ts": 16,
   "packages/api/src/missionary-portal/redaction.ts": 7,
   "packages/api/src/missionary-portal/service.ts": 9,
   "packages/api/src/money/index.ts": 5,

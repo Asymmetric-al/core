@@ -44,6 +44,7 @@ export function DonorsPageDetailOverview() {
   const { noteComposer } = view;
   const noteRef = React.useRef<HTMLTextAreaElement>(null);
   const postRef = React.useRef<HTMLButtonElement>(null);
+  const composerReasonId = React.useId();
   const postDisabled = !noteComposer.noteInput.trim() || noteComposer.isSaving;
   // Post stays focusable while saving; a saved note empties the box and
   // disables Post, so focus goes back to the note field.
@@ -59,6 +60,8 @@ export function DonorsPageDetailOverview() {
   }
 
   const handleNoteComposerSave = noteComposer.save;
+  const anonymous = selectedDonor.is_anonymous;
+  const composerReason = anonymous ? composerReasonId : undefined;
   return (
     <div className="flex flex-col gap-6">
       <motion.div
@@ -80,12 +83,16 @@ export function DonorsPageDetailOverview() {
               className="min-h-[80px] border-none bg-card focus:ring-0 resize-none text-sm p-3 rounded-xl shadow-sm"
               value={noteComposer.noteInput}
               onChange={(e) => noteComposer.setNoteInput(e.target.value)}
+              disabled={anonymous}
+              aria-describedby={composerReason}
             />
           </Field>
         </FieldGroup>
         <div className="flex flex-wrap justify-between items-center gap-3 mt-3 pt-3 border-t border-border">
           <ToggleGroup
             aria-label="Activity type"
+            disabled={anonymous}
+            aria-describedby={composerReason}
             className="flex-wrap"
             value={[noteComposer.activityType]}
             onValueChange={(value) => {
@@ -115,8 +122,9 @@ export function DonorsPageDetailOverview() {
               size="sm"
               className="h-8 rounded-xl px-4 font-semibold uppercase tracking-widest"
               onClick={handleNoteComposerSave}
-              disabled={postDisabled}
-              focusableWhenDisabled={noteComposer.isSaving}
+              disabled={postDisabled || anonymous}
+              focusableWhenDisabled={noteComposer.isSaving || anonymous}
+              aria-describedby={composerReason}
             >
               {noteComposer.isSaving ? (
                 <Spinner data-icon="inline-start" aria-label="Posting" />
@@ -126,6 +134,11 @@ export function DonorsPageDetailOverview() {
                 </>
               )}
             </Button>
+            {anonymous ? (
+              <span id={composerReasonId} className="sr-only">
+                Activity can’t be logged for anonymous partners
+              </span>
+            ) : null}
           </motion.div>
         </div>
       </motion.div>
@@ -141,7 +154,9 @@ export function DonorsPageDetailOverview() {
               </EmptyMedia>
               <EmptyTitle>No activity recorded yet</EmptyTitle>
               <EmptyDescription>
-                Start by logging your first interaction
+                {anonymous
+                  ? "Activity isn’t shown or logged for anonymous partners"
+                  : "Start by logging your first interaction"}
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
