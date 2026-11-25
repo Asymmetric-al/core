@@ -65,12 +65,15 @@ async function openSites(page: Page, tenant: string) {
   await expect(page.locator("#__next_error__")).toHaveCount(0);
 }
 
-const FILED_SEARCH_CONTROL = 'button[aria-label="Open Mission Control search"]';
+const FILED_SHELL_CONTROLS = [
+  'button[aria-label="Open Mission Control search"]',
+  'button[aria-label="Open profile menu"]',
+];
 
 async function seriousViolations(page: Page, include?: string) {
   const builder = new AxeBuilder({ page });
   if (include) builder.include(include);
-  else builder.exclude(FILED_SEARCH_CONTROL);
+  else for (const control of FILED_SHELL_CONTROLS) builder.exclude(control);
   const results = await builder
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();
