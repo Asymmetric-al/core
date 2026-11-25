@@ -94,6 +94,8 @@ vi.mock("@supabase/supabase-js", () => ({
 }));
 
 const donorModule = await import("../../../../apps/donor/proxy");
+const { homeRedirect } =
+  await import("../../../../apps/donor/lib/home-redirect");
 
 beforeEach(() => {
   resetHomeMode(state);
@@ -178,6 +180,28 @@ describe("on: only the home read decides the target (ruling 1 Q6, ruling Q2)", (
       ),
       "http://home-a.localhost/register",
       "no port",
+    );
+  });
+
+  it("gives http: and no port for a .localhost home when the listener port is 80, the http default (a home that is not .localhost is https: with no port before this rule, so production names never reach it)", async () => {
+    await expectHomeRedirect(
+      await donorModule.proxy(
+        siteRequest(SITE_A, "/register", {
+          url: "https://site-a.localhost:80/register",
+          headers: { host: "site-a.localhost" },
+        }),
+      ),
+      "http://home-a.localhost/register",
+      "listener port 80 through proxy()",
+    );
+    await expectHomeRedirect(
+      homeRedirect(
+        "home-a.localhost",
+        { port: "80", searchParams: new URLSearchParams() },
+        "/register",
+      ),
+      "http://home-a.localhost/register",
+      "listener port 80, called directly",
     );
   });
 
