@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { CONTRIBUTIONS_PAGE_META } from "../../../../apps/admin/components/table-page-meta";
@@ -13,8 +13,9 @@ describe("shell-owned page metadata", () => {
 
   it.each([
     ["(app)/page.tsx", "Home"],
-    ["(app)/admin/page.tsx", "Administration"],
-    ["(app)/admin/teams/page.tsx", "Members"],
+    ["(app)/settings/page.tsx", "Administration"],
+    ["(app)/settings/teams/page.tsx", "Members"],
+    ["(app)/settings/eve/page.tsx", "Eve operations"],
     ["(app)/reports/page.tsx", "Reports"],
     ["(app)/settings/integrations/resend/page.tsx", "Email delivery"],
     ["(app)/help/about/page.tsx", "About"],
@@ -30,5 +31,9 @@ describe("shell-owned page metadata", () => {
     expect(metadata).not.toBeNull();
     expect(metadata?.[1]).toContain(`title: "${title}"`);
     expect(source).not.toMatch(/^"use client"/);
+  });
+
+  it("removes the old (app)/admin directory once pages move under (app)/settings", () => {
+    expect(existsSync(new URL("(app)/admin", root))).toBe(false);
   });
 });

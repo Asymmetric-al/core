@@ -272,6 +272,32 @@ describe("Mission Control composed navigation names", () => {
     },
   );
 
+  it.each(["admin", "finance"] as const)(
+    "points %s profile menu shortcuts at /settings and /settings/teams",
+    async (role) => {
+      shellState.role = role;
+      const view = render(
+        <MCShell>
+          <h1>Content</h1>
+        </MCShell>,
+      );
+      fireEvent.click(view.getByRole("button", { name: "Open profile menu" }));
+      const administration = await view.findByRole("menuitem", {
+        name: "Administration",
+      });
+      const members = view.getByRole("menuitem", { name: "Members" });
+      expect(administration.getAttribute("href")).toBe("/settings");
+      expect(members.getAttribute("href")).toBe("/settings/teams");
+      const hrefs = view
+        .getAllByRole("menuitem")
+        .map((item) => item.getAttribute("href"))
+        .filter((href): href is string => href !== null);
+      expect(
+        hrefs.filter((href) => href === "/admin" || href.startsWith("/admin/")),
+      ).toEqual([]);
+    },
+  );
+
   it("opens the keyboard shortcuts from the profile menu, after About", async () => {
     vi.stubGlobal(
       "ResizeObserver",

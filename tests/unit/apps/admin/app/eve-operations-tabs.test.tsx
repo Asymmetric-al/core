@@ -12,7 +12,7 @@ import {
 import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { EveOperationsWorkspace } from "../../../../../apps/admin/app/(app)/admin/eve/workspace-shell";
+import { EveOperationsWorkspace } from "../../../../../apps/admin/app/(app)/settings/eve/workspace-shell";
 
 const PANELS = {
   overview: <div id="eve-active-runs">Active runs panel</div>,
@@ -22,7 +22,7 @@ const PANELS = {
 };
 
 beforeEach(() => {
-  window.history.replaceState(null, "", "/admin/eve");
+  window.history.replaceState(null, "", "/settings/eve");
   Element.prototype.scrollIntoView = vi.fn();
 });
 
@@ -81,7 +81,7 @@ describe("Eve operations workspace tabs", () => {
   });
 
   it("scrolls once for each repeated section selection under Strict Mode", async () => {
-    window.history.replaceState(null, "", "/admin/eve?tab=approvals");
+    window.history.replaceState(null, "", "/settings/eve?tab=approvals");
     render(
       <StrictMode>
         <EveOperationsWorkspace panels={PANELS} />
@@ -103,7 +103,7 @@ describe("Eve operations workspace tabs", () => {
   });
 
   it("opens the tab named by the link a page was opened from", async () => {
-    window.history.replaceState(null, "", "/admin/eve#eve-model-policy");
+    window.history.replaceState(null, "", "/settings/eve#eve-model-policy");
     render(<EveOperationsWorkspace panels={PANELS} />);
     expect(screen.getByText("Model policy panel")).toBeTruthy();
     // Base UI unmounts the panel it leaves once its exit has finished.
@@ -131,7 +131,7 @@ describe("Eve operations workspace tabs", () => {
   });
 
   it("keeps ?tab= in step with a section opened from the index", () => {
-    window.history.replaceState(null, "", "/admin/eve?tab=connections");
+    window.history.replaceState(null, "", "/settings/eve?tab=connections");
     render(<EveOperationsWorkspace panels={PANELS} />);
     fireEvent.click(screen.getByRole("link", { name: /^Model policy/ }));
     expect(window.location.search).toBe("?tab=policy");
@@ -139,7 +139,7 @@ describe("Eve operations workspace tabs", () => {
   });
 
   it("adds a history entry for a section chosen from the index, so Back returns", () => {
-    window.history.replaceState(null, "", "/admin/eve?tab=connections");
+    window.history.replaceState(null, "", "/settings/eve?tab=connections");
     render(<EveOperationsWorkspace panels={PANELS} />);
     const before = window.history.length;
     fireEvent.click(screen.getByRole("link", { name: /^Model policy/ }));
@@ -148,12 +148,12 @@ describe("Eve operations workspace tabs", () => {
   });
 
   it("returns to the tab in the URL when Back leaves a section", async () => {
-    window.history.replaceState(null, "", "/admin/eve?tab=connections");
+    window.history.replaceState(null, "", "/settings/eve?tab=connections");
     render(<EveOperationsWorkspace panels={PANELS} />);
     fireEvent.click(screen.getByRole("link", { name: /^Model policy/ }));
     expect(screen.getByText("Model policy panel")).toBeTruthy();
     // What the browser does on Back: the URL changes, then popstate.
-    window.history.replaceState(null, "", "/admin/eve?tab=connections");
+    window.history.replaceState(null, "", "/settings/eve?tab=connections");
     fireEvent.popState(window);
     expect(await screen.findByText("Notifications panel")).toBeTruthy();
   });
@@ -164,7 +164,7 @@ describe("Eve operations workspace tabs", () => {
     await waitFor(() => expect(window.location.search).toBe("?tab=policy"));
     cleanup();
 
-    window.history.replaceState(null, "", "/admin/eve?tab=connections");
+    window.history.replaceState(null, "", "/settings/eve?tab=connections");
     render(<EveOperationsWorkspace panels={PANELS} />);
     expect(screen.getByText("Notifications panel")).toBeTruthy();
   });

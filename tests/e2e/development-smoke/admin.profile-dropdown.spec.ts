@@ -11,7 +11,7 @@ import { parseTenantAddress } from "../../../packages/auth/tenant-address";
 /**
  * Headless check of the Mission Control profile menu on the development
  * deployment: the old template items stay gone and Administration lands on
- * /admin.
+ * /settings.
  *
  * Project: development-admin (see playwright.development-smoke.config.ts).
  *
@@ -42,7 +42,7 @@ test.describe("development-admin profile dropdown", () => {
     await collectFailureEvidence(page, testInfo);
   });
 
-  test("profile dropdown shows only the corrected item set and Administration lands on /admin", async ({
+  test("profile dropdown shows only the corrected item set and Administration lands on /settings", async ({
     page,
   }) => {
     const leaked: string[] = [];
@@ -108,14 +108,14 @@ test.describe("development-admin profile dropdown", () => {
 
     // Under the tenant prefix: a link without it would leave the document's
     // scope.
-    await expect(administration).toHaveAttribute("href", `${prefix}/admin`);
+    await expect(administration).toHaveAttribute("href", `${prefix}/settings`);
     await expect(staffDirectory).toHaveAttribute(
       "href",
-      `${prefix}/admin/teams`,
+      `${prefix}/settings/teams`,
     );
 
     await administration.click();
-    await page.waitForURL((url) => url.pathname === `${prefix}/admin`);
+    await page.waitForURL((url) => url.pathname === `${prefix}/settings`);
     await expect(page.locator("[data-tenant-scope]")).toHaveAttribute(
       "data-tenant-scope",
       prefix,

@@ -12,14 +12,14 @@ test("Administration lists only working settings and fits narrow screens", async
     await page.setViewportSize({ width, height: 900 });
     await expect(scope.getByRole("link", { name: /^Members/ })).toHaveAttribute(
       "href",
-      "/admin/teams",
+      "/settings/teams",
     );
     await expect(
       scope.getByRole("link", { name: /^Email delivery/ }),
     ).toHaveAttribute("href", "/settings/integrations/resend");
     await expect(scope.getByRole("link", { name: /^Eve/ })).toHaveAttribute(
       "href",
-      "/admin/eve",
+      "/settings/eve",
     );
     // Settings that are not built are not offered as disabled buttons.
     await expect(scope.getByRole("button")).toHaveCount(0);

@@ -40,7 +40,7 @@ const SECTIONS: Array<{ title: string; items: AdminDestination[] }> = [
         title: "Members",
         description:
           "Staff and missionaries in this organization, their roles and invitations.",
-        href: "/admin/teams",
+        href: "/settings/teams",
         icon: Users,
       },
       {
@@ -72,7 +72,7 @@ const SECTIONS: Array<{ title: string; items: AdminDestination[] }> = [
       {
         title: "Eve",
         description: "The assistant's release gate and emergency switches.",
-        href: "/admin/eve",
+        href: "/settings/eve",
         icon: Bot,
         // The Eve page admits admins only (eve/workspace-access.ts).
         roles: ["admin"],

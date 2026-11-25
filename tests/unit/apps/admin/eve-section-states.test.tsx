@@ -12,7 +12,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import {
   EveSectionEmpty,
   useEveSectionReady,
-} from "../../../../apps/admin/app/(app)/admin/eve/section-states";
+} from "../../../../apps/admin/app/(app)/settings/eve/section-states";
 
 afterEach(() => {
   cleanup();
@@ -31,7 +31,7 @@ it("announces a successful empty result in the shared Empty composition", () => 
 });
 
 it("resolves the requested hash again once its data is ready", () => {
-  window.history.replaceState(null, "", "/admin/eve#eve-audit");
+  window.history.replaceState(null, "", "/settings/eve#eve-audit");
   const target = document.createElement("section");
   target.id = "eve-audit";
   target.scrollIntoView = vi.fn();

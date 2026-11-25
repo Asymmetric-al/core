@@ -38,7 +38,7 @@ describe("app base-path helpers in document-reload", () => {
     expect(appPathname("/")).toBe("/");
     expect(withAppBasePath("/")).toBe("/");
     expect(withAppBasePath("/login")).toBe("/login");
-    expect(withAppBasePath("/admin/teams")).toBe("/admin/teams");
+    expect(withAppBasePath("/settings/teams")).toBe("/settings/teams");
     expect(crossAppHref("admin", "/invite/s")).toBe("/invite/s");
     expect(crossAppHref("missionary", "/invite/s")).toBe("/invite/s");
     expect(crossAppHref("donor", "/donor-dashboard/pledges")).toBe(
@@ -56,7 +56,8 @@ describe("app base-path helpers in document-reload", () => {
     expect(appPathname("/admin")).toBe("/");
     expect(appPathname("/admin/")).toBe("/");
     expect(appPathname("/admin/donors")).toBe("/donors");
-    expect(appPathname("/admin/admin/teams")).toBe("/admin/teams");
+    expect(appPathname("/admin/settings/teams")).toBe("/settings/teams");
+    expect(appPathname("/admin/admin/example")).toBe("/admin/example");
     expect(appPathname("/administration")).toBe("/administration");
     expect(appPathname("/donors")).toBe("/donors");
 
@@ -66,8 +67,9 @@ describe("app base-path helpers in document-reload", () => {
     expect(withAppBasePath("/login?next=%2Fdonors")).toBe(
       "/admin/login?next=%2Fdonors",
     );
-    expect(withAppBasePath("/admin/teams")).toBe("/admin/admin/teams");
-    expect(withAppBasePath("/admin/eve")).toBe("/admin/admin/eve");
+    expect(withAppBasePath("/settings/teams")).toBe("/admin/settings/teams");
+    expect(withAppBasePath("/settings/eve")).toBe("/admin/settings/eve");
+    expect(withAppBasePath("/admin/example")).toBe("/admin/admin/example");
     expect(withAppBasePath("//evil.test/x")).toBe("//evil.test/x");
     expect(withAppBasePath("https://other.test/x")).toBe(
       "https://other.test/x",
