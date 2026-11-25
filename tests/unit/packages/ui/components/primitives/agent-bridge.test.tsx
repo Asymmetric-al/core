@@ -87,7 +87,7 @@ const score = (label: string) =>
     .getByRole("radio", { checked: true })
     .getAttribute("aria-label");
 
-// What UI SDK 0.1.0-beta.2 calls: `document.modelContext.registerTool(tool,
+// What UI SDK 0.1.0-beta.17 calls: `document.modelContext.registerTool(tool,
 // { signal })`, which returns a promise. Aborting the signal removes the tool.
 function mockWebMcp() {
   const tools = new Map<string, Tool>();
@@ -331,7 +331,7 @@ describe("AgentBridge reads the page", () => {
       { ref: "Departing mark", action: "setValue", args: [5] },
     ]);
     expect(result.ok).toBe(false);
-    // UI SDK 0.1.0-beta.2 keeps the control's last state, with no actions.
+    // UI SDK 0.1.0-beta.17 keeps the control's last state, with no actions.
     const remembered = {
       ref: expect.stringMatching(/^c\d+$/),
       component: "rating",
@@ -379,7 +379,7 @@ describe("AgentBridge acts under Core's allowlist", () => {
     ]);
   });
 
-  it("keeps the old value when the consumer cancels, and reports no change", async () => {
+  it("keeps the old value when the consumer cancels, and reports the refusal", async () => {
     render(
       <>
         <AgentBridge allow={RATE} />
@@ -399,10 +399,50 @@ describe("AgentBridge acts under Core's allowlist", () => {
     ]);
 
     expect(score("Meal quality")).toBe("3 stars");
-    // A cancelled change is not a bridge error: read `changes`, not `ok`.
-    expect(result.ok).toBe(true);
-    expect(result.steps[0]?.changes).toBeUndefined();
+    // A cancelled setValue now fails the step with the unchanged value.
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/didn't take: it is still "3"/);
+    expect(result.steps).toEqual([]);
     expect(labelled(bridge, "Meal quality")).toMatchObject([{ value: "3" }]);
+  });
+
+  it("refuses out-of-bounds numeric values and malformed steps without changing controls", async () => {
+    const onValueChange = vi.fn();
+    render(
+      <>
+        <AgentBridge allow={RATE} />
+        <Rating
+          aria-label="Bounded mark"
+          defaultValue={3}
+          onValueChange={onValueChange}
+        />
+      </>,
+    );
+
+    const outOfRange = await run([
+      { ref: "Bounded mark", action: "setValue", args: [6] },
+    ]);
+    expect(outOfRange.ok).toBe(false);
+    expect(outOfRange.error?.message).toMatch(/from 1 to 5|not 6/);
+    expect(score("Bounded mark")).toBe("3 stars");
+    expect(onValueChange).not.toHaveBeenCalled();
+
+    const bridge = await getAgentBridge();
+    const malformed = await bridge.act({
+      steps: [
+        { ref: "Bounded mark", action: "setValue", args: [5] },
+        {
+          ref: "Bounded mark",
+          action: "setValue",
+          value: 4,
+        } as unknown as { ref: string; action: string; args?: unknown[] },
+      ],
+    });
+    expect(malformed.ok).toBe(false);
+    expect(malformed.steps).toEqual([]);
+    expect(malformed.error?.message).toMatch(/No step ran/);
+    expect(score("Bounded mark")).toBe("3 stars");
+    expect(onValueChange).not.toHaveBeenCalled();
   });
 
   it("refuses an action unless one entry names its component, action and label", async () => {

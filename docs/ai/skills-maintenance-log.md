@@ -1,6 +1,30 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-11-18
+Last updated: 2026-11-25
+
+## UI SDK 0.1.0-beta.17 and OpenSpec 2.2.0 upgrade - 2026-11-25
+
+Refreshed canonical skills and mirrors alongside Core's exact dependency bumps
+(`@ui-sdk/core` and `@ui-sdk/react` `0.1.0-beta.2` → `0.1.0-beta.17`;
+`@fission-ai/openspec` `2.1.0` → `2.2.0`):
+
+- **`ui-sdk` (`vercel-labs/ui` commit `d850982bd8aed202e07009825c3d9daf643fa24e`):**
+  reconciled the 7 changed files from `packages/core/skills/ui-sdk/` (verified
+  byte-identical to the copy bundled inside `@ui-sdk/core@0.1.0-beta.17`),
+  preserving Core's description, note, marked overlay, scanner comments,
+  Apache-2.0 change notices, and `LICENSE`. Updated `skills-lock.json`
+  (`computedHash`: `3823077bab44eeb1a26c14cf9a39381fdcd75e7c04fe85d2ecc0b2200fd75e0e`),
+  `references/upstream.md`, and `docs/ai/skill-source-audit.json`.
+- **OpenSpec cohort (`Fission-AI/OpenSpec` tag `v2.2.0`, commit
+  `f1cd852f4edce22b8df9548a4df889172ca8ff25`):** updated
+  `scripts/refresh-upstream-skills.mjs` to `v2.2.0`, added the new `openspec`
+  router skill alongside the seven curated workflows, reconciled
+  `openspec/SKILL.md` and `references/{answers,where-things-stand,without-skills}.md`
+  to Core's pinned local CLI (`bun run openspec --`), existing-change,
+  missing-skill, no-Stores, and merge-before-archive policy, and refreshed all
+  eight canonical OpenSpec skills, mirrors, `skills-lock.json` (193 → 194 lock
+  entries), and `docs/ai/skill-source-audit.json`. The five uncurated OpenSpec
+  workflows remain excluded.
 
 ## Skill quality pass - 2026-11-18 (AL-2715)
 

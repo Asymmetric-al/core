@@ -21,7 +21,7 @@ function readLock() {
 
 describe("skills lock current upstream paths", () => {
   it("keeps the current lockfile skill names", () => {
-    expect(Object.keys(readLock().skills)).toHaveLength(193);
+    expect(Object.keys(readLock().skills)).toHaveLength(194);
   });
 
   it("pins the reviewed vercel-labs/ui ui-sdk skill without its maintainer skills", () => {
@@ -31,7 +31,7 @@ describe("skills lock current upstream paths", () => {
     );
 
     const reviewedLockHash =
-      "76946872dfa4db3d144c1629ce2fe8a44b1cd4442ef70eeb82f3da4cb5f68f07";
+      "3823077bab44eeb1a26c14cf9a39381fdcd75e7c04fe85d2ecc0b2200fd75e0e";
     const reviewedLicenseHash =
       "85dc930b9f77edd477ceddd7658dd3a4bb4411186718d19e137a7a5724ee7007";
 
@@ -47,10 +47,10 @@ describe("skills lock current upstream paths", () => {
     expect(frontmatter).toBeDefined();
     const metadata = frontmatter?.split(/\r?\n/u) ?? [];
     for (const [key, value] of [
-      ["reviewed_commit", "8ff6bcf7100d48230a3fab8c72475d99316cc58a"],
+      ["reviewed_commit", "d850982bd8aed202e07009825c3d9daf643fa24e"],
       [
         "upstream_skill_md_sha256",
-        "bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a",
+        "ae96d59e4f575dbd28eb86b94a272adad34cd92271b4a8da2dd8cced1bbbf479",
       ],
       ["skills_lock_hash", reviewedLockHash],
       ["upstream_license_sha256", reviewedLicenseHash],

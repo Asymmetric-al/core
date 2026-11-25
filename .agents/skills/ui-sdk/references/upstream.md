@@ -3,15 +3,15 @@ source_name: vercel-labs/ui (ui-sdk)
 source_url: https://github.com/vercel-labs/ui
 source_type: github
 upstream_path: packages/core/skills/ui-sdk/SKILL.md
-reviewed_commit: 8ff6bcf7100d48230a3fab8c72475d99316cc58a
-reviewed_commit_date: 2026-11-13
-npm_package: "@ui-sdk/core@0.1.0-beta.2"
-upstream_skill_md_sha256: bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a
+reviewed_commit: d850982bd8aed202e07009825c3d9daf643fa24e
+reviewed_commit_date: 2026-11-24
+npm_package: "@ui-sdk/core@0.1.0-beta.17"
+upstream_skill_md_sha256: ae96d59e4f575dbd28eb86b94a272adad34cd92271b4a8da2dd8cced1bbbf479
 upstream_license_sha256: 85dc930b9f77edd477ceddd7658dd3a4bb4411186718d19e137a7a5724ee7007
-skills_lock_hash: 76946872dfa4db3d144c1629ce2fe8a44b1cd4442ef70eeb82f3da4cb5f68f07
+skills_lock_hash: 3823077bab44eeb1a26c14cf9a39381fdcd75e7c04fe85d2ecc0b2200fd75e0e
 license: Apache-2.0; preserved byte-exact as `LICENSE`
 ownership: canonical
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-25
 ---
 
 # Upstream: ui-sdk
@@ -23,14 +23,13 @@ publishes it to `.agents/skills/ui-sdk/`, `.claude/skills/ui-sdk/`, and
 - **Repository:** https://github.com/vercel-labs/ui
 - **Upstream path:** `packages/core/skills/ui-sdk/` (`SKILL.md` and seven
   `references/*.md`; `skills.sh.json` publishes `./packages/core/skills`).
-- **Reviewed commit:** `8ff6bcf7100d48230a3fab8c72475d99316cc58a`
-  (`chore: version packages (beta) (#444)`, 2026-11-13), the commit tagged
-  `@ui-sdk/core@0.1.0-beta.2` and `@ui-sdk/react@0.1.0-beta.2`. It was also
-  the remote `main` when the skill was imported on 2026-11-14.
+- **Reviewed commit:** `d850982bd8aed202e07009825c3d9daf643fa24e`
+  (`chore: version packages (beta) (#1049)`, 2026-11-24), the commit tagged
+  `@ui-sdk/core@0.1.0-beta.17` and `@ui-sdk/react@0.1.0-beta.17`.
 - **Installed SDK match:** the same tree ships inside the npm package at
   `packages/ui/node_modules/@ui-sdk/core/skills/ui-sdk/`, and
   `packages/ui/package.json` pins `@ui-sdk/core` and `@ui-sdk/react` to
-  `0.1.0-beta.2`. `tests/unit/docs/ui-sdk-skill.test.ts` compares the vendored
+  `0.1.0-beta.17`. `tests/unit/docs/ui-sdk-skill.test.ts` compares the vendored
   references with that bundled copy, so a version bump without a skill refresh
   fails.
 - **License:** Apache-2.0, from the repository-root `LICENSE`, which the npm
@@ -55,14 +54,14 @@ installed-version docs bundled with the packages.
 
 | File                             | Upstream sha256                                                    | Core copy                 |
 | -------------------------------- | ------------------------------------------------------------------ | ------------------------- |
-| `SKILL.md`                       | `bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a` | adapted (see below)       |
-| `references/agent-ready.md`      | `a78c7db97260c5a4b9f6189b8ac9134d96f801df508ebfa5e17b7e4b03a49e53` | scanner comments + notice |
-| `references/build-interface.md`  | `a93c3c21bfc5bc939350d0a3b02b56258df85328c49dc9f4357b78b91d05f1f1` | scanner comments + notice |
-| `references/create-component.md` | `00150e2cab1266384de9292d09f8a0f9da19fd08f67c762dd8f914179cb4da58` | byte-identical            |
+| `SKILL.md`                       | `ae96d59e4f575dbd28eb86b94a272adad34cd92271b4a8da2dd8cced1bbbf479` | adapted (see below)       |
+| `references/agent-ready.md`      | `afe0ac7ac996d4262052b25d1627c42d3e082cb13254dd3abff741ff0d39381c` | scanner comments + notice |
+| `references/build-interface.md`  | `60a5d24a6b7460945158a1bf53c3cb152ea318bcd8db822fb51112b88f39ced6` | scanner comments + notice |
+| `references/create-component.md` | `bf71094e5ce2e3e7b8d47ebde22859b3734fc1bfc08e1ad495642ceda07f61d3` | byte-identical            |
 | `references/patterns.md`         | `6cb4f62f57d36dac0318bda20474fff285f35836597c0d04f2a488d0cf5d0cd5` | byte-identical            |
-| `references/styles.md`           | `61ae4fccdce8a27bfe46fdb28aa17e36abe752ca59858f00dd878a14f53dffae` | scanner comments + notice |
-| `references/testing.md`          | `9a40c6f81ec2ad032693bf709658d458774f3f2cbe20551c197064fc18d3c4d1` | byte-identical            |
-| `references/web-components.md`   | `31056cc7d3b317845d4c64f50def9db020e0e4f6f3c9c62a79c505af7eb28821` | byte-identical            |
+| `references/styles.md`           | `bad68082b51891f0052f9f2719ca73236c56e43b785c36c4bb88517baee9d235` | scanner comments + notice |
+| `references/testing.md`          | `79d1fef48a574646dd07a9969ca72887fd715331b3e70d413a61e0de2902ae4a` | byte-identical            |
+| `references/web-components.md`   | `7992570e605af1cea5576aeb4b759dd94c3312b00d4923c46b74fabe8452d483` | byte-identical            |
 | `LICENSE` (repository root)      | `85dc930b9f77edd477ceddd7658dd3a4bb4411186718d19e137a7a5724ee7007` | byte-identical            |
 
 `.prettierignore` keeps the vendored references out of Prettier, which would

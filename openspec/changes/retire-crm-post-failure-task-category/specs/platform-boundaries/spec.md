@@ -2,17 +2,14 @@
 
 ### Requirement: Mission Control Tasks Are The Shared Staff Work Model
 
-Mission Control operational follow-up work MUST use one shared staff task
-model for contribution operations, donor notifications, receipt and statement
-issues, provider failures, correction reviews, batch issues, and future
-automation-created work.
+Mission Control follow-up MUST use one shared staff task model for contribution
+operations, donor notifications, receipt/statement, provider, correction, batch,
+and automated work.
 
 Needs Attention MUST be a contribution-facing view over shared task and issue
-state rather than a separate task model. Contribution-related tasks MUST link
-back to the triggering contribution operation audit event when one exists.
-
-Issue kinds left by a retired integration MUST NOT be listed in Needs
-Attention as follow-up work. Their records MUST stay in place as history.
+state, not a separate model. Contribution tasks MUST link back to the triggering
+contribution operation audit event when one exists. Retired integration issue
+kinds MUST NOT appear in Needs Attention and MUST stay as history.
 
 #### Scenario: A donor correction notification is blocked
 
