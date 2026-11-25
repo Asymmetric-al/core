@@ -66,7 +66,7 @@ await build({
           (source === "@asym/lib/mission-control/context" &&
             [
               "/admin/app/eve/global-panel.tsx",
-              "/admin/app/(app)/admin/page-client.tsx",
+              "/admin/app/(app)/settings/page-client.tsx",
               "/mission-control/components/tiles/tile-card.tsx",
             ].some((file) => workspaceFile?.endsWith(file))) ||
           (source === "eve/react" &&

@@ -27,7 +27,7 @@ import type { EveAdminMemoryAdminView } from "../../../../../packages/api/src/ev
 let EveAdminMemoryPanel: React.ComponentType;
 beforeAll(async () => {
   const module =
-    await import("../../../../../apps/admin/app/(app)/admin/eve/admin-memory-panel");
+    await import("../../../../../apps/admin/app/(app)/settings/eve/admin-memory-panel");
   EveAdminMemoryPanel = module.EveAdminMemoryPanel;
 });
 

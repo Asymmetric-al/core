@@ -346,7 +346,7 @@ export const navigation: NavItem[] = [
   {
     id: "admin",
     title: "Administration",
-    href: "/admin",
+    href: "/settings",
     icon: Shield,
     roles: ["finance", "admin"],
     section: "system",
@@ -355,13 +355,13 @@ export const navigation: NavItem[] = [
       {
         id: "admin-overview",
         title: "Overview",
-        href: "/admin",
+        href: "/settings",
         keywords: ["administration"],
       },
       {
         id: "admin-teams",
         title: "Members",
-        href: "/admin/teams",
+        href: "/settings/teams",
         keywords: [
           "members",
           "staff",
@@ -398,7 +398,7 @@ export const navigation: NavItem[] = [
       {
         id: "admin-eve",
         title: "Eve",
-        href: "/admin/eve",
+        href: "/settings/eve",
         roles: ["admin"],
         keywords: ["assistant", "ai"],
       },

@@ -2,7 +2,6 @@ import type { PrepareSend } from "eve/react";
 
 const SAFE_ROUTE_IDENTITIES = {
   "/": "Home",
-  "/admin": "Administration",
   "/automations": "Automations",
   "/care": "Member Care",
   "/contributions": "Contributions",

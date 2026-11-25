@@ -121,8 +121,8 @@ describe("initialsOf", () => {
   it("renders caller-provided menu items with their configured hrefs", () => {
     renderOpenProfileDropdown({
       menuItems: [
-        { label: "Administration", href: "/admin", icon: TestIcon },
-        { label: "Manage team", href: "/admin/teams", icon: TestIcon },
+        { label: "Administration", href: "/settings", icon: TestIcon },
+        { label: "Manage team", href: "/settings/teams", icon: TestIcon },
         { label: "About", href: "/help/about", icon: TestIcon },
       ],
     });
@@ -133,8 +133,8 @@ describe("initialsOf", () => {
     const manageTeam = screen.getByRole("menuitem", { name: "Manage team" });
     const about = screen.getByRole("menuitem", { name: "About" });
 
-    expect(administration.getAttribute("href")).toBe("/admin");
-    expect(manageTeam.getAttribute("href")).toBe("/admin/teams");
+    expect(administration.getAttribute("href")).toBe("/settings");
+    expect(manageTeam.getAttribute("href")).toBe("/settings/teams");
     expect(about.getAttribute("href")).toBe("/help/about");
 
     const hrefs = [administration, manageTeam, about].map((item) =>

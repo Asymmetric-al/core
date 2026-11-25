@@ -16,7 +16,7 @@ export default async function Page() {
   const auth = await getAuthContext();
   if (!auth.isAuthenticated) {
     await redirectInTenant(
-      `/login?next=${encodeURIComponent(await tenantHref("/admin/eve"))}`,
+      `/login?next=${encodeURIComponent(await tenantHref("/settings/eve"))}`,
     );
   }
   if (!canAccessEveOperationsWorkspace(auth)) {

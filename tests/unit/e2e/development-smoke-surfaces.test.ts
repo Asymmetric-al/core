@@ -213,8 +213,8 @@ afterEach(() => {
 describe("hosted smoke dashboard surface contracts", () => {
   function adminPage(
     {
-      adminHref = `${TENANT_PREFIX}/admin`,
-      staffHref = `${TENANT_PREFIX}/admin/teams`,
+      adminHref = `${TENANT_PREFIX}/settings`,
+      staffHref = `${TENANT_PREFIX}/settings/teams`,
     }: { adminHref?: string; staffHref?: string } = {},
     hosted: Hosted = {},
   ) {
@@ -232,13 +232,13 @@ describe("hosted smoke dashboard surface contracts", () => {
   it("accepts the Members profile shortcut from current admin navigation", async () => {
     const page = adminPage();
     await flowFor("admin")({ page });
-    expect(page.url()).toBe(`https://preview.example${TENANT_PREFIX}/admin`);
+    expect(page.url()).toBe(`https://preview.example${TENANT_PREFIX}/settings`);
   });
 
   it("rejects a Members shortcut with the wrong destination", async () => {
     await expect(
       flowFor("admin")({
-        page: adminPage({ staffHref: `${TENANT_PREFIX}/admin/wrong` }),
+        page: adminPage({ staffHref: `${TENANT_PREFIX}/settings/wrong` }),
       }),
     ).rejects.toThrow();
   });
@@ -248,10 +248,10 @@ describe("hosted smoke dashboard surface contracts", () => {
   // response, the `//` form refused).
   it("rejects Administration and Members links without the tenant prefix", async () => {
     await expect(
-      flowFor("admin")({ page: adminPage({ adminHref: "/admin" }) }),
+      flowFor("admin")({ page: adminPage({ adminHref: "/settings" }) }),
     ).rejects.toThrow();
     await expect(
-      flowFor("admin")({ page: adminPage({ staffHref: "/admin/teams" }) }),
+      flowFor("admin")({ page: adminPage({ staffHref: "/settings/teams" }) }),
     ).rejects.toThrow();
   });
 

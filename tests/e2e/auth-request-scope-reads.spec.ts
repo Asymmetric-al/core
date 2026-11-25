@@ -126,7 +126,7 @@ test.beforeAll(async () => {
       "/login",
       "/choose-organization",
       `/${DEMO}`,
-      `/${DEMO}/admin/teams`,
+      `/${DEMO}/settings/teams`,
       `/${DEMO}/crm`,
       "/web-studio/organization",
       "/web-studio",
@@ -236,7 +236,7 @@ test.describe("Mission Control", () => {
 
       // The member directory, on the caller's own token.
       const directory = collectReads(page, /^\/api\/admin\/users$/);
-      await page.goto(`/${tenant}/admin/teams`);
+      await page.goto(`/${tenant}/settings/teams`);
       await expect(
         page.getByRole("heading", { name: "Members" }),
       ).toBeVisible();
@@ -698,7 +698,7 @@ test.describe("a stale tab sends neither header", () => {
     if (app === "admin") {
       await signIn(page, staffInBoth!.email, staffInBoth!.password);
       await choose(page, `${ORGANIZATION_NAME[DEMO]}: Development`, DEMO);
-      opened = `/${DEMO}/admin/teams`;
+      opened = `/${DEMO}/settings/teams`;
       watched = /^\/api\/admin\/users$/;
       const first = await nextRead(page, watched, () => page.goto(opened));
       expect(first.status, first.path).toBe(200);

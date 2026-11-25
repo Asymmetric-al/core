@@ -4,12 +4,12 @@ import { cleanup, render } from "@testing-library/react";
 import { QueryProvider } from "@asym/database/providers";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { EveApprovalBudgetPanel } from "../../../../apps/admin/app/(app)/admin/eve/approval-budget-panel";
-import { EveEngineeringMonitorsPanel } from "../../../../apps/admin/app/(app)/admin/eve/engineering-monitors-panel";
-import { EveNotificationsPanel } from "../../../../apps/admin/app/(app)/admin/eve/notifications-panel";
-import { EveModelPolicyPanel } from "../../../../apps/admin/app/(app)/admin/eve/model-policy-panel";
-import { EveRetentionPanel } from "../../../../apps/admin/app/(app)/admin/eve/retention-panel";
-import { EveAdminMemoryPanel } from "../../../../apps/admin/app/(app)/admin/eve/admin-memory-panel";
+import { EveApprovalBudgetPanel } from "../../../../apps/admin/app/(app)/settings/eve/approval-budget-panel";
+import { EveEngineeringMonitorsPanel } from "../../../../apps/admin/app/(app)/settings/eve/engineering-monitors-panel";
+import { EveNotificationsPanel } from "../../../../apps/admin/app/(app)/settings/eve/notifications-panel";
+import { EveModelPolicyPanel } from "../../../../apps/admin/app/(app)/settings/eve/model-policy-panel";
+import { EveRetentionPanel } from "../../../../apps/admin/app/(app)/settings/eve/retention-panel";
+import { EveAdminMemoryPanel } from "../../../../apps/admin/app/(app)/settings/eve/admin-memory-panel";
 import { getQueryClient } from "../../../../packages/database/providers/query-client";
 
 beforeEach(() => {

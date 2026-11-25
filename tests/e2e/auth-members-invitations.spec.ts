@@ -214,7 +214,7 @@ test.describe("AL-2676 WP3c: Members screen, invitations, doorway, and role chan
 
     await warmUpRoutes(ADMIN_ORIGIN, [
       "/login",
-      `/${tenantId}/admin/teams`,
+      `/${tenantId}/settings/teams`,
       "/invite/warmup-selector",
     ]);
     await warmUpRoutes(MISSIONARY_ORIGIN, [
@@ -277,7 +277,21 @@ test.describe("AL-2676 WP3c: Members screen, invitations, doorway, and role chan
       adminUser!.email,
       adminUser!.password,
     );
+    const oldRouteResponse = await page.request.get(
+      `${ADMIN_ORIGIN}/${tenantId}/admin/teams`,
+      { maxRedirects: 0 },
+    );
+    expect(oldRouteResponse.status()).toBe(404);
+    expect(oldRouteResponse.headers()["location"]).toBeUndefined();
     await page.goto(`${ADMIN_ORIGIN}/${tenantId}/admin/teams`);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Page not found" }),
+    ).toBeVisible();
+
+    const membersResponse = await page.goto(
+      `${ADMIN_ORIGIN}/${tenantId}/settings/teams`,
+    );
+    expect(membersResponse?.status()).toBe(200);
     await expect(
       page.getByRole("heading", { level: 1, name: "Members" }),
     ).toBeVisible();
@@ -638,7 +652,7 @@ test.describe("AL-2676 WP3c: Members screen, invitations, doorway, and role chan
         regularStaff!.email,
         regularStaff!.password,
       );
-      await staffPage.goto(`${ADMIN_ORIGIN}/${tenantId}/admin/teams`);
+      await staffPage.goto(`${ADMIN_ORIGIN}/${tenantId}/settings/teams`);
       await expect(
         staffPage.getByRole("heading", { level: 1, name: "Members" }),
       ).toBeVisible();
