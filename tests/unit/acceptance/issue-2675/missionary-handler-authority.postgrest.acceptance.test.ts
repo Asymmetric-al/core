@@ -76,7 +76,7 @@ async function json(response: Response, status: number) {
   return body;
 }
 describe.skipIf(!configured)(
-  "missionary handlers through PostgREST with image privileges",
+  "missionary handlers through PostgREST with image privileges (D-18, AL-2678: each fixture missionary names a Party, removed with its tenant)",
   () => {
     let db: pg.Client;
     let installed = false;
@@ -109,7 +109,7 @@ describe.skipIf(!configured)(
             [org.assignment, org.tenant, person, org.wrong],
           );
           await db.query(
-            "with entity as (insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($2,$2,'Fixture','US','usd','Fixture') returning id) insert into public.missionaries(id,tenant_id,profile_id,legal_entity_id) select $1,$2,$3,id from entity",
+            "with entity as (insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($2,$2,'Fixture','US','usd','Fixture') returning id), party as (insert into public.parties(id,tenant_id,display_name) values ($1,$2,'Fixture') returning id) insert into public.missionaries(id,tenant_id,profile_id,legal_entity_id,party_id) select $1,$2,$3,entity.id,party.id from entity, party",
             [org.missionary, org.tenant, person],
           );
           await db.query(
@@ -123,12 +123,12 @@ describe.skipIf(!configured)(
             ],
           );
           await db.query(
-            "insert into public.missionary_tasks(id,missionary_id,donor_id,title) values ($1,$2,$3,'original')",
-            [org.task, person, org.donor],
+            "insert into public.missionary_tasks(id,missionary_id,donor_id,title,tenant_id) values ($1,$2,$3,'original',$4)",
+            [org.task, person, org.donor, org.tenant],
           );
           await db.query(
-            "insert into public.follower_requests(id,missionary_id,donor_id) values ($1,$2,$3)",
-            [org.follower, person, org.donor],
+            "insert into public.follower_requests(id,missionary_id,donor_id,tenant_id) values ($1,$2,$3,$4)",
+            [org.follower, person, org.donor, org.tenant],
           );
         }
         await db.query("commit");
@@ -156,7 +156,7 @@ describe.skipIf(!configured)(
             orgs.map((org) => org.donor),
           ]);
           await db.query("delete from auth.users where id=$1", [person]);
-          for (const table of ["missionaries", "legal_entities"])
+          for (const table of ["missionaries", "parties", "legal_entities"])
             await db.query(
               `delete from public.${table} where tenant_id=any($1::uuid[])`,
               [orgs.map((org) => org.tenant)],
@@ -212,7 +212,7 @@ describe.skipIf(!configured)(
       await db.query("insert into auth.users(id) values ($1)", [newOwner]);
       try {
         await db.query(
-          "insert into public.missionaries(tenant_id,profile_id,legal_entity_id) values ($1,$2,$1)",
+          "with party as (insert into public.parties(tenant_id,display_name) values ($1,'Fixture') returning id) insert into public.missionaries(tenant_id,profile_id,legal_entity_id,party_id) select $1,$2,$1,id from party",
           [org.tenant, newOwner],
         );
         await db.query(

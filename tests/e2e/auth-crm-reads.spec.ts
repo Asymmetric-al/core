@@ -37,11 +37,22 @@ const CRM_LOCAL_SURFACES = [
     path: "/crm/notes",
     heading: "CRM Notes",
     emptyState: /No CRM notes/i,
+    rows: [],
+    reason: "",
   },
   {
     path: "/crm/relationships",
     heading: "CRM Relationships",
-    emptyState: /No CRM relationships/i,
+    emptyState: /Sam Ortiz/,
+    rows: [
+      {
+        recordId: "21000000-0000-0000-0000-000000000002",
+        recordKind: "missionary",
+        displayName: "Sam Ortiz",
+      },
+    ],
+    reason:
+      " (D-18, AL-2678: the seed's fixture worker Sam Ortiz holds a missionary record in the second organization, so its one relationship row is his, not the empty state)",
   },
 ] as const;
 
@@ -99,8 +110,14 @@ test.describe("CRM on the caller's session", () => {
     await deletePerson(env, dual);
   });
   test.describe("Local CRM notes and relationships", () => {
-    for (const { emptyState, heading, path } of CRM_LOCAL_SURFACES) {
-      test(`${heading} (${path}) loads local Asym Postgres data without overlay`, async ({
+    for (const {
+      emptyState,
+      heading,
+      path,
+      rows: expectedRows,
+      reason,
+    } of CRM_LOCAL_SURFACES) {
+      test(`${heading} (${path}) loads local Asym Postgres data without overlay${reason}`, async ({
         page,
       }) => {
         await signIn(page, SEEDED.morgan.email, SEEDED_PASSWORD);
@@ -115,7 +132,7 @@ test.describe("CRM on the caller's session", () => {
         expect(await reply.json()).toMatchObject({
           configured: true,
           mode: "local",
-          rows: [],
+          rows: expectedRows,
         });
         await page.waitForLoadState("domcontentloaded");
 

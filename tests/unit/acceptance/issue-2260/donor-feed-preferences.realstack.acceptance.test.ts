@@ -70,6 +70,7 @@ describe.skipIf(!ADMIN_URL)("#2260 donor_feed_preferences own rows (R)", () => {
     insert into authz.memberships (user_id, tenant_id, role, staff_role, is_active) values (:S, :A, 'staff', 'finance', true),
       (:U1, :A, 'donor', NULL, true), (:U2, :A, 'donor', NULL, true), (:U3, :B, 'donor', NULL, true);
     insert into public.donors (id, tenant_id, profile_id) values (:D1, :A, :U1), (:D2, :A, :U2), (:D3, :B, :U3);
+    insert into public.account_links (tenant_id, user_id, party_id, linked_via) select tenant_id, profile_id, party_id, 'profile_backfill' from public.donors where id in (:D1, :D2, :D3);
     insert into ${T} (id, donor_id, tenant_id) values (:P1, :D1, :A), (:P2, :D2, :A), (:P3, :D3, :B);`.replace(
       /:([A-Z]\d?)\b/g,
       (_m, k: string) => q(k),
@@ -261,7 +262,8 @@ describe.skipIf(!ADMIN_URL)("#2260 donor_feed_preferences own rows (R)", () => {
         expect(e, r.policyname).toContain("authz.current_tenant_id()");
         if (ownFile) expect(e, r.policyname).toContain("auth.uid()");
         else {
-          expect(e, r.policyname).toContain("authz.caller_profile_ids()");
+          expect(e, r.policyname).toContain("account_links");
+          expect(e, r.policyname).not.toContain("profile_id");
           expect(e, r.policyname).toContain(
             "authz.assignment_is('donor'::authz.membership_role)",
           );
@@ -296,7 +298,7 @@ describe.skipIf(!ADMIN_URL)("#2260 donor_feed_preferences own rows (R)", () => {
       expect((await as(anon, sql)).code, sql).toBe("42501");
   }
 
-  it("1: U1 in tenant A reads exactly U1's row", () =>
+  it("1: U1 in tenant A reads exactly U1's row (D-18, AL-2678: the own row is the caller's account link to the donor's Party, so each fixture donor is linked as the migration backfills a donor that names a profile)", () =>
     tx(async () => expect(await ids(U1A)).toEqual([id.P1])));
 
   it("2: U1 upserts its own row; a second upsert updates the same row", () =>

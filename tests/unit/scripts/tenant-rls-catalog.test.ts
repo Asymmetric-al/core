@@ -40,6 +40,7 @@ import {
   stripParens,
   tenantBound,
 } from "../../../scripts/verify/tenant-rls-catalog.mjs";
+import { preMembershipCommandRows } from "../../fixtures/pre-membership-commands";
 
 const table = (name: string, over: Record<string, unknown> = {}) => ({
   ...{ table: name, tenant: true, rls: true, force: true, policies: 1 },
@@ -127,18 +128,35 @@ const allow = (...fns: string[]) => ({
 
 describe("WP4 command boundaries", () => {
   it("pins the complete pre-membership list and its independent review", () => {
-    const fn =
-      "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)";
-    const reason =
-      "AL-2676 WP3c R1/R14/R15: invitation acceptance admits a non-operator caller who holds no membership yet after refusing platform operators and issuer self-acceptance and verifying selector, constant-time verifier digest, live status, expiry, and confirmed non-deleted email via private.resolve_invitation_for_caller before tenant_guard.enter or any lock";
-    expect(preMembershipEntries).toEqual([{ function: fn, reason }]);
-    expect(reviewedPreMembership).toEqual({
-      [fn]: {
-        reason,
-        digest:
-          "8e1cd0bb1438913861f3dfda3f72866e20c6ccbe0abb1513e489e41cf9f9cbb2",
-      },
+    expect(preMembershipEntries.map((entry) => entry.function)).toEqual([
+      "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)",
+      "tenant_guard.start_account_claim(p_tenant_id uuid)",
+      "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)",
+    ]);
+    expect(
+      Object.fromEntries(
+        Object.entries(reviewedPreMembership).map(([name, pin]) => [
+          name,
+          pin.digest,
+        ]),
+      ),
+    ).toEqual({
+      "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)":
+        "8e1cd0bb1438913861f3dfda3f72866e20c6ccbe0abb1513e489e41cf9f9cbb2",
+      "tenant_guard.start_account_claim(p_tenant_id uuid)":
+        "bca3eaeb1cf4059144d502daf37a9050eee2918085fd8494438651d7b064544c",
+      "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)":
+        "acc80384cc7e474a3053e7aac23f70d166c285396dd2633401efa4850dcc45c7",
     });
+    expect(
+      reviewedPreMembership[
+        "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)"
+      ]?.reason,
+    ).toBe(
+      "AL-2676 WP3c R1/R14/R15: invitation acceptance admits a non-operator caller who holds no membership yet after refusing platform operators and issuer self-acceptance and verifying selector, constant-time verifier digest, live status, expiry, and confirmed non-deleted email via private.resolve_invitation_for_caller before tenant_guard.enter or any lock",
+    );
+    for (const entry of preMembershipEntries)
+      expect(reviewedPreMembership[entry.function]?.reason).toBe(entry.reason);
   });
   it("fails the gate when an unreviewed pre-membership entry is planted", () => {
     const plantedName = "tenant_guard.unreviewed_pre_member(p_token text)";
@@ -323,6 +341,30 @@ describe("WP4 command boundaries", () => {
       ).toContain("WRAPPER_GRANTS_HUMAN public.block(uuid)");
     },
   );
+  it("judges the repository's reviewed pre-membership list unless told otherwise (D-18, AL-2678: the list is no longer empty, so the synthetic catalogs of this file judge an empty one, and this case judges the real one)", () => {
+    const empty = {
+      tables: [],
+      definers: [],
+      wrappers: [],
+      grants: [],
+      policies: [],
+      published: [],
+    };
+    expect(
+      codes(evaluateTenantRlsCatalog({ ...empty, commands: [] }, listed())),
+    ).toEqual(
+      preMembershipEntries.map(
+        (entry) => `COMMAND_EXCEPTION_UNREVIEWED ${entry.function}`,
+      ),
+    );
+    expect(
+      evaluateTenantRlsCatalog(
+        { ...empty, commands: preMembershipCommandRows() },
+        listed(),
+      ).failures,
+    ).toEqual([]);
+    expect(codes(evaluate([]))).toEqual([]);
+  });
 });
 const evaluate = (
   tables: object[],
@@ -1741,7 +1783,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   // Council R3: the tables with no tenant column whose rows reach their
   // tenant through a parent row. Postgres ORs every permissive policy, so a
   // second one beside the pin would widen it unseen.
-  it("on a table that reaches its tenant through a parent, fails every signed-in policy that is not pinned and a pin with a per-row lookup", () => {
+  it("on a table that reaches its tenant through a parent, fails every signed-in policy that is not pinned and a pin with a per-row lookup (D-18, AL-2678: donor_activities carries its own tenant now and left the parent-scoped list)", () => {
     const comments = policy(
       "post_comments",
       "(EXISTS ( SELECT 1 FROM posts p WHERE (p.id = post_comments.post_id)))",
@@ -1754,12 +1796,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     expect(
       codes(run([comments, second], { policyExceptions: pin(comments) })),
     ).toEqual(["PARENT_SCOPED_POLICY_NOT_PINNED post_comments"]);
-    for (const parentScoped of [
-      "post_fires",
-      "post_likes",
-      "post_prayers",
-      "donor_activities",
-    ])
+    for (const parentScoped of ["post_fires", "post_likes", "post_prayers"])
       expect(codes(run([policy(parentScoped, "true")])), parentScoped).toEqual([
         `PARENT_SCOPED_POLICY_NOT_PINNED ${parentScoped}`,
       ]);

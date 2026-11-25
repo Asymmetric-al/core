@@ -42,9 +42,14 @@ DELETE FROM public.donor_pledges;
 -- K9: a target that a lock names cannot be deleted; a reset removes the
 -- permanent locks first, as their owner, on a disposable database only.
 DELETE FROM public.giving_target_entity_locks;
+DELETE FROM public.external_identifiers;
+DELETE FROM public.account_links;
+DELETE FROM public.account_claim_requests;
+DELETE FROM private.party_restricted;
 DELETE FROM public.funds;
 DELETE FROM public.donors;
 DELETE FROM public.missionaries;
+DELETE FROM public.parties;
 DELETE FROM public.payment_account_bindings;
 DELETE FROM public.legal_entities;
 DELETE FROM public.locations;
@@ -347,7 +352,8 @@ FROM (
   VALUES
     ('33333333-3333-3333-3333-333333333333'::uuid, 'admin@harborlight.test', '00000000-0000-0000-0000-000000000002', 'Morgan', 'Reyes'),
     ('44444444-4444-4444-4444-444444444444'::uuid, 'two-organizations@donors.test', '00000000-0000-0000-0000-000000000001', 'Riley', 'Okafor'),
-    ('55555555-5555-5555-5555-555555555555'::uuid, 'member-care@givehope.test', '00000000-0000-0000-0000-000000000001', 'Naomi', 'Adeyemi')
+    ('55555555-5555-5555-5555-555555555555'::uuid, 'member-care@givehope.test', '00000000-0000-0000-0000-000000000001', 'Naomi', 'Adeyemi'),
+    ('57000000-0000-4000-8000-000000000001'::uuid, 'field-worker@partners.test', '00000000-0000-0000-0000-000000000001', 'Sam', 'Ortiz')
 ) AS fixture (id, email, tenant_id, first_name, last_name)
 ON CONFLICT (id) DO UPDATE
 SET
@@ -381,7 +387,8 @@ FROM (
   VALUES
     ('33333333-3333-3333-3333-333333333334'::uuid, '33333333-3333-3333-3333-333333333333'::uuid, 'admin@harborlight.test'),
     ('44444444-4444-4444-4444-444444444445'::uuid, '44444444-4444-4444-4444-444444444444'::uuid, 'two-organizations@donors.test'),
-    ('55555555-5555-5555-5555-555555555556'::uuid, '55555555-5555-5555-5555-555555555555'::uuid, 'member-care@givehope.test')
+    ('55555555-5555-5555-5555-555555555556'::uuid, '55555555-5555-5555-5555-555555555555'::uuid, 'member-care@givehope.test'),
+    ('57000000-0000-4000-8000-000000000002'::uuid, '57000000-0000-4000-8000-000000000001'::uuid, 'field-worker@partners.test')
 ) AS fixture (identity_id, user_id, email)
 ON CONFLICT (provider_id, provider) DO UPDATE
 SET
@@ -444,6 +451,19 @@ VALUES
     '00000000-0000-0000-0000-000000000001',
     '2026-11-17T09:00:00Z'::timestamptz,
     '2026-11-17T09:00:00Z'::timestamptz
+  ),
+  (
+    '57000000-0000-4000-8000-000000000001',
+    '57000000-0000-4000-8000-000000000001',
+    'field-worker@partners.test',
+    'Sam',
+    'Ortiz',
+    'Sam Ortiz',
+    'Sam Ortiz',
+    'missionary',
+    '00000000-0000-0000-0000-000000000001',
+    '2026-11-17T09:00:00Z'::timestamptz,
+    '2026-11-17T09:00:00Z'::timestamptz
   )
 ON CONFLICT (id) DO UPDATE
 SET
@@ -488,7 +508,9 @@ VALUES
   ('33333333-3333-3333-3333-333333333333', '00000000-0000-0000-0000-000000000002', 'staff', 'development', true, TIMESTAMPTZ '2026-11-17T09:00:00Z', TIMESTAMPTZ '2026-11-17T09:00:00Z'),
   ('44444444-4444-4444-4444-444444444444', '00000000-0000-0000-0000-000000000001', 'donor', NULL, true, TIMESTAMPTZ '2026-11-17T09:00:00Z', TIMESTAMPTZ '2026-11-17T09:00:00Z'),
   ('44444444-4444-4444-4444-444444444444', '00000000-0000-0000-0000-000000000002', 'donor', NULL, true, TIMESTAMPTZ '2026-11-17T09:00:00Z', TIMESTAMPTZ '2026-11-17T09:00:00Z'),
-  ('55555555-5555-5555-5555-555555555555', '00000000-0000-0000-0000-000000000001', 'staff', 'member_care', true, TIMESTAMPTZ '2026-11-17T09:00:00Z', TIMESTAMPTZ '2026-11-17T09:00:00Z');
+  ('55555555-5555-5555-5555-555555555555', '00000000-0000-0000-0000-000000000001', 'staff', 'member_care', true, TIMESTAMPTZ '2026-11-17T09:00:00Z', TIMESTAMPTZ '2026-11-17T09:00:00Z'),
+  ('57000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000001', 'missionary', NULL, true, TIMESTAMPTZ '2026-11-23T09:00:00Z', TIMESTAMPTZ '2026-11-23T09:00:00Z'),
+  ('57000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000002', 'missionary', NULL, true, TIMESTAMPTZ '2026-11-23T09:00:00Z', TIMESTAMPTZ '2026-11-23T09:00:00Z');
 
 -- The tenant-administrator flag on both administrators' staff rows. Some
 -- acceptance suites apply this seed to the schema as it stood before their own
@@ -523,6 +545,35 @@ SELECT md5(id::text||':legal')::uuid,id,name,'US','usd',name FROM public.tenants
 INSERT INTO public.funds(id,tenant_id,legal_entity_id,name,system_purpose)
 SELECT md5(tenant_id::text||':fee')::uuid,tenant_id,id,'Fee cover','fee_cover' FROM public.legal_entities;
 INSERT INTO public.contribution_approval_policies(tenant_id,ownership_mode) SELECT id,'no_approval_required' FROM public.tenants;
+
+-- Parties (AL-2678, WP5): one per person or organisation in a tenant. The six
+-- display-only field teams, the demo owner (a donor and a missionary in the
+-- demo organization, so one Party), Sam Ortiz (a missionary in both
+-- organizations, so one Party in each, and ministry assignment ids that
+-- differ from the profile id), the fourteen other partners and Riley Okafor,
+-- whose donor record is reached only through an account link. Every level is
+-- the unreviewed standard default except Field Team 4, the seeded restricted
+-- worker, whose alias differs from the legal name in private.party_restricted.
+INSERT INTO public.parties (id, tenant_id, display_name, created_at, updated_at)
+SELECT ('22000000-0000-0000-0000-' || lpad(gs::text, 12, '0'))::uuid,
+       '00000000-0000-0000-0000-000000000001',
+       format('Field Team %s', gs),
+       '2025-11-05T10:00:00Z'::timestamptz,
+       '2025-11-05T10:00:00Z'::timestamptz
+  FROM generate_series(1, 6) AS gs;
+INSERT INTO public.parties (id, tenant_id, display_name, created_at, updated_at)
+VALUES
+  ('22000000-0000-0000-0000-000000000100', '00000000-0000-0000-0000-000000000001', 'Jordan Hale', '2025-11-01T09:00:00Z', '2025-11-01T09:00:00Z'),
+  ('22000000-0000-0000-0000-000000000201', '00000000-0000-0000-0000-000000000001', 'Sam Ortiz', '2026-11-23T09:00:00Z', '2026-11-23T09:00:00Z'),
+  ('22000000-0000-0000-0000-000000000202', '00000000-0000-0000-0000-000000000002', 'Sam Ortiz', '2026-11-23T09:00:00Z', '2026-11-23T09:00:00Z'),
+  ('23000000-0000-0000-0000-000000000016', '00000000-0000-0000-0000-000000000001', 'Riley Okafor', '2026-11-17T09:00:00Z', '2026-11-17T09:00:00Z');
+UPDATE public.parties
+   SET security_level = 'restricted',
+       security_level_source = 'manual',
+       public_alias = 'Field Team 4'
+ WHERE id = '22000000-0000-0000-0000-000000000004';
+INSERT INTO private.party_restricted (party_id, tenant_id, legal_name, real_country, precise_location)
+VALUES ('22000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001', 'Samira Haddad', 'Jordan', 'Amman');
 
 -- Sites, claimed names and the home record (AL-2676, WP3a part 1b). The seed
 -- writes as owner and stands for a passed challenge: each organization's one
@@ -567,6 +618,7 @@ WITH missionary_seed AS (
 INSERT INTO public.missionaries (
   id,
   tenant_id,
+  party_id,
   legal_entity_id,
   profile_id,
   bio,
@@ -591,6 +643,7 @@ INSERT INTO public.missionaries (
 SELECT
   id,
   '00000000-0000-0000-0000-000000000001',
+  ('22000000-0000-0000-0000-' || lpad(gs::text, 12, '0'))::uuid,
   md5('00000000-0000-0000-0000-000000000001:legal')::uuid,
   -- Display-only teams have no authenticated profile. The demo identity below
   -- must resolve to exactly one missionary.
@@ -647,6 +700,7 @@ FROM missionary_seed;
 INSERT INTO public.missionaries (
   id,
   tenant_id,
+  party_id,
   legal_entity_id,
   profile_id,
   bio,
@@ -671,6 +725,7 @@ INSERT INTO public.missionaries (
 VALUES (
   '11111111-1111-1111-1111-111111111111',
   '00000000-0000-0000-0000-000000000001',
+  '22000000-0000-0000-0000-000000000100',
   md5('00000000-0000-0000-0000-000000000001:legal')::uuid,
   '11111111-1111-1111-1111-111111111111',
   'I train village teachers and help schools get clean water in the hills north of Chiang Mai. Our three learning centres teach reading to children who would otherwise miss school, and share the hope of Jesus with their families.',
@@ -695,6 +750,7 @@ VALUES (
 ON CONFLICT (id) DO UPDATE
 SET
   tenant_id = EXCLUDED.tenant_id,
+  party_id = EXCLUDED.party_id,
   profile_id = EXCLUDED.profile_id,
   bio = EXCLUDED.bio,
   mission_field = EXCLUDED.mission_field,
@@ -714,6 +770,23 @@ SET
   social_links = EXCLUDED.social_links,
   updated_at = EXCLUDED.updated_at;
 
+-- Sam Ortiz's ministry assignments, one in each organization; their ids
+-- are not the profile id (AL-2678; part 2 moves missionary_id onto them).
+INSERT INTO public.missionaries (id, tenant_id, party_id, legal_entity_id, profile_id, mission_field, location, tagline, created_at, updated_at)
+VALUES
+  ('21000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', '22000000-0000-0000-0000-000000000201', md5('00000000-0000-0000-0000-000000000001:legal')::uuid, '57000000-0000-4000-8000-000000000001', 'Community Health', 'Kampala, Uganda', 'Clinics and community health', '2026-11-23T09:00:00Z', '2026-11-23T09:00:00Z'),
+  ('21000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002', '22000000-0000-0000-0000-000000000202', md5('00000000-0000-0000-0000-000000000002:legal')::uuid, '57000000-0000-4000-8000-000000000001', 'Community Health', 'Kampala, Uganda', 'Clinics and community health', '2026-11-23T09:00:00Z', '2026-11-23T09:00:00Z');
+
+INSERT INTO public.parties (id, tenant_id, display_name, created_at, updated_at)
+SELECT ('23000000-0000-0000-0000-' || lpad(gs::text, 12, '0'))::uuid,
+       '00000000-0000-0000-0000-000000000001',
+       (ARRAY['Avery','Morgan','Taylor','Casey','Reese','Parker','Quinn','Rowan','Skyler','Hayden','Elliot','Riley','Cameron','Dakota','Logan'])[gs]
+         || ' ' ||
+       (ARRAY['Lopez','Patel','Nguyen','Brooks','Carter','Diaz','Kim','Turner','Reed','Bennett','Shaw','Walker','Price','Coleman','Rivera'])[gs],
+       ('2025-11-01T11:00:00Z'::timestamptz + ((gs - 1) * interval '2 days')),
+       ('2025-11-01T11:00:00Z'::timestamptz + ((gs - 1) * interval '2 days'))
+  FROM generate_series(2, 15) AS gs;
+
 WITH donor_seed AS (
   SELECT
     gs,
@@ -725,6 +798,7 @@ WITH donor_seed AS (
 INSERT INTO public.donors (
   id,
   tenant_id,
+  party_id,
   profile_id,
   missionary_id,
   name,
@@ -769,6 +843,7 @@ INSERT INTO public.donors (
 SELECT
   id,
   '00000000-0000-0000-0000-000000000001',
+  CASE WHEN gs = 1 THEN '22000000-0000-0000-0000-000000000100'::uuid ELSE ('23000000-0000-0000-0000-' || lpad(gs::text, 12, '0'))::uuid END,
   CASE WHEN gs = 1 THEN '11111111-1111-1111-1111-111111111111'::uuid ELSE NULL END,
   '11111111-1111-1111-1111-111111111111',
   first_name || ' ' || last_name,
@@ -814,6 +889,19 @@ SELECT
   ('2025-11-01T11:00:00Z'::timestamptz + ((gs - 1) * interval '2 days')),
   ('2026-02-15T08:00:00Z'::timestamptz - ((gs - 1) * interval '2 hours'))
 FROM donor_seed;
+
+-- Riley Okafor's donor record in the demo organization names no profile: the
+-- account link is the only thing that joins the login to it, as after a claim
+-- (AL-2678). The other three links are the demo owner's and Sam Ortiz's.
+INSERT INTO public.donors (id, tenant_id, party_id, profile_id, missionary_id, name, email, type, status, created_at, updated_at)
+VALUES ('30000000-0000-0000-0000-000000000016', '00000000-0000-0000-0000-000000000001', '23000000-0000-0000-0000-000000000016', NULL, NULL, 'Riley Okafor', 'two-organizations@donors.test', 'individual', 'active', '2026-11-17T09:00:00Z', '2026-11-17T09:00:00Z');
+
+INSERT INTO public.account_links (tenant_id, user_id, party_id, linked_via, created_at, updated_at)
+VALUES
+  ('00000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', '22000000-0000-0000-0000-000000000100', 'profile_backfill', '2025-11-01T09:00:00Z', '2025-11-01T09:00:00Z'),
+  ('00000000-0000-0000-0000-000000000001', '57000000-0000-4000-8000-000000000001', '22000000-0000-0000-0000-000000000201', 'profile_backfill', '2026-11-23T09:00:00Z', '2026-11-23T09:00:00Z'),
+  ('00000000-0000-0000-0000-000000000002', '57000000-0000-4000-8000-000000000001', '22000000-0000-0000-0000-000000000202', 'profile_backfill', '2026-11-23T09:00:00Z', '2026-11-23T09:00:00Z'),
+  ('00000000-0000-0000-0000-000000000001', '44444444-4444-4444-4444-444444444444', '23000000-0000-0000-0000-000000000016', 'account_claim', '2026-11-17T09:00:00Z', '2026-11-17T09:00:00Z');
 
 WITH fund_seed AS (
   SELECT
@@ -1613,6 +1701,7 @@ FROM generate_series(1, 15) AS gs;
 
 INSERT INTO public.donor_activities (
   id,
+  tenant_id,
   donor_id,
   type,
   title,
@@ -1627,6 +1716,7 @@ INSERT INTO public.donor_activities (
 )
 SELECT
   ('92000000-0000-0000-0000-' || lpad(gs::text, 12, '0'))::uuid,
+  '00000000-0000-0000-0000-000000000001',
   ('30000000-0000-0000-0000-' || lpad((((gs - 1) % 15) + 1)::text, 12, '0'))::uuid,
   (ARRAY['gift','call','email','note','pledge_started','thank_you'])[((gs - 1) % 6) + 1],
   format('Activity %s', gs),
@@ -1881,6 +1971,7 @@ SET
 
 INSERT INTO public.follower_requests (
   id,
+  tenant_id,
   donor_id,
   missionary_id,
   status,
@@ -1891,6 +1982,7 @@ INSERT INTO public.follower_requests (
 )
 SELECT
   ('93000000-0000-0000-0000-' || lpad(gs::text, 12, '0'))::uuid,
+  '00000000-0000-0000-0000-000000000001',
   ('30000000-0000-0000-0000-' || lpad((gs + 5)::text, 12, '0'))::uuid,
   '11111111-1111-1111-1111-111111111111',
   (ARRAY['pending','approved','rejected'])[((gs - 1) % 3) + 1],
@@ -1905,6 +1997,7 @@ FROM generate_series(1, 10) AS gs;
 
 INSERT INTO public.missionary_tasks (
   id,
+  tenant_id,
   missionary_id,
   donor_id,
   title,
@@ -1920,6 +2013,7 @@ INSERT INTO public.missionary_tasks (
 )
 SELECT
   ('94000000-0000-0000-0000-' || lpad(gs::text, 12, '0'))::uuid,
+  '00000000-0000-0000-0000-000000000001',
   '11111111-1111-1111-1111-111111111111',
   ('30000000-0000-0000-0000-' || lpad((((gs - 1) % 15) + 1)::text, 12, '0'))::uuid,
   (ARRAY['Call Avery Lopez to say thank you for the new monthly gift', 'Email Grace Community Church the term-two report', 'Send Taylor Nguyen a handwritten thank-you card', 'Prepare a giving summary for Casey Brooks', 'Call Reese Carter about the missions weekend', 'Send the Diaz Family Foundation the water-filter budget', 'Thank Quinn Kim for the classroom gift', 'Draft an update for Rowan Turner’s small group', 'Check in with Skyler Reed after their card expired', 'Reply to Hayden Bennett’s questions about visiting', 'Send Elliot Shaw photos from the new classroom', 'Share the year’s numbers with Riley Walker', 'Call Cameron Price to welcome them as a new partner', 'Email Dakota Coleman this month’s prayer list', 'Thank Logan Rivera for following our updates', 'Prepare a gift summary for Avery Lopez', 'Call Grace Community Church to plan a church visit', 'Email Taylor Nguyen the term-two update'])[gs],

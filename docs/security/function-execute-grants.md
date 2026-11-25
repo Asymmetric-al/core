@@ -87,6 +87,13 @@ After the migration, on any database whatever its default privileges:
   `EXECUTE` on `has_membership` and `has_staff_membership` (AL-2674's
   command-lane migration asserts it); nothing in `tenant_guard` or
   `platform` calls them, and after this migration no policy in `public` does.
+- WP5 part 1 (AL-2678, `20261125050100_parties_account_links_and_own_rows.sql`)
+  adds one more `authz` definer, `authz.caller_missionary_ids()`: the ministry
+  assignments the signed-in caller is linked to through `account_links` in
+  the request's tenant, for the missionary branches of the own-row policies.
+  It is owned by `postgres`, has an empty search path, is revoked from
+  `PUBLIC`, `anon`, `authenticated` and `service_role` by name, and is
+  executable by `authenticated` and `service_role` only.
 - The 8 `authz staff tenant …` policies on `crm_command_logs`,
   `crm_record_links` and `crm_merge_candidates` were `TO public` and call these
   helpers. They are now `TO authenticated`, with USING and WITH CHECK

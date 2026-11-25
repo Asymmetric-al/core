@@ -226,6 +226,8 @@ The release's test for "a request that names no tenant receives none" names thes
 
 "Own profile" matches `p.user_id` or `p.id` against the caller. The schema allows a profile row whose `id` is one login and whose `user_id` is another, which would then be readable by both; the seeded chain holds none, and a real-stack case asserts it. Tying a profile to exactly one login is WP5's, with the person model (council R19).
 
+Amended by AL-2678 (WP5 part 1, rulings W5-R3 and W5-R4; see the amendment after the appendix): the requester's own read of `account_claim_requests` is dropped, with its pin, so a claimant reads only the status and three dates of their own requests through `public.account_claim_status(tenant)`; and a profile's `user_id` now equals its `id`, by `NOT NULL` and `CHECK (user_id = id)`, so "own profile" matches `user_id` alone. The exceptions in `public` are eight: `posts`, `locations`, the four post tables, `profiles` and `field_policies`.
+
 ## 4. Write grants revoked, and who writes each table today
 
 The plan says only server code writes these tables. Checked per table: every source file under `apps/`, `packages/` and `scripts/` that names the table (tests excluded), and every SQL function that writes it. "Who writes" means the application; the database also lets a `super_admin` profile write the Support Hub tables and `field_policies` today (above).
@@ -519,3 +521,21 @@ The coordinator ruled on 19 November 2026 (`wp2b-r2-rulings.md`), after three re
 | `storage.objects`                         | no            | profiles owner folder update                         | UPDATE    | authenticated       | `auth.uid()`, `profiles.role`                          |
 | `storage.objects`                         | no            | Owner delete document-uploads                        | DELETE    | authenticated       | `auth.uid()`                                           |
 | `storage.objects`                         | no            | Owner delete profiles                                | DELETE    | authenticated       | `auth.uid()`                                           |
+
+## Amendment: AL-2678 (WP5 part 1), own-row branches through account links
+
+WP5's first part (`supabase/migrations/20261125050000`-`20261125050500`) moves every own-row branch that WP2b's second release wrote from `profile_id` to the account link, and keeps each branch's class condition, tenant term and super-admin branch:
+
+| Table                    | Policy                                 | Own-row branch now                                                                                                                                                                                       |
+| ------------------------ | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `donors`                 | donors owner or staff select           | under a donor assignment, `party_id` is a Party the caller is linked to in the request's tenant (`public.account_links`)                                                                                 |
+| `donations`              | donations owner or staff select        | donor: the gift's donor carries such a Party; missionary: the gift names an assignment `authz.caller_missionary_ids()` returns (a definer, because signed-in users may not read `missionaries.party_id`) |
+| `donor_pledges`          | donor pledges owner or staff select    | as `donations`                                                                                                                                                                                           |
+| `donor_activities`       | donor activities owner or staff select | the activity's own `tenant_id` now (the table gained the column), and the donor branch as for `donations`; the table is no longer parent-scoped and its pin is gone                                      |
+| `missionaries`           | missionaries own row key read          | `party_id` is a Party the caller is linked to in the request's tenant                                                                                                                                    |
+| `follows`                | tenant scoped own or staff read        | as the donor branch of `donations`                                                                                                                                                                       |
+| `donor_feed_preferences` | own select, own insert, own update     | every `USING` and `WITH CHECK`, as the donor branch of `donations`                                                                                                                                       |
+
+Account links were backfilled from every donor and missionary profile before the policies moved, so a donor or missionary linked before the change reads exactly what they read before: `tests/unit/acceptance/issue-2678/own-row-policies.realstack.acceptance.test.ts` reads every policy with the base's text and with the new text for every fixture caller and compares the rows; the only difference is a donor whose record names no profile and who is linked by an account link, who now reads their own rows and nothing else.
+
+New tables carry the tenant condition: `parties` (staff of the tenant, or the caller's own linked Party), `account_links` (the caller's own link, or staff), and `external_identifiers` (staff). `follower_requests` and `missionary_tasks` became tenant tables with forced row security and one plain-deny `SELECT` policy each; no signed-in role holds a privilege on either. `authz.caller_profile_ids()` stays as `20261119135300_request_tenant_policies.sql` wrote it, for the `crm_notes` insert: it still matches `p.user_id = auth.uid() OR p.id = auth.uid()`, and under `profiles_user_id_matches_id` (`CHECK (user_id = id)`) both branches name the same row.

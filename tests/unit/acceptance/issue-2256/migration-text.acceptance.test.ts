@@ -159,18 +159,31 @@ describe("#2256 forward migration text", () => {
       );
   });
 
-  it("no other forward migration names persons or person_id", () => {
+  it("no other forward migration names persons or person_id, except the WP5 drop (D-18, AL-2678: parties replaces the scaffold; the drop names it only to check it is empty and remove it)", () => {
     // Amended by AL-2675 (WP2b, second release; record D-18): the policy
     // migration rewrites the persons staff policy in place, by ALTER POLICY,
     // and names persons nowhere else. Any other statement there, and any
     // other migration, still fails.
     const POLICY_MIGRATION = /^\d{14}_request_tenant_policies\.sql$/;
+    const DROP_MIGRATION = /^\d{14}_drop_persons_scaffold\.sql$/;
     const re = /\b(persons|person_id)\b/i;
     const hits = readdirSync(DIR)
       .filter((f) => /^\d{14}_.*\.sql$/.test(f) && f !== OWN)
       .filter((f) => !POLICY_MIGRATION.test(f))
+      .filter((f) => !DROP_MIGRATION.test(f))
       .filter((f) => re.test(code(readFileSync(path.join(DIR, f), "utf8"))));
     expect(hits).toEqual([]);
+    const dropMigration = readdirSync(DIR).find((f) => DROP_MIGRATION.test(f));
+    const dropNaming = code(
+      readFileSync(path.join(DIR, dropMigration!), "utf8"),
+    )
+      .split("\n")
+      .filter((line) => re.test(line));
+    expect(dropNaming.length).toBeGreaterThan(0);
+    for (const line of dropNaming)
+      expect(line).toMatch(
+        /FROM public\.persons;|WHERE person_id IS NOT NULL;|'preflight failed: % persons rows|DROP COLUMN person_id;|AND field_key = 'person_id';|DROP TABLE public\.persons;/,
+      );
     const policyMigration = readdirSync(DIR).find((f) =>
       POLICY_MIGRATION.test(f),
     );

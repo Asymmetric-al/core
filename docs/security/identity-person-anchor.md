@@ -272,3 +272,12 @@ SQLSTATE 55P03 nothing is applied: re-run in a quiet window.
 Re-running the file on a live database takes `persons` before `missionaries`,
 so it can fail with SQLSTATE 40P01 (deadlock) against concurrent writes. The
 transaction is atomic, so nothing is applied; re-run it in a quiet window.
+
+## Dropped in WP5 (AL-2678)
+
+`20261125050300_drop_persons_scaffold.sql` drops `public.persons`,
+`missionaries.person_id`, `profiles.person_id`, their four constraints and
+their ten field-policy rows, after a preflight that refuses, with counts only,
+when any of them holds a value. `public.parties`, `donors.party_id` and
+`missionaries.party_id` take their place (plan section 12, WP5). The suites of
+issue 2256 prove the absence and the replacement.

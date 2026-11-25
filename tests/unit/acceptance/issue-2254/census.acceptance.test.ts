@@ -114,7 +114,8 @@ function oracle(): Catalog {
         String(c.recordType),
         String(c.name),
         String(c.type),
-        c.recordType === "missionaries" && c.name === "tenant_id"
+        (c.recordType === "missionaries" && c.name === "tenant_id") ||
+          (c.recordType === "profiles" && c.name === "user_id")
           ? false
           : Boolean(c.nullable),
       ),
@@ -194,7 +195,7 @@ function runGate(mutate: Mutate = () => {}) {
 }
 
 describe("#2254 criterion 9: field-policy gate", () => {
-  it("passes on the In 4 oracle: 176 columns and 880 rows", () => {
+  it("passes on the In 4 oracle: 176 columns and 880 rows (D-18, AL-2678: the oracle's profiles.user_id is NOT NULL, as W5-R3 made it, beside missionaries.tenant_id)", () => {
     const db = oracle();
     expect(db.columns).toHaveLength(176);
     expect(db.rows).toHaveLength(880);

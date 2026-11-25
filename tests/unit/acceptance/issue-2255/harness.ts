@@ -28,8 +28,13 @@ export const CLAIMS = "account_claim_requests";
 export const INVITES = "legacy_account_invitations";
 export const TABLES = [CLAIMS, INVITES] as const;
 /** Spec §1 access contract: [table, policy], all FOR SELECT TO authenticated. */
+export const AL2678_D18 =
+  "D-18, AL-2678 (WP5 part 1, rulings W5-R4 and W5-R5): the requester's own read is dropped and a claimant reads only the status and dates of their own requests through public.account_claim_status; the claim gains its token's SHA-256, expiry, redemption time and the donor's email at issue, and the guard's isolation policy for the claim commands";
+export const AL2678_STATUS_D18 =
+  "D-18, AL-2678 (ruling D-16 on WP5 review finding B4): the status function shows a requester only the requests whose token they redeemed, in the organization the request's x-asym-tenant names, so a request is visible only after its address is proved";
+export const AL2678_ID_INDEX_D18 =
+  "D-18, AL-2678 (WP5 review finding B9): the worker wrapper public.issue_account_claim_token finds a claim by id alone, so the claim table gains a plain index on id, which is not this file's";
 export const POLICIES: [string, string][] = [
-  [CLAIMS, "account_claim_requests_requester_select"],
   [CLAIMS, "account_claim_requests_staff_select"],
   [INVITES, "legacy_account_invitations_staff_select"],
 ];
@@ -66,6 +71,10 @@ export const COLUMNS: Record<string, Col[]> = {
       ["reason", "text", false, null, null],
       ["resolved_by", "uuid", false, null, null],
       ["resolved_at", TS, false, null, null],
+      ["token_sha256", "bytea", false, null, null],
+      ["token_expires_at", TS, false, null, null],
+      ["token_redeemed_at", TS, false, null, null],
+      ["donor_email_at_issue", "text", false, null, null],
     ],
   ),
   [INVITES]: common(
@@ -84,11 +93,13 @@ export const COLUMNS: Record<string, Col[]> = {
 /** Spec §1 indexes, as `pg_get_indexdef` text after the index name. */
 export const INDEXES: Record<string, string[]> = {
   [CLAIMS]: [
+    "INDEX ON public.account_claim_requests USING btree (id)",
     "INDEX ON public.account_claim_requests USING btree (requested_by) WHERE (requested_by IS NOT NULL)",
     "INDEX ON public.account_claim_requests USING btree (tenant_id, donor_id) WHERE (donor_id IS NOT NULL)",
     "INDEX ON public.account_claim_requests USING btree (tenant_id, email_normalized)",
     "INDEX ON public.account_claim_requests USING btree (tenant_id, status)",
     "UNIQUE INDEX ON public.account_claim_requests USING btree (tenant_id, id)",
+    "UNIQUE INDEX ON public.account_claim_requests USING btree (token_sha256) WHERE (token_sha256 IS NOT NULL)",
   ],
   [INVITES]: [
     "INDEX ON public.legacy_account_invitations USING btree (tenant_id, donor_id)",
