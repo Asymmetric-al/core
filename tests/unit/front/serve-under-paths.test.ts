@@ -117,7 +117,7 @@ function donorRefusal(env: Record<string, string | undefined>) {
   return null;
 }
 
-function envThatRefusesOrigins(values: Record<string, string>) {
+function envThatRefusesOrigins(values: Record<string, string | undefined>) {
   return new Proxy(values, {
     get(target, property) {
       if (
@@ -383,8 +383,8 @@ describe("the donor's rewrites of the dashboards' static files", () => {
 
   it.each(
     ORIGIN_VARIABLES.flatMap((variable) => [
-      [variable, undefined],
-      [variable, ""],
+      [variable, undefined] as const,
+      [variable, ""] as const,
     ]),
   )("refuses a missing %s (%j) by name", (variable, value) => {
     const message = donorRefusal(upstreamsWith(variable, value));

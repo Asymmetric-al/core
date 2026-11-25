@@ -13,6 +13,7 @@ import {
 } from "vitest";
 
 import * as front from "../../../packages/auth/front";
+import * as stamp from "../../../packages/auth/front-stamp";
 
 const network = vi.hoisted(() => {
   const reached: string[] = [];
@@ -35,43 +36,6 @@ afterEach(() => {
 afterAll(() => {
   vi.unstubAllGlobals();
 });
-
-type StampKeys = { key: string | undefined; previousKey?: string | undefined };
-
-type FrontStampModule = {
-  FRONT_STAMP_HEADER: string;
-  FRONT_ORIGIN_HEADER: string;
-  hasValidStampKey: (value: string | undefined) => boolean;
-  signFrontStamp: (
-    origin: string,
-    prefix: string,
-    key: string,
-    now?: number,
-  ) => Promise<string>;
-  verifyFrontStamp: (
-    origin: string | null,
-    prefix: string,
-    stamp: string | null,
-    keys: StampKeys,
-    now?: number,
-  ) => Promise<boolean>;
-  verifiedStampedOriginForRequest: (
-    request: Request,
-    prefix: string,
-    keys: StampKeys,
-    now?: number,
-  ) => Promise<string | null>;
-};
-
-const FRONT_STAMP_MODULE = "../../../packages/auth/front-stamp";
-
-async function loadFrontStamp(): Promise<FrontStampModule> {
-  const loaded = (await import(/* @vite-ignore */ FRONT_STAMP_MODULE).catch(
-    () => null,
-  )) as FrontStampModule | null;
-  expect(loaded, "packages/auth/front-stamp.ts loads").not.toBeNull();
-  return loaded!;
-}
 
 const SPECIFIER =
   /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)["']([^"']+)["']/g;
@@ -111,16 +75,13 @@ const FRONT = "https://front.test";
 const STAFF_URL = "https://staff.example.test/eve/v1/session";
 const NOW = 1_800_000_000_000;
 
-async function stampedRequest(
-  stamp: FrontStampModule,
-  options: {
-    key: string;
-    origin?: string;
-    prefix?: string;
-    url?: string;
-    headers?: Record<string, string>;
-  },
-) {
+async function stampedRequest(options: {
+  key: string;
+  origin?: string;
+  prefix?: string;
+  url?: string;
+  headers?: Record<string, string>;
+}) {
   const origin = options.origin ?? FRONT;
   const value = await stamp.signFrontStamp(
     origin,
@@ -143,7 +104,6 @@ async function stampedRequest(
 
 describe("one stamp implementation that imports nothing from Next.js", () => {
   it("re-exports the very same stamp functions and header names from front.ts", async () => {
-    const stamp = await loadFrontStamp();
     expect(front.signFrontStamp).toBe(stamp.signFrontStamp);
     expect(front.verifyFrontStamp).toBe(stamp.verifyFrontStamp);
     expect(front.hasValidStampKey).toBe(stamp.hasValidStampKey);
@@ -207,9 +167,8 @@ describe("verifiedStampedOriginForRequest", () => {
       { "x-forwarded-host": "staff.example.test" },
     ],
   ])("returns the stamped origin with %s", async (_label, headers) => {
-    const stamp = await loadFrontStamp();
     const key = freshKey();
-    const request = await stampedRequest(stamp, { key, headers });
+    const request = await stampedRequest({ key, headers });
     await expect(
       stamp.verifiedStampedOriginForRequest(request, "/admin", { key }, NOW),
     ).resolves.toBe(FRONT);
@@ -217,10 +176,9 @@ describe("verifiedStampedOriginForRequest", () => {
   });
 
   it("accepts a stamp of the previous key beside a valid primary", async () => {
-    const stamp = await loadFrontStamp();
     const key = freshKey();
     const previousKey = freshKey();
-    const request = await stampedRequest(stamp, { key: previousKey });
+    const request = await stampedRequest({ key: previousKey });
     await expect(
       stamp.verifiedStampedOriginForRequest(
         request,
@@ -236,18 +194,16 @@ describe("verifiedStampedOriginForRequest", () => {
     ["a blank value", { "x-forwarded-host": "" }],
     ["a list", { "x-forwarded-host": "front.test, evil.test" }],
   ])("refuses an x-forwarded-host of %s", async (_label, headers) => {
-    const stamp = await loadFrontStamp();
     const key = freshKey();
-    const request = await stampedRequest(stamp, { key, headers });
+    const request = await stampedRequest({ key, headers });
     await expect(
       stamp.verifiedStampedOriginForRequest(request, "/admin", { key }, NOW),
     ).resolves.toBeNull();
   });
 
   it("refuses a blank x-forwarded-host when the request has no host either", async () => {
-    const stamp = await loadFrontStamp();
     const key = freshKey();
-    const request = await stampedRequest(stamp, {
+    const request = await stampedRequest({
       key,
       headers: { "x-forwarded-host": "" },
     });
@@ -264,16 +220,15 @@ describe("verifiedStampedOriginForRequest", () => {
   });
 
   it("refuses a stamp whose scheme is not the request's", async () => {
-    const stamp = await loadFrontStamp();
     const key = freshKey();
-    const httpStamp = await stampedRequest(stamp, {
+    const httpStamp = await stampedRequest({
       key,
       origin: "http://front.test",
     });
     await expect(
       stamp.verifiedStampedOriginForRequest(httpStamp, "/admin", { key }, NOW),
     ).resolves.toBeNull();
-    const httpRequest = await stampedRequest(stamp, {
+    const httpRequest = await stampedRequest({
       key,
       url: "http://staff.example.test/eve/v1/session",
     });
@@ -288,9 +243,8 @@ describe("verifiedStampedOriginForRequest", () => {
   });
 
   it("refuses another prefix, an unset or short key, a missing or stale stamp", async () => {
-    const stamp = await loadFrontStamp();
     const key = freshKey();
-    const missionary = await stampedRequest(stamp, {
+    const missionary = await stampedRequest({
       key,
       prefix: "/missionary",
     });
@@ -298,7 +252,7 @@ describe("verifiedStampedOriginForRequest", () => {
       stamp.verifiedStampedOriginForRequest(missionary, "/admin", { key }, NOW),
     ).resolves.toBeNull();
 
-    const valid = await stampedRequest(stamp, { key });
+    const valid = await stampedRequest({ key });
     await expect(
       stamp.verifiedStampedOriginForRequest(
         valid,
