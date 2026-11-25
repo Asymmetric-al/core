@@ -577,7 +577,7 @@ describe("AL-2676 WP3b part 3: the Sites and brand routes (T3)", () => {
         expect(diagnostic.code).toBe(sqlstate);
         expect(diagnostic.status).toBe(500);
         expect(
-          consoleError.mock.calls.filter((call) =>
+          consoleError.mock.calls.filter((call: unknown[]) =>
             String(call[0]).startsWith(`[${route.operation}]`),
           ),
         ).toHaveLength(1);
