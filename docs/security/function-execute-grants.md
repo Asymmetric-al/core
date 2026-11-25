@@ -396,3 +396,28 @@ before its one grant). `resolve_verified_host` and `resolve_home_host` (added
 by WP3b part 2, AL-2676: the anonymous home read behind the redirect of a Site
 name's account paths to home) are the two entries on
 `docs/security/anon-definer-allowlist.json`.
+
+## Worker record functions added by AL-2678 (WP5 part 2-r2b1)
+
+| Function                                                | Security | EXECUTE grantees (exact)                |
+| ------------------------------------------------------- | -------- | --------------------------------------- |
+| `public.worker_records(uuid)`                           | DEFINER  | `postgres` (owner), `authenticated`     |
+| `tenant_guard.reveal_worker_identity(uuid, uuid, text)` | DEFINER  | `tenant_guard` (owner), `authenticated` |
+| `public.reveal_worker_identity(uuid, uuid, text)`       | INVOKER  | `postgres` (owner), `authenticated`     |
+| `public.read_party_restricted(uuid)`                    | DEFINER  | `postgres` (owner)                      |
+
+Each new function revokes `PUBLIC`, `anon`, `authenticated` and
+`service_role` by name before granting (`20261126120000_wp5_2r2b1_worker_record.sql`,
+re-dated with the package). `worker_records` answers the request's
+organization's staff only, never a legal name, and fills `has_legal_identity`
+only for an assignment holding `safety.restrict_publication`; for any other
+staff member it is NULL. The reveal is a human command needing the same
+capability and a reason, and writes one `worker_identity_revealed` audit row
+that holds the reason and the assignment, never the values. The same file
+revokes `authenticated`'s `EXECUTE` on `public.read_party_restricted(uuid)`,
+which had no caller outside tests, so the audited reveal is the one database
+read of `private.party_restricted` a signed-in caller can make. It also
+narrows `service_role` on `public.parties` from table `INSERT` and `UPDATE` to
+`INSERT (id, tenant_id, display_name, import_batch_id, created_at, updated_at)`
+and `UPDATE (display_name, import_batch_id, updated_at)`: the level, its
+source, the alias and do-not-publish change only through the safety commands.

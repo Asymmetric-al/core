@@ -307,9 +307,12 @@ NULL` on `public.parties`) and the fourth
       variable given exactly one object), the caller's own gifts; a local
       variable of the same name is not the constant. Thirty-five planted cases
       are reported and ten controls are not, and the real handler with its
-      select module is reported for nothing; the migration reader has five
-      planted texts (R1-R5) and one guard, that the tree still gives its
-      twenty tables; and the scan fails, naming the path, on a listed source
+      select module is reported for nothing; the migration reader has seven
+      planted texts (R1-R6 and R6b; since WP5 part 2-r2b1, a table name built
+      at run time after a bare `public.` in a statement that references
+      donors fails naming its file and line, and `public` is never recorded),
+      three controls and one guard, that the tree still gives its twenty
+      tables; and the scan fails, naming the path, on a listed source
       file it cannot read (V1), skipping only one deleted from the working
       tree (V2).
     - **What the contract cannot see**, each a review item: a table name
@@ -367,6 +370,49 @@ shown); tasks (`GET`, `POST` and `PATCH`, the donor's id kept); follower
 requests (`GET` and `PATCH`, no donor id and no donor); and the donor writes
 (`PATCH` of a donor and `POST` of an activity answer 404 "Donor relationship
 not found" for every hidden donor, restricted or anonymous alike).
+
+## The restriction screen's notice (gate e, closed by WP5 part 2-r2b1)
+
+Mission Control's worker record shows this text beside Restrict and in its
+dialog (ruling R2B-Q4), word for word; the list of what a restriction does
+not change follows rows 3, 5, 6, 8, 9 and 10 of the open list below, plan
+`:343` (an email sent), the ruling that an open page keeps its copy until it
+reloads, ruling R2B-Q3 (a restriction holds for every request that starts
+after the command commits; a request under way finishes with what it read)
+and the publishing effect of "Do not publish" arriving with WP7:
+
+> **What a restriction changes.** From the moment you confirm, this worker
+> is shown only by their public alias, or not named, in the donor portal
+> (gifts, history, receipts and statements), the Ministry Updates feed,
+> comments (with no photo), updated receipts made from now on and receipt
+> PDFs downloaded again, and colleagues' Partners, Home, tasks, follow
+> requests and giving figures when this person gives to or follows a
+> colleague.
+>
+> **What it does not change.**
+>
+> 1. A Web Studio giving page made from a template keeps the title and
+>    address it was made with.
+> 2. A fund named after the worker keeps its name. A restriction does not
+>    rename a fund; staff rename it.
+> 3. Notes staff typed on gift allocations stay as written.
+> 4. The worker's login photo on posts and gift rows, and photos or media
+>    already attached to their posts, still show until a later publishing
+>    update.
+> 5. Emails already sent cannot be recalled.
+> 6. A donor record entered without a link to this worker, and tasks or
+>    notes colleagues wrote before, can still name them. The donor app's
+>    data interface still returns their biography, mission field, funding
+>    figures and login photo.
+> 7. A page already open elsewhere keeps what it shows until it reloads.
+> 8. A request already under way finishes with what it read.
+> 9. Turning on "Do not publish" saves the setting now, but does not hide
+>    posts, profiles or giving pages yet; that enforcement comes in a later
+>    publishing update.
+
+`tests/unit/acceptance/issue-2678/worker-record.postgrest.acceptance.test.ts`
+T4 restricts a worker through the route and reads every surface r1, r2a and
+r2s cover at once: each shows the alias or no name.
 
 ## Readers left open, with owners
 
@@ -495,3 +541,19 @@ funding_goal, current_funding, created_at, updated_at`).
   `model.test.ts`, `featured-update-hero`, `featured-hero-scrim`,
   `feed-post-card-names`, `published-post-order` and
   `tests/e2e/donor-dashboard-frame.spec.ts`.
+- WP5 part 2-r2b1, each reason in its test's title; no assertion is
+  weakened: `worker-safety.realstack`'s alias-rule loop expects `42501
+permission denied for table parties` for `service_role` (Q6), and its
+  legal-name read goes through the audited reveal, with `plainStaff` and the
+  others refused and `read_party_restricted` refused for everyone (R2B-Q1);
+  `identity-keys.postgrest` does the same through PostgREST, with a plain
+  staff member added to `identity-keys.postgrest-fixture.ts`;
+  `worker-names.postgrest` clears V's alias on the owner connection, because
+  the service key may no longer write `public_alias`;
+  `missionary-donors-list.test.ts` asserts the Partners order by
+  `created_at` then `id` (row 4); `supporter-names.static` gains R6, R6b and
+  their controls; `mission-control-navigation.test.ts`'s administrator
+  modules gain `workers`; the two Home suites stub
+  `useUnreviewedWorkersCount`; `local-supabase.test.ts`,
+  `local-supabase-paths.test.ts` and `REAL_DATABASE_FILES` gain the new
+  suites.
