@@ -904,7 +904,7 @@ export interface PostWithAuthor extends Post {
   author: {
     id: string;
     avatar_url: string | null;
-  };
+  } | null;
   post_author_public_name: string | null;
   user_liked?: boolean;
   user_prayed?: boolean;

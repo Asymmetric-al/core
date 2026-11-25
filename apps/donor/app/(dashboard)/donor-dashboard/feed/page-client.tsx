@@ -233,7 +233,7 @@ function toFeedPost(post: PostWithAuthor): Post {
     id: post.id,
     workerId: post.missionary_id,
     workerName: postAuthorName(post),
-    workerAvatar: post.author.avatar_url ?? "",
+    workerAvatar: post.author?.avatar_url ?? "",
     time: formatPostRelativeTime(post.created_at),
     readTime: postReadTime(post),
     category: postCategory(post),

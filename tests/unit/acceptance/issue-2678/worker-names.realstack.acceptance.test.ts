@@ -496,9 +496,8 @@ describe.skipIf(!ADMIN_URL)(
           [id.pM2],
         );
         expect(await name(), "an unknown level, no alias").toBeNull();
-        await db.query(
-          "update public.parties set security_level = null where id = $1",
-          [id.pM2],
+        await withoutAliasCheck(
+          `update public.parties set security_level = null where id = '${id.pM2}'`,
         );
         expect(await name(), "a NULL level, no alias").toBeNull();
         await db.query(

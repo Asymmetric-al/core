@@ -24,9 +24,10 @@
 --    part 2-r3 reuses it).
 -- 4. private.worker_public_name_for(uuid, uuid): the one keyed projection of a
 --    worker's public name (W5-R12). It fails closed: a restricted or
---    high-risk worker gets the normalized alias or NULL, never
---    parties.display_name, which can hold the legal name; any other worker
---    gets the alias, else the normalized Party display name. It reads neither
+--    high-risk worker (any level but standard and sensitive, NULL included)
+--    gets the normalized alias or NULL, never parties.display_name, which can
+--    hold the legal name; a standard or sensitive worker gets the alias, else
+--    the normalized Party display name. It reads neither
 --    private.party_restricted nor public.profiles.
 -- 5. public.worker_public_name(public.missionaries) and
 --    public.post_author_public_name(public.posts): computed columns for the
@@ -35,40 +36,54 @@
 --
 -- What "removed", "blank" and "the same" mean (working rule 13):
 -- Removed before anything else, from an alias, a legal name and a reason
--- alike (they are compared and shown, never the worker's own prose):
---   soft hyphen U+00AD, combining grapheme joiner U+034F, Arabic letter mark
---   U+061C, Mongolian vowel separator U+180E, U+200B-U+200F (zero-width
---   space, non-joiner, joiner, the direction marks), U+202A-U+202E
---   (embeddings and overrides), U+2060-U+2064 (word joiner, invisible
---   operators), U+2066-U+206F (isolates, deprecated format characters),
---   byte-order mark U+FEFF (all removed since 20261125050400); and new here:
---   the variation selectors U+FE00-U+FE0F and U+E0100-U+E01EF; the Hangul
---   fillers U+115F, U+1160, U+3164, U+FFA0 and the Braille blank U+2800; the
---   tags U+E0001 and U+E0020-U+E007F; the interlinear annotation characters
---   U+FFF9-U+FFFB; the control characters that are not whitespace
---   U+0001-U+0008, U+000E-U+001F, U+007F-U+0084, U+0086-U+009F; the
---   Mongolian free variation selectors U+180B-U+180D, U+180F; the Khmer
---   inherent vowels U+17B4, U+17B5; the shorthand format controls
---   U+1BCA0-U+1BCA3; the musical format controls U+1D173-U+1D17A.
--- Whitespace, unchanged (each run becomes one space): U+0009-U+000D, U+0020,
---   U+0085, U+00A0, U+1680, U+2000-U+200A, U+2028, U+2029, U+202F, U+205F,
---   U+3000.
--- Kept: format marks that are visible in their scripts (U+0600-U+0605,
---   U+06DD, U+070F, U+08E2, U+110BD); look-alike letters of another script;
---   characters whose lowercase depends on the locale (issue 2805 note 3).
+-- alike (they are compared and shown, never the worker's own prose): every
+-- default-ignorable code point, assigned or not, every format character but
+-- the visible marks kept below, and every control character that is not
+-- whitespace, namely
+--   U+0001-U+0008, U+000E-U+001F, U+007F-U+0084, U+0086-U+009F (controls);
+--   U+00AD soft hyphen; U+034F combining grapheme joiner; U+061C Arabic letter
+--   mark; U+115F, U+1160, U+3164, U+FFA0 Hangul fillers; U+17B4, U+17B5 Khmer
+--   inherent vowels; U+180B-U+180F Mongolian free variation selectors and
+--   vowel separator; U+200B-U+200F zero-width space, non-joiner, joiner and
+--   direction marks; U+202A-U+202E embeddings and overrides; U+2060-U+206F
+--   word joiner, invisible operators, isolates, deprecated format characters
+--   and the unassigned U+2065; U+2800 Braille blank (not default-ignorable,
+--   but blank); U+FE00-U+FE0F variation selectors; U+FEFF byte-order mark;
+--   U+FFF0-U+FFFB, the unassigned U+FFF0-U+FFF8 and the interlinear
+--   annotation characters; U+13430-U+1343F Egyptian hieroglyph format
+--   controls; U+1BCA0-U+1BCA3 shorthand format controls; U+1D173-U+1D17A
+--   musical format controls; U+E0000-U+E0FFF the tags, the variation
+--   selectors U+E0100-U+E01EF and every unassigned code point between them.
+--   tests/unit/acceptance/issue-2678/safety-text-classes.static derives the
+--   classes from the runtime's Unicode tables and fails on a code point that
+--   a later Unicode version adds to them.
+-- Whitespace, unchanged, exactly White_Space (each run becomes one space):
+--   U+0009-U+000D, U+0020, U+0085, U+00A0, U+1680, U+2000-U+200A, U+2028,
+--   U+2029, U+202F, U+205F, U+3000.
+-- Kept: the format marks that are visible in their scripts (U+0600-U+0605,
+--   U+06DD, U+070F, U+0890, U+0891, U+08E2, U+110BD, U+110CD); look-alike
+--   letters of another script; characters whose lowercase depends on the
+--   locale (issue 2805 note 3).
 -- What the removal can damage, accepted: a variation selector after an emoji
 --   or an ideograph (an ideographic variant of a name collapses to its base
 --   character); a Hangul filler inside an old or incomplete jamo sequence
 --   (precomposed Hangul is untouched); a Mongolian contextual form chosen by
 --   a free variation selector.
--- Blank: nothing is left after the steps above (NULL).
+-- Blank: nothing is left after the steps above, so the function returns
+--   NULL; a text of removed characters and whitespace only is blank.
 -- The same (unchanged, 20261125050400 lines 173-180): lower() of the NFKC
 --   forms of the normalized texts are equal.
 --
--- Locks: none on any table. The file only creates or replaces functions and
--- comments on them; a function whose argument is a table's row type records a
--- dependency on that type and locks no table. lock_timeout stops a run rather
--- than queue it behind live traffic.
+-- Locks, observed in pg_locks inside the open transaction just before COMMIT
+-- (PostgreSQL 17.11, nothing excluded): ACCESS SHARE on public.missionaries
+-- and public.parties, taken when the SQL bodies are checked at creation, and
+-- no stronger lock on any table; ROW EXCLUSIVE on the catalog pg_description
+-- for the comments; object locks on the six functions it creates or replaces,
+-- and ACCESS SHARE object locks on the row types missionaries and posts, the
+-- schemas public and private and the roles authenticated and service_role.
+-- ACCESS SHARE conflicts only with ACCESS EXCLUSIVE, so no read or write of
+-- the live build waits on it. lock_timeout stops a run rather than queue it
+-- behind a migration that holds ACCESS EXCLUSIVE.
 --
 -- Recovery. A run lost between its COMMIT and its ledger row replaces the two
 -- functions again with the same text and then stops at its first CREATE
@@ -103,7 +118,7 @@ PARALLEL SAFE
 SECURITY INVOKER
 SET search_path = ''
 AS $fn$
-  SELECT NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.normalize(pg_catalog.regexp_replace(p_value, $re$[\u0001-\u0008\u000E-\u001F\u007F-\u0084\u0086-\u009F\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180B-\u180F\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\u2800\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF9-\uFFFB\U0001BCA0-\U0001BCA3\U0001D173-\U0001D17A\U000E0001\U000E0020-\U000E007F\U000E0100-\U000E01EF]$re$, '', 'g'), 'NFC'), $ws$[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+$ws$, ' ', 'g')), '');
+  SELECT NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.normalize(pg_catalog.regexp_replace(p_value, $re$[\u0001-\u0008\u000E-\u001F\u007F-\u0084\u0086-\u009F\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180B-\u180F\u200B-\u200F\u202A-\u202E\u2060-\u206F\u2800\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF0-\uFFFB\U00013430-\U0001343F\U0001BCA0-\U0001BCA3\U0001D173-\U0001D17A\U000E0000-\U000E0FFF]$re$, '', 'g'), 'NFC'), $ws$[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+$ws$, ' ', 'g')), '');
 $fn$;
 COMMENT ON FUNCTION private.normalize_safety_text(TEXT) IS
   'A worker''s alias, legal name or a safety command''s reason in one form: invisible format characters, variation selectors, Hangul fillers, tags and control characters that are not whitespace removed; composed (NFC); every run of ASCII or Unicode whitespace one space; trimmed; NULL when nothing is left (AL-2678).';
@@ -126,7 +141,7 @@ SET search_path = ''
 AS $fn$
   SELECT COALESCE(
     (SELECT n.name
-       FROM (SELECT t.slot, NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.normalize(pg_catalog.regexp_replace(t.v, $re$[\u0001-\u0008\u000E-\u001F\u007F-\u0084\u0086-\u009F\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180B-\u180F\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\u2800\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF9-\uFFFB\U0001BCA0-\U0001BCA3\U0001D173-\U0001D17A\U000E0001\U000E0020-\U000E007F\U000E0100-\U000E01EF]$re$, '', 'g'), 'NFC'), $ws$[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+$ws$, ' ', 'g')), '') AS name
+       FROM (SELECT t.slot, NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.normalize(pg_catalog.regexp_replace(t.v, $re$[\u0001-\u0008\u000E-\u001F\u007F-\u0084\u0086-\u009F\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180B-\u180F\u200B-\u200F\u202A-\u202E\u2060-\u206F\u2800\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF0-\uFFFB\U00013430-\U0001343F\U0001BCA0-\U0001BCA3\U0001D173-\U0001D17A\U000E0000-\U000E0FFF]$re$, '', 'g'), 'NFC'), $ws$[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+$ws$, ' ', 'g')), '') AS name
                FROM (VALUES (1, p_public_alias), (2, p_approved_profile_display_name)) AS t (slot, v)) AS n
       WHERE n.name IS NOT NULL
       ORDER BY n.slot
@@ -159,9 +174,10 @@ COMMENT ON FUNCTION private.assignment_for_profile(UUID, UUID) IS
 ALTER FUNCTION private.assignment_for_profile(UUID, UUID) OWNER TO postgres;
 REVOKE ALL ON FUNCTION private.assignment_for_profile(UUID, UUID) FROM PUBLIC, anon, authenticated, service_role;
 
--- 4. The keyed projection. It fails closed: for a restricted or high-risk
--- worker only the alias may be shown, so without one it is NULL and the
--- Party display name, which can hold the legal name, is never used.
+-- 4. The keyed projection. It fails closed by an allowlist: the Party display
+-- name, which can hold the legal name, is used only for a standard or
+-- sensitive worker; every other level, NULL included (restricted and
+-- high-risk today), gets the alias or NULL.
 CREATE FUNCTION private.worker_public_name_for(p_tenant_id UUID, p_assignment_id UUID)
 RETURNS TEXT
 LANGUAGE sql
@@ -170,10 +186,10 @@ SECURITY INVOKER
 SET search_path = ''
 AS $fn$
   SELECT CASE
-           WHEN p.security_level IN ('restricted', 'high_risk')
-             THEN private.normalize_safety_text(p.public_alias)
-           ELSE private.normalize_safety_text(
-                  public.worker_public_display_name(p.public_alias, NULL::TEXT, p.display_name))
+           WHEN p.security_level IN ('standard', 'sensitive')
+             THEN private.normalize_safety_text(
+                    public.worker_public_display_name(p.public_alias, NULL::TEXT, p.display_name))
+           ELSE private.normalize_safety_text(p.public_alias)
          END
     FROM public.missionaries AS m
     JOIN public.parties AS p ON p.tenant_id = m.tenant_id AND p.id = m.party_id

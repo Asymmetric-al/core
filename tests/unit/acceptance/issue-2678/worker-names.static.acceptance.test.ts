@@ -87,6 +87,8 @@ function workerSelectProblems(items: Item[]): string[] {
   for (const item of items) {
     if (item.children === null && NAME_COLUMNS.has(item.name))
       problems.push(`a worker row's ${item.name}`);
+    if (item.children === null && item.name === "*")
+      problems.push("every column of a worker row");
     if (item.children !== null && item.name === "profiles")
       for (const child of item.children)
         if (child.name === "*" || NAME_COLUMNS.has(child.name))
@@ -220,7 +222,7 @@ function factsOf(file: string, text: string): FileFacts {
     }
     if (
       ts.isPropertyAccessExpression(node) &&
-      (node.name.text === "first_name" || node.name.text === "last_name")
+      NAME_COLUMNS.has(node.name.text)
     ) {
       const target = unwrap(node.expression);
       if (
@@ -361,7 +363,17 @@ function scanSources(sources: Map<string, string>): Violation[] {
               push(problem, shown);
           continue;
         }
-        if (e.hints.includes("missionary_id")) {
+        const nested = embeds.some(
+          (o) =>
+            o !== e &&
+            o.open < e.start &&
+            (o.close === -1 || o.close > e.start),
+        );
+        if (
+          e.hints.includes("missionary_id") ||
+          e.hints.includes("posts_missionary_id_fkey") ||
+          (!nested && roots.has("posts"))
+        ) {
           if (
             body === null ||
             body.some((i) => i.children !== null || !AUTHOR_COLUMNS.has(i.name))
@@ -370,12 +382,6 @@ function scanSources(sources: Map<string, string>): Violation[] {
           continue;
         }
         if (inside(e, "missionaries") || inside(e, "donors")) continue;
-        const nested = embeds.some(
-          (o) =>
-            o !== e &&
-            o.open < e.start &&
-            (o.close === -1 || o.close > e.start),
-        );
         if (nested) continue;
         const workerRead = roots.size === 0 || roots.has("missionaries");
         if (!workerRead) continue;
@@ -391,9 +397,12 @@ function scanSources(sources: Map<string, string>): Violation[] {
           if (top === null)
             push("an unreadable worker select", lit.text.trim());
           else
-            for (const item of top)
+            for (const item of top) {
               if (item.children === null && NAME_COLUMNS.has(item.name))
                 push(`a worker row's ${item.name}`, lit.text.trim());
+              if (item.children === null && item.name === "*")
+                push("every column of a worker row", lit.text.trim());
+            }
         } else {
           let flat = lit.text;
           while (/\([^()]*\)/.test(flat))
@@ -401,6 +410,8 @@ function scanSources(sources: Map<string, string>): Violation[] {
           for (const name of NAME_COLUMNS)
             if (new RegExp(`(?<![\\w.])${name}(?![\\w])`).test(flat))
               push(`a worker row's ${name}`, lit.text.trim());
+          if (/(?<![\w.])\*/.test(flat))
+            push("every column of a worker row", lit.text.trim());
         }
       }
     }
