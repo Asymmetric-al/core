@@ -296,7 +296,8 @@
   "patchedDependencies": {
     "@supabase-labs/tanstack-db@0.1.0": "packages/database/patches/@supabase-labs%2Ftanstack-db@0.1.0.patch",
     "@shadcn/lint@0.2.3": "tooling/eslint-config/patches/@shadcn%2Flint@0.2.3.patch",
-    "ultracite@8.3.0": "tooling/quality/patches/ultracite@8.3.0.patch"
+    "ultracite@8.3.0": "tooling/quality/patches/ultracite@8.3.0.patch",
+    "@payloadcms/drizzle@4.0.0-beta.9": "apps/admin/patches/@payloadcms%2Fdrizzle@4.0.0-beta.9.patch"
   },
   "engines": {
     "node": ">=24.22.3 <25"
