@@ -65,11 +65,13 @@ async function openSites(page: Page, tenant: string) {
   await expect(page.locator("#__next_error__")).toHaveCount(0);
 }
 
-const SITES_PAGE = 'div:has(> [data-slot="page-shell-header"])';
+const FILED_SEARCH_CONTROL = 'button[aria-label="Open Mission Control search"]';
 
-async function seriousViolations(page: Page, include: string) {
-  const results = await new AxeBuilder({ page })
-    .include(include)
+async function seriousViolations(page: Page, include?: string) {
+  const builder = new AxeBuilder({ page });
+  if (include) builder.include(include);
+  else builder.exclude(FILED_SEARCH_CONTROL);
+  const results = await builder
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();
   return results.violations.filter(
@@ -235,7 +237,7 @@ test.describe("Mission Control's Sites settings on real sessions (AL-2676 WP3b p
     await expect(
       page.getByRole("table", { name: "Sites in this organization" }),
     ).toBeVisible();
-    expect(await seriousViolations(page, SITES_PAGE)).toEqual([]);
+    expect(await seriousViolations(page)).toEqual([]);
 
     await page
       .getByRole("region", { name: "Sites" })

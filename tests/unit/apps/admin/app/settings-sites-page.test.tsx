@@ -87,11 +87,16 @@ const server = {
   posts: {} as Record<string, Array<Reply | Promise<Reply>>>,
 };
 
+const NOT_JSON = Symbol("a body that is not JSON");
+
 function respond(reply: Reply) {
   return {
     ok: reply.status >= 200 && reply.status < 300,
     status: reply.status,
-    json: async () => reply.body,
+    json: async () => {
+      if (reply.body === NOT_JSON) throw new SyntaxError("Unexpected token <");
+      return reply.body;
+    },
   };
 }
 
@@ -633,5 +638,296 @@ describe("Mission Control's Sites screen (T4)", () => {
     await loaded();
     expect(client.getQueryData(["admin", "site-settings"])).toEqual(settings());
     expect(h.fetch.mock.calls[0]![0]).toBe("/api/admin/sites");
+  });
+});
+
+const INVALID_NAME_TEXT =
+  "Use 1 to 160 characters, with nothing invisible and no spaces at the start or end.";
+const INVALID_NAME_REPLY: Reply = {
+  status: 400,
+  body: { error: INVALID_NAME_TEXT, code: "INVALID_NAME" },
+};
+const UNAVAILABLE_TEXT =
+  "Sites can't be loaded or changed right now. Try again.";
+const BRAND = "/api/admin/sites/brand";
+const STATUS = "/api/admin/sites/status";
+
+function nameField(view: ReturnType<typeof show>) {
+  return view.getByRole("textbox", {
+    name: "Donor account name",
+  }) as HTMLInputElement;
+}
+
+async function refreshWithBrand(displayName: string) {
+  server.reads.push({
+    status: 200,
+    body: settings({ brand: { display_name: displayName } }),
+  });
+  const before = reads().length;
+  await act(async () => {
+    await client.invalidateQueries({ queryKey: ["admin", "site-settings"] });
+  });
+  expect(reads()).toHaveLength(before + 1);
+  expect(client.getQueryData(["admin", "site-settings"])).toMatchObject({
+    brand: { display_name: displayName },
+  });
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
+describe("Mission Control's Sites screen, the fix round of pull request 2827", () => {
+  it("F1: shows what the database holds after a save whose refetch returns the earlier name", async () => {
+    const view = await loaded();
+    fireEvent.change(nameField(view), { target: { value: "Hope Givers" } });
+    server.posts[BRAND] = [
+      { status: 200, body: { brand: { display_name: "Hope Givers" } } },
+    ];
+    server.reads.push({ status: 200, body: settings() });
+    fireEvent.click(view.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(reads()).toHaveLength(2));
+    await waitFor(() => expect(nameField(view).value).toBe("GiveHope"));
+  });
+
+  it("F1: keeps the same field, and focus in the form, across a successful save", async () => {
+    const view = await loaded();
+    const field = nameField(view);
+    field.focus();
+    fireEvent.change(field, { target: { value: "Hope Givers" } });
+    server.posts[BRAND] = [
+      { status: 200, body: { brand: { display_name: "Hope Givers" } } },
+    ];
+    server.reads.push({
+      status: 200,
+      body: settings({ brand: { display_name: "Hope Givers" } }),
+    });
+    const form = field.closest("form")!;
+    fireEvent.submit(form);
+    await waitFor(() => expect(h.toastSuccess).toHaveBeenCalled());
+    await waitFor(() => expect(reads()).toHaveLength(2));
+    await waitFor(() =>
+      expect(
+        (view.getByRole("button", { name: "Save" }) as HTMLButtonElement)
+          .disabled,
+      ).toBe(true),
+    );
+    expect(nameField(view)).toBe(field);
+    expect(field.value).toBe("Hope Givers");
+    expect(form.contains(document.activeElement)).toBe(true);
+  });
+
+  it("F1: sends no second save while one is in flight, though a refresh changes the stored name", async () => {
+    const view = await loaded();
+    const first = deferred<Reply>();
+    server.posts[BRAND] = [
+      first.promise,
+      { status: 200, body: { brand: { display_name: "Third name" } } },
+    ];
+    fireEvent.change(nameField(view), { target: { value: "Hope Givers" } });
+    fireEvent.click(view.getByRole("button", { name: "Save" }));
+    expect(posts(BRAND)).toHaveLength(1);
+    await refreshWithBrand("Renamed elsewhere");
+    fireEvent.change(nameField(view), { target: { value: "Third name" } });
+    fireEvent.submit(nameField(view).closest("form")!);
+    fireEvent.click(view.getByRole("button", { name: "Save" }));
+    expect(posts(BRAND)).toHaveLength(1);
+    await act(async () => {
+      first.resolve({
+        status: 200,
+        body: { brand: { display_name: "Hope Givers" } },
+      });
+    });
+  });
+
+  it("F1: shows the first save's refusal after a refresh replaced the stored name", async () => {
+    const view = await loaded();
+    const first = deferred<Reply>();
+    server.posts[BRAND] = [first.promise];
+    fireEvent.change(nameField(view), { target: { value: "a\u0001b" } });
+    fireEvent.click(view.getByRole("button", { name: "Save" }));
+    await refreshWithBrand("Renamed elsewhere");
+    await act(async () => {
+      first.resolve(INVALID_NAME_REPLY);
+    });
+    expect(await view.findByText(INVALID_NAME_TEXT)).toBeTruthy();
+    expect(nameField(view).getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("F1: keeps an unsaved draft when a refetch changes the stored name", async () => {
+    const view = await loaded();
+    const field = nameField(view);
+    fireEvent.change(field, { target: { value: "My draft" } });
+    await refreshWithBrand("Renamed elsewhere");
+    expect(nameField(view)).toBe(field);
+    expect(nameField(view).value).toBe("My draft");
+    expect(
+      (view.getByRole("button", { name: "Save" }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(false);
+  });
+
+  it("F2: disables every Reactivate while one reactivation runs, and a click on another sends nothing", async () => {
+    const OLDER: Site = {
+      ...OLD,
+      id: "00000000-0000-4000-8000-00000000c0c4",
+      name: "Older site",
+    };
+    server.lastRead = {
+      status: 200,
+      body: settings({ sites: [DEFAULT_SITE, OLD, OLDER, SPANISH] }),
+    };
+    const view = await loaded();
+    const pending = deferred<Reply>();
+    server.posts[STATUS] = [pending.promise];
+    fireEvent.click(view.getByRole("button", { name: "Reactivate Old site" }));
+    const other = view.getByRole("button", {
+      name: "Reactivate Older site",
+    }) as HTMLButtonElement;
+    expect(other.disabled).toBe(true);
+    fireEvent.click(other);
+    expect(posts(STATUS)).toHaveLength(1);
+    await act(async () => {
+      pending.resolve({
+        status: 200,
+        body: { site: { ...OLD, status: "active" } },
+      });
+    });
+    await waitFor(() =>
+      expect(
+        (
+          view.getByRole("button", {
+            name: "Reactivate Older site",
+          }) as HTMLButtonElement
+        ).disabled,
+      ).toBe(false),
+    );
+    expect(
+      (
+        view.getByRole("button", {
+          name: "Reactivate Old site",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(false);
+  });
+
+  it("F4: moves focus to the donor account name, described by its error, when the name is refused", async () => {
+    const view = await loaded();
+    fireEvent.change(nameField(view), { target: { value: "" } });
+    server.posts[BRAND] = [INVALID_NAME_REPLY];
+    const save = view.getByRole("button", { name: "Save" });
+    save.focus();
+    fireEvent.click(save);
+    const error = await view.findByText(INVALID_NAME_TEXT);
+    await waitFor(() => expect(document.activeElement).toBe(nameField(view)));
+    expect(
+      nameField(view).getAttribute("aria-describedby")?.split(" "),
+    ).toContain(error.id);
+  });
+
+  it("F4: moves focus to Site name, described by its error, when the name is refused", async () => {
+    const view = await loaded();
+    fireEvent.click(view.getByRole("button", { name: "Create Site" }));
+    const dialog = await view.findByRole("dialog", { name: "Create a Site" });
+    const field = within(dialog).getByLabelText(
+      "Site name",
+    ) as HTMLInputElement;
+    fireEvent.change(field, { target: { value: "a\u0001b" } });
+    server.posts["/api/admin/sites"] = [INVALID_NAME_REPLY];
+    const submit = within(dialog).getByRole("button", { name: "Create Site" });
+    submit.focus();
+    fireEvent.click(submit);
+    const error = await within(dialog).findByText(INVALID_NAME_TEXT);
+    await waitFor(() => expect(document.activeElement).toBe(field));
+    expect(field.getAttribute("aria-describedby")?.split(" ")).toContain(
+      error.id,
+    );
+  });
+
+  it.each([
+    ["a body that is not JSON", NOT_JSON],
+    ["null", null],
+    ["an object without sites", { brand: null }],
+    [
+      "a Site without its status",
+      {
+        sites: [
+          {
+            id: SPANISH.id,
+            name: "Spanish site",
+            is_default: false,
+            primary_domain: null,
+          },
+        ],
+        brand: null,
+      },
+    ],
+  ])(
+    "F5: shows the read-failed state for a 200 with %s, and never throws",
+    async (_what, body) => {
+      server.reads.push({ status: 200, body });
+      const view = show();
+      expect(
+        await view.findByText("Sites can't be loaded right now."),
+      ).toBeTruthy();
+      expect(view.getByRole("button", { name: "Try again" })).toBeTruthy();
+      expect(view.queryByRole("table")).toBeNull();
+    },
+  );
+
+  it.each([
+    ["a body that is not JSON", NOT_JSON],
+    ["an object without a site", {}],
+    ["a Site without its fields", { site: { id: SPANISH.id } }],
+  ])(
+    "F5: keeps Create open with the unavailable alert for a 201 with %s",
+    async (_what, body) => {
+      const view = await loaded();
+      fireEvent.click(view.getByRole("button", { name: "Create Site" }));
+      const dialog = await view.findByRole("dialog", { name: "Create a Site" });
+      fireEvent.change(within(dialog).getByLabelText("Site name"), {
+        target: { value: "Spanish site" },
+      });
+      server.posts["/api/admin/sites"] = [{ status: 201, body }];
+      fireEvent.click(
+        within(dialog).getByRole("button", { name: "Create Site" }),
+      );
+      expect(await within(dialog).findByText(UNAVAILABLE_TEXT)).toBeTruthy();
+      expect(view.getByRole("dialog", { name: "Create a Site" })).toBeTruthy();
+      expect(h.toastSuccess).not.toHaveBeenCalled();
+    },
+  );
+
+  it("F5: shows the unavailable alert, not a success, for a brand answer without its name", async () => {
+    const view = await loaded();
+    fireEvent.change(nameField(view), { target: { value: "Hope Givers" } });
+    server.posts[BRAND] = [{ status: 200, body: { brand: {} } }];
+    fireEvent.click(view.getByRole("button", { name: "Save" }));
+    expect(await view.findByText(UNAVAILABLE_TEXT)).toBeTruthy();
+    expect(h.toastSuccess).not.toHaveBeenCalled();
+  });
+
+  it("F5: keeps Deactivate open with the unavailable alert for an answer that is not a Site", async () => {
+    const view = await loaded();
+    fireEvent.click(
+      view.getByRole("button", { name: "Deactivate Spanish site" }),
+    );
+    const dialog = await view.findByRole("alertdialog", {
+      name: "Deactivate Spanish site?",
+    });
+    server.posts[STATUS] = [
+      { status: 200, body: { site: { id: SPANISH.id } } },
+    ];
+    fireEvent.click(within(dialog).getByRole("button", { name: "Deactivate" }));
+    expect(await within(dialog).findByText(UNAVAILABLE_TEXT)).toBeTruthy();
+    expect(view.getByRole("alertdialog")).toBeTruthy();
+    expect(h.toastSuccess).not.toHaveBeenCalled();
+  });
+
+  it("F5: shows the unavailable alert, not a success, for a reactivation answer that is not a Site", async () => {
+    const view = await loaded();
+    server.posts[STATUS] = [{ status: 200, body: { site: { id: OLD.id } } }];
+    fireEvent.click(view.getByRole("button", { name: "Reactivate Old site" }));
+    expect(await view.findByText(UNAVAILABLE_TEXT)).toBeTruthy();
+    expect(h.toastSuccess).not.toHaveBeenCalled();
   });
 });
