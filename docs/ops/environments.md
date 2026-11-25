@@ -551,6 +551,46 @@ made with `CORE_SERVE_UNDER_PATHS=1` must never be promoted or deployed
 prebuilt to production; only the Release workflow's staged production builds
 may reach production.
 
+`FRONT_ADMIN_ORIGIN` and `FRONT_MISSIONARY_ORIGIN` are checked whenever they
+hold a non-empty value, whether or not `CORE_SERVE_UNDER_PATHS` is on. When the
+shared environment schema loads, it refuses a value that is not exactly an
+origin: `https://`, or `http://` only on `localhost`, `127.x.x.x` or `[::1]`;
+a path, a trailing `/`, upper case or the default port is refused
+(`packages/env/src/schema.ts:258-271`, `packages/env/src/front-origin.ts:22-32`,
+`tests/unit/front/front-stamp.test.ts:236-271`). An empty value counts as unset
+(`schema.ts:454`), and `SKIP_ENV_VALIDATION=1` or `true` skips the check
+(`schema.ts:451-453`). With the switch on, the front also answers `404` on a
+dashboard's paths while its origin is missing or refused
+(`packages/auth/front.ts:259-264,343-344`).
+
+A front and its two upstreams use one scheme. A dashboard judges a write
+against `requestOrigin`, its own request's scheme joined to the stamped `host`
+(`packages/auth/request-headers.ts:10-24`), and compares that with the
+browser's `Origin` for API writes (`packages/auth/mutation-admission.ts:54`),
+sign-out (`packages/api/src/auth/signout.ts:135-157`) and Web Studio's REST
+writes (`apps/admin/src/cms/web-studio-api-route.ts:43-67`). A front on
+`https:` in front of a loopback `http:` upstream therefore refuses a real
+person's API writes, sign-out and Web Studio REST writes: it fails closed.
+Server actions still pass, because Next.js compares only the host of `Origin`
+with `x-forwarded-host` or `host`
+(`.next-docs/01-app/03-api-reference/05-config/01-next-config-js/serverActions.mdx:13`).
+
+The release script's `check` step reads the migration health route under the
+app's base path (`/admin/api/health/migrations`,
+`/missionary/api/health/migrations`) only when its own environment carries
+`CORE_SERVE_UNDER_PATHS=1`, read as the build reads it; the donor reads the
+root either way (`scripts/release/serve-under-paths.mjs:54-56`,
+`scripts/release/vercel-release.mjs:724-728`). For a preview built on:
+`CORE_SERVE_UNDER_PATHS=1 node scripts/release/vercel-release.mjs check --app admin --url https://<preview>`.
+For the two dashboards a wrong statement fails closed: the check passes only
+on the migration handler's own answer and follows no redirect
+(`vercel-release.mjs:353,409`). The release job's production steps (`plan`,
+`deploy`, `register-jobs`) refuse that value with the build's own refusal
+before any Vercel or HTTP call (`vercel-release.mjs:69-79,686,719,761`). That
+refusal is the only guard `register-jobs` has; `plan` turns any failed read of
+a live commit into "live commit unknown" and rebuilds that app
+(`vercel-release.mjs:471-474`).
+
 ## 6. Deploy Flows
 
 Production is branch-triggered; preview and development deploys are explicit.
