@@ -415,14 +415,17 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       } finally {
         const failures: string[] = [];
         for (const who of PEOPLE)
-          if (user[who]) {
-            const deleted = await api(`auth/v1/admin/users/${user[who]}`, {
-              key: service,
-              bearer: service,
-              method: "DELETE",
-            });
-            if (!deleted.ok) failures.push(`${who}: ${deleted.status}`);
-          }
+          if (user[who])
+            try {
+              const deleted = await api(`auth/v1/admin/users/${user[who]}`, {
+                key: service,
+                bearer: service,
+                method: "DELETE",
+              });
+              if (!deleted.ok) failures.push(`${who}: ${deleted.status}`);
+            } catch (error) {
+              failures.push(`${who}: ${String(error)}`);
+            }
         expect(failures, "auth users the fixture could not delete").toEqual([]);
       }
     });
