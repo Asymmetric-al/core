@@ -242,7 +242,11 @@ which holds `public` policies only. The caller's own assignments come from
 policies, Storage's testing live membership in the tenant the object path
 names. Commenters' names on a public post come from the first release's
 `public.post_comment_authors(post)`, not from other people's `profiles` rows,
-which only their owner may read.
+which only their owner may read. Since AL-2678 (WP5 part 2-r2a) it names a
+worker only by the post's organization's public name, and a commenter linked
+to a restricted or high-risk Party in any organization, or a worker with no
+sole row in the post's organization, has no photo and is named only by an
+alias or not at all.
 
 `GET /api/donate` returns checkout config only, `{ "publishableKey": "<pk>" }`.
 It no longer returns designations or donor rows.

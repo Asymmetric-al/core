@@ -74,31 +74,6 @@ function warnPreferenceDev(context: string, error: unknown) {
   }
 }
 
-type RecentDocPreferenceEntry = {
-  href: string;
-  id: string;
-  title: string;
-  updatedAt?: string;
-};
-
-function isRecentDocPreferenceEntry(
-  value: unknown,
-): value is RecentDocPreferenceEntry {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const candidate = value as Partial<RecentDocPreferenceEntry>;
-  return (
-    typeof candidate.href === "string" &&
-    candidate.href.length > 0 &&
-    typeof candidate.id === "string" &&
-    candidate.id.length > 0 &&
-    typeof candidate.title === "string" &&
-    candidate.title.length > 0
-  );
-}
-
 export type NativeCollectionEditViewProps = DocumentViewClientProps & {
   studioCollection: WebStudioCollectionSlug;
 };
@@ -274,19 +249,13 @@ type NativeCollectionEditModel = ReturnType<
 >;
 
 function useNativeCollectionWorkspace({
-  dataId,
   getPreference,
-  setPreference,
   studioCollection,
   studioConfig,
-  title,
 }: {
-  dataId: unknown;
   getPreference: ReturnType<typeof usePreferences>["getPreference"];
-  setPreference: ReturnType<typeof usePreferences>["setPreference"];
   studioCollection: WebStudioCollectionSlug;
   studioConfig: WebStudioCollectionConfig;
-  title: string | undefined;
 }) {
   const [workspace, setWorkspace] = useState({
     inspectorOpen: true,
@@ -360,52 +329,6 @@ function useNativeCollectionWorkspace({
     // `studioCollection`: re-hydrate when navigating between native collections even if the
     // workspace preference key string were unchanged (defensive); ESLint allows this here.
   }, [getPreference, studioCollection, studioConfig.preferences.workspace]);
-
-  useEffect(() => {
-    const identifier =
-      typeof dataId === "string" || typeof dataId === "number"
-        ? String(dataId)
-        : null;
-    const titleValue = typeof title === "string" ? title : null;
-    if (!identifier || !titleValue) {
-      return;
-    }
-
-    void (async () => {
-      const rawExisting =
-        (await getPreference<unknown>(
-          studioConfig.preferences.recentDocs,
-        ).catch((error: unknown) => {
-          warnPreferenceDev("recent docs preference read failed", error);
-          return [];
-        })) ?? [];
-      const existing = Array.isArray(rawExisting)
-        ? rawExisting.filter(isRecentDocPreferenceEntry)
-        : [];
-      const next = [
-        {
-          id: identifier,
-          title: titleValue,
-          href: `${studioConfig.listPath}/${identifier}`,
-          updatedAt: new Date().toISOString(),
-        },
-        ...existing.filter((entry) => entry.id !== identifier),
-      ].slice(0, 6);
-
-      await setPreference(studioConfig.preferences.recentDocs, next).catch(
-        (error: unknown) => {
-          warnPreferenceDev("recent docs preference write failed", error);
-        },
-      );
-    })();
-  }, [
-    dataId,
-    getPreference,
-    setPreference,
-    studioConfig.listPath,
-    studioConfig.preferences.recentDocs,
-    title,
-  ]);
 
   return {
     handleSettingsOpenChange,
@@ -807,7 +730,7 @@ export function NativeCollectionEditView({
   } = useDocumentInfo();
   const { isLivePreviewEnabled, previewURL, setPreviewURL } =
     useLivePreviewContext();
-  const { getPreference, setPreference } = usePreferences();
+  const { getPreference } = usePreferences();
   const [statusTarget, setStatusTarget] = useState<HTMLSpanElement | null>(
     null,
   );
@@ -839,12 +762,9 @@ export function NativeCollectionEditView({
   });
   const { handleSettingsOpenChange, setSettingsOpen, settingsOpen, workspace } =
     useNativeCollectionWorkspace({
-      dataId: data?.id,
       getPreference,
-      setPreference,
       studioCollection,
       studioConfig,
-      title,
     });
 
   const headerPreviewLinks = resolvePreviewLinks({

@@ -261,7 +261,7 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
     }
   });
 
-  it("admits a stamped request, sets host/x-forwarded-host/origin, strips stamp and bypass headers, and rebases Location", async () => {
+  it("admits a stamped request, sets host/x-forwarded-host, strips the front's origin, stamp and bypass headers, and rebases Location", async () => {
     const valid = await signFrontStamp(FRONT_ORIGIN, "/admin", adminKey);
     const res = await adminModule.proxy(
       adminRequest("/donors", {
@@ -300,7 +300,7 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
     );
     expect(
       apiRes.headers.get(`x-middleware-request-${FRONT_ORIGIN_HEADER}`),
-    ).toBe(FRONT_ORIGIN);
+    ).toBeNull();
     expect(
       apiRes.headers.get(`x-middleware-request-${FRONT_STAMP_HEADER}`),
     ).toBeNull();
@@ -357,6 +357,112 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
     expect(res.headers.get("x-middleware-request-x-asym-assignment")).toBe(
       ROW_FINANCE,
     );
+  });
+
+  function expectOnlyTheStampedHostDownstream(res: Response, label: string) {
+    expect(res.headers.get("x-middleware-request-host"), label).toBe(
+      "one.example.test",
+    );
+    expect(
+      res.headers.get("x-middleware-request-x-forwarded-host"),
+      label,
+    ).toBe("one.example.test");
+    const overridden = res.headers.get("x-middleware-override-headers");
+    expect(overridden, label).not.toBeNull();
+    expect(overridden!.split(","), label).toContain("host");
+    expect(overridden!.split(","), label).not.toContain(FRONT_STAMP_HEADER);
+    expect(overridden!.split(","), label).not.toContain(FRONT_ORIGIN_HEADER);
+    expect(
+      res.headers.get(`x-middleware-request-${FRONT_STAMP_HEADER}`),
+      label,
+    ).toBeNull();
+    expect(
+      res.headers.get(`x-middleware-request-${FRONT_ORIGIN_HEADER}`),
+      label,
+    ).toBeNull();
+  }
+
+  it("passes no front origin or stamp downstream of a stamped staff page or API request, only the stamped host", async () => {
+    state.userId = USER;
+    state.rows = [
+      {
+        id: ROW_FINANCE,
+        user_id: USER,
+        tenant_id: TA,
+        role: "staff",
+        staff_role: "finance",
+        is_tenant_admin: false,
+        updated_at: "2026-11-24T00:00:00.000000+00:00",
+      },
+      {
+        id: ROW_CARE,
+        user_id: USER,
+        tenant_id: TA,
+        role: "staff",
+        staff_role: "member_care",
+        is_tenant_admin: false,
+        updated_at: "2026-11-24T00:00:00.000000+00:00",
+      },
+    ];
+    const valid = await signFrontStamp(FRONT_ORIGIN, "/admin", adminKey);
+    const stamped = {
+      [FRONT_ORIGIN_HEADER]: FRONT_ORIGIN,
+      [FRONT_STAMP_HEADER]: valid,
+    };
+
+    const page = await adminModule.proxy(
+      adminRequest(`/${TA}~finance/care/directory`, { headers: stamped }),
+    );
+    expect(page.headers.get("x-middleware-rewrite")).toBe(
+      `${ADMIN_HOST}/admin/care/directory`,
+    );
+    expectOnlyTheStampedHostDownstream(page, "staff page");
+
+    const api = await adminModule.proxy(
+      adminRequest("/api/admin/funds", { headers: stamped }),
+    );
+    expect(api.headers.get("x-middleware-next")).toBe("1");
+    expectOnlyTheStampedHostDownstream(api, "staff API");
+  });
+
+  it("passes no front origin or stamp downstream of a stamped missionary page or API request, only the stamped host", async () => {
+    vi.stubEnv("CORE_APP_BASE_PATH", "/missionary");
+    vi.stubEnv("FRONT_STAMP_KEY", missionaryKey);
+    state.userId = USER;
+    state.rows = [
+      {
+        id: ROW_MISS,
+        user_id: USER,
+        tenant_id: TA,
+        role: "missionary",
+        staff_role: null,
+        is_tenant_admin: false,
+        updated_at: "2026-11-24T00:00:00.000000+00:00",
+      },
+    ];
+    const valid = await signFrontStamp(
+      FRONT_ORIGIN,
+      "/missionary",
+      missionaryKey,
+    );
+    const stamped = {
+      [FRONT_ORIGIN_HEADER]: FRONT_ORIGIN,
+      [FRONT_STAMP_HEADER]: valid,
+    };
+
+    const page = await missionaryModule.proxy(
+      missionaryRequest(`/${TA}`, { headers: stamped }),
+    );
+    expect(page.headers.get("x-middleware-rewrite")).toBe(
+      `${MISSIONARY_HOST}/missionary`,
+    );
+    expectOnlyTheStampedHostDownstream(page, "missionary page");
+
+    const api = await missionaryModule.proxy(
+      missionaryRequest("/api/missionary/tasks", { headers: stamped }),
+    );
+    expect(api.headers.get("x-middleware-next")).toBe("1");
+    expectOnlyTheStampedHostDownstream(api, "missionary API");
   });
 
   it("admits only staff listed paths, refusing unstamped GET/HEAD /api/cms/public/ after WP6 part 2a retires those routes, stripping client x-asym-front-* and keeping bypass", async () => {

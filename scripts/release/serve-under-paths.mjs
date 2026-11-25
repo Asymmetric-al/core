@@ -41,7 +41,7 @@ export function resolveServeUnderPaths(env) {
 }
 
 export function serveUnderPathsBuildEnv(app, env) {
-  if (!(app in APP_BASE_PATHS)) {
+  if (!Object.hasOwn(APP_BASE_PATHS, app)) {
     throw new Error(`Unknown app for serveUnderPathsBuildEnv: ${String(app)}`);
   }
   const enabled = resolveServeUnderPaths(env);
@@ -49,6 +49,10 @@ export function serveUnderPathsBuildEnv(app, env) {
     [CORE_APP_BASE_PATH_ENV]: enabled ? APP_BASE_PATHS[app] : "",
     [CORE_SERVE_UNDER_PATHS_ENV]: enabled ? "1" : "0",
   };
+}
+
+export function deploymentPathPrefix(app, env) {
+  return serveUnderPathsBuildEnv(app, env)[CORE_APP_BASE_PATH_ENV];
 }
 
 export function serveUnderPathsNextConfig(app, env) {

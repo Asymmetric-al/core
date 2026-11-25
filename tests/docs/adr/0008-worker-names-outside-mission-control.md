@@ -46,24 +46,39 @@ restricted or high-risk worker gets the alias or `NULL`, never
      `profiles` embed of a select whose root is `posts`, with or without a
      hint (PostgREST resolves the sole key without one), and any `profiles`
      embed nested in a `posts(...)` embed, whatever the outer root;
-   - a template chunk that ends in `missionaries!`, `profiles!` or `posts!`,
-     the hint interpolated before the parenthesis: the embed cannot be read,
-     so the scan fails closed;
+   - a template chunk that ends in `missionaries!`, `profiles!`, `posts!` or
+     (since the r2a fix round) `post_comments!`, the hint interpolated before
+     the parenthesis, and (since r2a's second round) a chunk that ends in one
+     of those four names as a select item (at its start, or after `,`, `(`
+     or an alias and `:`), as in `missionaries${h}(`: the embed cannot be
+     read, so the scan fails closed;
    - the code `author.<name>` or `author?.<name>` for any of the four name
      columns.
 2. **A donor's own profile is told apart by nesting.** A `profiles` embed is a
    worker read when it is nested in a `missionaries` embed, reached through
    `!missionary_id`, or at the top of a select whose root is `missionaries`.
    A root `.from("profiles")`, a `profiles` embed under `donors`, and a
-   top-level `profiles` embed of a select whose root is another table (a
-   comment's author under `post_comments`) are not. A top-level `profiles`
-   embed in a literal whose root the scanner cannot find is treated as a
-   worker read: the scan fails closed.
-3. **Roots are found as in 0001.** A literal's root is the `.from(...)` of
-   the `.select(...)` it is passed to, directly or through a constant of the
-   same file or one imported from another source file. A computed select
-   built from template parts is read part by part, by its tokens outside
-   parentheses.
+   top-level `profiles` embed of a select whose root is another table are
+   not. A top-level `profiles` embed in a literal whose root the scanner
+   cannot find is treated as a worker read: the scan fails closed. Since WP5
+   part 2-r2a a commenter's profile is no read at all (rule 1): a `profiles`
+   embed under a `post_comments` root, or nested at any depth in a
+   `post_comments(...)` embed, fails with any hint, because commenters come
+   only from `public.post_comment_authors`; a `post_comments` embed itself is
+   skipped like `donors` and `posts`.
+3. **Roots are found as in 0001, from a first pass.** A literal's root is the
+   `.from(...)` of the `.select(...)` it is passed to, directly or through a
+   constant of the same file or one imported from another source file. Since
+   WP5 part 2-r2a (gate f) the table name of a `.from(T)` comes from a first
+   pass, before the walk, over every string literal a name is given in the
+   file, as the initializer of a `const`, `let` or `var` or by a later
+   assignment (`T = "missionaries"`, also to a `let` declared without a
+   value); a name's values are the union of those and of the constant it is
+   imported as, when it is imported too (a local name never hides an imported
+   one, and a select constant is rooted in both files); a `.from(T)` takes
+   every value as a root. A constant declared after its use, given two
+   values, assigned later or shadowed is no longer missed. A computed select built from
+   template parts is read part by part, by its tokens outside parentheses.
 4. **A shrink-only allowlist.** `packages/api/src/public-giving/columns.ts`
    (`PUBLIC_WORKER_SELECT`, no caller; owner WP7, which also applies
    `do_not_publish`) is its one entry. An entry whose file no longer violates
@@ -82,7 +97,29 @@ restricted or high-risk worker gets the alias or `NULL`, never
    `profiles` embed whose hint is interpolated); six pass (a donor's own profile by id, a donor's
    profile under `donors`, the donor portal's worker embed, the feed's author
    embed in a literal and under a posts root, and the donations read's
-   explicit worker columns).
+   explicit worker columns). WP5 part 2-r2a adds P1-P14, 16 failing sources
+   (P8 is three: `use cache: remote`, `use cache: private` and a file-level
+   `use cache`), and K1, so 40 failed; K2-K4 made 9 pass. Each P passed
+   the scanner before r2a and K2 failed it. The r2a fix round adds P15-P26
+   (a shadowed import as a root, as a cached select and as a select of every
+   column; a `post_comments` embed with an interpolated hint; a `fetch` whose
+   `next` sets `revalidate` by a shorthand property, whose `cache` is a
+   template or a variable holding `force-cache`; a `let` assigned a root or a
+   select after its declaration, with and without an initial value; a
+   function and a file whose `use cache` follows `use strict`) and the guard
+   K6 (`next: { revalidate: 60 }`), so 53 failed; the controls K5, K7, K8
+   and K9 made 13 pass. Each of P15-P26 passed the scanner before the fix
+   round. r2a's second round adds P27-P32 (a cached function returning a
+   helper's read: of the same file, imported, two helpers deep, and an arrow
+   helper calling `post_comment_authors`; a `fetch` whose options are a local
+   constant holding `force-cache`; a hint interpolated with no `!`) and the
+   guards K15 (`revalidate: false`) and K16 (`revalidate` a variable), so
+   61 failed; the controls K10-K13 and K14 (`revalidate: 0`, which failed
+   before) made 18 pass. Each of P27-P32 passed the scanner before the
+   second round. The last round adds P33 (a cached call to an imported
+   helper that reads a worker's name, with an unrelated nested function of
+   the same name in the file), which passed before it, so **62 fail**; its
+   control K17 (the helper reads no worker name) makes **19 pass**.
 6. **What the contract does not see.** A scanner of string literals cannot
    follow a read that is not spelled in one literal: a two-step read (the
    worker's `profile_id`, then `.from("profiles")` by that id), an inverted
@@ -90,20 +127,28 @@ restricted or high-risk worker gets the alias or `NULL`, never
    a select returned by a helper function or re-exported through more than
    one module, a name taken by destructuring (`const { first_name } =
 post.author`) or by bracket access (`author["first_name"]`), SQL inside
-   `.rpc(...)`, a GraphQL resolver that maps another source, and a select
+   `.rpc(...)` (in a cached scope rule 2 reads
+   `.rpc("post_comment_authors")`; other SQL in `.rpc(...)` stays unseen),
+   a GraphQL resolver that maps another source, and a select
    built from a constant that is itself built from another constant or an
    array spread in the same file (the scanner binds a root to the constant
    passed to `.select(...)` and to the literals in its own initializer, not
    to the constants that initializer names). Each is a review item, not a
    test. A template expression inside a `missionaries(...)`
    or a post author's embed fails closed: the scanner cannot read the embed
-   and reports it.
+   and reports it. Nor does it see a root when `.from(...)` and `.select(...)`
+   are split across a local variable (`const q = db.from("missionaries");
+q.select("*")`), a name given by a default or namespace import, by a
+   logical assignment (`T ||= "missionaries"`, `T ??= ...`) or by
+   destructuring (`const [T] = ["missionaries"]`). A name's values are the
+   union of every string it is given anywhere in the file, whatever the
+   scope: that can refuse a harmless query, never pass a harmful one.
 7. **Fixtures for a worker who has no alias.** The rule forbids a
    restricted or high-risk Party without an alias, so the suites write that
    worker ("X") as the table owner with the alias trigger disabled for the one
    statement: `worker-names.realstack` inside its rolled-back transaction, and
-   `identity-keys.postgrest` committed (PostgREST reads only committed rows)
-   and deleted in its `afterAll`. A worker whose stored alias is only removed
+   `worker-names.postgrest` committed (PostgREST reads only committed rows)
+   and deleted in the shared fixture's `afterAll`. A worker whose stored alias is only removed
    characters (U+FE0F, U+200B) is written the same way; it is the stored-row
    case a release must count before it ships: of the pull request's four
    stored-row counts, the third (`private.party_alias_problem(id) IS NOT
@@ -111,9 +156,13 @@ NULL` on `public.parties`) and the fourth
    (`private.normalize_safety_text(legal_name) IS NULL` on
    `private.party_restricted`) must read 0.
 8. **The PostgREST suite gives the portal a donor of its own.**
-   `identity-keys.postgrest` adds a donor ("giver") with gifts and recurring
-   gifts to the three workers, so the suite's earlier exact-row assertions
-   for its first donor do not change, and it mocks only
+   Since WP5 part 2-r2a the worker-name tests are their own file,
+   `worker-names.postgrest`, beside `identity-keys.postgrest`; both build the
+   same stack rows from one module, `identity-keys.postgrest-fixture.ts`, and
+   each keeps its own mocks. The fixture adds a donor ("giver") with gifts and
+   recurring gifts to the three workers, so the identity-key suite's
+   exact-row assertions for its first donor do not change, and
+   `worker-names.postgrest` mocks only
    `getAuthContext` and the admin client (a real service-key client on the
    stack) to call `GET /api/donations` and the GraphQL handler, as
    `issue-2269/donations-embed.postgrest` does; for `POST /api/donations` it
@@ -149,35 +198,168 @@ NULL` on `public.parties`) and the fourth
     dropped inside its rolled-back transaction, it also proves an unknown or
     a NULL level gets the alias or NULL.
 
+11. **No server cache holds a worker's public name (WP5 part 2-r2a, gate
+    b; rule 2).** The Ministry Updates feed (`getCachedFeedPosts` in
+    `packages/api/src/posts/index.ts`) kept rows holding
+    `post_author_public_name` under `"use cache"` with
+    `cacheLife("minutes")`: up to an hour after a restriction. Nothing could
+    expire it from where a restriction is made. `revalidateTag(tag, "max")`
+    serves stale content to the next request, `updateTag` works only in a
+    Server Action, the default cache handler is in memory per instance and per
+    build (a tag expired in Mission Control never reaches the donor or the
+    missionary app), and the safety commands run through `rpc/` with no route
+    at all. So the feed is a request-time read in its Route Handler
+    (`getFeedPosts`), and the contract fails, outside Mission Control: inside
+    any function-like node (a declaration, a function expression, an arrow
+    function with a block body, a method) or file whose leading directives
+    (the string statements before any other, read from the syntax tree in
+    either quote) include `"use cache"`, `"use cache: remote"` or
+    `"use cache: private"`, a `.select(...)` whose text holds
+    `worker_public_name` or `post_author_public_name`, directly or through a
+    same-file or imported constant, and a `.rpc("post_comment_authors", ...)`;
+    and since r2a's second round, a call from such a scope to a function
+    that makes either read, itself or through the functions it calls: a
+    function declaration or a function or arrow function assigned to a name,
+    in the same file or imported by name from a scanned file, followed
+    transitively, each function once (a cycle ends there). A call is
+    resolved to every function of that name in the file and to the one it
+    imports by that name, so it can refuse a harmless call, never pass a
+    harmful one. The same helper called only from uncached code stays
+    allowed. Anywhere: a call of
+    `unstable_cache` imported by name from `next/cache` (under its own name or
+    an `as` name), any call named `unstable_cache` and any `.unstable_cache(`
+    on an object; and a `fetch(` whose options object, written at the call or
+    held by a name bound once in the same file to an object literal, sets
+    `cache` to `"force-cache"` (a literal, a template, or a name holding it),
+    or sets a `next` object written there whose `revalidate` is a positive
+    number, `false`, or anything that is not a number literal (fail closed);
+    `revalidate: 0` does not cache (`node_modules/next/dist/docs/01-app/03-api-reference/04-functions/fetch.md`,
+    "options.next.revalidate": `false` caches indefinitely, `0` prevents
+    caching, a number caches for at most that many seconds). No handler has
+    to expire anything when a worker is restricted (gate c). The tag
+    `CACHE_TAGS.tenantPosts` and its `revalidateTag` calls stay and now
+    expire nothing; removing them is WP7's. What the rule cannot see, each a
+    review item: a table name computed at run time, held in an object or
+    passed as a parameter; a helper reached through a variable that holds a
+    function, a method of an object, a dynamic `import()`, or a module that
+    re-exports it; a select constant built with `+`, `.join()`, a template
+    with expressions, or through a second name (`const S = A`), which the
+    rule cannot read as a string; a `"use cache: <name>"` kind other than
+    remote and private (it needs `cacheHandlers`, which no app sets); a
+    `fetch` whose options are built elsewhere (a parameter, a call, a name
+    bound more than once), whose `next` is (`next: buildPolicy()`, the shape
+    `packages/lib/cms/public-page.ts` builds, which no caller passes today),
+    a `fetch(new Request(url, { cache: "force-cache" }))`, and a `fetch`
+    called by another name; and `unstable_cache` reached through a local
+    variable (`const memo = unstable_cache`), a bracket access
+    (`ns["unstable_cache"]`) or a module that re-exports it.
+
+## Readers closed by WP5 part 2-r2a
+
+- Comment authors: `public.post_comment_authors`
+  (`20261126050000_wp5_2r2a_comment_authors.sql`) names a worker by the
+  post's organization's projection, and a commenter linked to a restricted or
+  high-risk Party in any organization (a non-worker's restricted Party
+  included), or a worker with no sole row in the post's organization, has no
+  photo and is named only by an alias or not at all; GraphQL `addComment`
+  reads no embed and returns the caller's own profile with the request's
+  organization and role.
+- Mission Control's updated receipt emails and PDFs to donors: each line's
+  worker is named by `worker_public_name` when the snapshot is made, and
+  again at every PDF download; a line with no `missionaryId`, a restricted or
+  high-risk worker without an alias, and a worker the projection does not
+  find have a null `missionaryName` (no "Missionary:" in the email, "—" in
+  the PDF). The staff detail keeps its label inside Mission Control.
+
 ## Readers left open, with owners
 
-- Comment authors (`public.post_comment_authors`, `20261120130005:30-42`;
-  `packages/graphql/handler.ts` `addComment`, `author:profiles!user_id(*)`):
-  WP5 part 2-r2, before its restrict control ships.
-- Mission Control's receipt emails and PDFs to donors
-  (`packages/api/src/admin/contribution-operations/operations.ts:225-256`):
-  WP5 part 2-r2, outside this scanner's scope.
-- Public giving (`packages/api/src/public-giving/`): WP7, the allowlist entry.
-- The CMS template writer
-  (`apps/admin/src/cms/create-from-template-endpoint.ts:402-438`) writes a
-  worker's profile name into a giving page's title and slug. Inside Mission
-  Control, so outside the scanner. Owner: WP7, which publishes those pages
-  and applies `do_not_publish`; WP7 may not publish a worker's giving page
-  until this writer names the worker by `worker_public_name`. Nothing public
-  reads a CMS page until WP7.
-- GraphQL's `posts`, `post` and `createPost` embed
-  `missionaries!missionary_id` on `posts`, whose key names `profiles`, so
-  PostgREST refuses them (`PGRST200`); they fail closed and show no name.
-  Owner: WP4b (`packages/graphql/handler.ts`). When it repairs them it must
-  select `post_author_public_name` and `author:profiles!missionary_id(id,
-avatar_url)`.
-- GraphQL's `Query.missionaries` and `Query.missionary` show the bio, the
-  mission field and the funding figures of every worker of the organization,
-  a restricted one included, to any signed-in member; no page calls them.
-  Whether a restricted worker is listed at all is the publication rule
-  (`do_not_publish`, WP7); the handler is WP4b's.
+Exactly nine. Short paths are under `packages/api/src/` (receipt files under
+`admin/contribution-operations/`, `staged-gifts.ts` under
+`admin/contributions/`); `handler.ts` is `packages/graphql/handler.ts`;
+`checkout-client.tsx` is under `apps/donor/app/(public)/(solid)/checkout/`.
+
+1. **A restricted person giving to, or asking to follow, a colleague
+   (blocks r2b's merge).** Readers: `Query.mySupporters`
+   (`handler.ts:386-419,901-906`, via `donations/select.ts:11`); Partners
+   (`missionary-portal/donors.ts:429-493,549-561`); the portal snapshot
+   (`missionary-portal/service.ts:72-90,219-226`, `model.ts:418-474`); tasks
+   (`service.ts:92-107,298-345`, `model.ts:316-352`); follower requests
+   (`follower-requests/index.ts:68-98`, `request.ts:50-66`); `donor_id`
+   correlation (`missionaries/metrics.ts:123-136,438-448`); and the write
+   guard (`missionary-portal/donor.ts:128-197`). Owner: WP5 part 2-r2s,
+   before r2b; WP4b later deletes or rewrites GraphQL and moves portals to
+   caller-token reads and the projection resolver. No email names a donor to
+   a worker today; a future worker gift-notice email (WP8b on) and public
+   donor recognition calling `projectPublicDonorDisplayName`
+   (`missionary-portal/redaction.ts:120-126`, WP7) must apply the same Party
+   safety redaction.
+2. **A restricted worker's photo (`profiles.avatar_url`) and post media,
+   outside comments.** Readers: the feed (`posts/select.ts:2` →
+   `posts/index.ts:53`, `packages/database/hooks/donor-feed-posts.ts:373-374`);
+   the donor portal (`donor-portal/service.ts:73,94` →
+   `model.ts:275,303,329`, `checkout-client.tsx:1540`); `/api/donations`
+   (`donations/select.ts:11`); GraphQL
+   (`handler.ts:262,281,303,332,536,814,854`, `:376,411,727`); public giving
+   (`public-giving/columns.ts:39`, `projection.ts:62`); and the `profiles`
+   bucket (`profile/image-url.ts:7`). Owners: WP7 (approved profile
+   revisions, WP6/WP7 private media custody, admitted media route; plan
+   `:345, :357-359, :1053-1054, :1066`); WP4b (GraphQL); WP14
+   (`private.party_restricted.real_photo_ref`; plan `:984, :1335`).
+3. **Public giving** (`public-giving/columns.ts:37-39`,
+   `projection.ts:36-66`): the one allowlist entry, no caller. Owner: WP7,
+   applying `worker_public_name`, the approved photo and `do_not_publish`.
+4. **The CMS template writer**
+   (`apps/admin/src/cms/create-from-template-endpoint.ts:402-438`) puts a
+   worker's profile name in a giving page's title and slug; nothing public
+   reads CMS pages until WP7. Owner: WP7. WP6 part 2b rewrites the file; WP7
+   may not publish a worker's giving page until the writer uses
+   `worker_public_name` and `do_not_publish`.
+5. **A worker fund's name** (`funds.name` with `funds.missionary_id` set,
+   `20250101000000_init_schema.sql:110`), a staff label, is shown on receipts
+   (`giving/receipts.ts:190`, `receipt-pdf.ts:68`), in the donor portal
+   (`donor-portal/service.ts:72,93`, `model.ts:264,302,318`) and in
+   correction notifications (`notifications/store.ts:145-170`). A
+   restriction does not rename it. Owner: WP7, with WP14's firewall.
+6. **The allocation memo on updated receipts**, held in
+   `staged_gift_allocations.memo` (`20260512190000:160`),
+   `effective_values.designationLines[].memo`
+   (`correction-effective-values.ts:95`) and the snapshot's `content`
+   (`receipt-delivery.ts:285,365,405`). Only finance staff write it
+   (`staged-gifts.ts:41,230`, `contribution-operations/route.ts:200-251`).
+   It is shown as stored in the email (`giving/receipts.ts:192,208`) and the
+   PDF (`receipt-pdf.ts:70`). Owner: WP8b (retires the snapshots, builds
+   immutable receipt facts, rules plan `:441` against `:345` and on free-text
+   memos), with WP14's firewall.
+7. **GraphQL `posts`, `post`, `createPost`** (`handler.ts:300-335,533-539`)
+   fail closed (`PGRST200`). Owner: WP4b; if repaired, they select
+   `post_author_public_name`, and the photo moves with WP7.
+8. **GraphQL `Query.missionaries` and `Query.missionary`**
+   (`handler.ts:249-288`) show any member every worker's `bio`,
+   `mission_field`, `funding_goal`, `current_funding` and
+   `profile.avatar_url`, restricted included; no page calls them. Owners:
+   WP4b (handler), WP7 (`do_not_publish`, approved photo).
+9. **The `missionary_name` merge tags** (`packages/email/merge-tags.ts:157`,
+   `packages/config/pdf-studio.ts:301-303`): not a reader today, since no
+   code fills them; whoever wires them reads `worker_public_name`. Owner:
+   WP8b or the template-resolution owner.
 
 ## Edits to existing suites (record D-18)
+
+- WP5 part 2-r2a: `identity-keys.postgrest` split, move only (r1's seven
+  tests to `worker-names.postgrest`, the shared stack rows to
+  `identity-keys.postgrest-fixture.ts`; the same 15 titles and assertions).
+- WP5 part 2-r2a: `contribution-receipt-delivery.test.ts` and
+  `contribution-receipt-pdf.test.ts` pass the new required
+  `workerPublicNames` map; the PDF test's map keeps "Riley Worker" for its
+  assertion, and its snapshot stub gains `.in()` and becomes thenable. No
+  assertion changed.
+- WP5 part 2-r2a (gate g): `donations-worker-columns.test.ts`'s projecting
+  stub throws, naming the part, on anything it cannot project
+  (`name:column`, `column::text`, `...embed(...)`, `count()`), and
+  `workerSelect` throws without a closed worker embed; it used to drop them.
+- WP5 part 2-r2a: `tests/unit/workflows/local-supabase-paths.test.ts`'s
+  identity-key reader list gains the receipts the PostgREST suite renders,
+  its reason in the title.
 
 - `tests/unit/packages/database/donor-feed-posts.test.ts`: a post with no
   public author name is named "Missionary" (the ruling's fallback), not

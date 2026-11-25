@@ -281,6 +281,39 @@ it("explains where pinning happens when nothing is pinned", async () => {
   expect(screen.queryByRole("button", { name: /Pin documents/ })).toBeNull();
 });
 
+it("shows only what the access-checked read returns, never a stored pin", async () => {
+  fixture.serverFunction.mockImplementation(async () => ({
+    items: [],
+    page: 1,
+    totalDocs: 0,
+  }));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () =>
+      Response.json({
+        value: { items: [{ id: "other-9", collectionSlug: "pages" }] },
+      }),
+    ),
+  );
+  render(
+    <QueryClientProvider
+      client={
+        new QueryClient({ defaultOptions: { queries: { retry: false } } })
+      }
+    >
+      <YourDocuments />
+    </QueryClientProvider>,
+  );
+  const region = screen.getByRole("region", { name: "Your documents" });
+  await within(region).findByText("No pinned documents");
+  expect(within(region).queryAllByRole("link")).toEqual([]);
+  expect(region.innerHTML).not.toContain("other-9");
+  fireEvent.click(screen.getByRole("tab", { name: "Recently viewed" }));
+  await within(region).findByText("Nothing viewed yet");
+  expect(within(region).queryAllByRole("link")).toEqual([]);
+  expect(region.innerHTML).not.toContain("other-9");
+});
+
 it("shows an inline error with Retry when the lists cannot load", async () => {
   setup({ failLoad: true });
   const alert = await screen.findByRole("alert");

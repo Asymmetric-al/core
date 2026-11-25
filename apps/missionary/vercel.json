@@ -10,5 +10,11 @@
       "production": false,
       "main": false
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/webhooks/stripe",
+      "destination": "/missionary/api/webhooks/stripe"
+    }
+  ]
 }
