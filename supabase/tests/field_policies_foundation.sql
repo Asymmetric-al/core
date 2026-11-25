@@ -84,11 +84,15 @@ BEGIN
     RAISE EXCEPTION 'C4: one whole column has conflicting category classifications'; END IF;
   IF EXISTS (SELECT 1 FROM public.field_policies WHERE sensitivity_category IS NULL) THEN
     RAISE EXCEPTION 'C4: every seeded column requires a category'; END IF;
-  -- D-18, plan 5.4, council 2026-11-21: C4 mirrors the census's sole
-  -- same-name override for the anonymous host projection. C6 is unchanged.
+  -- D-18, plan 5.4, council 2026-11-21: C4 mirrors the census's same-name
+  -- overrides for the anonymous host projections. D-18, AL-2676 (ruling
+  -- WP3b part 2 Q1): the second is donor_portal_hosts.primary_domain, public
+  -- over an internal floor. C6 is unchanged.
   IF EXISTS (SELECT 1 FROM public.field_policies WHERE field_key='tenant_id'
     AND sensitivity_category::text <> CASE WHEN record_type='site_domains' THEN 'public' ELSE 'internal' END)
-    OR EXISTS (SELECT 1 FROM public.field_policies WHERE field_key<>'tenant_id'
+    OR EXISTS (SELECT 1 FROM public.field_policies WHERE field_key='primary_domain'
+    AND sensitivity_category::text <> CASE WHEN record_type='donor_portal_hosts' THEN 'public' ELSE 'internal' END)
+    OR EXISTS (SELECT 1 FROM public.field_policies WHERE field_key NOT IN ('tenant_id','primary_domain')
     GROUP BY field_key HAVING count(DISTINCT sensitivity_category)>1) THEN
     RAISE EXCEPTION 'C4: identical column names disagree by highest applicable category'; END IF;
   IF EXISTS (SELECT 1 FROM public.field_policies WHERE field_key IN ('title','status','type','notes')

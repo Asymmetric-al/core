@@ -528,7 +528,7 @@ describe.skipIf(!ADMIN_URL)("the claimed-name record", () => {
       ]);
     }));
 
-  it("projects exactly five public fields of the claimed-name record and derives only is_home", async () => {
+  it("projects exactly five public fields of the claimed-name record and derives only is_home (D-18: AL-2676: since WP3b part 2 the one other field shown off Mission Control is donor_portal_hosts.primary_domain on the public surface, ruling Q1)", async () => {
     const fields = await db.query(
       "select field_key from public.field_policies where record_type='site_domains' and surface='public' and visible order by 1",
     );
@@ -555,7 +555,20 @@ describe.skipIf(!ADMIN_URL)("the claimed-name record", () => {
     const invisible = await db.query(
       "select count(*)::int as n from public.field_policies where record_type in ('sites','donor_portal_hosts','donor_account_brands') and surface<>'mission_control' and (visible or editable or exportable)",
     );
-    expect(invisible.rows[0]!.n).toBe(0);
+    expect(invisible.rows[0]!.n).toBe(1);
+    const shown = await db.query(
+      "select record_type, field_key, surface, visible, editable, exportable from public.field_policies where record_type in ('sites','donor_portal_hosts','donor_account_brands') and surface<>'mission_control' and (visible or editable or exportable)",
+    );
+    expect(shown.rows).toEqual([
+      {
+        record_type: "donor_portal_hosts",
+        field_key: "primary_domain",
+        surface: "public",
+        visible: true,
+        editable: false,
+        exportable: false,
+      },
+    ]);
   });
 
   it("seeds each organization's own active home name, its default Site, and a second Site without a name", async () => {

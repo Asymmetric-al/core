@@ -375,8 +375,11 @@ commands enforce non-null request-tenant binding on direct calls.
 | `tenant_guard.set_account_brand(uuid, text)`     | DEFINER  | `tenant_guard` (owner), `authenticated`                     |
 | `tenant_guard.designate_home(uuid, text)`        | DEFINER  | `tenant_guard` (owner), `authenticated`                     |
 | `private.share_lock_site_domain(uuid, text)`     | DEFINER  | `postgres` (owner), `tenant_guard`                          |
+| `public.resolve_home_host(text)`                 | DEFINER  | `postgres` (owner), `anon`, `authenticated`, `service_role` |
 
 Each revokes `PUBLIC`, `anon`, `authenticated`, and `service_role` by name
 before granting (`private.share_lock_site_domain` also revokes `tenant_guard`
-before its one grant). `resolve_verified_host` is the one entry on
+before its one grant). `resolve_verified_host` and `resolve_home_host` (added
+by WP3b part 2, AL-2676: the anonymous home read behind the redirect of a Site
+name's account paths to home) are the two entries on
 `docs/security/anon-definer-allowlist.json`.

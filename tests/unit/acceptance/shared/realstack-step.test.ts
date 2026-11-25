@@ -341,6 +341,7 @@ const REAL_DATABASE_FILES = [
     "issue-2676/claimed-names.realstack",
     "issue-2676/command-request-organization.realstack",
     "issue-2676/giving-targets.realstack",
+    "issue-2676/home-name.realstack",
     "issue-2676/membership-invitations-commands.realstack",
     "issue-2676/membership-invitations-table.realstack",
     "issue-2676/money-embeds.realstack",

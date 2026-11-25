@@ -31,7 +31,8 @@
     "./tenant-address-decisions": "./tenant-address-decisions.ts",
     "./web-studio": "./web-studio.ts",
     "./front": "./front.ts",
-    "./verified-name": "./verified-name.ts"
+    "./verified-name": "./verified-name.ts",
+    "./home-name": "./home-name.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

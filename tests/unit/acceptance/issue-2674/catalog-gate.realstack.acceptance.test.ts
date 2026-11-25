@@ -443,13 +443,16 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
     }
   });
 
-  it("only the verified-host lookup is on the anonymous definer allowlist", () => {
+  it("only the verified-host lookup and the home read are on the anonymous definer allowlist (D-18: AL-2676: WP3b part 2 adds public.resolve_home_host, ruling Q6)", () => {
     expect(json(ANON_DEFINER_ALLOWLIST_PATH)).toMatchObject({
-      entries: [{ function: "public.resolve_verified_host(p_host text)" }],
+      entries: [
+        { function: "public.resolve_verified_host(p_host text)" },
+        { function: "public.resolve_home_host(p_host text)" },
+      ],
     });
     expect(
       (json(ANON_DEFINER_ALLOWLIST_PATH) as { entries: unknown[] }).entries,
-    ).toHaveLength(1);
+    ).toHaveLength(2);
   });
 
   it.each(CASES)(
@@ -479,7 +482,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
     },
   );
 
-  it("an allowlisted read function that is STABLE with an empty search path passes", async () => {
+  it("an allowlisted read function that is STABLE with an empty search path passes (D-18: AL-2676: the repository's allowlist holds two entries since WP3b part 2, so the fixture's makes three)", async () => {
     const r = await judge(
       `create function public.acc2674_ok() returns int language sql stable security definer set search_path = '' as 'select 1';
        ${REVOKE("public.acc2674_ok()")} grant execute on function public.acc2674_ok() to anon;`,
@@ -492,6 +495,6 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
       },
     );
     expect(r.failures).toEqual([]);
-    expect(r.counts.anonAllowed).toBe(2);
+    expect(r.counts.anonAllowed).toBe(3);
   });
 });
