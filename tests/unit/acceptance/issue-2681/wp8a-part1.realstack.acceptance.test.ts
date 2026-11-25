@@ -1092,7 +1092,7 @@ describe.skipIf(!ADMIN_URL)(
                has_table_privilege('tenant_guard', 'public.stripe_raw_events', 'SELECT') AS guard_events,
                has_table_privilege('tenant_guard', 'public.donation_saga_outbox', 'SELECT') AS guard_outbox,
                (SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid = 'public.donation_saga_outbox'::regclass AND conname = 'donation_saga_outbox_status_check') AS outbox_statuses,
-               (SELECT count(*)::int FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'donation_saga_outbox' AND column_name IN ('payment_account_binding_id', 'lease_expires_at')) AS outbox_new_columns,
+               (SELECT coalesce(string_agg(column_name::text, ',' ORDER BY column_name), '') FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'donation_saga_outbox' AND column_name IN ('payment_account_binding_id', 'lease_expires_at')) AS outbox_new_columns,
                (SELECT count(*)::int FROM pg_trigger WHERE tgrelid = 'public.workflow_dispatch_requests'::regclass AND NOT tgisinternal AND tgname LIKE '%monotonic%') AS dispatch_triggers`,
           )
         ).rows[0];
@@ -1102,7 +1102,7 @@ describe.skipIf(!ADMIN_URL)(
           guard_events: false,
           guard_outbox: false,
           outbox_statuses: expect.stringContaining("parked"),
-          outbox_new_columns: 1,
+          outbox_new_columns: "lease_expires_at",
           dispatch_triggers: 0,
         });
 

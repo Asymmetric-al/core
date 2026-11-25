@@ -49,7 +49,16 @@
 -- Down, an operator's last resort, for a database that holds no provider
 -- request (SELECT count(*) FROM public.donation_saga_outbox WHERE kind =
 -- 'provider_request' reads 0); in one transaction, before 20261126020100
--- and 20261126020000:
+-- and 20261126020000. Its first statements take the lock that stops a new
+-- provider request and refuse when one exists:
+--   LOCK TABLE public.donation_saga_outbox IN ACCESS EXCLUSIVE MODE;
+--   DO $$
+--   BEGIN
+--     IF EXISTS (SELECT 1 FROM public.donation_saga_outbox WHERE kind = 'provider_request') THEN
+--       RAISE EXCEPTION 'Down of 20261126020200 refused: a provider request exists' USING ERRCODE = '55000';
+--     END IF;
+--   END
+--   $$;
 --   DROP FUNCTION public.record_provider_operation_result(uuid, integer, jsonb),
 --     public.claim_provider_operation(uuid, integer),
 --     tenant_guard.record_provider_operation_result(uuid, uuid, integer, jsonb),
@@ -122,7 +131,7 @@ BEGIN
     CASE
       WHEN p_reason = 'window_passed' THEN
         pg_catalog.format(
-          'Provider request %s (key %s, account %s, livemode %s) was parked after attempt %s of %s (%s); the send deadline %s has passed or leaves no room for a retry, so the request can only be adopted or abandoned (repair case %s).',
+          'Provider request %s (key %s, account %s, livemode %s) was parked after attempt %s of %s (%s). The retry that was asked for does not fit before the send deadline %s. Repair case %s may retry it only while a retry still leaves fifteen minutes before that deadline; otherwise the request is adopted or abandoned.',
           v_op.id, v_op.idempotency_key, v_op.provider_account_ref, v_op.livemode,
           v_op.attempt_count, v_op.max_attempts, p_reason, v_op.send_deadline, v_case_id
         )

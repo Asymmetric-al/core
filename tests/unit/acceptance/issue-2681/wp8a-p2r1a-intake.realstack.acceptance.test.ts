@@ -486,22 +486,38 @@ describe.skipIf(!ADMIN_URL)(
         const fx = await seedTwoTenants(db);
         await grant(db, HOSTED_SERVICE_GRANTS);
         const intake = await guardIntake(db, fx.A);
-        const donor = await newDonor(fx.A);
+        const donors = {
+          service_role: await newDonor(fx.A),
+          postgres: await newDonor(fx.A),
+        };
         const results: string[] = [];
         for (const [as, status] of [
           ["service_role", "failed"],
-          ["postgres", "pending"],
+          ["postgres", "completed"],
         ] as const) {
           await role(db, as === "postgres" ? null : as);
           const r = await attempt(
             db,
             "UPDATE public.donations SET status = $2, donor_id = $3 WHERE id = $1",
-            [intake.donationId, status, donor],
+            [intake.donationId, status, donors[as]],
           );
-          results.push(r.ok ? `${as} ok` : `${as} ${refusal(r)}`);
           await role(db, null);
+          const stored = (
+            await db.query(
+              "SELECT status, donor_id FROM public.donations WHERE id = $1",
+              [intake.donationId],
+            )
+          ).rows[0];
+          results.push(
+            r.ok
+              ? `${as} ${stored.status} ${stored.donor_id === donors[as]}`
+              : `${as} ${refusal(r)}`,
+          );
         }
-        expect(results).toEqual(["service_role ok", "postgres ok"]);
+        expect(results).toEqual([
+          "service_role failed true",
+          "postgres completed true",
+        ]);
       }));
 
     it("B5: a line-based insert that is incomplete, targets a header, names a donor, reference or charge, has an upper-case or padded currency or a malformed account is 23514; another tenant's binding, the other entity, account or mode, or a currency not the entity's is 23503", () =>

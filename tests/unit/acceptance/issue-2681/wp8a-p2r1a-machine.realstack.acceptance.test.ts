@@ -634,6 +634,13 @@ describe.skipIf(!ADMIN_URL)(
       return s;
     }
 
+    async function releaseSessionsThenRemove(fx: Fixture) {
+      const open = sessions.splice(0);
+      await Promise.all(open.map((s) => s.end().catch(() => {})));
+      await db.query("ROLLBACK").catch(() => {});
+      await removeTwoTenants(db, fx);
+    }
+
     async function committed<T>(fn: () => Promise<T>) {
       await db.query("BEGIN");
       try {
@@ -818,7 +825,7 @@ describe.skipIf(!ADMIN_URL)(
           normalize: false,
         });
       } finally {
-        await removeTwoTenants(db, fx);
+        await releaseSessionsThenRemove(fx);
       }
     });
 
@@ -1331,6 +1338,15 @@ describe.skipIf(!ADMIN_URL)(
             PARKED_LINK(second.case_id as string),
           ]),
         );
+        await role(db, null);
+        const taskIds = (
+          await db.query(
+            "SELECT DISTINCT task_id FROM public.mission_control_task_links WHERE record_id = ANY($1::text[])",
+            [[first.case_id, second.case_id]],
+          )
+        ).rows.map((r) => r.task_id as string);
+        expect(taskIds).toHaveLength(2);
+        expect(taskIds[0]).not.toBe(taskIds[1]);
 
         const dead = await guardIntake(db, fx.A, { maxAttempts: 1 });
         await claim(db, dead.operationId);
@@ -1480,7 +1496,7 @@ describe.skipIf(!ADMIN_URL)(
         });
       }));
 
-    it("F5: the parked task tells staff what is left: with reason window_passed, that the send deadline has passed or leaves no room for a retry, so the request can only be adopted or abandoned", () =>
+    it("F5, B1: the parked task tells staff what window_passed means: the retry that was asked for does not fit before the send deadline; the repair case may retry only while a retry still leaves fifteen minutes, otherwise the request is adopted or abandoned", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         const intake = await guardIntake(db, fx.A);
@@ -1491,9 +1507,10 @@ describe.skipIf(!ADMIN_URL)(
         const text = await parkedTaskText(parked.case_id as string);
         expect(text).toMatch(
           new RegExp(
-            `\\(window_passed\\); the send deadline .+ has passed or leaves no room for a retry, so the request can only be adopted or abandoned \\(repair case ${parked.case_id}\\)\\.$`,
+            `\\(window_passed\\)\\. The retry that was asked for does not fit before the send deadline .+\\. Repair case ${parked.case_id} may retry it only while a retry still leaves fifteen minutes before that deadline; otherwise the request is adopted or abandoned\\.$`,
           ),
         );
+        expect(text).not.toContain("can only be");
         expect(text).not.toContain("needs a decision before");
       }));
 
@@ -1581,7 +1598,7 @@ describe.skipIf(!ADMIN_URL)(
         ).toBe(other);
         expect((await rowOf(db, intake.operationId)).status).toBe("sending");
       } finally {
-        await removeTwoTenants(db, fx);
+        await releaseSessionsThenRemove(fx);
       }
     });
   },

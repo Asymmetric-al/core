@@ -497,3 +497,82 @@ export async function guardUpdate(
 }
 
 export const keysOf = (o: Outcome) => Object.keys(o).sort();
+
+type QueryResult = { data: Row[] | null; error: { message: string } | null };
+
+export function pgQueryClient(db: pg.Client, roleName: string) {
+  const ident = (name: string) => {
+    if (!/^[a-z_][a-z0-9_]*$/.test(name))
+      throw new Error(`not a plain identifier: ${name}`);
+    return name;
+  };
+  let queue: Promise<unknown> = Promise.resolve();
+  return {
+    from(table: string) {
+      const filters: string[] = [];
+      const params: unknown[] = [];
+      let columns = "*";
+      let orderBy = "";
+      let limitTo: number | null = null;
+      const run = async (): Promise<QueryResult> => {
+        await db.query(`SET LOCAL ROLE ${ident(roleName)}`);
+        try {
+          const where = filters.length ? ` WHERE ${filters.join(" AND ")}` : "";
+          const limit = limitTo === null ? "" : ` LIMIT ${limitTo}`;
+          const result = await db.query(
+            `SELECT ${columns} FROM public.${ident(table)}${where}${orderBy}${limit}`,
+            params,
+          );
+          return { data: result.rows as Row[], error: null };
+        } catch (error) {
+          return { data: null, error: { message: (error as Error).message } };
+        } finally {
+          await db.query("RESET ROLE");
+        }
+      };
+      const builder = {
+        select(list: string) {
+          columns = list
+            .split(",")
+            .map((name) => ident(name.trim()))
+            .join(", ");
+          return builder;
+        },
+        eq(column: string, value: unknown) {
+          params.push(value);
+          filters.push(`${ident(column)} = $${params.length}`);
+          return builder;
+        },
+        in(column: string, values: unknown[]) {
+          params.push(values.map(String));
+          filters.push(
+            `${ident(column)}::text = ANY($${params.length}::text[])`,
+          );
+          return builder;
+        },
+        lte(column: string, value: unknown) {
+          params.push(value);
+          filters.push(`${ident(column)} <= $${params.length}`);
+          return builder;
+        },
+        order(column: string, options: { ascending?: boolean } = {}) {
+          orderBy = ` ORDER BY ${ident(column)} ${options.ascending === false ? "DESC" : "ASC"}`;
+          return builder;
+        },
+        limit(count: number) {
+          limitTo = Math.trunc(count);
+          return builder;
+        },
+        then<T>(
+          resolve: (value: QueryResult) => T,
+          reject?: (reason: unknown) => T,
+        ) {
+          const next = queue.then(run);
+          queue = next.catch(() => undefined);
+          return next.then(resolve, reject);
+        },
+      };
+      return builder;
+    },
+  };
+}

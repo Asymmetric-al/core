@@ -55,7 +55,16 @@
 -- Down, an operator's last resort, for a database that holds no line-based
 -- intake (SELECT count(*) FROM public.donations WHERE intake_format =
 -- 'line_based' reads 0); in one transaction, after 20261126020100 is
--- reverted:
+-- reverted. Its first statements take the lock that stops a new intake and
+-- refuse when a line-based one exists:
+--   LOCK TABLE public.donations IN ACCESS EXCLUSIVE MODE;
+--   DO $$
+--   BEGIN
+--     IF EXISTS (SELECT 1 FROM public.donations WHERE intake_format = 'line_based') THEN
+--       RAISE EXCEPTION 'Down of 20261126020000 refused: a line-based intake exists' USING ERRCODE = '55000';
+--     END IF;
+--   END
+--   $$;
 --   DELETE FROM public.field_policies WHERE record_type = 'donations' AND
 --     field_key IN ('intake_format', 'legal_entity_id',
 --     'payment_account_binding_id', 'provider_account_ref', 'livemode');

@@ -32,6 +32,8 @@ import {
 import { GIFT_PROCESSING_FEE_METADATA_KEYS } from "../../../../packages/api/src/donate/payment-intent";
 import { paymentMethodTypesFromFeeMetadata } from "../../../../packages/api/src/donate/saga";
 
+import type { GiftProcessingFeeStripeMetadata } from "../../../../packages/api/src/donate/fee-policy";
+
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   "migrate supplies TENANT_GUARD_IT_ADMIN_DATABASE_URL (fails, never skips)",
   () => expect(ADMIN_URL).not.toBe(""),
@@ -503,7 +505,83 @@ describe.skipIf(!ADMIN_URL)(
         got["donations: a legacy intake with a mode"] = checkOf(
           await setDonation(legacy.donation_id, "livemode = false"),
         );
+        const withoutAll = async (
+          statements: string[],
+          fn: () => Promise<Attempt>,
+        ) => {
+          await role(db, null);
+          await db.query("SAVEPOINT r1a_without_all");
+          for (const statement of statements)
+            await db.query(
+              `ALTER TABLE public.donation_saga_outbox ${statement}`,
+            );
+          const r = await fn();
+          await db.query("ROLLBACK TO SAVEPOINT r1a_without_all");
+          return r;
+        };
+        const codeOf = (a: Attempt) => (a.ok ? "accepted" : `${a.code}`);
+        got["kind NULL: NOT NULL refuses it first"] = codeOf(
+          await set(q, "kind = NULL"),
+        );
+        got["status NULL (its NOT NULL and the other status checks removed)"] =
+          checkOf(
+            await withoutAll(
+              [
+                "ALTER COLUMN status DROP NOT NULL",
+                ...[
+                  "lease",
+                  "object",
+                  "parked_at",
+                  "retry_window",
+                  "unknown",
+                  "unsent",
+                ].map((c) => `DROP CONSTRAINT donation_saga_outbox_${c}_check`),
+              ],
+              () => set(q, "status = NULL"),
+            ),
+          );
+        got["8 NULL: outcome_unknown NULL (its NOT NULL removed)"] = checkOf(
+          await withoutAll(["ALTER COLUMN outcome_unknown DROP NOT NULL"], () =>
+            set(q, "outcome_unknown = NULL"),
+          ),
+        );
+        got["10 NULL: max_attempts NULL (its NOT NULL removed)"] = checkOf(
+          await withoutAll(["ALTER COLUMN max_attempts DROP NOT NULL"], () =>
+            set(q, "max_attempts = NULL"),
+          ),
+        );
+        got["10 NULL: attempt_count NULL (its NOT NULL removed)"] = checkOf(
+          await withoutAll(["ALTER COLUMN attempt_count DROP NOT NULL"], () =>
+            set(q, "attempt_count = NULL"),
+          ),
+        );
+        got["11 NULL: no account"] = checkOf(
+          await set(q, "provider_account_ref = NULL"),
+        );
+        got["11 NULL: no request parameters"] = checkOf(
+          await set(q, "request_params = NULL"),
+        );
+        got["11 NULL: no digest"] = checkOf(
+          await set(q, "request_digest = NULL"),
+        );
+        got["donations NULL: intake_format NULL: NOT NULL refuses it first"] =
+          codeOf(await setDonation(queued.donationId, "intake_format = NULL"));
         expect(got).toEqual({
+          "kind NULL: NOT NULL refuses it first": "23502",
+          "status NULL (its NOT NULL and the other status checks removed)":
+            "23514 donation_saga_outbox_status_check",
+          "8 NULL: outcome_unknown NULL (its NOT NULL removed)":
+            "23514 donation_saga_outbox_unknown_check",
+          "10 NULL: max_attempts NULL (its NOT NULL removed)":
+            "23514 donation_saga_outbox_attempts_check",
+          "10 NULL: attempt_count NULL (its NOT NULL removed)":
+            "23514 donation_saga_outbox_attempts_check",
+          "11 NULL: no account": "23514 donation_saga_outbox_request_check",
+          "11 NULL: no request parameters":
+            "23514 donation_saga_outbox_request_check",
+          "11 NULL: no digest": "23514 donation_saga_outbox_request_check",
+          "donations NULL: intake_format NULL: NOT NULL refuses it first":
+            "23502",
           "kind: a third kind": "23514 donation_saga_outbox_kind_check",
           "status: a legacy status on a provider row":
             "23514 donation_saga_outbox_status_check",
@@ -968,16 +1046,21 @@ describe.skipIf(!ADMIN_URL)(
         const op = intake.operationId;
         const got: string[] = [];
         for (const method of ["card", "ach", "wallet"] as const) {
+          const fee: GiftProcessingFeeStripeMetadata = {
+            gift_amount_cents: "10000",
+            cover_fees: "true",
+            payment_method: method,
+            cover_amount_cents: "300",
+            estimated_fee_cents: "300",
+          };
           const p = {
             ...requestParams(op, intake.donationId, intake.amount),
             metadata: {
               asym_operation: op,
               asym_intake: intake.donationId,
-              payment_method: method,
+              ...fee,
             },
-            payment_method_types: paymentMethodTypesFromFeeMetadata({
-              payment_method: method,
-            } as never),
+            payment_method_types: paymentMethodTypesFromFeeMetadata(fee),
           } as Record<string, unknown>;
           delete p.automatic_payment_methods;
           const r = await setParams(op, p);
@@ -1178,7 +1261,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(problems).toEqual([]);
       }));
 
-    it("C9 (finding 6): each provider-row check and the legacy check is written '<kind test> OR (<predicate>) IS TRUE', so a NULL predicate refuses", async () => {
+    it("C9 (finding 6): each provider-row check and the legacy check is written '<kind test> OR (<predicate>) IS TRUE', so a NULL in any clause refuses, including the clauses the behavioural matrix above only samples (the parameter rule's)", async () => {
       const defs = (
         await db.query(
           `SELECT conname, pg_get_constraintdef(oid) AS def FROM pg_constraint

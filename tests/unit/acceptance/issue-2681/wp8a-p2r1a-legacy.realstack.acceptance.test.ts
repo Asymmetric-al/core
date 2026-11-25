@@ -16,6 +16,7 @@ import {
   guardIntake,
   inTx,
   paymentIntent,
+  pgQueryClient,
   refusal,
   replica,
   report,
@@ -25,7 +26,14 @@ import {
   type Intake,
 } from "./wp8a-p2r1a-harness";
 import { giftMismatches } from "../../../../packages/api/src/donations/select";
+import { runDonationSagaRecoveryScan } from "../../../../packages/api/src/workflows/adapters/donations";
+import { summarizeWorkflowRuns } from "../../../../packages/api/src/workflows/summaries";
 import { runTenantRlsCatalogGate } from "../../../../scripts/verify/tenant-rls-catalog.mjs";
+
+import type {
+  CreateDispatchRequestInput,
+  RequestWorkflowDispatchResult,
+} from "../../../../packages/api/src/workflows/ledger";
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   "migrate supplies TENANT_GUARD_IT_ADMIN_DATABASE_URL (fails, never skips)",
@@ -107,7 +115,7 @@ describe.skipIf(!ADMIN_URL)(
       return intake;
     }
 
-    it("E21 (F10): with 30 older provider requests in every new status and one due legacy row, the scanner, the legacy claims, completion, failure, reconciliation and summaries see only the legacy row; begin_donation_saga replays a provider key and writes nothing; the three callers answer 409", () =>
+    it("E21 (F10): with 30 older provider requests in every new status and one due legacy row, the real recovery scanner dispatches only the legacy row; the legacy claims, completion and failure act on none of them; reconciliation reads none; the real summary reader reports the dispatched legacy subject (the positive control) and no provider request, dead_letter ones included; begin_donation_saga replays a provider key and writes nothing, and giftMismatches reports the provider intake as another person's gift, the mismatch on which POST /api/donations and GraphQL createDonation refuse a replay (their statuses are owned by tests/unit/donations/donations-embed-endpoints.test.ts and issue-2269/donations-embed.postgrest; no suite asserts the 409 of /api/donate)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         await grant(db, [
@@ -157,16 +165,42 @@ describe.skipIf(!ADMIN_URL)(
         const before = await snapshot();
         const ids = new Set(requests.map((r) => r.operationId));
 
-        await role(db, "service_role");
-        const scanned = (
-          await db.query(
-            `SELECT id, tenant_id, attempt_count FROM public.donation_saga_outbox
-              WHERE status IN ('pending', 'failed') AND next_attempt_at <= now()
-              ORDER BY next_attempt_at ASC LIMIT 25`,
-          )
-        ).rows.map((r) => r.id);
+        const dispatched: CreateDispatchRequestInput[] = [];
+        const scan = await runDonationSagaRecoveryScan(
+          {
+            client: pgQueryClient(db, "service_role") as unknown as Parameters<
+              typeof runDonationSagaRecoveryScan
+            >[0]["client"],
+            requestDispatch: async (_deps, input) => {
+              dispatched.push(input);
+              if (input.tenantId === fx.A.tenant)
+                await db.query(
+                  `INSERT INTO public.workflow_dispatch_requests
+                     (tenant_id, product_area, workflow_name, subject_type, subject_id, idempotency_key, status, dispatch_attempts, dispatched_at)
+                   VALUES ($1, $2, $3, $4, $5, $6, 'dispatched', 1, now())`,
+                  [
+                    input.tenantId,
+                    input.productArea,
+                    input.workflowName,
+                    input.subject.type,
+                    input.subject.id,
+                    input.idempotencyKey,
+                  ],
+                );
+              return {
+                outcome: "dispatched",
+                reused: false,
+                error: null,
+              } as unknown as RequestWorkflowDispatchResult;
+            },
+          },
+          { limit: 25, now: new Date() },
+        );
+        const scanned = dispatched.map((input) => input.subject.id);
+        expect(scan.dispatched).toBe(dispatched.length);
         expect(scanned).toContain(legacy.outbox_id);
         expect(scanned.filter((id) => ids.has(id))).toEqual([]);
+        await role(db, "service_role");
 
         const legacyClaims: unknown[] = [];
         for (const r of requests) {
@@ -230,20 +264,29 @@ describe.skipIf(!ADMIN_URL)(
           )
         ).rows.map((r) => r.id);
         expect(reconciliation.filter((id) => ids.has(id))).toEqual([]);
-        const ledgerSubjects = (
-          await db.query(
-            "SELECT subject_id FROM public.workflow_dispatch_requests WHERE tenant_id = $1 AND subject_type = 'donation_saga_outbox' AND status = 'dispatched'",
-            [fx.A.tenant],
-          )
-        ).rows.map((r) => r.subject_id);
-        const summaries = (
-          await db.query(
-            "SELECT id, status FROM public.donation_saga_outbox WHERE tenant_id = $1 AND id::text = ANY($2::text[])",
-            [fx.A.tenant, ledgerSubjects],
-          )
-        ).rows;
-        expect(summaries).toEqual([]);
         await role(db, null);
+        await db.query(
+          "UPDATE public.donation_saga_outbox SET status = 'dead_letter' WHERE id = $1",
+          [legacy.outbox_id],
+        );
+        const deadLetters = requests.filter(
+          (_r, i) =>
+            PROVIDER_STATUSES[i % PROVIDER_STATUSES.length] === "dead_letter",
+        );
+        expect(deadLetters.length).toBeGreaterThan(0);
+        const summaries = await summarizeWorkflowRuns(
+          pgQueryClient(db, "service_role") as unknown as Parameters<
+            typeof summarizeWorkflowRuns
+          >[0],
+          fx.A.tenant,
+          { limit: 50 },
+        );
+        expect(
+          summaries
+            .filter((s) => s.subjectType === "donation_saga_outbox")
+            .map((s) => [s.subjectId, s.state]),
+        ).toEqual([[legacy.outbox_id, "dead_letter"]]);
+        expect(summaries.filter((s) => ids.has(s.subjectId))).toEqual([]);
         expect(await snapshot()).toEqual(before);
 
         const target = requests.find((r) => r.side === fx.A)!;
@@ -487,7 +530,7 @@ describe.skipIf(!ADMIN_URL)(
         ).rows;
         const legacyByUpdate = await attempt(
           db,
-          "UPDATE public.donation_saga_outbox SET status = status WHERE id = $1",
+          "UPDATE public.donation_saga_outbox SET status = status WHERE id = $1 RETURNING id",
           [legacy.outbox_id],
         );
         await role(db, null);

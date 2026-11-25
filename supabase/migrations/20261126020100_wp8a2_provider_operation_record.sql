@@ -64,9 +64,17 @@
 --
 -- Down, an operator's last resort, for a database that holds no provider
 -- request (SELECT count(*) FROM public.donation_saga_outbox WHERE kind =
--- 'provider_request' reads 0; with one, the restored status check and
--- donor_id's NOT NULL refuse it and nothing is reverted); in one
--- transaction, after 20261126020200 is reverted and before 20261126020000:
+-- 'provider_request' reads 0); in one transaction, after 20261126020200 is
+-- reverted and before 20261126020000. Its first statements take the lock
+-- that stops a new provider request and refuse when one exists:
+--   LOCK TABLE public.donation_saga_outbox IN ACCESS EXCLUSIVE MODE;
+--   DO $$
+--   BEGIN
+--     IF EXISTS (SELECT 1 FROM public.donation_saga_outbox WHERE kind = 'provider_request') THEN
+--       RAISE EXCEPTION 'Down of 20261126020100 refused: a provider request exists' USING ERRCODE = '55000';
+--     END IF;
+--   END
+--   $$;
 --   DROP INDEX public.mission_control_task_links_provider_request_key;
 --   DROP TABLE public.payment_repair_cases;
 --   DROP FUNCTION private.payment_repair_cases_rules();
