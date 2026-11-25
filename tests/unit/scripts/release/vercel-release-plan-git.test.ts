@@ -5,12 +5,12 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { forbidNetwork } from "./support/vercel-release-fixtures";
 import {
   PRODUCTION_HOSTS,
   runCli,
   selectReleaseApps,
 } from "../../../../scripts/release/vercel-release.mjs";
-import { forbidNetwork } from "./support/vercel-release-fixtures";
 
 forbidNetwork();
 

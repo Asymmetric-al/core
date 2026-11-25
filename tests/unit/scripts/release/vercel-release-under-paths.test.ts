@@ -5,15 +5,6 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import {
-  PRODUCTION_HOSTS,
-  checkDeploymentHealth,
-  deployRelease,
-  readLiveCommit,
-  registerJobFunctions,
-  runCli,
-  verifyLive,
-} from "../../../../scripts/release/vercel-release.mjs";
-import {
   PROJECT_REF as ref,
   RELEASE_SHA as sha,
   fakeVercel,
@@ -22,6 +13,15 @@ import {
   noSleep,
   silent,
 } from "./support/vercel-release-fixtures";
+import {
+  PRODUCTION_HOSTS,
+  checkDeploymentHealth,
+  deployRelease,
+  readLiveCommit,
+  registerJobFunctions,
+  runCli,
+  verifyLive,
+} from "../../../../scripts/release/vercel-release.mjs";
 
 forbidNetwork();
 
