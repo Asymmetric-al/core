@@ -174,7 +174,7 @@ The five prototype `/api/cms/public/*` endpoints and `resolve-tenant.ts` were re
 
 ### Staff endpoints (auth required)
 
-- `GET/POST/PATCH/PUT/DELETE /web-studio/api/*` (Payload REST; writes must be same-origin, refuse `overrideLock` other than exact `false`, and name the page's organization; Payload GraphQL is disabled and `/web-studio/api/graphql` returns `404`)
+- `GET/POST/PATCH/PUT/DELETE /web-studio/api/*` (Payload REST; writes must be same-origin, refuse any query where `overrideLock` appears in any decoded key or value unless it appears once as the whole of one key with exact value `false`, and name the page's organization; Payload GraphQL is disabled and `/web-studio/api/graphql` returns `404`)
 - `POST /web-studio/api/web-studio/create-from-template` (Payload custom endpoint — template instantiation)
 - `GET /web-studio/organization` (the organization Web Studio works in, for a person with staff rows in more than one place)
 - `GET /web-studio/preview/:collection/:id` (authenticated draft preview; uses Payload access control with `overrideAccess: false`)

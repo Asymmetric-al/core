@@ -342,15 +342,16 @@ Route files under `apps/admin/app/api/**/*.ts` must be **thin re-exports** to `@
 
 ## 11. Common failures
 
-| Symptom                                                   | Likely cause                                                                                                                                   |
-| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PAYLOAD_SECRET must be configured`                       | Set secret or `NODE_ENV=test` for importmap                                                                                                    |
-| `.env.local` still points at hosted DB during local setup | Run `bun run cms:local:reset -- --force-env` to rewrite local CMS values                                                                       |
-| Import map wrong paths                                    | Re-run `cms:importmap` + check postprocess script                                                                                              |
-| 404 on `/api/cms/public/*`                                | Expected after WP6 part 2a retired the prototype public CMS routes ahead of WP7                                                                |
-| Wizard POST 403                                           | Not staff / wrong session                                                                                                                      |
-| `verify:data-boundary` fails                              | Direct `@asym/database` import in `app/api`                                                                                                    |
-| Nested `<html>` / hydration warning                       | `(payload)/layout.tsx` must embed public `RootProviders` with `getRootLayoutData`; do not use Payload `RootLayout` under the admin root layout |
+| Symptom                                                   | Likely cause                                                                                                                                      |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PAYLOAD_SECRET must be configured`                       | Set secret or `NODE_ENV=test` for importmap                                                                                                       |
+| `.env.local` still points at hosted DB during local setup | Run `bun run cms:local:reset -- --force-env` to rewrite local CMS values                                                                          |
+| Import map wrong paths                                    | Re-run `cms:importmap` + check postprocess script                                                                                                 |
+| 404 on `/api/cms/public/*`                                | Expected after WP6 part 2a retired the prototype public CMS routes ahead of WP7                                                                   |
+| 403 on `/web-studio/api/*` write with `overrideLock`      | Writes refuse any query where `overrideLock` appears in any decoded key or value unless it appears once as the whole key with exact value `false` |
+| Wizard POST 403                                           | Not staff / wrong session                                                                                                                         |
+| `verify:data-boundary` fails                              | Direct `@asym/database` import in `app/api`                                                                                                       |
+| Nested `<html>` / hydration warning                       | `(payload)/layout.tsx` must embed public `RootProviders` with `getRootLayoutData`; do not use Payload `RootLayout` under the admin root layout    |
 
 ### Phase 22 D17 certification note
 
