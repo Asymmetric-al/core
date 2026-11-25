@@ -222,11 +222,15 @@ wrappers have no profile or actor arguments: they take the acting user from
   helper `private.crm_table_preference_actor(uuid, text)` are EXECUTE for
   `postgres` only. `PUBLIC`, `anon`, `authenticated` and `service_role` are
   revoked by name, because `ALTER FUNCTION … SET SCHEMA` keeps the old ACL.
-- Tenant rule (since AL-2675, NR-55). The caller must have a profile and a
-  selected live `staff` membership in the tenant it passes: the row the
-  `x-asym-assignment` header names, or its one live staff row there
-  (`authz.caller_assignment`). No `auth.uid()`, no profile, no such row, or
-  several staff rows there and no header fails with `42501` before the body
+- Tenant rule (since AL-2675, NR-55; tightened by AL-2676). The caller must
+  have a profile, `x-asym-tenant` must name the tenant passed (missing, blank —
+  empty or ASCII spaces only — or another tenant fails with `42501`; malformed
+  raises `22P02`), and the caller must resolve a live `staff` membership in
+  that tenant through `authz.caller_assignment`: the row `x-asym-assignment`
+  names, or, with no `x-asym-assignment` header, the caller's one live
+  membership row of any class in that tenant (which must be `staff`). No
+  `auth.uid()`, no profile, no such row, or several live rows of any class
+  there with no `x-asym-assignment` header fails with `42501` before the body
   runs, so nothing is written. `profiles.role`, `profiles.tenant_id` and
   `super_admin` are not read.
 - Tenant defaults. A caller whose selected row holds
