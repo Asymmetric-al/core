@@ -1,9 +1,6 @@
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type * as AuthModule from "../../../../../packages/auth/context";
-import type { AuthContext } from "../../../../../packages/auth/context";
-
 const TENANT = "00000000-0000-4000-8000-0000000000a1";
 const OTHER_TENANT = "00000000-0000-4000-8000-0000000000b2";
 const ADMIN_ROW = "00000000-0000-4000-8000-00000000a0a1";
@@ -52,9 +49,7 @@ vi.mock("@asym/lib/monitoring/sentry", () => ({
 vi.mock(
   "../../../../../packages/api/src/shared/request-session-client",
   async (original) => ({
-    ...(await original<
-      typeof import("../../../../../packages/api/src/shared/request-session-client")
-    >()),
+    ...(await original<typeof RequestSessionClientModule>()),
     createRequestSessionClient: h.session,
   }),
 );
@@ -65,6 +60,10 @@ import {
   POST as createPOST,
 } from "../../../../../packages/api/src/admin/sites/settings";
 import { POST as statusPOST } from "../../../../../packages/api/src/admin/sites/status";
+
+import type * as RequestSessionClientModule from "../../../../../packages/api/src/shared/request-session-client";
+import type * as AuthModule from "../../../../../packages/auth/context";
+import type { AuthContext } from "../../../../../packages/auth/context";
 
 type Handler = (request: NextRequest) => Promise<Response>;
 
