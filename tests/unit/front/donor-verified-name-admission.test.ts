@@ -1141,5 +1141,63 @@ describe.each([
       expect(state.lookupClients).toBe(0);
       expect(state.lookups).toEqual([]);
     });
+
+    it("keeps today's answers on requests the on branch refuses or rewrites, including no host", async () => {
+      state.userId = null;
+      for (const path of [
+        "/a%5clogin",
+        "/%61dmin/x",
+        "/admin/x",
+        "/login.segments/_tree.segment",
+      ]) {
+        state.sessionReads = 0;
+        const res = await donorModule.proxy(
+          donorRequest(HOME_B, path, { headers: { [NAME]: TB } }),
+        );
+        expect(res.status, path).toBe(200);
+        expect(res.headers.get("x-middleware-next"), path).toBe("1");
+        expect(res.headers.get("x-middleware-rewrite"), path).toBeNull();
+        expect(res.headers.get("cache-control"), path).not.toBe("no-store");
+        expect(forwarded(res, "x-asym-pathname"), path).toBe(path);
+        expect(forwarded(res, "x-asym-role-class"), path).toBe("donor");
+        expect(forwarded(res, NAME), path).toBeNull();
+        expect(state.sessionReads, path).toBe(1);
+        expect(state.lookupClients, path).toBe(0);
+      }
+
+      state.sessionReads = 0;
+      const encodedApi = await donorModule.proxy(
+        donorRequest(HOME_B, "/api/health%2F", { headers: { [NAME]: TB } }),
+      );
+      expect(encodedApi.status).toBe(200);
+      expect(encodedApi.headers.get("x-middleware-next")).toBe("1");
+      expect(encodedApi.headers.get("x-middleware-rewrite")).toBeNull();
+      expect(encodedApi.headers.get("cache-control")).not.toBe("no-store");
+      expect(forwarded(encodedApi, "x-asym-pathname")).toBe("/api/health%2F");
+      expect(forwarded(encodedApi, "x-asym-role-class")).toBe("donor");
+      expect(forwarded(encodedApi, NAME)).toBeNull();
+      expect(state.sessionReads).toBe(0);
+      expect(state.lookupClients).toBe(0);
+
+      const noHostHome = await donorModule.proxy(donorRequest(null, "/"));
+      expect(noHostHome.status).toBe(200);
+      expect(noHostHome.headers.get("x-middleware-next")).toBe("1");
+      expect(noHostHome.headers.get("x-middleware-rewrite")).toBeNull();
+      expect(noHostHome.headers.get("cache-control")).not.toBe("no-store");
+      expect(forwarded(noHostHome, "x-asym-pathname")).toBe("/");
+      expect(forwarded(noHostHome, NAME)).toBeNull();
+
+      const noHostDash = await donorModule.proxy(
+        donorRequest(null, "/donor-dashboard"),
+      );
+      expect(noHostDash.status).toBe(307);
+      expect(noHostDash.headers.get("x-middleware-rewrite")).toBeNull();
+      expect(
+        new URL(noHostDash.headers.get("location")!).pathname +
+          new URL(noHostDash.headers.get("location")!).search,
+      ).toBe("/login?next=%2Fdonor-dashboard");
+      expect(state.lookupClients).toBe(0);
+      expect(state.lookups).toEqual([]);
+    });
   },
 );
