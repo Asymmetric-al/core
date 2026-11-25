@@ -449,7 +449,7 @@ describe("Payload runtime confinement to cms_runtime (plan 7.2)", () => {
     },
   );
 
-  it("accepts the cms_runtime login, direct or through the pooler with verify-full and CA after WP6 part 2a retires no-verify", () => {
+  it("accepts the cms_runtime login, direct or through the pooler, when protected deployments supply verify-full and CA (WP6 part 2a, F5)", () => {
     const pooled = resolvePayloadDatabaseConfig({
       PAYLOAD_DATABASE_URI: SUPAVISOR_VERIFY_FULL_URL,
       PAYLOAD_DATABASE_SSL_CA: FIXTURE_SSL_CA,
@@ -461,7 +461,8 @@ describe("Payload runtime confinement to cms_runtime (plan 7.2)", () => {
 
     const direct = resolvePayloadDatabaseConfig({
       PAYLOAD_DATABASE_URI:
-        "postgresql://cms_runtime:super-secret@10.0.0.5:5432/postgres",
+        "postgresql://cms_runtime:super-secret@10.0.0.5:5432/postgres?sslmode=verify-full",
+      PAYLOAD_DATABASE_SSL_CA: FIXTURE_SSL_CA,
       VERCEL_ENV: "production",
     });
     expect(direct.loginRole).toBe("cms_runtime");
