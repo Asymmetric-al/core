@@ -50,6 +50,7 @@ export type CreatePaymentInput = {
   idempotencyKey: string;
   params: ProviderRequest;
   timeoutMs: number;
+  remainingMs?: () => number;
 };
 
 export type PaymentProviderAnswer =
@@ -102,6 +103,20 @@ const answerSchema = z.union([
 const systemClock: ProviderOperationClock = {
   monotonicMs: () => performance.now(),
 };
+
+const BUDGET_SPENT = {
+  result: "not_performed",
+  errorCode: "lease_budget_spent",
+} as const;
+
+function quietly(call: () => unknown): void {
+  try {
+    const out = call();
+    if (out instanceof Promise) void out.catch(() => undefined);
+  } catch {
+    return;
+  }
+}
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -191,16 +206,19 @@ export async function runProviderOperation({
         p_result: resultOf(answer, attempt),
       }),
     );
-    if (report.error !== null)
-      log?.({
-        operationId,
-        attempt,
-        answer,
-        ...(answer.result === "succeeded"
-          ? { providerObjectId: answer.providerObjectId }
-          : {}),
-        reportError: report.error,
-      });
+    const reportError = report.error;
+    if (reportError !== null && log !== undefined)
+      quietly(() =>
+        log({
+          operationId,
+          attempt,
+          answer,
+          ...(answer.result === "succeeded"
+            ? { providerObjectId: answer.providerObjectId }
+            : {}),
+          reportError,
+        }),
+      );
     return { sent, claim, attempt, answer, report };
   };
 
@@ -211,13 +229,10 @@ export async function runProviderOperation({
       errorCode: "pre_send_refused",
     });
 
-  const remaining =
+  const remainingMs = () =>
     started + LEASE_SECONDS * 1000 - REPORT_RESERVE_MS - clock.monotonicMs();
-  if (!(remaining >= MIN_SEND_MS))
-    return finish(false, {
-      result: "not_performed",
-      errorCode: "lease_budget_spent",
-    });
+  const remaining = remainingMs();
+  if (!(remaining >= MIN_SEND_MS)) return finish(false, { ...BUDGET_SPENT });
 
   let answer: PaymentProviderAnswer;
   try {
@@ -226,6 +241,7 @@ export async function runProviderOperation({
       idempotencyKey: checked.data.idempotency_key,
       params: checked.data.request,
       timeoutMs: Math.floor(Math.min(CALL_TIMEOUT_MS, remaining)),
+      remainingMs,
     });
     const parsed = answerSchema.safeParse(given);
     answer = parsed.success
@@ -234,5 +250,11 @@ export async function runProviderOperation({
   } catch {
     answer = { result: "unknown", errorCode: "adapter_fault" };
   }
-  return finish(true, answer);
+  return finish(
+    !(
+      answer.result === BUDGET_SPENT.result &&
+      answer.errorCode === BUDGET_SPENT.errorCode
+    ),
+    answer,
+  );
 }

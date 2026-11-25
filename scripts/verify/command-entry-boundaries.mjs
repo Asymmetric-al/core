@@ -431,6 +431,8 @@ export function workerWrapperPassesTenantArg(
   }
   const text = normalizedBody(body, stripComments);
   if (/#\s*variable_conflict\b/i.test(text)) return true;
+  for (const block of text.matchAll(/\bDECLARE\b([\s\S]*?)\bBEGIN\b/gi))
+    if (/\bALIAS\b/i.test(block[1])) return true;
   if (
     new RegExp(`tenant_guard\\s*\\.\\s*${QUOTED_NAME_SENTINEL}`, "i").test(text)
   )

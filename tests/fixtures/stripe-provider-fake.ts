@@ -378,9 +378,14 @@ export function createStripeProviderFake(
   const store = new Map<string, Stored>();
   let nowMs = 0;
   let calls = 0;
-  let releaseHeld: (() => void) | null = null;
-  const heldWaiters: (() => void)[] = [];
-  let heldCount = 0;
+  const pendingHolds: (() => void)[] = [];
+  const heldWaiters: { count: number; done: () => void }[] = [];
+  const wakeHeldWaiters = () => {
+    for (const waiter of heldWaiters.splice(0)) {
+      if (pendingHolds.length >= waiter.count) waiter.done();
+      else heldWaiters.push(waiter);
+    }
+  };
 
   const transport: FakeTransport = {
     getClientName: () => "stripe-provider-fake",
@@ -480,10 +485,9 @@ export function createStripeProviderFake(
           executing: true,
         });
       if (behaviour.hold) {
-        heldCount += 1;
-        heldWaiters.splice(0).forEach((done) => done());
         await new Promise<void>((done) => {
-          releaseHeld = done;
+          pendingHolds.push(done);
+          wakeHeldWaiters();
         });
       }
       let outcome: FakeOutcome;
@@ -525,14 +529,12 @@ export function createStripeProviderFake(
     advanceMs(ms: number) {
       nowMs += ms;
     },
-    held: () =>
-      heldCount > 0
+    held: (count = 1) =>
+      pendingHolds.length >= count
         ? Promise.resolve()
-        : new Promise<void>((done) => heldWaiters.push(done)),
+        : new Promise<void>((done) => heldWaiters.push({ count, done })),
     release() {
-      const done = releaseHeld;
-      releaseHeld = null;
-      done?.();
+      pendingHolds.shift()?.();
     },
   };
 }

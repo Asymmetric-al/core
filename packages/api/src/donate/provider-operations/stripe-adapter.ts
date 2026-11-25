@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 
-import { CONNECTED_ACCOUNT, PAYMENT_INTENT_ID } from "./contract";
+import { CONNECTED_ACCOUNT, MIN_SEND_MS, PAYMENT_INTENT_ID } from "./contract";
 import {
   createOneSend,
   type OneSend,
@@ -8,7 +8,7 @@ import {
   type OneSendTransport,
 } from "./one-send";
 import { STRIPE_API_VERSION } from "../../stripe/api-version";
-import { assertStripeTestModeKey } from "../../stripe/connect";
+import { assertStripeTestModeKey } from "../../stripe/test-mode-key";
 
 import type { PaymentProviderAdapter, PaymentProviderAnswer } from "./run";
 
@@ -70,6 +70,17 @@ function headerValues(headers: unknown, name: string): string[] {
   return values;
 }
 
+function replayMarked(...sources: unknown[]): boolean {
+  return sources.some(
+    (headers) =>
+      isRecord(headers) &&
+      Object.entries(headers).some(
+        ([key, value]) =>
+          key.toLowerCase() === "idempotent-replayed" && value !== "false",
+      ),
+  );
+}
+
 function classifyResolved(
   value: unknown,
   status: number | undefined,
@@ -119,10 +130,7 @@ function classifyRejected(
     ownStatus !== undefined && ownStatus === sentStatus ? ownStatus : undefined;
   if (status === undefined) return unknownAnswer("stripe_unclassified");
   const rawType = error.rawType;
-  const replayed = [
-    ...headerValues(error.headers, "idempotent-replayed"),
-    ...headerValues(sentHeaders, "idempotent-replayed"),
-  ].some((value) => value !== "false");
+  const replayed = replayMarked(error.headers, sentHeaders);
   const reasons = headerValues(error.headers, "stripe-rate-limited-reason");
   if (status === 409) return unknownAnswer("stripe_idempotency_in_flight");
   if (rawType === "idempotency_error")
@@ -185,9 +193,15 @@ export function createStripePaymentAdapter({
 }: StripePaymentAdapterOptions): PaymentProviderAdapter {
   const key = assertStripeTestModeKey(secretKey);
   return {
-    async createPayment({ account, idempotencyKey, params, timeoutMs }) {
-      const timeout = Math.floor(timeoutMs);
-      if (!Number.isFinite(timeout) || timeout < 1)
+    async createPayment({
+      account,
+      idempotencyKey,
+      params,
+      timeoutMs,
+      remainingMs,
+    }) {
+      const asked = Math.floor(timeoutMs);
+      if (!Number.isFinite(asked) || asked < 1)
         throw new RangeError(
           "timeoutMs must be a finite number of at least 1 millisecond.",
         );
@@ -195,6 +209,10 @@ export function createStripePaymentAdapter({
         throw new TypeError("A connected account id (acct_...) is required.");
       if (typeof idempotencyKey !== "string" || idempotencyKey === "")
         throw new TypeError("An idempotency key is required.");
+      const left = remainingMs === undefined ? asked : remainingMs();
+      if (remainingMs !== undefined && !(left >= MIN_SEND_MS))
+        return { result: "not_performed", errorCode: "lease_budget_spent" };
+      const timeout = Math.floor(Math.min(asked, left));
       const controller = new AbortController();
       let timer: ReturnType<typeof setTimeout> | undefined;
       try {
