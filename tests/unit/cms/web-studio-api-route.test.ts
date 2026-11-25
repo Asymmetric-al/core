@@ -1,3 +1,6 @@
+import { createRequire } from "node:module";
+import path from "node:path";
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -126,26 +129,133 @@ describe("writes to /web-studio/api", () => {
     }
   });
 
+  const OVERRIDE_LOCK_SPELLING_TABLE: ReadonlyArray<
+    readonly [query: string, outcome: "refused" | "passed", why: string]
+  > = [
+    ["?overrideLock=true", "refused", "value true overrides lock"],
+    ["?overrideLock=", "refused", "empty value is not exact false"],
+    ["?overrideLock", "refused", "valueless key is not exact false"],
+    ["?overrideLock=FALSE", "refused", "uppercase FALSE is not exact false"],
+    [
+      "?overrideLock=%20false",
+      "refused",
+      "leading space in value is not exact false",
+    ],
+    [
+      "?overrideLock=false%20",
+      "refused",
+      "trailing space in value is not exact false",
+    ],
+    ["?overrideLock=0", "refused", "numeric 0 is not exact false"],
+    [
+      "?overrideLock=false&overrideLock=true",
+      "refused",
+      "duplicate overrideLock parameter with true",
+    ],
+    [
+      "?overrideLock=false&overrideLock=false",
+      "refused",
+      "overrideLock appears more than once in query",
+    ],
+    [
+      "?overrideLock[0]=true",
+      "refused",
+      "indexed bracket key contains overrideLock",
+    ],
+    [
+      "?overrideLock[]=true",
+      "refused",
+      "empty bracket key contains overrideLock",
+    ],
+    [
+      "?overrideLock[0]=false",
+      "refused",
+      "indexed bracket key is not whole key overrideLock",
+    ],
+    ["?overrideLock.x=true", "refused", "dotted key contains overrideLock"],
+    [
+      "?override%4Cock=true",
+      "refused",
+      "percent-encoded key decodes to overrideLock",
+    ],
+    [
+      "?[overrideLock]=true",
+      "refused",
+      "leading-bracket key parses as top-level overrideLock in qs-esm",
+    ],
+    [
+      "?%5BoverrideLock%5D=true",
+      "refused",
+      "percent-encoded bracket key parses as top-level overrideLock in qs-esm",
+    ],
+    [
+      "?%5BoverrideLock]=true",
+      "refused",
+      "mixed-encoded bracket key parses as top-level overrideLock in qs-esm",
+    ],
+    [
+      "?[overrideLock]=false",
+      "refused",
+      "leading-bracket key is not whole key overrideLock",
+    ],
+    [
+      "?[overrideLock][0]=true",
+      "refused",
+      "nested bracket key contains overrideLock",
+    ],
+    [
+      "?[[overrideLock]]=true",
+      "refused",
+      "double-bracket key contains overrideLock",
+    ],
+    [
+      "?a=1;overrideLock=true",
+      "refused",
+      "semicolon-delimited overrideLock appears in decoded value",
+    ],
+    [
+      "?%20overrideLock=true",
+      "refused",
+      "leading-space key contains overrideLock",
+    ],
+    ["?note=overrideLock", "refused", "overrideLock appears in decoded value"],
+    [
+      "?overrideLock=false&note=overrideLock",
+      "refused",
+      "overrideLock appears in a value as well as a key",
+    ],
+    [
+      "?OverrideLock=true",
+      "passed",
+      "different case omits overrideLock and Payload ignores it",
+    ],
+    [
+      `?${Array.from({ length: 1001 }, (_, index) => `p${index}=1`).join("&")}&overrideLock=true`,
+      "refused",
+      "more than 1000 parameters before overrideLock=true",
+    ],
+    ["", "passed", "legitimate client omits overrideLock"],
+    [
+      "?overrideLock=false",
+      "passed",
+      "appears once as whole key with exact value false",
+    ],
+    [
+      "?draft=true&overrideLock=false",
+      "passed",
+      "appears once as whole key with exact value false beside other parameters",
+    ],
+  ];
+
   it.each(["POST", "PATCH", "PUT", "DELETE"])(
-    "refuses same-origin %s with disallowed overrideLock query parameters without consuming the body",
+    "applies the single overrideLock query rule to %s across the spelling table without consuming the body",
     async (method) => {
-      const expectedMessage = OVERRIDE_LOCK_WRITE_MESSAGE;
-      expect(expectedMessage).not.toBe(CROSS_ORIGIN_WRITE_MESSAGE);
-      for (const query of [
-        "?overrideLock=true",
-        "?overrideLock=",
-        "?overrideLock",
-        "?overrideLock=FALSE",
-        "?overrideLock=%20false",
-        "?overrideLock=false%20",
-        "?overrideLock=0",
-        "?overrideLock=false&overrideLock=true",
-        "?overrideLock[0]=true",
-        "?overrideLock[0]=false",
-        "?overrideLock.nested=true",
-        "?override%4cock=true",
-      ]) {
-        const inner = handler();
+      expect(OVERRIDE_LOCK_WRITE_MESSAGE).not.toBe(CROSS_ORIGIN_WRITE_MESSAGE);
+      for (const [query, outcome, why] of OVERRIDE_LOCK_SPELLING_TABLE) {
+        const inner = vi.fn(async (req: Request) => {
+          expect(req.bodyUsed, `${method} ${query} (${why})`).toBe(false);
+          return Response.json({ ok: true });
+        });
         const request = new Request(
           `${ORIGIN}/web-studio/api/pages/7${query}`,
           {
@@ -160,48 +270,110 @@ describe("writes to /web-studio/api", () => {
         const response = await sameOriginWrites(inner)(request, {
           params: Promise.resolve({ slug: ["pages", "7"] }),
         });
-        expect(response.status, `${method} ${query}`).toBe(403);
-        expect(response.headers.get("content-type")).toContain(
-          "application/json",
-        );
-        expect(response.headers.get("cache-control")).toBe("no-store");
-        expect(await response.json()).toEqual({
-          errors: [{ message: expectedMessage }],
-        });
-        expect(inner).not.toHaveBeenCalled();
-        expect(request.bodyUsed).toBe(false);
+        const label = `${method} ${query.slice(0, 64)} (${why})`;
+        if (outcome === "refused") {
+          expect(response.status, label).toBe(403);
+          expect(response.headers.get("content-type"), label).toContain(
+            "application/json",
+          );
+          expect(response.headers.get("cache-control"), label).toBe("no-store");
+          expect(await response.json(), label).toEqual({
+            errors: [{ message: OVERRIDE_LOCK_WRITE_MESSAGE }],
+          });
+          expect(inner, label).not.toHaveBeenCalled();
+          expect(request.bodyUsed, label).toBe(false);
+        } else {
+          expect(response.status, label).toBe(200);
+          expect(inner, label).toHaveBeenCalledTimes(1);
+        }
       }
     },
   );
 
-  it.each(["POST", "PATCH", "PUT", "DELETE"])(
-    "allows same-origin %s when overrideLock is absent or exactly false without touching the body",
-    async (method) => {
-      for (const query of [
-        "",
-        "?overrideLock=false",
-        "?draft=true&overrideLock=false",
-      ]) {
-        const inner = vi.fn(async (req: Request) => {
-          expect(req.bodyUsed).toBe(false);
-          return Response.json({ ok: true });
-        });
-        const response = await sameOriginWrites(inner)(
-          new Request(`${ORIGIN}/web-studio/api/pages/7${query}`, {
-            method,
-            headers: {
-              origin: ORIGIN,
-              "content-type": "application/json",
-            },
-            body: JSON.stringify({ title: "Updated" }),
-          }),
-          { params: Promise.resolve({ slug: ["pages", "7"] }) },
-        );
-        expect(response.status, `${method} ${query}`).toBe(200);
-        expect(inner).toHaveBeenCalledTimes(1);
+  it("refuses every query where Payload's installed qs-esm yields a top-level overrideLock other than false", async () => {
+    const adminRequire = createRequire(path.resolve("apps/admin/package.json"));
+    const payloadRequire = createRequire(adminRequire.resolve("payload"));
+    const qs = payloadRequire("qs-esm") as {
+      parse: (
+        query: string,
+        options: {
+          allowEmptyArrays: boolean;
+          arrayLimit: number;
+          depth: number;
+          ignoreQueryPrefix: boolean;
+        },
+      ) => Record<string, unknown>;
+    };
+    const payloadQsOptions = {
+      allowEmptyArrays: true,
+      arrayLimit: 1000,
+      depth: 10,
+      ignoreQueryPrefix: true,
+    };
+
+    expect(
+      qs.parse("?[overrideLock]=true", payloadQsOptions).overrideLock,
+    ).toBe("true");
+    expect(
+      qs.parse("?%5BoverrideLock%5D=true", payloadQsOptions).overrideLock,
+    ).toBe("true");
+    expect(
+      qs.parse("?%5BoverrideLock]=true", payloadQsOptions).overrideLock,
+    ).toBe("true");
+
+    const prefixes = ["", "[", "%5B", "[[", "a", "%20", "a["];
+    const suffixes = ["", "]", "%5D", "]]", "[0]", "[]", ".x", "b", "]a"];
+    const values = ["true", "false", "1", ""];
+    const generated: string[] = [];
+    for (const prefix of prefixes) {
+      for (const suffix of suffixes) {
+        for (const value of values) {
+          generated.push(`?${prefix}overrideLock${suffix}=${value}`);
+        }
       }
-    },
-  );
+    }
+
+    const allQueries = [
+      ...OVERRIDE_LOCK_SPELLING_TABLE.map(([query]) => query),
+      ...generated,
+    ];
+    let checkedTopLevelOverrides = 0;
+
+    for (const query of allQueries) {
+      const parsed = qs.parse(query, payloadQsOptions);
+      if (
+        !Object.prototype.hasOwnProperty.call(parsed, "overrideLock") ||
+        parsed.overrideLock === "false"
+      ) {
+        continue;
+      }
+      checkedTopLevelOverrides += 1;
+      const inner = handler();
+      const request = new Request(`${ORIGIN}/web-studio/api/pages/7${query}`, {
+        method: "PATCH",
+        headers: {
+          origin: ORIGIN,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ title: "Updated" }),
+      });
+      const response = await sameOriginWrites(inner)(request, {
+        params: Promise.resolve({ slug: ["pages", "7"] }),
+      });
+      expect(response.status, `qs-esm pin for ${query}`).toBe(403);
+      expect(
+        response.headers.get("cache-control"),
+        `qs-esm pin for ${query}`,
+      ).toBe("no-store");
+      expect(await response.json(), `qs-esm pin for ${query}`).toEqual({
+        errors: [{ message: OVERRIDE_LOCK_WRITE_MESSAGE }],
+      });
+      expect(inner, `qs-esm pin for ${query}`).not.toHaveBeenCalled();
+      expect(request.bodyUsed, `qs-esm pin for ${query}`).toBe(false);
+    }
+
+    expect(checkedTopLevelOverrides).toBeGreaterThan(20);
+  });
 });
 
 describe("an anonymous refusal on a Web Studio REST call", () => {

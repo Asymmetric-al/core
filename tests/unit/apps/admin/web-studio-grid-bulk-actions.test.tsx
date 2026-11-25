@@ -129,4 +129,24 @@ describe("GridBulkActions bulk delete outcome handling (WP6 part 2a)", () => {
     expect(fixture.toggleAll).toHaveBeenCalledTimes(1);
     expect(onDeleted).toHaveBeenCalledTimes(1);
   });
+
+  it("clears selection and refreshes the list when bulk delete partly succeeds alongside errors", () => {
+    const onDeleted = vi.fn();
+    fixture.nextResult = {
+      pages: {
+        deletedCount: 2,
+        errors: [{ message: "Document is locked" }],
+        ids: [101, 102],
+        totalCount: 3,
+      },
+    };
+
+    render(<GridBulkActions bulk={bulk} onDeleted={onDeleted} />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Trigger afterDelete" }),
+    );
+
+    expect(fixture.toggleAll).toHaveBeenCalledTimes(1);
+    expect(onDeleted).toHaveBeenCalledTimes(1);
+  });
 });

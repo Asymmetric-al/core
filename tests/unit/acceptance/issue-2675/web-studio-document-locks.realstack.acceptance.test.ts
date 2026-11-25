@@ -619,7 +619,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(await locksOn(documentOfA)).toEqual(before);
       });
 
-      it("a second editor's same-origin PATCH and DELETE with ?overrideLock=true on a locked document get 403 and leave the stored row unchanged", async () => {
+      it("a second editor's same-origin PATCH and DELETE with ?overrideLock=true or ?[overrideLock]=true on a locked document get 403 and leave the stored row and lock unchanged", async () => {
         const sharedOrg = randomUUID();
         const firstPerson = randomUUID();
         const secondPerson = randomUUID();
@@ -717,44 +717,52 @@ describe.skipIf(!ADMIN_URL)(
           const locksBefore = await locksOn(lockedDoc);
           expect(locksBefore).toHaveLength(1);
 
-          const patchRes = await rest.PATCH!(
-            await asSharedEditor(
-              secondPerson,
-              secondAssignment,
-              "PATCH",
-              `/web-studio/api/navigation/${lockedDoc.id}?overrideLock=true`,
-              { label: `Overridden ${stamp}` },
-            ),
-            {
-              params: Promise.resolve({
-                slug: ["navigation", String(lockedDoc.id)],
-              }),
-            },
-          );
-          expect(patchRes.status).toBe(403);
-          expect(patchRes.headers.get("cache-control")).toBe("no-store");
-          expect(await patchRes.json()).toEqual({
-            errors: [{ message: OVERRIDE_LOCK_WRITE_MESSAGE }],
-          });
+          for (const query of ["?overrideLock=true", "?[overrideLock]=true"]) {
+            const patchRes = await rest.PATCH!(
+              await asSharedEditor(
+                secondPerson,
+                secondAssignment,
+                "PATCH",
+                `/web-studio/api/navigation/${lockedDoc.id}${query}`,
+                { label: `Overridden ${stamp}` },
+              ),
+              {
+                params: Promise.resolve({
+                  slug: ["navigation", String(lockedDoc.id)],
+                }),
+              },
+            );
+            expect(patchRes.status, `PATCH ${query}`).toBe(403);
+            expect(
+              patchRes.headers.get("cache-control"),
+              `PATCH ${query}`,
+            ).toBe("no-store");
+            expect(await patchRes.json(), `PATCH ${query}`).toEqual({
+              errors: [{ message: OVERRIDE_LOCK_WRITE_MESSAGE }],
+            });
 
-          const deleteRes = await rest.DELETE!(
-            await asSharedEditor(
-              secondPerson,
-              secondAssignment,
-              "DELETE",
-              `/web-studio/api/navigation/${lockedDoc.id}?overrideLock=true`,
-            ),
-            {
-              params: Promise.resolve({
-                slug: ["navigation", String(lockedDoc.id)],
-              }),
-            },
-          );
-          expect(deleteRes.status).toBe(403);
-          expect(deleteRes.headers.get("cache-control")).toBe("no-store");
-          expect(await deleteRes.json()).toEqual({
-            errors: [{ message: OVERRIDE_LOCK_WRITE_MESSAGE }],
-          });
+            const deleteRes = await rest.DELETE!(
+              await asSharedEditor(
+                secondPerson,
+                secondAssignment,
+                "DELETE",
+                `/web-studio/api/navigation/${lockedDoc.id}${query}`,
+              ),
+              {
+                params: Promise.resolve({
+                  slug: ["navigation", String(lockedDoc.id)],
+                }),
+              },
+            );
+            expect(deleteRes.status, `DELETE ${query}`).toBe(403);
+            expect(
+              deleteRes.headers.get("cache-control"),
+              `DELETE ${query}`,
+            ).toBe("no-store");
+            expect(await deleteRes.json(), `DELETE ${query}`).toEqual({
+              errors: [{ message: OVERRIDE_LOCK_WRITE_MESSAGE }],
+            });
+          }
 
           const stored = (await payload.find({
             collection: "navigation",

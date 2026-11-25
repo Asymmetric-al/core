@@ -256,8 +256,13 @@ describe("local CMS script loopback target refusal (WP6 part 2a, W6-R11)", () =>
     return { psqlBin: binPath, calledPath };
   }
 
-  it("refuses a hosted database URL in scripts/cms/seed-local.mjs before any connection, whatever the marker", () => {
+  it("refuses a hosted database URL in scripts/cms/seed-local.mjs before any connection, even with a valid project CA and a disposable marker", () => {
     const { psqlBin, calledPath } = createFakePsql();
+    const caPath = path.join(path.dirname(calledPath), "project-ca.pem");
+    fs.copyFileSync(
+      path.resolve("tests/unit/scripts/release/fixtures/ca/ca.crt"),
+      caPath,
+    );
     const result = spawnSync(
       process.execPath,
       [path.resolve("scripts/cms/seed-local.mjs")],
@@ -268,6 +273,7 @@ describe("local CMS script loopback target refusal (WP6 part 2a, W6-R11)", () =>
           ...process.env,
           PAYLOAD_DATABASE_URI:
             "postgresql://postgres:secret@db.example.invalid:5432/postgres?sslmode=verify-full",
+          PGSSLROOTCERT: caPath,
           PSQL_BIN: psqlBin,
         },
       },

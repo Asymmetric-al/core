@@ -273,6 +273,50 @@ describe("resolvePayloadDatabaseConfig", () => {
     expect(config.issue?.code).toBe("direct-supabase-host");
   });
 
+  it.each([
+    ["production", { VERCEL_ENV: "production" }],
+    [
+      "core-development",
+      { VERCEL_ENV: "preview", VERCEL_TARGET_ENV: "core-development" },
+    ],
+  ])(
+    "requires one sslmode=verify-full and a non-blank CA on %s for a non-pooler, non-direct host",
+    (_target, targetEnv) => {
+      const otherHostBase =
+        "postgresql://cms_runtime:super-secret@db.internal.example:5432/postgres";
+      for (const uri of [
+        `${otherHostBase}?sslmode=no-verify`,
+        `${otherHostBase}?sslmode=require`,
+        otherHostBase,
+      ]) {
+        const config = resolvePayloadDatabaseConfig({
+          PAYLOAD_DATABASE_URI: uri,
+          ...targetEnv,
+        });
+        expect(config.isSupavisorPoolerHost, uri).toBe(false);
+        expect(config.isDirectSupabaseHost, uri).toBe(false);
+        expect(config.issue?.code, uri).toBe("supavisor-ssl-mode");
+        expect(config.issue?.message, uri).toContain("a protected deployment");
+        expect(config.issue?.message, uri).not.toContain("super-secret");
+      }
+
+      const missingCa = resolvePayloadDatabaseConfig({
+        PAYLOAD_DATABASE_URI: `${otherHostBase}?sslmode=verify-full`,
+        ...targetEnv,
+      });
+      expect(missingCa.issue?.code).toBe("supavisor-ssl-mode");
+      expect(missingCa.issue?.message).toContain("a protected deployment");
+
+      const valid = resolvePayloadDatabaseConfig({
+        PAYLOAD_DATABASE_URI: `${otherHostBase}?sslmode=verify-full`,
+        PAYLOAD_DATABASE_SSL_CA: FIXTURE_SSL_CA,
+        ...targetEnv,
+      });
+      expect(valid.issue).toBeNull();
+      expect(assertPayloadDatabaseConfiguration(valid)).toBe(valid);
+    },
+  );
+
   it("rejects invalid database URLs in protected deployments without echoing raw values", () => {
     const config = resolvePayloadDatabaseConfig({
       PAYLOAD_DATABASE_URI: "postgresql://postgres:super-secret@",
@@ -589,5 +633,56 @@ describe("admin build step for protected Payload database TLS (WP6 part 2a, Q4)"
     expect(unprotectedPass.status).toBe(0);
     expect(unprotectedPass.stdout).toBe("");
     expect(unprotectedPass.stderr).toBe("");
+
+    const otherHostNoVerify = spawnSync(process.execPath, [checkScript], {
+      cwd: adminDir,
+      encoding: "utf8",
+      env: {
+        PATH: process.env.PATH,
+        PAYLOAD_DATABASE_URI:
+          "postgresql://cms_runtime:super-secret@db.internal.example:5432/postgres?sslmode=no-verify",
+        VERCEL_ENV: "production",
+      },
+    });
+    expect(otherHostNoVerify.status).not.toBe(0);
+    expect(otherHostNoVerify.stderr).toContain("supavisor-ssl-mode");
+    expect(
+      `${otherHostNoVerify.stdout}${otherHostNoVerify.stderr}`,
+    ).not.toContain("db.internal.example");
+
+    const otherHostVerified = spawnSync(process.execPath, [checkScript], {
+      cwd: adminDir,
+      encoding: "utf8",
+      env: {
+        PATH: process.env.PATH,
+        PAYLOAD_DATABASE_URI:
+          "postgresql://cms_runtime:super-secret@db.internal.example:5432/postgres?sslmode=verify-full",
+        PAYLOAD_DATABASE_SSL_CA: FIXTURE_SSL_CA,
+        VERCEL_ENV: "production",
+      },
+    });
+    expect(otherHostVerified.status).toBe(0);
+  });
+
+  it("lists PAYLOAD_DATABASE_SSL_CA and PAYLOAD_MIGRATION_DATABASE_URI in turbo.json build env and the check script in apps/admin/turbo.json inputs so Turbo cache hits cannot skip the TLS check", () => {
+    const rootTurbo = JSON.parse(
+      readFileSync(path.resolve("turbo.json"), "utf8"),
+    ) as {
+      tasks: { build: { env: string[] } };
+    };
+    expect(rootTurbo.tasks.build.env).toContain("PAYLOAD_DATABASE_URI");
+    expect(rootTurbo.tasks.build.env).toContain("PAYLOAD_DATABASE_SSL_CA");
+    expect(rootTurbo.tasks.build.env).toContain(
+      "PAYLOAD_MIGRATION_DATABASE_URI",
+    );
+
+    const adminTurbo = JSON.parse(
+      readFileSync(path.join(adminDir, "turbo.json"), "utf8"),
+    ) as {
+      tasks: { build: { inputs: string[] } };
+    };
+    expect(adminTurbo.tasks.build.inputs).toContain(
+      "$TURBO_ROOT$/scripts/cms/check-payload-database-config.mjs",
+    );
   });
 });

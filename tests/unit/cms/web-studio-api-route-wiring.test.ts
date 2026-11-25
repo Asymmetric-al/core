@@ -62,6 +62,9 @@ describe("Payload's REST route module under /web-studio/api after WP6 part 2a re
         "?overrideLock=%20false",
         "?overrideLock=false&overrideLock=true",
         "?overrideLock[0]=true",
+        "?[overrideLock]=true",
+        "?%5BoverrideLock%5D=true",
+        "?%5BoverrideLock]=true",
       ]) {
         await expectRefused(
           await rest[method]!(
