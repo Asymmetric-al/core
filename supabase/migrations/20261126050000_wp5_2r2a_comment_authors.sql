@@ -4,7 +4,7 @@
 -- restriction shows at the next request.
 --
 -- Replaces public.post_comment_authors(uuid), the body of
--- 20261120130005_tenant_status_active_readers.sql lines 30-42, which named
+-- 20261120130005_active_tenant_readers.sql lines 30-42, which named
 -- every commenter by profiles.display_name. The signature, the columns, the
 -- rows, the profile match, the filters and the order are unchanged:
 -- - Rows: one for each person who commented on a published public post; a
@@ -58,8 +58,11 @@
 -- each index build until COMMIT (writes to them wait, reads do not; the order
 -- a gift takes them); ACCESS SHARE on the seven tables the body names, taken
 -- when the body is checked at creation; ROW EXCLUSIVE on pg_description for
--- the comment; nothing stronger. lock_timeout stops a run rather than queue
--- it behind a long writer. IF NOT EXISTS and CREATE OR REPLACE keep a second
+-- the comment; nothing stronger on any table that exists before the run.
+-- Besides those: ACCESS EXCLUSIVE on the two new indexes, which no other
+-- session sees before COMMIT, and a SHARE UPDATE EXCLUSIVE object lock on the
+-- function it replaces. lock_timeout stops a run rather than queue it behind
+-- a long writer. IF NOT EXISTS and CREATE OR REPLACE keep a second
 -- run harmless: it succeeds and changes nothing.
 --
 -- Recovery. A run lost between its COMMIT and its ledger row succeeds again
