@@ -598,8 +598,8 @@ function scanSources(sources: Map<string, string>): Violation[] {
     const f = facts.get(file);
     if (!f) return false;
     const own = f.functions.filter((fn) => fn.name === name);
-    if (own.length > 0)
-      return own.some(
+    if (
+      own.some(
         (fn) =>
           f.workerReads.some((pos) => pos >= fn.start && pos < fn.end) ||
           f.calls.some(
@@ -608,7 +608,9 @@ function scanSources(sources: Map<string, string>): Violation[] {
               call.pos < fn.end &&
               readsThrough(file, call.name, seen),
           ),
-      );
+      )
+    )
+      return true;
     const imp = f.imports.get(name);
     const resolved = imp && resolveModule(file, imp.specifier, files);
     return resolved ? readsThrough(resolved, imp.importedName, seen) : false;

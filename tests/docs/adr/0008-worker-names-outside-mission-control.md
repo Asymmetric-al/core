@@ -114,9 +114,12 @@ restricted or high-risk worker gets the alias or `NULL`, never
    helper calling `post_comment_authors`; a `fetch` whose options are a local
    constant holding `force-cache`; a hint interpolated with no `!`) and the
    guards K15 (`revalidate: false`) and K16 (`revalidate` a variable), so
-   **61 fail**; the controls K10-K13 and K14 (`revalidate: 0`, which failed
-   before) make **18 pass**. Each of P27-P32 passed the scanner before the
-   second round.
+   61 failed; the controls K10-K13 and K14 (`revalidate: 0`, which failed
+   before) made 18 pass. Each of P27-P32 passed the scanner before the
+   second round. The last round adds P33 (a cached call to an imported
+   helper that reads a worker's name, with an unrelated nested function of
+   the same name in the file), which passed before it, so **62 fail**; its
+   control K17 (the helper reads no worker name) makes **19 pass**.
 6. **What the contract does not see.** A scanner of string literals cannot
    follow a read that is not spelled in one literal: a two-step read (the
    worker's `profile_id`, then `.from("profiles")` by that id), an inverted
@@ -218,8 +221,11 @@ NULL` on `public.parties`) and the fourth
     that makes either read, itself or through the functions it calls: a
     function declaration or a function or arrow function assigned to a name,
     in the same file or imported by name from a scanned file, followed
-    transitively, each function once (a cycle ends there). The same helper
-    called only from uncached code stays allowed. Anywhere: a call of
+    transitively, each function once (a cycle ends there). A call is
+    resolved to every function of that name in the file and to the one it
+    imports by that name, so it can refuse a harmless call, never pass a
+    harmful one. The same helper called only from uncached code stays
+    allowed. Anywhere: a call of
     `unstable_cache` imported by name from `next/cache` (under its own name or
     an `as` name), any call named `unstable_cache` and any `.unstable_cache(`
     on an object; and a `fetch(` whose options object, written at the call or
