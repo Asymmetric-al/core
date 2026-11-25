@@ -740,7 +740,8 @@ export async function runCli(
     );
     return;
   }
-  const call = createVercelClient({ token: env.VERCEL_TOKEN });
+  productionPathPrefixes(Object.keys(APPS), env);
+  const call = createVercelClient({ token: env.VERCEL_TOKEN, request });
   if (env.VERCEL_ORG_ID && env.VERCEL_ORG_ID !== TEAM) {
     stop("VERCEL_ORG_ID is not the Core team.");
   }
@@ -758,7 +759,6 @@ export async function runCli(
       .map((name) => name.trim())
       .filter(Boolean);
     for (const name of apps) projectFor(name);
-    productionPathPrefixes(Object.keys(APPS), env);
     if (apps.length === 0) {
       log("No app changed since the commit it serves; nothing to deploy.");
       return;
