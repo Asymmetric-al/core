@@ -739,6 +739,12 @@ already gone). For any such file:
      by `service_role` only (its lines 691, 722 and 746-761), and nothing
      calls them yet (its header); no call was worked out.
 
+   Status 0 shows only that PostgreSQL accepted the notification, not that
+   PostgREST has finished reloading, and for these four files this runbook
+   has no call that shows it. If a request for an object one of these files
+   adds is refused afterwards as not in the schema cache, send the reload
+   again before anything else.
+
    This read-only query shows whether a database has PostgREST's two event
    triggers; `evtenabled` reads `O` when a trigger is enabled and `D` when
    it is disabled:
