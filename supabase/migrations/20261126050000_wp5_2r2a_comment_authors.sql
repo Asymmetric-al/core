@@ -66,9 +66,11 @@
 -- run harmless: it succeeds and changes nothing.
 --
 -- Recovery. A run lost between its COMMIT and its ledger row succeeds again
--- unchanged. This file has committed when this read-only check is true:
--- SELECT pg_get_functiondef('public.post_comment_authors(uuid)'::regprocedure)
--- LIKE '%worker_public_name_for%'. Then follow docs/ops/release-job.md, "If
+-- unchanged. This file has committed when this read-only check is true (it
+-- reads false, and never raises, while the function is absent or older):
+-- SELECT COALESCE(pg_get_functiondef(to_regprocedure(
+-- 'public.post_comment_authors(uuid)')) LIKE '%worker_public_name_for%',
+-- false). Then follow docs/ops/release-job.md, "If
 -- the migration committed but its ledger row is missing", with this check and
 -- this file's version, 20261126050000, in place of the section's own.
 --

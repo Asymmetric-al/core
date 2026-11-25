@@ -28,6 +28,8 @@ interface FeedPostsQuery {
   viewerProfileId: string;
 }
 
+const NO_STORE = { "Cache-Control": "private, no-store" };
+
 function getAdminClientOrThrow() {
   const { client: supabaseAdmin, error: adminError } = getAdminClient();
   if (!supabaseAdmin) {
@@ -111,7 +113,8 @@ export async function GET(request: NextRequest) {
     });
 
     const postIds = posts.map((post: { id: string }) => post.id);
-    if (postIds.length === 0) return NextResponse.json({ posts: [] });
+    if (postIds.length === 0)
+      return NextResponse.json({ posts: [] }, { headers: NO_STORE });
 
     const interactionRows = await fetchUserPostInteractions(
       adminClientState.client,
@@ -129,7 +132,7 @@ export async function GET(request: NextRequest) {
       user_fired: firedPostIds.has(post.id),
     }));
 
-    return NextResponse.json({ posts: postsWithStatus });
+    return NextResponse.json({ posts: postsWithStatus }, { headers: NO_STORE });
   } catch (e) {
     return toErrorResponse(e);
   }

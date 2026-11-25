@@ -143,22 +143,35 @@ function unwrap(expr: ts.Expression): ts.Expression {
   }
 }
 
+function assignedString(
+  node: ts.Node,
+): { name: string; value: ts.Expression } | null {
+  if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name))
+    return node.initializer
+      ? { name: node.name.text, value: node.initializer }
+      : null;
+  if (
+    ts.isBinaryExpression(node) &&
+    node.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+    ts.isIdentifier(node.left)
+  )
+    return { name: node.left.text, value: node.right };
+  return null;
+}
+
 function stringVariablesOf(sf: ts.SourceFile): Map<string, Set<string>> {
   const values = new Map<string, Set<string>>();
   const visit = (node: ts.Node) => {
-    if (
-      ts.isVariableDeclaration(node) &&
-      ts.isIdentifier(node.name) &&
-      node.initializer
-    ) {
-      const init = unwrap(node.initializer);
+    const assigned = assignedString(node);
+    if (assigned) {
+      const value = unwrap(assigned.value);
       if (
-        ts.isStringLiteral(init) ||
-        ts.isNoSubstitutionTemplateLiteral(init)
+        ts.isStringLiteral(value) ||
+        ts.isNoSubstitutionTemplateLiteral(value)
       ) {
-        const set = values.get(node.name.text) ?? new Set<string>();
-        set.add(init.text);
-        values.set(node.name.text, set);
+        const set = values.get(assigned.name) ?? new Set<string>();
+        set.add(value.text);
+        values.set(assigned.name, set);
       }
     }
     ts.forEachChild(node, visit);
@@ -187,13 +200,15 @@ function importsOf(sf: ts.SourceFile): Imports {
 }
 
 function startsWithCacheDirective(statements: ts.NodeArray<ts.Statement>) {
-  const first = statements[0];
-  return (
-    first !== undefined &&
-    ts.isExpressionStatement(first) &&
-    ts.isStringLiteral(first.expression) &&
-    CACHE_DIRECTIVES.has(first.expression.text)
-  );
+  for (const statement of statements) {
+    if (
+      !ts.isExpressionStatement(statement) ||
+      !ts.isStringLiteral(statement.expression)
+    )
+      return false;
+    if (CACHE_DIRECTIVES.has(statement.expression.text)) return true;
+  }
+  return false;
 }
 
 function opensCache(node: ts.Node) {
@@ -214,13 +229,16 @@ function propertyNamed(
   object: ts.ObjectLiteralExpression,
   name: string,
 ): ts.Expression | null {
-  for (const p of object.properties)
+  for (const p of object.properties) {
     if (
       ts.isPropertyAssignment(p) &&
       (ts.isIdentifier(p.name) || ts.isStringLiteral(p.name)) &&
       p.name.text === name
     )
       return unwrap(p.initializer);
+    if (ts.isShorthandPropertyAssignment(p) && p.name.text === name)
+      return p.name;
+  }
   return null;
 }
 
@@ -312,14 +330,11 @@ function factsOf(
         whole:
           ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node),
       });
-    if (
-      ts.isVariableDeclaration(node) &&
-      ts.isIdentifier(node.name) &&
-      node.initializer
-    ) {
-      const spans = facts.varSpans.get(node.name.text) ?? [];
-      spans.push([node.initializer.getStart(sf), node.initializer.getEnd()]);
-      facts.varSpans.set(node.name.text, spans);
+    const assigned = assignedString(node);
+    if (assigned) {
+      const spans = facts.varSpans.get(assigned.name) ?? [];
+      spans.push([assigned.value.getStart(sf), assigned.value.getEnd()]);
+      facts.varSpans.set(assigned.name, spans);
     }
     if (ts.isCallExpression(node)) {
       const callee = unwrap(node.expression);
@@ -333,9 +348,7 @@ function factsOf(
         const cache = propertyNamed(options, "cache");
         const next = propertyNamed(options, "next");
         if (
-          (cache &&
-            ts.isStringLiteral(cache) &&
-            cache.text === "force-cache") ||
+          (cache !== null && tableOf(cache).has("force-cache")) ||
           (next &&
             ts.isObjectLiteralExpression(next) &&
             propertyNamed(next, "revalidate") !== null)
@@ -429,7 +442,7 @@ function resolveModule(
 }
 
 const INTERPOLATED_HINT =
-  /(?<![A-Za-z0-9_])(?:missionaries|profiles|posts)(?:\s*!\s*\w+)*\s*!\s*$/;
+  /(?<![A-Za-z0-9_])(?:missionaries|profiles|posts|post_comments)(?:\s*!\s*\w+)*\s*!\s*$/;
 
 const EMBED_RE =
   /(?<![A-Za-z0-9_])(?:\.\.\.\s*)?(?:[A-Za-z_]\w*\s*:\s*)?(missionaries|profiles|donors|parties|posts|post_comments)((?:\s*!\s*\w+)*)\s*\(/g;
@@ -477,12 +490,12 @@ function scanSources(sources: Map<string, string>): Violation[] {
   const none: ReadonlySet<string> = new Set();
   const valuesOf: ValuesOf = (file, name) => {
     const own = strings.get(file)?.get(name);
-    if (own) return own;
     const imported = imports.get(file)?.get(name);
     const resolved = imported && resolveModule(file, imported.specifier, files);
-    return (
-      (resolved && strings.get(resolved)?.get(imported.importedName)) || none
-    );
+    const theirs =
+      resolved && strings.get(resolved)?.get(imported.importedName);
+    if (own && theirs) return new Set([...own, ...theirs]);
+    return own ?? theirs ?? none;
   };
   const facts = new Map<string, FileFacts>();
   for (const [file, sf] of parsed)
@@ -490,19 +503,18 @@ function scanSources(sources: Map<string, string>): Violation[] {
   const varRoots = new Map<string, Set<string>>();
   const bind = (file: string, name: string, root: string) => {
     const f = facts.get(file)!;
-    let target: [string, string] | null = null;
-    if (f.varSpans.has(name)) target = [file, name];
-    else {
-      const imp = f.imports.get(name);
-      const resolved = imp && resolveModule(file, imp.specifier, files);
-      if (resolved && facts.get(resolved)!.varSpans.has(imp!.importedName))
-        target = [resolved, imp!.importedName];
+    const targets: [string, string][] = [];
+    if (f.varSpans.has(name)) targets.push([file, name]);
+    const imp = f.imports.get(name);
+    const resolved = imp && resolveModule(file, imp.specifier, files);
+    if (resolved && facts.get(resolved)!.varSpans.has(imp!.importedName))
+      targets.push([resolved, imp!.importedName]);
+    for (const [targetFile, targetName] of targets) {
+      const key = `${targetFile}\0${targetName}`;
+      const set = varRoots.get(key) ?? new Set<string>();
+      set.add(root);
+      varRoots.set(key, set);
     }
-    if (!target) return;
-    const key = `${target[0]}\0${target[1]}`;
-    const set = varRoots.get(key) ?? new Set<string>();
-    set.add(root);
-    varRoots.set(key, set);
   };
   for (const [file, f] of facts)
     for (const ref of f.selectIds) bind(file, ref.name, ref.root);

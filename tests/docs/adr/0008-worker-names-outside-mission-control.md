@@ -46,8 +46,9 @@ restricted or high-risk worker gets the alias or `NULL`, never
      `profiles` embed of a select whose root is `posts`, with or without a
      hint (PostgREST resolves the sole key without one), and any `profiles`
      embed nested in a `posts(...)` embed, whatever the outer root;
-   - a template chunk that ends in `missionaries!`, `profiles!` or `posts!`,
-     the hint interpolated before the parenthesis: the embed cannot be read,
+   - a template chunk that ends in `missionaries!`, `profiles!`, `posts!` or
+     (since the r2a fix round) `post_comments!`, the hint interpolated before
+     the parenthesis: the embed cannot be read,
      so the scan fails closed;
    - the code `author.<name>` or `author?.<name>` for any of the four name
      columns.
@@ -67,11 +68,14 @@ restricted or high-risk worker gets the alias or `NULL`, never
    `.from(...)` of the `.select(...)` it is passed to, directly or through a
    constant of the same file or one imported from another source file. Since
    WP5 part 2-r2a (gate f) the table name of a `.from(T)` comes from a first
-   pass, before the walk, over every variable with a string-literal
-   initializer (`const`, `let` or `var`), keeping every value a name is given
-   in the file, and over imported names resolved as the constants are; a
-   `.from(T)` takes every value as a root. A constant declared after its use,
-   or given two values, is no longer missed. A computed select built from
+   pass, before the walk, over every string literal a name is given in the
+   file, as the initializer of a `const`, `let` or `var` or by a later
+   assignment (`T = "missionaries"`, also to a `let` declared without a
+   value); a name's values are the union of those and of the constant it is
+   imported as, when it is imported too (a local name never hides an imported
+   one, and a select constant is rooted in both files); a `.from(T)` takes
+   every value as a root. A constant declared after its use, given two
+   values, assigned later or shadowed is no longer missed. A computed select built from
    template parts is read part by part, by its tokens outside parentheses.
 4. **A shrink-only allowlist.** `packages/api/src/public-giving/columns.ts`
    (`PUBLIC_WORKER_SELECT`, no caller; owner WP7, which also applies
@@ -93,8 +97,17 @@ restricted or high-risk worker gets the alias or `NULL`, never
    embed in a literal and under a posts root, and the donations read's
    explicit worker columns). WP5 part 2-r2a adds P1-P14, 16 failing sources
    (P8 is three: `use cache: remote`, `use cache: private` and a file-level
-   `use cache`), and K1, so **40 fail**; K2-K4 make **9 pass**. Each P passed
-   the scanner before r2a and K2 failed it.
+   `use cache`), and K1, so 40 failed; K2-K4 made 9 pass. Each P passed
+   the scanner before r2a and K2 failed it. The r2a fix round adds P15-P26
+   (a shadowed import as a root, as a cached select and as a select of every
+   column; a `post_comments` embed with an interpolated hint; a `fetch` whose
+   `next` sets `revalidate` by a shorthand property, whose `cache` is a
+   template or a variable holding `force-cache`; a `let` assigned a root or a
+   select after its declaration, with and without an initial value; a
+   function and a file whose `use cache` follows `use strict`) and the guard
+   K6 (`next: { revalidate: 60 }`), so **53 fail**; the controls K5, K7, K8
+   and K9 make **13 pass**. Each of P15-P26 passed the scanner before the fix
+   round.
 6. **What the contract does not see.** A scanner of string literals cannot
    follow a read that is not spelled in one literal: a two-step read (the
    worker's `profile_id`, then `.from("profiles")` by that id), an inverted
@@ -180,21 +193,31 @@ NULL` on `public.parties`) and the fourth
     at all. So the feed is a request-time read in its Route Handler
     (`getFeedPosts`), and the contract fails, outside Mission Control: inside
     any function-like node (a declaration, a function expression, an arrow
-    function with a block body, a method) or file whose first statement is
-    `"use cache"`, `"use cache: remote"` or `"use cache: private"` (read from
-    the syntax tree, either quote), a `.select(...)` whose text holds
+    function with a block body, a method) or file whose leading directives
+    (the string statements before any other, read from the syntax tree in
+    either quote) include `"use cache"`, `"use cache: remote"` or
+    `"use cache: private"`, a `.select(...)` whose text holds
     `worker_public_name` or `post_author_public_name`, directly or through a
     same-file or imported constant, and a `.rpc("post_comment_authors", ...)`;
-    anywhere, a call to `next/cache`'s `unstable_cache` under any local name
-    (or any call named `unstable_cache`), and a `fetch(` whose options set
-    `cache: "force-cache"` or `next.revalidate`. No handler has to expire
-    anything when a worker is restricted (gate c). The tag
+    anywhere, a call of `unstable_cache` imported by name from `next/cache`
+    (under its own name or an `as` name), any call named `unstable_cache` and
+    any `.unstable_cache(` on an object; and a `fetch(` whose options object,
+    written at the call, sets `cache` to `"force-cache"` (a literal, a
+    template, or a name holding it) or a `next` object written at the call
+    with a `revalidate` property (written out or shorthand). No handler has
+    to expire anything when a worker is restricted (gate c). The tag
     `CACHE_TAGS.tenantPosts` and its `revalidateTag` calls stay and now
-    expire nothing; removing them is WP7's. Four limits remain, each a review
-    item: a table name computed at run time; a cached function that calls an
-    uncached helper in another function or file; a `"use cache: <name>"` kind
-    other than remote and private (it needs `cacheHandlers`, which no app
-    sets); and a table name held in an object or passed as a parameter.
+    expire nothing; removing them is WP7's. What the rule cannot see, each a
+    review item: a table name computed at run time, held in an object or
+    passed as a parameter; a cached function that calls an uncached helper
+    in another function or file; a `"use cache: <name>"` kind other than
+    remote and private (it needs `cacheHandlers`, which no app sets); a
+    `fetch` whose options are built elsewhere (`fetch(url, opts)`), or whose
+    `next` is (`next: buildPolicy()`, the shape
+    `packages/lib/cms/public-page.ts` builds, which no caller passes today);
+    and `unstable_cache` reached through a local variable
+    (`const memo = unstable_cache`), a bracket access
+    (`ns["unstable_cache"]`) or a module that re-exports it.
 
 ## Readers closed by WP5 part 2-r2a
 
@@ -222,7 +245,7 @@ Exactly nine. Short paths are under `packages/api/src/` (receipt files under
 
 1. **A restricted person giving to, or asking to follow, a colleague
    (blocks r2b's merge).** Readers: `Query.mySupporters`
-   (`handler.ts:386-419,890-895`, via `donations/select.ts:11`); Partners
+   (`handler.ts:386-419,901-906`, via `donations/select.ts:11`); Partners
    (`missionary-portal/donors.ts:429-493,549-561`); the portal snapshot
    (`missionary-portal/service.ts:72-90,219-226`, `model.ts:418-474`); tasks
    (`service.ts:92-107,298-345`, `model.ts:316-352`); follower requests
@@ -237,11 +260,11 @@ Exactly nine. Short paths are under `packages/api/src/` (receipt files under
    safety redaction.
 2. **A restricted worker's photo (`profiles.avatar_url`) and post media,
    outside comments.** Readers: the feed (`posts/select.ts:2` →
-   `posts/index.ts:58`, `packages/database/hooks/donor-feed-posts.ts:373-374`);
+   `posts/index.ts:53`, `packages/database/hooks/donor-feed-posts.ts:373-374`);
    the donor portal (`donor-portal/service.ts:73,94` →
    `model.ts:275,303,329`, `checkout-client.tsx:1540`); `/api/donations`
    (`donations/select.ts:11`); GraphQL
-   (`handler.ts:262,281,303,332,536,803,843`, `:376,411,716`); public giving
+   (`handler.ts:262,281,303,332,536,814,854`, `:376,411,727`); public giving
    (`public-giving/columns.ts:39`, `projection.ts:62`); and the `profiles`
    bucket (`profile/image-url.ts:7`). Owners: WP7 (approved profile
    revisions, WP6/WP7 private media custody, admitted media route; plan

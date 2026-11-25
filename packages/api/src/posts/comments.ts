@@ -91,7 +91,10 @@ export async function GET(
     };
   });
 
-  return NextResponse.json({ comments: view });
+  return NextResponse.json(
+    { comments: view },
+    { headers: { "Cache-Control": "private, no-store" } },
+  );
 }
 
 /** Read-only demo: no-op so UI does not break; comments are client-only. */
