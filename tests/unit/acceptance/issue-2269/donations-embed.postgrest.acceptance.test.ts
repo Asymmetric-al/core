@@ -222,7 +222,7 @@ describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
        insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$1,'A','US','usd','A');
        insert into public.parties (id, tenant_id, display_name) values ($5, $1, 'Fixture'), ($6, $1, 'Fixture');
        insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id,party_id) values ($5, $1, $3,$1,$5), ($6, $1, $4,$1,$6);
-       insert into public.donors (id, tenant_id, profile_id) values ($7, $1, $2), ($8, $1, null);
+       insert into public.donors (id, tenant_id, profile_id, giving_preferences) values ($7, $1, $2, '{"defaultAnonymousToRecipient": false}'), ($8, $1, null, '{}');
        insert into public.account_links (tenant_id, user_id, party_id, linked_via) select tenant_id, profile_id, party_id, 'profile_backfill' from public.donors where id = $7 union all select tenant_id, profile_id, party_id, 'profile_backfill' from public.missionaries where id in ($5, $6);
        insert into public.donations (id, tenant_id, donor_id, missionary_id, amount) values ($9, $1, $7, $5, 1000), ($10, $1, $8, $5, 2000);`.replace(
         /\$(\d+)/g,
@@ -272,7 +272,7 @@ describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
     ]);
   });
 
-  it("C4/C2 (P): GraphQL mySupporters → 2 rows, the guest's donor is null, no errors", async () => {
+  it("C4/C2 (P): GraphQL mySupporters → 2 rows, the guest's donor is null, no errors (D-18, AL-2678 WP5 part 2-r2s: mySupporters names only a donor who chose to be named, so the profiled donor's fixture says so)", async () => {
     s.auth = as(PM, "missionary");
     const r = await gql(`{ mySupporters { ${FIELDS} } }`);
     expect(r.errors, JSON.stringify(r.errors)).toBeUndefined();
@@ -284,6 +284,31 @@ describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
       ]),
     );
     expect(r.data!.mySupporters).toHaveLength(2);
+  });
+
+  it("C4 (P), AL-2678 WP5 part 2-r2s: mySupporters gives no donor for a profiled donor who chose to give anonymously", async () => {
+    s.auth = as(PM, "missionary");
+    await s.db.query(
+      "update public.donors set giving_preferences = '{}' where id = $1",
+      [DN1],
+    );
+    try {
+      const r = await gql(`{ mySupporters { ${FIELDS} } }`);
+      expect(r.errors, JSON.stringify(r.errors)).toBeUndefined();
+      const m = { id: MI, profile: { id: PM } };
+      expect(r.data!.mySupporters).toEqual(
+        expect.arrayContaining([
+          { id: G1, donor: null, missionary: m },
+          { id: G2, donor: null, missionary: m },
+        ]),
+      );
+      expect(JSON.stringify(r)).not.toContain(PD);
+    } finally {
+      await s.db.query(
+        `update public.donors set giving_preferences = '{"defaultAnonymousToRecipient": false}' where id = $1`,
+        [DN1],
+      );
+    }
   });
 
   it("C5 (P): REST POST /api/donations → 201 { donation, donationId } with donor.profile, exactly +1 row", async () => {

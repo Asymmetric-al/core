@@ -24,6 +24,12 @@ function createSelectQuery<T>(result: QueryResult<T>) {
   return query;
 }
 
+const SHOWN_DONOR = {
+  id: "donor-1",
+  giving_preferences: { defaultAnonymousToRecipient: false },
+  donor_is_restricted_party: false,
+};
+
 function createUpdateQuery<T>(result: QueryResult<T>) {
   const query = {
     update: vi.fn(() => query),
@@ -31,6 +37,9 @@ function createUpdateQuery<T>(result: QueryResult<T>) {
     contains: vi.fn(() => query),
     select: vi.fn(() => query),
     single: vi.fn(() => Promise.resolve(result)),
+    maybeSingle: vi.fn(() =>
+      Promise.resolve({ data: SHOWN_DONOR, error: null }),
+    ),
   };
   return query;
 }
@@ -64,12 +73,16 @@ describe("missionary donor mutations", () => {
     expect(apiError.message).not.toBe("Invalid input");
   });
 
-  it("records donor activity only after proving missionary-owned donor access", async () => {
+  it("records donor activity only after proving missionary-owned donor access (D-18, AL-2678 WP5 part 2-r2s: the stub also answers the guard read on donors)", async () => {
     const accessQuery = createSelectQuery({
       data: { id: "donor-1" },
       error: null,
     });
-    const supabase = { rpc: vi.fn(() => accessQuery) };
+    const guardQuery = createUpdateQuery({ data: null, error: null });
+    const supabase = {
+      rpc: vi.fn(() => accessQuery),
+      from: vi.fn(() => guardQuery),
+    };
 
     await recordMissionaryDonorActivity({
       supabaseAdmin: supabase as never,

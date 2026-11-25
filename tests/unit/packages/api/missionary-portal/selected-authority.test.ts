@@ -217,7 +217,19 @@ beforeEach(() => {
   fake.role = "missionary";
   fake.assigned = true;
   fake.from.mockImplementation((table: string) => {
-    if (table === "donors") return query([{ id, missionary_id: id }]);
+    if (table === "donors") {
+      const donors = query([{ id, missionary_id: id }]);
+      donors.maybeSingle = async () => ({
+        data: {
+          id,
+          missionary_id: id,
+          giving_preferences: { defaultAnonymousToRecipient: false },
+          donor_is_restricted_party: false,
+        },
+        error: null,
+      });
+      return donors;
+    }
     if (table === "donor_pledges") return query([]);
     if (table !== "profiles") throw Error("unscoped access");
     return query({ id, ...expectedProfile });

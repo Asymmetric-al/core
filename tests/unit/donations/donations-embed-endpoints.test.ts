@@ -11,7 +11,10 @@ import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET, POST } from "../../../packages/api/src/donations";
-import { DONATION_WITH_PARTIES_SELECT } from "../../../packages/api/src/donations/select";
+import {
+  DONATION_WITH_PARTIES_SELECT,
+  SUPPORTER_DONATION_SELECT,
+} from "../../../packages/api/src/donations/select";
 import { createGraphQLHandler } from "../../../packages/graphql/handler";
 
 import type * as AuthModule from "../../../packages/auth/context";
@@ -151,12 +154,10 @@ const rest = (method: "GET" | "POST", body?: object) =>
     body: body && JSON.stringify(body),
   });
 /** The donations request: its select must be the shared constant, tenant-scoped. */
-function donationsRequest() {
+function donationsRequest(expected = DONATION_WITH_PARTIES_SELECT) {
   const req = s.requests.find((u) => u.pathname.endsWith("/donations"));
   // supabase-js strips whitespace from the select before sending it.
-  expect(req?.searchParams.get("select")).toBe(
-    DONATION_WITH_PARTIES_SELECT.replace(/\s+/g, ""),
-  );
+  expect(req?.searchParams.get("select")).toBe(expected.replace(/\s+/g, ""));
   return req!;
 }
 const FIELDS = "id amount donor { id email } missionary { id profile { id } }";
@@ -199,7 +200,7 @@ describe("#2269 GraphQL donations reads (U)", () => {
     expect(req.searchParams.get("tenant_id")).toBe(`eq.${T}`);
   });
 
-  it("mySupporters returns the missionary's donations, tenant-scoped (C4)", async () => {
+  it("mySupporters returns the missionary's donations, tenant-scoped (C4; D-18, AL-2678 WP5 part 2-r2s: it sends SUPPORTER_DONATION_SELECT, which adds the donor's preferences and restriction fact)", async () => {
     s.auth = as("profile-m", "missionary");
     s.tables.set("missionaries", [{ id: missionary.id }]);
     s.tables.set("donations", [donation("g2", guest)]);
@@ -208,10 +209,73 @@ describe("#2269 GraphQL donations reads (U)", () => {
     expect(r.data?.mySupporters).toEqual([
       { id: "g2", amount: 2500, donor: null, missionary: mappedMissionary },
     ]);
-    const req = donationsRequest();
+    const req = donationsRequest(SUPPORTER_DONATION_SELECT);
     expect(req.searchParams.get("missionary_id")).toBe(`eq.${missionary.id}`);
     expect(req.searchParams.get("tenant_id")).toBe(`eq.${T}`);
   });
+
+  it.each([
+    ["missionary", "profile-m"],
+    ["staff", "profile-m"],
+  ] as const)(
+    "AL-2678 WP5 part 2-r2s: mySupporters for a %s caller names only a donor whose fact is false and who chose to be named",
+    async (role, who) => {
+      s.auth = as(who, role);
+      s.tables.set("missionaries", [{ id: missionary.id }]);
+      const shown = { defaultAnonymousToRecipient: false };
+      s.tables.set("donations", [
+        donation("g-named", {
+          id: "donor-n",
+          giving_preferences: shown,
+          donor_is_restricted_party: false,
+          profile: profile("profile-n", "donor"),
+        }),
+        donation("g-anonymous", {
+          id: "donor-a",
+          giving_preferences: { defaultAnonymousToRecipient: true },
+          donor_is_restricted_party: false,
+          profile: profile("profile-a", "donor"),
+        }),
+        donation("g-restricted", {
+          id: "donor-r",
+          giving_preferences: shown,
+          donor_is_restricted_party: true,
+          profile: profile("profile-r", "donor"),
+        }),
+        donation("g-unread", {
+          id: "donor-u",
+          giving_preferences: shown,
+          profile: profile("profile-u", "donor"),
+        }),
+        donation("g-null", {
+          id: "donor-z",
+          giving_preferences: shown,
+          donor_is_restricted_party: null,
+          profile: profile("profile-z", "donor"),
+        }),
+      ]);
+      const r = await gql(`{ mySupporters { ${FIELDS} } }`);
+      expect(r.errors).toBeUndefined();
+      expect(r.data?.mySupporters).toEqual([
+        {
+          id: "g-named",
+          amount: 2500,
+          donor: { id: "profile-n", email: "profile-n@example.invalid" },
+          missionary: mappedMissionary,
+        },
+        ...["g-anonymous", "g-restricted", "g-unread", "g-null"].map((id) => ({
+          id,
+          amount: 2500,
+          donor: null,
+          missionary: mappedMissionary,
+        })),
+      ]);
+      const body = JSON.stringify(r).toLowerCase();
+      for (const hidden of ["profile-a", "profile-r", "profile-u", "profile-z"])
+        expect(body).not.toContain(hidden);
+      donationsRequest(SUPPORTER_DONATION_SELECT);
+    },
+  );
 
   it.each([
     ["myDonations", "profile-d", "donor"],

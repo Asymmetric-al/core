@@ -17,10 +17,13 @@ import {
  * (i.e. is not anonymous to that surface).
  */
 
-describe("isAnonymousToRecipient — signal resolution", () => {
+describe("isAnonymousToRecipient — signal resolution (D-18, AL-2678 WP5 part 2-r2s: every call passes the required restrictedParty fact, false for a donor whose Parties are all standard or sensitive)", () => {
   it("unknown_offline gifts are always anonymous", () => {
     expect(
-      isAnonymousToRecipient({ donorIdentityStatus: "unknown_offline" }),
+      isAnonymousToRecipient({
+        donorIdentityStatus: "unknown_offline",
+        restrictedParty: false,
+      }),
     ).toBe(true);
   });
   it("a per-gift flag overrides the donor default", () => {
@@ -28,12 +31,14 @@ describe("isAnonymousToRecipient — signal resolution", () => {
       isAnonymousToRecipient({
         giftAnonymousToRecipient: true,
         givingPreferences: { defaultAnonymousToRecipient: false },
+        restrictedParty: false,
       }),
     ).toBe(true);
     expect(
       isAnonymousToRecipient({
         giftAnonymousToRecipient: false,
         givingPreferences: { defaultAnonymousToRecipient: true },
+        restrictedParty: false,
       }),
     ).toBe(false);
   });
@@ -41,16 +46,25 @@ describe("isAnonymousToRecipient — signal resolution", () => {
     expect(
       isAnonymousToRecipient({
         givingPreferences: { defaultAnonymousToRecipient: true },
+        restrictedParty: false,
       }),
     ).toBe(true);
   });
   it("fails closed to anonymous when the recipient default is absent", () => {
-    expect(isAnonymousToRecipient({})).toBe(true);
-    expect(isAnonymousToRecipient({ givingPreferences: null })).toBe(true);
-    expect(isAnonymousToRecipient({ givingPreferences: {} })).toBe(true);
+    expect(isAnonymousToRecipient({ restrictedParty: false })).toBe(true);
+    expect(
+      isAnonymousToRecipient({
+        givingPreferences: null,
+        restrictedParty: false,
+      }),
+    ).toBe(true);
+    expect(
+      isAnonymousToRecipient({ givingPreferences: {}, restrictedParty: false }),
+    ).toBe(true);
     expect(
       isAnonymousToRecipient({
         givingPreferences: { defaultAnonymousToRecipient: null },
+        restrictedParty: false,
       }),
     ).toBe(true);
   });
@@ -58,6 +72,70 @@ describe("isAnonymousToRecipient — signal resolution", () => {
     expect(
       isAnonymousToRecipient({
         givingPreferences: { defaultAnonymousToRecipient: false },
+        restrictedParty: false,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("AL-2678 WP5 part 2-r2s: a donor whose Party, or a Party of the same login, is not standard or sensitive is anonymous to every recipient; anything but false hides", () => {
+  const notFalse: [string, unknown][] = [
+    ["true", true],
+    ["null", null],
+    ["undefined", undefined],
+    ['the string "false"', "false"],
+    ["0", 0],
+  ];
+  it.each(notFalse)(
+    "restrictedParty %s hides a donor who chose to be named",
+    (_label, restrictedParty) => {
+      expect(
+        isAnonymousToRecipient({
+          givingPreferences: { defaultAnonymousToRecipient: false },
+          restrictedParty,
+        }),
+      ).toBe(true);
+    },
+  );
+  it.each(notFalse)(
+    "restrictedParty %s hides a gift whose own flag says named",
+    (_label, restrictedParty) => {
+      expect(
+        isAnonymousToRecipient({
+          giftAnonymousToRecipient: false,
+          givingPreferences: { defaultAnonymousToRecipient: false },
+          restrictedParty,
+        }),
+      ).toBe(true);
+    },
+  );
+  it("a signal without the key hides", () => {
+    const signal = {
+      givingPreferences: { defaultAnonymousToRecipient: false },
+    } as unknown as Parameters<typeof isAnonymousToRecipient>[0];
+    expect(isAnonymousToRecipient(signal)).toBe(true);
+  });
+  it("only false with an explicit false preference shows", () => {
+    expect(
+      isAnonymousToRecipient({
+        givingPreferences: { defaultAnonymousToRecipient: false },
+        restrictedParty: false,
+      }),
+    ).toBe(false);
+    expect(
+      isAnonymousToRecipient({
+        givingPreferences: { defaultAnonymousToRecipient: true },
+        restrictedParty: false,
+      }),
+    ).toBe(true);
+    expect(
+      isAnonymousToRecipient({ givingPreferences: {}, restrictedParty: false }),
+    ).toBe(true);
+  });
+  it("the public signal is unchanged: it takes no restrictedParty", () => {
+    expect(
+      isAnonymousToPublic({
+        givingPreferences: { defaultAnonymousToPublic: false },
       }),
     ).toBe(false);
   });
