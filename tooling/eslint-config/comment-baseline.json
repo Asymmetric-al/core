@@ -1399,7 +1399,7 @@
   "tests/e2e/react-cleanup-memory.spec.ts": 4,
   "tests/e2e/run-progress-reporter.ts": 9,
   "tests/e2e/support-hub.smoke.spec.ts": 3,
-  "tests/e2e/ui-sdk-pattern-conformance.spec.ts": 55,
+  "tests/e2e/ui-sdk-pattern-conformance.spec.ts": 54,
   "tests/e2e/ui-sdk-rating.spec.ts": 13,
   "tests/e2e/ui-sdk-real-apps-mission-control.spec.ts": 152,
   "tests/e2e/ui-sdk-real-apps-portals.spec.ts": 127,

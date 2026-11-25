@@ -103,7 +103,7 @@ Use the default prop to start (`defaultValue`, `defaultOpen`, `defaultChecked`, 
 
 **Svelte.** Use `bind:` for values the parent keeps. Share state between components through `setContext` and `getContext`, created in a parent. Never put `$state` at module level: on the server it's shared across every request. Type props with an `interface Props` above `let { ... }: Props = $props()`, not an inline object type. On Svelte 5.56 or later, declare a value inside a block with a declaration tag, `{const label = $derived(labelOf(id))}`, not `{@const}`.
 
-**Solid.** Keep reads reactive: read signals and props in JSX or a getter, never save their value in a variable first. `@ui-sdk/solid` needs Solid 2. With Vite, add `optimizeDeps: { exclude: ["@ui-sdk/core"] }` to the config, so the app and `@ui-sdk/solid` share one copy of the core in development.
+**Solid.** Keep reads reactive: read signals and props in JSX or a getter, never save their value in a variable first. `@ui-sdk/solid` needs Solid 2: `solid-js` and `@solidjs/web` 2.0.0 or newer. With Vite, add `optimizeDeps: { exclude: ["@ui-sdk/core"] }` to the config, so the app and `@ui-sdk/solid` share one copy of the core in development.
 
 **Web components.** `import "@ui-sdk/web/<name>"` defines its elements, like `<ui-select>`. Many parts wrap a native element you write, like `<ui-toggle><button>Bold</button></ui-toggle>`. A text field is `<ui-field>` with `<ui-field-label>` and `<ui-input><input /></ui-input>`; a button is `<ui-button><button>Save</button></ui-button>`. Never leave a bare `<input>` or `<button>` where an agent or a Field should see it. Read and set state through properties after the element upgrades (`await customElements.whenDefined("ui-select")`). Change events are lowercase (`valuechange`, `openchange`) and don't bubble: listen on the element, or with `{ capture: true }` on an ancestor. [web-components.md](web-components.md) covers tag names and required inner markup.
 
@@ -186,4 +186,4 @@ Check each part name against the component pages; they're the source of truth.
 
 Every interface gets tests, and at least the agent test from [agent-ready.md](agent-ready.md#prove-it-with-a-test). Follow [testing.md](testing.md) for the rest.
 
-<!-- Modified by Asymmetric-al/core: appended secret-scanner allowlist comments to the lines that name credential fields, as bun run skills:sync requires. Otherwise identical to vercel-labs/ui@8ff6bcf (Apache-2.0); see references/upstream.md. -->
+<!-- Modified by Asymmetric-al/core: appended secret-scanner allowlist comments to the lines that name credential fields, as bun run skills:sync requires. Otherwise identical to vercel-labs/ui@d850982 (Apache-2.0); see references/upstream.md. -->

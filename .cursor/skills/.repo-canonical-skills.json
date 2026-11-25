@@ -96,6 +96,7 @@
     "nextjs-supabase-auth",
     "no-comments",
     "npm-deps-cleanup",
+    "openspec",
     "openspec-apply-change",
     "openspec-archive-change",
     "openspec-explore",
@@ -910,6 +911,14 @@
     "npm-deps-cleanup": [
       "SKILL.md",
       "references/upstream.md"
+    ],
+    "openspec": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/answers.md",
+      "references/upstream.md",
+      "references/where-things-stand.md",
+      "references/without-skills.md"
     ],
     "openspec-apply-change": [
       "SKILL.md",

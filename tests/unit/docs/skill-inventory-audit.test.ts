@@ -734,6 +734,7 @@ const expectedNames = [
   "next-bundle-optimizer",
   "next-partial-prefetching-adoption",
   "next-partial-prefetching-optimizer",
+  "openspec",
 ].sort();
 
 describe("reviewed installed skill inventory", () => {
@@ -1004,7 +1005,10 @@ describe("reviewed installed skill inventory", () => {
     const { skills } = readLock();
     const audit = JSON.parse(
       readRepoFile("docs/ai/skill-source-audit.json"),
-    ) as { skills: Array<{ name: string; lockHash: string | null }> };
+    ) as {
+      counts: { lockEntries: number };
+      skills: Array<{ name: string; lockHash: string | null }>;
+    };
     const disagreements = audit.skills
       .filter(
         (skill) =>
@@ -1013,6 +1017,7 @@ describe("reviewed installed skill inventory", () => {
       .map((skill) => skill.name);
 
     expect(disagreements).toEqual([]);
+    expect(audit.counts.lockEntries).toBe(Object.keys(skills).length);
     expect(Object.keys(skills).sort()).toEqual(
       audit.skills
         .filter((skill) => skill.lockHash !== null)

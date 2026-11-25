@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from "vitest";
 const repoRoot = process.cwd();
 const roots: string[] = [];
 const names = [
+  "openspec",
   "openspec-explore",
   "openspec-propose",
   "openspec-update-change",
@@ -54,7 +55,25 @@ async function fixture() {
     await mkdir(canonical, { recursive: true });
     await writeFile(
       path.join(source, "SKILL.md"),
-      `---
+      name === "openspec"
+        ? `---
+name: openspec
+description: Starting point for OpenSpec fixture
+allowed-tools: Bash(openspec:*), Bash(other:*)
+license: MIT
+---
+
+Upstream workflow prose without a title.
+
+Keep the upstream workflow body.
+
+- If the skill for the row is not installed, say so, then read \`references/without-skills.md\` and follow the section for that skill. Tell the user they can install it with \`openspec config profile\`, then \`openspec update\`.
+
+**If this project does not use OpenSpec**
+
+If you picked this skill yourself and \`openspec list --json\` reports \`"root": null\`, set OpenSpec aside and answer the request normally. If the user asked for OpenSpec, offer to set it up with \`openspec init\`.
+`
+        : `---
 name: ${name}
 description: ${name === "openspec-update-change" ? "Update planning artifacts. If the user means the openspec update CLI command, which refreshes generated files, run that command instead. Never edits code." : "Refresh permission regression fixture"}
 allowed-tools: Bash(openspec:*), Bash(other:*)
@@ -81,6 +100,72 @@ ${name === "openspec-apply-change" ? "- If `missingArtifacts` is non-empty: show
 \`\`\`
 `,
     );
+    if (name === "openspec") {
+      await mkdir(path.join(source, "references"), { recursive: true });
+      await writeFile(
+        path.join(source, "references", "answers.md"),
+        `# Answers to common questions
+
+Check help (\`openspec <command> --help\`).
+
+## Where things live
+
+- \`openspec/config.yaml\`: the project's schema, \`context\` lines every agent reads, and per-artifact \`rules\`.
+
+## Checking things
+
+- What is in progress: \`openspec list\`.
+
+## Setting things up
+
+- Set up a project, or add an agent to it: \`openspec init\`.
+- Refresh the skills after upgrading OpenSpec: \`openspec update\`.
+
+## Stores
+
+Run \`openspec store --help\` and pass \`--store <id>\`.
+
+## Something is wrong
+
+- Run \`openspec doctor\` and read what it reports.
+- To tell the maintainers, use \`openspec feedback "<message>"\`.
+`,
+      );
+      await writeFile(
+        path.join(source, "references", "where-things-stand.md"),
+        `# Where things stand
+
+- \`openspec list --json\` lists the changes in progress.
+- If the user names a store, add \`--store <id>\` to each of these. \`openspec store list --json\` lists the stores.
+
+Say where things stand in a sentence or two, name the next step and the skill that does it, and offer to do it. Do not start it until they say so.
+`,
+      );
+      await writeFile(
+        path.join(source, "references", "without-skills.md"),
+        `# Doing a step without its skill
+
+Use this when the skill for a step is not installed. The user can install the skill instead with \`openspec config profile\`, then \`openspec update\`.
+
+## openspec-propose, openspec-new-change, openspec-continue-change, openspec-ff-change
+
+1. Start the change: \`openspec new change "<name>"\`, using a short kebab-case name.
+2. Run \`openspec status --change "<name>" --json\` to see which artifacts are ready.
+
+## openspec-update-change
+
+Run \`openspec validate "<name>"\`.
+
+## openspec-archive-change, openspec-bulk-archive-change
+
+Run \`openspec archive "<name>" --yes\`.
+
+## openspec-onboard
+
+Walk the user through one small change.
+`,
+      );
+    }
     await writeFile(
       path.join(canonical, "SKILL.md"),
       `---
@@ -175,7 +260,30 @@ describe("OpenSpec skill refresh", () => {
       expect(content).toContain("Keep the upstream workflow body.");
       expect(content).not.toContain("--store");
       expect(content).not.toContain("openspec store list");
-      expect(content).toContain("Core checkout containing its local");
+      if (name === "openspec") {
+        expect(content).toContain("resume or update it rather than recreating");
+        expect(content).not.toContain(
+          "install it with `openspec config profile`",
+        );
+        expect(content).not.toContain(
+          "offer to set it up with `openspec init`",
+        );
+        for (const refName of [
+          "answers.md",
+          "where-things-stand.md",
+          "without-skills.md",
+        ]) {
+          const refContent = await readFile(
+            path.join(root, "docs/ai/skills/openspec/references", refName),
+            "utf8",
+          );
+          expect(refContent, refName).toContain("bun run openspec --");
+          expect(refContent, refName).not.toContain("--store");
+          expect(refContent, refName).not.toContain("openspec store list");
+        }
+      } else {
+        expect(content).toContain("Core checkout containing its local");
+      }
       if (name === "openspec-update-change") {
         const description = content.match(/^description: (.+)$/m)?.[1];
         expect(description).not.toContain("run that command instead");

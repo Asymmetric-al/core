@@ -580,6 +580,13 @@
       "skillPath": "skills/npm-deps-cleanup/SKILL.md",
       "computedHash": "bd4be60c837a2d690302d2ef92b2375d63acb15069be78eb8b46610de8ef368f"
     },
+    "openspec": {
+      "source": "Fission-AI/OpenSpec",
+      "sourceType": "github",
+      "skillPath": "skills/openspec/SKILL.md",
+      "computedHash": "66adc24c0e8c46b893f7abad70cd14810039f6dda0785dde0f7531c5312b89a6",
+      "treeHash": "99dbd17cbb1cc3206afe1660ce6ddf44e429a063a48698f0fdfd77828374f99f"
+    },
     "openspec-apply-change": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
@@ -591,8 +598,8 @@
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-archive-change/SKILL.md",
-      "computedHash": "9b8a5d84ca6b28a2993390290a28595d1ec12826b6957f9b5b9a67182c82f0bc",
-      "treeHash": "4447f4f4536071267d9746d6adac0c5485a0ded8bd3c30fdea7933374da850e4"
+      "computedHash": "1371a49db70bff5922951a6e60a7bba9d989e6d55dfb981f10b1eb888cf63980",
+      "treeHash": "b83bee31488efb2d83f347359eec2b6e77591470d911ab4cfb142b776b13841b"
     },
     "openspec-explore": {
       "source": "Fission-AI/OpenSpec",
@@ -1084,7 +1091,7 @@
       "source": "vercel-labs/ui",
       "sourceType": "github",
       "skillPath": "packages/core/skills/ui-sdk/SKILL.md",
-      "computedHash": "76946872dfa4db3d144c1629ce2fe8a44b1cd4442ef70eeb82f3da4cb5f68f07"
+      "computedHash": "3823077bab44eeb1a26c14cf9a39381fdcd75e7c04fe85d2ecc0b2200fd75e0e"
     },
     "unslop": {
       "source": "uzairansaruzi/p3-stack",

@@ -30,7 +30,7 @@
       "devDependencies": {
         "@asym/eslint-config": "workspace:*",
         "@axe-core/playwright": "4.14.0",
-        "@fission-ai/openspec": "2.1.0",
+        "@fission-ai/openspec": "2.2.0",
         "@inngest/test": "1.0.0",
         "@lhci/cli": "^0.15.1",
         "@next/playwright": "16.4.5",
@@ -494,8 +494,8 @@
         "@tiptap/starter-kit": "3.32.0",
         "@tiptap/static-renderer": "3.32.0",
         "@tiptap/suggestion": "3.32.0",
-        "@ui-sdk/core": "0.1.0-beta.2",
-        "@ui-sdk/react": "0.1.0-beta.2",
+        "@ui-sdk/core": "0.1.0-beta.17",
+        "@ui-sdk/react": "0.1.0-beta.17",
         "class-variance-authority": "^0.7.1",
         "cmdk": "^1.1.1",
         "cn": "0.5.0",
@@ -884,7 +884,7 @@
 
     "@fastify/busboy": ["@fastify/busboy@3.2.0", "", {}, "sha512-m9FVDXU3GT2ITSe0UaMA5rU3QkfC/UXtCU8y0gSN/GugTqtVldOBWIB5V6V3sbmenVZUIpU6f+mPEO2+m5iTaA=="],
 
-    "@fission-ai/openspec": ["@fission-ai/openspec@2.1.0", "", { "dependencies": { "@inquirer/core": "^12.0.0", "@inquirer/prompts": "^8.5.2", "brace-expansion": "^5.0.12", "chalk": "^6.0.1", "commander": "^14.0.0", "cross-spawn": "7.0.6", "diff": "^9.0.0", "ora": "^9.4.1", "picomatch": "^4.0.4", "skills": "1.8.1", "tinyglobby": "^0.2.17", "yaml": "^2.8.3", "zod": "^4.4.3" }, "bin": { "openspec": "bin/openspec.js" } }, "sha512-3mVVOU97QmRsqQQYl0Jb7XvIwWES+Jh6nMbGy1tJiQvKVVI1lD7M0PTB2gH2f/ayX4SEoVJGiLKL51Z1pkTHqw=="],
+    "@fission-ai/openspec": ["@fission-ai/openspec@2.2.0", "", { "dependencies": { "@inquirer/core": "^12.0.0", "@inquirer/prompts": "^8.5.2", "brace-expansion": "^5.0.12", "chalk": "^6.0.1", "commander": "^14.0.0", "cross-spawn": "7.0.6", "diff": "^9.0.0", "ora": "^9.4.1", "picomatch": "^4.0.4", "skills": "1.8.1", "tinyglobby": "^0.2.17", "yaml": "^2.8.3", "zod": "^4.4.3" }, "bin": { "openspec": "bin/openspec.js" } }, "sha512-tSLMp9NhjF8zqNI53lZcaeVOFxE25pmMA7WZDsHZbK1Rds4R6nXeCm3mSxvBN1DdiDbKPBHuEkoJrBzF3PVacA=="],
 
     "@floating-ui/core": ["@floating-ui/core@1.8.0", "", { "dependencies": { "@floating-ui/utils": "^0.2.12" } }, "sha512-0CIZ5itps/8x7BG8dEIhs53BvCUH2PCoogtakwRTut+Arm58sJooJ0AuZhLw2HJYIR5cMLNPBSS728sPho2khQ=="],
 
@@ -2134,9 +2134,9 @@
 
     "@typescript/typescript-win32-x64": ["@typescript/typescript-win32-x64@7.1.0-beta", "", { "os": "win32", "cpu": "x64" }, "sha512-UKcHvbybY2tDTvFW2b1vwiAvDlIRooo69lh8CXWVhOQejcvpM5+IgbiFW9EIwR5Wi5X/v+BdN7gdWbigBuJ3rw=="],
 
-    "@ui-sdk/core": ["@ui-sdk/core@0.1.0-beta.2", "", {}, "sha512-y89M4OKL2Oy1IvFS8FEozn/44BJD9FoRjfecWA4XwFhkSuQADcEcI+eoLdfRK1hkrJZhKkHvhJf4Jtfp1y7aJw=="],
+    "@ui-sdk/core": ["@ui-sdk/core@0.1.0-beta.17", "", {}, "sha512-wBWNqT0Qf1sE6fqD1XuBnSGBFcY6+cek1z7rKl/r4j2bsv2or9i7z44PLy0J9hmflm3IJ5MLW0P4ur2H9BCIvg=="],
 
-    "@ui-sdk/react": ["@ui-sdk/react@0.1.0-beta.2", "", { "peerDependencies": { "@types/react": ">=19.2.10", "@ui-sdk/core": "^0.1.0-beta.2", "react": ">=19", "react-dom": ">=19" }, "optionalPeers": ["@types/react"] }, "sha512-OVOECM3PYGEF69/iOSZ1U0zxv6O6aTWmZuCt88R6c2Ql2ZQxAy+DjFK8o8hyVkRNlYE5nEm357UMOI6bchn70w=="],
+    "@ui-sdk/react": ["@ui-sdk/react@0.1.0-beta.17", "", { "peerDependencies": { "@types/react": ">=19.2.10", "@ui-sdk/core": "^0.1.0-beta.17", "react": ">=19", "react-dom": ">=19" }, "optionalPeers": ["@types/react"] }, "sha512-oAJu+/e8woA5gboO28nm3aiO2qZbjccGc8hukCijSz3biX71AYBw8mo14HkMAZUuPlbSnzVAuNYQMaW0z8vsrw=="],
 
     "@unlayer/types": ["@unlayer/types@1.516.0", "", {}, "sha512-wvZP9emj/fr27b2ehU1PQS8GfbYUIqUVB+5GwhNOT/t3XgOW0hdWaJh8uPZAp0LmDfg0aHdageY6yJpRTIO4LA=="],
 

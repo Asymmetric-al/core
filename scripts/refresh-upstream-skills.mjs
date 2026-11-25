@@ -193,6 +193,7 @@ const upstreamSources = [
 ];
 
 const openspecSkillNames = [
+  "openspec",
   "openspec-explore",
   "openspec-propose",
   "openspec-update-change",
@@ -320,7 +321,7 @@ const githubUpstreamGroups = [
     repo: "https://github.com/Fission-AI/OpenSpec.git",
     source: "Fission-AI/OpenSpec",
     sourceUrl: "https://github.com/Fission-AI/OpenSpec",
-    ref: "v2.1.0",
+    ref: "v2.2.0",
     sourceRoot: "skills",
     skillNames: openspecSkillNames,
     lockSkillPath(skillName) {
@@ -330,7 +331,7 @@ const githubUpstreamGroups = [
       return `skills/${skillName}/`;
     },
     sourceUrlForSkill(skillName) {
-      return `https://github.com/Fission-AI/OpenSpec/tree/v2.1.0/skills/${skillName}`;
+      return `https://github.com/Fission-AI/OpenSpec/tree/v2.2.0/skills/${skillName}`;
     },
     skillExtraCopies: Object.fromEntries(
       openspecSkillNames.map((skillName) => [
@@ -2038,6 +2039,32 @@ async function ensureOpenSpecRepositoryScope(skillName, targetRoot) {
       /^   Choose one schema form below\. If a registered store[^\n]+$/m,
       "   Use Core's existing `spec-driven` schema with the local pinned wrapper below.",
     );
+  if (skillName === "openspec") {
+    const missingSkillReplacement =
+      "- If a matching active change already exists under `openspec/changes/`, resume or update it rather than recreating it.\n- If the skill for the row is not installed, say so. Core intentionally curates the `openspec` router and seven workflow skills (`openspec-explore`, `openspec-propose`, `openspec-update-change`, `openspec-apply-change`, `openspec-verify-change`, `openspec-sync-specs`, and `openspec-archive-change`) and does not enable `openspec-new-change`, `openspec-continue-change`, `openspec-ff-change`, `openspec-bulk-archive-change`, or `openspec-onboard`. Route to the matching Core skill instead, or read `references/without-skills.md` for repository-safe `bun run openspec --` steps; never suggest installing skills with `openspec config profile` or `openspec update`.";
+    const missingSkillPattern =
+      /^- If the skill for the row is not installed, say so, then read `references\/without-skills\.md` and follow the section for that skill\. Tell the user they can install it with `openspec config profile`, then `openspec update`\.$/m;
+    if (!missingSkillPattern.test(content)) {
+      throw new Error(
+        "Unsupported OpenSpec router missing-skill block in openspec/SKILL.md; reconcile Core policy before refreshing.",
+      );
+    }
+    content = content.replace(missingSkillPattern, missingSkillReplacement);
+
+    const noOpenSpecPattern =
+      /^If you picked this skill yourself and `openspec list --json` reports `"root": null`, set OpenSpec aside and answer the request normally\. If the user asked for OpenSpec, offer to set it up with `openspec init`\.$/m;
+    if (!noOpenSpecPattern.test(content)) {
+      throw new Error(
+        "Unsupported OpenSpec router setup block in openspec/SKILL.md; reconcile Core policy before refreshing.",
+      );
+    }
+    content = content.replace(
+      noOpenSpecPattern,
+      'Run `bun run openspec -- list --json` from the Core checkout and confirm `root.path` identifies this repository containing `openspec/`. If `"root": null` is reported, treat it as a checkout or configuration error and stop: never run `openspec init` against this customized repository.',
+    );
+
+    await reconcileOpenSpecRouterReferences(targetRoot);
+  }
   if (skillName === "openspec-update-change") {
     content = content.replace(
       "If the user means the openspec update CLI command, which refreshes generated files, run that command instead.",
@@ -2050,11 +2077,173 @@ async function ensureOpenSpecRepositoryScope(skillName, targetRoot) {
       "- Everything done, implemented, merged and accepted -> suggest the `openspec-archive-change` workflow. Do not suggest archiving unmerged work.",
     );
   }
-  if (/--store|openspec store list|run that command instead/.test(content))
+  if (
+    /--store|openspec store list|run that command instead|install it with `openspec config profile`|offer to set it up with `openspec init`/.test(
+      content,
+    )
+  )
     throw new Error(
       `Unsupported OpenSpec routing in ${skillName}; reconcile Core's local-only workflow before refreshing.`,
     );
+  content = await formatSource(skillPath, content, "managed");
   await writeFile(skillPath, content, "utf8");
+}
+
+async function reconcileOpenSpecRouterReferences(targetRoot) {
+  const answersPath = path.join(targetRoot, "references", "answers.md");
+  const wherePath = path.join(
+    targetRoot,
+    "references",
+    "where-things-stand.md",
+  );
+  const withoutPath = path.join(targetRoot, "references", "without-skills.md");
+
+  let answers = (await readFile(answersPath, "utf8")).replaceAll("\r\n", "\n");
+  answers = answers
+    .replace(
+      "(`openspec <command> --help`)",
+      "(`bun run openspec -- <command> --help`)",
+    )
+    .replace(
+      "- `openspec/config.yaml`: the project's schema, `context` lines every agent reads, and per-artifact `rules`.",
+      "- `openspec/config.yaml`: the project's schema, `context` lines every agent reads, and per-artifact `rules`.\n- `openspec/project.md`: Core's human-oriented OpenSpec index.",
+    )
+    .replace(
+      /## Checking things\n\n[\s\S]*?\n\n## Setting things up/,
+      [
+        "## Checking things",
+        "",
+        "- What is in progress: `bun run openspec -- list`. The specs: `bun run openspec -- list --specs`.",
+        '- Where one change stands: `bun run openspec -- status --change "<name>"`.',
+        '- Read a change or a spec: `bun run openspec -- show "<name>"`.',
+        '- Check the files are well formed: `bun run openspec -- validate "<name>" --strict`, or `bun run openspec:validate`.',
+        "- Check active deltas and contracts: `bun run verify:openspec-deltas`.",
+        "- A dashboard of everything: `bun run openspec -- view`.",
+        "",
+        "## Setting things up",
+      ].join("\n"),
+    )
+    .replace(
+      /## Setting things up\n\n[\s\S]*?\n\n## Stores/,
+      [
+        "## Setting things up",
+        "",
+        "- Core keeps OpenSpec pinned locally (`skillsScope: project` in `openspec/config.yaml`) and hand-maintains repo instructions. Do not run `openspec init`, `openspec config profile`, or `openspec update` against this live customized repository.",
+        "- Refresh the curated canonical skills under `docs/ai/skills/` with `node scripts/refresh-upstream-skills.mjs --only=Fission-AI/OpenSpec`, then run `bun run skills:sync` and `bun run skills:verify`.",
+        "- Teach agents something about this project: add a short line under `context` in `openspec/config.yaml`. Edit the file only after the user approves the wording.",
+        "- Core uses the built-in `spec-driven` schema and keeps `openspec/project.md` as its index. Do not enable custom schemas.",
+        "",
+        "## Stores",
+      ].join("\n"),
+    )
+    .replace(
+      /## Stores\n\n[\s\S]*?\n\n## Something is wrong/,
+      [
+        "## Stores",
+        "",
+        "Core does not enable OpenSpec Stores. Keep all specs and changes in this repository's local `openspec/` tree.",
+        "",
+        "## Something is wrong",
+      ].join("\n"),
+    )
+    .replace(
+      "- Run `openspec doctor` and read what it reports.",
+      "- Run `bun run openspec -- doctor`, `bun run openspec:validate`, and `bun run verify:openspec-deltas` and read what they report.",
+    )
+    .replace(
+      '`openspec feedback "<message>"`',
+      '`bun run openspec -- feedback "<message>"`',
+    );
+  answers = await formatSource(answersPath, answers, "managed");
+  if (
+    /--store|openspec store|`openspec (?:list|status|show|validate|view|doctor|feedback|schemas|templates)|Set up a project|Refresh the skills after upgrading/.test(
+      answers,
+    ) ||
+    !answers.includes(
+      "- `openspec/project.md`: Core's human-oriented OpenSpec index.",
+    ) ||
+    !answers.includes(
+      "Core does not enable OpenSpec Stores. Keep all specs and changes in this repository's local `openspec/` tree.",
+    ) ||
+    !answers.includes(
+      "Do not run `openspec init`, `openspec config profile`, or `openspec update` against this live customized repository.",
+    )
+  ) {
+    throw new Error(
+      "Unsupported OpenSpec content remained in openspec/references/answers.md; reconcile Core policy before refreshing.",
+    );
+  }
+  await writeFile(answersPath, answers, "utf8");
+
+  let where = (await readFile(wherePath, "utf8")).replaceAll("\r\n", "\n");
+  where = where
+    .replaceAll("`openspec ", "`bun run openspec -- ")
+    .replace(
+      /^- If the user names a store,[^\n]+$/m,
+      "- Core uses only the repository-local `openspec/` tree; external Stores are not enabled.",
+    );
+  where = await formatSource(wherePath, where, "managed");
+  if (
+    /--store|openspec store|`openspec /.test(where) ||
+    !where.includes(
+      "Core uses only the repository-local `openspec/` tree; external Stores are not enabled.",
+    )
+  ) {
+    throw new Error(
+      "Unsupported OpenSpec content remained in openspec/references/where-things-stand.md; reconcile Core policy before refreshing.",
+    );
+  }
+  await writeFile(wherePath, where, "utf8");
+
+  let without = (await readFile(withoutPath, "utf8")).replaceAll("\r\n", "\n");
+  without = without
+    .replace(
+      '1. Start the change: `openspec new change "<name>"`, using a short kebab-case name.',
+      '1. Check `bun run openspec -- list --json` first; if a matching active change already exists, resume or update it rather than recreating it. Otherwise start the change: `bun run openspec -- new change "<name>"`, using a short kebab-case name.',
+    )
+    .replace(
+      /## openspec-archive-change, openspec-bulk-archive-change\n\n[\s\S]*?\n\n## openspec-onboard/,
+      [
+        "## openspec-archive-change, openspec-bulk-archive-change",
+        "",
+        'Core archives a change only after implementation has merged and become accepted repository reality; never archive unmerged or incomplete work on a feature branch. Confirm merge acceptance and completion with `bun run openspec -- status --change "<name>" --json` and `bun run openspec -- list --json`. If anything is unmerged or unfinished, leave the change active and stop. Once merged and accepted, run `bun run openspec -- archive "<name>" --yes` one change at a time; do not bulk-archive.',
+        "",
+        "## openspec-onboard",
+      ].join("\n"),
+    )
+    .replace(
+      "The user can install the skill instead with `openspec config profile`, then `openspec update`.",
+      "__CORE_WITHOUT_SKILLS_POLICY__",
+    )
+    .replaceAll("`openspec ", "`bun run openspec -- ")
+    .replace(
+      "__CORE_WITHOUT_SKILLS_POLICY__",
+      "Core intentionally curates the `openspec` router and seven workflow skills and does not enable `openspec-new-change`, `openspec-continue-change`, `openspec-ff-change`, `openspec-bulk-archive-change`, or `openspec-onboard`. Never suggest installing them with `openspec config profile` or `openspec update`.",
+    )
+    .replace(
+      '`bun run openspec -- validate "<name>"`',
+      '`bun run openspec -- validate "<name>" --strict`',
+    );
+  without = await formatSource(withoutPath, without, "managed");
+  if (
+    /--store|openspec store|install the skill instead|`openspec (?:list|status|show|validate|new change|instructions|archive)/.test(
+      without,
+    ) ||
+    !without.includes(
+      "Check `bun run openspec -- list --json` first; if a matching active change already exists, resume or update it rather than recreating it.",
+    ) ||
+    !without.includes(
+      "Core archives a change only after implementation has merged and become accepted repository reality; never archive unmerged or incomplete work on a feature branch.",
+    ) ||
+    !without.includes(
+      "Never suggest installing them with `openspec config profile` or `openspec update`.",
+    )
+  ) {
+    throw new Error(
+      "Unsupported OpenSpec content remained in openspec/references/without-skills.md; reconcile Core policy before refreshing.",
+    );
+  }
+  await writeFile(withoutPath, without, "utf8");
 }
 
 async function applyPostRefreshReplacements(skillName, targetRoot) {
