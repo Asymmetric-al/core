@@ -61,6 +61,7 @@ function denormalizeTransportPagePath(pagePath: string): string {
 }
 
 export function resolveDonorPath(pathname: string): ResolvedDonorPath | null {
+  if (/%2f/i.test(pathname)) return null;
   let decoded: string;
   try {
     decoded = decodeURIComponent(pathname);
