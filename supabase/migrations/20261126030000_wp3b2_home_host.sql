@@ -11,8 +11,28 @@
 --   public, visible on the public surface (its five tenant_id IS NULL rows).
 -- public.resolve_verified_host(text) is not changed.
 --
--- Locks: the UPDATE takes ROW EXCLUSIVE on public.field_policies until
--- COMMIT; creating the function locks no table. SET LOCAL lock_timeout = '5s'.
+-- Locks, all held to COMMIT (observed in pg_locks for the session, the
+-- file's statements run in an open transaction): CREATE FUNCTION takes ACCESS
+-- SHARE on public.site_domains and public.donor_portal_hosts while its SQL
+-- body is checked; the UPDATE takes ROW EXCLUSIVE on public.field_policies
+-- and its index field_policies_lookup_key. ACCESS SHARE conflicts only with
+-- ACCESS EXCLUSIVE, so no read or write of the live build waits on it.
+-- SET LOCAL lock_timeout = '5s' stops a run rather than queue it.
+--
+-- Recovery. Nothing here is written to run twice: a run lost between its
+-- COMMIT and its ledger row stops on the next run at its first CREATE,
+-- CREATE FUNCTION public.resolve_home_host (42723, the function already
+-- exists), and rolls back with public.field_policies unchanged (observed on
+-- a second run of the applied file). This file has committed when this
+-- read-only check is true; it reads false, and never raises, before:
+--   SELECT to_regprocedure('public.resolve_home_host(text)') IS NOT NULL
+--      AND EXISTS (SELECT 1 FROM public.field_policies
+--                   WHERE record_type = 'donor_portal_hosts' AND field_key = 'primary_domain'
+--                     AND surface = 'public' AND tenant_id IS NULL
+--                     AND visible AND sensitivity_category = 'public');
+-- Then follow docs/ops/release-job.md, "If the migration committed but its
+-- ledger row is missing", with this check and this file's version,
+-- 20261126030000. It has no preflight or post-assert of its own.
 --
 -- Grants: REVOKE ALL on the function FROM PUBLIC, anon, authenticated and
 -- service_role by name, then GRANT EXECUTE TO anon, authenticated and
@@ -32,14 +52,16 @@
 --   COMMIT;
 --
 -- Read-only check after the release (expect one row: t, s, t, postgres,
--- {search_path=""}, {anon,authenticated,service_role}; then the manifest's
--- five rows: mission_control and public visible, none editable or
--- exportable, every category public):
+-- {search_path=""}, {anon,authenticated,service_role}, no PUBLIC; no row and
+-- no error while the function is absent; then the manifest's five rows:
+-- mission_control and public visible, none editable or exportable, every
+-- category public):
 --   SELECT p.prosecdef, p.provolatile, p.proisstrict, p.proowner::regrole, p.proconfig,
---          (SELECT array_agg(a.grantee::regrole::text ORDER BY a.grantee::regrole::text)
---             FROM aclexplode(p.proacl) AS a
---            WHERE a.privilege_type = 'EXECUTE' AND a.grantee <> p.proowner)
---     FROM pg_proc AS p WHERE p.oid = 'public.resolve_home_host(text)'::regprocedure;
+--          (SELECT array_agg(g.grantee ORDER BY g.grantee)
+--             FROM (SELECT CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE a.grantee::regrole::text END AS grantee
+--                     FROM aclexplode(p.proacl) AS a
+--                    WHERE a.privilege_type = 'EXECUTE' AND a.grantee <> p.proowner) AS g)
+--     FROM pg_proc AS p WHERE p.oid = to_regprocedure('public.resolve_home_host(text)');
 --   SELECT surface, visible, editable, exportable, sensitivity_category
 --     FROM public.field_policies
 --    WHERE record_type = 'donor_portal_hosts' AND field_key = 'primary_domain'
