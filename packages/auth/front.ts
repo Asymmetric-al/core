@@ -32,7 +32,7 @@ export const STAFF_EXEMPT_PATHS = [
   "/eve/v1/github",
 ] as const;
 
-export const STAFF_READ_ONLY_EXEMPT_PREFIXES = ["/api/cms/public/"] as const;
+export const STAFF_READ_ONLY_EXEMPT_PREFIXES = [] as const;
 
 export const MISSIONARY_EXEMPT_PATHS = [
   "/api/health/migrations",

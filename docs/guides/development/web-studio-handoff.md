@@ -73,8 +73,7 @@ D20 catalog, or D21 reader-authority switches.
 
 ## What is risky to touch
 
-- `apps/admin/src/cms/public/resolve-tenant.ts` — security-sensitive.
-- Public route handlers — must stay **published-only** and tenant-scoped.
+- `packages/api/src/cms/public` and `scripts/verify/cms-public-sole-entry.mjs` — public content choke-point (prototype admin `/api/cms/public/*` routes and `resolve-tenant.ts` were retired in WP6 part 2a).
 - D21-adopted public cohorts — never restore old public handlers, mock data,
   raw Payload reads, or old caches through a UI/deployment rollback.
 - `apps/admin/payload.config.ts` access / hooks / collection order.

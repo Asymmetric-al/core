@@ -32,6 +32,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { ADMIN_URL, IN_MIGRATE_JOB } from "./harness";
+import { OVERRIDE_LOCK_WRITE_MESSAGE } from "../../../../apps/admin/src/cms/web-studio-api-route";
 
 vi.mock(
   "@payload-config",
@@ -87,7 +88,6 @@ describe.skipIf(!ADMIN_URL)(
     let superAdminOfA: Record<string, unknown>;
     let documentOfA: Doc;
     let rest: Record<string, RouteHandler>;
-    let graphql: Record<string, RouteHandler>;
     let createE2EAuthCookieValue: (session: unknown) => Promise<string>;
     let e2eCookieName: string;
     let webStudioTenantCookie: (selection: {
@@ -191,8 +191,6 @@ describe.skipIf(!ADMIN_URL)(
 
       rest =
         (await import("../../../../apps/admin/app/(payload)/web-studio/api/[...slug]/route")) as never;
-      graphql =
-        (await import("../../../../apps/admin/app/(payload)/web-studio/api/graphql/route")) as never;
       const e2e = await import("../../../../packages/auth/e2e-auth");
       createE2EAuthCookieValue = e2e.createE2EAuthCookieValue as never;
       e2eCookieName = e2e.E2E_AUTH_COOKIE_NAME;
@@ -592,30 +590,223 @@ describe.skipIf(!ADMIN_URL)(
         expect(await locksOn(documentOfA)).toEqual(before);
       });
 
-      it("the GraphQL route refuses the same", async () => {
+      it("POST and GET to /web-studio/api/graphql through the REST catch-all answer 404 Route not found and touch no lock after WP6 part 2a retires GraphQL", async () => {
         const before = await locksOn(documentOfA);
-        const response = await graphql.POST!(
+        const postResponse = await rest.POST!(
           await fromOtherOrganization("POST", "/web-studio/api/graphql", {
             query:
               "mutation ($user: PayloadLockedDocument_UserRelationshipInput!, $document: PayloadLockedDocument_DocumentRelationshipInput) { createPayloadLockedDocument(data: { user: $user, document: $document }) { id } }",
-            // GraphQL names the collections as enum values.
             variables: {
               user: { relationTo: "cms_users", value: editorA1.id },
               document: { relationTo: "navigation", value: documentOfA.id },
             },
           }),
-          {},
+          { params: Promise.resolve({ slug: ["graphql"] }) },
         );
-        const body = (await response.json()) as {
-          data?: Record<string, unknown> | null;
-          errors?: Array<{ message: string }>;
-        };
-        // Refused by access, not by a malformed mutation.
-        expect(body.errors?.map((error) => error.message)).toContainEqual(
-          expect.stringMatching(/not allowed/i),
+        expect(postResponse.status).toBe(404);
+        expect(await postResponse.json()).toEqual({
+          message: 'Route not found "/web-studio/api/graphql"',
+        });
+
+        const getResponse = await rest.GET!(
+          await fromOtherOrganization("GET", "/web-studio/api/graphql"),
+          { params: Promise.resolve({ slug: ["graphql"] }) },
         );
-        expect(body.data?.createPayloadLockedDocument ?? null).toBeNull();
+        expect(getResponse.status).toBe(404);
+        expect(await getResponse.json()).toEqual({
+          message: 'Route not found "/web-studio/api/graphql"',
+        });
         expect(await locksOn(documentOfA)).toEqual(before);
+      });
+
+      it("a second editor's same-origin PATCH and DELETE with ?overrideLock=true or ?[overrideLock]=true on a locked document get 403 and leave the stored row and lock unchanged", async () => {
+        const sharedOrg = randomUUID();
+        const firstPerson = randomUUID();
+        const secondPerson = randomUUID();
+        const firstAssignment = randomUUID();
+        const secondAssignment = randomUUID();
+        const originalLabel = `Override Lock Guard ${stamp}`;
+
+        async function asSharedEditor(
+          personId: string,
+          assignmentId: string,
+          method: string,
+          path: string,
+          body?: unknown,
+        ) {
+          const identity = await createE2EAuthCookieValue({
+            userId: personId,
+            role: "staff",
+            tenantId: sharedOrg,
+            memberships: [
+              {
+                id: assignmentId,
+                tenantId: sharedOrg,
+                role: "staff",
+                staffRole: "development",
+                isTenantAdmin: false,
+              },
+            ],
+          });
+          const selection = await webStudioTenantCookie({
+            tenantId: sharedOrg,
+            assignmentId,
+          });
+          return new Request(`${ORIGIN}${path}`, {
+            method,
+            headers: {
+              origin: ORIGIN,
+              host: new URL(ORIGIN).host,
+              cookie: `${e2eCookieName}=${identity}; ${selection.name}=${selection.value}`,
+              "x-asym-tenant": sharedOrg,
+              "x-asym-assignment": assignmentId,
+              "content-type": "application/json",
+            },
+            ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+          });
+        }
+
+        let lockedDocId: number | string | null = null;
+        try {
+          const meOne = await rest.GET!(
+            await asSharedEditor(
+              firstPerson,
+              firstAssignment,
+              "GET",
+              "/web-studio/api/cms-users/me",
+            ),
+            { params: Promise.resolve({ slug: ["cms-users", "me"] }) },
+          );
+          expect(meOne.status).toBe(200);
+          const userOne = (
+            (await meOne.json()) as {
+              user: Record<string, unknown>;
+            }
+          ).user;
+          expect(userOne?.id).toBeTruthy();
+
+          const meTwo = await rest.GET!(
+            await asSharedEditor(
+              secondPerson,
+              secondAssignment,
+              "GET",
+              "/web-studio/api/cms-users/me",
+            ),
+            { params: Promise.resolve({ slug: ["cms-users", "me"] }) },
+          );
+          expect(meTwo.status).toBe(200);
+
+          const createdNav = await rest.POST!(
+            await asSharedEditor(
+              firstPerson,
+              firstAssignment,
+              "POST",
+              "/web-studio/api/navigation",
+              {
+                label: originalLabel,
+                items: [{ label: "Home", href: "/" }],
+              },
+            ),
+            { params: Promise.resolve({ slug: ["navigation"] }) },
+          );
+          expect(createdNav.status).toBe(201);
+          const lockedDoc = ((await createdNav.json()) as { doc: Doc }).doc;
+          lockedDocId = lockedDoc.id;
+
+          await formStateAs({ ...userOne, collection: "cms-users" }, lockedDoc);
+          const locksBefore = await locksOn(lockedDoc);
+          expect(locksBefore).toHaveLength(1);
+
+          for (const query of ["?overrideLock=true", "?[overrideLock]=true"]) {
+            const patchRes = await rest.PATCH!(
+              await asSharedEditor(
+                secondPerson,
+                secondAssignment,
+                "PATCH",
+                `/web-studio/api/navigation/${lockedDoc.id}${query}`,
+                { label: `Overridden ${stamp}` },
+              ),
+              {
+                params: Promise.resolve({
+                  slug: ["navigation", String(lockedDoc.id)],
+                }),
+              },
+            );
+            expect(patchRes.status, `PATCH ${query}`).toBe(403);
+            expect(
+              patchRes.headers.get("cache-control"),
+              `PATCH ${query}`,
+            ).toBe("no-store");
+            expect(await patchRes.json(), `PATCH ${query}`).toEqual({
+              errors: [{ message: OVERRIDE_LOCK_WRITE_MESSAGE }],
+            });
+
+            const deleteRes = await rest.DELETE!(
+              await asSharedEditor(
+                secondPerson,
+                secondAssignment,
+                "DELETE",
+                `/web-studio/api/navigation/${lockedDoc.id}${query}`,
+              ),
+              {
+                params: Promise.resolve({
+                  slug: ["navigation", String(lockedDoc.id)],
+                }),
+              },
+            );
+            expect(deleteRes.status, `DELETE ${query}`).toBe(403);
+            expect(
+              deleteRes.headers.get("cache-control"),
+              `DELETE ${query}`,
+            ).toBe("no-store");
+            expect(await deleteRes.json(), `DELETE ${query}`).toEqual({
+              errors: [{ message: OVERRIDE_LOCK_WRITE_MESSAGE }],
+            });
+          }
+
+          const stored = (await payload.find({
+            collection: "navigation",
+            where: { id: { equals: lockedDoc.id } },
+            overrideAccess: true,
+          })) as unknown as {
+            docs: Array<{ id: number | string; label: string }>;
+          };
+          expect(stored.docs).toHaveLength(1);
+          expect(stored.docs[0]?.label).toBe(originalLabel);
+          expect(await locksOn(lockedDoc)).toEqual(locksBefore);
+        } finally {
+          if (lockedDocId !== null) {
+            await db
+              .query(
+                "delete from cms.payload_locked_documents where id in (select parent_id from cms.payload_locked_documents_rels where navigation_id = $1)",
+                [lockedDocId],
+              )
+              .catch(() => undefined);
+            await payload
+              .delete({
+                collection: "navigation",
+                id: lockedDocId,
+                overrideAccess: true,
+              })
+              .catch(() => undefined);
+          }
+          for (const id of [firstPerson, secondPerson]) {
+            await payload
+              .delete({
+                collection: "cms-users",
+                where: { email: { equals: `${id}@e2e.asym.local` } },
+                overrideAccess: true,
+              })
+              .catch(() => undefined);
+          }
+          await payload
+            .delete({
+              collection: "tenants",
+              where: { slug: { equals: sharedOrg } },
+              overrideAccess: true,
+            })
+            .catch(() => undefined);
+        }
       });
     });
   },

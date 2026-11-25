@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
+
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 type PayloadConfig = Awaited<
@@ -94,17 +97,42 @@ describe("Web Studio display conventions", () => {
 });
 
 describe("Payload's REST routes (AL-2675, WP2b slice C; plan 5.2)", () => {
-  it("answer under /web-studio/api, inside Web Studio's path and outside Mission Control's /api", () => {
+  it("answer under /web-studio/api with GraphQL disabled after WP6 part 2a retires Payload GraphQL", () => {
     expect(config.routes.admin).toBe("/web-studio");
     expect(config.routes.api).toBe("/web-studio/api");
-    // GraphQL follows the setting; WP6 removes it.
-    expect(config.routes.graphQL).toBe("/graphql");
+    expect(config.graphQL?.disable).toBe(true);
   });
 
   it("answer an anonymous Web Studio refusal with JSON that says why", async () => {
     const { webStudioRefusalAfterError } =
       await import("../../../apps/admin/src/cms/auth/web-studio-refusal");
     expect(config.hooks?.afterError).toContain(webStudioRefusalAfterError);
+  });
+
+  it("keeps Payload jobs disabled with no tasks, workflows, or autoRun because Payload's REST handler requests crons on every request", () => {
+    const jobs = config.jobs as
+      | {
+          enabled?: boolean;
+          autoRun?: unknown;
+          tasks?: unknown[];
+          workflows?: unknown[];
+        }
+      | undefined;
+    expect(jobs?.tasks ?? []).toEqual([]);
+    expect(jobs?.workflows ?? []).toEqual([]);
+    expect(jobs?.enabled).not.toBe(true);
+    expect(jobs?.autoRun).toBeUndefined();
+  });
+
+  it("keeps the retired prototype public CMS and Payload GraphQL route directories absent from apps/admin after WP6 part 2a", () => {
+    expect(existsSync(path.resolve("apps/admin/app/api/cms/public"))).toBe(
+      false,
+    );
+    expect(
+      existsSync(
+        path.resolve("apps/admin/app/(payload)/web-studio/api/graphql"),
+      ),
+    ).toBe(false);
   });
 });
 

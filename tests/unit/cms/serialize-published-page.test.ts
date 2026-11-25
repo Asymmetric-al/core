@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { serializePublishedPageLike } from "../../../apps/admin/src/cms/public/serialize-published-page";
+import { serializePublishedPageLike } from "../../../apps/admin/src/cms/preview/serialize-published-page";
 
 import type { PublicRequestContext } from "../../../packages/api/src/cms/public/context";
 

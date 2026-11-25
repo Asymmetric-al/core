@@ -56,8 +56,9 @@ ADRs 0026–0030):
   applies tenant-and-published, runs Payload with `overrideAccess: false`
   under the public-read policy, and returns empty on an unresolved tenant.
   Raw Payload reads (`payload.find`/`findByID`) in public code paths are
-  forbidden by a hard-blocking lint; the `/api/cms/public/*` routes above are
-  transport behind the reader, never a second rule set.
+  forbidden by a hard-blocking lint; the prototype `/api/cms/public/*` routes
+  were retired in WP6 part 2a (AL-2679) and the sole-entry allowlist is empty
+  until WP7 implements `packages/api/src/cms/public`.
 - **Function-level caching only.** Published reads cache with `use cache` +
   `cacheTag` + a bounded `cacheLife`; **cache-key isolation comes from
   passing the tenant as a function argument** (tags are invalidation-only).
@@ -246,11 +247,6 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/cms/media/delete`                                        | Node.js (no `runtime` segment export) | Staff media asset tombstone command                        |
 | admin      | `/api/cms/media/finalize`                                      | Node.js (no `runtime` segment export) | Staff media sanitization and custody finalize              |
 | admin      | `/api/cms/media/start`                                         | Node.js (no `runtime` segment export) | Staff media upload-start and signed upload token           |
-| admin      | `/api/cms/public/missionary-pages/[id]`                        | Node.js (no `runtime` segment export) | CMS public missionary pages                                |
-| admin      | `/api/cms/public/navigation`                                   | Node.js (no `runtime` segment export) | CMS public navigation                                      |
-| admin      | `/api/cms/public/pages/[...slug]`                              | Node.js (no `runtime` segment export) | CMS public pages                                           |
-| admin      | `/api/cms/public/project-pages/[slug]`                         | Node.js (no `runtime` segment export) | CMS public project pages                                   |
-| admin      | `/api/cms/public/updates`                                      | Node.js (no `runtime` segment export) | CMS public updates                                         |
 | admin      | `/api/donate/outbox`                                           | Node.js (no `runtime` segment export) | Donation outbox processing                                 |
 | admin      | `/api/email/connect`                                           | Node.js (no `runtime` segment export) | Resend admin integration                                   |
 | admin      | `/api/email/assets/upload`                                     | Node.js (no `runtime` segment export) | Email Studio asset upload                                  |

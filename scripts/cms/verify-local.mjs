@@ -101,10 +101,10 @@ async function verifyHttpIfServerRunning(seed) {
       },
     });
     assertCheck(
-      `http ${endpoint}`,
-      response.ok,
+      `http ${endpoint} returns 404`,
+      response.status === 404,
       `status ${response.status}`,
-      "Run `bun run cms:local:seed`, then restart `bun run dev:admin`.",
+      "Retired public CMS routes must return 404; restart `bun run dev:admin` if an older server is running.",
     );
   }
 

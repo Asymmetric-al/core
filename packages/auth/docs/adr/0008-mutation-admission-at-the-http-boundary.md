@@ -51,6 +51,5 @@ routes answer `{ error }`.
    JSON turns out to contain bytes. The proxy judges by headers and the reader
    by the bytes it reads, so either one can be the layer that refuses a write,
    and the client gets the same status and message from both, though a route
-   may add other fields to the body. Web Studio's GraphQL route
-   (`apps/admin/app/(payload)/web-studio/api/graphql/route.ts`) returns the same
-   text in Payload's shape.
+   may add other fields to the body. Web Studio's GraphQL route was retired in
+   WP6 part 2a (AL-2679).

@@ -652,43 +652,36 @@ test("@cms bulk delete in a list opened for one organization, after another tab 
         ["DELETE", "PATCH"].includes(r.request().method()),
     );
     await expect(staleNotice(page)).toHaveCount(0);
-    // Each text the notice shows is reported the moment it renders, so the
-    // check below does not race the reload that follows (JR13).
-    const noticed: string[] = [];
-    await page.exposeBinding("__reportNotice", (_source, text: string) => {
-      noticed.push(text);
-    });
-    await page.evaluate(() => {
-      const report = (
-        window as unknown as { __reportNotice(text: string): void }
-      ).__reportNotice;
-      new MutationObserver(() => {
-        for (const dialog of document.querySelectorAll(
-          '[role="alertdialog"]',
-        )) {
-          report(dialog.textContent ?? "");
-        }
-      }).observe(document.documentElement, {
-        subtree: true,
-        childList: true,
-        characterData: true,
-      });
-    });
+    await markDocument(page);
+    const navigations: string[] = [];
+    const onFrameNavigated = (frame: ReturnType<Page["mainFrame"]>) => {
+      if (frame === page.mainFrame()) {
+        navigations.push(frame.url());
+      }
+    };
+    page.on("framenavigated", onFrameNavigated);
     await page.getByRole("button", { name: "Confirm", exact: true }).click();
     const response = await deleted;
     expect(response.status()).toBe(409);
     expect(response.headers()["x-asym-web-studio-refusal"]).toBe(
       "scope_mismatch",
     );
-    // The bulk delete itself opens the notice (council r2 CR5). Payload's
-    // list replaces its address after the action, the page then renders for
-    // the organization now chosen and the document reloads into it, about a
-    // second later, and the notice goes with it (council on the joined
-    // release, reported in its handoff); what it showed was recorded.
-    await expect
-      .poll(() => noticed.some((text) => text.includes(STALE_MESSAGE)))
-      .toBe(true);
+    await expect(staleNotice(page)).toBeVisible();
+    await expect(staleNotice(page)).toContainText(STALE_MESSAGE);
     await page.unrouteAll({ behavior: "ignoreErrors" });
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    expect(navigations).toEqual([]);
+    expect(await sameDocument(page)).toBe(true);
+    expect((await webStudioScope(page)).tenant).toBe(DEMO);
+    await expect(staleNotice(page)).toBeVisible();
+    await expect(staleNotice(page)).toContainText(STALE_MESSAGE);
+    page.off("framenavigated", onFrameNavigated);
+
+    await staleNotice(page).getByRole("button", { name: "Reload" }).click();
+    await expect.poll(() => sameDocument(page)).toBe(false);
+    await expect
+      .poll(async () => (await webStudioScope(page)).tenant)
+      .toBe(SECOND);
 
     await switchOrganization(other, base, DEMO);
     expect(await restTitles(other, base, "pages", stamp)).toEqual([
@@ -697,6 +690,90 @@ test("@cms bulk delete in a list opened for one organization, after another tab 
     await other.close();
   } finally {
     await cleanUp(page, "pages", id);
+  }
+});
+
+test("@cms a preferences write from a tab opened for one organization, after another tab switched to the other, answers 409 with the refusal header and asks to reload", async ({
+  page,
+}) => {
+  await signIn(page);
+  await enter(page, DEMO);
+  const key = `wp6-2a-stale-pref-${Date.now()}`;
+
+  await openStarted(page, `${base}/web-studio/collections/pages`);
+  await holdOwnCalls(page);
+  const other = await page.context().newPage();
+  await switchOrganization(other, base, SECOND);
+
+  try {
+    await expect(staleNotice(page)).toHaveCount(0);
+    const postResult = await page.evaluate(async (prefKey) => {
+      const response = await fetch(
+        `/web-studio/api/payload-preferences/${prefKey}`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ value: { stale: true } }),
+        },
+      );
+      return {
+        status: response.status,
+        refusal: response.headers.get("x-asym-web-studio-refusal"),
+        body: (await response.json()) as { message?: string },
+      };
+    }, key);
+    expect(postResult.status).toBe(409);
+    expect(postResult.refusal).toBe("scope_mismatch");
+    expect(postResult.body.message).toBe(STALE_MESSAGE);
+    await expect(staleNotice(page)).toBeVisible();
+    await expect(staleNotice(page)).toContainText(STALE_MESSAGE);
+
+    const deleteResult = await page.evaluate(async (prefKey) => {
+      const response = await fetch(
+        `/web-studio/api/payload-preferences/${prefKey}`,
+        {
+          method: "DELETE",
+        },
+      );
+      return {
+        status: response.status,
+        refusal: response.headers.get("x-asym-web-studio-refusal"),
+        body: (await response.json()) as { message?: string },
+      };
+    }, key);
+    expect(deleteResult.status).toBe(409);
+    expect(deleteResult.refusal).toBe("scope_mismatch");
+    expect(deleteResult.body.message).toBe(STALE_MESSAGE);
+
+    await expect
+      .poll(async () => (await webStudioScope(other)).tenant)
+      .toBe(SECOND);
+    await openStarted(other, `${base}/web-studio/collections/pages`);
+    const activePost = await other.evaluate(async (prefKey) => {
+      const response = await fetch(
+        `/web-studio/api/payload-preferences/${prefKey}`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ value: { stale: false } }),
+        },
+      );
+      return response.status;
+    }, key);
+    expect(activePost).toBe(200);
+    const activeDelete = await other.evaluate(async (prefKey) => {
+      const response = await fetch(
+        `/web-studio/api/payload-preferences/${prefKey}`,
+        {
+          method: "DELETE",
+        },
+      );
+      return response.status;
+    }, key);
+    expect(activeDelete).toBe(200);
+  } finally {
+    await page.unrouteAll({ behavior: "ignoreErrors" });
+    await other.close();
   }
 });
 
