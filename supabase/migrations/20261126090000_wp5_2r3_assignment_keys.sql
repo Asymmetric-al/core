@@ -26,8 +26,10 @@
 --    triggers wp5_assignment_children_after_* on public.missionaries.
 -- 4. private.repair_ministry_assignment_ids() and
 --    private.ministry_assignment_key_report(), invokers owned by postgres and
---    executable by nobody else; each refuses (42501) a caller with neither
---    superuser nor BYPASSRLS, because all six tables force row security
+--    executable by nobody else. The repair reports, for each change, the
+--    key its UPDATE stored after the triggers. Each refuses (42501) a
+--    caller with neither superuser nor BYPASSRLS, because all six tables
+--    force row security
 --    (20261025070000_force_rls_tenant_tables.sql, lines 95-115) and such a
 --    caller would change or count nothing, silently.
 -- 5. Indexes (tenant_id, ministry_assignment_id) on the five tables and
@@ -97,8 +99,8 @@
 -- the row type missionary_tasks, the language plpgsql, and the
 -- authz.current_tenant_id, authz.assignment_is and authz.membership_role
 -- that search_crm_donors' body names.
--- Elapsed on that database: 0.33 to 0.41 s for the whole file, psql's start
--- included (four runs).
+-- Elapsed on that database: 0.33 to 0.56 s for the whole file, psql's start
+-- included (eight runs on a shared laptop).
 --
 -- Backfill on that database: keys set on 15 donors, 36 posts, 12 follows,
 -- 10 follower requests and 18 tasks; the count after it is valid for each
@@ -440,7 +442,9 @@ ALTER FUNCTION private.rederive_ministry_assignment_children() OWNER TO postgres
 REVOKE ALL ON FUNCTION private.rederive_ministry_assignment_children() FROM PUBLIC, anon, authenticated, service_role;
 
 -- 6. The repair (Q1 condition 2): every key that differs from the derived
--- one, a wrong non-NULL key included, is set to it; one row per change; T
+-- one, a wrong non-NULL key included, is set to it; one row per change,
+-- whose new key is the one the UPDATE stored after the child's own trigger
+-- ran (RETURNING), so the report never claims a value the table lacks; T
 -- and P never change; a second run returns nothing.
 CREATE FUNCTION private.repair_ministry_assignment_ids()
 RETURNS TABLE (
@@ -472,9 +476,10 @@ BEGIN
      WHERE c.ministry_assignment_id IS DISTINCT FROM private.assignment_for_profile(c.tenant_id, c.missionary_id)
   ), fixed AS (
     UPDATE public.donors AS c SET ministry_assignment_id = w.new_id
-      FROM wrong AS w WHERE c.id = w.row_id RETURNING c.id
+      FROM wrong AS w WHERE c.id = w.row_id
+    RETURNING c.id, c.ministry_assignment_id AS stored_id
   )
-  SELECT 'donors'::text, w.row_id, w.tenant_id, w.old_id, w.new_id
+  SELECT 'donors'::text, w.row_id, w.tenant_id, w.old_id, f.stored_id
     FROM wrong AS w JOIN fixed AS f ON f.id = w.row_id;
 
   RETURN QUERY
@@ -485,9 +490,10 @@ BEGIN
      WHERE c.ministry_assignment_id IS DISTINCT FROM private.assignment_for_profile(c.tenant_id, c.missionary_id)
   ), fixed AS (
     UPDATE public.posts AS c SET ministry_assignment_id = w.new_id
-      FROM wrong AS w WHERE c.id = w.row_id RETURNING c.id
+      FROM wrong AS w WHERE c.id = w.row_id
+    RETURNING c.id, c.ministry_assignment_id AS stored_id
   )
-  SELECT 'posts'::text, w.row_id, w.tenant_id, w.old_id, w.new_id
+  SELECT 'posts'::text, w.row_id, w.tenant_id, w.old_id, f.stored_id
     FROM wrong AS w JOIN fixed AS f ON f.id = w.row_id;
 
   RETURN QUERY
@@ -498,9 +504,10 @@ BEGIN
      WHERE c.ministry_assignment_id IS DISTINCT FROM private.assignment_for_profile(c.tenant_id, c.missionary_id)
   ), fixed AS (
     UPDATE public.follows AS c SET ministry_assignment_id = w.new_id
-      FROM wrong AS w WHERE c.id = w.row_id RETURNING c.id
+      FROM wrong AS w WHERE c.id = w.row_id
+    RETURNING c.id, c.ministry_assignment_id AS stored_id
   )
-  SELECT 'follows'::text, w.row_id, w.tenant_id, w.old_id, w.new_id
+  SELECT 'follows'::text, w.row_id, w.tenant_id, w.old_id, f.stored_id
     FROM wrong AS w JOIN fixed AS f ON f.id = w.row_id;
 
   RETURN QUERY
@@ -511,9 +518,10 @@ BEGIN
      WHERE c.ministry_assignment_id IS DISTINCT FROM private.assignment_for_profile(c.tenant_id, c.missionary_id)
   ), fixed AS (
     UPDATE public.follower_requests AS c SET ministry_assignment_id = w.new_id
-      FROM wrong AS w WHERE c.id = w.row_id RETURNING c.id
+      FROM wrong AS w WHERE c.id = w.row_id
+    RETURNING c.id, c.ministry_assignment_id AS stored_id
   )
-  SELECT 'follower_requests'::text, w.row_id, w.tenant_id, w.old_id, w.new_id
+  SELECT 'follower_requests'::text, w.row_id, w.tenant_id, w.old_id, f.stored_id
     FROM wrong AS w JOIN fixed AS f ON f.id = w.row_id;
 
   RETURN QUERY
@@ -524,14 +532,15 @@ BEGIN
      WHERE c.ministry_assignment_id IS DISTINCT FROM private.assignment_for_profile(c.tenant_id, c.missionary_id)
   ), fixed AS (
     UPDATE public.missionary_tasks AS c SET ministry_assignment_id = w.new_id
-      FROM wrong AS w WHERE c.id = w.row_id RETURNING c.id
+      FROM wrong AS w WHERE c.id = w.row_id
+    RETURNING c.id, c.ministry_assignment_id AS stored_id
   )
-  SELECT 'missionary_tasks'::text, w.row_id, w.tenant_id, w.old_id, w.new_id
+  SELECT 'missionary_tasks'::text, w.row_id, w.tenant_id, w.old_id, f.stored_id
     FROM wrong AS w JOIN fixed AS f ON f.id = w.row_id;
 END;
 $$;
 COMMENT ON FUNCTION private.repair_ministry_assignment_ids() IS
-  'Sets every ministry_assignment_id that differs from private.assignment_for_profile(tenant_id, missionary_id) to it and returns one row per change. Owner only; refuses a caller without superuser or BYPASSRLS (AL-2678, Q1 condition 2).';
+  'Sets every ministry_assignment_id that differs from private.assignment_for_profile(tenant_id, missionary_id) to it and returns one row per change, with the key the row holds after the update and its triggers. Owner only; refuses a caller without superuser or BYPASSRLS (AL-2678, Q1 condition 2).';
 ALTER FUNCTION private.repair_ministry_assignment_ids() OWNER TO postgres;
 REVOKE ALL ON FUNCTION private.repair_ministry_assignment_ids() FROM PUBLIC, anon, authenticated, service_role;
 
