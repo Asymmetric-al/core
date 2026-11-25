@@ -119,6 +119,10 @@ type FileFacts = {
   partiesFrom: string[];
   authorNames: string[];
   cacheReads: { rule: string; text: string }[];
+  functions: { name: string; start: number; end: number }[];
+  workerReads: number[];
+  calls: { pos: number; name: string }[];
+  cachedSpans: [number, number][];
 };
 
 type ValuesOf = (file: string, name: string) => ReadonlySet<string>;
@@ -242,6 +246,12 @@ function propertyNamed(
   return null;
 }
 
+function revalidateCaches(value: ts.Expression) {
+  const v = unwrap(value);
+  if (ts.isNumericLiteral(v)) return Number(v.text) > 0;
+  return true;
+}
+
 function factsOf(
   file: string,
   sf: ts.SourceFile,
@@ -257,6 +267,37 @@ function factsOf(
     partiesFrom: [],
     authorNames: [],
     cacheReads: [],
+    functions: [],
+    workerReads: [],
+    calls: [],
+    cachedSpans: [],
+  };
+  const objectBindings = new Map<
+    string,
+    { count: number; literal: ts.ObjectLiteralExpression | null }
+  >();
+  const countBindings = (node: ts.Node) => {
+    const assigned = assignedString(node);
+    if (assigned) {
+      const value = unwrap(assigned.value);
+      const seen = objectBindings.get(assigned.name);
+      objectBindings.set(assigned.name, {
+        count: (seen?.count ?? 0) + 1,
+        literal: ts.isObjectLiteralExpression(value) ? value : null,
+      });
+    }
+    ts.forEachChild(node, countBindings);
+  };
+  countBindings(sf);
+  const optionsOf = (arg: ts.Expression | undefined) => {
+    const e = arg && unwrap(arg);
+    if (!e) return null;
+    if (ts.isObjectLiteralExpression(e)) return e;
+    if (ts.isIdentifier(e)) {
+      const bound = objectBindings.get(e.text);
+      if (bound?.count === 1 && bound.literal) return bound.literal;
+    }
+    return null;
   };
   const tableOf = (arg: ts.Expression | undefined): ReadonlySet<string> => {
     if (!arg) return new Set();
@@ -315,7 +356,29 @@ function factsOf(
   let cached = 0;
   const visit = (node: ts.Node) => {
     const opens = opensCache(node);
-    if (opens) cached++;
+    if (opens) {
+      cached++;
+      facts.cachedSpans.push([node.getStart(sf), node.getEnd()]);
+    }
+    if (ts.isFunctionDeclaration(node) && node.name)
+      facts.functions.push({
+        name: node.name.text,
+        start: node.getStart(sf),
+        end: node.getEnd(),
+      });
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.initializer
+    ) {
+      const init = unwrap(node.initializer);
+      if (ts.isArrowFunction(init) || ts.isFunctionExpression(init))
+        facts.functions.push({
+          name: node.name.text,
+          start: init.getStart(sf),
+          end: init.getEnd(),
+        });
+    }
     if (
       ts.isStringLiteral(node) ||
       ts.isNoSubstitutionTemplateLiteral(node) ||
@@ -338,20 +401,24 @@ function factsOf(
     }
     if (ts.isCallExpression(node)) {
       const callee = unwrap(node.expression);
+      if (ts.isIdentifier(callee))
+        facts.calls.push({ pos: node.getStart(sf), name: callee.text });
       if (isUnstableCache(callee))
         facts.cacheReads.push({
           rule: "unstable_cache outside Mission Control",
           text: node.getText(sf),
         });
-      const options = node.arguments[1] && unwrap(node.arguments[1]);
-      if (isFetch(callee) && options && ts.isObjectLiteralExpression(options)) {
+      const options = optionsOf(node.arguments[1]);
+      if (isFetch(callee) && options) {
         const cache = propertyNamed(options, "cache");
         const next = propertyNamed(options, "next");
+        const revalidate =
+          next && ts.isObjectLiteralExpression(next)
+            ? propertyNamed(next, "revalidate")
+            : null;
         if (
           (cache !== null && tableOf(cache).has("force-cache")) ||
-          (next &&
-            ts.isObjectLiteralExpression(next) &&
-            propertyNamed(next, "revalidate") !== null)
+          (revalidate !== null && revalidateCaches(revalidate))
         )
           facts.cacheReads.push({
             rule: "a fetch cached on the server outside Mission Control",
@@ -365,24 +432,26 @@ function factsOf(
         )
           facts.partiesFrom.push(node.getText(sf));
         if (
-          cached > 0 &&
           callee.name.text === "rpc" &&
           tableOf(node.arguments[0]).has("post_comment_authors")
-        )
-          facts.cacheReads.push({
-            rule: "commenters' names in a server cache",
-            text: node.getText(sf),
-          });
-        if (callee.name.text === "select" && node.arguments[0]) {
-          const arg = node.arguments[0];
-          if (
-            cached > 0 &&
-            textsOf(arg).some((t) => WORKER_NAME_COLUMN.test(t))
-          )
+        ) {
+          facts.workerReads.push(node.getStart(sf));
+          if (cached > 0)
             facts.cacheReads.push({
-              rule: "a worker's public name in a server cache",
+              rule: "commenters' names in a server cache",
               text: node.getText(sf),
             });
+        }
+        if (callee.name.text === "select" && node.arguments[0]) {
+          const arg = node.arguments[0];
+          if (textsOf(arg).some((t) => WORKER_NAME_COLUMN.test(t))) {
+            facts.workerReads.push(node.getStart(sf));
+            if (cached > 0)
+              facts.cacheReads.push({
+                rule: "a worker's public name in a server cache",
+                text: node.getText(sf),
+              });
+          }
           for (const root of rootOf(callee.expression)) {
             facts.fromRoots.push({
               start: arg.getStart(sf),
@@ -442,7 +511,7 @@ function resolveModule(
 }
 
 const INTERPOLATED_HINT =
-  /(?<![A-Za-z0-9_])(?:missionaries|profiles|posts|post_comments)(?:\s*!\s*\w+)*\s*!\s*$/;
+  /(?:(?<![A-Za-z0-9_])(?:missionaries|profiles|posts|post_comments)(?:\s*!\s*\w+)*\s*!\s*|(?:^|[,(])\s*(?:[A-Za-z_]\w*\s*:\s*)?(?:missionaries|profiles|posts|post_comments)\s*)$/;
 
 const EMBED_RE =
   /(?<![A-Za-z0-9_])(?:\.\.\.\s*)?(?:[A-Za-z_]\w*\s*:\s*)?(missionaries|profiles|donors|parties|posts|post_comments)((?:\s*!\s*\w+)*)\s*\(/g;
@@ -518,6 +587,32 @@ function scanSources(sources: Map<string, string>): Violation[] {
   };
   for (const [file, f] of facts)
     for (const ref of f.selectIds) bind(file, ref.name, ref.root);
+  const readsThrough = (
+    file: string,
+    name: string,
+    seen: Set<string>,
+  ): boolean => {
+    const key = `${file}\0${name}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    const f = facts.get(file);
+    if (!f) return false;
+    const own = f.functions.filter((fn) => fn.name === name);
+    if (own.length > 0)
+      return own.some(
+        (fn) =>
+          f.workerReads.some((pos) => pos >= fn.start && pos < fn.end) ||
+          f.calls.some(
+            (call) =>
+              call.pos >= fn.start &&
+              call.pos < fn.end &&
+              readsThrough(file, call.name, seen),
+          ),
+      );
+    const imp = f.imports.get(name);
+    const resolved = imp && resolveModule(file, imp.specifier, files);
+    return resolved ? readsThrough(resolved, imp.importedName, seen) : false;
+  };
 
   const violations: Violation[] = [];
   for (const [file, f] of facts) {
@@ -527,6 +622,17 @@ function scanSources(sources: Map<string, string>): Violation[] {
     for (const access of f.authorNames)
       push("a post author's profile name", access);
     for (const read of f.cacheReads) push(read.rule, read.text);
+    for (const [start, end] of f.cachedSpans)
+      for (const call of f.calls)
+        if (
+          call.pos >= start &&
+          call.pos < end &&
+          readsThrough(file, call.name, new Set())
+        )
+          push(
+            "a worker's public name in a server cache, through a call",
+            call.name,
+          );
     for (const lit of f.literals) {
       if (lit.text.trim() === "parties") push("a parties read", lit.text);
       const roots = new Set<string>();

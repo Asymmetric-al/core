@@ -868,6 +868,43 @@ async function assertCorrectionReferencesExist(input: {
   }
 }
 
+async function loadReceiptWorkerPublicNames(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  before: ContributionDetail;
+  effectiveValues: ContributionAdjustmentEffectiveValues;
+}): Promise<ReadonlyMap<string, string | null>> {
+  const corrected = input.effectiveValues.designationLines ?? [];
+  const fundIds = uniqueReferenceIds([
+    input.before.effective.fundId,
+    ...input.before.designations.lines.map((line) => line.fundId),
+    input.effectiveValues.fundId,
+    ...corrected.map((line) => line.fundId),
+  ]).filter(isUuid);
+  const fundsResult =
+    fundIds.length > 0
+      ? await input.supabaseAdmin
+          .from("funds")
+          .select("id, missionary_id")
+          .eq("tenant_id", input.tenantId)
+          .in("id", fundIds)
+      : { data: [], error: null };
+  assertNoError(
+    fundsResult.error,
+    "Failed to load the funds an updated receipt can name.",
+  );
+
+  return loadWorkerPublicNames(input.supabaseAdmin, input.tenantId, [
+    input.before.effective.missionaryId,
+    ...input.before.designations.lines.map((line) => line.missionaryId),
+    input.effectiveValues.missionaryId,
+    ...corrected.map((line) => line.missionaryId),
+    ...((fundsResult.data ?? []) as JsonRecord[]).map((row) =>
+      asString(row.missionary_id),
+    ),
+  ]);
+}
+
 function summarizeEffectiveDetail(detail: ContributionDetail) {
   return {
     amount: detail.effective.amountCents,
@@ -1114,6 +1151,16 @@ export async function applyContributionCorrection(input: {
     }
   }
 
+  const workerPublicNames =
+    receiptAffected && deliverySelection && deliverySelection.choice !== "defer"
+      ? await loadReceiptWorkerPublicNames({
+          supabaseAdmin: input.supabaseAdmin,
+          tenantId: input.tenantId,
+          before,
+          effectiveValues,
+        })
+      : new Map<string, string | null>();
+
   const insertResult = await input.supabaseAdmin
     .from("contribution_adjustments")
     .insert({
@@ -1183,11 +1230,7 @@ export async function applyContributionCorrection(input: {
         requested: requestedDelivery ?? deliverySelection,
         snapshotContent: buildReceiptSnapshotContent({
           detail: after,
-          workerPublicNames: await loadWorkerPublicNames(
-            input.supabaseAdmin,
-            input.tenantId,
-            after.designations.lines.map((line) => line.missionaryId),
-          ),
+          workerPublicNames,
           affectedFields,
           adjustmentId,
         }),

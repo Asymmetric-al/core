@@ -48,8 +48,10 @@ restricted or high-risk worker gets the alias or `NULL`, never
      embed nested in a `posts(...)` embed, whatever the outer root;
    - a template chunk that ends in `missionaries!`, `profiles!`, `posts!` or
      (since the r2a fix round) `post_comments!`, the hint interpolated before
-     the parenthesis: the embed cannot be read,
-     so the scan fails closed;
+     the parenthesis, and (since r2a's second round) a chunk that ends in one
+     of those four names as a select item (at its start, or after `,`, `(`
+     or an alias and `:`), as in `missionaries${h}(`: the embed cannot be
+     read, so the scan fails closed;
    - the code `author.<name>` or `author?.<name>` for any of the four name
      columns.
 2. **A donor's own profile is told apart by nesting.** A `profiles` embed is a
@@ -105,9 +107,16 @@ restricted or high-risk worker gets the alias or `NULL`, never
    template or a variable holding `force-cache`; a `let` assigned a root or a
    select after its declaration, with and without an initial value; a
    function and a file whose `use cache` follows `use strict`) and the guard
-   K6 (`next: { revalidate: 60 }`), so **53 fail**; the controls K5, K7, K8
-   and K9 make **13 pass**. Each of P15-P26 passed the scanner before the fix
-   round.
+   K6 (`next: { revalidate: 60 }`), so 53 failed; the controls K5, K7, K8
+   and K9 made 13 pass. Each of P15-P26 passed the scanner before the fix
+   round. r2a's second round adds P27-P32 (a cached function returning a
+   helper's read: of the same file, imported, two helpers deep, and an arrow
+   helper calling `post_comment_authors`; a `fetch` whose options are a local
+   constant holding `force-cache`; a hint interpolated with no `!`) and the
+   guards K15 (`revalidate: false`) and K16 (`revalidate` a variable), so
+   **61 fail**; the controls K10-K13 and K14 (`revalidate: 0`, which failed
+   before) make **18 pass**. Each of P27-P32 passed the scanner before the
+   second round.
 6. **What the contract does not see.** A scanner of string literals cannot
    follow a read that is not spelled in one literal: a two-step read (the
    worker's `profile_id`, then `.from("profiles")` by that id), an inverted
@@ -124,7 +133,13 @@ post.author`) or by bracket access (`author["first_name"]`), SQL inside
    to the constants that initializer names). Each is a review item, not a
    test. A template expression inside a `missionaries(...)`
    or a post author's embed fails closed: the scanner cannot read the embed
-   and reports it.
+   and reports it. Nor does it see a root when `.from(...)` and `.select(...)`
+   are split across a local variable (`const q = db.from("missionaries");
+q.select("*")`), a name given by a default or namespace import, by a
+   logical assignment (`T ||= "missionaries"`, `T ??= ...`) or by
+   destructuring (`const [T] = ["missionaries"]`). A name's values are the
+   union of every string it is given anywhere in the file, whatever the
+   scope: that can refuse a harmless query, never pass a harmful one.
 7. **Fixtures for a worker who has no alias.** The rule forbids a
    restricted or high-risk Party without an alias, so the suites write that
    worker ("X") as the table owner with the alias trigger disabled for the one
@@ -199,24 +214,38 @@ NULL` on `public.parties`) and the fourth
     `"use cache: private"`, a `.select(...)` whose text holds
     `worker_public_name` or `post_author_public_name`, directly or through a
     same-file or imported constant, and a `.rpc("post_comment_authors", ...)`;
-    anywhere, a call of `unstable_cache` imported by name from `next/cache`
-    (under its own name or an `as` name), any call named `unstable_cache` and
-    any `.unstable_cache(` on an object; and a `fetch(` whose options object,
-    written at the call, sets `cache` to `"force-cache"` (a literal, a
-    template, or a name holding it) or a `next` object written at the call
-    with a `revalidate` property (written out or shorthand). No handler has
+    and since r2a's second round, a call from such a scope to a function
+    that makes either read, itself or through the functions it calls: a
+    function declaration or a function or arrow function assigned to a name,
+    in the same file or imported by name from a scanned file, followed
+    transitively, each function once (a cycle ends there). The same helper
+    called only from uncached code stays allowed. Anywhere: a call of
+    `unstable_cache` imported by name from `next/cache` (under its own name or
+    an `as` name), any call named `unstable_cache` and any `.unstable_cache(`
+    on an object; and a `fetch(` whose options object, written at the call or
+    held by a name bound once in the same file to an object literal, sets
+    `cache` to `"force-cache"` (a literal, a template, or a name holding it),
+    or sets a `next` object written there whose `revalidate` is a positive
+    number, `false`, or anything that is not a number literal (fail closed);
+    `revalidate: 0` does not cache (`node_modules/next/dist/docs/01-app/03-api-reference/04-functions/fetch.md`,
+    "options.next.revalidate": `false` caches indefinitely, `0` prevents
+    caching, a number caches for at most that many seconds). No handler has
     to expire anything when a worker is restricted (gate c). The tag
     `CACHE_TAGS.tenantPosts` and its `revalidateTag` calls stay and now
     expire nothing; removing them is WP7's. What the rule cannot see, each a
     review item: a table name computed at run time, held in an object or
-    passed as a parameter; a cached function that calls an uncached helper
-    in another function or file; a `"use cache: <name>"` kind other than
+    passed as a parameter; a helper reached through a variable that holds a
+    function, a method of an object, a dynamic `import()`, or a module that
+    re-exports it; a select constant built with `+`, `.join()`, a template
+    with expressions, or through a second name (`const S = A`), which the
+    rule cannot read as a string; a `"use cache: <name>"` kind other than
     remote and private (it needs `cacheHandlers`, which no app sets); a
-    `fetch` whose options are built elsewhere (`fetch(url, opts)`), or whose
-    `next` is (`next: buildPolicy()`, the shape
-    `packages/lib/cms/public-page.ts` builds, which no caller passes today);
-    and `unstable_cache` reached through a local variable
-    (`const memo = unstable_cache`), a bracket access
+    `fetch` whose options are built elsewhere (a parameter, a call, a name
+    bound more than once), whose `next` is (`next: buildPolicy()`, the shape
+    `packages/lib/cms/public-page.ts` builds, which no caller passes today),
+    a `fetch(new Request(url, { cache: "force-cache" }))`, and a `fetch`
+    called by another name; and `unstable_cache` reached through a local
+    variable (`const memo = unstable_cache`), a bracket access
     (`ns["unstable_cache"]`) or a module that re-exports it.
 
 ## Readers closed by WP5 part 2-r2a

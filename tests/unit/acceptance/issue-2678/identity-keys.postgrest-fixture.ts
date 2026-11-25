@@ -341,61 +341,57 @@ export function identityKeysFixture() {
   afterAll(async () => {
     try {
       const db = state.db;
-      if (db) {
-        await db.query("begin");
+      if (db)
         try {
-          for (const sql of [
-            "delete from public.audit_logs where tenant_id = any($1::uuid[])",
-            "delete from public.account_claim_requests where tenant_id = any($1::uuid[])",
-            "delete from public.account_links where tenant_id = any($1::uuid[])",
-            "delete from private.party_restricted where tenant_id = any($1::uuid[])",
-            "delete from public.missionary_tasks where tenant_id = any($1::uuid[])",
-            "delete from public.follower_requests where tenant_id = any($1::uuid[])",
-            "delete from public.donor_feed_preferences where tenant_id = any($1::uuid[])",
-            "delete from public.donor_activities where tenant_id = any($1::uuid[])",
-            "delete from public.posts where tenant_id = any($1::uuid[])",
-            "delete from public.donor_pledges where tenant_id = any($1::uuid[])",
-            "delete from public.donations where tenant_id = any($1::uuid[])",
-            "delete from public.giving_target_entity_locks where tenant_id = any($1::uuid[])",
-            "delete from public.donors where tenant_id = any($1::uuid[])",
-            "delete from public.missionaries where tenant_id = any($1::uuid[])",
-            "delete from public.parties where tenant_id = any($1::uuid[])",
-            "delete from public.legal_entities where tenant_id = any($1::uuid[])",
-            "delete from authz.memberships where tenant_id = any($1::uuid[])",
-            "delete from public.tenants where id = any($1::uuid[])",
-          ])
-            await db.query(sql, [[TA, TB]]);
-          await db.query("commit");
-        } catch (error) {
-          await db.query("rollback");
-          throw error;
+          await db.query("begin");
+          try {
+            for (const sql of [
+              "delete from public.audit_logs where tenant_id = any($1::uuid[])",
+              "delete from public.account_claim_requests where tenant_id = any($1::uuid[])",
+              "delete from public.account_links where tenant_id = any($1::uuid[])",
+              "delete from private.party_restricted where tenant_id = any($1::uuid[])",
+              "delete from public.missionary_tasks where tenant_id = any($1::uuid[])",
+              "delete from public.follower_requests where tenant_id = any($1::uuid[])",
+              "delete from public.donor_feed_preferences where tenant_id = any($1::uuid[])",
+              "delete from public.donor_activities where tenant_id = any($1::uuid[])",
+              "delete from public.posts where tenant_id = any($1::uuid[])",
+              "delete from public.donor_pledges where tenant_id = any($1::uuid[])",
+              "delete from public.donations where tenant_id = any($1::uuid[])",
+              "delete from public.giving_target_entity_locks where tenant_id = any($1::uuid[])",
+              "delete from public.donors where tenant_id = any($1::uuid[])",
+              "delete from public.missionaries where tenant_id = any($1::uuid[])",
+              "delete from public.parties where tenant_id = any($1::uuid[])",
+              "delete from public.legal_entities where tenant_id = any($1::uuid[])",
+              "delete from authz.memberships where tenant_id = any($1::uuid[])",
+              "delete from public.tenants where id = any($1::uuid[])",
+            ])
+              await db.query(sql, [[TA, TB]]);
+            await db.query("commit");
+          } catch (error) {
+            await db.query("rollback");
+            throw error;
+          }
         } finally {
           await db.end();
         }
-      }
     } finally {
-      for (const w of WORKERS)
-        if (worker[w])
-          expect(
-            (
-              await api(`auth/v1/admin/users/${worker[w]}`, {
-                key: service,
-                bearer: service,
-                method: "DELETE",
-              })
-            ).ok,
-          ).toBe(true);
-      for (const who of PEOPLE)
-        if (user[who])
-          expect(
-            (
-              await api(`auth/v1/admin/users/${user[who]}`, {
-                key: service,
-                bearer: service,
-                method: "DELETE",
-              })
-            ).ok,
-          ).toBe(true);
+      const failures: string[] = [];
+      for (const id of [
+        ...WORKERS.map((w) => worker[w]),
+        ...PEOPLE.map((who) => user[who]),
+      ])
+        if (id)
+          try {
+            const deleted = await api(`auth/v1/admin/users/${id}`, {
+              key: service,
+              bearer: service,
+              method: "DELETE",
+            });
+            if (!deleted.ok) failures.push(`${id}: ${deleted.status}`);
+          } catch (error) {
+            failures.push(`${id}: ${String(error)}`);
+          }
+      expect(failures, "auth users the fixture could not delete").toEqual([]);
     }
   });
 

@@ -97,7 +97,9 @@ function project(row: Row, select: string): Row {
       for (const [k, v] of Object.entries(row))
         if (!EMBEDDED.has(k)) out[k] = v;
     } else if (/^\w+$/.test(part)) {
-      if (part in row) out[part] = row[part];
+      if (!Object.hasOwn(row, part))
+        throw new Error(`the stub's row has no column "${part}"`);
+      out[part] = row[part];
     } else throw new Error(`the stub cannot project "${part}"`);
   }
   return out;
