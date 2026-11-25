@@ -114,3 +114,23 @@ it("keeps focus on the toggle while the pin saves", async () => {
   expect(toggle.getAttribute("aria-disabled")).not.toBe("true");
   expect(document.activeElement).toBe(toggle);
 });
+
+it("sends Payload only each pinned document's id and collection", async () => {
+  const { fetchMock } = setup([{ id: "m9", collectionSlug: "media" }]);
+  const toggle = screen.getByRole("button", { name: "Pin to Studio home" });
+  await waitFor(() => expect(toggle.hasAttribute("disabled")).toBe(false));
+  fireEvent.click(toggle);
+  await waitFor(() => expect(toggle.getAttribute("aria-pressed")).toBe("true"));
+  const posts = fetchMock.mock.calls.filter(
+    ([, init]) => init?.method === "POST",
+  );
+  expect(posts).toHaveLength(1);
+  const body = JSON.parse(String(posts[0]![1]!.body)) as {
+    value: { items: Array<Record<string, unknown>> };
+  };
+  expect(Object.keys(body)).toEqual(["value"]);
+  expect(Object.keys(body.value)).toEqual(["items"]);
+  for (const item of body.value.items) {
+    expect(Object.keys(item).sort()).toEqual(["collectionSlug", "id"]);
+  }
+});
