@@ -151,20 +151,24 @@ describe.skipIf(!ADMIN_URL)(
     });
 
     describe("the temporary donor trigger (W5-R2, amended)", () => {
-      it("is one AFTER INSERT row trigger, a postgres-owned definer with an empty search path, and the only user trigger on donors", async () => {
+      it("D-18 (AL-2678 r3 adds the two BEFORE ROW triggers that derive donors.ministry_assignment_id; the fill trigger stays the only AFTER trigger): is one AFTER INSERT row trigger, a postgres-owned definer with an empty search path, and beside r3's two key triggers the only user trigger on donors", async () => {
         const r =
           await db.query(`select t.tgname, t.tgtype, p.prosecdef, pg_get_userbyid(p.proowner) owner, p.proconfig
         from pg_trigger t join pg_proc p on p.oid = t.tgfoid
-       where t.tgrelid = 'public.donors'::regclass and not t.tgisinternal`);
-        expect(r.rows).toEqual([
-          {
-            tgname: "donors_fill_party_after_insert_temp",
-            tgtype: 5,
+       where t.tgrelid = 'public.donors'::regclass and not t.tgisinternal order by t.tgname`);
+        expect(r.rows).toEqual(
+          [
+            ["donors_fill_party_after_insert_temp", 5],
+            ["zz_wp5_assignment_key_insert", 7],
+            ["zz_wp5_assignment_key_update", 19],
+          ].map(([tgname, tgtype]) => ({
+            tgname,
+            tgtype,
             prosecdef: true,
             owner: "postgres",
             proconfig: ['search_path=""'],
-          },
-        ]);
+          })),
+        );
       });
 
       it("gives each server writer's new donor its own Party in the donor's tenant and no account link; a gift that meets an existing donor makes none; a donor with no tenant gets none", () =>
