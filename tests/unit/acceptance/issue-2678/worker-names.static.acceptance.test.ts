@@ -590,6 +590,143 @@ const PASSES: [string, string][] = [
   ],
 ];
 
+const FEED_SELECT_MODULE =
+  'export const FEED_POST_SELECT = "*, author:profiles!missionary_id(id, avatar_url), post_author_public_name";';
+const CACHED_FEED_READ =
+  'export async function g(db) { "use cache"; return db.from("posts").select(FEED_POST_SELECT); }';
+const FEED_IMPORT = 'import { FEED_POST_SELECT } from "./t";\n';
+
+function planted(code: string, t: string | null) {
+  return scanSources(
+    new Map([
+      ["apps/donor/planted.ts", code],
+      ...(t === null ? [] : [["apps/donor/t.ts", t] as [string, string]]),
+    ]),
+  );
+}
+
+const R2A_FAILS: [string, string, string | null][] = [
+  [
+    "P1 (the bot's case on #2810): a missionaries root through a constant declared after its use",
+    'function f(db) { return db.from(T).select("*"); } const T = "missionaries";',
+    null,
+  ],
+  [
+    "P2: a name with two values, the second a missionaries root",
+    'function a(db) { const T = "profiles"; return db.from(T).select("id"); } function b(db) { return db.from(T).select("*"); } const T = "missionaries";',
+    null,
+  ],
+  [
+    "P3: a missionaries root through an imported constant",
+    'import { T } from "./t";\nexport const go = (db) => db.from(T).select("*");',
+    'export const T = "missionaries";',
+  ],
+  [
+    "P4: a commenter's profile under a post_comments root named by a later constant",
+    'function f(db) { return db.from(T).select("id, author:profiles(id, avatar_url)"); } const T = "post_comments";',
+    null,
+  ],
+  [
+    "P5: a commenter's whole profile under a post_comments root (the shape of GraphQL addComment)",
+    'export const go = (db) => db.from("post_comments").select("*, author:profiles!user_id(*)");',
+    null,
+  ],
+  [
+    "P6: a commenter's profile nested in a post_comments embed under another root",
+    'export const go = (db) => db.from("tenants").select("id, comments:post_comments(id, author:profiles(display_name))");',
+    null,
+  ],
+  [
+    "P7: a cached function selecting an imported select that holds post_author_public_name (the shape of the feed)",
+    FEED_IMPORT + CACHED_FEED_READ,
+    FEED_SELECT_MODULE,
+  ],
+  [
+    "P8a: the same with use cache: remote",
+    FEED_IMPORT +
+      CACHED_FEED_READ.replace('"use cache"', '"use cache: remote"'),
+    FEED_SELECT_MODULE,
+  ],
+  [
+    "P8b: the same with use cache: private",
+    FEED_IMPORT +
+      CACHED_FEED_READ.replace('"use cache"', '"use cache: private"'),
+    FEED_SELECT_MODULE,
+  ],
+  [
+    "P8c: the same with use cache as the file's first statement",
+    '"use cache";\n' +
+      FEED_IMPORT +
+      'export async function g(db) { return db.from("posts").select(FEED_POST_SELECT); }',
+    FEED_SELECT_MODULE,
+  ],
+  [
+    "P9: a cached function calling post_comment_authors",
+    'export async function h(db, id) { "use cache"; return db.rpc("post_comment_authors", { p_post_id: id }); }',
+    null,
+  ],
+  [
+    "P10: unstable_cache outside Mission Control",
+    'export const r = (db) => unstable_cache(async () => db.from("posts").select("id"));',
+    null,
+  ],
+  [
+    "P11: P7 as a cached arrow function, single-quoted",
+    FEED_IMPORT +
+      "export const g = async (db) => { 'use cache'; return db.from(\"posts\").select(FEED_POST_SELECT); };",
+    FEED_SELECT_MODULE,
+  ],
+  [
+    "P12: P7 as a cached object method",
+    FEED_IMPORT +
+      'export const o = { async g(db) { "use cache"; return db.from("posts").select(FEED_POST_SELECT); } };',
+    FEED_SELECT_MODULE,
+  ],
+  [
+    "P13: a fetch that sets cache: force-cache",
+    'export const r = (url) => fetch(url, { cache: "force-cache" });',
+    null,
+  ],
+  [
+    "P14: next/cache's unstable_cache under another local name",
+    'import { unstable_cache as memo } from "next/cache";\nexport const m = memo(async () => 1);',
+    null,
+  ],
+  [
+    "K1 (P1's control, a guard): a missionaries root through a constant declared before its use",
+    'const T = "missionaries"; function f(db) { return db.from(T).select("*"); }',
+    null,
+  ],
+];
+
+const R2A_PASSES: [string, string, string | null][] = [
+  [
+    "K2 (a red control): a donor's profile under a donors root named by a later constant",
+    'function f(db) { return db.from(T).select("id, profile:profiles(id, display_name)"); } const T = "donors";',
+    null,
+  ],
+  [
+    "K3 (guard): a post_comments read of its own columns",
+    'export const go = (db) => db.from("post_comments").select("id, content");',
+    null,
+  ],
+  [
+    "K4 (guard): a cached function selecting no worker name",
+    'export async function g(db) { "use cache"; return db.from("posts").select("id, title"); }',
+    null,
+  ],
+];
+
+describe("AL-2678 r2a: roots from every string variable and import, commenters only from post_comment_authors, and no worker name in a server cache (gates f, b; ADR 0008)", () => {
+  it.each(R2A_FAILS)("a planted %s fails", (_label, code, t) => {
+    expect(planted(code, t)).not.toEqual([]);
+  });
+
+  it.each(R2A_PASSES)("a planted %s passes", (_label, code, t) => {
+    expect(planted(code, t)).toEqual([]);
+  });
+});
+
 describe("AL-2678 r1: outside Mission Control a worker is named only by worker_public_name or post_author_public_name (#2805 obligation 2, ADR 0005 scope)", () => {
   it.each(FAILS)("a planted %s fails", (_label, code) => {
     expect(scanText("apps/donor/planted.ts", code)).not.toEqual([]);

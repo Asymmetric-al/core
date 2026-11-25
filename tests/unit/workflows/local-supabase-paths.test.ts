@@ -68,8 +68,9 @@ describe("the local Supabase workflow's path filter", () => {
     "packages/api/src/donations/**",
     "packages/graphql/**",
     "packages/database/hooks/donor-feed-posts.ts",
+    "packages/api/src/admin/contribution-operations/**",
   ])(
-    "starts the identity-key proof when %s, a reader of a worker's name outside Mission Control, changes (AL-2678 r1)",
+    "starts the identity-key proof when %s, a reader of a worker's name outside Mission Control, changes (AL-2678 r1; r2a adds the receipts test 5 renders)",
     (file) => {
       expect(paths).toContain(file);
     },

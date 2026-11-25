@@ -188,6 +188,7 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
       "packages/api/src/donations/**",
       "packages/graphql/**",
       "packages/database/hooks/donor-feed-posts.ts",
+      "packages/api/src/admin/contribution-operations/**",
     ])
       expect(workflow).toContain(`      - ${reader}\n`);
   });

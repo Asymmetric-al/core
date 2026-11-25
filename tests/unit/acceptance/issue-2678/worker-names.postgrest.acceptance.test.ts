@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest } from "next/server";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   anon,
@@ -16,6 +16,7 @@ import {
   GET as getDonations,
   POST as postDonation,
 } from "../../../../packages/api/src/donations";
+import { renderContributionReceiptSnapshotPdf } from "../../../../packages/api/src/admin/contribution-operations/receipt-pdf";
 import { buildDonorPortalSnapshot } from "../../../../packages/api/src/donor-portal/model";
 import {
   getDonorPortalSnapshot,
@@ -23,6 +24,8 @@ import {
   getOwnedStatementDonations,
   resolveDonorPortalContext,
 } from "../../../../packages/api/src/donor-portal/service";
+import { GET as getComments } from "../../../../packages/api/src/posts/comments";
+import { GET as getFeed } from "../../../../packages/api/src/posts/index";
 import { FEED_POST_SELECT } from "../../../../packages/api/src/posts/select";
 import { postAuthorName } from "../../../../packages/database/hooks/donor-feed-posts";
 import { createGraphQLHandler } from "../../../../packages/graphql/handler";
@@ -30,6 +33,7 @@ import { membershipsForRole } from "../../../fixtures/auth-memberships";
 
 import type { AuthContext } from "../../../../packages/auth/context";
 import type * as AuthModule from "../../../../packages/auth/context";
+import type { DocRaptorClient } from "@asym/docraptor-client";
 
 const s = vi.hoisted(() => ({
   auth: null as unknown,
@@ -81,7 +85,8 @@ vi.mock("next/cache", () => ({
   cacheTag: vi.fn(),
 }));
 
-const FORBIDDEN = /Legal Rowan|Profile Rowan|Party Rowan|Party Xu|Profile Vale/;
+const FORBIDDEN =
+  /Legal Rowan|Profile Rowan|Party Rowan|Party Xu|Profile Vale|Profile Xu|Profile Yew|Profile Zed|Profile Gone|Profile Orphan|Profile Fern|Profile Reed|Profile Fen|Profile Briar|Profile Moss|Profile Hazel|Party Hazel|Profile Fenn|Profile Linden/;
 const PRIVATE_WORKER_COLUMNS = [
   "phone",
   "birth_date",
@@ -104,7 +109,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
   "AL-2678 identity keys through PostgREST with real tokens",
   () => {
     const fx = identityKeysFixture();
-    const { TA, ids, user, worker, api, as, body } = fx;
+    const { TA, ids, user, token, worker, api, as, body } = fx;
 
     describe("AL-2678 r1: a worker's name outside Mission Control (plan :1003)", () => {
       const serviceClient = () =>
@@ -524,6 +529,345 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           PRIVATE_WORKER_COLUMNS.filter((c) => c in body.donation!.missionary),
         ).toEqual([]);
         expect(JSON.stringify(body)).not.toMatch(FORBIDDEN);
+      });
+
+      describe("AL-2678 r2a: commenters, an added comment's author, a stored receipt and the feed name a worker by the projection at the next request (gates a, b)", () => {
+        const postV = randomUUID();
+        const wMembership = randomUUID();
+        const avatar = (who: string) => `https://example.test/${who}.png`;
+        const publicEnv = {
+          url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+          key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        };
+        const asMember = (
+          who: string,
+          assignmentId: string,
+          role: "donor" | "missionary",
+        ): AuthContext =>
+          ({
+            userId: who,
+            email: null,
+            tenantId: TA,
+            role,
+            memberships: membershipsForRole(role, TA),
+            profileId: who,
+            isAuthenticated: true,
+            assignment: {
+              userId: who,
+              tenantId: TA,
+              membershipRole: role,
+              assignmentId,
+            },
+          }) as AuthContext;
+        const restrictV = async () => {
+          const restricted = await as(
+            "admin",
+            "rest/v1/rpc/restrict_worker_publication",
+            {
+              body: {
+                p_tenant_id: TA,
+                p_party_id: ids.pV,
+                p_security_level: "restricted",
+                p_public_alias: "Birch",
+                p_do_not_publish: null,
+                p_reason: "r2a: the next request",
+              },
+            },
+          );
+          expect(
+            restricted.status,
+            JSON.stringify(await body(restricted)),
+          ).toBe(200);
+        };
+        const restoreV = async () => {
+          const lifted = await as(
+            "admin",
+            "rest/v1/rpc/lift_worker_restriction",
+            {
+              body: {
+                p_tenant_id: TA,
+                p_party_id: ids.pV,
+                p_security_level: "standard",
+                p_clear_do_not_publish: false,
+                p_reason: "r2a: restore",
+              },
+            },
+          );
+          expect(lifted.status, JSON.stringify(await body(lifted))).toBe(200);
+          const cleared = await api(`rest/v1/parties?id=eq.${ids.pV}`, {
+            key: service,
+            bearer: service,
+            method: "PATCH",
+            body: { public_alias: null },
+          });
+          expect(cleared.status, JSON.stringify(await body(cleared))).toBe(204);
+        };
+
+        beforeAll(async () => {
+          process.env.NEXT_PUBLIC_SUPABASE_URL = url;
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = anon;
+          const db = fx.db!;
+          await db.query("begin");
+          try {
+            await db.query(
+              "update public.profiles set display_name = 'Profile Xu', full_name = 'Profile Xu', first_name = 'Profile', last_name = 'Xu' where id = $1",
+              [worker.X],
+            );
+            await db.query(
+              "update public.profiles set display_name = 'Donor Dee', full_name = 'Donor Dee', first_name = 'Donor', last_name = 'Dee' where id = $1",
+              [user.giver],
+            );
+            await db.query(
+              "update public.profiles set avatar_url = 'https://example.test/' || id || '.png' where id = any($1::uuid[])",
+              [[...Object.values(worker), ...Object.values(user)]],
+            );
+            await db.query(
+              "insert into authz.memberships (id, user_id, tenant_id, role) values ($1, $2, $3, 'missionary')",
+              [wMembership, worker.W, TA],
+            );
+            await db.query(
+              "insert into public.posts (id, tenant_id, missionary_id, content, visibility, status) values ($1, $2, $3, 'From V', 'public', 'published')",
+              [postV, TA, worker.V],
+            );
+            for (const who of [worker.W, worker.V, worker.X, user.giver])
+              await db.query(
+                "insert into public.post_comments (post_id, user_id, content) values ($1, $2, 'r2a')",
+                [postV, who],
+              );
+            await db.query("commit");
+          } catch (error) {
+            await db.query("rollback");
+            throw error;
+          }
+        });
+
+        afterAll(() => {
+          process.env.NEXT_PUBLIC_SUPABASE_URL = publicEnv.url;
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = publicEnv.key;
+        });
+
+        it("r2a test 2: a post's commenters through rpc/post_comment_authors with a donor's token and through the comments route's own code: W as Cedar with no photo, V as Party Vale with the photo, X nameless with no photo, D as Donor Dee with the photo; no body holds a forbidden name", async () => {
+          const rpc = await as("giver", "rest/v1/rpc/post_comment_authors", {
+            body: { p_post_id: postV },
+          });
+          const rows = (await body(rpc)) as {
+            user_id: string;
+            display_name: string | null;
+            avatar_url: string | null;
+          }[];
+          expect(rpc.status, JSON.stringify(rows)).toBe(200);
+          expect(
+            Object.fromEntries(
+              rows.map((r) => [r.user_id, [r.display_name, r.avatar_url]]),
+            ),
+          ).toEqual({
+            [worker.W]: ["Cedar", null],
+            [worker.V]: ["Party Vale", avatar(worker.V)],
+            [worker.X]: [null, null],
+            [user.giver]: ["Donor Dee", avatar(user.giver)],
+          });
+
+          s.auth = asMember(user.giver, ids.mGiver!, "donor");
+          const route = await getComments(
+            new NextRequest(`http://localhost/api/posts/${postV}/comments`, {
+              headers: { authorization: `Bearer ${token.giver}` },
+            }),
+            { params: Promise.resolve({ postId: postV }) },
+          );
+          const routeBody = (await route.json()) as {
+            comments?: {
+              user_id: string;
+              user: { first_name: string; avatar_url: string | null };
+            }[];
+          };
+          expect(route.status, JSON.stringify(routeBody)).toBe(200);
+          expect(
+            Object.fromEntries(
+              (routeBody.comments ?? []).map((c) => [
+                c.user_id,
+                [c.user.first_name, c.user.avatar_url],
+              ]),
+            ),
+          ).toEqual({
+            [worker.W]: ["Cedar", null],
+            [worker.V]: ["Party Vale", avatar(worker.V)],
+            [worker.X]: ["", null],
+            [user.giver]: ["Donor Dee", avatar(user.giver)],
+          });
+          expect(JSON.stringify([rows, routeBody])).not.toMatch(FORBIDDEN);
+        });
+
+        it("r2a test 3: GraphQL addComment returns its caller as the author, with the request's organization and role: a donor and a worker each get their own profile", async () => {
+          for (const [who, assignmentId, role] of [
+            [user.giver, ids.mGiver!, "donor"],
+            [worker.W, wMembership, "missionary"],
+          ] as const) {
+            s.auth = asMember(who, assignmentId, role);
+            const graph = await createGraphQLHandler().POST(
+              new Request("http://localhost/api/graphql", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({
+                  query: `mutation { addComment(postId: "${postV}", content: "r2a ${role}") { id postId content author { id tenantId role } } }`,
+                }),
+              }),
+            );
+            const graphBody = (await graph.json()) as {
+              data?: { addComment: unknown } | null;
+              errors?: unknown;
+            };
+            expect(
+              graphBody.errors,
+              `${role}: ${JSON.stringify(graphBody.errors)}`,
+            ).toBeUndefined();
+            expect(graphBody.data!.addComment).toMatchObject({
+              postId: postV,
+              content: `r2a ${role}`,
+              author: { id: who, tenantId: TA, role },
+            });
+          }
+        });
+
+        it("r2a test 5: a stored receipt snapshot rendered again names each line's worker by the projection at the download (W Cedar, V Party Vale, then Birch once V is restricted), shows a restricted worker without an alias, a worker that is gone and a line with no worker as —, keeps every other stored field, and leaves the stored row as it was", async () => {
+          const snapshotId = randomUUID();
+          const gone = randomUUID();
+          const line = (
+            key: string,
+            cents: number,
+            missionaryId: string | null,
+            missionaryName: string,
+          ) => ({
+            id: `line-${key}`,
+            amountCents: cents,
+            fundId: null,
+            fundName: `Fund ${key}`,
+            missionaryId,
+            missionaryName,
+            memo: `Memo ${key}`,
+          });
+          const content = {
+            version: 1,
+            donationId: ids.gW,
+            donorName: "Giver Household",
+            giftDate: "2026-11-01",
+            currencyCode: "USD",
+            effective: {
+              amountCents: 3900,
+              fundId: null,
+              missionaryId: ids.mW,
+              paymentStatus: "completed",
+            },
+            designationLines: [
+              line("W", 1000, ids.mW!, "Profile Rowan"),
+              line("V", 2000, ids.mV!, "Party Vale"),
+              line("X", 500, ids.mX!, "Profile Xu"),
+              line("Gone", 300, gone, "Profile Gone"),
+              line("Orphan", 100, null, "Profile Orphan"),
+            ],
+            affectedFields: ["amount"],
+            adjustmentId: null,
+            generatedAt: "2026-11-02T00:00:00.000Z",
+          };
+          await fx.db!.query(
+            "insert into public.contribution_receipt_snapshots (id, tenant_id, donation_id, kind, content) values ($1, $2, $3, 'pdf', $4)",
+            [snapshotId, TA, ids.gW, JSON.stringify(content)],
+          );
+          const render = async () => {
+            const html: string[] = [];
+            const docraptorClient = {
+              async renderSync(input: { html: string }) {
+                html.push(input.html);
+                return {
+                  kind: "sync",
+                  pdf: new Uint8Array([0x25, 0x50, 0x44, 0x46]),
+                  contentType: "application/pdf",
+                  request: {},
+                };
+              },
+            } as unknown as DocRaptorClient;
+            await renderContributionReceiptSnapshotPdf({
+              supabaseAdmin: serviceClient() as never,
+              tenantId: TA,
+              snapshotId,
+              docraptorClient,
+            });
+            expect(html).toHaveLength(1);
+            return html[0]!;
+          };
+          const rowsOf = (html: string) =>
+            [
+              ...html.matchAll(
+                /<tr><td>(.*?)<\/td><td>(.*?)<\/td><td>(.*?)<\/td><td class="amount">(.*?)<\/td><\/tr>/g,
+              ),
+            ].map((m) => m.slice(1));
+          const expected = (vName: string) => [
+            ["Fund W", "Cedar", "Memo W", "$10.00"],
+            ["Fund V", vName, "Memo V", "$20.00"],
+            ["Fund X", "—", "Memo X", "$5.00"],
+            ["Fund Gone", "—", "Memo Gone", "$3.00"],
+            ["Fund Orphan", "—", "Memo Orphan", "$1.00"],
+          ];
+          const frame = (html: string) => [
+            html.includes("<dd>Giver Household</dd>"),
+            html.includes("<dd>November 1, 2026</dd>"),
+            html.includes("<dd>$39.00</dd>"),
+            html.includes("This update reflects a correction to: amount."),
+            html.includes(`Donation ID: ${ids.gW}`),
+          ];
+          try {
+            const first = await render();
+            expect(rowsOf(first)).toEqual(expected("Party Vale"));
+            expect(frame(first)).toEqual([true, true, true, true, true]);
+            await restrictV();
+            const second = await render().finally(restoreV);
+            expect(rowsOf(second)).toEqual(expected("Birch"));
+            expect(frame(second)).toEqual([true, true, true, true, true]);
+            expect(JSON.stringify([first, second])).not.toMatch(FORBIDDEN);
+            const stored = await fx.db!.query(
+              "select content from public.contribution_receipt_snapshots where id = $1",
+              [snapshotId],
+            );
+            expect(stored.rows[0].content).toEqual(content);
+          } finally {
+            await fx.db!.query(
+              "delete from public.contribution_receipt_snapshots where id = $1",
+              [snapshotId],
+            );
+          }
+        });
+
+        it('r2a test 6, guard ("use cache" is inert under vitest, so this passes on the base; rule 2 of the contract is the red): the feed\'s GET names W Cedar, V Party Vale and X by no name, and after V is restricted through the Data API, with no handler and no revalidateTag, the next GET names V Birch', async () => {
+          s.auth = asMember(user.giver, ids.mGiver!, "donor");
+          const feed = async () => {
+            const response = await getFeed(
+              new NextRequest("http://localhost/api/posts?limit=100"),
+            );
+            const json = (await response.json()) as {
+              posts?: { id: string; post_author_public_name: string | null }[];
+            };
+            expect(response.status, JSON.stringify(json)).toBe(200);
+            return Object.fromEntries(
+              (json.posts ?? [])
+                .filter((p) => [ids.postW, ids.postX, postV].includes(p.id))
+                .map((p) => [p.id, p.post_author_public_name]),
+            );
+          };
+          expect(await feed()).toEqual({
+            [ids.postW!]: "Cedar",
+            [postV]: "Party Vale",
+            [ids.postX!]: null,
+          });
+          await restrictV();
+          try {
+            expect(await feed()).toEqual({
+              [ids.postW!]: "Cedar",
+              [postV]: "Birch",
+              [ids.postX!]: null,
+            });
+          } finally {
+            await restoreV();
+          }
+        });
       });
     });
   },
