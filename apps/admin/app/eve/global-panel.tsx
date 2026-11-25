@@ -1,6 +1,7 @@
 "use client";
 
 import { useRoutePathname as usePathname } from "@asym/auth/tenant-navigation";
+import { appBasePath } from "@asym/database/document-reload";
 import { useMC } from "@asym/lib/mission-control/context";
 import {
   useShortcut,
@@ -68,6 +69,7 @@ function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
     tenant,
   });
   const agent = useEveAgent({
+    host: appBasePath(),
     headers: eveRequestScopeHeaders,
     prepareSend: prepareEveSend(pageContext),
   });
