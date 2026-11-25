@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { ALL_SURFACES, claimSql } from "./site-fixture";
+import { ALL_SURFACES, HOME_SURFACES, claimSql } from "./site-fixture";
 
 const url = process.env.WP3_TENANT_IT_URL;
 const database = process.env.WP3_TENANT_IT_DATABASE_URL;
@@ -277,6 +277,113 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         p_host: host,
       });
       expect(await lookup.json()).toMatchObject([{ is_home: true }]);
+    });
+  },
+);
+
+describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
+  "The home read through PostgREST (WP3b part 2)",
+  () => {
+    const tenant = randomUUID(),
+      site = randomUUID(),
+      homeRecord = randomUUID();
+    const homeHost = `home.${tenant}.example.org`;
+    const siteHost = `site.${tenant}.example.org`;
+    let db: pg.Client | undefined;
+    const homeRead = (host: string) =>
+      fetch(`${url}/rest/v1/rpc/resolve_home_host`, {
+        method: "POST",
+        headers: {
+          apikey: anon!,
+          Authorization: `Bearer ${anon}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ p_host: host }),
+      });
+
+    beforeAll(async () => {
+      if (
+        !url ||
+        !database ||
+        !anon ||
+        !service ||
+        ![url, database].every((value) =>
+          ["localhost", "127.0.0.1", "[::1]"].includes(new URL(value).hostname),
+        )
+      )
+        throw Error("A disposable local Supabase stack is required");
+      db = new pg.Client({ connectionString: database });
+      await db.connect();
+      await db.query("begin");
+      try {
+        await db.query(
+          "insert into public.tenants(id,name,slug) values ($1,'Home read fixture',$1::uuid::text)",
+          [tenant],
+        );
+        await db.query(
+          "insert into public.sites(id,tenant_id,name,is_default) values ($1,$2,'Default',true)",
+          [site, tenant],
+        );
+        await db.query(
+          claimSql({ host: homeHost, tenant, surfaces: HOME_SURFACES }),
+        );
+        await db.query(
+          claimSql({ host: siteHost, tenant, site, surfaces: ["website"] }),
+        );
+        await db.query(
+          "insert into public.donor_portal_hosts(id,tenant_id,primary_domain) values ($1,$2,$3)",
+          [homeRecord, tenant, homeHost],
+        );
+        await db.query("commit");
+      } catch (error) {
+        await db.query("rollback");
+        throw error;
+      }
+    });
+
+    afterAll(async () => {
+      if (!db) return;
+      await db.query("begin");
+      try {
+        for (const table of [
+          "public.donor_portal_hosts",
+          "public.site_domains",
+          "public.sites",
+        ])
+          await db.query(`delete from ${table} where tenant_id=$1`, [tenant]);
+        await db.query("delete from public.tenants where id=$1", [tenant]);
+        await db.query("commit");
+      } catch (error) {
+        await db.query("rollback");
+        throw error;
+      } finally {
+        await db.end();
+      }
+    });
+
+    it("lets anon read the home of an active Site name, 200 with the one row, and [] for the home itself", async () => {
+      const site = await homeRead(siteHost.toUpperCase());
+      expect(site.status).toBe(200);
+      expect(await site.json()).toEqual([{ primary_domain: homeHost }]);
+      const itself = await homeRead(homeHost);
+      expect(itself.status).toBe(200);
+      expect(await itself.json()).toEqual([]);
+    });
+
+    it("gives PUBLIC no EXECUTE on the home read", async () => {
+      const acl = await db!.query(
+        `select coalesce(array_agg(g.grantee order by g.grantee), '{}') as grantees
+           from (select case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end as grantee
+                   from pg_proc p, aclexplode(p.proacl) a
+                  where p.oid = 'public.resolve_home_host(text)'::regprocedure
+                    and a.privilege_type = 'EXECUTE' and a.grantee <> p.proowner) g`,
+      );
+      expect(acl.rows[0]!.grantees).not.toContain("PUBLIC");
+      expect(acl.rows[0]!.grantees).toEqual([
+        "anon",
+        "authenticated",
+        "service_role",
+      ]);
     });
   },
 );

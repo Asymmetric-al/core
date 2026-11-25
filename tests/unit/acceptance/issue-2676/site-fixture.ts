@@ -116,6 +116,20 @@ export async function resolveAsAnon(db: pg.Client, host: string) {
   }
 }
 
+export async function homeAsAnon(db: pg.Client, host: string | null) {
+  await db.query("savepoint anon_home");
+  try {
+    await db.query("set local role anon");
+    const { rows } = await db.query(
+      "select * from public.resolve_home_host($1)",
+      [host],
+    );
+    return rows;
+  } finally {
+    await db.query("rollback to savepoint anon_home");
+  }
+}
+
 export async function expectCode(
   db: pg.Client,
   sql: string,
