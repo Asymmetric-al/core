@@ -3,10 +3,12 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
@@ -26,7 +28,13 @@ import type { LinkAdapterProps } from "../../../../apps/admin/node_modules/@payl
  * navigation, which these tests use as the control.
  */
 
-const fixture = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }));
+const fixture = vi.hoisted(() => ({
+  push: vi.fn(),
+  replace: vi.fn(),
+  getPreference: vi.fn(async () => null),
+  setPreference: vi.fn(),
+  serverFunction: vi.fn(async () => ({ items: [], page: 1, totalDocs: 0 })),
+}));
 
 vi.mock(
   "../../../../apps/admin/node_modules/@payloadcms/ui/dist/exports/client/index.js",
@@ -45,12 +53,10 @@ vi.mock(
       },
     }),
     usePreferences: () => ({
-      getPreference: async () => null,
-      setPreference: vi.fn(),
+      getPreference: fixture.getPreference,
+      setPreference: fixture.setPreference,
     }),
-    useServerFunctions: () => ({
-      serverFunction: async () => ({ items: [], page: 1, totalDocs: 0 }),
-    }),
+    useServerFunctions: () => ({ serverFunction: fixture.serverFunction }),
   }),
 );
 vi.mock("next/navigation", async (importOriginal) => ({
@@ -163,6 +169,11 @@ it("loads Mission Control as a document from the phone navigation", async () => 
   const link = within(dialog).getByRole("link", { name: "Mission Control" });
   expect(link.getAttribute("href")).toBe("/");
   expect(loadsDocument(link)).toBe(true);
+  await waitFor(() => expect(fixture.serverFunction).toHaveBeenCalled());
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  });
+  expect(fixture.serverFunction).toHaveBeenCalledTimes(1);
 });
 
 it("loads Mission Control as a document from the not-found page", () => {

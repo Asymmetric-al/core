@@ -19,7 +19,10 @@ import {
 // eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) The real app editor is the public boundary under test.
 import { NativeCollectionEditView } from "../../../../apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView";
 
+import type { usePreferences } from "../../../../apps/admin/node_modules/@payloadcms/ui/dist/exports/client/index.js";
 import type { ComponentProps, ReactNode } from "react";
+
+type SetPreference = ReturnType<typeof usePreferences>["setPreference"];
 
 const fixture = vi.hoisted(() => ({
   info: {
@@ -45,7 +48,7 @@ const fixture = vi.hoisted(() => ({
   api: "/web-studio-api",
   locale: { code: "en" },
   getPreference: vi.fn(async () => undefined),
-  setPreference: vi.fn(async () => {}),
+  setPreference: vi.fn<SetPreference>(async () => {}),
   setPreviewURL: vi.fn(),
 }));
 
@@ -200,9 +203,7 @@ describe("Web Studio document preferences", () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
     }
-    const calls = fixture.setPreference.mock.calls as unknown as Array<
-      [string, unknown]
-    >;
+    const calls = fixture.setPreference.mock.calls;
     expect(calls.filter(([key]) => key.includes("recent"))).toEqual([]);
     expect(calls.filter(([, value]) => holdsTitle(value))).toEqual([]);
   });
