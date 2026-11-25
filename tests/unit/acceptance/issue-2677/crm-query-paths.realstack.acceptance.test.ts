@@ -99,7 +99,7 @@ it.skipIf(!ADMIN_URL)(
   },
 );
 it.skipIf(!ADMIN_URL)(
-  "searches the four CRM fields under the staff token using the same substring patterns",
+  "D-18 (AL-2678 r3: the search returns the record's assignment key last, which the records list names its owner by): searches the four CRM fields under the staff token using the same substring patterns",
   async () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
     await db.connect();
@@ -144,6 +144,7 @@ it.skipIf(!ADMIN_URL)(
           "notes",
           "created_at",
           "updated_at",
+          "ministry_assignment_id",
         ].sort(),
       );
       for (const [tenant, n] of [
