@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -13,28 +14,56 @@ import { afterEach, expect, it, vi } from "vitest";
 // Use the admin workspace's public client export so the preferences mock and
 // router context share Payload's bundled module identity with Bun's linker.
 import { RouterAdapterContext } from "../../../apps/admin/node_modules/@payloadcms/ui/dist/exports/client/index.js";
+import { webStudioRefusalDigest } from "../../../apps/admin/src/cms/auth/web-studio-refusal";
 import { StudioNavRail } from "../../../apps/admin/src/cms-ui/web-studio/shell/studio-nav-rail";
 
 import type { LinkAdapterProps } from "../../../apps/admin/node_modules/@payloadcms/ui/dist/providers/RouterAdapter/index.js";
 
+const STORED_TITLE = "Stored title from another organization";
+const STUDIO_SLUGS = [
+  "pages",
+  "missionary-giving-pages",
+  "project-pages",
+  "ministry-updates",
+  "missionary-profiles",
+  "navigation",
+  "page-templates",
+  "media",
+];
+const OTHER_SLUGS = [
+  "cms-users",
+  "tenants",
+  "payload-preferences",
+  "payload-locked-documents",
+];
+
+type ActivityItem = {
+  id: string | number;
+  collectionSlug: string;
+  title: string;
+};
+
 const fixture = vi.hoisted(() => ({
   pathname: "/web-studio",
-  extraRecent: [] as unknown[],
-  getPreference: vi.fn(async (key: string) => {
+  items: [] as ActivityItem[],
+  collections: undefined as Array<{ slug: string }> | undefined,
+  serverFunctionMissing: false,
+  getPreference: vi.fn(async (key: string): Promise<unknown> => {
     if (key === "web-studio.navCollapsed") return { collapsed: false };
     if (key === "web-studio.pages.recent") {
       return [
         {
-          id: "doc-1",
-          title: "Quarterly update",
-          href: "/web-studio/collections/pages/doc-1",
+          id: "doc-9",
+          title: "Stored title from another organization",
+          href: "/web-studio/collections/pages/doc-9",
+          updatedAt: "2026-11-25T00:00:00.000Z",
         },
-        ...fixture.extraRecent,
       ];
     }
-    return [];
+    return null;
   }),
   setPreference: vi.fn(),
+  serverFunction: vi.fn(async (_call: unknown): Promise<unknown> => null),
   permissions: undefined as unknown,
   push: vi.fn(),
   replace: vi.fn(),
@@ -53,27 +82,59 @@ vi.mock(
         getPreference: fixture.getPreference,
         setPreference: fixture.setPreference,
       }),
+      useServerFunctions: () => ({
+        serverFunction: fixture.serverFunctionMissing
+          ? undefined
+          : fixture.serverFunction,
+      }),
+      useConfig: () => ({ config: { collections: fixture.collections } }),
       useAuth: () => ({ permissions: fixture.permissions }),
     };
   },
 );
 vi.mock("next/navigation", () => ({ usePathname: () => fixture.pathname }));
 
+function configured() {
+  return [...STUDIO_SLUGS, ...OTHER_SLUGS].map((slug) => ({ slug }));
+}
+
+function quarterlyUpdate(): ActivityItem {
+  return { id: "doc-1", collectionSlug: "pages", title: "Quarterly update" };
+}
+
+function resetFixture() {
+  fixture.pathname = "/web-studio";
+  fixture.permissions = undefined;
+  fixture.items = [quarterlyUpdate()];
+  fixture.collections = configured();
+  fixture.serverFunctionMissing = false;
+  fixture.serverFunction.mockImplementation(async () => ({
+    items: fixture.items,
+    page: 1,
+    totalDocs: fixture.items.length,
+  }));
+}
+
+resetFixture();
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
-  fixture.pathname = "/web-studio";
-  fixture.permissions = undefined;
-  fixture.extraRecent = [];
+  vi.unstubAllEnvs();
+  resetFixture();
 });
 
-it("offers the same enabled sections on mobile and closes after Payload navigation", async () => {
-  fixture.pathname = "/web-studio/collections/pages";
-  render(
+function NativeLink({ href, ...props }: LinkAdapterProps) {
+  return <a href={href} {...props} />;
+}
+
+function renderRail(pathname: string) {
+  fixture.pathname = pathname;
+  return render(
     <RouterAdapterContext
       value={{
         Link: NativeLink,
-        pathname: fixture.pathname,
+        pathname,
         params: {},
         searchParams: new URLSearchParams(),
         router: {
@@ -89,6 +150,28 @@ it("offers the same enabled sections on mobile and closes after Payload navigati
       <StudioNavRail />
     </RouterAdapterContext>,
   );
+}
+
+async function settle(container: HTMLElement) {
+  await waitFor(() =>
+    expect(
+      container.querySelector('aside[data-hydrated="true"]'),
+    ).not.toBeNull(),
+  );
+  for (let turn = 0; turn < 5; turn += 1) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  }
+}
+
+function expectAbsent(container: HTMLElement, title: string) {
+  expect(container.innerHTML).not.toContain(title);
+  expect(screen.queryAllByText(title)).toEqual([]);
+}
+
+it("offers the same enabled sections on mobile and closes after Payload navigation", async () => {
+  renderRail("/web-studio/collections/pages");
 
   fireEvent.click(
     screen.getByRole("button", { name: "Open studio navigation" }),
@@ -142,31 +225,110 @@ it("offers the same enabled sections on mobile and closes after Payload navigati
   await waitFor(() => expect(document.activeElement).toBe(trigger));
 });
 
-function NativeLink({ href, ...props }: LinkAdapterProps) {
-  return <a href={href} {...props} />;
-}
+it("reads recent documents through the access-checked server function, never a stored title", async () => {
+  fixture.items = [
+    quarterlyUpdate(),
+    { id: 3, collectionSlug: "cms-users", title: "editor@example.org" },
+  ];
+  const { container } = renderRail("/web-studio");
+
+  const recent = await screen.findByRole("list", { name: "Recent" });
+  const link = within(recent).getByRole("link", { name: "Quarterly update" });
+  expect(link.getAttribute("href")).toBe("/web-studio/collections/pages/doc-1");
+  expect(within(recent).getAllByRole("link")).toHaveLength(1);
+  await settle(container);
+  expectAbsent(container, STORED_TITLE);
+  expectAbsent(container, "editor@example.org");
+  expect(
+    fixture.getPreference.mock.calls.filter(([key]) => key.endsWith(".recent")),
+  ).toEqual([]);
+  expect(fixture.serverFunction).toHaveBeenCalledExactlyOnceWith({
+    name: "get-activity-widget-docs",
+    args: {
+      type: "recents",
+      limit: 5,
+      page: 1,
+      excludedCollections: OTHER_SLUGS,
+    },
+  });
+});
+
+it("keeps a switched-off collection's documents out of the rail", async () => {
+  vi.stubEnv("CMS_WEB_STUDIO_NATIVE_MEDIA", "false");
+  fixture.items = [
+    { id: 5, collectionSlug: "media", title: "Retired banner" },
+    quarterlyUpdate(),
+  ];
+  const { container } = renderRail("/web-studio");
+
+  const recent = await screen.findByRole("list", { name: "Recent" });
+  expect(
+    within(recent)
+      .getAllByRole("link")
+      .map((link) => link.textContent),
+  ).toEqual(["Quarterly update"]);
+  await settle(container);
+  expectAbsent(container, "Retired banner");
+  expect(fixture.serverFunction).toHaveBeenCalledExactlyOnceWith({
+    name: "get-activity-widget-docs",
+    args: {
+      type: "recents",
+      limit: 5,
+      page: 1,
+      excludedCollections: ["media", ...OTHER_SLUGS],
+    },
+  });
+});
+
+it("asks once with an empty exclusion list when Payload's config lists no collections", async () => {
+  fixture.collections = undefined;
+  renderRail("/web-studio");
+
+  await screen.findByRole("link", { name: "Quarterly update" });
+  expect(fixture.serverFunction).toHaveBeenCalledExactlyOnceWith({
+    name: "get-activity-widget-docs",
+    args: { type: "recents", limit: 5, page: 1, excludedCollections: [] },
+  });
+});
+
+it.each([
+  [
+    "a refusal",
+    () =>
+      Promise.reject(
+        Object.assign(new Error("Reload the page to continue."), {
+          digest: webStudioRefusalDigest("scope_mismatch"),
+        }),
+      ),
+  ],
+  ["a plain error", () => Promise.reject(new Error("Network down"))],
+])(
+  "shows no recent documents after %s from the server function",
+  async (_label, answer) => {
+    fixture.serverFunction.mockImplementation(answer);
+    const { container } = renderRail("/web-studio");
+
+    await settle(container);
+    expect(screen.queryByRole("list", { name: "Recent" })).toBeNull();
+    expect(screen.queryByText("Recent")).toBeNull();
+    expectAbsent(container, STORED_TITLE);
+    expectAbsent(container, "Quarterly update");
+    expect(fixture.serverFunction).toHaveBeenCalledTimes(1);
+  },
+);
+
+it("shows no recent documents without a server function", async () => {
+  fixture.serverFunctionMissing = true;
+  const { container } = renderRail("/web-studio");
+
+  await settle(container);
+  expect(screen.queryByRole("list", { name: "Recent" })).toBeNull();
+  expect(screen.queryByText("Recent")).toBeNull();
+  expectAbsent(container, STORED_TITLE);
+});
 
 it("keeps recent documents as named navigation links and preserves Payload navigation", async () => {
-  render(
-    <RouterAdapterContext
-      value={{
-        Link: NativeLink,
-        pathname: "/web-studio",
-        params: {},
-        searchParams: new URLSearchParams(),
-        router: {
-          push: fixture.push,
-          replace: fixture.replace,
-          refresh: vi.fn(),
-          back: vi.fn(),
-          forward: vi.fn(),
-          prefetch: vi.fn(),
-        },
-      }}
-    >
-      <StudioNavRail />
-    </RouterAdapterContext>,
-  );
+  renderRail("/web-studio");
   const documentLink = await screen.findByTitle("Quarterly update");
   expect(documentLink.tagName).toBe("A");
   expect(documentLink.getAttribute("href")).toBe(
@@ -187,27 +349,7 @@ it("keeps recent documents as named navigation links and preserves Payload navig
 });
 
 it("keeps collapsed section controls as named links with one navigation and stable focus", async () => {
-  fixture.pathname = "/web-studio/collections/pages";
-  render(
-    <RouterAdapterContext
-      value={{
-        Link: NativeLink,
-        pathname: fixture.pathname,
-        params: {},
-        searchParams: new URLSearchParams(),
-        router: {
-          push: fixture.push,
-          replace: fixture.replace,
-          refresh: vi.fn(),
-          back: vi.fn(),
-          forward: vi.fn(),
-          prefetch: vi.fn(),
-        },
-      }}
-    >
-      <StudioNavRail />
-    </RouterAdapterContext>,
-  );
+  renderRail("/web-studio/collections/pages");
   await screen.findByTitle("Quarterly update");
   fireEvent.click(
     screen.getByRole("button", { name: "Collapse studio navigation" }),
@@ -232,30 +374,6 @@ it("keeps collapsed section controls as named links with one navigation and stab
     { collapsed: true },
   );
 });
-
-function renderRail(pathname: string) {
-  fixture.pathname = pathname;
-  return render(
-    <RouterAdapterContext
-      value={{
-        Link: NativeLink,
-        pathname,
-        params: {},
-        searchParams: new URLSearchParams(),
-        router: {
-          push: fixture.push,
-          replace: fixture.replace,
-          refresh: vi.fn(),
-          back: vi.fn(),
-          forward: vi.fn(),
-          prefetch: vi.fn(),
-        },
-      }}
-    >
-      <StudioNavRail />
-    </RouterAdapterContext>,
-  );
-}
 
 it("gives stock admin lists a home for tenant-scoped readers", async () => {
   // Payload keeps a where-scoped read as an object, never `true`.
@@ -299,9 +417,10 @@ it("names the collapse toggle by its next action without a contradictory pressed
   expect(expand.hasAttribute("aria-pressed")).toBe(false);
 });
 
-it("names a recent document saved before it had a title as the lists do", async () => {
-  fixture.extraRecent = [
-    { id: "18", title: "18", href: "/web-studio/collections/pages/18" },
+it("names a recent document Payload titles by its id as the lists do", async () => {
+  fixture.items = [
+    quarterlyUpdate(),
+    { id: 18, collectionSlug: "pages", title: "18" },
   ];
   renderRail("/web-studio");
   const untitled = await screen.findByRole("link", { name: "Untitled (18)" });
