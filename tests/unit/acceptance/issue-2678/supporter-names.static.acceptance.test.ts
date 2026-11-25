@@ -1144,3 +1144,31 @@ describe("AL-2678 WP5 part 2-r2s: the migration reader gives every reference to 
     );
   });
 });
+
+const failingRead =
+  (failures: Record<string, string>) =>
+  (file: string): string => {
+    const code = failures[file];
+    if (code) throw Object.assign(new Error(`${code}: ${file}`), { code });
+    return "export {};";
+  };
+
+describe("AL-2678 WP5 part 2-r2s: the scanner reads every file it lists, or fails naming it (ADR 0008)", () => {
+  it("V1 a listed file it cannot read fails the scan, naming the path", () => {
+    expect(() =>
+      readSources(
+        ["packages/api/src/a.ts", "packages/api/src/b.ts"],
+        failingRead({ "packages/api/src/b.ts": "EACCES" }),
+      ),
+    ).toThrow(/packages\/api\/src\/b\.ts/);
+  });
+
+  it("V2 a listed file deleted from the working tree is skipped", () => {
+    expect([
+      ...readSources(
+        ["packages/api/src/a.ts", "packages/api/src/gone.ts"],
+        failingRead({ "packages/api/src/gone.ts": "ENOENT" }),
+      ).keys(),
+    ]).toEqual(["packages/api/src/a.ts"]);
+  });
+});
