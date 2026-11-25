@@ -287,10 +287,9 @@ function longPosts(): PostWithAuthor[] {
     updated_at: "2026-10-08T00:00:00.000Z",
     author: {
       id: "donor-frame-partner",
-      first_name: "Fixture",
-      last_name: "Partner",
       avatar_url: null,
     },
+    post_author_public_name: "Fixture Partner",
   }));
 }
 

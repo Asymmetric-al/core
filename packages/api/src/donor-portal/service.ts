@@ -70,7 +70,7 @@ const DONATION_SELECT = `
   stripe_payment_intent_id,
   stripe_charge_id,
   fund:funds(id, name),
-  missionary:missionaries(id, profile:profiles(id, display_name, full_name, first_name, last_name, avatar_url))
+  missionary:missionaries(id, worker_public_name, profile:profiles(id, avatar_url))
 `;
 
 const PLEDGE_SELECT = `
@@ -91,7 +91,7 @@ const PLEDGE_SELECT = `
   payments_completed,
   payments_remaining,
   fund:funds(id, name),
-  missionary:missionaries(id, profile:profiles(id, display_name, full_name, first_name, last_name, avatar_url))
+  missionary:missionaries(id, worker_public_name, profile:profiles(id, avatar_url))
 `;
 
 const PROFILE_SELECT =

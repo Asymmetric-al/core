@@ -182,6 +182,15 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     expect(run).toContain("supabase -- status -o json");
     expect(at(marker)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
     expect(workflow).toContain(`      - ${suite}\n`);
+    for (const reader of [
+      "packages/api/src/donor-portal/**",
+      "packages/api/src/posts/**",
+      "packages/api/src/donations/**",
+      "packages/graphql/**",
+      "packages/database/hooks/donor-feed-posts.ts",
+      "tests/fixtures/auth-memberships.ts",
+    ])
+      expect(workflow).toContain(`      - ${reader}\n`);
   });
 
   it("exercises the missionary handlers against the stack after fingerprinting", () => {

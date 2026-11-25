@@ -903,10 +903,9 @@ export interface PostComment {
 export interface PostWithAuthor extends Post {
   author: {
     id: string;
-    first_name: string;
-    last_name: string;
     avatar_url: string | null;
   };
+  post_author_public_name: string | null;
   user_liked?: boolean;
   user_prayed?: boolean;
 }

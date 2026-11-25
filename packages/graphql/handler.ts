@@ -79,10 +79,16 @@ const typeDefs = /* GraphQL */ `
     updatedAt: DateTime!
   }
 
+  type WorkerProfile {
+    id: ID!
+    avatarUrl: String
+  }
+
   type Missionary {
     id: ID!
     tenantId: ID!
-    profile: Profile!
+    publicName: String
+    profile: WorkerProfile!
     bio: String
     missionField: String
     fundingGoal: Int!
@@ -252,7 +258,9 @@ const resolvers = {
 
       const { data } = await ctx.supabaseAdmin
         .from("missionaries")
-        .select("*, profile:profiles!profile_id(*)")
+        .select(
+          "*, worker_public_name, profile:profiles!profile_id(id, avatar_url)",
+        )
         .eq("tenant_id", auth.tenantId)
         .range(offset, offset + limit - 1);
 
@@ -269,7 +277,9 @@ const resolvers = {
 
       const { data } = await ctx.supabaseAdmin
         .from("missionaries")
-        .select("*, profile:profiles!profile_id(*)")
+        .select(
+          "*, worker_public_name, profile:profiles!profile_id(id, avatar_url)",
+        )
         .eq("id", args.id)
         .eq("tenant_id", auth.tenantId)
         .single();
@@ -290,7 +300,7 @@ const resolvers = {
       const { data: posts } = await ctx.supabaseAdmin
         .from("posts")
         .select(
-          "*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
+          "*, missionary:missionaries!missionary_id(*, worker_public_name, profile:profiles!profile_id(id, avatar_url))",
         )
         .eq("tenant_id", auth.tenantId)
         .order("created_at", { ascending: false })
@@ -319,7 +329,7 @@ const resolvers = {
       const { data: post } = await ctx.supabaseAdmin
         .from("posts")
         .select(
-          "*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
+          "*, missionary:missionaries!missionary_id(*, worker_public_name, profile:profiles!profile_id(id, avatar_url))",
         )
         .eq("id", args.id)
         .eq("tenant_id", auth.tenantId)
@@ -523,7 +533,7 @@ const resolvers = {
       const { data: post, error } = await ctx.supabaseAdmin
         .from("posts")
         .select(
-          "*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
+          "*, missionary:missionaries!missionary_id(*, worker_public_name, profile:profiles!profile_id(id, avatar_url))",
         )
         .eq("id", rpcResult.post_id)
         .single();
@@ -789,7 +799,9 @@ const resolvers = {
 
       const { data, error } = await ctx.supabaseAdmin
         .from("missionaries")
-        .select("*, profile:profiles!profile_id(*)")
+        .select(
+          "*, worker_public_name, profile:profiles!profile_id(id, avatar_url)",
+        )
         .eq("profile_id", auth.profileId)
         .eq("tenant_id", auth.tenantId)
         .single();
@@ -826,11 +838,19 @@ function mapProfile(
   };
 }
 
+function mapWorkerProfile(data: Record<string, unknown> | null) {
+  if (!data) return null;
+  return { id: data.id, avatarUrl: data.avatar_url };
+}
+
 function mapMissionary(data: Record<string, unknown>) {
   return {
     id: data.id,
     tenantId: data.tenant_id,
-    profile: mapProfile(data.profile as Record<string, unknown>),
+    publicName: data.worker_public_name ?? null,
+    profile: mapWorkerProfile(
+      (data.profile as Record<string, unknown> | null) ?? null,
+    ),
     bio: data.bio,
     missionField: data.mission_field,
     fundingGoal: data.funding_goal,

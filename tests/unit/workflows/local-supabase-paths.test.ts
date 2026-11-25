@@ -51,6 +51,20 @@ describe("the local Supabase workflow's path filter", () => {
     );
   });
 
+  it.each([
+    "packages/api/src/donor-portal/**",
+    "packages/api/src/posts/**",
+    "packages/api/src/donations/**",
+    "packages/graphql/**",
+    "packages/database/hooks/donor-feed-posts.ts",
+    "tests/fixtures/auth-memberships.ts",
+  ])(
+    "starts the identity-key proof when %s, a reader of a worker's name outside Mission Control, changes (AL-2678 r1)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
   it("starts them when either app's chooser changes", () => {
     // Mission Control's chooser lives in (auth), which the filter names.
     expect(paths).toContain("apps/*/app/(auth)/**");

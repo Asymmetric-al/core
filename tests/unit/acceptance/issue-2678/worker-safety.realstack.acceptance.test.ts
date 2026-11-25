@@ -28,6 +28,13 @@ const NO_CAPABILITY =
   "tenant_guard: the selected assignment does not hold the capability this command requires";
 const NOT_LIVE =
   "tenant_guard: the selected assignment is not a live assignment of the caller in this tenant";
+const REMOVED_SINCE_R1 = [
+  0x0001, 0x0004, 0x0008, 0x000e, 0x0016, 0x001f, 0x007f, 0x0081, 0x0084,
+  0x0086, 0x0092, 0x009f, 0x115f, 0x1160, 0x17b4, 0x17b5, 0x180b, 0x180c,
+  0x180d, 0x180f, 0x2800, 0x3164, 0xfe00, 0xfe07, 0xfe0f, 0xffa0, 0xfff9,
+  0xfffa, 0xfffb, 0x1bca0, 0x1bca1, 0x1bca3, 0x1d173, 0x1d176, 0x1d17a, 0xe0001,
+  0xe0020, 0xe004f, 0xe007f, 0xe0100, 0xe0177, 0xe01ef,
+];
 
 describe.skipIf(!ADMIN_URL)(
   "AL-2678 worker safety room (plan WP5 lines 984 and 1003-1007, Phase 10, W5-R7)",
@@ -389,7 +396,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("the alias rule and every stored name use one normalized form (bot triage #2 and #4): an alias that differs from the legal name only by a tab, a line break, a no-break space, a zero-width space or a no-break space inside a two-word name is refused through every entry; an alias of one tab is refused; a reason of tabs and line breaks is refused; names and reasons are stored normalized; the projection and the CHECK agree with the shared form", async () => {
+    it("the alias rule and every stored name use one normalized form (bot triage #2 and #4): an alias that differs from the legal name only by a tab, a line break, a no-break space, a zero-width space or a no-break space inside a two-word name is refused through every entry; an alias of one tab is refused; a reason of tabs and line breaks is refused; names and reasons are stored normalized; the projection and the CHECK agree with the shared form, also on the characters part 2-r1 removes, which the projection removes in each slot", async () => {
       await db.query("savepoint s");
       const direct = async (sql: string) => {
         await db.query("savepoint direct");
@@ -540,6 +547,11 @@ describe.skipIf(!ADMIN_URL)(
           "'Ali' || chr(173) || 'ce'",
           "chr(65313) || 'lice'",
           "chr(8295) || 'Alice' || chr(8297)",
+          ...REMOVED_SINCE_R1.flatMap((c) => [
+            `'Al' || chr(${c}) || 'ice'`,
+            `'Alice' || chr(${c})`,
+            `chr(${c})`,
+          ]),
         ];
         for (const s of samples) {
           const agree = await db.query(
@@ -548,6 +560,20 @@ describe.skipIf(!ADMIN_URL)(
           );
           expect(agree.rows, s).toEqual([
             { alias_slot: true, approved_slot: true },
+          ]);
+        }
+        for (const c of REMOVED_SINCE_R1) {
+          const projected = await db.query(
+            `select public.worker_public_display_name('Al' || chr(${c}) || 'ice', null, null) as alias_slot,
+                    public.worker_public_display_name(null, 'Alice' || chr(${c}), null) as approved_slot,
+                    public.worker_public_display_name(chr(${c}), null, 'Party') as blank_alias`,
+          );
+          expect(projected.rows, `U+${c.toString(16)}`).toEqual([
+            {
+              alias_slot: "Alice",
+              approved_slot: "Alice",
+              blank_alias: "Party",
+            },
           ]);
         }
       } finally {
