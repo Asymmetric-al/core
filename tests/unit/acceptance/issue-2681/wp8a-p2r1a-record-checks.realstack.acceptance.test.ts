@@ -661,7 +661,7 @@ describe.skipIf(!ADMIN_URL)(
         expect((await rowOf(db, fresh.operationId)).max_attempts).toBe(1000);
       }));
 
-    it("C9 (finding 6): each provider-row check and the legacy check is written '<kind test> OR (<predicate>) IS TRUE', so a NULL in any clause refuses, including the clauses the behavioural matrix above only samples (the parameter rule's)", async () => {
+    it("C9 (finding 6; narrowed by R1b, record :1062): a provider-row check or the legacy check whose clauses the NULL matrix above does not each refuse is written '<kind test> OR (<predicate>) IS TRUE', so a NULL in any clause refuses; the attempts and window checks leave this form test because the matrix refuses a NULL in each of their clauses (max_attempts and attempt_count; first_sent_at), and the ten others stay", async () => {
       const defs = (
         await db.query(
           `SELECT conname, pg_get_constraintdef(oid) AS def FROM pg_constraint
@@ -684,7 +684,15 @@ describe.skipIf(!ADMIN_URL)(
         "donation_saga_outbox_unsent_check",
         "donation_saga_outbox_window_check",
       ]);
-      for (const { conname, def } of defs)
+      const provenByTheMatrix = [
+        "donation_saga_outbox_attempts_check",
+        "donation_saga_outbox_window_check",
+      ];
+      const sampled = defs.filter(
+        (d) => !provenByTheMatrix.includes(d.conname),
+      );
+      expect(sampled).toHaveLength(10);
+      for (const { conname, def } of sampled)
         expect(def, conname).toMatch(
           /^CHECK \(\(\(kind <> '(?:provider_request|legacy_saga)'::text\) OR \([\s\S]* IS TRUE\)\)\)$/,
         );

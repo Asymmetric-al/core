@@ -97,7 +97,10 @@ describe.skipIf(!ADMIN_URL)(
       await s1.query("BEGIN");
       const out1 = await first(s1);
       await s2.query("BEGIN");
-      const pending = second(s2);
+      const pending = second(s2).then(
+        (value) => ({ value }),
+        (error: unknown) => ({ error }),
+      );
       for (let i = 0; i < 200; i += 1) {
         const r = await watcher.query(
           "SELECT wait_event_type FROM pg_stat_activity WHERE pid = $1",
@@ -109,7 +112,9 @@ describe.skipIf(!ADMIN_URL)(
         await new Promise((done) => setTimeout(done, 50));
       }
       await s1.query("COMMIT");
-      const out2 = await pending;
+      const settled = await pending;
+      if ("error" in settled) throw settled.error;
+      const out2 = settled.value;
       await s2.query("COMMIT");
       return [out1, out2] as const;
     }
@@ -261,16 +266,18 @@ describe.skipIf(!ADMIN_URL)(
       await db.query("BEGIN");
       const fx = await seedTwoTenants(db);
       await db.query("COMMIT");
+      let holder: pg.Client | undefined;
       try {
         const intake = await committed(() => guardIntake(db, fx.A));
         await db.query("BEGIN");
         await claim(db, intake.operationId, 900);
         await db.query("COMMIT");
-        const [holder, reporter, watcher] = [
+        const [opened, reporter, watcher] = [
           await openSession(),
           await openSession(),
           await openSession(),
         ];
+        holder = opened;
         await holder.query("BEGIN");
         await holder.query(
           "SELECT id FROM public.donations WHERE id = $1 FOR NO KEY UPDATE",
@@ -326,6 +333,7 @@ describe.skipIf(!ADMIN_URL)(
         ).toBe(other);
         expect((await rowOf(db, intake.operationId)).status).toBe("sending");
       } finally {
+        await holder?.query("ROLLBACK").catch(() => {});
         await releaseSessionsThenRemove(fx);
       }
     });
