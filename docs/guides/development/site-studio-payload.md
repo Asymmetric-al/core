@@ -170,7 +170,7 @@ Output is written under `site-studio-review/<date>/cloud-agent/`:
 
 ### Public endpoints (retired in WP6 part 2a)
 
-The five prototype `/api/cms/public/*` endpoints and `resolve-tenant.ts` were retired in WP6 part 2a (AL-2679) and return `404`. `apps/donor/lib/cms/client.ts` is an empty reader until WP7 implements the target public reader behind `packages/api/src/cms/public`. The preview serializer was moved to `apps/admin/src/cms/preview/serialize-published-page.ts`.
+The five prototype `/api/cms/public/*` endpoints and `resolve-tenant.ts` were retired in WP6 part 2a (AL-2679): the route itself answers `404`, and with `CORE_SERVE_UNDER_PATHS=1` an unstamped request to those paths is refused by the staff app's proxy with `403` before any route is reached. `apps/donor/lib/cms/client.ts` is an empty reader until WP7 implements the target public reader behind `packages/api/src/cms/public`. The preview serializer was moved to `apps/admin/src/cms/preview/serialize-published-page.ts`.
 
 ### Staff endpoints (auth required)
 

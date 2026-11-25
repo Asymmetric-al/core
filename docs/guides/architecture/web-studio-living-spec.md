@@ -94,7 +94,6 @@ flowchart LR
   subgraph admin["apps/admin"]
     WS[Web Studio UI]
     PL[Payload runtime]
-    Pub[Public CMS routes]
   end
   subgraph packages["packages/*"]
     UI["@asym/ui"]
@@ -110,8 +109,6 @@ flowchart LR
   WS --> PL
   WS --> UI
   PL --> DB
-  Pub --> PL
-  DONOR --> Pub
   API --> DB
   admin --> API
 ```
@@ -151,7 +148,7 @@ flowchart LR
 
 ### Public (retired in WP6 part 2a)
 
-The five prototype `/api/cms/public/*` routes (`pages`, `navigation`, `updates`, `missionary-pages`, `project-pages`) and `apps/admin/src/cms/public/resolve-tenant.ts` were retired in WP6 part 2a (AL-2679) and return `404`. Public CMS serving will be introduced by WP7 behind `packages/api/src/cms/public`.
+The five prototype `/api/cms/public/*` routes (`pages`, `navigation`, `updates`, `missionary-pages`, `project-pages`) and `apps/admin/src/cms/public/resolve-tenant.ts` were retired in WP6 part 2a (AL-2679): the route itself answers `404`, and with `CORE_SERVE_UNDER_PATHS=1` an unstamped request to those paths is refused by the staff app's proxy with `403` before any route is reached. The sole-entry gate allowlist (`scripts/verify/cms-public-sole-entry.mjs`) is empty until WP7 introduces public CMS serving behind `packages/api/src/cms/public`.
 
 ### Staff Next API (Mission Control auth, not Payload)
 

@@ -1051,11 +1051,9 @@ resolves. A hard-blocking lint forbids raw Payload reads in public paths. For a
 Phase 22 page, Payload publication is necessary content evidence but is not
 sufficient: the current page release, Phase 10 ceiling, and containment must
 also permit the response. The reader composes content evidence with separately
-owned public-safe projections; Payload is never their source of truth.
-The prototype admin public reader and tenant resolver were retired in WP6 part
-2a (AL-2679); the sole-entry gate allowlist is empty until WP7 implements the
-target reader under `packages/api/src/cms/public`. Explicit tenant-and-published
-predicates inside the reader are defense in depth and never replace
+owned public-safe projections; Payload is never their source of truth. Explicit
+tenant-and-published predicates inside the reader are defense in depth and never
+replace
 `overrideAccess: false`.
 _Avoid_: direct Payload reads in public code, hand-written tenant `where`
 clauses, `overrideAccess: true` public reads

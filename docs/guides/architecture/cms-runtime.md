@@ -110,7 +110,7 @@ Payload's REST routes answer under `/web-studio/api` (`routes.api`; plan 5.2, AL
 
 ### Public, tenant-scoped read APIs
 
-The five prototype `/api/cms/public/*` routes (`pages`, `missionary-pages`, `project-pages`, `navigation`, `updates`) were retired in WP6 part 2a (AL-2679) and return `404`. Public CMS serving will be introduced by WP7 behind `packages/api/src/cms/public`.
+The five prototype `/api/cms/public/*` routes (`pages`, `missionary-pages`, `project-pages`, `navigation`, `updates`) were retired in WP6 part 2a (AL-2679): the route itself answers `404`, and with `CORE_SERVE_UNDER_PATHS=1` an unstamped request to those paths is refused by the staff app's proxy with `403` before any route is reached. Public CMS serving will be introduced by WP7 behind `packages/api/src/cms/public`.
 
 ### Consumer contract in donor app
 
