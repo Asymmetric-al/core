@@ -89,10 +89,29 @@ describe("Mission Control navigation", () => {
       item: { id: "care" },
       sub: { id: "care-directory" },
     });
+    expect(findNavDestination("/settings")).toMatchObject({
+      item: { id: "admin" },
+      sub: { id: "admin-overview" },
+    });
+    expect(findNavDestination("/settings/teams")).toMatchObject({
+      item: { id: "admin" },
+      sub: { id: "admin-teams" },
+    });
+    expect(findNavDestination("/settings/eve")).toMatchObject({
+      item: { id: "admin" },
+      sub: { id: "admin-eve" },
+    });
+    expect(findNavDestination("/settings/payments")).toMatchObject({
+      item: { id: "admin" },
+      sub: { id: "admin-payments" },
+    });
     expect(findNavDestination("/settings/integrations/resend")).toMatchObject({
       item: { id: "admin" },
       sub: { id: "admin-email-delivery" },
     });
+    expect(findNavDestination("/admin")).toBeNull();
+    expect(findNavDestination("/admin/teams")).toBeNull();
+    expect(findNavDestination("/admin/eve")).toBeNull();
     expect(findNavDestination("/contributions/abc")).toMatchObject({
       item: { id: "contributions" },
       sub: null,
@@ -184,8 +203,11 @@ describe("Mission Control destinations by role", () => {
     ]);
 
   it("offers Eve in navigation and search only to admins", () => {
-    expect(hrefs("admin")).toContain("/admin/eve");
-    expect(hrefs("finance")).toContain("/admin");
+    expect(hrefs("admin")).toContain("/settings/eve");
+    expect(hrefs("admin")).not.toContain("/admin/eve");
+    expect(hrefs("finance")).toContain("/settings");
+    expect(hrefs("finance")).not.toContain("/admin");
+    expect(hrefs("finance")).not.toContain("/settings/eve");
     expect(hrefs("finance")).not.toContain("/admin/eve");
   });
 
@@ -193,19 +215,47 @@ describe("Mission Control destinations by role", () => {
     const admin = tiles.find((tile) => tile.id === "admin")!;
     const labels = (role: Parameters<typeof quickActionsForRole>[1]) =>
       quickActionsForRole(admin, role).map((action) => action.href);
-    expect(labels("admin")).toContain("/admin/eve");
+    expect(labels("admin")).toContain("/settings/eve");
+    expect(labels("admin")).not.toContain("/admin/eve");
+    expect(labels("finance")).not.toContain("/settings/eve");
     expect(labels("finance")).not.toContain("/admin/eve");
-    expect(labels("finance")).toContain("/admin");
+    expect(labels("finance")).toContain("/settings");
+    expect(labels("finance")).not.toContain("/admin");
   });
 
   it("offers Members in navigation and shortcuts to both admins and non-admin staff", () => {
     const admin = tiles.find((tile) => tile.id === "admin")!;
     const shortcuts = (role: Parameters<typeof quickActionsForRole>[1]) =>
       quickActionsForRole(admin, role).map((action) => action.href);
-    expect(hrefs("admin")).toContain("/admin/teams");
-    expect(hrefs("finance")).toContain("/admin/teams");
-    expect(shortcuts("admin")).toContain("/admin/teams");
-    expect(shortcuts("finance")).toContain("/admin/teams");
+    expect(hrefs("admin")).toContain("/settings/teams");
+    expect(hrefs("admin")).not.toContain("/admin/teams");
+    expect(hrefs("finance")).toContain("/settings/teams");
+    expect(hrefs("finance")).not.toContain("/admin/teams");
+    expect(shortcuts("admin")).toContain("/settings/teams");
+    expect(shortcuts("admin")).not.toContain("/admin/teams");
+    expect(shortcuts("finance")).toContain("/settings/teams");
+    expect(shortcuts("finance")).not.toContain("/admin/teams");
+  });
+
+  it("exposes no /admin page href for any role", () => {
+    const roles = [
+      "finance",
+      "fundraising",
+      "mobilizers",
+      "member_care",
+      "events",
+      "staff",
+      "admin",
+    ] as const;
+    for (const role of roles) {
+      const roleHrefs = hrefs(role);
+      expect(
+        roleHrefs.filter(
+          (href) => href === "/admin" || href.startsWith("/admin/"),
+        ),
+        role,
+      ).toEqual([]);
+    }
   });
 
   it("offers Member Care only when the active assignment holds care.access", () => {
