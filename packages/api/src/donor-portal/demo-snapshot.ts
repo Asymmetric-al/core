@@ -72,12 +72,9 @@ const donations: DonorPortalDonationRow[] = [
     fund: null,
     missionary: {
       id: "20000000-0000-0000-0000-000000000001",
+      worker_public_name: "Field Team 1",
       profile: {
         id: DEMO_PROFILE_ID,
-        display_name: "Field Team 1",
-        full_name: "Field Team 1",
-        first_name: "Field",
-        last_name: "Team",
         avatar_url:
           "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde",
       },
@@ -145,12 +142,9 @@ const pledges: DonorPortalPledgeRow[] = [
     fund: null,
     missionary: {
       id: "20000000-0000-0000-0000-000000000001",
+      worker_public_name: "Field Team 1",
       profile: {
         id: DEMO_PROFILE_ID,
-        display_name: "Field Team 1",
-        full_name: "Field Team 1",
-        first_name: "Field",
-        last_name: "Team",
         avatar_url:
           "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde",
       },

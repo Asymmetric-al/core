@@ -9,6 +9,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 
 import { normalizeStoredPostContent } from "./content";
+import { FEED_POST_SELECT } from "./select";
 import { postIdParamSchema, postUpdateSchema } from "../schemas/posts";
 import { CACHE_TAGS } from "../shared/cache-tags";
 import {
@@ -143,12 +144,7 @@ export async function PATCH(
 
     const { data: post, error } = await supabaseAdmin
       .from("posts")
-      .select(
-        `
-        *,
-        author:profiles!missionary_id(id, first_name, last_name, avatar_url)
-      `,
-      )
+      .select(FEED_POST_SELECT)
       .eq("id", postId)
       .single();
     if (error || !post) {

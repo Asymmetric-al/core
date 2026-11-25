@@ -24,6 +24,17 @@ describe("Payload Web Studio shell layout", () => {
     expect(source).toContain("@layer payload-default, payload;");
   });
 
+  it("does not enable Payload's in-process cron job runner in layout.tsx (WP6 part 2a, NC-05)", () => {
+    const source = readFileSync(
+      path.join(process.cwd(), "apps/admin/app/(payload)/layout.tsx"),
+      "utf8",
+    );
+    const getPayloadMatch = /getPayload\(\{[\s\S]*?\}\)/.exec(source);
+
+    expect(getPayloadMatch).not.toBeNull();
+    expect(getPayloadMatch?.[0]).not.toMatch(/\bcron\b/);
+  });
+
   it("does not force every Payload wrapper section to consume the first viewport", () => {
     const styles = readFileSync(PAYLOAD_STYLES_PATH, "utf8");
     const wrapperRuleBody =

@@ -266,7 +266,7 @@ For each Vercel project (`admin`, `donor`, `missionary`):
 
 On the `admin` project only, also set `STRIPE_CONNECT_WEBHOOK_SECRET` once the Connect event destination exists (section 5.5). `donor` and `missionary` do not host that endpoint and must not hold its signing secret.
 
-Set `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_SITE_URL` to the HTTPS development origin of the project (section 5.1). On admin and donor set `CMS_BASE_URL` to `https://development-admin.asymmetric.al`. The donor server’s CMS client sends no Vercel bypass, so it cannot read public CMS pages from the protected admin origin on development. On admin set `DONOR_APP_URL` and `NEXT_PUBLIC_DONOR_URL` to `https://development-donor.asymmetric.al`. Use the Inngest Development event and signing keys on all three projects in `core-development`; do not copy the Production pair here.
+Set `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_SITE_URL` to the HTTPS development origin of the project (section 5.1). On admin and donor set `CMS_BASE_URL` to `https://development-admin.asymmetric.al`. The prototype public CMS HTTP read path was retired in WP6 part 2a (AL-2679); the donor server's CMS client makes no HTTP reads until WP7, and donor keeps `CMS_BASE_URL` only for public media remote patterns. On admin set `DONOR_APP_URL` and `NEXT_PUBLIC_DONOR_URL` to `https://development-donor.asymmetric.al`. Use the Inngest Development event and signing keys on all three projects in `core-development`; do not copy the Production pair here.
 
 Supabase-specific development values must resolve to project ref
 `pnmlrbgjiqzzsthsoikm`:

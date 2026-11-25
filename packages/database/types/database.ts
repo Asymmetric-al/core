@@ -880,7 +880,7 @@ export interface MediaItem {
 export interface Post {
   id: string;
   tenant_id: string;
-  missionary_id: string;
+  missionary_id: string | null;
   content: string;
   media: MediaItem[];
   like_count: number;
@@ -903,10 +903,9 @@ export interface PostComment {
 export interface PostWithAuthor extends Post {
   author: {
     id: string;
-    first_name: string;
-    last_name: string;
     avatar_url: string | null;
-  };
+  } | null;
+  post_author_public_name: string | null;
   user_liked?: boolean;
   user_prayed?: boolean;
 }

@@ -136,7 +136,6 @@ async function PayloadEmbeddedLayout({ children }: Props) {
   const parsedCookies = parseCookies(headerStore);
   const payload = await getPayload({
     config,
-    cron: true,
     importMap,
   });
   const languageCode = getRequestLanguage({

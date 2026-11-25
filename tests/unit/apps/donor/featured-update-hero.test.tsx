@@ -26,10 +26,9 @@ const post: DonorFeedPost = {
   updated_at: "2026-01-29T09:00:00.000Z",
   author: {
     id: "profile-1",
-    first_name: "Jordan",
-    last_name: "Hale",
     avatar_url: null,
   },
+  post_author_public_name: "Jordan Hale",
 };
 
 it("features the newest real update instead of fixed field-report copy", () => {

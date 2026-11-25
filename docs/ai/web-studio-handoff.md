@@ -26,9 +26,8 @@
 | Native edit                 | `.../collections/shared/document-workspace/NativeCollectionEditView.tsx` |
 | Feature flags               | `.../web-studio/feature-flags.ts`                                        |
 | Preview URL                 | `.../web-studio/adapters/preview-url.ts`                                 |
-| Public serialize            | `apps/admin/src/cms/public/serialize-published-page.ts`                  |
-| Tenant resolve              | `apps/admin/src/cms/public/resolve-tenant.ts`                            |
-| Donor CMS client            | `apps/donor/lib/cms/client.ts`                                           |
+| Preview serialize           | `apps/admin/src/cms/preview/serialize-published-page.ts`                 |
+| Donor CMS client            | `apps/donor/lib/cms/client.ts` (empty reader until WP7)                  |
 | Staff APIs                  | `packages/api/src/admin/missionary-directory.ts`, `fund-directory.ts`    |
 
 ---
@@ -37,7 +36,7 @@
 
 1. **List/edit:** Collection `admin.components.views` → native components wrap Payload `DefaultEditView` / list hooks.
 2. **Templates:** `/web-studio/templates` → wizard routes → `POST /web-studio/api/web-studio/create-from-template` → redirect to new document.
-3. **Public read:** `apps/admin/app/api/cms/public/*` → the sole `PublishedContentReader` with the independent public-read policy; internal Payload access remains behind the private reader adapter. Preserve current protections while qualifying the adopted exact-generation serving contract.
+3. **Public read:** the prototype `/api/cms/public/*` routes and admin public reader adapters were retired in WP6 part 2a (AL-2679). `apps/donor/lib/cms/client.ts` is an empty reader until WP7 implements the sole `PublishedContentReader` under `packages/api/src/cms/public`.
 
 These paths describe the existing prototype surface. They do not make raw Payload forms, publish controls or provider APIs the required final product. The Phase 42 implementation must qualify its Asym-owned editor, isolated composer and owner commands before enabling them; a UI failure must not expose raw Payload Admin.
 

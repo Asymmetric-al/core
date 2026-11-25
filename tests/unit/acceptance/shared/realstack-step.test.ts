@@ -365,6 +365,7 @@ const REAL_DATABASE_FILES = [
     "issue-2678/identity-spine.realstack",
     "issue-2678/own-row-policies.realstack",
     "issue-2678/tenant-keys.realstack",
+    "issue-2678/worker-names.realstack",
     "issue-2678/worker-safety.realstack",
     "issue-2677/member-care-commands.realstack",
     "issue-2679/media-custody.realstack",

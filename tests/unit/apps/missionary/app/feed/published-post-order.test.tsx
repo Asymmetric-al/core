@@ -32,7 +32,8 @@ const post = {
   created_at: "2026-11-01T10:00:00.000Z",
   visibility: "public",
   status: "published",
-  author: { first_name: "Anna", last_name: "Lee", avatar_url: null },
+  author: { id: "profile-1", avatar_url: null },
+  post_author_public_name: "Anna Lee",
   media: [{ url: "https://images.unsplash.com/photo-1", type: "image" }],
 } as unknown as Post;
 

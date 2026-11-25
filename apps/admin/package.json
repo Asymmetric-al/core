@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev --port 3030",
     "dev:playwright": "next dev",
-    "build": "next build",
+    "build": "node ../../scripts/cms/check-payload-database-config.mjs && next build",
     "start": "next start",
     "lint": "node ../../tooling/eslint-config/lint.mjs",
     "typecheck": "next typegen && tsc --noEmit",

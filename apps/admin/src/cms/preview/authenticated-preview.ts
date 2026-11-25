@@ -1,4 +1,4 @@
-import { serializePublishedPageLike } from "../public/serialize-published-page";
+import { serializePublishedPageLike } from "./serialize-published-page";
 
 export const WEB_STUDIO_PREVIEW_COLLECTIONS = [
   "ministry-updates",

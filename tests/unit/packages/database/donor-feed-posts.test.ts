@@ -29,10 +29,9 @@ function makePost(overrides: Partial<DonorFeedPost> = {}): DonorFeedPost {
     updated_at: "2026-07-03T09:00:00.000Z",
     author: {
       id: "profile-1",
-      first_name: "Grace",
-      last_name: "Miller",
       avatar_url: "https://cdn.example/grace.jpg",
     },
+    post_author_public_name: "Grace Miller",
     user_liked: true,
     user_prayed: false,
     ...overrides,
@@ -74,31 +73,33 @@ describe("formatPostRelativeTime", () => {
 });
 
 describe("postAuthorName", () => {
-  it("joins first and last name", () => {
+  it("names the author by the post's public author name (AL-2678 r1)", () => {
     expect(postAuthorName(makePost())).toBe("Grace Miller");
   });
 
-  it("falls back when the name is blank", () => {
-    const post = makePost({
-      author: {
-        id: "p",
-        first_name: "",
-        last_name: "",
-        avatar_url: null,
-      },
-    });
-    expect(postAuthorName(post)).toBe("Ministry Partner");
+  it("falls back to Missionary when the post has no public author name (D-18, AL-2678 r1: the ruling's fallback replaces Ministry Partner, and the profile's names are no longer read)", () => {
+    for (const name of [null, "", "   "]) {
+      const post = makePost({
+        author: { id: "p", avatar_url: null },
+        post_author_public_name: name,
+      });
+      expect(postAuthorName(post)).toBe("Missionary");
+    }
   });
 });
 
 describe("postInitials", () => {
-  it("uppercases the first letter of each name", () => {
+  it("uppercases the first letter of the first and last word of the public author name (AL-2678 r1)", () => {
     expect(postInitials(makePost())).toBe("GM");
+    expect(postInitials(makePost({ post_author_public_name: "cedar" }))).toBe(
+      "C",
+    );
   });
 
-  it("returns an empty string when no name is present", () => {
+  it("returns an empty string when no public author name is present", () => {
     const post = makePost({
-      author: { id: "p", first_name: "", last_name: "", avatar_url: null },
+      author: { id: "p", avatar_url: null },
+      post_author_public_name: null,
     });
     expect(postInitials(post)).toBe("");
   });
