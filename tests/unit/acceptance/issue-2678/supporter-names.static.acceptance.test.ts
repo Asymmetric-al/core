@@ -847,3 +847,84 @@ describe("AL-2678 WP5 part 2-r2s: a colleague reads a donor only with the restri
       expect(scanned.has(file), file).toBe(true);
   });
 });
+
+const TREE_DONOR_TABLES = [
+  "account_claim_requests",
+  "campaigns",
+  "contribution_notification_events",
+  "contribution_operation_audit_events",
+  "donation_saga_outbox",
+  "donations",
+  "donor_activities",
+  "donor_feed_preferences",
+  "donor_merge_audit",
+  "donor_merge_candidates",
+  "donor_merge_redirects",
+  "donor_pledges",
+  "external_identifiers",
+  "follower_requests",
+  "follows",
+  "legacy_account_invitations",
+  "missionary_tasks",
+  "notification_queue",
+  "pledge_charge_attempts",
+  "staged_gifts",
+];
+
+const readMigrationTexts = (texts: Record<string, string>) =>
+  [...donorTablesFrom(Object.entries(texts))].sort();
+
+describe("AL-2678 WP5 part 2-r2s: the migration reader gives every reference to donors a table, or fails naming where it is (ADR 0008)", () => {
+  it("R1 a reference it cannot give a table fails, naming the file and the line", () => {
+    expect(() =>
+      readMigrationTexts({
+        "20990101000000_dynamic.sql":
+          "CREATE TABLE public.a (id uuid);\nDO $$ BEGIN\n  EXECUTE format('CREATE TABLE %I (donor_id uuid REFERENCES public.donors(id))', 'b');\nEND $$;\n",
+      }),
+    ).toThrow(/20990101000000_dynamic\.sql:3\b/);
+  });
+
+  it("R2 a reference inside a block comment is ignored", () => {
+    expect(
+      readMigrationTexts({
+        "20990101000001_note.sql":
+          "CREATE TABLE public.c (id uuid);\n/* ALTER TABLE public.d ADD COLUMN donor_id uuid REFERENCES public.donors(id); */\n",
+      }),
+    ).toEqual([]);
+  });
+
+  it("R3 a semicolon inside a block comment does not end the statement", () => {
+    expect(
+      readMigrationTexts({
+        "20990101000002_split.sql":
+          "CREATE TABLE public.e (\n  id uuid, /* first; second */\n  donor_id uuid REFERENCES public.donors(id)\n);\n",
+      }),
+    ).toEqual(["e"]);
+  });
+
+  it("R4 a quoted schema is read", () => {
+    expect(
+      readMigrationTexts({
+        "20990101000003_quoted.sql":
+          'ALTER TABLE "public"."f" ADD CONSTRAINT f_donor_fk FOREIGN KEY (donor_id) REFERENCES "public"."donors"(id);\n',
+      }),
+    ).toEqual(["f"]);
+  });
+
+  it("R5 a table renamed after its reference is read under both names", () => {
+    expect(
+      readMigrationTexts({
+        "20990101000005_rename.sql": "ALTER TABLE public.g RENAME TO h;\n",
+        "20990101000004_link.sql":
+          "ALTER TABLE public.g ADD COLUMN donor_id uuid REFERENCES public.donors(id);\n",
+      }),
+    ).toEqual(["g", "h"]);
+  });
+
+  it("the tree's migrations still give the twenty tables (guard)", () => {
+    expect(TREE_DONOR_TABLES).toHaveLength(20);
+    expect([...tablesReferringToDonors()]).toEqual(
+      expect.arrayContaining(TREE_DONOR_TABLES),
+    );
+  });
+});
