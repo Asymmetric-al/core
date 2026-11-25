@@ -69,7 +69,12 @@ After the migration, on any database whatever its default privileges:
   profiles are not the caller's. Its migration revokes `PUBLIC`, `anon`,
   `authenticated` and `service_role` by name and grants `authenticated`
   alone. `tests/unit/acceptance/issue-2675/post-comment-authors.realstack.acceptance.test.ts`
-  checks who sees which name and the grantee set.
+  checks who sees which name and the grantee set. Since AL-2678 (WP5 part
+  2-r2a, `20261126050000_wp5_2r2a_comment_authors.sql`, grants unchanged) a
+  worker is named only by the post's organization's public name, and a
+  commenter linked to a restricted or high-risk Party in any organization, or
+  a worker with no sole row in the post's organization, has no photo and is
+  named only by an alias or not at all.
 - The `authz` INVOKER helpers `current_user_id()` and `current_tenant_id()`
   keep `PUBLIC` EXECUTE; they run with the caller's privileges and gain nothing.
 - Since the second release of WP2b (AL-2675,
@@ -370,8 +375,11 @@ commands enforce non-null request-tenant binding on direct calls.
 | `tenant_guard.set_account_brand(uuid, text)`     | DEFINER  | `tenant_guard` (owner), `authenticated`                     |
 | `tenant_guard.designate_home(uuid, text)`        | DEFINER  | `tenant_guard` (owner), `authenticated`                     |
 | `private.share_lock_site_domain(uuid, text)`     | DEFINER  | `postgres` (owner), `tenant_guard`                          |
+| `public.resolve_home_host(text)`                 | DEFINER  | `postgres` (owner), `anon`, `authenticated`, `service_role` |
 
 Each revokes `PUBLIC`, `anon`, `authenticated`, and `service_role` by name
 before granting (`private.share_lock_site_domain` also revokes `tenant_guard`
-before its one grant). `resolve_verified_host` is the one entry on
+before its one grant). `resolve_verified_host` and `resolve_home_host` (added
+by WP3b part 2, AL-2676: the anonymous home read behind the redirect of a Site
+name's account paths to home) are the two entries on
 `docs/security/anon-definer-allowlist.json`.

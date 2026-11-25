@@ -17,6 +17,9 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
   expect(ADMIN_URL).toBeTruthy(),
 );
 
+const FORBIDDEN =
+  /Legal Rowan|Profile Rowan|Party Rowan|Party Xu|Profile Vale|Profile Xu|Profile Yew|Profile Zed|Profile Gone|Profile Orphan|Profile Fern|Profile Reed|Profile Fen|Profile Briar|Profile Moss|Profile Hazel|Party Hazel|Profile Fenn|Profile Linden/;
+
 const ALIAS_DIFFERS =
   "a restricted or high-risk worker's public alias must differ from the legal name";
 
@@ -116,6 +119,39 @@ describe.skipIf(!ADMIN_URL)(
         "alter table public.parties enable trigger parties_alias_check",
       );
     };
+    const avatar = (user: string) => `https://example.test/${user}.png`;
+    const member = caller(id, "UDA", "mDA", "TA");
+    const keys = (names: string[]) =>
+      Object.fromEntries(names.map((n) => [n, randomUUID()])) as Record<
+        string,
+        string
+      >;
+    const addUsers = async (named: Record<string, string>) => {
+      for (const [user, name] of Object.entries(named)) {
+        await db.query("insert into auth.users (id) values ($1)", [user]);
+        await db.query(
+          "update public.profiles set display_name = $2, full_name = $2, avatar_url = $3 where id = $1",
+          [user, name, avatar(user)],
+        );
+      }
+    };
+    const comment = async (post: string, users: string[]) => {
+      for (const user of users)
+        await db.query(
+          "insert into public.post_comments (post_id, user_id, content) values ($1, $2, 'acc2678 r2a')",
+          [post, user],
+        );
+    };
+    const authorsAs = async (who: object, post: string) => {
+      const r = await run(
+        who,
+        `select user_id, display_name, avatar_url from public.post_comment_authors('${post}') order by user_id`,
+      );
+      expect(r.code, r.message).toBeNull();
+      return Object.fromEntries(
+        r.rows.map((row) => [row.user_id, [row.display_name, row.avatar_url]]),
+      );
+    };
 
     beforeAll(async () => {
       await db.connect();
@@ -165,6 +201,18 @@ describe.skipIf(!ADMIN_URL)(
       await db.query(
         "insert into public.posts (id, tenant_id, missionary_id, content, visibility, status) values ($1, $4, $5, 'From W', 'public', 'published'), ($2, $4, $6, 'From X', 'public', 'published'), ($3, $4, null, 'From the organization', 'public', 'published')",
         [id.postW, id.postX, id.postOrg, id.TA, id.UM, id.UX],
+      );
+      await db.query(
+        "update public.profiles set display_name = 'Profile Xu', full_name = 'Profile Xu' where id = $1",
+        [id.UX],
+      );
+      await db.query(
+        "update public.profiles set display_name = 'Donor Dee', full_name = 'Donor Dee' where id = $1",
+        [id.UDA],
+      );
+      await db.query(
+        "update public.profiles set avatar_url = 'https://example.test/' || id || '.png' where id = any($1::uuid[])",
+        [[id.UM, id.UM2, id.UX, id.UR, id.UDA, id.UDC, id.UD2, id.US, id.UBS]],
       );
     });
     afterAll(async () => {
@@ -515,6 +563,65 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
+    it("r2a C2: post_comment_authors fails closed on a level the constraint forbids today: with the level's CHECK and NOT NULL dropped, a worker and a non-worker at 'critical' and at NULL get no name and no photo without an alias, and the alias and no photo with one", async () => {
+      await db.query("savepoint s");
+      try {
+        const k = keys(["UCN", "pCN"]);
+        await addUsers({ [k.UCN!]: "Profile Cotton" });
+        await db.query(
+          "insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Party Cotton')",
+          [k.pCN, id.TA],
+        );
+        await db.query(
+          "insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($1, $2, $3, 'profile_backfill')",
+          [id.TA, k.UCN, k.pCN],
+        );
+        await comment(id.postOrg, [id.UM2, k.UCN!]);
+        const checks = await db.query(
+          `select conname from pg_constraint
+            where conrelid = 'public.parties'::regclass and contype = 'c'
+              and pg_get_constraintdef(oid) like '%security_level%'`,
+        );
+        for (const { conname } of checks.rows)
+          await db.query(
+            `alter table public.parties drop constraint "${conname}"`,
+          );
+        await db.query(
+          "alter table public.parties alter column security_level drop not null",
+        );
+        const seen: Record<string, unknown> = {};
+        for (const level of ["'critical'", "null"])
+          for (const aliased of [false, true]) {
+            await withoutAliasCheck(
+              `update public.parties set security_level = ${level}, public_alias = ${aliased ? "'Willow'" : "null"} where id = '${id.pM2}';
+               update public.parties set security_level = ${level}, public_alias = ${aliased ? "'Wren'" : "null"} where id = '${k.pCN}'`,
+            );
+            const got = await authorsAs(member, id.postOrg);
+            seen[`${level}${aliased ? " with an alias" : ""}`] = {
+              worker: got[id.UM2],
+              nonWorker: got[k.UCN!],
+            };
+          }
+        expect(seen).toEqual({
+          "'critical'": { worker: [null, null], nonWorker: [null, null] },
+          "'critical' with an alias": {
+            worker: ["Willow", null],
+            nonWorker: ["Wren", null],
+          },
+          null: { worker: [null, null], nonWorker: [null, null] },
+          "null with an alias": {
+            worker: ["Willow", null],
+            nonWorker: ["Wren", null],
+          },
+        });
+        expect(JSON.stringify(seen)).not.toMatch(
+          /Party Vale|Profile Vale|Profile Cotton|Party Cotton/,
+        );
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
     it("only the server key reaches the projections: no EXECUTE for anon or authenticated on any of the four functions, EXECUTE for service_role on the two public ones only, ACLs of postgres and service_role alone, and a direct call on a constructed row refused 42501", async () => {
       const fns = [
         ["public.worker_public_name(public.missionaries)", true],
@@ -568,6 +675,371 @@ describe.skipIf(!ADMIN_URL)(
             `permission denied for function ${fn}`,
           ]);
         }
+    });
+
+    it("r2a test 1: a member of the post's organization reads W by the alias with no photo, V by the Party name with the photo, X, Y (two worker rows here) and Z (a restricted worker of another organization only) as NULL with no photo, D by the display name with the photo, and N, whose profile is gone, as one row of NULLs; no row holds a forbidden name (gate a)", async () => {
+      await db.query("savepoint s");
+      try {
+        const k = keys([
+          "UY",
+          "UZ",
+          "UN",
+          "pY1",
+          "pY2",
+          "pZ",
+          "mY1",
+          "mY2",
+          "mZ",
+          "mZA",
+        ]);
+        await addUsers({
+          [k.UY!]: "Profile Yew",
+          [k.UZ!]: "Profile Zed",
+          [k.UN!]: "Profile Gone",
+        });
+        await db.query(
+          "insert into public.parties (id, tenant_id, display_name) values ($1, $4, 'Party Yew One'), ($2, $4, 'Party Yew Two'), ($3, $5, 'Party Zed')",
+          [k.pY1, k.pY2, k.pZ, id.TA, id.TB],
+        );
+        await withoutAliasCheck(
+          `update public.parties set security_level = 'restricted', security_level_source = 'manual', public_alias = 'Ash' where id = '${k.pZ}'`,
+        );
+        await db.query(
+          "insert into public.missionaries (id, tenant_id, party_id, profile_id, legal_entity_id) values ($1, $4, $5, $7, $4), ($2, $4, $6, $7, $4), ($3, $8, $9, $10, $8)",
+          [k.mY1, k.mY2, k.mZ, id.TA, k.pY1, k.pY2, k.UY, id.TB, k.pZ, k.UZ],
+        );
+        await db.query(
+          "insert into authz.memberships (id, user_id, tenant_id, role) values ($1, $2, $3, 'donor')",
+          [k.mZA, k.UZ, id.TA],
+        );
+        await db.query("delete from public.profiles where id = $1", [k.UN]);
+        await comment(id.postOrg, [
+          id.UM,
+          id.UM2,
+          id.UX,
+          id.UDA,
+          k.UY!,
+          k.UZ!,
+          k.UN!,
+        ]);
+        const got = await authorsAs(member, id.postOrg);
+        expect(got).toEqual({
+          [id.UM]: ["Cedar", null],
+          [id.UM2]: ["Party Vale", avatar(id.UM2)],
+          [id.UX]: [null, null],
+          [id.UDA]: ["Donor Dee", avatar(id.UDA)],
+          [k.UY!]: [null, null],
+          [k.UZ!]: [null, null],
+          [k.UN!]: [null, null],
+        });
+        expect(JSON.stringify(got)).not.toMatch(FORBIDDEN);
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
+    it("r2a test 1, guard (passes on the base): a member of another organization only gets every commenter's name and photo as NULL", async () => {
+      await db.query("savepoint s");
+      try {
+        await comment(id.postOrg, [id.UM, id.UM2, id.UX, id.UDA]);
+        expect(
+          await authorsAs(caller(id, "UBS", "mBS", "TB"), id.postOrg),
+        ).toEqual({
+          [id.UM]: [null, null],
+          [id.UM2]: [null, null],
+          [id.UX]: [null, null],
+          [id.UDA]: [null, null],
+        });
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
+    it("r2a test 1, guard (passes on the base): post_comment_authors runs as its definer postgres, and only postgres and authenticated hold it", async () => {
+      const r = await db.query(
+        `select (select array_agg(distinct pg_get_userbyid(a.grantee)::text order by pg_get_userbyid(a.grantee)::text)
+                   from pg_proc as p, aclexplode(p.proacl) as a
+                  where p.oid = 'public.post_comment_authors(uuid)'::regprocedure) as grantees,
+                (select prosecdef from pg_proc where oid = 'public.post_comment_authors(uuid)'::regprocedure) as definer,
+                (select pg_get_userbyid(proowner) from pg_proc where oid = 'public.post_comment_authors(uuid)'::regprocedure) as owner`,
+      );
+      expect(r.rows[0]).toEqual({
+        grantees: ["authenticated", "postgres"],
+        definer: true,
+        owner: "postgres",
+      });
+    });
+
+    it("r2a test 1 (N3, with the fix rounds' F1 and C1; C1 holds ta_restricted's allowlist for high-risk: a worker with a second, high-risk Party here gets no name, a high-risk non-worker its alias): a commenter's Parties count in every organization, at every level:R1, A and a high-risk worker by their alias here, L by the alias of a worker row it is linked to, a sensitive worker by its Party name and a sensitive or whitespace-aliased person by the display name, both with the photo; R2 (by link or by donor row), R3, R3b, R3c, R4, R5, a high-risk person without an alias, a person whose alias is only invisible characters, a standard worker of another organization only and a linked person whose profile is gone by no name and no photo; no row holds a forbidden name", async () => {
+      await db.query("savepoint s");
+      try {
+        const people = [
+          "UR1",
+          "UR2",
+          "UR2d",
+          "UR3",
+          "UR4",
+          "UL",
+          "UR5",
+          "UR3b",
+          "UA",
+          "UHW",
+          "UHN",
+          "USW",
+          "USN",
+          "URI",
+          "UWS",
+          "UTS",
+          "UN2",
+          "UR3c",
+          "UA2",
+          "UHR5",
+          "UHRA",
+        ];
+        const k = keys([
+          ...people,
+          "pR1",
+          "pR2",
+          "pR2d",
+          "pR3",
+          "pR4s",
+          "pR4r",
+          "pL",
+          "pR5",
+          "pR5r",
+          "pR3bB",
+          "pR3bA",
+          "pA",
+          "pHW",
+          "pHN",
+          "pSW",
+          "pSN",
+          "pRI",
+          "pWS",
+          "pTS",
+          "pN2",
+          "pR3cB",
+          "pR3cA",
+          "pA2A",
+          "pA2B",
+          "mL",
+          "mR5",
+          "mHW",
+          "mSW",
+          "mTS",
+          "pHR5",
+          "pHR5h",
+          "pHRA",
+          "mHR5",
+        ]);
+        await addUsers({
+          [k.UR1!]: "Profile Fern",
+          [k.UR2!]: "Profile Reed",
+          [k.UR2d!]: "Profile Reed",
+          [k.UR3!]: "Profile Fen",
+          [k.UR4!]: "Profile Briar",
+          [k.UL!]: "Profile Moss",
+          [k.UR5!]: "Profile Hazel",
+          [k.UR3b!]: "Profile Fenn",
+          [k.UA!]: "Profile Linden",
+          [k.UHW!]: "Profile Holm",
+          [k.UHN!]: "Profile Hearn",
+          [k.USW!]: "Profile Sage",
+          [k.USN!]: "Sorrel Shown",
+          [k.URI!]: "Profile Ivy",
+          [k.UWS!]: "Whit Shown",
+          [k.UTS!]: "Profile Tarn",
+          [k.UN2!]: "Profile Nettle",
+          [k.UR3c!]: "Profile Laurel",
+          [k.UA2!]: "Avens Shown",
+          [k.UHR5!]: "Profile Alder",
+          [k.UHRA!]: "Profile Bramble",
+        });
+        const parties: [string, "TA" | "TB", string][] = [
+          ["pR1", "TA", "Party Fern"],
+          ["pR2", "TA", "Party Reed"],
+          ["pR2d", "TA", "Party Reed D"],
+          ["pR3", "TB", "Party Fen"],
+          ["pR4s", "TA", "Party Briar S"],
+          ["pR4r", "TA", "Party Briar R"],
+          ["pL", "TA", "Party Moss"],
+          ["pR5", "TA", "Party Hazel"],
+          ["pR5r", "TA", "Party Hazel R"],
+          ["pR3bB", "TB", "Party Fenn B"],
+          ["pR3bA", "TA", "Party Fenn A"],
+          ["pA", "TA", "Party Linden"],
+          ["pHW", "TA", "Party Holm"],
+          ["pHN", "TA", "Party Hearn"],
+          ["pSW", "TA", "Party Sage"],
+          ["pSN", "TA", "Party Sorrel"],
+          ["pRI", "TA", "Party Ivy"],
+          ["pWS", "TA", "Party Whit"],
+          ["pTS", "TB", "Party Tarn"],
+          ["pN2", "TA", "Party Nettle"],
+          ["pR3cB", "TB", "Party Laurel B"],
+          ["pR3cA", "TA", "Party Laurel A"],
+          ["pA2A", "TA", "Party Avens A"],
+          ["pA2B", "TB", "Party Avens B"],
+          ["pHR5", "TA", "Party Alder"],
+          ["pHR5h", "TA", "Party Alder H"],
+          ["pHRA", "TA", "Party Bramble"],
+        ];
+        for (const [party, tenant, name] of parties)
+          await db.query(
+            "insert into public.parties (id, tenant_id, display_name) values ($1, $2, $3)",
+            [k[party], id[tenant], name],
+          );
+        const level = (party: string, security: string, aliasSql: string) =>
+          `update public.parties set security_level = '${security}', security_level_source = 'manual', public_alias = ${aliasSql} where id = '${k[party]}';`;
+        await withoutAliasCheck(
+          [
+            level("pR1", "restricted", "'Fern'"),
+            level("pR2", "restricted", "null"),
+            level("pR2d", "restricted", "null"),
+            level("pR3", "restricted", "'Ash'"),
+            level("pR4r", "restricted", "'Briar'"),
+            level("pL", "restricted", "'Moss'"),
+            level("pR5r", "restricted", "'Briar'"),
+            level("pR3bB", "restricted", "'Ash'"),
+            level("pHW", "high_risk", "'Holly'"),
+            level("pHN", "high_risk", "null"),
+            level("pSW", "sensitive", "null"),
+            level("pSN", "sensitive", "null"),
+            level("pRI", "restricted", "chr(65039) || chr(8203)"),
+            level("pWS", "standard", "'   '"),
+            level("pN2", "restricted", "'Nettle'"),
+            level("pR3cB", "restricted", "'Ash'"),
+            level("pR3cA", "standard", "'Laurel'"),
+            level("pA2B", "standard", "'Juniper'"),
+            level("pHR5h", "high_risk", "'Bramble'"),
+            level("pHRA", "high_risk", "'Bramble'"),
+          ].join("\n"),
+        );
+        await db.query(
+          "update public.parties set public_alias = 'Linden' where id = $1",
+          [k.pA],
+        );
+        const workers: [string, "TA" | "TB", string, string | null][] = [
+          ["mL", "TA", "pL", null],
+          ["mR5", "TA", "pR5", "UR5"],
+          ["mHW", "TA", "pHW", "UHW"],
+          ["mSW", "TA", "pSW", "USW"],
+          ["mTS", "TB", "pTS", "UTS"],
+          ["mHR5", "TA", "pHR5", "UHR5"],
+        ];
+        for (const [row, tenant, party, user] of workers)
+          await db.query(
+            "insert into public.missionaries (id, tenant_id, party_id, profile_id, legal_entity_id) values ($1, $2, $3, $4, $2)",
+            [k[row], id[tenant], k[party], user === null ? null : k[user]],
+          );
+        const links: ["TA" | "TB", string, string][] = [
+          ["TA", "UR1", "pR1"],
+          ["TA", "UR2", "pR2"],
+          ["TB", "UR3", "pR3"],
+          ["TA", "UR4", "pR4s"],
+          ["TA", "UL", "pL"],
+          ["TB", "UR3b", "pR3bB"],
+          ["TA", "UA", "pA"],
+          ["TA", "UHN", "pHN"],
+          ["TA", "USN", "pSN"],
+          ["TA", "URI", "pRI"],
+          ["TA", "UWS", "pWS"],
+          ["TA", "UN2", "pN2"],
+          ["TB", "UR3c", "pR3cB"],
+          ["TA", "UA2", "pA2A"],
+          ["TB", "UA2", "pA2B"],
+          ["TA", "UHRA", "pHRA"],
+        ];
+        for (const [tenant, user, party] of links)
+          await db.query(
+            "insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($1, $2, $3, 'profile_backfill')",
+            [id[tenant], k[user], k[party]],
+          );
+        const donorRows: [string, string][] = [
+          ["UR2d", "pR2d"],
+          ["UR4", "pR4r"],
+          ["UR5", "pR5r"],
+          ["UR3b", "pR3bA"],
+          ["UR3c", "pR3cA"],
+          ["UHR5", "pHR5h"],
+        ];
+        for (const [user, party] of donorRows)
+          await db.query(
+            "insert into public.donors (tenant_id, party_id, profile_id, name, email) values ($1, $2, $3::uuid, 'Donor row', 'acc2678-n3-' || $3::text || '@example.test')",
+            [id.TA, k[party], k[user]],
+          );
+        await db.query("delete from public.profiles where id = $1", [k.UN2]);
+        await comment(
+          id.postOrg,
+          people.map((p) => k[p]!),
+        );
+        const got = await authorsAs(member, id.postOrg);
+        expect(Object.keys(got)).toHaveLength(people.length);
+        const byLabel = Object.fromEntries(people.map((p) => [p, got[k[p]!]]));
+        expect(byLabel).toEqual({
+          UR1: ["Fern", null],
+          UR2: [null, null],
+          UR2d: [null, null],
+          UR3: [null, null],
+          UR4: [null, null],
+          UL: ["Moss", null],
+          UR5: [null, null],
+          UR3b: [null, null],
+          UA: ["Linden", avatar(k.UA!)],
+          UHW: ["Holly", null],
+          UHN: [null, null],
+          USW: ["Party Sage", avatar(k.USW!)],
+          USN: ["Sorrel Shown", avatar(k.USN!)],
+          URI: [null, null],
+          UWS: ["Whit Shown", avatar(k.UWS!)],
+          UTS: [null, null],
+          UN2: [null, null],
+          UR3c: [null, null],
+          UA2: ["Avens Shown", avatar(k.UA2!)],
+          UHR5: [null, null],
+          UHRA: ["Bramble", null],
+        });
+        expect(JSON.stringify(got)).not.toMatch(FORBIDDEN);
+        expect(JSON.stringify(got)).not.toMatch(
+          /Profile Holm|Party Holm|Profile Hearn|Party Hearn|Profile Sage|Party Sorrel|Profile Ivy|Party Ivy|Party Whit|Profile Tarn|Party Tarn|Profile Nettle|Nettle|Profile Laurel|Laurel|Juniper|Party Avens|Profile Alder|Party Alder|Profile Bramble|Party Bramble/,
+        );
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
+    it("r2a test 1 (N3, S): W's comment on a post of W's other organization, read by a member there, names W by that organization's projection and shows no photo, because W is restricted elsewhere", async () => {
+      await db.query("savepoint s");
+      try {
+        const postS = randomUUID();
+        await db.query(
+          "insert into public.posts (id, tenant_id, missionary_id, content, visibility, status) values ($1, $2, null, 'In B', 'public', 'published')",
+          [postS, id.TB],
+        );
+        await comment(postS, [id.UM]);
+        const got = await authorsAs(caller(id, "UBS", "mBS", "TB"), postS);
+        expect(got).toEqual({ [id.UM]: ["Missionary A in B", null] });
+        expect(JSON.stringify(got)).not.toMatch(FORBIDDEN);
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
+    it("r2a test 1 (N3, G), guard (passes on the base): a published public post with no organization gives every commenter, a donor included, as NULL", async () => {
+      await db.query("savepoint s");
+      try {
+        const postG = randomUUID();
+        await db.query(
+          "insert into public.posts (id, tenant_id, missionary_id, content, visibility, status) values ($1, null, null, 'Nowhere', 'public', 'published')",
+          [postG],
+        );
+        await comment(postG, [id.UDA]);
+        expect(await authorsAs(member, postG)).toEqual({
+          [id.UDA]: [null, null],
+        });
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
     });
   },
 );

@@ -1,12 +1,16 @@
 /**
- * The people who commented on a post, for its comments (AL-2675, JB11).
+ * The people who commented on a post, for its comments (AL-2675, JB11;
+ * AL-2678, WP5 part 2-r2a).
  *
  * `public.post_comment_authors(post)` returns one row for each commenter of
- * a published public post: their profile's display name (NULL when blank)
- * and avatar, given only to a caller with a live membership in the post's
- * organization, and NULL to anyone else. It reads no other part of anyone's
- * profile, so the comments keep their authors when the second release stops
- * other people's `profiles` rows from being readable.
+ * a published public post, with a name and an avatar only for a caller with a
+ * live membership in the post's organization, and NULL for anyone else. A
+ * worker is named by the post's organization's public name, never by the
+ * profile. A commenter linked to a restricted or high-risk Party in any
+ * organization, or a worker with no sole row in the post's organization, has
+ * no photo and is named only by an alias or not at all. Anyone else keeps the
+ * profile's display name (NULL when blank) and avatar. It reads no other part
+ * of anyone's profile.
  */
 
 /** The one call this reader makes; a user-token Supabase client satisfies it. */

@@ -1,4 +1,5 @@
 import { parseReceiptSnapshotContent } from "./receipt-delivery";
+import { loadWorkerPublicNames } from "./worker-public-names";
 import {
   getPdfStudioDocRaptorClient,
   resolvePdfStudioDocRaptorRuntime,
@@ -248,7 +249,20 @@ export async function renderContributionReceiptSnapshotPdf(input: {
     );
   }
 
-  const { html, title } = buildUpdatedReceiptHtml(content);
+  const names = await loadWorkerPublicNames(
+    input.supabaseAdmin,
+    input.tenantId,
+    content.designationLines.map((line) => line.missionaryId),
+  );
+  const { html, title } = buildUpdatedReceiptHtml({
+    ...content,
+    designationLines: content.designationLines.map((line) => ({
+      ...line,
+      missionaryName: line.missionaryId
+        ? (names.get(line.missionaryId) ?? null)
+        : null,
+    })),
+  });
   const idempotencyKey = `contribution-receipt-snapshot/${input.tenantId}/${input.snapshotId}`;
   const result = await docraptorClient.renderSync({
     html,

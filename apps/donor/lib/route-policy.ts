@@ -21,6 +21,13 @@ export const DONOR_ACCOUNT_ROOTS = [
   "/api",
 ] as const;
 
+export const DONOR_HOME_REDIRECT_ROOTS = [
+  "/register",
+  "/forgot-password",
+  "/auth/callback",
+  "/donor-dashboard",
+] as const;
+
 export const DONOR_BOTH_ROOTS = [
   "/privacy",
   "/terms",
@@ -50,6 +57,12 @@ const SEGMENTS_MARKER = `${NEXT_RSC_SEGMENTS_DIR_SUFFIX}/`;
 
 function matchesRoot(pathname: string, root: string): boolean {
   return pathname === root || pathname.startsWith(`${root}/`);
+}
+
+export function isHomeRedirectPath(normalizedPathname: string): boolean {
+  return DONOR_HOME_REDIRECT_ROOTS.some((root) =>
+    matchesRoot(normalizedPathname, root),
+  );
 }
 
 function denormalizeTransportPagePath(pagePath: string): string {

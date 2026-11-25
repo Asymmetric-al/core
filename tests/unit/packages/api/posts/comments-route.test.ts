@@ -144,4 +144,13 @@ describe("GET /api/posts/[postId]/comments", () => {
     expect(status).toBe(500);
     expect(body.error).toMatch(/post_comment_authors/);
   });
+
+  it("AL-2678 r2a (F5): answers the commenters with Cache-Control: private, no-store, so no proxy or browser keeps a name a restriction has since withdrawn", async () => {
+    const response = await GET(
+      new Request(`http://localhost/api/posts/${POST}/comments`) as never,
+      { params: Promise.resolve({ postId: POST }) },
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+  });
 });

@@ -120,6 +120,21 @@ surfaces (`404` `no-store` when refused, `503` `no-store` when unavailable),
 to that organization, and the single-organization fallback ends while the switch
 is on (`packages/auth/docs/adr/0016-donor-organization-from-the-verified-name.md`).
 
+On an active website name that is not home (a Site name), a plain `GET` or
+`HEAD` of `/register`, `/forgot-password`, `/auth/callback` or
+`/donor-dashboard` (or a path under one) is not refused but redirected `307`
+(`no-store`, `no-referrer`, no body, no cookie, no session read) to the same
+path on the organization's home. The home name comes only from one more uncached
+anonymous read, `public.resolve_home_host` (`packages/auth/home-name.ts`);
+scheme and port come from that stored name (`http:` and the server's own
+listener port for a `.localhost` home, otherwise `https:` and no port), never
+from a request header; a path outside a strict character set becomes
+`/donor-dashboard`; only one checked `next` survives in the query
+(`apps/donor/lib/home-redirect.ts`). No home gives `404`, a failed read `503`.
+Sign-in, checkout, `/no-access` and the API stay `404` there. A signed-in donor
+with no row in the name's organization is sent to `/no-access` while the switch
+is on (ADR 0016, decision 7).
+
 With the switch unset (today's default everywhere), no `basePath` is set, the
 donor app proxies nothing to the dashboards, and the dashboards admit direct
 requests as before. Reserved paths, assistant proxying, provider-address
