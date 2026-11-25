@@ -69,7 +69,7 @@ Use **`{app}-{area}-{section}`** so names are unique within an app crawl (duplic
 Protected apps redirect unauthenticated users. Capture runs in Playwright **without** your session cookies, so pilot screens use **dedicated public routes** under `/boneyard/...`:
 
 - **Admin:** `apps/admin/proxy.ts` lists **`/boneyard`** under `publicRoutes` so nested capture routes remain reachable without a session. The admin capture page lives at `apps/admin/app/(auth)/boneyard/`.
-- **Donor:** none. `apps/donor/proxy.ts` no longer lists `/boneyard` (AL-2676, WP3b part 4), so `/boneyard/donor-dashboard` answers `404`.
+- **Donor:** none. AL-2676 (WP3b part 4) deleted the route's files and took `/boneyard` off `apps/donor/proxy.ts`'s public routes. A request the proxy refuses gets the proxy's `404`; an admitted request reaches the public catch-all `app/(public)/(solid)/[...cmsSlug]` and gets the not-found page with `noindex` and status `200`, as every unknown donor path does.
 - **Missionary:** `apps/missionary/proxy.ts` takes its public routes from `MISSIONARY_PUBLIC_ROUTES` in `apps/missionary/lib/route-policy.ts`, which includes `/boneyard`.
 
 Missionary **`/boneyard` routes** render inside a minimal padded shell (not full `AppShell`) so viewport width is closer to the real main content column.

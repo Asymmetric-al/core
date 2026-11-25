@@ -219,13 +219,19 @@ person.
     `DEMO_E2E_BYPASS_MISCONFIGURED` with no cookie, before the role mapping,
     and `GET` reports every role unavailable with a reason that names
     `E2E_AUTH_TENANT_ID`. A missing key or a refused datasource is still
-    reported first, as itself. Every launcher that turns the bypass on
-    (`scripts/run-with-ci-env.mjs`, `playwright.config.ts`,
-    `tests/e2e/playwright-shared.ts`, the two end-to-end jobs of
-    `.github/workflows/ci-integration.yml`,
-    `scripts/dev/setup-mission-control-cloud.mjs` and the demo profile of
-    `.oss-scanner/run-local.sh`) sets it to the seed's demo organization as a
-    default that keeps a value the caller set. The demo donor portal snapshot
+    reported first, as itself. Every launcher that turns the bypass on sets
+    it to the seed's demo organization. Four of them default it and keep a
+    value the caller set: `scripts/run-with-ci-env.mjs` (a non-empty value in
+    the environment wins), `playwright.config.ts` (under
+    `ASYM_USE_CI_ENV_DEFAULTS=1` for every server, and always for the donor
+    server, which turns the bypass on by itself),
+    `tests/e2e/playwright-shared.ts` (each Boneyard surface's dev server) and
+    `scripts/dev/setup-mission-control-cloud.mjs` (a value already in
+    `.env.local` is kept unless it is a placeholder such as an empty string).
+    Two pin it and discard a caller's value: the two end-to-end jobs of
+    `.github/workflows/ci-integration.yml` set it at job level, and the demo
+    profile of `.oss-scanner/run-local.sh` runs under `env -i`, so a value in
+    the caller's environment never reaches the command. The demo donor portal snapshot
     (`getDemoDonorPortalSnapshot(tenantId)`) takes the synthetic context's
     selected tenant. D-113 ruling 4's refusal of a tenant that is not the
     seed's demo organization, found by the seed's slug, does not apply under
@@ -234,7 +240,17 @@ person.
     the datasource allowlist), and the snapshot is fixture data that names no
     stored record. `DEMO_TENANT_ID` in `packages/auth/constants.ts` remains,
     for tests only (`tests/unit/acceptance/issue-2676/demo-tenant-constants.acceptance.test.ts`
-    pins that no shipped file names it). `DEMO_PROFILE_ID` is unchanged: a
+    pins that no shipped file names it). That guard is a text scan of
+    tracked files, and its limits are these. It finds the name
+    `DEMO_TENANT_ID` as a whole word, the seed's ID as a verbatim literal, and
+    a wildcard re-export (`export * from` or `export * as … from`) of the auth
+    constants module; it cannot see a namespace import of that module read
+    by a computed key, nor the seed's ID built by concatenation or any other
+    encoding. It exempts by path, whatever a file holds: everything under
+    `tests/`, any `*.test.*` or `*.spec.*` file, everything under `docs/`
+    (code files included), any `*.md` file, `supabase/migrations/`,
+    `supabase/seed.sql` and `supabase/schema.sql`; untracked files are not
+    read. Review covers what it cannot see. `DEMO_PROFILE_ID` is unchanged: a
     bypass identity whose cookie names no profile gets it as its profile
     (`getE2EAuthBypassContext` in `packages/auth/context.ts`), the demo
     owner's profile that `supabase/seed.sql` inserts. The bypass user ID and
