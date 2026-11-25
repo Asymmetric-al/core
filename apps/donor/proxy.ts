@@ -14,7 +14,7 @@ import { isServeUnderPathsEnabled } from "@asym/database/document-reload";
 import {
   classifyDonorPath,
   isDonorExemptPath,
-  normalizeDonorPath,
+  resolveDonorPath,
 } from "./lib/route-policy";
 
 import type { NextRequest } from "next/server";
@@ -60,9 +60,11 @@ export async function proxy(request: NextRequest) {
   if (routed) return routed;
 
   const cleaned = withoutFrontHeaders(request, { stripForwardedHost: true });
-  const normalized = normalizeDonorPath(request.nextUrl.pathname);
-  if (normalized === null) return frontNotFound();
-  if (isDonorExemptPath(normalized)) return authProxy(cleaned);
+  const resolved = resolveDonorPath(request.nextUrl.pathname);
+  if (resolved === null) return frontNotFound();
+  if (resolved.transport === "none" && isDonorExemptPath(resolved.pathname)) {
+    return authProxy(cleaned);
+  }
 
   const host = request.headers.get("host")?.trim();
   if (!host) return frontNotFound();
@@ -73,7 +75,7 @@ export async function proxy(request: NextRequest) {
   ]);
   if (lookup.kind === "unavailable") return verifiedNameUnavailable();
 
-  const pathClass = classifyDonorPath(normalized);
+  const pathClass = classifyDonorPath(resolved.pathname);
   const { donor_account: account, website } = lookup.decisions;
   const admitted =
     pathClass === "account"

@@ -116,8 +116,16 @@ vi.mock("@supabase/supabase-js", () => ({
 }));
 
 const donorModule = await import("../../../apps/donor/proxy");
-const { classifyDonorPath, isDonorExemptPath, normalizeDonorPath } =
-  await import("../../../apps/donor/lib/route-policy");
+const {
+  classifyDonorPath,
+  isDonorExemptPath,
+  NEXT_ROOT_TRANSPORT_PATH,
+  NEXT_RSC_SEGMENT_STRIPPED_SUFFIX,
+  NEXT_RSC_SEGMENT_SUFFIX,
+  NEXT_RSC_SEGMENTS_DIR_SUFFIX,
+  NEXT_RSC_SUFFIX,
+  normalizeDonorPath,
+} = await import("../../../apps/donor/lib/route-policy");
 
 function hostRow(
   tenantId: string,
@@ -571,6 +579,11 @@ describe("on: Next.js App Router transport paths", () => {
     `${page}${segDir}/${segment}${segStrippedSuffix}`;
 
   it("pins installed Next transport constants and adapter normalization from next/dist sources", () => {
+    expect(NEXT_RSC_SEGMENTS_DIR_SUFFIX).toBe(segDir);
+    expect(NEXT_RSC_SEGMENT_SUFFIX).toBe(segFullSuffix);
+    expect(NEXT_RSC_SUFFIX).toBe(rscSuffix);
+    expect(NEXT_RSC_SEGMENT_STRIPPED_SUFFIX).toBe(segStrippedSuffix);
+    expect(NEXT_ROOT_TRANSPORT_PATH).toBe("/index");
     expect(segDir).toBe(".segments");
     expect(segFullSuffix).toBe(".segment.rsc");
     expect(rscSuffix).toBe(".rsc");
