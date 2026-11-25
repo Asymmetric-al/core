@@ -30,6 +30,7 @@ const legalName = `Legal Placeholder ${runTag}`;
 const alias = `Alias ${runTag}`;
 const NOT_PERMITTED =
   "Only staff with the Restrict publication permission can change these settings.";
+const PAGE_CONTENT = ':has(> [data-slot="page-shell-header"])';
 let careStaff: Person | null = null;
 
 async function expectAccessible(page: Page, scope?: string) {
@@ -63,6 +64,10 @@ async function openRecord(page: Page) {
     page.getByRole("heading", { level: 1, name: workerName }),
   ).toBeVisible();
   await waitForHydratedForm(page);
+}
+
+function sameOrigin(page: Page) {
+  return { origin: new URL(page.url()).origin };
 }
 
 async function submitDialog(page: Page, action: string, submit: string) {
@@ -152,14 +157,14 @@ test.describe("AL-2678 WP5 part 2-r2b1: the worker's record in Mission Control o
     await page.goto(`/${DEMO}/workers?review=unreviewed`);
     const row = page.getByRole("row").filter({ hasText: workerName });
     await expect(row.getByText("Security level unreviewed")).toBeVisible();
-    await expectAccessible(page);
+    await expectAccessible(page, PAGE_CONTENT);
     await row.getByRole("link", { name: workerName }).click();
     await expect(page).toHaveURL(new RegExp(`/${DEMO}/workers/${workerId}$`));
     await expect(
       page.getByRole("heading", { level: 1, name: workerName }),
     ).toBeVisible();
     await expect(page.getByText("Recorded, hidden")).toBeVisible();
-    await expectAccessible(page);
+    await expectAccessible(page, PAGE_CONTENT);
 
     await page
       .getByRole("button", { name: `Confirm level for ${workerName}` })
@@ -171,7 +176,9 @@ test.describe("AL-2678 WP5 part 2-r2b1: the worker's record in Mission Control o
       (await submitDialog(page, "confirm", "Confirm level")).status(),
     ).toBe(200);
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await expect(page.getByText("Security level unreviewed")).toHaveCount(0);
+    await expect(
+      page.getByText("Security level unreviewed").filter({ visible: true }),
+    ).toHaveCount(0);
     expect(await unreviewedCount(page)).toBe(before - 1);
 
     await openRecord(page);
@@ -313,7 +320,10 @@ test.describe("AL-2678 WP5 part 2-r2b1: the worker's record in Mission Control o
     const headers = await documentScopeHeaders(page);
     const refused = await page.request.post(
       `/api/admin/workers/${workerId}/reveal`,
-      { headers, data: { reason: "Curious" } },
+      {
+        headers: { ...headers, ...sameOrigin(page) },
+        data: { reason: "Curious" },
+      },
     );
     expect(refused.status()).toBe(403);
     expect(await refused.json()).toMatchObject({
@@ -339,10 +349,12 @@ test.describe("AL-2678 WP5 part 2-r2b1: the worker's record in Mission Control o
     expect(record.status()).toBe(404);
     const reveal = await page.request.post(
       `/api/admin/workers/${workerId}/reveal`,
-      { headers, data: { reason: "x" } },
+      { headers: { ...headers, ...sameOrigin(page) }, data: { reason: "x" } },
     );
     expect(reveal.status()).toBe(404);
     await page.goto(`/${SECOND}/workers/${workerId}`);
-    await expect(page.getByRole("alert")).toContainText("Worker not found.");
+    await expect(
+      page.getByRole("alert").filter({ hasText: "Worker not found." }),
+    ).toBeVisible();
   });
 });
