@@ -277,6 +277,52 @@ describe("#2269 GraphQL donations reads (U)", () => {
     },
   );
 
+  it("AL-2678 WP5 part 2-r2s: mySupporters reads a donor embed that arrives as a one-element array as that donor, as requesterOf and normalizeJoinedOne do", async () => {
+    s.auth = as("profile-m", "missionary");
+    s.tables.set("missionaries", [{ id: missionary.id }]);
+    const named = {
+      id: "donor-n",
+      giving_preferences: { defaultAnonymousToRecipient: false },
+      donor_is_restricted_party: false,
+      profile: profile("profile-n", "donor"),
+    };
+    const restricted = {
+      ...named,
+      id: "donor-r",
+      donor_is_restricted_party: true,
+      profile: profile("profile-r", "donor"),
+    };
+    s.tables.set("donations", [
+      { ...donation("g-named", named), donor: [named] },
+      { ...donation("g-restricted", restricted), donor: [restricted] },
+      { ...donation("g-empty", named), donor: [] },
+    ]);
+    const r = await gql(`{ mySupporters { ${FIELDS} } }`);
+    expect(r.errors).toBeUndefined();
+    expect(r.data?.mySupporters).toEqual([
+      {
+        id: "g-named",
+        amount: 2500,
+        donor: { id: "profile-n", email: "profile-n@example.invalid" },
+        missionary: mappedMissionary,
+      },
+      {
+        id: "g-restricted",
+        amount: 2500,
+        donor: null,
+        missionary: mappedMissionary,
+      },
+      {
+        id: "g-empty",
+        amount: 2500,
+        donor: null,
+        missionary: mappedMissionary,
+      },
+    ]);
+    expect(JSON.stringify(r).toLowerCase()).not.toContain("profile-r");
+    donationsRequest(SUPPORTER_DONATION_SELECT);
+  });
+
   it.each([
     ["myDonations", "profile-d", "donor"],
     ["mySupporters", "profile-m", "missionary"],
