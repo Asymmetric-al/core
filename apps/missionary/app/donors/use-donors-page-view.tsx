@@ -108,6 +108,22 @@ type DonorsPageViewModel = {
   };
 };
 
+type NoteSession = {
+  donorId: string;
+  open: boolean;
+  text: string;
+  activityType: DonorActivityType;
+};
+
+function noteSessionFor(
+  previous: NoteSession | null,
+  donorId: string,
+): NoteSession {
+  return previous?.donorId === donorId
+    ? previous
+    : { donorId, open: false, text: "", activityType: "note" };
+}
+
 function useDonorsPageView(): DonorsPageViewModel {
   const { profile, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
@@ -125,17 +141,15 @@ function useDonorsPageView(): DonorsPageViewModel {
   const [sortBy, setSortBy] = React.useState<SortOption>("last_gift");
   const [sortAsc, setSortAsc] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState("overview");
-  const [noteInput, setNoteInput] = React.useState("");
-  const [isNoteDialogOpen, setIsNoteDialogOpen] = React.useState(false);
-  const [isTagDialogOpen, setIsTagDialogOpen] = React.useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const [noteSession, setNoteSession] = React.useState<NoteSession | null>(
+    null,
+  );
+  const [tagDialogFor, setTagDialogFor] = React.useState<string | null>(null);
+  const [editDialogFor, setEditDialogFor] = React.useState<string | null>(null);
   const [tagDraft, setTagDraft] =
     React.useState<DonorTagDraft>(EMPTY_TAG_DRAFT);
   const [isSavingTags, setIsSavingTags] = React.useState(false);
   const [isSavingNote, setIsSavingNote] = React.useState(false);
-  const [activityType, setActivityType] = React.useState<
-    "note" | "call" | "meeting" | "email"
-  >("note");
   const donors = React.useMemo(
     () =>
       (donorsQuery.data ?? []).map((row) => toPartnerSafeDonor(row as Donor)),
@@ -189,6 +203,21 @@ function useDonorsPageView(): DonorsPageViewModel {
     [donors, selectedDonorId],
   );
 
+  const isOpenFor = (donorId: string | null | undefined) =>
+    !!selectedDonor &&
+    !selectedDonor.is_anonymous &&
+    donorId === selectedDonor.id;
+  const [sessionsCheckedFor, setSessionsCheckedFor] =
+    React.useState<Donor | null>(null);
+  if (sessionsCheckedFor !== selectedDonor) {
+    setSessionsCheckedFor(selectedDonor);
+    if (noteSession && !isOpenFor(noteSession.donorId)) setNoteSession(null);
+    if (tagDialogFor && !isOpenFor(tagDialogFor)) setTagDialogFor(null);
+    if (editDialogFor && !isOpenFor(editDialogFor)) setEditDialogFor(null);
+  }
+  const activeNote =
+    noteSession && isOpenFor(noteSession.donorId) ? noteSession : null;
+
   // Derive the new partner draft before rendering; preserve same-partner edits on refresh.
   const selectedTags =
     selectedDonor && tagDraft.donorId === selectedDonor.id
@@ -225,18 +254,46 @@ function useDonorsPageView(): DonorsPageViewModel {
   const openNoteComposer = React.useCallback(
     (nextActivityType?: DonorActivityType) => {
       if (!selectedDonor || selectedDonor.is_anonymous) return;
-      if (nextActivityType) {
-        setActivityType(nextActivityType);
-      }
-
-      setIsNoteDialogOpen(true);
+      const donorId = selectedDonor.id;
+      setNoteSession((previous) => {
+        const session = noteSessionFor(previous, donorId);
+        return {
+          ...session,
+          open: true,
+          activityType: nextActivityType ?? session.activityType,
+        };
+      });
     },
     [selectedDonor],
   );
 
   const closeNoteComposer = React.useCallback(() => {
-    setIsNoteDialogOpen(false);
+    setNoteSession((previous) => previous && { ...previous, open: false });
   }, []);
+
+  const setNoteInput = React.useCallback(
+    (text: string) => {
+      if (!selectedDonor || selectedDonor.is_anonymous) return;
+      const donorId = selectedDonor.id;
+      setNoteSession((previous) => ({
+        ...noteSessionFor(previous, donorId),
+        text,
+      }));
+    },
+    [selectedDonor],
+  );
+
+  const setActivityType = React.useCallback(
+    (activityType: DonorActivityType) => {
+      if (!selectedDonor || selectedDonor.is_anonymous) return;
+      const donorId = selectedDonor.id;
+      setNoteSession((previous) => ({
+        ...noteSessionFor(previous, donorId),
+        activityType,
+      }));
+    },
+    [selectedDonor],
+  );
 
   const openTagEditor = React.useCallback(() => {
     if (!selectedDonor || selectedDonor.is_anonymous) return;
@@ -244,29 +301,32 @@ function useDonorsPageView(): DonorsPageViewModel {
       donorId: selectedDonor.id,
       tags: createTagEditorDraft(selectedDonor.tags),
     });
-    setIsTagDialogOpen(true);
+    setTagDialogFor(selectedDonor.id);
   }, [selectedDonor]);
 
   const closeTagEditor = React.useCallback(() => {
     setTagDraft(EMPTY_TAG_DRAFT);
-    setIsTagDialogOpen(false);
+    setTagDialogFor(null);
   }, []);
 
   const handleAddNote = React.useCallback(async () => {
-    if (!selectedDonor || selectedDonor.is_anonymous || !noteInput.trim())
-      return;
+    if (!activeNote || !activeNote.text.trim()) return;
+    const { donorId, activityType, text } = activeNote;
 
     setIsSavingNote(true);
     try {
       const outcome = await insertDonorActivity({
-        donorId: selectedDonor.id,
+        donorId,
         activityType,
-        note: noteInput.trim(),
+        note: text.trim(),
       });
       if (outcome.ok) {
         toast.success("Activity logged successfully");
-        setNoteInput("");
-        setIsNoteDialogOpen(false);
+        setNoteSession((previous) =>
+          previous?.donorId === donorId
+            ? { ...previous, text: "", open: false }
+            : previous,
+        );
         void handleRefreshDonors();
       } else {
         toast.error("Failed to add activity");
@@ -275,20 +335,21 @@ function useDonorsPageView(): DonorsPageViewModel {
     } finally {
       setIsSavingNote(false);
     }
-  }, [selectedDonor, noteInput, activityType, handleRefreshDonors]);
+  }, [activeNote, handleRefreshDonors]);
 
   const handleSaveTags = React.useCallback(async () => {
     if (!selectedDonor || selectedDonor.is_anonymous) return;
 
+    const donorId = selectedDonor.id;
     setIsSavingTags(true);
     try {
       const outcome = await updateDonorTags({
-        donorId: selectedDonor.id,
+        donorId,
         tags: selectedTags,
       });
       if (outcome.ok) {
         toast.success("Tags updated successfully");
-        setIsTagDialogOpen(false);
+        setTagDialogFor((previous) => (previous === donorId ? null : previous));
         void handleRefreshDonors();
       } else {
         toast.error("Failed to update tags");
@@ -317,11 +378,11 @@ function useDonorsPageView(): DonorsPageViewModel {
 
   const openEditDialog = React.useCallback(() => {
     if (!selectedDonor || selectedDonor.is_anonymous) return;
-    setIsEditDialogOpen(true);
+    setEditDialogFor(selectedDonor.id);
   }, [selectedDonor]);
 
   const closeEditDialog = React.useCallback(() => {
-    setIsEditDialogOpen(false);
+    setEditDialogFor(null);
   }, []);
 
   const applyStatFilter = React.useCallback(
@@ -402,11 +463,10 @@ function useDonorsPageView(): DonorsPageViewModel {
       toggleSortAsc,
     },
     noteComposer: {
-      isOpen:
-        isNoteDialogOpen && !!selectedDonor && !selectedDonor.is_anonymous,
+      isOpen: activeNote?.open ?? false,
       isSaving: isSavingNote,
-      noteInput,
-      activityType,
+      noteInput: activeNote?.text ?? "",
+      activityType: activeNote?.activityType ?? "note",
       setNoteInput,
       setActivityType,
       open: openNoteComposer,
@@ -414,7 +474,7 @@ function useDonorsPageView(): DonorsPageViewModel {
       save: handleAddNote,
     },
     tagEditor: {
-      isOpen: isTagDialogOpen && !!selectedDonor && !selectedDonor.is_anonymous,
+      isOpen: isOpenFor(tagDialogFor),
       isSaving: isSavingTags,
       selectedTags,
       open: openTagEditor,
@@ -423,8 +483,7 @@ function useDonorsPageView(): DonorsPageViewModel {
       save: handleSaveTags,
     },
     editDialog: {
-      isOpen:
-        isEditDialogOpen && !!selectedDonor && !selectedDonor.is_anonymous,
+      isOpen: isOpenFor(editDialogFor),
       open: openEditDialog,
       close: closeEditDialog,
     },
