@@ -208,7 +208,6 @@ function firstCallArgument(text, openIndex) {
 }
 
 const IDENT = "[A-Za-z_][A-Za-z0-9_$]*";
-const QUALIFIED_RELATION = `${IDENT}\\s*\\.\\s*${IDENT}\\b(?!\\s*[.(])`;
 
 function normalizedBody(body, stripComments) {
   return stripComments(String(body ?? ""), { blankStrings: true }).replace(
@@ -239,15 +238,75 @@ function isAnchorColumn(columnRef, namedParams) {
   return !namedParams.has(column);
 }
 
+const ANCHOR_ALIAS_KEYWORDS = new Set([
+  "where",
+  "join",
+  "cross",
+  "left",
+  "right",
+  "inner",
+  "full",
+  "natural",
+  "union",
+  "intersect",
+  "except",
+  "on",
+  "using",
+]);
+const ANCHOR_ROW_LOCK =
+  "(?:\\s+FOR\\s+(?:NO\\s+KEY\\s+UPDATE|UPDATE|SHARE|KEY\\s+SHARE)(?:\\s+(?:NOWAIT|SKIP\\s+LOCKED))?)?";
+const ANCHOR_PREDICATE_FORBIDDEN =
+  /\b(?:SELECT|JOIN|UNION|INTERSECT|EXCEPT|GROUP\s+BY|HAVING|ORDER\s+BY|LIMIT|OFFSET|FETCH|FOR)\b/i;
+const STATEMENT_BOUNDARY_BEFORE = /(?:^|\b(?:BEGIN|THEN|ELSE|LOOP))\s*$/i;
+
+function hasTopLevelComma(text) {
+  let depth = 0;
+  for (const ch of text) {
+    if (ch === "(") depth += 1;
+    else if (ch === ")") depth -= 1;
+    else if (ch === "," && depth === 0) return true;
+  }
+  return false;
+}
+
+function isAnchorStatement(statement, variable, namedParams) {
+  const into = variable
+    ? `\\s+INTO\\s+(?:STRICT\\s+)?${escapeRegExp(variable)}`
+    : "";
+  const match = new RegExp(
+    `^SELECT\\s+(${IDENT}(?:\\s*\\.\\s*${IDENT})?)${into}\\s+FROM\\s+${IDENT}\\s*\\.\\s*${IDENT}(?:\\s+(?:AS\\s+)?(${IDENT}))?\\s+WHERE\\s+([\\s\\S]+?)${ANCHOR_ROW_LOCK}\\s*$`,
+    "i",
+  ).exec(statement.trim());
+  if (!match) return false;
+  if (!isAnchorColumn(match[1], namedParams)) return false;
+  if (match[2] && ANCHOR_ALIAS_KEYWORDS.has(match[2].toLowerCase()))
+    return false;
+  const predicate = match[3];
+  return (
+    !ANCHOR_PREDICATE_FORBIDDEN.test(predicate) && !hasTopLevelComma(predicate)
+  );
+}
+
+function statementAround(text, index) {
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === "(") depth += 1;
+    else if (ch === ")") depth -= 1;
+    else if (ch === ";" && depth === 0) {
+      if (i >= index) return text.slice(start, i);
+      start = i + 1;
+    }
+  }
+  return text.slice(start);
+}
+
 function isScalarAnchorRead(argument, namedParams) {
   let inner = argument.trim();
   while (inner.startsWith("(") && inner.endsWith(")"))
     inner = inner.slice(1, -1).trim();
-  const match = new RegExp(
-    `^SELECT\\s+(${IDENT}(?:\\s*\\.\\s*${IDENT})?)\\s+FROM\\s+${QUALIFIED_RELATION}`,
-    "i",
-  ).exec(inner);
-  return Boolean(match) && isAnchorColumn(match[1], namedParams);
+  return isAnchorStatement(inner, null, namedParams);
 }
 
 function isVariableAnchorRead(variable, text, namedParams) {
@@ -281,15 +340,14 @@ function isVariableAnchorRead(variable, text, namedParams) {
     ),
   ];
   if (intoTargets.length !== 1) return false;
-  const permitted = [
-    ...text.matchAll(
-      new RegExp(
-        `\\bSELECT\\s+(${IDENT}(?:\\s*\\.\\s*${IDENT})?)\\s+INTO\\s+(?:STRICT\\s+)?${v}\\s+FROM\\s+${QUALIFIED_RELATION}`,
-        "gi",
-      ),
-    ),
-  ];
-  return permitted.length === 1 && isAnchorColumn(permitted[0][1], namedParams);
+  const statement = statementAround(text, intoTargets[0].index);
+  for (const select of statement.matchAll(/\bSELECT\b/gi)) {
+    if (!STATEMENT_BOUNDARY_BEFORE.test(statement.slice(0, select.index)))
+      continue;
+    if (isAnchorStatement(statement.slice(select.index), variable, namedParams))
+      return true;
+  }
+  return false;
 }
 
 export function workerWrapperPassesTenantArg(
@@ -365,7 +423,12 @@ const WRAPPER_READ_ONLY_FUNCTIONS = new Set([
   "array_length",
 ]);
 
-export function workerWrapperHasWrite(body, stripComments, language) {
+export function workerWrapperHasWrite(
+  body,
+  stripComments,
+  language,
+  searchPath,
+) {
   const text = normalizedBody(body, stripComments).replace(
     /\bFOR\s+(?:NO\s+KEY\s+UPDATE|UPDATE|KEY\s+SHARE|SHARE)\b(?:\s+OF\s+[\w\s,]+?)?(?:\s+(?:NOWAIT|SKIP\s+LOCKED))?/gi,
     " ",
@@ -382,7 +445,7 @@ export function workerWrapperHasWrite(body, stripComments, language) {
     if (schema === "tenant_guard") continue;
     if (schema === null && WRAPPER_NON_CALL_WORDS.has(name)) continue;
     if (
-      (schema === null || schema === "pg_catalog") &&
+      ((schema === null && searchPath === '""') || schema === "pg_catalog") &&
       WRAPPER_READ_ONLY_FUNCTIONS.has(name)
     )
       continue;
