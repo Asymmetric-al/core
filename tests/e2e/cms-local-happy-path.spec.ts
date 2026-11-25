@@ -66,16 +66,56 @@ async function signInAsLocalDemoAdmin(page: Page, next = "/web-studio") {
   await expectNoPayloadFailure(page);
 }
 
-async function fetchPublicJson<T>(
+async function expectRetiredPublicCms404(
   request: APIRequestContext,
-  path: string,
-  status = 200,
+  label: string,
 ) {
-  const response = await request.get(`${adminBaseURL}${path}`, {
-    headers: tenantHeaders,
-  });
-  expect(response.status()).toBe(status);
-  return (await response.json()) as T;
+  const retiredPaths = [
+    "/api/cms/public/pages/local-cms-home",
+    "/api/cms/public/navigation",
+    "/api/cms/public/updates?limit=5",
+    "/api/cms/public/project-pages/local-project",
+    "/api/cms/public/missionary-pages/11111111-1111-1111-1111-111111111111",
+  ];
+
+  for (const method of ["GET", "HEAD"] as const) {
+    for (const path of retiredPaths) {
+      const response = await request.fetch(`${adminBaseURL}${path}`, {
+        method,
+        headers: tenantHeaders,
+        maxRedirects: 0,
+      });
+      expect(response.status(), `${label} ${method} ${path}`).toBe(404);
+      expect(
+        response.headers()["location"],
+        `${label} ${method} ${path} location`,
+      ).toBeUndefined();
+      expect(
+        response.headers()["content-type"] ?? "",
+        `${label} ${method} ${path} content-type`,
+      ).not.toMatch(/\bapplication\/json\b/i);
+      if (method === "GET") {
+        const body = await response.text();
+        expect(
+          () => JSON.parse(body),
+          `${label} ${method} ${path} not JSON`,
+        ).toThrow();
+        for (const forbidden of [
+          "Local CMS Home",
+          "Published local CMS home content.",
+          "Main Navigation",
+          "Local Ministry Update",
+          "Local Project",
+          "Local Missionary Giving",
+          "give-hope-demo",
+        ]) {
+          expect(body, `${label} ${method} ${path} body`).not.toContain(
+            forbidden,
+          );
+        }
+      }
+    }
+  }
 }
 
 async function findPayloadDoc<T extends DocWithId>(
@@ -255,61 +295,26 @@ test.describe("@cms-local strict local CMS happy path", () => {
     await expect(page).toHaveURL(/next=%2Fweb-studio/);
   });
 
-  test("serves seeded public CMS content and renders it through the donor app", async ({
+  test("returns 404 on retired public CMS routes signed out and signed in and renders donor not-found page after WP6 part 2a", async ({
     page,
     request,
   }) => {
-    const home = await fetchPublicJson<{
-      page: { id: string | number; title: string; slug: string };
-      tenant: { slug: string };
-    }>(request, "/api/cms/public/pages/local-cms-home");
-    expect(home.tenant.slug).toBe("give-hope-demo");
-    expect(home.page).toMatchObject({
-      slug: "local-cms-home",
-      title: "Local CMS Home",
-    });
+    await expectRetiredPublicCms404(request, "signed-out");
 
-    const navigation = await fetchPublicJson<{
-      navigation: { label: string; items: unknown[] };
-      tenant: { slug: string };
-    }>(request, "/api/cms/public/navigation");
-    expect(navigation.navigation.label).toBe("Main Navigation");
-    expect(navigation.navigation.items.length).toBeGreaterThanOrEqual(4);
-
-    const updates = await fetchPublicJson<{
-      updates: Array<{ slug: string; title: string }>;
-    }>(request, "/api/cms/public/updates?limit=5");
-    expect(updates.updates).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          slug: "local-ministry-update",
-          title: "Local Ministry Update",
-        }),
-      ]),
-    );
-
-    const project = await fetchPublicJson<{
-      page: { slug: string; title: string };
-    }>(request, "/api/cms/public/project-pages/local-project");
-    expect(project.page.slug).toBe("local-project");
-
-    const missionary = await fetchPublicJson<{
-      page: { slug: string; title: string };
-    }>(
-      request,
-      "/api/cms/public/missionary-pages/11111111-1111-1111-1111-111111111111",
-    );
-    expect(missionary.page.slug).toBe("local-missionary-giving");
-
-    await fetchPublicJson(request, "/api/cms/public/pages/not-a-page", 404);
+    await signInAsLocalDemoAdmin(page);
+    await expectRetiredPublicCms404(page.request, "signed-in");
 
     await page.goto(`${donorBaseURL}/local-cms-home`);
+    await expect(page.getByRole("heading", { name: "404" })).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Local CMS Home" }).first(),
+      page.getByRole("heading", { name: "This page could not be found." }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Local CMS Home" }),
+    ).toHaveCount(0);
     await expect(
       page.getByText("Published local CMS home content."),
-    ).toBeVisible();
+    ).toHaveCount(0);
   });
 
   test("loads seeded Web Studio collections, preview, media, and template creation", async ({

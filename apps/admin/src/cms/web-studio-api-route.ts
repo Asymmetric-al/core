@@ -24,6 +24,8 @@ const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 export const CROSS_ORIGIN_WRITE_MESSAGE = STUDIO_ORIGIN_REFUSAL;
+export const OVERRIDE_LOCK_WRITE_MESSAGE =
+  "Web Studio does not accept overrideLock on REST writes.";
 
 function originOf(value: string | null): string | null {
   if (!value || value === "null") return null;
@@ -64,19 +66,49 @@ export function isSameOriginWrite(request: Request): boolean {
   return isSameOrigin(expectedOrigin, originOf(request.headers.get("referer")));
 }
 
+function hasDisallowedOverrideLockQuery(request: Request): boolean {
+  let searchParams: URLSearchParams;
+  try {
+    searchParams = new URL(request.url).searchParams;
+  } catch {
+    return true;
+  }
+  let allowedMatches = 0;
+  for (const [key, value] of searchParams.entries()) {
+    if (value.includes("overrideLock")) {
+      return true;
+    }
+    if (key.includes("overrideLock")) {
+      if (key !== "overrideLock" || value !== "false") {
+        return true;
+      }
+      allowedMatches += 1;
+      if (allowedMatches > 1) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /** Wraps one of Payload's route handlers: a cross-origin write never reaches it. */
 export function sameOriginWrites<Args>(
   handler: RouteHandler<Args>,
 ): RouteHandler<Args> {
   return async (request, args) => {
-    if (
-      WRITE_METHODS.has(request.method.toUpperCase()) &&
-      !isSameOriginWrite(request)
-    ) {
-      return Response.json(
-        { errors: [{ message: CROSS_ORIGIN_WRITE_MESSAGE }] },
-        { status: 403, headers: { "cache-control": "no-store" } },
-      );
+    if (WRITE_METHODS.has(request.method.toUpperCase())) {
+      if (!isSameOriginWrite(request)) {
+        return Response.json(
+          { errors: [{ message: CROSS_ORIGIN_WRITE_MESSAGE }] },
+          { status: 403, headers: { "cache-control": "no-store" } },
+        );
+      }
+      if (hasDisallowedOverrideLockQuery(request)) {
+        return Response.json(
+          { errors: [{ message: OVERRIDE_LOCK_WRITE_MESSAGE }] },
+          { status: 403, headers: { "cache-control": "no-store" } },
+        );
+      }
     }
     return handler(request, args);
   };

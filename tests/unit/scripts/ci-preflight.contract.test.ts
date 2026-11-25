@@ -149,7 +149,7 @@ const STAGE_INPUT_SAMPLES: Record<string, string[]> = {
     ".env.example",
   ],
   "verify-cms-public-sole-entry": [
-    "apps/admin/src/cms/public/resolve-tenant.ts",
+    "apps/admin/src/cms/preview/serialize-published-page.ts",
     "apps/donor/app/(public)/(hero)/about/page.tsx",
     "packages/database/collections/admin-locations.ts",
   ],

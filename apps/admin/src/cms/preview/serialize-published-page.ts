@@ -219,9 +219,6 @@ function serializePublicMedia(value: unknown) {
     mimeType: readOptionalString(media.mimeType),
   };
 
-  // Present-only public fields (kept identical to the package serializer —
-  // the parity baseline): the file name is public by construction, and the
-  // caption is the media document's editorial caption.
   const filename = readOptionalString(media.filename);
   if (filename !== null) {
     serialized.filename = filename;

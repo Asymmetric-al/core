@@ -23,8 +23,7 @@ This guide explains how to run and validate the Site Studio integration that liv
 - Editor state strip for dirty, saving, autosave, validation, lock, trash, preview, and publish state
 - CMS tables in Postgres `cms` schema
 - Tenant-aware collection access controls
-- Public read endpoints under `/api/cms/public/*`
-- Donor-side CMS consumption fallback for unmatched public routes
+- Donor-side empty CMS reader (`apps/donor/lib/cms/client.ts`) until WP7 replaces the retired prototype `/api/cms/public/*` routes
 
 ### Current parity boundary (Phase 7)
 
@@ -144,12 +143,7 @@ bun run dev:donor
 - Open a saved draft from `pages`, `ministry-updates`, `missionary-giving-pages`, or `project-pages` and confirm Payload's preview button opens `/web-studio/preview/<collection>/<id>` while unauthenticated access redirects to `/login`.
 - Confirm the edit shell state strip changes for unsaved edits, save/publish, autosave, validation errors, and preview availability.
 - Confirm collection lists are tenant-filtered for non-super-admin users.
-- In development/test only, with the query override explicitly environment-gated,
-  call:
-  - `GET /api/cms/public/pages/<slug>?tenant=<tenant-slug>`
-  - `GET /api/cms/public/navigation?tenant=<tenant-slug>`
-  - `GET /api/cms/public/updates?tenant=<tenant-slug>`
-- Open donor unknown route and confirm fallback behavior does not leak other tenants’ content.
+- Confirm retired `/api/cms/public/*` paths and `/web-studio/api/graphql` return `404` and donor unmatched CMS routes render the not-found page.
 
 ## Cloud VM walkthrough capture
 
@@ -174,38 +168,13 @@ Output is written under `site-studio-review/<date>/cloud-agent/`:
 
 ## API endpoint quick reference
 
-### Public endpoints (tenant-aware, no auth)
+### Public endpoints (retired in WP6 part 2a)
 
-- `GET /api/cms/public/pages/<slug>`
-  - Success: `{ tenant: { slug }, page }` (`page` is serialized for stable additive fields — see `serializePublished-page.ts`)
-  - Errors: `404 { error: "Tenant not found" }` or `404 { error: "Page not found" }`
-- `GET /api/cms/public/missionary-pages/<id>` — published `missionary-giving-pages` by `missionaryId`
-- `GET /api/cms/public/project-pages/<slug>` — published `project-pages` by slug
-- `GET /api/cms/public/navigation`
-  - Success: `{ tenant: { slug }, navigation }`
-- `GET /api/cms/public/updates?limit=5`
-  - Success: `{ tenant: { slug }, updates: [] }`
-  - `limit` is clamped to `1..20`
-
-The current legacy resolver resolves `primaryDomain`, then accepts a first-label
-tenant-slug fallback in every environment; it reads `x-forwarded-host` directly,
-and its reserved `siteId` remains `null`. Only `?tenant=<slug>` and the loopback
-`CMS_LOCAL_DEFAULT_TENANT_SLUG` fallback are currently environment-gated. These
-are documented implementation gaps, not Phase 22-conforming production authority.
-
-Before P22-14 can activate, Phase 5's certified public-request resolver,
-consuming Phase 2 Site/host truth, must resolve an exact non-null Tenant and Site
-only through the certified production ingress and exact registered-host mapping;
-it must fail closed on unknown, disabled, or unproved scope. A forwarded-host
-value is usable only when the deployment path proves it is platform-set or
-otherwise application-trusted. First-label slug, query-parameter,
-loopback-default, and `siteId: null` results remain explicit legacy/development-
-test inputs and cannot select a production Public Ministry Page.
+The five prototype `/api/cms/public/*` endpoints and `resolve-tenant.ts` were retired in WP6 part 2a (AL-2679): the route itself answers `404`, and with `CORE_SERVE_UNDER_PATHS=1` an unstamped request to those paths is refused by the staff app's proxy with `403` before any route is reached. `apps/donor/lib/cms/client.ts` is an empty reader until WP7 implements the target public reader behind `packages/api/src/cms/public`. The preview serializer was moved to `apps/admin/src/cms/preview/serialize-published-page.ts`.
 
 ### Staff endpoints (auth required)
 
-- `GET/POST/PATCH/PUT/DELETE /web-studio/api/*` (Payload REST; writes must be same-origin and name the page's organization)
-- `POST /web-studio/api/graphql` (Payload GraphQL; WP6 removes it)
+- `GET/POST/PATCH/PUT/DELETE /web-studio/api/*` (Payload REST; writes must be same-origin, refuse any query where `overrideLock` appears in any decoded key or value unless it appears once as the whole of one key with exact value `false`, and name the page's organization; Payload GraphQL is disabled and `/web-studio/api/graphql` returns `404`)
 - `POST /web-studio/api/web-studio/create-from-template` (Payload custom endpoint — template instantiation)
 - `GET /web-studio/organization` (the organization Web Studio works in, for a person with staff rows in more than one place)
 - `GET /web-studio/preview/:collection/:id` (authenticated draft preview; uses Payload access control with `overrideAccess: false`)

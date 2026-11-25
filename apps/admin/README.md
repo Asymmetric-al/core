@@ -1,8 +1,8 @@
 # @asym/admin - Mission Control
 
-Mission Control, the staff operations app (port 3030). It also serves the
-public CMS read routes (`/api/cms/public/*`) that the donor app's public
-website consumes.
+Mission Control, the staff operations app (port 3030), including Web Studio
+(`/web-studio`). The prototype public CMS read routes (`/api/cms/public/*`)
+were retired in WP6 part 2a (AL-2679) ahead of WP7's public reader.
 
 ## Route areas
 

@@ -172,7 +172,7 @@ describe("Bun toolchain pin sync", () => {
     expect(isGitHubWorkflowFile("README.md")).toBe(false);
   });
 
-  it("keeps first-party Vercel apps on the Node Functions runtime", () => {
+  it("keeps first-party Vercel apps on the Node Functions runtime (allowing admin's pre-build Payload TLS check before next build, WP6 part 2a)", () => {
     const appRoots = ["admin", "donor", "missionary"] as const;
 
     for (const app of appRoots) {
@@ -203,7 +203,13 @@ describe("Bun toolchain pin sync", () => {
       for (const scriptName of ["dev", "build", "start"] as const) {
         const script = appPackage.scripts?.[scriptName] ?? "";
         expect(script, `${app} scripts.${scriptName}`).not.toMatch(/--bun\b/);
-        expect(script, `${app} scripts.${scriptName}`).toMatch(/^next /);
+        if (app === "admin" && scriptName === "build") {
+          expect(script, `${app} scripts.${scriptName}`).toMatch(
+            /^node \.\.\/\.\.\/scripts\/cms\/check-payload-database-config\.mjs && next /,
+          );
+        } else {
+          expect(script, `${app} scripts.${scriptName}`).toMatch(/^next /);
+        }
       }
     }
   });
