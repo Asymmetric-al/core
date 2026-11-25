@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -272,6 +274,22 @@ describe("redactTaskDonorForMissionary", () => {
   it("named → unchanged; null donor → null", () => {
     expect(redactTaskDonorForMissionary(donor, false)).toEqual(donor);
     expect(redactTaskDonorForMissionary(null, true)).toBeNull();
+  });
+});
+
+describe("AL-2678 WP5 part 2-r2s: the seam the package exports is server-only, as the package's other server seams are", () => {
+  it("the export @asym/api/missionary-portal/redaction names this file, whose first line imports server-only", () => {
+    const manifest = JSON.parse(
+      readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+    ) as { exports: Record<string, unknown> };
+    expect(manifest.exports["./missionary-portal/redaction"]).toBe(
+      "./src/missionary-portal/redaction.ts",
+    );
+    const source = readFileSync(
+      new URL("../../src/missionary-portal/redaction.ts", import.meta.url),
+      "utf8",
+    );
+    expect(source.split("\n")[0]).toBe('import "server-only";');
   });
 });
 
