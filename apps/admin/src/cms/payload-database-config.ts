@@ -1,4 +1,7 @@
-import { databaseUrlRoutingOverrides } from "@asym/env/database-url";
+import {
+  databaseUrlRoutingOverrides,
+  isLoopbackDatabaseUrl,
+} from "@asym/env/database-url";
 import { isProtectedDeployment } from "@asym/env/target-env";
 
 export const DEFAULT_LOCAL_PAYLOAD_DATABASE_URL =
@@ -335,6 +338,7 @@ function getPayloadDatabaseConfigurationIssue(input: {
   host: string | null;
   isDefaultLocal: boolean;
   isDirectSupabaseHost: boolean;
+  isLoopbackHost: boolean;
   isProtectedDeployment: boolean;
   source: PayloadDatabaseSource;
   hasVerifiedCa: boolean;
@@ -389,11 +393,14 @@ function getPayloadDatabaseConfigurationIssue(input: {
     };
   }
 
-  if (!(input.hasSingleVerifyFullSslMode && input.hasVerifiedCa)) {
+  if (
+    !input.isLoopbackHost &&
+    !(input.hasSingleVerifyFullSslMode && input.hasVerifiedCa)
+  ) {
     return {
       code: "supavisor-ssl-mode",
       message:
-        "Payload database configuration is for a protected deployment. Use exactly one sslmode=verify-full with PAYLOAD_DATABASE_SSL_CA from Supabase Database settings for server verification.",
+        "Payload database configuration targets a non-loopback host on a protected deployment. Use exactly one sslmode=verify-full with PAYLOAD_DATABASE_SSL_CA from Supabase Database settings for server verification.",
     };
   }
 
@@ -435,6 +442,7 @@ export function resolvePayloadDatabaseConfig(
     sslModes.length === 1 && sslModes[0] === "verify-full";
   const isDefaultLocal = !selectedEnv;
   const isDirectSupabaseHost = isDirectSupabaseDatabaseHost(host);
+  const isLoopbackHost = isLoopbackDatabaseUrl(connectionString);
   const isProtectedDeployment = isProtectedPayloadDeployment(env);
   const isSupavisorPoolerDatabaseHost = isSupavisorPoolerHost(host);
   const isVercelRuntime = isVercelPayloadRuntime(env);
@@ -448,6 +456,7 @@ export function resolvePayloadDatabaseConfig(
     host,
     isDefaultLocal,
     isDirectSupabaseHost,
+    isLoopbackHost,
     isProtectedDeployment,
     source,
     hasVerifiedCa: Boolean(env.PAYLOAD_DATABASE_SSL_CA?.trim()),
