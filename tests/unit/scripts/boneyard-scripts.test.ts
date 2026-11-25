@@ -10,10 +10,8 @@ const boneyardApps = ["admin", "donor", "missionary"] as const;
 const expectedBoneyardBuildScriptOrigins = {
   "boneyard:admin": "http://localhost:3030",
   "boneyard:missionary": "http://localhost:4000",
-  "boneyard:donor": "http://localhost:3000",
   "boneyard:admin:force": "http://localhost:3030",
   "boneyard:missionary:force": "http://localhost:4000",
-  "boneyard:donor:force": "http://localhost:3000",
 } as const;
 
 function readRepoFile(relativePath: string): string {
@@ -73,7 +71,7 @@ describe("boneyard maintenance contract", () => {
     }
   });
 
-  it("uses origin-only URLs in root boneyard build scripts", () => {
+  it("uses origin-only URLs in root boneyard build scripts, with no donor capture script (AL-2676: the donor capture route is gone)", () => {
     const scripts = boneyardBuildScripts(parsePackageJson());
     const buildScripts = Object.entries(scripts).filter(([, command]) =>
       /\bboneyard-js(?:@[^\s]+)?\s+build\s/.test(command),
@@ -116,33 +114,8 @@ describe("boneyard maintenance contract", () => {
     }
   });
 
-  it("does not pass --breakpoints on root donor boneyard scripts", () => {
-    const scripts = boneyardBuildScripts(parsePackageJson());
-    const donorScripts = Object.entries(scripts).filter(([key]) =>
-      key.includes("donor"),
-    );
-
-    for (const [name, command] of donorScripts) {
-      expect(command, name).not.toMatch(/--breakpoints/);
-    }
-  });
-
-  it("keeps donor breakpoints in boneyard.config.json only", () => {
-    const config = readRepoFile("apps/donor/boneyard.config.json");
-    expect(config).toMatch(/"breakpoints"\s*:\s*\[\s*1280\s*\]/);
-
-    const rootScripts = Object.values(
-      boneyardBuildScripts(parsePackageJson()),
-    ).join("\n");
-    expect(rootScripts).not.toMatch(/--breakpoints/);
-  });
-
-  it("marks public boneyard capture routes as noindex", () => {
+  it("marks public boneyard capture routes as noindex (AL-2676: donor capture route removed)", () => {
     const captureRoutes = [
-      {
-        path: "apps/donor/app/boneyard/donor-dashboard/page.tsx",
-        label: "donor dashboard",
-      },
       {
         path: "apps/admin/app/(auth)/boneyard/contributions/page.tsx",
         label: "admin contributions",
@@ -158,9 +131,8 @@ describe("boneyard maintenance contract", () => {
     }
   });
 
-  it("renders public boneyard capture routes in snapshot mode", () => {
+  it("renders public boneyard capture routes in snapshot mode (AL-2676: donor capture route removed)", () => {
     const captureRoutes = [
-      "apps/donor/app/boneyard/donor-dashboard/page-client.tsx",
       "apps/admin/app/(auth)/boneyard/contributions/page-client.tsx",
       "apps/missionary/app/boneyard/tasks/page-client.tsx",
     ];

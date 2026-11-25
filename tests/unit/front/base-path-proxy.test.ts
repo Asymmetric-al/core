@@ -269,7 +269,7 @@ describe("proxy redirects under basePath /admin (on) and empty basePath (off)", 
       .getSetCookie()
       .filter((c) => c.startsWith("sb-example-auth-token="));
     expect(sessionCookies).toHaveLength(1);
-    expect(sessionCookies[0]).toContain("Path=/");
+    expect(sessionCookies[0]).toMatch(/;\s*Path=\/(?:;|$)/i);
     expect(sessionCookies[0]).not.toMatch(/;\s*Domain=/i);
   });
 });

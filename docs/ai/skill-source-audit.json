@@ -5656,7 +5656,7 @@
       "rawSkillHash": "0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b",
       "lockHash": "0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b",
       "entrypointHash": "b3b6924d79bf0b685c5d50525612885a17c8afb1f3f83a2a1792dfd144bc96bc",
-      "treeHash": "a9cadf28e334c18769577a1fc0bc4429b8771a4d4dd9438c2617ebabd5bba923",
+      "treeHash": "af46a975c9cb1a381f9379e084ce69a69970d0a4fa65e7af6ae99d20f0d28972",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5690,7 +5690,7 @@
             "references/feature-folders.md": "26c9e10e081d4ac62f3dc4680b00e4024df6c1f3164b9053d5778cb2a316286a",
             "references/instant-navigation.md": "d887381717d9ca8321d1aefa084caa68b54097c2e3ed116bd74799cf773988ca",
             "references/pages-suspense.md": "b3220dbfac22be2b242dc352e79b0a80723c86de1ab97a238466ac210e103ac8",
-            "references/queries-actions.md": "980c7e7004b49fa8e2d2306da03b564344579e50b8c6b77e8cfd09ea758b9486",
+            "references/queries-actions.md": "3a88f819ffa67d07923189f02e54cea6908dc501ba8f460157f01f5643df59ad",
             "references/single-page-applications.md": "4b2a20cd803edcbeeac6f966927458e01d4a21ec8e0fb48902ba207a1b4d042e",
             "references/testing.md": "40b457c0a6c2a9af20cc095cfef9d618f152b8253ee71e0da43b39702a772301",
             "references/upstream.md": "bd46d4dc6baa83cac5707299d9e4d5eebebb782156520dc2fcb8725c1f2bd2a6",

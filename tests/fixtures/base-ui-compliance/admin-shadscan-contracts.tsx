@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 
 import { DeleteNamedViewDialog } from "../../../apps/admin/app/(app)/crm/gift-history-dialogs";
-import { EveWorkspaceIndex } from "../../../apps/admin/app/(app)/admin/eve/workspace-shell";
+import { EveWorkspaceIndex } from "../../../apps/admin/app/(app)/settings/eve/workspace-shell";
 import { MissionControlNavigationSearch } from "../../../apps/admin/features/mission-control/components/navigation-search";
 import { useInboxShortcuts } from "../../../apps/admin/features/support-hub/components/command/use-inbox-shortcuts";
 import { StudioFlowLoading } from "../../../apps/admin/src/cms-ui/web-studio/flows/studio-flow-loading";

@@ -27,7 +27,7 @@ let EveGovernanceView: EveGovernanceViewComponent;
 describe("Eve governance admin view", () => {
   beforeAll(async () => {
     const pageClient =
-      await import("../../../../../apps/admin/app/(app)/admin/eve/page-client");
+      await import("../../../../../apps/admin/app/(app)/settings/eve/page-client");
     EveGovernanceView = pageClient.EveGovernanceView;
   });
 

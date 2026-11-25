@@ -76,10 +76,10 @@ beforeEach(() => {
 describe("#2364 donate config [A]", () => {
   it.each([
     ["donor", 400],
-    ["staff", 400],
+    ["staff", 403],
     ["missionary", 403],
   ] as const)(
-    "POST with an empty body: %s membership gets %i",
+    "POST with an empty body: %s membership gets %i (AL-2676: the donor app's gift gate admits the donor class only)",
     async (role, status) => {
       vi.mocked(getAuthContext).mockResolvedValue({
         ...auth,

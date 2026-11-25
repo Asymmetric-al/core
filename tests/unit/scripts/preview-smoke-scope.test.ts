@@ -5,7 +5,7 @@ import { resolvePreviewSmokeScope } from "../../../scripts/qa/preview-smoke-scop
 describe("resolvePreviewSmokeScope", () => {
   it("targets only the changed app surface", () => {
     const scope = resolvePreviewSmokeScope([
-      "apps/admin/app/(app)/admin/page.tsx",
+      "apps/admin/app/(app)/settings/page.tsx",
     ]);
 
     expect(scope.admin).toBe(true);
@@ -42,7 +42,7 @@ describe("resolvePreviewSmokeScope", () => {
   it("combines the missionary runtime package with another app surface", () => {
     const scope = resolvePreviewSmokeScope([
       "packages/missionary/components/dashboard-home.tsx",
-      "apps/admin/app/(app)/admin/page.tsx",
+      "apps/admin/app/(app)/settings/page.tsx",
     ]);
 
     expect(scope.scope).toBe("admin/missionary");

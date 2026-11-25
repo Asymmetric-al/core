@@ -3,7 +3,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { EveApprovalBudgetPanel } from "../../../../../apps/admin/app/(app)/admin/eve/approval-budget-panel";
+import { EveApprovalBudgetPanel } from "../../../../../apps/admin/app/(app)/settings/eve/approval-budget-panel";
 import { getQueryClient } from "../../../../../packages/database/providers/query-client";
 import { QueryProvider } from "../../../../../packages/database/providers/query-provider";
 

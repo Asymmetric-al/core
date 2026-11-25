@@ -272,7 +272,7 @@ export const POST = withPlatformOperation(
       publishableKey,
     });
   },
-  { roleClasses: ["donor", "staff"] },
+  { roleClasses: ["donor"] },
 );
 
 export async function GET(request: NextRequest) {
