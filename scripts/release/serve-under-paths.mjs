@@ -41,7 +41,7 @@ export function resolveServeUnderPaths(env) {
 }
 
 export function serveUnderPathsBuildEnv(app, env) {
-  if (!(app in APP_BASE_PATHS)) {
+  if (!Object.hasOwn(APP_BASE_PATHS, app)) {
     throw new Error(`Unknown app for serveUnderPathsBuildEnv: ${String(app)}`);
   }
   const enabled = resolveServeUnderPaths(env);
