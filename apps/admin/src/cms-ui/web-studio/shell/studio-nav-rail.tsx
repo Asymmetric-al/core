@@ -20,7 +20,12 @@ import {
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
 import { cn } from "@asym/ui/lib/utils";
-import { useAuth, usePreferences } from "@payloadcms/ui";
+import {
+  useAuth,
+  useConfig,
+  usePreferences,
+  useServerFunctions,
+} from "@payloadcms/ui";
 import {
   Building2,
   ChevronLeft,
@@ -50,7 +55,6 @@ type RecentDocLink = {
   href: string;
   id: string;
   title: string;
-  updatedAt?: string;
 };
 
 type NavRailLinkProps = {
@@ -68,24 +72,53 @@ type NavRailGroup = {
   links: Array<Omit<NavRailLinkProps, "collapsed" | "onNavigate">>;
 };
 
-function isRecentDocLink(value: unknown): value is RecentDocLink {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
+type RecentDocsCollections = ReturnType<typeof getEnabledWebStudioCollections>;
 
-  const candidate = value as Partial<RecentDocLink>;
-  return (
-    typeof candidate.href === "string" &&
-    candidate.href.length > 0 &&
-    typeof candidate.id === "string" &&
-    candidate.id.length > 0 &&
-    typeof candidate.title === "string" &&
-    candidate.title.length > 0
+function toRecentDocLinks(
+  result: unknown,
+  enabledCollections: RecentDocsCollections,
+): RecentDocLink[] {
+  const items =
+    result &&
+    typeof result === "object" &&
+    Array.isArray((result as { items?: unknown }).items)
+      ? (result as { items: unknown[] }).items
+      : [];
+  const listPaths = new Map<string, string>(
+    enabledCollections.map((collection) => [
+      collection.slug,
+      collection.listPath,
+    ]),
   );
+  return items.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const { collectionSlug, id, title } = item as {
+      collectionSlug?: unknown;
+      id?: unknown;
+      title?: unknown;
+    };
+    const listPath =
+      typeof collectionSlug === "string"
+        ? listPaths.get(collectionSlug)
+        : undefined;
+    if (!listPath || (typeof id !== "string" && typeof id !== "number")) {
+      return [];
+    }
+    const docId = String(id);
+    return [
+      {
+        id: docId,
+        title: typeof title === "string" && title.length > 0 ? title : docId,
+        href: `${listPath}/${encodeURIComponent(docId)}`,
+      },
+    ];
+  });
 }
 
 function useStudioNavRailState() {
   const { getPreference, setPreference } = usePreferences();
+  const { serverFunction } = useServerFunctions();
+  const configuredCollections = useConfig()?.config?.collections;
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [recentDocs, setRecentDocs] = useState<RecentDocLink[]>([]);
@@ -147,53 +180,62 @@ function useStudioNavRailState() {
     return getGroupedWebStudioCollections();
   }, [webStudioNativeRolloutKey]);
 
-  const recentDocsPreferenceKeys = useMemo(
-    () => enabledCollections.map((c) => c.preferences.recentDocs).join("\0"),
-    [enabledCollections],
-  );
+  const configuredSlugsKey = (configuredCollections ?? [])
+    .map((collection) => collection.slug)
+    .join("\0");
+
+  const excludedCollectionsKey = useMemo(() => {
+    const enabledSlugs = new Set<string>(
+      enabledCollections.map((collection) => collection.slug),
+    );
+    return configuredSlugsKey
+      .split("\0")
+      .filter((slug) => slug.length > 0 && !enabledSlugs.has(slug))
+      .join("\0");
+  }, [configuredSlugsKey, enabledCollections]);
+
+  const canReadRecentDocs = typeof serverFunction === "function";
 
   useEffect(() => {
+    if (typeof serverFunction !== "function") {
+      return;
+    }
     let cancelled = false;
 
     void (async () => {
-      const entries = await Promise.all(
-        enabledCollections.map(async (collection) => {
-          try {
-            return (
-              (await getPreference<unknown[]>(
-                collection.preferences.recentDocs,
-              )) ?? []
-            );
-          } catch {
-            return [];
-          }
-        }),
-      );
-
-      if (!cancelled) {
-        setRecentDocs(
-          entries
-            .flat()
-            .filter(isRecentDocLink)
-            .sort((a: { updatedAt?: string }, b: { updatedAt?: string }) =>
-              (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""),
-            )
-            .slice(0, 5),
-        );
+      try {
+        const result = await serverFunction({
+          name: "get-activity-widget-docs",
+          args: {
+            type: "recents",
+            limit: 5,
+            page: 1,
+            excludedCollections: excludedCollectionsKey
+              ? excludedCollectionsKey.split("\0")
+              : [],
+          },
+        });
+        if (!cancelled) {
+          setRecentDocs(toRecentDocLinks(result, enabledCollections));
+        }
+      } catch {
+        if (!cancelled) {
+          setRecentDocs([]);
+        }
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [enabledCollections, getPreference, recentDocsPreferenceKeys]);
+  }, [enabledCollections, excludedCollectionsKey, serverFunction]);
 
   return {
     collapsed,
     groupedCollections,
     hydrated,
     persistCollapsed,
-    recentDocs,
+    recentDocs: canReadRecentDocs ? recentDocs : [],
   };
 }
 
@@ -320,8 +362,8 @@ function StudioNavRailHeader({
 }
 
 /**
- * A document opened before it had a title was saved to recents under its ID;
- * the lists and the Studio home call those "Untitled (ID)".
+ * Payload titles a document that has no title by its ID; the lists and the
+ * Studio home call those "Untitled (ID)".
  */
 function recentDocLabel(doc: RecentDocLink): string {
   return doc.title === doc.id ? `Untitled (${doc.id})` : doc.title;
