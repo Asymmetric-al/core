@@ -286,8 +286,13 @@ NULL` on `public.parties`) and the fourth
       fact names `donor_is_restricted_party`. A select it cannot resolve or
       parse fails when its file's strings name `donors`, when it is chained on
       `.rpc(…)`, or when its table is `donors` or a table that a migration
-      gives a foreign key to donors (read from `supabase/migrations` on every
-      run). S2: its file, or a file it imports a value from by a relative path
+      gives a foreign key to donors. The migration reader reads every file in
+      `supabase/migrations` on each run, the `rollback_*.sql` files an
+      operator runs by hand included, with comments removed; it gives each
+      `REFERENCES donors` to the `CREATE TABLE` or `ALTER TABLE` statement
+      that holds it (a quoted `"public"` schema too), follows `RENAME TO`, and
+      fails, naming the file and the line, on a reference it cannot give a
+      table. S2: its file, or a file it imports a value from by a relative path
       (a type-only import does not count), calls `isAnonymousToRecipient`
       with an object literal holding `restrictedParty`. S3: in non-test source
       under `apps/` or `packages/`, every `restrictedParty:` is given a name
@@ -295,9 +300,11 @@ NULL` on `public.parties`) and the fourth
       `?? false`, `|| false`, `Boolean(…)`, `!…` or any other expression
       fails. S4, the one allowlist entry: `DONATION_WITH_PARTIES_SELECT` is
       selected in `packages/graphql/handler.ts` only directly inside
-      `Query.myDonations` or `Mutation.createDonation` of the resolvers
-      object declared at the top of the file, the caller's own gifts.
-      Thirty-two planted cases are reported and nine controls are not.
+      `Query.myDonations` or `Mutation.createDonation` of an object declared
+      at the top of the file, the caller's own gifts. Thirty-two planted cases
+      are reported and nine controls are not; the migration reader has five
+      planted texts (R1-R5) and one guard, that the tree still gives its
+      twenty tables.
     - **What the contract cannot see**, each a review item: a table name
       computed at run time or passed as a parameter; a query builder held in
       a variable before `.select`; a reader outside the roots; a SQL function
@@ -310,11 +317,16 @@ NULL` on `public.parties`) and the fourth
       in it, even a read whose rows never reach that call; an embed through a
       column or constraint to donors whose name follows none of the patterns
       above (every one in the schema today follows them); a select it cannot
-      resolve, in a file that never spells `donors`, on a table whose foreign
-      key to donors the migration reader misses (it reads each statement that
-      says `REFERENCES public.donors` inside a `CREATE TABLE` or
-      `ALTER TABLE`); and free text a colleague wrote earlier, such as a
-      task's title.
+      resolve, in a file that never spells `donors`, on a table given its
+      foreign key to donors by text that never says `REFERENCES donors`
+      (dynamic SQL that passes the table's name to `format()`, say); and free
+      text a colleague wrote earlier, such as a task's title. S3 checks every
+      `restrictedParty:` property in non-test source under `apps/` and
+      `packages/`, not only one inside a call of `isAnonymousToRecipient`, so
+      it is stricter than the seam needs. S4 does not check the name of the
+      variable that holds the resolvers: any object declared at the top of
+      `packages/graphql/handler.ts` whose `Query.myDonations` or
+      `Mutation.createDonation` selects `DONATION_WITH_PARTIES_SELECT` passes.
 
 ## Readers closed by WP5 part 2-r2a
 

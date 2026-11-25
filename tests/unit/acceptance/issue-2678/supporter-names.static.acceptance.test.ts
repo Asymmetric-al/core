@@ -223,24 +223,96 @@ function resolveModule(
   return null;
 }
 
-function tablesReferringToDonors(): Set<string> {
+const SQL_NAME = String.raw`(?:"?public"?\s*\.\s*)?"?(\w+)"?`;
+const DONORS_REFERENCE =
+  /\breferences\s+(?:"?public"?\s*\.\s*)?"?donors"?(?![\w$])/gi;
+const TABLE_HEADER = new RegExp(
+  String.raw`\b(?:create\s+(?:(?:global|local)\s+)?(?:(?:temp|temporary|unlogged)\s+)?table|alter\s+table)\s+(?:if\s+(?:not\s+)?exists\s+)?(?:only\s+)?` +
+    SQL_NAME,
+  "gi",
+);
+const TABLE_RENAME = new RegExp(
+  String.raw`\balter\s+table\s+(?:if\s+exists\s+)?(?:only\s+)?` +
+    SQL_NAME +
+    String.raw`\s+rename\s+to\s+"?(\w+)"?`,
+  "gi",
+);
+
+function withoutComments(sql: string): string {
+  const blank = (text: string) => text.replace(/[^\n]/g, " ");
+  let out = "";
+  let i = 0;
+  while (i < sql.length) {
+    let j = i + 1;
+    if (sql.startsWith("--", i)) {
+      j = sql.indexOf("\n", i);
+      if (j === -1) j = sql.length;
+      out += blank(sql.slice(i, j));
+    } else if (sql.startsWith("/*", i)) {
+      let depth = 1;
+      j = i + 2;
+      while (j < sql.length && depth > 0) {
+        const step = sql.startsWith("/*", j)
+          ? 1
+          : sql.startsWith("*/", j)
+            ? -1
+            : 0;
+        depth += step;
+        j += step === 0 ? 1 : 2;
+      }
+      out += blank(sql.slice(i, j));
+    } else if (sql[i] === "'") {
+      while (j < sql.length && !(sql[j] === "'" && sql[j + 1] !== "'"))
+        j += sql[j] === "'" ? 2 : 1;
+      j = Math.min(j + 1, sql.length);
+      out += sql.slice(i, j);
+    } else out += sql[i];
+    i = j;
+  }
+  return out;
+}
+
+function donorTablesFrom(migrations: [string, string][]): Set<string> {
   const tables = new Set<string>();
-  for (const file of readdirSync(MIGRATIONS).filter((f) => f.endsWith(".sql")))
-    for (const statement of readFileSync(path.join(MIGRATIONS, file), "utf8")
-      .replace(/--[^\n]*/g, "")
-      .split(";")) {
-      if (!/\breferences\s+(?:public\.)?"?donors"?(?![\w.])/i.test(statement))
-        continue;
-      const table =
-        /\b(?:create|alter)\s+table\s+(?:if\s+(?:not\s+)?exists\s+)?(?:only\s+)?(?:public\.)?"?(\w+)"?/i.exec(
-          statement,
+  const renames: [string, string][] = [];
+  const unplaced: string[] = [];
+  for (const [file, text] of [...migrations].sort(([a], [b]) =>
+    a < b ? -1 : a > b ? 1 : 0,
+  )) {
+    const sql = withoutComments(text);
+    const headers = [...sql.matchAll(TABLE_HEADER)];
+    for (const reference of sql.matchAll(DONORS_REFERENCE)) {
+      const header = headers.filter((h) => h.index < reference.index).at(-1);
+      if (header && !sql.slice(header.index, reference.index).includes(";"))
+        tables.add(header[1]!.toLowerCase());
+      else
+        unplaced.push(
+          `${file}:${sql.slice(0, reference.index).split("\n").length}`,
         );
-      if (table) tables.add(table[1]!.toLowerCase());
     }
+    for (const rename of sql.matchAll(TABLE_RENAME))
+      renames.push([rename[1]!.toLowerCase(), rename[2]!.toLowerCase()]);
+  }
+  if (unplaced.length)
+    throw new Error(
+      `a reference to donors that no CREATE TABLE or ALTER TABLE statement holds: ${unplaced.join(", ")}`,
+    );
+  for (const [from, to] of renames) if (tables.has(from)) tables.add(to);
   return tables;
 }
 
-const DONOR_TABLES = tablesReferringToDonors();
+let treeDonorTables: Set<string> | null = null;
+function tablesReferringToDonors(): Set<string> {
+  treeDonorTables ??= donorTablesFrom(
+    readdirSync(MIGRATIONS)
+      .filter((file) => file.endsWith(".sql"))
+      .map((file): [string, string] => [
+        `${MIGRATIONS}/${file}`,
+        readFileSync(path.join(MIGRATIONS, file), "utf8"),
+      ]),
+  );
+  return treeDonorTables;
+}
 
 function scanSources(sources: Map<string, string>): Violation[] {
   const files = new Set(sources.keys());
@@ -420,7 +492,7 @@ function scanSources(sources: Map<string, string>): Violation[] {
               (root) =>
                 root === "donors" ||
                 root === RPC_ROOT ||
-                DONOR_TABLES.has(root),
+                tablesReferringToDonors().has(root),
             );
           const values = arg
             ? resolveExpr(file, arg, new Set())
