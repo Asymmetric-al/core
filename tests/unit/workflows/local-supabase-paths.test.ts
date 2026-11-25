@@ -77,6 +77,20 @@ describe("the local Supabase workflow's path filter", () => {
   );
 
   it.each([
+    "tests/unit/acceptance/issue-2678/worker-record.postgrest.acceptance.test.ts",
+    "packages/api/src/admin/workers/**",
+    "apps/admin/app/api/admin/workers/**",
+    "apps/admin/app/(app)/workers/**",
+    "apps/admin/features/mission-control/workers/**",
+    "tests/e2e/auth-worker-record.spec.ts",
+  ])(
+    "starts the worker-record proof and journey when %s, the suite, the module, its routes or its screens, changes (AL-2678 r2b1)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
     "packages/api/src/donor-portal/**",
     "packages/api/src/posts/**",
     "packages/api/src/donations/**",
