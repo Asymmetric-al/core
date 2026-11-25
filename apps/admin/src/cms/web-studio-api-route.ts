@@ -73,13 +73,19 @@ function hasDisallowedOverrideLockQuery(request: Request): boolean {
   } catch {
     return true;
   }
+  let allowedMatches = 0;
   for (const [key, value] of searchParams.entries()) {
-    if (
-      key.startsWith("overrideLock[") ||
-      key.startsWith("overrideLock.") ||
-      (key === "overrideLock" && value !== "false")
-    ) {
+    if (value.includes("overrideLock")) {
       return true;
+    }
+    if (key.includes("overrideLock")) {
+      if (key !== "overrideLock" || value !== "false") {
+        return true;
+      }
+      allowedMatches += 1;
+      if (allowedMatches > 1) {
+        return true;
+      }
     }
   }
   return false;

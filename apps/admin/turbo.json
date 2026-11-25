@@ -6,7 +6,8 @@
       "inputs": [
         "$TURBO_EXTENDS$",
         "$TURBO_ROOT$/supabase/migrations/*.sql",
-        "$TURBO_ROOT$/scripts/release/migration-heads.mjs"
+        "$TURBO_ROOT$/scripts/release/migration-heads.mjs",
+        "$TURBO_ROOT$/scripts/cms/check-payload-database-config.mjs"
       ]
     }
   }

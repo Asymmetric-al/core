@@ -48,8 +48,7 @@ function didBulkDeleteSucceed(result: unknown): boolean {
   if (entries.length === 0) return false;
   let deletedTotal = 0;
   for (const entry of entries) {
-    if (!entry || typeof entry !== "object") return false;
-    if (Array.isArray(entry.errors) && entry.errors.length > 0) return false;
+    if (!entry || typeof entry !== "object") continue;
     if (typeof entry.deletedCount === "number" && entry.deletedCount > 0) {
       deletedTotal += entry.deletedCount;
     }

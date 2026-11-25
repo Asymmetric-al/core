@@ -336,7 +336,6 @@ function getPayloadDatabaseConfigurationIssue(input: {
   isDefaultLocal: boolean;
   isDirectSupabaseHost: boolean;
   isProtectedDeployment: boolean;
-  isSupavisorPoolerHost: boolean;
   source: PayloadDatabaseSource;
   hasVerifiedCa: boolean;
   loginRole: string | null;
@@ -390,14 +389,11 @@ function getPayloadDatabaseConfigurationIssue(input: {
     };
   }
 
-  if (
-    input.isSupavisorPoolerHost &&
-    !(input.hasSingleVerifyFullSslMode && input.hasVerifiedCa)
-  ) {
+  if (!(input.hasSingleVerifyFullSslMode && input.hasVerifiedCa)) {
     return {
       code: "supavisor-ssl-mode",
       message:
-        "Payload database configuration uses a Supavisor pooler host. Use exactly one sslmode=verify-full with PAYLOAD_DATABASE_SSL_CA from Supabase Database settings for server verification.",
+        "Payload database configuration is for a protected deployment. Use exactly one sslmode=verify-full with PAYLOAD_DATABASE_SSL_CA from Supabase Database settings for server verification.",
     };
   }
 
@@ -453,7 +449,6 @@ export function resolvePayloadDatabaseConfig(
     isDefaultLocal,
     isDirectSupabaseHost,
     isProtectedDeployment,
-    isSupavisorPoolerHost: isSupavisorPoolerDatabaseHost,
     source,
     hasVerifiedCa: Boolean(env.PAYLOAD_DATABASE_SSL_CA?.trim()),
     loginRole,
