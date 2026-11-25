@@ -414,7 +414,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       }
     });
 
-    it("refuses tenant_member_directory, tenant_membership_invitations, and the five CRM table-preference writers for a second organization unless x-asym-tenant names that organization", async () => {
+    it("refuses tenant_member_directory, tenant_membership_invitations, and the five CRM table-preference writers for a second organization unless x-asym-tenant names that organization (fetch normalizes spaces-only to empty; raw spaces-only request.headers is proved in the real-stack suite)", async () => {
       const tenantB = randomUUID();
       const adminBMembershipId = randomUUID();
       const plantedViewId = randomUUID();
@@ -470,7 +470,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       const calls: ReadonlyArray<{
         rpc: string;
         message: string;
-        body: (tag: string) => Record<string, unknown>;
+        body: (tag: string, deleteViewId?: string) => Record<string, unknown>;
       }> = [
         {
           rpc: "tenant_member_directory",
@@ -542,10 +542,10 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         {
           rpc: "delete_crm_table_named_view",
           message: CRM_MSG,
-          body: () => ({
+          body: (_tag, deleteViewId) => ({
             p_tenant_id: tenantB,
             p_table_id: "crm.giftHistory",
-            p_view_id: plantedViewId,
+            p_view_id: deleteViewId ?? plantedViewId,
             p_next_default_view_id: null,
           }),
         },
@@ -574,7 +574,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           { label: "wrong-tenant-none", tenant: tenantId },
           { label: "no-headers" },
           { label: "blank-tenant", tenant: "" },
-          { label: "spaces-tenant", tenant: "   " },
+          { label: "spaces-normalized-empty-by-fetch", tenant: "   " },
         ];
 
         for (const call of calls) {
@@ -636,28 +636,51 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           pref_audit: 0,
         });
 
-        for (const call of calls) {
-          const ok = await api(`rest/v1/rpc/${call.rpc}`, anon!, adminToken, {
+        const servedTwins: ReadonlyArray<{
+          label: string;
+          tenant: string;
+          assignment?: string;
+        }> = [
+          { label: "tenant-only", tenant: tenantB },
+          {
+            label: "matching-tenant-and-assignment",
             tenant: tenantB,
             assignment: adminBMembershipId,
-            body: call.body(`${call.rpc}-ok`),
-          });
-          expect(ok.status, `${call.rpc} matching tenant`).toBe(200);
-          const payload = (await ok.json()) as unknown;
-          if (call.rpc === "tenant_member_directory") {
-            expect(
-              (payload as Array<{ membership_id: string }>).map(
-                (r) => r.membership_id,
-              ),
-            ).toContain(adminBMembershipId);
-          } else if (call.rpc === "tenant_membership_invitations") {
-            expect(
-              (payload as Array<{ id: string }>).map((r) => r.id),
-            ).toContain(plantedInvitationId);
-          } else if (call.rpc === "delete_crm_table_named_view") {
-            expect(payload).toMatchObject({ deleted: true });
-          } else {
-            expect(payload).toMatchObject({ tenant_id: tenantB });
+          },
+        ];
+
+        for (const twin of servedTwins) {
+          let createdViewId: string | undefined;
+          for (const call of calls) {
+            const deleteTarget =
+              twin.label === "tenant-only" ? createdViewId : plantedViewId;
+            const ok = await api(`rest/v1/rpc/${call.rpc}`, anon!, adminToken, {
+              tenant: twin.tenant,
+              assignment: twin.assignment,
+              body: call.body(`${call.rpc}-${twin.label}`, deleteTarget),
+            });
+            expect(ok.status, `${call.rpc} ${twin.label}`).toBe(200);
+            const payload = (await ok.json()) as unknown;
+            if (call.rpc === "tenant_member_directory") {
+              expect(
+                (payload as Array<{ membership_id: string }>).map(
+                  (r) => r.membership_id,
+                ),
+              ).toContain(adminBMembershipId);
+            } else if (call.rpc === "tenant_membership_invitations") {
+              expect(
+                (payload as Array<{ id: string }>).map((r) => r.id),
+              ).toContain(plantedInvitationId);
+            } else if (call.rpc === "create_crm_table_named_view") {
+              const created = payload as { id: string; tenant_id: string };
+              expect(created).toMatchObject({ tenant_id: tenantB });
+              expect(created.id).toBeTruthy();
+              createdViewId = created.id;
+            } else if (call.rpc === "delete_crm_table_named_view") {
+              expect(payload).toMatchObject({ deleted: true });
+            } else {
+              expect(payload).toMatchObject({ tenant_id: tenantB });
+            }
           }
         }
       } catch (error) {
