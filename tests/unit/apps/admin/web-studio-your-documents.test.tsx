@@ -90,10 +90,10 @@ const PINNED: DashboardDocument[] = [
   },
   {
     id: 3,
-    collectionSlug: "missionary-giving-pages",
+    collectionSlug: "navigation",
     title: "Grace Okafor - Give",
-    href: "/web-studio/collections/missionary-giving-pages/3",
-    typeLabel: "Missionary Giving Pages",
+    href: "/web-studio/collections/navigation/3",
+    typeLabel: "Navigations",
     statusLabel: "Published",
   },
 ];
@@ -114,7 +114,7 @@ function setup({
   pinned = PINNED,
   storedPins = [
     { id: 7, collectionSlug: "pages" },
-    { id: 3, collectionSlug: "missionary-giving-pages" },
+    { id: 3, collectionSlug: "navigation" },
   ],
   failLoad = false,
   savePin,
@@ -165,7 +165,7 @@ function setup({
   return { fetchMock, stored: () => stored };
 }
 
-it("lists pinned documents with Studio names and the lists' status words", async () => {
+it("lists pinned documents with Studio names and the lists' status words (D-18: WP6 part 2b retires the giving-pages collection; navigation keeps a Studio name)", async () => {
   setup();
   const region = screen.getByRole("region", { name: "Your documents" });
   const list = await within(region).findByRole("list", {
@@ -175,7 +175,7 @@ it("lists pinned documents with Studio names and the lists' status words", async
   expect(page.getAttribute("href")).toBe("/web-studio/collections/pages/7");
   const rows = within(list).getAllByRole("listitem");
   expect(within(rows[0]!).getByText("Changed")).toBeTruthy();
-  expect(within(rows[1]!).getByText("Giving pages")).toBeTruthy();
+  expect(within(rows[1]!).getByText("Navigation")).toBeTruthy();
   expect(within(rows[1]!).getByText("Published")).toBeTruthy();
   expect(fixture.serverFunction).toHaveBeenCalledWith({
     name: "get-activity-widget-docs",
@@ -195,9 +195,7 @@ it("unpins through Payload's pinned-documents preference and refreshes", async (
     await screen.findByRole("button", { name: "Unpin Year-End Giving" }),
   );
   await waitFor(() =>
-    expect(stored()).toEqual([
-      { id: 3, collectionSlug: "missionary-giving-pages" },
-    ]),
+    expect(stored()).toEqual([{ id: 3, collectionSlug: "navigation" }]),
   );
   await waitFor(() =>
     expect(

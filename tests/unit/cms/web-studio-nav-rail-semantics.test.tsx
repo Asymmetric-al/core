@@ -67,7 +67,7 @@ afterEach(() => {
   fixture.extraRecent = [];
 });
 
-it("offers the same enabled sections on mobile and closes after Payload navigation", async () => {
+it("offers the same enabled sections on mobile and closes after Payload navigation (D-18: WP6 part 2b removes the Missionaries hub)", async () => {
   fixture.pathname = "/web-studio/collections/pages";
   render(
     <RouterAdapterContext
@@ -111,8 +111,11 @@ it("offers the same enabled sections on mobile and closes after Payload navigati
     }),
   ).toBeTruthy();
   expect(
-    within(navigation).getByRole("link", { name: "Missionaries", exact: true }),
-  ).toBeTruthy();
+    within(navigation).queryByRole("link", {
+      name: "Missionaries",
+      exact: true,
+    }),
+  ).toBeNull();
   fireEvent.click(pageLink);
   expect(fixture.push).toHaveBeenCalledExactlyOnceWith(
     "/web-studio/collections/pages",
@@ -257,24 +260,25 @@ function renderRail(pathname: string) {
   );
 }
 
-it("gives stock admin lists a home for tenant-scoped readers", async () => {
-  // Payload keeps a where-scoped read as an object, never `true`.
+it("offers no Administration list, even to a reader of the Site and login collections (D-18: WP6 part 2b retires the Users and Organizations lists)", async () => {
   fixture.permissions = {
     collections: {
-      "cms-users": { read: { permission: true, where: { tenant: 1 } } },
-      tenants: { read: { permission: true, where: { id: 1 } } },
+      "principal-links": { read: { permission: true, where: { id: "a" } } },
+      "site-presentations": {
+        read: { permission: true, where: { tenant: "b" } },
+      },
     },
   };
-  renderRail("/web-studio/collections/tenants");
+  renderRail("/web-studio");
   await screen.findByTitle("Quarterly update");
   const sections = screen.getByRole("navigation", { name: "Studio sections" });
-  const admin = within(sections).getByRole("list", { name: "Administration" });
   expect(
-    within(admin).getByRole("link", { name: "Users" }).getAttribute("href"),
-  ).toBe("/web-studio/collections/cms-users");
-  const tenants = within(admin).getByRole("link", { name: "Organizations" });
-  expect(tenants.getAttribute("href")).toBe("/web-studio/collections/tenants");
-  expect(tenants.getAttribute("aria-current")).toBe("page");
+    within(sections).queryByRole("list", { name: "Administration" }),
+  ).toBeNull();
+  expect(within(sections).queryByRole("link", { name: "Users" })).toBeNull();
+  expect(
+    within(sections).queryByRole("link", { name: "Organizations" }),
+  ).toBeNull();
 });
 
 it("leaves administration out for users who cannot read it", async () => {

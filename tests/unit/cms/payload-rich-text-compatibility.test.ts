@@ -50,11 +50,7 @@ const legacyDocument = {
 
 const sites = [
   { slug: "pages", field: "content" },
-  { slug: "ministry-updates", field: "content" },
   { slug: "pages", field: "layout" },
-  { slug: "page-templates", field: "defaultLayout" },
-  { slug: "missionary-giving-pages", field: "layout" },
-  { slug: "project-pages", field: "layout" },
 ];
 
 function documentSchema(
@@ -89,27 +85,32 @@ function documentSchema(
   });
 }
 
-describe.each(sites)("$slug / $field rich-text boundary", ({ slug, field }) => {
-  it.each(["input", "output"] as const)(
-    "preserves legacy/custom nodes and metadata in the %s schema",
-    (variant) => {
-      expect(
-        documentSchema(slug, field, variant).parse(legacyDocument),
-      ).toEqual(legacyDocument);
-    },
-  );
+describe.each(sites)(
+  "$slug / $field rich-text boundary (D-18: WP6 part 2b leaves rich text on the one pages collection)",
+  ({ slug, field }) => {
+    it.each(["input", "output"] as const)(
+      "preserves legacy/custom nodes and metadata in the %s schema",
+      (variant) => {
+        expect(
+          documentSchema(slug, field, variant).parse(legacyDocument),
+        ).toEqual(legacyDocument);
+      },
+    );
 
-  it.each(["input", "output"] as const)(
-    "retains the document envelope requirements in the %s schema",
-    (variant) => {
-      const schema = documentSchema(slug, field, variant);
-      expect(schema.safeParse({ root: { type: "root" } }).success).toBe(false);
-      expect(
-        schema.safeParse({
-          ...legacyDocument,
-          root: { ...legacyDocument.root, version: "invalid" },
-        }).success,
-      ).toBe(false);
-    },
-  );
-});
+    it.each(["input", "output"] as const)(
+      "retains the document envelope requirements in the %s schema",
+      (variant) => {
+        const schema = documentSchema(slug, field, variant);
+        expect(schema.safeParse({ root: { type: "root" } }).success).toBe(
+          false,
+        );
+        expect(
+          schema.safeParse({
+            ...legacyDocument,
+            root: { ...legacyDocument.root, version: "invalid" },
+          }).success,
+        ).toBe(false);
+      },
+    );
+  },
+);

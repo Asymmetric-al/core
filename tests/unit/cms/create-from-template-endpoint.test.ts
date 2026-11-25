@@ -1,536 +1,338 @@
+import { readFileSync } from "node:fs";
+
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { defaultRichTextValue } from "../../../apps/admin/node_modules/@payloadcms/richtext-lexical/dist/index.js";
+const USER = "00000000-0000-4000-8000-0000000000a1";
+const TENANT = "00000000-0000-0000-0000-000000000001";
+const SEED_SITE = "ffbeafc8-f85f-a2c9-5493-d62f5003e3b8";
+const OTHER_SITE = "5b53f899-8988-6455-fb3d-bb9fe896184c";
+const MISSIONARY = "20000000-0000-0000-0000-000000000001";
+const FUND = "21000000-0000-0000-0000-000000000001";
 
-import type {
-  CmsLayoutBlocks,
-  PageCreateFields,
-} from "../../../apps/admin/src/cms/create-from-template-payload-shapes";
-
-const { getAdminClientMock } = vi.hoisted(() => ({
-  getAdminClientMock: vi.fn(),
+const supabase = vi.hoisted(() => ({
+  session: true,
+  rpc: [] as Array<{ fn: string; args: unknown }>,
+  headers: {} as Record<string, string>,
 }));
 
-vi.mock("@asym/database/supabase/admin", () => ({
-  getAdminClient: getAdminClientMock,
-}));
-
-vi.mock("@asym/api/missionaries/queries", () => ({
-  findMissionaryById: vi.fn(),
+vi.mock("@supabase/ssr", () => ({
+  createServerClient: vi.fn(
+    (
+      _url: string,
+      _key: string,
+      options: { global?: { headers?: Record<string, string> } },
+    ) => {
+      supabase.headers = options.global?.headers ?? {};
+      return {
+        auth: {
+          getSession: async () => ({
+            data: { session: supabase.session ? { user: { id: USER } } : null },
+          }),
+        },
+        rpc: async (
+          fn: string,
+          args: { p_tenant_id: string; p_ids: string[] },
+        ) => {
+          supabase.rpc.push({ fn, args });
+          return {
+            data:
+              args.p_tenant_id === TENANT && args.p_ids.includes(MISSIONARY)
+                ? [
+                    {
+                      id: MISSIONARY,
+                      profile_id: "p1",
+                      member_profile_id: "p1",
+                      display_name: "Ana Field",
+                      email: null,
+                    },
+                  ]
+                : [],
+            error: null,
+          };
+        },
+        from: () => {
+          const filters: Record<string, unknown> = {};
+          const chain = {
+            select: () => chain,
+            is: (column: string, value: unknown) => {
+              filters[`is:${column}`] = value;
+              return chain;
+            },
+            eq: (column: string, value: unknown) => {
+              filters[column] = value;
+              return chain;
+            },
+            maybeSingle: async () => ({
+              data:
+                filters.id === FUND &&
+                filters.tenant_id === TENANT &&
+                filters["is:system_purpose"] === null
+                  ? { id: FUND, name: "Clean Water", description: "Wells" }
+                  : null,
+              error: null,
+            }),
+          };
+          return chain;
+        },
+      };
+    },
+  ),
 }));
 
 let handler: (req: unknown) => Promise<Response>;
+let PAGE_STARTERS: Array<{ key: string; family: string }>;
 
-// Large transitive import (Payload + Lexical + CMS graph); 10s default
-// hookTimeout is flaky on Windows CI and parallel test runs.
 beforeAll(async () => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key";
   const module =
     await import("../../../apps/admin/src/cms/create-from-template-endpoint");
   handler = module.webStudioCreateFromTemplateEndpoint.handler as (
     req: unknown,
   ) => Promise<Response>;
+  ({ PAGE_STARTERS } =
+    (await import("../../../apps/admin/src/cms/starters")) as unknown as {
+      PAGE_STARTERS: typeof PAGE_STARTERS;
+    });
 }, 60_000);
 
 beforeEach(() => {
-  vi.clearAllMocks();
-  getAdminClientMock.mockReturnValue({
-    client: {
-      from: vi.fn(() => ({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              single: vi.fn(),
-            })),
-            single: vi.fn(),
-            maybeSingle: vi.fn(),
-          })),
-        })),
-      })),
-      // never used in the tests that should short-circuit
-    },
-    error: null,
-  });
+  supabase.session = true;
+  supabase.rpc = [];
 });
 
+const actor = {
+  id: USER,
+  collection: "principal-links",
+  tenantId: TENANT,
+  assignmentId: "00000000-0000-4000-8000-000000000201",
+  staffRole: "development",
+  isTenantAdmin: false,
+};
+
 function makeReq({
-  user,
   body,
-  payloadOverrides,
+  sites = [SEED_SITE],
+  user = actor as Record<string, unknown> | null,
+  contentType = "application/json",
 }: {
-  user: {
-    id: string;
-    publicTenantId?: string | null;
-    role: string;
-    tenantId: string | null;
-  };
   body: unknown;
-  payloadOverrides?: Partial<{
-    findByID: (...args: any[]) => Promise<unknown>;
-    find: (...args: any[]) => Promise<unknown>;
-    create: (...args: any[]) => Promise<unknown>;
-  }>;
+  sites?: string[];
+  user?: Record<string, unknown> | null;
+  contentType?: string;
 }) {
-  // A real request typed as JSON, as Payload hands it on: the endpoint reads
-  // it through the shared JSON reader (AL-2677, fix check G1).
-  return Object.assign(
+  const find = vi.fn(async (options: { collection: string }) => ({
+    docs:
+      options.collection === "site-presentations"
+        ? sites.map((id) => ({ id, tenant: TENANT }))
+        : [],
+  }));
+  const create = vi.fn(async (options: { data: Record<string, unknown> }) => ({
+    id: "00000000-0000-4000-8000-00000000c0de",
+    ...options.data,
+  }));
+  const req = Object.assign(
     new Request(
       "https://admin.test/web-studio/api/web-studio/create-from-template",
       {
         method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
+        headers: { "content-type": contentType, cookie: "sb-token=1" },
+        body: typeof body === "string" ? body : JSON.stringify(body),
       },
     ),
-    {
-      user,
-      payload: {
-        findByID: vi.fn(),
-        find: vi.fn(),
-        create: vi.fn(),
-        ...payloadOverrides,
-      },
-    },
-  ) as never;
+    { user, payload: { find, create }, context: {}, t: undefined },
+  );
+  return { req: req as never, find, create };
 }
 
-describe("webStudioCreateFromTemplateEndpoint", () => {
-  it.each([null, "fee_cover"])(
-    "filters project references and template creation by system purpose (%s)",
-    async (purpose) => {
-      const tenant = "2d693c98-f6eb-4a3c-b49e-4326220a43f0";
-      const fund = {
-        id: "01ca510d-02b3-4b30-bfd5-008ce53ded6b",
-        name: "Giving",
-        tenant_id: tenant,
-        system_purpose: purpose,
-      };
-      const from = vi.fn(() => {
-        const filters = new Map<string, unknown>();
-        const match = () => ({
-          data: [...filters].every(
-            ([column, value]) => Reflect.get(fund, column) === value,
-          )
-            ? fund
-            : null,
-          error: null,
-        });
-        const query = {
-          select: () => query,
-          eq: (column: string, value: unknown) => {
-            filters.set(column, value);
-            return query;
-          },
-          is: (column: string, value: unknown) => {
-            filters.set(column, value);
-            return query;
-          },
-          single: match,
-          maybeSingle: match,
-        };
-        return query;
-      });
-      getAdminClientMock.mockReturnValue({ client: { from }, error: null });
-      const create = vi.fn().mockResolvedValue({ id: 44 });
-      const req = makeReq({
-        user: {
-          id: "u1",
-          role: "staff",
-          tenantId: "17",
-          publicTenantId: tenant,
-        },
-        body: {
-          targetCollection: "project-pages",
-          templateId: "1",
-          fundId: fund.id,
-        },
-        payloadOverrides: {
-          findByID: vi.fn().mockResolvedValue({
-            id: 1,
-            tenant: 17,
-            pageType: "project",
-            templateKey: "project-default",
-          }),
-          find: vi.fn().mockResolvedValue({ docs: [] }),
-          create,
-        },
-      });
-      const { buildPageBuilderCollectionFields } =
-        await import("../../../apps/admin/src/cms/collections/page-builders");
-      const field = buildPageBuilderCollectionFields("project").find(
-        (field) => field.type === "text" && field.name === "fundId",
-      );
-      if (
-        !field ||
-        field.type !== "text" ||
-        typeof field.validate !== "function"
-      )
-        throw Error("Missing project fund validator");
-      expect(
-        await Reflect.apply(field.validate, undefined, [fund.id, { req }]),
-      ).toBe(purpose ? "Fund not found in this organization." : true);
-      const response = await handler(req);
-      expect(response.status).toBe(purpose ? 404 : 200);
-      expect(create).toHaveBeenCalledTimes(purpose ? 0 : 1);
-      expect(from.mock.calls).toEqual([["funds"], ["funds"]]);
-    },
-  );
-  it("refuses an untyped JSON body with 415 before reading anything", async () => {
-    const create = vi.fn();
-    const findByID = vi.fn();
-    const req = Object.assign(
-      new Request(
-        "https://admin.test/web-studio/api/web-studio/create-from-template",
-        {
-          method: "POST",
-          body: new TextEncoder().encode(
-            JSON.stringify({
-              targetCollection: "pages",
-              templateId: "t",
-              title: "T",
-            }),
-          ),
-        },
-      ),
-      {
-        user: { id: "u1", role: "staff", tenantId: "17" },
-        payload: { create, findByID, find: vi.fn() },
+async function respond(options: Parameters<typeof makeReq>[0]) {
+  const made = makeReq(options);
+  const response = await handler(made.req);
+  return {
+    ...made,
+    status: response.status,
+    body: (await response.json()) as Record<string, unknown>,
+  };
+}
+
+describe("test 10: starters in code and the create-from-template endpoint", () => {
+  it("lists the starters from code, one per family, with no ministry-update starter", () => {
+    expect(
+      PAGE_STARTERS.map((starter) => [starter.key, starter.family]),
+    ).toEqual([
+      ["standard", "standard"],
+      ["missionary-giving", "missionary"],
+      ["project", "project"],
+    ]);
+    const gallery = readFileSync(
+      "apps/admin/src/cms-ui/web-studio/flows/studio-templates.tsx",
+      "utf8",
+    );
+    expect(gallery).toContain("cms/starters");
+    expect(gallery).not.toMatch(/page-templates|PAGE_TEMPLATES_SLUG/);
+  });
+
+  it("creates a pages draft with family, Site and starter through the actor port", async () => {
+    const { status, body, create } = await respond({
+      body: {
+        starterKey: "standard",
+        site: SEED_SITE,
+        title: "About us",
+        slug: "About Us",
       },
-    ) as never;
-    const response = await handler(req);
-    expect(response.status).toBe(415);
-    // Re-check H4: the Studio envelope, as the proxy answers on these paths.
-    expect(await response.json()).toEqual({
-      errors: [{ message: "Unsupported mutation content type." }],
     });
-    expect(findByID).not.toHaveBeenCalled();
+    expect(status).toBe(200);
+    expect(body).toEqual({
+      id: "00000000-0000-4000-8000-00000000c0de",
+      collectionSlug: "pages",
+    });
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(create.mock.calls[0]?.[0]).toMatchObject({
+      collection: "pages",
+      draft: true,
+      overrideAccess: false,
+      data: {
+        site: SEED_SITE,
+        family: "standard",
+        templateKey: "standard",
+        title: "About us",
+        slug: "about-us",
+        legacyContentFallback: true,
+      },
+    });
+    expect(create.mock.calls[0]?.[0]).not.toHaveProperty("data.tenant");
+  });
+
+  it("names a missionary page from crm_missionary_labels on the caller's own session", async () => {
+    const { status, create } = await respond({
+      body: {
+        starterKey: "missionary-giving",
+        site: SEED_SITE,
+        missionaryId: MISSIONARY,
+      },
+    });
+    expect(status).toBe(200);
+    expect(supabase.rpc).toEqual([
+      {
+        fn: "crm_missionary_labels",
+        args: { p_tenant_id: TENANT, p_ids: [MISSIONARY] },
+      },
+    ]);
+    expect(supabase.headers).toEqual({
+      "x-asym-tenant": TENANT,
+      "x-asym-assignment": actor.assignmentId,
+    });
+    expect(create.mock.calls[0]?.[0]).toMatchObject({
+      data: {
+        family: "missionary",
+        missionaryId: MISSIONARY,
+        title: "Ana Field — Give",
+      },
+    });
+  });
+
+  it("names a project page from the fund, read without system funds", async () => {
+    const { status, create } = await respond({
+      body: { starterKey: "project", site: SEED_SITE, fundId: FUND },
+    });
+    expect(status).toBe(200);
+    expect(create.mock.calls[0]?.[0]).toMatchObject({
+      data: {
+        family: "project",
+        fundId: FUND,
+        title: "Clean Water",
+        summary: "Wells",
+      },
+    });
+  });
+
+  it("refuses in JSON when the organization has no presentation", async () => {
+    const { status, body, create } = await respond({
+      body: { starterKey: "standard", title: "x", slug: "x" },
+      sites: [],
+    });
+    expect(status).toBe(409);
+    expect(body.error).toMatch(/no Site/);
     expect(create).not.toHaveBeenCalled();
   });
 
-  it.each(["pages", "ministry-updates"])(
-    "rejects an empty normalized slug before creating %s",
-    async (targetCollection) => {
-      const create = vi.fn();
-      const findByID = vi.fn();
-      const req = makeReq({
-        user: { id: "u1", role: "staff", tenantId: "17" },
-        body: {
-          targetCollection,
-          templateId: "template",
-          title: "Title",
-          slug: " !!! ",
-          missionaryProfileId: "profile",
-        },
-        payloadOverrides: { create, findByID },
-      });
-      const response = await handler(req);
-      expect(response.status).toBe(400);
-      expect(await response.json()).toMatchObject({
-        fieldErrors: {
-          slug: ["Enter an address with at least one letter or number."],
-        },
-      });
-      expect(create).not.toHaveBeenCalled();
-      expect(findByID).not.toHaveBeenCalled();
-    },
-  );
-
-  it("preserves a template's legacy nodes and creates an independent unchanged fallback document", async () => {
-    const layout = [
-      {
-        blockType: "rich-text",
-        body: {
-          root: {
-            type: "root",
-            children: [
-              {
-                type: "legacy-core-node",
-                version: 1,
-                customData: { variable: "supporter.name" },
-              },
-            ],
-            direction: null,
-            format: "",
-            indent: 0,
-            version: 1,
-          },
-          legacyMetadata: { revision: 7 },
-        },
-      },
-    ];
-    const create = vi
-      .fn<(options: { data: PageCreateFields }) => Promise<{ id: number }>>()
-      .mockResolvedValue({ id: 44 });
-    const req = makeReq({
-      user: { id: "u1", role: "staff", tenantId: "17" },
-      body: {
-        targetCollection: "pages",
-        templateId: "1",
-        title: "Reviewed page",
-        slug: "reviewed-page",
-      },
-      payloadOverrides: {
-        findByID: vi.fn().mockResolvedValue({
-          id: 1,
-          tenant: 17,
-          pageType: "standard",
-          defaultLayout: layout,
-          templateKey: "standard-default",
-        }),
-        create,
-      },
+  it("refuses a Site that is not one of the organization's presentations", async () => {
+    const { status, create } = await respond({
+      body: { starterKey: "standard", site: OTHER_SITE, title: "x", slug: "x" },
     });
-
-    const response = await handler(req);
-
-    expect(response.status).toBe(200);
-    expect(create).toHaveBeenCalledWith({
-      collection: "pages",
-      data: expect.objectContaining({
-        tenant: 17,
-        layout,
-        content: defaultRichTextValue,
-      }),
-      draft: true,
-      req,
-    });
-    const content = create.mock.calls[0]?.[0].data.content;
-    expect(content).toEqual(defaultRichTextValue);
-    expect(content).not.toBe(defaultRichTextValue);
-    expect(content?.root).not.toBe(defaultRichTextValue.root);
+    expect(status).toBe(403);
+    expect(create).not.toHaveBeenCalled();
   });
 
-  it("creates independent pages without copying template block or nested row identities", async () => {
-    const layout: CmsLayoutBlocks = [
-      {
-        blockType: "hero",
-        id: "template-hero",
-        headline: "Welcome",
-        backgroundImage: 71,
-        blockName: "Reviewed hero",
+  it("refuses a missionary page with no session, and a person who cannot edit", async () => {
+    supabase.session = false;
+    const noSession = await respond({
+      body: {
+        starterKey: "missionary-giving",
+        site: SEED_SITE,
+        missionaryId: MISSIONARY,
       },
-      { blockType: "media-feature", id: "template-media", media: 72 },
+    });
+    expect(noSession.status).toBe(403);
+    expect(noSession.create).not.toHaveBeenCalled();
+    supabase.session = true;
+    const viewer = await respond({
+      body: { starterKey: "standard", site: SEED_SITE, title: "x", slug: "x" },
+      user: { ...actor, staffRole: null },
+    });
+    expect(viewer.status).toBe(403);
+  });
+
+  it("accepts PostgreSQL UUIDs that are not RFC 4122 (seed Sites, missionaries and funds) in the request body (D-16 ruling)", async () => {
+    for (const body of [
+      { starterKey: "standard", site: SEED_SITE, title: "x", slug: "x" },
       {
-        blockType: "faq",
-        id: "template-faq",
-        items: [
-          {
-            id: "template-question",
-            question: "Why?",
-            answer: "Reviewed answer",
-          },
-        ],
+        starterKey: "missionary-giving",
+        site: SEED_SITE,
+        missionaryId: MISSIONARY,
       },
-      {
-        blockType: "impact-stats",
-        id: "template-impact",
-        items: [{ id: "template-stat", label: "Families", value: "25" }],
-      },
-      {
-        blockType: "rich-text",
-        id: "template-text",
-        body: {
-          root: {
-            type: "root",
-            children: [
-              {
-                type: "legacy-core-node",
-                version: 1,
-                id: "content-node",
-                relationship: { id: 73 },
-                customData: { id: "reviewed-metadata" },
-              },
-            ],
-            direction: null,
-            format: "",
-            indent: 0,
-            version: 1,
-          },
-          legacyMetadata: { id: "reviewed-document" },
-        },
-      },
-    ];
-    const original = structuredClone(layout);
-    const expected = [
-      {
-        blockType: "hero",
-        headline: "Welcome",
-        backgroundImage: 71,
-        blockName: "Reviewed hero",
-      },
-      { blockType: "media-feature", media: 72 },
-      {
-        blockType: "faq",
-        items: [{ question: "Why?", answer: "Reviewed answer" }],
-      },
-      {
-        blockType: "impact-stats",
-        items: [{ label: "Families", value: "25" }],
-      },
-      {
-        blockType: "rich-text",
-        body: {
-          root: {
-            type: "root",
-            children: [
-              {
-                type: "legacy-core-node",
-                version: 1,
-                id: "content-node",
-                relationship: { id: 73 },
-                customData: { id: "reviewed-metadata" },
-              },
-            ],
-            direction: null,
-            format: "",
-            indent: 0,
-            version: 1,
-          },
-          legacyMetadata: { id: "reviewed-document" },
-        },
-      },
-    ];
-    const create = vi
-      .fn<(options: { data: PageCreateFields }) => Promise<{ id: number }>>()
-      .mockResolvedValue({ id: 44 });
-    for (const slug of ["first-page", "second-page"]) {
-      const req = makeReq({
-        user: { id: "u1", role: "staff", tenantId: "17" },
-        body: {
-          targetCollection: "pages",
-          templateId: "1",
-          title: "Reviewed page",
-          slug,
-        },
-        payloadOverrides: {
-          findByID: vi.fn().mockResolvedValue({
-            id: 1,
-            tenant: 17,
-            pageType: "standard",
-            defaultLayout: layout,
-            templateKey: "standard-default",
-          }),
-          create,
-        },
-      });
-      expect((await handler(req)).status).toBe(200);
+      { starterKey: "project", site: SEED_SITE, fundId: FUND },
+    ]) {
+      expect((await respond({ body })).status).toBe(200);
     }
-    expect(create).toHaveBeenCalledTimes(2);
-    const first = create.mock.calls[0]?.[0].data;
-    const second = create.mock.calls[1]?.[0].data;
-    expect(first).toEqual(
-      expect.objectContaining({ tenant: 17, template: 1, layout: expected }),
-    );
-    expect(second).toEqual(
-      expect.objectContaining({ tenant: 17, template: 1, layout: expected }),
-    );
-    expect(first?.layout).not.toBe(second?.layout);
-    expect(first?.layout[2]).not.toBe(second?.layout[2]);
-    const firstText = first?.layout.find(
-      (block) => block.blockType === "rich-text",
-    );
-    const secondText = second?.layout.find(
-      (block) => block.blockType === "rich-text",
-    );
-    expect(firstText?.body).not.toBe(secondText?.body);
-    expect(firstText?.body).not.toBe(
-      layout[4] && "body" in layout[4] ? layout[4].body : undefined,
-    );
-    expect(layout).toEqual(original);
+    expect(
+      (
+        await respond({
+          body: {
+            starterKey: "standard",
+            site: "not-a-uuid",
+            title: "x",
+            slug: "x",
+          },
+        })
+      ).status,
+    ).toBe(400);
   });
 
-  it("requires tenantId for super-admin missionary giving creates", async () => {
-    const req = makeReq({
-      user: { id: "u1", role: "super_admin", tenantId: null },
+  it("keeps its refusals: 415 for a body that is not JSON, 400 for a bad body, an unknown starter or an empty address", async () => {
+    expect(
+      (
+        await respond({
+          body: "starterKey=standard",
+          contentType: "text/plain",
+        })
+      ).status,
+    ).toBe(415);
+    expect((await respond({ body: { title: "x" } })).status).toBe(400);
+    expect(
+      (await respond({ body: { starterKey: "nope", site: SEED_SITE } })).status,
+    ).toBe(404);
+    const empty = await respond({
       body: {
-        targetCollection: "missionary-giving-pages",
-        templateId: "1",
-        missionaryId: "123e4567-e89b-42d3-a456-426614174111",
-        tenantId: undefined,
-      },
-      payloadOverrides: {
-        findByID: vi.fn().mockResolvedValue({
-          id: 1,
-          tenant: 10,
-          pageType: "missionary_giving",
-          defaultLayout: [],
-          templateKey: "give-default",
-        }),
+        starterKey: "standard",
+        site: SEED_SITE,
+        title: "x",
+        slug: "!!!",
       },
     });
-
-    const res = await handler(req);
-    expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({
-      error: "Super-admin must choose a tenant",
-    });
-  });
-
-  it("returns 404 when ministry update profile is cross-tenant", async () => {
-    const req = makeReq({
-      user: { id: "u1", role: "staff", tenantId: "17" },
-      body: {
-        targetCollection: "ministry-updates",
-        templateId: "1",
-        missionaryProfileId: "42",
-        title: "Update",
-        slug: "update",
-      },
-      payloadOverrides: {
-        findByID: vi
-          .fn()
-          .mockResolvedValueOnce({
-            id: 1,
-            tenant: 17,
-            pageType: "ministry_update",
-            defaultLayout: [],
-            templateKey: "mu-default",
-          })
-          .mockResolvedValueOnce({
-            id: 42,
-            tenant: 99,
-          }),
-      },
-    });
-
-    const res = await handler(req);
-    expect(res.status).toBe(404);
-    expect(await res.json()).toEqual({
-      error: "Missionary profile not found",
-    });
-  });
-
-  it("rejects super-admin missionary giving create when template tenant differs from requested tenant", async () => {
-    const req = makeReq({
-      user: { id: "u1", role: "super_admin", tenantId: null },
-      body: {
-        targetCollection: "missionary-giving-pages",
-        templateId: "1",
-        tenantId: "99",
-        missionaryId: "123e4567-e89b-42d3-a456-426614174111",
-      },
-      payloadOverrides: {
-        find: vi.fn().mockResolvedValue({ docs: [] }),
-        findByID: vi
-          .fn()
-          .mockResolvedValueOnce({
-            id: 1,
-            tenant: 10,
-            pageType: "missionary_giving",
-            defaultLayout: [],
-            templateKey: "give-default",
-          })
-          .mockResolvedValueOnce({
-            id: 99,
-            slug: "tenant-99",
-            name: "Tenant 99",
-          }),
-      },
-    });
-
-    const res = await handler(req);
-    expect(res.status).toBe(403);
-    expect(await res.json()).toEqual({
-      error: "Template is not in your tenant",
+    expect(empty.status).toBe(400);
+    expect(empty.body.fieldErrors).toEqual({
+      slug: ["Enter an address with at least one letter or number."],
     });
   });
 });
