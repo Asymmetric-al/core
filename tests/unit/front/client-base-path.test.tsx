@@ -356,9 +356,15 @@ describe("Item 6d: Payload router adapter and ShellNavigationProvider under /adm
       { replace: false },
     );
 
-    router.push("/admin/teams");
+    router.push("/settings/teams");
     expect(loadMock.loadDocument).toHaveBeenLastCalledWith(
-      "/admin/admin/teams",
+      "/admin/settings/teams",
+      { replace: false },
+    );
+
+    router.push("/admin/example");
+    expect(loadMock.loadDocument).toHaveBeenLastCalledWith(
+      "/admin/admin/example",
       { replace: false },
     );
 

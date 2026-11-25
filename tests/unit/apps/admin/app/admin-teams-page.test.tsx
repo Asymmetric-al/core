@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import TeamsPage from "../../../../../apps/admin/app/(app)/admin/teams/page-client";
+import TeamsPage from "../../../../../apps/admin/app/(app)/settings/teams/page-client";
 import {
   QueryClient,
   QueryClientProvider,
@@ -13,7 +13,7 @@ const workspace = vi.hoisted(() => ({
   canManageMembers: true as boolean | undefined,
   currentMembershipId: "m-self" as string | null,
   userId: "u-self" as string | null,
-  pathname: "/00000000-0000-4000-8000-000000000001/admin/teams",
+  pathname: "/00000000-0000-4000-8000-000000000001/settings/teams",
 }));
 
 vi.mock("@asym/auth/tenant-navigation", async (importOriginal) => ({
@@ -67,8 +67,9 @@ afterEach(() => {
   workspace.canManageMembers = true;
   workspace.currentMembershipId = "m-self";
   workspace.userId = "u-self";
-  workspace.pathname = "/00000000-0000-4000-8000-000000000001/admin/teams";
+  workspace.pathname = "/00000000-0000-4000-8000-000000000001/settings/teams";
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 function show() {
@@ -288,7 +289,7 @@ describe("Members screen", () => {
     });
 
     view.unmount();
-    workspace.pathname = "/00000000-0000-4000-8000-000000000001/admin/teams";
+    workspace.pathname = "/00000000-0000-4000-8000-000000000001/settings/teams";
     const reloaded = show();
     await reloaded.findByText("new-staff@example.org");
     expect(reloaded.queryByLabelText("Invitation link")).toBeNull();
@@ -438,6 +439,168 @@ describe("Members screen", () => {
         "/invite/miss-selector#miss-verifier",
       );
     });
+  });
+
+  it("shows link copy without the cross-address hint for a missionary invitation when CORE_SERVE_UNDER_PATHS is on", async () => {
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
+    vi.stubEnv("CORE_APP_BASE_PATH", "/admin");
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (
+        String(url) === "/admin/api/admin/members/invitations" &&
+        init?.method === "POST"
+      ) {
+        return {
+          ok: true,
+          json: async () => ({
+            invitation: {
+              invitation_id: "inv-miss-on-1",
+              expires_at: "2026-11-30T00:00:00.000Z",
+              role: "missionary",
+              staff_role: null,
+              is_tenant_admin: false,
+            },
+            invitePath: "/invite/miss-on-selector#miss-on-verifier",
+          }),
+        };
+      }
+      if (String(url).startsWith("/admin/api/admin/members/invitations")) {
+        return { ok: true, json: async () => ({ invitations: [] }) };
+      }
+      return { ok: true, json: async () => ({ users: [] }) };
+    });
+
+    const view = show();
+    await view.findByText("No members found");
+    fireEvent.click(view.getByRole("button", { name: /invite member/i }));
+
+    fireEvent.change(view.getByLabelText("Email address"), {
+      target: { value: "missionary-on@example.org" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Missionary onboarding under paths" },
+    });
+    fireEvent.click(view.getByRole("button", { name: /create invitation/i }));
+
+    const linkInput = (await view.findByLabelText(
+      "Missionary workspace invitation link",
+    )) as HTMLInputElement;
+    expect(view.getByText("Missionary workspace invitation link")).toBeTruthy();
+    expect(linkInput.getAttribute("aria-label")).toBe(
+      "Missionary workspace invitation link",
+    );
+    expect(view.queryByText("Missionary workspace invitation path")).toBeNull();
+    expect(
+      view.queryByLabelText("Missionary workspace invitation path"),
+    ).toBeNull();
+    expect(linkInput.value).toBe(
+      `${window.location.origin}/missionary/invite/miss-on-selector#miss-on-verifier`,
+    );
+    expect(
+      view.queryByText(/open this path on your missionary workspace address/i),
+    ).toBeNull();
+    expect(view.queryByRole("button", { name: /copy path/i })).toBeNull();
+
+    fireEvent.click(view.getByRole("button", { name: /^copy link$/i }));
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith(
+        `${window.location.origin}/missionary/invite/miss-on-selector#miss-on-verifier`,
+      );
+    });
+  });
+
+  it("keeps staff invitation copy unchanged in both off and on modes while prefixing the address when on", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+      const normalized = String(url);
+      if (
+        (normalized === "/api/admin/members/invitations" ||
+          normalized === "/admin/api/admin/members/invitations") &&
+        init?.method === "POST"
+      ) {
+        return {
+          ok: true,
+          json: async () => ({
+            invitation: {
+              invitation_id: "inv-staff-mode",
+              expires_at: "2026-11-30T00:00:00.000Z",
+              role: "staff",
+              staff_role: "development",
+              is_tenant_admin: false,
+            },
+            invitePath: "/invite/staff-sel#staff-ver",
+          }),
+        };
+      }
+      if (
+        normalized.startsWith("/api/admin/members/invitations") ||
+        normalized.startsWith("/admin/api/admin/members/invitations")
+      ) {
+        return { ok: true, json: async () => ({ invitations: [] }) };
+      }
+      return { ok: true, json: async () => ({ users: [] }) };
+    });
+
+    const offView = show();
+    await offView.findByText("No members found");
+    fireEvent.click(offView.getByRole("button", { name: /invite member/i }));
+    fireEvent.change(offView.getByLabelText("Email address"), {
+      target: { value: "staff-off@example.org" },
+    });
+    fireEvent.change(offView.getByLabelText("Reason"), {
+      target: { value: "Staff off-mode check" },
+    });
+    fireEvent.click(
+      offView.getByRole("button", { name: /create invitation/i }),
+    );
+    const offInput = (await offView.findByLabelText(
+      "Invitation link",
+    )) as HTMLInputElement;
+    expect(offInput.value).toBe(
+      `${window.location.origin}/invite/staff-sel#staff-ver`,
+    );
+    expect(offView.getByRole("button", { name: /^copy link$/i })).toBeTruthy();
+    expect(
+      offView.queryByText(
+        /open this path on your missionary workspace address/i,
+      ),
+    ).toBeNull();
+    cleanup();
+
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
+    vi.stubEnv("CORE_APP_BASE_PATH", "/admin");
+    const onView = show();
+    await onView.findByText("No members found");
+    fireEvent.click(onView.getByRole("button", { name: /invite member/i }));
+    fireEvent.change(onView.getByLabelText("Email address"), {
+      target: { value: "staff-on@example.org" },
+    });
+    fireEvent.change(onView.getByLabelText("Reason"), {
+      target: { value: "Staff on-mode check" },
+    });
+    fireEvent.click(onView.getByRole("button", { name: /create invitation/i }));
+    const onInput = (await onView.findByLabelText(
+      "Invitation link",
+    )) as HTMLInputElement;
+    expect(onInput.value).toBe(
+      `${window.location.origin}/admin/invite/staff-sel#staff-ver`,
+    );
+    expect(onView.getByRole("button", { name: /^copy link$/i })).toBeTruthy();
+    expect(
+      onView.queryByText(
+        /open this path on your missionary workspace address/i,
+      ),
+    ).toBeNull();
   });
 
   it("lists pending invitations for admins, revokes one with a reason, and sends expectedUpdatedAt on role changes", async () => {

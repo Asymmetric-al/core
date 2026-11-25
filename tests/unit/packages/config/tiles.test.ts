@@ -62,9 +62,32 @@ describe("super admins on Home", () => {
   it("offers Eve to a super admin through the admin role", () => {
     const role = mapRoleToMCRole("super_admin");
     expect(role).toBe("admin");
-    expect(
-      quickActionsForRole(adminTile, role).map((action) => action.href),
-    ).toContain("/admin/eve");
+    const adminHrefs = quickActionsForRole(adminTile, role).map(
+      (action) => action.href,
+    );
+    expect(adminHrefs).toContain("/settings/eve");
+    expect(adminHrefs).not.toContain("/admin/eve");
     expect(features(insideForRole(adminTile, role))).toContain("Eve");
+  });
+
+  it("points the Administration tile and its quick actions at /settings routes", () => {
+    expect(adminTile.route).toBe("/settings");
+    expect(adminTile.route).not.toBe("/admin");
+    const adminActions = quickActionsForRole(adminTile, "admin").map(
+      (action) => action.href,
+    );
+    expect(adminActions).toEqual([
+      "/settings",
+      "/settings/teams",
+      "/settings/eve",
+    ]);
+    expect(
+      adminActions.filter(
+        (href) => href === "/admin" || href.startsWith("/admin/"),
+      ),
+    ).toEqual([]);
+    expect(
+      quickActionsForRole(adminTile, "finance").map((action) => action.href),
+    ).toEqual(["/settings", "/settings/teams"]);
   });
 });

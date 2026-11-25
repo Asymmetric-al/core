@@ -4,7 +4,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 
 // eslint-disable-next-line no-restricted-imports -- AL-1864: Browser fixture exercises the actual audit layout without live governance requests.
-import { EveGovernanceView } from "../../../apps/admin/app/(app)/admin/eve/page-client";
+import { EveGovernanceView } from "../../../apps/admin/app/(app)/settings/eve/page-client";
 // eslint-disable-next-line no-restricted-imports -- AL-1864: Browser fixture exercises the actual Eve panel with inert transport and identity boundaries.
 import { EveGlobalPanel } from "../../../apps/admin/app/eve/global-panel";
 // eslint-disable-next-line no-restricted-imports -- AL-1864: Browser fixture exercises the actual independent tile actions.

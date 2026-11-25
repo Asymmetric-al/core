@@ -11,7 +11,7 @@ function readRepoFile(path: string) {
 describe("admin high-complexity extraction contracts", () => {
   it("keeps Eve launch readiness as composed section siblings", () => {
     const source = readRepoFile(
-      "apps/admin/app/(app)/admin/eve/launch-readiness-panel.tsx",
+      "apps/admin/app/(app)/settings/eve/launch-readiness-panel.tsx",
     );
 
     expect(source).toContain("function LaunchReadinessStatusGrid(");
@@ -29,7 +29,7 @@ describe("admin high-complexity extraction contracts", () => {
 
   it("keeps Eve model policy loaded state on sibling cards", () => {
     const source = readRepoFile(
-      "apps/admin/app/(app)/admin/eve/model-policy-panel.tsx",
+      "apps/admin/app/(app)/settings/eve/model-policy-panel.tsx",
     );
 
     // Loading renders the shared Eve section placeholders (one per section)
@@ -48,7 +48,7 @@ describe("admin high-complexity extraction contracts", () => {
 
   it("keeps Eve governance view on loading, error, and history siblings", () => {
     const source = readRepoFile(
-      "apps/admin/app/(app)/admin/eve/page-client.tsx",
+      "apps/admin/app/(app)/settings/eve/page-client.tsx",
     );
 
     expect(source).toContain("<EveUnavailableSections");

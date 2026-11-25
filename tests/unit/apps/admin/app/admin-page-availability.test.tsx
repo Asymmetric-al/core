@@ -33,7 +33,7 @@ beforeAll(async () => {
     }),
   });
   AdminPage = (
-    await import("../../../../../apps/admin/app/(app)/admin/page-client")
+    await import("../../../../../apps/admin/app/(app)/settings/page-client")
   ).default;
 }, 20_000);
 
@@ -59,13 +59,14 @@ it("links only to administration pages that exist", () => {
   for (const link of links) {
     const href = link.getAttribute("href") ?? "";
     expect(href.startsWith("/mc/"), href).toBe(false);
+    expect(href === "/admin" || href.startsWith("/admin/"), href).toBe(false);
     expect(routeExists(href), href).toBe(true);
   }
   expect(
     screen.getByRole("link", { name: /^members/i }).getAttribute("href"),
-  ).toBe("/admin/teams");
+  ).toBe("/settings/teams");
   expect(screen.getByRole("link", { name: /^eve/i }).getAttribute("href")).toBe(
-    "/admin/eve",
+    "/settings/eve",
   );
   expect(
     screen.getByRole("link", { name: /email delivery/i }).getAttribute("href"),
@@ -86,7 +87,7 @@ it("lists Eve only for admins while offering Members read-only to all live staff
   expect(screen.queryByRole("link", { name: /^eve/i })).toBeNull();
   expect(
     screen.getByRole("link", { name: /^members/i }).getAttribute("href"),
-  ).toBe("/admin/teams");
+  ).toBe("/settings/teams");
   expect(screen.getByRole("link", { name: /email delivery/i })).toBeTruthy();
 });
 

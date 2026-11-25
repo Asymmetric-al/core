@@ -4,7 +4,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 
 // eslint-disable-next-line no-restricted-imports -- AL-1931: Isolated browser coverage of the actual Administration surface.
-import AdminPage from "../../../apps/admin/app/(app)/admin/page-client";
+import AdminPage from "../../../apps/admin/app/(app)/settings/page-client";
 import { MotionProvider } from "../../../packages/lib/motion-provider";
 import { ThemeProvider } from "../../../packages/ui/lib/theme-provider";
 

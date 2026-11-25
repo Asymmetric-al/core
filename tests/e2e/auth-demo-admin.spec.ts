@@ -88,11 +88,11 @@ test("admin profile menu exposes distinct real destinations", async ({
 
   await expect(administration).toHaveAttribute(
     "href",
-    demoTenantPath("/admin"),
+    demoTenantPath("/settings"),
   );
   await expect(manageTeam).toHaveAttribute(
     "href",
-    demoTenantPath("/admin/teams"),
+    demoTenantPath("/settings/teams"),
   );
   await expect(about).toHaveAttribute("href", demoTenantPath("/help/about"));
   await expect(menu.getByText("My account")).toHaveCount(0);
@@ -101,7 +101,7 @@ test("admin profile menu exposes distinct real destinations", async ({
   await expect(menu.getByText("Add team account")).toHaveCount(0);
 
   await administration.click();
-  await expect(page).toHaveURL(new RegExp("/admin$"));
+  await expect(page).toHaveURL(new RegExp("/settings$"));
   await expect(
     page.getByRole("heading", { name: "Administration" }),
   ).toBeVisible();
