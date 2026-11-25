@@ -1,5 +1,5 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join, relative, sep } from "node:path";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import ts from "typescript";
@@ -87,6 +87,14 @@ function forbiddenSpecifiers(file: string, text: string): string[] {
   );
 }
 
+function targetStrings(target: unknown): string[] {
+  if (typeof target === "string") return [target];
+  if (Array.isArray(target)) return target.flatMap(targetStrings);
+  if (target && typeof target === "object")
+    return Object.values(target).flatMap(targetStrings);
+  return [];
+}
+
 function exportsProblems(exportsField: unknown): string[] {
   const entries =
     exportsField && typeof exportsField === "object"
@@ -106,6 +114,77 @@ function exportsProblems(exportsField: unknown): string[] {
       )
     )
       problems.push(`a wildcard reaches the module: ${key}`);
+    if (
+      targetStrings(target).some(
+        (pattern) =>
+          pattern.includes("*") &&
+          "./src/donate/provider-operations/run.ts".startsWith(
+            pattern.slice(0, pattern.indexOf("*")),
+          ),
+      )
+    )
+      problems.push(`a wildcard target reaches the module: ${key}`);
+  }
+  return problems;
+}
+
+const API_SRC = join(ROOT, "packages/api/src");
+const CLIENT_MODULES = [
+  "@asym/database/supabase/admin",
+  "database/supabase/admin",
+  "workflows/admin-client",
+  "shared/with-operation",
+  "donor-portal/route-helpers",
+  "missionary-portal/route-helpers",
+];
+const CLIENT_NAMES = [
+  "getAdminClient",
+  "createAdminClient",
+  "requireWorkflowAdminClient",
+  "withPlatformOperation",
+  "runDonorPortalOperation",
+  "runMissionaryPortalOperation",
+  "SERVICE_ROLE_KEY",
+];
+
+function localModule(from: string, spec: string): string | null {
+  const base = resolve(dirname(from), spec);
+  for (const candidate of [
+    base,
+    `${base}.ts`,
+    `${base}.tsx`,
+    join(base, "index.ts"),
+  ])
+    if (existsSync(candidate) && statSync(candidate).isFile()) return candidate;
+  return null;
+}
+
+function moduleReach(): string[] {
+  const problems: string[] = [];
+  const seen = new Set<string>();
+  const queue: [string, string][] = sourceFiles(MODULE_DIR).map((file) => [
+    file,
+    relative(API_SRC, file),
+  ]);
+  while (queue.length) {
+    const [file, chain] = queue.shift()!;
+    if (seen.has(file)) continue;
+    seen.add(file);
+    const text = readFileSync(file, "utf8");
+    if (text.includes("process.env")) problems.push(`${chain}: process.env`);
+    for (const name of CLIENT_NAMES)
+      if (text.includes(name)) problems.push(`${chain}: ${name}`);
+    for (const spec of specifiers(file, text)) {
+      if (spec === "@asym/env" || spec.startsWith("@asym/env/"))
+        problems.push(`${chain} -> ${spec}`);
+      if (CLIENT_MODULES.some((m) => spec.includes(m)))
+        problems.push(`${chain} -> ${spec}`);
+      if (!spec.startsWith(".")) continue;
+      const target = localModule(file, spec);
+      if (!target) problems.push(`${chain} -> ${spec}: not resolved`);
+      else if (target.startsWith(`${API_SRC}${sep}`))
+        queue.push([target, `${chain} -> ${relative(API_SRC, target)}`]);
+    }
   }
   return problems;
 }
@@ -212,8 +291,28 @@ describe("WP8a part 2 R1b: the provider worker stays unmounted (ruling Q4)", () 
     ).toEqual([
       "names the module: ./run",
       "a wildcard reaches the module: ./donate/*",
+      "a wildcard target reaches the module: ./donate/*",
       "a wildcard reaches the module: ./*",
+      "a wildcard target reaches the module: ./*",
     ]);
+  });
+
+  it("T8 (bot round): a wildcard export whose target can resolve into the worker's directory is flagged whatever its public key; an unrelated wildcard target is valid", () => {
+    expect(
+      exportsProblems({
+        "./lib/*": "./src/donate/*.ts",
+        "./kit/*": { import: { default: "./src/*" } },
+        "./crm/*": "./src/crm/*.ts",
+        "./donate": "./src/donate/index.ts",
+      }),
+    ).toEqual([
+      "a wildcard target reaches the module: ./lib/*",
+      "a wildcard target reaches the module: ./kit/*",
+    ]);
+  });
+
+  it("D3 (bot round, B1): following every import of the module's four files inside packages/api/src, nothing reaches @asym/env, process.env or an admin or service-key client", () => {
+    expect(moduleReach()).toEqual([]);
   });
 
   it("D3 (guard): the module reaches no scheduler, environment, service-key client or workflow: no createFunction, inngest or workflows/ import, process.env, serverEnv, or any name the service-key gate tracks", () => {

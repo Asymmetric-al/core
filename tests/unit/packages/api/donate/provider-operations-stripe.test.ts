@@ -31,13 +31,15 @@ import {
   type FakeHeaders,
 } from "../../../../fixtures/stripe-provider-fake";
 
+import type { ProviderRequest } from "../../../../../packages/api/src/donate/provider-operations/contract";
+
 const TEST_KEY = "sk_test_provider_fake";
 const OPERATION = "6f1c2c1e-6a43-4c8e-9a51-0d8f2d6c1a10";
 const INTAKE = "1b7d4e2a-3c5f-4a6b-8d9e-0f1a2b3c4d5e";
 const ACCOUNT = "acct_1ProviderFake0001";
 const KEY = `gift:${INTAKE}:create_payment`;
 
-const request = () => ({
+const request = (): ProviderRequest => ({
   amount: 10300,
   currency: "usd",
   metadata: {
@@ -844,5 +846,138 @@ describe("WP8a part 2 R1b: the Stripe adapter over the fake provider (index sect
     });
     expect(performance.now() - started).toBeLessThan(900);
     expect(fake.requests().map((r) => r.replayed)).toEqual([false, true]);
+  });
+
+  it("B2 (bot round): only an Idempotent-Replayed value of exactly false is not a replay; FALSE, False, a padded false, an empty value or a list is, so a 429 with the reason header and a 401 are row 11", async () => {
+    const values = [
+      "FALSE",
+      "False",
+      " false",
+      "false ",
+      "",
+      "false, false",
+      "false",
+      null,
+    ];
+    const got: string[] = [];
+    for (const value of values) {
+      const replay: FakeHeaders =
+        value === null ? {} : { "idempotent-replayed": value };
+      for (const [label, behaviour] of [
+        [
+          "429",
+          err(
+            429,
+            { type: "invalid_request_error", code: "rate_limit" },
+            { "stripe-rate-limited-reason": "global-rate", ...replay },
+          ),
+        ],
+        ["401", err(401, { type: "invalid_request_error" }, replay)],
+      ] as const) {
+        const { result } = await sendOnce([behaviour]);
+        got.push(
+          `${JSON.stringify(value)} ${label}: ${result.result} ${"errorCode" in result ? result.errorCode : "-"}`,
+        );
+      }
+    }
+    expect(got).toEqual(
+      values.flatMap((value) =>
+        value === "false" || value === null
+          ? [
+              `${JSON.stringify(value)} 429: not_performed stripe_rate_limited`,
+              `${JSON.stringify(value)} 401: not_performed stripe_authentication`,
+            ]
+          : [
+              `${JSON.stringify(value)} 429: unknown stripe_unclassified`,
+              `${JSON.stringify(value)} 401: unknown stripe_unclassified`,
+            ],
+      ),
+    );
+  });
+
+  it("B2: a replay marker that arrives as a list of values, even of false, is a replay", async () => {
+    let calls = 0;
+    const transport = {
+      getClientName: () => "listed-headers",
+      async makeRequest() {
+        calls += 1;
+        return {
+          getStatusCode: () => 429,
+          getHeaders: () => ({
+            "idempotent-replayed": ["false", "false"],
+            "stripe-rate-limited-reason": "global-rate",
+          }),
+          getRawResponse: () => ({}),
+          toStream: () => null,
+          toJSON: async () => ({
+            error: { type: "invalid_request_error", code: "rate_limit" },
+          }),
+        };
+      },
+    };
+    const adapter = createStripePaymentAdapter({
+      secretKey: TEST_KEY,
+      transport,
+    });
+    expect(
+      await adapter.createPayment({
+        account: ACCOUNT,
+        idempotencyKey: KEY,
+        params: request(),
+        timeoutMs: 5_000,
+      }),
+    ).toEqual({ result: "unknown", errorCode: "stripe_unclassified" });
+    expect(calls).toBe(1);
+  });
+
+  it("B4 (bot round): the adapter takes its send budget when it arms its timer: below 10,000 ms left it sends nothing and answers not_performed lease_budget_spent; otherwise the call's timeout is the smaller of timeoutMs and what is left", async () => {
+    const fake = createStripeProviderFake();
+    fake.script(succeed());
+    const adapter = createStripePaymentAdapter({
+      secretKey: TEST_KEY,
+      transport: fake.transport,
+    });
+    const base = {
+      account: ACCOUNT,
+      idempotencyKey: KEY,
+      params: request(),
+      timeoutMs: 60_000,
+    };
+    expect(
+      await adapter.createPayment({ ...base, remainingMs: () => 9_999.9 }),
+    ).toEqual({ result: "not_performed", errorCode: "lease_budget_spent" });
+    expect(fake.calls()).toBe(0);
+    expect(
+      await adapter.createPayment({ ...base, remainingMs: () => 15_000.7 }),
+    ).toMatchObject({ result: "succeeded" });
+    expect(fake.requests().map((r) => r.timeout)).toEqual([15_000]);
+  });
+
+  it("B5 (bot round): the fake keeps two requests held at once releasable, in arrival order, and held() counts only pending holds", async () => {
+    const fake = createStripeProviderFake();
+    fake.script(hold(), hold());
+    const adapter = createStripePaymentAdapter({
+      secretKey: TEST_KEY,
+      transport: fake.transport,
+    });
+    const send = (account: string, key: string) =>
+      adapter.createPayment({
+        account,
+        idempotencyKey: key,
+        params: request(),
+        timeoutMs: 3_000,
+      });
+    const first = send(ACCOUNT, KEY);
+    const second = send("acct_1ProviderFake0002", `${KEY}:other`);
+    await fake.held(2);
+    fake.release();
+    fake.release();
+    const answers = await Promise.all([first, second]);
+    expect(answers.map((a) => a.result)).toEqual(["succeeded", "succeeded"]);
+    const stillHeld = await Promise.race([
+      fake.held().then(() => "a hold is pending"),
+      new Promise((done) => setTimeout(() => done("no hold pending"), 100)),
+    ]);
+    expect(stillHeld).toBe("no hold pending");
   });
 });

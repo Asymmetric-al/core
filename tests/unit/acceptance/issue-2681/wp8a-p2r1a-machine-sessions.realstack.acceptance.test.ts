@@ -97,11 +97,22 @@ describe.skipIf(!ADMIN_URL)(
       await s1.query("BEGIN");
       const out1 = await first(s1);
       await s2.query("BEGIN");
+      const early: { settled?: { value: Outcome } | { error: unknown } } = {};
       const pending = second(s2).then(
         (value) => ({ value }),
         (error: unknown) => ({ error }),
       );
+      void pending.then((settled) => {
+        early.settled = settled;
+      });
       for (let i = 0; i < 200; i += 1) {
+        const settledEarly = early.settled;
+        if (settledEarly !== undefined) {
+          if ("error" in settledEarly) throw settledEarly.error;
+          throw new Error(
+            "the second session finished before it waited on the row lock",
+          );
+        }
         const r = await watcher.query(
           "SELECT wait_event_type FROM pg_stat_activity WHERE pid = $1",
           [pid2],
@@ -150,6 +161,34 @@ describe.skipIf(!ADMIN_URL)(
         ),
       };
     }
+
+    it("T6 (bot round): race() stops at once when the second session finishes before it waits on the lock: an early rejection fails with its own SQL error, an early success fails explicitly", async () => {
+      const quick = async (s: pg.Client) =>
+        (await s.query("SELECT 1 AS r")).rows[0].r as Outcome;
+      const started = Date.now();
+      try {
+        const rejected = await race(
+          quick,
+          async (s) =>
+            (await s.query("SELECT 1 / 0 AS r")).rows[0].r as Outcome,
+        ).then(
+          () => "no error",
+          (e: { code?: string }) => e.code,
+        );
+        expect(rejected).toBe("22012");
+        const succeededEarly = await race(quick, quick).then(
+          () => "no error",
+          (e: Error) => e.message,
+        );
+        expect(succeededEarly).toBe(
+          "the second session finished before it waited on the row lock",
+        );
+        expect(Date.now() - started).toBeLessThan(5_000);
+      } finally {
+        const open = sessions.splice(0);
+        await Promise.all(open.map((s) => s.end().catch(() => {})));
+      }
+    });
 
     it("D20: money idempotency across two committed sessions: two claims (one held); two claims past the window on a known retry_wait row (one dead_letter, one closed); a report-path dead-letter racing a claim; two claims parking an expired sending row (one case, one task, one link)", async () => {
       await db.query("BEGIN");
@@ -319,6 +358,16 @@ describe.skipIf(!ADMIN_URL)(
             throw new Error("the report never waited on the intake");
           await new Promise((done) => setTimeout(done, 50));
         }
+        const requestRowLock = await watcher
+          .query(
+            "SELECT id FROM public.donation_saga_outbox WHERE id = $1 FOR UPDATE NOWAIT",
+            [intake.operationId],
+          )
+          .then(
+            () => "no error",
+            (e: { code?: string }) => e.code,
+          );
+        expect(requestRowLock).toBe("55P03");
         const other = paymentIntent();
         await holder.query(
           "UPDATE public.donations SET stripe_payment_intent_id = $2 WHERE id = $1",

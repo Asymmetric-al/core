@@ -573,6 +573,7 @@ describe("WP8a part 2 R1b: runProviderOperation, one request from claim to repor
       idempotencyKey: KEY,
       params: request(),
       timeoutMs: expect.any(Number),
+      remainingMs: expect.any(Function),
     });
     const timeoutMs = (
       createPayment.mock.calls[0] as unknown as [{ timeoutMs: number }]
@@ -625,5 +626,63 @@ describe("WP8a part 2 R1b: runProviderOperation, one request from claim to repor
     };
     await runProviderOperation({ rpc, adapter, operationId: OPERATION });
     expect(seen).toEqual([10300, true]);
+  });
+
+  it("B3 (bot round): a log callback that throws changes nothing the run returns: the object id and the report's error still come back, and nothing is retried", async () => {
+    const error = { code: "55000", message: "lease_lost" };
+    const { rpc, calls } = claimedRpc({ attempt: 2 }, { data: null, error });
+    const { adapter, createPayment } = stubAdapter({
+      result: "succeeded",
+      providerObjectId: "pi_3Logged0001",
+    });
+    const log = vi.fn(() => {
+      throw new Error("the logger is down");
+    });
+    const run = await runProviderOperation({
+      rpc,
+      adapter,
+      operationId: OPERATION,
+      log,
+    });
+    expect(run).toMatchObject({
+      sent: true,
+      attempt: 2,
+      answer: { result: "succeeded", providerObjectId: "pi_3Logged0001" },
+      report: { data: null, error },
+    });
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(createPayment).toHaveBeenCalledTimes(1);
+    expect(calls.map((c) => c.fn)).toEqual([
+      "claim_provider_operation",
+      "record_provider_operation_result",
+    ]);
+  });
+
+  it("B4 (bot round): a clock that passes the budget between the run's own check and the adapter arming its timer sends nothing; the run reports not_performed lease_budget_spent", async () => {
+    const readings = [0, 30_000, 85_000];
+    const clock = { monotonicMs: () => readings.shift() ?? 85_000 };
+    const { rpc, calls } = claimedRpc();
+    const { fake, adapter } = fakeAdapter(succeed());
+    const run = await runProviderOperation({
+      rpc,
+      adapter,
+      operationId: OPERATION,
+      clock,
+    });
+    expect(fake.calls()).toBe(0);
+    expect(run).toMatchObject({
+      sent: false,
+      answer: { result: "not_performed", errorCode: "lease_budget_spent" },
+    });
+    expect(
+      (
+        calls[1]
+          ?.args as ProviderOperationRpcArgs["record_provider_operation_result"]
+      ).p_result,
+    ).toEqual({
+      result: "not_performed",
+      retry_delay_seconds: 30,
+      error_code: "lease_budget_spent",
+    });
   });
 });

@@ -266,6 +266,18 @@ describe.skipIf(!ADMIN_URL)(
       ).rows[0]?.request_params as unknown;
     };
 
+    const tasksIn = async (fx: Fixture) => {
+      await role(db, null);
+      const count = async (tenantId: string) =>
+        (
+          await db.query(
+            "SELECT count(*)::int AS n FROM public.mission_control_tasks WHERE tenant_id = $1",
+            [tenantId],
+          )
+        ).rows[0]?.n as number;
+      return { A: await count(fx.A.tenant), B: await count(fx.B.tenant) };
+    };
+
     const casesInTenant = async (tenantId: string) => {
       await role(db, null);
       return (
@@ -364,6 +376,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(audit[0]?.details).toMatchObject({ reason: "window_passed" });
         expect(await intakeRef(intake.donationId)).toBeNull();
         expect(await tasksOf(db, fx.B.tenant)).toEqual([]);
+        expect(await tasksIn(fx)).toEqual({ A: 1, B: 0 });
         expect(await casesInTenant(fx.B.tenant)).toBe(0);
         expect(fake.requests()).toHaveLength(1);
         expect(fake.objects()).toHaveLength(1);
@@ -425,70 +438,101 @@ describe.skipIf(!ADMIN_URL)(
           release = done;
         });
         const log = vi.fn();
-        const first = work(intake, fake, {
+        const firstSettled = work(intake, fake, {
           log,
           beforeReport: async () => {
             reached();
             await gate;
           },
-        });
-        await atReport;
-        await expireLease(db, intake.operationId);
-        let unknownBeforeReport: unknown;
-        const second = await work(intake, fake, {
-          beforeReport: async () => {
-            unknownBeforeReport = (await rowOf(db, intake.operationId))
-              .outcome_unknown;
-          },
-        });
-        const object = fake.objects()[0]?.id;
-        expect(unknownBeforeReport).toBe(true);
-        expect(second).toMatchObject({
-          sent: true,
-          attempt: 2,
-          answer: { result: "succeeded", providerObjectId: object },
-          report: { error: null, data: { outcome: "linked" } },
-        });
-        release();
-        expect(await first).toMatchObject({
-          sent: true,
-          attempt: 1,
-          answer: { result: "succeeded", providerObjectId: object },
-          report: {
-            data: null,
-            error: { code: "55000", message: "stale_attempt" },
-          },
-        });
-        expect(log).toHaveBeenCalledTimes(1);
-        expect(log.mock.calls[0]?.[0]).toMatchObject({
-          operationId: intake.operationId,
-          attempt: 1,
-          providerObjectId: object,
-        });
-        expect(fake.requests().map((r) => r.replayed)).toEqual([false, true]);
-        expect(fake.objects()).toHaveLength(1);
-        const row = await rowOf(db, intake.operationId);
-        expect([row.status, row.provider_object_id, row.attempt_count]).toEqual(
-          ["linked", object, 2],
+        }).then(
+          (value) => ({ value }),
+          (error: unknown) => ({ error }),
         );
+        try {
+          await Promise.race([
+            atReport,
+            firstSettled.then((settled) => {
+              throw "error" in settled
+                ? settled.error
+                : new Error("run 1 ended before it reached its report");
+            }),
+          ]);
+          await expireLease(db, intake.operationId);
+          let unknownBeforeReport: unknown;
+          const second = await work(intake, fake, {
+            beforeReport: async () => {
+              unknownBeforeReport = (await rowOf(db, intake.operationId))
+                .outcome_unknown;
+            },
+          });
+          const object = fake.objects()[0]?.id;
+          expect(unknownBeforeReport).toBe(true);
+          expect(second).toMatchObject({
+            sent: true,
+            attempt: 2,
+            answer: { result: "succeeded", providerObjectId: object },
+            report: { error: null, data: { outcome: "linked" } },
+          });
+          release();
+          const first = await firstSettled;
+          if ("error" in first) throw first.error;
+          expect(first.value).toMatchObject({
+            sent: true,
+            attempt: 1,
+            answer: { result: "succeeded", providerObjectId: object },
+            report: {
+              data: null,
+              error: { code: "55000", message: "stale_attempt" },
+            },
+          });
+          expect(log).toHaveBeenCalledTimes(1);
+          expect(log.mock.calls[0]?.[0]).toMatchObject({
+            operationId: intake.operationId,
+            attempt: 1,
+            providerObjectId: object,
+          });
+          expect(fake.requests().map((r) => r.replayed)).toEqual([false, true]);
+          expect(fake.objects()).toHaveLength(1);
+          const row = await rowOf(db, intake.operationId);
+          expect([
+            row.status,
+            row.provider_object_id,
+            row.attempt_count,
+          ]).toEqual(["linked", object, 2]);
+        } finally {
+          release();
+          await firstSettled;
+        }
       }));
 
     it("C4: two workers in two committed sessions, the first held at the provider until the second returns: one claimed, one held, one request, linked", async () => {
       await db.query("BEGIN");
       const fx = await seedTwoTenants(db);
       await db.query("COMMIT");
+      const fake = createStripeProviderFake();
+      let firstSettled: Promise<unknown> = Promise.resolve();
       try {
         const intake = await committed(() => guardIntake(db, fx.A));
         const [s1, s2] = [await openSession(), await openSession()];
         const { runProviderOperation } = await loadWorker();
-        const fake = createStripeProviderFake();
         fake.script(hold());
-        const first = runProviderOperation({
+        const settling = runProviderOperation({
           rpc: rpcCommitted(s1),
           adapter: await adapterOver(fake),
           operationId: intake.operationId,
-        });
-        await fake.held();
+        }).then(
+          (value) => ({ value }),
+          (error: unknown) => ({ error }),
+        );
+        firstSettled = settling;
+        await Promise.race([
+          fake.held(),
+          settling.then((settled) => {
+            throw "error" in settled
+              ? settled.error
+              : new Error("run 1 ended before the provider held it");
+          }),
+        ]);
         const second = await runProviderOperation({
           rpc: rpcCommitted(s2),
           adapter: await adapterOver(fake),
@@ -499,7 +543,9 @@ describe.skipIf(!ADMIN_URL)(
           claim: { error: null, data: { outcome: "held", attempt: 1 } },
         });
         fake.release();
-        expect(await first).toMatchObject({
+        const first = await settling;
+        if ("error" in first) throw first.error;
+        expect(first.value).toMatchObject({
           sent: true,
           attempt: 1,
           answer: { result: "succeeded" },
@@ -509,6 +555,8 @@ describe.skipIf(!ADMIN_URL)(
         await role(db, null);
         expect((await rowOf(db, intake.operationId)).status).toBe("linked");
       } finally {
+        fake.release();
+        await firstSettled;
         await releaseSessionsThenRemove(fx);
       }
     });
@@ -547,6 +595,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(await intakeRef(intake.donationId)).toBeNull();
         expect(await casesOf(db, intake.operationId)).toEqual([]);
         expect(await tasksOf(db, fx.A.tenant)).toEqual([]);
+        expect(await tasksIn(fx)).toEqual({ A: 0, B: 0 });
         expect(await work(intake, fake)).toMatchObject({
           sent: true,
           attempt: 2,
@@ -584,6 +633,7 @@ describe.skipIf(!ADMIN_URL)(
           (await casesOf(db, intake.operationId)).map((c) => c.id),
         ).toEqual([caseId]);
         expect(await tasksOf(db, fx.A.tenant)).toEqual([PARKED_LINK(caseId)]);
+        expect(await tasksIn(fx)).toEqual({ A: 1, B: 0 });
         expect(await work(intake, fake)).toMatchObject({
           sent: false,
           claim: { data: { outcome: "parked" } },
@@ -609,6 +659,7 @@ describe.skipIf(!ADMIN_URL)(
         ]);
         expect(await casesOf(db, intake.operationId)).toEqual([]);
         expect(await tasksOf(db, fx.A.tenant)).toEqual([]);
+        expect(await tasksIn(fx)).toEqual({ A: 0, B: 0 });
       }));
 
     it("C7: rate-limited up to max_attempts (made due between runs) ends dead_letter with one task and one link, and no case", () =>
@@ -631,6 +682,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(await tasksOf(db, fx.A.tenant)).toEqual([
           DEAD_LETTER_LINK(intake.operationId),
         ]);
+        expect(await tasksIn(fx)).toEqual({ A: 1, B: 0 });
         expect(await casesOf(db, intake.operationId)).toEqual([]);
         expect(fake.requests()).toHaveLength(3);
       }));
@@ -673,6 +725,7 @@ describe.skipIf(!ADMIN_URL)(
           "unreachable twice: unknown stripe_unreachable retry_scheduled; unknown stripe_unreachable parked; parked unknown=true cases=1",
           "invalid twice: unknown stripe_invalid_request retry_scheduled; unknown stripe_invalid_request parked; parked unknown=true cases=1",
         ]);
+        expect(await tasksIn(fx)).toEqual({ A: 3, B: 0 });
         expect(
           (await tasksOf(db, fx.A.tenant)).map((t) => t.relationship),
         ).toEqual([
@@ -708,6 +761,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(await rowOf(db, intake.operationId)).toEqual(before);
         expect(await casesOf(db, intake.operationId)).toEqual([]);
         expect(await tasksOf(db, fx.A.tenant)).toEqual([]);
+        expect(await tasksIn(fx)).toEqual({ A: 0, B: 0 });
         expect(fake.calls()).toBe(1);
       }));
 

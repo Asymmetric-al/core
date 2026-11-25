@@ -2306,18 +2306,94 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
     },
   );
 
-  const migrationBody = (file: string, name: string) => {
-    const text = readFileSync(
-      new URL(`../../../supabase/migrations/${file}`, import.meta.url),
-      "utf8",
-    );
+  const definitionBody = (text: string, name: string) => {
     const at = text.search(
-      new RegExp(`FUNCTION ${name.replace(".", "\\.")}\\(`),
+      new RegExp(
+        `^CREATE\\s+(?:OR\\s+REPLACE\\s+)?FUNCTION\\s+${name.replace(".", "\\.")}\\(`,
+        "m",
+      ),
     );
-    expect(at).toBeGreaterThan(-1);
-    const open = text.indexOf("AS $$", at) + "AS $$".length;
-    return text.slice(open, text.indexOf("$$;", open));
+    if (at < 0) throw new Error(`no definition of ${name}`);
+    const next = text
+      .slice(at + 1)
+      .search(/\bCREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\b/i);
+    const definition =
+      next < 0 ? text.slice(at) : text.slice(at, at + 1 + next);
+    const opening = /\bAS\s+(\$[A-Za-z_]*\$)/.exec(definition);
+    if (!opening) throw new Error(`no opening delimiter in ${name}`);
+    const tag = opening[1]!;
+    const start = opening.index + opening[0].length;
+    const end = definition.indexOf(tag, start);
+    if (end < 0) throw new Error(`no closing ${tag} in ${name}`);
+    return definition.slice(start, end);
   };
+
+  const migrationBody = (file: string, name: string) =>
+    definitionBody(
+      readFileSync(
+        new URL(`../../../supabase/migrations/${file}`, import.meta.url),
+        "utf8",
+      ),
+      name,
+    );
+
+  it("G4 (bot round): the fixture reader takes the named definition's own delimiters, never a mention in a comment, fails when either is missing, and each migration fixture reaches the worker-wrapper check", () => {
+    const text = [
+      "--   DROP FUNCTION public.second(uuid),",
+      "CREATE FUNCTION public.first(p_id uuid) RETURNS jsonb LANGUAGE plpgsql AS $$ BEGIN RETURN tenant_guard.apply_account_event(NULL, p_id, 1); END; $$;",
+      "CREATE FUNCTION public.second(p_id uuid) RETURNS jsonb LANGUAGE plpgsql AS $fn$ BEGIN RETURN NULL; END; $fn$;",
+      "CREATE FUNCTION public.third(p_id uuid) RETURNS jsonb LANGUAGE sql RETURN NULL;",
+      "CREATE FUNCTION public.fifth(p_id uuid) RETURNS jsonb LANGUAGE plpgsql AS $x$ BEGIN RETURN NULL; END;",
+    ].join("\n");
+    expect(definitionBody(text, "public.first")).toBe(
+      " BEGIN RETURN tenant_guard.apply_account_event(NULL, p_id, 1); END; ",
+    );
+    expect(definitionBody(text, "public.second")).toBe(
+      " BEGIN RETURN NULL; END; ",
+    );
+    expect(() => definitionBody(text, "public.fifth")).toThrow(
+      "no closing $x$ in public.fifth",
+    );
+    expect(() => definitionBody(text, "public.third")).toThrow(
+      "no opening delimiter in public.third",
+    );
+    expect(() => definitionBody(text, "public.fourth")).toThrow(
+      "no definition of public.fourth",
+    );
+    const r1a = "20261126020200_wp8a2_provider_operation_commands.sql";
+    const part1 = "20261123030300_wp8a_task_guard_and_event_leases.sql";
+    for (const [fn, file, name] of [
+      [
+        "public.claim_provider_operation(p_operation_id uuid, p_lease_seconds integer)",
+        r1a,
+        "public.claim_provider_operation",
+      ],
+      [
+        "public.record_provider_operation_result(p_operation_id uuid, p_attempt integer, p_result jsonb)",
+        r1a,
+        "public.record_provider_operation_result",
+      ],
+      [
+        "public.confirm_payment_account_onboarding(p_stripe_event_id text, p_livemode boolean, p_snapshot jsonb)",
+        part1,
+        "public.confirm_payment_account_onboarding",
+      ],
+    ] as const) {
+      const body = migrationBody(file, name);
+      const probed = body.replace(
+        /\bBEGIN\b/,
+        "BEGIN PERFORM public.r1b_probe();",
+      );
+      expect(probed).not.toBe(body);
+      expect(
+        codes(
+          judge([
+            wrapper(fn, probed, { service_role: true, language: "plpgsql" }),
+          ]),
+        ),
+      ).toEqual([`WORKER_WRAPPER_WRITES ${fn}`]);
+    }
+  });
 
   it("E7 (guard): an unqualified built-in under the empty path, pg_catalog.lower under public, R1a's two wrappers and the onboarding wrapper as migrated (a cast in the predicate), a row lock after the WHERE and INTO STRICT all pass", () => {
     const r1a = "20261126020200_wp8a2_provider_operation_commands.sql";
@@ -2355,7 +2431,7 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
       ),
       wrapper(
         "public.e7_strict(p_event_id uuid, p_attempt integer)",
-        `DECLARE v_t uuid; BEGIN IF p_attempt > 0 THEN SELECT e.tenant_id INTO STRICT v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id FOR UPDATE SKIP LOCKED; END IF; ${forward} END;`,
+        `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO STRICT v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id FOR UPDATE SKIP LOCKED; ${forward} END;`,
         { service_role: true, language: "plpgsql" },
       ),
       wrapper(
@@ -2527,4 +2603,45 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
       expect(codes(result)).toEqual([`WORKER_WRAPPER_WRITES ${fn}`]);
     },
   );
+
+  it.each<[string, string]>([
+    [
+      "ALIAS FOR a parameter, read only under a condition",
+      `DECLARE v_t ALIAS FOR p_owner; BEGIN IF p_attempt > 99 THEN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; END IF; ${forward} END;`,
+    ],
+    [
+      "ALIAS FOR a positional parameter, beside the anchor variable",
+      `DECLARE v_owner ALIAS FOR $1; v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+    ],
+  ])(
+    "G1 (bot round): a worker wrapper whose DECLARE holds ALIAS fails WORKER_WRAPPER_TENANT_ARGUMENT: %s",
+    (_label, body) => {
+      const fn =
+        "public.g1_alias(p_owner uuid, p_event_id uuid, p_attempt integer)";
+      const result = judge([
+        wrapper(fn, body, { service_role: true, language: "plpgsql" }),
+      ]);
+      expect(codes(result)).toEqual([`WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`]);
+    },
+  );
+
+  it("G3 (bot round): the tenant-argument failure names the form the rule requires: a qualified column whose qualifier is the read relation's alias, or its name when it has none", () => {
+    const fn = "public.g3_message(p_event_id uuid, p_attempt integer)";
+    const result = judge([
+      wrapper(
+        fn,
+        `DECLARE v_t uuid; BEGIN SELECT tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+        { service_role: true, language: "plpgsql" },
+      ),
+    ]);
+    const failure = (
+      result.failures as { code: string; detail: string }[]
+    ).find((f) => f.code === "WORKER_WRAPPER_TENANT_ARGUMENT");
+    expect(failure?.detail).toContain(
+      "SELECT <qualifier>.<column> INTO <variable> FROM <schema>.<relation> [[AS] <alias>] WHERE <predicate> [row lock]",
+    );
+    expect(failure?.detail).toContain(
+      "the qualifier is the relation's alias, or its name when it has none",
+    );
+  });
 });

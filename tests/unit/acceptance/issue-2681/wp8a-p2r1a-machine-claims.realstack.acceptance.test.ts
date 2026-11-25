@@ -427,8 +427,14 @@ describe.skipIf(!ADMIN_URL)(
           (await casesOf(db, r6.operationId)).length,
           (await auditOf(db, r6.operationId)).map((a) => a.action),
         ];
-        rows[3] =
-          (await claim(db, r6.operationId)).case_id === r6parked.case_id;
+        const storedCase = (await casesOf(db, r6.operationId))[0]?.id;
+        const r3 = await claim(db, r6.operationId);
+        rows[3] = [
+          r6parked.case_id === storedCase,
+          r3.outcome,
+          r3.case_id === storedCase,
+          typeof storedCase,
+        ];
 
         const r7 = await guardIntake(db, fx.A);
         await claim(db, r7.operationId);
@@ -540,7 +546,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(rows).toEqual({
           1: ["queued", 0, false, null, 5],
           2: "linked",
-          3: true,
+          3: [true, "parked", true, "string"],
           4: "held",
           5: "not_due",
           6: [
