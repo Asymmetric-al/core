@@ -306,9 +306,22 @@ export function identityKeysFixture() {
         "insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($1, $2, $3, 'profile_backfill')",
         [TA, user.giver, ids.pGiver],
       );
+      const giftYear = new Date().getUTCFullYear();
       await db.query(
-        "insert into public.donations (id, tenant_id, donor_id, missionary_id, amount, status, gift_date) values ($1, $4, $5, $6, 1000, 'completed', now()), ($2, $4, $5, $7, 2000, 'completed', now() - interval '1 minute'), ($3, $4, $5, $8, 500, 'pending', now() - interval '2 minutes')",
-        [ids.gW, ids.gV, ids.gX, TA, ids.dGiver, ids.mW, ids.mV, ids.mX],
+        "insert into public.donations (id, tenant_id, donor_id, missionary_id, amount, status, gift_date) values ($1, $4, $5, $6, 1000, 'completed', $9::date), ($2, $4, $5, $7, 2000, 'completed', $10::date), ($3, $4, $5, $8, 500, 'pending', $11::date)",
+        [
+          ids.gW,
+          ids.gV,
+          ids.gX,
+          TA,
+          ids.dGiver,
+          ids.mW,
+          ids.mV,
+          ids.mX,
+          `${giftYear}-01-03`,
+          `${giftYear}-01-02`,
+          `${giftYear}-01-01`,
+        ],
       );
       await db.query(
         "insert into public.donor_pledges (id, tenant_id, donor_id, missionary_id, amount, status) values ($1, $3, $4, $5, 100, 'active'), ($2, $3, $4, $6, 200, 'active')",

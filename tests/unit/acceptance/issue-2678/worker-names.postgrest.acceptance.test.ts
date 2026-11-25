@@ -493,6 +493,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
 
       it("a donor's POST /api/donations returns the gift to a restricted worker with none of its private columns (Q4)", async () => {
         s.auth = asDonor();
+        const createdGifts: string[] = [];
         s.intake = async (input) => {
           const inserted = await fx.db!.query(
             "insert into public.donations (tenant_id, donor_id, missionary_id, amount, currency, status) values ($1, $2, $3, $4, $5, 'completed') returning id",
@@ -504,31 +505,41 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
               input.currency,
             ],
           );
+          createdGifts.push(inserted.rows[0].id as string);
           return {
             donationId: inserted.rows[0].id as string,
             outboxId: randomUUID(),
             replayed: false,
           };
         };
-        const created = await postDonation(
-          new NextRequest("http://localhost/api/donations", {
-            method: "POST",
-            headers: {
-              "content-type": "application/json",
-              "idempotency-key": randomUUID(),
-            },
-            body: JSON.stringify({ missionaryId: ids.mW, amount: 700 }),
-          }),
-        );
-        const body = (await created.json()) as {
-          donation: { missionary: Record<string, unknown> } | null;
-        };
-        expect(created.status, JSON.stringify(body)).toBe(201);
-        expect(body.donation!.missionary.worker_public_name).toBe("Cedar");
-        expect(
-          PRIVATE_WORKER_COLUMNS.filter((c) => c in body.donation!.missionary),
-        ).toEqual([]);
-        expect(JSON.stringify(body)).not.toMatch(FORBIDDEN);
+        try {
+          const created = await postDonation(
+            new NextRequest("http://localhost/api/donations", {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                "idempotency-key": randomUUID(),
+              },
+              body: JSON.stringify({ missionaryId: ids.mW, amount: 700 }),
+            }),
+          );
+          const body = (await created.json()) as {
+            donation: { missionary: Record<string, unknown> } | null;
+          };
+          expect(created.status, JSON.stringify(body)).toBe(201);
+          expect(body.donation!.missionary.worker_public_name).toBe("Cedar");
+          expect(
+            PRIVATE_WORKER_COLUMNS.filter(
+              (c) => c in body.donation!.missionary,
+            ),
+          ).toEqual([]);
+          expect(JSON.stringify(body)).not.toMatch(FORBIDDEN);
+        } finally {
+          await fx.db!.query(
+            "delete from public.donations where id = any($1::uuid[])",
+            [createdGifts],
+          );
+        }
       });
 
       describe("AL-2678 r2a: commenters, an added comment's author, a stored receipt and the feed name a worker by the projection at the next request (gates a, b)", () => {
