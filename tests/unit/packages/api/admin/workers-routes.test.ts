@@ -1,6 +1,19 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  POST_CONFIRM,
+  POST_LIFT,
+  POST_RESTRICT,
+  POST_REVEAL,
+} from "../../../../../packages/api/src/admin/workers/commands";
+import {
+  GET,
+  GET_RECORD,
+  GET_UNREVIEWED_COUNT,
+} from "../../../../../packages/api/src/admin/workers/read";
+
+import type * as SessionModule from "../../../../../packages/api/src/shared/request-session-client";
 import type * as AuthModule from "../../../../../packages/auth/context";
 import type { AuthContext } from "../../../../../packages/auth/context";
 
@@ -54,24 +67,10 @@ vi.mock("@asym/lib/monitoring/sentry", () => ({
 vi.mock(
   "../../../../../packages/api/src/shared/request-session-client",
   async (original) => ({
-    ...(await original<
-      typeof import("../../../../../packages/api/src/shared/request-session-client")
-    >()),
+    ...(await original<typeof SessionModule>()),
     createRequestSessionClient: h.session,
   }),
 );
-
-import {
-  POST_CONFIRM,
-  POST_LIFT,
-  POST_RESTRICT,
-  POST_REVEAL,
-} from "../../../../../packages/api/src/admin/workers/commands";
-import {
-  GET,
-  GET_RECORD,
-  GET_UNREVIEWED_COUNT,
-} from "../../../../../packages/api/src/admin/workers/read";
 
 type Who = "admin" | "staff" | "missionary" | "donor";
 
