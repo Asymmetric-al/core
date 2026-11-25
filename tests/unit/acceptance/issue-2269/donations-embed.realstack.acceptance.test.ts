@@ -30,7 +30,7 @@ const SELECT_TS = "packages/api/src/donations/select.ts";
 const NAME = "DONATION_WITH_PARTIES_SELECT";
 // D-18 (22 Nov 2026): no key hint, so the embed resolves before and after WP3a's composite key (plan 7.4).
 const SPEC_SELECT =
-  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries(*, profile:profiles!profile_id(*))";
+  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))";
 const read = (f: string) => (existsSync(f) ? readFileSync(f, "utf8") : "");
 
 type Site = { name: string; file: string; start: RegExp; filter: Filter };
@@ -147,7 +147,7 @@ describe("#2269 static (C1, C2, C8)", () => {
     expect(donors.violations).toEqual([]);
     expect(donors.missing).toEqual([]);
   });
-  it(`C1: ${SELECT_TS} exports ${NAME} = spec 1.1`, async () =>
+  it(`C1: ${SELECT_TS} exports ${NAME} = spec 1.1 (D-18, AL-2678 WP5 part 2-r1: the worker's profile narrows to id and avatar_url and the worker is named by worker_public_name; the donor's own profile is unchanged; and, in its fix round, the worker row is an explicit column list, so a donor never receives its private columns)`, async () =>
     expect((await constant()).replace(/\s+/g, "")).toBe(
       SPEC_SELECT.replace(/\s+/g, ""),
     ));

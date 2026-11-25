@@ -68,17 +68,13 @@ export type DonorPortalDonationRow = {
   stripe_payment_intent_id: string | null;
   stripe_charge_id: string | null;
   fund: { id: string; name: string | null } | null;
-  missionary: {
-    id: string;
-    profile: {
-      id: string;
-      display_name: string | null;
-      full_name: string | null;
-      first_name: string | null;
-      last_name: string | null;
-      avatar_url: string | null;
-    } | null;
-  } | null;
+  missionary: DonorPortalWorkerRow | null;
+};
+
+export type DonorPortalWorkerRow = {
+  id: string;
+  worker_public_name: string | null;
+  profile: { id: string; avatar_url: string | null } | null;
 };
 
 export type DonorPortalPledgeRow = {
@@ -99,17 +95,7 @@ export type DonorPortalPledgeRow = {
   payments_completed: number | null;
   payments_remaining: number | null;
   fund: { id: string; name: string | null } | null;
-  missionary: {
-    id: string;
-    profile: {
-      id: string;
-      display_name: string | null;
-      full_name: string | null;
-      first_name: string | null;
-      last_name: string | null;
-      avatar_url: string | null;
-    } | null;
-  } | null;
+  missionary: DonorPortalWorkerRow | null;
 };
 
 export type DonorPortalFeedPreferencesRow = {
@@ -284,11 +270,7 @@ function designationFromDonation(
   if (donation.missionary) {
     return {
       id: donation.missionary.id,
-      name:
-        donation.missionary.profile &&
-        displayNameFromParts(donation.missionary.profile)
-          ? displayNameFromParts(donation.missionary.profile)
-          : "Missionary support",
+      name: workerPublicName(donation.missionary) || "Missionary support",
       type: "missionary",
       avatarUrl: donation.missionary.profile?.avatar_url ?? null,
     };
@@ -307,11 +289,13 @@ type GiftTargetRow = {
   missionary: DonorPortalDonationRow["missionary"];
 };
 
+function workerPublicName(worker: DonorPortalWorkerRow): string {
+  return worker.worker_public_name?.trim() ?? "";
+}
+
 function giftMissionary(row: GiftTargetRow): DonorPortalGiftMissionary | null {
   if (!row.missionary) return null;
-  const name = row.missionary.profile
-    ? displayNameFromParts(row.missionary.profile)
-    : "";
+  const name = workerPublicName(row.missionary);
   return {
     id: row.missionary.id,
     // Without a public name, the fund says more than a generic label.
@@ -340,11 +324,7 @@ function designationFromPledge(
   if (pledge.missionary) {
     return {
       id: pledge.missionary.id,
-      name:
-        pledge.missionary.profile &&
-        displayNameFromParts(pledge.missionary.profile)
-          ? displayNameFromParts(pledge.missionary.profile)
-          : "Missionary support",
+      name: workerPublicName(pledge.missionary) || "Missionary support",
       type: "missionary",
       avatarUrl: pledge.missionary.profile?.avatar_url ?? null,
     };
