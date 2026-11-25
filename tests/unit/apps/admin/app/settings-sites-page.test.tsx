@@ -131,7 +131,7 @@ beforeEach(() => {
         const next = server.reads.shift();
         if (next) {
           const reply = await next;
-          server.lastRead = reply;
+          if (reply.status === 200) server.lastRead = reply;
           return respond(reply);
         }
         return respond(server.lastRead);
@@ -180,7 +180,7 @@ function rowOf(view: ReturnType<typeof show>, name: string) {
   const table = view.getByRole("table", { name: "Sites in this organization" });
   return within(table)
     .getAllByRole("row")
-    .find((row) => within(row).queryByText(name, { exact: true }))!;
+    .find((row) => row.querySelector("td")?.textContent === name)!;
 }
 
 describe("Mission Control's Sites screen (T4)", () => {
@@ -260,7 +260,9 @@ describe("Mission Control's Sites screen (T4)", () => {
     const view = show();
     expect(await view.findByText("No Sites yet")).toBeTruthy();
     expect(view.getByRole("button", { name: "Create Site" })).toBeTruthy();
-    const field = view.getByLabelText("Donor account name") as HTMLInputElement;
+    const field = view.getByRole("textbox", {
+      name: "Donor account name",
+    }) as HTMLInputElement;
     expect(field.value).toBe("");
     expect(
       (view.getByRole("button", { name: "Save" }) as HTMLButtonElement)
@@ -348,7 +350,9 @@ describe("Mission Control's Sites screen (T4)", () => {
     await waitFor(() =>
       expect(view.queryByRole("dialog", { name: "Create a Site" })).toBeNull(),
     );
-    expect(await view.findByText("Refetched site")).toBeTruthy();
+    expect(
+      await view.findByRole("cell", { name: "Refetched site" }),
+    ).toBeTruthy();
     expect(view.queryByText("Answered site")).toBeNull();
     expect(view.queryByText("Typed site")).toBeNull();
     expect(h.toastSuccess).toHaveBeenCalledWith(
@@ -535,7 +539,9 @@ describe("Mission Control's Sites screen (T4)", () => {
 
   it("saves the donor account name once for two clicks and two Enters, enabled only when it changes", async () => {
     const view = await loaded();
-    const field = view.getByLabelText("Donor account name") as HTMLInputElement;
+    const field = view.getByRole("textbox", {
+      name: "Donor account name",
+    }) as HTMLInputElement;
     const save = view.getByRole("button", {
       name: "Save",
     }) as HTMLButtonElement;
@@ -566,14 +572,20 @@ describe("Mission Control's Sites screen (T4)", () => {
     });
     await waitFor(() =>
       expect(
-        (view.getByLabelText("Donor account name") as HTMLInputElement).value,
+        (
+          view.getByRole("textbox", {
+            name: "Donor account name",
+          }) as HTMLInputElement
+        ).value,
       ).toBe("Hope Givers (stored)"),
     );
     expect(h.toastSuccess).toHaveBeenCalledWith(
       expect.stringContaining("Hope Givers (answered)"),
     );
 
-    const again = view.getByLabelText("Donor account name") as HTMLInputElement;
+    const again = view.getByRole("textbox", {
+      name: "Donor account name",
+    }) as HTMLInputElement;
     fireEvent.change(again, { target: { value: "Second name" } });
     const second = deferred<Reply>();
     server.posts["/api/admin/sites/brand"] = [second.promise];
@@ -591,7 +603,7 @@ describe("Mission Control's Sites screen (T4)", () => {
 
   it("lets a cleared donor account name be sent and shows INVALID_NAME as the field's error", async () => {
     const view = await loaded();
-    const field = view.getByLabelText("Donor account name");
+    const field = view.getByRole("textbox", { name: "Donor account name" });
     fireEvent.change(field, { target: { value: "" } });
     const save = view.getByRole("button", {
       name: "Save",

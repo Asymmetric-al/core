@@ -159,6 +159,16 @@ export interface SiteFunctions {
     Args: { p_host: string };
     Returns: { primary_domain: string }[];
   };
+  tenant_site_settings: {
+    Args: { p_tenant_id: string };
+    Returns: {
+      sites: Pick<
+        Site,
+        "id" | "name" | "is_default" | "status" | "primary_domain"
+      >[];
+      brand: Pick<DonorAccountBrand, "display_name"> | null;
+    };
+  };
   create_site: {
     Args: { p_tenant_id: string; p_name: string };
     Returns: Site;

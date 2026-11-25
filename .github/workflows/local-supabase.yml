@@ -166,6 +166,11 @@ on:
       - tests/unit/acceptance/issue-2676/operator-admin-invite.localstack.test.ts
       # Provisioning's second factor (AL-2676, WP3a part 2a).
       - tests/unit/acceptance/issue-2676/tenant-provisioning.localstack.test.ts
+      # Mission Control's Sites and brand settings (AL-2676, WP3b part 3).
+      - apps/admin/app/(app)/settings/sites/**
+      - apps/admin/app/api/admin/sites/**
+      - packages/api/src/admin/sites/**
+      - tests/e2e/auth-sites-settings.spec.ts
       # Media custody, Storage refusal and signed-in delivery (AL-2679, WP6 part 1).
       - packages/api/src/storage/**
       - packages/api/src/media/**

@@ -16,6 +16,7 @@ import {
   ChevronRight,
   CreditCard,
   Globe,
+  LayoutTemplate,
   Mail,
   Users,
   type LucideIcon,
@@ -30,6 +31,7 @@ type AdminDestination = {
   href: string;
   icon: LucideIcon;
   roles?: Role[];
+  requiredCapability?: string;
 };
 
 const SECTIONS: Array<{ title: string; items: AdminDestination[] }> = [
@@ -79,6 +81,19 @@ const SECTIONS: Array<{ title: string; items: AdminDestination[] }> = [
       },
     ],
   },
+  {
+    title: "Public identity",
+    items: [
+      {
+        title: "Sites",
+        description:
+          "Your organization's Sites and the name donors see on their account.",
+        href: "/settings/sites",
+        icon: LayoutTemplate,
+        requiredCapability: "sites.manage",
+      },
+    ],
+  },
 ];
 
 function AdminSection({
@@ -120,11 +135,14 @@ function AdminSection({
 }
 
 export default function AdminPage() {
-  const { role } = useMC();
+  const { role, capabilities = [] } = useMC();
   const sections = SECTIONS.map((section) => ({
     ...section,
     items: section.items.filter(
-      (item) => !item.roles || item.roles.includes(role),
+      (item) =>
+        (!item.roles || item.roles.includes(role)) &&
+        (!item.requiredCapability ||
+          capabilities.includes(item.requiredCapability)),
     ),
   })).filter((section) => section.items.length > 0);
   return (

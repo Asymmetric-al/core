@@ -146,9 +146,9 @@ test.describe("Mission Control's Sites settings on real sessions (AL-2676 WP3b p
       await expect(
         table.getByRole("row").nth(1).getByRole("cell").first(),
       ).toHaveText(defaultSite!.name);
-      await expect(page.getByLabel("Donor account name")).toHaveValue(
-        originalBrand ?? "",
-      );
+      await expect(
+        page.getByRole("textbox", { name: "Donor account name" }),
+      ).toHaveValue(originalBrand ?? "");
 
       await page
         .getByRole("region", { name: "Sites" })
@@ -201,10 +201,14 @@ test.describe("Mission Control's Sites settings on real sessions (AL-2676 WP3b p
       ).toBeVisible();
       await expect.poll(() => statusOf(siteId)).toBe("active");
 
-      await page.getByLabel("Donor account name").fill(newBrand);
+      await page
+        .getByRole("textbox", { name: "Donor account name" })
+        .fill(newBrand);
       await page.getByRole("button", { name: "Save" }).click();
       await expect.poll(() => brandOf(DEMO)).toBe(newBrand);
-      await expect(page.getByLabel("Donor account name")).toHaveValue(newBrand);
+      await expect(
+        page.getByRole("textbox", { name: "Donor account name" }),
+      ).toHaveValue(newBrand);
     } finally {
       await withOwner(env!, async (db) => {
         await db.query(
@@ -262,7 +266,7 @@ test.describe("Mission Control's Sites settings on real sessions (AL-2676 WP3b p
       .getByRole("region", { name: "Sites" })
       .getByRole("button", { name: "Create Site" });
     await expect(createButton).toBeVisible();
-    await page.getByLabel("Donor account name").focus();
+    await page.getByRole("textbox", { name: "Donor account name" }).focus();
     await tabUntilFocused(page, createButton);
     await page.keyboard.press("Enter");
     const create = page.getByRole("dialog", { name: "Create a Site" });

@@ -341,8 +341,11 @@ describe.skipIf(!ADMIN_URL)(
       }));
 
     it("has the owners, security, volatility and grants the migration's check after the release names", async () => {
-      const { rows } = await db.query(
-        `select p.oid::regprocedure::text as fn, p.prosecdef, p.provolatile, p.proisstrict,
+      await db.query("begin");
+      await db.query("set local search_path = ''");
+      const { rows } = await db
+        .query(
+          `select p.oid::regprocedure::text as fn, p.prosecdef, p.provolatile, p.proisstrict,
                 p.proowner::regrole::text as owner, p.proconfig,
                 (select coalesce(array_agg(case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end
                                            order by a.grantee), '{}')
@@ -352,7 +355,8 @@ describe.skipIf(!ADMIN_URL)(
           where p.oid in (to_regprocedure('tenant_guard.tenant_site_settings(uuid)'),
                           to_regprocedure('public.tenant_site_settings(uuid)'))
           order by fn`,
-      );
+        )
+        .finally(() => db.query("rollback"));
       expect(rows).toEqual([
         {
           fn: "public.tenant_site_settings(uuid)",
