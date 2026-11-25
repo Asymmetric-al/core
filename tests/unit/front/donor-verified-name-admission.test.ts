@@ -532,6 +532,50 @@ describe("on: hostile paths", () => {
     expect(privacy.headers.get("x-middleware-next")).toBe("1");
     expect(forwarded(privacy, NAME)).toBe(TB);
   });
+
+  it("refuses any encoded slash (%2F or %2f) anywhere in the raw path with 404 and zero lookups", async () => {
+    state.userId = USER_D;
+    state.rows = [D_A, D_B];
+    for (const host of [UNKNOWN, READY_B]) {
+      for (const encoded of [
+        "/api/health%2F",
+        "/api/health%2f",
+        "/api/webhooks/stripe%2F",
+        "/api/playwright-ready%2F",
+      ]) {
+        state.lookups = [];
+        state.lookupClients = 0;
+        state.sessionReads = 0;
+        await expectRefused(
+          await donorModule.proxy(donorRequest(host, encoded)),
+          `${host} ${encoded}`,
+        );
+        expect(state.lookups, `${host} ${encoded}`).toEqual([]);
+        expect(state.lookupClients, `${host} ${encoded}`).toBe(0);
+        expect(state.sessionReads, `${host} ${encoded}`).toBe(0);
+      }
+    }
+
+    for (const [host, encoded] of [
+      [BARE_B, "/login%2F"],
+      [BARE_B, "/login%2f"],
+      [HOME_A, "/donor-dashboard%2Fhistory"],
+      [HOME_A, "/donor-dashboard%2fhistory"],
+      [BARE_B, "/%2fprivacy"],
+      [HOME_A, "/%2Fprivacy"],
+    ] as const) {
+      state.lookups = [];
+      state.lookupClients = 0;
+      state.sessionReads = 0;
+      await expectRefused(
+        await donorModule.proxy(donorRequest(host, encoded)),
+        `${host} ${encoded}`,
+      );
+      expect(state.lookups, `${host} ${encoded}`).toEqual([]);
+      expect(state.lookupClients, `${host} ${encoded}`).toBe(0);
+      expect(state.sessionReads, `${host} ${encoded}`).toBe(0);
+    }
+  });
 });
 
 function readInstalledNextTransport() {
