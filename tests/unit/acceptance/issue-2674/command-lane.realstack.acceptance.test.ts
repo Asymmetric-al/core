@@ -795,7 +795,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
         expect(await kind()).toBe("shared");
       }));
 
-    it("no role but the owner can read or change the marker or the heads", () =>
+    it("no role but the owner can read or change the marker or the heads (D-18: AL-2676 WP3a part 2a adds platform.tenant_provisioning, the step record, forced and closed like the other two)", () =>
       tx(async () => {
         for (const role of ["anon", "authenticated", "service_role"])
           for (const sql of [
@@ -819,6 +819,11 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
           },
           {
             relname: "migration_heads",
+            relrowsecurity: true,
+            relforcerowsecurity: true,
+          },
+          {
+            relname: "tenant_provisioning",
             relrowsecurity: true,
             relforcerowsecurity: true,
           },
