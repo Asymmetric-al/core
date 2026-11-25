@@ -27,15 +27,119 @@ vi.mock("../../../scripts/load-workspace-env.mjs", () => ({
 
 import { APP_BASE_PATHS as PACKAGE_APP_BASE_PATHS } from "../../../packages/database/app-base-path";
 import { APP_BASE_PATHS as REEXPORTED_APP_BASE_PATHS } from "../../../packages/database/document-reload";
+import { canonicalUpstreamOrigin } from "../../../packages/env/src/front-origin";
 import {
   APP_BASE_PATHS as SCRIPT_APP_BASE_PATHS,
   CORE_SERVE_UNDER_PATHS_ENV,
+  frontUpstreamOrigin,
   isProductionBuildTarget,
   resolveServeUnderPaths,
   serveUnderPathsBuildEnv,
   serveUnderPathsDonorHeaders,
+  serveUnderPathsDonorRewrites,
   serveUnderPathsNextConfig,
 } from "../../../scripts/release/serve-under-paths.mjs";
+
+const ON = { [CORE_SERVE_UNDER_PATHS_ENV]: "1" };
+const ADMIN_UPSTREAM = "https://a.example.test";
+const MISSIONARY_UPSTREAM = "https://m.example.test";
+const ORIGIN_VARIABLES = [
+  "FRONT_ADMIN_ORIGIN",
+  "FRONT_MISSIONARY_ORIGIN",
+] as const;
+const BOTH_UPSTREAMS = {
+  FRONT_ADMIN_ORIGIN: ADMIN_UPSTREAM,
+  FRONT_MISSIONARY_ORIGIN: MISSIONARY_UPSTREAM,
+};
+const BUILD_NEEDS =
+  "CORE_SERVE_UNDER_PATHS=1 needs it when the donor app is built";
+const EXPECTED_DONOR_REWRITES = {
+  beforeFiles: [
+    {
+      source: "/admin/_next/:path+",
+      destination: "https://a.example.test/admin/_next/:path+",
+    },
+    {
+      source: "/missionary/_next/:path+",
+      destination: "https://m.example.test/missionary/_next/:path+",
+    },
+  ],
+  afterFiles: [],
+  fallback: [],
+};
+const INVALID_UPSTREAMS = [
+  " https://a.example.test",
+  "https://a.example.test/",
+  "HTTPS://A.EXAMPLE.TEST",
+  "https://a.example.test/admin",
+  "http://a.example.test",
+  "https://user@a.example.test",
+  "javascript:alert(1)",
+];
+const UPSTREAM_PARITY_VALUES = [
+  undefined,
+  null,
+  "",
+  "https://admin.example.test",
+  "https://missionary.example.test",
+  "http://localhost:25051",
+  "http://127.0.0.1:25052",
+  "http://[::1]:25051",
+  "https://missionary.example.test:8443",
+  "https://admin.example.test/",
+  "HTTPS://ADMIN.EXAMPLE.TEST",
+  "https://Admin.Example.Test",
+  "https://admin.example.test/admin",
+  "https://admin.example.test:443",
+  "http://core-admin.vercel.app",
+  "http://localhost.evil.test:25051",
+  "http://127.0.0.1.evil.test:25051",
+  "http://localhost:3030",
+  "http://127.0.0.1:3031",
+  "http://[::1]:3032",
+  "http://127.1:3030",
+  "ftp://a.example.test",
+  ...INVALID_UPSTREAMS,
+];
+
+function donorRewrites(env: Record<string, string | undefined>) {
+  expect(serveUnderPathsDonorRewrites).toBeTypeOf("function");
+  return serveUnderPathsDonorRewrites(env);
+}
+
+function donorRefusal(env: Record<string, string | undefined>) {
+  expect(serveUnderPathsDonorRewrites).toBeTypeOf("function");
+  try {
+    serveUnderPathsDonorRewrites(env);
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error);
+  }
+  return null;
+}
+
+function envThatRefusesOrigins(values: Record<string, string>) {
+  return new Proxy(values, {
+    get(target, property) {
+      if (
+        property === "FRONT_ADMIN_ORIGIN" ||
+        property === "FRONT_MISSIONARY_ORIGIN"
+      ) {
+        throw new Error(`read ${property}`);
+      }
+      return Reflect.get(target, property);
+    },
+  });
+}
+
+function upstreamsWith(
+  variable: (typeof ORIGIN_VARIABLES)[number],
+  value: string | undefined,
+) {
+  const env: Record<string, string | undefined> = { ...ON, ...BOTH_UPSTREAMS };
+  if (value === undefined) delete env[variable];
+  else env[variable] = value;
+  return env;
+}
 
 beforeEach(() => {
   vi.stubGlobal("fetch", network.fetchSpy);
@@ -260,6 +364,106 @@ describe("donor header rules for serving under paths", () => {
   });
 });
 
+describe("the donor's rewrites of the dashboards' static files", () => {
+  it.each([
+    {},
+    { [CORE_SERVE_UNDER_PATHS_ENV]: "" },
+    { [CORE_SERVE_UNDER_PATHS_ENV]: "0" },
+  ])("is off for %j and reads neither origin", (values) => {
+    expect(donorRewrites(envThatRefusesOrigins(values))).toBeUndefined();
+  });
+
+  it("sends each dashboard's /_next/ to its own origin when on", () => {
+    const rewrites = donorRewrites({ ...ON, ...BOTH_UPSTREAMS });
+    expect(rewrites).toStrictEqual(EXPECTED_DONOR_REWRITES);
+    for (const entry of rewrites?.beforeFiles ?? []) {
+      expect(Object.keys(entry)).toEqual(["source", "destination"]);
+    }
+  });
+
+  it.each(
+    ORIGIN_VARIABLES.flatMap((variable) => [
+      [variable, undefined],
+      [variable, ""],
+    ]),
+  )("refuses a missing %s (%j) by name", (variable, value) => {
+    const message = donorRefusal(upstreamsWith(variable, value));
+    expect(message).toMatch(new RegExp(`^${variable} is missing`));
+    expect(message).toContain(BUILD_NEEDS);
+    expect(message).not.toContain(ADMIN_UPSTREAM);
+    expect(message).not.toContain(MISSIONARY_UPSTREAM);
+  });
+
+  it("names the staff origin first when both are missing", () => {
+    expect(donorRefusal({ ...ON })).toMatch(/^FRONT_ADMIN_ORIGIN is missing/);
+  });
+
+  it.each(
+    ORIGIN_VARIABLES.flatMap((variable) =>
+      INVALID_UPSTREAMS.map((value) => [variable, value] as const),
+    ),
+  )("refuses %s = %j as invalid without printing it", (variable, value) => {
+    const message = donorRefusal(upstreamsWith(variable, value));
+    expect(message).toMatch(new RegExp(`^${variable} is invalid`));
+    expect(message).toContain(BUILD_NEEDS);
+    expect(message).not.toContain(value);
+    expect(message).not.toContain(value.trim());
+    expect(message).not.toContain("a.example.test");
+    expect(message).not.toContain("m.example.test");
+  });
+
+  it("accepts loopback upstream origins", () => {
+    expect(
+      donorRewrites({
+        ...ON,
+        FRONT_ADMIN_ORIGIN: "http://localhost:3030",
+        FRONT_MISSIONARY_ORIGIN: "http://127.0.0.1:3031",
+      })?.beforeFiles.map((entry) => entry.destination),
+    ).toEqual([
+      "http://localhost:3030/admin/_next/:path+",
+      "http://127.0.0.1:3031/missionary/_next/:path+",
+    ]);
+    expect(
+      donorRewrites({
+        ...ON,
+        FRONT_ADMIN_ORIGIN: "http://[::1]:3032",
+        FRONT_MISSIONARY_ORIGIN: "http://[::1]:3033",
+      })?.beforeFiles.map((entry) => entry.destination),
+    ).toEqual([
+      "http://[::1]:3032/admin/_next/:path+",
+      "http://[::1]:3033/missionary/_next/:path+",
+    ]);
+  });
+
+  it("refuses a production build or a bad switch before reading either origin", () => {
+    const production = donorRefusal(
+      envThatRefusesOrigins({ ...ON, VERCEL_ENV: "production" }),
+    );
+    expect(production).toMatch(/production/i);
+    expect(production).not.toMatch(/read FRONT_/);
+    const badSwitch = donorRefusal(
+      envThatRefusesOrigins({ [CORE_SERVE_UNDER_PATHS_ENV]: "2" }),
+    );
+    expect(badSwitch).toMatch(/^Invalid CORE_SERVE_UNDER_PATHS value/);
+  });
+
+  it("copies the shared upstream-origin rule exactly", () => {
+    expect(frontUpstreamOrigin).toBeTypeOf("function");
+    for (const value of UPSTREAM_PARITY_VALUES) {
+      expect(frontUpstreamOrigin(value), String(value)).toBe(
+        canonicalUpstreamOrigin(value),
+      );
+    }
+    expect(frontUpstreamOrigin("https://admin.example.test")).toBe(
+      "https://admin.example.test",
+    );
+    expect(frontUpstreamOrigin("http://[::1]:25051")).toBe(
+      "http://[::1]:25051",
+    );
+    expect(frontUpstreamOrigin("http://core-admin.vercel.app")).toBeNull();
+  });
+});
+
 describe("the three next.config.ts files in off and on modes", () => {
   it("keeps admin, missionary, and donor configs identical to today when off", async () => {
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "");
@@ -313,12 +517,28 @@ describe("the three next.config.ts files in off and on modes", () => {
       "/give",
     ]);
     expect(donorCfg.images?.formats).toEqual(["image/avif", "image/webp"]);
+    expect(donorCfg.rewrites).toBeUndefined();
   });
 
-  it("sets basePath, inlined env, and donor header skips when CORE_SERVE_UNDER_PATHS=1", async () => {
+  it("loads the donor config off with no rewrites whatever the origins hold", async () => {
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "");
+    vi.stubEnv("VERCEL_ENV", "");
+    vi.stubEnv("VERCEL_TARGET_ENV", "");
+    vi.stubEnv("FRONT_ADMIN_ORIGIN", "not an origin");
+    vi.stubEnv("FRONT_MISSIONARY_ORIGIN", "http://m.example.test");
+
+    const donorMod = await import("../../../apps/donor/next.config");
+
+    expect(donorMod.default.rewrites).toBeUndefined();
+    expect(donorMod.default.env?.CORE_SERVE_UNDER_PATHS).toBe("0");
+  });
+
+  it("sets basePath, inlined env, donor header skips and the donor's static-file rewrites when CORE_SERVE_UNDER_PATHS=1", async () => {
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
     vi.stubEnv("VERCEL_ENV", "");
     vi.stubEnv("VERCEL_TARGET_ENV", "");
+    vi.stubEnv("FRONT_ADMIN_ORIGIN", ADMIN_UPSTREAM);
+    vi.stubEnv("FRONT_MISSIONARY_ORIGIN", MISSIONARY_UPSTREAM);
 
     const adminMod = await import("../../../apps/admin/next.config");
     const missionaryMod = await import("../../../apps/missionary/next.config");
@@ -355,6 +575,42 @@ describe("the three next.config.ts files in off and on modes", () => {
     const donorHeaders = await donorCfg.headers?.();
     expect(donorHeaders?.[0]?.source).not.toBe("/(.*)");
     expect(donorHeaders?.[2]?.source).not.toBe("/:all*(js|css)");
+    expect(await donorCfg.rewrites?.()).toStrictEqual(EXPECTED_DONOR_REWRITES);
+  });
+
+  it.each(ORIGIN_VARIABLES)(
+    "refuses to load the donor config when CORE_SERVE_UNDER_PATHS=1 and %s is missing",
+    async (variable) => {
+      vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
+      vi.stubEnv("VERCEL_ENV", "");
+      vi.stubEnv("VERCEL_TARGET_ENV", "");
+      vi.stubEnv("FRONT_ADMIN_ORIGIN", ADMIN_UPSTREAM);
+      vi.stubEnv("FRONT_MISSIONARY_ORIGIN", MISSIONARY_UPSTREAM);
+      vi.stubEnv(variable, "");
+
+      await expect(import("../../../apps/donor/next.config")).rejects.toThrow(
+        new RegExp(`^${variable} is missing`),
+      );
+    },
+  );
+
+  it("refuses to load the donor config when CORE_SERVE_UNDER_PATHS=1 and an origin is invalid, without printing it", async () => {
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
+    vi.stubEnv("VERCEL_ENV", "");
+    vi.stubEnv("VERCEL_TARGET_ENV", "");
+    vi.stubEnv("FRONT_ADMIN_ORIGIN", ADMIN_UPSTREAM);
+    vi.stubEnv("FRONT_MISSIONARY_ORIGIN", "http://m.example.test");
+
+    const failure = await import("../../../apps/donor/next.config").then(
+      () => null,
+      (error: unknown) => error,
+    );
+
+    expect(failure).toBeInstanceOf(Error);
+    expect((failure as Error).message).toMatch(
+      /^FRONT_MISSIONARY_ORIGIN is invalid/,
+    );
+    expect((failure as Error).message).not.toContain("m.example.test");
   });
 
   it("refuses to load admin next.config when CORE_SERVE_UNDER_PATHS=1 on production", async () => {
@@ -365,5 +621,29 @@ describe("the three next.config.ts files in off and on modes", () => {
     await expect(import("../../../apps/admin/next.config")).rejects.toThrow(
       /production/i,
     );
+  });
+
+  it("hashes both origins in the donor build and leaves the root build env alone", () => {
+    const donorTurbo = JSON.parse(
+      readFileSync(path.join(process.cwd(), "apps/donor/turbo.json"), "utf8"),
+    ) as { tasks: { build: { env?: string[]; inputs: string[] } } };
+    expect(donorTurbo.tasks.build.env).toEqual([
+      "$TURBO_EXTENDS$",
+      "FRONT_ADMIN_ORIGIN",
+      "FRONT_MISSIONARY_ORIGIN",
+    ]);
+    expect(donorTurbo.tasks.build.inputs).toEqual([
+      "$TURBO_EXTENDS$",
+      "$TURBO_ROOT$/supabase/migrations/*.sql",
+      "$TURBO_ROOT$/apps/admin/src/migrations/*.ts",
+      "$TURBO_ROOT$/scripts/release/migration-heads.mjs",
+    ]);
+
+    const rootTurbo = JSON.parse(
+      readFileSync(path.join(process.cwd(), "turbo.json"), "utf8"),
+    ) as { tasks: { build: { env: string[] } } };
+    expect(rootTurbo.tasks.build.env).toContain(CORE_SERVE_UNDER_PATHS_ENV);
+    expect(rootTurbo.tasks.build.env).not.toContain("FRONT_ADMIN_ORIGIN");
+    expect(rootTurbo.tasks.build.env).not.toContain("FRONT_MISSIONARY_ORIGIN");
   });
 });

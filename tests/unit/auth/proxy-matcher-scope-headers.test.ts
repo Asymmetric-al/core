@@ -221,10 +221,19 @@ describe.each(Object.keys(PROXIES) as Array<keyof typeof PROXIES>)(
     it("skips no folder the app does not declare in its public directory", async () => {
       const { config } = await PROXIES[app]();
       const folders = [
-        ...config.matcher.join("\n").matchAll(/(?:\(\?!|\|)([\w-]+)\//g),
+        ...config.matcher
+          .join("\n")
+          .matchAll(/(?:\(\?!|\|)([\w-]+(?:\/[\w-]+)*)\//g),
       ]
         .map((match) => match[1]!)
-        .filter((folder) => folder !== "_next");
+        .filter(
+          (folder) =>
+            folder !== "_next" &&
+            !(
+              app === "donor" &&
+              (folder === "admin/_next" || folder === "missionary/_next")
+            ),
+        );
       const declared = declaredPublicFolders(app);
       for (const folder of folders) {
         expect(declared.has(folder), folder).toBe(true);
