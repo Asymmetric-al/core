@@ -965,6 +965,46 @@ const R2A_FAILS: [string, string, string | null][] = [
     FEED_SELECT_MODULE,
   ],
   [
+    "P27 (second round B2): a cached function returning a same-file helper's read of post_author_public_name",
+    'function loadFeed(db) { return db.from("posts").select("id, post_author_public_name"); }\nexport async function g(db) { "use cache"; return loadFeed(db); }',
+    null,
+  ],
+  [
+    "P28 (B2): a cached function returning an imported helper's read",
+    'import { loadFeed } from "./t";\nexport async function g(db) { "use cache"; return loadFeed(db); }',
+    'export function loadFeed(db) { return db.from("posts").select("id, post_author_public_name"); }',
+  ],
+  [
+    "P29 (B2): a cached function reaching the read two helpers deep",
+    'function inner(db) { return db.from("posts").select("id, post_author_public_name"); }\nfunction outer(db) { return inner(db); }\nexport async function g(db) { "use cache"; return outer(db); }',
+    null,
+  ],
+  [
+    "P30 (B2): a cached function calling an arrow helper that reads post_comment_authors",
+    'const loadAuthors = (db, id) => db.rpc("post_comment_authors", { p_post_id: id });\nexport async function g(db, id) { "use cache"; return loadAuthors(db, id); }',
+    null,
+  ],
+  [
+    "P31 (B3): a fetch whose options are a local constant holding cache: force-cache",
+    'const opts = { cache: "force-cache" };\nexport const r = (url) => fetch(url, opts);',
+    null,
+  ],
+  [
+    "K15 (B4, a guard): a fetch whose next option sets revalidate: false (cached indefinitely)",
+    "export const r = (url) => fetch(url, { next: { revalidate: false } });",
+    null,
+  ],
+  [
+    "K16 (B4, a guard): a fetch whose revalidate is a value the scanner cannot read as a literal",
+    "const seconds = 60;\nexport const r = (url) => fetch(url, { next: { revalidate: seconds } });",
+    null,
+  ],
+  [
+    "P32 (C3): a worker embed whose hint is interpolated with no ! before its parenthesis",
+    'export const go = (db, h) => db.from("donations").select(`id, missionary:missionaries${h}(*, profile:profiles(display_name))`);',
+    null,
+  ],
+  [
     "P26 (F3.4): a file whose use cache directive follows use strict",
     '"use strict";\n"use cache";\n' +
       FEED_IMPORT +
@@ -1002,6 +1042,31 @@ const R2A_PASSES: [string, string, string | null][] = [
   [
     "K8 (F3.3, guard): a let assigned a second table that is no worker read",
     'let T = "profiles";\nT = "donors";\nexport const go = (db) => db.from(T).select("id, profile:profiles(id, display_name)");',
+    null,
+  ],
+  [
+    "K10 (B2, guard): a helper reading post_author_public_name called only from uncached code",
+    'function loadFeed(db) { return db.from("posts").select("id, post_author_public_name"); }\nexport async function g(db) { return loadFeed(db); }',
+    null,
+  ],
+  [
+    "K11 (B2, guard): a cached function calling a helper that reads no worker name",
+    'function loadIds(db) { return db.from("posts").select("id, title"); }\nexport async function g(db) { "use cache"; return loadIds(db); }',
+    null,
+  ],
+  [
+    "K12 (B2, guard): a cached function calling two helpers that call each other and read nothing",
+    'function a(db) { return b(db); }\nfunction b(db) { return a(db); }\nexport async function g(db) { "use cache"; return a(db); }',
+    null,
+  ],
+  [
+    "K13 (B3, guard): a fetch whose options are a local constant holding cache: no-store",
+    'const opts = { cache: "no-store" };\nexport const r = (url) => fetch(url, opts);',
+    null,
+  ],
+  [
+    "K14 (B4, a red control): a fetch whose next option sets revalidate: 0, which Next.js does not cache",
+    "export const r = (url) => fetch(url, { next: { revalidate: 0 } });",
     null,
   ],
   [

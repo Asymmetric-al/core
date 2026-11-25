@@ -238,6 +238,16 @@ describe("AL-2678 r2a (gate g): the projecting stub refuses a select part it can
     expect(() => project(WORKER_ROW, select)).toThrow(part);
   });
 
+  it("project throws on a requested column the fixture row does not hold, naming it, and keeps a column that is present and null (second round B5)", () => {
+    expect(() => project(WORKER_ROW, "id, missing_column")).toThrow(
+      "missing_column",
+    );
+    expect(project({ id: "x", note: null }, "id, note")).toEqual({
+      id: "x",
+      note: null,
+    });
+  });
+
   it("workerSelect throws on a select with no worker embed and on one whose embed is not closed", () => {
     expect(() => workerSelect("id, amount")).toThrow();
     expect(() =>

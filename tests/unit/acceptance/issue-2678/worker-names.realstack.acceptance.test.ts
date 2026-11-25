@@ -563,6 +563,65 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
+    it("r2a C2: post_comment_authors fails closed on a level the constraint forbids today: with the level's CHECK and NOT NULL dropped, a worker and a non-worker at 'critical' and at NULL get no name and no photo without an alias, and the alias and no photo with one", async () => {
+      await db.query("savepoint s");
+      try {
+        const k = keys(["UCN", "pCN"]);
+        await addUsers({ [k.UCN!]: "Profile Cotton" });
+        await db.query(
+          "insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Party Cotton')",
+          [k.pCN, id.TA],
+        );
+        await db.query(
+          "insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($1, $2, $3, 'profile_backfill')",
+          [id.TA, k.UCN, k.pCN],
+        );
+        await comment(id.postOrg, [id.UM2, k.UCN!]);
+        const checks = await db.query(
+          `select conname from pg_constraint
+            where conrelid = 'public.parties'::regclass and contype = 'c'
+              and pg_get_constraintdef(oid) like '%security_level%'`,
+        );
+        for (const { conname } of checks.rows)
+          await db.query(
+            `alter table public.parties drop constraint "${conname}"`,
+          );
+        await db.query(
+          "alter table public.parties alter column security_level drop not null",
+        );
+        const seen: Record<string, unknown> = {};
+        for (const level of ["'critical'", "null"])
+          for (const aliased of [false, true]) {
+            await withoutAliasCheck(
+              `update public.parties set security_level = ${level}, public_alias = ${aliased ? "'Willow'" : "null"} where id = '${id.pM2}';
+               update public.parties set security_level = ${level}, public_alias = ${aliased ? "'Wren'" : "null"} where id = '${k.pCN}'`,
+            );
+            const got = await authorsAs(member, id.postOrg);
+            seen[`${level}${aliased ? " with an alias" : ""}`] = {
+              worker: got[id.UM2],
+              nonWorker: got[k.UCN!],
+            };
+          }
+        expect(seen).toEqual({
+          "'critical'": { worker: [null, null], nonWorker: [null, null] },
+          "'critical' with an alias": {
+            worker: ["Willow", null],
+            nonWorker: ["Wren", null],
+          },
+          null: { worker: [null, null], nonWorker: [null, null] },
+          "null with an alias": {
+            worker: ["Willow", null],
+            nonWorker: ["Wren", null],
+          },
+        });
+        expect(JSON.stringify(seen)).not.toMatch(
+          /Party Vale|Profile Vale|Profile Cotton|Party Cotton/,
+        );
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
     it("only the server key reaches the projections: no EXECUTE for anon or authenticated on any of the four functions, EXECUTE for service_role on the two public ones only, ACLs of postgres and service_role alone, and a direct call on a constructed row refused 42501", async () => {
       const fns = [
         ["public.worker_public_name(public.missionaries)", true],
@@ -711,7 +770,7 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
-    it("r2a test 1 (N3, with the fix round's F1): a commenter's Parties count in every organization, at every level: R1, A and a high-risk worker by their alias here, L by the alias of a worker row it is linked to, a sensitive worker by its Party name and a sensitive or whitespace-aliased person by the display name, both with the photo; R2 (by link or by donor row), R3, R3b, R3c, R4, R5, a high-risk person without an alias, a person whose alias is only invisible characters, a standard worker of another organization only and a linked person whose profile is gone by no name and no photo; no row holds a forbidden name", async () => {
+    it("r2a test 1 (N3, with the fix rounds' F1 and C1; C1 holds ta_restricted's allowlist for high-risk: a worker with a second, high-risk Party here gets no name, a high-risk non-worker its alias): a commenter's Parties count in every organization, at every level:R1, A and a high-risk worker by their alias here, L by the alias of a worker row it is linked to, a sensitive worker by its Party name and a sensitive or whitespace-aliased person by the display name, both with the photo; R2 (by link or by donor row), R3, R3b, R3c, R4, R5, a high-risk person without an alias, a person whose alias is only invisible characters, a standard worker of another organization only and a linked person whose profile is gone by no name and no photo; no row holds a forbidden name", async () => {
       await db.query("savepoint s");
       try {
         const people = [
@@ -734,6 +793,8 @@ describe.skipIf(!ADMIN_URL)(
           "UN2",
           "UR3c",
           "UA2",
+          "UHR5",
+          "UHRA",
         ];
         const k = keys([
           ...people,
@@ -766,6 +827,10 @@ describe.skipIf(!ADMIN_URL)(
           "mHW",
           "mSW",
           "mTS",
+          "pHR5",
+          "pHR5h",
+          "pHRA",
+          "mHR5",
         ]);
         await addUsers({
           [k.UR1!]: "Profile Fern",
@@ -787,6 +852,8 @@ describe.skipIf(!ADMIN_URL)(
           [k.UN2!]: "Profile Nettle",
           [k.UR3c!]: "Profile Laurel",
           [k.UA2!]: "Avens Shown",
+          [k.UHR5!]: "Profile Alder",
+          [k.UHRA!]: "Profile Bramble",
         });
         const parties: [string, "TA" | "TB", string][] = [
           ["pR1", "TA", "Party Fern"],
@@ -813,6 +880,9 @@ describe.skipIf(!ADMIN_URL)(
           ["pR3cA", "TA", "Party Laurel A"],
           ["pA2A", "TA", "Party Avens A"],
           ["pA2B", "TB", "Party Avens B"],
+          ["pHR5", "TA", "Party Alder"],
+          ["pHR5h", "TA", "Party Alder H"],
+          ["pHRA", "TA", "Party Bramble"],
         ];
         for (const [party, tenant, name] of parties)
           await db.query(
@@ -841,6 +911,8 @@ describe.skipIf(!ADMIN_URL)(
             level("pR3cB", "restricted", "'Ash'"),
             level("pR3cA", "standard", "'Laurel'"),
             level("pA2B", "standard", "'Juniper'"),
+            level("pHR5h", "high_risk", "'Bramble'"),
+            level("pHRA", "high_risk", "'Bramble'"),
           ].join("\n"),
         );
         await db.query(
@@ -853,6 +925,7 @@ describe.skipIf(!ADMIN_URL)(
           ["mHW", "TA", "pHW", "UHW"],
           ["mSW", "TA", "pSW", "USW"],
           ["mTS", "TB", "pTS", "UTS"],
+          ["mHR5", "TA", "pHR5", "UHR5"],
         ];
         for (const [row, tenant, party, user] of workers)
           await db.query(
@@ -875,6 +948,7 @@ describe.skipIf(!ADMIN_URL)(
           ["TB", "UR3c", "pR3cB"],
           ["TA", "UA2", "pA2A"],
           ["TB", "UA2", "pA2B"],
+          ["TA", "UHRA", "pHRA"],
         ];
         for (const [tenant, user, party] of links)
           await db.query(
@@ -887,6 +961,7 @@ describe.skipIf(!ADMIN_URL)(
           ["UR5", "pR5r"],
           ["UR3b", "pR3bA"],
           ["UR3c", "pR3cA"],
+          ["UHR5", "pHR5h"],
         ];
         for (const [user, party] of donorRows)
           await db.query(
@@ -921,10 +996,12 @@ describe.skipIf(!ADMIN_URL)(
           UN2: [null, null],
           UR3c: [null, null],
           UA2: ["Avens Shown", avatar(k.UA2!)],
+          UHR5: [null, null],
+          UHRA: ["Bramble", null],
         });
         expect(JSON.stringify(got)).not.toMatch(FORBIDDEN);
         expect(JSON.stringify(got)).not.toMatch(
-          /Profile Holm|Party Holm|Profile Hearn|Party Hearn|Profile Sage|Party Sorrel|Profile Ivy|Party Ivy|Party Whit|Profile Tarn|Party Tarn|Profile Nettle|Nettle|Profile Laurel|Laurel|Juniper|Party Avens/,
+          /Profile Holm|Party Holm|Profile Hearn|Party Hearn|Profile Sage|Party Sorrel|Profile Ivy|Party Ivy|Party Whit|Profile Tarn|Party Tarn|Profile Nettle|Nettle|Profile Laurel|Laurel|Juniper|Party Avens|Profile Alder|Party Alder|Profile Bramble|Party Bramble/,
         );
       } finally {
         await db.query("rollback to savepoint s");

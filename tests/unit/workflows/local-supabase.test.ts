@@ -208,6 +208,11 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     ])
       expect(run).toContain(variable);
     expect(run).toContain("supabase -- status -o json");
+    expect(
+      run!.split("\n").map((line) => line.trim()),
+      "the Vitest run is a command of its own, so its exit status fails the step",
+    ).toContain(marker);
+    expect(run).not.toMatch(/\|\||;\s*true\b|\bset \+e\b|continue-on-error/);
     expect(at(marker)).toBeGreaterThan(at("schema-fingerprint.mjs compare"));
     for (const file of [
       suite,

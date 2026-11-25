@@ -128,6 +128,7 @@ interface State {
   snapshots: Row[];
   emailSendLogs: Row[];
   selects: Array<[string, string]>;
+  failWorkerNames?: number;
 }
 
 class QueryBuilder {
@@ -187,7 +188,10 @@ class QueryBuilder {
     return this;
   }
 
-  private resolve(): { data: unknown; error: { message: string } | null } {
+  private resolve(): {
+    data: unknown;
+    error: { code?: string; message: string } | null;
+  } {
     const { state } = this;
     switch (this.table) {
       case "donations":
@@ -230,6 +234,13 @@ class QueryBuilder {
         };
       case "missionaries": {
         const wantsPublicName = /\bworker_public_name\b/.test(this.columns);
+        if (wantsPublicName && (state.failWorkerNames ?? 0) > 0) {
+          state.failWorkerNames! -= 1;
+          return {
+            data: null,
+            error: { message: "worker public names are unavailable" },
+          };
+        }
         return {
           data: this.inValues.flatMap((id) => {
             const row = WORKER_ROWS[id as string];
@@ -264,6 +275,15 @@ class QueryBuilder {
         return { data: [], error: null };
       case "contribution_adjustments": {
         if (this.operation === "insert") {
+          const key = this.payload?.idempotency_key;
+          if (
+            typeof key === "string" &&
+            state.adjustments.some((row) => row.idempotency_key === key)
+          )
+            return {
+              data: null,
+              error: { code: "23505", message: "duplicate idempotency key" },
+            };
           const row = {
             id: `adj-${state.adjustments.length + 1}`,
             created_at: "2026-06-01T00:00:00.000Z",
@@ -287,7 +307,7 @@ class QueryBuilder {
   then<T>(
     onfulfilled: (value: {
       data: unknown;
-      error: { message: string } | null;
+      error: { code?: string; message: string } | null;
     }) => T,
   ): Promise<T> {
     return Promise.resolve(this.resolve()).then(onfulfilled);
@@ -326,19 +346,36 @@ function freshState(split: boolean): State {
   };
 }
 
-async function correct(state: State, choice: "pdf" | "email") {
+async function correct(
+  state: State,
+  choice: "pdf" | "email" | "defer",
+  idempotencyKey?: string,
+) {
   return applyContributionCorrection({
     supabaseAdmin: stub(state),
     tenantId: TENANT_ID,
     contributionId: DONATION_ID,
     actionType: "amount_correction",
-    payload: { amount: 20_000, receiptDelivery: { choice } },
+    payload: {
+      amount: 20_000,
+      receiptDelivery:
+        choice === "defer"
+          ? { choice, deferReason: "The donor asked to wait" }
+          : { choice },
+    },
     reason: "data entry error",
     actorProfileId: "profile-1",
     sourceSurface: "contribution_hub",
     actorCapabilities: ["contributions.manage_receipts"],
+    idempotencyKey,
   });
 }
+
+const workerNameLookups = (state: State) =>
+  state.selects.filter(
+    ([table, columns]) =>
+      table === "missionaries" && /\bworker_public_name\b/.test(columns),
+  ).length;
 
 const namesOf = (content: unknown) =>
   (content as ReceiptSnapshotContentV1).designationLines.map((line) => [
@@ -438,5 +475,40 @@ describe("AL-2678 r2a test 4: an updated receipt names each line's worker by wor
     expect(
       detail.designations.lines.map((line) => line.missionaryName),
     ).toEqual(["Profile Rowan", "Profile Vale", "Profile Xu", "Profile Gone"]);
+  });
+});
+
+describe("AL-2678 r2a B1: a failed worker-name lookup cannot lose the updated receipt staff selected", () => {
+  it("the lookup fails once with a PDF selected: the command fails before any write, so no adjustment and no snapshot exist", async () => {
+    const state = { ...freshState(true), failWorkerNames: 1 };
+    await expect(correct(state, "pdf", "key-b1")).rejects.toThrow(
+      "worker public names are unavailable",
+    );
+    expect(state.adjustments).toEqual([]);
+    expect(state.snapshots).toEqual([]);
+  });
+
+  it("the retry with the same idempotency key then applies the adjustment and makes the receipt, with the projected names", async () => {
+    const state = { ...freshState(true), failWorkerNames: 1 };
+    await correct(state, "pdf", "key-b1").catch(() => undefined);
+    const retried = await correct(state, "pdf", "key-b1");
+    expect(retried.idempotentReplay).toBe(false);
+    expect(retried.receiptOutcome).toMatchObject({ status: "pdf_generated" });
+    expect(state.adjustments).toHaveLength(1);
+    expect(state.snapshots).toHaveLength(1);
+    expect(namesOf(state.snapshots[0]!.content)).toEqual([
+      [W, "Cedar"],
+      [V, "Party Vale"],
+      [X, null],
+      [GONE, null],
+    ]);
+  });
+
+  it("no worker-name lookup is made when staff defer the updated receipt", async () => {
+    const state = freshState(true);
+    const result = await correct(state, "defer");
+    expect(result.receiptOutcome).toMatchObject({ status: "deferred" });
+    expect(state.snapshots).toEqual([]);
+    expect(workerNameLookups(state)).toBe(0);
   });
 });
