@@ -561,6 +561,95 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         notShown(body);
       });
 
+      it("T5 (r2b1, R2B-Q2) a hidden partner's place on Partners follows when it was added, never its stored name: over every one-row page R and an ordinary anonymous partner keep their positions as their stored names become Aaaa, Mmmm and Zzzz, and R still reads Anonymous partner", async () => {
+        const planted = {
+          able: randomUUID(),
+          zed: randomUUID(),
+          oak: randomUUID(),
+        };
+        const order = async () => {
+          as("C", "missionary");
+          const ids: string[] = [];
+          const labels: Record<string, string> = {};
+          for (let offset = 0; ; offset += 1) {
+            const page = (await answer(
+              await partners.GET(
+                request(
+                  "GET",
+                  `/api/missionary/donors?limit=1&offset=${offset}`,
+                ),
+              ),
+              200,
+            )) as {
+              donors: { id: string; name: string }[];
+              hasMore: boolean;
+            };
+            expect(page.donors.length, `offset ${offset}`).toBe(1);
+            ids.push(page.donors[0]!.id);
+            labels[page.donors[0]!.id] = page.donors[0]!.name;
+            notShown(page);
+            if (!page.hasMore) break;
+            expect(offset, "the walk ends").toBeLessThan(20);
+          }
+          return { ids, labels };
+        };
+        await db.query(
+          `insert into public.donors (id, tenant_id, missionary_id, giving_preferences, name, email) values
+             ($1, $4, $5, '{"defaultAnonymousToRecipient": false}', 'Aaron Able', $6),
+             ($2, $4, $5, '{"defaultAnonymousToRecipient": false}', 'Zora Zed', $7),
+             ($3, $4, $5, '{"defaultAnonymousToRecipient": true}', 'Olive Oak', $8)`,
+          [
+            planted.able,
+            planted.zed,
+            planted.oak,
+            TA,
+            user.C,
+            `t5-able-${planted.able}@example.test`,
+            `t5-zed-${planted.zed}@example.test`,
+            `t5-oak-${planted.oak}@example.test`,
+          ],
+        );
+        try {
+          const walks: { ids: string[]; labels: Record<string, string> }[] = [];
+          for (const name of ["Aaaa", "Mmmm", "Zzzz"]) {
+            await db.query(
+              "update public.donors set name = $1 where id = any($2::uuid[])",
+              [name, [id.dR, planted.oak]],
+            );
+            walks.push(await order());
+          }
+          const [first] = walks;
+          expect(first!.ids).toEqual(
+            expect.arrayContaining([
+              id.dR,
+              id.dE,
+              id.dS,
+              planted.able,
+              planted.zed,
+              planted.oak,
+            ]),
+          );
+          for (const walk of walks) {
+            expect(walk.ids.indexOf(id.dR!)).toBe(first!.ids.indexOf(id.dR!));
+            expect(walk.ids.indexOf(planted.oak)).toBe(
+              first!.ids.indexOf(planted.oak),
+            );
+            expect(walk.ids).toEqual(first!.ids);
+            expect(walk.labels[id.dR!]).toBe("Anonymous partner");
+            expect(walk.labels[planted.oak]).toBe("Anonymous partner");
+          }
+        } finally {
+          await db.query(
+            "update public.donors set name = 'Donor Rook' where id = $1",
+            [id.dR],
+          );
+          await db.query(
+            "delete from public.donors where id = any($1::uuid[])",
+            [Object.values(planted)],
+          );
+        }
+      });
+
       it("D3 GET /api/missionary/portal: R's and E's gifts carry no donor id, amounts and dates as stored", async () => {
         as("C", "missionary");
         const body = await answer(
