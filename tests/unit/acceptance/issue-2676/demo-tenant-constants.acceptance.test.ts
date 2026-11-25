@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
@@ -63,7 +64,62 @@ const WRITERS_OF_THE_SEED_ORGANIZATION: Record<string, string> = {
     "documents E2E_AUTH_TENANT_ID beside E2E_AUTH_BYPASS with the seed's ID",
 };
 
+const WILDCARD_REEXPORT =
+  /export\s*\*\s*(?:as\s+\w+\s+)?from\s*["']([^"']+)["']/g;
+
+function wildcardReexportsAuthConstants(path: string, text: string): boolean {
+  return [...text.matchAll(WILDCARD_REEXPORT)].some(([, specifier = ""]) => {
+    const bare = specifier.replace(/\.(ts|js|mjs)$/, "");
+    if (/(^|\/)packages\/auth\/constants$|^@asym\/auth\/constants$/.test(bare))
+      return true;
+    return (
+      path.startsWith("packages/auth/") && /^(\.\.?\/)+constants$/.test(bare)
+    );
+  });
+}
+
 describe("AL-2676 (plan :939): no demo-organization constant in code that ships", () => {
+  it("the wildcard re-export check finds planted re-exports of the auth constants module and nothing else", () => {
+    expect(
+      wildcardReexportsAuthConstants(
+        "packages/auth/index.ts",
+        'export * from "./constants";',
+      ),
+    ).toBe(true);
+    expect(
+      wildcardReexportsAuthConstants(
+        "packages/api/src/x.ts",
+        "export * as c from '@asym/auth/constants';",
+      ),
+    ).toBe(true);
+    expect(
+      wildcardReexportsAuthConstants(
+        "apps/admin/lib/x.ts",
+        'export * from "../../../packages/auth/constants.ts";',
+      ),
+    ).toBe(true);
+    expect(
+      wildcardReexportsAuthConstants(
+        "packages/config/index.ts",
+        'export * from "./constants";',
+      ),
+    ).toBe(false);
+  });
+
+  it("no shipped file wildcard re-exports the auth constants module, which would hide DEMO_TENANT_ID from the name scan", () => {
+    const offenders = shipped(
+      gitGrepFiles(["-E", "-e", "export[[:space:]]*[*]"]),
+    ).filter(
+      (path) =>
+        /\.(ts|tsx|js|mjs|cjs|mts)$/.test(path) &&
+        wildcardReexportsAuthConstants(
+          path,
+          readFileSync(`${root}${path}`, "utf8"),
+        ),
+    );
+    expect(offenders).toEqual([]);
+  });
+
   it("no tracked file outside tests and records names DEMO_TENANT_ID except its definition", () => {
     expect(shipped(gitGrepFiles(["-w", "-e", "DEMO_TENANT_ID"]))).toEqual([
       "packages/auth/constants.ts",

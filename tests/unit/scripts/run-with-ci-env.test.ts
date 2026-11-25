@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -163,6 +164,47 @@ describe("run-with-ci-env", () => {
         '"C:\\repo with spaces\\node_modules\\.bin\\turbo.cmd" "run" "build" "--filter=!@asym/admin"',
       ],
     });
+  });
+});
+
+describe("run-with-ci-env sets E2E_AUTH_TENANT_ID beside E2E_AUTH_BYPASS (AL-2676)", () => {
+  function launchedTenant(env: Record<string, string>) {
+    const result = spawnSync(
+      process.execPath,
+      [
+        "scripts/run-with-ci-env.mjs",
+        "--",
+        process.execPath,
+        "-e",
+        "process.stdout.write(JSON.stringify([process.env.E2E_AUTH_BYPASS, process.env.E2E_AUTH_TENANT_ID]))",
+      ],
+      {
+        cwd: path.resolve(import.meta.dirname, "../../.."),
+        encoding: "utf8",
+        env: {
+          PATH: process.env.PATH ?? "",
+          ASYM_USE_CI_ENV_DEFAULTS: "1",
+          ...env,
+        },
+      },
+    );
+    expect(result.status, result.stderr).toBe(0);
+    return JSON.parse(result.stdout) as [string, string];
+  }
+
+  it("defaults the launched command to the seed's organization", () => {
+    expect(launchedTenant({})).toEqual([
+      "true",
+      "00000000-0000-0000-0000-000000000001",
+    ]);
+  });
+
+  it("keeps an E2E_AUTH_TENANT_ID the caller set", () => {
+    expect(
+      launchedTenant({
+        E2E_AUTH_TENANT_ID: "6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a",
+      }),
+    ).toEqual(["true", "6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a"]);
   });
 });
 

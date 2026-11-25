@@ -114,7 +114,7 @@ describe("boneyard maintenance contract", () => {
     }
   });
 
-  it("marks public boneyard capture routes as noindex", () => {
+  it("marks public boneyard capture routes as noindex (AL-2676: donor capture route removed)", () => {
     const captureRoutes = [
       {
         path: "apps/admin/app/(auth)/boneyard/contributions/page.tsx",
@@ -131,7 +131,7 @@ describe("boneyard maintenance contract", () => {
     }
   });
 
-  it("renders public boneyard capture routes in snapshot mode", () => {
+  it("renders public boneyard capture routes in snapshot mode (AL-2676: donor capture route removed)", () => {
     const captureRoutes = [
       "apps/admin/app/(auth)/boneyard/contributions/page-client.tsx",
       "apps/missionary/app/boneyard/tasks/page-client.tsx",

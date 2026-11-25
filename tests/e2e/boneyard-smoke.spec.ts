@@ -6,7 +6,7 @@ type BoneyardRouteExpectation = {
   /** Prefer role=heading when the page has a stable title */
   heading?: string;
   /**
-   * Donor capture keeps the heading in the DOM for accessibility while
+   * Missionary capture keeps the heading in the DOM for accessibility while
    * boneyard-js hides the wrapped content during measurement.
    */
   allowHiddenHeading?: boolean;
@@ -51,7 +51,7 @@ function getExpectation(
     };
   }
 
-  // Fallback when running with a generic project name (e.g. donor config on :3030).
+  // Fallback when running with a generic project name, by the base URL port (3030 admin, 4000 missionary).
   try {
     const url = new URL(baseURL ?? "");
     const port = url.port ? Number(url.port) : NaN;
