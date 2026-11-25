@@ -1503,26 +1503,38 @@ describe.skipIf(!ADMIN_URL)(
             ).toEqual(await outcome(sub, undefined, donors));
         }));
 
-      it("defect 9: with no assignment header, a person with a staff and a donor row in the tenant passes no staff check of the member directory; naming the staff row does", () =>
+      it("defect 9: with no assignment header, a person with a staff and a donor row in the tenant passes no staff check of the member directory; naming the staff row does (D-18: AL-2676, D-16 ruling on caller_assignment Q3: drops USG no-header call, asserts directory message, and requires x-asym-tenant for UADM one-row fallback)", () =>
         tx(async () => {
+          const dirMsg =
+            "Forbidden: the member directory requires a live staff membership in this tenant.";
           const dir = (headers?: Record<string, string>) =>
             as(
               "authenticated",
               { sub: "USG", headers },
               `select count(*)::int n from public.tenant_member_directory(${q("TA")})`,
             );
-          expect((await dir()).code).toBe("42501");
-          expect((await dir({ "x-asym-tenant": id.TA! })).code).toBe("42501");
-          expect((await dir(under("mSGd"))).code).toBe("42501");
+          const tenantOnly = await dir({ "x-asym-tenant": id.TA! });
+          expect(tenantOnly.code).toBe("42501");
+          expect(tenantOnly.message).toBe(dirMsg);
+          const donorRow = await dir(under("mSGd"));
+          expect(donorRow.code).toBe("42501");
+          expect(donorRow.message).toBe(dirMsg);
           const named = await dir(under("mSGs"));
           expect(named.code, named.message).toBeNull();
-          // One live row there and no header: still that row.
           const one = await as(
+            "authenticated",
+            { sub: "UADM", headers: { "x-asym-tenant": id.TA! } },
+            `select count(*)::int n from public.tenant_member_directory(${q("TA")})`,
+          );
+          expect(one.code, one.message).toBeNull();
+          const oneNoHeader = await as(
             "authenticated",
             { sub: "UADM" },
             `select count(*)::int n from public.tenant_member_directory(${q("TA")})`,
           );
-          expect(one.code, one.message).toBeNull();
+          expect(oneNoHeader.code).toBe("42501");
+          expect(oneNoHeader.message).toBe(dirMsg);
+          expect(oneNoHeader.rows).toEqual([]);
         }));
 
       it("defect 10: both own-row branches of donor_pledges read on a signed-in token: given under the donor assignment, received under the missionary one", () =>
@@ -1743,8 +1755,10 @@ describe.skipIf(!ADMIN_URL)(
 
       // R8: the member directory answers only for the tenant the request
       // selected.
-      it("R8: the member directory refuses a tenant header that names another tenant than the one asked about, and keeps the one-row fallback without a header", () =>
+      it("R8: the member directory refuses a tenant header naming another tenant or none, and keeps the one-row fallback when x-asym-tenant alone names that tenant (D-18: AL-2676, D-16 ruling on caller_assignment Q3: no-header fallback removed; UB one-row fallback requires x-asym-tenant and no-header is refused)", () =>
         tx(async () => {
+          const dirMsg =
+            "Forbidden: the member directory requires a live staff membership in this tenant.";
           const directory = (tenant: string) =>
             `select membership_id from public.tenant_member_directory('${id[tenant]}')`;
           // UP's request names TA, while the argument and the row say TB.
@@ -1760,6 +1774,7 @@ describe.skipIf(!ADMIN_URL)(
             directory("TB"),
           );
           expect(conflict.code, JSON.stringify(conflict.rows)).toBe("42501");
+          expect(conflict.message).toBe(dirMsg);
           expect(conflict.rows).toEqual([]);
           // The same call naming TB is answered.
           const own = await as(
@@ -1774,14 +1789,21 @@ describe.skipIf(!ADMIN_URL)(
               r.membership_id,
           );
           expect(sorted(members)).toEqual(sorted(["mPB", "mB"]));
-          // UB's one live row, in TB, serves with no header at all.
           const fallback = await as(
             "authenticated",
-            { sub: "UB" },
+            { sub: "UB", headers: { "x-asym-tenant": id.TB! } },
             directory("TB"),
           );
           expect(fallback.code, fallback.message).toBeNull();
           expect(fallback.rows.length).toBe(2);
+          const noHeader = await as(
+            "authenticated",
+            { sub: "UB" },
+            directory("TB"),
+          );
+          expect(noHeader.code).toBe("42501");
+          expect(noHeader.message).toBe(dirMsg);
+          expect(noHeader.rows).toEqual([]);
         }));
 
       // R11: an own-row sub-select carries the request's tenant itself, so a
