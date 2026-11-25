@@ -22,6 +22,10 @@ import type {
 const TENANT_ID = "tenant-1";
 const SNAPSHOT_ID = "snap-1";
 
+const WORKER_PUBLIC_NAMES: ReadonlyMap<string, string | null> = new Map([
+  ["missionary-1", "Riley Worker"],
+]);
+
 function snapshotSourceDetail(): ReceiptSnapshotSourceDetail {
   return {
     shared: {
@@ -64,6 +68,7 @@ function snapshotSourceDetail(): ReceiptSnapshotSourceDetail {
 function snapshotContent(): ReceiptSnapshotContentV1 {
   return buildReceiptSnapshotContent({
     detail: snapshotSourceDetail(),
+    workerPublicNames: WORKER_PUBLIC_NAMES,
     affectedFields: ["amount", "designation"],
     adjustmentId: "adj-1",
     now: new Date("2026-06-01T12:00:00.000Z"),
@@ -78,12 +83,16 @@ function createSnapshotStub(
       const builder = {
         select: () => builder,
         eq: () => builder,
+        in: () => builder,
         maybeSingle: () =>
           Promise.resolve(
             table === "contribution_receipt_snapshots"
               ? { data: row, error: null }
               : { data: null, error: null },
           ),
+        then: <T>(
+          onfulfilled: (value: { data: unknown[]; error: null }) => T,
+        ) => Promise.resolve({ data: [], error: null }).then(onfulfilled),
       };
       return builder;
     },

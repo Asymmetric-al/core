@@ -672,15 +672,26 @@ const resolvers = {
 
       const { data: comment, error } = await ctx.supabaseAdmin
         .from("post_comments")
-        .select("*, author:profiles!user_id(*)")
+        .select("id, post_id, user_id, content, created_at")
         .eq("id", commentId)
         .single();
 
       if (error || !comment)
         throw new Error(error?.message ?? "Comment not found");
 
+      const { data: author, error: authorError } = await ctx.supabaseAdmin
+        .from("profiles")
+        .select("*")
+        .eq("id", auth.profileId)
+        .single();
+
+      if (authorError || !author)
+        throw createGraphQLError("Comment author not found", {
+          extensions: { code: "COMMENT_AUTHOR_NOT_FOUND" },
+        });
+
       revalidatePostTags(args.postId, auth.tenantId);
-      return mapComment(comment);
+      return mapComment(comment, author, auth);
     },
 
     createDonation: async (
@@ -903,11 +914,15 @@ function mapDonation(data: Record<string, unknown>) {
   };
 }
 
-function mapComment(data: Record<string, unknown>) {
+function mapComment(
+  data: Record<string, unknown>,
+  author: Record<string, unknown>,
+  scope: { tenantId: string | null; role: string | null },
+) {
   return {
     id: data.id,
     postId: data.post_id,
-    author: mapProfile(data.author as Record<string, unknown>),
+    author: mapProfile(author, scope),
     content: data.content,
     createdAt: data.created_at,
   };

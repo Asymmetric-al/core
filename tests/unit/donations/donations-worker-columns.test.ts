@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET, POST } from "../../../packages/api/src/donations";
+import { DONATION_WITH_PARTIES_SELECT } from "../../../packages/api/src/donations/select";
 
 import type * as AuthModule from "../../../packages/auth/context";
 import type { AuthContext } from "../../../packages/auth/context";
@@ -87,23 +88,30 @@ function topLevel(text: string) {
 function project(row: Row, select: string): Row {
   const out: Row = {};
   for (const part of topLevel(select)) {
-    const embed = /^(?:(\w+):)?(\w+)(?:![\w!]+)?\((.*)\)$/s.exec(part);
-    if (embed) {
-      const key = embed[1] ?? embed[2]!;
+    const embed = /^(?:(\w+):)?(\w+)(?:![\w!]+)?\((.+)\)$/s.exec(part);
+    const key = embed ? (embed[1] ?? embed[2]!) : null;
+    if (embed && key !== null && EMBEDDED.has(key)) {
       const value = row[key] as Row | null | undefined;
       out[key] = value ? project(value, embed[3]!) : (value ?? null);
     } else if (part === "*") {
       for (const [k, v] of Object.entries(row))
         if (!EMBEDDED.has(k)) out[k] = v;
-    } else if (part in row) out[part] = row[part];
+    } else if (/^\w+$/.test(part)) {
+      if (!Object.hasOwn(row, part))
+        throw new Error(`the stub's row has no column "${part}"`);
+      out[part] = row[part];
+    } else throw new Error(`the stub cannot project "${part}"`);
   }
   return out;
 }
 
 function workerSelect(select: string) {
   const at = select.indexOf("missionary:missionaries(");
+  if (at < 0) throw new Error(`no worker embed in "${select}"`);
   const open = at + "missionary:missionaries".length;
-  return select.slice(open + 1, matching(select, open));
+  const close = matching(select, open);
+  if (close < 0) throw new Error(`an unclosed worker embed in "${select}"`);
+  return select.slice(open + 1, close);
 }
 
 const s = vi.hoisted(() => ({
@@ -219,5 +227,50 @@ describe("AL-2678 r1 (Q4): a donor's donations responses carry none of a worker'
     expect(PRIVATE_WORKER_COLUMNS.filter((column) => column in worker)).toEqual(
       [],
     );
+  });
+});
+
+describe("AL-2678 r2a (gate g): the projecting stub refuses a select part it cannot project, instead of dropping it", () => {
+  it.each([
+    ["an aliased column", "id, name:display_name", "name:display_name"],
+    ["a cast", "id, id::text", "id::text"],
+    ["a spread embed", "id, ...profile(id)", "...profile(id)"],
+    ["an aggregate", "id, count()", "count()"],
+  ])("project throws on %s, naming the part", (_label, select, part) => {
+    expect(() => project(WORKER_ROW, select)).toThrow(part);
+  });
+
+  it("project throws on a requested column the fixture row does not hold, naming it, and keeps a column that is present and null (second round B5)", () => {
+    expect(() => project(WORKER_ROW, "id, missing_column")).toThrow(
+      "missing_column",
+    );
+    expect(project({ id: "x", note: null }, "id, note")).toEqual({
+      id: "x",
+      note: null,
+    });
+  });
+
+  it("workerSelect throws on a select with no worker embed and on one whose embed is not closed", () => {
+    expect(() => workerSelect("id, amount")).toThrow();
+    expect(() =>
+      workerSelect("*, missionary:missionaries(id, worker_public_name"),
+    ).toThrow();
+  });
+
+  it("guard (passes on the base): the stub still projects DONATION_WITH_PARTIES_SELECT's worker", () => {
+    expect(
+      project(WORKER_ROW, workerSelect(DONATION_WITH_PARTIES_SELECT)),
+    ).toEqual({
+      id: "missionary-1",
+      tenant_id: "tenant-a",
+      bio: "Bio",
+      mission_field: "Field",
+      funding_goal: 100,
+      current_funding: 50,
+      created_at: "2026-10-24T00:00:00.000Z",
+      updated_at: "2026-10-24T00:00:00.000Z",
+      worker_public_name: "Cedar",
+      profile: { id: "profile-m", avatar_url: null },
+    });
   });
 });

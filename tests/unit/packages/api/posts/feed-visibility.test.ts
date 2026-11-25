@@ -112,3 +112,26 @@ describe("GET /api/posts audience boundary", () => {
     expect(eqCalls).toContainEqual(["missionary_id", PROFILE_ID]);
   });
 });
+
+describe("AL-2678 r2a (F5): no proxy or browser keeps the feed, so a restriction shows at the next request", () => {
+  it("answers an empty feed and a feed with posts with Cache-Control: private, no-store", async () => {
+    const empty = await GET(request("?status=published"));
+    expect(empty.status).toBe(200);
+    expect(empty.headers.get("cache-control")).toBe("private, no-store");
+
+    const client = postsClient();
+    const query = client.from() as unknown as { then: unknown };
+    query.then = (
+      resolve: (value: { data: unknown[]; error: null }) => unknown,
+    ) =>
+      resolve({
+        data: [{ id: "post-1", post_author_public_name: "Cedar" }],
+        error: null,
+      });
+    getAdminClientMock.mockReturnValue({ client, error: null });
+    const full = await GET(request("?status=published"));
+    expect(full.status).toBe(200);
+    expect(((await full.json()) as { posts: unknown[] }).posts).toHaveLength(1);
+    expect(full.headers.get("cache-control")).toBe("private, no-store");
+  });
+});

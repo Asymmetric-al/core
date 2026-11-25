@@ -754,7 +754,7 @@
   "packages/api/src/posts/comments.ts": 14,
   "packages/api/src/posts/content.ts": 3,
   "packages/api/src/posts/create.ts": 1,
-  "packages/api/src/posts/index.ts": 12,
+  "packages/api/src/posts/index.ts": 5,
   "packages/api/src/posts/post.ts": 5,
   "packages/api/src/posts/reaction-route-handlers.ts": 6,
   "packages/api/src/posts/reaction-route-utils.ts": 2,
