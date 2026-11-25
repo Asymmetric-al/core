@@ -77,8 +77,7 @@ Then redeploy.
   - `web-studio.media.listUi`
 - Per-collection workspace UI:
   - `web-studio.*.documentWorkspace`
-- Recent docs:
-  - `web-studio.*.recent`
+- Recent docs: Payload's own `recently-viewed` preference (document ids only), read through the access-checked `get-activity-widget-docs` server function, so every title shown is the selected organization's.
 
 ## Phase 3 setup
 

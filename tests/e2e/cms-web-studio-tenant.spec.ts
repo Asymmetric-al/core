@@ -1,12 +1,16 @@
 import {
   expect as baseExpect,
+  errors as playwrightErrors,
   test,
+  type Locator,
   type Page,
   type Request,
+  type Response as PlaywrightResponse,
   type Route,
 } from "@playwright/test";
 
 import { adminBaseURL } from "./base-urls";
+import { bodyFromPageCopy } from "./helpers/received-bodies";
 import { organizationLabel, TENANTS } from "./helpers/tenant-address";
 import {
   addExpiredStubSession,
@@ -28,6 +32,8 @@ import {
   createE2EAuthCookieValue,
   E2E_AUTH_COOKIE_NAMES,
 } from "../../packages/auth/e2e-auth";
+
+import type { PageCopy, ReceivedBody } from "./helpers/received-bodies";
 
 /**
  * Web Studio under its tenant cookie (plan 5.2, "One stated exception: Web
@@ -195,7 +201,9 @@ async function acknowledgeStaleNotice(page: Page) {
 /**
  * Opens `url` and waits until Payload has started in the browser: its own
  * session read (`cms-users/me`, made once the page has hydrated) has been
- * answered, and no call to `/web-studio/api` has been in flight for a second.
+ * answered, and no call to `/web-studio/api` and no server function (the
+ * navigation rail asks for its recent documents through one) has been in
+ * flight for a second.
  * A stale-tab case holds the page's calls and switches the other tab only
  * after that: on a cold server the page hydrates late, a field's value can
  * be on screen from the server's HTML before then, and start-up calls that
@@ -212,7 +220,13 @@ async function openStarted(page: Page, url: string) {
   let lastChange = Date.now();
   const opened = new URL(url).pathname;
   const started = (request: Request) => {
-    if (!new URL(request.url()).pathname.startsWith("/web-studio/api/")) return;
+    const isServerFunction = Boolean(request.headers()["next-action"]);
+    if (
+      !isServerFunction &&
+      !new URL(request.url()).pathname.startsWith("/web-studio/api/")
+    ) {
+      return;
+    }
     const from = request.headers()["referer"];
     if (!from || new URL(from).pathname !== opened) return;
     inFlight.add(request);
@@ -260,6 +274,334 @@ async function holdOwnCalls(page: Page) {
       await route.continue();
     },
   );
+}
+
+function excerptAround(text: string, title: string) {
+  const at = text.indexOf(title);
+  return at === -1
+    ? ""
+    : text.slice(Math.max(0, at - 80), at + title.length + 80);
+}
+
+async function expectAbsent(
+  scope: Page | Locator,
+  title: string,
+  where: string,
+) {
+  const html =
+    "content" in scope
+      ? await scope.content()
+      : await scope.evaluate((element) => element.outerHTML);
+  expect
+    .soft(excerptAround(html, title), `${where}: the DOM holds the title`)
+    .toBe("");
+  expect
+    .soft(
+      await scope.getByText(title, { exact: true }).count(),
+      `${where}: elements whose text is the title`,
+    )
+    .toBe(0);
+}
+
+function recentLink(page: Page, title: string) {
+  return page
+    .getByRole("list", { name: "Recent", exact: true })
+    .getByRole("link", { name: title, exact: true });
+}
+
+async function pinOpenDocument(page: Page) {
+  const pin = page.getByRole("button", { name: "Pin to Studio home" });
+  await expect(pin).toBeEnabled();
+  await expect(pin).toHaveAttribute("aria-pressed", "false");
+  await pin.click();
+  await expect(pin).toHaveAttribute("aria-pressed", "true");
+}
+
+async function expectNoStoredTitle(page: Page, stamp: string, where: string) {
+  const response = await page.request.get(
+    `${base}/web-studio/api/payload-preferences?limit=100&depth=0`,
+  );
+  expect.soft(response.status(), `${where}: status`).toBe(200);
+  const body = (await response.json()) as {
+    docs?: Array<{ key?: unknown; value?: unknown }>;
+    hasNextPage?: unknown;
+  };
+  expect.soft(body.hasNextPage, `${where}: a further page`).toBe(false);
+  const holding = (body.docs ?? []).flatMap((row) => {
+    const value = JSON.stringify(row.value) ?? "";
+    return [`Alpha ${stamp}`, `Bravo ${stamp}`]
+      .filter((title) => value.includes(title))
+      .map((title) => ({
+        key: row.key,
+        title,
+        value: excerptAround(value, title),
+      }));
+  });
+  expect.soft(holding, `${where}: rows that hold a title`).toEqual([]);
+}
+
+const BODY_READ_LIMIT = 30_000;
+
+function copyFetchBodies() {
+  const store = window as unknown as { __asymReceived?: PageCopy[] };
+  if (store.__asymReceived) return;
+  store.__asymReceived = [];
+  const original = window.fetch.bind(window);
+  window.fetch = async (input, init) => {
+    const response = await original(input, init);
+    const copy: PageCopy = {
+      method: (
+        init?.method ?? (input instanceof Request ? input.method : "GET")
+      ).toUpperCase(),
+      url: response.url,
+      status: response.status,
+      text: "",
+      done: false,
+    };
+    store.__asymReceived?.push(copy);
+    const reader = response.clone().body?.getReader();
+    if (!reader) {
+      copy.done = true;
+      return response;
+    }
+    const decoder = new TextDecoder();
+    void (async () => {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        copy.text += decoder.decode(value, { stream: true });
+      }
+    })()
+      .catch((error: unknown) => {
+        copy.error = error instanceof Error ? error.message : String(error);
+      })
+      .finally(() => {
+        copy.done = true;
+      });
+    return response;
+  };
+}
+
+async function readBody(
+  response: PlaywrightResponse,
+): Promise<{ text: string } | { unread: string }> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const limit = new Promise<{ unread: string }>((resolve) => {
+    timer = setTimeout(
+      () => resolve({ unread: `not read within ${BODY_READ_LIMIT} ms` }),
+      BODY_READ_LIMIT,
+    );
+  });
+  try {
+    return await Promise.race([
+      response.text().then(
+        (text) => ({ text }),
+        (error: Error) => ({ unread: error.message.split("\n")[0]! }),
+      ),
+      limit,
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function takePageCopies(page: Page) {
+  await page
+    .waitForFunction(
+      () =>
+        (
+          (window as unknown as { __asymReceived?: PageCopy[] })
+            .__asymReceived ?? []
+        ).every((copy) => copy.done),
+      undefined,
+      { timeout: 5_000 },
+    )
+    .catch((error: unknown) => {
+      if (!(error instanceof playwrightErrors.TimeoutError)) throw error;
+    });
+  return page.evaluate(() => {
+    const store = window as unknown as { __asymReceived?: PageCopy[] };
+    const copies = (store.__asymReceived ?? []).map((copy) => ({ ...copy }));
+    store.__asymReceived = [];
+    return copies;
+  });
+}
+
+async function switchRecordingResponses(page: Page, tenant: string) {
+  await page.addInitScript(copyFetchBodies);
+  await page.goto(`${base}/web-studio/organization?next=%2Fweb-studio`);
+  const origin = new URL(base).origin;
+  const recorded = (address: string) => {
+    const url = new URL(address);
+    return (
+      url.origin === origin &&
+      !url.pathname.startsWith("/_next/") &&
+      !url.pathname.startsWith("/__nextjs_font/") &&
+      !url.pathname.startsWith("/web-studio/organization")
+    );
+  };
+  const isFetch = (request: Request) =>
+    ["fetch", "xhr"].includes(request.resourceType());
+  const inFlight = new Set<Request>();
+  const documentOf = new Map<Request, number>();
+  let openDocument = 0;
+  const reads: Array<Promise<ReceivedBody>> = [];
+  const fetched: Array<{ key: string; url: string; status: number }> = [];
+  const bodies: ReceivedBody[] = [];
+  let lastStart = Date.now();
+  const onRequest = (request: Request) => {
+    if (!recorded(request.url())) return;
+    lastStart = Date.now();
+    documentOf.set(request, openDocument);
+    if (!isFetch(request)) inFlight.add(request);
+  };
+  const onEnded = (request: Request) => {
+    inFlight.delete(request);
+  };
+  const onNavigated = (frame: ReturnType<Page["mainFrame"]>) => {
+    if (frame !== page.mainFrame()) return;
+    inFlight.clear();
+    openDocument += 1;
+  };
+  const onResponse = (response: PlaywrightResponse) => {
+    if (!recorded(response.url())) return;
+    const status = response.status();
+    if (status >= 300 && status < 400) return;
+    const request = response.request();
+    const url = new URL(response.url());
+    const label = `${request.method()} ${url.pathname}${url.search}`;
+    if (isFetch(request) && documentOf.get(request) !== openDocument) {
+      reads.push(
+        readBody(response).then((body) =>
+          "text" in body
+            ? { url: label, status, ...body }
+            : { url: label, status, leftWithItsDocument: true as const },
+        ),
+      );
+      return;
+    }
+    if (isFetch(request)) {
+      fetched.push({
+        key: `${request.method()} ${response.url()}`,
+        url: label,
+        status,
+      });
+      return;
+    }
+    reads.push(
+      readBody(response).then((body) => ({ url: label, status, ...body })),
+    );
+  };
+  page.on("request", onRequest);
+  page.on("requestfinished", onEnded);
+  page.on("requestfailed", onEnded);
+  page.on("response", onResponse);
+  page.on("framenavigated", onNavigated);
+  await chooseOrganization(page, tenant);
+  await page.waitForURL((url) => url.pathname === "/web-studio");
+
+  const settle = async () => {
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            (
+              (window as unknown as { __asymReceived?: PageCopy[] })
+                .__asymReceived ?? []
+            ).some((copy) =>
+              new URL(copy.url).pathname.endsWith(
+                "/web-studio/api/cms-users/me",
+              ),
+            ),
+          ),
+        { message: "the open page has started (its own session read)" },
+      )
+      .toBe(true);
+    await expect
+      .poll(
+        () =>
+          [...inFlight]
+            .map((request) => new URL(request.url()).pathname)
+            .concat(
+              Date.now() - lastStart < 1_500 ? ["(a call just began)"] : [],
+            ),
+        { message: "calls of the open page still loading", intervals: [100] },
+      )
+      .toEqual([]);
+    const copies = await takePageCopies(page);
+    for (const response of fetched.splice(0)) {
+      const at = copies.findIndex(
+        (copy) => `${copy.method} ${copy.url}` === response.key,
+      );
+      const [copy] = at === -1 ? [] : copies.splice(at, 1);
+      bodies.push(
+        bodyFromPageCopy({ url: response.url, status: response.status }, copy),
+      );
+    }
+    for (const copy of copies) {
+      if (recorded(copy.url)) {
+        bodies.push(
+          bodyFromPageCopy(
+            { url: `${copy.method} ${copy.url}`, status: copy.status },
+            copy,
+          ),
+        );
+      }
+    }
+    bodies.push(...(await Promise.all(reads.splice(0))));
+  };
+  return {
+    goto: async (url: string) => {
+      await settle();
+      await page.goto(url);
+    },
+    stop: async () => {
+      await settle();
+      page.off("request", onRequest);
+      page.off("requestfinished", onEnded);
+      page.off("requestfailed", onEnded);
+      page.off("response", onResponse);
+      page.off("framenavigated", onNavigated);
+      return bodies;
+    },
+  };
+}
+
+function auditReceived(
+  bodies: ReceivedBody[],
+  title: string,
+  where: (place: string) => string,
+) {
+  test.info().annotations.push({
+    type: "answered after its document was left",
+    description: `${where("responses")}: ${
+      bodies
+        .flatMap((body) =>
+          "leftWithItsDocument" in body ? [`${body.url} (${body.status})`] : [],
+        )
+        .join(", ") || "none"
+    }`,
+  });
+  expect
+    .soft(
+      bodies.flatMap((body) =>
+        "unread" in body
+          ? [`${body.url} (${body.status}): ${body.unread}`]
+          : [],
+      ),
+      where("responses since the switch whose body could not be read"),
+    )
+    .toEqual([]);
+  expect
+    .soft(
+      bodies.flatMap((body) =>
+        "text" in body && body.text.includes(title)
+          ? [{ url: body.url, excerpt: excerptAround(body.text, title) }]
+          : [],
+      ),
+      where("responses received since the switch"),
+    )
+    .toEqual([]);
 }
 
 test("@cms a person in two organizations sees each one's pages, documents and media only while it is selected", async ({
@@ -310,11 +652,12 @@ test("@cms a person in two organizations sees each one's pages, documents and me
       [SECOND, "Bravo", "Alpha", secondPage, demoPage],
       [DEMO, "Alpha", "Bravo", demoPage, secondPage],
     ] as const) {
-      await switchOrganization(page, base, tenant);
+      const ownTitle = `${own} ${stamp}`;
+      const otherTitle = `${other} ${stamp}`;
+      const where = (place: string) => `${place}, ${own}'s organization`;
+      const received = await switchRecordingResponses(page, tenant);
       // What a REST call returns.
-      expect(await restTitles(page, base, "pages", stamp)).toEqual([
-        `${own} ${stamp}`,
-      ]);
+      expect(await restTitles(page, base, "pages", stamp)).toEqual([ownTitle]);
       expect(await restTitles(page, base, "media", stamp)).toEqual([
         `${own.toLowerCase()} ${stamp}`,
       ]);
@@ -325,14 +668,66 @@ test("@cms a person in two organizations sees each one's pages, documents and me
           )
         ).status(),
       ).toBe(404);
-      // The list and the document.
-      await page.goto(`${base}/web-studio/collections/pages`);
-      await expect(page.getByText(`${own} ${stamp}`).first()).toBeVisible();
-      await expect(page.getByText(`${other} ${stamp}`)).toHaveCount(0);
-      await page.goto(`${base}/web-studio/collections/pages/${ownPage}`);
+      await expectNoStoredTitle(page, stamp, where("stored preferences"));
+
+      const titleField = page.getByRole("textbox", { name: /^Title/ }).first();
+      await received.goto(`${base}/web-studio/collections/pages/${ownPage}`);
+      await expect(titleField).toHaveValue(ownTitle);
+      await pinOpenDocument(page);
+
+      let attempt = 0;
+      await expect(async () => {
+        if (attempt++ > 0) {
+          await received.goto(
+            `${base}/web-studio/collections/pages/${ownPage}`,
+          );
+          await expect(titleField).toHaveValue(ownTitle, { timeout: 30_000 });
+        }
+        await received.goto(`${base}/web-studio/collections/pages`);
+        await expect(recentLink(page, ownTitle)).toBeVisible({
+          timeout: 5_000,
+        });
+      }).toPass({ timeout: 90_000 });
+
+      await expect(recentLink(page, ownTitle)).toBeVisible();
       await expect(
-        page.getByRole("textbox", { name: /^Title/ }).first(),
-      ).toHaveValue(`${own} ${stamp}`);
+        page.getByRole("main").getByText(ownTitle).first(),
+      ).toBeVisible();
+      expect
+        .soft(
+          await page.getByText(otherTitle).count(),
+          where("the pages list, text containing the other title"),
+        )
+        .toBe(0);
+      await expectAbsent(page, otherTitle, where("the pages list"));
+
+      await received.goto(`${base}/web-studio`);
+      await expect(recentLink(page, ownTitle)).toBeVisible();
+      const card = page.getByRole("region", { name: "Your documents" });
+      await expect(
+        card
+          .getByRole("list", { name: "Pinned documents" })
+          .getByRole("link", { name: ownTitle, exact: true }),
+      ).toBeVisible();
+      await expectAbsent(card, otherTitle, where("Your documents, Pinned"));
+      await expectAbsent(page, otherTitle, where("the Studio home, Pinned"));
+      await card.getByRole("tab", { name: "Recently viewed" }).click();
+      await expect(
+        card
+          .getByRole("list", { name: "Recently viewed documents" })
+          .getByRole("link", { name: new RegExp(`^${ownTitle}`) }),
+      ).toBeVisible();
+      await expectAbsent(
+        card,
+        otherTitle,
+        where("Your documents, Recently viewed"),
+      );
+      await expectAbsent(
+        page,
+        otherTitle,
+        where("the Studio home, Recently viewed"),
+      );
+      auditReceived(await received.stop(), otherTitle, where);
     }
   } finally {
     for (const tenant of [DEMO, SECOND]) {
@@ -1049,6 +1444,11 @@ test('@cms the overview\'s "Your documents" card lists what the person viewed, i
       // The chooser lands on the overview, as it does for the person.
       await switchOrganization(page, base, tenant);
       const card = page.getByRole("region", { name: "Your documents" });
+      await expect(
+        card
+          .getByRole("list", { name: "Pinned documents" })
+          .or(card.getByText("No pinned documents")),
+      ).toBeVisible();
       await card.getByRole("tab", { name: "Recently viewed" }).click();
       const viewed = card.getByRole("list", {
         name: "Recently viewed documents",
@@ -1230,6 +1630,12 @@ test("@cms a server function from a page opened for one organization, after anot
     await switchOrganization(page, base, DEMO);
     const card = page.getByRole("region", { name: "Your documents" });
     await expect(card.getByRole("tabpanel")).toBeVisible();
+    await expect(
+      card
+        .getByRole("list", { name: "Pinned documents" })
+        .or(card.getByText("No pinned documents")),
+    ).toBeVisible();
+    await expect(recentLink(page, `Alpha ${stamp}`)).toBeVisible();
     // Tab two switches Web Studio to the second organization.
     const other = await page.context().newPage();
     await switchOrganization(other, base, SECOND);

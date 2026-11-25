@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { afterEach, beforeEach, expect, vi } from "vitest";
 
 import { EXPECTED_PROJECTS } from "../../../../../scripts/verify/vercel-build-controls.mjs";
 
@@ -6,6 +6,22 @@ export const RELEASE_SHA = "a".repeat(40);
 export const PROJECT_REF = "pnmlrbgjiqzzsthsoikm";
 export const noSleep = async () => {};
 export const silent = () => {};
+
+export function forbidNetwork() {
+  const network = vi.fn((_input: URL | RequestInfo, _init?: RequestInit) => {
+    throw new Error("a test reached the network");
+  });
+  beforeEach(() => {
+    network.mockClear();
+    vi.stubGlobal("fetch", network);
+  });
+  afterEach(() => {
+    const reached = network.mock.calls.map(([input]) => String(input));
+    vi.unstubAllGlobals();
+    expect(reached, "a test reached the network").toEqual([]);
+  });
+  return network;
+}
 
 export const BYPASS_ENV = Object.freeze({
   VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET: "bypass-admin",

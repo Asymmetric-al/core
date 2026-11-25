@@ -450,7 +450,6 @@ export function asStampedRequest(
   for (const name of PROTECTION_BYPASS_HEADERS) {
     headers.delete(name);
   }
-  headers.set(FRONT_ORIGIN_HEADER, origin);
   headers.set("host", host);
   headers.set("x-forwarded-host", host);
   return cloneNextRequest(request, headers);

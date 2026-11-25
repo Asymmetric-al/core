@@ -1365,7 +1365,7 @@
   "tests/e2e/cms-skip-if-no-payload.ts": 2,
   "tests/e2e/cms-tenant-isolation.spec.ts": 2,
   "tests/e2e/cms-web-studio-native.spec.ts": 10,
-  "tests/e2e/cms-web-studio-tenant.spec.ts": 138,
+  "tests/e2e/cms-web-studio-tenant.spec.ts": 137,
   "tests/e2e/data-table-accessibility.spec.ts": 2,
   "tests/e2e/dev-server-lock.mjs": 11,
   "tests/e2e/development-smoke/admin.profile-dropdown.spec.ts": 13,
