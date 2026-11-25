@@ -600,4 +600,30 @@ describe("WP8a part 2 R1b: runProviderOperation, one request from claim to repor
       ]);
     }
   });
+
+  it("F6 (review finding 6): the adapter receives the request the checks validated, not a second reading of the claim's body", async () => {
+    let reads = 0;
+    const shifting = request();
+    Object.defineProperty(shifting, "amount", {
+      enumerable: true,
+      get: () => {
+        reads += 1;
+        return reads === 1 ? 10300 : 999;
+      },
+    });
+    const { rpc } = claimedRpc({ request: shifting });
+    const seen: unknown[] = [];
+    const adapter: PaymentProviderAdapter = {
+      createPayment: async (input) => {
+        seen.push(
+          input.params.amount,
+          Object.getOwnPropertyDescriptor(input.params, "amount")?.get ===
+            undefined,
+        );
+        return { result: "succeeded", providerObjectId: "pi_3Validated0001" };
+      },
+    };
+    await runProviderOperation({ rpc, adapter, operationId: OPERATION });
+    expect(seen).toEqual([10300, true]);
+  });
 });

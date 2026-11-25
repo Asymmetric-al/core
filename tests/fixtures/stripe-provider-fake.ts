@@ -20,6 +20,7 @@ export type FakeRequest = {
   rawBody: string;
   timeout: number;
   replayed: boolean;
+  headers: Record<string, string>;
 };
 
 export type FakePaymentIntent = {
@@ -409,6 +410,12 @@ export function createStripeProviderFake(
         rawBody: requestData ?? "",
         timeout,
         replayed: false,
+        headers: Object.fromEntries(
+          Object.entries(headers).map(([k, v]) => [
+            k.toLowerCase(),
+            Array.isArray(v) ? v.join(", ") : String(v),
+          ]),
+        ),
       };
       recorded.push(request);
       const slot = `${request.account ?? ""}|${request.key ?? ""}`;

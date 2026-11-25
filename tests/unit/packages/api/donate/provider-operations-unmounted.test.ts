@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const ROOT = fileURLToPath(new URL("../../../../..", import.meta.url));
 const MODULE_DIR = join(ROOT, "packages/api/src/donate/provider-operations");
-const SOURCE = /\.(ts|tsx|mts|cts|js|mjs|cjs)$/;
+const SOURCE = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/;
 const SKIP_DIRS = new Set([
   "node_modules",
   ".next",
@@ -18,10 +18,7 @@ const SKIP_DIRS = new Set([
   ".git",
   ".vercel",
 ]);
-const FORBIDDEN_TARGETS = [
-  "provider-operations",
-  "tests/fixtures/stripe-provider-fake",
-];
+const FORBIDDEN_TARGETS = ["provider-operations", "stripe-provider-fake"];
 
 function sourceFiles(dir: string): string[] {
   const out: string[] = [];
@@ -81,6 +78,38 @@ function specifiers(file: string, text: string): string[] {
   return found;
 }
 
+function forbiddenSpecifiers(file: string, text: string): string[] {
+  if (!FORBIDDEN_TARGETS.some((t) => text.includes(t))) return [];
+  return specifiers(file, text).filter(
+    (spec) =>
+      FORBIDDEN_TARGETS.some((t) => spec.includes(t)) ||
+      spec.startsWith("<computed"),
+  );
+}
+
+function exportsProblems(exportsField: unknown): string[] {
+  const entries =
+    exportsField && typeof exportsField === "object"
+      ? Object.entries(exportsField)
+      : [[".", exportsField] as const];
+  const problems: string[] = [];
+  for (const [key, target] of entries) {
+    if (
+      key.includes("provider-operations") ||
+      JSON.stringify(target ?? null).includes("provider-operations")
+    )
+      problems.push(`names the module: ${key}`);
+    if (
+      key.includes("*") &&
+      "./donate/provider-operations/run".startsWith(
+        key.slice(0, key.indexOf("*")),
+      )
+    )
+      problems.push(`a wildcard reaches the module: ${key}`);
+  }
+  return problems;
+}
+
 beforeEach(() => {
   vi.stubGlobal(
     "fetch",
@@ -119,40 +148,72 @@ describe("WP8a part 2 R1b: the provider worker stays unmounted (ruling Q4)", () 
       for (const file of sourceFiles(join(ROOT, top))) {
         if (file.startsWith(`${MODULE_DIR}${sep}`)) continue;
         scanned += 1;
-        const text = readFileSync(file, "utf8");
-        if (!FORBIDDEN_TARGETS.some((t) => text.includes(t))) continue;
-        for (const spec of specifiers(file, text))
-          if (
-            FORBIDDEN_TARGETS.some((t) => spec.includes(t)) ||
-            spec.startsWith("<computed")
-          )
-            offenders.push(`${relative(ROOT, file)}: ${spec}`);
+        for (const spec of forbiddenSpecifiers(
+          file,
+          readFileSync(file, "utf8"),
+        ))
+          offenders.push(`${relative(ROOT, file)}: ${spec}`);
       }
     }
     expect(scanned).toBeGreaterThan(1000);
     expect(offenders).toEqual([]);
     const manifest = JSON.parse(
       readFileSync(join(ROOT, "packages/api/package.json"), "utf8"),
-    ) as { exports: Record<string, string> };
-    const entries = Object.entries(manifest.exports);
+    ) as { exports: unknown };
+    expect(exportsProblems(manifest.exports)).toEqual([]);
+  });
+
+  it("D2 (self-check, review finding 5): the scanner flags every way a source can reach the module or the fake, a .jsx file included, and none that only names them; the exports check reads a conditional target and a wildcard", () => {
+    const sources: [string, string][] = [
+      ["a.ts", 'import { run } from "../donate/provider-operations/run";'],
+      ["b.ts", 'export * from "@asym/api/donate/provider-operations";'],
+      ["c.mts", 'export { a } from "./provider-operations/contract";'],
+      [
+        "d.js",
+        'const m = await import("./provider-operations/stripe-adapter");',
+      ],
+      [
+        "e.cjs",
+        'const f = require("../../tests/fixtures/stripe-provider-fake");',
+      ],
+      ["f.ts", 'import type { T } from "@fixtures/stripe-provider-fake";'],
+      ["g.cts", 'import fake = require("./stripe-provider-fake");'],
+      ["h.ts", "type T = import('./provider-operations/run').RpcResponse;"],
+      [
+        "i.jsx",
+        'import { x } from "./stripe-provider-fake.js";\nexport const C = () => <div>{x}</div>;',
+      ],
+      [
+        "j.ts",
+        'const where = "provider-operations";\nexport const m = await import(where);',
+      ],
+    ];
+    const flagged = sources.map(([file, text]) =>
+      forbiddenSpecifiers(join(ROOT, file), text).length > 0 ? file : "",
+    );
+    expect(flagged).toEqual(sources.map(([file]) => file));
     expect(
-      entries.filter(
-        ([key, target]) =>
-          key.includes("provider-operations") ||
-          String(target).includes("provider-operations"),
+      forbiddenSpecifiers(
+        join(ROOT, "k.ts"),
+        '// provider-operations\nexport const doc = "stripe-provider-fake";',
       ),
     ).toEqual([]);
     expect(
-      entries
-        .map(([key]) => key)
-        .filter(
-          (key) =>
-            key.includes("*") &&
-            "./donate/provider-operations/run".startsWith(
-              key.slice(0, key.indexOf("*")),
-            ),
-        ),
-    ).toEqual([]);
+      exportsProblems({
+        "./run": {
+          import: {
+            types: "./x.d.ts",
+            default: "./src/donate/provider-operations/run.ts",
+          },
+        },
+        "./donate/*": "./src/donate/*.ts",
+        "./*": { default: "./src/*.ts" },
+      }),
+    ).toEqual([
+      "names the module: ./run",
+      "a wildcard reaches the module: ./donate/*",
+      "a wildcard reaches the module: ./*",
+    ]);
   });
 
   it("D3 (guard): the module reaches no scheduler, environment, service-key client or workflow: no createFunction, inngest or workflows/ import, process.env, serverEnv, or any name the service-key gate tracks", () => {

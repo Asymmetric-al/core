@@ -694,4 +694,155 @@ describe("WP8a part 2 R1b: the Stripe adapter over the fake provider (index sect
       errorCode: "stripe_timeout",
     });
   });
+
+  it("F1 (review finding 1): a JSON body that is a bare string, number or boolean, on any status, ends unknown stripe_unclassified at once, the one send kept, with no unhandled rejection; a null body ends unknown adapter_fault (row 15, as A15), also at once and with none", async () => {
+    const cases: [string, number, string, string][] = [
+      ['200 "ok"', 200, '"ok"', "stripe_unclassified"],
+      ["200 42", 200, "42", "stripe_unclassified"],
+      ["200 true", 200, "true", "stripe_unclassified"],
+      ['502 "bad gateway"', 502, '"bad gateway"', "stripe_unclassified"],
+      ["307 false", 307, "false", "stripe_unclassified"],
+      ["200 null", 200, "null", "adapter_fault"],
+    ];
+    const got: string[] = [];
+    for (const [label, status, rawBody] of cases) {
+      const unhandled: unknown[] = [];
+      const listener = (reason: unknown) => unhandled.push(reason);
+      process.on("unhandledRejection", listener);
+      try {
+        const started = performance.now();
+        const { fake, result } = await sendOnce(
+          [answer({ status, rawBody })],
+          5_000,
+        );
+        const elapsed = performance.now() - started;
+        await new Promise((done) => setTimeout(done, 50));
+        got.push(
+          `${label}: ${result.result} ${"errorCode" in result ? result.errorCode : "-"}, ${fake.calls()} send, ${elapsed < 2_000 ? "at once" : "by the timer"}, ${unhandled.length} unhandled`,
+        );
+      } finally {
+        process.off("unhandledRejection", listener);
+      }
+    }
+    expect(got).toEqual(
+      cases.map(
+        ([label, , , code]) =>
+          `${label}: unknown ${code}, 1 send, at once, 0 unhandled`,
+      ),
+    );
+  });
+
+  it("F1: one-send's response forwards every method and rejects only a parsed body that is a primitive", async () => {
+    const fake = createStripeProviderFake();
+    fake.script(
+      answer({ status: 201, rawBody: '{"a":1}', headers: { "x-a": "b" } }),
+    );
+    const once = createOneSend(fake.transport);
+    const response = await once.client.makeRequest(
+      "api.stripe.com",
+      "443",
+      "/v1/payment_intents",
+      "POST",
+      {},
+      "",
+      "https",
+      1000,
+    );
+    expect(response.getStatusCode()).toBe(201);
+    expect(response.getHeaders()).toMatchObject({ "x-a": "b" });
+    expect(response.getRawResponse()).toEqual({});
+    expect(response.toStream(() => {})).toBeNull();
+    await expect(response.toJSON()).resolves.toEqual({ a: 1 });
+    for (const rawBody of ['"x"', "1", "false"]) {
+      const other = createStripeProviderFake();
+      other.script(answer({ status: 200, rawBody }));
+      const r = await createOneSend(other.transport).client.makeRequest(
+        "api.stripe.com",
+        "443",
+        "/v1/payment_intents",
+        "POST",
+        {},
+        "",
+        "https",
+        1000,
+      );
+      await expect(r.toJSON()).rejects.toBeInstanceOf(TypeError);
+    }
+  });
+
+  it("F4 (review finding 4): an Idempotent-Replayed header that arrives twice, in capitals or padded is a replay, so a 429 with the reason header and a 401 are row 11; only an absent header or exactly false is not", async () => {
+    const values = ["true, true", "TRUE", " true ", "yes", "", "false", null];
+    const got: string[] = [];
+    for (const value of values) {
+      const replay: FakeHeaders =
+        value === null ? {} : { "idempotent-replayed": value };
+      for (const [label, behaviour] of [
+        [
+          "429",
+          err(
+            429,
+            { type: "invalid_request_error", code: "rate_limit" },
+            { "stripe-rate-limited-reason": "global-rate", ...replay },
+          ),
+        ],
+        ["401", err(401, { type: "invalid_request_error" }, replay)],
+      ] as const) {
+        const { result } = await sendOnce([behaviour]);
+        got.push(
+          `${JSON.stringify(value)} ${label}: ${result.result} ${"errorCode" in result ? result.errorCode : "-"}`,
+        );
+      }
+    }
+    expect(got).toEqual([
+      '"true, true" 429: unknown stripe_unclassified',
+      '"true, true" 401: unknown stripe_unclassified',
+      '"TRUE" 429: unknown stripe_unclassified',
+      '"TRUE" 401: unknown stripe_unclassified',
+      '" true " 429: unknown stripe_unclassified',
+      '" true " 401: unknown stripe_unclassified',
+      '"yes" 429: unknown stripe_unclassified',
+      '"yes" 401: unknown stripe_unclassified',
+      '"" 429: unknown stripe_unclassified',
+      '"" 401: unknown stripe_unclassified',
+      '"false" 429: not_performed stripe_rate_limited',
+      '"false" 401: not_performed stripe_authentication',
+      "null 429: not_performed stripe_rate_limited",
+      "null 401: not_performed stripe_authentication",
+    ]);
+  });
+
+  it("F6 (review finding 6): the SDK runs with telemetry off: the client user agent carries no platform and no telemetry header is sent", async () => {
+    const { fake } = await sendOnce([succeed()]);
+    const headers = fake.requests()[0]?.headers ?? {};
+    const agent = JSON.parse(headers["x-stripe-client-user-agent"] ?? "{}");
+    expect(agent).not.toHaveProperty("platform");
+    expect(headers).not.toHaveProperty("x-stripe-client-telemetry");
+  });
+
+  it("F6: the fake's replay of an answer whose body hung the first time answers at once", async () => {
+    const fake = createStripeProviderFake();
+    fake.script(bodyHangs());
+    const adapter = createStripePaymentAdapter({
+      secretKey: TEST_KEY,
+      transport: fake.transport,
+    });
+    const input = {
+      account: ACCOUNT,
+      idempotencyKey: KEY,
+      params: request(),
+      timeoutMs: 1_000,
+    };
+    expect(await adapter.createPayment(input)).toEqual({
+      result: "unknown",
+      errorCode: "stripe_timeout",
+    });
+    const started = performance.now();
+    const replay = await adapter.createPayment(input);
+    expect(replay).toEqual({
+      result: "succeeded",
+      providerObjectId: fake.objects()[0]?.id,
+    });
+    expect(performance.now() - started).toBeLessThan(900);
+    expect(fake.requests().map((r) => r.replayed)).toEqual([false, true]);
+  });
 });

@@ -2355,10 +2355,91 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
       ),
       wrapper(
         "public.e7_strict(p_event_id uuid, p_attempt integer)",
-        `DECLARE v_t uuid; BEGIN IF p_attempt > 0 THEN SELECT tenant_id INTO STRICT v_t FROM public.stripe_connect_events WHERE id = p_event_id FOR UPDATE SKIP LOCKED; END IF; ${forward} END;`,
+        `DECLARE v_t uuid; BEGIN IF p_attempt > 0 THEN SELECT e.tenant_id INTO STRICT v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id FOR UPDATE SKIP LOCKED; END IF; ${forward} END;`,
         { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.e7_own_name(p_event_id uuid, p_attempt integer)",
+        `DECLARE v_t uuid; BEGIN SELECT stripe_connect_events.tenant_id INTO v_t FROM public.stripe_connect_events WHERE stripe_connect_events.id = p_event_id; ${forward} END;`,
+        { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.e7_parenthesised(p_event_id uuid, p_attempt integer)",
+        "SELECT tenant_guard.apply_account_event(((SELECT e.tenant_id FROM public.stripe_connect_events AS e WHERE (e.id = p_event_id))), p_event_id, p_attempt);",
+        { service_role: true, language: "sql" },
       ),
     ]);
     expect(result.failures).toEqual([]);
   });
+
+  it.each<[string, string, string, string]>([
+    [
+      "a column qualified by a row-typed parameter (p_row.tenant_id)",
+      "public.f2_row(p_row public.stripe_connect_events, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT p_row.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "a declared local variable selected unqualified (SELECT v_copy INTO v_t)",
+      "public.f2_copy(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_copy uuid := p_owner; v_t uuid; BEGIN SELECT v_copy INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "a column selected unqualified from an aliased relation",
+      "public.f2_bare(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "the relation's own name as qualifier when it has an alias",
+      "public.f2_shadowed(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT stripe_connect_events.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "a qualifier that is another alias",
+      "public.f2_other(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT x.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "a parameter named like the alias",
+      "public.f2_param_alias(e public.stripe_connect_events, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "a declared variable named like the alias",
+      "public.f2_var_alias(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE e record; v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "a declared variable named like the relation it reads without an alias",
+      "public.f2_var_rel(p_event_id uuid, p_attempt integer)",
+      `DECLARE stripe_connect_events record; v_t uuid; BEGIN SELECT stripe_connect_events.tenant_id INTO v_t FROM public.stripe_connect_events WHERE stripe_connect_events.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "(SELECT …) || (p_owner) as the scalar argument",
+      "public.f2_concat(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      "SELECT tenant_guard.apply_account_event((SELECT e.tenant_id FROM public.stripe_connect_events AS e WHERE e.id = p_event_id) || (p_owner), p_event_id, p_attempt);",
+      "sql",
+    ],
+    [
+      "an unbalanced predicate",
+      "public.f2_unbalanced(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE (e.id = p_event_id)) OR (true; ${forward} END;`,
+      "plpgsql",
+    ],
+  ])(
+    "F2 (review finding 2): fails WORKER_WRAPPER_TENANT_ARGUMENT unless the selected column is qualified by the read relation's alias, or its name when it has none, and that qualifier is neither a parameter nor a declared name, with balanced parentheses: %s",
+    (_label, fn, body, language) => {
+      const result = judge([
+        wrapper(fn, body, { service_role: true, language }),
+      ]);
+      expect(codes(result)).toEqual([`WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`]);
+    },
+  );
 });

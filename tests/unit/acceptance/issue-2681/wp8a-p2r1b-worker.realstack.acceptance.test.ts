@@ -73,7 +73,18 @@ const ROOT = fileURLToPath(new URL("../../../../", import.meta.url));
 const MIGRATIONS = join(ROOT, "supabase/migrations");
 const MIGRATION_SUFFIX = "_wp8a2_r1b_repair_case_insert_rule.sql";
 const COMMITTED_CHECK =
-  "SELECT NOT has_table_privilege('tenant_guard', 'public.payment_repair_cases', 'INSERT') AND has_column_privilege('tenant_guard', 'public.payment_repair_cases', 'kind', 'INSERT')";
+  "SELECT EXISTS ( SELECT 1 FROM pg_catalog.pg_roles AS r JOIN pg_catalog.pg_class AS c ON c.oid = to_regclass('public.payment_repair_cases') JOIN pg_catalog.pg_attribute AS a ON a.attrelid = c.oid AND a.attname = 'kind' AND NOT a.attisdropped WHERE r.rolname = 'tenant_guard' AND NOT has_table_privilege(r.oid, c.oid, 'INSERT') AND has_column_privilege(r.oid, c.oid, a.attnum, 'INSERT') )";
+
+const downOf = (text: string) => {
+  const header = headerOf(text);
+  const start = header.findIndex((l) => /^-- Down\b/.test(l));
+  return header
+    .slice(start + 1)
+    .filter((l) => l.startsWith("--   ") || l === "--")
+    .map((l) => (l === "--" ? "" : l.slice(5)))
+    .filter((l) => !/^(BEGIN|COMMIT);$/.test(l.trim()))
+    .join("\n");
+};
 
 const DEAD_LETTER_LINK = (operationId: string) => ({
   issue_type: "provider_request_dead_letter",
@@ -861,9 +872,9 @@ describe.skipIf(!ADMIN_URL)(
           .join(" ")
           .replace(/\s+/g, " ");
         expect(prose).toContain(COMMITTED_CHECK);
-        expect((await db.query(COMMITTED_CHECK)).rows[0]).toEqual({
-          "?column?": true,
-        });
+        expect(
+          Object.values((await db.query(COMMITTED_CHECK)).rows[0] ?? {}),
+        ).toEqual([true]);
         expect(await grantsRow()).toEqual({
           grants: "tenant_guard:SELECT",
           column_grants: 4,
@@ -925,6 +936,41 @@ describe.skipIf(!ADMIN_URL)(
             )
           ).rows[0]?.def,
         ).toContain("payment_repair_case_created_resolved");
+      }));
+
+    it("G7 (review finding 3): the read-only check as the header writes it answers false, never an error, when the table is absent; false before this file, after its Down; true after it", () =>
+      inTx(db, async () => {
+        await role(db, null);
+        const header = headerOf(migrationFile());
+        const from = header.findIndex((l) =>
+          l.includes("read-only check is true:"),
+        );
+        const to = header.findIndex(
+          (l, i) => i > from && l.startsWith("-- Then follow"),
+        );
+        const check = header
+          .slice(from + 1, to)
+          .map((l) => l.replace(/^--\s*/, ""))
+          .join("\n");
+        expect(check).toMatch(/^SELECT /);
+        const answer = async () => {
+          const r = await attempt(db, check);
+          return r.ok
+            ? String(Object.values(r.rows[0] ?? {})[0])
+            : `error ${r.code}`;
+        };
+        const got: string[] = [`after: ${await answer()}`];
+        await db.query("SAVEPOINT r1b_g7");
+        await db.query(downOf(migrationFile()));
+        got.push(`before: ${await answer()}`);
+        await db.query("ROLLBACK TO SAVEPOINT r1b_g7");
+        await db.query("SAVEPOINT r1b_g7");
+        await db.query(
+          "ALTER TABLE public.payment_repair_cases RENAME TO payment_repair_cases_set_aside",
+        );
+        got.push(`absent: ${await answer()}`);
+        await db.query("ROLLBACK TO SAVEPOINT r1b_g7");
+        expect(got).toEqual(["after: true", "before: false", "absent: false"]);
       }));
   },
 );
