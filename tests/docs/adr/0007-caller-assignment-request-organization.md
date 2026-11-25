@@ -33,10 +33,18 @@ Two D-16 rulings govern this change:
     (`authz: the tenant header is not a UUID`) from `authz.request_tenant_id()`
     on malformed values (unlike the command lane in ADR 0006, which catches
     `22P02` and raises `42501`). Because `authz.request_tenant_id()` uses
-    one-argument `pg_catalog.btrim(text)`, only missing headers, `""`, and
-    ASCII spaces (`U+0020`) resolve to `NULL` (`42501`); tab, newline,
-    carriage return, no-break space (`U+00A0`), and other Unicode whitespace
-    fail the UUID match and raise `22P02`, admitting nothing.
+    one-argument `pg_catalog.btrim(text)`, as the database receives the value
+    only missing headers, `""`, and ASCII spaces (`U+0020`) resolve to `NULL`
+    (`42501`); tab, newline, carriage return, no-break space (`U+00A0`), and
+    other Unicode whitespace fail the UUID match and raise `22P02`. Over HTTP,
+    spaces and tabs at either end of a header value are stripped by `fetch`
+    (and by the gateway/PostgREST for spaces- or tab-only values) before the
+    value arrives in `request.headers`, so `"   "` and `"\t"` arrive as `""`
+    (`42501`) and spaces- or tab-padded UUIDs arrive as the bare UUID; a raw
+    UTF-8 no-break space (`c2a0`) is not HTTP whitespace and still raises
+    `22P02`, while `fetch` sends `U+00A0` as raw Latin-1 `0xA0` (PostgREST
+    returns `500`) and rejects code points above `U+00FF` client-side. No
+    value admits an organization the request did not name.
   - **Q2:** track under AL-2676 (`tests/unit/acceptance/issue-2676/`).
   - **Q3:** remove the old no-header fallback and reverse the frozen tests in
     place under record D-18. This decision supersedes the last clause of
@@ -117,5 +125,8 @@ moves a seam, keeping every assertion at least as strong.
      `options?.assignment !== undefined` (so `""` is sent instead of dropped)
      and adds a two-organization PostgREST proof covering
      `tenant_member_directory`, `tenant_membership_invitations`, and the five
-     CRM table-preference writers with cleanup that surfaces its own error when
-     the test succeeds.
+     CRM table-preference writers, with both an `x-asym-tenant`-alone served
+     twin (matching the one-header refusals, including `"   "` normalized to
+     `""` by `fetch`, while the real-stack suite proves raw spaces-only
+     `request.headers` directly) and a both-headers served twin, with cleanup
+     that surfaces its own error when the test succeeds.
