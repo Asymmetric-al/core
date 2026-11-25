@@ -1,3 +1,5 @@
+import "server-only";
+
 /**
  * Server-side donor-identity redaction for missionary + public surfaces.
  * Source: DONOR_ANONYMITY_GUEST_GIVING_SPEC §7.2 (missionary), §7.3 (public), §8.2 (per-gift vs donor default).
