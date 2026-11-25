@@ -203,14 +203,15 @@ function useDonorsPageView(): DonorsPageViewModel {
     [donors, selectedDonorId],
   );
 
-  const isOpenFor = (donorId: string | null | undefined) =>
-    !!selectedDonor &&
-    !selectedDonor.is_anonymous &&
-    donorId === selectedDonor.id;
-  const [sessionsCheckedFor, setSessionsCheckedFor] =
-    React.useState<Donor | null>(null);
-  if (sessionsCheckedFor !== selectedDonor) {
-    setSessionsCheckedFor(selectedDonor);
+  const sessionDonorId =
+    selectedDonor && !selectedDonor.is_anonymous ? selectedDonor.id : null;
+  const isOpenFor = (donorId: string | null) =>
+    donorId !== null && donorId === sessionDonorId;
+  const [sessionsCheckedFor, setSessionsCheckedFor] = React.useState<
+    string | null
+  >(null);
+  if (sessionsCheckedFor !== sessionDonorId) {
+    setSessionsCheckedFor(sessionDonorId);
     if (noteSession && !isOpenFor(noteSession.donorId)) setNoteSession(null);
     if (tagDialogFor && !isOpenFor(tagDialogFor)) setTagDialogFor(null);
     if (editDialogFor && !isOpenFor(editDialogFor)) setEditDialogFor(null);
