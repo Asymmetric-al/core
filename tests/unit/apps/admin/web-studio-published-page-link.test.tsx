@@ -183,6 +183,31 @@ async function expectPublishedLinks(href: string) {
   await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
 }
 
+function holdsTitle(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(holdsTitle);
+  if (!value || typeof value !== "object") return false;
+  return Object.hasOwn(value, "title") || Object.values(value).some(holdsTitle);
+}
+
+describe("Web Studio document preferences", () => {
+  it("stores no recent document and no title when a document opens", async () => {
+    fixture.setPreference.mockClear();
+    fetchMock.mockImplementation(async () => publishedResponse());
+    render(editor());
+    await expectPublishedLinks("https://give.example.org/about");
+    for (let turn = 0; turn < 5; turn += 1) {
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+    }
+    const calls = fixture.setPreference.mock.calls as unknown as Array<
+      [string, unknown]
+    >;
+    expect(calls.filter(([key]) => key.includes("recent"))).toEqual([]);
+    expect(calls.filter(([, value]) => holdsTitle(value))).toEqual([]);
+  });
+});
+
 describe("Web Studio published page address", () => {
   it("keeps the header, phone and inspector on the published page after a newer same-slug draft", async () => {
     fetchMock.mockImplementation(async () => publishedResponse());

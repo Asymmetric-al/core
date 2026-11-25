@@ -48,6 +48,9 @@ vi.mock(
       getPreference: async () => null,
       setPreference: vi.fn(),
     }),
+    useServerFunctions: () => ({
+      serverFunction: async () => ({ items: [], page: 1, totalDocs: 0 }),
+    }),
   }),
 );
 vi.mock("next/navigation", async (importOriginal) => ({
