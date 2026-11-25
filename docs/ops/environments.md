@@ -581,15 +581,19 @@ app's base path (`/admin/api/health/migrations`,
 `CORE_SERVE_UNDER_PATHS=1`, read as the build reads it; the donor reads the
 root either way (`scripts/release/serve-under-paths.mjs:54-56`,
 `scripts/release/vercel-release.mjs:724-728`). For a preview built on:
-`CORE_SERVE_UNDER_PATHS=1 node scripts/release/vercel-release.mjs check --app admin --url https://<preview>`.
+`CORE_SERVE_UNDER_PATHS=1 VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET=<secret> node scripts/release/vercel-release.mjs check --app admin --url https://<preview>`,
+with the project's own bypass secret in place of `<secret>`
+(`VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET` for `--app missionary`,
+`VERCEL_DONOR_AUTOMATION_BYPASS_SECRET` for `--app donor`;
+`vercel-release.mjs:31-35`); without it the check fails closed.
 For the two dashboards a wrong statement fails closed: the check passes only
 on the migration handler's own answer and follows no redirect
-(`vercel-release.mjs:353,409`). The release job's production steps (`plan`,
-`deploy`, `register-jobs`) refuse that value with the build's own refusal
-before any Vercel or HTTP call (`vercel-release.mjs:69-79,686,719,761`). That
-refusal is the only guard `register-jobs` has; `plan` turns any failed read of
-a live commit into "live commit unknown" and rebuilds that app
-(`vercel-release.mjs:471-474`).
+(`vercel-release.mjs:353,409`). The release job's production steps
+(`preflight`, `plan`, `deploy`, `register-jobs`) refuse that value with the
+build's own refusal before any Vercel or HTTP call
+(`vercel-release.mjs:69-79,686,719,743`). That refusal is the only guard
+`register-jobs` has; `plan` turns any failed read of a live commit into "live
+commit unknown" and rebuilds that app (`vercel-release.mjs:471-474`).
 
 ## 6. Deploy Flows
 
