@@ -3702,11 +3702,11 @@
       "primary_domain": {
         "type": "text",
         "nullable": true,
-        "category": "internal",
+        "category": "public",
         "mission_control": "v--",
         "donor": "---",
         "missionary": "---",
-        "public": "---",
+        "public": "v--",
         "export": "---"
       }
     },

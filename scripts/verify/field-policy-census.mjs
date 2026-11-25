@@ -94,6 +94,10 @@ export function expectedFieldPolicyRows(manifest) {
 
 export const HOST_PROJECTION_FLOORS = Object.freeze({
   "site_domains.tenant_id": { category: "public", floor: "internal" },
+  "donor_portal_hosts.primary_domain": {
+    category: "public",
+    floor: "internal",
+  },
 });
 
 /** Problems found in the manifest alone, without a database. */
