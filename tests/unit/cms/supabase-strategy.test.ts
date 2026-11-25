@@ -1,5 +1,10 @@
 import { readFileSync } from "node:fs";
 
+import { createE2EAuthCookieValue } from "@asym/auth/e2e-auth";
+import {
+  signWebStudioSelection,
+  WEB_STUDIO_TENANT_COOKIE,
+} from "@asym/auth/web-studio";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 type Strategy = {
@@ -35,13 +40,13 @@ beforeEach(() => {
   delete process.env.E2E_AUTH_BYPASS;
 });
 
-function supabaseFakes(email = "staff@example.org") {
+function supabaseFakes(email = "staff@example.org", userId = USER) {
   const calls = { getUser: 0, rpc: [] as string[], from: [] as string[] };
   const client = {
     auth: {
       getUser: vi.fn(async () => {
         calls.getUser += 1;
-        return { data: { user: { id: USER, email } } };
+        return { data: { user: { id: userId, email } } };
       }),
     },
     rpc: vi.fn(async (fn: string) => {
@@ -50,7 +55,7 @@ function supabaseFakes(email = "staff@example.org") {
         data: [
           {
             id: ASSIGNMENT,
-            user_id: USER,
+            user_id: userId,
             tenant_id: TENANT,
             role: "staff",
             staff_role: "development",
@@ -195,6 +200,69 @@ describe("test 8: the Web Studio strategy reads Core once and links the login th
     expect(payload.create).toHaveBeenCalledTimes(1);
     expect(payload.find).toHaveBeenCalledTimes(2);
     expect(user).toMatchObject({ id: USER, collection: "principal-links" });
+  });
+
+  it("signs in nobody, and reads and writes no principal-links row, for a login whose id is not a UUID (the row is keyed by the login UUID)", async () => {
+    const supabase = supabaseFakes("demo@example.org", "e2e-admin-user");
+    const payload = payloadFake([null]);
+    const { user } = await createSupabaseAuthStrategy({
+      createSupabaseClient: supabase.createSupabaseClient,
+    }).authenticate({ headers: new Headers(), payload, req: request() });
+    expect(user).toBeNull();
+    expect(payload.find).not.toHaveBeenCalled();
+    expect(payload.create).not.toHaveBeenCalled();
+    expect(payload.update).not.toHaveBeenCalled();
+  });
+
+  it("signs in nobody, and reads and writes no principal-links row, for an E2E bypass login whose id is not a UUID", async () => {
+    const secret = "unit-test-payload-secret";
+    process.env.E2E_AUTH_BYPASS = "true";
+    process.env.E2E_AUTH_SECRET = "cms-strategy-test-secret";
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = "example";
+    process.env.PAYLOAD_SECRET = secret;
+    const membership = {
+      id: ASSIGNMENT,
+      tenantId: TENANT,
+      role: "staff" as const,
+      staffRole: "development" as const,
+      isTenantAdmin: true,
+    };
+    const selection = `${WEB_STUDIO_TENANT_COOKIE}=${await signWebStudioSelection(
+      { tenantId: TENANT, assignmentId: ASSIGNMENT },
+      secret,
+    )}`;
+    const signIn = async (userId: string) => {
+      const e2e = `asym_e2e_auth_admin=${await createE2EAuthCookieValue({
+        userId,
+        role: "admin",
+        tenantId: TENANT,
+        memberships: [membership],
+      })}`;
+      const payload = payloadFake([null]);
+      const { user } = await createSupabaseAuthStrategy({
+        createSupabaseClient: supabaseFakes().createSupabaseClient,
+      }).authenticate({
+        headers: new Headers({
+          cookie: `${e2e}; ${selection}`,
+          host: "localhost:3030",
+        }),
+        payload,
+        req: request(),
+      });
+      return { user, payload };
+    };
+
+    const uuidLogin = await signIn(USER);
+    expect(uuidLogin.user).toMatchObject({
+      id: USER,
+      collection: "principal-links",
+    });
+
+    const other = await signIn("e2e-admin-user");
+    expect(other.user).toBeNull();
+    expect(other.payload.find).not.toHaveBeenCalled();
+    expect(other.payload.create).not.toHaveBeenCalled();
+    expect(other.payload.update).not.toHaveBeenCalled();
   });
 
   it("updates the email only when it differs, and never deletes the row", async () => {
