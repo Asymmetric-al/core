@@ -57,6 +57,8 @@ const WORKER_ROW: Row = {
   profile: { id: "profile-m", avatar_url: null, full_name: "Profile Rowan" },
 };
 
+const EMBEDDED = new Set(["profile"]);
+
 function matching(text: string, open: number) {
   let depth = 0;
   for (let i = open; i < text.length; i++) {
@@ -92,7 +94,7 @@ function project(row: Row, select: string): Row {
       out[key] = value ? project(value, embed[3]!) : (value ?? null);
     } else if (part === "*") {
       for (const [k, v] of Object.entries(row))
-        if (v === null || typeof v !== "object" || Array.isArray(v)) out[k] = v;
+        if (!EMBEDDED.has(k)) out[k] = v;
     } else if (part in row) out[part] = row[part];
   }
   return out;

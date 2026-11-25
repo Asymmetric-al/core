@@ -526,6 +526,26 @@ const FAILS: [string, string][] = [
     "every column of a worker row from a missionaries root (Q4)",
     'export const go = (db) => db.from("missionaries").select("*");',
   ],
+  [
+    "a post author's name nested in a posts embed under another root (C1a)",
+    'export const go = (db) => db.from("post_likes").select("id, post:posts(id, author:profiles(display_name))");',
+  ],
+  [
+    "a post author's name nested in a posts embed inside a missionaries embed (C1a)",
+    'export const go = (db) => db.from("donations").select("id, missionary:missionaries(id, posts(id, author:profiles(display_name)))");',
+  ],
+  [
+    "a worker's whole profile two embeds deep in a missionaries embed (C1a)",
+    'const s = "missionaries(id, party:assignments(id, profile:profiles(*)))";',
+  ],
+  [
+    "a missionaries embed whose hint is interpolated before its parenthesis (C1b)",
+    'export const go = (db, h) => db.from("donations").select(`*, missionary:missionaries!${h}(*, profile:profiles(display_name))`);',
+  ],
+  [
+    "a profiles embed whose hint is interpolated before its parenthesis (C1b)",
+    'export const go = (db, h) => db.from("missionaries").select(`id, profile:profiles!${h}(display_name)`);',
+  ],
 ];
 
 const PASSES: [string, string][] = [

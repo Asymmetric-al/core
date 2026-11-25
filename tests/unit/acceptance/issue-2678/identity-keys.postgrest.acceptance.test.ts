@@ -854,7 +854,27 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         expect(JSON.stringify([workerRows, postRows])).not.toMatch(FORBIDDEN);
       });
 
-      it("anonymous, a donor and a staff member reach neither computed column nor its function, and no name comes back", async () => {
+      it("anonymous, a donor and a staff member reach neither computed column nor its function: as a column, and over rpc with valid row arguments that the service key's call binds and answers (B4), each is refused 42501, and no name comes back", async () => {
+        const rpcCalls = (): [string, Record<string, unknown>][] => [
+          ["worker_public_name", { p_worker: { id: ids.mW, tenant_id: TA } }],
+          [
+            "post_author_public_name",
+            {
+              p_post: { id: ids.postW, tenant_id: TA, missionary_id: worker.W },
+            },
+          ],
+        ];
+        for (const [fn, args] of rpcCalls()) {
+          const served = await api(`rest/v1/rpc/${fn}`, {
+            key: service,
+            bearer: service,
+            body: args,
+          });
+          expect(
+            [served.status, await body(served)],
+            `service key rpc ${fn} binds the row argument`,
+          ).toEqual([200, "Cedar"]);
+        }
         const callers: [
           string,
           (path: string, init?: { body?: unknown }) => Promise<Response>,
@@ -887,11 +907,16 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
             "42501",
             "permission denied for function post_author_public_name",
           ]);
-          for (const fn of ["worker_public_name", "post_author_public_name"]) {
-            const rpc = await call(`rest/v1/rpc/${fn}`, { body: {} });
+          for (const [fn, args] of rpcCalls()) {
+            const rpc = await call(`rest/v1/rpc/${fn}`, { body: args });
             const rpcBody = await body(rpc);
-            expect(rpc.status, `${label} rpc ${fn}`).not.toBe(200);
-            expect(JSON.stringify(rpcBody)).not.toMatch(/Cedar|Party Vale/);
+            expect(rpc.status, `${label} rpc ${fn}`).toBe(
+              label === "anon" ? 401 : 403,
+            );
+            expect(
+              [rpcBody.code, rpcBody.message],
+              `${label} rpc ${fn}`,
+            ).toEqual(["42501", `permission denied for function ${fn}`]);
           }
           expect(JSON.stringify([refused, postBody])).not.toMatch(FORBIDDEN);
         }

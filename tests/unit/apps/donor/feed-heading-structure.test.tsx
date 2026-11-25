@@ -11,6 +11,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
+import type * as RealFeedPostsModule from "../../../../packages/database/hooks/donor-feed-posts";
 import type * as EngagementModule from "@asym/ui/components/ministry-update";
 
 const feed = vi.hoisted(() => ({
@@ -26,8 +27,9 @@ const feed = vi.hoisted(() => ({
   retry: vi.fn(),
   accessDenied: false,
   isNextPageError: false,
+  realNames: false,
 }));
-vi.mock("@asym/database/hooks", () => ({
+vi.mock("@asym/database/hooks", async () => ({
   // Like the real hook, which flattens the cached pages on every render and
   // hides them once access is denied, for which a first load and a page load
   // are fetches too, and which is pending while nothing has loaded or failed.
@@ -37,8 +39,15 @@ vi.mock("@asym/database/hooks", () => ({
     isPending: feed.data === undefined && !feed.error,
     isFetching: feed.isFetching || feed.isLoading || feed.isLoadingMore,
   }),
-  postAuthorName: (post: { author_name?: string }) =>
-    post.author_name ?? "Anna",
+  postAuthorName: await (async () => {
+    const real = await vi.importActual<typeof RealFeedPostsModule>(
+      "../../../../packages/database/hooks/donor-feed-posts",
+    );
+    return (post: { author_name?: string }) =>
+      feed.realNames
+        ? real.postAuthorName(post as never)
+        : (post.author_name ?? "Anna");
+  })(),
   formatPostRelativeTime: () => "Today",
   postTitle: (post: { title: string }) => post.title,
   postReadTime: () => "1 min read",
@@ -85,6 +94,7 @@ beforeEach(() => {
   feed.retry = vi.fn();
   feed.accessDenied = false;
   feed.isNextPageError = false;
+  feed.realNames = false;
   vi.stubGlobal(
     "IntersectionObserver",
     class {
@@ -1384,22 +1394,47 @@ it("says a page loaded even when it brings no new match for the filter", async (
   ]);
 });
 
-it("renders an organization's update, which has no author, under the author fallback (AL-2678 r1, F8)", () => {
-  feed.data = [
-    {
-      id: "post-organization",
-      title: "Organization news",
-      missionary_id: null,
-      author: null,
-      post_author_public_name: null,
-      created_at: "2026-10-03T00:00:00.000Z",
-      content: "From the office",
-      like_count: 0,
-      prayer_count: 0,
-      comment_count: 0,
-    },
-  ];
+const organizationPost = {
+  id: "post-organization",
+  title: "Organization news",
+  missionary_id: null,
+  author: null,
+  post_author_public_name: null,
+  created_at: "2026-10-03T00:00:00.000Z",
+  content: "From the office",
+  like_count: 0,
+  prayer_count: 0,
+  comment_count: 0,
+};
+
+it("renders an organization's update, which has no author, under the real author fallback (AL-2678 r1, F8; B6: the real name helper, not the mock)", () => {
+  feed.realNames = true;
+  feed.data = [organizationPost];
   render(<DonorFeedPage />);
   expect(screen.getByText("From the office")).toBeTruthy();
-  expect(screen.getByText("Anna")).toBeTruthy();
+  expect(screen.getByText("Missionary")).toBeTruthy();
+});
+
+it("offers an organization's update in the author filter beside a worker's, and choosing either shows only its updates (AL-2678 r1, C4)", async () => {
+  feed.realNames = true;
+  feed.data = [
+    {
+      ...organizationPost,
+      id: "post-cedar",
+      title: "Cedar news",
+      missionary_id: "missionary-cedar",
+      author: { id: "profile-cedar", avatar_url: null },
+      post_author_public_name: "Cedar",
+      content: "From the field",
+    },
+    organizationPost,
+  ];
+  render(<DonorFeedPage />);
+  expect(screen.getAllByRole("article")).toHaveLength(2);
+  await chooseMissionary("Missionary");
+  await waitFor(() => expect(screen.getAllByRole("article")).toHaveLength(1));
+  expect(screen.getByText("From the office")).toBeTruthy();
+  await chooseMissionary("Cedar");
+  await waitFor(() => expect(screen.getByText("From the field")).toBeTruthy());
+  expect(screen.getAllByRole("article")).toHaveLength(1);
 });

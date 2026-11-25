@@ -7,23 +7,26 @@ const MIGRATION = "supabase/migrations/20261126010000_wp5_2r1_worker_names.sql";
 const KEPT_FORMAT: [number, number][] = [
   [0x0600, 0x0605],
   [0x06dd, 0x06dd],
-  [0x070f, 0x070f],
   [0x0890, 0x0891],
   [0x08e2, 0x08e2],
   [0x110bd, 0x110bd],
   [0x110cd, 0x110cd],
 ];
-const NOT_IGNORABLE_BUT_BLANK = [0x2800];
+const NOT_IGNORABLE_BUT_BLANK = [0x2800, 0x13441, 0x13442, 0x1d159];
+const FORMAT_BUT_BLANK = [0x070f];
 
 const DEFAULT_IGNORABLE = /^\p{Default_Ignorable_Code_Point}$/u;
 const FORMAT = /^\p{Cf}$/u;
 const CONTROL = /^\p{Cc}$/u;
 const WHITE_SPACE = /^\p{White_Space}$/u;
 
-function patterns(marker: string): string[] {
+function patterns(marker: string, repeated: boolean): string[] {
   const text = readFileSync(MIGRATION, "utf8");
   const quote = marker.replaceAll("$", "\\$");
-  const re = new RegExp(`${quote}\\[(.*?)\\]\\+?${quote}`, "gs");
+  const re = new RegExp(
+    `${quote}\\[(.*?)\\]${repeated ? "\\+" : ""}${quote}`,
+    "gs",
+  );
   return [...text.matchAll(re)].map((m) => m[1]!);
 }
 
@@ -63,8 +66,8 @@ const has = (re: RegExp, c: number) => re.test(String.fromCodePoint(c));
 const kept = (c: number) => KEPT_FORMAT.some(([a, b]) => c >= a && c <= b);
 
 describe(`AL-2678 r1: the safety text's classes, derived from this runtime's Unicode tables (Unicode ${process.versions.unicode}), not trusted from a list (F3; tests/docs/adr/0005)`, () => {
-  const removal = patterns("$re$");
-  const whitespace = patterns("$ws$");
+  const removal = patterns("$re$", false);
+  const whitespace = patterns("$ws$", true);
   const removed = codePoints(removal[0] ?? "");
   const spaces = codePoints(whitespace[0] ?? "");
 
@@ -74,6 +77,14 @@ describe(`AL-2678 r1: the safety text's classes, derived from this runtime's Uni
     expect(removal[1]).toBe(removal[0]);
     expect(whitespace[1]).toBe(whitespace[0]);
     expect(readFileSync(MIGRATION, "utf8")).toMatch(/^[\x00-\x7f]*$/);
+  });
+
+  it("the blank characters no Unicode property marks are removed: the Braille blank, the Egyptian hieroglyph full and half blanks, the musical null notehead, and the Syriac abbreviation mark, which draws nothing on its own (C2, C3)", () => {
+    expect(
+      [...NOT_IGNORABLE_BUT_BLANK, ...FORMAT_BUT_BLANK]
+        .filter((c) => !removed.has(c))
+        .map(hex),
+    ).toEqual([]);
   });
 
   it("every default-ignorable code point, assigned or not, is removed", () => {
