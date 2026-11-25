@@ -197,7 +197,9 @@ async function acknowledgeStaleNotice(page: Page) {
 /**
  * Opens `url` and waits until Payload has started in the browser: its own
  * session read (`cms-users/me`, made once the page has hydrated) has been
- * answered, and no call to `/web-studio/api` has been in flight for a second.
+ * answered, and no call to `/web-studio/api` and no server function (the
+ * navigation rail asks for its recent documents through one) has been in
+ * flight for a second.
  * A stale-tab case holds the page's calls and switches the other tab only
  * after that: on a cold server the page hydrates late, a field's value can
  * be on screen from the server's HTML before then, and start-up calls that
@@ -214,7 +216,13 @@ async function openStarted(page: Page, url: string) {
   let lastChange = Date.now();
   const opened = new URL(url).pathname;
   const started = (request: Request) => {
-    if (!new URL(request.url()).pathname.startsWith("/web-studio/api/")) return;
+    const isServerFunction = Boolean(request.headers()["next-action"]);
+    if (
+      !isServerFunction &&
+      !new URL(request.url()).pathname.startsWith("/web-studio/api/")
+    ) {
+      return;
+    }
     const from = request.headers()["referer"];
     if (!from || new URL(from).pathname !== opened) return;
     inFlight.add(request);
@@ -1383,6 +1391,7 @@ test("@cms a server function from a page opened for one organization, after anot
     await switchOrganization(page, base, DEMO);
     const card = page.getByRole("region", { name: "Your documents" });
     await expect(card.getByRole("tabpanel")).toBeVisible();
+    await expect(recentLink(page, `Alpha ${stamp}`)).toBeVisible();
     // Tab two switches Web Studio to the second organization.
     const other = await page.context().newPage();
     await switchOrganization(other, base, SECOND);
