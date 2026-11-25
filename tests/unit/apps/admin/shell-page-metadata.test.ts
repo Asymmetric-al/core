@@ -17,6 +17,8 @@ describe("shell-owned page metadata", () => {
     ["(app)/settings/teams/page.tsx", "Members"],
     ["(app)/settings/eve/page.tsx", "Eve operations"],
     ["(app)/reports/page.tsx", "Reports"],
+    ["(app)/workers/page.tsx", "Workers"],
+    ["(app)/workers/[assignmentId]/page.tsx", "Worker"],
     ["(app)/settings/integrations/resend/page.tsx", "Email delivery"],
     ["(app)/help/about/page.tsx", "About"],
     ["(auth)/forgot-password/page.tsx", "Forgot password"],

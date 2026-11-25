@@ -11,6 +11,7 @@ describe("buildEvePageContext", () => {
     ["/help", "Help"],
     ["/settings", "Settings"],
     ["/workflows", "Workflow runs"],
+    ["/workers", "Workers"],
   ])("allowlists %s", (pathname, pageIdentity) => {
     expect(
       buildEvePageContext({ panelOpen: false, pathname, tenant: null }),
