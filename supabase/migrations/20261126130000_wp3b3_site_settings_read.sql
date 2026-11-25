@@ -49,7 +49,7 @@
 --      AND to_regprocedure('public.tenant_site_settings(uuid)') IS NOT NULL;
 -- Then follow docs/ops/release-job.md, "If the migration committed but its
 -- ledger row is missing", with this check and this file's version,
--- 20261126070000. It has no preflight or post-assert of its own.
+-- 20261126130000. It has no preflight or post-assert of its own.
 --
 -- Down (one transaction; nothing in the database depends on either function):
 --   BEGIN;
