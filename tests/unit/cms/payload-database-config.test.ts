@@ -1,3 +1,7 @@
+import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { isProtectedDeployment } from "@asym/env/target-env";
@@ -14,8 +18,13 @@ const DIRECT_SUPABASE_URL =
 const SUPAVISOR_POOLER_URL =
   "postgresql://cms_runtime.btewedpsxwsjczvmegby:super-secret@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=no-verify";
 
+const SUPAVISOR_VERIFY_FULL_URL =
+  "postgresql://cms_runtime.btewedpsxwsjczvmegby:super-secret@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full";
+
 const SUPAVISOR_REQUIRE_SSL_URL =
   "postgresql://cms_runtime.btewedpsxwsjczvmegby:super-secret@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require";
+
+const FIXTURE_SSL_CA = "fixture-public-ca";
 
 const POSTGRES_POOLER_URL = SUPAVISOR_POOLER_URL.replace(
   "cms_runtime.",
@@ -103,9 +112,10 @@ describe("resolvePayloadDatabaseConfig", () => {
     expect(config.issue?.message).not.toContain("super-secret");
   });
 
-  it("accepts Supavisor pooler hosts in protected deployments", () => {
+  it("accepts Supavisor pooler hosts with verify-full and CA in protected deployments after WP6 part 2a retires no-verify", () => {
     const config = resolvePayloadDatabaseConfig({
-      PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL,
+      PAYLOAD_DATABASE_URI: SUPAVISOR_VERIFY_FULL_URL,
+      PAYLOAD_DATABASE_SSL_CA: FIXTURE_SSL_CA,
       VERCEL_ENV: "production",
     });
 
@@ -113,7 +123,11 @@ describe("resolvePayloadDatabaseConfig", () => {
     expect(config.isVercelRuntime).toBe(true);
     expect(config.isSupavisorPoolerHost).toBe(true);
     expect(config.pool).toEqual({
-      connectionString: SUPAVISOR_POOLER_URL,
+      connectionString: SUPAVISOR_VERIFY_FULL_URL.replace(
+        "?sslmode=verify-full",
+        "",
+      ),
+      ssl: { ca: FIXTURE_SSL_CA, rejectUnauthorized: true },
       connectionTimeoutMillis: 5000,
       idleTimeoutMillis: 5000,
       max: 2,
@@ -136,10 +150,11 @@ describe("resolvePayloadDatabaseConfig", () => {
     expect(config.pool.idleTimeoutMillis).toBe(5000);
   });
 
-  it("allows hosted Payload pool max to be raised explicitly", () => {
+  it("allows hosted Payload pool max to be raised explicitly with verify-full and CA after WP6 part 2a retires no-verify", () => {
     const config = resolvePayloadDatabaseConfig({
       PAYLOAD_DATABASE_POOL_MAX: "4",
-      PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL,
+      PAYLOAD_DATABASE_URI: SUPAVISOR_VERIFY_FULL_URL,
+      PAYLOAD_DATABASE_SSL_CA: FIXTURE_SSL_CA,
       VERCEL_ENV: "production",
     });
 
@@ -169,16 +184,55 @@ describe("resolvePayloadDatabaseConfig", () => {
     expect(config.warning).toContain("not an integer");
   });
 
-  it("blocks Supavisor pooler URLs without the Vercel-compatible SSL mode", () => {
+  it("blocks Supavisor pooler URLs without verify-full and CA after WP6 part 2a retires no-verify", () => {
     const config = resolvePayloadDatabaseConfig({
       PAYLOAD_DATABASE_URI: SUPAVISOR_REQUIRE_SSL_URL,
       VERCEL_ENV: "production",
     });
 
     expect(config.issue?.code).toBe("supavisor-ssl-mode");
-    expect(config.issue?.message).toContain("sslmode=no-verify");
+    expect(config.issue?.message).toContain("sslmode=verify-full");
+    expect(config.issue?.message).toContain("PAYLOAD_DATABASE_SSL_CA");
+    expect(config.issue?.message).not.toContain("no-verify");
+    expect(config.issue?.message).not.toContain("legacy transition path");
     expect(config.issue?.message).not.toContain("super-secret");
   });
+
+  it.each([
+    ["production", { VERCEL_ENV: "production" }],
+    [
+      "core-development",
+      { VERCEL_ENV: "preview", VERCEL_TARGET_ENV: "core-development" },
+    ],
+  ])(
+    "refuses no-verify and duplicate sslmode on %s without a CA after WP6 part 2a retires no-verify",
+    (_target, targetEnv) => {
+      for (const uri of [
+        SUPAVISOR_POOLER_URL,
+        `${SUPAVISOR_POOLER_URL}&sslmode=verify-full`,
+        SUPAVISOR_REQUIRE_SSL_URL,
+        SUPAVISOR_VERIFY_FULL_URL.replace("?sslmode=verify-full", ""),
+        `${SUPAVISOR_VERIFY_FULL_URL}&sslmode=no-verify`,
+      ]) {
+        const config = resolvePayloadDatabaseConfig({
+          PAYLOAD_DATABASE_URI: uri,
+          ...targetEnv,
+        });
+        expect(config.issue?.code, uri).toBe("supavisor-ssl-mode");
+        expect(config.issue?.message, uri).not.toContain("no-verify");
+        expect(config.issue?.message, uri).not.toContain(
+          "legacy transition path",
+        );
+      }
+
+      const emptyCa = resolvePayloadDatabaseConfig({
+        PAYLOAD_DATABASE_URI: SUPAVISOR_VERIFY_FULL_URL,
+        PAYLOAD_DATABASE_SSL_CA: "",
+        ...targetEnv,
+      });
+      expect(emptyCa.issue?.code).toBe("supavisor-ssl-mode");
+    },
+  );
 
   it("treats Vercel's built-in development target as local-only", () => {
     const env = {
@@ -351,9 +405,10 @@ describe("Payload runtime confinement to cms_runtime (plan 7.2)", () => {
     },
   );
 
-  it("accepts the cms_runtime login, direct or through the pooler", () => {
+  it("accepts the cms_runtime login, direct or through the pooler with verify-full and CA after WP6 part 2a retires no-verify", () => {
     const pooled = resolvePayloadDatabaseConfig({
-      PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL,
+      PAYLOAD_DATABASE_URI: SUPAVISOR_VERIFY_FULL_URL,
+      PAYLOAD_DATABASE_SSL_CA: FIXTURE_SSL_CA,
       VERCEL_TARGET_ENV: "core-development",
       VERCEL_ENV: "preview",
     });
@@ -436,5 +491,103 @@ describe("Payload never creates a database (disableCreateDatabase)", () => {
     ],
   ])("turns database creation off in %s", (_label, env) => {
     expect(resolvePayloadDatabaseConfig(env).disableCreateDatabase).toBe(true);
+  });
+});
+
+describe("admin build step for protected Payload database TLS (WP6 part 2a, Q4)", () => {
+  const adminDir = path.resolve("apps/admin");
+  const checkScript = path.resolve(
+    "scripts/cms/check-payload-database-config.mjs",
+  );
+
+  it("wires the database configuration check into apps/admin build before next build", () => {
+    const manifest = JSON.parse(
+      readFileSync(path.join(adminDir, "package.json"), "utf8"),
+    ) as { scripts: { build: string } };
+    const buildScript = manifest.scripts.build;
+    const checkIndex = buildScript.indexOf(
+      "scripts/cms/check-payload-database-config.mjs",
+    );
+    const nextBuildIndex = buildScript.indexOf("next build");
+
+    expect(checkIndex).toBeGreaterThan(-1);
+    expect(nextBuildIndex).toBeGreaterThan(checkIndex);
+  });
+
+  it.each([
+    ["production", { VERCEL_ENV: "production" }],
+    [
+      "core-development",
+      { VERCEL_ENV: "preview", VERCEL_TARGET_ENV: "core-development" },
+    ],
+  ])(
+    "fails a %s build with no-verify, printing the issue code and no URL, password, or CA",
+    (_label, targetEnv) => {
+      const result = spawnSync(process.execPath, [checkScript], {
+        cwd: adminDir,
+        encoding: "utf8",
+        env: {
+          PATH: process.env.PATH,
+          PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL,
+          ...targetEnv,
+        },
+      });
+      const output = `${result.stdout}${result.stderr}`;
+
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain("supavisor-ssl-mode");
+      expect(output).not.toContain("super-secret");
+      expect(output).not.toContain("pooler.supabase.com");
+      expect(output).not.toContain("btewedpsxwsjczvmegby");
+    },
+  );
+
+  it("fails a protected build with a whitespace-only CA, printing the code and no values", () => {
+    const result = spawnSync(process.execPath, [checkScript], {
+      cwd: adminDir,
+      encoding: "utf8",
+      env: {
+        PATH: process.env.PATH,
+        PAYLOAD_DATABASE_URI: SUPAVISOR_VERIFY_FULL_URL,
+        PAYLOAD_DATABASE_SSL_CA: " \n\t ",
+        VERCEL_ENV: "production",
+      },
+    });
+    const output = `${result.stdout}${result.stderr}`;
+
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain("supavisor-ssl-mode");
+    expect(output).not.toContain("super-secret");
+    expect(output).not.toContain("pooler.supabase.com");
+  });
+
+  it("passes a protected build with verify-full and CA, and does nothing on unprotected targets", () => {
+    const protectedPass = spawnSync(process.execPath, [checkScript], {
+      cwd: adminDir,
+      encoding: "utf8",
+      env: {
+        PATH: process.env.PATH,
+        PAYLOAD_DATABASE_URI: SUPAVISOR_VERIFY_FULL_URL,
+        PAYLOAD_DATABASE_SSL_CA: FIXTURE_SSL_CA,
+        VERCEL_ENV: "production",
+      },
+    });
+    expect(protectedPass.status).toBe(0);
+    expect(`${protectedPass.stdout}${protectedPass.stderr}`).not.toContain(
+      FIXTURE_SSL_CA,
+    );
+
+    const unprotectedPass = spawnSync(process.execPath, [checkScript], {
+      cwd: adminDir,
+      encoding: "utf8",
+      env: {
+        PATH: process.env.PATH,
+        PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL,
+        VERCEL_ENV: "preview",
+      },
+    });
+    expect(unprotectedPass.status).toBe(0);
+    expect(unprotectedPass.stdout).toBe("");
+    expect(unprotectedPass.stderr).toBe("");
   });
 });

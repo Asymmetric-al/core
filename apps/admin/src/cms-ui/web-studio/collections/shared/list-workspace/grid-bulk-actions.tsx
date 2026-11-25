@@ -34,6 +34,29 @@ export type GridBulkOptions = {
  * dialog and request; the selection is Payload's `SelectionProvider`, which
  * the grid's row checkboxes drive.
  */
+type DeleteManyOutcome = Record<
+  string,
+  {
+    deletedCount?: number;
+    errors?: unknown[] | null;
+  }
+>;
+
+function didBulkDeleteSucceed(result: unknown): boolean {
+  if (!result || typeof result !== "object") return false;
+  const entries = Object.values(result as DeleteManyOutcome);
+  if (entries.length === 0) return false;
+  let deletedTotal = 0;
+  for (const entry of entries) {
+    if (!entry || typeof entry !== "object") return false;
+    if (Array.isArray(entry.errors) && entry.errors.length > 0) return false;
+    if (typeof entry.deletedCount === "number" && entry.deletedCount > 0) {
+      deletedTotal += entry.deletedCount;
+    }
+  }
+  return deletedTotal > 0;
+}
+
 export function GridBulkActions({
   bulk,
   onDeleted,
@@ -84,7 +107,8 @@ export function GridBulkActions({
           className={cn(styles.delete, "contents")}
         >
           <DeleteMany
-            afterDelete={() => {
+            afterDelete={(result) => {
+              if (!didBulkDeleteSucceed(result)) return;
               clearSelection();
               onDeleted();
             }}

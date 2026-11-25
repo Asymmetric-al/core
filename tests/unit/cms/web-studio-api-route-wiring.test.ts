@@ -8,14 +8,16 @@
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { OVERRIDE_LOCK_WRITE_MESSAGE } from "../../../apps/admin/src/cms/web-studio-api-route";
+
 vi.mock("@payload-config", () => import("../../../apps/admin/payload.config"));
 
 const ORIGIN = "https://admin.example.org";
 const MESSAGE = "Web Studio only accepts changes made from Web Studio itself.";
+const OVERRIDE_LOCK_MESSAGE = OVERRIDE_LOCK_WRITE_MESSAGE;
 
 type Handler = (request: Request, args: unknown) => Promise<Response>;
 let rest: Record<string, Handler>;
-let graphql: Record<string, Handler>;
 
 beforeAll(async () => {
   vi.stubEnv("PAYLOAD_DISABLE_SCHEMA_PUSH", "1");
@@ -23,19 +25,18 @@ beforeAll(async () => {
   vi.stubEnv("RESEND_API_KEY", undefined);
   rest =
     (await import("../../../apps/admin/app/(payload)/web-studio/api/[...slug]/route")) as never;
-  graphql =
-    (await import("../../../apps/admin/app/(payload)/web-studio/api/graphql/route")) as never;
 }, 60_000);
 
 afterAll(() => vi.unstubAllEnvs());
 
-async function expectRefused(response: Response) {
+async function expectRefused(response: Response, message = MESSAGE) {
   expect(response.status).toBe(403);
   expect(response.headers.get("content-type")).toContain("application/json");
-  expect(await response.json()).toEqual({ errors: [{ message: MESSAGE }] });
+  expect(response.headers.get("cache-control")).toBe("no-store");
+  expect(await response.json()).toEqual({ errors: [{ message }] });
 }
 
-describe("Payload's route modules under /web-studio/api", () => {
+describe("Payload's REST route module under /web-studio/api after WP6 part 2a retires GraphQL and refuses overrideLock", () => {
   it.each(["PATCH", "PUT", "DELETE", "POST"])(
     "REST %s from another origin gets 403 and the JSON message",
     async (method) => {
@@ -51,19 +52,28 @@ describe("Payload's route modules under /web-studio/api", () => {
     },
   );
 
-  it("GraphQL POST from another origin gets 403 and the JSON message", async () => {
-    await expectRefused(
-      await graphql.POST!(
-        new Request(`${ORIGIN}/web-studio/api/graphql`, {
-          method: "POST",
-          headers: {
-            origin: "https://evil.example",
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({ query: "mutation { __typename }" }),
-        }),
-        {},
-      ),
-    );
-  });
+  it.each(["PATCH", "PUT", "DELETE", "POST"])(
+    "same-origin REST %s carrying overrideLock gets 403 before Payload runs",
+    async (method) => {
+      for (const query of [
+        "?overrideLock=true",
+        "?overrideLock=",
+        "?overrideLock=FALSE",
+        "?overrideLock=%20false",
+        "?overrideLock=false&overrideLock=true",
+        "?overrideLock[0]=true",
+      ]) {
+        await expectRefused(
+          await rest[method]!(
+            new Request(`${ORIGIN}/web-studio/api/pages/7${query}`, {
+              method,
+              headers: { origin: ORIGIN },
+            }),
+            { params: Promise.resolve({ slug: ["pages", "7"] }) },
+          ),
+          OVERRIDE_LOCK_MESSAGE,
+        );
+      }
+    },
+  );
 });

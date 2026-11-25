@@ -94,11 +94,10 @@ describe("Web Studio display conventions", () => {
 });
 
 describe("Payload's REST routes (AL-2675, WP2b slice C; plan 5.2)", () => {
-  it("answer under /web-studio/api, inside Web Studio's path and outside Mission Control's /api", () => {
+  it("answer under /web-studio/api with GraphQL disabled after WP6 part 2a retires Payload GraphQL", () => {
     expect(config.routes.admin).toBe("/web-studio");
     expect(config.routes.api).toBe("/web-studio/api");
-    // GraphQL follows the setting; WP6 removes it.
-    expect(config.routes.graphQL).toBe("/graphql");
+    expect(config.graphQL?.disable).toBe(true);
   });
 
   it("answer an anonymous Web Studio refusal with JSON that says why", async () => {

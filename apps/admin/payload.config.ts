@@ -173,6 +173,9 @@ export default buildConfig({
   db: guardedDatabaseAdapter,
   editor: lexicalEditor(),
   email: resolvePayloadEmailAdapter(),
+  graphQL: {
+    disable: true,
+  },
   llmInstructions: false,
   routes: {
     admin: "/web-studio",

@@ -2,9 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   markWebStudioRefusal,
+  readWebStudioRefusalDigest,
   webStudioRefusalAfterError,
 } from "../../../apps/admin/src/cms/auth/web-studio-refusal";
-import { sameOriginWrites } from "../../../apps/admin/src/cms/web-studio-api-route";
+import {
+  CROSS_ORIGIN_WRITE_MESSAGE,
+  OVERRIDE_LOCK_WRITE_MESSAGE,
+  sameOriginWrites,
+} from "../../../apps/admin/src/cms/web-studio-api-route";
 
 /**
  * Payload's REST routes under `/web-studio/api` (plan 5.2 and 6.3; AL-2675,
@@ -120,6 +125,83 @@ describe("writes to /web-studio/api", () => {
       expect(inner).toHaveBeenCalledTimes(1);
     }
   });
+
+  it.each(["POST", "PATCH", "PUT", "DELETE"])(
+    "refuses same-origin %s with disallowed overrideLock query parameters without consuming the body",
+    async (method) => {
+      const expectedMessage = OVERRIDE_LOCK_WRITE_MESSAGE;
+      expect(expectedMessage).not.toBe(CROSS_ORIGIN_WRITE_MESSAGE);
+      for (const query of [
+        "?overrideLock=true",
+        "?overrideLock=",
+        "?overrideLock",
+        "?overrideLock=FALSE",
+        "?overrideLock=%20false",
+        "?overrideLock=false%20",
+        "?overrideLock=0",
+        "?overrideLock=false&overrideLock=true",
+        "?overrideLock[0]=true",
+        "?overrideLock[0]=false",
+        "?overrideLock.nested=true",
+        "?override%4cock=true",
+      ]) {
+        const inner = handler();
+        const request = new Request(
+          `${ORIGIN}/web-studio/api/pages/7${query}`,
+          {
+            method,
+            headers: {
+              origin: ORIGIN,
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({ title: "Updated" }),
+          },
+        );
+        const response = await sameOriginWrites(inner)(request, {
+          params: Promise.resolve({ slug: ["pages", "7"] }),
+        });
+        expect(response.status, `${method} ${query}`).toBe(403);
+        expect(response.headers.get("content-type")).toContain(
+          "application/json",
+        );
+        expect(response.headers.get("cache-control")).toBe("no-store");
+        expect(await response.json()).toEqual({
+          errors: [{ message: expectedMessage }],
+        });
+        expect(inner).not.toHaveBeenCalled();
+        expect(request.bodyUsed).toBe(false);
+      }
+    },
+  );
+
+  it.each(["POST", "PATCH", "PUT", "DELETE"])(
+    "allows same-origin %s when overrideLock is absent or exactly false without touching the body",
+    async (method) => {
+      for (const query of [
+        "",
+        "?overrideLock=false",
+        "?draft=true&overrideLock=false",
+      ]) {
+        const inner = vi.fn(async (req: Request) => {
+          expect(req.bodyUsed).toBe(false);
+          return Response.json({ ok: true });
+        });
+        const response = await sameOriginWrites(inner)(
+          new Request(`${ORIGIN}/web-studio/api/pages/7${query}`, {
+            method,
+            headers: {
+              origin: ORIGIN,
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({ title: "Updated" }),
+          }),
+          { params: Promise.resolve({ slug: ["pages", "7"] }) },
+        );
+        expect(response.status, `${method} ${query}`).toBe(200);
+        expect(inner).toHaveBeenCalledTimes(1);
+      }
+    },
+  );
 });
 
 describe("an anonymous refusal on a Web Studio REST call", () => {
@@ -178,6 +260,21 @@ describe("an anonymous refusal on a Web Studio REST call", () => {
     });
   });
 
+  it("turns a marked UnauthorizedError from preferences operations into the refusal response and header", () => {
+    const unauthorized = Object.assign(new Error("Unauthorized"), {
+      name: "UnauthorizedError",
+    });
+    expect(refusalFor("scope_mismatch", unauthorized)).toMatchObject({
+      status: 409,
+      response: {
+        message: expect.stringMatching(/Reload the page/),
+        errors: [{ message: expect.stringMatching(/Reload the page/) }],
+        docs: [],
+      },
+      header: "scope_mismatch",
+    });
+  });
+
   it("leaves every other error, and a refusal of a signed-in caller, as Payload made it", () => {
     expect(refusalFor(null)).toEqual({ header: null });
     expect(
@@ -186,5 +283,58 @@ describe("an anonymous refusal on a Web Studio REST call", () => {
         Object.assign(new Error("x"), { name: "ValidationError" }),
       ),
     ).toEqual({ header: null });
+  });
+});
+
+describe("readWebStudioRefusalDigest", () => {
+  it("reads an exact refusal digest from a server action error line, including dev-mode message and stack", () => {
+    expect(
+      readWebStudioRefusalDigest(
+        '0:{"a":"$@1","f":"","b":"dev"}\n1:E{"digest":"ASYM_WEB_STUDIO_REFUSAL;scope_mismatch","message":"stale","stack":[["fn","file.ts",1,1,0,0,false]]}\n',
+      ),
+    ).toBe("scope_mismatch");
+    expect(
+      readWebStudioRefusalDigest(
+        'a:E{"digest":"ASYM_WEB_STUDIO_REFUSAL;no_session"}\n',
+      ),
+    ).toBe("no_session");
+    expect(
+      readWebStudioRefusalDigest(
+        '1f:E{"digest":"ASYM_WEB_STUDIO_REFUSAL;no_selection"}\n',
+      ),
+    ).toBe("no_selection");
+  });
+
+  it("ignores refusal text outside an error line's digest and rejects non-exact digests", () => {
+    expect(
+      readWebStudioRefusalDigest(
+        '0:{"title":"ASYM_WEB_STUDIO_REFUSAL;scope_mismatch"}\n',
+      ),
+    ).toBeNull();
+    expect(
+      readWebStudioRefusalDigest(
+        '1:E{"digest":"ASYM_WEB_STUDIO_REFUSAL;scope_mismatch1"}\n',
+      ),
+    ).toBeNull();
+    expect(
+      readWebStudioRefusalDigest(
+        '1:E{"digest":"ASYM_WEB_STUDIO_REFUSAL;scope_mismatch-extra"}\n',
+      ),
+    ).toBeNull();
+    expect(
+      readWebStudioRefusalDigest(
+        '1:E{"digest":"xASYM_WEB_STUDIO_REFUSAL;scope_mismatch"}\n',
+      ),
+    ).toBeNull();
+    expect(
+      readWebStudioRefusalDigest(
+        '1:E{"digest":"ASYM_WEB_STUDIO_REFUSAL;scope_mismatchx"}\n',
+      ),
+    ).toBeNull();
+    expect(
+      readWebStudioRefusalDigest(
+        '1:E{"message":"ASYM_WEB_STUDIO_REFUSAL;scope_mismatch","digest":"OTHER"}\n',
+      ),
+    ).toBeNull();
   });
 });

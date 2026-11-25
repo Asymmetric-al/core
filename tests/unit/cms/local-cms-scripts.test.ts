@@ -1,8 +1,9 @@
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   buildLocalEnvValues,
@@ -196,5 +197,123 @@ describe("local CMS setup scripts", () => {
       blockType: "hero",
       backgroundImage: "media_1",
     });
+  });
+});
+
+describe("local CMS script loopback target refusal (WP6 part 2a, W6-R11)", () => {
+  const tempDirs: string[] = [];
+
+  afterEach(() => {
+    for (const dir of tempDirs.splice(0)) {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  function createFakePsql() {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cms-local-psql-"));
+    tempDirs.push(dir);
+    const calledPath = path.join(dir, "psql-called.log");
+    const driverPath = path.join(dir, "fake-psql.mjs");
+    fs.writeFileSync(
+      driverPath,
+      [
+        'import fs from "node:fs";',
+        "const args = process.argv.slice(2);",
+        'if (args.includes("--version")) {',
+        '  process.stdout.write("psql (PostgreSQL) 17.0\\n");',
+        "  process.exit(0);",
+        "}",
+        `fs.appendFileSync(${JSON.stringify(calledPath)}, args.join(" ") + "\\n");`,
+        'const sql = args[args.indexOf("-c") + 1] ?? "";',
+        'if (sql.includes("to_regprocedure")) {',
+        '  process.stdout.write("t\\n");',
+        "  process.exit(0);",
+        "}",
+        'if (sql.includes("environment_kind")) {',
+        '  process.stdout.write("disposable\\n");',
+        "  process.exit(0);",
+        "}",
+        'process.stderr.write("fake-psql-connected\\n");',
+        "process.exit(1);",
+      ].join("\n"),
+    );
+
+    if (process.platform === "win32") {
+      const binPath = path.join(dir, "fake-psql.cmd");
+      fs.writeFileSync(
+        binPath,
+        `@echo off\r\n"${process.execPath}" "${driverPath}" %*\r\n`,
+      );
+      return { psqlBin: binPath, calledPath };
+    }
+
+    const binPath = path.join(dir, "fake-psql.sh");
+    fs.writeFileSync(
+      binPath,
+      `#!/usr/bin/env sh\nexec "${process.execPath}" "${driverPath}" "$@"\n`,
+      { mode: 0o755 },
+    );
+    return { psqlBin: binPath, calledPath };
+  }
+
+  it("refuses a hosted database URL in scripts/cms/seed-local.mjs before any connection, whatever the marker", () => {
+    const { psqlBin, calledPath } = createFakePsql();
+    const result = spawnSync(
+      process.execPath,
+      [path.resolve("scripts/cms/seed-local.mjs")],
+      {
+        cwd: process.cwd(),
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          PAYLOAD_DATABASE_URI:
+            "postgresql://postgres:secret@db.example.invalid:5432/postgres?sslmode=verify-full",
+          PSQL_BIN: psqlBin,
+        },
+      },
+    );
+
+    expect(result.status).not.toBe(0);
+    expect(result.stderr.toLowerCase()).toContain("loopback");
+    expect(fs.existsSync(calledPath)).toBe(false);
+  });
+
+  it("refuses a hosted database URL in scripts/cms/verify-local.mjs before any connection", () => {
+    const { psqlBin, calledPath } = createFakePsql();
+    const result = spawnSync(
+      process.execPath,
+      [path.resolve("scripts/cms/verify-local.mjs")],
+      {
+        cwd: process.cwd(),
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "local-anon",
+          SUPABASE_SERVICE_ROLE_KEY: "local-service",
+          SUPABASE_DB_URL:
+            "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+          PAYLOAD_DATABASE_URI:
+            "postgresql://postgres:secret@db.example.invalid:5432/postgres?sslmode=verify-full",
+          PAYLOAD_DISABLE_SCHEMA_PUSH: "1",
+          PAYLOAD_SECRET: "local-secret",
+          CMS_BASE_URL: "http://127.0.0.1:3030",
+          NEXT_PUBLIC_DONOR_URL: "http://127.0.0.1:3000",
+          DONOR_APP_URL: "http://127.0.0.1:3000",
+          ALLOW_DEMO_ACCOUNTS: "true",
+          DEMO_ADMIN_EMAIL: "demo@example.test",
+          DEMO_PASSWORD: "demo-password",
+          E2E_AUTH_BYPASS: "false",
+          CMS_LOCAL_DEFAULT_TENANT_SLUG: "give-hope-demo",
+          PSQL_BIN: psqlBin,
+        },
+      },
+    );
+
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain(
+      "Local CMS verification requires loopback Supabase and database URLs.",
+    );
+    expect(fs.existsSync(calledPath)).toBe(false);
   });
 });
