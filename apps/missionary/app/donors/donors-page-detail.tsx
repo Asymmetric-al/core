@@ -490,8 +490,10 @@ function DonorDetailActions({
 }) {
   const handleEditDialogOpen = editDialog.open;
   const handleTagEditorOpen = tagEditor.open;
+  const noteReasonId = React.useId();
   const callReasonId = React.useId();
   const emailReasonId = React.useId();
+  const noteReason = selectedDonor.is_anonymous ? noteReasonId : undefined;
   return (
     <motion.div
       variants={staggerContainer}
@@ -509,9 +511,17 @@ function DonorDetailActions({
           size="sm"
           className="w-full"
           onClick={() => noteComposer.open("note")}
+          disabled={selectedDonor.is_anonymous}
+          focusableWhenDisabled
+          aria-describedby={noteReason}
         >
           <Pencil data-icon="inline-start" /> Note
         </Button>
+        {selectedDonor.is_anonymous ? (
+          <span id={noteReasonId} className="sr-only">
+            Activity can’t be logged for anonymous partners
+          </span>
+        ) : null}
       </motion.div>
       <motion.div
         whileHover={{ scale: 1.02 }}
@@ -605,13 +615,25 @@ function DonorDetailActions({
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => noteComposer.open("call")}>
+            <DropdownMenuItem
+              onClick={() => noteComposer.open("call")}
+              disabled={selectedDonor.is_anonymous}
+              aria-describedby={noteReason}
+            >
               <Phone data-icon="inline-start" /> Log a call
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => noteComposer.open("meeting")}>
+            <DropdownMenuItem
+              onClick={() => noteComposer.open("meeting")}
+              disabled={selectedDonor.is_anonymous}
+              aria-describedby={noteReason}
+            >
               <Briefcase data-icon="inline-start" /> Log a meeting
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => noteComposer.open("email")}>
+            <DropdownMenuItem
+              onClick={() => noteComposer.open("email")}
+              disabled={selectedDonor.is_anonymous}
+              aria-describedby={noteReason}
+            >
               <Mail data-icon="inline-start" /> Log an email
             </DropdownMenuItem>
           </DropdownMenuGroup>

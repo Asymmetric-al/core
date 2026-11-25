@@ -224,13 +224,14 @@ function useDonorsPageView(): DonorsPageViewModel {
 
   const openNoteComposer = React.useCallback(
     (nextActivityType?: DonorActivityType) => {
+      if (!selectedDonor || selectedDonor.is_anonymous) return;
       if (nextActivityType) {
         setActivityType(nextActivityType);
       }
 
       setIsNoteDialogOpen(true);
     },
-    [],
+    [selectedDonor],
   );
 
   const closeNoteComposer = React.useCallback(() => {
@@ -252,7 +253,8 @@ function useDonorsPageView(): DonorsPageViewModel {
   }, []);
 
   const handleAddNote = React.useCallback(async () => {
-    if (!selectedDonor || !noteInput.trim()) return;
+    if (!selectedDonor || selectedDonor.is_anonymous || !noteInput.trim())
+      return;
 
     setIsSavingNote(true);
     try {
@@ -400,7 +402,8 @@ function useDonorsPageView(): DonorsPageViewModel {
       toggleSortAsc,
     },
     noteComposer: {
-      isOpen: isNoteDialogOpen,
+      isOpen:
+        isNoteDialogOpen && !!selectedDonor && !selectedDonor.is_anonymous,
       isSaving: isSavingNote,
       noteInput,
       activityType,
