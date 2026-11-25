@@ -25,9 +25,9 @@ The bypass is a UI fixture, not a Supabase session. It must not mint a JWT, fabr
 
 When `E2E_AUTH_BYPASS=true` (non-production), `POST /api/auth/demo-account` sets the `asym_e2e_auth` cookie. **Middleware and `getAuthContext` must treat that cookie as a session** so protected routes (e.g. `/donor-dashboard`) and server layouts see an authenticated user without calling Supabase. That wiring lives in `@asym/auth/middleware` and `@asym/auth/context`.
 
-The donor demo cookie uses seeded demo tenant/profile identifiers so dashboard routes that cross API boundaries can resolve the same account shape in CI and locally. Donor portal endpoints may serve deterministic E2E fixture data when bypass auth is enabled and no Supabase service-role client is configured.
+The bypass cookie's organization is `E2E_AUTH_TENANT_ID`, which must be set beside `E2E_AUTH_BYPASS=true` as a lowercase canonical UUID; without it the demo login answers `503` `DEMO_E2E_BYPASS_MISCONFIGURED` and mints no cookie (AL-2676). The launchers set it to the seed's demo organization, `00000000-0000-0000-0000-000000000001`, unless you set your own, and the cookie's profile is the seeded demo profile, so dashboard routes that cross API boundaries resolve the same account shape in CI and locally. Donor portal endpoints may serve deterministic E2E fixture data in that organization when bypass auth is enabled and no Supabase service-role client is configured.
 
-Playwright config sets this automatically when `ASYM_USE_CI_ENV_DEFAULTS=1` (see root `playwright.config.ts`).
+Playwright config sets both automatically when `ASYM_USE_CI_ENV_DEFAULTS=1` (see root `playwright.config.ts`).
 
 ## Auth email round trips
 

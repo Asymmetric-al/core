@@ -288,7 +288,7 @@ outside the paths or imports the script checks.
 
 ## Correct pattern
 
-- Route handler: `apps/donor/app/api/posts/route.ts` re-exports `GET` and `POST` from `@asym/api/posts` and does not import Supabase directly.
+- Route handler: `apps/donor/app/api/posts/route.ts` re-exports `GET` from `@asym/api/posts` and does not import Supabase directly.
 - Business logic: `packages/api/src/posts/index.ts` imports `getAdminClient` from `@asym/database/supabase/admin`, which is the correct location for data-layer logic.
 
 Web Studio Phase 3 staff directory endpoints follow the same pattern:

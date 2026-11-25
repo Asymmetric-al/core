@@ -1,4 +1,3 @@
-import { DEMO_TENANT_ID } from "./constants";
 import { STAFF_SUBROLES } from "./staff-subroles";
 
 import type {
@@ -129,11 +128,15 @@ function parseE2EAuthMembership(raw: unknown): E2EAuthMembership | null {
   };
 }
 
+export function isCanonicalE2EAuthTenantId(value: unknown): value is string {
+  return typeof value === "string" && CANONICAL_UUID.test(value);
+}
+
 function impliedE2EAuthMembership(
   session: E2EAuthSession,
 ): E2EAuthMembership | null {
-  const tenantId = session.tenantId ?? DEMO_TENANT_ID;
-  const base = { id: E2E_BYPASS_ASSIGNMENT_ID, tenantId };
+  if (!isCanonicalE2EAuthTenantId(session.tenantId)) return null;
+  const base = { id: E2E_BYPASS_ASSIGNMENT_ID, tenantId: session.tenantId };
   switch (session.role) {
     case "donor":
     case "missionary":

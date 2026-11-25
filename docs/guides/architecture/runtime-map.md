@@ -297,7 +297,6 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | donor      | `/api/media/[assetId]`                                         | Node.js (no `runtime` segment export) | Signed-in staff bounded media variant delivery             |
 | donor      | `/api/playwright-ready`                                        | Node.js (no `runtime` segment export) | DB-independent Playwright readiness probe                  |
 | donor      | `/api/posts`                                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client                    |
-| donor      | `/api/posts/[postId]`                                          | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client                    |
 | donor      | `/api/posts/[postId]/comments`                                 | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client                    |
 | donor      | `/api/posts/[postId]/fire`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client                    |
 | donor      | `/api/posts/[postId]/like`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client                    |

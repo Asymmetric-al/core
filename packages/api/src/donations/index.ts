@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     }
 
     const auth = await getAuthContext(request);
-    requireRoleClass(auth, ["donor", "staff"]);
+    requireRoleClass(auth, ["donor"]);
     const ctx = auth as AuthenticatedContext;
 
     const { searchParams } = new URL(request.url);
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     const auth = await getAuthContext(request);
-    requireRoleClass(auth, ["donor", "staff"]);
+    requireRoleClass(auth, ["donor"]);
     const ctx = auth as AuthenticatedContext;
 
     const body = (await ensureJsonBody(request)) as Record<string, unknown>;

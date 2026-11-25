@@ -207,6 +207,7 @@ export const env = createEnv({
     ),
     ALLOW_DEMO_ACCOUNTS: optionalBoolean,
     E2E_AUTH_BYPASS: optionalBoolean,
+    E2E_AUTH_TENANT_ID: z.string().optional(),
     /** HMAC secret used to sign/verify E2E bypass cookies. Non-production only. */
     E2E_AUTH_SECRET: z
       .string()
@@ -371,6 +372,7 @@ export const env = createEnv({
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
     ALLOW_DEMO_ACCOUNTS: process.env.ALLOW_DEMO_ACCOUNTS,
     E2E_AUTH_BYPASS: process.env.E2E_AUTH_BYPASS,
+    E2E_AUTH_TENANT_ID: process.env.E2E_AUTH_TENANT_ID,
     E2E_AUTH_SECRET: process.env.E2E_AUTH_SECRET,
     E2E_AUTH_ALLOWED_SUPABASE_REFS: process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS,
     PLAYWRIGHT_BASE_URL: process.env.PLAYWRIGHT_BASE_URL,

@@ -111,10 +111,7 @@ export async function GET(request: NextRequest) {
     // any client-supplied id for drafts.
     let effectiveMissionaryId = missionaryId ?? null;
     if (status !== "published") {
-      if (!(
-        hasContextRoleClass(ctx, "missionary") ||
-        hasContextRoleClass(ctx, "staff")
-      )) {
+      if (!hasContextRoleClass(ctx, "missionary")) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
       effectiveMissionaryId = ctx.profileId;

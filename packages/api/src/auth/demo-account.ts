@@ -2,10 +2,11 @@ import {
   createE2EAuthCookieValue,
   getE2EAuthCookieNameForRequest,
   hasE2EAuthSecret,
+  isCanonicalE2EAuthTenantId,
   isE2EAuthBypassEnabled,
   isSupabaseDatasourceAllowedForE2EBypass,
 } from "@asym/auth";
-import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "@asym/auth/constants";
+import { DEMO_PROFILE_ID } from "@asym/auth/constants";
 import { APP_ROLES, type AppRole } from "@asym/auth/roles";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { serverEnv } from "@asym/env";
@@ -101,7 +102,8 @@ function appRoleToUserRole(role: AppRole): UserRole | null {
   return null;
 }
 
-type E2EBypassReadiness = { ready: true } | { ready: false; reason: string };
+type E2EBypassReadiness =
+  { ready: true; tenantId: string } | { ready: false; reason: string };
 
 /**
  * Whether the E2E bypass can actually mint a cookie that the verifiers will
@@ -124,7 +126,15 @@ function getE2EBypassReadiness(): E2EBypassReadiness {
         "Supabase datasource is not allowlisted (E2E_AUTH_ALLOWED_SUPABASE_REFS).",
     };
   }
-  return { ready: true };
+  const tenantId = process.env.E2E_AUTH_TENANT_ID;
+  if (!isCanonicalE2EAuthTenantId(tenantId)) {
+    return {
+      ready: false,
+      reason:
+        "E2E_AUTH_TENANT_ID must name the organization the bypass signs in to, as a lowercase canonical UUID.",
+    };
+  }
+  return { ready: true, tenantId };
 }
 
 function createAuthClient(request: Request) {
@@ -299,7 +309,7 @@ export async function POST(request: Request) {
           await createE2EAuthCookieValue({
             userId: `e2e-${role}-user`,
             role: e2eRole,
-            tenantId: DEMO_TENANT_ID,
+            tenantId: readiness.tenantId,
             profileId: DEMO_PROFILE_ID,
           }),
           {

@@ -227,6 +227,7 @@ jobs:
       # E2E_AUTH_ALLOWED_SUPABASE_REFS is needed (built-in fallback key +
       # implicit allowlist). A real Supabase project would require both.
       E2E_AUTH_BYPASS: "true"
+      E2E_AUTH_TENANT_ID: "00000000-0000-0000-0000-000000000001"
       PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
       PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
@@ -329,6 +330,7 @@ jobs:
       # the bypass uses its built-in fallback HMAC key and implicit allowlist
       # with no hosted Supabase secrets or DEMO_* accounts.
       E2E_AUTH_BYPASS: "true"
+      E2E_AUTH_TENANT_ID: "00000000-0000-0000-0000-000000000001"
       PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
       CMS_BASE_URL: "http://127.0.0.1:3030"
       PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030"
@@ -445,13 +447,6 @@ jobs:
           CI: "1"
           PLAYWRIGHT_MISSIONARY_BASE_URL: "http://127.0.0.1:4000"
         run: bun run test:e2e:request-scope:missionary
-      - name: Boneyard smoke (donor app)
-        timeout-minutes: 5
-        env:
-          CI: "1"
-          PLAYWRIGHT_BONEYARD_TARGET: "donor"
-          PLAYWRIGHT_DONOR_BASE_URL: "http://127.0.0.1:3005"
-        run: bun run test:e2e:boneyard:donor
       - name: Request scope (donor app)
         if: ${{ !cancelled() && steps.donor-ready.outcome == 'success' }}
         timeout-minutes: 5

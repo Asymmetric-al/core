@@ -54,6 +54,8 @@ for Cloud Agent development:
 
 - `SKIP_ENV_VALIDATION=1`
 - `E2E_AUTH_BYPASS=true`
+- `E2E_AUTH_TENANT_ID=00000000-0000-0000-0000-000000000001` (the seed's demo
+  organization; the bypass is misconfigured without it)
 - placeholder Supabase public values
 - `PLAYWRIGHT_ADMIN_BASE_URL=http://localhost:3030`
 - `PLAYWRIGHT_ADMIN_PORT=3030`

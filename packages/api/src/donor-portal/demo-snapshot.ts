@@ -1,4 +1,4 @@
-import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "@asym/auth/constants";
+import { DEMO_PROFILE_ID } from "@asym/auth/constants";
 
 import {
   buildDonorPortalSnapshot,
@@ -23,9 +23,8 @@ const profile: DonorPortalProfileRow = {
   avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
 };
 
-const donor: DonorPortalDonorRow = {
+const donor: Omit<DonorPortalDonorRow, "tenant_id"> = {
   id: DEMO_DONOR_ID,
-  tenant_id: DEMO_TENANT_ID,
   profile_id: DEMO_PROFILE_ID,
   missionary_id: "20000000-0000-0000-0000-000000000001",
   name: "Jordan Hale",
@@ -168,10 +167,12 @@ const feedPreferences: DonorPortalFeedPreferencesRow = {
   push_missionary_posts: false,
 };
 
-export function getDemoDonorPortalSnapshot(): DonorPortalSnapshot {
+export function getDemoDonorPortalSnapshot(
+  tenantId: string,
+): DonorPortalSnapshot {
   return buildDonorPortalSnapshot({
     profile,
-    donor,
+    donor: { ...donor, tenant_id: tenantId },
     donations,
     pledges,
     feedPreferences,

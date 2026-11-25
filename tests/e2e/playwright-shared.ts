@@ -240,6 +240,8 @@ export function defineBoneyardConfig(
           env: {
             ...env,
             E2E_AUTH_BYPASS: env.E2E_AUTH_BYPASS || "true",
+            E2E_AUTH_TENANT_ID:
+              env.E2E_AUTH_TENANT_ID || "00000000-0000-0000-0000-000000000001",
             // The E2E cookie is chosen by port for the default ports only.
             ASYM_E2E_AUTH_SURFACE: surface.app,
           } as Record<string, string>,
