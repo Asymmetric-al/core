@@ -44,7 +44,9 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
    other code compares a name's state. A well-formed row is refused with the
    first reason that applies: `not_ready`, `not_home`, `not_for_surface`; no row
    is `unknown`. Every refusal is the front's `404` with `no-store`, with no
-   session read and no cookie. WP3b adds the donor surfaces' rows. Ruled in
+   session read and no cookie. WP3b part 1 added the `donor_account` and
+   `website` rows (`active` only; see
+   [0016](0016-donor-organization-from-the-verified-name.md)). Ruled in
    `ruling-n2.md` Q1 (a): staff may prepare an organization on a `ready` home
    ("Ready names admit staff; visitors see nothing until activation"); the
    missionary workspace waits for activation. A missionary invited before
@@ -72,10 +74,14 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
 
 6. **Readers know four states.** `readNameTenantState(headers)` is `off` while
    the switch is off (decided before the header is read), then `valid`,
-   `absent` or `invalid`. `isNameTenantRefused` is `invalid`, or `absent` inside
-   a dashboard (`appBasePath() !== ""`). A refused state fails closed in every
+   `absent` or `invalid`. `isNameTenantRefused` is `invalid` or `absent` in
+   every app while the switch is on (WP3b part 1 ended the empty-base-path
+   exception for the donor app; see
+   [0016](0016-donor-organization-from-the-verified-name.md)). A refused state
+   fails closed in every
    reader: `getAuthContext` refuses after sign-in without the scope refusal (no
-   bypass identity), `readDocumentScope` throws, Web Studio's gate refuses, the
+   bypass identity), `readDocumentScope` throws, `readPortalDocumentScope`
+   returns `null`, Web Studio's gate refuses, the
    strategy answers `no_selection`, the choice action signs nothing and both
    choosers list nothing. `readServerNameTenantState()` returns `off` without
    calling `headers()`.
@@ -122,10 +128,14 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
     organization ID and the chooser out of the address, the browser's guard,
     the name's generation and the invitation and callback redirects. N2 parts 3
     to 5 own page identity, cache keys and the donor's cache rules (with WP7),
-    addresses built outside a request, and deleting the off-mode path. WP3b owns
-    the donor app's organization from the name, its single-organization
-    fallback, donor sign-in on names that are not home, `/` on a home with no
-    website and active-only donor admission. N3 part 4 owns the front's own
+    addresses built outside a request, and deleting the off-mode path. WP3b
+    part 1 built the donor app's verified-name admission, active-only donor
+    surfaces, `/` refusal on homes with no website, and ending the
+    single-organization fallback while the switch is on (see
+    [0016](0016-donor-organization-from-the-verified-name.md)); WP3b parts 2 to
+    5 own the home lookup and redirect to home, Sites and brand settings, demo
+    constants, and deleting the off-mode fallback. N3 part 4 owns the front's
+    own
     lookup, replacing `FRONT_NAMES`; WP7 the donor redirects behind admission;
     N6 framing and the browser's direct Data API calls; N3 part 3 the
     assistant's routes under the switch; N4 invitations, including a

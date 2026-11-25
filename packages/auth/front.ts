@@ -363,7 +363,7 @@ export async function routeToDashboard(
   );
 }
 
-function hasDotOrBackslashSegment(decodedPathname: string): boolean {
+export function hasDotOrBackslashSegment(decodedPathname: string): boolean {
   if (decodedPathname.includes("\\")) return true;
   return decodedPathname
     .split("/")

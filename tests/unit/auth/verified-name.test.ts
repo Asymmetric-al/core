@@ -17,8 +17,12 @@ vi.mock("@supabase/supabase-js", () => ({
   createClient: mocks.createClient,
 }));
 
-const { lookUpVerifiedName, SURFACE_ADMISSION, VERIFIED_NAME_TIMEOUT_MS } =
-  await import("../../../packages/auth/verified-name");
+const {
+  lookUpVerifiedName,
+  lookUpVerifiedNameSurfaces,
+  SURFACE_ADMISSION,
+  VERIFIED_NAME_TIMEOUT_MS,
+} = await import("../../../packages/auth/verified-name");
 
 type Answer = { data: unknown; error: unknown };
 
@@ -73,10 +77,12 @@ afterEach(() => {
 });
 
 describe("the per-surface admission constant", () => {
-  it("admits staff on a ready or active home and the missionary workspace on an active home only", () => {
+  it("admits staff on a ready or active home, missionary and donor_account on an active home, and website on any active name", () => {
     expect(SURFACE_ADMISSION).toEqual({
       staff: { states: ["ready", "active"], home: true },
       missionary: { states: ["active"], home: true },
+      donor_account: { states: ["active"], home: true },
+      website: { states: ["active"], home: false },
     });
     expect(VERIFIED_NAME_TIMEOUT_MS).toBe(3000);
   });
@@ -284,5 +290,185 @@ describe("the lookup client", () => {
       tenantId: "00000000-0000-0000-0000-000000000002",
     });
     expect(mocks.createClient).toHaveBeenCalledTimes(2);
+  });
+});
+
+const TB = "00000000-0000-0000-0000-000000000002";
+
+describe("lookUpVerifiedNameSurfaces: donor_account and website in one lookup", () => {
+  it.each([
+    [
+      "home-a (active home, all four surfaces)",
+      [row({ tenant_id: TA })],
+      {
+        donor_account: { kind: "admitted", tenantId: TA, generation: 7 },
+        website: { kind: "admitted", tenantId: TA, generation: 7 },
+      },
+    ],
+    [
+      "home-b (active home, all four surfaces)",
+      [row({ tenant_id: TB })],
+      {
+        donor_account: { kind: "admitted", tenantId: TB, generation: 7 },
+        website: { kind: "admitted", tenantId: TB, generation: 7 },
+      },
+    ],
+    [
+      "site-a (active, website only, not home: not_home precedes not_for_surface)",
+      [row({ tenant_id: TA, is_home: false, surfaces: ["website"] })],
+      {
+        donor_account: { kind: "refused", reason: "not_home" },
+        website: { kind: "admitted", tenantId: TA, generation: 7 },
+      },
+    ],
+    [
+      "second-a (active, website and donor_account, not home)",
+      [
+        row({
+          tenant_id: TA,
+          is_home: false,
+          surfaces: ["website", "donor_account"],
+        }),
+      ],
+      {
+        donor_account: { kind: "refused", reason: "not_home" },
+        website: { kind: "admitted", tenantId: TA, generation: 7 },
+      },
+    ],
+    [
+      "active home without donor_account (website only): not_for_surface",
+      [row({ tenant_id: TA, is_home: true, surfaces: ["website"] })],
+      {
+        donor_account: { kind: "refused", reason: "not_for_surface" },
+        website: { kind: "admitted", tenantId: TA, generation: 7 },
+      },
+    ],
+    [
+      "bare-b (active home, donor_account only)",
+      [row({ tenant_id: TB, is_home: true, surfaces: ["donor_account"] })],
+      {
+        donor_account: { kind: "admitted", tenantId: TB, generation: 7 },
+        website: { kind: "refused", reason: "not_for_surface" },
+      },
+    ],
+    [
+      "ready-b (ready home, all four surfaces)",
+      [row({ tenant_id: TB, state: "ready" })],
+      {
+        donor_account: { kind: "refused", reason: "not_ready" },
+        website: { kind: "refused", reason: "not_ready" },
+      },
+    ],
+    [
+      "no row: unknown for both",
+      [],
+      {
+        donor_account: { kind: "refused", reason: "unknown" },
+        website: { kind: "refused", reason: "unknown" },
+      },
+    ],
+  ])(
+    "answers both donor surfaces from one rpc call on %s",
+    async (_label, data, expectedDecisions) => {
+      const { client, calls } = fakeClient({ data, error: null });
+      await expect(
+        lookUpVerifiedNameSurfaces(
+          "give-hope-demo.localhost:25160",
+          ["donor_account", "website"],
+          client,
+        ),
+      ).resolves.toEqual({ kind: "resolved", decisions: expectedDecisions });
+      expect(calls).toHaveLength(1);
+      expect(calls[0]!.fn).toBe("resolve_verified_host");
+      expect(calls[0]!.args).toEqual({
+        p_host: "give-hope-demo.localhost:25160",
+      });
+      expect(calls[0]!.signal).toBeInstanceOf(AbortSignal);
+    },
+  );
+
+  it.each([
+    ["an error answer", { data: null, error: { message: "boom" } }],
+    ["a non-array", { data: row(), error: null }],
+    ["two rows", { data: [row(), row()], error: null }],
+    [
+      "an upper-case tenant id",
+      {
+        data: [row({ tenant_id: "00000000-0000-0000-0000-00000000000A" })],
+        error: null,
+      },
+    ],
+    ["a zero generation", { data: [row({ generation: 0 })], error: null }],
+    ["a string is_home", { data: [row({ is_home: "true" })], error: null }],
+    [
+      "surfaces not strings",
+      { data: [row({ surfaces: ["website", 1] })], error: null },
+    ],
+    [
+      "a state that is not a string",
+      { data: [row({ state: 1 })], error: null },
+    ],
+    ["a null row", { data: [null], error: null }],
+  ])("returns unavailable for both surfaces on %s", async (_label, answer) => {
+    const { client, calls } = fakeClient(answer);
+    await expect(
+      lookUpVerifiedNameSurfaces(
+        "x.localhost",
+        ["donor_account", "website"],
+        client,
+      ),
+    ).resolves.toEqual({ kind: "unavailable" });
+    expect(calls).toHaveLength(1);
+  });
+
+  it("returns unavailable on thrown, rejected, missing-config, client-throw and timed-out calls", async () => {
+    const throwing = {
+      rpc() {
+        throw new Error("socket");
+      },
+    };
+    await expect(
+      lookUpVerifiedNameSurfaces(
+        "x.localhost",
+        ["donor_account", "website"],
+        throwing as never,
+      ),
+    ).resolves.toEqual({ kind: "unavailable" });
+
+    await expect(
+      lookUpVerifiedNameSurfaces(
+        "x.localhost",
+        ["donor_account", "website"],
+        fakeClient(() => Promise.reject(new Error("reset"))).client,
+      ),
+    ).resolves.toEqual({ kind: "unavailable" });
+
+    mocks.config = { url: undefined, key: "publishable-key" };
+    await expect(
+      lookUpVerifiedNameSurfaces("x.localhost", ["donor_account", "website"]),
+    ).resolves.toEqual({ kind: "unavailable" });
+    expect(mocks.createClient).not.toHaveBeenCalled();
+
+    mocks.config = {
+      url: "https://example.supabase.co",
+      key: "publishable-key",
+    };
+    mocks.createClient.mockImplementation(() => {
+      throw new Error("bad url");
+    });
+    await expect(
+      lookUpVerifiedNameSurfaces("x.localhost", ["donor_account", "website"]),
+    ).resolves.toEqual({ kind: "unavailable" });
+
+    vi.useFakeTimers();
+    const { client, calls } = fakeClient(() => new Promise<Answer>(() => {}));
+    const pending = lookUpVerifiedNameSurfaces(
+      "x.localhost",
+      ["donor_account", "website"],
+      client,
+    );
+    await vi.advanceTimersByTimeAsync(VERIFIED_NAME_TIMEOUT_MS);
+    await expect(pending).resolves.toEqual({ kind: "unavailable" });
+    expect(calls[0]!.signal!.aborted).toBe(true);
   });
 });

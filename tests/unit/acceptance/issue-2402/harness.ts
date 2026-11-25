@@ -227,23 +227,36 @@ export class Stack {
     actor: string | null,
     sql: string,
     assignment?: string,
+    tenant?: string,
   ) {
     await this.db.query("savepoint actor");
     try {
       const sub = actor ? this.ids[actor] : "";
-      const headers = assignment ? { "x-asym-assignment": assignment } : "";
+      const headerMap: Record<string, string> = {};
+      if (tenant !== undefined) headerMap["x-asym-tenant"] = tenant;
+      if (assignment !== undefined) headerMap["x-asym-assignment"] = assignment;
+      const headers = Object.keys(headerMap).length > 0 ? headerMap : "";
       await this.db.query(`set local role ${role};
         select set_config('request.jwt.claim.sub',${literal(sub)},true),
         set_config('request.jwt.claims',${literal({ sub: sub || null, role })},true),
         set_config('request.headers',${literal(headers)},true)`);
       const result = await this.db.query(sql);
       await this.db.query("reset role; release savepoint actor");
-      return { code: null, value: result.rows[0]?.value as unknown };
+      return {
+        code: null,
+        message: "",
+        value: result.rows[0]?.value as unknown,
+      };
     } catch (error) {
       await this.db.query(
         "rollback to savepoint actor; release savepoint actor",
       );
-      return { code: (error as { code?: string }).code, value: null };
+      const err = error as { code?: string; message?: string };
+      return {
+        code: err.code,
+        message: err.message ?? "",
+        value: null,
+      };
     }
   }
   async snapshot() {

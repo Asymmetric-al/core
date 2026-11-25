@@ -523,9 +523,13 @@ describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
       `select membership_id, user_id, display_name, role, staff_role, is_tenant_admin
          from public.tenant_member_directory('${id[tenant]}')`;
 
-    it("returns the active tenant's live members and no others", () =>
+    it("returns the active tenant's live members and no others (D-18: AL-2676, D-16 ruling on caller_assignment Q3: member directory calls send x-asym-tenant matching the tenant argument)", () =>
       tx(async () => {
-        const r = await as("authenticated", { sub: "UDEV" }, DIRECTORY("TA"));
+        const r = await as(
+          "authenticated",
+          { sub: "UDEV", headers: { "x-asym-tenant": id.TA! } },
+          DIRECTORY("TA"),
+        );
         expect(r.code, r.message).toBeNull();
         expect(
           r.rows
@@ -551,25 +555,33 @@ describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
             is_tenant_admin: admin,
           })),
         );
-        const b = await as("authenticated", { sub: "UB" }, DIRECTORY("TB"));
+        const b = await as(
+          "authenticated",
+          { sub: "UB", headers: { "x-asym-tenant": id.TB! } },
+          DIRECTORY("TB"),
+        );
+        expect(b.code, b.message).toBeNull();
         expect(b.rows.map((row) => keyOf(row.membership_id)).sort()).toEqual([
           "mB",
           "mDonB",
         ]);
       }));
 
-    it("refuses a caller with no live staff row in that tenant, an ambiguous caller, a foreign header and anon", () =>
+    it("refuses a caller with no live staff row in that tenant, an ambiguous caller, a foreign header and anon (D-18: AL-2676, D-16 ruling on caller_assignment Q3: authenticated refusals send x-asym-tenant matching the tenant argument and assert exact message)", () =>
       tx(async () => {
         for (const [caller, tenant] of [
-          [{ sub: "UDEV" }, "TB"],
-          [{ sub: "UDON" }, "TA"],
-          [{ sub: "UREV" }, "TA"],
-          [{ sub: "UFC" }, "TA"],
+          [{ sub: "UDEV", headers: { "x-asym-tenant": id.TB! } }, "TB"],
+          [{ sub: "UDON", headers: { "x-asym-tenant": id.TA! } }, "TA"],
+          [{ sub: "UREV", headers: { "x-asym-tenant": id.TA! } }, "TA"],
+          [{ sub: "UFC", headers: { "x-asym-tenant": id.TA! } }, "TA"],
           [{ sub: "UDEV", headers: header("mAdm") }, "TA"],
           [{ sub: "UFC", headers: header("mDonA") }, "TA"],
         ] as const) {
           const r = await as("authenticated", caller, DIRECTORY(tenant));
           expect(r.code, JSON.stringify(caller)).toBe("42501");
+          expect(r.message, JSON.stringify(caller)).toBe(
+            "Forbidden: the member directory requires a live staff membership in this tenant.",
+          );
         }
         const chosen = await as(
           "authenticated",
@@ -586,7 +598,7 @@ describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
     // Control may see (profiles.email is "vex" there in the field-policy
     // manifest), and shows a person who belongs to two tenants only by the
     // row of the tenant asked about.
-    it("names its columns, the email among them, and shows a two-tenant member only by that tenant's row", () =>
+    it("names its columns, the email among them, and shows a two-tenant member only by that tenant's row (D-18: AL-2676, D-16 ruling on caller_assignment Q3: member directory call sends x-asym-tenant matching TB)", () =>
       tx(async () => {
         await db.query(
           "update public.profiles set email = 'drew@example.org' where user_id = $1",
@@ -594,7 +606,7 @@ describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
         );
         const r = await as(
           "authenticated",
-          { sub: "UB" },
+          { sub: "UB", headers: { "x-asym-tenant": id.TB! } },
           `select * from public.tenant_member_directory('${id.TB}')`,
         );
         expect(r.code, r.message).toBeNull();
@@ -628,18 +640,20 @@ describe.skipIf(!ADMIN_URL)(SUITE_TITLE, () => {
         ]);
       }));
 
-    it("refuses at the next request once the caller's row is revoked", () =>
+    it("refuses at the next request once the caller's row is revoked (D-18: AL-2676, D-16 ruling on caller_assignment Q3: member directory calls send x-asym-tenant matching TA and assert exact message on revocation refusal)", () =>
       tx(async () => {
-        expect(
-          (await as("authenticated", { sub: "UDEV" }, DIRECTORY("TA"))).code,
-        ).toBeNull();
+        const caller = { sub: "UDEV", headers: { "x-asym-tenant": id.TA! } };
+        const before = await as("authenticated", caller, DIRECTORY("TA"));
+        expect(before.code, before.message).toBeNull();
         await db.query(
           "update authz.memberships set is_active = false where id = $1",
           [id.mDev],
         );
-        expect(
-          (await as("authenticated", { sub: "UDEV" }, DIRECTORY("TA"))).code,
-        ).toBe("42501");
+        const after = await as("authenticated", caller, DIRECTORY("TA"));
+        expect(after.code).toBe("42501");
+        expect(after.message).toBe(
+          "Forbidden: the member directory requires a live staff membership in this tenant.",
+        );
       }));
   });
 

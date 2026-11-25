@@ -98,11 +98,19 @@ command lane (`tenant_guard.begin_human_command`,
 the caller holds and refusing a value that is not a UUID) and reads
 `x-asym-tenant` through `authz.request_tenant_id()`, refusing with `42501`
 when `x-asym-tenant` is missing, malformed or differs from the command's
-tenant. `authz.caller_assignment`, which the member directory
-(`public.tenant_member_directory`) uses, also reads `x-asym-assignment`
-through `tenant_guard.request_assignment_id()`, refuses an `x-asym-tenant`
-header that names another organization, and still admits a request with no
-`x-asym-tenant` header (closed by the next package under D-16 ruling Q6). The
+tenant. `authz.caller_assignment` (used by `public.tenant_member_directory`,
+`public.tenant_membership_invitations` and the five CRM table-preference
+writers) also reads `x-asym-assignment` through
+`tenant_guard.request_assignment_id()` and admits a request only when
+`x-asym-tenant` names the organization asked about: as the database receives
+it, a missing, blank (empty or ASCII spaces only) or other header selects no
+row, and a malformed one (including non-space whitespace) raises `22P02`. Over
+HTTP, spaces and tabs at either end of a header value are stripped by the
+client before it arrives (so a spaces- or tab-only header arrives empty and
+selects no row, while a raw UTF-8 no-break space is not HTTP whitespace and
+still raises `22P02`, and `fetch` sends `U+00A0` as raw Latin-1 `0xA0`, which
+PostgREST rejects with `500`, and rejects code points above `U+00FF`
+client-side); no value admits an organization the request did not name. The
 values the browser client sends reach these functions, as the session clients'
 values do.
 

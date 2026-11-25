@@ -1628,7 +1628,7 @@
   "tests/unit/acceptance/issue-2675/request-tenant-order.realstack.acceptance.test.ts": 1,
   "tests/unit/acceptance/issue-2675/role-names.acceptance.test.ts": 3,
   "tests/unit/acceptance/issue-2675/seed-tenant-claim.acceptance.test.ts": 3,
-  "tests/unit/acceptance/issue-2675/tenant-policy-migration.realstack.acceptance.test.ts": 177,
+  "tests/unit/acceptance/issue-2675/tenant-policy-migration.realstack.acceptance.test.ts": 175,
   "tests/unit/acceptance/issue-2675/two-tenant-people.acceptance.test.ts": 13,
   "tests/unit/acceptance/issue-2675/web-studio-document-locks.realstack.acceptance.test.ts": 21,
   "tests/unit/acceptance/issue-2675/web-studio-request-scope.acceptance.test.ts": 2,

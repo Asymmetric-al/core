@@ -96,6 +96,30 @@ tenant header or option, the role check, the choosers and Web Studio's cookie
 may only narrow to it (`packages/auth/docs/adr/0015-organization-from-the-verified-name.md`).
 The assistant's `/eve/v1/*` routes never read it.
 
+On the donor app itself (`apps/donor/proxy.ts`), with the switch on and after
+`/admin` and `/missionary` handoff, every request that reaches the proxy strips
+client `x-asym-front-*` and `x-forwarded-host`, refuses encoded slashes
+(`%2F`/`%2f`), decodes and validates its path form before any lookup
+(`apps/donor/lib/route-policy.ts`; malformed encodings, `\`, `.`/`..`, `//`,
+double encoding, decoded dashboard prefixes, and malformed `.segments/` or
+`.rsc` transport forms get `404` `no-store`), maps valid Next.js per-segment
+prefetch (`.segments/<segment>.segment[.rsc]`) and leftover `.rsc` transport
+paths back to their target page path (with `/index` mapped to `/`), skips lookup
+only on the exact non-transport exempt paths (`/api/webhooks/stripe`,
+`/api/health`, `/api/health/migrations`, `/api/playwright-ready`), and otherwise
+performs one uncached `resolve_verified_host` lookup of the `host` header for
+`donor_account` (`active`, home) and `website` (`active`). Two kinds of request
+never reach the proxy and still answer on any name (owned by WP7): paths
+excluded by `config.matcher` in `apps/donor/proxy.ts` (`/_next/*`, `/maplibre/*`,
+and single root filenames ending in `.ico`, `.svg`, `.png`, `.jpg`, `.jpeg`,
+`.gif`, `.webp`, `.webmanifest`, `.json`, `.txt`, or `.xml`) and the
+configuration redirects in `apps/donor/next.config.ts` (answered before the
+proxy). Account, shared legal, and website paths admit only matching active
+surfaces (`404` `no-store` when refused, `503` `no-store` when unavailable),
+`x-asym-name-tenant` scopes the donor's membership and `readPortalDocumentScope`
+to that organization, and the single-organization fallback ends while the switch
+is on (`packages/auth/docs/adr/0016-donor-organization-from-the-verified-name.md`).
+
 With the switch unset (today's default everywhere), no `basePath` is set, the
 donor app proxies nothing to the dashboards, and the dashboards admit direct
 requests as before. Reserved paths, the `(app)/admin/*` rename, assistant
