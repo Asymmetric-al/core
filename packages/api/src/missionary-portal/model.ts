@@ -71,6 +71,7 @@ export type MissionaryPortalDonorRow = {
   tags: string[] | null;
   has_active_pledge: boolean | null;
   giving_preferences?: GivingPreferences | null;
+  donor_is_restricted_party?: boolean | null;
 };
 
 export type MissionaryPortalTaskRow = {
@@ -93,6 +94,7 @@ export type MissionaryPortalTaskRow = {
     email: string | null;
     avatar_url: string | null;
     giving_preferences?: GivingPreferences | null;
+    donor_is_restricted_party?: boolean | null;
   } | null;
 };
 
@@ -345,6 +347,7 @@ export function mapMissionaryTask(
           },
           isAnonymousToRecipient({
             givingPreferences: row.donor.giving_preferences,
+            restrictedParty: row.donor.donor_is_restricted_party,
           }),
         )
       : null,
@@ -412,13 +415,14 @@ export function buildMissionaryPortalSnapshot(input: {
   tasks: MissionaryPortalTaskRow[];
   posts: MissionaryPortalPostRow[];
 }): MissionaryPortalSnapshot {
-  // Donors this missionary is NOT allowed to see by name (§7.2). Signal is the
-  // donor-level default in giving_preferences; a per-gift override lands with
-  // the Track B `donations.anonymous_to_recipient` column (not selected yet).
-  const anonymousDonorIds = new Set(
+  const namedDonorIds = new Set(
     input.donors
-      .filter((donor) =>
-        isAnonymousToRecipient({ givingPreferences: donor.giving_preferences }),
+      .filter(
+        (donor) =>
+          !isAnonymousToRecipient({
+            givingPreferences: donor.giving_preferences,
+            restrictedParty: donor.donor_is_restricted_party,
+          }),
       )
       .map((donor) => donor.id),
   );
@@ -435,7 +439,7 @@ export function buildMissionaryPortalSnapshot(input: {
           type: giftType(row),
           date: donationDate(row),
         },
-        Boolean(row.donor_id && anonymousDonorIds.has(row.donor_id)),
+        !(row.donor_id && namedDonorIds.has(row.donor_id)),
       ),
     );
 
@@ -469,7 +473,7 @@ export function buildMissionaryPortalSnapshot(input: {
           ? pledgedDonorIds.has(donor.id)
           : Boolean(donor.has_active_pledge),
       },
-      anonymousDonorIds.has(donor.id),
+      !namedDonorIds.has(donor.id),
     ),
   );
 

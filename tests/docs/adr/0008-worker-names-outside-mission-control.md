@@ -253,6 +253,50 @@ NULL` on `public.parties`) and the fourth
     called by another name; and `unstable_cache` reached through a local
     variable (`const memo = unstable_cache`), a bracket access
     (`ns["unstable_cache"]`) or a module that re-exports it.
+12. **A restricted person is an anonymous partner to a colleague (WP5 part
+    2-r2s; the D-16 ruling on r2a's readers, point 2).** A restriction changes
+    `parties` only, so a restricted worker who gives to a colleague, or asks
+    to follow one, was named to that colleague from `donors` and `profiles`.
+    - **The fact.** `public.donor_is_restricted_party(public.donors)`
+      (`20261126060000_wp5_2r2s_donor_restricted_party.sql`), a service-key
+      computed column, is false only when the donor has a Party in its own
+      organization and every Party linked to its login, or to a login of that
+      Party, in any organization, is standard or sensitive; it is never NULL.
+    - **The seam.** `isAnonymousToRecipient`
+      (`packages/api/src/missionary-portal/redaction.ts`) takes a required
+      `restrictedParty`, and its first line hides the donor unless that is
+      exactly `false`: `true`, `null`, `undefined`, a missing key, a failed
+      read and a donor absent from the rows read all hide. A hidden donor is
+      "Anonymous partner", "AP" or `null`, never an alias, which would tell
+      the colleague who it is. `isAnonymousToPublic` is unchanged.
+    - **The contract.**
+      `tests/unit/acceptance/issue-2678/supporter-names.static.acceptance.test.ts`
+      parses `packages/api/src/{missionary-portal,missionaries,follower-requests}/`
+      and `packages/graphql/` with the TypeScript compiler. A `.select(arg)`
+      resolves from a literal, a template whose substitutions resolve, both
+      branches of a conditional, a `+` of resolvable parts, any same-file
+      variable of that name (every value kept) or a constant imported by a
+      relative or `@asym/*` specifier; a `.select()` with no argument on a
+      `donors` root is `*`, and `.from(T)` resolves `T` the same way. S1: a
+      `donors` read (a root, or an embed at any depth, any alias or hint)
+      holding anything but `id`, `tenant_id`, `profile_id`, `missionary_id`,
+      `party_id` and the fact names `donor_is_restricted_party`; an
+      unresolvable argument in a file whose strings name `donors` fails. S2:
+      its file, or a file it imports by a relative path, calls
+      `isAnonymousToRecipient` with an object literal holding
+      `restrictedParty`. S3: no `restrictedParty: false` literal in non-test
+      source under `apps/` or `packages/`. S4, the one allowlist entry:
+      `DONATION_WITH_PARTIES_SELECT` is selected in
+      `packages/graphql/handler.ts` only inside `myDonations` and
+      `createDonation`, the caller's own gifts. Twelve planted cases are
+      reported and four controls are not.
+    - **What the contract cannot see**, each a review item: a table name
+      computed at run time or passed as a parameter; a query builder held in
+      a variable before `.select`; a reader outside the roots; a SQL function
+      that returns donor columns; a mapper that passes the wrong field (the
+      unit tests hold that); a `false` that is not a literal
+      (`const f = false; isAnonymousToRecipient({ restrictedParty: f })`);
+      and free text a colleague wrote earlier, such as a task's title.
 
 ## Readers closed by WP5 part 2-r2a
 
@@ -271,29 +315,43 @@ NULL` on `public.parties`) and the fourth
   find have a null `missionaryName` (no "Missionary:" in the email, "—" in
   the PDF). The staff detail keeps its label inside Mission Control.
 
+## Readers closed by WP5 part 2-r2s
+
+A restricted person who gives to a colleague, or asks to follow one, is an
+anonymous partner to that colleague (decision 12), for a `missionary` and a
+`staff` caller alike, in every reader a colleague reaches: GraphQL
+`Query.mySupporters` (`donor: null`; it now also leaves out a donor who chose
+to give anonymously); Partners (`GET /api/missionary/donors`); the portal
+snapshot (a gift keeps its donor id only when its donor was read and is
+shown); tasks (`GET`, `POST` and `PATCH`, the donor's id kept); follower
+requests (`GET` and `PATCH`, no donor id and no donor); the metrics route
+(`donor_id: null`); and the donor writes (`PATCH` of a donor and `POST` of an
+activity answer 404 "Donor relationship not found" for every hidden donor,
+restricted or anonymous alike).
+
 ## Readers left open, with owners
 
-Exactly nine. Short paths are under `packages/api/src/` (receipt files under
+Exactly thirteen. Short paths are under `packages/api/src/` (receipt files under
 `admin/contribution-operations/`, `staged-gifts.ts` under
 `admin/contributions/`); `handler.ts` is `packages/graphql/handler.ts`;
 `checkout-client.tsx` is under `apps/donor/app/(public)/(solid)/checkout/`.
 
-1. **A restricted person giving to, or asking to follow, a colleague
-   (blocks r2b's merge).** Readers: `Query.mySupporters`
-   (`handler.ts:386-419,901-906`, via `donations/select.ts:11`); Partners
-   (`missionary-portal/donors.ts:429-493,549-561`); the portal snapshot
-   (`missionary-portal/service.ts:72-90,219-226`, `model.ts:418-474`); tasks
-   (`service.ts:92-107,298-345`, `model.ts:316-352`); follower requests
-   (`follower-requests/index.ts:68-98`, `request.ts:50-66`); `donor_id`
-   correlation (`missionaries/metrics.ts:123-136,438-448`); and the write
-   guard (`missionary-portal/donor.ts:128-197`). Owner: WP5 part 2-r2s,
-   before r2b; WP4b later deletes or rewrites GraphQL and moves portals to
-   caller-token reads and the projection resolver. No email names a donor to
-   a worker today; a future worker gift-notice email (WP8b on) and public
-   donor recognition calling `projectPublicDonorDisplayName`
-   (`missionary-portal/redaction.ts:120-126`, WP7) must apply the same Party
-   safety redaction.
-2. **A restricted worker's photo (`profiles.avatar_url`) and post media,
+1. **Public donor names** (`projectPublicDonorDisplayName`,
+   `missionary-portal/redaction.ts`, and `public-giving/gift-anonymity.ts`):
+   no live caller. Owner: WP7, which applies the same Party safety rule
+   before any public donor list.
+2. **A future gift-notice email to a worker**: no code mails a worker about
+   a donor today. Owner: WP8b, which applies the same rule.
+3. **A donor record that no evidence links to the person**, such as an
+   offline gift staff entered under the real name with no link to the
+   person's login or Party: it is still shown under that name. Owner: WP4b.
+4. **The Partners list's order** (`missionary-portal/donors.ts`, ordered by
+   the stored name on the server): a hidden row's page and position follow
+   the real name, as an anonymous partner's do. Owner: WP4b.
+5. **The donor's own id on Partners rows and tasks** (ruling Q3): it opens
+   and updates the row, names no one, and lets a colleague link a task made
+   before a restriction to the anonymous row after it. Owner: WP4b.
+6. **A restricted worker's photo (`profiles.avatar_url`) and post media,
    outside comments.** Readers: the feed (`posts/select.ts:2` →
    `posts/index.ts:53`, `packages/database/hooks/donor-feed-posts.ts:373-374`);
    the donor portal (`donor-portal/service.ts:73,94` →
@@ -305,43 +363,43 @@ Exactly nine. Short paths are under `packages/api/src/` (receipt files under
    revisions, WP6/WP7 private media custody, admitted media route; plan
    `:345, :357-359, :1053-1054, :1066`); WP4b (GraphQL); WP14
    (`private.party_restricted.real_photo_ref`; plan `:984, :1335`).
-3. **Public giving** (`public-giving/columns.ts:37-39`,
+7. **Public giving** (`public-giving/columns.ts:37-39`,
    `projection.ts:36-66`): the one allowlist entry, no caller. Owner: WP7,
    applying `worker_public_name`, the approved photo and `do_not_publish`.
-4. **The CMS template writer**
+8. **The CMS template writer**
    (`apps/admin/src/cms/create-from-template-endpoint.ts:402-438`) puts a
    worker's profile name in a giving page's title and slug; nothing public
    reads CMS pages until WP7. Owner: WP7. WP6 part 2b rewrites the file; WP7
    may not publish a worker's giving page until the writer uses
    `worker_public_name` and `do_not_publish`.
-5. **A worker fund's name** (`funds.name` with `funds.missionary_id` set,
+9. **A worker fund's name** (`funds.name` with `funds.missionary_id` set,
    `20250101000000_init_schema.sql:110`), a staff label, is shown on receipts
    (`giving/receipts.ts:190`, `receipt-pdf.ts:68`), in the donor portal
    (`donor-portal/service.ts:72,93`, `model.ts:264,302,318`) and in
    correction notifications (`notifications/store.ts:145-170`). A
    restriction does not rename it. Owner: WP7, with WP14's firewall.
-6. **The allocation memo on updated receipts**, held in
-   `staged_gift_allocations.memo` (`20260512190000:160`),
-   `effective_values.designationLines[].memo`
-   (`correction-effective-values.ts:95`) and the snapshot's `content`
-   (`receipt-delivery.ts:285,365,405`). Only finance staff write it
-   (`staged-gifts.ts:41,230`, `contribution-operations/route.ts:200-251`).
-   It is shown as stored in the email (`giving/receipts.ts:192,208`) and the
-   PDF (`receipt-pdf.ts:70`). Owner: WP8b (retires the snapshots, builds
-   immutable receipt facts, rules plan `:441` against `:345` and on free-text
-   memos), with WP14's firewall.
-7. **GraphQL `posts`, `post`, `createPost`** (`handler.ts:300-335,533-539`)
-   fail closed (`PGRST200`). Owner: WP4b; if repaired, they select
-   `post_author_public_name`, and the photo moves with WP7.
-8. **GraphQL `Query.missionaries` and `Query.missionary`**
-   (`handler.ts:249-288`) show any member every worker's `bio`,
-   `mission_field`, `funding_goal`, `current_funding` and
-   `profile.avatar_url`, restricted included; no page calls them. Owners:
-   WP4b (handler), WP7 (`do_not_publish`, approved photo).
-9. **The `missionary_name` merge tags** (`packages/email/merge-tags.ts:157`,
-   `packages/config/pdf-studio.ts:301-303`): not a reader today, since no
-   code fills them; whoever wires them reads `worker_public_name`. Owner:
-   WP8b or the template-resolution owner.
+10. **The allocation memo on updated receipts**, held in
+    `staged_gift_allocations.memo` (`20260512190000:160`),
+    `effective_values.designationLines[].memo`
+    (`correction-effective-values.ts:95`) and the snapshot's `content`
+    (`receipt-delivery.ts:285,365,405`). Only finance staff write it
+    (`staged-gifts.ts:41,230`, `contribution-operations/route.ts:200-251`).
+    It is shown as stored in the email (`giving/receipts.ts:192,208`) and the
+    PDF (`receipt-pdf.ts:70`). Owner: WP8b (retires the snapshots, builds
+    immutable receipt facts, rules plan `:441` against `:345` and on free-text
+    memos), with WP14's firewall.
+11. **GraphQL `posts`, `post`, `createPost`** (`handler.ts:300-335,533-539`)
+    fail closed (`PGRST200`). Owner: WP4b; if repaired, they select
+    `post_author_public_name`, and the photo moves with WP7.
+12. **GraphQL `Query.missionaries` and `Query.missionary`**
+    (`handler.ts:249-288`) show any member every worker's `bio`,
+    `mission_field`, `funding_goal`, `current_funding` and
+    `profile.avatar_url`, restricted included; no page calls them. Owners:
+    WP4b (handler), WP7 (`do_not_publish`, approved photo).
+13. **The `missionary_name` merge tags** (`packages/email/merge-tags.ts:157`,
+    `packages/config/pdf-studio.ts:301-303`): not a reader today, since no
+    code fills them; whoever wires them reads `worker_public_name`. Owner:
+    WP8b or the template-resolution owner.
 
 ## Edits to existing suites (record D-18)
 
@@ -360,6 +418,23 @@ Exactly nine. Short paths are under `packages/api/src/` (receipt files under
 - WP5 part 2-r2a: `tests/unit/workflows/local-supabase-paths.test.ts`'s
   identity-key reader list gains the receipts the PostgREST suite renders,
   its reason in the title.
+- WP5 part 2-r2s, each reason in its title; no assertion is weakened:
+  `packages/api/tests/unit/missionary-portal-redaction.test.ts`'s existing
+  calls pass `restrictedParty: false`; the named-donor fixtures of
+  `missionary-donors-list`, `missionary-portal-snapshot-redaction`,
+  `model.test.ts`, `currency.test.ts` and `missionary-metrics-redaction`
+  carry `donor_is_restricted_party: false`; the stubs of
+  `donor-mutations.test.ts`, `donor-anonymous-mutations.test.ts` (a chain
+  for each call) and `selected-authority.test.ts` answer the write guard's
+  read; `donations-embed.realstack` site 4 selects
+  `SUPPORTER_DONATION_SELECT` and `selectOf` resolves it, so C3 still
+  resolves its embeds; `donations-embed.postgrest`'s profiled donor chose to
+  be named, and an anonymous case answers `donor: null`;
+  `donations-embed-endpoints.test.ts` checks `mySupporters`' select against
+  `SUPPORTER_DONATION_SELECT`; `snapshot-select-schema.test.ts` counts a
+  one-argument function on a table's row type as that table's computed
+  column; `local-supabase.test.ts`, `local-supabase-paths.test.ts` and
+  `REAL_DATABASE_FILES` gain the two new suites.
 
 - `tests/unit/packages/database/donor-feed-posts.test.ts`: a post with no
   public author name is named "Missionary" (the ruling's fallback), not

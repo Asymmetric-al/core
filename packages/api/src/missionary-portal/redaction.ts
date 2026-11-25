@@ -7,10 +7,6 @@
  * (name/email/phone/avatar/location/tags). A donor is named ONLY when they have
  * NOT chosen anonymity toward that surface. Default is fail-safe: absent a clear
  * signal we still only reveal when explicitly not-anonymous.
- *
- * Signal precedence (spec §8.2): unknown_offline ⇒ always anonymous; else a
- * per-gift flag (Track B `donations.anonymous_to_recipient`, optional until that
- * migration lands) wins; else the donor-level default in `donors.giving_preferences`.
  */
 
 export const ANONYMOUS_DONOR_LABEL = "Anonymous partner";
@@ -35,7 +31,14 @@ interface AnonymitySignal {
   donorIdentityStatus?: string | null;
 }
 
-export function isAnonymousToRecipient(signal: AnonymitySignal): boolean {
+export interface RecipientAnonymitySignal extends AnonymitySignal {
+  restrictedParty: unknown;
+}
+
+export function isAnonymousToRecipient(
+  signal: RecipientAnonymitySignal,
+): boolean {
+  if (signal.restrictedParty !== false) return true;
   if (signal.donorIdentityStatus === "unknown_offline") return true;
   if (typeof signal.giftAnonymousToRecipient === "boolean") {
     return signal.giftAnonymousToRecipient;

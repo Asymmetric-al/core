@@ -1,3 +1,6 @@
+const MISSIONARY_EMBED =
+  "missionary:missionaries(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))";
+
 /**
  * PostgREST select for a donation with its donor and missionary embedded.
  *
@@ -7,8 +10,9 @@
  * sole relationship with donations, whether the key is single or composite.
  * The donors embed selects only `id` alongside the profile, adding no donor PII.
  */
-export const DONATION_WITH_PARTIES_SELECT =
-  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))";
+export const DONATION_WITH_PARTIES_SELECT = `*, donor:donors(id, profile:profiles!profile_id(*)), ${MISSIONARY_EMBED}`;
+
+export const SUPPORTER_DONATION_SELECT = `*, donor:donors(id, giving_preferences, donor_is_restricted_party, profile:profiles!profile_id(*)), ${MISSIONARY_EMBED}`;
 
 /** What a gift request asked for, as passed to `begin_donation_saga`. */
 export type RequestedGift = {

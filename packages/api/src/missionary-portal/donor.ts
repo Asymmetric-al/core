@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
+import { isAnonymousToRecipient } from "./redaction";
 import { runMissionaryPortalOperation } from "./route-helpers";
 import {
   ApiHttpError,
@@ -125,6 +126,45 @@ function assertMutationSucceeded(
   }
 }
 
+type ShownDonorRow = {
+  id: string;
+  giving_preferences: unknown;
+  donor_is_restricted_party: unknown;
+};
+
+async function assertDonorShown(input: {
+  supabaseAdmin: AdminSupabaseClient;
+  donorId: string;
+  profileId: string;
+  tenantId: string;
+}) {
+  const result = (await input.supabaseAdmin
+    .from("donors")
+    .select("id, giving_preferences, donor_is_restricted_party")
+    .eq("id", input.donorId)
+    .eq("tenant_id", input.tenantId)
+    .eq("missionary_id", input.profileId)
+    .maybeSingle()) as unknown as {
+    data: ShownDonorRow | null;
+    error: { code?: string; message: string } | null;
+  };
+  if (result.error) {
+    throw toApiHttpError(
+      result.error,
+      result.error.message || "Unable to read donor",
+    );
+  }
+  if (
+    !result.data ||
+    isAnonymousToRecipient({
+      givingPreferences: result.data.giving_preferences,
+      restrictedParty: result.data.donor_is_restricted_party,
+    })
+  ) {
+    throw new ApiHttpError(404, "Donor relationship not found");
+  }
+}
+
 export async function recordMissionaryDonorActivity(input: {
   supabaseAdmin: AdminSupabaseClient;
   assignmentId: string;
@@ -135,6 +175,7 @@ export async function recordMissionaryDonorActivity(input: {
   note: string;
   now?: Date;
 }) {
+  await assertDonorShown(input);
   const result = await input.supabaseAdmin
     .rpc("missionary_activity_create", {
       ...missionaryArgs(input),
@@ -157,6 +198,7 @@ export async function updateMissionaryDonorTags(input: {
   tags: string[];
   now?: Date;
 }) {
+  await assertDonorShown(input);
   const result = await input.supabaseAdmin
     .from("donors")
     .update({
@@ -182,6 +224,7 @@ export async function updateMissionaryDonor(input: {
   patch: DonorUpdateInput;
   now?: Date;
 }) {
+  await assertDonorShown(input);
   const result = await input.supabaseAdmin
     .from("donors")
     .update(toDonorUpdatePayload(input.patch, input.now ?? new Date()))
