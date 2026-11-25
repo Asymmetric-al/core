@@ -24,11 +24,13 @@ organizations (the interim single-organization fallback until WP3).
    `VerifiedNameSurface` and `SURFACE_ADMISSION` in `packages/auth/verified-name.ts`
    add `donor_account` (`states: ["active"], home: true`) and `website`
    (`states: ["active"], home: false`) beside the unchanged `staff` and
-   `missionary` rows. Visitors see nothing on a `ready` or claimed name
+   `missionary` rows. The proxy admits nothing on a `ready` or claimed name
    (`openspec/contracts/multi-site-management.md`, "MUST remain unavailable until
    exactly one current designated verified home domain … is active";
-   `ruling-n2.md` Q2). Refusal priority remains `not_ready`, `not_home`,
-   `not_for_surface`, and `unknown` for no row.
+   `ruling-n2.md` Q2); configuration redirects in `apps/donor/next.config.ts` and
+   paths excluded by the proxy matcher still answer on any name and are owned by
+   WP7. Refusal priority remains `not_ready`, `not_home`, `not_for_surface`, and
+   `unknown` for no row.
 
 2. **One uncached lookup answers both donor surfaces.**
    `lookUpVerifiedNameSurfaces` in `packages/auth/verified-name.ts` makes one
@@ -37,28 +39,49 @@ organizations (the interim single-organization fallback until WP3).
    cache, returning either `unavailable` or each requested surface's decision.
    `lookUpVerifiedName` keeps its signature and answers by delegating to it.
 
-3. **Strict path form and pre-lookup refusals in the donor proxy.**
+3. **Strict path form, transport mapping, and pre-lookup refusals in the donor proxy.**
    With the switch on, after `routeToDashboard` returns `null`,
    `apps/donor/proxy.ts` first strips client `x-asym-front-*` and
    `x-forwarded-host` (`withoutFrontHeaders(request, { stripForwardedHost: true })`)
-   on every path, exempt ones included. Because Next.js's default proxy
-   normalization does not percent-decode paths or normalize trailing slashes
-   without `trailingSlash: true`, `normalizeDonorPath` in
-   `apps/donor/lib/route-policy.ts` decodes `request.nextUrl.pathname` with
-   `decodeURIComponent` and refuses with `frontNotFound()` (`404`,
-   `cache-control: no-store`, empty body) before any lookup on: a decode error,
-   a `\`, `.` or `..` segment (reusing `hasDotOrBackslashSegment` from
-   `packages/auth/front.ts`), `//` anywhere, any `%` left after decoding
-   (double encoding), or a decoded `/admin` or `/missionary` prefix. It then
-   strips one trailing `/` (keeping `/`) to obtain `normalized`.
+   on every path, exempt ones included. Without `trailingSlash: true` or
+   `skipTrailingSlashRedirect: true`, Next.js answers a literal trailing slash
+   with a `308` redirect before the proxy runs, while direct or rewritten calls
+   to `proxy()` can still carry one. On `request.nextUrl.pathname`,
+   `resolveDonorPath` (and its string wrapper `normalizeDonorPath`) in
+   `apps/donor/lib/route-policy.ts` runs these steps in order and refuses with
+   `frontNotFound()` (`404`, `cache-control: no-store`, empty body) before any
+   lookup whenever a check fails:
+   - Refuse any percent-encoded slash (`%2F` or `%2f`) anywhere in the raw path
+     before decoding.
+   - Decode once with `decodeURIComponent`, refusing decode errors.
+   - Refuse decoded `\`, `.`, or `..` segments (reusing `hasDotOrBackslashSegment`
+     from `packages/auth/front.ts`), `//` anywhere, any `%` left after decoding
+     (double encoding), or a decoded `/admin` or `/missionary` prefix.
+   - Map Next.js App Router transport paths to their target page path (constants
+     pinned against installed `next/dist/lib/constants.js` and `next/dist/`
+     normalizer sources): a decoded path containing `.segments/` must match
+     `<page>.segments/<segment>.segment` (after `server/web/adapter.js` strips
+     `.rsc` via `normalizeRscURL`) or `<page>.segments/<segment>.segment.rsc`
+     with a single `.segments/`, a non-empty `<page>` not ending in `/`, and a
+     non-empty `<segment>` not starting or ending in `/` (any other decoded path
+     containing `.segments/` is refused); a remaining decoded path ending in
+     `.rsc` strips one `.rsc`, refusing `/.rsc`, `<page>/.rsc`, and double
+     `.rsc.rsc`. On both transport forms, `/index` maps to `/` and `/index/<rest>`
+     maps to `/<rest>` (matching Next.js's `denormalizePagePath`), and a mapped
+     `/admin` or `/missionary` prefix is refused.
+   - On non-transport paths, strip one trailing `/` (keeping `/`) to obtain
+     `normalized`.
 
 4. **Exact exempt paths and three path classes.**
-   - **Exempt** (`DONOR_EXEMPT_PATHS`, exact equality on `normalized`, never a
-     prefix; `ruling-wp3b-part1.md` Q3): `/api/webhooks/stripe`, `/api/health`,
+   - **Exempt** (`DONOR_EXEMPT_PATHS`, exact equality on `normalized` for
+     non-transport paths only, never a prefix, `%2F` spelling, or transport form;
+     `ruling-wp3b-part1.md` Q3): `/api/webhooks/stripe`, `/api/health`,
      `/api/health/migrations`, and `/api/playwright-ready` (pinned to a
-     constant `{ status: "ok" }` with no data read). Exempt requests make no
-     lookup and enter `authProxy(cleaned)` with no `nameTenantId`, removing any
-     client `x-asym-name-tenant`.
+     constant `{ status: "ok" }` with no data read). Next.js's adapter emits no
+     `.segments/` output for Route Handlers and already strips a single `.rsc`
+     before `proxy()` runs, so transport forms of exempt paths are never exempt.
+     Exempt requests make no lookup and enter `authProxy(cleaned)` with no
+     `nameTenantId`, removing any client `x-asym-name-tenant`.
    - **Host:** `request.headers.get("host")?.trim()` (port kept, never
      `x-forwarded-host` or `request.url`). Absent or blank returns
      `frontNotFound()` with no lookup.
