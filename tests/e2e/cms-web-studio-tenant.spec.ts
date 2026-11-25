@@ -337,10 +337,56 @@ async function expectNoStoredTitle(page: Page, stamp: string, where: string) {
 }
 
 type ReceivedBody = { url: string; status: number } & (
-  { text: string } | { unread: string }
+  { text: string } | { unread: string } | { leftWithItsDocument: true }
 );
 
+type PageCopy = {
+  method: string;
+  url: string;
+  status: number;
+  text: string;
+  done: boolean;
+};
+
 const BODY_READ_LIMIT = 30_000;
+
+function copyFetchBodies() {
+  const store = window as unknown as { __asymReceived?: PageCopy[] };
+  if (store.__asymReceived) return;
+  store.__asymReceived = [];
+  const original = window.fetch.bind(window);
+  window.fetch = async (input, init) => {
+    const response = await original(input, init);
+    const copy: PageCopy = {
+      method: (
+        init?.method ?? (input instanceof Request ? input.method : "GET")
+      ).toUpperCase(),
+      url: response.url,
+      status: response.status,
+      text: "",
+      done: false,
+    };
+    store.__asymReceived?.push(copy);
+    const reader = response.clone().body?.getReader();
+    if (!reader) {
+      copy.done = true;
+      return response;
+    }
+    const decoder = new TextDecoder();
+    void (async () => {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        copy.text += decoder.decode(value, { stream: true });
+      }
+    })()
+      .catch(() => undefined)
+      .finally(() => {
+        copy.done = true;
+      });
+    return response;
+  };
+}
 
 async function readBody(
   response: PlaywrightResponse,
@@ -365,27 +411,87 @@ async function readBody(
   }
 }
 
+async function takePageCopies(page: Page) {
+  const started = Date.now();
+  for (;;) {
+    const settled = await page.evaluate(() =>
+      (
+        (window as unknown as { __asymReceived?: PageCopy[] }).__asymReceived ??
+        []
+      ).every((copy) => copy.done),
+    );
+    if (settled || Date.now() - started > 5_000) break;
+    await page.waitForTimeout(100);
+  }
+  return page.evaluate(() => {
+    const store = window as unknown as { __asymReceived?: PageCopy[] };
+    const copies = (store.__asymReceived ?? []).map((copy) => ({ ...copy }));
+    store.__asymReceived = [];
+    return copies;
+  });
+}
+
 async function switchRecordingResponses(page: Page, tenant: string) {
+  await page.addInitScript(copyFetchBodies);
   await page.goto(`${base}/web-studio/organization?next=%2Fweb-studio`);
   const origin = new URL(base).origin;
   const recorded = (address: string) => {
     const url = new URL(address);
-    return url.origin === origin && !url.pathname.startsWith("/_next/");
+    return (
+      url.origin === origin &&
+      !url.pathname.startsWith("/_next/") &&
+      !url.pathname.startsWith("/__nextjs_font/") &&
+      !url.pathname.startsWith("/web-studio/organization")
+    );
   };
+  const isFetch = (request: Request) =>
+    ["fetch", "xhr"].includes(request.resourceType());
   const inFlight = new Set<Request>();
+  const documentOf = new Map<Request, number>();
+  let openDocument = 0;
   const reads: Array<Promise<ReceivedBody>> = [];
+  const fetched: Array<{ key: string; url: string; status: number }> = [];
+  const bodies: ReceivedBody[] = [];
+  let lastStart = Date.now();
   const onRequest = (request: Request) => {
-    if (recorded(request.url())) inFlight.add(request);
+    if (!recorded(request.url())) return;
+    lastStart = Date.now();
+    documentOf.set(request, openDocument);
+    if (!isFetch(request)) inFlight.add(request);
   };
   const onEnded = (request: Request) => {
     inFlight.delete(request);
+  };
+  const onNavigated = (frame: ReturnType<Page["mainFrame"]>) => {
+    if (frame !== page.mainFrame()) return;
+    inFlight.clear();
+    openDocument += 1;
   };
   const onResponse = (response: PlaywrightResponse) => {
     if (!recorded(response.url())) return;
     const status = response.status();
     if (status >= 300 && status < 400) return;
+    const request = response.request();
     const url = new URL(response.url());
-    const label = `${response.request().method()} ${url.pathname}${url.search}`;
+    const label = `${request.method()} ${url.pathname}${url.search}`;
+    if (isFetch(request) && documentOf.get(request) !== openDocument) {
+      reads.push(
+        readBody(response).then((body) =>
+          "text" in body
+            ? { url: label, status, ...body }
+            : { url: label, status, leftWithItsDocument: true as const },
+        ),
+      );
+      return;
+    }
+    if (isFetch(request)) {
+      fetched.push({
+        key: `${request.method()} ${response.url()}`,
+        url: label,
+        status,
+      });
+      return;
+    }
     reads.push(
       readBody(response).then((body) => ({ url: label, status, ...body })),
     );
@@ -394,17 +500,64 @@ async function switchRecordingResponses(page: Page, tenant: string) {
   page.on("requestfinished", onEnded);
   page.on("requestfailed", onEnded);
   page.on("response", onResponse);
+  page.on("framenavigated", onNavigated);
   await chooseOrganization(page, tenant);
   await page.waitForURL((url) => url.pathname === "/web-studio");
 
   const settle = async () => {
     await expect
-      .poll(() => inFlight.size, {
-        message: "calls of the page still loading",
-        intervals: [100],
-      })
-      .toBe(0);
-    await Promise.all(reads);
+      .poll(
+        () =>
+          page.evaluate(() =>
+            (
+              (window as unknown as { __asymReceived?: PageCopy[] })
+                .__asymReceived ?? []
+            ).some((copy) =>
+              new URL(copy.url).pathname.endsWith(
+                "/web-studio/api/cms-users/me",
+              ),
+            ),
+          ),
+        { message: "the open page has started (its own session read)" },
+      )
+      .toBe(true);
+    await expect
+      .poll(
+        () =>
+          [...inFlight]
+            .map((request) => new URL(request.url()).pathname)
+            .concat(
+              Date.now() - lastStart < 1_500 ? ["(a call just began)"] : [],
+            ),
+        { message: "calls of the open page still loading", intervals: [100] },
+      )
+      .toEqual([]);
+    const copies = await takePageCopies(page);
+    for (const response of fetched.splice(0)) {
+      const at = copies.findIndex(
+        (copy) => `${copy.method} ${copy.url}` === response.key,
+      );
+      if (at === -1) {
+        bodies.push({ ...response, unread: "no copy of it in the page" });
+        continue;
+      }
+      const [copy] = copies.splice(at, 1);
+      bodies.push({
+        url: response.url,
+        status: response.status,
+        text: copy!.text,
+      });
+    }
+    for (const copy of copies) {
+      if (recorded(copy.url)) {
+        bodies.push({
+          url: `${copy.method} ${copy.url}`,
+          status: copy.status,
+          text: copy.text,
+        });
+      }
+    }
+    bodies.push(...(await Promise.all(reads.splice(0))));
   };
   return {
     goto: async (url: string) => {
@@ -417,7 +570,8 @@ async function switchRecordingResponses(page: Page, tenant: string) {
       page.off("requestfinished", onEnded);
       page.off("requestfailed", onEnded);
       page.off("response", onResponse);
-      return Promise.all(reads);
+      page.off("framenavigated", onNavigated);
+      return bodies;
     },
   };
 }
@@ -427,6 +581,16 @@ function auditReceived(
   title: string,
   where: (place: string) => string,
 ) {
+  test.info().annotations.push({
+    type: "answered after its document was left",
+    description: `${where("responses")}: ${
+      bodies
+        .flatMap((body) =>
+          "leftWithItsDocument" in body ? [`${body.url} (${body.status})`] : [],
+        )
+        .join(", ") || "none"
+    }`,
+  });
   expect
     .soft(
       bodies.flatMap((body) =>
