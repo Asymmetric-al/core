@@ -2005,14 +2005,12 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
   const judge = (wrappers: object[]) =>
     evaluate([], listed(), [], lanes, allow(), { wrappers });
 
-  it("passes a compliant worker wrapper that derives the tenant from a stored anchor and performs no writes", () => {
+  it("passes a compliant worker wrapper that derives the tenant from a stored anchor and performs no writes (D-18, R1b, #2776's third item: the anchor is one whole single-table read; the JOIN this fixture read through fails now, as E4 shows)", () => {
     const body = `
       DECLARE v_tenant uuid;
       BEGIN
-        SELECT a.tenant_id INTO v_tenant
-          FROM public.stripe_raw_events AS e
-          JOIN public.payment_provider_accounts AS a
-            ON a.provider_account_id = e.stripe_account AND a.livemode = e.livemode
+        SELECT e.tenant_id INTO v_tenant
+          FROM public.stripe_connect_events AS e
          WHERE e.id = p_event_id;
         IF v_tenant IS NULL THEN
           RETURN pg_catalog.jsonb_build_object('event_id', p_event_id, 'outcome', 'unknown_anchor');
@@ -2107,16 +2105,14 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
     expect(codes(result)).toEqual([`WORKER_WRAPPER_WRITES ${fn}`]);
   });
 
-  it("does not false-positive WORKER_WRAPPER_WRITES on FOR NO KEY UPDATE or prose error literals", () => {
+  it("does not false-positive WORKER_WRAPPER_WRITES on FOR NO KEY UPDATE or prose error literals (D-18, R1b, #2776's third item: a single-table read, since a JOIN no longer passes the anchor rule)", () => {
     const fn =
       "public.readonly_lock_wrapper(p_event_id uuid, p_attempt integer)";
     const body = `
       DECLARE v_tenant uuid;
       BEGIN
-        SELECT a.tenant_id INTO v_tenant
-          FROM public.stripe_raw_events AS e
-          JOIN public.payment_provider_accounts AS a
-            ON a.provider_account_id = e.stripe_account AND a.livemode = e.livemode
+        SELECT e.tenant_id INTO v_tenant
+          FROM public.stripe_connect_events AS e
          WHERE e.id = p_event_id
            FOR NO KEY UPDATE;
         IF v_tenant IS NULL THEN
@@ -2215,4 +2211,154 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
       expect(codes(result)).toContain(`WORKER_WRAPPER_WRITES ${fn}`);
     },
   );
+
+  const forward =
+    "RETURN tenant_guard.apply_account_event(v_t, p_event_id, p_attempt);";
+  it.each<[string, string, string, string]>([
+    [
+      "E1: the scalar form followed by UNION SELECT p_owner",
+      "public.e1_union(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      "SELECT tenant_guard.apply_account_event((SELECT e.tenant_id FROM public.stripe_connect_events AS e WHERE e.id = p_event_id UNION SELECT p_owner), p_event_id, p_attempt);",
+      "sql",
+    ],
+    [
+      "E2: the INTO form reading through CROSS JOIN (SELECT p_owner AS tenant_id) x",
+      "public.e2_cross(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT x.tenant_id INTO v_t FROM public.stripe_connect_events AS e CROSS JOIN (SELECT p_owner AS tenant_id) x WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E3: a comma source",
+      "public.e3_comma(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT o.tenant_id INTO v_t FROM public.stripe_connect_events AS e, (SELECT p_owner AS tenant_id) AS o WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E4: a JOIN public.payment_provider_accounts",
+      "public.e4_join(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT a.tenant_id INTO v_t FROM public.stripe_raw_events AS e JOIN public.payment_provider_accounts AS a ON a.provider_account_id = e.stripe_account AND a.livemode = e.livemode WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E5: a subquery in the predicate",
+      "public.e5_subquery(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id OR e.tenant_id = (SELECT p_owner); ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E5: a trailing LIMIT 1",
+      "public.e5_limit(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id LIMIT 1; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E5: the scalar form with a trailing ORDER BY",
+      "public.e5_order(p_event_id uuid, p_attempt integer)",
+      "SELECT tenant_guard.apply_account_event((SELECT e.tenant_id FROM public.stripe_connect_events AS e WHERE e.id = p_event_id ORDER BY e.created_at), p_event_id, p_attempt);",
+      "sql",
+    ],
+    [
+      "E8: a leading WITH",
+      "public.e8_with(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN WITH o AS (SELECT p_owner AS id) SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E8: an alias spelled join",
+      "public.e8_alias(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT join.tenant_id INTO v_t FROM public.stripe_connect_events join WHERE join.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E8: a lower-case join after the relation",
+      "public.e8_lower_join(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT a.tenant_id INTO v_t FROM public.stripe_raw_events join public.payment_provider_accounts AS a ON a.provider_account_id = public.stripe_raw_events.stripe_account WHERE public.stripe_raw_events.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+  ])(
+    "fails WORKER_WRAPPER_TENANT_ARGUMENT unless the anchor read is one whole statement of one schema-qualified relation (#2776's third item, R1b): %s",
+    (_label, fn, body, language) => {
+      const result = judge([
+        wrapper(fn, body, { service_role: true, language }),
+      ]);
+      expect(codes(result)).toEqual([`WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`]);
+    },
+  );
+
+  const lowerBody = (call: string) =>
+    `DECLARE v_t uuid; v_label text; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; v_label := ${call}('A'); ${forward} END;`;
+
+  it.each<[string, string | undefined]>([
+    ["search_path public", "public"],
+    ["no search_path", undefined],
+  ])(
+    "E6: an unqualified read-only built-in under %s fails WORKER_WRAPPER_WRITES (#2776's third item, R1b: only an empty path resolves it in pg_catalog alone)",
+    (_label, searchPath) => {
+      const fn = "public.e6_lower(p_event_id uuid, p_attempt integer)";
+      const result = judge([
+        wrapper(fn, lowerBody("lower"), {
+          service_role: true,
+          language: "plpgsql",
+          search_path: searchPath,
+        }),
+      ]);
+      expect(codes(result)).toContain(`WORKER_WRAPPER_WRITES ${fn}`);
+    },
+  );
+
+  const migrationBody = (file: string, name: string) => {
+    const text = readFileSync(
+      new URL(`../../../supabase/migrations/${file}`, import.meta.url),
+      "utf8",
+    );
+    const at = text.search(
+      new RegExp(`FUNCTION ${name.replace(".", "\\.")}\\(`),
+    );
+    expect(at).toBeGreaterThan(-1);
+    const open = text.indexOf("AS $$", at) + "AS $$".length;
+    return text.slice(open, text.indexOf("$$;", open));
+  };
+
+  it("E7 (guard): an unqualified built-in under the empty path, pg_catalog.lower under public, R1a's two wrappers and the onboarding wrapper as migrated (a cast in the predicate), a row lock after the WHERE and INTO STRICT all pass", () => {
+    const r1a = "20261126020200_wp8a2_provider_operation_commands.sql";
+    const part1 = "20261123030300_wp8a_task_guard_and_event_leases.sql";
+    const result = judge([
+      wrapper(
+        "public.e7_empty_path(p_event_id uuid, p_attempt integer)",
+        lowerBody("lower"),
+        { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.e7_qualified(p_event_id uuid, p_attempt integer)",
+        lowerBody("pg_catalog.lower"),
+        { service_role: true, language: "plpgsql", search_path: "public" },
+      ),
+      wrapper(
+        "public.claim_provider_operation(p_operation_id uuid, p_lease_seconds integer)",
+        migrationBody(r1a, "public.claim_provider_operation"),
+        { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.record_provider_operation_result(p_operation_id uuid, p_attempt integer, p_result jsonb)",
+        migrationBody(r1a, "public.record_provider_operation_result"),
+        { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.confirm_payment_account_onboarding(p_stripe_event_id text, p_livemode boolean, p_snapshot jsonb)",
+        migrationBody(part1, "public.confirm_payment_account_onboarding"),
+        { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.e7_lock(p_event_id uuid, p_attempt integer)",
+        `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id FOR NO KEY UPDATE; ${forward} END;`,
+        { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.e7_strict(p_event_id uuid, p_attempt integer)",
+        `DECLARE v_t uuid; BEGIN IF p_attempt > 0 THEN SELECT tenant_id INTO STRICT v_t FROM public.stripe_connect_events WHERE id = p_event_id FOR UPDATE SKIP LOCKED; END IF; ${forward} END;`,
+        { service_role: true, language: "plpgsql" },
+      ),
+    ]);
+    expect(result.failures).toEqual([]);
+  });
 });
