@@ -1072,7 +1072,7 @@ describe.skipIf(!ADMIN_URL)(
         ).toEqual({ process_attempts: 0, processing_status: "received" });
       }));
 
-    it("R30 (finding 5): the deployed scanner and worker never see the connected-accounts lane, the lanes de-duplicate apart in both arrival orders, and the live tables keep their shape", () =>
+    it("R30 (finding 5): the deployed scanner and worker never see the connected-accounts lane, the lanes de-duplicate apart in both arrival orders, and the live tables keep their shape (D-18, AL-2681 WP8a part 2 R1a: the outbox now carries the provider-request statuses, parked among them, and its lease column; the guard still holds no table SELECT on it)", () =>
       withTwoTenants(async (fx) => {
         const acct = account();
 
@@ -1101,8 +1101,8 @@ describe.skipIf(!ADMIN_URL)(
           triggers: 0,
           guard_events: false,
           guard_outbox: false,
-          outbox_statuses: expect.not.stringContaining("parked"),
-          outbox_new_columns: 0,
+          outbox_statuses: expect.stringContaining("parked"),
+          outbox_new_columns: 1,
           dispatch_triggers: 0,
         });
 

@@ -78,7 +78,7 @@ function getClientSecretFromGatewayResponse(value: unknown): string | null {
   return stringOrNull(maybeRecord.clientSecret);
 }
 
-function paymentMethodTypesFromFeeMetadata(
+export function paymentMethodTypesFromFeeMetadata(
   extra: GiftProcessingFeeStripeMetadata | undefined,
 ): ReadonlyArray<DonationPaymentIntentMethodType> | undefined {
   const method = extra?.payment_method;
