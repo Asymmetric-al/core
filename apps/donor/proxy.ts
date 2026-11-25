@@ -123,7 +123,7 @@ export const config = {
     // skipped the proxy would keep the headers the client sent (plan 5.1;
     // council round 1: WP2a F5 and WP2b A3). Exactly these paths answer
     // without it (council round 2, AR7):
-    // - `/_next/*`, `/admin/_next/*`, `/missionary/_next/*`: Next.js's assets;
+    // - `/_next/*`; `/{admin,missionary}/_next/*` with no empty, . or .. part;
     // - `/maplibre/*`: the files of `public/maplibre`; any other path there
     //   is answered by the public CMS pages' catch-all,
     //   `(public)/(solid)/[...cmsSlug]`;
@@ -133,6 +133,6 @@ export const config = {
     // There the headers are the client's, and nothing reads them: the
     // catch-all reads only the host (`lib/cms/client.ts`), and nothing under
     // `(public)` reads a header the proxy sets.
-    "/((?!_next/|admin/_next/|missionary/_next/|maplibre/|[^/]+\\.(?:ico|svg|png|jpg|jpeg|gif|webp|webmanifest|json|txt|xml)$).*)",
+    "/((?!_next/|admin/_next/(?:(?:[^/.][^/]*|\\.[^/.][^/]*|\\.\\.[^/]+)(?:/|$))*$|missionary/_next/(?:(?:[^/.][^/]*|\\.[^/.][^/]*|\\.\\.[^/]+)(?:/|$))*$|maplibre/|[^/]+\\.(?:ico|svg|png|jpg|jpeg|gif|webp|webmanifest|json|txt|xml)$).*)",
   ],
 };

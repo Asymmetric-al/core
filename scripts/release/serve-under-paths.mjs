@@ -9,6 +9,8 @@ export const APP_BASE_PATHS = Object.freeze({
 
 const DASHBOARD_SKIP_PREFIX = "(?!admin(?:/|$)|missionary(?:/|$))";
 
+export const DASHBOARD_ASSET_SEGMENT = "[^/.][^/]*|\\.[^/.][^/]*|\\.\\.[^/]+";
+
 const DASHBOARD_ORIGIN_ENV = Object.freeze({
   admin: "FRONT_ADMIN_ORIGIN",
   missionary: "FRONT_MISSIONARY_ORIGIN",
@@ -115,7 +117,7 @@ export function serveUnderPathsDonorRewrites(env) {
     const origin = dashboardOrigin(source, app);
     const prefix = APP_BASE_PATHS[app];
     return {
-      source: `${prefix}/_next/:path+`,
+      source: `${prefix}/_next/:path(${DASHBOARD_ASSET_SEGMENT})+`,
       destination: `${origin}${prefix}/_next/:path+`,
     };
   });
