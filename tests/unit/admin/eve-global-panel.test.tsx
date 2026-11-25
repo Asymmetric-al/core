@@ -474,7 +474,7 @@ describe("EveGlobalPanel requests name the document's selected staff row", () =>
 
   afterEach(() => {
     cleanup();
-    vi.unstubAllGlobals();
+    vi.stubGlobal("fetch", network.fetchSpy);
   });
 
   it.each([
@@ -571,7 +571,7 @@ describe("EveGlobalPanel calls the assistant under the app's base path", () => {
   afterEach(() => {
     cleanup();
     vi.unstubAllEnvs();
-    vi.unstubAllGlobals();
+    vi.stubGlobal("fetch", network.fetchSpy);
   });
 
   it.each([
