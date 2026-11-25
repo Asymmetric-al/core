@@ -355,16 +355,18 @@ NULL` on `public.parties`) and the fourth
 ## Readers closed by WP5 part 2-r2s
 
 A restricted person who gives to a colleague, or asks to follow one, is an
-anonymous partner to that colleague (decision 12), for a `missionary` and a
-`staff` caller alike, in every reader a colleague reaches: GraphQL
-`Query.mySupporters` (`donor: null`; it now also leaves out a donor who chose
-to give anonymously); Partners (`GET /api/missionary/donors`); the portal
+anonymous partner to that colleague (decision 12) in every reader a colleague
+reaches. Two take a `missionary` or a `staff` caller, and answer both alike:
+GraphQL `Query.mySupporters` (`donor: null`; it now also leaves out a donor
+who chose to give anonymously) and the metrics route (`donor_id: null`). The
+rest take only a `missionary` caller with a selected missionary membership
+(`roleClasses: ["missionary"]` or `runMissionaryPortalOperation`, then
+`missionaryScope`): Partners (`GET /api/missionary/donors`); the portal
 snapshot (a gift keeps its donor id only when its donor was read and is
 shown); tasks (`GET`, `POST` and `PATCH`, the donor's id kept); follower
-requests (`GET` and `PATCH`, no donor id and no donor); the metrics route
-(`donor_id: null`); and the donor writes (`PATCH` of a donor and `POST` of an
-activity answer 404 "Donor relationship not found" for every hidden donor,
-restricted or anonymous alike).
+requests (`GET` and `PATCH`, no donor id and no donor); and the donor writes
+(`PATCH` of a donor and `POST` of an activity answer 404 "Donor relationship
+not found" for every hidden donor, restricted or anonymous alike).
 
 ## Readers left open, with owners
 
