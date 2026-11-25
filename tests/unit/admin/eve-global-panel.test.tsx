@@ -48,7 +48,7 @@ const testState = vi.hoisted(() => ({
     role: "admin";
     tenantId: string;
   } | null,
-  agentOptions: [] as Array<{ headers?: unknown }>,
+  agentOptions: [] as Array<{ headers?: unknown; host?: unknown }>,
   scopeForSend: { kind: "unscoped" } as
     | {
         kind: "scoped";
@@ -97,7 +97,7 @@ vi.mock(
     };
     const getStatus = () => testState.status;
     return {
-      useEveAgent: (options: { headers?: unknown }) => {
+      useEveAgent: (options: { headers?: unknown; host?: unknown }) => {
         testState.agentOptions.push(options);
         return {
           status: useSyncExternalStore(subscribe, getStatus, getStatus),
@@ -551,5 +551,59 @@ describe("EveGlobalPanel requests name the document's selected staff row", () =>
     const sent = new Headers(init.headers);
     expect(sent.get("x-asym-tenant")).toBe(SELECTED.tenantId);
     expect(sent.get("x-asym-assignment")).toBe(SELECTED.assignmentId);
+  });
+});
+
+describe("EveGlobalPanel calls the assistant under the app's base path", () => {
+  beforeEach(() => {
+    testState.agentOptions = [];
+    testState.role = "admin";
+    testState.user = {
+      id: "user-1",
+      email: "admin@example.com",
+      name: "Admin",
+      role: "admin",
+      tenantId: "tenant-1",
+    };
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it.each([
+    ["", ""],
+    ["/admin", "/admin"],
+  ])(
+    "gives the hook host %j when CORE_APP_BASE_PATH is %j",
+    (basePath, host) => {
+      vi.stubEnv("CORE_APP_BASE_PATH", basePath);
+      render(<EveGlobalPanel placement="header" />);
+      expect(testState.agentOptions.length).toBeGreaterThan(0);
+      for (const options of testState.agentOptions) {
+        expect(options).toHaveProperty("host", host);
+      }
+    },
+  );
+
+  it("eve's client with host /admin creates a session at /admin/eve/v1/session", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ sessionId: "session-1" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { Client } =
+      await import("../../../apps/admin/node_modules/eve/dist/src/client/index.js");
+
+    await new Client({ host: "/admin" }).session().send("Explain this page");
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url] = fetchMock.mock.calls[0] as unknown as [string];
+    expect(url).toBe("/admin/eve/v1/session");
   });
 });
