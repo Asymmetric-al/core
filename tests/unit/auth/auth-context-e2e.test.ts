@@ -69,14 +69,14 @@ describe("getAuthContext E2E cookie", () => {
     process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = originalAllowlist;
   });
 
-  it("returns authenticated donor context when bypass is on and cookie is valid", async () => {
+  it("returns authenticated donor context when bypass is on and cookie is valid (AL-2676: the cookie names its tenant)", async () => {
     process.env.E2E_AUTH_BYPASS = "1";
     process.env.NODE_ENV = "development";
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
     const cookieValue = await createE2EAuthCookieValue({
       userId: "e2e-donor-user",
       role: "donor",
-      tenantId: null,
+      tenantId: DEMO_TENANT_ID,
     });
     mockCookieGet.mockImplementation((name: string) =>
       name === E2E_AUTH_COOKIE_NAMES.donor

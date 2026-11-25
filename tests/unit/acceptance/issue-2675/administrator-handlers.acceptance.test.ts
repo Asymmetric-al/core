@@ -351,8 +351,8 @@ const FAMILIES: Family[] = [
     member("staff", "development"),
   ],
   [
-    "donations (donor or staff)",
-    "requires a donor or staff membership",
+    "donations (donor)",
+    "requires a donor membership",
     () => donationsGET(url("/api/donations")),
     member("missionary"),
     member("donor"),

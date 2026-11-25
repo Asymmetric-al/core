@@ -184,6 +184,9 @@ describe("setup-mission-control-cloud", () => {
     );
     expect(result.content).toContain("E2E_AUTH_BYPASS=false");
     expect(result.content).toContain(
+      "E2E_AUTH_TENANT_ID=00000000-0000-0000-0000-000000000001",
+    );
+    expect(result.content).toContain(
       "PAYLOAD_SECRET=cloud-agent-mission-control-placeholder",
     );
     expect(result.preservedKeys).toContain("NEXT_PUBLIC_SUPABASE_URL");
@@ -199,6 +202,23 @@ describe("setup-mission-control-cloud", () => {
     );
 
     expect(result.content).toContain("E2E_AUTH_BYPASS=true");
+    expect(result.content).toContain(
+      "E2E_AUTH_TENANT_ID=00000000-0000-0000-0000-000000000001",
+    );
     expect(result.changedKeys).toContain("E2E_AUTH_BYPASS");
+  });
+
+  it("keeps an E2E_AUTH_TENANT_ID the caller set (AL-2676)", () => {
+    const result = applyMissionControlCloudEnvDefaults(
+      "E2E_AUTH_TENANT_ID=6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a\n",
+    );
+
+    expect(result.content).toContain(
+      "E2E_AUTH_TENANT_ID=6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a",
+    );
+    expect(result.content).not.toContain(
+      "E2E_AUTH_TENANT_ID=00000000-0000-0000-0000-000000000001",
+    );
+    expect(result.preservedKeys).toContain("E2E_AUTH_TENANT_ID");
   });
 });

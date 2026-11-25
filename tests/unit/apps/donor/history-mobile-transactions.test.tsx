@@ -40,9 +40,9 @@ vi.mock("@asym/database/own-api", () => ({
   ownApiFetch: vi.fn(),
 }));
 
-const transactions: Transaction[] = getDemoDonorPortalSnapshot().donations.map(
-  toDonorHistoryTransaction,
-);
+const transactions: Transaction[] = getDemoDonorPortalSnapshot(
+  "6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a",
+).donations.map(toDonorHistoryTransaction);
 
 function installMobileMedia() {
   vi.stubGlobal(
