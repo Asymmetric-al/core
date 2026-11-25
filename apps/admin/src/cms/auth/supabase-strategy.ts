@@ -32,6 +32,7 @@ import {
   ensurePrincipalLink,
   type PrincipalLinkRow,
 } from "../ports/service-port";
+import { CANONICAL_UUID } from "../tenancy/reference-guard";
 import { readWebStudioTenantCookie } from "../web-studio-tenant-cookie";
 import {
   markWebStudioRefusal,
@@ -109,7 +110,8 @@ async function signInPrincipal({
   email: string | null;
   assignment: ActiveAssignment;
   strategy: string;
-}): Promise<{ user: CmsAuthUser }> {
+}): Promise<AuthenticationOutcome> {
+  if (!CANONICAL_UUID.test(userId)) return refused(null);
   const row = await ensurePrincipalLink(payload, { userId, email });
   return {
     user: {
