@@ -68,7 +68,7 @@ describe("admin TanStack surface migrations", () => {
       "apps/admin/app/(app)/events/page-client.tsx",
     );
     const teamsPageSource = readRepoFile(
-      "apps/admin/app/(app)/admin/teams/page-client.tsx",
+      "apps/admin/app/(app)/settings/teams/page-client.tsx",
     );
 
     expect(eventsSource).not.toMatch(

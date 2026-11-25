@@ -47,7 +47,7 @@ const view: EveModelPolicyAdminView = {
 
 beforeAll(async () => {
   const module =
-    await import("../../../../../apps/admin/app/(app)/admin/eve/model-policy-panel");
+    await import("../../../../../apps/admin/app/(app)/settings/eve/model-policy-panel");
   EveModelPolicyPanel = module.EveModelPolicyPanel;
 });
 beforeEach(() => getQueryClient().clear());

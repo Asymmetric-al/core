@@ -213,7 +213,7 @@ describe("Item 6c: Web Studio fetch wrapper and document scope under /admin", ()
 describe("Item 6g & 6i: invitation addresses, copied links, and map worker URL", () => {
   it("formats staff and missionary invitation links with per-dashboard prefixes when on, and unchanged when off", async () => {
     const { formatInvitationAddress } =
-      await import("../../../apps/admin/app/(app)/admin/teams/page-client");
+      await import("../../../apps/admin/app/(app)/settings/teams/page-client");
 
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
     vi.stubEnv("CORE_APP_BASE_PATH", "/admin");

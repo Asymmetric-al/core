@@ -7,12 +7,12 @@ import { describe, expect, it } from "vitest";
  * Companion to `tests/unit/packages/ui/internal-alias.test.ts`: the plugin is
  * workspace-agnostic, so cover an app as well as a package. This uses real
  * app code rather than a fixture —
- * `apps/admin/app/(app)/admin/loading.tsx` already imports through the app's
+ * `apps/admin/app/(app)/settings/loading.tsx` already imports through the app's
  * own `@/*` tsconfig mapping.
  */
 const appModulePath = fileURLToPath(
   new URL(
-    "../../../../apps/admin/app/(app)/admin/loading.tsx",
+    "../../../../apps/admin/app/(app)/settings/loading.tsx",
     import.meta.url,
   ),
 );
@@ -20,7 +20,7 @@ const appModulePath = fileURLToPath(
 describe("apps/admin internal @/ alias", () => {
   it("resolves @/ imports in apps/admin files against the app root", async () => {
     const loadingModule =
-      await import("../../../../apps/admin/app/(app)/admin/loading");
+      await import("../../../../apps/admin/app/(app)/settings/loading");
 
     // Importing at all proves the root vitest config resolved the module's
     // `@/features/...` import against apps/admin rather than the repo root.

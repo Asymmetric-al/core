@@ -16,6 +16,22 @@ describe("buildEvePageContext", () => {
       buildEvePageContext({ panelOpen: false, pathname, tenant: null }),
     ).toMatchObject({ route: pathname, pageIdentity });
   });
+  it.each(["/settings", "/settings/teams", "/settings/eve"])(
+    "maps %s to the /settings Settings identity",
+    (pathname) => {
+      expect(
+        buildEvePageContext({ panelOpen: false, pathname, tenant: null }),
+      ).toMatchObject({ route: "/settings", pageIdentity: "Settings" });
+    },
+  );
+  it.each(["/admin", "/admin/teams", "/admin/eve"])(
+    "falls back to Home for retired %s paths",
+    (pathname) => {
+      expect(
+        buildEvePageContext({ panelOpen: false, pathname, tenant: null }),
+      ).toMatchObject({ route: "/", pageIdentity: "Home" });
+    },
+  );
   it.each(navigation)(
     "uses the navigation identity for $href without exposing record IDs",
     ({ href, title }) => {
@@ -25,7 +41,9 @@ describe("buildEvePageContext", () => {
         tenant: null,
       });
       expect(context.route).toBe(href);
-      expect(context.pageIdentity).toBe(title);
+      expect(context.pageIdentity).toBe(
+        href === "/settings" ? "Settings" : title,
+      );
       expect(JSON.stringify(context)).not.toContain("private-record-id");
     },
   );
