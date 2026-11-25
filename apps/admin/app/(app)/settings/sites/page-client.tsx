@@ -142,10 +142,12 @@ function DonorAccountNameSection({
   const fieldId = useId();
   const descriptionId = useId();
   const errorId = useId();
-  const [value, setValue] = useState(stored ?? "");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [draft, setDraft] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const inFlightRef = useRef(false);
+  const value = draft ?? stored ?? "";
   const invalid = isInvalidNameError(error);
   const unchanged = stripNameEdges(value) === (stored ?? "");
 
@@ -154,16 +156,22 @@ function DonorAccountNameSection({
     if (inFlightRef.current) return;
     inFlightRef.current = true;
     const displayName = stripNameEdges(value);
-    setValue(displayName);
+    setDraft(displayName);
     setError(null);
     setPending(true);
+    let saved = false;
     try {
       const brand = await setDonorAccountName(displayName);
+      saved = true;
       toast.success(`Donor account name saved as ${brand.display_name}.`);
     } catch (caught) {
       setError(caught);
+      if (isInvalidNameError(caught)) inputRef.current?.focus();
     } finally {
       await onSettled();
+      if (saved) {
+        setDraft((current) => (current === displayName ? null : current));
+      }
       inFlightRef.current = false;
       setPending(false);
     }
@@ -183,13 +191,14 @@ function DonorAccountNameSection({
           <div className="flex gap-2">
             <Input
               id={fieldId}
+              ref={inputRef}
               value={value}
               autoComplete="off"
               aria-invalid={invalid || undefined}
               aria-describedby={
                 invalid ? `${descriptionId} ${errorId}` : descriptionId
               }
-              onChange={(event) => setValue(event.target.value)}
+              onChange={(event) => setDraft(event.target.value)}
             />
             <Button type="submit" disabled={pending || unchanged}>
               Save
@@ -255,6 +264,7 @@ function CreateSiteDialog({
       toast.success(`${site.name} was created.`);
     } catch (caught) {
       setError(caught);
+      if (isInvalidNameError(caught)) inputRef.current?.focus();
     } finally {
       await onSettled();
       inFlightRef.current = false;
@@ -517,7 +527,7 @@ function SitesSection({
                             type="button"
                             variant="outline"
                             size="sm"
-                            disabled={reactivating === site.id}
+                            disabled={!active && reactivating !== null}
                             ref={(element) => {
                               if (element) {
                                 actionRefs.current.set(site.id, element);
@@ -587,11 +597,7 @@ function SiteSettingsScreen() {
     const stored = settings.data.brand?.display_name ?? null;
     body = (
       <div className="flex max-w-4xl flex-col gap-8">
-        <DonorAccountNameSection
-          key={stored ?? ""}
-          stored={stored}
-          onSettled={refresh}
-        />
+        <DonorAccountNameSection stored={stored} onSettled={refresh} />
         <SitesSection sites={settings.data.sites} onSettled={refresh} />
       </div>
     );
