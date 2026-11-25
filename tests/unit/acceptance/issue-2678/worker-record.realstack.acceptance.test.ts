@@ -112,7 +112,24 @@ describe.skipIf(!ADMIN_URL)(
           "pZ",
           "wZ",
         ].map((k) => [k, randomUUID()]),
-      ) as Record<string, string>),
+      ) as Record<
+        | "UP"
+        | "mP"
+        | "UDS"
+        | "mDSA"
+        | "mDSB"
+        | "UOP"
+        | "UN"
+        | "pU"
+        | "wU"
+        | "pK"
+        | "wK"
+        | "pV"
+        | "wV"
+        | "pZ"
+        | "wZ",
+        string
+      >),
     };
     const run = asRole(db, id);
     const keep = keepAs(db, id);

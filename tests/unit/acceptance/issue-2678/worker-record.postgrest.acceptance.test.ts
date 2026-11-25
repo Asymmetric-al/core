@@ -586,11 +586,11 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         expect.arrayContaining([id.wU, id.wK, id.wV, id.wR, id.wC]),
       );
       expect(Object.keys(before)).not.toContain(id.wZ);
-      expect(before[id.wU]).toMatchObject({
+      expect(before[id.wU!]).toMatchObject({
         securityLevelSource: "unreviewed_default",
         hasLegalIdentity: false,
       });
-      expect(before[id.wK]).toMatchObject({ hasLegalIdentity: true });
+      expect(before[id.wK!]).toMatchObject({ hasLegalIdentity: true });
       expect(await count(who)).toBe(1);
       const k = await answer(await record(who, id.wK!), 200);
       expect(k.worker).toMatchObject({
@@ -611,7 +611,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         securityLevelSource: "manual",
       });
       expect(await count(who)).toBe(0);
-      expect((await directory(who))[id.wU]).toMatchObject({
+      expect((await directory(who))[id.wU!]).toMatchObject({
         securityLevelSource: "manual",
       });
       expect(
