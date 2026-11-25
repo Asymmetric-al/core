@@ -65,10 +65,10 @@ vi.mock("@supabase/ssr", () => ({
 
 vi.mock("@supabase/supabase-js", () => ({
   createClient: () => {
+    state.clients += 1;
     if (state.offMode) {
       throw new Error("no lookup client when the switch is off");
     }
-    state.clients += 1;
     return {
       rpc: (fn: string, args: { p_host: string }) => {
         if (fn === "resolve_verified_host") {
