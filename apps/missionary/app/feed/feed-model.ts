@@ -48,7 +48,7 @@ export type WorkerFeedUiState = {
 
 export interface FollowerRequest {
   id: string;
-  donor_id: string;
+  donor_id: string | null;
   name: string;
   avatar_url: string | null;
   is_donor: boolean;
