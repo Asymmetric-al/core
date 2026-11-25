@@ -102,8 +102,8 @@ post.author`) or by bracket access (`author["first_name"]`), SQL inside
    restricted or high-risk Party without an alias, so the suites write that
    worker ("X") as the table owner with the alias trigger disabled for the one
    statement: `worker-names.realstack` inside its rolled-back transaction, and
-   `identity-keys.postgrest` committed (PostgREST reads only committed rows)
-   and deleted in its `afterAll`. A worker whose stored alias is only removed
+   `worker-names.postgrest` committed (PostgREST reads only committed rows)
+   and deleted in the shared fixture's `afterAll`. A worker whose stored alias is only removed
    characters (U+FE0F, U+200B) is written the same way; it is the stored-row
    case a release must count before it ships: of the pull request's four
    stored-row counts, the third (`private.party_alias_problem(id) IS NOT
@@ -111,9 +111,13 @@ NULL` on `public.parties`) and the fourth
    (`private.normalize_safety_text(legal_name) IS NULL` on
    `private.party_restricted`) must read 0.
 8. **The PostgREST suite gives the portal a donor of its own.**
-   `identity-keys.postgrest` adds a donor ("giver") with gifts and recurring
-   gifts to the three workers, so the suite's earlier exact-row assertions
-   for its first donor do not change, and it mocks only
+   Since WP5 part 2-r2a the worker-name tests are their own file,
+   `worker-names.postgrest`, beside `identity-keys.postgrest`; both build the
+   same stack rows from one module, `identity-keys.postgrest-fixture.ts`, and
+   each keeps its own mocks. The fixture adds a donor ("giver") with gifts and
+   recurring gifts to the three workers, so the identity-key suite's
+   exact-row assertions for its first donor do not change, and
+   `worker-names.postgrest` mocks only
    `getAuthContext` and the admin client (a real service-key client on the
    stack) to call `GET /api/donations` and the GraphQL handler, as
    `issue-2269/donations-embed.postgrest` does; for `POST /api/donations` it

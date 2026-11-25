@@ -52,6 +52,17 @@ describe("the local Supabase workflow's path filter", () => {
   });
 
   it.each([
+    "tests/unit/acceptance/issue-2678/identity-keys.postgrest.acceptance.test.ts",
+    "tests/unit/acceptance/issue-2678/identity-keys.postgrest-fixture.ts",
+    "tests/unit/acceptance/issue-2678/worker-names.postgrest.acceptance.test.ts",
+  ])(
+    "starts the identity-key and worker-name proofs when %s, a suite or their shared fixture, changes (AL-2678 r2a)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
     "packages/api/src/donor-portal/**",
     "packages/api/src/posts/**",
     "packages/api/src/donations/**",
