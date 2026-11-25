@@ -37,7 +37,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@asym/database/hooks", () => ({
   useMissionaryDonorRows: () => ({
-    data: mocks.rows,
+    data: [...mocks.rows],
     isLoading: false,
     error: null,
     hasMore: false,

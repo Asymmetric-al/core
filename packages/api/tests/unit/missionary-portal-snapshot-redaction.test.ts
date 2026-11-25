@@ -69,6 +69,7 @@ const namedDonor = {
   location: "Paris",
   tags: ["monthly"],
   giving_preferences: { defaultAnonymousToRecipient: false },
+  donor_is_restricted_party: false,
 };
 
 const emptyPrefsDonor = {
@@ -207,6 +208,7 @@ const tasks = [
       email: "blaise@example.com",
       avatar_url: "https://cdn/b.png",
       giving_preferences: { defaultAnonymousToRecipient: false },
+      donor_is_restricted_party: false,
     },
   },
   {

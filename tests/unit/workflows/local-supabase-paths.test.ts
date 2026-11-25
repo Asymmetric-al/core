@@ -75,6 +75,20 @@ describe("the local Supabase workflow's path filter", () => {
   );
 
   it.each([
+    "tests/unit/acceptance/issue-2678/supporter-names.postgrest.acceptance.test.ts",
+    "packages/api/src/missionary-portal/**",
+    "packages/api/src/follower-requests/**",
+    "packages/api/src/missionaries/**",
+    "packages/api/src/donations/**",
+    "packages/graphql/**",
+  ])(
+    "starts the supporter-name proof when %s, the suite or a reader it drives, changes (AL-2678 r2s)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
     "packages/api/src/donor-portal/**",
     "packages/api/src/posts/**",
     "packages/api/src/donations/**",

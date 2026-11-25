@@ -2,7 +2,9 @@ import { parseRequiredIdempotencyKey } from "@asym/api/donate/idempotency";
 import {
   DONATION_WITH_PARTIES_SELECT,
   giftMismatches,
+  SUPPORTER_DONATION_SELECT,
 } from "@asym/api/donations/select";
+import { isAnonymousToRecipient } from "@asym/api/missionary-portal/redaction";
 import { CACHE_TAGS, revalidateTags } from "@asym/api/shared/cache-tags";
 import {
   getAuthContext,
@@ -408,14 +410,16 @@ const resolvers = {
 
       const { data, error } = await ctx.supabaseAdmin
         .from("donations")
-        .select(DONATION_WITH_PARTIES_SELECT)
+        .select(SUPPORTER_DONATION_SELECT)
         .eq("missionary_id", missionary.id)
         .eq("tenant_id", auth.tenantId)
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
       if (error) throw donationsQueryFailed("Donations query", error);
 
-      return data.map(mapDonation);
+      return (data as unknown as Record<string, unknown>[]).map(
+        mapSupporterDonation,
+      );
     },
 
     auditLogs: async (
@@ -911,6 +915,25 @@ function mapDonation(data: Record<string, unknown>) {
     currency: data.currency,
     status: data.status,
     createdAt: data.created_at,
+  };
+}
+
+function mapSupporterDonation(data: Record<string, unknown>) {
+  const donor = ((Array.isArray(data.donor) ? data.donor[0] : data.donor) ??
+    null) as {
+    giving_preferences?: unknown;
+    donor_is_restricted_party?: unknown;
+    profile?: Record<string, unknown> | null;
+  } | null;
+  const hidden =
+    !donor ||
+    isAnonymousToRecipient({
+      givingPreferences: donor.giving_preferences,
+      restrictedParty: donor.donor_is_restricted_party,
+    });
+  return {
+    ...mapDonation(data),
+    donor: hidden ? null : mapProfile(donor.profile ?? null),
   };
 }
 

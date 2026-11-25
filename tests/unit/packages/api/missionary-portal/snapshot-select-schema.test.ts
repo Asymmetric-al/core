@@ -39,6 +39,13 @@ function migratedColumns(): Map<string, Set<string>> {
         tables.set(create[1]!, columns);
         continue;
       }
+      const computed = statement.match(
+        /CREATE (?:OR REPLACE )?FUNCTION (?:public\.)?(\w+)\s*\(\s*\w+\s+(?:public\.)?(\w+)\s*\)/i,
+      );
+      if (computed) {
+        tables.get(computed[2]!)?.add(computed[1]!);
+        continue;
+      }
       const alter = statement.match(
         /ALTER TABLE (?:IF EXISTS )?(?:ONLY )?(?:public\.)?(\w+)\b([\s\S]*)/i,
       );
@@ -127,7 +134,7 @@ function recordingClient(selects: Map<string, string[]>) {
 }
 
 describe("missionary portal snapshot reads", () => {
-  it("select only columns the migrations create", async () => {
+  it("select only columns the migrations create (D-18, AL-2678 WP5 part 2-r2s: a one-argument function on a table's row type is a PostgREST computed column of that table)", async () => {
     const selects = new Map<string, string[]>();
     await getMissionaryPortalSnapshot({
       supabaseAdmin: recordingClient(selects) as never,

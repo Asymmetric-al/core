@@ -19,6 +19,7 @@ describe("missionary metrics gift redaction", () => {
         {
           id: "named",
           giving_preferences: { defaultAnonymousToRecipient: false },
+          donor_is_restricted_party: false,
         },
         {
           id: "anonymous",

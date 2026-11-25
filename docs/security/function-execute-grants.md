@@ -75,6 +75,19 @@ After the migration, on any database whatever its default privileges:
   commenter linked to a restricted or high-risk Party in any organization, or
   a worker with no sole row in the post's organization, has no photo and is
   named only by an alias or not at all.
+- `public.donor_is_restricted_party(public.donors)` (AL-2678, WP5 part
+  2-r2s, `20261126060000_wp5_2r2s_donor_restricted_party.sql`) is a computed
+  column for the service key: false only when the donor has a Party in its
+  own organization and every Party linked to its login, or to a login of that
+  Party, in any organization, is standard or sensitive; never NULL. It is
+  owned by `postgres`, has an empty search path, and its migration revokes
+  `PUBLIC`, `anon`, `authenticated` and `service_role` by name and grants
+  `service_role` alone. It is a definer because it reads other people's
+  rows (the logins and Parties of other organizations) that no caller's own
+  privileges reach, and it reveals only the one boolean.
+  `tests/unit/acceptance/issue-2678/supporter-redaction.realstack.acceptance.test.ts`
+  asserts the owner, the search path and the exact grantees, and
+  `supporter-names.postgrest` that a donor's token and `anon` get `42501`.
 - The `authz` INVOKER helpers `current_user_id()` and `current_tenant_id()`
   keep `PUBLIC` EXECUTE; they run with the caller's privileges and gain nothing.
 - Since the second release of WP2b (AL-2675,
