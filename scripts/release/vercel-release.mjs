@@ -638,7 +638,7 @@ export async function runCli(
   argv,
   env = process.env,
   log = console.log,
-  { request = fetch, isAncestor, listChangedFiles } = {},
+  { request = fetch, sleep, isAncestor, listChangedFiles } = {},
 ) {
   const [step, ...rest] = argv;
   if (!STEPS.includes(step))
@@ -676,7 +676,7 @@ export async function runCli(
     return;
   }
   if (step === "register-jobs") {
-    await registerJobFunctions({});
+    await registerJobFunctions({ request });
     log("Job functions registered with the admin app's serve route.");
     return;
   }
@@ -689,6 +689,8 @@ export async function runCli(
       bypassSecret: env[BYPASS_SECRETS[app]],
       sha: env.RELEASE_SHA?.trim() || undefined,
       projectRef: env.RELEASE_SUPABASE_PROJECT_REF,
+      request,
+      sleep,
     });
     log(
       `${app}: migration health ok on ${body.database.supabaseProjectRef} (${body.database.environment}).`,
@@ -723,6 +725,8 @@ export async function runCli(
       projectRef,
       env,
       call,
+      request,
+      sleep,
     });
   }
 }
