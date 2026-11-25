@@ -674,15 +674,32 @@ function sourceFiles(): string[] {
 }
 
 let cached: Violation[] | null = null;
+function readSources(
+  files: string[],
+  read: (file: string) => string,
+): Map<string, string> {
+  const sources = new Map<string, string>();
+  const unreadable: string[] = [];
+  for (const file of files) {
+    try {
+      sources.set(file, read(file));
+    } catch (error) {
+      const code = (error as { code?: unknown }).code;
+      if (code !== "ENOENT") unreadable.push(`${file} (${String(code)})`);
+    }
+  }
+  if (unreadable.length)
+    throw new Error(`the scan cannot read: ${unreadable.join(", ")}`);
+  return sources;
+}
+
 function treeViolations(): Violation[] {
   if (cached) return cached;
-  const sources = new Map<string, string>();
-  for (const file of [...new Set(sourceFiles())].sort()) {
-    try {
-      sources.set(file, readFileSync(file, "utf8"));
-    } catch {}
-  }
-  cached = scanSources(sources);
+  cached = scanSources(
+    readSources([...new Set(sourceFiles())].sort(), (file) =>
+      readFileSync(file, "utf8"),
+    ),
+  );
   return cached;
 }
 

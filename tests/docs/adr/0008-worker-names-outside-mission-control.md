@@ -309,7 +309,9 @@ NULL` on `public.parties`) and the fourth
       are reported and ten controls are not, and the real handler with its
       select module is reported for nothing; the migration reader has five
       planted texts (R1-R5) and one guard, that the tree still gives its
-      twenty tables.
+      twenty tables; and the scan fails, naming the path, on a listed source
+      file it cannot read (V1), skipping only one deleted from the working
+      tree (V2).
     - **What the contract cannot see**, each a review item: a table name
       computed at run time or passed as a parameter; a query builder held in
       a variable before `.select`; a reader outside the roots; a SQL function
