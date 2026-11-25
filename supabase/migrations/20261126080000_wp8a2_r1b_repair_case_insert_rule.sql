@@ -30,10 +30,18 @@
 -- Recovery. Every statement here is safe to run twice, and a second run
 -- changes nothing: the function and the trigger are created or replaced, the
 -- REVOKE also removes the four column grants and the GRANT puts them back
--- (observed on a second run of the applied file). This file has committed
--- when this read-only check is true:
---   SELECT NOT has_table_privilege('tenant_guard', 'public.payment_repair_cases', 'INSERT')
---   AND has_column_privilege('tenant_guard', 'public.payment_repair_cases', 'kind', 'INSERT')
+-- (observed on a second run of the applied file). The check below answers
+-- false, never an error, where the role, the table or its column is absent.
+-- This file has committed when this read-only check is true:
+--   SELECT EXISTS (
+--     SELECT 1
+--       FROM pg_catalog.pg_roles AS r
+--       JOIN pg_catalog.pg_class AS c ON c.oid = to_regclass('public.payment_repair_cases')
+--       JOIN pg_catalog.pg_attribute AS a ON a.attrelid = c.oid AND a.attname = 'kind' AND NOT a.attisdropped
+--      WHERE r.rolname = 'tenant_guard'
+--        AND NOT has_table_privilege(r.oid, c.oid, 'INSERT')
+--        AND has_column_privilege(r.oid, c.oid, a.attnum, 'INSERT')
+--   )
 -- Then follow docs/ops/release-job.md, "If the migration committed but its
 -- ledger row is missing", with this check and this file's version. It has no
 -- preflight or post-assert of its own.

@@ -119,9 +119,10 @@ function classifyRejected(
     ownStatus !== undefined && ownStatus === sentStatus ? ownStatus : undefined;
   if (status === undefined) return unknownAnswer("stripe_unclassified");
   const rawType = error.rawType;
-  const replayed =
-    headerValues(error.headers, "idempotent-replayed").includes("true") ||
-    headerValues(sentHeaders, "idempotent-replayed").includes("true");
+  const replayed = [
+    ...headerValues(error.headers, "idempotent-replayed"),
+    ...headerValues(sentHeaders, "idempotent-replayed"),
+  ].some((value) => value !== "false");
   const reasons = headerValues(error.headers, "stripe-rate-limited-reason");
   if (status === 409) return unknownAnswer("stripe_idempotency_in_flight");
   if (rawType === "idempotency_error")
@@ -211,6 +212,7 @@ export function createStripePaymentAdapter({
           maxNetworkRetries: 0,
           timeout,
           httpClient: send.client,
+          telemetry: false,
         });
         const call: Promise<StripeAnswer> = stripe.paymentIntents
           .create(params as Stripe.PaymentIntentCreateParams, {

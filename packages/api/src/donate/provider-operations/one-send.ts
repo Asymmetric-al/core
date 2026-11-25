@@ -65,7 +65,19 @@ export function createOneSend(transport: OneSendTransport): OneSend {
       );
       status = response.getStatusCode();
       headers = response.getHeaders();
-      return response;
+      return {
+        getStatusCode: () => response.getStatusCode(),
+        getHeaders: () => response.getHeaders(),
+        getRawResponse: () => response.getRawResponse(),
+        toStream: (streamCompleteCallback) =>
+          response.toStream(streamCompleteCallback),
+        async toJSON() {
+          const parsed: unknown = await response.toJSON();
+          if (parsed !== null && typeof parsed !== "object")
+            throw new TypeError("Provider JSON response body was a primitive.");
+          return parsed;
+        },
+      };
     },
   };
   return {

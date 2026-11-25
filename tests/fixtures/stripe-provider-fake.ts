@@ -502,7 +502,7 @@ export function createStripeProviderFake(
       if (request.key) {
         if (toStore)
           store.set(slot, {
-            answer: toStore,
+            answer: { ...toStore, hangBody: false },
             params,
             atMs: nowMs,
             executing: false,

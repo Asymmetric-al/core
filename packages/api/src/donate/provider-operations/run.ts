@@ -224,7 +224,7 @@ export async function runProviderOperation({
     const given = await adapter.createPayment({
       account: checked.data.provider_account,
       idempotencyKey: checked.data.idempotency_key,
-      params: body.request as ProviderRequest,
+      params: checked.data.request,
       timeoutMs: Math.floor(Math.min(CALL_TIMEOUT_MS, remaining)),
     });
     const parsed = answerSchema.safeParse(given);
