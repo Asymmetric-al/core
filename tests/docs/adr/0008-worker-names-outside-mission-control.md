@@ -35,8 +35,8 @@ restricted or high-risk worker gets the alias or `NULL`, never
    - any read of `parties`: a `.from("parties")`, a literal that is exactly
      `parties`, or a `parties(` / `parties!` embed;
    - a `missionaries` select or embed that holds `*`, `display_name`,
-     `full_name`, `first_name` or `last_name`, or a nested `profiles` embed
-     with `*` or one of those (`*` since the fix round: the worker row has
+     `full_name`, `first_name` or `last_name`, or a `profiles` embed at any
+     depth under it with `*` or one of those (`*` since the fix round: the worker row has
      private columns, `phone`, `birth_date`, `location`, the Member Care
      columns, that a donor must never receive, so every reader lists its
      columns);
@@ -44,7 +44,11 @@ restricted or high-risk worker gets the alias or `NULL`, never
      `avatar_url`: one with the column hint `!missionary_id` or the
      constraint hint `!posts_missionary_id_fkey` anywhere, and any top-level
      `profiles` embed of a select whose root is `posts`, with or without a
-     hint (PostgREST resolves the sole key without one);
+     hint (PostgREST resolves the sole key without one), and any `profiles`
+     embed nested in a `posts(...)` embed, whatever the outer root;
+   - a template chunk that ends in `missionaries!`, `profiles!` or `posts!`,
+     the hint interpolated before the parenthesis: the embed cannot be read,
+     so the scan fails closed;
    - the code `author.<name>` or `author?.<name>` for any of the four name
      columns.
 2. **A donor's own profile is told apart by nesting.** A `profiles` embed is a
@@ -64,7 +68,7 @@ restricted or high-risk worker gets the alias or `NULL`, never
    (`PUBLIC_WORKER_SELECT`, no caller; owner WP7, which also applies
    `do_not_publish`) is its one entry. An entry whose file no longer violates
    fails the test, so the list can only shrink.
-5. **Planted cases pin the rules.** Eighteen planted sources fail (a profile
+5. **Planted cases pin the rules.** Twenty-three planted sources fail (a profile
    name or a whole profile in a `missionaries` embed, a worker row's first
    name, a feed author's first name, `.from("parties")` with either quote, a
    `parties` embed, a whole profile from a `missionaries` root,
@@ -72,7 +76,10 @@ restricted or high-risk worker gets the alias or `NULL`, never
    round a posts-root author by the constraint hint, by no hint and by the
    column hint, an unbound literal with the constraint hint,
    `post.author.display_name`, `author?.full_name`, and `missionaries(*)` as
-   an embed and as a root); six pass (a donor's own profile by id, a donor's
+   an embed and as a root; and since the last step a post author nested in a
+   `posts` embed under another root and inside a `missionaries` embed, a whole
+   profile two embeds deep in a `missionaries` embed, and a `missionaries` or
+   `profiles` embed whose hint is interpolated); six pass (a donor's own profile by id, a donor's
    profile under `donors`, the donor portal's worker embed, the feed's author
    embed in a literal and under a posts root, and the donations read's
    explicit worker columns).
@@ -83,8 +90,12 @@ restricted or high-risk worker gets the alias or `NULL`, never
    a select returned by a helper function or re-exported through more than
    one module, a name taken by destructuring (`const { first_name } =
 post.author`) or by bracket access (`author["first_name"]`), SQL inside
-   `.rpc(...)`, and a GraphQL resolver that maps another source. Each is a
-   review item, not a test. A template expression inside a `missionaries(...)`
+   `.rpc(...)`, a GraphQL resolver that maps another source, and a select
+   built from a constant that is itself built from another constant or an
+   array spread in the same file (the scanner binds a root to the constant
+   passed to `.select(...)` and to the literals in its own initializer, not
+   to the constants that initializer names). Each is a review item, not a
+   test. A template expression inside a `missionaries(...)`
    or a post author's embed fails closed: the scanner cannot read the embed
    and reports it.
 7. **Fixtures for a worker who has no alias.** The rule forbids a
@@ -114,11 +125,19 @@ NULL` on `public.parties`) and the fourth
    runtime's own Unicode tables over U+0001 to U+10FFFF: every
    `Default_Ignorable_Code_Point`, assigned or not, is removed; every `Cf` is
    removed or is one of the named visible marks; every `Cc` that is not
-   whitespace is removed; the whitespace class is exactly `White_Space`; and
-   nothing else is removed but the Braille blank. A runtime with a later
-   Unicode version that adds a code point to one of those classes fails it
-   and names the code point. The suite printed Unicode 17.0 when the fix round
-   ran.
+   whitespace is removed; the whitespace class is exactly `White_Space`, read
+   only with its `+`, and the removal class only without one; and nothing else
+   is removed but a named list of characters that are blank though no
+   property says so (the Braille blank U+2800, the Egyptian hieroglyph full
+   and half blank U+13441 and U+13442, the musical symbol null notehead
+   U+1D159), each of which it requires removed, and the Syriac abbreviation
+   mark U+070F, a format character the Unicode Standard (16.0, section 9.3.1)
+   calls zero-width, with no glyph of its own. A runtime with a later
+   Unicode version that adds a code point to one of the derived classes fails
+   it and names the code point. The named list cannot be derived: whether an
+   assigned letter or symbol draws ink is a property of fonts, not of
+   Unicode's tables, so a blank glyph nobody has listed can still pass. The
+   suite printed Unicode 17.0 when the fix round ran.
 10. **The projection's branches are pinned, and the allowlist fails closed
     (fix round, F5 and F6).** `worker-names.realstack` names a `high_risk`
     worker with and without an alias, a `sensitive` one without an alias, a

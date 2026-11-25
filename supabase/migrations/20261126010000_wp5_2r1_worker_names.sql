@@ -42,33 +42,49 @@
 -- whitespace, namely
 --   U+0001-U+0008, U+000E-U+001F, U+007F-U+0084, U+0086-U+009F (controls);
 --   U+00AD soft hyphen; U+034F combining grapheme joiner; U+061C Arabic letter
---   mark; U+115F, U+1160, U+3164, U+FFA0 Hangul fillers; U+17B4, U+17B5 Khmer
+--   mark; U+070F Syriac abbreviation mark (below); U+115F, U+1160, U+3164, U+FFA0 Hangul fillers; U+17B4, U+17B5 Khmer
 --   inherent vowels; U+180B-U+180F Mongolian free variation selectors and
 --   vowel separator; U+200B-U+200F zero-width space, non-joiner, joiner and
 --   direction marks; U+202A-U+202E embeddings and overrides; U+2060-U+206F
 --   word joiner, invisible operators, isolates, deprecated format characters
---   and the unassigned U+2065; U+2800 Braille blank (not default-ignorable,
---   but blank); U+FE00-U+FE0F variation selectors; U+FEFF byte-order mark;
+--   and the unassigned U+2065; U+2800 Braille blank; U+FE00-U+FE0F variation selectors; U+FEFF byte-order mark;
 --   U+FFF0-U+FFFB, the unassigned U+FFF0-U+FFF8 and the interlinear
 --   annotation characters; U+13430-U+1343F Egyptian hieroglyph format
---   controls; U+1BCA0-U+1BCA3 shorthand format controls; U+1D173-U+1D17A
---   musical format controls; U+E0000-U+E0FFF the tags, the variation
+--   controls; U+13441, U+13442 Egyptian hieroglyph full and half blank;
+--   U+1BCA0-U+1BCA3 shorthand format controls; U+1D159 musical symbol null
+--   notehead; U+1D173-U+1D17A musical format controls; U+E0000-U+E0FFF the tags, the variation
 --   selectors U+E0100-U+E01EF and every unassigned code point between them.
 --   tests/unit/acceptance/issue-2678/safety-text-classes.static derives the
---   classes from the runtime's Unicode tables and fails on a code point that
---   a later Unicode version adds to them.
+--   three classes from the runtime's Unicode tables and fails on a code point
+--   that a later Unicode version adds to them.
+-- Blank, though no Unicode property says so: U+2800, U+13441, U+13442 and
+--   U+1D159 are letters or symbols whose glyph draws no ink. Whether an
+--   assigned letter or symbol draws ink is a property of fonts, not of
+--   Unicode's tables, so no test can derive this class: it is a named list,
+--   and a blank glyph that nobody has listed can still pass the alias rule
+--   and the blank checks. That is the honest limit of this rule.
+-- U+070F: the Unicode Standard (16.0, section 9.3.1, "Syriac Abbreviation
+--   Mark") says "U+070F SYRIAC ABBREVIATION MARK (SAM) is a zero-width
+--   formatting code that has no effect on the shaping process of Syriac
+--   characters", and that it "specifies the beginning point of a Syriac
+--   abbreviation, which is a line drawn horizontally above one or more
+--   characters"; the line is drawn over the characters after it, and the
+--   mark has no glyph of its own (section 9.2.1 counts it among the signs
+--   whose span is rendered visibly). After a Latin name, or alone, it shows
+--   nothing, so it is removed rather than kept.
 -- Whitespace, unchanged, exactly White_Space (each run becomes one space):
 --   U+0009-U+000D, U+0020, U+0085, U+00A0, U+1680, U+2000-U+200A, U+2028,
 --   U+2029, U+202F, U+205F, U+3000.
 -- Kept: the format marks that are visible in their scripts (U+0600-U+0605,
---   U+06DD, U+070F, U+0890, U+0891, U+08E2, U+110BD, U+110CD); look-alike
+--   U+06DD, U+0890, U+0891, U+08E2, U+110BD, U+110CD); look-alike
 --   letters of another script; characters whose lowercase depends on the
 --   locale (issue 2805 note 3).
 -- What the removal can damage, accepted: a variation selector after an emoji
 --   or an ideograph (an ideographic variant of a name collapses to its base
 --   character); a Hangul filler inside an old or incomplete jamo sequence
 --   (precomposed Hangul is untouched); a Mongolian contextual form chosen by
---   a free variation selector.
+--   a free variation selector; a Syriac abbreviation, which loses its
+--   overline.
 -- Blank: nothing is left after the steps above, so the function returns
 --   NULL; a text of removed characters and whitespace only is blank.
 -- The same (unchanged, 20261125050400 lines 173-180): lower() of the NFKC
@@ -118,7 +134,7 @@ PARALLEL SAFE
 SECURITY INVOKER
 SET search_path = ''
 AS $fn$
-  SELECT NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.normalize(pg_catalog.regexp_replace(p_value, $re$[\u0001-\u0008\u000E-\u001F\u007F-\u0084\u0086-\u009F\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180B-\u180F\u200B-\u200F\u202A-\u202E\u2060-\u206F\u2800\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF0-\uFFFB\U00013430-\U0001343F\U0001BCA0-\U0001BCA3\U0001D173-\U0001D17A\U000E0000-\U000E0FFF]$re$, '', 'g'), 'NFC'), $ws$[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+$ws$, ' ', 'g')), '');
+  SELECT NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.normalize(pg_catalog.regexp_replace(p_value, $re$[\u0001-\u0008\u000E-\u001F\u007F-\u0084\u0086-\u009F\u00AD\u034F\u061C\u070F\u115F\u1160\u17B4\u17B5\u180B-\u180F\u200B-\u200F\u202A-\u202E\u2060-\u206F\u2800\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF0-\uFFFB\U00013430-\U0001343F\U00013441-\U00013442\U0001BCA0-\U0001BCA3\U0001D159\U0001D173-\U0001D17A\U000E0000-\U000E0FFF]$re$, '', 'g'), 'NFC'), $ws$[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+$ws$, ' ', 'g')), '');
 $fn$;
 COMMENT ON FUNCTION private.normalize_safety_text(TEXT) IS
   'A worker''s alias, legal name or a safety command''s reason in one form: invisible format characters, variation selectors, Hangul fillers, tags and control characters that are not whitespace removed; composed (NFC); every run of ASCII or Unicode whitespace one space; trimmed; NULL when nothing is left (AL-2678).';
@@ -141,7 +157,7 @@ SET search_path = ''
 AS $fn$
   SELECT COALESCE(
     (SELECT n.name
-       FROM (SELECT t.slot, NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.normalize(pg_catalog.regexp_replace(t.v, $re$[\u0001-\u0008\u000E-\u001F\u007F-\u0084\u0086-\u009F\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180B-\u180F\u200B-\u200F\u202A-\u202E\u2060-\u206F\u2800\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF0-\uFFFB\U00013430-\U0001343F\U0001BCA0-\U0001BCA3\U0001D173-\U0001D17A\U000E0000-\U000E0FFF]$re$, '', 'g'), 'NFC'), $ws$[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+$ws$, ' ', 'g')), '') AS name
+       FROM (SELECT t.slot, NULLIF(pg_catalog.btrim(pg_catalog.regexp_replace(pg_catalog.normalize(pg_catalog.regexp_replace(t.v, $re$[\u0001-\u0008\u000E-\u001F\u007F-\u0084\u0086-\u009F\u00AD\u034F\u061C\u070F\u115F\u1160\u17B4\u17B5\u180B-\u180F\u200B-\u200F\u202A-\u202E\u2060-\u206F\u2800\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF0-\uFFFB\U00013430-\U0001343F\U00013441-\U00013442\U0001BCA0-\U0001BCA3\U0001D159\U0001D173-\U0001D17A\U000E0000-\U000E0FFF]$re$, '', 'g'), 'NFC'), $ws$[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+$ws$, ' ', 'g')), '') AS name
                FROM (VALUES (1, p_public_alias), (2, p_approved_profile_display_name)) AS t (slot, v)) AS n
       WHERE n.name IS NOT NULL
       ORDER BY n.slot
@@ -197,7 +213,7 @@ AS $fn$
      AND m.id = p_assignment_id;
 $fn$;
 COMMENT ON FUNCTION private.worker_public_name_for(UUID, UUID) IS
-  'A worker''s public name by tenant and assignment: for a restricted or high-risk worker the normalized alias or NULL, never the Party display name; otherwise the alias, else the normalized Party display name. Reads neither party_restricted nor profiles (AL-2678, W5-R12).';
+  'A worker''s public name by tenant and assignment: for a standard or sensitive worker the alias, else the normalized Party display name; for any other level, restricted, high-risk, an unknown one or NULL, the normalized alias or NULL, never the Party display name. Reads neither party_restricted nor profiles (AL-2678, W5-R12).';
 ALTER FUNCTION private.worker_public_name_for(UUID, UUID) OWNER TO postgres;
 REVOKE ALL ON FUNCTION private.worker_public_name_for(UUID, UUID) FROM PUBLIC, anon, authenticated, service_role;
 

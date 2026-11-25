@@ -880,7 +880,7 @@ export interface MediaItem {
 export interface Post {
   id: string;
   tenant_id: string;
-  missionary_id: string;
+  missionary_id: string | null;
   content: string;
   media: MediaItem[];
   like_count: number;

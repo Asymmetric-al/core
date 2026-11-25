@@ -79,6 +79,7 @@ interface Post {
 
 const ALL = "All";
 const EVERYONE = "everyone";
+const ORGANIZATION = "organization";
 
 /** Update types read in sentence case ("Prayer request"). */
 function categoryLabel(category: string) {
@@ -231,7 +232,7 @@ function PostCard({ post }: { post: Post }) {
 function toFeedPost(post: PostWithAuthor): Post {
   return {
     id: post.id,
-    workerId: post.missionary_id,
+    workerId: post.missionary_id ?? ORGANIZATION,
     workerName: postAuthorName(post),
     workerAvatar: post.author?.avatar_url ?? "",
     time: formatPostRelativeTime(post.created_at),

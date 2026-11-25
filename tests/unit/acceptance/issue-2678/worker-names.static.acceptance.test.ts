@@ -89,10 +89,19 @@ function workerSelectProblems(items: Item[]): string[] {
       problems.push(`a worker row's ${item.name}`);
     if (item.children === null && item.name === "*")
       problems.push("every column of a worker row");
-    if (item.children !== null && item.name === "profiles")
+  }
+  return [...problems, ...nestedProfileProblems(items)];
+}
+
+function nestedProfileProblems(items: Item[]): string[] {
+  const problems: string[] = [];
+  for (const item of items) {
+    if (item.children === null) continue;
+    if (item.name === "profiles")
       for (const child of item.children)
         if (child.name === "*" || NAME_COLUMNS.has(child.name))
           problems.push(`a worker's profile ${child.name}`);
+    problems.push(...nestedProfileProblems(item.children));
   }
   return problems;
 }
@@ -264,8 +273,11 @@ function resolveModule(
   return null;
 }
 
+const INTERPOLATED_HINT =
+  /(?<![A-Za-z0-9_])(?:missionaries|profiles|posts)(?:\s*!\s*\w+)*\s*!\s*$/;
+
 const EMBED_RE =
-  /(?<![A-Za-z0-9_])(?:\.\.\.\s*)?(?:[A-Za-z_]\w*\s*:\s*)?(missionaries|profiles|donors|parties)((?:\s*!\s*\w+)*)\s*\(/g;
+  /(?<![A-Za-z0-9_])(?:\.\.\.\s*)?(?:[A-Za-z_]\w*\s*:\s*)?(missionaries|profiles|donors|parties|posts)((?:\s*!\s*\w+)*)\s*\(/g;
 
 type Embed = {
   resource: string;
@@ -333,6 +345,8 @@ function scanSources(sources: Map<string, string>): Violation[] {
         if (spans.some(([s, e]) => lit.start >= s && lit.end <= e))
           for (const root of varRoots.get(`${file}\0${name}`) ?? [])
             roots.add(root);
+      if (!lit.whole && INTERPOLATED_HINT.test(lit.text))
+        push("an unreadable worker embed: its hint is interpolated", lit.text);
       const embeds = embedsIn(lit.text);
       const inside = (e: Embed, resource: string) =>
         embeds.some(
@@ -355,7 +369,7 @@ function scanSources(sources: Map<string, string>): Violation[] {
           push("a parties read", shown);
           continue;
         }
-        if (e.resource === "donors") continue;
+        if (e.resource === "donors" || e.resource === "posts") continue;
         if (e.resource === "missionaries") {
           if (body === null) push("an unreadable worker embed", shown);
           else
@@ -372,7 +386,8 @@ function scanSources(sources: Map<string, string>): Violation[] {
         if (
           e.hints.includes("missionary_id") ||
           e.hints.includes("posts_missionary_id_fkey") ||
-          (!nested && roots.has("posts"))
+          (!nested && roots.has("posts")) ||
+          inside(e, "posts")
         ) {
           if (
             body === null ||
