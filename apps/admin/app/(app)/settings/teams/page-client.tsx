@@ -749,6 +749,13 @@ function InviteMemberDialog({
     : "";
 
   const isMissionaryInvitation = created?.role === "missionary";
+  const isMissionaryPathOnly =
+    isMissionaryInvitation && !isServeUnderPathsEnabled();
+  const invitationLabel = isMissionaryInvitation
+    ? isMissionaryPathOnly
+      ? "Missionary workspace invitation path"
+      : "Missionary workspace invitation link"
+    : "Invitation link";
 
   const handleCopy = async () => {
     if (!created || !invitationAddress) return;
@@ -783,11 +790,7 @@ function InviteMemberDialog({
               </AlertDescription>
             </Alert>
             <div data-sentry-block="" className="flex flex-col gap-1.5">
-              <Label htmlFor={linkId}>
-                {isMissionaryInvitation
-                  ? "Missionary workspace invitation path"
-                  : "Invitation link"}
-              </Label>
+              <Label htmlFor={linkId}>{invitationLabel}</Label>
               <div className="flex gap-2">
                 <Input
                   id={linkId}
@@ -795,11 +798,7 @@ function InviteMemberDialog({
                   autoComplete="off"
                   data-sentry-mask="true"
                   value={invitationAddress}
-                  aria-label={
-                    isMissionaryInvitation
-                      ? "Missionary workspace invitation path"
-                      : "Invitation link"
-                  }
+                  aria-label={invitationLabel}
                 />
                 <Button
                   type="button"
@@ -813,12 +812,12 @@ function InviteMemberDialog({
                   )}
                   {copied
                     ? "Copied"
-                    : isMissionaryInvitation
+                    : isMissionaryPathOnly
                       ? "Copy path"
                       : "Copy link"}
                 </Button>
               </div>
-              {isMissionaryInvitation ? (
+              {isMissionaryPathOnly ? (
                 <p className="text-xs text-muted-foreground">
                   Open this path on your missionary workspace address. Opening
                   it on Mission Control will land in the wrong app.

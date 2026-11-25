@@ -119,7 +119,7 @@ function profileMenuItems(
     (item) => item.id === "admin-teams",
   );
   return [
-    { label: "Administration", href: "/admin", icon: Shield },
+    { label: "Administration", href: "/settings", icon: Shield },
     ...(staffDirectory
       ? [
           {

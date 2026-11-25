@@ -31,7 +31,7 @@ describe("the local Supabase workflow's path filter", () => {
     "tests/unit/acceptance/issue-2676/site-fixture.ts",
     "packages/api/src/admin/members/**",
     "packages/api/src/invitations/**",
-    "apps/admin/app/(app)/admin/teams/**",
+    "apps/admin/app/(app)/settings/teams/**",
     "packages/lib/monitoring/**",
     "apps/*/instrumentation-client.ts",
     "tests/e2e/helpers/request-scope-reads.ts",

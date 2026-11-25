@@ -33,7 +33,7 @@ beforeAll(async () => {
     }),
   });
   AdminPage = (
-    await import("../../../../../apps/admin/app/(app)/admin/page-client")
+    await import("../../../../../apps/admin/app/(app)/settings/page-client")
   ).default;
 }, 20_000);
 

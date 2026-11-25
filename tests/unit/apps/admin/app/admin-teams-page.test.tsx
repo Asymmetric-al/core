@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import TeamsPage from "../../../../../apps/admin/app/(app)/admin/teams/page-client";
+import TeamsPage from "../../../../../apps/admin/app/(app)/settings/teams/page-client";
 import {
   QueryClient,
   QueryClientProvider,
@@ -13,7 +13,7 @@ const workspace = vi.hoisted(() => ({
   canManageMembers: true as boolean | undefined,
   currentMembershipId: "m-self" as string | null,
   userId: "u-self" as string | null,
-  pathname: "/00000000-0000-4000-8000-000000000001/admin/teams",
+  pathname: "/00000000-0000-4000-8000-000000000001/settings/teams",
 }));
 
 vi.mock("@asym/auth/tenant-navigation", async (importOriginal) => ({
@@ -67,7 +67,7 @@ afterEach(() => {
   workspace.canManageMembers = true;
   workspace.currentMembershipId = "m-self";
   workspace.userId = "u-self";
-  workspace.pathname = "/00000000-0000-4000-8000-000000000001/admin/teams";
+  workspace.pathname = "/00000000-0000-4000-8000-000000000001/settings/teams";
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
 });
@@ -289,7 +289,7 @@ describe("Members screen", () => {
     });
 
     view.unmount();
-    workspace.pathname = "/00000000-0000-4000-8000-000000000001/admin/teams";
+    workspace.pathname = "/00000000-0000-4000-8000-000000000001/settings/teams";
     const reloaded = show();
     await reloaded.findByText("new-staff@example.org");
     expect(reloaded.queryByLabelText("Invitation link")).toBeNull();

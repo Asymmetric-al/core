@@ -4,12 +4,12 @@ import { createDefaultEveModelPolicy } from "@asym/api/eve/model-policy";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { EveModelPolicyReadiness } from "../../../../../apps/admin/app/(app)/admin/eve/model-policy-panel";
-import { canAccessEveOperationsWorkspace } from "../../../../../apps/admin/app/(app)/admin/eve/workspace-access";
+import { EveModelPolicyReadiness } from "../../../../../apps/admin/app/(app)/settings/eve/model-policy-panel";
+import { canAccessEveOperationsWorkspace } from "../../../../../apps/admin/app/(app)/settings/eve/workspace-access";
 import {
   EveCapabilityConnectionsPanel,
   EveWorkspaceIndex,
-} from "../../../../../apps/admin/app/(app)/admin/eve/workspace-shell";
+} from "../../../../../apps/admin/app/(app)/settings/eve/workspace-shell";
 
 import type { EveModelPolicyAdminView } from "@asym/api/eve/model-policy/types";
 import type { AuthContext } from "@asym/auth/context";

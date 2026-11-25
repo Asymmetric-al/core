@@ -125,9 +125,9 @@ is on (`packages/auth/docs/adr/0016-donor-organization-from-the-verified-name.md
 
 With the switch unset (today's default everywhere), no `basePath` is set, the
 donor app proxies nothing to the dashboards, and the dashboards admit direct
-requests as before. Reserved paths, the `(app)/admin/*` rename, assistant
-proxying, provider-address cutover, release tooling, and real-domain host lists
-remain off until later parts of N3 and N2/N6.
+requests as before. Reserved paths, assistant proxying, provider-address
+cutover, release tooling, and real-domain host lists remain off until later
+parts of N3 and N2/N6.
 
 Build memory note (implementation record line 822): `apps/admin` builds on
 Vercel's larger build machine in releases (`scripts/release/vercel-release.mjs:269`);

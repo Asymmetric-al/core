@@ -10,7 +10,7 @@ import {
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 // eslint-disable-next-line no-restricted-imports -- AL-1931 Component integration tests exercise the actual admin panel, not an application dependency.
-import { EveRetentionPanel } from "../../../../apps/admin/app/(app)/admin/eve/retention-panel";
+import { EveRetentionPanel } from "../../../../apps/admin/app/(app)/settings/eve/retention-panel";
 import { getQueryClient } from "../../../../packages/database/providers/query-client";
 import { QueryProvider } from "../../../../packages/database/providers/query-provider";
 

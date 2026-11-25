@@ -5,7 +5,7 @@ import {
   loadStaffAccounts,
   memberRowKey,
   staffRoleLabel,
-} from "../../../../../apps/admin/app/(app)/admin/teams/staff-directory";
+} from "../../../../../apps/admin/app/(app)/settings/teams/staff-directory";
 
 describe("staff-directory", () => {
   afterEach(() => {

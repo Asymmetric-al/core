@@ -185,20 +185,25 @@ export const tiles: Tile[] = [
   {
     id: "admin",
     title: "Administration",
-    route: "/admin",
+    route: "/settings",
     icon: "Settings",
     purpose: "Who can use Mission Control and the services it connects to.",
     inside: "Members · Web Studio editors · Email delivery",
     roleInside: [{ label: "Eve", roles: ["admin"] }],
     quickActions: [
-      { label: "Open administration", href: "/admin", icon: "Settings" },
+      { label: "Open administration", href: "/settings", icon: "Settings" },
       {
         label: "View members",
-        href: "/admin/teams",
+        href: "/settings/teams",
         icon: "Users",
       },
       // The Eve page admits admins only (eve/workspace-access.ts).
-      { label: "Eve", href: "/admin/eve", icon: "Settings", roles: ["admin"] },
+      {
+        label: "Eve",
+        href: "/settings/eve",
+        icon: "Settings",
+        roles: ["admin"],
+      },
     ],
     roles: ["finance", "admin"],
   },

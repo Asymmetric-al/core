@@ -24,11 +24,11 @@ vi.mock("@asym/auth/tenant-server", () => ({
   tenantHref: mocks.tenantHref,
 }));
 
-vi.mock("../../../../../apps/admin/app/(app)/admin/eve/page-client", () => ({
+vi.mock("../../../../../apps/admin/app/(app)/settings/eve/page-client", () => ({
   default: () => null,
 }));
 
-import EvePage from "../../../../../apps/admin/app/(app)/admin/eve/page";
+import EvePage from "../../../../../apps/admin/app/(app)/settings/eve/page";
 
 const TENANT_PREFIX = "/00000000-0000-0000-0000-000000000001";
 

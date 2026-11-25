@@ -138,7 +138,7 @@ on:
       - tests/unit/acceptance/issue-2677/demo-care-person.postgrest.acceptance.test.ts
       - tests/e2e/auth-member-care.spec.ts
       # Membership invitations, doorway and Members screen (AL-2676, WP3c part 1).
-      - apps/admin/app/(app)/admin/teams/**
+      - apps/admin/app/(app)/settings/teams/**
       - apps/admin/app/api/admin/members/**
       - apps/admin/app/api/admin/users/route.ts
       - apps/admin/app/api/invitations/**
