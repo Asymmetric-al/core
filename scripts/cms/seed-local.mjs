@@ -4,6 +4,7 @@ import path from "node:path";
 
 import nextEnv from "@next/env";
 
+import { isLoopbackDatabaseUrl } from "../../packages/env/src/database-url.mjs";
 import { requireDisposableDatabase } from "../lib/environment-marker.mjs";
 import {
   DEMO_ADMIN_EMAIL,
@@ -597,9 +598,15 @@ async function seedCmsContent(payload, publicSeed) {
 }
 
 async function main() {
+  const databaseUrl = getLocalDatabaseUrl();
+  if (!isLoopbackDatabaseUrl(databaseUrl)) {
+    throw new Error(
+      "Local CMS seed requires a loopback database URL (127.0.0.1, localhost, or [::1]).",
+    );
+  }
   // Plan 7.5: reseed only a database marked disposable.
   requireDisposableDatabase({
-    databaseUrl: getLocalDatabaseUrl(),
+    databaseUrl,
     action: "seed local CMS content into",
   });
   const publicSeed = await ensurePublicSeedRows();

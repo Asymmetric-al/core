@@ -2,10 +2,10 @@ import { fetchPublishedCmsUpdates } from "@/lib/cms/client";
 import { makeDisplayDate } from "@/lib/dates";
 
 /**
- * The only request-time read on the home route: `fetchPublishedCmsUpdates`
- * resolves the tenant from `await headers()` (see `@/lib/cms/client`). Kept in
- * its own component so the caller can wrap just this section in `<Suspense>`
- * and leave the rest of the page in the static shell.
+ * Kept in its own component so the caller can wrap just this section in
+ * `<Suspense>` and leave the rest of the page in the static shell. While WP6
+ * part 2a retires the prototype public CMS HTTP path, `fetchPublishedCmsUpdates`
+ * returns `[]` without reading `headers()` until WP7 restores public reads.
  */
 export async function LatestMinistryUpdates() {
   const latestUpdates = await fetchPublishedCmsUpdates(3);

@@ -375,7 +375,6 @@ describe("on: exempt paths make no lookup and forward no name", () => {
         headers: { [NAME]: TB, "stripe-signature": "t=1,v1=x" },
       },
     ],
-    ["GET /api/cms/public/x", "/api/cms/public/x", { headers: { [NAME]: TB } }],
     [
       "POST /eve/v1/github",
       "/eve/v1/github",
@@ -385,6 +384,15 @@ describe("on: exempt paths make no lookup and forward no name", () => {
     const response = await unstamped("admin", path, init);
     expect(response.headers.get("x-middleware-next")).toBe("1");
     expect(forwarded(response, NAME)).toBeNull();
+    expect(state.lookupClients).toBe(0);
+    expect(state.lookups).toEqual([]);
+  });
+
+  it("refuses unstamped GET /api/cms/public/x after WP6 part 2a retires the prototype public CMS routes", async () => {
+    const response = await unstamped("admin", "/api/cms/public/x", {
+      headers: { [NAME]: TB },
+    });
+    expectRefused(response, "GET /api/cms/public/x", 403);
     expect(state.lookupClients).toBe(0);
     expect(state.lookups).toEqual([]);
   });

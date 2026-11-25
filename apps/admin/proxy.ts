@@ -36,7 +36,6 @@ const authProxy = createAuthMiddleware({
     "/forgot-password",
     "/invite",
     "/api/auth/demo-account",
-    "/api/cms/public",
     "/no-access",
     "/boneyard",
   ],

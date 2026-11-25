@@ -1,10 +1,19 @@
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import path from "node:path";
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
   markWebStudioRefusal,
+  readWebStudioRefusalDigest,
   webStudioRefusalAfterError,
 } from "../../../apps/admin/src/cms/auth/web-studio-refusal";
-import { sameOriginWrites } from "../../../apps/admin/src/cms/web-studio-api-route";
+import {
+  CROSS_ORIGIN_WRITE_MESSAGE,
+  OVERRIDE_LOCK_WRITE_MESSAGE,
+  sameOriginWrites,
+} from "../../../apps/admin/src/cms/web-studio-api-route";
 
 /**
  * Payload's REST routes under `/web-studio/api` (plan 5.2 and 6.3; AL-2675,
@@ -120,6 +129,307 @@ describe("writes to /web-studio/api", () => {
       expect(inner).toHaveBeenCalledTimes(1);
     }
   });
+
+  const OVERRIDE_LOCK_SPELLING_TABLE: ReadonlyArray<
+    readonly [query: string, outcome: "refused" | "passed", why: string]
+  > = [
+    ["?overrideLock=true", "refused", "value true overrides lock"],
+    ["?overrideLock=", "refused", "empty value is not exact false"],
+    ["?overrideLock", "refused", "valueless key is not exact false"],
+    ["?overrideLock=FALSE", "refused", "uppercase FALSE is not exact false"],
+    [
+      "?overrideLock=%20false",
+      "refused",
+      "leading space in value is not exact false",
+    ],
+    [
+      "?overrideLock=false%20",
+      "refused",
+      "trailing space in value is not exact false",
+    ],
+    ["?overrideLock=0", "refused", "numeric 0 is not exact false"],
+    [
+      "?overrideLock=false&overrideLock=true",
+      "refused",
+      "duplicate overrideLock parameter with true",
+    ],
+    [
+      "?overrideLock=false&overrideLock=false",
+      "refused",
+      "overrideLock appears more than once in query",
+    ],
+    [
+      "?overrideLock[0]=true",
+      "refused",
+      "indexed bracket key contains overrideLock",
+    ],
+    [
+      "?overrideLock[]=true",
+      "refused",
+      "empty bracket key contains overrideLock",
+    ],
+    [
+      "?overrideLock[0]=false",
+      "refused",
+      "indexed bracket key is not whole key overrideLock",
+    ],
+    ["?overrideLock.x=true", "refused", "dotted key contains overrideLock"],
+    [
+      "?override%4Cock=true",
+      "refused",
+      "percent-encoded key decodes to overrideLock",
+    ],
+    [
+      "?[overrideLock]=true",
+      "refused",
+      "leading-bracket key parses as top-level overrideLock in qs-esm",
+    ],
+    [
+      "?%5BoverrideLock%5D=true",
+      "refused",
+      "percent-encoded bracket key parses as top-level overrideLock in qs-esm",
+    ],
+    [
+      "?%5BoverrideLock]=true",
+      "refused",
+      "mixed-encoded bracket key parses as top-level overrideLock in qs-esm",
+    ],
+    [
+      "?[overrideLock]=false",
+      "refused",
+      "leading-bracket key is not whole key overrideLock",
+    ],
+    [
+      "?[overrideLock][0]=true",
+      "refused",
+      "nested bracket key contains overrideLock",
+    ],
+    [
+      "?[[overrideLock]]=true",
+      "refused",
+      "double-bracket key contains overrideLock",
+    ],
+    [
+      "?a=1;overrideLock=true",
+      "refused",
+      "semicolon-delimited overrideLock appears in decoded value",
+    ],
+    [
+      "?%20overrideLock=true",
+      "refused",
+      "leading-space key contains overrideLock",
+    ],
+    ["?note=overrideLock", "refused", "overrideLock appears in decoded value"],
+    [
+      "?overrideLock=false&note=overrideLock",
+      "refused",
+      "overrideLock appears in a value as well as a key",
+    ],
+    [
+      "?OverrideLock=true",
+      "passed",
+      "different case omits overrideLock and Payload ignores it",
+    ],
+    [
+      `?${Array.from({ length: 1001 }, (_, index) => `p${index}=1`).join("&")}&overrideLock=true`,
+      "refused",
+      "more than 1000 parameters before overrideLock=true",
+    ],
+    ["", "passed", "legitimate client omits overrideLock"],
+    [
+      "?overrideLock=false",
+      "passed",
+      "appears once as whole key with exact value false",
+    ],
+    [
+      "?draft=true&overrideLock=false",
+      "passed",
+      "appears once as whole key with exact value false beside other parameters",
+    ],
+  ];
+
+  it.each(["POST", "PATCH", "PUT", "DELETE"])(
+    "applies the single overrideLock query rule to %s across the spelling table without consuming the body",
+    async (method) => {
+      expect(OVERRIDE_LOCK_WRITE_MESSAGE).not.toBe(CROSS_ORIGIN_WRITE_MESSAGE);
+      for (const [query, outcome, why] of OVERRIDE_LOCK_SPELLING_TABLE) {
+        const inner = vi.fn(async (req: Request) => {
+          expect(req.bodyUsed, `${method} ${query} (${why})`).toBe(false);
+          return Response.json({ ok: true });
+        });
+        const request = new Request(
+          `${ORIGIN}/web-studio/api/pages/7${query}`,
+          {
+            method,
+            headers: {
+              origin: ORIGIN,
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({ title: "Updated" }),
+          },
+        );
+        const response = await sameOriginWrites(inner)(request, {
+          params: Promise.resolve({ slug: ["pages", "7"] }),
+        });
+        const label = `${method} ${query.slice(0, 64)} (${why})`;
+        if (outcome === "refused") {
+          expect(response.status, label).toBe(403);
+          expect(response.headers.get("content-type"), label).toContain(
+            "application/json",
+          );
+          expect(response.headers.get("cache-control"), label).toBe("no-store");
+          expect(await response.json(), label).toEqual({
+            errors: [{ message: OVERRIDE_LOCK_WRITE_MESSAGE }],
+          });
+          expect(inner, label).not.toHaveBeenCalled();
+          expect(request.bodyUsed, label).toBe(false);
+        } else {
+          expect(response.status, label).toBe(200);
+          expect(inner, label).toHaveBeenCalledTimes(1);
+        }
+      }
+    },
+  );
+
+  it("refuses every query where Payload's installed qs-esm yields a top-level overrideLock other than false", async () => {
+    const adminRequire = createRequire(path.resolve("apps/admin/package.json"));
+    const payloadEntry = adminRequire.resolve("payload");
+    const payloadRequire = createRequire(payloadEntry);
+    const qs = payloadRequire("qs-esm") as {
+      parse: (
+        query: string,
+        options: {
+          allowEmptyArrays: boolean;
+          arrayLimit: number;
+          depth: number;
+          ignoreQueryPrefix: boolean;
+        },
+      ) => Record<string, unknown>;
+    };
+    const requestParserPath = path.join(
+      path.dirname(payloadEntry),
+      "utilities",
+      "createPayloadRequestFromWebRequest.js",
+    );
+    const requestParserSource = readFileSync(requestParserPath, "utf8");
+    const optionsMatch =
+      /qs\.parse\(\s*queryToParse\s*,\s*(\{[\s\S]*?\})\s*\)/.exec(
+        requestParserSource,
+      );
+    expect(optionsMatch, requestParserPath).not.toBeNull();
+    const installedOptions = JSON.parse(
+      optionsMatch![1]!.replace(/([a-zA-Z0-9_]+)\s*:/g, '"$1":'),
+    ) as {
+      allowEmptyArrays: boolean;
+      arrayLimit: number;
+      depth: number;
+      ignoreQueryPrefix: boolean;
+    };
+    const payloadQsOptions = {
+      allowEmptyArrays: true,
+      arrayLimit: 1000,
+      depth: 10,
+      ignoreQueryPrefix: true,
+    };
+    expect(installedOptions).toEqual(payloadQsOptions);
+
+    expect(
+      qs.parse("?[overrideLock]=true", installedOptions).overrideLock,
+    ).toBe("true");
+    expect(
+      qs.parse("?%5BoverrideLock%5D=true", installedOptions).overrideLock,
+    ).toBe("true");
+    expect(
+      qs.parse("?%5BoverrideLock]=true", installedOptions).overrideLock,
+    ).toBe("true");
+
+    const prefixes = ["", "[", "%5B", "[[", "a", "%20", "a["];
+    const suffixes = ["", "]", "%5D", "]]", "[0]", "[]", ".x", "b", "]a"];
+    const values = ["true", "false", "1", ""];
+    const generated: string[] = [];
+    for (const prefix of prefixes) {
+      for (const suffix of suffixes) {
+        for (const value of values) {
+          generated.push(`?${prefix}overrideLock${suffix}=${value}`);
+        }
+      }
+    }
+
+    const encodeUpper = (ch: string) =>
+      `%${ch.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")}`;
+    const encodeLower = (ch: string) =>
+      `%${ch.charCodeAt(0).toString(16).toLowerCase().padStart(2, "0")}`;
+    const keyName = "overrideLock";
+    const encodedVariants = new Set<string>([
+      Array.from(keyName, encodeUpper).join(""),
+      Array.from(keyName, encodeLower).join(""),
+      ...Array.from(
+        keyName,
+        (ch, index) =>
+          `${keyName.slice(0, index)}${encodeUpper(ch)}${keyName.slice(index + 1)}`,
+      ),
+      ...Array.from(
+        keyName,
+        (ch, index) =>
+          `${keyName.slice(0, index)}${encodeLower(ch)}${keyName.slice(index + 1)}`,
+      ),
+    ]);
+    for (const variant of encodedVariants) {
+      for (const value of values) {
+        generated.push(`?${variant}=${value}`);
+      }
+      for (const [open, close] of [
+        ["[", "]"],
+        ["%5B", "%5D"],
+        ["%5B", "]"],
+        ["[", "%5D"],
+      ] as const) {
+        generated.push(`?${open}${variant}${close}=true`);
+        generated.push(`?${open}${variant}${close}=false`);
+      }
+    }
+
+    const allQueries = [
+      ...OVERRIDE_LOCK_SPELLING_TABLE.map(([query]) => query),
+      ...generated,
+    ];
+    let checkedTopLevelOverrides = 0;
+
+    for (const query of allQueries) {
+      const parsed = qs.parse(query, installedOptions);
+      if (
+        !Object.prototype.hasOwnProperty.call(parsed, "overrideLock") ||
+        parsed.overrideLock === "false"
+      ) {
+        continue;
+      }
+      checkedTopLevelOverrides += 1;
+      const inner = handler();
+      const request = new Request(`${ORIGIN}/web-studio/api/pages/7${query}`, {
+        method: "PATCH",
+        headers: {
+          origin: ORIGIN,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ title: "Updated" }),
+      });
+      const response = await sameOriginWrites(inner)(request, {
+        params: Promise.resolve({ slug: ["pages", "7"] }),
+      });
+      expect(response.status, `qs-esm pin for ${query}`).toBe(403);
+      expect(
+        response.headers.get("cache-control"),
+        `qs-esm pin for ${query}`,
+      ).toBe("no-store");
+      expect(await response.json(), `qs-esm pin for ${query}`).toEqual({
+        errors: [{ message: OVERRIDE_LOCK_WRITE_MESSAGE }],
+      });
+      expect(inner, `qs-esm pin for ${query}`).not.toHaveBeenCalled();
+      expect(request.bodyUsed, `qs-esm pin for ${query}`).toBe(false);
+    }
+
+    expect(checkedTopLevelOverrides).toBeGreaterThan(150);
+  });
 });
 
 describe("an anonymous refusal on a Web Studio REST call", () => {
@@ -178,6 +488,21 @@ describe("an anonymous refusal on a Web Studio REST call", () => {
     });
   });
 
+  it("turns a marked UnauthorizedError from preferences operations into the refusal response and header", () => {
+    const unauthorized = Object.assign(new Error("Unauthorized"), {
+      name: "UnauthorizedError",
+    });
+    expect(refusalFor("scope_mismatch", unauthorized)).toMatchObject({
+      status: 409,
+      response: {
+        message: expect.stringMatching(/Reload the page/),
+        errors: [{ message: expect.stringMatching(/Reload the page/) }],
+        docs: [],
+      },
+      header: "scope_mismatch",
+    });
+  });
+
   it("leaves every other error, and a refusal of a signed-in caller, as Payload made it", () => {
     expect(refusalFor(null)).toEqual({ header: null });
     expect(
@@ -186,5 +511,58 @@ describe("an anonymous refusal on a Web Studio REST call", () => {
         Object.assign(new Error("x"), { name: "ValidationError" }),
       ),
     ).toEqual({ header: null });
+  });
+});
+
+describe("readWebStudioRefusalDigest", () => {
+  it("reads an exact refusal digest from a server action error line, including dev-mode message and stack", () => {
+    expect(
+      readWebStudioRefusalDigest(
+        '0:{"a":"$@1","f":"","b":"dev"}\n1:E{"digest":"ASYM_WEB_STUDIO_REFUSAL;scope_mismatch","message":"stale","stack":[["fn","file.ts",1,1,0,0,false]]}\n',
+      ),
+    ).toBe("scope_mismatch");
+    expect(
+      readWebStudioRefusalDigest(
+        'a:E{"digest":"ASYM_WEB_STUDIO_REFUSAL;no_session"}\n',
+      ),
+    ).toBe("no_session");
+    expect(
+      readWebStudioRefusalDigest(
+        '1f:E{"digest":"ASYM_WEB_STUDIO_REFUSAL;no_selection"}\n',
+      ),
+    ).toBe("no_selection");
+  });
+
+  it("ignores refusal text outside an error line's digest and rejects non-exact digests", () => {
+    expect(
+      readWebStudioRefusalDigest(
+        '0:{"title":"ASYM_WEB_STUDIO_REFUSAL;scope_mismatch"}\n',
+      ),
+    ).toBeNull();
+    expect(
+      readWebStudioRefusalDigest(
+        '1:E{"digest":"ASYM_WEB_STUDIO_REFUSAL;scope_mismatch1"}\n',
+      ),
+    ).toBeNull();
+    expect(
+      readWebStudioRefusalDigest(
+        '1:E{"digest":"ASYM_WEB_STUDIO_REFUSAL;scope_mismatch-extra"}\n',
+      ),
+    ).toBeNull();
+    expect(
+      readWebStudioRefusalDigest(
+        '1:E{"digest":"xASYM_WEB_STUDIO_REFUSAL;scope_mismatch"}\n',
+      ),
+    ).toBeNull();
+    expect(
+      readWebStudioRefusalDigest(
+        '1:E{"digest":"ASYM_WEB_STUDIO_REFUSAL;scope_mismatchx"}\n',
+      ),
+    ).toBeNull();
+    expect(
+      readWebStudioRefusalDigest(
+        '1:E{"message":"ASYM_WEB_STUDIO_REFUSAL;scope_mismatch","digest":"OTHER"}\n',
+      ),
+    ).toBeNull();
   });
 });

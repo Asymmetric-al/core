@@ -65,16 +65,31 @@ export function webStudioRefusalDigest(refusal: WebStudioRefusal): string {
   return `${REFUSAL_DIGEST_PREFIX}${refusal}`;
 }
 
+const FLIGHT_ERROR_LINE = /^[0-9a-f]+:E(.*)$/;
+
 /** The refusal a server action's answer names in its error digest, if any. */
 export function readWebStudioRefusalDigest(
   body: string,
 ): WebStudioRefusal | null {
-  const at = body.indexOf(REFUSAL_DIGEST_PREFIX);
-  if (at === -1) return null;
-  const named = /^[a-z_]+/.exec(
-    body.slice(at + REFUSAL_DIGEST_PREFIX.length),
-  )?.[0];
-  return isWebStudioRefusal(named) ? named : null;
+  for (const line of body.split(/\r?\n/)) {
+    const match = FLIGHT_ERROR_LINE.exec(line);
+    if (!match) continue;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(match[1]!);
+    } catch {
+      continue;
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      continue;
+    }
+    const digest = (parsed as { digest?: unknown }).digest;
+    if (typeof digest !== "string") continue;
+    if (!digest.startsWith(REFUSAL_DIGEST_PREFIX)) continue;
+    const named = digest.slice(REFUSAL_DIGEST_PREFIX.length);
+    if (isWebStudioRefusal(named)) return named;
+  }
+  return null;
 }
 
 type RequestWithContext = {
@@ -112,10 +127,12 @@ const STATUS: Record<WebStudioRefusal, number> = {
   scope_mismatch: 409,
 };
 
+const REFUSAL_ERROR_NAMES = new Set(["Forbidden", "UnauthorizedError"]);
+
 /** Payload `hooks.afterError`: the refusal's status and message for an anonymous `Forbidden`. */
 export const webStudioRefusalAfterError: AfterErrorHook = ({ error, req }) => {
   const refusal = readWebStudioRefusal(req);
-  if (!refusal || error.name !== "Forbidden") return;
+  if (!refusal || !REFUSAL_ERROR_NAMES.has(error.name)) return;
   // Payload merges the request's response headers into its error response.
   const request = req as RequestWithContext;
   request.responseHeaders ??= new Headers();

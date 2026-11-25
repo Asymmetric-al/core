@@ -1,4 +1,7 @@
-import { databaseUrlRoutingOverrides } from "@asym/env/database-url";
+import {
+  databaseUrlRoutingOverrides,
+  isLoopbackDatabaseUrl,
+} from "@asym/env/database-url";
 import { isProtectedDeployment } from "@asym/env/target-env";
 
 export const DEFAULT_LOCAL_PAYLOAD_DATABASE_URL =
@@ -136,15 +139,15 @@ export function getConnectionHost(connectionString: string | null) {
   }
 }
 
-function getConnectionSslMode(connectionString: string | null) {
+function getConnectionSslModes(connectionString: string | null): string[] {
   if (!connectionString) {
-    return null;
+    return [];
   }
 
   try {
-    return new URL(connectionString).searchParams.get("sslmode");
+    return new URL(connectionString).searchParams.getAll("sslmode");
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -331,13 +334,13 @@ function hasRoutingOverride(connectionString: string) {
 function getPayloadDatabaseConfigurationIssue(input: {
   hasMigrationCredential: boolean;
   hasRoutingOverride: boolean;
+  hasSingleVerifyFullSslMode: boolean;
   host: string | null;
   isDefaultLocal: boolean;
   isDirectSupabaseHost: boolean;
+  isLoopbackHost: boolean;
   isProtectedDeployment: boolean;
-  isSupavisorPoolerHost: boolean;
   source: PayloadDatabaseSource;
-  sslMode: string | null;
   hasVerifiedCa: boolean;
   loginRole: string | null;
 }): PayloadDatabaseConfigIssue | null {
@@ -391,14 +394,13 @@ function getPayloadDatabaseConfigurationIssue(input: {
   }
 
   if (
-    input.isSupavisorPoolerHost &&
-    input.sslMode !== "no-verify" &&
-    !input.hasVerifiedCa
+    !input.isLoopbackHost &&
+    !(input.hasSingleVerifyFullSslMode && input.hasVerifiedCa)
   ) {
     return {
       code: "supavisor-ssl-mode",
       message:
-        "Payload database configuration uses a Supavisor pooler host. Use sslmode=verify-full with PAYLOAD_DATABASE_SSL_CA from Supabase Database settings for server verification. Existing sslmode=no-verify configurations are a legacy transition path awaiting retirement.",
+        "Payload database configuration targets a non-loopback host on a protected deployment. Use exactly one sslmode=verify-full with PAYLOAD_DATABASE_SSL_CA from Supabase Database settings for server verification.",
     };
   }
 
@@ -434,9 +436,13 @@ export function resolvePayloadDatabaseConfig(
     selectedEnv?.value ?? DEFAULT_LOCAL_PAYLOAD_DATABASE_URL;
   const source = selectedEnv?.key ?? "default-local";
   const host = getConnectionHost(connectionString);
-  const sslMode = getConnectionSslMode(connectionString);
+  const sslModes = getConnectionSslModes(connectionString);
+  const sslMode = sslModes.length === 1 ? (sslModes[0] ?? null) : null;
+  const hasSingleVerifyFullSslMode =
+    sslModes.length === 1 && sslModes[0] === "verify-full";
   const isDefaultLocal = !selectedEnv;
   const isDirectSupabaseHost = isDirectSupabaseDatabaseHost(host);
+  const isLoopbackHost = isLoopbackDatabaseUrl(connectionString);
   const isProtectedDeployment = isProtectedPayloadDeployment(env);
   const isSupavisorPoolerDatabaseHost = isSupavisorPoolerHost(host);
   const isVercelRuntime = isVercelPayloadRuntime(env);
@@ -446,14 +452,14 @@ export function resolvePayloadDatabaseConfig(
       env[PAYLOAD_MIGRATION_DATABASE_ENV_KEY]?.trim(),
     ),
     hasRoutingOverride: hasRoutingOverride(connectionString),
+    hasSingleVerifyFullSslMode,
     host,
     isDefaultLocal,
     isDirectSupabaseHost,
+    isLoopbackHost,
     isProtectedDeployment,
-    isSupavisorPoolerHost: isSupavisorPoolerDatabaseHost,
     source,
-    sslMode,
-    hasVerifiedCa: Boolean(env.PAYLOAD_DATABASE_SSL_CA),
+    hasVerifiedCa: Boolean(env.PAYLOAD_DATABASE_SSL_CA?.trim()),
     loginRole,
   });
   const pool = resolvePayloadDatabasePoolOptions({

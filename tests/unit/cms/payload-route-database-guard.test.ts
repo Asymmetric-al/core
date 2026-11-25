@@ -57,15 +57,13 @@ async function loadRoutes(env: Record<string, string>) {
   for (const [key, value] of Object.entries(env)) vi.stubEnv(key, value);
   const rest =
     await import("../../../apps/admin/app/(payload)/web-studio/api/[...slug]/route");
-  const graphql =
-    await import("../../../apps/admin/app/(payload)/web-studio/api/graphql/route");
-  return { rest, graphql };
+  return { rest };
 }
 
 const local = (user: string) =>
   `postgresql://${user}:route-guard-password@127.0.0.1:${listener!.port}/postgres`;
 
-describe("Payload's REST and GraphQL routes refuse a database configuration a protected deployment must not use", () => {
+describe("Payload's REST route refuses a database configuration a protected deployment must not use after WP6 part 2a retires GraphQL", () => {
   it.each<[string, (url: (user: string) => string) => Record<string, string>]>([
     [
       "the CMS migration connection in the runtime",
@@ -85,7 +83,7 @@ describe("Payload's REST and GraphQL routes refuse a database configuration a pr
     "refuses %s without connecting",
     async (_name, env) => {
       listener = await listen();
-      const { rest, graphql } = await loadRoutes(env(local));
+      const { rest } = await loadRoutes(env(local));
       const errors = vi.spyOn(console, "error").mockImplementation(() => {});
 
       const response = await rest.GET(
@@ -96,20 +94,6 @@ describe("Payload's REST and GraphQL routes refuse a database configuration a pr
       expect(await response.json()).toEqual({
         message: "There was an error initializing Payload",
       });
-
-      await expect(
-        graphql.POST(
-          new Request("http://admin.test/web-studio/api/graphql", {
-            method: "POST",
-            // Same-origin, so the write guard lets it reach Payload.
-            headers: {
-              "content-type": "application/json",
-              origin: "http://admin.test",
-            },
-            body: JSON.stringify({ query: "{ __typename }" }),
-          }),
-        ),
-      ).rejects.toMatchObject({ name: "PayloadDatabaseConfigurationError" });
 
       expect(listener.connections()).toBe(0);
       errors.mockRestore();
