@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 
 import { APPS, resolveBuildDecision } from "../vercel/should-ignore-build.mjs";
 import { EXPECTED_PROJECTS } from "../verify/vercel-build-controls.mjs";
+import { deploymentPathPrefix } from "./serve-under-paths.mjs";
 
 export const TEAM = "team_YrLB8jJARcRH0jnF1HPpPGTB";
 export const REPOSITORY_ID = "1132484374";
@@ -63,6 +64,18 @@ export function projectFor(app) {
     stop(`Unknown app ${app}.`);
   }
   return project;
+}
+
+function productionPathPrefixes(apps, env) {
+  return Object.fromEntries(
+    apps.map((app) => {
+      projectFor(app);
+      return [
+        app,
+        deploymentPathPrefix(app, { ...env, VERCEL_TARGET_ENV: "production" }),
+      ];
+    }),
+  );
 }
 
 /** A Vercel API caller that never repeats a provider body or the token. */
@@ -321,6 +334,7 @@ export async function checkDeploymentHealth({
   projectRef,
   deploymentId,
   phase = "staged",
+  pathPrefix = "",
   request = fetch,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   attempts = 6,
@@ -333,14 +347,17 @@ export async function checkDeploymentHealth({
     let response;
     let body;
     try {
-      response = await request(new URL(MIGRATION_HEALTH_PATH, url), {
-        redirect: "error",
-        cache: "no-store",
-        signal: AbortSignal.timeout(30_000),
-        headers: bypassSecret
-          ? { "x-vercel-protection-bypass": bypassSecret }
-          : {},
-      });
+      response = await request(
+        new URL(`${pathPrefix}${MIGRATION_HEALTH_PATH}`, url),
+        {
+          redirect: "error",
+          cache: "no-store",
+          signal: AbortSignal.timeout(30_000),
+          headers: bypassSecret
+            ? { "x-vercel-protection-bypass": bypassSecret }
+            : {},
+        },
+      );
       body = await response.json();
     } catch {
       last = "the health route could not be reached";
@@ -435,10 +452,14 @@ export async function promoteDeployment({ call, app, deploymentId }) {
 }
 
 /** Reads the commit an app's production domain serves, from /api/health. */
-export async function readLiveCommit({ app, request = fetch }) {
+export async function readLiveCommit({
+  app,
+  request = fetch,
+  pathPrefix = "",
+}) {
   try {
     const response = await request(
-      `https://${PRODUCTION_HOSTS[app]}/api/health`,
+      `https://${PRODUCTION_HOSTS[app]}${pathPrefix}/api/health`,
       {
         redirect: "error",
         cache: "no-store",
@@ -464,6 +485,7 @@ export async function verifyLive({
   projectRef,
   deploymentId,
   bypassSecret,
+  pathPrefix = "",
   request = fetch,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   attempts = 18,
@@ -483,6 +505,7 @@ export async function verifyLive({
         projectRef,
         deploymentId,
         phase: "live",
+        pathPrefix,
         request,
         sleep,
         attempts: 1,
@@ -526,6 +549,10 @@ export async function deployRelease({
   sleep,
   log = console.log,
 }) {
+  const pathPrefixes = productionPathPrefixes(
+    apps.length > 0 ? apps : Object.keys(APPS),
+    env,
+  );
   if (!PROJECT_REF.test(projectRef ?? "")) {
     stop("RELEASE_SUPABASE_PROJECT_REF is not a valid Supabase project ref.");
   }
@@ -542,6 +569,7 @@ export async function deployRelease({
       sha,
       projectRef,
       deploymentId: deployment.id,
+      pathPrefix: pathPrefixes[deployment.app],
       request,
       sleep,
     });
@@ -562,6 +590,7 @@ export async function deployRelease({
       projectRef,
       deploymentId: deployment.id,
       bypassSecret: env[BYPASS_SECRETS[deployment.app]],
+      pathPrefix: pathPrefixes[deployment.app],
       request,
       sleep,
     });
@@ -576,14 +605,20 @@ export async function deployRelease({
  * Registers the job functions with Inngest once Git deployment is off
  * (council reservation 7): the serve route syncs on PUT.
  */
-export async function registerJobFunctions({ request = fetch }) {
+export async function registerJobFunctions({
+  request = fetch,
+  pathPrefix = "",
+}) {
   let response;
   try {
-    response = await request(`https://${PRODUCTION_HOSTS.admin}/api/inngest`, {
-      method: "PUT",
-      redirect: "error",
-      signal: AbortSignal.timeout(30_000),
-    });
+    response = await request(
+      `https://${PRODUCTION_HOSTS.admin}${pathPrefix}/api/inngest`,
+      {
+        method: "PUT",
+        redirect: "error",
+        signal: AbortSignal.timeout(30_000),
+      },
+    );
   } catch {
     stop("The job-function registration could not reach the admin app.");
   }
@@ -648,10 +683,15 @@ export async function runCli(
     const mode = readAppsMode(env);
     const sha = releaseSha(env);
     const buildAll = mode === "all";
+    const pathPrefixes = productionPathPrefixes(Object.keys(APPS), env);
     const liveCommits = {};
     if (!buildAll) {
       for (const name of Object.keys(APPS)) {
-        liveCommits[name] = await readLiveCommit({ app: name, request });
+        liveCommits[name] = await readLiveCommit({
+          app: name,
+          request,
+          pathPrefix: pathPrefixes[name],
+        });
       }
     }
     const useDefaultGit = !listChangedFiles;
@@ -676,7 +716,8 @@ export async function runCli(
     return;
   }
   if (step === "register-jobs") {
-    await registerJobFunctions({ request });
+    const { admin: pathPrefix } = productionPathPrefixes(["admin"], env);
+    await registerJobFunctions({ request, pathPrefix });
     log("Job functions registered with the admin app's serve route.");
     return;
   }
@@ -684,11 +725,13 @@ export async function runCli(
     const url = option(rest, "--url");
     if (!url || !app) stop("check needs --app and --url.");
     projectFor(app);
+    const pathPrefix = deploymentPathPrefix(app, env);
     const body = await checkDeploymentHealth({
       url,
       bypassSecret: env[BYPASS_SECRETS[app]],
       sha: env.RELEASE_SHA?.trim() || undefined,
       projectRef: env.RELEASE_SUPABASE_PROJECT_REF,
+      pathPrefix,
       request,
       sleep,
     });
@@ -715,6 +758,7 @@ export async function runCli(
       .map((name) => name.trim())
       .filter(Boolean);
     for (const name of apps) projectFor(name);
+    productionPathPrefixes(Object.keys(APPS), env);
     if (apps.length === 0) {
       log("No app changed since the commit it serves; nothing to deploy.");
       return;
