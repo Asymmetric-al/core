@@ -139,7 +139,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
-  expect(network.reached).toEqual([]);
+  expect(network.reached.splice(0)).toEqual([]);
 });
 
 afterAll(() => {

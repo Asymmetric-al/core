@@ -148,7 +148,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.resetModules();
-  expect(network.reached).toEqual([]);
+  expect(network.reached.splice(0)).toEqual([]);
 });
 
 afterAll(() => {

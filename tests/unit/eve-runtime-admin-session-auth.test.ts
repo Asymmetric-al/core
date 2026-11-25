@@ -104,7 +104,7 @@ afterEach(() => {
   process.argv = originalArgv;
   vi.clearAllMocks();
   vi.unstubAllEnvs();
-  expect(network.reached).toEqual([]);
+  expect(network.reached.splice(0)).toEqual([]);
 });
 
 afterAll(() => {

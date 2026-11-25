@@ -30,7 +30,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  expect(network.reached).toEqual([]);
+  expect(network.reached.splice(0)).toEqual([]);
 });
 
 afterAll(() => {
