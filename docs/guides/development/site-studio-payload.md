@@ -10,27 +10,24 @@ This guide explains how to run and validate the Site Studio integration that liv
 - Payload admin theming bridged to shared Maia + Zinc design tokens from `@asym/ui`
 - Public `RootProviders` with `getRootLayoutData` embedded inside the Mission Control root layout, so `/web-studio` keeps Payload form/access context without rendering a second document shell
 - **Web Studio editorial shell:** Mission Control–native list/edit workspaces for:
-  - `pages`
+  - `pages` (standard, giving and project pages, by `family`, each on a Site)
   - `navigation`
-  - `missionary-profiles`
-  - `ministry-updates`
-  - `media`
-  - `page-templates`
-  - `missionary-giving-pages`
-  - `project-pages`
+  - `media` (editorial records; no upload until WP6 part 2c)
+- Two more collections without a Web Studio list: `site-presentations` (one per Core Site, made by provisioning) and `principal-links` (Payload's auth collection, one row per login)
 - Collection-specific native rollout flags (see rollback section) so each collection can fall back to stock Payload independently
-- Authenticated draft preview at `/web-studio/preview/:collection/:id` for page-like collections and ministry updates
+- Authenticated draft preview at `/web-studio/preview/pages/:id`
 - Editor state strip for dirty, saving, autosave, validation, lock, trash, preview, and publish state
 - CMS tables in Postgres `cms` schema
 - Tenant-aware collection access controls
 - Donor-side empty CMS reader (`apps/donor/lib/cms/client.ts`) until WP7 replaces the retired prototype `/api/cms/public/*` routes
+
+`@payloadcms/drizzle@4.0.0-beta.9` carries a maintained [Bun compatibility patch](../../../apps/admin/patches/README.md), registered in root `patchedDependencies`, replacing strict RFC 4122 `uuid` `validate` with PostgreSQL canonical 128-bit hex UUID matching at all query-sanitization sites (`sanitizeQueryValue.js`, `getTableColumnFromPath.js`; upstream `payloadcms/payload#16483`) so Core's deterministic seed and PostgreSQL UUIDs work without turning `equals`/`not_equals`/`in`/`not_in` into `IS NULL`/`IS NOT NULL`/`false`/`true`; `tests/unit/cms/payload-drizzle-uuid-patch.test.ts` and `bun run cms:qualify` gate removal on upgrade.
 
 ### Current parity boundary (Phase 7)
 
 - Native by default for editorial collections — see the **living spec** for the full list.
 - Still stock Payload for:
   - nested `versions`, `version`, `api`, and `live preview` document subviews
-  - `tenants` and `cms-users`
 
 This is intentional: the default document body remains Payload-owned and stable, while nested subviews still use stock Payload routes/tabs until dedicated wrappers are added safely.
 
@@ -53,12 +50,7 @@ NEXT_PUBLIC_DONOR_URL=http://127.0.0.1:3000
 # Optional: disable native collection UIs (stock Payload views)
 # CMS_WEB_STUDIO_NATIVE_PAGES=false
 # CMS_WEB_STUDIO_NATIVE_NAVIGATION=false
-# CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES=false
-# CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES=false
 # CMS_WEB_STUDIO_NATIVE_MEDIA=false
-# CMS_WEB_STUDIO_NATIVE_PAGE_TEMPLATES=false
-# CMS_WEB_STUDIO_NATIVE_MISSIONARY_GIVING_PAGES=false
-# CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES=false
 ```
 
 `PAYLOAD_DATABASE_URI` can point at local Supabase Postgres or a hosted Postgres test database. Run `cms:migrate` against a database on this machine only: a hosted CMS schema is migrated by the release job ([`docs/ops/release-job.md`](../../ops/release-job.md)). On Vercel and protected deployments, Web Studio bounds Payload's Postgres pool to `2` by default so the Supavisor session pool is not exhausted by node-postgres's default 10-client pool.
@@ -137,10 +129,8 @@ bun run dev:donor
 - Open each of the following and confirm the **Mission Control shell** (`data-testid="web-studio-native-shell"`) wraps the list:
   - `/web-studio/collections/pages`
   - `/web-studio/collections/navigation`
-  - `/web-studio/collections/missionary-profiles`
-  - `/web-studio/collections/ministry-updates`
   - `/web-studio/collections/media`
-- Open a saved draft from `pages`, `ministry-updates`, `missionary-giving-pages`, or `project-pages` and confirm Payload's preview button opens `/web-studio/preview/<collection>/<id>` while unauthenticated access redirects to `/login`.
+- Open a saved draft from `pages` and confirm Payload's preview button opens `/web-studio/preview/pages/<id>` while unauthenticated access redirects to `/login`.
 - Confirm the edit shell state strip changes for unsaved edits, save/publish, autosave, validation errors, and preview availability.
 - Confirm collection lists are tenant-filtered for non-super-admin users.
 - Confirm retired `/api/cms/public/*` paths and `/web-studio/api/graphql` return `404` and donor unmatched CMS routes render the not-found page.

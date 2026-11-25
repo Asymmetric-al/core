@@ -12,42 +12,32 @@ Payload runs in `apps/admin` and is exposed through:
 
 This keeps CMS management inside Mission Control and avoids running multiple Payload runtimes.
 
-### Web Studio (Phase 2–3 — editorial collections + product flows)
+### Web Studio collections (WP6 part 2b, AL-2679)
 
-Mission Control–native Web Studio shell + shared list/document workspaces cover editorial collections under `apps/admin/src/cms-ui/web-studio/`, including Phase 3 builder collections:
+The CMS has five collections, all on UUID ids (`apps/admin/src/cms/collections/`):
 
-- `pages`
-- `navigation`
-- `missionary-profiles`
-- `ministry-updates`
-- `media`
-- `page-templates`
-- `missionary-giving-pages`
-- `project-pages`
+- `site-presentations`: one per Core Site, under the Site's id, created only by the service port (provisioning); staff read it and nothing more.
+- `pages`: every page, with a required `site`, a `family` (`standard`, `missionary` or `project`), drafts that validate, autosave every two seconds and at most 50 versions. A `missionary` page names its missionary (`missionaryId`), a `project` page its fund (`fundId`), a `standard` page neither.
+- `navigation`: menus of a Site; each item points at a page of the same Site or at an absolute `http:` or `https:` address with a host.
+- `media`: plain records of `alt`, `credit` and `folder` under the custody id; the service port creates and deletes them, staff edit the three fields. No file is uploaded through Payload; files arrive with WP6 part 2c.
+- `principal-links`: Payload's auth collection, one row per login UUID, holding no tenant or role.
 
-Top-level Payload admin views (still under `/web-studio`) provide template gallery and create wizards:
+The four tenant collections carry `tenant` (the organization's UUID as text) and are built by `tenantScoped()` (`apps/admin/src/cms/tenancy/tenant-scoped.ts`).
 
-- `/web-studio/templates` — browse `page-templates` (includes `draft=true` so draft templates appear)
-- `/web-studio/missionaries` — Supabase-backed missionary directory shortcuts
-- `/web-studio/pages/give` — missionary giving page wizard
-- `/web-studio/projects/new` — fund-backed project page wizard
-- `/web-studio/pages/new-from-template` — standard page from template
-- `/web-studio/ministry-updates/new` — ministry update starter from template
+Top-level Payload admin views (still under `/web-studio`):
 
-Draft instantiation uses the Payload root endpoint `POST /web-studio/api/web-studio/create-from-template` (see `apps/admin/src/cms/create-from-template-endpoint.ts`), which runs inside Payload so collection access hooks apply.
+- `/web-studio/templates` — the starter gallery: three starters in code (`apps/admin/src/cms/starters/`), one per family
+- `/web-studio/pages/new-from-template` — New page: a starter, a Site of the selected organization, and the title or the missionary or fund
+
+Draft instantiation uses the Payload root endpoint `POST /web-studio/api/web-studio/create-from-template` (see `apps/admin/src/cms/create-from-template-endpoint.ts`), which creates a `pages` draft through the actor port, names a missionary page from `crm_missionary_labels` on the caller's own session, and refuses in JSON when the organization has no Site presentation.
 
 Registration is collection-scoped via `admin.components.views` in each collection config and guarded by env rollout flags:
 
 - `CMS_WEB_STUDIO_NATIVE_PAGES`
 - `CMS_WEB_STUDIO_NATIVE_NAVIGATION`
-- `CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES`
-- `CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES`
 - `CMS_WEB_STUDIO_NATIVE_MEDIA`
-- `CMS_WEB_STUDIO_NATIVE_PAGE_TEMPLATES`
-- `CMS_WEB_STUDIO_NATIVE_MISSIONARY_GIVING_PAGES`
-- `CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES`
 
-Payload implements CMS storage schema, bounded collection access, editor list state and the document form runtime (including Lexical, relationships, arrays, and uploads). Supabase and the Core permission services remain the human identity/access authority; Payload editor status is not the adopted Phase 22–24 public release or serving authority. The native shell currently owns the **default** list/edit surfaces; nested document subviews such as versions/API/live-preview still use stock Payload routing/components unless a collection-specific wrapper is added later.
+Payload implements CMS storage schema, bounded collection access, editor list state and the document form runtime (including Lexical, relationships and arrays). Supabase and the Core permission services remain the human identity/access authority; Payload editor status is not the adopted Phase 22–24 public release or serving authority. The native shell currently owns the **default** list/edit surfaces; nested document subviews such as versions/API/live-preview still use stock Payload routing/components unless a collection-specific wrapper is added later.
 
 The Web Studio shell renders inside the Payload `(payload)` layout. `MCShell`
 (`apps/admin/app/mc-shell.tsx`) skips its own chrome for `/web-studio` paths, so
@@ -59,17 +49,20 @@ do not wrap Web Studio views in the Mission Control shell a second time.
 - Payload-managed CMS tables live in `cms` schema.
 - SQL schema creation: `supabase/migrations/20260223100000_create_cms_schema.sql`
 - Payload migration execution is handled by `bun run cms:migrate`.
+- The clean baseline (`apps/admin/src/migrations/20261125_120829_clean_baseline.ts`) drops the prototype's tables and creates the five collections' tables in one transaction. Its first statements are a guard: it refuses, naming each table and count, when any prototype table other than the login, preference, lock, key-value and ledger tables holds a row, or when `cms` holds anything beyond the prototype's known tables, views, sequences and enum types. A refused run changes nothing and writes no ledger row.
+- Tenant consistency is also enforced in the database: `afterSchemaInit` (`apps/admin/src/cms/tenancy/constraints.ts`) adds the composite keys and checks that tie a page, its versions and a menu to a Site of the same tenant and forbid a null `tenant` or Site.
 
 ## Authentication model
 
 - Supabase remains the identity provider.
-- Payload auth uses a custom Supabase session strategy (`supabase-strategy`).
+- Payload auth uses a custom Supabase session strategy (`supabase-strategy`). It reads the session and the caller's staff assignment, uses no service key and reads no `public.tenants`, and ensures the caller's `principal-links` row through the service port. `req.user` carries the assignment's tenant, row, sub-role and admin flag for the request; none of them is stored.
 - The admin proxy (`apps/admin/proxy.ts`, `createAuthMiddleware`) admits only `staff`, `admin` and `super_admin` roles to every non-public route, including `/web-studio`.
 
 ## Tenant isolation model
 
-- Shared tenant context is derived from authenticated CMS user data.
-- Collection access is deny-by-default and tenant-scoped for non-super-admin users.
+- Tenant context is the assignment the strategy resolved (`apps/admin/src/cms/access/tenant-context.ts`); only an actor holding `web_studio.edit` edits.
+- Collection access is deny-by-default and scoped to the selected organization's tenant for every actor; a foreign `tenant` on create or a changed `tenant` on update is refused, not rewritten, and a reference to another tenant's Site, page or media is refused with its field path.
+- Two ports carry every Local API call: `apps/admin/src/cms/ports/actor-port.ts` (access on, the user, a tenant condition) and `apps/admin/src/cms/ports/service-port.ts`, the only module that passes `overrideAccess: true`. The CI gate `bun run verify:cms-override-inventory` fails on any `overrideAccess: true` or direct `payload.db.*` elsewhere in `apps/` and `packages/`, outside the lock-access read.
 - The prototype admin `/api/cms/public/*` routes, `resolve-tenant.ts`, and `published-content-reader.ts` were retired in WP6 part 2a (AL-2679). The sole-entry gate allowlist (`scripts/verify/cms-public-sole-entry.mjs`) is empty until WP7 implements the target public reader under `packages/api/src/cms/public`.
 
 ## Public rendering flow
@@ -104,9 +97,9 @@ Payload's REST routes answer under `/web-studio/api` (`routes.api`; plan 5.2, AL
 - A Web Studio tab left open across the deploy still calls `/api/...`; those calls get 404 until the tab is reloaded, and nothing is saved meanwhile.
 - Public pages show CMS images through the donor, which admits only the admin's media route. For this release the donor admits both `/web-studio/api/media/file/` and the old `/api/media/file/` (`packages/lib/cms/public-media.ts`, `scripts/cms/public-media-remote-pattern.mjs`): that covers a donor promoted ahead of its admin, as after an admin rollback. The admin app sends the old address on to the new one with a temporary redirect (`apps/admin/next.config.ts`), so a link that still holds it, pasted into a page or in a donor response cached before the release, keeps working the moment the admin is promoted. The next release removes the old prefix from both files and the redirect. Before that release, find and rewrite any stored text that still holds `/api/media/file/` (rich text and link fields in hosted content; Payload rebuilds the media rows' own addresses on every read), because from then on those links break.
 
-| Method                              | Endpoint                                    | Auth                    | Source file                                                  | Notes                                                                                                                                                                                                                                                                                                   |
-| ----------------------------------- | ------------------------------------------- | ----------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET/POST/PATCH/PUT/DELETE/OPTIONS` | `/web-studio/api/*` (Payload REST handlers) | Staff/Admin/Super Admin | `apps/admin/app/(payload)/web-studio/api/[...slug]/route.ts` | Includes collection CRUD and upload operations from Payload REST API. Writes must be same-origin and refuse (`403`) any query where `overrideLock` appears in any decoded key or value, unless it appears once as the whole of one key with exact value `false`. GraphQL is disabled and returns `404`. |
+| Method                              | Endpoint                                    | Auth                    | Source file                                                  | Notes                                                                                                                                                                                                                                                                                                          |
+| ----------------------------------- | ------------------------------------------- | ----------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET/POST/PATCH/PUT/DELETE/OPTIONS` | `/web-studio/api/*` (Payload REST handlers) | Staff/Admin/Super Admin | `apps/admin/app/(payload)/web-studio/api/[...slug]/route.ts` | Includes collection CRUD from Payload REST API; no upload since WP6 part 2b. Writes must be same-origin and refuse (`403`) any query where `overrideLock` appears in any decoded key or value, unless it appears once as the whole of one key with exact value `false`. GraphQL is disabled and returns `404`. |
 
 ### Public, tenant-scoped read APIs
 
