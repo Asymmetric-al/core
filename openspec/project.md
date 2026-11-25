@@ -75,8 +75,10 @@ bun run openspec -- validate --all --strict
 bun run openspec -- validate --archived
 ```
 
-Selected workflows: Explore, Propose, Update, Apply, Verify, Sync, Archive.
-Skills start at `docs/ai/skills/openspec-explore/SKILL.md`. Numbered commands
+Router and selected workflows: `openspec` (general OpenSpec entry point and
+read-only status) plus Explore, Propose, Update, Apply, Verify, Sync, Archive.
+Skills start at `docs/ai/skills/openspec/SKILL.md` and
+`docs/ai/skills/openspec-explore/SKILL.md`. Numbered commands
 `/1-start-project` through `/4-close-project` wrap those workflows.
 
 Do not enable New, Continue, Fast-forward, Bulk archive, Onboard, Stores, or a

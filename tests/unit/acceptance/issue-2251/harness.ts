@@ -113,8 +113,6 @@ const S_PATHS: Record<string, string> = {
   contribution_receipt_snapshots:
     "admin/contribution-operations/operations.ts admin/contribution-operations/receipt-pdf.ts",
   contribution_refund_attempts: "admin/contribution-operations/store.ts",
-  donation_saga_outbox:
-    "workflows/adapters/donations.ts workflows/summaries.ts",
   email_events: "email/webhooks/resend.ts",
   email_inbound_messages:
     "workflows/adapters/inbound-routing.ts workflows/summaries.ts",
@@ -186,7 +184,7 @@ export const D = words(`
 export const F = words(`
   contribution_adjustments contribution_approval_policies contribution_correction_requests contribution_corrections
   crm_table_named_views crm_table_tenant_defaults crm_table_user_preferences donor_merge_candidates
-  assets audit_logs campaigns crm_command_logs crm_notes
+  assets audit_logs campaigns crm_command_logs crm_notes donation_saga_outbox
   crm_record_links donation_crm_links donations donor_feed_preferences
   donor_pledges donors
   field_policies follows funds giving_reconciliation_runs locations

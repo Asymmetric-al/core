@@ -6,7 +6,7 @@ type BoneyardRouteExpectation = {
   /** Prefer role=heading when the page has a stable title */
   heading?: string;
   /**
-   * Donor capture keeps the heading in the DOM for accessibility while
+   * Missionary capture keeps the heading in the DOM for accessibility while
    * boneyard-js hides the wrapped content during measurement.
    */
   allowHiddenHeading?: boolean;
@@ -15,7 +15,7 @@ type BoneyardRouteExpectation = {
 /**
  * Resolve which capture surface we are testing. Prefer `project.name` from
  * `playwright.admin.config.ts` / `playwright.missionary.config.ts`, then
- * `PLAYWRIGHT_BONEYARD_TARGET=admin|missionary|donor`, then baseURL port as a last resort.
+ * `PLAYWRIGHT_BONEYARD_TARGET=admin|missionary`, then baseURL port as a last resort.
  */
 function getExpectation(
   projectName: string | undefined,
@@ -32,11 +32,7 @@ function getExpectation(
           projectName === "development-missionary" ||
           envTarget === "missionary"
         ? "missionary"
-        : projectName === "donor-boneyard" ||
-            projectName === "development-donor" ||
-            envTarget === "donor"
-          ? "donor"
-          : null;
+        : null;
 
   if (target === "admin") {
     return {
@@ -55,16 +51,7 @@ function getExpectation(
     };
   }
 
-  if (target === "donor") {
-    return {
-      heading: "Donor dashboard",
-      path: "/boneyard/donor-dashboard",
-      skeletonName: "donor-dashboard-main",
-      allowHiddenHeading: true,
-    };
-  }
-
-  // Fallback when running with a generic project name (e.g. donor config on :3030).
+  // Fallback when running with a generic project name, by the base URL port (3030 admin, 4000 missionary).
   try {
     const url = new URL(baseURL ?? "");
     const port = url.port ? Number(url.port) : NaN;
@@ -80,14 +67,6 @@ function getExpectation(
         heading: "Tasks",
         path: "/boneyard/tasks",
         skeletonName: "missionary-tasks-list",
-      };
-    }
-    if (port === 3000) {
-      return {
-        heading: "Donor dashboard",
-        path: "/boneyard/donor-dashboard",
-        skeletonName: "donor-dashboard-main",
-        allowHiddenHeading: true,
       };
     }
   } catch {
@@ -108,7 +87,7 @@ test("boneyard capture routes render generated bone overlays", async ({
   if (!expectation) {
     test.skip(
       true,
-      "Run with playwright.admin/missionary/donor.config.ts, set PLAYWRIGHT_BONEYARD_TARGET, or use baseURL port 3030/4000/3000.",
+      "Run with playwright.admin/missionary.config.ts, set PLAYWRIGHT_BONEYARD_TARGET, or use baseURL port 3030/4000.",
     );
     return;
   }

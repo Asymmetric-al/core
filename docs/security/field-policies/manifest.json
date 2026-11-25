@@ -892,6 +892,56 @@
         "missionary": "---",
         "public": "---",
         "export": "---"
+      },
+      "intake_format": {
+        "type": "text",
+        "nullable": false,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "legal_entity_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "payment_account_binding_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "provider_account_ref": {
+        "type": "text",
+        "nullable": true,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "livemode": {
+        "type": "boolean",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
       }
     },
     "donor_pledges": {

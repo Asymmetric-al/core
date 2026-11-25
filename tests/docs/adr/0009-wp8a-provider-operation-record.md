@@ -1,0 +1,60 @@
+# 0009. The provider-operation record's suites and the pins it moves
+
+**Status:** Recorded on 2026-11-25 with AL-2681 (WP8a part 2, slice R1a).
+Source comments are banned since AL-2676
+([#2751](https://github.com/Asymmetric-al/core/issues/2751)), so the reasons
+that record D-18 of the implementation record would have put in each frozen
+file are written here and in each edited test's title. It describes the code as
+it is and ratifies no product intent. Accepted platform intent is in
+[`docs/adr/`](../../../docs/adr/README.md). The number 0008 is held by WP5
+part 2's first package.
+
+## Context
+
+R1a adds the record of one request to the payment provider: a `kind` on
+`public.donation_saga_outbox` (`legacy_saga` for every live row,
+`provider_request` for a row the guard inserts), the request's columns, checks
+and rules trigger, `public.payment_repair_cases`, the line-based intake
+generation on `public.donations`, and three guard functions with two
+`service_role` wrappers (migrations `20261126020000` to `20261126020200`).
+Nothing live calls them, and the live build's rows are untouched.
+
+## Decisions
+
+1. **The four suites under `tests/unit/acceptance/issue-2681/wp8a-p2r1a-*`**
+   read only `TENANT_GUARD_IT_ADMIN_DATABASE_URL` and run in the `migrate`
+   job's program step (one file at a time). Every test but the two-session
+   races runs in one transaction that is always rolled back.
+2. **Time moves in replica mode.** A test that needs a lease to have expired
+   or a send window to have closed rewrites the row's times as the owner under
+   `session_replication_role = replica`, which skips the rules trigger but not
+   the checks (TP4 section 6). The rewrite reads `clock_timestamp()` once, so
+   the 23-hour window check holds to the microsecond.
+3. **Grants a test needs are given inside its transaction** (coordinator's
+   note 2): `INSERT` on both tables and `EXECUTE` on
+   `public.normalize_currency_code(text)` to the guard for its fixtures, and
+   table `INSERT`, `UPDATE` or `DELETE` to the tested role where a test proves
+   a trigger or a check behind those grants (plain Postgres gives
+   `service_role` `SELECT` only). They take a transaction advisory lock first,
+   so suites that run side by side do not race on the same grant. C15, C16
+   and F25 assert the migrations' own grants, unmodified.
+4. **The two-session races (D20) commit their fixtures**, revoke the test
+   grants before that commit, and remove their two tenants as the owner under
+   replica mode, so no committed row and no committed grant is left behind.
+5. **A2 is read as the guard role's contract item 7**: `postgres`, the
+   migration owner, is the one member of `tenant_guard` (`INHERIT FALSE`,
+   `SET TRUE`); no other login role reaches it, directly or through another
+   role. Read literally ("no login role is a member"), the brief's line is
+   false on every database, because `postgres` is a login role.
+
+## Pins moved (D-18), each with the reason in the edited title
+
+| Pin                                                                                       | Moves because                                                                                                                                                                                                                                                                                                                                                                |
+| ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `issue-2250/tenant-guard.realstack…`, criterion 17, "no SELECT on … donation_saga_outbox" | The guard reads and locks a provider request through column grants behind a policy that admits provider requests only. `has_any_column_privilege` on the outbox turns true; `has_table_privilege` stays false                                                                                                                                                                |
+| `issue-2250/tenant-guard.realstack…`, `GUARD_REACH`                                       | `tenant_guard.money_park_operation(uuid,text,text)` is a `postgres`-owned invoker that only the guard may execute; both commands park through it. Trigger functions are fired, not executed by grant, and gain no line                                                                                                                                                       |
+| `issue-2681/wp8a-part1.realstack…`, R30                                                   | Part 1 pinned that the outbox was untouched. Its status check now holds the provider statuses (`parked` among them) and it has a `lease_expires_at`; `guard_outbox` (`has_table_privilege`) stays false                                                                                                                                                                      |
+| `docs/security/rls-deny-by-default-exceptions.json`, the outbox entry                     | The outbox gains a policy, so it leaves the zero-policy list                                                                                                                                                                                                                                                                                                                 |
+| `issue-2251/harness.ts` and `static.acceptance`                                           | The same table moves from S (service role needed) to F (forced, with policies), as WP8a part 1's tables did                                                                                                                                                                                                                                                                  |
+| `shared/realstack-step.test.ts`, `REAL_DATABASE_FILES`                                    | Four new real-stack files                                                                                                                                                                                                                                                                                                                                                    |
+| `issue-2675/tenant-policy-migration.realstack…`, `OVERRIDES` (not in the brief's list)    | Its fixture inserts `donations` rows under replica mode, where the stamp trigger does not run, and fills every NOT NULL column that has no default by its type. `intake_format` has no default by design (an insert that names none is stamped by role), so the fixture now names `legacy_header`, the value every live writer is stamped with. Every assertion is unchanged |

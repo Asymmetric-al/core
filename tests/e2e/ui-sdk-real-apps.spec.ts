@@ -149,13 +149,11 @@ const TAILWIND_LAYERS = ["theme", "base", "components", "utilities"];
 // the same in a right-to-left sentence.
 const hint = (text: string) => `⁦${text}⁩`;
 
-// The one deviation `ui-sdk-pattern-conformance.spec.ts` accepts for Core's
-// modal dialogs, word for word: Base UI makes the page behind inert instead of
-// setting `aria-modal`, because `aria-modal` also hides popups a dialog opens
-// outside itself.
-const MODAL_DIALOG_DEVIATION = [
-  'div[role=dialog]: is modal but has no aria-modal="true", which tells screen readers the page behind it is inert (APG dialog (modal)).',
-];
+// UI SDK 0.1.0-beta.6+ requires `aria-modal` only when siblings carry HTML
+// `inert`; Base UI hides siblings with `aria-hidden="true"`, so modal dialogs
+// now pass `checkPattern(..., "dialog")` with zero reported problems.
+// Matches `ui-sdk-pattern-conformance.spec.ts`.
+const MODAL_DIALOG_DEVIATION: string[] = [];
 
 const OPEN_DIALOG = '[role="dialog"][data-open]';
 const HYDRATION = /hydrat|did not match|server rendered html/i;
@@ -701,8 +699,8 @@ for (const app of APPS) {
         await expect(dialog).toBeHidden();
         await expect(trigger).toBeFocused();
 
-        // The open palette passes axe, and UI SDK's dialog check finds only
-        // the accepted aria-modal deviation. The check's Escape closes it.
+        // The open palette passes axe, and UI SDK's dialog check reports no
+        // problems. The check's Escape closes it.
         await page.keyboard.press("Control+K");
         await expect(search).toBeFocused();
         await expectNoAxeViolations(page, OPEN_DIALOG);
@@ -928,7 +926,7 @@ for (const app of APPS) {
         await expect(help).toBeHidden();
         await expect(trigger).toBeFocused();
 
-        // UI SDK's dialog check finds only the accepted aria-modal deviation.
+        // UI SDK's dialog check reports no problems on the open help dialog.
         // The check's Escape closes it.
         await page.keyboard.press("Shift+?");
         await expect(help).toBeVisible();

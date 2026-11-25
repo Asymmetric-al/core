@@ -1,6 +1,30 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-11-18
+Last updated: 2026-11-25
+
+## UI SDK 0.1.0-beta.17 and OpenSpec 2.2.0 upgrade - 2026-11-25
+
+Refreshed canonical skills and mirrors alongside Core's exact dependency bumps
+(`@ui-sdk/core` and `@ui-sdk/react` `0.1.0-beta.2` → `0.1.0-beta.17`;
+`@fission-ai/openspec` `2.1.0` → `2.2.0`):
+
+- **`ui-sdk` (`vercel-labs/ui` commit `d850982bd8aed202e07009825c3d9daf643fa24e`):**
+  reconciled the 7 changed files from `packages/core/skills/ui-sdk/` (verified
+  byte-identical to the copy bundled inside `@ui-sdk/core@0.1.0-beta.17`),
+  preserving Core's description, note, marked overlay, scanner comments,
+  Apache-2.0 change notices, and `LICENSE`. Updated `skills-lock.json`
+  (`computedHash`: `3823077bab44eeb1a26c14cf9a39381fdcd75e7c04fe85d2ecc0b2200fd75e0e`),
+  `references/upstream.md`, and `docs/ai/skill-source-audit.json`.
+- **OpenSpec cohort (`Fission-AI/OpenSpec` tag `v2.2.0`, commit
+  `f1cd852f4edce22b8df9548a4df889172ca8ff25`):** updated
+  `scripts/refresh-upstream-skills.mjs` to `v2.2.0`, added the new `openspec`
+  router skill alongside the seven curated workflows, reconciled
+  `openspec/SKILL.md` and `references/{answers,where-things-stand,without-skills}.md`
+  to Core's pinned local CLI (`bun run openspec --`), existing-change,
+  missing-skill, no-Stores, and merge-before-archive policy, and refreshed all
+  eight canonical OpenSpec skills, mirrors, `skills-lock.json` (193 → 194 lock
+  entries), and `docs/ai/skill-source-audit.json`. The five uncurated OpenSpec
+  workflows remain excluded.
 
 ## Skill quality pass - 2026-11-18 (AL-2715)
 
@@ -1096,3 +1120,7 @@ Core-local edits to `samson-factory`, `setup-matt-pocock-skills`, `to-spec`, `to
 ## 2026-11-19 — Web Studio's tenant rule in `nextjs-app-architecture` (AL-2675)
 
 A Core-local edit to `nextjs-app-architecture`'s `references/components.md` adds Web Studio's exception to "derive Tenant from `getAuthContext`": Web Studio's organization is a signed cookie that `getAuthContext` does not read, so a Web Studio page or layout takes Tenant from `requireWebStudioAccess(...).scope` and code inside Payload from `req.user` (`getTenantContext(req)`), as `docs/guides/architecture/authz-memberships.md` ("Web Studio's organization") states. For that record in [skill-source-audit.json](skill-source-audit.json), only the installed payload hashes were recomputed with `scripts/update-skill-audit-hashes.mjs`, and the edited file's `adaptedFileHashes` entry (`references/components.md`) from the final file, as the #2154 entry did; raw upstream and source hashes, statuses and review dates are unchanged.
+
+## 2026-11-25 — The donor posts route in `nextjs-app-architecture` (AL-2676)
+
+A Core-local edit to `nextjs-app-architecture`'s `references/queries-actions.md` quotes the donor app's `/api/posts` route as it now is, `export { GET } from "@asym/api/posts";`: the donor app no longer mounts the missionary-only `POST` (WP3b part 4). For that record in [skill-source-audit.json](skill-source-audit.json), only the installed payload hashes were recomputed with `scripts/update-skill-audit-hashes.mjs`, and the edited file's `adaptedFileHashes` entry (`references/queries-actions.md`) from the final file, as the AL-2675 entry did; raw upstream, lock and source hashes, statuses and review dates are unchanged.

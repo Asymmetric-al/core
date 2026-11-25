@@ -371,17 +371,16 @@ test("an open command dialog follows the combobox pattern, except that Escape cl
   expect(errors).toEqual([]);
 });
 
-// UI SDK holds a modal dialog to `aria-modal="true"`, which it documents as
-// stricter than the pattern. Base UI makes the page behind inert instead,
-// because `aria-modal` also hides popups a dialog opens outside itself, and
-// Core's dialogs open selects, comboboxes and calendars that way. That one
-// difference is asserted exactly, and the inert page is proven directly.
-for (const [id, role, trigger, apgName] of [
-  ["dialog", "dialog", "Edit note", "dialog (modal)"],
-  ["alertdialog", "alertdialog", "Delete task", "alert dialog"],
-  ["sheet", "dialog", "Open task", "dialog (modal)"],
+// UI SDK's dialog check requires `aria-modal="true"` only when siblings carry
+// HTML `inert`. Base UI hides the page behind with `aria-hidden="true"` instead
+// so popups a dialog opens outside itself stay accessible, so `checkPattern`
+// reports no problem and we prove the hidden background and Tab trap directly.
+for (const [id, role, trigger] of [
+  ["dialog", "dialog", "Edit note"],
+  ["alertdialog", "alertdialog", "Delete task"],
+  ["sheet", "dialog", "Open task"],
 ] as const) {
-  test(`an open ${id} differs from the ${role} pattern only by aria-modal, and makes the page inert`, async ({
+  test(`an open ${id} follows the ${role} pattern and hides the page behind it`, async ({
     page,
   }) => {
     const errors = await mount(page);
@@ -389,9 +388,7 @@ for (const [id, role, trigger, apgName] of [
     await opener.click();
     const popup = page.getByRole(role);
     await popup.waitFor();
-    expect(await check(page, id, role)).toEqual([
-      `div[role=${role}]: is modal but has no aria-modal="true", which tells screen readers the page behind it is inert (APG ${apgName}).`,
-    ]);
+    expect(await check(page, id, role)).toEqual([]);
 
     await expect(popup).toBeVisible();
     // Everything outside the popup is hidden from assistive technology.
@@ -463,20 +460,18 @@ test("an open popover is a named non-modal dialog that Escape closes back to its
 });
 
 // A custom radio submits through a native input that is `aria-hidden` and
-// out of the tab order. `checkPattern` counts that input as a second radio,
-// for Base UI's radio group and for UI SDK's own Rating alike, so it cannot
-// judge either. The radio pattern is checked with real keys instead.
-test("the radio check cannot judge a radio that submits through a hidden input", async ({
+// out of the tab order. UI SDK 0.1.0-beta.6+ skips `aria-hidden` elements in
+// `checkPattern`, so Base UI's radio group passes cleanly and UI SDK's Rating
+// differs only by its default `loop: false` (stops at 5 stars instead of wrapping).
+test("radio-group passes the radio-group pattern and rating differs only by non-wrapping arrows", async ({
   page,
 }) => {
-  await mount(page);
-  for (const id of ["radio-group", "rating"]) {
-    const problems = await check(page, id, "radio-group");
-    expect(problems.length, id).toBeGreaterThan(0);
-    for (const problem of problems) {
-      expect(problem, id).toMatch(/checked radios|radio, input/);
-    }
-  }
+  const errors = await mount(page);
+  expect(await check(page, "radio-group", "radio-group")).toEqual([]);
+  expect(await check(page, "rating", "radio-group")).toEqual([
+    "button[role=radio]: ArrowDown should move focus to the next radio, wrapping around, button[role=radio], but focus stayed (APG radio group).",
+  ]);
+  expect(errors).toEqual([]);
 });
 
 test("a radio group has one tab stop and moves, checks and wraps with the arrow keys", async ({

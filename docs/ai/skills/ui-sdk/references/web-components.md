@@ -6,7 +6,7 @@ What the `@ui-sdk/web` types don't say, learned by probing.
 
 - Install `@ui-sdk/web` at the same version as `@ui-sdk/core` if it's missing.
 - There's no `primitive` entry. `createParts`, `wrappedButton` and the element types, like `UiInputElement`, come from `@ui-sdk/web` itself.
-- A component entry, like `@ui-sdk/web/input`, defines its elements when imported. Its types are `export {}`. A `define…Elements()` function you may find in another `.d.ts` isn't what the entry exports, and calling it fails.
+- A component entry, like `@ui-sdk/web/input`, defines its elements when imported. It also exports the component's types and its controller factory when it has one, like `createInputController`. A `define…Elements()` function you may find in another `.d.ts` isn't what the entry exports, and calling it fails.
 
 ## Without a bundler
 

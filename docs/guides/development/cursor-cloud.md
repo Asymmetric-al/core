@@ -43,7 +43,7 @@ bun run setup:mission-control:cloud
 bun run dev:mission-control
 ```
 
-Then open `http://localhost:3030`. The setup command only writes gitignored `.env.local` defaults (`SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, `PAYLOAD_SECRET`, and admin Playwright URL/port). Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo-account values before testing live auth, hosted data, Payload/CMS, or database-backed admin workflows.
+Then open `http://localhost:3030`. The setup command only writes gitignored `.env.local` defaults (`SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, `E2E_AUTH_TENANT_ID=00000000-0000-0000-0000-000000000001` (the seed's demo organization; the bypass refuses a missing or malformed value), placeholder public Supabase values, `PAYLOAD_SECRET`, and admin Playwright URL/port). Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo-account values before testing live auth, hosted data, Payload/CMS, or database-backed admin workflows.
 
 ### Donor app in cloud sandboxes
 

@@ -39,7 +39,6 @@ const authOptions: AuthMiddlewareOptions = {
     "/sitemap.xml",
     "/robots.txt",
     "/no-access",
-    "/boneyard",
   ],
   // Checkout needs a signed-in donor, so signed-out visitors go to sign-in
   // with the gift kept in `next` and come straight back to it. They never

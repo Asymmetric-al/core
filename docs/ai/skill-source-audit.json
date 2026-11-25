@@ -5,7 +5,7 @@
   "counts": {
     "canonical": 182,
     "runtimePerClient": 233,
-    "lockEntries": 193,
+    "lockEntries": 194,
     "outcomes": {
       "current": 85,
       "excluded": 1,
@@ -5656,7 +5656,7 @@
       "rawSkillHash": "0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b",
       "lockHash": "0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b",
       "entrypointHash": "b3b6924d79bf0b685c5d50525612885a17c8afb1f3f83a2a1792dfd144bc96bc",
-      "treeHash": "a9cadf28e334c18769577a1fc0bc4429b8771a4d4dd9438c2617ebabd5bba923",
+      "treeHash": "af46a975c9cb1a381f9379e084ce69a69970d0a4fa65e7af6ae99d20f0d28972",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5690,7 +5690,7 @@
             "references/feature-folders.md": "26c9e10e081d4ac62f3dc4680b00e4024df6c1f3164b9053d5778cb2a316286a",
             "references/instant-navigation.md": "d887381717d9ca8321d1aefa084caa68b54097c2e3ed116bd74799cf773988ca",
             "references/pages-suspense.md": "b3220dbfac22be2b242dc352e79b0a80723c86de1ab97a238466ac210e103ac8",
-            "references/queries-actions.md": "980c7e7004b49fa8e2d2306da03b564344579e50b8c6b77e8cfd09ea758b9486",
+            "references/queries-actions.md": "3a88f819ffa67d07923189f02e54cea6908dc501ba8f460157f01f5643df59ad",
             "references/single-page-applications.md": "4b2a20cd803edcbeeac6f966927458e01d4a21ec8e0fb48902ba207a1b4d042e",
             "references/testing.md": "40b457c0a6c2a9af20cc095cfef9d618f152b8253ee71e0da43b39702a772301",
             "references/upstream.md": "bd46d4dc6baa83cac5707299d9e4d5eebebb782156520dc2fcb8725c1f2bd2a6",
@@ -5906,18 +5906,18 @@
       ]
     },
     {
-      "name": "openspec-apply-change",
+      "name": "openspec",
       "status": "current",
       "ownership": "canonical",
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
-      "sourcePath": "skills/openspec-apply-change/SKILL.md",
-      "rawSkillHash": "a8933b263ab01b4ce0a04ac805bd5321cadab78c84b6717b8617fea7eb2dc7dc",
-      "lockHash": "70a8a9b8d1d0603e83fb85b939e9d303ba9b864b07690df5cd52c0c0e8b39b1b",
-      "entrypointHash": "70a8a9b8d1d0603e83fb85b939e9d303ba9b864b07690df5cd52c0c0e8b39b1b",
-      "treeHash": "b583fe8238400cb5464f3f43d1057f11640a28113048f91729c1169a5af95b9b",
+      "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
+      "sourcePath": "skills/openspec/SKILL.md",
+      "rawSkillHash": "d1a7bc41fef98ad98c3b69fa926901908f7b3e95be38b9ade39287056cb3b0b3",
+      "lockHash": "66adc24c0e8c46b893f7abad70cd14810039f6dda0785dde0f7531c5312b89a6",
+      "entrypointHash": "66adc24c0e8c46b893f7abad70cd14810039f6dda0785dde0f7531c5312b89a6",
+      "treeHash": "1329f9182d983bb207b0828284b7ce638394dc0f1865376a043def0b64947de8",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -5929,19 +5929,66 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.2.0 source, adding Core's overlay and reconciling SKILL.md and references/*.md to Core's pinned local CLI, existing-change, missing-skill, and merge-before-archive policy; this is not a latest-HEAD claim."
+      ],
+      "evidence": "docs/ai/skills/openspec/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-reviewed-source-comparison",
+          "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
+          "sourcePath": "skills/openspec/SKILL.md",
+          "upstreamFileCount": 4,
+          "normalizedDifferences": [
+            "SKILL.md",
+            "references/answers.md",
+            "references/where-things-stand.md",
+            "references/without-skills.md"
+          ],
+          "omittedOptionalFiles": [],
+          "proof": [
+            "Reviewed against installed OpenSpec v2.2.0 source, adding Core's overlay and reconciling SKILL.md and references/*.md to Core's pinned local CLI, existing-change, missing-skill, and merge-before-archive policy; this is not a latest-HEAD claim."
+          ],
+          "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
+        }
+      ]
+    },
+    {
+      "name": "openspec-apply-change",
+      "status": "current",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "Fission-AI/OpenSpec",
+      "importedRef": null,
+      "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
+      "sourcePath": "skills/openspec-apply-change/SKILL.md",
+      "rawSkillHash": "a8933b263ab01b4ce0a04ac805bd5321cadab78c84b6717b8617fea7eb2dc7dc",
+      "lockHash": "70a8a9b8d1d0603e83fb85b939e9d303ba9b864b07690df5cd52c0c0e8b39b1b",
+      "entrypointHash": "70a8a9b8d1d0603e83fb85b939e9d303ba9b864b07690df5cd52c0c0e8b39b1b",
+      "treeHash": "b5e11a1d5c719b85b6d52408503772617c5f88da69d49db3d15fdc04f4e12750",
+      "license": {
+        "identifier": null,
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "references/LICENSE.md",
+            "sha256": "7f478b75fcd5ba243710589e44333520ec1542267193209a17fd57c1e48b05ed"
+          }
+        ]
+      },
+      "adaptations": [
+        "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-apply-change/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
+          "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
           "sourcePath": "skills/openspec-apply-change/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -5954,12 +6001,12 @@
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
+      "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
       "sourcePath": "skills/openspec-archive-change/SKILL.md",
-      "rawSkillHash": "a681ea8e78154ea16c66b555c9ae8c90171f27eba6d284c6be2f9164239404f3",
-      "lockHash": "9b8a5d84ca6b28a2993390290a28595d1ec12826b6957f9b5b9a67182c82f0bc",
-      "entrypointHash": "9b8a5d84ca6b28a2993390290a28595d1ec12826b6957f9b5b9a67182c82f0bc",
-      "treeHash": "dd941b69b1a73e4bac4155a9ffb19d6a8b5e97c7d0a3f8d4973a09a696642386",
+      "rawSkillHash": "8ea5eb23ac050a781616c7b951228c9763f62fccb7e0a6537f286679f1c01a08",
+      "lockHash": "1371a49db70bff5922951a6e60a7bba9d989e6d55dfb981f10b1eb888cf63980",
+      "entrypointHash": "1371a49db70bff5922951a6e60a7bba9d989e6d55dfb981f10b1eb888cf63980",
+      "treeHash": "1bd836af359f455848f1ea1b9f1b7dfab324b8a788aee7159a38b04d5bc5cd0d",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -5971,19 +6018,19 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-archive-change/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
+          "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
           "sourcePath": "skills/openspec-archive-change/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -5996,12 +6043,12 @@
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
+      "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
       "sourcePath": "skills/openspec-explore/SKILL.md",
       "rawSkillHash": "8eb7074d34277cf09e630ebd189a127154b8007d48445824b2c4c676806d501a",
       "lockHash": "5dcf11708e042422e76e47e3b930a6e5262ce179dfd231f08e8075c087bf890f",
       "entrypointHash": "5dcf11708e042422e76e47e3b930a6e5262ce179dfd231f08e8075c087bf890f",
-      "treeHash": "03770f5ac5e287a203963188a5276dd9581e6f7b2dfb3a13c809ecf34e82db84",
+      "treeHash": "43f7be0eba269ac0bc99df5a6158498b28a89bd45283eb029cfb83ada933160a",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6013,19 +6060,19 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-explore/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
+          "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
           "sourcePath": "skills/openspec-explore/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -6038,12 +6085,12 @@
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
+      "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
       "sourcePath": "skills/openspec-propose/SKILL.md",
       "rawSkillHash": "e353e74472fdef44af4af2c646348085b5b87df60efe06949ca401ff00c972e6",
       "lockHash": "d443ecb16e4d964fb9fe4fbca8e5a50320279c81d0539ac50d8edb2304da9bbe",
       "entrypointHash": "d443ecb16e4d964fb9fe4fbca8e5a50320279c81d0539ac50d8edb2304da9bbe",
-      "treeHash": "7910b52e111a2ba1376c690060612f7de427ef8e996fa014698d1e7546e8ab49",
+      "treeHash": "70462e18e1dff33a083b446038d12be0c7c8ae47de905b7ba4fc06e76b528654",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6055,19 +6102,19 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-propose/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
+          "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
           "sourcePath": "skills/openspec-propose/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -6080,12 +6127,12 @@
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
+      "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
       "sourcePath": "skills/openspec-sync-specs/SKILL.md",
       "rawSkillHash": "75556d2ca69892525698a0c681e0c3deead1e25f3b7b9be5449eaaf1621f026b",
       "lockHash": "abad850be1b643b3306de032ff352b02cdc138df932653e24bc3251716a49933",
       "entrypointHash": "abad850be1b643b3306de032ff352b02cdc138df932653e24bc3251716a49933",
-      "treeHash": "773f58616978aa7badb5ff6e212118152f51bf5fb128321246777b4163c17403",
+      "treeHash": "27c49756b5b729c6a71c09baa27ab9a6ab4649f634c0172f6a2dd99ec1b57f4b",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6097,19 +6144,19 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-sync-specs/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
+          "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
           "sourcePath": "skills/openspec-sync-specs/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -6122,12 +6169,12 @@
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
+      "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
       "sourcePath": "skills/openspec-update-change/SKILL.md",
       "rawSkillHash": "ca7ef061078b2260be47c2654e7df29b4c81ac1173dc73cbd565c3ea40879e87",
       "lockHash": "9a680c674f14417cf4c15eaa256b1f36788f071cace8fb0a2e90e012d34fa492",
       "entrypointHash": "9a680c674f14417cf4c15eaa256b1f36788f071cace8fb0a2e90e012d34fa492",
-      "treeHash": "920c7e9916a253efcdb7656044889e242d9b1b71ab6ca0e69978f56a09adcd23",
+      "treeHash": "caeeba8e26b724460713ecc85203b34895cb0b4ef9e27adcb813958b2ae0da7c",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6139,19 +6186,19 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-update-change/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
+          "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
           "sourcePath": "skills/openspec-update-change/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -6164,12 +6211,12 @@
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
+      "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
       "sourcePath": "skills/openspec-verify-change/SKILL.md",
       "rawSkillHash": "3b86fbb9734fdb6b942dd12d0afa4247457aa7f212bb48832eae133f5e66880a",
       "lockHash": "6a31216bd1e7d7ffc96c2344de5a95b05b34a8ddfd7a8c59745344e9b58921fa",
       "entrypointHash": "6a31216bd1e7d7ffc96c2344de5a95b05b34a8ddfd7a8c59745344e9b58921fa",
-      "treeHash": "009abd839c33d498e1b7885d24e4f57543d0b819be98e2a3ead7c2be708e90a2",
+      "treeHash": "801bf7aaa7bda0c17c5dd4e9dfd3346c4a5fef9f368b0cea6ccf38033f396f13",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6181,19 +6228,19 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-verify-change/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
+          "examinedRef": "f1cd852f4edce22b8df9548a4df889172ca8ff25",
           "sourcePath": "skills/openspec-verify-change/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v2.1.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.2.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -10351,13 +10398,13 @@
       "ownership": "canonical",
       "authorship": "upstream with Core adaptations",
       "source": "vercel-labs/ui",
-      "importedRef": "8ff6bcf7100d48230a3fab8c72475d99316cc58a",
-      "examinedRef": "8ff6bcf7100d48230a3fab8c72475d99316cc58a",
+      "importedRef": "d850982bd8aed202e07009825c3d9daf643fa24e",
+      "examinedRef": "d850982bd8aed202e07009825c3d9daf643fa24e",
       "sourcePath": "packages/core/skills/ui-sdk/SKILL.md",
-      "rawSkillHash": "bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a",
-      "lockHash": "76946872dfa4db3d144c1629ce2fe8a44b1cd4442ef70eeb82f3da4cb5f68f07",
-      "entrypointHash": "6ac1100f40fd20b879a9838ce16bed173c14a6ad1d8ea5b99d41e0189d88869b",
-      "treeHash": "2172b439f5491cf5649dc5796b67df55c3263d3ad21a626b4bc8fb631a4b1307",
+      "rawSkillHash": "ae96d59e4f575dbd28eb86b94a272adad34cd92271b4a8da2dd8cced1bbbf479",
+      "lockHash": "3823077bab44eeb1a26c14cf9a39381fdcd75e7c04fe85d2ecc0b2200fd75e0e",
+      "entrypointHash": "0984f7a38009de7b80cf3fbc45fd3d82a5d25e27ed02203286a46236f786c21d",
+      "treeHash": "2998bf5de07d5c7ed4cc20993763a894c4a260f1ce515866e5904bda5cfdfec2",
       "license": {
         "identifier": "Apache-2.0",
         "status": "notice-preserved",
@@ -10369,14 +10416,14 @@
         ]
       },
       "adaptations": [
-        "Pinned the @ui-sdk/core 0.1.0-beta.2 skill with a Core description that approves UI SDK alongside Base UI, a Core overlay for installed-docs paths, packages/ui wrappers, Maia styling, opt-in agent bridges and Core tests, and marked scanner comments with Apache-2.0 change notices."
+        "Pinned the @ui-sdk/core 0.1.0-beta.17 skill with a Core description that approves UI SDK alongside Base UI, a Core overlay for installed-docs paths, packages/ui wrappers, Maia styling, opt-in agent bridges and Core tests, and marked scanner comments with Apache-2.0 change notices."
       ],
       "evidence": "docs/ai/skills/ui-sdk/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-pinned-import",
-          "url": "https://github.com/vercel-labs/ui/tree/8ff6bcf7100d48230a3fab8c72475d99316cc58a/packages/core/skills/ui-sdk",
-          "rawSkillSha256": "bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a",
+          "url": "https://github.com/vercel-labs/ui/tree/d850982bd8aed202e07009825c3d9daf643fa24e/packages/core/skills/ui-sdk",
+          "rawSkillSha256": "ae96d59e4f575dbd28eb86b94a272adad34cd92271b4a8da2dd8cced1bbbf479",
           "licenseSha256": "85dc930b9f77edd477ceddd7658dd3a4bb4411186718d19e137a7a5724ee7007",
           "claim": "Complete reviewed skill tree, identical to the copy bundled in the installed @ui-sdk/core package, with the root Apache-2.0 LICENSE and a marked Core overlay; imported code was not executed."
         }

@@ -134,6 +134,7 @@ const GUARD_REACH = [
   "tenant_guard.current_tenant_id() EXECUTE",
   "tenant_guard.enter(uuid) EXECUTE",
   "tenant_guard.issue_membership_invitation(uuid,text,authz.membership_role,authz.staff_role,boolean,text,text,uuid,text,interval) EXECUTE",
+  "tenant_guard.money_park_operation(uuid,text,text) EXECUTE",
   "tenant_guard.request_assignment_id() EXECUTE",
   "tenant_guard.request_claims() EXECUTE",
 ];
@@ -177,18 +178,18 @@ select (select count(*) from (
   || ' ' || (select string_agg(a.privilege_type, ',' order by a.privilege_type) from aclexplode((select relacl from pg_class where oid = '${CLAIMS}'::regclass)) a where a.grantee = ${TG}) v
 => 0 INSERT,SELECT,UPDATE
 
-17: everything else granted to tenant_guard (schemas, functions it does not own, databases) equals the inventory (D-18: AL-2671: one item per line; D-18, AL-2678: the claim commands read the tenant's status through private.share_lock_tenant, and the caller's confirmed email, the claimable donor and the token lifetime through four postgres-owned functions in private; D-18, AL-2678 bot review #2: the worker-safety commands normalize names and reasons through private.normalize_safety_text)
+17: everything else granted to tenant_guard (schemas, functions it does not own, databases) equals the inventory (D-18: AL-2671: one item per line; D-18, AL-2678: the claim commands read the tenant's status through private.share_lock_tenant, and the caller's confirmed email, the claimable donor and the token lifetime through four postgres-owned functions in private; D-18, AL-2678 bot review #2: the worker-safety commands normalize names and reasons through private.normalize_safety_text; D-18, AL-2681 WP8a part 2 R1a: both provider-request commands park through tenant_guard.money_park_operation, a postgres-owned invoker only the guard may execute)
 select string_agg(e, ', ' order by e) v from (
   select 'schema ' || nspname || ' ' || a.privilege_type e from pg_namespace, aclexplode(nspacl) a where a.grantee = ${TG}
   union all select p.oid::regprocedure || ' ' || a.privilege_type from pg_proc p, aclexplode(p.proacl) a where a.grantee = ${TG} and p.proowner <> a.grantee
   union all select 'database ' || datname from pg_database, aclexplode(datacl) a where a.grantee = ${TG}) s
 => ${GUARD_REACH.join(", ")}
 
-17: no DELETE/TRUNCATE on claims; no SELECT on tenants, profiles, donation_saga_outbox, on the table or on any column
+17: no DELETE/TRUNCATE on claims; no SELECT on tenants or profiles, on the table or on any column; no table SELECT on donation_saga_outbox, only column SELECT (D-18, AL-2681 WP8a part 2 R1a: the provider-request commands read and lock their row through column grants behind a policy that admits provider requests only)
 select concat_ws(',', has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'DELETE'), has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'TRUNCATE'),
   has_table_privilege('tenant_guard', 'public.tenants', 'SELECT'), has_table_privilege('tenant_guard', 'public.profiles', 'SELECT'), has_table_privilege('tenant_guard', 'public.donation_saga_outbox', 'SELECT'),
   has_any_column_privilege('tenant_guard', 'public.tenants', 'SELECT'), has_any_column_privilege('tenant_guard', 'public.profiles', 'SELECT'), has_any_column_privilege('tenant_guard', 'public.donation_saga_outbox', 'SELECT')) v
-=> f,f,f,f,f,f,f,f
+=> f,f,f,f,f,f,f,t
 
 15: old release(uuid, text) is gone; release(uuid, uuid, text) and acquire return jsonb
 select concat_ws(' ', coalesce(to_regprocedure('public.release_workflow_work_claim(uuid,text)')::text, 'gone'),

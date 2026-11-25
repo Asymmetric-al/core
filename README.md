@@ -155,7 +155,8 @@ bun run dev:mission-control
 
 Open `http://localhost:3030`. Setup fills missing or placeholder values in the
 gitignored `.env.local` (a placeholder Supabase URL and key,
-`E2E_AUTH_BYPASS=true`, CI env defaults) and keeps real values you already set.
+`E2E_AUTH_BYPASS=true` with `E2E_AUTH_TENANT_ID` set to the seed's demo
+organization, CI env defaults) and keeps real values you already set.
 It installs with the frozen lockfile and runs `bun run skills:verify`. With the
 placeholder Supabase project you see the interface, sample content and empty
 states, not live data. An explicit `E2E_AUTH_BYPASS=false` is kept unless you

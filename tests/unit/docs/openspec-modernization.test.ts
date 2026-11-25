@@ -6,11 +6,12 @@ import { describe, expect, it } from "vitest";
 
 const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 
-const PINNED_OPENSPEC_VERSION = "2.1.0";
-const PINNED_OPENSPEC_COMMIT = "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0";
-const PINNED_OPENSPEC_TAG = "v2.1.0";
+const PINNED_OPENSPEC_VERSION = "2.2.0";
+const PINNED_OPENSPEC_COMMIT = "f1cd852f4edce22b8df9548a4df889172ca8ff25";
+const PINNED_OPENSPEC_TAG = "v2.2.0";
 
 const SELECTED_OPENSPEC_SKILLS = [
+  "openspec",
   "openspec-explore",
   "openspec-propose",
   "openspec-update-change",
@@ -18,6 +19,12 @@ const SELECTED_OPENSPEC_SKILLS = [
   "openspec-verify-change",
   "openspec-sync-specs",
   "openspec-archive-change",
+] as const;
+
+const OPENSPEC_ROUTER_REFERENCES = [
+  "references/answers.md",
+  "references/where-things-stand.md",
+  "references/without-skills.md",
 ] as const;
 
 const FORBIDDEN_OPENSPEC_SKILLS = [
@@ -133,8 +140,10 @@ describe("OpenSpec current-instruction hygiene", () => {
   it("does not use @fission-ai/openspec@latest in live instructions or active workflow commands", () => {
     const livePaths = [
       ...LIVE_INSTRUCTION_GLOBS,
-      ...walkMarkdownFiles("docs/ai/skills").filter((path) =>
-        path.includes("openspec-"),
+      ...walkMarkdownFiles("docs/ai/skills").filter(
+        (path) =>
+          path.startsWith("docs/ai/skills/openspec/") ||
+          path.includes("openspec-"),
       ),
       ...walkMarkdownFiles("openspec/changes").filter(
         (path) => !path.includes("/archive/"),
@@ -157,7 +166,7 @@ describe("OpenSpec current-instruction hygiene", () => {
 });
 
 describe("OpenSpec skill provenance", () => {
-  it("keeps the seven selected skills canonical, pinned, overlayed, and mirrored", () => {
+  it("keeps the router and seven selected skills canonical, pinned, overlayed, and mirrored", () => {
     for (const skillName of SELECTED_OPENSPEC_SKILLS) {
       const canonicalRoot = `docs/ai/skills/${skillName}`;
       const skill = readRepoFile(`${canonicalRoot}/SKILL.md`);
@@ -188,9 +197,43 @@ describe("OpenSpec skill provenance", () => {
         ).toBe(provenance);
       }
     }
+
+    const routerSkill = readRepoFile("docs/ai/skills/openspec/SKILL.md");
+    expect(routerSkill).toContain("resume or update it rather than recreating");
+    expect(routerSkill).not.toContain(
+      "install it with `openspec config profile`",
+    );
+    expect(routerSkill).not.toContain(
+      "offer to set it up with `openspec init`",
+    );
+
+    for (const referencePath of OPENSPEC_ROUTER_REFERENCES) {
+      const canonical = readRepoFile(
+        `docs/ai/skills/openspec/${referencePath}`,
+      );
+      expect(canonical, referencePath).toContain("bun run openspec --");
+      expect(canonical, referencePath).not.toContain("--store");
+      expect(canonical, referencePath).not.toContain("openspec store list");
+      expect(canonical, referencePath).not.toContain(
+        "install the skill instead with `openspec config profile`",
+      );
+      for (const generatedRoot of GENERATED_SKILL_ROOTS) {
+        expect(
+          readRepoFile(`${generatedRoot}/openspec/${referencePath}`),
+          `${generatedRoot}/openspec/${referencePath}`,
+        ).toBe(canonical);
+      }
+    }
+
+    expect(
+      readRepoFile("docs/ai/skills/openspec/references/where-things-stand.md"),
+    ).toContain("Do not start it until they say so.");
+    expect(
+      readRepoFile("docs/ai/skills/openspec/references/without-skills.md"),
+    ).toContain("never archive unmerged or incomplete work");
   });
 
-  it("records the pinned source review for the seven skills in the source audit", () => {
+  it("records the pinned source review for the eight OpenSpec skills in the source audit", () => {
     const audit = JSON.parse(
       readRepoFile("docs/ai/skill-source-audit.json"),
     ) as {

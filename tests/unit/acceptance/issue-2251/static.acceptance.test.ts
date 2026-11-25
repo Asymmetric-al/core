@@ -164,7 +164,7 @@ describe("#2251 In 2: docs/security/rls-deny-by-default-exceptions.json", () => 
   });
 
   // AL-2674 (D09), AL-2677 (WP4a-2a), and AL-2681 (WP8a-1, D-18) move tables with policies out of S/D into F.
-  it("contains the remaining §3 S tables (with a §3 code path) and D tables, and no F table (D-18: AL-2671 ruling-pin-tax Q2)", () => {
+  it("contains the remaining §3 S tables (with a §3 code path) and D tables, and no F table (D-18: AL-2671 ruling-pin-tax Q2; D-18, AL-2681 WP8a part 2 R1a: donation_saga_outbox gains the guard's provider-request policy and moves from S to F)", () => {
     const by = new Map(exceptions().map((x) => [x.table, x]));
     const wrong: string[] = [];
     for (const [t, files] of Object.entries(S)) {
