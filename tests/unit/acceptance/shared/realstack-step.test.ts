@@ -345,6 +345,7 @@ const REAL_DATABASE_FILES = [
     "issue-2676/money-embeds.realstack",
     "issue-2676/role-change-concurrency.realstack",
     "issue-2676/site-commands.realstack",
+    "issue-2676/tenant-provisioning.realstack",
     "issue-2676/tenant-status-rollback.realstack",
     "issue-2676/tenant-status.realstack",
     "issue-2677/command-boundaries.realstack",
