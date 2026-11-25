@@ -818,6 +818,30 @@ const PLANTED: [string, Record<string, string>, Rule][] = [
     },
     "S4",
   ],
+  [
+    "P28 an unrelated top-level object whose Query.myDonations reads the own-donations select",
+    {
+      [GRAPHQL_HANDLER]:
+        'import { DONATION_WITH_PARTIES_SELECT } from "@asym/api/donations/select";\nconst resolvers = { Query: { myDonations: () => db.from("donations").select(DONATION_WITH_PARTIES_SELECT) } };\nconst other = { Query: { myDonations: () => db.from("donations").select(DONATION_WITH_PARTIES_SELECT) } };\nexport const schema = createSchema({ typeDefs, resolvers });',
+    },
+    "S4",
+  ],
+  [
+    "P29 the own-donations select imported under another name, outside the two fields",
+    {
+      [GRAPHQL_HANDLER]:
+        'import { DONATION_WITH_PARTIES_SELECT as OWN } from "@asym/api/donations/select";\nconst resolvers = { Query: { mySupporters: () => db.from("donations").select(OWN) } };\nexport const schema = createSchema({ typeDefs, resolvers });',
+    },
+    "S4",
+  ],
+  [
+    "P30 the own-donations select read through a namespace import, outside the two fields",
+    {
+      [GRAPHQL_HANDLER]:
+        'import * as selects from "@asym/api/donations/select";\nconst resolvers = { Query: { mySupporters: () => db.from("donations").select(selects.DONATION_WITH_PARTIES_SELECT) } };\nexport const schema = createSchema({ typeDefs, resolvers });',
+    },
+    "S4",
+  ],
 ];
 
 const CONTROLS: [string, Record<string, string>][] = [
@@ -836,10 +860,10 @@ const CONTROLS: [string, Record<string, string>][] = [
     },
   ],
   [
-    "K3 the own-donations select in myDonations",
+    "K3 the own-donations select in myDonations of the resolvers given to createSchema",
     {
       [GRAPHQL_HANDLER]:
-        'import { DONATION_WITH_PARTIES_SELECT } from "@asym/api/donations/select";\nconst resolvers = { Query: { myDonations: () => db.from("donations").select(DONATION_WITH_PARTIES_SELECT) } };',
+        'import { DONATION_WITH_PARTIES_SELECT } from "@asym/api/donations/select";\nconst resolvers = { Query: { myDonations: () => db.from("donations").select(DONATION_WITH_PARTIES_SELECT) } };\nexport const schema = createSchema({ typeDefs, resolvers });',
     },
   ],
   [
@@ -882,10 +906,17 @@ const CONTROLS: [string, Record<string, string>][] = [
     },
   ],
   [
-    "K9 the own-donations select in Query.myDonations and Mutation.createDonation of the resolvers",
+    "K9 the own-donations select in Query.myDonations and Mutation.createDonation of the resolvers given to createSchema",
     {
       [GRAPHQL_HANDLER]:
-        'import { DONATION_WITH_PARTIES_SELECT } from "@asym/api/donations/select";\nconst resolvers = { Query: { myDonations: () => db.from("donations").select(DONATION_WITH_PARTIES_SELECT) }, Mutation: { createDonation: async () => db.from("donations").insert({}).select(DONATION_WITH_PARTIES_SELECT).single() } };',
+        'import { DONATION_WITH_PARTIES_SELECT } from "@asym/api/donations/select";\nconst resolvers = { Query: { myDonations: () => db.from("donations").select(DONATION_WITH_PARTIES_SELECT) }, Mutation: { createDonation: async () => db.from("donations").insert({}).select(DONATION_WITH_PARTIES_SELECT).single() } };\nexport const schema = createSchema({ typeDefs, resolvers });',
+    },
+  ],
+  [
+    "K10 the own-donations select imported under another name, in the two fields of the resolvers given to createSchema",
+    {
+      [GRAPHQL_HANDLER]:
+        'import { DONATION_WITH_PARTIES_SELECT as OWN } from "@asym/api/donations/select";\nconst resolvers = { Query: { myDonations: () => db.from("donations").select(OWN) }, Mutation: { createDonation: async () => db.from("donations").insert({}).select(OWN).single() } };\nexport const schema = createSchema({ typeDefs, resolvers });',
     },
   ],
 ];
@@ -901,6 +932,18 @@ describe("AL-2678 WP5 part 2-r2s: a colleague reads a donor only with the restri
 
   it("the tree has no donors read without the fact, no read outside the seam, no literal false and no own-donations select in another resolver", () => {
     expect(treeViolations()).toEqual([]);
+  });
+
+  it("the real GraphQL handler, with the select module it imports, is reported for nothing", () => {
+    expect(
+      planted({
+        [GRAPHQL_HANDLER]: readFileSync(GRAPHQL_HANDLER, "utf8"),
+        "packages/api/src/donations/select.ts": readFileSync(
+          "packages/api/src/donations/select.ts",
+          "utf8",
+        ),
+      }),
+    ).toEqual([]);
   });
 
   it("the scan reaches the seven readers", () => {
