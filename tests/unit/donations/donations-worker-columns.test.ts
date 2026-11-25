@@ -88,23 +88,28 @@ function topLevel(text: string) {
 function project(row: Row, select: string): Row {
   const out: Row = {};
   for (const part of topLevel(select)) {
-    const embed = /^(?:(\w+):)?(\w+)(?:![\w!]+)?\((.*)\)$/s.exec(part);
-    if (embed) {
-      const key = embed[1] ?? embed[2]!;
+    const embed = /^(?:(\w+):)?(\w+)(?:![\w!]+)?\((.+)\)$/s.exec(part);
+    const key = embed ? (embed[1] ?? embed[2]!) : null;
+    if (embed && key !== null && EMBEDDED.has(key)) {
       const value = row[key] as Row | null | undefined;
       out[key] = value ? project(value, embed[3]!) : (value ?? null);
     } else if (part === "*") {
       for (const [k, v] of Object.entries(row))
         if (!EMBEDDED.has(k)) out[k] = v;
-    } else if (part in row) out[part] = row[part];
+    } else if (/^\w+$/.test(part)) {
+      if (part in row) out[part] = row[part];
+    } else throw new Error(`the stub cannot project "${part}"`);
   }
   return out;
 }
 
 function workerSelect(select: string) {
   const at = select.indexOf("missionary:missionaries(");
+  if (at < 0) throw new Error(`no worker embed in "${select}"`);
   const open = at + "missionary:missionaries".length;
-  return select.slice(open + 1, matching(select, open));
+  const close = matching(select, open);
+  if (close < 0) throw new Error(`an unclosed worker embed in "${select}"`);
+  return select.slice(open + 1, close);
 }
 
 const s = vi.hoisted(() => ({

@@ -12,6 +12,7 @@ import {
   resolveTenantReceiptDeliveryPolicy,
   validateReceiptDeliverySelection,
 } from "./receipt-delivery";
+import { loadWorkerPublicNames } from "./worker-public-names";
 import { sendUpdatedReceiptSnapshotEmail } from "../../giving/receipts";
 import { ApiHttpError } from "../../shared/http-errors";
 import { asString, isRecord } from "../../shared/json-coerce";
@@ -1182,6 +1183,11 @@ export async function applyContributionCorrection(input: {
         requested: requestedDelivery ?? deliverySelection,
         snapshotContent: buildReceiptSnapshotContent({
           detail: after,
+          workerPublicNames: await loadWorkerPublicNames(
+            input.supabaseAdmin,
+            input.tenantId,
+            after.designations.lines.map((line) => line.missionaryId),
+          ),
           affectedFields,
           adjustmentId,
         }),

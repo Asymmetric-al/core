@@ -194,7 +194,12 @@ below record the set as #2256 froze it, not current authorization:
     avatars, given only to a caller with a live membership in the post's
     tenant. It names profiles beside `posts.tenant_id` and
     `authz.memberships.tenant_id`, so the lexical scan keeps it, and reads no
-    profile's tenant.
+    profile's tenant. Since AL-2678 (WP5 part 2-r2a) it also reads the
+    commenter's Parties by `account_links`, `missionaries.profile_id` and
+    `donors.profile_id` in every organization: a commenter linked to a
+    restricted or high-risk Party in any organization, or a worker with no
+    sole row in the post's organization, has no photo and is named only by an
+    alias or not at all.
   - `member_care_directory_rows` (AL-2677, WP4b part 1; W4b-R4): the Member
     Care directory and detail reader, gated on active tenant scope and
     `care.access`. It `LEFT JOIN`s `public.missionaries` to `public.profiles`

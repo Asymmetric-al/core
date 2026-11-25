@@ -337,6 +337,7 @@ export interface ReceiptSnapshotSourceDetail {
 
 export function buildReceiptSnapshotContent(input: {
   detail: ReceiptSnapshotSourceDetail;
+  workerPublicNames: ReadonlyMap<string, string | null>;
   affectedFields: string[];
   adjustmentId: string | null;
   now?: Date;
@@ -361,7 +362,9 @@ export function buildReceiptSnapshotContent(input: {
       fundId: line.fundId,
       fundName: line.fundName,
       missionaryId: line.missionaryId,
-      missionaryName: line.missionaryName,
+      missionaryName: line.missionaryId
+        ? (input.workerPublicNames.get(line.missionaryId) ?? null)
+        : null,
       memo: line.memo,
     })),
     affectedFields: [...input.affectedFields],

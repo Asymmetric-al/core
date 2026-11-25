@@ -108,15 +108,28 @@ function nestedProfileProblems(items: Item[]): string[] {
 
 type Literal = { start: number; end: number; text: string; whole: boolean };
 
+type Imports = Map<string, { specifier: string; importedName: string }>;
+
 type FileFacts = {
   literals: Literal[];
   fromRoots: { start: number; end: number; root: string }[];
   varSpans: Map<string, [number, number][]>;
   selectIds: { name: string; root: string }[];
-  imports: Map<string, { specifier: string; importedName: string }>;
+  imports: Imports;
   partiesFrom: string[];
   authorNames: string[];
+  cacheReads: { rule: string; text: string }[];
 };
+
+type ValuesOf = (file: string, name: string) => ReadonlySet<string>;
+
+const CACHE_DIRECTIVES = new Set([
+  "use cache",
+  "use cache: remote",
+  "use cache: private",
+]);
+const WORKER_NAME_COLUMN =
+  /(?<![A-Za-z0-9_])(?:worker_public_name|post_author_public_name)(?![A-Za-z0-9_])/;
 
 function unwrap(expr: ts.Expression): ts.Expression {
   let cur = expr;
@@ -130,43 +143,161 @@ function unwrap(expr: ts.Expression): ts.Expression {
   }
 }
 
-function factsOf(file: string, text: string): FileFacts {
-  const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+function stringVariablesOf(sf: ts.SourceFile): Map<string, Set<string>> {
+  const values = new Map<string, Set<string>>();
+  const visit = (node: ts.Node) => {
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.initializer
+    ) {
+      const init = unwrap(node.initializer);
+      if (
+        ts.isStringLiteral(init) ||
+        ts.isNoSubstitutionTemplateLiteral(init)
+      ) {
+        const set = values.get(node.name.text) ?? new Set<string>();
+        set.add(init.text);
+        values.set(node.name.text, set);
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
+  return values;
+}
+
+function importsOf(sf: ts.SourceFile): Imports {
+  const imports: Imports = new Map();
+  for (const node of sf.statements) {
+    if (
+      !ts.isImportDeclaration(node) ||
+      !ts.isStringLiteral(node.moduleSpecifier)
+    )
+      continue;
+    const bindings = node.importClause?.namedBindings;
+    if (bindings && ts.isNamedImports(bindings))
+      for (const el of bindings.elements)
+        imports.set(el.name.text, {
+          specifier: node.moduleSpecifier.text,
+          importedName: el.propertyName?.text ?? el.name.text,
+        });
+  }
+  return imports;
+}
+
+function startsWithCacheDirective(statements: ts.NodeArray<ts.Statement>) {
+  const first = statements[0];
+  return (
+    first !== undefined &&
+    ts.isExpressionStatement(first) &&
+    ts.isStringLiteral(first.expression) &&
+    CACHE_DIRECTIVES.has(first.expression.text)
+  );
+}
+
+function opensCache(node: ts.Node) {
+  if (ts.isSourceFile(node)) return startsWithCacheDirective(node.statements);
+  if (
+    (ts.isFunctionDeclaration(node) ||
+      ts.isFunctionExpression(node) ||
+      ts.isArrowFunction(node) ||
+      ts.isMethodDeclaration(node)) &&
+    node.body !== undefined &&
+    ts.isBlock(node.body)
+  )
+    return startsWithCacheDirective(node.body.statements);
+  return false;
+}
+
+function propertyNamed(
+  object: ts.ObjectLiteralExpression,
+  name: string,
+): ts.Expression | null {
+  for (const p of object.properties)
+    if (
+      ts.isPropertyAssignment(p) &&
+      (ts.isIdentifier(p.name) || ts.isStringLiteral(p.name)) &&
+      p.name.text === name
+    )
+      return unwrap(p.initializer);
+  return null;
+}
+
+function factsOf(
+  file: string,
+  sf: ts.SourceFile,
+  imports: Imports,
+  valuesOf: ValuesOf,
+): FileFacts {
   const facts: FileFacts = {
     literals: [],
     fromRoots: [],
     varSpans: new Map(),
     selectIds: [],
-    imports: new Map(),
+    imports,
     partiesFrom: [],
     authorNames: [],
+    cacheReads: [],
   };
-  const consts = new Map<string, string>();
-  const tableOf = (arg: ts.Expression | undefined) => {
-    if (!arg) return null;
+  const tableOf = (arg: ts.Expression | undefined): ReadonlySet<string> => {
+    if (!arg) return new Set();
     const e = unwrap(arg);
     if (ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e))
-      return e.text;
-    if (ts.isIdentifier(e)) return consts.get(e.text) ?? null;
-    return null;
+      return new Set([e.text]);
+    if (ts.isIdentifier(e)) return valuesOf(file, e.text);
+    return new Set();
   };
-  const rootOf = (receiver: ts.Expression): string | null => {
+  const rootOf = (receiver: ts.Expression): ReadonlySet<string> => {
     let cur = unwrap(receiver);
     while (ts.isCallExpression(cur)) {
       const callee = unwrap(cur.expression);
-      if (!ts.isPropertyAccessExpression(callee)) return null;
+      if (!ts.isPropertyAccessExpression(callee)) return new Set();
       if (callee.name.text === "from") return tableOf(cur.arguments[0]);
       cur = unwrap(callee.expression);
     }
-    return null;
+    return new Set();
   };
+  const textsOf = (expr: ts.Node): string[] => {
+    const out: string[] = [];
+    const walk = (n: ts.Node) => {
+      if (
+        ts.isStringLiteral(n) ||
+        ts.isNoSubstitutionTemplateLiteral(n) ||
+        ts.isTemplateHead(n) ||
+        ts.isTemplateMiddle(n) ||
+        ts.isTemplateTail(n)
+      )
+        out.push(n.text);
+      else if (ts.isIdentifier(n)) out.push(...valuesOf(file, n.text));
+      ts.forEachChild(n, walk);
+    };
+    walk(expr);
+    return out;
+  };
+  const isUnstableCache = (callee: ts.Expression) => {
+    if (ts.isPropertyAccessExpression(callee))
+      return callee.name.text === "unstable_cache";
+    if (!ts.isIdentifier(callee)) return false;
+    const imported = imports.get(callee.text);
+    return imported
+      ? imported.specifier === "next/cache" &&
+          imported.importedName === "unstable_cache"
+      : callee.text === "unstable_cache";
+  };
+  const isFetch = (callee: ts.Expression) =>
+    (ts.isIdentifier(callee) && callee.text === "fetch") ||
+    (ts.isPropertyAccessExpression(callee) && callee.name.text === "fetch");
   const collectIds = (node: ts.Node, out: Set<string>) => {
     if (ts.isIdentifier(node)) out.add(node.text);
     else if (ts.isPropertyAccessExpression(node))
       collectIds(node.expression, out);
     else ts.forEachChild(node, (c) => collectIds(c, out));
   };
+  let cached = 0;
   const visit = (node: ts.Node) => {
+    const opens = opensCache(node);
+    if (opens) cached++;
     if (
       ts.isStringLiteral(node) ||
       ts.isNoSubstitutionTemplateLiteral(node) ||
@@ -182,41 +313,64 @@ function factsOf(file: string, text: string): FileFacts {
           ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node),
       });
     if (
-      ts.isImportDeclaration(node) &&
-      ts.isStringLiteral(node.moduleSpecifier)
-    ) {
-      const bindings = node.importClause?.namedBindings;
-      if (bindings && ts.isNamedImports(bindings))
-        for (const el of bindings.elements)
-          facts.imports.set(el.name.text, {
-            specifier: node.moduleSpecifier.text,
-            importedName: el.propertyName?.text ?? el.name.text,
-          });
-    }
-    if (
       ts.isVariableDeclaration(node) &&
       ts.isIdentifier(node.name) &&
       node.initializer
     ) {
-      const init = unwrap(node.initializer);
-      if (ts.isStringLiteral(init) || ts.isNoSubstitutionTemplateLiteral(init))
-        consts.set(node.name.text, init.text);
       const spans = facts.varSpans.get(node.name.text) ?? [];
       spans.push([node.initializer.getStart(sf), node.initializer.getEnd()]);
       facts.varSpans.set(node.name.text, spans);
     }
     if (ts.isCallExpression(node)) {
       const callee = unwrap(node.expression);
+      if (isUnstableCache(callee))
+        facts.cacheReads.push({
+          rule: "unstable_cache outside Mission Control",
+          text: node.getText(sf),
+        });
+      const options = node.arguments[1] && unwrap(node.arguments[1]);
+      if (isFetch(callee) && options && ts.isObjectLiteralExpression(options)) {
+        const cache = propertyNamed(options, "cache");
+        const next = propertyNamed(options, "next");
+        if (
+          (cache &&
+            ts.isStringLiteral(cache) &&
+            cache.text === "force-cache") ||
+          (next &&
+            ts.isObjectLiteralExpression(next) &&
+            propertyNamed(next, "revalidate") !== null)
+        )
+          facts.cacheReads.push({
+            rule: "a fetch cached on the server outside Mission Control",
+            text: node.getText(sf),
+          });
+      }
       if (ts.isPropertyAccessExpression(callee)) {
         if (
           callee.name.text === "from" &&
-          tableOf(node.arguments[0]) === "parties"
+          tableOf(node.arguments[0]).has("parties")
         )
           facts.partiesFrom.push(node.getText(sf));
+        if (
+          cached > 0 &&
+          callee.name.text === "rpc" &&
+          tableOf(node.arguments[0]).has("post_comment_authors")
+        )
+          facts.cacheReads.push({
+            rule: "commenters' names in a server cache",
+            text: node.getText(sf),
+          });
         if (callee.name.text === "select" && node.arguments[0]) {
-          const root = rootOf(callee.expression);
-          if (root !== null) {
-            const arg = node.arguments[0];
+          const arg = node.arguments[0];
+          if (
+            cached > 0 &&
+            textsOf(arg).some((t) => WORKER_NAME_COLUMN.test(t))
+          )
+            facts.cacheReads.push({
+              rule: "a worker's public name in a server cache",
+              text: node.getText(sf),
+            });
+          for (const root of rootOf(callee.expression)) {
             facts.fromRoots.push({
               start: arg.getStart(sf),
               end: arg.getEnd(),
@@ -241,6 +395,7 @@ function factsOf(file: string, text: string): FileFacts {
         facts.authorNames.push(node.getText(sf));
     }
     ts.forEachChild(node, visit);
+    if (opens) cached--;
   };
   visit(sf);
   return facts;
@@ -277,7 +432,7 @@ const INTERPOLATED_HINT =
   /(?<![A-Za-z0-9_])(?:missionaries|profiles|posts)(?:\s*!\s*\w+)*\s*!\s*$/;
 
 const EMBED_RE =
-  /(?<![A-Za-z0-9_])(?:\.\.\.\s*)?(?:[A-Za-z_]\w*\s*:\s*)?(missionaries|profiles|donors|parties|posts)((?:\s*!\s*\w+)*)\s*\(/g;
+  /(?<![A-Za-z0-9_])(?:\.\.\.\s*)?(?:[A-Za-z_]\w*\s*:\s*)?(missionaries|profiles|donors|parties|posts|post_comments)((?:\s*!\s*\w+)*)\s*\(/g;
 
 type Embed = {
   resource: string;
@@ -307,8 +462,31 @@ function embedsIn(text: string): Embed[] {
 
 function scanSources(sources: Map<string, string>): Violation[] {
   const files = new Set(sources.keys());
+  const parsed = new Map<string, ts.SourceFile>();
+  for (const [file, text] of sources)
+    parsed.set(
+      file,
+      ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true),
+    );
+  const strings = new Map<string, Map<string, Set<string>>>();
+  const imports = new Map<string, Imports>();
+  for (const [file, sf] of parsed) {
+    strings.set(file, stringVariablesOf(sf));
+    imports.set(file, importsOf(sf));
+  }
+  const none: ReadonlySet<string> = new Set();
+  const valuesOf: ValuesOf = (file, name) => {
+    const own = strings.get(file)?.get(name);
+    if (own) return own;
+    const imported = imports.get(file)?.get(name);
+    const resolved = imported && resolveModule(file, imported.specifier, files);
+    return (
+      (resolved && strings.get(resolved)?.get(imported.importedName)) || none
+    );
+  };
   const facts = new Map<string, FileFacts>();
-  for (const [file, text] of sources) facts.set(file, factsOf(file, text));
+  for (const [file, sf] of parsed)
+    facts.set(file, factsOf(file, sf, imports.get(file)!, valuesOf));
   const varRoots = new Map<string, Set<string>>();
   const bind = (file: string, name: string, root: string) => {
     const f = facts.get(file)!;
@@ -336,6 +514,7 @@ function scanSources(sources: Map<string, string>): Violation[] {
     for (const call of f.partiesFrom) push("a parties read", call);
     for (const access of f.authorNames)
       push("a post author's profile name", access);
+    for (const read of f.cacheReads) push(read.rule, read.text);
     for (const lit of f.literals) {
       if (lit.text.trim() === "parties") push("a parties read", lit.text);
       const roots = new Set<string>();
@@ -369,7 +548,12 @@ function scanSources(sources: Map<string, string>): Violation[] {
           push("a parties read", shown);
           continue;
         }
-        if (e.resource === "donors" || e.resource === "posts") continue;
+        if (
+          e.resource === "donors" ||
+          e.resource === "posts" ||
+          e.resource === "post_comments"
+        )
+          continue;
         if (e.resource === "missionaries") {
           if (body === null) push("an unreadable worker embed", shown);
           else
@@ -383,6 +567,16 @@ function scanSources(sources: Map<string, string>): Violation[] {
             o.open < e.start &&
             (o.close === -1 || o.close > e.start),
         );
+        if (
+          (!nested && roots.has("post_comments")) ||
+          inside(e, "post_comments")
+        ) {
+          push(
+            "a commenter's profile: commenters come only from post_comment_authors",
+            shown,
+          );
+          continue;
+        }
         if (
           e.hints.includes("missionary_id") ||
           e.hints.includes("posts_missionary_id_fkey") ||

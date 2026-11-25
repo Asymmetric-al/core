@@ -10,7 +10,7 @@ import {
   fetchUserPostInteractions,
   toUserPostInteractionSets,
 } from "@asym/database/supabase/post-interactions";
-import { cacheLife, cacheTag, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createMissionaryPost } from "./create";
@@ -25,7 +25,6 @@ interface FeedPostsQuery {
   offset: number;
   limit: number;
   missionaryId?: string | null;
-  /** Caller's profile; scopes the audience rule and is part of the cache key. */
   viewerProfileId: string;
 }
 
@@ -37,7 +36,7 @@ function getAdminClientOrThrow() {
   return supabaseAdmin;
 }
 
-async function getCachedFeedPosts({
+async function getFeedPosts({
   tenantId,
   status,
   offset,
@@ -45,12 +44,6 @@ async function getCachedFeedPosts({
   missionaryId,
   viewerProfileId,
 }: FeedPostsQuery) {
-  "use cache";
-
-  cacheLife("minutes");
-  cacheTag(CACHE_TAGS.tenantPosts(tenantId));
-
-  // `use cache` stores query results; admin client remains a module-level singleton.
   const supabaseAdmin = getAdminClientOrThrow();
 
   let query = supabaseAdmin
@@ -100,11 +93,6 @@ export async function GET(request: NextRequest) {
       missionaryId: searchParams.get("missionaryId"),
     });
 
-    // Drafts are author-private. The cached read uses the service-role client
-    // and only narrows by missionary when an id is supplied, so without this
-    // any authenticated member of the tenant could list every missionary's
-    // unpublished posts. Decide it here, outside the cached scope, and ignore
-    // any client-supplied id for drafts.
     let effectiveMissionaryId = missionaryId ?? null;
     if (status !== "published") {
       if (!hasContextRoleClass(ctx, "missionary")) {
@@ -113,7 +101,7 @@ export async function GET(request: NextRequest) {
       effectiveMissionaryId = ctx.profileId;
     }
 
-    const posts = await getCachedFeedPosts({
+    const posts = await getFeedPosts({
       tenantId: ctx.tenantId,
       status,
       offset,

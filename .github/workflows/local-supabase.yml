@@ -96,6 +96,8 @@ on:
       - packages/api/src/donations/**
       - packages/graphql/**
       - packages/database/hooks/donor-feed-posts.ts
+      # The updated receipts the worker-name proof renders (AL-2678, r2a).
+      - packages/api/src/admin/contribution-operations/**
       - tests/unit/workflows/local-supabase.test.ts
       # The round trips themselves.
       - playwright.auth-mail.config.ts

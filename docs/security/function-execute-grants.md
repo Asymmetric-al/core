@@ -69,7 +69,12 @@ After the migration, on any database whatever its default privileges:
   profiles are not the caller's. Its migration revokes `PUBLIC`, `anon`,
   `authenticated` and `service_role` by name and grants `authenticated`
   alone. `tests/unit/acceptance/issue-2675/post-comment-authors.realstack.acceptance.test.ts`
-  checks who sees which name and the grantee set.
+  checks who sees which name and the grantee set. Since AL-2678 (WP5 part
+  2-r2a, `20261126050000_wp5_2r2a_comment_authors.sql`, grants unchanged) a
+  worker is named only by the post's organization's public name, and a
+  commenter linked to a restricted or high-risk Party in any organization, or
+  a worker with no sole row in the post's organization, has no photo and is
+  named only by an alias or not at all.
 - The `authz` INVOKER helpers `current_user_id()` and `current_tenant_id()`
   keep `PUBLIC` EXECUTE; they run with the caller's privileges and gain nothing.
 - Since the second release of WP2b (AL-2675,
