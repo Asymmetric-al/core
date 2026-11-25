@@ -22,7 +22,7 @@ The same docs are online at https://ui-sdk.dev/docs. Prefer the installed copy: 
 
 A page with no build step, like an Artifact, installs nothing: it loads `https://ui-sdk.dev/web.js` and `web.css` with two tags. Read https://ui-sdk.dev/web.md instead of `llms.txt`. It's the web components docs in one file, for that page, and [references/web-components.md](references/web-components.md#without-a-bundler) has the rest.
 
-Otherwise, if no `@ui-sdk` package is installed yet, install `@ui-sdk/core` and the framework's package with the project's package manager.
+Otherwise, if no `@ui-sdk` package is installed yet, install `@ui-sdk/core` and the framework's package with the project's package manager. In a Nuxt 4 or newer app using `@ui-sdk/vue`, also add `"@ui-sdk/vue"` to `modules` in `nuxt.config.ts`.
 
 ## Pick your path
 
@@ -38,7 +38,7 @@ Every path ends the same way:
 
 ## Rules for every path
 
-- **Import from entries.** Each component has its own entry, like `@ui-sdk/react/select`. There's no root import from a framework package. Never import `@ui-sdk/core/internal/*`.
+- **Import from entries.** Each component has its own entry, like `@ui-sdk/react/select`. Import components from there, not from a package root. Never import `@ui-sdk/core/internal/*`.
 - **One shape everywhere.** A root and its parts, nested as the component page's Composition shows. Change a part's element with `render`, never an `as` prop.
 - **Default or controlled.** `defaultValue` to start, or `value` with `onValueChange(value, details)` to control it (each framework's idiom: `v-model` in Vue, `bind:value` in Svelte, properties and events in web components). `details` has `reason`, `source` and `cancel()`.
 - **Name every control.** Use the component's label part (`FieldLabel`, `SelectLabel`, `DialogTitle`), or `aria-label` when there's no visible text. People using screen readers and agents both find controls by name.
@@ -61,8 +61,8 @@ Every path ends the same way:
 
 ## This repository (Asymmetric-al/core)
 
-Adapted from vercel-labs/ui `packages/core/skills/ui-sdk` at commit `8ff6bcf`
-(the `@ui-sdk/core@0.1.0-beta.2` release, Apache-2.0). Modified by
+Adapted from vercel-labs/ui `packages/core/skills/ui-sdk` at commit `d850982`
+(the `@ui-sdk/core@0.1.0-beta.17` release, Apache-2.0). Modified by
 Asymmetric-al/core: the description is rewritten, the Core note at the top and
 this overlay were added, and three references carry marked secret-scanner
 comments. The upstream text above is otherwise unchanged. Provenance is in
