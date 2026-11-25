@@ -78,7 +78,9 @@ only, and the command-entry gate's whole-statement anchor read.
    own session and removes its tenants as D20 does. The suite loads the
    module lazily, so its migration tests (G1 to G6) fail and pass on their
    own. G6 runs the migration's Down, read from its header, inside a
-   rolled-back transaction and checks that F27's values come back.
+   rolled-back transaction and checks that F27's values come back and that
+   the rules function is R1a's, byte for byte (the header writes a blank line
+   of the function as a bare `--`).
 9. **The fake provider is `tests/fixtures/stripe-provider-fake.ts`**, beside
    the other shared fixtures, because R2 imports it. It is a transport in the
    shape the Stripe SDK calls, never imports `stripe` at run time (the root

@@ -851,7 +851,7 @@ describe.skipIf(!ADMIN_URL)(
         )
       ).rows[0] as Record<string, unknown>;
 
-    it("G6: after the migration the guard holds INSERT of exactly its four columns and the rule fires on INSERT; the header's read-only check is true; its Down, run in a rolled-back transaction, gives back R1a's grant and trigger (F27's values)", () =>
+    it("G6: after the migration the guard holds INSERT of exactly its four columns and the rule fires on INSERT; the header's read-only check is true; its Down, run in a rolled-back transaction, gives back R1a's grant and trigger (F27's values) and R1a's rules function, byte for byte as R1a wrote it", () =>
       inTx(db, async () => {
         await role(db, null);
         const text = migrationFile();
@@ -875,17 +875,41 @@ describe.skipIf(!ADMIN_URL)(
         expect(start).toBeGreaterThan(0);
         const down = header
           .slice(start + 1)
-          .filter((l) => l.startsWith("--   "))
-          .map((l) => l.slice(5))
+          .filter((l) => l.startsWith("--   ") || l === "--")
+          .map((l) => (l === "--" ? "" : l.slice(5)))
           .filter((l) => !/^(BEGIN|COMMIT);$/.test(l.trim()))
           .join("\n");
+        const r1aText = readFileSync(
+          join(
+            MIGRATIONS,
+            "20261126020100_wp8a2_provider_operation_record.sql",
+          ),
+          "utf8",
+        );
+        const r1aStart = r1aText.indexOf(
+          "CREATE FUNCTION private.payment_repair_cases_rules()",
+        );
+        const r1aFunction = r1aText
+          .slice(r1aStart, r1aText.indexOf("\n$$;", r1aStart) + "\n$$;".length)
+          .replace("CREATE FUNCTION", "CREATE OR REPLACE FUNCTION");
+        const functionText = async () =>
+          (
+            await db.query(
+              "SELECT pg_get_functiondef('private.payment_repair_cases_rules()'::regprocedure) AS def",
+            )
+          ).rows[0]?.def as string;
         expect(down).toContain(
           "REVOKE INSERT ON TABLE public.payment_repair_cases FROM tenant_guard;",
         );
         await db.query("SAVEPOINT r1b_down");
         await db.query(down);
         const after = await grantsRow();
+        const restored = await functionText();
+        await db.query(r1aFunction);
+        const asR1aWroteIt = await functionText();
         await db.query("ROLLBACK TO SAVEPOINT r1b_down");
+        expect(r1aStart).toBeGreaterThan(-1);
+        expect(restored).toBe(asR1aWroteIt);
         expect(after).toEqual({
           grants: "tenant_guard:INSERT,tenant_guard:SELECT",
           column_grants: 0,
