@@ -1,6 +1,10 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
+import { buildCustomRoute } from "next/dist/lib/build-custom-route";
+import { getPathMatch } from "next/dist/shared/lib/router/utils/path-match";
+import { prepareDestination } from "next/dist/shared/lib/router/utils/prepare-destination";
+
 import {
   afterAll,
   afterEach,
@@ -31,6 +35,7 @@ import { canonicalUpstreamOrigin } from "../../../packages/env/src/front-origin"
 import {
   APP_BASE_PATHS as SCRIPT_APP_BASE_PATHS,
   CORE_SERVE_UNDER_PATHS_ENV,
+  DASHBOARD_ASSET_SEGMENT,
   frontUpstreamOrigin,
   isProductionBuildTarget,
   resolveServeUnderPaths,
@@ -53,14 +58,15 @@ const BOTH_UPSTREAMS = {
 };
 const BUILD_NEEDS =
   "CORE_SERVE_UNDER_PATHS=1 needs it when the donor app is built";
+const ASSET_SEGMENT = "[^/.][^/]*|\\.[^/.][^/]*|\\.\\.[^/]+";
 const EXPECTED_DONOR_REWRITES = {
   beforeFiles: [
     {
-      source: "/admin/_next/:path+",
+      source: `/admin/_next/:path(${ASSET_SEGMENT})+`,
       destination: "https://a.example.test/admin/_next/:path+",
     },
     {
-      source: "/missionary/_next/:path+",
+      source: `/missionary/_next/:path(${ASSET_SEGMENT})+`,
       destination: "https://m.example.test/missionary/_next/:path+",
     },
   ],
@@ -470,6 +476,108 @@ describe("the donor's rewrites of the dashboards' static files", () => {
       "http://[::1]:25051",
     );
     expect(frontUpstreamOrigin("http://core-admin.vercel.app")).toBeNull();
+  });
+});
+
+const REWRITTEN_ASSETS = [
+  "/admin/_next/static/chunks/a.js",
+  "/admin/_next/static/immutable/chunks/a.css",
+  "/admin/_next/static/a..b.js",
+  "/admin/_next/static/.a.js",
+  "/admin/_next/static/..a.js",
+  "/admin/_next/static/.../a.js",
+  "/admin/_next/image",
+  "/missionary/_next/static/css/a.css",
+];
+
+const NOT_REWRITTEN = [
+  "/admin/_next",
+  "/admin/_next/",
+  "/admin/_next/.",
+  "/admin/_next/..",
+  "/admin/_next/./a",
+  "/admin/_next/static/..",
+  "/admin/_next/static/./a.js",
+  "/admin/_next/static/../chunks/a.js",
+  "/admin/_next//a",
+  "/admin/_next/static//a.js",
+  "/admin/_next/../../eve/v1/info",
+  "/admin/_next/../../eve/v1/github",
+  "/admin/_next/static/../../../eve/v1/health",
+  "/Admin/_next/../../eve/v1/info",
+  "/missionary/_next/.",
+  "/missionary/_next/../../api/health",
+  "/missionary/_next/static/../../../missionary/login",
+];
+
+function enabledRewrites() {
+  const rewrites = serveUnderPathsDonorRewrites({ ...ON, ...BOTH_UPSTREAMS });
+  expect(rewrites).toBeDefined();
+  return rewrites!.beforeFiles;
+}
+
+function serverRewrite(pathname: string) {
+  for (const rule of enabledRewrites()) {
+    const params = getPathMatch(rule.source, {
+      strict: true,
+      removeUnnamedParams: true,
+      sensitive: false,
+    })(pathname);
+    if (params) return { rule, params };
+  }
+  return null;
+}
+
+function manifestRewrite(pathname: string) {
+  return (
+    enabledRewrites().find((rule) =>
+      new RegExp(buildCustomRoute("rewrite", rule).regex).test(pathname),
+    ) ?? null
+  );
+}
+
+describe("the enabled rewrites of the dashboards' static files, on raw paths", () => {
+  it("builds each source from the one segment rule", () => {
+    expect(DASHBOARD_ASSET_SEGMENT).toBe(ASSET_SEGMENT);
+    expect(enabledRewrites().map((rule) => rule.source)).toEqual([
+      `/admin/_next/:path(${ASSET_SEGMENT})+`,
+      `/missionary/_next/:path(${ASSET_SEGMENT})+`,
+    ]);
+  });
+
+  it.each(REWRITTEN_ASSETS)(
+    "sends %s to its dashboard's origin, same path",
+    (pathname) => {
+      const matched = serverRewrite(pathname);
+      expect(matched).not.toBeNull();
+      expect(manifestRewrite(pathname)?.source).toBe(matched!.rule.source);
+      const { parsedDestination } = prepareDestination({
+        appendParamsToQuery: false,
+        destination: matched!.rule.destination,
+        params: matched!.params,
+        query: {},
+      });
+      const origin = pathname.startsWith("/admin/")
+        ? ADMIN_UPSTREAM
+        : MISSIONARY_UPSTREAM;
+      expect(
+        `${parsedDestination.protocol}//${parsedDestination.hostname}${parsedDestination.pathname}`,
+      ).toBe(`${origin}${pathname}`);
+    },
+  );
+
+  it.each(NOT_REWRITTEN)(
+    "does not rewrite %s, which is not one or more plain segments",
+    (pathname) => {
+      expect(serverRewrite(pathname)).toBeNull();
+      expect(manifestRewrite(pathname.toLowerCase())).toBeNull();
+    },
+  );
+
+  it("still matches a source without regard to case, after the proxy ran", () => {
+    expect(serverRewrite("/Admin/_next/static/chunks/a.js")?.rule.source).toBe(
+      `/admin/_next/:path(${ASSET_SEGMENT})+`,
+    );
   });
 });
 
