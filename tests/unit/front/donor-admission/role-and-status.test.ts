@@ -99,7 +99,7 @@ afterEach(() => {
 });
 
 describe("on: donor dashboard role check and status through membership", () => {
-  it("admits D on both home-a and home-b, and redirects E on home-b to /", async () => {
+  it("admits D on both home-a and home-b, and redirects E on home-b to /no-access (D-18: AL-2676: ruling WP3b part 2 Q4 sends a signed-in donor with no row in the name's organization to /no-access when the switch is on)", async () => {
     state.userId = USER_D;
     state.rows = [D_A, D_B];
     const onA = await donorModule.proxy(
@@ -120,10 +120,10 @@ describe("on: donor dashboard role check and status through membership", () => {
       donorRequest(HOME_B, "/donor-dashboard"),
     );
     expect(eOnB.status).toBe(307);
-    expect(new URL(eOnB.headers.get("location")!).pathname).toBe("/");
+    expect(new URL(eOnB.headers.get("location")!).pathname).toBe("/no-access");
   });
 
-  it("when B is suspended or D's row in B is revoked: signed-out /login 200, signed-in /donor-dashboard redirects to /", async () => {
+  it("when B is suspended or D's row in B is revoked: signed-out /login 200, signed-in /donor-dashboard redirects to /no-access (D-18: AL-2676: ruling WP3b part 2 Q4 sends a signed-in donor with no row in the name's organization to /no-access when the switch is on)", async () => {
     state.rows = [D_A];
     state.userId = null;
     const signedOutLogin = await donorModule.proxy(
@@ -139,7 +139,7 @@ describe("on: donor dashboard role check and status through membership", () => {
     );
     expect(signedInDashboard.status).toBe(307);
     expect(new URL(signedInDashboard.headers.get("location")!).pathname).toBe(
-      "/",
+      "/no-access",
     );
   });
 });

@@ -24,6 +24,7 @@ const state = vi.hoisted(() => ({
   refreshCookie: true,
   sessionReads: 0,
   lookups: [] as string[],
+  homeReads: [] as string[],
   lookupClients: 0,
   offMode: false,
   answer: (() => ({ data: [], error: null })) as (
@@ -79,6 +80,16 @@ vi.mock("@supabase/supabase-js", () => ({
     state.lookupClients += 1;
     return {
       rpc: (fn: string, args: { p_host: string }) => {
+        if (fn === "resolve_home_host") {
+          state.homeReads.push(args.p_host);
+          return {
+            abortSignal: () =>
+              Promise.resolve({
+                data: [{ primary_domain: "home-a.localhost" }],
+                error: null,
+              }),
+          };
+        }
         if (fn !== "resolve_verified_host") throw new Error(fn);
         state.lookups.push(args.p_host);
         const answer = state.answer(args.p_host, state.lookups.length);
@@ -92,7 +103,20 @@ const donorModule = await import("../../../../apps/donor/proxy");
 
 beforeEach(() => {
   resetOnMode(state);
+  state.homeReads = [];
 });
+
+async function expectHomeRedirect(response: Response, path: string) {
+  expect(response.status, path).toBe(307);
+  expect(response.headers.get("location"), path).toBe(
+    `http://home-a.localhost:25160${path}`,
+  );
+  expect(response.headers.get("cache-control"), path).toBe("no-store");
+  expect(response.headers.get("referrer-policy"), path).toBe("no-referrer");
+  expect(await response.text(), path).toBe("");
+  expect(response.headers.get("set-cookie"), path).toBeNull();
+  expect(response.headers.get("x-middleware-next"), path).toBeNull();
+}
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -145,7 +169,7 @@ describe("on: per-surface path admission across bare-b, site-a, second-a and rea
     }
   });
 
-  it("site-a forwards website and both paths with A and refuses every account path", async () => {
+  it("site-a forwards website and both paths with A, sends the four account roots home and refuses every other account path (D-18: AL-2676: WP3b part 2 redirects sign-up, recovery, the callback and the dashboard of a Site name to home)", async () => {
     for (const path of [
       "/",
       "/workers",
@@ -161,22 +185,32 @@ describe("on: per-surface path admission across bare-b, site-a, second-a and rea
       expect(forwarded(res, NAME), path).toBe(TA);
     }
 
-    const accountPaths = [
-      "/login",
+    const redirectedPaths = [
       "/register",
       "/forgot-password",
       "/forgot-password/callback",
       "/auth/callback",
-      "/checkout",
-      "/no-access",
       "/donor-dashboard",
       "/donor-dashboard/settings",
-      "/api/profile",
     ];
+    const accountPaths = ["/login", "/checkout", "/no-access", "/api/profile"];
     state.userId = USER_D;
     state.rows = [D_A, D_B];
+    for (const path of redirectedPaths) {
+      state.lookups = [];
+      state.homeReads = [];
+      state.sessionReads = 0;
+      await expectHomeRedirect(
+        await donorModule.proxy(donorRequest(SITE_A, path)),
+        path,
+      );
+      expect(state.sessionReads).toBe(0);
+      expect(state.lookups).toEqual([SITE_A]);
+      expect(state.homeReads).toEqual([SITE_A]);
+    }
     for (const path of accountPaths) {
       state.lookups = [];
+      state.homeReads = [];
       state.sessionReads = 0;
       await expectRefused(
         await donorModule.proxy(donorRequest(SITE_A, path)),
@@ -184,10 +218,11 @@ describe("on: per-surface path admission across bare-b, site-a, second-a and rea
       );
       expect(state.sessionReads).toBe(0);
       expect(state.lookups).toEqual([SITE_A]);
+      expect(state.homeReads).toEqual([]);
     }
   });
 
-  it("second-a forwards website paths with A and refuses every account path", async () => {
+  it("second-a forwards website paths with A, sends the four account roots home and refuses every other account path (D-18: AL-2676: WP3b part 2 redirects sign-up, recovery, the callback and the dashboard of a Site name to home)", async () => {
     const home = await donorModule.proxy(donorRequest(SECOND_A, "/"));
     expect(home.headers.get("x-middleware-next")).toBe("1");
     expect(forwarded(home, NAME)).toBe(TA);
@@ -195,16 +230,25 @@ describe("on: per-surface path admission across bare-b, site-a, second-a and rea
     state.userId = USER_D;
     state.rows = [D_A, D_B];
     for (const path of [
-      "/login",
       "/register",
       "/forgot-password",
       "/auth/callback",
-      "/checkout",
-      "/no-access",
       "/donor-dashboard",
-      "/api/profile",
     ]) {
       state.lookups = [];
+      state.homeReads = [];
+      state.sessionReads = 0;
+      await expectHomeRedirect(
+        await donorModule.proxy(donorRequest(SECOND_A, path)),
+        path,
+      );
+      expect(state.sessionReads).toBe(0);
+      expect(state.lookups).toEqual([SECOND_A]);
+      expect(state.homeReads).toEqual([SECOND_A]);
+    }
+    for (const path of ["/login", "/checkout", "/no-access", "/api/profile"]) {
+      state.lookups = [];
+      state.homeReads = [];
       state.sessionReads = 0;
       await expectRefused(
         await donorModule.proxy(donorRequest(SECOND_A, path)),
@@ -212,6 +256,7 @@ describe("on: per-surface path admission across bare-b, site-a, second-a and rea
       );
       expect(state.sessionReads).toBe(0);
       expect(state.lookups).toEqual([SECOND_A]);
+      expect(state.homeReads).toEqual([]);
     }
   });
 });
