@@ -18,15 +18,15 @@
 4. **Capture** — with the app dev server running, from repo root:
    - Admin: `bun run boneyard:admin` → `http://localhost:3030` (port **3030**; origin only — routes come from `apps/admin/boneyard.config.json`).
    - Missionary: `bun run boneyard:missionary` → `http://localhost:4000`.
-   - Donor: `bun run boneyard:donor` → `http://localhost:3000` (breakpoints live in **`apps/donor/boneyard.config.json`** only — see **Donor capture note**).
-   - All three: `bun run boneyard:all`.
-5. **Force recapture** — after **CSS-only** changes (tokens, fonts, padding) where DOM markup is unchanged: `bun run boneyard:admin:force` / `missionary` / `donor` (incremental hash is `innerHTML`-based).
+   - Both: `bun run boneyard:all`.
+   - Donor: none. AL-2676 (WP3b part 4) removed the donor app's public capture route `/boneyard/donor-dashboard`, its `apps/donor/boneyard.config.json` and the `boneyard:donor` scripts; the donor bones are kept as captured (see **Donor bones**).
+5. **Force recapture** — after **CSS-only** changes (tokens, fonts, padding) where DOM markup is unchanged: `bun run boneyard:admin:force` / `missionary` (incremental hash is `innerHTML`-based).
 
 ## Guided crawling (`skeletons` in `boneyard.config.json`)
 
 boneyard-js supports a top-level **`skeletons`** object: keys are skeleton **names**, values include **`route`** (path on the same origin as the CLI start URL) and optional **`wait`** (ms override for that page). When present, the CLI **skips** link discovery and visits only those routes — ideal for monorepos with multiple apps and public `/boneyard/*` capture pages.
 
-**CLI start URL:** pass the app **origin** (`http://localhost:3030`, `4000`, or `3000`). Do **not** pass a full capture path like `http://localhost:3030/boneyard/contributions` — that selects specific-page mode and ignores `skeletons`.
+**CLI start URL:** pass the app **origin** (`http://localhost:3030` or `4000`). Do **not** pass a full capture path like `http://localhost:3030/boneyard/contributions` — that selects specific-page mode and ignores `skeletons`.
 
 Each app’s config in this repo lists its named skeleton(s) explicitly.
 
@@ -39,9 +39,9 @@ The current repo rollout intentionally keeps Boneyard on the conservative defaul
 
 Upstream also supports `stagger`, `transition`, `boneClass`, `shimmerColor`, `darkShimmerColor`, `speed`, and `shimmerAngle`, but we do **not** enable them globally by default. Add those only when a specific loading surface benefits from them and the regenerated bones are visually verified.
 
-## Donor capture note (single breakpoint)
+## Donor bones (kept as captured)
 
-Next.js **Turbopack dev** can **navigate / hot-reload** between viewport resizes. For `@asym/donor`, **`apps/donor/boneyard.config.json`** sets **`"breakpoints": [1280]`** (root `boneyard:donor` scripts do **not** pass `--breakpoints`) so capture is stable. Add more widths after verifying dev capture stays stable, or capture from a production build if you need full responsive bones.
+AL-2676 (WP3b part 4) removed the donor app's capture route `/boneyard/donor-dashboard`, its `apps/donor/boneyard.config.json` (which held the single `1280` breakpoint) and the `boneyard:donor`, `boneyard:donor:force` and `test:e2e:boneyard:donor` scripts, with the CI step "Boneyard smoke (donor app)": the donor app will serve real organizations' names, and its public paths hold none. The generated bones in `apps/donor/bones/`, their registry and the dashboard's `BoneyardSkeleton` (`donor-dashboard-main`) stay as captured. Recapturing them needs a capture path that is not a public route of the donor app.
 
 ### Donor dashboard bootstrap query
 
@@ -49,11 +49,11 @@ Next.js **Turbopack dev** can **navigate / hot-reload** between viewport resizes
 
 ## Where files live
 
-| App                    | Config                                 | Generated output         | CLI origin (scripts)    | Skeleton route (`skeletons.*.route`) |
-| ---------------------- | -------------------------------------- | ------------------------ | ----------------------- | ------------------------------------ |
-| `@asym/admin`          | `apps/admin/boneyard.config.json`      | `apps/admin/bones/`      | `http://localhost:3030` | `/boneyard/contributions`            |
-| `@asym/missionary-app` | `apps/missionary/boneyard.config.json` | `apps/missionary/bones/` | `http://localhost:4000` | `/boneyard/tasks`                    |
-| `@asym/donor`          | `apps/donor/boneyard.config.json`      | `apps/donor/bones/`      | `http://localhost:3000` | `/boneyard/donor-dashboard`          |
+| App                    | Config                                 | Generated output                       | CLI origin (scripts)    | Skeleton route (`skeletons.*.route`) |
+| ---------------------- | -------------------------------------- | -------------------------------------- | ----------------------- | ------------------------------------ |
+| `@asym/admin`          | `apps/admin/boneyard.config.json`      | `apps/admin/bones/`                    | `http://localhost:3030` | `/boneyard/contributions`            |
+| `@asym/missionary-app` | `apps/missionary/boneyard.config.json` | `apps/missionary/bones/`               | `http://localhost:4000` | `/boneyard/tasks`                    |
+| `@asym/donor`          | none (removed by AL-2676)              | `apps/donor/bones/` (kept as captured) | none                    | none                                 |
 
 `boneyard.config.json` is read from **current working directory**; scripts `cd` into each app so `out` resolves to that app’s `./bones`.
 
@@ -68,7 +68,8 @@ Use **`{app}-{area}-{section}`** so names are unique within an app crawl (duplic
 
 Protected apps redirect unauthenticated users. Capture runs in Playwright **without** your session cookies, so pilot screens use **dedicated public routes** under `/boneyard/...`:
 
-- **Admin / donor:** `apps/admin/proxy.ts` and `apps/donor/proxy.ts` list **`/boneyard`** under `publicRoutes` so nested capture routes remain reachable without a session. The admin capture page lives at `apps/admin/app/(auth)/boneyard/`.
+- **Admin:** `apps/admin/proxy.ts` lists **`/boneyard`** under `publicRoutes` so nested capture routes remain reachable without a session. The admin capture page lives at `apps/admin/app/(auth)/boneyard/`.
+- **Donor:** none. AL-2676 (WP3b part 4) deleted the route's files and took `/boneyard` off `apps/donor/proxy.ts`'s public routes. A request the proxy refuses gets the proxy's `404`; an admitted request reaches the public catch-all `app/(public)/(solid)/[...cmsSlug]` and gets the not-found page with `noindex` and status `200`, as every unknown donor path does.
 - **Missionary:** `apps/missionary/proxy.ts` takes its public routes from `MISSIONARY_PUBLIC_ROUTES` in `apps/missionary/lib/route-policy.ts`, which includes `/boneyard`.
 
 Missionary **`/boneyard` routes** render inside a minimal padded shell (not full `AppShell`) so viewport width is closer to the real main content column.
@@ -108,6 +109,6 @@ The attribute is **not** honored unless listed in `snapshotConfig.excludeSelecto
 
 The default root `playwright.config.ts` uses the donor E2E `baseURL` (port **3005**), so this spec **skips** unless you target an app explicitly.
 
-- **Local / CI:** `bun run test:e2e:boneyard:admin`, `test:e2e:boneyard:missionary`, `test:e2e:boneyard:donor`.
-- **Configs:** `playwright.admin.config.ts`, `playwright.missionary.config.ts`, `playwright.donor.config.ts` with projects **`admin-boneyard`**, **`missionary-boneyard`**, **`donor-boneyard`**.
-- **Override:** `PLAYWRIGHT_BONEYARD_TARGET=admin|missionary|donor`, or rely on baseURL ports **3030** / **4000** / **3000**.
+- **Local / CI:** `bun run test:e2e:boneyard:admin`, `test:e2e:boneyard:missionary`. The donor target and `test:e2e:boneyard:donor` were removed with the donor capture route (AL-2676, WP3b part 4).
+- **Configs:** `playwright.admin.config.ts`, `playwright.missionary.config.ts` with projects **`admin-boneyard`**, **`missionary-boneyard`**. `playwright.donor.config.ts` and its project **`donor-boneyard`** remain, and the smoke spec skips there.
+- **Override:** `PLAYWRIGHT_BONEYARD_TARGET=admin|missionary`, or rely on baseURL ports **3030** / **4000**.

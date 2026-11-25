@@ -37,6 +37,6 @@ if [[ "$profile" == normal ]]; then
   settings+=(NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=scanner-local-anon-key E2E_AUTH_BYPASS=false)
 else
   # UI demonstration only. This does not verify Auth, PostgREST, or RLS.
-  settings+=(NODE_ENV=development ASYM_USE_CI_ENV_DEFAULTS=1 SKIP_ENV_VALIDATION=1 E2E_AUTH_BYPASS=true NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key)
+  settings+=(NODE_ENV=development ASYM_USE_CI_ENV_DEFAULTS=1 SKIP_ENV_VALIDATION=1 E2E_AUTH_BYPASS=true E2E_AUTH_TENANT_ID=00000000-0000-0000-0000-000000000001 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key)
 fi
 exec env -i "${settings[@]}" "$@"

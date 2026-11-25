@@ -13,6 +13,7 @@ const DEFAULT_ENV = {
    * the bypass auto-uses a built-in fallback key and is implicitly allowlisted.
    */
   E2E_AUTH_BYPASS: "true",
+  E2E_AUTH_TENANT_ID: "00000000-0000-0000-0000-000000000001",
   NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "example-anon-key",
   PAYLOAD_SECRET: "ci-placeholder-payload-secret",

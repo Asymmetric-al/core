@@ -72,9 +72,10 @@ passing database error must not have that effect.
    principal union. `ActiveAssignment` in `principal/types.ts` carries the row's
    class as `membershipRole`, so code that holds an assignment never derives the
    class from a role string. Only the E2E bypass derives one: a test session
-   that lists no memberships gets a synthetic assignment whose class comes from
-   its role (`impliedE2EAuthMembership` in `e2e-auth.ts`). Cited: #2258;
-   AL-2675.
+   that lists no memberships and names a canonical `tenantId` gets a synthetic
+   assignment in that tenant whose class comes from its role
+   (`impliedE2EAuthMembership` in `e2e-auth.ts`); one that names no canonical
+   tenant gets none. Cited: #2258; AL-2675; AL-2676.
 
 6. **An assignment's revision is opaque.** `ActiveAssignment.revision` in
    `principal/types.ts` holds the row's `updated_at`, and `toActiveAssignment`

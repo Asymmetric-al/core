@@ -20,7 +20,7 @@ For browser post reads, Core already has this thin transport boundary. The API-o
 
 ```ts
 // apps/donor/app/api/posts/route.ts
-export { GET, POST } from "@asym/api/posts";
+export { GET } from "@asym/api/posts";
 ```
 
 ## Cache keys are the arguments

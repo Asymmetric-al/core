@@ -413,8 +413,6 @@
   "apps/donor/app/(public)/(solid)/workers/[id]/worker-story.tsx": 1,
   "apps/donor/app/(public)/layout.tsx": 1,
   "apps/donor/app/_providers/boneyard-registry.tsx": 1,
-  "apps/donor/app/boneyard/donor-dashboard/page-client.tsx": 1,
-  "apps/donor/app/boneyard/donor-dashboard/page.tsx": 1,
   "apps/donor/app/layout.tsx": 2,
   "apps/donor/app/no-access/page.tsx": 1,
   "apps/donor/components/cms/public-page-media.tsx": 1,
