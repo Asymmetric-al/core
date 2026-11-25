@@ -93,7 +93,7 @@ vi.mock("@supabase/supabase-js", () => ({
 }));
 
 const donorModule = await import("../../../../apps/donor/proxy");
-const { homeRedirectPath } =
+const { homeRedirect, homeRedirectPath } =
   await import("../../../../apps/donor/lib/home-redirect");
 
 beforeEach(() => {
@@ -240,5 +240,21 @@ describe("on: the path under a root, every hostile form lands on /donor-dashboar
         "/donor-dashboard",
       );
     }
+  });
+
+  it("the last check refuses with 404 a Location the URL parser would rewrite, and keeps one it would not", async () => {
+    const at = { port: "25200", searchParams: new URLSearchParams() };
+    for (const path of ["/register/../login", "/register/./x"]) {
+      const refused = homeRedirect("home-a.localhost", at, path);
+      expect(refused.status, path).toBe(404);
+      expect(refused.headers.get("cache-control"), path).toBe("no-store");
+      expect(refused.headers.get("location"), path).toBeNull();
+      expect(await refused.text(), path).toBe("");
+    }
+    const kept = homeRedirect("home-a.localhost", at, "/register/a.b~c");
+    expect(kept.status).toBe(307);
+    expect(kept.headers.get("location")).toBe(
+      "http://home-a.localhost:25200/register/a.b~c",
+    );
   });
 });

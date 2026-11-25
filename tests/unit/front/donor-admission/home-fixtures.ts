@@ -1,9 +1,8 @@
 import { NextRequest } from "next/server";
 import { expect, vi } from "vitest";
 
-import { resetFrontConfigLogForTests } from "../../../../packages/auth/front";
-
 import { freshKey, hostRow, TA, TB } from "./fixtures";
+import { resetFrontConfigLogForTests } from "../../../../packages/auth/front";
 
 import type { Answer, Init } from "./fixtures";
 
