@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
-
 import {
   fixturePerson,
   organizationLabel,
@@ -160,6 +157,19 @@ async function json(response: APIResponse) {
   return response.json();
 }
 
+/** A Site presentation of the selected organization, as the seed fixtures make them. */
+export async function siteOf(page: Page, baseURL: string) {
+  const body = (await json(
+    await page.request.get(
+      `${baseURL}/web-studio/api/site-presentations?limit=1&depth=0&sort=id`,
+    ),
+  )) as { docs: Array<{ id: string }> };
+  const site = body.docs[0]?.id;
+  if (!site)
+    throw new Error("The selected organization has no Site presentation.");
+  return String(site);
+}
+
 /** Creates a draft page through Payload's REST routes, as the page's own document would. */
 export async function createDraftPage(
   page: Page,
@@ -172,7 +182,8 @@ export async function createDraftPage(
       data: {
         title,
         slug: title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-        pageType: "standard",
+        site: await siteOf(page, baseURL),
+        family: "standard",
         _status: "draft",
         content: EMPTY_RICH_TEXT,
       },
@@ -181,22 +192,43 @@ export async function createDraftPage(
   return String(created.doc.id);
 }
 
-const TEST_IMAGE = readFileSync(
-  path.join(__dirname, "..", "fixtures", "test-image.png"),
-);
-
-/** Uploads an image to the media library through Payload's REST routes. */
-export async function uploadMedia(page: Page, baseURL: string, alt: string) {
-  const created = await json(
-    await page.request.post(`${baseURL}/web-studio/api/media`, {
+/**
+ * Gives the selected organization's seeded media record a new alt text, as
+ * an editor may: staff neither upload nor delete media before WP6 part 2c.
+ */
+export async function labelSeededMedia(
+  page: Page,
+  baseURL: string,
+  alt: string,
+) {
+  const body = (await json(
+    await page.request.get(
+      `${baseURL}/web-studio/api/media?limit=1&depth=0&sort=createdAt`,
+    ),
+  )) as { docs: Array<{ id: string; alt: string }> };
+  const record = body.docs[0];
+  if (!record)
+    throw new Error("The selected organization has no media record.");
+  await json(
+    await page.request.patch(`${baseURL}/web-studio/api/media/${record.id}`, {
       headers: await writeHeaders(page, baseURL),
-      multipart: {
-        file: { name: `${alt}.png`, mimeType: "image/png", buffer: TEST_IMAGE },
-        _payload: JSON.stringify({ alt }),
-      },
+      data: { alt },
     }),
   );
-  return String(created.doc.id);
+  return { id: String(record.id), previousAlt: record.alt };
+}
+
+/** Puts a seeded media record's alt text back. */
+export async function restoreMediaAlt(
+  page: Page,
+  baseURL: string,
+  id: string,
+  alt: string,
+) {
+  return page.request.patch(`${baseURL}/web-studio/api/media/${id}`, {
+    headers: await writeHeaders(page, baseURL),
+    data: { alt },
+  });
 }
 
 /** What a REST read returns now, for the documents whose field contains `stamp`. */
@@ -219,7 +251,7 @@ export async function restTitles(
 export async function deleteDocument(
   page: Page,
   baseURL: string,
-  collection: "pages" | "media",
+  collection: "pages",
   id: string,
 ) {
   return page.request.delete(`${baseURL}/web-studio/api/${collection}/${id}`, {

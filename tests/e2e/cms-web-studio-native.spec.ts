@@ -5,7 +5,7 @@ import {
   attachPayloadDbConsoleListener,
   waitForWebStudioShellOrSkip,
 } from "./cms-skip-if-no-payload";
-import { writeHeaders } from "./helpers/web-studio";
+import { siteOf, writeHeaders } from "./helpers/web-studio";
 
 const nativePagesUiDisabled =
   process.env.CMS_WEB_STUDIO_NATIVE_PAGES === "false" ||
@@ -86,7 +86,7 @@ test.describe("@cms Web Studio native shell", () => {
     }
   });
 
-  test("staff edits persist as a private draft through native autosave", async ({
+  test("staff edits persist as a private draft through native autosave (D-18: WP6 part 2b pages carry a Site and a family)", async ({
     page,
   }) => {
     test.setTimeout(150_000);
@@ -107,7 +107,8 @@ test.describe("@cms Web Studio native shell", () => {
           data: {
             title: "Native draft check",
             slug,
-            pageType: "standard",
+            site: await siteOf(page, adminBaseURL),
+            family: "standard",
             _status: "draft",
             content: {
               root: {
@@ -216,7 +217,7 @@ test.describe("@cms Web Studio native shell", () => {
   // Content-Length and no Content-Type, removes a document. Web Studio has no
   // upload-type field: its media picker is a relationship to the media
   // upload collection, read by the same Relationship input.
-  test("a draft's pickers load by Payload's form transport and a bodyless browser delete removes it", async ({
+  test("a draft's pickers load by Payload's form transport and a bodyless browser delete removes it (D-18: WP6 part 2b pages carry a Site and a family, and starters replace the template relationship)", async ({
     page,
   }) => {
     test.setTimeout(150_000);
@@ -231,7 +232,8 @@ test.describe("@cms Web Studio native shell", () => {
           data: {
             title: "Picker and delete check",
             slug: `picker-delete-check-${Date.now()}`,
-            pageType: "standard",
+            site: await siteOf(page, adminBaseURL),
+            family: "standard",
             _status: "draft",
             layout: [{ blockType: "hero", headline: "Picker check" }],
             content: {
@@ -254,7 +256,6 @@ test.describe("@cms Web Studio native shell", () => {
         `${adminBaseURL}/web-studio/collections/pages/${documentId}`,
       );
       for (const [field, collection] of [
-        ["#field-template", "page-templates"],
         ["#field-layout__0__backgroundImage", "media"],
       ] as const) {
         const combobox = page.locator(field).getByRole("combobox");
@@ -307,19 +308,13 @@ test.describe("@cms Web Studio native shell", () => {
     }
   });
 
-  test("editorial collection routes use the native shell", async ({ page }) => {
+  test("editorial collection routes use the native shell (D-18: WP6 part 2b leaves navigation and media beside pages)", async ({
+    page,
+  }) => {
     await signInAsAdmin(page);
 
     const editorialRoutes = [
       { href: "/web-studio/collections/navigation", heading: /navigation/i },
-      {
-        href: "/web-studio/collections/missionary-profiles",
-        heading: /missionary profiles/i,
-      },
-      {
-        href: "/web-studio/collections/ministry-updates",
-        heading: /ministry updates/i,
-      },
       { href: "/web-studio/collections/media", heading: /media/i },
     ] as const;
 
