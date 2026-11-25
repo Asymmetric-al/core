@@ -204,6 +204,10 @@ own-profile response; both then carry the care fields again.
 
 When a CI or CI Integration job on the release source pull request (`migrate`, `smoke`, `test-e2e-smoke` or `test-e2e`; the required checks `e2e-smoke-gate` and `e2e-gate` only summarize them) fails at **Initialize containers**, check the failed step's log. These jobs pull their Postgres image from the organization's mirror, `ghcr.io/asymmetric-al/core-ci-postgres`, with the workflow's own token, not from a public registry. `manifest unknown` means the mirror does not hold that digest: dispatch **Mirror CI images** from `develop` (see `docs/ci.md`, "Mirror CI images workflow"), then re-run. `denied` means the repository has lost read access to the package; an organization owner restores it under the package's settings, "Manage Actions access". For a transient registry error, re-run the failed jobs (`gh run rerun <run-id> --failed`), and never treat a failed or skipped check as passed. This applies to CI runs on the source pull request or `develop`; do not use **Re-run failed jobs** on a failed `Release` workflow run (dispatch **Release** anew as above).
 
+### If a required check fails on a real defect
+
+Before any re-run of a failed required check on the release source pull request, read the failing assertion in the job's log. A wait that ran out before the page answered and an assertion that held false for the whole of its wait are different failures. For the first, re-run the failed jobs (`gh run rerun <run-id> --failed`). For the second, a pass on a re-run does not show that the defect is gone. Decide whether this release makes the defect worse, and write the decision and its reason in the pull request. File the defect as an issue before the push. Label it `release-blocker` only if it must stop the release: `bun run release:production` refuses while any open issue carries that label (`scripts/release/release-blockers.mjs`). On 25 November 2026 the browser suite failed on a defect production already had (issue #2816), and the re-run of the failed job passed by timing.
+
 ### Dispatched operations
 
 Run from the Actions tab, workflow **Release**, branch `production`:
@@ -601,7 +605,11 @@ fails, a read-only check that is true only once its transaction has
 committed, and its version. This section gives them for `20261119135300`,
 the worked example below. Each of `20261125050000` to `20261125050500`
 (WP5 part 1) gives its own three in its header, under "Recovery."; use them
-in place of the example's.
+in place of the example's. `20261126010000`, `20261126020000`,
+`20261126020100` and `20261126020200` give their own three in their headers
+too. `20261125010000`, `20261125010100`, `20261125040000`, `20261125070000`,
+`20261125070100` and `20261125080000` give none: work the three out from the
+file, as the worked example does, before any repair.
 
 `20261119135300` sets `lock_timeout` to 5s. If a long reader holds one of the
 fifty tables it alters, it fails fast with `55P03` and nothing is applied;
@@ -633,8 +641,27 @@ already gone). For any such file:
      (tenant, profile) pair with more than one missionary row.
    - `20261125050300`: `55000` when `persons` holds a row or a missionary or
      profile names a person.
+   - `20261125070100`: `22023` when an organization's name cannot name a
+     Site or brand: it has whitespace at either end, or is not 1 to 160
+     characters long. The error gives a count only. This read-only query
+     gives the same count:
+     `select count(*) from public.tenants as t where (t.name !~ '^[[:space:]]|[[:space:]]$' and length(t.name) between 1 and 160) is not true`.
+     Find those organizations by hand, out of band, and log no ID, name or
+     slug. Correct each name, then dispatch the release again.
    - `20261125050200`, `20261125050400` and `20261125050500` have no
-     preflight or post-assert of their own.
+     preflight or post-assert of their own. Nor have `20261125010000`,
+     `20261125010100`, `20261125040000`, `20261125070000`,
+     `20261125080000`, `20261126010000`, `20261126020000`,
+     `20261126020100` and `20261126020200`: any `RAISE` they contain is
+     inside a function body, which runs only when called. Two kinds of
+     statement in them can still fail on rows that no code writes, each
+     inside the file's one transaction, so nothing is changed: the inserts
+     into `public.field_policies` in `20261125010000` and `20261126020000`
+     (`23505` if the policy key already exists), and the unique index
+     `20261126020100` creates on the existing table
+     `public.mission_control_task_links` (`23505` if two rows already hold
+     the same record with relationship `provider_request_dead_letter` or
+     `provider_request_parked`).
 
 2. Record the file's version (here `20261119135300`) in both places below.
    Go on only if the status reads 0 and the count 1:
@@ -650,12 +677,16 @@ already gone). For any such file:
 3. Reload PostgREST's schema cache, then check it. A file that ends with
    `COMMIT;` and then, as a separate statement,
    `SELECT pg_notify('pgrst', 'reload schema');` can commit and stop before
-   the reload. `20261119135300` and each of `20261125050000` to
-   `20261125050500` end so. A later migration's reload covers it; for the
+   the reload. `20261119135300`, each of `20261125050000` to
+   `20261125050500`, `20261126010000`, `20261126020000`, `20261126020100`
+   and `20261126020200` end so. A later migration's reload covers it; for the
    last migration of a release nothing does, and the API keeps the schema
-   from before the file. The local stack reloads PostgREST by itself, through
-   two event triggers (see below); whether a hosted database has them was not
-   read, so the reload is sent in every recovery. Send it once; a second one
+   from before the file, unless the database has PostgREST's two event
+   triggers. The local stack reloads PostgREST by itself, through those two
+   triggers (see below). On 25 November 2026 the development project, the
+   database production reads, had the same two, enabled; the query after the
+   table shows them. No release step reads them, so the reload is sent in
+   every recovery. Send it once; a second one
    does no harm. Go on only if the reload's status reads 0. Then make the one
    read-only call the table below names for the file, with the project's URL
    and its publishable key and nothing else. No call reads a person's data:
@@ -690,6 +721,31 @@ already gone). For any such file:
    whether the cache holds the file's new key from `follower_requests` to
    `tenants`. No call was worked out for `20261119135300`: send its reload
    and go on.
+
+   The table has no row for the four files from `20261126010000` to
+   `20261126020200`, because no reload call has been observed for them yet.
+   For each, send the reload, go on only if its status reads 0, and make no
+   call:
+   - `20261126010000`: `public.worker_public_display_name` keeps its
+     signature, so the `20261125050400` call cannot tell a stale cache from
+     a loaded one, and no call was worked out for its two new computed-column
+     functions, `public.worker_public_name` and
+     `public.post_author_public_name`, which are executable by
+     `service_role` only (its lines 234-235 and 252-253).
+   - `20261126020000` and `20261126020100`: no call was worked out.
+   - `20261126020200`: its two Data API functions,
+     `public.claim_provider_operation` and
+     `public.record_provider_operation_result`, are `VOLATILE`, executable
+     by `service_role` only (its lines 691, 722 and 746-761), and nothing
+     calls them yet (its header); no call was worked out.
+
+   This read-only query shows whether a database has PostgREST's two event
+   triggers; `evtenabled` reads `O` when a trigger is enabled and `D` when
+   it is disabled:
+
+   ```sh
+   psql "$DB" -X -c "select evtname, evtevent, evtenabled from pg_event_trigger where evtname in ('pgrst_ddl_watch', 'pgrst_drop_watch')"
+   ```
 
 4. Dispatch **Release**, branch `production`, operation `release`, with
    `environment` set to the environment whose database `$DB` is
@@ -739,8 +795,8 @@ function created there with no `pg_notify` was served by the API three
 seconds later. So on the local stack a file's trailing `pg_notify` repeats a
 reload its DDL has already queued, and the stale answer above was produced
 with both triggers disabled (they were enabled again after). The plain
-Postgres replay has no event trigger. Whether a hosted database has them was
-not read; step 3 does not depend on it. The hosted PostgREST's version was
+Postgres replay has no event trigger. The development project had both,
+enabled, on 25 November 2026; step 3 does not depend on them. The hosted PostgREST's version was
 not read either. PostgREST's error reference lists `PGRST205` (a table not
 in the schema cache) for v13.0.8 and not for v12.2.12, and what an older
 PostgREST answers for such a table was not observed. On an older PostgREST
@@ -1341,7 +1397,7 @@ below follow those decisions.
    Check: `bun run verify:deployment-discipline` passes
    `production deployments are staged (custom domains not auto-assigned)`.
    Undo: turn it back on.
-4. **Ship the code.** Open a draft `develop`-to-`production` pull request for the source and required checks. Wait for all six required checks on the exact commit: `ci-gate`, `e2e-gate`, `e2e-smoke-gate`, `migrate`, `release-source-gate` and `smoke`. Require SUCCESS for `test-e2e` and `e2e-gate` on the `pull_request` run; a skipped push-run result is not a pass. Use `bun run release:production`; its fast-forward closes the draft as merged. Do not merge it by hand. The command runs the full `ci:preflight` profile itself, and the pre-push hook then runs the full profile a second time before the push leaves the machine, because a push to `production` always gets the full profile: on 24 November 2026 the two runs together took about 50 minutes on a developer machine. Start no other heavy job on that machine between the two. Vercel’s Git integration deploys nothing. At switch-on the first push stopped in migration preflight because the database predated WP1: it had neither the health function nor the environment marker. No deployment was created; the domains continued serving their previous builds. That was the expected result before the first rebuild, not the result of an ordinary release.
+4. **Ship the code.** Open a draft `develop`-to-`production` pull request for the source and required checks. Wait for all six required checks on the exact commit: `ci-gate`, `e2e-gate`, `e2e-smoke-gate`, `migrate`, `release-source-gate` and `smoke`. Require SUCCESS for `test-e2e` and `e2e-gate` on the `pull_request` run; a skipped push-run result is not a pass. On a push to `develop` the job `e2e-gate` is skipped (its condition in `.github/workflows/ci-integration.yml` admits only a pull request into `production` or a push to `production`), and a skipped check of that name satisfies the branch protection of `production` while the pull request's own run is still running the browser suite. So read the checks on the pull request's own runs: `gh run list --event pull_request --commit <sha> --json workflowName,status,conclusion` must show CI and CI Integration `completed` with conclusion `success`. Do not start the release command while either is queued or in progress, whatever the pull request's merge box shows: the command reads none of the pull request's checks (`scripts/release/production.mjs`). Use `bun run release:production`; its fast-forward closes the draft as merged. Do not merge it by hand. The command runs the full `ci:preflight` profile itself, and the pre-push hook then runs the full profile a second time before the push leaves the machine, because a push to `production` always gets the full profile: on 24 November 2026 the two runs together took about 50 minutes on a developer machine. Start no other heavy job on that machine between the two. Vercel’s Git integration deploys nothing. At switch-on the first push stopped in migration preflight because the database predated WP1: it had neither the health function nor the environment marker. No deployment was created; the domains continued serving their previous builds. That was the expected result before the first rebuild, not the result of an ordinary release.
    Judge release readiness by the pull request's own `pull_request` workflow runs (CI and CI Integration) plus `release-source-gate`, never by GitHub's rolled-up status on the commit: a later `push`-event run on `develop` can overwrite a failed or skipped pull-request check with a pass (seen on 23 November 2026 on #2759 at `9a21667c9`). On a release pull request into `production`, `bun run verify:comments` compares against `origin/production`; on the release push it compares against the revision before the push, which is the previous `production` tip. Either way, any comment that reached `develop` before the source comment ban (#2754) fails `lint` on the release pull request and must be removed from `develop` first (seen in #2762).
    Check: the first push fails in the migrate step with “predates WP1”; Vercel lists no new production deployment for the commit (`vercel list admin --scope asymmetric-al`).
    Undo: release a revert of the commit.
@@ -1393,7 +1449,7 @@ below follow those decisions.
 
 7. **Release.** Note each production domain’s live deployment id first. The checked fast-forward push to `production` **is** the release: it starts the workflow in changed mode. Read the plan. Step 6’s changes must reach all three apps; if any required app would be skipped, use a fresh `release` dispatch at the release commit with `apps: all` and check all three build decisions. Do not rerun an old attempt or use a dashboard redeploy. A second dispatch is unnecessary when the push already builds all three. At switch-on, the June build’s diff overflowed the plan’s buffer: “live commit is not an ancestor” was a misleading reason, although building all three was correct. For a settings-only production change there is no commit or push. Dispatch **Release** anew with operation `release` and `apps: all`; check that the plan logged `build` for admin, donor and missionary and that each production domain serves the ID the run logged.
 
-   Check and record all nine results:
+   Check and record all ten results:
 
    1. Release succeeded and the plan logged a build for each required app.
    2. Each production domain’s detailed migration health matches the run’s staged and promoted id, SHA, environment, database ref, marker and both heads.
@@ -1404,6 +1460,9 @@ below follow those decisions.
    7. In Web Studio choose the organization and read its pages and media lists; an empty list can be a successful scoped read.
    8. When registration is enabled, check the production Inngest app, sync, functions and schedules from Inngest itself. At switch-on: seven declared plus two SDK failure handlers; three half-hour recovery schedules. An unsigned serve request answers 401.
    9. While Production reads disposable demo data, check Stripe’s **test** publishable mode in its delivered bundles. That does not reveal the secret key’s mode.
+   10. Signed in on the staff domain, drive one conversation through the assistant panel: open it, send one message and wait for the answer. The session's creation (`POST /eve/v1/session`) answers `202`, its stream (`GET /eve/v1/session/<id>/stream`) answers `200` and never `403`, and the answer appears in the panel. No other check drives the panel; issue #2796 was found only this way. The check writes one conversation on production's database: an Eve session and its row in `eve_session_ownership`.
+
+   **Then refresh the development site.** The custom environment `core-development` of admin, donor and missionary serves the `development-<app>.asymmetric.al` addresses and reads the same database as production. The Release workflow never deploys it: `scripts/release/vercel-release.mjs` makes only production-target deployments. On 25 November 2026, after release 6, it was found serving a build of 22 November, five releases behind its database. After the ten checks, make one deployment of the released commit in `core-development` for each project, with the request of step 6's development checkpoint: ref `develop` and the released SHA (the release command pushes only a commit `develop` contains), `customEnvironmentSlugOrId: core-development`, `build.env.CORE_QA_FORCE_BUILD_SHA` equal to that SHA, `gitMetadata`, and `buildMachine: "turbo"` for admin. Send no `target`: the release job's own deployments send `target: "production"`. Never call the promote endpoint (`/v10/projects/<project-id>/promote/<deployment-id>`), which moves the production domains. Change no variable. Wait for READY; read back target null, the custom environment, the ref, the SHA and the deployment ID; check that `development-<app>.asymmetric.al` serves that ID. Then read `/api/health` (require `ok` and the released commit) and `/api/health/migrations` with the project's `x-vercel-protection-bypass` header (require `ok`, the released commit, the deployment ID, development's project ref, the disposable marker and both heads) on each of the three addresses. No script in the repository makes this deployment. `scripts/qa/deploy-hosted-preview.mjs`, whose request it copies, refuses `core-development` and runs only in GitHub Actions.
 
    Undo: there is no safe return to the pre-rebuild June build for this first release. Fix forward. For later releases, the Release workflow cannot return an app to an earlier deployment: it always builds the head of `production`. Return each app to the deployment ID you noted before the release with Vercel _Instant Rollback_ on that deployment, following the [partial-promotion recovery procedure](#if-a-promotion-fails-part-way), only when that build is compatible with the current database (plan 7.4) and never below the first release named under the request-tenant policies above; otherwise fix forward. Instant Rollback has not yet been exercised on these projects under the release job. Do not undo a rollback from the dashboard’s _Manage_ or with `vercel promote`: Vercel documents that both promote a deployment and re-enable auto-assignment of production domains, which the release job requires off. Leave the rollback in place and release the fix through the Release workflow. That release’s promotion may re-enable auto-assignment as well, so run `bun run verify:deployment-discipline` after it and turn auto-assignment off again if the check reports it on; the next release’s preflight stops while it is on.
 
@@ -1501,7 +1560,7 @@ changes a password only when its secret is refused.
 
 Seen on 22 November: first rebuild of development, fingerprint equality with CI, and Vercel staging, health checks and promotion without a rebuild. On development the full signed-in run showed routing, refusal, admin shell equality, caller-token reads, Web Studio origin checks, editor save, Secure cookie and session renewal. Only one missionary tenant was available; the media refresh renewed the session but missed the scorer’s expected status. No Blob upload, hosted rollback, private-schema inspection or operator enrolment/script test ran. See the [implementation record](../audits/core-crm-cms-database-implementation-record.md), D-145.
 
-Still unobserved here: a deployment into the `preview-database` custom environment, a hosted ordinary push with pending SQL migrations (the ordinary release had zero), and preview queue contention under GitHub’s `queue: max`. Distinguish those from the following hosted proofs:
+Still unobserved here: a deployment into the `preview-database` custom environment and preview queue contention under GitHub’s `queue: max`. A hosted ordinary push with pending SQL migrations is no longer in that list: on 25 November 2026 Release run 45580217127 applied thirteen (`20261125010000` to `20261126010000`). Distinguish the two still unobserved from the following hosted proofs:
 
 - Seen: the CMS role migration applied by hosted `postgres`, which holds
   CREATEROLE but is not a superuser. Proved first on Supabase's own Postgres
@@ -1514,7 +1573,7 @@ Still unobserved here: a deployment into the `preview-database` custom environme
   Intermediate 2021 CA to Supabase Root 2021 CA.
 - Seen: `preflight`, `gates` and `record-heads` with `RELEASE_DATABASE_URL` at
   `sslmode=verify-full` and the CA from `RELEASE_DATABASE_SSL_CA` (review L6).
-  A hosted reset under verify-full ran in 44991163443; the ordinary release had no pending SQL. The operator’s local TLS proof is separate (`wp16-hosted-proofs.md`, section 22).
+  A hosted reset under verify-full ran in 44991163443; the ordinary release of that time had no pending SQL (the release of 25 November 2026 had thirteen, above). The operator’s local TLS proof is separate (`wp16-hosted-proofs.md`, section 22).
 - Seen: the pinned CLI reading the password from `PGPASSWORD` against the
   hosted pooler.
 - Seen: signing in as a seeded login with `RELEASE_SEED_LOGIN_PASSWORD` after a
