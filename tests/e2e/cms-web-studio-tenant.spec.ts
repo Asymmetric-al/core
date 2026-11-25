@@ -1289,6 +1289,11 @@ test('@cms the overview\'s "Your documents" card lists what the person viewed, i
       // The chooser lands on the overview, as it does for the person.
       await switchOrganization(page, base, tenant);
       const card = page.getByRole("region", { name: "Your documents" });
+      await expect(
+        card
+          .getByRole("list", { name: "Pinned documents" })
+          .or(card.getByText("No pinned documents")),
+      ).toBeVisible();
       await card.getByRole("tab", { name: "Recently viewed" }).click();
       const viewed = card.getByRole("list", {
         name: "Recently viewed documents",
