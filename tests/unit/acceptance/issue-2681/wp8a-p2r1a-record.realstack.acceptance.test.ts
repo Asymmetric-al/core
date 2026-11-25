@@ -1206,5 +1206,51 @@ describe.skipIf(!ADMIN_URL)(
           /^CHECK \(\(\(kind <> '(?:provider_request|legacy_saga)'::text\) OR \([\s\S]* IS TRUE\)\)\)$/,
         );
     });
+
+    it("F1.6 (guard): under the migrations' own grants, tenant_guard cannot DELETE a provider request, and authenticated can neither UPDATE nor DELETE one (42501 by privilege)", () =>
+      inTx(db, async () => {
+        const fx = await seedTwoTenants(db);
+        const intake = await guardIntake(db, fx.A);
+        await role(db, null);
+        await db.query(
+          "REVOKE INSERT ON TABLE public.donations, public.donation_saga_outbox FROM tenant_guard",
+        );
+        await db.query(
+          "REVOKE EXECUTE ON FUNCTION public.normalize_currency_code(text) FROM tenant_guard",
+        );
+        const got: string[] = [];
+        await enterAs(db, "tenant_guard", fx.A.tenant);
+        got.push(
+          `tenant_guard delete: ${refusal(
+            await attempt(
+              db,
+              "DELETE FROM public.donation_saga_outbox WHERE id = $1",
+              [intake.operationId],
+            ),
+          )}`,
+        );
+        await role(db, null);
+        for (const [label, sql] of [
+          [
+            "update",
+            "UPDATE public.donation_saga_outbox SET status = 'abandoned' WHERE id = $1",
+          ],
+          ["delete", "DELETE FROM public.donation_saga_outbox WHERE id = $1"],
+        ] as const) {
+          await role(db, "authenticated");
+          got.push(
+            `authenticated ${label}: ${refusal(
+              await attempt(db, sql, [intake.operationId]),
+            )}`,
+          );
+          await role(db, null);
+        }
+        expect(got).toEqual([
+          "tenant_guard delete: 42501 permission denied for table donation_saga_outbox",
+          "authenticated update: 42501 permission denied for table donation_saga_outbox",
+          "authenticated delete: 42501 permission denied for table donation_saga_outbox",
+        ]);
+        expect((await rowOf(db, intake.operationId)).status).toBe("queued");
+      }));
   },
 );
