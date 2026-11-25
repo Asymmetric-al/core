@@ -565,8 +565,9 @@ dashboard's paths while its origin is missing or refused
 
 With the switch on, the donor app's build also reads both origins, for the two
 `beforeFiles` rewrites that send the dashboards' static files
-(`/admin/_next/:path+`, `/missionary/_next/:path+`) to them
-(`serveUnderPathsDonorRewrites` in `scripts/release/serve-under-paths.mjs`). A
+(`/admin/_next/…` and `/missionary/_next/…` made of plain segments only, never
+an empty, `.` or `..` one) to them (`serveUnderPathsDonorRewrites` in
+`scripts/release/serve-under-paths.mjs`). A
 missing or invalid origin fails the donor build, naming the variable and never
 its value, by the same rule as the schema (copied as `frontUpstreamOrigin` and
 pinned equal by `tests/unit/front/serve-under-paths.test.ts`). The rewrites are
@@ -599,7 +600,7 @@ The release script's `check` step reads the migration health route under the
 app's base path (`/admin/api/health/migrations`,
 `/missionary/api/health/migrations`) only when its own environment carries
 `CORE_SERVE_UNDER_PATHS=1`, read as the build reads it; the donor reads the
-root either way (`scripts/release/serve-under-paths.mjs:99-101`,
+root either way (`scripts/release/serve-under-paths.mjs:101-103`,
 `scripts/release/vercel-release.mjs:724-728`). For a preview built on:
 `CORE_SERVE_UNDER_PATHS=1 VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET=<secret> node scripts/release/vercel-release.mjs check --app admin --url https://<preview>`,
 with the project's own bypass secret in place of `<secret>`

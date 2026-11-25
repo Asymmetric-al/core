@@ -113,8 +113,8 @@ performs one uncached `resolve_verified_host` lookup of the `host` header for
 `donor_account` (`active`, home) and `website` (`active`). Two kinds of request
 never reach the proxy and still answer on any name (owned by WP7): paths
 excluded by `config.matcher` in `apps/donor/proxy.ts` (`/_next/*`,
-`/admin/_next/*`, `/missionary/_next/*`, `/maplibre/*`, and single root
-filenames ending in `.ico`, `.svg`, `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`,
+`/admin/_next/*` and `/missionary/_next/*` without an empty, `.` or `..`
+segment, `/maplibre/*`, and single root filenames ending in `.ico`, `.svg`, `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`,
 `.webmanifest`, `.json`, `.txt`, or `.xml`) and the configuration redirects in
 `apps/donor/next.config.ts` (answered before the proxy). Account, shared legal, and website paths admit only matching active
 surfaces (`404` `no-store` when refused, `503` `no-store` when unavailable),
@@ -139,11 +139,18 @@ is on (ADR 0016, decision 7).
 
 The dashboards' static files go to the dashboards without the front's proxy.
 The donor matcher skips `/admin/_next/*` and `/missionary/_next/*` in every
-build, and with the switch on the donor config adds two `beforeFiles` external
-rewrites (`serveUnderPathsDonorRewrites` in
-`scripts/release/serve-under-paths.mjs`): `/admin/_next/:path+` to
-`FRONT_ADMIN_ORIGIN` and `/missionary/_next/:path+` to
-`FRONT_MISSIONARY_ORIGIN`, same path. Such a request carries no stamp, passes no
+build without `.` or `..` segments (nor an empty one); with the switch on,
+`serveUnderPathsDonorRewrites` (`scripts/release/serve-under-paths.mjs`) adds
+two `beforeFiles` external rewrites with that pattern to `FRONT_ADMIN_ORIGIN`
+and `FRONT_MISSIONARY_ORIGIN`, same path. Both use one segment rule,
+`DASHBOARD_ASSET_SEGMENT` (a segment is not empty, `.` or `..`): the matcher
+literal spells it out for each prefix, and the two rewrite sources are
+`/<prefix>/_next/:path(<rule>)+`. A raw path holding such a segment, as
+Vercel's router tests it before resolving dots, runs the donor proxy and is
+never sent to a dashboard, where `..` could reach the assistant's `/eve/v1/*`
+ahead of the staff proxy (ruling (c) on the 3c gate). Encoded dots
+(`%2e%2e`) met Vercel's own `403`/`400` on the gate's previews. Such a request
+carries no stamp, passes no
 `FRONT_NAMES` check and keeps the client's headers; each dashboard serves its
 `/<prefix>/_next/*` without its own proxy, as on its own address. Both origins
 are read when the donor app is built: with the switch on, a missing or invalid
@@ -189,10 +196,14 @@ directly with a forged `Origin`, the service still ignores the name, and
 With the switch unset (today's default everywhere), no `basePath` is set, the
 donor app proxies and rewrites nothing to the dashboards (its config reads
 neither origin), the panel calls `/eve/v1/…`, no stamp key exists for the
-service, and the dashboards admit direct requests as before. The one change
-with the switch unset is the donor matcher: `/admin/_next/*` and
-`/missionary/_next/*` no longer run the donor proxy, so the public catch-all's
-not-found answers them without the proxy's session read. Reserved paths,
+service, and the dashboards admit direct requests as before. With the switch
+unset, only the donor matcher changes: `/admin/_next/*` and
+`/missionary/_next/*` without `.` or `..` skip the proxy and return the public
+catch-all not-found without a session read (paths with `.` or `..` still run
+it). A path other than `/` that ends in `/`, `/admin/_next/` included, meets
+Next.js's built-in `308` to the same path without the slash before the proxy
+and the rewrites (the donor sets neither `trailingSlash` nor
+`skipTrailingSlashRedirect`). Reserved paths,
 provider-address cutover, release tooling, and real-domain host lists remain off
 until later parts of N3 and N2/N6.
 
