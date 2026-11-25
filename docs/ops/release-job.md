@@ -636,8 +636,10 @@ already gone). For any such file:
    the reload. `20261119135300` and each of `20261125050000` to
    `20261125050500` end so. A later migration's reload covers it; for the
    last migration of a release nothing does, and the API keeps the schema
-   from before the file. Send the reload once; a second one does no harm.
-   Then make the one read-only call the table below names for the file, with
+   from before the file. The local stack reloads PostgREST by itself, through
+   two event triggers (see below); whether a hosted database has them was not
+   read, so the reload is sent in every recovery. Send it once; a second one
+   does no harm. Then make the one read-only call the table below names for the file, with
    the project's URL and its publishable key and nothing else. No call reads
    a person's data: the publishable key's role holds no privilege on what it
    names, and a table call asks for no rows. Go on only when the call gives

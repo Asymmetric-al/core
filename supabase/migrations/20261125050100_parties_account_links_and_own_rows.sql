@@ -39,7 +39,8 @@
 --    the super-admin branch where it had one. The missionary branches of
 --    donations and donor_pledges call authz.caller_missionary_ids(), a
 --    definer that answers for the request's tenant only, because signed-in
---    users may not select missionaries.tenant_id or party_id.
+--    users may not select missionaries.party_id (authenticated may select
+--    missionaries.tenant_id, granted by 20261121020000).
 -- 8. Field-policy rows for every new column of a classified table (7.1).
 --
 -- Locks, all held to COMMIT. ACCESS EXCLUSIVE on the four live tables

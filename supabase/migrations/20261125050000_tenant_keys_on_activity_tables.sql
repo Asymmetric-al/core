@@ -48,8 +48,10 @@
 -- EXCLUSIVE on tenants for the new tenant keys, all held to COMMIT. The two
 -- statements that change the keys into donors come last, so the lock they
 -- take on donors (ACCESS EXCLUSIVE while the single-column keys are dropped)
--- is held only from there to COMMIT. lock_timeout stops a run rather than
--- queue it behind live traffic.
+-- is held only from there to COMMIT. pg_locks just before COMMIT also shows
+-- ROW SHARE on tenants and donors, and ACCESS SHARE on authz.memberships,
+-- missionaries and profiles. lock_timeout stops a run rather than queue it
+-- behind live traffic.
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
 -- COMMIT and its ledger row stops on the next run at its first CREATE (the
