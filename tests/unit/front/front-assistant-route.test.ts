@@ -11,13 +11,13 @@ import {
   vi,
 } from "vitest";
 
+import { expectRefused, rawPathRequest } from "./donor-admission/fixtures";
 import {
   FRONT_ORIGIN_HEADER,
   FRONT_STAMP_HEADER,
   resetFrontConfigLogForTests,
   verifyFrontStamp,
 } from "../../../packages/auth/front";
-import { expectRefused, rawPathRequest } from "./donor-admission/fixtures";
 
 const network = vi.hoisted(() => {
   const reached: string[] = [];
