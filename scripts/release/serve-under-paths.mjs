@@ -51,6 +51,10 @@ export function serveUnderPathsBuildEnv(app, env) {
   };
 }
 
+export function deploymentPathPrefix(app, env) {
+  return serveUnderPathsBuildEnv(app, env)[CORE_APP_BASE_PATH_ENV];
+}
+
 export function serveUnderPathsNextConfig(app, env) {
   const buildEnv = serveUnderPathsBuildEnv(app, env);
   const basePath = buildEnv[CORE_APP_BASE_PATH_ENV];
