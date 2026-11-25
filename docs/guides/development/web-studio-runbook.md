@@ -21,19 +21,19 @@
 
 Minimum for Payload + admin (from `.env.local` symlinked per app if needed):
 
-| Variable                         | Purpose                                                                                            |
-| -------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`       | Supabase project URL                                                                               |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`  | Anon key                                                                                           |
-| `PAYLOAD_SECRET`                 | Payload signing (**required** in prod; dev/test may use defaults — see `payload.config.ts`)        |
-| `PAYLOAD_DATABASE_URI`           | Payload's run-time Postgres; hosted: the `cms_runtime` pooler login. No `SUPABASE_DB_URL` fallback |
-| `PAYLOAD_MIGRATION_DATABASE_URI` | Release job only: the `cms_owner` login that runs Payload migrations. Never in an app environment  |
-| `PAYLOAD_DATABASE_POOL_MAX`      | Optional hosted Payload Postgres pool cap; defaults to `2` on Vercel/protected deployments         |
-| `PAYLOAD_DISABLE_SCHEMA_PUSH`    | Set to `1` for deterministic local CMS migrations                                                  |
-| `NEXT_PUBLIC_DONOR_URL`          | Origin for published public links from admin (optional; defaults in preview helper)                |
-| `CMS_BASE_URL`                   | On **donor**: admin origin for public CMS fetches                                                  |
-| `RESEND_API_KEY`                 | Payload auth email adapter in production                                                           |
-| `BLOB_READ_WRITE_TOKEN`          | Payload media storage adapter in production; set by connected Vercel Blob store                    |
+| Variable                         | Purpose                                                                                                                                            |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`       | Supabase project URL                                                                                                                               |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`  | Anon key                                                                                                                                           |
+| `PAYLOAD_SECRET`                 | Payload signing (**required** in prod; dev/test may use defaults — see `payload.config.ts`)                                                        |
+| `PAYLOAD_DATABASE_URI`           | Payload's run-time Postgres; hosted: the `cms_runtime` pooler login. No `SUPABASE_DB_URL` fallback                                                 |
+| `PAYLOAD_MIGRATION_DATABASE_URI` | Release job only: the `cms_owner` login that runs Payload migrations. Never in an app environment                                                  |
+| `PAYLOAD_DATABASE_POOL_MAX`      | Optional hosted Payload Postgres pool cap; defaults to `2` on Vercel/protected deployments                                                         |
+| `PAYLOAD_DISABLE_SCHEMA_PUSH`    | Set to `1` for deterministic local CMS migrations                                                                                                  |
+| `NEXT_PUBLIC_DONOR_URL`          | Origin for published public links from admin (optional; defaults in preview helper)                                                                |
+| `CMS_BASE_URL`                   | On **donor**: admin origin kept for media remote patterns (`public-media-remote-pattern.mjs`; prototype public CMS fetches retired in WP6 part 2a) |
+| `RESEND_API_KEY`                 | Payload auth email adapter in production                                                                                                           |
+| `BLOB_READ_WRITE_TOKEN`          | Payload media storage adapter in production; set by connected Vercel Blob store                                                                    |
 
 **Per-collection rollback** (optional, default = native on):
 
@@ -212,7 +212,7 @@ Unauthenticated visit to `/web-studio` should redirect to login.
   unauthenticated users to `/login`; signed-in staff/admin can inspect the
   mutable Payload draft through Payload access control. This verifies current
   infrastructure only and is not Phase 22 D10 certification.
-- Public: `curl` or browser `GET /api/cms/public/pages/home?tenant=<slug>` on admin port
+- Public: retired `/api/cms/public/*` paths answer `404` on admin port (checked by `cms:local:verify`); donor unmatched CMS routes render not-found until WP7
 - Template gallery: `/web-studio/templates`
 
 ---
@@ -342,15 +342,16 @@ Route files under `apps/admin/app/api/**/*.ts` must be **thin re-exports** to `@
 
 ## 11. Common failures
 
-| Symptom                                                   | Likely cause                                                                                                                                   |
-| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PAYLOAD_SECRET must be configured`                       | Set secret or `NODE_ENV=test` for importmap                                                                                                    |
-| `.env.local` still points at hosted DB during local setup | Run `bun run cms:local:reset -- --force-env` to rewrite local CMS values                                                                       |
-| Import map wrong paths                                    | Re-run `cms:importmap` + check postprocess script                                                                                              |
-| 404 on public CMS                                         | Tenant not resolved or no published doc                                                                                                        |
-| Wizard POST 403                                           | Not staff / wrong session                                                                                                                      |
-| `verify:data-boundary` fails                              | Direct `@asym/database` import in `app/api`                                                                                                    |
-| Nested `<html>` / hydration warning                       | `(payload)/layout.tsx` must embed public `RootProviders` with `getRootLayoutData`; do not use Payload `RootLayout` under the admin root layout |
+| Symptom                                                   | Likely cause                                                                                                                                      |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PAYLOAD_SECRET must be configured`                       | Set secret or `NODE_ENV=test` for importmap                                                                                                       |
+| `.env.local` still points at hosted DB during local setup | Run `bun run cms:local:reset -- --force-env` to rewrite local CMS values                                                                          |
+| Import map wrong paths                                    | Re-run `cms:importmap` + check postprocess script                                                                                                 |
+| 404 on `/api/cms/public/*`                                | Expected after WP6 part 2a retired the prototype public CMS routes ahead of WP7                                                                   |
+| 403 on `/web-studio/api/*` write with `overrideLock`      | Writes refuse any query where `overrideLock` appears in any decoded key or value unless it appears once as the whole key with exact value `false` |
+| Wizard POST 403                                           | Not staff / wrong session                                                                                                                         |
+| `verify:data-boundary` fails                              | Direct `@asym/database` import in `app/api`                                                                                                       |
+| Nested `<html>` / hydration warning                       | `(payload)/layout.tsx` must embed public `RootProviders` with `getRootLayoutData`; do not use Payload `RootLayout` under the admin root layout    |
 
 ### Phase 22 D17 certification note
 

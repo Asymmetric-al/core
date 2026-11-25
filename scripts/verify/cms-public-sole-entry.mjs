@@ -1,34 +1,4 @@
 #!/usr/bin/env node
-/**
- * Sole-entry hard lint for the public CMS choke-point (Phase 5, ruling A5;
- * ADR-0028; issue #523).
- *
- * Public code paths must never read Payload directly: every public content
- * read goes through the one published-content reader, which applies the
- * tenant-and-published constraint and runs `overrideAccess: false` under the
- * public-read access policy. This check fails the build on any raw Payload
- * read (`payload.find`, `findByID`, an aliased `client.find({ collection })`,
- * a `db.` escape hatch, or `overrideAccess: true`) inside a public code path
- * outside the documented allowlist.
- *
- * Scope (public code paths):
- *   - apps/admin/app/api/cms/public/   — the public CMS route handlers
- *   - apps/admin/src/cms/public/       — the public CMS server modules
- *   - apps/donor/app/(public)/         — the public site surface
- *   - apps/donor/lib/cms/              — the donor-side CMS client
- *   - app-local and @asym workspace imports reachable from those entry paths
- *
- * Allowlist (documented construction sites):
- *   - apps/admin/src/cms/public/published-content-reader.ts
- *       THE choke-point — the single module allowed to touch Payload's Local
- *       API for public content (#523).
- *   - apps/admin/src/cms/public/resolve-tenant.ts
- *       The host→tenant resolution seam. It reads only the `tenants`
- *       collection to resolve the request; issue #524 formalizes it into the
- *       unified host→tenant/site resolver. It may not read content.
- *
- * Staff/admin Payload reads outside these paths are unaffected.
- */
 
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -47,10 +17,7 @@ export const PUBLIC_CODE_PATH_PATTERNS = [
   /^apps\/donor\/lib\/cms\//,
 ];
 
-export const SOLE_ENTRY_ALLOWLIST = [
-  "apps/admin/src/cms/public/published-content-reader.ts",
-  "apps/admin/src/cms/public/resolve-tenant.ts",
-];
+export const SOLE_ENTRY_ALLOWLIST = [];
 
 const PAYLOAD_READ_METHODS = new Set([
   "find",
@@ -65,7 +32,7 @@ const ALIASED_READ_METHODS = new Set(["find", "findByID", "count"]);
 
 const RULE_MESSAGES = {
   "payload-local-api-read":
-    "Raw Payload Local API read in a public code path. Public content must go through the published-content reader (apps/admin/src/cms/public/published-content-reader.ts).",
+    "Raw Payload Local API read in a public code path. Public content must go through the published-content reader (packages/api/src/cms/public).",
   "aliased-collection-read":
     "Aliased Payload collection read in a public code path. Public content must go through the published-content reader.",
   "override-access-true":

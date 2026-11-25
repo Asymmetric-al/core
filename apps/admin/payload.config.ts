@@ -56,8 +56,8 @@ const postgresDatabaseAdapter = postgresAdapter({
  * must not use (payload-database-config.ts): the migration connection in the
  * runtime, a login other than cms_runtime, a routing override, and the rest.
  * Payload builds its adapter here before it connects, on every path that
- * starts it: the Local API, the admin, and the REST and GraphQL routes, which
- * call Payload's handlers directly.
+ * starts it: the Local API, the admin, and the REST route, which calls
+ * Payload's handlers directly.
  */
 const guardedDatabaseAdapter: typeof postgresDatabaseAdapter = {
   ...postgresDatabaseAdapter,
@@ -173,6 +173,9 @@ export default buildConfig({
   db: guardedDatabaseAdapter,
   editor: lexicalEditor(),
   email: resolvePayloadEmailAdapter(),
+  graphQL: {
+    disable: true,
+  },
   llmInstructions: false,
   routes: {
     admin: "/web-studio",
