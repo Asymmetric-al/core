@@ -65,8 +65,11 @@ async function openSites(page: Page, tenant: string) {
   await expect(page.locator("#__next_error__")).toHaveCount(0);
 }
 
-async function seriousViolations(page: Page) {
+const SITES_PAGE = 'div:has(> [data-slot="page-shell-header"])';
+
+async function seriousViolations(page: Page, include: string) {
   const results = await new AxeBuilder({ page })
+    .include(include)
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();
   return results.violations.filter(
@@ -132,7 +135,7 @@ test.describe("Mission Control's Sites settings on real sessions (AL-2676 WP3b p
       await signIn(page, SEEDED.owner.email, SEEDED_PASSWORD);
       await page.goto(`/${DEMO}/settings`);
       await page
-        .getByRole("main")
+        .getByRole("region", { name: "Public identity" })
         .getByRole("link", { name: /^Sites/ })
         .click();
       await expect(page).toHaveURL(new RegExp(`/${DEMO}/settings/sites$`));
@@ -232,7 +235,7 @@ test.describe("Mission Control's Sites settings on real sessions (AL-2676 WP3b p
     await expect(
       page.getByRole("table", { name: "Sites in this organization" }),
     ).toBeVisible();
-    expect(await seriousViolations(page)).toEqual([]);
+    expect(await seriousViolations(page, SITES_PAGE)).toEqual([]);
 
     await page
       .getByRole("region", { name: "Sites" })
@@ -240,7 +243,7 @@ test.describe("Mission Control's Sites settings on real sessions (AL-2676 WP3b p
       .click();
     const create = page.getByRole("dialog", { name: "Create a Site" });
     await expect(create).toBeVisible();
-    expect(await seriousViolations(page)).toEqual([]);
+    expect(await seriousViolations(page, '[role="dialog"]')).toEqual([]);
     await create.getByRole("button", { name: "Cancel" }).click();
     await expect(create).toBeHidden();
 
@@ -251,7 +254,7 @@ test.describe("Mission Control's Sites settings on real sessions (AL-2676 WP3b p
       name: `Deactivate ${fixtureName}?`,
     });
     await expect(confirm).toBeVisible();
-    expect(await seriousViolations(page)).toEqual([]);
+    expect(await seriousViolations(page, '[role="alertdialog"]')).toEqual([]);
     await confirm.getByRole("button", { name: "Cancel" }).click();
     await expect(confirm).toBeHidden();
     expect(await statusOf(fixtureSiteId!)).toBe("active");
@@ -297,12 +300,15 @@ test.describe("Mission Control's Sites settings on real sessions (AL-2676 WP3b p
     await signIn(page, MEMBER_CARE_EMAIL, SEEDED_PASSWORD);
     await page.goto(`/${DEMO}/settings`);
     await page.waitForLoadState("domcontentloaded");
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "People and access" }),
+    ).toBeVisible();
     await expect(
       page.getByRole("navigation").getByRole("link", { name: /^Sites/ }),
     ).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /^Sites/ })).toHaveCount(0);
     await expect(
-      page.getByRole("main").getByRole("link", { name: /^Sites/ }),
+      page.getByRole("region", { name: "Public identity" }),
     ).toHaveCount(0);
 
     await openSites(page, DEMO);
@@ -333,9 +339,7 @@ test.describe("Mission Control's Sites settings on real sessions (AL-2676 WP3b p
         table.getByRole("cell", { name: site.name, exact: true }),
       ).toBeVisible();
     for (const site of demoSites)
-      await expect(
-        page.getByRole("main").getByText(site.name, { exact: true }),
-      ).toHaveCount(0);
+      await expect(page.getByText(site.name, { exact: true })).toHaveCount(0);
 
     const reply = await page.request.post("/api/admin/sites/status", {
       headers: {

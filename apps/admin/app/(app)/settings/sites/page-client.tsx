@@ -163,9 +163,9 @@ function DonorAccountNameSection({
     } catch (caught) {
       setError(caught);
     } finally {
+      await onSettled();
       inFlightRef.current = false;
       setPending(false);
-      await onSettled();
     }
   };
 
