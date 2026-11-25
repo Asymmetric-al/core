@@ -41,6 +41,7 @@ export interface ResolveAssignmentInput {
   readonly roleClass: RoleClass;
   readonly proposedAssignmentId?: string;
   readonly expectedTenantId?: string;
+  readonly nameTenantId?: string;
 }
 
 export type AssignmentSelection = "proposed" | "sole";

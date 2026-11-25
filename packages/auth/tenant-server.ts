@@ -67,16 +67,22 @@ export async function readDocumentScope(
   };
 }
 
-export function readPortalDocumentScope(
+export async function readPortalDocumentScope(
   auth: AuthContext,
-): DocumentScope | null {
+): Promise<DocumentScope | null> {
+  const name = await readServerNameTenantState();
+  if (isNameTenantRefused(name)) {
+    return null;
+  }
+  const nameTenantId = nameTenantIdOf(name);
   const { assignment } = auth;
   if (
     !auth.isAuthenticated ||
     !auth.userId ||
     !assignment ||
     assignment.membershipRole !== "donor" ||
-    assignment.tenantId !== auth.tenantId
+    assignment.tenantId !== auth.tenantId ||
+    (nameTenantId !== null && nameTenantId !== assignment.tenantId)
   ) {
     return null;
   }

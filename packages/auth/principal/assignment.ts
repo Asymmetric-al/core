@@ -121,13 +121,25 @@ export function selectAssignment(
   assignments: readonly ActiveAssignment[],
   input: Omit<ResolveAssignmentInput, "userId">,
 ): ResolveAssignmentResult {
-  const { roleClass, proposedAssignmentId, expectedTenantId } = input;
+  const { roleClass, proposedAssignmentId, expectedTenantId, nameTenantId } =
+    input;
   if (!isMembershipRole(roleClass)) return deny("no_assignment");
-  if (
-    roleClass === "donor" &&
-    assignments.filter((a) => a.membershipRole === "donor").length > 1
-  ) {
-    return deny("ambiguous");
+  if (roleClass === "donor") {
+    if (nameTenantId !== undefined) {
+      if (!isCanonicalUuid(nameTenantId)) return deny("no_assignment");
+      if (expectedTenantId !== nameTenantId) return deny("tenant_mismatch");
+      if (
+        assignments.filter(
+          (a) => a.membershipRole === "donor" && a.tenantId === nameTenantId,
+        ).length > 1
+      ) {
+        return deny("ambiguous");
+      }
+    } else if (
+      assignments.filter((a) => a.membershipRole === "donor").length > 1
+    ) {
+      return deny("ambiguous");
+    }
   }
   if (proposedAssignmentId !== undefined) {
     if (!isCanonicalUuid(proposedAssignmentId)) {
