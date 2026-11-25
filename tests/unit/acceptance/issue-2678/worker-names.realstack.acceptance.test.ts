@@ -711,10 +711,10 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
-    it("r2a test 1 (N3): a commenter's Parties count in every organization: R1 and A by their alias here, L by the alias of a worker row it is linked to, R2 (by link or by donor row), R3, R3b, R4 and R5 by no name; only an unrestricted, unaliased-or-aliased-here person keeps a photo; no row holds a forbidden name", async () => {
+    it("r2a test 1 (N3, with the fix round's F1): a commenter's Parties count in every organization, at every level: R1, A and a high-risk worker by their alias here, L by the alias of a worker row it is linked to, a sensitive worker by its Party name and a sensitive or whitespace-aliased person by the display name, both with the photo; R2 (by link or by donor row), R3, R3b, R3c, R4, R5, a high-risk person without an alias, a person whose alias is only invisible characters, a standard worker of another organization only and a linked person whose profile is gone by no name and no photo; no row holds a forbidden name", async () => {
       await db.query("savepoint s");
       try {
-        const k = keys([
+        const people = [
           "UR1",
           "UR2",
           "UR2d",
@@ -724,6 +724,19 @@ describe.skipIf(!ADMIN_URL)(
           "UR5",
           "UR3b",
           "UA",
+          "UHW",
+          "UHN",
+          "USW",
+          "USN",
+          "URI",
+          "UWS",
+          "UTS",
+          "UN2",
+          "UR3c",
+          "UA2",
+        ];
+        const k = keys([
+          ...people,
           "pR1",
           "pR2",
           "pR2d",
@@ -736,8 +749,23 @@ describe.skipIf(!ADMIN_URL)(
           "pR3bB",
           "pR3bA",
           "pA",
+          "pHW",
+          "pHN",
+          "pSW",
+          "pSN",
+          "pRI",
+          "pWS",
+          "pTS",
+          "pN2",
+          "pR3cB",
+          "pR3cA",
+          "pA2A",
+          "pA2B",
           "mL",
           "mR5",
+          "mHW",
+          "mSW",
+          "mTS",
         ]);
         await addUsers({
           [k.UR1!]: "Profile Fern",
@@ -749,119 +777,155 @@ describe.skipIf(!ADMIN_URL)(
           [k.UR5!]: "Profile Hazel",
           [k.UR3b!]: "Profile Fenn",
           [k.UA!]: "Profile Linden",
+          [k.UHW!]: "Profile Holm",
+          [k.UHN!]: "Profile Hearn",
+          [k.USW!]: "Profile Sage",
+          [k.USN!]: "Sorrel Shown",
+          [k.URI!]: "Profile Ivy",
+          [k.UWS!]: "Whit Shown",
+          [k.UTS!]: "Profile Tarn",
+          [k.UN2!]: "Profile Nettle",
+          [k.UR3c!]: "Profile Laurel",
+          [k.UA2!]: "Avens Shown",
         });
-        await db.query(
-          `insert into public.parties (id, tenant_id, display_name) values
-             ($1, $13, 'Party Fern'), ($2, $13, 'Party Reed'), ($3, $13, 'Party Reed D'),
-             ($4, $14, 'Party Fen'), ($5, $13, 'Party Briar S'), ($6, $13, 'Party Briar R'),
-             ($7, $13, 'Party Moss'), ($8, $13, 'Party Hazel'), ($9, $13, 'Party Hazel R'),
-             ($10, $14, 'Party Fenn B'), ($11, $13, 'Party Fenn A'), ($12, $13, 'Party Linden')`,
-          [
-            k.pR1,
-            k.pR2,
-            k.pR2d,
-            k.pR3,
-            k.pR4s,
-            k.pR4r,
-            k.pL,
-            k.pR5,
-            k.pR5r,
-            k.pR3bB,
-            k.pR3bA,
-            k.pA,
-            id.TA,
-            id.TB,
-          ],
-        );
-        const restrict = (party: string, alias: string | null) =>
-          `update public.parties set security_level = 'restricted', security_level_source = 'manual', public_alias = ${alias === null ? "null" : `'${alias}'`} where id = '${party}';`;
+        const parties: [string, "TA" | "TB", string][] = [
+          ["pR1", "TA", "Party Fern"],
+          ["pR2", "TA", "Party Reed"],
+          ["pR2d", "TA", "Party Reed D"],
+          ["pR3", "TB", "Party Fen"],
+          ["pR4s", "TA", "Party Briar S"],
+          ["pR4r", "TA", "Party Briar R"],
+          ["pL", "TA", "Party Moss"],
+          ["pR5", "TA", "Party Hazel"],
+          ["pR5r", "TA", "Party Hazel R"],
+          ["pR3bB", "TB", "Party Fenn B"],
+          ["pR3bA", "TA", "Party Fenn A"],
+          ["pA", "TA", "Party Linden"],
+          ["pHW", "TA", "Party Holm"],
+          ["pHN", "TA", "Party Hearn"],
+          ["pSW", "TA", "Party Sage"],
+          ["pSN", "TA", "Party Sorrel"],
+          ["pRI", "TA", "Party Ivy"],
+          ["pWS", "TA", "Party Whit"],
+          ["pTS", "TB", "Party Tarn"],
+          ["pN2", "TA", "Party Nettle"],
+          ["pR3cB", "TB", "Party Laurel B"],
+          ["pR3cA", "TA", "Party Laurel A"],
+          ["pA2A", "TA", "Party Avens A"],
+          ["pA2B", "TB", "Party Avens B"],
+        ];
+        for (const [party, tenant, name] of parties)
+          await db.query(
+            "insert into public.parties (id, tenant_id, display_name) values ($1, $2, $3)",
+            [k[party], id[tenant], name],
+          );
+        const level = (party: string, security: string, aliasSql: string) =>
+          `update public.parties set security_level = '${security}', security_level_source = 'manual', public_alias = ${aliasSql} where id = '${k[party]}';`;
         await withoutAliasCheck(
           [
-            restrict(k.pR1!, "Fern"),
-            restrict(k.pR2!, null),
-            restrict(k.pR2d!, null),
-            restrict(k.pR3!, "Ash"),
-            restrict(k.pR4r!, "Briar"),
-            restrict(k.pL!, "Moss"),
-            restrict(k.pR5r!, "Briar"),
-            restrict(k.pR3bB!, "Ash"),
+            level("pR1", "restricted", "'Fern'"),
+            level("pR2", "restricted", "null"),
+            level("pR2d", "restricted", "null"),
+            level("pR3", "restricted", "'Ash'"),
+            level("pR4r", "restricted", "'Briar'"),
+            level("pL", "restricted", "'Moss'"),
+            level("pR5r", "restricted", "'Briar'"),
+            level("pR3bB", "restricted", "'Ash'"),
+            level("pHW", "high_risk", "'Holly'"),
+            level("pHN", "high_risk", "null"),
+            level("pSW", "sensitive", "null"),
+            level("pSN", "sensitive", "null"),
+            level("pRI", "restricted", "chr(65039) || chr(8203)"),
+            level("pWS", "standard", "'   '"),
+            level("pN2", "restricted", "'Nettle'"),
+            level("pR3cB", "restricted", "'Ash'"),
+            level("pR3cA", "standard", "'Laurel'"),
+            level("pA2B", "standard", "'Juniper'"),
           ].join("\n"),
         );
         await db.query(
           "update public.parties set public_alias = 'Linden' where id = $1",
           [k.pA],
         );
-        await db.query(
-          "insert into public.missionaries (id, tenant_id, party_id, profile_id, legal_entity_id) values ($1, $3, $4, null, $3), ($2, $3, $5, $6, $3)",
-          [k.mL, k.mR5, id.TA, k.pL, k.pR5, k.UR5],
+        const workers: [string, "TA" | "TB", string, string | null][] = [
+          ["mL", "TA", "pL", null],
+          ["mR5", "TA", "pR5", "UR5"],
+          ["mHW", "TA", "pHW", "UHW"],
+          ["mSW", "TA", "pSW", "USW"],
+          ["mTS", "TB", "pTS", "UTS"],
+        ];
+        for (const [row, tenant, party, user] of workers)
+          await db.query(
+            "insert into public.missionaries (id, tenant_id, party_id, profile_id, legal_entity_id) values ($1, $2, $3, $4, $2)",
+            [k[row], id[tenant], k[party], user === null ? null : k[user]],
+          );
+        const links: ["TA" | "TB", string, string][] = [
+          ["TA", "UR1", "pR1"],
+          ["TA", "UR2", "pR2"],
+          ["TB", "UR3", "pR3"],
+          ["TA", "UR4", "pR4s"],
+          ["TA", "UL", "pL"],
+          ["TB", "UR3b", "pR3bB"],
+          ["TA", "UA", "pA"],
+          ["TA", "UHN", "pHN"],
+          ["TA", "USN", "pSN"],
+          ["TA", "URI", "pRI"],
+          ["TA", "UWS", "pWS"],
+          ["TA", "UN2", "pN2"],
+          ["TB", "UR3c", "pR3cB"],
+          ["TA", "UA2", "pA2A"],
+          ["TB", "UA2", "pA2B"],
+        ];
+        for (const [tenant, user, party] of links)
+          await db.query(
+            "insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($1, $2, $3, 'profile_backfill')",
+            [id[tenant], k[user], k[party]],
+          );
+        const donorRows: [string, string][] = [
+          ["UR2d", "pR2d"],
+          ["UR4", "pR4r"],
+          ["UR5", "pR5r"],
+          ["UR3b", "pR3bA"],
+          ["UR3c", "pR3cA"],
+        ];
+        for (const [user, party] of donorRows)
+          await db.query(
+            "insert into public.donors (tenant_id, party_id, profile_id, name, email) values ($1, $2, $3::uuid, 'Donor row', 'acc2678-n3-' || $3::text || '@example.test')",
+            [id.TA, k[party], k[user]],
+          );
+        await db.query("delete from public.profiles where id = $1", [k.UN2]);
+        await comment(
+          id.postOrg,
+          people.map((p) => k[p]!),
         );
-        await db.query(
-          `insert into public.account_links (tenant_id, user_id, party_id, linked_via) values
-             ($1, $3, $4, 'profile_backfill'), ($1, $5, $6, 'profile_backfill'),
-             ($2, $7, $8, 'profile_backfill'), ($1, $9, $10, 'profile_backfill'),
-             ($1, $11, $12, 'profile_backfill'), ($2, $13, $14, 'profile_backfill'),
-             ($1, $15, $16, 'profile_backfill')`,
-          [
-            id.TA,
-            id.TB,
-            k.UR1,
-            k.pR1,
-            k.UR2,
-            k.pR2,
-            k.UR3,
-            k.pR3,
-            k.UR4,
-            k.pR4s,
-            k.UL,
-            k.pL,
-            k.UR3b,
-            k.pR3bB,
-            k.UA,
-            k.pA,
-          ],
-        );
-        await db.query(
-          `insert into public.donors (tenant_id, party_id, profile_id, name, email) values
-             ($1, $2, $3::uuid, 'R2 donor', 'acc2678-r2d-' || $3::text || '@example.test'),
-             ($1, $4, $5::uuid, 'R4 donor', 'acc2678-r4-' || $5::text || '@example.test'),
-             ($1, $6, $7::uuid, 'R5 donor', 'acc2678-r5-' || $7::text || '@example.test'),
-             ($1, $8, $9::uuid, 'R3b donor', 'acc2678-r3b-' || $9::text || '@example.test')`,
-          [
-            id.TA,
-            k.pR2d,
-            k.UR2d,
-            k.pR4r,
-            k.UR4,
-            k.pR5r,
-            k.UR5,
-            k.pR3bA,
-            k.UR3b,
-          ],
-        );
-        await comment(id.postOrg, [
-          k.UR1!,
-          k.UR2!,
-          k.UR2d!,
-          k.UR3!,
-          k.UR4!,
-          k.UL!,
-          k.UR5!,
-          k.UR3b!,
-          k.UA!,
-        ]);
         const got = await authorsAs(member, id.postOrg);
-        expect(got).toEqual({
-          [k.UR1!]: ["Fern", null],
-          [k.UR2!]: [null, null],
-          [k.UR2d!]: [null, null],
-          [k.UR3!]: [null, null],
-          [k.UR4!]: [null, null],
-          [k.UL!]: ["Moss", null],
-          [k.UR5!]: [null, null],
-          [k.UR3b!]: [null, null],
-          [k.UA!]: ["Linden", avatar(k.UA!)],
+        expect(Object.keys(got)).toHaveLength(people.length);
+        const byLabel = Object.fromEntries(people.map((p) => [p, got[k[p]!]]));
+        expect(byLabel).toEqual({
+          UR1: ["Fern", null],
+          UR2: [null, null],
+          UR2d: [null, null],
+          UR3: [null, null],
+          UR4: [null, null],
+          UL: ["Moss", null],
+          UR5: [null, null],
+          UR3b: [null, null],
+          UA: ["Linden", avatar(k.UA!)],
+          UHW: ["Holly", null],
+          UHN: [null, null],
+          USW: ["Party Sage", avatar(k.USW!)],
+          USN: ["Sorrel Shown", avatar(k.USN!)],
+          URI: [null, null],
+          UWS: ["Whit Shown", avatar(k.UWS!)],
+          UTS: [null, null],
+          UN2: [null, null],
+          UR3c: [null, null],
+          UA2: ["Avens Shown", avatar(k.UA2!)],
         });
         expect(JSON.stringify(got)).not.toMatch(FORBIDDEN);
+        expect(JSON.stringify(got)).not.toMatch(
+          /Profile Holm|Party Holm|Profile Hearn|Party Hearn|Profile Sage|Party Sorrel|Profile Ivy|Party Ivy|Party Whit|Profile Tarn|Party Tarn|Profile Nettle|Nettle|Profile Laurel|Laurel|Juniper|Party Avens/,
+        );
       } finally {
         await db.query("rollback to savepoint s");
       }

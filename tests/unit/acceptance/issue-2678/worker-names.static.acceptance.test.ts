@@ -891,6 +891,74 @@ const R2A_FAILS: [string, string, string | null][] = [
     'const T = "missionaries"; function f(db) { return db.from(T).select("*"); }',
     null,
   ],
+  [
+    "P15 (fix round F2): a missionaries root through an imported constant that a local name of the same name shadows elsewhere in the file",
+    'import { T } from "./t";\nfunction a(db) { const T = "profiles"; return db.from(T).select("id"); }\nexport function c(db) { return db.from(T).select("*"); }',
+    'export const T = "missionaries";',
+  ],
+  [
+    "P16 (F2): a cached select of an imported constant holding post_author_public_name that a local name shadows elsewhere",
+    'import { S } from "./t";\nfunction a(db) { const S = "id"; return db.from("posts").select(S); }\nexport async function b(db) { "use cache"; return db.from("posts").select(S); }',
+    'export const S = "*, post_author_public_name";',
+  ],
+  [
+    "P17 (F2): every column of a worker row through an imported select constant that a local name shadows elsewhere",
+    'import { S } from "./t";\nfunction a(db) { const S = "id"; return db.from("posts").select(S); }\nexport const c = (db) => db.from("missionaries").select(S);',
+    'export const S = "*";',
+  ],
+  [
+    "P18 (F3.1): a commenter's profile in a post_comments embed whose hint is interpolated before its parenthesis",
+    'export const go = (db, h) => db.from("tenants").select(`id, comments:post_comments!${h}(id, author:profiles(display_name))`);',
+    null,
+  ],
+  [
+    "P19 (F3.2): a fetch whose next option sets revalidate by a shorthand property",
+    "const revalidate = 60;\nexport const r = (url) => fetch(url, { next: { revalidate } });",
+    null,
+  ],
+  [
+    "P20 (F3.2): a fetch whose cache option is a template literal force-cache",
+    "export const r = (url) => fetch(url, { cache: `force-cache` });",
+    null,
+  ],
+  [
+    "P21 (F3.2): a fetch whose cache option is a variable holding force-cache",
+    'const mode = "force-cache";\nexport const r = (url) => fetch(url, { cache: mode });',
+    null,
+  ],
+  [
+    "K6 (F3.5, a guard): a fetch whose next option sets revalidate: 60",
+    "export const r = (url) => fetch(url, { next: { revalidate: 60 } });",
+    null,
+  ],
+  [
+    "P22 (F3.3): a missionaries root through a let assigned after its declaration",
+    'let T = "profiles";\nT = "missionaries";\nexport const go = (db) => db.from(T).select("*");',
+    null,
+  ],
+  [
+    "P23 (F3.3): a missionaries root through a let declared without a value",
+    'let T;\nT = "missionaries";\nexport const go = (db) => db.from(T).select("*");',
+    null,
+  ],
+  [
+    "P24 (F3.3): every column of a worker row through a select assigned to a let after its declaration",
+    'let S;\nS = "*";\nexport const go = (db) => db.from("missionaries").select(S);',
+    null,
+  ],
+  [
+    "P25 (F3.4): a cached function whose use cache directive follows use strict",
+    FEED_IMPORT +
+      'export async function g(db) { "use strict"; "use cache"; return db.from("posts").select(FEED_POST_SELECT); }',
+    FEED_SELECT_MODULE,
+  ],
+  [
+    "P26 (F3.4): a file whose use cache directive follows use strict",
+    '"use strict";\n"use cache";\n' +
+      FEED_IMPORT +
+      'export async function g(db) { return db.from("posts").select(FEED_POST_SELECT); }',
+    FEED_SELECT_MODULE,
+  ],
 ];
 
 const R2A_PASSES: [string, string, string | null][] = [
@@ -908,6 +976,27 @@ const R2A_PASSES: [string, string, string | null][] = [
     "K4 (guard): a cached function selecting no worker name",
     'export async function g(db) { "use cache"; return db.from("posts").select("id, title"); }',
     null,
+  ],
+  [
+    "K5 (F2, guard): a local name that shadows nothing, a profiles root's own columns",
+    'function a(db) { const T = "profiles"; return db.from(T).select("id, display_name"); }',
+    null,
+  ],
+  [
+    "K7 (F3.2, guard): a fetch whose cache option is no-store, literally and through a variable",
+    'const mode = "no-store";\nexport const r = (url) => fetch(url, { cache: mode });\nexport const q = (url) => fetch(url, { cache: "no-store" });',
+    null,
+  ],
+  [
+    "K8 (F3.3, guard): a let assigned a second table that is no worker read",
+    'let T = "profiles";\nT = "donors";\nexport const go = (db) => db.from(T).select("id, profile:profiles(id, display_name)");',
+    null,
+  ],
+  [
+    "K9 (F3.4, guard): use strict alone, and a use cache string that is not a directive",
+    FEED_IMPORT +
+      'export async function g(db) { "use strict"; return db.from("posts").select(FEED_POST_SELECT); }\nexport async function h(db) { const x = 1; "use cache"; return db.from("posts").select(FEED_POST_SELECT); }',
+    FEED_SELECT_MODULE,
   ],
 ];
 
