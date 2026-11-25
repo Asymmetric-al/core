@@ -5,28 +5,22 @@ import {
   attachPayloadDbConsoleListener,
   waitForWebStudioShellOrSkip,
 } from "./cms-skip-if-no-payload";
+import {
+  fixturePerson,
+  signInAs,
+  switchOrganization,
+} from "./helpers/web-studio";
 
-test.describe("@cms Web Studio templates gallery", () => {
+test.describe("@cms Web Studio templates gallery (D-18: WP6 part 2b keys a Web Studio login by its UUID, so the gallery signs in a fixture person with a staff row, not Demo access's e2e-admin-user)", () => {
   async function signInAsAdmin(page: import("@playwright/test").Page) {
     const sawPayloadDbFailure = attachPayloadDbConsoleListener(page);
-
-    const availability = await page.request.get(
-      `${adminBaseURL}/api/auth/demo-account`,
+    await signInAs(page, "admin", "demoAdmin", adminBaseURL);
+    await switchOrganization(
+      page,
+      adminBaseURL,
+      fixturePerson("demoAdmin").memberships[0]!.tenantId,
+      "/web-studio/templates",
     );
-    test.skip(!availability.ok(), "Demo availability endpoint is unavailable.");
-
-    const payload = (await availability.json()) as {
-      roles?: Record<string, boolean>;
-      availableRoles?: Record<string, boolean>;
-    };
-    const roles = payload.roles ?? payload.availableRoles ?? {};
-    test.skip(!roles.admin, "Admin demo account is not configured.");
-
-    await page.goto(
-      `${adminBaseURL}/login?next=${encodeURIComponent("/web-studio/templates")}`,
-    );
-    await page.getByRole("button", { name: "Demo Access" }).click();
-    await page.waitForURL(/\/web-studio\/templates/);
     await waitForWebStudioShellOrSkip(page, sawPayloadDbFailure);
   }
 
