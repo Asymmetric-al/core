@@ -370,7 +370,7 @@ not found" for every hidden donor, restricted or anonymous alike).
 
 ## Readers left open, with owners
 
-Exactly thirteen. Short paths are under `packages/api/src/` (receipt files under
+Thirteen were listed; WP5 part 2-r2b1 closed row 4, so twelve stay open. Short paths are under `packages/api/src/` (receipt files under
 `admin/contribution-operations/`, `staged-gifts.ts` under
 `admin/contributions/`); `handler.ts` is `packages/graphql/handler.ts`;
 `checkout-client.tsx` is under `apps/donor/app/(public)/(solid)/checkout/`.
@@ -384,9 +384,11 @@ Exactly thirteen. Short paths are under `packages/api/src/` (receipt files under
 3. **A donor record that no evidence links to the person**, such as an
    offline gift staff entered under the real name with no link to the
    person's login or Party: it is still shown under that name. Owner: WP4b.
-4. **The Partners list's order** (`missionary-portal/donors.ts`, ordered by
-   the stored name on the server): a hidden row's page and position follow
-   the real name, as an anonymous partner's do. Owner: WP4b.
+4. **The Partners list's order**: closed by WP5 part 2-r2b1 (ruling
+   R2B-Q2). `missionary-portal/donors.ts` pages partners by `created_at`,
+   newest first, then `id`, so a hidden row's page and position no longer
+   follow its stored name; the label sort inside a page stays. Proven by
+   `supporter-names.postgrest` T5 and `missionary-donors-list.test.ts`.
 5. **The donor's own id on Partners rows and tasks** (ruling Q3): it opens
    and updates the row, names no one, and lets a colleague link a task made
    before a restriction to the anonymous row after it. Owner: WP4b.
