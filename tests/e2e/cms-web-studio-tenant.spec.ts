@@ -10,6 +10,7 @@ import {
 } from "@playwright/test";
 
 import { adminBaseURL } from "./base-urls";
+import { bodyFromPageCopy } from "./helpers/received-bodies";
 import { organizationLabel, TENANTS } from "./helpers/tenant-address";
 import {
   addExpiredStubSession,
@@ -31,6 +32,8 @@ import {
   createE2EAuthCookieValue,
   E2E_AUTH_COOKIE_NAMES,
 } from "../../packages/auth/e2e-auth";
+
+import type { PageCopy, ReceivedBody } from "./helpers/received-bodies";
 
 /**
  * Web Studio under its tenant cookie (plan 5.2, "One stated exception: Web
@@ -337,18 +340,6 @@ async function expectNoStoredTitle(page: Page, stamp: string, where: string) {
   expect.soft(holding, `${where}: rows that hold a title`).toEqual([]);
 }
 
-type ReceivedBody = { url: string; status: number } & (
-  { text: string } | { unread: string } | { leftWithItsDocument: true }
-);
-
-type PageCopy = {
-  method: string;
-  url: string;
-  status: number;
-  text: string;
-  done: boolean;
-};
-
 const BODY_READ_LIMIT = 30_000;
 
 function copyFetchBodies() {
@@ -381,7 +372,9 @@ function copyFetchBodies() {
         copy.text += decoder.decode(value, { stream: true });
       }
     })()
-      .catch(() => undefined)
+      .catch((error: unknown) => {
+        copy.error = error instanceof Error ? error.message : String(error);
+      })
       .finally(() => {
         copy.done = true;
       });
@@ -540,24 +533,19 @@ async function switchRecordingResponses(page: Page, tenant: string) {
       const at = copies.findIndex(
         (copy) => `${copy.method} ${copy.url}` === response.key,
       );
-      if (at === -1) {
-        bodies.push({ ...response, unread: "no copy of it in the page" });
-        continue;
-      }
-      const [copy] = copies.splice(at, 1);
-      bodies.push({
-        url: response.url,
-        status: response.status,
-        text: copy!.text,
-      });
+      const [copy] = at === -1 ? [] : copies.splice(at, 1);
+      bodies.push(
+        bodyFromPageCopy({ url: response.url, status: response.status }, copy),
+      );
     }
     for (const copy of copies) {
       if (recorded(copy.url)) {
-        bodies.push({
-          url: `${copy.method} ${copy.url}`,
-          status: copy.status,
-          text: copy.text,
-        });
+        bodies.push(
+          bodyFromPageCopy(
+            { url: `${copy.method} ${copy.url}`, status: copy.status },
+            copy,
+          ),
+        );
       }
     }
     bodies.push(...(await Promise.all(reads.splice(0))));
