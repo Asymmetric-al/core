@@ -403,7 +403,7 @@ describe.skipIf(!ADMIN_URL)(`giving target integrity (${D18})`, () => {
       await db.query("rollback");
     }
   });
-  it("all ten gift target keys are composite, validated and replace their predecessors", async () => {
+  it("all ten gift target keys are composite, validated and replace their predecessors; with R2a's two line keys on staged_gift_allocations, twelve rows (D-18, AL-2681 WP8a part 2 R2a: an allocation of a line-based gift is also keyed to its fund with the fee flag and to its missionary with the entity)", async () => {
     const sources = [
       "donation_saga_outbox",
       "donations",
@@ -425,8 +425,8 @@ describe.skipIf(!ADMIN_URL)(`giving target integrity (${D18})`, () => {
        where c.contype = 'f'
          and c.confrelid in ('public.funds'::regclass, 'public.missionaries'::regclass)
          and c.conrelid::regclass::text = any($1)
-       group by c.oid, c.conrelid, c.confrelid, c.convalidated
-       order by c.conrelid::regclass::text collate "C", c.confrelid::regclass::text collate "C"`,
+       group by c.oid, c.conrelid, c.confrelid, c.convalidated, c.conname
+       order by c.conrelid::regclass::text collate "C", c.confrelid::regclass::text collate "C", array_length(c.conkey, 1), c.conname`,
       [sources],
     );
     const expected = sources.flatMap((source) => [
@@ -437,6 +437,27 @@ describe.skipIf(!ADMIN_URL)(`giving target integrity (${D18})`, () => {
         source_cols: ["tenant_id", "fund_id"],
         target_cols: ["tenant_id", "id"],
       },
+      ...(source === "staged_gift_allocations"
+        ? [
+            {
+              source,
+              target: "funds",
+              convalidated: true,
+              source_cols: [
+                "tenant_id",
+                "fund_id",
+                "legal_entity_id",
+                "is_fee_cover",
+              ],
+              target_cols: [
+                "tenant_id",
+                "id",
+                "legal_entity_id",
+                "is_reserved_fee_cover",
+              ],
+            },
+          ]
+        : []),
       {
         source,
         target: "missionaries",
@@ -444,7 +465,19 @@ describe.skipIf(!ADMIN_URL)(`giving target integrity (${D18})`, () => {
         source_cols: ["tenant_id", "missionary_id"],
         target_cols: ["tenant_id", "id"],
       },
+      ...(source === "staged_gift_allocations"
+        ? [
+            {
+              source,
+              target: "missionaries",
+              convalidated: true,
+              source_cols: ["tenant_id", "missionary_id", "legal_entity_id"],
+              target_cols: ["tenant_id", "id", "legal_entity_id"],
+            },
+          ]
+        : []),
     ]);
+    expect(expected).toHaveLength(12);
     expect(rows).toEqual(expected);
   });
   it("130004 stops on unconvertible targets before any change and names the operator's query", async () => {

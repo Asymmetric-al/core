@@ -214,16 +214,16 @@ describe.skipIf(!ADMIN_URL)(
         expect(fiveHundred.ok, refusal(fiveHundred)).toBe(true);
       }));
 
-    it("C15: the guard holds no UPDATE of first_sent_at, send_deadline or parked_at (42501 by privilege); a claim still sets the first two and a park the third", () =>
+    it("C15: the guard holds no UPDATE of first_sent_at, send_deadline or parked_at (42501 by privilege); a claim still sets the first two and a park the third (D-18, AL-2681 R2a: the test grants are revoked by column, since a table REVOKE on the outbox would strip R2a's column INSERT)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         const intake = await guardIntake(db, fx.A, { maxAttempts: 1 });
         await role(db, null);
         await db.query(
-          "REVOKE INSERT ON TABLE public.donations, public.donation_saga_outbox FROM tenant_guard",
+          "REVOKE INSERT ON TABLE public.donations, public.donation_intake_lines FROM tenant_guard",
         );
         await db.query(
-          "REVOKE EXECUTE ON FUNCTION public.normalize_currency_code(text) FROM tenant_guard",
+          "REVOKE INSERT (max_attempts) ON TABLE public.donation_saga_outbox FROM tenant_guard",
         );
         const got: string[] = [];
         for (const column of ["first_sent_at", "send_deadline", "parked_at"]) {
@@ -257,7 +257,7 @@ describe.skipIf(!ADMIN_URL)(
         );
       }));
 
-    it("C16: every command runs as the guard under column-only grants (a * read is 42501), and no command body selects or returns * or fetches a %ROWTYPE", () =>
+    it("C16: every command runs as the guard under column-only grants (a * read is 42501), and no command body selects or returns * or fetches a %ROWTYPE (D-18, AL-2681 R2a: the test grants are revoked by column, since a table REVOKE on the outbox would strip R2a's column INSERT)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         const linked = await guardIntake(db, fx.A);
@@ -267,10 +267,10 @@ describe.skipIf(!ADMIN_URL)(
         const waiting = await guardIntake(db, fx.A);
         await role(db, null);
         await db.query(
-          "REVOKE INSERT ON TABLE public.donations, public.donation_saga_outbox FROM tenant_guard",
+          "REVOKE INSERT ON TABLE public.donations, public.donation_intake_lines FROM tenant_guard",
         );
         await db.query(
-          "REVOKE EXECUTE ON FUNCTION public.normalize_currency_code(text) FROM tenant_guard",
+          "REVOKE INSERT (max_attempts) ON TABLE public.donation_saga_outbox FROM tenant_guard",
         );
         for (const i of [linked, parked, dead, refused, waiting])
           expect(await claim(db, i.operationId)).toMatchObject({
@@ -345,16 +345,16 @@ describe.skipIf(!ADMIN_URL)(
         expect(problems).toEqual([]);
       }));
 
-    it("F1.6 (guard): under the migrations' own grants, tenant_guard cannot DELETE a provider request, and authenticated can neither UPDATE nor DELETE one (42501 by privilege)", () =>
+    it("F1.6 (guard): under the migrations' own grants, tenant_guard cannot DELETE a provider request, and authenticated can neither UPDATE nor DELETE one (42501 by privilege) (D-18, AL-2681 R2a: the test grants are revoked by column, since a table REVOKE on the outbox would strip R2a's column INSERT)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         const intake = await guardIntake(db, fx.A);
         await role(db, null);
         await db.query(
-          "REVOKE INSERT ON TABLE public.donations, public.donation_saga_outbox FROM tenant_guard",
+          "REVOKE INSERT ON TABLE public.donations, public.donation_intake_lines FROM tenant_guard",
         );
         await db.query(
-          "REVOKE EXECUTE ON FUNCTION public.normalize_currency_code(text) FROM tenant_guard",
+          "REVOKE INSERT (max_attempts) ON TABLE public.donation_saga_outbox FROM tenant_guard",
         );
         const got: string[] = [];
         await enterAs(db, "tenant_guard", fx.A.tenant);

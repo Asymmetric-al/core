@@ -20,8 +20,17 @@ export const paymentIntent = () =>
   `pi_${randomUUID().replaceAll("-", "").slice(0, 24)}`;
 
 export const GUARD_TEST_GRANTS = [
-  "GRANT INSERT ON TABLE public.donations, public.donation_saga_outbox TO tenant_guard",
-  "GRANT EXECUTE ON FUNCTION public.normalize_currency_code(text) TO tenant_guard",
+  "GRANT INSERT ON TABLE public.donations, public.donation_intake_lines TO tenant_guard",
+  "GRANT INSERT (max_attempts) ON TABLE public.donation_saga_outbox TO tenant_guard",
+];
+
+export const GUARD_TEST_REVOKES = [
+  "REVOKE INSERT ON TABLE public.donations, public.donation_intake_lines FROM tenant_guard",
+  "REVOKE INSERT (max_attempts) ON TABLE public.donation_saga_outbox FROM tenant_guard",
+];
+
+export const GUARD_WIDE_INSERT_GRANTS = [
+  "GRANT INSERT ON TABLE public.donation_saga_outbox TO tenant_guard",
 ];
 
 export const GUARD_UPDATE_GRANTS = [
@@ -111,6 +120,7 @@ export type Side = {
   otherEntity: string;
   account: string;
   binding: string;
+  fund: string;
 };
 export type Fixture = { A: Side; B: Side };
 
@@ -121,6 +131,7 @@ export async function seedTwoTenants(db: pg.Client): Promise<Fixture> {
     otherEntity: randomUUID(),
     account: account(),
     binding: randomUUID(),
+    fund: randomUUID(),
   });
   const fx = { A: side(), B: side() };
   await role(db, null);
@@ -157,6 +168,11 @@ export async function seedTwoTenants(db: pg.Client): Promise<Fixture> {
        VALUES ($1, $2, $3, 1, 'active', $4, false, $5, now())`,
       [s.binding, s.tenant, s.entity, s.account, intent],
     );
+    await db.query(
+      `INSERT INTO public.funds (id, tenant_id, legal_entity_id, name)
+       VALUES ($1, $2, $3, 'R1a fund')`,
+      [s.fund, s.tenant, s.entity],
+    );
   }
   return fx;
 }
@@ -170,9 +186,16 @@ export async function removeTwoTenants(db: pg.Client, fx: Fixture) {
       "public.mission_control_task_links",
       "public.mission_control_tasks",
       "public.audit_logs",
+      "public.payment_observations",
+      "public.staged_gift_allocations",
+      "public.staged_gifts",
       "public.payment_repair_cases",
       "public.donation_saga_outbox",
+      "public.donation_intake_lines",
       "public.donations",
+      "public.stripe_connect_events",
+      "public.giving_target_entity_locks",
+      "public.funds",
       "public.payment_account_bindings",
       "public.payment_provider_accounts",
       "public.payment_onboarding_intents",
@@ -256,6 +279,12 @@ export async function guardIntake(
        (id, tenant_id, legal_entity_id, payment_account_binding_id, provider_account_ref, livemode, amount, currency)
      VALUES ($1, $2, $3, $4, $5, false, $6, 'usd')`,
     [donationId, side.tenant, side.entity, side.binding, side.account, amount],
+  );
+  await db.query(
+    `INSERT INTO public.donation_intake_lines
+       (tenant_id, donation_id, legal_entity_id, line_number, fund_id, is_fee_cover, amount)
+     VALUES ($1, $2, $3, 1, $4, false, $5)`,
+    [side.tenant, donationId, side.entity, side.fund, amount],
   );
   await db.query(
     `INSERT INTO public.donation_saga_outbox
