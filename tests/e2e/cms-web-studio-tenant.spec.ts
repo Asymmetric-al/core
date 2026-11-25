@@ -1,5 +1,6 @@
 import {
   expect as baseExpect,
+  errors as playwrightErrors,
   test,
   type Locator,
   type Page,
@@ -412,17 +413,19 @@ async function readBody(
 }
 
 async function takePageCopies(page: Page) {
-  const started = Date.now();
-  for (;;) {
-    const settled = await page.evaluate(() =>
-      (
-        (window as unknown as { __asymReceived?: PageCopy[] }).__asymReceived ??
-        []
-      ).every((copy) => copy.done),
-    );
-    if (settled || Date.now() - started > 5_000) break;
-    await page.waitForTimeout(100);
-  }
+  await page
+    .waitForFunction(
+      () =>
+        (
+          (window as unknown as { __asymReceived?: PageCopy[] })
+            .__asymReceived ?? []
+        ).every((copy) => copy.done),
+      undefined,
+      { timeout: 5_000 },
+    )
+    .catch((error: unknown) => {
+      if (!(error instanceof playwrightErrors.TimeoutError)) throw error;
+    });
   return page.evaluate(() => {
     const store = window as unknown as { __asymReceived?: PageCopy[] };
     const copies = (store.__asymReceived ?? []).map((copy) => ({ ...copy }));
