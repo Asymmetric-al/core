@@ -264,12 +264,7 @@ Each editorial collection can be disabled independently:
 ```bash
 export CMS_WEB_STUDIO_NATIVE_PAGES=false
 export CMS_WEB_STUDIO_NATIVE_NAVIGATION=false
-export CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES=false
-export CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES=false
 export CMS_WEB_STUDIO_NATIVE_MEDIA=false
-export CMS_WEB_STUDIO_NATIVE_PAGE_TEMPLATES=false
-export CMS_WEB_STUDIO_NATIVE_MISSIONARY_GIVING_PAGES=false
-export CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES=false
 bun run cms:importmap
 ```
 
