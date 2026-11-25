@@ -165,10 +165,7 @@ export function PublishedPostCard({
   onDelete: () => void;
 }) {
   const { formatDate } = useLocaleFormat();
-  const authorName = post.author
-    ? `${post.author.first_name} ${post.author.last_name}`.trim() ||
-      "Unknown author"
-    : "Unknown author";
+  const authorName = post.post_author_public_name?.trim() || "Unknown author";
   const visibility = normalizeVisibility(post.visibility);
   const headline = post.title?.trim();
   const name = usePostName(post);

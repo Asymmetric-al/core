@@ -8,7 +8,7 @@
  * The donors embed selects only `id` alongside the profile, adding no donor PII.
  */
 export const DONATION_WITH_PARTIES_SELECT =
-  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries(*, profile:profiles!profile_id(*))";
+  "*, donor:donors(id, profile:profiles!profile_id(*)), missionary:missionaries(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))";
 
 /** What a gift request asked for, as passed to `begin_donation_saga`. */
 export type RequestedGift = {

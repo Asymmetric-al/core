@@ -1,4 +1,5 @@
 import { normalizeStoredPostContent } from "./content";
+import { FEED_POST_SELECT } from "./select";
 import { findProfileByUserId } from "../shared/queries";
 
 import type { PostWriteInput } from "../schemas/posts";
@@ -62,12 +63,7 @@ export async function createMissionaryPost({
 
   const { data: post, error: readError } = await supabaseAdmin
     .from("posts")
-    .select(
-      `
-        *,
-        author:profiles!missionary_id(id, first_name, last_name, avatar_url)
-      `,
-    )
+    .select(FEED_POST_SELECT)
     .eq("id", postId)
     .single();
   if (readError || !post) {

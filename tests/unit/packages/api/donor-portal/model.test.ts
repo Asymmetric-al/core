@@ -91,7 +91,7 @@ describe("donor portal gift recipient", () => {
         {
           ...donationRow("g", "completed", 3_000),
           fund: { id: "f", name: "Nairobi Water Wells" },
-          missionary: { id: "m", profile: null },
+          missionary: { id: "m", worker_public_name: null, profile: null },
         },
       ],
       pledges: [],
@@ -102,6 +102,98 @@ describe("donor portal gift recipient", () => {
       name: "Nairobi Water Wells",
       avatarUrl: null,
     });
+  });
+});
+
+describe("donor portal worker names (AL-2678 r1)", () => {
+  const worker = (name: string | null) => ({
+    id: `m-${name ?? "none"}`,
+    worker_public_name: name,
+    profile: { id: "worker-profile", avatar_url: null },
+  });
+  const pledgeRow = (id: string, missionary: ReturnType<typeof worker>) => ({
+    id,
+    amount: 1_000,
+    currency: "usd",
+    frequency: "monthly",
+    status: "active",
+    start_date: null,
+    end_date: null,
+    next_payment_date: null,
+    next_charge_at: null,
+    stripe_subscription_id: null,
+    stripe_payment_method_id: null,
+    payment_method: null,
+    total_paid: null,
+    total_expected: null,
+    payments_completed: null,
+    payments_remaining: null,
+    fund: null,
+    missionary,
+  });
+
+  it("names a gift's and a recurring gift's worker by worker_public_name only, and a worker with none as Missionary support, or by the gift's fund", () => {
+    const snapshot = buildDonorPortalSnapshot({
+      now: new Date("2026-05-15T00:00:00.000Z"),
+      profile: {
+        id: "p",
+        email: null,
+        first_name: "Ada",
+        last_name: null,
+        full_name: null,
+        display_name: null,
+        phone: null,
+        avatar_url: null,
+      },
+      donor: {
+        id: "donor-1",
+        tenant_id: "tenant-1",
+        profile_id: "p",
+        status: "active",
+        giving_preferences: {},
+      },
+      donations: [
+        {
+          ...donationRow("cedar", "completed", 1_000),
+          missionary: worker("Cedar"),
+        },
+        {
+          ...donationRow("none", "completed", 1_000),
+          missionary: worker(null),
+        },
+        {
+          ...donationRow("fund", "completed", 1_000),
+          fund: { id: "f", name: "Clean Water" },
+          missionary: worker(null),
+        },
+      ],
+      pledges: [
+        pledgeRow("pc", worker("Cedar")),
+        pledgeRow("pn", worker(null)),
+      ],
+      feedPreferences: null,
+    } as unknown as SnapshotInput);
+    expect(
+      snapshot.donations.map((g) => [
+        g.id,
+        g.designation.name,
+        g.missionary?.name,
+      ]),
+    ).toEqual([
+      ["cedar", "Cedar", "Cedar"],
+      ["none", "Missionary support", "Missionary support"],
+      ["fund", "Clean Water", "Clean Water"],
+    ]);
+    expect(
+      snapshot.recurringGifts.map((g) => [
+        g.id,
+        g.designation.name,
+        g.missionary?.name,
+      ]),
+    ).toEqual([
+      ["pc", "Cedar", "Cedar"],
+      ["pn", "Missionary support", "Missionary support"],
+    ]);
   });
 });
 
@@ -167,12 +259,9 @@ describe("donor portal model", () => {
           fund: null,
           missionary: {
             id: "missionary-1",
+            worker_public_name: "The Millers",
             profile: {
               id: "missionary-profile-1",
-              display_name: "The Millers",
-              full_name: null,
-              first_name: null,
-              last_name: null,
               avatar_url: "https://example.com/avatar.png",
             },
           },

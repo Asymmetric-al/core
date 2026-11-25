@@ -87,6 +87,13 @@ on:
       - tests/unit/acceptance/issue-2676/tenant-records.postgrest.acceptance.test.ts
       - tests/unit/acceptance/issue-2678/identity-keys.postgrest.acceptance.test.ts
       - packages/database/collections/schemas/giving.ts
+      # The readers that name a worker outside Mission Control, which the
+      # identity-key proof drives (AL-2678, WP5 part 2-r1).
+      - packages/api/src/donor-portal/**
+      - packages/api/src/posts/**
+      - packages/api/src/donations/**
+      - packages/graphql/**
+      - packages/database/hooks/donor-feed-posts.ts
       - tests/unit/workflows/local-supabase.test.ts
       # The round trips themselves.
       - playwright.auth-mail.config.ts

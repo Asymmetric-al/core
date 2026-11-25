@@ -64,7 +64,8 @@ function post(overrides: Partial<Post>): Post {
     created_at: "2026-11-01T10:00:00.000Z",
     visibility: "public",
     status: "published",
-    author: { first_name: "Anna", last_name: "Lee", avatar_url: null },
+    author: { id: "profile-1", avatar_url: null },
+    post_author_public_name: "Anna Lee",
     media: [],
     ...overrides,
   } as unknown as Post;
@@ -175,4 +176,17 @@ it("names each draft's Keep writing action for that draft", () => {
     "Update actions for New classroom",
     "Update actions for Story from Nov 1, 2026",
   ]);
+});
+
+it("names a published update's author by the post's public author name, and Unknown author without one (AL-2678 r1)", () => {
+  renderCards(PublishedPostCard, [
+    post({ id: "a", title: "New classroom" }),
+    post({
+      id: "b",
+      title: "Clinic opening",
+      post_author_public_name: null,
+    } as unknown as Partial<Post>),
+  ]);
+  expect(screen.getByText("Anna Lee")).toBeTruthy();
+  expect(screen.getByText("Unknown author")).toBeTruthy();
 });
