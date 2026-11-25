@@ -28,11 +28,11 @@ under `/admin/` alike.
    (`@asym/auth/front-stamp`) holds `FRONT_STAMP_HEADER`, `FRONT_ORIGIN_HEADER`,
    `VerifyStampKeys`, `hasValidStampKey`, `signFrontStamp`, `verifyFrontStamp`
    and `verifiedStampedOriginForRequest`. It imports only `canonicalOrigin` from
-   `@asym/env/front-origin`, which imports nothing. `front.ts` imports these and
-   re-exports them, so the front's signing, the dashboards' admission
-   (`admitFromFront`) and the assistant's service verify with one
-   implementation, and no caller of `@asym/auth/front` changed. The service
-   imports `@asym/auth/front-stamp`, never `@asym/auth/front`.
+   `@asym/env/front-origin`, which imports nothing. `front.ts` re-exports its
+   six existing stamp symbols. The assistant's service imports
+   `verifiedStampedOriginForRequest` directly from `@asym/auth/front-stamp`.
+   The front, the dashboards and the assistant's service share the same
+   signing and verification functions.
    `tests/unit/front/front-stamp-module.test.ts` pins the identity of the
    re-exports, the one import and the absence of `next` and `@asym/auth/front`
    from every file of `packages/eve-runtime`.
