@@ -213,7 +213,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     }
 
-    it("R4 & F5: drops the 6-arg signature, exposes one 7-arg function, advances updated_at via clock_timestamp, keeps old 6-arg and directory calls working, and refuses stale expected_updated_at with 40001", () =>
+    it("R4 & F5: drops the 6-arg signature, exposes one 7-arg function, advances updated_at via clock_timestamp, keeps old 6-arg and directory calls working, and refuses stale expected_updated_at with 40001 (D-18: AL-2676, D-16 ruling on caller_assignment Q3: member directory calls pass x-asym-tenant matching i.tenant)", () =>
       tx(async (i) => {
         const sigs = await db.query(
           `select
@@ -241,6 +241,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin1,
           "select membership_id, user_id, profile_id, display_name, email, role, staff_role, is_tenant_admin from public.tenant_member_directory($1)",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin1 },
             params: [i.tenant],
           },
@@ -254,6 +255,7 @@ describe.skipIf(!ADMIN_URL)(
           i.admin1,
           "select membership_id, updated_at::text as updated_at from public.tenant_member_directory($1) where membership_id = $2",
           {
+            tenant: i.tenant,
             headers: { "x-asym-assignment": i.mAdmin1 },
             params: [i.tenant, i.mTargetDev],
           },

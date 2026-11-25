@@ -21,7 +21,9 @@ import * as H from "./harness";
 const URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
 const D18 =
   "D-18, AL-2678: since D-76 a profile's user_id equals its id; the fixture keeps its profiles distinct from their logins, as legacy rows were, so each assertion still tells a profile id from a login id, and lifts that check inside its own private, rolled-back transaction";
-describe.skipIf(!URL)(`#2402 real-stack (${D18})`, () => {
+const D18_CALLER_ORG =
+  "D-18: AL-2676, D-16 ruling on caller_assignment Q3: authz.caller_assignment requires x-asym-tenant matching the tenant argument, so authenticated calls send x-asym-tenant and denials assert exact 42501 messages";
+describe.skipIf(!URL)(`#2402 real-stack (${D18}) (${D18_CALLER_ORG})`, () => {
   let s: H.Stack;
   beforeAll(async () => {
     s = new H.Stack(URL);
@@ -34,7 +36,7 @@ describe.skipIf(!URL)(`#2402 real-stack (${D18})`, () => {
   const check = (name: string, fn: () => Promise<void>) =>
     it(name, () => tx(fn));
   const invoke = (i: number, actor = "staff", a = input(i)) =>
-    s.as("authenticated", actor, H.call(i, a));
+    s.as("authenticated", actor, H.call(i, a), undefined, String(a[0]));
   const input = (i: number, view?: string, patch?: unknown) =>
     H.args(i, s.ids.A!, view, patch);
   async function ok(i: number, actor = "staff", a = input(i)) {
@@ -47,11 +49,20 @@ describe.skipIf(!URL)(`#2402 real-stack (${D18})`, () => {
     actor: string | null,
     i: number,
     tenant: string,
+    expectedMessage?: string,
   ) {
     const before = await s.snapshot();
-    expect((await s.as(role, actor, H.call(i, H.args(i, tenant)))).code).toBe(
-      "42501",
+    const res = await s.as(
+      role,
+      actor,
+      H.call(i, H.args(i, tenant)),
+      undefined,
+      role === "authenticated" ? tenant : undefined,
     );
+    expect(res.code).toBe("42501");
+    if (expectedMessage !== undefined) {
+      expect(res.message).toBe(expectedMessage);
+    }
     expect(await s.snapshot()).toEqual(before);
   }
   async function acl(schema: string, grantees: string[]) {
@@ -113,24 +124,37 @@ describe.skipIf(!URL)(`#2402 real-stack (${D18})`, () => {
         ).toBe("42501");
     }),
   );
+  const CRM_ROLE_MSG =
+    "Forbidden: CRM table preferences require a CRM role in this tenant.";
   for (let i = 0; i < 5; i++) {
     it.each([
-      ["anon", null, "A"],
-      ["anon", "staff", "A"],
-      ["service_role", "staff", "A"],
-      ["authenticated", null, "A"],
-      ["authenticated", "missing", "A"],
-      ["authenticated", "donor", "A"],
-      ["authenticated", "inactive", "A"],
-      ["authenticated", "staff", "B"],
-      ["authenticated", "member", "B"],
-      ["authenticated", "admin", "B"],
-      ["authenticated", "super", "A"],
-      ["authenticated", "super", "B"],
-      ["authenticated", "multi", "A"],
+      ["anon", null, "A", undefined],
+      ["anon", "staff", "A", undefined],
+      ["service_role", "staff", "A", undefined],
+      [
+        "authenticated",
+        null,
+        "A",
+        "Forbidden: CRM table preferences require a signed-in user.",
+      ],
+      [
+        "authenticated",
+        "missing",
+        "A",
+        "Forbidden: CRM table preferences require a profile.",
+      ],
+      ["authenticated", "donor", "A", CRM_ROLE_MSG],
+      ["authenticated", "inactive", "A", CRM_ROLE_MSG],
+      ["authenticated", "staff", "B", CRM_ROLE_MSG],
+      ["authenticated", "member", "B", CRM_ROLE_MSG],
+      ["authenticated", "admin", "B", CRM_ROLE_MSG],
+      ["authenticated", "super", "A", CRM_ROLE_MSG],
+      ["authenticated", "super", "B", CRM_ROLE_MSG],
+      ["authenticated", "multi", "A", CRM_ROLE_MSG],
     ] as const)(
       `6/7/8 (M2): ${H.FNS[i]} denies %s / %s / tenant %s without writes`,
-      (role, actor, tenant) => tx(() => denied(role, actor, i, s.ids[tenant]!)),
+      (role, actor, tenant, expectedMessage) =>
+        tx(() => denied(role, actor, i, s.ids[tenant]!, expectedMessage)),
     );
   }
   it.each(["staff", "admin", "member"])(
@@ -149,7 +173,7 @@ describe.skipIf(!URL)(`#2402 real-stack (${D18})`, () => {
     async () => {
       for (const tenant of [s.ids.A!, s.ids.B!, s.ids.missing!])
         for (let i = 0; i < 5; i++)
-          await denied("authenticated", "super", i, tenant);
+          await denied("authenticated", "super", i, tenant, CRM_ROLE_MSG);
     },
   );
   check(
@@ -160,36 +184,35 @@ describe.skipIf(!URL)(`#2402 real-stack (${D18})`, () => {
         "multi",
         H.call(0, input(0)),
         s.assignments.multiHr,
+        s.ids.A!,
       );
       expect(created.code).toBeNull();
       expect((created.value as { profile_id: string }).profile_id).toBe(
         s.profiles.multi,
       );
       const before = await s.snapshot();
-      expect(
-        (
-          await s.as(
-            "authenticated",
-            "multi",
-            H.call(0, input(0)),
-            s.assignments.admin,
-          )
-        ).code,
-      ).toBe("42501");
+      const foreign = await s.as(
+        "authenticated",
+        "multi",
+        H.call(0, input(0)),
+        s.assignments.admin,
+        s.ids.A!,
+      );
+      expect(foreign.code).toBe("42501");
+      expect(foreign.message).toBe(CRM_ROLE_MSG);
       await s.db.query(
         "update authz.memberships set is_active = false where id = $1",
         [s.assignments.multiHr],
       );
-      expect(
-        (
-          await s.as(
-            "authenticated",
-            "multi",
-            H.call(0, input(0)),
-            s.assignments.multiHr,
-          )
-        ).code,
-      ).toBe("42501");
+      const revoked = await s.as(
+        "authenticated",
+        "multi",
+        H.call(0, input(0)),
+        s.assignments.multiHr,
+        s.ids.A!,
+      );
+      expect(revoked.code).toBe("42501");
+      expect(revoked.message).toBe(CRM_ROLE_MSG);
       expect(await s.snapshot()).toEqual(before);
     },
   );
@@ -201,7 +224,7 @@ describe.skipIf(!URL)(`#2402 real-stack (${D18})`, () => {
         "update authz.memberships set is_active = false where id = $1",
         [s.assignments.admin],
       );
-      await denied("authenticated", "admin", 4, s.ids.A!);
+      await denied("authenticated", "admin", 4, s.ids.A!, CRM_ROLE_MSG);
     },
   );
   check("9: other users' views are unchanged/not found", async () => {
@@ -234,7 +257,7 @@ describe.skipIf(!URL)(`#2402 real-stack (${D18})`, () => {
     expect(
       (await ok(4, "admin", input(4, undefined, delegates))).updated_by,
     ).toBe(s.profiles.admin);
-    await denied("authenticated", "donor", 4, s.ids.A!);
+    await denied("authenticated", "donor", 4, s.ids.A!, CRM_ROLE_MSG);
     expect((await ok(4)).updated_by).toBe(s.profiles.staff);
     for (const patch of [
       { delegatedManagerProfileIds: [] },
@@ -242,12 +265,24 @@ describe.skipIf(!URL)(`#2402 real-stack (${D18})`, () => {
       delegates,
     ]) {
       const before = await s.snapshot();
-      expect((await invoke(4, "staff", input(4, undefined, patch))).code).toBe(
-        "42501",
+      const delegateChange = await invoke(
+        4,
+        "staff",
+        input(4, undefined, patch),
+      );
+      expect(delegateChange.code).toBe("42501");
+      expect(delegateChange.message).toBe(
+        "Forbidden: only super admins can change delegated default managers.",
       );
       expect(await s.snapshot()).toEqual(before);
     }
-    await denied("authenticated", "member", 4, s.ids.A!);
+    await denied(
+      "authenticated",
+      "member",
+      4,
+      s.ids.A!,
+      "Forbidden: requires crm.gift_history.manage_view_defaults",
+    );
     const audit = await s.db.query(
       "select actor_profile_id from public.crm_table_preference_audit_events where tenant_id=$1 order by created_at,id",
       [s.ids.A],
@@ -262,7 +297,13 @@ describe.skipIf(!URL)(`#2402 real-stack (${D18})`, () => {
         delegatedManagerProfileIds: [s.profiles.member],
       }),
     );
-    await denied("authenticated", "staff", 4, s.ids.A!);
+    await denied(
+      "authenticated",
+      "staff",
+      4,
+      s.ids.A!,
+      "Forbidden: requires crm.gift_history.manage_view_defaults",
+    );
     expect((await ok(4, "member")).updated_by).toBe(s.profiles.member);
   });
   check("OQ8: direct RPC validates tables and view names", async () => {
@@ -286,6 +327,8 @@ describe.skipIf(!URL)(`#2402 real-stack (${D18})`, () => {
           old ? "service_role" : "authenticated",
           "staff",
           H.call(i, a, old ? s.profiles.staff : undefined),
+          undefined,
+          old ? undefined : String(a[0]),
         );
         values.push(r);
         if (i !== 3) expect(r.code).toBeNull();
