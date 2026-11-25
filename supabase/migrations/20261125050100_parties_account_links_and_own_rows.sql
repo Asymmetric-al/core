@@ -34,12 +34,14 @@
 --    for a row actually inserted, so an ON CONFLICT DO NOTHING that discards
 --    a row creates nothing, and it never writes an account link (ADR-0215).
 --    Part 2 retires it when every writer names the Party itself.
--- 7. The seven own-row policies match the caller through account_links and
+-- 7. The nine own-row policies of seven tables (three of them on
+--    donor_feed_preferences) match the caller through account_links and
 --    party_id, each branch keeping its class condition, its tenant term and
 --    the super-admin branch where it had one. The missionary branches of
 --    donations and donor_pledges call authz.caller_missionary_ids(), a
 --    definer that answers for the request's tenant only, because signed-in
---    users may not select missionaries.tenant_id or party_id.
+--    users may not select missionaries.party_id (authenticated may select
+--    missionaries.tenant_id, granted by 20261121020000).
 -- 8. Field-policy rows for every new column of a classified table (7.1).
 --
 -- Locks, all held to COMMIT. ACCESS EXCLUSIVE on the four live tables

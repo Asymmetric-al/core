@@ -10,9 +10,11 @@
 -- answers a (source, external_id) inside the request's tenant only. The
 -- import (WP13) writes it with the service key; signed-in users hold no write.
 --
--- Locks. The new table's keys take SHARE ROW EXCLUSIVE on tenants, parties,
--- donors, missionaries and funds, held to COMMIT; nothing is rewritten and
--- no row of those tables is read. lock_timeout stops a run rather than queue
+-- Locks, all held to COMMIT, as pg_locks shows them just before it. SHARE
+-- ROW EXCLUSIVE on tenants, parties, donors, missionaries and funds for the
+-- new table's keys, and ACCESS SHARE on the same five; nothing is rewritten
+-- and no row of those tables is read. ROW EXCLUSIVE on field_policies for the
+-- new table's field-policy rows. lock_timeout stops a run rather than queue
 -- it behind live traffic.
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
