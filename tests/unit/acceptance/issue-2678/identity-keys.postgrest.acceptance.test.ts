@@ -5,7 +5,10 @@ import { NextRequest } from "next/server";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { GET as getDonations } from "../../../../packages/api/src/donations";
+import {
+  GET as getDonations,
+  POST as postDonation,
+} from "../../../../packages/api/src/donations";
 import { buildDonorPortalSnapshot } from "../../../../packages/api/src/donor-portal/model";
 import {
   getDonorPortalSnapshot,
@@ -32,7 +35,20 @@ const anon = process.env.WP5_IDENTITY_IT_ANON_KEY;
 const service = process.env.WP5_IDENTITY_IT_SERVICE_KEY;
 const required = process.env.GITHUB_JOB === "local-supabase";
 
-const s = vi.hoisted(() => ({ auth: null as unknown }));
+const s = vi.hoisted(() => ({
+  auth: null as unknown,
+  intake: null as
+    | null
+    | ((input: {
+        missionaryId: string;
+        amountCents: number;
+        currency: string;
+      }) => Promise<{
+        donationId: string;
+        outboxId: string;
+        replayed: boolean;
+      }>),
+}));
 vi.mock("@asym/auth/context", async (orig) => ({
   ...(await orig<typeof AuthModule>()),
   getAuthContext: async () => s.auth,
@@ -50,6 +66,19 @@ vi.mock("@asym/database/supabase/admin", () => {
     },
   };
 });
+vi.mock("../../../../packages/api/src/stripe/tenant-client", () => ({
+  resolveTenantStripe: async () => ({ ok: true, stripe: {} }),
+}));
+vi.mock("../../../../packages/api/src/donate/saga", () => ({
+  processDonationSagaOutboxEvent: async () => ({ status: "completed" }),
+}));
+vi.mock("../../../../packages/api/src/donate/begin-gift-intake", () => ({
+  beginGiftIntake: async (input: {
+    missionaryId: string;
+    amountCents: number;
+    currency: string;
+  }) => ({ ok: true, ...(await s.intake!(input)) }),
+}));
 vi.mock("next/cache", () => ({
   revalidateTag: vi.fn(),
   cacheLife: vi.fn(),
@@ -57,6 +86,23 @@ vi.mock("next/cache", () => ({
 }));
 
 const FORBIDDEN = /Legal Rowan|Profile Rowan|Party Rowan|Party Xu|Profile Vale/;
+const PRIVATE_WORKER_COLUMNS = [
+  "phone",
+  "birth_date",
+  "location",
+  "region",
+  "timezone",
+  "social_links",
+  "health_status",
+  "health_signals",
+  "last_check_in",
+  "manual_attention",
+  "party_id",
+  "profile_id",
+  "legal_entity_id",
+  "import_batch_id",
+  "tagline",
+];
 
 const PEOPLE = [
   "admin",
@@ -107,6 +153,8 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         "plV",
         "postW",
         "postX",
+        "pN",
+        "mN",
       ].map((k) => [k, randomUUID()]),
     ) as Record<string, string>;
     const user = {} as Record<Person, string>;
@@ -327,6 +375,18 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
             ids.pX,
             worker.X,
           ],
+        );
+        await db.query(
+          "insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Party Nell')",
+          [ids.pN, TA],
+        );
+        await db.query(
+          "insert into public.missionaries (id, tenant_id, party_id, profile_id, legal_entity_id, phone, birth_date, location) values ($1, $2, $3, null, $2, '+15555550100', '1980-01-01', 'Precise place')",
+          [ids.mN, TA, ids.pN],
+        );
+        await db.query(
+          "update public.missionaries set phone = '+15555550101', birth_date = '1981-02-02', location = 'Another place', tagline = 'Tagline' where id = $1",
+          [ids.mW],
         );
         await db.query(
           "insert into public.donors (id, tenant_id, party_id, profile_id, name, email) values ($1, $2, $3, $4, 'Giver', $5)",
@@ -999,6 +1059,98 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         expect(JSON.stringify([feed.data, restBody, graphBody])).not.toMatch(
           FORBIDDEN,
         );
+      });
+
+      it("a donor's GET /api/donations carries none of a restricted worker's private columns (Q4)", async () => {
+        s.auth = asDonor();
+        const rest = await getDonations(
+          new NextRequest("http://localhost/api/donations", { method: "GET" }),
+        );
+        const restBody = (await rest.json()) as {
+          donations?: Array<{
+            id: string;
+            missionary: Record<string, unknown>;
+          }>;
+        };
+        expect(rest.status, JSON.stringify(restBody)).toBe(200);
+        const worker = (restBody.donations ?? []).find(
+          (d) => d.id === ids.gW,
+        )!.missionary;
+        expect(worker.worker_public_name).toBe("Cedar");
+        for (const d of restBody.donations ?? [])
+          expect(
+            PRIVATE_WORKER_COLUMNS.filter((c) => c in d.missionary),
+            d.id,
+          ).toEqual([]);
+        expect(JSON.stringify(restBody)).not.toMatch(
+          /\+15555550101|1981-02-02|Another place/,
+        );
+      });
+
+      it("GraphQL names a worker with no profile by its public name and a null profile, without an error (F8)", async () => {
+        s.auth = asDonor();
+        const graph = await createGraphQLHandler().POST(
+          new Request("http://localhost/api/graphql", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              query: `{ missionary(id: "${ids.mN}") { id publicName profile { id } } }`,
+            }),
+          }),
+        );
+        const graphBody = (await graph.json()) as {
+          data?: { missionary: unknown };
+          errors?: unknown;
+        };
+        expect(
+          graphBody.errors,
+          JSON.stringify(graphBody.errors),
+        ).toBeUndefined();
+        expect(graphBody.data!.missionary).toEqual({
+          id: ids.mN,
+          publicName: "Party Nell",
+          profile: null,
+        });
+      });
+
+      it("a donor's POST /api/donations returns the gift to a restricted worker with none of its private columns (Q4)", async () => {
+        s.auth = asDonor();
+        s.intake = async (input) => {
+          const inserted = await db!.query(
+            "insert into public.donations (tenant_id, donor_id, missionary_id, amount, currency, status) values ($1, $2, $3, $4, $5, 'completed') returning id",
+            [
+              TA,
+              ids.dGiver,
+              input.missionaryId,
+              input.amountCents,
+              input.currency,
+            ],
+          );
+          return {
+            donationId: inserted.rows[0].id as string,
+            outboxId: randomUUID(),
+            replayed: false,
+          };
+        };
+        const created = await postDonation(
+          new NextRequest("http://localhost/api/donations", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "idempotency-key": randomUUID(),
+            },
+            body: JSON.stringify({ missionaryId: ids.mW, amount: 700 }),
+          }),
+        );
+        const body = (await created.json()) as {
+          donation: { missionary: Record<string, unknown> } | null;
+        };
+        expect(created.status, JSON.stringify(body)).toBe(201);
+        expect(body.donation!.missionary.worker_public_name).toBe("Cedar");
+        expect(
+          PRIVATE_WORKER_COLUMNS.filter((c) => c in body.donation!.missionary),
+        ).toEqual([]);
+        expect(JSON.stringify(body)).not.toMatch(FORBIDDEN);
       });
     });
 

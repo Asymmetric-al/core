@@ -483,6 +483,38 @@ const FAILS: [string, string][] = [
     "a post author's last name read optionally",
     "export const n = (author) => author?.last_name;",
   ],
+  [
+    "a post author's name by the key's constraint name under a posts root (F2)",
+    'export const go = (db) => db.from("posts").select("*, author:profiles!posts_missionary_id_fkey(first_name)");',
+  ],
+  [
+    "a post author's name with no hint under a posts root (F2)",
+    'export const go = (db) => db.from("posts").select("*, author:profiles(display_name)");',
+  ],
+  [
+    "a post author's full name by the column hint under a posts root (F2)",
+    'export const go = (db) => db.from("posts").select("*, author:profiles!missionary_id(id, full_name)");',
+  ],
+  [
+    "a post author's name by the constraint name in an unbound literal (F2)",
+    'const s = "author:profiles!posts_missionary_id_fkey(id, display_name)";',
+  ],
+  [
+    "a post author's display name read in code (F2)",
+    "export const n = (post) => post.author.display_name;",
+  ],
+  [
+    "a post author's full name read optionally (F2)",
+    "export const n = (author) => author?.full_name;",
+  ],
+  [
+    "every column of a worker row in a missionaries embed (Q4)",
+    'const s = "missionary:missionaries(*, worker_public_name)";',
+  ],
+  [
+    "every column of a worker row from a missionaries root (Q4)",
+    'export const go = (db) => db.from("missionaries").select("*");',
+  ],
 ];
 
 const PASSES: [string, string][] = [
@@ -501,6 +533,14 @@ const PASSES: [string, string][] = [
   [
     "the feed's author embed",
     'const s = "*, author:profiles!missionary_id(id, avatar_url), post_author_public_name";',
+  ],
+  [
+    "the feed's author embed under a posts root",
+    'export const go = (db) => db.from("posts").select("*, author:profiles!missionary_id(id, avatar_url), post_author_public_name");',
+  ],
+  [
+    "the donations read's explicit worker columns",
+    'const s = "missionary:missionaries(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))";',
   ],
 ];
 

@@ -22,6 +22,7 @@ const ALIAS_DIFFERS =
 
 const NEW_SINGLES = [
   0x115f, 0x1160, 0x3164, 0xffa0, 0x2800, 0xe0001, 0x180f, 0x17b4, 0x17b5,
+  0x2065, 0xe0000,
 ];
 const NEW_RANGES: [number, number][] = [
   [0xfe00, 0xfe0f],
@@ -35,6 +36,11 @@ const NEW_RANGES: [number, number][] = [
   [0x180b, 0x180d],
   [0x1bca0, 0x1bca3],
   [0x1d173, 0x1d17a],
+  [0x13430, 0x1343f],
+  [0xfff0, 0xfff8],
+  [0xe0002, 0xe001f],
+  [0xe0080, 0xe00ff],
+  [0xe01f0, 0xe0fff],
 ];
 const NEW_REMOVED = [
   ...new Set([
@@ -51,6 +57,21 @@ const hex = (c: number) =>
 const GUARDS: [string, string, string][] = [
   ["a visible Arabic format mark U+0601", "'Al' || chr(1537) || 'ice'", ""],
   ["a visible Kaithi number sign U+110BD", "'Al' || chr(69821) || 'ice'", ""],
+  [
+    "a visible Kaithi number sign above U+110CD",
+    "'Al' || chr(69837) || 'ice'",
+    "",
+  ],
+  [
+    "a visible Arabic pound mark above U+0890",
+    "'Al' || chr(2192) || 'ice'",
+    "",
+  ],
+  [
+    "a visible Arabic piastre mark above U+0891",
+    "'Al' || chr(2193) || 'ice'",
+    "",
+  ],
   ["a precomposed Hangul name", "'김철수'", "김철수"],
   ["next line U+0085", "'Al' || chr(133) || 'ice'", "Al ice"],
   ["a tab", "'Al' || chr(9) || 'ice'", "Al ice"],
@@ -308,6 +329,188 @@ describe.skipIf(!ADMIN_URL)(
         expect(r.rows).toEqual([
           { two: null, none: null, no_tenant: null, no_profile: null },
         ]);
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
+    it("every branch of the projection: high_risk with and without an alias, sensitive without one, standard with one, and a worker with no profile; a post's author resolves only a sole worker row in the post's own organization (F5)", async () => {
+      await db.query("savepoint s");
+      try {
+        const k = Object.fromEntries(
+          [
+            "UHA",
+            "UHN",
+            "USN",
+            "USA",
+            "UBW",
+            "pHA",
+            "pHN",
+            "pSN",
+            "pSA",
+            "pNP",
+            "pBW",
+            "pDup2",
+            "mHA",
+            "mHN",
+            "mSN",
+            "mSA",
+            "mNP",
+            "mBW",
+            "mDup2",
+            "postBWinA",
+            "postBWinB",
+            "postMinB",
+            "postM2",
+          ].map((n) => [n, randomUUID()]),
+        ) as Record<string, string>;
+        await db.query(
+          "insert into auth.users (id) values ($1), ($2), ($3), ($4), ($5)",
+          [k.UHA, k.UHN, k.USN, k.USA, k.UBW],
+        );
+        await db.query(
+          `insert into public.parties (id, tenant_id, display_name) values
+             ($1, $8, 'Party Hart'), ($2, $8, 'Party Hale'), ($3, $8, 'Party Sens'),
+             ($4, $8, 'Party Std'), ($5, $8, 'Party Noprof'), ($6, $9, 'Party Bravo'),
+             ($7, $8, 'Party Second')`,
+          [k.pHA, k.pHN, k.pSN, k.pSA, k.pNP, k.pBW, k.pDup2, id.TA, id.TB],
+        );
+        await db.query(
+          `update public.parties set security_level = 'high_risk', security_level_source = 'manual', public_alias = 'Birch' where id = '${k.pHA}';
+           update public.parties set security_level = 'sensitive', security_level_source = 'manual' where id = '${k.pSN}';
+           update public.parties set public_alias = 'Aspen' where id = '${k.pSA}'`,
+        );
+        await withoutAliasCheck(
+          `update public.parties set security_level = 'high_risk', security_level_source = 'manual' where id = '${k.pHN}'`,
+        );
+        await db.query(
+          `insert into public.missionaries (id, tenant_id, party_id, profile_id, legal_entity_id) values
+             ($1, $8, $9, $10, $8), ($2, $8, $11, $12, $8), ($3, $8, $13, $14, $8),
+             ($4, $8, $15, $16, $8), ($5, $8, $17, null, $8), ($6, $18, $19, $20, $18),
+             ($7, $8, $21, $22, $8)`,
+          [
+            k.mHA,
+            k.mHN,
+            k.mSN,
+            k.mSA,
+            k.mNP,
+            k.mBW,
+            k.mDup2,
+            id.TA,
+            k.pHA,
+            k.UHA,
+            k.pHN,
+            k.UHN,
+            k.pSN,
+            k.USN,
+            k.pSA,
+            k.USA,
+            k.pNP,
+            id.TB,
+            k.pBW,
+            k.UBW,
+            k.pDup2,
+            id.UM2,
+          ],
+        );
+        await db.query(
+          `insert into public.posts (id, tenant_id, missionary_id, content, visibility, status) values
+             ($1, $5, $7, 'B worker in A', 'public', 'published'),
+             ($2, $6, $7, 'B worker in B', 'public', 'published'),
+             ($3, $6, $8, 'A and B worker in B', 'public', 'published'),
+             ($4, $5, $9, 'Two rows in A', 'public', 'published')`,
+          [
+            k.postBWinA,
+            k.postBWinB,
+            k.postMinB,
+            k.postM2,
+            id.TA,
+            id.TB,
+            k.UBW,
+            id.UM,
+            id.UM2,
+          ],
+        );
+        const workers = await queryAs(
+          "service_role",
+          {},
+          `select m.id, public.worker_public_name(m) as name from public.missionaries as m
+            where m.id in ('${k.mHA}', '${k.mHN}', '${k.mSN}', '${k.mSA}', '${k.mNP}', '${k.mBW}')`,
+        );
+        expect(workers.code, workers.message).toBeNull();
+        expect(
+          Object.fromEntries(workers.rows.map((r) => [r.id, r.name])),
+        ).toEqual({
+          [k.mHA!]: "Birch",
+          [k.mHN!]: null,
+          [k.mSN!]: "Party Sens",
+          [k.mSA!]: "Aspen",
+          [k.mNP!]: "Party Noprof",
+          [k.mBW!]: "Party Bravo",
+        });
+        const posts = await queryAs(
+          "service_role",
+          {},
+          `select p.id, public.post_author_public_name(p) as name from public.posts as p
+            where p.id in ('${id.postW}', '${k.postBWinA}', '${k.postBWinB}', '${k.postMinB}', '${k.postM2}')`,
+        );
+        expect(posts.code, posts.message).toBeNull();
+        expect(
+          Object.fromEntries(posts.rows.map((r) => [r.id, r.name])),
+        ).toEqual({
+          [id.postW]: "Cedar",
+          [k.postBWinA!]: null,
+          [k.postBWinB!]: "Party Bravo",
+          [k.postMinB!]: "Missionary A in B",
+          [k.postM2!]: null,
+        });
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    });
+
+    it("the projection names the Party only for a standard or sensitive worker: an unknown level or a NULL level gets the alias or NULL (F6, fail closed)", async () => {
+      await db.query("savepoint s");
+      try {
+        const checks = await db.query(
+          `select conname from pg_constraint
+            where conrelid = 'public.parties'::regclass and contype = 'c'
+              and pg_get_constraintdef(oid) like '%security_level%'`,
+        );
+        for (const { conname } of checks.rows)
+          await db.query(
+            `alter table public.parties drop constraint "${conname}"`,
+          );
+        await db.query(
+          "alter table public.parties alter column security_level drop not null",
+        );
+        const name = async () =>
+          (
+            await db.query(
+              "select public.worker_public_name(m) as name from public.missionaries as m where m.id = $1",
+              [id.m2],
+            )
+          ).rows[0].name;
+        await db.query(
+          "update public.parties set security_level = 'critical' where id = $1",
+          [id.pM2],
+        );
+        expect(await name(), "an unknown level, no alias").toBeNull();
+        await db.query(
+          "update public.parties set security_level = null where id = $1",
+          [id.pM2],
+        );
+        expect(await name(), "a NULL level, no alias").toBeNull();
+        await db.query(
+          "update public.parties set public_alias = 'Willow' where id = $1",
+          [id.pM2],
+        );
+        expect(await name(), "a NULL level with an alias").toBe("Willow");
+        await db.query(
+          "update public.parties set security_level = 'critical' where id = $1",
+          [id.pM2],
+        );
+        expect(await name(), "an unknown level with an alias").toBe("Willow");
       } finally {
         await db.query("rollback to savepoint s");
       }

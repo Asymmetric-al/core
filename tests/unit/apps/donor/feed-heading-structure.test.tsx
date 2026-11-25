@@ -1383,3 +1383,23 @@ it("says a page loaded even when it brings no new match for the filter", async (
     "1 update matches: Prayer request, out of 4 loaded",
   ]);
 });
+
+it("renders an organization's update, which has no author, under the author fallback (AL-2678 r1, F8)", () => {
+  feed.data = [
+    {
+      id: "post-organization",
+      title: "Organization news",
+      missionary_id: null,
+      author: null,
+      post_author_public_name: null,
+      created_at: "2026-10-03T00:00:00.000Z",
+      content: "From the office",
+      like_count: 0,
+      prayer_count: 0,
+      comment_count: 0,
+    },
+  ];
+  render(<DonorFeedPage />);
+  expect(screen.getByText("From the office")).toBeTruthy();
+  expect(screen.getByText("Anna")).toBeTruthy();
+});
