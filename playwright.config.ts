@@ -30,6 +30,7 @@ const DEFAULT_ADMIN_PORT = 3030;
 const DEFAULT_LOCAL_HOSTNAME = "localhost";
 const DEFAULT_SUPABASE_URL = "https://example.supabase.co";
 const DEFAULT_SUPABASE_ANON_KEY = "example-anon-key";
+const DEFAULT_E2E_AUTH_TENANT_ID = "00000000-0000-0000-0000-000000000001";
 const DEFAULT_PAYLOAD_DATABASE_URI =
   "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 const DEFAULT_PAYLOAD_SECRET = "playwright-secret";
@@ -75,6 +76,9 @@ function withPlaywrightEnvDefaults(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   if (nextEnv.ASYM_USE_CI_ENV_DEFAULTS === "1" && !nextEnv.E2E_AUTH_BYPASS) {
     // Must match @asym/env optionalBoolean ("true"|"false"), not "1".
     nextEnv.E2E_AUTH_BYPASS = "true";
+  }
+  if (nextEnv.ASYM_USE_CI_ENV_DEFAULTS === "1" && !nextEnv.E2E_AUTH_TENANT_ID) {
+    nextEnv.E2E_AUTH_TENANT_ID = DEFAULT_E2E_AUTH_TENANT_ID;
   }
 
   return nextEnv;
@@ -182,6 +186,8 @@ const donorServer = {
     // ignore the E2E cookie even when tests run without run-with-ci-env.mjs.
     // @asym/env only accepts "true"|"false" for E2E_AUTH_BYPASS (not "1").
     E2E_AUTH_BYPASS: resolvedEnv.E2E_AUTH_BYPASS || "true",
+    E2E_AUTH_TENANT_ID:
+      resolvedEnv.E2E_AUTH_TENANT_ID || DEFAULT_E2E_AUTH_TENANT_ID,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
     NEXT_PUBLIC_SUPABASE_URL: supabaseURL,
     DEMO_ADMIN_EMAIL: resolvedEnv.DEMO_ADMIN_EMAIL || "",

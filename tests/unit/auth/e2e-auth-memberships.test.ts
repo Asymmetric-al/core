@@ -90,7 +90,7 @@ describe("E2E bypass sessions with several memberships (AL-2675)", () => {
     await expect(parseE2EAuthCookieValue(value)).resolves.toBeNull();
   });
 
-  it("gives a session without a list the one membership its role implies", () => {
+  it("gives a session without a list the one membership its role implies, in its own canonical tenant only (AL-2676)", () => {
     expect(
       listE2EAuthAssignments({
         userId: "e2e-admin-user",
@@ -114,16 +114,6 @@ describe("E2E bypass sessions with several memberships (AL-2675)", () => {
         role: "missionary",
         tenantId: null,
       }),
-    ).toEqual([
-      {
-        assignmentId: E2E_BYPASS_ASSIGNMENT_ID,
-        userId: "e2e-missionary-user",
-        tenantId: DEMO_TENANT_ID,
-        revision: "e2e-bypass",
-        membershipRole: "missionary",
-        staffRole: null,
-        isTenantAdmin: false,
-      },
-    ]);
+    ).toEqual([]);
   });
 });

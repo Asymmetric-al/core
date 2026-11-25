@@ -128,6 +128,9 @@ describe("ci-integration workflow contract", () => {
     expect(testE2e).toContain("needs: [smoke, test-e2e-smoke]");
     expect(testE2e).toContain("fetch-depth: 0");
     expect(testE2eSmoke).toContain('E2E_AUTH_BYPASS: "true"');
+    expect(testE2eSmoke).toContain(
+      'E2E_AUTH_TENANT_ID: "00000000-0000-0000-0000-000000000001"',
+    );
     expect(testE2eSmoke).toContain('PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"');
     expect(testE2eSmoke).toContain("run: bun run test:e2e:smoke");
     expect(testE2eSmoke).toContain('PLAYWRIGHT_INCLUDE_ADMIN: "1"');
@@ -211,6 +214,7 @@ describe("ci-integration workflow contract", () => {
     expect(env.NEXT_PUBLIC_SUPABASE_ANON_KEY).toBe("example-anon-key");
     expect(env.ASYM_E2E_REQUIRE_HERMETIC_SUPABASE).toBe("1");
     expect(env.E2E_AUTH_BYPASS).toBe("true");
+    expect(env.E2E_AUTH_TENANT_ID).toBe("00000000-0000-0000-0000-000000000001");
 
     // No hosted Supabase or demo-credential secret reaches the job or any step.
     expect(W.jobLevelReferencesSecrets(job)).toBe(false);
@@ -302,21 +306,29 @@ describe("ci-integration workflow contract", () => {
   // carry the end-to-end proof that every request a page makes names its
   // tenant and assignment. They run in the end-to-end job, as the
   // tenant-address specs do, on the servers the job already started: admin
-  // and missionary right after their tenant-address step, donor right after
-  // its boneyard smoke. This workflow change was allowed for that item only.
-  it("runs the three request-scope specs in the end-to-end job, after their apps' own steps", () => {
+  // and missionary right after their tenant-address step, donor after its
+  // health check. This workflow change was allowed for that item only.
+  it("runs the three request-scope specs in the end-to-end job, after their apps' own steps (AL-2676: the donor boneyard smoke step is gone)", () => {
     const testE2e = jobBlock(workflow, "test-e2e");
     const steps = stepNames(testE2e);
     for (const [app, before] of [
       ["admin", "Tenant address (admin app)"],
       ["missionary", "Tenant address (missionary app)"],
-      ["donor", "Boneyard smoke (donor app)"],
     ] as const) {
       const step = `Request scope (${app} app)`;
       expect(steps).toContain(step);
       expect(steps.indexOf(step)).toBe(steps.indexOf(before) + 1);
       expect(testE2e).toContain(`run: bun run test:e2e:request-scope:${app}`);
     }
+    expect(steps).not.toContain("Boneyard smoke (donor app)");
+    expect(steps).toContain("Request scope (donor app)");
+    expect(testE2e).toContain("run: bun run test:e2e:request-scope:donor");
+    expect(steps.indexOf("Request scope (donor app)")).toBeGreaterThan(
+      steps.indexOf("Wait for donor health endpoint"),
+    );
+    expect(
+      steps.indexOf("Wait for donor health endpoint"),
+    ).toBeGreaterThanOrEqual(0);
     // One server start for each app: the specs use the job's servers.
     for (const app of ["donor", "admin", "missionary"]) {
       expect(steps.filter((name) => name === `Start ${app} app`)).toHaveLength(

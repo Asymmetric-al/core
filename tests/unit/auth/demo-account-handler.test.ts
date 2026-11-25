@@ -1,14 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  DEMO_PROFILE_ID,
-  DEMO_TENANT_ID,
-} from "../../../packages/auth/constants";
+import { DEMO_PROFILE_ID } from "../../../packages/auth/constants";
 import {
   E2E_AUTH_COOKIE_NAMES,
   parseE2EAuthCookieValue,
 } from "../../../packages/auth/e2e-auth";
 
+const T = "6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a";
 const ORIGINAL_ENV = { ...process.env };
 const ORIGINAL_FETCH = global.fetch;
 
@@ -29,6 +27,7 @@ beforeEach(() => {
     DEMO_ADMIN_EMAIL: "demo-admin@example.com",
     DEMO_MISSIONARY_EMAIL: "demo-missionary@example.com",
     DEMO_DONOR_EMAIL: "demo-donor@example.com",
+    E2E_AUTH_TENANT_ID: T,
   };
 });
 
@@ -98,7 +97,7 @@ describe("api/auth/demo-account", () => {
     expect(response.headers.get("pragma")).toBe("no-cache");
   });
 
-  it("sets the seeded donor tenant and profile in the E2E bypass cookie", async () => {
+  it("sets the harness's E2E_AUTH_TENANT_ID and the seeded profile in the E2E bypass cookie (AL-2676: the organization comes from the harness, not a code constant)", async () => {
     vi.resetModules();
     process.env.E2E_AUTH_BYPASS = "true";
 
@@ -130,7 +129,7 @@ describe("api/auth/demo-account", () => {
     expect(session).toMatchObject({
       userId: "e2e-donor-user",
       role: "donor",
-      tenantId: DEMO_TENANT_ID,
+      tenantId: T,
       profileId: DEMO_PROFILE_ID,
     });
   });
@@ -244,4 +243,116 @@ describe("api/auth/demo-account", () => {
     expect(payload.ok).toBe(false);
     expect(payload.code).toBe("DEMO_DISABLED");
   });
+});
+
+const MISCONFIGURED_TENANTS: Array<[string, string | undefined]> = [
+  ["unset", undefined],
+  ["empty", ""],
+  ["a leading space", ` ${T}`],
+  ["upper-case hex", T.toUpperCase()],
+  ["a trailing no-break space", `${T} `],
+  ["not a UUID", "not-a-uuid"],
+];
+
+function setTenantSetting(value: string | undefined) {
+  if (value === undefined) delete process.env.E2E_AUTH_TENANT_ID;
+  else process.env.E2E_AUTH_TENANT_ID = value;
+}
+
+function bypassPost(role: string) {
+  return new Request("http://localhost:3000/api/auth/demo-account", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ role }),
+  });
+}
+
+describe("api/auth/demo-account E2E bypass without a canonical E2E_AUTH_TENANT_ID (AL-2676)", () => {
+  it.each(MISCONFIGURED_TENANTS)(
+    "refuses to mint with E2E_AUTH_TENANT_ID %s: POST 503 DEMO_E2E_BYPASS_MISCONFIGURED with no cookie, GET all roles false naming the setting",
+    async (_label, value) => {
+      vi.resetModules();
+      process.env.E2E_AUTH_BYPASS = "true";
+      setTenantSetting(value);
+
+      const { GET, POST } =
+        await import("../../../packages/api/src/auth/demo-account");
+
+      for (const role of ["donor", "delivery"]) {
+        const response = await POST(bypassPost(role));
+        expect(response.status).toBe(503);
+        expect(await response.json()).toMatchObject({
+          ok: false,
+          code: "DEMO_E2E_BYPASS_MISCONFIGURED",
+        });
+        expect(response.headers.get("set-cookie")).toBeNull();
+      }
+
+      const payload = (await (await GET()).json()) as {
+        availableRoles: Record<string, boolean>;
+        reason?: string;
+      };
+      expect(payload.availableRoles).toEqual({
+        admin: false,
+        missionary: false,
+        donor: false,
+      });
+      expect(payload.reason).toMatch(/E2E_AUTH_TENANT_ID/);
+    },
+  );
+
+  it.each([
+    ["unset", undefined],
+    ["set", T],
+  ])(
+    "guard: with the setting %s, a missing signing key on a real datasource is the refusal named, read before the tenant setting",
+    async (_label, value) => {
+      vi.resetModules();
+      process.env.E2E_AUTH_BYPASS = "true";
+      delete process.env.E2E_AUTH_SECRET;
+      process.env.NEXT_PUBLIC_SUPABASE_URL =
+        "https://realproj12345.supabase.co";
+      setTenantSetting(value);
+
+      const { GET, POST } =
+        await import("../../../packages/api/src/auth/demo-account");
+      const response = await POST(bypassPost("donor"));
+      expect(response.status).toBe(503);
+      const body = (await response.json()) as { code: string; detail: string };
+      expect(body.code).toBe("DEMO_E2E_BYPASS_MISCONFIGURED");
+      expect(body.detail).toMatch(/E2E_AUTH_SECRET/);
+      expect(body.detail).not.toMatch(/E2E_AUTH_TENANT_ID/);
+      const reason = ((await (await GET()).json()) as { reason: string })
+        .reason;
+      expect(reason).toMatch(/E2E_AUTH_SECRET/);
+      expect(reason).not.toMatch(/E2E_AUTH_TENANT_ID/);
+    },
+  );
+
+  it.each([
+    ["unset", undefined],
+    ["set", T],
+  ])(
+    "guard: with the setting %s, a datasource that is not allowlisted is the refusal named, read before the tenant setting",
+    async (_label, value) => {
+      vi.resetModules();
+      process.env.E2E_AUTH_BYPASS = "true";
+      process.env.NEXT_PUBLIC_SUPABASE_URL =
+        "https://realproj12345.supabase.co";
+      setTenantSetting(value);
+
+      const { GET, POST } =
+        await import("../../../packages/api/src/auth/demo-account");
+      const response = await POST(bypassPost("donor"));
+      expect(response.status).toBe(503);
+      const body = (await response.json()) as { code: string; detail: string };
+      expect(body.code).toBe("DEMO_E2E_BYPASS_MISCONFIGURED");
+      expect(body.detail).toMatch(/E2E_AUTH_ALLOWED_SUPABASE_REFS/);
+      expect(body.detail).not.toMatch(/E2E_AUTH_TENANT_ID/);
+      const reason = ((await (await GET()).json()) as { reason: string })
+        .reason;
+      expect(reason).toMatch(/E2E_AUTH_ALLOWED_SUPABASE_REFS/);
+      expect(reason).not.toMatch(/E2E_AUTH_TENANT_ID/);
+    },
+  );
 });

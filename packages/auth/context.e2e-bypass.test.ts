@@ -79,7 +79,7 @@ describe("getAuthContext E2E bypass", () => {
     vi.clearAllMocks();
   });
 
-  it("returns authenticated context from asym_e2e_auth cookie when Supabase returns no user", async () => {
+  it("returns authenticated context from asym_e2e_auth cookie when Supabase returns no user (AL-2676: the cookie names its tenant)", async () => {
     mockedCreateServerClient.mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
@@ -89,7 +89,7 @@ describe("getAuthContext E2E bypass", () => {
     const value = await createE2EAuthCookieValue({
       userId: "e2e-donor-user",
       role: "donor",
-      tenantId: null,
+      tenantId: DEMO_TENANT_ID,
     });
 
     const { cookies } = await import("next/headers");
@@ -205,7 +205,7 @@ describe("getAuthContext E2E bypass", () => {
     );
   });
 
-  it("injects demo tenant and profile for super_admin E2E bypass when ids are null", async () => {
+  it("signs out a super_admin E2E bypass cookie that names no tenant (AL-2676: the bypass implies no demo organization)", async () => {
     mockedCreateServerClient.mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
@@ -229,12 +229,15 @@ describe("getAuthContext E2E bypass", () => {
     const { getAuthContext } = await import("./context");
     const ctx = await getAuthContext();
 
-    expect(ctx.isAuthenticated).toBe(true);
-    expect(ctx.tenantId).toBe(DEMO_TENANT_ID);
-    expect(ctx.profileId).toBe(DEMO_PROFILE_ID);
+    expect(ctx).toMatchObject({
+      isAuthenticated: false,
+      tenantId: null,
+      profileId: null,
+      memberships: [],
+    });
   });
 
-  it("injects demo tenant and profile for staff-capable E2E bypass when ids are null", async () => {
+  it("signs out a staff-capable E2E bypass cookie that names no tenant (AL-2676: the bypass implies no demo organization)", async () => {
     mockedCreateServerClient.mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
@@ -258,12 +261,15 @@ describe("getAuthContext E2E bypass", () => {
     const { getAuthContext } = await import("./context");
     const ctx = await getAuthContext();
 
-    expect(ctx.isAuthenticated).toBe(true);
-    expect(ctx.tenantId).toBe(DEMO_TENANT_ID);
-    expect(ctx.profileId).toBe(DEMO_PROFILE_ID);
+    expect(ctx).toMatchObject({
+      isAuthenticated: false,
+      tenantId: null,
+      profileId: null,
+      memberships: [],
+    });
   });
 
-  it("injects demo tenant and profile for donor E2E bypass when ids are null", async () => {
+  it("signs out a donor E2E bypass cookie that names no tenant (AL-2676: the bypass implies no demo organization)", async () => {
     mockedCreateServerClient.mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
@@ -287,9 +293,12 @@ describe("getAuthContext E2E bypass", () => {
     const { getAuthContext } = await import("./context");
     const ctx = await getAuthContext();
 
-    expect(ctx.isAuthenticated).toBe(true);
-    expect(ctx.tenantId).toBe(DEMO_TENANT_ID);
-    expect(ctx.profileId).toBe(DEMO_PROFILE_ID);
+    expect(ctx).toMatchObject({
+      isAuthenticated: false,
+      tenantId: null,
+      profileId: null,
+      memberships: [],
+    });
   });
 
   it("preserves explicit tenant IDs for donor E2E bypass", async () => {

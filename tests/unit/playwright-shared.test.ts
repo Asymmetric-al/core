@@ -179,6 +179,24 @@ describe("defineBoneyardConfig", () => {
     expect(singleWebServer(config)?.env?.E2E_AUTH_BYPASS).toBe("false");
   });
 
+  it("defaults E2E_AUTH_TENANT_ID to the seed's organization for every surface dev server (AL-2676)", () => {
+    for (const surface of [ADMIN_SURFACE, DONOR_SURFACE, MISSIONARY_SURFACE]) {
+      const config = defineBoneyardConfig(surface, {});
+      expect(singleWebServer(config)?.env?.E2E_AUTH_TENANT_ID).toBe(
+        "00000000-0000-0000-0000-000000000001",
+      );
+    }
+  });
+
+  it("keeps an E2E_AUTH_TENANT_ID the caller set (AL-2676)", () => {
+    const config = defineBoneyardConfig(ADMIN_SURFACE, {
+      E2E_AUTH_TENANT_ID: "6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a",
+    });
+    expect(singleWebServer(config)?.env?.E2E_AUTH_TENANT_ID).toBe(
+      "6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a",
+    );
+  });
+
   it("omits the web server for remote base URLs", () => {
     const config = defineBoneyardConfig(ADMIN_SURFACE, {
       PLAYWRIGHT_ADMIN_BASE_URL: "https://admin-preview.vercel.app",

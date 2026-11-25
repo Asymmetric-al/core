@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -166,6 +167,47 @@ describe("run-with-ci-env", () => {
   });
 });
 
+describe("run-with-ci-env sets E2E_AUTH_TENANT_ID beside E2E_AUTH_BYPASS (AL-2676)", () => {
+  function launchedTenant(env: Record<string, string>) {
+    const result = spawnSync(
+      process.execPath,
+      [
+        "scripts/run-with-ci-env.mjs",
+        "--",
+        process.execPath,
+        "-e",
+        "process.stdout.write(JSON.stringify([process.env.E2E_AUTH_BYPASS, process.env.E2E_AUTH_TENANT_ID]))",
+      ],
+      {
+        cwd: path.resolve(import.meta.dirname, "../../.."),
+        encoding: "utf8",
+        env: {
+          PATH: process.env.PATH ?? "",
+          ASYM_USE_CI_ENV_DEFAULTS: "1",
+          ...env,
+        },
+      },
+    );
+    expect(result.status, result.stderr).toBe(0);
+    return JSON.parse(result.stdout) as [string, string];
+  }
+
+  it("defaults the launched command to the seed's organization", () => {
+    expect(launchedTenant({})).toEqual([
+      "true",
+      "00000000-0000-0000-0000-000000000001",
+    ]);
+  });
+
+  it("keeps an E2E_AUTH_TENANT_ID the caller set", () => {
+    expect(
+      launchedTenant({
+        E2E_AUTH_TENANT_ID: "6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a",
+      }),
+    ).toEqual(["true", "6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a"]);
+  });
+});
+
 describe("setup-mission-control-cloud", () => {
   it("adds Mission Control Cloud Agent defaults without overwriting real secrets or explicit auth bypass choices", () => {
     const result = applyMissionControlCloudEnvDefaults(
@@ -184,6 +226,9 @@ describe("setup-mission-control-cloud", () => {
     );
     expect(result.content).toContain("E2E_AUTH_BYPASS=false");
     expect(result.content).toContain(
+      "E2E_AUTH_TENANT_ID=00000000-0000-0000-0000-000000000001",
+    );
+    expect(result.content).toContain(
       "PAYLOAD_SECRET=cloud-agent-mission-control-placeholder",
     );
     expect(result.preservedKeys).toContain("NEXT_PUBLIC_SUPABASE_URL");
@@ -199,6 +244,23 @@ describe("setup-mission-control-cloud", () => {
     );
 
     expect(result.content).toContain("E2E_AUTH_BYPASS=true");
+    expect(result.content).toContain(
+      "E2E_AUTH_TENANT_ID=00000000-0000-0000-0000-000000000001",
+    );
     expect(result.changedKeys).toContain("E2E_AUTH_BYPASS");
+  });
+
+  it("keeps an E2E_AUTH_TENANT_ID the caller set (AL-2676)", () => {
+    const result = applyMissionControlCloudEnvDefaults(
+      "E2E_AUTH_TENANT_ID=6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a\n",
+    );
+
+    expect(result.content).toContain(
+      "E2E_AUTH_TENANT_ID=6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a",
+    );
+    expect(result.content).not.toContain(
+      "E2E_AUTH_TENANT_ID=00000000-0000-0000-0000-000000000001",
+    );
+    expect(result.preservedKeys).toContain("E2E_AUTH_TENANT_ID");
   });
 });

@@ -206,12 +206,12 @@ describe("createSupabaseAuthStrategy", () => {
     expect(result.user).toBeNull();
   });
 
-  it("authenticates admin E2E bypass cookies through normal Payload users", async () => {
+  it("authenticates admin E2E bypass cookies through normal Payload users (AL-2676: the cookie names its tenant)", async () => {
     process.env.E2E_AUTH_BYPASS = "true";
     const supabaseMock = createSupabaseClientMock({ userId: "" });
     const e2eCookie = await createE2EAuthCookieValue({
       role: "admin",
-      tenantId: null,
+      tenantId: DEFAULT_SUPER_ADMIN_TENANT,
       userId: "e2e-admin-user",
     });
 

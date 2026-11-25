@@ -47,7 +47,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { client: supabaseAdmin, error: adminError } = getAdminClient();
     if (!supabaseAdmin) {
       if (isSyntheticE2EContext(auth)) {
-        return NextResponse.json({ portal: getDemoDonorPortalSnapshot() });
+        return NextResponse.json({
+          portal: getDemoDonorPortalSnapshot(auth.tenantId),
+        });
       }
 
       return NextResponse.json(
