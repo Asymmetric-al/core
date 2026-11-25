@@ -10,6 +10,9 @@ import {
   runCli,
   selectReleaseApps,
 } from "../../../../scripts/release/vercel-release.mjs";
+import { forbidNetwork } from "./support/vercel-release-fixtures";
+
+forbidNetwork();
 
 describe("release job: Vercel steps", () => {
   afterEach(() => {

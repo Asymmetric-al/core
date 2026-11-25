@@ -19,10 +19,13 @@ import {
   RELEASE_SHA as sha,
   fakeHealth,
   fakeVercel,
+  forbidNetwork,
   healthy,
   noSleep,
   silent,
 } from "./support/vercel-release-fixtures";
+
+forbidNetwork();
 
 const NO_NETWORK_PRELOAD =
   "data:text/javascript,globalThis.fetch=()=>{throw new Error('network disabled in unit test')}";

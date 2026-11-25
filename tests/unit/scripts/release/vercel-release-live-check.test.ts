@@ -14,11 +14,14 @@ import {
   RELEASE_SHA as sha,
   fakeHealth,
   fakeVercel,
+  forbidNetwork,
   healthy,
   isCreateDeploymentBody,
   noSleep,
   silent,
 } from "./support/vercel-release-fixtures";
+
+forbidNetwork();
 
 describe("release job: live deployment verification and forced release", () => {
   it("verifyLive retries while an old deployment ID answers (even with a different project ref) and succeeds once the new ID answers", async () => {
