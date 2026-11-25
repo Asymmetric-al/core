@@ -2442,4 +2442,89 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
       expect(codes(result)).toEqual([`WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`]);
     },
   );
+
+  it.each<[string, string, string]>([
+    [
+      'L1: two quoted names that are not plain identifiers, of equal length, as qualifier and alias ("e-1" a row-typed parameter)',
+      'public.l1_equal(\"e-1\" public.stripe_connect_events, p_event_id uuid, p_attempt integer)',
+      `DECLARE v_t uuid; BEGIN SELECT "e-1".tenant_id INTO v_t FROM public.stripe_connect_events AS "x-1" WHERE "x-1".id = p_event_id; ${forward} END;`,
+    ],
+    [
+      "L1: a quoted function name as qualifier and a quoted parameter as column, behind a quoted alias of the same length",
+      'public."my-fn"("p-owner" uuid, p_event_id uuid, p_attempt integer)',
+      `DECLARE v_t uuid; BEGIN SELECT "my-fn"."p-owner" INTO v_t FROM public.stripe_connect_events AS "ab-cd" WHERE "ab-cd".id = p_event_id; ${forward} END;`,
+    ],
+    [
+      'L2: #variable_conflict use_variable with a variable "begin" declared before a row variable named like the alias',
+      "public.l2_begin(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `#variable_conflict use_variable
+       DECLARE "begin" integer; e public.stripe_connect_events; v_t uuid; BEGIN e.tenant_id := p_owner; SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+    ],
+    [
+      'L2: a quoted "begin" declared before a row variable named like the alias, without the pragma',
+      "public.l2_quoted_begin(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE "begin" integer; e public.stripe_connect_events; v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+    ],
+    [
+      "L2: #variable_conflict in an otherwise compliant worker wrapper",
+      "public.l2_pragma(p_event_id uuid, p_attempt integer)",
+      `#variable_conflict use_column
+       DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+    ],
+    [
+      "L3: the variable initialised with a plain = in its declaration",
+      "public.l3_equals(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid = p_owner; BEGIN IF p_attempt > 99 THEN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; END IF; ${forward} END;`,
+    ],
+    [
+      "L4: the function's own name as the column",
+      "public.tenant_id(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+    ],
+    [
+      "L4 (guard): a block label as the qualifier",
+      "public.l4_label(p_event_id uuid, p_attempt integer)",
+      `<<e>> DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END e;`,
+    ],
+    [
+      "L4 (guard): a FOR loop variable as the qualifier",
+      "public.l4_loop(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN FOR e IN 1..2 LOOP SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; END LOOP; ${forward} END;`,
+    ],
+    [
+      "L4 (guard): the function's own name as the qualifier",
+      "public.ev(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT ev.tenant_id INTO v_t FROM public.stripe_connect_events AS ev WHERE ev.id = p_event_id; ${forward} END;`,
+    ],
+  ])(
+    "the last step (L1 to L4): fails WORKER_WRAPPER_TENANT_ARGUMENT when %s",
+    (_label, fn, body) => {
+      const result = judge([
+        wrapper(fn, body, { service_role: true, language: "plpgsql" }),
+      ]);
+      expect(codes(result)).toEqual([`WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`]);
+    },
+  );
+
+  it.each<[string, string]>([
+    [
+      "a quoted function name that is not a plain identifier",
+      'public."do-write"',
+    ],
+    ["a quoted schema that is not a plain identifier", '"my schema".fn'],
+    ["a quoted function name that is a keyword", 'public."select"'],
+  ])(
+    "the last step (guard): a call through %s still fails WORKER_WRAPPER_WRITES",
+    (_label, callee) => {
+      const fn = "public.quoted_call(p_event_id uuid, p_attempt integer)";
+      const result = judge([
+        wrapper(
+          fn,
+          `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; PERFORM ${callee}(p_event_id); ${forward} END;`,
+          { service_role: true, language: "plpgsql" },
+        ),
+      ]);
+      expect(codes(result)).toEqual([`WORKER_WRAPPER_WRITES ${fn}`]);
+    },
+  );
 });
