@@ -33,22 +33,26 @@ const CLEARED_GOVERNANCE = {
 
 const DISABLE_RELEASE_LABEL = "Disable release (no emergency)";
 
-const PLATFORM_OWNERS = [
+/**
+ * D-18 (AL-2675 WP2c rest, pull request A; brief stage5/wp2c-rest.md 2A and
+ * 3A.4): the picker no longer asks the users API for `role=super_admin`,
+ * which no membership holds, so it listed nobody. It asks
+ * `/api/admin/eve/launch-readiness/operators`, the operators the launch grant
+ * accepts in this organization, and says "platform operator" where it said
+ * "platform owner"; a 403 there shows the non-operator sentence alone.
+ */
+const OPERATORS_URL = "/api/admin/eve/launch-readiness/operators";
+
+const PLATFORM_OPERATORS = [
   {
     id: "43700000-0000-4000-8000-000000000002",
-    email: "ada.owner@example.org",
-    first_name: "Ada",
-    full_name: "Ada Owner",
-    last_name: "Owner",
-    role: "super_admin",
+    displayName: "Ada Operator",
+    email: "ada.operator@example.org",
   },
   {
     id: "43700000-0000-4000-8000-000000000003",
+    displayName: null,
     email: "grace@example.org",
-    first_name: null,
-    full_name: null,
-    last_name: null,
-    role: "super_admin",
   },
 ];
 
@@ -62,43 +66,53 @@ function readinessBody(governance: Record<string, unknown>) {
   };
 }
 
+type PeopleAnswer = { status: number; operators?: unknown[] };
+
 function stubReadinessFetch(
   governance: Record<string, unknown>,
-  people: { ok: boolean; users?: unknown[] } = {
-    ok: true,
-    users: PLATFORM_OWNERS,
-  },
+  people: PeopleAnswer = { status: 200, operators: PLATFORM_OPERATORS },
 ) {
   const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => {
-    if (String(url).startsWith("/api/admin/users")) {
+    if (String(url).startsWith(OPERATORS_URL)) {
+      const ok = people.status >= 200 && people.status < 300;
       return {
-        ok: people.ok,
+        ok,
+        status: people.status,
         json: async () =>
-          people.ok
-            ? { users: people.users ?? [] }
-            : { error: "Forbidden: requires one of admin role" },
+          ok
+            ? { operators: people.operators ?? [] }
+            : {
+                error:
+                  people.status === 403
+                    ? "Forbidden: requires a platform operator whose session passed a second factor"
+                    : "Internal error",
+              },
       };
     }
-    return { ok: true, json: async () => readinessBody(governance) };
+    return {
+      ok: true,
+      status: 200,
+      json: async () => readinessBody(governance),
+    };
   });
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
 }
 
-async function choosePlatformOwner(
+async function choosePlatformOperator(
   view: ReturnType<typeof renderPanel>,
   search: string,
   optionName: RegExp,
 ) {
   const picker = await view.findByRole("combobox", {
-    name: "Platform owner",
+    name: "Platform operator",
   });
   await waitFor(() =>
     expect(picker.getAttribute("aria-disabled")).not.toBe("true"),
   );
   fireEvent.click(picker);
   const searchBox = await view.findByRole("combobox", {
-    name: "Search platform owners by name or email",
+    name: "Search platform operators by name or email",
   });
   fireEvent.change(searchBox, { target: { value: search } });
   fireEvent.click(await view.findByRole("option", { name: optionName }));
@@ -188,7 +202,7 @@ describe("Eve launch readiness panel", () => {
       ).disabled,
     ).toBe(true);
 
-    await choosePlatformOwner(view, "Ada", /Ada Owner/);
+    await choosePlatformOperator(view, "Ada", /Ada Operator/);
 
     expect(
       (
@@ -199,40 +213,51 @@ describe("Eve launch readiness panel", () => {
     ).toBe(false);
   });
 
-  it("says launch permissions can only go to a platform owner", async () => {
-    // grant_eve_launch_permission asserts the receiving profile is a
-    // super_admin, so the form must say so before the server refuses.
+  it("says launch permissions can only go to a platform operator who belongs to this organization", async () => {
+    // grant_eve_launch_permission accepts only a platform operator with a
+    // live row in the tenant, so the form says so before the server refuses.
     stubReadinessFetch(CLEARED_GOVERNANCE);
     const view = renderPanel();
 
     await view.findByText("Latest manifest");
 
+    const picker = await view.findByRole("combobox", {
+      name: "Platform operator",
+    });
+    expect(picker.getAttribute("aria-describedby")).toBeTruthy();
     expect(
-      await view.findByRole("combobox", { name: "Platform owner" }),
-    ).toBeTruthy();
+      view.getByText(
+        "Only platform operators who belong to this organization are listed.",
+      ).id,
+    ).toBe(picker.getAttribute("aria-describedby"));
     expect(
-      view.getByText(/can only be given to another platform owner/),
+      view.getByText(/can only be given to another platform operator/),
     ).toBeTruthy();
+    expect(view.queryByText(/platform owner/i)).toBeNull();
   });
 
-  it("lists platform owners by name and email and grants with the same payload", async () => {
+  it("lists the organization's platform operators by name and email and grants with the same payload", async () => {
     const fetchMock = stubReadinessFetch(CLEARED_GOVERNANCE);
     const view = renderPanel();
 
     await view.findByText("Latest manifest");
-    // Only platform owners are eligible, so the picker asks for exactly them.
+    // Only the operators the grant accepts here are eligible, so the picker
+    // asks the operator route for exactly them, and never the users API.
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url) === OPERATORS_URL),
+    ).toBe(true);
     expect(
       fetchMock.mock.calls.some(([url]) =>
-        String(url).startsWith("/api/admin/users?role=super_admin"),
+        String(url).startsWith("/api/admin/users"),
       ),
-    ).toBe(true);
+    ).toBe(false);
 
     fireEvent.change(
       view.getByRole("textbox", { name: "Reason for this change" }),
       { target: { value: "Second reviewer for launch" } },
     );
     // Searching by email finds a person who has no name on file.
-    await choosePlatformOwner(view, "grace@", /grace@example\.org/);
+    await choosePlatformOperator(view, "grace@", /grace@example\.org/);
     fireEvent.click(
       view.getByRole("button", { name: "Grant: Can switch Eve on" }),
     );
@@ -260,7 +285,7 @@ describe("Eve launch readiness panel", () => {
     const view = renderPanel();
 
     await view.findByText("Latest manifest");
-    await view.findByRole("combobox", { name: "Platform owner" });
+    await view.findByRole("combobox", { name: "Platform operator" });
 
     expect(view.queryByText(/release\.(review|activate)/)).toBeNull();
     for (const name of [
@@ -273,16 +298,58 @@ describe("Eve launch readiness panel", () => {
     }
   });
 
+  it("says when no platform operator belongs to the organization, and offers no one", async () => {
+    stubReadinessFetch(CLEARED_GOVERNANCE, { status: 200, operators: [] });
+    const view = renderPanel();
+
+    await view.findByText("Latest manifest");
+    const picker = await view.findByRole("combobox", {
+      name: "Platform operator",
+    });
+    await waitFor(() =>
+      expect(
+        view.getByText("No platform operators belong to this organization."),
+      ).toBeTruthy(),
+    );
+    expect(picker.getAttribute("aria-disabled")).toBe("true");
+    expect(
+      view.queryByRole("textbox", { name: "Platform operator's profile ID" }),
+    ).toBeNull();
+  });
+
+  it("shows only the non-operator sentence when the route refuses (403): no picker, no profile ID field, no retry", async () => {
+    stubReadinessFetch(CLEARED_GOVERNANCE, { status: 403 });
+    const view = renderPanel();
+
+    await view.findByText("Latest manifest");
+    expect(
+      await view.findByText(
+        "Only a platform operator can grant launch permissions.",
+      ),
+    ).toBeTruthy();
+    expect(
+      view.queryByRole("combobox", { name: "Platform operator" }),
+    ).toBeNull();
+    expect(view.queryByRole("textbox", { name: /profile ID/i })).toBeNull();
+    expect(
+      view.queryByRole("button", { name: "Load platform operators again" }),
+    ).toBeNull();
+    expect(
+      view.queryByText(/No platform operators belong to this organization/),
+    ).toBeNull();
+    expect(view.queryByText(/could not load/i)).toBeNull();
+  });
+
   it("falls back to a profile ID field when the people list cannot load", async () => {
-    const fetchMock = stubReadinessFetch(CLEARED_GOVERNANCE, { ok: false });
+    const fetchMock = stubReadinessFetch(CLEARED_GOVERNANCE, { status: 500 });
     const view = renderPanel();
 
     await view.findByText("Latest manifest");
     const idField = await view.findByRole("textbox", {
-      name: "Platform owner's profile ID",
+      name: "Platform operator's profile ID",
     });
     expect(
-      view.getByText(/could not load the list of platform owners/i),
+      view.getByText(/could not load the list of platform operators/i),
     ).toBeTruthy();
 
     fireEvent.change(
@@ -314,34 +381,34 @@ describe("Eve launch readiness panel", () => {
   });
 
   it("explains where to find a profile ID and retries the people list", async () => {
-    const people: { ok: boolean; users?: unknown[] } = { ok: false };
+    const people: PeopleAnswer = { status: 500 };
     const fetchMock = stubReadinessFetch(CLEARED_GOVERNANCE, people);
     const view = renderPanel();
 
-    await view.findByRole("textbox", { name: "Platform owner's profile ID" });
+    await view.findByRole("textbox", {
+      name: "Platform operator's profile ID",
+    });
     // Plain guidance on where the ID lives, not just a bare UUID box.
     expect(view.getByText(/copy it from Authentication > Users/i)).toBeTruthy();
     const retry = view.getByRole("button", {
-      name: "Load platform owners again",
+      name: "Load platform operators again",
     });
 
-    people.ok = true;
-    people.users = PLATFORM_OWNERS;
+    people.status = 200;
+    people.operators = PLATFORM_OPERATORS;
     await act(async () => {
       fireEvent.click(retry);
     });
 
     const picker = await view.findByRole("combobox", {
-      name: "Platform owner",
+      name: "Platform operator",
     });
     expect(picker).toBeTruthy();
     expect(
-      view.queryByRole("textbox", { name: "Platform owner's profile ID" }),
+      view.queryByRole("textbox", { name: "Platform operator's profile ID" }),
     ).toBeNull();
     expect(
-      fetchMock.mock.calls.filter(([url]) =>
-        String(url).startsWith("/api/admin/users"),
-      ),
+      fetchMock.mock.calls.filter(([url]) => String(url) === OPERATORS_URL),
     ).toHaveLength(2);
   });
 
