@@ -1,24 +1,32 @@
-import { readFileSync, readdirSync } from "node:fs";
+import {
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 
 import { normalizesToNothing } from "../../../../../packages/api/src/admin/workers/safety-text";
 
 const MIGRATIONS = "supabase/migrations";
 
-function latestDefinition(): string {
-  const files = readdirSync(MIGRATIONS)
+function latestDefinition(dir = MIGRATIONS): string {
+  const files = readdirSync(dir)
     .filter((f) => /^\d{14}_.+\.sql$/.test(f))
     .sort();
   const owner = files
     .filter((f) =>
       /CREATE (?:OR REPLACE )?FUNCTION private\.normalize_safety_text/.test(
-        readFileSync(`${MIGRATIONS}/${f}`, "utf8"),
+        readFileSync(join(dir, f), "utf8"),
       ),
     )
     .at(-1);
   if (!owner) throw new Error("no migration defines normalize_safety_text");
-  const text = readFileSync(`${MIGRATIONS}/${owner}`, "utf8");
+  const text = readFileSync(join(dir, owner), "utf8");
   const start = text.search(
     /CREATE (?:OR REPLACE )?FUNCTION private\.normalize_safety_text/,
   );
@@ -79,5 +87,46 @@ describe("AL-2678 r2b1 review fix: an alias the database's safety normalization 
     );
     expect(normalizesToNothing("\u200bA\u200b")).toBe(false);
     expect(normalizesToNothing("e\u0301")).toBe(false);
+  });
+});
+
+describe("AL-2678 r2b1 last round: the finder of the migration that last defines private.normalize_safety_text cannot pass on nothing", () => {
+  const dirs: string[] = [];
+  const folder = (files: Record<string, string>) => {
+    const dir = mkdtempSync(join(tmpdir(), "wp5p2r2b1-"));
+    dirs.push(dir);
+    for (const [name, text] of Object.entries(files))
+      writeFileSync(join(dir, name), text);
+    return dir;
+  };
+  afterAll(() => {
+    for (const dir of dirs) rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("reads a later definition written in lower case, not the earlier one in capitals", () => {
+    const dir = folder({
+      "20260101000000_first.sql":
+        "CREATE OR REPLACE FUNCTION private.normalize_safety_text(p_value TEXT)\nAS $fn$\n  SELECT 'first';\n$fn$;\n",
+      "20260102000000_second.sql":
+        "create or replace function private.normalize_safety_text(p_value text)\nas $fn$\n  select 'second';\n$fn$;\n",
+    });
+    expect(latestDefinition(dir)).toContain("'second'");
+  });
+
+  it("throws when no migration defines the function", () => {
+    const dir = folder({ "20260101000000_other.sql": "SELECT 1;\n" });
+    expect(() => latestDefinition(dir)).toThrow(
+      "no migration defines normalize_safety_text",
+    );
+  });
+
+  it("throws when the definition has no closing $fn$;", () => {
+    const dir = folder({
+      "20260101000000_open.sql":
+        "CREATE FUNCTION private.normalize_safety_text(p_value TEXT)\nAS $fn$\n  SELECT 1;\n",
+    });
+    expect(() => latestDefinition(dir)).toThrow(
+      "20260101000000_open.sql defines normalize_safety_text with no closing $fn$;",
+    );
   });
 });
