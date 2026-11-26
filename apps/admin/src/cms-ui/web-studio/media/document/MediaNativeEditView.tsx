@@ -10,7 +10,7 @@ import { MediaDeleteButton } from "../media-library-controls";
 import type { DocumentViewClientProps } from "payload";
 
 export function MediaNativeEditView(props: DocumentViewClientProps) {
-  const { id, data } = useDocumentInfo();
+  const { id, data, docPermissions } = useDocumentInfo();
   const router = useRouter();
   const alt = (data as { alt?: unknown } | undefined)?.alt;
   const label = typeof alt === "string" && alt.trim() ? alt : "This image";
@@ -19,7 +19,7 @@ export function MediaNativeEditView(props: DocumentViewClientProps) {
       {...props}
       studioCollection="media"
       documentActions={
-        typeof id === "string" ? (
+        typeof id === "string" && docPermissions?.update ? (
           <MediaDeleteButton
             id={id}
             label={label}
