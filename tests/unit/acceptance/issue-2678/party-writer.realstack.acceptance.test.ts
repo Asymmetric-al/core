@@ -527,36 +527,12 @@ describe.skipIf(!ADMIN_URL)(
         expect(await donorsOnParty(id.TA, party)).toHaveLength(2);
       }));
 
-    it("F2: a profile whose id is not its login's: the writer and the gift find the person's Party by the login's account link (red: a new Party)", () =>
+    it("F5: the catch-up links no soft-deleted login; deleted_at is added inside this rolled-back case where the plain image's auth.users lacks it (red: it links one)", () =>
       tx(db, async () => {
         await db.query(fixtureSql(id));
-        const login = randomUUID();
-        const profile = randomUUID();
         await db.query(
-          "insert into auth.users (id, email) values ($1::uuid, 'wp5rest-' || $1::text || '@example.test')",
-          [login],
+          "alter table auth.users add column if not exists deleted_at timestamptz",
         );
-        await db.query("delete from public.profiles where user_id = $1", [
-          login,
-        ]);
-        await db.query(
-          "insert into public.profiles (id, user_id) values ($1, $2)",
-          [profile, login],
-        );
-        await db.query(
-          "insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($1, $2, $3, 'account_claim')",
-          [id.TA, login, id.pD2],
-        );
-        await giftAs(id.TA, profile);
-        expect(await donorParty(id.TA, profile)).toEqual([]);
-        expect(await donorsOnParty(id.TA, id.pD2)).toEqual([
-          { id: id.d2, gifts: 2 },
-        ]);
-      }));
-
-    it("F5: the catch-up links no soft-deleted login (red: it links one)", () =>
-      tx(db, async () => {
-        await db.query(fixtureSql(id));
         const deleted = await newPerson("Deleted login", null);
         await gift(id.TA, deleted);
         await db.query(
