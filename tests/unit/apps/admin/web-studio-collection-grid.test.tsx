@@ -349,7 +349,7 @@ describe("NativeCollectionGrid", () => {
     }
   });
 
-  it("selects documents into Payload's selection and offers Payload's bulk actions", () => {
+  it("selects documents into Payload's selection and offers Payload's bulk actions, Publish and Unpublish excepted (WP6 rest, pull request 2)", () => {
     const view = setup({
       bulk: { collection: { slug: "pages" }, hasDeletePermission: true },
     });
@@ -368,8 +368,8 @@ describe("NativeCollectionGrid", () => {
     const bar = screen.getByRole("group", { name: "1 page selected" });
     expect(bar.textContent).toContain("1 page selected");
     expect(within(bar).getByRole("button", { name: "Edit 1" })).toBeTruthy();
-    expect(within(bar).getByRole("button", { name: "Publish" })).toBeTruthy();
-    expect(within(bar).getByRole("button", { name: "Unpublish" })).toBeTruthy();
+    expect(within(bar).queryByRole("button", { name: "Publish" })).toBeNull();
+    expect(within(bar).queryByRole("button", { name: "Unpublish" })).toBeNull();
     const remove = within(bar).getByRole("button", { name: "Delete" });
     expect(JSON.parse(remove.dataset.ids ?? "{}")).toEqual({
       pages: { all: false, ids: [1], totalCount: 1 },

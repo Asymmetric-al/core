@@ -9,6 +9,8 @@ import {
   type Route,
 } from "@playwright/test";
 
+import pg from "pg";
+
 import { adminBaseURL } from "./base-urls";
 import { bodyFromPageCopy } from "./helpers/received-bodies";
 import { organizationLabel, TENANTS } from "./helpers/tenant-address";
@@ -68,6 +70,30 @@ const base = adminBaseURL;
 const person = fixturePerson("twoTenants");
 const rowIn = (tenant: string) =>
   person.memberships.find((m) => m.tenantId === tenant)!.id;
+
+const MISSIONARY_IDS: Record<string, string> = {
+  [DEMO]: "4f0d6c1e-2a3b-4c5d-8e6f-7a8b9c0d1e2f",
+  [SECOND]: "5a1e7d2f-3b4c-4d6e-9f70-8b9c0d1e2f3a",
+};
+
+async function plantMissionary(id: string, missionaryId: string) {
+  const client = new pg.Client({
+    connectionString: process.env.DATABASE_URL,
+  });
+  await client.connect();
+  try {
+    await client.query(
+      "update cms.pages set family = 'missionary', missionary_id = $2 where id = $1",
+      [id, missionaryId],
+    );
+    await client.query(
+      "update cms._pages_v set version_family = 'missionary', version_missionary_id = $2 where parent_id = $1",
+      [id, missionaryId],
+    );
+  } finally {
+    await client.end();
+  }
+}
 
 const STALE_MESSAGE =
   "This page was opened for a different organization. Reload the page to continue; nothing was saved.";
@@ -219,7 +245,6 @@ async function acknowledgeStaleNotice(page: Page) {
  */
 async function openStarted(page: Page, url: string) {
   const inFlight = new Set<Request>();
-  let lastChange = Date.now();
   const opened = new URL(url).pathname;
   const started = (request: Request) => {
     const isServerFunction = Boolean(request.headers()["next-action"]);
@@ -232,10 +257,9 @@ async function openStarted(page: Page, url: string) {
     const from = request.headers()["referer"];
     if (!from || new URL(from).pathname !== opened) return;
     inFlight.add(request);
-    lastChange = Date.now();
   };
   const ended = (request: Request) => {
-    if (inFlight.delete(request)) lastChange = Date.now();
+    inFlight.delete(request);
   };
   page.on("request", started);
   page.on("requestfinished", ended);
@@ -254,11 +278,8 @@ async function openStarted(page: Page, url: string) {
     });
     await page.goto(url);
     await session;
-    await expect
-      .poll(() => inFlight.size === 0 && Date.now() - lastChange >= 1_000, {
-        intervals: [250],
-      })
-      .toBe(true);
+    await page.waitForLoadState("load");
+    await expect.poll(() => inFlight.size, { intervals: [250] }).toBe(0);
   } finally {
     page.off("request", started);
     page.off("requestfinished", ended);
@@ -1758,7 +1779,7 @@ test("@cms a link from Mission Control into Web Studio asks before working in an
 // is a placeholder, so this case answers that API itself, by the organization
 // each request names; the server's own filter is slice B's, proven by its
 // request-scope specs.
-test("@cms Web Studio's missionary and fund pickers list only the selected organization's (D-18: WP6 part 2b offers both pickers in New page, by starter)", async ({
+test("@cms Web Studio's missionary and fund pickers, and a saved document's missionary label, name only the selected organization's (D-18: WP6 part 2b offers both pickers in New page, by starter; JC6)", async ({
   page,
 }) => {
   const seen: Array<[string, string | undefined, string | undefined]> = [];
@@ -1783,7 +1804,10 @@ test("@cms Web Studio's missionary and fund pickers list only the selected organ
         kind === "missionaries"
           ? {
               missionaries: [
-                { id: `m-${tenant}`, profile: { full_name: own.missionary } },
+                {
+                  id: MISSIONARY_IDS[tenant],
+                  profile: { full_name: own.missionary },
+                },
               ],
             }
           : { funds: [{ id: `f-${tenant}`, name: own.fund }] },
@@ -1833,6 +1857,42 @@ test("@cms Web Studio's missionary and fund pickers list only the selected organ
     expect(
       seen.every(([, named, row]) => named === tenant && row === rowIn(tenant)),
     ).toBe(true);
+  }
+
+  const planted: Array<[string, string]> = [];
+  try {
+    for (const [tenant, other] of [
+      [DEMO, SECOND],
+      [SECOND, DEMO],
+    ] as const) {
+      await switchOrganization(page, base, tenant);
+      const id = await createDraftPage(
+        page,
+        base,
+        `Saved for ${tenant.slice(0, 8)} ${Date.now()}`,
+      );
+      planted.push([tenant, id]);
+      await plantMissionary(id, MISSIONARY_IDS[tenant]!);
+      seen.length = 0;
+      await page.goto(`${base}/web-studio/collections/pages/${id}`);
+      await expect(
+        page.getByText(rows[tenant]!.missionary).first(),
+      ).toBeVisible();
+      await expect(page.getByText(rows[other]!.missionary)).toHaveCount(0);
+      expect(seen.length).toBeGreaterThan(0);
+      expect(
+        seen.every(
+          ([, named, row]) => named === tenant && row === rowIn(tenant),
+        ),
+      ).toBe(true);
+    }
+  } finally {
+    for (const [tenant, id] of planted) {
+      await switchOrganization(page, base, tenant);
+      await page.request.delete(`${base}/web-studio/api/pages/${id}`, {
+        headers: await writeHeaders(page, base),
+      });
+    }
   }
 });
 
@@ -1909,4 +1969,215 @@ test("@cms an address under the chooser lands on the chooser in one document loa
   await page.evaluate(() => fetch("/api/health").then((r) => r.status));
   expect(await sameDocument(page)).toBe(true);
   expect(loads).toEqual(["/web-studio/organization"]);
+});
+
+const CLIPBOARD = "_payloadClipboard";
+
+async function clipboardOf(page: Page) {
+  return page.evaluate((key) => localStorage.getItem(key), CLIPBOARD);
+}
+
+async function draftPreviewPage(page: Page) {
+  const listed = (await (
+    await page.request.get(
+      `${base}/web-studio/api/pages?draft=true&depth=0&limit=1&where[slug][equals]=local-cms-draft-preview`,
+    )
+  ).json()) as { docs: Array<{ id: string }> };
+  const id = listed.docs[0]?.id;
+  if (!id) throw new Error("The organization has no draft preview page.");
+  return String(id);
+}
+
+async function layoutClipboardMenu(page: Page) {
+  const layout = page.locator(".field-type.blocks-field").first();
+  await expect(layout).toBeVisible();
+  await layout.getByRole("button", { name: "More options" }).first().click();
+  return page.getByRole("menu").last();
+}
+
+async function versionsOf(page: Page, id: string) {
+  const body = (await (
+    await page.request.get(
+      `${base}/web-studio/api/pages/versions?depth=0&limit=10&sort=createdAt&where[parent][equals]=${id}`,
+    )
+  ).json()) as { docs: Array<{ id: string }> };
+  return body.docs.map((doc) => String(doc.id));
+}
+
+async function lockCount(page: Page, id: string) {
+  const body = (await (
+    await page.request.get(
+      `${base}/web-studio/api/payload-locked-documents?where[document.value][equals]=${id}&where[document.relationTo][equals]=pages`,
+    )
+  ).json()) as { docs: unknown[] };
+  return body.docs.length;
+}
+
+async function restoreFrom(page: Page, version: string) {
+  return page.evaluate(async (versionId) => {
+    const response = await fetch(
+      `/web-studio/api/pages/versions/${versionId}?draft=true`,
+      { method: "POST", headers: { "content-type": "application/json" } },
+    );
+    return response.status;
+  }, version);
+}
+
+test("@cms no control offers publishing until WP7: the edit view and the bulk bar show no Publish, Unpublish or Schedule, a draft still saves, and a REST publish is refused (WP6 rest, pull request 2)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await enter(page, DEMO);
+  const stamp = `nopublish-${Date.now()}`;
+  const id = await createDraftPage(page, base, `No publish ${stamp}`);
+  try {
+    await page.goto(`${base}/web-studio/collections/pages/${id}`);
+    const title = page.getByRole("textbox", { name: /^Title/ }).first();
+    await expect(title).toHaveValue(`No publish ${stamp}`);
+    await expect(page.getByRole("button", { name: /publish/i })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /schedule/i })).toHaveCount(
+      0,
+    );
+    await title.fill(`Saved draft ${stamp}`);
+    const saved = page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === `/web-studio/api/pages/${id}` &&
+        response.request().method() === "PATCH" &&
+        !response.url().includes("autosave=true"),
+    );
+    await page.getByRole("button", { name: /^Save Draft$/i }).click();
+    expect((await saved).status()).toBe(200);
+
+    const publish = await page.request.patch(
+      `${base}/web-studio/api/pages/${id}`,
+      {
+        headers: await writeHeaders(page, base),
+        data: { _status: "published" },
+      },
+    );
+    expect(publish.status()).toBeGreaterThanOrEqual(400);
+
+    await page.goto(`${base}/web-studio/collections/pages`);
+    await page
+      .getByRole("checkbox", { name: `Select Saved draft ${stamp}` })
+      .first()
+      .check();
+    const bar = page.getByRole("group", { name: /selected/ });
+    await expect(bar.getByRole("button", { name: /^Edit/ })).toBeVisible();
+    await expect(bar.getByRole("button", { name: /publish/i })).toHaveCount(0);
+  } finally {
+    await cleanUp(page, "pages", id);
+  }
+});
+
+test("@cms an editor's own lock never says another editor is active; a restore over another person's lock is refused and the holder's restore passes (WP6 rest, pull request 2; #2809 F4)", async ({
+  page,
+  browser,
+}) => {
+  await signIn(page);
+  await enter(page, DEMO);
+  const stamp = `wsrestore-${Date.now()}`;
+  const id = await createDraftPage(page, base, `Restore ${stamp}`);
+  const second = await browser.newContext();
+  try {
+    for (const title of [`Second ${stamp}`, `Third ${stamp}`]) {
+      const patched = await page.request.patch(
+        `${base}/web-studio/api/pages/${id}?draft=true`,
+        { headers: await writeHeaders(page, base), data: { title } },
+      );
+      expect(patched.status()).toBe(200);
+    }
+    const [version] = await versionsOf(page, id);
+    expect(version).toBeTruthy();
+
+    await page.goto(`${base}/web-studio/collections/pages/${id}`);
+    const title = page.getByRole("textbox", { name: /^Title/ }).first();
+    await expect(title).toHaveValue(`Third ${stamp}`);
+    await title.fill(`Holder ${stamp}`);
+    await expect.poll(() => lockCount(page, id)).toBe(1);
+    await expect(page.getByText("Locked", { exact: true })).toHaveCount(0);
+    await expect(
+      page.getByText("Another editor is active on this document."),
+    ).toHaveCount(0);
+
+    const other = await second.newPage();
+    await signInAs(other, "admin", "demoAdmin", base);
+    await other.goto(`${base}/web-studio/collections/pages/${id}`);
+    await expect(
+      other.getByRole("heading", { name: "Document locked" }),
+    ).toBeVisible();
+    expect(await restoreFrom(other, version!)).toBe(423);
+    const stored = (await (
+      await page.request.get(`${base}/web-studio/api/pages/${id}?draft=true`)
+    ).json()) as { title: string };
+    expect(stored.title).not.toBe(`Restore ${stamp}`);
+
+    expect(await restoreFrom(page, version!)).toBe(200);
+  } finally {
+    await second.close();
+    await cleanUp(page, "pages", id);
+  }
+});
+
+test("@cms Payload's copy-and-paste store is empty after a change of organization, after sign-out from Web Studio and from Mission Control, and on the sign-in page; inside one organization it still pastes (WP6 rest, pull request 2; #2817)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await enter(page, SECOND);
+  const pasteTarget = await createDraftPage(
+    page,
+    base,
+    `Paste target ${Date.now()}`,
+  );
+  try {
+    await page.goto(
+      `${base}/web-studio/collections/pages/${await draftPreviewPage(page)}`,
+    );
+    const copyMenu = await layoutClipboardMenu(page);
+    await copyMenu.getByRole("button", { name: "Copy Field" }).click();
+    await expect.poll(() => clipboardOf(page)).not.toBeNull();
+
+    await page.goto(`${base}/web-studio/collections/pages/${pasteTarget}`);
+    const sameOrganization = await layoutClipboardMenu(page);
+    await expect(
+      sameOrganization.getByRole("button", { name: "Paste Field" }),
+    ).toBeEnabled();
+    await page.keyboard.press("Escape");
+
+    await switchOrganization(page, base, DEMO);
+    expect(await clipboardOf(page)).toBeNull();
+    await page.goto(
+      `${base}/web-studio/collections/pages/${await draftPreviewPage(page)}`,
+    );
+    const otherOrganization = await layoutClipboardMenu(page);
+    await expect(
+      otherOrganization.getByRole("button", { name: "Paste Field" }),
+    ).toBeDisabled();
+    await otherOrganization.getByRole("button", { name: "Copy Field" }).click();
+    await expect.poll(() => clipboardOf(page)).not.toBeNull();
+
+    await page.getByRole("button", { name: /account menu/ }).click();
+    await page.getByRole("menuitem", { name: "Log out" }).click();
+    await page.waitForURL((url) => url.pathname === "/login");
+    expect(await clipboardOf(page)).toBeNull();
+
+    await page.evaluate((key) => localStorage.setItem(key, "{}"), CLIPBOARD);
+    await page.goto(`${base}/login`);
+    await page.waitForLoadState("load");
+    await expect.poll(() => clipboardOf(page)).toBeNull();
+
+    await signIn(page);
+    await page.goto(`${base}/${DEMO}`);
+    await page.evaluate((key) => localStorage.setItem(key, "{}"), CLIPBOARD);
+    await page
+      .getByRole("button", { name: /account menu|user menu/i })
+      .first()
+      .click();
+    await page.getByRole("menuitem", { name: /log out|sign out/i }).click();
+    await page.waitForURL((url) => url.pathname === "/login");
+    await expect.poll(() => clipboardOf(page)).toBeNull();
+  } finally {
+    await signIn(page);
+    await cleanUp(page, "pages", pasteTarget);
+  }
 });

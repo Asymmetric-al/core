@@ -78,6 +78,7 @@ const fakeState = vi.hoisted(() => ({
   nextStreamError: null as null | { message: string; statusCode: string },
   nextUploadError: null as null | { message: string; statusCode: string },
   nextUpdateError: null as null | { message: string; code?: string },
+  nextStreamBody: null as null | ReadableStream<Uint8Array>,
 }));
 
 function matchesFilters(
@@ -344,6 +345,11 @@ function createFakeAdminClient() {
             };
             const executeStream = async () => {
               fakeState.streamDownloadCalls.push(objectPath);
+              if (fakeState.nextStreamBody) {
+                const body = fakeState.nextStreamBody;
+                fakeState.nextStreamBody = null;
+                return { data: body, error: null };
+              }
               if (fakeState.nextStreamError) {
                 const err = fakeState.nextStreamError;
                 fakeState.nextStreamError = null;
@@ -1672,5 +1678,138 @@ describe("media-store custody and Sharp sanitization", () => {
     await expect(
       readMediaVariant(authA, { assetId: transientDlId }),
     ).rejects.toMatchObject({ status: 502 });
+  });
+});
+
+describe("#2773 (WP6 rest, pull request 2): media-store before any screen calls it", () => {
+  const tenantA = randomUUID();
+  const authA = makeAuth(tenantA);
+
+  beforeEach(() => {
+    fakeState.rows.clear();
+    fakeState.objects.clear();
+    fakeState.uploadCalls = [];
+    fakeState.removeCalls = [];
+    fakeState.signedUploadCalls = [];
+    fakeState.downloadCalls = [];
+    fakeState.streamDownloadCalls = [];
+    fakeState.onBeforeCasUpdate = null;
+    fakeState.onBeforeStagingDownload = null;
+    fakeState.onAfterUpload = null;
+    fakeState.nextDownloadError = null;
+    fakeState.nextStreamError = null;
+    fakeState.nextUploadError = null;
+    fakeState.nextUpdateError = null;
+    fakeState.nextStreamBody = null;
+  });
+
+  async function stagedJpeg(assetId: string) {
+    fakeState.rows.set(assetId, makeRow({ id: assetId, tenant_id: tenantA }));
+    fakeState.objects.set(buildMediaStagingKey(tenantA, assetId), {
+      bytes: await createDirtyJpeg(640, 480),
+      contentType: "image/jpeg",
+      version: 1,
+    });
+  }
+
+  it("finalizes and reads an upper-case spelling of the asset id as the same asset", async () => {
+    const assetId = randomUUID();
+    await stagedJpeg(assetId);
+    const ready = await finalizeMediaUpload(authA, {
+      assetId: assetId.toUpperCase(),
+    });
+    expect(ready).toMatchObject({ id: assetId, status: "ready" });
+    expect(fakeState.rows.get(assetId)!.status).toBe("ready");
+    expect(fakeState.downloadCalls).toContain(
+      buildMediaStagingKey(tenantA, assetId),
+    );
+    const read = await readMediaVariant(authA, {
+      assetId: assetId.toUpperCase(),
+    });
+    expect(read.notModified).toBe(false);
+  });
+
+  it("treats If-None-Match * as a wildcard only when it is the whole value", async () => {
+    const assetId = randomUUID();
+    await stagedJpeg(assetId);
+    await finalizeMediaUpload(authA, { assetId });
+    const first = await readMediaVariant(authA, { assetId });
+    if (!first.notModified) await first.stream.cancel();
+    for (const header of ['"x,*,y"', '"abc", *', '*, W/"other"']) {
+      const read = await readMediaVariant(authA, {
+        assetId,
+        ifNoneMatch: header,
+      });
+      expect(read.notModified, header).toBe(false);
+      if (!read.notModified) await read.stream.cancel();
+    }
+    for (const header of [
+      "*",
+      " * ",
+      first.etag,
+      `W/${first.etag}`,
+      `"x", ${first.etag}`,
+    ]) {
+      const read = await readMediaVariant(authA, {
+        assetId,
+        ifNoneMatch: header,
+      });
+      expect(read.notModified, header).toBe(true);
+    }
+  });
+
+  it("refuses a malformed custody row read from the table, before any Storage read", async () => {
+    const assetId = randomUUID();
+    fakeState.rows.set(
+      assetId,
+      makeRow({
+        id: assetId,
+        tenant_id: tenantA,
+        status: "ready",
+        content_hash: "a".repeat(64),
+        declared_byte_size: "lots" as unknown as number,
+      }),
+    );
+    await expect(readMediaVariant(authA, { assetId })).rejects.toMatchObject({
+      status: 500,
+    });
+    const uploading = randomUUID();
+    await stagedJpeg(uploading);
+    fakeState.rows.get(uploading)!.created_at = 17 as unknown as string;
+    await expect(
+      finalizeMediaUpload(authA, { assetId: uploading }),
+    ).rejects.toMatchObject({ status: 500 });
+    expect(fakeState.downloadCalls).toEqual([]);
+    expect(fakeState.streamDownloadCalls).toEqual([]);
+    expect(fakeState.uploadCalls).toEqual([]);
+  });
+
+  it("refuses a malformed custody row the finalize command returns", async () => {
+    const assetId = randomUUID();
+    await stagedJpeg(assetId);
+    fakeState.onBeforeCasUpdate = (id) => {
+      fakeState.rows.get(id)!.created_at = 5 as unknown as string;
+    };
+    await expect(finalizeMediaUpload(authA, { assetId })).rejects.toMatchObject(
+      { status: 500 },
+    );
+  });
+
+  it("raises nothing when a viewer cancels while a read is pending", async () => {
+    const assetId = randomUUID();
+    await stagedJpeg(assetId);
+    await finalizeMediaUpload(authA, { assetId });
+    fakeState.nextStreamBody = new ReadableStream<Uint8Array>({
+      pull: () => new Promise<void>(() => undefined),
+      cancel: () => new Promise<void>((resolve) => setTimeout(resolve, 20)),
+    });
+    const read = await readMediaVariant(authA, { assetId });
+    if (read.notModified) throw new Error("expected a body");
+    const reader = read.stream.getReader();
+    const pending = reader.read();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await expect(reader.cancel("viewer left")).resolves.toBeUndefined();
+    await expect(pending).resolves.toMatchObject({ done: true });
+    await new Promise((resolve) => setTimeout(resolve, 40));
   });
 });

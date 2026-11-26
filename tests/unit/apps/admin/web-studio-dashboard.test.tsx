@@ -38,11 +38,13 @@ type FindArgs = { collection: string };
 
 function fakePayload({
   failCountFor,
+  failDraftCountFor,
   publishedParents = [],
   failVersions = false,
   failRecentFor = [],
 }: {
   failCountFor?: string;
+  failDraftCountFor?: string;
   /** Document ids that also have a published version (Payload's "changed"). */
   publishedParents?: string[];
   failVersions?: boolean;
@@ -64,8 +66,12 @@ function fakePayload({
     media: "alt",
   };
   return {
+    logger: { error: vi.fn() },
     count: vi.fn(async ({ collection, where }: CountArgs) => {
       if (collection === failCountFor) throw new Error("database down");
+      if (where && collection === failDraftCountFor) {
+        throw new Error("draft count down");
+      }
       return { totalDocs: where ? 1 : (totals[collection] ?? 0) };
     }),
     find: vi.fn(async ({ collection }: FindArgs) => {
@@ -204,7 +210,7 @@ describe("loadWebStudioDashboardData (D-18: WP6 part 2b leaves pages, navigation
     }
   });
 
-  it("keeps publication status unknown when the version check fails", async () => {
+  it("marks publication status unknown when the version check fails", async () => {
     const data = await loadWebStudioDashboardData({
       payload: fakePayload({
         publishedParents: ["pages-1"],
@@ -215,7 +221,7 @@ describe("loadWebStudioDashboardData (D-18: WP6 part 2b leaves pages, navigation
     });
     expect(
       data.recent.find((doc) => doc.collectionSlug === "pages"),
-    ).toMatchObject({ status: null });
+    ).toMatchObject({ status: "unknown" });
   });
 
   it.each(["all", ["pages"]] as const)(
@@ -444,5 +450,86 @@ describe("WebStudioDashboard (D-18: WP6 part 2b starts every page from New page 
     render(<WebStudioDashboard data={{ ...DATA, recent: [] }} />);
     expect(screen.queryByRole("region", { name: "Administration" })).toBeNull();
     expect(screen.getByText("No documents yet")).toBeTruthy();
+  });
+});
+
+describe("the dashboard's budget and its failures (WP6 rest, pull request 2, invariant 6)", () => {
+  const req = { user: { id: 1 } } as never;
+
+  it("makes at most ten Payload operations per load, every one on the request's own authority, so the resolver runs once", async () => {
+    const payload = fakePayload();
+    await loadWebStudioDashboardData({
+      payload: payload as never,
+      req,
+      permissions: { collections: {} } as never,
+    });
+    const calls = [
+      ...payload.count.mock.calls,
+      ...payload.find.mock.calls,
+      ...payload.findVersions.mock.calls,
+    ].map(([args]) => args as unknown as Record<string, unknown>);
+    expect(calls.length).toBeLessThanOrEqual(10);
+    for (const args of calls) {
+      expect(args.req).toBe(req);
+      expect(args.overrideAccess).toBe(false);
+    }
+  });
+
+  it("shows a failed draft count as an error, never as no drafts, and reports it", async () => {
+    const payload = fakePayload({ failDraftCountFor: "pages" });
+    const data = await loadWebStudioDashboardData({
+      payload: payload as never,
+      req,
+      permissions: { collections: {} } as never,
+    });
+    const pages = data.groups
+      .flatMap((group) => group.collections)
+      .find((collection) => collection.slug === "pages");
+    expect(pages).toMatchObject({
+      total: 14,
+      drafts: null,
+      draftsFailed: true,
+    });
+    render(<WebStudioDashboard data={data} />);
+    expect(screen.getByText("Draft count unavailable")).toBeTruthy();
+    expect(payload.logger.error).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a failed version-status read as an unknown status, and reports it", async () => {
+    const payload = fakePayload({ failVersions: true });
+    const data = await loadWebStudioDashboardData({
+      payload: payload as never,
+      req,
+      permissions: { collections: {} } as never,
+    });
+    expect(
+      data.recent.find((doc) => doc.collectionSlug === "pages"),
+    ).toMatchObject({ status: "unknown" });
+    render(<WebStudioDashboard data={data} />);
+    expect(screen.getByText("Status unavailable")).toBeTruthy();
+    expect(payload.logger.error).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports a failed count and a failed recent read as well as showing them", async () => {
+    const payload = fakePayload({
+      failCountFor: "media",
+      failRecentFor: ["navigation"],
+    });
+    await loadWebStudioDashboardData({
+      payload: payload as never,
+      req,
+      permissions: { collections: {} } as never,
+    });
+    expect(payload.logger.error).toHaveBeenCalledTimes(2);
+  });
+
+  it("reports nothing when every read succeeds", async () => {
+    const payload = fakePayload();
+    await loadWebStudioDashboardData({
+      payload: payload as never,
+      req,
+      permissions: { collections: {} } as never,
+    });
+    expect(payload.logger.error).not.toHaveBeenCalled();
   });
 });

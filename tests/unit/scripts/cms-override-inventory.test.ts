@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -159,5 +162,107 @@ describe("F2: the gate refuses every way to pass the override that is not the li
         "payload.find({ overrideAccess: false });\nconst text = 'overrideAccess: !x';\n",
       ),
     ).toEqual([]);
+  });
+});
+
+describe("#2839 item 1 (WP6 rest, pull request 2): what the gate missed", () => {
+  const rules = (file: string, source: string) =>
+    judge(file, source).map((failure) => failure.rule);
+
+  it.each([
+    ["a static import", 'import { serviceFind } from "./service-port";'],
+    [
+      "an import with its extension",
+      'import * as port from "./service-port.ts";',
+    ],
+    ["a re-export", 'export { serviceFind } from "./service-port";'],
+    ["a dynamic import", 'const port = await import("./service-port");'],
+  ])(
+    "refuses %s of the service port by its sibling in ports/",
+    (_label, code) => {
+      expect(
+        rules("apps/admin/src/cms/ports/actor-port.ts", `${code}\n`),
+      ).toEqual(["service-port-import"]);
+    },
+  );
+
+  it("refuses a relative import that climbs back into ports/ from elsewhere", () => {
+    expect(
+      rules(
+        "apps/admin/src/cms/tenancy/planted.ts",
+        'import { serviceFind } from "../ports/./service-port";\n',
+      ),
+    ).toEqual(["service-port-import"]);
+    expect(
+      rules(
+        "apps/admin/src/cms/planted.ts",
+        'import { serviceFind } from "./tenancy/../ports/service-port";\n',
+      ),
+    ).toEqual(["service-port-import"]);
+  });
+
+  it("leaves another module named service-port alone when it is not the port", () => {
+    expect(
+      rules(
+        "apps/admin/src/cms/planted.ts",
+        'import { x } from "./service-port";\n',
+      ),
+    ).toEqual([]);
+  });
+
+  it.each(["renameFile", "validate", "validateGlobal"])(
+    "refuses a computed key in payload.%s's options",
+    (method) => {
+      expect(
+        rules(
+          "apps/admin/src/cms/planted.ts",
+          `payload.${method}({ collection: 'media', [key]: true });\n`,
+        ),
+      ).toEqual(["override-access-computed-key"]);
+    },
+  );
+
+  it("refuses a computed key in payload.jobs.queue's options", () => {
+    expect(
+      rules(
+        "apps/admin/src/cms/planted.ts",
+        "await payload.jobs.queue({ task: 'schedulePublish', [key]: true });\n",
+      ),
+    ).toEqual(["override-access-computed-key"]);
+  });
+
+  it.each([
+    [
+      "a concatenated",
+      'const port = await import("../ports/" + "service-port");',
+    ],
+    ["a template", 'const port = await import(`../ports/${"service-port"}`);'],
+    [
+      "a concatenated required",
+      'const port = require("../ports/service" + "-port");',
+    ],
+  ])("refuses %s service-port specifier", (_label, code) => {
+    expect(rules("apps/admin/src/cms/planted.ts", `${code}\n`)).toEqual([
+      "service-port-import",
+    ]);
+  });
+
+  it("states its limits in cms-runtime.md", () => {
+    const doc = readFileSync(
+      path.join(process.cwd(), "docs/guides/architecture/cms-runtime.md"),
+      "utf8",
+    );
+    const section = doc.slice(
+      doc.indexOf("### What the override gate cannot see"),
+    );
+    expect(section.length).toBeGreaterThan(0);
+    for (const limit of [
+      "options passed through parameters or helpers",
+      "port functions passed on as values",
+      "computed keys outside a Local API call",
+      "computed import paths",
+    ]) {
+      expect(section).toContain(limit);
+    }
   });
 });
