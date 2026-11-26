@@ -70,6 +70,8 @@ const person = fixturePerson("twoTenants");
 const rowIn = (tenant: string) =>
   person.memberships.find((m) => m.tenantId === tenant)!.id;
 
+const NO_IDLE_CONNECTION = { connection: "close" };
+
 const MISSIONARY_IDS: Record<string, string> = {
   [DEMO]: "4f0d6c1e-2a3b-4c5d-8e6f-7a8b9c0d1e2f",
   [SECOND]: "5a1e7d2f-3b4c-4d6e-9f70-8b9c0d1e2f3a",
@@ -183,7 +185,7 @@ async function cleanUp(
     const headers = await writeHeaders(tab, base);
     for (const id of ids) {
       await tab.request.delete(`${base}/web-studio/api/${collection}/${id}`, {
-        headers,
+        headers: { ...headers, ...NO_IDLE_CONNECTION },
       });
     }
   } catch (error) {
@@ -284,6 +286,28 @@ async function openStarted(page: Page, url: string) {
     page.off("requestfinished", ended);
     page.off("requestfailed", ended);
   }
+}
+
+function requestSeen(page: Page, pathname: string) {
+  let seen = false;
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === pathname) seen = true;
+  });
+  return () => seen;
+}
+
+function refusedAutosaves(page: Page, collection: string, id: string) {
+  const bodies: string[] = [];
+  page.on("requestfailed", (request) => {
+    const url = new URL(request.url());
+    if (
+      url.pathname === `/web-studio/api/${collection}/${id}` &&
+      url.searchParams.get("autosave") === "true"
+    ) {
+      bodies.push(request.postData() ?? "");
+    }
+  });
+  return bodies;
 }
 
 async function holdOwnCalls(page: Page) {
@@ -986,15 +1010,23 @@ test("@cms Save in a page opened for one organization, after another tab switche
 
     // The editor's own Save is refused, named as a refusal, and it is the
     // Save that opens the one notice (council C2, r2 CR5).
+    const autosaves = refusedAutosaves(page, "pages", id);
     await title.fill(`Retargeted ${stamp}`);
+    await expect
+      .poll(() =>
+        autosaves.some((body) => body.includes(`Retargeted ${stamp}`)),
+      )
+      .toBe(true);
     await expect(staleNotice(page)).toHaveCount(0);
+    const saveDraft = page.getByRole("button", { name: /^Save Draft$/i });
+    await expect(saveDraft).toBeEnabled();
     const saved = page.waitForResponse(
       (r) =>
         new URL(r.url()).pathname === `/web-studio/api/pages/${id}` &&
         r.request().method() === "PATCH" &&
         !r.url().includes("autosave=true"),
     );
-    await page.getByRole("button", { name: /^Save Draft$/i }).click();
+    await saveDraft.click();
     const save = await saved;
     expect(save.status()).toBe(409);
     expect(save.headers()["x-asym-web-studio-refusal"]).toBe("scope_mismatch");
@@ -1358,9 +1390,9 @@ test("@cms two editors of one organization on a document with no versions: the s
   const stamp = `wslock-${Date.now()}`;
   // Navigation keeps no versions: an overwrite there could not be undone.
   const created = await page.request.post(`${base}/web-studio/api/navigation`, {
-    headers: await writeHeaders(page, base),
+    headers: { ...(await writeHeaders(page, base)), ...NO_IDLE_CONNECTION },
     data: {
-      site: await siteOf(page, base),
+      site: await siteOf(page, base, NO_IDLE_CONNECTION),
       label: `Lock ${stamp}`,
       items: [{ label: "Home", href: "https://example.org/" }],
     },
@@ -1372,6 +1404,7 @@ test("@cms two editors of one organization on a document with no versions: the s
       (await (
         await page.request.get(
           `${base}/web-studio/api/payload-locked-documents?where[document.value][equals]=${id}&where[document.relationTo][equals]=navigation`,
+          { headers: NO_IDLE_CONNECTION },
         )
       ).json()) as { docs: unknown[] }
     ).docs.length;
@@ -1422,7 +1455,9 @@ test("@cms two editors of one organization on a document with no versions: the s
       },
     });
     const stored = await (
-      await page.request.get(`${base}/web-studio/api/navigation/${id}`)
+      await page.request.get(`${base}/web-studio/api/navigation/${id}`, {
+        headers: NO_IDLE_CONNECTION,
+      })
     ).json();
     expect(stored.label).toBe(`Lock ${stamp}`);
 
@@ -1729,7 +1764,12 @@ test("@cms a link from Mission Control into Web Studio asks before working in an
   await enter(page, SECOND);
 
   // Mission Control, in the demo organization, at its own address.
+  const missionControlStarted = requestSeen(
+    page,
+    "/api/admin/workers/unreviewed-count",
+  );
   await page.goto(`${base}/${DEMO}`);
+  await expect.poll(missionControlStarted).toBe(true);
   const link = page.locator('a[href^="/web-studio"]').first();
   await expect(link).toHaveAttribute(
     "href",
@@ -1904,6 +1944,7 @@ test("@cms Log out in Web Studio ends the session as Mission Control's sign-out 
 }) => {
   await signIn(page);
   await enter(page, DEMO);
+  await openStarted(page, `${base}/web-studio/collections/pages`);
 
   const signOut = page.waitForResponse(
     (response) =>

@@ -9,6 +9,7 @@ import {
   type DonorPortalSnapshot,
 } from "./model";
 import { ApiHttpError } from "../shared/http-errors";
+import { findOwnDonor, type OwnDonorLookup } from "../shared/queries";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
@@ -170,28 +171,40 @@ export async function resolveDonorPortalContext(
   profileId: string,
   tenantId: string,
 ): Promise<DonorPortalContext> {
-  const profile = assertResult(
+  const { user_id: loginId, ...profile } = assertResult(
     (await supabaseAdmin
       .from("profiles")
-      .select(PROFILE_SELECT)
-      // The person's own profile, by id. Their donor row in this tenant,
-      // below, is what ties them to it (AL-2675, NR-68).
+      .select(`${PROFILE_SELECT}, user_id`)
+      // The person's own profile, by id. Its login's account link and Party
+      // in this tenant, below, name their donor (AL-2675, NR-68; AL-2678).
       .eq("id", profileId)
-      .single()) as SupabaseResult<DonorPortalProfileRow>,
+      .single()) as SupabaseResult<DonorPortalProfileRow & { user_id: string }>,
     "Donor profile not found",
   );
 
-  const donor = assertResult(
-    (await supabaseAdmin
-      .from("donors")
-      .select(DONOR_SELECT)
-      .eq("profile_id", profileId)
-      .eq("tenant_id", tenantId)
-      .single()) as SupabaseResult<DonorPortalDonorRow>,
-    "Donor record not found",
-  );
+  let lookup: OwnDonorLookup<DonorPortalDonorRow>;
+  try {
+    lookup = await findOwnDonor<DonorPortalDonorRow>(
+      supabaseAdmin,
+      { userId: loginId, tenantId },
+      DONOR_SELECT,
+    );
+  } catch (error) {
+    throw new ApiHttpError(
+      500,
+      error instanceof Error && error.message
+        ? error.message
+        : "Donor record not found",
+    );
+  }
+  if (lookup.status === "multiple") {
+    throw new ApiHttpError(409, "Multiple donor records for this account");
+  }
+  if (lookup.status === "none") {
+    throw new ApiHttpError(404, "Donor record not found");
+  }
 
-  return { profile, donor };
+  return { profile, donor: lookup.donor };
 }
 
 /**

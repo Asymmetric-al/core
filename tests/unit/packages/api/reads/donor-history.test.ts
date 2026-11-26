@@ -147,22 +147,66 @@ describe("api/reads/donor-history", () => {
     ).rejects.toThrow("history query failed");
   });
 
-  it("looks up the donor id from the profile id", async () => {
-    const donorLookupQuery = createThenableQuery({
-      data: { id: "donor-456" },
+  function linkedDonors(donorIds: string[] | null) {
+    const profile = createThenableQuery({
+      data: { user_id: "user-1" },
       error: null,
     });
-
+    const link = createThenableQuery({
+      data: donorIds === null ? null : { party_id: "party-1" },
+      error: null,
+    });
+    const donors = createThenableQuery({
+      data: (donorIds ?? []).map((id) => ({ id })),
+      error: null,
+    });
+    Object.assign(donors, { limit: vi.fn(() => donors) });
+    const from = vi.fn((table: string) =>
+      table === "profiles"
+        ? profile
+        : table === "account_links"
+          ? link
+          : donors,
+    );
     getAdminClientMock.mockReturnValue({
-      client: { from: vi.fn(() => donorLookupQuery) } as never,
+      client: { from } as never,
       error: null,
     });
+    return { from, profile, link, donors };
+  }
+
+  it("looks up the donor id through the account link of the profile's login, whose id is not the profile's, and its Party, never by profile_id (red: the link was read by the profile id)", async () => {
+    const { from, profile, link, donors } = linkedDonors(["donor-456"]);
 
     await expect(resolveDonorId(null, "tenant-1", "profile-1")).resolves.toBe(
       "donor-456",
     );
-    expect(donorLookupQuery.maybeSingle).toHaveBeenCalledTimes(1);
+    expect(from.mock.calls).toEqual([
+      ["profiles"],
+      ["account_links"],
+      ["donors"],
+    ]);
+    expect(profile.eq.mock.calls).toEqual([["id", "profile-1"]]);
+    expect(link.eq.mock.calls).toEqual([
+      ["tenant_id", "tenant-1"],
+      ["user_id", "user-1"],
+    ]);
+    expect(donors.eq.mock.calls).toEqual([
+      ["tenant_id", "tenant-1"],
+      ["party_id", "party-1"],
+    ]);
     expect(cacheLife).toHaveBeenCalledTimes(1);
+  });
+
+  it("names no donor for a profile with no link, or with two donors on its Party", async () => {
+    linkedDonors(null);
+    await expect(
+      resolveDonorId(null, "tenant-1", "profile-1"),
+    ).resolves.toBeNull();
+    linkedDonors(["donor-1", "donor-2"]);
+    await expect(
+      resolveDonorId(null, "tenant-1", "profile-1"),
+    ).resolves.toBeNull();
   });
 
   it("applies one cache lifetime when no profile id is available", async () => {
@@ -173,32 +217,16 @@ describe("api/reads/donor-history", () => {
   });
 
   it("returns the explicit donor id only when it matches the signed-in profile", async () => {
-    const donorLookupQuery = createThenableQuery({
-      data: { id: "donor-123" },
-      error: null,
-    });
-
-    getAdminClientMock.mockReturnValue({
-      client: { from: vi.fn(() => donorLookupQuery) } as never,
-      error: null,
-    });
+    const { link } = linkedDonors(["donor-123"]);
 
     await expect(
       resolveDonorId("donor-123", "tenant-1", "profile-1"),
     ).resolves.toBe("donor-123");
-    expect(donorLookupQuery.maybeSingle).toHaveBeenCalledTimes(1);
+    expect(link.maybeSingle).toHaveBeenCalledTimes(1);
   });
 
   it("rejects an explicit donor id that does not match the signed-in profile", async () => {
-    const donorLookupQuery = createThenableQuery({
-      data: { id: "donor-456" },
-      error: null,
-    });
-
-    getAdminClientMock.mockReturnValue({
-      client: { from: vi.fn(() => donorLookupQuery) } as never,
-      error: null,
-    });
+    linkedDonors(["donor-456"]);
 
     await expect(
       resolveDonorId("donor-123", "tenant-1", "profile-1"),

@@ -183,6 +183,13 @@ export const CAPABILITY_REGISTRY = deepFreeze({
     domain: "imports",
     source: "code",
   },
+  "partners.add": {
+    label: "Add partners",
+    description:
+      "Record a new partner of your own ministry in this organization: a new person and their partnership with your missionary assignment.",
+    domain: "partners",
+    source: "code",
+  },
 } as const satisfies Record<string, CapabilityMeta>);
 
 export type Capability = keyof typeof CAPABILITY_REGISTRY;

@@ -145,7 +145,7 @@ describe("the tenant's people in bounded pages (council round 1 on WP2a, F7)", (
   });
 
   it("lists the administrator as an approver", async () => {
-    // Only staff rows hold capabilities: the approver read asks for them.
+    // Only staff rows hold the approver capability: the read asks for them.
     for (const role of ["donor", "missionary"] as const)
       expect(
         membershipHasCapability(

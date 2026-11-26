@@ -68,11 +68,28 @@ it("parks focus on the form while saving, then returns it to Save on failure", a
   );
 });
 
-it("moves focus to the first invalid field when validation stops the save", async () => {
-  await openDialog({ ...donor, email: "" });
+it("moves focus to the first invalid field when validation stops the save (fix round F17: the e-mail is no longer a field, so an empty name is the invalid one)", async () => {
+  await openDialog(donor);
+  const name = screen.getByLabelText("Full name");
+  fireEvent.change(name, { target: { value: "" } });
   pressSave();
-  const email = screen.getByLabelText("Email");
-  await waitFor(() => expect(document.activeElement).toBe(email));
-  expect(email.getAttribute("aria-invalid")).toBe("true");
+  await waitFor(() => expect(document.activeElement).toBe(name));
+  expect(name.getAttribute("aria-invalid")).toBe("true");
   expect(boundary.update).not.toHaveBeenCalled();
+});
+
+it("saves a change of name alone for a partner with no e-mail, with no e-mail field and no e-mail in what it sends (fix round F17 case 4; red: the required e-mail stops the save)", async () => {
+  boundary.update.mockResolvedValueOnce({ ok: true });
+  await openDialog({ ...donor, email: "" });
+  expect(screen.queryByLabelText("Email")).toBeNull();
+  fireEvent.change(screen.getByLabelText("Full name"), {
+    target: { value: "Avery Stone Jr" },
+  });
+  pressSave();
+  await waitFor(() => expect(boundary.update).toHaveBeenCalledTimes(1));
+  const [{ value }] = boundary.update.mock.calls[0] as [
+    { value: Record<string, unknown> },
+  ];
+  expect(value.name).toBe("Avery Stone Jr");
+  expect(value).not.toHaveProperty("email");
 });

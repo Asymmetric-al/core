@@ -29,6 +29,7 @@ export type AdminCrmNotesListResponse = {
   rows: CrmNoteRow[];
   nextCursor: string | null;
   hasMore: boolean;
+  totalCount: number;
   limit: number;
   sort: AdminCrmNotesSort;
   filters: { search: string | null };

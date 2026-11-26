@@ -126,6 +126,37 @@ describe("beginGiftIntake", () => {
     });
   });
 
+  it("maps 23505, a key another kind of request holds, to conflict (AL-2678 WP5 rest, ruling Q-C: the saga answers only its own rows as replays)", async () => {
+    const rpc = mockRpc({
+      data: null,
+      error: {
+        code: "23505",
+        message:
+          'duplicate key value violates unique constraint "donation_saga_outbox_tenant_idempotency_key"',
+      },
+    });
+
+    await expect(beginGiftIntake({ ...BASE_INPUT, rpc })).resolves.toEqual({
+      ok: false,
+      code: "conflict",
+    });
+  });
+
+  it("maps 21000, a person whose Party has two donors in the organization, to multiple_donors (AL-2678 WP5 rest, fix round F2)", async () => {
+    const rpc = mockRpc({
+      data: null,
+      error: {
+        code: "21000",
+        message: "More than one donor for this person in the organization",
+      },
+    });
+
+    await expect(beginGiftIntake({ ...BASE_INPUT, rpc })).resolves.toEqual({
+      ok: false,
+      code: "multiple_donors",
+    });
+  });
+
   it("maps other RPC errors to failed with the RPC message", async () => {
     const rpc = mockRpc({
       data: null,

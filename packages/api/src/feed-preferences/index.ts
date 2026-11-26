@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { ApiHttpError, readJsonBodyOrNull } from "../shared/http-errors";
+import { findOwnDonor } from "../shared/queries";
 import {
   createRequestSessionClient,
   type RequestSessionClient,
@@ -85,10 +86,11 @@ async function openDonorSession(request: Request) {
 
 /**
  * Resolves the caller's donor in the tenant of the request's resolved donor
- * assignment, by profile ownership, with the user-JWT client, mirroring the
- * donor_feed_preferences own-row policies
- * (docs/security/donor-feed-preferences-rls.md). The token's tenant claim is
- * not read (AL-2675; plan 5.4 NX-03). Lookup errors throw.
+ * assignment through the caller's account link and its Party, with the
+ * user-JWT client, mirroring the donor_feed_preferences own-row policies
+ * (docs/security/donor-feed-preferences-rls.md); never by donors.profile_id
+ * (AL-2678, WP5 rest, ruling Q1 (b)). The token's tenant claim is not read
+ * (AL-2675; plan 5.4 NX-03). Lookup errors throw.
  */
 async function findDonorByAuthenticatedUser(
   supabase: SupabaseServerClient,
@@ -104,43 +106,20 @@ async function findDonorByAuthenticatedUser(
     return { status: "missing-tenant" };
   }
 
-  const { data: profiles, error: profilesError } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("user_id", auth.userId);
+  const lookup = await findOwnDonor<DonorIdentity>(supabase, {
+    userId: auth.userId,
+    tenantId,
+  });
 
-  if (profilesError) {
-    throw profilesError;
-  }
-
-  const profileIds = (profiles ?? []).map((profile) => profile.id);
-
-  if (profileIds.length === 0) {
+  if (lookup.status === "none") {
     return { status: "missing-donor" };
   }
 
-  const { data: donors, error: donorsError } = await supabase
-    .from("donors")
-    .select("id")
-    .eq("tenant_id", tenantId)
-    .in("profile_id", profileIds)
-    .limit(2);
-
-  if (donorsError) {
-    throw donorsError;
-  }
-
-  const [donor, ...otherDonors] = donors ?? [];
-
-  if (!donor) {
-    return { status: "missing-donor" };
-  }
-
-  if (otherDonors.length > 0) {
+  if (lookup.status === "multiple") {
     return { status: "multiple-donors" };
   }
 
-  return { status: "found", donor, tenantId };
+  return { status: "found", donor: lookup.donor, tenantId };
 }
 
 /** The response for every lookup outcome both handlers treat the same way. */

@@ -108,6 +108,32 @@ describe("GraphQL Gift intake adapter", () => {
       }),
     ).rejects.toThrow("Failed to create donation");
   });
+
+  it("throws Idempotency key already used when the saga refuses a key another kind of request holds (AL-2678 WP5 rest, ruling Q-C: 23505)", async () => {
+    rpc.mockResolvedValue({
+      data: null,
+      error: {
+        code: "23505",
+        message:
+          'duplicate key value violates unique constraint "donation_saga_outbox_tenant_idempotency_key"',
+      },
+    });
+
+    await expect(
+      beginGraphQLGiftIntake({
+        rpc,
+        tenantId: "tenant-1",
+        profileId: "profile-1",
+        actorUserId: "user-1",
+        missionaryId: "missionary-1",
+        amountCents: 2500,
+        currency: "usd",
+        idempotencyKey: "gift:don_1:create_payment",
+        ipAddress: null,
+        userAgent: null,
+      }),
+    ).rejects.toThrow(/^Idempotency key already used$/);
+  });
 });
 
 describe("GraphQL Ministry Update engagement adapter", () => {

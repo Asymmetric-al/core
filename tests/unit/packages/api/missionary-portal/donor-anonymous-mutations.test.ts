@@ -102,7 +102,6 @@ function database(preferences: unknown, ...fact: unknown[]) {
 
 const profilePatch = {
   name: "Anonymous donor",
-  email: "typed@example.test",
   phone: "",
   mobile: "",
   work_phone: "",
@@ -148,7 +147,7 @@ async function save(
 }
 
 describe.each(["tags", "profile"] as const)(
-  "missionary %s mutation identity boundary (D-18, AL-2678 WP5 part 2-r2s: the stub answers the guard read before the write, each call with its own chain)",
+  "missionary %s mutation identity boundary (D-18, AL-2678 WP5 part 2-r2s: the stub answers the guard read before the write, each call with its own chain; the profile edit carries no e-mail, fix round F17)",
   (kind) => {
     it.each([true, null, undefined, "false"])(
       "does not overwrite redacted donor data for preference %j",

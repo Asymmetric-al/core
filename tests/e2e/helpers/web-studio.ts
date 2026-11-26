@@ -157,10 +157,15 @@ async function json(response: APIResponse) {
   return response.json();
 }
 
-export async function siteOf(page: Page, baseURL: string) {
+export async function siteOf(
+  page: Page,
+  baseURL: string,
+  headers?: Record<string, string>,
+) {
   const body = (await json(
     await page.request.get(
       `${baseURL}/web-studio/api/site-presentations?limit=1&depth=0&sort=id`,
+      { headers },
     ),
   )) as { docs: Array<{ id: string }> };
   const site = body.docs[0]?.id;

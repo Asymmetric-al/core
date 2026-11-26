@@ -158,7 +158,7 @@ describe("missionary donor mutations", () => {
     expectOwnedBy(guard);
   });
 
-  it("builds donor profile updates server-side and ignores client-supplied timestamps (AL-2678 WP5 part 2-r2s: the UPDATE, on its own builder, is scoped by donor, tenant and missionary)", async () => {
+  it("builds donor profile updates server-side and ignores client-supplied timestamps, with no e-mail (AL-2678 WP5 part 2-r2s: the UPDATE, on its own builder, is scoped by donor, tenant and missionary; fix round F17 case 1: the edit never writes donors.email; red: the builder reads an e-mail)", async () => {
     const updateQuery = createUpdateQuery({
       data: { id: "donor-1" },
       error: null,
@@ -173,7 +173,6 @@ describe("missionary donor mutations", () => {
       tenantId: "tenant-1",
       patch: {
         name: " Ada Lovelace ",
-        email: "ada@example.org",
         phone: "",
         mobile: "555-0101",
         work_phone: "",

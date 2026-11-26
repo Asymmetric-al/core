@@ -73,7 +73,7 @@ function createJsonRequest(body: unknown) {
 function mockFeedPreferencesRoute(options?: {
   donors?: QueryResult<{ id: string }[]>;
   preferences?: QueryResult<Record<string, unknown>>;
-  profiles?: QueryResult<{ id: string }[]>;
+  link?: QueryResult<{ party_id: string }>;
   /** The resolved request: signed out, signed in with no assignment, or the donor's. */
   session?: "signed-out" | "no-assignment" | "donor";
 }) {
@@ -111,9 +111,8 @@ function mockFeedPreferencesRoute(options?: {
     isAuthenticated: session === "donor",
   });
   const user = session === "signed-out" ? null : { id: "user-1" };
-  const profilesQuery = createQuery(
-    options?.profiles ?? { data: [{ id: "profile-1" }], error: null },
-    "eq",
+  const linkQuery = createQuery(
+    options?.link ?? { data: { party_id: "party-1" }, error: null },
   );
   const donorQuery = createQuery(
     options?.donors ?? { data: [{ id: "donor-1" }], error: null },
@@ -135,8 +134,8 @@ function mockFeedPreferencesRoute(options?: {
     data: { user },
   });
   const from = vi.fn((table: string) => {
-    if (table === "profiles") {
-      return profilesQuery;
+    if (table === "account_links") {
+      return linkQuery;
     }
 
     if (table === "donors") {
@@ -155,7 +154,7 @@ function mockFeedPreferencesRoute(options?: {
     from,
   });
 
-  return { donorQuery, from, getUser, preferencesQuery, profilesQuery };
+  return { donorQuery, from, getUser, linkQuery, preferencesQuery };
 }
 
 const DEFAULT_RESPONSE = {
@@ -217,28 +216,39 @@ describe("feed preferences route", () => {
     }
   });
 
-  it("finds the donor by profile ownership in the assignment's tenant, never by email or claim", async () => {
-    const { donorQuery, preferencesQuery, profilesQuery } =
+  it("finds the donor through the caller's account link and its Party in the assignment's tenant, never by profile_id, email or claim (AL-2678 WP5 rest, ruling Q1 (b))", async () => {
+    const { donorQuery, from, linkQuery, preferencesQuery } =
       mockFeedPreferencesRoute();
 
     const response = await GET(createGetRequest());
 
     expect(response.status).toBe(200);
-    expect(profilesQuery.select).toHaveBeenCalledWith("id");
-    expect(profilesQuery.eq).toHaveBeenCalledWith("user_id", "user-1");
+    expect(from).not.toHaveBeenCalledWith("profiles");
+    expect(linkQuery.select).toHaveBeenCalledWith("party_id");
+    expect(linkQuery.eq.mock.calls).toEqual([
+      ["tenant_id", TENANT_ID],
+      ["user_id", "user-1"],
+    ]);
     expect(donorQuery.select).toHaveBeenCalledWith("id");
-    expect(donorQuery.eq).toHaveBeenCalledWith("tenant_id", TENANT_ID);
-    expect(donorQuery.in).toHaveBeenCalledWith("profile_id", ["profile-1"]);
+    expect(donorQuery.eq.mock.calls).toEqual([
+      ["tenant_id", TENANT_ID],
+      ["party_id", "party-1"],
+    ]);
+    expect(donorQuery.in).not.toHaveBeenCalled();
     expect(donorQuery.limit).toHaveBeenCalledWith(2);
-    for (const query of [profilesQuery, donorQuery]) {
+    for (const query of [linkQuery, donorQuery]) {
       expect(query.eq).not.toHaveBeenCalledWith("email", expect.anything());
+      expect(query.eq).not.toHaveBeenCalledWith(
+        "profile_id",
+        expect.anything(),
+      );
     }
     expect(preferencesQuery.eq).toHaveBeenCalledWith("donor_id", "donor-1");
     expect(preferencesQuery.eq).toHaveBeenCalledWith("tenant_id", TENANT_ID);
   });
 
   it.each([
-    ["no profile", { profiles: { data: [], error: null } }],
+    ["no account link in the tenant", { link: { data: null, error: null } }],
     ["no donor in the tenant", { donors: { data: [], error: null } }],
   ])(
     "returns the default GET response and a POST 404 when the caller has %s",
@@ -254,7 +264,7 @@ describe("feed preferences route", () => {
       expect(postResponse.status).toBe(404);
       expect(await postResponse.json()).toEqual({ error: "Donor not found" });
       expect(preferencesQuery.upsert).not.toHaveBeenCalled();
-      if (options.profiles) expect(donorQuery.limit).not.toHaveBeenCalled();
+      if ("link" in options) expect(donorQuery.limit).not.toHaveBeenCalled();
     },
   );
 
@@ -277,7 +287,7 @@ describe("feed preferences route", () => {
   });
 
   it.each([
-    ["profiles", { profiles: { data: null, error: { message: "denied" } } }],
+    ["account link", { link: { data: null, error: { message: "denied" } } }],
     ["donors", { donors: { data: null, error: { message: "denied" } } }],
   ])(
     "returns 500 instead of defaults when the %s lookup fails",

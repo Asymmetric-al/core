@@ -799,7 +799,6 @@ function DonorDetailEmpty({
             {profile?.id ? (
               <EmptyContent>
                 <AddPartnerDialog
-                  missionaryId={profile.id}
                   onSuccess={refreshDonors}
                   trigger={
                     <Button>

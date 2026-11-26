@@ -578,6 +578,7 @@ export default function CrmRelationshipsPageClient() {
     search,
     sorting,
     tableError,
+    totalCount,
   } = useAdminCrmRelationshipsGrid();
   const [openRelationship, setOpenRelationship] =
     useState<CrmRelationshipRow | null>(null);
@@ -622,7 +623,7 @@ export default function CrmRelationshipsPageClient() {
     panelWidth != null &&
     panelWidth < RELATIONSHIP_TOOLBAR_ONE_ROW_WIDTH;
   const sortId = sorting[0]?.id;
-  const totalRows = report?.totalRows ?? relationships.length;
+  const totalRows = totalCount ?? relationships.length;
   const desktopActions = (
     <div className="ms-auto flex items-center gap-2">
       <CrmRefreshButton refreshing={isLoading} onRefresh={onRefresh} />

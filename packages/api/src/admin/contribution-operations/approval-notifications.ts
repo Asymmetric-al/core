@@ -221,9 +221,9 @@ export async function listEligibleApprovers(
 ): Promise<EligibleApprover[]> {
   // AL-2675 (NR-68): the eligible approvers are the members of this tenant
   // whose live row holds contributions.approve_corrections in the registry
-  // (today the tenant administrator); never a profile role filter. Only
-  // staff rows hold capabilities, so the read asks for the staff rows and
-  // reads them to the end (council round 1 on WP2a, F7).
+  // (today the tenant administrator); never a profile role filter. The
+  // approver capability is held only by staff rows, so the read asks for the
+  // staff rows and reads them to the end (council round 1 on WP2a, F7).
   const [members, preferences] = await Promise.all([
     listTenantMembers(supabaseAdmin, tenantId, { role: "staff" }),
     // Paged to the end (council round 2 on WP2a, R2): nothing bounds this

@@ -72,6 +72,7 @@ export type AdminCrmRelationshipsListResponse = {
   rows: CrmRelationshipRow[];
   nextCursor: string | null;
   hasMore: boolean;
+  totalCount: number;
   limit: number;
   sort: AdminCrmRelationshipsSort;
   filters: {

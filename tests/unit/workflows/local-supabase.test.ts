@@ -322,6 +322,119 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     expect(config).toContain('"**/auth-worker-record.spec.ts"');
   });
 
+  it("runs the Add Partner journey through both of the Partners page's buttons with the auth round trips, started by the journey, the dialog, the command's route and the page (AL-2678 WP5 rest)", () => {
+    const config = readFileSync("playwright.auth-mail.config.ts", "utf8");
+    expect(config).toContain('"**/auth-add-partner.spec.ts"');
+    for (const file of [
+      "tests/e2e/auth-add-partner.spec.ts",
+      "packages/missionary/components/add-partner-*",
+      "packages/api/src/missionary-portal/**",
+      "apps/missionary/app/donors/**",
+      "apps/missionary/app/api/missionary/donors/**",
+    ])
+      expect(workflow).toContain(`      - ${file}\n`);
+  });
+
+  it("requires the own-donor proof through PostgREST after the worker-record proof, started by its suite and the readers it drives (AL-2678 WP5 rest)", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2678/own-donor-reads.postgrest.acceptance.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(
+      "Verify a signed-in person's own donor through account link and Party",
+    );
+    expect(run).toBeDefined();
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    for (const variable of [
+      "WP5_IDENTITY_IT_URL",
+      "WP5_IDENTITY_IT_DATABASE_URL",
+      "WP5_IDENTITY_IT_SERVICE_KEY",
+      "WP5_IDENTITY_IT_ANON_KEY",
+    ])
+      expect(run).toContain(variable);
+    expect(run).toContain("supabase -- status -o json");
+    expect(
+      run!.split("\n").map((line) => line.trim()),
+      "the Vitest run is a command of its own, so its exit status fails the step",
+    ).toContain(marker);
+    expect(run).not.toMatch(/\|\||;\s*true\b|\bset \+e\b|continue-on-error/);
+    expect(at(marker)).toBeGreaterThan(
+      at(
+        "bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/worker-record.postgrest.acceptance.test.ts",
+      ),
+    );
+    for (const file of [
+      suite,
+      "packages/api/src/donor-portal/**",
+      "packages/api/src/donations/**",
+      "packages/api/src/feed-preferences/**",
+      "packages/api/src/reads/**",
+      "packages/api/src/shared/queries.ts",
+      "packages/graphql/**",
+      "packages/lib/hooks/use-donor-record.ts",
+    ])
+      expect(workflow).toContain(`      - ${file}\n`);
+  });
+
+  it("requires the paged-CRM proof through PostgREST after the own-donor proof, started by its suite and the CRM module it drives (AL-2678 WP5 rest r6)", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2678/crm-pages.postgrest.acceptance.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(
+      "Verify the CRM's notes and relationships page exactly through PostgREST",
+    );
+    expect(run).toBeDefined();
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    for (const variable of [
+      "WP5_IDENTITY_IT_URL",
+      "WP5_IDENTITY_IT_DATABASE_URL",
+      "WP5_IDENTITY_IT_SERVICE_KEY",
+      "WP5_IDENTITY_IT_ANON_KEY",
+    ])
+      expect(run).toContain(variable);
+    expect(
+      run!.split("\n").map((line) => line.trim()),
+      "the Vitest run is a command of its own, so its exit status fails the step",
+    ).toContain(marker);
+    expect(run).not.toMatch(/\|\||;\s*true\b|\bset \+e\b|continue-on-error/);
+    expect(at(marker)).toBeGreaterThan(
+      at(
+        "bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/own-donor-reads.postgrest.acceptance.test.ts",
+      ),
+    );
+    for (const file of [suite, "packages/api/src/admin/crm/**"])
+      expect(workflow).toContain(`      - ${file}\n`);
+  });
+
+  it("requires the added partner's visibility through PostgREST after the paged-CRM proof, started by its suite and the module it drives (AL-2678 WP5 rest, fix round F7)", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2678/added-partner-visibility.postgrest.acceptance.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step(
+      "Verify that a partner added by hand is named to its missionary alone through PostgREST",
+    );
+    expect(run).toBeDefined();
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    for (const variable of [
+      "WP5_IDENTITY_IT_URL",
+      "WP5_IDENTITY_IT_DATABASE_URL",
+      "WP5_IDENTITY_IT_SERVICE_KEY",
+      "WP5_IDENTITY_IT_ANON_KEY",
+    ])
+      expect(run).toContain(variable);
+    expect(
+      run!.split("\n").map((line) => line.trim()),
+      "the Vitest run is a command of its own, so its exit status fails the step",
+    ).toContain(marker);
+    expect(run).not.toMatch(/\|\||;\s*true\b|\bset \+e\b|continue-on-error/);
+    expect(at(marker)).toBeGreaterThan(
+      at(
+        "bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/crm-pages.postgrest.acceptance.test.ts",
+      ),
+    );
+    for (const file of [suite, "packages/api/src/missionary-portal/**"])
+      expect(workflow).toContain(`      - ${file}\n`);
+  });
+
   it("exercises the missionary handlers against the stack after fingerprinting", () => {
     const suite =
       "tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts";

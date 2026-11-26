@@ -6,11 +6,12 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { DONATION_WITH_PARTIES_SELECT, giftMismatches } from "./select";
+import { callerGiftMismatches, DONATION_WITH_PARTIES_SELECT } from "./select";
 import { beginGiftIntake } from "../donate/begin-gift-intake";
 import { resolveRequiredIdempotencyKey } from "../donate/idempotency";
 import { processDonationSagaOutboxEvent } from "../donate/saga";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
+import { findOwnDonor, type OwnDonorLookup } from "../shared/queries";
 import { resolveTenantStripe } from "../stripe/tenant-client";
 
 function getSupabaseAdmin() {
@@ -37,23 +38,29 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    const { data: donor, error: donorError } = await supabaseAdmin
-      .from("donors")
-      .select("id")
-      .eq("profile_id", ctx.profileId)
-      .eq("tenant_id", ctx.tenantId)
-      .maybeSingle();
-
-    if (donorError) {
+    let lookup: OwnDonorLookup<{ id: string }>;
+    try {
+      lookup = await findOwnDonor(supabaseAdmin, {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+      });
+    } catch (donorError) {
       console.error("[donations] Donor lookup failed", donorError);
       return NextResponse.json(
         { error: "Failed to load donations" },
         { status: 500 },
       );
     }
-    if (!donor?.id) {
+    if (lookup.status === "multiple") {
+      return NextResponse.json(
+        { error: "Multiple donor records for this account" },
+        { status: 409 },
+      );
+    }
+    if (lookup.status === "none") {
       return NextResponse.json({ donations: [] });
     }
+    const donor = lookup.donor;
 
     const { data, error: queryError } = await supabaseAdmin
       .from("donations")
@@ -150,6 +157,16 @@ export async function POST(request: NextRequest) {
             { error: "Missionary not found" },
             { status: 404 },
           );
+        case "conflict":
+          return NextResponse.json(
+            { error: "Idempotency key already used" },
+            { status: 409 },
+          );
+        case "multiple_donors":
+          return NextResponse.json(
+            { error: "Multiple donor records for this account" },
+            { status: 409 },
+          );
         case "invalid":
           return NextResponse.json({ error: begin.message }, { status: 400 });
         case "incomplete":
@@ -176,6 +193,7 @@ export async function POST(request: NextRequest) {
       missionaryId,
       fundId: null,
     };
+    const caller = { userId: ctx.userId, tenantId: ctx.tenantId };
     const readBack = () =>
       supabaseAdmin
         .from("donations")
@@ -199,7 +217,12 @@ export async function POST(request: NextRequest) {
           { status: 201 },
         );
       }
-      const mismatched = giftMismatches(prior, requested);
+      const mismatched = await callerGiftMismatches(
+        supabaseAdmin,
+        prior,
+        requested,
+        caller,
+      );
       if (mismatched.length > 0) {
         return keyReused(begin.donationId, ctx.profileId, mismatched);
       }
@@ -238,7 +261,12 @@ export async function POST(request: NextRequest) {
       );
     }
     // Checked again after the saga: on a first request this is the first check.
-    const mismatched = giftMismatches(donation, requested);
+    const mismatched = await callerGiftMismatches(
+      supabaseAdmin,
+      donation,
+      requested,
+      caller,
+    );
     if (mismatched.length > 0) {
       return keyReused(begin.donationId, ctx.profileId, mismatched);
     }

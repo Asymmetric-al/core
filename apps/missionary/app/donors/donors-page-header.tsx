@@ -67,7 +67,6 @@ export function DonorsPageHeader() {
       </Button>
       {profile?.id && (
         <AddPartnerDialog
-          missionaryId={profile.id}
           onSuccess={refreshDonors}
           open={addOpen}
           onOpenChange={setAddOpen}

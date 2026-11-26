@@ -53,7 +53,9 @@ than why.
 
 4. **The default bundles per subject are the shape Phase 12 seeds.**
    `ROLE_DEFAULT_BUNDLES` in `capabilities/bundles.ts` is the role-grant seeding
-   shape for Phase 12 (#671). Donors and missionaries hold nothing by default.
+   shape for Phase 12 (#671). Donors hold nothing by default; missionaries
+   hold `missionary_partners` (`partners.add`, which no staff subject holds;
+   AL-2678, D-16 ruling on Add Partner, 26 November 2026).
    Each staff sub-role holds `staff_base` and its own bundle. The tenant
    administrator (`tenant_admin`) holds `staff_base`, `contribution_admin`,
    `permissions_proposer` and `tenant_administration`, so it can propose a

@@ -130,6 +130,10 @@ vi.mock("@asym/database/supabase/admin", () => {
     const one = (new Headers(init?.headers).get("accept") ?? "").includes(
       "vnd.pgrst.object",
     );
+    if (table === "account_links") {
+      const rows = [{ party_id: "party-1" }];
+      return Response.json(one ? rows[0] : rows);
+    }
     if (table === "donors") {
       const rows = [{ id: "donor-1" }];
       return Response.json(one ? rows[0] : rows);
@@ -200,7 +204,7 @@ beforeEach(() => {
 });
 
 describe("AL-2678 r1 (Q4): a donor's donations responses carry none of a worker's private columns", () => {
-  it("GET /api/donations names the worker by its public name and returns none of its private columns or its profile's name", async () => {
+  it("GET /api/donations names the worker by its public name and returns none of its private columns or its profile's name (D-18, AL-2678 WP5 rest: the stub answers the caller's account link, through which the donor is found)", async () => {
     const response = await GET(request("GET"));
     const body = (await response.json()) as {
       donations: Array<{ missionary: Row & { profile: Row } }>;

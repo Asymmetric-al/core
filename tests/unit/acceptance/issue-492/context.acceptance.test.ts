@@ -7,22 +7,25 @@ const EFF = "effective-capabilities";
 const financeHat = H.assignment("staff", "finance");
 
 describe("#492 criterion 6: multi-hat resolves only the selected context", () => {
-  it.each(["donor", "missionary"])(
-    "criterion 6: a selected %s assignment resolves to [] although the person also holds finance staff",
-    async (role) => {
+  it.each([
+    ["donor", []],
+    ["missionary", H.MISSIONARY],
+  ])(
+    "criterion 6: a selected %s assignment resolves to its own %j, nothing of the finance staff the person also holds (D-18, AL-2678 WP5 rest: a missionary holds partners.add)",
+    async (role, own) => {
       const { resolveEffectiveCapabilities: resolve } = await H.load(EFF);
       const selected = H.assignment(role, null);
-      expect(resolve(H.ctx(selected))).toEqual([]);
+      expect(resolve(H.ctx(selected))).toEqual(own);
       // Smuggled hats (memberships, profileRole, a third argument) never elevate.
       const hats = { memberships: [financeHat], profileRole: "super_admin" };
       const args = [{ ...H.ctx(selected), ...hats }, undefined, hats];
-      let out: unknown = [];
+      let out: unknown = own;
       try {
         out = Reflect.apply(resolve, undefined, args);
       } catch (e) {
         expect(H.CODES).toContain((e as { code?: string }).code);
       }
-      expect(out).toEqual([]);
+      expect(out).toEqual(own);
       expect(resolve.length).toBeLessThanOrEqual(2);
     },
   );

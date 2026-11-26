@@ -458,6 +458,7 @@ export default function CrmNotesPageClient() {
     search,
     sorting,
     tableError,
+    totalCount,
   } = useAdminCrmNotesGrid();
   const isMobile = useIsMobile();
   const writeBlocker = crmNoteWriteBlocker({
@@ -657,7 +658,10 @@ export default function CrmNotesPageClient() {
               footer={
                 notes.length > 0 || !configured ? (
                   <div className="flex flex-col gap-4">
-                    <CrmNotesCount count={notes.length} searching={searching} />
+                    <CrmNotesCount
+                      count={totalCount ?? notes.length}
+                      searching={searching}
+                    />
                     {/* Provenance only when it needs attention. */}
                     {configured ? null : (
                       <CrmDataSources mode={mode} configured={configured} />
