@@ -94,7 +94,10 @@ path of the tenant flow, and no application code called
 ### The page's own check
 
 8. **The page blocks: `export const instant = false`.** `readOperatorAdmission`
-   (`operator-area-server.ts`, React `cache()` per request) reads `headers()`
+   (`operator-area-server.ts`, React `cache()` per request) first awaits
+   `connection()`, so the page renders only for a request and is never
+   prefetched or prerendered (a runtime prerender would otherwise resolve
+   `headers()` and reach Supabase's clock), then reads `headers()`
    and the session through `@asym/database/supabase/server`, and both
    `generateMetadata` and the page await it before anything renders. A
    refusal calls `notFound()` before any output, so it is a `404` and not a
@@ -117,7 +120,10 @@ path of the tenant flow, and no application code called
    The secret lives only in the enrolment panel's `useState`, is cleared on
    success, Cancel (which removes the unverified factor), sign-out and
    unmount, and the QR code, the key and each code field carry
-   `data-sentry-block`. Auth's messages are never shown; each known error code
+   `data-sentry-block`. The QR is drawn from Auth's SVG, trimmed and
+   URL-encoded: Auth answers raw SVG text ending with a newline, which
+   `next/image` refuses. The key sits in a fieldset named "Key"; ARIA
+   prohibits naming the `code` element itself. Auth's messages are never shown; each known error code
    maps to a fixed text, and `insufficient_aal` re-reads the state.
 
 10. **The state, in strict order,** from the live factor list
