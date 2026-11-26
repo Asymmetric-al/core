@@ -27,7 +27,8 @@ import {
   evaluateTenantRlsCatalog,
   runTenantRlsCatalogGate,
 } from "../../../../scripts/verify/tenant-rls-catalog.mjs";
-import { Replay } from "../issue-2674/privileges-harness";
+import { postAssert } from "../issue-2674/harness";
+import { Replay, migrationFile } from "../issue-2674/privileges-harness";
 
 const BUILD_TIMEOUT = 900_000;
 const SEALED = [
@@ -37,17 +38,94 @@ const SEALED = [
   "donation_intake_lines",
   "payment_observations",
 ] as const;
+const WRITERS_ORDER = [
+  "donations",
+  "donation_intake_lines",
+  "payment_observations",
+  "staged_gifts",
+  "staged_gift_allocations",
+];
 const FOUR = ["TRUNCATE", "REFERENCES", "TRIGGER", "MAINTAIN"] as const;
+const MIGRATION = migrationFile("wp8a2_service_role_privileges");
+const POST_ASSERT_TAG = "service_role privileges and sealed truncate";
 
 type Answer = { code: string | null; message?: string; detail?: string };
 
 const readJson = (file: string) =>
   JSON.parse(readFileSync(file, "utf8")) as unknown;
 
+const migrationText = () => readFileSync(MIGRATION, "utf8");
+
+const forwardBody = () => {
+  const m = /^BEGIN;$([\s\S]*)^COMMIT;$/m.exec(migrationText());
+  if (!m) throw new Error(`${MIGRATION} has no BEGIN; ... COMMIT; body`);
+  return m[1]!;
+};
+
+const downStatements = () => {
+  const lines = migrationText().split("\n");
+  const start = lines.indexOf("--   BEGIN;");
+  const end = lines.indexOf("--   COMMIT;", start);
+  if (start < 0 || end < 0) throw new Error("the header's Down is missing");
+  return lines
+    .slice(start + 1, end)
+    .map((line) => line.replace(/^-- {3}/, ""))
+    .join("\n");
+};
+
+const GUARD_SQL = `SELECT p.oid::regprocedure::text AS function
+   FROM pg_proc p
+   JOIN pg_namespace n ON n.oid = p.pronamespace
+  WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
+    AND NOT p.prosecdef
+    AND (has_function_privilege('service_role', p.oid, 'EXECUTE')
+         OR EXISTS (SELECT 1 FROM pg_trigger t
+                      JOIN pg_class c ON c.oid = t.tgrelid
+                      JOIN pg_namespace tn ON tn.oid = c.relnamespace
+                     WHERE t.tgfoid = p.oid AND tn.nspname = 'public'))
+    AND (p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), ''))
+        ~* '(\\mlock\\s+(table\\s+)?(only\\s+)?[a-z0-9_."]+\\s*\\*?\\s*(,|;|\\min\\M|\\mnowait\\M|$)|\\mvacuum\\M|\\manalyze\\M|\\mcluster\\M|\\mreindex\\M|refresh\\s+materialized\\s+view)'
+  ORDER BY 1`;
+
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   "the migrate job sets TENANT_GUARD_IT_ADMIN_DATABASE_URL (fails, never skips)",
   () => expect(ADMIN_URL).not.toBe(""),
 );
+
+describe("AL-2681 WP8a part 2, issue 2841: the migration's text (fix round)", () => {
+  it("R6: the forward file takes SHARE ROW EXCLUSIVE on the five sealed tables first, in the writers' order (donations, intake lines, observations, staged gifts, allocations), and creates their triggers in that order", () => {
+    const body = forwardBody();
+    const locks = [
+      ...body.matchAll(
+        /^LOCK TABLE public\.(\w+) IN SHARE ROW EXCLUSIVE MODE;$/gm,
+      ),
+    ];
+    expect(locks.map((m) => m[1])).toEqual(WRITERS_ORDER);
+    const triggers = [...body.matchAll(/^CREATE TRIGGER (\w+)_no_truncate$/gm)];
+    expect(triggers.map((m) => m[1])).toEqual(WRITERS_ORDER);
+    expect(locks.at(-1)!.index!).toBeLessThan(
+      body.indexOf("REVOKE TRUNCATE, REFERENCES, TRIGGER"),
+    );
+  });
+
+  it("R3: the header's Down locks all five sealed tables before its check, and its check refuses a line-based row in any of the five", () => {
+    const down = downStatements();
+    const lock = /LOCK TABLE ([\w.,\s]+) IN ACCESS EXCLUSIVE MODE;/.exec(down);
+    expect(lock).not.toBeNull();
+    expect(
+      lock![1]!
+        .split(",")
+        .map((t) => t.trim())
+        .sort(),
+    ).toEqual(SEALED.map((t) => `public.${t}`).sort());
+    const check = down.indexOf("DO $$");
+    expect(lock!.index).toBeLessThan(check);
+    const guard = down.slice(check, down.indexOf("$$;", check));
+    for (const table of SEALED)
+      expect(guard, table).toContain(`FROM public.${table}`);
+    expect(down.indexOf("DROP TRIGGER")).toBeGreaterThan(check);
+  });
+});
 
 describe.skipIf(!ADMIN_URL)(
   "AL-2681 WP8a part 2, issue 2841: service_role loses TRUNCATE, REFERENCES, TRIGGER, MAINTAIN in public and CREATE on authz, and the five sealed tables refuse TRUNCATE (a replay with the hosted defaults; each table holds a committed line-based row)",
@@ -283,6 +361,7 @@ describe.skipIf(!ADMIN_URL)(
              FROM pg_default_acl d
             CROSS JOIN LATERAL aclexplode(d.defaclacl) a
             WHERE d.defaclrole = 'postgres'::regrole
+              AND d.defaclnamespace IN ('public'::regnamespace, 0)
               AND a.grantee = 'service_role'::regrole
               AND a.privilege_type = ANY ($1::text[])`,
           [FOUR],
@@ -356,20 +435,128 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("no SECURITY INVOKER function service_role may execute locks or maintains a table, so none needs MAINTAIN (guard)", async () => {
+    it("R2: the gate and the post-assert name a TRIGGER on a sealed table and CREATE on authz that service_role reaches only by SET ROLE (WITH INHERIT FALSE, SET TRUE)", async () => {
+      const holder = `acc2841_${randomUUID().replaceAll("-", "")}`;
+      const plant = `CREATE ROLE ${holder} NOLOGIN;
+         GRANT TRIGGER ON public.staged_gifts TO ${holder};
+         GRANT USAGE, CREATE ON SCHEMA authz TO ${holder};
+         GRANT ${holder} TO service_role WITH INHERIT FALSE, SET TRUE;`;
+      await db.query("BEGIN");
+      try {
+        await db.query(plant);
+        const snapshot = JSON.parse(
+          String(
+            (await db.query({ text: TENANT_RLS_CATALOG_SQL, rowMode: "array" }))
+              .rows[0][0],
+          ),
+        );
+        const evaluated = evaluateTenantRlsCatalog(
+          snapshot,
+          readJson(TENANT_RLS_EXCEPTIONS_PATH),
+          readJson(ANON_DEFINER_ALLOWLIST_PATH),
+          readJson(TENANT_POLICY_EXCEPTIONS_PATH),
+        );
+        expect(
+          evaluated.failures
+            .filter((f: { code: string }) => f.code.startsWith("SERVICE_ROLE"))
+            .map(
+              (f: { code: string; table?: string }) => `${f.code} ${f.table}`,
+            ),
+        ).toEqual([
+          "SERVICE_ROLE_UNSAFE_PRIVILEGE staged_gifts",
+          "SERVICE_ROLE_SCHEMA_CREATE authz",
+        ]);
+        await db.query("SAVEPOINT acc2841_assert");
+        const refused = await db
+          .query(postAssert(MIGRATION, POST_ASSERT_TAG))
+          .then(
+            () => null,
+            (error: { code?: string; message?: string }) =>
+              `${error.code} ${error.message}`,
+          );
+        await db.query("ROLLBACK TO SAVEPOINT acc2841_assert");
+        expect(refused).toBe(
+          "P0001 AL-2681: service_role still holds in public: staged_gifts TRIGGER",
+        );
+      } finally {
+        await db.query("ROLLBACK");
+      }
+      await db.query("BEGIN");
+      try {
+        await db.query(
+          `CREATE ROLE ${holder} NOLOGIN;
+           GRANT USAGE, CREATE ON SCHEMA authz TO ${holder};
+           GRANT ${holder} TO service_role WITH INHERIT FALSE, SET TRUE;`,
+        );
+        const refused = await db
+          .query(postAssert(MIGRATION, POST_ASSERT_TAG))
+          .then(
+            () => null,
+            (error: { code?: string; message?: string }) =>
+              `${error.code} ${error.message}`,
+          );
+        expect(refused).toBe(
+          "P0001 AL-2681: service_role still holds CREATE on schema: authz",
+        );
+      } finally {
+        await db.query("ROLLBACK");
+      }
+    });
+
+    it("no SECURITY INVOKER function that service_role may execute, nor any trigger function on a table in public, locks or maintains a table, so none needs MAINTAIN (guard)", async () => {
+      expect(await rows(GUARD_SQL)).toEqual([]);
+    });
+
+    it("R5: that guard turns red on a SECURITY INVOKER trigger function on a table in public that service_role may not execute, with a bare LOCK TABLE, LOCK TABLE ONLY, two tables, a name with digits, and ANALYZE", async () => {
+      await db.query("BEGIN");
+      try {
+        const bodies: Record<string, string> = {
+          acc2841_bare: "LOCK TABLE public.acc2841_t2;",
+          acc2841_only: "LOCK TABLE ONLY public.acc2841_t2 IN SHARE MODE;",
+          acc2841_two: "LOCK public.funds, public.acc2841_t2 IN SHARE MODE;",
+          acc2841_analyze: "ANALYZE public.acc2841_t2;",
+        };
+        await db.query("CREATE TABLE public.acc2841_t2 (id integer)");
+        for (const [name, statement] of Object.entries(bodies))
+          await db.query(
+            `CREATE FUNCTION private.${name}() RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path = '' AS $f$ BEGIN ${statement} RETURN NEW; END $f$;
+             REVOKE ALL ON FUNCTION private.${name}() FROM PUBLIC;
+             CREATE TRIGGER ${name} BEFORE INSERT ON public.acc2841_t2 FOR EACH ROW EXECUTE FUNCTION private.${name}();`,
+          );
+        expect(
+          await rows(
+            "SELECT bool_or(has_function_privilege('service_role', p.oid, 'EXECUTE')) AS any FROM pg_proc p WHERE p.proname LIKE 'acc2841\\_%'",
+          ),
+        ).toEqual([{ any: false }]);
+        expect((await rows(GUARD_SQL)).map((r) => r.function)).toEqual(
+          Object.keys(bodies)
+            .sort()
+            .map((name) => `private.${name}()`),
+        );
+      } finally {
+        await db.query("ROLLBACK");
+      }
+    });
+
+    it("R3: the header's Down refuses, 55000, while a line-based row exists, and changes nothing", async () => {
+      await db.query("BEGIN");
+      try {
+        const refused = await db.query(downStatements()).then(
+          () => null,
+          (error: { code?: string; message?: string }) =>
+            `${error.code} ${error.message}`,
+        );
+        expect(refused).toBe(
+          "55000 Down of 20261126190000 refused: a line-based row exists",
+        );
+      } finally {
+        await db.query("ROLLBACK");
+      }
       expect(
         await rows(
-          `SELECT p.oid::regprocedure::text AS function
-             FROM pg_proc p
-             JOIN pg_namespace n ON n.oid = p.pronamespace
-            WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
-              AND NOT p.prosecdef
-              AND has_function_privilege('service_role', p.oid, 'EXECUTE')
-              AND (p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), ''))
-                  ~* '(\\mlock\\M\\s+(table\\s+)?[a-z_."]+\\s+in\\s|\\mvacuum\\M|\\manalyze\\M|\\mcluster\\M|\\mreindex\\M|refresh\\s+materialized\\s+view)'
-            ORDER BY 1`,
+          "SELECT count(*)::int AS n FROM pg_trigger WHERE tgname LIKE '%\\_no\\_truncate' AND tgrelid IN (SELECT oid FROM pg_class WHERE relnamespace = 'public'::regnamespace)",
         ),
-      ).toEqual([]);
+      ).toEqual([{ n: 5 }]);
     });
 
     it("postgres, replica mode: the existing removeTwoTenants cleanup still runs and removes both organizations' rows from the five tables (guard)", async () => {
@@ -387,6 +574,119 @@ describe.skipIf(!ADMIN_URL)(
           [[fx.A.tenant, fx.B.tenant]],
         ),
       ).toEqual([]);
+    });
+
+    it("R3: with no line-based row left, the Down drops the five triggers and the function and re-grants nothing (rolled back)", async () => {
+      await db.query("BEGIN");
+      try {
+        await db.query(downStatements());
+        expect(
+          await rows(
+            `SELECT (SELECT count(*)::int FROM pg_trigger WHERE tgname LIKE '%\\_no\\_truncate' AND tgrelid IN (SELECT oid FROM pg_class WHERE relnamespace = 'public'::regnamespace)) AS triggers,
+                    to_regprocedure('private.refuse_sealed_truncate()') IS NULL AS function_gone,
+                    has_table_privilege('service_role', 'public.donations', 'TRUNCATE') AS truncate,
+                    has_schema_privilege('service_role', 'authz', 'CREATE') AS create_authz`,
+          ),
+        ).toEqual([
+          {
+            triggers: 0,
+            function_gone: true,
+            truncate: false,
+            create_authz: false,
+          },
+        ]);
+      } finally {
+        await db.query("ROLLBACK");
+      }
+    });
+  },
+);
+
+describe.skipIf(!ADMIN_URL)(
+  "AL-2681 WP8a part 2, issue 2841, F0: the migration on a replay with the hosted defaults whose postgres also holds default privileges in another schema (as on the platform's storage) and for every schema",
+  () => {
+    let replay: Replay;
+    let db: pg.Client;
+    const rows = async (sql: string, params: unknown[] = []) =>
+      (await db.query(sql, params)).rows as Record<string, unknown>[];
+    let applied: string | null = "not run";
+
+    beforeAll(async () => {
+      replay = await new Replay(ADMIN_URL, true).build((file) =>
+        MIGRATION.endsWith(`/${file}`),
+      );
+      db = new pg.Client({ connectionString: replay.url });
+      await db.connect();
+      await db.query(
+        `CREATE SCHEMA acc2841_platform;
+         ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA acc2841_platform GRANT ALL ON TABLES TO service_role;
+         ALTER DEFAULT PRIVILEGES FOR ROLE postgres GRANT TRUNCATE, TRIGGER ON TABLES TO service_role;`,
+      );
+      applied = await db.query(migrationText()).then(
+        () => null,
+        async (error: { code?: string; message?: string }) => {
+          await db.query("ROLLBACK").catch(() => undefined);
+          return `${error.code} ${error.message}`;
+        },
+      );
+    }, BUILD_TIMEOUT);
+
+    afterAll(async () => {
+      await db?.end().catch(() => undefined);
+      await replay?.close();
+    }, 120_000);
+
+    it("the migration commits", () => {
+      expect(applied).toBeNull();
+    });
+
+    it("a table postgres then creates in public gives service_role none of the four, the global entry no longer grants them, and the other schema's default privileges are as they were", async () => {
+      expect(
+        await rows(
+          `SELECT coalesce(nullif(d.defaclnamespace, 0)::regnamespace::text, 'every schema') AS scope,
+                  string_agg(a.privilege_type, ',' ORDER BY a.privilege_type) AS privileges
+             FROM pg_default_acl d
+            CROSS JOIN LATERAL aclexplode(d.defaclacl) a
+            WHERE d.defaclrole = 'postgres'::regrole AND a.grantee = 'service_role'::regrole
+              AND d.defaclobjtype = 'r'
+            GROUP BY 1 ORDER BY 1`,
+        ),
+      ).toEqual([
+        {
+          scope: "acc2841_platform",
+          privileges:
+            "DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE",
+        },
+        { scope: "public", privileges: "DELETE,INSERT,SELECT,UPDATE" },
+      ]);
+      await db.query("BEGIN");
+      try {
+        await db.query(
+          "CREATE TABLE public.acc2841_later (id integer); CREATE TABLE acc2841_platform.acc2841_later (id integer)",
+        );
+        expect(
+          await rows(
+            `SELECT t AS "table", string_agg(p, ',' ORDER BY p) FILTER (WHERE has_table_privilege('service_role', t, p)) AS held
+               FROM unnest(array['public.acc2841_later', 'acc2841_platform.acc2841_later']) AS t
+              CROSS JOIN unnest(array['TRUNCATE', 'REFERENCES', 'TRIGGER', 'MAINTAIN']) AS p
+              GROUP BY t ORDER BY t`,
+          ),
+        ).toEqual([
+          {
+            table: "acc2841_platform.acc2841_later",
+            held: "MAINTAIN,REFERENCES,TRIGGER,TRUNCATE",
+          },
+          { table: "public.acc2841_later", held: null },
+        ]);
+      } finally {
+        await db.query("ROLLBACK");
+      }
+    });
+
+    it("the catalog gate passes it: the gate reads no default privileges, the relations of public only, and CREATE on the schemas the release fingerprint covers", () => {
+      const gate = runTenantRlsCatalogGate({ databaseUrl: replay.url });
+      expect(gate.failures).toEqual([]);
+      expect(gate.ok).toBe(true);
     });
   },
 );

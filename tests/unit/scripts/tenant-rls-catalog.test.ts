@@ -1181,16 +1181,37 @@ describe("evaluateTenantRlsCatalog: service_role's table privileges and schema C
   it("reads what service_role holds in public, as Postgres decides it (a grant to it, to PUBLIC or to a role it belongs to), on a table or a column, and its CREATE on every schema the release fingerprint covers", () => {
     expect(TENANT_RLS_CATALOG_SQL).toContain("'service_role_grants'");
     expect(TENANT_RLS_CATALOG_SQL).toContain("'service_role_schemas'");
-    expect(TENANT_RLS_CATALOG_SQL).toContain(
-      "has_table_privilege('service_role', c.oid, p.privilege)",
-    );
-    expect(TENANT_RLS_CATALOG_SQL).toContain(
-      "has_column_privilege('service_role', c.oid, att.attnum, 'REFERENCES')",
-    );
-    expect(TENANT_RLS_CATALOG_SQL).toContain(
-      "has_schema_privilege('service_role', n.oid, 'CREATE')",
-    );
     expect(TENANT_RLS_CATALOG_SQL).toContain(EXCLUDED_SCHEMA_PATTERN);
+  });
+
+  it("R4: fails an exception entry that is null, a number, a string or an array as malformed, and does not throw", () => {
+    expect(
+      codes(
+        evaluate([], listed(), [], [], allow(), {
+          serviceRoleExceptions: { entries: [null, 7, "authz", []] },
+        }),
+      ),
+    ).toEqual([
+      "SERVICE_ROLE_EXCEPTIONS_MALFORMED -",
+      "SERVICE_ROLE_EXCEPTIONS_MALFORMED -",
+      "SERVICE_ROLE_EXCEPTIONS_MALFORMED -",
+      "SERVICE_ROLE_EXCEPTIONS_MALFORMED -",
+    ]);
+  });
+
+  it("R2: reads every role service_role can use or SET ROLE to, not only what it inherits, for its table, column and schema privileges", () => {
+    expect(TENANT_RLS_CATALOG_SQL).toContain(
+      "pg_has_role('service_role', r.oid, 'USAGE') or pg_has_role('service_role', r.oid, 'SET')",
+    );
+    expect(TENANT_RLS_CATALOG_SQL).toContain(
+      "has_table_privilege(r.oid, c.oid, p.privilege)",
+    );
+    expect(TENANT_RLS_CATALOG_SQL).toContain(
+      "has_column_privilege(r.oid, c.oid, att.attnum, 'REFERENCES')",
+    );
+    expect(TENANT_RLS_CATALOG_SQL).toContain(
+      "has_schema_privilege(r.oid, n.oid, 'CREATE')",
+    );
   });
 });
 
