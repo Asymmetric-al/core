@@ -13,8 +13,11 @@ import {
   parseOperationsNames,
 } from "../../../packages/env/src/operations-names";
 
-function headersOf(entries: Record<string, string>): Headers {
-  return new Headers(entries);
+function headersOf(entries: Record<string, string>) {
+  const values = new Map(
+    Object.entries(entries).map(([name, value]) => [name.toLowerCase(), value]),
+  );
+  return { get: (name: string) => values.get(name.toLowerCase()) ?? null };
 }
 
 const NAMES = ["ops.example:443"] as const;

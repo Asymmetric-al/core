@@ -127,7 +127,7 @@ async function signIn(page: Page, person: Person) {
 }
 
 async function enterCode(page: Page, label: string, code: string) {
-  await page.getByLabel(label, { exact: true }).first().click();
+  await page.getByRole("textbox", { name: label, exact: true }).click();
   await page.keyboard.type(code);
 }
 
