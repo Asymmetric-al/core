@@ -6,6 +6,7 @@ import {
   ensureJsonBody,
   reportOperationFailure,
 } from "../../shared/http-errors";
+import { READ_ALL_PAGE_SIZE, readAllPages } from "../../shared/read-all-pages";
 
 export const WORKERS_CAPABILITY = "safety.restrict_publication";
 
@@ -142,6 +143,9 @@ export type WorkerErrorCode = keyof typeof WORKER_ERRORS;
 
 export const FAILURE_TEXT = "Something went wrong. Nothing was changed.";
 
+export const OUTCOME_UNKNOWN_TEXT =
+  "The change may have been saved. Reload this worker before trying again.";
+
 const NO_STORE = "no-store";
 
 export function workerError(
@@ -157,11 +161,11 @@ export function workerError(
 export type WorkersOperation =
   "list" | "count" | "record" | "restrict" | "lift" | "confirm" | "reveal";
 
-export async function workersFailure(
+async function reportWorkersFailure(
   operation: WorkersOperation,
   code: string | null,
   requestId: string,
-): Promise<NextResponse> {
+): Promise<void> {
   const failure = new Error();
   const reported = code === null ? failure : Object.assign(failure, { code });
   await reportOperationFailure(
@@ -170,8 +174,28 @@ export async function workersFailure(
     requestId,
     500,
   );
+}
+
+export async function workersFailure(
+  operation: WorkersOperation,
+  code: string | null,
+  requestId: string,
+): Promise<NextResponse> {
+  await reportWorkersFailure(operation, code, requestId);
   return NextResponse.json(
     { error: FAILURE_TEXT },
+    { status: 500, headers: { "Cache-Control": NO_STORE } },
+  );
+}
+
+export async function workersOutcomeUnknown(
+  operation: WorkersOperation,
+  code: string | null,
+  requestId: string,
+): Promise<NextResponse> {
+  await reportWorkersFailure(operation, code, requestId);
+  return NextResponse.json(
+    { error: OUTCOME_UNKNOWN_TEXT, code: "OUTCOME_UNKNOWN" },
     { status: 500, headers: { "Cache-Control": NO_STORE } },
   );
 }
@@ -296,32 +320,70 @@ export function withWorkersWrite<Args extends unknown[]>(
   };
 }
 
+export interface WorkersRpcResult {
+  data: unknown;
+  error: RpcError | null;
+  count?: number | null;
+}
+
+export interface WorkersRpcQuery extends PromiseLike<WorkersRpcResult> {
+  order(column: string): WorkersRpcQuery;
+  range(from: number, to: number): WorkersRpcQuery;
+}
+
 export interface WorkersRpcClient {
   rpc(
     fn: string,
     args: Record<string, unknown>,
     options?: { count?: "exact"; head?: boolean },
-  ): PromiseLike<{
-    data: unknown;
-    error: RpcError | null;
-    count?: number | null;
-  }>;
+  ): WorkersRpcQuery;
 }
 
 export function rpcClient(client: unknown): WorkersRpcClient {
   return client as WorkersRpcClient;
 }
 
+type WorkerRowsRead =
+  { ok: true; rows: WorkerRow[] } | { ok: false; error: RpcError | null };
+
+async function readDirectory(
+  client: WorkersRpcClient,
+  pageSize: number,
+): Promise<WorkerRowsRead> {
+  const failed: { error: RpcError | null } = { error: null };
+  let data: unknown[];
+  try {
+    data = await readAllPages<unknown>(async (from, to) => {
+      const page = await client
+        .rpc("worker_records", {})
+        .order("display_name")
+        .order("assignment_id")
+        .range(from, to);
+      if (page.error || !Array.isArray(page.data)) {
+        failed.error = page.error;
+        return { data: null, error: { message: "worker_records page" } };
+      }
+      return { data: page.data as unknown[], error: null };
+    }, pageSize);
+  } catch {
+    return { ok: false, error: failed.error };
+  }
+  const parsed = workerRowsSchema.safeParse(data);
+  if (!parsed.success) return { ok: false, error: null };
+  const ids = new Set(parsed.data.map((row) => row.assignment_id));
+  if (ids.size !== parsed.data.length) return { ok: false, error: null };
+  return { ok: true, rows: parsed.data };
+}
+
 export async function readWorkerRows(
   client: WorkersRpcClient,
   assignmentId: string | null,
-): Promise<
-  { ok: true; rows: WorkerRow[] } | { ok: false; error: RpcError | null }
-> {
-  const { data, error } = await client.rpc(
-    "worker_records",
-    assignmentId === null ? {} : { p_assignment_id: assignmentId },
-  );
+  pageSize = READ_ALL_PAGE_SIZE,
+): Promise<WorkerRowsRead> {
+  if (assignmentId === null) return readDirectory(client, pageSize);
+  const { data, error } = await client.rpc("worker_records", {
+    p_assignment_id: assignmentId,
+  });
   if (error) return { ok: false, error };
   const parsed = workerRowsSchema.safeParse(data);
   if (!parsed.success) return { ok: false, error: null };

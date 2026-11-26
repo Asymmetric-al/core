@@ -19,6 +19,7 @@ import {
   withWorkersWrite,
   workerError,
   workersFailure,
+  workersOutcomeUnknown,
   type RpcError,
   type WorkerRow,
   type WorkersOperation,
@@ -93,13 +94,13 @@ async function answerAfterCommand(
     !sameId(parsed.data.tenant_id, tenantId) ||
     !sameId(parsed.data.party_id, prepared.row.party_id)
   )
-    return workersFailure(operation, null, requestId);
+    return workersOutcomeUnknown(operation, null, requestId);
   const reread = await readWorkerRows(prepared.client, prepared.assignmentId);
   if (!reread.ok)
-    return workersFailure(operation, codeOf(reread.error), requestId);
+    return workersOutcomeUnknown(operation, codeOf(reread.error), requestId);
   const [row] = reread.rows;
   if (!row || reread.rows.length !== 1)
-    return workersFailure(operation, null, requestId);
+    return workersOutcomeUnknown(operation, null, requestId);
   return NextResponse.json({ worker: toWorker(row) });
 }
 
