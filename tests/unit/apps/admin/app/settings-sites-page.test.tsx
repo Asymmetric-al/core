@@ -972,3 +972,76 @@ describe("Mission Control's Sites screen, the fix round of pull request 2827", (
     expect(h.toastSuccess).not.toHaveBeenCalled();
   });
 });
+
+describe("Mission Control's Sites screen, the last round of pull request 2827", () => {
+  it("L1: after a save that committed and a failed refresh, holds the saved name until a read succeeds", async () => {
+    const view = await loaded();
+    fireEvent.change(nameField(view), { target: { value: "Hope Givers" } });
+    server.posts[BRAND] = [
+      { status: 200, body: { brand: { display_name: "Hope Givers (saved)" } } },
+    ];
+    server.reads.push({ status: 500, body: { code: "SITES_UNAVAILABLE" } });
+    fireEvent.click(view.getByRole("button", { name: "Save" }));
+    expect(
+      await view.findByText(
+        "Couldn’t refresh Sites. Showing the last loaded settings.",
+      ),
+    ).toBeTruthy();
+    await waitFor(() =>
+      expect(h.toastSuccess).toHaveBeenCalledWith(
+        "Donor account name saved as Hope Givers (saved).",
+      ),
+    );
+    await waitFor(() =>
+      expect(nameField(view).value).toBe("Hope Givers (saved)"),
+    );
+    const save = view.getByRole("button", {
+      name: "Save",
+    }) as HTMLButtonElement;
+    await waitFor(() => expect(save.disabled).toBe(true));
+
+    server.reads.push({
+      status: 200,
+      body: settings({ brand: { display_name: "Third name" } }),
+    });
+    fireEvent.click(view.getByRole("button", { name: "Try again" }));
+    await waitFor(() => expect(nameField(view).value).toBe("Third name"));
+    expect(
+      view.queryByText(
+        "Couldn’t refresh Sites. Showing the last loaded settings.",
+      ),
+    ).toBeNull();
+    expect(
+      (view.getByRole("button", { name: "Save" }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+  });
+
+  it("L1: keeps an edit typed after the committed save through the failed refresh and the next read", async () => {
+    const view = await loaded();
+    fireEvent.change(nameField(view), { target: { value: "Hope Givers" } });
+    server.posts[BRAND] = [
+      { status: 200, body: { brand: { display_name: "Hope Givers" } } },
+    ];
+    server.reads.push({ status: 500, body: { code: "SITES_UNAVAILABLE" } });
+    fireEvent.click(view.getByRole("button", { name: "Save" }));
+    await view.findByText(
+      "Couldn’t refresh Sites. Showing the last loaded settings.",
+    );
+    await waitFor(() => expect(nameField(view).value).toBe("Hope Givers"));
+    fireEvent.change(nameField(view), { target: { value: "Typed after" } });
+    server.reads.push({
+      status: 200,
+      body: settings({ brand: { display_name: "Hope Givers" } }),
+    });
+    fireEvent.click(view.getByRole("button", { name: "Try again" }));
+    await waitFor(() =>
+      expect(
+        view.queryByText(
+          "Couldn’t refresh Sites. Showing the last loaded settings.",
+        ),
+      ).toBeNull(),
+    );
+    expect(nameField(view).value).toBe("Typed after");
+  });
+});

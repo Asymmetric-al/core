@@ -694,3 +694,21 @@ describe("AL-2676 WP3b part 3: the Sites and brand routes (T3)", () => {
     expect(response.status).toBe(201);
   });
 });
+
+describe("AL-2676 WP3b part 3, last round: the privacy assertions read an Error's message and stack (L2)", () => {
+  it("sees the text a planted Error carries in its message, stack and cause, which JSON.stringify drops", () => {
+    const planted = new Error("tenant_guard: Spanish site", {
+      cause: new Error("Hope Givers"),
+    });
+    const logged = [["[admin.sites.create] Request failed", planted]];
+    expect(JSON.stringify(logged)).not.toContain("Spanish site");
+    const seen = serializedForLogs(logged);
+    expect(seen).toContain("tenant_guard: Spanish site");
+    expect(seen).toContain("Hope Givers");
+    expect(seen).toContain(planted.stack!.split("\n")[1]!.trim());
+    expect(() => expect(seen).not.toContain("tenant_guard:")).toThrow();
+    expect(serializedForLogs({ plain: "value", count: 1 })).toBe(
+      JSON.stringify({ plain: "value", count: 1 }),
+    );
+  });
+});
