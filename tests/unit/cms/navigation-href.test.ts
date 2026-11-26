@@ -51,3 +51,22 @@ describe("test 7: a navigation item is one page of its Site or one absolute http
     expect(paths([{ label: "a", href: "https://x.test" }])).toEqual([]);
   });
 });
+
+describe("F6: a row holds exactly one of page and href, and an href is a string that passes the safe-address rule", () => {
+  const paths = (items: unknown[]) =>
+    navigationItemsRule({ merged: { items } }).map((item) => item.path);
+
+  it.each([12345, true, { url: "https://x.test" }, ["https://x.test"]])(
+    "refuses a page beside an href of %j",
+    (href) => {
+      expect(paths([{ label: "a", page: "p", href }])).toEqual(["items.0"]);
+    },
+  );
+
+  it.each([12345, true, { url: "https://x.test" }, ["https://x.test"]])(
+    "refuses an href of %j on its own",
+    (href) => {
+      expect(paths([{ label: "a", href }])).toEqual(["items.0.href"]);
+    },
+  );
+});
