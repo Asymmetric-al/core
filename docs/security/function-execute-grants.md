@@ -457,3 +457,23 @@ only for an assignment holding `care.access`. `begin_donation_saga` and
 `atomic_create_donation_with_audit` are replaced with their grants
 (`service_role`) unchanged, and `authz.assignment_capabilities(uuid)` with
 its owner and grantee (`tenant_guard`) unchanged.
+
+## Functions added by AL-2675 (WP2c rest, pull request A)
+
+| Function                               | Security | EXECUTE grantees (exact)            |
+| -------------------------------------- | -------- | ----------------------------------- |
+| `platform.tenant_operators(uuid)`      | DEFINER  | `postgres` (owner), `authenticated` |
+| `public.tenant_operators(uuid)`        | INVOKER  | `postgres` (owner), `authenticated` |
+| `platform.eve_history(integer)`        | DEFINER  | `postgres` (owner), `authenticated` |
+| `public.platform_eve_history(integer)` | INVOKER  | `postgres` (owner), `authenticated` |
+
+Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
+before granting (`20261127020000_wp2c_rest_operator_reads.sql`). The two
+platform commands begin with the shared operator check
+(`platform.require_operator()`, an operator at `aal2`) and write nothing:
+the launch-permission picker's list of an organization's operators, which
+also requires that organization to be the request's `x-asym-tenant` and the
+caller to hold a live staff row there, and the assistant runtime's audit rows
+recorded with no organization. `service_role` holds neither: the picker's
+route reads on the caller's token and the operator area on the browser's
+session.

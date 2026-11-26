@@ -172,6 +172,15 @@ path of the tenant flow, and no application code called
     the switch, and how they reach `aal2` for the assistant runtime's operator
     actions, are N3/N4 prerequisites.
 
+14. **The history with no organization (WP2c rest, AL-2675).** In the area's
+    confirmed state only, the page reads `public.platform_eve_history`
+    through `readPlatformHistory` in `operator-mfa.ts`, on the browser's
+    session client as `confirmOperatorSession` reads the operator session,
+    and adds no `/api` route: a route there would lie outside
+    `admitOperatorArea` and the operations-address rule. A refusal (`42501`)
+    shows as refused and any other failure as failed, never as an empty
+    history, and a row that carries an organization fails the whole read.
+
 ## Proofs
 
 `tests/unit/auth/operator-area.test.ts` (paths, addresses, the variable),
@@ -192,6 +201,15 @@ only an `/operator` route-data fetch the router aborted, as it does after
 sign-in, taking only a `200` answer). After a failed case the journey closes
 its pages, so Playwright's `error-context.md` holds no snapshot of a page
 that may show the key.
+
+What that re-read proves is limited (#2845 item 4). After sign-in the login
+screen calls the router's `replace` and then `refresh` at once
+(`packages/ui/components/auth/LoginScreen.tsx`), and the refresh aborts the
+`/operator` route-data fetch that `replace` started. Both calls run in the
+product's code before the journey regains control, so no wait in the journey
+can keep that fetch from being aborted, and its bytes reach neither the page
+nor the journey. A `200` re-read shows what the server answers to the same
+request, address, headers and cookies, not what the aborted response held.
 
 The journey's server log (`.e2e-logs/auth-mail-admin-server.log`) lies
 outside every path a workflow uploads, because `next dev` forwards browser
