@@ -251,7 +251,7 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
       ),
     ]) {
       expect(response.status).toBe(401);
-      await read(response);
+      expect(await read(response)).toEqual({ error: "Unauthorized" });
     }
   });
 
@@ -333,6 +333,10 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
       params(),
     );
     expect(unknown.status).toBe(404);
+    expect(await read(unknown)).toEqual({
+      error: "Worker not found.",
+      code: "NOT_FOUND",
+    });
   });
 
   it.each(COMMANDS)(
@@ -374,7 +378,10 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
         params(),
       );
       expect(text.status).toBe(415);
-      expect((await read(text)).code).toBe("INVALID_INPUT");
+      expect(await read(text)).toEqual({
+        error: "Check the form and try again.",
+        code: "INVALID_INPUT",
+      });
       const long = await handler(
         post(`/api/admin/workers/${WORKER}/x`, {
           ...body,
@@ -383,6 +390,10 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
         params(),
       );
       expect(long.status).toBe(400);
+      expect(await read(long)).toEqual({
+        error: "Check the form and try again.",
+        code: "INVALID_INPUT",
+      });
       for (const reason of ["", "   ", "  \n"]) {
         const blank = await handler(
           post(`/api/admin/workers/${WORKER}/x`, { ...body, reason }),
@@ -632,6 +643,83 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
       ]);
     }
   });
+
+  it.each([
+    ["a zero-width space", "​"],
+    ["no-break and em spaces", "  "],
+    ["a byte-order mark and a word joiner", "﻿⁠"],
+    ["a Mongolian vowel separator and a joiner", "᠎‍"],
+    ["a Hangul filler", "ㅤ"],
+    ["a Braille blank", "⠀"],
+    ["tag characters", "\u{e0020}\u{e0041}"],
+    ["spaces, a tab and a zero-width space", " \t​ "],
+  ])(
+    "restrict treats an alias of %s, which the database's safety normalization reduces to nothing, as no alias and sends p_public_alias null, so it cannot clear the stored alias (review fix)",
+    async (_label, alias) => {
+      h.auth.mockResolvedValue(makeAuth("admin"));
+      const rpc = stubSession({
+        worker_records: { data: [row({ public_alias: "Birch" })] },
+        restrict_worker_publication: { data: commandAnswer() },
+      });
+      const response = await POST_RESTRICT(
+        post(`/api/admin/workers/${WORKER}/restrict`, {
+          doNotPublish: true,
+          alias,
+          reason: "Review",
+        }),
+        params(),
+      );
+      expect(response.status).toBe(200);
+      expect(rpc.mock.calls[1]).toEqual([
+        "restrict_worker_publication",
+        expect.objectContaining({
+          p_public_alias: null,
+          p_do_not_publish: true,
+        }),
+      ]);
+    },
+  );
+
+  it("restrict sends an alias with visible text as given, invisible characters and all, for the database to normalize (review fix)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    const rpc = stubSession({
+      worker_records: { data: [row()] },
+      restrict_worker_publication: { data: commandAnswer() },
+    });
+    await POST_RESTRICT(
+      post(`/api/admin/workers/${WORKER}/restrict`, {
+        level: "restricted",
+        alias: "​Heron ",
+        reason: "Review",
+      }),
+      params(),
+    );
+    expect(rpc.mock.calls[1]?.[1]).toMatchObject({
+      p_public_alias: "​Heron ",
+    });
+  });
+
+  it.each(COMMANDS)(
+    "%s keeps withOperation's request id when it turns the capability refusal into 403 NOT_PERMITTED (review fix)",
+    async (_name, handler, body) => {
+      h.auth.mockResolvedValue(makeAuth("staff"));
+      stubSession({});
+      const response = await handler(
+        post(`/api/admin/workers/${WORKER}/x`, body),
+        params(),
+      );
+      expect(response.status).toBe(403);
+      expect(response.headers.get("cache-control")).toBe("no-store");
+      const raw = (await response.json()) as Record<string, unknown>;
+      expect(raw).toEqual({
+        error: NOT_PERMITTED,
+        code: "NOT_PERMITTED",
+        requestId: expect.stringMatching(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+        ),
+      });
+    },
+  );
 
   it("lift sends the level and clear flag as given; a command answer with an extra key, another organization or another Party is 500", async () => {
     h.auth.mockResolvedValue(makeAuth("admin"));

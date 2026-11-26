@@ -125,6 +125,22 @@ const IDENTITY_KEYS = [
 ];
 const NOT_PERMITTED =
   "Only staff with the Restrict publication permission can change these settings.";
+const REFUSAL_TEXT: Record<string, string> = {
+  NOT_FOUND: "Worker not found.",
+  NO_IDENTITY: "No legal name is recorded for this worker.",
+  REASON_REQUIRED: "Give a reason.",
+  NOTHING_TO_CHANGE: "Choose what to change.",
+  LEVEL_CHANGED: "This worker's level has changed. Reload to see it.",
+  ALIAS_REQUIRED: "A restricted or high-risk worker needs a public alias.",
+  ALIAS_IS_LEGAL_NAME:
+    "The public alias must differ from the worker's legal name.",
+  INVALID_INPUT: "Check the form and try again.",
+};
+
+function restoreEnv(name: string, value: string | undefined) {
+  if (value === undefined) delete process.env[name];
+  else process.env[name] = value;
+}
 
 function absent(value: unknown, extra: string[] = []) {
   const text = JSON.stringify(value).toLowerCase();
@@ -523,13 +539,9 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
     });
 
     afterAll(async () => {
-      process.env.NEXT_PUBLIC_SUPABASE_URL = publicEnv.url;
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = publicEnv.anonKey;
-      if (publicEnv.publishable === undefined)
-        delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-      else
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY =
-          publicEnv.publishable;
+      restoreEnv("NEXT_PUBLIC_SUPABASE_URL", publicEnv.url);
+      restoreEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", publicEnv.anonKey);
+      restoreEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", publicEnv.publishable);
       try {
         if (db)
           try {
@@ -743,8 +755,11 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       for (const response of [
         await record(null, id.wK!),
         await command(null, "reveal", id.wK!, { reason: "x" }),
-      ])
-        seen.push(await answer(response, 401));
+      ]) {
+        const refused = await answer(response, 401);
+        expect(refused).toEqual({ error: "Unauthorized" });
+        seen.push(refused);
+      }
       as("D");
       const staffOnly = await answer(await record("D", id.wK!), 403);
       expect(staffOnly.error).toBe("Forbidden: requires a staff membership");
@@ -812,8 +827,10 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           await command(who, name, target, body, type),
           status,
         );
-        expect(refused.code, `${name} ${code}`).toBe(code);
-        expect(typeof refused.error).toBe("string");
+        expect(refused, `${name} ${code}`).toEqual({
+          error: REFUSAL_TEXT[code],
+          code,
+        });
         seen.push(refused);
       }
       expect(await parties()).toEqual(state);
@@ -941,6 +958,85 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         (partnersBody.donors ?? []).find((d) => d.id === id.dR),
       ).toMatchObject({ name: "Anonymous partner", is_anonymous: true });
       absent(partnersBody, forbidden);
+    });
+
+    it("T4b (review fix) an update whose alias is blank or invisible-only keeps the stored alias, so the public name stays the alias across that update, an audited reveal and a lift, and the profile name is never shown", async () => {
+      const forbidden = ["Profile Rowan", "Party Rowan", "Donor Rowan"];
+      const publicName = async () => {
+        as("D");
+        const donations = (await (
+          await getDonations(request("D", "GET", "/api/donations"))
+        ).json()) as {
+          donations?: {
+            id: string;
+            missionary: { worker_public_name: string | null };
+          }[];
+        };
+        const feed = (await (
+          await getFeed(
+            request("D", "GET", `/api/posts?missionaryId=${user.R}`),
+          )
+        ).json()) as { posts?: Record<string, unknown>[] };
+        absent([donations, feed], forbidden);
+        const post = (feed.posts ?? []).find((p) => p.id === id.postR);
+        return [
+          (donations.donations ?? []).find((d) => d.id === id.gD)?.missionary
+            .worker_public_name,
+          post && postAuthorName(post as never),
+        ];
+      };
+      as("A");
+      const lowered = await answer(
+        await command("A", "lift", id.wR!, {
+          level: "standard",
+          reason: "Back home",
+        }),
+        200,
+      );
+      expect(lowered.worker).toMatchObject({
+        securityLevel: "standard",
+        publicAlias: "Wren",
+      });
+      expect(await publicName()).toEqual(["Wren", "Wren"]);
+
+      as("A");
+      const updated = await answer(
+        await command("A", "restrict", id.wR!, {
+          doNotPublish: true,
+          alias: "​⁠  ﻿",
+          reason: "Hold publishing",
+        }),
+        200,
+      );
+      expect(updated.worker).toMatchObject({
+        securityLevel: "standard",
+        publicAlias: "Wren",
+        doNotPublish: true,
+      });
+      expect(await publicName()).toEqual(["Wren", "Wren"]);
+
+      as("A");
+      const disclosed = await answer(
+        await command("A", "reveal", id.wR!, { reason: "Visa paperwork" }),
+        200,
+      );
+      expect(disclosed.legalName).toBe("Legal Rowan");
+      const afterReveal = await answer(await record("A", id.wR!), 200);
+      expect(afterReveal.worker).toMatchObject({ publicAlias: "Wren" });
+
+      const cleared = await answer(
+        await command("A", "lift", id.wR!, {
+          clearDoNotPublish: true,
+          reason: "Publishing allowed",
+        }),
+        200,
+      );
+      expect(cleared.worker).toMatchObject({
+        publicAlias: "Wren",
+        doNotPublish: false,
+      });
+      expect(await publicName()).toEqual(["Wren", "Wren"]);
+      seen.push(lowered, updated, afterReveal, cleared);
     });
 
     it("T3 the revealed values reach no other response", () => {

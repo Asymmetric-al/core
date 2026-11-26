@@ -49,13 +49,32 @@ async function expectAccessible(page: Page, scope?: string) {
 }
 
 async function unreviewedCount(page: Page) {
-  await page.goto(`/${DEMO}`);
+  const [reply] = await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname ===
+          "/api/admin/workers/unreviewed-count" &&
+        response.request().method() === "GET",
+    ),
+    page.goto(`/${DEMO}`),
+  ]);
+  expect(reply.status()).toBe(200);
+  const { count } = (await reply.json()) as { count: number };
+  expect(Number.isInteger(count) && count >= 0).toBe(true);
   const summary = page.getByRole("link", {
     name: /^Security level unreviewed: \d+ workers?$/,
   });
-  await expect(summary).toBeVisible();
-  const text = (await summary.textContent()) ?? "";
-  return Number(/(\d+) workers?$/.exec(text)?.[1]);
+  if (count === 0) {
+    await expect(page.getByText(/^Security level unreviewed:/)).toHaveCount(0);
+    await expect(
+      page.getByText("Couldn't check workers' security levels."),
+    ).toHaveCount(0);
+  } else {
+    await expect(summary).toHaveText(
+      `Security level unreviewed: ${count === 1 ? "1 worker" : `${count} workers`}`,
+    );
+  }
+  return count;
 }
 
 async function openRecord(page: Page) {

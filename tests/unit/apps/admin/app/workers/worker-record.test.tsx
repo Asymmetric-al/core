@@ -370,4 +370,56 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
       (within(dialog).getByLabelText("Reason") as HTMLTextAreaElement).value,
     ).toBe("Still typing");
   });
+
+  it.each([
+    ["Cancel", /Restrict Worker Kestrel/],
+    ["Escape", /Confirm level for Worker Kestrel/],
+    ["Close", /Show legal name for Worker Kestrel/],
+  ])(
+    "a dialog dismissed with %s forgets the reason typed into it, so reopening starts empty and nothing is sent (review fix)",
+    async (how, opener) => {
+      show();
+      let dialog = await openDialog(opener);
+      fillReason(dialog, "Half-written reason");
+      if (how === "Escape") fireEvent.keyDown(dialog, { key: "Escape" });
+      else fireEvent.click(within(dialog).getByRole("button", { name: how }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      dialog = await openDialog(opener);
+      expect(
+        (within(dialog).getByLabelText("Reason") as HTMLTextAreaElement).value,
+      ).toBe("");
+      expect(posts).toEqual([]);
+    },
+  );
+
+  it("once the legal name is shown, the dialog offers one action, Hide, which clears it and closes; no Cancel and no spent Show button remain (review fix)", async () => {
+    postReply = () => ({
+      status: 200,
+      body: {
+        legalName: SECRET,
+        realCountry: null,
+        preciseLocation: null,
+      },
+    });
+    show();
+    const dialog = await openDialog(/Show legal name for Worker Kestrel/);
+    expect(
+      within(dialog)
+        .getAllByRole("button")
+        .map((button) => button.textContent?.trim()),
+    ).toEqual(["Cancel", "Show legal name", "Close"]);
+    fillReason(dialog, "Visa paperwork");
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Show legal name" }),
+    );
+    await within(dialog).findByText(SECRET);
+    expect(
+      within(dialog)
+        .getAllByRole("button")
+        .map((button) => button.textContent?.trim()),
+    ).toEqual(["Hide", "Close"]);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Hide" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(document.body.textContent).not.toContain(SECRET);
+  });
 });
