@@ -1222,6 +1222,23 @@ describe.skipIf(!ADMIN_URL)(
         expect((await row("pages", target.id))?.site_id).toBe(siteA.id);
       });
 
+      it("a later draft that moves a page to another organization's Site is refused once, at site, as cms:qualify asks", async () => {
+        const target = await s.page(A, siteA.id);
+        const outcome = await s.settle(
+          s.payload.update(
+            asA({
+              collection: "pages",
+              id: target.id,
+              draft: true,
+              data: { site: siteB.id },
+            }),
+          ),
+        );
+        expect(outcome.ok).toBe(false);
+        if (!outcome.ok) expect(outcome.paths).toEqual(["site"]);
+        expect((await row("pages", target.id))?.site_id).toBe(siteA.id);
+      });
+
       it("guard: an update that sends the page's own Site again is kept", async () => {
         const target = await s.page(A, siteA.id);
         const kept = await s.payload.update(
