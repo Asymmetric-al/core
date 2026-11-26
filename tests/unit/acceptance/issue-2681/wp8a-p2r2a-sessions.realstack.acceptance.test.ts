@@ -28,7 +28,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2681 WP8a part 2 R2a: two applies on one payment (index 4.1, 4.8; real stack; C7 (b) and the two C14 races commit and remove their own tenants)",
+  "AL-2681 WP8a part 2 R2a: two applies on one payment (index 4.1, 4.8; real stack; C7 (b), the two C14 races and B2 commit and remove their own tenants)",
   () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
     const sessions: pg.Client[] = [];
@@ -400,6 +400,74 @@ describe.skipIf(!ADMIN_URL)(
           audit: 0,
           links: 1,
         });
+      } finally {
+        const open = sessions.splice(0);
+        await Promise.all(open.map((s) => s.end().catch(() => {})));
+        await db.query("ROLLBACK").catch(() => {});
+        await removeTwoTenants(db, fx);
+      }
+    });
+
+    it("B2 (bot round): the enqueue reads its binding FOR SHARE: while a holder session has moved the binding to restricted and not committed, a committed-session enqueue waits on that row (the holder among its blocking pids); after the holder commits it is 55000 binding_inactive and no request exists", async () => {
+      await db.query("BEGIN");
+      const fx: Fixture = await seedTwoTenants(db);
+      await db.query("COMMIT");
+      try {
+        await db.query("BEGIN");
+        const intake = await lineIntake(db, fx.A);
+        await role(db, null);
+        for (const revoke of GUARD_TEST_REVOKES) await db.query(revoke);
+        await db.query("COMMIT");
+
+        const [holder, caller, watcher] = [
+          await openSession(),
+          await openSession(),
+          await openSession(),
+        ];
+        const pid = (await caller.query("SELECT pg_backend_pid() AS pid"))
+          .rows[0].pid as number;
+        const holderPid = (await holder.query("SELECT pg_backend_pid() AS pid"))
+          .rows[0].pid as number;
+        await holder.query("BEGIN");
+        await holder.query(
+          "UPDATE public.payment_account_bindings SET status = 'restricted', restricted_at = now() WHERE id = $1",
+          [fx.A.binding],
+        );
+        const early: { settled?: Settled } = {};
+        const pending: Promise<Settled> = (async () => {
+          await caller.query("BEGIN");
+          await caller.query("SET LOCAL ROLE tenant_guard");
+          await caller.query("SELECT tenant_guard.enter($1)", [fx.A.tenant]);
+          return (
+            await caller.query(
+              "SELECT tenant_guard.money_enqueue_payment_request($1) AS r",
+              [intake.donationId],
+            )
+          ).rows[0].r as Outcome;
+        })().then(
+          (value) => ({ value }),
+          (error: unknown) => ({ error }),
+        );
+        void pending.then((settled) => {
+          early.settled = settled;
+        });
+        expect(await heldOnLock(watcher, pid, early, holderPid)).toBe(true);
+        await holder.query("COMMIT");
+        const settled = await pending;
+        await caller.query("ROLLBACK");
+        expect("error" in settled).toBe(true);
+        const e = (settled as { error: { code?: string; message?: string } })
+          .error;
+        expect([e.code, e.message]).toEqual(["55000", "binding_inactive"]);
+        await role(db, null);
+        expect(
+          (
+            await db.query(
+              "SELECT count(*)::int AS n FROM public.donation_saga_outbox WHERE donation_id = $1",
+              [intake.donationId],
+            )
+          ).rows[0].n,
+        ).toBe(0);
       } finally {
         const open = sessions.splice(0);
         await Promise.all(open.map((s) => s.end().catch(() => {})));
