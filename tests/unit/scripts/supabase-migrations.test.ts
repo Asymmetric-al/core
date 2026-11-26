@@ -169,6 +169,8 @@ function runVerifier(
     commands: preMembershipCommandRows(),
     wrappers: [],
     grants: [],
+    service_role_grants: [],
+    service_role_schemas: [],
     // AL-2675 (WP2b, second release; record D-18): the gate also reads every
     // signed-in policy in public, the request-tenant helpers and the published
     // tables. The fake catalog holds the reviewed exceptions as they stand and

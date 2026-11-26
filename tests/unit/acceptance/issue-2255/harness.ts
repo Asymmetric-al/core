@@ -32,6 +32,8 @@ export const AL2678_D18 =
   "D-18, AL-2678 (WP5 part 1, rulings W5-R4 and W5-R5): the requester's own read is dropped and a claimant reads only the status and dates of their own requests through public.account_claim_status; the claim gains its token's SHA-256, expiry, redemption time and the donor's email at issue, and the guard's isolation policy for the claim commands";
 export const AL2678_STATUS_D18 =
   "D-18, AL-2678 (ruling D-16 on WP5 review finding B4): the status function shows a requester only the requests whose token they redeemed, in the organization the request's x-asym-tenant names, so a request is visible only after its address is proved";
+export const AL2681_SERVICE_ROLE_D18 =
+  "D-18, AL-2681 (issue 2841): 20261126190000 later revokes TRUNCATE, REFERENCES, TRIGGER and MAINTAIN from service_role on every table in public, and this file's GRANT ALL gives the four back to its two tables when it runs again";
 export const AL2678_ID_INDEX_D18 =
   "D-18, AL-2678 (WP5 review finding B9): the worker wrapper public.issue_account_claim_token finds a claim by id alone, so the claim table gains a plain index on id, which is not this file's";
 export const POLICIES: [string, string][] = [

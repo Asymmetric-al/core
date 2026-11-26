@@ -1087,7 +1087,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes", async () => {
+    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes but for service_role's table privileges and CREATE on authz, which 20261126190000, later in the chain than this scratch database, closes (D-18, issue 2841: the gate holds service_role since then)", async () => {
       const sources = await definitions();
       const base = captureFingerprint({ databaseUrl: url });
       const basePolicies = await policies();
@@ -1147,8 +1147,15 @@ console.log(JSON.stringify(await m.runTenantRlsCatalogGate({ databaseUrl: proces
       );
       const verdict = JSON.parse(
         gate.stdout.trim().split("\n").pop() || "{}",
-      ) as { ok?: boolean; failures?: unknown[] };
-      expect(verdict, gate.stderr).toMatchObject({ ok: true, failures: [] });
+      ) as { ok?: boolean; failures?: { code: string; table?: string }[] };
+      expect(verdict.failures, gate.stderr).toBeInstanceOf(Array);
+      const later = (f: { code: string; table?: string }) =>
+        f.code === "SERVICE_ROLE_UNSAFE_PRIVILEGE" ||
+        (f.code === "SERVICE_ROLE_SCHEMA_CREATE" && f.table === "authz");
+      expect(
+        verdict.failures!.filter((f) => !later(f)),
+        gate.stderr,
+      ).toEqual([]);
     }, 300_000);
   },
 );
