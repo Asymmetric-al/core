@@ -77,7 +77,7 @@ Each is the owner's, by hand, once per hosted project, and none runs in CI:
 
 1. Switch on TOTP enrolment and verification in the project's Auth settings (Authentication, Multi-Factor). The repository's `supabase/config.toml` switches them on for local stacks only; `supabase config push` is not part of any job.
 2. Add the first operator: the owner's own login, with the project's `postgres` connection in `OPERATORS_DATABASE_URL` and its ref in `OPERATORS_SUPABASE_PROJECT_REF`.
-3. Sign in on the operations address at `/operator`, set up an authenticator and pass the challenge. The area then says the session is verified with a second factor; until then every platform gate stays closed to that session.
+3. Sign in on the operations address at `/operator`, set up an authenticator and pass the challenge. The area then says the session is verified with a second factor; until then every platform gate stays closed to that session. Do this at once after step 2: between adding a person to the list and their first enrolment, their password alone is enough to enrol.
 
 ## The operator area
 
@@ -100,7 +100,7 @@ The coordinator's and the owner's, by hand, before the release that carries the 
 - Each Supabase project (development, production): Authentication, Multi-Factor: TOTP enrolment on and verification on; phone and WebAuthn off; maximum enrolled factors 2 or more.
 - The staff Vercel project: `OPERATIONS_NAMES` as bare `host[:port]` entries, no scheme, for Production and for the development environment; unset for Preview; redeploy after setting it.
 
-Without `OPERATIONS_NAMES` the area answers `404` everywhere; without TOTP the enrolment screen says two-step sign-in is switched off. Both fail closed.
+Without `OPERATIONS_NAMES` the area answers `404` everywhere (`403` to a request without a front header while `CORE_SERVE_UNDER_PATHS=1`); without TOTP the enrolment screen says two-step sign-in is switched off. Both fail closed.
 
 ## Recovery
 
@@ -113,4 +113,12 @@ A tenant administrator can engage Emergency off on a hosted project. The operato
 3. On the same Supabase origin, `POST /rest/v1/rpc/platform_operator_session` and `/rest/v1/rpc/current_user_assignments`, each with `{}` and the new bearer token. Check the returned operator ID against your Auth user ID and select your live staff assignment `id` for the intended `tenant_id`.
 4. On the trusted **Mission Control origin** for this project, `GET /api/admin/eve/launch-readiness` with that same bearer token and `x-asym-assignment: …` (the selected assignment ID). If `governance.emergencyOff` is true and incident clearance is approved, `POST` to that same endpoint with both headers and `{"kind":"safety_control","mode":"clear_emergency","expectedStateVersion":123,"reason":"…"}`. Replace `123` with the exact `governance.stateVersion` just read and give the actual incident reason. Confirm `governance.emergencyOff` and `governance.releaseEnabled` are both false; this clears the emergency, not the kill switches or a release approval. After any failed safety-control response, read the governance state again: the control may have taken effect before the response failed. If that read fails, escalate to the release owner rather than retrying the control. On a stale version, re-read and reassess rather than retrying blindly. Discard the local session material when finished; retain the enrolled factor securely.
 
-For a lost device, remove the lost factor from the user's Auth dashboard page or through the Auth admin API. The operator must enrol and verify a replacement; removing a factor does not satisfy the gate. Removing a factor alone leaves already-issued `aal2` access tokens valid until the next refresh or `jwt_expiry` (up to one hour); for a lost or compromised device, revoke the user's sessions or remove them from `authz.platform_operators` (effective at the next call) before replacing the factor. If the last operator is locked out or compromised, the release owner first adds a trusted replacement with the database script, which does not need an MFA session. Then remove the old operator before deleting the login from Auth.
+For a lost device, remove the lost factor from the user's Auth dashboard page or through the Auth admin API. The operator must enrol and verify a replacement; removing a factor does not satisfy the gate.
+
+For a compromised device or account, work in this order. `platform.require_operator()` reads the list at every call and the `aal` claim of the access token the caller presents; neither removing a factor nor revoking the user's sessions ends an access token already issued, which keeps its `aal2` claim until `jwt_expiry` (up to one hour). Removing the person from the list is the one step that refuses them at once.
+
+1. Remove the person from `authz.platform_operators` with the script (effective at the next call).
+2. Revoke the user's sessions and remove the compromised factor in Auth (dashboard or admin API); for an account compromise, also reset the password.
+3. Add the person back to the list with the script, and have them set up a new authenticator in the operator area at once: until they do, their password alone is enough to enrol.
+
+If the last operator is locked out or compromised, the release owner first adds a trusted replacement with the database script, which does not need an MFA session. Then remove the old operator before deleting the login from Auth.

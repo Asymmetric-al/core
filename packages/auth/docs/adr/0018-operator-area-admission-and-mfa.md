@@ -135,13 +135,19 @@ path of the tenant flow, and no application code called
     means the challenge; the area only with a verified factor, `aal2` and
     `platform_operator_session()` returning the caller's own id. If the
     database refuses, the page says so and offers sign-out, never "verified".
-    With several verified authenticators the challenge tries each in turn
-    until one accepts the code.
+    With several verified authenticators the challenge tries the next one
+    only after a wrong code; any other refusal (rate limit, switched-off TOTP,
+    expired challenge, network change, server error) stops there with its
+    own text, since Auth limits these calls per address. No submit with fewer
+    than six digits reaches Auth, and none is sent once sign-out has begun.
 
 11. **The last factor (ruling Q5).** "Remove" appears only while two or more
     verified TOTP factors exist, behind a confirmation; removal is followed at
-    once by a session refresh and a fresh read. The product never removes the
-    last verified factor; the release owner does, by the runbook.
+    once by a session refresh and a fresh read. Until that read is on the
+    screen no Remove control is offered, so a second removal can never be
+    confirmed from a stale list; a removal that did not happen says so. The
+    product never removes the last verified factor; the release owner does,
+    by the runbook.
 
 12. **Who may enrol (ruling Q7).** The product offers enrolment and the
     challenge only inside `/operator`, which only listed people reach.
@@ -170,5 +176,12 @@ off and on), `tests/unit/apps/admin/operator-gate.test.tsx` (the page),
 last factor, the secret's absence),
 `tests/unit/acceptance/issue-2675/operator-mfa.localstack.test.ts` (Supabase
 Auth on refresh and removal) and `tests/e2e/auth-operator-area.spec.ts` (the
-journeys, including the secret's absence from Mission Control's responses,
-server log, the browser's storage and the database).
+journeys, including the absence of the key, plain and grouped, the
+`otpauth` address and a slice of the QR's SVG from every Mission Control
+response and request, the server log, the browser's storage and the
+database; the journey fails when an `/operator` response cannot be read).
+
+The journey's server log (`.e2e-logs/auth-mail-admin-server.log`) lies
+outside every path a workflow uploads, because `next dev` forwards browser
+warnings and errors into it (`tests/unit/playwright-auth-mail-config.test.ts`
+pins that).
