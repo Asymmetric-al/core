@@ -645,8 +645,9 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
-    it("6b. the repair reports, on every table, the key its UPDATE actually stored after the triggers: when the derivation cannot read (its owner a role without the private schema), it stores NULL and the repair says NULL, not the key the repair computed (red: the computed MA)", async () => {
+    it("6b. the repair reports, on every table, the key its UPDATE actually stored after the triggers: when the derivation cannot read (its owner a role without the private schema), it stores NULL and the repair says NULL, not the key the repair computed (red: the computed MA); a second run, which stores NULL again, reports nothing, and the count shows each such row as pending (red: NULL to NULL reported)", async () => {
       await within(async () => {
+        const before = await readReport(db);
         const planted = {} as Record<Table, string>;
         for (const table of TABLES) {
           planted[table] = await child(table, id.TA, id.UM);
@@ -677,6 +678,23 @@ describe.skipIf(!ADMIN_URL)(
         expect(stored.map((row) => row.new_assignment_id)).toEqual(
           TABLES.map(() => null),
         );
+        expect(
+          (
+            await db.query(
+              "select * from private.repair_ministry_assignment_ids()",
+            )
+          ).rows,
+          "a second run changes no stored key, so it reports nothing",
+        ).toEqual([]);
+        for (const table of TABLES)
+          expect(await keyOf(table, planted[table]), table).toBeNull();
+        const after = await readReport(db);
+        for (const table of TABLES)
+          expect(delta(after, before, table), table).toMatchObject({
+            total: 1,
+            pending: 1,
+            invalid: 0,
+          });
       });
     });
 
