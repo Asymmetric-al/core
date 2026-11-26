@@ -36,7 +36,6 @@ import { useAuth, useConfig, useServerFunctions } from "@payloadcms/ui";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
-  Building2,
   ChevronLeft,
   ChevronRight,
   FileText,
@@ -44,7 +43,6 @@ import {
   Pin,
   PinOff,
   RotateCw,
-  UsersRound,
 } from "lucide-react";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 
@@ -56,10 +54,8 @@ import {
   updatePinnedDocument,
 } from "../preferences/pinned-documents";
 import { Link } from "../routing";
-import { WEB_STUDIO_ADMIN_COLLECTIONS } from "../shell/admin-collections";
 
 import type { WebStudioCollectionSlug } from "../collections/config";
-import type { ComponentType } from "react";
 
 /**
  * One row of Payload's `get-activity-widget-docs` server function, the
@@ -92,11 +88,6 @@ const PAGE_SIZE = 5;
 const QUERY_KEY = DASHBOARD_DOCUMENTS_QUERY_KEY;
 const SAVE_ERROR = "Pins couldn't be updated. Try again.";
 
-const ADMIN_ICONS: Record<string, ComponentType<{ className?: string }>> = {
-  "cms-users": UsersRound,
-  tenants: Building2,
-};
-
 function studioConfigFor(slug: string) {
   return slug in WEB_STUDIO_COLLECTION_CONFIGS
     ? WEB_STUDIO_COLLECTION_CONFIGS[slug as WebStudioCollectionSlug]
@@ -106,16 +97,13 @@ function studioConfigFor(slug: string) {
 function collectionLabel(document: DashboardDocument): string {
   return (
     studioConfigFor(document.collectionSlug)?.titlePlural ??
-    WEB_STUDIO_ADMIN_COLLECTIONS.find(
-      (collection) => collection.slug === document.collectionSlug,
-    )?.title ??
     document.typeLabel ??
     document.collectionSlug
   );
 }
 
 function DocumentIcon({ slug }: { slug: string }) {
-  const Icon = studioConfigFor(slug)?.icon ?? ADMIN_ICONS[slug] ?? FileText;
+  const Icon = studioConfigFor(slug)?.icon ?? FileText;
   return <Icon aria-hidden="true" className="size-4 text-muted-foreground" />;
 }
 

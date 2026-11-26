@@ -352,16 +352,39 @@ describe("Web Studio published page address", () => {
     expect(document.body.textContent).not.toContain("private-editor-metadata");
   });
 
-  it("does not request a public address for a collection without a configured public path", () => {
-    fixture.info.collectionSlug = "ministry-updates";
+  it("does not request a public address for a collection without a configured public path (D-18: WP6 part 2b retires ministry-updates; navigation has no public path)", () => {
+    fixture.info.collectionSlug = "navigation";
     render(
       <QueryClientProvider client={queryClient}>
-        <NativeCollectionEditView studioCollection="ministry-updates" />
+        <NativeCollectionEditView studioCollection="navigation" />
       </QueryClientProvider>,
     );
-    expectNoPublishedLinks();
+    expect(screen.queryAllByRole("link", { name: /View live page/ })).toEqual(
+      [],
+    );
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it.each(["missionary", "project"])(
+    "shows no public address for a published %s page, which has no public reader yet (D-18: WP6 part 2b folds giving and project pages into pages)",
+    async (family) => {
+      fixture.info.data = { ...fixture.info.data, family } as never;
+      fetchMock.mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            id: 42,
+            tenant: 7,
+            _status: "published",
+            slug: "about",
+            family,
+          }),
+        ),
+      );
+      render(editor());
+      await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+      expectNoPublishedLinks();
+    },
+  );
 
   it.each([
     { id: 42, tenant: 7, _status: "draft", slug: "private-draft" },

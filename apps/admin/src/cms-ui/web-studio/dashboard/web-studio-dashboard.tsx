@@ -26,15 +26,12 @@ import {
   ItemTitle,
 } from "@asym/ui/components/shadcn/item";
 import {
-  Building2,
   FileClock,
   FileText,
   HandHeart,
   LayoutTemplate,
-  Newspaper,
   Search,
   Target,
-  UsersRound,
 } from "lucide-react";
 import { useId } from "react";
 
@@ -45,7 +42,6 @@ import { StudioLayout } from "../shell/studio-layout";
 import { ViewerDate } from "../shell/viewer-date";
 
 import type {
-  WebStudioDashboardAdminLink,
   WebStudioDashboardData,
   WebStudioDashboardRecent,
 } from "./load-dashboard-data";
@@ -61,37 +57,21 @@ const CREATE_FLOWS = [
   {
     title: "Giving page",
     description: "Support for a missionary",
-    href: "/web-studio/pages/give",
+    href: "/web-studio/pages/new-from-template?template=missionary-giving",
     icon: HandHeart,
   },
   {
     title: "Project page",
     description: "Landing page for a fund",
-    href: "/web-studio/projects/new",
+    href: "/web-studio/pages/new-from-template?template=project",
     icon: Target,
   },
-  {
-    title: "Ministry update",
-    description: "News from the field",
-    href: "/web-studio/ministry-updates/new",
-    icon: Newspaper,
-  },
 ] as const;
-
-const ADMIN_ICONS: Record<string, ComponentType<{ className?: string }>> = {
-  "cms-users": UsersRound,
-  tenants: Building2,
-};
 
 /** What a row's count counts, for screen readers ("14 documents"). */
 type CountUnit = { one: string; other: string };
 
 const DOCUMENT_UNIT: CountUnit = { one: "document", other: "documents" };
-
-const ADMIN_UNITS: Record<string, CountUnit> = {
-  "cms-users": { one: "user", other: "users" },
-  tenants: { one: "organization", other: "organizations" },
-};
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 
@@ -243,10 +223,8 @@ function DirectoryGroup({
 
 function CollectionDirectory({
   groups,
-  admin,
 }: {
   groups: WebStudioDashboardData["groups"];
-  admin: WebStudioDashboardAdminLink[];
 }) {
   return (
     <div className="flex flex-col gap-6">
@@ -270,25 +248,6 @@ function CollectionDirectory({
           ))}
         </DirectoryGroup>
       ))}
-      {admin.length > 0 ? (
-        <DirectoryGroup label="Administration">
-          {admin.map((link) => (
-            <DashboardRow
-              key={link.slug}
-              href={link.href}
-              icon={ADMIN_ICONS[link.slug] ?? UsersRound}
-              title={link.title}
-              description={link.description}
-              trailing={
-                <CollectionCount
-                  total={link.total}
-                  unit={ADMIN_UNITS[link.slug] ?? DOCUMENT_UNIT}
-                />
-              }
-            />
-          ))}
-        </DirectoryGroup>
-      ) : null}
     </div>
   );
 }
@@ -421,7 +380,7 @@ export function WebStudioDashboard({ data }: { data: WebStudioDashboardData }) {
               description="Everything in Web Studio, by area."
               className="xl:col-span-3"
             >
-              <CollectionDirectory groups={data.groups} admin={data.admin} />
+              <CollectionDirectory groups={data.groups} />
             </DashboardSection>
           </div>
         </div>

@@ -6,39 +6,29 @@ import {
   isWebStudioPreviewCollection,
 } from "../../../apps/admin/src/cms/preview/authenticated-preview";
 
-describe("authenticated Web Studio preview helpers", () => {
-  it("accepts only preview-safe CMS collections", () => {
+describe("authenticated Web Studio preview helpers (D-18: WP6 part 2b leaves pages the one previewed collection, its family naming the page type)", () => {
+  it("accepts only the pages collection", () => {
     expect(isWebStudioPreviewCollection("pages")).toBe(true);
-    expect(isWebStudioPreviewCollection("project-pages")).toBe(true);
-    expect(isWebStudioPreviewCollection("media")).toBe(false);
-    expect(isWebStudioPreviewCollection("cms-users")).toBe(false);
+    for (const slug of [
+      "project-pages",
+      "missionary-giving-pages",
+      "ministry-updates",
+      "media",
+      "navigation",
+      "site-presentations",
+      "principal-links",
+      "cms-users",
+    ]) {
+      expect(isWebStudioPreviewCollection(slug), slug).toBe(false);
+    }
   });
 
-  it("normalizes ministry updates without public route semantics", () => {
+  it("uses the public serializer so CTA sanitization stays shared, routing a project page's CTA through its fund", () => {
     const preview = buildWebStudioPreviewModel({
-      collection: "ministry-updates",
-      doc: {
-        content: { root: { children: [] } },
-        excerpt: "Draft update",
-        id: "update_1",
-        title: "Quarterly Report",
-      },
-    });
-
-    expect(preview).toEqual({
-      content: { root: { children: [] } },
-      id: "update_1",
-      summary: "Draft update",
-      title: "Quarterly Report",
-    });
-  });
-
-  it("uses public serializer for page-like previews so CTA sanitization stays shared", () => {
-    const preview = buildWebStudioPreviewModel({
-      collection: "project-pages",
+      collection: "pages",
       doc: {
         fundId: "123e4567-e89b-42d3-a456-426614174222",
-        id: "project_1",
+        id: "8d7c6b5a-4938-4271-8a6b-5c4d3e2f1a09",
         layout: [
           {
             blockType: "call-to-action",
@@ -47,19 +37,14 @@ describe("authenticated Web Studio preview helpers", () => {
             headline: "Water Project",
           },
         ],
-        pageType: "project",
+        family: "project",
         title: "Water Project",
       },
     });
 
     expect(preview.title).toBe("Water Project");
-    expect(preview.id).toBe("project_1");
-    expect(preview.content).toBeUndefined();
-    expect(preview).toEqual(
-      expect.objectContaining({
-        summary: null,
-      }),
-    );
+    expect(preview.id).toBe("8d7c6b5a-4938-4271-8a6b-5c4d3e2f1a09");
+    expect(preview.summary).toBeNull();
     expect(preview.layout).toEqual([
       expect.objectContaining({
         buttonHref: "/checkout?fund_id=123e4567-e89b-42d3-a456-426614174222",
@@ -67,9 +52,13 @@ describe("authenticated Web Studio preview helpers", () => {
     ]);
   });
 
-  it("labels preview collections for the authenticated route chrome", () => {
-    expect(getWebStudioPreviewCollectionLabel("missionary-giving-pages")).toBe(
-      "Missionary Giving Page",
-    );
+  it("names an untitled draft and labels the preview for the route chrome", () => {
+    expect(
+      buildWebStudioPreviewModel({
+        collection: "pages",
+        doc: { id: "8d7c6b5a-4938-4271-8a6b-5c4d3e2f1a09", family: "standard" },
+      }).title,
+    ).toBe("Untitled page");
+    expect(getWebStudioPreviewCollectionLabel("pages")).toBe("Page");
   });
 });

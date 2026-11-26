@@ -14,45 +14,51 @@ describe("Web Studio native template routes", () => {
     "/web-studio/collections/pages/42",
     "/web-studio/collections/pages/create",
     "/web-studio/collections/media/7",
-    "/web-studio/collections/missionary-giving-pages",
-    // The trash list renders the same native list view (one chrome).
+    "/web-studio/collections/navigation",
     "/web-studio/collections/pages/trash",
-    "/web-studio/collections/cms-users",
-    "/web-studio/collections/tenants",
     "/web-studio/account",
   ])("treats %s as a Mission Control native screen", (pathname) => {
     expect(isWebStudioNativeTemplateRoute(pathname)).toBe(true);
   });
 
   it.each([
-    "/web-studio/collections/tenants/3",
+    "/web-studio/collections/missionary-giving-pages",
+    "/web-studio/collections/cms-users",
+    "/web-studio/collections/tenants",
+    "/web-studio/collections/principal-links",
+    "/web-studio/collections/site-presentations",
     "/web-studio/collections/pages/42/versions",
     "/web-studio/collections/pages/42/api",
     "/web-studio/collections/pages/42/preview",
     // A trashed document keeps Payload's restore / delete-permanently view.
     "/web-studio/collections/pages/trash/42",
     "/crm",
-  ])("leaves %s to the stock Payload view", (pathname) => {
-    expect(isWebStudioNativeTemplateRoute(pathname)).toBe(false);
-  });
+  ])(
+    "leaves %s to the stock Payload view (D-18: WP6 part 2b retires the prototype collections and the Administration lists)",
+    (pathname) => {
+      expect(isWebStudioNativeTemplateRoute(pathname)).toBe(false);
+    },
+  );
 });
 
 describe("Web Studio stock route breadcrumbs", () => {
-  it("names stock collections and document sub-views without guessing titles", () => {
-    // Administration lists read as the rail and Studio home name them, not
-    // Payload's generated plural ("Cms Users").
+  it("names stock collections and document sub-views without guessing titles (D-18: WP6 part 2b drops the Administration titles with their lists)", () => {
     expect(
-      describeWebStudioStockRoute("/web-studio/collections/cms-users", {
-        "cms-users": "Cms Users",
-      }),
-    ).toEqual({ sectionLabel: "Users" });
+      describeWebStudioStockRoute(
+        "/web-studio/collections/site-presentations",
+        {
+          "site-presentations": "Site Presentations",
+        },
+      ),
+    ).toEqual({ sectionLabel: "Site Presentations" });
     expect(
-      describeWebStudioStockRoute("/web-studio/collections/cms-users/7", {
-        "cms-users": "Cms Users",
-      }),
+      describeWebStudioStockRoute(
+        "/web-studio/collections/site-presentations/7",
+        { "site-presentations": "Site Presentations" },
+      ),
     ).toEqual({
-      sectionLabel: "Users",
-      sectionHref: "/web-studio/collections/cms-users",
+      sectionLabel: "Site Presentations",
+      sectionHref: "/web-studio/collections/site-presentations",
       currentLabel: "Document",
     });
     expect(
@@ -75,15 +81,6 @@ describe("Web Studio stock route breadcrumbs", () => {
       sectionLabel: "Pages",
       sectionHref: "/web-studio/collections/pages",
       currentLabel: "API",
-    });
-    expect(
-      describeWebStudioStockRoute("/web-studio/collections/tenants/3", {
-        tenants: "Tenants",
-      }),
-    ).toEqual({
-      sectionLabel: "Organizations",
-      sectionHref: "/web-studio/collections/tenants",
-      currentLabel: "Document",
     });
     expect(describeWebStudioStockRoute("/web-studio/account", {})).toEqual({
       sectionLabel: "Account",

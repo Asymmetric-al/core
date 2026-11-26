@@ -1979,13 +1979,11 @@ describe("tenant keys", () => {
     ).toEqual(["TENANT_KEY_MISSING public.planted"]);
   });
 
-  it("fails a stale CMS entry once Payload is installed, and not before", () => {
-    expect(
-      judge(
-        cms((table) => table === "cms.pages"),
-        true,
-      ),
-    ).toEqual(["TENANT_KEY_STALE_EXCEPTION cms.pages"]);
+  it("lists no CMS tenant selector any more, so an unkeyed cms tenant_id table fails as any other (D-18: WP6 part 2b drops the prototype's tenant_id tables and empties the list)", () => {
+    expect(keyExceptions.tables).toEqual([]);
+    expect(judge([{ table: "cms.pages", keyed: false }], true)).toEqual([
+      "TENANT_KEY_MISSING cms.pages",
+    ]);
     expect(judge([], false)).toEqual([]);
   });
 });

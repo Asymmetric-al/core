@@ -125,6 +125,7 @@
     "verify:bun-lock-drift": "node scripts/verify/bun-lock-drift.mjs",
     "verify:data-boundary": "node scripts/verify/data-boundary-check.mjs",
     "verify:cms-public-sole-entry": "node scripts/verify/cms-public-sole-entry.mjs",
+    "verify:cms-override-inventory": "node scripts/verify/cms-override-inventory.mjs",
     "cutover:assess:documents": "bun scripts/document-cutover/assess-document-cutover.ts",
     "verify:workspace-contract": "node scripts/verify-workspace-contract.mjs && node scripts/verify/typescript-toolchain.mjs && bun run verify:pdf-package-provenance",
     "skills:sync": "node scripts/sync-agent-skills.mjs",
@@ -157,6 +158,7 @@
     "cms:local:bootstrap": "node scripts/cms/local-bootstrap.mjs",
     "cms:local:reset": "node scripts/cms/local-reset.mjs",
     "cms:local:seed": "bun scripts/cms/seed-local.mjs",
+    "cms:fixtures": "bun scripts/cms/seed-fixtures.mjs",
     "cms:local:verify": "bun scripts/cms/verify-local.mjs",
     "cms:local:dev": "node scripts/cms/local-dev.mjs",
     "cms:qualify": "node scripts/cms/qualify-payload-pin.mjs",
@@ -296,7 +298,8 @@
   "patchedDependencies": {
     "@supabase-labs/tanstack-db@0.1.0": "packages/database/patches/@supabase-labs%2Ftanstack-db@0.1.0.patch",
     "@shadcn/lint@0.2.3": "tooling/eslint-config/patches/@shadcn%2Flint@0.2.3.patch",
-    "ultracite@8.3.0": "tooling/quality/patches/ultracite@8.3.0.patch"
+    "ultracite@8.3.0": "tooling/quality/patches/ultracite@8.3.0.patch",
+    "@payloadcms/drizzle@4.0.0-beta.9": "apps/admin/patches/@payloadcms%2Fdrizzle@4.0.0-beta.9.patch"
   },
   "engines": {
     "node": ">=24.22.3 <25"

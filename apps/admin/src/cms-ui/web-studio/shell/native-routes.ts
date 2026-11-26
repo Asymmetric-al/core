@@ -1,4 +1,3 @@
-import { WEB_STUDIO_ADMIN_COLLECTIONS } from "./admin-collections";
 import {
   WEB_STUDIO_COLLECTION_CONFIGS,
   getEnabledWebStudioCollections,
@@ -45,12 +44,6 @@ export function isWebStudioNativeTemplateRoute(pathname: string): boolean {
   if (segments.length === 0) return true;
   if (segments.length === 1 && segments[0] === "account") return true;
   const [area, collection, documentId, ...rest] = segments;
-  if (
-    area === "collections" &&
-    WEB_STUDIO_ADMIN_COLLECTIONS.some((entry) => entry.slug === collection)
-  ) {
-    return documentId === undefined;
-  }
   if (area !== "collections" || !isEnabledNativeCollection(collection)) {
     return false;
   }
@@ -90,15 +83,8 @@ export function describeWebStudioStockRoute(
     collection in WEB_STUDIO_COLLECTION_CONFIGS
       ? WEB_STUDIO_COLLECTION_CONFIGS[collection as WebStudioCollectionSlug]
       : undefined;
-  // Administration lists use the titles the rail and Studio home show.
-  const adminTitle = WEB_STUDIO_ADMIN_COLLECTIONS.find(
-    (entry) => entry.slug === collection,
-  )?.title;
   const sectionLabel =
-    studioConfig?.sectionLabel ??
-    adminTitle ??
-    collectionLabels[collection] ??
-    collection;
+    studioConfig?.sectionLabel ?? collectionLabels[collection] ?? collection;
 
   if (!documentId) {
     return { sectionLabel };

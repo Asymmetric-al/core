@@ -36,7 +36,7 @@ preview/version integration, or a Phase 22 D20-D26 seam named below.
 
 ## Where work stands
 
-**Shipped:** Native shell + list + default document views for all editorial collections including Phase 3 (`page-templates`, `missionary-giving-pages`, `project-pages`). Template gallery, wizards, `POST /web-studio/api/web-studio/create-from-template`, additive public routes, donor client helpers, staff missionary/fund directory APIs (via `@asym/api`), data-boundary–compliant route files.
+**Shipped:** Native shell + list + default document views for the editorial collections. Since WP6 part 2b (AL-2679) the CMS has five collections on UUID ids: `site-presentations`, `pages` (one collection for standard, giving and project pages, by `family`), `navigation`, `media` (records without files until part 2c) and `principal-links`. The starter gallery offers three starters in code; New page and `POST /web-studio/api/web-studio/create-from-template` create a `pages` draft on a Site of the selected organization. Staff missionary/fund directory APIs (via `@asym/api`), data-boundary–compliant route files.
 
 **Partial:** Stock Payload UI for some nested document subviews (versions, live preview, API). Full CMS Playwright in every environment. Donor pages may not all consume new public helpers yet.
 

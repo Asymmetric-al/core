@@ -49,26 +49,19 @@ function fakePayload({
   failRecentFor?: string[] | "all";
 } = {}) {
   const totals: Record<string, number> = {
-    "cms-users": 3,
-    tenants: 2,
     pages: 14,
-    "missionary-giving-pages": 2,
-    "project-pages": 1,
-    "ministry-updates": 3,
-    "missionary-profiles": 1,
     navigation: 1,
-    "page-templates": 4,
     media: 6,
   };
   const updated: Record<string, string> = {
     pages: "2026-11-07T21:06:00.000Z",
-    "ministry-updates": "2026-11-07T22:30:00.000Z",
+    navigation: "2026-11-07T22:30:00.000Z",
     media: "2026-11-01T09:00:00.000Z",
   };
   const titleFields: Record<string, string> = {
     pages: "title",
-    "ministry-updates": "title",
-    media: "filename",
+    navigation: "label",
+    media: "alt",
   };
   return {
     count: vi.fn(async ({ collection, where }: CountArgs) => {
@@ -87,7 +80,7 @@ function fakePayload({
             id: `${collection}-1`,
             [titleFields[collection]!]: `Latest ${collection}`,
             updatedAt,
-            _status: collection === "media" ? undefined : "draft",
+            _status: collection === "pages" ? "draft" : undefined,
           },
         ],
       };
@@ -112,12 +105,7 @@ function fakePayload({
         {
           config: {
             admin: { useAsTitle: titleFields[slug] ?? "title" },
-            versions:
-              slug === "media" ||
-              slug === "navigation" ||
-              slug === "missionary-profiles"
-                ? false
-                : { drafts: true },
+            versions: slug === "pages" ? { drafts: true } : false,
           },
         },
       ]),
@@ -125,7 +113,7 @@ function fakePayload({
   };
 }
 
-describe("loadWebStudioDashboardData", () => {
+describe("loadWebStudioDashboardData (D-18: WP6 part 2b leaves pages, navigation and media, and retires the Administration lists)", () => {
   it("counts every native collection through tenant-scoped Local API reads", async () => {
     const payload = fakePayload();
     const req = { user: { id: 1 } };
@@ -159,47 +147,42 @@ describe("loadWebStudioDashboardData", () => {
     expect(media).toMatchObject({ total: 6, drafts: null });
 
     expect(data.recent.map((doc) => doc.title)).toEqual([
-      "Latest ministry-updates",
+      "Latest navigation",
       "Latest pages",
       "Latest media",
     ]);
     expect(data.recent[0]).toMatchObject({
-      href: "/web-studio/collections/ministry-updates/ministry-updates-1",
-      collectionLabel: "Ministry updates",
-      status: "draft",
+      href: "/web-studio/collections/navigation/navigation-1",
+      collectionLabel: "Navigation",
+      status: null,
     });
+    expect(data.recent[1]).toMatchObject({ status: "draft" });
     expect(data.recent[2]).toMatchObject({ status: null });
-
-    expect(data.admin).toEqual([
-      {
-        slug: "cms-users",
-        title: "Users",
-        description: "Web Studio sign-ins and roles.",
-        href: "/web-studio/collections/cms-users",
-        total: 3,
-      },
-    ]);
+    expect(
+      payload.count.mock.calls.map(([args]) => args.collection),
+    ).not.toEqual(expect.arrayContaining(["cms-users"]));
   });
 
-  it("lists administration for tenant-scoped readers, as Payload's own nav does", async () => {
-    // Payload keeps a where-scoped read as an object; only an unrestricted
-    // read collapses to `true`.
+  it("lists no administration, whatever the reader may read", async () => {
+    const payload = fakePayload();
     const data = await loadWebStudioDashboardData({
-      payload: fakePayload() as never,
+      payload: payload as never,
       req: { user: { id: 1 } } as never,
       permissions: {
         collections: {
-          "cms-users": {
-            read: { permission: true, where: { tenant: { equals: 1 } } },
-          },
-          tenants: { read: { permission: true, where: { id: { in: [1] } } } },
+          "principal-links": { read: true },
+          "site-presentations": { read: true },
         },
       } as never,
     });
-    expect(data.admin.map((link) => link.slug)).toEqual([
-      "cms-users",
-      "tenants",
+    expect(Object.keys(data).sort()).toEqual([
+      "groups",
+      "recent",
+      "recentFailedCollections",
     ]);
+    const counted = payload.count.mock.calls.map(([args]) => args.collection);
+    expect(counted).not.toContain("principal-links");
+    expect(counted).not.toContain("site-presentations");
   });
 
   it("marks a live document with a newer draft as changed, like the lists", async () => {
@@ -214,8 +197,8 @@ describe("loadWebStudioDashboardData", () => {
       data.recent.find((doc) => doc.collectionSlug === "pages"),
     ).toMatchObject({ status: "changed" });
     expect(
-      data.recent.find((doc) => doc.collectionSlug === "ministry-updates"),
-    ).toMatchObject({ status: "draft" });
+      data.recent.find((doc) => doc.collectionSlug === "navigation"),
+    ).toMatchObject({ status: null });
     for (const call of payload.findVersions.mock.calls) {
       expect(call[0]).toMatchObject({ overrideAccess: false, req });
     }
@@ -254,7 +237,7 @@ describe("loadWebStudioDashboardData", () => {
           screen.getByText("Recent documents could not load"),
         ).toBeTruthy();
       } else {
-        expect(screen.getByText("Latest ministry-updates")).toBeTruthy();
+        expect(screen.getByText("Latest navigation")).toBeTruthy();
         expect(
           screen.getByText(
             "Some collections could not load. Reload to try again.",
@@ -287,7 +270,6 @@ describe("loadWebStudioDashboardData", () => {
       .flatMap((group) => group.collections)
       .find((collection) => collection.slug === "pages");
     expect(pages).toMatchObject({ total: null, drafts: null });
-    expect(data.admin).toEqual([]);
   });
 });
 
@@ -343,18 +325,9 @@ const DATA: WebStudioDashboardData = {
       updatedAt: "2026-11-07T20:06:00.000Z",
     },
   ],
-  admin: [
-    {
-      slug: "tenants",
-      title: "Organizations",
-      description: "Organizations that publish with Web Studio.",
-      href: "/web-studio/collections/tenants",
-      total: 2,
-    },
-  ],
 };
 
-describe("WebStudioDashboard", () => {
+describe("WebStudioDashboard (D-18: WP6 part 2b starts every page from New page and retires ministry updates and the Administration lists)", () => {
   it("offers page discovery before the create flows", () => {
     render(<WebStudioDashboard data={DATA} />);
     const findPage = screen.getByRole("link", { name: "Find a page" });
@@ -383,10 +356,12 @@ describe("WebStudioDashboard", () => {
     expect(hrefs).toEqual(
       expect.arrayContaining([
         "/web-studio/pages/new-from-template",
-        "/web-studio/pages/give",
-        "/web-studio/projects/new",
-        "/web-studio/ministry-updates/new",
+        "/web-studio/pages/new-from-template?template=missionary-giving",
+        "/web-studio/pages/new-from-template?template=project",
       ]),
+    );
+    expect(hrefs.join(" ")).not.toMatch(
+      /ministry-updates|\/pages\/give|\/projects\/new/,
     );
     expect(
       screen
@@ -407,7 +382,7 @@ describe("WebStudioDashboard", () => {
     expect(media.textContent).toContain("Count unavailable");
   });
 
-  it("shows recent documents with the lists' status words and admin-only stock lists", () => {
+  it("shows recent documents with the lists' status words and no Administration group", () => {
     render(<WebStudioDashboard data={DATA} />);
     const recent = screen.getByRole("region", { name: "Recently updated" });
     const doc = within(recent).getByRole("link", { name: /Year-End Giving/ });
@@ -416,17 +391,10 @@ describe("WebStudioDashboard", () => {
     const changed = within(recent).getByRole("link", { name: /Contact Us/ });
     expect(within(changed).getByText("Changed")).toBeTruthy();
     expect(within(changed).queryByText("Draft")).toBeNull();
-    // Administration is a group of the collection directory.
     const directory = screen.getByRole("region", { name: "Collections" });
-    const admin = within(directory).getByRole("region", {
-      name: "Administration",
-    });
-    const tenants = within(admin).getByRole("link", { name: /Organizations/ });
-    expect(tenants.getAttribute("href")).toBe(
-      "/web-studio/collections/tenants",
-    );
-    // Administration rows keep the directory's count column.
-    expect(tenants.textContent).toContain("2 organizations");
+    expect(
+      within(directory).queryByRole("region", { name: "Administration" }),
+    ).toBeNull();
   });
 
   it("keeps the user's pinned and recently viewed documents on the home", () => {
@@ -472,8 +440,8 @@ describe("WebStudioDashboard", () => {
     expect(column.parentElement).toBe(layout);
   });
 
-  it("hides administration when the user cannot read stock lists", () => {
-    render(<WebStudioDashboard data={{ ...DATA, admin: [], recent: [] }} />);
+  it("shows the empty state with no Administration group", () => {
+    render(<WebStudioDashboard data={{ ...DATA, recent: [] }} />);
     expect(screen.queryByRole("region", { name: "Administration" })).toBeNull();
     expect(screen.getByText("No documents yet")).toBeTruthy();
   });

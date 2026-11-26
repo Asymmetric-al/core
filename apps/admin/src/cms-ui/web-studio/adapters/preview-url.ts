@@ -6,8 +6,7 @@ import type { GeneratePreviewURL } from "payload";
 
 export { resolveDonorOrigin };
 
-type PreviewCollectionSlug =
-  "ministry-updates" | "missionary-giving-pages" | "pages" | "project-pages";
+type PreviewCollectionSlug = "pages";
 
 function normalizeSlugPath(slug: string) {
   const trimmed = slug.trim();

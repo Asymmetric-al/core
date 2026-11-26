@@ -18,12 +18,14 @@ import {
   createDraftPage,
   deleteDocument,
   fixturePerson,
+  labelSeededMedia,
+  restoreMediaAlt,
   restTitles,
   signInAs,
   signsInThroughStub,
+  siteOf,
   stubControl,
   switchOrganization,
-  uploadMedia,
   WEB_STUDIO_COOKIE,
   webStudioScope,
   writeHeaders,
@@ -200,7 +202,7 @@ async function acknowledgeStaleNotice(page: Page) {
  */
 /**
  * Opens `url` and waits until Payload has started in the browser: its own
- * session read (`cms-users/me`, made once the page has hydrated) has been
+ * session read (`principal-links/me`, made once the page has hydrated) has been
  * answered, and no call to `/web-studio/api` and no server function (the
  * navigation rail asks for its recent documents through one) has been in
  * flight for a second.
@@ -241,7 +243,10 @@ async function openStarted(page: Page, url: string) {
   try {
     // The opened page's own session read, not the previous page's (JR13).
     const session = page.waitForResponse((response) => {
-      if (new URL(response.url()).pathname !== "/web-studio/api/cms-users/me") {
+      if (
+        new URL(response.url()).pathname !==
+        "/web-studio/api/principal-links/me"
+      ) {
         return false;
       }
       const from = response.request().headers()["referer"];
@@ -510,7 +515,7 @@ async function switchRecordingResponses(page: Page, tenant: string) {
                 .__asymReceived ?? []
             ).some((copy) =>
               new URL(copy.url).pathname.endsWith(
-                "/web-studio/api/cms-users/me",
+                "/web-studio/api/principal-links/me",
               ),
             ),
           ),
@@ -604,12 +609,12 @@ function auditReceived(
     .toEqual([]);
 }
 
-test("@cms a person in two organizations sees each one's pages, documents and media only while it is selected", async ({
+test("@cms a person in two organizations sees each one's pages, documents and media only while it is selected (D-18: WP6 part 2b, the media are each organization's seeded record, relabelled and put back, since staff neither upload nor delete media before part 2c)", async ({
   page,
 }) => {
-  // Creates and uploads in two organizations and switches four times. As the
-  // first Web Studio case it also pays for compiling the list, document and
-  // upload views on a server that has not shown them yet (limits above).
+  // Creates and relabels in two organizations and switches four times. As
+  // the first Web Studio case it also pays for compiling the list and
+  // document views on a server that has not shown them yet (limits above).
   test.setTimeout(
     test.info().retry === 0
       ? FIRST_CASE_FIRST_ATTEMPT_LIMIT
@@ -617,7 +622,8 @@ test("@cms a person in two organizations sees each one's pages, documents and me
   );
   await signIn(page);
   const stamp = `wsten-${Date.now()}`;
-  const created: Array<[string, "pages" | "media", string]> = [];
+  const created: Array<[string, "pages", string]> = [];
+  const relabelled: Array<[string, string, string]> = [];
 
   try {
     // No choice yet: Web Studio asks, and never picks the first.
@@ -628,11 +634,8 @@ test("@cms a person in two organizations sees each one's pages, documents and me
     });
     const demoPage = await createDraftPage(page, base, `Alpha ${stamp}`);
     created.push([DEMO, "pages", demoPage]);
-    created.push([
-      DEMO,
-      "media",
-      await uploadMedia(page, base, `alpha ${stamp}`),
-    ]);
+    const demoMedia = await labelSeededMedia(page, base, `alpha ${stamp}`);
+    relabelled.push([DEMO, demoMedia.id, demoMedia.previousAlt]);
 
     await switchOrganization(page, base, SECOND);
     // The document scope that Web Studio's pickers read follows the cookie.
@@ -642,11 +645,8 @@ test("@cms a person in two organizations sees each one's pages, documents and me
     });
     const secondPage = await createDraftPage(page, base, `Bravo ${stamp}`);
     created.push([SECOND, "pages", secondPage]);
-    created.push([
-      SECOND,
-      "media",
-      await uploadMedia(page, base, `bravo ${stamp}`),
-    ]);
+    const secondMedia = await labelSeededMedia(page, base, `bravo ${stamp}`);
+    relabelled.push([SECOND, secondMedia.id, secondMedia.previousAlt]);
 
     for (const [tenant, own, other, ownPage, otherPage] of [
       [SECOND, "Bravo", "Alpha", secondPage, demoPage],
@@ -734,6 +734,9 @@ test("@cms a person in two organizations sees each one's pages, documents and me
       await switchOrganization(page, base, tenant);
       for (const [owner, collection, id] of created) {
         if (owner === tenant) await deleteDocument(page, base, collection, id);
+      }
+      for (const [owner, id, alt] of relabelled) {
+        if (owner === tenant) await restoreMediaAlt(page, base, id, alt);
       }
     }
   }
@@ -884,7 +887,7 @@ test("@cms the Web Studio cookie never reaches Mission Control's /api, and a for
     await page.evaluate((p) => fetch(p).then(() => undefined), path);
     return (await (await request).allHeaders()).cookie ?? "";
   };
-  expect(await sent("/web-studio/api/cms-users/me")).toContain(
+  expect(await sent("/web-studio/api/principal-links/me")).toContain(
     `${WEB_STUDIO_COOKIE}=`,
   );
   expect(await sent("/api/health")).not.toContain(WEB_STUDIO_COOKIE);
@@ -906,12 +909,13 @@ test("@cms the Web Studio cookie never reaches Mission Control's /api, and a for
   );
 });
 
-test("@cms a write to /web-studio/api from another origin is refused and changes nothing", async ({
+test("@cms a write to /web-studio/api from another origin is refused and changes nothing (D-18: WP6 part 2b pages carry a Site and a family)", async ({
   page,
 }) => {
   await signIn(page);
   await enter(page, DEMO);
   const stamp = `wsorigin-${Date.now()}`;
+  const site = await siteOf(page, base);
 
   const response = await page.request.post(
     `${base}/web-studio/api/pages?draft=true`,
@@ -923,7 +927,8 @@ test("@cms a write to /web-studio/api from another origin is refused and changes
       data: {
         title: `Cross ${stamp}`,
         slug: stamp,
-        pageType: "standard",
+        site,
+        family: "standard",
         _status: "draft",
       },
     },
@@ -940,13 +945,14 @@ test("@cms a write to /web-studio/api from another origin is refused and changes
   expect(await restTitles(page, base, "pages", stamp)).toEqual([]);
 });
 
-test("@cms Save in a page opened for one organization, after another tab switched to the other, is refused, changes nothing and asks the person to reload", async ({
+test("@cms Save in a page opened for one organization, after another tab switched to the other, is refused, changes nothing and asks the person to reload (D-18: WP6 part 2b pages carry a Site and a family)", async ({
   page,
 }) => {
   await signIn(page);
   await enter(page, DEMO);
   const stamp = `wsstale-${Date.now()}`;
   const id = await createDraftPage(page, base, `Form ${stamp}`);
+  const site = await siteOf(page, base);
 
   try {
     // Tab one keeps the document open for the demo organization.
@@ -977,19 +983,23 @@ test("@cms Save in a page opened for one organization, after another tab switche
     await expect(page.getByRole("alertdialog")).toHaveCount(1);
 
     // A create from the same document is refused the same way.
-    const created = await page.evaluate(async (s) => {
-      const response = await fetch("/web-studio/api/pages?draft=true", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          title: `New ${s}`,
-          slug: `new-${s}`,
-          pageType: "standard",
-          _status: "draft",
-        }),
-      });
-      return { status: response.status, body: await response.json() };
-    }, stamp);
+    const created = await page.evaluate(
+      async ({ s, site: siteId }) => {
+        const response = await fetch("/web-studio/api/pages?draft=true", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            title: `New ${s}`,
+            slug: `new-${s}`,
+            site: siteId,
+            family: "standard",
+            _status: "draft",
+          }),
+        });
+        return { status: response.status, body: await response.json() };
+      },
+      { s: stamp, site },
+    );
     expect(created.status).toBe(409);
     expect(created.body.message).toBe(STALE_MESSAGE);
 
@@ -1276,7 +1286,7 @@ test("@cms searching, sorting and paging a list stay in the same document", asyn
   }
 });
 
-test("@cms Switch organization with unsaved changes asks once, then loads the chooser as a new document", async ({
+test("@cms Switch organization with unsaved changes asks once, then loads the chooser as a new document (D-18: WP6 part 2b menus belong to a Site and link to absolute addresses)", async ({
   page,
 }) => {
   await signIn(page);
@@ -1286,7 +1296,11 @@ test("@cms Switch organization with unsaved changes asks once, then loads the ch
   // Payload guards an unsaved change (pages autosave and never ask).
   const created = await page.request.post(`${base}/web-studio/api/navigation`, {
     headers: await writeHeaders(page, base),
-    data: { label: `Leave ${stamp}`, items: [{ label: "Home", href: "/" }] },
+    data: {
+      site: await siteOf(page, base),
+      label: `Leave ${stamp}`,
+      items: [{ label: "Home", href: "https://example.org/" }],
+    },
   });
   expect(created.status()).toBe(201);
   const id = String((await created.json()).doc.id);
@@ -1315,7 +1329,7 @@ test("@cms Switch organization with unsaved changes asks once, then loads the ch
   }
 });
 
-test("@cms two editors of one organization on a document with no versions: the second meets the lock instead of overwriting, and leaving releases it", async ({
+test("@cms two editors of one organization on a document with no versions: the second meets the lock instead of overwriting, and leaving releases it (D-18: WP6 part 2b menus belong to a Site and link to absolute addresses)", async ({
   page,
   browser,
 }) => {
@@ -1325,7 +1339,11 @@ test("@cms two editors of one organization on a document with no versions: the s
   // Navigation keeps no versions: an overwrite there could not be undone.
   const created = await page.request.post(`${base}/web-studio/api/navigation`, {
     headers: await writeHeaders(page, base),
-    data: { label: `Lock ${stamp}`, items: [{ label: "Home", href: "/" }] },
+    data: {
+      site: await siteOf(page, base),
+      label: `Lock ${stamp}`,
+      items: [{ label: "Home", href: "https://example.org/" }],
+    },
   });
   expect(created.status()).toBe(201);
   const id = String((await created.json()).doc.id);
@@ -1476,7 +1494,7 @@ test('@cms the overview\'s "Your documents" card lists what the person viewed, i
   }
 });
 
-test("@cms nothing of Payload's answers under /api, old media links are sent to the new route for this release, and Mission Control's /api answers as before", async ({
+test("@cms nothing of Payload's answers under /api, old media links are sent to the new route for this release, and Mission Control's /api answers as before (D-18: WP6 part 2b signs in as principal-links, and a media file address finds nothing until part 2c)", async ({
   page,
   request,
 }) => {
@@ -1494,10 +1512,18 @@ test("@cms nothing of Payload's answers under /api, old media links are sent to 
   expect(media.headers()["location"]).toBe(
     "/web-studio/api/media/file/anything.png?width=640",
   );
+  expect(
+    (
+      await page.request.get(
+        `${base}/web-studio/api/media/file/anything.png?width=640`,
+        { maxRedirects: 0 },
+      )
+    ).status(),
+  ).toBe(404);
 
   for (const [method, path] of [
     ["GET", "/api/pages?limit=1"],
-    ["GET", "/api/cms-users/me"],
+    ["GET", "/api/principal-links/me"],
     ["POST", "/api/graphql"],
   ] as const) {
     const response = await page.request.fetch(`${base}${path}`, {
@@ -1509,7 +1535,9 @@ test("@cms nothing of Payload's answers under /api, old media links are sent to 
     expect(response.status(), path).toBe(404);
   }
   expect(
-    (await page.request.get(`${base}/web-studio/api/cms-users/me`)).status(),
+    (
+      await page.request.get(`${base}/web-studio/api/principal-links/me`)
+    ).status(),
   ).toBe(200);
   expect((await page.request.get(`${base}/api/health`)).status()).toBe(200);
 });
@@ -1730,7 +1758,7 @@ test("@cms a link from Mission Control into Web Studio asks before working in an
 // is a placeholder, so this case answers that API itself, by the organization
 // each request names; the server's own filter is slice B's, proven by its
 // request-scope specs.
-test("@cms Web Studio's missionary and fund pickers list only the selected organization's", async ({
+test("@cms Web Studio's missionary and fund pickers list only the selected organization's (D-18: WP6 part 2b offers both pickers in New page, by starter)", async ({
   page,
 }) => {
   const seen: Array<[string, string | undefined, string | undefined]> = [];
@@ -1773,8 +1801,12 @@ test("@cms Web Studio's missionary and fund pickers list only the selected organ
     if (tenant === DEMO) await enter(page, DEMO);
     else await switchOrganization(page, base, SECOND);
 
-    await page.goto(`${base}/web-studio/pages/give`);
-    await page.getByRole("combobox", { name: /^Missionary/ }).click();
+    await page.goto(
+      `${base}/web-studio/pages/new-from-template?template=missionary-giving`,
+    );
+    const missionary = page.getByRole("combobox", { name: /^Missionary/ });
+    await expect(missionary).toBeEnabled();
+    await missionary.click();
     await expect(
       page.getByRole("option", { name: rows[tenant]!.missionary }),
     ).toBeVisible();
@@ -1783,8 +1815,12 @@ test("@cms Web Studio's missionary and fund pickers list only the selected organ
     ).toHaveCount(0);
     await page.keyboard.press("Escape");
 
-    await page.goto(`${base}/web-studio/projects/new`);
-    await page.getByRole("combobox", { name: /^Fund/ }).click();
+    await page.goto(
+      `${base}/web-studio/pages/new-from-template?template=project`,
+    );
+    const fund = page.getByRole("combobox", { name: /^Fund/ });
+    await expect(fund).toBeEnabled();
+    await fund.click();
     await expect(
       page.getByRole("option", { name: rows[tenant]!.fund }),
     ).toBeVisible();
