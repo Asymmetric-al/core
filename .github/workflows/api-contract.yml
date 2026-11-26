@@ -61,6 +61,8 @@ on:
       - scripts/verify/field-policy-census.mjs
       - scripts/verify/command-capabilities.json
       - scripts/verify/command-entry-boundaries.mjs
+      - scripts/release/schema-fingerprint.mjs
+      - scripts/release/lib/postgres.mjs
       - scripts/lib/postgres-upgrade-preflight.mjs
       - scripts/lib/psql.mjs
       - scripts/lib/environment-marker.mjs
