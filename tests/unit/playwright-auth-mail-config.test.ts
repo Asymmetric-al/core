@@ -124,7 +124,9 @@ describe("AL-2675 WP2c part 2a, T7: the operator area journey", () => {
     }
     expect(uploads).toContain("test-results/auth-mail/");
     for (const entry of uploads) {
+      if (entry.startsWith("${{ runner.temp }}/")) continue;
       const prefix = entry.replace(/[*?[{$].*$/, "");
+      expect(prefix, entry).not.toBe("");
       expect(log.startsWith(prefix), entry).toBe(false);
     }
   });
