@@ -24,10 +24,12 @@
  * flag it fails instead. It creates two logins of its own and removes them.
  */
 import { spawnSync } from "node:child_process";
-import { createHmac, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
+import { totp } from "../../../e2e/helpers/totp";
 
 const API = process.env.OPERATOR_MFA_API_URL ?? "";
 const ANON = process.env.OPERATOR_MFA_ANON_KEY ?? "";
@@ -44,40 +46,6 @@ it.runIf(REQUIRED && !READY)(
   "the runner passes the stack's values (fails, never skips)",
   () => expect(READY).toBe(true),
 );
-
-/** RFC 4648 base32, as TOTP secrets are written. */
-function base32(secret: string): Buffer {
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-  const bytes: number[] = [];
-  let bits = 0;
-  let value = 0;
-  for (const char of secret.replace(/=+$/, "").toUpperCase()) {
-    const index = alphabet.indexOf(char);
-    if (index < 0) throw new Error("the TOTP secret is not base32");
-    value = (value << 5) | index;
-    bits += 5;
-    if (bits >= 8) {
-      bytes.push((value >>> (bits - 8)) & 0xff);
-      bits -= 8;
-      value &= (1 << bits) - 1;
-    }
-  }
-  return Buffer.from(bytes);
-}
-
-/** RFC 6238: six digits, SHA-1, 30-second steps. */
-function totp(secret: string, at = Date.now()): string {
-  const step = Buffer.alloc(8);
-  step.writeBigUInt64BE(BigInt(Math.floor(at / 30_000)));
-  const mac = createHmac("sha1", base32(secret)).update(step).digest();
-  const offset = mac[mac.length - 1]! & 0x0f;
-  const code =
-    ((mac[offset]! & 0x7f) << 24) |
-    (mac[offset + 1]! << 16) |
-    (mac[offset + 2]! << 8) |
-    mac[offset + 3]!;
-  return String(code % 1_000_000).padStart(6, "0");
-}
 
 /** The claims of an access token, unverified: what Auth says it issued. */
 function claims(token: string): Record<string, unknown> {
@@ -631,7 +599,7 @@ describe.skipIf(!READY)(
       expect(cleared.status).toBe(200);
     });
 
-    it("(5) a person who is not on the list may enrol and verify through Auth directly, reaching aal2, yet is neither admitted to /operator nor confirmed as an operator", async () => {
+    it("(5) a person who is not on the list may enrol and verify through Auth directly and reach aal2, yet the list read the area's admission uses answers false and platform_operator_session refuses", async () => {
       const own = await signIn(person.email);
       const verified = await verify(own.access, await enrol(own.access));
       expect(claims(verified.access).aal).toBe("aal2");

@@ -113,7 +113,8 @@ beforeEach(() => {
   mfa.startEnrolment.mockResolvedValue({
     ok: true,
     factorId: "new-factor",
-    qrCode: "data:image/svg+xml;utf-8,%3Csvg%3E%3C/svg%3E",
+    qrCode:
+      'data:image/svg+xml;utf-8,<?xml version="1.0"?>\n<svg xmlns="http://www.w3.org/2000/svg"></svg>\n',
     secret,
   });
 });
@@ -292,6 +293,7 @@ describe("AL-2675 WP2c part 2a, T4: the operator area's screens", () => {
       message:
         "Two-step sign-in is switched off for this project. Ask the release owner to switch on TOTP.",
       reread: false,
+      mismatch: false,
     });
     render(<OperatorAreaClient />);
     fireEvent.click(
@@ -358,6 +360,7 @@ describe("AL-2675 WP2c part 2a, T4: the operator area's screens", () => {
         message:
           "That code did not match. Check that your device's clock is right and enter the current code.",
         reread: false,
+        mismatch: true,
       })
       .mockResolvedValueOnce({ ok: true });
     mfa.readFactorState.mockResolvedValue({
@@ -387,6 +390,7 @@ describe("AL-2675 WP2c part 2a, T4: the operator area's screens", () => {
       ok: false,
       message: "Your network changed during verification. Enter a new code.",
       reread: false,
+      mismatch: false,
     });
     fireEvent.click(screen.getByRole("button", { name: "Verify" }));
     expect(
@@ -399,6 +403,7 @@ describe("AL-2675 WP2c part 2a, T4: the operator area's screens", () => {
       ok: false,
       message: "",
       reread: true,
+      mismatch: false,
     });
     const reads = mfa.readFactorState.mock.calls.length;
     fireEvent.click(screen.getByRole("button", { name: "Verify" }));
@@ -514,5 +519,226 @@ describe("AL-2675 WP2c part 2a, T4: the operator area's screens", () => {
     );
     await waitFor(() => expectSecretAbsent());
     expectNothingLeaked();
+  });
+});
+
+const GENERIC = "Something went wrong. Try again.";
+const RATE_LIMITED =
+  "Too many attempts from this network. Wait a minute, then enter a new code.";
+const MISMATCH =
+  "That code did not match. Check that your device's clock is right and enter the current code.";
+
+function codeForm(): { field: HTMLElement; form: HTMLFormElement } {
+  const field = document.querySelector(
+    '[data-slot="input-otp"]',
+  ) as HTMLElement;
+  return { field, form: field.closest("form")! };
+}
+
+async function showArea(factors: ReturnType<typeof factorRow>[]) {
+  mfa.readFactorState.mockResolvedValue({ kind: "area", factors });
+  render(<OperatorAreaClient />);
+  await screen.findByText(VERIFIED);
+}
+
+async function confirmRemovalOf(name: string) {
+  fireEvent.click(screen.getByRole("button", { name: `Remove ${name}` }));
+  const dialog = await screen.findByRole("alertdialog");
+  fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
+}
+
+describe("AL-2675 WP2c part 2a, fix round: the operator area's screens", () => {
+  it("R4: stops at the first authenticator when Auth refuses for a reason other than a wrong code, and shows that reason", async () => {
+    mfa.readFactorState.mockResolvedValue({
+      kind: "challenge",
+      factorIds: ["v1", "v2"],
+    });
+    render(<OperatorAreaClient />);
+    await screen.findByText("Enter your code");
+    await typeCode(codeForm().field, "222222");
+    mfa.verifyCode.mockResolvedValue({
+      ok: false,
+      message: RATE_LIMITED,
+      reread: false,
+      mismatch: false,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Verify" }));
+    expect(await screen.findByText(RATE_LIMITED)).toBeTruthy();
+    expect(mfa.verifyCode).toHaveBeenCalledTimes(1);
+  });
+
+  it("R4: shows the wrong-code text when every authenticator refuses the code", async () => {
+    mfa.readFactorState.mockResolvedValue({
+      kind: "challenge",
+      factorIds: ["v1", "v2"],
+    });
+    render(<OperatorAreaClient />);
+    await screen.findByText("Enter your code");
+    await typeCode(codeForm().field, "333333");
+    mfa.verifyCode.mockResolvedValue({
+      ok: false,
+      message: MISMATCH,
+      reread: false,
+      mismatch: true,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Verify" }));
+    expect(await screen.findByText(MISMATCH)).toBeTruthy();
+    expect(mfa.verifyCode).toHaveBeenCalledTimes(2);
+  });
+
+  it("R5: drops the pending key and QR before reading the state again when a verification asks for it", async () => {
+    await openEnrolment();
+    mfa.verifyCode.mockResolvedValue({
+      ok: false,
+      message: "",
+      reread: true,
+      mismatch: false,
+    });
+    await typeCode(codeForm().field, "123456");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Verify and continue" }),
+    );
+    await waitFor(() => expect(mfa.readFactorState).toHaveBeenCalledTimes(2));
+    await waitFor(() => expectSecretAbsent());
+    expect(
+      await screen.findByRole("button", { name: "Set up an authenticator" }),
+    ).toBeTruthy();
+    expectNothingLeaked();
+  });
+
+  it("R5: never sends a code with fewer than six digits, however the form is submitted", async () => {
+    await openEnrolment();
+    const enrolment = codeForm();
+    await typeCode(enrolment.field, "12345");
+    fireEvent.submit(enrolment.form);
+    cleanup();
+    mfa.readFactorState.mockResolvedValue({
+      kind: "challenge",
+      factorIds: ["v1"],
+    });
+    render(<OperatorAreaClient />);
+    await screen.findByText("Enter your code");
+    const challenge = codeForm();
+    await typeCode(challenge.field, "12345");
+    fireEvent.submit(challenge.form);
+    await act(async () => undefined);
+    expect(mfa.verifyCode).not.toHaveBeenCalled();
+  });
+
+  it("B1: offers no second removal until the new list is on the screen", async () => {
+    await showArea([factorRow("v1", "Phone"), factorRow("v2", "Laptop")]);
+    const nextList = deferred<{ kind: "area"; factors: unknown[] }>();
+    mfa.removeFactor.mockResolvedValue({ ok: true });
+    mfa.readFactorState.mockReturnValueOnce(nextList.promise);
+    await confirmRemovalOf("Laptop");
+    await waitFor(() => expect(mfa.removeFactor).toHaveBeenCalledWith("v2"));
+    await waitFor(() => expect(mfa.readFactorState).toHaveBeenCalledTimes(2));
+    expect(screen.getByText("Phone")).toBeTruthy();
+    expect(screen.queryAllByRole("button", { name: /^Remove / })).toEqual([]);
+    await act(async () =>
+      nextList.resolve({ kind: "area", factors: [factorRow("v1", "Phone")] }),
+    );
+    expect(screen.queryByText("Laptop")).toBeNull();
+    expect(screen.queryAllByRole("button", { name: /^Remove / })).toEqual([]);
+    expect(mfa.removeFactor).toHaveBeenCalledTimes(1);
+  });
+
+  it("B2: says so when a removal did not happen, and offers the controls again", async () => {
+    await showArea([factorRow("v1", "Phone"), factorRow("v2", "Laptop")]);
+    mfa.removeFactor.mockResolvedValue({
+      ok: false,
+      message: GENERIC,
+      reread: false,
+      mismatch: false,
+    });
+    await confirmRemovalOf("Laptop");
+    expect(await screen.findByText(GENERIC)).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: /^Remove / })).toHaveLength(2);
+    expect(screen.getByText("Laptop")).toBeTruthy();
+  });
+
+  it("B2: reads the list again, and invites no second removal, when the factor went but the refresh failed", async () => {
+    await showArea([factorRow("v1", "Phone"), factorRow("v2", "Laptop")]);
+    const nextList = deferred<{ kind: "area"; factors: unknown[] }>();
+    mfa.removeFactor.mockResolvedValue({
+      ok: false,
+      message: GENERIC,
+      reread: true,
+      mismatch: false,
+    });
+    mfa.readFactorState.mockReturnValueOnce(nextList.promise);
+    await confirmRemovalOf("Laptop");
+    await waitFor(() => expect(mfa.readFactorState).toHaveBeenCalledTimes(2));
+    expect(screen.queryAllByRole("button", { name: /^Remove / })).toEqual([]);
+    await act(async () =>
+      nextList.resolve({ kind: "area", factors: [factorRow("v1", "Phone")] }),
+    );
+    expect(screen.queryByText("Laptop")).toBeNull();
+    expect(mfa.removeFactor).toHaveBeenCalledTimes(1);
+  });
+
+  it("B3: keeps the key hidden and says so when Cancel could not remove the pending factor", async () => {
+    await openEnrolment();
+    mfa.removeFactor.mockResolvedValue({
+      ok: false,
+      message: GENERIC,
+      reread: false,
+      mismatch: false,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(await screen.findByText(GENERIC)).toBeTruthy();
+    expectSecretAbsent();
+    expect(
+      screen.getByRole("button", { name: "Set up an authenticator" }),
+    ).toBeTruthy();
+    expectNothingLeaked();
+  });
+
+  it("B4: sends no verification once sign-out has begun, and hides the challenge", async () => {
+    mfa.readFactorState.mockResolvedValue({
+      kind: "challenge",
+      factorIds: ["v1", "v2"],
+    });
+    render(<OperatorAreaClient />);
+    await screen.findByText("Enter your code");
+    await typeCode(codeForm().field, "444444");
+    const firstVerify = deferred<unknown>();
+    mfa.verifyCode.mockReturnValueOnce(firstVerify.promise);
+    fireEvent.click(screen.getByRole("button", { name: "Verify" }));
+    expect(mfa.verifyCode).toHaveBeenCalledTimes(1);
+    const signingOut = deferred<{ ok: true; redirected: true }>();
+    session.signOutClientSession.mockReturnValueOnce(signingOut.promise);
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(screen.queryByText("Enter your code")).toBeNull();
+    await act(async () =>
+      firstVerify.resolve({
+        ok: false,
+        message: MISMATCH,
+        reread: false,
+        mismatch: true,
+      }),
+    );
+    expect(mfa.verifyCode).toHaveBeenCalledTimes(1);
+  });
+
+  it("B5: shows the screen again when sign-out finishes without leaving the page", async () => {
+    mfa.readFactorState.mockResolvedValue({ kind: "enrol" });
+    session.signOutClientSession.mockResolvedValue({
+      ok: true,
+      redirected: false,
+    });
+    render(<OperatorAreaClient />);
+    await screen.findByRole("button", { name: "Set up an authenticator" });
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await waitFor(() =>
+      expect(session.signOutClientSession).toHaveBeenCalledTimes(1),
+    );
+    expect(
+      await screen.findByRole("button", { name: "Set up an authenticator" }),
+    ).toBeTruthy();
+    expect(
+      (screen.getByRole("button", { name: "Sign out" }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(false);
   });
 });

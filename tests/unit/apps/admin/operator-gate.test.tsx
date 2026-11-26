@@ -226,6 +226,15 @@ describe("AL-2675 WP2c part 2a, T3: the operator page's own check", () => {
     },
   );
 
+  it("B6: refuses with notFound() a person who is not on the list though their session passed a second factor", async () => {
+    state.user = {
+      id: "00000000-0000-4000-8000-0000000000b2",
+      factors: [{ id: "f1", factor_type: "totp", status: "verified" }],
+    } as unknown as { id: string };
+    state.list = { data: false, error: null };
+    await expectRefused();
+  });
+
   it("refuses with notFound() when the session client cannot be made", async () => {
     state.clientError = new Error("Supabase client misconfigured");
     await expectRefused();

@@ -287,6 +287,7 @@ describe("AL-2675 WP2c part 2a, T4: enrolment", () => {
       ok: false,
       message: "Try again in a minute.",
       reread: false,
+      mismatch: false,
     });
   });
 
@@ -304,6 +305,7 @@ describe("AL-2675 WP2c part 2a, T4: enrolment", () => {
         ok: false,
         message,
         reread: false,
+        mismatch: false,
       });
     },
   );
@@ -328,8 +330,8 @@ describe("AL-2675 WP2c part 2a, T4: the fixed messages", () => {
   });
 
   it.each([
-    [{ code: "mfa_verification_failed", status: 422 }, "mismatch", false],
-    [{ code: "mfa_verification_rejected", status: 422 }, "mismatch", false],
+    [{ code: "mfa_verification_failed", status: 422 }, "mismatch", true],
+    [{ code: "mfa_verification_rejected", status: 422 }, "mismatch", true],
     [{ code: "mfa_challenge_expired", status: 422 }, "expired", false],
     [{ code: "mfa_ip_address_mismatch", status: 422 }, "network", false],
     [{ code: "over_request_rate_limit", status: 429 }, "rateLimited", false],
@@ -348,18 +350,22 @@ describe("AL-2675 WP2c part 2a, T4: the fixed messages", () => {
     [{ code: "mfa_factor_name_conflict", status: 422 }, "nameConflict", false],
     [{ code: "unexpected_failure", status: 500 }, "generic", false],
     [{ message: "Auth's own words: secret ABCD" }, "generic", false],
-  ] as const)("maps %j to %s", (error, key, reread) => {
-    expect(operatorMfaFailure(error)).toEqual({
-      ok: false,
-      message: OPERATOR_MFA_MESSAGES[key],
-      reread,
-    });
-  });
+  ] as const)(
+    "maps %j to %s, and calls only a wrong code a mismatch (R4)",
+    (error, key, mismatch) => {
+      expect(operatorMfaFailure(error)).toEqual({
+        ok: false,
+        message: OPERATOR_MFA_MESSAGES[key],
+        reread: false,
+        mismatch,
+      });
+    },
+  );
 
   it("re-reads the state on insufficient_aal instead of showing a message", () => {
     expect(
       operatorMfaFailure({ code: "insufficient_aal", status: 403 }),
-    ).toEqual({ ok: false, message: "", reread: true });
+    ).toEqual({ ok: false, message: "", reread: true, mismatch: false });
   });
 });
 
@@ -380,6 +386,7 @@ describe("AL-2675 WP2c part 2a, T4: verification, removal and the database's con
       ok: false,
       message: OPERATOR_MFA_MESSAGES.mismatch,
       reread: false,
+      mismatch: true,
     });
   });
 
@@ -397,6 +404,22 @@ describe("AL-2675 WP2c part 2a, T4: verification, removal and the database's con
       ok: false,
       message: "",
       reread: true,
+      mismatch: false,
+    });
+    expect(calls).toEqual(["unenroll:v2"]);
+  });
+
+  it("asks for a fresh read, never a second removal, when the factor went but the session refresh failed (B2)", async () => {
+    const { client, calls, raw } = fakeClient();
+    raw.auth.refreshSession.mockResolvedValueOnce({
+      data: {},
+      error: { code: "unexpected_failure", status: 500 },
+    } as never);
+    expect(await removeFactor("v2", client)).toEqual({
+      ok: false,
+      message: OPERATOR_MFA_MESSAGES.generic,
+      reread: true,
+      mismatch: false,
     });
     expect(calls).toEqual(["unenroll:v2"]);
   });

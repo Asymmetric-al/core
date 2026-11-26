@@ -102,10 +102,14 @@ function operatorScript(
   });
 }
 
+function atOperatorArea(url: URL): boolean {
+  return url.origin === ADMIN_ORIGIN && url.pathname === "/operator";
+}
+
 async function signIn(page: Page, person: Person) {
   const loginUrl = `${ADMIN_ORIGIN}/login?next=${encodeURIComponent("/operator")}`;
-  const away = (url: URL) => !url.pathname.startsWith("/login");
   for (let attempt = 1; attempt <= 5; attempt += 1) {
+    let submitted = false;
     try {
       await page.goto(loginUrl);
       await waitForHydratedForm(page);
@@ -116,12 +120,13 @@ async function signIn(page: Page, person: Person) {
       await page
         .getByRole("button", { name: "Sign in" })
         .click({ timeout: 60_000 });
-      await page.waitForURL(away, { timeout: 60_000 });
+      submitted = true;
+      await page.waitForURL(atOperatorArea, { timeout: 60_000 });
       return;
     } catch {
-      if (away(new URL(page.url()))) return;
+      if (submitted && atOperatorArea(new URL(page.url()))) return;
       if (attempt === 5) {
-        throw new Error(`sign-in for ${person.email} did not leave /login`);
+        throw new Error(`sign-in for ${person.email} did not reach /operator`);
       }
     }
   }
@@ -278,7 +283,7 @@ async function ownerTextScan(stack: AuthMailEnv) {
               'select %L::text, %I::text, false from %I.%I where %I::text ~* %L',
               c.schema_name || '.' || c.table_name || '.' || c.column_name,
               c.column_name, c.schema_name, c.table_name, c.column_name,
-              '[a-z2-7]{16}'
+              '[a-z2-7]{16}|[a-z2-7]{4} [a-z2-7]{4} [a-z2-7]{4}|otpauth|svg|rect|path|%3c'
             );
           exception when insufficient_privilege then
             return query select c.schema_name || '.' || c.table_name || '.' || c.column_name, null::text, true;
@@ -309,13 +314,46 @@ async function ownerTextScan(stack: AuthMailEnv) {
   });
 }
 
-function holds(text: string, secret: string, uri: string): boolean {
+interface SecretForms {
+  secret: string;
+  grouped: string;
+  uri: string;
+  qrSlice: string;
+}
+
+function holds(text: string, forms: SecretForms): boolean {
+  const upper = text.toUpperCase();
   return (
-    text.toUpperCase().includes(secret.toUpperCase()) ||
-    text.includes(uri) ||
-    text.includes(encodeURIComponent(uri))
+    upper.includes(forms.secret.toUpperCase()) ||
+    upper.includes(forms.grouped.toUpperCase()) ||
+    [
+      forms.uri,
+      encodeURIComponent(forms.uri),
+      forms.qrSlice,
+      encodeURIComponent(forms.qrSlice),
+    ].some((form) => text.includes(form))
   );
 }
+
+function isOperatorRoute(url: URL): boolean {
+  return url.pathname === "/operator";
+}
+
+function isExcludedByName(url: URL): boolean {
+  return (
+    url.pathname.startsWith("/_next/static/") ||
+    url.pathname.startsWith("/_next/webpack-hmr") ||
+    url.pathname.startsWith("/__nextjs") ||
+    url.pathname === "/api/auth/signout"
+  );
+}
+
+type Read = {
+  where: string;
+  named: boolean;
+  text: string | null;
+  reason: string;
+};
 
 test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () => {
   test.beforeAll(async ({}, testInfo) => {
@@ -451,40 +489,63 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
     expect(logAtStart.split("\n").filter(Boolean).length).toBeGreaterThan(0);
     const logSizeAtStart = statSync(logFile).size;
 
-    const adminResponses: Array<Promise<{ where: string; text: string }>> = [];
+    const reads: Array<Promise<Read>> = [];
+    const outgoing: Array<{ where: string; text: string }> = [];
     const areaResponses: Array<{
       status: number;
       headers: Record<string, string>;
     }> = [];
     const consoleLines: string[] = [];
     let enrolUri = "";
+    let enrolQr = "";
 
     const openAdminRequests = new Map<Request, string>();
     page.on("console", (message) => consoleLines.push(message.text()));
     page.context().on("request", (request: Request) => {
       const url = new URL(request.url());
-      if (url.origin === ADMIN_ORIGIN)
-        openAdminRequests.set(request, url.pathname);
+      if (url.origin !== ADMIN_ORIGIN) return;
+      const where = `${request.method()} ${url.pathname}`;
+      openAdminRequests.set(request, where);
+      outgoing.push({
+        where,
+        text: [
+          request.url(),
+          JSON.stringify(request.headers()),
+          request.postDataBuffer()?.toString("utf8") ?? "",
+        ].join("\n"),
+      });
     });
     page.context().on("requestfailed", (request: Request) => {
+      const where = openAdminRequests.get(request);
+      if (where === undefined) return;
       openAdminRequests.delete(request);
+      reads.push(
+        Promise.resolve({
+          where,
+          named: isOperatorRoute(new URL(request.url())),
+          text: null,
+          reason: request.failure()?.errorText ?? "failed",
+        }),
+      );
     });
     page.context().on("requestfinished", (request: Request) => {
-      const url = new URL(request.url());
-      if (url.origin !== ADMIN_ORIGIN) return;
+      const where = openAdminRequests.get(request);
+      if (where === undefined) return;
       openAdminRequests.delete(request);
-      adminResponses.push(
-        (async () => {
+      const named = isOperatorRoute(new URL(request.url()));
+      reads.push(
+        (async (): Promise<Read> => {
           const response = await request.response();
-          if (!response) return { where: url.pathname, text: "" };
-          const headers = JSON.stringify(await response.allHeaders());
-          let body = "";
+          if (!response) return { where, named, text: null, reason: "none" };
           try {
-            body = (await response.body()).toString("utf8");
-          } catch {
-            body = "";
+            const headers = JSON.stringify(await response.allHeaders());
+            const body = (await response.body()).toString("utf8");
+            return { where, named, text: `${headers}\n${body}`, reason: "" };
+          } catch (error) {
+            const reason =
+              error instanceof Error ? error.message.split("\n")[0]! : "";
+            return { where, named, text: null, reason };
           }
-          return { where: url.pathname, text: `${headers}\n${body}` };
         })(),
       );
     });
@@ -506,8 +567,9 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
       ) {
         void response
           .json()
-          .then((json: { totp?: { uri?: string } }) => {
+          .then((json: { totp?: { uri?: string; qr_code?: string } }) => {
             enrolUri = json.totp?.uri ?? enrolUri;
+            enrolQr = json.totp?.qr_code ?? enrolQr;
           })
           .catch(() => undefined);
       }
@@ -520,9 +582,22 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
       page.getByRole("heading", { level: 1, name: "Operator area" }),
     ).toBeVisible();
     await page.getByRole("button", { name: "Set up an authenticator" }).click();
-    await expect(
-      page.getByRole("img", { name: "QR code for your authenticator app" }),
-    ).toBeVisible();
+    const qrImage = page.getByRole("img", {
+      name: "QR code for your authenticator app",
+    });
+    await expect(qrImage).toBeVisible();
+    await expect
+      .poll(
+        () =>
+          qrImage.evaluate((image: HTMLImageElement) =>
+            image.decode().then(
+              () => true,
+              () => false,
+            ),
+          ),
+        { message: "the QR image decodes" },
+      )
+      .toBe(true);
     const shownKey =
       (await page
         .getByRole("group", { name: "Key", exact: true })
@@ -532,8 +607,18 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
     expect(/^[A-Z2-7]{16,}$/.test(secret), "the page shows a base32 key").toBe(
       true,
     );
-    await expect.poll(() => enrolUri.startsWith("otpauth://")).toBe(true);
-    const uri = enrolUri;
+    await expect
+      .poll(() => enrolUri.startsWith("otpauth://") && enrolQr.length > 400)
+      .toBe(true);
+    const svg = enrolQr.replace(/^data:image\/svg\+xml;utf-8,/, "").trim();
+    const middle = Math.floor(svg.length / 2);
+    const forms: SecretForms = {
+      secret,
+      grouped: (secret.match(/.{1,4}/g) ?? []).join(" "),
+      uri: enrolUri,
+      qrSlice: svg.slice(middle - 80, middle + 80),
+    };
+    expect(forms.qrSlice.length, "a slice of the QR's SVG").toBe(160);
     expect(await seriousViolations(page), "axe on enrolment").toEqual([]);
     const storageWhileEnrolling = await storageSnapshot(page);
 
@@ -585,40 +670,66 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
     });
 
     const storageAtEnd = await storageSnapshot(page);
-    const responses = await Promise.all(adminResponses);
-    const unfinished = [...openAdminRequests.values()].join(", ") || "none";
-    test.info().annotations.push({
-      type: "admin-origin requests that never finished (bodies unreadable)",
-      description: unfinished,
+    const seen = await Promise.all(reads);
+    const stillOpen = [...openAdminRequests.entries()].map(
+      ([request, where]) => ({ request, where }),
+    );
+    const namedUnread = [
+      ...seen
+        .filter((read) => read.named && read.text === null)
+        .map((read) => `${read.where} (${read.reason})`),
+      ...stillOpen
+        .filter(({ request }) => isOperatorRoute(new URL(request.url())))
+        .map(({ where }) => `${where} (never finished)`),
+    ];
+    const otherUnread = [
+      ...seen
+        .filter((read) => !read.named && read.text === null)
+        .map((read) => read.where),
+      ...stillOpen.map(({ where }) => where),
+    ].filter((where) => {
+      const path = where.slice(where.indexOf(" ") + 1);
+      return !isExcludedByName(new URL(path, ADMIN_ORIGIN));
     });
     console.log(
-      `[J6] ${responses.length} admin-origin responses read; never finished: ${unfinished}`,
+      `[J6] ${seen.length} admin-origin responses (${seen.filter((read) => read.named).length} of /operator), ${outgoing.length} admin-origin requests; unread outside the named exclusions: ${otherUnread.join(", ") || "none"}`,
     );
-    expect(responses.length).toBeGreaterThan(0);
-    const leakedResponses = responses
-      .filter(({ text }) => holds(text, secret, uri))
-      .map(({ where }) => where);
-    expect(leakedResponses, "admin-origin responses holding the key").toEqual(
+    expect(namedUnread, "operator responses that could not be read").toEqual(
       [],
     );
     expect(
-      holds(storageWhileEnrolling, secret, uri),
+      seen.filter((read) => read.named && read.text !== null).length,
+    ).toBeGreaterThan(0);
+    expect(
+      seen
+        .filter((read) => read.text !== null && holds(read.text, forms))
+        .map((read) => read.where),
+      "admin-origin responses holding the key",
+    ).toEqual([]);
+    expect(outgoing.length).toBeGreaterThan(0);
+    expect(
+      outgoing
+        .filter((request) => holds(request.text, forms))
+        .map((request) => request.where),
+      "admin-origin requests carrying the key",
+    ).toEqual([]);
+    expect(
+      holds(storageWhileEnrolling, forms),
       "browser storage while enrolling holds the key",
     ).toBe(false);
     expect(
-      holds(storageAtEnd, secret, uri),
+      holds(storageAtEnd, forms),
       "browser storage at the end holds the key",
     ).toBe(false);
     expect(
-      holds(consoleLines.join("\n"), secret, uri),
+      holds(consoleLines.join("\n"), forms),
       "a console message holds the key",
     ).toBe(false);
     const log = readFileSync(logFile, "utf8");
     expect(statSync(logFile).size).toBeGreaterThan(logSizeAtStart);
-    expect(
-      holds(log, secret, uri),
-      "the admin server's log holds the key",
-    ).toBe(false);
+    expect(holds(log, forms), "the admin server's log holds the key").toBe(
+      false,
+    );
     const scan = await ownerTextScan(stack);
     expect(scan.columns).toBeGreaterThan(0);
     expect(
@@ -627,7 +738,7 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
     ).toEqual([]);
     expect(
       scan.rows
-        .filter((row) => row.value !== null && holds(row.value, secret, uri))
+        .filter((row) => row.value !== null && holds(row.value, forms))
         .map((row) => row.place),
       "database columns holding the key",
     ).toEqual([]);

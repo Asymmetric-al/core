@@ -341,6 +341,19 @@ describe.each(MODES)(
       },
     );
 
+    it("B6: refuses a person who is not on the list though their session passed a second factor enrolled directly through Auth", async () => {
+      state.user = {
+        id: USER,
+        factors: [{ id: "f1", factor_type: "totp", status: "verified" }],
+      } as unknown as { id: string };
+      state.listAnswer = { data: false, error: null };
+      await expectSameAs(
+        await proxy(request(mode, "/operator")),
+        frontNotFound(),
+      );
+      expect(state.rpcCalls).toEqual(["caller_is_platform_operator"]);
+    });
+
     it("keeps a rotated refresh token on the refusal of a person who is not on the list", async () => {
       state.user = { id: USER };
       state.refresh = true;

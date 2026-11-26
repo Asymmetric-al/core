@@ -1,4 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { readdirSync } from "node:fs";
+
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { adminServerLogFile } from "../e2e/helpers/auth-mail";
+import {
+  loadWorkflowDocument,
+  type WorkflowStep,
+} from "./helpers/workflow-yaml";
 
 /**
  * The auth email journeys' dev servers (playwright.auth-mail.config.ts).
@@ -19,10 +27,14 @@ type Server = {
   env?: Record<string, string>;
 };
 
-function server(app: string): Server {
-  const servers = (
-    Array.isArray(config.webServer) ? config.webServer : [config.webServer]
+function serversOf(loaded: typeof config): Server[] {
+  return (
+    Array.isArray(loaded.webServer) ? loaded.webServer : [loaded.webServer]
   ) as Server[];
+}
+
+function server(app: string, loaded: typeof config = config): Server {
+  const servers = serversOf(loaded);
   const found = servers.find((s) => s.command.includes(`apps/${app} `));
   if (!found) throw new Error(`no web server for ${app}`);
   return found;
@@ -64,13 +76,56 @@ describe("AL-2675 WP2c part 2a, T7: the operator area journey", () => {
     ]);
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
   it("gives only Mission Control's server an operations address, its own localhost port", () => {
     expect(server("admin").env?.OPERATIONS_NAMES).toBe(
-      process.env.OPERATIONS_NAMES ?? `localhost:${adminPort}`,
+      `localhost:${adminPort}`,
     );
-    if (process.env.OPERATIONS_NAMES === undefined) {
-      expect(server("donor").env?.OPERATIONS_NAMES).toBeUndefined();
-      expect(server("missionary").env?.OPERATIONS_NAMES).toBeUndefined();
+    expect(server("donor").env?.OPERATIONS_NAMES).toBeUndefined();
+    expect(server("missionary").env?.OPERATIONS_NAMES).toBeUndefined();
+  });
+
+  it("B12: sets its own operations list whatever the shell exports, admitting localhost and not 127.0.0.1", async () => {
+    vi.stubEnv("OPERATIONS_NAMES", "evil.example,127.0.0.1:3130");
+    vi.resetModules();
+    const { default: fresh } =
+      await import("../../playwright.auth-mail.config");
+    expect(server("admin", fresh).env?.OPERATIONS_NAMES).toBe(
+      `localhost:${adminPort}`,
+    );
+    expect(server("donor", fresh).env?.OPERATIONS_NAMES).toBeUndefined();
+    expect(server("missionary", fresh).env?.OPERATIONS_NAMES).toBeUndefined();
+  });
+
+  it("R1: keeps the admin server's log, which can hold forwarded browser output, outside every path a workflow uploads", () => {
+    const log = adminServerLogFile({});
+    expect(log).toBe(".e2e-logs/auth-mail-admin-server.log");
+    const uploads: string[] = [];
+    for (const file of readdirSync(".github/workflows").filter((name) =>
+      /\.ya?ml$/.test(name),
+    )) {
+      const document = loadWorkflowDocument(`.github/workflows/${file}`) as {
+        jobs?: Record<string, { steps?: WorkflowStep[] }>;
+      };
+      for (const job of Object.values(document.jobs ?? {})) {
+        for (const step of job.steps ?? []) {
+          if (!String(step.uses ?? "").startsWith("actions/upload-artifact"))
+            continue;
+          for (const line of String(step.with?.path ?? "").split(/\r?\n/)) {
+            const entry = line.trim();
+            if (entry && !entry.startsWith("!")) uploads.push(entry);
+          }
+        }
+      }
+    }
+    expect(uploads).toContain("test-results/auth-mail/");
+    for (const entry of uploads) {
+      const prefix = entry.replace(/[*?[{$].*$/, "");
+      expect(log.startsWith(prefix), entry).toBe(false);
     }
   });
 
@@ -82,7 +137,7 @@ describe("AL-2675 WP2c part 2a, T7: the operator area journey", () => {
     expect(command).toMatch(/--hostname localhost$/);
     expect(env?.AUTH_MAIL_ADMIN_LOG_FILE).toBe(
       process.env.AUTH_MAIL_ADMIN_LOG_FILE?.trim() ||
-        "test-results/auth-mail/admin-server.log",
+        ".e2e-logs/auth-mail-admin-server.log",
     );
     for (const app of ["donor", "missionary"]) {
       expect(server(app).command).not.toContain("tee-dev-server");
