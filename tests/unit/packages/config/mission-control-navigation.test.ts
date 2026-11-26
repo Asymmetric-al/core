@@ -40,7 +40,7 @@ describe("Mission Control navigation", () => {
     expect(new Set(titles).size).toBe(titles.length);
   });
 
-  it("groups an administrator's destinations into the sidebar sections", () => {
+  it("groups an administrator's destinations into the sidebar sections (D-18, AL-2678 r2b1: Workers joins the modules after CRM, for every staff role)", () => {
     const sections = getNavSectionsByRole("admin").map((group) => ({
       label: group.label,
       ids: group.items.map((item) => item.id),
@@ -49,7 +49,7 @@ describe("Mission Control navigation", () => {
       { label: null, ids: ["home"] },
       {
         label: "Modules",
-        ids: ["crm", "contributions", "reports", "feed", "mobilize"],
+        ids: ["crm", "workers", "contributions", "reports", "feed", "mobilize"],
       },
       {
         label: "Tools",
@@ -73,6 +73,34 @@ describe("Mission Control navigation", () => {
     );
     expect(ids).toContain("contributions");
     expect(ids).not.toContain("crm");
+  });
+
+  it("offers Workers to every staff role, with no capability, at /workers and its records (AL-2678 r2b1, R-P7)", () => {
+    for (const role of [
+      "finance",
+      "fundraising",
+      "mobilizers",
+      "member_care",
+      "events",
+      "staff",
+      "admin",
+    ] as const)
+      expect(
+        getNavItemsByRole(role).map((item) => item.id),
+        role,
+      ).toContain("workers");
+    const workers = navigation.find((item) => item.id === "workers");
+    expect(workers).toMatchObject({
+      title: "Workers",
+      href: "/workers",
+      section: "modules",
+    });
+    expect(workers?.requiredCapability).toBeUndefined();
+    expect(findNavDestination("/workers")?.item.id).toBe("workers");
+    expect(
+      findNavDestination("/workers/00000000-0000-4000-8000-000000000001")?.item
+        .id,
+    ).toBe("workers");
   });
 
   it("finds the destination and sub-page for a path", () => {

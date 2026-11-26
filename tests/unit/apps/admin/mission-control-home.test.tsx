@@ -64,6 +64,12 @@ vi.mock("@asym/database/hooks", () => ({
     isError: attention.isError,
     refetch: attention.refetch,
   }),
+  useUnreviewedWorkersCount: () => ({
+    data: 0,
+    isPending: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
 }));
 vi.mock("@asym/lib/mission-control/context", () => ({
   useMC: () => workspace,

@@ -295,6 +295,15 @@ function withoutComments(sql: string): string {
   return out;
 }
 
+const AFTER_BARE_SCHEMA = /^"?\s*\./;
+
+function isBareSchema(sql: string, header: RegExpExecArray): boolean {
+  return (
+    header[1]!.toLowerCase() === "public" &&
+    AFTER_BARE_SCHEMA.test(sql.slice(header.index + header[0].length))
+  );
+}
+
 function donorTablesFrom(migrations: [string, string][]): Set<string> {
   const tables = new Set<string>();
   const renames: [string, string][] = [];
@@ -304,14 +313,16 @@ function donorTablesFrom(migrations: [string, string][]): Set<string> {
   )) {
     const sql = withoutComments(text);
     const headers = [...sql.matchAll(TABLE_HEADER)];
+    const lineOf = (index: number) => sql.slice(0, index).split("\n").length;
     for (const reference of sql.matchAll(DONORS_REFERENCE)) {
       const header = headers.filter((h) => h.index < reference.index).at(-1);
-      if (header && !sql.slice(header.index, reference.index).includes(";"))
+      if (header && !sql.slice(header.index, reference.index).includes(";")) {
+        if (isBareSchema(sql, header))
+          throw new Error(
+            `a table header with no table name: ${file}:${lineOf(header.index)}`,
+          );
         tables.add(header[1]!.toLowerCase());
-      else
-        unplaced.push(
-          `${file}:${sql.slice(0, reference.index).split("\n").length}`,
-        );
+      } else unplaced.push(`${file}:${lineOf(reference.index)}`);
     }
     for (const rename of sql.matchAll(TABLE_RENAME))
       renames.push([rename[1]!.toLowerCase(), rename[2]!.toLowerCase()]);
@@ -1154,11 +1165,51 @@ describe("AL-2678 WP5 part 2-r2s: the migration reader gives every reference to 
     ).toEqual(["g", "h"]);
   });
 
+  it("R6 (r2b1) a dynamic table after a bare schema in a statement that references donors fails, naming the file and the line, and never records public", () => {
+    expect(() =>
+      readMigrationTexts({
+        "20990101000006_format.sql":
+          "DO $$ BEGIN EXECUTE format('ALTER TABLE public.%I ADD COLUMN donor_id uuid REFERENCES public.donors(id)', 'x'); END $$;\n",
+      }),
+    ).toThrow("a table header with no table name: 20990101000006_format.sql:1");
+  });
+
+  it("R6b (r2b1) a table name joined in after a bare schema fails the same way", () => {
+    expect(() =>
+      readMigrationTexts({
+        "20990101000007_concat.sql":
+          "DO $$ DECLARE t text := 'x'; BEGIN\n  EXECUTE 'ALTER TABLE public.' || t || ' ADD COLUMN donor_id uuid REFERENCES public.donors(id)';\nEND $$;\n",
+      }),
+    ).toThrow("a table header with no table name: 20990101000007_concat.sql:2");
+  });
+
+  it("a bare-schema header with no reference to donors is ignored, and named tables after a schema are still read (r2b1 controls)", () => {
+    expect(
+      readMigrationTexts({
+        "20990101000008_rls.sql":
+          "DO $$ DECLARE t text; BEGIN\n  FOREACH t IN ARRAY ARRAY['a', 'b'] LOOP\n    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);\n  END LOOP;\nEND $$;\n",
+      }),
+    ).toEqual([]);
+    expect(
+      readMigrationTexts({
+        "20990101000009_plain.sql":
+          "ALTER TABLE public.gift_links ADD COLUMN donor_id uuid REFERENCES public.donors(id);\n",
+      }),
+    ).toEqual(["gift_links"]);
+    expect(
+      readMigrationTexts({
+        "20990101000010_quoted.sql":
+          'ALTER TABLE "public"."gift_links" ADD COLUMN donor_id uuid REFERENCES public.donors(id);\n',
+      }),
+    ).toEqual(["gift_links"]);
+  });
+
   it("the tree's migrations still give the twenty tables (guard)", () => {
     expect(TREE_DONOR_TABLES).toHaveLength(20);
     expect([...tablesReferringToDonors()]).toEqual(
       expect.arrayContaining(TREE_DONOR_TABLES),
     );
+    expect([...tablesReferringToDonors()]).not.toContain("public");
   });
 });
 

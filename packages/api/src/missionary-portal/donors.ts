@@ -552,7 +552,7 @@ export async function getMissionaryDonorRows(input: {
     .select(DONOR_SELECT)
     .eq("tenant_id", input.tenantId)
     .eq("missionary_id", input.profileId)
-    .order("name", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: false, nullsFirst: false })
     .order("id", { ascending: true })
     .range(offset, donorFetchEnd);
 

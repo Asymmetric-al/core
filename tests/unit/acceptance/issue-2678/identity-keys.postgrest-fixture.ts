@@ -16,6 +16,7 @@ export const PEOPLE = [
   "claimed",
   "missionary",
   "giver",
+  "plain",
 ] as const;
 export const WORKERS = ["W", "V", "X"] as const;
 export type Person = (typeof PEOPLE)[number];
@@ -58,6 +59,7 @@ export function identityKeysFixture() {
       "postX",
       "pN",
       "mN",
+      "mPlain",
     ].map((k) => [k, randomUUID()]),
   ) as Record<string, string>;
   const user = {} as Record<Person, string>;
@@ -70,6 +72,7 @@ export function identityKeysFixture() {
     claimed: [TA, ids.mClaimed!],
     missionary: [TA, ids.mMissionary!],
     giver: [TA, ids.mGiver!],
+    plain: [TA, ids.mPlain!],
   };
   const state: { db: pg.Client | undefined } = { db: undefined };
 
@@ -196,6 +199,13 @@ export function identityKeysFixture() {
           TA,
           TB,
         ],
+      );
+      await db.query("delete from authz.memberships where user_id = $1", [
+        user.plain,
+      ]);
+      await db.query(
+        "insert into authz.memberships (id, user_id, tenant_id, role, staff_role, is_tenant_admin) values ($1, $2, $3, 'staff', 'member_care', false)",
+        [ids.mPlain, user.plain, TA],
       );
       await db.query(
         "insert into public.parties (id, tenant_id, display_name) values ($1, $4, 'Donor'), ($2, $4, 'Claimed'), ($3, $4, 'Worker')",

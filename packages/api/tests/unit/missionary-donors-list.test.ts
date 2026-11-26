@@ -752,6 +752,34 @@ describe("getMissionaryDonorRows", () => {
     });
   });
 
+  it("pages partners newest first by when each was added, then by id, never by the stored name, so a hidden partner's page and place do not follow its real name (D-18, AL-2678 r2b1, R2B-Q2; ADR 0008 row 4 closed)", async () => {
+    const fake = createFakeSupabaseAdmin({
+      donors: { data: [], error: null },
+    });
+
+    await getMissionaryDonorRows({
+      supabaseAdmin: fake.client as never,
+      assignmentId: "assignment-1",
+      profileId: missionaryProfileId,
+      tenantId: "tenant-1",
+      limit: 25,
+      offset: 0,
+    });
+
+    expect(
+      fake.queries.donors!.operations.filter(
+        (operation) => operation.method === "order",
+      ),
+    ).toEqual([
+      {
+        method: "order",
+        column: "created_at",
+        value: { ascending: false, nullsFirst: false },
+      },
+      { method: "order", column: "id", value: { ascending: true } },
+    ]);
+  });
+
   it("throws when a related activity query fails", async () => {
     const fake = createFakeSupabaseAdmin({
       donors: {
