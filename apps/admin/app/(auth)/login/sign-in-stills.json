@@ -1,0 +1,22 @@
+{
+  "shaderSha256": "f518356eb7f47e0ce47b5aca8f93d6a88c6d074001eb0986d0277c326cf0dc42",
+  "time": 0,
+  "background": {
+    "token": "oklch(0.965 0.003 265)",
+    "hex": "#f2f3f5"
+  },
+  "stills": [
+    {
+      "file": "sign-in-still-wide.webp",
+      "width": 3200,
+      "height": 800,
+      "sha256": "39c31e0f4732f40290e6334a2b5dcd4e14989b6ffbf3099074ee424993ae365d"
+    },
+    {
+      "file": "sign-in-still-narrow.webp",
+      "width": 720,
+      "height": 960,
+      "sha256": "ea68d996e84654849893ddfc562639dae7a7c154977158a7a8b2d5016d25af58"
+    }
+  ]
+}
