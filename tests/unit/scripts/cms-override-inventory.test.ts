@@ -70,3 +70,94 @@ describe("test 13: the CMS override inventory gate (plan 6.3, WP6 part 2b)", () 
     expect(runOverrideInventory().failures).toEqual([]);
   });
 });
+
+describe("F2: the gate refuses every way to pass the override that is not the literal false, and unlisted imports of the service port", () => {
+  const rules = (file: string, source: string) =>
+    judge(file, source).map((failure) => failure.rule);
+  const planted = "apps/admin/src/cms/planted.ts";
+
+  it.each([
+    ["a negation", "payload.find({ overrideAccess: !asActor });"],
+    ["a variable", "payload.find({ overrideAccess: flag });"],
+    ["a call", "payload.find({ overrideAccess: decide() });"],
+    ["a conditional", "payload.find({ overrideAccess: a ? true : false });"],
+  ])("refuses a value that is %s", (_label, code) => {
+    expect(rules(planted, `${code}\n`)).toEqual(["override-access-value"]);
+  });
+
+  it("refuses the shorthand { overrideAccess }", () => {
+    expect(
+      rules(
+        planted,
+        "const overrideAccess = true;\npayload.find({ overrideAccess });\n",
+      ),
+    ).toEqual(["override-access-value"]);
+  });
+
+  it.each([
+    ["a string key", 'payload.find({ ["overrideAccess"]: true });'],
+    ["a concatenated key", 'payload.find({ ["override" + "Access"]: true });'],
+    ["a template key", "payload.find({ [`overrideAccess`]: true });"],
+  ])("refuses a computed key: %s", (_label, code) => {
+    expect(rules(planted, `${code}\n`)).toEqual(["override-access-true"]);
+  });
+
+  it("refuses a computed key whose name the syntax tree cannot tell", () => {
+    expect(rules(planted, "payload.find({ [key]: true });\n")).toEqual([
+      "override-access-computed-key",
+    ]);
+  });
+
+  it("refuses a spread of an object the same file gives the key", () => {
+    expect(
+      rules(
+        planted,
+        "const options = { overrideAccess: false };\npayload.find({ ...options, collection: 'pages' });\n",
+      ),
+    ).toEqual(["override-access-spread"]);
+  });
+
+  it("refuses an assignment of the key that is not the literal false", () => {
+    expect(rules(planted, "options.overrideAccess = true;\n")).toEqual([
+      "override-access-value",
+    ]);
+    expect(rules(planted, "options.overrideAccess = false;\n")).toEqual([]);
+  });
+
+  it.each([
+    ["a static import", 'import { serviceFind } from "../ports/service-port";'],
+    [
+      "an import with its extension",
+      'import { serviceFind } from "./ports/service-port.ts";',
+    ],
+    ["a re-export", 'export { serviceFind } from "../ports/service-port";'],
+    ["a dynamic import", 'const port = await import("../ports/service-port");'],
+    ["a require", 'const port = require("../ports/service-port");'],
+  ])("refuses %s of the service port by an unlisted module", (_label, code) => {
+    expect(rules(planted, `${code}\n`)).toEqual(["service-port-import"]);
+  });
+
+  it("allows a type-only import and a listed caller", () => {
+    expect(
+      rules(
+        planted,
+        'import type { PrincipalLinkRow } from "../ports/service-port";\n',
+      ),
+    ).toEqual([]);
+    expect(
+      rules(
+        "apps/admin/src/cms/auth/supabase-strategy.ts",
+        'import { ensurePrincipalLink } from "../ports/service-port";\n',
+      ),
+    ).toEqual([]);
+  });
+
+  it("still allows the literal false and a mention in a string", () => {
+    expect(
+      rules(
+        planted,
+        "payload.find({ overrideAccess: false });\nconst text = 'overrideAccess: !x';\n",
+      ),
+    ).toEqual([]);
+  });
+});
