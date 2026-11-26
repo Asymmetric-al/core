@@ -194,6 +194,9 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/admin/payment-accounts`                                  | Node.js (no `runtime` segment export) | Caller-token Stripe Connect onboarding (`withOperation`)   |
 | admin      | `/api/admin/posts`                                             | Node.js (no `runtime` segment export) | Admin client                                               |
 | admin      | `/api/admin/posts/[postId]`                                    | Node.js (no `runtime` segment export) | Admin client                                               |
+| admin      | `/api/admin/sites`                                             | Node.js (no `runtime` segment export) | Caller-token Sites read and create (`withOperation`)       |
+| admin      | `/api/admin/sites/brand`                                       | Node.js (no `runtime` segment export) | Caller-token donor account name (`withOperation`)          |
+| admin      | `/api/admin/sites/status`                                      | Node.js (no `runtime` segment export) | Caller-token Site status (`withOperation`)                 |
 | admin      | `/api/admin/source-codes`                                      | Node.js (no `runtime` segment export) | Caller-token giving source codes (`withOperation`)         |
 | admin      | `/api/admin/support`                                           | Node.js (no `runtime` segment export) | Admin client                                               |
 | admin      | `/api/admin/support/agents`                                    | Node.js (no `runtime` segment export) | Support hub adapter                                        |

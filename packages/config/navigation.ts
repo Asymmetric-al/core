@@ -402,6 +402,13 @@ export const navigation: NavItem[] = [
         roles: ["admin"],
         keywords: ["assistant", "ai"],
       },
+      {
+        id: "admin-sites",
+        title: "Sites",
+        href: "/settings/sites",
+        requiredCapability: "sites.manage",
+        keywords: ["site", "websites", "brand", "donor account name"],
+      },
     ],
   },
 ];

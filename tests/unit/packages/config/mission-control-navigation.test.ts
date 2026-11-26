@@ -270,4 +270,34 @@ describe("Mission Control destinations by role", () => {
       ),
     ).toContain("care");
   });
+
+  const sitesHrefs = (
+    role: Parameters<typeof getNavItemsByRole>[0],
+    capabilities?: readonly string[],
+  ) =>
+    getNavItemsByRole(role, capabilities)
+      .flatMap((item) => item.items ?? [])
+      .filter((sub) => sub.href === "/settings/sites");
+
+  it("finds the Sites page under Administration (AL-2676 WP3b part 3)", () => {
+    expect(findNavDestination("/settings/sites")).toMatchObject({
+      item: { id: "admin" },
+      sub: { id: "admin-sites", title: "Sites" },
+    });
+  });
+
+  it("offers Sites last under Administration, only when the active assignment holds sites.manage", () => {
+    const withSites = getNavItemsByRole("admin", [
+      "admin.dashboard.access",
+      "sites.manage",
+    ]).find((item) => item.id === "admin");
+    expect(withSites?.items?.at(-1)).toMatchObject({
+      id: "admin-sites",
+      href: "/settings/sites",
+      requiredCapability: "sites.manage",
+    });
+    expect(sitesHrefs("admin", [])).toEqual([]);
+    expect(sitesHrefs("admin")).toEqual([]);
+    expect(sitesHrefs("finance", ["admin.dashboard.access"])).toEqual([]);
+  });
 });
