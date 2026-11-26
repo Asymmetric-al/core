@@ -5,12 +5,12 @@ import {
   readWorkerRows,
   rpcClient,
   toWorker,
-  withNoStore,
   workerError,
   workersFailure,
   type RpcError,
 } from "./contract";
 import { withOperation } from "../../shared/with-operation";
+import { withNoStore } from "../sites/contract";
 
 const STAFF = { roleClasses: ["staff"] as const };
 

@@ -259,16 +259,6 @@ export async function assignmentIdOf(context?: {
   return parsed.success ? parsed.data : null;
 }
 
-export function withNoStore<Args extends unknown[], Result extends Response>(
-  handler: (...args: Args) => Promise<Result>,
-): (...args: Args) => Promise<Result> {
-  return async (...args: Args) => {
-    const response = await handler(...args);
-    response.headers.set("Cache-Control", NO_STORE);
-    return response;
-  };
-}
-
 async function jsonBody(
   response: Response,
 ): Promise<Record<string, unknown> | null> {
