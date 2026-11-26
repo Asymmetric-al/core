@@ -3,7 +3,10 @@ import {
   serviceCreate,
   serviceFind,
 } from "../../../apps/admin/src/cms/ports/service-port.ts";
-import { ensureSitePresentation } from "../../../apps/admin/src/cms/site-presentation-step.ts";
+import {
+  ensureSitePresentation,
+  uuidKey,
+} from "../../../apps/admin/src/cms/site-presentation-step.ts";
 import {
   createLexicalRichText,
   createLocalPageLayout,
@@ -40,9 +43,12 @@ async function ensurePage(payload, { site, tenantId, slug, data, publish }) {
 export async function seedCmsFixtures(payload, sites) {
   const summary = {};
   const core = new Map(
-    sites.map((site) => [site.id, { id: site.id, tenantId: site.tenantId }]),
+    sites.map((site) => [
+      uuidKey(site.id),
+      { id: uuidKey(site.id), tenantId: uuidKey(site.tenantId) },
+    ]),
   );
-  const readSite = async (siteId) => core.get(siteId) ?? null;
+  const readSite = async (siteId) => core.get(uuidKey(siteId)) ?? null;
   for (const site of sites) {
     await ensureSitePresentation(payload, { siteId: site.id, readSite });
   }

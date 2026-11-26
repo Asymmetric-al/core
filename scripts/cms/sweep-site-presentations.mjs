@@ -11,6 +11,7 @@ import {
   readDatabaseCa,
 } from "../release/release-database.mjs";
 import { uuidKey } from "./lib/site-presentation-records.mjs";
+import { scrubbed } from "./lib/sweep-output.mjs";
 import { adminAppDir } from "./lib/paths.mjs";
 
 export const SWEEP_ROLE = "cms_runtime";
@@ -37,6 +38,19 @@ export function assertSweepTarget(env = process.env) {
       name: "PAYLOAD_DATABASE_SSL_CA",
     });
   }
+}
+
+export function failureText(error, env = process.env) {
+  const message = error instanceof Error ? error.message : String(error);
+  let password = "";
+  try {
+    password = decodeURIComponent(
+      new URL(env.PAYLOAD_DATABASE_URI ?? "").password,
+    );
+  } catch {
+    password = "";
+  }
+  return scrubbed(message, [env.PAYLOAD_SECRET, password]);
 }
 
 export function readSweepInput(text) {
@@ -102,9 +116,7 @@ if (
   main()
     .then(() => process.exit(0))
     .catch((error) => {
-      console.error(
-        `sweep-site-presentations: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      console.error(`sweep-site-presentations: ${failureText(error)}`);
       process.exit(1);
     });
 }
