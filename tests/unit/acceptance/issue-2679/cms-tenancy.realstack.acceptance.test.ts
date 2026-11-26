@@ -984,5 +984,450 @@ describe.skipIf(!ADMIN_URL)(
         },
       );
     });
+
+    describe("F1 (fix round): nothing a client adds to a page stops the rich-text walk", () => {
+      const spoof = { root: { children: [] } };
+      const placements = [
+        [
+          "a top-level root beside content",
+          (node: unknown) => ({
+            ...spoof,
+            content: lexical([textNode("a"), node]),
+          }),
+        ],
+        [
+          "a root beside a block's body",
+          (node: unknown) => ({
+            layout: [
+              {
+                blockType: "rich-text",
+                heading: "h",
+                ...spoof,
+                body: lexical([textNode("a"), node]),
+              },
+            ],
+          }),
+        ],
+      ] as const;
+      const nodes = [
+        [
+          "another organization's media",
+          () => relationshipNode("media", mediaB.id),
+        ],
+        ["a page of another Site", () => internalLink("pages", pageA2.id)],
+        [
+          "a block node",
+          () => ({
+            type: "block",
+            format: "",
+            version: 2,
+            fields: { id: "f1block", blockName: "", blockType: "rich-text" },
+          }),
+        ],
+      ] as const;
+      const operations = [
+        ["create, draft", "create", true],
+        ["create, not draft", "create", false],
+        ["update, draft", "update", true],
+        ["update, not draft", "update", false],
+      ] as const;
+      const stored = async (id: string) =>
+        (
+          await s.admin.query(
+            "select content::text as content, layout::text as layout from cms.pages where id = $1",
+            [id],
+          )
+        ).rows[0] as { content: string | null; layout: string | null };
+      const slugCount = async (slug: string) =>
+        Number(
+          (
+            await s.admin.query(
+              "select (select count(*) from cms.pages where slug = $1) + (select count(*) from cms._pages_v where version_slug = $1) as n",
+              [slug],
+            )
+          ).rows[0].n,
+        );
+
+      for (const [placement, build] of placements) {
+        for (const [nodeLabel, node] of nodes) {
+          it.each(operations.map((operation) => [...operation]))(
+            `${placement}, ${nodeLabel}: %s is refused and nothing is stored`,
+            async (_label, operation, draft) => {
+              if (operation === "create") {
+                const slug = `f1-${randomUUID().slice(0, 8)}`;
+                const outcome = await s.settle(
+                  s.payload.create(
+                    asA({
+                      collection: "pages",
+                      draft,
+                      data: {
+                        site: siteA.id,
+                        title: "F1",
+                        slug,
+                        ...build(node()),
+                      },
+                    }),
+                  ),
+                );
+                if (outcome.ok)
+                  s.created.push(["pages", (outcome.value as Doc).id]);
+                expect(outcome.ok).toBe(false);
+                if (!outcome.ok) expect(outcome.status).toBe(400);
+                expect(await slugCount(slug)).toBe(0);
+                return;
+              }
+              const target = await s.page(A, siteA.id);
+              const before = await versionsOf(target.id);
+              const rowBefore = await stored(target.id);
+              const outcome = await s.settle(
+                s.payload.update(
+                  asA({
+                    collection: "pages",
+                    id: target.id,
+                    draft,
+                    data: build(node()),
+                  }),
+                ),
+              );
+              expect(outcome.ok).toBe(false);
+              if (!outcome.ok) expect(outcome.status).toBe(400);
+              expect(await versionsOf(target.id)).toBe(before);
+              expect(await stored(target.id)).toEqual(rowBefore);
+            },
+          );
+        }
+      }
+
+      it("over REST too: a draft POST with a top-level root and another organization's media is refused and nothing is stored", async () => {
+        const slug = `f1-rest-${randomUUID().slice(0, 8)}`;
+        const response = await s.restAs(
+          editorA,
+          "POST",
+          "/web-studio/api/pages?draft=true",
+          {
+            site: siteA.id,
+            title: "F1 REST",
+            slug,
+            ...spoof,
+            content: lexical([relationshipNode("media", mediaB.id)]),
+          },
+        );
+        if (response.status === 201)
+          s.created.push(["pages", (response.json?.doc as Doc).id]);
+        expect(response.status).toBe(400);
+        expect(await slugCount(slug)).toBe(0);
+      });
+
+      it.each([
+        ["content", (nodeList: unknown[]) => ({ content: lexical(nodeList) })],
+        [
+          "a block's body",
+          (nodeList: unknown[]) => ({
+            layout: [
+              { blockType: "rich-text", heading: "h", body: lexical(nodeList) },
+            ],
+          }),
+        ],
+      ] as const)(
+        "an honest document with own media and a page of the same Site in %s is accepted on create and update",
+        async (_label, build) => {
+          const honest = () =>
+            build([
+              textNode("a"),
+              relationshipNode("media", mediaA.id),
+              internalLink("pages", pageA.id),
+            ]);
+          const created = await s.payload.create(
+            asA({
+              collection: "pages",
+              draft: true,
+              data: {
+                site: siteA.id,
+                title: "Honest",
+                slug: `honest-${randomUUID().slice(0, 8)}`,
+                ...honest(),
+              },
+            }),
+          );
+          s.created.push(["pages", created.id]);
+          const updated = await s.payload.update(
+            asA({
+              collection: "pages",
+              id: created.id,
+              draft: true,
+              data: honest(),
+            }),
+          );
+          expect(JSON.stringify(updated)).toContain(mediaA.id);
+          expect(JSON.stringify(updated)).toContain(pageA.id);
+        },
+      );
+    });
+
+    describe("F4 (fix round): an existing page keeps its Site", () => {
+      it.each([
+        ["a draft", true],
+        ["a non-draft save", false],
+      ])(
+        "an actor's %s that moves a page to another Site is refused, and nothing is written",
+        async (_label, draft) => {
+          const target = await s.page(A, siteA.id);
+          const before = await versionsOf(target.id);
+          const outcome = await s.settle(
+            s.payload.update(
+              asA({
+                collection: "pages",
+                id: target.id,
+                draft,
+                data: { site: siteA2.id },
+              }),
+            ),
+          );
+          expect(outcome.ok).toBe(false);
+          if (!outcome.ok) expect(outcome.paths).toContain("site");
+          expect(await versionsOf(target.id)).toBe(before);
+          expect((await row("pages", target.id))?.site_id).toBe(siteA.id);
+        },
+      );
+
+      it("the review's case: a draft PATCH moving a page between Sites is refused over REST, so a menu of the old Site never links a page that left it", async () => {
+        const target = await s.page(A, siteA.id);
+        const before = await versionsOf(target.id);
+        const response = await s.restAs(
+          editorA,
+          "PATCH",
+          `/web-studio/api/pages/${target.id}?draft=true`,
+          { site: siteA2.id },
+        );
+        expect(response.status).toBe(400);
+        expect(await versionsOf(target.id)).toBe(before);
+        const latest = await s.admin.query(
+          "select version_site_id from cms._pages_v where parent_id = $1 order by created_at desc limit 1",
+          [target.id],
+        );
+        expect(latest.rows[0]?.version_site_id).toBe(siteA.id);
+      });
+
+      it("the service port cannot move a page either", async () => {
+        const target = await s.page(A, siteA.id);
+        const outcome = await s.settle(
+          s.service.serviceUpdate(s.payload as never, {
+            collection: "pages",
+            id: target.id,
+            draft: true,
+            data: { site: siteA2.id },
+          }),
+        );
+        expect(outcome.ok).toBe(false);
+        expect((await row("pages", target.id))?.site_id).toBe(siteA.id);
+      });
+
+      it("guard: an update that sends the page's own Site again is kept", async () => {
+        const target = await s.page(A, siteA.id);
+        const kept = await s.payload.update(
+          asA({
+            collection: "pages",
+            id: target.id,
+            draft: true,
+            data: { site: siteA.id, title: "Same Site" },
+          }),
+        );
+        expect(kept.title).toBe("Same Site");
+      });
+    });
+
+    describe("F7 (fix round): a person changes no page's published state; only the service port does", () => {
+      const published = async () => {
+        const live = await s.page(A, siteA.id, { title: "Live title" });
+        const draftVersion = String(
+          (
+            await s.admin.query(
+              "select id from cms._pages_v where parent_id = $1 order by created_at asc limit 1",
+              [live.id],
+            )
+          ).rows[0].id,
+        );
+        await s.service.serviceUpdate(s.payload as never, {
+          collection: "pages",
+          id: live.id,
+          data: { _status: "published" },
+        });
+        expect((await row("pages", live.id))?._status).toBe("published");
+        return { live, draftVersion };
+      };
+
+      it("a non-draft PATCH with _status draft is refused and the page stays published", async () => {
+        const { live } = await published();
+        const response = await s.restAs(
+          editorA,
+          "PATCH",
+          `/web-studio/api/pages/${live.id}`,
+          { _status: "draft" },
+        );
+        expect(response.status).toBe(400);
+        expect((await row("pages", live.id))?._status).toBe("published");
+      });
+
+      it("guard: a non-draft PATCH that changes the title is refused, and the published row keeps its title", async () => {
+        const { live } = await published();
+        const response = await s.restAs(
+          editorA,
+          "PATCH",
+          `/web-studio/api/pages/${live.id}`,
+          { title: "Changed live" },
+        );
+        expect(response.status).toBe(400);
+        expect(await row("pages", live.id)).toMatchObject({
+          _status: "published",
+          title: "Live title",
+        });
+      });
+
+      it("a non-draft version restore is refused and the page stays published", async () => {
+        const { live, draftVersion } = await published();
+        const response = await s.restAs(
+          editorA,
+          "POST",
+          `/web-studio/api/pages/versions/${draftVersion}`,
+        );
+        expect(response.status).toBeGreaterThanOrEqual(400);
+        expect(await row("pages", live.id)).toMatchObject({
+          _status: "published",
+          title: "Live title",
+        });
+      });
+
+      it("guard: a draft PATCH and a draft restore are drafts, and the published row is unchanged", async () => {
+        const { live, draftVersion } = await published();
+        const before = await versionsOf(live.id);
+        const patched = await s.restAs(
+          editorA,
+          "PATCH",
+          `/web-studio/api/pages/${live.id}?draft=true`,
+          { title: "Draft title" },
+        );
+        expect(patched.status).toBe(200);
+        const restored = await s.restAs(
+          editorA,
+          "POST",
+          `/web-studio/api/pages/versions/${draftVersion}?draft=true`,
+        );
+        expect(restored.status).toBe(200);
+        expect(await versionsOf(live.id)).toBeGreaterThan(before);
+        expect(await row("pages", live.id)).toMatchObject({
+          _status: "published",
+          title: "Live title",
+        });
+      });
+    });
+
+    describe("F3 (fix round): the service port never hands one organization's row to another", () => {
+      it("createSitePresentation refuses a Site id another organization's presentation holds", async () => {
+        const outcome = await s.settle(
+          s.service.createSitePresentation(s.payload as never, {
+            siteId: siteA.id,
+            tenantId: B,
+          }),
+        );
+        expect(outcome.ok).toBe(false);
+        expect((await row("site_presentations", siteA.id))?.tenant).toBe(A);
+      });
+
+      it("registerMediaRecord refuses a media id another organization holds", async () => {
+        const outcome = await s.settle(
+          s.service.registerMediaRecord(s.payload as never, {
+            id: mediaA.id,
+            tenantId: B,
+            alt: "Not B's",
+          }),
+        );
+        expect(outcome.ok).toBe(false);
+        expect(await row("media", mediaA.id)).toMatchObject({
+          tenant: A,
+          alt: "Alt",
+        });
+      });
+
+      it("two concurrent first creations of one presentation return the one row", async () => {
+        const siteId = randomUUID();
+        const results = await Promise.allSettled([
+          s.service.createSitePresentation(s.payload as never, {
+            siteId,
+            tenantId: A,
+          }),
+          s.service.createSitePresentation(s.payload as never, {
+            siteId,
+            tenantId: A,
+          }),
+        ]);
+        s.created.push(["site-presentations", siteId]);
+        expect(results.map((result) => result.status)).toEqual([
+          "fulfilled",
+          "fulfilled",
+        ]);
+        for (const result of results)
+          if (result.status === "fulfilled")
+            expect((result.value as Doc).id).toBe(siteId);
+        expect(
+          (
+            await s.admin.query(
+              "select count(*) from cms.site_presentations where id = $1",
+              [siteId],
+            )
+          ).rows[0].count,
+        ).toBe("1");
+      });
+
+      it("two concurrent first creations of one media record return the one row", async () => {
+        const id = randomUUID();
+        const results = await Promise.allSettled([
+          s.service.registerMediaRecord(s.payload as never, {
+            id,
+            tenantId: A,
+            alt: "One",
+          }),
+          s.service.registerMediaRecord(s.payload as never, {
+            id,
+            tenantId: A,
+            alt: "One",
+          }),
+        ]);
+        s.created.push(["media", id]);
+        expect(results.map((result) => result.status)).toEqual([
+          "fulfilled",
+          "fulfilled",
+        ]);
+        expect(
+          (
+            await s.admin.query(
+              "select count(*) from cms.media where id = $1",
+              [id],
+            )
+          ).rows[0].count,
+        ).toBe("1");
+      });
+
+      it("of two concurrent first creations for two organizations, one wins and the other is refused", async () => {
+        const siteId = randomUUID();
+        const results = await Promise.allSettled([
+          s.service.createSitePresentation(s.payload as never, {
+            siteId,
+            tenantId: A,
+          }),
+          s.service.createSitePresentation(s.payload as never, {
+            siteId,
+            tenantId: B,
+          }),
+        ]);
+        s.created.push(["site-presentations", siteId]);
+        const won = results.filter((result) => result.status === "fulfilled");
+        expect(won).toHaveLength(1);
+        const owner = (await row("site_presentations", siteId))?.tenant;
+        expect(owner === A || owner === B).toBe(true);
+        expect(
+          ((won[0] as PromiseFulfilledResult<Doc>).value as Doc).tenant,
+        ).toBe(owner);
+      });
+    });
   },
 );
