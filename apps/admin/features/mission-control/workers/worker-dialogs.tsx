@@ -157,7 +157,7 @@ function ActionDialog({
           className="flex flex-col gap-4"
           onSubmit={(event) => {
             event.preventDefault();
-            onSubmit();
+            if (canSubmit && !pending) onSubmit();
           }}
         >
           {children}
@@ -294,7 +294,16 @@ export function RestrictDialog({ worker }: { worker: Worker }) {
   const levels = SECURITY_LEVELS.slice(
     SECURITY_LEVELS.indexOf(worker.securityLevel),
   );
-  const [level, setLevel] = useState<SecurityLevel>(worker.securityLevel);
+  const [choice, setChoice] = useState<{
+    level: SecurityLevel;
+    basis: SecurityLevel;
+  }>({ level: worker.securityLevel, basis: worker.securityLevel });
+  const level =
+    choice.basis === worker.securityLevel && levels.includes(choice.level)
+      ? choice.level
+      : worker.securityLevel;
+  const choose = (next: SecurityLevel) =>
+    setChoice({ level: next, basis: worker.securityLevel });
   const [alias, setAlias] = useState("");
   const [doNotPublish, setDoNotPublish] = useState(false);
   const needsAlias =
@@ -303,7 +312,7 @@ export function RestrictDialog({ worker }: { worker: Worker }) {
     normalizesToNothing(alias);
   const openChange = (next: boolean) => {
     if (next) {
-      setLevel(worker.securityLevel);
+      choose(worker.securityLevel);
       setAlias("");
       setDoNotPublish(false);
     }
@@ -337,7 +346,7 @@ export function RestrictDialog({ worker }: { worker: Worker }) {
         legend="Level"
         levels={levels}
         value={level}
-        onChange={setLevel}
+        onChange={choose}
         disabled={dialog.latch.pending}
       />
       <Field>
@@ -392,11 +401,20 @@ export function LiftDialog({ worker }: { worker: Worker }) {
     0,
     SECURITY_LEVELS.indexOf(worker.securityLevel),
   );
-  const [level, setLevel] = useState<SecurityLevel | null>(null);
+  const [choice, setChoice] = useState<{
+    level: SecurityLevel | null;
+    basis: SecurityLevel;
+  }>({ level: null, basis: worker.securityLevel });
+  const level =
+    choice.basis === worker.securityLevel &&
+    choice.level !== null &&
+    levels.includes(choice.level)
+      ? choice.level
+      : null;
   const [clear, setClear] = useState(false);
   const openChange = (next: boolean) => {
     if (next) {
-      setLevel(null);
+      setChoice({ level: null, basis: worker.securityLevel });
       setClear(false);
     }
     dialog.openChange(next);
@@ -429,7 +447,9 @@ export function LiftDialog({ worker }: { worker: Worker }) {
           legend="Lower the level to"
           levels={levels}
           value={level}
-          onChange={setLevel}
+          onChange={(next) =>
+            setChoice({ level: next, basis: worker.securityLevel })
+          }
           disabled={dialog.latch.pending}
         />
       ) : null}
