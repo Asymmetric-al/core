@@ -160,7 +160,7 @@ async function cleanUp(
     const headers = await writeHeaders(tab, base);
     for (const id of ids) {
       await tab.request.delete(`${base}/web-studio/api/${collection}/${id}`, {
-        headers,
+        headers: { ...headers, ...NO_IDLE_CONNECTION },
       });
     }
   } catch (error) {
@@ -1372,7 +1372,7 @@ test("@cms two editors of one organization on a document with no versions: the s
   const created = await page.request.post(`${base}/web-studio/api/navigation`, {
     headers: { ...(await writeHeaders(page, base)), ...NO_IDLE_CONNECTION },
     data: {
-      site: await siteOf(page, base),
+      site: await siteOf(page, base, NO_IDLE_CONNECTION),
       label: `Lock ${stamp}`,
       items: [{ label: "Home", href: "https://example.org/" }],
     },
@@ -1746,7 +1746,7 @@ test("@cms a link from Mission Control into Web Studio asks before working in an
   // Mission Control, in the demo organization, at its own address.
   const missionControlStarted = requestSeen(
     page,
-    "/api/admin/mission-control/needs-attention",
+    "/api/admin/workers/unreviewed-count",
   );
   await page.goto(`${base}/${DEMO}`);
   await expect.poll(missionControlStarted).toBe(true);
