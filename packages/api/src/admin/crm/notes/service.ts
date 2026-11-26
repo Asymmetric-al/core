@@ -1,9 +1,4 @@
-import {
-  canActorReadRestrictedNotes,
-  filterCrmNotesForTenant,
-  mapCrmNoteRow,
-  sortCrmNotes,
-} from "./model";
+import { mapCrmNoteRow } from "./model";
 import { encodeCrmNoteCursor, type AdminCrmNotesParams } from "./query";
 import { assertCrmTenantAccess } from "../../../crm/auth/access";
 import { ApiHttpError } from "../../../shared/api-http-error";
@@ -17,21 +12,22 @@ import type {
 type JsonRecord = Record<string, unknown>;
 
 export type NotesClient = {
-  from: (table: string) => {
-    select: (columns?: string) => {
-      eq: (field: string, value: unknown) => NotesFilter;
-    };
-  };
+  rpc: (
+    fn: "crm_notes_page",
+    args: NotesPageArgs,
+  ) => PromiseLike<{
+    data: unknown;
+    error: { message?: string; code?: string } | null;
+  }>;
 };
 
-type NotesFilter = {
-  eq: (field: string, value: unknown) => NotesFilter;
-  then: (
-    resolve: (value: {
-      data: JsonRecord[] | null;
-      error: { message?: string; code?: string } | null;
-    }) => unknown,
-  ) => unknown;
+type NotesPageArgs = {
+  p_tenant_id: string;
+  p_search: string | null;
+  p_sort: string;
+  p_descending: boolean;
+  p_offset: number;
+  p_limit: number;
 };
 
 export type NoteCommandClient = {
@@ -129,20 +125,26 @@ function readCommandResult(data: unknown): {
   };
 }
 
-async function loadTenantNotes(
+async function loadNotesPage(
   supabase: NotesClient,
-  tenantId: string,
-): Promise<JsonRecord[]> {
-  const { data, error } = await supabase
-    .from("crm_notes")
-    .select("*")
-    .eq("tenant_id", tenantId);
+  args: NotesPageArgs,
+): Promise<{ totalCount: number; rows: JsonRecord[] }> {
+  const { data, error } = await supabase.rpc("crm_notes_page", args);
 
   if (error) {
     throw new Error(error.message ?? "Failed to load CRM notes.");
   }
 
-  return data ?? [];
+  const page = data as { totalCount?: unknown; rows?: unknown } | null;
+  if (
+    !page ||
+    typeof page.totalCount !== "number" ||
+    !Array.isArray(page.rows)
+  ) {
+    throw new Error("Failed to load CRM notes.");
+  }
+
+  return { totalCount: page.totalCount, rows: page.rows as JsonRecord[] };
 }
 
 export async function listMissionControlCrmNotes(
@@ -150,27 +152,21 @@ export async function listMissionControlCrmNotes(
 ): Promise<AdminCrmNotesListResponse> {
   assertCrmTenantAccess(options.actor);
 
-  const records = await loadTenantNotes(
-    options.supabase,
-    options.actor.tenantId,
-  );
-  const mapped = records.flatMap((record) => {
+  const offset = options.params.cursor?.offset ?? 0;
+  const page = await loadNotesPage(options.supabase, {
+    p_tenant_id: options.actor.tenantId,
+    p_search: options.params.search,
+    p_sort: options.params.sort.field,
+    p_descending: options.params.sort.direction !== "asc",
+    p_offset: offset,
+    p_limit: options.params.limit,
+  });
+  const pageRows = page.rows.flatMap((record) => {
     const row = mapCrmNoteRow(record);
     return row ? [row] : [];
   });
-  const filtered = filterCrmNotesForTenant(
-    mapped,
-    options.actor.tenantId,
-    options.params.search,
-    {
-      includeRestricted: canActorReadRestrictedNotes(options.actor),
-    },
-  );
-  const sorted = sortCrmNotes(filtered, options.params.sort);
-  const offset = options.params.cursor?.offset ?? 0;
-  const pageRows = sorted.slice(offset, offset + options.params.limit);
-  const nextOffset = offset + pageRows.length;
-  const hasMore = nextOffset < sorted.length;
+  const nextOffset = offset + page.rows.length;
+  const hasMore = nextOffset < page.totalCount;
 
   return {
     configured: true,
@@ -185,6 +181,7 @@ export async function listMissionControlCrmNotes(
     rollback: ROLLBACK_CONTRACT,
     rows: pageRows,
     sort: options.params.sort,
+    totalCount: page.totalCount,
   };
 }
 

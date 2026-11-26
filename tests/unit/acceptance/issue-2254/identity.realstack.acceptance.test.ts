@@ -442,11 +442,16 @@ async function firstGiftRace(profile: string, round: number) {
     );
     for (let t = 0; ; t++) {
       const waiting = await lock!.query(
-        "SELECT count(*)::int n FROM pg_locks WHERE relation = 'public.donors'::regclass AND NOT granted AND pid = ANY($1)",
+        `SELECT count(*) FILTER (WHERE relation = 'public.donors'::regclass)::int donors,
+                count(*) FILTER (WHERE locktype = 'advisory')::int writer
+           FROM pg_locks WHERE NOT granted AND pid = ANY($1)`,
         [pids],
       );
-      if (waiting.rows[0].n === 2) break;
-      expect(t, "both gifts reach the donor insert").toBeLessThan(400);
+      if (waiting.rows[0].donors === 1 && waiting.rows[0].writer === 1) break;
+      expect(
+        t,
+        "one gift reaches the donor insert and the other the Party writer's lock",
+      ).toBeLessThan(400);
       await new Promise((r) => setTimeout(r, 25));
     }
     await lock!.query("ROLLBACK");
@@ -462,7 +467,7 @@ describe.skipIf(!local)(
     afterAll(() => {
       q(CLEAN_C);
     });
-    it(`criterion 15: two overlapping first gifts for one profile, different idempotency keys, both succeed on one donor (x${ROUNDS}); D-18, AL-2678: the donor's Party, which the temporary donor trigger adds, is removed with it before its tenant`, async () => {
+    it(`criterion 15: two overlapping first gifts for one profile, different idempotency keys, both succeed on one donor (x${ROUNDS}); D-18, AL-2678: the donor's Party is removed with it before its tenant; D-18, AL-2678 WP5 rest: the Party writer now adds that Party, and a gift looks up the person's donor under the writer's lock, so the first gift queues on the donors lock this case holds while the second queues on the writer's lock until the first commits`, async () => {
       q(
         `${CLEAN_C} INSERT INTO public.tenants(id,name,slug) VALUES ('${TC}','acc2254 c','acc2254-c');
         INSERT INTO auth.users(id) SELECT ('22540000-0000-4000-8000-' || lpad(to_hex(3072 + n), 12, '0'))::uuid FROM generate_series(1, ${ROUNDS}) n;`,

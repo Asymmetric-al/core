@@ -165,8 +165,7 @@ export const PATCH = withPlatformOperation(
         .from("donors")
         .update({ ...donorUpdate, updated_at: now })
         .eq("id", donor.id)
-        .eq("tenant_id", ctx.tenantId)
-        .eq("profile_id", ctx.profileId);
+        .eq("tenant_id", ctx.tenantId);
 
       if (error) {
         console.error("[donor-portal] Donor update failed", error);

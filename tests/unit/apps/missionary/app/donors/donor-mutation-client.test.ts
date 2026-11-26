@@ -21,7 +21,6 @@ vi.mock("@asym/database/own-api", async (importOriginal) => ({
 
 const donorFormValues: EditDonorFormValues = {
   name: "Ada Lovelace",
-  email: "ada@example.org",
   phone: "",
   mobile: "",
   work_phone: "",
@@ -98,7 +97,7 @@ describe("donor mutation client", () => {
     );
   });
 
-  it("returns API error messages for donor detail updates", async () => {
+  it("returns API error messages for donor detail updates (the form sends no e-mail: fix round F17)", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ error: "Donor relationship not found" }), {
         status: 404,

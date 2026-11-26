@@ -79,7 +79,10 @@ AuthButton.displayName = "AuthButton";
 /** Full-screen centred frame shared by every sign-in and access screen. */
 export function AuthShell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-muted px-4 py-8">
+    <main
+      data-slot="auth-shell"
+      className="flex min-h-dvh items-center justify-center bg-muted px-4 py-8"
+    >
       <div className="w-full max-w-md">{children}</div>
     </main>
   );

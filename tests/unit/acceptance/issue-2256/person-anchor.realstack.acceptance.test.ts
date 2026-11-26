@@ -20,6 +20,7 @@ const RETIRED =
   "D-18, AL-2678 (WP5 part 1, plan lines 988 and 1011): the empty persons scaffold of #2256 is dropped and public.parties with donors.party_id and missionaries.party_id takes its place, so each assertion on persons now proves its absence and the same property of the Party that replaces it";
 const NOT_A_TENANT_READER = new Set([
   "donors_fill_party_after_insert_temp true",
+  "donor_party_for_insert true",
 ]);
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
@@ -292,7 +293,7 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
   );
 
   tx(
-    `6: profiles.tenant_id is a nullable uuid FK -> tenants(id); the reader set equals §1.3 (${POINTER})`,
+    `6: profiles.tenant_id is a nullable uuid FK -> tenants(id); the reader set equals §1.3 (${POINTER}; D-18, AL-2678 WP5 rest: the Party writer names profiles and tenant_id but reads only a profile's display_name and full_name by id, never profiles.tenant_id, so it is no reader, as the temporary fill trigger is not)`,
     async () => {
       expect(
         await one(

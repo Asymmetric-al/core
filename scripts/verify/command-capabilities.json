@@ -16,6 +16,7 @@
   "contributions.view_detail",
   "crm.gift_history.manage_view_defaults",
   "imports.commit",
+  "partners.add",
   "payments.manage_account",
   "people.erase",
   "people.manage_members",

@@ -564,8 +564,8 @@ function EmailPrivacyTab() {
   const donor = snapshot.data.donor;
   const givingPreferences = donor?.givingPreferences ?? {};
   const news = pending.news ?? !donor?.doNotEmail;
-  // Missionaries see a donor's name only after an explicit choice (the
-  // server fails closed), so the switch starts off until then.
+  // Missionaries see a donor's name only after an explicit choice, or when their
+  // missionary added them by hand; otherwise it stays hidden and the switch off.
   const showName =
     pending.showName ?? givingPreferences.defaultAnonymousToRecipient === false;
 

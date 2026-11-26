@@ -89,6 +89,8 @@ function parseSort(
   };
 }
 
+const MAX_OFFSET = 2_147_483_647;
+
 function decodeBase64Url(value: string) {
   const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
   const padded = normalized.padEnd(
@@ -126,7 +128,8 @@ export function decodeCrmRelationshipCursor(
       !parsed ||
       typeof parsed.offset !== "number" ||
       !Number.isInteger(parsed.offset) ||
-      parsed.offset < 0
+      parsed.offset < 0 ||
+      parsed.offset > MAX_OFFSET
     ) {
       return null;
     }

@@ -14,8 +14,11 @@ function fakeAdmin(donations: Row[], pledges: Row[] = []) {
         if (table === "profiles") {
           return { data: { id: "p-1", display_name: "Dana" }, error: null };
         }
+        if (table === "account_links") {
+          return { data: { party_id: "party-1" }, error: null };
+        }
         if (table === "donors") {
-          return { data: { id: "d-1", tenant_id: "t-1" }, error: null };
+          return { data: [{ id: "d-1", tenant_id: "t-1" }], error: null };
         }
         if (table === "donations") {
           return {
@@ -62,7 +65,7 @@ function gifts(count: number): Row[] {
   }));
 }
 
-describe("donor portal snapshot gift list", () => {
+describe("donor portal snapshot gift list (D-18, AL-2678 WP5 rest: the fake answers the person's account link and a list of at most two donors on its Party)", () => {
   it("carries the newest 250 gifts and says when older gifts were left out", async () => {
     const { client } = fakeAdmin(gifts(300));
 

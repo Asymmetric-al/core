@@ -1,11 +1,12 @@
 import { parseRequiredIdempotencyKey } from "@asym/api/donate/idempotency";
 import {
+  callerGiftMismatches,
   DONATION_WITH_PARTIES_SELECT,
-  giftMismatches,
   SUPPORTER_DONATION_SELECT,
 } from "@asym/api/donations/select";
 import { isAnonymousToRecipient } from "@asym/api/missionary-portal/redaction";
 import { CACHE_TAGS, revalidateTags } from "@asym/api/shared/cache-tags";
+import { findOwnDonor, type OwnDonorLookup } from "@asym/api/shared/queries";
 import {
   getAuthContext,
   hasContextRoleClass,
@@ -364,14 +365,22 @@ const resolvers = {
       const limit = args.limit || 20;
       const offset = args.offset || 0;
 
-      const { data: donor, error: donorError } = await ctx.supabaseAdmin
-        .from("donors")
-        .select("id")
-        .eq("profile_id", auth.profileId)
-        .eq("tenant_id", auth.tenantId)
-        .maybeSingle();
-      if (donorError) throw donationsQueryFailed("Donor lookup", donorError);
-      if (!donor?.id) return [];
+      let lookup: OwnDonorLookup<{ id: string }>;
+      try {
+        lookup = await findOwnDonor(ctx.supabaseAdmin, {
+          userId: auth.userId,
+          tenantId: auth.tenantId,
+        });
+      } catch (donorError) {
+        throw donationsQueryFailed("Donor lookup", donorError);
+      }
+      if (lookup.status === "multiple") {
+        throw createGraphQLError("Multiple donor records for this account", {
+          extensions: { code: "MULTIPLE_DONORS" },
+        });
+      }
+      if (lookup.status === "none") return [];
+      const donor = lookup.donor;
 
       const { data, error } = await ctx.supabaseAdmin
         .from("donations")
@@ -753,13 +762,18 @@ const resolvers = {
       }
       // A replayed idempotency key can resolve to another donor's gift or a
       // different payload. Return none of its data.
-      const mismatched = giftMismatches(donation, {
-        profileId: auth.profileId,
-        amountCents: args.input.amount,
-        currency,
-        missionaryId: args.input.missionaryId,
-        fundId: null,
-      });
+      const mismatched = await callerGiftMismatches(
+        ctx.supabaseAdmin,
+        donation,
+        {
+          profileId: auth.profileId,
+          amountCents: args.input.amount,
+          currency,
+          missionaryId: args.input.missionaryId,
+          fundId: null,
+        },
+        { userId: auth.userId, tenantId: auth.tenantId },
+      );
       if (mismatched.length > 0) {
         console.error(
           "[graphql] Idempotency key replay does not match request",

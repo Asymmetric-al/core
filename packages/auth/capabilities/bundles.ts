@@ -66,6 +66,7 @@ export const CAPABILITY_BUNDLES = deepFreeze({
     ...PERMISSIONS_PROPOSER,
     "permissions.approve_widening",
   ],
+  missionary_partners: ["partners.add"],
 } as const satisfies Record<string, readonly Capability[]>);
 
 export type BundleKey = keyof typeof CAPABILITY_BUNDLES;
@@ -81,7 +82,7 @@ export const ROLE_DEFAULT_BUNDLES: Readonly<
   Record<GrantSubjectKey, readonly BundleKey[]>
 > = deepFreeze({
   "member:donor": [],
-  "member:missionary": [],
+  "member:missionary": ["missionary_partners"],
   "staff:finance": ["staff_base", "staff_finance"],
   "staff:mobilizer": ["staff_base", "staff_mobilizer"],
   "staff:development": ["staff_base", "staff_development"],

@@ -45,7 +45,8 @@ export const TENANT_ADMINISTRATION = words(`people.manage_members people.erase
   sites.manage payments.manage_account web_studio.publish
   safety.restrict_publication imports.commit`);
 export const NEW = [...STAFF_CONTENT, ...TENANT_ADMINISTRATION, "care.access"];
-export const ALL = [...CONTRIB, ...STAFF, ...PERMS, ...NEW];
+export const MISSIONARY = ["partners.add"];
+export const ALL = [...CONTRIB, ...STAFF, ...PERMS, ...NEW, ...MISSIONARY];
 export const SUBROLES = words("finance mobilizer development hr member_care");
 export const CODES = words(`missing_context foreign_tenant inactive_source
   multiple_assignments unknown_subject tenant_overrides_dormant`);
@@ -70,10 +71,11 @@ export const BUNDLES: Record<string, string[]> = {
   permissions_viewer: [VIEW],
   permissions_proposer: [VIEW, PROPOSE],
   permissions_approver: PERMS,
+  missionary_partners: MISSIONARY,
 };
 export const DEFAULTS: Record<string, string[]> = {
   "member:donor": [],
-  "member:missionary": [],
+  "member:missionary": ["missionary_partners"],
   ...Object.fromEntries(
     SUBROLES.map((s) => [`staff:${s}`, ["staff_base", `staff_${s}`]]),
   ),

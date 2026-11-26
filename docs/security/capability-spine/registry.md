@@ -25,36 +25,37 @@ change both together. There are no capability tables.
 error. Keys match `^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$`. Every entry carries
 `label`, `description`, `domain` and `source: "code"`.
 
-| Capability                               | Domain        | Origin                             |
-| ---------------------------------------- | ------------- | ---------------------------------- |
-| `contributions.view_detail`              | contributions | `ContributionCapability`           |
-| `contributions.request_corrections`      | contributions | `ContributionCapability`           |
-| `contributions.manage_table_preferences` | contributions | `ContributionCapability`           |
-| `contributions.apply_corrections`        | contributions | `ContributionCapability`           |
-| `contributions.manage_receipts`          | contributions | `ContributionCapability`           |
-| `contributions.retry_crm_post`           | contributions | `ContributionCapability`           |
-| `contributions.approve_corrections`      | contributions | `ContributionCapability`           |
-| `contributions.run_refunds`              | contributions | `ContributionCapability`           |
-| `contributions.use_provider_actions`     | contributions | `ContributionCapability`           |
-| `contributions.manage_settings`          | contributions | `ContributionCapability`           |
-| `crm.gift_history.manage_view_defaults`  | crm           | `ContributionCapability`           |
-| `admin.dashboard.access`                 | admin         | `StaffCapability` (retired)        |
-| `admin.crm.manage`                       | admin         | `StaffCapability` (retired)        |
-| `admin.gifts.manage`                     | admin         | `StaffCapability` (retired)        |
-| `admin.reports.view`                     | admin         | `StaffCapability` (retired)        |
-| `permissions.view`                       | permissions   | Meta-capability (Phase 3 Module 5) |
-| `permissions.propose_widening`           | permissions   | Meta-capability (maker)            |
-| `permissions.approve_widening`           | permissions   | Meta-capability (checker)          |
-| `people.manage_members`                  | people        | Plan 5.4 (AL-2675)                 |
-| `people.erase`                           | people        | Plan 5.4 (AL-2675)                 |
-| `sites.manage`                           | sites         | Plan 5.4 (AL-2675)                 |
-| `payments.manage_account`                | payments      | Plan 5.4 (AL-2675)                 |
-| `web_studio.edit`                        | web_studio    | Plan 5.4 (AL-2675)                 |
-| `web_studio.publish`                     | web_studio    | Plan 5.4 (AL-2675)                 |
-| `updates.review`                         | updates       | Plan 5.4 (AL-2675)                 |
-| `safety.restrict_publication`            | safety        | Plan 5.4 (AL-2675)                 |
-| `care.access`                            | care          | Plan 5.4 (AL-2675)                 |
-| `imports.commit`                         | imports       | Plan 5.4 (AL-2675)                 |
+| Capability                               | Domain        | Origin                               |
+| ---------------------------------------- | ------------- | ------------------------------------ |
+| `contributions.view_detail`              | contributions | `ContributionCapability`             |
+| `contributions.request_corrections`      | contributions | `ContributionCapability`             |
+| `contributions.manage_table_preferences` | contributions | `ContributionCapability`             |
+| `contributions.apply_corrections`        | contributions | `ContributionCapability`             |
+| `contributions.manage_receipts`          | contributions | `ContributionCapability`             |
+| `contributions.retry_crm_post`           | contributions | `ContributionCapability`             |
+| `contributions.approve_corrections`      | contributions | `ContributionCapability`             |
+| `contributions.run_refunds`              | contributions | `ContributionCapability`             |
+| `contributions.use_provider_actions`     | contributions | `ContributionCapability`             |
+| `contributions.manage_settings`          | contributions | `ContributionCapability`             |
+| `crm.gift_history.manage_view_defaults`  | crm           | `ContributionCapability`             |
+| `admin.dashboard.access`                 | admin         | `StaffCapability` (retired)          |
+| `admin.crm.manage`                       | admin         | `StaffCapability` (retired)          |
+| `admin.gifts.manage`                     | admin         | `StaffCapability` (retired)          |
+| `admin.reports.view`                     | admin         | `StaffCapability` (retired)          |
+| `permissions.view`                       | permissions   | Meta-capability (Phase 3 Module 5)   |
+| `permissions.propose_widening`           | permissions   | Meta-capability (maker)              |
+| `permissions.approve_widening`           | permissions   | Meta-capability (checker)            |
+| `people.manage_members`                  | people        | Plan 5.4 (AL-2675)                   |
+| `people.erase`                           | people        | Plan 5.4 (AL-2675)                   |
+| `sites.manage`                           | sites         | Plan 5.4 (AL-2675)                   |
+| `payments.manage_account`                | payments      | Plan 5.4 (AL-2675)                   |
+| `web_studio.edit`                        | web_studio    | Plan 5.4 (AL-2675)                   |
+| `web_studio.publish`                     | web_studio    | Plan 5.4 (AL-2675)                   |
+| `updates.review`                         | updates       | Plan 5.4 (AL-2675)                   |
+| `safety.restrict_publication`            | safety        | Plan 5.4 (AL-2675)                   |
+| `care.access`                            | care          | Plan 5.4 (AL-2675)                   |
+| `imports.commit`                         | imports       | Plan 5.4 (AL-2675)                   |
+| `partners.add`                           | partners      | D-16 ruling on Add Partner (AL-2678) |
 
 ## Bundles
 
@@ -77,6 +78,7 @@ reproduces today's incumbent tiers (3 / 6 / 9 / 11 atoms).
 | `permissions_viewer`    | `permissions.view`                                                                                                                                        |
 | `permissions_proposer`  | `permissions_viewer` + `permissions.propose_widening`                                                                                                     |
 | `permissions_approver`  | `permissions_proposer` + `permissions.approve_widening`; held by no subject until Phase 12                                                                |
+| `missionary_partners`   | `partners.add`; held by `member:missionary` alone, never by a staff subject or `tenant_admin`                                                             |
 
 Each staff sub-role has a bundle of its own (audit B05), so narrowing one
 sub-role is an edit to its bundle. Mobilizer and hr hold the same atoms today:
@@ -92,15 +94,16 @@ them directly.
 tenant-administrator flag on a staff membership reaches the registry as this
 grant (plan 5.1). `platform_admin` is retired with `super_admin` (AL-2675).
 
-| Subject                             | Default bundles                                                                     |
-| ----------------------------------- | ----------------------------------------------------------------------------------- |
-| `member:donor`, `member:missionary` | none                                                                                |
-| `staff:finance`                     | `staff_base`, `staff_finance`                                                       |
-| `staff:mobilizer`                   | `staff_base`, `staff_mobilizer`                                                     |
-| `staff:development`                 | `staff_base`, `staff_development`                                                   |
-| `staff:hr`                          | `staff_base`, `staff_hr`                                                            |
-| `staff:member_care`                 | `staff_base`, `staff_member_care`                                                   |
-| `tenant_admin`                      | `staff_base`, `contribution_admin`, `permissions_proposer`, `tenant_administration` |
+| Subject             | Default bundles                                                                     |
+| ------------------- | ----------------------------------------------------------------------------------- |
+| `member:donor`      | none                                                                                |
+| `member:missionary` | `missionary_partners`                                                               |
+| `staff:finance`     | `staff_base`, `staff_finance`                                                       |
+| `staff:mobilizer`   | `staff_base`, `staff_mobilizer`                                                     |
+| `staff:development` | `staff_base`, `staff_development`                                                   |
+| `staff:hr`          | `staff_base`, `staff_hr`                                                            |
+| `staff:member_care` | `staff_base`, `staff_member_care`                                                   |
+| `tenant_admin`      | `staff_base`, `contribution_admin`, `permissions_proposer`, `tenant_administration` |
 
 A request acts under one membership row: its sub-role's bundles and, when the
 row carries the flag, `tenant_admin`'s. `resolveAssignmentCapabilities` builds

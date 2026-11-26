@@ -266,21 +266,22 @@ describe("deepFreeze", () => {
 });
 
 describe("capabilityRegistryRows", () => {
-  it("is byte-identical to the reviewed output", () => {
-    // sha256 of JSON.stringify(capabilityRegistryRows()) after AL-2675: plan
-    // 5.4's capabilities, one bundle per staff sub-role, platform_admin gone.
+  it("is byte-identical to the reviewed output (D-18, AL-2678 WP5 rest, D-16 ruling on Add Partner: the missionary's partners.add makes 29 capabilities and 75 grants)", () => {
+    // sha256 of JSON.stringify(capabilityRegistryRows()) after AL-2678: plan
+    // 5.4's capabilities, one bundle per staff sub-role, missionary_partners.
     const digest = createHash("sha256")
       .update(JSON.stringify(capabilityRegistryRows()))
       .digest("hex");
     expect(digest).toBe(
-      "39838b467bb97863fdaff45fef3378f740b65d1067d4fcbc0be6741a5d0163bb",
+      "5bd07fbadcec546acf73f60a0f2e941a5ef19142fe1dd6693d3fbb6511e7322f",
     );
   });
 
-  it("seeds no grant row for staff without a subrole", () => {
+  it("seeds no grant row for staff without a subrole, nor for a donor (D-18, AL-2678 WP5 rest: member:missionary holds missionary_partners)", () => {
     const { roleGrants } = capabilityRegistryRows();
     const subjects = new Set(roleGrants.map((row) => row.subject));
     expect([...subjects].sort()).toEqual([
+      "member:missionary",
       "staff:development",
       "staff:finance",
       "staff:hr",

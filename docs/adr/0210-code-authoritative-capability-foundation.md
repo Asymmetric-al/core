@@ -80,6 +80,12 @@ evidence. Publication of this record does not complete those qualification tasks
   mapping, and a test compares that function with the registry on every change.
   The capability tables stay deferred to Phase 12, as this record decides.
 
+### 2026-11-26: The missionary's first capability (AL-2678)
+
+- 2026-11-26: `partners.add` (`member:missionary`, bundle `missionary_partners`),
+  D-16 ruling `reviews\decision-wp5-add-partner-entry.md`; withdrawable per
+  tenant only once Phase 12's configurable grants exist.
+
 ## Related contracts
 
 - [Amended Phase 3 PRD](../prds/sitestacker-parity/phase-03-minimum-permission-role-scoped-projection-foundation.md)

@@ -201,16 +201,16 @@ describe("CRM relationships workspace", () => {
     vi.clearAllMocks();
   });
 
-  it("renders every loaded relationship and says how many remain", () => {
-    relationshipsHook.mockReturnValue(relationshipsState({ hasMore: true }));
+  it("renders every loaded relationship and says how many remain (D-18, AL-2678 WP5 rest r6: the footer counts against the listing's own total, the domain and search filter, which the page reads from Postgres; the report still covers every authorized row)", () => {
+    relationshipsHook.mockReturnValue(
+      relationshipsState({ hasMore: true, totalCount: 72 }),
+    );
     render(<RelationshipsPage />);
     expect(
       screen.getAllByRole("link", { name: /^Relationship person \d+/ }),
     ).toHaveLength(50);
-    // The report covers every row; the footer says how many are loaded.
-    expect(
-      screen.getByText(`50 of ${report.totalRows} relationships loaded`),
-    ).toBeTruthy();
+    expect(screen.getByText("50 of 72 relationships loaded")).toBeTruthy();
+    expect(report.totalRows).not.toBe(72);
     expect(screen.queryByText(/showing the first/i)).toBeNull();
   });
 

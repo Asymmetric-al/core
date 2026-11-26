@@ -11,6 +11,7 @@ import { Skeleton } from "../shadcn/skeleton";
 export function AuthScreenSkeleton({ label }: { label: string }) {
   return (
     <main
+      data-slot="auth-shell"
       className="flex min-h-dvh items-center justify-center bg-muted px-4 py-8"
       aria-busy="true"
     >
