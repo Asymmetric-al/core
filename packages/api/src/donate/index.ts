@@ -126,6 +126,11 @@ export const POST = withPlatformOperation(
             { error: "Missionary or fund not found" },
             { status: 404 },
           );
+        case "conflict":
+          return NextResponse.json(
+            { error: "Idempotency key already used" },
+            { status: 409 },
+          );
         case "invalid":
           return NextResponse.json({ error: begin.message }, { status: 400 });
         case "incomplete":

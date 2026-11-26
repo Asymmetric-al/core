@@ -44,6 +44,8 @@ export async function beginGraphQLGiftIntake(
   switch (result.code) {
     case "not_found":
       throw new Error("Missionary not found");
+    case "conflict":
+      throw new Error("Idempotency key already used");
     case "incomplete":
       throw new Error("Failed to create donation");
     case "invalid":

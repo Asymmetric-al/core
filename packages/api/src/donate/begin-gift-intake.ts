@@ -42,6 +42,7 @@ export type BeginGiftIntakeInput = {
 export type BeginGiftIntakeResult =
   | { ok: true; donationId: string; outboxId: string; replayed: boolean }
   | { ok: false; code: "not_found" }
+  | { ok: false; code: "conflict" }
   | { ok: false; code: "incomplete" }
   | { ok: false; code: "invalid"; message: string }
   | { ok: false; code: "failed"; message: string };
@@ -79,6 +80,9 @@ export async function beginGiftIntake(
   if (error) {
     if (error.code === "P0002") {
       return { ok: false, code: "not_found" };
+    }
+    if (error.code === "23505") {
+      return { ok: false, code: "conflict" };
     }
     if (error.code === "22023") {
       return { ok: false, code: "invalid", message: error.message };
