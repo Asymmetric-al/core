@@ -228,10 +228,11 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
     `readPortalDocumentScope` and removes the empty-base-path exception from
     `isNameGenerationRefused` (ruling R3).
 
-20. **The operator area.** `/operator` on an operations address is answered
-    before the switch test and never on an organization's name, so no name
-    and no generation reach a call made there: `readAssignmentNarrowing`
-    reads a generation only beside a valid name.
+20. **No name, no generation.** A request that reaches a dashboard without
+    a verified name (an exempt path, or the operator area that WP2c part 2a
+    answers on an operations address, never on an organization's name)
+    carries no generation: `readAssignmentNarrowing` reads one only beside a
+    valid name.
 
 ### Not here
 
