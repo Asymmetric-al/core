@@ -11,7 +11,6 @@ const SUBMISSION_KEY =
 const partnerSchema = z
   .object({
     name: z.string().max(1_000),
-    email: z.string().max(1_000),
     phone: z.string().max(1_000).nullable().optional(),
     type: z.enum(["Individual", "Organization", "Church"]),
     frequency: z.enum(["Monthly", "One-Time", "Annually", "Irregular"]),
@@ -19,9 +18,10 @@ const partnerSchema = z
   })
   .strict();
 
+const KEY_CONFLICT_HINT = "add_partner_key";
+
 const REFUSALS: Record<string, [status: number, message: string]> = {
   "42501": [403, "Forbidden: this assignment cannot add partners here."],
-  "23505": [409, "This submission was already used for another partner."],
   "22023": [400, "Check the partner's details and try again."],
 };
 
@@ -67,7 +67,6 @@ export const POST = withOperation(
       p_tenant_id: auth.tenantId,
       p_idempotency_key: idempotencyKey,
       p_name: partner.name,
-      p_email: partner.email,
       p_phone: partner.phone?.trim() ? partner.phone : null,
       p_type: partner.type,
       p_frequency: partner.frequency,
@@ -76,6 +75,12 @@ export const POST = withOperation(
     });
 
     if (error) {
+      if (error.code === "23505" && error.hint === KEY_CONFLICT_HINT) {
+        throw new ApiHttpError(
+          409,
+          "This form was already used for a different partner. Press Add Partner again.",
+        );
+      }
       const refusal = error.code ? REFUSALS[error.code] : undefined;
       if (refusal) throw new ApiHttpError(refusal[0], refusal[1]);
       throw new Error(error.message || "add_partner failed.");

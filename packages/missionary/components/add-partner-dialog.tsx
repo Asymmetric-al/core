@@ -104,7 +104,11 @@ export function AddPartnerDialog({
       } catch (error: unknown) {
         console.error("Error adding partner:", error);
         // Plain words, never the server's own message (WP2b, AL-2675).
-        if (error instanceof AddPartnerRefused && error.status < 502) {
+        if (error instanceof AddPartnerRefused && error.status === 409) {
+          toast.error("This form was already used for a different partner.", {
+            description: "Press Add Partner again.",
+          });
+        } else if (error instanceof AddPartnerRefused && error.status < 502) {
           toast.error("The partner wasn't added.", {
             description:
               "Something went wrong on our side, so nothing was saved. Your details are still in the form.",
@@ -162,19 +166,13 @@ export function AddPartnerDialog({
               )}
             </form.AppField>
 
-            <form.AppField name="email">
-              {(field) => (
-                <field.TextField
-                  label="Email"
-                  placeholder="email@example.com"
-                  type="email"
-                />
-              )}
-            </form.AppField>
-
             <form.AppField name="phone">
               {(field) => (
-                <field.TextField label="Phone" placeholder="(555) 000-0000" />
+                <field.TextField
+                  className="sm:col-span-2"
+                  label="Phone"
+                  placeholder="(555) 000-0000"
+                />
               )}
             </form.AppField>
 

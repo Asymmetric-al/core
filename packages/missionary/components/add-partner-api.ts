@@ -25,11 +25,12 @@ export class AddPartnerRefused extends Error {
 }
 
 const submissionKeys = new Map<string, string>();
+const inFlight = new Map<string, Promise<AddedPartner>>();
 
-export async function addPartner(
+async function submit(
+  intent: string,
   values: PartnerFormValues,
 ): Promise<AddedPartner> {
-  const intent = partnerIntent(values);
   const key = submissionKeys.get(intent) ?? crypto.randomUUID();
   submissionKeys.set(intent, key);
 
@@ -42,6 +43,9 @@ export async function addPartner(
     },
     body: JSON.stringify(toPartnerCommandBody(values)),
   });
+  if (response.status < 500) {
+    submissionKeys.delete(intent);
+  }
   if (!response.ok) {
     throw new AddPartnerRefused(response.status);
   }
@@ -53,10 +57,22 @@ export async function addPartner(
   ) {
     throw new TypeError("Add Partner answered without the stored partner");
   }
-  submissionKeys.delete(intent);
   return {
     donorId: payload.donorId,
     partyId: payload.partyId,
     duplicate: payload.duplicate === true,
   };
+}
+
+export function addPartner(values: PartnerFormValues): Promise<AddedPartner> {
+  const intent = partnerIntent(values);
+  const running = inFlight.get(intent);
+  if (running) {
+    return running;
+  }
+  const request = submit(intent, values).finally(() => {
+    inFlight.delete(intent);
+  });
+  inFlight.set(intent, request);
+  return request;
 }

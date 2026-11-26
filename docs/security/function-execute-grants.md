@@ -441,8 +441,8 @@ file restates part 1's `REVOKE` and `GRANT` for it.
 | `public.donor_party_for_insert(uuid, uuid, text, text)`                                           | DEFINER  | `postgres` (owner), `service_role`, `tenant_guard` |
 | `public.crm_notes_page(uuid, text, text, boolean, integer, integer)`                              | INVOKER  | `postgres` (owner), `authenticated`                |
 | `public.crm_relationships_page(uuid, text, text[], text, boolean, integer, integer, timestamptz)` | INVOKER  | `postgres` (owner), `authenticated`                |
-| `tenant_guard.add_partner(uuid, uuid, text, text, text, text, text, text, uuid)`                  | DEFINER  | `tenant_guard` (owner), `authenticated`            |
-| `public.add_partner(uuid, uuid, text, text, text, text, text, text, uuid)`                        | INVOKER  | `postgres` (owner), `authenticated`                |
+| `tenant_guard.add_partner(uuid, uuid, text, text, text, text, text, uuid)`                        | DEFINER  | `tenant_guard` (owner), `authenticated`            |
+| `public.add_partner(uuid, uuid, text, text, text, text, text, uuid)`                              | INVOKER  | `postgres` (owner), `authenticated`                |
 
 Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
 before granting (`20261126200000_wp5_rest_party_writer.sql`,
