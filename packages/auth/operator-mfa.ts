@@ -82,6 +82,7 @@ export interface OperatorMfaFailure {
   ok: false;
   message: string;
   reread: boolean;
+  mismatch: boolean;
 }
 
 export interface VerifiedFactor {
@@ -112,20 +113,31 @@ export function operatorMfaFailure(
   error: OperatorMfaError | null | undefined,
 ): OperatorMfaFailure {
   if (error?.code === "insufficient_aal") {
-    return { ok: false, message: "", reread: true };
+    return { ok: false, message: "", reread: true, mismatch: false };
   }
   const key = error?.code ? MESSAGE_FOR_CODE.get(error.code) : undefined;
   if (key) {
-    return { ok: false, message: OPERATOR_MFA_MESSAGES[key], reread: false };
+    return {
+      ok: false,
+      message: OPERATOR_MFA_MESSAGES[key],
+      reread: false,
+      mismatch: key === "mismatch",
+    };
   }
   if (error?.status === 429) {
     return {
       ok: false,
       message: OPERATOR_MFA_MESSAGES.rateLimited,
       reread: false,
+      mismatch: false,
     };
   }
-  return { ok: false, message: OPERATOR_MFA_MESSAGES.generic, reread: false };
+  return {
+    ok: false,
+    message: OPERATOR_MFA_MESSAGES.generic,
+    reread: false,
+    mismatch: false,
+  };
 }
 
 function failedState(error: OperatorMfaError | null): FactorState {
@@ -275,6 +287,7 @@ export async function removeFactor(
         ok: false,
         message: OPERATOR_MFA_MESSAGES.generic,
         reread: true,
+        mismatch: false,
       };
     }
     return { ok: true };

@@ -183,7 +183,7 @@ function EnrolmentPanel({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!enrolment || inFlight.current) return;
+    if (!enrolment || inFlight.current || code.length !== CODE_LENGTH) return;
     inFlight.current = true;
     setPending(true);
     setMessage(null);
@@ -194,6 +194,8 @@ function EnrolmentPanel({
         setCode("");
         onVerified();
       } else if (result.reread) {
+        setEnrolment(null);
+        setCode("");
         onReread();
       } else {
         setCode("");
@@ -214,7 +216,11 @@ function EnrolmentPanel({
     setMessage(null);
     setPending(true);
     try {
-      await removeFactor(factorId);
+      const result = await removeFactor(factorId);
+      if (!result.ok) {
+        if (result.message) setMessage(result.message);
+        if (result.reread) onReread();
+      }
     } finally {
       inFlight.current = false;
       setPending(false);
@@ -322,10 +328,12 @@ function ChallengePanel({
   factorIds,
   onVerified,
   onReread,
+  stopped,
 }: {
   factorIds: string[];
   onVerified: () => void;
   onReread: () => void;
+  stopped: () => boolean;
 }) {
   const [code, setCode] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -337,13 +345,14 @@ function ChallengePanel({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (inFlight.current) return;
+    if (inFlight.current || code.length !== CODE_LENGTH || stopped()) return;
     inFlight.current = true;
     setPending(true);
     setMessage(null);
     try {
       let failure: string | null = null;
       for (const factorId of factorIds) {
+        if (stopped()) return;
         const result = await verifyCode(factorId, code);
         if (result.ok) {
           setCode("");
@@ -355,7 +364,9 @@ function ChallengePanel({
           return;
         }
         failure = result.message;
+        if (!result.mismatch) break;
       }
+      if (stopped()) return;
       setCode("");
       setMessage(failure);
     } finally {
@@ -422,24 +433,35 @@ function AreaPanel({
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [target, setTarget] = useState<VerifiedFactor | null>(null);
+  const [awaitingList, setAwaitingList] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
   const removing = useRef(false);
   const titleId = useId();
-  const canRemove = factors.length >= 2;
+  const canRemove = factors.length >= 2 && !awaitingList;
 
   function askToRemove(factor: VerifiedFactor) {
+    if (removing.current || awaitingList) return;
+    setMessage(null);
     setTarget(factor);
     setDialogOpen(true);
   }
 
   async function confirmRemoval() {
-    if (!target || removing.current) return;
+    if (!target || removing.current || awaitingList) return;
     removing.current = true;
+    setAwaitingList(true);
     setDialogOpen(false);
+    setMessage(null);
     try {
-      await removeFactor(target.id);
+      const result = await removeFactor(target.id);
+      if (result.ok || result.reread) {
+        onChanged();
+        return;
+      }
+      setAwaitingList(false);
+      setMessage(result.message);
     } finally {
       removing.current = false;
-      onChanged();
     }
   }
 
@@ -448,6 +470,7 @@ function AreaPanel({
       <Alert variant="success">
         <AlertDescription>{VERIFIED_TEXT}</AlertDescription>
       </Alert>
+      <FailureAlert message={message} />
       <Card>
         <CardHeader>
           <CardTitle>
@@ -512,11 +535,15 @@ function AreaPanel({
 
 function StateBody({
   view,
+  version,
   signingOut,
+  isSigningOut,
   reread,
 }: {
   view: FactorState;
+  version: number;
   signingOut: boolean;
+  isSigningOut: () => boolean;
   reread: () => void;
 }) {
   switch (view.kind) {
@@ -525,16 +552,18 @@ function StateBody({
         <EnrolmentPanel mode="first" onVerified={reread} onReread={reread} />
       );
     case "challenge":
-      return (
+      return signingOut ? null : (
         <ChallengePanel
           factorIds={view.factorIds}
           onVerified={reread}
           onReread={reread}
+          stopped={isSigningOut}
         />
       );
     case "area":
       return (
         <AreaPanel
+          key={version}
           factors={view.factors}
           onChanged={reread}
           signingOut={signingOut}
@@ -564,25 +593,35 @@ function StateBody({
 
 export function OperatorAreaClient() {
   const [view, setView] = useState<View>({ kind: "loading" });
+  const [version, setVersion] = useState(0);
   const [signingOut, setSigningOut] = useState(false);
+  const signingOutRef = useRef(false);
   const reads = useRef(0);
 
   const reread = useCallback(() => {
     reads.current += 1;
     const turn = reads.current;
     void readFactorState().then((next) => {
-      if (turn === reads.current) setView(next);
+      if (turn !== reads.current) return;
+      setView(next);
+      setVersion((current) => current + 1);
     });
   }, []);
+
+  const isSigningOut = useCallback(() => signingOutRef.current, []);
 
   useEffect(() => {
     reread();
   }, [reread]);
 
   async function signOut() {
+    signingOutRef.current = true;
     flushSync(() => setSigningOut(true));
     const result = await signOutClientSession();
-    if (!result.ok) setSigningOut(false);
+    if (!result.ok || !result.redirected) {
+      signingOutRef.current = false;
+      setSigningOut(false);
+    }
   }
 
   if (view.kind === "loading") {
@@ -596,7 +635,13 @@ export function OperatorAreaClient() {
 
   return (
     <div className="flex max-w-xl flex-col gap-6">
-      <StateBody view={view} signingOut={signingOut} reread={reread} />
+      <StateBody
+        view={view}
+        version={version}
+        signingOut={signingOut}
+        isSigningOut={isSigningOut}
+        reread={reread}
+      />
       <div>
         <Button variant="outline" onClick={signOut} disabled={signingOut}>
           Sign out
