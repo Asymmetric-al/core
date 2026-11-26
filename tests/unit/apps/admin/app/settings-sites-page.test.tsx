@@ -677,6 +677,47 @@ async function refreshWithBrand(displayName: string) {
 }
 
 describe("Mission Control's Sites screen, the fix round of pull request 2827", () => {
+  it("keeps the draft and field mounted through a failed refresh and retry", async () => {
+    const view = await loaded();
+    const field = nameField(view);
+    fireEvent.change(field, { target: { value: "Unsaved name" } });
+    server.reads.push({ status: 500, body: { code: "SITES_UNAVAILABLE" } });
+    await act(async () => {
+      await client.invalidateQueries({ queryKey: ["admin", "site-settings"] });
+    });
+    const retry = await view.findByRole("button", { name: "Try again" });
+    expect(nameField(view)).toBe(field);
+    expect(field.value).toBe("Unsaved name");
+    server.reads.push({ status: 200, body: settings() });
+    fireEvent.click(retry);
+    await waitFor(() =>
+      expect(view.queryByRole("button", { name: "Try again" })).toBeNull(),
+    );
+    expect(nameField(view)).toBe(field);
+    expect(field.value).toBe("Unsaved name");
+  });
+
+  it.each([401, 403])(
+    "hides cached settings when a refresh returns %d",
+    async (status) => {
+      const view = await loaded();
+      server.reads.push({ status, body: {} });
+      await act(async () => {
+        await client.invalidateQueries({
+          queryKey: ["admin", "site-settings"],
+        });
+      });
+      await waitFor(() =>
+        expect(
+          view.queryByRole("textbox", { name: "Donor account name" }),
+        ).toBeNull(),
+      );
+      expect(
+        view.queryByRole("table", { name: "Sites in this organization" }),
+      ).toBeNull();
+    },
+  );
+
   it("F1: shows what the database holds after a save whose refetch returns the earlier name", async () => {
     const view = await loaded();
     fireEvent.change(nameField(view), { target: { value: "Hope Givers" } });
