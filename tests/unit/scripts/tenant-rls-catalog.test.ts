@@ -2005,14 +2005,12 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
   const judge = (wrappers: object[]) =>
     evaluate([], listed(), [], lanes, allow(), { wrappers });
 
-  it("passes a compliant worker wrapper that derives the tenant from a stored anchor and performs no writes", () => {
+  it("passes a compliant worker wrapper that derives the tenant from a stored anchor and performs no writes (D-18, R1b, #2776's third item: the anchor is one whole single-table read; the JOIN this fixture read through fails now, as E4 shows)", () => {
     const body = `
       DECLARE v_tenant uuid;
       BEGIN
-        SELECT a.tenant_id INTO v_tenant
-          FROM public.stripe_raw_events AS e
-          JOIN public.payment_provider_accounts AS a
-            ON a.provider_account_id = e.stripe_account AND a.livemode = e.livemode
+        SELECT e.tenant_id INTO v_tenant
+          FROM public.stripe_connect_events AS e
          WHERE e.id = p_event_id;
         IF v_tenant IS NULL THEN
           RETURN pg_catalog.jsonb_build_object('event_id', p_event_id, 'outcome', 'unknown_anchor');
@@ -2107,16 +2105,14 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
     expect(codes(result)).toEqual([`WORKER_WRAPPER_WRITES ${fn}`]);
   });
 
-  it("does not false-positive WORKER_WRAPPER_WRITES on FOR NO KEY UPDATE or prose error literals", () => {
+  it("does not false-positive WORKER_WRAPPER_WRITES on FOR NO KEY UPDATE or prose error literals (D-18, R1b, #2776's third item: a single-table read, since a JOIN no longer passes the anchor rule)", () => {
     const fn =
       "public.readonly_lock_wrapper(p_event_id uuid, p_attempt integer)";
     const body = `
       DECLARE v_tenant uuid;
       BEGIN
-        SELECT a.tenant_id INTO v_tenant
-          FROM public.stripe_raw_events AS e
-          JOIN public.payment_provider_accounts AS a
-            ON a.provider_account_id = e.stripe_account AND a.livemode = e.livemode
+        SELECT e.tenant_id INTO v_tenant
+          FROM public.stripe_connect_events AS e
          WHERE e.id = p_event_id
            FOR NO KEY UPDATE;
         IF v_tenant IS NULL THEN
@@ -2215,4 +2211,437 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
       expect(codes(result)).toContain(`WORKER_WRAPPER_WRITES ${fn}`);
     },
   );
+
+  const forward =
+    "RETURN tenant_guard.apply_account_event(v_t, p_event_id, p_attempt);";
+  it.each<[string, string, string, string]>([
+    [
+      "E1: the scalar form followed by UNION SELECT p_owner",
+      "public.e1_union(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      "SELECT tenant_guard.apply_account_event((SELECT e.tenant_id FROM public.stripe_connect_events AS e WHERE e.id = p_event_id UNION SELECT p_owner), p_event_id, p_attempt);",
+      "sql",
+    ],
+    [
+      "E2: the INTO form reading through CROSS JOIN (SELECT p_owner AS tenant_id) x",
+      "public.e2_cross(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT x.tenant_id INTO v_t FROM public.stripe_connect_events AS e CROSS JOIN (SELECT p_owner AS tenant_id) x WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E3: a comma source",
+      "public.e3_comma(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT o.tenant_id INTO v_t FROM public.stripe_connect_events AS e, (SELECT p_owner AS tenant_id) AS o WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E4: a JOIN public.payment_provider_accounts",
+      "public.e4_join(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT a.tenant_id INTO v_t FROM public.stripe_raw_events AS e JOIN public.payment_provider_accounts AS a ON a.provider_account_id = e.stripe_account AND a.livemode = e.livemode WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E5: a subquery in the predicate",
+      "public.e5_subquery(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id OR e.tenant_id = (SELECT p_owner); ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E5: a trailing LIMIT 1",
+      "public.e5_limit(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id LIMIT 1; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E5: the scalar form with a trailing ORDER BY",
+      "public.e5_order(p_event_id uuid, p_attempt integer)",
+      "SELECT tenant_guard.apply_account_event((SELECT e.tenant_id FROM public.stripe_connect_events AS e WHERE e.id = p_event_id ORDER BY e.created_at), p_event_id, p_attempt);",
+      "sql",
+    ],
+    [
+      "E8: a leading WITH",
+      "public.e8_with(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN WITH o AS (SELECT p_owner AS id) SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E8: an alias spelled join",
+      "public.e8_alias(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT join.tenant_id INTO v_t FROM public.stripe_connect_events join WHERE join.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "E8: a lower-case join after the relation",
+      "public.e8_lower_join(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT a.tenant_id INTO v_t FROM public.stripe_raw_events join public.payment_provider_accounts AS a ON a.provider_account_id = public.stripe_raw_events.stripe_account WHERE public.stripe_raw_events.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+  ])(
+    "fails WORKER_WRAPPER_TENANT_ARGUMENT unless the anchor read is one whole statement of one schema-qualified relation (#2776's third item, R1b): %s",
+    (_label, fn, body, language) => {
+      const result = judge([
+        wrapper(fn, body, { service_role: true, language }),
+      ]);
+      expect(codes(result)).toEqual([`WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`]);
+    },
+  );
+
+  const lowerBody = (call: string) =>
+    `DECLARE v_t uuid; v_label text; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; v_label := ${call}('A'); ${forward} END;`;
+
+  it.each<[string, string | undefined]>([
+    ["search_path public", "public"],
+    ["no search_path", undefined],
+  ])(
+    "E6: an unqualified read-only built-in under %s fails WORKER_WRAPPER_WRITES (#2776's third item, R1b: only an empty path resolves it in pg_catalog alone)",
+    (_label, searchPath) => {
+      const fn = "public.e6_lower(p_event_id uuid, p_attempt integer)";
+      const result = judge([
+        wrapper(fn, lowerBody("lower"), {
+          service_role: true,
+          language: "plpgsql",
+          search_path: searchPath,
+        }),
+      ]);
+      expect(codes(result)).toContain(`WORKER_WRAPPER_WRITES ${fn}`);
+    },
+  );
+
+  const definitionBody = (text: string, name: string) => {
+    const at = text.search(
+      new RegExp(
+        `^CREATE\\s+(?:OR\\s+REPLACE\\s+)?FUNCTION\\s+${name.replace(".", "\\.")}\\(`,
+        "m",
+      ),
+    );
+    if (at < 0) throw new Error(`no definition of ${name}`);
+    const next = text
+      .slice(at + 1)
+      .search(/\bCREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\b/i);
+    const definition =
+      next < 0 ? text.slice(at) : text.slice(at, at + 1 + next);
+    const opening = /\bAS\s+(\$[A-Za-z_]*\$)/.exec(definition);
+    if (!opening) throw new Error(`no opening delimiter in ${name}`);
+    const tag = opening[1]!;
+    const start = opening.index + opening[0].length;
+    const end = definition.indexOf(tag, start);
+    if (end < 0) throw new Error(`no closing ${tag} in ${name}`);
+    return definition.slice(start, end);
+  };
+
+  const migrationBody = (file: string, name: string) =>
+    definitionBody(
+      readFileSync(
+        new URL(`../../../supabase/migrations/${file}`, import.meta.url),
+        "utf8",
+      ),
+      name,
+    );
+
+  it("G4 (bot round): the fixture reader takes the named definition's own delimiters, never a mention in a comment, fails when either is missing, and each migration fixture reaches the worker-wrapper check", () => {
+    const text = [
+      "--   DROP FUNCTION public.second(uuid),",
+      "CREATE FUNCTION public.first(p_id uuid) RETURNS jsonb LANGUAGE plpgsql AS $$ BEGIN RETURN tenant_guard.apply_account_event(NULL, p_id, 1); END; $$;",
+      "CREATE FUNCTION public.second(p_id uuid) RETURNS jsonb LANGUAGE plpgsql AS $fn$ BEGIN RETURN NULL; END; $fn$;",
+      "CREATE FUNCTION public.third(p_id uuid) RETURNS jsonb LANGUAGE sql RETURN NULL;",
+      "CREATE FUNCTION public.fifth(p_id uuid) RETURNS jsonb LANGUAGE plpgsql AS $x$ BEGIN RETURN NULL; END;",
+    ].join("\n");
+    expect(definitionBody(text, "public.first")).toBe(
+      " BEGIN RETURN tenant_guard.apply_account_event(NULL, p_id, 1); END; ",
+    );
+    expect(definitionBody(text, "public.second")).toBe(
+      " BEGIN RETURN NULL; END; ",
+    );
+    expect(() => definitionBody(text, "public.fifth")).toThrow(
+      "no closing $x$ in public.fifth",
+    );
+    expect(() => definitionBody(text, "public.third")).toThrow(
+      "no opening delimiter in public.third",
+    );
+    expect(() => definitionBody(text, "public.fourth")).toThrow(
+      "no definition of public.fourth",
+    );
+    const r1a = "20261126020200_wp8a2_provider_operation_commands.sql";
+    const part1 = "20261123030300_wp8a_task_guard_and_event_leases.sql";
+    for (const [fn, file, name] of [
+      [
+        "public.claim_provider_operation(p_operation_id uuid, p_lease_seconds integer)",
+        r1a,
+        "public.claim_provider_operation",
+      ],
+      [
+        "public.record_provider_operation_result(p_operation_id uuid, p_attempt integer, p_result jsonb)",
+        r1a,
+        "public.record_provider_operation_result",
+      ],
+      [
+        "public.confirm_payment_account_onboarding(p_stripe_event_id text, p_livemode boolean, p_snapshot jsonb)",
+        part1,
+        "public.confirm_payment_account_onboarding",
+      ],
+    ] as const) {
+      const body = migrationBody(file, name);
+      const probed = body.replace(
+        /\bBEGIN\b/,
+        "BEGIN PERFORM public.r1b_probe();",
+      );
+      expect(probed).not.toBe(body);
+      expect(
+        codes(
+          judge([
+            wrapper(fn, probed, { service_role: true, language: "plpgsql" }),
+          ]),
+        ),
+      ).toEqual([`WORKER_WRAPPER_WRITES ${fn}`]);
+    }
+  });
+
+  it("E7 (guard): an unqualified built-in under the empty path, pg_catalog.lower under public, R1a's two wrappers and the onboarding wrapper as migrated (a cast in the predicate), a row lock after the WHERE and INTO STRICT all pass", () => {
+    const r1a = "20261126020200_wp8a2_provider_operation_commands.sql";
+    const part1 = "20261123030300_wp8a_task_guard_and_event_leases.sql";
+    const result = judge([
+      wrapper(
+        "public.e7_empty_path(p_event_id uuid, p_attempt integer)",
+        lowerBody("lower"),
+        { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.e7_qualified(p_event_id uuid, p_attempt integer)",
+        lowerBody("pg_catalog.lower"),
+        { service_role: true, language: "plpgsql", search_path: "public" },
+      ),
+      wrapper(
+        "public.claim_provider_operation(p_operation_id uuid, p_lease_seconds integer)",
+        migrationBody(r1a, "public.claim_provider_operation"),
+        { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.record_provider_operation_result(p_operation_id uuid, p_attempt integer, p_result jsonb)",
+        migrationBody(r1a, "public.record_provider_operation_result"),
+        { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.confirm_payment_account_onboarding(p_stripe_event_id text, p_livemode boolean, p_snapshot jsonb)",
+        migrationBody(part1, "public.confirm_payment_account_onboarding"),
+        { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.e7_lock(p_event_id uuid, p_attempt integer)",
+        `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id FOR NO KEY UPDATE; ${forward} END;`,
+        { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.e7_strict(p_event_id uuid, p_attempt integer)",
+        `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO STRICT v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id FOR UPDATE SKIP LOCKED; ${forward} END;`,
+        { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.e7_own_name(p_event_id uuid, p_attempt integer)",
+        `DECLARE v_t uuid; BEGIN SELECT stripe_connect_events.tenant_id INTO v_t FROM public.stripe_connect_events WHERE stripe_connect_events.id = p_event_id; ${forward} END;`,
+        { service_role: true, language: "plpgsql" },
+      ),
+      wrapper(
+        "public.e7_parenthesised(p_event_id uuid, p_attempt integer)",
+        "SELECT tenant_guard.apply_account_event(((SELECT e.tenant_id FROM public.stripe_connect_events AS e WHERE (e.id = p_event_id))), p_event_id, p_attempt);",
+        { service_role: true, language: "sql" },
+      ),
+    ]);
+    expect(result.failures).toEqual([]);
+  });
+
+  it.each<[string, string, string, string]>([
+    [
+      "a column qualified by a row-typed parameter (p_row.tenant_id)",
+      "public.f2_row(p_row public.stripe_connect_events, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT p_row.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "a declared local variable selected unqualified (SELECT v_copy INTO v_t)",
+      "public.f2_copy(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_copy uuid := p_owner; v_t uuid; BEGIN SELECT v_copy INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "a column selected unqualified from an aliased relation",
+      "public.f2_bare(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "the relation's own name as qualifier when it has an alias",
+      "public.f2_shadowed(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT stripe_connect_events.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "a qualifier that is another alias",
+      "public.f2_other(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT x.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "a parameter named like the alias",
+      "public.f2_param_alias(e public.stripe_connect_events, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "a declared variable named like the alias",
+      "public.f2_var_alias(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE e record; v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "a declared variable named like the relation it reads without an alias",
+      "public.f2_var_rel(p_event_id uuid, p_attempt integer)",
+      `DECLARE stripe_connect_events record; v_t uuid; BEGIN SELECT stripe_connect_events.tenant_id INTO v_t FROM public.stripe_connect_events WHERE stripe_connect_events.id = p_event_id; ${forward} END;`,
+      "plpgsql",
+    ],
+    [
+      "(SELECT …) || (p_owner) as the scalar argument",
+      "public.f2_concat(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      "SELECT tenant_guard.apply_account_event((SELECT e.tenant_id FROM public.stripe_connect_events AS e WHERE e.id = p_event_id) || (p_owner), p_event_id, p_attempt);",
+      "sql",
+    ],
+    [
+      "an unbalanced predicate",
+      "public.f2_unbalanced(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE (e.id = p_event_id)) OR (true; ${forward} END;`,
+      "plpgsql",
+    ],
+  ])(
+    "F2 (review finding 2): fails WORKER_WRAPPER_TENANT_ARGUMENT unless the selected column is qualified by the read relation's alias, or its name when it has none, and that qualifier is neither a parameter nor a declared name, with balanced parentheses: %s",
+    (_label, fn, body, language) => {
+      const result = judge([
+        wrapper(fn, body, { service_role: true, language }),
+      ]);
+      expect(codes(result)).toEqual([`WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`]);
+    },
+  );
+
+  it.each<[string, string, string]>([
+    [
+      'L1: two quoted names that are not plain identifiers, of equal length, as qualifier and alias ("e-1" a row-typed parameter)',
+      'public.l1_equal(\"e-1\" public.stripe_connect_events, p_event_id uuid, p_attempt integer)',
+      `DECLARE v_t uuid; BEGIN SELECT "e-1".tenant_id INTO v_t FROM public.stripe_connect_events AS "x-1" WHERE "x-1".id = p_event_id; ${forward} END;`,
+    ],
+    [
+      "L1: a quoted function name as qualifier and a quoted parameter as column, behind a quoted alias of the same length",
+      'public."my-fn"("p-owner" uuid, p_event_id uuid, p_attempt integer)',
+      `DECLARE v_t uuid; BEGIN SELECT "my-fn"."p-owner" INTO v_t FROM public.stripe_connect_events AS "ab-cd" WHERE "ab-cd".id = p_event_id; ${forward} END;`,
+    ],
+    [
+      'L2: #variable_conflict use_variable with a variable "begin" declared before a row variable named like the alias',
+      "public.l2_begin(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `#variable_conflict use_variable
+       DECLARE "begin" integer; e public.stripe_connect_events; v_t uuid; BEGIN e.tenant_id := p_owner; SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+    ],
+    [
+      'L2: a quoted "begin" declared before a row variable named like the alias, without the pragma',
+      "public.l2_quoted_begin(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE "begin" integer; e public.stripe_connect_events; v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+    ],
+    [
+      "L2: #variable_conflict in an otherwise compliant worker wrapper",
+      "public.l2_pragma(p_event_id uuid, p_attempt integer)",
+      `#variable_conflict use_column
+       DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+    ],
+    [
+      "L3: the variable initialised with a plain = in its declaration",
+      "public.l3_equals(p_owner uuid, p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid = p_owner; BEGIN IF p_attempt > 99 THEN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; END IF; ${forward} END;`,
+    ],
+    [
+      "L4: the function's own name as the column",
+      "public.tenant_id(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+    ],
+    [
+      "L4 (guard): a block label as the qualifier",
+      "public.l4_label(p_event_id uuid, p_attempt integer)",
+      `<<e>> DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END e;`,
+    ],
+    [
+      "L4 (guard): a FOR loop variable as the qualifier",
+      "public.l4_loop(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN FOR e IN 1..2 LOOP SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; END LOOP; ${forward} END;`,
+    ],
+    [
+      "L4 (guard): the function's own name as the qualifier",
+      "public.ev(p_event_id uuid, p_attempt integer)",
+      `DECLARE v_t uuid; BEGIN SELECT ev.tenant_id INTO v_t FROM public.stripe_connect_events AS ev WHERE ev.id = p_event_id; ${forward} END;`,
+    ],
+  ])(
+    "the last step (L1 to L4): fails WORKER_WRAPPER_TENANT_ARGUMENT when %s",
+    (_label, fn, body) => {
+      const result = judge([
+        wrapper(fn, body, { service_role: true, language: "plpgsql" }),
+      ]);
+      expect(codes(result)).toEqual([`WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`]);
+    },
+  );
+
+  it.each<[string, string]>([
+    [
+      "a quoted function name that is not a plain identifier",
+      'public."do-write"',
+    ],
+    ["a quoted schema that is not a plain identifier", '"my schema".fn'],
+    ["a quoted function name that is a keyword", 'public."select"'],
+  ])(
+    "the last step (guard): a call through %s still fails WORKER_WRAPPER_WRITES",
+    (_label, callee) => {
+      const fn = "public.quoted_call(p_event_id uuid, p_attempt integer)";
+      const result = judge([
+        wrapper(
+          fn,
+          `DECLARE v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; PERFORM ${callee}(p_event_id); ${forward} END;`,
+          { service_role: true, language: "plpgsql" },
+        ),
+      ]);
+      expect(codes(result)).toEqual([`WORKER_WRAPPER_WRITES ${fn}`]);
+    },
+  );
+
+  it.each<[string, string]>([
+    [
+      "ALIAS FOR a parameter, read only under a condition",
+      `DECLARE v_t ALIAS FOR p_owner; BEGIN IF p_attempt > 99 THEN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; END IF; ${forward} END;`,
+    ],
+    [
+      "ALIAS FOR a positional parameter, beside the anchor variable",
+      `DECLARE v_owner ALIAS FOR $1; v_t uuid; BEGIN SELECT e.tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+    ],
+  ])(
+    "G1 (bot round): a worker wrapper whose DECLARE holds ALIAS fails WORKER_WRAPPER_TENANT_ARGUMENT: %s",
+    (_label, body) => {
+      const fn =
+        "public.g1_alias(p_owner uuid, p_event_id uuid, p_attempt integer)";
+      const result = judge([
+        wrapper(fn, body, { service_role: true, language: "plpgsql" }),
+      ]);
+      expect(codes(result)).toEqual([`WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`]);
+    },
+  );
+
+  it("G3 (bot round): the tenant-argument failure names the form the rule requires: a qualified column whose qualifier is the read relation's alias, or its name when it has none", () => {
+    const fn = "public.g3_message(p_event_id uuid, p_attempt integer)";
+    const result = judge([
+      wrapper(
+        fn,
+        `DECLARE v_t uuid; BEGIN SELECT tenant_id INTO v_t FROM public.stripe_connect_events AS e WHERE e.id = p_event_id; ${forward} END;`,
+        { service_role: true, language: "plpgsql" },
+      ),
+    ]);
+    const failure = (
+      result.failures as { code: string; detail: string }[]
+    ).find((f) => f.code === "WORKER_WRAPPER_TENANT_ARGUMENT");
+    expect(failure?.detail).toContain(
+      "SELECT <qualifier>.<column> INTO <variable> FROM <schema>.<relation> [[AS] <alias>] WHERE <predicate> [row lock]",
+    );
+    expect(failure?.detail).toContain(
+      "the qualifier is the relation's alias, or its name when it has none",
+    );
+  });
 });

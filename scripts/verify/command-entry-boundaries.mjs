@@ -208,15 +208,36 @@ function firstCallArgument(text, openIndex) {
 }
 
 const IDENT = "[A-Za-z_][A-Za-z0-9_$]*";
-const QUALIFIED_RELATION = `${IDENT}\\s*\\.\\s*${IDENT}\\b(?!\\s*[.(])`;
+const QUOTED_NAME_SENTINEL = "§";
+
+const QUOTED_KEYWORDS = new Set(
+  `absolute alias all alter analyse analyze and any array as asc assert asymmetric backward begin between both by
+   call case cast chain check close cluster collate column column_name comment commit constant constraint
+   constraint_name continue copy create cross current current_catalog current_date current_role current_time
+   current_timestamp current_user cursor datatype deallocate debug declare default deferrable delete desc detail
+   diagnostics discard distinct do drop dump else elseif elsif end error except exception execute exit false fetch
+   filter first for foreach foreign forward from full get grant group having hint if ilike import in info
+   initially inner insert intersect into is join key label last lateral leading left like limit listen localtime
+   localtimestamp lock locked log loop merge message message_text move natural next no not notice notify nowait
+   null of offset on only open option or order over perform pg_context pg_datatype_name pg_exception_context
+   pg_exception_detail pg_exception_hint pg_routine_oid placing prepare primary print_strict_params prior query
+   raise recursive references refresh reindex relative reset return returned_sqlstate returning reverse revoke
+   right rollback row_count rowtype savepoint schema schema_name scroll security select session_user set share
+   similar skip slice some sqlstate stacked strict symmetric system_user table table_name then to trailing true
+   truncate type union unique unlisten update use_column use_variable user using vacuum variable_conflict variadic
+   warning when where while window with within`
+    .split(/\s+/)
+    .filter(Boolean),
+);
 
 function normalizedBody(body, stripComments) {
   return stripComments(String(body ?? ""), { blankStrings: true }).replace(
     /"((?:[^"]|"")+)"/g,
     (_quoted, name) =>
-      /^[A-Za-z_][A-Za-z0-9_$]*$/.test(name)
+      /^[A-Za-z_][A-Za-z0-9_$]*$/.test(name) &&
+      !QUOTED_KEYWORDS.has(name.toLowerCase())
         ? name.toLowerCase()
-        : "_".repeat(name.length + 2),
+        : QUOTED_NAME_SENTINEL.repeat(name.length + 2),
   );
 }
 
@@ -229,28 +250,124 @@ function escapeRegExp(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function isAnchorColumn(columnRef, namedParams) {
-  const match = new RegExp(`^(?:${IDENT}\\s*\\.\\s*)?(${IDENT})$`).exec(
-    columnRef.trim(),
-  );
-  if (!match) return false;
-  const column = match[1].toLowerCase();
-  if (["null", "true", "false"].includes(column)) return false;
-  return !namedParams.has(column);
+function localNames(text) {
+  const names = new Set();
+  for (const block of text.matchAll(/\bDECLARE\b([\s\S]*?)\bBEGIN\b/gi))
+    for (const part of block[1].split(";")) {
+      const declared = new RegExp(`^\\s*(${IDENT})\\b`).exec(part);
+      if (declared) names.add(declared[1].toLowerCase());
+    }
+  for (const label of text.matchAll(new RegExp(`<<\\s*(${IDENT})\\s*>>`, "g")))
+    names.add(label[1].toLowerCase());
+  for (const loop of text.matchAll(
+    new RegExp(`\\bFOR\\s+(${IDENT}(?:\\s*,\\s*${IDENT})*)\\s+IN\\b`, "gi"),
+  ))
+    for (const name of loop[1].split(",")) names.add(name.trim().toLowerCase());
+  return names;
 }
 
-function isScalarAnchorRead(argument, namedParams) {
-  let inner = argument.trim();
-  while (inner.startsWith("(") && inner.endsWith(")"))
-    inner = inner.slice(1, -1).trim();
+function closingParenthesis(text, open) {
+  let depth = 0;
+  for (let i = open; i < text.length; i += 1) {
+    if (text[i] === "(") depth += 1;
+    else if (text[i] === ")") {
+      depth -= 1;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
+
+const ANCHOR_ALIAS_KEYWORDS = new Set([
+  "where",
+  "join",
+  "cross",
+  "left",
+  "right",
+  "inner",
+  "full",
+  "natural",
+  "union",
+  "intersect",
+  "except",
+  "on",
+  "using",
+]);
+const ANCHOR_ROW_LOCK =
+  "(?:\\s+FOR\\s+(?:NO\\s+KEY\\s+UPDATE|UPDATE|SHARE|KEY\\s+SHARE)(?:\\s+(?:NOWAIT|SKIP\\s+LOCKED))?)?";
+const ANCHOR_PREDICATE_FORBIDDEN =
+  /\b(?:SELECT|JOIN|UNION|INTERSECT|EXCEPT|GROUP\s+BY|HAVING|ORDER\s+BY|LIMIT|OFFSET|FETCH|FOR)\b/i;
+const STATEMENT_BOUNDARY_BEFORE = /(?:^|\b(?:BEGIN|THEN|ELSE|LOOP))\s*$/i;
+
+function isPlainPredicate(text) {
+  let depth = 0;
+  for (const ch of text) {
+    if (ch === "(") depth += 1;
+    else if (ch === ")") {
+      depth -= 1;
+      if (depth < 0) return false;
+    } else if (ch === "," && depth === 0) return false;
+  }
+  return depth === 0 && !ANCHOR_PREDICATE_FORBIDDEN.test(text);
+}
+
+function isAnchorStatement(statement, variable, scope) {
+  const into = variable
+    ? `\\s+INTO\\s+(?:STRICT\\s+)?${escapeRegExp(variable)}`
+    : "";
   const match = new RegExp(
-    `^SELECT\\s+(${IDENT}(?:\\s*\\.\\s*${IDENT})?)\\s+FROM\\s+${QUALIFIED_RELATION}`,
+    `^SELECT\\s+(${IDENT})\\s*\\.\\s*(${IDENT})${into}\\s+FROM\\s+${IDENT}\\s*\\.\\s*(${IDENT})(?:\\s+(?:AS\\s+)?(${IDENT}))?\\s+WHERE\\s+([\\s\\S]+?)${ANCHOR_ROW_LOCK}\\s*$`,
     "i",
-  ).exec(inner);
-  return Boolean(match) && isAnchorColumn(match[1], namedParams);
+  ).exec(statement.trim());
+  if (!match) return false;
+  const [, qualifierRef, columnRef, relation, aliasRef, predicate] = match;
+  const qualifier = qualifierRef.toLowerCase();
+  const column = columnRef.toLowerCase();
+  const alias = aliasRef?.toLowerCase();
+  if (alias && ANCHOR_ALIAS_KEYWORDS.has(alias)) return false;
+  if (qualifier !== (alias ?? relation.toLowerCase())) return false;
+  if (
+    scope.namedParams.has(qualifier) ||
+    scope.locals.has(qualifier) ||
+    qualifier === scope.functionName
+  )
+    return false;
+  if (
+    ["null", "true", "false"].includes(column) ||
+    scope.namedParams.has(column) ||
+    scope.locals.has(column) ||
+    column === scope.functionName
+  )
+    return false;
+  return isPlainPredicate(predicate);
 }
 
-function isVariableAnchorRead(variable, text, namedParams) {
+function statementAround(text, index) {
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === "(") depth += 1;
+    else if (ch === ")") depth -= 1;
+    else if (ch === ";" && depth === 0) {
+      if (i >= index) return text.slice(start, i);
+      start = i + 1;
+    }
+  }
+  return text.slice(start);
+}
+
+function isScalarAnchorRead(argument, scope) {
+  let inner = argument.trim();
+  while (
+    inner.startsWith("(") &&
+    closingParenthesis(inner, 0) === inner.length - 1
+  )
+    inner = inner.slice(1, -1).trim();
+  return isAnchorStatement(inner, null, scope);
+}
+
+function isVariableAnchorRead(variable, text, scope) {
   const v = escapeRegExp(variable);
   const assignment = new RegExp(`\\b${v}\\s*:=`, "i");
   const statementAssignment = new RegExp(
@@ -265,10 +382,20 @@ function isVariableAnchorRead(variable, text, namedParams) {
     `(?:\\bDIAGNOSTICS\\b[^;]*\\b${v}\\b|\\bFOR\\s+${v}\\s+IN\\b)`,
     "i",
   );
+  const initialisedDeclaration = new RegExp(
+    `^\\s*${v}\\s[\\s\\S]*?(?::=|=|\\bDEFAULT\\b)`,
+    "i",
+  );
+  const declaredWithValue = [
+    ...text.matchAll(/\bDECLARE\b([\s\S]*?)\bBEGIN\b/gi),
+  ].some((block) =>
+    block[1].split(";").some((part) => initialisedDeclaration.test(part)),
+  );
   if (
     assignment.test(text) ||
     statementAssignment.test(text) ||
     declaredDefault.test(text) ||
+    declaredWithValue ||
     otherWrites.test(text)
   )
     return false;
@@ -281,15 +408,14 @@ function isVariableAnchorRead(variable, text, namedParams) {
     ),
   ];
   if (intoTargets.length !== 1) return false;
-  const permitted = [
-    ...text.matchAll(
-      new RegExp(
-        `\\bSELECT\\s+(${IDENT}(?:\\s*\\.\\s*${IDENT})?)\\s+INTO\\s+(?:STRICT\\s+)?${v}\\s+FROM\\s+${QUALIFIED_RELATION}`,
-        "gi",
-      ),
-    ),
-  ];
-  return permitted.length === 1 && isAnchorColumn(permitted[0][1], namedParams);
+  const statement = statementAround(text, intoTargets[0].index);
+  for (const select of statement.matchAll(/\bSELECT\b/gi)) {
+    if (!STATEMENT_BOUNDARY_BEFORE.test(statement.slice(0, select.index)))
+      continue;
+    if (isAnchorStatement(statement.slice(select.index), variable, scope))
+      return true;
+  }
+  return false;
 }
 
 export function workerWrapperPassesTenantArg(
@@ -299,21 +425,33 @@ export function workerWrapperPassesTenantArg(
   language,
 ) {
   if (WORKER_WRAPPER_TENANT_ARG_EXCEPTIONS.includes(signature)) return false;
-  const { namedParams } = parseWrapperParameters(signature);
+  const { namedParams, wrapperShortName } = parseWrapperParameters(signature);
   for (const name of namedParams) {
     if (name.includes("tenant")) return true;
   }
   const text = normalizedBody(body, stripComments);
+  if (/#\s*variable_conflict\b/i.test(text)) return true;
+  for (const block of text.matchAll(/\bDECLARE\b([\s\S]*?)\bBEGIN\b/gi))
+    if (/\bALIAS\b/i.test(block[1])) return true;
+  if (
+    new RegExp(`tenant_guard\\s*\\.\\s*${QUOTED_NAME_SENTINEL}`, "i").test(text)
+  )
+    return true;
   const callRe =
     /(?:^|[^A-Za-z0-9_$."])tenant_guard\s*\.\s*[A-Za-z_][A-Za-z0-9_$]*\s*\(/gi;
   const calls = [...text.matchAll(callRe)];
   if (calls.length === 0) return true;
   const plpgsql = isPlpgsqlBody(text, language);
+  const scope = {
+    namedParams,
+    locals: plpgsql ? localNames(text) : new Set(),
+    functionName: wrapperShortName,
+  };
   for (const match of calls) {
     const openIndex = match.index + match[0].length - 1;
     const firstArg = firstCallArgument(text, openIndex);
     if (!firstArg) return true;
-    if (isScalarAnchorRead(firstArg, namedParams)) continue;
+    if (isScalarAnchorRead(firstArg, scope)) continue;
     const variable = new RegExp(`^${IDENT}$`).test(firstArg)
       ? firstArg.toLowerCase()
       : null;
@@ -321,7 +459,7 @@ export function workerWrapperPassesTenantArg(
       !plpgsql ||
       !variable ||
       namedParams.has(variable) ||
-      !isVariableAnchorRead(variable, text, namedParams)
+      !isVariableAnchorRead(variable, text, scope)
     )
       return true;
   }
@@ -365,12 +503,23 @@ const WRAPPER_READ_ONLY_FUNCTIONS = new Set([
   "array_length",
 ]);
 
-export function workerWrapperHasWrite(body, stripComments, language) {
+export function workerWrapperHasWrite(
+  body,
+  stripComments,
+  language,
+  searchPath,
+) {
   const text = normalizedBody(body, stripComments).replace(
     /\bFOR\s+(?:NO\s+KEY\s+UPDATE|UPDATE|KEY\s+SHARE|SHARE)\b(?:\s+OF\s+[\w\s,]+?)?(?:\s+(?:NOWAIT|SKIP\s+LOCKED))?/gi,
     " ",
   );
   if (WRAPPER_STATEMENT_RE.test(text)) return true;
+  if (
+    new RegExp(`${QUOTED_NAME_SENTINEL}+\\s*(?:\\.\\s*${IDENT}\\s*)?\\(`).test(
+      text,
+    )
+  )
+    return true;
   if (!isPlpgsqlBody(text, language) && /\bINTO\b/i.test(text)) return true;
   const callRe =
     /(?<![A-Za-z0-9_$.:])(?:([A-Za-z_][A-Za-z0-9_$]*)\s*\.\s*)?([A-Za-z_][A-Za-z0-9_$]*)\s*\(/g;
@@ -382,7 +531,7 @@ export function workerWrapperHasWrite(body, stripComments, language) {
     if (schema === "tenant_guard") continue;
     if (schema === null && WRAPPER_NON_CALL_WORDS.has(name)) continue;
     if (
-      (schema === null || schema === "pg_catalog") &&
+      ((schema === null && searchPath === '""') || schema === "pg_catalog") &&
       WRAPPER_READ_ONLY_FUNCTIONS.has(name)
     )
       continue;
