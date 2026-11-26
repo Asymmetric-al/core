@@ -144,13 +144,17 @@ beforeEach(() => {
 });
 
 describe("on: which organization a page acts in", () => {
-  it("sends P to the chooser on name A, with A's rows only, and straight in on name B", async () => {
+  it("sends P to the chooser on name A, with A's rows only, and straight in on name B (D-18, N2 part 2b: no organization in the address, so no tenant on the chooser and no landing redirect)", async () => {
     expect(location(await adminProxy(request("/"), { nameTenantId: TA }))).toBe(
-      `/choose-organization?tenant=${TA}&next=%2F`,
+      "/choose-organization?next=%2F",
     );
-    expect(location(await adminProxy(request("/"), { nameTenantId: TB }))).toBe(
-      `/${TB}`,
+    const onB = await adminProxy(request("/"), { nameTenantId: TB });
+    expect(location(onB)).toBeNull();
+    expect(onB.headers.get("x-middleware-rewrite")).toBe(
+      "http://localhost:3330/",
     );
+    expect(forwarded(onB, "x-asym-tenant")).toBe(TB);
+    expect(forwarded(onB, "x-asym-address-prefix")).toBe("");
   });
 
   it.each([true, false])(
@@ -183,9 +187,9 @@ describe("on: which organization a page acts in", () => {
     );
   });
 
-  it("decides ~<sub-role> over A's rows, and the rewrite names A", async () => {
+  it("decides ~<sub-role> over A's rows, and the rewrite names A (D-18, N2 part 2b: the address is /~finance, without A's ID)", async () => {
     const response = await adminProxy(
-      request(`/${TA}~finance/donors`, { [NAME]: TB, "x-asym-tenant": TB }),
+      request("/~finance/donors", { [NAME]: TB, "x-asym-tenant": TB }),
       { nameTenantId: TA },
     );
     expect(response.headers.get("x-middleware-rewrite")).toBe(
@@ -211,10 +215,11 @@ describe("on: which organization a page acts in", () => {
     }
   });
 
-  it("lands P in the missionary workspace on name A in A, and refuses B's segment there", async () => {
-    expect(
-      location(await missionaryProxy(request("/"), { nameTenantId: TA })),
-    ).toBe(`/${TA}`);
+  it("serves P in the missionary workspace on name A in A, and refuses B's segment there (D-18, N2 part 2b: one row serves at the bare path)", async () => {
+    const served = await missionaryProxy(request("/"), { nameTenantId: TA });
+    expect(location(served)).toBeNull();
+    expect(forwarded(served, "x-asym-tenant")).toBe(TA);
+    expect(forwarded(served, "x-asym-assignment")).toBe(P_MISS_A.id);
     const refused = await missionaryProxy(request(`/${TB}/donors`), {
       nameTenantId: TA,
     });
@@ -264,49 +269,35 @@ describe("on: Web Studio's gate takes the name", () => {
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 
-  it("keeps refused=1 on an entry link when the cookie names another organization", async () => {
+  it("keeps refused=1 on an entry link when the cookie names another organization (D-18, N2 part 2b: on, the entry link carries role only)", async () => {
     const cookie = await studioCookie(TB, P_DEV_B.id);
     expect(
       location(
-        await adminProxy(
-          request(`/web-studio?organization=${TA}&assignment=${P_DEV_A.id}`, {
-            cookie,
-          }),
-          { nameTenantId: TA },
-        ),
-      ),
-    ).toBe(`/web-studio/organization?next=%2Fweb-studio&refused=1&from=${TA}`);
-    expect(
-      location(
-        await adminProxy(
-          request(`/web-studio?organization=${TB}&assignment=${P_DEV_B.id}`, {
-            cookie,
-          }),
-          { nameTenantId: TA },
-        ),
+        await adminProxy(request("/web-studio?role=development", { cookie }), {
+          nameTenantId: TA,
+        }),
       ),
     ).toBe("/web-studio/organization?next=%2Fweb-studio&refused=1");
   });
 
-  it("adds no refused=1 to an entry link without a cookie", async () => {
+  it("adds no refused=1 to an entry link without a cookie (D-18, N2 part 2b: on, the entry link carries role only)", async () => {
     expect(
       location(
-        await adminProxy(
-          request(`/web-studio?organization=${TA}&assignment=${P_DEV_A.id}`),
-          { nameTenantId: TA },
-        ),
+        await adminProxy(request("/web-studio?role=development"), {
+          nameTenantId: TA,
+        }),
       ),
-    ).toBe(`/web-studio/organization?next=%2Fweb-studio&from=${TA}`);
+    ).toBe("/web-studio/organization?next=%2Fweb-studio");
   });
 
-  it("drops a from that names another organization from the entry redirect", async () => {
+  it("never names an organization on the chooser's address (D-18, N2 part 2b: organization and assignment are not read, and from is never set)", async () => {
     const response = await adminProxy(
       request(`/web-studio?organization=${TB}&assignment=${P_DEV_B.id}`),
       { nameTenantId: TA },
     );
-    expect(location(response)).toBe(
-      "/web-studio/organization?next=%2Fweb-studio",
-    );
+    const target = new URL(location(response)!, "http://localhost:3330");
+    expect(target.pathname).toBe("/web-studio/organization");
+    expect(target.searchParams.has("from")).toBe(false);
   });
 });
 
