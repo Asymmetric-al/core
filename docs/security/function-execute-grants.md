@@ -310,7 +310,11 @@ fixed the five SECURITY DEFINER CRM table-preference writes; see above.)
   `normalize_money_currency` (`20261003051630_currency_foundation.sql`).
   `20261117034926_close_default_privileges_and_demo_grants.sql` revokes
   `PUBLIC`, `anon` and `authenticated` on all three by name, and asserts that
-  neither `anon` nor `authenticated` can execute them. The same migration
+  neither `anon` nor `authenticated` can execute them. Since WP8a part 2,
+  slice R2a (AL-2681), `tenant_guard` also executes `normalize_currency_code`,
+  which the currency triggers on `donations` and `staged_gifts` call as the
+  inserting role when the guard inserts a line-based intake or its staged
+  gift. The same migration
   removes `postgres`'s default privileges in `public` for `anon` and
   `authenticated`, so new functions there get no grant to either by default.
 
