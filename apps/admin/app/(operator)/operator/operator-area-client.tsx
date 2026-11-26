@@ -31,7 +31,8 @@ import {
 import {
   Field,
   FieldLabel,
-  FieldTitle,
+  FieldLegend,
+  FieldSet,
 } from "@asym/ui/components/shadcn/field";
 import {
   InputOTP,
@@ -145,7 +146,6 @@ function EnrolmentPanel({
   const [pending, setPending] = useState(false);
   const inFlight = useRef(false);
   const codeId = useId();
-  const keyLabelId = useId();
   const titleId = useId();
 
   async function start() {
@@ -249,16 +249,17 @@ function EnrolmentPanel({
                 data-sentry-block=""
                 className="shrink-0 rounded-md border border-border bg-white p-2"
               />
-              <div className="flex min-w-0 flex-col gap-2">
-                <FieldTitle id={keyLabelId}>Key</FieldTitle>
+              <FieldSet className="min-w-0 gap-2">
+                <FieldLegend variant="label" className="mb-0">
+                  Key
+                </FieldLegend>
                 <code
-                  aria-labelledby={keyLabelId}
                   data-sentry-block=""
                   className="font-mono text-sm break-all text-foreground"
                 >
                   {groupsOfFour(enrolment.secret)}
                 </code>
-              </div>
+              </FieldSet>
             </div>
             <Field>
               <FieldLabel htmlFor={codeId}>
