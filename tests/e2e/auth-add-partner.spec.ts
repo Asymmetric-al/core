@@ -181,7 +181,7 @@ test.describe("Add Partner in the missionary workspace (AL-2678 WP5 rest)", () =
     await buttons.first().click();
     dialog = await fill(page, second);
     const added = partnerPosts(page);
-    const listed = nextRead(page, PARTNERS, async () => {
+    const listed = await nextRead(page, PARTNERS, async () => {
       await dialog
         .getByRole("button", { name: "Add Partner", exact: true })
         .click();
@@ -194,7 +194,7 @@ test.describe("Add Partner in the missionary workspace (AL-2678 WP5 rest)", () =
     ]);
     expect(after.logs).toBe(2);
     expect(
-      ((await listed).json as { donors: { id: string }[] }).donors
+      (listed.json as { donors: { id: string }[] }).donors
         .map((donor) => donor.id)
         .sort(),
     ).toEqual(after.donors.map((donor) => donor.id).sort());
