@@ -542,7 +542,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         }
       });
 
-      describe("AL-2678 r2a: commenters, an added comment's author, a stored receipt and the feed name a worker by the projection at the next request (gates a, b)", () => {
+      describe("AL-2678 r2a: commenters, an added comment's author, a stored receipt and the feed name a worker by the projection at the next request (gates a, b; D-18, AL-2678 r2b1 Q6: V's alias is cleared on the owner connection, because the service key may no longer write public_alias)", () => {
         const postV = randomUUID();
         const wMembership = randomUUID();
         const avatar = (who: string) => `https://example.test/${who}.png`;
@@ -605,13 +605,11 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
             },
           );
           expect(lifted.status, JSON.stringify(await body(lifted))).toBe(200);
-          const cleared = await api(`rest/v1/parties?id=eq.${ids.pV}`, {
-            key: service,
-            bearer: service,
-            method: "PATCH",
-            body: { public_alias: null },
-          });
-          expect(cleared.status, JSON.stringify(await body(cleared))).toBe(204);
+          const cleared = await fx.db!.query(
+            "update public.parties set public_alias = null where id = $1",
+            [ids.pV],
+          );
+          expect(cleared.rowCount).toBe(1);
         };
 
         beforeAll(async () => {

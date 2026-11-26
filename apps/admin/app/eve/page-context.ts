@@ -18,6 +18,7 @@ const SAFE_ROUTE_IDENTITIES = {
   "/support": "Support Hub",
   "/tasks": "Tasks",
   "/web-studio": "Web Studio",
+  "/workers": "Workers",
   "/workflows": "Workflow runs",
 } as const;
 
