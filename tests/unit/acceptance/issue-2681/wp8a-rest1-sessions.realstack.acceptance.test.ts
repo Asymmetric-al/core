@@ -344,7 +344,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(requests.rows).toEqual([{ request_kind: "cancel_payment" }]);
       }));
 
-    it("of two reviewers with one expected status, the second is refused 40001 once the first has moved the gift", () =>
+    it("of two reviewers with one expected status, the second is refused 40001 once the first has moved the gift (both as the owner: the race is the writer's lock and status, and no committed grant is needed)", () =>
       committed(async (fx) => {
         const giftId = await commit(async () => {
           const intake = await giftIntake(db, fx.A, {
@@ -353,49 +353,32 @@ describe.skipIf(!ADMIN_URL)(
           await pay(db, intake);
           return (await giftOf(db, intake.donationId))!.id as string;
         });
-        await db.query(
-          "GRANT UPDATE ON TABLE public.staged_gifts TO service_role",
-        );
-        await db.query(
-          "GRANT INSERT, DELETE ON TABLE public.staged_gift_allocations TO service_role",
-        );
         const s1 = await openSession();
         const s2 = await openSession();
         const split = JSON.stringify([{ fund_id: fx.A.fund, amount: 10000 }]);
-        try {
-          await s1.query("BEGIN");
-          await s1.query("SET LOCAL ROLE service_role");
-          await s1.query(
-            "UPDATE public.staged_gifts SET status = 'ready_to_post' WHERE id = $1 AND status = 'needs_review'",
-            [giftId],
-          );
-          await s1.query(
-            "SELECT public.replace_staged_gift_allocations($1, $2, $3::jsonb, 'ready_to_post')",
-            [fx.A.tenant, giftId, split],
-          );
-          const second = settle(
-            (async () => {
-              await s2.query("BEGIN");
-              await s2.query("SET LOCAL ROLE service_role");
-              await s2.query(
-                "SELECT public.replace_staged_gift_allocations($1, $2, $3::jsonb, 'needs_review')",
-                [fx.A.tenant, giftId, split],
-              );
-            })(),
-          );
-          await waitsOn(await pid(s2), await pid(s1));
-          await s1.query("COMMIT");
-          const refused = await second;
-          await s2.query("ROLLBACK");
-          expect("error" in refused && refused.error.code).toBe("40001");
-        } finally {
-          await db.query(
-            "REVOKE UPDATE ON TABLE public.staged_gifts FROM service_role",
-          );
-          await db.query(
-            "REVOKE INSERT, DELETE ON TABLE public.staged_gift_allocations FROM service_role",
-          );
-        }
+        await s1.query("BEGIN");
+        await s1.query(
+          "UPDATE public.staged_gifts SET status = 'ready_to_post' WHERE id = $1 AND status = 'needs_review'",
+          [giftId],
+        );
+        await s1.query(
+          "SELECT public.replace_staged_gift_allocations($1, $2, $3::jsonb, 'ready_to_post')",
+          [fx.A.tenant, giftId, split],
+        );
+        const second = settle(
+          (async () => {
+            await s2.query("BEGIN");
+            await s2.query(
+              "SELECT public.replace_staged_gift_allocations($1, $2, $3::jsonb, 'needs_review')",
+              [fx.A.tenant, giftId, split],
+            );
+          })(),
+        );
+        await waitsOn(await pid(s2), await pid(s1));
+        await s1.query("COMMIT");
+        const refused = await second;
+        await s2.query("ROLLBACK");
+        expect("error" in refused && refused.error.code).toBe("40001");
       }));
   },
 );
