@@ -32,9 +32,13 @@
 --    takes its gift's format, read as the inserting role, and is 42501
 --    staged_gift_allocation_generation_owner when the gift is invisible or
 --    the supplied format differs; on a line-based allocation the tenant,
---    gift, format, entity, line number and fee flag never change (23514). A
---    donor allocation's amount and target, and its deletion, stay open to
---    review (W8-R14) under the balance rule below.
+--    gift, format, entity, line number and fee flag never change (23514);
+--    an update that moves any other allocation to another gift or
+--    organization reads the destination gift the same way and is 42501
+--    unless that gift is visible, of the allocation's organization and of its
+--    format, so no allocation crosses generations. A donor allocation's
+--    amount and target, and its deletion, stay open to review (W8-R14) under
+--    the balance rule below.
 -- 3. Balance, deferred to commit: constraint triggers on a line-based gift
 --    (AFTER INSERT) and on its allocations (AFTER INSERT OR UPDATE, AFTER
 --    DELETE) run private.staged_gift_allocations_balance(): under the gift's
@@ -331,6 +335,24 @@ BEGIN
     RAISE EXCEPTION 'staged_gift_allocation_line_sealed'
       USING ERRCODE = '23514',
             DETAIL = 'A line-based allocation keeps its tenant, gift, format, entity, line number and fee flag.';
+  END IF;
+
+  IF (NEW.staged_gift_id IS NOT DISTINCT FROM OLD.staged_gift_id
+      AND NEW.tenant_id IS NOT DISTINCT FROM OLD.tenant_id) IS NOT TRUE THEN
+    SELECT g.intake_format
+      INTO v_format
+      FROM public.staged_gifts AS g
+     WHERE g.id = NEW.staged_gift_id
+       AND g.tenant_id = NEW.tenant_id;
+
+    IF (v_format IS NOT NULL AND v_format = NEW.intake_format) IS NOT TRUE THEN
+      RAISE EXCEPTION 'staged_gift_allocation_generation_owner'
+        USING ERRCODE = '42501',
+              DETAIL = pg_catalog.format(
+                '%s may move an allocation only to a staged gift it may see, of its organization and its format (gift format %s, allocation %s).',
+                current_user, COALESCE(v_format, 'unseen'), NEW.intake_format
+              );
+    END IF;
   END IF;
 
   RETURN NEW;

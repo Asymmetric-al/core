@@ -9,7 +9,12 @@
 --    line-based intake of the entered tenant (42501 not_found otherwise): a
 --    pending intake with no reference (55000 intake_not_payable), an active
 --    binding (55000 binding_inactive), a donor line and lines that sum to the
---    amount (23514 intake_lines_incomplete). It inserts one queued
+--    amount (23514 intake_lines_incomplete). The binding is read FOR SHARE,
+--    after the intake's lock: a status change in flight (part 1's account
+--    apply holds the binding FOR NO KEY UPDATE) is waited for and read once
+--    committed, while the claim's unlocked read and the key checks' FOR KEY
+--    SHARE do not conflict with it, and the account apply never locks an
+--    intake, so the two orders cannot meet in a cycle. It inserts one queued
 --    create_payment request with the intake's amount, currency, account and
 --    mode, metadata of ids and cents only, the payment-method key of the
 --    intake's method, and the parameters' digest; it returns the request id.
@@ -123,7 +128,8 @@ BEGIN
     INTO v_binding_status
     FROM public.payment_account_bindings AS b
    WHERE b.tenant_id = v_intake.tenant_id
-     AND b.id = v_intake.payment_account_binding_id;
+     AND b.id = v_intake.payment_account_binding_id
+     FOR SHARE;
 
   IF (v_binding_status = 'active') IS NOT TRUE THEN
     RAISE EXCEPTION 'binding_inactive'
