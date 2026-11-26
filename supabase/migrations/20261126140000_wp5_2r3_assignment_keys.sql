@@ -115,7 +115,7 @@
 -- to_regprocedure('private.repair_ministry_assignment_ids()') IS NOT NULL.
 -- Then follow docs/ops/release-job.md, "If the migration committed but its
 -- ledger row is missing", with this check and this file's version,
--- 20261126090000, in place of the section's own.
+-- 20261126140000, in place of the section's own.
 --
 -- Down, only after the build that reads ministry_assignment_id is rolled back,
 -- in one transaction and this order. Each line is SQL except the two
