@@ -67,23 +67,22 @@ The following is a source inventory at `7abd2c11`, rechecked 2026-09-16.
 end-to-end qualification or Phase 22–24 acceptance claim. Partial and deferred
 entries retain their stated limitations.
 
-| Area                                                                                                  | State                | Notes                                                                                                                                  |
-| ----------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Shell, nav, recent docs, prefs                                                                        | **implemented**      | `apps/admin/src/cms-ui/web-studio/shell/*`                                                                                             |
-| Native list + default edit: `pages`, `navigation`, `missionary-profiles`, `ministry-updates`, `media` | **implemented**      | Env can disable per collection → **fallback-backed**                                                                                   |
-| Native list + edit: `page-templates`, `missionary-giving-pages`, `project-pages`                      | **implemented**      | Same flags: `CMS_WEB_STUDIO_NATIVE_*`                                                                                                  |
-| Template gallery `/web-studio/templates`                                                              | **implemented**      | Draft templates included in gallery fetch (`draft=true` query)                                                                         |
-| Wizards: standard / give / project / ministry update starter                                          | **implemented**      | `apps/admin/src/cms-ui/web-studio/flows/*`                                                                                             |
-| `create-from-template` endpoint                                                                       | **implemented**      | Staff auth + tenant checks; Supabase validation for missionary/fund                                                                    |
-| Staff directory APIs                                                                                  | **implemented**      | Thin routes → `@asym/api/admin/missionary-directory`, `fund-directory` (data boundary)                                                 |
-| Public: pages, navigation, updates                                                                    | **retired (WP6 2a)** | Prototype `/api/cms/public/*` routes retired in WP6 part 2a (AL-2679) ahead of WP7's public reader under `packages/api/src/cms/public` |
-| Public: missionary-pages, project-pages                                                               | **retired (WP6 2a)** | Prototype routes retired in WP6 part 2a (AL-2679); answer `404`                                                                        |
-| Serialized `pages` preview shape                                                                      | **implemented**      | `apps/admin/src/cms/preview/serialize-published-page.ts` (`serializePublishedPageLike`), kept for authenticated draft preview          |
-| Nested Payload subviews (versions, live preview UI)                                                   | **partial**          | Stock Payload; links from native chrome                                                                                                |
-| Donor consumption of public CMS reads                                                                 | **retired (WP6 2a)** | `apps/donor/lib/cms/client.ts` is an empty reader until WP7; checkout still accepts `missionary_id` / `fund_id` targets                |
-| E2E coverage for every Phase 3 click path                                                             | **partial**          | Unit tests extended; full Playwright needs DB + ports (Phase 4 notes)                                                                  |
-| TipTap inside Web Studio CMS fields                                                                   | **not started**      | Payload editor is Lexical                                                                                                              |
-| TanStack DB in Web Studio                                                                             | **not started**      | **Confirmed:** `@tanstack/db` not imported under `cms-ui/web-studio/`; used elsewhere (e.g. contributions live query)                  |
+| Area                                                       | State                | Notes                                                                                                                                  |
+| ---------------------------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Shell, nav, recent docs, prefs                             | **implemented**      | `apps/admin/src/cms-ui/web-studio/shell/*`                                                                                             |
+| Native list + default edit: `pages`, `navigation`, `media` | **implemented**      | Env can disable per collection → **fallback-backed**; the prototype collections were removed in WP6 part 2b (AL-2679)                  |
+| Starter gallery `/web-studio/templates`                    | **implemented**      | Three starters in code (`apps/admin/src/cms/starters/`), one per page family                                                           |
+| New page: one flow for standard, giving and project pages  | **implemented**      | `apps/admin/src/cms-ui/web-studio/flows/StandardPageFromTemplateView.tsx`; needs a Site of the selected organization                   |
+| `create-from-template` endpoint                            | **implemented**      | Actor port, the caller's own session for missionary and fund checks; refuses when the organization has no Site presentation            |
+| Staff directory APIs                                       | **implemented**      | Thin routes → `@asym/api/admin/missionary-directory`, `fund-directory` (data boundary)                                                 |
+| Public: pages, navigation, updates                         | **retired (WP6 2a)** | Prototype `/api/cms/public/*` routes retired in WP6 part 2a (AL-2679) ahead of WP7's public reader under `packages/api/src/cms/public` |
+| Public: missionary-pages, project-pages                    | **retired (WP6 2a)** | Prototype routes retired in WP6 part 2a (AL-2679); answer `404`                                                                        |
+| Serialized `pages` preview shape                           | **implemented**      | `apps/admin/src/cms/preview/serialize-published-page.ts` (`serializePublishedPageLike`), kept for authenticated draft preview          |
+| Nested Payload subviews (versions, live preview UI)        | **partial**          | Stock Payload; links from native chrome                                                                                                |
+| Donor consumption of public CMS reads                      | **retired (WP6 2a)** | `apps/donor/lib/cms/client.ts` is an empty reader until WP7; checkout still accepts `missionary_id` / `fund_id` targets                |
+| E2E coverage for every Phase 3 click path                  | **partial**          | Unit tests extended; full Playwright needs DB + ports (Phase 4 notes)                                                                  |
+| TipTap inside Web Studio CMS fields                        | **not started**      | Payload editor is Lexical                                                                                                              |
+| TanStack DB in Web Studio                                  | **not started**      | **Confirmed:** `@tanstack/db` not imported under `cms-ui/web-studio/`; used elsewhere (e.g. contributions live query)                  |
 
 ---
 
@@ -137,11 +136,7 @@ flowchart LR
 | `/web-studio/collections/:slug`                        | Native list or stock | Collection `admin.components.views.list`     |
 | `/web-studio/collections/:slug/:id`                    | Native edit or stock | `views.edit.default`                         |
 | `/web-studio/templates`                                | Custom view          | `payload.config.ts` `admin.components.views` |
-| `/web-studio/missionaries`                             | Custom view          | same                                         |
-| `/web-studio/pages/give`                               | Custom view          | same                                         |
-| `/web-studio/projects/new`                             | Custom view          | same                                         |
 | `/web-studio/pages/new-from-template`                  | Custom view          | same                                         |
-| `/web-studio/ministry-updates/new`                     | Custom view          | same                                         |
 | `/web-studio/api/*` (Payload)                          | Payload REST         | `(payload)/web-studio/api/[...slug]`         |
 | `POST /web-studio/api/web-studio/create-from-template` | Custom               | `config.endpoints`                           |
 | `/web-studio/organization`                             | Organization choice  | `(auth)/web-studio/organization`             |
@@ -1077,21 +1072,19 @@ This target is planning authority, not a claim that the replacement has shipped.
 
 ## 9. Content model inventory
 
-| Collection slug           | Purpose                                                | Tenant       | Drafts / versions | Preview (admin)                  | Public                         |
-| ------------------------- | ------------------------------------------------------ | ------------ | ----------------- | -------------------------------- | ------------------------------ |
-| `pages`                   | Standard site pages + optional `layout` blocks         | `tenant` rel | Yes               | Authenticated Web Studio preview | `GET .../public/pages/*`       |
-| `navigation`              | Nav trees                                              | `tenant`     | No                | —                                | `GET .../navigation`           |
-| `missionary-profiles`     | CMS-facing profiles; Supabase source UUID is read-only | `tenant`     | No                | —                                | —                              |
-| `ministry-updates`        | Articles                                               | `tenant`     | Yes               | Authenticated Web Studio preview | `GET .../updates`              |
-| `media`                   | Uploads                                                | `tenant`     | No                | —                                | —                              |
-| `page-templates`          | Editorial templates                                    | `tenant`     | Yes               | —                                | —                              |
-| `missionary-giving-pages` | Giving landings; `missionaryId` UUID                   | `tenant`     | Yes               | Authenticated Web Studio preview | `GET .../missionary-pages/:id` |
-| `project-pages`           | Fund landings; `fundId` UUID                           | `tenant`     | Yes               | Authenticated Web Studio preview | `GET .../project-pages/:slug`  |
-| `tenants`, `cms-users`    | Ops / auth                                             | —            | —                 | —                                | —                              |
+Since WP6 part 2b (AL-2679) every id is a UUID and the tenant is the organization's UUID, stored as text in `tenant`.
 
-Media uploads are limited to image MIME types (`avif`, `gif`, `jpeg`, `png`, `webp`), do not allow pasted remote URLs, and keep tenant access controls on upload documents.
+| Collection slug      | Purpose                                                                 | Tenant   | Drafts / versions        | Preview (admin)                  | Public              |
+| -------------------- | ----------------------------------------------------------------------- | -------- | ------------------------ | -------------------------------- | ------------------- |
+| `site-presentations` | One per Core Site, under the Site's id; created only by provisioning    | `tenant` | No                       | —                                | —                   |
+| `pages`              | Every page: required `site`, `family` (standard, missionary or project) | `tenant` | Yes (validated, 50 kept) | Authenticated Web Studio preview | WP7's public reader |
+| `navigation`         | Menus of a Site; items point at a page or an absolute http(s) address   | `tenant` | No                       | —                                | WP7's public reader |
+| `media`              | Records of `alt`, `credit`, `folder` under the custody id; no file yet  | `tenant` | No                       | —                                | —                   |
+| `principal-links`    | Payload's auth collection: one row per login UUID, no tenant or role    | —        | No                       | —                                | —                   |
 
-Giving source-reference fields (`missionaryId`, `fundId`, `supabaseMissionaryId`) remain content references, not payment/CRM facts. Missionary and fund references validate UUID shape and, when request context is available, validate against the authenticated request's public Supabase tenant UUID. The Payload tenant document id remains the relationship used for CMS writes.
+Media records are created and deleted only by the service port; files arrive with WP6 part 2c.
+
+Giving source-reference fields (`missionaryId`, `fundId`) remain content references, not payment/CRM facts. A `missionary` page needs `missionaryId` and no `fundId`, a `project` page `fundId` and no `missionaryId`, a `standard` page neither; each reference is checked on the caller's own session against the selected organization, and a fund with a `system_purpose` is refused.
 
 This inventory describes the current prototype, not the D17 target. A UUID-
 shaped `fundId`, copied title/description, or successful Payload relationship
@@ -1191,7 +1184,7 @@ donor data. A detached swatch or custom theme mock is not publication evidence.
 
 ## 15. Media, uploads, relationships
 
-Handled inside Payload’s default edit view and field components. **Risk:** replacing `DefaultEditView` body—keep wrappers thin.
+Handled inside Payload’s default edit view and field components. **Risk:** replacing `DefaultEditView` body—keep wrappers thin. Since WP6 part 2b media is a plain collection with no Payload upload; rich text references media through Lexical's relationship node, and an upload node is refused.
 
 ---
 
@@ -1394,7 +1387,7 @@ remain explicit in the adopted Phase 23 contract.
 | **Live preview**     | Payload feature: iframe / URL sync with draft data                 |
 | **Tenant**           | Organization scope for content; FK on documents                    |
 | **Public CMS route** | Retired in WP6 part 2a; replaced by WP7's public reader            |
-| **Template**         | `page-templates` document with `defaultLayout` + `pageType`        |
+| **Starter**          | A typed starter in `apps/admin/src/cms/starters/`, one per family  |
 | **Published-only**   | Public routes exclude drafts (`_status: published`)                |
 
 ---

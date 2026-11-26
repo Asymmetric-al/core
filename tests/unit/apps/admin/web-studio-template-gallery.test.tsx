@@ -1,43 +1,12 @@
 // @vitest-environment jsdom
 
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
-import { afterEach, expect, it, vi } from "vitest";
+import { cleanup, render, screen, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  QueryClient,
-  QueryClientProvider,
-} from "../../../../apps/admin/node_modules/@tanstack/react-query/build/modern/index.js";
 import { TemplateGalleryView } from "../../../../apps/admin/src/cms-ui/web-studio/flows/TemplateGalleryView";
 
-const fixture = vi.hoisted(() => ({
-  search: "",
-  permissions: {
-    collections: { "page-templates": { create: true } },
-  } as unknown,
-}));
+const fixture = vi.hoisted(() => ({ search: "" }));
 
-vi.mock(
-  "../../../../apps/admin/node_modules/@payloadcms/ui/dist/exports/client/index.js",
-  async (importOriginal) => ({
-    ...(await importOriginal<
-      typeof import("../../../../apps/admin/node_modules/@payloadcms/ui/dist/exports/client/index.js")
-    >()),
-    useAuth: () => ({ permissions: fixture.permissions }),
-    useConfig: () => ({
-      config: {
-        routes: { api: "/api/cms", admin: "/web-studio" },
-        serverURL: "",
-      },
-    }),
-  }),
-);
 vi.mock("../../../../apps/admin/src/cms-ui/web-studio/routing", () => ({
   Link: ({ href, ...props }: React.ComponentProps<"a">) => (
     <a href={href} {...props} />
@@ -53,224 +22,76 @@ vi.mock(
   }),
 );
 
+const fetchMock = vi.fn();
+
+beforeEach(() => {
+  vi.stubGlobal("fetch", fetchMock);
+});
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  fetchMock.mockReset();
   fixture.search = "";
-  fixture.permissions = {
-    collections: { "page-templates": { create: true } },
-  };
 });
 
-const TEMPLATES = [
-  {
-    id: 1,
-    name: "Standard Page Template",
-    pageType: "standard",
-    templateKey: "standard-local",
-    description: "A flexible page.",
-  },
-  {
-    id: 2,
-    name: "Project Page Template",
-    pageType: "project",
-    templateKey: "project-local",
-  },
-  {
-    id: 3,
-    name: "Missionary Giving Page Template",
-    pageType: "missionary_giving",
-    templateKey: "missionary-giving-local",
-  },
-];
-
-function renderGallery(
-  response: (url: string, init?: RequestInit) => Promise<Response>,
-) {
-  const fetchMock = vi.fn(response);
-  vi.stubGlobal("fetch", fetchMock);
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+describe("the starter gallery (D-18: WP6 part 2b replaces the page-templates collection, its thumbnails and New template with three starters in code)", () => {
+  it("lists the three starters as cards that start New page with the matching starter, loading nothing", () => {
+    render(<TemplateGalleryView />);
+    const cards = screen.getAllByRole("article");
+    expect(
+      cards.map((card) => within(card).getByRole("heading").textContent),
+    ).toEqual(["Standard page", "Missionary giving page", "Project page"]);
+    expect(
+      cards.map((card) =>
+        within(card)
+          .getByRole("link", { name: /Use template/ })
+          .getAttribute("href"),
+      ),
+    ).toEqual([
+      "/web-studio/pages/new-from-template?template=standard",
+      "/web-studio/pages/new-from-template?template=missionary-giving",
+      "/web-studio/pages/new-from-template?template=project",
+    ]);
+    expect(screen.queryByRole("link", { name: /New template/ })).toBeNull();
+    expect(screen.queryByRole("img")).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
-  render(
-    <QueryClientProvider client={client}>
-      <TemplateGalleryView />
-    </QueryClientProvider>,
-  );
-  return { client, fetchMock };
-}
 
-it("lists templates as cards that start the matching create flow", async () => {
-  const { client } = renderGallery(async () =>
-    Response.json({ docs: TEMPLATES }),
-  );
-  expect(
-    screen.getByRole("heading", { level: 1, name: "Template gallery" }),
-  ).toBeTruthy();
-  const card = (
-    await screen.findByRole("heading", {
-      name: "Project Page Template",
-    })
-  ).closest("article");
-  if (!card) throw new Error("Template card missing");
-  expect(within(card).getByText("Project page")).toBeTruthy();
-  expect(within(card).getByText("project-local")).toBeTruthy();
-  // Each card's action names its template, so a link list tells them apart
-  // (the visible "Use template" leads the name).
-  expect(
-    within(card)
-      .getByRole("link", { name: "Use template: Project Page Template" })
-      .getAttribute("href"),
-  ).toBe("/web-studio/projects/new?template=2");
-  expect(
-    screen
-      .getAllByRole("link", { name: /Use template/ })
-      .map((link) => link.getAttribute("href")),
-  ).toEqual(
-    expect.arrayContaining([
-      "/web-studio/pages/new-from-template?template=1",
-      "/web-studio/pages/give?template=3",
-    ]),
-  );
-  client.clear();
-});
-
-it("filters by page type with named links that keep the missionary context", async () => {
-  fixture.search = "pageType=missionary_giving&missionaryId=m-1";
-  const { client } = renderGallery(async () =>
-    Response.json({ docs: TEMPLATES }),
-  );
-  const filter = screen.getByRole("navigation", { name: "Page type" });
-  const current = within(filter).getByRole("link", { name: "Giving page" });
-  expect(current.getAttribute("aria-current")).toBe("page");
-  expect(
-    within(filter).getByRole("link", { name: "All" }).getAttribute("href"),
-  ).toBe("/web-studio/templates?missionaryId=m-1");
-  expect(
-    await screen.findByRole("heading", {
-      name: "Missionary Giving Page Template",
-    }),
-  ).toBeTruthy();
-  expect(screen.queryByText("Project Page Template")).toBeNull();
-  expect(
-    screen.getByRole("link", { name: /Use template/ }).getAttribute("href"),
-  ).toBe("/web-studio/pages/give?template=3&missionaryId=m-1");
-  client.clear();
-});
-
-it("loads gallery thumbnails and marks only draft templates", async () => {
-  const { client, fetchMock } = renderGallery(async () =>
-    Response.json({
-      docs: [
-        {
-          ...TEMPLATES[0],
-          _status: "draft",
-          thumbnail: {
-            url: "/api/cms/media/file/layout.png",
-            alt: "Standard layout preview",
-          },
-        },
-        { ...TEMPLATES[1], _status: "published", thumbnail: 91 },
-      ],
-    }),
-  );
-  const image = await screen.findByRole("img", {
-    name: "Standard layout preview",
+  it("filters by page type with named links that keep the missionary context", () => {
+    fixture.search = "family=missionary&missionaryId=m-1";
+    render(<TemplateGalleryView />);
+    const cards = screen.getAllByRole("article");
+    expect(cards).toHaveLength(1);
+    expect(
+      within(cards[0]!)
+        .getByRole("link", { name: /Use template/ })
+        .getAttribute("href"),
+    ).toBe(
+      "/web-studio/pages/new-from-template?template=missionary-giving&missionaryId=m-1",
+    );
+    const filter = screen.getByRole("navigation", { name: "Page type" });
+    const giving = within(filter).getByRole("link", { name: "Giving page" });
+    expect(giving.getAttribute("aria-current")).toBe("page");
+    expect(
+      within(filter).getByRole("link", { name: "All" }).getAttribute("href"),
+    ).toBe("/web-studio/templates?missionaryId=m-1");
+    expect(
+      within(filter)
+        .getByRole("link", { name: "Project page" })
+        .getAttribute("href"),
+    ).toBe("/web-studio/templates?family=project&missionaryId=m-1");
   });
-  expect(
-    new URL(image.getAttribute("src")!, window.location.href).pathname,
-  ).toBe("/api/cms/media/file/layout.png");
-  expect(screen.getAllByText("Draft")).toHaveLength(1);
-  const query = new URLSearchParams(
-    String(fetchMock.mock.calls[0]?.[0]).split("?")[1],
-  );
-  expect(query.get("depth")).toBe("1");
-  expect(query.get("draft")).toBe("true");
-  fireEvent.error(image);
-  expect(
-    screen.queryByRole("img", { name: "Standard layout preview" }),
-  ).toBeNull();
-  expect(screen.getByText("Preview unavailable")).toBeTruthy();
-  expect(
-    screen.getByRole("link", { name: "Use template: Standard Page Template" }),
-  ).toBeTruthy();
-  client.clear();
-});
 
-it("keeps thumbnails a short strip and skips placeholder-sized images", async () => {
-  const { client } = renderGallery(async () =>
-    Response.json({
-      docs: [
-        {
-          ...TEMPLATES[0],
-          thumbnail: {
-            url: "/api/cms/media/file/layout.png",
-            alt: "Standard layout preview",
-            width: 1600,
-            height: 900,
-          },
-        },
-        {
-          ...TEMPLATES[1],
-          thumbnail: {
-            url: "/api/cms/media/file/pixel.png",
-            alt: "Pixel",
-            width: 1,
-            height: 1,
-          },
-        },
-      ],
-    }),
-  );
-  const image = await screen.findByRole("img", {
-    name: "Standard layout preview",
+  it("says so, and offers every starter, when a filter matches none", () => {
+    fixture.search = "family=ministry_update";
+    render(<TemplateGalleryView />);
+    expect(screen.queryAllByRole("article")).toEqual([]);
+    expect(screen.getByText("No templates yet")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("link", { name: "Show all templates" })
+        .getAttribute("href"),
+    ).toBe("/web-studio/templates");
   });
-  // A layout preview, not the card's main content.
-  expect(image.className.split(" ")).toContain("max-h-36");
-  expect(image.className.split(" ")).not.toContain("aspect-video");
-  // A 1x1 image is a placeholder, not a preview; the card simply has none.
-  expect(screen.queryByRole("img", { name: "Pixel" })).toBeNull();
-  expect(screen.queryByText("Preview unavailable")).toBeNull();
-  client.clear();
-});
-
-it("shows an inline error with a working retry", async () => {
-  let fail = true;
-  const { client, fetchMock } = renderGallery(async () =>
-    fail
-      ? new Response("nope", { status: 500 })
-      : Response.json({ docs: TEMPLATES }),
-  );
-  expect(await screen.findByText("Couldn't load templates")).toBeTruthy();
-  // Nothing to filter while the list failed: no type filter around the error.
-  expect(screen.queryByRole("navigation", { name: "Page type" })).toBeNull();
-  fail = false;
-  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-  await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
-  expect(
-    await screen.findByRole("heading", { name: "Standard Page Template" }),
-  ).toBeTruthy();
-  client.clear();
-});
-
-it("offers to create a template when none exist", async () => {
-  const { client } = renderGallery(async () => Response.json({ docs: [] }));
-  expect(await screen.findByText("No templates yet")).toBeTruthy();
-  expect(
-    screen.getByRole("link", { name: "New template" }).getAttribute("href"),
-  ).toBe("/web-studio/collections/page-templates/create");
-  client.clear();
-});
-
-it("offers New template only to people who may create templates", async () => {
-  fixture.permissions = {
-    collections: { "page-templates": { create: false, read: true } },
-  };
-  const { client } = renderGallery(async () => Response.json({ docs: [] }));
-  expect(await screen.findByText("No templates yet")).toBeTruthy();
-  expect(screen.queryByRole("link", { name: "New template" })).toBeNull();
-  expect(
-    screen.getByText(/Ask a Web Studio administrator to add one/),
-  ).toBeTruthy();
-  client.clear();
 });

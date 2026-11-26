@@ -20,22 +20,14 @@ import {
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
 import { cn } from "@asym/ui/lib/utils";
+import { useConfig, usePreferences, useServerFunctions } from "@payloadcms/ui";
 import {
-  useAuth,
-  useConfig,
-  usePreferences,
-  useServerFunctions,
-} from "@payloadcms/ui";
-import {
-  Building2,
   ChevronLeft,
   LayoutGrid,
   Menu,
   PanelLeft,
   PanelLeftClose,
   Sparkles,
-  Users,
-  UsersRound,
 } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
 
@@ -45,10 +37,8 @@ import {
 } from "../collections/config";
 import { WEB_STUDIO_PREF_KEYS } from "../preferences/keys";
 import { Link, usePathname } from "../routing";
-import { readableAdminCollections } from "./admin-collections";
 import { MissionControlLink } from "./mission-control-link";
 
-import type { WebStudioAdminCollectionSlug } from "./admin-collections";
 import type { ComponentType } from "react";
 
 type RecentDocLink = {
@@ -126,13 +116,8 @@ function useStudioNavRailState() {
   /** Snapshot of collection rollout flags — stable string when env is unchanged (avoids new array ref every render). */
   const webStudioNativeRolloutKey = [
     process.env.CMS_WEB_STUDIO_NATIVE_MEDIA ?? "",
-    process.env.CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES ?? "",
-    process.env.CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES ?? "",
     process.env.CMS_WEB_STUDIO_NATIVE_NAVIGATION ?? "",
     process.env.CMS_WEB_STUDIO_NATIVE_PAGES ?? "",
-    process.env.CMS_WEB_STUDIO_NATIVE_PAGE_TEMPLATES ?? "",
-    process.env.CMS_WEB_STUDIO_NATIVE_MISSIONARY_GIVING_PAGES ?? "",
-    process.env.CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES ?? "",
   ].join("|");
 
   useEffect(() => {
@@ -239,38 +224,14 @@ function useStudioNavRailState() {
   };
 }
 
-const ADMIN_ICONS: Record<
-  WebStudioAdminCollectionSlug,
-  ComponentType<{ className?: string }>
-> = {
-  "cms-users": UsersRound,
-  tenants: Building2,
-};
-
 function isWithin(pathname: string, path: string) {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
 function buildNavRailGroups(
   groupedCollections: ReturnType<typeof getGroupedWebStudioCollections>,
-  adminLinks: ReturnType<typeof readableAdminCollections>,
   pathname: string,
 ): NavRailGroup[] {
-  const admin: NavRailGroup[] =
-    adminLinks.length > 0
-      ? [
-          {
-            id: "admin",
-            label: "Administration",
-            links: adminLinks.map((link) => ({
-              active: isWithin(pathname, link.href),
-              href: link.href,
-              icon: ADMIN_ICONS[link.slug],
-              title: link.title,
-            })),
-          },
-        ]
-      : [];
   return [
     {
       id: "studio",
@@ -288,12 +249,6 @@ function buildNavRailGroups(
           icon: Sparkles,
           title: "Template gallery",
         },
-        {
-          active: pathname.startsWith("/web-studio/missionaries"),
-          href: "/web-studio/missionaries",
-          icon: Users,
-          title: "Missionaries",
-        },
       ],
     },
     ...groupedCollections.map((group) => ({
@@ -306,7 +261,6 @@ function buildNavRailGroups(
         title: collection.titlePlural,
       })),
     })),
-    ...admin,
   ];
 }
 
@@ -416,14 +370,7 @@ export function StudioNavRail({ className }: { className?: string }) {
     persistCollapsed,
     recentDocs,
   } = useStudioNavRailState();
-  // Payload's sanitized permissions: stock admin lists show for anyone who
-  // may read them, tenant-scoped or not, as in Payload's own sidebar.
-  const { permissions } = useAuth();
-  const groups = buildNavRailGroups(
-    groupedCollections,
-    readableAdminCollections(permissions),
-    pathname,
-  );
+  const groups = buildNavRailGroups(groupedCollections, pathname);
 
   return (
     <>

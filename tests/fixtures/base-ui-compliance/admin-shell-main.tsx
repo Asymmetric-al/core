@@ -10,7 +10,7 @@ import { EveGlobalPanel } from "../../../apps/admin/app/eve/global-panel";
 // eslint-disable-next-line no-restricted-imports -- AL-1864: Browser fixture exercises the actual independent tile actions.
 import { TileCard } from "../../../apps/admin/features/mission-control/components/tiles/tile-card";
 // eslint-disable-next-line no-restricted-imports -- AL-1864: Browser fixture exercises the actual standalone Studio shell with inert Payload preferences.
-import { MissionariesHubView } from "../../../apps/admin/src/cms-ui/web-studio/flows/MissionariesHubView";
+import { TemplateGalleryView } from "../../../apps/admin/src/cms-ui/web-studio/flows/TemplateGalleryView";
 
 import "virtual:base-ui-styles";
 
@@ -19,7 +19,7 @@ const auditTarget = `https://example.test/${"a".repeat(200)}`;
 
 createRoot(document.getElementById("root")!).render(
   surface === "studio" ? (
-    <MissionariesHubView />
+    <TemplateGalleryView />
   ) : surface === "audit" ? (
     <main className="p-4">
       <EveGovernanceView

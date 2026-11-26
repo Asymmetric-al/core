@@ -1,91 +1,86 @@
+import { sameSitePageOptions, sameTenantOptions } from "./page-builders";
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import { studioDocumentEditViews } from "../../cms-ui/web-studio/shell/document-tabs";
-import {
-  PUBLIC_COLLECTION_CAPABILITIES,
-  publishedPublicReadAccess,
-} from "../access/public-read";
-import {
-  tenantScopedCreateAccess,
-  tenantScopedDeleteAccess,
-  tenantScopedUpdateAccess,
-} from "../access/tenant-access";
-import { logCmsChangeAudit, logCmsDeleteAudit } from "../hooks/audit";
-import { applyTenantFromContext } from "../hooks/tenant";
+import { navigationItemsRule } from "../tenancy/navigation-rules";
+import { tenantScoped } from "../tenancy/tenant-scoped";
 
 import type { CollectionConfig } from "payload";
 
-export const Navigation: CollectionConfig = {
-  slug: "navigation",
-  authorship: false,
-  versions: false,
-  admin: {
-    defaultColumns: ["label", "tenant", "updatedAt"],
-    useAsTitle: "label",
-    ...(isNativeCollectionWebStudioEnabled("navigation")
-      ? {
-          components: {
-            views: {
-              list: {
-                Component:
-                  "/src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx#NavigationNativeListView",
+export const Navigation: CollectionConfig = tenantScoped(
+  {
+    slug: "navigation",
+    authorship: true,
+    versions: false,
+    admin: {
+      defaultColumns: ["label", "updatedAt"],
+      useAsTitle: "label",
+      enableRichTextLink: false,
+      enableRichTextRelationship: false,
+      ...(isNativeCollectionWebStudioEnabled("navigation")
+        ? {
+            components: {
+              views: {
+                list: {
+                  Component:
+                    "/src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx#NavigationNativeListView",
+                },
+                edit: studioDocumentEditViews(
+                  "/src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx#NavigationNativeEditView",
+                ),
               },
-              edit: studioDocumentEditViews(
-                "/src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx#NavigationNativeEditView",
-              ),
             },
+          }
+        : {}),
+    },
+    fields: [
+      {
+        name: "site",
+        label: "Site",
+        type: "relationship",
+        relationTo: "site-presentations",
+        required: true,
+        filterOptions: sameTenantOptions,
+      },
+      {
+        name: "label",
+        type: "text",
+        required: true,
+      },
+      {
+        name: "items",
+        type: "array",
+        required: true,
+        fields: [
+          {
+            name: "label",
+            type: "text",
+            required: true,
           },
-        }
-      : {}),
+          {
+            name: "page",
+            type: "relationship",
+            relationTo: "pages",
+            filterOptions: sameSitePageOptions,
+          },
+          {
+            name: "href",
+            label: "Web address",
+            type: "text",
+          },
+          {
+            name: "openInNewTab",
+            type: "checkbox",
+            defaultValue: false,
+          },
+        ],
+      },
+    ],
   },
-  access: {
-    read: publishedPublicReadAccess(
-      "tenant",
-      PUBLIC_COLLECTION_CAPABILITIES["navigation"],
-    ),
-    create: tenantScopedCreateAccess("tenant"),
-    update: tenantScopedUpdateAccess("tenant"),
-    delete: tenantScopedDeleteAccess("tenant"),
+  {
+    actorCreate: true,
+    actorUpdate: true,
+    actorDelete: true,
+    keepsServiceId: false,
+    rules: [navigationItemsRule],
   },
-  hooks: {
-    beforeValidate: [applyTenantFromContext("tenant")],
-    afterChange: [logCmsChangeAudit],
-    afterDelete: [logCmsDeleteAudit],
-  },
-  fields: [
-    {
-      name: "tenant",
-      label: "Organization",
-      type: "relationship",
-      relationTo: "tenants",
-      required: true,
-      index: true,
-    },
-    {
-      name: "label",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "items",
-      type: "array",
-      required: true,
-      fields: [
-        {
-          name: "label",
-          type: "text",
-          required: true,
-        },
-        {
-          name: "href",
-          type: "text",
-          required: true,
-        },
-        {
-          name: "openInNewTab",
-          type: "checkbox",
-          defaultValue: false,
-        },
-      ],
-    },
-  ],
-};
+);

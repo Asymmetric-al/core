@@ -22,10 +22,9 @@ describe("Administration tile feature line", () => {
     );
   });
 
-  it("lists Eve to admins after the shared features", () => {
+  it("lists Eve to admins after the shared features (D-18: WP6 part 2b retires the Web Studio editors list)", () => {
     expect(features(insideForRole(adminTile, "admin"))).toEqual([
       "Members",
-      "Web Studio editors",
       "Email delivery",
       "Eve",
     ]);

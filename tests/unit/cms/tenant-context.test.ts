@@ -1,71 +1,74 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
-let getTenantContext: (req: unknown) => {
-  isAuthenticated: boolean;
-  publicTenantId: string | null;
-  role: string | null;
-  tenantId: string | null;
-  userId: string | null;
-};
-let isStaffRole: (context: unknown) => boolean;
-let isSuperAdmin: (context: unknown) => boolean;
+type Module =
+  typeof import("../../../apps/admin/src/cms/access/tenant-context");
+let tenantContext: Module;
 
 beforeAll(async () => {
-  const module =
+  tenantContext =
     await import("../../../apps/admin/src/cms/access/tenant-context");
-
-  getTenantContext = module.getTenantContext;
-  isStaffRole = module.isStaffRole;
-  isSuperAdmin = module.isSuperAdmin;
 });
 
-describe("tenant-context", () => {
+const TENANT = "00000000-0000-4000-8000-000000000101";
+const user = (staffRole: string | null, isTenantAdmin = false) => ({
+  id: "00000000-0000-4000-8000-0000000000a1",
+  collection: "principal-links",
+  tenantId: TENANT,
+  assignmentId: "00000000-0000-4000-8000-000000000201",
+  staffRole,
+  isTenantAdmin,
+});
+
+describe("tenant-context: the actor Web Studio acts for (D-18: WP6 part 2b replaces the CMS tenant document and role with the assignment's tenant UUID, sub-role and admin flag)", () => {
   it("returns an unauthenticated context without req.user", () => {
-    const context = getTenantContext({ user: null } as never);
-
-    expect(context).toEqual({
+    expect(tenantContext.getTenantContext({ user: null } as never)).toEqual({
       isAuthenticated: false,
-      publicTenantId: null,
-      role: null,
-      tenantId: null,
       userId: null,
+      tenantId: null,
+      assignmentId: null,
+      staffRole: null,
+      isTenantAdmin: false,
     });
   });
 
-  it("extracts user id, tenant, and role from the payload request", () => {
-    const context = getTenantContext({
-      user: {
-        id: "cms_user_1",
-        publicTenantId: "public_tenant_1",
-        role: "staff",
-        tenantId: "17",
-      },
-    } as never);
-
-    expect(context).toEqual({
+  it("reads the tenant UUID, the row, the sub-role and the admin flag", () => {
+    expect(
+      tenantContext.getTenantContext({
+        user: user("development", true),
+      } as never),
+    ).toEqual({
       isAuthenticated: true,
-      publicTenantId: "public_tenant_1",
-      role: "staff",
-      tenantId: "17",
-      userId: "cms_user_1",
+      userId: user("development").id,
+      tenantId: TENANT,
+      assignmentId: user("development").assignmentId,
+      staffRole: "development",
+      isTenantAdmin: true,
     });
   });
 
-  it("detects staff and super-admin roles correctly", () => {
-    const staffContext = {
-      isAuthenticated: true,
-      publicTenantId: "public_tenant_1",
-      role: "staff" as const,
-      tenantId: "17",
-      userId: "user_1",
-    };
-    const superAdminContext = {
-      ...staffContext,
-      role: "super_admin" as const,
-    };
-
-    expect(isStaffRole(staffContext)).toBe(true);
-    expect(isSuperAdmin(staffContext)).toBe(false);
-    expect(isSuperAdmin(superAdminContext)).toBe(true);
+  it("knows an actor only from a principal-links user, and only one holding web_studio.edit may edit", () => {
+    expect(
+      tenantContext.readCmsActor({
+        user: { ...user("development"), collection: "cms-users" },
+      } as never),
+    ).toBeNull();
+    for (const role of [
+      "development",
+      "finance",
+      "hr",
+      "member_care",
+      "mobilizer",
+    ]) {
+      expect(
+        tenantContext.readEditingActor({ user: user(role) } as never)?.tenantId,
+        role,
+      ).toBe(TENANT);
+    }
+    expect(
+      tenantContext.readEditingActor({ user: user(null) } as never),
+    ).toBeNull();
+    expect(
+      tenantContext.readEditingActor({ user: user(null, true) } as never),
+    ).toBeNull();
   });
 });

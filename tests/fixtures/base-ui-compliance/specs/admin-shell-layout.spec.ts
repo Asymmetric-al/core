@@ -291,13 +291,13 @@ test("quick actions keep a full-width row of independent click targets", async (
   await expect(page).toHaveURL(/#second$/);
 });
 
-test("standalone Studio shell fills a short directory viewport", async ({
+test("standalone Studio shell fills a short viewport (D-18: WP6 part 2b removes the Missionaries hub; the starter gallery stands in)", async ({
   page,
 }) => {
   await page.goto("/admin-shell.html?surface=studio");
   const shell = page.getByTestId("web-studio-native-shell");
   await expect(
-    shell.getByRole("heading", { name: "Missionaries", exact: true }),
+    shell.getByRole("heading", { name: "Template gallery", exact: true }),
   ).toBeVisible();
   expect((await shell.boundingBox())!.height).toBeGreaterThanOrEqual(
     page.viewportSize()!.height,

@@ -4,9 +4,6 @@
   "frozen_at": "c541b84b",
   "entries": [
     {"file":"apps/admin/lib/admin-access.ts","kind":"admin_client","count":1,"lines":[114],"path_ref":"U staff/CMS","reason":"Staff/CMS server path uses the service-role client with app-level tenant checks. Frozen by Q4; follow-up #2264.","follow_up":"#2264"},
-    {"file":"apps/admin/src/cms/auth/supabase-strategy.ts","kind":"service_role_key","count":1,"lines":[81],"path_ref":"U staff/CMS","reason":"CMS auth strategy reads the server-only key for its admin client. Frozen by Q4; follow-up #2264.","follow_up":"#2264"},
-    {"file":"apps/admin/src/cms/collections/page-builders.ts","kind":"admin_client","count":2,"lines":[105,174],"path_ref":"U staff/CMS","reason":"Staff/CMS server path uses the service-role client with app-level tenant checks. Frozen by Q4; follow-up #2264.","follow_up":"#2264"},
-    {"file":"apps/admin/src/cms/create-from-template-endpoint.ts","kind":"admin_client","count":2,"lines":[357,540],"path_ref":"U staff/CMS","reason":"Staff/CMS server path uses the service-role client with app-level tenant checks. Frozen by Q4; follow-up #2264.","follow_up":"#2264"},
     {"file":"packages/api/src/admin/comments/comment.ts","kind":"admin_client","count":2,"lines":[16,85],"path_ref":"U staff","reason":"Staff server path uses the service-role client with app-level tenant checks. Frozen by Q4; follow-up #2263.","follow_up":"#2263"},
     {"file":"packages/api/src/admin/comments/index.ts","kind":"admin_client","count":1,"lines":[14],"path_ref":"U staff","reason":"Staff server path uses the service-role client with app-level tenant checks. Frozen by Q4; follow-up #2263.","follow_up":"#2263"},
     {"file":"packages/api/src/admin/contribution-batches/route.ts","kind":"operation_admin_context","count":2,"lines":[168,442],"path_ref":"U staff","reason":"withPlatformOperation handler uses the supabaseAdmin client it is handed. Frozen by Q4; follow-up #2263.","follow_up":"#2263"},

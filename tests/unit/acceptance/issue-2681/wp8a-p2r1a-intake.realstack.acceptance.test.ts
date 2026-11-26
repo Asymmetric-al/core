@@ -7,6 +7,7 @@ import {
   ADMIN_URL,
   GUARD_TEST_GRANTS,
   GUARD_UPDATE_GRANTS,
+  GUARD_WIDE_INSERT_GRANTS,
   HOSTED_SERVICE_GRANTS,
   IN_MIGRATE_JOB,
   attempt,
@@ -124,10 +125,14 @@ describe.skipIf(!ADMIN_URL)(
       ).rows[0]?.kind;
     };
 
-    it("A1: service_role and postgres inserts are stamped legacy, the guard's line-based and provider_request; a differing value is 42501; a changed marker is 23514 for every role", () =>
+    it("A1: service_role and postgres inserts are stamped legacy, the guard's line-based and provider_request; a differing value is 42501; a changed marker is 23514 for every role (D-18, AL-2681 R2a: the guard's outbox INSERT is now its enqueue's thirteen columns, so this rolled-back test grants the table INSERT to reach the kind rule)", () =>
       inTx(db, async () => {
         const fx: Fixture = await seedTwoTenants(db);
-        await grant(db, [...HOSTED_SERVICE_GRANTS, ...GUARD_UPDATE_GRANTS]);
+        await grant(db, [
+          ...HOSTED_SERVICE_GRANTS,
+          ...GUARD_UPDATE_GRANTS,
+          ...GUARD_WIDE_INSERT_GRANTS,
+        ]);
         const donor = await newDonor(fx.A);
 
         const stamped: string[] = [];

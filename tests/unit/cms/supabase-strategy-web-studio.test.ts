@@ -80,48 +80,8 @@ function fakes({
     }),
     from: vi.fn(),
   };
-  const tenants = vi.fn((table: string) => {
-    if (table !== "tenants") throw new Error(table);
-    let id = "";
-    const chain = {
-      select: () => chain,
-      eq: (_col: string, value: string) => {
-        id = value;
-        return chain;
-      },
-      maybeSingle: async () => ({
-        data: {
-          id,
-          name: id === TA ? "Alpha" : "Bravo",
-          slug: id === TA ? "alpha" : "bravo",
-        },
-      }),
-    };
-    return chain;
-  });
-  const cmsTenants = new Map<string, number>([
-    ["alpha", 11],
-    ["bravo", 22],
-  ]);
   const payload = {
-    find: vi.fn(
-      async (options: {
-        collection: string;
-        where?: { slug?: { equals?: string } };
-      }) =>
-        options.collection === "tenants"
-          ? {
-              docs: [
-                {
-                  id: cmsTenants.get(options.where?.slug?.equals ?? ""),
-                  name:
-                    options.where?.slug?.equals === "alpha" ? "Alpha" : "Bravo",
-                  slug: options.where?.slug?.equals,
-                },
-              ],
-            }
-          : { docs: [] },
-    ),
+    find: vi.fn(async () => ({ docs: [] })),
     create: vi.fn(async (options: { data: object }) => ({
       id: 5,
       ...options.data,
@@ -133,7 +93,6 @@ function fakes({
   };
   const strategy = createSupabaseAuthStrategy({
     createSupabaseClient: vi.fn(() => client),
-    createSupabaseDataClient: vi.fn(() => ({ from: tenants })),
   });
   return { strategy, payload, reads };
 }
@@ -160,9 +119,9 @@ describe("the organization a Web Studio request acts in", () => {
     const b = row(TB, "staff", true);
     const { strategy, payload } = fakes({ rows: [a, b] });
 
-    for (const [tenant, assignment, cmsTenant, role] of [
-      [TA, a.id, "11", "staff"],
-      [TB, b.id, "22", "admin"],
+    for (const [tenant, assignment, isTenantAdmin] of [
+      [TA, a.id, false],
+      [TB, b.id, true],
     ] as const) {
       const { user } = await strategy.authenticate({
         headers: new Headers({
@@ -171,9 +130,9 @@ describe("the organization a Web Studio request acts in", () => {
         payload,
       });
       expect(user).toMatchObject({
-        publicTenantId: tenant,
-        tenantId: cmsTenant,
-        role,
+        tenantId: tenant,
+        assignmentId: assignment,
+        isTenantAdmin,
       });
     }
   });
@@ -221,7 +180,7 @@ describe("the organization a Web Studio request acts in", () => {
       payload,
     });
 
-    expect(user).toMatchObject({ publicTenantId: TA });
+    expect(user).toMatchObject({ tenantId: TA });
   });
 
   it("is nothing when the cookie is forged, names a row the person does not hold, or a row since revoked", async () => {
@@ -338,7 +297,7 @@ describe("the organization a Web Studio request acts in", () => {
       }),
       payload,
     });
-    expect(chosen.user).toMatchObject({ publicTenantId: TB });
+    expect(chosen.user).toMatchObject({ tenantId: TB });
   });
 });
 
@@ -364,7 +323,7 @@ describe("a REST call from a Web Studio document", () => {
       req: req("PATCH"),
     });
 
-    expect(user).toMatchObject({ publicTenantId: TB });
+    expect(user).toMatchObject({ tenantId: TB });
   });
 
   it("is refused when the document was rendered for another tenant: the form in the other tab is not retargeted", async () => {
@@ -428,7 +387,7 @@ describe("a REST call from a Web Studio document", () => {
       req: req("POST"),
       isGraphQL: true,
     });
-    expect(named.user).toMatchObject({ publicTenantId: TB });
+    expect(named.user).toMatchObject({ tenantId: TB });
   });
 
   it("may read without naming a document, as an image or a link does", async () => {
@@ -440,6 +399,6 @@ describe("a REST call from a Web Studio document", () => {
       req: req("GET"),
     });
 
-    expect(user).toMatchObject({ publicTenantId: TB });
+    expect(user).toMatchObject({ tenantId: TB });
   });
 });

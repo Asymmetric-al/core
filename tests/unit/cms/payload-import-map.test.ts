@@ -9,12 +9,22 @@ const WEB_STUDIO_IMPORT_MAP_PATH = path.join(
 );
 
 describe("Payload Web Studio import map", () => {
-  it("includes the Vercel Blob upload handler required by production media storage", () => {
+  it("holds no upload handler or retired view (D-18: WP6 part 2b drops Payload uploads, Vercel Blob and the prototype collections' views)", () => {
     const importMapSource = readFileSync(WEB_STUDIO_IMPORT_MAP_PATH, "utf8");
 
-    expect(importMapSource).toContain("@payloadcms/storage-vercel-blob/client");
+    expect(importMapSource).not.toContain("@payloadcms/storage-vercel-blob");
+    for (const retired of [
+      "MinistryUpdateCreateView",
+      "MissionaryGivingCreateView",
+      "ProjectPageCreateView",
+      "PageTemplateCreateView",
+      "MissionariesHubView",
+      "AdministrationListViews",
+    ]) {
+      expect(importMapSource, retired).not.toContain(retired);
+    }
     expect(importMapSource).toContain(
-      "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler",
+      "/src/cms-ui/web-studio/flows/StandardPageFromTemplateView.tsx#StandardPageFromTemplateView",
     );
   });
 });

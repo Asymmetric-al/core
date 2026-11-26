@@ -147,6 +147,8 @@ const OVERRIDES: Record<string, Record<string, string>> = {
   },
   donor_merge_candidates: { confidence: "'possible'", status: "'open'" },
   donations: { intake_format: "'legacy_header'" },
+  staged_gifts: { intake_format: "'legacy_header'" },
+  staged_gift_allocations: { intake_format: "'legacy_header'" },
   crm_command_logs: { status: "'queued'" },
   legal_entities: { country_code: "'US'", currency: "'usd'" },
   payment_account_bindings: {

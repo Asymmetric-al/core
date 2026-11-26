@@ -6,7 +6,7 @@ import {
 } from "@playwright/test";
 
 import { adminBaseURL, donorBaseURL } from "./base-urls";
-import { writeHeaders } from "./helpers/web-studio";
+import { siteOf, writeHeaders } from "./helpers/web-studio";
 import { textMatchesPayloadDbFailure } from "./lib/payload-db-failure";
 
 const tenantHeaders = {
@@ -142,7 +142,7 @@ async function findPayloadDoc<T extends DocWithId>(
 }
 
 test.describe("@cms-local strict local CMS happy path", () => {
-  test("bodyless browser deletes remove a reaction, its post and a Studio draft", async ({
+  test("bodyless browser deletes remove a reaction, its post and a Studio draft (D-18: WP6 part 2b pages carry a Site and a family)", async ({
     page,
   }) => {
     // Fix check G6: fail, not skip, without the missionary app; the strict
@@ -164,7 +164,8 @@ test.describe("@cms-local strict local CMS happy path", () => {
         data: {
           title: "Browser delete check",
           slug: `delete-${Date.now()}`,
-          pageType: "standard",
+          site: await siteOf(page, adminBaseURL),
+          family: "standard",
           _status: "draft",
         },
       },
@@ -226,7 +227,7 @@ test.describe("@cms-local strict local CMS happy path", () => {
     }
   });
 
-  test("picker lookups load template and uploaded media options on a seeded page", async ({
+  test("picker lookups load media options on a seeded page (D-18: WP6 part 2b replaces the template relationship with starters in code)", async ({
     page,
   }) => {
     await signInAsLocalDemoAdmin(page, "/web-studio/collections/pages");
@@ -238,7 +239,6 @@ test.describe("@cms-local strict local CMS happy path", () => {
     );
     await page.goto(`${adminBaseURL}/web-studio/collections/pages/${doc.id}`);
     for (const [field, collection, search] of [
-      ["#field-template", "page-templates", "Project"],
       ["#field-layout__0__backgroundImage", "media", "Local"],
     ] as const) {
       const combobox = page.locator(field).getByRole("combobox");
@@ -317,7 +317,7 @@ test.describe("@cms-local strict local CMS happy path", () => {
     ).toHaveCount(0);
   });
 
-  test("loads seeded Web Studio collections, preview, media, and template creation", async ({
+  test("loads seeded Web Studio collections, preview, media, and starter creation (D-18: WP6 part 2b seeds pages, a menu and a media record per organization, and creates from starters in code)", async ({
     page,
   }) => {
     await signInAsLocalDemoAdmin(page, "/web-studio/collections/pages");
@@ -334,27 +334,11 @@ test.describe("@cms-local strict local CMS happy path", () => {
       "slug",
       "local-cms-draft-preview",
     );
-    const standardTemplate = await findPayloadDoc<{ id: string | number }>(
-      page.request,
-      "page-templates",
-      "templateKey",
-      "standard-local",
-    );
     const navigation = await findPayloadDoc<{ id: string | number }>(
       page.request,
       "navigation",
       "label",
       "Main Navigation",
-    );
-    const missionaryProfile = await findPayloadDoc<{
-      fullName: string;
-      id: string | number;
-    }>(page.request, "missionary-profiles", "slug", "local-missionary");
-    const ministryUpdate = await findPayloadDoc<{ id: string | number }>(
-      page.request,
-      "ministry-updates",
-      "slug",
-      "local-ministry-update",
     );
     const media = await findPayloadDoc<{ id: string | number }>(
       page.request,
@@ -362,19 +346,6 @@ test.describe("@cms-local strict local CMS happy path", () => {
       "alt",
       "Local CMS Demo Image",
     );
-    const givingPage = await findPayloadDoc<{
-      id: string | number;
-      title: string;
-    }>(
-      page.request,
-      "missionary-giving-pages",
-      "slug",
-      "local-missionary-giving",
-    );
-    const projectPage = await findPayloadDoc<{
-      id: string | number;
-      title: string;
-    }>(page.request, "project-pages", "slug", "local-project");
 
     const collectionRoutes: CollectionRouteExpectation[] = [
       {
@@ -394,22 +365,6 @@ test.describe("@cms-local strict local CMS happy path", () => {
         text: "Main Navigation",
       },
       {
-        href: "/web-studio/collections/missionary-profiles",
-        text: missionaryProfile.fullName,
-      },
-      {
-        href: `/web-studio/collections/missionary-profiles/${missionaryProfile.id}`,
-        text: missionaryProfile.fullName,
-      },
-      {
-        href: "/web-studio/collections/ministry-updates",
-        text: "Local Ministry Update",
-      },
-      {
-        href: `/web-studio/collections/ministry-updates/${ministryUpdate.id}`,
-        text: "Local Ministry Update",
-      },
-      {
         href: "/web-studio/collections/media",
         text: "Local CMS Demo Image",
       },
@@ -419,30 +374,6 @@ test.describe("@cms-local strict local CMS happy path", () => {
           name: /Alt/,
           value: "Local CMS Demo Image",
         },
-      },
-      {
-        href: "/web-studio/collections/page-templates",
-        text: "Standard Page Template",
-      },
-      {
-        href: `/web-studio/collections/page-templates/${standardTemplate.id}`,
-        text: "Standard Page Template",
-      },
-      {
-        href: "/web-studio/collections/missionary-giving-pages",
-        text: givingPage.title,
-      },
-      {
-        href: `/web-studio/collections/missionary-giving-pages/${givingPage.id}`,
-        text: givingPage.title,
-      },
-      {
-        href: "/web-studio/collections/project-pages",
-        text: projectPage.title,
-      },
-      {
-        href: `/web-studio/collections/project-pages/${projectPage.id}`,
-        text: projectPage.title,
       },
     ];
 
@@ -469,15 +400,11 @@ test.describe("@cms-local strict local CMS happy path", () => {
       page.getByText("Draft local CMS preview content."),
     ).toBeVisible();
 
-    // Cache Components may retain hidden route views; strict matching still
-    // requires exactly one visible, interactive native shell.
     for (const href of [
       "/web-studio/templates",
       "/web-studio/pages/new-from-template",
-      "/web-studio/pages/give",
-      "/web-studio/projects/new",
-      "/web-studio/ministry-updates/new",
-      "/web-studio/missionaries",
+      "/web-studio/pages/new-from-template?template=missionary-giving",
+      "/web-studio/pages/new-from-template?template=project",
     ]) {
       await page.goto(`${adminBaseURL}${href}`);
       await expect(
@@ -486,19 +413,18 @@ test.describe("@cms-local strict local CMS happy path", () => {
       await expectNoPayloadFailure(page);
     }
 
+    const site = await siteOf(page, adminBaseURL);
     const uniqueSlug = `created-local-standard-page-${Date.now()}`;
     const createdIds: string[] = [];
     for (const suffix of ["first", "second"]) {
       const title = `Created Local Standard Page ${suffix}`;
-      // Payload's REST routes, custom endpoints included, answer under
-      // /web-studio/api (AL-2675, WP2b slice C).
       const createResponse = await page.request.post(
         `${adminBaseURL}/web-studio/api/web-studio/create-from-template`,
         {
           headers: await writeHeaders(page, adminBaseURL),
           data: {
-            targetCollection: "pages",
-            templateId: String(standardTemplate.id),
+            starterKey: "standard",
+            site,
             title,
             slug: `${uniqueSlug}-${suffix}`,
           },

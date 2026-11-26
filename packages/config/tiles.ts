@@ -188,7 +188,7 @@ export const tiles: Tile[] = [
     route: "/settings",
     icon: "Settings",
     purpose: "Who can use Mission Control and the services it connects to.",
-    inside: "Members · Web Studio editors · Email delivery",
+    inside: "Members · Email delivery",
     roleInside: [{ label: "Eve", roles: ["admin"] }],
     quickActions: [
       { label: "Open administration", href: "/settings", icon: "Settings" },

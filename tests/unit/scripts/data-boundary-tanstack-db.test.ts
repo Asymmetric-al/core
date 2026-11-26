@@ -13,6 +13,7 @@ const publicLocationsHookPath = fileURLToPath(
 );
 
 const RAW_ALLOWLISTED_FILE = "apps/admin/src/cms/auth/supabase-strategy.ts";
+const STRATEGY_SOURCE = "apps/admin/src/cms/auth/supabase-strategy.ts";
 const BROWSER_ALLOWLISTED_FILE = "apps/admin/lib/authenticated-fetch.ts";
 const REGULAR_FILE = "apps/donor/app/example.tsx";
 
@@ -48,12 +49,15 @@ describe("TanStack DB browser data boundary", () => {
     expect(violations[0]).toContain("@asym/database/supabase/client");
   });
 
-  it("scopes the raw-import exemption to the approved server auth strategy only", () => {
+  it("exempts no app file from the raw-import ban, the former strategy included (D-18: WP6 part 2b drops the strategy's service-key client and its allowlist row)", () => {
     const rawImport = 'import { createClient } from "@supabase/supabase-js";\n';
 
     expect(
       collectAppSupabaseViolationsFromSource(RAW_ALLOWLISTED_FILE, rawImport),
-    ).toEqual([]);
+    ).toHaveLength(1);
+    expect(readFileSync(STRATEGY_SOURCE, "utf8")).not.toContain(
+      "@supabase/supabase-js",
+    );
     // The browser-helper allowlist must NOT exempt raw SDK imports.
     expect(
       collectAppSupabaseViolationsFromSource(

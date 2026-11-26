@@ -3,8 +3,7 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { MissionaryGivingPages } from "../../../../apps/admin/src/cms/collections/missionary-giving-pages";
-import { ProjectPages } from "../../../../apps/admin/src/cms/collections/project-pages";
+import { Pages } from "../../../../apps/admin/src/cms/collections/pages";
 
 import type { CollectionConfig } from "payload";
 
@@ -27,18 +26,20 @@ const payloadStyles = readFileSync(
   "utf8",
 ).replace(/\s+/g, " ");
 
-describe("A giving or project page's source ID in the Studio editor", () => {
+describe("A giving or project page's source ID in the Studio editor (D-18: WP6 part 2b keeps both IDs on the one pages collection)", () => {
   it.each([
-    [MissionaryGivingPages, "missionaryId"],
-    [ProjectPages, "fundId"],
+    ["missionaryId", "missionary"],
+    ["fundId", "project"],
   ] as const)(
-    "%#: sits with the secondary fields, read-only, after the page's own fields",
-    (collection, name) => {
-      const source = field(collection, name);
-      // The header already names the missionary or fund; the raw ID is a
-      // detail, so Payload renders it among the sidebar fields.
+    "%s sits with the secondary fields, read-only, shown only for a %s page",
+    (name, family) => {
+      const source = field(Pages, name) as SourceField & {
+        admin?: { condition?: (data: unknown) => boolean };
+      };
       expect(source.admin?.position).toBe("sidebar");
       expect(source.admin?.readOnly).toBe(true);
+      expect(source.admin?.condition?.({ family })).toBe(true);
+      expect(source.admin?.condition?.({ family: "standard" })).toBe(false);
     },
   );
 

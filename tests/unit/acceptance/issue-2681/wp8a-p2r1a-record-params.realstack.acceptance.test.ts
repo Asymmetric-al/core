@@ -6,6 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   ADMIN_URL,
   GUARD_TEST_GRANTS,
+  GUARD_WIDE_INSERT_GRANTS,
   IN_MIGRATE_JOB,
   attempt,
   enterAs,
@@ -362,10 +363,11 @@ describe.skipIf(!ADMIN_URL)(
         ]);
       }));
 
-    it("C14: rule I: a guard INSERT that is not queued, unsent, unleased, unlinked and known is 23514 provider_request_created_unsent", () =>
+    it("C14: rule I: a guard INSERT that is not queued, unsent, unleased, unlinked and known is 23514 provider_request_created_unsent (D-18, AL-2681 R2a: the guard's outbox INSERT is now its enqueue's thirteen columns, so this rolled-back test grants the table INSERT to reach rule I)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         const intake = await guardIntake(db, fx.A);
+        await grant(db, GUARD_WIDE_INSERT_GRANTS);
         await replica(
           db,
           "DELETE FROM public.donation_saga_outbox WHERE id = $1",
