@@ -11,6 +11,13 @@
 --    membership unless a donor membership row exists (an inactive or revoked
 --    one is left as staff left it); it answers whether it wrote one. It
 --    never writes a link.
+--    private.insert_giver_donor(tenant, party, name, email, address): a
+--    postgres-owned definer, EXECUTE for tenant_guard only. In the entered
+--    tenant (42501 otherwise), on a Party of that tenant (42501 otherwise),
+--    it inserts one donor with the giver's name, email and address and
+--    answers its id. The guard itself holds no email column of donors (WP5
+--    rest, fix round F1 rule 1), so Add Partner can never meet the email
+--    key; only the apply's miss branch calls this.
 -- 2. tenant_guard.money_apply_payment_event(uuid), the core, replaced. As
 --    20261126170400 wrote it, and:
 --    - its first statement refuses any isolation level but READ COMMITTED
@@ -69,7 +76,8 @@
 -- Down, an operator's last resort, in one transaction: re-run, verbatim, the
 -- CREATE FUNCTION text of tenant_guard.money_apply_payment_event and
 -- tenant_guard.apply_payment_outcome from 20261126170400 as CREATE OR
--- REPLACE; DROP FUNCTION private.grant_linked_donor_membership(uuid, uuid, uuid).
+-- REPLACE; DROP FUNCTION private.grant_linked_donor_membership(uuid, uuid, uuid),
+-- private.insert_giver_donor(uuid, uuid, text, text, jsonb).
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
@@ -119,6 +127,57 @@ ALTER FUNCTION private.grant_linked_donor_membership(UUID, UUID, UUID) OWNER TO 
 REVOKE ALL ON FUNCTION private.grant_linked_donor_membership(UUID, UUID, UUID)
   FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION private.grant_linked_donor_membership(UUID, UUID, UUID) TO tenant_guard;
+
+CREATE OR REPLACE FUNCTION private.insert_giver_donor(
+  p_tenant_id UUID,
+  p_party_id UUID,
+  p_name TEXT,
+  p_email TEXT,
+  p_address JSONB
+)
+RETURNS UUID
+LANGUAGE plpgsql
+VOLATILE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_entered UUID;
+  v_id UUID;
+BEGIN
+  v_entered := NULLIF(pg_catalog.current_setting('app.current_tenant_id', true), '')::UUID;
+  IF (v_entered = p_tenant_id) IS NOT TRUE THEN
+    RAISE EXCEPTION 'insert_giver_donor: the transaction did not enter this organization'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.parties AS p WHERE p.tenant_id = p_tenant_id AND p.id = p_party_id
+  ) THEN
+    RAISE EXCEPTION 'insert_giver_donor: no such Party in this organization'
+      USING ERRCODE = '42501';
+  END IF;
+
+  INSERT INTO public.donors (tenant_id, party_id, name, email, address, giving_preferences, total_given)
+  VALUES (
+    p_tenant_id,
+    p_party_id,
+    p_name,
+    p_email,
+    CASE WHEN pg_catalog.jsonb_typeof(p_address) = 'object' THEN p_address END,
+    '{}'::JSONB,
+    0
+  )
+  RETURNING id INTO v_id;
+
+  RETURN v_id;
+END;
+$$;
+
+ALTER FUNCTION private.insert_giver_donor(UUID, UUID, TEXT, TEXT, JSONB) OWNER TO postgres;
+REVOKE ALL ON FUNCTION private.insert_giver_donor(UUID, UUID, TEXT, TEXT, JSONB)
+  FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION private.insert_giver_donor(UUID, UUID, TEXT, TEXT, JSONB) TO tenant_guard;
 
 CREATE OR REPLACE FUNCTION tenant_guard.money_apply_payment_event(p_event_id UUID)
 RETURNS JSONB
@@ -793,17 +852,9 @@ BEGIN
             v_candidates := private.money_duplicate_donors(
               v_intake.tenant_id, v_contact.first_name, v_contact.last_name, v_contact.address, NULL);
 
-            INSERT INTO public.donors (tenant_id, party_id, name, email, address, giving_preferences, total_given)
-            VALUES (
-              v_intake.tenant_id,
-              public.donor_party_for_insert(v_intake.tenant_id, NULL, v_given_name, v_match_email),
-              v_given_name,
-              v_match_email,
-              CASE WHEN pg_catalog.jsonb_typeof(v_contact.address) = 'object' THEN v_contact.address END,
-              '{}'::JSONB,
-              0
-            )
-            RETURNING id, party_id INTO v_donor_id, v_party;
+            v_party := public.donor_party_for_insert(v_intake.tenant_id, NULL, v_given_name, v_match_email);
+            v_donor_id := private.insert_giver_donor(
+              v_intake.tenant_id, v_party, v_given_name, v_match_email, v_contact.address);
             v_via := 'new_party';
 
             IF pg_catalog.cardinality(v_candidates) > 0 THEN

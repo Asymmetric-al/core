@@ -75,7 +75,6 @@ const DONATION_SELECT = `
   stripe_payment_intent_id,
   stripe_charge_id,
   intake_format,
-  staged_gift:staged_gifts!staged_gifts_donation_id_fkey(status),
   fund:funds(id, name),
   missionary:missionaries(id, worker_public_name, profile:profiles(id, avatar_url))
 `;
@@ -156,7 +155,6 @@ function normalizeDonationRows(rows: DonorPortalDonationRow[]) {
     ...row,
     fund: normalizeJoinedOne(row.fund),
     missionary: normalizeJoinedOne(row.missionary),
-    staged_gift: normalizeJoinedOne(row.staged_gift ?? null),
   }));
 }
 
@@ -169,14 +167,28 @@ async function withGiftLines(
     .filter((row) => row.intake_format === "line_based")
     .map((row) => row.id);
   if (lineBased.length === 0) return rows;
-  const lines = await loadLineBasedGiftLines(
-    supabaseAdmin,
-    tenantId,
-    lineBased,
+  const [lines, gifts] = await Promise.all([
+    loadLineBasedGiftLines(supabaseAdmin, tenantId, lineBased),
+    supabaseAdmin
+      .from("staged_gifts")
+      .select("donation_id, status")
+      .eq("tenant_id", tenantId)
+      .in("donation_id", lineBased) as unknown as Promise<
+      SupabaseResult<{ donation_id: string; status: string | null }[]>
+    >,
+  ]);
+  const staged = new Map(
+    assertArrayResult(gifts, "Unable to load gift review states").map(
+      (gift) => [gift.donation_id, { status: gift.status }],
+    ),
   );
   return rows.map((row) =>
     row.intake_format === "line_based"
-      ? { ...row, lines: lines.get(row.id) ?? [] }
+      ? {
+          ...row,
+          lines: lines.get(row.id) ?? [],
+          staged_gift: staged.get(row.id) ?? null,
+        }
       : row,
   );
 }

@@ -33,8 +33,10 @@
 --    service_role (Q13); never updated, deleted or truncated (23514).
 -- 5. tenant_guard: SELECT of the new intake columns, donor_id and
 --    created_at; UPDATE of donor_id and abandoned_by; on donors, SELECT of
---    name, email, email_normalized, address, party_id and profile_id and
---    INSERT of email and address (beside WP5's columns).
+--    name, email_normalized, address, party_id and profile_id and INSERT of
+--    address (beside WP5's columns). The guard still holds no email column
+--    of donors (WP5 rest, fix round F1 rule 1): a new giver's email is
+--    written by M4's postgres-owned private.insert_giver_donor.
 --
 -- Locks, all held to COMMIT, taken first and in this order: SHARE ROW
 -- EXCLUSIVE on legal_entities (no new key; the contacts' foreign key reads
@@ -69,7 +71,7 @@
 --     DROP COLUMN is_anonymous, DROP COLUMN abandoned_by;
 --   ALTER TABLE public.donations ADD CONSTRAINT donations_line_status_check CHECK (intake_format <> 'line_based'
 --     OR (status IN ('pending', 'processing', 'completed', 'failed')) IS TRUE);
---   REVOKE SELECT (name, email, email_normalized, address, party_id, profile_id), INSERT (email, address)
+--   REVOKE SELECT (name, email_normalized, address, party_id, profile_id), INSERT (address)
 --     ON TABLE public.donors FROM tenant_guard;
 --   REVOKE SELECT (donor_id, created_at), UPDATE (donor_id) ON TABLE public.donations FROM tenant_guard;
 --   DELETE FROM public.field_policies WHERE record_type = 'donations' AND field_key IN
@@ -309,9 +311,9 @@ GRANT SELECT (actor_user_id, actor_email, actor_email_confirmed, is_anonymous, a
 GRANT UPDATE (donor_id, abandoned_by)
   ON TABLE public.donations TO tenant_guard;
 
-GRANT SELECT (name, email, email_normalized, address, party_id, profile_id)
+GRANT SELECT (name, email_normalized, address, party_id, profile_id)
   ON TABLE public.donors TO tenant_guard;
-GRANT INSERT (email, address)
+GRANT INSERT (address)
   ON TABLE public.donors TO tenant_guard;
 
 INSERT INTO public.field_policies (
