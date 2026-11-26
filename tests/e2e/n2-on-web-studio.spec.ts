@@ -78,10 +78,17 @@ function titleOf(id: string): string {
 }
 
 async function deletePage(page: Page, id: string) {
+  page.on("dialog", (dialog) => void dialog.accept());
   await page.goto("/admin/web-studio");
-  await page.evaluate(async (pageId) => {
-    await fetch(`/admin/web-studio/api/pages/${pageId}`, { method: "DELETE" });
+  await expect(page.locator("[data-web-studio-scope]")).toBeAttached();
+  const status = await page.evaluate(async (pageId) => {
+    const response = await fetch(`/admin/web-studio/api/pages/${pageId}`, {
+      method: "DELETE",
+    });
+    return response.status;
   }, id);
+  expect(status).toBe(200);
+  expect(titleOf(id)).toBe("");
 }
 
 test("a choice in Web Studio's chooser enters by a document load; the API tab shows the JSON and offers no new-tab link; the REST address opened as a page is refused", async ({
