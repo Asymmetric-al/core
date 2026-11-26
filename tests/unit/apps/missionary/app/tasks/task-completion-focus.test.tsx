@@ -210,6 +210,53 @@ it("moves focus to the next row's actions after Mark Complete in the row menu", 
   );
 });
 
+async function markBenCompleteFromMenuWithFocusOn(
+  focusTarget: (parts: {
+    trigger: HTMLElement;
+    menu: HTMLElement;
+  }) => HTMLElement,
+) {
+  const trigger = await screen.findByRole("button", {
+    name: "Actions for Email Ben",
+  });
+  trigger.focus();
+  fireEvent.click(trigger);
+  const menu = await screen.findByRole("menu");
+  const markComplete = within(menu).getByRole("menuitem", {
+    name: "Mark Complete",
+  });
+  const focused = focusTarget({ trigger, menu });
+  focused.focus();
+  expect(document.activeElement).toBe(focused);
+  fireEvent.click(markComplete);
+  expect(tasks.completeTask).toHaveBeenCalledWith(ben.id);
+  await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+  await waitFor(() => expect(document.activeElement).toBe(trigger));
+}
+
+it.each([
+  ["the trigger", ({ trigger }: { trigger: HTMLElement }) => trigger],
+  ["the menu", ({ menu }: { menu: HTMLElement }) => menu],
+])(
+  "moves focus to the next row's actions after Mark Complete in the row menu while focus is on %s",
+  async (_where, focusTarget) => {
+    const view = render(<TasksPage />);
+    showList();
+    await markBenCompleteFromMenuWithFocusOn(focusTarget);
+
+    await settle(view);
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "Actions for Email Ben" }),
+      ).toBeNull(),
+    );
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Actions for Thank Cara" }),
+    );
+  },
+);
+
 it("moves focus to the next done task when a task is reopened from Done", async () => {
   tasks.data = [
     { ...anna, status: "completed" },
