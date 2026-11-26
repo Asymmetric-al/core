@@ -1,7 +1,4 @@
-import {
-  CapabilityResolutionError,
-  resolveAssignmentCapabilities,
-} from "@asym/auth/capabilities";
+import { membershipHasCapability } from "@asym/auth/context";
 
 import type { StaffSubrole } from "@asym/database/types";
 import type { PayloadRequest } from "payload";
@@ -67,19 +64,19 @@ export function readCmsActor(req: PayloadRequest): CmsActor | null {
 }
 
 export function canEditWebStudio(actor: CmsActor | null): actor is CmsActor {
-  if (!actor) return false;
-  try {
-    return resolveAssignmentCapabilities({
-      assignmentId: actor.assignmentId,
-      tenantId: actor.tenantId,
-      membershipRole: "staff",
-      staffRole: actor.staffRole,
-      isTenantAdmin: actor.isTenantAdmin,
-    }).includes("web_studio.edit");
-  } catch (error) {
-    if (error instanceof CapabilityResolutionError) return false;
-    throw error;
-  }
+  return (
+    actor !== null &&
+    membershipHasCapability(
+      {
+        tenantId: actor.tenantId,
+        role: "staff",
+        staffRole: actor.staffRole,
+        isActive: true,
+        isTenantAdmin: actor.isTenantAdmin,
+      },
+      "web_studio.edit",
+    )
+  );
 }
 
 export function readEditingActor(req: PayloadRequest): CmsActor | null {
