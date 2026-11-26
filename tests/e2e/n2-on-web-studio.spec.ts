@@ -31,10 +31,20 @@ async function enterWebStudio(page: Page) {
   const choice = page.getByRole("button", { name: /Development/ });
   await expect(choice).toBeVisible();
   const before = documents.length;
+  const answered = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === "/admin/web-studio/organization" &&
+      response.request().method() === "POST",
+  );
   await choice.click();
+  const answer = await answered;
   await page.waitForURL((url) => url.pathname === "/admin/web-studio");
   await expect(page.locator("[data-web-studio-scope]")).toBeAttached();
-  return { documents, afterChoice: () => documents.slice(before) };
+  return {
+    documents,
+    afterChoice: () => documents.slice(before),
+    softRedirect: answer.headers()["x-action-redirect"] ?? null,
+  };
 }
 
 async function createDraftPage(page: Page, title: string): Promise<string> {
@@ -79,6 +89,7 @@ test("a choice in Web Studio's chooser enters by a document load; the API tab sh
   context,
 }) => {
   const studio = await enterWebStudio(page);
+  expect(studio.softRedirect).toBeNull();
   expect(studio.afterChoice()).toContain("/admin/web-studio");
   const id = await createDraftPage(page, `N2 on api ${Date.now()}`);
   try {
