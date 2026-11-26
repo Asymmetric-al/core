@@ -181,6 +181,24 @@ describe("AL-2675 WP2c part 2a, T4: the operator area's screens", () => {
     expect(mfa.startEnrolment).not.toHaveBeenCalled();
   });
 
+  it("draws the QR from Auth's raw SVG, trimmed of its trailing newline and URL-encoded", async () => {
+    const svg =
+      '<?xml version="1.0"?>\n<svg xmlns="http://www.w3.org/2000/svg"><rect style="fill:#000000" width="1" height="1"/></svg>';
+    mfa.startEnrolment.mockResolvedValue({
+      ok: true,
+      factorId: "new-factor",
+      qrCode: `data:image/svg+xml;utf-8,${svg}\n`,
+      secret,
+    });
+    await openEnrolment();
+    const qr = screen.getByRole("img", {
+      name: "QR code for your authenticator app",
+    });
+    expect(qr.getAttribute("src")).toBe(
+      `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
+    );
+  });
+
   it("shows the QR, the key in groups of four and a six-slot code field, each blocked from replay", async () => {
     await openEnrolment();
     const qr = screen.getByRole("img", {
