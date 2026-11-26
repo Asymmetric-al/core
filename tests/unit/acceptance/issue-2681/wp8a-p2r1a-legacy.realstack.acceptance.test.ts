@@ -504,8 +504,10 @@ describe.skipIf(!ADMIN_URL)(
     it("F26: the guard's policies hide every legacy row: on donations it sees only line-based intakes, on the outbox only provider requests, of the entered tenant", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
-        const a = await guardIntake(db, fx.A);
-        const b = await guardIntake(db, fx.B);
+        // D-18 (AL-2678, WP5 rest): the legacy gift is begun before the
+        // guard's intakes enter tenant B in this transaction, because the
+        // Party writer it now calls writes only in the tenant a transaction
+        // entered.
         await grant(db, HOSTED_SERVICE_GRANTS);
         const user = randomUUID();
         await db.query("INSERT INTO auth.users (id) VALUES ($1)", [user]);
@@ -517,6 +519,8 @@ describe.skipIf(!ADMIN_URL)(
           )
         ).rows[0].r;
         await role(db, null);
+        const a = await guardIntake(db, fx.A);
+        const b = await guardIntake(db, fx.B);
         await enterAs(db, "tenant_guard", fx.A.tenant);
         const intakes = (
           await db.query("SELECT id, intake_format FROM public.donations")

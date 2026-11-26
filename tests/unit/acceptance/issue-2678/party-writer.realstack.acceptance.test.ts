@@ -270,13 +270,18 @@ describe.skipIf(!ADMIN_URL)(
     it("a guest call (no profile) gets its own new Party each time, joined to no login, worker or other donor; a name blank after the safety normalizer falls through, no-break spaces included (red: 42883)", () =>
       tx(db, async () => {
         await db.query(fixtureSql(id));
-        const call = (name: string | null, email: string | null) =>
-          db
-            .query(
-              "with w as materialized (select public.donor_party_for_insert($1, null, $2, $3) id) select p.id, p.display_name from w join public.parties p on p.id = w.id",
-              [id.TA, name, email],
+        const call = async (name: string | null, email: string | null) => {
+          const made = await db.query(
+            "select public.donor_party_for_insert($1, null, $2, $3) id",
+            [id.TA, name, email],
+          );
+          return (
+            await db.query(
+              "select id, display_name from public.parties where id = $1",
+              [made.rows[0].id],
             )
-            .then((r) => r.rows[0]);
+          ).rows[0];
+        };
         const first = await call("  Jo   Guest ", "jo@example.test");
         const second = await call("Jo Guest", "jo@example.test");
         expect(first.display_name).toBe("Jo Guest");
