@@ -574,7 +574,7 @@ describe.skipIf(!ADMIN_URL)(
         ]);
       }));
 
-    it("F27: payment_repair_cases has forced row security, nothing for PUBLIC, anon, authenticated or service_role, SELECT and INSERT for tenant_guard behind its isolation policy; the catalog gate passes", () =>
+    it("F27: payment_repair_cases has forced row security, nothing for PUBLIC, anon, authenticated or service_role, SELECT and, since R1b's rule on inserted cases (D-18), INSERT of (tenant_id, kind, operation_id, donation_id) only for tenant_guard behind its isolation policy; the catalog gate passes", () =>
       inTx(db, async () => {
         const row = (
           await db.query(
@@ -590,9 +590,9 @@ describe.skipIf(!ADMIN_URL)(
           relrowsecurity: true,
           relforcerowsecurity: true,
           owner: "postgres",
-          grants: "tenant_guard:INSERT,tenant_guard:SELECT",
+          grants: "tenant_guard:SELECT",
           policies: "tenant_guard_isolation * {tenant_guard}",
-          column_grants: 0,
+          column_grants: 4,
         });
         const denied = (
           await db.query(

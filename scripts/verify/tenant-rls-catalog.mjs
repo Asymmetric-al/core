@@ -1156,13 +1156,15 @@ export function evaluateTenantRlsCatalog(
         failFn(
           "WORKER_WRAPPER_TENANT_ARGUMENT",
           w.function,
-          "A service_role wrapper calling a tenant_guard worker entry point takes no tenant argument and passes, as the tenant, only a value it read from a stored row (SELECT <column> INTO <variable> FROM <schema>.<table>, or that SELECT as a scalar subquery); anything the gate cannot verify fails",
+          "A service_role wrapper calling a tenant_guard worker entry point takes no tenant argument and passes, as the tenant, only a value it read from a stored row in one whole statement of one schema-qualified relation (SELECT <qualifier>.<column> INTO <variable> FROM <schema>.<relation> [[AS] <alias>] WHERE <predicate> [row lock], where the qualifier is the relation's alias, or its name when it has none, or that SELECT as a scalar subquery; no JOIN, comma source, set operation, subquery, ORDER BY or LIMIT); anything the gate cannot verify fails",
         );
-      if (workerWrapperHasWrite(w.body, stripComments, w.language))
+      if (
+        workerWrapperHasWrite(w.body, stripComments, w.language, w.search_path)
+      )
         failFn(
           "WORKER_WRAPPER_WRITES",
           w.function,
-          "A service_role wrapper calling a tenant_guard worker entry point only reads and forwards: no write, dynamic SQL, transaction or session statement, and no call to a function other than a tenant_guard entry point or a listed read-only built-in",
+          "A service_role wrapper calling a tenant_guard worker entry point only reads and forwards: no write, dynamic SQL, transaction or session statement, and no call to a function other than a tenant_guard entry point, a pg_catalog-qualified read-only built-in, or one called unqualified under SET search_path = ''",
         );
     }
   }
