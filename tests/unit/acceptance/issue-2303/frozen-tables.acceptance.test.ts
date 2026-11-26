@@ -17,9 +17,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import * as H from "../issue-492/harness";
 
-/** sha256 of JSON.stringify(capabilityRegistryRows()) after AL-2675 (28 capabilities, 74 grants). */
+/** sha256 of JSON.stringify(capabilityRegistryRows()) after AL-2678 WP5 rest (29 capabilities, 75 grants). */
 const ROWS_SHA =
-  "39838b467bb97863fdaff45fef3378f740b65d1067d4fcbc0be6741a5d0163bb";
+  "5bd07fbadcec546acf73f60a0f2e941a5ef19142fe1dd6693d3fbb6511e7322f";
 const UNIT = "tests/unit/auth/capabilities/effective-capabilities.test.ts";
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 const file = (m: string) => `${H.CAP_DIR}/${m}.ts`;
@@ -172,7 +172,7 @@ describe("#2303 criterion 4: all five tables are wrapped by deepFreeze at declar
 });
 
 describe("#2303 criterion 5: freezing changes no output", () => {
-  it("criterion 5: every ROLE_DEFAULT_BUNDLES subject resolves as on develop and capabilityRegistryRows() is byte-identical to develop", async () => {
+  it("criterion 5: every ROLE_DEFAULT_BUNDLES subject resolves as on develop and capabilityRegistryRows() is byte-identical to develop (D-18, AL-2678 WP5 rest, D-16 ruling on Add Partner item 10: the missionary's partners.add in the bundle missionary_partners makes 29 capabilities and 75 grants)", async () => {
     const { ROLE_DEFAULT_BUNDLES } = await H.load("bundles");
     expect(H.sorted(Object.keys(ROLE_DEFAULT_BUNDLES))).toEqual(
       H.sorted(H.SUBJECTS),

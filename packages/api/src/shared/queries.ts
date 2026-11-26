@@ -47,15 +47,39 @@ export function findMissionaryByProfileId(
     .maybeSingle();
 }
 
-export function findDonorByProfileId(
-  supabase: AdminSupabaseClient,
-  profileId: string,
-  tenantId: string,
-) {
-  return supabase
+export type OwnDonorLookup<Row> =
+  { status: "found"; donor: Row } | { status: "none" } | { status: "multiple" };
+
+type DonorReader = Pick<AdminSupabaseClient, "from">;
+
+export async function findOwnDonor<Row = { id: string }>(
+  supabase: DonorReader,
+  person: { userId: string; tenantId: string },
+  columns = "id",
+): Promise<OwnDonorLookup<Row>> {
+  const { data: link, error: linkError } = await supabase
+    .from("account_links")
+    .select("party_id")
+    .eq("tenant_id", person.tenantId)
+    .eq("user_id", person.userId)
+    .maybeSingle();
+  if (linkError) {
+    throw new Error(linkError.message || "Failed to read the account link.");
+  }
+  const partyId = (link as { party_id?: string | null } | null)?.party_id;
+  if (!partyId) return { status: "none" };
+
+  const { data: donors, error: donorsError } = await supabase
     .from("donors")
-    .select("id, stripe_customer_id, profile_id")
-    .eq("profile_id", profileId)
-    .eq("tenant_id", tenantId)
-    .single();
+    .select(columns)
+    .eq("tenant_id", person.tenantId)
+    .eq("party_id", partyId)
+    .limit(2);
+  if (donorsError) {
+    throw new Error(donorsError.message || "Failed to read the donor record.");
+  }
+  const rows = (donors ?? []) as unknown as Row[];
+  if (rows.length === 0) return { status: "none" };
+  if (rows.length > 1) return { status: "multiple" };
+  return { status: "found", donor: rows[0]! };
 }

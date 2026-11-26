@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { createInitialEditDonorFormValues } from "../../../../../../apps/missionary/app/donors/edit-donor-form-model";
+import {
+  createInitialEditDonorFormValues,
+  editDonorSchema,
+} from "../../../../../../apps/missionary/app/donors/edit-donor-form-model";
 
 describe("apps/missionary/app/donors/edit-donor-form-model", () => {
-  it("creates empty defaults when no donor is selected", () => {
+  it("creates empty defaults when no donor is selected, with no e-mail (fix round F17 case 4: the edit has no e-mail field)", () => {
     expect(createInitialEditDonorFormValues()).toEqual({
       name: "",
-      email: "",
       phone: "",
       mobile: "",
       work_phone: "",
@@ -30,10 +32,9 @@ describe("apps/missionary/app/donors/edit-donor-form-model", () => {
     });
   });
 
-  it("hydrates defaults from the selected donor", () => {
+  it("hydrates defaults from the selected donor, without its e-mail (fix round F17 case 4)", () => {
     const values = createInitialEditDonorFormValues({
       name: "Alice Johnson",
-      email: "alice@example.com",
       phone: "555-111-2222",
       mobile: "555-333-4444",
       work_phone: "555-888-9999",
@@ -58,9 +59,9 @@ describe("apps/missionary/app/donors/edit-donor-form-model", () => {
       },
     });
 
+    expect(values).not.toHaveProperty("email");
     expect(values).toMatchObject({
       name: "Alice Johnson",
-      email: "alice@example.com",
       preferred_contact: "text",
       type: "Organization",
       status: "At Risk",
@@ -71,5 +72,14 @@ describe("apps/missionary/app/donors/edit-donor-form-model", () => {
       state: "CO",
       zip: "80202",
     });
+  });
+
+  it("accepts a partner with no e-mail whose name alone was typed (fix round F17 case 4; red: the required e-mail refuses it)", () => {
+    expect(Object.keys(editDonorSchema.shape)).not.toContain("email");
+    expect(
+      editDonorSchema.safeParse(
+        createInitialEditDonorFormValues({ name: "Hand Added" }),
+      ).success,
+    ).toBe(true);
   });
 });

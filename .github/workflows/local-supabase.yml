@@ -98,10 +98,27 @@ on:
       # screens over them and their journey (AL-2678, WP5 part 2-r2b1).
       - tests/unit/acceptance/issue-2678/worker-record.postgrest.acceptance.test.ts
       - packages/api/src/admin/workers/**
+      # A signed-in person's own donor through account link and Party, by
+      # every reader that found it by profile (AL-2678, WP5 rest).
+      - tests/unit/acceptance/issue-2678/own-donor-reads.postgrest.acceptance.test.ts
+      # The CRM's notes and relationships paged in Postgres (AL-2678, WP5 rest r6).
+      - tests/unit/acceptance/issue-2678/crm-pages.postgrest.acceptance.test.ts
+      # A partner added by hand is named to its missionary alone (AL-2678,
+      # WP5 rest, fix round F7).
+      - tests/unit/acceptance/issue-2678/added-partner-visibility.postgrest.acceptance.test.ts
+      - packages/api/src/feed-preferences/**
+      - packages/api/src/reads/**
+      - packages/lib/hooks/use-donor-record.ts
       - apps/admin/app/api/admin/workers/**
       - apps/admin/app/(app)/workers/**
       - apps/admin/features/mission-control/workers/**
       - tests/e2e/auth-worker-record.spec.ts
+      # Add Partner from both of the Partners page's buttons, on the
+      # missionary's token (AL-2678, WP5 rest).
+      - tests/e2e/auth-add-partner.spec.ts
+      - packages/missionary/components/add-partner-*
+      - apps/missionary/app/donors/**
+      - apps/missionary/app/api/missionary/donors/**
       - packages/database/collections/schemas/giving.ts
       # The readers that name a worker outside Mission Control, which the
       # identity-key proof drives (AL-2678, WP5 part 2-r1).
@@ -375,6 +392,39 @@ jobs:
           WP5_IDENTITY_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
           export WP5_IDENTITY_IT_ANON_KEY WP5_IDENTITY_IT_SERVICE_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/worker-record.postgrest.acceptance.test.ts
+      - name: Verify a signed-in person's own donor through account link and Party
+        shell: bash
+        env:
+          WP5_IDENTITY_IT_URL: http://127.0.0.1:54321
+          WP5_IDENTITY_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          WP5_IDENTITY_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          WP5_IDENTITY_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export WP5_IDENTITY_IT_ANON_KEY WP5_IDENTITY_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/own-donor-reads.postgrest.acceptance.test.ts
+      - name: Verify the CRM's notes and relationships page exactly through PostgREST
+        shell: bash
+        env:
+          WP5_IDENTITY_IT_URL: http://127.0.0.1:54321
+          WP5_IDENTITY_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          WP5_IDENTITY_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          WP5_IDENTITY_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export WP5_IDENTITY_IT_ANON_KEY WP5_IDENTITY_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/crm-pages.postgrest.acceptance.test.ts
+      - name: Verify that a partner added by hand is named to its missionary alone through PostgREST
+        shell: bash
+        env:
+          WP5_IDENTITY_IT_URL: http://127.0.0.1:54321
+          WP5_IDENTITY_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          WP5_IDENTITY_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          WP5_IDENTITY_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export WP5_IDENTITY_IT_ANON_KEY WP5_IDENTITY_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/added-partner-visibility.postgrest.acceptance.test.ts
       - name: Verify invitations, directory and role concurrency through PostgREST
         shell: bash
         env:

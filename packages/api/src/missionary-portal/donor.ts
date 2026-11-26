@@ -38,7 +38,6 @@ const preferredContactSchema = z.enum(["email", "phone", "text"]);
 const donorUpdateSchema = z
   .object({
     name: z.string().trim().min(2).max(240),
-    email: z.string().trim().email().max(320),
     phone: z.string().max(80),
     mobile: z.string().max(80),
     work_phone: z.string().max(80),
@@ -82,7 +81,6 @@ function optionalText(value: string): string | null {
 function toDonorUpdatePayload(input: DonorUpdateInput, now: Date) {
   return {
     name: input.name.trim(),
-    email: input.email.trim(),
     phone: optionalText(input.phone),
     mobile: optionalText(input.mobile),
     work_phone: optionalText(input.work_phone),

@@ -76,6 +76,7 @@ const NEW_CAPABILITIES: Record<
   "safety.restrict_publication": (s) => s.isTenantAdmin,
   "care.access": (s) => s.staffRole === "member_care",
   "imports.commit": (s) => s.isTenantAdmin,
+  "partners.add": (s) => s.role === "missionary",
 };
 
 const registryFor = (shape: (typeof SHAPES)[number], tenantId: string) => [
@@ -116,7 +117,7 @@ describe("the registry's subjects (no database)", () => {
     expect(own).toEqual(SUBROLES.map((s) => [`staff_${s}`]));
   });
 
-  it("registers every new capability of plan 5.4", () => {
+  it("registers every new capability of plan 5.4, and the missionary's partners.add, held by member:missionary alone (D-18, AL-2678 WP5 rest, D-16 ruling on Add Partner)", () => {
     for (const capability of Object.keys(NEW_CAPABILITIES))
       expect(Object.keys(CAPABILITY_REGISTRY)).toContain(capability);
   });

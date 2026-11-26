@@ -433,3 +433,27 @@ It replaces `tenant_guard.restrict_worker_publication` so that an alias the
 safety normalization reduces to nothing is no alias; its owner (`tenant_guard`),
 security and grantees (`tenant_guard`, `authenticated`) do not change, and the
 file restates part 1's `REVOKE` and `GRANT` for it.
+
+## Functions added by AL-2678 (WP5 rest, pull request 1)
+
+| Function                                                                                          | Security | EXECUTE grantees (exact)                           |
+| ------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------- |
+| `public.donor_party_for_insert(uuid, uuid, text, text)`                                           | DEFINER  | `postgres` (owner), `service_role`, `tenant_guard` |
+| `public.crm_notes_page(uuid, text, text, boolean, integer, integer)`                              | INVOKER  | `postgres` (owner), `authenticated`                |
+| `public.crm_relationships_page(uuid, text, text[], text, boolean, integer, integer, timestamptz)` | INVOKER  | `postgres` (owner), `authenticated`                |
+| `tenant_guard.add_partner(uuid, uuid, text, text, text, text, text, uuid)`                        | DEFINER  | `tenant_guard` (owner), `authenticated`            |
+| `public.add_partner(uuid, uuid, text, text, text, text, text, uuid)`                              | INVOKER  | `postgres` (owner), `authenticated`                |
+
+Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
+before granting (`20261126200000_wp5_rest_party_writer.sql`,
+`20261126200100_wp5_rest_crm_pages.sql`,
+`20261126200200_wp5_rest_add_partner.sql`). The Party writer is the one way
+a donor insert names its Party (`begin_donation_saga`,
+`atomic_create_donation_with_audit`, `tenant_guard.add_partner`, and WP8a's
+next donor writer); it reads nothing from `auth` and writes only in the
+tenant the transaction entered. The two page functions run on the caller's
+token under row security; the relationships page reads member-care activity
+only for an assignment holding `care.access`. `begin_donation_saga` and
+`atomic_create_donation_with_audit` are replaced with their grants
+(`service_role`) unchanged, and `authz.assignment_capabilities(uuid)` with
+its owner and grantee (`tenant_guard`) unchanged.

@@ -116,6 +116,52 @@ describe("the local Supabase workflow's path filter", () => {
   );
 
   it.each([
+    "tests/e2e/auth-add-partner.spec.ts",
+    "packages/missionary/components/add-partner-*",
+    "packages/api/src/missionary-portal/**",
+    "apps/missionary/app/donors/**",
+    "apps/missionary/app/api/missionary/donors/**",
+  ])(
+    "starts the Add Partner journey when %s, the journey, the dialog, the command's route or the page with both buttons, changes (AL-2678 WP5 rest)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
+    "tests/unit/acceptance/issue-2678/added-partner-visibility.postgrest.acceptance.test.ts",
+    "packages/api/src/missionary-portal/**",
+  ])(
+    "starts the added partner's visibility proof when %s, the suite or the module it drives, changes (AL-2678 WP5 rest, fix round F7)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
+    "tests/unit/acceptance/issue-2678/crm-pages.postgrest.acceptance.test.ts",
+    "packages/api/src/admin/crm/**",
+  ])(
+    "starts the paged-CRM proof when %s, the suite or the CRM module it drives, changes (AL-2678 WP5 rest r6)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
+    "tests/unit/acceptance/issue-2678/own-donor-reads.postgrest.acceptance.test.ts",
+    "packages/api/src/feed-preferences/**",
+    "packages/api/src/reads/**",
+    "packages/api/src/shared/queries.ts",
+    "packages/lib/hooks/use-donor-record.ts",
+  ])(
+    "starts the own-donor proof when %s, the suite or a reader it drives, changes (AL-2678 WP5 rest)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
     "packages/api/src/donor-portal/**",
     "packages/api/src/posts/**",
     "packages/api/src/donations/**",

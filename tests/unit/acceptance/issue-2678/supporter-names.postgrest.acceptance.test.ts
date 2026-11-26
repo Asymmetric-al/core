@@ -232,9 +232,8 @@ async function gql(query: string) {
   };
 }
 
-const fullPatch = (name: string, email: string) => ({
+const fullPatch = (name: string) => ({
   name,
-  email,
   phone: "",
   mobile: "",
   work_phone: "",
@@ -843,7 +842,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         ["R", "dR", "Donor Rook", "rook@example.test"],
         ["E", "dE", "Donor Elm", "elm@example.test"],
       ])(
-        "%s: PATCH with a full body, PATCH with tags and POST an activity answer 404 and change nothing",
+        "%s: PATCH with a full body, PATCH with tags and POST an activity answer 404 and change nothing (the full body carries no e-mail, fix round F17)",
         async (_who, key, name, email) => {
           as("C", "missionary");
           const donorId = id[key]!;
@@ -854,7 +853,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
               request(
                 "PATCH",
                 `/api/missionary/donors/${donorId}`,
-                fullPatch("Overwritten", `overwritten-${key}@example.test`),
+                fullPatch("Overwritten"),
               ),
               params,
             ),
@@ -880,7 +879,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         },
       );
 
-      it("guard: S takes the same writes", async () => {
+      it("guard: S takes the same writes (the full body carries no e-mail, fix round F17)", async () => {
         as("C", "missionary");
         const donorId = id.dS!;
         await answer(
@@ -888,7 +887,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
             request(
               "PATCH",
               `/api/missionary/donors/${donorId}`,
-              fullPatch("Donor Sage", "sage@example.test"),
+              fullPatch("Donor Sage"),
             ),
             { params: Promise.resolve({ donorId }) },
           ),

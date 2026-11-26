@@ -2,6 +2,7 @@ import {
   beginGiftIntake,
   type GiftIntakeRpcInvoker,
 } from "@asym/api/donate/begin-gift-intake";
+import { createGraphQLError } from "graphql-yoga";
 
 export type BeginGraphQLGiftIntakeInput = {
   rpc: GiftIntakeRpcInvoker;
@@ -44,6 +45,14 @@ export async function beginGraphQLGiftIntake(
   switch (result.code) {
     case "not_found":
       throw new Error("Missionary not found");
+    case "conflict":
+      throw createGraphQLError("Idempotency key already used", {
+        extensions: { code: "IDEMPOTENCY_KEY_REUSED" },
+      });
+    case "multiple_donors":
+      throw createGraphQLError("Multiple donor records for this account", {
+        extensions: { code: "MULTIPLE_DONORS" },
+      });
     case "incomplete":
       throw new Error("Failed to create donation");
     case "invalid":

@@ -1,3 +1,5 @@
+import { findOwnDonor } from "../shared/queries";
+
 const MISSIONARY_EMBED =
   "missionary:missionaries(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))";
 
@@ -33,14 +35,19 @@ export type RequestedGift = {
  */
 export function giftMismatches(
   row: Record<string, unknown>,
-  gift: RequestedGift,
+  gift: RequestedGift & { ownDonorId?: string | null },
 ): string[] {
-  const donor = row.donor as { profile?: { id?: unknown } | null } | null;
+  const donor = row.donor as {
+    id?: unknown;
+    profile?: { id?: unknown } | null;
+  } | null;
   const ownerProfileId = uuidKey(donor?.profile?.id);
+  const donorId = uuidKey(row.donor_id ?? donor?.id);
   const checks: Array<[string, boolean]> = [
     [
       "profile",
-      Boolean(ownerProfileId) && ownerProfileId === uuidKey(gift.profileId),
+      (Boolean(ownerProfileId) && ownerProfileId === uuidKey(gift.profileId)) ||
+        (Boolean(donorId) && donorId === uuidKey(gift.ownDonorId)),
     ],
     ["amount", Number(row.amount) === gift.amountCents],
     [
@@ -53,6 +60,19 @@ export function giftMismatches(
     ["fund", uuidKey(row.fund_id) === uuidKey(gift.fundId)],
   ];
   return checks.filter(([, ok]) => !ok).map(([field]) => field);
+}
+
+export async function callerGiftMismatches(
+  supabase: Parameters<typeof findOwnDonor>[0],
+  row: Record<string, unknown>,
+  gift: RequestedGift,
+  person: { userId: string; tenantId: string },
+): Promise<string[]> {
+  const mismatched = giftMismatches(row, gift);
+  if (!mismatched.includes("profile")) return mismatched;
+  const own = await findOwnDonor(supabase, person).catch(() => null);
+  if (own?.status !== "found") return mismatched;
+  return giftMismatches(row, { ...gift, ownDonorId: own.donor.id });
 }
 
 /** A UUID in one comparable form (lowercase hex, no braces or hyphens). */

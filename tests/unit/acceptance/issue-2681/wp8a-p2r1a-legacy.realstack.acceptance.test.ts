@@ -115,7 +115,7 @@ describe.skipIf(!ADMIN_URL)(
       return intake;
     }
 
-    it("E21 (F10): with 30 older provider requests in every new status and one due legacy row, the real recovery scanner dispatches only the legacy row; the legacy claims, completion and failure act on none of them; reconciliation reads none; the real summary reader reports the dispatched legacy subject (the positive control) and no provider request, dead_letter ones included; begin_donation_saga replays a provider key and writes nothing, and giftMismatches reports the provider intake as another person's gift, the mismatch on which POST /api/donations and GraphQL createDonation refuse a replay (their statuses are owned by tests/unit/donations/donations-embed-endpoints.test.ts and issue-2269/donations-embed.postgrest; no suite asserts the 409 of /api/donate)", () =>
+    it("E21 (F10): with 30 older provider requests in every new status and one due legacy row, the real recovery scanner dispatches only the legacy row; the legacy claims, completion and failure act on none of them; reconciliation reads none; the real summary reader reports the dispatched legacy subject (the positive control) and no provider request, dead_letter ones included; begin_donation_saga refuses a provider key (23505) and writes nothing (D-18, AL-2678 WP5 rest, ruling Q-C: its two idempotency lookups read only legacy_saga rows, so a provider request's key is never answered as a replay), and giftMismatches reports the provider intake as another person's gift, the mismatch on which POST /api/donations and GraphQL createDonation refuse a replay (their statuses are owned by tests/unit/donations/donations-embed-endpoints.test.ts and issue-2269/donations-embed.postgrest; no suite asserts the 409 of /api/donate)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         await grant(db, [
@@ -298,17 +298,13 @@ describe.skipIf(!ADMIN_URL)(
             )
           ).rows[0];
         const beforeCounts = await counts();
-        const replayed = (
-          await db.query(
-            `SELECT public.begin_donation_saga($1, $2, $2, 10300, 'usd', NULL, NULL, $3, NULL, NULL, '{}'::jsonb) AS r`,
-            [fx.A.tenant, user, `gift:${target.donationId}:create_payment`],
-          )
-        ).rows[0].r;
-        expect(replayed).toEqual({
-          replayed: true,
-          outbox_id: target.operationId,
-          donation_id: target.donationId,
-        });
+        const refused = await attempt(
+          db,
+          `SELECT public.begin_donation_saga($1, $2, $2, 10300, 'usd', NULL, NULL, $3, NULL, NULL, '{}'::jsonb) AS r`,
+          [fx.A.tenant, user, `gift:${target.donationId}:create_payment`],
+        );
+        expect(refused.ok).toBe(false);
+        expect(refused.code).toBe("23505");
         expect(await counts()).toEqual(beforeCounts);
         const stored = (
           await db.query(
@@ -505,11 +501,9 @@ describe.skipIf(!ADMIN_URL)(
         expect(direct).toBe("42501 not_found");
       }));
 
-    it("F26: the guard's policies hide every legacy row: on donations it sees only line-based intakes, on the outbox only provider requests, of the entered tenant", () =>
+    it("F26: the guard's policies hide every legacy row: on donations it sees only line-based intakes, on the outbox only provider requests, of the entered tenant (D-18, AL-2678 WP5 rest: the legacy gift is begun before the guard's intakes enter tenant B in the same transaction, because the Party writer the saga now calls writes only in the tenant a transaction entered)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
-        const a = await guardIntake(db, fx.A);
-        const b = await guardIntake(db, fx.B);
         await grant(db, HOSTED_SERVICE_GRANTS);
         const user = randomUUID();
         await db.query("INSERT INTO auth.users (id) VALUES ($1)", [user]);
@@ -521,6 +515,8 @@ describe.skipIf(!ADMIN_URL)(
           )
         ).rows[0].r;
         await role(db, null);
+        const a = await guardIntake(db, fx.A);
+        const b = await guardIntake(db, fx.B);
         await enterAs(db, "tenant_guard", fx.A.tenant);
         const intakes = (
           await db.query("SELECT id, intake_format FROM public.donations")

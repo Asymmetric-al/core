@@ -124,11 +124,11 @@ describe("#492 criterion 3: ROLE_DEFAULT_BUNDLES", () => {
 });
 
 describe("#492 criterion 12: capabilityRegistryRows()", () => {
-  it("criterion 12: 28 capability rows mirror the registry, sorted by key (18 at #492; AL-2675 adds ten)", async () => {
+  it("criterion 12: 29 capability rows mirror the registry, sorted by key (18 at #492; AL-2675 adds ten; D-18, AL-2678 WP5 rest adds the missionary's partners.add)", async () => {
     const { CAPABILITY_REGISTRY } = await H.load("registry");
     const { capabilityRegistryRows } = await H.load("rows");
     const { capabilities } = capabilityRegistryRows();
-    expect(capabilities).toHaveLength(28);
+    expect(capabilities).toHaveLength(29);
     expect(capabilities.map((r: { key: string }) => r.key)).toEqual(
       H.sorted(H.ALL),
     );

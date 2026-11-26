@@ -126,10 +126,6 @@ export function EditDonorDialog({
               Contact information
             </h4>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <form.AppField name="email">
-                {(field) => <field.TextField label="Email" type="email" />}
-              </form.AppField>
-
               <form.AppField name="phone">
                 {(field) => <field.TextField label="Primary phone" />}
               </form.AppField>
