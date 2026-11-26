@@ -125,21 +125,46 @@ export async function ensurePrincipalLink(
   return row;
 }
 
+async function createOwnedRow(
+  payload: PayloadStore,
+  collection: CollectionSlug,
+  data: Record<string, unknown> & { id: string; tenant: string },
+): Promise<Doc> {
+  const where: Where = { id: { equals: data.id } };
+  const owned = (row: Doc | null): Doc | null => {
+    if (row && row.tenant !== data.tenant) {
+      throw new Error(
+        `The ${collection} row ${data.id} belongs to another organization.`,
+      );
+    }
+    return row;
+  };
+  const existing = owned(await findOne(payload, collection, where));
+  if (existing) return existing;
+  try {
+    return (await payload.create({
+      collection,
+      context: serviceContext(),
+      data,
+      depth: 0,
+      overrideAccess: true,
+    })) as unknown as Doc;
+  } catch (error) {
+    if (!isUniqueViolation(error)) throw error;
+    const row = owned(await findOne(payload, collection, where));
+    if (!row) throw error;
+    return row;
+  }
+}
+
 export async function createSitePresentation(
   payload: PayloadStore,
   site: { siteId: string; tenantId: string },
 ): Promise<Doc> {
-  const existing = await findOne(payload, "site-presentations", {
-    id: { equals: site.siteId },
+  return createOwnedRow(payload, "site-presentations", {
+    id: site.siteId,
+    tenant: site.tenantId,
   });
-  if (existing) return existing;
-  return (await payload.create({
-    collection: "site-presentations",
-    context: serviceContext(),
-    data: { id: site.siteId, tenant: site.tenantId },
-    depth: 0,
-    overrideAccess: true,
-  })) as unknown as Doc;
 }
 
 export type MediaRecordInput = {
@@ -154,23 +179,13 @@ export async function registerMediaRecord(
   payload: PayloadStore,
   media: MediaRecordInput,
 ): Promise<Doc> {
-  const existing = await findOne(payload, "media", {
-    id: { equals: media.id },
+  return createOwnedRow(payload, "media", {
+    id: media.id,
+    tenant: media.tenantId,
+    alt: media.alt,
+    credit: media.credit ?? null,
+    folder: media.folder ?? null,
   });
-  if (existing) return existing;
-  return (await payload.create({
-    collection: "media",
-    context: serviceContext(),
-    data: {
-      id: media.id,
-      tenant: media.tenantId,
-      alt: media.alt,
-      credit: media.credit ?? null,
-      folder: media.folder ?? null,
-    },
-    depth: 0,
-    overrideAccess: true,
-  })) as unknown as Doc;
 }
 
 export async function deleteMediaRecord(
