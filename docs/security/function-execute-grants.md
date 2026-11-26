@@ -421,3 +421,7 @@ narrows `service_role` on `public.parties` from table `INSERT` and `UPDATE` to
 `INSERT (id, tenant_id, display_name, import_batch_id, created_at, updated_at)`
 and `UPDATE (display_name, import_batch_id, updated_at)`: the level, its
 source, the alias and do-not-publish change only through the safety commands.
+It replaces `tenant_guard.restrict_worker_publication` so that an alias the
+safety normalization reduces to nothing is no alias; its owner (`tenant_guard`),
+security and grantees (`tenant_guard`, `authenticated`) do not change, and the
+file restates part 1's `REVOKE` and `GRANT` for it.
