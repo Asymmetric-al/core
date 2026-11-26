@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { CAPABILITY_REGISTRY } from "../../../packages/auth/capabilities/registry";
+import { EXCLUDED_SCHEMA_PATTERN } from "../../../scripts/release/schema-fingerprint.mjs";
 import keys from "../../../scripts/verify/command-capabilities.json";
 import {
   preMembershipEntries,
@@ -40,7 +41,6 @@ import {
   stripParens,
   tenantBound,
 } from "../../../scripts/verify/tenant-rls-catalog.mjs";
-import { EXCLUDED_SCHEMA_PATTERN } from "../../../scripts/release/schema-fingerprint.mjs";
 import { preMembershipCommandRows } from "../../fixtures/pre-membership-commands";
 
 const table = (name: string, over: Record<string, unknown> = {}) => ({

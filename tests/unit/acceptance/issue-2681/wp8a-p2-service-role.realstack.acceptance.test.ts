@@ -5,15 +5,6 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
-  ANON_DEFINER_ALLOWLIST_PATH,
-  TENANT_POLICY_EXCEPTIONS_PATH,
-  TENANT_RLS_CATALOG_SQL,
-  TENANT_RLS_EXCEPTIONS_PATH,
-  evaluateTenantRlsCatalog,
-  runTenantRlsCatalogGate,
-} from "../../../../scripts/verify/tenant-rls-catalog.mjs";
-import { Replay } from "../issue-2674/privileges-harness";
-import {
   ADMIN_URL,
   GUARD_TEST_REVOKES,
   IN_MIGRATE_JOB,
@@ -28,6 +19,15 @@ import {
   work,
   type Fixture,
 } from "./wp8a-p2r2a-harness";
+import {
+  ANON_DEFINER_ALLOWLIST_PATH,
+  TENANT_POLICY_EXCEPTIONS_PATH,
+  TENANT_RLS_CATALOG_SQL,
+  TENANT_RLS_EXCEPTIONS_PATH,
+  evaluateTenantRlsCatalog,
+  runTenantRlsCatalogGate,
+} from "../../../../scripts/verify/tenant-rls-catalog.mjs";
+import { Replay } from "../issue-2674/privileges-harness";
 
 const BUILD_TIMEOUT = 900_000;
 const SEALED = [
