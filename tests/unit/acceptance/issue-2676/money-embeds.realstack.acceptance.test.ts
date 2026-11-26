@@ -873,8 +873,13 @@ describe.skipIf(!ADMIN_URL)(
       TARGET_TABLES.map((target) => [money, target] as const),
     );
 
+    const LINE_KEYED = new Set([
+      "staged_gift_allocations>funds",
+      "staged_gift_allocations>missionaries",
+    ]);
+
     it.each(allPairs)(
-      "pair %s <-> %s has one composite relationship in both directions and zero single-column FKs",
+      "pair %s <-> %s has one composite relationship in both directions and zero single-column FKs (D-18, AL-2681 WP8a part 2 R2a: staged_gift_allocations has a second composite key to funds and to missionaries, carrying the line's entity and fee flag; no live read embeds a target from allocations, INVENTORY above)",
       async (money, target) => {
         const { rows } = await db.query(
           `with pk as (select conrelid, conkey from pg_constraint where contype = 'p'),
@@ -897,7 +902,7 @@ describe.skipIf(!ADMIN_URL)(
           [`public.${money}`, `public.${target}`],
         );
         expect(rows[0]).toEqual({
-          direct: 1,
+          direct: LINE_KEYED.has(`${money}>${target}`) ? 2 : 1,
           single_col_fks: 0,
           junctions: 0,
         });

@@ -324,10 +324,10 @@ describe.skipIf(!ADMIN_URL)(
         const out = await fn();
         await role(db, null);
         await db.query(
-          "REVOKE INSERT ON TABLE public.donations, public.donation_saga_outbox FROM tenant_guard",
+          "REVOKE INSERT ON TABLE public.donations, public.donation_intake_lines FROM tenant_guard",
         );
         await db.query(
-          "REVOKE EXECUTE ON FUNCTION public.normalize_currency_code(text) FROM tenant_guard",
+          "REVOKE INSERT (max_attempts) ON TABLE public.donation_saga_outbox FROM tenant_guard",
         );
         await db.query("COMMIT");
         return out;
@@ -505,7 +505,7 @@ describe.skipIf(!ADMIN_URL)(
         }
       }));
 
-    it("C4: two workers in two committed sessions, the first held at the provider until the second returns: one claimed, one held, one request, linked", async () => {
+    it("C4: two workers in two committed sessions, the first held at the provider until the second returns: one claimed, one held, one request, linked (D-18, AL-2681 R2a: the committed test grants are revoked by column and by the new lines table, never by a table REVOKE on the outbox, which would strip R2a's column INSERT)", async () => {
       await db.query("BEGIN");
       const fx = await seedTwoTenants(db);
       await db.query("COMMIT");
