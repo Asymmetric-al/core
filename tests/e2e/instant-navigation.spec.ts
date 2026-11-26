@@ -1,5 +1,5 @@
 import { instant } from "@next/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page, type Request } from "@playwright/test";
 
 /**
  * Instant Navigation guards (Next.js Cache Components + Partial Prefetching)
@@ -42,6 +42,41 @@ const NAV_TARGETS = [
   },
 ] as const;
 
+const PREFETCH_QUIET_MS = 500;
+
+function watchPrefetches(page: Page) {
+  const inFlight = new Set<Request>();
+  const prefetched = new Set<string>();
+  let lastChange = Date.now();
+  page.on("request", (request) => {
+    if (request.headers()["rsc"] !== "1") return;
+    inFlight.add(request);
+    lastChange = Date.now();
+  });
+  page.on("response", (response) => {
+    if (!inFlight.delete(response.request())) return;
+    prefetched.add(new URL(response.url()).pathname);
+    lastChange = Date.now();
+  });
+  page.on("requestfailed", (request) => {
+    if (inFlight.delete(request)) lastChange = Date.now();
+  });
+  return async function prefetchesSettled(pathname: string) {
+    await expect
+      .poll(
+        () =>
+          prefetched.has(pathname) &&
+          inFlight.size === 0 &&
+          Date.now() - lastChange >= PREFETCH_QUIET_MS,
+        {
+          message: `the page's own prefetches, ${pathname} among them, have landed`,
+          intervals: [100],
+        },
+      )
+      .toBe(true);
+  };
+}
+
 test.describe("Instant navigation (donor public site)", () => {
   test.skip(
     !rigActive,
@@ -52,6 +87,7 @@ test.describe("Instant navigation (donor public site)", () => {
     test(`navbar navigation to ${target.path} commits the route shell under instant()`, async ({
       page,
     }) => {
+      const prefetchesSettled = watchPrefetches(page);
       await page.goto("/");
       await page.waitForLoadState("domcontentloaded");
       await expect(page.locator("#__next_error__")).toHaveCount(0);
@@ -72,6 +108,7 @@ test.describe("Instant navigation (donor public site)", () => {
         await mobileMenuTrigger.click();
       }
       await expect(trigger).toBeVisible();
+      await prefetchesSettled(target.path);
 
       await instant(page, async () => {
         await trigger.click();
@@ -95,6 +132,7 @@ test.describe("Instant navigation (donor public site)", () => {
   test("navbar logo navigation commits the home hero under instant()", async ({
     page,
   }) => {
+    const prefetchesSettled = watchPrefetches(page);
     await page.goto("/about");
     await page.waitForLoadState("domcontentloaded");
     await expect(page.locator("#__next_error__")).toHaveCount(0);
@@ -105,6 +143,7 @@ test.describe("Instant navigation (donor public site)", () => {
       .filter({ visible: true })
       .first();
     await expect(logo).toBeVisible();
+    await prefetchesSettled("/");
 
     await instant(page, async () => {
       await logo.click();
@@ -122,6 +161,7 @@ test.describe("Instant navigation (donor public site)", () => {
   test("worker card navigation commits the profile shell and defers giving data under instant()", async ({
     page,
   }) => {
+    const prefetchesSettled = watchPrefetches(page);
     await page.goto("/workers");
     await page.waitForLoadState("domcontentloaded");
     await expect(page.locator("#__next_error__")).toHaveCount(0);
@@ -131,6 +171,7 @@ test.describe("Instant navigation (donor public site)", () => {
       .first();
     await card.scrollIntoViewIfNeeded();
     await expect(card).toBeVisible();
+    await prefetchesSettled(String(await card.getAttribute("href")));
 
     await instant(page, async () => {
       await card.click();
