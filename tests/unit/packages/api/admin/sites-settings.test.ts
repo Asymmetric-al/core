@@ -203,6 +203,20 @@ function expectNoStore(response: Response, label: string) {
   expect(response.headers.get("cache-control"), label).toBe("no-store");
 }
 
+function serializedForLogs(value: unknown): string {
+  return JSON.stringify(value, (_key, item: unknown) =>
+    item instanceof Error
+      ? {
+          ...item,
+          name: item.name,
+          message: item.message,
+          stack: item.stack,
+          cause: item.cause,
+        }
+      : item,
+  );
+}
+
 let consoleError: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
@@ -562,7 +576,7 @@ describe("AL-2676 WP3b part 3: the Sites and brand routes (T3)", () => {
       const body = await bodyOf(response);
       expect(body.code).toBe(code);
       expect(body.error).toBe(TEXTS[code!]);
-      const logged = JSON.stringify([
+      const logged = serializedForLogs([
         consoleError.mock.calls,
         h.captureError.mock.calls,
       ]);
@@ -596,7 +610,7 @@ describe("AL-2676 WP3b part 3: the Sites and brand routes (T3)", () => {
       }));
       const response = await route.handler(route.request());
       expect(response.status).toBe(500);
-      const logged = JSON.stringify([
+      const logged = serializedForLogs([
         consoleError.mock.calls,
         h.captureError.mock.calls,
       ]);
