@@ -101,6 +101,7 @@ export default defineConfig({
     "**/auth-request-scope-reads.spec.ts",
     "**/auth-crm-reads.spec.ts",
     "**/auth-member-care.spec.ts",
+    "**/auth-worker-record.spec.ts",
     "**/auth-members-invitations.spec.ts",
     "**/auth-sites-settings.spec.ts",
   ],

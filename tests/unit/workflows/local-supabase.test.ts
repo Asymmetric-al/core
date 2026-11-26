@@ -284,6 +284,44 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
       expect(workflow).toContain(`      - ${file}\n`);
   });
 
+  it("requires the worker-record proof through PostgREST after the supporter-name proof, started by its suite, the module and routes it drives and the screens and journey over them (AL-2678 r2b1)", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2678/worker-record.postgrest.acceptance.test.ts";
+    const marker = "bunx vitest run --maxWorkers=1 " + suite;
+    const run = step("Verify the worker record through PostgREST");
+    expect(run).toBeDefined();
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    for (const variable of [
+      "WP5_IDENTITY_IT_URL",
+      "WP5_IDENTITY_IT_DATABASE_URL",
+      "WP5_IDENTITY_IT_SERVICE_KEY",
+      "WP5_IDENTITY_IT_ANON_KEY",
+    ])
+      expect(run).toContain(variable);
+    expect(run).toContain("supabase -- status -o json");
+    expect(
+      run!.split("\n").map((line) => line.trim()),
+      "the Vitest run is a command of its own, so its exit status fails the step",
+    ).toContain(marker);
+    expect(run).not.toMatch(/\|\||;\s*true\b|\bset \+e\b|continue-on-error/);
+    expect(at(marker)).toBeGreaterThan(
+      at(
+        "bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/supporter-names.postgrest.acceptance.test.ts",
+      ),
+    );
+    for (const file of [
+      suite,
+      "packages/api/src/admin/workers/**",
+      "apps/admin/app/api/admin/workers/**",
+      "apps/admin/app/(app)/workers/**",
+      "apps/admin/features/mission-control/workers/**",
+      "tests/e2e/auth-worker-record.spec.ts",
+    ])
+      expect(workflow).toContain(`      - ${file}\n`);
+    const config = readFileSync("playwright.auth-mail.config.ts", "utf8");
+    expect(config).toContain('"**/auth-worker-record.spec.ts"');
+  });
+
   it("exercises the missionary handlers against the stack after fingerprinting", () => {
     const suite =
       "tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts";

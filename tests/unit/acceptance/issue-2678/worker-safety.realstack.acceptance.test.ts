@@ -26,6 +26,7 @@ const LEVELS_MOVE =
   "A worker's level and alias change through restrict_worker_publication and lift_worker_restriction";
 const NO_CAPABILITY =
   "tenant_guard: the selected assignment does not hold the capability this command requires";
+const SERVICE_DENIED = "42501 permission denied for table parties";
 const NOT_LIVE =
   "tenant_guard: the selected assignment is not a live assignment of the caller in this tenant";
 const REMOVED_SINCE_R1 = [
@@ -325,7 +326,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("a restricted or high-risk level without an alias, or with the legal name as alias, is refused from either table for every role", async () => {
+    it("a restricted or high-risk level without an alias, or with the legal name as alias, is refused from either table for every role (D-18, AL-2678 r2b1 Q6: service_role may no longer write a Party's level or alias at all, so its every attempt is 42501 permission denied for table parties; postgres and tenant_guard unchanged)", async () => {
       await db.query("savepoint s");
       try {
         await db.query(
@@ -362,14 +363,16 @@ describe.skipIf(!ADMIN_URL)(
                   `update public.parties set security_level = '${level}', public_alias = ${alias} where id = '${id.pMA}'`,
                 ),
                 `${role} ${level} ${alias}`,
-              ).toBe(`23514 ${problem}`);
+              ).toBe(
+                role === "service_role" ? SERVICE_DENIED : `23514 ${problem}`,
+              );
             expect(
               await attempt(
                 role,
                 `update public.parties set security_level = '${level}', public_alias = 'Shepherd' where id = '${id.pMA}'`,
               ),
               `${role} ${level} with a distinct alias`,
-            ).toBeNull();
+            ).toBe(role === "service_role" ? SERVICE_DENIED : null);
           }
           await db.query("savepoint level");
           await db.query(
@@ -740,7 +743,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("a signed-in user reads nothing of party_restricted directly; tenant staff read a worker's legal name through the read function; a donor, a missionary, another tenant's staff and an operator without a staff membership do not", async () => {
+    it("a signed-in user reads nothing of party_restricted directly; tenant staff with safety.restrict_publication read a worker's legal name only through the audited reveal with a reason; plain staff, a donor, a missionary, another tenant's staff and an operator without a staff membership do not; read_party_restricted runs for nobody (D-18, AL-2678 r2b1 R2B-Q1: the read function lost its signed-in grant and plain staff lost the read)", async () => {
       await db.query("savepoint s");
       try {
         expect(
@@ -754,21 +757,21 @@ describe.skipIf(!ADMIN_URL)(
           expect(direct.code).toBe("42501");
           expect(direct.message).toBe("permission denied for schema private");
         }
-        const read = (who: object) =>
-          run(
+        const reveal = (who: object) =>
+          act(
             who,
-            `select party_id, legal_name, real_country, precise_location from public.read_party_restricted('${id.pMA}')`,
+            `select public.reveal_worker_identity('${id.TA}', '${id.pMA}', 'Field security review') as r`,
           );
-        for (const who of [admin, plainStaff])
-          expect((await read(who)).rows).toEqual([
-            {
-              party_id: id.pMA,
-              legal_name: "Legal Name",
-              real_country: "Real Country",
-              precise_location: "Precise Place",
-            },
-          ]);
+        const revealed = await reveal(admin);
+        expect(revealed.code, revealed.message).toBeNull();
+        expect(revealed.rows[0]!.r).toEqual({
+          party_id: id.pMA,
+          legal_name: "Legal Name",
+          real_country: "Real Country",
+          precise_location: "Precise Place",
+        });
         for (const who of [
+          plainStaff,
           donor,
           missionary,
           staffB,
@@ -776,9 +779,19 @@ describe.skipIf(!ADMIN_URL)(
           operator,
           { sub: "UOP", aal: "aal2" },
         ]) {
-          const result = await read(who);
-          expect(result.code).toBeNull();
+          const result = await reveal(who);
+          expect(result.code, JSON.stringify(who)).toBe("42501");
           expect(result.rows).toEqual([]);
+        }
+        for (const who of [admin, plainStaff, donor, missionary, staffB]) {
+          const old = await run(
+            who,
+            `select * from public.read_party_restricted('${id.pMA}')`,
+          );
+          expect(old.code).toBe("42501");
+          expect(old.message).toBe(
+            "permission denied for function read_party_restricted",
+          );
         }
       } finally {
         await db.query("rollback to savepoint s");

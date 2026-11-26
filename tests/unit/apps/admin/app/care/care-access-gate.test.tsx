@@ -43,6 +43,12 @@ vi.mock("@asym/database/hooks", () => ({
     isError: false,
     refetch: vi.fn(),
   }),
+  useUnreviewedWorkersCount: () => ({
+    data: 0,
+    isPending: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
   useCareProfile: vi.fn(),
   useCareActivity: vi.fn(),
   useCarePrivateNotes: vi.fn(),
