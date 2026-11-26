@@ -45,6 +45,18 @@ describe("the local Supabase workflow's path filter", () => {
     expect(paths).toContain(file);
   });
 
+  it.each([
+    "apps/admin/app/(app)/settings/sites/**",
+    "apps/admin/app/api/admin/sites/**",
+    "packages/api/src/admin/sites/**",
+    "tests/e2e/auth-sites-settings.spec.ts",
+  ])(
+    "starts the Sites settings journey and its PostgREST proof when %s changes (AL-2676 WP3b part 3)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
   it("D-18 (AL-2676 WP3a part 2a adds provisioning's second-factor proof to the stack): starts the stack when that proof changes", () => {
     expect(paths).toContain(
       "tests/unit/acceptance/issue-2676/tenant-provisioning.localstack.test.ts",
