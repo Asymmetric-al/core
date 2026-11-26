@@ -30,12 +30,20 @@ export const recordPageWriteMode: CollectionBeforeOperationHook = ({
   req,
 }) => {
   if (operation === "update" || operation === "restoreVersion") {
-    const draft = (args as { draft?: unknown }).draft;
+    const { draft, unpublishAllLocales } = args as {
+      draft?: unknown;
+      unpublishAllLocales?: unknown;
+    };
     (req.context as Record<PropertyKey, unknown>)[DRAFT_WRITE] =
-      draft === true || draft === "true";
+      (draft === true || draft === "true") &&
+      !payloadFlagIsSet(unpublishAllLocales);
   }
   return args;
 };
+
+function payloadFlagIsSet(value: unknown): boolean {
+  return typeof value === "string" ? value === "true" : Boolean(value);
+}
 
 function isDraftWrite(req: PayloadRequest): boolean {
   return (req.context as Record<PropertyKey, unknown>)[DRAFT_WRITE] === true;
