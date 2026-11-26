@@ -150,8 +150,8 @@ const INVALID_CLAIMS = [
   "1e3",
   "0x7",
   "7, 7",
-  "٧",
-  "７",
+  "Ù§",
+  "ï¼",
   "9007199254740992",
   "x",
 ];
@@ -476,11 +476,12 @@ describe.each([
 
     it("getAuthContext(request) answers as without them, with or without other claims", async () => {
       for (const rows of [P, Q]) {
-        for (const claims of [
+        const claimSets: Record<string, string>[] = [
           {},
           { "x-asym-tenant": TA },
           { "x-asym-tenant": TA, "x-asym-assignment": P_DEV_A.id },
-        ]) {
+        ];
+        for (const claims of claimSets) {
           mocks.rows = rows;
           const without = await getAuthContext(apiRequest(claims));
           const withThem = await getAuthContext(

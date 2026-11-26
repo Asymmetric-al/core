@@ -13,6 +13,7 @@ import {
 const USER = "00000000-0000-4000-8000-0000000000d1";
 const TA = "00000000-0000-0000-0000-000000000001";
 const TB = "00000000-0000-0000-0000-000000000002";
+const TC = "0000000a-000b-400c-800d-00000000000e";
 const NAME = "x-asym-name-tenant";
 const NAME_GEN = "x-asym-name-generation";
 const CLAIM = "x-asym-scope-generation";
@@ -481,13 +482,17 @@ describe("on: the configuration's redirects answer only after the name is admitt
   });
 
   it.each([
-    `/${TB}/ministry-updates`,
-    `/${TA.toUpperCase()}/ministry-updates`,
-    `/${TA}~finance/ministry-updates`,
-  ])("missionary %s on A's name: not answered by the table", async (path) => {
-    const response = await stamped("missionary", path);
-    expect(response.headers.get("location") ?? "").not.toMatch(/\/feed$/);
-  });
+    [TA, `/${TB}/ministry-updates`],
+    [TC, `/${TC.toUpperCase()}/ministry-updates`],
+    [TA, `/${TA}~finance/ministry-updates`],
+  ])(
+    "missionary, the name's organization %s, %s: not answered by the table",
+    async (tenantId, path) => {
+      state.answer = () => home(tenantId, 7);
+      const response = await stamped("missionary", path);
+      expect(response.headers.get("location") ?? "").not.toMatch(/\/feed$/);
+    },
+  );
 
   it.each([
     ["refused", () => ({ data: [], error: null }), 404],

@@ -1,6 +1,10 @@
-import { isServeUnderPathsEnabled } from "@asym/database/app-base-path";
+import {
+  appBasePath,
+  isServeUnderPathsEnabled,
+} from "@asym/database/app-base-path";
 import {
   ASSIGNMENT_HEADER,
+  SCOPE_GENERATION_HEADER,
   SCOPE_REFUSED_HEADER,
   TENANT_HEADER,
 } from "@asym/database/request-scope-headers";
@@ -76,7 +80,12 @@ export function isSameOriginDownload(request: Request): boolean {
 }
 
 export const ROLE_CLASS_HEADER = "x-asym-role-class";
-export { ASSIGNMENT_HEADER, SCOPE_REFUSED_HEADER, TENANT_HEADER };
+export {
+  ASSIGNMENT_HEADER,
+  SCOPE_GENERATION_HEADER,
+  SCOPE_REFUSED_HEADER,
+  TENANT_HEADER,
+};
 
 export const ADDRESS_PREFIX_HEADER = "x-asym-address-prefix";
 
@@ -84,13 +93,39 @@ export const TENANT_REWRITE_HEADER = "x-asym-tenant-rewrite";
 
 export const NAME_TENANT_HEADER = "x-asym-name-tenant";
 
+export const NAME_GENERATION_HEADER = "x-asym-name-generation";
+
 export const PAGE_SCOPE_HEADERS = [
   TENANT_HEADER,
   ASSIGNMENT_HEADER,
   ADDRESS_PREFIX_HEADER,
   TENANT_REWRITE_HEADER,
   NAME_TENANT_HEADER,
+  NAME_GENERATION_HEADER,
+  SCOPE_GENERATION_HEADER,
 ] as const;
+
+export const API_SCOPE_CLAIM_HEADERS: readonly string[] = [
+  TENANT_HEADER,
+  ASSIGNMENT_HEADER,
+  SCOPE_GENERATION_HEADER,
+];
+
+export interface VerifiedNameFacts {
+  nameTenantId?: string;
+  nameGeneration?: number;
+}
+
+export function setVerifiedNameHeaders(
+  headers: Headers,
+  { nameTenantId, nameGeneration }: VerifiedNameFacts,
+): void {
+  if (!nameTenantId) return;
+  headers.set(NAME_TENANT_HEADER, nameTenantId);
+  if (nameGeneration !== undefined) {
+    headers.set(NAME_GENERATION_HEADER, String(nameGeneration));
+  }
+}
 
 export type NameTenantState =
   | { readonly kind: "off" }
@@ -118,6 +153,38 @@ export function isNameTenantRefused(state: NameTenantState): boolean {
 
 export function nameTenantIdOf(state: NameTenantState): string | null {
   return state.kind === "valid" ? state.tenantId : null;
+}
+
+export type NameGenerationState =
+  | { readonly kind: "off" }
+  | { readonly kind: "valid"; readonly generation: number }
+  | { readonly kind: "absent" }
+  | { readonly kind: "invalid" };
+
+const NAME_GENERATION = /^[1-9][0-9]*$/;
+
+export function readNameGeneration(headers: {
+  get(name: string): string | null;
+}): NameGenerationState {
+  if (!isServeUnderPathsEnabled()) return { kind: "off" };
+  const value = headers.get(NAME_GENERATION_HEADER);
+  if (value === null) return { kind: "absent" };
+  if (!NAME_GENERATION.test(value)) return { kind: "invalid" };
+  const generation = Number(value);
+  return Number.isSafeInteger(generation)
+    ? { kind: "valid", generation }
+    : { kind: "invalid" };
+}
+
+export function isNameGenerationRefused(
+  name: NameTenantState,
+  generation: NameGenerationState,
+): boolean {
+  if (name.kind !== "valid") return false;
+  return (
+    generation.kind === "invalid" ||
+    (generation.kind === "absent" && appBasePath() !== "")
+  );
 }
 
 const ROLE_CLASSES: readonly RoleClass[] = ["donor", "missionary", "staff"];

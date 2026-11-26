@@ -33,7 +33,8 @@
     "./front": "./front.ts",
     "./front-stamp": "./front-stamp.ts",
     "./verified-name": "./verified-name.ts",
-    "./home-name": "./home-name.ts"
+    "./home-name": "./home-name.ts",
+    "./legacy-redirects": "./legacy-redirects.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

@@ -9,6 +9,7 @@ import {
   STAFF_READ_ONLY_EXEMPT_PREFIXES,
   withoutFrontHeaders,
 } from "@asym/auth/front";
+import { answerAdmittedRedirect } from "@asym/auth/legacy-redirects";
 import { createAuthMiddleware } from "@asym/auth/middleware";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
 import {
@@ -20,6 +21,7 @@ import {
   isServeUnderPathsEnabled,
 } from "@asym/database/document-reload";
 
+import { legacyRedirects } from "./lib/legacy-redirects";
 import { readWebStudioTenantCookie } from "./src/cms/web-studio-tenant-cookie";
 
 import type { NextRequest } from "next/server";
@@ -79,10 +81,12 @@ export async function proxy(request: NextRequest) {
   );
   if (name.kind === "refused") return frontNotFound();
   if (name.kind === "unavailable") return verifiedNameUnavailable();
-  const response = await authProxy(
-    asStampedRequest(request, admission.origin),
-    { nameTenantId: name.tenantId },
-  );
+  const response =
+    answerAdmittedRedirect(request, legacyRedirects) ??
+    (await authProxy(asStampedRequest(request, admission.origin), {
+      nameTenantId: name.tenantId,
+      nameGeneration: name.generation,
+    }));
   return rebaseLocation(response, request.nextUrl.origin, admission.origin);
 }
 
