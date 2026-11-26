@@ -1255,13 +1255,16 @@ census exports, empty the content tables as `cms_owner` in one transaction,
 then run the check again.
 
 **3. The window.** Between the migration and admin's promotion (minutes),
-the 2a admin build runs on the new schema. Web Studio's pages, REST calls,
-preview and server functions answer `500` and write nothing (the 2a strategy
-reads the dropped `cms.tenants`). The legacy `/api/media/file/*` redirect
-ends in `500` signed in or out, where before this release it ends in `401`
-signed out and `403` signed in: the 2a file route queries upload columns the
-new `cms.media` lacks. The public site makes no CMS request, and nothing else
-reads `cms`.
+the 2a admin build runs on the new schema, and Web Studio writes nothing. The
+2a strategy's read of the dropped `cms.tenants` fails and Payload treats the
+request as signed out: a signed-in editor's REST calls answer `403`, its pages
+send the editor to Web Studio's sign-in page, and a signed-out REST call
+answers `401`. The legacy `/api/media/file/*` redirect ends in `500` signed
+in or out, where before this release it ends in `401` signed out and `403`
+signed in: the 2a file route queries upload columns the new `cms.media` lacks.
+Seen on 26 November 2026 with admin at `7ae2909fa` on a database this release
+migrated; preview and server functions use the same strategy but were not
+called. The public site makes no CMS request, and nothing else reads `cms`.
 
 **4. If a run stops after `migrate`**, read the ledger, read-only:
 
