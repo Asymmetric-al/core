@@ -6,7 +6,6 @@ const PREFERRED_CONTACT_VALUES = ["email", "phone", "text"] as const;
 
 export const editDonorSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters"),
-  email: z.email("Invalid email address"),
   phone: z.string(),
   mobile: z.string(),
   work_phone: z.string(),
@@ -33,7 +32,6 @@ export type EditDonorFormValues = z.infer<typeof editDonorSchema>;
 
 export type EditDonorFormSource = {
   name?: string | null;
-  email?: string | null;
   phone?: string | null;
   mobile?: string | null;
   work_phone?: string | null;
@@ -63,7 +61,6 @@ export function createInitialEditDonorFormValues(
 ): EditDonorFormValues {
   return {
     name: donor?.name || "",
-    email: donor?.email || "",
     phone: donor?.phone || "",
     mobile: donor?.mobile || "",
     work_phone: donor?.work_phone || "",
