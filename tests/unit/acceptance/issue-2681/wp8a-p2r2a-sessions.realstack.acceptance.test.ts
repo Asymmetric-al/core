@@ -7,6 +7,7 @@ import {
   IN_MIGRATE_JOB,
   apply,
   claimEvent,
+  enqueue,
   inTx,
   lineIntake,
   moneyRows,
@@ -27,7 +28,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2681 WP8a part 2 R2a: two applies on one payment (index 4.1, 4.8; real stack; C7 (b) commits and removes its own tenants)",
+  "AL-2681 WP8a part 2 R2a: two applies on one payment (index 4.1, 4.8; real stack; C7 (b) and the two C14 races commit and remove their own tenants)",
   () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
     const sessions: pg.Client[] = [];
@@ -43,6 +44,67 @@ describe.skipIf(!ADMIN_URL)(
       await s.connect();
       sessions.push(s);
       return s;
+    }
+
+    type Settled = { value: Outcome } | { error: unknown };
+
+    async function heldOnLock(
+      watcher: pg.Client,
+      pid: number,
+      early: { settled?: Settled },
+    ) {
+      for (let i = 0; i < 200; i += 1) {
+        if (early.settled !== undefined) return false;
+        const r = await watcher.query(
+          "SELECT wait_event_type FROM pg_stat_activity WHERE pid = $1",
+          [pid],
+        );
+        if (r.rows[0]?.wait_event_type === "Lock") return true;
+        await new Promise((done) => setTimeout(done, 25));
+      }
+      return false;
+    }
+
+    function directCore(s: pg.Client, tenant: string, eventId: string) {
+      const early: { settled?: Settled } = {};
+      const pending: Promise<Settled> = (async () => {
+        await s.query("BEGIN");
+        await s.query("SET LOCAL ROLE tenant_guard");
+        await s.query("SELECT tenant_guard.enter($1)", [tenant]);
+        return (
+          await s.query(
+            "SELECT tenant_guard.money_apply_payment_event($1) AS r",
+            [eventId],
+          )
+        ).rows[0].r as Outcome;
+      })().then(
+        (value) => ({ value }),
+        (error: unknown) => ({ error }),
+      );
+      void pending.then((settled) => {
+        early.settled = settled;
+      });
+      return { early, pending };
+    }
+
+    async function nothingApplied(
+      tenant: string,
+      donationId: string,
+      eventId: string,
+    ) {
+      await role(db, null);
+      return (
+        await db.query(
+          `SELECT (SELECT count(*) FROM public.payment_observations WHERE event_id = $3)::int AS observations,
+                  (SELECT count(*) FROM public.staged_gifts WHERE donation_id = $2)::int AS gifts,
+                  (SELECT count(*) FROM public.staged_gift_allocations WHERE tenant_id = $1)::int AS allocations,
+                  (SELECT status FROM public.donations WHERE id = $2) AS status,
+                  (SELECT count(*) FROM public.audit_logs WHERE tenant_id = $1 AND action = 'payment_applied')::int AS audit,
+                  (SELECT count(*) FROM public.mission_control_task_links
+                    WHERE record_id = $3::text AND relationship = 'payment_contradiction')::int AS links`,
+          [tenant, donationId, eventId],
+        )
+      ).rows[0] as Record<string, unknown>;
     }
 
     it("C7 (a): while event 1 holds the account's sync lease, event 2's claim answers account_busy; after event 1 completes, event 2 claims and applies as no_change", () =>
@@ -160,6 +222,182 @@ describe.skipIf(!ADMIN_URL)(
             )
           ).rows[0],
         ).toEqual({ donations: false, lines: false });
+      } finally {
+        const open = sessions.splice(0);
+        await Promise.all(open.map((s) => s.end().catch(() => {})));
+        await db.query("ROLLBACK").catch(() => {});
+        await removeTwoTenants(db, fx);
+      }
+    });
+
+    it("C14 (review finding 1; the operation match): a direct call of the core passes its first contradiction lookup and its direct lookup, and waits on the request's row lock, which a holder session took first; the holder records the event's contradiction through the core (request_queued), links the request through R1a's claim and succeeded report, which records the intake's payment reference, and commits; the call resumes, takes the intake's lock and returns the recorded contradiction: no observation, staged gift, allocation, status change or audit row exists for the event", async () => {
+      await db.query("BEGIN");
+      const fx: Fixture = await seedTwoTenants(db);
+      await db.query("COMMIT");
+      try {
+        await db.query("BEGIN");
+        const intake = await lineIntake(db, fx.A);
+        const queued = await enqueue(db, fx.A, intake.donationId);
+        expect(queued.ok).toBe(true);
+        const operationId = queued.rows[0]!.id as string;
+        const pi = paymentIntent();
+        const e = await storeEvent(db, fx.A, {
+          pi,
+          amount: intake.amount,
+          metadata: {
+            asym_operation: operationId,
+            asym_intake: intake.donationId,
+          },
+        });
+        await role(db, null);
+        for (const revoke of GUARD_TEST_REVOKES) await db.query(revoke);
+        await db.query("COMMIT");
+
+        const [holder, caller, watcher] = [
+          await openSession(),
+          await openSession(),
+          await openSession(),
+        ];
+        const pid = (await caller.query("SELECT pg_backend_pid() AS pid"))
+          .rows[0].pid as number;
+        await holder.query("BEGIN");
+        await holder.query(
+          "SELECT id FROM public.donation_saga_outbox WHERE id = $1 FOR NO KEY UPDATE",
+          [operationId],
+        );
+        const call = directCore(caller, fx.A.tenant, e.id);
+        expect(await heldOnLock(watcher, pid, call.early)).toBe(true);
+
+        await holder.query("SET LOCAL ROLE tenant_guard");
+        await holder.query("SELECT tenant_guard.enter($1)", [fx.A.tenant]);
+        const recorded = (
+          await holder.query(
+            "SELECT tenant_guard.money_apply_payment_event($1) AS r",
+            [e.id],
+          )
+        ).rows[0].r as Outcome;
+        await holder.query("RESET ROLE");
+        await holder.query(
+          "SELECT pg_catalog.set_config('app.current_tenant_id', '', true)",
+        );
+        await holder.query("SET LOCAL ROLE service_role");
+        const claimed = (
+          await holder.query(
+            "SELECT public.claim_provider_operation($1, 300) AS r",
+            [operationId],
+          )
+        ).rows[0].r as Outcome;
+        const linked = (
+          await holder.query(
+            "SELECT public.record_provider_operation_result($1, $2, $3::jsonb) AS r",
+            [
+              operationId,
+              claimed.attempt,
+              JSON.stringify({ result: "succeeded", provider_object_id: pi }),
+            ],
+          )
+        ).rows[0].r as Outcome;
+        await holder.query("COMMIT");
+        const settled = await call.pending;
+        if ("error" in settled) throw settled.error;
+        await caller.query("COMMIT");
+
+        expect(recorded).toMatchObject({
+          outcome: "contradiction",
+          reason: "request_queued",
+        });
+        expect(linked).toMatchObject({
+          outcome: "linked",
+          provider_object_id: pi,
+        });
+        expect(settled.value).toEqual(recorded);
+        expect(
+          await nothingApplied(fx.A.tenant, intake.donationId, e.id),
+        ).toEqual({
+          observations: 0,
+          gifts: 0,
+          allocations: 0,
+          status: "pending",
+          audit: 0,
+          links: 1,
+        });
+      } finally {
+        const open = sessions.splice(0);
+        await Promise.all(open.map((s) => s.end().catch(() => {})));
+        await db.query("ROLLBACK").catch(() => {});
+        await removeTwoTenants(db, fx);
+      }
+    });
+
+    it("C14 (review finding 1; the direct lookup): a direct call of the core passes its first contradiction lookup and waits on the intake's row lock, the intake already naming the payment; the holder of that lock writes, as the owner, the payment_contradiction task and link of the event (the state the operation match leaves when a report records the reference after the contradiction) and commits; the call resumes and returns that contradiction, writing nothing", async () => {
+      await db.query("BEGIN");
+      const fx: Fixture = await seedTwoTenants(db);
+      await db.query("COMMIT");
+      try {
+        await db.query("BEGIN");
+        const intake = await lineIntake(db, fx.A);
+        const pi = paymentIntent();
+        await recordReference(db, intake.donationId, pi);
+        const e = await storeEvent(db, fx.A, { pi, amount: intake.amount });
+        await role(db, null);
+        for (const revoke of GUARD_TEST_REVOKES) await db.query(revoke);
+        await db.query("COMMIT");
+
+        const [holder, caller, watcher] = [
+          await openSession(),
+          await openSession(),
+          await openSession(),
+        ];
+        const pid = (await caller.query("SELECT pg_backend_pid() AS pid"))
+          .rows[0].pid as number;
+        await holder.query("BEGIN");
+        await holder.query(
+          "SELECT id FROM public.donations WHERE id = $1 FOR NO KEY UPDATE",
+          [intake.donationId],
+        );
+        const call = directCore(caller, fx.A.tenant, e.id);
+        expect(await heldOnLock(watcher, pid, call.early)).toBe(true);
+        const task = (
+          await holder.query(
+            `INSERT INTO public.mission_control_tasks
+               (tenant_id, title, description, status, urgency, source_module, issue_type, created_by_kind)
+             VALUES ($1, 'Payment event contradicts its intake', 'Recorded by the R2a suite.', 'open', 'high',
+                     'payments', 'payment_contradiction', 'system')
+             RETURNING id`,
+            [fx.A.tenant],
+          )
+        ).rows[0].id as string;
+        await holder.query(
+          `INSERT INTO public.mission_control_task_links
+             (tenant_id, task_id, record_type, record_id, relationship, metadata)
+           VALUES ($1, $2, 'stripe_connect_event', $3, 'payment_contradiction',
+                   jsonb_build_object('reason', 'request_queued', 'donation_id', $4::uuid,
+                                      'operation_id', NULL, 'payment_object_id', $5::text))`,
+          [fx.A.tenant, task, e.id, intake.donationId, pi],
+        );
+        await holder.query("COMMIT");
+        const settled = await call.pending;
+        if ("error" in settled) throw settled.error;
+        await caller.query("COMMIT");
+
+        expect(settled.value).toEqual({
+          outcome: "contradiction",
+          reason: "request_queued",
+          task_id: task,
+          effect: "succeeded",
+          payment_object_id: pi,
+          donation_id: intake.donationId,
+        });
+        expect(
+          await nothingApplied(fx.A.tenant, intake.donationId, e.id),
+        ).toEqual({
+          observations: 0,
+          gifts: 0,
+          allocations: 0,
+          status: "pending",
+          audit: 0,
+          links: 1,
+        });
       } finally {
         const open = sessions.splice(0);
         await Promise.all(open.map((s) => s.end().catch(() => {})));
