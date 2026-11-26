@@ -101,7 +101,7 @@ describe("serializePublishedPageLike (D-18: WP6 part 2b gives pages a family ins
           alt: "Jane in field",
           url: `/api/media/${MEDIA_ID}`,
           thumbnailURL: `/api/media/${MEDIA_ID}?variant=w320`,
-          cardURL: `/api/media/${MEDIA_ID}?variant=w960`,
+          cardURL: `/api/media/${MEDIA_ID}`,
           width: null,
           height: null,
           mimeType: null,
@@ -180,7 +180,7 @@ describe("preview media addresses (WP6 rest, pull request 2, invariant 5): a dra
     layout: [{ blockType: "media-feature", media, mediaCaption: null }],
   });
 
-  it("gives a stored media record the signed-in media route's bounded variants, never a storage address", () => {
+  it("gives a stored media record the signed-in media route's bounded variants, never a storage address: w320, which every image has, and the largest the image has for the card", () => {
     const [block] = serializePublishedPageLike(
       page({
         id: MEDIA_ID.toUpperCase(),
@@ -193,7 +193,7 @@ describe("preview media addresses (WP6 rest, pull request 2, invariant 5): a dra
       alt: "Jane in field",
       url: `/api/media/${MEDIA_ID}`,
       thumbnailURL: `/api/media/${MEDIA_ID}?variant=w320`,
-      cardURL: `/api/media/${MEDIA_ID}?variant=w960`,
+      cardURL: `/api/media/${MEDIA_ID}`,
       width: null,
       height: null,
       mimeType: null,
