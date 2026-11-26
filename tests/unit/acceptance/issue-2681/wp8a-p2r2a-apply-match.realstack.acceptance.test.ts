@@ -33,7 +33,6 @@ import {
   syncLease,
   tryClaim,
   work,
-  type Fixture,
   type Outcome,
   type Side,
 } from "./wp8a-p2r2a-harness";

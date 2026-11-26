@@ -30,8 +30,9 @@
 -- Locks, all held to COMMIT, taken first and in this order: SHARE ROW
 -- EXCLUSIVE on tenants, currency_metadata and donations (the new table's and
 -- the new key's targets); ACCESS EXCLUSIVE on stripe_connect_events (its new
--- key; 0 rows hosted) and donation_saga_outbox (its new key; legacy rows
--- only); SHARE on mission_control_task_links (its new index).
+-- key; 0 rows in the seed) and donation_saga_outbox (its new key; legacy
+-- rows only; both hosted counts are read before the release, index 3.1);
+-- SHARE on mission_control_task_links (its new index).
 -- lock_timeout stops a run rather than queue it behind live traffic.
 --
 -- A second run of the applied file, as observed: it stops at its first

@@ -29,6 +29,8 @@ import {
   work,
 } from "./wp8a-p2r2a-harness";
 
+import type * as AuthContext from "@asym/auth/context";
+
 vi.mock("@asym/database/supabase/admin", () => ({ getAdminClient: vi.fn() }));
 vi.mock("@asym/lib/audit/logger", () => ({
   createAuditLogger: vi.fn(() => ({
@@ -39,7 +41,7 @@ vi.mock("@asym/lib/audit/logger", () => ({
   })),
 }));
 vi.mock("@asym/auth/context", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@asym/auth/context")>()),
+  ...(await importOriginal<typeof AuthContext>()),
   getAuthContext: vi.fn(),
   requireAuth: vi.fn(),
 }));

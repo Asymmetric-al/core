@@ -1,3 +1,4 @@
+import { tryClaim, tryReport, type Attempt } from "./wp8a-p2r1a-harness";
 import {
   runProviderOperation,
   type ProviderOperationRpc,
@@ -6,11 +7,9 @@ import {
   type RpcResponse,
 } from "../../../../packages/api/src/donate/provider-operations/run";
 import { createStripePaymentAdapter } from "../../../../packages/api/src/donate/provider-operations/stripe-adapter";
-import { tryClaim, tryReport, type Attempt } from "./wp8a-p2r1a-harness";
-
-import type pg from "pg";
 
 import type { StripeProviderFake } from "../../../fixtures/stripe-provider-fake";
+import type pg from "pg";
 
 export type WorkerHooks = {
   beforeReport?: () => Promise<void>;

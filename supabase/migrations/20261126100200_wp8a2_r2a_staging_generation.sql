@@ -50,8 +50,8 @@
 -- Locks, all held to COMMIT, taken first and in this order: SHARE ROW
 -- EXCLUSIVE on donations, funds and missionaries (the new keys' targets);
 -- ACCESS EXCLUSIVE on staged_gifts and staged_gift_allocations (0 rows each
--- hosted at census and in the seed). lock_timeout stops a run rather than
--- queue it behind live traffic.
+-- in the seed; the hosted counts are read before the release, index 3.1).
+-- lock_timeout stops a run rather than queue it behind live traffic.
 --
 -- A second run of the applied file, as observed: it stops at its first
 -- statement after the locks, ADD COLUMN intake_format on staged_gifts (42701,

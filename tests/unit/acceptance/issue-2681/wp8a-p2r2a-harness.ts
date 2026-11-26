@@ -3,8 +3,6 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import type pg from "pg";
-
 import {
   GUARD_TEST_GRANTS,
   attempt,
@@ -17,6 +15,8 @@ import {
   type Row,
   type Side,
 } from "./wp8a-p2r1a-harness";
+
+import type pg from "pg";
 
 export * from "./wp8a-p2r1a-harness";
 
