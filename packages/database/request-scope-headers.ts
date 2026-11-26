@@ -13,6 +13,7 @@
  */
 export const TENANT_HEADER = "x-asym-tenant";
 export const ASSIGNMENT_HEADER = "x-asym-assignment";
+export const SCOPE_GENERATION_HEADER = "x-asym-scope-generation";
 
 /**
  * The response header by which the server says it refused the tenant or

@@ -211,6 +211,18 @@ passing database error must not have that effect.
     returns `null`, and the identity is simply not authenticated for the
     surface. Cited: JB1.
 
+15. **A stale name generation is refused before the live rows are read.**
+    With `CORE_SERVE_UNDER_PATHS` on and a valid verified name, an own-API
+    call whose `x-asym-scope-generation` is absent or differs from the name's
+    trusted generation gets `assignmentDenial: "generation_mismatch"` with
+    `scopeRefused`, in the session and the E2E bypass alike, after the tenant
+    conflict and before `resolveActiveAssignment`; the reason is an
+    `AuthContext` denial, not an `AssignmentDenyReason`, so `selectAssignment`
+    and `SCOPE_REFUSALS` are unchanged, and it reaches the browser through
+    decision 13 like any other. The live read on every call stays the defence
+    against a revoked row (decision 2). See
+    [0015](0015-organization-from-the-verified-name.md), decisions 14 and 16.
+
 ## Accepted records this code implements
 
 - `toActiveAssignment` in `principal/assignment.ts` and

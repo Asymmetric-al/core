@@ -1,11 +1,13 @@
 import { getSignedInAssignments } from "@asym/auth/context";
 import {
+  isNameGenerationRefused,
   isNameTenantRefused,
   nameTenantIdOf,
 } from "@asym/auth/request-headers";
 import { buildTenantPrefix } from "@asym/auth/tenant-address";
 import { listAddressChoices } from "@asym/auth/tenant-address-decisions";
 import {
+  readServerNameGeneration,
   readServerNameTenantState,
   redirectInTenant,
 } from "@asym/auth/tenant-server";
@@ -68,13 +70,24 @@ function fallbackName(tenantId: string) {
 const decideWebStudioRequest = cache(async () => {
   const signedIn = await getSignedInAssignments();
   if (signedIn.kind !== "signed_in") {
-    return { signedIn, decision: null, nameTenantId: null };
+    return { signedIn, decision: null, nameTenantId: null, generation: null };
   }
   const name = await readServerNameTenantState();
   const nameTenantId = nameTenantIdOf(name);
-  if (isNameTenantRefused(name)) {
-    return { signedIn, decision: { kind: "refuse" } as const, nameTenantId };
+  const nameGeneration = await readServerNameGeneration();
+  if (
+    isNameTenantRefused(name) ||
+    isNameGenerationRefused(name, nameGeneration)
+  ) {
+    return {
+      signedIn,
+      decision: { kind: "refuse" } as const,
+      nameTenantId,
+      generation: null,
+    };
   }
+  const generation =
+    nameGeneration.kind === "valid" ? nameGeneration.generation : null;
   const cookie = await readWebStudioTenantCookie(
     (await cookies()).get(WEB_STUDIO_TENANT_COOKIE)?.value,
   );
@@ -83,7 +96,7 @@ const decideWebStudioRequest = cache(async () => {
     cookie,
     nameTenantId,
   });
-  return { signedIn, decision, nameTenantId };
+  return { signedIn, decision, nameTenantId, generation };
 });
 
 /**
@@ -105,7 +118,8 @@ const decideWebStudioRequest = cache(async () => {
 export async function requireWebStudioAccess(
   pathname: string,
 ): Promise<WebStudioAccess> {
-  const { signedIn, decision, nameTenantId } = await decideWebStudioRequest();
+  const { signedIn, decision, nameTenantId, generation } =
+    await decideWebStudioRequest();
   // Slice A's tenant-safe redirect: Web Studio's addresses carry no tenant
   // prefix, so each one is sent unchanged.
   if (signedIn.kind === "signed_out") {
@@ -146,6 +160,7 @@ export async function requireWebStudioAccess(
       tenantId: assignment.tenantId,
       assignmentId: assignment.assignmentId,
       addressPrefix: "",
+      ...(generation === null ? {} : { generation }),
     },
     organization: {
       name:
