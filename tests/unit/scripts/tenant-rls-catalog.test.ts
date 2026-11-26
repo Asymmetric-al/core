@@ -1178,11 +1178,14 @@ describe("evaluateTenantRlsCatalog: service_role's table privileges and schema C
     ]);
   });
 
-  it("reads what service_role holds in public, granted to it or to a role it belongs to, and its CREATE on every schema the release fingerprint covers", () => {
+  it("reads what service_role holds in public, as Postgres decides it (a grant to it, to PUBLIC or to a role it belongs to), on a table or a column, and its CREATE on every schema the release fingerprint covers", () => {
     expect(TENANT_RLS_CATALOG_SQL).toContain("'service_role_grants'");
     expect(TENANT_RLS_CATALOG_SQL).toContain("'service_role_schemas'");
     expect(TENANT_RLS_CATALOG_SQL).toContain(
-      "pg_has_role('service_role', a.grantee, 'MEMBER')",
+      "has_table_privilege('service_role', c.oid, p.privilege)",
+    );
+    expect(TENANT_RLS_CATALOG_SQL).toContain(
+      "has_column_privilege('service_role', c.oid, att.attnum, 'REFERENCES')",
     );
     expect(TENANT_RLS_CATALOG_SQL).toContain(
       "has_schema_privilege('service_role', n.oid, 'CREATE')",
