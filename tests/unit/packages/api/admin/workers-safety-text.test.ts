@@ -13,24 +13,25 @@ import { afterAll, describe, expect, it } from "vitest";
 import { normalizesToNothing } from "../../../../../packages/api/src/admin/workers/safety-text";
 
 const MIGRATIONS = "supabase/migrations";
+const DEFINES =
+  /CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+private\.normalize_safety_text\b/i;
 
 function latestDefinition(dir = MIGRATIONS): string {
   const files = readdirSync(dir)
     .filter((f) => /^\d{14}_.+\.sql$/.test(f))
     .sort();
   const owner = files
-    .filter((f) =>
-      /CREATE (?:OR REPLACE )?FUNCTION private\.normalize_safety_text/.test(
-        readFileSync(join(dir, f), "utf8"),
-      ),
-    )
+    .filter((f) => DEFINES.test(readFileSync(join(dir, f), "utf8")))
     .at(-1);
   if (!owner) throw new Error("no migration defines normalize_safety_text");
   const text = readFileSync(join(dir, owner), "utf8");
-  const start = text.search(
-    /CREATE (?:OR REPLACE )?FUNCTION private\.normalize_safety_text/,
-  );
-  return text.slice(start, text.indexOf("$fn$;", start));
+  const start = text.search(DEFINES);
+  const end = text.indexOf("$fn$;", start);
+  if (end < 0)
+    throw new Error(
+      `${owner} defines normalize_safety_text with no closing $fn$;`,
+    );
+  return text.slice(start, end);
 }
 
 function klass(definition: string, marker: string, repeated: boolean) {
