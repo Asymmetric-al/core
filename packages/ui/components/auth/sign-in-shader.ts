@@ -169,14 +169,14 @@ function animate(
         played + Math.min(since / 1000, MAX_STEP_SECONDS),
       );
     }
+    const completed = played >= SIGN_IN_SWAY_SECONDS;
+    const timedOut =
+      playing && !completed && watched >= SIGN_IN_MOTION_LIMIT_SECONDS;
+    if (timedOut) played = SIGN_IN_SWAY_SECONDS;
     previous = playing ? now : null;
     render();
     if (disposed) return;
-    if (
-      playing &&
-      (played >= SIGN_IN_SWAY_SECONDS ||
-        watched >= SIGN_IN_MOTION_LIMIT_SECONDS)
-    ) {
+    if (playing && (completed || timedOut)) {
       settled = true;
       previous = null;
       options.onSettled?.();

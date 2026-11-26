@@ -179,74 +179,80 @@ async function main() {
   });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const { port } = server.address() as AddressInfo;
-  const browser = await chromium.launch({ channel: "chrome" });
   try {
-    const page = await browser.newPage();
-    await page.goto(`http://localhost:${port}/`);
-    const token = lightMutedToken();
-    const hex = await page.evaluate<string>(
-      `(${TO_HEX_IN_PAGE})(${JSON.stringify(token)})`,
-    );
-    const background = parseHex(hex);
-    const written: {
-      file: string;
-      width: number;
-      height: number;
-      sha256: string;
-    }[] = [];
-    for (const still of STILLS) {
-      const uniforms = new Float32Array(SIGN_IN_UNIFORM_FLOATS);
-      writeFieldUniforms(uniforms, {
-        width: still.width,
-        height: still.height,
-        time,
-        theme: "light",
-        dark: background,
-        light: background,
-        pixelRatio: 1,
-      });
-      const input = {
-        width: still.width,
-        height: still.height,
-        shader: SIGN_IN_FIELD_SHADER,
-        uniforms: Array.from(uniforms),
-        quality: WEBP_QUALITY,
-      };
-      const rendered = await page.evaluate<RenderedStill>(
-        `(${RENDER_IN_PAGE})(${JSON.stringify(input)})`,
+    const browser = await chromium.launch({ channel: "chrome" });
+    try {
+      const page = await browser.newPage();
+      await page.goto(`http://localhost:${port}/`);
+      const token = lightMutedToken();
+      const hex = await page.evaluate<string>(
+        `(${TO_HEX_IN_PAGE})(${JSON.stringify(token)})`,
       );
-      assertNonBlank(still.file, rendered.stats);
-      const encoded = rendered.dataUrl.replace(/^data:image\/webp;base64,/, "");
-      if (encoded === rendered.dataUrl) {
-        throw new Error("The browser did not encode WebP.");
+      const background = parseHex(hex);
+      const written: {
+        file: string;
+        width: number;
+        height: number;
+        sha256: string;
+      }[] = [];
+      for (const still of STILLS) {
+        const uniforms = new Float32Array(SIGN_IN_UNIFORM_FLOATS);
+        writeFieldUniforms(uniforms, {
+          width: still.width,
+          height: still.height,
+          time,
+          theme: "light",
+          dark: background,
+          light: background,
+          pixelRatio: 1,
+        });
+        const input = {
+          width: still.width,
+          height: still.height,
+          shader: SIGN_IN_FIELD_SHADER,
+          uniforms: Array.from(uniforms),
+          quality: WEBP_QUALITY,
+        };
+        const rendered = await page.evaluate<RenderedStill>(
+          `(${RENDER_IN_PAGE})(${JSON.stringify(input)})`,
+        );
+        assertNonBlank(still.file, rendered.stats);
+        const encoded = rendered.dataUrl.replace(
+          /^data:image\/webp;base64,/,
+          "",
+        );
+        if (encoded === rendered.dataUrl) {
+          throw new Error("The browser did not encode WebP.");
+        }
+        const target = path.join(outputDirectory, still.file);
+        const bytes = Buffer.from(encoded, "base64");
+        writeFileSync(target, bytes);
+        written.push({
+          file: still.file,
+          width: still.width,
+          height: still.height,
+          sha256: sha256(bytes),
+        });
+        const { mean, deviation, min, max, violet } = rendered.stats;
+        process.stdout.write(
+          `${path.relative(repositoryRoot, target)} ${still.width}x${still.height} t=${time} ` +
+            `luma ${min.toFixed(0)}–${max.toFixed(0)} mean ${mean.toFixed(1)} sd ${deviation.toFixed(1)} violet ${violet.toFixed(1)}\n`,
+        );
       }
-      const target = path.join(outputDirectory, still.file);
-      const bytes = Buffer.from(encoded, "base64");
-      writeFileSync(target, bytes);
-      written.push({
-        file: still.file,
-        width: still.width,
-        height: still.height,
-        sha256: sha256(bytes),
-      });
-      const { mean, deviation, min, max, violet } = rendered.stats;
-      process.stdout.write(
-        `${path.relative(repositoryRoot, target)} ${still.width}x${still.height} t=${time} ` +
-          `luma ${min.toFixed(0)}–${max.toFixed(0)} mean ${mean.toFixed(1)} sd ${deviation.toFixed(1)} violet ${violet.toFixed(1)}\n`,
+      const manifest = {
+        shaderSha256: sha256(SIGN_IN_FIELD_SHADER),
+        time,
+        background: { token, hex },
+        stills: written,
+      };
+      writeFileSync(
+        path.join(outputDirectory, MANIFEST),
+        `${JSON.stringify(manifest, null, 2)}\n`,
       );
+    } finally {
+      await browser.close();
     }
-    const manifest = {
-      shaderSha256: sha256(SIGN_IN_FIELD_SHADER),
-      time,
-      background: { token, hex },
-      stills: written,
-    };
-    writeFileSync(
-      path.join(outputDirectory, MANIFEST),
-      `${JSON.stringify(manifest, null, 2)}\n`,
-    );
   } finally {
-    await browser.close();
     server.close();
   }
 }

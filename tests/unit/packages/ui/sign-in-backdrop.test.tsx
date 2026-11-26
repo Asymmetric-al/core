@@ -60,7 +60,7 @@ function createFakeGpu() {
   };
   const encoder = {
     beginRenderPass: vi.fn(() => pass),
-    copyTextureToBuffer: vi.fn(),
+    copyTextureToBuffer: vi.fn<GPUCommandEncoder["copyTextureToBuffer"]>(),
     finish: vi.fn(() => ({})),
   };
   const device = {
@@ -104,7 +104,7 @@ function createFakeGpu() {
     getPreferredCanvasFormat: vi.fn(() => "bgra8unorm"),
   };
   const context = {
-    configure: vi.fn(),
+    configure: vi.fn<GPUCanvasContext["configure"]>(),
     unconfigure: vi.fn(),
     getCurrentTexture: vi.fn(() => ({ createView: () => ({}) })),
   };
@@ -132,10 +132,12 @@ type FakeGpu = ReturnType<typeof createFakeGpu>;
 
 const frames = new Map<number, FrameRequestCallback>();
 const motionListeners = new Set<() => void>();
+const ultrawideListeners = new Set<() => void>();
 const resizeDisconnect = vi.fn();
 let nextFrameId = 1;
 let clock = 0;
 let prefersReducedMotion = false;
+let ultrawide = false;
 let layerBackground = MUTED;
 let fake: FakeGpu;
 
@@ -168,6 +170,13 @@ function setReducedMotion(next: boolean) {
   prefersReducedMotion = next;
   act(() => {
     for (const listener of [...motionListeners]) listener();
+  });
+}
+
+function setUltrawide(next: boolean) {
+  ultrawide = next;
+  act(() => {
+    for (const listener of [...ultrawideListeners]) listener();
   });
 }
 
@@ -205,9 +214,11 @@ async function renderRevealedBackdrop() {
 beforeEach(() => {
   frames.clear();
   motionListeners.clear();
+  ultrawideListeners.clear();
   nextFrameId = 1;
   clock = 0;
   prefersReducedMotion = false;
+  ultrawide = false;
   layerBackground = MUTED;
   fake = createFakeGpu();
   Object.defineProperty(navigator, "gpu", {
@@ -246,15 +257,19 @@ beforeEach(() => {
   );
   vi.stubGlobal(
     "matchMedia",
-    vi.fn(() => ({
-      get matches() {
-        return prefersReducedMotion;
-      },
-      addEventListener: (_type: string, listener: () => void) =>
-        motionListeners.add(listener),
-      removeEventListener: (_type: string, listener: () => void) =>
-        motionListeners.delete(listener),
-    })),
+    vi.fn((query: string) => {
+      const ultrawideQuery = query.includes("aspect-ratio >");
+      const listeners = ultrawideQuery ? ultrawideListeners : motionListeners;
+      return {
+        get matches() {
+          return ultrawideQuery ? ultrawide : prefersReducedMotion;
+        },
+        addEventListener: (_type: string, listener: () => void) =>
+          listeners.add(listener),
+        removeEventListener: (_type: string, listener: () => void) =>
+          listeners.delete(listener),
+      };
+    }),
   );
   const computedStyle = window.getComputedStyle.bind(window);
   vi.spyOn(window, "getComputedStyle").mockImplementation((element) =>
@@ -349,6 +364,37 @@ describe("SignInBackdrop", () => {
     expect(fake.gpu.requestAdapter).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps the still on windows wider than the 4:1 still", async () => {
+    ultrawide = true;
+    const { container } = renderBackdrop();
+    await flush();
+
+    expect(fake.gpu.requestAdapter).not.toHaveBeenCalled();
+    expect(backdropLayer(container).dataset.state).toBe("still");
+  });
+
+  it("starts once an ultrawide window narrows to the still's frame", async () => {
+    ultrawide = true;
+    renderBackdrop();
+    await flush();
+
+    setUltrawide(false);
+
+    await vi.waitFor(() => expect(fake.context.configure).toHaveBeenCalled());
+    expect(fake.gpu.requestAdapter).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns to the still when the window becomes wider than 4:1 mid-sway", async () => {
+    const { container } = await renderRevealedBackdrop();
+
+    setUltrawide(true);
+    await flush();
+
+    expect(backdropLayer(container).dataset.state).toBe("still");
+    expect(fake.device.destroy).toHaveBeenCalledTimes(1);
+    expect(frames.size).toBe(0);
+  });
+
   it("keeps the still when the browser has no WebGPU", async () => {
     Reflect.deleteProperty(navigator, "gpu");
     const { container } = renderBackdrop();
@@ -430,16 +476,13 @@ describe("SignInBackdrop", () => {
     runFrames(1);
     await flush();
 
-    const [configuration] = fake.context.configure.mock.calls[0] as [
-      { usage: number },
-    ];
-    const [, destination] = fake.encoder.copyTextureToBuffer.mock.calls[0] as [
-      unknown,
-      { bytesPerRow: number },
-    ];
-    expect(configuration.usage & 0x10).toBeTruthy();
-    expect(configuration.usage & 0x01).toBeTruthy();
-    expect(destination.bytesPerRow % 256).toBe(0);
+    const configuration = fake.context.configure.mock.calls[0]?.[0];
+    const destination = fake.encoder.copyTextureToBuffer.mock.calls[0]?.[1];
+    expect(configuration).toBeDefined();
+    expect(destination).toBeDefined();
+    expect((configuration?.usage ?? 0) & 0x10).toBeTruthy();
+    expect((configuration?.usage ?? 0) & 0x01).toBeTruthy();
+    expect((destination?.bytesPerRow ?? 0) % 256).toBe(0);
     expect(fake.device.queue.submit.mock.invocationCallOrder[0]).toBeLessThan(
       fake.probe.mapAsync.mock.invocationCallOrder[0]!,
     );
@@ -535,6 +578,7 @@ describe("SignInBackdrop", () => {
     expect(stalledFrames * 300).toBeLessThanOrEqual(
       SIGN_IN_MOTION_LIMIT_SECONDS * 1000 + 600,
     );
+    expect(fake.times().at(-1)).toBe(SIGN_IN_SHADER_STILL_TIME);
     expect(backdropLayer(container).dataset.state).toBe("settled");
     expect(fake.device.destroy).toHaveBeenCalled();
   });

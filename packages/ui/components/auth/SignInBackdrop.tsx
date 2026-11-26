@@ -7,6 +7,7 @@ import { cn } from "../../lib/utils";
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const WIDE_STILL_QUERY = "(min-aspect-ratio: 3/4)";
+const ULTRAWIDE_QUERY = "(aspect-ratio > 4/1)";
 
 export type SignInBackdropPhase = "still" | "animating" | "settled" | "failed";
 
@@ -41,6 +42,7 @@ export function SignInBackdrop({ stills, children }: SignInBackdropProps) {
     const canvas = canvasRef.current;
     if (!layer || !canvas) return;
     const motionQuery = window.matchMedia(REDUCED_MOTION_QUERY);
+    const ultrawideQuery = window.matchMedia(ULTRAWIDE_QUERY);
     let controller: AbortController | null = null;
 
     function finish(owner: AbortController, next: SignInBackdropPhase) {
@@ -55,7 +57,13 @@ export function SignInBackdrop({ stills, children }: SignInBackdropProps) {
       layerElement: HTMLDivElement,
       canvasElement: HTMLCanvasElement,
     ) {
-      if (doneRef.current || controller || motionQuery.matches) return;
+      if (
+        doneRef.current ||
+        controller ||
+        motionQuery.matches ||
+        ultrawideQuery.matches
+      )
+        return;
       const owner = new AbortController();
       controller = owner;
       import("./sign-in-shader")
@@ -88,10 +96,28 @@ export function SignInBackdrop({ stills, children }: SignInBackdropProps) {
       }
     }
 
+    function holdStill() {
+      const owner = controller;
+      if (!owner) return;
+      controller = null;
+      owner.abort();
+      setPhase("still");
+    }
+
+    function onUltrawideChange() {
+      if (!ultrawideQuery.matches) {
+        if (layer && canvas) start(layer, canvas);
+        return;
+      }
+      holdStill();
+    }
+
     start(layer, canvas);
     motionQuery.addEventListener("change", onMotionPreferenceChange);
+    ultrawideQuery.addEventListener("change", onUltrawideChange);
     return () => {
       motionQuery.removeEventListener("change", onMotionPreferenceChange);
+      ultrawideQuery.removeEventListener("change", onUltrawideChange);
       const owner = controller;
       controller = null;
       owner?.abort();
@@ -113,7 +139,10 @@ export function SignInBackdrop({ stills, children }: SignInBackdropProps) {
           {
             "--sign-in-still-narrow": `url("${stills.narrow}")`,
             "--sign-in-still-wide": `url("${stills.wide}")`,
-          } as React.CSSProperties
+          } satisfies React.CSSProperties & {
+            "--sign-in-still-narrow": string;
+            "--sign-in-still-wide": string;
+          }
         }
       >
         <canvas
