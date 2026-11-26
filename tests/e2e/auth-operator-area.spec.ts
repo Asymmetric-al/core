@@ -6,6 +6,7 @@ import AxeBuilder from "@axe-core/playwright";
 import {
   expect,
   test,
+  type APIRequestContext,
   type BrowserContext,
   type Page,
   type Request,
@@ -353,7 +354,52 @@ type Read = {
   named: boolean;
   text: string | null;
   reason: string;
+  readAgain?: boolean;
 };
+
+const NOT_REPLAYED = new Set([
+  "accept-encoding",
+  "connection",
+  "content-length",
+  "cookie",
+  "host",
+]);
+
+async function readAbortedAgain(
+  api: APIRequestContext,
+  request: Request,
+  where: string,
+  failure: string,
+): Promise<Read> {
+  try {
+    const sent = await request.allHeaders();
+    const headers = Object.fromEntries(
+      Object.entries(sent).filter(
+        ([name]) => !name.startsWith(":") && !NOT_REPLAYED.has(name),
+      ),
+    );
+    const response = await api.get(request.url(), {
+      headers,
+      maxRedirects: 0,
+    });
+    const body = (await response.body()).toString("utf8");
+    return {
+      where,
+      named: true,
+      text: `${JSON.stringify(response.headers())}\n${body}`,
+      reason: "",
+      readAgain: true,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message.split("\n")[0]! : "";
+    return {
+      where,
+      named: true,
+      text: null,
+      reason: `${failure}; read again: ${message}`,
+    };
+  }
+}
 
 test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () => {
   test.beforeAll(async ({}, testInfo) => {
@@ -519,13 +565,12 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
       const where = openAdminRequests.get(request);
       if (where === undefined) return;
       openAdminRequests.delete(request);
+      const named = isOperatorRoute(new URL(request.url()));
+      const failure = request.failure()?.errorText ?? "failed";
       reads.push(
-        Promise.resolve({
-          where,
-          named: isOperatorRoute(new URL(request.url())),
-          text: null,
-          reason: request.failure()?.errorText ?? "failed",
-        }),
+        named && request.method() === "GET"
+          ? readAbortedAgain(page.context().request, request, where, failure)
+          : Promise.resolve({ where, named, text: null, reason: failure }),
       );
     });
     page.context().on("requestfinished", (request: Request) => {
@@ -692,7 +737,7 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
       return !isExcludedByName(new URL(path, ADMIN_ORIGIN));
     });
     console.log(
-      `[J6] ${seen.length} admin-origin responses (${seen.filter((read) => read.named).length} of /operator), ${outgoing.length} admin-origin requests; unread outside the named exclusions: ${otherUnread.join(", ") || "none"}`,
+      `[J6] ${seen.length} admin-origin responses (${seen.filter((read) => read.named).length} of /operator, ${seen.filter((read) => read.readAgain).length} of them aborted by the browser and read again), ${outgoing.length} admin-origin requests; unread outside the named exclusions: ${otherUnread.join(", ") || "none"}`,
     );
     expect(namedUnread, "operator responses that could not be read").toEqual(
       [],

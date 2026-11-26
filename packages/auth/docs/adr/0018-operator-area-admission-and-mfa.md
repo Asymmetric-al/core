@@ -179,7 +179,9 @@ Auth on refresh and removal) and `tests/e2e/auth-operator-area.spec.ts` (the
 journeys, including the absence of the key, plain and grouped, the
 `otpauth` address and a slice of the QR's SVG from every Mission Control
 response and request, the server log, the browser's storage and the
-database; the journey fails when an `/operator` response cannot be read).
+database; the journey fails when an `/operator` response cannot be read,
+and reads again, with the same address, headers and cookies, each `/operator`
+route-data request the browser aborts, as the router does after sign-in).
 
 The journey's server log (`.e2e-logs/auth-mail-admin-server.log`) lies
 outside every path a workflow uploads, because `next dev` forwards browser
