@@ -33,7 +33,10 @@
     "./front": "./front.ts",
     "./front-stamp": "./front-stamp.ts",
     "./verified-name": "./verified-name.ts",
-    "./home-name": "./home-name.ts"
+    "./home-name": "./home-name.ts",
+    "./operator-area": "./operator-area.ts",
+    "./operator-area-server": "./operator-area-server.ts",
+    "./operator-mfa": "./operator-mfa.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

@@ -10,6 +10,7 @@ import {
   withoutFrontHeaders,
 } from "@asym/auth/front";
 import { createAuthMiddleware } from "@asym/auth/middleware";
+import { admitOperatorArea } from "@asym/auth/operator-area";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
 import {
   lookUpVerifiedName,
@@ -59,6 +60,8 @@ const authProxy = createAuthMiddleware({
 });
 
 export async function proxy(request: NextRequest) {
+  const operatorArea = await admitOperatorArea(request, process.env);
+  if (operatorArea) return operatorArea;
   if (!isServeUnderPathsEnabled()) {
     return authProxy(withoutFrontHeaders(request));
   }
