@@ -1,15 +1,18 @@
 import { openCoreSession, readFund, readMissionary } from "./core-session";
-import { CANONICAL_UUID } from "./reference-guard";
+import { CANONICAL_UUID, idOf } from "./reference-guard";
 import { isServicePortRequest } from "../ports/service-port";
 
 import type { FieldRefusal } from "./refusal";
 import type { DocumentRule } from "./tenant-scoped";
+import type { CollectionBeforeOperationHook, PayloadRequest } from "payload";
 
 export const PAGE_FAMILIES = ["standard", "missionary", "project"] as const;
 export type PageFamily = (typeof PAGE_FAMILIES)[number];
 
 const NO_SESSION =
   "Web Studio needs your signed-in session to check this reference. Sign in again and retry.";
+
+const DRAFT_WRITE = Symbol("asym.cms.page-draft-write");
 
 export const refusePublishedStatus: DocumentRule = ({ data, req }) =>
   data._status === "published" && !isServicePortRequest(req)
@@ -19,6 +22,45 @@ export const refusePublishedStatus: DocumentRule = ({ data, req }) =>
           message: "Publishing is not available in Web Studio yet.",
         },
       ]
+    : [];
+
+export const recordPageWriteMode: CollectionBeforeOperationHook = ({
+  args,
+  operation,
+  req,
+}) => {
+  if (operation === "update" || operation === "restoreVersion") {
+    const draft = (args as { draft?: unknown }).draft;
+    (req.context as Record<PropertyKey, unknown>)[DRAFT_WRITE] =
+      draft === true || draft === "true";
+  }
+  return args;
+};
+
+function isDraftWrite(req: PayloadRequest): boolean {
+  return (req.context as Record<PropertyKey, unknown>)[DRAFT_WRITE] === true;
+}
+
+export const refuseLiveWrite: DocumentRule = ({ operation, req }) =>
+  operation === "update" && !isServicePortRequest(req) && !isDraftWrite(req)
+    ? [
+        {
+          path: "_status",
+          message:
+            "Web Studio saves changes to a page as a draft until publishing is available.",
+        },
+      ]
+    : [];
+
+export const pageKeepsSiteRule: DocumentRule = ({
+  data,
+  operation,
+  originalDoc,
+}) =>
+  operation === "update" &&
+  data.site !== undefined &&
+  idOf(data.site) !== idOf(originalDoc?.site)
+    ? [{ path: "site", message: "A page stays on the Site it was made for." }]
     : [];
 
 const isSet = (value: unknown) => value !== null && value !== undefined;

@@ -9,7 +9,13 @@ import { pagesGeneratePreviewURL } from "../../cms-ui/web-studio/adapters/previe
 import { isNativePagesWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import { studioDocumentEditViews } from "../../cms-ui/web-studio/shell/document-tabs";
 import { coreRichTextDocumentSchema } from "../rich-text-document-schema";
-import { pageFamilyRule, refusePublishedStatus } from "../tenancy/page-rules";
+import {
+  pageFamilyRule,
+  pageKeepsSiteRule,
+  recordPageWriteMode,
+  refuseLiveWrite,
+  refusePublishedStatus,
+} from "../tenancy/page-rules";
 import { tenantScoped } from "../tenancy/tenant-scoped";
 
 import type { CollectionConfig } from "payload";
@@ -37,6 +43,7 @@ export const Pages: CollectionConfig = tenantScoped(
   {
     slug: "pages",
     authorship: true,
+    hooks: { beforeOperation: [recordPageWriteMode] },
     admin: {
       defaultColumns: ["title", "slug", "family", "updatedAt"],
       useAsTitle: "title",
@@ -147,6 +154,11 @@ export const Pages: CollectionConfig = tenantScoped(
     actorUpdate: true,
     actorDelete: true,
     keepsServiceId: false,
-    rules: [refusePublishedStatus, pageFamilyRule],
+    rules: [
+      refusePublishedStatus,
+      refuseLiveWrite,
+      pageKeepsSiteRule,
+      pageFamilyRule,
+    ],
   },
 );
