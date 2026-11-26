@@ -185,8 +185,14 @@ it("moves focus to the next row's actions after Mark Complete in the row menu", 
   });
   trigger.focus();
   fireEvent.click(trigger);
+  const menu = await screen.findByRole("menu");
+  await waitFor(() =>
+    expect(within(menu).getAllByRole("menuitem")).toContain(
+      document.activeElement,
+    ),
+  );
   fireEvent.click(
-    await screen.findByRole("menuitem", { name: "Mark Complete" }),
+    within(menu).getByRole("menuitem", { name: "Mark Complete" }),
   );
   expect(tasks.completeTask).toHaveBeenCalledWith(ben.id);
   await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
