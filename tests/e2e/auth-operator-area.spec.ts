@@ -8,6 +8,7 @@ import {
   test,
   type BrowserContext,
   type Page,
+  type Request,
   type Response,
 } from "@playwright/test";
 
@@ -458,22 +459,38 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
     const consoleLines: string[] = [];
     let enrolUri = "";
 
+    const openAdminRequests = new Map<Request, string>();
     page.on("console", (message) => consoleLines.push(message.text()));
+    page.context().on("request", (request: Request) => {
+      const url = new URL(request.url());
+      if (url.origin === ADMIN_ORIGIN)
+        openAdminRequests.set(request, url.pathname);
+    });
+    page.context().on("requestfailed", (request: Request) => {
+      openAdminRequests.delete(request);
+    });
+    page.context().on("requestfinished", (request: Request) => {
+      const url = new URL(request.url());
+      if (url.origin !== ADMIN_ORIGIN) return;
+      openAdminRequests.delete(request);
+      adminResponses.push(
+        (async () => {
+          const response = await request.response();
+          if (!response) return { where: url.pathname, text: "" };
+          const headers = JSON.stringify(await response.allHeaders());
+          let body = "";
+          try {
+            body = (await response.body()).toString("utf8");
+          } catch {
+            body = "";
+          }
+          return { where: url.pathname, text: `${headers}\n${body}` };
+        })(),
+      );
+    });
     page.context().on("response", (response: Response) => {
       const url = new URL(response.url());
       if (url.origin === ADMIN_ORIGIN) {
-        adminResponses.push(
-          (async () => {
-            const headers = JSON.stringify(await response.allHeaders());
-            let body = "";
-            try {
-              body = (await response.body()).toString("utf8");
-            } catch {
-              body = "";
-            }
-            return { where: `${url.pathname}`, text: `${headers}\n${body}` };
-          })(),
-        );
         if (url.pathname === "/operator" && response.status() === 200) {
           void response
             .allHeaders()
@@ -569,6 +586,14 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
 
     const storageAtEnd = await storageSnapshot(page);
     const responses = await Promise.all(adminResponses);
+    const unfinished = [...openAdminRequests.values()].join(", ") || "none";
+    test.info().annotations.push({
+      type: "admin-origin requests that never finished (bodies unreadable)",
+      description: unfinished,
+    });
+    console.log(
+      `[J6] ${responses.length} admin-origin responses read; never finished: ${unfinished}`,
+    );
     expect(responses.length).toBeGreaterThan(0);
     const leakedResponses = responses
       .filter(({ text }) => holds(text, secret, uri))
