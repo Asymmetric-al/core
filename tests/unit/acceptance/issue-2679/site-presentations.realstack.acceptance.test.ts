@@ -87,14 +87,17 @@ describe.skipIf(!ADMIN_URL)(
           "delete from authz.platform_operators where user_id = any($1::uuid[])",
           [made.users],
         ],
-        ["delete from auth.users where id = any($1::uuid[])", [made.users]],
-        [
-          "delete from public.tenants where id = any($1::uuid[])",
-          [made.tenants],
-        ],
       ] as const;
       for (const [text, values] of cleanup)
         await s?.admin.query(text, [...values]).catch(() => undefined);
+      for (const user of made.users)
+        await s?.admin
+          .query("delete from auth.users where id = $1", [user])
+          .catch(() => undefined);
+      for (const tenant of made.tenants)
+        await s?.admin
+          .query("delete from public.tenants where id = $1", [tenant])
+          .catch(() => undefined);
       await s?.admin
         .query("ALTER ROLE cms_runtime PASSWORD NULL")
         .catch(() => undefined);

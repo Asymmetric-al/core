@@ -359,7 +359,7 @@ describe("release database steps", () => {
     expect(runCommand).not.toHaveBeenCalled();
   });
 
-  it("lets the preview environment rebuild the preview project, and still keeps the production environment off it (D-18, AL-2678: the fake database answers the seed's new counts, among them Parties, account links and the restricted worker)", async () => {
+  it("lets the preview environment rebuild the preview project, and still keeps the production environment off it (D-18, AL-2678: the fake database answers the seed's new counts, among them Parties, account links and the restricted worker; AL-2679: the settings carry the cms_runtime password the sweep needs)", async () => {
     // Two hosted projects and no third (hosted plan 3.1): the production-named
     // project is the disposable preview project until WP11.
     const previewRef = "btewedpsxwsjczvmegby";
@@ -373,6 +373,7 @@ describe("release database steps", () => {
         RELEASE_SUPABASE_PROJECT_REF: previewRef,
         RELEASE_DATABASE_URL: databaseUrl.replace(ref, previewRef),
         RELEASE_CMS_OWNER_PASSWORD: "owner-password-fixture",
+        RELEASE_CMS_RUNTIME_PASSWORD: passwords.RELEASE_CMS_RUNTIME_PASSWORD,
         RELEASE_DATABASE_SSL_CA: CA,
       });
     const signoff =
