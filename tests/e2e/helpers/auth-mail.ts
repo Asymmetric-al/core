@@ -70,7 +70,7 @@ function assertLocalDatabase(dbUrl: string) {
 export function adminServerLogFile(env: NodeJS.ProcessEnv = process.env) {
   return (
     env.AUTH_MAIL_ADMIN_LOG_FILE?.trim() ||
-    "test-results/auth-mail/admin-server.log"
+    ".e2e-logs/auth-mail-admin-server.log"
   );
 }
 

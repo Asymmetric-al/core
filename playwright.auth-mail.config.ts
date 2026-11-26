@@ -75,6 +75,7 @@ const serverEnv = {
     ? { PAYLOAD_DATABASE_URI: process.env.E2E_AUTH_MAIL_DB_URL }
     : {}),
 } as Record<string, string>;
+delete serverEnv.OPERATIONS_NAMES;
 
 /** The hostname an app's dev server binds, and the environment it starts with. */
 function binding(app: string): {
@@ -96,8 +97,7 @@ function binding(app: string): {
     hostname: "localhost",
     env: {
       ...env,
-      OPERATIONS_NAMES:
-        process.env.OPERATIONS_NAMES ?? `localhost:${ADMIN_PORT}`,
+      OPERATIONS_NAMES: `localhost:${ADMIN_PORT}`,
       AUTH_MAIL_ADMIN_LOG_FILE: adminServerLogFile(),
     },
   };
