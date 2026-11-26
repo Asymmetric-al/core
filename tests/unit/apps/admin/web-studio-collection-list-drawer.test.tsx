@@ -102,11 +102,8 @@ const props = {
   viewType: "list",
 } as unknown as React.ComponentProps<typeof NativeCollectionListView>;
 
-it.each([
-  ["cms-users", "Users", "New user"],
-  ["tenants", "Organizations", "New organization"],
-] as const)(
-  "uses the shared records grid for %s",
+it.each([["navigation", "Navigation", "New navigation"]] as const)(
+  "uses the shared records grid for %s, a collection without drafts (D-18: WP6 part 2b retires the cms-users and tenants lists)",
   (collectionSlug, title, createLabel) => {
     render(
       <NativeCollectionListView

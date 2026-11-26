@@ -21,27 +21,26 @@ export const SECOND_PUBLIC_TENANT_NAME = "Second Local Demo Organization";
 export const LOCAL_SEED_SLUGS = {
   draftPage: "local-cms-draft-preview",
   homePage: "local-cms-home",
-  ministryUpdate: "local-ministry-update",
-  projectPage: "local-project",
-  secondTenantPage: "local-cms-home",
 };
 
-export const LOCAL_TEMPLATE_KEYS = {
-  ministryUpdate: "ministry-update-local",
-  missionaryGiving: "missionary-giving-local",
-  project: "project-local",
-  standard: "standard-local",
-};
+export const FIXTURE_MEDIA_ALT = "Local CMS Demo Image";
+export const FIXTURE_NAVIGATION_LABEL = "Main Navigation";
+
+export const SEED_SITES_SQL = `
+  SELECT coalesce(json_agg(json_build_object(
+           'id', s.id,
+           'tenantId', s.tenant_id,
+           'isDefault', s.is_default,
+           'mediaId', md5(s.tenant_id::text || ':cms-media')::uuid
+         ) ORDER BY s.tenant_id, s.is_default DESC, s.id), '[]'::json)::text
+    FROM public.sites s;
+`;
 
 export const EDITORIAL_COLLECTIONS = [
+  "site-presentations",
   "pages",
   "navigation",
-  "missionary-profiles",
-  "ministry-updates",
   "media",
-  "page-templates",
-  "missionary-giving-pages",
-  "project-pages",
 ];
 
 export const LOCAL_ENV_DEFAULTS = {
@@ -64,12 +63,7 @@ export const LOCAL_ENV_DEFAULTS = {
   PLAYWRIGHT_ADMIN_BASE_URL: LOCAL_PLAYWRIGHT_ADMIN_URL,
   CMS_WEB_STUDIO_NATIVE_PAGES: "true",
   CMS_WEB_STUDIO_NATIVE_NAVIGATION: "true",
-  CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES: "true",
-  CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES: "true",
   CMS_WEB_STUDIO_NATIVE_MEDIA: "true",
-  CMS_WEB_STUDIO_NATIVE_PAGE_TEMPLATES: "true",
-  CMS_WEB_STUDIO_NATIVE_MISSIONARY_GIVING_PAGES: "true",
-  CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES: "true",
   CMS_LOCAL_DEFAULT_TENANT_SLUG: DEMO_PUBLIC_TENANT_SLUG,
 };
 

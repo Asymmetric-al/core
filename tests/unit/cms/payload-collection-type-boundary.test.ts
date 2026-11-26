@@ -8,14 +8,11 @@ import { expect, it } from "vitest";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 
-it("compiles collection block references without generated Payload augmentation", () => {
+it("compiles collection block references without generated Payload augmentation (D-18: WP6 part 2b moves the blocks to the one pages collection)", () => {
   const scratch = mkdtempSync(
     path.join(tmpdir(), "core-payload-type-boundary-"),
   );
-  const source = path.join(
-    repoRoot,
-    "apps/admin/src/cms/collections/missionary-giving-pages.ts",
-  );
+  const source = path.join(repoRoot, "apps/admin/src/cms/collections/pages.ts");
   const sourceBefore = readFileSync(source);
   try {
     const config = path.join(scratch, "tsconfig.json");

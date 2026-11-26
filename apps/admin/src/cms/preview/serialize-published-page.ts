@@ -3,10 +3,19 @@ import { resolvePublicCmsCtaHref } from "@asym/lib/cms/public-page";
 import type { SerializedPublicMedia } from "@asym/api/cms/public";
 import type { PublicCmsPage } from "@asym/lib/cms/public-page";
 
+const CTA_PAGE_TYPES: Record<string, string> = {
+  standard: "standard",
+  missionary: "missionary_giving",
+  project: "project",
+};
+
 export function serializePublishedPageLike(
   doc: Record<string, unknown>,
 ): PublicCmsPage {
-  const pageType = typeof doc.pageType === "string" ? doc.pageType : null;
+  const pageType =
+    typeof doc.family === "string" && Object.hasOwn(CTA_PAGE_TYPES, doc.family)
+      ? CTA_PAGE_TYPES[doc.family]!
+      : null;
   const missionaryId =
     typeof doc.missionaryId === "string" ? doc.missionaryId : null;
   const fundId = typeof doc.fundId === "string" ? doc.fundId : null;
@@ -198,45 +207,19 @@ function serializePublicMedia(value: unknown) {
   }
 
   const media = value as Record<string, unknown>;
-  const variants =
-    media.variants && typeof media.variants === "object"
-      ? (media.variants as Record<string, unknown>)
-      : undefined;
-  const thumbnail = readMediaVariantUrl(variants?.thumbnail);
-  const card = readMediaVariantUrl(variants?.card);
-
   const serialized: SerializedPublicMedia = {
     id:
       typeof media.id === "string" || typeof media.id === "number"
         ? String(media.id)
         : null,
     alt: readOptionalString(media.alt),
-    url: readOptionalString(media.url),
-    thumbnailURL: thumbnail,
-    cardURL: card,
-    width: typeof media.width === "number" ? media.width : null,
-    height: typeof media.height === "number" ? media.height : null,
-    mimeType: readOptionalString(media.mimeType),
+    url: null,
+    thumbnailURL: null,
+    cardURL: null,
+    width: null,
+    height: null,
+    mimeType: null,
   };
 
-  const filename = readOptionalString(media.filename);
-  if (filename !== null) {
-    serialized.filename = filename;
-  }
-
-  const caption = readOptionalString(media.caption);
-  if (caption !== null) {
-    serialized.caption = caption;
-  }
-
   return serialized;
-}
-
-function readMediaVariantUrl(value: unknown) {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  const size = value as Record<string, unknown>;
-  return readOptionalString(size.url);
 }

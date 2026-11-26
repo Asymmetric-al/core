@@ -93,8 +93,9 @@ bun run lint:admin
 - `features/` - Feature modules (`mission-control`, `support-hub`, `studios`)
 - `lib/` - Admin-specific utilities, including the role gate
   (`lib/admin-access.ts`)
-- `src/` - Payload CMS: collections, access rules and the public content
-  reader (`src/cms`), the Web Studio UI (`src/cms-ui`), applied migrations
+- `src/` - Payload CMS: the five collections, tenancy rules, the actor and
+  service ports and the page starters (`src/cms`), the Web Studio UI
+  (`src/cms-ui`), applied migrations
   (`src/migrations`) and Payload styling (`src/styles`)
 - `payload.config.ts`, `proxy.ts`, `next.config.ts` - Payload, edge auth and
   Next.js configuration

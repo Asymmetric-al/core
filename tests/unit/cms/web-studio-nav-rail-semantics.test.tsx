@@ -20,19 +20,10 @@ import { StudioNavRail } from "../../../apps/admin/src/cms-ui/web-studio/shell/s
 import type { LinkAdapterProps } from "../../../apps/admin/node_modules/@payloadcms/ui/dist/providers/RouterAdapter/index.js";
 
 const STORED_TITLE = "Stored title from another organization";
-const STUDIO_SLUGS = [
-  "pages",
-  "missionary-giving-pages",
-  "project-pages",
-  "ministry-updates",
-  "missionary-profiles",
-  "navigation",
-  "page-templates",
-  "media",
-];
+const STUDIO_SLUGS = ["pages", "navigation", "media"];
 const OTHER_SLUGS = [
-  "cms-users",
-  "tenants",
+  "site-presentations",
+  "principal-links",
   "payload-preferences",
   "payload-locked-documents",
 ];
@@ -170,7 +161,7 @@ function expectAbsent(container: HTMLElement, title: string) {
   expect(screen.queryAllByText(title)).toEqual([]);
 }
 
-it("offers the same enabled sections on mobile and closes after Payload navigation", async () => {
+it("offers the same enabled sections on mobile and closes after Payload navigation (D-18: WP6 part 2b removes the Missionaries hub)", async () => {
   renderRail("/web-studio/collections/pages");
 
   fireEvent.click(
@@ -194,8 +185,11 @@ it("offers the same enabled sections on mobile and closes after Payload navigati
     }),
   ).toBeTruthy();
   expect(
-    within(navigation).getByRole("link", { name: "Missionaries", exact: true }),
-  ).toBeTruthy();
+    within(navigation).queryByRole("link", {
+      name: "Missionaries",
+      exact: true,
+    }),
+  ).toBeNull();
   fireEvent.click(pageLink);
   expect(fixture.push).toHaveBeenCalledExactlyOnceWith(
     "/web-studio/collections/pages",
@@ -225,10 +219,10 @@ it("offers the same enabled sections on mobile and closes after Payload navigati
   await waitFor(() => expect(document.activeElement).toBe(trigger));
 });
 
-it("reads recent documents through the access-checked server function, never a stored title", async () => {
+it("reads recent documents through the access-checked server function, never a stored title (D-18: WP6 part 2b's collections and its login collection, principal-links)", async () => {
   fixture.items = [
     quarterlyUpdate(),
-    { id: 3, collectionSlug: "cms-users", title: "editor@example.org" },
+    { id: 3, collectionSlug: "principal-links", title: "editor@example.org" },
   ];
   const { container } = renderRail("/web-studio");
 
@@ -375,24 +369,25 @@ it("keeps collapsed section controls as named links with one navigation and stab
   );
 });
 
-it("gives stock admin lists a home for tenant-scoped readers", async () => {
-  // Payload keeps a where-scoped read as an object, never `true`.
+it("offers no Administration list, even to a reader of the Site and login collections (D-18: WP6 part 2b retires the Users and Organizations lists)", async () => {
   fixture.permissions = {
     collections: {
-      "cms-users": { read: { permission: true, where: { tenant: 1 } } },
-      tenants: { read: { permission: true, where: { id: 1 } } },
+      "principal-links": { read: { permission: true, where: { id: "a" } } },
+      "site-presentations": {
+        read: { permission: true, where: { tenant: "b" } },
+      },
     },
   };
-  renderRail("/web-studio/collections/tenants");
+  renderRail("/web-studio");
   await screen.findByTitle("Quarterly update");
   const sections = screen.getByRole("navigation", { name: "Studio sections" });
-  const admin = within(sections).getByRole("list", { name: "Administration" });
   expect(
-    within(admin).getByRole("link", { name: "Users" }).getAttribute("href"),
-  ).toBe("/web-studio/collections/cms-users");
-  const tenants = within(admin).getByRole("link", { name: "Organizations" });
-  expect(tenants.getAttribute("href")).toBe("/web-studio/collections/tenants");
-  expect(tenants.getAttribute("aria-current")).toBe("page");
+    within(sections).queryByRole("list", { name: "Administration" }),
+  ).toBeNull();
+  expect(within(sections).queryByRole("link", { name: "Users" })).toBeNull();
+  expect(
+    within(sections).queryByRole("link", { name: "Organizations" }),
+  ).toBeNull();
 });
 
 it("leaves administration out for users who cannot read it", async () => {

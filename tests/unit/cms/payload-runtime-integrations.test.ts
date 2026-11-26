@@ -1,16 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import * as integrations from "../../../apps/admin/src/cms/payload-runtime-integrations";
 import {
   DEFAULT_PAYLOAD_EMAIL_FROM_ADDRESS,
   DEFAULT_PAYLOAD_EMAIL_FROM_NAME,
-  WEB_STUDIO_MEDIA_BLOB_PREFIX,
-  createPayloadStorageAdapters,
   resolvePayloadEmailAdapter,
 } from "../../../apps/admin/src/cms/payload-runtime-integrations";
-
-import type { Config } from "payload";
-
-const VALID_VERCEL_BLOB_TOKEN = "vercel_blob_rw_store123_token456";
 
 describe("Payload runtime integrations", () => {
   it("keeps the Payload email adapter disabled until Resend is configured", () => {
@@ -46,73 +41,11 @@ describe("Payload runtime integrations", () => {
     });
   });
 
-  it("retains local storage with stable storage metadata when no Blob token is configured", () => {
-    const [adapter] = createPayloadStorageAdapters({});
-    const baseConfig = createUploadConfig();
-
-    const config = adapter.init(baseConfig);
-    const media = config.collections?.find(
-      (collection) => collection.slug === "media",
-    );
-    expect(media?.upload).toEqual(baseConfig.collections?.[0]?.upload);
-    expect(media?.upload).not.toHaveProperty("fileOperations");
-    expect(media?.upload).not.toHaveProperty("adapter");
-    expect(config.endpoints).toBeUndefined();
-    expect(media?.fields).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ name: "url" }),
-        expect.objectContaining({
-          defaultValue: WEB_STUDIO_MEDIA_BLOB_PREFIX,
-          name: "prefix",
-        }),
-        expect.objectContaining({ name: "_objectKey" }),
-      ]),
-    );
-    expect(adapter).toMatchObject({
-      collections: ["media"],
-      name: "vercel-blob",
-    });
-  });
-
-  it("uses Vercel Blob for Web Studio media uploads when the token is configured", () => {
-    const [adapter] = createPayloadStorageAdapters({
-      BLOB_READ_WRITE_TOKEN: VALID_VERCEL_BLOB_TOKEN,
-    });
-
-    const config = adapter.init(createUploadConfig());
-    const media = config.collections?.find(
-      (collection) => collection.slug === "media",
-    );
-
-    expect(media?.upload).toMatchObject({
-      adapter: "vercel-blob",
-      disableLocalStorage: true,
-    });
-    expect(media?.fields).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          defaultValue: WEB_STUDIO_MEDIA_BLOB_PREFIX,
-          name: "prefix",
-        }),
-        expect.objectContaining({
-          name: "url",
-        }),
-        expect.objectContaining({ name: "_objectKey" }),
-      ]),
-    );
+  it("configures no file storage adapter (D-18: WP6 part 2b drops Payload uploads and Vercel Blob; media is a plain record)", () => {
+    expect(Object.keys(integrations).sort()).toEqual([
+      "DEFAULT_PAYLOAD_EMAIL_FROM_ADDRESS",
+      "DEFAULT_PAYLOAD_EMAIL_FROM_NAME",
+      "resolvePayloadEmailAdapter",
+    ]);
   });
 });
-
-function createUploadConfig(): Config {
-  return {
-    collections: [
-      {
-        fields: [],
-        slug: "media",
-        upload: {
-          staticDir: "media",
-        },
-      },
-    ],
-  } as Config;
-}

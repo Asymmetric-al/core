@@ -390,12 +390,6 @@ export const navigation: NavItem[] = [
           "invitations",
         ],
       },
-      {
-        id: "admin-web-studio-editors",
-        title: "Web Studio editors",
-        href: "/web-studio/collections/cms-users",
-        keywords: ["cms users", "website editors"],
-      },
       // Same order as the Administration page: people and access, then
       // services (Email delivery, Eve).
       {

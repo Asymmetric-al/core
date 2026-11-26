@@ -21,21 +21,27 @@ beforeAll(async () => {
 afterAll(() => vi.unstubAllEnvs());
 
 const collectionContracts = [
-  { slug: "cms-users", versioned: false },
-  { slug: "tenants", versioned: false },
-  { slug: "pages", versioned: true },
-  { slug: "page-templates", versioned: true },
-  { slug: "missionary-giving-pages", versioned: true },
-  { slug: "project-pages", versioned: true },
-  { slug: "navigation", versioned: false },
-  { slug: "missionary-profiles", versioned: false },
-  { slug: "ministry-updates", versioned: true },
-  { slug: "media", versioned: false },
+  { slug: "site-presentations", versioned: false, authored: true },
+  { slug: "pages", versioned: true, authored: true },
+  { slug: "navigation", versioned: false, authored: true },
+  { slug: "media", versioned: false, authored: true },
+  { slug: "principal-links", versioned: false, authored: false },
 ];
 
+describe("product collections (D-18: WP6 part 2b replaces the ten prototype collections with five, plan 6.2)", () => {
+  it("are exactly the five, beside Payload's own", () => {
+    expect(
+      config.collections
+        .map(({ slug }) => slug)
+        .filter((slug) => !slug.startsWith("payload-"))
+        .sort(),
+    ).toEqual(collectionContracts.map(({ slug }) => slug).sort());
+  });
+});
+
 describe.each(collectionContracts)(
-  "$slug storage contract",
-  ({ slug, versioned }) => {
+  "$slug storage contract (D-18: WP6 part 2b, plan 6.2)",
+  ({ slug, versioned, authored }) => {
     it("retains the reviewed version-history setting", () => {
       const collection = config.collections.find(
         (entry) => entry.slug === slug,
@@ -45,17 +51,26 @@ describe.each(collectionContracts)(
       expect(Boolean(collection.versions)).toBe(versioned);
     });
 
-    it("does not introduce unreviewed author identity relationships", () => {
+    it("names its authors only through Payload's authorship, to principal-links (D-18: WP6 part 2b turns authorship on, index W6-R8)", () => {
       const collection = config.collections.find(
         (entry) => entry.slug === slug,
       );
       if (!collection) throw new Error(`Missing product collection: ${slug}`);
 
-      const names = collection.fields.map((field) =>
-        "name" in field ? field.name : null,
+      const authors = collection.fields.filter(
+        (field) =>
+          "name" in field &&
+          (field.name === "createdBy" || field.name === "updatedBy"),
       );
-      expect(names).not.toContain("createdBy");
-      expect(names).not.toContain("updatedBy");
+      expect(
+        authors.map((field) => ("name" in field ? field.name : null)),
+      ).toEqual(authored ? ["createdBy", "updatedBy"] : []);
+      for (const field of authors) {
+        expect(field).toMatchObject({
+          type: "relationship",
+          relationTo: ["principal-links"],
+        });
+      }
     });
   },
 );
@@ -137,7 +152,7 @@ describe("Payload's REST routes (AL-2675, WP2b slice C; plan 5.2)", () => {
 });
 
 describe("Payload's document locks stay inside the organization (AL-2675, council C3 and round 2 CR2)", () => {
-  it("the built configuration admits no lock create, and only the selected organization's locks to read, take over or release", async () => {
+  it("the built configuration admits no lock create, and only the selected organization's locks to read, take over or release (D-18: WP6 part 2b signs Web Studio in as principal-links)", async () => {
     // Payload builds the lock collection with every signed-in user allowed
     // every operation (payload/dist/locked-documents/config.js). The access is
     // set on the configuration Payload is built from, so a development
@@ -152,7 +167,12 @@ describe("Payload's document locks stay inside the organization (AL-2675, counci
     const access = locks!.access as Record<string, unknown>;
     expect(
       await (access.create as (args: unknown) => unknown)({
-        req: { user: { id: 1, collection: "cms-users" } },
+        req: {
+          user: {
+            id: "00000000-0000-4000-8000-0000000000a1",
+            collection: "principal-links",
+          },
+        },
       }),
     ).toBe(false);
     for (const operation of ["read", "update", "delete"]) {

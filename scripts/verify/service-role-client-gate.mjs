@@ -76,9 +76,6 @@ export const isExempt = (file) =>
 
 export const CEILING_ROWS = `
 apps/admin/lib/admin-access.ts admin_client 1
-apps/admin/src/cms/auth/supabase-strategy.ts service_role_key 1
-apps/admin/src/cms/collections/page-builders.ts admin_client 2
-apps/admin/src/cms/create-from-template-endpoint.ts admin_client 2
 packages/api/src/admin/comments/comment.ts admin_client 2
 packages/api/src/admin/comments/index.ts admin_client 1
 packages/api/src/admin/contribution-batches/route.ts operation_admin_context 2

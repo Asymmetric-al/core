@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  TenantLink as Link,
-  useRoutePathname,
-} from "@asym/auth/tenant-navigation";
+import { useRoutePathname } from "@asym/auth/tenant-navigation";
 import {
   crossAppHref,
   isServeUnderPathsEnabled,
@@ -83,8 +80,6 @@ import {
   type StaffAccount,
   type StaffSubroleValue,
 } from "./staff-directory";
-
-const WEB_STUDIO_EDITORS_HREF = "/web-studio/collections/cms-users";
 
 function isStaffSubrole(
   value: string | null | undefined,
@@ -553,23 +548,17 @@ function MembersDirectory({
           </section>
         ) : null}
 
-        <Alert role="note">
-          <AlertTitle>
-            {canManage ? "Website editors" : "Read-only directory"}
-          </AlertTitle>
-          <AlertDescription>
-            {!canManage ? (
+        {!canManage ? (
+          <Alert role="note">
+            <AlertTitle>Read-only directory</AlertTitle>
+            <AlertDescription>
               <p>
                 Ask an organization administrator to invite members, change
                 roles, or revoke access.
               </p>
-            ) : null}
-            <p>
-              Review synced website editor accounts in{" "}
-              <Link href={WEB_STUDIO_EDITORS_HREF}>Web Studio editors</Link>.
-            </p>
-          </AlertDescription>
-        </Alert>
+            </AlertDescription>
+          </Alert>
+        ) : null}
       </div>
 
       {canManage ? (

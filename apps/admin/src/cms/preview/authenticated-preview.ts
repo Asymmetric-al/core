@@ -1,20 +1,17 @@
 import { serializePublishedPageLike } from "./serialize-published-page";
 
-export const WEB_STUDIO_PREVIEW_COLLECTIONS = [
-  "ministry-updates",
-  "missionary-giving-pages",
-  "pages",
-  "project-pages",
-] as const;
+export const WEB_STUDIO_PREVIEW_COLLECTIONS = ["pages"] as const;
 
 export type WebStudioPreviewCollection =
   (typeof WEB_STUDIO_PREVIEW_COLLECTIONS)[number];
 
 export type WebStudioPreviewDocument = {
   content?: unknown;
-  excerpt?: unknown;
+  family?: unknown;
+  fundId?: unknown;
   id?: unknown;
   layout?: unknown;
+  missionaryId?: unknown;
   slug?: unknown;
   summary?: unknown;
   title?: unknown;
@@ -37,37 +34,17 @@ export function isWebStudioPreviewCollection(
 }
 
 export function getWebStudioPreviewCollectionLabel(
-  collection: WebStudioPreviewCollection,
+  _collection: WebStudioPreviewCollection,
 ) {
-  switch (collection) {
-    case "ministry-updates":
-      return "Ministry Update";
-    case "missionary-giving-pages":
-      return "Missionary Giving Page";
-    case "pages":
-      return "Page";
-    case "project-pages":
-      return "Project Page";
-  }
+  return "Page";
 }
 
 export function buildWebStudioPreviewModel({
-  collection,
   doc,
 }: {
   collection: WebStudioPreviewCollection;
   doc: WebStudioPreviewDocument;
 }): WebStudioPreviewModel {
-  if (collection === "ministry-updates") {
-    return {
-      content: doc.content,
-      id: String(doc.id ?? "preview"),
-      layout: undefined,
-      summary: typeof doc.excerpt === "string" ? doc.excerpt : null,
-      title: typeof doc.title === "string" ? doc.title : "Untitled update",
-    };
-  }
-
   const page = serializePublishedPageLike(doc as Record<string, unknown>);
 
   return {

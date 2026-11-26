@@ -85,7 +85,7 @@ file applied and not recorded, and the next run applies it again (see
    `EOVERRIDE`); the wrapper's local fallback gives npm an empty project
    outside the repository instead.
 4. **Gates.** The tenant RLS catalog gate, the cross-schema name-collision
-   gate (one recorded exception, `cms.tenants`, until WP6) and the schema
+   gate (no recorded exception since WP6 part 2b dropped `cms.tenants`) and the schema
    fingerprint, which must equal the replay's exactly, access lists included.
 5. **Record heads.** The newest version of each ledger, read from the
    database, is written through `platform.record_migration_head`. Reading
@@ -1030,7 +1030,10 @@ filter). An unexpected table (`TENANT_KEY_MISSING`) or a listed `cms.*` table
 that is absent or already keyed (`TENANT_KEY_STALE_EXCEPTION`) stops the release
 at `gates`, after the forward-only push. Run this read-only query; it must
 return **exactly** the nine `cms.*` names in
-`docs/security/tenant-key-exceptions.json`:
+`docs/security/tenant-key-exceptions.json`. From the release that carries WP6
+part 2b that list is empty: before that release the query still returns the
+nine (the release's Payload migration drops them before the gate runs), and
+after it, none:
 
 ```sql
 SELECT n.nspname, c.relname
@@ -1185,6 +1188,106 @@ WHERE contype = 'f' AND confrelid = 'public.tenants'::regclass AND confdeltype <
 ```
 
 On 23 November 2026 (Release 45136837286, `c2c8e9173`), the in-place upgrade of hosted development (`pnmlrbgjiqzzsthsoikm`) established the expected post-release state: 130 applied Supabase migrations (head `20261120130006`), 149 foreign keys to `public.tenants` all `ON DELETE RESTRICT` (0 other), 995 `public.field_policies` rows (190 physical columns plus 9 derived fields across five surfaces), and one legal entity per tenant (2 active tenants, 2 legal entities, 0 missing target keys, 14 giving-target locks). A database that was seeded before WP3a part 1a (#2753) and then migrated in place holds no fee-cover fund: `supabase/seed.sql` has created one for each legal entity only since that change, the seed runs only on a fresh database, and the migrations create none. A database seeded since then keeps its fee-cover funds through later migrations. WP8a must create the missing fee-cover funds on a database that has none.
+
+### The CMS clean baseline (WP6 part 2b: Payload migration `20261125_120829_clean_baseline`)
+
+The release that carries WP6 part 2b runs one forward Payload migration in the
+**Migrate** step. It drops the prototype CMS tables (`cms.tenants` among them)
+and creates the five collections on UUID ids. Its first statements are a
+guard: it compares the tables, views, sequences and enum types in `cms` with
+the fixed list the five earlier migrations create (94, 0, 57, 19), names
+anything extra or missing, then counts the rows of every table except
+`tenants`, `cms_users`, `payload_preferences`, `payload_preferences_rels`,
+`payload_locked_documents`, `payload_locked_documents_rels`, `payload_kv` and
+`payload_migrations`, and refuses on any row, naming each non-empty table and
+its count. A refusal rolls the whole migration back: nothing in `cms`
+changes, no ledger row is written, and the release stops before deploy. The
+guard has no override.
+
+**1. First, ruling Q1's record and re-check** (ruling-wp6-part2b Q1). The
+gate protects one fact: no live build reads `cms.tenants` when this
+migration runs, and the migration runs before deploy. Record, quoting command
+output and times:
+
+1. Development: the development checkpoint's read-back for admin and donor
+   (deployment ID and commit; step 6 of
+   [Switching it on](#switching-it-on)).
+2. Production: the release run ID whose live check passed for admin and
+   donor, with each domain's commit (step 6 of [What it does](#what-it-does)).
+3. For each commit, `git merge-base --is-ancestor 15f93fe09 <commit>` exits 0.
+4. `curl -s -o /dev/null -w '%{http_code}' https://admin.asymmetric.al/api/cms/public/navigation`
+   prints `404`.
+5. A `403` counts only if production's admin was built with
+   `CORE_SERVE_UNDER_PATHS=1`, which production builds refuse today
+   (`scripts/release/serve-under-paths.mjs`). If that refusal is gone, also
+   record `git ls-tree -r <commit> -- apps/admin/app/api/cms/public`
+   printing nothing. Any other `403`, or any other status: the gate is not
+   met. A `403` never restores ruling W6-R14.
+6. Repeat 2 to 4 just before dispatching the release that carries 2b. If
+   production was rolled back below `15f93fe09`, do not dispatch.
+
+**2. The content check** (ruling Q5(d)), read-only, on preview and then
+production, connected as the job connects
+([Connecting as the job does](#connecting-as-the-job-does)). Every row must
+show `0`:
+
+```sql
+BEGIN READ ONLY;
+SELECT c.relname AS table_name,
+       (xpath('/row/n/text()',
+              query_to_xml(format('SELECT count(*) AS n FROM cms.%I', c.relname),
+                           false, true, '')))[1]::text::bigint AS row_count
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'cms' AND c.relkind IN ('r', 'p')
+  AND c.relname NOT IN ('tenants', 'cms_users', 'payload_preferences',
+                        'payload_preferences_rels', 'payload_locked_documents',
+                        'payload_locked_documents_rels', 'payload_kv',
+                        'payload_migrations')
+ORDER BY row_count DESC, table_name;
+ROLLBACK;
+```
+
+The release job takes no export: every hosted row is a fixture, and the
+WP1.5 census exports, kept until WP9, are the record. If a row shows on a
+hosted database, do not dispatch. Keep a data-only dump of `cms` beside the
+census exports, empty the content tables as `cms_owner` in one transaction,
+then run the check again.
+
+**3. The window.** Between the migration and admin's promotion (minutes),
+the 2a admin build runs on the new schema, and Web Studio writes nothing. The
+2a strategy's read of the dropped `cms.tenants` fails and Payload treats the
+request as signed out: a signed-in editor's REST calls answer `403`, its pages
+send the editor to Web Studio's sign-in page, and a signed-out REST call
+answers `401`. The legacy `/api/media/file/*` redirect ends in `500` signed
+in or out, where before this release it ends in `401` signed out and `403`
+signed in: the 2a file route queries upload columns the new `cms.media` lacks.
+Seen on 26 November 2026 with admin at `7ae2909fa` on a database this release
+migrated; preview and server functions use the same strategy but were not
+called. The public site makes no CMS request, and nothing else reads `cms`.
+
+**4. If a run stops after `migrate`**, read the ledger, read-only:
+
+```sql
+SELECT name, batch, created_at FROM cms.payload_migrations ORDER BY created_at;
+```
+
+The sixth name, `20261125_120829_clean_baseline`, present means the file
+committed: it and its ledger row are one transaction. Absent means nothing in
+`cms` changed.
+
+**5. After the release.** Web Studio opens on the five collections, empty.
+It creates nothing until provisioning makes Site presentations (WP6 part 3):
+New page and the starter gallery refuse with their message, menus need a
+Site, no media upload until part 2c, and Publish is refused. The Users list is
+gone, and the legacy media redirect ends in `404`. `payload_preferences` is
+dropped and made again, so stored list settings and pins of the old
+collections are gone. The public site is unchanged.
+
+**6. Rollback: forward only.** The migration's `down` throws "forward only"
+and Payload rolls it back. An admin build below this release runs against the
+new schema as in the window above, so do not return admin below it; fix
+forward.
 
 ### The database's certificate
 

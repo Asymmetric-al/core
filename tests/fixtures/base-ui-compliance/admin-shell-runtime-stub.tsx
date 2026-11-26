@@ -1,11 +1,7 @@
 import React from "react";
 
-export function useQuery() {
-  return { data: [], isPending: false, isError: false };
-}
-
 export function usePathname() {
-  return "/web-studio/missionaries";
+  return "/web-studio/templates";
 }
 
 export function useSearchParams() {

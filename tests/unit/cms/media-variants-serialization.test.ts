@@ -17,7 +17,6 @@ const serializers = [
     serialize: (doc: Record<string, unknown>) =>
       serializePublicPage(context, doc),
   },
-  { name: "admin parity baseline", serialize: serializePublishedPageLike },
 ];
 
 const media = {
@@ -124,5 +123,38 @@ describe.each(serializers)("$name media variants", ({ serialize }) => {
     expect(serialize(pageWithMedia(media)).layout).toEqual(
       expectedLayout(null, null),
     );
+  });
+});
+
+describe("admin preview media (D-18: WP6 part 2b makes media a plain record of alt, credit and folder, so the preview no longer reads file fields or variants)", () => {
+  it("keeps the media id and alt text and leaves every file field empty, whatever the stored document carries", () => {
+    const doc = pageWithMedia({
+      ...media,
+      variants: {
+        thumbnail: { url: "/web-studio/api/media/file/jane-320.jpg" },
+        card: { url: "/web-studio/api/media/file/jane-960.jpg" },
+      },
+    });
+
+    expect(serializePublishedPageLike(doc).layout).toEqual([
+      {
+        id: null,
+        blockName: null,
+        blockType: "media-feature",
+        title: null,
+        body: null,
+        media: {
+          id: "44",
+          alt: "Jane in field",
+          url: null,
+          thumbnailURL: null,
+          cardURL: null,
+          width: null,
+          height: null,
+          mimeType: null,
+        },
+        mediaCaption: null,
+      },
+    ]);
   });
 });

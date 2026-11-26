@@ -3,7 +3,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import OrgUpdates from "../../../../../apps/admin/app/(app)/feed/org-updates/page-client";
 afterEach(cleanup);
-it("explains publishing once with working alternatives and no dead Publish action", () => {
+it("explains publishing once with working alternatives and no dead Publish action (D-18: WP6 part 2b retires the website ministry-updates collection and its link)", () => {
   render(<OrgUpdates />);
   expect(screen.queryByRole("button", { name: "Publish update" })).toBeNull();
   expect(screen.getByText(/publishing is not connected yet/i)).toBeTruthy();
@@ -14,8 +14,7 @@ it("explains publishing once with working alternatives and no dead Publish actio
     screen.getByRole("link", { name: "Open Moderation" }).getAttribute("href"),
   ).toBe("/feed");
   expect(
-    screen
-      .getByRole("link", { name: "Open website ministry updates" })
-      .getAttribute("href"),
-  ).toBe("/web-studio/collections/ministry-updates");
+    screen.queryByRole("link", { name: "Open website ministry updates" }),
+  ).toBeNull();
+  expect(document.body.innerHTML).not.toContain("ministry-updates");
 });

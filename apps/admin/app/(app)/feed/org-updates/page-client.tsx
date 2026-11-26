@@ -29,8 +29,7 @@ export default function OrgUpdatesPage() {
           <EmptyDescription>
             Organization updates cannot be published or saved here yet.{" "}
             Missionaries publish ministry updates from their app feed; review
-            those in Moderation. Website ministry updates are managed separately
-            in Web Studio.
+            those in Moderation.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
@@ -40,12 +39,6 @@ export default function OrgUpdatesPage() {
               href="/feed"
             >
               Open Moderation
-            </Link>
-            <Link
-              className={buttonVariants({ variant: "outline" })}
-              href="/web-studio/collections/ministry-updates"
-            >
-              Open website ministry updates
             </Link>
           </div>
         </EmptyContent>
