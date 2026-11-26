@@ -414,6 +414,166 @@ describe.skipIf(!ADMIN_URL)(
         expect(await count("account_links", id.TA)).toBe(linksBefore + 1);
       }));
 
+    const giftAs = (
+      tenant: string,
+      profile: string | null,
+      key: string = randomUUID(),
+      writer = "begin_donation_saga",
+    ) =>
+      db.query(
+        writer === "begin_donation_saga"
+          ? "select public.begin_donation_saga(p_tenant_id => $1, p_profile_id => $2, p_actor_user_id => $3, p_amount => 500, p_idempotency_key => $4) r"
+          : "select public.atomic_create_donation_with_audit(p_tenant_id => $1, p_donor_profile_id => $2, p_actor_user_id => $3, p_missionary_id => null, p_amount => 500) r",
+        writer === "begin_donation_saga"
+          ? [tenant, profile, profile ?? id.UM, key]
+          : [tenant, profile, profile ?? id.UM],
+      );
+    const donorsOnParty = async (tenant: string, party: string) =>
+      (
+        await db.query(
+          "select d.id, (select count(*)::int from public.donations g where g.donor_id = d.id) gifts from public.donors d where d.tenant_id = $1 and d.party_id = $2 order by d.created_at, d.id",
+          [tenant, party],
+        )
+      ).rows as { id: string; gifts: number }[];
+
+    it("F2: a guest gives, claims the gift, signs in and gives again through either legacy writer: one donor on that Party with every gift, found by the account link and its Party, and a true replay of the signed-in gift's key answers the stored gift (red: the signed-in gift writes a second donor on the Party)", () =>
+      tx(db, async () => {
+        await db.query(fixtureSql(id));
+        for (const writer of [
+          "begin_donation_saga",
+          "atomic_create_donation_with_audit",
+        ]) {
+          const guest = (await giftAs(id.TA, null)).rows[0].r;
+          const party = (
+            await db.query(
+              "select party_id from public.donors where id = (select donor_id from public.donations where id = $1)",
+              [guest.donation_id],
+            )
+          ).rows[0].party_id as string;
+          const person = await newPerson(`Claimer ${writer}`, null);
+          await db.query(
+            "insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($1, $2, $3, 'account_claim')",
+            [id.TA, person, party],
+          );
+          const key = randomUUID();
+          const signedIn = (await giftAs(id.TA, person, key, writer)).rows[0].r;
+          expect([writer, await donorsOnParty(id.TA, party)]).toEqual([
+            writer,
+            [{ id: signedIn.donor_id, gifts: 2 }],
+          ]);
+          if (writer === "begin_donation_saga") {
+            const again = (await giftAs(id.TA, person, key, writer)).rows[0].r;
+            expect(again).toEqual({
+              replayed: true,
+              outbox_id: signedIn.outbox_id,
+              donation_id: signedIn.donation_id,
+            });
+          }
+        }
+      }));
+
+    it("F2: the seed's claimed donor (no profile_id, an account_claim link) gives and gets no twin (red: a second donor on the Party)", () =>
+      tx(db, async () => {
+        const claimed = (
+          await db.query(
+            `select al.tenant_id, al.party_id, p.id profile
+               from public.account_links al
+               join public.donors d on d.tenant_id = al.tenant_id and d.party_id = al.party_id
+               join public.profiles p on p.user_id = al.user_id
+              where al.linked_via = 'account_claim' and d.profile_id is null
+              limit 1`,
+          )
+        ).rows[0] as { tenant_id: string; party_id: string; profile: string };
+        expect(claimed).toBeDefined();
+        const before = await donorsOnParty(claimed.tenant_id, claimed.party_id);
+        expect(before).toHaveLength(1);
+        await giftAs(claimed.tenant_id, claimed.profile);
+        expect(
+          await donorsOnParty(claimed.tenant_id, claimed.party_id),
+        ).toEqual([{ id: before[0]!.id, gifts: before[0]!.gifts + 1 }]);
+      }));
+
+    it("F2: a signed-in person whose Party already has two donors in the organization is refused (21000) by either legacy writer, and nothing is written (red: a gift is written)", () =>
+      tx(db, async () => {
+        await db.query(fixtureSql(id));
+        const party = randomUUID();
+        await db.query(
+          "insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Twin party')",
+          [party, id.TA],
+        );
+        await db.query(
+          "insert into public.donors (tenant_id, party_id, name) values ($1, $2, 'Twin one'), ($1, $2, 'Twin two')",
+          [id.TA, party],
+        );
+        const person = await newPerson("Twin login", null);
+        await db.query(
+          "insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($1, $2, $3, 'account_claim')",
+          [id.TA, person, party],
+        );
+        const before = await count("donations", id.TA);
+        for (const writer of [
+          "begin_donation_saga",
+          "atomic_create_donation_with_audit",
+        ]) {
+          await db.query("savepoint twin");
+          const code = await giftAs(id.TA, person, randomUUID(), writer).then(
+            () => null,
+            (e: { code?: string }) => e.code ?? "?",
+          );
+          await db.query("rollback to savepoint twin");
+          expect([writer, code]).toEqual([writer, "21000"]);
+        }
+        expect(await count("donations", id.TA)).toBe(before);
+        expect(await donorsOnParty(id.TA, party)).toHaveLength(2);
+      }));
+
+    it("F2: a profile whose id is not its login's: the writer and the gift find the person's Party by the login's account link (red: a new Party)", () =>
+      tx(db, async () => {
+        await db.query(fixtureSql(id));
+        const login = randomUUID();
+        const profile = randomUUID();
+        await db.query(
+          "insert into auth.users (id, email) values ($1::uuid, 'wp5rest-' || $1::text || '@example.test')",
+          [login],
+        );
+        await db.query("delete from public.profiles where user_id = $1", [
+          login,
+        ]);
+        await db.query(
+          "insert into public.profiles (id, user_id) values ($1, $2)",
+          [profile, login],
+        );
+        await db.query(
+          "insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($1, $2, $3, 'account_claim')",
+          [id.TA, login, id.pD2],
+        );
+        await giftAs(id.TA, profile);
+        expect(await donorParty(id.TA, profile)).toEqual([]);
+        expect(await donorsOnParty(id.TA, id.pD2)).toEqual([
+          { id: id.d2, gifts: 2 },
+        ]);
+      }));
+
+    it("F5: the catch-up links no soft-deleted login (red: it links one)", () =>
+      tx(db, async () => {
+        await db.query(fixtureSql(id));
+        const deleted = await newPerson("Deleted login", null);
+        await gift(id.TA, deleted);
+        await db.query(
+          "update auth.users set deleted_at = now() where id = $1",
+          [deleted],
+        );
+        await db.query(catchUp());
+        expect(
+          (
+            await db.query(
+              "select count(*)::int n from public.account_links where user_id = $1",
+              [deleted],
+            )
+          ).rows,
+        ).toEqual([{ n: 0 }]);
+      }));
+
     it("a login with an account link cannot be deleted (23503), so the demo clean-up's delete of a linked demo login is refused and recorded, its link and Party kept (Q7 guard, passes on the base; the loop going on is tests/unit/packages/api/cleanup-demo-users)", () =>
       tx(db, async () => {
         await db.query(fixtureSql(id));

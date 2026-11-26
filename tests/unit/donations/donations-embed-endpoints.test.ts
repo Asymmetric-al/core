@@ -121,6 +121,7 @@ const donation = (id: string, donor: Row) => ({
 });
 const profiled = { id: "donor-1", profile: profile("profile-d", "donor") };
 const guest = { id: "donor-2", profile: null };
+const claimed = { id: "donor-c", profile: null };
 const otherDonor = { id: "donor-9", profile: profile("profile-x", "donor") };
 
 const as = (profileId: string, role: string): AuthContext => ({
@@ -367,6 +368,32 @@ describe("#2269 GraphQL donations reads (U)", () => {
     expect(donationsRequest().searchParams.get("id")).toBe("eq.gift-1");
   });
 
+  it("createDonation by a claimed donor whose row has no profile returns the gift: the caller's account link and its Party name that donor (AL-2678 WP5 rest, fix round F2; red: IDEMPOTENCY_KEY_REUSED)", async () => {
+    s.auth = as("profile-c", "donor");
+    s.tables.set("donations", [donation("gift-1", claimed)]);
+    s.tables.set("account_links", [{ party_id: "party-c" }]);
+    s.tables.set("donors", [{ id: claimed.id }]);
+    const r = await gql(
+      `mutation { createDonation(input: { missionaryId: "${missionary.id}", amount: 2500 }) { id amount } }`,
+    );
+    expect(r.errors).toBeUndefined();
+    expect(r.data?.createDonation).toEqual({ id: "gift-1", amount: 2500 });
+  });
+
+  it("createDonation is still refused when the caller's link names another donor than the gift's (fix round F2, guard)", async () => {
+    s.auth = as("profile-c", "donor");
+    s.tables.set("donations", [donation("gift-1", claimed)]);
+    s.tables.set("account_links", [{ party_id: "party-c" }]);
+    s.tables.set("donors", [{ id: "donor-other" }]);
+    const r = await gql(
+      `mutation { createDonation(input: { missionaryId: "${missionary.id}", amount: 2500 }) { id } }`,
+    );
+    expect(r.errors?.[0]?.extensions).toEqual({
+      code: "IDEMPOTENCY_KEY_REUSED",
+    });
+    expect(JSON.stringify(r)).not.toContain("gift-1");
+  });
+
   it("createDonation with a failed read-back raises DONATION_READBACK_FAILED with the donationId (T1)", async () => {
     [s.auth, s.failDonations] = [as("profile-d", "donor"), true];
     const r = await gql(
@@ -437,6 +464,21 @@ describe("#2269 REST /api/donations (U)", () => {
       donationId: "gift-1",
     });
     expect(donationsRequest().searchParams.get("id")).toBe("eq.gift-1");
+  });
+
+  it("POST by a claimed donor whose row has no profile answers 201 with the gift: the caller's account link and its Party name that donor (AL-2678 WP5 rest, fix round F2; red: 409)", async () => {
+    s.auth = as("profile-c", "donor");
+    s.tables.set("donations", [donation("gift-1", claimed)]);
+    s.tables.set("account_links", [{ party_id: "party-c" }]);
+    s.tables.set("donors", [{ id: claimed.id }]);
+    const res = await POST(
+      rest("POST", { missionaryId: missionary.id, amount: 2500 }),
+    );
+    expect(res.status).toBe(201);
+    expect(await res.json()).toEqual({
+      donation: donation("gift-1", claimed),
+      donationId: "gift-1",
+    });
   });
 
   it('POST with a failed read-back after the saga still answers 201 { donation: null, donationId, readBack: "failed" } (T1)', async () => {
