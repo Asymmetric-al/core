@@ -13,6 +13,7 @@ import {
   deletePerson,
   DEMO,
   documentScopeHeaders,
+  nextRead,
   SECOND,
   SEEDED,
   SEEDED_PASSWORD,
@@ -49,28 +50,25 @@ async function expectAccessible(page: Page, scope?: string) {
 }
 
 async function unreviewedCount(page: Page) {
-  const [reply] = await Promise.all([
-    page.waitForResponse(
-      (response) =>
-        new URL(response.url()).pathname ===
-          "/api/admin/workers/unreviewed-count" &&
-        response.request().method() === "GET",
-    ),
-    page.goto(`/${DEMO}`),
-  ]);
-  expect(reply.status()).toBe(200);
-  const { count } = (await reply.json()) as { count: number };
+  const read = await nextRead(
+    page,
+    /^\/api\/admin\/workers\/unreviewed-count$/,
+    () => page.goto(`/${DEMO}`),
+  );
+  expect(read.status).toBe(200);
+  const { count } = read.json as { count: number };
   expect(Number.isInteger(count) && count >= 0).toBe(true);
-  const summary = page.getByRole("link", {
-    name: /^Security level unreviewed: \d+ workers?$/,
-  });
   if (count === 0) {
     await expect(page.getByText(/^Security level unreviewed:/)).toHaveCount(0);
     await expect(
       page.getByText("Couldn't check workers' security levels."),
     ).toHaveCount(0);
   } else {
-    await expect(summary).toHaveText(
+    await expect(
+      page.getByRole("link", {
+        name: /^Security level unreviewed: \d+ workers?$/,
+      }),
+    ).toHaveText(
       `Security level unreviewed: ${count === 1 ? "1 worker" : `${count} workers`}`,
     );
   }
