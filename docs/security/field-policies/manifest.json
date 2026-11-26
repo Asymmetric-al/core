@@ -1716,6 +1716,16 @@
         "missionary": "---",
         "public": "---",
         "export": "---"
+      },
+      "ministry_assignment_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
       }
     },
     "member_care_activities": {

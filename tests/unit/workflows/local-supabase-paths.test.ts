@@ -89,6 +89,19 @@ describe("the local Supabase workflow's path filter", () => {
   );
 
   it.each([
+    "tests/unit/acceptance/issue-2678/assignment-keys.postgrest.acceptance.test.ts",
+    "tests/unit/acceptance/issue-2678/assignment-keys.realstack.acceptance.test.ts",
+    "packages/api/src/admin/crm/**",
+    "packages/database/types/crm-detail.ts",
+    "packages/database/types/crm-grid.ts",
+  ])(
+    "starts the assignment-key proof when %s, a suite or a CRM reader or response type it drives, changes (AL-2678 r3)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
     "tests/unit/acceptance/issue-2678/worker-record.postgrest.acceptance.test.ts",
     "packages/api/src/admin/workers/**",
     "apps/admin/app/api/admin/workers/**",
