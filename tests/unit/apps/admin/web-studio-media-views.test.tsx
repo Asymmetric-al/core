@@ -56,11 +56,19 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("the media library offers its controls only to people who may edit (WP6 rest, pull request 2)", () => {
-  it("shows Upload image to an editor and not to a reader", () => {
-    state.permissions = { collections: { media: { update: true } } };
-    const { unmount } = render(<MediaNativeListView {...({} as never)} />);
+  it.each([
+    ["an unrestricted update", true],
+    [
+      "a tenant-scoped update, as Payload keeps it",
+      { permission: true, where: { tenant: { equals: "t" } } },
+    ],
+  ])("shows Upload image to an editor holding %s", (_label, update) => {
+    state.permissions = { collections: { media: { update } } };
+    render(<MediaNativeListView {...({} as never)} />);
     expect(screen.getByRole("button", { name: "Upload image" })).toBeTruthy();
-    unmount();
+  });
+
+  it("shows no Upload image to a reader", () => {
     state.permissions = { collections: { media: { update: false } } };
     render(<MediaNativeListView {...({} as never)} />);
     expect(screen.queryAllByRole("button", { name: "Upload image" })).toEqual(
