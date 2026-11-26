@@ -20,8 +20,6 @@ import { chooseWebStudioOrganization } from "./actions";
 
 import type { Metadata } from "next";
 
-import { PayloadClipboardReset } from "@/src/cms-ui/web-studio/shell/payload-clipboard";
-
 export const metadata: Metadata = { title: "Choose an organization" };
 
 type WebStudioOrganizationPageProps = {
@@ -41,14 +39,11 @@ export default function WebStudioOrganizationPage({
   searchParams,
 }: WebStudioOrganizationPageProps) {
   return (
-    <>
-      <PayloadClipboardReset />
-      <Suspense
-        fallback={<AuthScreenSkeleton label="Loading your organizations" />}
-      >
-        <Choices searchParams={searchParams} />
-      </Suspense>
-    </>
+    <Suspense
+      fallback={<AuthScreenSkeleton label="Loading your organizations" />}
+    >
+      <Choices searchParams={searchParams} />
+    </Suspense>
   );
 }
 

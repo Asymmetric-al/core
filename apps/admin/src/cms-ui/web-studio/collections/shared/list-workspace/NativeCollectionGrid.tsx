@@ -44,16 +44,9 @@ import {
 } from "@payloadcms/ui";
 import { FileSearch, ListFilter, Plus, SearchX, Trash2 } from "lucide-react";
 import Image from "next/image";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 
+import { DocumentThumbnailSource } from "./document-thumbnail-source";
 import { GridBulkActions, type GridBulkOptions } from "./grid-bulk-actions";
 import { GridGroupByMenu } from "./grid-group-by-menu";
 import { GridSortMenu } from "./grid-sort-menu";
@@ -75,7 +68,6 @@ import {
   PAYLOAD_FALLBACK_SORT,
   parsePayloadSort,
   plainCellValue,
-  resolveDocumentThumbnail,
   STATUS_COLUMN_SIZE,
   toPayloadSort,
   visibilityFromColumns,
@@ -181,10 +173,6 @@ function DocumentStatusBadge({ doc }: { doc: Record<string, unknown> }) {
   const badge = STATUS_BADGES[status];
   return <Badge variant={badge.variant}>{badge.label}</Badge>;
 }
-
-export const DocumentThumbnailSource = createContext<
-  (doc: Record<string, unknown>) => string | null
->(resolveDocumentThumbnail);
 
 function DocumentThumbnail({ doc }: { doc: Record<string, unknown> }) {
   const src = useContext(DocumentThumbnailSource)(doc);

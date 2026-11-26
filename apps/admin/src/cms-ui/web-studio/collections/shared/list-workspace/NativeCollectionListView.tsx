@@ -14,14 +14,12 @@ import {
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { useId } from "react";
 
+import { DocumentThumbnailSource } from "./document-thumbnail-source";
 import {
   getStudioListConfig,
   type StudioListCollectionSlug,
 } from "./list-config";
-import {
-  DocumentThumbnailSource,
-  NativeCollectionGrid,
-} from "./NativeCollectionGrid";
+import { NativeCollectionGrid } from "./NativeCollectionGrid";
 import { resolveDocumentThumbnail } from "./payload-list-grid";
 import { Link } from "../../../routing";
 import { StudioLayout } from "../../../shell/studio-layout";
