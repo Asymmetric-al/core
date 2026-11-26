@@ -99,7 +99,7 @@ function makeAuth(
     assignmentDenial: null,
     profileId: "00000000-0000-4000-8000-000000000001",
     isAuthenticated: true,
-  } as AuthContext;
+  };
 }
 
 const URL_BASE = "https://admin.example.test";

@@ -57,6 +57,7 @@ import { toast } from "sonner";
 
 import {
   SITE_SETTINGS_QUERY_KEY,
+  SiteSettingsError,
   createSite,
   errorText,
   isInvalidNameError,
@@ -114,11 +115,21 @@ function SitesLoading() {
   );
 }
 
-function SitesLoadFailed({ onRetry }: { onRetry: () => void }) {
+function SitesLoadFailed({
+  onRetry,
+  refreshing = false,
+}: {
+  onRetry: () => void;
+  refreshing?: boolean;
+}) {
   return (
     <div className="max-w-4xl">
       <Alert variant="destructive">
-        <AlertTitle>Sites can&apos;t be loaded right now.</AlertTitle>
+        <AlertTitle>
+          {refreshing
+            ? "Couldn’t refresh Sites. Showing the last loaded settings."
+            : "Sites can't be loaded right now."}
+        </AlertTitle>
         <AlertDescription>
           <div className="pt-2">
             <Button type="button" variant="outline" onClick={onRetry}>
@@ -588,15 +599,22 @@ function SiteSettingsScreen() {
     return <SitesNoAccess />;
   }
 
+  const transientFailure =
+    settings.error instanceof TypeError ||
+    (settings.error instanceof SiteSettingsError &&
+      settings.error.status >= 500);
   let body: React.ReactNode;
   if (settings.isPending) {
     body = <SitesLoading />;
-  } else if (settings.isError) {
+  } else if (!settings.data || (settings.isError && !transientFailure)) {
     body = <SitesLoadFailed onRetry={() => void settings.refetch()} />;
   } else {
     const stored = settings.data.brand?.display_name ?? null;
     body = (
       <div className="flex max-w-4xl flex-col gap-8">
+        {settings.isRefetchError && (
+          <SitesLoadFailed refreshing onRetry={() => void settings.refetch()} />
+        )}
         <DonorAccountNameSection stored={stored} onSettled={refresh} />
         <SitesSection sites={settings.data.sites} onSettled={refresh} />
       </div>
