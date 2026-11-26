@@ -116,6 +116,16 @@ describe("the local Supabase workflow's path filter", () => {
   );
 
   it.each([
+    "tests/unit/acceptance/issue-2678/crm-pages.postgrest.acceptance.test.ts",
+    "packages/api/src/admin/crm/**",
+  ])(
+    "starts the paged-CRM proof when %s, the suite or the CRM module it drives, changes (AL-2678 WP5 rest r6)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
     "tests/unit/acceptance/issue-2678/own-donor-reads.postgrest.acceptance.test.ts",
     "packages/api/src/feed-preferences/**",
     "packages/api/src/reads/**",

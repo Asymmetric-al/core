@@ -41,7 +41,14 @@ class MemoryCrmNotesSupabase {
   refusal: string | null = null;
   refusalMessage = "refused";
 
-  async rpc(fn: "create_crm_note", args: Record<string, unknown>) {
+  pageCalls: Record<string, unknown>[] = [];
+  pageError: { code?: string; message: string } | null = null;
+
+  async rpc(
+    fn: "create_crm_note" | "crm_notes_page",
+    args: Record<string, unknown>,
+  ) {
+    if (fn === "crm_notes_page") return this.page(args);
     this.commandCalls.push(args);
     if (this.refusal) {
       return {
@@ -90,70 +97,38 @@ class MemoryCrmNotesSupabase {
     };
   }
 
+  /**
+   * AL-2678 (WP5 rest, r6): the page function's answer for the notes held,
+   * by tenant only; row security's restricted rule is proved on the real
+   * stack (issue-2678/crm-pages), not here.
+   */
+  private page(args: Record<string, unknown>) {
+    this.pageCalls.push(args);
+    if (this.pageError) return { data: null, error: this.pageError };
+    const rows = this.notes
+      .filter((note) => note.tenant_id === args.p_tenant_id)
+      .sort(
+        (a, b) =>
+          b.updated_at.localeCompare(a.updated_at) || a.id.localeCompare(b.id),
+      );
+    const offset = Number(args.p_offset);
+    return {
+      data: {
+        totalCount: rows.length,
+        rows: rows.slice(offset, offset + Number(args.p_limit)),
+      },
+      error: null,
+    };
+  }
+
   from(table: string) {
     if (table === "crm_notes") {
-      return this.notesFrom();
+      throw new Error("The list reads crm_notes only through crm_notes_page");
     }
     if (table === "crm_command_logs") {
       return this.commandLogsFrom();
     }
     throw new Error(`Unexpected table ${table}`);
-  }
-
-  private notesFrom() {
-    const state: { filters: Array<{ field: string; value: unknown }> } = {
-      filters: [],
-    };
-
-    const applyFilters = () =>
-      this.notes.filter((note) =>
-        state.filters.every((filter) => {
-          const actual = note[filter.field as keyof NoteRow];
-          return actual === filter.value;
-        }),
-      );
-
-    const chain = {
-      eq: (field: string, value: unknown) => {
-        state.filters.push({ field, value });
-        return chain;
-      },
-      maybeSingle: async () => {
-        const rows = applyFilters();
-        return { data: rows[0] ?? null, error: null };
-      },
-      then: (
-        resolve: (value: { data: NoteRow[] | null; error: null }) => unknown,
-      ) => resolve({ data: applyFilters(), error: null }),
-    };
-
-    return {
-      insert: (row: NoteRow) => {
-        const duplicate = this.notes.some(
-          (existing) =>
-            existing.tenant_id === row.tenant_id &&
-            existing.idempotency_key &&
-            existing.idempotency_key === row.idempotency_key,
-        );
-        if (duplicate) {
-          return {
-            select: () => ({
-              single: async () => ({
-                data: null,
-                error: { code: "23505", message: "duplicate key" },
-              }),
-            }),
-          };
-        }
-        this.notes.push(row);
-        return {
-          select: () => ({
-            single: async () => ({ data: row, error: null }),
-          }),
-        };
-      },
-      select: (_columns?: string) => chain,
-    };
   }
 
   private commandLogsFrom() {
@@ -255,75 +230,108 @@ describe("listMissionControlCrmNotes", () => {
     expect(response.rows[0]).not.toHaveProperty("outboundJobId");
   });
 
-  it("hides restricted notes from non-admin staff", async () => {
+  // AL-2678 (WP5 rest, r6; plan line 999): the list is one page of
+  // public.crm_notes_page on the caller's token, which filters, counts, sorts
+  // and pages in Postgres under row security; restricted notes are left out
+  // there for anyone but a tenant administrator (issue-2678/crm-pages proves
+  // it on the real stack, with a finance staff member among the callers).
+  it("reads one page through crm_notes_page with the actor's tenant, the search, the sort and the page, and states the exact total", async () => {
     const store = new MemoryCrmNotesSupabase();
-    seedNote(store, { title: "Pastoral", visibility: "restricted" });
+    for (let i = 0; i < 3; i += 1)
+      seedNote(store, {
+        id: `7777777${i}-7777-4777-8777-777777777777`,
+        title: `Note ${i}`,
+      });
 
-    const staffResponse = await listMissionControlCrmNotes({
+    const response = await listMissionControlCrmNotes({
+      actor: staffActor(),
+      params: {
+        cursor: { offset: 1 },
+        limit: 1,
+        search: "note",
+        sort: { direction: "asc", field: "title" },
+      },
+      supabase: store,
+    });
+
+    expect(store.pageCalls).toEqual([
+      {
+        p_tenant_id: TENANT_A,
+        p_search: "note",
+        p_sort: "title",
+        p_descending: false,
+        p_offset: 1,
+        p_limit: 1,
+      },
+    ]);
+    expect(response.totalCount).toBe(3);
+    expect(response.rows.map((row) => row.title)).toEqual(["Note 1"]);
+    expect(response.hasMore).toBe(true);
+    expect(response.nextCursor).toBeTruthy();
+  });
+
+  it("ends the list at the filtered total", async () => {
+    const store = new MemoryCrmNotesSupabase();
+    seedNote(store);
+
+    const response = await listMissionControlCrmNotes({
       actor: staffActor(),
       params: defaultParams,
       supabase: store,
     });
-    const adminResponse = await listMissionControlCrmNotes({
-      actor: adminActor(),
-      params: defaultParams,
-      supabase: store,
-    });
 
-    expect(staffResponse.rows).toEqual([]);
-    expect(adminResponse.rows.map((row) => row.title)).toEqual(["Pastoral"]);
+    expect(response.totalCount).toBe(1);
+    expect(response.hasMore).toBe(false);
+    expect(response.nextCursor).toBeNull();
   });
 
-  // Council round 1 on WP2a, F14 (plan acceptance line: "A finance staff
-  // member cannot read a restricted note"): the actor comes from a finance
-  // staff membership through requireCrmAccess, not built by hand.
-  it("hides restricted notes from a finance staff member, through requireCrmAccess", async () => {
+  it("answers an error, not an empty list, when the page read fails", async () => {
     const store = new MemoryCrmNotesSupabase();
-    seedNote(store, { title: "Pastoral", visibility: "restricted" });
-    seedNote(store, {
-      id: "77777777-7777-4777-8777-777777777777",
-      title: "Follow-up",
-    });
-    const context = (
-      staffRole: "finance" | "development",
-      isTenantAdmin: boolean,
-    ): AuthContext => ({
+    store.pageError = { code: "42501", message: "denied" };
+
+    await expect(
+      listMissionControlCrmNotes({
+        actor: staffActor(),
+        params: defaultParams,
+        supabase: store,
+      }),
+    ).rejects.toThrow("denied");
+  });
+
+  it("refuses an actor of another tenant before any read, through requireCrmAccess", async () => {
+    const store = new MemoryCrmNotesSupabase();
+    const auth: AuthContext = {
       userId: STAFF_ID,
       email: null,
       tenantId: TENANT_A,
-      role: isTenantAdmin ? "admin" : "staff",
+      role: "staff",
       memberships: [
         {
           tenantId: TENANT_A,
           role: "staff",
-          staffRole,
+          staffRole: "finance",
           isActive: true,
-          isTenantAdmin,
+          isTenantAdmin: false,
         },
       ],
       assignment: null,
       assignmentDenial: null,
       profileId: STAFF_ID,
       isAuthenticated: true,
+    };
+    const actor = requireCrmAccess(auth, {
+      action: "crm.note.read",
+      resourceType: "note",
     });
-    const read = (auth: AuthContext) =>
+
+    await expect(
       listMissionControlCrmNotes({
-        actor: requireCrmAccess(auth, {
-          action: "crm.note.read",
-          resourceType: "note",
-        }),
+        actor: { ...actor, tenantId: TENANT_B },
         params: defaultParams,
         supabase: store,
-      });
-
-    expect(
-      (await read(context("finance", false))).rows.map((row) => row.title),
-    ).toEqual(["Follow-up"]);
-    expect(
-      (await read(context("development", true))).rows
-        .map((row) => row.title)
-        .sort(),
-    ).toEqual(["Follow-up", "Pastoral"]);
+      }),
+    ).rejects.toBeInstanceOf(ApiHttpError);
+    expect(store.pageCalls).toEqual([]);
   });
 });
 

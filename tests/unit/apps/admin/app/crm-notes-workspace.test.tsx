@@ -237,6 +237,14 @@ describe("CRM notes workspace", () => {
     expect(screen.getByText("25 notes")).toBeTruthy();
   });
 
+  // AL-2678 (WP5 rest r6; plan line 999): the count is the exact total the
+  // page function states, not the rows loaded so far.
+  it("counts every note of the listing, not only the loaded page", () => {
+    notesHook.mockReturnValue(notesState({ hasMore: true, totalCount: 1500 }));
+    render(<NotesPage />);
+    expect(screen.getByText("1500 notes")).toBeTruthy();
+  });
+
   it("shows the data source only when it needs attention", () => {
     const view = render(<NotesPage />);
     const region = screen.getByRole("region", { name: "CRM notes" });
