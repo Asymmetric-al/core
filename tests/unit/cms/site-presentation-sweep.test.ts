@@ -193,6 +193,21 @@ describe("AL-2679 WP6 rest: the sweep's own Payload process", () => {
     expect(() => assertSweepTarget({ ...hosted, ...change })).toThrow();
   });
 
+  it("prints a failure only through the release's redaction, without the run's Payload secret", async () => {
+    const { failureText } = await sweep();
+    const secret = "f".repeat(64);
+    const text = failureText(
+      new Error(
+        `connect failed postgresql://cms_runtime.${REF}:pw@aws-0-us-east-1.pooler.supabase.com:5432/postgres secret=${secret} password "hunter2hunter2"`,
+      ),
+      { PAYLOAD_SECRET: secret },
+    );
+    expect(text).toContain("connect failed");
+    expect(text).not.toContain(secret);
+    expect(text).not.toMatch(/postgres(?:ql)?:\/\//);
+    expect(text).not.toContain("hunter2hunter2");
+  });
+
   it("takes only a list of Sites, each a pair of UUIDs, and nothing else", async () => {
     const { readSweepInput } = await sweep();
     expect(

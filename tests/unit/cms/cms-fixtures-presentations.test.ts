@@ -2,9 +2,13 @@ import { describe, expect, it, vi } from "vitest";
 
 const h = vi.hoisted(() => ({ ensure: vi.fn(), direct: vi.fn() }));
 
-vi.mock("../../../apps/admin/src/cms/site-presentation-step.ts", () => ({
-  ensureSitePresentation: h.ensure,
-}));
+vi.mock(
+  "../../../apps/admin/src/cms/site-presentation-step.ts",
+  async (original) => ({
+    ...(await original<Record<string, unknown>>()),
+    ensureSitePresentation: h.ensure,
+  }),
+);
 
 vi.mock(
   "../../../apps/admin/src/cms/ports/service-port.ts",
@@ -47,5 +51,27 @@ describe("AL-2679 WP6 rest: the local and CI fixtures present the seed's Sites",
       expect(await args.readSite(NOT_A_SITE)).toBeNull();
     }
     expect(summary["site presentations"]).toBe("2");
+  });
+
+  it("finds a Site the way the step asks for it, whatever the letter case of the id it was given", async () => {
+    h.ensure.mockReset();
+    h.ensure.mockImplementation(async (_payload, { siteId }) => ({
+      id: siteId,
+    }));
+    const { seedCmsFixtures } =
+      await import("../../../scripts/cms/lib/cms-fixtures.mjs");
+    await seedCmsFixtures({}, [
+      {
+        id: SITE_1.toUpperCase(),
+        tenantId: TENANT_A,
+        isDefault: false,
+        mediaId: NOT_A_SITE,
+      },
+    ]);
+    const [, args] = h.ensure.mock.calls[0]!;
+    expect(await args.readSite(SITE_1)).toEqual({
+      id: SITE_1,
+      tenantId: TENANT_A,
+    });
   });
 });

@@ -10,6 +10,10 @@ import {
   type CmsStack,
   type Doc,
 } from "./cms-harness";
+import {
+  requireDisposableAdmin,
+  setDisposableRolePassword,
+} from "./disposable-cluster";
 import { queryJson } from "../../../../scripts/release/lib/postgres.mjs";
 
 vi.mock(
@@ -58,10 +62,14 @@ describe.skipIf(!ADMIN_URL)(
     };
 
     beforeAll(async () => {
+      requireDisposableAdmin(ADMIN_URL);
       s = await bootCmsStack();
-      await s.admin.query(
-        `ALTER ROLE cms_runtime PASSWORD ${s.admin.escapeLiteral(runtimePassword)}`,
-      );
+      await setDisposableRolePassword({
+        adminUrl: ADMIN_URL,
+        client: s.admin,
+        role: "cms_runtime",
+        password: runtimePassword,
+      });
     }, 180_000);
 
     afterAll(async () => {
@@ -98,9 +106,13 @@ describe.skipIf(!ADMIN_URL)(
         await s?.admin
           .query("delete from public.tenants where id = $1", [tenant])
           .catch(() => undefined);
-      await s?.admin
-        .query("ALTER ROLE cms_runtime PASSWORD NULL")
-        .catch(() => undefined);
+      if (s)
+        await setDisposableRolePassword({
+          adminUrl: ADMIN_URL,
+          client: s.admin,
+          role: "cms_runtime",
+          password: null,
+        }).catch(() => undefined);
       vi.doUnmock("@asym/auth/context");
       vi.doUnmock("../../../../packages/api/src/shared/request-session-client");
       await s?.cleanup();
@@ -298,10 +310,10 @@ describe.skipIf(!ADMIN_URL)(
       const judged = judgeSitePresentations(
         readSitePresentationState({ databaseUrl: ADMIN_URL, query }),
       );
-      const written = await presentSites(s.payload as never, judged.missing, {
+      const handled = await presentSites(s.payload as never, judged.missing, {
         log: () => undefined,
       });
-      return { judged, written };
+      return { judged, handled };
     }
 
     async function releaseSettings() {
@@ -486,7 +498,7 @@ describe.skipIf(!ADMIN_URL)(
       ]);
       const second = await sweepInProcess(scoped(scope));
       expect(second.judged.missing).toEqual([]);
-      expect(second.written).toBe(0);
+      expect(second.handled).toBe(0);
       expect(await presentationsOf([site])).toEqual(once);
     });
 
@@ -554,7 +566,7 @@ describe.skipIf(!ADMIN_URL)(
       const query = scoped(scopeOf(orgs));
       expect(
         sweepSitePresentations({ settings, query, log: () => undefined }),
-      ).toEqual({ presented: 3 });
+      ).toEqual({ handed: 3 });
       const sites = orgs.map((org) => org.site);
       const once = await presentationsOf(sites);
       expect(once.map(({ id, tenant }) => ({ id, tenant }))).toEqual(
@@ -568,7 +580,7 @@ describe.skipIf(!ADMIN_URL)(
           query: scoped(scopeOf(orgs)),
           log: () => undefined,
         }),
-      ).toEqual({ presented: 0 });
+      ).toEqual({ handed: 0 });
       expect(await presentationsOf(sites)).toEqual(once);
     });
 
@@ -581,7 +593,7 @@ describe.skipIf(!ADMIN_URL)(
       });
       const kept = await presentationsOf([orgs[0]!.site]);
       const swept = await sweepInProcess(scoped(scopeOf(orgs)));
-      expect(swept.written).toBe(2);
+      expect(swept.handled).toBe(2);
       expect(swept.judged.missing.map((site) => site.id).sort()).toEqual(
         [orgs[1]!.site, orgs[2]!.site].sort(),
       );
@@ -624,7 +636,7 @@ describe.skipIf(!ADMIN_URL)(
         1,
       );
       const rerun = await sweepInProcess(scoped(scopeOf(orgs)));
-      expect(rerun.written).toBe(2);
+      expect(rerun.handled).toBe(2);
       const all = await presentationsOf(orgs.map((org) => org.site));
       expect(all.map(({ id, tenant }) => ({ id, tenant }))).toEqual(
         [...orgs]
@@ -639,6 +651,13 @@ describe.skipIf(!ADMIN_URL)(
       const late = randomUUID();
       made.sites.push(late);
       const scope = { tenants: [a!.tenant], sites: [a!.site, late] };
+      const lateRow = () =>
+        queryJson({
+          databaseUrl: ADMIN_URL,
+          label: "the late Site's presentation row",
+          sql: `SELECT json_build_object('row', (SELECT xmin::text || '/' || created_at::text FROM cms.site_presentations WHERE id = '${late}'), 'rows', (SELECT count(*) FROM cms.site_presentations WHERE id = '${late}'))::text;`,
+        }) as { row: string | null; rows: number };
+      let before: { row: string | null; rows: number } | undefined;
       const between = () => {
         queryJson({
           databaseUrl: ADMIN_URL,
@@ -647,6 +666,7 @@ describe.skipIf(!ADMIN_URL)(
 INSERT INTO cms.site_presentations (id, tenant) VALUES ('${late}', '${a!.tenant}');
 SELECT json_build_object('made', true)::text;`,
         });
+        before = lateRow();
       };
       const settings = await releaseSettings();
       expect(
@@ -655,7 +675,7 @@ SELECT json_build_object('made', true)::text;`,
           query: scoped(scope, between),
           log: () => undefined,
         }),
-      ).toEqual({ presented: 2 });
+      ).toEqual({ handed: 2 });
       expect(
         (await presentationsOf([a!.site, late])).map(({ id, tenant }) => ({
           id,
@@ -664,6 +684,36 @@ SELECT json_build_object('made', true)::text;`,
       ).toEqual(
         [a!.site, late].sort().map((id) => ({ id, tenant: a!.tenant })),
       );
+      expect(before?.rows).toBe(1);
+      expect(lateRow()).toEqual(before);
+    });
+
+    it("refuses, with the repository's own marker check, a loopback database that does not carry the disposable mark, and sends no ALTER ROLE", async () => {
+      const name = `wp6r1_unmarked_${randomUUID().slice(0, 8)}`;
+      await s.admin.query(`CREATE DATABASE ${name}`);
+      try {
+        const unmarked = new URL(ADMIN_URL);
+        unmarked.pathname = `/${name}`;
+        const sent: string[] = [];
+        const recording = {
+          query: async (text: string) => {
+            sent.push(text);
+            return { rows: [] };
+          },
+          escapeLiteral: (value: string) => `'${value}'`,
+        };
+        await expect(
+          setDisposableRolePassword({
+            adminUrl: unmarked.toString(),
+            client: recording,
+            role: "cms_runtime",
+            password: runtimePassword,
+          }),
+        ).rejects.toThrow(/refusing/i);
+        expect(sent).toEqual([]);
+      } finally {
+        await s.admin.query(`DROP DATABASE IF EXISTS ${name} WITH (FORCE)`);
+      }
     });
   },
 );

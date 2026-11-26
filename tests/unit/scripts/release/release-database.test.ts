@@ -2260,7 +2260,7 @@ describe("AL-2679 WP6 rest: the release gives every Site its presentation", () =
       { id: S2, tenantId: T2 },
       { id: S3, tenantId: T2 },
     ]);
-    expect(child!.stdio).toEqual(["pipe", "inherit", "inherit"]);
+    expect(child!.stdio).toEqual(["pipe", "pipe", "pipe"]);
     const runtime = new URL(child!.env.PAYLOAD_DATABASE_URI!);
     expect(decodeURIComponent(runtime.username)).toBe(`cms_runtime.${ref}`);
     expect(decodeURIComponent(runtime.password)).toBe(
@@ -2426,6 +2426,167 @@ describe("AL-2679 WP6 rest: the release gives every Site its presentation", () =
       ).rejects.toThrow(/RELEASE_CMS_RUNTIME_PASSWORD/);
       expect(runCommand).not.toHaveBeenCalled();
       expect(fake.run).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    ["shorter than 32 characters", "x".repeat(31)],
+    ["holding a space", `${"y".repeat(20)} ${"y".repeat(20)}`],
+    ["equal to the cms_owner password", passwords.RELEASE_CMS_OWNER_PASSWORD],
+  ])(
+    "a cms_runtime password %s stops migrate before its first commit, and both rebuilds before their reset",
+    async (_label, bad) => {
+      const env = { ...passwords, RELEASE_CMS_RUNTIME_PASSWORD: bad };
+      const settingsFor = (environment: "production" | "preview") =>
+        readReleaseSettings({
+          RELEASE_ENVIRONMENT: environment,
+          RELEASE_SUPABASE_PROJECT_REF: ref,
+          RELEASE_DATABASE_URL: databaseUrl,
+          RELEASE_CMS_OWNER_PASSWORD: passwords.RELEASE_CMS_OWNER_PASSWORD,
+          RELEASE_CMS_RUNTIME_PASSWORD: bad,
+          RELEASE_DATABASE_SSL_CA: CA,
+        });
+      const refusal = /RELEASE_CMS_RUNTIME_PASSWORD|different passwords/;
+      const fake = fakeDatabase({});
+      const runCommand = vi.fn(() => ({ status: 0 }));
+      expect(() =>
+        migrate({
+          settings: settingsFor("production"),
+          env,
+          query: fake.query,
+          run: fake.run,
+          runCommand,
+          log: silent,
+        }),
+      ).toThrow(refusal);
+      expect(runCommand).not.toHaveBeenCalled();
+      expect(fake.run).not.toHaveBeenCalled();
+      for (const mode of ["first", "disposable"] as const) {
+        const target = fakeDatabase({
+          environment: mode === "first" ? null : "disposable",
+        });
+        const commands = vi.fn(() => ({ status: 0 }));
+        await expect(
+          rebuild({
+            settings: settingsFor(mode === "first" ? "production" : "preview"),
+            mode,
+            signoff: "https://github.com/Asymmetric-al/core/issues/1",
+            confirmation: `rebuild ${ref}`,
+            env,
+            query: target.query,
+            run: target.run,
+            runCommand: commands,
+            requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+            log: silent,
+          }),
+        ).rejects.toThrow(refusal);
+        expect(commands).not.toHaveBeenCalled();
+        expect(target.run).not.toHaveBeenCalled();
+      }
+    },
+  );
+
+  it("reports what the sweep's process printed only through the release's redaction, never the run's Payload secret or the cms_runtime password", () => {
+    const fake = fakeDatabase({ sites: [{ id: S1, tenantId: T1 }] });
+    let secret = "";
+    const runCommand = vi.fn(
+      (
+        command: string,
+        args: string[],
+        options: { env: Record<string, string> },
+      ) => {
+        if (command === "bun" && args[0] === SWEEP) {
+          secret = options.env.PAYLOAD_SECRET!;
+          return {
+            status: 1,
+            stdout: `starting the sweep, secret ${secret}\n`,
+            stderr: `sweep-site-presentations: connect failed for ${options.env.PAYLOAD_DATABASE_URI} (secret ${secret}, password "${passwords.RELEASE_CMS_RUNTIME_PASSWORD}", raw ${passwords.RELEASE_CMS_RUNTIME_PASSWORD})\n`,
+          };
+        }
+        fake.events.push(command === "bun" ? "payload" : "supabase");
+        return { status: 0 };
+      },
+    );
+    const lines: string[] = [];
+    let message = "";
+    try {
+      migrateWith(fake, runCommand, (line) => lines.push(line));
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    const printed = [...lines, message].join("\n");
+    expect(message).toMatch(/kept[\s\S]*re-run the release/i);
+    expect(printed).toContain("connect failed");
+    expect(secret).toMatch(/^[0-9a-f]{64}$/);
+    expect(printed).not.toContain(secret);
+    expect(printed).not.toContain(passwords.RELEASE_CMS_RUNTIME_PASSWORD);
+    expect(printed).not.toMatch(/postgres(?:ql)?:\/\//);
+  });
+
+  it("says what its number is: the Sites handed to the sweep, each of which has its presentation afterwards", () => {
+    const fake = fakeDatabase({
+      presentations: [{ id: S1, tenant: T1 }],
+      sites: [
+        { id: S1, tenantId: T1 },
+        { id: S2, tenantId: T2 },
+        { id: S3, tenantId: T2 },
+      ],
+    });
+    const { runCommand } = sweeping(fake);
+    const lines: string[] = [];
+    expect(
+      sweepSitePresentations({
+        settings: settings(),
+        query: fake.query,
+        runCommand,
+        log: (line: string) => lines.push(line),
+      }),
+    ).toEqual({ handed: 2 });
+    const text = lines.join("\n");
+    expect(text).toMatch(/handed 2 Site/);
+    expect(text).not.toMatch(/\bwr(?:ote|iting)\b/);
+  });
+
+  it("stops, naming it, when a Payload migration is still pending after Payload exits successfully, and starts no sweep (guard)", () => {
+    const pending = source.payload.at(-1)!;
+    const fake = fakeDatabase({
+      payload: source.payload.slice(0, -1),
+      sites: [{ id: S1, tenantId: T1 }],
+    });
+    const { runCommand, children } = sweeping(fake);
+    expect(() => migrateWith(fake, runCommand)).toThrow(
+      new RegExp(`still pending[\\s\\S]*${pending}`),
+    );
+    expect(fake.events).toContain("payload");
+    expect(children).toEqual([]);
+  });
+
+  it.each(["first", "disposable"] as const)(
+    "%s rebuild: stops, naming it, when a Payload migration is still pending after Payload exits successfully, and starts no sweep",
+    async (mode) => {
+      const pending = source.payload.at(-1)!;
+      const fake = fakeDatabase({
+        environment: mode === "first" ? null : "disposable",
+        payload: source.payload.slice(0, -1),
+        sites: [{ id: S1, tenantId: T1 }],
+      });
+      const { runCommand, children } = sweeping(fake);
+      await expect(
+        rebuild({
+          settings: settings(mode === "first" ? "production" : "preview"),
+          mode,
+          signoff: "https://github.com/Asymmetric-al/core/issues/1",
+          confirmation: `rebuild ${ref}`,
+          env: passwords,
+          query: fake.query,
+          run: fake.run,
+          runCommand,
+          requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+          log: silent,
+        }),
+      ).rejects.toThrow(new RegExp(`still pending[\\s\\S]*${pending}`));
+      expect(fake.events).toContain("payload");
+      expect(children).toEqual([]);
     },
   );
 });
