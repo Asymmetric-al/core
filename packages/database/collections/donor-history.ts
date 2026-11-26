@@ -27,7 +27,7 @@ const donorHistoryTransactionSchema = z.object({
   type: z.enum(["Recurring", "One-Time"]),
   /** How it was paid, in plain words ("Card", "Bank account (ACH)"). */
   method: z.string().min(1),
-  status: z.enum(["Paid", "Processing", "Failed", "Refunded"]),
+  status: z.enum(["Paid", "Received", "Processing", "Failed", "Refunded"]),
   receiptUrl: z.string().min(1),
 });
 

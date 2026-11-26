@@ -214,6 +214,14 @@ on:
       - apps/*/app/api/media/**
       - apps/admin/app/api/cms/media/**
       - tests/unit/acceptance/issue-2679/media-storage.postgrest.acceptance.test.ts
+      # What a person reads of a line-based gift (AL-2681, WP8a part 2 rest, PR 1).
+      - packages/api/src/admin/contribution-operations/**
+      - packages/api/src/admin/contributions/**
+      - packages/api/src/donor-portal/**
+      - packages/api/src/missionaries/**
+      - packages/api/src/shared/line-based-gifts.ts
+      - tests/unit/acceptance/issue-2681/wp8a-rest1-harness.ts
+      - tests/unit/acceptance/issue-2681/wp8a-rest1-reads.postgrest.acceptance.test.ts
 
 permissions:
   contents: read
@@ -496,6 +504,16 @@ jobs:
           WP6_MEDIA_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
           export WP6_MEDIA_IT_ANON_KEY WP6_MEDIA_IT_SERVICE_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2679/media-storage.postgrest.acceptance.test.ts
+      - name: Verify what a person reads of a line-based gift through the routes and PostgREST (AL-2681, WP8a part 2 rest)
+        shell: bash
+        env:
+          WP8A_REST_IT_URL: http://127.0.0.1:54321
+          WP8A_REST_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          WP8A_REST_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export WP8A_REST_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2681/wp8a-rest1-reads.postgrest.acceptance.test.ts
       - name: Install Playwright Chromium
         id: chromium
         run: bunx playwright install --with-deps chromium

@@ -457,3 +457,34 @@ only for an assignment holding `care.access`. `begin_donation_saga` and
 `atomic_create_donation_with_audit` are replaced with their grants
 (`service_role`) unchanged, and `authz.assignment_capabilities(uuid)` with
 its owner and grantee (`tenant_guard`) unchanged.
+
+## Functions added by AL-2681 (WP8a part 2 rest, pull request 1)
+
+| Function                                                                                                                                                                                     | Security | EXECUTE grantees (exact)                |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------- |
+| `tenant_guard.set_large_gift_threshold(uuid, bigint, text)`                                                                                                                                  | DEFINER  | `tenant_guard` (owner), `authenticated` |
+| `tenant_guard.resolve_gift_hold(uuid, uuid, text)`                                                                                                                                           | DEFINER  | `tenant_guard` (owner), `authenticated` |
+| `public.set_large_gift_threshold(uuid, bigint, text)`, `public.resolve_gift_hold(uuid, uuid, text)`                                                                                          | INVOKER  | `postgres` (owner), `authenticated`     |
+| `tenant_guard.abandon_unpaid_intake(uuid, uuid)`                                                                                                                                             | DEFINER  | `tenant_guard` (owner), `service_role`  |
+| `public.abandon_unpaid_intake(uuid)`                                                                                                                                                         | INVOKER  | `postgres` (owner), `service_role`      |
+| `private.grant_linked_donor_membership(uuid, uuid, uuid)`                                                                                                                                    | DEFINER  | `postgres` (owner), `tenant_guard`      |
+| `private.money_norm(text)`, `private.money_entered_name(text, text)`, `private.money_duplicate_donors(uuid, text, text, jsonb, uuid)`, `private.money_large_gift_hold(bigint, text, bigint)` | INVOKER  | `postgres` (owner), `tenant_guard`      |
+| `public.line_based_gift_lines(uuid, uuid[])`                                                                                                                                                 | DEFINER  | `postgres` (owner), `service_role`      |
+| `private.staged_gifts_hold_guard()` (trigger)                                                                                                                                                | DEFINER  | `postgres` (owner)                      |
+
+Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
+before granting (`20261127030100_wp8a2_rest_holds.sql`,
+`20261127030200_wp8a2_rest_unpaid_and_unmatched.sql`,
+`20261127030300_wp8a2_rest_apply_core.sql`,
+`20261127030400_wp8a2_rest_review_and_reads.sql`). The two human commands open
+with `tenant_guard.begin_human_command` and their capability
+(`contributions.manage_settings`, `contributions.apply_corrections`), so the
+request's `x-asym-tenant` must name the organization; the sweep's wrapper takes
+no tenant and reads it from the stored intake. The trigger function is a
+definer so that the hold it reads binds every writer of a staged gift, whatever
+that writer's grants. `tenant_guard.apply_account_event` and
+`tenant_guard.apply_payment_outcome` are replaced as their owner, with the same
+security and grantees. `private.replace_line_based_allocations` does not exist:
+the line-based review lives in the four-argument
+`public.replace_staged_gift_allocations`, whose owner, security and grantees do
+not change.

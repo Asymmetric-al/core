@@ -16,8 +16,8 @@ export type DonorPortalDonation = {
   refundedAmountCents?: number;
   refundedAmount?: number;
   currency: string;
-  /** Paid, Processing, Failed or Refunded (glossary status words). */
-  status: "Paid" | "Processing" | "Failed" | "Refunded";
+  /** Paid, Received, Processing, Failed or Refunded (glossary status words). */
+  status: "Paid" | "Received" | "Processing" | "Failed" | "Refunded";
   type: "Recurring" | "One-Time";
   method: string;
   receiptUrl: string;

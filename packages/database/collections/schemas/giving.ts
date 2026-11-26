@@ -6,6 +6,7 @@ export const donationStatusSchema = z.enum([
   "completed",
   "failed",
   "refunded",
+  "abandoned",
 ]);
 
 export const donorActivitySchema = z.object({

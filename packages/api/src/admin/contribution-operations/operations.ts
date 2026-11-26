@@ -16,6 +16,10 @@ import { loadWorkerPublicNames } from "./worker-public-names";
 import { sendUpdatedReceiptSnapshotEmail } from "../../giving/receipts";
 import { ApiHttpError } from "../../shared/http-errors";
 import { asString, isRecord } from "../../shared/json-coerce";
+import {
+  COUNTED_INTAKE_FILTER,
+  loadGiftHolds,
+} from "../../shared/line-based-gifts";
 import { tenantMemberProfileIds } from "../../shared/tenant-members";
 import {
   loadStripeRawEventForReplay,
@@ -168,7 +172,7 @@ function uniqueReferenceIds(ids: Array<string | null | undefined>): string[] {
   );
 }
 
-async function loadDesignationSetData(input: {
+export async function loadDesignationSetData(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   stagedGiftId: string | null;
@@ -217,7 +221,9 @@ async function loadDesignationSetData(input: {
     queryableFundIds.length > 0
       ? input.supabaseAdmin
           .from("funds")
-          .select("id, name, missionary_id, goal_amount, start_date, end_date")
+          .select(
+            "id, name, missionary_id, goal_amount, start_date, end_date, system_purpose",
+          )
           .eq("tenant_id", input.tenantId)
           .in("id", queryableFundIds)
       : Promise.resolve({ data: [], error: null }),
@@ -248,6 +254,7 @@ async function loadDesignationSetData(input: {
     goal_amount: asNullableNumber(row.goal_amount),
     start_date: asString(row.start_date),
     end_date: asString(row.end_date),
+    system_purpose: asString(row.system_purpose),
   }));
 
   const missionaries = ((missionariesResult.data ?? []) as JsonRecord[]).map(
@@ -331,6 +338,7 @@ async function loadContributionOperationDetail(input: {
     )
     .eq("tenant_id", input.tenantId)
     .eq("id", input.contributionId)
+    .or(COUNTED_INTAKE_FILTER)
     .single();
 
   if (donationResult.error || !isRecord(donationResult.data)) {
@@ -521,6 +529,11 @@ async function loadContributionOperationDetail(input: {
         crmPostStatus: asString(stagedGiftResult.data.crm_post_status),
         reviewReason: asString(stagedGiftResult.data.review_reason),
         twentyRecordId: asString(stagedGiftResult.data.twenty_record_id),
+        holds: await loadGiftHolds(
+          input.supabaseAdmin,
+          input.tenantId,
+          asString(stagedGiftResult.data.id) ?? "",
+        ),
       }
     : null;
 

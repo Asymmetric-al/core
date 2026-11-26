@@ -7,6 +7,7 @@ export const STATUS_VARIANTS: Record<
   "success" | "info" | "destructive" | "secondary"
 > = {
   Paid: "success",
+  Received: "info",
   Processing: "info",
   Failed: "destructive",
   Refunded: "secondary",

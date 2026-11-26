@@ -1,3 +1,4 @@
+import { COUNTED_INTAKE_FILTER } from "../../../shared/line-based-gifts";
 import {
   CRM_LOOKUP_CHUNK_SIZE,
   loadCrmMissionaryLabels,
@@ -153,7 +154,8 @@ async function fetchDonations(
       // No status filter: an applied payment-state correction can settle a
       // pending or failed gift, or unsettle a completed one, so every gift in
       // the period is read and toReportGifts decides on the effective status.
-      .eq("tenant_id", tenantId);
+      .eq("tenant_id", tenantId)
+      .or(COUNTED_INTAKE_FILTER);
 
     const period = giftDatePeriodFilter(
       params.filters.dateFrom,
