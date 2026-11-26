@@ -228,7 +228,7 @@ describe.skipIf(!ADMIN_URL)(
             `SELECT p.oid::regprocedure::text AS f, pg_get_userbyid(p.proowner) AS owner, p.prosecdef AS definer,
                     p.proconfig AS config,
                     (SELECT coalesce(string_agg(DISTINCT CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE a.grantee::regrole::text END, '+'), '-')
-                       FROM aclexplode(p.proacl) AS a WHERE a.privilege_type = 'EXECUTE' AND a.grantee <> p.proowner) AS execute
+                       FROM aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) AS a WHERE a.privilege_type = 'EXECUTE' AND a.grantee <> p.proowner) AS execute
                FROM pg_proc AS p
               WHERE p.oid = ANY($1::regprocedure[])
               ORDER BY 1`,

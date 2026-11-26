@@ -83,7 +83,7 @@ describe.skipIf(!ADMIN_URL)(
     const one = async (sql: string, params: unknown[] = []) =>
       (await db.query(sql, params)).rows[0] as Record<string, unknown>;
 
-    it("E1 (guard): each live statement of index section 2 that meets a new object runs once, unchanged, and is not refused: fund writers and readers, the legacy staging writers, part 1's event store; service_role, anon and authenticated hold nothing on the two new tables", () =>
+    it("E1 (guard): each live statement of index section 2 that meets a new object runs once, unchanged, is not refused and changes the row it names: fund writers and readers, the legacy staging writers, part 1's event store; service_role, anon and authenticated hold nothing on the two new tables, on the table or on any column", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         await grant(db, [
@@ -170,55 +170,83 @@ describe.skipIf(!ADMIN_URL)(
           is_fee_cover: null,
           legal_entity_id: null,
         });
-        for (const [sql, params] of [
-          [
-            "UPDATE public.staged_gifts SET status = 'refunded', stripe_charge_id = 'ch_r2a', metadata = '{\"latestRefund\":{}}'::jsonb, updated_at = now() WHERE id = $1 RETURNING *",
-            [header.id],
-          ],
-          [
-            "UPDATE public.staged_gifts SET status = 'ready_to_post', reviewed_at = now() WHERE id = $1 RETURNING *",
-            [header.id],
-          ],
-          [
-            "UPDATE public.staged_gifts SET fund_id = NULL, missionary_id = NULL, review_reason = 'staff patch' WHERE id = $1 RETURNING *",
-            [header.id],
-          ],
-          [
-            "UPDATE public.staged_gifts SET receipt_status = 'sent' WHERE id = $1 RETURNING *",
-            [header.id],
-          ],
-          [
-            "SELECT public.replace_staged_gift_allocations($1, $2, $3::jsonb)",
-            [
-              fx.A.tenant,
-              header.id,
-              JSON.stringify([
-                { fund_id: project.id, amount: 1500 },
-                { fund_id: project.id, amount: 1000 },
-              ]),
-            ],
-          ],
-          [
-            "SELECT public.replace_staged_gift_allocations($1, $2, $3::jsonb, 'ready_to_post')",
-            [
-              fx.A.tenant,
-              header.id,
-              JSON.stringify([{ fund_id: project.id, amount: 2500 }]),
-            ],
-          ],
-        ] as const)
-          await db.query(sql, [...params]);
+        const rowsOf = async (sql: string, params: unknown[]) =>
+          (await db.query(sql, params)).rows;
         expect(
-          (
-            await db.query(
-              "SELECT intake_format, amount FROM public.staged_gift_allocations WHERE staged_gift_id = $1",
-              [header.id],
-            )
-          ).rows,
-        ).toEqual([{ intake_format: "legacy_header", amount: "2500" }]);
-        await db.query("DELETE FROM public.staged_gifts WHERE id = $1", [
-          header.id,
+          await rowsOf(
+            "UPDATE public.staged_gifts SET status = 'refunded', stripe_charge_id = 'ch_r2a', metadata = '{\"latestRefund\":{}}'::jsonb, updated_at = now() WHERE id = $1 RETURNING status, stripe_charge_id, metadata",
+            [header.id],
+          ),
+        ).toEqual([
+          {
+            status: "refunded",
+            stripe_charge_id: "ch_r2a",
+            metadata: { latestRefund: {} },
+          },
         ]);
+        expect(
+          await rowsOf(
+            "UPDATE public.staged_gifts SET status = 'ready_to_post', reviewed_at = now() WHERE id = $1 RETURNING status, reviewed_at IS NOT NULL AS reviewed",
+            [header.id],
+          ),
+        ).toEqual([{ status: "ready_to_post", reviewed: true }]);
+        expect(
+          await rowsOf(
+            "UPDATE public.staged_gifts SET fund_id = NULL, missionary_id = NULL, review_reason = 'staff patch' WHERE id = $1 RETURNING fund_id, missionary_id, review_reason",
+            [header.id],
+          ),
+        ).toEqual([
+          { fund_id: null, missionary_id: null, review_reason: "staff patch" },
+        ]);
+        expect(
+          await rowsOf(
+            "UPDATE public.staged_gifts SET receipt_status = 'sent' WHERE id = $1 RETURNING receipt_status",
+            [header.id],
+          ),
+        ).toEqual([{ receipt_status: "sent" }]);
+        const allocationsOf = () =>
+          rowsOf(
+            "SELECT intake_format, amount FROM public.staged_gift_allocations WHERE staged_gift_id = $1 ORDER BY amount",
+            [header.id],
+          );
+        await db.query(
+          "SELECT public.replace_staged_gift_allocations($1, $2, $3::jsonb)",
+          [
+            fx.A.tenant,
+            header.id,
+            JSON.stringify([
+              { fund_id: project.id, amount: 1500 },
+              { fund_id: project.id, amount: 1000 },
+            ]),
+          ],
+        );
+        expect(await allocationsOf()).toEqual([
+          { intake_format: "legacy_header", amount: "1000" },
+          { intake_format: "legacy_header", amount: "1500" },
+        ]);
+        await db.query(
+          "SELECT public.replace_staged_gift_allocations($1, $2, $3::jsonb, 'ready_to_post')",
+          [
+            fx.A.tenant,
+            header.id,
+            JSON.stringify([{ fund_id: project.id, amount: 2500 }]),
+          ],
+        );
+        expect(await allocationsOf()).toEqual([
+          { intake_format: "legacy_header", amount: "2500" },
+        ]);
+        expect(
+          await rowsOf(
+            "DELETE FROM public.staged_gifts WHERE id = $1 RETURNING id",
+            [header.id],
+          ),
+        ).toEqual([{ id: header.id }]);
+        expect(
+          await rowsOf(
+            "SELECT count(*)::int AS n FROM public.staged_gifts WHERE id = $1",
+            [header.id],
+          ),
+        ).toEqual([{ n: 0 }]);
         await role(db, null);
 
         const stored = await storeEvent(db, fx.A, { pi: paymentIntent() });
@@ -226,7 +254,9 @@ describe.skipIf(!ADMIN_URL)(
         const holdings = await one(
           `SELECT bool_or(has_table_privilege(r, t, 'SELECT') OR has_table_privilege(r, t, 'INSERT')
                           OR has_table_privilege(r, t, 'UPDATE') OR has_table_privilege(r, t, 'DELETE')
-                          OR has_any_column_privilege(r, t, 'SELECT')) AS any,
+                          OR has_table_privilege(r, t, 'REFERENCES') OR has_table_privilege(r, t, 'TRUNCATE')
+                          OR has_any_column_privilege(r, t, 'SELECT') OR has_any_column_privilege(r, t, 'INSERT')
+                          OR has_any_column_privilege(r, t, 'UPDATE') OR has_any_column_privilege(r, t, 'REFERENCES')) AS any,
                   has_function_privilege('service_role', 'public.normalize_currency_code(text)', 'EXECUTE') AS service_normalize
              FROM unnest(ARRAY['service_role', 'anon', 'authenticated']) AS r,
                   unnest(ARRAY['public.donation_intake_lines', 'public.payment_observations']) AS t`,
@@ -234,7 +264,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(holdings).toEqual({ any: false, service_normalize: true });
       }));
 
-    it("F1 (guard; ruling Q-C): after the apply has completed an intake, a replayed gift:<id>:create_payment key on POST /api/donate still answers 409 Idempotency key already used, and nothing is written", () =>
+    it("F1 (guard; ruling Q-C): after the apply has completed an intake, a replayed gift:<id>:create_payment key on POST /api/donate still answers 409 Idempotency key already used, and nothing is written: the counts, the intake and its request are as they were", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         await grant(db, HOSTED_SERVICE_GRANTS);
@@ -255,9 +285,13 @@ describe.skipIf(!ADMIN_URL)(
         const profile = user;
         const before = await one(
           `SELECT (SELECT count(*) FROM public.donations WHERE tenant_id = $1)::int AS donations,
-                  (SELECT count(*) FROM public.donation_saga_outbox WHERE tenant_id = $1)::int AS outbox`,
-          [fx.A.tenant],
+                  (SELECT count(*) FROM public.donation_saga_outbox WHERE tenant_id = $1)::int AS outbox,
+                  (SELECT to_jsonb(d) FROM public.donations AS d WHERE d.id = $2) AS donation,
+                  (SELECT to_jsonb(o) FROM public.donation_saga_outbox AS o WHERE o.donation_id = $2) AS request`,
+          [fx.A.tenant, intake.donationId],
         );
+        expect(before.request).toMatchObject({ status: "queued" });
+        expect(before.donation).toMatchObject({ status: "completed" });
 
         const { getAuthContext } = await import("@asym/auth/context");
         const { getAdminClient } =
@@ -375,8 +409,10 @@ describe.skipIf(!ADMIN_URL)(
         expect(
           await one(
             `SELECT (SELECT count(*) FROM public.donations WHERE tenant_id = $1)::int AS donations,
-                    (SELECT count(*) FROM public.donation_saga_outbox WHERE tenant_id = $1)::int AS outbox`,
-            [fx.A.tenant],
+                    (SELECT count(*) FROM public.donation_saga_outbox WHERE tenant_id = $1)::int AS outbox,
+                    (SELECT to_jsonb(d) FROM public.donations AS d WHERE d.id = $2) AS donation,
+                    (SELECT to_jsonb(o) FROM public.donation_saga_outbox AS o WHERE o.donation_id = $2) AS request`,
+            [fx.A.tenant, intake.donationId],
           ),
         ).toEqual(before);
       }));

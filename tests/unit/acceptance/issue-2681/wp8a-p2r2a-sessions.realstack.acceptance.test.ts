@@ -52,14 +52,16 @@ describe.skipIf(!ADMIN_URL)(
       watcher: pg.Client,
       pid: number,
       early: { settled?: Settled },
+      blocker: number,
     ) {
       for (let i = 0; i < 200; i += 1) {
         if (early.settled !== undefined) return false;
         const r = await watcher.query(
-          "SELECT wait_event_type FROM pg_stat_activity WHERE pid = $1",
-          [pid],
+          `SELECT a.wait_event_type = 'Lock' AND $2 = ANY(pg_blocking_pids($1)) AS held
+             FROM pg_stat_activity AS a WHERE a.pid = $1`,
+          [pid, blocker],
         );
-        if (r.rows[0]?.wait_event_type === "Lock") return true;
+        if (r.rows[0]?.held === true) return true;
         await new Promise((done) => setTimeout(done, 25));
       }
       return false;
@@ -162,6 +164,8 @@ describe.skipIf(!ADMIN_URL)(
           await openSession(),
           await openSession(),
         ];
+        const pid1 = (await s1.query("SELECT pg_backend_pid() AS pid")).rows[0]
+          .pid as number;
         const pid2 = (await s2.query("SELECT pg_backend_pid() AS pid")).rows[0]
           .pid as number;
         const coreIn = async (s: pg.Client, eventId: string) => {
@@ -182,17 +186,7 @@ describe.skipIf(!ADMIN_URL)(
         void pending.then((settled) => {
           early.settled = settled;
         });
-        let waited = false;
-        for (let i = 0; i < 200 && !waited; i += 1) {
-          if (early.settled !== undefined) break;
-          const r = await watcher.query(
-            "SELECT wait_event_type FROM pg_stat_activity WHERE pid = $1",
-            [pid2],
-          );
-          waited = r.rows[0]?.wait_event_type === "Lock";
-          if (!waited) await new Promise((done) => setTimeout(done, 25));
-        }
-        expect(waited).toBe(true);
+        expect(await heldOnLock(watcher, pid2, early, pid1)).toBe(true);
         expect(early.settled).toBeUndefined();
         await s1.query("COMMIT");
         const settled = await pending;
@@ -260,13 +254,17 @@ describe.skipIf(!ADMIN_URL)(
         ];
         const pid = (await caller.query("SELECT pg_backend_pid() AS pid"))
           .rows[0].pid as number;
+        const holderPid = (await holder.query("SELECT pg_backend_pid() AS pid"))
+          .rows[0].pid as number;
         await holder.query("BEGIN");
         await holder.query(
           "SELECT id FROM public.donation_saga_outbox WHERE id = $1 FOR NO KEY UPDATE",
           [operationId],
         );
         const call = directCore(caller, fx.A.tenant, e.id);
-        expect(await heldOnLock(watcher, pid, call.early)).toBe(true);
+        expect(await heldOnLock(watcher, pid, call.early, holderPid)).toBe(
+          true,
+        );
 
         await holder.query("SET LOCAL ROLE tenant_guard");
         await holder.query("SELECT tenant_guard.enter($1)", [fx.A.tenant]);
@@ -350,13 +348,17 @@ describe.skipIf(!ADMIN_URL)(
         ];
         const pid = (await caller.query("SELECT pg_backend_pid() AS pid"))
           .rows[0].pid as number;
+        const holderPid = (await holder.query("SELECT pg_backend_pid() AS pid"))
+          .rows[0].pid as number;
         await holder.query("BEGIN");
         await holder.query(
           "SELECT id FROM public.donations WHERE id = $1 FOR NO KEY UPDATE",
           [intake.donationId],
         );
         const call = directCore(caller, fx.A.tenant, e.id);
-        expect(await heldOnLock(watcher, pid, call.early)).toBe(true);
+        expect(await heldOnLock(watcher, pid, call.early, holderPid)).toBe(
+          true,
+        );
         const task = (
           await holder.query(
             `INSERT INTO public.mission_control_tasks

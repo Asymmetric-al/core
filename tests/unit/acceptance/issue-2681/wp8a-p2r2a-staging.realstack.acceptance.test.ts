@@ -57,21 +57,28 @@ describe.skipIf(!ADMIN_URL)(
       return r;
     };
 
-    const atCommit = async (fn: () => Promise<unknown>) => {
+    const atCommit = async (...steps: (() => Promise<unknown>)[]) => {
       await db.query("SAVEPOINT r2a_commit");
-      try {
-        await fn();
-        await role(db, null);
-        await db.query(`SET CONSTRAINTS ${STAGING_BALANCE} IMMEDIATE`);
+      for (const step of steps) {
+        try {
+          await step();
+          await role(db, null);
+        } catch (error) {
+          await db.query("ROLLBACK TO SAVEPOINT r2a_commit");
+          throw error;
+        }
+        try {
+          await db.query(`SET CONSTRAINTS ${STAGING_BALANCE} IMMEDIATE`);
+        } catch (error) {
+          await db.query("ROLLBACK TO SAVEPOINT r2a_commit");
+          await db.query(`SET CONSTRAINTS ${STAGING_BALANCE} DEFERRED`);
+          const e = error as { code?: string; message?: string };
+          return `${e.code} ${(e.message ?? "").replace(/^(\w+).*$/, "$1")}`;
+        }
         await db.query(`SET CONSTRAINTS ${STAGING_BALANCE} DEFERRED`);
-        await db.query("RELEASE SAVEPOINT r2a_commit");
-        return "ok";
-      } catch (error) {
-        await db.query("ROLLBACK TO SAVEPOINT r2a_commit");
-        await db.query(`SET CONSTRAINTS ${STAGING_BALANCE} DEFERRED`);
-        const e = error as { code?: string; message?: string };
-        return `${e.code} ${(e.message ?? "").replace(/^(\w+).*$/, "$1")}`;
       }
+      await db.query("RELEASE SAVEPOINT r2a_commit");
+      return "ok";
     };
 
     const GIFT = `INSERT INTO public.staged_gifts
@@ -234,21 +241,22 @@ describe.skipIf(!ADMIN_URL)(
           make: (giftId: string) => Promise<unknown>,
           intakeLines = lines,
         ) => {
+          let giftId = "";
           verdicts.push(
-            `${label}: ${await atCommit(async () => {
-              const intake = await lineIntake(db, fx.A, { lines: intakeLines });
-              const giftId = await stage(fx, intake);
-              await role(db, null);
-              await db.query(`SET CONSTRAINTS ${STAGING_BALANCE} IMMEDIATE`);
-              await db.query(`SET CONSTRAINTS ${STAGING_BALANCE} DEFERRED`);
-              await make(giftId);
-            })}`,
+            `${label}: ${await atCommit(
+              async () => {
+                const intake = await lineIntake(db, fx.A, {
+                  lines: intakeLines,
+                });
+                giftId = await stage(fx, intake);
+              },
+              () => make(giftId),
+            )}`,
           );
         };
         const update = (sql: string) => async (giftId: string) => {
-          const r = await as("postgres", fx, sql, [giftId]);
-          if (!r.ok)
-            throw Object.assign(new Error(r.message), { code: r.code });
+          await role(db, null);
+          expect((await db.query(sql, [giftId])).rowCount).toBeGreaterThan(0);
         };
         await tryCommit("as copied", async () => {});
         await tryCommit(
@@ -396,16 +404,33 @@ describe.skipIf(!ADMIN_URL)(
           const r = await as(
             "service_role",
             fx,
-            "UPDATE public.staged_gift_allocations SET fund_id = NULL, missionary_id = $2, amount = amount + 50 WHERE staged_gift_id = $1 AND line_number = 1",
+            "UPDATE public.staged_gift_allocations SET fund_id = NULL, missionary_id = $2, amount = amount + 50 WHERE staged_gift_id = $1 AND line_number = 1 RETURNING line_number, fund_id, missionary_id, amount",
             [giftId, worker],
           );
           const s = await as(
             "service_role",
             fx,
-            "UPDATE public.staged_gift_allocations SET amount = amount - 50 WHERE staged_gift_id = $1 AND line_number = 2",
+            "UPDATE public.staged_gift_allocations SET amount = amount - 50 WHERE staged_gift_id = $1 AND line_number = 2 RETURNING line_number, fund_id, missionary_id, amount",
             [giftId],
           );
-          expect([r.ok, s.ok]).toEqual([true, true]);
+          expect([r.rows, s.rows]).toEqual([
+            [
+              {
+                line_number: 1,
+                fund_id: null,
+                missionary_id: worker,
+                amount: "650",
+              },
+            ],
+            [
+              {
+                line_number: 2,
+                fund_id: fx.A.fund,
+                missionary_id: null,
+                amount: "350",
+              },
+            ],
+          ]);
         });
         expect(verdict).toBe("ok");
       }));

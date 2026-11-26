@@ -66,16 +66,21 @@ describe.skipIf(!ADMIN_URL)(
       try {
         await fn();
         await role(db, null);
+      } catch (error) {
+        await db.query("ROLLBACK TO SAVEPOINT r2a_commit");
+        throw error;
+      }
+      try {
         await db.query(`SET CONSTRAINTS ${LINE_BALANCE} IMMEDIATE`);
-        await db.query(`SET CONSTRAINTS ${LINE_BALANCE} DEFERRED`);
-        await db.query("RELEASE SAVEPOINT r2a_commit");
-        return "ok";
       } catch (error) {
         await db.query("ROLLBACK TO SAVEPOINT r2a_commit");
         await db.query(`SET CONSTRAINTS ${LINE_BALANCE} DEFERRED`);
         const e = error as { code?: string; message?: string };
         return `${e.code} ${e.message}`;
       }
+      await db.query(`SET CONSTRAINTS ${LINE_BALANCE} DEFERRED`);
+      await db.query("RELEASE SAVEPOINT r2a_commit");
+      return "ok";
     };
 
     async function bareIntake(side: Side, amount: number) {
@@ -429,6 +434,14 @@ describe.skipIf(!ADMIN_URL)(
           ),
         ).toBe("ok");
         await role(db, null);
+        expect(
+          (
+            await db.query(
+              "SELECT status, donor_id FROM public.donations WHERE id = $1",
+              [other.donationId],
+            )
+          ).rows,
+        ).toEqual([{ status: "completed", donor_id: donor }]);
       }));
 
     it("A6: a provider row whose amount or currency is not its intake's is 23503 donation_saga_outbox_intake_amount_fk; (guard) a legacy outbox row is untouched by the key", () =>

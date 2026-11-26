@@ -256,14 +256,20 @@ async function asService(db: pg.Client, sql: string, params: unknown[]) {
   return r;
 }
 
+function answered(operation: string, r: Attempt) {
+  if (!r.ok) throw new Error(`${operation} refused: ${r.code} ${r.message}`);
+  return r.rows[0]!.r as Outcome;
+}
+
 export const claimEvent = async (db: pg.Client, eventId: string) =>
-  (
+  answered(
+    "claim_provider_event",
     await asService(
       db,
       "SELECT public.claim_provider_event($1::uuid, 300) AS r",
       [eventId],
-    )
-  ).rows[0]?.r as Outcome;
+    ),
+  );
 
 export const tryApply = (db: pg.Client, eventId: string, attemptNo: number) =>
   asService(db, "SELECT public.apply_payment_outcome($1::uuid, $2) AS r", [
@@ -283,13 +289,14 @@ export const failEvent = async (
   attemptNo: number,
   retryable = true,
 ) =>
-  (
+  answered(
+    "record_provider_event_failure",
     await asService(
       db,
       "SELECT public.record_provider_event_failure($1::uuid, $2, 'unmatched', 'unmatched payment', $3, 0) AS r",
       [eventId, attemptNo, retryable],
-    )
-  ).rows[0]?.r as Outcome;
+    ),
+  );
 
 export async function work(db: pg.Client, eventId: string) {
   const claimed = await claimEvent(db, eventId);
