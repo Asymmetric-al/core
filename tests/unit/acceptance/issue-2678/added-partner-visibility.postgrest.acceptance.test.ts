@@ -122,9 +122,39 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         ...(body ? { body: JSON.stringify(body) } : {}),
       });
     };
-    const withDonor = () => ({
-      params: Promise.resolve({ donorId: added.donorId }),
+    const withDonor = (donorId = added.donorId) => ({
+      params: Promise.resolve({ donorId }),
     });
+    const edit = (name: string) => ({
+      name,
+      phone: partner.phone,
+      mobile: "",
+      work_phone: "",
+      preferred_contact: "phone",
+      type: "Individual",
+      status: "Active",
+      frequency: "Monthly",
+      location: partner.location,
+      website: "",
+      organization: "",
+      title: "",
+      spouse: "",
+      birthday: "",
+      anniversary: "",
+      notes: "",
+      street: "",
+      street2: "",
+      city: "",
+      state: "",
+      zip: "",
+    });
+    const rowOf = async (donorId: string) =>
+      (
+        await db.query(
+          "select to_jsonb(d) - 'updated_at' as row from public.donors d where d.id = $1",
+          [donorId],
+        )
+      ).rows[0]?.row as Record<string, unknown> | undefined;
 
     async function listed(who: Person) {
       const response = await listPartners(
@@ -164,37 +194,14 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         }),
         withDonor(),
       );
-      const edit = await PATCH(
-        request(who, "PATCH", path, {
-          name: partner.name,
-          email: `wp5rest-edit-${randomUUID()}@example.test`,
-          phone: partner.phone,
-          mobile: "",
-          work_phone: "",
-          preferred_contact: "phone",
-          type: "Individual",
-          status: "Active",
-          frequency: "Monthly",
-          location: partner.location,
-          website: "",
-          organization: "",
-          title: "",
-          spouse: "",
-          birthday: "",
-          anniversary: "",
-          notes: "",
-          street: "",
-          street2: "",
-          city: "",
-          state: "",
-          zip: "",
-        }),
+      const edited = await PATCH(
+        request(who, "PATCH", path, edit(partner.name)),
         withDonor(),
       );
       return {
         tags: tags.status,
         activity: activity.status,
-        edit: edit.status,
+        edit: edited.status,
       };
     }
 
@@ -309,7 +316,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       }
     });
 
-    it("the adding missionary adds a partner with a name and a phone and no e-mail and sees it named: its name and phone, no e-mail, not anonymous; tags, a logged activity and an edit succeed (F7 item 1 and F1 rule 7; red: the route requires an e-mail, and the row reads Anonymous partner with 404 on every write)", async () => {
+    it("the adding missionary adds a partner with a name and a phone and no e-mail and sees it named: its name and phone, no e-mail, not anonymous; tags, a logged activity and an edit without an e-mail succeed, and the e-mail stays empty (F7 item 1, F1 rule 7, F17 case 2; red: the route requires an e-mail, the row reads Anonymous partner with 404 on every write, and the edit requires an e-mail)", async () => {
       const response = await addPartner(
         request("adder", "POST", "/api/missionary/donors", partner, {
           "idempotency-key": randomUUID(),
@@ -340,6 +347,64 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         tags: 200,
         activity: 201,
         edit: 200,
+      });
+      expect(await rowOf(added.donorId)).toMatchObject({ email: null });
+    });
+
+    it("an edit whose body carries an e-mail is refused 400 and writes nothing, whatever the address: one the organization already holds and a fresh one (F17 cases 1 and 5; red: 409 for the held address, 200 for the fresh one)", async () => {
+      expect(added.donorId).not.toBe("");
+      const held = `wp5rest-held-${TA}@example.test`;
+      await db.query(
+        "insert into public.donors (tenant_id, name, email) values ($1, 'Held address', $2)",
+        [TA, held],
+      );
+      const before = await rowOf(added.donorId);
+      const path = `/api/missionary/donors/${added.donorId}`;
+      for (const [label, email] of [
+        ["held", held],
+        ["fresh", `wp5rest-fresh-${randomUUID()}@example.test`],
+      ] as const) {
+        const response = await PATCH(
+          request("adder", "PATCH", path, { ...edit("Renamed"), email }),
+          withDonor(),
+        );
+        expect([label, response.status]).toEqual([label, 400]);
+      }
+      expect(await rowOf(added.donorId)).toEqual(before);
+    });
+
+    it("a named partner who is a real donor, with an address on file, is edited without an e-mail: 200, the name changes and the stored address does not (F17 case 3; red: the edit requires an e-mail, 400)", async () => {
+      const realParty = randomUUID();
+      const realDonor = randomUUID();
+      const address = `wp5rest-real-${TA}@example.test`;
+      await db.query(
+        "insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Real donor')",
+        [realParty, TA],
+      );
+      await db.query(
+        "insert into public.donors (id, tenant_id, party_id, missionary_id, name, email, giving_preferences) values ($1, $2, $3, $4, 'Real donor', $5, $6)",
+        [
+          realDonor,
+          TA,
+          realParty,
+          user.adder,
+          address,
+          { defaultAnonymousToRecipient: false },
+        ],
+      );
+      const response = await PATCH(
+        request(
+          "adder",
+          "PATCH",
+          `/api/missionary/donors/${realDonor}`,
+          edit("Real donor renamed"),
+        ),
+        withDonor(realDonor),
+      );
+      expect(response.status).toBe(200);
+      expect(await rowOf(realDonor)).toMatchObject({
+        name: "Real donor renamed",
+        email: address,
       });
     });
 
