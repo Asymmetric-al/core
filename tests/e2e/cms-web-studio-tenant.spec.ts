@@ -8,7 +8,6 @@ import {
   type Response as PlaywrightResponse,
   type Route,
 } from "@playwright/test";
-
 import pg from "pg";
 
 import { adminBaseURL } from "./base-urls";
@@ -1988,11 +1987,13 @@ async function draftPreviewPage(page: Page) {
   return String(id);
 }
 
-async function layoutClipboardMenu(page: Page) {
+async function openLayoutClipboard(page: Page) {
   const layout = page.locator(".field-type.blocks-field").first();
   await expect(layout).toBeVisible();
   await layout.getByRole("button", { name: "More options" }).first().click();
-  return page.getByRole("menu").last();
+  await expect(
+    page.getByRole("menuitem", { name: "Copy Field" }),
+  ).toBeVisible();
 }
 
 async function versionsOf(page: Page, id: string) {
@@ -2090,15 +2091,30 @@ test("@cms an editor's own lock never says another editor is active; a restore o
     const [version] = await versionsOf(page, id);
     expect(version).toBeTruthy();
 
+    await page.route(
+      (url) =>
+        url.pathname === `/web-studio/api/pages/${id}` &&
+        url.searchParams.get("autosave") === "true",
+      (route) => route.abort(),
+    );
     await page.goto(`${base}/web-studio/collections/pages/${id}`);
     const title = page.getByRole("textbox", { name: /^Title/ }).first();
     await expect(title).toHaveValue(`Third ${stamp}`);
     await title.fill(`Holder ${stamp}`);
     await expect.poll(() => lockCount(page, id)).toBe(1);
     await expect(page.getByText("Locked", { exact: true })).toHaveCount(0);
+
+    const sameTab = await page.context().newPage();
+    await sameTab.goto(`${base}/web-studio/collections/pages/${id}`);
     await expect(
-      page.getByText("Another editor is active on this document."),
+      sameTab.getByRole("textbox", { name: /^Title/ }).first(),
+    ).toBeVisible();
+    await expect(sameTab.getByText("Locked", { exact: true })).toHaveCount(0);
+    await expect(
+      sameTab.getByText("Another editor is active on this document."),
     ).toHaveCount(0);
+    await sameTab.close();
+    await expect.poll(() => lockCount(page, id)).toBe(1);
 
     const other = await second.newPage();
     await signInAs(other, "admin", "demoAdmin", base);
@@ -2133,14 +2149,14 @@ test("@cms Payload's copy-and-paste store is empty after a change of organizatio
     await page.goto(
       `${base}/web-studio/collections/pages/${await draftPreviewPage(page)}`,
     );
-    const copyMenu = await layoutClipboardMenu(page);
-    await copyMenu.getByRole("button", { name: "Copy Field" }).click();
+    await openLayoutClipboard(page);
+    await page.getByRole("menuitem", { name: "Copy Field" }).click();
     await expect.poll(() => clipboardOf(page)).not.toBeNull();
 
     await page.goto(`${base}/web-studio/collections/pages/${pasteTarget}`);
-    const sameOrganization = await layoutClipboardMenu(page);
+    await openLayoutClipboard(page);
     await expect(
-      sameOrganization.getByRole("button", { name: "Paste Field" }),
+      page.getByRole("menuitem", { name: "Paste Field" }),
     ).toBeEnabled();
     await page.keyboard.press("Escape");
 
@@ -2149,11 +2165,11 @@ test("@cms Payload's copy-and-paste store is empty after a change of organizatio
     await page.goto(
       `${base}/web-studio/collections/pages/${await draftPreviewPage(page)}`,
     );
-    const otherOrganization = await layoutClipboardMenu(page);
+    await openLayoutClipboard(page);
     await expect(
-      otherOrganization.getByRole("button", { name: "Paste Field" }),
+      page.getByRole("menuitem", { name: "Paste Field" }),
     ).toBeDisabled();
-    await otherOrganization.getByRole("button", { name: "Copy Field" }).click();
+    await page.getByRole("menuitem", { name: "Copy Field" }).click();
     await expect.poll(() => clipboardOf(page)).not.toBeNull();
 
     await page.getByRole("button", { name: /account menu/ }).click();
