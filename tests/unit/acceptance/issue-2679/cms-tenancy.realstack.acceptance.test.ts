@@ -1336,6 +1336,107 @@ describe.skipIf(!ADMIN_URL)(
           title: "Live title",
         });
       });
+
+      describe("unpublishAllLocales (confirmation finding 1): a person's write never changes or replaces a published version row", () => {
+        const versionRows = async (id: string) =>
+          (
+            await s.admin.query(
+              "select id, version__status, version_title, updated_at, latest from cms._pages_v where parent_id = $1 order by updated_at desc, created_at desc",
+              [id],
+            )
+          ).rows as Array<Record<string, unknown>>;
+
+        const publishedWithSnapshot = async () => {
+          const { live } = await published();
+          const versions = await versionRows(live.id);
+          const snapshot = versions[0]!;
+          expect(snapshot).toMatchObject({
+            version__status: "published",
+            version_title: "Live title",
+          });
+          return {
+            live,
+            versions,
+            snapshot,
+            page: await row("pages", live.id),
+          };
+        };
+
+        const expectUnchanged = async (
+          state: Awaited<ReturnType<typeof publishedWithSnapshot>>,
+        ) => {
+          expect(await versionRows(state.live.id)).toEqual(state.versions);
+          expect(await row("pages", state.live.id)).toEqual(state.page);
+        };
+
+        it("by id: PATCH ?draft=true&unpublishAllLocales=true is refused, and the published snapshot and the page are unchanged", async () => {
+          const state = await publishedWithSnapshot();
+          const response = await s.restAs(
+            editorA,
+            "PATCH",
+            `/web-studio/api/pages/${state.live.id}?draft=true&unpublishAllLocales=true`,
+            { title: "Unpublished draft" },
+          );
+          await expectUnchanged(state);
+          expect(response.status).toBe(400);
+        });
+
+        it("in bulk: PATCH ?where[id][equals]=…&draft=true&unpublishAllLocales=true updates no page, and the published snapshot and the page are unchanged", async () => {
+          const state = await publishedWithSnapshot();
+          const response = await s.restAs(
+            editorA,
+            "PATCH",
+            `/web-studio/api/pages?where[id][equals]=${state.live.id}&draft=true&unpublishAllLocales=true`,
+            { title: "Unpublished draft" },
+          );
+          await expectUnchanged(state);
+          expect((response.json?.docs as unknown[] | undefined) ?? []).toEqual(
+            [],
+          );
+          expect(response.json?.errors).toHaveLength(1);
+        });
+
+        it("through the Local API as an actor: a draft update with unpublishAllLocales is refused, and the published snapshot and the page are unchanged", async () => {
+          const state = await publishedWithSnapshot();
+          const outcome = await s.settle(
+            s.payload.update(
+              asA({
+                collection: "pages",
+                id: state.live.id,
+                draft: true,
+                unpublishAllLocales: true,
+                data: { title: "Unpublished draft" },
+              }),
+            ),
+          );
+          await expectUnchanged(state);
+          expect(outcome.ok).toBe(false);
+          if (!outcome.ok) expect(outcome.paths).toContain("_status");
+        });
+
+        it("guard: a plain ?draft=true save succeeds and adds a draft version beside the published snapshot", async () => {
+          const state = await publishedWithSnapshot();
+          const response = await s.restAs(
+            editorA,
+            "PATCH",
+            `/web-studio/api/pages/${state.live.id}?draft=true`,
+            { title: "Plain draft" },
+          );
+          expect(response.status).toBe(200);
+          const after = await versionRows(state.live.id);
+          expect(after).toHaveLength(state.versions.length + 1);
+          const { latest: _latest, ...snapshotContent } = state.snapshot;
+          expect(
+            after.find((version) => version.id === state.snapshot.id),
+          ).toEqual({ ...snapshotContent, latest: false });
+          expect(after[0]).toMatchObject({
+            version__status: "draft",
+            version_title: "Plain draft",
+            latest: true,
+          });
+          expect(await row("pages", state.live.id)).toEqual(state.page);
+        });
+      });
     });
 
     describe("F3 (fix round): the service port never hands one organization's row to another", () => {
