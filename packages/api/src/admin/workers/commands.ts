@@ -24,6 +24,7 @@ import {
   type WorkersOperation,
   type WorkersRpcClient,
 } from "./contract";
+import { normalizesToNothing } from "./safety-text";
 import { withOperation } from "../../shared/with-operation";
 
 import type { z } from "zod";
@@ -116,7 +117,8 @@ export const POST_RESTRICT = withWorkersWrite(
         p_tenant_id: auth.tenantId,
         p_party_id: prepared.row.party_id,
         p_security_level: level ?? null,
-        p_public_alias: alias !== undefined && !isBlank(alias) ? alias : null,
+        p_public_alias:
+          alias !== undefined && !normalizesToNothing(alias) ? alias : null,
         p_do_not_publish: doNotPublish ?? null,
         p_reason: reason,
       });

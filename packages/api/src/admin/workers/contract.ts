@@ -269,17 +269,16 @@ export function withNoStore<Args extends unknown[], Result extends Response>(
   };
 }
 
-async function carriesNotPermitted(response: Response): Promise<boolean> {
+async function jsonBody(
+  response: Response,
+): Promise<Record<string, unknown> | null> {
   try {
     const body: unknown = await response.clone().json();
-    return (
-      typeof body === "object" &&
-      body !== null &&
-      "code" in body &&
-      body.code === "NOT_PERMITTED"
-    );
+    return typeof body === "object" && body !== null
+      ? (body as Record<string, unknown>)
+      : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -288,8 +287,20 @@ export function withWorkersWrite<Args extends unknown[]>(
 ): (...args: Args) => Promise<Response> {
   return async (...args: Args) => {
     const response = await handler(...args);
-    if (response.status === 403 && !(await carriesNotPermitted(response)))
-      return workerError("NOT_PERMITTED");
+    if (response.status === 403) {
+      const body = await jsonBody(response);
+      if (body?.code !== "NOT_PERMITTED")
+        return NextResponse.json(
+          {
+            error: WORKER_ERRORS.NOT_PERMITTED.text,
+            code: "NOT_PERMITTED",
+            ...(typeof body?.requestId === "string"
+              ? { requestId: body.requestId }
+              : {}),
+          },
+          { status: 403, headers: { "Cache-Control": NO_STORE } },
+        );
+    }
     response.headers.set("Cache-Control", NO_STORE);
     return response;
   };

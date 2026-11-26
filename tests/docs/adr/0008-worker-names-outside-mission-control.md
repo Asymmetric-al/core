@@ -371,15 +371,16 @@ requests (`GET` and `PATCH`, no donor id and no donor); and the donor writes
 (`PATCH` of a donor and `POST` of an activity answer 404 "Donor relationship
 not found" for every hidden donor, restricted or anonymous alike).
 
-## The restriction screen's notice (gate e, closed by WP5 part 2-r2b1)
+## The restriction screen's notice (gate (e), closed by WP5 part 2-r2b1)
 
 Mission Control's worker record shows this text beside Restrict and in its
-dialog (ruling R2B-Q4), word for word; the list of what a restriction does
-not change follows rows 3, 5, 6, 8, 9 and 10 of the open list below, plan
-`:343` (an email sent), the ruling that an open page keeps its copy until it
-reloads, ruling R2B-Q3 (a restriction holds for every request that starts
-after the command commits; a request under way finishes with what it read)
-and the publishing effect of "Do not publish" arriving with WP7:
+dialog (ruling R2B-Q4), word for word. Each line of what a restriction does
+not change has its source: line 1 is open row 8, line 2 row 9, line 3 row 10,
+line 4 row 6, line 5 plan `:343` (an email sent), line 6 rows 3, 5 and 12,
+line 7 r2a's ruling 5 (an open page keeps its copy until it reloads), line 8
+ruling R2B-Q3 (a restriction holds for every request that starts after the
+command commits; a request under way finishes with what it read) and line 9
+the publishing effect of "Do not publish", which arrives with WP7:
 
 > **What a restriction changes.** From the moment you confirm, this worker
 > is shown only by their public alias, or not named, in the donor portal
@@ -542,8 +543,8 @@ funding_goal, current_funding, created_at, updated_at`).
   `feed-post-card-names`, `published-post-order` and
   `tests/e2e/donor-dashboard-frame.spec.ts`.
 - WP5 part 2-r2b1, each reason in its test's title; no assertion is
-  weakened: `worker-safety.realstack`'s alias-rule loop expects `42501
-permission denied for table parties` for `service_role` (Q6), and its
+  weakened: `worker-safety.realstack`'s alias-rule loop expects
+  `42501 permission denied for table parties` for `service_role` (Q6), and its
   legal-name read goes through the audited reveal, with `plainStaff` and the
   others refused and `read_party_restricted` refused for everyone (R2B-Q1);
   `identity-keys.postgrest` does the same through PostgREST, with a plain

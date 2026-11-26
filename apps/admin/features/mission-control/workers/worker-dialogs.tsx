@@ -1,5 +1,6 @@
 "use client";
 
+import { normalizesToNothing } from "@asym/api/admin/workers/safety-text";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
 import {
@@ -113,6 +114,7 @@ function ActionDialog({
   onOpenChange,
   onSubmit,
   canSubmit,
+  footer,
   children,
 }: {
   trigger: string;
@@ -126,6 +128,7 @@ function ActionDialog({
   onOpenChange: (open: boolean) => void;
   onSubmit: () => void;
   canSubmit: boolean;
+  footer?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -164,17 +167,21 @@ function ActionDialog({
             </p>
           ) : null}
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pending}
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={pending || !canSubmit}>
-              {submitLabel}
-            </Button>
+            {footer ?? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={pending}
+                  onClick={() => onOpenChange(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={pending || !canSubmit}>
+                  {submitLabel}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
@@ -195,7 +202,10 @@ function useCommandDialog(worker: Worker) {
     });
   const openChange = (next: boolean) => {
     setOpen(next);
-    if (!next) latch.setError(null);
+    if (!next) {
+      latch.setError(null);
+      setReason("");
+    }
   };
   return { open, openChange, reason, setReason, latch, send };
 }
@@ -290,7 +300,7 @@ export function RestrictDialog({ worker }: { worker: Worker }) {
   const needsAlias =
     (level === "restricted" || level === "high_risk") &&
     !worker.publicAlias &&
-    alias.trim().length === 0;
+    normalizesToNothing(alias);
   const openChange = (next: boolean) => {
     if (next) {
       setLevel(worker.securityLevel);
@@ -315,7 +325,7 @@ export function RestrictDialog({ worker }: { worker: Worker }) {
           kind: "restrict",
           body: {
             ...(level !== worker.securityLevel ? { level } : {}),
-            ...(alias.trim() ? { alias } : {}),
+            ...(normalizesToNothing(alias) ? {} : { alias }),
             ...(doNotPublish ? { doNotPublish: true as const } : {}),
             reason: dialog.reason,
           },
@@ -471,6 +481,13 @@ export function RevealDialog({ worker }: { worker: Worker }) {
       open={open}
       onOpenChange={(next) => (next ? setOpen(true) : close())}
       canSubmit={canSend(reason) && identity === null}
+      footer={
+        identity ? (
+          <Button type="button" onClick={close}>
+            Hide
+          </Button>
+        ) : undefined
+      }
       onSubmit={() =>
         void latch.run(async () => {
           const revealed = await revealWorkerIdentity(
@@ -503,15 +520,6 @@ export function RevealDialog({ worker }: { worker: Worker }) {
           <p className="text-xs text-muted-foreground">
             This view is recorded in the audit log.
           </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="self-start"
-            onClick={close}
-          >
-            Hide
-          </Button>
         </div>
       ) : (
         <ReasonField
