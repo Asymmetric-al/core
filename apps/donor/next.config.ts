@@ -6,6 +6,7 @@ import { loadWorkspaceEnvironment } from "../../scripts/load-workspace-env.mjs";
 import { migrationHeadsBuildEnv } from "../../scripts/release/migration-heads.mjs";
 import {
   serveUnderPathsDonorHeaders,
+  serveUnderPathsDonorRewrites,
   serveUnderPathsNextConfig,
 } from "../../scripts/release/serve-under-paths.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
@@ -34,6 +35,7 @@ const BONEYARD_JS_REACT_ALIAS = `${BONEYARD_JS_ALIAS}/dist/react.js`;
  * this app's typecheck instead of silently un-instanting every route.
  */
 const underPaths = serveUnderPathsNextConfig("donor");
+const underPathsRewrites = serveUnderPathsDonorRewrites(process.env);
 
 const nextConfig: NextConfig & {
   cacheComponents: true;
@@ -230,6 +232,13 @@ const nextConfig: NextConfig & {
       },
     ];
   },
+  ...(underPathsRewrites
+    ? {
+        async rewrites() {
+          return underPathsRewrites;
+        },
+      }
+    : {}),
 };
 
 export default withSentryConfig(nextConfig, buildSentryNextConfigOptions());

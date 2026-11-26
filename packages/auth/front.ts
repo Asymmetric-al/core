@@ -5,6 +5,13 @@ import {
 } from "@asym/env/front-origin";
 import { NextRequest, NextResponse } from "next/server";
 
+import {
+  FRONT_ORIGIN_HEADER,
+  FRONT_STAMP_HEADER,
+  hasValidStampKey,
+  signFrontStamp,
+  verifyFrontStamp,
+} from "./front-stamp";
 import { admitApiMutation } from "./mutation-admission";
 import {
   ADDRESS_PREFIX_HEADER,
@@ -14,8 +21,15 @@ import {
   TENANT_REWRITE_HEADER,
 } from "./request-headers";
 
-export const FRONT_STAMP_HEADER = "x-asym-front-stamp";
-export const FRONT_ORIGIN_HEADER = "x-asym-front-origin";
+export {
+  FRONT_ORIGIN_HEADER,
+  FRONT_STAMP_HEADER,
+  hasValidStampKey,
+  signFrontStamp,
+  verifyFrontStamp,
+};
+export type { VerifyStampKeys } from "./front-stamp";
+
 export const FRONT_HEADER_PREFIX = "x-asym-front-";
 
 const PROTECTION_BYPASS_HEADERS = [
@@ -39,21 +53,10 @@ export const MISSIONARY_EXEMPT_PATHS = [
   "/api/webhooks/stripe",
 ] as const;
 
-const STAMP_VERSION = "v1";
-const MIN_STAMP_KEY_BYTES = 32;
-const MAX_AGE_SECONDS = 60;
-const MAX_CLOCK_SKEW_SECONDS = 5;
-const encoder = new TextEncoder();
-
 export interface FrontDashboard {
   prefix: string;
   origin: string;
   key: string;
-}
-
-export interface VerifyStampKeys {
-  key: string | undefined;
-  previousKey?: string | undefined;
 }
 
 export interface AdmissionOptions {
@@ -68,52 +71,6 @@ export type FrontAdmission =
   | { kind: "stamped"; origin: string }
   | { kind: "exempt"; pathname: string }
   | { kind: "refused" };
-
-function toBase64Url(bytes: ArrayBuffer): string {
-  let binary = "";
-  for (const byte of new Uint8Array(bytes)) {
-    binary += String.fromCharCode(byte);
-  }
-  return btoa(binary)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-}
-
-function fromBase64Url(text: string): Uint8Array<ArrayBuffer> | null {
-  if (!/^[A-Za-z0-9_-]{43}$/.test(text)) return null;
-  const binary = atob(text.replace(/-/g, "+").replace(/_/g, "/"));
-  const bytes = new Uint8Array(new ArrayBuffer(binary.length));
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
-  return bytes;
-}
-
-export function hasValidStampKey(value: string | undefined): value is string {
-  return (
-    typeof value === "string" &&
-    encoder.encode(value).byteLength >= MIN_STAMP_KEY_BYTES
-  );
-}
-
-function hmacKey(secret: string): Promise<CryptoKey> {
-  return crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign", "verify"],
-  );
-}
-
-function stampPayload(
-  origin: string,
-  prefix: string,
-  issuedAt: number,
-): Uint8Array<ArrayBuffer> {
-  return encoder.encode(`${STAMP_VERSION}\n${origin}\n${prefix}\n${issuedAt}`);
-}
 
 export { canonicalOrigin, canonicalUpstreamOrigin };
 
@@ -132,67 +89,6 @@ function logFrontConfigIssueOnce(
   console.error(
     `[front] ${variable} is ${reason}; refusing request while CORE_SERVE_UNDER_PATHS=1.`,
   );
-}
-
-export async function signFrontStamp(
-  origin: string,
-  prefix: string,
-  key: string,
-  now: number = Date.now(),
-): Promise<string> {
-  const canonical = canonicalOrigin(origin);
-  if (!canonical) {
-    throw new Error("Front stamp requires a canonical http(s) origin.");
-  }
-  if (!prefix || !prefix.startsWith("/")) {
-    throw new Error("Front stamp requires a dashboard prefix.");
-  }
-  if (!hasValidStampKey(key)) {
-    throw new Error("Front stamp key must be at least 32 UTF-8 bytes.");
-  }
-  const issuedAt = Math.floor(now / 1000);
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    await hmacKey(key),
-    stampPayload(canonical, prefix, issuedAt),
-  );
-  return `${STAMP_VERSION}.${issuedAt}.${toBase64Url(signature)}`;
-}
-
-export async function verifyFrontStamp(
-  origin: string | null,
-  prefix: string,
-  stamp: string | null,
-  keys: VerifyStampKeys,
-  now: number = Date.now(),
-): Promise<boolean> {
-  const canonical = canonicalOrigin(origin);
-  if (!canonical || !prefix || !stamp) return false;
-  if (!hasValidStampKey(keys.key)) return false;
-  const parts = stamp.split(".");
-  if (parts.length !== 3 || parts[0] !== STAMP_VERSION) return false;
-  const [, issued = "", signature = ""] = parts;
-  if (!/^\d{1,12}$/.test(issued)) return false;
-  const issuedAt = Number(issued);
-  const age = Math.floor(now / 1000) - issuedAt;
-  if (age < -MAX_CLOCK_SKEW_SECONDS || age > MAX_AGE_SECONDS) return false;
-  const bytes = fromBase64Url(signature);
-  if (!bytes) return false;
-  const payload = stampPayload(canonical, prefix, issuedAt);
-  if (
-    await crypto.subtle.verify("HMAC", await hmacKey(keys.key), bytes, payload)
-  ) {
-    return true;
-  }
-  if (hasValidStampKey(keys.previousKey)) {
-    return crypto.subtle.verify(
-      "HMAC",
-      await hmacKey(keys.previousKey),
-      bytes,
-      payload,
-    );
-  }
-  return false;
 }
 
 export function stripFrontHeaders(headers: Headers): boolean {
@@ -237,6 +133,31 @@ const DASHBOARD_PREFIXES = [
   APP_BASE_PATHS.admin,
   APP_BASE_PATHS.missionary,
 ] as const;
+
+const ASSISTANT_PATH_PREFIX = `${APP_BASE_PATHS.admin}/eve/v1/`;
+
+const ASSISTANT_ROUTES: ReadonlyArray<{ method: string; remainder: RegExp }> = [
+  { method: "GET", remainder: /^health$/ },
+  { method: "POST", remainder: /^session$/ },
+  { method: "POST", remainder: /^session\/[^/]+$/ },
+  { method: "GET", remainder: /^session\/[^/]+\/stream$/ },
+  { method: "POST", remainder: /^session\/[^/]+\/cancel$/ },
+];
+
+function assistantDestination(method: string, pathname: string): string | null {
+  if (
+    pathname.includes("%") ||
+    pathname.includes("//") ||
+    hasDotOrBackslashSegment(pathname)
+  ) {
+    return null;
+  }
+  const remainder = pathname.slice(ASSISTANT_PATH_PREFIX.length);
+  const allowed = ASSISTANT_ROUTES.some(
+    (route) => route.method === method && route.remainder.test(remainder),
+  );
+  return allowed ? `/eve/v1/${remainder}` : null;
+}
 
 export function matchesDashboardPrefix(pathname: string): string | null {
   for (const prefix of DASHBOARD_PREFIXES) {
@@ -343,6 +264,12 @@ export async function routeToDashboard(
   if (!dashboard || !origin) {
     return frontNotFound();
   }
+  const destination = pathname.startsWith(ASSISTANT_PATH_PREFIX)
+    ? assistantDestination(request.method, pathname)
+    : pathname;
+  if (destination === null) {
+    return frontNotFound();
+  }
 
   const headers = new Headers(request.headers);
   stripFrontHeaders(headers);
@@ -358,7 +285,7 @@ export async function routeToDashboard(
   );
 
   return NextResponse.rewrite(
-    new URL(`${pathname}${request.nextUrl.search}`, dashboard.origin),
+    new URL(`${destination}${request.nextUrl.search}`, dashboard.origin),
     { request: { headers } },
   );
 }
