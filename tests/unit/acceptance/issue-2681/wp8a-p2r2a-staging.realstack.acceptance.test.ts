@@ -437,7 +437,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(verdict).toBe("ok");
       }));
 
-    it("A3 (bot round B1): an allocation never moves into a gift of another generation or organization: as service_role, a legacy allocation moved onto a line-based gift of its organization is 42501 staged_gift_allocation_generation_owner and that gift still balances, a move into another organization's gift is 42501, and a legacy allocation still moves between two legacy gifts; a gift's own UPDATE re-parents nothing: its format is frozen (23514) and its id is held by its allocations' keys (23503)", () =>
+    it("A3 (bot round B1): an allocation never moves into a gift of another generation or organization: as service_role, a legacy allocation moved onto a line-based gift of its organization is 42501 staged_gift_allocation_generation_owner and that gift still balances, a move into another organization's gift is 42501, and a legacy allocation still moves between two legacy gifts; a gift's own UPDATE re-parents nothing: its format is frozen (23514), a legacy gift's id is held by its allocations' keys (23503) and a line-based gift's id is sealed (D-18, last step S2: 23514 staged_gift_line_sealed now answers before the allocations' key, which answered 23503)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         await grant(db, [
@@ -527,7 +527,7 @@ describe.skipIf(!ADMIN_URL)(
             "UPDATE public.staged_gifts SET id = gen_random_uuid() WHERE id = $1",
             lineGift,
           ),
-        ]).toEqual(["23514", "23514", "23503", "23503"]);
+        ]).toEqual(["23514", "23514", "23503", "23514"]);
       }));
 
     it("A3 (last step S1): a legacy staged gift never re-points at an intake of another generation or organization: as service_role (the one role besides the owner that holds UPDATE on staged_gifts.donation_id and tenant_id; authenticated holds neither), a legacy gift moved onto a line-based intake, or onto another organization's intake, is 42501 staged_gift_generation_owner, and the apply then stages the line-based intake; a move between two legacy intakes still succeeds", () =>
@@ -621,6 +621,145 @@ describe.skipIf(!ADMIN_URL)(
             ),
           ),
         ).toBe("23514 staged_gift_line_sealed");
+      }));
+
+    it("A3 (confirmation finding 1, with S2): on a balanced line-based gift past its balance check, service_role deleting all its allocations and changing its id in one transaction is refused at the UPDATE (23514 staged_gift_line_sealed) and the gift still balances; a deferred balance check that cannot find the line-based gift of its row refuses (23514) instead of passing", () =>
+      inTx(db, async () => {
+        const fx = await seedTwoTenants(db);
+        await grant(db, [
+          "GRANT INSERT, UPDATE, DELETE ON TABLE public.staged_gifts, public.staged_gift_allocations TO service_role",
+        ]);
+        const intake = await lineIntake(db, fx.A, {
+          lines: [{ amount: 600 }, { amount: 400 }],
+        });
+        const gift = await stage(fx, intake);
+        await role(db, null);
+        await db.query(`SET CONSTRAINTS ${STAGING_BALANCE} IMMEDIATE`);
+        await db.query(`SET CONSTRAINTS ${STAGING_BALANCE} DEFERRED`);
+
+        await role(db, "service_role");
+        await db.query("SAVEPOINT r2a_reparent");
+        await db.query(
+          "DELETE FROM public.staged_gift_allocations WHERE staged_gift_id = $1",
+          [gift],
+        );
+        const renamed = await attempt(
+          db,
+          "UPDATE public.staged_gifts SET id = gen_random_uuid() WHERE id = $1",
+          [gift],
+        );
+        await db.query("ROLLBACK TO SAVEPOINT r2a_reparent");
+        await role(db, null);
+        expect(short(renamed)).toBe("23514 staged_gift_line_sealed");
+        expect(
+          (
+            await db.query(
+              "SELECT count(*)::int AS allocations, sum(amount)::text AS cents FROM public.staged_gift_allocations WHERE staged_gift_id = $1",
+              [gift],
+            )
+          ).rows,
+        ).toEqual([{ allocations: 2, cents: "1000" }]);
+
+        expect(
+          await atCommit(async () => {
+            await db.query(
+              "DELETE FROM public.staged_gift_allocations WHERE staged_gift_id = $1 AND line_number = 2",
+              [gift],
+            );
+            await db.query("SET LOCAL session_replication_role = replica");
+            await db.query(
+              "UPDATE public.staged_gifts SET id = gen_random_uuid() WHERE id = $1",
+              [gift],
+            );
+            await db.query("SET LOCAL session_replication_role = origin");
+          }),
+        ).toBe("23514 staged_gift_allocations_unbalanced");
+      }));
+
+    it("A3 (confirmation findings 2 and 3, S6 and S7): a staged gift and an allocation keep their organization: as service_role, a legacy gift moved to the other organization with its targets cleared is 23514 staged_gift_tenant_frozen (a line-based gift still answers staged_gift_line_sealed); a legacy allocation's tenant_id changed alone, or with its gift moved to the other organization's legacy gift, is 23514 staged_gift_allocation_tenant_frozen; a legacy gift inserted for the other organization's intake is 42501 staged_gift_generation_owner", () =>
+      inTx(db, async () => {
+        const fx = await seedTwoTenants(db);
+        await grant(db, [
+          ...HOSTED_SERVICE_GRANTS,
+          "GRANT INSERT, UPDATE, DELETE ON TABLE public.staged_gifts, public.staged_gift_allocations TO service_role",
+        ]);
+        const legacyGift = async (tenant: string, fund: string) => {
+          await role(db, "service_role");
+          const donation = (
+            await db.query(
+              "INSERT INTO public.donations (tenant_id, amount, currency) VALUES ($1, 500, 'usd') RETURNING id",
+              [tenant],
+            )
+          ).rows[0].id as string;
+          const gift = (
+            await db.query(
+              "INSERT INTO public.staged_gifts (tenant_id, donation_id, amount, currency) VALUES ($1, $2, 500, 'usd') RETURNING id",
+              [tenant, donation],
+            )
+          ).rows[0].id as string;
+          const allocation = (
+            await db.query(
+              "INSERT INTO public.staged_gift_allocations (tenant_id, staged_gift_id, fund_id, amount) VALUES ($1, $2, $3, 500) RETURNING id",
+              [tenant, gift, fund],
+            )
+          ).rows[0].id as string;
+          await role(db, null);
+          return { donation, gift, allocation };
+        };
+        const ours = await legacyGift(fx.A.tenant, fx.A.fund);
+        const theirs = await legacyGift(fx.B.tenant, fx.B.fund);
+        const intake = await lineIntake(db, fx.A);
+        const lineGift = await stage(fx, intake);
+        const service = (sql: string, params: unknown[]) =>
+          as("service_role", fx, sql, params);
+        await role(db, "service_role");
+        const unstaged = (
+          await db.query(
+            "INSERT INTO public.donations (tenant_id, amount, currency) VALUES ($1, 500, 'usd') RETURNING id",
+            [fx.B.tenant],
+          )
+        ).rows[0].id as string;
+        await role(db, null);
+        expect([
+          short(
+            await service(
+              "UPDATE public.staged_gifts SET tenant_id = $2, fund_id = NULL, missionary_id = NULL WHERE id = $1",
+              [ours.gift, fx.B.tenant],
+            ),
+          ),
+          short(
+            await as(
+              "postgres",
+              fx,
+              "UPDATE public.staged_gifts SET tenant_id = $2 WHERE id = $1",
+              [lineGift, fx.B.tenant],
+            ),
+          ),
+          short(
+            await service(
+              "UPDATE public.staged_gift_allocations SET tenant_id = $2 WHERE id = $1",
+              [ours.allocation, fx.B.tenant],
+            ),
+          ),
+          short(
+            await service(
+              "UPDATE public.staged_gift_allocations SET tenant_id = $2, staged_gift_id = $3, fund_id = NULL WHERE id = $1",
+              [ours.allocation, fx.B.tenant, theirs.gift],
+            ),
+          ),
+          short(
+            await service(
+              "INSERT INTO public.staged_gifts (tenant_id, donation_id, amount, currency) VALUES ($1, $2, 500, 'usd')",
+              [fx.A.tenant, unstaged],
+            ),
+          ),
+        ]).toEqual([
+          "23514 staged_gift_tenant_frozen",
+          "23514 staged_gift_line_sealed",
+          "23514 staged_gift_allocation_tenant_frozen",
+          "23514 staged_gift_allocation_tenant_frozen",
+          "42501 staged_gift_generation_owner",
+        ]);
       }));
 
     it("A4: an observation updated or deleted is 23514; a second terminal effect for one PaymentIntent is 23505; an event of the other tenant, or a payment that is not the intake's, is 23503", () =>
