@@ -54,6 +54,7 @@ const TEST_NAME_RE = /\.(?:test|spec)\.[cm]?[jt]sx?$|\.d\.ts$/;
 
 export const SERVICE_PORT_CALLERS = Object.freeze([
   "apps/admin/src/cms/auth/supabase-strategy.ts",
+  "apps/admin/src/cms/site-presentation-step.ts",
   "apps/admin/src/cms/tenancy/page-rules.ts",
   "apps/admin/src/cms/tenancy/reference-guard.ts",
   "apps/admin/src/cms/tenancy/tenant-scoped.ts",

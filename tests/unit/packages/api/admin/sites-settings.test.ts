@@ -56,6 +56,7 @@ vi.mock(
 
 import { POST as brandPOST } from "../../../../../packages/api/src/admin/sites/brand";
 import {
+  createSitePost,
   GET as settingsGET,
   POST as createPOST,
 } from "../../../../../packages/api/src/admin/sites/settings";
@@ -724,5 +725,141 @@ describe("AL-2676 WP3b part 3, last round: the privacy assertions read an Error'
     expect(serializedForLogs({ plain: "value", count: 1 })).toBe(
       JSON.stringify({ plain: "value", count: 1 }),
     );
+  });
+});
+
+describe("AL-2679 WP6 rest: a created Site is handed to the CMS step", () => {
+  const SETTINGS_ANSWER = {
+    sites: [
+      {
+        id: SEEDED_SITE,
+        name: "GiveHope Demo Organization",
+        is_default: true,
+        status: "active",
+        primary_domain: null,
+      },
+      {
+        id: SITE,
+        name: "Spanish site (stored)",
+        is_default: false,
+        status: "active",
+        primary_domain: null,
+      },
+    ],
+    brand: null,
+  };
+
+  function answering() {
+    return sessionAnswering((fn) =>
+      fn === "create_site"
+        ? { data: siteRow({ name: "Spanish site (stored)" }), error: null }
+        : { data: SETTINGS_ANSWER, error: null },
+    );
+  }
+
+  it("runs the step once after create_site, with the Site's ID, the tenant and a reader of Core on the caller's own token", async () => {
+    h.auth.mockResolvedValue(makeAuth("staff", true));
+    const rpc = answering();
+    const seen: unknown[] = [];
+    const step = vi.fn(
+      async ({
+        readSite,
+      }: {
+        readSite: (siteId: string) => Promise<unknown>;
+      }) => {
+        seen.push(await readSite(SITE.toUpperCase()));
+        seen.push(await readSite(OTHER_TENANT));
+      },
+    );
+    const response = await createSitePost(step)(
+      postRequest("/api/admin/sites", { name: "Spanish site" }),
+    );
+    expect(response.status).toBe(201);
+    expectNoStore(response, "create");
+    expect(await bodyOf(response)).toEqual({
+      site: {
+        id: SITE,
+        name: "Spanish site (stored)",
+        is_default: false,
+        status: "active",
+        primary_domain: null,
+      },
+    });
+    expect(step).toHaveBeenCalledTimes(1);
+    expect(step).toHaveBeenCalledWith(
+      expect.objectContaining({ siteId: SITE, tenantId: TENANT }),
+    );
+    expect(seen).toEqual([{ id: SITE, tenantId: TENANT }, null]);
+    expect(rpc.mock.calls.map(([fn]) => fn)).toEqual([
+      "create_site",
+      "tenant_site_settings",
+      "tenant_site_settings",
+    ]);
+    expect(rpc).toHaveBeenLastCalledWith("tenant_site_settings", {
+      p_tenant_id: TENANT,
+    });
+    expect(h.serviceKeyUsed).not.toHaveBeenCalled();
+  });
+
+  it("answers 201 with the Site when the step fails after create_site committed, and reports the failure once without its text", async () => {
+    h.auth.mockResolvedValue(makeAuth("staff", true));
+    answering();
+    const step = vi.fn(async () => {
+      throw new Error("Spanish site could not be presented");
+    });
+    const response = await createSitePost(step)(
+      postRequest("/api/admin/sites", { name: "Spanish site" }),
+    );
+    expect(response.status).toBe(201);
+    expect(await bodyOf(response)).toMatchObject({ site: { id: SITE } });
+    expect(h.captureError).toHaveBeenCalledTimes(1);
+    expect(
+      consoleError.mock.calls.filter((call: unknown[]) =>
+        String(call[0]).startsWith("[admin.sites.create.presentation]"),
+      ),
+    ).toHaveLength(1);
+    const logged = serializedForLogs([
+      consoleError.mock.calls,
+      h.captureError.mock.calls,
+    ]);
+    expect(logged).not.toContain("could not be presented");
+  });
+
+  it.each([
+    [
+      "create_site refuses",
+      { data: null, error: { code: "42501", message: DB_TEXT } },
+      403,
+    ],
+    [
+      "create_site answers another tenant's row",
+      { data: siteRow({ tenant_id: OTHER_TENANT }), error: null },
+      500,
+    ],
+  ])("never runs the step when %s", async (_label, answer, status) => {
+    h.auth.mockResolvedValue(makeAuth("staff", true));
+    sessionAnswering(() => answer);
+    const step = vi.fn();
+    const response = await createSitePost(step)(
+      postRequest("/api/admin/sites", { name: "Spanish site" }),
+    );
+    expect(response.status).toBe(status);
+    expect(step).not.toHaveBeenCalled();
+  });
+
+  it("gives the step a reader that throws when Core's read fails, so the step can only refuse", async () => {
+    h.auth.mockResolvedValue(makeAuth("staff", true));
+    sessionAnswering((fn) =>
+      fn === "create_site"
+        ? { data: siteRow(), error: null }
+        : { data: null, error: { code: "XX000", message: DB_TEXT } },
+    );
+    let read: Promise<unknown> | undefined;
+    const response = await createSitePost(async ({ readSite }) => {
+      read = readSite(SITE);
+      await read.catch(() => undefined);
+    })(postRequest("/api/admin/sites", { name: "Spanish site" }));
+    expect(response.status).toBe(201);
+    await expect(read).rejects.toThrow();
   });
 });

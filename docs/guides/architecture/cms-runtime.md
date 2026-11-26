@@ -16,13 +16,25 @@ This keeps CMS management inside Mission Control and avoids running multiple Pay
 
 The CMS has five collections, all on UUID ids (`apps/admin/src/cms/collections/`):
 
-- `site-presentations`: one per Core Site, under the Site's id, created only by the service port (provisioning); staff read it and nothing more.
+- `site-presentations`: one per Core Site, under the Site's id, created only by the CMS step of provisioning through the service port (see below); staff read it and nothing more.
 - `pages`: every page, with a required `site`, a `family` (`standard`, `missionary` or `project`), drafts that validate, autosave every two seconds and at most 50 versions. A `missionary` page names its missionary (`missionaryId`), a `project` page its fund (`fundId`), a `standard` page neither.
 - `navigation`: menus of a Site; each item points at a page of the same Site or at an absolute `http:` or `https:` address with a host.
 - `media`: plain records of `alt`, `credit` and `folder` under the custody id; the service port creates and deletes them, staff edit the three fields. No file is uploaded through Payload; files arrive with WP6 part 2c.
 - `principal-links`: Payload's auth collection, one row per login UUID, holding no tenant or role.
 
 The four tenant collections carry `tenant` (the organization's UUID as text) and are built by `tenantScoped()` (`apps/admin/src/cms/tenancy/tenant-scoped.ts`).
+
+### The CMS step of provisioning (WP6 rest, AL-2679)
+
+Every Site in `public.sites` has exactly one presentation, under the Site's ID and with the Site's tenant as Core holds it. One step makes it: `ensureSitePresentation` in `apps/admin/src/cms/site-presentation-step.ts`. It takes a Site ID and a reader of Core, reads the Site and its tenant, and refuses, writing nothing, an ID that is not a Site, a Site of another organization than the one it acts for, and a Site whose presentation is held under another tenant. Otherwise it creates through the service port's `createSitePresentation`, and writes nothing when the presentation is already there; a concurrent step's unique violation is re-read. IDs and tenants compare as PostgreSQL `uuid`s. Web Studio never creates a presentation itself.
+
+Three paths call it, each with its own reader of Core:
+
+- **Site creation.** Mission Control's Sites route (`apps/admin/app/api/admin/sites/route.ts`) creates through `createSitePost` of `@asym/api/admin/sites/settings` with the admin app's step (`apps/admin/src/cms/site-created.ts`). After `create_site` commits, the package hands the step the Site's ID, the tenant and a reader that reads the organization's Sites on the caller's own token (`tenant_site_settings`). `packages/api` never imports the service port. A step that fails is reported and the answer stays `201`: the Site stands, and the next sweep completes it.
+- **The release sweep.** The release job's `migrate` and both rebuilds run `scripts/cms/sweep-site-presentations.mjs` after Payload's migrations, as `cms_runtime`, for the Sites the job read over its `postgres` connection without a presentation ([release job, Site presentations](../../ops/release-job.md#site-presentations-wp6-rest-pull-request-1)). This covers a tenant provisioned through the Data API, whose default Site `provision_tenant` makes.
+- **The fixtures.** `bun run cms:fixtures` and `bun run cms:local:seed` present the seed's Sites (`scripts/cms/lib/cms-fixtures.mjs`).
+
+`apps/admin/src/cms/site-presentation-step.ts` is in `SERVICE_PORT_CALLERS` (`scripts/verify/cms-override-inventory.mjs`) because it is the one place a presentation is created, and the service port is the only writer of `site-presentations`. The route, `site-created.ts` and the sweep reach the port only through it.
 
 Top-level Payload admin views (still under `/web-studio`):
 
