@@ -336,8 +336,8 @@ function LaunchPermissionsSection({
         Launch permissions
       </h3>
       <p className="text-xs text-muted-foreground">
-        Only a platform owner can grant or revoke these, and they can only be
-        given to another platform owner.
+        Only a platform operator can grant or revoke these, and they can only be
+        given to another platform operator who belongs to this organization.
       </p>
       <PlatformOwnerField
         profileId={profileId}

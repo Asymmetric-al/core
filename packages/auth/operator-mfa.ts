@@ -45,6 +45,10 @@ export interface OperatorMfaClient {
     };
   };
   rpc(fn: "platform_operator_session"): PromiseLike<Answer<unknown>>;
+  rpc(
+    fn: "platform_eve_history",
+    args: { p_limit: number },
+  ): PromiseLike<Answer<unknown>>;
 }
 
 export const OPERATOR_MFA_MESSAGES = {
@@ -184,6 +188,72 @@ export async function confirmOperatorSession(
     return (data as { operator_id?: unknown }).operator_id === user.id;
   } catch {
     return false;
+  }
+}
+
+export interface PlatformHistoryRow {
+  id: string;
+  createdAt: string;
+  action: string;
+  result: string;
+  identityMode: string;
+  actorId: string;
+  policyId: string;
+  changeSummary: string;
+  decisionSummary: string;
+}
+
+export type PlatformHistory =
+  | { kind: "rows"; rows: PlatformHistoryRow[] }
+  | { kind: "refused" }
+  | { kind: "failed" };
+
+const HISTORY_TEXT_FIELDS = [
+  ["id", "id"],
+  ["created_at", "createdAt"],
+  ["action", "action"],
+  ["result", "result"],
+  ["identity_mode", "identityMode"],
+  ["actor_id", "actorId"],
+  ["policy_id", "policyId"],
+  ["change_summary", "changeSummary"],
+  ["decision_summary", "decisionSummary"],
+] as const;
+
+function historyRow(value: unknown): PlatformHistoryRow | null {
+  if (value === null || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  if (record.tenant_id !== null) return null;
+  const row: Partial<PlatformHistoryRow> = {};
+  for (const [column, field] of HISTORY_TEXT_FIELDS) {
+    const text = record[column];
+    if (typeof text !== "string") return null;
+    row[field] = text;
+  }
+  return row as PlatformHistoryRow;
+}
+
+export async function readPlatformHistory(
+  client: OperatorMfaClient = defaultClient(),
+  limit = 50,
+): Promise<PlatformHistory> {
+  try {
+    const { data, error } = await client.rpc("platform_eve_history", {
+      p_limit: limit,
+    });
+    if (error) {
+      return error.code === "42501" ? { kind: "refused" } : { kind: "failed" };
+    }
+    if (!Array.isArray(data)) return { kind: "failed" };
+    const rows: PlatformHistoryRow[] = [];
+    for (const value of data) {
+      const row = historyRow(value);
+      if (!row) return { kind: "failed" };
+      rows.push(row);
+    }
+    return { kind: "rows", rows };
+  } catch {
+    return { kind: "failed" };
   }
 }
 
