@@ -23,6 +23,7 @@ import {
   syncLease,
   tryApply,
   work,
+  type Outcome,
 } from "./wp8a-p2r2a-harness";
 import { runTenantRlsCatalogGate } from "../../../../scripts/verify/tenant-rls-catalog.mjs";
 
@@ -88,7 +89,9 @@ describe.skipIf(!ADMIN_URL)(
         const before = JSON.stringify(await moneyRows(db, fx.A.tenant));
         const code = async (attemptNo: number) => {
           const r = await tryApply(db, e.id, attemptNo);
-          return r.ok ? `ok ${r.rows[0]!.r.outcome}` : `${r.code} ${r.message}`;
+          return r.ok
+            ? `ok ${String((r.rows[0]!.r as Outcome).outcome)}`
+            : `${r.code} ${r.message}`;
         };
         expect(await code(0)).toBe("55000 lease_lost");
         expect(await claimEvent(db, e.id)).toMatchObject({
