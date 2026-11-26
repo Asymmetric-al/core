@@ -1,7 +1,7 @@
 # 0009. The provider-operation record's suites and the pins it moves
 
 **Status:** Recorded on 2026-11-25 with AL-2681 (WP8a part 2, slice R1a);
-decisions 6 to 11 added with slice R1b; decisions 12 to 19 with slice R2a.
+decisions 6 to 11 added with slice R1b; decisions 12 to 20 with slice R2a.
 Source comments are banned since AL-2676
 ([#2751](https://github.com/Asymmetric-al/core/issues/2751)), so the reasons
 that record D-18 of the implementation record would have put in each frozen
@@ -179,6 +179,13 @@ writes a line-based intake, a provider request or a connected payment event.
 19. **`GUARD_REACH` prints `public.normalize_currency_code(text)`.** The
     `issue-2250` suite sets `search_path = ''`, so `regprocedure` qualifies
     the name, and the entry sorts after `private.share_lock_tenant(uuid)`.
+20. **A linked or adopted request's foreign event is
+    `intake_names_another_object`.** The operation match checks the intake
+    before the request's status (index 4.3 (b)), and every writer that links
+    or adopts a request records the intake's payment reference in the same
+    transaction, so C9 names that reason for both; its `request_linked` case
+    sets the request in replica mode with the intake's reference left NULL, a
+    state no writer leaves, and stays only as the guard of the last branch.
 
 ## Pins moved (D-18), each with the reason in the edited title
 

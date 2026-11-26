@@ -268,7 +268,7 @@ describe.skipIf(!ADMIN_URL)(
         expect((await moneyRows(db, fx.B.tenant)).tasks).toEqual([]);
       }));
 
-    it("C9 (ruling Q-A): each contradiction writes one task and one link and changes no money row; the intake's reference stays NULL on the operation match; the event is processed with its reason", () =>
+    it("C9 (ruling Q-A): each contradiction writes one task and one link and changes no money row; the intake's reference stays NULL on the operation match; the event is processed with its reason; a linked or adopted request whose intake already names its object meets an event of another PaymentIntent as intake_names_another_object (review finding 4: index 4.3 (b) checks the intake before the request's status), and request_linked is reached only from a state no writer leaves, as the guard of the last branch", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         const got: string[] = [];
@@ -388,9 +388,39 @@ describe.skipIf(!ADMIN_URL)(
           `status = 'linked', lease_expires_at = NULL, provider_object_id = '${paymentIntent()}'`,
         );
         await check(
-          "linked elsewhere",
+          "linked, the intake naming no payment (a state no writer leaves: the ELSE branch's guard)",
           byMatch(linkedElsewhere),
           "request_linked",
+        );
+        const linked = await sent();
+        const linkedObject = paymentIntent();
+        await setRequest(
+          linked.operationId,
+          `status = 'linked', lease_expires_at = NULL, provider_object_id = '${linkedObject}'`,
+        );
+        await recordReference(db, linked.intake.donationId, linkedObject);
+        await check(
+          "linked, the intake naming its object",
+          async () => ({
+            ...(await byMatch(linked)()),
+            refBefore: linkedObject,
+          }),
+          "intake_names_another_object",
+        );
+        const adopted = await sent();
+        const adoptedObject = paymentIntent();
+        await setRequest(
+          adopted.operationId,
+          `status = 'adopted', lease_expires_at = NULL, outcome_unknown = false, parked_at = now(), provider_object_id = '${adoptedObject}'`,
+        );
+        await recordReference(db, adopted.intake.donationId, adoptedObject);
+        await check(
+          "adopted, the intake naming its object",
+          async () => ({
+            ...(await byMatch(adopted)()),
+            refBefore: adoptedObject,
+          }),
+          "intake_names_another_object",
         );
 
         const direct = await lineIntake(db, fx.A);
@@ -460,7 +490,9 @@ describe.skipIf(!ADMIN_URL)(
           "refused: contradiction request_refused",
           "dead_letter: contradiction request_dead_letter",
           "abandoned: contradiction request_abandoned",
-          "linked elsewhere: contradiction request_linked",
+          "linked, the intake naming no payment (a state no writer leaves: the ELSE branch's guard): contradiction request_linked",
+          "linked, the intake naming its object: contradiction intake_names_another_object",
+          "adopted, the intake naming its object: contradiction intake_names_another_object",
           "direct amount: contradiction amount_mismatch",
           "cancel after success: contradiction cancel_after_success",
           "success after cancel: contradiction success_after_cancel",
