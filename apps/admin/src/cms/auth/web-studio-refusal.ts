@@ -51,6 +51,8 @@ export function isWebStudioRefusal(value: unknown): value is WebStudioRefusal {
 export const WEB_STUDIO_CLAIM_TENANT_HEADER = "x-asym-web-studio-tenant";
 export const WEB_STUDIO_CLAIM_ASSIGNMENT_HEADER =
   "x-asym-web-studio-assignment";
+export const WEB_STUDIO_CLAIM_GENERATION_HEADER =
+  "x-asym-web-studio-generation";
 
 /**
  * A server action cannot set a response header, so a refused server function

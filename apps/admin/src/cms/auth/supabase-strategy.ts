@@ -14,10 +14,14 @@ import {
 } from "@asym/auth/principal";
 import {
   ASSIGNMENT_HEADER,
+  isNameGenerationRefused,
   isNameTenantRefused,
   nameTenantIdOf,
+  readNameGeneration,
   readNameTenantState,
+  SCOPE_GENERATION_HEADER,
   TENANT_HEADER,
+  type NameGenerationState,
 } from "@asym/auth/request-headers";
 import {
   decideWebStudioAccess,
@@ -153,10 +157,18 @@ function isFromCurrentDocument(
     isGraphQL,
   }: { headers: Headers; req?: PayloadRequest; isGraphQL?: boolean },
   assignment: ActiveAssignment,
+  generation: NameGenerationState,
 ): boolean {
   if (!req) return true;
   const tenantId = headers.get(TENANT_HEADER)?.trim() || null;
   const assignmentId = headers.get(ASSIGNMENT_HEADER)?.trim() || null;
+  if (generation.kind === "valid") {
+    return (
+      headers.get(SCOPE_GENERATION_HEADER) === String(generation.generation) &&
+      tenantId === assignment.tenantId &&
+      assignmentId === assignment.assignmentId
+    );
+  }
   if (tenantId === null && assignmentId === null) {
     return (
       !isGraphQL && !WRITE_METHODS.has((req.method ?? "GET").toUpperCase())
@@ -225,7 +237,8 @@ async function authenticateE2EBypass({
   }
 
   const name = readNameTenantState(headers);
-  if (isNameTenantRefused(name)) {
+  const generation = readNameGeneration(headers);
+  if (isNameTenantRefused(name) || isNameGenerationRefused(name, generation)) {
     return refused("no_selection");
   }
   const decision = decideWebStudioAccess({
@@ -237,7 +250,9 @@ async function authenticateE2EBypass({
     return refused("no_selection");
   }
   const { assignment } = decision;
-  if (!isFromCurrentDocument({ headers, req, isGraphQL }, assignment)) {
+  if (
+    !isFromCurrentDocument({ headers, req, isGraphQL }, assignment, generation)
+  ) {
     return refused("scope_mismatch");
   }
 
@@ -327,7 +342,11 @@ export function createSupabaseAuthStrategy(
     // choice, resolve nothing: there is no fallback to a first membership or
     // a profile. Its flag makes the CMS user an admin.
     const name = readNameTenantState(headers);
-    if (isNameTenantRefused(name)) {
+    const generation = readNameGeneration(headers);
+    if (
+      isNameTenantRefused(name) ||
+      isNameGenerationRefused(name, generation)
+    ) {
       return refused("no_selection");
     }
     const resolveInput = webStudioResolveInput(cookie, nameTenantIdOf(name));
@@ -349,7 +368,13 @@ export function createSupabaseAuthStrategy(
       );
     }
     const { assignment } = resolution;
-    if (!isFromCurrentDocument({ headers, req, isGraphQL }, assignment)) {
+    if (
+      !isFromCurrentDocument(
+        { headers, req, isGraphQL },
+        assignment,
+        generation,
+      )
+    ) {
       return refused("scope_mismatch");
     }
 
