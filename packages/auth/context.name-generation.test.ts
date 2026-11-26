@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 const USER = "00000000-0000-4000-8000-0000000000b1";
 const TA = "00000000-0000-0000-0000-000000000001";
@@ -44,6 +52,16 @@ function asAssignment(r: ReturnType<typeof row>) {
     isTenantAdmin: false,
   };
 }
+
+const network = vi.hoisted(() => {
+  const reached: string[] = [];
+  const fetchSpy = vi.fn(async (input: unknown) => {
+    reached.push(String(input));
+    throw new Error("a test reached the network");
+  });
+  vi.stubGlobal("fetch", fetchSpy);
+  return { reached, fetchSpy };
+});
 
 const mocks = vi.hoisted(() => ({
   user: null as { id: string } | null,
@@ -227,6 +245,18 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+beforeEach(() => {
+  vi.stubGlobal("fetch", network.fetchSpy);
+});
+
+afterEach(() => {
+  expect(network.reached.splice(0)).toEqual([]);
+});
+
+afterAll(() => {
+  vi.unstubAllGlobals();
+});
+
 describe("on: an own-API call claims the name's generation", () => {
   it("resolves P claiming A, its development row and 7 (guard)", async () => {
     const context = await resolve(
@@ -258,6 +288,28 @@ describe("on: an own-API call claims the name's generation", () => {
       }
     },
   );
+
+  it("refuses a claim with a space inside, before or after, read untrimmed from a request double (guard)", async () => {
+    for (const claim of ["7 7", " 7", "7 ", "\t7", "7\u00a0"]) {
+      mocks.rpcCalls = 0;
+      const sent: Record<string, string> = {
+        "x-asym-role-class": "staff",
+        ...onName({ "x-asym-assignment": P_DEV_A.id }),
+        [CLAIM]: claim,
+      };
+      const request = {
+        url: "http://localhost/api/x",
+        headers: {
+          get: (name: string) => sent[name.toLowerCase()] ?? null,
+          has: (name: string) => name.toLowerCase() in sent,
+        },
+      } as unknown as Request;
+      expectGenerationRefused(
+        await getAuthContext(request),
+        `claim ${JSON.stringify(claim)}`,
+      );
+    }
+  });
 
   it("resolves each of two staff rows with 7 (guards) and refuses finance with 6", async () => {
     for (const r of [P_FIN_A, P_DEV_A]) {

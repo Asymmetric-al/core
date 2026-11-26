@@ -1,5 +1,23 @@
 import { NextRequest } from "next/server";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+const network = vi.hoisted(() => {
+  const reached: string[] = [];
+  const fetchSpy = vi.fn(async (input: unknown) => {
+    reached.push(String(input));
+    throw new Error("a test reached the network");
+  });
+  vi.stubGlobal("fetch", fetchSpy);
+  return { reached, fetchSpy };
+});
 
 const h = vi.hoisted(() => ({
   hasSession: vi.fn(),
@@ -73,6 +91,18 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllEnvs();
+});
+
+beforeEach(() => {
+  vi.stubGlobal("fetch", network.fetchSpy);
+});
+
+afterEach(() => {
+  expect(network.reached.splice(0)).toEqual([]);
+});
+
+afterAll(() => {
+  vi.unstubAllGlobals();
 });
 
 describe("on: an accepted invitation lands on the name's address", () => {

@@ -1,7 +1,15 @@
 import { randomBytes } from "node:crypto";
 
 import { NextRequest } from "next/server";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import {
   FRONT_ORIGIN_HEADER,
@@ -9,6 +17,7 @@ import {
   resetFrontConfigLogForTests,
   signFrontStamp,
 } from "../../../packages/auth/front";
+import { answerAdmittedRedirect } from "../../../packages/auth/legacy-redirects";
 
 const USER = "00000000-0000-4000-8000-0000000000d1";
 const TA = "00000000-0000-0000-0000-000000000001";
@@ -43,6 +52,16 @@ const P_MISS_B = row(TB, "missionary");
 const P = [P_DEV_A, P_FIN_A, P_DEV_B, P_MISS_A, P_MISS_B];
 
 type Answer = { data: unknown; error: unknown };
+
+const network = vi.hoisted(() => {
+  const reached: string[] = [];
+  const fetchSpy = vi.fn(async (input: unknown) => {
+    reached.push(String(input));
+    throw new Error("a test reached the network");
+  });
+  vi.stubGlobal("fetch", fetchSpy);
+  return { reached, fetchSpy };
+});
 
 const state = vi.hoisted(() => ({
   userId: null as string | null,
@@ -275,6 +294,18 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+beforeEach(() => {
+  vi.stubGlobal("fetch", network.fetchSpy);
+});
+
+afterEach(() => {
+  expect(network.reached.splice(0)).toEqual([]);
+});
+
+afterAll(() => {
+  vi.unstubAllGlobals();
+});
+
 const CLIENT = { [NAME_GEN]: "6", [CLAIM]: "6" };
 
 describe("on: the proxies hand the name's generation to the handler", () => {
@@ -479,6 +510,22 @@ describe("on: the configuration's redirects answer only after the name is admitt
   ] as const)("%s %s: 404 no-store", async (app, path) => {
     expectNotFound(await stamped(app, path));
     expect(state.sessionReads).toBe(0);
+  });
+
+  it("refuses a destination that still holds a backslash, which a parsed request never carries (a request double): 404 no-store", () => {
+    const request = {
+      nextUrl: {
+        pathname: "/mc/\\evil.com",
+        search: "",
+        basePath: "/admin",
+        origin: ADMIN_INTERNAL,
+      },
+    } as unknown as NextRequest;
+    const response = answerAdmittedRedirect(request, [
+      { source: "/mc/:path*", destination: "/:path*", permanent: false },
+    ]);
+    expect(response).not.toBeNull();
+    expectNotFound(response!);
   });
 
   it.each([

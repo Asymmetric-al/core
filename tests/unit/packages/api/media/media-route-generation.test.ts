@@ -2,11 +2,29 @@ import { randomUUID } from "node:crypto";
 
 import { GET as mediaGet } from "@asym/api/media/route";
 import { NextRequest } from "next/server";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import type * as SessionClientModule from "../../../../../packages/api/src/shared/request-session-client";
 import type * as AuthContextModule from "@asym/auth/context";
 import type { AuthContext } from "@asym/auth/context";
+
+const network = vi.hoisted(() => {
+  const reached: string[] = [];
+  const fetchSpy = vi.fn(async (input: unknown) => {
+    reached.push(String(input));
+    throw new Error("a test reached the network");
+  });
+  vi.stubGlobal("fetch", fetchSpy);
+  return { reached, fetchSpy };
+});
 
 const mocks = vi.hoisted(() => ({
   getAuthContext: vi.fn(),
@@ -81,6 +99,18 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllEnvs();
+});
+
+beforeEach(() => {
+  vi.stubGlobal("fetch", network.fetchSpy);
+});
+
+afterEach(() => {
+  expect(network.reached.splice(0)).toEqual([]);
+});
+
+afterAll(() => {
+  vi.unstubAllGlobals();
 });
 
 describe("the media route's <img> GET and the generation claim", () => {
