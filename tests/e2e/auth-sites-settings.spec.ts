@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { readAuthMailEnv, warmUpRoutes } from "./helpers/auth-mail";
 import {
@@ -80,6 +80,22 @@ async function seriousViolations(page: Page, include?: string) {
   return results.violations.filter(
     (v) => v.impact === "critical" || v.impact === "serious",
   );
+}
+
+async function untilOpened(dialog: Locator) {
+  await expect(dialog).toBeVisible();
+  await dialog.evaluate(async (element) => {
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    for (;;) {
+      const running = element
+        .getAnimations({ subtree: true })
+        .filter((animation) => animation.playState !== "finished");
+      if (running.length === 0) return;
+      await Promise.all(
+        running.map((animation) => animation.finished.catch(() => undefined)),
+      );
+    }
+  });
 }
 
 async function tabUntilFocused(
@@ -247,7 +263,7 @@ test.describe("Mission Control's Sites settings on real sessions (AL-2676 WP3b p
       .getByRole("button", { name: "Create Site" })
       .click();
     const create = page.getByRole("dialog", { name: "Create a Site" });
-    await expect(create).toBeVisible();
+    await untilOpened(create);
     expect(await seriousViolations(page, '[role="dialog"]')).toEqual([]);
     await create.getByRole("button", { name: "Cancel" }).click();
     await expect(create).toBeHidden();
@@ -258,7 +274,7 @@ test.describe("Mission Control's Sites settings on real sessions (AL-2676 WP3b p
     const confirm = page.getByRole("alertdialog", {
       name: `Deactivate ${fixtureName}?`,
     });
-    await expect(confirm).toBeVisible();
+    await untilOpened(confirm);
     expect(await seriousViolations(page, '[role="alertdialog"]')).toEqual([]);
     await confirm.getByRole("button", { name: "Cancel" }).click();
     await expect(confirm).toBeHidden();
