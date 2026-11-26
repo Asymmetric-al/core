@@ -353,6 +353,8 @@ function TaskRowMenu({
   );
 }
 
+export type TaskCompletionControl = "checkbox" | "menu";
+
 export function TaskRow({
   task,
   onComplete,
@@ -361,7 +363,7 @@ export function TaskRow({
   index,
 }: {
   task: Task;
-  onComplete: () => void;
+  onComplete: (control: TaskCompletionControl) => void;
   onEdit: () => void;
   onDelete: () => void;
   index: number;
@@ -407,7 +409,7 @@ export function TaskRow({
         <Checkbox
           aria-label={`Mark ${task.title} complete`}
           checked={isCompleted}
-          onCheckedChange={onComplete}
+          onCheckedChange={() => onComplete("checkbox")}
         />
       </div>
 
@@ -436,7 +438,7 @@ export function TaskRow({
         task={task}
         isCompleted={isCompleted}
         onEdit={onEdit}
-        onComplete={onComplete}
+        onComplete={() => onComplete("menu")}
         onDelete={onDelete}
       />
     </motion.div>
