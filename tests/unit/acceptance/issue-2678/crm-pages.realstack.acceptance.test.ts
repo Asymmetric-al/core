@@ -9,13 +9,6 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
   expect(ADMIN_URL).toBeTruthy(),
 );
 
-/**
- * AL-2678 (WP5 rest, pull request 1, r6; brief invariants 9 and 10; ruling
- * WP5 part 2 Q11): the CRM's notes and relationships page in Postgres on the
- * caller's token. These cases carry over what the Node model guaranteed
- * (tests/unit/packages/api/crm-relationships.test.ts before this change) and
- * add the paging and care-gate rules. Each case rolls back.
- */
 const NOTES = "public.crm_notes_page(uuid,text,text,boolean,integer,integer)";
 const RELATIONSHIPS =
   "public.crm_relationships_page(uuid,text,text[],text,boolean,integer,integer,timestamptz)";
@@ -27,7 +20,7 @@ type Page = {
 };
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2678 WP5 rest r6: CRM notes and relationships page in Postgres",
+  "AL-2678 WP5 rest r6 (brief invariants 9 and 10, ruling WP5 part 2 Q11): CRM notes and relationships page in Postgres on the caller's token, keeping what the Node model guaranteed and adding the paging and care-gate rules; each case rolls back",
   () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
     beforeAll(() => db.connect());

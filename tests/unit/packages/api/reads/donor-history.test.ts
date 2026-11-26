@@ -147,11 +147,6 @@ describe("api/reads/donor-history", () => {
     ).rejects.toThrow("history query failed");
   });
 
-  /**
-   * AL-2678 (WP5 rest, ruling Q1 (b)): the donor is the one the profile's
-   * login's account link and its Party name in the tenant, never the row
-   * whose profile_id names it.
-   */
   function linkedDonors(donorIds: string[] | null) {
     const link = createThenableQuery({
       data: donorIds === null ? null : { party_id: "party-1" },

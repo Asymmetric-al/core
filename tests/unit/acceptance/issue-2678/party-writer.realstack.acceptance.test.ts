@@ -18,12 +18,6 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
   expect(ADMIN_URL).toBeTruthy(),
 );
 
-/**
- * WP5 rest, pull request 1 (AL-2678; brief wp5-rest.md section 3, invariants
- * 1-4, 8 and 11; rulings WP5 part 2 Q8, Q15, Q-C, Q1 (b)): one Party writer
- * that every donor writer goes through, the saga's legacy-only lookups, the
- * one catch-up of account links, and "blank" as the safety normalizer means it.
- */
 const WRITER = "public.donor_party_for_insert(uuid,uuid,text,text)";
 const FILL = "donors_fill_party_after_insert_temp";
 const NBSP = "\u00a0";
@@ -49,7 +43,6 @@ async function failure(db: pg.Client, sql: string, args: unknown[] = []) {
   }
 }
 
-/** The catch-up statement of the migration, between its two markers. */
 function catchUp() {
   const text = readFileSync(migration("_wp5_rest_party_writer"), "utf8");
   const start = text.indexOf("-- catch-up: begin\n");
@@ -59,7 +52,6 @@ function catchUp() {
   return text.slice(start, end);
 }
 
-/** Each column list of an INSERT INTO public.donors in a function body. */
 function donorInsertColumns(body: string) {
   return [
     ...body.matchAll(
@@ -84,7 +76,7 @@ it("the external-identifier checks carry private.normalize_safety_text's removal
 });
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2678 WP5 rest: one Party writer for every donor writer",
+  "AL-2678 WP5 rest (brief invariants 1-4, 8 and 11; rulings WP5 part 2 Q8, Q15, Q-C, Q1 (b)): one Party writer for every donor writer, the saga's legacy-only lookups, the one catch-up of account links, and blank as the safety normalizer means it",
   () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
     const id = fixtureIds();

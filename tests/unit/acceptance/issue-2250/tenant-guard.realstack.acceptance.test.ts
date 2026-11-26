@@ -125,8 +125,6 @@ const GUARD_REACH = [
   "private.resolve_invitation_for_caller(text,text,uuid) EXECUTE",
   "private.share_lock_site_domain(uuid,text) EXECUTE",
   "private.share_lock_tenant(uuid) EXECUTE",
-  // D-18 (AL-2678, WP5 rest): the Party writer every donor writer goes
-  // through, a postgres-owned definer the guard's commands call.
   "public.donor_party_for_insert(uuid,uuid,text,text) EXECUTE",
   "public.normalize_currency_code(text) EXECUTE",
   "schema authz USAGE",

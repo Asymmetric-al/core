@@ -73,7 +73,6 @@ function createJsonRequest(body: unknown) {
 function mockFeedPreferencesRoute(options?: {
   donors?: QueryResult<{ id: string }[]>;
   preferences?: QueryResult<Record<string, unknown>>;
-  /** The caller's account link in the tenant (AL-2678, WP5 rest). */
   link?: QueryResult<{ party_id: string }>;
   /** The resolved request: signed out, signed in with no assignment, or the donor's. */
   session?: "signed-out" | "no-assignment" | "donor";
@@ -217,9 +216,7 @@ describe("feed preferences route", () => {
     }
   });
 
-  // AL-2678 (WP5 rest, ruling Q1 (b)): the caller's account link and its
-  // Party, never donors.profile_id; a donor whose only tie is a claim is found.
-  it("finds the donor through the caller's account link and its Party in the assignment's tenant, never by profile_id, email or claim", async () => {
+  it("finds the donor through the caller's account link and its Party in the assignment's tenant, never by profile_id, email or claim (AL-2678 WP5 rest, ruling Q1 (b))", async () => {
     const { donorQuery, from, linkQuery, preferencesQuery } =
       mockFeedPreferencesRoute();
 

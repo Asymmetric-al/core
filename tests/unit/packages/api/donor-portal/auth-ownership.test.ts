@@ -158,13 +158,11 @@ describe("donor portal auth and ownership", () => {
     }
   });
 
-  it("returns a generic donor profile update error without exposing backend details", async () => {
+  it("returns a generic donor profile update error without exposing backend details (D-18, AL-2678 WP5 rest: the donor is read through the caller's account link and its Party, as a list of at most two)", async () => {
     const profileLookup = createQueryMock({
       data: { id: "profile-1", tenant_id: "tenant-1" },
       error: null,
     });
-    // D-18 (AL-2678, WP5 rest): the donor is read through the caller's
-    // account link and its Party, as a list of at most two.
     const linkLookup = createQueryMock({
       data: { party_id: "party-1" },
       error: null,

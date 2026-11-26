@@ -501,13 +501,9 @@ describe.skipIf(!ADMIN_URL)(
         expect(direct).toBe("42501 not_found");
       }));
 
-    it("F26: the guard's policies hide every legacy row: on donations it sees only line-based intakes, on the outbox only provider requests, of the entered tenant", () =>
+    it("F26: the guard's policies hide every legacy row: on donations it sees only line-based intakes, on the outbox only provider requests, of the entered tenant (D-18, AL-2678 WP5 rest: the legacy gift is begun before the guard's intakes enter tenant B in the same transaction, because the Party writer the saga now calls writes only in the tenant a transaction entered)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
-        // D-18 (AL-2678, WP5 rest): the legacy gift is begun before the
-        // guard's intakes enter tenant B in this transaction, because the
-        // Party writer it now calls writes only in the tenant a transaction
-        // entered.
         await grant(db, HOSTED_SERVICE_GRANTS);
         const user = randomUUID();
         await db.query("INSERT INTO auth.users (id) VALUES ($1)", [user]);

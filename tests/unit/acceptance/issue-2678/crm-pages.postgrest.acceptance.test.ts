@@ -15,12 +15,6 @@ import {
 import { GET as notes } from "../../../../packages/api/src/admin/crm/notes";
 import { GET as relationships } from "../../../../packages/api/src/admin/crm/relationships";
 
-/**
- * AL-2678 (WP5 rest, pull request 1, r6; plan line 999, "A seeded 1,500-note
- * tenant pages with exact counts"; ruling WP5 part 2 Q11): Mission Control's
- * notes and relationships routes page in Postgres on the caller's token,
- * through real PostgREST with real staff tokens; the service key is never used.
- */
 vi.mock("@asym/database/supabase/admin", () => ({
   createAdminClient: () => ({
     from(table: string) {
@@ -44,7 +38,7 @@ const PEOPLE = ["staff", "admin", "care", "staffB"] as const;
 type Person = (typeof PEOPLE)[number];
 
 describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
-  "AL-2678 WP5 rest r6: the CRM's notes and relationships page exactly through the routes",
+  "AL-2678 WP5 rest r6 (plan line 999, ruling WP5 part 2 Q11): the CRM's notes and relationships page exactly in Postgres through the routes, on real staff tokens and real PostgREST, never the service key",
   () => {
     const TA = randomUUID();
     const TB = randomUUID();
@@ -224,7 +218,6 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       report?: Record<string, unknown>;
     };
 
-    /** Every page of one listing, each answer without its request id. */
     async function allPages(
       route: (request: NextRequest) => Promise<Response>,
       base: string,

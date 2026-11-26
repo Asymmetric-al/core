@@ -14,8 +14,6 @@ function fakeAdmin(donations: Row[], pledges: Row[] = []) {
         if (table === "profiles") {
           return { data: { id: "p-1", display_name: "Dana" }, error: null };
         }
-        // D-18 (AL-2678, WP5 rest): the donor is read through the person's
-        // account link and its Party, as a list of at most two.
         if (table === "account_links") {
           return { data: { party_id: "party-1" }, error: null };
         }
@@ -67,7 +65,7 @@ function gifts(count: number): Row[] {
   }));
 }
 
-describe("donor portal snapshot gift list", () => {
+describe("donor portal snapshot gift list (D-18, AL-2678 WP5 rest: the fake answers the person's account link and a list of at most two donors on its Party)", () => {
   it("carries the newest 250 gifts and says when older gifts were left out", async () => {
     const { client } = fakeAdmin(gifts(300));
 

@@ -90,9 +90,6 @@ describe("api/shared/queries", () => {
     expect(mock.eq.mock.calls).toEqual([["id", "profile-404"]]);
   });
 
-  // AL-2678 (WP5 rest, ruling Q1 (b)): the signed-in person's donor is the
-  // one their account link and its Party name in the tenant, never the row
-  // whose profile_id names them.
   function linkThenDonors(
     link: { party_id: string } | null,
     donors: { id: string }[] | null,

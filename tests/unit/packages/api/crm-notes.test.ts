@@ -97,11 +97,6 @@ class MemoryCrmNotesSupabase {
     };
   }
 
-  /**
-   * AL-2678 (WP5 rest, r6): the page function's answer for the notes held,
-   * by tenant only; row security's restricted rule is proved on the real
-   * stack (issue-2678/crm-pages), not here.
-   */
   private page(args: Record<string, unknown>) {
     this.pageCalls.push(args);
     if (this.pageError) return { data: null, error: this.pageError };
@@ -230,12 +225,7 @@ describe("listMissionControlCrmNotes", () => {
     expect(response.rows[0]).not.toHaveProperty("outboundJobId");
   });
 
-  // AL-2678 (WP5 rest, r6; plan line 999): the list is one page of
-  // public.crm_notes_page on the caller's token, which filters, counts, sorts
-  // and pages in Postgres under row security; restricted notes are left out
-  // there for anyone but a tenant administrator (issue-2678/crm-pages proves
-  // it on the real stack, with a finance staff member among the callers).
-  it("reads one page through crm_notes_page with the actor's tenant, the search, the sort and the page, and states the exact total", async () => {
+  it("reads one page through crm_notes_page with the actor's tenant, the search, the sort and the page, and states the exact total (AL-2678 WP5 rest r6, plan line 999: Postgres filters, counts, sorts and pages under row security, which leaves restricted notes out for anyone but a tenant administrator, proved on the real stack by issue-2678/crm-pages)", async () => {
     const store = new MemoryCrmNotesSupabase();
     for (let i = 0; i < 3; i += 1)
       seedNote(store, {

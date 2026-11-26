@@ -28,15 +28,6 @@ import { membershipsForRole } from "../../../fixtures/auth-memberships";
 import type { AuthContext } from "../../../../packages/auth/context";
 import type * as AuthModule from "../../../../packages/auth/context";
 
-/**
- * AL-2678 (WP5 rest, pull request 1; brief section 3 invariant 7, section 4;
- * ruling Q1 (b)): every reader that found the signed-in person's donor by
- * donors.profile_id goes from the person and the selected organization
- * through their account link and its Party to that organization's donor:
- * the donor portal (snapshot, statements, GET), the donations route, the
- * donor-history read, the feed preferences, GraphQL myDonations, the browser
- * hook's query and the shared resolver they use. Real tokens, a real stack.
- */
 const s = vi.hoisted(() => ({ auth: null as unknown }));
 vi.mock("@asym/auth/context", async (orig) => ({
   ...(await orig<typeof AuthModule>()),
@@ -73,7 +64,7 @@ const PEOPLE = [
 type Person = (typeof PEOPLE)[number];
 
 describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
-  "AL-2678 WP5 rest: a signed-in person's own donor through account link and Party",
+  "AL-2678 WP5 rest (brief invariant 7, ruling Q1 (b)): a signed-in person's own donor through account link and Party, never donors.profile_id, by every reader that found it by profile (donor portal, donations route, donor history, feed preferences, GraphQL myDonations, the browser hook and their shared resolver), on real tokens and a real stack",
   () => {
     const TA = randomUUID();
     const TB = randomUUID();
@@ -343,7 +334,6 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       }
     });
 
-    /** What every reader answers for one person in one organization. */
     async function readAll(who: Person, tenant = TA) {
       s.auth = auth(who, tenant);
       const service = admin();
