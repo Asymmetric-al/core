@@ -627,7 +627,7 @@ describe.skipIf(!adminDatabaseUrl)(
     }, 300_000);
 
     it.each([false, true])(
-      "recovers 0/1/0 fixtures with open defaults=%s and records both heads (D-18, AL-2678: the seed adds the fixture worker Sam Ortiz, one profile and a missionary membership in each organization, so with WP4b's Member Care worker 5 profiles, 2 tenants, 9 memberships)",
+      "recovers 0/1/0 fixtures with open defaults=%s and records both heads (D-18, AL-2678: the seed adds the fixture worker Sam Ortiz, one profile and a missionary membership in each organization, so with WP4b's Member Care worker 5 profiles, 2 tenants, 9 memberships; AL-2679: the rebuild's Site presentation sweep is stood in for by writing what it is handed, since this replay's CMS roles have no password; its own process runs in the issue-2679 suite)",
       async (open) => {
         const url = replay("first_recovery", ["--hosted-defaults"]);
         installLedger(url);
@@ -667,13 +667,31 @@ describe.skipIf(!adminDatabaseUrl)(
         };
         let seedEnabled = open;
         let ranPayload = false;
+        const swept: string[] = [];
         const runCommand = (
           command: string,
           args: string[],
-          options: Parameters<typeof spawnSync>[2],
+          options: Parameters<typeof spawnSync>[2] & { input?: string },
         ) => {
           if (command === "supabase" && args[0] === "--version")
             return { status: 0, stdout: pinnedSupabaseCliVersion() };
+          if (
+            command === "bun" &&
+            args[0] === "scripts/cms/sweep-site-presentations.mjs"
+          ) {
+            const sites = JSON.parse(options?.input ?? "[]") as Array<{
+              id: string;
+              tenantId: string;
+            }>;
+            for (const site of sites) {
+              psql(
+                url,
+                `INSERT INTO cms.site_presentations (id, tenant) VALUES ('${site.id}', '${site.tenantId}')`,
+              );
+              swept.push(site.id);
+            }
+            return { status: 0 };
+          }
           if (
             command === "supabase" &&
             args[0] === "db" &&
@@ -720,6 +738,13 @@ describe.skipIf(!adminDatabaseUrl)(
         expect(fixtures(url)).toBe(
           `${e["public.profiles"]}|${e["public.tenants"]}|${e["authz.memberships"]}`,
         );
+        expect(swept.length).toBeGreaterThan(0);
+        expect(
+          psql(
+            url,
+            "SELECT count(*) FROM public.sites AS s LEFT JOIN cms.site_presentations AS p ON p.id = s.id AND p.tenant = s.tenant_id::text WHERE p.id IS NULL",
+          ),
+        ).toBe("0");
         expect(() => preflight({ settings, log: silent })).toThrow(
           /no recorded head.*first-rebuild/s,
         );

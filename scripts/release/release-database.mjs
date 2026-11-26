@@ -16,7 +16,7 @@
 //                                  sslmode=verify-full
 //   RELEASE_CMS_OWNER_PASSWORD     cms_owner password (Payload migrations log in
 //                                  as cms_owner on the same host)
-//   RELEASE_CMS_RUNTIME_PASSWORD   cms_runtime password (the password step only)
+//   RELEASE_CMS_RUNTIME_PASSWORD   cms_runtime password (the password step and the sweep)
 //   RELEASE_DATABASE_SSL_CA        the project's CA certificate (PEM); every
 //                                  connection to a hosted database verifies
 //                                  the pooler against it
@@ -29,7 +29,7 @@
 // command line. The job's own psql queries (lib/postgres.mjs) take the
 // connection from PG* variables and the values they need from named variables.
 import { spawnSync } from "node:child_process";
-import { X509Certificate } from "node:crypto";
+import { X509Certificate, randomBytes } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -42,6 +42,12 @@ import {
   parseReleaseHealth,
 } from "../../packages/api/src/health/release-contract.mjs";
 import { isLoopbackDatabaseUrl } from "../../packages/env/src/database-url.mjs";
+import {
+  describeSitePresentationProblems,
+  judgeSitePresentations,
+  readSitePresentationState,
+} from "../cms/lib/site-presentation-records.mjs";
+import { sweepOutput } from "../cms/lib/sweep-output.mjs";
 import { requirePsqlHonoursRequireAuth } from "../lib/psql.mjs";
 import { publishedLoginPasswords } from "../lib/published-passwords.mjs";
 import {
@@ -148,6 +154,15 @@ export function payloadMigrationUrl(databaseUrl, ownerPassword) {
   return url.toString();
 }
 
+export function payloadRuntimeUrl(databaseUrl, runtimePassword) {
+  const url = new URL(
+    roleDatabaseUrl(databaseUrl, "cms_runtime", runtimePassword),
+  );
+  if (url.searchParams.has("sslmode"))
+    url.searchParams.set("sslmode", "verify-full");
+  return url.toString();
+}
+
 export function readReleaseSettings(env = process.env) {
   const environment = env.RELEASE_ENVIRONMENT?.trim();
   const policy = RELEASE_ENVIRONMENTS[environment];
@@ -155,6 +170,7 @@ export function readReleaseSettings(env = process.env) {
   const databaseUrl = env.RELEASE_DATABASE_URL?.trim();
   if (!databaseUrl) stop("RELEASE_DATABASE_URL is not set.");
   const ownerPassword = env.RELEASE_CMS_OWNER_PASSWORD;
+  const runtimePassword = env.RELEASE_CMS_RUNTIME_PASSWORD;
   return {
     environment,
     policy,
@@ -164,6 +180,9 @@ export function readReleaseSettings(env = process.env) {
     // holds one connection string and the two CMS role passwords.
     cmsOwnerDatabaseUrl: ownerPassword
       ? payloadMigrationUrl(databaseUrl, ownerPassword)
+      : undefined,
+    cmsRuntimeDatabaseUrl: runtimePassword
+      ? payloadRuntimeUrl(databaseUrl, runtimePassword)
       : undefined,
     databaseCa: env.RELEASE_DATABASE_SSL_CA?.trim() || undefined,
     // Tests run the scripts against a loopback database; a hosted target is
@@ -482,8 +501,143 @@ export function preflight({
       `${check.ledger}: ${check.pending.length} pending, database head ${check.databaseHead ?? "none"}, source head ${check.sourceHead ?? "none"}${check.ahead.length ? `, database ahead by ${check.ahead.length}` : ""}`,
     );
   }
+  checkSitePresentations({ databaseUrl: settings.databaseUrl, query, log });
   log(`Target ${settings.projectRef} is marked ${health.environment}.`);
   return { marker: health.environment, checks };
+}
+
+export const SITE_PRESENTATION_REPAIR =
+  'docs/ops/release-job.md, "If the Site presentation check stops a release"';
+
+export function checkSitePresentations({
+  databaseUrl,
+  query = queryJson,
+  log = console.log,
+}) {
+  const state = readSitePresentationState({ databaseUrl, query });
+  if (!state.presentationsTable) {
+    log("cms.site_presentations does not exist yet; no presentation to check.");
+    return state;
+  }
+  const judged = judgeSitePresentations(state);
+  const problems = judged.orphans.length + judged.mismatches.length;
+  if (problems > 0) {
+    stop(
+      `${problems} Site presentation(s) do not match Core: ${describeSitePresentationProblems(judged)}. Nothing was migrated or deployed. Repair each as ${SITE_PRESENTATION_REPAIR} says, then release again.`,
+    );
+  }
+  log(
+    `Site presentations: ${state.presentations.length} presentation(s), ${judged.missing.length} of ${state.sites.length} Site(s) without one.`,
+  );
+  return state;
+}
+
+export const SITE_PRESENTATION_SWEEP =
+  "scripts/cms/sweep-site-presentations.mjs";
+
+export function requireSweepInputs(settings, env) {
+  if (env) cmsRolePasswords(env);
+  if (!settings.cmsRuntimeDatabaseUrl)
+    stop(
+      "RELEASE_CMS_RUNTIME_PASSWORD is not set: the Site presentation sweep runs Payload as cms_runtime. Nothing was changed.",
+    );
+  assertTarget(settings, "cms_runtime", settings.cmsRuntimeDatabaseUrl);
+  const verified =
+    new URL(settings.cmsRuntimeDatabaseUrl).searchParams.get("sslmode") ===
+    "verify-full";
+  if (verified && !settings.databaseCa)
+    stop(
+      "RELEASE_DATABASE_SSL_CA is not set: the Site presentation sweep verifies the pooler's certificate against the project's CA. Nothing was changed.",
+    );
+  return { databaseUrl: settings.cmsRuntimeDatabaseUrl, verified };
+}
+
+function sweepEnvironment(settings, runtime, secret) {
+  return childEnvironment({
+    PAYLOAD_DATABASE_URI: runtime.databaseUrl,
+    PAYLOAD_DATABASE_SSL_CA: runtime.verified ? settings.databaseCa : "",
+    PAYLOAD_MIGRATION_DATABASE_URI: "",
+    PAYLOAD_DATABASE_POOL_MAX: "2",
+    PAYLOAD_DISABLE_SCHEMA_PUSH: "1",
+    PAYLOAD_SECRET: secret,
+    NODE_ENV: "production",
+    SKIP_ENV_VALIDATION: "1",
+    NEXT_PUBLIC_SUPABASE_URL: `https://${settings.projectRef}.supabase.co`,
+    SUPABASE_DB_URL: "",
+    CMS_SWEEP_ENVIRONMENT: settings.environment,
+    CMS_SWEEP_PROJECT_REF: settings.projectRef,
+    CMS_SWEEP_ALLOW_LOOPBACK: settings.allowLoopback ? "1" : "",
+  });
+}
+
+export const SWEEP_RERUN =
+  'This release stopped after its migrations, before the gates, the heads and the deployment. Re-run the release: every write of the sweep is idempotent (docs/ops/release-job.md, "If the Site presentation sweep stops").';
+
+export function sweepSitePresentations({
+  settings,
+  query = queryJson,
+  runCommand = spawnSync,
+  log = console.log,
+  next = SWEEP_RERUN,
+}) {
+  assertTarget(settings);
+  const runtime = requireSweepInputs(settings);
+  const state = readSitePresentationState({
+    databaseUrl: settings.databaseUrl,
+    query,
+  });
+  if (!state.presentationsTable)
+    stop(
+      `cms.site_presentations does not exist after Payload's migrations, so no Site can be presented. ${next}`,
+    );
+  const judged = judgeSitePresentations(state);
+  if (judged.orphans.length + judged.mismatches.length > 0)
+    stop(
+      `Site presentations do not match Core: ${describeSitePresentationProblems(judged)}. The sweep wrote nothing; repair each as ${SITE_PRESENTATION_REPAIR} says. ${next}`,
+    );
+  if (judged.missing.length === 0) {
+    log(
+      `Site presentations: all ${state.sites.length} Site(s) have theirs; none handed to the sweep.`,
+    );
+    return { handed: 0 };
+  }
+  log(
+    `Site presentations: handing ${judged.missing.length} of ${state.sites.length} Site(s) to the sweep, which runs Payload as cms_runtime.`,
+  );
+  const secret = randomBytes(32).toString("hex");
+  const secrets = [
+    secret,
+    decodeURIComponent(new URL(runtime.databaseUrl).password),
+  ];
+  const result = runCommand("bun", [SITE_PRESENTATION_SWEEP], {
+    cwd: repoRoot,
+    env: sweepEnvironment(settings, runtime, secret),
+    input: JSON.stringify(judged.missing),
+    encoding: "utf8",
+    maxBuffer: 16 << 20,
+    stdio: ["pipe", "pipe", "pipe"],
+    shell: false,
+  });
+  const printed = sweepOutput(result, secrets);
+  for (const line of printed) log(line);
+  if (result.error || result.status !== 0)
+    stop(
+      `The Site presentation sweep stopped (exit ${result.status ?? result.error?.code ?? "unknown"}${printed.length ? `: ${printed.at(-1)}` : ""}). Every presentation it wrote is kept, and a re-run writes only those still missing. ${next}`,
+    );
+  const after = judgeSitePresentations(
+    readSitePresentationState({ databaseUrl: settings.databaseUrl, query }),
+  );
+  const stillMissing = judged.missing.filter((site) =>
+    after.missing.some((left) => left.id === site.id),
+  );
+  if (after.orphans.length + after.mismatches.length > 0 || stillMissing.length)
+    stop(
+      `The Site presentation sweep ended, but ${[describeSitePresentationProblems(after), ...stillMissing.map((site) => `Site ${site.id} still has no presentation`)].filter(Boolean).join("; ")}. ${next}`,
+    );
+  log(
+    `Site presentations: handed ${judged.missing.length} Site(s) without a presentation to the sweep; each has its presentation now, as do all ${state.sites.length} Site(s) read.`,
+  );
+  return { handed: judged.missing.length };
 }
 
 function runChecked(runCommand, label, command, args, env) {
@@ -753,6 +907,7 @@ export function migrate({
   now,
 }) {
   preflight({ settings, root, query, log });
+  requireSweepInputs(settings, env);
   supabaseCli(runCommand, "Supabase migrations", ["db", "push"], settings);
   // Plan 7.5: after the role migration, before Payload logs in as cms_owner.
   // Every release makes the secrets log in, so a restore (whose backup drops
@@ -777,13 +932,18 @@ export function migrate({
     root,
     query,
   });
+  refusePending(checks, "the migrate step");
+  log("Both ledgers hold every source migration.");
+  sweepSitePresentations({ settings, query, runCommand, log });
+}
+
+function refusePending(checks, after) {
   const pending = checks.filter((check) => check.pending.length > 0);
   if (pending.length > 0) {
     stop(
-      `Migrations still pending after the migrate step: ${pending.map((check) => `${check.ledger} ${check.pending.join(", ")}`).join("; ")}`,
+      `Migrations still pending after ${after}: ${pending.map((check) => `${check.ledger} ${check.pending.join(", ")}`).join("; ")}`,
     );
   }
-  log("Both ledgers hold every source migration.");
 }
 
 export function gates({
@@ -1179,6 +1339,7 @@ export async function rebuild({
       `${error.message} A hosted rebuild gives every seeded login that password in place of the one published in the repository; nothing was reset.`,
     );
   }
+  requireSweepInputs(settings, env);
   // Both rebuilds, before anything touches the database: the preview rebuild's
   // wrapper checks the CLI too, but only after the defaults are back (H1.1).
   requirePinnedSupabaseCli(runCommand);
@@ -1263,7 +1424,18 @@ export async function rebuild({
         : "This rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads. Fix what the refusal names, then rebuild again.",
   });
   payloadMigrate({ settings, runCommand });
-  checkLedgers({ databaseUrl: settings.databaseUrl, query });
+  const { checks } = checkLedgers({ databaseUrl: settings.databaseUrl, query });
+  refusePending(checks, "the rebuild's Payload migrations");
+  sweepSitePresentations({
+    settings,
+    query,
+    runCommand,
+    log,
+    next:
+      mode === "first"
+        ? "This first rebuild stopped after Payload's migrations, before the gates and the heads. Every write of the sweep is idempotent: dispatch first-rebuild again with the census link, typed confirmation and fresh approval."
+        : "This rebuild stopped after Payload's migrations, before the gates and the heads. Every write of the sweep is idempotent: rebuild again.",
+  });
   log("Rebuild complete; the database is marked disposable.");
 }
 
@@ -1346,6 +1518,28 @@ function tryRoleLogin({ settings, role, password, query }) {
   return { ok: true };
 }
 
+export function cmsRolePasswords(env, roleVariables = CMS_ROLES) {
+  const names = Object.keys(roleVariables);
+  if (
+    names.length !== 2 ||
+    names.some((name) => !/^[a-z_][a-z0-9_]{0,62}$/.test(name))
+  ) {
+    stop("The CMS roles must be two plain role names.");
+  }
+  const passwords = Object.entries(roleVariables).map(([role, variable]) => {
+    try {
+      assertRolePassword(env[variable], variable);
+    } catch (error) {
+      stop(error.message);
+    }
+    return { role, password: env[variable] };
+  });
+  if (passwords[0].password === passwords[1].password) {
+    stop(`${names.join(" and ")} must have different passwords.`);
+  }
+  return passwords;
+}
+
 /**
  * Makes the two CMS login roles' passwords those of the job's secrets (plan
  * 7.5, 8.5). Each role first logs in with its secret: when that works the
@@ -1376,23 +1570,7 @@ export function setCmsRolePasswords({
 }) {
   assertTarget(settings);
   const names = Object.keys(roleVariables);
-  if (
-    names.length !== 2 ||
-    names.some((name) => !/^[a-z_][a-z0-9_]{0,62}$/.test(name))
-  ) {
-    stop("The CMS roles must be two plain role names.");
-  }
-  const passwords = Object.entries(roleVariables).map(([role, variable]) => {
-    try {
-      assertRolePassword(env[variable], variable);
-    } catch (error) {
-      stop(error.message);
-    }
-    return { role, password: env[variable] };
-  });
-  if (passwords[0].password === passwords[1].password) {
-    stop(`${names.join(" and ")} must have different passwords.`);
-  }
+  const passwords = cmsRolePasswords(env, roleVariables);
   const roles = query({
     databaseUrl: settings.databaseUrl,
     label: "find CMS roles",
