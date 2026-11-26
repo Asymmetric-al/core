@@ -20,10 +20,20 @@ const state = vi.hoisted(() => ({
   scopes: [] as unknown[],
   rpcCalls: [] as string[],
   notFound: 0,
+  order: [] as string[],
 }));
 
 vi.mock("next/headers", () => ({
-  headers: async () => state.headers,
+  headers: async () => {
+    state.order.push("headers");
+    return state.headers;
+  },
+}));
+
+vi.mock("next/server", () => ({
+  connection: async () => {
+    state.order.push("connection");
+  },
 }));
 
 vi.mock("@asym/database/supabase/server", () => ({
@@ -101,6 +111,7 @@ beforeEach(() => {
   state.scopes = [];
   state.rpcCalls = [];
   state.notFound = 0;
+  state.order = [];
   vi.stubEnv("OPERATIONS_NAMES", OPS);
   vi.spyOn(console, "error").mockImplementation(() => undefined);
 });
@@ -132,6 +143,11 @@ describe("AL-2675 WP2c part 2a, T3: the operator page's own check", () => {
     const source = read("packages/auth/operator-area-server.ts");
     expect(source).toMatch(/= cache\(/);
     expect(source).toMatch(/catch \((\w+)\) \{\s*unstable_rethrow\(\1\);/);
+  });
+
+  it("waits for the request (connection()) before it reads headers or the session, so no prefetch or prerender reaches Supabase", async () => {
+    await readOperatorAdmission();
+    expect(state.order.slice(0, 2)).toEqual(["connection", "headers"]);
   });
 
   it("admits a listed operator: the title, the heading and the client, and asks for no tenant", async () => {
