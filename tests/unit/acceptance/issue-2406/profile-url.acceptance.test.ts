@@ -167,6 +167,7 @@ const PROFILE = Object.fromEntries(
 const F = "0b0e6c3e-7d1a-4b55-9b52-6a3f1d2c4e5f.webp";
 const UM = A.M.userId;
 const UD = A.D.userId;
+const PARTY_D = "50000000-0000-4000-8000-000000000001";
 const own = (purpose: string, actor: Actor = "M", file = F) =>
   `${P}/${purpose}/${A[actor].tenantId}/${A[actor].userId}/${file}`;
 const STORED = {
@@ -206,12 +207,14 @@ function seed() {
       {
         id: "30000000-0000-4000-8000-000000000001",
         profile_id: PROFILE.D,
+        party_id: PARTY_D,
         tenant_id: T,
         name: "First Last",
         email: "d@example.test",
         avatar_url: STORED.donor,
       },
     ],
+    account_links: [{ tenant_id: T, user_id: UD, party_id: PARTY_D }],
   };
 }
 const row = (table: string, profileKey: string, id: string) =>
@@ -608,7 +611,7 @@ describe("#2406 PATCH /api/profile", () => {
   });
 });
 
-describe("#2406 criterion 18: PATCH /api/donor/portal avatarUrl (OQ3)", () => {
+describe("#2406 criterion 18: PATCH /api/donor/portal avatarUrl (OQ3) (D-18, AL-2678 WP5 rest: the donor is found through the account link of the profile's login, whose id is not the profile's, and that link's Party)", () => {
   it("#2406 criterion 18 (c11): own avatars/T/U URL writes profiles.avatar_url and donors.avatar_url", async () => {
     await accepted("donor", "D", { avatarUrl: own("avatars", "D") });
     expect(row("profiles", "id", PROFILE.D).avatar_url).toBe(

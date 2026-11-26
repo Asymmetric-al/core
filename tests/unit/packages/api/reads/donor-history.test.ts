@@ -148,6 +148,10 @@ describe("api/reads/donor-history", () => {
   });
 
   function linkedDonors(donorIds: string[] | null) {
+    const profile = createThenableQuery({
+      data: { user_id: "user-1" },
+      error: null,
+    });
     const link = createThenableQuery({
       data: donorIds === null ? null : { party_id: "party-1" },
       error: null,
@@ -158,25 +162,34 @@ describe("api/reads/donor-history", () => {
     });
     Object.assign(donors, { limit: vi.fn(() => donors) });
     const from = vi.fn((table: string) =>
-      table === "account_links" ? link : donors,
+      table === "profiles"
+        ? profile
+        : table === "account_links"
+          ? link
+          : donors,
     );
     getAdminClientMock.mockReturnValue({
       client: { from } as never,
       error: null,
     });
-    return { from, link, donors };
+    return { from, profile, link, donors };
   }
 
-  it("looks up the donor id through the profile's account link and its Party, never by profile_id", async () => {
-    const { from, link, donors } = linkedDonors(["donor-456"]);
+  it("looks up the donor id through the account link of the profile's login, whose id is not the profile's, and its Party, never by profile_id (red: the link was read by the profile id)", async () => {
+    const { from, profile, link, donors } = linkedDonors(["donor-456"]);
 
     await expect(resolveDonorId(null, "tenant-1", "profile-1")).resolves.toBe(
       "donor-456",
     );
-    expect(from.mock.calls).toEqual([["account_links"], ["donors"]]);
+    expect(from.mock.calls).toEqual([
+      ["profiles"],
+      ["account_links"],
+      ["donors"],
+    ]);
+    expect(profile.eq.mock.calls).toEqual([["id", "profile-1"]]);
     expect(link.eq.mock.calls).toEqual([
       ["tenant_id", "tenant-1"],
-      ["user_id", "profile-1"],
+      ["user_id", "user-1"],
     ]);
     expect(donors.eq.mock.calls).toEqual([
       ["tenant_id", "tenant-1"],
