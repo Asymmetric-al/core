@@ -365,7 +365,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
     it("a restricted Party wins over the preference: the adding missionary sees Anonymous partner and every write is 404 (F7 item 4)", async () => {
       expect(added.partyId).not.toBe("");
       await db.query(
-        "update public.parties set security_level = 'restricted', security_level_source = 'manual' where tenant_id = $1 and id = $2",
+        "update public.parties set security_level = 'restricted', security_level_source = 'manual', public_alias = 'Partner in a closed country' where tenant_id = $1 and id = $2",
         [TA, added.partyId],
       );
       try {
@@ -382,7 +382,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         });
       } finally {
         await db.query(
-          "update public.parties set security_level = 'standard' where tenant_id = $1 and id = $2",
+          "update public.parties set security_level = 'standard', public_alias = null where tenant_id = $1 and id = $2",
           [TA, added.partyId],
         );
       }
