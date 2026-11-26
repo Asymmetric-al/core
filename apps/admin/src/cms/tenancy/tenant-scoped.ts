@@ -154,9 +154,20 @@ export function guardReferences(
         })),
       );
     }
-    if (refusals.length > 0) refuse(req, collection.slug, refusals);
+    if (refusals.length > 0) {
+      refuse(req, collection.slug, firstRefusalPerPath(refusals));
+    }
     return data;
   };
+}
+
+function firstRefusalPerPath(refusals: FieldRefusal[]): FieldRefusal[] {
+  const seen = new Set<string>();
+  return refusals.filter((refusal) => {
+    if (seen.has(refusal.path)) return false;
+    seen.add(refusal.path);
+    return true;
+  });
 }
 
 export function tenantScoped(
