@@ -1,6 +1,7 @@
 import { createClient } from "@asym/database/supabase/server";
 import { headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 
 import { FRONT_HEADER_PREFIX } from "./front";
@@ -27,6 +28,7 @@ function carriesScopeOrFrontHeader(requestHeaders: RequestHeaders): boolean {
 export const readOperatorAdmission = cache(
   async (): Promise<OperatorAdmission> => {
     try {
+      await connection();
       const requestHeaders = await headers();
       if (carriesScopeOrFrontHeader(requestHeaders)) return REFUSED;
       if (
