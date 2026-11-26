@@ -239,7 +239,7 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
 11. **Owned elsewhere.** The prototype `/api/cms/public/*` reads and their
     front exemption were retired in WP6 part 2a (AL-2679). N2 part 2a moved
     the dashboards' configuration redirects behind admission and added the
-    name's generation, the callback and the invitation (decisions 12 to 19).
+    name's generation, the callback and the invitation (decisions 12 to 20).
     N2 part 2b takes the organization ID and the chooser out of the address,
     with `~<sub-role>`, copied links, Web Studio's entry and the lint rule;
     part 2c proves two tabs under two roles and a stale tab in a browser;
