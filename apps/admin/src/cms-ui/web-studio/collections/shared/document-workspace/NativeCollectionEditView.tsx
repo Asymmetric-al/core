@@ -230,7 +230,7 @@ function resolveNativeCollectionEditModel({
   });
   const mediaPreviewUrl =
     studioCollection === "media" && typeof data?.id === "string"
-      ? mediaAddress(data.id, "w960")
+      ? mediaAddress(data.id)
       : null;
 
   return {

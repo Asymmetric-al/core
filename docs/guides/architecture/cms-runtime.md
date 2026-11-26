@@ -47,7 +47,7 @@ Staff holding `web_studio.edit` upload, see, edit and delete images in Web Studi
 
 Delete runs `POST /api/cms/media/delete` (`delete_media_asset` on the caller's token; a record with no stored file, as the fixtures' are, answers 404 and goes on), then `POST /web-studio/api/web-studio/media/remove`, which refuses while the file is still stored and calls `deleteMediaRecord` with the organization: another organization's row is refused, a row already gone is nothing to do.
 
-Thumbnails and the preview's images come only from `/api/media/<id>` and its bounded variants (`?variant=w320`, `w960`), never a Storage address; an `<img>` there needs no header, as the route admits by the session and the asset's own organization.
+Thumbnails and the preview's images come only from `/api/media/<id>`, never a Storage address: thumbnails ask for `?variant=w320`, which every image has, and the preview and the media inspector take the route's default, the largest bounded variant the image has; an `<img>` there needs no header, as the route admits by the session and the asset's own organization.
 
 `apps/admin/src/cms/media-endpoints.ts` is in `SERVICE_PORT_CALLERS` because media records are created and deleted only through the service port, and these two endpoints are the library's only path to it.
 
