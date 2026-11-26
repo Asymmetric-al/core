@@ -443,42 +443,76 @@ describe("Phase 5 CRM donor detail and reports", () => {
     ).toBeNull();
   });
 
-  it("names the record owner from the member directory, as the records list does", async () => {
+  it("D-18 (AL-2678 r3, plan line 997: the owner is named by the record's assignment key from the shared worker labels, so the member-directory call by profile goes): names the record owner from the worker labels the gift rows already load, with one call fewer", async () => {
     const donorWithOwner = {
       ...baseTables.donors![0]!,
       missionary_id: "profile-owner",
+      ministry_assignment_id: "worker-owner",
     };
+    const client = createSupabaseFixture({
+      ...baseTables,
+      donors: [donorWithOwner],
+      missionaries: [
+        ...baseTables.missionaries!,
+        {
+          tenant_id: "tenant-1",
+          id: "worker-owner",
+          profile: { display_name: "Priya Nair" },
+        },
+      ],
+      profiles: [{ id: "profile-owner", display_name: "Someone Else" }],
+    });
     const detail = await getAdminCrmDonorDetail({
       donorId: "donor-1",
       role: "staff",
-      sessionClient: createSupabaseFixture({
-        ...baseTables,
-        donors: [donorWithOwner],
-        profiles: [
-          { id: "profile-owner", display_name: "Priya Nair" },
-          { id: "profile-other", display_name: "Someone Else" },
-        ],
-      }) as never,
+      sessionClient: client as never,
       tenantId: "tenant-1",
     });
 
     expect(detail.donor.missionaryId).toBe("profile-owner");
     expect(detail.donor.missionaryName).toBe("Priya Nair");
+    expect(detail.donor.ownerAssignmentId).toBe("worker-owner");
+    expect(client.rpc.mock.calls.map(([name]) => name)).toEqual([
+      "crm_missionary_labels",
+    ]);
+    expect(client.rpc.mock.calls[0]![1].p_ids).toContain("worker-owner");
   });
 
-  it("leaves the owner unnamed when the record has none", async () => {
-    const detail = await getAdminCrmDonorDetail({
-      donorId: "donor-1",
-      role: "staff",
-      sessionClient: createSupabaseFixture({
-        ...baseTables,
-        donors: [{ ...baseTables.donors![0]!, missionary_id: null }],
-      }) as never,
-      tenantId: "tenant-1",
-    });
+  it.each([
+    ["has no assignment key", null],
+    ["has a key the selected organization's labels do not return", "worker-b"],
+  ])(
+    "D-18 (AL-2678 r3, Q-r3-2): leaves the owner unnamed when the record %s, with no key in the response",
+    async (_case, key) => {
+      const detail = await getAdminCrmDonorDetail({
+        donorId: "donor-1",
+        role: "staff",
+        sessionClient: createSupabaseFixture({
+          ...baseTables,
+          donors: [
+            {
+              ...baseTables.donors![0]!,
+              missionary_id: "profile-owner",
+              ministry_assignment_id: key,
+            },
+          ],
+          missionaries: [
+            ...baseTables.missionaries!,
+            {
+              tenant_id: "tenant-2",
+              id: "worker-b",
+              profile: { display_name: "Other Org Worker" },
+            },
+          ],
+        }) as never,
+        tenantId: "tenant-1",
+      });
 
-    expect(detail.donor.missionaryName).toBeNull();
-  });
+      expect(detail.donor.missionaryName).toBeNull();
+      expect(detail.donor.ownerAssignmentId).toBeNull();
+      expect(JSON.stringify(detail)).not.toContain("worker-b");
+    },
+  );
 
   it("exposes historical provider record ids only to provider operators", async () => {
     const detail = await getAdminCrmDonorDetail({

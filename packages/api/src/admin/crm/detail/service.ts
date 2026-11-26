@@ -3,7 +3,7 @@ import { SETTLED_DONATION_STATUS_SET } from "../../../reads/settled-donation-sta
 import { ApiHttpError, toApiHttpError } from "../../../shared/http-errors";
 import { loadCorrectionApprovalPolicy } from "../../contribution-operations/correction-requests";
 import { loadSharedContributionRowInputs } from "../../contribution-shared/row-inputs";
-import { loadCrmMemberLabels, loadCrmMissionaryLabels } from "../member-labels";
+import { loadCrmMissionaryLabels } from "../member-labels";
 
 import type { RequestSessionClient } from "../../../shared/request-session-client";
 import type {
@@ -18,6 +18,7 @@ interface DonorRow {
   id: string;
   profile_id: string | null;
   missionary_id: string | null;
+  ministry_assignment_id: string | null;
   name: string | null;
   email: string | null;
   phone: string | null;
@@ -266,7 +267,7 @@ export async function getAdminCrmDonorDetail(input: {
   const donorResult = await input.sessionClient
     .from("donors")
     .select(
-      "id, profile_id, missionary_id, name, email, phone, avatar_url, location, organization, title, type, status, total_given, last_gift_date, tags, notes, created_at, updated_at",
+      "id, profile_id, missionary_id, ministry_assignment_id, name, email, phone, avatar_url, location, organization, title, type, status, total_given, last_gift_date, tags, notes, created_at, updated_at",
     )
     .eq("tenant_id", input.tenantId)
     .eq("id", input.donorId)
@@ -282,14 +283,6 @@ export async function getAdminCrmDonorDetail(input: {
   }
 
   const donor = donorResult.data as DonorRow;
-  // The record owner (`donors.missionary_id`, a profile id), named the same
-  // way the records list names it, so a deep-linked drawer can say who owns
-  // the record without searching the list.
-  const ownerNames = donor.missionary_id
-    ? await loadCrmMemberLabels(input.sessionClient, input.tenantId, [
-        donor.missionary_id,
-      ])
-    : new Map<string, string>();
   const donationsResult = await input.sessionClient
     .from("donations")
     .select(
@@ -383,7 +376,7 @@ export async function getAdminCrmDonorDetail(input: {
       extraFundIds: pledges.map((pledge) => pledge.fund_id),
       extraMissionaryIds: [
         ...pledges.map((pledge) => pledge.missionary_id),
-        donor.missionary_id,
+        donor.ministry_assignment_id,
       ],
     }),
   ]);
@@ -397,6 +390,10 @@ export async function getAdminCrmDonorDetail(input: {
     fundNamesById: fundsById,
     missionaryLabelsById: missionariesById,
   } = sharedInputs;
+
+  const ownerKey = donor.ministry_assignment_id;
+  const ownerAssignmentId =
+    ownerKey && missionariesById.has(ownerKey) ? ownerKey : null;
 
   const stagedByDonationId = new Map(
     stagedGifts.map((gift) => [gift.donation_id, gift]),
@@ -546,9 +543,10 @@ export async function getAdminCrmDonorDetail(input: {
       id: donor.id,
       location: donor.location,
       missionaryId: donor.missionary_id,
-      missionaryName: donor.missionary_id
-        ? (ownerNames.get(donor.missionary_id) ?? null)
+      missionaryName: ownerAssignmentId
+        ? (missionariesById.get(ownerAssignmentId) ?? null)
         : null,
+      ownerAssignmentId,
       name: donor.name,
       notesPreview: previewNotes(donor.notes),
       organization: donor.organization,

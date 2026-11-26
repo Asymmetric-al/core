@@ -45,6 +45,18 @@ describe("the local Supabase workflow's path filter", () => {
     expect(paths).toContain(file);
   });
 
+  it.each([
+    "apps/admin/app/(app)/settings/sites/**",
+    "apps/admin/app/api/admin/sites/**",
+    "packages/api/src/admin/sites/**",
+    "tests/e2e/auth-sites-settings.spec.ts",
+  ])(
+    "starts the Sites settings journey and its PostgREST proof when %s changes (AL-2676 WP3b part 3)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
   it("D-18 (AL-2676 WP3a part 2a adds provisioning's second-factor proof to the stack): starts the stack when that proof changes", () => {
     expect(paths).toContain(
       "tests/unit/acceptance/issue-2676/tenant-provisioning.localstack.test.ts",
@@ -71,6 +83,19 @@ describe("the local Supabase workflow's path filter", () => {
     "packages/graphql/**",
   ])(
     "starts the supporter-name proof when %s, the suite or a reader it drives, changes (AL-2678 r2s)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
+    "tests/unit/acceptance/issue-2678/assignment-keys.postgrest.acceptance.test.ts",
+    "tests/unit/acceptance/issue-2678/assignment-keys.realstack.acceptance.test.ts",
+    "packages/api/src/admin/crm/**",
+    "packages/database/types/crm-detail.ts",
+    "packages/database/types/crm-grid.ts",
+  ])(
+    "starts the assignment-key proof when %s, a suite or a CRM reader or response type it drives, changes (AL-2678 r3)",
     (file) => {
       expect(paths).toContain(file);
     },

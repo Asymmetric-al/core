@@ -389,10 +389,14 @@ commands enforce non-null request-tenant binding on direct calls.
 | `tenant_guard.designate_home(uuid, text)`        | DEFINER  | `tenant_guard` (owner), `authenticated`                     |
 | `private.share_lock_site_domain(uuid, text)`     | DEFINER  | `postgres` (owner), `tenant_guard`                          |
 | `public.resolve_home_host(text)`                 | DEFINER  | `postgres` (owner), `anon`, `authenticated`, `service_role` |
+| `public.tenant_site_settings(uuid)`              | INVOKER  | `postgres` (owner), `authenticated`                         |
+| `tenant_guard.tenant_site_settings(uuid)`        | DEFINER  | `tenant_guard` (owner), `authenticated`                     |
 
 Each revokes `PUBLIC`, `anon`, `authenticated`, and `service_role` by name
 before granting (`private.share_lock_site_domain` also revokes `tenant_guard`
 before its one grant). `resolve_verified_host` and `resolve_home_host` (added
 by WP3b part 2, AL-2676: the anonymous home read behind the redirect of a Site
 name's account paths to home) are the two entries on
-`docs/security/anon-definer-allowlist.json`.
+`docs/security/anon-definer-allowlist.json`. The two `tenant_site_settings`
+rows (added by WP3b part 3, AL-2676) are the staff read of an organization's
+Sites and brand under `sites.manage`, executable by `authenticated` only.

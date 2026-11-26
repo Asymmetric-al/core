@@ -102,6 +102,7 @@ export default defineConfig({
     "**/auth-crm-reads.spec.ts",
     "**/auth-member-care.spec.ts",
     "**/auth-members-invitations.spec.ts",
+    "**/auth-sites-settings.spec.ts",
   ],
   outputDir: "test-results/auth-mail",
   fullyParallel: false,
