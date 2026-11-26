@@ -6,7 +6,7 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { giftMismatches } from "../donations/select";
+import { callerGiftMismatches } from "../donations/select";
 import { assertTransactable, MoneyError } from "../money";
 import { beginGiftIntake } from "./begin-gift-intake";
 import {
@@ -131,6 +131,11 @@ export const POST = withPlatformOperation(
             { error: "Idempotency key already used" },
             { status: 409 },
           );
+        case "multiple_donors":
+          return NextResponse.json(
+            { error: "Multiple donor records for this account" },
+            { status: 409 },
+          );
         case "invalid":
           return NextResponse.json({ error: begin.message }, { status: 400 });
         case "incomplete":
@@ -155,7 +160,7 @@ export const POST = withPlatformOperation(
         await supabaseAdmin
           .from("donations")
           .select(
-            "amount, currency, missionary_id, fund_id, donor:donors(profile:profiles!profile_id(id))",
+            "amount, currency, missionary_id, fund_id, donor_id, donor:donors(profile:profiles!profile_id(id))",
           )
           .eq("id", begin.donationId)
           .eq("tenant_id", ctx.tenantId)
@@ -172,13 +177,18 @@ export const POST = withPlatformOperation(
           "Failed to load the existing donation for this idempotency key.",
         );
       }
-      const mismatches = giftMismatches(storedDonation, {
-        profileId: ctx.profileId,
-        amountCents: feeQuote.chargedAmountCents,
-        currency,
-        missionaryId: missionary_id ?? null,
-        fundId: fund_id ?? null,
-      });
+      const mismatches = await callerGiftMismatches(
+        supabaseAdmin,
+        storedDonation,
+        {
+          profileId: ctx.profileId,
+          amountCents: feeQuote.chargedAmountCents,
+          currency,
+          missionaryId: missionary_id ?? null,
+          fundId: fund_id ?? null,
+        },
+        { userId: ctx.userId, tenantId: ctx.tenantId },
+      );
       if (mismatches.some((field) => field !== "amount")) {
         return NextResponse.json(
           { error: "Idempotency key already used" },

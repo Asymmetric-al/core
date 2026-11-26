@@ -6,7 +6,7 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { DONATION_WITH_PARTIES_SELECT, giftMismatches } from "./select";
+import { callerGiftMismatches, DONATION_WITH_PARTIES_SELECT } from "./select";
 import { beginGiftIntake } from "../donate/begin-gift-intake";
 import { resolveRequiredIdempotencyKey } from "../donate/idempotency";
 import { processDonationSagaOutboxEvent } from "../donate/saga";
@@ -162,6 +162,11 @@ export async function POST(request: NextRequest) {
             { error: "Idempotency key already used" },
             { status: 409 },
           );
+        case "multiple_donors":
+          return NextResponse.json(
+            { error: "Multiple donor records for this account" },
+            { status: 409 },
+          );
         case "invalid":
           return NextResponse.json({ error: begin.message }, { status: 400 });
         case "incomplete":
@@ -188,6 +193,7 @@ export async function POST(request: NextRequest) {
       missionaryId,
       fundId: null,
     };
+    const caller = { userId: ctx.userId, tenantId: ctx.tenantId };
     const readBack = () =>
       supabaseAdmin
         .from("donations")
@@ -211,7 +217,12 @@ export async function POST(request: NextRequest) {
           { status: 201 },
         );
       }
-      const mismatched = giftMismatches(prior, requested);
+      const mismatched = await callerGiftMismatches(
+        supabaseAdmin,
+        prior,
+        requested,
+        caller,
+      );
       if (mismatched.length > 0) {
         return keyReused(begin.donationId, ctx.profileId, mismatched);
       }
@@ -250,7 +261,12 @@ export async function POST(request: NextRequest) {
       );
     }
     // Checked again after the saga: on a first request this is the first check.
-    const mismatched = giftMismatches(donation, requested);
+    const mismatched = await callerGiftMismatches(
+      supabaseAdmin,
+      donation,
+      requested,
+      caller,
+    );
     if (mismatched.length > 0) {
       return keyReused(begin.donationId, ctx.profileId, mismatched);
     }

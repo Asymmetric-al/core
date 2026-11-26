@@ -13,8 +13,9 @@
 --    With a profile it first takes a transaction advisory lock of its own
 --    namespace on (tenant, profile), not the saga's idempotency key, so one
 --    person's simultaneous first gifts in one organization serialize; then
---    it returns the person's existing Party there: their account link's,
---    else their sole worker row's (private.assignment_for_profile), else the
+--    it returns the person's existing Party there: their account link's (a
+--    profile's id is its login's, profiles_user_id_matches_id), else their
+--    sole worker row's (private.assignment_for_profile), else the
 --    Party of their donor row there, which a session that waited on the lock
 --    meets after the first session committed, so its own insert is discarded
 --    by the donor key and no Party is left without a donor. Part 1's
@@ -32,16 +33,25 @@
 --    changes. Both idempotency lookups read only rows of kind 'legacy_saga'
 --    (ruling Q-C), so a key held by a provider request is never answered as a
 --    replay: the outbox key then refuses the call (23505) and nothing is
---    written. The donor insert names party_id through the writer. Signature,
---    SECURITY INVOKER, search path, owner, grants and answers are unchanged.
+--    written. A signed-in person's donor is found as the readers find it:
+--    under the writer's lock, the one donor of the Party their login's
+--    account link names in the organization (a claimed donor with no
+--    profile_id included), else their donor by profile_id; a Party with two
+--    donors there refuses the gift (21000) and nothing is written; only a
+--    person with neither gets a new donor, whose insert names party_id
+--    through the writer. Signature, SECURITY INVOKER, search path, owner,
+--    grants and answers are unchanged.
 -- 3. public.atomic_create_donation_with_audit, only while it exists
---    (WP8a may drop it): its text from 20260223170000 with the donor insert
---    naming party_id through the writer; everything else unchanged.
+--    (WP8a may drop it): its text from 20260223170000 with the same donor
+--    lookup and the donor insert naming party_id through the writer;
+--    everything else unchanged.
 -- 4. The catch-up (ruling Q1 (b)): part 1's link backfill
 --    (20261125050100:255-259) repeated once, for donors and worker rows
 --    written since: a login is linked ('profile_backfill') to the one Party
 --    its donor and worker rows name in a tenant, only where exactly one
---    non-NULL Party results and the login exists; ON CONFLICT DO NOTHING, so
+--    non-NULL Party results and the login exists and is not soft-deleted
+--    (deleted_at read through to_jsonb, as the earlier backfills read it);
+--    ON CONFLICT DO NOTHING, so
 --    a login already linked there, to that Party or another, is never
 --    relinked. After this migration a gift writes no link (ADR-0215).
 -- 5. external_identifiers: its two non-blank checks become the safety
@@ -188,6 +198,7 @@ DECLARE
   v_outbox_id UUID;
   v_donation_id UUID;
   v_donor_id UUID;
+  v_linked INTEGER;
 BEGIN
   IF p_amount <= 0 THEN
     RAISE EXCEPTION 'Amount must be greater than zero'
@@ -244,12 +255,35 @@ BEGIN
     END IF;
   END IF;
 
-  SELECT id
-  INTO v_donor_id
-  FROM public.donors
-  WHERE tenant_id = p_tenant_id
-    AND profile_id = p_profile_id
-  LIMIT 1;
+  IF p_profile_id IS NOT NULL THEN
+    PERFORM pg_advisory_xact_lock(
+      hashtext('donor_party_writer'),
+      hashtext(p_tenant_id::text || ':' || p_profile_id::text)
+    );
+
+    SELECT count(*)::integer, (array_agg(d.id))[1]
+    INTO v_linked, v_donor_id
+    FROM public.account_links AS al
+    JOIN public.donors AS d
+      ON d.tenant_id = al.tenant_id
+     AND d.party_id = al.party_id
+    WHERE al.tenant_id = p_tenant_id
+      AND al.user_id = p_profile_id;
+
+    IF v_linked > 1 THEN
+      RAISE EXCEPTION 'More than one donor for this person in the organization'
+        USING ERRCODE = '21000';
+    END IF;
+  END IF;
+
+  IF v_donor_id IS NULL THEN
+    SELECT id
+    INTO v_donor_id
+    FROM public.donors
+    WHERE tenant_id = p_tenant_id
+      AND profile_id = p_profile_id
+    LIMIT 1;
+  END IF;
 
   IF v_donor_id IS NULL THEN
     INSERT INTO public.donors (
@@ -410,18 +444,42 @@ AS $function$
 DECLARE
   v_donor_id UUID;
   v_donation_id UUID;
+  v_linked INTEGER;
 BEGIN
   IF p_amount <= 0 THEN
     RAISE EXCEPTION 'Amount must be greater than zero'
       USING ERRCODE = '22023';
   END IF;
 
-  SELECT id
-  INTO v_donor_id
-  FROM public.donors
-  WHERE tenant_id = p_tenant_id
-    AND profile_id = p_donor_profile_id
-  LIMIT 1;
+  IF p_donor_profile_id IS NOT NULL THEN
+    PERFORM pg_catalog.pg_advisory_xact_lock(
+      pg_catalog.hashtext('donor_party_writer'),
+      pg_catalog.hashtext(p_tenant_id::text || ':' || p_donor_profile_id::text)
+    );
+
+    SELECT pg_catalog.count(*)::integer, (pg_catalog.array_agg(d.id))[1]
+    INTO v_linked, v_donor_id
+    FROM public.account_links AS al
+    JOIN public.donors AS d
+      ON d.tenant_id = al.tenant_id
+     AND d.party_id = al.party_id
+    WHERE al.tenant_id = p_tenant_id
+      AND al.user_id = p_donor_profile_id;
+
+    IF v_linked > 1 THEN
+      RAISE EXCEPTION 'More than one donor for this person in the organization'
+        USING ERRCODE = '21000';
+    END IF;
+  END IF;
+
+  IF v_donor_id IS NULL THEN
+    SELECT id
+    INTO v_donor_id
+    FROM public.donors
+    WHERE tenant_id = p_tenant_id
+      AND profile_id = p_donor_profile_id
+    LIMIT 1;
+  END IF;
 
   IF v_donor_id IS NULL THEN
     INSERT INTO public.donors (
@@ -508,7 +566,11 @@ SELECT c.tenant_id, c.user_id, (pg_catalog.array_agg(DISTINCT c.party_id))[1], '
       FROM public.missionaries AS m
       JOIN public.profiles AS p ON p.id = m.profile_id
   ) AS c
- WHERE EXISTS (SELECT 1 FROM auth.users AS u WHERE u.id = c.user_id)
+ WHERE EXISTS (
+         SELECT 1 FROM auth.users AS u
+          WHERE u.id = c.user_id
+            AND (pg_catalog.to_jsonb(u) ->> 'deleted_at') IS NULL
+       )
  GROUP BY c.tenant_id, c.user_id
 HAVING pg_catalog.count(DISTINCT c.party_id) = 1
 ON CONFLICT DO NOTHING;
