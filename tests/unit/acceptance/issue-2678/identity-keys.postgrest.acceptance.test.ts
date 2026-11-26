@@ -251,7 +251,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       expect([401, 403]).toContain(foreign.status);
     });
 
-    it("party_restricted is not on the Data API; staff of the tenant read a worker's legal name through the read function; a donor, a missionary and another tenant's staff do not; direct writes of the safety fields are refused and the commands set them", async () => {
+    it("party_restricted is not on the Data API; an administrator reads a worker's legal name only through the audited reveal with a reason; plain staff, a donor, a missionary and another tenant's staff do not, and read_party_restricted runs for nobody; direct writes of the safety fields are refused and the commands set them (D-18, AL-2678 r2b1 R2B-Q1: the read function lost its signed-in grant and plain staff, added to the fixture, lost the read)", async () => {
       const set = await as("admin", "rest/v1/rpc/set_worker_identity", {
         body: {
           p_tenant_id: TA,
@@ -274,15 +274,44 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         const exposed = await as(who, "rest/v1/party_restricted?select=*");
         expect(exposed.status).not.toBe(200);
       }
-      const read = (who: Person) =>
-        as(who, "rest/v1/rpc/read_party_restricted", {
+      const reveal = (who: Person) =>
+        as(who, "rest/v1/rpc/reveal_worker_identity", {
+          body: {
+            p_tenant_id: TA,
+            p_party_id: ids.pMissionary,
+            p_reason: "Field security review",
+          },
+        });
+      const revealed = await reveal("admin");
+      expect(revealed.status).toBe(200);
+      expect(await body(revealed)).toEqual({
+        party_id: ids.pMissionary,
+        legal_name: "Legal Worker",
+        real_country: "Country",
+        precise_location: "Place",
+      });
+      for (const who of [
+        "plain",
+        "donor",
+        "missionary",
+        "staffB",
+      ] as Person[]) {
+        const refused = await reveal(who);
+        expect(refused.status, who).toBe(403);
+        const error = await body(refused);
+        expect(error.code, who).toBe("42501");
+        expect(JSON.stringify(error)).not.toContain("Legal Worker");
+      }
+      for (const who of ["admin", "plain", "donor"] as Person[]) {
+        const old = await as(who, "rest/v1/rpc/read_party_restricted", {
           body: { p_party_id: ids.pMissionary },
         });
-      expect(await body(await read("admin"))).toMatchObject([
-        { party_id: ids.pMissionary, legal_name: "Legal Worker" },
-      ]);
-      for (const who of ["donor", "missionary", "staffB"] as Person[])
-        expect(await body(await read(who))).toEqual([]);
+        expect(old.status, who).toBe(403);
+        expect(await body(old)).toMatchObject({
+          code: "42501",
+          message: "permission denied for function read_party_restricted",
+        });
+      }
       for (const [method, path, payload] of [
         [
           "PATCH",

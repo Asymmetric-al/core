@@ -39,6 +39,7 @@ import { WorkflowsPanel } from "./workflows-panel";
 import { GivingTrendCard, mixedCurrencyNotice } from "../giving-trend-card";
 import { getIcon } from "../icon-map";
 import { NeedsAttentionSummary } from "./needs-attention-summary";
+import { WorkersReviewSummary } from "./workers-review-summary";
 
 import type { DashboardStats } from "@asym/api/reads/dashboard-stats";
 import type { Tile, Role } from "@asym/lib/mission-control/types";
@@ -174,6 +175,8 @@ export function MissionControlHome({ stats = null }: MissionControlHomeProps) {
         </header>
 
         {canOpenContributions ? <NeedsAttentionSummary /> : null}
+
+        <WorkersReviewSummary />
 
         <section
           aria-labelledby={quickActionsHeadingId}
