@@ -1,6 +1,5 @@
 "use client";
 
-import { createBrowserClient } from "@asym/database/supabase";
 import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -16,15 +15,14 @@ import { Loader2 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
+import { addPartner, AddPartnerRefused } from "./add-partner-api";
 import {
   createInitialPartnerFormValues,
   partnerSchema,
-  toPartnerInsertPayload,
 } from "./add-partner-form-model";
 import { useParkedSubmit } from "../hooks/use-parked-submit";
 
 export interface AddPartnerDialogProps {
-  missionaryId: string;
   onSuccess?: () => void;
   trigger?: React.ReactElement;
   open?: boolean;
@@ -78,7 +76,6 @@ function AddPartnerButton({
 }
 
 export function AddPartnerDialog({
-  missionaryId,
   onSuccess,
   trigger,
   open: controlledOpen,
@@ -89,7 +86,6 @@ export function AddPartnerDialog({
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = isControlled ? controlledOnOpenChange : setInternalOpen;
 
-  const supabase = React.useMemo(() => createBrowserClient(), []);
   const formRef = React.useRef<HTMLFormElement>(null);
 
   const form = useAsymForm({
@@ -98,19 +94,8 @@ export function AddPartnerDialog({
       onChange: partnerSchema,
     },
     onSubmit: async ({ value }) => {
-      if (!missionaryId) {
-        toast.error("Missionary ID is missing");
-        return;
-      }
-
       try {
-        const { error } = await supabase
-          .from("donors")
-          .insert(toPartnerInsertPayload({ missionaryId, values: value }));
-
-        if (error) {
-          throw error;
-        }
+        await addPartner(value);
 
         toast.success("Partner added successfully");
         form.reset(createInitialPartnerFormValues());
@@ -118,11 +103,18 @@ export function AddPartnerDialog({
         onSuccess?.();
       } catch (error: unknown) {
         console.error("Error adding partner:", error);
-        // Plain words, never the database's own message (WP2b, AL-2675).
-        toast.error("The partner wasn't added.", {
-          description:
-            "Something went wrong on our side, so nothing was saved. Your details are still in the form.",
-        });
+        // Plain words, never the server's own message (WP2b, AL-2675).
+        if (error instanceof AddPartnerRefused && error.status < 502) {
+          toast.error("The partner wasn't added.", {
+            description:
+              "Something went wrong on our side, so nothing was saved. Your details are still in the form.",
+          });
+        } else {
+          toast.error("We couldn't confirm the partner was added.", {
+            description:
+              "Check your connection, then press Add Partner again with the same details. The partner won't be added twice.",
+          });
+        }
       }
     },
   });

@@ -20,6 +20,15 @@ export const partnerSchema = z.object({
 
 export type PartnerFormValues = z.infer<typeof partnerSchema>;
 
+export type PartnerCommandBody = {
+  name: string;
+  email: string;
+  phone: string | null;
+  type: PartnerFormValues["type"];
+  frequency: PartnerFormValues["frequency"];
+  location: string;
+};
+
 export function createInitialPartnerFormValues(): PartnerFormValues {
   return {
     name: "",
@@ -31,24 +40,30 @@ export function createInitialPartnerFormValues(): PartnerFormValues {
   };
 }
 
-export function toPartnerInsertPayload({
-  missionaryId,
-  values,
-}: {
-  missionaryId: string;
-  values: PartnerFormValues;
-}) {
+export function toPartnerCommandBody(
+  values: PartnerFormValues,
+): PartnerCommandBody {
   return {
-    missionary_id: missionaryId,
     name: values.name.trim(),
     email: values.email.trim(),
     phone: values.phone.trim() || null,
     type: values.type,
     frequency: values.frequency,
     location: values.location.trim(),
-    status: "Active" as const,
-    total_given: 0,
-    last_gift_amount: 0,
-    score: 70,
   };
+}
+
+function sameText(value: string) {
+  return value.normalize("NFC").replace(/\s+/gu, " ").trim();
+}
+
+export function partnerIntent(values: PartnerFormValues): string {
+  return JSON.stringify([
+    sameText(values.name),
+    sameText(values.email).toLowerCase(),
+    sameText(values.phone) || null,
+    values.type,
+    values.frequency,
+    sameText(values.location),
+  ]);
 }
