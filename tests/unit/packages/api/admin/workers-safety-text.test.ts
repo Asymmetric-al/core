@@ -74,8 +74,10 @@ describe("AL-2678 r2b1 review fix: an alias the database's safety normalization 
 
   it("is blank for runs of removed characters and whitespace, and not for any visible letter among them", () => {
     expect(normalizesToNothing("")).toBe(true);
-    expect(normalizesToNothing(" \t​ ﻿⁠\u{e0041} ")).toBe(true);
-    expect(normalizesToNothing("​A​")).toBe(false);
-    expect(normalizesToNothing("é")).toBe(false);
+    expect(normalizesToNothing(" \t\u200b\u00a0\ufeff\u2060\u{e0041} ")).toBe(
+      true,
+    );
+    expect(normalizesToNothing("\u200bA\u200b")).toBe(false);
+    expect(normalizesToNothing("e\u0301")).toBe(false);
   });
 });

@@ -392,6 +392,49 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     },
   );
 
+  it("Restrict judges the alias as the database does: an invisible-only alias is no alias, so a restricted level without a stored alias cannot be sent, and with a stored alias it is not sent (review fix)", async () => {
+    current = worker({ securityLevel: "standard", publicAlias: null });
+    show();
+    let dialog = await openDialog(/Restrict Worker Kestrel/);
+    fillReason(dialog);
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Restricted" }));
+    fireEvent.change(within(dialog).getByLabelText("Public alias"), {
+      target: { value: "\u200b\u2060 " },
+    });
+    expect(
+      (
+        within(dialog).getByRole("button", {
+          name: "Restrict",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    current = worker({ securityLevel: "standard", publicAlias: "Kite" });
+    await act(async () => {
+      await client.invalidateQueries();
+    });
+    dialog = await openDialog(/Restrict Worker Kestrel/);
+    await waitFor(() =>
+      expect(
+        within(dialog).getByText("Leave empty to keep Kite."),
+      ).toBeTruthy(),
+    );
+    fillReason(dialog);
+    fireEvent.click(
+      within(dialog).getByRole("checkbox", { name: "Do not publish" }),
+    );
+    fireEvent.change(within(dialog).getByLabelText("Public alias"), {
+      target: { value: "\ufeff\u00a0" },
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Restrict" }));
+    await waitFor(() => expect(posts).toHaveLength(1));
+    expect(posts[0]?.body).toEqual({
+      doNotPublish: true,
+      reason: "Field security",
+    });
+  });
+
   it("once the legal name is shown, the dialog offers one action, Hide, which clears it and closes; no Cancel and no spent Show button remain (review fix)", async () => {
     postReply = () => ({
       status: 200,

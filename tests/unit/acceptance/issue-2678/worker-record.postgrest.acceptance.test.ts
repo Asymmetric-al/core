@@ -757,7 +757,10 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         await command(null, "reveal", id.wK!, { reason: "x" }),
       ]) {
         const refused = await answer(response, 401);
-        expect(refused).toEqual({ error: "Unauthorized" });
+        expect(refused).toEqual({
+          error: "Unauthorized",
+          requestId: expect.any(String),
+        });
         seen.push(refused);
       }
       as("D");
@@ -779,7 +782,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         [
           "restrict",
           id.wK!,
-          { level: "high_risk", reason: "​⁠" },
+          { level: "high_risk", reason: "\u200b\u2060" },
           400,
           "REASON_REQUIRED",
         ],
@@ -830,6 +833,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         expect(refused, `${name} ${code}`).toEqual({
           error: REFUSAL_TEXT[code],
           code,
+          requestId: expect.any(String),
         });
         seen.push(refused);
       }
@@ -1003,7 +1007,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       const updated = await answer(
         await command("A", "restrict", id.wR!, {
           doNotPublish: true,
-          alias: "​⁠  ﻿",
+          alias: "\u200b\u2060 \u00a0\ufeff",
           reason: "Hold publishing",
         }),
         200,

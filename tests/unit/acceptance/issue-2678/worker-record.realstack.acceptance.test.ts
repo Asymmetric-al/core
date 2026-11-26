@@ -332,7 +332,7 @@ describe.skipIf(!ADMIN_URL)(
       await db.query("savepoint s");
       try {
         const before = await audits(id.pK);
-        const result = await reveal(admin, id.pK, "  Field visit check ");
+        const result = await reveal(admin, id.pK, "  Field visit\u00a0check ");
         expect(result.code, result.message).toBeNull();
         expect(result.rows[0]!.r).toEqual({
           party_id: id.pK,
@@ -393,7 +393,7 @@ describe.skipIf(!ADMIN_URL)(
             )
           ).code,
         ).toBe("42501");
-        for (const reason of ["", "   ", "​ ", "  "])
+        for (const reason of ["", "   ", "\u200b ", "\u00a0\u2003"])
           expect(await reveal(admin, id.pK, reason)).toMatchObject({
             code: "22023",
             message: "A reason is required",

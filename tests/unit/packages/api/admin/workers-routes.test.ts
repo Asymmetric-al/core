@@ -394,7 +394,7 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
         error: "Check the form and try again.",
         code: "INVALID_INPUT",
       });
-      for (const reason of ["", "   ", "  \n"]) {
+      for (const reason of ["", "   ", "\u00a0\u2003\n"]) {
         const blank = await handler(
           post(`/api/admin/workers/${WORKER}/x`, { ...body, reason }),
           params(),
@@ -645,14 +645,14 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
   });
 
   it.each([
-    ["a zero-width space", "​"],
-    ["no-break and em spaces", "  "],
-    ["a byte-order mark and a word joiner", "﻿⁠"],
-    ["a Mongolian vowel separator and a joiner", "᠎‍"],
-    ["a Hangul filler", "ㅤ"],
-    ["a Braille blank", "⠀"],
+    ["a zero-width space", "\u200b"],
+    ["no-break and em spaces", "\u00a0\u2003"],
+    ["a byte-order mark and a word joiner", "\ufeff\u2060"],
+    ["a Mongolian vowel separator and a joiner", "\u180e\u200d"],
+    ["a Hangul filler", "\u3164"],
+    ["a Braille blank", "\u2800"],
     ["tag characters", "\u{e0020}\u{e0041}"],
-    ["spaces, a tab and a zero-width space", " \t​ "],
+    ["spaces, a tab and a zero-width space", " \t\u200b "],
   ])(
     "restrict treats an alias of %s, which the database's safety normalization reduces to nothing, as no alias and sends p_public_alias null, so it cannot clear the stored alias (review fix)",
     async (_label, alias) => {
@@ -689,13 +689,13 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
     await POST_RESTRICT(
       post(`/api/admin/workers/${WORKER}/restrict`, {
         level: "restricted",
-        alias: "​Heron ",
+        alias: "\u200bHeron\u00a0",
         reason: "Review",
       }),
       params(),
     );
     expect(rpc.mock.calls[1]?.[1]).toMatchObject({
-      p_public_alias: "​Heron ",
+      p_public_alias: "\u200bHeron\u00a0",
     });
   });
 
