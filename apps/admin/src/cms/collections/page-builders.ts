@@ -26,17 +26,6 @@ export const PAGE_FAMILY_OPTIONS = [
   { label: "Project page", value: "project" },
 ] as const;
 
-const UUID_REFERENCE_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-export function validateUuidReference(value: unknown) {
-  if (typeof value === "string" && UUID_REFERENCE_PATTERN.test(value.trim())) {
-    return true;
-  }
-
-  return "Must be a valid UUID reference.";
-}
-
 function documentTenant(data: unknown, req: PayloadRequest) {
   const tenant = (data as { tenant?: unknown } | undefined)?.tenant;
   if (typeof tenant === "string" && tenant.length > 0) return tenant;
