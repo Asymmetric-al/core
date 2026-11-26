@@ -26,7 +26,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
  */
 const WRITER = "public.donor_party_for_insert(uuid,uuid,text,text)";
 const FILL = "donors_fill_party_after_insert_temp";
-const NBSP = " ";
+const NBSP = "\u00a0";
 
 async function tx<T>(db: pg.Client, fn: () => Promise<T>) {
   await db.query("begin");
@@ -67,6 +67,21 @@ function donorInsertColumns(body: string) {
     ),
   ].map((m) => m[1]!.split(",").map((c) => c.trim().toLowerCase()));
 }
+
+it("the external-identifier checks carry private.normalize_safety_text's removal and whitespace classes exactly, as 20261126010000 writes them (red: no migration)", () => {
+  const classes = (file: string) => {
+    const text = readFileSync(migration(file), "utf8");
+    return {
+      removal: [...text.matchAll(/\$re\$\[(.*?)\]\$re\$/gs)].map((m) => m[1]),
+      space: [...text.matchAll(/\$ws\$\[(.*?)\]\+\$ws\$/gs)].map((m) => m[1]),
+    };
+  };
+  const r1 = classes("_wp5_2r1_worker_names");
+  const mine = classes("_wp5_rest_party_writer");
+  expect(r1.removal).toHaveLength(2);
+  expect(mine.removal).toEqual([r1.removal[0], r1.removal[0]]);
+  expect(mine.space).toEqual([r1.space[0], r1.space[0]]);
+});
 
 describe.skipIf(!ADMIN_URL)(
   "AL-2678 WP5 rest: one Party writer for every donor writer",
@@ -267,10 +282,10 @@ describe.skipIf(!ADMIN_URL)(
         expect(first.display_name).toBe("Jo Guest");
         expect(second.id).not.toBe(first.id);
         expect(
-          (await call(`${NBSP}​${NBSP}`, ` ${NBSP}mail@example.test`))
+          (await call(`${NBSP}\u200b${NBSP}`, ` ${NBSP}mail@example.test`))
             .display_name,
         ).toBe("mail@example.test");
-        expect((await call(`${NBSP}\t`, `　`)).display_name).toBe(
+        expect((await call(`${NBSP}\t`, `\u3000`)).display_name).toBe(
           "Unnamed supporter",
         );
         const joined = await db.query(
@@ -330,9 +345,9 @@ describe.skipIf(!ADMIN_URL)(
             "insert into public.external_identifiers (tenant_id, source, external_id, target_type, target_id, party_id) values ($1, $2, $3, 'party', $4, $4)",
             [id.TA, source, external, id.pDA],
           );
-        for (const blank of [NBSP, `${NBSP} ${NBSP}`, "​", "　\t", ""])
+        for (const blank of [NBSP, `${NBSP} ${NBSP}`, "\u200b", "\u3000\t", ""])
           expect([blank, await insert(blank, "x-1")]).toEqual([blank, "23514"]);
-        for (const blank of [NBSP, " ", "﻿"])
+        for (const blank of [NBSP, "\u2028", "\ufeff"])
           expect([blank, await insert("crm", blank)]).toEqual([blank, "23514"]);
         await db.query("set local role service_role");
         expect(await insert(" legacy crm ", " A-1 ")).toBeNull();
