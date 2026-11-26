@@ -2959,6 +2959,17 @@
         "missionary": "---",
         "public": "---",
         "export": "---"
+      },
+      "is_reserved_fee_cover": {
+        "type": "boolean",
+        "nullable": false,
+        "generated": "(NOT (system_purpose IS DISTINCT FROM 'fee_cover'::text))",
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
       }
     },
     "payment_onboarding_intents": {

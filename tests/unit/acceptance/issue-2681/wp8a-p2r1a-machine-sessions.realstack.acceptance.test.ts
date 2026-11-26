@@ -65,10 +65,10 @@ describe.skipIf(!ADMIN_URL)(
         const out = await fn();
         await role(db, null);
         await db.query(
-          "REVOKE INSERT ON TABLE public.donations, public.donation_saga_outbox FROM tenant_guard",
+          "REVOKE INSERT ON TABLE public.donations, public.donation_intake_lines FROM tenant_guard",
         );
         await db.query(
-          "REVOKE EXECUTE ON FUNCTION public.normalize_currency_code(text) FROM tenant_guard",
+          "REVOKE INSERT (max_attempts) ON TABLE public.donation_saga_outbox FROM tenant_guard",
         );
         await db.query("COMMIT");
         return out;
@@ -190,7 +190,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("D20: money idempotency across two committed sessions: two claims (one held); two claims past the window on a known retry_wait row (one dead_letter, one closed); a report-path dead-letter racing a claim; two claims parking an expired sending row (one case, one task, one link)", async () => {
+    it("D20: money idempotency across two committed sessions: two claims (one held); two claims past the window on a known retry_wait row (one dead_letter, one closed); a report-path dead-letter racing a claim; two claims parking an expired sending row (one case, one task, one link) (D-18, AL-2681 R2a: the committed test grants are revoked by column and by the new lines table, never by a table REVOKE on the outbox, which would strip R2a's column INSERT; the guard keeps its column INSERT of request_params and R2a's EXECUTE on normalize_currency_code)", async () => {
       await db.query("BEGIN");
       const fx = await seedTwoTenants(db);
       await db.query("COMMIT");
@@ -277,14 +277,20 @@ describe.skipIf(!ADMIN_URL)(
         const grants = (
           await db.query(
             `SELECT has_table_privilege('tenant_guard', 'public.donations', 'INSERT') AS donations,
+                    has_table_privilege('tenant_guard', 'public.donation_intake_lines', 'INSERT') AS lines,
                     has_table_privilege('tenant_guard', 'public.donation_saga_outbox', 'INSERT') AS outbox,
+                    has_column_privilege('tenant_guard', 'public.donation_saga_outbox', 'max_attempts', 'INSERT') AS max_attempts,
+                    has_column_privilege('tenant_guard', 'public.donation_saga_outbox', 'request_params', 'INSERT') AS request_params,
                     has_function_privilege('tenant_guard', 'public.normalize_currency_code(text)', 'EXECUTE') AS normalize`,
           )
         ).rows[0];
         expect(grants).toEqual({
           donations: false,
+          lines: false,
           outbox: false,
-          normalize: false,
+          max_attempts: false,
+          request_params: true,
+          normalize: true,
         });
       } finally {
         await releaseSessionsThenRemove(fx);

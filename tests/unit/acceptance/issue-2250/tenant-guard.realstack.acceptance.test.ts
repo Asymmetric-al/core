@@ -125,6 +125,7 @@ const GUARD_REACH = [
   "private.resolve_invitation_for_caller(text,text,uuid) EXECUTE",
   "private.share_lock_site_domain(uuid,text) EXECUTE",
   "private.share_lock_tenant(uuid) EXECUTE",
+  "public.normalize_currency_code(text) EXECUTE",
   "schema authz USAGE",
   "schema private USAGE",
   "schema public USAGE",
@@ -134,6 +135,8 @@ const GUARD_REACH = [
   "tenant_guard.current_tenant_id() EXECUTE",
   "tenant_guard.enter(uuid) EXECUTE",
   "tenant_guard.issue_membership_invitation(uuid,text,authz.membership_role,authz.staff_role,boolean,text,text,uuid,text,interval) EXECUTE",
+  "tenant_guard.money_apply_payment_event(uuid) EXECUTE",
+  "tenant_guard.money_enqueue_payment_request(uuid) EXECUTE",
   "tenant_guard.money_park_operation(uuid,text,text) EXECUTE",
   "tenant_guard.request_assignment_id() EXECUTE",
   "tenant_guard.request_claims() EXECUTE",
@@ -178,7 +181,7 @@ select (select count(*) from (
   || ' ' || (select string_agg(a.privilege_type, ',' order by a.privilege_type) from aclexplode((select relacl from pg_class where oid = '${CLAIMS}'::regclass)) a where a.grantee = ${TG}) v
 => 0 INSERT,SELECT,UPDATE
 
-17: everything else granted to tenant_guard (schemas, functions it does not own, databases) equals the inventory (D-18: AL-2671: one item per line; D-18, AL-2678: the claim commands read the tenant's status through private.share_lock_tenant, and the caller's confirmed email, the claimable donor and the token lifetime through four postgres-owned functions in private; D-18, AL-2678 bot review #2: the worker-safety commands normalize names and reasons through private.normalize_safety_text; D-18, AL-2681 WP8a part 2 R1a: both provider-request commands park through tenant_guard.money_park_operation, a postgres-owned invoker only the guard may execute)
+17: everything else granted to tenant_guard (schemas, functions it does not own, databases) equals the inventory (D-18: AL-2671: one item per line; D-18, AL-2678: the claim commands read the tenant's status through private.share_lock_tenant, and the caller's confirmed email, the claimable donor and the token lifetime through four postgres-owned functions in private; D-18, AL-2678 bot review #2: the worker-safety commands normalize names and reasons through private.normalize_safety_text; D-18, AL-2681 WP8a part 2 R1a: both provider-request commands park through tenant_guard.money_park_operation, a postgres-owned invoker only the guard may execute; D-18, AL-2681 WP8a part 2 R2a: the payment entry applies through tenant_guard.money_apply_payment_event and 2b's intake will enqueue through tenant_guard.money_enqueue_payment_request, two postgres-owned invokers only the guard may execute, and the guard executes public.normalize_currency_code(text), which the currency triggers on donations and staged_gifts call as the inserting role)
 select string_agg(e, ', ' order by e) v from (
   select 'schema ' || nspname || ' ' || a.privilege_type e from pg_namespace, aclexplode(nspacl) a where a.grantee = ${TG}
   union all select p.oid::regprocedure || ' ' || a.privilege_type from pg_proc p, aclexplode(p.proacl) a where a.grantee = ${TG} and p.proowner <> a.grantee
