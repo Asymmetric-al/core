@@ -19,6 +19,7 @@ export const OUTSIDE_TENANT_SEGMENT_ROOTS = [
   "/choose-organization",
   "/web-studio",
   "/boneyard",
+  "/operator",
 ] as const;
 
 export const CHOOSER_PATH = "/choose-organization";

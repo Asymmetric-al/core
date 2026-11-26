@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { adminServerLogFile } from "./tests/e2e/helpers/auth-mail";
 import {
   devServerCommand,
   shouldReuseExistingServer,
@@ -57,6 +58,9 @@ const surfaces = [
   },
 ] as const;
 
+const ADMIN_PORT = surfaces.find(({ app }) => app === "admin")!.port;
+const TEE = "node scripts/e2e/tee-dev-server.mjs";
+
 const serverEnv = {
   ...process.env,
   // Real sessions only: the e2e cookie bypass would hide auth defects.
@@ -81,15 +85,29 @@ function binding(app: string): {
     return { hostname: SERVER_HOST, env: serverEnv };
   }
   const inherited = serverEnv.NODE_OPTIONS?.trim();
+  const env = {
+    ...serverEnv,
+    NODE_OPTIONS: [inherited, "--dns-result-order=ipv4first"]
+      .filter(Boolean)
+      .join(" "),
+  };
+  if (app !== "admin") return { hostname: "localhost", env };
   return {
     hostname: "localhost",
     env: {
-      ...serverEnv,
-      NODE_OPTIONS: [inherited, "--dns-result-order=ipv4first"]
-        .filter(Boolean)
-        .join(" "),
+      ...env,
+      OPERATIONS_NAMES:
+        process.env.OPERATIONS_NAMES ?? `localhost:${ADMIN_PORT}`,
+      AUTH_MAIL_ADMIN_LOG_FILE: adminServerLogFile(),
     },
   };
+}
+
+function serverCommand(app: string, port: number): string {
+  const command = devServerCommand(app, port, binding(app).hostname);
+  if (app !== "admin") return command;
+  const start = `bun run --cwd apps/${app} `;
+  return command.replace(start, `${TEE} ${start}`);
 }
 
 export default defineConfig({
@@ -103,6 +121,7 @@ export default defineConfig({
     "**/auth-member-care.spec.ts",
     "**/auth-members-invitations.spec.ts",
     "**/auth-sites-settings.spec.ts",
+    "**/auth-operator-area.spec.ts",
   ],
   outputDir: "test-results/auth-mail",
   fullyParallel: false,
@@ -125,7 +144,7 @@ export default defineConfig({
     use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${port}` },
   })),
   webServer: surfaces.map(({ app, port, readyPath }) => ({
-    command: devServerCommand(app, port, binding(app).hostname),
+    command: serverCommand(app, port),
     url: `http://${SERVER_HOST}:${port}${readyPath}`,
     env: binding(app).env,
     reuseExistingServer: shouldReuseExistingServer(process.env),

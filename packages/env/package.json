@@ -7,6 +7,7 @@
     ".": "./index.ts",
     "./database-url": "./src/database-url.mjs",
     "./front-origin": "./src/front-origin.ts",
+    "./operations-names": "./src/operations-names.ts",
     "./target-env": "./src/target-env.ts"
   },
   "scripts": {

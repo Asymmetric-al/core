@@ -172,6 +172,11 @@ on:
       - apps/admin/app/api/admin/sites/**
       - packages/api/src/admin/sites/**
       - tests/e2e/auth-sites-settings.spec.ts
+      # The operator area, its enrolment and its challenge (AL-2675, WP2c part 2a).
+      - apps/admin/app/(operator)/**
+      - tests/e2e/auth-operator-area.spec.ts
+      - tests/e2e/helpers/totp.ts
+      - scripts/e2e/tee-dev-server.mjs
       # Media custody, Storage refusal and signed-in delivery (AL-2679, WP6 part 1).
       - packages/api/src/storage/**
       - packages/api/src/media/**
