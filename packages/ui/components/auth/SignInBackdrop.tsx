@@ -139,10 +139,7 @@ export function SignInBackdrop({ stills, children }: SignInBackdropProps) {
           {
             "--sign-in-still-narrow": `url("${stills.narrow}")`,
             "--sign-in-still-wide": `url("${stills.wide}")`,
-          } satisfies React.CSSProperties & {
-            "--sign-in-still-narrow": string;
-            "--sign-in-still-wide": string;
-          }
+          } as React.CSSProperties
         }
       >
         <canvas
