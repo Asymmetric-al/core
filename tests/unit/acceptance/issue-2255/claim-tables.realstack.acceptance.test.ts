@@ -25,6 +25,7 @@ import {
   AL2678_D18,
   AL2678_ID_INDEX_D18,
   AL2678_STATUS_D18,
+  AL2681_SERVICE_ROLE_D18,
   TABLES,
   body,
   read,
@@ -676,9 +677,13 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
     /token_sha256|token_expires_at|token_redeemed_at|donor_email_at_issue|account_claim_requests tenant_guard_isolation/.test(
       v,
     );
+  const regranted = (v: string) =>
+    /^rel public\.(account_claim_requests|legacy_account_invitations) /.test(v)
+      ? v.replace(/,?service_role:(MAINTAIN|REFERENCES|TRIGGER|TRUNCATE)/g, "")
+      : v;
 
   tx(
-    `12: re-applying the forward file succeeds twice; the second changes nothing, the first only restores its own text of the two staff policies a later migration rewrote and the requester policy a later one dropped (${AL2678_D18})`,
+    `12: re-applying the forward file succeeds twice; the second changes nothing, the first only restores its own text of the two staff policies a later migration rewrote and the requester policy a later one dropped, and gives service_role back the four privileges a later migration revoked from its two tables (${AL2678_D18}; ${AL2681_SERVICE_ROLE_D18})`,
     async () => {
       const before = await catalog();
       await db.query(body(MIGRATION));
@@ -694,15 +699,25 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
         "pol public.account_claim_requests account_claim_requests_requester_select",
         "pol public.account_claim_requests account_claim_requests_staff_select",
         "pol public.legacy_account_invitations legacy_account_invitations_staff_select",
+        "rel public.account_claim_requests r",
+        "rel public.legacy_account_invitations r",
       ]);
-      expect(once.filter((v) => !rewrittenLater(v))).toEqual(
-        before.filter((v) => !rewrittenLater(v)),
+      expect(
+        once
+          .filter((v) => v.startsWith("rel ") && !before.includes(v))
+          .map(regranted)
+          .sort(),
+      ).toEqual(
+        before.filter((v) => v.startsWith("rel ") && !once.includes(v)).sort(),
+      );
+      expect(once.filter((v) => !rewrittenLater(v)).map(regranted)).toEqual(
+        before.filter((v) => !rewrittenLater(v)).map(regranted),
       );
     },
   );
 
   tx(
-    `13: rollback removes both tables and nothing else; #2254 survives; forward re-creates them (the two staff policies in this file text) (${AL2678_D18}; the later claim columns, constraints, index, guard policy and guard grants are not this file's; ${AL2678_ID_INDEX_D18})`,
+    `13: rollback removes both tables and nothing else; #2254 survives; forward re-creates them (the two staff policies in this file text) (${AL2678_D18}; the later claim columns, constraints, index, guard policy and guard grants are not this file's; ${AL2678_ID_INDEX_D18}; ${AL2681_SERVICE_ROLE_D18})`,
     async () => {
       await db.query(
         "DELETE FROM public.legacy_account_invitations; DELETE FROM public.account_claim_requests",
@@ -749,8 +764,14 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
       expect(
         (await catalog())
           .filter((v) => !notThisFile(v))
-          .map(withoutGuardGrants),
-      ).toEqual(before.filter((v) => !notThisFile(v)).map(withoutGuardGrants));
+          .map(withoutGuardGrants)
+          .map(regranted),
+      ).toEqual(
+        before
+          .filter((v) => !notThisFile(v))
+          .map(withoutGuardGrants)
+          .map(regranted),
+      );
     },
   );
 });

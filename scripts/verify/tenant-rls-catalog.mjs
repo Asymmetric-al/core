@@ -18,18 +18,19 @@
 // open to signed-in users only when it calls human entry points or platform
 // commands; no function outside the command schemas has one on its search
 // path, and no function in them names the auth schema. Function text includes
-// a SQL-standard body. In `public`, no table or
-// column grant goes to PUBLIC, none of TRUNCATE, REFERENCES, TRIGGER or
-// MAINTAIN goes to anon or authenticated, they hold nothing on a view, and
-// their SELECT, INSERT, UPDATE and DELETE grants are each admitted by a policy
-// (the end state of migration 20261117034926, widened to views and columns).
-// Run by supabase-migrations.mjs after the field-policy census; #516 reuses
-// this module. See docs/security/tenant-guard.md.
+// a SQL-standard body. In `public`, no table or column grant goes to PUBLIC,
+// none of TRUNCATE, REFERENCES, TRIGGER or MAINTAIN is held by anon,
+// authenticated or service_role, anon and authenticated hold nothing on a view,
+// and their SELECT, INSERT, UPDATE and DELETE grants are each admitted by a
+// policy (the end state of 20261117034926, widened to views and columns);
+// service_role holds CREATE on no schema of the chain (issue 2841). Run by
+// supabase-migrations.mjs after the census; #516 reuses it. See tenant-guard.md.
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { runPsqlQuery } from "../lib/psql.mjs";
+import { EXCLUDED_SCHEMA_PATTERN } from "../release/schema-fingerprint.mjs";
 import {
   isAssignmentReader,
   preMembershipExceptions,
@@ -46,6 +47,7 @@ const repoRoot = path.resolve(
 );
 export const TENANT_RLS_EXCEPTIONS_PATH =
   "docs/security/rls-deny-by-default-exceptions.json";
+const CATALOG_GATE_PATH = "scripts/verify/tenant-rls-catalog.mjs";
 /**
  * Reviewed signed-in policies of tenant tables that carry no request-tenant
  * condition, each pinned to its deparsed text (AL-2675, WP2b second release;
@@ -185,6 +187,36 @@ export const UNADMITTED_TABLE_GRANTS_SQL = `select c.relname as relation, null::
      and c.relkind in ('r', 'p', 'v', 'm', 'f')
      and ${UNADMITTED}`;
 
+export const SERVICE_ROLE_EXCEPTIONS = Object.freeze({
+  entries: Object.freeze([]),
+});
+
+const SERVICE_ROLE_PRIVILEGES = `(case when current_setting('server_version_num')::int >= 170000
+             then array[${quoted(UNSAFE_TABLE_PRIVILEGES)}]
+             else array[${quoted(UNSAFE_TABLE_PRIVILEGES.filter((p) => p !== "MAINTAIN"))}] end)`;
+
+const SERVICE_ROLE_REACH = `pg_has_role('service_role', r.oid, 'USAGE') or pg_has_role('service_role', r.oid, 'SET')`;
+
+const reachedBy = (check) =>
+  `exists (select 1 from pg_roles r where (${SERVICE_ROLE_REACH}) and ${check})`;
+
+export const SERVICE_ROLE_GRANTS_SQL = `select c.relname as relation, null::text as "column", c.relkind::text as kind, p.privilege
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    cross join unnest(${SERVICE_ROLE_PRIVILEGES}) as p(privilege)
+   where n.nspname = 'public'
+     and c.relkind in ('r', 'p', 'v', 'm', 'f')
+     and ${reachedBy("has_table_privilege(r.oid, c.oid, p.privilege)")}
+  union all
+  select c.relname, att.attname::text, c.relkind::text, 'REFERENCES'
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    join pg_attribute att on att.attrelid = c.oid and att.attnum > 0 and not att.attisdropped
+   where n.nspname = 'public'
+     and c.relkind in ('r', 'p', 'v', 'm', 'f')
+     and not ${reachedBy("has_table_privilege(r.oid, c.oid, 'REFERENCES')")}
+     and ${reachedBy("has_column_privilege(r.oid, c.oid, att.attnum, 'REFERENCES')")}`;
+
 export const TENANT_RLS_CATALOG_SQL = `-- tenant-rls-catalog-gate:v1
 select jsonb_build_object(
   'tenant_keys', coalesce((select jsonb_agg(jsonb_build_object('table', n.nspname || '.' || r.relname, 'keyed', exists (
@@ -275,6 +307,14 @@ select jsonb_build_object(
   'grants', coalesce((
     select jsonb_agg(to_jsonb(g) order by g.relation, g.grantee, g.privilege)
     from (${UNADMITTED_TABLE_GRANTS_SQL}) g), '[]'::jsonb),
+  'service_role_grants', coalesce((
+    select jsonb_agg(to_jsonb(s) order by s.relation, s."column" nulls first, s.privilege)
+    from (${SERVICE_ROLE_GRANTS_SQL}) s), '[]'::jsonb),
+  'service_role_schemas', coalesce((
+    select jsonb_agg(n.nspname order by n.nspname)
+    from pg_namespace n
+    where n.nspname !~ '${EXCLUDED_SCHEMA_PATTERN}'
+      and ${reachedBy("has_schema_privilege(r.oid, n.oid, 'CREATE')")}), '[]'::jsonb),
   -- AL-2675 (WP2b, second release): every policy signed-in users reach in
   -- public, as Postgres deparses it, the bodies of the request-tenant
   -- helpers, and the public tables in the Realtime publication. 'granted'
@@ -839,6 +879,53 @@ function readAnonAllowlist(allowlist) {
   return { allowed, failures };
 }
 
+const serviceRoleKey = ({ relation, column, privilege }) =>
+  `${relation}|${column ?? ""}|${privilege}`;
+
+function readServiceRoleExceptions(list) {
+  const failures = [];
+  const listed = new Map();
+  const malformed = (detail, table) =>
+    failures.push({ code: "SERVICE_ROLE_EXCEPTIONS_MALFORMED", table, detail });
+  const named = (value) => typeof value === "string" && value.trim() !== "";
+  if (list instanceof Error) malformed(list.message);
+  else if (!Array.isArray(list?.entries))
+    malformed("expected an object with an entries array");
+  else
+    for (const [i, entry] of list.entries.entries()) {
+      if (entry === null || typeof entry !== "object" || Array.isArray(entry)) {
+        malformed(`entry ${i} is not an object`);
+        continue;
+      }
+      const onSchema = named(entry.schema);
+      const onRelation = named(entry.relation);
+      const name = onSchema ? entry.schema : entry.relation;
+      const key = onSchema ? `schema ${entry.schema}` : serviceRoleKey(entry);
+      if (onSchema === onRelation)
+        malformed(
+          `entry ${i} names neither or both of relation and schema`,
+          name,
+        );
+      else if (
+        onSchema
+          ? entry.privilege !== "CREATE" || "column" in entry
+          : !UNSAFE_TABLE_PRIVILEGES.includes(entry.privilege) ||
+            !(entry.column === undefined || named(entry.column))
+      )
+        malformed(
+          `entry ${i} must name one of ${UNSAFE_TABLE_PRIVILEGES.join(", ")} on a relation (a column for REFERENCES only), or CREATE on a schema`,
+          name,
+        );
+      else if (entry.column !== undefined && entry.privilege !== "REFERENCES")
+        malformed(`entry ${i} names a column for ${entry.privilege}`, name);
+      else if (!named(entry.reason) || !named(entry.reviewed_by))
+        malformed(`entry ${i} has no reason or no reviewer`, name);
+      else if (listed.has(key)) malformed(`duplicate entry ${i}`, name);
+      else listed.set(key, name);
+    }
+  return { listed, failures };
+}
+
 /**
  * Pure evaluator. `snapshot` is the parsed TENANT_RLS_CATALOG_SQL result;
  * `exceptions` is the parsed exception list, and `anonAllowlist` the parsed
@@ -851,6 +938,7 @@ export function evaluateTenantRlsCatalog(
   anonAllowlist = { entries: [] },
   policyExceptionList = { entries: [] },
   preMembershipList = undefined,
+  serviceRoleExceptions = SERVICE_ROLE_EXCEPTIONS,
 ) {
   const { listed, failures, usable } = readExceptions(exceptions);
   const fail = (code, table, detail) => failures.push({ code, table, detail });
@@ -1188,6 +1276,43 @@ export function evaluateTenantRlsCatalog(
     fail(code, g.relation, `${g.grantee} holds ${g.privilege}${on}: ${why}`);
   }
 
+  const serviceRole = readServiceRoleExceptions(serviceRoleExceptions);
+  failures.push(...serviceRole.failures);
+  const excepted = new Set();
+  const REVIEW = `revoke it, or name it with its reason and reviewer in SERVICE_ROLE_EXCEPTIONS (${CATALOG_GATE_PATH})`;
+  for (const g of snapshot.service_role_grants ?? []) {
+    const key = serviceRoleKey(g);
+    if (serviceRole.listed.has(key)) {
+      excepted.add(key);
+      continue;
+    }
+    const on = g.column ? ` on column ${g.column}` : "";
+    fail(
+      "SERVICE_ROLE_UNSAFE_PRIVILEGE",
+      g.relation,
+      `service_role holds ${g.privilege}${on}: the service key holds no TRUNCATE, REFERENCES, TRIGGER or MAINTAIN in public (issue 2841, amending D-111); ${REVIEW}`,
+    );
+  }
+  for (const schema of snapshot.service_role_schemas ?? []) {
+    const key = `schema ${schema}`;
+    if (serviceRole.listed.has(key)) {
+      excepted.add(key);
+      continue;
+    }
+    fail(
+      "SERVICE_ROLE_SCHEMA_CREATE",
+      schema,
+      `service_role holds CREATE on schema ${schema}: the service key creates nothing in a schema of the chain (issue 2841, amending D-111); ${REVIEW}`,
+    );
+  }
+  for (const [key, name] of serviceRole.listed)
+    if (!excepted.has(key))
+      fail(
+        "SERVICE_ROLE_EXCEPTION_STALE",
+        name,
+        `stale exception: service_role no longer holds what ${key} names; remove it from SERVICE_ROLE_EXCEPTIONS (${CATALOG_GATE_PATH})`,
+      );
+
   // AL-2675 (WP2b, second release; plan 12, WP2 exit): the tenant condition
   // on every signed-in policy of a tenant table, each lookup once for a
   // statement, no policy and no tenant helper that reads the token claim, and
@@ -1375,6 +1500,8 @@ function assertSnapshotShape(snapshot) {
     "commands",
     "wrappers",
     "grants",
+    "service_role_grants",
+    "service_role_schemas",
     "policies",
     "tenant_helpers",
     "published",
@@ -1415,6 +1542,16 @@ function assertSnapshotShape(snapshot) {
       !(g.column === null || isText(g.column))
     )
       throw incomplete("grant", g);
+  for (const g of snapshot.service_role_grants)
+    if (
+      ![g?.relation, g?.privilege, g?.kind].every(isText) ||
+      !(g.column === null || isText(g.column))
+    )
+      throw incomplete("service_role grant", g);
+  if (!snapshot.service_role_schemas.every(isText))
+    throw incomplete("service_role schema", {
+      relation: "service_role_schemas",
+    });
   const textOrNull = (v) => v === null || isText(v);
   for (const p of snapshot.policies)
     if (
