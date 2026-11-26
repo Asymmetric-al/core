@@ -48,9 +48,9 @@ describe("packages/missionary/components/add-partner-form-model", () => {
     expect(
       partnerIntent({
         ...VALUES,
-        name: "Alice  Johnson​ ",
-        phone: " ⁠",
-        location: "Denver,　 CO﻿",
+        name: "Alice\u00a0 Johnson\u200b ",
+        phone: " \u2060",
+        location: "Denver,\u3000 CO\ufeff",
       }),
     ).toBe(intent);
     for (const changed of [
