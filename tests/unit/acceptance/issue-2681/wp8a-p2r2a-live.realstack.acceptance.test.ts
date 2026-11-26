@@ -264,7 +264,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(holdings).toEqual({ any: false, service_normalize: true });
       }));
 
-    it("F1 (guard; ruling Q-C): after the apply has completed an intake, a replayed gift:<id>:create_payment key on POST /api/donate still answers 409 Idempotency key already used, and nothing is written: the counts, the intake and its request are as they were", () =>
+    it("F1 (guard; ruling Q-C): after the apply has completed an intake, a replayed gift:<id>:create_payment key on POST /api/donate still answers 409 Idempotency key already used, and nothing is written: the counts, the intake and its request are as they were (D-18, AL-2678 WP5 rest: the saga now refuses that key with 23505 instead of answering it as a replay, and the double answers that refusal as supabase-js does, an error in the result, rolled back to a savepoint)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         await grant(db, HOSTED_SERVICE_GRANTS);
@@ -343,13 +343,24 @@ describe.skipIf(!ADMIN_URL)(
             asService(async () => {
               expect(fn).toBe("begin_donation_saga");
               const names = Object.keys(args);
-              const r = await db.query(
-                `SELECT public.begin_donation_saga(${names.map((n, i) => `${n} => $${i + 1}`).join(", ")}) AS r`,
-                names.map((n) =>
-                  n === "p_fee_extras" ? JSON.stringify(args[n]) : args[n],
-                ),
-              );
-              return { data: r.rows[0].r, error: null };
+              await db.query("SAVEPOINT saga");
+              try {
+                const r = await db.query(
+                  `SELECT public.begin_donation_saga(${names.map((n, i) => `${n} => $${i + 1}`).join(", ")}) AS r`,
+                  names.map((n) =>
+                    n === "p_fee_extras" ? JSON.stringify(args[n]) : args[n],
+                  ),
+                );
+                await db.query("RELEASE SAVEPOINT saga");
+                return { data: r.rows[0].r, error: null };
+              } catch (e) {
+                await db.query("ROLLBACK TO SAVEPOINT saga");
+                const err = e as { code?: string; message: string };
+                return {
+                  data: null,
+                  error: { code: err.code, message: err.message },
+                };
+              }
             }),
           from: (table: string) => {
             expect(table).toBe("donations");
