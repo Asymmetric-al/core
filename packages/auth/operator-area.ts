@@ -13,7 +13,7 @@ import {
   frontNotFound,
   frontRefusal,
 } from "./front";
-import { parseTenantAddress } from "./tenant-address";
+import { parseSubRoleAddress, parseTenantAddress } from "./tenant-address";
 
 export const OPERATOR_AREA_ROOT = "/operator";
 
@@ -154,6 +154,10 @@ export async function admitOperatorArea(
   if (address) {
     return isOperatorAreaPath(address.innerPathname) ? frontNotFound() : null;
   }
+  const named = isServeUnderPathsEnabled()
+    ? parseSubRoleAddress(pathname)
+    : null;
+  if (named && isOperatorAreaPath(named.innerPathname)) return frontNotFound();
   if (!isOperatorAreaPath(pathname)) return null;
   if (
     request.headers.has(FRONT_STAMP_HEADER) ||

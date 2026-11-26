@@ -1,7 +1,11 @@
-import { crossAppHref } from "@asym/database/document-reload";
+import {
+  crossAppHref,
+  isServeUnderPathsEnabled,
+} from "@asym/database/document-reload";
 
 import { safeNextParam } from "./demo-login";
 import { selectAssignment } from "./principal/assignment";
+import { parseSubRoleAddress } from "./tenant-address";
 
 import type { ActiveAssignment, RoleClass } from "./principal/types";
 import type { DocumentSegment } from "@asym/database/document-scope";
@@ -88,6 +92,8 @@ export const WEB_STUDIO_ENTRY_ASSIGNMENT_PARAM = "assignment";
 
 export const WEB_STUDIO_FROM_PARAM = "from";
 
+export const WEB_STUDIO_ENTRY_ROLE_PARAM = "role";
+
 export function webStudioEntryQuery(
   scope: {
     tenantId: string;
@@ -96,6 +102,10 @@ export function webStudioEntryQuery(
   } | null,
 ): Record<string, string> | null {
   if (!scope || scope.addressPrefix === "") return null;
+  if (isServeUnderPathsEnabled()) {
+    const address = parseSubRoleAddress(scope.addressPrefix);
+    return address ? { [WEB_STUDIO_ENTRY_ROLE_PARAM]: address.subRole } : null;
+  }
   return {
     [WEB_STUDIO_ENTRY_TENANT_PARAM]: scope.tenantId,
     [WEB_STUDIO_ENTRY_ASSIGNMENT_PARAM]: scope.assignmentId,

@@ -12,7 +12,10 @@ import {
   stripTenantAddress,
   withTenantAddress,
 } from "@asym/auth/tenant-address";
-import { listAddressChoices } from "@asym/auth/tenant-address-decisions";
+import {
+  listAddressChoices,
+  listNameAddressChoices,
+} from "@asym/auth/tenant-address-decisions";
 import { readServerNameTenantState } from "@asym/auth/tenant-server";
 
 import type { MembershipRole, StaffSubrole } from "@asym/database/types";
@@ -149,16 +152,25 @@ export async function loadOrganizationChoices(input: {
   if (nameTenantId === "refused") return { kind: "ok", organizations: [] };
   const signedIn = await getSignedInAssignments();
   if (signedIn.kind === "unavailable") {
-    return { kind: "unavailable", retryHref: chooserRetryHref(input) };
+    return {
+      kind: "unavailable",
+      retryHref: chooserRetryHref(nameTenantId ? { next: input.next } : input),
+    };
   }
   if (signedIn.kind !== "signed_in") return { kind: signedIn.kind };
 
   const tenantId = nameTenantId ?? input.tenantId;
-  const choices = listAddressChoices({
-    assignments: signedIn.assignments,
-    roleClass: input.roleClass,
-    ...(tenantId ? { tenantId } : {}),
-  });
+  const choices = nameTenantId
+    ? listNameAddressChoices({
+        assignments: signedIn.assignments,
+        roleClass: input.roleClass,
+        nameTenantId,
+      })
+    : listAddressChoices({
+        assignments: signedIn.assignments,
+        roleClass: input.roleClass,
+        ...(tenantId ? { tenantId } : {}),
+      });
   const tenantIds = [...new Set(choices.map((choice) => choice.tenantId))];
   const names = signedIn.organizationNames;
   const path = choicePath(input.next);

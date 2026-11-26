@@ -11,6 +11,7 @@ import {
 import { answerAdmittedRedirect } from "@asym/auth/legacy-redirects";
 import { createAuthMiddleware } from "@asym/auth/middleware";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
+import { refusesAddressOnName } from "@asym/auth/tenant-address";
 import {
   lookUpVerifiedName,
   verifiedNameUnavailable,
@@ -68,12 +69,14 @@ export async function proxy(request: NextRequest) {
   );
   if (name.kind === "refused") return frontNotFound();
   if (name.kind === "unavailable") return verifiedNameUnavailable();
+  if (refusesAddressOnName(request.nextUrl.pathname, "missionary")) {
+    return frontNotFound();
+  }
   const response =
     answerAdmittedRedirect(
       request,
       legacyRedirects,
-      ({ params }) =>
-        params.prefix === undefined || params.prefix === name.tenantId,
+      ({ params }) => params.prefix === undefined,
     ) ??
     (await authProxy(asStampedRequest(request, admission.origin), {
       nameTenantId: name.tenantId,

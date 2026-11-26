@@ -5,7 +5,10 @@ import {
   nameTenantIdOf,
 } from "@asym/auth/request-headers";
 import { buildTenantPrefix } from "@asym/auth/tenant-address";
-import { listAddressChoices } from "@asym/auth/tenant-address-decisions";
+import {
+  listAddressChoices,
+  listNameAddressChoices,
+} from "@asym/auth/tenant-address-decisions";
 import {
   readServerNameGeneration,
   readServerNameTenantState,
@@ -148,12 +151,19 @@ export async function requireWebStudioAccess(
   );
   // The address Mission Control's chooser would give this row.
   const home =
-    listAddressChoices({
-      assignments: signedIn.assignments,
-      roleClass: WEB_STUDIO_ROLE_CLASS,
-      tenantId: assignment.tenantId,
-    }).find((choice) => choice.assignmentId === assignment.assignmentId)
-      ?.prefix ?? buildTenantPrefix(assignment.tenantId, null);
+    nameTenantId === null
+      ? (listAddressChoices({
+          assignments: signedIn.assignments,
+          roleClass: WEB_STUDIO_ROLE_CLASS,
+          tenantId: assignment.tenantId,
+        }).find((choice) => choice.assignmentId === assignment.assignmentId)
+          ?.prefix ?? buildTenantPrefix(assignment.tenantId, null))
+      : listNameAddressChoices({
+          assignments: signedIn.assignments,
+          roleClass: WEB_STUDIO_ROLE_CLASS,
+          nameTenantId,
+        }).find((choice) => choice.assignmentId === assignment.assignmentId)
+          ?.prefix || "/";
   return {
     scope: {
       userId: signedIn.userId,

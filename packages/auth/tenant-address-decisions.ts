@@ -1,5 +1,5 @@
 import { STAFF_SUBROLES } from "./staff-subroles";
-import { buildTenantPrefix } from "./tenant-address";
+import { buildTenantPrefix, nameAddressPrefix } from "./tenant-address";
 
 import type { MembershipRole, StaffSubrole } from "@asym/database/types";
 
@@ -118,4 +118,59 @@ export function listAddressChoices(input: {
       prefix: prefixFor(row, rows.length),
     }));
   });
+}
+
+export type NameAddressDecision<Row extends AddressRow = AddressRow> =
+  | { kind: "allow"; assignment: Row; prefix: string }
+  | { kind: "choose" }
+  | { kind: "refuse" }
+  | { kind: "not_found" };
+
+export function decideNameAddress<Row extends AddressRow>(input: {
+  assignments: readonly Row[];
+  roleClass: RoleClass;
+  nameTenantId: string;
+  subRole: StaffSubrole | null;
+}): NameAddressDecision<Row> {
+  const rows = rowsInTenant(
+    input.assignments,
+    input.roleClass,
+    input.nameTenantId,
+  );
+  if (rows.length === 0) return { kind: "refuse" };
+  if (rows.length === 1 || input.roleClass !== "staff") {
+    if (input.subRole !== null) return { kind: "not_found" };
+    return rows.length === 1
+      ? { kind: "allow", assignment: rows[0]!, prefix: "" }
+      : { kind: "refuse" };
+  }
+  const named =
+    input.subRole === null
+      ? undefined
+      : rows.find((row) => row.staffRole === input.subRole);
+  return named
+    ? {
+        kind: "allow",
+        assignment: named,
+        prefix: nameAddressPrefix(named.staffRole),
+      }
+    : { kind: "choose" };
+}
+
+export function listNameAddressChoices(input: {
+  assignments: readonly AddressRow[];
+  roleClass: RoleClass;
+  nameTenantId: string;
+}): AddressChoice[] {
+  const rows = rowsInTenant(
+    input.assignments,
+    input.roleClass,
+    input.nameTenantId,
+  );
+  return rows.map((row) => ({
+    tenantId: row.tenantId,
+    assignmentId: row.assignmentId,
+    subRole: row.staffRole,
+    prefix: nameAddressPrefix(rows.length > 1 ? row.staffRole : null),
+  }));
 }

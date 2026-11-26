@@ -14,7 +14,10 @@ import {
   safeWebStudioNext,
   webStudioChooserAddress,
 } from "@asym/auth/web-studio";
-import { cookies } from "next/headers";
+import { withAppBasePath } from "@asym/database/document-reload";
+import { cookies, headers } from "next/headers";
+
+import type { OrganizationChoiceLoad } from "@asym/ui/components/auth/organization-choice-form";
 
 import { webStudioTenantCookie } from "@/src/cms/web-studio-tenant-cookie";
 
@@ -30,6 +33,21 @@ import { webStudioTenantCookie } from "@/src/cms/web-studio-tenant-cookie";
 export async function chooseWebStudioOrganization(
   formData: FormData,
 ): Promise<never> {
+  return redirectFromActionInTenant(await setChosenOrganization(formData));
+}
+
+export async function chooseWebStudioOrganizationToLoad(
+  _state: OrganizationChoiceLoad,
+  formData: FormData,
+): Promise<OrganizationChoiceLoad> {
+  const next = await setChosenOrganization(formData);
+  if ((await headers()).has("next-action")) {
+    return { load: withAppBasePath(next) };
+  }
+  return redirectFromActionInTenant(next);
+}
+
+async function setChosenOrganization(formData: FormData): Promise<string> {
   const next = safeWebStudioNext(String(formData.get("next") ?? ""));
   const signedIn = await getSignedInAssignments();
   if (signedIn.kind === "signed_out") {
@@ -66,5 +84,5 @@ export async function chooseWebStudioOrganization(
       assignmentId: decision.assignment.assignmentId,
     }),
   );
-  return redirectFromActionInTenant(next);
+  return next;
 }

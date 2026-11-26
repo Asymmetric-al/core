@@ -53,6 +53,14 @@ const BANNED_NAVIGATION = {
   permanentRedirect: ["permanentRedirectInTenant", SERVER_MODULE],
 };
 
+const OFF_MODE_ID_SITES = [
+  ["packages/auth/tenant-address.ts", "buildTenantPrefix"],
+  ["packages/api/src/invitations/accept.ts", "redirectPathFor"],
+  ["packages/ui/components/auth/InvitationDoorway.tsx", "InvitationDoorway"],
+];
+
+const NAMES_ORGANIZATION = /tenant|organi[sz]ation/i;
+
 /** Workspaces the rule covers, with the helper modules each one holds. */
 export const tenantNavigationScopes = {
   "apps/admin": [],
@@ -119,12 +127,42 @@ function memberName(node) {
     : null;
 }
 
+function namesOrganization(node) {
+  if (!node) return false;
+  switch (node.type) {
+    case "Identifier":
+      return NAMES_ORGANIZATION.test(node.name);
+    case "MemberExpression":
+      return NAMES_ORGANIZATION.test(memberName(node) ?? "");
+    case "TSAsExpression":
+    case "TSNonNullExpression":
+    case "TSSatisfiesExpression":
+      return namesOrganization(node.expression);
+    default:
+      return false;
+  }
+}
+
+function firstOperand(node) {
+  return node.type === "BinaryExpression" && node.operator === "+"
+    ? firstOperand(node.left)
+    : node;
+}
+
+function secondOperand(chain) {
+  let node = chain;
+  while (node.left.type === "BinaryExpression" && node.left.operator === "+") {
+    node = node.left;
+  }
+  return node.right;
+}
+
 const noPrefixlessNavigation = {
   meta: {
     type: "problem",
     docs: {
       description:
-        "Build addresses inside Mission Control and the missionary workspace through the tenant helpers.",
+        "Build addresses inside Mission Control and the missionary workspace through the address helpers.",
     },
     schema: [
       {
@@ -138,25 +176,50 @@ const noPrefixlessNavigation = {
       },
     ],
     messages: {
-      link: "next/link drops the tenant prefix and the segment crossing: use TenantLink from @asym/auth/tenant-navigation.",
+      link: "next/link drops the address prefix and the segment crossing: use TenantLink from @asym/auth/tenant-navigation.",
       navigation:
-        "{{name}} from next/navigation drops the tenant prefix: use {{helper}} from {{module}}.",
+        "{{name}} from next/navigation drops the address prefix: use {{helper}} from {{module}}.",
       namespace:
-        "A namespace import of {{module}} reaches the APIs that drop the tenant prefix: import the names you use, through the tenant helpers.",
+        "A namespace import of {{module}} reaches the APIs that drop the address prefix: import the names you use, through the address helpers.",
       reexport:
-        "Re-exporting {{module}} hands on the APIs that drop the tenant prefix: export the tenant helpers instead.",
+        "Re-exporting {{module}} hands on the APIs that drop the address prefix: export the address helpers instead.",
       dynamic:
-        "Loading {{module}} at run time bypasses the tenant helpers: import TenantLink or the tenant router from @asym/auth/tenant-navigation.",
-      href: "A literal internal href on <{{element}}> drops the tenant prefix: render it through TenantLink, as the element or as its `render`.",
+        "Loading {{module}} at run time bypasses the address helpers: import TenantLink or the tenant router from @asym/auth/tenant-navigation.",
+      href: "A literal internal href on <{{element}}> drops the address prefix: render it through TenantLink, as the element or as its `render`.",
       location:
-        "Writing window.location bypasses the tenant helpers: use loadDocument from @asym/database/document-reload, or the tenant router.",
+        "Writing window.location bypasses the address helpers: use loadDocument from @asym/database/document-reload, or the tenant router.",
       history:
-        "A history write whose address is not the live location's drops the tenant prefix: build it from window.location (or a URL made from it), or with useTenantHref().",
-      form: "{{what}} submits to an address without the tenant prefix: navigate through the tenant router.",
+        "A history write whose address is not the live location's drops the address prefix: build it from window.location (or a URL made from it), or with useTenantHref().",
+      form: "{{what}} submits to an address without the address prefix: navigate through the tenant router.",
+      organizationId:
+        "This address starts with an organization's ID, which no address carries once the verified name gives the organization: build it with TenantLink, useTenantRouter or redirectInTenant.",
     },
   },
   create(context) {
     const sourceCode = context.sourceCode;
+    const relativeFile = path
+      .relative(repositoryRoot, context.filename)
+      .split(path.sep)
+      .join("/");
+    const allowedIdFunctions = OFF_MODE_ID_SITES.filter(
+      ([file]) => file === relativeFile,
+    ).map(([, name]) => name);
+
+    function isOffModeIdSite(node) {
+      if (allowedIdFunctions.length === 0) return false;
+      for (const ancestor of sourceCode.getAncestors(node).reverse()) {
+        if (ancestor.type === "FunctionDeclaration" && ancestor.id) {
+          return allowedIdFunctions.includes(ancestor.id.name);
+        }
+      }
+      return false;
+    }
+
+    function reportOrganizationId(node) {
+      if (!isOffModeIdSite(node)) {
+        context.report({ node, messageId: "organizationId" });
+      }
+    }
     // Local names bound to TenantLink, so `import { TenantLink as Link }` is
     // recognized as the helper.
     const tenantLinkNames = new Set(["TenantLink"]);
@@ -325,6 +388,32 @@ const noPrefixlessNavigation = {
     }
 
     return {
+      TemplateLiteral(node) {
+        if (
+          node.quasis[0]?.value.cooked === "/" &&
+          namesOrganization(node.expressions[0])
+        ) {
+          reportOrganizationId(node);
+        }
+      },
+      BinaryExpression(node) {
+        if (node.operator !== "+") return;
+        if (
+          node.parent.type === "BinaryExpression" &&
+          node.parent.operator === "+" &&
+          node.parent.left === node
+        ) {
+          return;
+        }
+        const first = firstOperand(node);
+        if (
+          first.type === "Literal" &&
+          first.value === "/" &&
+          namesOrganization(secondOperand(node))
+        ) {
+          reportOrganizationId(node);
+        }
+      },
       ImportDeclaration(node) {
         const source = node.source.value;
         if (source === NAVIGATION_MODULE) {
