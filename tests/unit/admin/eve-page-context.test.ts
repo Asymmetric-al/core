@@ -16,7 +16,7 @@ describe("buildEvePageContext", () => {
       buildEvePageContext({ panelOpen: false, pathname, tenant: null }),
     ).toMatchObject({ route: pathname, pageIdentity });
   });
-  it.each(["/settings", "/settings/teams", "/settings/eve"])(
+  it.each(["/settings", "/settings/teams", "/settings/eve", "/settings/sites"])(
     "maps %s to the /settings Settings identity",
     (pathname) => {
       expect(

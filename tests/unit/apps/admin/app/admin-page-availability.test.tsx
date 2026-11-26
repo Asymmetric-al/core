@@ -3,13 +3,16 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeAll, expect, it, vi } from "vitest";
 
-const workspace = vi.hoisted(() => ({ role: "admin" as string }));
+const workspace = vi.hoisted(() => ({
+  role: "admin" as string,
+  capabilities: [] as string[],
+}));
 
 vi.mock("@asym/lib/mission-control/context", () => ({
-  useMC: () => ({ role: workspace.role }),
+  useMC: () => ({ role: workspace.role, capabilities: workspace.capabilities }),
 }));
 
 import type { ComponentType } from "react";
@@ -40,6 +43,7 @@ beforeAll(async () => {
 afterEach(() => {
   cleanup();
   workspace.role = "admin";
+  workspace.capabilities = [];
 });
 
 /** The admin page file an href renders, Web Studio's catch-all included. */
@@ -89,6 +93,27 @@ it("lists Eve only for admins while offering Members read-only to all live staff
     screen.getByRole("link", { name: /^members/i }).getAttribute("href"),
   ).toBe("/settings/teams");
   expect(screen.getByRole("link", { name: /email delivery/i })).toBeTruthy();
+});
+
+it("lists Sites under Public identity only for an assignment that holds sites.manage (AL-2676 WP3b part 3)", () => {
+  workspace.capabilities = ["admin.dashboard.access", "sites.manage"];
+  render(<AdminPage />);
+  const identity = screen.getByRole("region", { name: "Public identity" });
+  const link = within(identity).getByRole("link", { name: /^sites/i });
+  expect(link.getAttribute("href")).toBe("/settings/sites");
+  expect(routeExists("/settings/sites")).toBe(true);
+  cleanup();
+
+  workspace.capabilities = ["admin.dashboard.access"];
+  render(<AdminPage />);
+  expect(screen.queryByRole("region", { name: "Public identity" })).toBeNull();
+  expect(screen.queryByRole("link", { name: /^sites/i })).toBeNull();
+  cleanup();
+
+  workspace.role = "finance";
+  workspace.capabilities = [];
+  render(<AdminPage />);
+  expect(screen.queryByRole("link", { name: /^sites/i })).toBeNull();
 });
 
 it("sets the sections side by side on wide screens instead of one narrow column", () => {

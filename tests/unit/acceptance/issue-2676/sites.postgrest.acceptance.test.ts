@@ -387,3 +387,345 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
     });
   },
 );
+
+describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
+  "Mission Control's Sites read and routes on the person's own token (WP3b part 3, T2)",
+  () => {
+    const tenant = randomUUID(),
+      membership = randomUUID(),
+      site = randomUUID(),
+      home = randomUUID(),
+      other = randomUUID(),
+      otherSite = randomUUID(),
+      otherHome = randomUUID(),
+      forgedAssignment = randomUUID();
+    const ENV_KEYS = [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    ] as const;
+    const savedEnv: Partial<Record<(typeof ENV_KEYS)[number], string>> = {};
+    let db: pg.Client | undefined;
+    let user: string | undefined;
+    let token = "";
+    let forged = false;
+    let unmock: (() => void) | undefined;
+    type Handler = (request: Request) => Promise<Response>;
+    let routes:
+      | { read: Handler; create: Handler; status: Handler; brand: Handler }
+      | undefined;
+
+    const authFor = (tenantId: string, assignmentId: string) => ({
+      userId: user,
+      profileId: user,
+      tenantId,
+      isAuthenticated: true,
+      role: "admin",
+      memberships: [
+        {
+          tenantId,
+          role: "staff",
+          staffRole: "development",
+          isActive: true,
+          isTenantAdmin: true,
+        },
+      ],
+      assignment: {
+        assignmentId,
+        userId: user,
+        tenantId,
+        revision: "1",
+        membershipRole: "staff",
+        staffRole: "development",
+        isTenantAdmin: true,
+      },
+      assignmentDenial: null,
+    });
+
+    async function loadRoutes() {
+      if (routes) return routes;
+      const { vi } = await import("vitest");
+      vi.doMock("@asym/auth/context", async (original) => ({
+        ...(await original<Record<string, unknown>>()),
+        getAuthContext: async () =>
+          forged
+            ? authFor(other, forgedAssignment)
+            : authFor(tenant, membership),
+      }));
+      unmock = () => vi.doUnmock("@asym/auth/context");
+      const settings =
+        await import("../../../../packages/api/src/admin/sites/settings");
+      const status =
+        await import("../../../../packages/api/src/admin/sites/status");
+      const brand =
+        await import("../../../../packages/api/src/admin/sites/brand");
+      routes = {
+        read: settings.GET as unknown as Handler,
+        create: settings.POST as unknown as Handler,
+        status: status.POST as unknown as Handler,
+        brand: brand.POST as unknown as Handler,
+      };
+      return routes;
+    }
+
+    const routeRequest = async (path: string, body?: object) => {
+      const { NextRequest } = await import("next/server");
+      return new NextRequest(`http://localhost${path}`, {
+        method: body ? "POST" : "GET",
+        headers: {
+          authorization: `Bearer ${token}`,
+          ...(body ? { "content-type": "application/json" } : {}),
+        },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    };
+
+    const rpcAs = (key: string, bearer: string) =>
+      fetch(`${url}/rest/v1/rpc/tenant_site_settings`, {
+        method: "POST",
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${bearer}`,
+          "Content-Type": "application/json",
+          "x-asym-tenant": tenant,
+          "x-asym-assignment": membership,
+        },
+        body: JSON.stringify({ p_tenant_id: tenant }),
+      });
+
+    const sitesOf = async (tenantId: string) =>
+      (
+        await db!.query(
+          "select id::text, name, is_default, status, primary_domain from public.sites where tenant_id=$1 order by is_default desc, name, id",
+          [tenantId],
+        )
+      ).rows;
+
+    beforeAll(async () => {
+      if (
+        !url ||
+        !database ||
+        !anon ||
+        !service ||
+        ![url, database].every((value) =>
+          ["localhost", "127.0.0.1", "[::1]"].includes(new URL(value).hostname),
+        )
+      )
+        throw Error("A disposable local Supabase stack is required");
+      const authApi = (path: string, key: string, body: object) =>
+        fetch(`${url}/auth/v1/${path}`, {
+          method: "POST",
+          headers: {
+            apikey: key,
+            Authorization: `Bearer ${key}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+      const credentials = {
+        email: `wp3-site-settings-${tenant}@example.test`,
+        password: randomUUID(),
+      };
+      const signup = await authApi("admin/users", service, {
+        ...credentials,
+        email_confirm: true,
+      });
+      expect(signup.ok, `Auth fixture status: ${signup.status}`).toBe(true);
+      user = (await signup.json()).id;
+      const login = await authApi(
+        "token?grant_type=password",
+        anon,
+        credentials,
+      );
+      expect(login.ok, `Sign-in status: ${login.status}`).toBe(true);
+      token = (await login.json()).access_token;
+      db = new pg.Client({ connectionString: database });
+      await db.connect();
+      await db.query("begin");
+      try {
+        await db.query(
+          "insert into public.tenants(id,name,slug) values ($1,'Site settings fixture',$1::uuid::text),($2,'Site settings other',$2::uuid::text)",
+          [tenant, other],
+        );
+        await db.query(
+          "insert into authz.memberships(id,user_id,tenant_id,role,staff_role,is_tenant_admin) values ($1,$2,$3,'staff','development',true)",
+          [membership, user, tenant],
+        );
+        await db.query(
+          "insert into public.sites(id,tenant_id,name,is_default) values ($1,$2,'Default',true),($3,$4,'Other default',true)",
+          [site, tenant, otherSite, other],
+        );
+        await db.query(
+          "insert into public.donor_portal_hosts(id,tenant_id) values ($1,$2),($3,$4)",
+          [home, tenant, otherHome, other],
+        );
+        await db.query(
+          "insert into public.donor_account_brands(tenant_id,display_name) values ($1,'Settings brand'),($2,'Other brand')",
+          [tenant, other],
+        );
+        await db.query("commit");
+      } catch (error) {
+        await db.query("rollback");
+        throw error;
+      }
+      for (const key of ENV_KEYS) savedEnv[key] = process.env[key];
+      process.env.NEXT_PUBLIC_SUPABASE_URL = url;
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = anon;
+      delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    });
+
+    afterAll(async () => {
+      for (const key of ENV_KEYS) {
+        if (savedEnv[key] === undefined) delete process.env[key];
+        else process.env[key] = savedEnv[key];
+      }
+      unmock?.();
+      try {
+        if (db) {
+          await db.query("begin");
+          try {
+            for (const table of [
+              "public.audit_logs",
+              "public.donor_account_brands",
+              "public.donor_portal_hosts",
+              "public.sites",
+              "authz.memberships",
+            ])
+              await db.query(
+                `delete from ${table} where tenant_id = any($1::uuid[])`,
+                [[tenant, other]],
+              );
+            await db.query(
+              "delete from public.tenants where id = any($1::uuid[])",
+              [[tenant, other]],
+            );
+            await db.query("commit");
+          } catch (error) {
+            await db.query("rollback");
+            throw error;
+          } finally {
+            await db.end();
+          }
+        }
+      } finally {
+        if (user && service)
+          expect(
+            (
+              await fetch(`${url}/auth/v1/admin/users/${user}`, {
+                method: "DELETE",
+                headers: {
+                  apikey: service,
+                  Authorization: `Bearer ${service}`,
+                },
+              })
+            ).ok,
+          ).toBe(true);
+      }
+    });
+
+    it("reads the Sites and brand through the RPC for the signed-in administrator, and refuses anon and service_role", async () => {
+      const response = await rpcAs(anon!, token);
+      const body = await response.json();
+      expect(response.status, body?.message).toBe(200);
+      expect(body).toEqual({
+        sites: [
+          {
+            id: site,
+            name: "Default",
+            is_default: true,
+            status: "active",
+            primary_domain: null,
+          },
+        ],
+        brand: { display_name: "Settings brand" },
+      });
+      for (const [label, key] of [
+        ["anon", anon!],
+        ["service_role", service!],
+      ] as const) {
+        const refused = await rpcAs(key, key);
+        expect(refused.status, label).not.toBe(200);
+        expect((await refused.json()).code, label).toBe("42501");
+      }
+    });
+
+    it("runs the read, create, status and brand routes on the person's token, answering what the database holds", async () => {
+      const { read, create, status, brand } = await loadRoutes();
+      const loaded = await read(await routeRequest("/api/admin/sites"));
+      expect(loaded.status).toBe(200);
+      expect(loaded.headers.get("cache-control")).toBe("no-store");
+      expect(await loaded.json()).toEqual({
+        sites: await sitesOf(tenant),
+        brand: { display_name: "Settings brand" },
+      });
+
+      const name = `Route Site ${randomUUID().slice(0, 8)}`;
+      const created = await create(
+        await routeRequest("/api/admin/sites", { name }),
+      );
+      const createdBody = await created.json();
+      expect(created.status, JSON.stringify(createdBody)).toBe(201);
+      const stored = (await sitesOf(tenant)).filter((row) => row.name === name);
+      expect(stored).toHaveLength(1);
+      expect(createdBody).toEqual({ site: stored[0] });
+      expect(Object.keys(createdBody.site)).not.toContain("tenant_id");
+
+      const before = await sitesOf(other);
+      const foreign = await status(
+        await routeRequest("/api/admin/sites/status", {
+          siteId: otherSite,
+          status: "inactive",
+        }),
+      );
+      expect(foreign.status).toBe(404);
+      expect((await foreign.json()).code).toBe("SITE_NOT_FOUND");
+      expect(await sitesOf(other)).toEqual(before);
+
+      const renamed = await brand(
+        await routeRequest("/api/admin/sites/brand", {
+          displayName: "Renamed by route",
+        }),
+      );
+      expect(renamed.status).toBe(200);
+      expect(await renamed.json()).toEqual({
+        brand: { display_name: "Renamed by route" },
+      });
+      expect(
+        (
+          await db!.query(
+            "select display_name from public.donor_account_brands where tenant_id=$1",
+            [tenant],
+          )
+        ).rows,
+      ).toEqual([{ display_name: "Renamed by route" }]);
+    });
+
+    it("refuses a context forged to hold sites.manage in an organization where the person has no row, from the database, writing nothing", async () => {
+      const { read, create } = await loadRoutes();
+      const snapshotOther = async () => ({
+        sites: await sitesOf(other),
+        audits: (
+          await db!.query(
+            "select count(*)::int as n from public.audit_logs where tenant_id=$1",
+            [other],
+          )
+        ).rows[0]!.n,
+      });
+      const before = await snapshotOther();
+      forged = true;
+      try {
+        const loaded = await read(await routeRequest("/api/admin/sites"));
+        expect(loaded.status).toBe(403);
+        expect((await loaded.json()).code).toBe("NOT_PERMITTED");
+        const created = await create(
+          await routeRequest("/api/admin/sites", { name: "Forged Site" }),
+        );
+        expect(created.status).toBe(403);
+        expect((await created.json()).code).toBe("NOT_PERMITTED");
+      } finally {
+        forged = false;
+      }
+      expect(await snapshotOther()).toEqual(before);
+    });
+  },
+);
